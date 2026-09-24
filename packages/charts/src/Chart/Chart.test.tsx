@@ -5,8 +5,11 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
 import { Chart } from '.'
-import { CHART_TEXTURE_COUNT, chartTextureId } from '../ChartPatterns'
+import { CHART_TEXTURE_COUNT } from '../ChartPatterns'
 import { ChartCardContext } from './context'
+
+const textureCount = (container: HTMLElement, slot: number) =>
+  container.querySelectorAll(`[id$='texture-${slot}']`).length
 
 const table = {
   columns: [
@@ -89,9 +92,25 @@ describe('Chart', () => {
       </Chart>
     )
     for (let slot = 1; slot <= CHART_TEXTURE_COUNT; slot++)
-      expect(
-        container.querySelectorAll(`#${chartTextureId(slot)}`)
-      ).toHaveLength(1)
+      expect(textureCount(container, slot)).toBe(1)
+  })
+
+  it('scopes its texture ids so two cards on one page never collide', () => {
+    const { container } = render(
+      <>
+        <Chart label='Sales' source='Oztix sales.' size='md'>
+          <svg role='img' aria-label='Plot one' />
+        </Chart>
+        <Chart label='Orders' source='Oztix sales.' size='md'>
+          <svg role='img' aria-label='Plot two' />
+        </Chart>
+      </>
+    )
+    const ids = [...container.querySelectorAll('[id]')].map((el) => el.id)
+    expect(ids.length).toBeGreaterThan(0)
+    expect(ids).toHaveLength(new Set(ids).size)
+    for (let slot = 1; slot <= CHART_TEXTURE_COUNT; slot++)
+      expect(textureCount(container, slot)).toBe(2)
   })
 })
 

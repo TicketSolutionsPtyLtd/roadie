@@ -88,54 +88,54 @@
 }
 
 @utility fill-texture-1 {
-  fill: url(#roadie-texture-1);
+  fill: var(--chart-texture-1, url(#roadie-texture-1));
 }
 @utility fill-texture-2 {
-  fill: url(#roadie-texture-2);
+  fill: var(--chart-texture-2, url(#roadie-texture-2));
 }
 @utility fill-texture-3 {
-  fill: url(#roadie-texture-3);
+  fill: var(--chart-texture-3, url(#roadie-texture-3));
 }
 @utility fill-texture-4 {
-  fill: url(#roadie-texture-4);
+  fill: var(--chart-texture-4, url(#roadie-texture-4));
 }
 @utility fill-texture-5 {
-  fill: url(#roadie-texture-5);
+  fill: var(--chart-texture-5, url(#roadie-texture-5));
 }
 @utility fill-texture-6 {
-  fill: url(#roadie-texture-6);
+  fill: var(--chart-texture-6, url(#roadie-texture-6));
 }
 @utility fill-texture-7 {
-  fill: url(#roadie-texture-7);
+  fill: var(--chart-texture-7, url(#roadie-texture-7));
 }
 @utility fill-texture-8 {
-  fill: url(#roadie-texture-8);
+  fill: var(--chart-texture-8, url(#roadie-texture-8));
 }
 
 @media (forced-colors: active), print {
   svg [data-chart-texture='1'] {
-    fill: url(#roadie-texture-1);
+    fill: var(--chart-texture-1, url(#roadie-texture-1));
   }
   svg [data-chart-texture='2'] {
-    fill: url(#roadie-texture-2);
+    fill: var(--chart-texture-2, url(#roadie-texture-2));
   }
   svg [data-chart-texture='3'] {
-    fill: url(#roadie-texture-3);
+    fill: var(--chart-texture-3, url(#roadie-texture-3));
   }
   svg [data-chart-texture='4'] {
-    fill: url(#roadie-texture-4);
+    fill: var(--chart-texture-4, url(#roadie-texture-4));
   }
   svg [data-chart-texture='5'] {
-    fill: url(#roadie-texture-5);
+    fill: var(--chart-texture-5, url(#roadie-texture-5));
   }
   svg [data-chart-texture='6'] {
-    fill: url(#roadie-texture-6);
+    fill: var(--chart-texture-6, url(#roadie-texture-6));
   }
   svg [data-chart-texture='7'] {
-    fill: url(#roadie-texture-7);
+    fill: var(--chart-texture-7, url(#roadie-texture-7));
   }
   svg [data-chart-texture='8'] {
-    fill: url(#roadie-texture-8);
+    fill: var(--chart-texture-8, url(#roadie-texture-8));
   }
 }
 
@@ -164,42 +164,42 @@
   .ts-chart
     :is([data-ts-key='series-1'], [data-ts-key^='series-1:'])
     :is(path, rect):not([fill='none']) {
-    fill: url(#roadie-texture-1);
+    fill: var(--chart-texture-1, url(#roadie-texture-1));
   }
   .ts-chart
     :is([data-ts-key='series-2'], [data-ts-key^='series-2:'])
     :is(path, rect):not([fill='none']) {
-    fill: url(#roadie-texture-2);
+    fill: var(--chart-texture-2, url(#roadie-texture-2));
   }
   .ts-chart
     :is([data-ts-key='series-3'], [data-ts-key^='series-3:'])
     :is(path, rect):not([fill='none']) {
-    fill: url(#roadie-texture-3);
+    fill: var(--chart-texture-3, url(#roadie-texture-3));
   }
   .ts-chart
     :is([data-ts-key='series-4'], [data-ts-key^='series-4:'])
     :is(path, rect):not([fill='none']) {
-    fill: url(#roadie-texture-4);
+    fill: var(--chart-texture-4, url(#roadie-texture-4));
   }
   .ts-chart
     :is([data-ts-key='series-5'], [data-ts-key^='series-5:'])
     :is(path, rect):not([fill='none']) {
-    fill: url(#roadie-texture-5);
+    fill: var(--chart-texture-5, url(#roadie-texture-5));
   }
   .ts-chart
     :is([data-ts-key='series-6'], [data-ts-key^='series-6:'])
     :is(path, rect):not([fill='none']) {
-    fill: url(#roadie-texture-6);
+    fill: var(--chart-texture-6, url(#roadie-texture-6));
   }
   .ts-chart
     :is([data-ts-key='series-7'], [data-ts-key^='series-7:'])
     :is(path, rect):not([fill='none']) {
-    fill: url(#roadie-texture-7);
+    fill: var(--chart-texture-7, url(#roadie-texture-7));
   }
   .ts-chart
     :is([data-ts-key='series-8'], [data-ts-key^='series-8:'])
     :is(path, rect):not([fill='none']) {
-    fill: url(#roadie-texture-8);
+    fill: var(--chart-texture-8, url(#roadie-texture-8));
   }
   .ts-chart .ts-chart__line:is([data-ts-key^='series-2']) path {
     stroke-dasharray: 6 3;

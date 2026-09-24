@@ -9,6 +9,10 @@ import type { ChartTable } from '../Chart'
 import { LineChart } from '../LineChart'
 import { lineChartTable } from '../LineChart/table'
 
+function withoutKind<T extends { kind: string }>(plot: T): Omit<T, 'kind'> {
+  return plot
+}
+
 export function plotTable(plot: ChartPlot): ChartTable | undefined {
   switch (plot.kind) {
     case 'line':
@@ -64,7 +68,12 @@ export function PlotView({
     case 'static':
       return <StaticPlotView plot={plot} />
     case 'line':
-      return <LineChart {...plot} takeaway={plot.takeaway ?? takeaway} />
+      return (
+        <LineChart
+          {...withoutKind(plot)}
+          takeaway={plot.takeaway ?? takeaway}
+        />
+      )
     default:
       return null
   }

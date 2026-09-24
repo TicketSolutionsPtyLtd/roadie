@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useContext, useId, useMemo, useState } from 'react'
+import { type ReactNode, useId, useMemo, useState } from 'react'
 
 import { ChartLineIcon, TableIcon } from '@phosphor-icons/react'
 
@@ -16,7 +16,7 @@ import {
 import { Tabs } from '@oztix/roadie-components/tabs'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { ChartPatterns, ChartPatternsContext } from '../ChartPatterns'
+import { useChartPatterns } from '../ChartPatterns'
 import { ChartCardContext, type ChartReport, PLOT_HEIGHTS } from './context'
 
 export type ChartTable = {
@@ -63,7 +63,7 @@ export function Chart({
   ...props
 }: ChartProps) {
   const [report, setReport] = useState<ChartReport | null>(null)
-  const patternsShared = useContext(ChartPatternsContext)
+  const { patterns, style: patternStyle } = useChartPatterns()
   const summaryId = useId()
   const plotHeight = PLOT_HEIGHTS[size ?? 'md']
   const context = useMemo(
@@ -80,6 +80,7 @@ export function Chart({
         emphasis='subtle'
         size='sm'
         className={cn('h-full', className)}
+        style={patternStyle}
       >
         <DataCard
           label={label}
@@ -145,7 +146,7 @@ export function Chart({
           </div>
         </DataCard>
       </Tabs.Root>
-      {!patternsShared && <ChartPatterns />}
+      {patterns}
     </ChartCardContext.Provider>
   )
 }

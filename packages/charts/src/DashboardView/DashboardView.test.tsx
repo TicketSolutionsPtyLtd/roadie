@@ -3,7 +3,6 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
 import { DashboardView } from '.'
-import { CHART_TEXTURE_COUNT, chartTextureId } from '../ChartPatterns'
 import { paceExample, salesByTypeExample } from '../LineChart/examples'
 import { createPortfolioDashboard, createShowDashboard } from '../examples'
 
@@ -76,40 +75,45 @@ describe('DashboardView with a line plot', () => {
   })
 })
 
-describe('DashboardView with several chart cards', () => {
-  it('renders each texture id once across the whole dashboard', () => {
-    const spec = {
-      version: 1 as const,
-      title: 'Pace',
-      sections: [
+const severalChartCards = {
+  version: 1 as const,
+  title: 'Pace',
+  sections: [
+    {
+      title: 'Sales',
+      cards: [
         {
-          title: 'Sales',
-          cards: [
-            {
-              id: 'pace',
-              kind: 'chart' as const,
-              size: 'full' as const,
-              label: 'Sales pace',
-              source: 'Oztix sales.',
-              plot: { kind: 'line' as const, ...paceExample }
-            },
-            {
-              id: 'by-type',
-              kind: 'chart' as const,
-              size: 'md' as const,
-              label: 'Orders by type',
-              source: 'Oztix sales.',
-              plot: { kind: 'line' as const, ...salesByTypeExample }
-            }
-          ]
+          id: 'pace',
+          kind: 'chart' as const,
+          size: 'full' as const,
+          label: 'Sales pace',
+          source: 'Oztix sales.',
+          plot: { kind: 'line' as const, ...paceExample }
+        },
+        {
+          id: 'by-type',
+          kind: 'chart' as const,
+          size: 'md' as const,
+          label: 'Orders by type',
+          source: 'Oztix sales.',
+          plot: { kind: 'line' as const, ...salesByTypeExample }
         }
       ]
     }
-    const { container } = render(<DashboardView spec={spec} />)
-    for (let slot = 1; slot <= CHART_TEXTURE_COUNT; slot++) {
-      expect(
-        container.querySelectorAll(`#${chartTextureId(slot)}`)
-      ).toHaveLength(1)
-    }
+  ]
+}
+
+describe('DashboardView with several chart cards', () => {
+  it('never repeats a DOM id across the whole dashboard', () => {
+    const { container } = render(<DashboardView spec={severalChartCards} />)
+    const ids = [...container.querySelectorAll('[id]')].map((el) => el.id)
+    expect(ids.length).toBeGreaterThan(0)
+    expect(ids).toHaveLength(new Set(ids).size)
+  })
+
+  it('renders on the server', () => {
+    expect(() =>
+      renderToString(<DashboardView spec={severalChartCards} />)
+    ).not.toThrow()
   })
 })

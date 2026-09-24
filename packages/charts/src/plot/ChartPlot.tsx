@@ -16,7 +16,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { ChartCardContext } from '../Chart/context'
 import { ChartLegend } from '../ChartLegend'
-import { ChartPatterns } from '../ChartPatterns'
+import { useChartPatterns } from '../ChartPatterns'
 import { ChartTooltip } from '../ChartTooltip'
 import {
   DEFAULT_PLOT_HEIGHT,
@@ -64,6 +64,7 @@ export function ChartPlot<P>({
   className
 }: ChartPlotProps<P>) {
   const card = useContext(ChartCardContext)
+  const { patterns, style: patternStyle } = useChartPatterns()
   const hostRef = useRef<HTMLDivElement>(null)
   const renderRef = useRef<ChartRenderContext | null>(null)
   const band = useWidthBand(hostRef)
@@ -130,7 +131,10 @@ export function ChartPlot<P>({
     )
 
   return (
-    <div className={cn('grid gap-2', className)}>
+    <div
+      className={cn('grid gap-2', className)}
+      style={card ? undefined : patternStyle}
+    >
       {legend.length > 0 && <ChartLegend items={legend} />}
       <div
         ref={hostRef}
@@ -138,7 +142,7 @@ export function ChartPlot<P>({
         className='relative'
         onKeyDownCapture={onKeyDownCapture}
       >
-        {!card && <ChartPatterns />}
+        {!card && patterns}
         <EngineChart
           definition={definition}
           height={frame.height}

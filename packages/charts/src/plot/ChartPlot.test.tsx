@@ -3,12 +3,12 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
 import { Chart } from '../Chart'
-import { CHART_TEXTURE_COUNT, chartTextureId } from '../ChartPatterns'
+import { CHART_TEXTURE_COUNT } from '../ChartPatterns'
 import { ChartPlot } from './ChartPlot'
 import { testChart, testPoints } from './testChart'
 
 const textureCount = (slot: number) =>
-  document.querySelectorAll(`[id='${chartTextureId(slot)}']`).length
+  document.querySelectorAll(`[id$='texture-${slot}']`).length
 
 describe('ChartPlot', () => {
   it('names the plot with the takeaway', () => {

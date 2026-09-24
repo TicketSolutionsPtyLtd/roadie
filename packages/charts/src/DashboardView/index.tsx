@@ -10,7 +10,6 @@ import type {
 
 import { Chart } from '../Chart'
 import { ChartLegend } from '../ChartLegend'
-import { ChartPatterns, ChartPatternsContext } from '../ChartPatterns'
 import { PlotView, plotTable } from './plots'
 
 export type DashboardViewProps = { spec: DashboardSpec; className?: string }
@@ -93,22 +92,19 @@ function Card({ card, size }: { card: DashboardCard; size: CardSize }) {
 
 export function DashboardView({ spec, className }: DashboardViewProps) {
   return (
-    <ChartPatternsContext.Provider value={true}>
-      <ChartPatterns />
-      <Dashboard className={className}>
-        {spec.sections.map((section, index) => (
-          <Dashboard.Section
-            key={`${index}-${section.title}`}
-            title={section.title}
-            description={section.description}
-          >
-            {section.cards.map((card) => (
-              <Card key={card.id} card={card} size={card.size} />
-            ))}
-          </Dashboard.Section>
-        ))}
-      </Dashboard>
-    </ChartPatternsContext.Provider>
+    <Dashboard className={className}>
+      {spec.sections.map((section, index) => (
+        <Dashboard.Section
+          key={`${index}-${section.title}`}
+          title={section.title}
+          description={section.description}
+        >
+          {section.cards.map((card) => (
+            <Card key={card.id} card={card} size={card.size} />
+          ))}
+        </Dashboard.Section>
+      ))}
+    </Dashboard>
   )
 }
 DashboardView.displayName = 'DashboardView'
