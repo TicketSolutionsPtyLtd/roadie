@@ -1,0 +1,64 @@
+export const metadata = {
+  title: 'Meter',
+  description: 'Progress towards a maximum, with an optional target',
+  status: 'beta',
+  category: 'Dashboards'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Progress towards a maximum, with an optional target.
+
+## Import
+
+```tsx
+import { Meter } from '@oztix/roadie-components/meter'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-48'>
+  <Meter label='Tickets sold' value={1842} max={2400} />
+</div>
+```
+
+### Target
+
+```tsx-live
+<div className='w-48'>
+  <Meter label='Tickets sold' value={1842} max={2400} target={2040} />
+</div>
+```
+
+### Segments
+
+```tsx-live
+<div className='w-48'>
+  <Meter
+    label='Capacity used'
+    max={2400}
+    segments={[
+      { value: 1842, label: 'Sold', tone: 'highlight' },
+      { value: 200, label: 'Held', tone: 'context' }
+    ]}
+  />
+</div>
+```
+
+## Guidelines
+
+- Use `Meter` for progress against a fixed limit, such as capacity or a sales target. Use `Sparkline` for a trend over time.
+- Set a `target` for a line marker on the track, such as a sell-through goal.
+- Give each segment a `tone`. `highlight` is the lead value, `context` is a supporting one, `other` is everything left over.
+
+## Accessibility
+
+- `Meter` renders `role='meter'` with `aria-valuemin`, `aria-valuemax` and `aria-valuenow` set from `max` and the segment total.
+- Pass `valueText` for a spoken value that isn't just the raw number, such as "1,842 of 2,400 sold".
+- Non-finite values become 0, so a meter never breaks on missing data.
+- Segments carry a texture under forced colours and in print, so tone never depends on colour alone.
+
+<PropsDefinitions componentPath='packages/components/src/components/Meter/index.tsx' />

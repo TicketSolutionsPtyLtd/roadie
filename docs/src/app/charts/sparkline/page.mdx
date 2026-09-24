@@ -1,0 +1,62 @@
+export const metadata = {
+  title: 'Sparkline',
+  description: 'A small line of recent history',
+  status: 'beta',
+  category: 'Dashboards'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A small line of recent history.
+
+## Import
+
+```tsx
+import { Sparkline } from '@oztix/roadie-components/sparkline'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-48'>
+  <Sparkline values={[40, 62, 70, 88, 95, 120, 131, 160, 172, 190]} />
+</div>
+```
+
+### With a reference
+
+```tsx-live
+<div className='w-48'>
+  <Sparkline
+    values={[0.31, 0.36, 0.41, 0.46, 0.52, 0.57, 0.62, 0.67, 0.71, 0.77]}
+    reference={{ value: 0.85, label: 'Target' }}
+  />
+</div>
+```
+
+### Standalone
+
+```tsx-live
+<div className='w-48'>
+  <Sparkline
+    values={[40, 62, 70, 88, 95, 120, 131, 160, 172, 190]}
+    label='Tickets sold, last 10 days'
+    summary='Rising, from 40 to 190'
+  />
+</div>
+```
+
+## Guidelines
+
+- `Sparkline` needs at least 5 points. With fewer, it renders nothing, so its container should show a fallback line, such as "Not enough history".
+- There are no axes and no gridlines. It shows the shape of a trend, not its values.
+- Don't use it to compare two series. A sparkline draws one line. Use a chart card when a second series matters.
+
+## Accessibility
+
+- Inside a tile, the sparkline is decorative and hidden from screen readers, because the tile's text already carries the change.
+- Give `label` and `summary` when the sparkline stands alone, so it reads as an image with a one-line description.
+
+<PropsDefinitions componentPath='packages/components/src/components/Sparkline/index.tsx' />

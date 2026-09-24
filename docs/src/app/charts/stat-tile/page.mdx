@@ -1,0 +1,100 @@
+export const metadata = {
+  title: 'StatTile',
+  description:
+    'One number with its change, what it compares against, and its recent trend',
+  status: 'beta',
+  category: 'Dashboards'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+One number with its change, what it compares against, and its recent trend.
+
+## Import
+
+```tsx
+import { StatTile } from '@oztix/roadie-components/stat-tile'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-72'>
+  <StatTile label='Tickets sold' value={1842} delta={{ value: 214 }} context='This week, of 2,400' />
+</div>
+```
+
+### With a trend
+
+```tsx-live
+<div className='w-72'>
+  <StatTile
+    label='Tickets sold'
+    value={1842}
+    delta={{ value: 214 }}
+    context='Last 20 days'
+    trend={[40, 62, 70, 88, 95, 120, 131, 160, 172, 190, 214, 240, 262, 300, 330, 351, 380, 420, 470, 520]}
+  />
+</div>
+```
+
+### With a target
+
+```tsx-live
+<div className='w-72'>
+  <StatTile
+    label='Sell-through'
+    value={0.77}
+    format='percent'
+    delta={{ value: 9, format: 'points' }}
+    context='This week. Target 85%'
+    trend={[0.31, 0.36, 0.41, 0.46, 0.52, 0.57, 0.62, 0.67, 0.71, 0.77]}
+    reference={{ value: 0.85, label: 'Target' }}
+  />
+</div>
+```
+
+### When lower is better
+
+```tsx-live
+<div className='w-72'>
+  <StatTile
+    label='Refund rate'
+    value={0.012}
+    format='percent'
+    delta={{ value: -0.003, format: 'percent', goodWhen: 'down' }}
+    context='On last month'
+  />
+</div>
+```
+
+### States
+
+```tsx-live
+<div className='grid w-72 gap-4'>
+  <p className='text-sm text-subtle'>Loading</p>
+  <StatTile label='Tickets sold' value={0} state='loading' />
+  <p className='text-sm text-subtle'>Not enough history</p>
+  <StatTile label='Tickets sold' value={180} trend={[95, 85]} context='On sale 2 days' />
+  <p className='text-sm text-subtle'>Stale</p>
+  <StatTile label='Tickets sold' value={1842} state='stale' staleLabel='As of 10:42am' />
+</div>
+```
+
+## Guidelines
+
+- Keep the label to about 22 characters and the context to about 22, so the tile fits at phone width.
+- Keep the delta short next to the value. Put what it compares against on the context line.
+- Set `goodWhen='down'` for numbers where falling is good, such as refunds.
+- Pass `trend` whenever history exists. The sparkline hides itself below 5 points.
+- Use a `reference` for a target or benchmark, not a second series.
+
+## Accessibility
+
+- The tile is a region named by its label.
+- The delta reads as a sentence, such as "up 214, better".
+- The sparkline is hidden from screen readers, because the text already says it.
+
+<PropsDefinitions componentPath='packages/components/src/components/StatTile/index.tsx' />
