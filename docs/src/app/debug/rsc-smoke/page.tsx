@@ -10,6 +10,8 @@
 //   docs/solutions/rsc-patterns/compound-export-namespace.md
 import { StarIcon } from '@phosphor-icons/react/ssr'
 
+import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
+import { createShowDashboard } from '@oztix/roadie-charts/examples'
 import {
   Dialog as DialogViaBarrel,
   Drawer as DrawerViaBarrel,
@@ -45,8 +47,6 @@ import { Select } from '@oztix/roadie-components/select'
 import { Steps } from '@oztix/roadie-components/steps'
 import { Tabs } from '@oztix/roadie-components/tabs'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
-import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
-import { createShowDashboard } from '@oztix/roadie-charts/examples'
 
 import { NavigatorCanary } from './NavigatorCanary'
 
