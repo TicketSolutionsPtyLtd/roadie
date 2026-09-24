@@ -4,7 +4,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { intentVariants } from '../../variants'
+import { type RoadieIntent, intentVariants } from '../../variants'
 
 export const textareaVariants = cva(
   'w-full rounded-lg font-sans min-h-20 resize-y',
@@ -32,7 +32,12 @@ export const textareaVariants = cva(
 export interface TextareaProps
   extends
     Omit<ComponentProps<'textarea'>, 'size'>,
-    VariantProps<typeof textareaVariants> {
+    Omit<VariantProps<typeof textareaVariants>, 'intent'> {
+  /**
+   * @deprecated Form controls take their colour from state;
+   * `is-interactive-field` handles it. Will be removed in v3.0.0.
+   */
+  intent?: RoadieIntent
   autoResize?: boolean
 }
 

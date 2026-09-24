@@ -198,4 +198,30 @@ describe('Select', () => {
     const trigger = container.querySelector('button')!
     expect(trigger).not.toHaveAttribute('aria-invalid')
   })
+
+  it('inherits disabled from Field context', () => {
+    const { getByRole } = render(
+      <Field disabled>
+        <Select>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick one' />
+          </Select.Trigger>
+        </Select>
+      </Field>
+    )
+    expect(getByRole('combobox')).toHaveAttribute('data-disabled')
+  })
+
+  it('own disabled prop wins over Field context', () => {
+    const { getByRole } = render(
+      <Field disabled>
+        <Select disabled={false}>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick one' />
+          </Select.Trigger>
+        </Select>
+      </Field>
+    )
+    expect(getByRole('combobox')).not.toHaveAttribute('data-disabled')
+  })
 })

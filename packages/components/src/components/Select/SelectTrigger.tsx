@@ -7,13 +7,20 @@ import { type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import type { RoadieIntent } from '../../variants'
 import { useFieldContext } from '../Field'
 import { SelectContext } from './SelectContext'
 import { selectTriggerVariants } from './variants'
 
 export type SelectTriggerProps = SelectPrimitive.Trigger.Props &
   RefAttributes<HTMLButtonElement> &
-  VariantProps<typeof selectTriggerVariants>
+  Omit<VariantProps<typeof selectTriggerVariants>, 'intent'> & {
+    /**
+     * @deprecated Form controls take their colour from state;
+     * `is-interactive-field` handles it. Will be removed in v3.0.0.
+     */
+    intent?: RoadieIntent
+  }
 
 export function SelectTrigger({
   className,

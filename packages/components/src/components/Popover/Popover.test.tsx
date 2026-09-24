@@ -146,4 +146,50 @@ describe('Popover (assembled)', () => {
     fireEvent.keyDown(popup, { key: 'Enter' })
     expect(onConfirm).toHaveBeenCalledOnce()
   })
+
+  async function openPositioner(content: React.ReactElement) {
+    const user = userEvent.setup()
+    render(
+      <Popover>
+        <Popover.Trigger>Open</Popover.Trigger>
+        {content}
+      </Popover>
+    )
+    await user.click(screen.getByText('Open'))
+    await screen.findByText('Panel')
+    return document.querySelector('[data-slot="popover-positioner"]')!
+  }
+
+  it('takes placement props directly on Content', async () => {
+    const positioner = await openPositioner(
+      <Popover.Content side='right' align='start'>
+        Panel
+      </Popover.Content>
+    )
+    expect(positioner).toHaveAttribute('data-side', 'right')
+    expect(positioner).toHaveAttribute('data-align', 'start')
+  })
+
+  it('still reads placement from positionerProps', async () => {
+    const positioner = await openPositioner(
+      <Popover.Content positionerProps={{ side: 'top', align: 'end' }}>
+        Panel
+      </Popover.Content>
+    )
+    expect(positioner).toHaveAttribute('data-side', 'top')
+    expect(positioner).toHaveAttribute('data-align', 'end')
+  })
+
+  it('lets flat placement props win over positionerProps', async () => {
+    const positioner = await openPositioner(
+      <Popover.Content
+        side='left'
+        positionerProps={{ side: 'top', align: 'end' }}
+      >
+        Panel
+      </Popover.Content>
+    )
+    expect(positioner).toHaveAttribute('data-side', 'left')
+    expect(positioner).toHaveAttribute('data-align', 'end')
+  })
 })

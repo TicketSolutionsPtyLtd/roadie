@@ -4,7 +4,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { intentVariants } from '../../variants'
+import { type RoadieIntent, intentVariants } from '../../variants'
 
 export const inputVariants = cva('w-full rounded-lg font-sans', {
   variants: {
@@ -29,7 +29,13 @@ export const inputVariants = cva('w-full rounded-lg font-sans', {
 export interface InputProps
   extends
     Omit<ComponentProps<'input'>, 'size'>,
-    VariantProps<typeof inputVariants> {}
+    Omit<VariantProps<typeof inputVariants>, 'intent'> {
+  /**
+   * @deprecated Form controls take their colour from state;
+   * `is-interactive-field` handles it. Will be removed in v3.0.0.
+   */
+  intent?: RoadieIntent
+}
 
 export function Input({
   className,
