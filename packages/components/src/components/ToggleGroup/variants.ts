@@ -2,8 +2,8 @@ import { cva } from 'class-variance-authority'
 
 export const toggleGroupVariants = cva(
   [
-    'group/toggle-group relative inline-grid auto-cols-fr grid-flow-col gap-1 p-1',
-    'rounded-full emphasis-sunken',
+    'group/toggle-group relative inline-grid auto-cols-fr grid-flow-col gap-1 p-0.75',
+    'rounded-full emphasis-subtle',
     'data-[orientation=vertical]:grid-flow-row data-[orientation=vertical]:rounded-xl'
   ].join(' ')
 )

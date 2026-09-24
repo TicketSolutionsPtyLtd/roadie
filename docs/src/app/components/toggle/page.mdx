@@ -46,7 +46,7 @@ import { Toggle } from '@oztix/roadie-components/toggle'
 
 ### Sizes
 
-The same sizes as `Button`. Use an `icon-*` size for an icon-only toggle.
+The same sizes as `Button`. A toggle with an `aria-label` renders square, for an icon-only toggle.
 
 ```tsx-live
 <div className='grid gap-4'>
@@ -57,10 +57,10 @@ The same sizes as `Button`. Use an `icon-*` size for an icon-only toggle.
     <Toggle size='lg'>Large</Toggle>
   </div>
   <div className='flex flex-wrap items-center gap-2'>
-    <Toggle size='icon-xs' aria-label='Bold'><TextB weight='bold' /></Toggle>
-    <Toggle size='icon-sm' aria-label='Bold'><TextB weight='bold' /></Toggle>
-    <Toggle size='icon-md' aria-label='Bold'><TextB weight='bold' /></Toggle>
-    <Toggle size='icon-lg' aria-label='Bold'><TextB weight='bold' /></Toggle>
+    <Toggle size='xs' aria-label='Bold'><TextB weight='bold' /></Toggle>
+    <Toggle size='sm' aria-label='Bold'><TextB weight='bold' /></Toggle>
+    <Toggle size='md' aria-label='Bold'><TextB weight='bold' /></Toggle>
+    <Toggle size='lg' aria-label='Bold'><TextB weight='bold' /></Toggle>
   </div>
 </div>
 ```
@@ -106,7 +106,6 @@ function Favourite() {
   return (
     <Toggle
       aria-label='Favourite'
-      size='icon-md'
       emphasis='subtler'
       intent='danger'
       pressed={pressed}
@@ -130,6 +129,6 @@ render(<Favourite />)
 
 - Renders a `<button>` with `aria-pressed`, so screen readers announce it as a toggle button and read its state.
 - `Space` and `Enter` toggle it.
-- Give an icon-only toggle an `aria-label`.
+- Give an icon-only toggle an `aria-label`. It also makes the toggle square.
 
 <PropsDefinitions componentPath='packages/components/src/components/Toggle/index.tsx' />

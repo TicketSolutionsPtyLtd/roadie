@@ -19,7 +19,7 @@ import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 
 ### Default
 
-A sunken track with a raised pill on the pressed item. The pill slides when the choice changes. Segments share the width of the widest.
+A tinted track with a raised pill on the pressed item, like Tabs. The pill slides when the choice changes. Segments share the width of the widest.
 
 ```tsx-live
 <ToggleGroup aria-label='Date range' defaultValue={['30d']}>
@@ -190,6 +190,7 @@ render(<SalesRange />)
 ## Guidelines
 
 - **Tabs switch panels; a toggle group sets a value.** Use `Tabs` when each choice shows its own content below. Use a toggle group when the choice changes how the same content is filtered or shown, such as a date range or a list or grid view.
+- **It is as tall as a `Button` of the same size**, so it lines up beside buttons in a toolbar or a dashboard header.
 - **Keep it to two to five short options.** For more, or for long labels, use `Select` or `RadioGroup`.
 - **A single-choice group can't be emptied.** Clicking the pressed item leaves it pressed, so a chart always has a range. Set `defaultValue` so something is chosen from the start.
 - **Use `multiple` for independent switches** such as text styles. For a single on and off switch, use `Toggle`.
@@ -198,7 +199,7 @@ render(<SalesRange />)
 ## Accessibility
 
 - Renders `role='group'`. Each item is a `<button>` with `aria-pressed`, so screen readers read which items are on.
-- **Keyboard:** `Tab` moves into the group and out again. Arrow keys move between items (`ArrowLeft` and `ArrowRight`, or `ArrowUp` and `ArrowDown` when vertical), and `Home` and `End` jump to the ends. `Space` and `Enter` press the focused item.
+- **Keyboard:** `Tab` moves into the group, onto the pressed item, and out again. Arrow keys move between items (`ArrowLeft` and `ArrowRight`, or `ArrowUp` and `ArrowDown` when vertical), and `Home` and `End` jump to the ends. `Space` and `Enter` press the focused item.
 - A disabled item is skipped by the arrow keys.
 - **Reduced motion:** under `prefers-reduced-motion: reduce` the pill moves without sliding.
 

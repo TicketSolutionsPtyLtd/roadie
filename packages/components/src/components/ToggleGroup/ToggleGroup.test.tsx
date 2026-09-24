@@ -26,7 +26,7 @@ describe('ToggleGroup', () => {
     render(<DateRange />)
     const group = screen.getByRole('group', { name: 'Date range' })
     expect(group).toHaveAttribute('data-slot', 'toggle-group')
-    expect(group).toHaveClass('emphasis-sunken', 'rounded-full')
+    expect(group).toHaveClass('emphasis-subtle', 'rounded-full')
     expect(group).toHaveAttribute('data-orientation', 'horizontal')
   })
 
@@ -115,18 +115,44 @@ describe('ToggleGroup', () => {
     expect(indicator()).not.toHaveAttribute('data-ready')
   })
 
-  it('moves focus with arrow keys', async () => {
+  it('tabs onto the pressed item, then moves with arrow keys', async () => {
     const user = userEvent.setup()
-    render(<DateRange />)
+    render(
+      <>
+        <button type='button'>Before</button>
+        <DateRange />
+        <button type='button'>After</button>
+      </>
+    )
     await user.tab()
-    expect(screen.getByRole('button', { name: '7 days' })).toHaveFocus()
-    await user.keyboard('{ArrowRight}{ArrowRight}')
+    await user.tab()
+    expect(screen.getByRole('button', { name: '30 days' })).toHaveFocus()
+    await user.keyboard('{ArrowRight}')
     expect(screen.getByRole('button', { name: '90 days' })).toHaveFocus()
     await user.keyboard(' ')
     expect(screen.getByRole('button', { name: '90 days' })).toHaveAttribute(
       'aria-pressed',
       'true'
     )
+    await user.keyboard('{ArrowLeft}{ArrowLeft}')
+    await user.tab()
+    expect(screen.getByRole('button', { name: 'After' })).toHaveFocus()
+    await user.tab({ shift: true })
+    expect(screen.getByRole('button', { name: '90 days' })).toHaveFocus()
+  })
+
+  it('tabs onto the first item when nothing is pressed', async () => {
+    const user = userEvent.setup()
+    render(<DateRange defaultValue={[]} />)
+    await user.tab()
+    expect(screen.getByRole('button', { name: '7 days' })).toHaveFocus()
+  })
+
+  it('leaves focus on the clicked item', async () => {
+    const user = userEvent.setup()
+    render(<DateRange />)
+    await user.click(screen.getByRole('button', { name: '7 days' }))
+    expect(screen.getByRole('button', { name: '7 days' })).toHaveFocus()
   })
 
   it('sizes items to match Button heights', () => {

@@ -11,29 +11,26 @@ import { type RoadieIntent, intentVariants } from '../../variants'
 
 export type ToggleEmphasis = 'normal' | 'subtle' | 'subtler'
 
-export type ToggleSize =
-  'xs' | 'sm' | 'md' | 'lg' | 'icon-xs' | 'icon-sm' | 'icon-md' | 'icon-lg'
+export type ToggleSize = 'xs' | 'sm' | 'md' | 'lg'
 
-// Pressed steps one rung up the emphasis ladder. The subtler rung needs the
-// extra `.is-interactive`, or subtler's transparent interactive fill wins.
+// Pressed steps one rung up the emphasis ladder. Each rung applies only in
+// its own state, so neither emphasis has to outrank the other.
 export const toggleVariants = cva('btn is-interactive', {
   variants: {
     intent: intentVariants,
     emphasis: {
-      normal: 'emphasis-normal data-[pressed]:emphasis-strong',
-      subtle: 'emphasis-subtle data-[pressed]:emphasis-strong',
+      normal:
+        'not-data-[pressed]:emphasis-normal data-[pressed]:emphasis-strong',
+      subtle:
+        'not-data-[pressed]:emphasis-subtle data-[pressed]:emphasis-strong',
       subtler:
-        'emphasis-subtler [&.is-interactive[data-pressed]]:emphasis-subtle'
+        'not-data-[pressed]:emphasis-subtler data-[pressed]:emphasis-subtle'
     },
     size: {
-      xs: 'btn-xs',
-      sm: 'btn-sm',
-      md: 'btn-md',
-      lg: 'btn-lg',
-      'icon-xs': 'btn-icon-xs',
-      'icon-sm': 'btn-icon-sm',
-      'icon-md': 'btn-icon-md',
-      'icon-lg': 'btn-icon-lg'
+      xs: 'btn-xs [&[aria-label]]:btn-icon-xs',
+      sm: 'btn-sm [&[aria-label]]:btn-icon-sm',
+      md: 'btn-md [&[aria-label]]:btn-icon-md',
+      lg: 'btn-lg [&[aria-label]]:btn-icon-lg'
     }
   },
   defaultVariants: { emphasis: 'normal', size: 'md' }
@@ -51,8 +48,8 @@ export type ToggleProps = TogglePrimitive.Props &
      */
     emphasis?: ToggleEmphasis
     /**
-     * Button sizes. Use an `icon-*` size for an icon-only toggle, with an
-     * `aria-label`.
+     * Button sizes. A toggle with an `aria-label` renders square, for an
+     * icon-only toggle.
      *
      * @default 'md'
      */

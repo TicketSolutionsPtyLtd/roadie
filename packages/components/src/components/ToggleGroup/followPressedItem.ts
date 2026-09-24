@@ -1,4 +1,4 @@
-const PRESSED_ITEM = '[data-slot="toggle-group-item"][data-pressed]'
+export const PRESSED_ITEM = '[data-slot="toggle-group-item"][data-pressed]'
 
 /**
  * Keeps an indicator over the group's pressed item via CSS variables.

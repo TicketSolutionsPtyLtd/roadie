@@ -1,6 +1,12 @@
 'use client'
 
-import { type RefAttributes, useCallback, useMemo, useState } from 'react'
+import {
+  type RefAttributes,
+  useCallback,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 
 import { ToggleGroup as ToggleGroupPrimitive } from '@base-ui/react/toggle-group'
 
@@ -11,7 +17,7 @@ import {
   ToggleGroupContext,
   type ToggleGroupContextValue
 } from './ToggleGroupContext'
-import { followPressedItem } from './followPressedItem'
+import { PRESSED_ITEM, followPressedItem } from './followPressedItem'
 import {
   type ToggleGroupDirection,
   type ToggleGroupSize,
@@ -49,6 +55,9 @@ export function ToggleGroupRoot<Value extends string = string>({
   direction = 'horizontal',
   multiple = false,
   onValueChange,
+  onFocus,
+  onPointerDown,
+  onClick,
   ...props
 }: ToggleGroupRootProps<Value>) {
   const [indicatorReady, setIndicatorReady] = useState(false)
@@ -71,6 +80,28 @@ export function ToggleGroupRoot<Value extends string = string>({
     onValueChange?.(value, eventDetails)
   }
 
+  // Keyboard entry lands on the pressed item, as in a radio group. A pointer
+  // focuses what it presses; the flag lasts until that focus or the click.
+  const pointerActive = useRef(false)
+  const handleFocus: typeof onFocus = (event) => {
+    onFocus?.(event)
+    const byPointer = pointerActive.current
+    pointerActive.current = false
+    const group = event.currentTarget
+    if (multiple || byPointer) return
+    if (group.contains(event.relatedTarget as Node | null)) return
+    const pressed = group.querySelector<HTMLElement>(PRESSED_ITEM)
+    if (pressed && pressed !== event.target) pressed.focus()
+  }
+  const handlePointerDown: typeof onPointerDown = (event) => {
+    onPointerDown?.(event)
+    pointerActive.current = true
+  }
+  const handleClick: typeof onClick = (event) => {
+    onClick?.(event)
+    pointerActive.current = false
+  }
+
   return (
     <ToggleGroupContext value={contextValue}>
       <ToggleGroupPrimitive<Value>
@@ -78,6 +109,9 @@ export function ToggleGroupRoot<Value extends string = string>({
         orientation={direction}
         multiple={multiple}
         onValueChange={handleValueChange}
+        onFocus={handleFocus}
+        onPointerDown={handlePointerDown}
+        onClick={handleClick}
         className={cn(
           toggleGroupVariants(),
           intent && intentVariants[intent],

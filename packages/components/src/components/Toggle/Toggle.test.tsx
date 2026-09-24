@@ -11,8 +11,10 @@ describe('Toggle', () => {
     expect(toggle).toHaveAttribute('aria-pressed', 'false')
     expect(toggle).toHaveAttribute('data-slot', 'toggle')
     expect(toggle).toHaveClass('btn', 'is-interactive', 'btn-md')
-    expect(toggle).toHaveClass('emphasis-normal')
-    expect(toggle).toHaveClass('data-[pressed]:emphasis-strong')
+    expect(toggle).toHaveClass(
+      'not-data-[pressed]:emphasis-normal',
+      'data-[pressed]:emphasis-strong'
+    )
     expect(toggle).not.toHaveClass('intent-neutral')
   })
 
@@ -47,8 +49,8 @@ describe('Toggle', () => {
     )
     const toggle = screen.getByRole('button', { name: 'Bold' })
     expect(toggle).toHaveClass(
-      'emphasis-subtler',
-      '[&.is-interactive[data-pressed]]:emphasis-subtle'
+      'not-data-[pressed]:emphasis-subtler',
+      'data-[pressed]:emphasis-subtle'
     )
     expect(toggle).not.toHaveClass('data-[pressed]:emphasis-strong')
   })
@@ -56,21 +58,22 @@ describe('Toggle', () => {
   it('steps subtle up to strong when pressed', () => {
     render(<Toggle emphasis='subtle'>Bold</Toggle>)
     expect(screen.getByRole('button')).toHaveClass(
-      'emphasis-subtle',
+      'not-data-[pressed]:emphasis-subtle',
       'data-[pressed]:emphasis-strong'
     )
   })
 
-  it('takes Button sizes, including icon sizes', () => {
+  it('takes Button sizes and goes square with an aria-label', () => {
     const { rerender } = render(<Toggle size='sm'>Bold</Toggle>)
     expect(screen.getByRole('button')).toHaveClass('btn-sm')
     rerender(
-      <Toggle size='icon-md' aria-label='Favourite'>
+      <Toggle aria-label='Favourite'>
         <svg />
       </Toggle>
     )
     expect(screen.getByRole('button', { name: 'Favourite' })).toHaveClass(
-      'btn-icon-md'
+      'btn-md',
+      '[&[aria-label]]:btn-icon-md'
     )
   })
 
