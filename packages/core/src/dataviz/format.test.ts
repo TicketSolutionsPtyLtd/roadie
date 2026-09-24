@@ -47,6 +47,15 @@ describe('formatValue', () => {
     expect(formatValue(1_049_999, 'compactCurrency')).toBe('$1m')
   })
 
+  it('chooses the unit from raw magnitude, not the rounded value', () => {
+    expect(formatValue(950, 'compact')).toBe('950')
+    expect(formatValue(950_000, 'compact')).toBe('950k')
+    expect(formatValue(12_480, 'compact')).toBe('12.5k')
+    expect(formatValue(-950, 'compact')).toBe('-950')
+    expect(formatValue(-950_000, 'compact')).toBe('-950k')
+    expect(formatValue(-999.95, 'compact')).toBe('-1k')
+  })
+
   it('never renders a Unicode minus for negative values', () => {
     const formats = [
       'number',

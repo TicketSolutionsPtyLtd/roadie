@@ -132,4 +132,30 @@ describe('DataTable never clips', () => {
     scroller.scrollLeft = scroller.scrollWidth
     expect(scroller.scrollLeft).toBeGreaterThan(0)
   })
+
+  it('keeps the pinned column at the left edge when scrolled without expanding', () => {
+    const wide = venueColumns.map(({ priority: _, ...column }) => column)
+    const { container } = render(
+      <div style={{ width: 326 }}>
+        <DataTable columns={wide} rows={venueRows} />
+      </div>
+    )
+    const scroller = container.querySelector<HTMLElement>(
+      '[data-slot=data-table-scroller]'
+    )!
+    scroller.scrollLeft = scroller.scrollWidth
+    expect(scroller.scrollLeft).toBeGreaterThan(0)
+    const pinnedHeader = container.querySelector<HTMLElement>('th[data-pin]')!
+    const pinnedCell = container.querySelector<HTMLElement>('td[data-pin]')!
+    expect(getComputedStyle(pinnedHeader).position).toBe('sticky')
+    expect(getComputedStyle(pinnedCell).position).toBe('sticky')
+    expect(pinnedHeader.getBoundingClientRect().left).toBeCloseTo(
+      scroller.getBoundingClientRect().left,
+      0
+    )
+    expect(pinnedCell.getBoundingClientRect().left).toBeCloseTo(
+      scroller.getBoundingClientRect().left,
+      0
+    )
+  })
 })

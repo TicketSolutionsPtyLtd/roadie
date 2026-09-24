@@ -41,10 +41,7 @@
   overflow-x: auto;
 }
 
-[data-slot='data-table']:has(
-    [data-slot='data-table-show-all'][aria-expanded='true']
-  )
-  [data-pin] {
+[data-pin] {
   position: sticky;
   left: 0;
   z-index: 1;

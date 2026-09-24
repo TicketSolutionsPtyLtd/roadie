@@ -53,16 +53,20 @@ export function Meter({
   const clampedMax = safeMax(max)
   const parts = clampSegments(segments ?? [{ value, label }], clampedMax)
   const total = parts.reduce((sum, part) => sum + part.value, 0)
+  const ariaMax = clampedMax > 0 ? clampedMax : 1
   return (
     <div
       data-slot='meter'
       role='meter'
       aria-label={label}
       aria-valuemin={0}
-      aria-valuemax={clampedMax}
+      aria-valuemax={ariaMax}
       aria-valuenow={total}
       aria-valuetext={
-        valueText ?? `${formatValue(total)} of ${formatValue(clampedMax)}`
+        valueText ??
+        (clampedMax > 0
+          ? `${formatValue(total)} of ${formatValue(clampedMax)}`
+          : formatValue(Number.NaN))
       }
       className={cn(
         'relative h-1.5 w-full rounded-full bg-(--intent-4)',

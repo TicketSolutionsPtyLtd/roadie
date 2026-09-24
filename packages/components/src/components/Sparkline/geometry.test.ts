@@ -32,4 +32,9 @@ describe('sparklineGeometry', () => {
     const g = sparklineGeometry([-5, -2, 0, 3, -1])!
     expect(Number.isFinite(g.end.y)).toBe(true)
   })
+
+  it('clamps a minPoints below 2 so a one-point series still returns null', () => {
+    expect(sparklineGeometry([5], undefined, 0)).toBeNull()
+    expect(sparklineGeometry([5], undefined, 1)).toBeNull()
+  })
 })

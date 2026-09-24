@@ -15,7 +15,7 @@ export function sparklineGeometry(
   minPoints = SPARKLINE_MIN_POINTS
 ): SparklineGeometry | null {
   const series = values.filter(Number.isFinite)
-  if (series.length < minPoints) return null
+  if (series.length < Math.max(2, minPoints)) return null
   const domain = reference === undefined ? series : [...series, reference]
   const low = Math.min(...domain)
   const high = Math.max(...domain)

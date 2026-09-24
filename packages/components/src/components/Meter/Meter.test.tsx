@@ -51,19 +51,25 @@ describe('Meter', () => {
     ).toBe('85%')
   })
 
-  it('treats a zero maximum as empty', () => {
+  it('treats a zero maximum as empty with a valid aria range', () => {
     const { container } = render(<Meter label='Sold' value={5} max={0} />)
     expect(
       container.querySelector<HTMLElement>('[data-slot=meter-segment]')!.style
         .width
     ).toBe('0%')
+    const meter = screen.getByRole('meter')
+    expect(meter).toHaveAttribute('aria-valuemin', '0')
+    expect(meter).toHaveAttribute('aria-valuemax', '1')
+    expect(meter).toHaveAttribute('aria-valuenow', '0')
+    expect(meter).toHaveAttribute('aria-valuetext', 'Not available')
   })
 
-  it('treats a NaN maximum as zero', () => {
+  it('treats a NaN maximum as zero with a valid aria range', () => {
     render(<Meter label='Sold' value={5} max={Number.NaN} />)
     const meter = screen.getByRole('meter')
-    expect(meter).toHaveAttribute('aria-valuemax', '0')
+    expect(meter).toHaveAttribute('aria-valuemax', '1')
     expect(meter).toHaveAttribute('aria-valuenow', '0')
+    expect(meter).toHaveAttribute('aria-valuetext', 'Not available')
   })
 
   it('ignores a NaN segment value without corrupting the total', () => {

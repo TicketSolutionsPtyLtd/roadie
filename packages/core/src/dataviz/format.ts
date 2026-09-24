@@ -21,14 +21,26 @@ const number = (value: number, maximumFractionDigits = 1) =>
 
 const roundToOneDecimal = (value: number) => Math.round(value * 10) / 10
 
+const compactUnit = (abs: number, divisor: number) =>
+  roundToOneDecimal(abs / divisor)
+
 function compact(value: number) {
   const sign = value < 0 ? '-' : ''
   const abs = Math.abs(value)
-  const millions = roundToOneDecimal(abs / 1_000_000)
-  if (millions >= 1) return `${sign}${number(millions)}m`
-  const thousands = roundToOneDecimal(abs / 1_000)
-  if (thousands >= 1) return `${sign}${number(thousands)}k`
-  return `${sign}${number(abs)}`
+  if (abs < 1_000) {
+    const rounded = compactUnit(abs, 1)
+    // Rounding can carry 999.95 up to the next unit.
+    return rounded < 1_000
+      ? `${sign}${number(rounded)}`
+      : `${sign}${number(compactUnit(abs, 1_000))}k`
+  }
+  if (abs < 1_000_000) {
+    const thousands = compactUnit(abs, 1_000)
+    return thousands < 1_000
+      ? `${sign}${number(thousands)}k`
+      : `${sign}${number(compactUnit(abs, 1_000_000))}m`
+  }
+  return `${sign}${number(compactUnit(abs, 1_000_000))}m`
 }
 
 function currency(value: number) {

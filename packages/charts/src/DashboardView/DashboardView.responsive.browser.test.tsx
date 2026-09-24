@@ -40,17 +40,12 @@ describe('reference dashboards fit a phone width', () => {
         '[data-slot=data-card-label], [data-slot=data-card-context]'
       )) {
         if (el.scrollWidth <= el.clientWidth) continue
-        if (card.dataset.size === 'stat') {
-          expect(el.scrollWidth).toBeLessThanOrEqual(el.clientWidth)
-        } else {
-          truncated.push(
-            `${card.dataset.size}: ${el.dataset.slot} "${el.textContent}"`
-          )
-        }
+        truncated.push(
+          `${card.dataset.size}: ${el.dataset.slot} "${el.textContent}"`
+        )
       }
     }
-    if (truncated.length > 0)
-      console.warn('Non-stat cards truncate at 328px:', truncated)
+    expect(truncated).toEqual([])
   })
 })
 
