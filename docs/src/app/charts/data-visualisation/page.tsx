@@ -9,6 +9,10 @@ import { HeatmapExample } from '@/components/dataviz/HeatmapExample'
 import { PaceChartExample } from '@/components/dataviz/PaceChartExample'
 
 import { Code } from '@oztix/roadie-components/code'
+import { DataCard } from '@oztix/roadie-components/data-card'
+import { Meter } from '@oztix/roadie-components/meter'
+import { Sparkline } from '@oztix/roadie-components/sparkline'
+import { StatTile } from '@oztix/roadie-components/stat-tile'
 
 export const metadata = {
   title: 'Data visualisation',
@@ -78,6 +82,16 @@ const TERMS = [
     'Channel and referrer',
     'Where buyers came from before they bought.',
     'Ranked bars'
+  ],
+  [
+    'Postcode',
+    'Where buyers live, from billing postcodes. Report shares, not counts, when totals differ.',
+    'Ranked list, then a map'
+  ],
+  [
+    'When fans buy',
+    'Orders by hour and weekday, in the venue timezone.',
+    'Heatmap'
   ]
 ]
 
@@ -262,6 +276,30 @@ export default function DataVisualisationPage() {
           A stat tile or a two-row table often beats a plot. If there’s no shape
           to see, show the number.
         </p>
+        <p className='max-w-prose text-subtle'>
+          In a dashboard, these forms sit inside cards. See{' '}
+          <Link href='/charts/dashboards' className='underline'>
+            dashboards
+          </Link>{' '}
+          for sizing and layout.
+        </p>
+        <div className='grid gap-4 sm:grid-cols-3'>
+          <StatTile
+            label='Tickets sold'
+            value={1842}
+            trend={[1200, 1340, 1480, 1600, 1720, 1780, 1842]}
+            context='This week'
+          />
+          <DataCard size='sm' label='Sell-through' context='Target 85%'>
+            <Meter label='Sell-through' value={68} max={100} target={85} />
+          </DataCard>
+          <div className='w-48'>
+            <Sparkline
+              values={[1200, 1340, 1480, 1600, 1720, 1780, 1842]}
+              label='Tickets sold, this week'
+            />
+          </div>
+        </div>
       </section>
 
       <section className='grid gap-6'>
@@ -302,6 +340,24 @@ export default function DataVisualisationPage() {
             description='Good, warning, serious and critical. Only for meaning, never as a series colour, and always with an icon or label.'
           >
             <DatavizSwatches kind='status' />
+            <div className='grid gap-3 sm:grid-cols-2'>
+              <StatTile
+                label='Gross revenue'
+                value={118400}
+                format='compactCurrency'
+                delta={{ value: -0.04, format: 'percent' }}
+                context='This week'
+              />
+              <StatTile
+                label='Tickets sold'
+                value={1842}
+                delta={{ value: 0.18, format: 'percent' }}
+                context='This week'
+              />
+            </div>
+            <p className='max-w-prose text-sm text-subtle'>
+              Status colour always comes with an arrow and words.
+            </p>
           </PaletteBlock>
         </div>
         <Guideline title='Emphasis and ink'>

@@ -155,6 +155,24 @@ icon or label.
 
 ---
 
+### Dashboards
+
+- Dashboards use `Dashboard` and `Dashboard.Section` with card `size`
+  (`stat`, `sm`, `md`, `lg`, `full`), not hand-written grid spans.
+- Headline numbers use `StatTile` or `DataCard`, not a hand-rolled card.
+- A card shows a value with a delta, or a takeaway, never both.
+- Deltas use `Delta` (arrow plus words), never colour alone.
+- Tables with sparklines or meters use `DataTable`, with at most two visual
+  columns and a `priority` on low-value columns.
+- Dashboards described as JSON pass `validateDashboard` from
+  `@oztix/roadie-core/dashboard` with no errors.
+- UI code that only needs sizes, kinds or copy limits imports from the
+  zod-free `@oztix/roadie-core/dashboard-layout` subpath instead, so it
+  doesn't pull in zod.
+- Labels stay within about 22 characters on `stat` cards so they don't truncate; `md` cards are narrowest on tablet (about 35/38 label/context), `sm`/`lg`/`full` per `COPY_LIMITS`.
+
+---
+
 ### Group B: Layout
 
 #### B1. flex-col stacks instead of grid [Warning]
