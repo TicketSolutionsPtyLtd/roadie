@@ -19,6 +19,7 @@ import {
   Pane as PaneViaBarrel,
   Popover as PopoverViaBarrel,
   ScrollArea as ScrollAreaViaBarrel,
+  Switch as SwitchViaBarrel,
   Tabs as TabsViaBarrel,
   Tooltip as TooltipViaBarrel
 } from '@oztix/roadie-components'
@@ -43,6 +44,7 @@ import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { ScrollArea } from '@oztix/roadie-components/scroll-area'
 import { Select } from '@oztix/roadie-components/select'
 import { Steps } from '@oztix/roadie-components/steps'
+import { Switch } from '@oztix/roadie-components/switch'
 import { Tabs } from '@oztix/roadie-components/tabs'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
 
@@ -492,6 +494,27 @@ export default function RscSmokePage() {
           <TooltipViaBarrel.Trigger>Hover for a label</TooltipViaBarrel.Trigger>
           <TooltipViaBarrel.Content>A label</TooltipViaBarrel.Content>
         </TooltipViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Switch as bare root (canonical)
+        </h2>
+        <Switch label='Email me when tickets go on sale' defaultChecked />
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Switch with <code>.Root</code> alias and <code>.Thumb</code>
+        </h2>
+        <Switch.Root aria-label='Presale alerts'>
+          <Switch.Thumb />
+        </Switch.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Switch via barrel</h2>
+        <SwitchViaBarrel label='Presale alerts' />
       </section>
 
       <section className='grid gap-2'>

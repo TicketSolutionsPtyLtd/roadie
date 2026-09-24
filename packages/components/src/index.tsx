@@ -398,6 +398,16 @@ export {
 } from './components/Tooltip'
 
 export {
+  Switch,
+  switchVariants,
+  switchThumbVariants,
+  type SwitchProps,
+  type SwitchRootProps,
+  type SwitchThumbProps,
+  type SwitchSize
+} from './components/Switch'
+
+export {
   Dialog,
   dialogPopupVariants,
   type DialogProps,

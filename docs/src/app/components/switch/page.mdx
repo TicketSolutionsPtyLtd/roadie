@@ -1,0 +1,154 @@
+export const metadata = {
+  title: 'Switch',
+  description: 'An on or off control for a setting that applies straight away',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+An on or off control for a setting that applies straight away.
+
+## Import
+
+```tsx
+import { Switch } from '@oztix/roadie-components/switch'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Switch label='Email me when tickets go on sale' />
+```
+
+The row fills its container, with the label on the left and the switch on the
+right. Add `className='justify-start'` to keep them together.
+
+### Settings list
+
+Add `description` for a second line. It is announced as the switch's
+description, not as part of its name.
+
+```tsx-live
+<div className='grid max-w-md divide-y divide-subtler'>
+  <Switch
+    className='py-3'
+    label='Email me when tickets go on sale'
+    description='One email per event, sent when the general sale opens.'
+    defaultChecked
+  />
+  <Switch
+    className='py-3'
+    label='Presale alerts'
+    description='Early access codes for artists you follow.'
+  />
+  <Switch
+    className='py-3'
+    label='Event reminders'
+    description='A reminder the day before doors open at The Tin Lantern.'
+    defaultChecked
+  />
+</div>
+```
+
+### Sizes
+
+```tsx-live
+<div className='grid max-w-xs gap-3'>
+  <Switch size='sm' label='Small' defaultChecked />
+  <Switch size='md' label='Medium' defaultChecked />
+</div>
+```
+
+### States
+
+```tsx-live
+<div className='grid max-w-xs gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Off</p>
+    <Switch aria-label='Off' />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>On</p>
+    <Switch aria-label='On' defaultChecked />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <Switch label='Presale alerts' disabled />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled and on</p>
+    <Switch label='Presale alerts' disabled defaultChecked />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Invalid</p>
+    <Switch label='I accept the terms' invalid />
+  </div>
+</div>
+```
+
+### With Field
+
+Inside [Field](/components/field), Switch takes `invalid`, `required` and
+`disabled` from the field, and is described by `Field.HelperText` or
+`Field.ErrorText`.
+
+```tsx-live-noinline
+function Example() {
+  const [accepted, setAccepted] = useState(false)
+  return (
+    <Field invalid={!accepted} required className='max-w-md'>
+      <Switch
+        label='I accept the event terms'
+        checked={accepted}
+        onCheckedChange={setAccepted}
+      />
+      <Field.ErrorText>Accept the terms to buy tickets.</Field.ErrorText>
+    </Field>
+  )
+}
+
+render(<Example />)
+```
+
+`Field.Label` names a bare switch, and clicking the label toggles it.
+
+```tsx-live
+<Field className='max-w-md'>
+  <Field.Label>Resale listings</Field.Label>
+  <Switch />
+  <Field.HelperText>Let fans buy tickets you can no longer use.</Field.HelperText>
+</Field>
+```
+
+### Composition
+
+`Switch` renders its own thumb. Pass `Switch.Thumb` as a child to style it.
+
+```tsx-live
+<Switch aria-label='Dark mode'>
+  <Switch.Thumb className='shadow-md' />
+</Switch>
+```
+
+## Guidelines
+
+- **Use a switch when the change applies at once**, like a notification
+  setting. For a choice that waits for a submit button, use a radio group.
+- **Name the setting, not the action.** "Presale alerts", not "Turn on presale
+  alerts". The switch already says on or off.
+- **The checked track is accent.** Pass `intent` only when the colour carries
+  meaning, such as `intent='danger'` for a destructive setting.
+
+## Accessibility
+
+- **Keyboard**: `Tab` moves focus to the switch. `Space` or `Enter` toggles it.
+- **ARIA**: Base UI renders `role="switch"` with `aria-checked`, plus a hidden
+  checkbox so the value submits with a form.
+- **Naming**: every switch needs a name. Use `label`, `Field.Label`, or
+  `aria-label` on a bare switch.
+- **Motion**: the thumb's slide stops when the user prefers reduced motion.
+
+<PropsDefinitions componentPath='packages/components/src/components/Switch' />
