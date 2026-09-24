@@ -4,17 +4,12 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { DashboardView } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import { createPortfolioDashboard, createShowDashboard } from '../examples'
-
-function useStylesheet(css: string) {
-  const style = document.createElement('style')
-  style.textContent = css
-  document.head.append(style)
-  return () => style.remove()
-}
+import { loadBrandFont, useStylesheet } from '../testUtils'
 
 let removeStylesheet = () => {}
-beforeAll(() => {
+beforeAll(async () => {
   removeStylesheet = useStylesheet(roadieCss)
+  await loadBrandFont()
 })
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())

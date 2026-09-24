@@ -4,13 +4,7 @@ import { userEvent } from 'vitest/browser'
 
 import { Chart } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
-
-function useStylesheet(css: string) {
-  const style = document.createElement('style')
-  style.textContent = css
-  document.head.append(style)
-  return () => style.remove()
-}
+import { useStylesheet } from '../testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {

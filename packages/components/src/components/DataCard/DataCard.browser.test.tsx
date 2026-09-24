@@ -5,12 +5,13 @@ import { commands } from 'vitest/browser'
 import { DataCard } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Meter } from '../Meter'
-import { useStylesheet } from '../Pane/testUtils'
+import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Sparkline } from '../Sparkline'
 
 let removeStylesheet = () => {}
-beforeAll(() => {
+beforeAll(async () => {
   removeStylesheet = useStylesheet(roadieCss)
+  await loadBrandFont()
 })
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())

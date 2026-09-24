@@ -4,11 +4,12 @@ import { userEvent } from 'vitest/browser'
 
 import { DataTable, type DataTableColumn } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
+import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
-beforeAll(() => {
+beforeAll(async () => {
   removeStylesheet = useStylesheet(roadieCss)
+  await loadBrandFont()
 })
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
