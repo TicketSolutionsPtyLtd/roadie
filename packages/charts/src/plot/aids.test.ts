@@ -42,8 +42,8 @@ describe('reading aids', () => {
     ),
     ...forecastMarks(
       [
-        { x: 6, y: 0.5 },
-        { x: 10, y: 0.9 }
+        { x: 6, y: 0.5, series: 'Sold' },
+        { x: 10, y: 0.9, series: 'Sold' }
       ],
       [
         { x: 6, low: 0.5, high: 0.5 },

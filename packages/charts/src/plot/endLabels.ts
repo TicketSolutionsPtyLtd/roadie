@@ -1,5 +1,6 @@
 import { text } from '@tanstack/charts'
 import type { ChartMark } from '@tanstack/charts'
+import { decorative } from '@tanstack/charts/mark/decorative'
 
 import type { ChartPaint, PlotFrame } from './types'
 
@@ -63,18 +64,20 @@ export function endLabelMark(
     highlight: paint.highlight,
     label: paint.label
   }
-  return text(
-    labels.map((label) => ({ ...label, x })),
-    {
-      id: 'label-end',
-      x: 'x',
-      y: 'y',
-      text: 'text',
-      dx: 8,
-      anchor: 'start',
-      fontSize: frame.fontSize,
-      fontWeight: 600,
-      fill: (label) => tone[label.tone]
-    }
+  return decorative(
+    text(
+      labels.map((label) => ({ ...label, x })),
+      {
+        id: 'label-end',
+        x: 'x',
+        y: 'y',
+        text: 'text',
+        dx: 8,
+        anchor: 'start',
+        fontSize: frame.fontSize,
+        fontWeight: 600,
+        fill: (label) => tone[label.tone]
+      }
+    )
   )
 }

@@ -49,4 +49,17 @@ describe('stepAlong', () => {
     expect(stepAlong(points, a1, 1)).toBeNull()
     expect(stepAlong(points, b0, -1)).toBeNull()
   })
+
+  it('crosses from the solid line into the forecast of the same series', () => {
+    const solid0 = { markId: 'series-1', group: 'Sold', x: 0 }
+    const solid1 = { markId: 'series-1', group: 'Sold', x: 40 }
+    const forecast1 = { markId: 'forecast-1', group: 'Sold', x: 40 }
+    const forecast2 = { markId: 'forecast-1', group: 'Sold', x: 80 }
+    const other = { markId: 'series-2', group: 'VIP', x: 60 }
+    const split = [forecast2, solid1, other, solid0, forecast1]
+    expect(stepAlong(split, solid0, 1)).toBe(solid1)
+    expect(stepAlong(split, solid1, 1)).toBe(forecast2)
+    expect(stepAlong(split, forecast2, -1)).toBe(solid1)
+    expect(stepAlong(split, forecast1, -1)).toBe(solid0)
+  })
 })

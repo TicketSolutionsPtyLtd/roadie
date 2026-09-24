@@ -9,7 +9,8 @@ export default defineConfig(({ watch }) => ({
     'src/**/*.{ts,tsx}',
     '!**/*.test.{ts,tsx}',
     '!**/testUtils.ts',
-    '!**/testChart.ts'
+    '!**/testChart.ts',
+    '!**/browserTesting.tsx'
   ],
   unbundle: true,
   format: ['esm'],
