@@ -143,7 +143,9 @@ import { Chart } from '@oztix/roadie-charts/chart'
 ## Guidelines
 
 - `table` and `source` are required. The table is the full alternative to the plot, and the source belongs to both views.
-- Plot heights come from the card size, not the image. `size='sm'` is 160px, `md` and `full` are 220px, `lg` is 260px.
+- Live plot heights come from the card size: `size='sm'` is 160px, `md` is 220px, `lg` and `full` are 260px.
+- A static plot in a dashboard spec fills the plot width and takes its height from the image, so render it at the aspect of the box it fills, with text at 12px. Add a `narrow` rendition for plots under 480px wide and a `wide` one for 960px and up, so the text stays readable at every width.
+- Switching between Chart and Table keeps the card's height. The plot sets it, and a longer table scrolls inside it.
 - Plots arrive in a later release. Until then, cards render a static image or a placeholder.
 - The Chart and Table switch is icon-only: `ChartLineIcon` and `TableIcon`, bold, `size-4`. Each tab is named by its `aria-label`, not visible text, so it never competes with the label for space.
 - Chart labels follow the tighter `CHART_LABEL_LIMITS` from `@oztix/roadie-core/dashboard-layout`, not `COPY_LIMITS`, because the label's row also holds the view switch: 21 characters at `sm` and `md`, 27 at `lg` and `full`.

@@ -1,9 +1,11 @@
 import type { DashboardSpec } from '@oztix/roadie-core/dashboard'
 
+import { paceImage } from './paceImage'
+
 const shows = [
   {
     show: 'Ball Park Music',
-    venue: 'The Lantern Room, Fortitude Valley · Sat 14 Nov',
+    venue: 'The Lantern Room, Fortitude Valley\u00a0· Sat\u00a014\u00a0Nov',
     daily: [
       22, 30, 28, 41, 38, 52, 47, 55, 61, 58, 66, 72, 70, 81, 79, 92, 88, 96,
       104, 99, 112, 118, 109, 125, 131, 128, 140, 152, 147, 160
@@ -14,7 +16,7 @@ const shows = [
   },
   {
     show: 'Ocean Alley',
-    venue: 'Parkside Amphitheatre, Geelong · Sat 12 Dec',
+    venue: 'Parkside Amphitheatre, Geelong\u00a0· Sat\u00a012\u00a0Dec',
     daily: [
       90, 95, 88, 97, 102, 99, 94, 101, 108, 97, 92, 99, 104, 110, 101, 97, 103,
       108, 99, 95, 102, 107, 111, 104, 99, 106, 110, 103, 108, 112
@@ -25,7 +27,7 @@ const shows = [
   },
   {
     show: 'King Stingray',
-    venue: 'Saltwater Hall, Darwin · Sat 5 Dec',
+    venue: 'Saltwater Hall, Darwin\u00a0· Sat\u00a05\u00a0Dec',
     daily: [
       12, 15, 19, 17, 22, 26, 24, 29, 33, 31, 36, 40, 38, 44, 47, 45, 51, 55,
       53, 58, 62, 60, 66, 70, 68, 73, 77, 75, 81, 86
@@ -36,7 +38,7 @@ const shows = [
   },
   {
     show: 'Middle Kids',
-    venue: 'Harbourline Theatre, Newcastle · Sat 21 Nov',
+    venue: 'Harbourline Theatre, Newcastle\u00a0· Sat\u00a021\u00a0Nov',
     daily: [
       30, 28, 31, 27, 25, 29, 26, 24, 27, 23, 25, 22, 24, 21, 23, 20, 22, 24,
       21, 19, 22, 20, 18, 21, 19, 17, 20, 18, 16, 19
@@ -47,7 +49,7 @@ const shows = [
   },
   {
     show: 'Julia Jacklin',
-    venue: 'The Gasworks Room, Hobart · Sat 28 Nov',
+    venue: 'The Gasworks Room, Hobart\u00a0· Sat\u00a028\u00a0Nov',
     daily: [
       18, 16, 17, 14, 15, 13, 14, 12, 13, 11, 12, 10, 11, 9, 10, 9, 8, 10, 8, 7,
       9, 7, 6, 8, 6, 7, 5, 6, 5, 6
@@ -58,7 +60,7 @@ const shows = [
   },
   {
     show: 'Genesis Owusu',
-    venue: 'The Velvet Room, Surry Hills · Sat 19 Dec',
+    venue: 'The Velvet Room, Surry Hills\u00a0· Sat\u00a019\u00a0Dec',
     daily: [
       9, 8, 9, 7, 8, 6, 7, 6, 5, 7, 5, 6, 4, 5, 4, 5, 3, 4, 5, 3, 4, 3, 2, 4, 3,
       2, 3, 2, 3, 2
@@ -69,7 +71,7 @@ const shows = [
   },
   {
     show: 'Angie McMahon',
-    venue: 'The Moth Club, Brunswick · Fri 30 Jan',
+    venue: 'The Moth Club, Brunswick\u00a0· Fri\u00a030\u00a0Jan',
     daily: [95, 85],
     sellThrough: 0.18,
     pace: 'On sale 2 days',
@@ -85,6 +87,13 @@ export function createPortfolioDashboard(assetBase = ''): DashboardSpec {
       {
         title: 'This month',
         cards: [
+          {
+            id: 'next',
+            kind: 'note',
+            size: 'full',
+            label: 'What to do next',
+            body: 'Julia Jacklin and Genesis Owusu are furthest behind similar shows. Julia Jacklin plays first, so start there.'
+          },
           {
             id: 'tickets',
             kind: 'stat',
@@ -115,7 +124,8 @@ export function createPortfolioDashboard(assetBase = ''): DashboardSpec {
             label: 'Shows behind',
             value: 3,
             delta: { value: 1, goodWhen: 'down' },
-            context: 'Of 7 on sale'
+            context: 'Of 7 on sale',
+            trend: [1, 1, 2, 2, 2, 3, 2, 3]
           },
           {
             id: 'refunds',
@@ -131,7 +141,7 @@ export function createPortfolioDashboard(assetBase = ''): DashboardSpec {
         ]
       },
       {
-        title: 'Upcoming shows',
+        title: 'On sale',
         cards: [
           {
             id: 'shows',
@@ -186,16 +196,17 @@ export function createPortfolioDashboard(assetBase = ''): DashboardSpec {
           {
             id: 'behind-pace',
             kind: 'chart',
-            size: 'md',
+            size: 'full',
             label: 'Julia Jacklin pace',
             value: 0.4,
             format: 'percent',
             delta: { value: -12, format: 'points' },
-            context: 'Behind similar shows. 74% vs 85%',
+            context: 'Behind similar shows. Forecast 74%',
             plot: {
               kind: 'static',
-              src: `${assetBase}/charts/pace-behind-light.svg`,
-              srcDark: `${assetBase}/charts/pace-behind-dark.svg`,
+              ...paceImage(assetBase, 'pace-behind'),
+              narrow: paceImage(assetBase, 'pace-behind-narrow'),
+              wide: paceImage(assetBase, 'pace-behind-wide'),
               alt: 'Julia Jacklin tracks below the band of similar shows and is forecast to reach 74%'
             },
             table: {
@@ -221,13 +232,6 @@ export function createPortfolioDashboard(assetBase = ''): DashboardSpec {
               ]
             },
             source: 'Oztix sales. 38 similar shows, last 3 years.'
-          },
-          {
-            id: 'next',
-            kind: 'note',
-            size: 'md',
-            label: 'What to do next',
-            body: 'Julia Jacklin, Genesis Owusu and Middle Kids are behind. Julia Jacklin has the biggest gap with 30 days to go, so start there.'
           }
         ]
       }

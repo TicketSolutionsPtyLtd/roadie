@@ -1,5 +1,7 @@
 import type { DashboardSpec } from '@oztix/roadie-core/dashboard'
 
+import { paceImage } from './paceImage'
+
 const DAILY_SOLD = [
   40, 62, 70, 88, 95, 120, 131, 160, 172, 190, 214, 240, 262, 300, 330, 351,
   380, 420, 470, 520
@@ -26,13 +28,20 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
         description: 'Sat 14 Nov, 30 days to go',
         cards: [
           {
+            id: 'note',
+            kind: 'note',
+            size: 'full',
+            label: 'What to do next',
+            body: 'GA is carrying the show and VIP is 27 points short of target. Push VIP in the final month.'
+          },
+          {
             id: 'sold',
             kind: 'stat',
             size: 'stat',
             label: 'Tickets sold',
             value: 1842,
             delta: { value: 214 },
-            context: 'This week. 20 days',
+            context: 'This week',
             trend: DAILY_SOLD
           },
           {
@@ -43,7 +52,7 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             value: 0.77,
             format: 'percent',
             delta: { value: 9, format: 'points' },
-            context: 'Week target is 85%',
+            context: 'Target 85%',
             trend: SELL_THROUGH,
             reference: { value: 0.85, label: 'Target' }
           },
@@ -67,7 +76,7 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             value: 118400,
             format: 'compactCurrency',
             delta: { value: -0.04, format: 'percent' },
-            context: 'On last week, 20 wks',
+            context: 'On last week',
             trend: REVENUE
           }
         ]
@@ -78,7 +87,7 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
           {
             id: 'sales-pace',
             kind: 'chart',
-            size: 'lg',
+            size: 'full',
             label: 'Sales pace',
             value: 0.61,
             format: 'percent',
@@ -86,19 +95,11 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             context: 'Ahead of similar shows. Forecast 96%',
             plot: {
               kind: 'static',
-              src: `${assetBase}/charts/pace-ahead-light.svg`,
-              srcDark: `${assetBase}/charts/pace-ahead-dark.svg`,
+              ...paceImage(assetBase, 'pace-ahead'),
+              narrow: paceImage(assetBase, 'pace-ahead-narrow'),
+              wide: paceImage(assetBase, 'pace-ahead-wide'),
               alt: 'This show tracks above the band of 38 similar shows and is forecast to reach 96% by show day'
             },
-            legend: [
-              { label: 'This show', shape: 'line' },
-              { label: 'Forecast', shape: 'dot' },
-              {
-                label: 'Similar shows',
-                shape: 'band',
-                color: 'var(--chart-band)'
-              }
-            ],
             table: {
               columns: [
                 { key: 'days', header: 'Days to show', kind: 'number' },
@@ -124,16 +125,36 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             source: 'Oztix sales. 38 similar shows, last 3 years.'
           },
           {
-            id: 'note',
-            kind: 'note',
-            size: 'sm',
-            label: 'What to do next',
-            body: 'GA is carrying the show. VIP is 27 points short of target with 30 days to go, so it is the one to push in the final month.'
+            id: 'ticket-types',
+            kind: 'table',
+            size: 'md',
+            label: 'Ticket types',
+            takeaway: 'VIP is the one to push this month',
+            columns: [
+              {
+                key: 'type',
+                header: 'Ticket type',
+                kind: 'text',
+                secondaryKey: 'sold'
+              },
+              {
+                key: 'sellThrough',
+                header: 'Sell-through',
+                kind: 'meter',
+                target: 0.85
+              }
+            ],
+            rows: [
+              { type: 'GA early bird', sold: '400 sold', sellThrough: 1 },
+              { type: 'GA', sold: '1,210 sold', sellThrough: 0.76 },
+              { type: 'VIP', sold: '232 sold', sellThrough: 0.58 }
+            ],
+            source: 'Oztix sales.'
           },
           {
             id: 'buyers',
             kind: 'table',
-            size: 'sm',
+            size: 'md',
             label: 'Where buyers are from',
             takeaway: 'Most buyers are within 20km',
             columns: [
@@ -152,29 +173,6 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
               { suburb: 'Newstead', share: 0.07 }
             ],
             source: 'Oztix sales, billing postcodes.'
-          },
-          {
-            id: 'ticket-types',
-            kind: 'table',
-            size: 'lg',
-            label: 'Ticket types',
-            takeaway: 'VIP is the one to push this month',
-            columns: [
-              { key: 'type', header: 'Ticket type', kind: 'text' },
-              { key: 'sold', header: 'Sold', kind: 'number' },
-              {
-                key: 'sellThrough',
-                header: 'Sell-through',
-                kind: 'meter',
-                target: 0.85
-              }
-            ],
-            rows: [
-              { type: 'GA early bird', sold: 400, sellThrough: 1 },
-              { type: 'GA', sold: 1210, sellThrough: 0.76 },
-              { type: 'VIP', sold: 232, sellThrough: 0.58 }
-            ],
-            source: 'Oztix sales.'
           }
         ]
       }

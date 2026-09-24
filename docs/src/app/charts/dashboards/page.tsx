@@ -403,35 +403,35 @@ const STAT_CARD_JSON = `{
 }`
 
 const SHOW_DASHBOARD_SIZES: CardSize[] = [
+  'full',
   'stat',
   'stat',
   'stat',
   'stat',
-  'lg',
-  'sm',
-  'sm',
-  'lg'
+  'full',
+  'md',
+  'md'
 ]
 
 const DASHBOARD_JSX = `<Dashboard>
   <Dashboard.Section title='At a glance'>
+    <DataCard size='full' label='What to do next'>
+      <p>GA is carrying the show and VIP is 27 points short of target. Push VIP in the final month.</p>
+    </DataCard>
     <StatTile label='Tickets sold' value={1842} delta={{ value: 214 }} />
     <StatTile label='Sell-through' value={0.77} format='percent' />
     <StatTile label='Pace index' value={112} format='index' />
     <StatTile label='Gross revenue' value={118400} format='compactCurrency' />
   </Dashboard.Section>
   <Dashboard.Section title='Sales'>
-    <Chart size='lg' label='Sales pace' source='Oztix sales.' table={pace}>
-      <img src='/charts/pace-ahead-light.svg' alt='…' />
+    <Chart size='full' label='Sales pace' source='Oztix sales.' table={pace}>
+      <PacePlot />
     </Chart>
-    <DataCard size='sm' label='What to do next'>
-      <p>GA is carrying the show. Push VIP this month.</p>
-    </DataCard>
-    <DataCard size='sm' label='Where buyers are from'>
-      <DataTable columns={suburbColumns} rows={suburbs} />
-    </DataCard>
-    <DataCard size='lg' label='Ticket types'>
+    <DataCard size='md' label='Ticket types'>
       <DataTable columns={typeColumns} rows={types} />
+    </DataCard>
+    <DataCard size='md' label='Where buyers are from'>
+      <DataTable columns={suburbColumns} rows={suburbs} />
     </DataCard>
   </Dashboard.Section>
 </Dashboard>`
@@ -593,10 +593,10 @@ export default function DashboardsPage() {
           <Link href='/charts/show-dashboard' className='underline'>
             show dashboard
           </Link>
-          . It has four stat tiles, an <Code>lg</Code> chart beside an{' '}
-          <Code>sm</Code> note, then an <Code>sm</Code> table beside an{' '}
-          <Code>lg</Code> table. This column is narrower than 960px, so it shows
-          6 tracks or fewer. Here is the same layout at each width, and the JSX
+          . It opens with a <Code>full</Code> note that says what to do, then
+          four stat tiles, a <Code>full</Code> chart and two <Code>md</Code>{' '}
+          tables side by side. This column is narrower than 960px, so it shows 6
+          tracks or fewer. Here is the same layout at each width, and the JSX
           behind it.
         </p>
         <Stage>
