@@ -236,12 +236,8 @@ function cardProblems(card: DashboardCard, path: string) {
     problems.push(...copyProblems(path, 'takeaway', card.takeaway))
   if (card.kind === 'note')
     problems.push(...copyProblems(path, 'body', card.body))
-  if (card.kind === 'chart') {
-    if (card.plot.kind === 'static') {
-      if (!card.table)
-        problems.push(error(`${path}.table`, 'A static plot needs a table'))
-    } else problems.push(...plotProblems(card.plot, path))
-  }
+  if (card.kind === 'chart' && card.plot.kind !== 'static')
+    problems.push(...plotProblems(card.plot, path))
   return problems
 }
 
