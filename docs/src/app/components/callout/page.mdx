@@ -41,7 +41,7 @@ Leave out either one. A title on its own suits a short status; a description on 
 
 ### Emphasis
 
-`subtle` is the default. Use `normal` to sit on a tinted surface, `strong` for the one message a page can't miss, and `subtler` for a quiet aside.
+`subtle` is the default. Use `normal` to sit on a tinted surface, `strong` for the one message a page can't miss, and `subtler` for a quiet aside. In a `strong` callout, give buttons `emphasis='normal'`, because a `strong` button takes the same fill as the callout.
 
 ```tsx-live
 <div className='grid gap-3'>
@@ -94,7 +94,7 @@ Build the callout from parts when it needs actions or a rich body. `Callout.Icon
 
 ### With actions
 
-Actions sit below the text in a narrow callout and move beside it once the callout is 32rem wide. The callout measures itself, so it lays out the same in a sidebar as on a phone.
+Actions sit below the text in a narrow callout and move beside it once there's 32rem of room inside the callout. The callout measures itself, so it lays out the same in a sidebar as on a phone.
 
 ```tsx-live
 <div className='grid gap-3'>
@@ -161,18 +161,22 @@ Pass `icon` to the short form, or children to `Callout.Icon`. Pass `icon={null}`
 <Guideline title='Callout or Toast'>
   <Guideline.Do
     example={
-      <Callout intent='warning' title='Only 20 tickets left at this price'>
-        The next release is $10 more.
-      </Callout>
+      <div className='w-56'>
+        <Callout intent='warning' title='Only 20 tickets left at this price'>
+          The next release is $10 more.
+        </Callout>
+      </div>
     }
   >
     Use a callout for something that stays true while the page is open, next to the content it's about.
   </Guideline.Do>
   <Guideline.Dont
     example={
-      <Callout intent='success' title='Saved'>
-        Your changes were saved.
-      </Callout>
+      <div className='w-56'>
+        <Callout intent='success' title='Saved'>
+          Your changes were saved.
+        </Callout>
+      </div>
     }
   >
     Don't use a callout to confirm an action that just happened. Use a Toast, which comes and goes on its own.
@@ -182,18 +186,22 @@ Pass `icon` to the short form, or children to `Callout.Icon`. Pass `icon={null}`
 <Guideline title='Say what to do next'>
   <Guideline.Do
     example={
-      <Callout intent='danger' title='Payment failed'>
-        Update your card to keep your booking.
-      </Callout>
+      <div className='w-56'>
+        <Callout intent='danger' title='Payment failed'>
+          Update your card to keep your booking.
+        </Callout>
+      </div>
     }
   >
     Lead with what happened and follow with what to do. Keep it to a sentence or two.
   </Guideline.Do>
   <Guideline.Dont
     example={
-      <Callout intent='danger' title='Error'>
-        Something went wrong.
-      </Callout>
+      <div className='w-56'>
+        <Callout intent='danger' title='Error'>
+          Something went wrong.
+        </Callout>
+      </div>
     }
   >
     Don't write a vague title. It tells people something is wrong without telling them what.

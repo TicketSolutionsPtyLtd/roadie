@@ -9,11 +9,7 @@ export function CalloutActions({ className, ...props }: CalloutActionsProps) {
   return (
     <div
       data-slot='callout-actions'
-      className={cn(
-        'col-start-2 row-start-3 mt-3 flex flex-wrap items-center gap-2',
-        '@lg:col-start-3 @lg:row-span-2 @lg:row-start-1 @lg:ms-4 @lg:mt-0 @lg:self-center',
-        className
-      )}
+      className={cn('flex flex-wrap items-center gap-2', className)}
       {...props}
     />
   )

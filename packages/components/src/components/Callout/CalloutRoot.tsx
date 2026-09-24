@@ -56,31 +56,33 @@ export function CalloutRoot({
         className={cn(calloutVariants({ intent, emphasis }), className)}
         {...props}
       >
-        {isShortForm(title, children) ? (
-          <>
-            {icon !== null && icon !== false && (
-              <CalloutIcon>{icon}</CalloutIcon>
-            )}
-            {title !== undefined && <CalloutTitle>{title}</CalloutTitle>}
-            {children != null && children !== '' && (
-              <CalloutDescription>{children}</CalloutDescription>
-            )}
-          </>
-        ) : (
-          children
-        )}
-        {onDismiss && (
-          <IconButton
-            data-slot='callout-dismiss'
-            aria-label={dismissLabel}
-            size='sm'
-            emphasis={emphasis === 'strong' ? 'strong' : 'subtler'}
-            onClick={onDismiss}
-            className='col-start-4 row-span-3 row-start-1 -my-1.5 ms-2 -me-2'
-          >
-            <XIcon weight='bold' className='size-4' />
-          </IconButton>
-        )}
+        <div data-slot='callout-layout'>
+          {isShortForm(title, children) ? (
+            <>
+              {icon !== null && icon !== false && (
+                <CalloutIcon>{icon}</CalloutIcon>
+              )}
+              {title !== undefined && <CalloutTitle>{title}</CalloutTitle>}
+              {children != null && children !== '' && (
+                <CalloutDescription>{children}</CalloutDescription>
+              )}
+            </>
+          ) : (
+            children
+          )}
+          {onDismiss && (
+            <IconButton
+              data-slot='callout-dismiss'
+              aria-label={dismissLabel}
+              size='sm'
+              emphasis={emphasis === 'strong' ? 'strong' : 'subtler'}
+              onClick={onDismiss}
+              className='-my-1.5 -me-2'
+            >
+              <XIcon weight='bold' className='size-4' />
+            </IconButton>
+          )}
+        </div>
       </div>
     </CalloutContext>
   )

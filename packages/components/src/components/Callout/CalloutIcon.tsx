@@ -22,7 +22,7 @@ export function CalloutIcon({
       data-slot='callout-icon'
       aria-hidden='true'
       className={cn(
-        'col-start-1 row-span-2 row-start-1 me-3 flex h-lh items-center',
+        'flex h-lh items-center',
         "[&_svg:not([class*='size-'])]:size-5",
         className
       )}

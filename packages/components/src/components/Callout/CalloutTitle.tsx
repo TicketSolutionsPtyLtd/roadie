@@ -18,7 +18,7 @@ export function CalloutTitle({
     'p',
     {
       'data-slot': 'callout-title',
-      className: cn('col-start-2 row-start-1 font-semibold', className),
+      className: cn('font-semibold', className),
       ...props
     },
     render
