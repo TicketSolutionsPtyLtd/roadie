@@ -70,6 +70,19 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'collapsible':
+      return (
+        <div className='grid w-44 gap-2'>
+          <div className='grid gap-1.5'>
+            <Skel className='h-2 w-full' />
+            <Skel className='h-2 w-32' />
+          </div>
+          <div className='flex w-fit items-center gap-1.5 rounded-full emphasis-subtle px-3 py-1.5'>
+            <Skel className='h-2 w-14' />
+            <Skel className='size-2' />
+          </div>
+        </div>
+      )
     case 'input':
       return (
         <div className='w-40 rounded-lg border border-subtle bg-normal px-3 py-2'>

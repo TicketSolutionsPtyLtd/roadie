@@ -11,6 +11,7 @@
 import { StarIcon } from '@phosphor-icons/react/ssr'
 
 import {
+  Collapsible as CollapsibleViaBarrel,
   Dialog as DialogViaBarrel,
   Drawer as DrawerViaBarrel,
   Fieldset as FieldsetViaBarrel,
@@ -27,6 +28,7 @@ import { Autocomplete } from '@oztix/roadie-components/autocomplete'
 import { Breadcrumb } from '@oztix/roadie-components/breadcrumb'
 import { Card } from '@oztix/roadie-components/card'
 import { Carousel } from '@oztix/roadie-components/carousel'
+import { Collapsible } from '@oztix/roadie-components/collapsible'
 import { Combobox } from '@oztix/roadie-components/combobox'
 import { Dialog } from '@oztix/roadie-components/dialog'
 import { Drawer } from '@oztix/roadie-components/drawer'
@@ -492,6 +494,30 @@ export default function RscSmokePage() {
           <TooltipViaBarrel.Trigger>Hover for a label</TooltipViaBarrel.Trigger>
           <TooltipViaBarrel.Content>A label</TooltipViaBarrel.Content>
         </TooltipViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Collapsible as bare root (canonical)
+        </h2>
+        <Collapsible>
+          <Collapsible.Trigger>Show all ticket types</Collapsible.Trigger>
+          <Collapsible.Panel>
+            Rendered from a server component.
+          </Collapsible.Panel>
+        </Collapsible>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Collapsible via barrel
+        </h2>
+        <CollapsibleViaBarrel defaultOpen>
+          <CollapsibleViaBarrel.Trigger>Read more</CollapsibleViaBarrel.Trigger>
+          <CollapsibleViaBarrel.Panel>
+            Imported from the root barrel.
+          </CollapsibleViaBarrel.Panel>
+        </CollapsibleViaBarrel>
       </section>
 
       <section className='grid gap-2'>

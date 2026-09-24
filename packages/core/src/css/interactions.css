@@ -206,10 +206,23 @@
   }
 }
 
-/* ─── Disclosure animation (details/summary) ─── */
+/* ─── Disclosure animation ─── */
 
-/* Put on a `<details>` so its content opens and closes by height. */
+/* Put on a `<details>`, or a Base UI collapsible panel, so its content opens
+   and closes by height. */
 .is-disclosure-animated {
+  /* Base UI measures the panel into --collapsible-panel-height. */
+  &:not(details) {
+    height: var(--collapsible-panel-height);
+    overflow: clip;
+    transition: height var(--duration-moderate) var(--ease-enter);
+
+    &[data-starting-style],
+    &[data-ending-style] {
+      height: 0;
+    }
+  }
+
   &::details-content {
     height: 0;
     overflow: clip;

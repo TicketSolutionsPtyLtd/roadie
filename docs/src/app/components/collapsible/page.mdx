@@ -1,0 +1,184 @@
+export const metadata = {
+  title: 'Collapsible',
+  description: 'A single panel that a trigger shows and hides',
+  status: 'beta',
+  category: 'Collections',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A single panel that a trigger shows and hides, built on Base UI's collapsible primitive. It opens with the same height motion and caret turn as Accordion.
+
+## Import
+
+```tsx
+import { Collapsible } from '@oztix/roadie-components/collapsible'
+```
+
+## Examples
+
+### Default
+
+A bare trigger is a text control with a trailing caret. Pad the content inside the panel, not the panel itself, so it closes all the way.
+
+```tsx-live
+<div className='grid gap-3'>
+  <ul className='grid gap-2'>
+    <li>General admission</li>
+    <li>Concession</li>
+    <li>VIP mezzanine</li>
+  </ul>
+  <Collapsible>
+    <Collapsible.Trigger>Show all 12 ticket types</Collapsible.Trigger>
+    <Collapsible.Panel>
+      <ul className='grid gap-2 pt-3'>
+        <li>Early bird</li>
+        <li>Student</li>
+        <li>Seniors card</li>
+        <li>Group of four</li>
+        <li>Family pass</li>
+        <li>Companion card</li>
+        <li>Standing, front section</li>
+        <li>Seated, balcony</li>
+        <li>Meet and greet</li>
+      </ul>
+    </Collapsible.Panel>
+  </Collapsible>
+</div>
+```
+
+### With a button
+
+Render the trigger onto a `Button` for a "Read more" pattern. The trigger keeps the button's styles and adds its own caret. Here `open` is controlled so the label can change, and `hiddenUntilFound` lets find in page reach the closed text.
+
+```tsx-live-noinline
+function EventDescription() {
+  const [open, setOpen] = useState(false)
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className='grid max-w-prose justify-items-start gap-2'>
+      <p>The Velvet Static bring their third record to the Paper Lantern Hall in Fitzroy for one night only, with support from Harbour Moth.</p>
+      <Collapsible.Panel hiddenUntilFound>
+        <div className='grid gap-2'>
+          <p>Doors open at 7pm. Harbour Moth start at 8pm and The Velvet Static play from 9pm until late.</p>
+          <p>The venue is all ages until 10pm. Under 18s must be with a parent or guardian at all times.</p>
+        </div>
+      </Collapsible.Panel>
+      <Collapsible.Trigger render={<Button emphasis='subtler' size='sm' />}>
+        {open ? 'Read less' : 'Read more'}
+      </Collapsible.Trigger>
+    </Collapsible>
+  )
+}
+
+render(<EventDescription />)
+```
+
+### Filters
+
+Tuck advanced filters behind a button. `keepMounted` keeps the closed panel in the page, so what someone typed survives closing it.
+
+```tsx-live
+<Collapsible className='grid gap-3'>
+  <div className='flex flex-wrap items-center gap-2'>
+    <Field className='min-w-48 flex-1'>
+      <Field.Label className='sr-only'>Search events</Field.Label>
+      <Field.Input placeholder='Search events' />
+    </Field>
+    <Collapsible.Trigger render={<Button />}>
+      <SlidersHorizontal weight='bold' className='size-4' />
+      Advanced filters
+    </Collapsible.Trigger>
+  </div>
+  <Collapsible.Panel keepMounted>
+    <div className='grid gap-4 rounded-xl emphasis-sunken p-4 sm:grid-cols-2'>
+      <Field>
+        <Field.Label>Suburb</Field.Label>
+        <Field.Input placeholder='Newtown' />
+      </Field>
+      <Field>
+        <Field.Label>Genre</Field.Label>
+        <Select>
+          <Select.Trigger>
+            <Select.Value placeholder='Any genre' />
+            <Select.Icon />
+          </Select.Trigger>
+          <Select.Content>
+            <Select.Item value='rock'>Rock</Select.Item>
+            <Select.Item value='electronic'>Electronic</Select.Item>
+            <Select.Item value='comedy'>Comedy</Select.Item>
+          </Select.Content>
+        </Select>
+      </Field>
+    </div>
+  </Collapsible.Panel>
+</Collapsible>
+```
+
+### States
+
+```tsx-live
+<div className='grid gap-6'>
+  <div className='grid justify-items-start gap-1'>
+    <p className='text-sm text-subtle'>Closed</p>
+    <Collapsible>
+      <Collapsible.Trigger>Show all 12 ticket types</Collapsible.Trigger>
+      <Collapsible.Panel><p className='pt-2'>Early bird, student and nine more.</p></Collapsible.Panel>
+    </Collapsible>
+  </div>
+  <div className='grid justify-items-start gap-1'>
+    <p className='text-sm text-subtle'>Open</p>
+    <Collapsible defaultOpen>
+      <Collapsible.Trigger>Show all 12 ticket types</Collapsible.Trigger>
+      <Collapsible.Panel><p className='pt-2'>Early bird, student and nine more.</p></Collapsible.Panel>
+    </Collapsible>
+  </div>
+  <div className='grid justify-items-start gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <Collapsible disabled>
+      <Collapsible.Trigger>Show all 12 ticket types</Collapsible.Trigger>
+      <Collapsible.Panel><p className='pt-2'>Early bird, student and nine more.</p></Collapsible.Panel>
+    </Collapsible>
+  </div>
+  <div className='grid justify-items-start gap-1'>
+    <p className='text-sm text-subtle'>Without a caret</p>
+    <Collapsible>
+      <Collapsible.Trigger showIndicator={false}>Show all 12 ticket types</Collapsible.Trigger>
+      <Collapsible.Panel><p className='pt-2'>Early bird, student and nine more.</p></Collapsible.Panel>
+    </Collapsible>
+  </div>
+</div>
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Collapsible or Accordion'>
+  <Guideline.Do code={`<Collapsible>\n  <Collapsible.Trigger>Show all 12 ticket types</Collapsible.Trigger>\n  <Collapsible.Panel>…</Collapsible.Panel>\n</Collapsible>`}>
+    Use Collapsible for one panel that belongs to the content around it: the rest of a list, the rest of a description, extra filters.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Collapsible>…</Collapsible>\n<Collapsible>…</Collapsible>\n<Collapsible>…</Collapsible>`}>
+    Don't stack Collapsibles into a list of questions or sections. Use Accordion, which groups them and can keep one open at a time.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Say what opens'>
+  <Guideline.Do>
+    Name what the panel holds, with a count where you have one: "Show all 12 ticket types", "Advanced filters".
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't hide what most people need, like the price or the date. Keep it above the trigger.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- The trigger is a button with `aria-expanded` and `aria-controls` pointing at the panel. `Enter` or `Space` toggles it.
+- The caret is decorative and hidden from assistive technology. The trigger's text is its name.
+- A closed panel leaves the page unless you pass `keepMounted` or `hiddenUntilFound`. With `hiddenUntilFound`, find in page can match the closed text and opens the panel to show it.
+- The height motion stops under reduced motion.
+
+<PropsDefinitions componentPath='packages/components/src/components/Collapsible' />
