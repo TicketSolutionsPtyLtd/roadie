@@ -68,11 +68,10 @@ describe('Switch', () => {
     expect(control).toHaveAttribute('data-disabled')
   })
 
-  it('checked track takes accent unless an intent is set', () => {
-    expect(switchVariants()).toContain('data-checked:intent-accent')
-    const danger = switchVariants({ intent: 'danger' })
-    expect(danger).toContain('data-checked:intent-danger')
-    expect(danger).not.toContain('intent-accent')
+  it('checked track is accent', () => {
+    expect(switchVariants()).toContain(
+      'data-checked:bg-[var(--color-accent-9)]'
+    )
   })
 
   it('defaults to md and accepts sm', () => {

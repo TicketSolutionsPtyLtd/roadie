@@ -6,7 +6,6 @@ import { Switch as SwitchPrimitive } from '@base-ui/react/switch'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import type { RoadieIntent } from '../../variants'
 import { useFieldContext } from '../Field'
 import { SwitchThumb } from './SwitchThumb'
 import { switchVariants } from './variants'
@@ -15,8 +14,6 @@ export type SwitchSize = 'sm' | 'md'
 
 export type SwitchRootProps = SwitchPrimitive.Root.Props &
   RefAttributes<HTMLElement> & {
-    /** Colour of the checked track. Accent when unset. */
-    intent?: RoadieIntent
     /** @default 'md' */
     size?: SwitchSize
     /** Renders a label beside the switch. `className` then goes on the row. */
@@ -29,7 +26,6 @@ export type SwitchRootProps = SwitchPrimitive.Root.Props &
 
 export function SwitchRoot({
   className,
-  intent,
   size = 'md',
   label,
   description,
@@ -66,7 +62,7 @@ export function SwitchRoot({
       aria-required={resolvedRequired || undefined}
       aria-labelledby={labelId}
       aria-describedby={describedBy}
-      className={cn(switchVariants({ intent, size }), !label && className)}
+      className={cn(switchVariants({ size }), !label && className)}
       {...props}
     >
       {children ?? <SwitchThumb />}
@@ -87,10 +83,7 @@ export function SwitchRoot({
         <label
           id={labelId}
           htmlFor={inputId}
-          className={cn(
-            'cursor-pointer font-medium text-normal select-none group-has-data-disabled/switch:cursor-not-allowed',
-            size === 'sm' ? 'text-sm' : 'text-base'
-          )}
+          className='cursor-pointer text-sm text-normal select-none group-has-data-disabled/switch:cursor-not-allowed'
         >
           {label}
         </label>
