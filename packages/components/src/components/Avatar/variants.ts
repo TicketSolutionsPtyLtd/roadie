@@ -38,7 +38,7 @@ export const avatarVariants = cva(
 )
 
 export const avatarFallbackClass =
-  'grid size-full place-items-center rounded-[inherit] emphasis-subtle text-[length:38cqi] leading-none font-semibold [&_svg]:size-1/2'
+  'grid size-full place-items-center rounded-[inherit] border-subtle emphasis-subtle text-[length:38cqi] leading-none font-semibold [&_svg]:size-1/2'
 
 export const avatarImageClass =
   'size-full rounded-[inherit] object-cover data-[error]:invisible data-[loading]:invisible'

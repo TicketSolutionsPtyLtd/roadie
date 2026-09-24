@@ -30,6 +30,12 @@ describe('Avatar', () => {
     expect(slot('avatar')).toHaveClass('size-10', 'rounded-full')
   })
 
+  it('rings the fallback with a subtle hairline so it holds on tinted surfaces', () => {
+    render(<Avatar name='Mia Tran' />)
+    expect(slot('avatar-fallback')).toHaveClass('border-subtle')
+    expect(slot('avatar')).not.toHaveClass('border-subtle')
+  })
+
   it('maps sizes and gives square avatars a radius tier by size', () => {
     const { rerender } = render(<Avatar size='xs' shape='square' />)
     expect(slot('avatar')).toHaveClass('size-6', 'rounded-md')
