@@ -448,8 +448,10 @@ export function ComponentSkeleton({ name }: { name: string }) {
     case 'menu':
       return (
         <div className='grid justify-items-end gap-1.5'>
-          <div className='grid size-7 emphasis-normal place-content-center rounded-full'>
-            <Skel className='h-1 w-3.5' />
+          <div className='flex size-7 emphasis-normal items-center justify-center gap-0.5 rounded-full'>
+            <Skel className='size-1 rounded-full' />
+            <Skel className='size-1 rounded-full' />
+            <Skel className='size-1 rounded-full' />
           </div>
           <div className='grid w-36 emphasis-raised gap-1 rounded-xl p-1'>
             <div className='flex items-center gap-2 rounded-lg bg-subtle px-2 py-1.5'>
