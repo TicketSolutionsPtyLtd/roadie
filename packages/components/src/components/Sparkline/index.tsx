@@ -69,7 +69,7 @@ export function Sparkline({
         />
       </svg>
       <span
-        className='absolute size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-chart-highlight ring-[1.5px] ring-(--intent-bg-raised)'
+        className='absolute size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-chart-highlight ring-[1.5px] ring-[color:var(--data-card-surface,var(--intent-bg-normal))]'
         style={{ left: `${geometry.end.x}%`, top: `${geometry.end.y}%` }}
       />
     </div>

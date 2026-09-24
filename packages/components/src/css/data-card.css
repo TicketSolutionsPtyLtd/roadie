@@ -1,6 +1,12 @@
 /* DataCard: container query for value clamp and compact padding. */
+/* border-width: 0 removes the layout-space border emphasis-normal draws;
+   the inset shadow repaints it without shrinking the content box, so copy
+   budgets sized against the card's outer width still fit. */
 [data-slot='data-card'] {
   container: data-card / inline-size;
+  --data-card-surface: var(--intent-bg-normal);
+  border-width: 0;
+  box-shadow: inset 0 0 0 1px var(--intent-border-normal);
 }
 
 [data-slot='data-card-inner'] {

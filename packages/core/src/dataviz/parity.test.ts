@@ -52,14 +52,40 @@ describe('palette mirrors tokens.css', () => {
   })
 })
 
-describe('delta colours on raised cards', () => {
-  const raised = { light: 1, dark: 3 } as const
+describe('text colours on data cards', () => {
+  const cardSurface = { light: 1, dark: 2 } as const
+  const textSubtle = { light: 11, dark: 11 } as const
+  const textStrong = { light: 13, dark: 13 } as const
+
+  const surfaceFor = (mode: 'light' | 'dark') => {
+    const [l, c] = palette.neutral[mode][cardSurface[mode]]!
+    return new Color('oklch', [l!, c!, DEFAULT_ACCENT_HUE])
+  }
+
   for (const mode of ['light', 'dark'] as const)
     for (const name of ['good', 'critical'] as const)
-      it(`${name} reaches 4.5:1 in ${mode}`, () => {
-        const [l, c] = palette.neutral[mode][raised[mode]]!
-        const surface = new Color('oklch', [l!, c!, DEFAULT_ACCENT_HUE])
+      it(`delta ${name} reaches 4.5:1 in ${mode}`, () => {
         const text = new Color('oklch', [...palette.status[name].value[mode]])
-        expect(surface.contrast(text, 'WCAG21')).toBeGreaterThanOrEqual(4.5)
+        expect(
+          surfaceFor(mode).contrast(text, 'WCAG21')
+        ).toBeGreaterThanOrEqual(4.5)
       })
+
+  for (const mode of ['light', 'dark'] as const)
+    it(`label and context text reach 4.5:1 in ${mode}`, () => {
+      const [l, c] = palette.neutral[mode][textSubtle[mode]]!
+      const text = new Color('oklch', [l!, c!, DEFAULT_ACCENT_HUE])
+      expect(surfaceFor(mode).contrast(text, 'WCAG21')).toBeGreaterThanOrEqual(
+        4.5
+      )
+    })
+
+  for (const mode of ['light', 'dark'] as const)
+    it(`value text reaches 4.5:1 in ${mode}`, () => {
+      const [l, c] = palette.neutral[mode][textStrong[mode]]!
+      const text = new Color('oklch', [l!, c!, DEFAULT_ACCENT_HUE])
+      expect(surfaceFor(mode).contrast(text, 'WCAG21')).toBeGreaterThanOrEqual(
+        4.5
+      )
+    })
 })

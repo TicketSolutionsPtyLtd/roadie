@@ -120,7 +120,7 @@ export function DataCard({
       data-state={state}
       aria-labelledby={labelId}
       aria-busy={state === 'loading' || undefined}
-      className={cn(cardVariants({ emphasis: 'raised' }), 'h-full', className)}
+      className={cn(cardVariants({ emphasis: 'normal' }), 'h-full', className)}
       {...props}
     >
       <div
