@@ -84,6 +84,14 @@ const BASE_UI_COMPOUNDS: Record<string, BaseUiCompound> = {
       GroupLabel: 'grouplabel'
     }
   },
+  Checkbox: {
+    slug: 'checkbox',
+    parts: { Root: 'root' }
+  },
+  CheckboxGroup: {
+    slug: 'checkbox-group',
+    parts: { Root: 'checkboxgroup' }
+  },
   RadioGroup: {
     slug: 'radio',
     parts: {

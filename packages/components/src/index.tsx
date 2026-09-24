@@ -349,6 +349,20 @@ export {
   type RadioGroupHelperTextProps,
   type RadioGroupErrorTextProps
 } from './components/RadioGroup'
+export {
+  Checkbox,
+  checkboxVariants,
+  type CheckboxProps
+} from './components/Checkbox'
+export {
+  CheckboxGroup,
+  checkboxGroupVariants,
+  type CheckboxGroupProps,
+  type CheckboxGroupItemProps,
+  type CheckboxGroupLabelProps,
+  type CheckboxGroupHelperTextProps,
+  type CheckboxGroupErrorTextProps
+} from './components/CheckboxGroup'
 
 // Fieldset is the pilot for the Pattern A migration. The compound ships as
 // a namespace re-export backed by per-file leaves (tsdown unbundle mode);

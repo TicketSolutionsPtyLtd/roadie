@@ -11,6 +11,7 @@
 import { StarIcon } from '@phosphor-icons/react/ssr'
 
 import {
+  CheckboxGroup as CheckboxGroupViaBarrel,
   Dialog as DialogViaBarrel,
   Drawer as DrawerViaBarrel,
   Fieldset as FieldsetViaBarrel,
@@ -27,6 +28,8 @@ import { Autocomplete } from '@oztix/roadie-components/autocomplete'
 import { Breadcrumb } from '@oztix/roadie-components/breadcrumb'
 import { Card } from '@oztix/roadie-components/card'
 import { Carousel } from '@oztix/roadie-components/carousel'
+import { Checkbox } from '@oztix/roadie-components/checkbox'
+import { CheckboxGroup } from '@oztix/roadie-components/checkbox-group'
 import { Combobox } from '@oztix/roadie-components/combobox'
 import { Dialog } from '@oztix/roadie-components/dialog'
 import { Drawer } from '@oztix/roadie-components/drawer'
@@ -166,6 +169,33 @@ export default function RscSmokePage() {
             Choose how we reach you.
           </RadioGroup.HelperText>
         </RadioGroup>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Checkbox</h2>
+        <Checkbox label='I agree to the terms and conditions' />
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>
+          CheckboxGroup — bare root (canonical)
+        </h2>
+        <CheckboxGroup defaultValue={['rock']}>
+          <CheckboxGroup.Label>Genres</CheckboxGroup.Label>
+          <CheckboxGroup.Item value='rock' label='Rock' />
+          <CheckboxGroup.Item value='jazz' label='Jazz' />
+          <CheckboxGroup.HelperText>Pick any.</CheckboxGroup.HelperText>
+        </CheckboxGroup>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>
+          CheckboxGroup — barrel
+        </h2>
+        <CheckboxGroupViaBarrel>
+          <CheckboxGroupViaBarrel.Item value='rock' label='Rock' />
+          <CheckboxGroupViaBarrel.Item value='jazz' label='Jazz' />
+        </CheckboxGroupViaBarrel>
       </section>
 
       <section className='grid gap-4'>
