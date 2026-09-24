@@ -224,7 +224,8 @@ the brand radius stays consistent across components.
 
 ### Data visualisation
 
-Read `docs/src/app/foundations/data-visualisation/page.tsx` before building a chart.
+Read `docs/src/app/charts/data-visualisation/page.tsx` before building a chart.
+For dashboards, read `docs/src/app/charts/dashboards/page.tsx` and use `Dashboard`, `StatTile`, `DataTable` and `Chart`; describe dashboards with `@oztix/roadie-core/dashboard` and check them with `validateDashboard`.
 
 - **Colour by job:** categorical `--chart-1` to `--chart-8` (fixed order, max 6 then "Other"; `--chart-pair-*` / `--chart-trio-*` for 2 or 3 series), sequential `--chart-heat-0` to `-8`, diverging `--chart-diverge-neg-4` to `-pos-4` (cool is ahead), status `--chart-status-good|warning|serious|critical` (meaning only).
 - **Emphasis:** story series in `--chart-highlight` (follows `--accent-hue`), context in `--chart-context`.

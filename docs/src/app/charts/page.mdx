@@ -1,0 +1,34 @@
+export const metadata = {
+  title: 'Charts',
+  description:
+    'Build dashboards and charts that read the same in every Oztix app'
+}
+
+Charts holds everything for showing data: the rules for colour and copy, the
+dashboard grid and cards, the chart card frame, and two reference dashboards
+you can copy.
+
+## Start here
+
+- [Data visualisation](/charts/data-visualisation) covers colour, reading aids,
+  labels and chart copy. Read it before you build a chart.
+- [Dashboards](/charts/dashboards) covers the grid, card sizes, card anatomy and
+  which card answers which question.
+
+## Packages
+
+Dashboard pieces that are useful anywhere, such as `StatTile` and `DataTable`,
+ship from `@oztix/roadie-components`. The chart frame and `DashboardView` ship
+from `@oztix/roadie-charts`. Import both stylesheets:
+
+```css
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-charts/css';
+```
+
+## Describe a dashboard as data
+
+Every dashboard can be written as a JSON description and checked with
+`validateDashboard` from `@oztix/roadie-core/dashboard`. The two
+[reference dashboards](/charts/show-dashboard) are written this way.

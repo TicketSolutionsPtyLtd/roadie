@@ -50,6 +50,11 @@ export const TOKENS: Catalogue = {
   ]
 }
 
+export const CHARTS: Catalogue = {
+  route: '/charts',
+  categories: ['Guidelines', 'Dashboards', 'Charts', 'Examples']
+}
+
 export const WIDGETS: Catalogue = { route: '/roadie-widgets', categories: [] }
 
 const APP_DIR = join(process.cwd(), 'src/app')

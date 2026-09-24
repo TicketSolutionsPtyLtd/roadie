@@ -10,6 +10,7 @@ import {
 import { Providers } from '@/components/Providers'
 import { CHANGELOG_URL } from '@/lib/changelog'
 import {
+  CHARTS,
   COMPONENTS,
   type Catalogue,
   type CatalogueCategory,
@@ -85,6 +86,7 @@ async function getNavigationItems(): Promise<NavigationDestination[]> {
       overview: true,
       searchable: true
     }),
+    await catalogueDestination('Charts', CHARTS, { overview: true }),
     {
       title: 'Widgets',
       href: WIDGETS.route,

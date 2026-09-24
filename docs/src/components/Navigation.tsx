@@ -13,6 +13,7 @@ import {
 import { useRouter } from 'next/navigation'
 
 import {
+  ChartLineIcon,
   CompassIcon,
   CubeIcon,
   HouseIcon,
@@ -69,6 +70,7 @@ const DESTINATION_ICONS: Record<string, ReactNode> = {
   '/foundations': <CompassIcon />,
   '/tokens': <PaletteIcon />,
   '/components': <CubeIcon />,
+  '/charts': <ChartLineIcon />,
   '/roadie-widgets': <SquaresFourIcon />
 }
 
