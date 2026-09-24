@@ -24,7 +24,7 @@ Pass `src` and `name`. The initials from `name` show until the photo loads, and 
 
 ```tsx-live
 <Avatar
-  src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=112&h=112&fit=crop&q=80'
+  src='/roadie-logo.png'
   name='Mia Tran'
 />
 ```
@@ -44,7 +44,7 @@ Without a photo, the avatar shows initials from the first and last words of `nam
     <p className='text-sm text-subtle'>No name</p>
   </div>
   <div className='grid justify-items-center gap-2'>
-    <Avatar src='https://example.invalid/missing.jpg' name='Ada Nguyen' />
+    <Avatar src='/missing-avatar.png' name='Ada Nguyen' />
     <p className='text-sm text-subtle'>Photo failed</p>
   </div>
 </div>
@@ -101,7 +101,7 @@ Compose `Avatar.Fallback` and `Avatar.Image` yourself for custom fallback conten
     MT
   </Avatar.Fallback>
   <Avatar.Image
-    src='https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=112&h=112&fit=crop&q=80'
+    src='/roadie-logo.png'
     alt='Mia Tran'
   />
 </Avatar>
@@ -128,13 +128,10 @@ Compose `Avatar.Fallback` and `Avatar.Image` yourself for custom fallback conten
 <div className='flex items-center gap-3'>
   <Avatar.Group size='sm' aria-label='Going'>
     <Avatar
-      src='https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=64&h=64&fit=crop&q=80'
+      src='/roadie-logo.png'
       name='Sam Okafor'
     />
-    <Avatar
-      src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=64&h=64&fit=crop&q=80'
-      name='Priya Shah'
-    />
+    <Avatar name='Priya Shah' />
     <Avatar name='Leo Park' />
     <Avatar.GroupCount count={12} />
   </Avatar.Group>
@@ -163,7 +160,7 @@ Show who is signed in. The name is written beside the avatar, so pass `alt=''` t
 <div className='flex items-center gap-3'>
   <Avatar
     size='lg'
-    src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=112&h=112&fit=crop&q=80'
+    src='/roadie-logo.png'
     name='Mia Tran'
     alt=''
   />
@@ -180,13 +177,13 @@ Show who is signed in. The name is written beside the avatar, so pass `alt=''` t
 Avatars fit a `List` row's `leading` slot. The row title names the person, so the avatar is decorative.
 
 ```tsx-live
-<List contained emphasis='subtle'>
+<List contained emphasis='normal'>
   <List.Item
     title='Mia Tran'
     description='Owner'
     leading={
       <Avatar
-        src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&q=80'
+        src='/roadie-logo.png'
         name='Mia Tran'
         alt=''
       />
@@ -196,11 +193,7 @@ Avatars fit a `List` row's `leading` slot. The row title names the person, so th
     title='Sam Okafor'
     description='Box office'
     leading={
-      <Avatar
-        src='https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&q=80'
-        name='Sam Okafor'
-        alt=''
-      />
+      <Avatar name='Sam Okafor' alt='' />
     }
   />
   <List.Item
