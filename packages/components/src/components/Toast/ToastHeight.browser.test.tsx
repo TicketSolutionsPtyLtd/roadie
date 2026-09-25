@@ -2,7 +2,12 @@ import { act, cleanup, render, waitFor } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
-import { Toast, type ToastManager, createToastManager } from '.'
+import {
+  Toast,
+  type ToastManager,
+  type ToastPosition,
+  createToastManager
+} from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -27,11 +32,11 @@ const LONG = {
   intent: 'danger'
 } as const
 
-function mount() {
+function mount(position: ToastPosition) {
   const manager = createToastManager()
   render(
     <Toast.Provider toastManager={manager}>
-      <Toast.Viewport />
+      <Toast.Viewport position={position} />
     </Toast.Provider>
   )
   return manager
@@ -68,12 +73,14 @@ function expectFits(toast: HTMLElement | null) {
 }
 
 describe.each([
-  [1280, 800],
-  [390, 844]
-])('a toast at %ipx', (width, height) => {
+  [1280, 800, 'bottom-end'],
+  [390, 844, 'bottom-end'],
+  [1280, 800, 'top-end'],
+  [390, 844, 'top-center']
+] as const)('a toast at %ipx, %ipx high, %s', (width, height, position) => {
   it('grows to fit when updated from short to long content', async () => {
     await page.viewport(width, height)
-    const manager = mount()
+    const manager = mount(position)
     const id = await settled(manager, 'Publishing')
 
     act(() => {
@@ -87,7 +94,7 @@ describe.each([
 
   it('fits a long toast added while another is leaving', async () => {
     await page.viewport(width, height)
-    const manager = mount()
+    const manager = mount(position)
     const id = await settled(manager, 'Link copied')
     act(() => {
       manager.close(id)
@@ -101,7 +108,7 @@ describe.each([
 
   it('fits each toast in a stack of different heights', async () => {
     await page.viewport(width, height)
-    const manager = mount()
+    const manager = mount(position)
     await settled(manager, 'Link copied')
     const id = await settled(manager, 'Publishing')
     act(() => {

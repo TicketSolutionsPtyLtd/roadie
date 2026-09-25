@@ -46,4 +46,9 @@ export type { ToastTitleProps } from './ToastTitle'
 export type { ToastDescriptionProps } from './ToastDescription'
 export type { ToastActionProps } from './ToastAction'
 export type { ToastCloseProps } from './ToastClose'
-export { toastRootVariants, type ToastIntent } from './variants'
+export {
+  toastRootVariants,
+  toastViewportVariants,
+  type ToastIntent,
+  type ToastPosition
+} from './variants'

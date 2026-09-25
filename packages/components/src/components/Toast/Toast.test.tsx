@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   Toast,
   type ToastAddOptions,
+  type ToastPosition,
   createToastManager,
   useToastManager
 } from '.'
@@ -278,5 +279,50 @@ describe('Toast', () => {
     manager.add({ title: 'Typed', type: 'success' })
     // @ts-expect-error `type` is replaced by `intent`
     manager.update('id', { type: 'success' })
+  })
+})
+
+describe('Toast.Viewport position', () => {
+  async function showAt(position?: ToastPosition) {
+    const manager = createToastManager()
+    render(
+      <Toast.Provider toastManager={manager}>
+        <Toast.Viewport position={position} />
+      </Toast.Provider>
+    )
+    act(() => {
+      manager.add({ title: 'Link copied', timeout: 0 })
+    })
+    await screen.findByText('Link copied')
+    return {
+      viewport: document.querySelector('[data-slot="toast-viewport"]'),
+      toast: toastEl()
+    }
+  }
+
+  it('sits at the bottom end by default', async () => {
+    const { viewport, toast } = await showAt()
+    expect(viewport).toHaveAttribute('data-position', 'bottom-end')
+    expect(viewport).toHaveClass('sm:end-6')
+    expect(toast).toHaveAttribute('data-side', 'bottom')
+    expect(toast).toHaveClass('bottom-0', 'origin-bottom')
+  })
+
+  it.each([
+    ['bottom-center', 'bottom', 'sm:mx-auto'],
+    ['top-end', 'top', 'sm:end-6'],
+    ['top-center', 'top', 'sm:mx-auto']
+  ] as const)('places toasts at %s', async (position, side, align) => {
+    const { viewport, toast } = await showAt(position)
+    expect(viewport).toHaveAttribute('data-position', position)
+    expect(viewport).toHaveClass(align)
+    expect(toast).toHaveAttribute('data-side', side)
+    expect(toast).toHaveClass(`${side}-0`, `origin-${side}`)
+  })
+
+  it('adds the offset variable to the edge it sits on', async () => {
+    const { viewport } = await showAt('top-center')
+    expect(viewport?.className).toContain('var(--toast-viewport-offset-top')
+    expect(viewport?.className).not.toContain('offset-bottom')
   })
 })

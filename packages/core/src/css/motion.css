@@ -351,18 +351,23 @@
 }
 
 /* A toast in a Base UI toast viewport. Collapsed, the stack sits behind the
-   frontmost toast, clamped to its height and peeking out above it; fanned out
-   while the viewport is hovered or focused. Tracks the live swipe offset and
-   leaves the way it was swiped. Pair with `absolute bottom-0 origin-bottom`. */
+   frontmost toast, clamped to its height and peeking out away from the edge;
+   fanned out while the viewport is hovered or focused. Enters from and leaves
+   towards its edge, tracks the live swipe offset and leaves the way it was
+   swiped. Pair with `absolute bottom-0 origin-bottom`, or with
+   `absolute top-0 origin-top` and `data-side='top'` for a top viewport. */
 @utility motion-toast {
+  /* -1 stacks upwards from a bottom edge, 1 downwards from a top one. */
+  --toast-away: -1;
   --toast-gap: calc(var(--spacing) * 3);
   --toast-peek: calc(var(--spacing) * 3);
   --toast-scale: max(0, 1 - var(--toast-index) * 0.05);
   --toast-collapsed-height: var(--toast-frontmost-height, var(--toast-height));
   --toast-lift: calc(
-    var(--toast-swipe-movement-y) - var(--toast-offset-y) - var(--toast-index) *
-      var(--toast-gap)
+    var(--toast-swipe-movement-y) + var(--toast-away) *
+      (var(--toast-offset-y) + var(--toast-index) * var(--toast-gap))
   );
+  --toast-offscreen: calc(var(--toast-away) * -150%);
   z-index: calc(1000 - var(--toast-index));
   /* Base UI measures a toast by setting `height: auto` and reading it back.
      The root's `allow-keywords` would start a transition to auto instead, so
@@ -372,8 +377,11 @@
   transform: translateX(var(--toast-swipe-movement-x))
     translateY(
       calc(
-        var(--toast-swipe-movement-y) - var(--toast-index) * var(--toast-peek) -
-          (1 - var(--toast-scale)) * var(--toast-collapsed-height)
+        var(--toast-swipe-movement-y) + var(--toast-away) *
+          (
+            var(--toast-index) * var(--toast-peek) + (1 - var(--toast-scale)) *
+              var(--toast-collapsed-height)
+          )
       )
     )
     scale(var(--toast-scale));
@@ -381,6 +389,10 @@
   transition-timing-function: var(--ease-enter);
   transition-duration:
     var(--duration-slower), var(--duration-slower), var(--duration-normal);
+
+  &[data-side='top'] {
+    --toast-away: 1;
+  }
 
   &[data-expanded] {
     height: var(--toast-height);
@@ -390,7 +402,7 @@
 
   &[data-starting-style] {
     opacity: 0;
-    transform: translateY(150%);
+    transform: translateY(var(--toast-offscreen));
   }
 
   &[data-ending-style],
@@ -399,7 +411,7 @@
   }
 
   &[data-ending-style]:not([data-limited]):not([data-swipe-direction]) {
-    transform: translateY(150%);
+    transform: translateY(var(--toast-offscreen));
   }
 
   &[data-ending-style][data-swipe-direction='down'] {

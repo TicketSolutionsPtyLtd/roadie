@@ -18,7 +18,7 @@ import { Toast, useToastManager } from '@oztix/roadie-components/toast'
 
 ## Setup
 
-Mount `Toast.Provider` once at your app root, next to `RoadieLinkProvider` and `ThemeProvider`, and put a `Toast.Viewport` inside it. The viewport portals to the end of the page. Toasts stack at the bottom end of wide screens and span the bottom of small ones.
+Mount `Toast.Provider` once at your app root, next to `RoadieLinkProvider` and `ThemeProvider`, and put a `Toast.Viewport` inside it. The viewport portals to the end of the page. Toasts stack at the bottom end of wide screens and span the bottom of small ones. See [Position](#position) to change that.
 
 ```tsx
 'use client'
@@ -93,9 +93,89 @@ function Intents() {
 render(<Intents />)
 ```
 
+### Position
+
+Set `position` on `Toast.Viewport` once for the whole app: `bottom-end` (the default), `bottom-center`, `top-end` or `top-center`. `end` follows the reading direction. On small screens toasts always span the chosen edge. Top toasts slide in from the top, stack downwards and swipe up to dismiss.
+
+These buttons each use their own provider so you can compare them. Your app mounts one.
+
+```tsx-live-noinline
+function Show({ position }) {
+  const toast = useToastManager()
+  return (
+    <Button onClick={() => toast.add({ title: 'Link copied', description: position })}>
+      {position}
+    </Button>
+  )
+}
+function Positions() {
+  return (
+    <div className='flex flex-wrap gap-2'>
+      {['bottom-end', 'bottom-center', 'top-end', 'top-center'].map((position) => (
+        <Toast.Provider key={position}>
+          <Show position={position} />
+          <Toast.Viewport position={position} />
+        </Toast.Provider>
+      ))}
+    </div>
+  )
+}
+render(<Positions />)
+```
+
+### Clearing sticky UI
+
+A fixed bar, cookie banner or chat button can cover the toasts. Set `--toast-viewport-offset-bottom` to its height, on `Toast.Viewport` or any ancestor, and the stack moves up by that much. Top positions read `--toast-viewport-offset-top`. Reach for the offset before moving toasts to the top.
+
+```tsx-live-noinline
+function Checkout() {
+  const [barShown, setBarShown] = useState(false)
+  return (
+    <Toast.Provider>
+      <div className='flex flex-wrap gap-2'>
+        <Button onClick={() => setBarShown(!barShown)}>
+          {barShown ? 'Hide' : 'Show'} checkout bar
+        </Button>
+        <SaveForLater />
+      </div>
+      {barShown &&
+        createPortal(
+          <div
+            data-checkout-bar
+            className='fixed inset-x-0 bottom-0 z-50 flex h-20 items-center justify-end px-6 emphasis-raised'
+          >
+            <Button emphasis='strong' intent='accent'>Continue</Button>
+          </div>,
+          document.body
+        )}
+      <Toast.Viewport
+        style={{ '--toast-viewport-offset-bottom': barShown ? '5rem' : '0px' }}
+      />
+    </Toast.Provider>
+  )
+}
+function SaveForLater() {
+  const toast = useToastManager()
+  return (
+    <Button onClick={() => toast.add({ title: 'Saved for later', intent: 'success' })}>
+      Save for later
+    </Button>
+  )
+}
+render(<Checkout />)
+```
+
+In your own CSS you can set it wherever the bar appears:
+
+```css
+:root:has([data-checkout-bar]) {
+  --toast-viewport-offset-bottom: 5rem;
+}
+```
+
 ### With an action
 
-`actionProps` adds a small button. It takes any button props, with the label as `children`. Keep it to one short verb, such as Undo.
+`actionProps` adds a small button. It takes any button props, with the label as `children`. Keep it to one short verb, such as Undo. Set `timeout: 0` so the toast stays until the person acts or dismisses it.
 
 ```tsx-live-noinline
 function SaveEvent() {
@@ -105,6 +185,7 @@ function SaveEvent() {
       title: 'Event saved',
       description: 'Midnight Static at The Lantern Room, Fitzroy',
       intent: 'success',
+      timeout: 0,
       actionProps: {
         children: 'Undo',
         onClick: () => toast.add({ title: 'Changes undone' })
@@ -249,18 +330,27 @@ function Toasts() {
 
 <div className='grid gap-8'>
 
-<Guideline title='Confirm, then get out of the way'>
+<Guideline title='Only for news that is safe to miss'>
   <Guideline.Do>
-    Use a toast to confirm something the person just did, or to report how background work finished. Say what happened in a few words: "Event saved", "Link copied".
+    Use a toast to confirm something the person just did, or to report how background work finished. Say what happened in a few words: "Link copied", or "Saved" with Undo.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't put anything the person must read or decide in a toast. It disappears on its own. Use a Dialog for a decision and inline errors for a form.
+    Don't put anything the person must see or act on in a toast. It disappears on its own. If an event can't publish until details are fixed, show a [Callout](/components/callout) next to the problem. Use a Dialog for a decision and inline errors for a form.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='One position for the whole app'>
+  <Guideline.Do>
+    Keep the default bottom end unless fixed UI collides with it. Try `--toast-viewport-offset-bottom` first, and only move to the top if the offset can't clear it.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't change the position per page or per toast. People learn where to look.
   </Guideline.Dont>
 </Guideline>
 
 <Guideline title='One action at most'>
   <Guideline.Do code={`actionProps: { children: 'Undo', onClick: undo }`}>
-    Offer one quick follow-up, like Undo or Retry. Make sure the same thing can be done somewhere else on the page.
+    Offer one quick follow-up, like Undo or Retry. Make sure the same thing can be done somewhere else on the page. Set `timeout: 0` on a toast with an action so it waits until the person dismisses it.
   </Guideline.Do>
   <Guideline.Dont>
     Don't stack several buttons in a toast, and don't make the action the only way to do something.
@@ -283,7 +373,7 @@ function Toasts() {
 - Toasts are announced politely by a live region. Pass `priority: 'high'` for an urgent message so it is announced straight away.
 - F6 moves focus to the toast region. Tab moves through the toasts' actions and dismiss buttons, and Escape dismisses the focused toast.
 - Hovering or focusing the region fans the stack out and pauses every timer.
-- Swipe down or towards the edge to dismiss on touch.
+- Swipe towards the viewport's edge, or sideways, to dismiss on touch.
 - With reduced motion, toasts appear and leave without sliding.
 - The dismiss button is labelled Dismiss. Pass `aria-label` to `Toast.Close` to change it.
 
