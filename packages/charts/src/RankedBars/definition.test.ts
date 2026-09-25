@@ -160,6 +160,12 @@ describe('rankedBars', () => {
     )
   })
 
+  it('never compares the leader against Other', () => {
+    expect(
+      rankedBars.summary({ ...channelExample, takeaway: undefined, limit: 2 })
+    ).toBe('Email leads with 612 orders, ahead of Instagram with 388')
+  })
+
   it('names an empty plot by its fields', () => {
     expect(rankedBars.summary({ data: [], x: 'channel', y: 'orders' })).toBe(
       'Orders by channel'

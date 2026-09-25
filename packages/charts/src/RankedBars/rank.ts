@@ -55,7 +55,8 @@ export function rankRows(props: RankedBarsProps): RankRow[] {
   return [...rows.values()].sort(byValue)
 }
 
-const rankable = (props: RankedBarsProps) =>
+/** Rows with a value, largest first, before the smallest roll into Other. */
+export const rankable = (props: RankedBarsProps) =>
   rankRows(props).filter((r): r is Row => r.value !== null)
 
 export function rank(props: RankedBarsProps): Ranked[] {

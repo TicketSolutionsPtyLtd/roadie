@@ -11,7 +11,7 @@ import { fieldLabel } from '../plot/table'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
 import { fullFormat, labelFormat, valueDomain } from '../plot/values'
 import { describeValue } from '../plot/words'
-import { type Ranked, rank } from './rank'
+import { type Ranked, rank, rankable } from './rank'
 import { rankedBarsTable } from './table'
 import type { RankedBarsProps } from './types'
 
@@ -175,7 +175,8 @@ export const rankedBars: ChartDefinition<RankedBarsProps> = {
   categoryAxis: () => 'y',
   summary(props) {
     if (props.takeaway) return props.takeaway
-    const [first, second] = rank(props)
+    // Named rows only: Other is a remainder, never a rival.
+    const [first, second] = rankable(props)
     const measure = fieldLabel(props.y)
     if (!first) return `${measure} by ${fieldLabel(props.x).toLowerCase()}`
     const lead = `${first.name} leads with ${describeValue(first.value, props.format, measure.toLowerCase())}`
