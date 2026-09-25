@@ -41,6 +41,19 @@ describe('small multiples', () => {
     ).toBe('Scans by gate, one panel for each of 4 gates')
   })
 
+  it('summarises one panel or none in natural words', () => {
+    const untitled = { ...gatesExample, takeaway: undefined }
+    expect(
+      smallMultiplesSummary({
+        ...untitled,
+        data: untitled.data.filter((row) => row.gate === 'North gate')
+      })
+    ).toBe('Scans for North gate')
+    expect(smallMultiplesSummary({ ...untitled, data: [] })).toBe(
+      'Scans by gate, with no gates to show yet'
+    )
+  })
+
   it('shares a domain and a table across line panels', () => {
     const lines = {
       ...gatesExample,
