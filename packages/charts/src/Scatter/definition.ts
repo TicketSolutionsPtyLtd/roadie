@@ -19,7 +19,7 @@ import type {
   PlotDatum,
   PlotFrame
 } from '../plot/types'
-import { axisFormat, gridTicks, isCountAxis } from '../plot/values'
+import { axisFormat, fullFormat, gridTicks, isCountAxis } from '../plot/values'
 import { nounFor, plural } from '../plot/words'
 import {
   MIN_POINTS,
@@ -238,7 +238,7 @@ const pointAt = (props: ScatterProps, index: number) =>
   scatterPoints(props).find((p) => p.index === index)
 
 const measure = (field: string, value: number, format?: ValueFormat) =>
-  `${fieldLabel(field).toLowerCase()} ${formatValue(value, format ?? 'number')}`
+  `${fieldLabel(field).toLowerCase()} ${formatValue(value, fullFormat(format))}`
 
 export const scatter: ChartDefinition<ScatterProps> = {
   kind: 'scatter',
@@ -284,11 +284,11 @@ export const scatter: ChartDefinition<ScatterProps> = {
       rows: [
         {
           label: fieldLabel(props.x),
-          value: formatValue(point.xValue, props.xFormat ?? 'number')
+          value: formatValue(point.xValue, fullFormat(props.xFormat))
         },
         {
           label: fieldLabel(props.y),
-          value: formatValue(point.yValue, props.format ?? 'number'),
+          value: formatValue(point.yValue, fullFormat(props.format)),
           color: colourOf(point, props, paint),
           shape: 'swatch' as const
         },

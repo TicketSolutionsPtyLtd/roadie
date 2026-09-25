@@ -9,7 +9,7 @@ import { textRoom } from '../plot/endLabels'
 import { asList, emphasisColor, seriesMarkId } from '../plot/series'
 import { fieldLabel } from '../plot/table'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
-import { labelFormat, valueDomain } from '../plot/values'
+import { fullFormat, labelFormat, valueDomain } from '../plot/values'
 import { describeValue } from '../plot/words'
 import { type Ranked, rank } from './rank'
 import { rankedBarsTable } from './table'
@@ -57,7 +57,7 @@ function byMark<T extends Pick<Ranked, 'name' | 'isOther'>>(
 }
 
 const full = (props: RankedBarsProps, value: number) =>
-  formatValue(value, props.format ?? 'number')
+  formatValue(value, fullFormat(props.format))
 
 const barLabel = (props: RankedBarsProps, bar: Ranked) =>
   props.share

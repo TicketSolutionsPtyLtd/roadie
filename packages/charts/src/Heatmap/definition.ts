@@ -5,6 +5,7 @@ import { formatValue } from '@oztix/roadie-core/dataviz'
 
 import { fieldLabel } from '../plot/table'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
+import { fullFormat } from '../plot/values'
 import { describeValue } from '../plot/words'
 import { type HeatCell, firstSeen, heatBuckets, heatCells } from './cells'
 import { heatmapTable } from './table'
@@ -83,7 +84,7 @@ export const heatmap: ChartDefinition<HeatmapProps> = {
     if (!peak)
       return `${value} by ${fieldLabel(props.rows).toLowerCase()} and ${fieldLabel(props.columns).toLowerCase()}`
     const shown = (cell: HeatCell) =>
-      `${cell.row} at ${cell.column}, with ${formatValue(cell.value, props.format ?? 'number')}`
+      `${cell.row} at ${cell.column}, with ${formatValue(cell.value, fullFormat(props.format))}`
     if (props.scale !== 'diverging') return `${value} peak on ${shown(peak)}`
     const low = cells.reduce((a, b) => (b.value < a.value ? b : a))
     return (
@@ -121,7 +122,7 @@ export const heatmap: ChartDefinition<HeatmapProps> = {
           value:
             datum.y === null
               ? 'No data'
-              : formatValue(datum.y, props.format ?? 'number'),
+              : formatValue(datum.y, fullFormat(props.format)),
           color: step === undefined ? undefined : rangeFor(props, paint)[step],
           shape: 'swatch'
         }

@@ -2,6 +2,7 @@ import { formatValue } from '@oztix/roadie-core/dataviz'
 
 import type { ChartTable } from '../Chart'
 import { fieldLabel } from '../plot/table'
+import { fullFormat } from '../plot/values'
 import type { Bin } from './bin'
 import { binValues, histogramValues } from './bin'
 import type { HistogramProps } from './types'
@@ -14,7 +15,7 @@ export function binLabel(
   props: Pick<HistogramProps, 'format'>,
   { from, to, whole }: Pick<Bin, 'from' | 'to' | 'whole'>
 ) {
-  const shown = (value: number) => formatValue(value, props.format ?? 'number')
+  const shown = (value: number) => formatValue(value, fullFormat(props.format))
   const last = whole ? to - 1 : to
   return last === from ? shown(from) : `${shown(from)} to ${shown(last)}`
 }

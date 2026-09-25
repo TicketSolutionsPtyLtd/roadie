@@ -1,6 +1,7 @@
 import { type ValueFormat, formatValue } from '@oztix/roadie-core/dataviz'
 
 import { spokenX } from './time'
+import { fullFormat } from './values'
 
 export function describeValue(
   value: number | null,
@@ -8,7 +9,7 @@ export function describeValue(
   noun: string
 ) {
   if (value === null || !Number.isFinite(value)) return 'no data'
-  return `${formatValue(value, format ?? 'number')} ${noun}`
+  return `${formatValue(value, fullFormat(format))} ${noun}`
 }
 
 export function spokenPoint(
@@ -35,7 +36,7 @@ export function trendSentence({
   format?: ValueFormat
 }) {
   const verb = last > first ? 'rose' : last < first ? 'fell' : 'held'
-  const value = (v: number) => formatValue(v, format ?? 'number')
+  const value = (v: number) => formatValue(v, fullFormat(format))
   return verb === 'held'
     ? `${noun} held at ${value(last)} between ${from} and ${to}`
     : `${noun} ${verb} from ${value(first)} to ${value(last)} between ${from} and ${to}`

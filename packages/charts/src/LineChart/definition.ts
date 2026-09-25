@@ -49,6 +49,7 @@ import type {
 import {
   axisFormat,
   finiteOrNull,
+  fullFormat,
   gridTicks,
   labelFormat
 } from '../plot/values'
@@ -482,7 +483,7 @@ export const lineChart: ChartDefinition<LineChartProps> = {
           ? `${d.series} ${FORECAST_LABEL.toLowerCase()}`
           : d.series,
         value:
-          d.y === null ? 'No data' : formatValue(d.y, props.format ?? 'number'),
+          d.y === null ? 'No data' : formatValue(d.y, fullFormat(props.format)),
         color: styled.find((s) => s.name === d.series)?.color,
         shape: 'line' as const
       }))

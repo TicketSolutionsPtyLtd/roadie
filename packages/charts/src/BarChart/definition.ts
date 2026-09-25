@@ -21,7 +21,13 @@ import type {
   PlotFrame,
   WidthBand
 } from '../plot/types'
-import { axisFormat, gridTicks, labelFormat, valueDomain } from '../plot/values'
+import {
+  axisFormat,
+  fullFormat,
+  gridTicks,
+  labelFormat,
+  valueDomain
+} from '../plot/values'
 import { describeValue } from '../plot/words'
 import { type Bar, barYExtent, hasBars, toBars } from './bars'
 import { barChartTable } from './table'
@@ -225,7 +231,7 @@ export const barChart: ChartDefinition<BarChartProps> = {
       undefined
     )
     if (peak?.y == null) return `${noun} by ${props.interval ?? 'day'}`
-    const value = formatValue(peak.y, props.format ?? 'number')
+    const value = formatValue(peak.y, fullFormat(props.format))
     const ms = parseX(peak.key)
     const when =
       ms === null
@@ -253,7 +259,7 @@ export const barChart: ChartDefinition<BarChartProps> = {
         `${line.label.toLowerCase()} ${
           bar.line === null
             ? 'no data'
-            : formatValue(bar.line, line.format ?? 'number')
+            : formatValue(bar.line, fullFormat(line.format))
         }`
       )
     return parts.join(', ')
@@ -264,7 +270,7 @@ export const barChart: ChartDefinition<BarChartProps> = {
     const bar = barAt(props, key)
     const line = props.line
     const shown = (value: number | null | undefined, format = props.format) =>
-      value == null ? 'No data' : formatValue(value, format ?? 'number')
+      value == null ? 'No data' : formatValue(value, fullFormat(format))
     return {
       title: ms === null ? key : title(props, ms),
       rows: [

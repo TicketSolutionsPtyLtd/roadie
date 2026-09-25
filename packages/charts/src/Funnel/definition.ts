@@ -13,7 +13,7 @@ import type {
   PlotDatum,
   PlotFrame
 } from '../plot/types'
-import { labelFormat, valueDomain } from '../plot/values'
+import { fullFormat, labelFormat, valueDomain } from '../plot/values'
 import { type FunnelRow, biggestDrop, funnelRows } from './steps'
 import { funnelTable } from './table'
 import type { FunnelProps } from './types'
@@ -25,7 +25,7 @@ const VALUE_PADDING = 12
 
 const pct = (v: number) => formatValue(v, 'percent')
 const fullValue = (props: FunnelProps, v: number) =>
-  formatValue(v, props.format ?? 'number')
+  formatValue(v, fullFormat(props.format))
 
 // A phone has no room for the sentence; the tooltip and table keep it.
 function endLabel(props: FunnelProps, row: FunnelRow, frame: PlotFrame) {
