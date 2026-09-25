@@ -38,7 +38,7 @@ describe('small multiples', () => {
     expect(smallMultiplesSummary(gatesExample)).toBe(gatesExample.takeaway)
     expect(
       smallMultiplesSummary({ ...gatesExample, takeaway: undefined })
-    ).toBe('Scans by gate, 4 panels')
+    ).toBe('Scans by gate, one panel for each of 4 gates')
   })
 
   it('shares a domain and a table across line panels', () => {

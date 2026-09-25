@@ -183,3 +183,13 @@ describe('heatmap with repeated cells', () => {
     ])
   })
 })
+
+describe('heatmap summary on a diverging scale', () => {
+  it('names the cells furthest ahead and behind', () => {
+    expect(
+      heatmap.summary({ ...sectionPaceExample, takeaway: undefined })
+    ).toBe(
+      'Furthest ahead is Floor at Week 1, with 12%. Furthest behind is Floor at Week 4, with -8%'
+    )
+  })
+})

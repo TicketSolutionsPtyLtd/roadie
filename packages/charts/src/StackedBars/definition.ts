@@ -4,7 +4,7 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 import { formatValue } from '@oztix/roadie-core/dataviz'
 
-import { seriesMarkId, seriesStyles } from '../plot/series'
+import { OTHER, seriesMarkId, seriesStyles } from '../plot/series'
 import { fieldLabel } from '../plot/table'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
 import { axisFormat, fullFormat, gridTicks, valueDomain } from '../plot/values'
@@ -120,17 +120,27 @@ function build(props: StackedBarsProps, paint: ChartPaint, frame: PlotFrame) {
   })
 }
 
+// Other is the smallest series rolled together, so it never leads a summary.
+const named = (segments: readonly Segment[]) =>
+  segments.filter((s) => s.series !== OTHER)
+
 function largestIn(segments: readonly Segment[], category: string) {
-  return segments
+  return named(segments)
     .filter((s) => s.category === category)
-    .reduce((a, b) => (b.value > a.value ? b : a)).series
+    .reduce<Segment | undefined>(
+      (best, s) => (best && best.value >= s.value ? best : s),
+      undefined
+    )?.series
 }
 
 function largestOverall(segments: readonly Segment[]) {
   const totals = new Map<string, number>()
-  for (const s of segments)
+  for (const s of named(segments))
     totals.set(s.series, (totals.get(s.series) ?? 0) + s.value)
-  return [...totals].reduce((a, b) => (b[1] > a[1] ? b : a))[0]
+  return [...totals].reduce<[string, number] | undefined>(
+    (best, entry) => (best && best[1] >= entry[1] ? best : entry),
+    undefined
+  )?.[0]
 }
 
 export const stackedBars: ChartDefinition<StackedBarsProps> = {
@@ -141,14 +151,16 @@ export const stackedBars: ChartDefinition<StackedBarsProps> = {
   summary(props) {
     if (props.takeaway) return props.takeaway
     const segments = stackSegments(props)
-    const noun = fieldLabel(props.y).toLowerCase()
-    if (segments.length === 0)
-      return `${fieldLabel(props.y)} by ${fieldLabel(props.series).toLowerCase()}`
+    const kind = fieldLabel(props.series).toLowerCase()
     const categories = [...new Set(segments.map((s) => s.category))]
     const leaders = new Set(categories.map((c) => largestIn(segments, c)))
-    return leaders.size === 1
-      ? `${[...leaders][0]} is the largest part of ${noun} in every ${fieldLabel(props.x).toLowerCase()}`
-      : `${largestOverall(segments)} is the largest part of ${noun} overall`
+    const [leader] = leaders
+    if (leaders.size === 1 && leader)
+      return `${leader} is the largest ${kind} in every ${fieldLabel(props.x).toLowerCase()}`
+    const overall = largestOverall(segments)
+    return overall
+      ? `${overall} is the largest ${kind} overall`
+      : `${fieldLabel(props.y)} by ${kind}`
   },
   emptyMessage: (props) =>
     stackSegments(props).length === 0 ? EMPTY : undefined,

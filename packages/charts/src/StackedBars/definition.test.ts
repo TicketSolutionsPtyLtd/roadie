@@ -110,10 +110,10 @@ describe('stackedBars', () => {
   it('names the plot, and speaks a segment', () => {
     expect(
       stackedBars.summary({ ...ticketMixExample, takeaway: undefined })
-    ).toBe('GA is the largest part of sold in every month')
+    ).toBe('GA is the largest type in every month')
     expect(
       stackedBars.summary({ ...presaleExample, takeaway: undefined })
-    ).toBe('General is the largest part of sold overall')
+    ).toBe('General is the largest phase overall')
     expect(
       stackedBars.describe(
         { x: 'Aug', y: 60, series: 'VIP', index: 1 },
@@ -187,5 +187,21 @@ describe('stackedBarsTable with more segments than the plot shows', () => {
       'Total'
     ])
     expect(table.rows[0]).toMatchObject({ S0: 1, S8: 9, Total: 45 })
+  })
+})
+
+describe('stackedBars summary with Other', () => {
+  it('never leads with Other', () => {
+    const data = [
+      { c: 'A', s: 'Big', v: 10 },
+      ...Array.from({ length: 8 }, (_, i) => ({
+        c: 'A',
+        s: `Small ${i}`,
+        v: 3
+      }))
+    ]
+    expect(stackedBars.summary({ data, x: 'c', y: 'v', series: 's' })).toBe(
+      'Big is the largest s in every c'
+    )
   })
 })

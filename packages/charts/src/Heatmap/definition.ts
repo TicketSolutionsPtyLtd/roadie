@@ -77,11 +77,21 @@ export const heatmap: ChartDefinition<HeatmapProps> = {
   table: heatmapTable,
   summary(props) {
     if (props.takeaway) return props.takeaway
-    const peak = peakOf(heatCells(props))
+    const cells = heatCells(props)
+    const peak = peakOf(cells)
     const value = fieldLabel(props.value)
     if (!peak)
       return `${value} by ${fieldLabel(props.rows).toLowerCase()} and ${fieldLabel(props.columns).toLowerCase()}`
-    return `${value} peak on ${peak.row} at ${peak.column}, with ${formatValue(peak.value, props.format ?? 'number')}`
+    const shown = (cell: HeatCell) =>
+      `${cell.row} at ${cell.column}, with ${formatValue(cell.value, props.format ?? 'number')}`
+    if (props.scale !== 'diverging') return `${value} peak on ${shown(peak)}`
+    const low = cells.reduce((a, b) => (b.value < a.value ? b : a))
+    return (
+      [
+        ...(peak.value > 0 ? [`Furthest ahead is ${shown(peak)}`] : []),
+        ...(low.value < 0 ? [`Furthest behind is ${shown(low)}`] : [])
+      ].join('. ') || `${value} is even everywhere`
+    )
   },
   emptyMessage: (props) => (heatCells(props).length === 0 ? EMPTY : undefined),
   legend(props, paint) {

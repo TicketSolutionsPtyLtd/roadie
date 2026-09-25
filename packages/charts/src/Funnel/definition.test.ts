@@ -85,7 +85,7 @@ describe('funnel', () => {
 
   it('names the plot by its end to end conversion when there is no takeaway', () => {
     expect(funnel.summary({ ...checkoutExample, takeaway: undefined })).toBe(
-      '12% of viewed event reached paid. The biggest drop is at chose tickets'
+      '12% reached Paid from Viewed event. The biggest drop is before Chose tickets'
     )
   })
 

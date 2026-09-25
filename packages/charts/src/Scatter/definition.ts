@@ -20,6 +20,7 @@ import type {
   PlotFrame
 } from '../plot/types'
 import { axisFormat, gridTicks, isCountAxis } from '../plot/values'
+import { nounFor, plural } from '../plot/words'
 import {
   MIN_POINTS,
   type ScatterPoint,
@@ -251,9 +252,9 @@ export const scatter: ChartDefinition<ScatterProps> = {
       const count = points.filter(
         (p) => quadrantOf(p, quadrants) === 'topRight'
       ).length
-      return `${count} of ${points.length} ${noun(props)}s are ${quadrants.labels.topRight.toLowerCase()}`
+      return `${count} of ${points.length} ${plural(noun(props))} ${count === 1 ? 'is' : 'are'} ${quadrants.labels.topRight.toLowerCase()}`
     }
-    return `${fieldLabel(props.y)} against ${fieldLabel(props.x).toLowerCase()} for ${points.length} ${noun(props)}s`
+    return `${fieldLabel(props.y)} against ${fieldLabel(props.x).toLowerCase()} for ${points.length} ${nounFor(points.length, noun(props))}`
   },
   emptyMessage: (props) =>
     scatterPoints(props).length < MIN_POINTS ? EMPTY : undefined,

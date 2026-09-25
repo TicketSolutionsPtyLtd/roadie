@@ -117,9 +117,10 @@ export const funnel: ChartDefinition<FunnelProps> = {
     const last = rows.at(-1)
     if (!first || !last) return 'Funnel'
     const drop = biggestDrop(rows)
-    const reached = `${pct(last.ofFirst)} of ${first.label.toLowerCase()} reached ${last.label.toLowerCase()}`
+    // Step labels stay as written, since they can hold names.
+    const reached = `${pct(last.ofFirst)} reached ${last.label} from ${first.label}`
     return drop
-      ? `${reached}. The biggest drop is at ${drop.label.toLowerCase()}`
+      ? `${reached}. The biggest drop is before ${drop.label}`
       : reached
   },
   emptyMessage: (props) =>

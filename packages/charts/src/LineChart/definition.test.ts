@@ -418,3 +418,17 @@ describe('lineChartTable with more series than the plot shows', () => {
     expect(table.rows[0]).toMatchObject({ 'Show 0': 0, 'Show 8': 8 })
   })
 })
+
+describe('lineChart summary', () => {
+  it('leaves the forecast out of the trend', () => {
+    expect(lineChart.summary({ ...paceExample, takeaway: undefined })).toBe(
+      'Sold rose from 14% to 61% between 16 Aug and 15 Oct'
+    )
+  })
+
+  it('names the series that ends highest', () => {
+    expect(
+      lineChart.summary({ ...salesByTypeExample, takeaway: undefined })
+    ).toBe('GA ends highest of 3 types, with 92 orders on 29 Aug')
+  })
+})

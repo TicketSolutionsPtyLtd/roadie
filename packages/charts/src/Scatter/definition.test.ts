@@ -205,3 +205,16 @@ describe('scatter count axes', () => {
     expect(ticks.every((t) => /^\d+$/.test(t))).toBe(true)
   })
 })
+
+describe('scatter summary', () => {
+  it('agrees the verb with one point', () => {
+    const [first, second] = portfolioExample.data
+    expect(
+      scatter.summary({
+        ...portfolioExample,
+        data: [first!, { ...second!, pace: 90, sold: 0.2 }],
+        takeaway: undefined
+      })
+    ).toBe('1 of 2 shows is on a roll')
+  })
+})

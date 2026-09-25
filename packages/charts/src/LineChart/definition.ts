@@ -25,7 +25,13 @@ import {
   textRoom
 } from '../plot/endLabels'
 import { pixelsToX } from '../plot/frame'
-import { type SeriesStyle, seriesMarkId, seriesStyles } from '../plot/series'
+import {
+  OTHER,
+  type SeriesStyle,
+  seriesMarkId,
+  seriesStyles
+} from '../plot/series'
+import { fieldLabel } from '../plot/table'
 import {
   formatTimeTick,
   formatTimeTitle,
@@ -46,7 +52,12 @@ import {
   gridTicks,
   labelFormat
 } from '../plot/values'
-import { describeValue, spokenPoint, trendSentence } from '../plot/words'
+import {
+  describeValue,
+  plural,
+  spokenPoint,
+  trendSentence
+} from '../plot/words'
 import {
   forecastStart,
   hasEnoughPoints,
@@ -388,14 +399,24 @@ export const lineChart: ChartDefinition<LineChartProps> = {
   yExtent: lineYExtent,
   summary(props) {
     if (props.takeaway) return props.takeaway
-    const points = toLinePoints(props).filter((p) => p.y !== null)
+    // A summary states what has happened, so a forecast stays out of it.
+    const points = toLinePoints(props).filter(
+      (p) => p.y !== null && p.series !== OTHER && !isForecast(props, p.x)
+    )
+    const isTime = isTimeField(props.data, props.x)
+    const label = (x: number | string) =>
+      isTime && typeof x === 'number' ? formatTimeTick(x, 2 * DAY) : String(x)
+    const names = [...new Set(points.map((p) => p.series))]
+    if (names.length > 1 && props.series) {
+      const lead = names
+        .map((name) => points.findLast((p) => p.series === name)!)
+        .reduce((a, b) => (b.y! > a.y! ? b : a))
+      return `${lead.series} ends highest of ${names.length} ${plural(fieldLabel(props.series).toLowerCase())}, with ${describeValue(lead.y, props.format, seriesLabel(props).toLowerCase())} on ${label(lead.x)}`
+    }
     const first = points[0]
     const last = points.at(-1)
     if (first?.y == null || last?.y == null)
       return `${seriesLabel(props)} over time`
-    const isTime = isTimeField(props.data, props.x)
-    const label = (x: number | string) =>
-      isTime && typeof x === 'number' ? formatTimeTick(x, 2 * DAY) : String(x)
     return trendSentence({
       noun: seriesLabel(props),
       first: first.y,
