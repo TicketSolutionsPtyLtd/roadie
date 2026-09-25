@@ -35,6 +35,30 @@ describe('barChart', () => {
     expect(svg).toMatch(/data-ts-key="label-line[^"]*"[^>]*>Inside 69%</)
   })
 
+  it('cases the line in the surface paint beneath it', () => {
+    const svg = svgOf(scanRateExample)
+    const underlay = svg.search(/<path[^>]*data-ts-key="line-underlay:/)
+    const line = svg.search(/<path[^>]*data-ts-key="line:/)
+    expect(underlay).toBeGreaterThan(-1)
+    expect(underlay).toBeLessThan(line)
+    expect(svg).toMatch(
+      new RegExp(
+        `data-ts-key="line-underlay:[^"]*"[^>]*stroke="${paint.surface}"`
+      )
+    )
+  })
+
+  it('runs a percent line against the whole', () => {
+    const lineTop = (props: BarChartProps) => sceneOf(props).scales.line?.domain
+    expect(lineTop(scanRateExample)).toEqual([0, 1])
+    expect(
+      lineTop({
+        ...scanRateExample,
+        line: { y: 'inside', label: 'Inside', format: 'number' }
+      })
+    ).not.toEqual([0, 1])
+  })
+
   it('focuses only the bars, one stop per x', () => {
     const scene = sceneOf(scanRateExample)
     expect(new Set(scene.points.map((p) => p.markId))).toEqual(

@@ -29,6 +29,8 @@ const TICK_TARGET: Record<WidthBand, number> = {
   wide: 10
 }
 const LABEL_PADDING = 12
+const LINE_WIDTH = 2
+const SHARE_DOMAIN: readonly [number, number] = [0, 1]
 
 const isHourly = (props: BarChartProps) => props.interval === 'hour'
 
@@ -67,6 +69,39 @@ function lineLabel(props: BarChartProps, bars: readonly Bar[]) {
   }
 }
 
+type LineDatum = Pick<Bar, 'line'> & { x: string }
+
+const lineMark = (
+  data: readonly LineDatum[],
+  id: string,
+  stroke: string,
+  strokeWidth: number
+) =>
+  decorative(
+    lineY(data, {
+      id,
+      x: 'x',
+      y: 'line',
+      yScale: 'line',
+      stroke,
+      strokeWidth,
+      lineCap: 'round',
+      lineJoin: 'round'
+    })
+  )
+
+// A share reads against the whole, so percent lines always run to 100%.
+const lineDomain = (
+  line: NonNullable<BarChartProps['line']>,
+  bars: readonly Bar[]
+) =>
+  line.format === 'percent'
+    ? SHARE_DOMAIN
+    : valueDomain(
+        bars.map((b) => b.line),
+        { zero: true }
+      )
+
 function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
   const series = fieldLabel(props.y)
   const bars = toBars(props)
@@ -102,18 +137,9 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
       // adds no keyboard stops of its own.
       ...(line
         ? [
-            decorative(
-              lineY(data, {
-                id: 'line',
-                x: 'x',
-                y: 'line',
-                yScale: 'line',
-                stroke: paint.value,
-                strokeWidth: 2,
-                lineCap: 'round',
-                lineJoin: 'round'
-              })
-            )
+            // A surface-coloured casing keeps the line legible over pale bars.
+            lineMark(data, 'line-underlay', paint.surface, LINE_WIDTH + 3),
+            lineMark(data, 'line', paint.value, LINE_WIDTH)
           ]
         : []),
       ...(end
@@ -159,12 +185,7 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
       },
       ...(line && {
         line: {
-          scale: scaleLinear().domain(
-            valueDomain(
-              bars.map((b) => b.line),
-              { zero: true }
-            )
-          ),
+          scale: scaleLinear().domain(lineDomain(line, bars)),
           channel: 'y' as const,
           side: 'right' as const,
           axis: false as const
