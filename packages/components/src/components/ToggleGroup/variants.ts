@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority'
 
-// Tracks without a border of their own take a transparent one, so every
-// emphasis stays the height of a Button.
+// Subtler has no track but keeps a transparent border, so every emphasis
+// stays the height of a Button.
 export const toggleGroupVariants = cva(
   [
     'group/toggle-group relative inline-grid auto-cols-fr grid-flow-col gap-1 p-0.75',
@@ -11,7 +11,7 @@ export const toggleGroupVariants = cva(
   {
     variants: {
       emphasis: {
-        normal: 'border emphasis-raised',
+        normal: 'emphasis-normal',
         subtle: 'emphasis-subtle',
         subtler: 'border'
       }

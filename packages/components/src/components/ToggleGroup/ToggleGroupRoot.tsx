@@ -40,7 +40,7 @@ export type ToggleGroupRootProps<Value extends string = string> = Omit<
      */
     size?: ToggleGroupSize
     /**
-     * The track at rest, as on Toggle. `normal` is raised and `subtle` is
+     * The track at rest, as on Toggle. `normal` is bordered and `subtle` is
      * tinted, each with a solid pressed pill. `subtler` has no track and a
      * tinted pill.
      *

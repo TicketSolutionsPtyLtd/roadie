@@ -22,11 +22,11 @@ describe('ToggleGroup', () => {
     expect(ToggleGroup).toBe(ToggleGroup.Root)
   })
 
-  it('renders a raised segmented track', () => {
+  it('renders a bordered segmented track', () => {
     render(<DateRange />)
     const group = screen.getByRole('group', { name: 'Date range' })
     expect(group).toHaveAttribute('data-slot', 'toggle-group')
-    expect(group).toHaveClass('emphasis-raised', 'rounded-full')
+    expect(group).toHaveClass('emphasis-normal', 'rounded-full')
     expect(group).toHaveAttribute('data-orientation', 'horizontal')
   })
 
@@ -111,7 +111,7 @@ describe('ToggleGroup', () => {
   })
 
   it.each([
-    ['normal', 'emphasis-raised', 'emphasis-strong', 'text-inverted'],
+    ['normal', 'emphasis-normal', 'emphasis-strong', 'text-inverted'],
     ['subtle', 'emphasis-subtle', 'emphasis-strong', 'text-inverted'],
     ['subtler', 'border', 'emphasis-subtle', 'text-strong']
   ] as const)(
@@ -139,7 +139,7 @@ describe('ToggleGroup', () => {
 
   it('defaults to normal', () => {
     render(<DateRange />)
-    expect(screen.getByRole('group')).toHaveClass('emphasis-raised')
+    expect(screen.getByRole('group')).toHaveClass('emphasis-normal')
     expect(indicator()).toHaveClass('emphasis-strong')
   })
 
