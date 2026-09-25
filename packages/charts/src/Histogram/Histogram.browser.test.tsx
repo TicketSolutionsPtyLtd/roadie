@@ -43,7 +43,7 @@ describe('Histogram in a card', () => {
     })
     const heard = await visitEveryStop(container)
     expect(heard).toHaveLength(bins.length)
-    expect(heard[0]).toBe(`0 to 7 days, ${bins[0]!.count} of 612`)
+    expect(heard[0]).toBe(`0 to 6 days, ${bins[0]!.count} of 612`)
   })
 
   it('keeps text at 11px or more on a phone', async () => {
