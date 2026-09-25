@@ -6,6 +6,7 @@ import { userEvent } from 'vitest/browser'
 import { DataCard } from '@oztix/roadie-components/data-card'
 import { StatTile } from '@oztix/roadie-components/stat-tile'
 import type { DashboardCard } from '@oztix/roadie-core/dashboard'
+import { ACTIONS_LABEL_LIMITS } from '@oztix/roadie-core/dashboard-layout'
 
 import { DashboardView } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
@@ -111,7 +112,6 @@ describe('a label beside actions', () => {
     expect(label).toHaveAttribute('title', longLabel)
   })
 
-  // The budgets the Dashboard design page gives for a card with a More button.
   it.each([
     { size: 'sm' as const, width: 292, label: 'Julia Jacklin pace' },
     { size: 'md' as const, width: 292, label: 'Julia Jacklin pace' },
@@ -120,6 +120,7 @@ describe('a label beside actions', () => {
   ])(
     'fits a chart label of the actions budget at $size, $width px',
     ({ size, width, label }) => {
+      expect(label.length).toBe(ACTIONS_LABEL_LIMITS[size])
       const { container } = render(
         <div style={{ width }}>
           <Chart
@@ -139,6 +140,7 @@ describe('a label beside actions', () => {
 
   it('fits a stat label of the actions budget at 158 px', () => {
     const label = 'VIP sold vs GA'
+    expect(label.length).toBe(ACTIONS_LABEL_LIMITS.stat)
     const { container } = render(
       <div style={{ width: 158 }}>
         <StatTile

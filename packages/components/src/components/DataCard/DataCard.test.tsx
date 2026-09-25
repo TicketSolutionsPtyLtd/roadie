@@ -136,7 +136,13 @@ describe('DataCard', () => {
   })
 
   it('keeps its actions in every state, so refresh works on a failed card', () => {
-    for (const state of ['ready', 'loading', 'empty', 'error'] as const) {
+    for (const state of [
+      'ready',
+      'stale',
+      'loading',
+      'empty',
+      'error'
+    ] as const) {
       const { unmount } = render(
         <DataCard
           label='Sales pace'
