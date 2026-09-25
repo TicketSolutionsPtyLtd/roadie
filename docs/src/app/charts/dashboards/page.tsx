@@ -2,6 +2,12 @@ import type { ReactNode } from 'react'
 
 import Link from 'next/link'
 
+import {
+  ArrowClockwiseIcon,
+  DownloadSimpleIcon,
+  PencilSimpleIcon
+} from '@phosphor-icons/react/ssr'
+
 import { CodePreview } from '@/components/CodePreview'
 import { Guideline } from '@/components/Guideline'
 
@@ -10,7 +16,7 @@ import { ChartLegend } from '@oztix/roadie-charts/chart-legend'
 import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
 import { createShowDashboard } from '@oztix/roadie-charts/examples'
 import { LineChart } from '@oztix/roadie-charts/line-chart'
-import { Button } from '@oztix/roadie-components/button'
+import { Button, IconButton } from '@oztix/roadie-components/button'
 import { Code } from '@oztix/roadie-components/code'
 import { DataCard } from '@oztix/roadie-components/data-card'
 import {
@@ -440,6 +446,42 @@ const VALIDATE_PROBLEMS = [
   ]
 ]
 
+const MENU_GROUPS = [
+  ['Chart', 'View, Edit, Rename, Duplicate, Alerts'],
+  ['Display', 'Hide description, and the view options'],
+  [
+    'Dashboard',
+    'Move to, Copy to, then Remove from dashboard last, in the danger intent'
+  ],
+  [
+    'Export',
+    'Download CSV, Copy as image, and Refresh data with “Last updated 4 hours ago” as helper text'
+  ]
+]
+
+const CARD_ACTIONS_CODE = `import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
+import { DataCard } from '@oztix/roadie-components/data-card'
+
+<DashboardView
+  spec={spec}
+  cardActions={(card) => (
+    <DataCard.MoreButton
+      label={card.label}
+      onClick={() => openCardMenu(card.id)}
+    />
+  )}
+/>`
+
+const HOVER_ONLY_CODE = `<DataCard
+  label='Ticket types'
+  actions={
+    <DataCard.MoreButton
+      label='Ticket types'
+      className='opacity-0 group-hover/card:opacity-100'
+    />
+  }
+/>`
+
 const GAP_WARNING =
   '[Roadie Dashboard] "Pace" has rows that don\'t fill: desktop row 1 leaves 4 empty; desktop row 2 leaves 6 empty; tablet row 2 leaves 3 empty. See /charts/dashboards.'
 
@@ -823,6 +865,159 @@ export default function DashboardsPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className='grid gap-6'>
+        <h2 className='text-display-prose-3 text-strong'>Card actions</h2>
+        <p className='max-w-prose text-subtle'>
+          Actions sit at the top right of a card, in the label’s row. They carry
+          handlers, so the app adds them and the JSON never does. Pass{' '}
+          <Code>actions</Code> to <Code>DataCard</Code>, <Code>StatTile</Code>{' '}
+          or <Code>Chart</Code>. For cards described as data, pass{' '}
+          <Code>cardActions</Code> to <Code>DashboardView</Code>. It gets each
+          card’s spec and returns its actions, or nothing.
+        </p>
+        <CodePreview>{CARD_ACTIONS_CODE}</CodePreview>
+        <h3 className='text-display-ui-5 text-strong'>Slot order</h3>
+        <List
+          items={[
+            'The Chart and Table switch comes first, on chart cards.',
+            'Then at most one visible action, for the thing people do most on that card.',
+            'More comes last, always. Every other action goes in its menu.'
+          ]}
+        />
+        <Guideline headingLevel={3} title='One action, then More'>
+          <Guideline.Do
+            example={
+              <Tile>
+                <Chart
+                  label='Sales pace'
+                  value={0.61}
+                  format='percent'
+                  size='sm'
+                  source='Oztix sales.'
+                  actions={<DataCard.MoreButton label='Sales pace' />}
+                >
+                  <LineChart {...PACE_EXAMPLE} />
+                </Chart>
+              </Tile>
+            }
+          >
+            <p>Put the view switch first and More last.</p>
+          </Guideline.Do>
+          <Guideline.Dont
+            example={
+              <Tile>
+                <DataCard
+                  label='Ticket types'
+                  takeaway='VIP is the one to push'
+                  actions={
+                    <>
+                      <IconButton
+                        aria-label='Refresh data'
+                        size='sm'
+                        emphasis='subtler'
+                      >
+                        <ArrowClockwiseIcon weight='bold' className='size-4' />
+                      </IconButton>
+                      <IconButton
+                        aria-label='Download CSV'
+                        size='sm'
+                        emphasis='subtler'
+                      >
+                        <DownloadSimpleIcon weight='bold' className='size-4' />
+                      </IconButton>
+                      <IconButton
+                        aria-label='Edit'
+                        size='sm'
+                        emphasis='subtler'
+                      >
+                        <PencilSimpleIcon weight='bold' className='size-4' />
+                      </IconButton>
+                      <DataCard.MoreButton label='Ticket types' />
+                    </>
+                  }
+                />
+              </Tile>
+            }
+          >
+            <p>Don’t line up icon buttons. They crowd out the label.</p>
+          </Guideline.Dont>
+        </Guideline>
+        <h3 className='text-display-ui-5 text-strong'>Always visible</h3>
+        <List
+          items={[
+            'Actions show all the time, not only on hover, so they work on touch and by keyboard.',
+            'Tab order follows reading order: the view switch, then the action, then More.',
+            'Actions stay in every state, so Refresh data and Remove from dashboard still work on a card that failed to load. The view switch shows only when there’s data.'
+          ]}
+        />
+        <Guideline headingLevel={3} title='Keep actions in view'>
+          <Guideline.Do
+            example={
+              <Tile>
+                <DataCard
+                  label='Ticket types'
+                  takeaway='VIP is the one to push'
+                  actions={<DataCard.MoreButton label='Ticket types' />}
+                />
+              </Tile>
+            }
+          >
+            <p>Show More at rest, in every state.</p>
+          </Guideline.Do>
+          <Guideline.Dont code={HOVER_ONLY_CODE}>
+            <p>
+              Don’t hide actions until hover. Touch has no hover, and a hidden
+              button still takes focus.
+            </p>
+          </Guideline.Dont>
+        </Guideline>
+        <h3 className='text-display-ui-5 text-strong'>The More menu</h3>
+        <p className='max-w-prose text-subtle'>
+          Group the menu in this order and leave out what a card can’t do. The
+          menu itself comes with Roadie’s upcoming Menu component. Until then,{' '}
+          <Code>DataCard.MoreButton</Code> is a plain icon button named “More
+          actions for” the card’s label. It passes its props and ref through, so
+          it becomes the menu’s trigger with no change.
+        </p>
+        <Table
+          label='More menu groups'
+          head={['Group', 'Items']}
+          rows={MENU_GROUPS}
+          fit
+        />
+        <List
+          items={[
+            <>
+              Download CSV from the chart’s Table data. The{' '}
+              <Code>@oztix/roadie-charts/tables</Code> entry builds it on the
+              server.
+            </>,
+            <>
+              Copy as image with <Code>renderChartSvg</Code> from{' '}
+              <Code>@oztix/roadie-charts/static</Code>.
+            </>,
+            'Refresh data shows when the numbers were last updated, as helper text under the item.'
+          ]}
+        />
+        <h3 className='text-display-ui-5 text-strong'>Copy</h3>
+        <List
+          items={[
+            'Sentence case, verb first: “Download CSV”, not “CSV download”.',
+            'No dashes as punctuation.',
+            'Destructive actions confirm first. Remove from dashboard asks before it removes.'
+          ]}
+        />
+        <h3 className='text-display-ui-5 text-strong'>Label room</h3>
+        <p className='max-w-prose text-subtle'>
+          More takes room from the label, which truncates past it. Beside More,
+          keep chart labels to 18 characters at <Code>sm</Code> and{' '}
+          <Code>md</Code> and 23 at <Code>lg</Code> and <Code>full</Code>, and
+          stat labels to 14. Table and note labels keep their{' '}
+          <Code>COPY_LIMITS</Code>. <Code>validateDashboard</Code> can’t check
+          this, because actions aren’t part of the JSON.
+        </p>
       </section>
 
       <section className='grid gap-6'>

@@ -1,6 +1,8 @@
 import { ReferenceDashboard } from '@/components/charts/ReferenceDashboard'
 
 import { createShowDashboard } from '@oztix/roadie-charts/examples'
+import { DataCard } from '@oztix/roadie-components/data-card'
+import type { DashboardCard } from '@oztix/roadie-core/dashboard'
 
 export const metadata = {
   title: 'Show dashboard',
@@ -44,6 +46,22 @@ const JSX = `<Dashboard>
   </Dashboard.Section>
 </Dashboard>`
 
+const CARD_ACTIONS_CODE = `<DashboardView
+  spec={spec}
+  cardActions={(card) => <DataCard.MoreButton label={card.label} />}
+/>`
+
+const moreButton = (card: DashboardCard) => (
+  <DataCard.MoreButton label={card.label} />
+)
+
 export default function ShowDashboardPage() {
-  return <ReferenceDashboard spec={createShowDashboard()} jsx={JSX} />
+  return (
+    <ReferenceDashboard
+      spec={createShowDashboard()}
+      jsx={JSX}
+      cardActions={moreButton}
+      cardActionsCode={CARD_ACTIONS_CODE}
+    />
+  )
 }

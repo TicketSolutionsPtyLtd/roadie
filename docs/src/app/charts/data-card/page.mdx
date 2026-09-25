@@ -59,6 +59,8 @@ import { DataCard } from '@oztix/roadie-components/data-card'
 
 ### Actions
 
+Put at most one visible action first and `DataCard.MoreButton` last. More passes its props and ref through, so it becomes a menu trigger once Roadie's Menu component lands.
+
 ```tsx-live
 <div className='w-72'>
   <DataCard
@@ -67,7 +69,12 @@ import { DataCard } from '@oztix/roadie-components/data-card'
     format='percent'
     delta={{ value: 9, format: 'points' }}
     context='Forecast 96% by show day'
-    actions={<Button size='sm' emphasis='subtle'>View chart</Button>}
+    actions={
+      <>
+        <Button size='sm' emphasis='subtle'>View chart</Button>
+        <DataCard.MoreButton label='Sales pace' />
+      </>
+    }
   />
 </div>
 ```
@@ -93,11 +100,11 @@ import { DataCard } from '@oztix/roadie-components/data-card'
 
 - Set `value` and `delta` for one headline number, or `takeaway` for a sentence. Never both. `StatTile`, table cards and chart cards all build on this rule.
 - Give every chart and table card a `source`. It sits under a hairline in the footer.
-- Pass `actions` for the one or two things a person can do from the card, such as switching to a table view.
+- Pass `actions` for what a person can do from the card: at most one visible action, then `DataCard.MoreButton` for the rest. Actions show in every state, so a refresh still works on a card that failed to load. See [card actions](/charts/dashboards#card-actions).
 
 ## Accessibility
 
 - The card is an article named by its label, and truncated label or context text stays available in its `title` attribute. It isn't a landmark, so a dashboard can repeat a label such as "Tickets sold" across sections without repeating landmark names.
 - `state='loading'` sets `aria-busy`, so assistive tech knows the card isn't ready.
 
-<PropsDefinitions componentPath='packages/components/src/components/DataCard/index.tsx' />
+<PropsDefinitions componentPath='packages/components/src/components/DataCard' />
