@@ -201,6 +201,11 @@
     :is(path, rect):not([fill='none']) {
     fill: var(--chart-texture-8, url(#roadie-texture-8));
   }
+  .ts-chart
+    :is([data-ts-key='series-other'], [data-ts-key^='series-other:'])
+    :is(path, rect):not([fill='none']) {
+    fill: var(--chart-texture-8, url(#roadie-texture-8));
+  }
   .ts-chart .ts-chart__line:is([data-ts-key^='series-2']) path {
     stroke-dasharray: 6 3;
   }

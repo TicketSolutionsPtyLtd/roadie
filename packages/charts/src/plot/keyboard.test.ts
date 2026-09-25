@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { stepAlong, stepCategory, stepSeries, stepWithin } from './keyboard'
+import {
+  stepAlong,
+  stepCategory,
+  stepSeries,
+  stepWithin,
+  visualEnds
+} from './keyboard'
 
 // y is the engine's pixel y, so a smaller y sits higher on screen.
 const top = { xValue: 1, group: 'C', y: 10 }
@@ -157,5 +163,64 @@ describe('stepWithin', () => {
     const left = { ...ga, yValue: new Date(2026, 10, 14) }
     const right = { ...early, yValue: new Date(2026, 10, 14) }
     expect(stepWithin([left, right], left, 1)).toBe(right)
+  })
+})
+
+describe('visualEnds', () => {
+  const at = (
+    markId: string,
+    xValue: unknown,
+    yValue: unknown,
+    x: number,
+    y: number
+  ) => ({
+    markId,
+    group: markId,
+    xValue,
+    yValue,
+    x,
+    y
+  })
+
+  it('starts on the top category, leftmost segment, and ends bottom right when categories run down y', () => {
+    // The engine lists the shortest bar first, as nearest-y focus orders them.
+    const short = at('series-1', 40, 'Sun', 40, 100)
+    const topLeft = at('series-1', 100, 'Fri', 100, 20)
+    const topRight = at('series-2', 180, 'Fri', 180, 20)
+    const bottomLeft = at('series-2', 70, 'Sun', 70, 100)
+    const middle = at('series-1', 90, 'Sat', 90, 60)
+    const ends = visualEnds([short, middle, topRight, bottomLeft, topLeft], 'y')
+    expect(ends?.first).toBe(topLeft)
+    expect(ends?.last).toBe(bottomLeft)
+  })
+
+  it('starts on the leftmost column top and ends on the rightmost column top when categories run along x', () => {
+    const leftLow = at('series-1', 0, 1, 10, 80)
+    const leftTop = at('series-2', 0, 5, 10, 20)
+    const rightLow = at('series-1', 3, 4, 300, 60)
+    const rightTop = at('series-2', 3, 8, 300, 10)
+    const ends = visualEnds([rightLow, leftLow, rightTop, leftTop], 'x')
+    expect(ends?.first).toBe(leftTop)
+    expect(ends?.last).toBe(rightTop)
+  })
+
+  it('starts on the first series of a dodged group', () => {
+    const second = at('series-2', 'Fri', 9, 60, 10)
+    const first = at('series-1', 'Fri', 4, 40, 50)
+    expect(visualEnds([second, first], 'x')?.first).toBe(first)
+  })
+
+  it('matches dates by time', () => {
+    const upper = at('series-2', new Date(2026, 10, 14), 8, 10, 10)
+    const lower = at('series-1', new Date(2026, 10, 14), 2, 10, 90)
+    const later = at('series-1', new Date(2026, 10, 15), 2, 90, 90)
+    expect(visualEnds([lower, later, upper], 'x')).toEqual({
+      first: upper,
+      last: later
+    })
+  })
+
+  it('finds nothing without points', () => {
+    expect(visualEnds([], 'y')).toBeNull()
   })
 })

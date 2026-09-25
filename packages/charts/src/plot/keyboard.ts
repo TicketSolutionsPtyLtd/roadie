@@ -1,3 +1,5 @@
+import type { CategoryAxis } from './types'
+
 type Steppable = { xValue: unknown; group: unknown; y: number }
 
 const sameValue = (a: unknown, b: unknown) =>
@@ -45,16 +47,49 @@ export function stepAlong<T extends Along>(
 
 type Banded = Along & { yValue: unknown; y: number }
 
+function groupBy<T>(points: readonly T[], valueOf: (p: T) => unknown) {
+  const groups: T[][] = []
+  for (const p of points) {
+    const group = groups.find((g) => sameValue(valueOf(g[0]!), valueOf(p)))
+    if (group) group.push(p)
+    else groups.push([p])
+  }
+  return groups
+}
+
 // Array#sort is stable, so segments tied on x keep the engine's series order.
 function categoryRows<T extends Banded>(points: readonly T[]): T[][] {
-  const rows: T[][] = []
-  for (const p of points) {
-    const row = rows.find((r) => sameValue(r[0]!.yValue, p.yValue))
-    if (row) row.push(p)
-    else rows.push([p])
-  }
+  const rows = groupBy(points, (p) => p.yValue)
   for (const row of rows) row.sort((a, b) => a.x - b.x)
   return rows.sort((a, b) => a[0]!.y - b[0]!.y)
+}
+
+// Top first, so a stack or a set of lines starts on its top point, and a dodged
+// group starts on its first series.
+function categoryColumns<T extends Banded & { xValue: unknown }>(
+  points: readonly T[]
+): T[][] {
+  const columns = groupBy(points, (p) => p.xValue)
+  for (const column of columns) column.sort((a, b) => a.x - b.x || a.y - b.y)
+  return columns.sort((a, b) => a[0]!.x - b[0]!.x)
+}
+
+/**
+ * The first and last stops in visual order, for entering focus, Home and End.
+ * Along x both ends are a column's first stop, the same stops the engine's
+ * column focus walks.
+ */
+export function visualEnds<T extends Banded & { xValue: unknown }>(
+  points: readonly T[],
+  axis: CategoryAxis
+): { first: T; last: T } | null {
+  if (!points.length) return null
+  if (axis === 'y') {
+    const rows = categoryRows(points)
+    return { first: rows[0]![0]!, last: rows.at(-1)!.at(-1)! }
+  }
+  const columns = categoryColumns(points)
+  return { first: columns[0]![0]!, last: columns.at(-1)![0]! }
 }
 
 /** Steps to the category above (-1) or below (1) when categories run down y. */

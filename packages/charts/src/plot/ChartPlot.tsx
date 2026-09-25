@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  type FocusEvent,
   type KeyboardEvent,
   useContext,
   useEffect,
@@ -24,7 +25,13 @@ import {
   LEGEND_ROOM,
   plotFrame
 } from './frame'
-import { stepAlong, stepCategory, stepSeries, stepWithin } from './keyboard'
+import {
+  stepAlong,
+  stepCategory,
+  stepSeries,
+  stepWithin,
+  visualEnds
+} from './keyboard'
 import { cssPaint } from './paint'
 import { type CategoryAxis, type ChartDefinition, isPlotDatum } from './types'
 import { useWidthBand } from './useWidthBand'
@@ -115,20 +122,46 @@ export function ChartPlot<P>({
         )
       : null
 
+  const axis = chart.categoryAxis?.(props) ?? 'x'
+  const plotPoints = () => renderRef.current?.scene.points ?? []
+  const focusPoint = (point: ChartPoint | null) =>
+    renderRef.current?.interaction.setControlledFocus(point, {
+      source: 'programmatic'
+    })
+
   // The engine walks every arrow key along one list of column tops, so after
   // stepping to a lower series its left and right would jump back to the start.
+  // Its Home and End follow its focus mode, which on horizontal bars is by value.
   function onKeyDownCapture(event: KeyboardEvent<HTMLDivElement>) {
-    const step = ARROW_STEPS[chart.categoryAxis?.(props) ?? 'x'][event.key]
-    const points = renderRef.current?.scene.points ?? []
+    const points = plotPoints()
+    if (event.key === 'Home' || event.key === 'End') {
+      const ends = visualEnds(points, axis)
+      if (!ends) return
+      event.preventDefault()
+      event.stopPropagation()
+      focusPoint(event.key === 'Home' ? ends.first : ends.last)
+      return
+    }
+    const step = ARROW_STEPS[axis][event.key]
     const current = focused && points.find((p) => p.key === focused.key)
     if (!step || !current) return
     event.preventDefault()
     event.stopPropagation()
     const next = step(points, current)
-    if (next)
-      renderRef.current?.interaction.setControlledFocus(next, {
-        source: 'programmatic'
-      })
+    if (next) focusPoint(next)
+  }
+
+  // Runs before the engine's own focusin, which skips entry once a point is set.
+  function onFocusCapture(event: FocusEvent<HTMLDivElement>) {
+    if (focused || event.target !== renderRef.current?.surface.element) return
+    const ends = visualEnds(plotPoints(), axis)
+    if (ends) focusPoint(ends.first)
+  }
+
+  // The engine keeps a controlled point when focus leaves, so clear it here.
+  function onBlur(event: FocusEvent<HTMLDivElement>) {
+    if (!focused || event.currentTarget.contains(event.relatedTarget)) return
+    focusPoint(null)
   }
 
   if (empty)
@@ -149,6 +182,8 @@ export function ChartPlot<P>({
         data-slot='chart-plot-host'
         className='relative'
         onKeyDownCapture={onKeyDownCapture}
+        onFocusCapture={onFocusCapture}
+        onBlur={onBlur}
       >
         {!card && patterns}
         <EngineChart

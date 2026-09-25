@@ -255,7 +255,134 @@ describe('ChartPlot with categories down y', () => {
   })
 })
 
+// Values are out of rank order, so the engine's nearest-y first stop, the
+// shortest bar, is not the top one.
+const rankRows = [
+  { x: 'Carlton', series: 'A', y: 6, index: 0 },
+  { x: 'Fitzroy', series: 'A', y: 2, index: 1 },
+  { x: 'Brunswick', series: 'A', y: 9, index: 2 }
+]
+
+const horizontalRanks: ChartDefinition<TestProps> = {
+  ...testChart,
+  categoryAxis: () => 'y',
+  build: (_, paint) =>
+    defineChart({
+      marks: [
+        barX(rankRows, {
+          id: seriesMarkId(1),
+          y: 'x',
+          x: 'y',
+          fill: paint.categorical[0]!
+        })
+      ],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 10]) },
+        y: {
+          scale: scaleBand<string>()
+            .domain(rankRows.map((r) => r.x))
+            .padding(0.3)
+        }
+      },
+      focus: 'nearest-y'
+    }),
+  describe: (datum) => `${datum.x} ${datum.y}`
+}
+
+describe('ChartPlot entering focus', () => {
+  function renderAfterButton(chart: ChartDefinition<TestProps>) {
+    const view = render(
+      <div style={{ width: 560 }}>
+        <button type='button'>Before</button>
+        <ChartPlot chart={chart} props={{ points: testPoints }} />
+        <button type='button'>After</button>
+      </div>
+    )
+    const live = view.container.querySelector(
+      '[data-slot=chart-plot-announcement]'
+    )!
+    return { ...view, live }
+  }
+
+  it('starts on the top category when tabbing into a horizontal chart', async () => {
+    const { getByRole, live } = renderAfterButton(horizontalRanks)
+    getByRole('button', { name: 'Before' }).focus()
+    await userEvent.tab()
+    await expect.poll(() => live.textContent).toBe('Carlton 6')
+    await userEvent.keyboard('{End}')
+    expect(live.textContent).toBe('Brunswick 9')
+    await userEvent.keyboard('{Home}')
+    expect(live.textContent).toBe('Carlton 6')
+    await userEvent.keyboard('{ArrowDown}')
+    expect(live.textContent).toBe('Fitzroy 2')
+  })
+
+  it('reaches the first and last segments of a stack with Home and End', async () => {
+    const { container, live } = renderAfterButton(horizontalStack)
+    container.querySelector<SVGElement>('svg.ts-chart')!.focus()
+    await expect.poll(() => live.textContent).toBe('Fri A')
+    await userEvent.keyboard('{End}')
+    expect(live.textContent).toBe('Sat B')
+    await userEvent.keyboard('{Home}')
+    expect(live.textContent).toBe('Fri A')
+  })
+
+  it('clears the spoken point when tabbing out', async () => {
+    const { getByRole, live } = renderAfterButton(horizontalRanks)
+    getByRole('button', { name: 'Before' }).focus()
+    await userEvent.tab()
+    await expect.poll(() => live.textContent).toBe('Carlton 6')
+    await userEvent.tab()
+    expect(document.activeElement).toBe(getByRole('button', { name: 'After' }))
+    await expect.poll(() => live.textContent).toBe('')
+  })
+})
+
+const otherBarChart: ChartDefinition<TestProps> = {
+  ...horizontalRanks,
+  build: (_, paint) =>
+    defineChart({
+      marks: [
+        barX(rankRows.slice(0, 2), {
+          id: seriesMarkId(1),
+          y: 'x',
+          x: 'y',
+          fill: paint.categorical[0]!
+        }),
+        barX(rankRows.slice(2), {
+          id: 'series-other',
+          y: 'x',
+          x: 'y',
+          fill: paint.other
+        })
+      ],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 10]) },
+        y: { scale: scaleBand<string>().domain(rankRows.map((r) => r.x)) }
+      }
+    })
+}
+
 describe('ChartPlot under forced colours', () => {
+  it('textures the Other bar', async (context) => {
+    const { container } = renderInCard('md', 560, otherBarChart)
+    const other = container.querySelector(
+      "[data-ts-key^='series-other:'] rect, rect[data-ts-key^='series-other:']"
+    )!
+    expect(getComputedStyle(other).fill).not.toContain('texture')
+
+    await commands.forcedColors(true)
+    try {
+      if (!matchMedia('(forced-colors: active)').matches) {
+        context.skip()
+        return
+      }
+      expect(getComputedStyle(other).fill).toMatch(/texture-8/)
+    } finally {
+      await commands.forcedColors(false)
+    }
+  })
+
   it('swaps series fills for textures and dashes the lines after the first', async (context) => {
     const { container } = renderInCard('md', 560, areaChart)
     const area = container.querySelector(
