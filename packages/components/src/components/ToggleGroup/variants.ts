@@ -14,7 +14,7 @@ export const toggleGroupItemVariants = cva(
     'inline-flex items-center justify-center gap-1.5',
     'rounded-full font-semibold whitespace-nowrap select-none',
     'text-subtle hover:text-normal data-[pressed]:text-strong',
-    '[&[aria-label]]:aspect-square [&[aria-label]]:px-0',
+    'data-[icon-only]:aspect-square data-[icon-only]:px-0',
     'group-data-[orientation=vertical]/toggle-group:justify-start group-data-[orientation=vertical]/toggle-group:rounded-lg',
     '[&_svg]:shrink-0'
   ].join(' '),

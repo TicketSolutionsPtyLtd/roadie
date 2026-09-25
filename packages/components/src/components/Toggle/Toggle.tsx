@@ -7,6 +7,7 @@ import { cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isIconOnly } from '../../utils/isIconOnly'
 import { type RoadieIntent, intentVariants } from '../../variants'
 
 export type ToggleEmphasis = 'normal' | 'subtle' | 'subtler'
@@ -27,10 +28,10 @@ export const toggleVariants = cva('btn is-interactive', {
         'not-data-[pressed]:emphasis-subtler data-[pressed]:emphasis-subtle'
     },
     size: {
-      xs: 'btn-xs [&[aria-label]]:btn-icon-xs',
-      sm: 'btn-sm [&[aria-label]]:btn-icon-sm',
-      md: 'btn-md [&[aria-label]]:btn-icon-md',
-      lg: 'btn-lg [&[aria-label]]:btn-icon-lg'
+      xs: 'btn-xs data-[icon-only]:btn-icon-xs',
+      sm: 'btn-sm data-[icon-only]:btn-icon-sm',
+      md: 'btn-md data-[icon-only]:btn-icon-md',
+      lg: 'btn-lg data-[icon-only]:btn-icon-lg'
     }
   },
   defaultVariants: { emphasis: 'normal', size: 'md' }
@@ -48,8 +49,7 @@ export type ToggleProps = TogglePrimitive.Props &
      */
     emphasis?: ToggleEmphasis
     /**
-     * Button sizes. A toggle with an `aria-label` renders square, for an
-     * icon-only toggle.
+     * Button sizes. A toggle whose only child is an icon renders square.
      *
      * @default 'md'
      */
@@ -66,6 +66,7 @@ export function Toggle({
   return (
     <TogglePrimitive
       data-slot='toggle'
+      data-icon-only={isIconOnly(props.children) ? '' : undefined}
       className={cn(toggleVariants({ intent, emphasis, size }), className)}
       {...props}
     />

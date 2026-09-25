@@ -46,7 +46,7 @@ import { Toggle } from '@oztix/roadie-components/toggle'
 
 ### Sizes
 
-The same sizes as `Button`. A toggle with an `aria-label` renders square, for an icon-only toggle.
+The same sizes as `Button`. A toggle whose only child is an icon renders square.
 
 ```tsx-live
 <div className='grid gap-4'>
@@ -129,6 +129,6 @@ render(<Favourite />)
 
 - Renders a `<button>` with `aria-pressed`, so screen readers announce it as a toggle button and read its state.
 - `Space` and `Enter` toggle it.
-- Give an icon-only toggle an `aria-label`. It also makes the toggle square.
+- Give an icon-only toggle an `aria-label`.
 
 <PropsDefinitions componentPath='packages/components/src/components/Toggle/index.tsx' />

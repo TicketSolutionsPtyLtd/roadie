@@ -63,18 +63,25 @@ describe('Toggle', () => {
     )
   })
 
-  it('takes Button sizes and goes square with an aria-label', () => {
+  it('takes Button sizes and goes square with a lone icon', () => {
     const { rerender } = render(<Toggle size='sm'>Bold</Toggle>)
     expect(screen.getByRole('button')).toHaveClass('btn-sm')
+    expect(screen.getByRole('button')).not.toHaveAttribute('data-icon-only')
     rerender(
       <Toggle aria-label='Favourite'>
         <svg />
       </Toggle>
     )
-    expect(screen.getByRole('button', { name: 'Favourite' })).toHaveClass(
-      'btn-md',
-      '[&[aria-label]]:btn-icon-md'
-    )
+    const icon = screen.getByRole('button', { name: 'Favourite' })
+    expect(icon).toHaveAttribute('data-icon-only')
+    expect(icon).toHaveClass('btn-md', 'data-[icon-only]:btn-icon-md')
+  })
+
+  it('keeps text padding when a visible label has an aria-label', () => {
+    render(<Toggle aria-label='Last 7 days'>7d</Toggle>)
+    expect(
+      screen.getByRole('button', { name: 'Last 7 days' })
+    ).not.toHaveAttribute('data-icon-only')
   })
 
   it('applies an intent class', () => {

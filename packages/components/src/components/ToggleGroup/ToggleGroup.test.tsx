@@ -181,16 +181,30 @@ describe('ToggleGroup', () => {
     expect(item).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('names icon-only items with aria-label', () => {
+  it('squares an item that holds only an icon', () => {
     render(
       <ToggleGroup aria-label='View' defaultValue={['list']}>
         <ToggleGroup.Item value='list' aria-label='List'>
           <svg />
         </ToggleGroup.Item>
+        <ToggleGroup.Item value='7d' aria-label='Last 7 days'>
+          7d
+        </ToggleGroup.Item>
+        <ToggleGroup.Item value='grid'>
+          <svg />
+          Grid
+        </ToggleGroup.Item>
       </ToggleGroup>
     )
-    const item = screen.getByRole('button', { name: 'List' })
-    expect(item).toHaveAttribute('data-slot', 'toggle-group-item')
+    expect(screen.getByRole('button', { name: 'List' })).toHaveAttribute(
+      'data-icon-only'
+    )
+    expect(
+      screen.getByRole('button', { name: 'Last 7 days' })
+    ).not.toHaveAttribute('data-icon-only')
+    expect(screen.getByRole('button', { name: 'Grid' })).not.toHaveAttribute(
+      'data-icon-only'
+    )
   })
 
   it('applies an intent class to the track', () => {
