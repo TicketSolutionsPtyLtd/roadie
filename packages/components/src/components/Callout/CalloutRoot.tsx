@@ -6,6 +6,7 @@ import { XIcon } from '@phosphor-icons/react/ssr'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isEmptyNode } from '../../utils/isEmptyNode'
 import type { RoadieIntent } from '../../variants'
 import { IconButton } from '../Button/IconButton'
 import { CalloutContext } from './CalloutContext'
@@ -29,12 +30,14 @@ export type CalloutProps = Omit<ComponentProps<'div'>, 'title'> & {
   dismissLabel?: string
 }
 
+function isText(node: ReactNode): boolean {
+  if (Array.isArray(node))
+    return node.some(isText) && node.every((n) => isText(n) || isEmptyNode(n))
+  return typeof node === 'string' || typeof node === 'number'
+}
+
 function isShortForm(title: ReactNode, children: ReactNode) {
-  return (
-    title !== undefined ||
-    typeof children === 'string' ||
-    typeof children === 'number'
-  )
+  return !isEmptyNode(title) || isText(children)
 }
 
 /** An inline message in the flow of the page. */
@@ -62,8 +65,8 @@ export function CalloutRoot({
               {icon !== null && icon !== false && (
                 <CalloutIcon>{icon}</CalloutIcon>
               )}
-              {title !== undefined && <CalloutTitle>{title}</CalloutTitle>}
-              {children != null && children !== '' && (
+              {!isEmptyNode(title) && <CalloutTitle>{title}</CalloutTitle>}
+              {!isEmptyNode(children) && (
                 <CalloutDescription>{children}</CalloutDescription>
               )}
             </>

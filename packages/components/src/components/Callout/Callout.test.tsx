@@ -88,6 +88,40 @@ describe('Callout short form', () => {
     expect(slot(container, 'callout-description')).toBeNull()
   })
 
+  it.each([null, false, ''])('treats a %j title as absent', (title) => {
+    const { container } = render(
+      <Callout intent='info' title={title}>
+        Doors open at 7pm
+      </Callout>
+    )
+    expect(slot(container, 'callout-title')).toBeNull()
+    expect(slot(container, 'callout-description')).toHaveTextContent(
+      'Doors open at 7pm'
+    )
+  })
+
+  it('renders 0 as a title and as the description', () => {
+    const { container } = render(<Callout title={0}>{0}</Callout>)
+    expect(slot(container, 'callout-title')).toHaveTextContent('0')
+    expect(slot(container, 'callout-description')).toHaveTextContent('0')
+  })
+
+  it('wraps interpolated text in a description', () => {
+    const seats = 0
+    const { container } = render(
+      <Callout intent='warning'>{seats} seats left</Callout>
+    )
+    expect(slot(container, 'callout-description')).toHaveTextContent(
+      '0 seats left'
+    )
+    expect(slot(container, 'callout-icon')).toBeInTheDocument()
+  })
+
+  it('renders no description for empty children', () => {
+    const { container } = render(<Callout title='Doors open'>{false}</Callout>)
+    expect(slot(container, 'callout-description')).toBeNull()
+  })
+
   it('has no default icon for intents without a status', () => {
     const { container } = render(<Callout title='Heads up'>Body</Callout>)
     expect(slot(container, 'callout-icon')).toBeNull()
