@@ -11,7 +11,7 @@ export const parseX = (value: PlotX | PlotCell | undefined) =>
   parseWallTime(value)
 
 export const hasTimeOfDay = (value: PlotX | PlotCell | undefined) =>
-  typeof value === 'string' && /T\d{2}:\d{2}/.test(value)
+  typeof value === 'string' && /[T ]\d{2}:\d{2}/.test(value)
 
 export function isTimeField(rows: readonly Row[], field: string) {
   const values = rows.map((row) => row[field]).filter((v) => v != null)

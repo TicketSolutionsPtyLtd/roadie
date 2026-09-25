@@ -107,6 +107,12 @@ describe('time', () => {
 
   it('knows when a value carries a time', () => {
     expect(hasTimeOfDay('2026-11-14T19:00')).toBe(true)
+    expect(hasTimeOfDay('2026-11-14 19:00:00')).toBe(true)
     expect(hasTimeOfDay('2026-11-14')).toBe(false)
+  })
+
+  it('plots a warehouse space separated time at its wall time', () => {
+    expect(parseX('2026-11-14 19:30')).toBe(Date.UTC(2026, 10, 14, 19, 30))
+    expect(isTimeField([{ at: '2026-11-14 19:30:00' }], 'at')).toBe(true)
   })
 })

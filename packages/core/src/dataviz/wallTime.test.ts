@@ -26,6 +26,21 @@ describe('parseWallTime', () => {
     expect(parseWallTime('2026-11-14T19:30pm')).toBeNull()
   })
 
+  it('reads a space separator, as warehouse exports write it', () => {
+    expect(parseWallTime('2026-11-14 19:30')).toBe(
+      Date.UTC(2026, 10, 14, 19, 30)
+    )
+    expect(parseWallTime('2026-11-14 19:30:00')).toBe(
+      Date.UTC(2026, 10, 14, 19, 30)
+    )
+    expect(isWallTime('2026-11-14 19:30:00')).toBe(true)
+    expect(parseWallTime('2026-11-14 25:00')).toBeNull()
+    expect(parseWallTime('2026-02-31 19:30')).toBeNull()
+    expect(parseWallTime('2026-11-14  19:30')).toBeNull()
+    expect(parseWallTime(' 2026-11-14 19:30')).toBeNull()
+    expect(parseWallTime('2026-11-14 19:30 onwards')).toBeNull()
+  })
+
   it('refuses a date or time that does not exist instead of rolling over', () => {
     expect(parseWallTime('2026-02-31')).toBeNull()
     expect(parseWallTime('2026-13-01')).toBeNull()

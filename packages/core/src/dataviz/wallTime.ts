@@ -1,5 +1,5 @@
 const ISO =
-  /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/
+  /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/
 
 function wallTimeOf(value: string): number | null {
   const match = ISO.exec(value)
@@ -22,7 +22,8 @@ export const isWallTime = (value: unknown): value is string =>
 
 /**
  * Milliseconds for the venue wall time written in an ISO string, read as UTC
- * so it never shifts by time zone. An offset is ignored by design. Numbers
+ * so it never shifts by time zone. A space may stand in for the `T`, as
+ * warehouse exports write it. An offset is ignored by design. Numbers
  * pass through; anything else, including a date that doesn't exist, is null.
  */
 export function parseWallTime(value: unknown): number | null {
