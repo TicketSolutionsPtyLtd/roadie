@@ -3,8 +3,8 @@
 '@oztix/roadie-core': minor
 ---
 
-Add `Toast`, a brief message that confirms an action or reports its result,
-built on Base UI's toast primitive. Mount `Toast.Provider` with a
+Add `Toast`, a brief message that confirms an action or reports its result.
+Mount `Toast.Provider` with a
 `Toast.Viewport` once at the app root, then call `useToastManager().add({
 title, description, intent, actionProps })` from any component, or
 `createToastManager()` from outside React. `intent` (`success`, `danger`,
