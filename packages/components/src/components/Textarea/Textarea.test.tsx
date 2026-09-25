@@ -1,10 +1,17 @@
 import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { type VariantProps } from 'class-variance-authority'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 
-import { Textarea } from '.'
+import { Textarea, type TextareaProps, textareaVariants } from '.'
 
 describe('Textarea', () => {
+  it('keeps the deprecated intent prop accepting what it did before', () => {
+    expectTypeOf<TextareaProps['intent']>().toEqualTypeOf<
+      VariantProps<typeof textareaVariants>['intent']
+    >()
+  })
+
   it('renders with default props', () => {
     const { container } = render(<Textarea />)
     const textarea = container.querySelector('textarea')!
