@@ -16,19 +16,21 @@ import type { SmallMultiplesChart, SmallMultiplesProps } from './types'
 
 function PanelPlot({
   chart,
+  name,
   rows,
-  takeaway,
   domain
 }: {
   chart: SmallMultiplesChart
+  name: string
   rows: PlotRow[]
-  takeaway: string
   domain: readonly [number, number] | undefined
 }) {
-  const props = useMemo(
-    () => ({ ...chart, data: rows, takeaway }),
-    [chart, rows, takeaway]
-  )
+  const props = useMemo(() => {
+    const own = { ...chart, data: rows, takeaway: undefined }
+    const summary =
+      own.kind === 'line' ? lineChart.summary(own) : barChart.summary(own)
+    return { ...own, takeaway: `${name}. ${summary}` }
+  }, [chart, name, rows])
   return props.kind === 'line' ? (
     <ChartPlot
       chart={lineChart}
@@ -63,6 +65,8 @@ export function SmallMultiples(props: SmallMultiplesProps) {
   return (
     <div
       data-slot='small-multiples'
+      role={card ? undefined : 'group'}
+      aria-label={card ? undefined : summary}
       className={cn(
         'grid grid-cols-[repeat(auto-fill,minmax(min(100%,15rem),1fr))] gap-4',
         props.className
@@ -75,8 +79,8 @@ export function SmallMultiples(props: SmallMultiplesProps) {
           </figcaption>
           <PanelPlot
             chart={props.chart}
+            name={panel.key}
             rows={panel.rows}
-            takeaway={`${panel.key}. ${summary}`}
             domain={domain}
           />
         </figure>

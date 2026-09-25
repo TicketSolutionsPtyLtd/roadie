@@ -72,11 +72,19 @@ describe('SmallMultiples in a card', () => {
         s.getAttribute('tabindex')
       )
     ).toEqual(['0', '0', '0', '0'])
-    expect(
-      [...container.querySelectorAll('svg.ts-chart')].map(
-        (s) => s.getAttribute('aria-label')?.split('.')[0]
-      )
-    ).toEqual(['North gate', 'South gate', 'River entry', 'Accessible entry'])
+    const names = [...container.querySelectorAll('svg.ts-chart')].map(
+      (s) => s.getAttribute('aria-label') ?? ''
+    )
+    const gates = [
+      'North gate',
+      'South gate',
+      'River entry',
+      'Accessible entry'
+    ]
+    gates.forEach((gate, i) => {
+      expect(names[i]).toMatch(new RegExp(`^${gate}\\. \\S`))
+      expect(names[i]).not.toContain(gatesExample.takeaway)
+    })
   })
 
   it('keeps text at 11px or more on a phone', async () => {

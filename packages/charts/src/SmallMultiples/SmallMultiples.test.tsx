@@ -15,6 +15,19 @@ describe('SmallMultiples', () => {
     ).toBeInTheDocument()
   })
 
+  it('names each panel by its own data, and carries the takeaway once', () => {
+    const { container } = render(<SmallMultiples {...gatesExample} />)
+    expect(
+      screen.getByRole('group', { name: gatesExample.takeaway })
+    ).toBeInTheDocument()
+    expect(screen.getAllByRole('img')[0]).toHaveAccessibleName(
+      'North gate. Scans peaked at 300 at 6pm on Sat 14 Nov'
+    )
+    expect(
+      container.querySelectorAll(`[aria-label*="${gatesExample.takeaway}"]`)
+    ).toHaveLength(1)
+  })
+
   it('draws line panels too', () => {
     render(
       <SmallMultiples
@@ -39,6 +52,9 @@ describe('SmallMultiples', () => {
     expect(
       screen.getByRole('region', { name: 'Entry by gate' })
     ).toHaveAccessibleDescription(gatesExample.takeaway!)
+    expect(screen.queryByRole('group', { name: gatesExample.takeaway })).toBe(
+      null
+    )
   })
 
   it('renders on the server', () => {
