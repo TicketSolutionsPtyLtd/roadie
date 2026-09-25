@@ -28,6 +28,15 @@ describe('charts.css', () => {
     }
   )
 
+  it('shows the unmeasured plot when scripting is off, and only then', () => {
+    const noScript =
+      /@media \(scripting: none\) \{\s*\[data-slot='chart-plot-host'\] \.ts-chart-host \{\s*opacity: 1;\s*\}\s*\}/
+    expect(css).toMatch(noScript)
+    expect(css.replace(noScript, '')).not.toMatch(
+      /\.ts-chart-host[^{]*\{[^}]*opacity/
+    )
+  })
+
   it('haloes every label mark', () => {
     expect(css).toMatch(/\[data-ts-key\^='label-'\] \{[^}]*paint-order: stroke/)
   })

@@ -176,6 +176,13 @@
   height: auto;
 }
 
+/* Without scripts the plot is never measured, so show the server drawing. */
+@media (scripting: none) {
+  [data-slot='chart-plot-host'] .ts-chart-host {
+    opacity: 1;
+  }
+}
+
 /* Server markup is drawn at the engine's default size until hydration. */
 [data-slot='chart-plot'] .ts-chart-surface > svg {
   width: 100%;

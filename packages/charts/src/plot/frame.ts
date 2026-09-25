@@ -32,5 +32,7 @@ export function pixelsToX(
   [start, end]: readonly [number, number],
   margins: number
 ) {
-  return (pixels / Math.max(1, frame.width - margins)) * (end - start)
+  // Margins can outgrow a narrow frame; half the frame keeps the length sane.
+  const plotWidth = Math.max(frame.width / 2, frame.width - margins, 1)
+  return (pixels / plotWidth) * (end - start)
 }
