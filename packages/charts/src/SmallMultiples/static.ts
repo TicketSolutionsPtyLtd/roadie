@@ -3,6 +3,7 @@ import { lineChart } from '../LineChart/definition'
 import { hexPaint } from '../plot/paint'
 import { FONT_FAMILY, SVG_NS, escapeXml } from '../plot/svg'
 import { type StaticRenderOptions, renderChartSvg } from '../static'
+import { emptyMessage } from './empty'
 import { PANEL_HEIGHT, panelsOf, sharedDomain } from './panels'
 import { smallMultiplesSummary } from './summary'
 import type { SmallMultiplesProps } from './types'
@@ -20,12 +21,16 @@ export function renderSmallMultiplesSvg(
   }: Omit<StaticRenderOptions, 'height'> & { columns?: number }
 ) {
   const panels = panelsOf(props)
+  const { label, surface } = hexPaint(mode, accentHue)
+  if (panels.length === 0) {
+    const message = escapeXml(emptyMessage(props))
+    return `<svg xmlns="${SVG_NS}" width="${width}" height="${PANEL_HEIGHT}" viewBox="0 0 ${width} ${PANEL_HEIGHT}" role="img" aria-label="${message}" style="font-family:${FONT_FAMILY}"><rect width="${width}" height="${PANEL_HEIGHT}" fill="${surface}"/><text x="0" y="18" font-size="12" fill="${label}">${message}</text></svg>`
+  }
   const panelWidth = (width - GAP * (columns - 1)) / columns
   const rows = Math.ceil(panels.length / columns)
   const height = rows * (PANEL_HEIGHT + CAPTION) + GAP * (rows - 1)
   const domain = sharedDomain(props)
   const { chart } = props
-  const { label, surface } = hexPaint(mode, accentHue)
   const inner = panels.map((panel, i) => {
     const x = (i % columns) * (panelWidth + GAP)
     const y = Math.floor(i / columns) * (PANEL_HEIGHT + CAPTION + GAP)

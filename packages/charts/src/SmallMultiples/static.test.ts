@@ -31,3 +31,14 @@ describe('renderSmallMultiplesSvg', () => {
     expect(svg).toMatch(/^<svg [^>]*><rect width="640" height="\d+" fill="#/)
   })
 })
+
+describe('renderSmallMultiplesSvg with nothing to split', () => {
+  it('says so instead of drawing an empty grid', () => {
+    const svg = renderSmallMultiplesSvg(
+      { ...gatesExample, data: [] },
+      { mode: 'light', width: 640 }
+    )
+    expect(svg).toContain('aria-label="Nothing to show for this period yet"')
+    expect(svg).toContain('>Nothing to show for this period yet<')
+  })
+})

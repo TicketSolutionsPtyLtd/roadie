@@ -63,3 +63,15 @@ describe('SmallMultiples', () => {
     )
   })
 })
+
+describe('SmallMultiples with nothing to split', () => {
+  it.each([
+    ['no rows', { ...gatesExample, data: [] }],
+    ['a by field no row has', { ...gatesExample, by: 'zone' }]
+  ])('shows the panel chart empty copy for %s', (_, props) => {
+    render(<SmallMultiples {...props} />)
+    expect(
+      screen.getByText('Nothing to show for this period yet')
+    ).toHaveAttribute('data-slot', 'chart-empty')
+  })
+})

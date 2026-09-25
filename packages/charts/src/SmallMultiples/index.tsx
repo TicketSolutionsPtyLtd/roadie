@@ -9,6 +9,7 @@ import { barChart } from '../BarChart/definition'
 import { ChartCardContext } from '../Chart/context'
 import { lineChart } from '../LineChart/definition'
 import { ChartPlot } from '../plot/ChartPlot'
+import { emptyMessage } from './empty'
 import { PANEL_HEIGHT, panelsOf, sharedDomain } from './panels'
 import { smallMultiplesSummary } from './summary'
 import { smallMultiplesTable } from './table'
@@ -61,6 +62,13 @@ export function SmallMultiples(props: SmallMultiplesProps) {
     report?.({ summary, table })
     return () => report?.(null)
   }, [report, summary, table])
+
+  if (panels.length === 0)
+    return (
+      <p data-slot='chart-empty' className='text-sm text-subtle'>
+        {emptyMessage(props)}
+      </p>
+    )
 
   return (
     <div
