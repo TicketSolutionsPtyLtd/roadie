@@ -34,11 +34,13 @@ function endLabel(props: FunnelProps, row: FunnelRow, frame: PlotFrame) {
   return `${labelFormat(props.format, row.value)}, ${pct(row.ofPrevious)} of previous`
 }
 
+const stepStyle = (paint: ChartPaint) => seriesStyles([SERIES], {}, paint)[0]!
+
 const rowFor = (props: FunnelProps, label: PlotDatum['x'] | undefined) =>
   funnelRows(props).find((r) => r.label === label)
 
 function build(props: FunnelProps, paint: ChartPaint, frame: PlotFrame) {
-  const [style] = seriesStyles([SERIES], {}, paint)
+  const style = stepStyle(paint)
   const rows = funnelRows(props).map((r) => ({
     ...r,
     x: r.label,
@@ -63,11 +65,11 @@ function build(props: FunnelProps, paint: ChartPaint, frame: PlotFrame) {
   return defineChart({
     marks: [
       barX(rows, {
-        id: seriesMarkId(style!.slot),
+        id: seriesMarkId(style.slot),
         x: 'value',
         y: 'label',
         z: 'series',
-        fill: style!.color,
+        fill: style.color,
         inset: 2,
         maxThickness: 32
       }),
@@ -123,6 +125,7 @@ export const funnel: ChartDefinition<FunnelProps> = {
   emptyMessage: (props) =>
     (props.steps[0]?.value ?? 0) > 0 ? undefined : EMPTY,
   legend: () => [],
+  categoryAxis: () => 'y',
   describe(datum, props) {
     const row = rowFor(props, datum.x)
     if (!row) return String(datum.x)
@@ -140,7 +143,7 @@ export const funnel: ChartDefinition<FunnelProps> = {
         {
           label: 'Count',
           value: fullValue(props, row.value),
-          color: seriesStyles([SERIES], {}, paint)[0]!.color,
+          color: stepStyle(paint).color,
           shape: 'swatch' as const
         },
         ...(row.ofPrevious === null

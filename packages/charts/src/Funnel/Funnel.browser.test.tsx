@@ -1,6 +1,6 @@
 import { cleanup } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { commands } from 'vitest/browser'
+import { commands, userEvent } from 'vitest/browser'
 
 import { Funnel } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
@@ -10,8 +10,7 @@ import {
   expectFillsPlot,
   expectMinFontSize,
   expectTableKeepsHeight,
-  renderInCard,
-  visitEveryStop
+  renderInCard
 } from '../plot/browserTesting'
 import { loadBrandFont, useStylesheet } from '../testUtils'
 import { checkoutExample } from './examples'
@@ -32,19 +31,30 @@ describe('Funnel in a card', () => {
     expectFillsPlot(container, height)
   })
 
-  it('reaches every step by keyboard and says each in words', async () => {
+  it('walks the steps in order with Down and back with Up', async () => {
     const { container } = renderInCard(<Funnel {...checkoutExample} />)
-    const heard = await visitEveryStop(container)
-    expect(heard).toHaveLength(4)
-    // ArrowRight walks bar ends by pixel x, so the order is the shared layer's.
-    expect([...heard].sort()).toEqual(
-      [
-        'Viewed event, 12,400',
-        'Chose tickets, 4,210, 34% of the previous step, 34% of the first',
-        'Started checkout, 2,380, 57% of the previous step, 19% of the first',
-        'Paid, 1,464, 62% of the previous step, 12% of the first'
-      ].sort()
-    )
+    const svg = container.querySelector<SVGElement>('svg.ts-chart')!
+    const live = container.querySelector('[data-slot=chart-plot-announcement]')!
+    const heard = () => live.textContent ?? ''
+    const press = async (key: string, expected: string) => {
+      await userEvent.keyboard(key)
+      await expect.poll(heard).toBe(expected)
+    }
+    const steps = [
+      'Viewed event, 12,400',
+      'Chose tickets, 4,210, 34% of the previous step, 34% of the first',
+      'Started checkout, 2,380, 57% of the previous step, 19% of the first',
+      'Paid, 1,464, 62% of the previous step, 12% of the first'
+    ]
+    svg.focus()
+    await expect.poll(heard).not.toBe('')
+    for (let i = 0; i < steps.length; i++) await userEvent.keyboard('{ArrowUp}')
+    await expect.poll(heard).toBe(steps[0])
+    for (const step of steps.slice(1)) await press('{ArrowDown}', step)
+    await userEvent.keyboard('{ArrowDown}')
+    await expect.poll(heard).toBe(steps.at(-1))
+    for (const step of steps.slice(0, -1).reverse())
+      await press('{ArrowUp}', step)
   })
 
   it('keeps labels inside the card and at 11px or more on a phone', async () => {
