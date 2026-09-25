@@ -21,7 +21,7 @@ export type DataCardDelta = {
   baseline?: number
 }
 
-export type DataCardProps = Omit<ComponentProps<'section'>, 'title'> & {
+export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> & {
   /** Fixed name for the card. People and agents refer to the card by it. */
   label: string
   value?: number | string
@@ -120,8 +120,10 @@ export function DataCard({
 }: DataCardProps) {
   const labelId = useId()
   const showContent = state === 'ready' || state === 'stale'
+  // An article, not a named section: a dashboard repeats labels such as
+  // "Tickets sold" across sections, and landmark names must be unique.
   return (
-    <section
+    <article
       data-slot='data-card'
       data-size={size}
       data-state={state}
@@ -215,7 +217,7 @@ export function DataCard({
             </footer>
           )}
       </div>
-    </section>
+    </article>
   )
 }
 DataCard.displayName = 'DataCard'

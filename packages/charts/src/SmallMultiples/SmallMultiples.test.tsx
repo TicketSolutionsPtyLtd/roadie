@@ -50,7 +50,7 @@ describe('SmallMultiples', () => {
         .querySelectorAll('tbody tr')
     ).toHaveLength(48)
     expect(
-      screen.getByRole('region', { name: 'Entry by gate' })
+      screen.getByRole('article', { name: 'Entry by gate' })
     ).toHaveAccessibleDescription(gatesExample.takeaway!)
     expect(screen.queryByRole('group', { name: gatesExample.takeaway })).toBe(
       null

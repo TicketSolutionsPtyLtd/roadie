@@ -27,7 +27,7 @@ describe('DashboardView', () => {
       'Ticket type mix',
       'When fans buy'
     ])
-      expect(screen.getByRole('region', { name })).toBeInTheDocument()
+      expect(screen.getByRole('article', { name })).toBeInTheDocument()
     expect(
       screen.getAllByRole('img', { name: /similar shows/ }).length
     ).toBeGreaterThan(0)

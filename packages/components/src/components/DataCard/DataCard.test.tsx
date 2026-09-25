@@ -5,14 +5,27 @@ import { describe, expect, it } from 'vitest'
 import { DataCard } from '.'
 
 describe('DataCard', () => {
-  it('names the section by its label', () => {
+  it('names the card by its label', () => {
     render(
       <DataCard label='Gross revenue' value={118400} format='compactCurrency' />
     )
     expect(
-      screen.getByRole('region', { name: 'Gross revenue' })
+      screen.getByRole('article', { name: 'Gross revenue' })
     ).toBeInTheDocument()
     expect(screen.getByText('$118.4k')).toBeInTheDocument()
+  })
+
+  it('is not a landmark, so cards can share a label', () => {
+    render(
+      <>
+        <DataCard label='Tickets sold' value={1842} />
+        <DataCard label='Tickets sold' value={612} />
+      </>
+    )
+    expect(screen.queryAllByRole('region')).toHaveLength(0)
+    expect(
+      screen.getAllByRole('article', { name: 'Tickets sold' })
+    ).toHaveLength(2)
   })
 
   it('keeps truncated copy available in the title', () => {
@@ -47,7 +60,7 @@ describe('DataCard', () => {
     const { container } = render(
       <DataCard label='Sales pace' state='loading' bodyHeight='220px' />
     )
-    expect(screen.getByRole('region', { name: 'Sales pace' })).toHaveAttribute(
+    expect(screen.getByRole('article', { name: 'Sales pace' })).toHaveAttribute(
       'aria-busy',
       'true'
     )

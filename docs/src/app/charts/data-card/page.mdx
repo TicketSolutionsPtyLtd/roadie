@@ -97,7 +97,7 @@ import { DataCard } from '@oztix/roadie-components/data-card'
 
 ## Accessibility
 
-- The card is a region named by its label, and truncated label or context text stays available in its `title` attribute.
+- The card is an article named by its label, and truncated label or context text stays available in its `title` attribute. It isn't a landmark, so a dashboard can repeat a label such as "Tickets sold" across sections without repeating landmark names.
 - `state='loading'` sets `aria-busy`, so assistive tech knows the card isn't ready.
 
 <PropsDefinitions componentPath='packages/components/src/components/DataCard/index.tsx' />

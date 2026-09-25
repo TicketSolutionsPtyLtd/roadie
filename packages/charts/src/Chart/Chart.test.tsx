@@ -43,7 +43,7 @@ describe('Chart', () => {
   it('renders the card, plot and source', () => {
     renderChart()
     expect(
-      screen.getByRole('region', { name: 'Sales pace' })
+      screen.getByRole('article', { name: 'Sales pace' })
     ).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Pace chart' })).toBeInTheDocument()
     expect(
@@ -148,7 +148,7 @@ describe('Chart with a reporting plot', () => {
       </Chart>
     )
     expect(
-      screen.getByRole('region', { name: 'Sales' })
+      screen.getByRole('article', { name: 'Sales' })
     ).toHaveAccessibleDescription('Sales rose from 120 to 1,464')
   })
 
