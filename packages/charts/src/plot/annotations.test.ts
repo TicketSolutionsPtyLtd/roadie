@@ -20,6 +20,10 @@ describe('annotationsOnBars', () => {
     expect(onBars('2026-08-03T11:50')).toEqual(['2026-08-03T12:00'])
   })
 
+  it('measures a gap to each bar centre, not its start', () => {
+    expect(onBars('2026-08-03T11:20')).toEqual(['2026-08-03T10:00'])
+  })
+
   it('drops a date outside hourly bars', () => {
     expect(onBars('2026-08-03')).toEqual([])
     expect(onBars('2026-08-04T09:00')).toEqual([])

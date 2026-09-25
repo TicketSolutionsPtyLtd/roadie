@@ -41,18 +41,20 @@ function barFor(
   if (time === null || !first || !last) return undefined
   if (time < first.x || time >= last.x + span) return undefined
   const holding = timed.find((bar) => bar.x <= time && time < bar.x + span)
+  const fromCentre = (bar: { x: number }) => Math.abs(bar.x + span / 2 - time)
   return (
     holding ??
     timed.reduce((best, bar) =>
-      Math.abs(bar.x - time) < Math.abs(best.x - time) ? bar : best
+      fromCentre(bar) < fromCentre(best) ? bar : best
     )
   )
 }
 
 /**
  * Places annotations on bars. Time bars each cover `span` ms, and an
- * annotation snaps to the bar that holds its wall time, or the nearest across a
- * gap. Other bars match by name, with a null `span`. Anything else is dropped.
+ * annotation snaps to the bar that holds its wall time, or across a gap to the
+ * bar whose centre is nearest. Other bars match by name, with a null `span`.
+ * Anything else is dropped.
  */
 export function annotationsOnBars(
   annotations: readonly PlotAnnotation[] = [],
