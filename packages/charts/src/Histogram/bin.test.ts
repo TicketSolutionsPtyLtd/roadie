@@ -14,8 +14,33 @@ describe('binValues', () => {
 
   it('bins by count across the range on round edges', () => {
     const bins = binValues([0, 10, 20, 30, 40], { bins: 4 })
-    expect(bins.map((b) => b.from)).toEqual([0, 10, 20, 30, 40])
+    expect(bins.map((b) => b.from)).toEqual([0, 10, 20, 30])
     expect(bins.reduce((s, b) => s + b.count, 0)).toBe(5)
+  })
+
+  it('closes the last bin on a maximum at the top edge, not a stub bin', () => {
+    const whole = binValues(
+      Array.from({ length: 41 }, (_, i) => i),
+      { bins: 4 }
+    )
+    expect(whole.map((b) => [b.from, b.to, b.count])).toEqual([
+      [0, 10, 10],
+      [10, 20, 10],
+      [20, 30, 10],
+      [30, 41, 11]
+    ])
+    const spread = binValues([0, 1.5, 3.2, 5.5, 7.1, 10], { bins: 5 })
+    expect(spread.map((b) => [b.from, b.to, b.count])).toEqual([
+      [0, 2, 2],
+      [2, 4, 1],
+      [4, 6, 1],
+      [6, 8, 1],
+      [8, 10, 1]
+    ])
+  })
+
+  it('keeps a stub bin when the width is given', () => {
+    expect(binValues([0, 7, 14], { binWidth: 7 })).toHaveLength(3)
   })
 
   it('rounds edges to nice numbers in bins mode', () => {

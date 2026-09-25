@@ -73,6 +73,31 @@ describe('histogram', () => {
     ])
   })
 
+  it('adds a unit only when the field names something counted', () => {
+    const spend = {
+      data: [10, 24, 24, 40].map((spend) => ({ spend })),
+      x: 'spend'
+    }
+    expect(histogram.summary(spend)).toMatch(/^The median is 24, and/)
+    expect(histogram.summary(spend)).not.toMatch(/spends/)
+    const hours = { data: [1, 2, 2, 5].map((hour) => ({ hour })), x: 'hour' }
+    expect(histogram.summary(hours)).toMatch(/^The median is 2 hours/)
+  })
+
+  it('names the maximum in a last bin that closes on it', () => {
+    const days = {
+      data: Array.from({ length: 41 }, (_, days) => ({ days })),
+      x: 'days',
+      bins: 4
+    }
+    expect(histogramTable(days).rows.map((r) => r.range)).toEqual([
+      '0 to 9',
+      '10 to 19',
+      '20 to 29',
+      '30 to 40'
+    ])
+  })
+
   it('shows the tooltip for a bin', () => {
     const tip = histogram.tooltip(
       [{ x: 7, y: 120, series: 'Days', index: 1 }],

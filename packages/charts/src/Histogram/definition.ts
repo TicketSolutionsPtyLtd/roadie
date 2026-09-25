@@ -20,7 +20,7 @@ import {
   labelFormat,
   valueDomain
 } from '../plot/values'
-import { nounFor } from '../plot/words'
+import { nounFor, singular } from '../plot/words'
 import { type Bin, binValues, histogramValues, medianOf } from './bin'
 import { binLabel, histogramTable } from './table'
 import type { HistogramProps } from './types'
@@ -34,11 +34,27 @@ const MAX_X_TICKS: Record<PlotFrame['band'], number> = {
 
 const unitOf = (props: HistogramProps) => fieldLabel(props.x).toLowerCase()
 
+const COUNTED_UNITS = new Set([
+  'day',
+  'hour',
+  'minute',
+  'week',
+  'month',
+  'year'
+])
+
+// A plural word such as "tickets", or a unit of time, counts; "spend" doesn't.
+function countedNoun(props: HistogramProps) {
+  const noun = unitOf(props)
+  if (noun.includes(' ')) return null
+  return singular(noun) !== noun || COUNTED_UNITS.has(noun) ? noun : null
+}
+
 // Money and shares carry their own units; counts take the field's noun.
-const withUnit = (props: HistogramProps, text: string, count: number) =>
-  isCountFormat(props.format)
-    ? `${text} ${nounFor(count, unitOf(props))}`
-    : text
+function withUnit(props: HistogramProps, text: string, count: number) {
+  const noun = isCountFormat(props.format) ? countedNoun(props) : null
+  return noun ? `${text} ${nounFor(count, noun)}` : text
+}
 
 const valueText = (props: HistogramProps, value: number) =>
   withUnit(props, formatValue(value, fullFormat(props.format)), value)

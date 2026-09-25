@@ -10,7 +10,10 @@ export type HistogramProps = {
   format?: ValueFormat
   /** The headline sentence. It becomes the plot's accessible name. */
   takeaway?: string
-  /** How many bins. Use this or binWidth. */
+  /**
+   * About how many bins. Edges land on round numbers, so this is a target and
+   * the chart may draw fewer. Use this or binWidth.
+   */
   bins?: number
   /** How wide each bin is, in the field's units. Use this or bins. */
   binWidth?: number

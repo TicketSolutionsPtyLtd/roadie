@@ -50,7 +50,12 @@ function niceWidth(raw: number, whole: boolean) {
 const binCount = (min: number, max: number, width: number) =>
   Math.floor(max / width) - Math.floor(min / width) + 1
 
-// Bins are closed on the left, so a value on an edge starts the next bin.
+/**
+ * Bins are closed on the left, so a value on an edge starts the next bin. The
+ * one exception, as in d3 and numpy: when `bins` or the default count is the
+ * target and the maximum lands on the top edge, the last bin closes on it
+ * instead of adding a stub bin past the target.
+ */
 export function binValues(
   values: readonly number[],
   { bins, binWidth }: { bins?: number; binWidth?: number }
@@ -59,16 +64,22 @@ export function binValues(
   const min = Math.min(...values)
   const max = Math.max(...values)
   const whole = values.every(Number.isInteger)
-  let width =
-    binWidth !== undefined && binWidth > 0
-      ? whole
-        ? Math.max(1, Math.ceil(binWidth))
-        : binWidth
-      : niceWidth((max - min) / (bins ?? defaultBinCount(values.length)), whole)
+  const byWidth = binWidth !== undefined && binWidth > 0
+  const target = bins ?? defaultBinCount(values.length)
+  let width = byWidth
+    ? whole
+      ? Math.max(1, Math.ceil(binWidth))
+      : binWidth
+    : niceWidth((max - min) / target, whole)
   while (binCount(min, max, width) > MAX_BINS)
     width = niceWidth(width * 1.01, whole)
   const start = tidy(Math.floor(min / width) * width)
-  const count = binCount(min, max, width)
+  const edgeCount = binCount(min, max, width)
+  const closesOnMax =
+    !byWidth &&
+    edgeCount > target &&
+    tidy(start + (edgeCount - 1) * width) === max
+  const count = closesOnMax ? edgeCount - 1 : edgeCount
   const result: Bin[] = Array.from({ length: count }, (_, index) => ({
     from: tidy(start + index * width),
     to: tidy(start + (index + 1) * width),
@@ -76,6 +87,8 @@ export function binValues(
     index,
     whole
   }))
+  // A whole-number bin's `to` is one past the last integer it holds.
+  if (closesOnMax && whole) result[count - 1]!.to = max + 1
   for (const value of values) {
     const i = Math.min(
       count - 1,
