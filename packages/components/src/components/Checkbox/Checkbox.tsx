@@ -7,6 +7,7 @@ import { CheckIcon, MinusIcon } from '@phosphor-icons/react/ssr'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isEmptyNode } from '../../utils/isEmptyNode'
 import { useFieldContext } from '../Field'
 import { CheckboxGroupContext } from './CheckboxGroupContext'
 import { checkboxVariants } from './variants'
@@ -43,8 +44,12 @@ export function Checkbox({
   const disabled = disabledProp ?? (inField ? field.disabled : undefined)
   const fieldTextId = invalid ? field.errorTextId : field.helperTextId
   const generatedId = useId()
-  const labelId = label ? `${generatedId}-label` : undefined
-  const descriptionId = description ? `${generatedId}-description` : undefined
+  const hasLabel = !isEmptyNode(label)
+  const hasDescription = !isEmptyNode(description)
+  const labelId = hasLabel ? `${generatedId}-label` : undefined
+  const descriptionId = hasDescription
+    ? `${generatedId}-description`
+    : undefined
   const describedBy =
     [descriptionId, inField && fieldTextId].filter(Boolean).join(' ') ||
     undefined
@@ -80,9 +85,9 @@ export function Checkbox({
     </CheckboxPrimitive.Root>
   )
 
-  const text = (label || description) && (
+  const text = (hasLabel || hasDescription) && (
     <span className='grid gap-0.5'>
-      {label && (
+      {hasLabel && (
         <span
           id={labelId}
           className={
@@ -94,7 +99,7 @@ export function Checkbox({
           {label}
         </span>
       )}
-      {description && (
+      {hasDescription && (
         <span id={descriptionId} className='text-sm text-subtle'>
           {description}
         </span>

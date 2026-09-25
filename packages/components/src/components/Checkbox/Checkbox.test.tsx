@@ -96,6 +96,20 @@ describe('Checkbox', () => {
     expect(getByRole('checkbox')).toHaveAttribute('aria-invalid', 'true')
   })
 
+  it('names and describes with a 0 label and description', () => {
+    const { getByRole } = render(<Checkbox label={0} description={0} />)
+    const checkbox = getByRole('checkbox', { name: '0' })
+    expect(checkbox).toHaveAccessibleDescription('0')
+  })
+
+  it('renders no text wrapper for empty label and description', () => {
+    const { container, getByRole } = render(
+      <Checkbox label='' description={false} />
+    )
+    expect(getByRole('checkbox')).not.toHaveAttribute('aria-describedby')
+    expect(container.querySelector('.grid')).toBeNull()
+  })
+
   describe('in a Field', () => {
     it('inherits invalid, required and disabled', () => {
       const { getByRole } = render(
