@@ -37,6 +37,17 @@ describe('Slider', () => {
     expect(screen.getByText('25')).toHaveAttribute('data-slot', 'slider-value')
   })
 
+  it('renders a label of 0', () => {
+    render(<Slider label={0} defaultValue={25} />)
+    expect(screen.getByRole('slider', { name: '0' })).toBeInTheDocument()
+  })
+
+  it('renders no label or value for an empty label', () => {
+    const { container } = render(<Slider label='' aria-label='Radius' />)
+    expect(container.querySelector('[data-slot="slider-label"]')).toBeNull()
+    expect(container.querySelector('[data-slot="slider-value"]')).toBeNull()
+  })
+
   it('formats the value in Australian English by default', () => {
     render(
       <Slider
@@ -189,6 +200,28 @@ describe('Field + Slider integration', () => {
     )
     const thumb = screen.getByRole('slider', { name: 'Search radius' })
     expect(thumb).toHaveAccessibleDescription('Events within this distance')
+  })
+
+  it('names itself from its own label of 0 inside Field', () => {
+    render(
+      <Field>
+        <Field.Label>Search radius</Field.Label>
+        <Slider label={0} defaultValue={25} />
+      </Field>
+    )
+    expect(screen.getByRole('slider', { name: '0' })).toBeInTheDocument()
+  })
+
+  it('falls back to Field.Label when its own label is empty', () => {
+    render(
+      <Field>
+        <Field.Label>Search radius</Field.Label>
+        <Slider label='' defaultValue={25} />
+      </Field>
+    )
+    expect(
+      screen.getByRole('slider', { name: 'Search radius' })
+    ).toBeInTheDocument()
   })
 
   it('inherits invalid and disabled from Field', () => {

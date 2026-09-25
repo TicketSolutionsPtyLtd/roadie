@@ -6,6 +6,7 @@ import { Slider as SliderPrimitive } from '@base-ui/react/slider'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isEmptyNode } from '../../utils/isEmptyNode'
 import { useFieldContext } from '../Field'
 import { SliderContext, type SliderSize } from './SliderContext'
 import { SliderControl } from './SliderControl'
@@ -53,6 +54,7 @@ export function SliderRoot<Value extends SliderValueType>({
 }: SliderRootProps<Value>) {
   const field = useFieldContext()
   const inField = !!field.fieldId
+  const hasLabel = !isEmptyNode(label)
   const resolvedInvalid = invalid ?? field.invalid
   const fieldTextId = resolvedInvalid ? field.errorTextId : field.helperTextId
   const thumbCount = countThumbs(props.value ?? props.defaultValue)
@@ -70,7 +72,7 @@ export function SliderRoot<Value extends SliderValueType>({
         data-slot='slider'
         data-invalid={resolvedInvalid ? '' : undefined}
         aria-labelledby={
-          ariaLabelledBy ?? (inField && !label ? field.labelId : undefined)
+          ariaLabelledBy ?? (inField && !hasLabel ? field.labelId : undefined)
         }
         disabled={disabled ?? field.disabled}
         orientation={direction}
@@ -84,7 +86,7 @@ export function SliderRoot<Value extends SliderValueType>({
       >
         {children ?? (
           <>
-            {label != null && (
+            {hasLabel && (
               <>
                 <SliderLabel>{label}</SliderLabel>
                 <SliderValue />
