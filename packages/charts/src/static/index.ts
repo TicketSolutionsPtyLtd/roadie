@@ -1,9 +1,9 @@
-import { createChartScene } from '@tanstack/charts'
 import { renderChartSvg as renderSceneSvg } from '@tanstack/charts/svg'
 
 import { DEFAULT_ACCENT_HUE, type Mode } from '@oztix/roadie-core/dataviz'
 
 import type { ChartLegendItem } from '../ChartLegend'
+import { DRAW_ERROR, draw } from '../plot/draw'
 import { textRoom } from '../plot/endLabels'
 import { LEGEND_ROOM, plotFrame, widthBand } from '../plot/frame'
 import { hexPaint } from '../plot/paint'
@@ -162,11 +162,9 @@ export function renderChartSvg<P>(
   const rows = items.length ? Math.max(...items.map((i) => i.row)) + 1 : 0
   const legendRoom = rows * LEGEND_ROOM
   const frame = plotFrame(height - legendRoom, band, undefined, width)
-  const scene = createChartScene(chart.build(props, paint, frame), {
-    width,
-    height: frame.height
-  })
-  const svg = renderSceneSvg(scene, {
+  const drawing = draw(chart, props, paint, frame)
+  if (!drawing) return emptySvg(DRAW_ERROR, options, fullFrame, paint)
+  const svg = renderSceneSvg(drawing.scene, {
     ariaLabel: chart.summary(props),
     idPrefix
   })

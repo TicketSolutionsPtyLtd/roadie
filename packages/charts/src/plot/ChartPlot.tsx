@@ -19,6 +19,7 @@ import { ChartCardContext } from '../Chart/context'
 import { ChartLegend } from '../ChartLegend'
 import { useChartPatterns } from '../ChartPatterns'
 import { ChartTooltip } from '../ChartTooltip'
+import { DRAW_ERROR, draw } from './draw'
 import {
   DEFAULT_PLOT_HEIGHT,
   INITIAL_WIDTH,
@@ -104,10 +105,12 @@ export function ChartPlot<P>({
     () => plotFrame(plotHeight, band, yDomain, width),
     [plotHeight, band, yDomain, width]
   )
-  const definition = useMemo(
-    () => chart.build(props, cssPaint, frame),
+  const drawing = useMemo(
+    () => draw(chart, props, cssPaint, frame),
     [chart, props, frame]
   )
+  const fail = drawing ? undefined : card?.fail
+  useEffect(() => fail?.(), [fail])
 
   const reporter = report ? card?.report : undefined
   useEffect(() => {
@@ -177,10 +180,13 @@ export function ChartPlot<P>({
     focusPoint(null)
   }
 
-  if (empty)
+  if (empty || !drawing)
     return (
-      <p data-slot='chart-empty' className='text-sm text-subtle'>
-        {empty}
+      <p
+        data-slot={empty ? 'chart-empty' : 'chart-error'}
+        className='text-sm text-subtle'
+      >
+        {empty ?? DRAW_ERROR}
       </p>
     )
 
@@ -213,7 +219,7 @@ export function ChartPlot<P>({
             'motion-safe:transition-opacity',
             !measured && 'opacity-0'
           )}
-          definition={definition}
+          definition={drawing.definition}
           height={fillsCard ? undefined : frame.height}
           style={fillsCard ? { height: '100%' } : undefined}
           initialWidth={INITIAL_WIDTH}

@@ -7,6 +7,7 @@ import { renderChartSvg } from '.'
 import { lineChart } from '../LineChart/definition'
 import { paceExample, salesByTypeExample } from '../LineChart/examples'
 import { gatesExample } from '../SmallMultiples/examples'
+import { brokenChart, testPoints } from '../plot/testChart'
 
 describe('renderChartSvg', () => {
   const svg = renderChartSvg(lineChart, paceExample, {
@@ -100,5 +101,17 @@ describe('the static entry', () => {
         width: 640
       })
     ).toMatch(/^<svg /)
+  })
+})
+
+describe('renderChartSvg when the chart cannot draw', () => {
+  it('returns an image that says so instead of throwing', () => {
+    const svg = renderChartSvg(
+      brokenChart,
+      { points: testPoints },
+      { mode: 'light', width: 640, height: 220 }
+    )
+    expect(svg).toContain('couldn&#39;t be drawn')
+    expect(svg).toContain('role="img"')
   })
 })

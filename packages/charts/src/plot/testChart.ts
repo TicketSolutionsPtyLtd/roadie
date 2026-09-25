@@ -1,4 +1,5 @@
-import { defineChart, lineY } from '@tanstack/charts'
+import { barX, defineChart, lineY } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts/scales/band'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 import { seriesMarkId } from './series'
@@ -53,3 +54,24 @@ export const testPoints: PlotDatum[] = [0, 1, 2, 3].flatMap((x) => [
   { x, y: x + 1, series: 'A', index: x * 2 },
   { x, y: x + 5, series: 'B', index: x * 2 + 1 }
 ])
+
+// Two bars at one place in one series, which the engine throws on at layout.
+export const brokenChart: ChartDefinition<TestProps> = {
+  ...testChart,
+  build: () =>
+    defineChart({
+      marks: [
+        barX(
+          [
+            { value: 1, name: 'A', series: 'S' },
+            { value: 2, name: 'A', series: 'S' }
+          ],
+          { id: 'series-1', x: 'value', y: 'name', z: 'series' }
+        )
+      ],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 2]) },
+        y: { scale: scaleBand<string>().domain(['A']) }
+      }
+    })
+}

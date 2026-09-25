@@ -9,6 +9,8 @@ export type ChartCardContextValue = {
   /** The smallest plot height for the card size. CSS grows wide plots from it. */
   plotHeight: number
   report: (report: ChartReport | null) => void
+  /** Puts the card in its error state when the chart inside can't draw. */
+  fail: () => void
 }
 
 export const PLOT_HEIGHTS: Record<CardSize, number> = {

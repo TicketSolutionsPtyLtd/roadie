@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { Chart } from '../Chart'
 import { CHART_TEXTURE_COUNT } from '../ChartPatterns'
 import { ChartPlot } from './ChartPlot'
-import { testChart, testPoints } from './testChart'
+import { brokenChart, testChart, testPoints } from './testChart'
 
 const textureCount = (slot: number) =>
   document.querySelectorAll(`[id$='texture-${slot}']`).length
@@ -85,5 +85,28 @@ describe('ChartPlot', () => {
     )
     for (let slot = 1; slot <= CHART_TEXTURE_COUNT; slot++)
       expect(textureCount(slot)).toBe(1)
+  })
+})
+
+describe('ChartPlot when the chart cannot draw', () => {
+  it('shows the error copy instead of throwing on the server', () => {
+    let html = ''
+    expect(() => {
+      html = renderToString(
+        <ChartPlot chart={brokenChart} props={{ points: testPoints }} />
+      )
+    }).not.toThrow()
+    expect(html).toContain('data-slot="chart-error"')
+  })
+
+  it('puts its card in the error state', () => {
+    render(
+      <Chart label='Tickets sold' source='Oztix sales.' size='md'>
+        <ChartPlot chart={brokenChart} props={{ points: testPoints }} />
+      </Chart>
+    )
+    const card = document.querySelector("[data-slot='data-card']")
+    expect(card).toHaveAttribute('data-state', 'error')
+    expect(card).toHaveTextContent("We couldn't load tickets sold")
   })
 })

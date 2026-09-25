@@ -2,7 +2,7 @@ import { useContext, useEffect } from 'react'
 
 import { render, screen } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { Chart } from '.'
 import { CHART_TEXTURE_COUNT } from '../ChartPatterns'
@@ -175,5 +175,30 @@ describe('Chart with a reporting plot', () => {
       </Chart>
     )
     expect(heights.at(-1)).toBe(160)
+  })
+})
+
+describe('Chart when its plot throws', () => {
+  function Broken(): never {
+    throw new Error('No scale range')
+  }
+
+  it('shows its own error state and leaves the page standing', () => {
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <>
+        <Chart label='Tickets sold' source='Oztix sales.' size='md'>
+          <Broken />
+        </Chart>
+        <p>Rest of the dashboard</p>
+      </>
+    )
+    quiet.mockRestore()
+    expect(document.querySelector("[data-slot='data-card']")).toHaveAttribute(
+      'data-state',
+      'error'
+    )
+    expect(screen.getByText(/We couldn't load tickets sold/)).toBeVisible()
+    expect(screen.getByText('Rest of the dashboard')).toBeInTheDocument()
   })
 })

@@ -1,6 +1,13 @@
 'use client'
 
-import { type ReactNode, useId, useMemo, useState } from 'react'
+import {
+  Component,
+  type ReactNode,
+  useCallback,
+  useId,
+  useMemo,
+  useState
+} from 'react'
 
 import { ChartLineIcon, TableIcon } from '@phosphor-icons/react'
 
@@ -50,6 +57,26 @@ export type ChartProps = Omit<
 
 const TAB = 'h-6 px-2'
 
+type PlotBoundaryProps = { onError: () => void; children: ReactNode }
+
+// A chart that throws while drawing puts its own card in the error state
+// instead of taking down the page around it.
+class PlotBoundary extends Component<PlotBoundaryProps, { failed: boolean }> {
+  state = { failed: false }
+
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+
+  componentDidCatch() {
+    this.props.onError()
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children
+  }
+}
+
 const EMPTY_TABLE: ChartTable = { columns: [], rows: [] }
 
 export function Chart({
@@ -61,15 +88,18 @@ export function Chart({
   className,
   label,
   bodyHeight,
+  state,
   ...props
 }: ChartProps) {
   const [report, setReport] = useState<ChartReport | null>(null)
+  const [failed, setFailed] = useState(false)
+  const fail = useCallback(() => setFailed(true), [])
   const { patterns, style: patternStyle } = useChartPatterns()
   const summaryId = useId()
   const plotHeight = PLOT_HEIGHTS[size ?? 'md']
   const context = useMemo(
-    () => ({ plotHeight, report: setReport }),
-    [plotHeight]
+    () => ({ plotHeight, report: setReport, fail }),
+    [plotHeight, fail]
   )
   const shownTable = table ?? report?.table ?? EMPTY_TABLE
   return (
@@ -87,6 +117,7 @@ export function Chart({
           label={label}
           size={size}
           bodyHeight={bodyHeight ?? 'var(--chart-plot-height)'}
+          state={failed ? 'error' : state}
           aria-describedby={report ? summaryId : undefined}
           actions={
             <Tabs.List aria-label={`${label} view`}>
@@ -126,7 +157,7 @@ export function Chart({
                 data-chart-view='chart'
               >
                 <div data-slot='chart-plot' className='w-full'>
-                  {children}
+                  <PlotBoundary onError={fail}>{children}</PlotBoundary>
                 </div>
               </Tabs.Panel>
               <Tabs.Panel
