@@ -13,7 +13,10 @@ export type Bar = {
 const addOrNull = (a: number | null, b: number | null) =>
   a === null ? b : b === null ? a : a + b
 
-/** One bar per x, in x order. Rows that share an x add up. */
+/**
+ * One bar per x, in x order. Rows that share an x add up their bars; the line
+ * keeps the first value it gets, because a rate can't be summed.
+ */
 export function toBars(props: BarChartProps): Bar[] {
   const isTime = isTimeField(props.data, props.x)
   const bars = new Map<number | string, Bar>()
@@ -32,7 +35,7 @@ export function toBars(props: BarChartProps): Bar[] {
         ? {
             ...seen,
             y: addOrNull(seen.y, y),
-            line: addOrNull(seen.line, line)
+            line: seen.line ?? line
           }
         : { key: String(raw), x, y, line, index }
     )

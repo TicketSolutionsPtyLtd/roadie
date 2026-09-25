@@ -49,6 +49,24 @@ describe('toBars', () => {
     ).toEqual([8])
   })
 
+  it('keeps the first line value for a repeated x, since a rate cannot add up', () => {
+    const bars = toBars({
+      data: [
+        { hour: '2026-11-14 18:00', scans: 40, inside: 0.2 },
+        { hour: '2026-11-14T18:00', scans: 60, inside: 0.5 },
+        { hour: '2026-11-14 19:00', scans: 10, inside: null },
+        { hour: '2026-11-14 19:00', scans: 5, inside: 0.6 }
+      ],
+      x: 'hour',
+      y: 'scans',
+      line: { y: 'inside', label: 'Inside', format: 'percent' }
+    })
+    expect(bars.map((b) => [b.y, b.line])).toEqual([
+      [100, 0.2],
+      [15, 0.6]
+    ])
+  })
+
   it('carries the line measure', () => {
     expect(
       toBars(scanRateExample).every((b) => typeof b.line === 'number')

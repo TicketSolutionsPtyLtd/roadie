@@ -690,6 +690,26 @@ describe('validateDashboard checks repeated names', () => {
     })
   })
 
+  it('warns that a repeated bar key keeps its first line value', () => {
+    expect(
+      problemsOf({
+        kind: 'bar',
+        data: [
+          { hour: '2026-11-14 18:00', scans: 40, inside: 0.2 },
+          { hour: '2026-11-14T18:00', scans: 60, inside: 0.5 }
+        ],
+        x: 'hour',
+        y: 'scans',
+        line: { y: 'inside', label: 'Inside', format: 'percent' }
+      })
+    ).toContainEqual({
+      path: 'sections[0].cards[0].plot.x',
+      message:
+        '"2026-11-14 18:00" appears more than once. Its bars will add up and its line keeps the first value',
+      severity: 'warning'
+    })
+  })
+
   it('warns on repeated bar keys within a small multiples panel only', () => {
     const plot = (gates: string[]) => ({
       kind: 'small-multiples',

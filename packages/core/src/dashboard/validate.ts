@@ -214,15 +214,19 @@ function repeatedX(data: readonly PlotRow[], field: string) {
   return repeats(keys).map((key) => firstOf.get(key)!)
 }
 
-const addsUp = (path: string, repeated: readonly string[]) =>
+const addsUp = (
+  path: string,
+  repeated: readonly string[],
+  outcome = 'Its rows will add up'
+) =>
   repeated.length
-    ? [
-        warning(
-          path,
-          `${quoted(repeated)} appears more than once. Its rows will add up`
-        )
-      ]
+    ? [warning(path, `${quoted(repeated)} appears more than once. ${outcome}`)]
     : []
+
+const barOutcome = (plot: { line?: unknown }) =>
+  plot.line
+    ? 'Its bars will add up and its line keeps the first value'
+    : undefined
 
 const quoted = (names: readonly string[]) =>
   names.map((name) => `"${name}"`).join(', ')
@@ -241,8 +245,13 @@ function duplicateProblems(plot: ChartPlot, plotPath: string) {
         : []
     }
     case 'ranked-bars':
-    case 'bar':
       return addsUp(`${plotPath}.x`, repeatedX(plot.data, plot.x))
+    case 'bar':
+      return addsUp(
+        `${plotPath}.x`,
+        repeatedX(plot.data, plot.x),
+        barOutcome(plot)
+      )
     case 'small-multiples': {
       if (plot.chart.kind !== 'bar') return []
       const { x } = plot.chart
@@ -254,7 +263,8 @@ function duplicateProblems(plot: ChartPlot, plotPath: string) {
             plot.data.filter((row) => row[plot.by] === panel),
             x
           )
-        )
+        ),
+        barOutcome(plot.chart)
       )
     }
     case 'heatmap': {
