@@ -1,5 +1,6 @@
 import { cleanup } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { commands } from 'vitest/browser'
 
 import { LineChart } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
@@ -51,6 +52,19 @@ describe('LineChart in a card', () => {
     expect(container.querySelector('[data-ts-key^="label-end"]')).toBeNull()
   })
 
+  it('names the pace reading aids in a legend on a phone', async () => {
+    const { container } = renderInCard(<LineChart {...paceExample} />, {
+      width: 320
+    })
+    await expect
+      .poll(() => container.querySelector('[data-slot=chart-legend]'))
+      .not.toBeNull()
+    expect(
+      container.querySelector('[data-slot=chart-legend]')!.textContent
+    ).toContain('Similar shows median')
+    expect(container.querySelector('[data-ts-key^="label-end"]')).toBeNull()
+  })
+
   it('reaches every day by keyboard and says each in words', async () => {
     const { container } = renderInCard(<LineChart {...paceExample} />, {
       size: 'full',
@@ -85,5 +99,32 @@ describe('LineChart in a card', () => {
       width: 800
     })
     expect(container.querySelector('[data-ts-key^="series-2:"]')).not.toBeNull()
+  })
+})
+
+describe('LineChart legend in print', () => {
+  it('dashes each legend line like its series', async () => {
+    const { container } = renderInCard(<LineChart {...salesByTypeExample} />, {
+      width: 320
+    })
+    await expect
+      .poll(() => container.querySelector('[data-slot=chart-legend]'))
+      .not.toBeNull()
+    await commands.printMedia(true)
+    try {
+      for (const slot of [2, 3]) {
+        const line = container.querySelector(
+          `.ts-chart__line[data-ts-key^='series-${slot}'] path`
+        )!
+        const key = container.querySelector(
+          `[data-slot=chart-legend] line[data-chart-dash='${slot}']`
+        )!
+        const dash = getComputedStyle(line).strokeDasharray
+        expect(dash).not.toBe('none')
+        expect(getComputedStyle(key).strokeDasharray).toBe(dash)
+      }
+    } finally {
+      await commands.printMedia(false)
+    }
   })
 })

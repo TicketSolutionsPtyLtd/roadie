@@ -218,6 +218,20 @@ describe('lineChart', () => {
     ).toEqual(['GA', 'VIP', 'Early bird'])
   })
 
+  it('names a lone series and its reading aids when end labels do not fit', () => {
+    expect(
+      lineChart
+        .legend(paceExample, paint, plotFrame(160, 'narrow'))
+        .map((i) => [i.label, i.shape])
+    ).toEqual([
+      ['Sold', 'line'],
+      ['Forecast', 'dot'],
+      ['Similar shows', 'band'],
+      ['Similar shows median', 'dash'],
+      ['Target 85%', 'line']
+    ])
+  })
+
   it('dots a plain series forecast in its own colour', () => {
     const svg = svgOf(plainForecast)
     const stroke = strokeOf(svg, 'series-1')

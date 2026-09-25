@@ -70,6 +70,19 @@ describe('renderChartSvg', () => {
     expect(wide).not.toContain('data-slot="chart-legend"')
   })
 
+  it('names a lone series and its reading aids on a phone', () => {
+    const narrow = renderChartSvg(lineChart, paceExample, {
+      mode: 'light',
+      width: 360,
+      height: 260
+    })
+    expect(narrow).not.toContain('data-ts-key="label-end')
+    const legend = /<g data-slot="chart-legend"[^>]*>(.*?)<\/g>/.exec(narrow)
+    expect(legend?.[1]).toMatch(
+      />Sold<.*>Forecast<.*>Similar shows<.*>Similar shows median<.*>Target 85%</
+    )
+  })
+
   it('draws a legend row when end labels do not fit', () => {
     const narrow = renderChartSvg(lineChart, salesByTypeExample, {
       mode: 'light',

@@ -4,6 +4,7 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 import { formatValue } from '@oztix/roadie-core/dataviz'
 
+import type { ChartLegendItem } from '../ChartLegend'
 import {
   type LinePoint,
   type RangePoint,
@@ -246,6 +247,52 @@ function todayPoint(
       }
 }
 
+// Without end labels, the legend names every reading aid the plot draws.
+function aidKeys(
+  props: LineChartProps,
+  points: readonly PlotDatum[],
+  series: readonly SeriesStyle[],
+  paint: ChartPaint
+): ChartLegendItem[] {
+  const band = props.band
+  const bandLabel = band?.label ?? TYPICAL_RANGE
+  const forecastOwner = series.find((s) =>
+    points.some((p) => p.series === s.name && isForecast(props, p.x))
+  )
+  return [
+    ...(forecastOwner
+      ? [
+          {
+            label: FORECAST_LABEL,
+            shape: 'dot' as const,
+            color: forecastOwner.color
+          }
+        ]
+      : []),
+    ...(band
+      ? [{ label: bandLabel, shape: 'band' as const, color: paint.band }]
+      : []),
+    ...(band?.median
+      ? [
+          {
+            label: `${bandLabel} median`,
+            shape: 'dash' as const,
+            color: paint.median
+          }
+        ]
+      : []),
+    ...(props.target === undefined
+      ? []
+      : [
+          {
+            label: `Target ${labelFormat(props.format, props.target)}`,
+            shape: 'line' as const,
+            color: paint.value
+          }
+        ])
+  ]
+}
+
 function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
   const isTime = isTimeField(props.data, props.x)
   const points = toLinePoints(props)
@@ -361,13 +408,18 @@ export const lineChart: ChartDefinition<LineChartProps> = {
   emptyMessage: (props) =>
     hasEnoughPoints(toLinePoints(props)) ? undefined : EMPTY,
   legend(props, paint, frame) {
-    const series = styles(props, toLinePoints(props), paint)
-    if (series.length < 2 || endLabelsFit(series.length, frame)) return []
-    return series.map((s) => ({
-      label: s.name,
-      shape: 'line' as const,
-      color: s.color
-    }))
+    const points = toLinePoints(props)
+    const series = styles(props, points, paint)
+    if (endLabelsFit(series.length, frame)) return []
+    return [
+      ...series.map((s) => ({
+        label: s.name,
+        shape: 'line' as const,
+        color: s.color,
+        slot: s.slot
+      })),
+      ...aidKeys(props, points, series, paint)
+    ]
   },
   describe(datum, props) {
     const isTime = isTimeField(props.data, props.x)

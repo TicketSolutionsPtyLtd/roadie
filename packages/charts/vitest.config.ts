@@ -20,6 +20,9 @@ const forcedColors: BrowserCommand<[active: boolean]> = ({ page }, active) =>
 const reducedMotion: BrowserCommand<[active: boolean]> = ({ page }, active) =>
   page.emulateMedia({ reducedMotion: active ? 'reduce' : 'no-preference' })
 
+const printMedia: BrowserCommand<[active: boolean]> = ({ page }, active) =>
+  page.emulateMedia({ media: active ? 'print' : 'screen' })
+
 export default defineConfig({
   plugins: [react(), babel({ presets: [reactCompilerPreset] })],
   resolve: {
@@ -66,7 +69,7 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             viewport: { width: 1920, height: 1080 },
-            commands: { forcedColors, reducedMotion },
+            commands: { forcedColors, printMedia, reducedMotion },
             instances: browsers.map((browser) => ({ browser }))
           }
         }

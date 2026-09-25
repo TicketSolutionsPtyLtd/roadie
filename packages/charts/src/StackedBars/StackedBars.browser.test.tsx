@@ -150,3 +150,24 @@ describe('StackedBars under forced colours', () => {
     }
   })
 })
+
+describe('StackedBars legend in print', () => {
+  it('keys each segment with the texture its bars take', async () => {
+    const { container } = renderInCard(<StackedBars {...ticketMixExample} />)
+    const swatch = (slot: number) =>
+      container.querySelector<SVGRectElement>(
+        `[data-slot=chart-legend] rect[data-chart-texture='${slot}']`
+      )!
+    await commands.printMedia(true)
+    try {
+      expect(matchMedia('print').matches).toBe(true)
+      for (const slot of [1, 2, 3]) {
+        const bars = getComputedStyle(segmentRect(container, slot)).fill
+        expect(bars).toMatch(new RegExp(`texture-${slot}`))
+        expect(getComputedStyle(swatch(slot)).fill).toBe(bars)
+      }
+    } finally {
+      await commands.printMedia(false)
+    }
+  })
+})

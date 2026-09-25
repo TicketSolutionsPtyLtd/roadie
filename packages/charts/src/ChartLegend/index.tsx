@@ -3,8 +3,17 @@ import type { ComponentProps } from 'react'
 import type { LegendItem } from '@oztix/roadie-core/dashboard'
 import { cn } from '@oztix/roadie-core/utils'
 
-export type ChartLegendItem = LegendItem
+export type ChartLegendItem = LegendItem & {
+  /**
+   * The series slot of the marks this key names, 0 for Other. Under forced
+   * colours and print, a swatch takes the same texture and a line the same
+   * dash as those marks.
+   */
+  slot?: number
+}
 export type ChartLegendShape = NonNullable<LegendItem['shape']>
+
+const OTHER_TEXTURE = 8
 export type ChartLegendProps = Omit<ComponentProps<'ul'>, 'children'> & {
   items: readonly ChartLegendItem[]
 }
@@ -13,10 +22,12 @@ const DEFAULT_COLOR = 'var(--chart-highlight)'
 
 export function LegendKey({
   shape = 'swatch',
-  color = DEFAULT_COLOR
+  color = DEFAULT_COLOR,
+  slot
 }: {
   shape?: ChartLegendShape
   color?: string
+  slot?: number
 }) {
   return (
     <svg
@@ -26,7 +37,15 @@ export function LegendKey({
       aria-hidden
     >
       {shape === 'swatch' && (
-        <rect x={4} y={0} width={8} height={8} rx={2} fill={color} />
+        <rect
+          x={4}
+          y={0}
+          width={8}
+          height={8}
+          rx={2}
+          fill={color}
+          data-chart-texture={slot === 0 ? OTHER_TEXTURE : slot}
+        />
       )}
       {shape === 'band' && (
         <rect x={0} y={1} width={16} height={6} rx={2} fill={color} />
@@ -40,6 +59,7 @@ export function LegendKey({
           stroke={color}
           strokeWidth={2}
           strokeLinecap='round'
+          data-chart-dash={slot}
         />
       )}
       {shape === 'dash' && (
@@ -81,7 +101,7 @@ export function ChartLegend({ items, className, ...props }: ChartLegendProps) {
     >
       {items.map((item) => (
         <li key={item.label} className='inline-flex items-center gap-1.5'>
-          <LegendKey shape={item.shape} color={item.color} />
+          <LegendKey shape={item.shape} color={item.color} slot={item.slot} />
           {item.label}
         </li>
       ))}

@@ -26,3 +26,24 @@ describe('ChartLegend', () => {
     )
   })
 })
+
+describe('ChartLegend keys for forced colours and print', () => {
+  it('marks swatches with their texture and lines with their dash', () => {
+    const { container } = render(
+      <ChartLegend
+        items={[
+          { label: 'GA', shape: 'swatch', slot: 1 },
+          { label: 'Other', shape: 'swatch', slot: 0 },
+          { label: 'VIP', shape: 'line', slot: 2 }
+        ]}
+      />
+    )
+    const [ga, other] = container.querySelectorAll('rect')
+    expect(ga).toHaveAttribute('data-chart-texture', '1')
+    expect(other).toHaveAttribute('data-chart-texture', '8')
+    expect(container.querySelector('line')).toHaveAttribute(
+      'data-chart-dash',
+      '2'
+    )
+  })
+})

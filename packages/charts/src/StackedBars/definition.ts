@@ -156,7 +156,8 @@ export const stackedBars: ChartDefinition<StackedBarsProps> = {
     styles(props, paint).map((s) => ({
       label: s.name,
       shape: 'swatch' as const,
-      color: s.color
+      color: s.color,
+      slot: s.slot
     })),
   describe(datum, props) {
     const segment = stackSegments(props).find(
