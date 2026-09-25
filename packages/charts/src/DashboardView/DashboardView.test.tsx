@@ -1,9 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { DashboardView } from '.'
 import { checkoutExample } from '../Funnel/examples'
+import { lineChart } from '../LineChart/definition'
 import { paceExample, salesByTypeExample } from '../LineChart/examples'
 import {
   createAudienceDashboard,
@@ -101,6 +102,43 @@ describe('DashboardView with a line plot', () => {
     const html = renderToString(<DashboardView spec={lineDashboard} />)
     expect(html).toContain('Similar shows range')
     expect(html).toContain('var(--chart-highlight)')
+  })
+})
+
+describe('DashboardView when a plot fails to draw', () => {
+  it('recovers once the spec brings data that draws', () => {
+    const build = lineChart.build
+    const spy = vi
+      .spyOn(lineChart, 'build')
+      .mockImplementation((props, paint, frame) => {
+        if (props.takeaway === 'Broken') throw new Error('No scale range')
+        return build(props, paint, frame)
+      })
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const withTakeaway = (takeaway: string) => ({
+      ...lineDashboard,
+      sections: [
+        {
+          ...lineDashboard.sections[0]!,
+          cards: [
+            {
+              ...lineDashboard.sections[0]!.cards[0]!,
+              plot: { ...lineDashboard.sections[0]!.cards[0]!.plot, takeaway }
+            }
+          ]
+        }
+      ]
+    })
+    const card = () => document.querySelector("[data-slot='data-card']")
+    const { rerender } = render(<DashboardView spec={withTakeaway('Broken')} />)
+    expect(card()).toHaveAttribute('data-state', 'error')
+    rerender(<DashboardView spec={withTakeaway('Tracking ahead')} />)
+    quiet.mockRestore()
+    spy.mockRestore()
+    expect(card()).not.toHaveAttribute('data-state', 'error')
+    expect(
+      screen.getByRole('img', { name: 'Tracking ahead' })
+    ).toBeInTheDocument()
   })
 })
 

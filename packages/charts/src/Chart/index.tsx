@@ -58,11 +58,21 @@ export type ChartProps = Omit<
 const TAB = 'h-6 px-2'
 
 type PlotBoundaryProps = { onError: () => void; children: ReactNode }
+type PlotBoundaryState = { failed: boolean; children?: ReactNode }
 
 // A chart that throws while drawing puts its own card in the error state
-// instead of taking down the page around it.
-class PlotBoundary extends Component<PlotBoundaryProps, { failed: boolean }> {
-  state = { failed: false }
+// instead of taking down the page around it, and tries again on a new plot.
+class PlotBoundary extends Component<PlotBoundaryProps, PlotBoundaryState> {
+  state: PlotBoundaryState = { failed: false }
+
+  static getDerivedStateFromProps(
+    props: PlotBoundaryProps,
+    state: PlotBoundaryState
+  ) {
+    return props.children === state.children
+      ? null
+      : { failed: false, children: props.children }
+  }
 
   static getDerivedStateFromError() {
     return { failed: true }
@@ -92,8 +102,10 @@ export function Chart({
   ...props
 }: ChartProps) {
   const [report, setReport] = useState<ChartReport | null>(null)
-  const [failed, setFailed] = useState(false)
-  const fail = useCallback(() => setFailed(true), [])
+  // The failure belongs to the plot that caused it, so new children retry.
+  const [failedOn, setFailedOn] = useState<ReactNode>(null)
+  const failed = failedOn !== null && failedOn === children
+  const fail = useCallback(() => setFailedOn(children), [children])
   const { patterns, style: patternStyle } = useChartPatterns()
   const summaryId = useId()
   const plotHeight = PLOT_HEIGHTS[size ?? 'md']

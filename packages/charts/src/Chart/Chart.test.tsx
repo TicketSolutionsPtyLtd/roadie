@@ -201,4 +201,29 @@ describe('Chart when its plot throws', () => {
     expect(screen.getByText(/We couldn't load tickets sold/)).toBeVisible()
     expect(screen.getByText('Rest of the dashboard')).toBeInTheDocument()
   })
+
+  it('draws again once the plot it failed on changes', () => {
+    function Plot({ broken }: { broken: boolean }) {
+      if (broken) throw new Error('No scale range')
+      return <p>Drawn</p>
+    }
+    const card = (broken: boolean) => (
+      <Chart label='Tickets sold' source='Oztix sales.' size='md'>
+        <Plot broken={broken} />
+      </Chart>
+    )
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { rerender } = render(card(true))
+    rerender(card(true))
+    quiet.mockRestore()
+    expect(document.querySelector("[data-slot='data-card']")).toHaveAttribute(
+      'data-state',
+      'error'
+    )
+    rerender(card(false))
+    expect(
+      document.querySelector("[data-slot='data-card']")
+    ).not.toHaveAttribute('data-state', 'error')
+    expect(screen.getByText('Drawn')).toBeInTheDocument()
+  })
 })

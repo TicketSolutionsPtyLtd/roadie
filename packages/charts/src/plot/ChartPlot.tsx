@@ -5,6 +5,7 @@ import {
   type KeyboardEvent,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState
@@ -112,7 +113,7 @@ export function ChartPlot<P>({
     [chart, props, frame]
   )
   const fail = drawing ? undefined : card?.fail
-  useEffect(() => fail?.(), [fail])
+  useLayoutEffect(() => fail?.(), [fail])
 
   const reporter = report ? card?.report : undefined
   useEffect(() => {
