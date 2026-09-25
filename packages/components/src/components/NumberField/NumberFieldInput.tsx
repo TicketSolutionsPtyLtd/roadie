@@ -42,7 +42,9 @@ export function NumberFieldInput({
     locale,
     format,
     editable = true,
-    stepCount = 0
+    stepCount = 0,
+    pointerFocus,
+    setPointerFocus
   } = use(NumberFieldContext)
   const { errorTextId, helperTextId } = useFieldContext()
   const [editingSince, setEditingSince] = useState<number | null>(null)
@@ -81,25 +83,30 @@ export function NumberFieldInput({
           chip
             ? 'is-interactive-field rounded-md border border-transparent bg-subtle transition-[color,background-color,border-color,box-shadow,outline-width,outline-color] duration-150'
             : 'bg-transparent transition-colors duration-150 outline-none',
-          !editable && 'cursor-default caret-transparent select-none',
+          !editable &&
+            'cursor-default caret-transparent select-none selection:bg-transparent',
           // Only the text hides, so a background on the input still shows.
           !showsText && 'text-transparent',
           className
         )}
         data-editing={editing || undefined}
+        data-pointer-focus={pointerFocus || undefined}
         readOnly={!editable || undefined}
         aria-invalid={invalid || undefined}
         aria-describedby={(invalid ? errorTextId : helperTextId) || undefined}
         onPointerDown={(event) => {
+          setPointerFocus?.(false)
           setEditingSince(stepCount)
           onPointerDown?.(event)
         }}
         onKeyDown={(event) => {
+          setPointerFocus?.(false)
           if (event.key === 'Escape') setEditingSince(null)
           else if (editsText(event)) setEditingSince(stepCount)
           onKeyDown?.(event)
         }}
         onBlur={(event) => {
+          setPointerFocus?.(false)
           setEditingSince(null)
           onBlur?.(event)
         }}

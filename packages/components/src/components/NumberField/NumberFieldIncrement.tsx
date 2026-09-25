@@ -31,6 +31,7 @@ export function NumberFieldIncrement({
   children,
   emphasis,
   intent,
+  onPointerDown,
   ...props
 }: NumberFieldIncrementProps) {
   const context = use(NumberFieldContext)
@@ -47,6 +48,12 @@ export function NumberFieldIncrement({
         }),
         className
       )}
+      onPointerDown={(event) => {
+        // Base UI moves focus to the input on a mouse press so the arrow keys
+        // keep working. That focus isn't the person's, so it shows no ring.
+        if (event.pointerType === 'mouse') context.setPointerFocus?.(true)
+        onPointerDown?.(event)
+      }}
       {...props}
     >
       {children ?? (

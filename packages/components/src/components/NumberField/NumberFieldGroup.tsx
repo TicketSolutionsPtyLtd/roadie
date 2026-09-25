@@ -35,6 +35,8 @@ export function NumberFieldGroup({
         }),
         className
       )}
+      data-emphasis={emphasis ?? context.emphasis ?? 'normal'}
+      data-editable={context.editable === false ? 'false' : undefined}
       aria-invalid={context.invalid || undefined}
       {...props}
     />

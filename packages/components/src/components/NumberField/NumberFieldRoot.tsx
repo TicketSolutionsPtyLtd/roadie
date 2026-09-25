@@ -76,6 +76,7 @@ export function NumberFieldRoot({
     defaultValue ?? null
   )
   const [stepCount, setStepCount] = useState(0)
+  const [pointerFocus, setPointerFocus] = useState(false)
   const currentValue = value !== undefined ? value : uncontrolledValue
   // Without children the root renders the input itself, so a label meant for
   // the field has to land on the input rather than the wrapping div.
@@ -97,6 +98,8 @@ export function NumberFieldRoot({
         removable,
         editable,
         stepCount,
+        pointerFocus,
+        setPointerFocus,
         locale,
         format
       }}

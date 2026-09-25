@@ -16,7 +16,7 @@ export const numberFieldGroupVariants = cva(
         normal: 'emphasis-field is-interactive-field-group',
         subtle:
           'bg-subtle text-normal border border-transparent is-interactive-field-group',
-        subtler: 'gap-2'
+        subtler: 'gap-2 rounded-full'
       },
       size: {
         sm: 'h-8',

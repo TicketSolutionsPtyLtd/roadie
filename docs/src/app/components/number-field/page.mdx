@@ -314,6 +314,7 @@ The digits roll to each new value with [NumberFlow](https://number-flow.barvian.
 - The input is a text box with `aria-roledescription='Number field'`. Name it with `Field.Label`, a `<label>`, `aria-label` or `aria-labelledby`. Without children, `aria-label` and `aria-labelledby` on the root go to the input.
 - Arrow Up and Arrow Down step by `step`. Shift steps by `largeStep` (10), Alt by `smallStep` (0.1). Home and End jump to `min` and `max`.
 - The buttons are named Increase and Decrease and stay out of the tab order, since the arrow keys do the same job. Touch screen readers can still reach them.
+- The input is the stepper's one tab stop, and keyboard focus shows one ring: on the value chip, on the whole stepper at `subtler` with `editable={false}`, or on the field box. A mouse press on a button moves focus to the input so the arrow keys keep working, but shows no ring until the person types or uses the keyboard.
 - Pressing and holding a button keeps stepping.
 - With `removable`, the decrease button is named Remove when the next step reaches `min`, so screen readers announce what it does.
 - The input is the only control for the value. The animated number beside it is `aria-hidden`, and the animation respects `prefers-reduced-motion`.

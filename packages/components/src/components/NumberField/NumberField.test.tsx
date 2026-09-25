@@ -356,6 +356,64 @@ describe('NumberField', () => {
     })
   })
 
+  describe('focus', () => {
+    it('keeps the buttons out of the tab order so the input is the one stop', () => {
+      render(<NumberField aria-label='Tickets' defaultValue={1} />)
+      for (const button of screen.getAllByRole('button')) {
+        expect(button).toHaveAttribute('tabindex', '-1')
+      }
+    })
+
+    it('marks focus from a mouse press on a button so it shows no ring', async () => {
+      const user = userEvent.setup()
+      render(<NumberField aria-label='Tickets' defaultValue={1} />)
+      const input = screen.getByRole('textbox')
+      await user.click(screen.getByRole('button', { name: 'Increase' }))
+      expect(input).toHaveFocus()
+      expect(input).toHaveAttribute('data-pointer-focus')
+
+      await user.keyboard('{ArrowUp}')
+      expect(input).toHaveValue('3')
+      expect(input).not.toHaveAttribute('data-pointer-focus')
+    })
+
+    it('shows the ring again after the input is left', async () => {
+      const user = userEvent.setup()
+      render(
+        <>
+          <button type='button'>Before</button>
+          <NumberField aria-label='Tickets' defaultValue={1} />
+        </>
+      )
+      const input = screen.getByRole('textbox')
+      await user.click(screen.getByRole('button', { name: 'Increase' }))
+      await user.click(screen.getByRole('button', { name: 'Before' }))
+      await user.tab()
+      expect(input).toHaveFocus()
+      expect(input).not.toHaveAttribute('data-pointer-focus')
+    })
+
+    it('never marks a touch press', () => {
+      render(<NumberField aria-label='Tickets' defaultValue={1} />)
+      fireEvent.pointerDown(screen.getByRole('button', { name: 'Increase' }), {
+        pointerType: 'touch'
+      })
+      expect(screen.getByRole('textbox')).not.toHaveAttribute(
+        'data-pointer-focus'
+      )
+    })
+
+    it('tells the stylesheet when a bare stepper has no chip', () => {
+      const { container } = render(
+        <NumberField aria-label='Tickets' emphasis='subtler' editable={false} />
+      )
+      const group = container.querySelector('[data-slot="number-field-group"]')
+      expect(group).toHaveAttribute('data-emphasis', 'subtler')
+      expect(group).toHaveAttribute('data-editable', 'false')
+      expect(group).toHaveClass('rounded-full')
+    })
+  })
+
   describe('editable', () => {
     it('blocks typing but keeps the buttons and keys working', async () => {
       const user = userEvent.setup()
