@@ -5,8 +5,7 @@ import { type RefAttributes, use } from 'react'
 import { Avatar as AvatarPrimitive } from '@base-ui/react/avatar'
 import { UserIcon } from '@phosphor-icons/react/ssr'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import type { RoadieIntent } from '../../variants'
 import { AvatarFallback } from './AvatarFallback'
 import { AvatarGroupContext } from './AvatarGroupContext'
@@ -48,7 +47,7 @@ export function AvatarRoot({
   return (
     <AvatarPrimitive.Root
       data-slot='avatar'
-      className={cn(
+      className={mergeClassName(
         avatarVariants({
           intent,
           size: size ?? group.size,

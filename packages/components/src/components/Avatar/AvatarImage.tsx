@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Avatar as AvatarPrimitive } from '@base-ui/react/avatar'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { avatarImageClass } from './variants'
 
 export type AvatarImageProps = AvatarPrimitive.Image.Props &
@@ -24,7 +23,7 @@ export function AvatarImage({
     <AvatarPrimitive.Image
       data-slot='avatar-image'
       keepMounted={keepMounted}
-      className={cn(avatarImageClass, className)}
+      className={mergeClassName(avatarImageClass, className)}
       {...props}
     />
   )

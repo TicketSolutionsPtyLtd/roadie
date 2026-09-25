@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { Avatar, getInitials } from '.'
 import { Image } from '../Image'
@@ -14,9 +14,22 @@ describe('getInitials', () => {
     ['Mia', 'M'],
     ['', ''],
     ['Élodie Ōkubo', 'ÉŌ'],
-    ['😀 Smile', '😀S']
+    ['😀 Smile', '😀S'],
+    ['👩🏽‍💻 Ada', '👩🏽‍💻A'],
+    ['👍🏾 Leo', '👍🏾L'],
+    ['E\u0301mile Zola', 'E\u0301Z'],
+    ['ilkay İnan', 'Iİ']
   ])('%j → %j', (name, initials) => {
     expect(getInitials(name)).toBe(initials)
+  })
+
+  it('falls back to code points without Intl.Segmenter', async () => {
+    vi.stubGlobal('Intl', {})
+    vi.resetModules()
+    const { getInitials: fallback } = await import('./getInitials')
+    expect(fallback('Mia Tran')).toBe('MT')
+    expect(fallback('😀 Smile')).toBe('😀S')
+    vi.unstubAllGlobals()
   })
 })
 
@@ -115,6 +128,29 @@ describe('Avatar', () => {
     expect(slot('avatar')).toHaveClass('size-12')
     expect(slot('avatar-image')).toHaveClass('object-cover')
     expect(slot('avatar-fallback')).toHaveTextContent('MT')
+  })
+
+  it('passes state callback class names through to every part', () => {
+    render(
+      <Avatar className={(state) => `root-${state.imageLoadingStatus}`}>
+        <Avatar.Image
+          src='/mia.jpg'
+          alt='Mia Tran'
+          className={(state) => `image-${state.imageLoadingStatus}`}
+        />
+        <Avatar.Fallback
+          className={(state) => `fallback-${state.imageLoadingStatus}`}
+        >
+          MT
+        </Avatar.Fallback>
+      </Avatar>
+    )
+    expect(slot('avatar')).toHaveClass('size-10', 'root-loading')
+    expect(slot('avatar-image')).toHaveClass('object-cover', 'image-loading')
+    expect(slot('avatar-fallback')).toHaveClass(
+      'border-subtle',
+      'fallback-loading'
+    )
   })
 
   it('renders through Roadie Image and still falls back on error', () => {
