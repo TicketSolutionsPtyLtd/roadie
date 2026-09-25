@@ -84,7 +84,9 @@ jobs:
         run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
 
       - name: Browser tests
-        run: pnpm turbo test:browser --affected --framework-inference=false
+        # One package at a time: concurrent suites fight for the runner's CPU
+        # and push layout-heavy tests past their timeout.
+        run: pnpm turbo test:browser --affected --framework-inference=false --concurrency=1
         env:
           ROADIE_BROWSERS: ${{ matrix.browser }}
           TURBO_SCM_BASE: origin/main
