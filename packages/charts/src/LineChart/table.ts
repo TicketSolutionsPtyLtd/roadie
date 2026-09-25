@@ -9,7 +9,7 @@ import type { ChartTable } from '../Chart'
 import { valueColumn, xCell, xColumn } from '../plot/table'
 import { isTimeField, parseX } from '../plot/time'
 import { finiteOrNull, fullFormat } from '../plot/values'
-import { isForecast, seriesLabel, toLinePoints } from './points'
+import { isForecast, linePoints, seriesLabel } from './points'
 import type { LineChartProps } from './types'
 
 const FORECAST = 'Forecast'
@@ -25,7 +25,8 @@ function rangeText(low: PlotCell, high: PlotCell, format?: ValueFormat) {
 
 export function lineChartTable(props: LineChartProps): ChartTable {
   const isTime = isTimeField(props.data, props.x)
-  const points = toLinePoints(props)
+  // Every series keeps its own column, including those the plot rolls into Other.
+  const points = linePoints(props)
   const series = [...new Set(points.map((p) => p.series))]
   const keyOf = (name: string) => (props.series ? name : props.y)
   const forecastHeader = (name: string) =>

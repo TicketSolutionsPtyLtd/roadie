@@ -135,7 +135,7 @@ Name the series that tells the story. It draws in the highlight at 2px and the r
 - Send dates as ISO strings in the venue's wall time. A time zone offset is ignored, so 7:30pm at the venue stays 7:30pm for every reader.
 - A `null` value breaks the line, so a day with no data never reads as a trend. Send `null` for that day rather than leaving it out.
 - Forecasts are always dotted, so they never read as actual sales.
-- Past 6 series, the smallest roll into Other. Past 10,000, axes and labels switch to compact numbers. The tooltip and table keep full values.
+- Past 6 series, the smallest roll into Other, and the table keeps a column for every series. Past 10,000, axes and labels switch to compact numbers. The tooltip and table keep full values.
 - There are no colour props. Use `highlight` for the story and `palette` for the set.
 
 ## Accessibility

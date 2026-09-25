@@ -9,11 +9,11 @@ import type { StackedBarsProps } from './types'
 const TOTAL = 'Total'
 
 export function stackedBarsTable(props: StackedBarsProps): ChartTable {
-  const segments = stackSegments(props)
+  const segments = stackSegments(props, false)
   const share = props.mode === 'share'
   const columns = [
     xColumn(props.x),
-    ...segmentNames(props).map((name) =>
+    ...segmentNames(props, false).map((name) =>
       valueColumn(name, name, share ? 'percent' : props.format)
     ),
     valueColumn(TOTAL, TOTAL, props.format)

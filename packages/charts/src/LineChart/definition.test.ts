@@ -404,3 +404,17 @@ describe('lineChartTable', () => {
     ).toEqual(['Day', 'GA', 'VIP', 'Early bird'])
   })
 })
+
+describe('lineChartTable with more series than the plot shows', () => {
+  it('keeps a column for every series the plot rolls into Other', () => {
+    const data = Array.from({ length: 9 }, (_, s) =>
+      days([s, s + 1]).map((r) => ({ ...r, show: `Show ${s}` }))
+    ).flat()
+    const table = lineChartTable({ data, x: 'day', y: 'sold', series: 'show' })
+    expect(table.columns.map((c) => c.header)).toEqual([
+      'Day',
+      ...Array.from({ length: 9 }, (_, s) => `Show ${s}`)
+    ])
+    expect(table.rows[0]).toMatchObject({ 'Show 0': 0, 'Show 8': 8 })
+  })
+})

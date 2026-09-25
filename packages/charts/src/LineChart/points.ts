@@ -16,7 +16,8 @@ export function seriesLabel(props: Pick<LineChartProps, 'y'>) {
   return fieldLabel(props.y)
 }
 
-export function toLinePoints(props: LineChartProps): PlotDatum[] {
+/** Every series' points in x order, before the smallest roll into Other. */
+export function linePoints(props: LineChartProps): PlotDatum[] {
   const isTime = isTimeField(props.data, props.x)
   const fallback = seriesLabel(props)
   const names = seriesNames(props.data, props.series, fallback)
@@ -38,8 +39,11 @@ export function toLinePoints(props: LineChartProps): PlotDatum[] {
         return { ...p, y: total }
       })
     : points
-  return rollupOther(accumulated)
+  return accumulated
 }
+
+export const toLinePoints = (props: LineChartProps): PlotDatum[] =>
+  rollupOther(linePoints(props))
 
 export function lineXDomain(points: readonly PlotDatum[]): [number, number] {
   const xs = points.map((p) => Number(p.x))

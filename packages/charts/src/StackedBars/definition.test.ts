@@ -172,3 +172,20 @@ describe('stackedBarsTable', () => {
     })
   })
 })
+
+describe('stackedBarsTable with more segments than the plot shows', () => {
+  it('keeps a column for every segment the plot rolls into Other', () => {
+    const data = Array.from({ length: 9 }, (_, i) => ({
+      c: 'A',
+      s: `S${i}`,
+      v: i + 1
+    }))
+    const table = stackedBarsTable({ data, x: 'c', y: 'v', series: 's' })
+    expect(table.columns.map((c) => c.header)).toEqual([
+      'C',
+      ...Array.from({ length: 9 }, (_, i) => `S${i}`),
+      'Total'
+    ])
+    expect(table.rows[0]).toMatchObject({ S0: 1, S8: 9, Total: 45 })
+  })
+})
