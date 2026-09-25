@@ -1,0 +1,59 @@
+/* Texture patterns for chart marks on HTML surfaces, one per categorical slot. */
+@media (forced-colors: active), print {
+  [data-chart-texture] {
+    forced-color-adjust: none;
+    background-color: Canvas;
+    color: CanvasText;
+  }
+  [data-chart-texture='1'] {
+    background-image: repeating-linear-gradient(
+      45deg,
+      currentColor 0 1.5px,
+      transparent 1.5px 6px
+    );
+  }
+  [data-chart-texture='2'] {
+    background-image: radial-gradient(currentColor 1.2px, transparent 1.4px);
+    background-size: 5px 5px;
+  }
+  [data-chart-texture='3'] {
+    background-image:
+      repeating-linear-gradient(45deg, currentColor 0 1px, transparent 1px 6px),
+      repeating-linear-gradient(-45deg, currentColor 0 1px, transparent 1px 6px);
+  }
+  [data-chart-texture='4'] {
+    background-image: repeating-linear-gradient(
+      0deg,
+      currentColor 0 1.5px,
+      transparent 1.5px 5px
+    );
+  }
+  [data-chart-texture='5'] {
+    background-image: repeating-linear-gradient(
+      90deg,
+      currentColor 0 1.5px,
+      transparent 1.5px 5px
+    );
+  }
+  [data-chart-texture='6'] {
+    background-image:
+      repeating-linear-gradient(0deg, currentColor 0 1px, transparent 1px 6px),
+      repeating-linear-gradient(90deg, currentColor 0 1px, transparent 1px 6px);
+  }
+  [data-chart-texture='7'] {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      currentColor 0 1.5px,
+      transparent 1.5px 6px
+    );
+  }
+  [data-chart-texture='8'] {
+    background-image: radial-gradient(
+      circle at 50% 100%,
+      transparent 2px,
+      currentColor 2.5px,
+      transparent 3px
+    );
+    background-size: 8px 4px;
+  }
+}

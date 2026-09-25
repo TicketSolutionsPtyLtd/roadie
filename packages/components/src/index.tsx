@@ -230,6 +230,53 @@ export {
 } from './components/Steps'
 
 export {
+  Sparkline,
+  SPARKLINE_MIN_POINTS,
+  sparklineGeometry,
+  type SparklineProps,
+  type SparklineReference
+} from './components/Sparkline'
+
+export {
+  Table,
+  type TableAlign,
+  type TableCellProps,
+  type TableHeaderCellProps,
+  type TableProps
+} from './components/Table'
+
+export {
+  Meter,
+  type MeterProps,
+  type MeterSegment,
+  type MeterTone
+} from './components/Meter'
+
+export { Delta, type DeltaProps } from './components/Delta'
+export {
+  DataCard,
+  type DataCardDelta,
+  type DataCardProps
+} from './components/DataCard'
+
+export { StatTile, type StatTileProps } from './components/StatTile'
+
+export {
+  Dashboard,
+  type DashboardProps,
+  type DashboardSectionProps
+} from './components/Dashboard'
+
+export {
+  DataTable,
+  type DataTableColumn,
+  type DataTableProps,
+  type DataTableRow,
+  type DataTableSort,
+  type DataTableSortDirection
+} from './components/DataTable'
+
+export {
   Tabs,
   tabsListVariants,
   tabsTabVariants,

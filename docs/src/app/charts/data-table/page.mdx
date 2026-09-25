@@ -1,0 +1,115 @@
+export const metadata = {
+  title: 'DataTable',
+  description: 'A data-driven table with inline sparklines and meters',
+  status: 'beta',
+  category: 'Data pieces',
+  order: 4,
+  alsoIn: [{ route: '/components', category: 'Collections' }]
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A data-driven table with inline sparklines and meters.
+
+## Import
+
+```tsx
+import { DataTable } from '@oztix/roadie-components/data-table'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<DataTable
+  caption='Upcoming shows'
+  columns={[
+    { key: 'show', header: 'Show', kind: 'text', pin: true, secondaryKey: 'venue' },
+    { key: 'daily', header: 'Daily sales, 30 days', kind: 'sparkline' },
+    { key: 'sellThrough', header: 'Sell-through', kind: 'meter', target: 0.85 },
+    { key: 'pace', header: 'Pace index', kind: 'delta', format: 'index', baseline: 100 },
+    { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency' }
+  ]}
+  rows={[
+    { show: 'Ball Park Music', venue: 'The Lantern Room, Fortitude Valley', daily: [22, 30, 41, 52, 61, 72, 81, 96, 112, 131, 152, 160], sellThrough: 0.77, pace: 112, gross: 118400 },
+    { show: 'Ocean Alley', venue: 'Parkside Amphitheatre, Geelong', daily: [90, 95, 102, 94, 108, 97, 104, 110, 101, 106, 110, 112], sellThrough: 0.51, pace: 101, gross: 183000 },
+    { show: 'Julia Jacklin', venue: 'The Gasworks Room, Hobart', daily: [18, 16, 15, 14, 12, 11, 10, 9, 8, 7, 6, 6], sellThrough: 0.46, pace: 78, gross: 22900 }
+  ]}
+/>
+```
+
+### Priorities
+
+Narrow the table and lower-priority columns hide behind Show all columns first. The pinned `show` column always stays visible.
+
+```tsx-live
+<div className='w-[360px]'>
+  <DataTable
+    caption='Upcoming shows'
+    columns={[
+      { key: 'show', header: 'Show', kind: 'text', pin: true, secondaryKey: 'venue' },
+      { key: 'daily', header: 'Daily sales, 30 days', kind: 'sparkline', priority: 3 },
+      { key: 'sellThrough', header: 'Sell-through', kind: 'meter', target: 0.85, priority: 2 },
+      { key: 'pace', header: 'Pace index', kind: 'delta', format: 'index', baseline: 100 },
+      { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency', priority: 1 }
+    ]}
+    rows={[
+      { show: 'Ball Park Music', venue: 'The Lantern Room, Fortitude Valley', daily: [22, 30, 41, 52, 61, 72, 81, 96, 112, 131, 152, 160], sellThrough: 0.77, pace: 112, gross: 118400 },
+      { show: 'Ocean Alley', venue: 'Parkside Amphitheatre, Geelong', daily: [90, 95, 102, 94, 108, 97, 104, 110, 101, 106, 110, 112], sellThrough: 0.51, pace: 101, gross: 183000 },
+      { show: 'Julia Jacklin', venue: 'The Gasworks Room, Hobart', daily: [18, 16, 15, 14, 12, 11, 10, 9, 8, 7, 6, 6], sellThrough: 0.46, pace: 78, gross: 22900 }
+    ]}
+  />
+</div>
+```
+
+### Plain
+
+```tsx-live
+<DataTable
+  plain
+  caption='Days to show'
+  columns={[
+    { key: 'days', header: 'Days to show', kind: 'number' },
+    { key: 'show', header: 'This show', kind: 'number', format: 'percent' },
+    { key: 'similar', header: 'Similar shows', kind: 'number', format: 'percent' }
+  ]}
+  rows={[
+    { days: 90, show: 0.14, similar: 0.14 },
+    { days: 60, show: 0.38, similar: 0.35 },
+    { days: 30, show: 0.61, similar: 0.52 }
+  ]}
+/>
+```
+
+### Sorting
+
+```tsx-live
+<DataTable
+  caption='Upcoming shows, sorted by gross'
+  sort={{ key: 'gross', direction: 'descending' }}
+  getSortHref={() => '#sort=gross'}
+  columns={[
+    { key: 'show', header: 'Show', kind: 'text', pin: true },
+    { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency' }
+  ]}
+  rows={[
+    { show: 'Ocean Alley', gross: 183000 },
+    { show: 'Ball Park Music', gross: 118400 },
+    { show: 'Julia Jacklin', gross: 22900 }
+  ]}
+/>
+```
+
+## Guidelines
+
+- Use at most two visual columns, a sparkline or a meter, per table. More than that and the table stops reading at a glance.
+- Give every low-value column a `priority` so it hides first as the card narrows. Columns without one always show.
+- Pin the name column with `pin: true` so it stays put when the table scrolls horizontally.
+
+## Accessibility
+
+- `caption` names the table for screen readers, even though it renders visually hidden.
+- The sorted column carries `aria-sort`, and `getSortHref` renders header links, so sorting works without JavaScript.
+
+<PropsDefinitions componentPath='packages/components/src/components/DataTable/index.tsx' />

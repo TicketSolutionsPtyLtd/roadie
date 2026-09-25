@@ -3,15 +3,55 @@
 import { memo } from 'react'
 
 import type { Intent } from '@roadie-core/tokens'
+import Color from 'colorjs.io'
 
 import type { TokenEntry } from '@/lib/tokens'
 
 import { Badge } from '@oztix/roadie-components/badge'
 import { Code } from '@oztix/roadie-components/code'
 import { Highlight } from '@oztix/roadie-components/highlight'
+import { type Mode, chartHex } from '@oztix/roadie-core/dataviz'
 
 import { CopyChip } from './CopyChip'
 import { TokenPreview } from './TokenPreview'
+
+const DIVERGE_STEPS: Record<string, number> = {
+  'pos-4': 0,
+  'pos-3': 1,
+  'pos-2': 2,
+  'pos-1': 3,
+  '0': 4,
+  'neg-1': 5,
+  'neg-2': 6,
+  'neg-3': 7,
+  'neg-4': 8
+}
+
+/** Maps a dataviz token name to its hex value. Undefined for a token with no colour, such as a set alias or an ink length. */
+function datavizHex(name: string, mode: Mode): string | undefined {
+  const hex = chartHex(mode)
+  const base = name.replace(/^--/, '').replace(/^color-/, '')
+  const categorical = base.match(/^chart-(\d+)$/)
+  if (categorical) return hex.categorical[Number(categorical[1]) - 1]
+  const heat = base.match(/^chart-heat-(\d+)$/)
+  if (heat) return hex.heat[Number(heat[1])]
+  const divergeStep = base.match(/^chart-diverge-(.+)$/)?.[1]
+  const divergeIndex =
+    divergeStep === undefined ? undefined : DIVERGE_STEPS[divergeStep]
+  if (divergeIndex !== undefined) return hex.diverging[divergeIndex]
+  const status = base.match(/^chart-status-(good|warning|serious|critical)$/)
+  if (status) return hex.status[status[1] as keyof typeof hex.status]
+  if (base === 'chart-highlight') return hex.highlight
+  const grey = base.match(/^chart-(context|median|other|missing)$/)
+  if (grey) return hex.greys[grey[1] as keyof typeof hex.greys]
+  if (base === 'chart-band') return hex.band.color
+  return undefined
+}
+
+function contrastRatio(hex: string, against: string) {
+  const ratio = new Color(hex).contrast(new Color(against), 'WCAG21')
+  return `${Math.abs(ratio).toFixed(1)}:1`
+}
 
 /** Families whose samples render at their real size, wider than the default column. */
 const WIDE_PREVIEWS = new Set(['component-utilities'])
@@ -46,6 +86,8 @@ function Values({ token, intent }: { token: TokenEntry; intent: Intent }) {
       : [])
   ]
   const labelled = rows.length > 1
+  const light = token.family === 'dataviz' && datavizHex(token.name, 'light')
+  const dark = token.family === 'dataviz' && datavizHex(token.name, 'dark')
 
   return (
     <dl className='grid gap-0.5 font-mono text-xs text-subtle'>
@@ -60,6 +102,15 @@ function Values({ token, intent }: { token: TokenEntry; intent: Intent }) {
           </dd>
         </div>
       ))}
+      {light && dark ? (
+        <div className='flex min-w-0 flex-wrap gap-x-2'>
+          <dt className='shrink-0 text-subtler'>Contrast</dt>
+          <dd className='min-w-0 break-all'>
+            {contrastRatio(light, '#ffffff')} light,{' '}
+            {contrastRatio(dark, chartHex('dark').chrome.surface)} dark
+          </dd>
+        </div>
+      ) : null}
     </dl>
   )
 }

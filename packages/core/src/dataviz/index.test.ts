@@ -47,4 +47,20 @@ describe('@oztix/roadie-core/dataviz', () => {
     const [l, c] = palette.neutral.light[8]!
     expect(themed.greys.context).toBe(toHex([l, c, 150]))
   })
+
+  it('includes chrome colours for static renderers', () => {
+    const light = chartHex('light')
+    const dark = chartHex('dark')
+    expect(Object.keys(light.chrome).sort()).toEqual([
+      'axis',
+      'grid',
+      'label',
+      'raised',
+      'surface',
+      'value'
+    ])
+    expect(light.chrome.value).not.toBe(dark.chrome.value)
+    expect(light.chrome.grid).toMatch(/^#[0-9a-f]{6}$/)
+    expect(dark.chrome.raised).not.toBe(dark.chrome.surface)
+  })
 })
