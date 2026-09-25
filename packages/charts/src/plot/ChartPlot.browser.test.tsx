@@ -2,6 +2,7 @@ import { areaY, barX, cell, defineChart, lineY } from '@tanstack/charts'
 import { scaleBand } from '@tanstack/charts/scales/band'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { cleanup, render } from '@testing-library/react'
+import { renderToString } from 'react-dom/server'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
@@ -9,6 +10,7 @@ import roadieCss from '../../vitest.browser.css?inline'
 import { Chart } from '../Chart'
 import { useStylesheet } from '../testUtils'
 import { ChartPlot } from './ChartPlot'
+import { afterResize } from './browserTesting'
 import { seriesMarkId } from './series'
 import { type TestProps, testChart, testPoints } from './testChart'
 import type { ChartDefinition } from './types'
@@ -34,7 +36,7 @@ async function focusPlot(container: HTMLElement) {
 }
 
 function renderInCard(
-  size: 'sm' | 'md' | 'lg' = 'md',
+  size: 'sm' | 'md' | 'lg' | 'full' = 'md',
   width = 560,
   chart: ChartDefinition<TestProps> = testChart
 ) {
@@ -103,6 +105,58 @@ describe('ChartPlot in a card', () => {
       Math.round(plot.getBoundingClientRect().width)
     )
   })
+
+  it.each([
+    ['full', 1800, 400, 420],
+    ['lg', 1200, 270, 340],
+    ['full', 700, 260, 260]
+  ] as const)(
+    'grows a %s plot at %ipx wide to between %i and %ipx',
+    async (size, width, min, max) => {
+      const { container } = renderInCard(size, width)
+      const plot = container.querySelector('[data-slot=chart-plot]')!
+      const height = plot.getBoundingClientRect().height
+      expect(height).toBeGreaterThanOrEqual(min)
+      expect(height).toBeLessThanOrEqual(max)
+      await expect
+        .poll(
+          () =>
+            container.querySelector('svg.ts-chart')!.getBoundingClientRect()
+              .height
+        )
+        .toBeCloseTo(height, 0)
+    }
+  )
+
+  it.each([
+    ['full', 1800],
+    ['md', 560]
+  ] as const)(
+    'server renders the %s card at %ipx at its hydrated size',
+    async (size, width) => {
+      const card = (
+        <div style={{ width }}>
+          <Chart label='Test' source='Oztix sales.' size={size}>
+            <ChartPlot chart={testChart} props={{ points: testPoints }} />
+          </Chart>
+        </div>
+      )
+      const server = document.createElement('div')
+      server.innerHTML = renderToString(card)
+      document.body.append(server)
+      const box = (root: Element, selector: string) =>
+        root.querySelector(selector)!.getBoundingClientRect().height
+      const serverCard = box(server, '[data-slot=data-card]')
+      const serverPlot = box(server, '[data-slot=chart-plot]')
+      expect(box(server, 'svg.ts-chart')).toBeLessThanOrEqual(serverPlot + 0.5)
+      server.remove()
+
+      const { container } = render(card)
+      await afterResize()
+      expect(box(container, '[data-slot=data-card]')).toBeCloseTo(serverCard, 0)
+      expect(box(container, 'svg.ts-chart')).toBeCloseTo(serverPlot, 0)
+    }
+  )
 
   it('reaches every x value with the arrow keys and speaks each one', async () => {
     const { container } = renderInCard()

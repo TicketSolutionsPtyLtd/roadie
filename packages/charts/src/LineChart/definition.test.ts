@@ -292,11 +292,30 @@ describe('lineChartTable', () => {
       'Day',
       'Sold',
       'Forecast',
-      'Similar shows low',
-      'Similar shows high',
-      'Similar shows median'
+      'Similar shows',
+      'Similar shows range'
     ])
-    expect(table.rows[0]!.day).toBe('Sun 16 Aug')
+    expect(table.rows[0]).toMatchObject({
+      day: 'Sun 16 Aug',
+      bandMedian: 0.14,
+      bandRange: '7% to 22%'
+    })
+  })
+
+  it('leaves the cells blank where the forecast or the actuals do not apply', () => {
+    const table = lineChartTable({
+      ...plainForecast,
+      data: plainForecast.data.map((row, i) =>
+        i === 3 ? { ...row, sold: null } : row
+      )
+    })
+    expect(table.rows.map((row) => [row.sold, row.Forecast])).toEqual([
+      [4, ''],
+      [5, ''],
+      [6, ''],
+      ['', null],
+      ['', 8]
+    ])
   })
 
   it('keeps full values', () => {
@@ -323,7 +342,7 @@ describe('lineChartTable', () => {
       'GA forecast': 8,
       'VIP forecast': 16
     })
-    expect(table.rows[4]!.VIP).toBeUndefined()
+    expect(table.rows[4]!.VIP).toBe('')
   })
 
   it('has one column per series', () => {

@@ -6,6 +6,7 @@ import type { ChartTable } from '.'
 
 export type ChartReport = { summary: string; table: ChartTable }
 export type ChartCardContextValue = {
+  /** The smallest plot height for the card size. CSS grows wide plots from it. */
   plotHeight: number
   report: (report: ChartReport | null) => void
 }

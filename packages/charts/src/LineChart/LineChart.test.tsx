@@ -20,7 +20,7 @@ describe('LineChart', () => {
       </Chart>
     )
     expect(
-      screen.getByRole('columnheader', { name: 'Similar shows low' })
+      screen.getByRole('columnheader', { name: 'Similar shows range' })
     ).toBeInTheDocument()
   })
 

@@ -31,8 +31,9 @@ export type ChartProps = Omit<
 > & {
   source: string
   /**
-   * Body height while loading. Defaults to the live plot height for `size`
-   * (160px, 220px or 260px). A static plot sizes to its image, so it may
+   * Body height while loading. Defaults to the live plot height for `size`:
+   * 160px at `sm`, 220px at `md`, and from 260px up to 340px at `lg` or 420px
+   * at `full` as the card widens. A static plot sizes to its image, so it may
    * settle at a different height when it loads.
    */
   bodyHeight?: string
@@ -85,7 +86,7 @@ export function Chart({
         <DataCard
           label={label}
           size={size}
-          bodyHeight={bodyHeight ?? `${plotHeight}px`}
+          bodyHeight={bodyHeight ?? 'var(--chart-plot-height)'}
           aria-describedby={report ? summaryId : undefined}
           actions={
             <Tabs.List aria-label={`${label} view`}>
@@ -139,7 +140,6 @@ export function Chart({
                   rows={shownTable.rows}
                   caption={label}
                   plain
-                  className='max-w-2xl'
                 />
               </Tabs.Panel>
             </div>

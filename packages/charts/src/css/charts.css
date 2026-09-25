@@ -2,16 +2,25 @@
 @source '../../dist';
 @source './safelist.html';
 
+/* Wide plots grow with the DataCard container (cqi) so they stay near 4:1. */
+[data-slot='chart'] {
+  --chart-plot-height: 220px;
+}
+
+[data-slot='chart'][data-size='sm'] {
+  --chart-plot-height: 160px;
+}
+
+[data-slot='chart'][data-size='lg'] {
+  --chart-plot-height: clamp(260px, 24cqi, 340px);
+}
+
+[data-slot='chart'][data-size='full'] {
+  --chart-plot-height: clamp(260px, 24cqi, 420px);
+}
+
 [data-slot='chart-plot'] {
-  height: 220px;
-}
-
-[data-size='sm'] [data-slot='chart-plot'] {
-  height: 160px;
-}
-
-:is([data-size='lg'], [data-size='full']) [data-slot='chart-plot'] {
-  height: 260px;
+  height: var(--chart-plot-height, 220px);
 }
 
 [data-slot='chart-plot'] [data-theme-image='dark'],
@@ -71,9 +80,22 @@
   visibility: hidden;
 }
 
+/* The table's own scroller takes both axes, so its sideways scrollbar sits
+   inside the plot height instead of below the last row. */
 [data-slot='chart'] [data-chart-view='table'] {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
   height: 0;
   min-height: 100%;
+}
+
+[data-slot='chart'] [data-chart-view='table'] > [data-slot='data-table'] {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+[data-slot='chart']
+  [data-chart-view='table']
+  [data-slot='data-table-scroller'] {
   overflow: auto;
 }
 
@@ -152,6 +174,12 @@
 
 [data-slot='chart-plot']:has([data-slot='small-multiples']) {
   height: auto;
+}
+
+/* Server markup is drawn at the engine's default size until hydration. */
+[data-slot='chart-plot'] .ts-chart-surface > svg {
+  width: 100%;
+  height: 100%;
 }
 
 [data-slot='chart-plot-host'] .ts-chart:focus-visible {

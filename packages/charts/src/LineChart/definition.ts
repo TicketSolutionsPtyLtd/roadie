@@ -121,17 +121,18 @@ function endLabels(
     labels.push({
       text: `Target ${labelFormat(props.format, props.target)}`,
       y: props.target,
-      tone: 'value'
+      tone: 'value',
+      pinned: true
     })
   const median = props.band?.median
   const medianEnd = median ? lastFieldValue(props, median) : undefined
   if (medianEnd !== undefined)
     labels.push({
-      text: props.band?.label ?? TYPICAL_RANGE,
+      text: `${props.band?.label ?? TYPICAL_RANGE} ${labelFormat(props.format, medianEnd)}`,
       y: medianEnd,
       tone: 'label'
     })
-  return stackLabels(labels, labelGap(frame, domain))
+  return stackLabels(labels, labelGap(frame, domain), domain)
 }
 
 function fieldPoints(props: LineChartProps, field: string): LinePoint[] {

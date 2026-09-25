@@ -8,6 +8,8 @@ export type EndLabel = {
   text: string
   y: number
   tone: 'value' | 'highlight' | 'label'
+  /** Keeps its value, such as a target beside its tick, while others move. */
+  pinned?: boolean
 }
 
 const AXIS_ROOM = 34
@@ -24,15 +26,46 @@ export function textRoom(
   return Math.ceil(longest * frame.fontSize * CHAR_WIDTH) + padding
 }
 
-export function stackLabels(labels: readonly EndLabel[], minGap: number) {
-  const sorted = [...labels].sort((a, b) => b.y - a.y)
-  for (let i = 1; i < sorted.length; i++) {
-    const above = sorted[i - 1]!
-    const current = sorted[i]!
-    if (above.y - current.y < minGap)
-      sorted[i] = { ...current, y: above.y - minGap }
+type Stack = { labels: EndLabel[]; top: number }
+
+const bottomOf = (stack: Stack, gap: number) =>
+  stack.top - (stack.labels.length - 1) * gap
+
+function stackTop(
+  labels: readonly EndLabel[],
+  gap: number,
+  [low, high]: readonly [number, number]
+) {
+  const pinned = labels.findIndex((label) => label.pinned)
+  if (pinned >= 0) return labels[pinned]!.y + pinned * gap
+  const centred =
+    labels.reduce((sum, label, i) => sum + label.y + i * gap, 0) / labels.length
+  return Math.max(Math.min(centred, high), low + (labels.length - 1) * gap)
+}
+
+/** Spreads colliding labels evenly around where they want to be, inside `range`. */
+export function stackLabels(
+  labels: readonly EndLabel[],
+  minGap: number,
+  range: readonly [number, number] = [-Infinity, Infinity]
+) {
+  const stacks: Stack[] = []
+  for (const label of [...labels].sort((a, b) => b.y - a.y)) {
+    let stack: Stack = { labels: [label], top: label.y }
+    for (
+      let above = stacks.at(-1);
+      above && bottomOf(above, minGap) - stack.top < minGap - 1e-9;
+      above = stacks.at(-1)
+    ) {
+      stacks.pop()
+      const merged = [...above.labels, ...stack.labels]
+      stack = { labels: merged, top: stackTop(merged, minGap, range) }
+    }
+    stacks.push(stack)
   }
-  return sorted
+  return stacks.flatMap((stack) =>
+    stack.labels.map((label, i) => ({ ...label, y: stack.top - i * minGap }))
+  )
 }
 
 export function labelGap(

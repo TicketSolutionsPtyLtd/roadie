@@ -10,10 +10,10 @@ import {
 import { plotFrame } from './frame'
 
 describe('end labels', () => {
-  it('pushes colliding labels apart, keeping the top one in place', () => {
+  it('pushes colliding labels away from a pinned one', () => {
     const stacked = stackLabels(
       [
-        { text: 'Target 85%', y: 0.85, tone: 'value' },
+        { text: 'Target 85%', y: 0.85, tone: 'value', pinned: true },
         { text: 'Forecast 84%', y: 0.84, tone: 'highlight' },
         { text: 'Similar shows', y: 0.83, tone: 'label' }
       ],
@@ -21,6 +21,48 @@ describe('end labels', () => {
     )
     expect(stacked.map((l) => l.y)).toEqual(
       [0.85, 0.79, 0.73].map((v) => expect.closeTo(v, 5))
+    )
+  })
+
+  it('spreads colliding labels evenly around where they want to be', () => {
+    const stacked = stackLabels(
+      [
+        { text: 'Similar shows 86%', y: 0.86, tone: 'label' },
+        { text: 'GA 84%', y: 0.84, tone: 'value' }
+      ],
+      0.06
+    )
+    expect(stacked.map((l) => l.y)).toEqual(
+      [0.88, 0.82].map((v) => expect.closeTo(v, 5))
+    )
+  })
+
+  it('keeps a pinned label on its value when it sits below others', () => {
+    const stacked = stackLabels(
+      [
+        { text: 'Forecast 96%', y: 0.96, tone: 'highlight' },
+        { text: 'Similar shows 86%', y: 0.86, tone: 'label' },
+        { text: 'Target 85%', y: 0.85, tone: 'value', pinned: true }
+      ],
+      0.066
+    )
+    expect(stacked.find((l) => l.pinned)!.y).toBe(0.85)
+    expect(stacked.map((l) => l.y)).toEqual(
+      [0.982, 0.916, 0.85].map((v) => expect.closeTo(v, 5))
+    )
+  })
+
+  it('keeps unpinned stacks inside the value range', () => {
+    const stacked = stackLabels(
+      [
+        { text: 'A', y: 1, tone: 'label' },
+        { text: 'B', y: 0.99, tone: 'label' }
+      ],
+      0.1,
+      [0, 1]
+    )
+    expect(stacked.map((l) => l.y)).toEqual(
+      [1, 0.9].map((v) => expect.closeTo(v, 5))
     )
   })
 

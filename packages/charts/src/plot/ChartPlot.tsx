@@ -34,7 +34,7 @@ import {
 } from './keyboard'
 import { cssPaint } from './paint'
 import { type CategoryAxis, type ChartDefinition, isPlotDatum } from './types'
-import { useWidthBand } from './useWidthBand'
+import { usePlotBox } from './usePlotBox'
 
 export type ChartPlotProps<P> = {
   chart: ChartDefinition<P>
@@ -82,20 +82,24 @@ export function ChartPlot<P>({
   const { patterns, style: patternStyle } = useChartPatterns()
   const hostRef = useRef<HTMLDivElement>(null)
   const renderRef = useRef<ChartRenderContext | null>(null)
-  const band = useWidthBand(hostRef)
+  const { band, height: measured } = usePlotBox(hostRef)
   const [focused, setFocused] = useState<ChartPoint | null>(null)
   const [group, setGroup] = useState<readonly ChartPoint[]>([])
 
   const summary = useMemo(() => chart.summary(props), [chart, props])
   const table = useMemo(() => chart.table(props), [chart, props])
   const empty = chart.emptyMessage(props)
+  // In a card, CSS sizes the plot and the engine fills it; the measured
+  // height only spaces end labels.
+  const fillsCard = card !== null && height === undefined
   const fullHeight = height ?? card?.plotHeight ?? DEFAULT_PLOT_HEIGHT
   const legend = chart.legend(
     props,
     cssPaint,
     plotFrame(fullHeight, band, yDomain)
   )
-  const plotHeight = legend.length ? fullHeight - LEGEND_ROOM : fullHeight
+  const fixedHeight = legend.length ? fullHeight - LEGEND_ROOM : fullHeight
+  const plotHeight = (fillsCard && measured) || fixedHeight
   const frame = useMemo(
     () => plotFrame(plotHeight, band, yDomain),
     [plotHeight, band, yDomain]
@@ -174,7 +178,14 @@ export function ChartPlot<P>({
 
   return (
     <div
-      className={cn('grid gap-2', className)}
+      className={cn(
+        'grid gap-2',
+        fillsCard &&
+          (legend.length
+            ? 'h-full grid-rows-[auto_minmax(0,1fr)]'
+            : 'h-full grid-rows-[minmax(0,1fr)]'),
+        className
+      )}
       style={card ? undefined : patternStyle}
     >
       {legend.length > 0 && <ChartLegend items={legend} />}
@@ -189,7 +200,8 @@ export function ChartPlot<P>({
         {!card && patterns}
         <EngineChart
           definition={definition}
-          height={frame.height}
+          height={fillsCard ? undefined : frame.height}
+          style={fillsCard ? { height: '100%' } : undefined}
           initialWidth={INITIAL_WIDTH}
           ariaLabel={summary}
           onFocusChange={setFocused}

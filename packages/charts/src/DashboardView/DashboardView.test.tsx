@@ -99,7 +99,7 @@ describe('DashboardView with a line plot', () => {
 
   it('puts the derived table in the server HTML', () => {
     const html = renderToString(<DashboardView spec={lineDashboard} />)
-    expect(html).toContain('Similar shows low')
+    expect(html).toContain('Similar shows range')
     expect(html).toContain('var(--chart-highlight)')
   })
 })
