@@ -34,7 +34,8 @@ export function ProgressRoot({
     <ProgressValueTextContext value={valueText}>
       <ProgressPrimitive.Root
         data-slot='progress'
-        aria-valuetext={valueText}
+        // An explicit undefined would wipe Base UI's default and getAriaValueText
+        {...(valueText !== undefined && { 'aria-valuetext': valueText })}
         className={cn(
           'grid w-full grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1.5',
           intent && intentVariants[intent],

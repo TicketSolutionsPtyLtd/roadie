@@ -54,6 +54,28 @@ describe('Progress', () => {
     expect(slot(container, 'progress-indicator')?.style.width).toBe('30%')
   })
 
+  it('keeps the default spoken value without valueText', () => {
+    render(<Progress value={40} aria-label='Upload' />)
+    expect(screen.getByRole('progressbar')).toHaveAttribute(
+      'aria-valuetext',
+      '40%'
+    )
+  })
+
+  it('keeps getAriaValueText without valueText', () => {
+    render(
+      <Progress
+        value={40}
+        aria-label='Upload'
+        getAriaValueText={(_, value) => `${value} percent`}
+      />
+    )
+    expect(screen.getByRole('progressbar')).toHaveAttribute(
+      'aria-valuetext',
+      '40 percent'
+    )
+  })
+
   it('is indeterminate when value is null', () => {
     const { container } = render(
       <Progress value={null} label='Preparing export' />
