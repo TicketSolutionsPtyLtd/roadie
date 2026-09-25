@@ -6,7 +6,7 @@ import type {
 
 import type { ToastIntent } from './variants'
 
-type WithIntent<T> = T & {
+type WithIntent<T> = Omit<T, 'type'> & {
   /** Colours the toast and picks its icon. Neutral when unset. */
   intent?: ToastIntent
 }

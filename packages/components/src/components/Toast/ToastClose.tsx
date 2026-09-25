@@ -21,6 +21,7 @@ export function ToastClose({
 }: ToastCloseProps) {
   return (
     <ToastPrimitive.Close
+      aria-label={ariaLabel}
       render={
         <IconButton
           data-slot='toast-close'

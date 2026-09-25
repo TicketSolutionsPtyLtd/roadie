@@ -49,6 +49,7 @@ export default defineConfig({
         plugins: [tailwindcss()],
         optimizeDeps: {
           include: [
+            '@base-ui/react/toast',
             'jsqr',
             'react',
             'react/compiler-runtime',

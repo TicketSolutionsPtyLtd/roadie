@@ -246,4 +246,37 @@ describe('Toast', () => {
       document.querySelector('[data-slot="toast-content"]')
     ).toBeInTheDocument()
   })
+
+  it('keeps the close label on a custom render element', async () => {
+    function Custom() {
+      const { toasts } = useToastManager()
+      return toasts.map((toast) => (
+        <Toast key={toast.id} toast={toast}>
+          <Toast.Close render={<button type='button' />} aria-label='Hide'>
+            x
+          </Toast.Close>
+        </Toast>
+      ))
+    }
+    const manager = createToastManager()
+    render(
+      <Toast.Provider toastManager={manager}>
+        <Toast.Viewport>
+          <Custom />
+        </Toast.Viewport>
+      </Toast.Provider>
+    )
+    act(() => {
+      manager.add({ title: 'Custom', timeout: 0 })
+    })
+    expect(await screen.findByText('x')).toHaveAttribute('aria-label', 'Hide')
+  })
+
+  it('takes intent in place of type', () => {
+    const manager = createToastManager()
+    // @ts-expect-error `type` is replaced by `intent`
+    manager.add({ title: 'Typed', type: 'success' })
+    // @ts-expect-error `type` is replaced by `intent`
+    manager.update('id', { type: 'success' })
+  })
 })
