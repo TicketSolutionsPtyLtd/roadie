@@ -51,7 +51,8 @@ export default defineConfig({
             'react-dom',
             'react-dom/client',
             'react-dom/server',
-            'axe-core'
+            'axe-core',
+            '@tanstack/charts/scales/band'
           ]
         },
         test: {

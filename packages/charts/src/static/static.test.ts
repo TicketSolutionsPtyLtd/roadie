@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
+import { CHART_PLOT_KINDS } from '@oztix/roadie-core/dashboard'
+
+import * as staticEntry from '.'
 import { renderChartSvg } from '.'
 import { lineChart } from '../LineChart/definition'
 import { paceExample, salesByTypeExample } from '../LineChart/examples'
+import { gatesExample } from '../SmallMultiples/examples'
 
 describe('renderChartSvg', () => {
   const svg = renderChartSvg(lineChart, paceExample, {
@@ -75,5 +79,26 @@ describe('renderChartSvg', () => {
     const legend = /<g data-slot="chart-legend"[^>]*>(.*?)<\/g>/.exec(narrow)
     expect(legend?.[1]).toMatch(/>GA<.*>VIP<.*>Early bird</)
     expect(narrow).toContain('viewBox="0 -24 320 220"')
+  })
+})
+
+describe('the static entry', () => {
+  const definitions = Object.values(staticEntry).filter(
+    (value) => typeof value === 'object' && 'kind' in value
+  )
+
+  it('exports a definition for every single-plot kind', () => {
+    expect(definitions.map((d) => d.kind).sort()).toEqual(
+      CHART_PLOT_KINDS.filter((kind) => kind !== 'small-multiples').sort()
+    )
+  })
+
+  it('renders small multiples without React', () => {
+    expect(
+      staticEntry.renderSmallMultiplesSvg(gatesExample, {
+        mode: 'dark',
+        width: 640
+      })
+    ).toMatch(/^<svg /)
   })
 })

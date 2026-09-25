@@ -129,9 +129,10 @@ export function ChartPlot<P>({
       source: 'programmatic'
     })
 
-  // The engine walks every arrow key along one list of column tops, so after
-  // stepping to a lower series its left and right would jump back to the start.
-  // Its Home and End follow its focus mode, which on horizontal bars is by value.
+  // The engine walks every arrow key along one list: column tops on an x
+  // category axis, bar values on a y one. That loses the series after a step
+  // between series and the category order on horizontal bars, and its Home and
+  // End follow the same list, so steps and ends run on screen position here.
   function onKeyDownCapture(event: KeyboardEvent<HTMLDivElement>) {
     const points = plotPoints()
     if (event.key === 'Home' || event.key === 'End') {

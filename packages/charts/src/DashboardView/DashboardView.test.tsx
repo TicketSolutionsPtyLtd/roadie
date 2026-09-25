@@ -3,6 +3,7 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
 import { DashboardView } from '.'
+import { checkoutExample } from '../Funnel/examples'
 import { paceExample, salesByTypeExample } from '../LineChart/examples'
 import { createPortfolioDashboard, createShowDashboard } from '../examples'
 
@@ -115,5 +116,34 @@ describe('DashboardView with several chart cards', () => {
     expect(() =>
       renderToString(<DashboardView spec={severalChartCards} />)
     ).not.toThrow()
+  })
+})
+
+const funnelDashboard = {
+  version: 1 as const,
+  title: 'Checkout',
+  sections: [
+    {
+      title: 'Conversion',
+      cards: [
+        {
+          id: 'checkout',
+          kind: 'chart' as const,
+          size: 'full' as const,
+          label: 'Checkout',
+          source: 'Oztix sales.',
+          plot: { kind: 'funnel' as const, ...checkoutExample }
+        }
+      ]
+    }
+  ]
+}
+
+describe('DashboardView with a plot other than a line', () => {
+  it('renders the chart and its derived table on the server', () => {
+    const html = renderToString(<DashboardView spec={funnelDashboard} />)
+    expect(html).toContain(`aria-label="${checkoutExample.takeaway}`)
+    expect(html).toContain('Started checkout')
+    expect(html).toContain('<table')
   })
 })

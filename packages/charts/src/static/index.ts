@@ -175,3 +175,12 @@ export function renderChartSvg<P>(
 }
 
 export type { CategoryAxis, ChartDefinition } from '../plot/types'
+export { barChart } from '../BarChart/definition'
+export { funnel } from '../Funnel/definition'
+export { heatmap } from '../Heatmap/definition'
+export { histogram } from '../Histogram/definition'
+export { lineChart } from '../LineChart/definition'
+export { rankedBars } from '../RankedBars/definition'
+export { scatter } from '../Scatter/definition'
+export { renderSmallMultiplesSvg } from '../SmallMultiples/static'
+export { stackedBars } from '../StackedBars/definition'
