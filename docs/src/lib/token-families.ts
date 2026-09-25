@@ -33,7 +33,7 @@ export const TOKEN_FAMILY_PAGES: Record<TokenFamily, TokenFamilyPage> = {
     aliases:
       'chart graph series categorical sequential diverging heat status highlight',
     guidance: [
-      foundation('Data visualisation', 'data-visualisation'),
+      { title: 'Data visualisation', href: '/charts/data-visualisation' },
       foundation('Colors', 'colors')
     ]
   },

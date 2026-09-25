@@ -1,0 +1,140 @@
+/* Registers the charts dist for Tailwind. Consumers also import @oztix/roadie-components/css. */
+@source '../../dist';
+@source './safelist.html';
+
+[data-slot='chart-plot'] {
+  height: 220px;
+}
+
+[data-size='sm'] [data-slot='chart-plot'] {
+  height: 160px;
+}
+
+:is([data-size='lg'], [data-size='full']) [data-slot='chart-plot'] {
+  height: 260px;
+}
+
+[data-slot='chart-plot'] [data-theme-image='dark'],
+.dark [data-slot='chart-plot'] [data-theme-image='light'] {
+  display: none;
+}
+
+.dark [data-slot='chart-plot'] [data-theme-image='dark'] {
+  display: block;
+}
+
+[data-slot='chart-plot']:has([data-slot='chart-static-plot']) {
+  height: auto;
+  container: chart-plot / inline-size;
+}
+
+[data-slot='chart-static-plot'] img {
+  width: 100%;
+  height: auto;
+}
+
+[data-plot-band='narrow'],
+[data-plot-band='wide'] {
+  display: none;
+}
+
+@container chart-plot (width < 480px) {
+  [data-plot-band='narrow'] {
+    display: block;
+  }
+  [data-slot='chart-static-plot']:has(> [data-plot-band='narrow'])
+    > [data-plot-band='default'] {
+    display: none;
+  }
+}
+
+@container chart-plot (width >= 960px) {
+  [data-plot-band='wide'] {
+    display: block;
+  }
+  [data-slot='chart-static-plot']:has(> [data-plot-band='wide'])
+    > [data-plot-band='default'] {
+    display: none;
+  }
+}
+
+[data-slot='chart-views'] {
+  display: grid;
+}
+
+[data-slot='chart-views'] > [data-chart-view] {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+[data-slot='chart'] [data-chart-view][data-hidden] {
+  visibility: hidden;
+}
+
+[data-slot='chart'] [data-chart-view='table'] {
+  height: 0;
+  min-height: 100%;
+  overflow: auto;
+}
+
+[data-slot='chart'] {
+  --ts-chart-tooltip-background: var(--intent-bg-raised);
+  --ts-chart-tooltip-color: var(--intent-text-normal);
+  --ts-chart-tooltip-border: 1px solid var(--intent-border-subtle);
+  --ts-chart-tooltip-border-radius: var(--radius-xl);
+  --ts-chart-tooltip-shadow: var(--shadow-xl);
+  --ts-chart-tooltip-padding: 0.5rem 0.75rem;
+  --ts-chart-tooltip-font: 600 0.75rem/1.4 var(--font-sans);
+}
+
+@utility fill-texture-1 {
+  fill: url(#roadie-texture-1);
+}
+@utility fill-texture-2 {
+  fill: url(#roadie-texture-2);
+}
+@utility fill-texture-3 {
+  fill: url(#roadie-texture-3);
+}
+@utility fill-texture-4 {
+  fill: url(#roadie-texture-4);
+}
+@utility fill-texture-5 {
+  fill: url(#roadie-texture-5);
+}
+@utility fill-texture-6 {
+  fill: url(#roadie-texture-6);
+}
+@utility fill-texture-7 {
+  fill: url(#roadie-texture-7);
+}
+@utility fill-texture-8 {
+  fill: url(#roadie-texture-8);
+}
+
+@media (forced-colors: active), print {
+  svg [data-chart-texture='1'] {
+    fill: url(#roadie-texture-1);
+  }
+  svg [data-chart-texture='2'] {
+    fill: url(#roadie-texture-2);
+  }
+  svg [data-chart-texture='3'] {
+    fill: url(#roadie-texture-3);
+  }
+  svg [data-chart-texture='4'] {
+    fill: url(#roadie-texture-4);
+  }
+  svg [data-chart-texture='5'] {
+    fill: url(#roadie-texture-5);
+  }
+  svg [data-chart-texture='6'] {
+    fill: url(#roadie-texture-6);
+  }
+  svg [data-chart-texture='7'] {
+    fill: url(#roadie-texture-7);
+  }
+  svg [data-chart-texture='8'] {
+    fill: url(#roadie-texture-8);
+  }
+}

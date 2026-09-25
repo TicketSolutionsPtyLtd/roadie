@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { ArrowRightIcon, ArrowUpRightIcon } from '@phosphor-icons/react/ssr'
 
+import { ChartPreview } from '@/components/ChartPreview'
 import { ComponentSkeleton, Skel } from '@/components/ComponentSkeleton'
 import { FoundationPreview } from '@/components/FoundationPreview'
 import { HomeGuides } from '@/components/HomeGuides'
@@ -9,6 +10,7 @@ import { Image } from '@/components/Image'
 import { PreviewCard } from '@/components/PreviewGrid'
 import { CHANGELOG_URL, getRecentReleases } from '@/lib/changelog'
 import {
+  CHARTS,
   COMPONENTS,
   FOUNDATIONS,
   WIDGETS,
@@ -24,12 +26,14 @@ const plural = (count: number, noun: string) =>
   `${count} ${noun}${count === 1 ? '' : 's'}`
 
 export default async function Home() {
-  const [foundations, components, widgets, releases] = await Promise.all([
-    getCatalogue(FOUNDATIONS),
-    getCatalogue(COMPONENTS),
-    getCatalogue(WIDGETS),
-    getRecentReleases(3)
-  ])
+  const [foundations, components, charts, widgets, releases] =
+    await Promise.all([
+      getCatalogue(FOUNDATIONS),
+      getCatalogue(COMPONENTS),
+      getCatalogue(CHARTS),
+      getCatalogue(WIDGETS),
+      getRecentReleases(3)
+    ])
 
   return (
     <div className='@container grid gap-16'>
@@ -68,7 +72,7 @@ export default async function Home() {
       </section>
 
       <HomeSection title='Explore'>
-        <ul className='grid grid-cols-2 gap-3 @2xl:grid-cols-4 @2xl:gap-4'>
+        <ul className='grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-3 @2xl:gap-4'>
           <PreviewCard
             href='/foundations'
             title='Foundations'
@@ -85,6 +89,13 @@ export default async function Home() {
           </PreviewCard>
           <PreviewCard href='/tokens' title='Tokens' subtitle='Every variable'>
             <TokensArt />
+          </PreviewCard>
+          <PreviewCard
+            href='/charts'
+            title='Charts'
+            subtitle={plural(countEntries(charts), 'guide')}
+          >
+            <ChartPreview name='data-visualisation' />
           </PreviewCard>
           <PreviewCard
             href='/roadie-widgets'
