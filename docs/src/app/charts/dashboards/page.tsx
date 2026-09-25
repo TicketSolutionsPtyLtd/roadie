@@ -442,6 +442,17 @@ const DASHBOARD_JSX = `<Dashboard>
       <DataTable columns={suburbColumns} rows={suburbs} />
     </DataCard>
   </Dashboard.Section>
+  <Dashboard.Section title='Buyers'>
+    <Chart size='md' label='Daily orders' takeaway='Orders peak on Fridays and grow each week'>
+      <BarChart data={dailyOrders} x='day' y='orders' />
+    </Chart>
+    <Chart size='md' label='Ticket type mix' takeaway='GA is carrying the show'>
+      <StackedBars data={salesByMonth} x='month' y='sold' series='type' />
+    </Chart>
+    <Chart size='full' label='When fans buy' takeaway='Fans buy most on Friday evenings'>
+      <Heatmap data={ordersByHour} rows='weekday' columns='hour' value='orders' />
+    </Chart>
+  </Dashboard.Section>
 </Dashboard>`
 
 const VALIDATE_CODE = `import { validateDashboard } from '@oztix/roadie-core/dashboard'

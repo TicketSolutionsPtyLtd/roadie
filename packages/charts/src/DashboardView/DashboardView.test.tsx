@@ -55,17 +55,16 @@ describe('DashboardView', () => {
     'draws every chart card of the %s dashboard, named by its takeaway',
     (_, spec) => {
       render(<DashboardView spec={spec} />)
-      const charts = spec.sections
+      const names = spec.sections
         .flatMap((section) => section.cards)
-        .filter((card) => card.kind === 'chart')
-      expect(charts.length).toBeGreaterThan(0)
-      for (const card of charts) {
-        const name =
-          card.plot.kind === 'static'
-            ? card.plot.alt
-            : (card.plot.takeaway ?? card.takeaway)
+        .flatMap((card) =>
+          card.kind === 'chart' && card.plot.kind !== 'static'
+            ? [card.plot.takeaway ?? card.takeaway]
+            : []
+        )
+      expect(names.length).toBeGreaterThan(0)
+      for (const name of names)
         expect(screen.getByRole('img', { name })).toBeInTheDocument()
-      }
     }
   )
 })

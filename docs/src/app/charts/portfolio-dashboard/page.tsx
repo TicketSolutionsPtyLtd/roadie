@@ -15,7 +15,7 @@ const JSX = `<Dashboard>
     <DataCard size='full' label='What to do next'>
       <p>Julia Jacklin and Genesis Owusu are furthest behind similar shows. Julia Jacklin plays first, so start there.</p>
     </DataCard>
-    <StatTile label='Tickets sold' value={6377} delta={{ value: 0.08, format: 'percent' }} context='On last month' trend={ticketsTrend} />
+    <StatTile label='Sold, last 30 days' value={2531} delta={{ value: 0.04, format: 'percent' }} context='On previous 30 days' trend={soldEachDay} />
     <StatTile label='Gross revenue' value={447700} format='compactCurrency' delta={{ value: 0.05, format: 'percent' }} context='On last month' trend={grossTrend} />
     <StatTile label='Shows behind' value={3} delta={{ value: 1, goodWhen: 'down' }} context='Of 7 on sale' trend={behindTrend} />
     <StatTile label='Refund rate' value={0.012} format='percent' delta={{ value: -0.3, format: 'points', goodWhen: 'down' }} context='On last month' trend={refundsTrend} />

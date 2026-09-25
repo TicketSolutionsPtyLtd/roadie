@@ -314,6 +314,8 @@ export function CodePreview({
               <pre
                 // Focusable so keyboard users can scroll wide code sideways.
                 tabIndex={0}
+                role='group'
+                aria-label={`Code, ${language.split('-')[0]}`}
                 className='min-w-0 overflow-x-auto p-3 font-mono text-xs sm:p-4 sm:text-sm'
                 style={{ scrollbarWidth: 'none' }}
               >

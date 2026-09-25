@@ -144,6 +144,14 @@ const shows = [
   }
 ]
 
+const WINDOW_DAYS = 30
+const soldEachDay = Array.from({ length: WINDOW_DAYS }, (_, i) =>
+  sum(shows.map((row) => row.daily.at(i - WINDOW_DAYS) ?? 0))
+)
+const soldInWindow = sum(soldEachDay)
+// Within the 3,846 these shows had sold before the window.
+const SOLD_PREVIOUS_WINDOW = 2434
+
 export function createPortfolioDashboard(): DashboardSpec {
   return {
     version: 1,
@@ -163,11 +171,16 @@ export function createPortfolioDashboard(): DashboardSpec {
             id: 'tickets',
             kind: 'stat',
             size: 'stat',
-            label: 'Tickets sold',
-            value: 6377,
-            delta: { value: 0.08, format: 'percent' },
-            context: 'On last month',
-            trend: [4450, 4790, 5040, 5210, 5470, 5690, 5905, 6377]
+            label: 'Sold, last 30 days',
+            value: soldInWindow,
+            delta: {
+              value:
+                Math.round((soldInWindow / SOLD_PREVIOUS_WINDOW - 1) * 100) /
+                100,
+              format: 'percent'
+            },
+            context: 'On previous 30 days',
+            trend: soldEachDay
           },
           {
             id: 'gross',
