@@ -19,7 +19,7 @@ import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 
 ### Default
 
-A tinted track with a raised pill on the pressed item, like Tabs. The pill slides when the choice changes. Segments share the width of the widest.
+A raised track with a solid pill on the pressed item. The pill slides when the choice changes. Segments share the width of the widest.
 
 ```tsx-live
 <ToggleGroup aria-label='Date range' defaultValue={['30d']}>
@@ -31,11 +31,11 @@ A tinted track with a raised pill on the pressed item, like Tabs. The pill slide
 
 ### Emphasis
 
-Emphasis sets the pressed pill. `strong` is solid and inverted, `normal` is raised and `subtle` is tinted, each in a tinted track. `subtler` is the only one without a track, for dense toolbars. The height is the same at every emphasis.
+Emphasis sets the track at rest, as on `Toggle`, where pressed steps up to strong. `normal` has a raised track and `subtle` a tinted one, each with a solid pill. `subtler` is the only one without a track, with a tinted pill, for dense toolbars. The height is the same at every emphasis.
 
 ```tsx-live
 <div className='grid justify-items-start gap-4'>
-  {['strong', 'normal', 'subtle', 'subtler'].map((emphasis) => (
+  {['normal', 'subtle', 'subtler'].map((emphasis) => (
     <ToggleGroup key={emphasis} emphasis={emphasis} aria-label='Date range' defaultValue={['30d']}>
       <ToggleGroup.Item value='7d'>7 days</ToggleGroup.Item>
       <ToggleGroup.Item value='30d'>30 days</ToggleGroup.Item>
@@ -66,7 +66,7 @@ The control is as tall as a `Button` of the same size, so it lines up in a toolb
 
 ### Intents
 
-The intent tints the labels, the track and the pill's shadow.
+The intent colours the pill and tints the labels and the track.
 
 ```tsx-live
 <div className='grid justify-items-start gap-4'>
@@ -207,7 +207,7 @@ render(<SalesRange />)
 
 - **Tabs switch panels; a toggle group sets a value.** Use `Tabs` when each choice shows its own content below. Use a toggle group when the choice changes how the same content is filtered or shown, such as a date range or a list or grid view.
 - **It is as tall as a `Button` of the same size**, so it lines up beside buttons in a toolbar or a dashboard header.
-- **Use `subtler` in a dense toolbar.** It has no track, so it sits quietly beside other controls. Save `strong` for a control that has to stand out.
+- **Use `subtler` in a dense toolbar.** It has no track, so it sits quietly beside other controls.
 - **Keep it to two to five short options.** For more, or for long labels, use `Select` or `RadioGroup`.
 - **A single-choice group can't be emptied.** Clicking the pressed item leaves it pressed, so a chart always has a range. Set `defaultValue` so something is chosen from the start.
 - **Use `multiple` for independent switches** such as text styles. For a single on and off switch, use `Toggle`.

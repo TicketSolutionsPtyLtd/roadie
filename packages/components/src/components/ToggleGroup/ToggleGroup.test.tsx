@@ -22,11 +22,11 @@ describe('ToggleGroup', () => {
     expect(ToggleGroup).toBe(ToggleGroup.Root)
   })
 
-  it('renders a sunken segmented track', () => {
+  it('renders a raised segmented track', () => {
     render(<DateRange />)
     const group = screen.getByRole('group', { name: 'Date range' })
     expect(group).toHaveAttribute('data-slot', 'toggle-group')
-    expect(group).toHaveClass('emphasis-subtle', 'rounded-full')
+    expect(group).toHaveClass('emphasis-raised', 'rounded-full')
     expect(group).toHaveAttribute('data-orientation', 'horizontal')
   })
 
@@ -89,16 +89,16 @@ describe('ToggleGroup', () => {
   it('slides one indicator in single mode', () => {
     render(<DateRange />)
     expect(indicator()).toHaveClass(
-      'emphasis-raised',
+      'emphasis-strong',
       'transition-[left,top,width,height]'
     )
     expect(indicator()).toHaveAttribute('data-ready')
     expect(screen.getByRole('button', { name: '30 days' })).not.toHaveClass(
-      'data-[pressed]:emphasis-raised'
+      'data-[pressed]:emphasis-strong'
     )
   })
 
-  it('raises each pressed item itself when multiple', () => {
+  it('fills each pressed item itself when multiple', () => {
     render(
       <ToggleGroup multiple aria-label='Text style'>
         <ToggleGroup.Item value='bold'>Bold</ToggleGroup.Item>
@@ -106,14 +106,13 @@ describe('ToggleGroup', () => {
     )
     expect(indicator()).toBeNull()
     expect(screen.getByRole('button', { name: 'Bold' })).toHaveClass(
-      'data-[pressed]:emphasis-raised'
+      'data-[pressed]:emphasis-strong'
     )
   })
 
   it.each([
-    ['strong', 'emphasis-subtle', 'emphasis-strong', 'text-inverted'],
-    ['normal', 'emphasis-subtle', 'emphasis-raised', 'text-strong'],
-    ['subtle', 'emphasis-subtle', 'emphasis-subtle', 'text-strong'],
+    ['normal', 'emphasis-raised', 'emphasis-strong', 'text-inverted'],
+    ['subtle', 'emphasis-subtle', 'emphasis-strong', 'text-inverted'],
     ['subtler', 'border', 'emphasis-subtle', 'text-strong']
   ] as const)(
     'gives a %s group a %s track, a %s pill and %s pressed text',
@@ -140,8 +139,8 @@ describe('ToggleGroup', () => {
 
   it('defaults to normal', () => {
     render(<DateRange />)
-    expect(screen.getByRole('group')).toHaveClass('emphasis-subtle')
-    expect(indicator()).toHaveClass('emphasis-raised')
+    expect(screen.getByRole('group')).toHaveClass('emphasis-raised')
+    expect(indicator()).toHaveClass('emphasis-strong')
   })
 
   it('has no track at subtler', () => {

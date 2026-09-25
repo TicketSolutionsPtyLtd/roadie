@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority'
 
-// Without a track, subtler keeps the padding and a transparent border, so
-// every emphasis stays the height of a Button.
+// Tracks without a border of their own take a transparent one, so every
+// emphasis stays the height of a Button.
 export const toggleGroupVariants = cva(
   [
     'group/toggle-group relative inline-grid auto-cols-fr grid-flow-col gap-1 p-0.75',
@@ -11,8 +11,7 @@ export const toggleGroupVariants = cva(
   {
     variants: {
       emphasis: {
-        strong: 'emphasis-subtle',
-        normal: 'emphasis-subtle',
+        normal: 'border emphasis-raised',
         subtle: 'emphasis-subtle',
         subtler: 'border'
       }
@@ -39,9 +38,8 @@ export const toggleGroupItemVariants = cva(
         lg: "h-10 px-4 text-base [&_svg:not([class*='size-'])]:size-5"
       },
       emphasis: {
-        strong: 'data-[pressed]:text-inverted',
-        normal: 'data-[pressed]:text-strong',
-        subtle: 'data-[pressed]:text-strong',
+        normal: 'data-[pressed]:text-inverted',
+        subtle: 'data-[pressed]:text-inverted',
         subtler: 'data-[pressed]:text-strong'
       },
       raisePressed: { true: '', false: '' }
@@ -49,19 +47,8 @@ export const toggleGroupItemVariants = cva(
     compoundVariants: [
       {
         raisePressed: true,
-        emphasis: 'strong',
+        emphasis: ['normal', 'subtle'],
         className: 'data-[pressed]:emphasis-strong'
-      },
-      {
-        raisePressed: true,
-        emphasis: 'normal',
-        className: 'data-[pressed]:emphasis-raised'
-      },
-      {
-        raisePressed: true,
-        emphasis: 'subtle',
-        className:
-          'data-[pressed]:emphasis-subtle data-[pressed]:bg-[var(--intent-4a)]'
       },
       {
         raisePressed: true,
@@ -86,10 +73,8 @@ export const toggleGroupIndicatorVariants = cva(
   {
     variants: {
       emphasis: {
-        strong: 'emphasis-strong',
-        normal: 'emphasis-raised',
-        // A step deeper than the track's own tint, so the pill reads on it.
-        subtle: 'emphasis-subtle bg-[var(--intent-4a)]',
+        normal: 'emphasis-strong',
+        subtle: 'emphasis-strong',
         subtler: 'emphasis-subtle'
       }
     },
@@ -99,4 +84,4 @@ export const toggleGroupIndicatorVariants = cva(
 
 export type ToggleGroupSize = 'sm' | 'md' | 'lg'
 export type ToggleGroupDirection = 'horizontal' | 'vertical'
-export type ToggleGroupEmphasis = 'strong' | 'normal' | 'subtle' | 'subtler'
+export type ToggleGroupEmphasis = 'normal' | 'subtle' | 'subtler'

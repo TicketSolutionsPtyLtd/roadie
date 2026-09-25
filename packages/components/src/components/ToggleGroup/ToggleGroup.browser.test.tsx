@@ -13,7 +13,7 @@ beforeAll(() => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
-const EMPHASES = ['strong', 'normal', 'subtle', 'subtler'] as const
+const EMPHASES = ['normal', 'subtle', 'subtler'] as const
 
 function DateRange(props: Omit<ToggleGroupProps, 'children'>) {
   return (
@@ -73,7 +73,7 @@ describe.each(EMPHASES)('the %s sliding pill', (emphasis) => {
     const rest = screen.getByRole('button', { name: '7 days' })
     const colour = (element: Element) => getComputedStyle(element).color
     await expect.poll(() => colour(pressed)).not.toBe(colour(rest))
-    if (emphasis === 'strong') {
+    if (emphasis !== 'subtler') {
       await expect.poll(() => colour(pressed)).toBe(colour(indicator()))
     }
     const atRest = colour(pressed)

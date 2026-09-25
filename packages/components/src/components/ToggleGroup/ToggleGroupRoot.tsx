@@ -40,13 +40,13 @@ export type ToggleGroupRootProps<Value extends string = string> = Omit<
      */
     size?: ToggleGroupSize
     /**
-     * The pressed pill. `strong` is solid and inverted, `normal` is raised,
-     * and `subtle` is tinted, each in a tinted track. `subtler` has no track,
-     * only a tinted pill.
+     * The track at rest, as on Toggle. `normal` is raised and `subtle` is
+     * tinted, each with a solid pressed pill. `subtler` has no track and a
+     * tinted pill.
      *
      * @default 'normal'
      */
-    emphasis?: 'strong' | 'normal' | 'subtle' | 'subtler'
+    emphasis?: 'normal' | 'subtle' | 'subtler'
     /**
      * Lays the items out in a row or a column. Arrow keys follow it.
      *
