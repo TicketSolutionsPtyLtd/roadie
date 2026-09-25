@@ -103,7 +103,7 @@ const QUESTIONS = [
     row.question.replace(/\?$/, ''),
     row.chart.startsWith('Annotations')
       ? 'Annotations on a time chart'
-      : `Chart card with ${row.chart}`,
+      : `Chart card showing ${row.chart}`,
     row.term
   ])
 ]
@@ -258,7 +258,7 @@ const ANATOMY = [
   [
     'Headline',
     'A value with a short delta, or a takeaway sentence. Never both.',
-    '61% ↑ 9 pts'
+    '61% ↑ 16 pts'
   ],
   [
     'Context line',
@@ -270,7 +270,7 @@ const ANATOMY = [
     'Top right. The Chart and Table switch, and an optional menu.',
     'Chart, Table'
   ],
-  ['Body', 'A sparkline, plot, table, note text or nothing.', 'The pace curve'],
+  ['Body', 'A sparkline, plot, table, note text or nothing.', 'A LineChart'],
   [
     'Footer',
     'The source, under a hairline. Required on chart and table cards.',
@@ -653,7 +653,7 @@ export default function DashboardsPage() {
             label='Pace to date'
             value={0.61}
             format='percent'
-            delta={{ value: 9, format: 'points' }}
+            delta={{ value: 16, format: 'points' }}
             context='Forecast 96% by show day'
             source='Oztix sales. 38 similar shows.'
             size='md'
