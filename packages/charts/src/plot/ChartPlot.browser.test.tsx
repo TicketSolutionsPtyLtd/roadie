@@ -1,4 +1,4 @@
-import { areaY, defineChart, lineY } from '@tanstack/charts'
+import { areaY, cell, defineChart, lineY } from '@tanstack/charts'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
@@ -44,6 +44,31 @@ function renderInCard(
       </Chart>
     </div>
   )
+}
+
+const heatmapLikeChart: ChartDefinition<TestProps> = {
+  ...testChart,
+  build: ({ points }, paint) =>
+    defineChart({
+      marks: [
+        cell(
+          [
+            { x: 0, y: 0, bucket: 'low' },
+            { x: 1, y: 0, bucket: 'high' }
+          ],
+          { id: 'cells', x: 'x', y: 'y', color: 'bucket' }
+        ),
+        areaY(
+          points.filter((p) => p.series === 'A'),
+          { id: seriesMarkId(1), x: 'x', y: 'y', fill: paint.categorical[0]! }
+        )
+      ],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 3]) },
+        y: { scale: scaleLinear().domain([0, 10]) }
+      },
+      color: { domain: ['low', 'high'], range: ['#111111', '#eeeeee'] }
+    })
 }
 
 const areaChart: ChartDefinition<TestProps> = {
@@ -195,6 +220,31 @@ describe('ChartPlot under forced colours', () => {
       expect(getComputedStyle(line).strokeDasharray).toMatch(
         /^6(px)?,? 3(px)?$/
       )
+    } finally {
+      await commands.forcedColors(false)
+    }
+  })
+
+  it('keeps cell colours untextured while other marks still texture', async (context) => {
+    const { container } = renderInCard('md', 560, heatmapLikeChart)
+    const cells = container.querySelectorAll<SVGRectElement>(
+      "rect[data-ts-key^='cells:']"
+    )
+    const series = container.querySelector(
+      `path[data-ts-key^='${seriesMarkId(1)}:']`
+    )!
+    expect(cells.length).toBe(2)
+
+    await commands.forcedColors(true)
+    try {
+      if (!matchMedia('(forced-colors: active)').matches) {
+        context.skip()
+        return
+      }
+      const fills = Array.from(cells, (cell) => getComputedStyle(cell).fill)
+      expect(fills.every((fill) => !fill.includes('url('))).toBe(true)
+      expect(new Set(fills).size).toBe(2)
+      expect(getComputedStyle(series).fill).toMatch(/texture-1/)
     } finally {
       await commands.forcedColors(false)
     }

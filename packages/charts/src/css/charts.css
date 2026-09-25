@@ -217,3 +217,13 @@
     stroke-dasharray: 10 4;
   }
 }
+
+/* In a heatmap, colour is the data: never texture the scale, and keep it
+   under forced colours and print. */
+.ts-chart
+  :is([data-ts-key='cells'], [data-ts-key^='cells:'])
+  :is(rect, path) {
+  forced-color-adjust: none;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
