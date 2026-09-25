@@ -11,7 +11,7 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 import { type ValueFormat, formatValue } from '@oztix/roadie-core/dataviz'
 
-import { asList, emphasisColor } from '../plot/series'
+import { asList, emphasisColor, seriesMarkId } from '../plot/series'
 import { fieldLabel } from '../plot/table'
 import type {
   ChartDefinition,
@@ -34,6 +34,9 @@ const EMPTY = 'Not enough data yet to compare'
 // One z group for every dot, so the arrow keys walk across both marks.
 const POINTS_GROUP = 'points'
 const LABEL_OFFSET = 4
+// Series slots, as RankedBars uses them, so forced colours texture each role.
+const STORY_SLOT = 1
+const CONTEXT_SLOT = 2
 
 function extent(
   values: readonly number[],
@@ -131,14 +134,15 @@ function pointMarks(
   const markOf = (id: string, group: readonly Placed[]) =>
     dot(group, { ...dots, id, fill: colourOf(group[0]!, props, paint) })
   if (points.length === 0) return []
-  if (asList(props.highlight).length === 0) return [markOf('series-1', points)]
+  if (asList(props.highlight).length === 0)
+    return [markOf(seriesMarkId(STORY_SLOT), points)]
   const context = points.filter((p) => !p.highlighted)
   const highlighted = points.filter((p) => p.highlighted)
   return [
-    ...(context.length ? [markOf('series-context', context)] : []),
+    ...(context.length ? [markOf(seriesMarkId(CONTEXT_SLOT), context)] : []),
     ...(highlighted.length
       ? [
-          markOf('series-highlight', highlighted),
+          markOf(seriesMarkId(STORY_SLOT), highlighted),
           decorative(
             text(highlighted, {
               id: 'label-points',

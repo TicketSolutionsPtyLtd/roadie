@@ -29,11 +29,8 @@ const fillOf = (markup: string, id: string) =>
 
 describe('scatter', () => {
   it('paints highlighted points in the highlight and the rest as context', () => {
-    expect(fillOf(svg, 'series-highlight')).toEqual([
-      paint.highlight,
-      paint.highlight
-    ])
-    expect(fillOf(svg, 'series-context')).toEqual(Array(4).fill(paint.context))
+    expect(fillOf(svg, 'series-1')).toEqual([paint.highlight, paint.highlight])
+    expect(fillOf(svg, 'series-2')).toEqual(Array(4).fill(paint.context))
   })
 
   it('paints every point in the first colour without a highlight', () => {
@@ -66,7 +63,7 @@ describe('scatter', () => {
   it('focuses only the points, all in one walk', () => {
     const points = sceneOf(portfolioExample).points
     expect(new Set(points.map((p) => p.markId))).toEqual(
-      new Set(['series-highlight', 'series-context'])
+      new Set(['series-1', 'series-2'])
     )
     expect(points).toHaveLength(6)
     expect(new Set(points.map((p) => p.group)).size).toBe(1)

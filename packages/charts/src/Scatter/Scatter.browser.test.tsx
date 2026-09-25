@@ -1,5 +1,6 @@
 import { cleanup } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { commands } from 'vitest/browser'
 
 import { Scatter } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
@@ -77,5 +78,20 @@ describe('Scatter in a card', () => {
       <Scatter {...portfolioExample} />
     )
     await expectTableKeepsHeight(container, getByRole)
+  })
+})
+
+describe('Scatter in print', () => {
+  it('textures highlighted and context dots apart', async () => {
+    const { container } = renderInCard(<Scatter {...portfolioExample} />)
+    const dot = (slot: number) =>
+      container.querySelector(`circle[data-ts-key^='series-${slot}:']`)!
+    await commands.printMedia(true)
+    try {
+      expect(getComputedStyle(dot(1)).fill).toMatch(/texture-1/)
+      expect(getComputedStyle(dot(2)).fill).toMatch(/texture-2/)
+    } finally {
+      await commands.printMedia(false)
+    }
   })
 })
