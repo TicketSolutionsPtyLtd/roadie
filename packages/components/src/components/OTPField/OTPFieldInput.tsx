@@ -13,7 +13,7 @@ import {
   otpFieldInputVariants
 } from './variants'
 
-export type OTPFieldInputProps = OTPFieldPrimitive.Input.Props &
+export type OTPFieldInputProps = Omit<OTPFieldPrimitive.Input.Props, 'size'> &
   RefAttributes<HTMLInputElement> & {
     /** Slot size. Inherits from the root when omitted. */
     size?: OTPFieldSize

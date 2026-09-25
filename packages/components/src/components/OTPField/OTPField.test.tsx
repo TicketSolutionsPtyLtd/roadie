@@ -140,6 +140,18 @@ describe('OTPField', () => {
     }
   })
 
+  it('lets one slot override the root size', () => {
+    const { container } = render(
+      <OTPField length={2} aria-label='Code'>
+        <OTPField.Input size='lg' />
+        <OTPField.Input />
+      </OTPField>
+    )
+    const [first, second] = slots(container)
+    expect(first).toHaveClass('max-w-12')
+    expect(second).toHaveClass('max-w-10')
+  })
+
   it('exports its slot variants', () => {
     expect(otpFieldInputVariants({ size: 'sm' })).toContain('max-w-8')
   })
