@@ -52,6 +52,11 @@ export type ChartProps = Omit<
   /** @default 'chart' */
   view?: ChartView
   legend?: ReactNode
+  /**
+   * Card actions after the Chart and Table switch, such as
+   * `<DataCard.MoreButton>`. Shown in every state.
+   */
+  actions?: ReactNode
   children: ReactNode
 }
 
@@ -89,10 +94,28 @@ class PlotBoundary extends Component<PlotBoundaryProps, PlotBoundaryState> {
 
 const EMPTY_TABLE: ChartTable = { columns: [], rows: [] }
 
+function ViewSwitch({ label }: { label: string }) {
+  return (
+    <Tabs.List aria-label={`${label} view`}>
+      <Tabs.Tab value='chart' aria-label='Chart' title='Chart' className={TAB}>
+        <ChartLineIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
+      <Tabs.Tab value='table' aria-label='Table' title='Table' className={TAB}>
+        <TableIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+  )
+}
+
+const hasData = (state: ChartProps['state']) =>
+  state === undefined || state === 'ready' || state === 'stale'
+
 export function Chart({
   table,
   view = 'chart',
   legend,
+  actions,
   children,
   size,
   className,
@@ -115,6 +138,7 @@ export function Chart({
     [plotHeight, fail, hasLegend]
   )
   const shownTable = table ?? report?.table ?? EMPTY_TABLE
+  const showViews = !failed && hasData(state)
   return (
     <ChartCardContext.Provider value={context}>
       <Tabs.Root
@@ -133,25 +157,12 @@ export function Chart({
           state={failed ? 'error' : state}
           aria-describedby={report ? summaryId : undefined}
           actions={
-            <Tabs.List aria-label={`${label} view`}>
-              <Tabs.Tab
-                value='chart'
-                aria-label='Chart'
-                title='Chart'
-                className={TAB}
-              >
-                <ChartLineIcon weight='bold' className='size-4' />
-              </Tabs.Tab>
-              <Tabs.Tab
-                value='table'
-                aria-label='Table'
-                title='Table'
-                className={TAB}
-              >
-                <TableIcon weight='bold' className='size-4' />
-              </Tabs.Tab>
-              <Tabs.Indicator />
-            </Tabs.List>
+            showViews || actions ? (
+              <>
+                {showViews && <ViewSwitch label={label} />}
+                {actions}
+              </>
+            ) : undefined
           }
           {...props}
         >

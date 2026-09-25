@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import { Dashboard } from '@oztix/roadie-components/dashboard'
 import { DataCard } from '@oztix/roadie-components/data-card'
 import { DataTable } from '@oztix/roadie-components/data-table'
@@ -12,9 +14,19 @@ import { Chart } from '../Chart'
 import { ChartLegend } from '../ChartLegend'
 import { PlotView, plotTable } from './plots'
 
-export type DashboardViewProps = { spec: DashboardSpec; className?: string }
+export type DashboardViewProps = {
+  spec: DashboardSpec
+  /**
+   * Actions for each card, such as a More button, placed at its top right.
+   * They carry handlers, so they come from the app rather than the spec.
+   * Return nothing to leave a card without actions.
+   */
+  cardActions?: (card: DashboardCard) => ReactNode
+  className?: string
+}
 
-const cardProps = (card: DashboardCard) => ({
+const cardProps = (card: DashboardCard, actions: ReactNode) => ({
+  actions,
   label: card.label,
   context: card.context,
   state: card.state,
@@ -24,12 +36,14 @@ const cardProps = (card: DashboardCard) => ({
   source: card.source
 })
 
-function Card({ card, size }: { card: DashboardCard; size: CardSize }) {
+type CardProps = { card: DashboardCard; size: CardSize; actions: ReactNode }
+
+function Card({ card, size, actions }: CardProps) {
   switch (card.kind) {
     case 'stat':
       return (
         <StatTile
-          {...cardProps(card)}
+          {...cardProps(card, actions)}
           value={card.value}
           format={card.format}
           delta={card.delta}
@@ -40,7 +54,7 @@ function Card({ card, size }: { card: DashboardCard; size: CardSize }) {
     case 'table':
       return (
         <DataCard
-          {...cardProps(card)}
+          {...cardProps(card, actions)}
           size={size}
           value={card.value}
           format={card.format}
@@ -57,7 +71,7 @@ function Card({ card, size }: { card: DashboardCard; size: CardSize }) {
     case 'chart':
       return (
         <Chart
-          {...cardProps(card)}
+          {...cardProps(card, actions)}
           source={card.source}
           size={size}
           value={card.value}
@@ -83,14 +97,18 @@ function Card({ card, size }: { card: DashboardCard; size: CardSize }) {
       )
     case 'note':
       return (
-        <DataCard {...cardProps(card)} size={size}>
+        <DataCard {...cardProps(card, actions)} size={size}>
           <p className='text-sm text-normal'>{card.body}</p>
         </DataCard>
       )
   }
 }
 
-export function DashboardView({ spec, className }: DashboardViewProps) {
+export function DashboardView({
+  spec,
+  cardActions,
+  className
+}: DashboardViewProps) {
   return (
     <Dashboard className={className}>
       {spec.sections.map((section, index) => (
@@ -100,7 +118,12 @@ export function DashboardView({ spec, className }: DashboardViewProps) {
           description={section.description}
         >
           {section.cards.map((card) => (
-            <Card key={card.id} card={card} size={card.size} />
+            <Card
+              key={card.id}
+              card={card}
+              size={card.size}
+              actions={cardActions?.(card)}
+            />
           ))}
         </Dashboard.Section>
       ))}

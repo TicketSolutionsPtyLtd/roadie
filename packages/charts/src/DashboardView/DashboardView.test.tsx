@@ -48,6 +48,23 @@ describe('DashboardView', () => {
     ).toContain('At a glance')
   })
 
+  it('asks for actions once per card, with its spec, on every card kind', () => {
+    const spec = createShowDashboard()
+    const cards = spec.sections.flatMap((section) => section.cards)
+    const cardActions = vi.fn((card: (typeof cards)[number]) => (
+      <button type='button'>More actions for {card.label}</button>
+    ))
+    render(<DashboardView spec={spec} cardActions={cardActions} />)
+    expect(cardActions.mock.calls.map(([card]) => card)).toEqual(cards)
+    expect(new Set(cards.map((card) => card.kind))).toEqual(
+      new Set(['stat', 'table', 'chart', 'note'])
+    )
+    for (const { label } of cards)
+      expect(screen.getByRole('article', { name: label })).toContainElement(
+        screen.getByRole('button', { name: `More actions for ${label}` })
+      )
+  })
+
   it.each([
     ['show', createShowDashboard()],
     ['portfolio', createPortfolioDashboard()],

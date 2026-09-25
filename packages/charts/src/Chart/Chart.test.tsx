@@ -129,6 +129,42 @@ function ReportingPlot() {
   return <svg role='img' aria-label='Sales rose from 120 to 1,464' />
 }
 
+describe('Chart actions', () => {
+  const more = <button type='button'>More actions for Sales pace</button>
+
+  it('renders actions after the view switch', () => {
+    const { container } = render(
+      <Chart label='Sales pace' source='Oztix sales.' actions={more}>
+        <svg role='img' aria-label='Pace chart' />
+      </Chart>
+    )
+    const slot = container.querySelector('[data-slot=data-card-actions]')!
+    const [tabs, action] = [...slot.children]
+    expect(tabs).toHaveAttribute('role', 'tablist')
+    expect(action).toHaveTextContent('More actions for Sales pace')
+  })
+
+  it('keeps actions but drops the view switch without data', () => {
+    for (const state of ['loading', 'empty', 'error'] as const) {
+      const { unmount } = render(
+        <Chart
+          label='Sales pace'
+          source='Oztix sales.'
+          state={state}
+          actions={more}
+        >
+          <svg role='img' aria-label='Pace chart' />
+        </Chart>
+      )
+      expect(screen.queryByRole('tablist')).toBeNull()
+      expect(
+        screen.getByRole('button', { name: 'More actions for Sales pace' })
+      ).toBeInTheDocument()
+      unmount()
+    }
+  })
+})
+
 describe('Chart with a reporting plot', () => {
   it('builds the Table view from the plot with no table prop', () => {
     render(
