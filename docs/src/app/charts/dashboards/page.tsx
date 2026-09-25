@@ -1,16 +1,15 @@
 import type { ReactNode } from 'react'
 
-import Image from 'next/image'
 import Link from 'next/link'
 
 import { CodePreview } from '@/components/CodePreview'
 import { Guideline } from '@/components/Guideline'
-import { getAssetPath } from '@/utils/getAssetPath'
 
 import { Chart } from '@oztix/roadie-charts/chart'
 import { ChartLegend } from '@oztix/roadie-charts/chart-legend'
 import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
 import { createShowDashboard } from '@oztix/roadie-charts/examples'
+import { LineChart } from '@oztix/roadie-charts/line-chart'
 import { Button } from '@oztix/roadie-components/button'
 import { Code } from '@oztix/roadie-components/code'
 import { DataCard } from '@oztix/roadie-components/data-card'
@@ -31,6 +30,9 @@ import {
   DASHBOARD_WIDTHS,
   type DashboardWidth
 } from '@oztix/roadie-core/dashboard-layout'
+
+import { PACE_EXAMPLE } from '../pace-example'
+import { TICKETING_REFERENCE } from '../ticketing-reference'
 
 export const metadata = {
   title: 'Dashboard design',
@@ -95,10 +97,15 @@ const QUESTIONS = [
     'Stat tile with a reference line',
     'Sell-through against 85%'
   ],
-  ['How is it moving', 'Chart card', 'Sales pace'],
   ['Which ones need attention', 'Data table with sparklines', 'Upcoming shows'],
   ['What should I do', 'Note card', 'What to do next'],
-  ['When', 'Chart card with a heatmap', 'When fans buy']
+  ...TICKETING_REFERENCE.map((row) => [
+    row.question.replace(/\?$/, ''),
+    row.chart.startsWith('Annotations')
+      ? 'Annotations on a time chart'
+      : `Chart card with ${row.chart}`,
+    row.term
+  ])
 ]
 
 const FILLING_ROWS: { name: ReactNode; sizes: CardSize[] }[] = [
@@ -246,52 +253,8 @@ const FILLING_TABLE_ROWS = FILLING_ROWS.map(({ name, sizes }) => [
   ))
 ])
 
-const PACE_TABLE = {
-  columns: [
-    { key: 'days', header: 'Days to show', kind: 'number' },
-    { key: 'show', header: 'This show', kind: 'number', format: 'percent' },
-    {
-      key: 'similar',
-      header: 'Similar shows',
-      kind: 'number',
-      format: 'percent'
-    }
-  ] satisfies DataTableColumn[],
-  rows: [
-    { days: 90, show: 0.14, similar: 0.14 },
-    { days: 60, show: 0.38, similar: 0.35 },
-    { days: 30, show: 0.61, similar: 0.52 }
-  ]
-}
-
-const PACE_ALT =
-  'This show tracks above the band of 38 similar shows and is forecast to reach 96% by show day'
-
-function PacePlot() {
-  return (
-    <>
-      <Image
-        data-theme-image='light'
-        src={getAssetPath('/charts/pace-ahead-light.svg')}
-        width={640}
-        height={240}
-        alt={PACE_ALT}
-        className='size-full object-contain'
-      />
-      <Image
-        data-theme-image='dark'
-        src={getAssetPath('/charts/pace-ahead-dark.svg')}
-        width={640}
-        height={240}
-        alt={PACE_ALT}
-        className='size-full object-contain'
-      />
-    </>
-  )
-}
-
 const ANATOMY = [
-  ['Label', 'Required. Fixed and short.', 'Sales pace'],
+  ['Label', 'Required. Fixed and short.', 'Pace to date'],
   [
     'Headline',
     'A value with a short delta, or a takeaway sentence. Never both.',
@@ -432,8 +395,8 @@ const DASHBOARD_JSX = `<Dashboard>
     <StatTile label='Gross revenue' value={118400} format='compactCurrency' />
   </Dashboard.Section>
   <Dashboard.Section title='Sales'>
-    <Chart size='full' label='Sales pace' source='Oztix sales.' table={pace}>
-      <PacePlot />
+    <Chart size='full' label='Sales pace' source='Oztix sales.'>
+      <LineChart data={pace} x='day' y='sold' format='percent' />
     </Chart>
     <DataCard size='md' label='Ticket types'>
       <DataTable columns={typeColumns} rows={types} />
@@ -481,16 +444,23 @@ const GAP_WARNING =
   '[Roadie Dashboard] "Pace" has rows that don\'t fill: desktop row 1 leaves 4 empty; desktop row 2 leaves 6 empty; tablet row 2 leaves 3 empty. See /charts/dashboards.'
 
 function Table({
+  label,
   head,
   rows,
   fit = false
 }: {
+  label: string
   head: string[]
   rows: ReactNode[][]
   fit?: boolean
 }) {
   return (
-    <div className='overflow-x-auto'>
+    <div
+      role='region'
+      aria-label={label}
+      tabIndex={0}
+      className='overflow-x-auto rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2'
+    >
       <table className={fit ? 'w-full text-sm' : 'w-full min-w-xl text-sm'}>
         <thead>
           <tr className='border-b border-subtle text-left text-subtle'>
@@ -599,7 +569,7 @@ export default function DashboardsPage() {
           <Code>Dashboard.Section</Code> groups cards under an h2, and sections
           sit 32px apart.
         </p>
-        <Table head={SIZE_HEAD} rows={SIZE_ROWS} />
+        <Table label='Card sizes' head={SIZE_HEAD} rows={SIZE_ROWS} />
         <p className='max-w-prose text-subtle'>
           There are no custom spans, breakpoint overrides or dense packing. If a
           layout needs a size that isn’t here, it gets a new size in Roadie.
@@ -632,6 +602,7 @@ export default function DashboardsPage() {
           combinations do.
         </p>
         <Table
+          label='Rows that fill'
           head={['Row', ...DASHBOARD_WIDTHS.map((width) => WIDTH_NAME[width])]}
           rows={FILLING_TABLE_ROWS}
           fit
@@ -641,7 +612,7 @@ export default function DashboardsPage() {
           half. So <Code>lg</Code> then <Code>sm</Code> leaves half a row empty.
           The mirrored <Code>sm</Code> fills it.
         </p>
-        <Guideline title='Mirror a large card'>
+        <Guideline headingLevel={3} title='Mirror a large card'>
           <Guideline.Do
             example={<RowDiagram sizes={['lg', 'sm', 'sm', 'lg']} />}
           >
@@ -679,14 +650,13 @@ export default function DashboardsPage() {
         </p>
         <figure className='grid gap-6'>
           <Chart
-            label='Sales pace'
+            label='Pace to date'
             value={0.61}
             format='percent'
             delta={{ value: 9, format: 'points' }}
             context='Forecast 96% by show day'
             source='Oztix sales. 38 similar shows.'
             size='md'
-            table={PACE_TABLE}
             legend={
               <ChartLegend
                 items={[
@@ -701,7 +671,10 @@ export default function DashboardsPage() {
               />
             }
           >
-            <PacePlot />
+            <LineChart
+              {...PACE_EXAMPLE}
+              takeaway='Tracking ahead of similar shows, forecast to reach 96%'
+            />
           </Chart>
           <figcaption>
             <ol className='grid list-decimal gap-3 pl-5 text-subtle'>
@@ -732,7 +705,7 @@ export default function DashboardsPage() {
           both. Use a value when one number answers the question. Use a takeaway
           when there’s no single number, such as a channel mix or a table.
         </p>
-        <Guideline title='One headline per card'>
+        <Guideline headingLevel={3} title='One headline per card'>
           <Guideline.Do
             example={
               <Tile>
@@ -768,7 +741,11 @@ export default function DashboardsPage() {
         <h2 className='text-display-prose-3 text-strong'>
           Which card answers which question
         </h2>
-        <Table head={['Question', 'Card', 'Example']} rows={QUESTIONS} />
+        <Table
+          label='Which card answers which question'
+          head={['Question', 'Card', 'Example']}
+          rows={QUESTIONS}
+        />
       </section>
 
       <section className='grid gap-6'>
@@ -777,12 +754,20 @@ export default function DashboardsPage() {
           Copy is sized for the card’s narrowest width. Past these limits it
           truncates.
         </p>
-        <Table head={['Size', 'Label', 'Context']} rows={LIMIT_ROWS} />
+        <Table
+          label='Copy limits'
+          head={['Size', 'Label', 'Context']}
+          rows={LIMIT_ROWS}
+        />
         <p className='max-w-prose text-subtle'>
           Chart cards carry the Chart/Table switch in the label’s row, so their
           label budget is tighter than <Code>COPY_LIMITS</Code>.
         </p>
-        <Table head={['Size', 'Label']} rows={CHART_LABEL_ROWS} />
+        <Table
+          label='Chart label limits'
+          head={['Size', 'Label']}
+          rows={CHART_LABEL_ROWS}
+        />
         <List
           items={[
             'Keep the delta short. It sits next to the value.',
@@ -791,7 +776,7 @@ export default function DashboardsPage() {
             'Sentence case for labels, context and takeaways.'
           ]}
         />
-        <Guideline title='Short label, short delta'>
+        <Guideline headingLevel={3} title='Short label, short delta'>
           <Guideline.Do
             example={
               <Tile>
@@ -899,6 +884,7 @@ export default function DashboardsPage() {
           . It returns these problems.
         </p>
         <Table
+          label='Validation problems'
           head={['Path', 'Message', 'Severity']}
           rows={VALIDATE_PROBLEMS}
         />
