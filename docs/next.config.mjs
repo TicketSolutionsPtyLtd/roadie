@@ -20,6 +20,7 @@ const nextConfig = {
   },
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   transpilePackages: [
+    '@oztix/roadie-charts',
     '@oztix/roadie-components',
     '@oztix/roadie-core',
     '@oztix/roadie-widgets'

@@ -1,0 +1,85 @@
+export const metadata = {
+  title: 'Dashboard',
+  description: 'A grid of named card sizes that reflows by its own width',
+  status: 'beta',
+  category: 'Layout'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A grid of named card sizes that reflows by its own width.
+
+## Import
+
+```tsx
+import { Dashboard } from '@oztix/roadie-components/dashboard'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Dashboard>
+  <Dashboard.Section title='At a glance'>
+    <StatTile label='Tickets sold' value={1842} delta={{ value: 214 }} context='This week, of 2,400' />
+    <StatTile label='Sell-through' value={0.77} format='percent' delta={{ value: 9, format: 'points' }} context='Week target is 85%' />
+    <StatTile label='Pace index' value={112} format='index' context='Vs similar shows' />
+    <StatTile label='Gross revenue' value={118400} format='compactCurrency' delta={{ value: -0.04, format: 'percent' }} context='Last wk, before fees' />
+  </Dashboard.Section>
+</Dashboard>
+```
+
+### Sizes
+
+```tsx-live
+<Dashboard>
+  <Dashboard.Section title='Large and small'>
+    <DataCard size='lg' label='lg card' takeaway='Eight tracks of twelve on desktop' />
+    <DataCard size='sm' label='sm card' takeaway='Four tracks of twelve on desktop' />
+    <DataCard size='sm' label='sm card' takeaway='Four tracks of twelve on desktop' />
+    <DataCard size='lg' label='lg card' takeaway='Eight tracks of twelve on desktop' />
+  </Dashboard.Section>
+  <Dashboard.Section title='Medium pair'>
+    <DataCard size='md' label='md card' takeaway='Six tracks of twelve on desktop' />
+    <DataCard size='md' label='md card' takeaway='Six tracks of twelve on desktop' />
+  </Dashboard.Section>
+  <Dashboard.Section title='Full width'>
+    <DataCard size='full' label='full card' takeaway='All twelve tracks on desktop' />
+  </Dashboard.Section>
+</Dashboard>
+```
+
+### Sections
+
+```tsx-live
+<Dashboard>
+  <Dashboard.Section title='At a glance' description='This week, against last week'>
+    <StatTile label='Tickets sold' value={1842} delta={{ value: 214 }} context='This week, of 2,400' />
+    <StatTile label='Sell-through' value={0.77} format='percent' delta={{ value: 9, format: 'points' }} context='Week target is 85%' />
+    <StatTile label='Pace index' value={112} format='index' context='Vs similar shows' />
+    <StatTile label='Gross revenue' value={118400} format='compactCurrency' delta={{ value: -0.04, format: 'percent' }} context='Last wk, before fees' />
+  </Dashboard.Section>
+  <Dashboard.Section title='Sales' description='How this show is tracking'>
+    <DataCard size='lg' label='Sales pace' takeaway='Tracking ahead of similar shows' />
+    <DataCard size='sm' label='What to do next'>
+      <p>GA is carrying the show. Push VIP this month.</p>
+    </DataCard>
+    <DataCard size='sm' label='Where buyers are from' takeaway='Brisbane and the Gold Coast lead' />
+    <DataCard size='lg' label='Ticket types' takeaway='GA is carrying the show' />
+  </Dashboard.Section>
+</Dashboard>
+```
+
+## Guidelines
+
+- Pick sizes that fill each row at desktop, tablet and phone. See [Dashboard design](/charts/dashboards#rows-that-fill) for the combinations that do.
+- Never reorder cards to fill a gap. Change a card's size instead, or add one.
+- Ask one question per card. A card that answers two questions is two cards.
+
+## Accessibility
+
+- `Dashboard.Section` renders its title as an `h2`. Give every section a title.
+- Cards flow in source order, and the grid never reorders them, so reading order always matches what people see.
+
+<PropsDefinitions componentPath='packages/components/src/components/Dashboard' />
