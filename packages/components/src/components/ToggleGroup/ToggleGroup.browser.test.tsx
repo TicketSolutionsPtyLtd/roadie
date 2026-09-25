@@ -31,21 +31,25 @@ function rectOf(element: Element) {
   return { left, top, width, height }
 }
 
+function gap(pill: DOMRect, item: DOMRect) {
+  return Math.max(
+    Math.abs(pill.left - item.left),
+    Math.abs(pill.top - item.top),
+    Math.abs(pill.width - item.width),
+    Math.abs(pill.height - item.height)
+  )
+}
+
 // The pill animates between items, so wait for it to settle.
 async function expectPillOver(name: string) {
   const item = screen.getByRole('button', { name })
   await expect
-    .poll(() => {
-      const pill = rectOf(indicator())
-      const target = rectOf(item)
-      return Object.keys(target).every(
-        (key) =>
-          Math.abs(
-            pill[key as keyof typeof pill] - target[key as keyof typeof target]
-          ) < 1
-      )
-    })
-    .toBe(true)
+    .poll(
+      () =>
+        gap(indicator().getBoundingClientRect(), item.getBoundingClientRect()),
+      { timeout: 5000 }
+    )
+    .toBeLessThan(1)
 }
 
 describe('the sliding pill', () => {
