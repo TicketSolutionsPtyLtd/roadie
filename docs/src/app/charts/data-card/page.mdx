@@ -1,0 +1,103 @@
+export const metadata = {
+  title: 'DataCard',
+  description:
+    'The shared card for dashboards: a label, a number or a sentence, and a body',
+  status: 'beta',
+  category: 'Layout'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+The shared card for dashboards: a label, a number or a sentence, and a body.
+
+## Import
+
+```tsx
+import { DataCard } from '@oztix/roadie-components/data-card'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-72'>
+  <DataCard
+    label='Gross revenue'
+    value={118400}
+    format='compactCurrency'
+    delta={{ value: -0.04, format: 'percent' }}
+    context='Last week, before fees'
+  />
+</div>
+```
+
+### Takeaway
+
+```tsx-live
+<div className='w-80'>
+  <DataCard
+    label='Where buyers are from'
+    takeaway='Brisbane and the Gold Coast lead this show'
+    source='Oztix sales. Postcode of purchase.'
+  >
+    <DataTable
+      caption='Where buyers are from'
+      columns={[
+        { key: 'suburb', header: 'Suburb', kind: 'text' },
+        { key: 'share', header: 'Share', kind: 'number', format: 'percent' }
+      ]}
+      rows={[
+        { suburb: 'Fortitude Valley', share: 0.22 },
+        { suburb: 'West End', share: 0.14 },
+        { suburb: 'Surfers Paradise', share: 0.11 }
+      ]}
+    />
+  </DataCard>
+</div>
+```
+
+### Actions
+
+```tsx-live
+<div className='w-72'>
+  <DataCard
+    label='Sales pace'
+    value={0.61}
+    format='percent'
+    delta={{ value: 9, format: 'points' }}
+    context='Forecast 96% by show day'
+    actions={<Button size='sm' emphasis='subtle'>View chart</Button>}
+  />
+</div>
+```
+
+### States
+
+```tsx-live
+<div className='grid w-72 gap-4'>
+  <p className='text-sm text-subtle'>Ready</p>
+  <DataCard label='Tickets sold' value={1842} delta={{ value: 214 }} context='This week, of 2,400' source='Oztix sales.' />
+  <p className='text-sm text-subtle'>Loading</p>
+  <DataCard label='Tickets sold' value={0} state='loading' bodyHeight='2rem' />
+  <p className='text-sm text-subtle'>Empty</p>
+  <DataCard label='Tickets sold' state='empty' emptyMessage='No sales yet. Tickets go on sale Fri 27 Nov.' />
+  <p className='text-sm text-subtle'>Error</p>
+  <DataCard label='Tickets sold' state='error' errorAction={<Button size='sm' emphasis='normal'>Retry</Button>} />
+  <p className='text-sm text-subtle'>Stale</p>
+  <DataCard label='Tickets sold' value={1842} state='stale' staleLabel='As of 10:42am' source='Oztix sales.' />
+</div>
+```
+
+## Guidelines
+
+- Set `value` and `delta` for one headline number, or `takeaway` for a sentence. Never both. `StatTile`, table cards and chart cards all build on this rule.
+- Give every chart and table card a `source`. It sits under a hairline in the footer.
+- Pass `actions` for the one or two things a person can do from the card, such as switching to a table view.
+
+## Accessibility
+
+- The card is a region named by its label, and truncated label or context text stays available in its `title` attribute.
+- `state='loading'` sets `aria-busy`, so assistive tech knows the card isn't ready.
+
+<PropsDefinitions componentPath='packages/components/src/components/DataCard/index.tsx' />

@@ -284,7 +284,7 @@ export default function ColorsPage() {
           <p className='text-subtle'>
             Charts use their own palette, checked for colour-blind separation in
             CI. Each set has one job. Read{' '}
-            <Link href='/foundations/data-visualisation' className='underline'>
+            <Link href='/charts/data-visualisation' className='underline'>
               Data visualisation
             </Link>{' '}
             before you pick one.

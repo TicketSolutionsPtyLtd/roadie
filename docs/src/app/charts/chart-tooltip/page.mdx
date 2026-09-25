@@ -1,0 +1,42 @@
+export const metadata = {
+  title: 'ChartTooltip',
+  description: 'The look of chart tooltips',
+  status: 'beta',
+  category: 'Chart parts'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+The look of chart tooltips.
+
+## Import
+
+```tsx
+import { ChartTooltip } from '@oztix/roadie-charts/chart-tooltip'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<ChartTooltip
+  title='Fri 27 Nov'
+  rows={[
+    { label: 'This show', value: '61%', shape: 'line' },
+    { label: 'Similar shows', value: '52%', shape: 'band', color: 'var(--chart-band)' }
+  ]}
+/>
+```
+
+## Guidelines
+
+- Use a colon only between a row's label and its value, never elsewhere in the tooltip.
+- Values use the house number formats: comma thousands, "$118.4k" compact currency, "68%" percent, "4 pts" for a point change.
+- The title is the point in time or category the row belongs to, such as "Fri 27 Nov".
+
+## Note
+
+`ChartTooltip` is the static look only. Hover and focus behaviour arrive with the plots.
+
+<PropsDefinitions componentPath='packages/charts/src/ChartTooltip/index.tsx' />

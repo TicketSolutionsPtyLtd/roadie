@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
+import { CARD_SIZES } from '../dashboard'
 import { palette } from './palette'
 
 const SKILL = readFileSync(
@@ -27,5 +28,11 @@ describe('dataviz parity', () => {
         `--color-${status.intent}-${status.step.light}: oklch(${l} ${c} ${h})`
       )
     }
+  })
+
+  it('documents the dashboard sizes and validator', () => {
+    for (const size of CARD_SIZES) expect(SKILL).toContain(`\`${size}\``)
+    expect(SKILL).toContain('validateDashboard')
+    expect(SKILL).toContain('DataTable')
   })
 })
