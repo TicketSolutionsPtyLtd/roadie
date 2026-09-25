@@ -10,26 +10,36 @@ export type Bar = {
   index: number
 }
 
+const addOrNull = (a: number | null, b: number | null) =>
+  a === null ? b : b === null ? a : a + b
+
+/** One bar per x, in x order. Rows that share an x add up. */
 export function toBars(props: BarChartProps): Bar[] {
   const isTime = isTimeField(props.data, props.x)
-  return props.data
-    .map((row, index): Bar | null => {
-      const raw = row[props.x]
-      if (raw === null || raw === undefined) return null
-      const x = isTime ? parseX(raw) : raw
-      if (x === null) return null
-      return {
-        key: String(raw),
-        x,
-        y: finiteOrNull(row[props.y]),
-        line: props.line ? finiteOrNull(row[props.line.y]) : null,
-        index
-      }
-    })
-    .filter((bar): bar is Bar => bar !== null)
-    .sort((a, b) =>
-      typeof a.x === 'number' && typeof b.x === 'number' ? a.x - b.x : 0
+  const bars = new Map<number | string, Bar>()
+  props.data.forEach((row, index) => {
+    const raw = row[props.x]
+    if (raw === null || raw === undefined) return
+    const x = isTime ? parseX(raw) : raw
+    if (x === null) return
+    const slot = isTime ? x : String(raw)
+    const y = finiteOrNull(row[props.y])
+    const line = props.line ? finiteOrNull(row[props.line.y]) : null
+    const seen = bars.get(slot)
+    bars.set(
+      slot,
+      seen
+        ? {
+            ...seen,
+            y: addOrNull(seen.y, y),
+            line: addOrNull(seen.line, line)
+          }
+        : { key: String(raw), x, y, line, index }
     )
+  })
+  return [...bars.values()].sort((a, b) =>
+    typeof a.x === 'number' && typeof b.x === 'number' ? a.x - b.x : 0
+  )
 }
 
 export function barYExtent(props: BarChartProps): readonly [number, number] {

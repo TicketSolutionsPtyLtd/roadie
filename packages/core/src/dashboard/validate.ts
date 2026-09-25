@@ -201,6 +201,29 @@ function repeats(keys: readonly string[]) {
   return [...new Set(keys.filter((key, i) => keys.indexOf(key) !== i))]
 }
 
+// Time keys repeat by wall time, so "2026-10-01" and "2026-10-01T00:00" do.
+function repeatedX(data: readonly PlotRow[], field: string) {
+  const xs = data.flatMap((row) => (row[field] == null ? [] : [row[field]]))
+  const time = xs.every(isWallTime)
+  const firstOf = new Map<string, string>()
+  const keys = xs.map((x) => {
+    const key = time ? String(parseWallTime(x)) : String(x)
+    if (!firstOf.has(key)) firstOf.set(key, String(x))
+    return key
+  })
+  return repeats(keys).map((key) => firstOf.get(key)!)
+}
+
+const addsUp = (path: string, repeated: readonly string[]) =>
+  repeated.length
+    ? [
+        warning(
+          path,
+          `${quoted(repeated)} appears more than once. Its rows will add up`
+        )
+      ]
+    : []
+
 const quoted = (names: readonly string[]) =>
   names.map((name) => `"${name}"`).join(', ')
 
@@ -217,21 +240,22 @@ function duplicateProblems(plot: ChartPlot, plotPath: string) {
           ]
         : []
     }
-    case 'ranked-bars': {
-      const repeated = repeats(
-        plot.data.flatMap((row) => {
-          const name = row[plot.x]
-          return name == null ? [] : [String(name)]
-        })
+    case 'ranked-bars':
+    case 'bar':
+      return addsUp(`${plotPath}.x`, repeatedX(plot.data, plot.x))
+    case 'small-multiples': {
+      if (plot.chart.kind !== 'bar') return []
+      const { x } = plot.chart
+      const panels = [...new Set(plot.data.map((row) => row[plot.by]))]
+      return addsUp(
+        `${plotPath}.chart.x`,
+        panels.flatMap((panel) =>
+          repeatedX(
+            plot.data.filter((row) => row[plot.by] === panel),
+            x
+          )
+        )
       )
-      return repeated.length
-        ? [
-            warning(
-              `${plotPath}.x`,
-              `${quoted(repeated)} appears more than once. Its rows will add up`
-            )
-          ]
-        : []
     }
     case 'heatmap': {
       const repeated = repeats(

@@ -671,6 +671,43 @@ describe('validateDashboard checks repeated names', () => {
     )
   })
 
+  it('warns that repeated bar keys add up, by wall time', () => {
+    expect(
+      problemsOf({
+        kind: 'bar',
+        data: [
+          { day: '2026-10-01', orders: 5 },
+          { day: '2026-10-02', orders: 2 },
+          { day: '2026-10-01T00:00', orders: 3 }
+        ],
+        x: 'day',
+        y: 'orders'
+      })
+    ).toContainEqual({
+      path: 'sections[0].cards[0].plot.x',
+      message: '"2026-10-01" appears more than once. Its rows will add up',
+      severity: 'warning'
+    })
+  })
+
+  it('warns on repeated bar keys within a small multiples panel only', () => {
+    const plot = (gates: string[]) => ({
+      kind: 'small-multiples',
+      data: gates.map((gate) => ({ gate, hour: '2026-11-14T18:00', scans: 4 })),
+      by: 'gate',
+      chart: { kind: 'bar', x: 'hour', y: 'scans' }
+    })
+    expect(
+      problemsOf(plot(['North', 'South'])).map((p) => p.path)
+    ).not.toContain('sections[0].cards[0].plot.chart.x')
+    expect(problemsOf(plot(['North', 'North']))).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.chart.x',
+        severity: 'warning'
+      })
+    )
+  })
+
   it('warns that repeated heatmap cells add up', () => {
     expect(
       problemsOf({
