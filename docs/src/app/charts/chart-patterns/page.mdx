@@ -1,0 +1,81 @@
+export const metadata = {
+  title: 'ChartPatterns',
+  description: 'Texture patterns that keep chart series apart without colour',
+  status: 'beta',
+  category: 'Chart parts'
+}
+
+Texture patterns that keep chart series apart without colour.
+
+## Import
+
+```tsx
+import {
+  CHART_TEXTURE_COUNT,
+  ChartPatterns,
+  chartTextureId
+} from '@oztix/roadie-charts/chart-patterns'
+```
+
+## Examples
+
+### Default
+
+Render `ChartPatterns` once, then fill any SVG shape with a `fill-texture-*` class. Each texture draws in the text colour.
+
+```tsx-live
+<div className='grid gap-3'>
+  <ChartPatterns />
+  <div className='grid grid-cols-4 gap-3 sm:grid-cols-8'>
+    {Array.from({ length: CHART_TEXTURE_COUNT }, (_, index) => (
+      <div key={index} className='grid justify-items-center gap-1'>
+        <svg viewBox='0 0 48 48' aria-hidden className='size-12 overflow-hidden rounded-md border border-subtle'>
+          <rect width='48' height='48' className={`fill-texture-${index + 1}`} />
+        </svg>
+        <p className='text-xs text-subtle'>{index + 1}</p>
+      </div>
+    ))}
+  </div>
+</div>
+```
+
+### Under forced colours and print
+
+Mark a shape with `data-chart-texture` and it keeps its chart colour on screen. Under forced colours and in print, where colour drops away, it switches to the texture for that slot. This example uses the patterns rendered above.
+
+```tsx-live
+<svg viewBox='0 0 240 108' role='img' aria-label='Tickets sold by type: GA 1,210, VIP 790, Companion 480' className='w-full max-w-sm'>
+  <rect y='0' width='240' height='28' rx='4' className='fill-chart-1' data-chart-texture='1' />
+  <rect y='40' width='157' height='28' rx='4' className='fill-chart-2' data-chart-texture='2' />
+  <rect y='80' width='95' height='28' rx='4' className='fill-chart-3' data-chart-texture='3' />
+</svg>
+```
+
+### From a slot number
+
+When a class won't do, such as in a chart library's props, point `fill` at the pattern with `chartTextureId`.
+
+```tsx-live
+<svg viewBox='0 0 120 48' aria-hidden className='w-40'>
+  <rect width='120' height='48' rx='6' fill={`url(#${chartTextureId(3)})`} />
+</svg>
+```
+
+## Guidelines
+
+- Render `ChartPatterns` once per page, near the root. The pattern ids are fixed, so a second copy repeats them.
+- Match the texture slot to the colour slot. A series on `--chart-3` takes texture 3.
+- Use `data-chart-texture` for most marks, so textures appear only when colour is gone. Reach for `fill-texture-*` when a mark needs a texture on screen too, such as the projected part of a bar.
+- HTML marks, such as `Meter` segments, take `data-chart-texture` from the core stylesheet and don't need `ChartPatterns`.
+
+## Accessibility
+
+- The patterns sit in a hidden, zero size SVG that screen readers and the tab order skip.
+- Textures keep series apart for people using forced colours and for readers of a greyscale print. Still name every series with a label or a legend.
+
+## Helpers
+
+| Export | What it gives you |
+| --- | --- |
+| `chartTextureId(slot)` | The pattern id for a slot from 1 to 8, such as `roadie-texture-3` |
+| `CHART_TEXTURE_COUNT` | The number of patterns: 8, one per categorical colour |

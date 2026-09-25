@@ -106,6 +106,14 @@ export function useStylesheet(css: string) {
   return () => style.remove()
 }
 
+export async function loadBrandFont() {
+  const [face] = await document.fonts.load('1em Intermission')
+  if (face?.status !== 'loaded')
+    throw new Error(
+      'Intermission did not load, so text would measure in a fallback font'
+    )
+}
+
 export function mount(markup: string, width: number, dir = 'ltr') {
   document.body.innerHTML = `<div dir="${dir}" style="width: ${width}px">${markup}</div>`
   return document.querySelector<HTMLElement>('[data-slot="navigator-content"]')!

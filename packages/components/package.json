@@ -63,9 +63,25 @@
       "types": "./dist/components/Countdown/index.d.ts",
       "import": "./dist/components/Countdown/index.js"
     },
+    "./dashboard": {
+      "types": "./dist/components/Dashboard/index.d.ts",
+      "import": "./dist/components/Dashboard/index.js"
+    },
+    "./data-card": {
+      "types": "./dist/components/DataCard/index.d.ts",
+      "import": "./dist/components/DataCard/index.js"
+    },
+    "./data-table": {
+      "types": "./dist/components/DataTable/index.d.ts",
+      "import": "./dist/components/DataTable/index.js"
+    },
     "./date-time": {
       "types": "./dist/components/DateTime/index.d.ts",
       "import": "./dist/components/DateTime/index.js"
+    },
+    "./delta": {
+      "types": "./dist/components/Delta/index.d.ts",
+      "import": "./dist/components/Delta/index.js"
     },
     "./dialog": {
       "types": "./dist/components/Dialog/index.d.ts",
@@ -131,6 +147,10 @@
       "types": "./dist/components/Marquee/index.d.ts",
       "import": "./dist/components/Marquee/index.js"
     },
+    "./meter": {
+      "types": "./dist/components/Meter/index.d.ts",
+      "import": "./dist/components/Meter/index.js"
+    },
     "./navigator": {
       "types": "./dist/components/Navigator/index.d.ts",
       "import": "./dist/components/Navigator/index.js"
@@ -171,6 +191,14 @@
       "types": "./dist/components/Skeleton/index.d.ts",
       "import": "./dist/components/Skeleton/index.js"
     },
+    "./sparkline": {
+      "types": "./dist/components/Sparkline/index.d.ts",
+      "import": "./dist/components/Sparkline/index.js"
+    },
+    "./stat-tile": {
+      "types": "./dist/components/StatTile/index.d.ts",
+      "import": "./dist/components/StatTile/index.js"
+    },
     "./steps": {
       "types": "./dist/components/Steps/index.d.ts",
       "import": "./dist/components/Steps/index.js"
@@ -178,6 +206,10 @@
     "./switch": {
       "types": "./dist/components/Switch/index.d.ts",
       "import": "./dist/components/Switch/index.js"
+    },
+    "./table": {
+      "types": "./dist/components/Table/index.d.ts",
+      "import": "./dist/components/Table/index.js"
     },
     "./tabs": {
       "types": "./dist/components/Tabs/index.d.ts",

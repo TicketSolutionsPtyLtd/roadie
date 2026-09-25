@@ -1,0 +1,60 @@
+export const metadata = {
+  title: 'Table',
+  description: 'Styled table primitives for any screen',
+  status: 'beta',
+  category: 'Collections'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Styled table primitives for any screen.
+
+## Import
+
+```tsx
+import { Table } from '@oztix/roadie-components/table'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Table>
+  <Table.Head>
+    <Table.Row>
+      <Table.HeaderCell>Show</Table.HeaderCell>
+      <Table.HeaderCell align='end'>Sold</Table.HeaderCell>
+      <Table.HeaderCell align='end'>Gross</Table.HeaderCell>
+    </Table.Row>
+  </Table.Head>
+  <Table.Body>
+    <Table.Row>
+      <Table.Cell>Ball Park Music</Table.Cell>
+      <Table.Cell align='end'>1,842</Table.Cell>
+      <Table.Cell align='end'>$118,400</Table.Cell>
+    </Table.Row>
+    <Table.Row>
+      <Table.Cell>Ocean Alley</Table.Cell>
+      <Table.Cell align='end'>2,205</Table.Cell>
+      <Table.Cell align='end'>$183,000</Table.Cell>
+    </Table.Row>
+    <Table.Row>
+      <Table.Cell>Julia Jacklin</Table.Cell>
+      <Table.Cell align='end'>412</Table.Cell>
+      <Table.Cell align='end'>$22,900</Table.Cell>
+    </Table.Row>
+  </Table.Body>
+</Table>
+```
+
+## Guidelines
+
+- Right-align number columns with `align='end'` on both the header and body cells, so figures line up on their last digit.
+- Use `DataTable` instead of building a dashboard card by hand. It composes `Table` with sparklines, meters, deltas and priority columns.
+
+## Accessibility
+
+- Header cells render `scope='col'`, so screen readers announce the column for each cell as they move down a row.
+
+<PropsDefinitions componentPath='packages/components/src/components/Table/index.tsx' />
