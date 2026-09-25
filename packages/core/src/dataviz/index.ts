@@ -19,8 +19,26 @@ export {
   palette
 } from './palette'
 export { paletteScores, validatePalette } from './validate'
+export {
+  type DeltaSentiment,
+  type GoodWhen,
+  type ValueFormat,
+  deltaSentiment,
+  describeDelta,
+  formatDelta,
+  formatValue
+} from './format'
 
 const SLOTS = palette.categorical.light.length
+
+const CHROME_STEPS = {
+  grid: { light: 5, dark: 5 },
+  axis: { light: 7, dark: 7 },
+  label: { light: 11, dark: 11 },
+  value: { light: 13, dark: 13 },
+  surface: { light: 1, dark: 2 },
+  raised: { light: 1, dark: 3 }
+} as const
 
 export function chartColorVar(slot: number): string {
   if (!Number.isInteger(slot) || slot < 1 || slot > SLOTS)
@@ -58,6 +76,12 @@ export function chartHex(mode: Mode, accentHue: number = DEFAULT_ACCENT_HUE) {
     band: {
       color: neutral(band.step),
       opacity: (band.alpha ?? 100) / 100
-    }
+    },
+    chrome: Object.fromEntries(
+      Object.entries(CHROME_STEPS).map(([name, step]) => [
+        name,
+        neutral(step[mode])
+      ])
+    ) as Record<keyof typeof CHROME_STEPS, string>
   }
 }

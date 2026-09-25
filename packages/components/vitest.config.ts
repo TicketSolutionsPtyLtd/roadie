@@ -17,6 +17,9 @@ const browsers = (process.env.ROADIE_BROWSERS ?? 'chromium,webkit,firefox')
 const reduceMotion: BrowserCommand<[reduce: boolean]> = ({ page }, reduce) =>
   page.emulateMedia({ reducedMotion: reduce ? 'reduce' : 'no-preference' })
 
+const forcedColors: BrowserCommand<[active: boolean]> = ({ page }, active) =>
+  page.emulateMedia({ forcedColors: active ? 'active' : 'none' })
+
 export default defineConfig({
   plugins: [react(), babel({ presets: [reactCompilerPreset] })],
   resolve: {
@@ -64,7 +67,7 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             viewport: { width: 1920, height: 1080 },
-            commands: { reduceMotion },
+            commands: { reduceMotion, forcedColors },
             instances: browsers.map((browser) => ({ browser }))
           }
         }
