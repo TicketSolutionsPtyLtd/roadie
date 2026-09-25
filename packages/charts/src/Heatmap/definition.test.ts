@@ -164,3 +164,22 @@ describe('heatmapTable', () => {
     ])
   })
 })
+
+describe('heatmap with repeated cells', () => {
+  it('adds up rows that land on the same cell', () => {
+    const table = heatmapTable({
+      data: [
+        { day: 'Fri', hour: '9pm', orders: 4 },
+        { day: 'Fri', hour: '9pm', orders: 3 },
+        { day: 'Sat', hour: '9pm', orders: 2 }
+      ],
+      rows: 'day',
+      columns: 'hour',
+      value: 'orders'
+    })
+    expect(table.rows).toEqual([
+      { day: 'Fri', '9pm': 7 },
+      { day: 'Sat', '9pm': 2 }
+    ])
+  })
+})

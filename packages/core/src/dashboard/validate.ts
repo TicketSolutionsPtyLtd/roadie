@@ -197,6 +197,62 @@ function annotationProblems(
   })
 }
 
+function repeats(keys: readonly string[]) {
+  return [...new Set(keys.filter((key, i) => keys.indexOf(key) !== i))]
+}
+
+const quoted = (names: readonly string[]) =>
+  names.map((name) => `"${name}"`).join(', ')
+
+function duplicateProblems(plot: ChartPlot, plotPath: string) {
+  switch (plot.kind) {
+    case 'funnel': {
+      const repeated = repeats(plot.steps.map((step) => step.label))
+      return repeated.length
+        ? [
+            error(
+              `${plotPath}.steps`,
+              `Step labels must differ. ${quoted(repeated)} repeats`
+            )
+          ]
+        : []
+    }
+    case 'ranked-bars': {
+      const repeated = repeats(
+        plot.data.flatMap((row) => {
+          const name = row[plot.x]
+          return name == null ? [] : [String(name)]
+        })
+      )
+      return repeated.length
+        ? [
+            warning(
+              `${plotPath}.x`,
+              `${quoted(repeated)} appears more than once. Its rows will add up`
+            )
+          ]
+        : []
+    }
+    case 'heatmap': {
+      const repeated = repeats(
+        plot.data.map(
+          (row) => `${row[plot.rows] ?? ''}, ${row[plot.columns] ?? ''}`
+        )
+      )
+      return repeated.length
+        ? [
+            warning(
+              `${plotPath}.data`,
+              `More than one row for ${quoted(repeated)}. Their values will add up`
+            )
+          ]
+        : []
+    }
+    default:
+      return []
+  }
+}
+
 function plotProblems(plot: ChartPlot, path: string) {
   const problems: DashboardProblem[] = []
   const plotPath = `${path}.plot`
@@ -217,6 +273,7 @@ function plotProblems(plot: ChartPlot, path: string) {
       )
     )
   problems.push(...copyProblems(plotPath, 'takeaway', plot.takeaway))
+  problems.push(...duplicateProblems(plot, plotPath))
   if (plot.kind === 'line' || plot.kind === 'bar')
     problems.push(...annotationProblems(plot, plot.data, plotPath))
   if (plot.kind === 'small-multiples')

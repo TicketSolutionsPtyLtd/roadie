@@ -9,10 +9,17 @@ export type FunnelRow = FunnelStep & {
 
 const ratio = (a: number, b: number) => (b > 0 ? a / b : 0)
 
+// A repeated label keeps its first step; validateDashboard reports the rest.
+const uniqueSteps = (steps: readonly FunnelStep[]) =>
+  steps.filter(
+    (step, i) => steps.findIndex((other) => other.label === step.label) === i
+  )
+
 export function funnelRows(props: FunnelProps): FunnelRow[] {
-  const first = props.steps[0]?.value ?? 0
-  return props.steps.map((step, index) => {
-    const previous = index > 0 ? props.steps[index - 1]!.value : null
+  const steps = uniqueSteps(props.steps)
+  const first = steps[0]?.value ?? 0
+  return steps.map((step, index) => {
+    const previous = index > 0 ? steps[index - 1]!.value : null
     return {
       ...step,
       index,

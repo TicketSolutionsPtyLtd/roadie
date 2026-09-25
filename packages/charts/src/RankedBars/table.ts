@@ -2,17 +2,14 @@ import type { TableRow } from '@oztix/roadie-core/dashboard'
 
 import type { ChartTable } from '../Chart'
 import { fieldLabel, valueColumn, xColumn } from '../plot/table'
-import { finiteOrNull } from '../plot/values'
+import { rankRows } from './rank'
 import type { RankedBarsProps } from './types'
 
 const SHARE = 'share'
 
-const byValue = (a: number | null, b: number | null) =>
-  a === null ? (b === null ? 0 : 1) : b === null ? -1 : b - a
-
 export function rankedBarsTable(props: RankedBarsProps): ChartTable {
-  const values = props.data.map((row) => finiteOrNull(row[props.y]))
-  const total = values.reduce<number>((sum, v) => sum + (v ?? 0), 0) || 1
+  const rows = rankRows(props)
+  const total = rows.reduce((sum, row) => sum + (row.value ?? 0), 0) || 1
   const reference = props.reference
   const columns = [
     xColumn(props.x),
@@ -22,14 +19,13 @@ export function rankedBarsTable(props: RankedBarsProps): ChartTable {
       ? [valueColumn(reference.field, reference.label, props.format)]
       : [])
   ]
-  const rows = props.data
-    .map((row, i) => ({ row, value: values[i] ?? null }))
-    .sort((a, b) => byValue(a.value, b.value))
-    .map(({ row, value }): TableRow => ({
-      [props.x]: row[props.x] ?? null,
-      [props.y]: row[props.y] ?? null,
+  return {
+    columns,
+    rows: rows.map(({ name, value, reference: ref }): TableRow => ({
+      [props.x]: name,
+      [props.y]: value,
       ...(props.share && { [SHARE]: value === null ? null : value / total }),
-      ...(reference && { [reference.field]: row[reference.field] ?? null })
+      ...(reference && { [reference.field]: ref })
     }))
-  return { columns, rows }
+  }
 }

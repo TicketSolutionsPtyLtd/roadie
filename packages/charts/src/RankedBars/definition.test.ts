@@ -275,3 +275,30 @@ describe('rankedBars keys', () => {
       ).toContain(true)
   })
 })
+
+describe('rankedBars with repeated names', () => {
+  const repeated: RankedBarsProps = {
+    data: [
+      { channel: 'Email', orders: 5, similar: 4 },
+      { channel: 'Email', orders: 3, similar: 2 },
+      { channel: 'Social', orders: 6, similar: null }
+    ],
+    x: 'channel',
+    y: 'orders',
+    reference: { field: 'similar', label: 'Similar shows' }
+  }
+
+  it('adds them up instead of throwing', () => {
+    expect(() => sceneOf(repeated)).not.toThrow()
+    expect(rankedBars.summary(repeated)).toBe(
+      'Email leads with 8 orders, ahead of Social with 6'
+    )
+  })
+
+  it('lists one table row per name with the summed values', () => {
+    expect(rankedBarsTable(repeated).rows).toEqual([
+      { channel: 'Email', orders: 8, similar: 6 },
+      { channel: 'Social', orders: 6, similar: null }
+    ])
+  })
+})

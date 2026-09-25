@@ -630,3 +630,65 @@ describe('validateDashboard checks annotations against the data', () => {
     )
   })
 })
+
+describe('validateDashboard checks repeated names', () => {
+  const problemsOf = (plot: Record<string, unknown>) =>
+    validateDashboard(spec([chartCard(plot)])).problems
+
+  it('rejects repeated funnel step labels', () => {
+    expect(
+      problemsOf({
+        kind: 'funnel',
+        steps: [
+          { label: 'Viewed', value: 100 },
+          { label: 'Paid', value: 20 },
+          { label: 'Paid', value: 10 }
+        ]
+      })
+    ).toContainEqual({
+      path: 'sections[0].cards[0].plot.steps',
+      message: 'Step labels must differ. "Paid" repeats',
+      severity: 'error'
+    })
+  })
+
+  it('warns that repeated ranked names add up', () => {
+    expect(
+      problemsOf({
+        kind: 'ranked-bars',
+        data: [
+          { channel: 'Email', orders: 5 },
+          { channel: 'Email', orders: 3 }
+        ],
+        x: 'channel',
+        y: 'orders'
+      })
+    ).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.x',
+        severity: 'warning'
+      })
+    )
+  })
+
+  it('warns that repeated heatmap cells add up', () => {
+    expect(
+      problemsOf({
+        kind: 'heatmap',
+        data: [
+          { day: 'Fri', hour: '9pm', orders: 4 },
+          { day: 'Fri', hour: '9pm', orders: 3 }
+        ],
+        rows: 'day',
+        columns: 'hour',
+        value: 'orders'
+      })
+    ).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.data',
+        message: 'More than one row for "Fri, 9pm". Their values will add up',
+        severity: 'warning'
+      })
+    )
+  })
+})

@@ -167,3 +167,21 @@ describe('funnelTable', () => {
     expect(table.rows[1]).toMatchObject({ dropped: 3420 })
   })
 })
+
+describe('funnel with a repeated step', () => {
+  const repeated: FunnelProps = {
+    steps: [
+      { label: 'Viewed', value: 100 },
+      { label: 'Paid', value: 20 },
+      { label: 'Paid', value: 10 }
+    ]
+  }
+
+  it('keeps the first step of that name instead of throwing', () => {
+    expect(() => sceneOf(repeated)).not.toThrow()
+    expect(funnelTable(repeated).rows.map((r) => [r.step, r.count])).toEqual([
+      ['Viewed', 100],
+      ['Paid', 20]
+    ])
+  })
+})

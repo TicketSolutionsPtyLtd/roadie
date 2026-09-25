@@ -27,16 +27,31 @@ const stepFor = (value: number, max: number, scale: HeatmapScale) =>
     ? clampStep(MID - Math.round((value / max) * MID))
     : clampStep(Math.round((Math.max(0, value) / max) * STEPS))
 
-export function heatCells(props: HeatmapProps): HeatCell[] {
-  const scale = props.scale ?? 'sequential'
-  const cells = props.data.flatMap((row, index) => {
+type Measured = Pick<HeatCell, 'row' | 'column' | 'value' | 'index'>
+
+// Rows that land on the same cell add up, like rows in a pivot table.
+function measuredCells(props: HeatmapProps): Measured[] {
+  const cells = new Map<string, Measured>()
+  props.data.forEach((row, index) => {
     const value = finiteOrNull(row[props.value])
     const cellRow = String(row[props.rows] ?? '')
     const column = String(row[props.columns] ?? '')
-    return value === null || cellRow === '' || column === ''
-      ? []
-      : [{ row: cellRow, column, value, index }]
+    if (value === null || cellRow === '' || column === '') return
+    const key = JSON.stringify([cellRow, column])
+    const seen = cells.get(key)
+    cells.set(
+      key,
+      seen
+        ? { ...seen, value: seen.value + value }
+        : { row: cellRow, column, value, index }
+    )
   })
+  return [...cells.values()]
+}
+
+export function heatCells(props: HeatmapProps): HeatCell[] {
+  const scale = props.scale ?? 'sequential'
+  const cells = measuredCells(props)
   const magnitude = (value: number) =>
     scale === 'diverging' ? Math.abs(value) : value
   const max = Math.max(0, ...cells.map((c) => magnitude(c.value))) || 1

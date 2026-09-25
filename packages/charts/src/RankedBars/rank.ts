@@ -14,22 +14,49 @@ export type Ranked = {
 }
 
 type Row = Omit<Ranked, 'share' | 'isOther'>
+export type RankRow = Omit<Row, 'value'> & { value: number | null }
 
 const sum = (rows: readonly { value: number }[]) =>
   rows.reduce((total, row) => total + row.value, 0)
 
-function rankable(props: RankedBarsProps): Row[] {
+const addOrNull = (a: number | null, b: number | null) =>
+  a === null ? b : b === null ? a : a + b
+
+const byValue = (a: RankRow, b: RankRow) =>
+  a.value === null
+    ? b.value === null
+      ? 0
+      : 1
+    : b.value === null
+      ? -1
+      : b.value - a.value
+
+/** One row per name, largest first. Rows that share a name add up. */
+export function rankRows(props: RankedBarsProps): RankRow[] {
   const reference = props.reference?.field
-  return props.data
-    .map((row, index) => ({
-      name: row[props.x] == null ? '' : String(row[props.x]),
-      value: finiteOrNull(row[props.y]),
-      reference: reference ? finiteOrNull(row[reference]) : null,
-      index
-    }))
-    .filter((r): r is Row => r.value !== null && r.name !== '')
-    .sort((a, b) => b.value - a.value)
+  const rows = new Map<string, RankRow>()
+  props.data.forEach((row, index) => {
+    const name = row[props.x] == null ? '' : String(row[props.x])
+    if (name === '') return
+    const value = finiteOrNull(row[props.y])
+    const ref = reference ? finiteOrNull(row[reference]) : null
+    const seen = rows.get(name)
+    rows.set(
+      name,
+      seen
+        ? {
+            ...seen,
+            value: addOrNull(seen.value, value),
+            reference: addOrNull(seen.reference, ref)
+          }
+        : { name, value, reference: ref, index }
+    )
+  })
+  return [...rows.values()].sort(byValue)
 }
+
+const rankable = (props: RankedBarsProps) =>
+  rankRows(props).filter((r): r is Row => r.value !== null)
 
 export function rank(props: RankedBarsProps): Ranked[] {
   const rows = rankable(props)
