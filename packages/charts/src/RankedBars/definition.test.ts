@@ -2,6 +2,7 @@ import { createChartScene } from '@tanstack/charts'
 import { renderChartSvg as renderSceneSvg } from '@tanstack/charts/svg'
 import { describe, expect, it } from 'vitest'
 
+import { textRoom } from '../plot/endLabels'
 import { plotFrame } from '../plot/frame'
 import { hexPaint } from '../plot/paint'
 import { rankedBars } from './definition'
@@ -87,6 +88,45 @@ describe('rankedBars', () => {
       'Saturday',
       'Sunday matinee'
     ])
+  })
+
+  it('gives highlighted, context and Other bars their own marks', () => {
+    const points = sceneOf(channelExample).points
+    const markOf = (name: string) =>
+      points.filter((p) => p.yValue === name).map((p) => p.markId)
+    expect(points).toHaveLength(8)
+    expect(markOf('Email')).toEqual(['series-1'])
+    expect(markOf('Instagram')).toEqual(['series-2'])
+    expect(markOf('Facebook')).toEqual(['series-2'])
+    expect(markOf('Other')).toEqual(['series-other'])
+  })
+
+  it('keeps every named bar in one mark with no highlight', () => {
+    const points = sceneOf({ ...channelExample, highlight: undefined }).points
+    expect(new Set(points.map((p) => p.markId))).toEqual(
+      new Set(['series-1', 'series-other'])
+    )
+  })
+
+  it('runs its categories down the y axis', () => {
+    expect(rankedBars.categoryAxis?.(channelExample)).toBe('y')
+  })
+
+  it('lets the longest bar reach the value label margin', () => {
+    const props: RankedBarsProps = {
+      data: [
+        { c: 'A', v: 612 },
+        { c: 'B', v: 100 }
+      ],
+      x: 'c',
+      y: 'v'
+    }
+    const [, x, width] =
+      /<rect data-ts-key="series-1:[^"]*:A"[^>]*x="([\d.]+)"[^>]*width="([\d.]+)"/.exec(
+        svgOf(props)
+      )!
+    const labelRoom = textRoom(['612'], plotFrame(260, 'default'), 12)
+    expect(Number(x) + Number(width)).toBeCloseTo(560 - labelRoom, 0)
   })
 
   it('plots all-zero data with no NaN', () => {

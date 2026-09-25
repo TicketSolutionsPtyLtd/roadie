@@ -6,7 +6,7 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { formatValue } from '@oztix/roadie-core/dataviz'
 
 import { textRoom } from '../plot/endLabels'
-import { emphasisColor } from '../plot/series'
+import { asList, emphasisColor, seriesMarkId } from '../plot/series'
 import { fieldLabel } from '../plot/table'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
 import { labelFormat, valueDomain } from '../plot/values'
@@ -20,6 +20,9 @@ const MAX_NAME_ROOM = 180
 const NAME_PADDING = 8
 const VALUE_PADDING = 12
 const VALUE_GAP = 6
+const STORY_SLOT = 1
+const CONTEXT_SLOT = 2
+const OTHER_MARK = 'series-other'
 
 function fillFor(props: RankedBarsProps, paint: ChartPaint) {
   return (bar: Pick<Ranked, 'name' | 'isOther'>) =>
@@ -27,6 +30,30 @@ function fillFor(props: RankedBarsProps, paint: ChartPaint) {
       ? paint.other
       : (emphasisColor(bar.name, props.highlight, paint) ??
         paint.categorical[0]!)
+}
+
+// One mark per role, so forced colours give each role its own texture.
+function markIdOf(
+  props: RankedBarsProps,
+  bar: Pick<Ranked, 'name' | 'isOther'>
+) {
+  if (bar.isOther) return OTHER_MARK
+  const highlighted = asList(props.highlight)
+  return highlighted.length && !highlighted.includes(bar.name)
+    ? seriesMarkId(CONTEXT_SLOT)
+    : seriesMarkId(STORY_SLOT)
+}
+
+function byMark<T extends Pick<Ranked, 'name' | 'isOther'>>(
+  props: RankedBarsProps,
+  bars: readonly T[]
+) {
+  const marks = new Map<string, T[]>()
+  for (const bar of bars) {
+    const id = markIdOf(props, bar)
+    marks.set(id, [...(marks.get(id) ?? []), bar])
+  }
+  return [...marks.entries()]
 }
 
 const full = (props: RankedBarsProps, value: number) =>
@@ -60,7 +87,7 @@ function build(props: RankedBarsProps, paint: ChartPaint, frame: PlotFrame) {
   const shown = bars(props)
   const domain = valueDomain(
     shown.flatMap((b) => [b.y, b.tick]),
-    { zero: true }
+    { zero: true, nice: false }
   )
   const nameRoom = Math.min(
     MAX_NAME_ROOM,
@@ -78,15 +105,17 @@ function build(props: RankedBarsProps, paint: ChartPaint, frame: PlotFrame) {
   const ticked = shown.filter((b) => b.tick !== null)
   return defineChart({
     marks: [
-      barX(shown, {
-        id: 'series-1',
-        x: 'y',
-        y: 'name',
-        z: 'series',
-        fill: fillFor(props, paint),
-        inset: 2,
-        maxThickness: 28
-      }),
+      ...byMark(props, shown).map(([id, group]) =>
+        barX(group, {
+          id,
+          x: 'y',
+          y: 'name',
+          z: 'series',
+          fill: fillFor(props, paint),
+          inset: 2,
+          maxThickness: 28
+        })
+      ),
       ...(props.reference && ticked.length
         ? [
             decorative(
@@ -143,6 +172,7 @@ export const rankedBars: ChartDefinition<RankedBarsProps> = {
   kind: 'ranked-bars',
   build,
   table: rankedBarsTable,
+  categoryAxis: () => 'y',
   summary(props) {
     if (props.takeaway) return props.takeaway
     const [first, second] = rank(props)
