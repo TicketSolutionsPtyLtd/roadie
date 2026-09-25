@@ -46,11 +46,39 @@ describe('time', () => {
     )
   })
 
-  it('spaces four ticks from start to end', () => {
+  it('spaces about four ticks from start to end', () => {
     const ticks = timeTicks(0, 30 * DAY)
-    expect(ticks).toHaveLength(4)
-    expect(ticks[0]).toBe(0)
-    expect(ticks[3]).toBe(30 * DAY)
+    expect(ticks).toEqual([0, 10 * DAY, 20 * DAY, 30 * DAY])
+  })
+
+  it('ticks whole days on a short range and never repeats a label', () => {
+    const start = Date.UTC(2026, 9, 1)
+    const ticks = timeTicks(start, start + 2 * DAY)
+    expect(ticks.every((t) => t % DAY === 0)).toBe(true)
+    expect(ticks.map((t) => formatTimeTick(t, 2 * DAY))).toEqual([
+      '1 Oct',
+      '2 Oct',
+      '3 Oct'
+    ])
+  })
+
+  it('ticks whole hours within a day', () => {
+    const start = Date.UTC(2026, 9, 1, 17, 30)
+    const ticks = timeTicks(start, start + 5 * 3_600_000)
+    expect(ticks.every((t) => t % 3_600_000 === 0)).toBe(true)
+    expect(ticks.map((t) => formatTimeTick(t, DAY / 2))).toEqual([
+      '6pm',
+      '8pm',
+      '10pm'
+    ])
+  })
+
+  it('drops a tick that would repeat a label', () => {
+    const start = Date.UTC(2026, 9, 1)
+    const labels = timeTicks(start, start + DAY).map((t) =>
+      formatTimeTick(t, DAY)
+    )
+    expect(new Set(labels).size).toBe(labels.length)
   })
 
   it('knows when a value carries a time', () => {

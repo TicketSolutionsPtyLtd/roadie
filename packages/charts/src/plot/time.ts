@@ -3,6 +3,7 @@ import { isWallTime, parseWallTime } from '@oztix/roadie-core/dataviz'
 
 import type { Row } from './types'
 
+const HOUR = 3_600_000
 const DAY = 86_400_000
 const LOCALE = 'en-AU'
 
@@ -17,12 +18,24 @@ export function isTimeField(rows: readonly Row[], field: string) {
   return values.length > 0 && values.every(isWallTime)
 }
 
+/**
+ * About `count` ticks on whole hours, or whole days past a day, so no tick
+ * lands partway through a day and no two ticks share a label.
+ */
 export function timeTicks(min: number, max: number, count = 4) {
   if (max <= min) return [min]
-  const step = (max - min) / (count - 1)
-  return Array.from({ length: count }, (_, i) =>
-    i === count - 1 ? max : min + Math.round(i * step)
-  )
+  const span = max - min
+  const unit = span <= DAY ? HOUR : DAY
+  const step = Math.max(1, Math.round(span / unit / (count - 1))) * unit
+  const labels = new Set<string>()
+  const ticks: number[] = []
+  for (let tick = Math.ceil(min / unit) * unit; tick <= max; tick += step) {
+    const label = formatTimeTick(tick, span)
+    if (labels.has(label)) continue
+    labels.add(label)
+    ticks.push(tick)
+  }
+  return ticks
 }
 
 const part = (ms: number, options: Intl.DateTimeFormatOptions) =>
