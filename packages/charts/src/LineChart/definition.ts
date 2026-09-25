@@ -9,6 +9,7 @@ import {
   type LinePoint,
   type RangePoint,
   TARGET_TICK_PIXELS,
+  type TodayPoint,
   bandMarks,
   forecastMarks,
   targetMark,
@@ -106,25 +107,30 @@ function lastFieldValue(props: LineChartProps, field: string) {
     .findLast((v): v is number => v !== null)
 }
 
+// Today at the last point joins the end labels, so the stack keeps it clear.
 function endLabels(
   props: LineChartProps,
   points: readonly PlotDatum[],
   series: readonly SeriesStyle[],
   frame: PlotFrame,
-  domain: readonly [number, number]
+  domain: readonly [number, number],
+  today: TodayPoint | null
 ): EndLabel[] {
   const labels: EndLabel[] = []
   for (const style of series) {
     const last = lastValue(points, style.name)
     if (!last || last.y === null) continue
     const value = labelFormat(props.format, last.y)
+    const single = series.length === 1
     labels.push({
       text:
-        isForecast(props, last.x) && series.length === 1
-          ? `${FORECAST_LABEL} ${value}`
-          : series.length === 1
-            ? value
-            : style.name,
+        single && today?.x === last.x
+          ? today.label
+          : isForecast(props, last.x) && single
+            ? `${FORECAST_LABEL} ${value}`
+            : single
+              ? value
+              : style.name,
       y: last.y,
       tone:
         style.emphasis === 'highlight'
@@ -134,6 +140,8 @@ function endLabels(
             : 'value'
     })
   }
+  if (today && series.length > 1)
+    labels.push({ text: today.label, y: today.y, tone: 'value' })
   if (props.target !== undefined)
     labels.push({
       text: `Target ${labelFormat(props.format, props.target)}`,
@@ -244,7 +252,7 @@ function todayPoint(
   props: LineChartProps,
   points: readonly PlotDatum[],
   lead: SeriesStyle | undefined
-) {
+): TodayPoint | null {
   const x = props.today === undefined ? null : parseX(props.today)
   if (x === null || !lead) return null
   const point = points.find(
@@ -311,10 +319,12 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
   const xDomain = lineXDomain(points)
   const yDomain = frame.yDomain ?? lineYExtent(props)
   const series = styles(props, points, paint)
-  const ends = endLabelsFit(series.length, frame)
-    ? endLabels(props, points, series, frame, yDomain)
-    : []
   const today = todayPoint(props, points, series[0])
+  const todayEnds = today?.x === xDomain[1] ? today : null
+  const ends = endLabelsFit(series.length, frame)
+    ? endLabels(props, points, series, frame, yDomain, todayEnds)
+    : []
+  const todayInEnds = todayEnds !== null && ends.length > 0
   const format = axisFormat(props.format, yDomain[1])
   const span = xDomain[1] - xDomain[0]
   const band = props.band
@@ -343,7 +353,7 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
           )
         ]),
     ...(today && series[0]
-      ? todayMarks(today, paint, frame, series[0].color)
+      ? todayMarks(today, paint, frame, series[0].color, !todayInEnds)
       : []),
     ...annotationMarks(
       annotationsOnAxis(props.annotations, xDomain, isTime, yDomain[1]),

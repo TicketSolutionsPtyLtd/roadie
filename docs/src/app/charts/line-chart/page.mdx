@@ -41,7 +41,7 @@ import { LineChart } from '@oztix/roadie-charts/line-chart'
 
 ### Pace against similar shows
 
-Every reading aid at once: the band of similar shows with its dashed median, the forecast dotted in a faint cone, the target tick, and a labelled dot for today.
+Every reading aid at once: the band of similar shows with its dashed median, the forecast dotted in a faint cone, the target tick, and a labelled dot for today. When today is the last point, its label joins the end labels so the two never collide.
 
 ```tsx-live
 <div className='w-180 max-w-full'>

@@ -101,11 +101,21 @@ export function targetMark(
   )
 }
 
+export type TodayPoint = { x: number; y: number; label: string }
+
+const TODAY_DOT_RADIUS = 3.5
+const TODAY_LABEL_GAP = 0.5
+
+/**
+ * A dot at today, labelled above. Pass `labelled: false` when an end label
+ * already carries the label, so the two never collide.
+ */
 export function todayMarks(
-  point: LinePoint & { label: string },
+  point: TodayPoint,
   paint: ChartPaint,
   frame: PlotFrame,
-  color = paint.highlight
+  color = paint.highlight,
+  labelled = true
 ): ChartMark[] {
   return [
     decorative(
@@ -113,23 +123,28 @@ export function todayMarks(
         id: 'today',
         x: 'x',
         y: 'y',
-        r: 3.5,
+        r: TODAY_DOT_RADIUS,
         fill: color,
         stroke: paint.surface,
         strokeWidth: 1.5
       })
     ),
-    decorative(
-      text([point], {
-        id: 'label-today',
-        x: 'x',
-        y: 'y',
-        text: 'label',
-        dy: -10,
-        fill: paint.value,
-        fontSize: frame.fontSize,
-        fontWeight: 600
-      })
-    )
+    ...(labelled
+      ? [
+          decorative(
+            text([point], {
+              id: 'label-today',
+              x: 'x',
+              y: 'y',
+              text: 'label',
+              // The text is centred on dy, so half its size clears the dot.
+              dy: -(frame.fontSize / 2 + TODAY_DOT_RADIUS + TODAY_LABEL_GAP),
+              fill: paint.value,
+              fontSize: frame.fontSize,
+              fontWeight: 600
+            })
+          )
+        ]
+      : [])
   ]
 }

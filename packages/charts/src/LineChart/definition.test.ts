@@ -432,3 +432,42 @@ describe('lineChart summary', () => {
     ).toBe('GA ends highest of 3 types, with 92 orders on 29 Aug')
   })
 })
+
+describe('lineChart today label', () => {
+  const salesToDate: LineChartProps = {
+    data: days([120, 480, 910, 1464]),
+    x: 'day',
+    y: 'sold',
+    today: '2026-10-04'
+  }
+
+  it('joins the end labels when today is the last point', () => {
+    const svg = svgOf(salesToDate)
+    expect(svg).toMatch(keyOf('today'))
+    expect(svg).not.toMatch(keyOf('label-today'))
+    expect(svg).toMatch(/data-ts-key="label-end[^"]*"[^>]*>Today 1,464</)
+    expect(svg).not.toMatch(/>1,464</)
+  })
+
+  it('sits above its dot by the frame font size elsewhere', () => {
+    const offsetAt = (band: 'narrow' | 'default') => {
+      const svg = renderSceneSvg(
+        createChartScene(
+          lineChart.build(plainForecast, paint, plotFrame(260, band)),
+          {
+            width: 640,
+            height: 260
+          }
+        ),
+        { ariaLabel: 'x' }
+      )
+      const y = (pattern: RegExp) => Number(pattern.exec(svg)?.[1])
+      return (
+        y(/data-ts-key="label-today[^"]*"[^>]*\sy="([\d.]+)"/) -
+        y(/data-ts-key="today[^"]*"[^>]*\scy="([\d.]+)"/)
+      )
+    }
+    expect(offsetAt('default')).toBeCloseTo(-10, 5)
+    expect(offsetAt('narrow')).toBeCloseTo(-9.5, 5)
+  })
+})

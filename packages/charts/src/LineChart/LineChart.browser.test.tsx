@@ -42,6 +42,45 @@ describe('LineChart in a card', () => {
     expectNoOverlap(container, '[data-ts-key^="label-end"] text')
   })
 
+  it('keeps today clear of the end labels when today is the last point', async () => {
+    const { container } = renderInCard(
+      <LineChart
+        data={[
+          {
+            day: '2026-09-01',
+            sold: 0.14,
+            low: 0.07,
+            high: 0.22,
+            median: 0.14
+          },
+          { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+          {
+            day: '2026-10-01',
+            sold: 0.45,
+            low: 0.28,
+            high: 0.43,
+            median: 0.35
+          },
+          { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+        ]}
+        x='day'
+        y='sold'
+        format='percent'
+        band={{
+          low: 'low',
+          high: 'high',
+          median: 'median',
+          label: 'Similar shows'
+        }}
+        target={0.85}
+        today='2026-10-15'
+      />
+    )
+    await afterResize()
+    expect(container.querySelector('[data-ts-key^="today"]')).not.toBeNull()
+    expectNoOverlap(container, '[data-ts-key^="label-"] text')
+  })
+
   it('shows a legend instead of end labels on a phone', async () => {
     const { container } = renderInCard(<LineChart {...salesByTypeExample} />, {
       width: 320
