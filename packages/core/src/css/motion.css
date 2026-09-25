@@ -364,6 +364,10 @@
       var(--toast-gap)
   );
   z-index: calc(1000 - var(--toast-index));
+  /* Base UI measures a toast by setting `height: auto` and reading it back.
+     The root's `allow-keywords` would start a transition to auto instead, so
+     the read returns the old height and the toast never grows. */
+  interpolate-size: numeric-only;
   height: var(--toast-collapsed-height);
   transform: translateX(var(--toast-swipe-movement-x))
     translateY(
