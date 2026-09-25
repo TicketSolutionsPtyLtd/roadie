@@ -3,12 +3,13 @@
 import { type ReactNode, type RefAttributes, useId } from 'react'
 
 import { Switch as SwitchPrimitive } from '@base-ui/react/switch'
+import { CheckIcon } from '@phosphor-icons/react/ssr'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useFieldContext } from '../Field'
 import { SwitchThumb } from './SwitchThumb'
-import { switchVariants } from './variants'
+import { switchTickVariants, switchVariants } from './variants'
 
 export type SwitchSize = 'sm' | 'md'
 
@@ -65,6 +66,13 @@ export function SwitchRoot({
       className={cn(switchVariants({ size }), !label && className)}
       {...props}
     >
+      <span
+        data-slot='switch-tick'
+        aria-hidden
+        className={switchTickVariants()}
+      >
+        <CheckIcon weight='bold' className='size-(--switch-tick)' />
+      </span>
       {children ?? <SwitchThumb />}
     </SwitchPrimitive.Root>
   )

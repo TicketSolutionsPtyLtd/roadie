@@ -28,6 +28,21 @@ describe('Switch', () => {
     expect(onCheckedChange).toHaveBeenCalledWith(true, expect.anything())
   })
 
+  it('shows a decorative tick only when checked', async () => {
+    render(<Switch aria-label='Dark mode' />)
+    const control = screen.getByRole('switch')
+    const tick = control.querySelector('[data-slot="switch-tick"]')
+    expect(tick).toHaveAttribute('aria-hidden', 'true')
+    expect(tick).toHaveClass(
+      'opacity-0',
+      'group-data-checked/track:opacity-100'
+    )
+    expect(control).not.toHaveAttribute('data-checked')
+    await userEvent.click(control)
+    expect(control).toHaveAttribute('data-checked')
+    expect(control).toHaveClass('group/track')
+  })
+
   it('toggles with the keyboard', async () => {
     render(<Switch aria-label='Dark mode' />)
     const control = screen.getByRole('switch')

@@ -147,6 +147,10 @@ render(<Example />)
   checkbox so the value submits with a form.
 - **Naming**: every switch needs a name. Use `label`, `Field.Label`, or
   `aria-label` on a bare switch.
-- **Motion**: the thumb's slide stops when the user prefers reduced motion.
+- **Not colour alone**: a tick shows in the track when the switch is on. It is
+  decorative and hidden from assistive tech, since `aria-checked` carries the
+  state.
+- **Motion**: the thumb's slide and the tick's fade stop when the user prefers
+  reduced motion.
 
 <PropsDefinitions componentPath='packages/components/src/components/Switch' />

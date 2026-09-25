@@ -13,4 +13,8 @@ Switch.Thumb = SwitchThumb
 export { Switch }
 export type { SwitchRootProps as SwitchProps, SwitchSize } from './SwitchRoot'
 export type { SwitchThumbProps } from './SwitchThumb'
-export { switchThumbVariants, switchVariants } from './variants'
+export {
+  switchThumbVariants,
+  switchTickVariants,
+  switchVariants
+} from './variants'

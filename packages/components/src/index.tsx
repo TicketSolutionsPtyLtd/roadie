@@ -401,6 +401,7 @@ export {
   Switch,
   switchVariants,
   switchThumbVariants,
+  switchTickVariants,
   type SwitchProps,
   type SwitchThumbProps,
   type SwitchSize
