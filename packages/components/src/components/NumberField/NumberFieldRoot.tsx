@@ -124,7 +124,7 @@ export function NumberFieldRoot({
         step={step}
         locale={locale}
         format={format}
-        {...(children !== undefined && labelProps)}
+        {...(children != null && labelProps)}
         {...props}
       >
         {children ?? (

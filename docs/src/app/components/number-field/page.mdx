@@ -125,10 +125,18 @@ Set `invalid` on the `Field`. The group turns danger and the input points at the
 Pass children to lay the parts out yourself. Keep `NumberField.Decrement`, `NumberField.Input` and `NumberField.Increment` inside `NumberField.Group`, which draws the field or, at `subtler`, spaces the buttons. Here the buttons sit after the input, and `NumberField.ScrubArea` lets people drag the label left or right to change the value. Give the root an `id` so the label can point at the input.
 
 ```tsx-live
-<NumberField id='stage-height' defaultValue={120} min={60} max={240} className='max-w-48'>
+<NumberField
+  id='stage-height'
+  locale='en-AU'
+  format={{ style: 'unit', unit: 'centimeter' }}
+  defaultValue={120}
+  min={60}
+  max={240}
+  className='max-w-48'
+>
   <NumberField.ScrubArea>
     <label htmlFor='stage-height' className='text-sm font-medium text-strong'>
-      Stage height (cm)
+      Stage height
     </label>
     <NumberField.ScrubAreaCursor />
   </NumberField.ScrubArea>
@@ -261,7 +269,7 @@ The digits roll to each new value with [NumberFlow](https://number-flow.barvian.
 
 ### Formatting
 
-`format` takes `Intl.NumberFormat` options. The input shows the formatted value and parses what people type back to a number, so `onValueChange` always gets a plain number. Set `locale` so the server and browser format the same way.
+`format` takes `Intl.NumberFormat` options. The input shows the formatted value and parses what people type back to a number, so `onValueChange` gets a plain number, or `null` when people clear the field. Set `locale` so the server and browser format the same way.
 
 ```tsx-live
 <div className='grid max-w-48 gap-4'>

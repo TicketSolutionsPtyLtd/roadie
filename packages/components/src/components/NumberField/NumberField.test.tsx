@@ -45,6 +45,18 @@ describe('NumberField', () => {
     expect(screen.getByRole('textbox', { name: 'Tickets' })).toHaveValue('1')
   })
 
+  it('names the default input when children is null', () => {
+    const { container } = render(
+      <NumberField aria-label='Tickets' defaultValue={1}>
+        {null}
+      </NumberField>
+    )
+    expect(screen.getByRole('textbox', { name: 'Tickets' })).toHaveValue('1')
+    expect(
+      container.querySelector('[data-slot="number-field"]')
+    ).not.toHaveAttribute('aria-label')
+  })
+
   it('renders composed children instead of the default stepper', () => {
     render(
       <NumberField defaultValue={3}>
