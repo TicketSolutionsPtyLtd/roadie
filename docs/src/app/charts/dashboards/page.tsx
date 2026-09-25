@@ -26,6 +26,7 @@ import {
 import { Sparkline } from '@oztix/roadie-components/sparkline'
 import { StatTile } from '@oztix/roadie-components/stat-tile'
 import {
+  ACTIONS_LABEL_LIMITS,
   CARD_SIZES,
   CARD_SPANS,
   CHART_LABEL_LIMITS,
@@ -459,18 +460,23 @@ const MENU_GROUPS = [
   ]
 ]
 
-const CARD_ACTIONS_CODE = `import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
+const CARD_ACTIONS_CODE = `// CardMenu.tsx
+'use client'
+
+import type { DashboardCard } from '@oztix/roadie-core/dashboard'
 import { DataCard } from '@oztix/roadie-components/data-card'
 
-<DashboardView
-  spec={spec}
-  cardActions={(card) => (
+export function CardMenu({ card }: { card: DashboardCard }) {
+  return (
     <DataCard.MoreButton
       label={card.label}
       onClick={() => openCardMenu(card.id)}
     />
-  )}
-/>`
+  )
+}
+
+// page.tsx
+<DashboardView spec={spec} cardActions={(card) => <CardMenu card={card} />} />`
 
 const HOVER_ONLY_CODE = `<DataCard
   label='Ticket types'
@@ -875,7 +881,9 @@ export default function DashboardsPage() {
           <Code>actions</Code> to <Code>DataCard</Code>, <Code>StatTile</Code>{' '}
           or <Code>Chart</Code>. For cards described as data, pass{' '}
           <Code>cardActions</Code> to <Code>DashboardView</Code>. It gets each
-          card’s spec and returns its actions, or nothing.
+          card’s spec and returns its actions, or nothing. When{' '}
+          <Code>DashboardView</Code> renders on the server, return a client
+          component that owns the handlers, not inline handlers.
         </p>
         <CodePreview>{CARD_ACTIONS_CODE}</CodePreview>
         <h3 className='text-display-ui-5 text-strong'>Slot order</h3>
@@ -1012,11 +1020,13 @@ export default function DashboardsPage() {
         <h3 className='text-display-ui-5 text-strong'>Label room</h3>
         <p className='max-w-prose text-subtle'>
           More takes room from the label, which truncates past it. Beside More,
-          keep chart labels to 18 characters at <Code>sm</Code> and{' '}
-          <Code>md</Code> and 23 at <Code>lg</Code> and <Code>full</Code>, and
-          stat labels to 14. Table and note labels keep their{' '}
-          <Code>COPY_LIMITS</Code>. <Code>validateDashboard</Code> can’t check
-          this, because actions aren’t part of the JSON.
+          keep chart labels to {ACTIONS_LABEL_LIMITS.sm} characters at{' '}
+          <Code>sm</Code> and <Code>md</Code> and {ACTIONS_LABEL_LIMITS.lg} at{' '}
+          <Code>lg</Code> and <Code>full</Code>, and stat labels to{' '}
+          {ACTIONS_LABEL_LIMITS.stat}. <Code>ACTIONS_LABEL_LIMITS</Code> holds
+          them. Table and note labels keep their <Code>COPY_LIMITS</Code>.{' '}
+          <Code>validateDashboard</Code> can’t check this, because actions
+          aren’t part of the JSON.
         </p>
       </section>
 

@@ -19,7 +19,9 @@ export type DashboardViewProps = {
   /**
    * Actions for each card, such as a More button, placed at its top right.
    * They carry handlers, so they come from the app rather than the spec.
-   * Return nothing to leave a card without actions.
+   * Return nothing to leave a card without actions. When this renders on the
+   * server, return a client component that owns the handlers, not inline
+   * handlers.
    */
   cardActions?: (card: DashboardCard) => ReactNode
   className?: string
