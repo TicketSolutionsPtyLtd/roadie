@@ -24,14 +24,22 @@ describe("'use client' entries", () => {
     )
   })
 
-  it.each(clientEntries)('%s exports only components', async (folder) => {
-    const entry: Record<string, unknown> = await import(`./${folder}/index.tsx`)
-    for (const [name, value] of Object.entries(entry))
-      expect(
-        typeof value === 'function' && /^[A-Z]/.test(name),
-        `${folder} exports ${name}`
-      ).toBe(true)
-  })
+  // 30s: cold-transforms the chart engine (TanStack), which is slow under
+  // turbo's parallel load and flakes past Vitest's 5s default.
+  it.each(clientEntries)(
+    '%s exports only components',
+    async (folder) => {
+      const entry: Record<string, unknown> = await import(
+        `./${folder}/index.tsx`
+      )
+      for (const [name, value] of Object.entries(entry))
+        expect(
+          typeof value === 'function' && /^[A-Z]/.test(name),
+          `${folder} exports ${name}`
+        ).toBe(true)
+    },
+    30_000
+  )
 })
 
 describe('tables entry', () => {
