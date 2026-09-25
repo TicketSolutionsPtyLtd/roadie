@@ -20,7 +20,8 @@ describe('value domains', () => {
   })
 
   it('never returns an empty or invalid domain', () => {
-    expect(valueDomain([0, 0], { zero: true })).toEqual([0, 1])
+    expect(valueDomain([0, 0], { zero: true })).toEqual([0, 2])
+    expect(valueDomain([0, 0], { format: 'percent' })).toEqual([0, 1])
     expect(valueDomain([], { zero: true })).toEqual([0, 1])
     expect(valueDomain([null, Number.NaN], { zero: true })).toEqual([0, 1])
   })
@@ -41,6 +42,21 @@ describe('value domains', () => {
 
   it('rounds by default', () => {
     expect(valueDomain([612, 97, 61])).toEqual([0, 800])
+  })
+
+  it('keeps the middle gridline whole on a count axis', () => {
+    for (const max of [1, 3, 5, 15, 25, 150]) {
+      const domain = valueDomain([0, max], { format: 'number' })
+      expect(domain[1]).toBeGreaterThanOrEqual(max)
+      expect(Number.isInteger(gridTicks(domain)[1])).toBe(true)
+    }
+    expect(valueDomain([0, 25], { format: 'number' })).toEqual([0, 30])
+  })
+
+  it('leaves shares, money and fractions on the usual steps', () => {
+    expect(valueDomain([0, 0.25], { format: 'percent' })).toEqual([0, 0.25])
+    expect(valueDomain([0, 25], { format: 'currency' })).toEqual([0, 25])
+    expect(valueDomain([0, 2.3], { format: 'number' })).toEqual([0, 2.5])
   })
 
   it('draws three gridlines', () => {

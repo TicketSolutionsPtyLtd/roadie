@@ -35,7 +35,7 @@ export function toBars(props: BarChartProps): Bar[] {
 export function barYExtent(props: BarChartProps): readonly [number, number] {
   return valueDomain(
     toBars(props).map((b) => b.y),
-    { zero: true }
+    { zero: true, format: props.format }
   )
 }
 

@@ -85,7 +85,7 @@ function build(props: HistogramProps, paint: ChartPaint, frame: PlotFrame) {
     frame.yDomain ??
     valueDomain(
       bins.map((b) => b.count),
-      { zero: true }
+      { zero: true, format: 'number' }
     )
   return defineChart({
     marks: [

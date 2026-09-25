@@ -177,3 +177,31 @@ describe('scatterTable', () => {
     })
   })
 })
+
+describe('scatter count axes', () => {
+  it('keeps the middle gridline whole', () => {
+    const svg = renderSceneSvg(
+      createChartScene(
+        scatter.build(
+          {
+            data: [
+              { orders: 2, tickets: 3 },
+              { orders: 23, tickets: 21 }
+            ],
+            x: 'orders',
+            y: 'tickets'
+          },
+          paint,
+          plotFrame(260, 'default')
+        ),
+        { width: 640, height: 260 }
+      ),
+      { ariaLabel: 'x' }
+    )
+    const ticks = [
+      ...svg.matchAll(/data-ts-key="[xy]-tick-label:number:([^"]+)"/g)
+    ].map((m) => m[1]!)
+    expect(ticks.length).toBeGreaterThan(0)
+    expect(ticks.every((t) => /^\d+$/.test(t))).toBe(true)
+  })
+})

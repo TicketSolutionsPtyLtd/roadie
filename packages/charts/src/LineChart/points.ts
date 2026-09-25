@@ -75,7 +75,10 @@ export function lineYExtent(props: LineChartProps): readonly [number, number] {
     ),
     ...(props.target === undefined ? [] : [props.target])
   ]
-  return valueDomain([...values, ...extra], { zero: props.format !== 'index' })
+  return valueDomain([...values, ...extra], {
+    zero: props.format !== 'index',
+    format: props.format
+  })
 }
 
 export const hasEnoughPoints = (points: readonly PlotDatum[]) =>

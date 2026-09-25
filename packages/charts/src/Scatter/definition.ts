@@ -19,7 +19,7 @@ import type {
   PlotDatum,
   PlotFrame
 } from '../plot/types'
-import { axisFormat, gridTicks } from '../plot/values'
+import { axisFormat, gridTicks, isCountAxis } from '../plot/values'
 import {
   MIN_POINTS,
   type ScatterPoint,
@@ -44,14 +44,18 @@ function extent(
   const min = Math.min(...all)
   const max = Math.max(...all)
   const pad = (max - min) * 0.08 || Math.abs(max) * 0.1 || 1
-  const [low, high] = scaleLinear()
+  const scale = scaleLinear()
     .domain([min - pad, max + pad])
     .nice(4)
-    .domain()
-  return [
-    min >= 0 ? Math.max(0, low) : low,
-    format === 'percent' && max <= 1 ? Math.min(1, high) : high
-  ]
+  const [niceLow, niceHigh] = scale.domain()
+  const low = min >= 0 ? Math.max(0, niceLow) : niceLow
+  const [first = 0, second = 1] = scale.ticks(4)
+  // A count axis steps its top up once so the middle gridline lands whole.
+  const high =
+    isCountAxis(all, format) && !Number.isInteger((low + niceHigh) / 2)
+      ? niceHigh + (second - first)
+      : niceHigh
+  return [low, format === 'percent' && max <= 1 ? Math.min(1, high) : high]
 }
 
 type Placed = ScatterPoint & PlotDatum & { labelAnchor: 'start' | 'end' }

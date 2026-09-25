@@ -38,7 +38,7 @@ function build(props: StackedBarsProps, paint: ChartPaint, frame: PlotFrame) {
       : (frame.yDomain ??
         valueDomain(
           segments.map((s) => s.end),
-          { zero: true }
+          { zero: true, format: props.format }
         ))
   const format =
     props.mode === 'share' ? percent : axisFormat(props.format, domain[1])
