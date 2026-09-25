@@ -111,6 +111,14 @@ describe('time', () => {
     expect(hasTimeOfDay('2026-11-14')).toBe(false)
   })
 
+  it('finds a time only in a whole wall time string', () => {
+    expect(hasTimeOfDay('Doors 19:30')).toBe(false)
+    expect(hasTimeOfDay('Set T19:30')).toBe(false)
+    expect(hasTimeOfDay('2026-11-14 19:30 onwards')).toBe(false)
+    expect(hasTimeOfDay('2026-11-14T25:00')).toBe(false)
+    expect(hasTimeOfDay(20261114)).toBe(false)
+  })
+
   it('plots a warehouse space separated time at its wall time', () => {
     expect(parseX('2026-11-14 19:30')).toBe(Date.UTC(2026, 10, 14, 19, 30))
     expect(isTimeField([{ at: '2026-11-14 19:30:00' }], 'at')).toBe(true)

@@ -705,7 +705,7 @@ describe('validateDashboard checks repeated names', () => {
     ).toContainEqual({
       path: 'sections[0].cards[0].plot.x',
       message:
-        '"2026-11-14 18:00" appears more than once. Its bars will add up and its line keeps the first value',
+        '"2026-11-14 18:00" appears more than once. Its bars will add up and its line keeps the first value it has',
       severity: 'warning'
     })
   })

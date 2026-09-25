@@ -10,8 +10,10 @@ const LOCALE = 'en-AU'
 export const parseX = (value: PlotX | PlotCell | undefined) =>
   parseWallTime(value)
 
+const DATE_THEN_TIME = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/
+
 export const hasTimeOfDay = (value: PlotX | PlotCell | undefined) =>
-  typeof value === 'string' && /[T ]\d{2}:\d{2}/.test(value)
+  isWallTime(value) && DATE_THEN_TIME.test(value)
 
 export function isTimeField(rows: readonly Row[], field: string) {
   const values = rows.map((row) => row[field]).filter((v) => v != null)

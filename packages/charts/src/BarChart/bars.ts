@@ -15,7 +15,7 @@ const addOrNull = (a: number | null, b: number | null) =>
 
 /**
  * One bar per x, in x order. Rows that share an x add up their bars; the line
- * keeps the first value it gets, because a rate can't be summed.
+ * keeps the first non-null value, because a rate can't be summed.
  */
 export function toBars(props: BarChartProps): Bar[] {
   const isTime = isTimeField(props.data, props.x)

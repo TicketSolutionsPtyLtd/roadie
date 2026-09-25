@@ -225,7 +225,7 @@ const addsUp = (
 
 const barOutcome = (plot: { line?: unknown }) =>
   plot.line
-    ? 'Its bars will add up and its line keeps the first value'
+    ? 'Its bars will add up and its line keeps the first value it has'
     : undefined
 
 const quoted = (names: readonly string[]) =>
