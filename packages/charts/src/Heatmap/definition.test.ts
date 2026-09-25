@@ -28,7 +28,7 @@ it('paints cells through the pinned colour scale', () => {
           { c: 'a', r: 'x', b: 'heat-0' },
           { c: 'b', r: 'x', b: 'heat-8' }
         ],
-        { id: 'series-1', x: 'c', y: 'r', color: 'b' }
+        { id: 'cells', x: 'c', y: 'r', color: 'b' }
       )
     ],
     scales: {
@@ -49,8 +49,7 @@ describe('heatmap', () => {
   const svg = render(whenFansBuyExample)
 
   it('draws a cell for every value, in the heat steps', () => {
-    // The engine's hidden focus layer repeats each key on a dot, so count cells.
-    expect(svg.match(/<rect data-ts-key="series-1:[^"]*"/g)).toHaveLength(35)
+    expect(svg.match(/data-ts-key="cells:[^"]*"/g)).toHaveLength(35)
     expect(svg).toContain(`fill="${paint.heat[8]}"`)
   })
 
@@ -67,7 +66,7 @@ describe('heatmap', () => {
     )
     expect(scene.points).toHaveLength(35)
     expect(new Set(scene.points.map((p) => p.markId))).toEqual(
-      new Set(['series-1'])
+      new Set(['cells'])
     )
   })
 

@@ -1,6 +1,6 @@
 import { cleanup } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { commands, userEvent } from 'vitest/browser'
 
 import { Heatmap } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
@@ -79,6 +79,44 @@ describe('Heatmap in a card', () => {
     const tooltip = container.querySelector('[data-slot=chart-plot-tooltip]')
     expect(tooltip?.textContent).toContain('Mon, 9am')
     expect(tooltip?.textContent).toContain('4')
+  })
+
+  it('outlines the focused cell', async () => {
+    const { container } = renderInCard(<Heatmap {...whenFansBuyExample} />, {
+      size: 'lg'
+    })
+    const cells = () => [
+      ...container.querySelectorAll<SVGRectElement>(
+        'rect[data-ts-key^="cells:"]'
+      )
+    ]
+    await focusPlot(container)
+    await expect
+      .poll(() => cells().filter((c) => c.getAttribute('stroke')).length)
+      .toBe(1)
+    expect(container.querySelector('.ts-chart__focus-layer circle')).toBeNull()
+  })
+
+  it('keeps the scale colours under forced colours', async (context) => {
+    const { container } = renderInCard(<Heatmap {...whenFansBuyExample} />)
+    const cellAt = (row: string, column: string) =>
+      container.querySelector<SVGRectElement>(
+        `rect[data-ts-key^="cells:"][data-ts-key*="${row}"][data-ts-key*="${column}"]`
+      )!
+    const low = cellAt('Mon', '9am')
+    const high = cellAt('Fri', '6pm')
+    await commands.forcedColors(true)
+    try {
+      if (!matchMedia('(forced-colors: active)').matches) {
+        context.skip()
+        return
+      }
+      const fills = [low, high].map((c) => getComputedStyle(c).fill)
+      expect(fills[0]).not.toBe(fills[1])
+      for (const fill of fills) expect(fill).not.toContain('url(')
+    } finally {
+      await commands.forcedColors(false)
+    }
   })
 
   it('keeps text at 11px or more on a phone', async () => {

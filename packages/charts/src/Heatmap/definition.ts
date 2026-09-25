@@ -34,14 +34,20 @@ function build(props: HeatmapProps, paint: ChartPaint, frame: PlotFrame) {
   return defineChart({
     marks: [
       cell(cells, {
-        id: 'series-1',
+        id: 'cells',
         x: 'column',
         y: 'row',
         // Each row is a series, so up and down move between rows.
         z: 'row',
         color: 'bucket',
         inset: 1,
-        radius: 2
+        radius: 2,
+        states: [
+          {
+            when: { focus: 'primary' },
+            style: { stroke: paint.value, strokeWidth: 2 }
+          }
+        ]
       })
     ],
     scales: {
@@ -53,7 +59,9 @@ function build(props: HeatmapProps, paint: ChartPaint, frame: PlotFrame) {
       range: [...rangeFor(props, paint)]
     },
     theme: { muted: paint.label, foreground: paint.value, grid: paint.grid },
-    focus: 'nearest'
+    focus: 'nearest',
+    // The engine's ring is a dot; a focused cell outlines itself instead.
+    focusRing: false
   })
 }
 
