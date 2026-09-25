@@ -108,4 +108,19 @@ describe('Chart types group', () => {
       'StackedBars'
     ])
   })
+
+  it('lists all nine chart types in page order', async () => {
+    const types = entriesIn(await getCatalogue(CHARTS), 'Chart types')
+    expect(types.map(({ title }) => title)).toEqual([
+      'LineChart',
+      'BarChart',
+      'RankedBars',
+      'StackedBars',
+      'Histogram',
+      'Funnel',
+      'Heatmap',
+      'Scatter',
+      'SmallMultiples'
+    ])
+  })
 })

@@ -1,0 +1,72 @@
+export const metadata = {
+  title: 'Heatmap',
+  description: 'A grid coloured by value, such as orders by weekday and hour',
+  status: 'beta',
+  category: 'Chart types',
+  order: 7
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A grid coloured by value, such as orders by weekday and hour.
+
+## Import
+
+```tsx
+import { Heatmap } from '@oztix/roadie-charts/heatmap'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-160 max-w-full'>
+  <Chart label='When fans buy' source='Oztix sales, venue time.' size='lg'>
+    <Heatmap
+      data={['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].flatMap((weekday, r) =>
+        ['9am', '12pm', '3pm', '6pm', '9pm'].map((hour, c) => ({ weekday, hour, orders: [[4, 8, 10, 18, 12], [5, 9, 11, 20, 13], [5, 9, 12, 22, 14], [6, 10, 14, 30, 22], [8, 12, 18, 42, 36], [14, 22, 20, 24, 18], [12, 18, 16, 14, 8]][r][c] }))
+      )}
+      rows='weekday'
+      columns='hour'
+      value='orders'
+      takeaway='Fans buy most on Friday evenings'
+    />
+  </Chart>
+</div>
+```
+
+### Diverging
+
+Use `scale='diverging'` when values sit either side of zero, such as pace against similar shows. Ahead is cool and behind is warm.
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Section pace' source='Oztix sales.' size='md'>
+    <Heatmap
+      data={['Floor', 'Balcony', 'Mezzanine'].flatMap((section, r) => ['Week 1', 'Week 2', 'Week 3', 'Week 4'].map((week, c) => ({ section, week, versusSimilar: [0.12, 0.05, -0.02, -0.08][(r + c) % 4] })))}
+      rows='section'
+      columns='week'
+      value='versusSimilar'
+      scale='diverging'
+      format='percent'
+      takeaway='The floor has slipped behind similar shows'
+    />
+  </Chart>
+</div>
+```
+
+## Guidelines
+
+- Rows and columns keep the order of your data, so send weekdays and hours in order.
+- Times are in the venue's time zone, which the source line should say.
+- For sell-through by section, a table of meters often reads better than a heatmap. Use a heatmap when there is a second dimension, such as week.
+
+## Accessibility
+
+- The plot is one tab stop. Left and right arrows move along a row, and up and down move between rows in the same column.
+- Each cell is read out with its row, column and value, such as "Fri, 6pm, 42 orders". The focused cell is outlined.
+- Every cell has its value in the tooltip and in the Table tab, which puts rows down the side and columns across.
+- Cells keep their colours under forced colours and in print, because the colour is the data.
+
+<PropsDefinitions componentPath='packages/charts/src/Heatmap/index.tsx' />
