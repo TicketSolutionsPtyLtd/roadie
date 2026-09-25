@@ -18,5 +18,6 @@ In core, a chart card's `plot` accepts every chart kind, each with its own
 schema exported from `@oztix/roadie-core/dashboard`, and `validateDashboard`
 checks plot fields, annotations outside the data and repeated names.
 `parseWallTime` in `@oztix/roadie-core/dataviz` reads an ISO string as venue
-wall time. `--chart-highlight` now follows nested accent, dark and
+wall time, and `isWallTime` says whether a value is one. Both read the whole
+string and refuse a date that doesn't exist, such as 31 February. `--chart-highlight` now follows nested accent, dark and
 intent sections.
