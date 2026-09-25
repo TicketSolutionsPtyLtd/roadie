@@ -567,3 +567,28 @@ describe('ChartPlot under forced colours', () => {
     }
   })
 })
+
+describe('ChartPlot announcements', () => {
+  it('stays quiet while a pointer hovers and speaks once keys move focus', async () => {
+    const { container } = renderInCard()
+    await afterResize()
+    const live = await focusPlot(container)
+    const tooltip = () =>
+      container.querySelector<HTMLElement>('[data-slot=chart-plot-tooltip]')
+    const host = container
+      .querySelector('[data-slot=chart-plot-host]')!
+      .getBoundingClientRect()
+    const at = {
+      clientX: host.left + parseFloat(tooltip()!.style.left),
+      clientY: host.top + parseFloat(tooltip()!.style.top)
+    }
+    container
+      .querySelector('svg.ts-chart')!
+      .dispatchEvent(new PointerEvent('pointermove', { bubbles: true, ...at }))
+    await expect.poll(() => live.textContent).toBe('')
+    expect(tooltip()).not.toBeNull()
+
+    await userEvent.keyboard('{ArrowRight}')
+    await expect.poll(() => live.textContent).not.toBe('')
+  })
+})

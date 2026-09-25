@@ -86,6 +86,10 @@ export function ChartPlot<P>({
   const { band, width, height: measuredHeight, measured } = usePlotBox(hostRef)
   const [focused, setFocused] = useState<ChartPoint | null>(null)
   const [group, setGroup] = useState<readonly ChartPoint[]>([])
+  // Hovering moves focus too, but only keyboard focus is spoken; a mouse
+  // user with a screen reader shouldn't hear every point they pass over.
+  const [spoken, setSpoken] = useState(false)
+  const pressedRef = useRef(false)
 
   const summary = useMemo(() => chart.summary(props), [chart, props])
   const table = useMemo(() => chart.table(props), [chart, props])
@@ -141,6 +145,7 @@ export function ChartPlot<P>({
   // between series and the category order on horizontal bars, and its Home and
   // End follow the same list, so steps and ends run on screen position here.
   function onKeyDownCapture(event: KeyboardEvent<HTMLDivElement>) {
+    setSpoken(true)
     const points = plotPoints()
     if (event.key === 'Home' || event.key === 'End') {
       const ends = visualEnds(points, axis)
@@ -161,6 +166,8 @@ export function ChartPlot<P>({
 
   // Runs before the engine's own focusin, which skips entry once a point is set.
   function onFocusCapture(event: FocusEvent<HTMLDivElement>) {
+    setSpoken(!pressedRef.current)
+    pressedRef.current = false
     if (focused || event.target !== renderRef.current?.surface.element) return
     const ends = visualEnds(plotPoints(), axis)
     if (ends) focusPoint(ends.first)
@@ -209,6 +216,11 @@ export function ChartPlot<P>({
         className='relative'
         onKeyDownCapture={onKeyDownCapture}
         onFocusCapture={onFocusCapture}
+        onPointerDownCapture={() => {
+          pressedRef.current = true
+          setSpoken(false)
+        }}
+        onPointerMove={() => setSpoken(false)}
         onBlur={onBlur}
       >
         {!card && patterns}
@@ -246,7 +258,7 @@ export function ChartPlot<P>({
         aria-live='polite'
         className='sr-only'
       >
-        {focusedDatum ? chart.describe(focusedDatum, props) : ''}
+        {spoken && focusedDatum ? chart.describe(focusedDatum, props) : ''}
       </p>
     </div>
   )
