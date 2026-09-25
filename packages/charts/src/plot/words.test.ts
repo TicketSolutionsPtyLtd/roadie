@@ -48,4 +48,17 @@ describe('words', () => {
     expect(singular('suburbs')).toBe('suburb')
     expect(singular('address')).toBe('address')
   })
+
+  it('keeps nouns that are the same either way and knows irregular ones', () => {
+    expect(singular('series')).toBe('series')
+    expect(plural('series')).toBe('series')
+    expect(nounFor(1, 'species')).toBe('species')
+    expect(singular('buses')).toBe('bus')
+    expect(plural('bus')).toBe('buses')
+    expect(singular('statuses')).toBe('status')
+    expect(nounFor(1, 'people')).toBe('person')
+    expect(nounFor(3, 'person')).toBe('people')
+    expect(singular('classes')).toBe('class')
+    expect(singular('houses')).toBe('house')
+  })
 })

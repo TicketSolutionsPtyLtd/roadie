@@ -42,7 +42,25 @@ export function trendSentence({
     : `${noun} ${verb} from ${value(first)} to ${value(last)} between ${from} and ${to}`
 }
 
+const SAME_BOTH_WAYS = new Set(['series', 'species', 'news'])
+const IRREGULAR: Record<string, string> = {
+  bus: 'buses',
+  bonus: 'bonuses',
+  campus: 'campuses',
+  census: 'censuses',
+  status: 'statuses',
+  virus: 'viruses',
+  person: 'people',
+  child: 'children'
+}
+const IRREGULAR_SINGULAR = Object.fromEntries(
+  Object.entries(IRREGULAR).map(([one, many]) => [many, one])
+)
+
 export function singular(noun: string) {
+  if (SAME_BOTH_WAYS.has(noun) || noun in IRREGULAR) return noun
+  const irregular = IRREGULAR_SINGULAR[noun]
+  if (irregular) return irregular
   if (/[^aeiou]ies$/.test(noun)) return `${noun.slice(0, -3)}y`
   if (/(ss|us|is)$/.test(noun)) return noun
   if (/(x|z|ch|sh|ss)es$/.test(noun)) return noun.slice(0, -2)
@@ -51,6 +69,9 @@ export function singular(noun: string) {
 
 export function plural(noun: string) {
   const one = singular(noun)
+  if (SAME_BOTH_WAYS.has(one)) return one
+  const irregular = IRREGULAR[one]
+  if (irregular) return irregular
   if (/[^aeiou]y$/.test(one)) return `${one.slice(0, -1)}ies`
   if (/(s|x|z|ch|sh)$/.test(one)) return `${one}es`
   return `${one}s`
