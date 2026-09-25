@@ -11,7 +11,4 @@ export function BarChart(props: BarChartProps) {
 }
 BarChart.displayName = 'BarChart'
 
-export { barChart } from './definition'
-export { barChartTable } from './table'
-export { barYExtent } from './bars'
 export type { BarChartInterval, BarChartProps } from './types'

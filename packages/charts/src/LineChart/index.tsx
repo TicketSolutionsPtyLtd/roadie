@@ -11,6 +11,4 @@ export function LineChart(props: LineChartProps) {
 }
 LineChart.displayName = 'LineChart'
 
-export { lineChart } from './definition'
-export { lineChartTable } from './table'
 export type { LineChartPalette, LineChartProps } from './types'

@@ -98,6 +98,4 @@ export function SmallMultiples(props: SmallMultiplesProps) {
 }
 SmallMultiples.displayName = 'SmallMultiples'
 
-export { renderSmallMultiplesSvg } from './static'
-export { smallMultiplesTable } from './table'
 export type { SmallMultiplesChart, SmallMultiplesProps } from './types'

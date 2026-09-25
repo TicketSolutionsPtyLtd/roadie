@@ -96,6 +96,10 @@
     "./static": {
       "types": "./dist/static/index.d.ts",
       "import": "./dist/static/index.js"
+    },
+    "./tables": {
+      "types": "./dist/tables/index.d.ts",
+      "import": "./dist/tables/index.js"
     }
   },
   "scripts": {

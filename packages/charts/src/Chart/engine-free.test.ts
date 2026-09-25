@@ -73,3 +73,14 @@ describe('server table derivation stays engine-free', () => {
     }
   )
 })
+
+describe('the tables entry stays engine-free', () => {
+  it('imports no engine and no chart definition', () => {
+    const { packages, files } = importGraph(join(SRC_DIR, 'tables', 'index.ts'))
+    expect(packages.filter((p) => p.startsWith('@tanstack/'))).toEqual([])
+    expect(files.filter((f) => /[/\\]definition\.tsx?$/.test(f))).toEqual([])
+    expect(
+      files.filter((f) => /[/\\][A-Z]\w+[/\\]table\.ts$/.test(f))
+    ).toHaveLength(9)
+  })
+})

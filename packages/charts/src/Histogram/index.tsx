@@ -11,6 +11,4 @@ export function Histogram(props: HistogramProps) {
 }
 Histogram.displayName = 'Histogram'
 
-export { histogram } from './definition'
-export { histogramTable } from './table'
 export type { HistogramProps } from './types'

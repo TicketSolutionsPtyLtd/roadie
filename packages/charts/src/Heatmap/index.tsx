@@ -9,6 +9,4 @@ export function Heatmap(props: HeatmapProps) {
 }
 Heatmap.displayName = 'Heatmap'
 
-export { heatmap } from './definition'
-export { heatmapTable } from './table'
 export type { HeatmapProps, HeatmapScale } from './types'

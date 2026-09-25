@@ -9,6 +9,4 @@ export function Scatter(props: ScatterProps) {
 }
 Scatter.displayName = 'Scatter'
 
-export { scatter } from './definition'
-export { scatterTable } from './table'
 export type { ScatterProps, ScatterQuadrants } from './types'

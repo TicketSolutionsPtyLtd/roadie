@@ -9,6 +9,4 @@ export function Funnel(props: FunnelProps) {
 }
 Funnel.displayName = 'Funnel'
 
-export { funnel } from './definition'
-export { funnelTable } from './table'
 export type { FunnelProps, FunnelStep } from './types'

@@ -11,6 +11,4 @@ export function RankedBars(props: RankedBarsProps) {
 }
 RankedBars.displayName = 'RankedBars'
 
-export { rankedBars } from './definition'
-export { rankedBarsTable } from './table'
 export type { RankedBarsProps, RankedBarsReference } from './types'

@@ -153,5 +153,12 @@
       "react",
       "react-dom"
     ]
+  },
+  {
+    "name": "tables",
+    "path": "dist/tables/index.js",
+    "import": "*",
+    "limit": "4.5 kB",
+    "ignore": ["@oztix/roadie-core"]
   }
 ]

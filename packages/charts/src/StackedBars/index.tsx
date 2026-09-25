@@ -11,8 +11,6 @@ export function StackedBars(props: StackedBarsProps) {
 }
 StackedBars.displayName = 'StackedBars'
 
-export { stackedBars } from './definition'
-export { stackedBarsTable } from './table'
 export type {
   StackedBarsMode,
   StackedBarsOrientation,
