@@ -1,0 +1,63 @@
+export const metadata = {
+  title: 'Funnel',
+  description:
+    'Steps people pass through, with the conversion and drop-off between them',
+  status: 'beta',
+  category: 'Chart types',
+  order: 6
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Steps people pass through, with the conversion and drop-off between them.
+
+## Import
+
+```tsx
+import { Funnel } from '@oztix/roadie-charts/funnel'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Checkout' source='Oztix checkout events.' size='md'>
+    <Funnel
+      steps={[
+        { label: 'Viewed event', value: 12400 },
+        { label: 'Chose tickets', value: 4210 },
+        { label: 'Started checkout', value: 2380 },
+        { label: 'Paid', value: 1464 }
+      ]}
+    />
+  </Chart>
+</div>
+```
+
+### Waitlist to purchase
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Waitlist' source='Oztix waitlist.' size='md'>
+    <Funnel
+      steps={[{ label: 'Joined waitlist', value: 3100 }, { label: 'Got an offer', value: 900 }, { label: 'Bought', value: 610 }]}
+      takeaway='Two in three waitlist offers turn into sales'
+    />
+  </Chart>
+</div>
+```
+
+## Guidelines
+
+- Each bar shows its count and its conversion from the step before. On a phone, bars after the first show only the conversion. The Table tab adds the share of the first step and how many dropped.
+- Name steps by what people did, in the past tense: "Chose tickets", not "Ticket selection".
+
+## Accessibility
+
+- The plot is one tab stop that starts on the first step. Up and down arrows move between steps in order, and Home and End jump to the first and last.
+- Each step is read out with its count and conversion, such as "Chose tickets, 4,210, 34% of the previous step, 34% of the first".
+- The Table tab lists every step with its count, both conversions and how many dropped.
+
+<PropsDefinitions componentPath='packages/charts/src/Funnel/index.tsx' />

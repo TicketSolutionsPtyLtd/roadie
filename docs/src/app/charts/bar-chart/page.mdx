@@ -1,0 +1,101 @@
+export const metadata = {
+  title: 'BarChart',
+  description:
+    'Bars over time, with an optional second measure labelled at its end',
+  status: 'beta',
+  category: 'Chart types',
+  order: 2
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Bars over time, with an optional second measure labelled at its end.
+
+## Import
+
+```tsx
+import { BarChart } from '@oztix/roadie-charts/bar-chart'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Daily orders' source='Oztix sales.' size='md'>
+    <BarChart
+      data={[42, 88, 120, 94, 38, 51, 60].map((orders, i) => ({ day: `2026-10-0${i + 1}`, orders }))}
+      x='day'
+      y='orders'
+      takeaway='Weekends carry the week'
+    />
+  </Chart>
+</div>
+```
+
+### Annotated on-sale
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='On-sale by hour' source='Oztix sales.' size='md'>
+    <BarChart
+      data={[1840, 920, 410, 260, 210, 190].map((orders, i) => ({ time: `2026-08-03T${String(9 + i).padStart(2, '0')}:00`, orders }))}
+      x='time'
+      y='orders'
+      interval='hour'
+      annotations={[{ at: '2026-08-03T09:00', label: 'General on-sale' }]}
+      takeaway='Nearly half the orders came in the first hour'
+    />
+  </Chart>
+</div>
+```
+
+### With a second measure
+
+`line` draws another measure on its own axis. It is labelled at its end, so it needs no second axis.
+
+```tsx-live
+<div className='w-180 max-w-full'>
+  <Chart label='Entry' source='Oztix scans.' size='full'>
+    <BarChart
+      data={[80, 190, 300, 260, 150, 90].map((scans, i, all) => ({
+        time: `2026-11-14T${String(17 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`,
+        scans,
+        inside: all.slice(0, i + 1).reduce((a, b) => a + b, 0) / 1200
+      }))}
+      x='time'
+      y='scans'
+      interval='hour'
+      line={{ y: 'inside', label: 'Inside', format: 'percent' }}
+      takeaway='Entry peaked at 6pm'
+    />
+  </Chart>
+</div>
+```
+
+### States
+
+```tsx-live
+<div className='grid w-140 max-w-full gap-4'>
+  <p className='text-sm text-subtle'>No values yet</p>
+  <Chart label='Daily orders' source='Oztix sales.' size='sm'>
+    <BarChart data={[{ day: '2026-10-01', orders: null }]} x='day' y='orders' />
+  </Chart>
+</div>
+```
+
+## Guidelines
+
+- Bars always start at zero.
+- Use `interval='hour'` for on-sale and entry charts so ticks and spoken values carry the time.
+- Keep annotation labels to 20 characters. Mark what moved sales: announcements, line-up drops, email sends, ad bursts and price releases.
+- Only `line` gets its own scale. Don't put two unrelated measures on one chart. A percent `line` always runs from 0 to 100%.
+
+## Accessibility
+
+- The plot is one tab stop. Left and right arrows move between bars, and each bar is read out with its time, such as "Monday 3 August, 9am, 1,840 orders".
+- With `line`, each bar is read out with the second measure too, such as "Saturday 14 November, 6pm, 300 scans, inside 48%".
+- The Table tab lists every bar and the `line` measure in full.
+
+<PropsDefinitions componentPath='packages/charts/src/BarChart/index.tsx' />

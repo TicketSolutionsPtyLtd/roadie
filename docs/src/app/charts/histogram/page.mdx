@@ -1,0 +1,59 @@
+export const metadata = {
+  title: 'Histogram',
+  description:
+    'How a number spreads, such as booking lead time or tickets per order',
+  status: 'beta',
+  category: 'Chart types',
+  order: 5
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+How a number spreads, such as booking lead time or tickets per order.
+
+## Import
+
+```tsx
+import { Histogram } from '@oztix/roadie-charts/histogram'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Booking lead time' source='Oztix sales.' size='md'>
+    <Histogram
+      data={[1, 2, 3, 3, 4, 5, 6, 8, 9, 10, 12, 13, 14, 16, 18, 21, 25, 30, 38, 45, 60].map((days) => ({ days }))}
+      x='days'
+      binWidth={7}
+      median
+      takeaway='Half of buyers book within two weeks of the show'
+    />
+  </Chart>
+</div>
+```
+
+### Order size
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Tickets per order' source='Oztix sales.' size='md'>
+    <Histogram data={[1, 2, 2, 2, 2, 3, 4, 4, 2, 1, 6, 2].map((tickets) => ({ tickets }))} x='tickets' binWidth={1} takeaway='Half of orders are for two tickets' />
+  </Chart>
+</div>
+```
+
+## Guidelines
+
+- Use `binWidth` when the unit means something, such as 7 days. Use `bins` for a quick look. Don't set both.
+- `median` draws a labelled dashed line. Say what it means in the takeaway.
+- Counts start at zero.
+
+## Accessibility
+
+- The plot is one tab stop. Left and right arrows move between bins, and each bin is read out as a range and its count, such as "7 to 14 days, 5 of 21".
+- The Table tab lists every bin with its count.
+
+<PropsDefinitions componentPath='packages/charts/src/Histogram/index.tsx' />

@@ -4,6 +4,18 @@ import { ComponentSkeleton, Skel } from './ComponentSkeleton'
 
 const SALES = ['h-4', 'h-6', 'h-5', 'h-8', 'h-10']
 
+const HEAT = [
+  'bg-chart-heat-0',
+  'bg-chart-heat-1',
+  'bg-chart-heat-2',
+  'bg-chart-heat-3',
+  'bg-chart-heat-4',
+  'bg-chart-heat-5',
+  'bg-chart-heat-6',
+  'bg-chart-heat-7',
+  'bg-chart-heat-8'
+]
+
 const TREND = '0,14 8,12 16,13 24,8 32,9 40,4 48,2'
 
 function Spark({ className }: { className?: string }) {
@@ -135,6 +147,154 @@ export function ChartPreview({ name }: { name: string }) {
               <Skel className={`h-1.5 ${width}`} />
               <Spark className='ms-auto h-3 w-8' />
               <MeterBar className='w-8' />
+            </div>
+          ))}
+        </div>
+      )
+    case 'line-chart':
+      return (
+        <svg
+          viewBox='0 0 160 64'
+          className='h-16 w-40 overflow-visible'
+          aria-hidden
+        >
+          <path
+            d='M0 50 L40 44 L80 36 L120 26 L160 12 L160 30 L120 40 L80 48 L40 54 L0 58 Z'
+            className='fill-chart-band'
+          />
+          <polyline
+            points='0,54 40,49 80,42 120,33 160,21'
+            fill='none'
+            strokeWidth={1.25}
+            strokeDasharray='3 3'
+            className='stroke-chart-median'
+          />
+          <polyline
+            points='0,52 40,44 80,34 104,28'
+            fill='none'
+            strokeWidth={2}
+            strokeLinecap='round'
+            className='stroke-chart-highlight'
+          />
+          <polyline
+            points='104,28 160,10'
+            fill='none'
+            strokeWidth={2}
+            strokeDasharray='0.5 4'
+            strokeLinecap='round'
+            className='stroke-chart-highlight'
+          />
+          <circle cx={104} cy={28} r={3} className='fill-chart-highlight' />
+        </svg>
+      )
+    case 'bar-chart':
+      return (
+        <div className='flex h-16 w-40 items-end gap-1'>
+          {['h-6', 'h-5', 'h-7', 'h-8', 'h-12', 'h-16', 'h-10'].map(
+            (height, i) => (
+              <div
+                key={i}
+                className={`flex-1 rounded-t-sm ${height} ${i === 5 ? 'bg-chart-highlight' : 'bg-chart-1'}`}
+              />
+            )
+          )}
+        </div>
+      )
+    case 'ranked-bars':
+      return (
+        <div className='grid w-40 gap-1.5'>
+          {['w-full', 'w-3/4', 'w-1/2', 'w-1/3'].map((width, i) => (
+            <div
+              key={width}
+              className={`h-2.5 rounded-r-sm ${width} ${i === 0 ? 'bg-chart-highlight' : 'bg-chart-context'}`}
+            />
+          ))}
+        </div>
+      )
+    case 'stacked-bars':
+      return (
+        <div className='grid w-40 gap-1.5'>
+          {[
+            ['w-7/12', 'w-2/12', 'w-3/12'],
+            ['w-8/12', 'w-2/12', 'w-2/12'],
+            ['w-5/12', 'w-1/12', 'w-4/12']
+          ].map((row, i) => (
+            <div key={i} className='flex h-3 gap-px'>
+              <div className={`${row[0]} rounded-l-sm bg-chart-trio-1`} />
+              <div className={`${row[1]} bg-chart-trio-2`} />
+              <div className={`${row[2]} rounded-r-sm bg-chart-trio-3`} />
+            </div>
+          ))}
+        </div>
+      )
+    case 'histogram':
+      return (
+        <div className='relative flex h-16 w-40 items-end gap-px'>
+          {['h-10', 'h-16', 'h-12', 'h-8', 'h-5', 'h-3', 'h-2', 'h-1'].map(
+            (height, i) => (
+              <div key={i} className={`flex-1 ${height} bg-chart-1`} />
+            )
+          )}
+          <div className='absolute inset-y-0 left-[22%] border-l-2 border-dashed border-chart-median' />
+        </div>
+      )
+    case 'funnel':
+      return (
+        <div className='grid w-40 gap-1.5'>
+          {['w-full', 'w-1/2', 'w-1/3', 'w-1/5'].map((width) => (
+            <div
+              key={width}
+              className={`h-2.5 rounded-r-sm bg-chart-1 ${width}`}
+            />
+          ))}
+        </div>
+      )
+    case 'heatmap':
+      return (
+        <div className='grid w-40 grid-cols-6 gap-0.5'>
+          {[1, 2, 3, 5, 3, 2, 1, 2, 4, 7, 5, 2, 2, 3, 5, 8, 6, 3].map(
+            (step, i) => (
+              <div key={i} className={`h-4 rounded-sm ${HEAT[step]}`} />
+            )
+          )}
+        </div>
+      )
+    case 'scatter':
+      return (
+        <div className='relative h-16 w-40'>
+          <div className='absolute inset-x-0 top-1/2 border-t border-dashed border-chart-axis' />
+          <div className='absolute inset-y-0 left-1/2 border-l border-dashed border-chart-axis' />
+          {[
+            ['left-[70%] top-[15%]', 'size-3'],
+            ['left-[80%] top-[35%]', 'size-2'],
+            ['left-[58%] top-[25%]', 'size-2.5'],
+            ['left-[35%] top-[30%]', 'size-2'],
+            ['left-[62%] top-[60%]', 'size-2']
+          ].map(([place, size]) => (
+            <div
+              key={place}
+              className={`absolute rounded-full bg-chart-context ${place} ${size}`}
+            />
+          ))}
+          <div className='absolute top-[70%] left-[22%] size-3 rounded-full bg-chart-highlight' />
+        </div>
+      )
+    case 'small-multiples':
+      return (
+        <div className='grid w-40 grid-cols-2 gap-2'>
+          {[
+            ['h-3', 'h-8', 'h-6', 'h-2'],
+            ['h-2', 'h-5', 'h-4', 'h-1'],
+            ['h-1', 'h-3', 'h-3', 'h-2'],
+            ['h-1', 'h-1', 'h-2', 'h-1']
+          ].map((bars, i) => (
+            <div key={i} className='flex h-8 items-end gap-px'>
+              {bars.map((height, j) => (
+                <div
+                  key={j}
+                  className={`flex-1 rounded-t-sm bg-chart-1 ${height}`}
+                />
+              ))}
             </div>
           ))}
         </div>

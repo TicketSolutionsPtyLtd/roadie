@@ -86,3 +86,41 @@ describe('getCatalogue', () => {
     expect(hrefs).not.toContain('/foundations/data-visualisation')
   })
 })
+
+describe('Chart types group', () => {
+  it('sits between data pieces and chart parts', () => {
+    expect(CHARTS.categories).toEqual([
+      'Guidelines',
+      'Layout',
+      'Data pieces',
+      'Chart types',
+      'Chart parts',
+      'Examples'
+    ])
+  })
+
+  it('lists the time and bar charts first, in page order', async () => {
+    const types = entriesIn(await getCatalogue(CHARTS), 'Chart types')
+    expect(types.slice(0, 4).map(({ title }) => title)).toEqual([
+      'LineChart',
+      'BarChart',
+      'RankedBars',
+      'StackedBars'
+    ])
+  })
+
+  it('lists all nine chart types in page order', async () => {
+    const types = entriesIn(await getCatalogue(CHARTS), 'Chart types')
+    expect(types.map(({ title }) => title)).toEqual([
+      'LineChart',
+      'BarChart',
+      'RankedBars',
+      'StackedBars',
+      'Histogram',
+      'Funnel',
+      'Heatmap',
+      'Scatter',
+      'SmallMultiples'
+    ])
+  })
+})

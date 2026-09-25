@@ -1,0 +1,84 @@
+export const metadata = {
+  title: 'StackedBars',
+  description: 'Bars split into segments, as counts or stacked to 100%',
+  status: 'beta',
+  category: 'Chart types',
+  order: 4
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Bars split into segments, as counts or stacked to 100%.
+
+## Import
+
+```tsx
+import { StackedBars } from '@oztix/roadie-charts/stacked-bars'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Ticket type mix' source='Oztix sales.' size='md'>
+    <StackedBars
+      data={[['Friday', 'GA', 1210], ['Friday', 'VIP', 232], ['Saturday', 'GA', 1480], ['Saturday', 'VIP', 310], ['Sunday', 'GA', 640], ['Sunday', 'VIP', 96]].map(([show, type, sold]) => ({ show, type, sold }))}
+      x='show'
+      y='sold'
+      series='type'
+    />
+  </Chart>
+</div>
+```
+
+### Share
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Presale and general' source='Oztix sales.' size='md'>
+    <StackedBars
+      data={[['The Lantern Room', 'Presale', 820], ['The Lantern Room', 'General', 644], ['Harbourside Hall', 'Presale', 310], ['Harbourside Hall', 'General', 1190]].map(([show, phase, sold]) => ({ show, phase, sold }))}
+      x='show'
+      y='sold'
+      series='phase'
+      mode='share'
+      highlight='Presale'
+    />
+  </Chart>
+</div>
+```
+
+### Vertical
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Resale share' source='Oztix resale.' size='md'>
+    <StackedBars
+      data={['Sep', 'Oct', 'Nov'].flatMap((month, i) => [{ month, kind: 'Resold', tickets: 40 + i * 25 }, { month, kind: 'Kept', tickets: 1400 - i * 25 }])}
+      x='month'
+      y='tickets'
+      series='kind'
+      mode='share'
+      orientation='vertical'
+    />
+  </Chart>
+</div>
+```
+
+## Guidelines
+
+- Two or three segments use the pair and trio sets, so ticket types keep the same colours everywhere.
+- Segments stack and take colours in the order they first appear in the data. Put the segment that matters most first.
+- Past 6 segments, the smallest roll into Other, which always stacks last.
+
+## Accessibility
+
+- The plot is one tab stop. Keys follow the bars as drawn:
+  - Horizontal bars: up and down move between bars, and left and right move between the segments of a bar.
+  - Vertical bars: left and right move between bars, and up and down move between the segments of a bar.
+- Each segment is read out with its value and, in `share` mode, its share of the bar.
+- Under forced colours and in print, each segment switches to its own texture.
+
+<PropsDefinitions componentPath='packages/charts/src/StackedBars/index.tsx' />
