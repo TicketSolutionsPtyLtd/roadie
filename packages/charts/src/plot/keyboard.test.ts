@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { stepAlong, stepSeries } from './keyboard'
+import { stepAlong, stepCategory, stepSeries, stepWithin } from './keyboard'
 
 // y is the engine's pixel y, so a smaller y sits higher on screen.
 const top = { xValue: 1, group: 'C', y: 10 }
@@ -71,5 +71,91 @@ describe('stepAlong', () => {
     expect(stepAlong(split, solid1, 1)).toBe(forecast2)
     expect(stepAlong(split, forecast2, -1)).toBe(solid1)
     expect(stepAlong(split, forecast1, -1)).toBe(solid0)
+  })
+})
+
+// A horizontal stack: categories run down y, segments run left to right in x.
+describe('stepCategory', () => {
+  const row = (yValue: string, y: number, ends: readonly number[]) =>
+    ends.map((x, i) => ({
+      markId: `series-${i + 1}`,
+      group: `S${i + 1}`,
+      yValue,
+      y,
+      x
+    }))
+  const [fri1, fri2] = row('Fri', 20, [100, 180])
+  const [sat1, sat2] = row('Sat', 60, [100, 100])
+  const [sun1] = row('Sun', 100, [40])
+  // The engine lists points mark by mark, so series 1 comes first.
+  const points = [fri1!, sat1!, sun1!, fri2!, sat2!]
+
+  it('moves up and down between categories in screen order, keeping the series', () => {
+    expect(stepCategory(points, fri2!, 1)).toBe(sat2)
+    expect(stepCategory(points, sat2!, -1)).toBe(fri2)
+    expect(stepCategory(points, fri1!, 1)).toBe(sat1)
+  })
+
+  it('lands on the first segment when the series is missing below', () => {
+    expect(stepCategory(points, sat2!, 1)).toBe(sun1)
+  })
+
+  it('stops at the top and bottom', () => {
+    expect(stepCategory(points, fri1!, -1)).toBeNull()
+    expect(stepCategory(points, sun1!, 1)).toBeNull()
+  })
+
+  it('reaches bars tied on value, one per category', () => {
+    const [a] = row('Carlton', 20, [96])
+    const [b] = row('Fitzroy', 60, [96])
+    const [c] = row('Brunswick', 100, [96])
+    const tied = [c!, a!, b!]
+    expect(stepCategory(tied, a!, 1)).toBe(b)
+    expect(stepCategory(tied, b!, 1)).toBe(c)
+    expect(stepCategory(tied, c!, -1)).toBe(b)
+  })
+
+  it('finds nothing for a point that is not in the list', () => {
+    expect(stepCategory([fri1!], sat1!, -1)).toBeNull()
+  })
+})
+
+describe('stepWithin', () => {
+  const at = (markId: string, x: number) => ({
+    markId,
+    group: markId,
+    yValue: 'Sat',
+    y: 60,
+    x
+  })
+  const ga = at('series-1', 100)
+  const vip = at('series-2', 100)
+  const early = at('series-3', 160)
+  const fri = {
+    markId: 'series-1',
+    group: 'series-1',
+    yValue: 'Fri',
+    y: 20,
+    x: 50
+  }
+  const points = [fri, ga, vip, early]
+
+  it('moves left and right between segments, tied ends in series order', () => {
+    expect(stepWithin(points, ga, 1)).toBe(vip)
+    expect(stepWithin(points, vip, 1)).toBe(early)
+    expect(stepWithin(points, early, -1)).toBe(vip)
+    expect(stepWithin(points, vip, -1)).toBe(ga)
+  })
+
+  it('stops at the ends of the category', () => {
+    expect(stepWithin(points, ga, -1)).toBeNull()
+    expect(stepWithin(points, early, 1)).toBeNull()
+    expect(stepWithin(points, fri, 1)).toBeNull()
+  })
+
+  it('matches dates by time', () => {
+    const left = { ...ga, yValue: new Date(2026, 10, 14) }
+    const right = { ...early, yValue: new Date(2026, 10, 14) }
+    expect(stepWithin([left, right], left, 1)).toBe(right)
   })
 })

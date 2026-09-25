@@ -58,6 +58,8 @@ export type TooltipContent = {
   rows: readonly ChartTooltipRow[]
 }
 
+export type CategoryAxis = 'x' | 'y'
+
 export type ChartDefinition<P> = {
   kind: ChartPlotKind
   build: (props: P, paint: ChartPaint, frame: PlotFrame) => EngineDefinition
@@ -76,6 +78,8 @@ export type ChartDefinition<P> = {
     paint: ChartPaint
   ) => TooltipContent
   yExtent?: (props: P) => readonly [number, number]
+  /** The axis categories run along; 'y' for horizontal bars. @default 'x' */
+  categoryAxis?: (props: P) => CategoryAxis
 }
 
 export function isPlotDatum(value: unknown): value is PlotDatum {

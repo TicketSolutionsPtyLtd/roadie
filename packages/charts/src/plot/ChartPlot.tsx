@@ -24,9 +24,9 @@ import {
   LEGEND_ROOM,
   plotFrame
 } from './frame'
-import { stepAlong, stepSeries } from './keyboard'
+import { stepAlong, stepCategory, stepSeries, stepWithin } from './keyboard'
 import { cssPaint } from './paint'
-import { type ChartDefinition, isPlotDatum } from './types'
+import { type CategoryAxis, type ChartDefinition, isPlotDatum } from './types'
 import { useWidthBand } from './useWidthBand'
 
 export type ChartPlotProps<P> = {
@@ -45,11 +45,19 @@ type Step = (
   current: ChartPoint
 ) => ChartPoint | null
 
-const ARROW_STEPS: Partial<Record<string, Step>> = {
-  ArrowUp: (points, current) => stepSeries(points, current, -1),
-  ArrowDown: (points, current) => stepSeries(points, current, 1),
-  ArrowLeft: (points, current) => stepAlong(points, current, -1),
-  ArrowRight: (points, current) => stepAlong(points, current, 1)
+const ARROW_STEPS: Record<CategoryAxis, Partial<Record<string, Step>>> = {
+  x: {
+    ArrowUp: (points, current) => stepSeries(points, current, -1),
+    ArrowDown: (points, current) => stepSeries(points, current, 1),
+    ArrowLeft: (points, current) => stepAlong(points, current, -1),
+    ArrowRight: (points, current) => stepAlong(points, current, 1)
+  },
+  y: {
+    ArrowUp: (points, current) => stepCategory(points, current, -1),
+    ArrowDown: (points, current) => stepCategory(points, current, 1),
+    ArrowLeft: (points, current) => stepWithin(points, current, -1),
+    ArrowRight: (points, current) => stepWithin(points, current, 1)
+  }
 }
 
 const datumsOf = (points: readonly ChartPoint[]) =>
@@ -110,7 +118,7 @@ export function ChartPlot<P>({
   // The engine walks every arrow key along one list of column tops, so after
   // stepping to a lower series its left and right would jump back to the start.
   function onKeyDownCapture(event: KeyboardEvent<HTMLDivElement>) {
-    const step = ARROW_STEPS[event.key]
+    const step = ARROW_STEPS[chart.categoryAxis?.(props) ?? 'x'][event.key]
     const points = renderRef.current?.scene.points ?? []
     const current = focused && points.find((p) => p.key === focused.key)
     if (!step || !current) return

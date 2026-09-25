@@ -1,4 +1,5 @@
-import { areaY, cell, defineChart, lineY } from '@tanstack/charts'
+import { areaY, barX, cell, defineChart, lineY } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts/scales/band'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
@@ -193,6 +194,64 @@ describe('ChartPlot in a card', () => {
     expect(
       Math.abs(card.getBoundingClientRect().height - before)
     ).toBeLessThanOrEqual(0.5)
+  })
+})
+
+// Fri and Sat tie on segment A, so their A segments end at the same pixel x.
+const stackRows = [
+  { x: 'Fri', series: 'A', y: 4, start: 0, end: 4, index: 0 },
+  { x: 'Fri', series: 'B', y: 3, start: 4, end: 7, index: 1 },
+  { x: 'Sat', series: 'A', y: 4, start: 0, end: 4, index: 2 },
+  { x: 'Sat', series: 'B', y: 2, start: 4, end: 6, index: 3 }
+]
+
+const horizontalStack: ChartDefinition<TestProps> = {
+  ...testChart,
+  categoryAxis: () => 'y',
+  build: (_, paint) =>
+    defineChart({
+      marks: ['A', 'B'].map((series, i) =>
+        barX(
+          stackRows.filter((r) => r.series === series),
+          {
+            id: seriesMarkId(i + 1),
+            y: 'x',
+            x1: 'start',
+            x2: 'end',
+            z: 'series',
+            fill: paint.categorical[i]!
+          }
+        )
+      ),
+      scales: {
+        x: { scale: scaleLinear().domain([0, 8]) },
+        y: { scale: scaleBand<string>().domain(['Fri', 'Sat']).padding(0.3) }
+      },
+      focus: 'group-y'
+    }),
+  describe: (datum) => `${datum.x} ${datum.series}`
+}
+
+describe('ChartPlot with categories down y', () => {
+  async function pressAndHear(live: Element, key: string) {
+    await userEvent.keyboard(`{${key}}`)
+    return live.textContent
+  }
+
+  it('moves up and down between categories and across segments', async () => {
+    const { container } = renderInCard('md', 560, horizontalStack)
+    const live = await focusPlot(container)
+    await userEvent.keyboard('{ArrowUp}{ArrowUp}{ArrowLeft}{ArrowLeft}')
+    expect(live.textContent).toBe('Fri A')
+    expect(await pressAndHear(live, 'ArrowUp')).toBe('Fri A')
+    expect(await pressAndHear(live, 'ArrowLeft')).toBe('Fri A')
+    expect(await pressAndHear(live, 'ArrowRight')).toBe('Fri B')
+    expect(await pressAndHear(live, 'ArrowRight')).toBe('Fri B')
+    expect(await pressAndHear(live, 'ArrowDown')).toBe('Sat B')
+    expect(await pressAndHear(live, 'ArrowDown')).toBe('Sat B')
+    expect(await pressAndHear(live, 'ArrowLeft')).toBe('Sat A')
+    expect(await pressAndHear(live, 'ArrowUp')).toBe('Fri A')
+    expect(await pressAndHear(live, 'ArrowDown')).toBe('Sat A')
   })
 })
 

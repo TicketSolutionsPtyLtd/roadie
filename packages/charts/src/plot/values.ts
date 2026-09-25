@@ -15,7 +15,7 @@ function niceCeil(value: number) {
 
 export function valueDomain(
   values: readonly (number | null)[],
-  { zero = true }: { zero?: boolean } = {}
+  { zero = true, nice = true }: { zero?: boolean; nice?: boolean } = {}
 ): [number, number] {
   const finite = values.filter(
     (v): v is number => v !== null && Number.isFinite(v)
@@ -23,8 +23,9 @@ export function valueDomain(
   if (finite.length === 0) return [0, 1]
   const min = Math.min(...finite, ...(zero ? [0] : []))
   const max = Math.max(...finite, ...(zero ? [0] : []))
-  const top = max > 0 ? niceCeil(max) : 0
-  const bottom = min < 0 ? -niceCeil(-min) : min
+  const round = nice ? niceCeil : (value: number) => value
+  const top = max > 0 ? round(max) : 0
+  const bottom = min < 0 ? -round(-min) : min
   return top === bottom ? [bottom, bottom + 1] : [bottom, top]
 }
 

@@ -31,6 +31,18 @@ describe('value domains', () => {
     expect(high).toBeGreaterThanOrEqual(120)
   })
 
+  it('keeps the data maximum when nice rounding is off', () => {
+    expect(valueDomain([612, 97, 61], { nice: false })).toEqual([0, 612])
+    expect(valueDomain([0, 0.61], { nice: false })).toEqual([0, 0.61])
+    expect(valueDomain([-40, 120], { nice: false })).toEqual([-40, 120])
+    expect(valueDomain([0, 0], { nice: false })).toEqual([0, 1])
+    expect(valueDomain([], { nice: false })).toEqual([0, 1])
+  })
+
+  it('rounds by default', () => {
+    expect(valueDomain([612, 97, 61])).toEqual([0, 800])
+  })
+
   it('draws three gridlines', () => {
     expect(gridTicks([0, 1500])).toEqual([0, 750, 1500])
   })

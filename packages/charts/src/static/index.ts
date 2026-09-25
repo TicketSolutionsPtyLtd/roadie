@@ -174,4 +174,4 @@ export function renderChartSvg<P>(
   return standalone(svg, options, frame, paint, legend, legendRoom)
 }
 
-export type { ChartDefinition } from '../plot/types'
+export type { CategoryAxis, ChartDefinition } from '../plot/types'
