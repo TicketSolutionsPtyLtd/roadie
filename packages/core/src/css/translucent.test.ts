@@ -33,10 +33,13 @@ describe('is-translucent', () => {
   })
 
   it("yields to a field's hover, focus and invalid fills", async () => {
-    expect(
-      (await build()).replace(/\(\s+/g, '(').replace(/\s+\)/g, ')')
-    ).toContain(
-      ":not(.is-interactive-field:is(:hover, :focus, [aria-invalid='true']))"
+    const css = (await build()).replace(/\(\s+/g, '(').replace(/\s+\)/g, ')')
+    const touch = css.slice(css.indexOf('@media not (hover: hover)'))
+    expect(css).toContain(
+      "@media (hover: hover) { &:is(&):not(.is-interactive-field:is(:hover, :focus, [aria-invalid='true']))"
+    )
+    expect(touch).toContain(
+      ":not(.is-interactive-field:is(:focus, [aria-invalid='true']))"
     )
   })
 

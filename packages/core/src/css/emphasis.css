@@ -193,17 +193,31 @@
     --translucent-fill: 88%;
   }
 
+  /* A tap leaves :hover on, so a field's hover only wins where it can hover. */
   @supports ((backdrop-filter: blur(0)) or (-webkit-backdrop-filter: blur(0))) {
-    &:is(&):not(
-        .is-interactive-field:is(:hover, :focus, [aria-invalid='true'])
-      ) {
-      background-color: color-mix(
-        in oklch,
-        var(--intent-bg-raised) var(--translucent-fill),
-        transparent
-      );
-      -webkit-backdrop-filter: var(--translucent-backdrop);
-      backdrop-filter: var(--translucent-backdrop);
+    @media (hover: hover) {
+      &:is(&):not(
+          .is-interactive-field:is(:hover, :focus, [aria-invalid='true'])
+        ) {
+        background-color: color-mix(
+          in oklch,
+          var(--intent-bg-raised) var(--translucent-fill),
+          transparent
+        );
+        -webkit-backdrop-filter: var(--translucent-backdrop);
+        backdrop-filter: var(--translucent-backdrop);
+      }
+    }
+    @media not (hover: hover) {
+      &:is(&):not(.is-interactive-field:is(:focus, [aria-invalid='true'])) {
+        background-color: color-mix(
+          in oklch,
+          var(--intent-bg-raised) var(--translucent-fill),
+          transparent
+        );
+        -webkit-backdrop-filter: var(--translucent-backdrop);
+        backdrop-filter: var(--translucent-backdrop);
+      }
     }
   }
 

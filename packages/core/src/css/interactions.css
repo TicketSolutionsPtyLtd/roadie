@@ -34,7 +34,6 @@
   /* A raised trigger's rim is a resting highlight. Once a state colours the
      border, the border is the edge, and the rim inside it shows as a white
      gap. */
-  &:hover,
   &:focus,
   &[aria-invalid='true'],
   &[data-popup-open] {
@@ -44,6 +43,7 @@
   /* Hover — neutral tint */
   @media (hover: hover) {
     &:hover {
+      --rim-light-strong: 0 0 #0000;
       background-color: var(--field-hover-bg);
       border-color: var(--color-neutral-7);
     }
@@ -56,9 +56,11 @@
     outline-width: var(--focus-ring-width);
   }
 
-  &:hover:focus {
-    background-color: var(--field-focus-bg);
-    border-color: var(--color-accent-9);
+  @media (hover: hover) {
+    &:hover:focus {
+      background-color: var(--field-focus-bg);
+      border-color: var(--color-accent-9);
+    }
   }
 
   /* Invalid — danger border + outline ring */
@@ -139,7 +141,6 @@
   /* A raised trigger's rim is a resting highlight. Once a state colours the
      border, the border is the edge, and the rim inside it shows as a white
      gap. */
-  &:hover,
   &:focus-within,
   &[aria-invalid='true'],
   &[data-popup-open] {
@@ -149,6 +150,7 @@
   /* Hover — neutral tint */
   @media (hover: hover) {
     &:hover {
+      --rim-light-strong: 0 0 #0000;
       background-color: var(--field-hover-bg);
       border-color: var(--color-neutral-7);
     }
@@ -161,9 +163,11 @@
     outline-width: var(--focus-ring-width);
   }
 
-  &:hover:focus-within {
-    background-color: var(--field-focus-bg);
-    border-color: var(--color-accent-9);
+  @media (hover: hover) {
+    &:hover:focus-within {
+      background-color: var(--field-focus-bg);
+      border-color: var(--color-accent-9);
+    }
   }
 
   /* Invalid — danger border + outline ring */
