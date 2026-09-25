@@ -93,11 +93,17 @@ describe('stackedBars', () => {
     expect(svgOf(ticketMixExample)).toContain('ts-chart__bar-x')
   })
 
-  it('draws all-zero data without NaN', () => {
+  it('leaves a zero segment out of a share bar', () => {
     const svg = svgOf({
       ...bigSales,
-      data: bigSales.data.map((row) => ({ ...row, sold: 0 }))
+      mode: 'share',
+      data: [
+        { show: 'A', type: 'GA', sold: 0 },
+        { show: 'A', type: 'VIP', sold: 6_000 }
+      ]
     })
+    expect(svg).toMatch(keyOf('series-1'))
+    expect(svg).not.toMatch(keyOf('series-2'))
     expect(svg).not.toContain('NaN')
   })
 

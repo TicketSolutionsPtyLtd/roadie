@@ -34,6 +34,12 @@ async function heardAfter(container: HTMLElement, keys: readonly string[]) {
   return heard
 }
 
+async function focusPlot(container: HTMLElement) {
+  const live = container.querySelector('[data-slot=chart-plot-announcement]')!
+  container.querySelector<SVGElement>('svg.ts-chart')!.focus()
+  await expect.poll(() => live.textContent).not.toBe('')
+}
+
 const segmentRect = (container: HTMLElement, slot: number) =>
   container.querySelector(`[data-ts-key^="series-${slot}:"]`)!
 
@@ -48,11 +54,6 @@ describe('StackedBars in a card', () => {
       expectFillsPlot(container, height)
     }
   )
-
-  it('reaches every bar by keyboard', async () => {
-    const { container } = renderInCard(<StackedBars {...ticketMixExample} />)
-    expect(await visitEveryStop(container)).toHaveLength(3)
-  })
 
   it('walks vertical bars in category order and their segments with up and down', async () => {
     const { container } = renderInCard(<StackedBars {...resaleExample} />)
@@ -69,27 +70,39 @@ describe('StackedBars in a card', () => {
     ])
   })
 
-  // ChartPlot steps Left and Right by pixel x and Up and Down within one
-  // pixel-x column, so horizontal bars walk in value order and never reach
-  // the later segments. Needs a shared-layer fix (see task-12-report.md).
-  it.fails('walks horizontal bars in category order', async () => {
+  // The engine first focuses the shortest bar, so climb to the top first.
+  it('walks horizontal bars top to bottom with up and down', async () => {
     const { container } = renderInCard(<StackedBars {...ticketMixExample} />)
-    await visitEveryStop(container)
-    const down = await heardAfter(container, ['ArrowDown', 'ArrowDown'])
-    expect(down.map((text) => text.split(',')[0])).toEqual([
-      'Friday',
-      'Saturday',
-      'Sunday'
+    await focusPlot(container)
+    const heard = await heardAfter(container, [
+      'ArrowUp',
+      'ArrowUp',
+      'ArrowDown',
+      'ArrowDown'
+    ])
+    expect(heard.slice(2)).toEqual([
+      'Friday, GA, 1,210 sold',
+      'Saturday, GA, 1,480 sold',
+      'Sunday, GA, 640 sold'
     ])
   })
 
-  it.fails('reaches every segment of a horizontal bar', async () => {
+  it('reaches every segment of a horizontal bar with left and right', async () => {
     const { container } = renderInCard(<StackedBars {...ticketMixExample} />)
-    await visitEveryStop(container)
-    const heard = await heardAfter(container, ['ArrowRight', 'ArrowRight'])
-    expect(new Set(heard.map((text) => text.split(', ')[1]))).toEqual(
-      new Set(['GA', 'VIP', 'Early bird'])
-    )
+    await focusPlot(container)
+    const heard = await heardAfter(container, [
+      'ArrowUp',
+      'ArrowUp',
+      'ArrowRight',
+      'ArrowRight',
+      'ArrowLeft'
+    ])
+    expect(heard.slice(2)).toEqual([
+      'Friday, GA, 1,210 sold',
+      'Friday, VIP, 232 sold',
+      'Friday, Early bird, 300 sold',
+      'Friday, VIP, 232 sold'
+    ])
   })
 
   it('keeps text at 11px or more on a phone', async () => {

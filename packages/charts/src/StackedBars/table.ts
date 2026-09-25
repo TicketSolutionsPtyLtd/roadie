@@ -5,6 +5,7 @@ import { valueColumn, xColumn } from '../plot/table'
 import { segmentNames, stackSegments } from './stack'
 import type { StackedBarsProps } from './types'
 
+// A series named Total would overwrite this column.
 const TOTAL = 'Total'
 
 export function stackedBarsTable(props: StackedBarsProps): ChartTable {

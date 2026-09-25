@@ -135,6 +135,7 @@ function largestOverall(segments: readonly Segment[]) {
 
 export const stackedBars: ChartDefinition<StackedBarsProps> = {
   kind: 'stacked-bars',
+  categoryAxis: (props) => (props.orientation === 'vertical' ? 'x' : 'y'),
   build,
   table: stackedBarsTable,
   summary(props) {
