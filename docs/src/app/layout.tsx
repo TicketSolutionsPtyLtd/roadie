@@ -10,6 +10,7 @@ import {
 import { Providers } from '@/components/Providers'
 import { CHANGELOG_URL } from '@/lib/changelog'
 import {
+  CHARTS,
   COMPONENTS,
   type Catalogue,
   type CatalogueCategory,
@@ -18,6 +19,7 @@ import {
   WIDGETS,
   getCatalogue,
   getPageTitles,
+  getPageWide,
   readPageMetadata
 } from '@/lib/page-manifest'
 import { getAssetPath } from '@/utils/getAssetPath'
@@ -36,14 +38,16 @@ async function guide(href: string, file: string): Promise<NavigationItem> {
   }
 }
 
-/** Flat items, in group order, for `FooterNav`'s previous and next links. */
+/** Flat items, in group order, for `FooterNav`'s previous and next links; each page once, in its own catalogue. */
 const flatten = (route: string, groups: CatalogueCategory[]) => [
   { title: 'Overview', href: route },
   ...groups.flatMap((group) => [
     ...(group.overviewHref
       ? [{ title: group.name, href: group.overviewHref }]
       : []),
-    ...group.entries.map(({ title, href }) => ({ title, href }))
+    ...group.entries
+      .filter((entry) => !entry.crossListedFrom)
+      .map(({ title, href }) => ({ title, href }))
   ])
 ]
 
@@ -85,6 +89,7 @@ async function getNavigationItems(): Promise<NavigationDestination[]> {
       overview: true,
       searchable: true
     }),
+    await catalogueDestination('Charts', CHARTS, { overview: true }),
     {
       title: 'Widgets',
       href: WIDGETS.route,
@@ -108,9 +113,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [items, pageTitles] = await Promise.all([
+  const [items, pageTitles, pageWide] = await Promise.all([
     getNavigationItems(),
-    getPageTitles()
+    getPageTitles(),
+    getPageWide()
   ])
 
   return (
@@ -128,7 +134,11 @@ export default async function RootLayout({
       </head>
       <body className='isolate'>
         <Providers>
-          <DocsNavigator items={items} pageTitles={pageTitles}>
+          <DocsNavigator
+            items={items}
+            pageTitles={pageTitles}
+            pageWide={pageWide}
+          >
             {children}
           </DocsNavigator>
         </Providers>

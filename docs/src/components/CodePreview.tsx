@@ -54,6 +54,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Highlight, themes } from 'prism-react-renderer'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
 
+import * as RoadieCharts from '@oztix/roadie-charts'
 import * as RoadieComponents from '@oztix/roadie-components'
 import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
@@ -117,6 +118,7 @@ const PhosphorIconsSuffixed = Object.fromEntries(
 
 const scope = {
   ...RoadieComponents,
+  ...RoadieCharts,
   ...SpotIllustrations,
   ...PhosphorIcons,
   ...PhosphorIconsSuffixed,

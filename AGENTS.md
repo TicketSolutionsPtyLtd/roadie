@@ -28,6 +28,7 @@ Roadie is a design system for Oztix's applications, built as a monorepo using pn
 ```
 /packages/core/         - CSS foundation, color generator, utilities (@oztix/roadie-core)
 /packages/components/   - React component library (@oztix/roadie-components)
+/packages/charts/       - Chart cards, legends and dashboard views (@oztix/roadie-charts)
 /packages/icons/        - Icon package (coming soon)
 /docs/                  - Documentation site (Next.js + MDX)
 ```
@@ -224,7 +225,8 @@ the brand radius stays consistent across components.
 
 ### Data visualisation
 
-Read `docs/src/app/foundations/data-visualisation/page.tsx` before building a chart.
+Read `docs/src/app/charts/data-visualisation/page.tsx` before building a chart.
+For dashboards, read `docs/src/app/charts/dashboards/page.tsx` and use `Dashboard`, `StatTile`, `DataTable` and `Chart`; describe dashboards with `@oztix/roadie-core/dashboard` and check them with `validateDashboard`.
 
 - **Colour by job:** categorical `--chart-1` to `--chart-8` (fixed order, max 6 then "Other"; `--chart-pair-*` / `--chart-trio-*` for 2 or 3 series), sequential `--chart-heat-0` to `-8`, diverging `--chart-diverge-neg-4` to `-pos-4` (cool is ahead), status `--chart-status-good|warning|serious|critical` (meaning only).
 - **Emphasis:** story series in `--chart-highlight` (follows `--accent-hue`), context in `--chart-context`.
@@ -316,6 +318,7 @@ export const buttonVariants = cva('base-classes is-interactive', {
    node_modules path) — import every package you use. */
 @import '@oztix/roadie-components/css';
 @import '@oztix/roadie-widgets/css'; /* React widget skins also need components CSS above; Vue skins don't */
+@import '@oztix/roadie-charts/css';
 ```
 
 ### Key rules

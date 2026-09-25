@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "120.5 kB"
+    "limit": "121 kB"
   },
   {
     "name": "Single component (Button)",
@@ -46,10 +46,66 @@
     "limit": "20 kB"
   },
   {
+    "name": "Table",
+    "path": "dist/components/Table/index.js",
+    "import": "*",
+    "limit": "2 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
     "name": "QRCode",
     "path": "dist/components/QRCode/index.js",
     "import": "*",
     "limit": "5 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Sparkline",
+    "path": "dist/components/Sparkline/index.js",
+    "import": "*",
+    "limit": "1.5 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Meter",
+    "path": "dist/components/Meter/index.js",
+    "import": "*",
+    "limit": "1.5 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Delta",
+    "path": "dist/components/Delta/index.js",
+    "import": "*",
+    "limit": "1.5 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "DataCard",
+    "path": "dist/components/DataCard/index.js",
+    "import": "*",
+    "limit": "3 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "DataTable",
+    "path": "dist/components/DataTable/index.js",
+    "import": "*",
+    "limit": "8 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "StatTile",
+    "path": "dist/components/StatTile/index.js",
+    "import": "*",
+    "limit": "4 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Dashboard",
+    "path": "dist/components/Dashboard/index.js",
+    "import": "*",
+    "limit": "3 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]

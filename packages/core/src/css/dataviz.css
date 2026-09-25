@@ -76,7 +76,7 @@
   --chart-diverge-neg-2: #fa9e5f;
   --chart-diverge-neg-3: #f26f2f;
   --chart-diverge-neg-4: #de3e2d;
-  --chart-highlight: #4f79ea;
+  --chart-highlight: #0086da;
   --chart-band: #7b90a51a;
   --chart-diverge-0: var(--color-neutral-3);
   --chart-status-good: var(--color-success-11);
@@ -92,11 +92,6 @@
   --chart-trio-1: var(--chart-1);
   --chart-trio-2: var(--chart-2);
   --chart-trio-3: var(--chart-3);
-  --chart-grid: var(--intent-border-subtler);
-  --chart-axis: var(--intent-border-normal);
-  --chart-label: var(--intent-text-subtle);
-  --chart-value: var(--intent-text-strong);
-  --chart-gap: var(--intent-bg-normal);
 }
 
 .dark {
@@ -125,7 +120,7 @@
   --chart-diverge-neg-2: #d0663d;
   --chart-diverge-neg-3: #f28a33;
   --chart-diverge-neg-4: #ffb84d;
-  --chart-highlight: #afcbff;
+  --chart-highlight: #a1d0fc;
   --chart-band: #a6b6c517;
   --chart-diverge-0: var(--color-neutral-6);
   --chart-status-good: var(--color-success-9);
@@ -141,6 +136,14 @@
   --chart-trio-1: var(--chart-1);
   --chart-trio-2: var(--chart-2);
   --chart-trio-3: var(--chart-3);
+}
+
+:root, .dark, [class*='intent-'] {
+  --chart-grid: var(--intent-border-subtler);
+  --chart-axis: var(--intent-border-normal);
+  --chart-label: var(--intent-text-subtle);
+  --chart-value: var(--intent-text-strong);
+  --chart-gap: var(--intent-bg-normal);
 }
 
 @supports (color: oklch(0 0 0)) {
