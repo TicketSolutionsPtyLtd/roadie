@@ -6,6 +6,7 @@ import { Radio } from '@base-ui/react/radio'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isEmptyNode } from '../../utils/isEmptyNode'
 import { RadioGroupContext } from './RadioGroupContext'
 import { radioGroupItemVariants } from './variants'
 
@@ -24,8 +25,12 @@ export function RadioGroupItem({
 }: RadioGroupItemProps) {
   const { emphasis, direction } = use(RadioGroupContext)
   const generatedId = useId()
-  const labelId = label ? `${generatedId}-label` : undefined
-  const descriptionId = description ? `${generatedId}-description` : undefined
+  const hasLabel = !isEmptyNode(label)
+  const hasDescription = !isEmptyNode(description)
+  const labelId = hasLabel ? `${generatedId}-label` : undefined
+  const descriptionId = hasDescription
+    ? `${generatedId}-description`
+    : undefined
 
   const radio = (
     <Radio.Root
@@ -42,9 +47,9 @@ export function RadioGroupItem({
     </Radio.Root>
   )
 
-  const text = (label || description) && (
+  const text = (hasLabel || hasDescription) && (
     <span className='grid gap-0.5'>
-      {label && (
+      {hasLabel && (
         <span
           id={labelId}
           className={
@@ -56,7 +61,7 @@ export function RadioGroupItem({
           {label}
         </span>
       )}
-      {description && (
+      {hasDescription && (
         <span id={descriptionId} className='text-sm text-subtle'>
           {description}
         </span>

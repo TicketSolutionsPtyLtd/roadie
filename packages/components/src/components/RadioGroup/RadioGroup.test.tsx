@@ -217,6 +217,31 @@ describe('RadioGroup', () => {
     expect(radio).toHaveAccessibleDescription('We reply within a day')
   })
 
+  it('keeps a numeric zero label and description', () => {
+    const { getByRole } = render(
+      <RadioGroup>
+        <RadioGroup.Item value='none' label={0} description={0} />
+      </RadioGroup>
+    )
+    const radio = getByRole('radio', { name: '0' })
+    expect(radio).toHaveAccessibleDescription('0')
+  })
+
+  it.each([false, '', null])(
+    'renders no label or description for %j',
+    (empty) => {
+      const { getByRole, container } = render(
+        <RadioGroup>
+          <RadioGroup.Item value='email' label={empty} description={empty} />
+        </RadioGroup>
+      )
+      expect(getByRole('radio')).not.toHaveAttribute('aria-describedby')
+      expect(
+        container.querySelector('[data-slot="radio-group-item"]')?.textContent
+      ).toBe('')
+    }
+  )
+
   it('names the group with RadioGroup.Label', () => {
     const { getByRole } = render(
       <RadioGroup>
