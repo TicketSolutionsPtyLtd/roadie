@@ -18,24 +18,47 @@ export function isTimeField(rows: readonly Row[], field: string) {
   return values.length > 0 && values.every(isWallTime)
 }
 
+const SHORT_RANGE = 3 * DAY
+const QUARTER_DAY = 6 * HOUR
+
+// Each step starts on a multiple of its unit: an hour, a quarter day or a day.
+function tickStep(span: number, count: number, hasTime: boolean) {
+  const raw = span / (count - 1)
+  const steps = (unit: number) => Math.max(1, Math.round(raw / unit)) * unit
+  if (span <= DAY) return { step: steps(HOUR), unit: HOUR }
+  // A day or two of timed data would otherwise get one or two midnight ticks.
+  if (hasTime && span < SHORT_RANGE) {
+    const step = raw > 9 * HOUR ? 2 * QUARTER_DAY : QUARTER_DAY
+    return { step, unit: step }
+  }
+  return { step: steps(DAY), unit: DAY }
+}
+
 /**
- * About `count` ticks on whole hours, or whole days past a day, so no tick
- * lands partway through a day and no two ticks share a label.
+ * About `count` ticks on whole hours, quarter days across a short timed range,
+ * or whole days, so no tick lands at an odd time and no two share a label.
  */
-export function timeTicks(min: number, max: number, count = 4) {
+export function timeTicks(
+  min: number,
+  max: number,
+  { count = 4, hasTime = false }: { count?: number; hasTime?: boolean } = {}
+) {
   if (max <= min) return [min]
   const span = max - min
-  const unit = span <= DAY ? HOUR : DAY
-  const step = Math.max(1, Math.round(span / unit / (count - 1))) * unit
-  const labels = new Set<string>()
+  const { step, unit } = tickStep(span, count, hasTime)
   const ticks: number[] = []
-  for (let tick = Math.ceil(min / unit) * unit; tick <= max; tick += step) {
-    const label = formatTimeTick(tick, span)
-    if (labels.has(label)) continue
-    labels.add(label)
+  for (let tick = Math.ceil(min / unit) * unit; tick <= max; tick += step)
     ticks.push(tick)
-  }
-  return ticks
+  // A full day of hours ends on the clock time it started at.
+  const clocks = new Set<string>()
+  return span > DAY
+    ? ticks
+    : ticks.filter((tick) => {
+        const label = clock(tick)
+        if (clocks.has(label)) return false
+        clocks.add(label)
+        return true
+      })
 }
 
 const part = (ms: number, options: Intl.DateTimeFormatOptions) =>
@@ -55,8 +78,11 @@ function clock(ms: number) {
 const shortDate = (ms: number) =>
   `${part(ms, { day: 'numeric' })} ${part(ms, { month: 'short' })}`
 
+/** A clock time within a day, and a date past it. A short range dates midnight. */
 export function formatTimeTick(ms: number, spanMs: number) {
-  return spanMs <= DAY ? clock(ms) : shortDate(ms)
+  if (spanMs <= DAY) return clock(ms)
+  if (spanMs < SHORT_RANGE && ms % DAY !== 0) return clock(ms)
+  return shortDate(ms)
 }
 
 export function formatTimeTitle(ms: number, hasTime: boolean) {

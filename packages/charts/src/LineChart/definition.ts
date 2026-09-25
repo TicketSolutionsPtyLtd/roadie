@@ -371,7 +371,11 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
         axis: {
           line: false,
           ticks: {
-            ...(isTime && { values: timeTicks(xDomain[0], xDomain[1]) }),
+            ...(isTime && {
+              values: timeTicks(xDomain[0], xDomain[1], {
+                hasTime: hasTimeOfDay(props.data[0]?.[props.x])
+              })
+            }),
             size: 0,
             format: (value: number) =>
               isTime ? formatTimeTick(value, span) : format(value)

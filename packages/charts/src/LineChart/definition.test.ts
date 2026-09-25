@@ -471,3 +471,15 @@ describe('lineChart today label', () => {
     expect(offsetAt('narrow')).toBeCloseTo(-9.5, 5)
   })
 })
+
+describe('LineChart across a day or two of hourly data', () => {
+  it('labels the axis with times between the dates', () => {
+    const data = Array.from({ length: 37 }, (_, i) => ({
+      at: new Date(Date.UTC(2026, 9, 1, 10 + i)).toISOString().slice(0, 16),
+      scans: i
+    }))
+    const svg = svgOf({ data, x: 'at', y: 'scans' })
+    expect(svg).toMatch(/>12pm</)
+    expect(svg).toMatch(/>2 Oct</)
+  })
+})

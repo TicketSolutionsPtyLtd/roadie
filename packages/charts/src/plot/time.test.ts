@@ -73,6 +73,30 @@ describe('time', () => {
     ])
   })
 
+  it('ticks every 6 or 12 hours across a day or two of timed data', () => {
+    const start = Date.UTC(2026, 9, 1, 10)
+    const span = 36 * 3_600_000
+    const labels = timeTicks(start, start + span, { hasTime: true }).map((t) =>
+      formatTimeTick(t, span)
+    )
+    expect(labels).toEqual(['12pm', '2 Oct', '12pm'])
+    const day = 25 * 3_600_000
+    expect(
+      timeTicks(start, start + day, { hasTime: true }).map((t) =>
+        formatTimeTick(t, day)
+      )
+    ).toEqual(['12pm', '6pm', '2 Oct', '6am'])
+  })
+
+  it('keeps whole days on a short range of dates', () => {
+    const start = Date.UTC(2026, 9, 1)
+    expect(timeTicks(start, start + 2 * DAY, { hasTime: false })).toEqual([
+      start,
+      start + DAY,
+      start + 2 * DAY
+    ])
+  })
+
   it('drops a tick that would repeat a label', () => {
     const start = Date.UTC(2026, 9, 1)
     const labels = timeTicks(start, start + DAY).map((t) =>
