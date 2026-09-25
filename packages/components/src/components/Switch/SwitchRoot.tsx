@@ -7,6 +7,7 @@ import { CheckIcon } from '@phosphor-icons/react/ssr'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isEmptyNode } from '../../utils/isEmptyNode'
 import { useFieldContext } from '../Field'
 import { SwitchThumb } from './SwitchThumb'
 import { switchTickVariants, switchVariants } from './variants'
@@ -17,7 +18,7 @@ export type SwitchRootProps = SwitchPrimitive.Root.Props &
   RefAttributes<HTMLElement> & {
     /** @default 'md' */
     size?: SwitchSize
-    /** Renders a label beside the switch. `className` then goes on the row. */
+    /** Renders a label beside the switch. With `label` or `description`, `className` goes on the row. */
     label?: ReactNode
     /** Secondary text under the label, announced as the description. */
     description?: ReactNode
@@ -41,10 +42,12 @@ export function SwitchRoot({
   const generatedId = useId()
   const inField = !!field.fieldId
   const inputId = id ?? (inField ? field.fieldId : `switch-${generatedId}`)
-  const labelId = label
+  const hasLabel = !isEmptyNode(label)
+  const hasDescription = !isEmptyNode(description)
+  const labelId = hasLabel
     ? `${inputId}-label`
     : (inField && field.labelId) || undefined
-  const descriptionId = description ? `${inputId}-description` : undefined
+  const descriptionId = hasDescription ? `${inputId}-description` : undefined
 
   const resolvedInvalid = invalid ?? field.invalid
   const resolvedRequired = required ?? field.required
@@ -52,6 +55,8 @@ export function SwitchRoot({
   const describedBy =
     [descriptionId, inField && fieldTextId].filter(Boolean).join(' ') ||
     undefined
+
+  const hasRow = hasLabel || hasDescription
 
   const control = (
     <SwitchPrimitive.Root
@@ -63,7 +68,7 @@ export function SwitchRoot({
       aria-required={resolvedRequired || undefined}
       aria-labelledby={labelId}
       aria-describedby={describedBy}
-      className={cn(switchVariants({ size }), !label && className)}
+      className={cn(switchVariants({ size }), !hasRow && className)}
       {...props}
     >
       <span
@@ -77,7 +82,7 @@ export function SwitchRoot({
     </SwitchPrimitive.Root>
   )
 
-  if (!label) return control
+  if (!hasRow) return control
 
   return (
     <div
@@ -88,14 +93,16 @@ export function SwitchRoot({
       )}
     >
       <div className='grid gap-0.5 group-has-data-disabled/switch:opacity-50'>
-        <label
-          id={labelId}
-          htmlFor={inputId}
-          className='cursor-pointer text-sm text-normal select-none group-has-data-disabled/switch:cursor-not-allowed'
-        >
-          {label}
-        </label>
-        {description && (
+        {hasLabel && (
+          <label
+            id={labelId}
+            htmlFor={inputId}
+            className='cursor-pointer text-sm text-normal select-none group-has-data-disabled/switch:cursor-not-allowed'
+          >
+            {label}
+          </label>
+        )}
+        {hasDescription && (
           <p id={descriptionId} className='text-sm text-subtle'>
             {description}
           </p>

@@ -75,6 +75,21 @@ describe('Switch', () => {
     ).toHaveAccessibleDescription('We send one email per event.')
   })
 
+  it('renders a description passed without a label', () => {
+    render(
+      <Switch aria-label='Presale alerts' description='One email per event.' />
+    )
+    expect(
+      screen.getByRole('switch', { name: 'Presale alerts' })
+    ).toHaveAccessibleDescription('One email per event.')
+  })
+
+  it('treats 0 as a label and description', () => {
+    render(<Switch label={0} description={0} />)
+    const control = screen.getByRole('switch', { name: '0' })
+    expect(control).toHaveAccessibleDescription('0')
+  })
+
   it('does not toggle when disabled', async () => {
     render(<Switch label='Presale alerts' disabled />)
     const control = screen.getByRole('switch')
