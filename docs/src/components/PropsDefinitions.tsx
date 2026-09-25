@@ -471,14 +471,16 @@ function parseComponentProps(componentPath: string) {
           const isFromOurComponents = prop.declarations.some(
             (d) =>
               (d.fileName.includes('/components/') ||
-                d.fileName.includes('/widgets/')) &&
+                d.fileName.includes('/widgets/') ||
+                d.fileName.includes('/charts/')) &&
               !d.fileName.includes('node_modules')
           )
 
           // Include props whose parent interface is in our code
           const isFromParentComponent =
             (prop.parent?.fileName.includes('/components/') ||
-              prop.parent?.fileName.includes('/widgets/')) &&
+              prop.parent?.fileName.includes('/widgets/') ||
+              prop.parent?.fileName.includes('/charts/')) &&
             !prop.parent.fileName.includes('node_modules')
 
           // Include props from Base UI component interfaces
