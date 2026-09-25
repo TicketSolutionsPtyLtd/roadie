@@ -540,3 +540,93 @@ describe('validateDashboard checks every chart plot kind', () => {
     ).toContain('sections[0].cards[0].table')
   })
 })
+
+describe('validateDashboard checks annotations against the data', () => {
+  const hourly = [
+    { time: '2026-08-03T09:00', orders: 1840 },
+    { time: '2026-08-03T10:00', orders: 920 }
+  ]
+  const problemsAt = (plot: Record<string, unknown>) =>
+    validateDashboard(spec([chartCard(plot)])).problems.filter((p) =>
+      p.path.endsWith('.at')
+    )
+
+  it('accepts an ISO time with an offset inside the bars', () => {
+    expect(
+      problemsAt({
+        kind: 'bar',
+        data: hourly,
+        x: 'time',
+        y: 'orders',
+        interval: 'hour',
+        annotations: [{ at: '2026-08-03T10:30:00+10:00', label: 'Presale' }]
+      })
+    ).toEqual([])
+  })
+
+  it('warns on a date outside hourly data', () => {
+    expect(
+      problemsAt({
+        kind: 'bar',
+        data: hourly,
+        x: 'time',
+        y: 'orders',
+        interval: 'hour',
+        annotations: [{ at: '2026-08-04', label: 'Presale' }]
+      })
+    ).toEqual([
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.annotations[0].at',
+        severity: 'warning'
+      })
+    ])
+  })
+
+  it('warns on a line annotation past the last point', () => {
+    expect(
+      problemsAt({
+        kind: 'line',
+        data: rows,
+        x: 'day',
+        y: 'sold',
+        annotations: [{ at: '2026-10-09', label: 'Line-up drop' }]
+      })
+    ).toHaveLength(1)
+  })
+
+  it('warns on a category that no bar has', () => {
+    expect(
+      problemsAt({
+        kind: 'bar',
+        data: rows,
+        x: 'channel',
+        y: 'sold',
+        annotations: [{ at: 'Radio', label: 'New ad' }]
+      })
+    ).toHaveLength(1)
+  })
+
+  it('checks the annotations of a small multiples chart', () => {
+    const result = validateDashboard(
+      spec([
+        chartCard({
+          kind: 'small-multiples',
+          data: rows.map((row) => ({ ...row, gate: 'North' })),
+          by: 'gate',
+          chart: {
+            kind: 'line',
+            x: 'day',
+            y: 'sold',
+            annotations: [{ at: 'soon', label: 'Doors - open' }]
+          }
+        })
+      ])
+    )
+    expect(result.problems.map((p) => p.path)).toEqual(
+      expect.arrayContaining([
+        'sections[0].cards[0].plot.chart.annotations[0].at',
+        'sections[0].cards[0].plot.chart.annotations[0].label'
+      ])
+    )
+  })
+})

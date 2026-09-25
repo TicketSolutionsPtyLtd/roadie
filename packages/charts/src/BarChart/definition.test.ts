@@ -219,3 +219,25 @@ describe('barChartTable', () => {
     })
   })
 })
+
+describe('barChart annotations', () => {
+  const annotated = (at: string | number) => ({
+    ...onSaleExample,
+    annotations: [{ at, label: 'On sale' }]
+  })
+  const annotationCount = (at: string | number) =>
+    svgOf(annotated(at)).match(/<text[^>]*data-ts-key="label-annotations/g)
+      ?.length ?? 0
+
+  it('draws an ISO time with an offset on its bar', () => {
+    expect(() => sceneOf(annotated('2026-08-03T09:00:00+10:00'))).not.toThrow()
+    expect(annotationCount('2026-08-03T09:00:00+10:00')).toBe(1)
+  })
+
+  it('drops a date on hourly data and a number outside the data', () => {
+    for (const at of ['2026-08-04', 7]) {
+      expect(() => sceneOf(annotated(at))).not.toThrow()
+      expect(annotationCount(at)).toBe(0)
+    }
+  })
+})

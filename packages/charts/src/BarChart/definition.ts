@@ -5,10 +5,16 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 import { formatValue } from '@oztix/roadie-core/dataviz'
 
-import { annotationMarks } from '../plot/annotations'
+import { annotationMarks, annotationsOnBars } from '../plot/annotations'
 import { textRoom } from '../plot/endLabels'
 import { fieldLabel } from '../plot/table'
-import { formatTimeTick, formatTimeTitle, parseX, spokenX } from '../plot/time'
+import {
+  formatTimeTick,
+  formatTimeTitle,
+  isTimeField,
+  parseX,
+  spokenX
+} from '../plot/time'
 import type {
   ChartDefinition,
   ChartPaint,
@@ -22,7 +28,9 @@ import { barChartTable } from './table'
 import type { BarChartProps } from './types'
 
 const EMPTY = 'Nothing to show for this period yet'
+const HOUR = 3_600_000
 const DAY = 86_400_000
+const INTERVAL_MS = { hour: HOUR, day: DAY, week: 7 * DAY }
 const TICK_TARGET: Record<WidthBand, number> = {
   narrow: 3,
   default: 6,
@@ -116,11 +124,14 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
     marks: [
       // Drawn first so a bar hides the rule instead of being struck through.
       ...annotationMarks(
-        (props.annotations ?? []).map((a) => ({
-          x: String(a.at),
-          label: a.label,
-          y: yDomain[1]
-        })),
+        annotationsOnBars(
+          props.annotations,
+          bars,
+          isTimeField(props.data, props.x)
+            ? INTERVAL_MS[props.interval ?? 'day']
+            : null,
+          yDomain[1]
+        ),
         paint,
         frame
       ),

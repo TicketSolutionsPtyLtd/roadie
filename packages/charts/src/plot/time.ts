@@ -1,29 +1,20 @@
 import type { PlotCell, PlotX } from '@oztix/roadie-core/dashboard'
+import { isWallTime, parseWallTime } from '@oztix/roadie-core/dataviz'
 
 import type { Row } from './types'
 
-const ISO = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/
 const DAY = 86_400_000
 const LOCALE = 'en-AU'
 
-export function parseX(value: PlotX | PlotCell | undefined): number | null {
-  if (typeof value === 'number') return Number.isFinite(value) ? value : null
-  if (typeof value !== 'string') return null
-  const match = ISO.exec(value)
-  if (!match) return null
-  const [, y, m, d, h = '0', min = '0'] = match
-  return Date.UTC(Number(y), Number(m) - 1, Number(d), Number(h), Number(min))
-}
+export const parseX = (value: PlotX | PlotCell | undefined) =>
+  parseWallTime(value)
 
 export const hasTimeOfDay = (value: PlotX | PlotCell | undefined) =>
   typeof value === 'string' && /T\d{2}:\d{2}/.test(value)
 
 export function isTimeField(rows: readonly Row[], field: string) {
   const values = rows.map((row) => row[field]).filter((v) => v != null)
-  return (
-    values.length > 0 &&
-    values.every((v) => typeof v === 'string' && ISO.test(v))
-  )
+  return values.length > 0 && values.every(isWallTime)
 }
 
 export function timeTicks(min: number, max: number, count = 4) {

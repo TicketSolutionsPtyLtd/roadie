@@ -1,5 +1,6 @@
 import type { core } from 'zod'
 
+import { isWallTime, parseWallTime } from '../dataviz/wallTime'
 import {
   CHART_LABEL_LIMITS,
   COPY_LIMITS,
@@ -7,7 +8,12 @@ import {
   type CardSize,
   findRowGaps
 } from './layout'
-import { type ChartPlot, SERIES_CAP } from './plots'
+import {
+  type ChartPlot,
+  type PlotRow,
+  SERIES_CAP,
+  type SmallMultiplesPlot
+} from './plots'
 import {
   type DashboardCard,
   type DashboardSpec,
@@ -138,6 +144,59 @@ function seriesCount(plot: ChartPlot) {
   return new Set(plot.data.map((row) => row[field])).size
 }
 
+const INTERVAL_MS = { hour: 3_600_000, day: 86_400_000, week: 604_800_000 }
+
+type AnnotatedChart = SmallMultiplesPlot['chart']
+
+// Mirrors how the charts place annotations: by wall time on a time axis, where
+// a bar covers its whole interval, and by exact value otherwise.
+function annotationFits(
+  at: string | number,
+  chart: AnnotatedChart,
+  data: readonly PlotRow[]
+) {
+  const xs = data.map((row) => row[chart.x]).filter((v) => v != null)
+  if (xs.length === 0) return true
+  if (xs.every(isWallTime)) {
+    const time = parseWallTime(at)
+    const times = xs.map(parseWallTime).filter((v) => v !== null)
+    const span = chart.kind === 'bar' ? INTERVAL_MS[chart.interval ?? 'day'] : 0
+    return (
+      time !== null &&
+      time >= Math.min(...times) &&
+      (span ? time < Math.max(...times) + span : time <= Math.max(...times))
+    )
+  }
+  if (chart.kind === 'bar') return xs.some((x) => String(x) === String(at))
+  const numbers = xs.filter((x) => typeof x === 'number')
+  return (
+    typeof at === 'number' &&
+    at >= Math.min(...numbers) &&
+    at <= Math.max(...numbers)
+  )
+}
+
+function annotationProblems(
+  chart: AnnotatedChart,
+  data: readonly PlotRow[],
+  path: string
+) {
+  return (chart.annotations ?? []).flatMap((annotation, i) => {
+    const at = `${path}.annotations[${i}]`
+    return [
+      ...copyProblems(at, 'label', annotation.label),
+      ...(annotationFits(annotation.at, chart, data)
+        ? []
+        : [
+            warning(
+              `${at}.at`,
+              `"${annotation.at}" is outside the data, so the annotation won't show`
+            )
+          ])
+    ]
+  })
+}
+
 function plotProblems(plot: ChartPlot, path: string) {
   const problems: DashboardProblem[] = []
   const plotPath = `${path}.plot`
@@ -159,14 +218,10 @@ function plotProblems(plot: ChartPlot, path: string) {
     )
   problems.push(...copyProblems(plotPath, 'takeaway', plot.takeaway))
   if (plot.kind === 'line' || plot.kind === 'bar')
-    plot.annotations?.forEach((annotation, i) =>
-      problems.push(
-        ...copyProblems(
-          `${plotPath}.annotations[${i}]`,
-          'label',
-          annotation.label
-        )
-      )
+    problems.push(...annotationProblems(plot, plot.data, plotPath))
+  if (plot.kind === 'small-multiples')
+    problems.push(
+      ...annotationProblems(plot.chart, plot.data, `${plotPath}.chart`)
     )
   return problems
 }

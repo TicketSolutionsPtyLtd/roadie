@@ -13,7 +13,7 @@ import {
   targetMark,
   todayMarks
 } from '../plot/aids'
-import { annotationMarks } from '../plot/annotations'
+import { annotationMarks, annotationsOnAxis } from '../plot/annotations'
 import {
   type EndLabel,
   endLabelMark,
@@ -287,10 +287,7 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
       ? todayMarks(today, paint, frame, series[0].color)
       : []),
     ...annotationMarks(
-      (props.annotations ?? []).flatMap((a) => {
-        const x = parseX(a.at)
-        return x === null ? [] : [{ x, label: a.label, y: yDomain[1] }]
-      }),
+      annotationsOnAxis(props.annotations, xDomain, isTime, yDomain[1]),
       paint,
       frame
     ),

@@ -28,6 +28,7 @@ export {
   formatDelta,
   formatValue
 } from './format'
+export { isWallTime, parseWallTime } from './wallTime'
 
 const SLOTS = palette.categorical.light.length
 
