@@ -7,6 +7,7 @@ import { formatValue } from '@oztix/roadie-core/dataviz'
 import {
   type LinePoint,
   type RangePoint,
+  TARGET_TICK_PIXELS,
   bandMarks,
   forecastMarks,
   targetMark,
@@ -19,8 +20,10 @@ import {
   endLabelRoom,
   endLabelsFit,
   labelGap,
-  stackLabels
+  stackLabels,
+  textRoom
 } from '../plot/endLabels'
+import { pixelsToX } from '../plot/frame'
 import { type SeriesStyle, seriesMarkId, seriesStyles } from '../plot/series'
 import {
   formatTimeTick,
@@ -59,6 +62,7 @@ const EMPTY = 'Not enough data yet to show a trend'
 const FORECAST_LABEL = 'Forecast'
 const TYPICAL_RANGE = 'Typical range'
 const DAY = 86_400_000
+const Y_AXIS_PADDING = 8
 
 function styles(
   props: LineChartProps,
@@ -255,6 +259,10 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
   const format = axisFormat(props.format, yDomain[1])
   const span = xDomain[1] - xDomain[0]
   const band = props.band
+  const yTicks = gridTicks(yDomain)
+  const rightMargin = ends.length ? endLabelRoom(ends, frame) : 8
+  const margins =
+    rightMargin + textRoom(yTicks.map(format), frame, Y_AXIS_PADDING)
 
   const marks = [
     ...(band
@@ -267,7 +275,14 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
     ...seriesMarks(props, points, series, yDomain[0]),
     ...(props.target === undefined
       ? []
-      : [targetMark(props.target, xDomain, paint)]),
+      : [
+          targetMark(
+            props.target,
+            xDomain[1],
+            pixelsToX(frame, TARGET_TICK_PIXELS, xDomain, margins),
+            paint
+          )
+        ]),
     ...(today && series[0]
       ? todayMarks(today, paint, frame, series[0].color)
       : []),
@@ -311,12 +326,12 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
         grid: { stroke: paint.grid, strokeOpacity: 1 },
         axis: {
           line: false,
-          ticks: { values: gridTicks(yDomain), size: 0, format },
+          ticks: { values: yTicks, size: 0, format },
           tickLabels: { fontSize: frame.fontSize }
         }
       }
     },
-    margin: { right: ends.length ? endLabelRoom(ends, frame) : 8 },
+    margin: { right: rightMargin },
     theme: { muted: paint.label, foreground: paint.value, grid: paint.grid },
     focus: 'group-x'
   })

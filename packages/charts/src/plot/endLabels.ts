@@ -8,7 +8,10 @@ export type EndLabel = {
   text: string
   y: number
   tone: 'value' | 'highlight' | 'label'
-  /** Keeps its value, such as a target beside its tick, while others move. */
+  /**
+   * Keeps its value, such as a target beside its tick, while others move,
+   * unless the stack would leave its range.
+   */
   pinned?: boolean
 }
 
@@ -37,13 +40,18 @@ function stackTop(
   [low, high]: readonly [number, number]
 ) {
   const pinned = labels.findIndex((label) => label.pinned)
-  if (pinned >= 0) return labels[pinned]!.y + pinned * gap
-  const centred =
-    labels.reduce((sum, label, i) => sum + label.y + i * gap, 0) / labels.length
-  return Math.max(Math.min(centred, high), low + (labels.length - 1) * gap)
+  const wanted =
+    pinned >= 0
+      ? labels[pinned]!.y + pinned * gap
+      : labels.reduce((sum, label, i) => sum + label.y + i * gap, 0) /
+        labels.length
+  return Math.max(Math.min(wanted, high), low + (labels.length - 1) * gap)
 }
 
-/** Spreads colliding labels evenly around where they want to be, inside `range`. */
+/**
+ * Spreads colliding labels evenly around where they want to be, inside `range`.
+ * A pinned label holds its value unless holding it would push the stack out.
+ */
 export function stackLabels(
   labels: readonly EndLabel[],
   minGap: number,

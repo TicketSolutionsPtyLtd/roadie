@@ -1,4 +1,8 @@
-import type { PlotCell, TableRow } from '@oztix/roadie-core/dashboard'
+import type {
+  PlotCell,
+  TableColumn,
+  TableRow
+} from '@oztix/roadie-core/dashboard'
 import { type ValueFormat, formatValue } from '@oztix/roadie-core/dataviz'
 
 import type { ChartTable } from '../Chart'
@@ -9,7 +13,6 @@ import { isForecast, seriesLabel, toLinePoints } from './points'
 import type { LineChartProps } from './types'
 
 const FORECAST = 'Forecast'
-// A cell that doesn't apply, such as a forecast before it starts, stays blank.
 const NOT_APPLICABLE = ''
 
 function rangeText(low: PlotCell, high: PlotCell, format?: ValueFormat) {
@@ -43,7 +46,12 @@ export function lineChartTable(props: LineChartProps): ChartTable {
           ...(band.median
             ? [valueColumn('bandMedian', bandLabel, props.format)]
             : []),
-          valueColumn('bandRange', `${bandLabel} range`, props.format)
+          // Formatted text, which DataTable mutes and aligns like the values.
+          {
+            key: 'bandRange',
+            header: `${bandLabel} range`,
+            kind: 'number'
+          } satisfies TableColumn
         ]
       : [])
   ]

@@ -20,6 +20,7 @@ export type WidthBand = 'narrow' | 'default' | 'wide'
 
 export type PlotFrame = {
   height: number
+  width: number
   band: WidthBand
   fontSize: number
   yDomain?: readonly [number, number]

@@ -158,6 +158,66 @@ describe('ChartPlot in a card', () => {
     }
   )
 
+  describe('before the plot is measured', () => {
+    const summary = testChart.summary({ points: testPoints })
+    const card = (
+      <div style={{ width: 1200 }}>
+        <Chart
+          label='Test'
+          source='Oztix sales.'
+          size='full'
+          table={testChart.table({ points: testPoints })}
+        >
+          <ChartPlot chart={testChart} props={{ points: testPoints }} />
+        </Chart>
+      </div>
+    )
+    const opacityOf = (root: Element) =>
+      getComputedStyle(root.querySelector('.ts-chart-host')!).opacity
+
+    it('hides the server drawing but keeps its summary and table', () => {
+      const server = document.createElement('div')
+      server.innerHTML = renderToString(card)
+      document.body.append(server)
+      try {
+        expect(opacityOf(server)).toBe('0')
+        expect(
+          server.querySelector('svg.ts-chart')!.getAttribute('aria-label')
+        ).toBe(summary)
+        expect(server.querySelectorAll('tbody tr').length).toBe(
+          testChart.table({ points: testPoints }).rows.length
+        )
+      } finally {
+        server.remove()
+      }
+    })
+
+    it('shows the plot at full width once measured', async () => {
+      const { container } = render(card)
+      await expect.poll(() => opacityOf(container)).toBe('1')
+      const plot = container.querySelector('[data-slot=chart-plot]')!
+      const svg = container.querySelector('svg.ts-chart')!
+      expect(svg.getBoundingClientRect().width).toBeCloseTo(
+        plot.getBoundingClientRect().width,
+        0
+      )
+    })
+
+    it('shows it without a fade when motion is reduced', async () => {
+      await commands.reducedMotion(true)
+      try {
+        const { container } = render(card)
+        const host = container.querySelector('.ts-chart-host')!
+        expect(
+          parseFloat(getComputedStyle(host).transitionDuration)
+        ).toBeLessThan(0.001)
+        await expect.poll(() => opacityOf(container)).toBe('1')
+      } finally {
+        await commands.reducedMotion(false)
+      }
+    })
+  })
+
   it('reaches every x value with the arrow keys and speaks each one', async () => {
     const { container } = renderInCard()
     const live = await focusPlot(container)
@@ -389,6 +449,23 @@ describe('ChartPlot entering focus', () => {
     await userEvent.tab()
     expect(document.activeElement).toBe(getByRole('button', { name: 'After' }))
     await expect.poll(() => live.textContent).toBe('')
+  })
+
+  // Another window or frame taking focus blurs the chart but leaves it the
+  // document's active element, which is what parallel test frames do.
+  it('keeps the spoken point when the window loses focus', async () => {
+    const { container, live } = renderAfterButton(horizontalRanks)
+    const svg = container.querySelector<SVGElement>('svg.ts-chart')!
+    svg.focus()
+    await expect.poll(() => live.textContent).toBe('Carlton 6')
+    svg.dispatchEvent(
+      new FocusEvent('focusout', { bubbles: true, relatedTarget: null })
+    )
+    expect(document.activeElement).toBe(svg)
+    await afterResize()
+    expect(live.textContent).toBe('Carlton 6')
+    await userEvent.keyboard('{End}{ArrowUp}')
+    expect(live.textContent).toBe('Fitzroy 2')
   })
 })
 

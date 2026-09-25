@@ -1,4 +1,4 @@
-import { createChartScene } from '@tanstack/charts'
+import { type SceneNode, createChartScene } from '@tanstack/charts'
 import { renderChartSvg as renderSceneSvg } from '@tanstack/charts/svg'
 import { describe, expect, it } from 'vitest'
 
@@ -21,6 +21,18 @@ const svgOf = (props: LineChartProps) =>
     }),
     { ariaLabel: lineChart.summary(props) }
   )
+
+function findNode(
+  nodes: readonly SceneNode[],
+  match: (node: SceneNode) => boolean
+): SceneNode | undefined {
+  for (const node of nodes) {
+    if (match(node)) return node
+    const inner =
+      node.kind === 'group' ? findNode(node.children, match) : undefined
+    if (inner) return inner
+  }
+}
 
 const keyOf = (id: string) => new RegExp(`data-ts-key="${id}(:[^"]*)?"`)
 
@@ -79,6 +91,28 @@ describe('lineChart', () => {
     ])
       expect(svg).toMatch(keyOf(id))
   })
+
+  it.each([
+    [400, 'narrow'],
+    [640, 'default'],
+    [1920, 'wide']
+  ] as const)(
+    'draws the target tick about 14px long at %ipx',
+    (width, band) => {
+      const scene = createChartScene(
+        lineChart.build(
+          paceExample,
+          paint,
+          plotFrame(260, band, undefined, width)
+        ),
+        { width, height: 260 }
+      )
+      const tick = findNode(scene.nodes, (n) => n.key.startsWith('target:'))
+      if (tick?.kind !== 'rule') throw new Error('No target tick')
+      expect(tick.x2 - tick.x1).toBeGreaterThanOrEqual(12)
+      expect(tick.x2 - tick.x1).toBeLessThanOrEqual(16)
+    }
+  )
 
   it('keeps focus on the data, not the reading aids', () => {
     const scene = createChartScene(lineChart.build(paceExample, paint, frame), {
@@ -299,6 +333,11 @@ describe('lineChartTable', () => {
       day: 'Sun 16 Aug',
       bandMedian: 0.14,
       bandRange: '7% to 22%'
+    })
+    expect(table.columns.at(-1)).toEqual({
+      key: 'bandRange',
+      header: 'Similar shows range',
+      kind: 'number'
     })
   })
 

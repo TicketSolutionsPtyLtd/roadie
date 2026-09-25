@@ -13,12 +13,24 @@ export function widthBand(width: number): WidthBand {
 export function plotFrame(
   height: number,
   band: WidthBand,
-  yDomain?: readonly [number, number]
+  yDomain?: readonly [number, number],
+  width = INITIAL_WIDTH
 ): PlotFrame {
   return {
     height,
+    width,
     band,
     fontSize: band === 'narrow' ? MIN_FONT_SIZE : 12,
     ...(yDomain && { yDomain })
   }
+}
+
+/** Converts `pixels` to x units on a plot `margins` narrower than the frame. */
+export function pixelsToX(
+  frame: PlotFrame,
+  pixels: number,
+  [start, end]: readonly [number, number],
+  margins: number
+) {
+  return (pixels / Math.max(1, frame.width - margins)) * (end - start)
 }

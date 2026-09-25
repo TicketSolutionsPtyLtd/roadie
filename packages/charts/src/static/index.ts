@@ -151,7 +151,7 @@ export function renderChartSvg<P>(
   } = options
   const paint = hexPaint(mode, accentHue)
   const band = widthBand(width)
-  const fullFrame = plotFrame(height, band)
+  const fullFrame = plotFrame(height, band, undefined, width)
   const empty = chart.emptyMessage(props)
   if (empty) return emptySvg(empty, options, fullFrame, paint)
   const items = placeLegend(
@@ -161,7 +161,7 @@ export function renderChartSvg<P>(
   )
   const rows = items.length ? Math.max(...items.map((i) => i.row)) + 1 : 0
   const legendRoom = rows * LEGEND_ROOM
-  const frame = plotFrame(height - legendRoom, band)
+  const frame = plotFrame(height - legendRoom, band, undefined, width)
   const scene = createChartScene(chart.build(props, paint, frame), {
     width,
     height: frame.height

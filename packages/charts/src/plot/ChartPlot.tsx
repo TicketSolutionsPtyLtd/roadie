@@ -82,7 +82,7 @@ export function ChartPlot<P>({
   const { patterns, style: patternStyle } = useChartPatterns()
   const hostRef = useRef<HTMLDivElement>(null)
   const renderRef = useRef<ChartRenderContext | null>(null)
-  const { band, height: measured } = usePlotBox(hostRef)
+  const { band, width, height: measuredHeight, measured } = usePlotBox(hostRef)
   const [focused, setFocused] = useState<ChartPoint | null>(null)
   const [group, setGroup] = useState<readonly ChartPoint[]>([])
 
@@ -96,13 +96,13 @@ export function ChartPlot<P>({
   const legend = chart.legend(
     props,
     cssPaint,
-    plotFrame(fullHeight, band, yDomain)
+    plotFrame(fullHeight, band, yDomain, width)
   )
   const fixedHeight = legend.length ? fullHeight - LEGEND_ROOM : fullHeight
-  const plotHeight = (fillsCard && measured) || fixedHeight
+  const plotHeight = (fillsCard && measuredHeight) || fixedHeight
   const frame = useMemo(
-    () => plotFrame(plotHeight, band, yDomain),
-    [plotHeight, band, yDomain]
+    () => plotFrame(plotHeight, band, yDomain, width),
+    [plotHeight, band, yDomain, width]
   )
   const definition = useMemo(
     () => chart.build(props, cssPaint, frame),
@@ -164,8 +164,16 @@ export function ChartPlot<P>({
   }
 
   // The engine keeps a controlled point when focus leaves, so clear it here.
+  // A blur that leaves the chart active is the window losing focus, not the
+  // reader leaving, so the point stays for when they come back.
   function onBlur(event: FocusEvent<HTMLDivElement>) {
-    if (!focused || event.currentTarget.contains(event.relatedTarget)) return
+    const host = event.currentTarget
+    if (
+      !focused ||
+      host.contains(event.relatedTarget) ||
+      host.contains(host.ownerDocument.activeElement)
+    )
+      return
     focusPoint(null)
   }
 
@@ -199,6 +207,12 @@ export function ChartPlot<P>({
       >
         {!card && patterns}
         <EngineChart
+          // Server and first client markup is drawn at the engine's default
+          // size, so it stays hidden until the box is measured.
+          className={cn(
+            'motion-safe:transition-opacity',
+            !measured && 'opacity-0'
+          )}
           definition={definition}
           height={fillsCard ? undefined : frame.height}
           style={fillsCard ? { height: '100%' } : undefined}

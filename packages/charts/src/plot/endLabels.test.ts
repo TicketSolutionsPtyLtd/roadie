@@ -52,6 +52,21 @@ describe('end labels', () => {
     )
   })
 
+  it('moves a pinned label down when the labels above it would leave the range', () => {
+    const stacked = stackLabels(
+      [
+        { text: 'Forecast 99%', y: 0.99, tone: 'highlight' },
+        { text: 'Similar shows 98%', y: 0.98, tone: 'label' },
+        { text: 'Target 97%', y: 0.97, tone: 'value', pinned: true }
+      ],
+      0.06,
+      [0, 1]
+    )
+    expect(stacked.map((l) => l.y)).toEqual(
+      [1, 0.94, 0.88].map((v) => expect.closeTo(v, 5))
+    )
+  })
+
   it('keeps unpinned stacks inside the value range', () => {
     const stacked = stackLabels(
       [

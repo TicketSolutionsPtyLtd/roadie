@@ -8,8 +8,6 @@ export type RangePoint = { x: number; low: number | null; high: number | null }
 export type LinePoint = { x: number; y: number | null }
 export type ForecastPoint = LinePoint & { series: string }
 
-const TARGET_TICK_SHARE = 0.03
-
 // Reading aids are painted only, so focus, keyboard and tooltips stay on the data.
 export function bandMarks(
   range: readonly RangePoint[],
@@ -80,12 +78,16 @@ export function forecastMarks(
   ]
 }
 
+export const TARGET_TICK_PIXELS = 14
+
+/** A short tick at the plot's right edge, `length` x units long. */
 export function targetMark(
   value: number,
-  [start, end]: readonly [number, number],
+  end: number,
+  length: number,
   paint: ChartPaint
 ): ChartMark {
-  const from = end - (end - start) * TARGET_TICK_SHARE
+  const from = end - length
   return decorative(
     link([{ from, to: end, value }], {
       id: 'target',
