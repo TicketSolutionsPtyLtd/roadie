@@ -19,7 +19,7 @@ export type SelectTriggerProps = SelectPrimitive.Trigger.Props &
      * @deprecated Form controls take their colour from state;
      * `is-interactive-field` handles it. Will be removed in v3.0.0.
      */
-    intent?: RoadieIntent
+    intent?: RoadieIntent | null
   }
 
 export function SelectTrigger({

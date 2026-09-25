@@ -1,10 +1,17 @@
 import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { type VariantProps } from 'class-variance-authority'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
-import { Select, selectTriggerVariants } from '.'
+import { Select, type SelectTriggerProps, selectTriggerVariants } from '.'
 import { Field } from '../Field'
 
 describe('Select', () => {
+  it('keeps the deprecated intent prop accepting what it did before', () => {
+    expectTypeOf<SelectTriggerProps['intent']>().toEqualTypeOf<
+      VariantProps<typeof selectTriggerVariants>['intent']
+    >()
+  })
+
   it('Select and Select.Root are the same component reference', () => {
     expect(Select).toBe(Select.Root)
   })
