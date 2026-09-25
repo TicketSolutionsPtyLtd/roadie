@@ -14,7 +14,11 @@ ToggleGroup.Item = ToggleGroupItem
 export { ToggleGroup }
 export type { ToggleGroupRootProps as ToggleGroupProps } from './ToggleGroupRoot'
 export type { ToggleGroupItemProps } from './ToggleGroupItem'
-export type { ToggleGroupDirection, ToggleGroupSize } from './variants'
+export type {
+  ToggleGroupDirection,
+  ToggleGroupEmphasis,
+  ToggleGroupSize
+} from './variants'
 export {
   toggleGroupVariants,
   toggleGroupItemVariants,

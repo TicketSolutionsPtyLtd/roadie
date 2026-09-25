@@ -460,6 +460,7 @@ export {
   type ToggleGroupProps,
   type ToggleGroupItemProps,
   type ToggleGroupDirection,
+  type ToggleGroupEmphasis,
   type ToggleGroupSize
 } from './components/ToggleGroup'
 

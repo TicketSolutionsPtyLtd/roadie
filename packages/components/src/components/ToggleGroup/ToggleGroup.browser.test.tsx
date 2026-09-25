@@ -13,6 +13,8 @@ beforeAll(() => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
+const EMPHASES = ['strong', 'normal', 'subtle', 'subtler'] as const
+
 function DateRange(props: Omit<ToggleGroupProps, 'children'>) {
   return (
     <ToggleGroup aria-label='Date range' defaultValue={['30d']} {...props}>
@@ -52,14 +54,35 @@ async function expectPillOver(name: string) {
     .toBeLessThan(1)
 }
 
-describe('the sliding pill', () => {
+describe.each(EMPHASES)('the %s sliding pill', (emphasis) => {
   it('sits over the pressed item', async () => {
-    render(<DateRange />)
+    render(<DateRange emphasis={emphasis} />)
     await expectPillOver('30 days')
   })
 
+  it('fills the pill differently from the track', async () => {
+    render(<DateRange emphasis={emphasis} />)
+    await expectPillOver('30 days')
+    const fill = (element: Element) => getComputedStyle(element).backgroundColor
+    expect(fill(indicator())).not.toBe(fill(screen.getByRole('group')))
+  })
+
+  it('sets the pressed label apart from the rest, hovered or not', async () => {
+    render(<DateRange emphasis={emphasis} />)
+    const pressed = screen.getByRole('button', { name: '30 days' })
+    const rest = screen.getByRole('button', { name: '7 days' })
+    const colour = (element: Element) => getComputedStyle(element).color
+    await expect.poll(() => colour(pressed)).not.toBe(colour(rest))
+    if (emphasis === 'strong') {
+      await expect.poll(() => colour(pressed)).toBe(colour(indicator()))
+    }
+    const atRest = colour(pressed)
+    await userEvent.hover(pressed)
+    await expect.poll(() => colour(pressed)).toBe(atRest)
+  })
+
   it('moves to the newly pressed item', async () => {
-    render(<DateRange />)
+    render(<DateRange emphasis={emphasis} />)
     await expectPillOver('30 days')
     const before = rectOf(indicator())
 
@@ -69,7 +92,7 @@ describe('the sliding pill', () => {
   })
 
   it('resizes with a content-sized item', async () => {
-    render(<DateRange className='flex' />)
+    render(<DateRange emphasis={emphasis} className='flex' />)
     await expectPillOver('30 days')
     const before = rectOf(indicator())
 
@@ -79,7 +102,7 @@ describe('the sliding pill', () => {
   })
 
   it('follows the pressed item down a vertical group', async () => {
-    render(<DateRange direction='vertical' />)
+    render(<DateRange emphasis={emphasis} direction='vertical' />)
     await expectPillOver('30 days')
     const before = rectOf(indicator())
 
@@ -87,4 +110,18 @@ describe('the sliding pill', () => {
     await expectPillOver('7 days')
     expect(rectOf(indicator()).top).toBeLessThan(before.top)
   })
+})
+
+it('keeps the same height at every emphasis', () => {
+  render(
+    <>
+      {EMPHASES.map((emphasis) => (
+        <DateRange key={emphasis} emphasis={emphasis} />
+      ))}
+    </>
+  )
+  const heights = screen
+    .getAllByRole('group')
+    .map((group) => group.getBoundingClientRect().height)
+  expect(new Set(heights).size).toBe(1)
 })

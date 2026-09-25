@@ -110,6 +110,45 @@ describe('ToggleGroup', () => {
     )
   })
 
+  it.each([
+    ['strong', 'emphasis-subtle', 'emphasis-strong', 'text-inverted'],
+    ['normal', 'emphasis-subtle', 'emphasis-raised', 'text-strong'],
+    ['subtle', 'emphasis-subtle', 'emphasis-subtle', 'text-strong'],
+    ['subtler', 'border', 'emphasis-subtle', 'text-strong']
+  ] as const)(
+    'gives a %s group a %s track, a %s pill and %s pressed text',
+    (emphasis, track, pill, text) => {
+      render(<DateRange emphasis={emphasis} />)
+      expect(screen.getByRole('group', { name: 'Date range' })).toHaveClass(
+        track,
+        'p-0.75'
+      )
+      expect(indicator()).toHaveClass(pill)
+      expect(screen.getByRole('button', { name: '30 days' })).toHaveClass(
+        `data-[pressed]:${text}`
+      )
+      render(
+        <ToggleGroup multiple emphasis={emphasis} aria-label='Text style'>
+          <ToggleGroup.Item value='bold'>Bold</ToggleGroup.Item>
+        </ToggleGroup>
+      )
+      expect(screen.getByRole('button', { name: 'Bold' })).toHaveClass(
+        `data-[pressed]:${pill}`
+      )
+    }
+  )
+
+  it('defaults to normal', () => {
+    render(<DateRange />)
+    expect(screen.getByRole('group')).toHaveClass('emphasis-subtle')
+    expect(indicator()).toHaveClass('emphasis-raised')
+  })
+
+  it('has no track at subtler', () => {
+    render(<DateRange emphasis='subtler' />)
+    expect(screen.getByRole('group')).not.toHaveClass('emphasis-subtle')
+  })
+
   it('hides the indicator when nothing is pressed', () => {
     render(<DateRange defaultValue={[]} />)
     expect(indicator()).not.toHaveAttribute('data-ready')

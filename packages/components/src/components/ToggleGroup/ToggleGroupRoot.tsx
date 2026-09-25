@@ -40,6 +40,14 @@ export type ToggleGroupRootProps<Value extends string = string> = Omit<
      */
     size?: ToggleGroupSize
     /**
+     * The pressed pill. `strong` is solid and inverted, `normal` is raised,
+     * and `subtle` is tinted, each in a tinted track. `subtler` has no track,
+     * only a tinted pill.
+     *
+     * @default 'normal'
+     */
+    emphasis?: 'strong' | 'normal' | 'subtle' | 'subtler'
+    /**
      * Lays the items out in a row or a column. Arrow keys follow it.
      *
      * @default 'horizontal'
@@ -52,6 +60,7 @@ export function ToggleGroupRoot<Value extends string = string>({
   children,
   intent,
   size = 'md',
+  emphasis = 'normal',
   direction = 'horizontal',
   multiple = false,
   onValueChange,
@@ -67,8 +76,8 @@ export function ToggleGroupRoot<Value extends string = string>({
     []
   )
   const contextValue = useMemo<ToggleGroupContextValue>(
-    () => ({ size, raisePressed: multiple || !indicatorReady }),
-    [size, multiple, indicatorReady]
+    () => ({ size, emphasis, raisePressed: multiple || !indicatorReady }),
+    [size, emphasis, multiple, indicatorReady]
   )
 
   const handleValueChange: typeof onValueChange = (value, eventDetails) => {
@@ -113,7 +122,7 @@ export function ToggleGroupRoot<Value extends string = string>({
         onPointerDown={handlePointerDown}
         onClick={handleClick}
         className={cn(
-          toggleGroupVariants(),
+          toggleGroupVariants({ emphasis }),
           intent && intentVariants[intent],
           className
         )}
@@ -125,7 +134,7 @@ export function ToggleGroupRoot<Value extends string = string>({
             aria-hidden
             data-slot='toggle-group-indicator'
             data-ready={indicatorReady ? '' : undefined}
-            className={toggleGroupIndicatorVariants()}
+            className={toggleGroupIndicatorVariants({ emphasis })}
           />
         )}
         {children}

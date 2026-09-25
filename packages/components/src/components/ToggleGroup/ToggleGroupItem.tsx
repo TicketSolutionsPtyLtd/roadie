@@ -23,12 +23,15 @@ export function ToggleGroupItem<Value extends string = string>({
   className,
   ...props
 }: ToggleGroupItemProps<Value>) {
-  const { size, raisePressed } = use(ToggleGroupContext)
+  const { size, emphasis, raisePressed } = use(ToggleGroupContext)
   return (
     <TogglePrimitive<Value>
       data-slot='toggle-group-item'
       data-icon-only={isIconOnly(props.children) ? '' : undefined}
-      className={cn(toggleGroupItemVariants({ size, raisePressed }), className)}
+      className={cn(
+        toggleGroupItemVariants({ size, emphasis, raisePressed }),
+        className
+      )}
       {...props}
     />
   )
