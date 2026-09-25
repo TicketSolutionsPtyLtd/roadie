@@ -41,10 +41,10 @@ describe('Funnel in a card', () => {
       await expect.poll(heard).toBe(expected)
     }
     const steps = [
-      'Viewed event, 12,400',
-      'Chose tickets, 4,210, 34% of the previous step, 34% of the first',
-      'Started checkout, 2,380, 57% of the previous step, 19% of the first',
-      'Paid, 1,464, 62% of the previous step, 12% of the first'
+      'Viewed event, 5,180',
+      'Chose tickets, 1,760, 34% of the previous step, 34% of the first',
+      'Started checkout, 995, 57% of the previous step, 19% of the first',
+      'Paid, 612, 62% of the previous step, 12% of the first'
     ]
     svg.focus()
     await expect.poll(heard).not.toBe('')

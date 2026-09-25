@@ -264,6 +264,29 @@ export function ChartPreview({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'audience-dashboard':
+      return (
+        <div className='grid w-40 grid-cols-2 gap-1.5'>
+          <Tile />
+          <Tile />
+          <div className='grid emphasis-raised content-start gap-1 rounded-md p-2'>
+            {['w-full', 'w-2/3', 'w-1/3'].map((width) => (
+              <div
+                key={width}
+                className={`h-1.5 rounded-r-sm bg-chart-1 ${width}`}
+              />
+            ))}
+          </div>
+          <div className='grid emphasis-raised content-start gap-1 rounded-md p-2'>
+            {['w-full', 'w-3/4', 'w-1/2'].map((width, i) => (
+              <div
+                key={width}
+                className={`h-1.5 rounded-r-sm ${width} ${i === 0 ? 'bg-chart-highlight' : 'bg-chart-context'}`}
+              />
+            ))}
+          </div>
+        </div>
+      )
     default:
       return <ComponentSkeleton name={name} />
   }

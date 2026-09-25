@@ -5,7 +5,11 @@ import { describe, expect, it } from 'vitest'
 import { DashboardView } from '.'
 import { checkoutExample } from '../Funnel/examples'
 import { paceExample, salesByTypeExample } from '../LineChart/examples'
-import { createPortfolioDashboard, createShowDashboard } from '../examples'
+import {
+  createAudienceDashboard,
+  createPortfolioDashboard,
+  createShowDashboard
+} from '../examples'
 
 describe('DashboardView', () => {
   it('renders every card of the show dashboard', () => {
@@ -18,7 +22,10 @@ describe('DashboardView', () => {
       'Sales pace',
       'Ticket types',
       'Where buyers are from',
-      'What to do next'
+      'What to do next',
+      'Daily orders',
+      'Ticket type mix',
+      'When fans buy'
     ])
       expect(screen.getByRole('region', { name })).toBeInTheDocument()
     expect(
@@ -39,6 +46,28 @@ describe('DashboardView', () => {
       renderToString(<DashboardView spec={createShowDashboard()} />)
     ).toContain('At a glance')
   })
+
+  it.each([
+    ['show', createShowDashboard()],
+    ['portfolio', createPortfolioDashboard()],
+    ['audience', createAudienceDashboard()]
+  ])(
+    'draws every chart card of the %s dashboard, named by its takeaway',
+    (_, spec) => {
+      render(<DashboardView spec={spec} />)
+      const charts = spec.sections
+        .flatMap((section) => section.cards)
+        .filter((card) => card.kind === 'chart')
+      expect(charts.length).toBeGreaterThan(0)
+      for (const card of charts) {
+        const name =
+          card.plot.kind === 'static'
+            ? card.plot.alt
+            : (card.plot.takeaway ?? card.takeaway)
+        expect(screen.getByRole('img', { name })).toBeInTheDocument()
+      }
+    }
+  )
 })
 
 const lineDashboard = {

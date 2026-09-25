@@ -1,13 +1,14 @@
 import type { FunnelProps } from './types'
 
+// The audience dashboard's show: 612 paid orders.
 export const checkoutExample: FunnelProps = {
   steps: [
-    { label: 'Viewed event', value: 12400 },
-    { label: 'Chose tickets', value: 4210 },
-    { label: 'Started checkout', value: 2380 },
-    { label: 'Paid', value: 1464 }
+    { label: 'Viewed event', value: 5180 },
+    { label: 'Chose tickets', value: 1760 },
+    { label: 'Started checkout', value: 995 },
+    { label: 'Paid', value: 612 }
   ],
-  takeaway: 'Most buyers drop out before choosing tickets'
+  takeaway: 'Most visitors leave before choosing tickets'
 }
 
 export const waitlistExample: FunnelProps = {

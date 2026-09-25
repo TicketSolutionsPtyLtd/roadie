@@ -46,12 +46,17 @@ export const scanRateExample: BarChartProps = {
   line: { y: 'inside', label: 'Inside', format: 'percent' }
 }
 
+// The show dashboard's last three weeks; Fridays lead, as in whenFansBuyExample.
+const dailyOrders = [
+  15, 12, 9, 7, 7, 8, 10, 19, 16, 11, 9, 10, 10, 13, 21, 18, 12, 9, 10, 11, 15
+]
+
 export const dailyOrdersExample: BarChartProps = {
-  data: Array.from({ length: 21 }, (_, i) => ({
-    day: new Date(Date.UTC(2026, 9, 1 + i)).toISOString().slice(0, 10),
-    orders: [42, 38, 51, 60, 94, 120, 88][i % 7]! + i * 3
+  data: dailyOrders.map((orders, i) => ({
+    day: new Date(Date.UTC(2026, 8, 25 + i)).toISOString().slice(0, 10),
+    orders
   })),
   x: 'day',
   y: 'orders',
-  takeaway: 'Orders peak on Tuesdays and grow each week'
+  takeaway: 'Orders peak on Fridays and grow each week'
 }

@@ -244,7 +244,7 @@ describe('rankedBarsTable', () => {
 
   it('fills the share column from the full total', () => {
     const rows = rankedBarsTable(suburbExample).rows
-    expect(rows[0]!.share).toBeCloseTo(205 / 767, 6)
+    expect(rows[0]!.share).toBeCloseTo(161 / 612, 6)
   })
 
   it('keeps rows with no number at the end', () => {

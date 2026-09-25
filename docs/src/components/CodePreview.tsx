@@ -312,6 +312,8 @@ export function CodePreview({
           <Highlight code={trimmedCode} language={language} theme={theme}>
             {({ tokens, getLineProps, getTokenProps }) => (
               <pre
+                // Focusable so keyboard users can scroll wide code sideways.
+                tabIndex={0}
                 className='min-w-0 overflow-x-auto p-3 font-mono text-xs sm:p-4 sm:text-sm'
                 style={{ scrollbarWidth: 'none' }}
               >

@@ -19,19 +19,19 @@ describe('rank', () => {
   it('places Other last even when it outweighs the smallest bar', () => {
     const ranked = rank(suburbExample)
     expect(ranked.map((r) => r.name)).toEqual([
-      'Fortitude Valley',
       'West End',
-      'Paddington',
-      'Newstead',
+      'South Brisbane',
+      'Highgate Hill',
+      'Woolloongabba',
       OTHER
     ])
-    expect(ranked.at(-1)!.value).toBe(96 + 71)
+    expect(ranked.at(-1)!.value).toBe(612 - 161 - 96 - 71 - 58)
   })
 
   it('computes shares of the full total', () => {
     const ranked = rank(suburbExample)
     const total = suburbExample.data.reduce((s, r) => s + Number(r.buyers), 0)
-    expect(ranked[0]!.share).toBeCloseTo(205 / total, 6)
+    expect(ranked[0]!.share).toBeCloseTo(161 / total, 6)
     expect(ranked.reduce((s, r) => s + r.share, 0)).toBeCloseTo(1, 6)
   })
 

@@ -19,14 +19,22 @@ export const channelExample: RankedBarsProps = {
   takeaway: 'Email brings in a third of orders'
 }
 
+// The audience dashboard's 612 buyers. Wattle Street Social is in West End.
 export const suburbExample: RankedBarsProps = {
   data: [
-    { suburb: 'Fortitude Valley', buyers: 205 },
     { suburb: 'West End', buyers: 161 },
-    { suburb: 'Paddington', buyers: 132 },
-    { suburb: 'Newstead', buyers: 102 },
-    { suburb: 'New Farm', buyers: 96 },
-    { suburb: 'Woolloongabba', buyers: 71 }
+    { suburb: 'South Brisbane', buyers: 96 },
+    { suburb: 'Highgate Hill', buyers: 71 },
+    { suburb: 'Woolloongabba', buyers: 58 },
+    { suburb: 'Paddington', buyers: 44 },
+    { suburb: 'New Farm', buyers: 38 },
+    { suburb: 'Fortitude Valley', buyers: 33 },
+    { suburb: 'Toowong', buyers: 29 },
+    { suburb: 'Chermside', buyers: 22 },
+    { suburb: 'Logan Central', buyers: 19 },
+    { suburb: 'Redcliffe', buyers: 16 },
+    { suburb: 'Ipswich', buyers: 13 },
+    { suburb: 'Springfield', buyers: 12 }
   ],
   x: 'suburb',
   y: 'buyers',

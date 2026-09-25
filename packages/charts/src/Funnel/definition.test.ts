@@ -24,12 +24,18 @@ describe('funnel', () => {
   it('draws one bar per step and a value with conversion at each end', () => {
     // The same keys also mark the hidden focus dots, so count the bars.
     expect(svg.match(/<rect data-ts-key="series-1:[^"]*"/g)).toHaveLength(4)
-    expect(svg).toMatch(/>1,464, 62% of previous</)
+    expect(svg).toMatch(/>612, 62% of previous</)
   })
 
   it('shortens on-plot values past 10,000', () => {
-    expect(svg).toContain('>12.4k<')
-    expect(svg).not.toContain('>12,400<')
+    const large = svgOf({
+      steps: checkoutExample.steps.map((step) => ({
+        ...step,
+        value: step.value * 10
+      }))
+    })
+    expect(large).toContain('>51.8k<')
+    expect(large).not.toContain('>51,800<')
   })
 
   it('puts the steps in order down the side', () => {
@@ -64,7 +70,7 @@ describe('funnel', () => {
     const narrow = svgOf(checkoutExample, 'narrow')
     expect(narrow).toContain('>62%<')
     expect(narrow).not.toContain('of previous')
-    expect(narrow).toContain('>12.4k<')
+    expect(narrow).toContain('>5,180<')
   })
 
   it('draws zero steps without NaN', () => {
@@ -90,29 +96,29 @@ describe('funnel', () => {
   it('speaks a step', () => {
     expect(
       funnel.describe(
-        { x: 'Paid', y: 1464, series: 'Steps', index: 3 },
+        { x: 'Paid', y: 612, series: 'Steps', index: 3 },
         checkoutExample
       )
-    ).toBe('Paid, 1,464, 62% of the previous step, 12% of the first')
+    ).toBe('Paid, 612, 62% of the previous step, 12% of the first')
     expect(
       funnel.describe(
-        { x: 'Viewed event', y: 12400, series: 'Steps', index: 0 },
+        { x: 'Viewed event', y: 5180, series: 'Steps', index: 0 },
         checkoutExample
       )
-    ).toBe('Viewed event, 12,400')
+    ).toBe('Viewed event, 5,180')
   })
 
   it('lists count, conversion and drop-off in the tooltip', () => {
     const tip = funnel.tooltip(
-      [{ x: 'Chose tickets', y: 4210, series: 'Steps', index: 1 }],
+      [{ x: 'Chose tickets', y: 1760, series: 'Steps', index: 1 }],
       checkoutExample,
       paint
     )
     expect(tip.title).toBe('Chose tickets')
     expect(tip.rows.map((r) => [r.label, r.value])).toEqual([
-      ['Count', '4,210'],
+      ['Count', '1,760'],
       ['Of previous', '34%'],
-      ['Dropped', '8,190'],
+      ['Dropped', '3,420'],
       ['Of first', '34%']
     ])
   })
@@ -155,9 +161,9 @@ describe('funnelTable', () => {
     ])
     expect(table.rows[0]).toMatchObject({
       step: 'Viewed event',
-      count: 12400,
+      count: 5180,
       ofPrevious: null
     })
-    expect(table.rows[1]).toMatchObject({ dropped: 8190 })
+    expect(table.rows[1]).toMatchObject({ dropped: 3420 })
   })
 })

@@ -415,7 +415,10 @@ const SHOW_DASHBOARD_SIZES: CardSize[] = [
   'stat',
   'full',
   'md',
-  'md'
+  'md',
+  'md',
+  'md',
+  'full'
 ]
 
 const DASHBOARD_JSX = `<Dashboard>
@@ -591,7 +594,7 @@ export default function DashboardsPage() {
           layout needs a size that isn’t here, it gets a new size in Roadie.
         </p>
         <Stage>
-          <DashboardView spec={createShowDashboard(getAssetPath(''))} />
+          <DashboardView spec={createShowDashboard()} />
         </Stage>
         <p className='max-w-prose text-sm text-subtle'>
           This is the{' '}
@@ -600,9 +603,10 @@ export default function DashboardsPage() {
           </Link>
           . It opens with a <Code>full</Code> note that says what to do, then
           four stat tiles, a <Code>full</Code> chart and two <Code>md</Code>{' '}
-          tables side by side. This column is narrower than 960px, so it shows 6
-          tracks or fewer. Here is the same layout at each width, and the JSX
-          behind it.
+          tables side by side. Two <Code>md</Code> charts and a{' '}
+          <Code>full</Code> heatmap close it. This column is narrower than
+          960px, so it shows 6 tracks or fewer. Here is the same layout at each
+          width, and the JSX behind it.
         </p>
         <Stage>
           <RowDiagram sizes={SHOW_DASHBOARD_SIZES} wide />

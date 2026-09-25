@@ -1,23 +1,24 @@
 import type { StackedBarsProps } from './types'
 
+// The show dashboard's sales by month: 1,464 sold, matching its ticket types.
 export const ticketMixExample: StackedBarsProps = {
   data: (
     [
-      ['Friday', 'GA', 1210],
-      ['Friday', 'VIP', 232],
-      ['Friday', 'Early bird', 300],
-      ['Saturday', 'GA', 1480],
-      ['Saturday', 'VIP', 310],
-      ['Saturday', 'Early bird', 300],
-      ['Sunday', 'GA', 640],
-      ['Sunday', 'VIP', 96],
-      ['Sunday', 'Early bird', 300]
+      ['Aug', 'GA', 414],
+      ['Aug', 'VIP', 60],
+      ['Aug', 'Early bird', 300],
+      ['Sep', 'GA', 213],
+      ['Sep', 'VIP', 40],
+      ['Sep', 'Early bird', 0],
+      ['Oct', 'GA', 377],
+      ['Oct', 'VIP', 60],
+      ['Oct', 'Early bird', 0]
     ] satisfies [string, string, number][]
-  ).map(([show, type, sold]) => ({ show, type, sold })),
-  x: 'show',
+  ).map(([month, type, sold]) => ({ month, type, sold })),
+  x: 'month',
   y: 'sold',
   series: 'type',
-  takeaway: 'Sunday is the show to push'
+  takeaway: 'GA is carrying the show'
 }
 
 export const presaleExample: StackedBarsProps = {

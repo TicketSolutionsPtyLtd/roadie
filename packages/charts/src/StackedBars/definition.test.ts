@@ -38,9 +38,9 @@ describe('stackedBars', () => {
       expect(svg).toMatch(keyOf(id))
   })
 
-  it('focuses only data segments, one per bar and segment', () => {
+  it('focuses only data segments, skipping empty ones', () => {
     const points = sceneOf(ticketMixExample).points
-    expect(points).toHaveLength(9)
+    expect(points).toHaveLength(7)
     expect(new Set(points.map((p) => p.markId))).toEqual(
       new Set(['series-1', 'series-2', 'series-3'])
     )
@@ -110,16 +110,16 @@ describe('stackedBars', () => {
   it('names the plot, and speaks a segment', () => {
     expect(
       stackedBars.summary({ ...ticketMixExample, takeaway: undefined })
-    ).toBe('GA is the largest part of sold in every show')
+    ).toBe('GA is the largest part of sold in every month')
     expect(
       stackedBars.summary({ ...presaleExample, takeaway: undefined })
     ).toBe('General is the largest part of sold overall')
     expect(
       stackedBars.describe(
-        { x: 'Friday', y: 232, series: 'VIP', index: 1 },
+        { x: 'Aug', y: 60, series: 'VIP', index: 1 },
         ticketMixExample
       )
-    ).toBe('Friday, VIP, 232 sold')
+    ).toBe('Aug, VIP, 60 sold')
     expect(
       stackedBars.describe(
         { x: 'The Lantern Room', y: 820, series: 'Presale', index: 0 },
@@ -152,17 +152,17 @@ describe('stackedBarsTable', () => {
   it('has one column per segment and a total', () => {
     const table = stackedBarsTable(ticketMixExample)
     expect(table.columns.map((c) => c.header)).toEqual([
-      'Show',
+      'Month',
       'GA',
       'VIP',
       'Early bird',
       'Total'
     ])
     expect(table.rows[0]).toMatchObject({
-      GA: 1210,
-      VIP: 232,
+      GA: 414,
+      VIP: 60,
       'Early bird': 300,
-      Total: 1742
+      Total: 774
     })
   })
 

@@ -6,8 +6,9 @@ const seeded = (seed: number) => () => {
 }
 
 const random = seeded(42)
+// The audience dashboard's 612 orders.
 export const leadTimeExample: HistogramProps = {
-  data: Array.from({ length: 600 }, () => ({
+  data: Array.from({ length: 612 }, () => ({
     days: Math.round(-Math.log(1 - random()) * 18)
   })),
   x: 'days',

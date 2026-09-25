@@ -6,14 +6,14 @@ import { segmentNames, stackSegments } from './stack'
 
 describe('stackSegments', () => {
   it('stacks segments in first-seen series order per category', () => {
-    const friday = stackSegments(ticketMixExample).filter(
-      (s) => s.category === 'Friday'
+    const august = stackSegments(ticketMixExample).filter(
+      (s) => s.category === 'Aug'
     )
-    expect(friday.map((s) => s.series)).toEqual(['GA', 'VIP', 'Early bird'])
-    expect(friday.map((s) => [s.start, s.end])).toEqual([
-      [0, 1210],
-      [1210, 1442],
-      [1442, 1742]
+    expect(august.map((s) => s.series)).toEqual(['GA', 'VIP', 'Early bird'])
+    expect(august.map((s) => [s.start, s.end])).toEqual([
+      [0, 414],
+      [414, 474],
+      [474, 774]
     ])
   })
 

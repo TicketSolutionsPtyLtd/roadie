@@ -10,14 +10,12 @@ export const metadata = {
   wide: true
 }
 
-const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
-
 const JSX = `<Dashboard>
   <Dashboard.Section title='This month'>
     <DataCard size='full' label='What to do next'>
       <p>Julia Jacklin and Genesis Owusu are furthest behind similar shows. Julia Jacklin plays first, so start there.</p>
     </DataCard>
-    <StatTile label='Tickets sold' value={7462} delta={{ value: 0.08, format: 'percent' }} context='On last month' trend={ticketsTrend} />
+    <StatTile label='Tickets sold' value={6377} delta={{ value: 0.08, format: 'percent' }} context='On last month' trend={ticketsTrend} />
     <StatTile label='Gross revenue' value={447700} format='compactCurrency' delta={{ value: 0.05, format: 'percent' }} context='On last month' trend={grossTrend} />
     <StatTile label='Shows behind' value={3} delta={{ value: 1, goodWhen: 'down' }} context='Of 7 on sale' trend={behindTrend} />
     <StatTile label='Refund rate' value={0.012} format='percent' delta={{ value: -0.3, format: 'points', goodWhen: 'down' }} context='On last month' trend={refundsTrend} />
@@ -28,12 +26,15 @@ const JSX = `<Dashboard>
     </DataCard>
   </Dashboard.Section>
   <Dashboard.Section title='Pace'>
-    <Chart size='full' label='Julia Jacklin pace' value={0.4} format='percent' delta={{ value: -12, format: 'points' }} context='Behind similar shows. Forecast 74%' table={paceTable} source='Oztix sales. 38 similar shows, last 3 years.'>
-      <PaceBehindPlot />
+    <Chart size='full' label='Julia Jacklin pace' value={0.4} format='percent' delta={{ value: -12, format: 'points' }} context='Behind similar shows. Forecast 74%' source='Oztix sales. 38 similar shows, last 3 years.'>
+      <LineChart data={juliaPace} x='day' y='sold' format='percent' takeaway='Julia Jacklin tracks below similar shows and is forecast to reach 74%' band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }} forecast={{ from: today, low: 'coneLow', high: 'coneHigh' }} target={0.85} today={today} />
+    </Chart>
+    <Chart size='full' label='Pace against sell-through' takeaway='Julia Jacklin and Genesis Owusu are behind on pace and sales' source='Oztix sales. Pace against 38 similar shows.'>
+      <Scatter data={showPace} x='pace' y='sold' xFormat='index' format='percent' size='capacity' label='show' highlight={['Julia Jacklin', 'Genesis Owusu']} quadrants={{ x: 100, y: 0.5, labels: { topLeft: 'Sold, slowing', topRight: 'On a roll', bottomLeft: 'Needs a push', bottomRight: 'Catching up' } }} />
     </Chart>
   </Dashboard.Section>
 </Dashboard>`
 
 export default function PortfolioDashboardPage() {
-  return <ReferenceDashboard spec={createPortfolioDashboard(BASE)} jsx={JSX} />
+  return <ReferenceDashboard spec={createPortfolioDashboard()} jsx={JSX} />
 }

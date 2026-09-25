@@ -28,7 +28,7 @@ describe('histogram', () => {
 
   it('draws a labelled dashed median', () => {
     expect(svg).toMatch(/data-ts-key="median(:[^"]*)?"/)
-    expect(svg).toMatch(/data-ts-key="label-median[^"]*"[^>]*>Median 11\.5</)
+    expect(svg).toMatch(/data-ts-key="label-median[^"]*"[^>]*>Median 12</)
   })
 
   it('focuses only the bins, one stop each', () => {
@@ -68,7 +68,7 @@ describe('histogram', () => {
     const bins = binValues(histogramValues(leadTimeExample), leadTimeExample)
     expect(match?.slice(1).map(Number)).toEqual([
       bins.find((b) => b.from === 7)!.count,
-      600
+      612
     ])
   })
 
@@ -118,6 +118,6 @@ describe('histogramTable', () => {
 
   it('counts every value', () => {
     const rows = histogramTable(leadTimeExample).rows
-    expect(rows.reduce((s, r) => s + Number(r.count), 0)).toBe(600)
+    expect(rows.reduce((s, r) => s + Number(r.count), 0)).toBe(612)
   })
 })

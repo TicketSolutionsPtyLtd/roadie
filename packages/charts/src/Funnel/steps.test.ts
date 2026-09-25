@@ -11,9 +11,9 @@ describe('funnelRows', () => {
       ofPrevious: null,
       dropped: null
     })
-    expect(rows[3]!.ofFirst).toBeCloseTo(1464 / 12400, 9)
-    expect(rows[3]!.ofPrevious).toBeCloseTo(1464 / 2380, 9)
-    expect(rows[1]!.dropped).toBe(12400 - 4210)
+    expect(rows[3]!.ofFirst).toBeCloseTo(612 / 5180, 9)
+    expect(rows[3]!.ofPrevious).toBeCloseTo(612 / 995, 9)
+    expect(rows[1]!.dropped).toBe(5180 - 1760)
   })
 
   it('finds the biggest drop by share lost', () => {

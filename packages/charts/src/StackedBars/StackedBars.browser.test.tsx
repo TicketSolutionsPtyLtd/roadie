@@ -81,9 +81,9 @@ describe('StackedBars in a card', () => {
       'ArrowDown'
     ])
     expect(heard.slice(2)).toEqual([
-      'Friday, GA, 1,210 sold',
-      'Saturday, GA, 1,480 sold',
-      'Sunday, GA, 640 sold'
+      'Aug, GA, 414 sold',
+      'Sep, GA, 213 sold',
+      'Oct, GA, 377 sold'
     ])
   })
 
@@ -98,10 +98,10 @@ describe('StackedBars in a card', () => {
       'ArrowLeft'
     ])
     expect(heard.slice(2)).toEqual([
-      'Friday, GA, 1,210 sold',
-      'Friday, VIP, 232 sold',
-      'Friday, Early bird, 300 sold',
-      'Friday, VIP, 232 sold'
+      'Aug, GA, 414 sold',
+      'Aug, VIP, 60 sold',
+      'Aug, Early bird, 300 sold',
+      'Aug, VIP, 60 sold'
     ])
   })
 

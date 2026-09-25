@@ -75,7 +75,7 @@ describe('barChart', () => {
 
   it('labels hours as times and days as dates', () => {
     expect(svgOf(onSaleExample)).toContain('>9am<')
-    expect(svgOf(dailyOrdersExample)).toContain('>1 Oct<')
+    expect(svgOf(dailyOrdersExample)).toContain('>3 Oct<')
   })
 
   it('thins the time ticks on a phone', () => {
@@ -141,7 +141,7 @@ describe('barChart', () => {
     )
     expect(
       barChart.summary({ ...dailyOrdersExample, takeaway: undefined })
-    ).toBe('Orders peaked at 177 on Tue 20 Oct')
+    ).toBe('Orders peaked at 21 on Fri 9 Oct')
     expect(barChart.summary({ data: [], x: 'd', y: 'v' })).toBe('V by day')
   })
 
