@@ -158,7 +158,7 @@ Pass `table` to show different numbers from the plot, such as a few key dates. I
 
 ### With a legend
 
-A single line gets no legend of its own on a wide card, where end labels name its reading aids. Pass one when you want the band and the line named at every width.
+A single line gets no legend of its own on a wide card, where end labels name its reading aids. Pass one when you want the line and its aids named at every width. Use the words the plot uses, and the card's legend replaces the one the plot adds on a narrow card.
 
 ```tsx-live
 <div className='w-[560px] max-w-full'>
@@ -172,8 +172,10 @@ A single line gets no legend of its own on a wide card, where end labels name it
     legend={
       <ChartLegend
         items={[
-          { label: 'This show', shape: 'line' },
-          { label: 'Similar shows', shape: 'band', color: 'var(--chart-band)' }
+          { label: 'Sold', shape: 'line', slot: 1 },
+          { label: 'Similar shows', shape: 'band', color: 'var(--chart-band)' },
+          { label: 'Similar shows median', shape: 'dash', color: 'var(--chart-median)' },
+          { label: 'Target 85%', shape: 'line', color: 'var(--chart-value)' }
         ]}
       />
     }

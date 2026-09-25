@@ -9,6 +9,8 @@ export type ChartCardContextValue = {
   /** The smallest plot height for the card size. CSS grows wide plots from it. */
   plotHeight: number
   report: (report: ChartReport | null) => void
+  /** The card draws its own legend, so the plot inside adds none. */
+  hasLegend: boolean
   /** Puts the card in its error state when the chart inside can't draw. */
   fail: () => void
 }

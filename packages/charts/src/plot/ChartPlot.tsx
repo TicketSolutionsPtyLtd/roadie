@@ -98,11 +98,9 @@ export function ChartPlot<P>({
   // height only spaces end labels.
   const fillsCard = card !== null && height === undefined
   const fullHeight = height ?? card?.plotHeight ?? DEFAULT_PLOT_HEIGHT
-  const legend = chart.legend(
-    props,
-    cssPaint,
-    plotFrame(fullHeight, band, yDomain, width)
-  )
+  const legend = card?.hasLegend
+    ? []
+    : chart.legend(props, cssPaint, plotFrame(fullHeight, band, yDomain, width))
   const fixedHeight = legend.length ? fullHeight - LEGEND_ROOM : fullHeight
   const plotHeight = (fillsCard && measuredHeight) || fixedHeight
   const frame = useMemo(

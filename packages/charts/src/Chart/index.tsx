@@ -97,9 +97,10 @@ export function Chart({
   const { patterns, style: patternStyle } = useChartPatterns()
   const summaryId = useId()
   const plotHeight = PLOT_HEIGHTS[size ?? 'md']
+  const hasLegend = Boolean(legend)
   const context = useMemo(
-    () => ({ plotHeight, report: setReport, fail }),
-    [plotHeight, fail]
+    () => ({ plotHeight, report: setReport, fail, hasLegend }),
+    [plotHeight, fail, hasLegend]
   )
   const shownTable = table ?? report?.table ?? EMPTY_TABLE
   return (
