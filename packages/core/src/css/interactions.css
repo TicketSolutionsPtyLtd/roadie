@@ -42,11 +42,9 @@
   }
 
   /* Hover — neutral tint */
-  @media (hover: hover) {
-    &:hover {
-      background-color: var(--field-hover-bg);
-      border-color: var(--color-neutral-7);
-    }
+  &:hover {
+    background-color: var(--field-hover-bg);
+    border-color: var(--color-neutral-7);
   }
 
   /* Focus — accent border + outline ring */
@@ -72,11 +70,9 @@
     );
   }
 
-  @media (hover: hover) {
-    &[aria-invalid='true']:hover {
-      background-color: var(--color-danger-3);
-      border-color: var(--color-danger-9);
-    }
+  &[aria-invalid='true']:hover {
+    background-color: var(--color-danger-3);
+    border-color: var(--color-danger-9);
   }
 
   &[aria-invalid='true']:focus {
@@ -147,11 +143,9 @@
   }
 
   /* Hover — neutral tint */
-  @media (hover: hover) {
-    &:hover {
-      background-color: var(--field-hover-bg);
-      border-color: var(--color-neutral-7);
-    }
+  &:hover {
+    background-color: var(--field-hover-bg);
+    border-color: var(--color-neutral-7);
   }
 
   /* Focus-within — accent border + outline ring */
@@ -177,11 +171,9 @@
     );
   }
 
-  @media (hover: hover) {
-    &[aria-invalid='true']:hover {
-      background-color: var(--color-danger-3);
-      border-color: var(--color-danger-9);
-    }
+  &[aria-invalid='true']:hover {
+    background-color: var(--color-danger-3);
+    border-color: var(--color-danger-9);
   }
 
   &[aria-invalid='true']:focus-within {

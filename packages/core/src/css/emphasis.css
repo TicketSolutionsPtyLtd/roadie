@@ -9,9 +9,6 @@
    Combined Shortcuts (bg + text + interactive states)
    Each shortcut includes hover/active/focus states that
    use the intent color scale via --intent-* vars.
-   Hover only applies where a pointer can hover. A touch screen
-   keeps :hover on the last element tapped, which left buttons
-   looking stuck in their hover colour.
    ═══════════════════════════════════════════════════════════ */
 
 @utility emphasis-strong {
@@ -20,19 +17,14 @@
   border: 1px solid transparent;
   box-shadow: var(--rim-light-subtle);
 
+  &.is-interactive:hover,
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible) {
+  &.is-interactive-within:has(
+      [data-interactive-target]:is(:hover, :focus-visible)
+    ) {
     background-color: var(--intent-11);
     transform: translateY(-1px);
     box-shadow: var(--rim-light-subtle), var(--shadow-sm);
-  }
-  @media (hover: hover) {
-    &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover) {
-      background-color: var(--intent-11);
-      transform: translateY(-1px);
-      box-shadow: var(--rim-light-subtle), var(--shadow-sm);
-    }
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
@@ -48,19 +40,14 @@
   color: var(--intent-text-normal);
   border: 1px solid var(--intent-border-normal);
 
+  &.is-interactive:hover,
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible) {
+  &.is-interactive-within:has(
+      [data-interactive-target]:is(:hover, :focus-visible)
+    ) {
     background-color: var(--intent-2);
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
-  }
-  @media (hover: hover) {
-    &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover) {
-      background-color: var(--intent-2);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-sm);
-    }
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
@@ -78,15 +65,12 @@
   border-style: solid;
   box-shadow: var(--rim-light-subtler);
 
+  &.is-interactive:hover,
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible) {
+  &.is-interactive-within:has(
+      [data-interactive-target]:is(:hover, :focus-visible)
+    ) {
     background-color: var(--intent-4a);
-  }
-  @media (hover: hover) {
-    &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover) {
-      background-color: var(--intent-4a);
-    }
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
@@ -105,15 +89,12 @@
   &.is-interactive-within:has([data-interactive-target]) {
     background-color: transparent;
   }
+  &.is-interactive:hover,
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible) {
+  &.is-interactive-within:has(
+      [data-interactive-target]:is(:hover, :focus-visible)
+    ) {
     background-color: var(--intent-3a);
-  }
-  @media (hover: hover) {
-    &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover) {
-      background-color: var(--intent-3a);
-    }
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
@@ -132,17 +113,13 @@
   box-shadow: var(--rim-light-strong), var(--shadow-md);
   color: var(--intent-text-normal);
 
+  &.is-interactive:hover,
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible) {
+  &.is-interactive-within:has(
+      [data-interactive-target]:is(:hover, :focus-visible)
+    ) {
     transform: translateY(-1px);
     box-shadow: var(--rim-light-strong), var(--shadow-lg);
-  }
-  @media (hover: hover) {
-    &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover) {
-      transform: translateY(-1px);
-      box-shadow: var(--rim-light-strong), var(--shadow-lg);
-    }
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
