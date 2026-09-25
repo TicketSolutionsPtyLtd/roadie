@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { binValues, histogramValues, medianOf } from './bin'
+import { MAX_BINS, binValues, histogramValues, medianOf } from './bin'
 
 describe('binValues', () => {
   it('bins by width from a round start', () => {
@@ -12,10 +12,31 @@ describe('binValues', () => {
     ])
   })
 
-  it('bins by count across the range', () => {
+  it('bins by count across the range on round edges', () => {
     const bins = binValues([0, 10, 20, 30, 40], { bins: 4 })
-    expect(bins).toHaveLength(4)
+    expect(bins.map((b) => b.from)).toEqual([0, 10, 20, 30, 40])
     expect(bins.reduce((s, b) => s + b.count, 0)).toBe(5)
+  })
+
+  it('rounds edges to nice numbers in bins mode', () => {
+    const values = [0.3, 1.1, 2.9, 4.4, 6.2, 7.7, 9.1, 10.4, 12.3, 13.9]
+    const bins = binValues(values, { bins: 6 })
+    expect(bins.map((b) => b.from)).toEqual([0, 2.5, 5, 7.5, 10, 12.5])
+  })
+
+  it('gives whole numbers whole edges', () => {
+    const bins = binValues([1, 2, 2, 3, 4, 7], { bins: 3 })
+    expect(bins.every((b) => Number.isInteger(b.from) && b.whole)).toBe(true)
+    expect(binValues([1, 2, 3], { binWidth: 0.5 })[0]).toMatchObject({
+      from: 1,
+      to: 2
+    })
+  })
+
+  it('caps the bin count however small the width', () => {
+    const bins = binValues([0, 1_000_000], { binWidth: 1 })
+    expect(bins.length).toBeLessThanOrEqual(MAX_BINS)
+    expect(bins.reduce((s, b) => s + b.count, 0)).toBe(2)
   })
 
   it('picks a sensible bin count by default', () => {

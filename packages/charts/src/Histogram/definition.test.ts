@@ -57,14 +57,15 @@ describe('histogram', () => {
   it('names the plot, and speaks a bin', () => {
     expect(
       histogram.summary({ ...orderSizeExample, takeaway: undefined })
-    ).toMatch(
-      /^The median tickets is \d+, and the most common range is \d+ to \d+$/
+    ).toBe('The median is 2 tickets, and the most common is 2 tickets')
+    expect(histogram.summary({ ...leadTimeExample, takeaway: undefined })).toBe(
+      'The median is 12 days, and the most common is 0 to 6 days'
     )
     const spoken = histogram.describe(
       { x: 7, y: 120, series: 'Days', index: 1 },
       leadTimeExample
     )
-    const match = /^7 to 14 days, (\d+) of (\d+)$/.exec(spoken)
+    const match = /^7 to 13 days, (\d+) of (\d+)$/.exec(spoken)
     const bins = binValues(histogramValues(leadTimeExample), leadTimeExample)
     expect(match?.slice(1).map(Number)).toEqual([
       bins.find((b) => b.from === 7)!.count,
@@ -78,7 +79,7 @@ describe('histogram', () => {
       leadTimeExample,
       paint
     )
-    expect(tip.title).toBe('7 to 14 days')
+    expect(tip.title).toBe('7 to 13 days')
     expect(tip.rows[0]).toMatchObject({ label: 'Count' })
   })
 
@@ -110,14 +111,35 @@ describe('histogramTable', () => {
   it('lists each range and its count', () => {
     const table = histogramTable(orderSizeExample)
     expect(table.columns.map((c) => c.header)).toEqual(['Tickets', 'Count'])
-    expect(table.rows[0]).toMatchObject({
-      range: '1 to 2',
-      count: expect.any(Number)
-    })
+    expect(table.rows.map((r) => r.range)).toEqual([
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6'
+    ])
   })
 
   it('counts every value', () => {
     const rows = histogramTable(leadTimeExample).rows
     expect(rows.reduce((s, r) => s + Number(r.count), 0)).toBe(612)
+  })
+})
+
+describe('histogram bins for whole numbers', () => {
+  it('speaks a one-value bin as that value', () => {
+    expect(
+      histogram.describe(
+        { x: 1, y: 80, series: 'Tickets', index: 0 },
+        orderSizeExample
+      )
+    ).toMatch(/^1 ticket, \d+ of 480$/)
+  })
+
+  it('labels the axis under each bar and puts the median in its bar', () => {
+    const order = svgOf(orderSizeExample)
+    expect(order).toMatch(/data-ts-key="x-tick-label:number:1\.5"[^>]*>1</)
+    expect(order).toContain('data-ts-key="median:number:2.5')
   })
 })

@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { describeValue, spokenPoint, trendSentence } from './words'
+import {
+  describeValue,
+  nounFor,
+  plural,
+  singular,
+  spokenPoint,
+  trendSentence
+} from './words'
 
 describe('words', () => {
   it('says a value in plain words', () => {
@@ -28,5 +35,17 @@ describe('words', () => {
       'Tickets sold rose from 120 to 1,464 between 1 Oct and 14 Nov'
     )
     expect(sentence).not.toMatch(/[–—]/)
+  })
+
+  it('agrees a noun with its count', () => {
+    expect(nounFor(1, 'tickets')).toBe('ticket')
+    expect(nounFor(2, 'tickets')).toBe('tickets')
+    expect(nounFor(1, 'days')).toBe('day')
+    expect(plural('city')).toBe('cities')
+    expect(plural('show')).toBe('shows')
+    expect(plural('venues')).toBe('venues')
+    expect(plural('box')).toBe('boxes')
+    expect(singular('suburbs')).toBe('suburb')
+    expect(singular('address')).toBe('address')
   })
 })

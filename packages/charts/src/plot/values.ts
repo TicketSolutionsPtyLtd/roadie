@@ -21,11 +21,14 @@ const COUNT_FORMATS: readonly (ValueFormat | undefined)[] = [
   'compact'
 ]
 
+export const isCountFormat = (format: ValueFormat | undefined) =>
+  COUNT_FORMATS.includes(format)
+
 /** Whole numbers in a count format, whose gridlines should be whole too. */
 export const isCountAxis = (
   values: readonly number[],
   format: ValueFormat | undefined
-) => COUNT_FORMATS.includes(format) && values.every(Number.isInteger)
+) => isCountFormat(format) && values.every(Number.isInteger)
 
 export function valueDomain(
   values: readonly (number | null)[],

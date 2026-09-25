@@ -2,15 +2,22 @@ import { formatValue } from '@oztix/roadie-core/dataviz'
 
 import type { ChartTable } from '../Chart'
 import { fieldLabel } from '../plot/table'
+import type { Bin } from './bin'
 import { binValues, histogramValues } from './bin'
 import type { HistogramProps } from './types'
 
-export const rangeLabel = (
+/**
+ * The values a bin holds. Whole numbers name their last integer, since a bin
+ * never holds its upper edge: "1", "3 to 4". Other data names both edges.
+ */
+export function binLabel(
   props: Pick<HistogramProps, 'format'>,
-  from: number,
-  to: number
-) =>
-  `${formatValue(from, props.format ?? 'number')} to ${formatValue(to, props.format ?? 'number')}`
+  { from, to, whole }: Pick<Bin, 'from' | 'to' | 'whole'>
+) {
+  const shown = (value: number) => formatValue(value, props.format ?? 'number')
+  const last = whole ? to - 1 : to
+  return last === from ? shown(from) : `${shown(from)} to ${shown(last)}`
+}
 
 export function histogramTable(props: HistogramProps): ChartTable {
   const bins = binValues(histogramValues(props), props)
@@ -19,9 +26,6 @@ export function histogramTable(props: HistogramProps): ChartTable {
       { key: 'range', header: fieldLabel(props.x), kind: 'text' },
       { key: 'count', header: 'Count', kind: 'number', format: 'number' }
     ],
-    rows: bins.map((b) => ({
-      range: rangeLabel(props, b.from, b.to),
-      count: b.count
-    }))
+    rows: bins.map((b) => ({ range: binLabel(props, b), count: b.count }))
   }
 }

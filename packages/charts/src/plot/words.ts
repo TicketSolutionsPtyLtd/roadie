@@ -40,3 +40,21 @@ export function trendSentence({
     ? `${noun} held at ${value(last)} between ${from} and ${to}`
     : `${noun} ${verb} from ${value(first)} to ${value(last)} between ${from} and ${to}`
 }
+
+export function singular(noun: string) {
+  if (/[^aeiou]ies$/.test(noun)) return `${noun.slice(0, -3)}y`
+  if (/(ss|us|is)$/.test(noun)) return noun
+  if (/(x|z|ch|sh|ss)es$/.test(noun)) return noun.slice(0, -2)
+  return noun.endsWith('s') ? noun.slice(0, -1) : noun
+}
+
+export function plural(noun: string) {
+  const one = singular(noun)
+  if (/[^aeiou]y$/.test(one)) return `${one.slice(0, -1)}ies`
+  if (/(s|x|z|ch|sh)$/.test(one)) return `${one}es`
+  return `${one}s`
+}
+
+/** The noun that goes with a count: "1 ticket", "2 tickets". */
+export const nounFor = (count: number, noun: string) =>
+  count === 1 ? singular(noun) : plural(noun)

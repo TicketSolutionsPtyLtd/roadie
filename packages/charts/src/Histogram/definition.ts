@@ -12,14 +12,58 @@ import type {
   PlotDatum,
   PlotFrame
 } from '../plot/types'
-import { axisFormat, gridTicks, labelFormat, valueDomain } from '../plot/values'
+import {
+  axisFormat,
+  fullFormat,
+  gridTicks,
+  isCountFormat,
+  labelFormat,
+  valueDomain
+} from '../plot/values'
+import { nounFor } from '../plot/words'
 import { type Bin, binValues, histogramValues, medianOf } from './bin'
-import { histogramTable, rangeLabel } from './table'
+import { binLabel, histogramTable } from './table'
 import type { HistogramProps } from './types'
 
 const EMPTY = 'Not enough data yet to show a spread'
+const MAX_X_TICKS: Record<PlotFrame['band'], number> = {
+  narrow: 4,
+  default: 6,
+  wide: 8
+}
 
 const unitOf = (props: HistogramProps) => fieldLabel(props.x).toLowerCase()
+
+// Money and shares carry their own units; counts take the field's noun.
+const withUnit = (props: HistogramProps, text: string, count: number) =>
+  isCountFormat(props.format)
+    ? `${text} ${nounFor(count, unitOf(props))}`
+    : text
+
+const valueText = (props: HistogramProps, value: number) =>
+  withUnit(props, formatValue(value, fullFormat(props.format)), value)
+
+/** "1 ticket", "3 to 4 tickets", "0 to 6 days". */
+function binText(props: HistogramProps, bin: Bin) {
+  const single = bin.whole && bin.to - bin.from === 1
+  return withUnit(props, binLabel(props, bin), single ? bin.from : 2)
+}
+
+// A whole-number bin holds each integer across a unit of width, so a value
+// sits in the middle of its unit.
+const positionOf = (value: number, whole: boolean) =>
+  whole ? value + 0.5 : value
+
+function xTicks(bins: readonly Bin[], frame: PlotFrame) {
+  const first = bins[0]
+  if (!first) return []
+  const centred = first.whole && first.to - first.from === 1
+  const positions = centred
+    ? bins.map((b) => b.from + 0.5)
+    : [...bins.map((b) => b.from), bins.at(-1)!.to]
+  const step = Math.ceil(positions.length / MAX_X_TICKS[frame.band])
+  return positions.filter((_, i) => i % step === 0)
+}
 
 type BinDatum = Bin & PlotDatum & { zero: 0 }
 
@@ -40,11 +84,13 @@ function medianMarks(
   frame: PlotFrame,
   top: number
 ) {
-  const median = props.median ? medianOf(histogramValues(props)) : null
+  const values = histogramValues(props)
+  const median = props.median ? medianOf(values) : null
   if (median === null) return []
+  const x = positionOf(median, values.every(Number.isInteger))
   return [
     decorative(
-      ruleX([{ x: median }], {
+      ruleX([{ x }], {
         id: 'median',
         x: 'x',
         stroke: paint.median,
@@ -56,7 +102,7 @@ function medianMarks(
       text(
         [
           {
-            x: median,
+            x,
             y: top,
             label: `Median ${labelFormat(props.format, median)}`
           }
@@ -81,6 +127,8 @@ function medianMarks(
 function build(props: HistogramProps, paint: ChartPaint, frame: PlotFrame) {
   const bins = binData(props)
   const xDomain: [number, number] = [bins[0]?.from ?? 0, bins.at(-1)?.to ?? 1]
+  const centred = bins[0]?.whole && bins[0].to - bins[0].from === 1
+  const xFormat = axisFormat(props.format, xDomain[1])
   const yDomain =
     frame.yDomain ??
     valueDomain(
@@ -106,9 +154,9 @@ function build(props: HistogramProps, paint: ChartPaint, frame: PlotFrame) {
         axis: {
           line: false,
           ticks: {
-            count: 5,
+            values: xTicks(bins, frame),
             size: 0,
-            format: axisFormat(props.format, xDomain[1])
+            format: (value: number) => xFormat(centred ? value - 0.5 : value)
           },
           tickLabels: {
             fontSize: frame.fontSize,
@@ -154,7 +202,7 @@ export const histogram: ChartDefinition<HistogramProps> = {
     const [first, ...rest] = binValues(values, props)
     if (!first || median === null) return `Spread of ${unitOf(props)}`
     const top = rest.reduce((a, b) => (b.count > a.count ? b : a), first)
-    return `The median ${unitOf(props)} is ${formatValue(median, props.format ?? 'number')}, and the most common range is ${rangeLabel(props, top.from, top.to)}`
+    return `The median is ${valueText(props, median)}, and the most common is ${binText(props, top)}`
   },
   emptyMessage: (props) =>
     histogramValues(props).length < 2 ? EMPTY : undefined,
@@ -163,13 +211,13 @@ export const histogram: ChartDefinition<HistogramProps> = {
     const bin = findBin(props, Number(datum.x))
     if (!bin) return String(datum.x)
     const total = histogramValues(props).length
-    return `${rangeLabel(props, bin.from, bin.to)} ${unitOf(props)}, ${formatValue(bin.count, 'number')} of ${formatValue(total, 'number')}`
+    return `${binText(props, bin)}, ${formatValue(bin.count, 'number')} of ${formatValue(total, 'number')}`
   },
   tooltip(data, props, paint) {
     const bin = findBin(props, Number(data[0]?.x))
     if (!bin) return { title: '', rows: [] }
     return {
-      title: `${rangeLabel(props, bin.from, bin.to)} ${unitOf(props)}`,
+      title: binText(props, bin),
       rows: [
         {
           label: 'Count',

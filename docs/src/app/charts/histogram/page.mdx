@@ -48,12 +48,13 @@ import { Histogram } from '@oztix/roadie-charts/histogram'
 ## Guidelines
 
 - Use `binWidth` when the unit means something, such as 7 days. Use `bins` for a quick look. Don't set both.
+- Bins start on round numbers, and there are never more than 50. Whole numbers get whole bins, named by the values they hold, such as "1 ticket" or "7 to 13 days".
 - `median` draws a labelled dashed line. Say what it means in the takeaway.
 - Counts start at zero.
 
 ## Accessibility
 
-- The plot is one tab stop. Left and right arrows move between bins, and each bin is read out as a range and its count, such as "7 to 14 days, 5 of 21".
+- The plot is one tab stop. Left and right arrows move between bins, and each bin is read out as a range and its count, such as "7 to 13 days, 5 of 21".
 - The Table tab lists every bin with its count.
 
 <PropsDefinitions componentPath='packages/charts/src/Histogram/index.tsx' />
