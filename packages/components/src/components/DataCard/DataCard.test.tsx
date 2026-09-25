@@ -1,6 +1,8 @@
+import { createRef } from 'react'
+
 import { render, screen } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { DataCard } from '.'
 
@@ -131,5 +133,46 @@ describe('DataCard', () => {
         "We couldn't load GA sell-through. Try again in a minute."
       )
     ).toBeInTheDocument()
+  })
+
+  it('keeps its actions in every state, so refresh works on a failed card', () => {
+    for (const state of ['ready', 'loading', 'empty', 'error'] as const) {
+      const { unmount } = render(
+        <DataCard
+          label='Sales pace'
+          state={state}
+          actions={<DataCard.MoreButton label='Sales pace' />}
+        />
+      )
+      expect(
+        screen.getByRole('button', { name: 'More actions for Sales pace' })
+      ).toBeInTheDocument()
+      unmount()
+    }
+  })
+})
+
+describe('DataCard.MoreButton', () => {
+  it('names itself for the card and passes props and ref through', () => {
+    const ref = createRef<HTMLButtonElement>()
+    const onClick = vi.fn()
+    render(
+      <DataCard.MoreButton
+        label='Tickets sold'
+        ref={ref}
+        onClick={onClick}
+        aria-haspopup='menu'
+        aria-expanded={false}
+      />
+    )
+    const button = screen.getByRole('button', {
+      name: 'More actions for Tickets sold'
+    })
+    expect(ref.current).toBe(button)
+    expect(button).toHaveAttribute('aria-haspopup', 'menu')
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+    expect(button).toHaveClass('emphasis-subtler', 'btn-icon-sm')
+    button.click()
+    expect(onClick).toHaveBeenCalledOnce()
   })
 })

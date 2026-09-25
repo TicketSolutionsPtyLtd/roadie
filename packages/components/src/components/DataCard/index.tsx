@@ -13,6 +13,9 @@ import { cn } from '@oztix/roadie-core/utils'
 import { cardVariants } from '../Card/variants'
 import { Delta } from '../Delta'
 import { Skeleton } from '../Skeleton'
+import { DataCardMoreButton } from './DataCardMoreButton'
+
+export type { DataCardMoreButtonProps } from './DataCardMoreButton'
 
 export type DataCardDelta = {
   value: number
@@ -32,6 +35,10 @@ export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> & {
   takeaway?: string
   context?: string
   source?: string
+  /**
+   * Controls at the top right, after the label. Shown in every state, so an
+   * action such as refresh still works on a card that failed to load.
+   */
   actions?: ReactNode
   size?: CardSize
   /** @default 'ready' */
@@ -146,8 +153,11 @@ export function DataCard({
             >
               {label}
             </h3>
-            {actions && showContent && (
-              <div className='flex h-0 items-center gap-1 self-center'>
+            {actions && (
+              <div
+                data-slot='data-card-actions'
+                className='flex h-0 items-center gap-1 self-center *:self-center'
+              >
                 {actions}
               </div>
             )}
@@ -221,3 +231,4 @@ export function DataCard({
   )
 }
 DataCard.displayName = 'DataCard'
+DataCard.MoreButton = DataCardMoreButton
