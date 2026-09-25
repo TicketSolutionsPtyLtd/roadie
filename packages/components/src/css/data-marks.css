@@ -1,0 +1,12 @@
+/* Meter and Sparkline marks drawn with backgrounds, which forced colours would erase. */
+@media (forced-colors: active) {
+  [data-slot='meter'] {
+    outline: 1px solid CanvasText;
+  }
+
+  [data-slot='meter-target'],
+  [data-slot='sparkline-end'] {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}
