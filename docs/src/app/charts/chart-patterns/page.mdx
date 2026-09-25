@@ -64,7 +64,7 @@ When a class won't do, such as in a chart library's props, point `fill` at the p
 ## Guidelines
 
 - Render `ChartPatterns` once per page, near the root, when you're wiring up textures by hand outside `Chart` and `ChartPlot`. Its ids are fixed, so a second copy repeats them.
-- `Chart` and `ChartPlot` never use `ChartPatterns` directly. Each scopes its own textures with the `useChartPatterns` hook, so any number of charts can sit on one page without colliding — you don't need to render `ChartPatterns` yourself around them.
+- `Chart` and `ChartPlot` never use `ChartPatterns` directly. Each scopes its own textures with the `useChartPatterns` hook, so any number of charts can sit on one page without colliding. You don't need to render `ChartPatterns` yourself around them.
 - Building your own chart-like component with several instances per page? Call `useChartPatterns()` once per instance, apply its `style` to an element that contains everything reading `fill-texture-*` or `data-chart-texture` (so the `--chart-texture-*` custom properties inherit down to it), and render its `patterns` anywhere in that same subtree.
 - Match the texture slot to the colour slot. A series on `--chart-3` takes texture 3.
 - Use `data-chart-texture` for most marks, so textures appear only when colour is gone. Reach for `fill-texture-*` when a mark needs a texture on screen too, such as the projected part of a bar.

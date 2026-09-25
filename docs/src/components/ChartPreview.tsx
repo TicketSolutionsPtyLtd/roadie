@@ -139,6 +139,82 @@ export function ChartPreview({ name }: { name: string }) {
           ))}
         </div>
       )
+    case 'line-chart':
+      return (
+        <svg
+          viewBox='0 0 160 64'
+          className='h-16 w-40 overflow-visible'
+          aria-hidden
+        >
+          <path
+            d='M0 50 L40 44 L80 36 L120 26 L160 12 L160 30 L120 40 L80 48 L40 54 L0 58 Z'
+            className='fill-chart-band'
+          />
+          <polyline
+            points='0,54 40,49 80,42 120,33 160,21'
+            fill='none'
+            strokeWidth={1.25}
+            strokeDasharray='3 3'
+            className='stroke-chart-median'
+          />
+          <polyline
+            points='0,52 40,44 80,34 104,28'
+            fill='none'
+            strokeWidth={2}
+            strokeLinecap='round'
+            className='stroke-chart-highlight'
+          />
+          <polyline
+            points='104,28 160,10'
+            fill='none'
+            strokeWidth={2}
+            strokeDasharray='0.5 4'
+            strokeLinecap='round'
+            className='stroke-chart-highlight'
+          />
+          <circle cx={104} cy={28} r={3} className='fill-chart-highlight' />
+        </svg>
+      )
+    case 'bar-chart':
+      return (
+        <div className='flex h-16 w-40 items-end gap-1'>
+          {['h-6', 'h-5', 'h-7', 'h-8', 'h-12', 'h-16', 'h-10'].map(
+            (height, i) => (
+              <div
+                key={i}
+                className={`flex-1 rounded-t-sm ${height} ${i === 5 ? 'bg-chart-highlight' : 'bg-chart-1'}`}
+              />
+            )
+          )}
+        </div>
+      )
+    case 'ranked-bars':
+      return (
+        <div className='grid w-40 gap-1.5'>
+          {['w-full', 'w-3/4', 'w-1/2', 'w-1/3'].map((width, i) => (
+            <div
+              key={width}
+              className={`h-2.5 rounded-r-sm ${width} ${i === 0 ? 'bg-chart-highlight' : 'bg-chart-context'}`}
+            />
+          ))}
+        </div>
+      )
+    case 'stacked-bars':
+      return (
+        <div className='grid w-40 gap-1.5'>
+          {[
+            ['w-7/12', 'w-2/12', 'w-3/12'],
+            ['w-8/12', 'w-2/12', 'w-2/12'],
+            ['w-5/12', 'w-1/12', 'w-4/12']
+          ].map((row, i) => (
+            <div key={i} className='flex h-3 gap-px'>
+              <div className={`${row[0]} rounded-l-sm bg-chart-trio-1`} />
+              <div className={`${row[1]} bg-chart-trio-2`} />
+              <div className={`${row[2]} rounded-r-sm bg-chart-trio-3`} />
+            </div>
+          ))}
+        </div>
+      )
     case 'chart':
       return (
         <div className='grid w-40 emphasis-raised gap-2 rounded-lg p-2.5'>

@@ -1,0 +1,148 @@
+export const metadata = {
+  title: 'LineChart',
+  description:
+    'A line over time, with the quiet reading aids a pace chart needs',
+  status: 'beta',
+  category: 'Chart types',
+  order: 1
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A line over time, with the quiet reading aids a pace chart needs.
+
+## Import
+
+```tsx
+import { LineChart } from '@oztix/roadie-charts/line-chart'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Tickets sold' source='Oztix sales.' size='md'>
+    <LineChart
+      data={[
+        { day: '2026-10-01', sold: 120 },
+        { day: '2026-10-08', sold: 410 },
+        { day: '2026-10-15', sold: 690 },
+        { day: '2026-10-22', sold: 1020 },
+        { day: '2026-10-29', sold: 1464 }
+      ]}
+      x='day'
+      y='sold'
+    />
+  </Chart>
+</div>
+```
+
+### Pace against similar shows
+
+Every reading aid at once: the band of similar shows with its dashed median, the forecast dotted in a faint cone, the target tick, and a labelled dot for today.
+
+```tsx-live
+<div className='w-180 max-w-full'>
+  <Chart label='Sales pace' value={0.61} format='percent' delta={{ value: 16, format: 'points' }} context='Ahead of similar shows. Forecast 96%' source='Oztix sales. 38 similar shows, last 3 years.' size='full'>
+    <LineChart
+      data={[
+        { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+        { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+        { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+        { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45, coneLow: 0.61, coneHigh: 0.61 },
+        { day: '2026-11-01', sold: 0.8, low: 0.55, high: 0.7, median: 0.62, coneLow: 0.75, coneHigh: 0.85 },
+        { day: '2026-11-14', sold: 0.96, low: 0.78, high: 0.93, median: 0.85, coneLow: 0.89, coneHigh: 1 }
+      ]}
+      x='day'
+      y='sold'
+      format='percent'
+      takeaway='Tracking ahead of similar shows, forecast to reach 96%'
+      band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
+      forecast={{ from: '2026-10-15', low: 'coneLow', high: 'coneHigh' }}
+      target={0.85}
+      today='2026-10-15'
+      annotations={[{ at: '2026-09-15', label: 'Line-up drop' }]}
+    />
+  </Chart>
+</div>
+```
+
+### Several series
+
+Two or three series use the pair and trio sets. Past four series, or on a narrow card, the end labels give way to a legend.
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Orders by ticket type' source='Oztix sales.' size='md'>
+    <LineChart
+      data={['GA', 'VIP', 'Early bird'].flatMap((type, s) =>
+        ['2026-10-01', '2026-10-08', '2026-10-15', '2026-10-22'].map((day, i) => ({ day, type, orders: [40, 12, 25][s] * (i + 1) }))
+      )}
+      x='day'
+      y='orders'
+      series='type'
+      takeaway='GA orders are climbing fastest'
+    />
+  </Chart>
+</div>
+```
+
+### Highlight
+
+Name the series that tells the story. It draws in the highlight at 2px and the rest step back.
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Pace by show' source='Oztix sales.' size='md'>
+    <LineChart
+      data={['This show', 'Last tour', 'Similar shows'].flatMap((show, s) =>
+        ['2026-10-01', '2026-10-08', '2026-10-15', '2026-10-22'].map((day, i) => ({ day, show, sold: [0.2, 0.15, 0.12][s] * (i + 1) }))
+      )}
+      x='day'
+      y='sold'
+      series='show'
+      highlight='This show'
+      format='percent'
+    />
+  </Chart>
+</div>
+```
+
+### States
+
+```tsx-live
+<div className='grid w-140 max-w-full gap-4'>
+  <p className='text-sm text-subtle'>Too little data</p>
+  <Chart label='Tickets sold' source='Oztix sales.' size='sm'>
+    <LineChart data={[{ day: '2026-10-01', sold: 12 }]} x='day' y='sold' />
+  </Chart>
+  <p className='text-sm text-subtle'>A gap in the data</p>
+  <Chart label='Tickets sold' source='Oztix sales.' size='sm'>
+    <LineChart data={[{ day: '2026-10-01', sold: 12 }, { day: '2026-10-02', sold: 20 }, { day: '2026-10-03', sold: null }, { day: '2026-10-04', sold: 30 }, { day: '2026-10-05', sold: 44 }]} x='day' y='sold' />
+  </Chart>
+  <p className='text-sm text-subtle'>Loading</p>
+  <Chart label='Tickets sold' source='Oztix sales.' size='sm' state='loading'>
+    <LineChart data={[]} x='day' y='sold' />
+  </Chart>
+</div>
+```
+
+## Guidelines
+
+- Put the chart inside a `Chart` card. The card sets the height and builds its Table view from the chart, so there is no `table` to pass. Plots are 160px at `sm` and 220px at `md`. At `lg` and `full` they start at 260px and grow with the card.
+- Send dates as ISO strings in the venue's wall time. A time zone offset is ignored, so 7:30pm at the venue stays 7:30pm for every reader.
+- A `null` value breaks the line, so a day with no data never reads as a trend. Send `null` for that day rather than leaving it out.
+- Forecasts are always dotted, so they never read as actual sales.
+- Past 6 series, the smallest roll into Other. Past 10,000, axes and labels switch to compact numbers. The tooltip and table keep full values.
+- There are no colour props. Use `highlight` for the story and `palette` for the set.
+
+## Accessibility
+
+- The plot is one tab stop, named by `takeaway`, or by a generated sentence such as "Sold rose from 120 to 1,464 between 1 Oct and 29 Oct".
+- Left and right arrows move between days. Up and down move between series on the same day. Each value is read out in plain words, such as "Thursday 15 October, 690 sold".
+- The Table tab holds every value the chart draws.
+- Under forced colours and in print, each series after the first switches to its own dash style, so lines stay apart without colour.
+
+<PropsDefinitions componentPath='packages/charts/src/LineChart/index.tsx' />
