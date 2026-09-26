@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -201,5 +201,40 @@ describe('Collapsible.Text', () => {
     expect(() =>
       render(<Collapsible.Text>{DETAILS}</Collapsible.Text>)
     ).toThrow('Collapsible.Text must be used inside <Collapsible>.')
+  })
+
+  it('leaves focus alone when something else opens it', () => {
+    overflowing()
+    function Opener() {
+      const [open, setOpen] = useState(false)
+      return (
+        <>
+          <button type='button' onClick={() => setOpen(true)}>
+            Open
+          </button>
+          <Collapsible open={open}>
+            <Collapsible.Text lessLabel={null}>{DETAILS}</Collapsible.Text>
+          </Collapsible>
+        </>
+      )
+    }
+    render(<Opener />)
+    const opener = screen.getByRole('button', { name: 'Open' })
+    opener.focus()
+    act(() => opener.click())
+    expect(content()).not.toHaveAttribute('data-clamped')
+    expect(opener).toHaveFocus()
+  })
+
+  it('uses an inline wrapper inside an opaque render so a <p> stays valid', () => {
+    render(
+      <Collapsible>
+        <Collapsible.Text render={(props) => <p {...props} />}>
+          {DETAILS}
+        </Collapsible.Text>
+      </Collapsible>
+    )
+    expect(content().tagName).toBe('SPAN')
+    expect(document.querySelector('p div')).toBeNull()
   })
 })

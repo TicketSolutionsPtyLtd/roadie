@@ -81,6 +81,16 @@ function animateHeight(
   return stop
 }
 
+const BLOCK_ELEMENTS = new Set([
+  'div',
+  'section',
+  'article',
+  'aside',
+  'blockquote',
+  'li',
+  'dd'
+])
+
 export function CollapsibleText({
   children,
   lines = 3,
@@ -98,6 +108,7 @@ export function CollapsibleText({
   const triggerRef = useRef<HTMLButtonElement>(null)
   const animating = useRef(false)
   const mounted = useRef(false)
+  const openedByTrigger = useRef(false)
 
   const clampedHeight = useCallback(
     (element: HTMLElement) =>
@@ -134,7 +145,10 @@ export function CollapsibleText({
       mounted.current = true
       return
     }
-    if (open && lessLabel === null) element.focus({ preventScroll: true })
+    // The expand-only trigger unmounts once open, so hand focus to the text,
+    // but only when that trigger opened it.
+    if (open && openedByTrigger.current) element.focus({ preventScroll: true })
+    openedByTrigger.current = false
     const clamped = clampedHeight(element)
     if (!overflowing || Number.isNaN(clamped)) return
     const full = element.scrollHeight
@@ -154,10 +168,14 @@ export function CollapsibleText({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
+  // A block <div> only when render is a known block element; anything opaque
+  // gets a <span>, which is valid inside a <p> as well as a <div>.
   const Content =
-    render === undefined || (isValidElement(render) && render.type === 'p')
-      ? 'span'
-      : 'div'
+    isValidElement(render) &&
+    typeof render.type === 'string' &&
+    BLOCK_ELEMENTS.has(render.type)
+      ? 'div'
+      : 'span'
   const showTrigger = overflowing && (!open || lessLabel !== null)
 
   return resolveRender(
@@ -189,6 +207,9 @@ export function CollapsibleText({
           {showTrigger && (
             <CollapsiblePrimitive.Trigger
               ref={triggerRef}
+              onClick={() => {
+                if (!open && lessLabel === null) openedByTrigger.current = true
+              }}
               data-slot='collapsible-text-trigger'
               aria-controls={contentId}
               className={cn(
