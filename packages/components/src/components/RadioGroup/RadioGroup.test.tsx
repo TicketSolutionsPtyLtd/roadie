@@ -159,4 +159,112 @@ describe('RadioGroup', () => {
     )
     expect(queryByText('Should be hidden')).not.toBeInTheDocument()
   })
+
+  it('inherits disabled from Field context', () => {
+    const { getAllByRole } = render(
+      <Field disabled>
+        <Field.Label>Contact method</Field.Label>
+        <RadioGroup>
+          <RadioGroup.Item value='email' label='Email' />
+          <RadioGroup.Item value='phone' label='Phone' />
+        </RadioGroup>
+      </Field>
+    )
+    for (const radio of getAllByRole('radio')) {
+      expect(radio).toHaveAttribute('data-disabled')
+    }
+  })
+
+  it('own disabled prop wins over Field context', () => {
+    const { getByRole } = render(
+      <Field disabled>
+        <RadioGroup disabled={false}>
+          <RadioGroup.Item value='email' label='Email' />
+        </RadioGroup>
+      </Field>
+    )
+    expect(getByRole('radio')).not.toHaveAttribute('data-disabled')
+  })
+
+  it.each(['subtler', 'normal'] as const)(
+    'describes rather than names an item with its description (%s)',
+    (emphasis) => {
+      const { getByRole } = render(
+        <RadioGroup emphasis={emphasis}>
+          <RadioGroup.Item
+            value='email'
+            label='Email'
+            description='We reply within a day'
+          />
+        </RadioGroup>
+      )
+      const radio = getByRole('radio', { name: 'Email' })
+      expect(radio).toHaveAccessibleDescription('We reply within a day')
+    }
+  )
+
+  it('accepts nodes for label and description', () => {
+    const { getByRole } = render(
+      <RadioGroup emphasis='normal'>
+        <RadioGroup.Item
+          value='email'
+          label={<strong>Email</strong>}
+          description={<em>We reply within a day</em>}
+        />
+      </RadioGroup>
+    )
+    const radio = getByRole('radio', { name: 'Email' })
+    expect(radio).toHaveAccessibleDescription('We reply within a day')
+  })
+
+  it('keeps a numeric zero label and description', () => {
+    const { getByRole } = render(
+      <RadioGroup>
+        <RadioGroup.Item value='none' label={0} description={0} />
+      </RadioGroup>
+    )
+    const radio = getByRole('radio', { name: '0' })
+    expect(radio).toHaveAccessibleDescription('0')
+  })
+
+  it.each([false, '', null])(
+    'renders no label or description for %j',
+    (empty) => {
+      const { getByRole, container } = render(
+        <RadioGroup>
+          <RadioGroup.Item value='email' label={empty} description={empty} />
+        </RadioGroup>
+      )
+      expect(getByRole('radio')).not.toHaveAttribute('aria-describedby')
+      expect(
+        container.querySelector('[data-slot="radio-group-item"]')?.textContent
+      ).toBe('')
+    }
+  )
+
+  it('names the group with RadioGroup.Label', () => {
+    const { getByRole } = render(
+      <RadioGroup>
+        <RadioGroup.Label>Contact method</RadioGroup.Label>
+        <RadioGroup.Item value='email' label='Email' />
+      </RadioGroup>
+    )
+    expect(
+      getByRole('radiogroup', { name: 'Contact method' })
+    ).toBeInTheDocument()
+  })
+
+  it('names the group with Field.Label inside a Field', () => {
+    const { getByRole } = render(
+      <Field>
+        <Field.Label>Contact method</Field.Label>
+        <RadioGroup>
+          <RadioGroup.Item value='email' label='Email' />
+        </RadioGroup>
+      </Field>
+    )
+    expect(
+      getByRole('radiogroup', { name: 'Contact method' })
+    ).toBeInTheDocument()
+  })
 })

@@ -19,6 +19,13 @@ export {
   accordionVariants,
   type AccordionProps
 } from './components/Accordion'
+export {
+  Collapsible,
+  type CollapsiblePanelProps,
+  type CollapsibleProps,
+  type CollapsibleTextProps,
+  type CollapsibleTriggerProps
+} from './components/Collapsible'
 
 export { Badge, badgeVariants, type BadgeProps } from './components/Badge'
 
@@ -129,6 +136,15 @@ export {
   type SkeletonProps,
   type SkeletonShape
 } from './components/Skeleton'
+
+export {
+  Progress,
+  type ProgressProps,
+  type ProgressLabelProps,
+  type ProgressValueProps,
+  type ProgressTrackProps,
+  type ProgressIndicatorProps
+} from './components/Progress'
 
 export {
   ScrollArea,
