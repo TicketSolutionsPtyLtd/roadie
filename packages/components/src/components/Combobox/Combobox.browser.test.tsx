@@ -1,10 +1,11 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { Combobox } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
+import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
 const STILL = '*, *::before, *::after { transition: none !important }'
@@ -156,5 +157,38 @@ describe('Combobox with object items', () => {
     await expect
       .poll(() => (input as HTMLInputElement).value)
       .toBe('Meridian Stage')
+  })
+})
+
+const LONG = 'The Midnight Paddock Collective and the Very Long Name Orchestra'
+
+describe('Combobox input group on a phone', () => {
+  beforeAll(() => page.viewport(390, 844))
+  afterAll(() => page.viewport(1920, 1080))
+
+  it('stays inside its container with a long value', async () => {
+    render(
+      <div style={{ padding: 16 }}>
+        <Field>
+          <Field.Label>Band</Field.Label>
+          <Combobox items={[LONG]} defaultValue={LONG}>
+            <Combobox.InputGroup data-testid='group'>
+              <Combobox.Input />
+              <Combobox.Clear />
+              <Combobox.Trigger />
+            </Combobox.InputGroup>
+          </Combobox>
+        </Field>
+      </div>
+    )
+    const group = screen.getByTestId('group')
+    await expect.poll(() => screen.getByRole('combobox')).toHaveValue(LONG)
+    const field = group.parentElement!.getBoundingClientRect()
+    const box = group.getBoundingClientRect()
+    expect(box.right).toBeLessThanOrEqual(field.right)
+    for (const control of group.querySelectorAll('button'))
+      expect(control.getBoundingClientRect().right).toBeLessThanOrEqual(
+        box.right
+      )
   })
 })

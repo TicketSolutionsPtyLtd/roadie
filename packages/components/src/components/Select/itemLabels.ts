@@ -18,3 +18,33 @@ export function itemLabel(children: ReactNode): ItemLabel | undefined {
   })
   return label
 }
+
+type Items = Record<string, ReactNode> | ReadonlyArray<unknown>
+type LabelledItem = { label?: ReactNode; value?: unknown }
+
+function isGroup(item: unknown): item is { items: readonly unknown[] } {
+  return (
+    typeof item === 'object' &&
+    item !== null &&
+    Array.isArray((item as { items?: unknown }).items)
+  )
+}
+
+export function labelFromItems(items: Items, value: unknown): ReactNode {
+  if (value && typeof value === 'object' && 'label' in value)
+    return (value as LabelledItem).label ?? undefined
+  if (!Array.isArray(items)) {
+    const record = items as Record<string, ReactNode>
+    return Object.hasOwn(record, String(value))
+      ? record[String(value)]
+      : undefined
+  }
+  const flat = items.flatMap((item) => (isGroup(item) ? item.items : [item]))
+  const key =
+    value && typeof value === 'object' && 'value' in value
+      ? (value as LabelledItem).value
+      : value
+  const match = flat.find((item) => (item as LabelledItem)?.value === key) as
+    LabelledItem | undefined
+  return match?.label ?? undefined
+}

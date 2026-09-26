@@ -229,8 +229,9 @@ wrapper. Use `showIndicator` to show a required or optional indicator.
 #### With multiple selection
 
 Set `multiple` to let people pick more than one option. The popup stays open
-between picks, and the trigger lists every label. `value`, `defaultValue` and
-`onValueChange` then take an array.
+between picks. The trigger lists the labels that fit and counts the rest, such
+as "Bee Gees, Custard +2", while screen readers hear every label. `value`,
+`defaultValue` and `onValueChange` then take an array.
 
 ```tsx-live
 <Field>

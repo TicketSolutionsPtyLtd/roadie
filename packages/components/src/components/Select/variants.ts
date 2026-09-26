@@ -3,7 +3,7 @@ import { cva } from 'class-variance-authority'
 import { intentVariants } from '../../variants'
 
 export const selectTriggerVariants = cva(
-  'inline-flex w-full items-center justify-between rounded-lg font-sans select-none cursor-pointer text-left data-[popup-open]:bg-(--field-focus-bg) data-[popup-open]:border-[var(--color-accent-9)] data-[popup-open]:outline-[length:var(--focus-ring-width)]',
+  'inline-flex w-full max-w-full min-w-0 items-center justify-between rounded-lg font-sans select-none cursor-pointer text-left data-[popup-open]:bg-(--field-focus-bg) data-[popup-open]:border-[var(--color-accent-9)] data-[popup-open]:outline-[length:var(--focus-ring-width)]',
   {
     variants: {
       intent: intentVariants,

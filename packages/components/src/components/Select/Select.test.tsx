@@ -370,6 +370,48 @@ describe('Select value label', () => {
   })
 })
 
+describe('Select multiple labels', () => {
+  it.each([
+    ['a record', { 'bee-gees': 'Bee Gees', custard: 'Custard' }],
+    [
+      'an array',
+      [
+        { value: 'bee-gees', label: 'Bee Gees' },
+        { value: 'custard', label: 'Custard' }
+      ]
+    ],
+    [
+      'groups',
+      [
+        { value: 'Brisbane', items: [{ value: 'custard', label: 'Custard' }] },
+        { value: 'Sydney', items: [{ value: 'bee-gees', label: 'Bee Gees' }] }
+      ]
+    ]
+  ])('reads each label from items given as %s', (_, items) => {
+    const { getByRole } = render(
+      <Select multiple items={items} defaultValue={['bee-gees', 'custard']}>
+        <Select.Trigger>
+          <Select.Value />
+        </Select.Trigger>
+      </Select>
+    )
+    const spoken = getByRole('combobox').cloneNode(true) as Element
+    spoken.querySelectorAll('[aria-hidden]').forEach((node) => node.remove())
+    expect(spoken).toHaveTextContent('Bee Gees, Custard')
+  })
+
+  it('shows the placeholder when nothing is picked', () => {
+    const { getByRole } = render(
+      <Select multiple defaultValue={[]}>
+        <Select.Trigger>
+          <Select.Value placeholder='Pick bands' />
+        </Select.Trigger>
+      </Select>
+    )
+    expect(getByRole('combobox')).toHaveTextContent('Pick bands')
+  })
+})
+
 describe('Select value types', () => {
   it('types a single value, with null for a cleared one', () => {
     ;<Select
