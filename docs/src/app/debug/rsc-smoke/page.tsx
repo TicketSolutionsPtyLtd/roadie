@@ -517,11 +517,22 @@ export default function RscSmokePage() {
           Collapsible via barrel
         </h2>
         <CollapsibleViaBarrel defaultOpen>
-          <CollapsibleViaBarrel.Trigger>Read more</CollapsibleViaBarrel.Trigger>
+          <CollapsibleViaBarrel.Trigger>
+            Show set times
+          </CollapsibleViaBarrel.Trigger>
           <CollapsibleViaBarrel.Panel>
             Imported from the root barrel.
           </CollapsibleViaBarrel.Panel>
         </CollapsibleViaBarrel>
+      </section>
+
+      <section className='grid max-w-sm gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Collapsible.Text</h2>
+        <Collapsible.Text lines={2}>
+          General admission, standing only. Rendered from a server component and
+          clamped to two lines, with an inline trigger once the text runs past
+          them.
+        </Collapsible.Text>
       </section>
 
       <section className='grid gap-2'>

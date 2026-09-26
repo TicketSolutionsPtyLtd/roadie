@@ -87,28 +87,29 @@ The part is `.Panel`, matching Base UI and `Tabs.Panel`. Roadie keeps `.Content`
 
 ### With a button
 
-Render the trigger onto a `Button` for a "Read more" pattern. The trigger keeps the button's styles and adds its own caret. Here `open` is controlled so the label can change, and `hiddenUntilFound` lets find in page reach the closed text.
+Render the trigger onto a `Button`. The trigger keeps the button's styles and adds its own caret. Here `open` is controlled so the label can change, and `hiddenUntilFound` lets find in page reach the closed text.
 
 ```tsx-live-noinline
-function EventDescription() {
+function SetTimes() {
   const [open, setOpen] = useState(false)
   return (
     <Collapsible open={open} onOpenChange={setOpen} className='grid max-w-prose justify-items-start gap-2'>
       <p>The Velvet Static bring their third record to the Paper Lantern Hall in Fitzroy for one night only, with support from Harbour Moth.</p>
       <Collapsible.Panel hiddenUntilFound>
-        <div className='grid gap-2'>
-          <p>Doors open at 7pm. Harbour Moth start at 8pm and The Velvet Static play from 9pm until late.</p>
-          <p>The venue is all ages until 10pm. Under 18s must be with a parent or guardian at all times.</p>
-        </div>
+        <ul className='grid gap-1'>
+          <li>7pm: doors</li>
+          <li>8pm: Harbour Moth</li>
+          <li>9pm: The Velvet Static</li>
+        </ul>
       </Collapsible.Panel>
       <Collapsible.Trigger render={<Button emphasis='subtler' size='sm' />}>
-        {open ? 'Read less' : 'Read more'}
+        {open ? 'Hide set times' : 'Show set times'}
       </Collapsible.Trigger>
     </Collapsible>
   )
 }
 
-render(<EventDescription />)
+render(<SetTimes />)
 ```
 
 ### Filters
@@ -152,6 +153,33 @@ Tuck advanced filters behind a button. `keepMounted` keeps the closed panel in t
 </Collapsible>
 ```
 
+### Ticket details
+
+`Collapsible.Text` clamps a paragraph to a few lines and ends the last one with an inline "…more". It fades the end of that line into whatever surface it sits on, and shows the trigger only when the text runs past the clamp. `lines` sets the clamp (3 by default), `moreLabel` and `lessLabel` set the labels, and `lessLabel={null}` expands only.
+
+```tsx-live
+<ul className='grid max-w-md gap-3'>
+  <li className='grid gap-1 rounded-xl emphasis-raised p-4'>
+    <div className='flex items-baseline justify-between gap-4'>
+      <p className='font-medium text-strong'>General admission</p>
+      <p className='text-strong'>$59.90</p>
+    </div>
+    <Collapsible.Text lines={2} className='text-sm text-subtle'>
+      Standing entry to Harbour Moth at the Paper Lantern Hall in Fitzroy. Doors open at 7pm and the band starts at 9pm. The venue is all ages until 10pm, and under 18s must stay with a parent or guardian. Re-entry is not allowed once you leave the venue.
+    </Collapsible.Text>
+  </li>
+  <li className='grid gap-1 rounded-xl emphasis-raised p-4'>
+    <div className='flex items-baseline justify-between gap-4'>
+      <p className='font-medium text-strong'>Mezzanine seat</p>
+      <p className='text-strong'>$89.90</p>
+    </div>
+    <Collapsible.Text lines={2} className='text-sm text-subtle'>
+      A reserved seat on the upstairs mezzanine, with its own bar.
+    </Collapsible.Text>
+  </li>
+</ul>
+```
+
 ## Guidelines
 
 <div className='grid gap-8'>
@@ -174,6 +202,15 @@ Tuck advanced filters behind a button. `keepMounted` keeps the closed panel in t
   </Guideline.Dont>
 </Guideline>
 
+<Guideline title='Clamp only what people can skip'>
+  <Guideline.Do code={`<Collapsible.Text lines={2}>{ticket.description}</Collapsible.Text>`}>
+    Clamp long descriptions that people skim, such as the details of a ticket type.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't clamp what people must read before they buy: terms, prices, fees or entry conditions. Show it in full.
+  </Guideline.Dont>
+</Guideline>
+
 </div>
 
 ## Accessibility
@@ -181,6 +218,7 @@ Tuck advanced filters behind a button. `keepMounted` keeps the closed panel in t
 - The trigger is a button with `aria-expanded` and `aria-controls` pointing at the panel. `Enter` or `Space` toggles it.
 - The caret is decorative and hidden from assistive technology. The trigger's text is its name.
 - A closed panel leaves the page unless you pass `keepMounted` or `hiddenUntilFound`. With `hiddenUntilFound`, find in page can match the closed text and opens the panel to show it.
+- `Collapsible.Text` keeps the whole text in the page, so screen readers and find in page reach all of it. Its trigger is a button with `aria-expanded` and `aria-controls` pointing at the text, and focus stays on it as it toggles. The ellipsis is decorative. With `lessLabel={null}` the trigger goes once the text expands, and focus moves to the text.
 - The height motion stops under reduced motion.
 
 <PropsDefinitions componentPath='packages/components/src/components/Collapsible' />

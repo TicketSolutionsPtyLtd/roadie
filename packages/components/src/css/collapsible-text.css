@@ -1,0 +1,38 @@
+/* Collapsible.Text. Closed, the text stops at --collapsible-lines and the end
+   of its last line fades out under the …more trigger. The fade is a mask on
+   the text, not a coloured overlay, so it works on any surface. */
+
+@layer components {
+  [data-slot='collapsible-text-content'] {
+    --collapsible-fade-start: calc(var(--collapsible-more-width, 4em) + 0.5em);
+    --collapsible-fade-end: calc(var(--collapsible-fade-start) + 3em);
+    --collapsible-fade-to: left;
+
+    display: block;
+    overflow: hidden;
+    transition: height var(--duration-moderate) var(--ease-enter);
+
+    &:dir(rtl) {
+      --collapsible-fade-to: right;
+    }
+
+    &[data-clamped] {
+      max-height: calc(var(--collapsible-lines) * 1lh);
+    }
+
+    &[data-clamped][data-overflowing] {
+      mask-image:
+        linear-gradient(black, black),
+        linear-gradient(
+          to var(--collapsible-fade-to),
+          transparent var(--collapsible-fade-start),
+          black var(--collapsible-fade-end)
+        );
+      mask-position: top, bottom;
+      mask-size:
+        100% calc(100% - 1lh),
+        100% 1lh;
+      mask-repeat: no-repeat;
+    }
+  }
+}

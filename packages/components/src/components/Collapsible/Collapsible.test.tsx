@@ -113,12 +113,12 @@ describe('Collapsible', () => {
     render(
       <Collapsible>
         <Collapsible.Trigger render={<Button emphasis='subtler' size='sm' />}>
-          Read more
+          Show set times
         </Collapsible.Trigger>
         <Collapsible.Panel>The full description</Collapsible.Panel>
       </Collapsible>
     )
-    const trigger = screen.getByRole('button', { name: 'Read more' })
+    const trigger = screen.getByRole('button', { name: 'Show set times' })
     expect(trigger.tagName).toBe('BUTTON')
     expect(trigger).toHaveClass('btn', 'emphasis-subtler', 'btn-sm')
     expect(trigger).not.toHaveClass('font-medium')

@@ -23,6 +23,7 @@ export {
   Collapsible,
   type CollapsiblePanelProps,
   type CollapsibleProps,
+  type CollapsibleTextProps,
   type CollapsibleTriggerProps
 } from './components/Collapsible'
 
