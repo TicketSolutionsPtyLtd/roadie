@@ -215,7 +215,10 @@ export default function ColorsPage() {
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>strong</td>
-                <td className='py-2 pr-4'>step 9 (neutral: 13, danger: 10)</td>
+                <td className='py-2 pr-4'>
+                  step 9 (neutral: 13, danger: 10; success and brand-secondary
+                  mix 10% toward white)
+                </td>
                 <td className='py-2 pr-4'>step 13</td>
                 <td className='py-2'>step 9</td>
               </tr>

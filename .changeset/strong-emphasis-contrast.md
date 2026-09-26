@@ -3,7 +3,7 @@
 ---
 
 Text on a strong colour fill now reaches APCA Lc 60 in both modes, at rest, on
-hover and when pressed. Each intent takes the text polarity that reads better on
+hover and when pressed, in browsers that support `color-mix()`. Each intent takes the text polarity that reads better on
 its fill:
 
 - White on brand, accent, info and danger, now in dark mode too, where these
@@ -21,7 +21,17 @@ saturated green or cyan accent no longer renders too light.
 
 Browsers that draw `oklch()` but not `color-mix()` (Safari 15.4 to 16.1) get
 step 9 for the lifted strong fills and steps 7 and 6 for hover and press, so
-the fills stay solid there.
+the fills stay solid there. Success and brand-secondary read at about Lc 57 to
+58 at rest in those browsers.
+
+`generateAccentScale` now reports `fgOnStrong` by APCA, so it matches
+`text-inverted`: `white` for Oztix blue, where it used to say `black`. It also
+no longer lifts a grey accent to chroma 0.1, so the hex fallback matches the
+CSS.
+
+White labels on brand, accent, info and danger are 3.2 to 3.5:1 by WCAG 2. That
+meets 3:1, not the 4.5:1 WCAG 2 asks of normal-size text. The accessibility
+page now names strong-fill labels as the APCA exception.
 
 Hover and press use the new `--intent-bg-strong-hover` and
 `--intent-bg-strong-active` tokens. Neutral is unchanged. `emphasis-inverted`
