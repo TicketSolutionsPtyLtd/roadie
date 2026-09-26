@@ -2,6 +2,7 @@ import type { PlotRow } from '@oztix/roadie-core/dashboard'
 
 import { barYExtent } from '../BarChart/bars'
 import { lineYExtent } from '../LineChart/points'
+import { minMax } from '../plot/values'
 import type { SmallMultiplesProps } from './types'
 
 export const PANEL_HEIGHT = 140
@@ -31,7 +32,7 @@ export function sharedDomain(
   )
   if (extents.length === 0) return undefined
   return [
-    Math.min(...extents.map((e) => e[0])),
-    Math.max(...extents.map((e) => e[1]))
+    minMax(extents.map((e) => e[0]))[0],
+    minMax(extents.map((e) => e[1]))[1]
   ]
 }

@@ -9,6 +9,7 @@ import { LEGEND_ROOM, plotFrame, widthBand } from '../plot/frame'
 import { hexPaint } from '../plot/paint'
 import { FONT_FAMILY, SVG_NS, escapeXml } from '../plot/svg'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
+import { minMax } from '../plot/values'
 
 export type StaticRenderOptions = {
   mode: Mode
@@ -165,7 +166,7 @@ export function renderChartSvg<P>(
     width,
     fullFrame
   )
-  const rows = items.length ? Math.max(...items.map((i) => i.row)) + 1 : 0
+  const rows = items.length ? minMax(items.map((i) => i.row))[1] + 1 : 0
   const legendRoom = rows * LEGEND_ROOM
   const frame = plotFrame(height - legendRoom, band, undefined, width)
   const drawing = draw(chart, props, paint, frame)
