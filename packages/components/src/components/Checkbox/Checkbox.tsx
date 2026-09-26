@@ -42,7 +42,7 @@ export function Checkbox({
   const invalid = invalidProp ?? (inField ? field.invalid : undefined)
   const required = requiredProp ?? (inField ? field.required : undefined)
   const disabled = disabledProp ?? (inField ? field.disabled : undefined)
-  const fieldTextId = invalid ? field.errorTextId : field.helperTextId
+  const fieldTextId = field.invalid ? field.errorTextId : field.helperTextId
   const generatedId = useId()
   const hasLabel = !isEmptyNode(label)
   const hasDescription = !isEmptyNode(description)

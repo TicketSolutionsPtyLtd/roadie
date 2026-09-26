@@ -49,7 +49,10 @@ export default defineConfig({
         plugins: [tailwindcss()],
         optimizeDeps: {
           include: [
+            '@base-ui/react/autocomplete',
+            '@base-ui/react/combobox',
             '@base-ui/react/direction-provider',
+            '@base-ui/react/select',
             '@base-ui/react/toast',
             'jsqr',
             'react',

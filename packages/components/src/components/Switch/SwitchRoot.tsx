@@ -51,7 +51,7 @@ export function SwitchRoot({
 
   const resolvedInvalid = invalid ?? field.invalid
   const resolvedRequired = required ?? field.required
-  const fieldTextId = resolvedInvalid ? field.errorTextId : field.helperTextId
+  const fieldTextId = field.invalid ? field.errorTextId : field.helperTextId
   const describedBy =
     [descriptionId, inField && fieldTextId].filter(Boolean).join(' ') ||
     undefined
