@@ -384,6 +384,16 @@ function cardProblems(card: DashboardCard, path: string) {
     problems.push(...copyProblems(path, 'body', card.body))
   if (card.kind === 'chart' && card.plot.kind !== 'static')
     problems.push(...plotProblems(card.plot, path))
+  if (card.kind === 'chart')
+    card.legend?.forEach((item, i) => {
+      if (item.median && item.shape !== 'band')
+        problems.push(
+          warning(
+            `${path}.legend[${i}].median`,
+            'A median draws only through a band key; set shape to band'
+          )
+        )
+    })
   return problems
 }
 

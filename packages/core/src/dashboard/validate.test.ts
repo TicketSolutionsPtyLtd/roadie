@@ -214,6 +214,25 @@ describe('validateDashboard with chart plots', () => {
     ).toContain('sections[0].cards[0].legend[0].median')
   })
 
+  it('warns on a legend median without a band', () => {
+    const legend = [
+      { label: 'Sold', shape: 'line', median: true },
+      { label: 'Similar shows', shape: 'band', median: true },
+      { label: 'Target', median: false }
+    ]
+    const result = validateDashboard(
+      spec([
+        chartCard({ kind: 'line', data: rows, x: 'day', y: 'sold' }, { legend })
+      ])
+    )
+    expect(result.problems).toEqual([
+      expect.objectContaining({
+        path: 'sections[0].cards[0].legend[0].median',
+        severity: 'warning'
+      })
+    ])
+  })
+
   it('names a field no row has', () => {
     expect(
       paths(

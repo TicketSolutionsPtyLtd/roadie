@@ -94,7 +94,8 @@ export function ToggleGroupRoot<Value extends string = string>({
   // Keyboard entry lands on the pressed item, as in a radio group. A pointer
   // focuses what it presses; the flag lasts until that focus or the click.
   // A window blur leaves its item active, and the window coming back refocuses
-  // it with no relatedTarget, so that focus is a return, not an entry.
+  // it with no relatedTarget, so that focus is a return, not an entry. Focus
+  // landing outside the group first cancels the return.
   const pointerActive = useRef(false)
   const windowBlurred = useRef(false)
   const handleFocus: typeof onFocus = (event) => {
@@ -111,9 +112,19 @@ export function ToggleGroupRoot<Value extends string = string>({
   }
   const handleBlur: typeof onBlur = (event) => {
     onBlur?.(event)
+    const group = event.currentTarget
+    const doc = group.ownerDocument
     windowBlurred.current =
-      event.relatedTarget === null &&
-      event.target === event.currentTarget.ownerDocument.activeElement
+      event.relatedTarget === null && event.target === doc.activeElement
+    if (!windowBlurred.current) return
+    doc.addEventListener(
+      'focusin',
+      (focus) => {
+        if (!(focus.target instanceof Node && group.contains(focus.target)))
+          windowBlurred.current = false
+      },
+      { capture: true, once: true }
+    )
   }
   const handlePointerDown: typeof onPointerDown = (event) => {
     onPointerDown?.(event)
