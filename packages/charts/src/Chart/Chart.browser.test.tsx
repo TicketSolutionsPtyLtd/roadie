@@ -113,6 +113,7 @@ describe('Chart views', () => {
       const { width, height } = tab.getBoundingClientRect()
       expect(width).toBeGreaterThanOrEqual(24)
       expect(height).toBeGreaterThanOrEqual(24)
+      expect(Math.abs(width - height)).toBeLessThanOrEqual(0.5)
     }
   })
 

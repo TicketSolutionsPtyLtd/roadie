@@ -60,8 +60,6 @@ export type ChartProps = Omit<
   children: ReactNode
 }
 
-const TAB = 'h-6 px-2'
-
 type PlotBoundaryProps = { onError: () => void; children: ReactNode }
 type PlotBoundaryState = { failed: boolean; children?: ReactNode }
 
@@ -97,10 +95,10 @@ const EMPTY_TABLE: ChartTable = { columns: [], rows: [] }
 function ViewSwitch({ label }: { label: string }) {
   return (
     <Tabs.List aria-label={`${label} view`}>
-      <Tabs.Tab value='chart' aria-label='Chart' title='Chart' className={TAB}>
+      <Tabs.Tab value='chart' aria-label='Chart' title='Chart'>
         <ChartLineIcon weight='bold' className='size-4' />
       </Tabs.Tab>
-      <Tabs.Tab value='table' aria-label='Table' title='Table' className={TAB}>
+      <Tabs.Tab value='table' aria-label='Table' title='Table'>
         <TableIcon weight='bold' className='size-4' />
       </Tabs.Tab>
       <Tabs.Indicator />
@@ -146,7 +144,7 @@ export function Chart({
         data-size={size}
         data-slot='chart'
         emphasis='subtle'
-        size='sm'
+        size='xs'
         className={cn('h-full', className)}
         style={patternStyle}
       >
