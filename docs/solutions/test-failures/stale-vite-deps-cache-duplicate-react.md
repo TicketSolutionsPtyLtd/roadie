@@ -30,7 +30,7 @@ import changes the list, which changes the cache key, so Vite rebuilds the
 cache before any test runs.
 
 - **Components (#198):** every bare import in `src`, skipping jsdom-only tests.
-- **Charts (#200):** the same for its own `src`, plus the imports of the built
+- **Charts (#201):** the same for its own `src`, plus the imports of the built
   Roadie packages it reaches. Charts gets Base UI through the components
   `dist`, so the config follows each `@oztix/*` import into that package's
   `dist` and lists what it finds as a nested entry, such as
