@@ -2,6 +2,9 @@ import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
+import { globSync, readFileSync, realpathSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 
@@ -18,6 +21,57 @@ const reducedMotion: BrowserCommand<[active: boolean]> = ({ page }, active) =>
 
 const printMedia: BrowserCommand<[active: boolean]> = ({ page }, active) =>
   page.emulateMedia({ media: active ? 'print' : 'screen' })
+
+const ROOT = fileURLToPath(new URL('./', import.meta.url))
+const JSDOM_ONLY = /(?<!\.browser)\.test\.tsx?$/
+const SOURCE_IMPORT = /^import(?!\s+type\s)[^'"]*['"]([^'"]+)['"]/gm
+const BUILT_IMPORT = /\b(?:import|from)\s*['"]([^'"]+)['"]/g
+
+// Vite reuses a warm dependency cache without rescanning, so a package the
+// tests start reaching after a merge is optimised mid-run and the page reloads
+// with a second React. The cache is keyed on this list, so every package
+// reached goes in it, including those only the built Roadie packages import,
+// and a new one rebuilds the cache up front.
+function importedPackages() {
+  const packages = new Set<string>()
+  const visited = new Set<string>()
+
+  function add(specifier: string, packageDir: string, chain: string[]) {
+    if (/^node:|^vitest\b/.test(specifier)) return
+    if (!specifier.startsWith('@oztix/')) {
+      packages.add([...chain, specifier].join(' > '))
+      return
+    }
+    const name = specifier.split('/').slice(0, 2).join('/')
+    const dir = realpathSync(join(packageDir, 'node_modules', name))
+    const { exports } = JSON.parse(
+      readFileSync(join(dir, 'package.json'), 'utf8')
+    )
+    const entry = exports[`.${specifier.slice(name.length)}`]?.import
+    if (entry) visitBuilt(join(dir, entry), dir, [...chain, name])
+  }
+
+  function visitBuilt(file: string, packageDir: string, chain: string[]) {
+    if (visited.has(file)) return
+    visited.add(file)
+    for (const [, specifier] of readFileSync(file, 'utf8').matchAll(
+      BUILT_IMPORT
+    ))
+      if (specifier.startsWith('.'))
+        visitBuilt(resolve(dirname(file), specifier), packageDir, chain)
+      else add(specifier, packageDir, chain)
+  }
+
+  for (const file of globSync('src/**/*.{ts,tsx}', { cwd: ROOT })) {
+    if (JSDOM_ONLY.test(file)) continue
+    for (const [, specifier] of readFileSync(join(ROOT, file), 'utf8').matchAll(
+      SOURCE_IMPORT
+    ))
+      if (!specifier.startsWith('.')) add(specifier, ROOT, [])
+  }
+  return [...packages]
+}
+
 
 export default defineConfig({
   plugins: [react(), babel({ presets: [reactCompilerPreset] })],
@@ -46,15 +100,12 @@ export default defineConfig({
         plugins: [tailwindcss()],
         optimizeDeps: {
           include: [
-            'react',
+            ...importedPackages(),
+            // Imported by the JSX transforms and test libraries, not the source.
             'react/compiler-runtime',
             'react/jsx-dev-runtime',
             'react/jsx-runtime',
-            'react-dom',
-            'react-dom/client',
-            'react-dom/server',
-            'axe-core',
-            '@tanstack/charts/scales/band'
+            'react-dom'
           ]
         },
         test: {
