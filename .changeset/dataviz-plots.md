@@ -19,7 +19,8 @@ The `Chart` card's Chart and Table switch is now an icon-only `ToggleGroup`,
 because both are views of the same data. Each item is a button with
 `aria-pressed` and `aria-controls`, and the hidden view is `inert` but keeps
 its box, so the card height holds across the switch. There are no `tab` or
-`tabpanel` roles any more.
+`tabpanel` roles any more. `ToggleGroup` keeps focus on the item you left when the window
+regains focus, instead of moving it to the pressed item.
 
 Cards take actions at the top right. `Chart` has an `actions` prop that sits
 after the Chart and Table switch, and `DashboardView` has a `cardActions`

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -177,6 +177,18 @@ describe('ToggleGroup', () => {
     expect(screen.getByRole('button', { name: 'After' })).toHaveFocus()
     await user.tab({ shift: true })
     expect(screen.getByRole('button', { name: '90 days' })).toHaveFocus()
+  })
+
+  it('keeps focus on an unpressed item when the window regains focus', async () => {
+    const user = userEvent.setup()
+    render(<DateRange />)
+    await user.tab()
+    await user.keyboard('{ArrowRight}')
+    const unpressed = screen.getByRole('button', { name: '90 days' })
+    expect(unpressed).toHaveFocus()
+    fireEvent.focusOut(unpressed, { relatedTarget: null })
+    fireEvent.focusIn(unpressed, { relatedTarget: null })
+    expect(unpressed).toHaveFocus()
   })
 
   it('tabs onto the first item when nothing is pressed', async () => {

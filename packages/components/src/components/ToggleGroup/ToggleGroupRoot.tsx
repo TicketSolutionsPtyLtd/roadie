@@ -66,6 +66,7 @@ export function ToggleGroupRoot<Value extends string = string>({
   multiple = false,
   onValueChange,
   onFocus,
+  onBlur,
   onPointerDown,
   onClick,
   ...props
@@ -92,16 +93,27 @@ export function ToggleGroupRoot<Value extends string = string>({
 
   // Keyboard entry lands on the pressed item, as in a radio group. A pointer
   // focuses what it presses; the flag lasts until that focus or the click.
+  // A window blur leaves its item active, and the window coming back refocuses
+  // it with no relatedTarget, so that focus is a return, not an entry.
   const pointerActive = useRef(false)
+  const windowBlurred = useRef(false)
   const handleFocus: typeof onFocus = (event) => {
     onFocus?.(event)
     const byPointer = pointerActive.current
+    const returning = windowBlurred.current
     pointerActive.current = false
+    windowBlurred.current = false
     const group = event.currentTarget
-    if (multiple || byPointer) return
+    if (multiple || byPointer || returning) return
     if (group.contains(event.relatedTarget as Node | null)) return
     const pressed = group.querySelector<HTMLElement>(PRESSED_ITEM)
     if (pressed && pressed !== event.target) pressed.focus()
+  }
+  const handleBlur: typeof onBlur = (event) => {
+    onBlur?.(event)
+    windowBlurred.current =
+      event.relatedTarget === null &&
+      event.target === event.currentTarget.ownerDocument.activeElement
   }
   const handlePointerDown: typeof onPointerDown = (event) => {
     onPointerDown?.(event)
@@ -120,6 +132,7 @@ export function ToggleGroupRoot<Value extends string = string>({
         multiple={multiple}
         onValueChange={handleValueChange}
         onFocus={handleFocus}
+        onBlur={handleBlur}
         onPointerDown={handlePointerDown}
         onClick={handleClick}
         className={cn(
