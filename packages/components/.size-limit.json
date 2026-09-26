@@ -119,7 +119,7 @@
     "name": "Collapsible",
     "path": "dist/components/Collapsible/index.js",
     "import": "*",
-    "limit": "2 kB",
+    "limit": "2.5 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]

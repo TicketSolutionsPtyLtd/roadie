@@ -32,34 +32,54 @@ afterEach(() => vi.restoreAllMocks())
 describe('Collapsible.Text', () => {
   it('renders a paragraph with the whole text in the DOM', () => {
     overflowing()
-    const { container } = render(<Collapsible.Text>{DETAILS}</Collapsible.Text>)
-    const root = container.firstElementChild!
+    render(
+      <Collapsible>
+        <Collapsible.Text>{DETAILS}</Collapsible.Text>
+      </Collapsible>
+    )
+    const root = document.querySelector('[data-slot="collapsible-text"]')!
     expect(root.tagName).toBe('P')
     expect(root).toHaveAttribute('data-slot', 'collapsible-text')
     expect(content()).toHaveTextContent(DETAILS)
   })
 
   it('clamps to three lines by default', () => {
-    render(<Collapsible.Text>{DETAILS}</Collapsible.Text>)
+    render(
+      <Collapsible>
+        <Collapsible.Text>{DETAILS}</Collapsible.Text>
+      </Collapsible>
+    )
     expect(content()).toHaveAttribute('data-clamped')
     expect(content().style.getPropertyValue('--collapsible-lines')).toBe('3')
   })
 
   it('clamps to the lines passed', () => {
-    render(<Collapsible.Text lines={2}>{DETAILS}</Collapsible.Text>)
+    render(
+      <Collapsible>
+        <Collapsible.Text lines={2}>{DETAILS}</Collapsible.Text>
+      </Collapsible>
+    )
     expect(content().style.getPropertyValue('--collapsible-lines')).toBe('2')
   })
 
   it('shows no trigger and no fade when the text fits', () => {
     mockHeights(48, 48)
-    render(<Collapsible.Text>{DETAILS}</Collapsible.Text>)
+    render(
+      <Collapsible>
+        <Collapsible.Text>{DETAILS}</Collapsible.Text>
+      </Collapsible>
+    )
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
     expect(content()).not.toHaveAttribute('data-overflowing')
   })
 
   it('shows an inline …more trigger when the text overflows', () => {
     overflowing()
-    render(<Collapsible.Text>{DETAILS}</Collapsible.Text>)
+    render(
+      <Collapsible>
+        <Collapsible.Text>{DETAILS}</Collapsible.Text>
+      </Collapsible>
+    )
     const trigger = screen.getByRole('button', { name: 'more' })
     expect(trigger).toHaveTextContent('…more')
     expect(trigger.querySelector('[aria-hidden="true"]')).toHaveTextContent('…')
@@ -72,7 +92,11 @@ describe('Collapsible.Text', () => {
   it('expands and collapses, keeping focus on the trigger', async () => {
     overflowing()
     const user = userEvent.setup()
-    render(<Collapsible.Text>{DETAILS}</Collapsible.Text>)
+    render(
+      <Collapsible>
+        <Collapsible.Text>{DETAILS}</Collapsible.Text>
+      </Collapsible>
+    )
     const trigger = screen.getByRole('button', { name: 'more' })
 
     await user.click(trigger)
@@ -92,9 +116,11 @@ describe('Collapsible.Text', () => {
     overflowing()
     const user = userEvent.setup()
     render(
-      <Collapsible.Text moreLabel='details' lessLabel='Hide details'>
-        {DETAILS}
-      </Collapsible.Text>
+      <Collapsible>
+        <Collapsible.Text moreLabel='details' lessLabel='Hide details'>
+          {DETAILS}
+        </Collapsible.Text>
+      </Collapsible>
     )
     await user.click(screen.getByRole('button', { name: 'details' }))
     expect(screen.getByRole('button')).toHaveAccessibleName('Hide details')
@@ -103,7 +129,11 @@ describe('Collapsible.Text', () => {
   it('only expands with lessLabel={null}, moving focus to the text', async () => {
     overflowing()
     const user = userEvent.setup()
-    render(<Collapsible.Text lessLabel={null}>{DETAILS}</Collapsible.Text>)
+    render(
+      <Collapsible>
+        <Collapsible.Text lessLabel={null}>{DETAILS}</Collapsible.Text>
+      </Collapsible>
+    )
 
     await user.click(screen.getByRole('button', { name: 'more' }))
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
@@ -118,15 +148,15 @@ describe('Collapsible.Text', () => {
     function Controlled() {
       const [open, setOpen] = useState(false)
       return (
-        <Collapsible.Text
+        <Collapsible
           open={open}
           onOpenChange={(next) => {
             onOpenChange(next)
             setOpen(next)
           }}
         >
-          {DETAILS}
-        </Collapsible.Text>
+          <Collapsible.Text>{DETAILS}</Collapsible.Text>
+        </Collapsible>
       )
     }
     render(<Controlled />)
@@ -143,20 +173,33 @@ describe('Collapsible.Text', () => {
       Object.defineProperty(style, 'lineHeight', { value: '24px' })
       return style
     })
-    render(<Collapsible.Text defaultOpen>{DETAILS}</Collapsible.Text>)
+    render(
+      <Collapsible defaultOpen>
+        <Collapsible.Text>{DETAILS}</Collapsible.Text>
+      </Collapsible>
+    )
     expect(content()).not.toHaveAttribute('data-clamped')
     expect(screen.getByRole('button')).toHaveAccessibleName('Show less')
   })
 
   it('renders another element through render, keeping className', () => {
-    const { container } = render(
-      <Collapsible.Text render={<div />} className='text-sm'>
-        {DETAILS}
-      </Collapsible.Text>
+    render(
+      <Collapsible>
+        <Collapsible.Text render={<div />} className='text-sm'>
+          {DETAILS}
+        </Collapsible.Text>
+      </Collapsible>
     )
-    const root = container.firstElementChild!
+    const root = document.querySelector('[data-slot="collapsible-text"]')!
     expect(root.tagName).toBe('DIV')
     expect(root).toHaveClass('text-sm', 'relative')
     expect(content().tagName).toBe('DIV')
+  })
+
+  it('throws outside a Collapsible', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    expect(() =>
+      render(<Collapsible.Text>{DETAILS}</Collapsible.Text>)
+    ).toThrow('Collapsible.Text must be used inside <Collapsible>.')
   })
 })

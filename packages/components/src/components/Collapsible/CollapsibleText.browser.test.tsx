@@ -24,7 +24,9 @@ const WIDTHS = [390, 960]
 function setup(width: number, props: { dir?: 'rtl'; text?: string } = {}) {
   const { container } = render(
     <div dir={props.dir} style={{ width }}>
-      <Collapsible.Text lines={3}>{props.text ?? DETAILS}</Collapsible.Text>
+      <Collapsible>
+        <Collapsible.Text lines={3}>{props.text ?? DETAILS}</Collapsible.Text>
+      </Collapsible>
     </div>
   )
   const root = container.querySelector<HTMLElement>(

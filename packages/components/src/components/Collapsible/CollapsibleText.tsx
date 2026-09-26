@@ -16,9 +16,9 @@ import { Collapsible as CollapsiblePrimitive } from '@base-ui/react/collapsible'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { type RoadieRenderProp, resolveRender } from '../../utils/resolveRender'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
-
-type RootProps = CollapsiblePrimitive.Root.Props
+import { useCollapsibleOpen } from './CollapsibleContext'
 
 export type CollapsibleTextProps = Omit<
   ComponentProps<'p'>,
@@ -27,17 +27,12 @@ export type CollapsibleTextProps = Omit<
   children?: ReactNode
   /** How many lines show while closed. */
   lines?: number
-  /** Whether the text is expanded, when controlled. */
-  open?: boolean
-  /** Whether the text starts expanded. */
-  defaultOpen?: boolean
-  onOpenChange?: RootProps['onOpenChange']
   /** The closed trigger's label, shown after a decorative ellipsis. */
   moreLabel?: ReactNode
   /** The open trigger's label. `null` expands only, with no way back. */
   lessLabel?: ReactNode | null
   /** Swap the paragraph for another element, such as `<div />`. */
-  render?: RootProps['render']
+  render?: RoadieRenderProp
 }
 
 function transitionMs(element: HTMLElement) {
@@ -89,24 +84,19 @@ function animateHeight(
 export function CollapsibleText({
   children,
   lines = 3,
-  open: openProp,
-  defaultOpen = false,
-  onOpenChange,
   moreLabel = 'more',
   lessLabel = 'Show less',
   render,
   className,
   ...props
 }: CollapsibleTextProps) {
-  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen)
-  const open = openProp ?? uncontrolledOpen
+  const open = useCollapsibleOpen('Collapsible.Text')
   const [overflowing, setOverflowing] = useState(false)
   const [moreWidth, setMoreWidth] = useState<number>()
   const contentId = useId()
   const contentRef = useRef<HTMLElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const animating = useRef(false)
-  const focusContent = useRef(false)
   const mounted = useRef(false)
 
   const clampedHeight = useCallback(
@@ -144,10 +134,7 @@ export function CollapsibleText({
       mounted.current = true
       return
     }
-    if (focusContent.current) {
-      focusContent.current = false
-      element.focus({ preventScroll: true })
-    }
+    if (open && lessLabel === null) element.focus({ preventScroll: true })
     const clamped = clampedHeight(element)
     if (!overflowing || Number.isNaN(clamped)) return
     const full = element.scrollHeight
@@ -167,66 +154,62 @@ export function CollapsibleText({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  const handleOpenChange: RootProps['onOpenChange'] = (next, details) => {
-    if (next && lessLabel === null) focusContent.current = true
-    onOpenChange?.(next, details)
-    if (openProp === undefined) setUncontrolledOpen(next)
-  }
-
   const Content =
     render === undefined || (isValidElement(render) && render.type === 'p')
       ? 'span'
       : 'div'
   const showTrigger = overflowing && (!open || lessLabel !== null)
 
-  return (
-    <CollapsiblePrimitive.Root
-      data-slot='collapsible-text'
-      open={open}
-      onOpenChange={handleOpenChange}
-      render={render ?? <p />}
-      className={cn('relative', className)}
-      {...props}
-    >
-      <Content
-        ref={contentRef as RefObject<HTMLDivElement>}
-        id={contentId}
-        data-slot='collapsible-text-content'
-        data-clamped={open ? undefined : ''}
-        data-overflowing={overflowing ? '' : undefined}
-        tabIndex={lessLabel === null ? -1 : undefined}
-        className='outline-none'
-        style={
-          {
-            '--collapsible-lines': lines,
-            '--collapsible-more-width':
-              moreWidth === undefined ? undefined : `${moreWidth}px`
-          } as CSSProperties
-        }
-      >
-        {children}
-      </Content>
-      {showTrigger && (
-        <CollapsiblePrimitive.Trigger
-          ref={triggerRef}
-          data-slot='collapsible-text-trigger'
-          aria-controls={contentId}
-          className={cn(
-            'is-interactive rounded-sm font-medium text-strong',
-            !open && 'absolute end-0 bottom-0'
+  return resolveRender(
+    'p',
+    {
+      ...props,
+      'data-slot': 'collapsible-text',
+      className: cn('relative', className),
+      children: (
+        <>
+          <Content
+            ref={contentRef as RefObject<HTMLDivElement>}
+            id={contentId}
+            data-slot='collapsible-text-content'
+            data-clamped={open ? undefined : ''}
+            data-overflowing={overflowing ? '' : undefined}
+            tabIndex={lessLabel === null ? -1 : undefined}
+            className='outline-none'
+            style={
+              {
+                '--collapsible-lines': lines,
+                '--collapsible-more-width':
+                  moreWidth === undefined ? undefined : `${moreWidth}px`
+              } as CSSProperties
+            }
+          >
+            {children}
+          </Content>
+          {showTrigger && (
+            <CollapsiblePrimitive.Trigger
+              ref={triggerRef}
+              data-slot='collapsible-text-trigger'
+              aria-controls={contentId}
+              className={cn(
+                'is-interactive rounded-sm font-medium text-strong',
+                !open && 'absolute end-0 bottom-0'
+              )}
+            >
+              {open ? (
+                lessLabel
+              ) : (
+                <>
+                  <span aria-hidden>…</span>
+                  {moreLabel}
+                </>
+              )}
+            </CollapsiblePrimitive.Trigger>
           )}
-        >
-          {open ? (
-            lessLabel
-          ) : (
-            <>
-              <span aria-hidden>…</span>
-              {moreLabel}
-            </>
-          )}
-        </CollapsiblePrimitive.Trigger>
-      )}
-    </CollapsiblePrimitive.Root>
+        </>
+      )
+    },
+    render
   )
 }
 

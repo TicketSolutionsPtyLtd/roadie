@@ -528,11 +528,13 @@ export default function RscSmokePage() {
 
       <section className='grid max-w-sm gap-2'>
         <h2 className='text-display-ui-3 text-strong'>Collapsible.Text</h2>
-        <Collapsible.Text lines={2}>
-          General admission, standing only. Rendered from a server component and
-          clamped to two lines, with an inline trigger once the text runs past
-          them.
-        </Collapsible.Text>
+        <Collapsible>
+          <Collapsible.Text lines={2}>
+            General admission, standing only. Rendered from a server component
+            and clamped to two lines, with an inline trigger once the text runs
+            past them.
+          </Collapsible.Text>
+        </Collapsible>
       </section>
 
       <section className='grid gap-2'>
