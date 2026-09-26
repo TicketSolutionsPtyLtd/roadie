@@ -1,10 +1,17 @@
 import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { type VariantProps } from 'class-variance-authority'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
-import { Select, selectTriggerVariants } from '.'
+import { Select, type SelectTriggerProps, selectTriggerVariants } from '.'
 import { Field } from '../Field'
 
 describe('Select', () => {
+  it('keeps the deprecated intent prop accepting what it did before', () => {
+    expectTypeOf<SelectTriggerProps['intent']>().toEqualTypeOf<
+      VariantProps<typeof selectTriggerVariants>['intent']
+    >()
+  })
+
   it('Select and Select.Root are the same component reference', () => {
     expect(Select).toBe(Select.Root)
   })
@@ -197,5 +204,31 @@ describe('Select', () => {
     )
     const trigger = container.querySelector('button')!
     expect(trigger).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('inherits disabled from Field context', () => {
+    const { getByRole } = render(
+      <Field disabled>
+        <Select>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick one' />
+          </Select.Trigger>
+        </Select>
+      </Field>
+    )
+    expect(getByRole('combobox')).toHaveAttribute('data-disabled')
+  })
+
+  it('own disabled prop wins over Field context', () => {
+    const { getByRole } = render(
+      <Field disabled>
+        <Select disabled={false}>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick one' />
+          </Select.Trigger>
+        </Select>
+      </Field>
+    )
+    expect(getByRole('combobox')).not.toHaveAttribute('data-disabled')
   })
 })

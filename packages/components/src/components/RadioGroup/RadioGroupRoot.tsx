@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefAttributes } from 'react'
+import { type RefAttributes, useState } from 'react'
 
 import { RadioGroup as RadioGroupPrimitive } from '@base-ui/react/radio-group'
 import { type VariantProps } from 'class-variance-authority'
@@ -25,12 +25,14 @@ export function RadioGroupRoot({
   emphasis = 'subtler',
   invalid,
   required,
+  disabled,
   ...props
 }: RadioGroupRootProps) {
   const fieldContext = useFieldContext()
   const resolvedInvalid = invalid ?? fieldContext.invalid
   const resolvedRequired = required ?? fieldContext.required
   const inField = !!fieldContext.fieldId
+  const [labelId, setLabelId] = useState<string>()
 
   return (
     <RadioGroupContext
@@ -38,18 +40,24 @@ export function RadioGroupRoot({
         emphasis,
         direction: direction ?? 'vertical',
         invalid: resolvedInvalid,
-        required: resolvedRequired
+        required: resolvedRequired,
+        setLabelId
       }}
     >
       <RadioGroupPrimitive
         data-slot='radio-group'
         className={cn(radioGroupVariants({ direction, className }))}
-        {...(inField && {
-          'aria-labelledby': fieldContext.labelId || undefined,
-          'aria-describedby': resolvedInvalid
-            ? fieldContext.errorTextId || undefined
-            : fieldContext.helperTextId || undefined
-        })}
+        disabled={disabled ?? fieldContext.disabled}
+        aria-labelledby={
+          labelId ?? ((inField && fieldContext.labelId) || undefined)
+        }
+        aria-describedby={
+          (inField &&
+            (resolvedInvalid
+              ? fieldContext.errorTextId
+              : fieldContext.helperTextId)) ||
+          undefined
+        }
         {...props}
       />
     </RadioGroupContext>
