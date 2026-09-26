@@ -125,6 +125,40 @@ describe('NumberField', () => {
     expect(group).toHaveClass('bg-subtle')
   })
 
+  it('passes group size and emphasis overrides to its parts', () => {
+    const { container } = render(
+      <NumberField size='sm' defaultValue={1}>
+        <NumberField.Group size='lg' emphasis='subtler'>
+          <NumberField.Decrement />
+          <NumberField.Input aria-label='Tickets' />
+          <NumberField.Increment />
+        </NumberField.Group>
+      </NumberField>
+    )
+    expect(
+      container.querySelector('[data-slot="number-field-group"]')
+    ).toHaveClass('gap-2')
+    expect(screen.getByRole('button', { name: 'Increase' })).toHaveClass(
+      'btn',
+      'btn-icon-lg'
+    )
+    expect(screen.getByRole('textbox')).toHaveClass('is-interactive-field')
+  })
+
+  it('keeps the value when onValueChange cancels a step', async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      <NumberField
+        aria-label='Tickets'
+        defaultValue={3}
+        onValueChange={(_value, details) => details.cancel()}
+      />
+    )
+    await user.click(screen.getByRole('button', { name: 'Increase' }))
+    expect(screen.getByRole('textbox')).toHaveValue('3')
+    expect(container.querySelector('number-flow-react')).toHaveTextContent('3')
+  })
+
   it('disables the whole field', () => {
     render(<NumberField aria-label='Tickets' defaultValue={2} disabled />)
     expect(screen.getByRole('textbox')).toBeDisabled()
@@ -565,10 +599,38 @@ describe('NumberField', () => {
       fireEvent.blur(input)
       expect(input).toHaveClass('text-transparent')
 
-      fireEvent.keyDown(input, { key: '5' })
+      fireEvent.change(input, { target: { value: '35' } })
       expect(input).not.toHaveClass('text-transparent')
       fireEvent.keyDown(input, { key: 'Escape' })
       expect(input).toHaveClass('text-transparent')
+    })
+
+    it('keeps animating when a key changes no text', async () => {
+      const user = userEvent.setup()
+      render(<NumberField aria-label='Tickets' defaultValue={3} />)
+      const input = screen.getByRole('textbox')
+      input.focus()
+      await user.keyboard('a ')
+      expect(input).toHaveValue('3')
+      expect(input).toHaveClass('text-transparent')
+    })
+
+    it('shows the input text after a paste', async () => {
+      const user = userEvent.setup()
+      render(<NumberField aria-label='Tickets' defaultValue={3} />)
+      const input = screen.getByRole<HTMLInputElement>('textbox')
+      input.focus()
+      input.setSelectionRange(1, 1)
+      await user.paste('5')
+      expect(input).toHaveValue('35')
+      expect(input).not.toHaveClass('text-transparent')
+    })
+
+    it('shows the input text while composing', () => {
+      render(<NumberField aria-label='Tickets' defaultValue={3} />)
+      const input = screen.getByRole('textbox')
+      fireEvent.compositionStart(input)
+      expect(input).not.toHaveClass('text-transparent')
     })
 
     it('keeps animating when stepping with the buttons or arrow keys', async () => {

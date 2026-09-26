@@ -1,12 +1,6 @@
 'use client'
 
-import {
-  type CSSProperties,
-  type KeyboardEvent,
-  type RefAttributes,
-  use,
-  useState
-} from 'react'
+import { type CSSProperties, type RefAttributes, use } from 'react'
 
 import { NumberField as NumberFieldPrimitive } from '@base-ui/react/number-field'
 import NumberFlow, { type Format } from '@number-flow/react'
@@ -22,13 +16,16 @@ export type NumberFieldInputProps = NumberFieldPrimitive.Input.Props &
 /**
  * The input and an animated copy of its value share one grid cell. The
  * animated number is the visible layer; the input's text only shows once
- * someone taps into it or types, and any step after that hands the display
- * back to the animation. Focus alone doesn't count, because Base UI focuses
- * the input whenever a mouse presses a stepper button.
+ * someone taps into it or its text changes, and any step after that hands
+ * the display back to the animation. Focus and key presses alone don't count:
+ * Base UI focuses the input whenever a mouse presses a stepper button, and it
+ * drops keys that aren't part of a number.
  */
 export function NumberFieldInput({
   className,
   onPointerDown,
+  onChange,
+  onCompositionStart,
   onKeyDown,
   onBlur,
   ...props
@@ -43,11 +40,12 @@ export function NumberFieldInput({
     format,
     editable = true,
     stepCount = 0,
+    editingSince,
+    setEditingSince,
     pointerFocus,
     setPointerFocus
   } = use(NumberFieldContext)
   const { errorTextId, helperTextId } = useFieldContext()
-  const [editingSince, setEditingSince] = useState<number | null>(null)
   const chip = emphasis === 'subtler' && editable
   const flowFormat = animatableFormat(format)
   const animates = value != null && flowFormat !== null
@@ -96,18 +94,25 @@ export function NumberFieldInput({
         aria-describedby={(invalid ? errorTextId : helperTextId) || undefined}
         onPointerDown={(event) => {
           setPointerFocus?.(false)
-          setEditingSince(stepCount)
+          setEditingSince?.(stepCount)
           onPointerDown?.(event)
+        }}
+        onChange={(event) => {
+          setEditingSince?.(stepCount)
+          onChange?.(event)
+        }}
+        onCompositionStart={(event) => {
+          setEditingSince?.(stepCount)
+          onCompositionStart?.(event)
         }}
         onKeyDown={(event) => {
           setPointerFocus?.(false)
-          if (event.key === 'Escape') setEditingSince(null)
-          else if (editsText(event)) setEditingSince(stepCount)
+          if (event.key === 'Escape') setEditingSince?.(null)
           onKeyDown?.(event)
         }}
         onBlur={(event) => {
           setPointerFocus?.(false)
-          setEditingSince(null)
+          setEditingSince?.(null)
           onBlur?.(event)
         }}
         {...props}
@@ -145,15 +150,6 @@ function valueChars(
     .map((bound) => formatter.format(bound as number).length)
   if (max === undefined) lengths.push(3)
   return Math.max(1, ...lengths)
-}
-
-function editsText(event: KeyboardEvent) {
-  if (event.ctrlKey || event.metaKey || event.altKey) return false
-  return (
-    event.key.length === 1 ||
-    event.key === 'Backspace' ||
-    event.key === 'Delete'
-  )
 }
 
 function animatableFormat(

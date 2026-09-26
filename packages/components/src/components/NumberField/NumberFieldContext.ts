@@ -15,6 +15,8 @@ export type NumberFieldContextValue = {
   removable?: boolean
   editable?: boolean
   stepCount?: number
+  editingSince?: number | null
+  setEditingSince?: (stepCount: number | null) => void
   pointerFocus?: boolean
   setPointerFocus?: (pointerFocus: boolean) => void
   locale?: Intl.LocalesArgument

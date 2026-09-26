@@ -23,23 +23,30 @@ export function NumberFieldGroup({
   emphasis,
   ...props
 }: NumberFieldGroupProps) {
-  const context = use(NumberFieldContext)
+  const rootContext = use(NumberFieldContext)
+  const context = {
+    ...rootContext,
+    size: size ?? rootContext.size,
+    emphasis: emphasis ?? rootContext.emphasis
+  }
 
   return (
-    <NumberFieldPrimitive.Group
-      data-slot='number-field-group'
-      className={cn(
-        numberFieldGroupVariants({
-          size: size ?? context.size,
-          emphasis: emphasis ?? context.emphasis
-        }),
-        className
-      )}
-      data-emphasis={emphasis ?? context.emphasis ?? 'normal'}
-      data-editable={context.editable === false ? 'false' : undefined}
-      aria-invalid={context.invalid || undefined}
-      {...props}
-    />
+    <NumberFieldContext value={context}>
+      <NumberFieldPrimitive.Group
+        data-slot='number-field-group'
+        className={cn(
+          numberFieldGroupVariants({
+            size: context.size,
+            emphasis: context.emphasis
+          }),
+          className
+        )}
+        data-emphasis={context.emphasis ?? 'normal'}
+        data-editable={context.editable === false ? 'false' : undefined}
+        aria-invalid={context.invalid || undefined}
+        {...props}
+      />
+    </NumberFieldContext>
   )
 }
 

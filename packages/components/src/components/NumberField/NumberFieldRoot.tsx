@@ -76,6 +76,7 @@ export function NumberFieldRoot({
     defaultValue ?? null
   )
   const [stepCount, setStepCount] = useState(0)
+  const [editingSince, setEditingSince] = useState<number | null>(null)
   const [pointerFocus, setPointerFocus] = useState(false)
   const currentValue = value !== undefined ? value : uncontrolledValue
   // Without children the root renders the input itself, so a label meant for
@@ -98,6 +99,8 @@ export function NumberFieldRoot({
         removable,
         editable,
         stepCount,
+        editingSince,
+        setEditingSince,
         pointerFocus,
         setPointerFocus,
         locale,
@@ -113,11 +116,15 @@ export function NumberFieldRoot({
         value={value}
         defaultValue={defaultValue}
         onValueChange={(nextValue, eventDetails) => {
+          onValueChange?.(nextValue, eventDetails)
+          if (eventDetails.isCanceled) return
           setUncontrolledValue(nextValue)
           if (STEP_REASONS.has(eventDetails.reason)) {
             setStepCount((count) => count + 1)
+          } else if (eventDetails.reason === 'input-paste') {
+            // Base UI inserts pasted text itself, so the input fires no change.
+            setEditingSince(stepCount)
           }
-          onValueChange?.(nextValue, eventDetails)
         }}
         min={min}
         max={max}
