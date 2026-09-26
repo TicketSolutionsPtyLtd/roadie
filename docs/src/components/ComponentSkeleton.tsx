@@ -1,3 +1,5 @@
+import { CheckIcon } from '@phosphor-icons/react/ssr'
+
 import { Logo } from '@oztix/roadie-components/logo'
 import { QRCode } from '@oztix/roadie-components/qr-code'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
@@ -67,6 +69,23 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <div className='flex items-center justify-between rounded-md bg-normal px-3 py-2'>
             <Skel className='h-2 w-20' />
             <Skel className='size-2' />
+          </div>
+        </div>
+      )
+    case 'collapsible':
+      return (
+        <div className='grid w-44 gap-2'>
+          <div className='grid gap-1.5'>
+            <Skel className='h-2 w-full' />
+            <Skel className='h-2 w-32' />
+          </div>
+          <div className='flex w-fit items-center gap-1.5 rounded-full border border-subtle bg-normal px-3 py-1.5'>
+            <Skel className='h-2 w-14' />
+            <Skel className='size-2' />
+          </div>
+          <div className='grid gap-1.5 rounded-md border border-subtle bg-normal px-3 py-2'>
+            <Skel className='h-1.5 w-full' />
+            <Skel className='h-1.5 w-24' />
           </div>
         </div>
       )
@@ -144,6 +163,60 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <div className='flex items-center gap-2'>
             <div className='size-3.5 rounded-full border-2 border-subtle' />
             <Skel className='h-2 w-12' />
+          </div>
+        </div>
+      )
+    case 'checkbox':
+      return (
+        <div className='grid gap-2'>
+          <div className='flex items-center gap-2'>
+            <div className='grid size-4 emphasis-strong place-content-center rounded-sm intent-accent'>
+              <div className='mb-0.5 h-2 w-1 rotate-45 border-r-2 border-b-2 border-current' />
+            </div>
+            <Skel className='h-2 w-14' />
+          </div>
+          <div className='flex items-center gap-2'>
+            <div className='grid size-4 emphasis-strong place-content-center rounded-sm intent-accent'>
+              <div className='mb-0.5 h-2 w-1 rotate-45 border-r-2 border-b-2 border-current' />
+            </div>
+            <Skel className='h-2 w-16' />
+          </div>
+          <div className='flex items-center gap-2'>
+            <div className='size-4 rounded-sm border-2 border-subtle' />
+            <Skel className='h-2 w-12' />
+          </div>
+        </div>
+      )
+    case 'progress':
+      return (
+        <div className='grid w-40 gap-2'>
+          <div className='flex items-center justify-between'>
+            <Skel className='h-2 w-20' />
+            <Skel className='h-2 w-6' />
+          </div>
+          <div className='h-1.5 overflow-hidden rounded-full bg-(--intent-4)'>
+            <div className='h-full w-3/5 bg-chart-highlight' />
+          </div>
+        </div>
+      )
+    case 'switch':
+      return (
+        <div className='grid w-40 gap-2.5'>
+          <div className='flex items-center justify-between gap-3'>
+            <Skel className='h-2 w-20' />
+            <div className='flex h-4 w-7 items-center justify-between rounded-full border border-transparent bg-strong p-px intent-accent'>
+              <CheckIcon
+                weight='bold'
+                className='size-2 flex-1 text-(--color-neutral-light-0)'
+              />
+              <div className='size-3 rounded-full bg-(--color-neutral-light-0) shadow-sm' />
+            </div>
+          </div>
+          <div className='flex items-center justify-between gap-3'>
+            <Skel className='h-2 w-16' />
+            <div className='flex h-4 w-7 items-center rounded-full border border-subtle bg-(--intent-8) p-px inset-shadow-sm'>
+              <div className='size-3 rounded-full bg-(--color-neutral-light-0) shadow-sm' />
+            </div>
           </div>
         </div>
       )

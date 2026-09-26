@@ -391,6 +391,12 @@ function utilityPreview({ name, family, group, kind }: TokenEntry) {
       return <Glyph baseline className={name} />
     case 'motion':
       if (kind === 'class') return <Disclosure />
+      if (name === 'animate-indeterminate')
+        return (
+          <span className='relative h-1.5 w-12 overflow-hidden rounded-full bg-(--intent-4)'>
+            <span className={cn('bg-strong', name)} />
+          </span>
+        )
       return group === 'Enter and exit transitions' ? (
         <EnterExit className={name} attributes={ENTER_EXIT_ATTRIBUTES[name]} />
       ) : (

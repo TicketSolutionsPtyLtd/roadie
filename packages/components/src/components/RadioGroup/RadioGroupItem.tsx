@@ -1,18 +1,19 @@
 'use client'
 
-import { type RefAttributes, use } from 'react'
+import { type ReactNode, type RefAttributes, use, useId } from 'react'
 
 import { Radio } from '@base-ui/react/radio'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isEmptyNode } from '../../utils/isEmptyNode'
 import { RadioGroupContext } from './RadioGroupContext'
 import { radioGroupItemVariants } from './variants'
 
 export type RadioGroupItemProps = Radio.Root.Props &
   RefAttributes<HTMLButtonElement> & {
-    label?: string
-    description?: string
+    label?: ReactNode
+    description?: ReactNode
   }
 
 export function RadioGroupItem({
@@ -23,6 +24,13 @@ export function RadioGroupItem({
   ...props
 }: RadioGroupItemProps) {
   const { emphasis, direction } = use(RadioGroupContext)
+  const generatedId = useId()
+  const hasLabel = !isEmptyNode(label)
+  const hasDescription = !isEmptyNode(description)
+  const labelId = hasLabel ? `${generatedId}-label` : undefined
+  const descriptionId = hasDescription
+    ? `${generatedId}-description`
+    : undefined
 
   const radio = (
     <Radio.Root
@@ -31,10 +39,34 @@ export function RadioGroupItem({
         emphasis !== 'normal' &&
           'focus-visible:outline-[length:var(--focus-ring-width)]'
       )}
+      aria-labelledby={labelId}
+      aria-describedby={descriptionId}
       {...props}
     >
       <Radio.Indicator className='size-2.5 rounded-full bg-[var(--color-accent-9)]' />
     </Radio.Root>
+  )
+
+  const text = (hasLabel || hasDescription) && (
+    <span className='grid gap-0.5'>
+      {hasLabel && (
+        <span
+          id={labelId}
+          className={
+            emphasis === 'normal'
+              ? 'text-base font-medium text-normal'
+              : 'text-sm text-normal'
+          }
+        >
+          {label}
+        </span>
+      )}
+      {hasDescription && (
+        <span id={descriptionId} className='text-sm text-subtle'>
+          {description}
+        </span>
+      )}
+    </span>
   )
 
   return (
@@ -47,26 +79,17 @@ export function RadioGroupItem({
     >
       {emphasis === 'normal' ? (
         <>
-          <div className='grid gap-0.5'>
-            <span className='flex items-center gap-2'>
-              {children}
-              {label && (
-                <span className='text-base font-medium text-normal'>
-                  {label}
-                </span>
-              )}
-            </span>
-            {description && (
-              <span className='text-sm text-subtle'>{description}</span>
-            )}
-          </div>
+          <span className='flex items-center gap-2'>
+            {children}
+            {text}
+          </span>
           {radio}
         </>
       ) : (
         <>
           {radio}
           {children}
-          {label && <span className='text-sm text-normal'>{label}</span>}
+          {text}
         </>
       )}
     </label>
