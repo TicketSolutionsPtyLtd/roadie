@@ -635,6 +635,19 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'toast':
+      return (
+        <div className='relative grid w-44 pt-2'>
+          <div className='absolute inset-x-3 top-0 h-8 rounded-xl emphasis-floating opacity-60' />
+          <div className='relative flex items-center gap-2.5 rounded-xl emphasis-floating p-2.5'>
+            <div className='size-5 shrink-0 emphasis-strong rounded-full intent-success' />
+            <div className='grid flex-1 gap-1.5'>
+              <Skel className='h-2 w-16' />
+              <Skel className='h-1.5 w-24' />
+            </div>
+          </div>
+        </div>
+      )
     case 'tooltip':
       return (
         <div className='grid justify-items-center gap-2'>

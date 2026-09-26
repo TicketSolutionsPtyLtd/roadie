@@ -123,7 +123,7 @@ const UTILITY_RULES: Rule[] = [
   [/^text-(ui|ui-meta|prose|code)$/, 'typography', 'Body styles'],
   [/^(animate-|motion-[\w]+-(in|out)$)/, 'motion', 'Animations'],
   [
-    /^(motion-(scale|slide|drawer)$|is-disclosure-animated$)/,
+    /^(motion-(scale|slide|drawer|toast)$|is-disclosure-animated$)/,
     'motion',
     'Enter and exit transitions'
   ],

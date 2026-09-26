@@ -1,0 +1,419 @@
+export const metadata = {
+  title: 'Toast',
+  description: 'A brief message that confirms an action or reports its result',
+  status: 'beta',
+  category: 'Overlays',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A brief message that confirms an action or reports its result, then gets out of the way.
+
+## Import
+
+```tsx
+import { Toast, useToastManager } from '@oztix/roadie-components/toast'
+```
+
+## Setup
+
+Mount `Toast.Provider` once at your app root, next to `RoadieLinkProvider` and `ThemeProvider`, and put a `Toast.Viewport` inside it. The viewport portals to the end of the page. Toasts stack at the bottom end of wide screens and span the bottom of small ones. See [Position](#position) to change that.
+
+```tsx
+'use client'
+
+import type { ReactNode } from 'react'
+
+import NextLink from 'next/link'
+
+import {
+  type RoadieLinkComponent,
+  RoadieLinkProvider,
+  ThemeProvider
+} from '@oztix/roadie-components'
+import { Toast } from '@oztix/roadie-components/toast'
+
+// next/link takes more props than Roadie needs, so cast it once.
+const Link = NextLink as unknown as RoadieLinkComponent
+
+export function Providers({ children }: { children: ReactNode }) {
+  return (
+    <RoadieLinkProvider Link={Link}>
+      <ThemeProvider>
+        <Toast.Provider>
+          {children}
+          <Toast.Viewport />
+        </Toast.Provider>
+      </ThemeProvider>
+    </RoadieLinkProvider>
+  )
+}
+```
+
+`Toast.Provider` takes `timeout` (5000ms by default) and `limit` (3 on screen by default) for every toast in the app. This site mounts one, so the examples below work as they would in your app.
+
+## Examples
+
+### Default
+
+Call `useToastManager()` in any component under the provider, then `add` a toast. A title on its own is often enough. A thin bar along the bottom shows how long the toast has left.
+
+```tsx-live-noinline
+function CopyLink() {
+  const toast = useToastManager()
+  return (
+    <Button onClick={() => toast.add({ title: 'Link copied' })}>
+      <LinkSimpleIcon weight='bold' className='size-4' />
+      Copy link
+    </Button>
+  )
+}
+render(<CopyLink />)
+```
+
+### Intents
+
+Pass `intent` to colour the toast and lead with a matching icon. Without one it stays neutral, with no icon.
+
+```tsx-live-noinline
+function Intents() {
+  const toast = useToastManager()
+  const toasts = {
+    success: ['Tickets sent', 'Check your inbox for 2 tickets.'],
+    info: ['Doors open at 7pm', 'Arrive early for the support act.'],
+    warning: ['Only 12 tickets left', 'Your cart is held for 10 minutes.'],
+    danger: ['Card declined', 'Try another card or contact your bank.']
+  }
+  return (
+    <div className='flex flex-wrap gap-2'>
+      {Object.entries(toasts).map(([intent, [title, description]]) => (
+        <Button
+          key={intent}
+          intent={intent}
+          onClick={() => toast.add({ title, description, intent })}
+        >
+          {intent}
+        </Button>
+      ))}
+    </div>
+  )
+}
+render(<Intents />)
+```
+
+### Position
+
+Set `position` on `Toast.Viewport` once for the whole app: `bottom-end` (the default), `bottom-center`, `top-end` or `top-center`. `end` follows the reading direction. On small screens toasts always span the chosen edge. Top toasts slide in from the top, stack downwards and swipe up to dismiss.
+
+These buttons each use their own provider so you can compare them. Your app mounts one.
+
+```tsx-live-noinline
+function Show({ position }) {
+  const toast = useToastManager()
+  return (
+    <Button onClick={() => toast.add({ title: 'Link copied', description: position })}>
+      {position}
+    </Button>
+  )
+}
+function Positions() {
+  return (
+    <div className='flex flex-wrap gap-2'>
+      {['bottom-end', 'bottom-center', 'top-end', 'top-center'].map((position) => (
+        <Toast.Provider key={position}>
+          <Show position={position} />
+          <Toast.Viewport position={position} />
+        </Toast.Provider>
+      ))}
+    </div>
+  )
+}
+render(<Positions />)
+```
+
+### Clearing sticky UI
+
+A fixed bar, cookie banner or chat button can cover the toasts. Set `--toast-viewport-offset-bottom` to its height, on `Toast.Viewport` or any ancestor, and the stack moves up by that much. Top positions read `--toast-viewport-offset-top`. Reach for the offset before moving toasts to the top.
+
+```tsx-live-noinline
+function Checkout() {
+  const [barShown, setBarShown] = useState(false)
+  return (
+    <Toast.Provider>
+      <div className='flex flex-wrap gap-2'>
+        <Button onClick={() => setBarShown(!barShown)}>
+          {barShown ? 'Hide' : 'Show'} checkout bar
+        </Button>
+        <SaveForLater />
+      </div>
+      {barShown &&
+        createPortal(
+          <div
+            data-checkout-bar
+            className='fixed inset-x-0 bottom-0 z-50 flex h-20 items-center justify-end px-6 emphasis-raised'
+          >
+            <Button>Continue</Button>
+          </div>,
+          document.body
+        )}
+      <Toast.Viewport
+        style={{ '--toast-viewport-offset-bottom': barShown ? '5rem' : '0px' }}
+      />
+    </Toast.Provider>
+  )
+}
+function SaveForLater() {
+  const toast = useToastManager()
+  return (
+    <Button onClick={() => toast.add({ title: 'Saved for later', intent: 'success' })}>
+      Save for later
+    </Button>
+  )
+}
+render(<Checkout />)
+```
+
+In your own CSS you can set it wherever the bar appears:
+
+```css
+:root:has([data-checkout-bar]) {
+  --toast-viewport-offset-bottom: 5rem;
+}
+```
+
+### Timing
+
+A toast stays for the provider's `timeout`, 5000ms by default, or its own `timeout` if you pass one. The bar along its bottom empties in that time. Hovering or focusing the toasts pauses every timer and the bar with it, and they carry on from the same point afterwards. They also pause while the window is in the background. F6 moves focus to the toasts from anywhere on the page.
+
+`timeout: 0` keeps a toast until it's dismissed and drops the bar. So does a `promise` toast while it's loading. It starts its timer when the work settles.
+
+### With an action
+
+`actionProps` adds a small button. It takes any button props, with the label as `children`. Keep it to one short verb, such as Undo. A toast with a convenience action like Undo still times out, but give it longer to read and reach, about 8000ms.
+
+```tsx-live-noinline
+function SaveEvent() {
+  const toast = useToastManager()
+  function save() {
+    toast.add({
+      title: 'Event saved',
+      description: 'Midnight Static at The Lantern Room, Fitzroy',
+      intent: 'success',
+      timeout: 8000,
+      actionProps: {
+        children: 'Undo',
+        onClick: () => toast.add({ title: 'Changes undone' })
+      }
+    })
+  }
+  return <Button onClick={save}>Save event</Button>
+}
+render(<SaveEvent />)
+```
+
+When the action is the only way forward, such as Retry, set `timeout: 0` so the toast waits for them. If the problem needs more than a retry, show a [Callout](/components/callout) next to it instead.
+
+```tsx-live-noinline
+function SaveTicketTypes() {
+  const toast = useToastManager()
+  function fail() {
+    toast.add({
+      title: 'Ticket types not saved',
+      description: 'We lost the connection. Your changes are still here.',
+      intent: 'danger',
+      timeout: 0,
+      actionProps: {
+        children: 'Retry',
+        onClick: () => toast.add({ title: 'Ticket types saved', intent: 'success' })
+      }
+    })
+  }
+  return <Button onClick={fail}>Save ticket types</Button>
+}
+render(<SaveTicketTypes />)
+```
+
+### Promise
+
+`promise` shows a spinner while the work runs, then swaps in the success or error toast. It returns the promise, so you can still await the result.
+
+```tsx-live-noinline
+function PublishEvent() {
+  const toast = useToastManager()
+  function publish(succeeds) {
+    const request = new Promise((resolve, reject) =>
+      setTimeout(
+        () => (succeeds ? resolve('Harbourlight Sessions') : reject()),
+        2000
+      )
+    )
+    toast.promise(request, {
+      loading: 'Publishing Harbourlight Sessions',
+      success: (name) => ({
+        title: `${name} is live`,
+        description: 'Tickets go on sale Friday at 9am.'
+      }),
+      error: {
+        title: 'Harbourlight Sessions not published',
+        description: 'We lost the connection. Try again in a moment.'
+      }
+    })
+  }
+  return (
+    <div className='flex flex-wrap gap-2'>
+      <Button onClick={() => publish(true)}>Publish event</Button>
+      <Button onClick={() => publish(false)}>Publish, then fail</Button>
+    </div>
+  )
+}
+render(<PublishEvent />)
+```
+
+If the work fails because something needs fixing, such as missing event details, show a [Callout](/components/callout) next to the problem instead. It stays until the problem is fixed.
+
+### Updating a toast
+
+`add` returns an id. Pass it to `update` to change the toast in place, or to `close` to dismiss it.
+
+```tsx-live-noinline
+function Upload() {
+  const toast = useToastManager()
+  function upload() {
+    const id = toast.add({ title: 'Uploading poster', timeout: 0 })
+    setTimeout(
+      () =>
+        toast.update(id, {
+          title: 'Poster uploaded',
+          intent: 'success',
+          timeout: 5000
+        }),
+      1500
+    )
+  }
+  return <Button onClick={upload}>Upload poster</Button>
+}
+render(<Upload />)
+```
+
+### Outside React
+
+`createToastManager` makes a manager you can call from anywhere, such as a fetch wrapper or a store. Pass it to `Toast.Provider`. It has the same `add`, `update`, `close` and `promise` as the hook.
+
+```tsx
+// toasts.ts
+import { createToastManager } from '@oztix/roadie-components/toast'
+
+export const toasts = createToastManager()
+
+// providers.tsx
+<Toast.Provider toastManager={toasts}>
+  {children}
+  <Toast.Viewport />
+</Toast.Provider>
+
+// api.ts
+toasts.add({ title: 'Session expired', intent: 'warning' })
+```
+
+### Composition
+
+`Toast.Viewport` renders every toast for you. To lay a toast out differently, pass your own list as children and build each one from its parts. `Toast.Title`, `Toast.Description` and `Toast.Action` fill themselves from the toast, `Toast.Icon` picks the intent's icon, and `Toast.Progress` draws the time-left bar.
+
+```tsx
+function Toasts() {
+  const { toasts } = useToastManager()
+  return toasts.map((toast) => (
+    <Toast key={toast.id} toast={toast}>
+      <Toast.Content>
+        <Toast.Icon />
+        <div className='grid min-w-0 flex-1 gap-0.5'>
+          <Toast.Title />
+          <Toast.Description />
+        </div>
+        <Toast.Action />
+        <Toast.Close />
+        <Toast.Progress />
+      </Toast.Content>
+    </Toast>
+  ))
+}
+
+<Toast.Viewport>
+  <Toasts />
+</Toast.Viewport>
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Only for news that is safe to miss'>
+  <Guideline.Do>
+    Use a toast to confirm something the person just did, or to report how background work finished. Say what happened in a few words: "Link copied", or "Saved" with Undo.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put anything the person must see or act on in a toast. It disappears on its own. If an event can't publish until details are fixed, show a [Callout](/components/callout) next to the problem. Use a Dialog for a decision and inline errors for a form.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='One position for the whole app'>
+  <Guideline.Do>
+    Keep the default bottom end unless fixed UI collides with it. Try `--toast-viewport-offset-bottom` first, and only move to the top if the offset can't clear it.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't change the position per page or per toast. People learn where to look.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='One action at most'>
+  <Guideline.Do code={`timeout: 8000,\nactionProps: { children: 'Undo', onClick: undo }`}>
+    Offer one quick follow-up, like Undo. Let it time out, with about 8000ms so there's time to reach it, and make sure the change can also be reversed somewhere else, such as a bin or history. Hovering or focusing the toast pauses it for anyone who needs longer.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't stack several buttons in a toast. If the action is the only way forward, like Retry, View order or Update card, set `timeout: 0`, or better, show a Callout next to the problem.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Match the intent to the outcome'>
+  <Guideline.Do>
+    Use success for work that finished, danger for work that failed, and warning for something that needs attention soon. Leave simple confirmations neutral.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't use danger for validation. Show that next to the field.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- Toasts are announced politely by a live region. Pass `priority: 'high'` for an urgent message so it is announced straight away.
+- F6 moves focus to the toast region. Tab moves through the toasts' actions and dismiss buttons, and Escape dismisses the focused toast.
+- Hovering or focusing the region fans the stack out and pauses every timer.
+- The time-left bar is hidden from screen readers. With reduced motion it isn't shown, since it can't empty smoothly.
+- Swipe towards the viewport's edge, or sideways, to dismiss on touch.
+- With reduced motion, toasts appear and leave without sliding.
+- The dismiss button is labelled Dismiss. Pass `aria-label` to `Toast.Close` to change it.
+
+## Hooks
+
+### useToastManager
+
+```tsx
+function useToastManager(): UseToastManagerReturnValue
+```
+
+Reads the nearest `Toast.Provider`. `createToastManager()` returns the same methods, without `toasts`.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `toasts` | `ToastObject[]` | The toasts on screen, newest first. |
+| `add` | `(options: ToastAddOptions) => string` | Show a toast. Returns its id. |
+| `update` | `(id: string, options: ToastUpdateOptions) => void` | Change a toast in place. |
+| `close` | `(id?: string) => void` | Dismiss one toast, or all of them without an id. |
+| `promise` | `(promise, { loading, success, error }) => Promise` | Show a spinner until `promise` settles, then its result. |
+
+`add` takes `title`, `description`, `intent`, `actionProps`, `timeout`, `priority`, `onClose` and `data`. Pass an existing `id` to replace that toast.
+
+<PropsDefinitions componentPath='packages/components/src/components/Toast' />

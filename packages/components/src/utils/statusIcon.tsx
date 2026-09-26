@@ -5,11 +5,11 @@ import {
   WarningIcon
 } from '@phosphor-icons/react/ssr'
 
-import type { RoadieIntent } from '../../variants'
+import type { RoadieIntent } from '../variants'
 
 const iconClass = 'size-5'
 
-// Same status icons as Toast.
+// Toast and Callout lead with the same icon for each status.
 export function statusIcon(intent: RoadieIntent | undefined) {
   switch (intent) {
     case 'success':
