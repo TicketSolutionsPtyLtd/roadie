@@ -37,7 +37,6 @@ async function pointAt(option: Element) {
 
 function Genres() {
   return (
-    // @ts-expect-error Roadie's Combobox types don't take `multiple` yet
     <Combobox items={['Rock', 'Jazz', 'Hip hop']} multiple>
       <Combobox.InputGroup>
         <Combobox.Input aria-label='Genres' />

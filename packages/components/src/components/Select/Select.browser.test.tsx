@@ -28,7 +28,6 @@ const fill = (element: Element) => getComputedStyle(element).backgroundColor
 
 async function tapJazz() {
   render(
-    // @ts-expect-error Roadie's Select types don't take `multiple` yet
     <Select multiple>
       <Select.Trigger aria-label='Genres'>
         <Select.Value placeholder='Pick genres' />
