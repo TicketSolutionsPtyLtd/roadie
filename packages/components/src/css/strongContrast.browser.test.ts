@@ -41,6 +41,8 @@ const ACCENTS = [
 }))
 // APCA's floor for bold, button-sized labels.
 const STRONG_LABEL_LC = 60
+// Unlifted step 9, for browsers without color-mix.
+const FALLBACK_LABEL_LC = 55
 const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
@@ -179,5 +181,80 @@ describe.each(MODES)('%s mode', (mode) => {
       await frame()
       expect(contrast(pressed)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
+  })
+})
+
+function supportsRules(rules: CSSRuleList, found: CSSSupportsRule[] = []) {
+  for (const rule of Array.from(rules)) {
+    if (
+      rule instanceof CSSSupportsRule &&
+      rule.conditionText.startsWith('not') &&
+      rule.conditionText.includes('color-mix')
+    )
+      found.push(rule)
+    if ('cssRules' in rule)
+      supportsRules((rule as CSSGroupingRule).cssRules, found)
+  }
+  return found
+}
+
+// Browsers that draw oklch but not color-mix take the `@supports not` branch.
+// Re-applying it unconditionally, after the sheet, gives the same cascade.
+function useColorMixFallback() {
+  const rules = Array.from(document.styleSheets).flatMap((sheet) =>
+    supportsRules(sheet.cssRules)
+  )
+  const css = rules
+    .map((rule) => {
+      const body = rule.cssText.replace(/^@supports[^{]*/, '@media all ')
+      const parent = rule.parentRule
+      return parent instanceof CSSStyleRule
+        ? `${parent.selectorText} { ${body} }`
+        : body
+    })
+    .join('\n')
+  return { count: rules.length, remove: useStylesheet(css) }
+}
+
+describe('without color-mix', () => {
+  let fallback: ReturnType<typeof useColorMixFallback>
+  beforeAll(() => {
+    fallback = useColorMixFallback()
+  })
+  afterAll(() => fallback.remove())
+
+  it('has a fallback for every intent that mixes its strong fill', () => {
+    expect(fallback.count).toBe(3)
+  })
+
+  describe.each(MODES)('%s mode', (mode) => {
+    describe.each(['brand-secondary', 'success', 'warning'])(
+      'intent-%s',
+      (intent) => {
+        it('falls back to the unmixed step 9 fill', async () => {
+          setTheme(mode)
+          const target = mount(
+            `<div class="intent-${intent}">${strongButton(intent)}<i data-step style="background: var(--color-${intent}-9)"></i></div>`
+          )
+          await frame()
+          const step = host!.querySelector<HTMLElement>('[data-step]')!
+          expect(getComputedStyle(target).backgroundColor).toBe(
+            getComputedStyle(step).backgroundColor
+          )
+        })
+
+        it.each(['', 'is-active'])(
+          'fills the strong surface %s with a solid colour that reads',
+          async (state) => {
+            setTheme(mode)
+            const target = mount(strongButton(intent, state))
+            await frame()
+            const { backgroundColor } = getComputedStyle(target)
+            expect(backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
+            expect(contrast(target)).toBeGreaterThanOrEqual(FALLBACK_LABEL_LC)
+          }
+        )
+      }
+    )
   })
 })

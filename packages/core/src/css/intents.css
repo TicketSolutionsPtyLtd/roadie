@@ -271,6 +271,19 @@
     --intent-bg-sunken: var(--color-brand-secondary-0);
     --intent-text-inverted: var(--color-brand-secondary-0);
   }
+
+  /* Safari 15.4 to 16.1 draw oklch but not color-mix, which would leave these
+     fills transparent. */
+  @supports not (color: color-mix(in oklab, red, blue)) {
+    --intent-bg-strong: var(--color-brand-secondary-9);
+    --intent-bg-strong-hover: var(--color-brand-secondary-7);
+    --intent-bg-strong-active: var(--color-brand-secondary-6);
+
+    .dark & {
+      --intent-bg-strong-hover: var(--color-brand-secondary-11);
+      --intent-bg-strong-active: var(--color-brand-secondary-12);
+    }
+  }
 }
 
 /* ═══ Intent: accent ═══ */
@@ -459,6 +472,19 @@
     --intent-bg-sunken: var(--color-success-0);
     --intent-text-inverted: var(--color-success-0);
   }
+
+  /* Safari 15.4 to 16.1 draw oklch but not color-mix, which would leave these
+     fills transparent. */
+  @supports not (color: color-mix(in oklab, red, blue)) {
+    --intent-bg-strong: var(--color-success-9);
+    --intent-bg-strong-hover: var(--color-success-7);
+    --intent-bg-strong-active: var(--color-success-6);
+
+    .dark & {
+      --intent-bg-strong-hover: var(--color-success-11);
+      --intent-bg-strong-active: var(--color-success-12);
+    }
+  }
 }
 
 /* ═══ Intent: warning ═══ */
@@ -524,6 +550,19 @@
     --intent-bg-raised: var(--color-warning-2);
     --intent-bg-sunken: var(--color-warning-0);
     --intent-text-inverted: var(--color-warning-0);
+  }
+
+  /* Safari 15.4 to 16.1 draw oklch but not color-mix, which would leave these
+     fills transparent. */
+  @supports not (color: color-mix(in oklab, red, blue)) {
+    --intent-bg-strong: var(--color-warning-9);
+    --intent-bg-strong-hover: var(--color-warning-7);
+    --intent-bg-strong-active: var(--color-warning-6);
+
+    .dark & {
+      --intent-bg-strong-hover: var(--color-warning-11);
+      --intent-bg-strong-active: var(--color-warning-12);
+    }
   }
 }
 

@@ -15,8 +15,13 @@ its fill:
 
 A custom accent keeps its white text too. The new `getAccentChromaSync(hex)`
 caps an accent's chroma to what sRGB can show at step 9, because browsers clip
-a more saturated fill and the clip makes it lighter. `getBootstrapScript` now
-uses it, so a saturated green or cyan accent no longer renders too light.
+a more saturated fill and the clip makes it lighter. `getBootstrapScript` and
+`generateAccentScale`, which writes the hex fallback scale, now use it, so a
+saturated green or cyan accent no longer renders too light.
+
+Browsers that draw `oklch()` but not `color-mix()` (Safari 15.4 to 16.1) get
+step 9 for the lifted strong fills and steps 7 and 6 for hover and press, so
+the fills stay solid there.
 
 Hover and press use the new `--intent-bg-strong-hover` and
 `--intent-bg-strong-active` tokens. Neutral is unchanged. `emphasis-inverted`
