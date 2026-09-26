@@ -21,9 +21,10 @@ function fittingCount(ruler: HTMLElement, available: number, total: number) {
   let end = 0
   const ends = parts.slice(0, total).map((part) => (end += part.offsetWidth))
   if (total === 1 || ends[total - 1]! <= available) return total
-  const more = parts[total]!.offsetWidth
+  // The ruler holds "+1" to "+(total - 1)" after the labels.
+  const more = (count: number) => parts[2 * total - 1 - count]!.offsetWidth
   let count = total - 1
-  while (count > 1 && ends[count - 1]! + more > available) count--
+  while (count > 1 && ends[count - 1]! + more(count) > available) count--
   return count
 }
 
@@ -77,7 +78,11 @@ export function SelectValueSummary({ labels }: { labels: ReactNode[] }) {
             {label}
           </span>
         ))}
-        <span className='ps-1'>+{total - 1}</span>
+        {labels.slice(1).map((_, index) => (
+          <span key={index} className='ps-1'>
+            +{index + 1}
+          </span>
+        ))}
       </span>
     </span>
   )

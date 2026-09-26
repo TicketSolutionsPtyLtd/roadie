@@ -224,6 +224,45 @@ describe('Select multiple value summary', () => {
     await expect.poll(() => measure().shown).toMatch(/ \+\d$/)
   })
 
+  it('makes room for the count it shows, not the largest one', async () => {
+    await page.viewport(1280, 800)
+    const bands = Array.from({ length: 11 }, (_, index) => `Band ${index + 1}`)
+    render(
+      <div data-testid='sized' style={{ width: 1200 }}>
+        <Select multiple defaultValue={bands}>
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Icon />
+          </Select.Trigger>
+          <Select.Content>
+            {bands.map((band) => (
+              <Select.Item key={band} value={band}>
+                {band}
+              </Select.Item>
+            ))}
+          </Select.Content>
+        </Select>
+      </div>
+    )
+    await expect.poll(() => measure().shown).not.toMatch(/\+/)
+    const value = measure().trigger.querySelector('[data-slot="select-value"]')!
+    const ruler = value.querySelector('.invisible')!
+    const widths = Array.from(
+      ruler.children,
+      (part) => (part as HTMLElement).offsetWidth
+    )
+    const tenLabels = widths.slice(0, 10).reduce((sum, width) => sum + width)
+    const probe = document.createElement('span')
+    probe.className = 'ps-1'
+    probe.textContent = '+1'
+    ruler.append(probe)
+    const plusOne = probe.offsetWidth
+    probe.remove()
+    const sized = screen.getByTestId('sized')
+    sized.style.width = `${1200 - value.clientWidth + tenLabels + plusOne + 1}px`
+    await expect.poll(() => measure().shown).toMatch(/ \+1$/)
+  })
+
   it('truncates a lone label without counting it', async () => {
     await page.viewport(390, 844)
     render(<Bands multiple defaultValue={['long']} />)
