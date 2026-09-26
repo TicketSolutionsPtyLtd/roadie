@@ -5,14 +5,10 @@ import { playwright } from '@vitest/browser-playwright'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 
+import { browserInstances } from '../../vitest.browsers.config.ts'
 import { reactCompilerPreset } from './react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
-
-const browsers = (process.env.ROADIE_BROWSERS ?? 'chromium,webkit,firefox')
-  .split(',')
-  .map((name) => name.trim())
-  .filter(Boolean)
 
 const reduceMotion: BrowserCommand<[reduce: boolean]> = ({ page }, reduce) =>
   page.emulateMedia({ reducedMotion: reduce ? 'reduce' : 'no-preference' })
@@ -68,7 +64,7 @@ export default defineConfig({
             provider: playwright(),
             viewport: { width: 1920, height: 1080 },
             commands: { reduceMotion, forcedColors },
-            instances: browsers.map((browser) => ({ browser }))
+            instances: browserInstances
           }
         }
       }
