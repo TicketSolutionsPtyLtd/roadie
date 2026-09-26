@@ -3,13 +3,12 @@ import { userEvent } from 'vitest/browser'
 
 import roadieCss from '../../vitest.browser.css?inline'
 import { useStylesheet } from '../components/Pane/testUtils'
+import { setHoverCapable } from './testUtils'
 
 // Core's hover styles live in its sheets, but only this package runs browser
 // tests, so they're checked here.
 
 const STILL = '*, *::before, *::after { transition: none !important }'
-const HOVER = '(hover: hover)'
-const NO_HOVER = 'not (hover: hover)'
 
 let removeStylesheets = () => {}
 beforeAll(() => {
@@ -28,32 +27,6 @@ afterEach(async () => {
   await userEvent.unhover(document.body)
   host?.remove()
 })
-
-function hoverGates(rules: CSSRuleList, found: CSSMediaRule[] = []) {
-  for (const rule of Array.from(rules)) {
-    if (
-      rule instanceof CSSMediaRule &&
-      [HOVER, NO_HOVER].includes(rule.conditionText)
-    )
-      found.push(rule)
-    if ('cssRules' in rule)
-      hoverGates((rule as CSSGroupingRule).cssRules, found)
-  }
-  return found
-}
-
-let gates: { rule: CSSMediaRule; hover: boolean }[] = []
-
-// Playwright can't emulate a device without hover, so each hover gate is
-// pinned to match or not, as a touch screen would decide it.
-function setHoverCapable(capable: boolean) {
-  if (!gates.length)
-    gates = Array.from(document.styleSheets)
-      .flatMap((sheet) => hoverGates(sheet.cssRules))
-      .map((rule) => ({ rule, hover: rule.conditionText === HOVER }))
-  for (const { rule, hover } of gates)
-    rule.media.mediaText = hover === capable ? 'all' : 'not all'
-}
 
 const frame = () =>
   new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
