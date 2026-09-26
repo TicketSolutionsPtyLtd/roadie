@@ -70,7 +70,12 @@ export default defineConfig({
             provider: playwright(),
             viewport: { width: 1920, height: 1080 },
             commands: { forcedColors, printMedia, reducedMotion },
-            instances: browsers.map((browser) => ({ browser }))
+            // Firefox pages share one window activation, so a parallel file's
+            // input blurs this one mid-test and Enter then activates nothing.
+            instances: browsers.map((browser) => ({
+              browser,
+              fileParallelism: browser !== 'firefox'
+            }))
           }
         }
       }
