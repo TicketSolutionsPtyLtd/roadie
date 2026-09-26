@@ -19,6 +19,13 @@ export {
   accordionVariants,
   type AccordionProps
 } from './components/Accordion'
+export {
+  Collapsible,
+  type CollapsiblePanelProps,
+  type CollapsibleProps,
+  type CollapsibleTextProps,
+  type CollapsibleTriggerProps
+} from './components/Collapsible'
 
 export { Badge, badgeVariants, type BadgeProps } from './components/Badge'
 

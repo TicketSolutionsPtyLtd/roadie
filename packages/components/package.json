@@ -55,6 +55,10 @@
       "types": "./dist/components/Code/index.d.ts",
       "import": "./dist/components/Code/index.js"
     },
+    "./collapsible": {
+      "types": "./dist/components/Collapsible/index.d.ts",
+      "import": "./dist/components/Collapsible/index.js"
+    },
     "./combobox": {
       "types": "./dist/components/Combobox/index.d.ts",
       "import": "./dist/components/Combobox/index.js"

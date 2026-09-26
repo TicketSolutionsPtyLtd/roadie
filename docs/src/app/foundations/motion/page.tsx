@@ -855,14 +855,16 @@ transition: all 150ms ease-out;`}
                 </td>
               </tr>
               <tr>
-                <td className='py-2 pr-4 text-strong'>Accordion open/close</td>
+                <td className='py-2 pr-4 text-strong'>
+                  Accordion and Collapsible open/close
+                </td>
                 <td className='py-2 pr-4 font-mono text-xs'>
                   duration-moderate
                 </td>
                 <td className='py-2 pr-4 font-mono text-xs'>ease-enter</td>
                 <td className='py-2'>
-                  CSS transition on <Code>height</Code> via{' '}
-                  <Code>--collapsible-panel-height</Code>
+                  <Code>is-disclosure-animated</Code>, a transition on{' '}
+                  <Code>height</Code>
                 </td>
               </tr>
               <tr>
