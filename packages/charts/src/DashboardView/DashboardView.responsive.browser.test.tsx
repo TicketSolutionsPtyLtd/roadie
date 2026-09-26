@@ -3,7 +3,11 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { DashboardView } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
-import { createPortfolioDashboard, createShowDashboard } from '../examples'
+import {
+  createAudienceDashboard,
+  createPortfolioDashboard,
+  createShowDashboard
+} from '../examples'
 import { loadBrandFont, useStylesheet } from '../testUtils'
 
 let removeStylesheet = () => {}
@@ -20,7 +24,8 @@ const TABLET_CONTENT_WIDTH = 600
 describe('reference dashboards fit a phone width', () => {
   it.each([
     ['show', createShowDashboard()],
-    ['portfolio', createPortfolioDashboard()]
+    ['portfolio', createPortfolioDashboard()],
+    ['audience', createAudienceDashboard()]
   ])('%s stat tiles do not truncate at 328px', (_, spec) => {
     const { container } = render(
       <div style={{ width: PHONE_CONTENT_WIDTH }}>
@@ -47,7 +52,8 @@ describe('reference dashboards fit a phone width', () => {
 describe('reference dashboards fit a tablet width', () => {
   it.each([
     ['show', createShowDashboard()],
-    ['portfolio', createPortfolioDashboard()]
+    ['portfolio', createPortfolioDashboard()],
+    ['audience', createAudienceDashboard()]
   ])('%s cards do not truncate at 600px', (_, spec) => {
     const { container } = render(
       <div style={{ width: TABLET_CONTENT_WIDTH }}>

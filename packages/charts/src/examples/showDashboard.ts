@@ -1,23 +1,27 @@
 import type { DashboardSpec } from '@oztix/roadie-core/dashboard'
 
-import { paceImage } from './paceImage'
+import { dailyOrdersExample } from '../BarChart/examples'
+import { whenFansBuyExample } from '../Heatmap/examples'
+import { paceExample } from '../LineChart/examples'
+import { ticketMixExample } from '../StackedBars/examples'
 
-const DAILY_SOLD = [
-  12, 14, 13, 16, 18, 17, 19, 21, 20, 22, 24, 23, 25, 26, 28, 30, 31, 33, 34, 34
+// Tickets a day for the 30 days to Thu 15 Oct, following paceExample.
+export const DAILY_TICKETS = [
+  6, 9, 15, 10, 9, 8, 6, 7, 12, 33, 27, 21, 15, 16, 19, 22, 43, 37, 24, 20, 24,
+  22, 29, 48, 40, 27, 21, 22, 25, 33
 ]
+const DAILY_SOLD = DAILY_TICKETS.slice(-20)
 const SELL_THROUGH = [
-  0.45, 0.46, 0.46, 0.47, 0.48, 0.48, 0.49, 0.5, 0.5, 0.51, 0.51, 0.52, 0.52,
-  0.53, 0.54, 0.55, 0.57, 0.58, 0.6, 0.61
+  0.4, 0.41, 0.41, 0.42, 0.43, 0.44, 0.46, 0.47, 0.48, 0.49, 0.5, 0.51, 0.52,
+  0.54, 0.56, 0.57, 0.58, 0.59, 0.6, 0.61
 ]
 const PACE = [
   96, 98, 97, 101, 104, 103, 106, 108, 107, 105, 104, 107, 109, 110, 108, 110,
   111, 113, 112, 112
 ]
-const REVENUE = [
-  9, 7, 8, 11, 12, 9, 8, 10, 12, 14, 13, 11, 9, 8, 10, 9, 8, 7, 8, 7
-].map((k) => k * 1000)
+const REVENUE = DAILY_SOLD.map((tickets) => Math.round(tickets * 0.81) * 100)
 
-export function createShowDashboard(assetBase = ''): DashboardSpec {
+export function createShowDashboard(): DashboardSpec {
   return {
     version: 1,
     title: 'Ball Park Music at The Lantern Room',
@@ -74,7 +78,7 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             label: 'Gross revenue',
             value: 118400,
             format: 'compactCurrency',
-            delta: { value: -0.04, format: 'percent' },
+            delta: { value: 0.09, format: 'percent' },
             context: 'On last week',
             trend: REVENUE
           }
@@ -92,35 +96,7 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             format: 'percent',
             delta: { value: 9, format: 'points' },
             context: 'Ahead of similar shows. Forecast 96%',
-            plot: {
-              kind: 'static',
-              ...paceImage(assetBase, 'pace-ahead'),
-              narrow: paceImage(assetBase, 'pace-ahead-narrow'),
-              wide: paceImage(assetBase, 'pace-ahead-wide'),
-              alt: 'This show tracks above the band of 38 similar shows and is forecast to reach 96% by show day'
-            },
-            table: {
-              columns: [
-                { key: 'days', header: 'Days to show', kind: 'number' },
-                {
-                  key: 'show',
-                  header: 'This show',
-                  kind: 'number',
-                  format: 'percent'
-                },
-                {
-                  key: 'similar',
-                  header: 'Similar shows',
-                  kind: 'number',
-                  format: 'percent'
-                }
-              ],
-              rows: [
-                { days: 90, show: 0.14, similar: 0.14 },
-                { days: 60, show: 0.38, similar: 0.35 },
-                { days: 30, show: 0.61, similar: 0.52 }
-              ]
-            },
+            plot: { kind: 'line', ...paceExample },
             source: 'Oztix sales. 38 similar shows, last 3 years.'
           },
           {
@@ -172,6 +148,38 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
               { suburb: 'Newstead', share: 0.07 }
             ],
             source: 'Oztix sales, billing postcodes.'
+          }
+        ]
+      },
+      {
+        title: 'Buyers',
+        cards: [
+          {
+            id: 'daily-orders',
+            kind: 'chart',
+            size: 'md',
+            label: 'Daily orders',
+            takeaway: dailyOrdersExample.takeaway,
+            plot: { kind: 'bar', ...dailyOrdersExample },
+            source: 'Oztix sales.'
+          },
+          {
+            id: 'ticket-mix',
+            kind: 'chart',
+            size: 'md',
+            label: 'Ticket type mix',
+            takeaway: ticketMixExample.takeaway,
+            plot: { kind: 'stacked-bars', ...ticketMixExample },
+            source: 'Oztix sales.'
+          },
+          {
+            id: 'when-fans-buy',
+            kind: 'chart',
+            size: 'full',
+            label: 'When fans buy',
+            takeaway: whenFansBuyExample.takeaway,
+            plot: { kind: 'heatmap', ...whenFansBuyExample },
+            source: 'Oztix sales, venue time.'
           }
         ]
       }

@@ -127,10 +127,10 @@
     font-family: var(--font-mono);
   }
 
-  /* Inline code wrapping — prevents long paths from breaking mobile */
+  /* Inline code breaks mid-token only when the token can't fit a line, so a
+     long path can't widen a phone layout but a short name never splits. */
   :not(pre) > code {
-    overflow-wrap: break-word;
-    word-break: break-all;
+    overflow-wrap: anywhere;
   }
 
   /* Isolation for root elements */

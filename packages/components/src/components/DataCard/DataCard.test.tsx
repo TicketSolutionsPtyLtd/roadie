@@ -1,18 +1,35 @@
+import { createRef } from 'react'
+
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { DataCard } from '.'
+import { Menu } from '../Menu'
 
 describe('DataCard', () => {
-  it('names the section by its label', () => {
+  it('names the card by its label', () => {
     render(
       <DataCard label='Gross revenue' value={118400} format='compactCurrency' />
     )
     expect(
-      screen.getByRole('region', { name: 'Gross revenue' })
+      screen.getByRole('article', { name: 'Gross revenue' })
     ).toBeInTheDocument()
     expect(screen.getByText('$118.4k')).toBeInTheDocument()
+  })
+
+  it('is not a landmark, so cards can share a label', () => {
+    render(
+      <>
+        <DataCard label='Tickets sold' value={1842} />
+        <DataCard label='Tickets sold' value={612} />
+      </>
+    )
+    expect(screen.queryAllByRole('region')).toHaveLength(0)
+    expect(
+      screen.getAllByRole('article', { name: 'Tickets sold' })
+    ).toHaveLength(2)
   })
 
   it('keeps truncated copy available in the title', () => {
@@ -47,7 +64,7 @@ describe('DataCard', () => {
     const { container } = render(
       <DataCard label='Sales pace' state='loading' bodyHeight='220px' />
     )
-    expect(screen.getByRole('region', { name: 'Sales pace' })).toHaveAttribute(
+    expect(screen.getByRole('article', { name: 'Sales pace' })).toHaveAttribute(
       'aria-busy',
       'true'
     )
@@ -118,5 +135,77 @@ describe('DataCard', () => {
         "We couldn't load GA sell-through. Try again in a minute."
       )
     ).toBeInTheDocument()
+  })
+
+  it('keeps its actions in every state, so refresh works on a failed card', () => {
+    for (const state of [
+      'ready',
+      'stale',
+      'loading',
+      'empty',
+      'error'
+    ] as const) {
+      const { unmount } = render(
+        <DataCard
+          label='Sales pace'
+          state={state}
+          actions={<DataCard.MoreButton label='Sales pace' />}
+        />
+      )
+      expect(
+        screen.getByRole('button', { name: 'More actions for Sales pace' })
+      ).toBeInTheDocument()
+      unmount()
+    }
+  })
+})
+
+describe('DataCard.MoreButton', () => {
+  it('names itself for the card and passes props and ref through', () => {
+    const ref = createRef<HTMLButtonElement>()
+    const onClick = vi.fn()
+    render(
+      <DataCard.MoreButton
+        label='Tickets sold'
+        ref={ref}
+        onClick={onClick}
+        aria-haspopup='menu'
+        aria-expanded={false}
+      />
+    )
+    const button = screen.getByRole('button', {
+      name: 'More actions for Tickets sold'
+    })
+    expect(ref.current).toBe(button)
+    expect(button).toHaveAttribute('aria-haspopup', 'menu')
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+    expect(button).toHaveClass('emphasis-subtler', 'btn-icon-sm')
+    button.click()
+    expect(onClick).toHaveBeenCalledOnce()
+  })
+
+  it('triggers a Menu by render and keeps its name and ref', async () => {
+    const user = userEvent.setup()
+    const ref = createRef<HTMLButtonElement>()
+    render(
+      <Menu>
+        <Menu.Trigger
+          render={<DataCard.MoreButton label='Sales pace' ref={ref} />}
+        />
+        <Menu.Content>
+          <Menu.Item>Download CSV</Menu.Item>
+        </Menu.Content>
+      </Menu>
+    )
+    const button = screen.getByRole('button', {
+      name: 'More actions for Sales pace'
+    })
+    expect(ref.current).toBe(button)
+    expect(button).toHaveAttribute('aria-haspopup', 'menu')
+    await user.click(button)
+    expect(
+      await screen.findByRole('menuitem', { name: 'Download CSV' })
+    ).toBeInTheDocument()
+    expect(button).toHaveAttribute('aria-expanded', 'true')
   })
 })

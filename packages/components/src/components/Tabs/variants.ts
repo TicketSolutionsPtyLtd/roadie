@@ -57,13 +57,20 @@ export const tabsListVariants = cva(
 // focus ring, cursor, color transition, and disabled state. In
 // vertical direction the tabs left-align their content so labels
 // don't float in the middle of the column.
+//
+// An icon-only tab (`data-icon-only`, set by Tabs.Tab) is a circle at
+// every size and emphasis, so the pill indicator reads as a circle too.
+// Under `subtler` the underline spans the circle's width. It doesn't
+// shrink, so a crowded list scrolls instead of squashing it.
 export const tabsTabVariants = cva(
   [
     'is-interactive relative z-[1]',
     'inline-flex items-center gap-1.5',
     'justify-center data-[orientation=vertical]:justify-start',
     'font-semibold whitespace-nowrap',
-    'text-subtle hover:text-normal'
+    'text-subtle hover:text-normal',
+    'data-[icon-only]:aspect-square data-[icon-only]:shrink-0 data-[icon-only]:rounded-full data-[icon-only]:px-0',
+    'data-[icon-only]:data-[orientation=vertical]:justify-center'
   ].join(' '),
   {
     variants: {
@@ -127,7 +134,7 @@ export const tabsIndicatorVariants = cva(
         ].join(' '),
         subtler: [
           'bottom-0 left-[var(--active-tab-left)] h-[2px] w-[var(--active-tab-width)]',
-          'bg-[var(--intent-bg-strong)]',
+          'bg-[var(--intent-bg-strong)] forced-colors:bg-[Highlight]',
           'data-[orientation=vertical]:left-0 data-[orientation=vertical]:bottom-auto',
           'data-[orientation=vertical]:top-[var(--active-tab-top)] data-[orientation=vertical]:h-[var(--active-tab-height)] data-[orientation=vertical]:w-[2px]'
         ].join(' ')

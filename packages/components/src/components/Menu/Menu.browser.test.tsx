@@ -1,6 +1,14 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it
+} from 'vitest'
+import { commands, userEvent } from 'vitest/browser'
 
 import { Menu } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -19,6 +27,9 @@ beforeAll(() => {
   }
 })
 afterAll(() => removeStylesheets())
+// A pointer left over a row by an earlier test would hover the next popup
+// as it mounts, and Firefox then moves focus to that row.
+beforeEach(() => commands.parkPointer())
 afterEach(() => {
   setHoverCapable(true)
   cleanup()

@@ -2,16 +2,25 @@
 @source '../../dist';
 @source './safelist.html';
 
+/* Wide plots grow with the DataCard container (cqi) so they stay near 4:1. */
+[data-slot='chart'] {
+  --chart-plot-height: 220px;
+}
+
+[data-slot='chart'][data-size='sm'] {
+  --chart-plot-height: 160px;
+}
+
+[data-slot='chart'][data-size='lg'] {
+  --chart-plot-height: clamp(260px, 24cqi, 340px);
+}
+
+[data-slot='chart'][data-size='full'] {
+  --chart-plot-height: clamp(260px, 24cqi, 420px);
+}
+
 [data-slot='chart-plot'] {
-  height: 220px;
-}
-
-[data-size='sm'] [data-slot='chart-plot'] {
-  height: 160px;
-}
-
-:is([data-size='lg'], [data-size='full']) [data-slot='chart-plot'] {
-  height: 260px;
+  height: var(--chart-plot-height, 220px);
 }
 
 [data-slot='chart-plot'] [data-theme-image='dark'],
@@ -71,9 +80,22 @@
   visibility: hidden;
 }
 
+/* The table's own scroller takes both axes, so its sideways scrollbar sits
+   inside the plot height instead of below the last row. */
 [data-slot='chart'] [data-chart-view='table'] {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
   height: 0;
   min-height: 100%;
+}
+
+[data-slot='chart'] [data-chart-view='table'] > [data-slot='data-table'] {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+[data-slot='chart']
+  [data-chart-view='table']
+  [data-slot='data-table-scroller'] {
   overflow: auto;
 }
 
@@ -88,53 +110,173 @@
 }
 
 @utility fill-texture-1 {
-  fill: url(#roadie-texture-1);
+  fill: var(--chart-texture-1, url(#roadie-texture-1));
 }
 @utility fill-texture-2 {
-  fill: url(#roadie-texture-2);
+  fill: var(--chart-texture-2, url(#roadie-texture-2));
 }
 @utility fill-texture-3 {
-  fill: url(#roadie-texture-3);
+  fill: var(--chart-texture-3, url(#roadie-texture-3));
 }
 @utility fill-texture-4 {
-  fill: url(#roadie-texture-4);
+  fill: var(--chart-texture-4, url(#roadie-texture-4));
 }
 @utility fill-texture-5 {
-  fill: url(#roadie-texture-5);
+  fill: var(--chart-texture-5, url(#roadie-texture-5));
 }
 @utility fill-texture-6 {
-  fill: url(#roadie-texture-6);
+  fill: var(--chart-texture-6, url(#roadie-texture-6));
 }
 @utility fill-texture-7 {
-  fill: url(#roadie-texture-7);
+  fill: var(--chart-texture-7, url(#roadie-texture-7));
 }
 @utility fill-texture-8 {
-  fill: url(#roadie-texture-8);
+  fill: var(--chart-texture-8, url(#roadie-texture-8));
 }
 
 @media (forced-colors: active), print {
   svg [data-chart-texture='1'] {
-    fill: url(#roadie-texture-1);
+    fill: var(--chart-texture-1, url(#roadie-texture-1));
   }
   svg [data-chart-texture='2'] {
-    fill: url(#roadie-texture-2);
+    fill: var(--chart-texture-2, url(#roadie-texture-2));
   }
   svg [data-chart-texture='3'] {
-    fill: url(#roadie-texture-3);
+    fill: var(--chart-texture-3, url(#roadie-texture-3));
   }
   svg [data-chart-texture='4'] {
-    fill: url(#roadie-texture-4);
+    fill: var(--chart-texture-4, url(#roadie-texture-4));
   }
   svg [data-chart-texture='5'] {
-    fill: url(#roadie-texture-5);
+    fill: var(--chart-texture-5, url(#roadie-texture-5));
   }
   svg [data-chart-texture='6'] {
-    fill: url(#roadie-texture-6);
+    fill: var(--chart-texture-6, url(#roadie-texture-6));
   }
   svg [data-chart-texture='7'] {
-    fill: url(#roadie-texture-7);
+    fill: var(--chart-texture-7, url(#roadie-texture-7));
   }
   svg [data-chart-texture='8'] {
-    fill: url(#roadie-texture-8);
+    fill: var(--chart-texture-8, url(#roadie-texture-8));
   }
+}
+
+.ts-chart [data-ts-key^='label-'] {
+  paint-order: stroke;
+  stroke: var(--chart-gap);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.ts-chart text {
+  font-variant-numeric: tabular-nums;
+}
+
+[data-slot='chart-plot']:has([data-slot='small-multiples']) {
+  height: auto;
+}
+
+/* Without scripts the plot is never measured, so show the server drawing. */
+@media (scripting: none) {
+  [data-slot='chart-plot-host'] .ts-chart-host {
+    opacity: 1;
+  }
+}
+
+/* Server markup is drawn at the engine's default size until hydration. */
+[data-slot='chart-plot'] .ts-chart-surface > svg {
+  width: 100%;
+  height: 100%;
+}
+
+[data-slot='chart-plot-host'] .ts-chart:focus-visible {
+  outline: 2px solid var(--intent-border-strong, currentColor);
+  outline-offset: 4px;
+  border-radius: var(--radius-md);
+}
+
+@media (forced-colors: active), print {
+  .ts-chart
+    :is([data-ts-key='series-1'], [data-ts-key^='series-1:'])
+    :is(path, rect, circle):not([fill='none']) {
+    fill: var(--chart-texture-1, url(#roadie-texture-1));
+  }
+  .ts-chart
+    :is([data-ts-key='series-2'], [data-ts-key^='series-2:'])
+    :is(path, rect, circle):not([fill='none']) {
+    fill: var(--chart-texture-2, url(#roadie-texture-2));
+  }
+  .ts-chart
+    :is([data-ts-key='series-3'], [data-ts-key^='series-3:'])
+    :is(path, rect, circle):not([fill='none']) {
+    fill: var(--chart-texture-3, url(#roadie-texture-3));
+  }
+  .ts-chart
+    :is([data-ts-key='series-4'], [data-ts-key^='series-4:'])
+    :is(path, rect, circle):not([fill='none']) {
+    fill: var(--chart-texture-4, url(#roadie-texture-4));
+  }
+  .ts-chart
+    :is([data-ts-key='series-5'], [data-ts-key^='series-5:'])
+    :is(path, rect, circle):not([fill='none']) {
+    fill: var(--chart-texture-5, url(#roadie-texture-5));
+  }
+  .ts-chart
+    :is([data-ts-key='series-6'], [data-ts-key^='series-6:'])
+    :is(path, rect, circle):not([fill='none']) {
+    fill: var(--chart-texture-6, url(#roadie-texture-6));
+  }
+  .ts-chart
+    :is([data-ts-key='series-7'], [data-ts-key^='series-7:'])
+    :is(path, rect, circle):not([fill='none']) {
+    fill: var(--chart-texture-7, url(#roadie-texture-7));
+  }
+  .ts-chart
+    :is([data-ts-key='series-8'], [data-ts-key^='series-8:'])
+    :is(path, rect, circle):not([fill='none']) {
+    fill: var(--chart-texture-8, url(#roadie-texture-8));
+  }
+  .ts-chart
+    :is([data-ts-key='series-other'], [data-ts-key^='series-other:'])
+    :is(path, rect, circle):not([fill='none']) {
+    fill: var(--chart-texture-8, url(#roadie-texture-8));
+  }
+  .ts-chart .ts-chart__line:is([data-ts-key^='series-2']) path {
+    stroke-dasharray: 6 3;
+  }
+  .ts-chart .ts-chart__line:is([data-ts-key^='series-3']) path {
+    stroke-dasharray: 1 3;
+  }
+  .ts-chart .ts-chart__line:is([data-ts-key^='series-4']) path {
+    stroke-dasharray: 8 3 1 3;
+  }
+  .ts-chart .ts-chart__line:is([data-ts-key^='series-5']) path {
+    stroke-dasharray: 3 3;
+  }
+  .ts-chart .ts-chart__line:is([data-ts-key^='series-6']) path {
+    stroke-dasharray: 10 4;
+  }
+  svg [data-chart-dash='2'] {
+    stroke-dasharray: 6 3;
+  }
+  svg [data-chart-dash='3'] {
+    stroke-dasharray: 1 3;
+  }
+  svg [data-chart-dash='4'] {
+    stroke-dasharray: 8 3 1 3;
+  }
+  svg [data-chart-dash='5'] {
+    stroke-dasharray: 3 3;
+  }
+  svg [data-chart-dash='6'] {
+    stroke-dasharray: 10 4;
+  }
+}
+
+/* In a heatmap, colour is the data: never texture the scale, and keep it
+   under forced colours and print. */
+.ts-chart :is([data-ts-key='cells'], [data-ts-key^='cells:']) :is(rect, path) {
+  forced-color-adjust: none;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
 }

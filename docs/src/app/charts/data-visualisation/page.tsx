@@ -4,15 +4,20 @@ import Link from 'next/link'
 
 import { Guideline } from '@/components/Guideline'
 import { DatavizSwatches } from '@/components/dataviz/DatavizSwatches'
-import { DivergingBarsExample } from '@/components/dataviz/DivergingBarsExample'
-import { HeatmapExample } from '@/components/dataviz/HeatmapExample'
-import { PaceChartExample } from '@/components/dataviz/PaceChartExample'
 
+import { Chart } from '@oztix/roadie-charts/chart'
+import { Heatmap } from '@oztix/roadie-charts/heatmap'
+import { LineChart } from '@oztix/roadie-charts/line-chart'
+import { RankedBars } from '@oztix/roadie-charts/ranked-bars'
+import { StackedBars } from '@oztix/roadie-charts/stacked-bars'
 import { Code } from '@oztix/roadie-components/code'
 import { DataCard } from '@oztix/roadie-components/data-card'
 import { Meter } from '@oztix/roadie-components/meter'
 import { Sparkline } from '@oztix/roadie-components/sparkline'
 import { StatTile } from '@oztix/roadie-components/stat-tile'
+
+import { PACE_EXAMPLE } from '../pace-example'
+import { TICKETING_REFERENCE } from '../ticketing-reference'
 
 export const metadata = {
   title: 'Data visualisation',
@@ -23,16 +28,20 @@ export const metadata = {
 }
 
 const FORMS = [
-  ['Compare', 'Bar', 'Channels by tickets sold'],
-  ['Change over time', 'Line or area', 'Daily sales'],
-  ['Pace', 'Pace curve', 'This show against similar shows'],
+  ['Compare', 'RankedBars', 'Channels by tickets sold'],
+  ['Change over time', 'LineChart or BarChart', 'Daily sales'],
+  ['Pace', 'LineChart with a band', 'This show against similar shows'],
   [
     'Part of a whole',
-    'Stacked bar or capacity meter',
+    'StackedBars or capacity meter',
     'Sold, held and available'
   ],
+  ['Spread', 'Histogram', 'Days between buying and the show'],
+  ['Drop off', 'Funnel', 'Checkout steps'],
+  ['Two measures per show', 'Scatter', 'Pace against sell-through'],
+  ['The same chart per group', 'SmallMultiples', 'Scan rate per gate'],
   ['When', 'Heatmap', 'Orders by hour and weekday'],
-  ['Where', 'Ranked list, then a map', 'Top postcodes'],
+  ['Where', 'RankedBars with share', 'Top postcodes'],
   ['One number', 'Stat tile, not a chart', 'Tickets sold today']
 ]
 
@@ -40,7 +49,7 @@ const TERMS = [
   [
     'Pace index',
     'Tickets sold divided by what similar shows had sold at the same days out, times 100. Over 100 is ahead.',
-    'Pace curve, stat tile'
+    'LineChart, stat tile'
   ],
   [
     'Sell-through',
@@ -50,43 +59,43 @@ const TERMS = [
   [
     'On-sale spike',
     'Orders in the first hours after tickets go on sale, often shown against the forecast for that hour.',
-    'Heatmap, annotated bars'
+    'Heatmap, annotated BarChart'
   ],
   [
     'Presale and general',
     'Tickets sold before and after the public on-sale.',
-    'Stacked bar'
+    'StackedBars'
   ],
   [
     'Walk-up',
     'Tickets sold on the day of the show.',
-    'The end of the pace curve'
+    'The end of the LineChart'
   ],
   [
     'No-show rate',
     'Tickets issued but never scanned, as a share of tickets issued.',
-    'Stat tile, bar against similar shows'
+    'Stat tile, RankedBars with reference'
   ],
   [
     'Scan rate',
     'Tickets scanned per 15 minutes at each gate, with the running share of fans inside.',
-    'Bars plus line, one small chart per gate'
+    'BarChart with line, SmallMultiples per gate'
   ],
-  ['Resale share', 'Tickets resold as a share of tickets sold.', 'Stacked bar'],
+  ['Resale share', 'Tickets resold as a share of tickets sold.', 'StackedBars'],
   [
     'Ticket type mix',
     'Tickets sold by ticket type, such as GA, VIP or early-bird.',
-    'Stacked bar, using the pair or trio sets'
+    'StackedBars, using the pair or trio sets'
   ],
   [
     'Channel and referrer',
     'Where buyers came from before they bought.',
-    'Ranked bars'
+    'RankedBars'
   ],
   [
     'Postcode',
     'Where buyers live, from billing postcodes. Report shares, not counts, when totals differ.',
-    'Ranked list, then a map'
+    'RankedBars'
   ],
   [
     'When fans buy',
@@ -164,9 +173,81 @@ const WRITING = [
   ]
 ]
 
-function Table({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
+function PaceChart({
+  label,
+  title,
+  size = 'full'
+}: {
+  label: string
+  title: string
+  size?: 'md' | 'full'
+}) {
   return (
-    <div className='overflow-x-auto'>
+    <Chart
+      label={label}
+      takeaway={title}
+      source='Oztix sales. 38 similar shows, last 3 years.'
+      size={size}
+    >
+      <LineChart {...PACE_EXAMPLE} takeaway={title} />
+    </Chart>
+  )
+}
+
+const WHEN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].flatMap(
+  (weekday, r) =>
+    ['9am', '12pm', '3pm', '6pm', '9pm'].map((hour, c) => ({
+      weekday,
+      hour,
+      orders: [
+        [4, 8, 10, 18, 12],
+        [5, 9, 11, 20, 13],
+        [5, 9, 12, 22, 14],
+        [6, 10, 14, 30, 22],
+        [8, 12, 18, 42, 36],
+        [14, 22, 20, 24, 18],
+        [12, 18, 16, 14, 8]
+      ][r]![c]!
+    }))
+)
+
+const VERSUS = [
+  'The Lantern Room',
+  'Harbourside Hall',
+  'Wattle Street Social'
+].flatMap((venue, r) =>
+  ['Floor', 'Balcony'].map((section, c) => ({
+    venue,
+    section,
+    versus: [0.12, -0.06, 0.04, -0.1, 0.08, -0.03][r * 2 + c]!
+  }))
+)
+
+const MIX = [
+  { show: 'Friday', type: 'GA', sold: 1210 },
+  { show: 'Friday', type: 'VIP', sold: 232 },
+  { show: 'Friday', type: 'Early bird', sold: 300 },
+  { show: 'Saturday', type: 'GA', sold: 1480 },
+  { show: 'Saturday', type: 'VIP', sold: 310 },
+  { show: 'Saturday', type: 'Early bird', sold: 300 }
+]
+
+function Table({
+  label,
+  head,
+  rows
+}: {
+  label: string
+  head: string[]
+  rows: ReactNode[][]
+}) {
+  return (
+    <div
+      role='region'
+      aria-label={label}
+      tabIndex={0}
+      className='overflow-x-auto rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2'
+    >
       <table className='w-full min-w-2xl text-sm'>
         <thead>
           <tr className='border-b border-subtle text-left text-subtle'>
@@ -251,16 +332,30 @@ export default function DataVisualisationPage() {
           title answers it. If the chart has no answer to give, it probably
           shouldn’t be a chart.
         </p>
-        <Guideline title='Put the answer in the title'>
+        <Guideline headingLevel={3} title='Put the answer in the title'>
           <Guideline.Do
             example={
-              <PaceChartExample title='Tracking 17 points ahead of similar shows' />
+              <div className='w-80 max-w-full'>
+                <PaceChart
+                  label='Sales pace'
+                  title='Tracking 16 points ahead of similar shows'
+                  size='md'
+                />
+              </div>
             }
           >
             <p>Put the answer in the title.</p>
           </Guideline.Do>
           <Guideline.Dont
-            example={<PaceChartExample title='Sales over time' />}
+            example={
+              <div className='w-80 max-w-full'>
+                <PaceChart
+                  label='Sales to date'
+                  title='Sales over time'
+                  size='md'
+                />
+              </div>
+            }
           >
             <p>Don’t make the reader work out the point.</p>
           </Guideline.Dont>
@@ -271,7 +366,11 @@ export default function DataVisualisationPage() {
         <h2 className='text-display-prose-3 text-strong'>
           Pick the form from the job
         </h2>
-        <Table head={['Job', 'Form', 'Ticketing example']} rows={FORMS} />
+        <Table
+          label='Forms by job'
+          head={['Job', 'Form', 'Ticketing example']}
+          rows={FORMS}
+        />
         <p className='max-w-prose text-subtle'>
           A stat tile or a two-row table often beats a plot. If there’s no shape
           to see, show the number.
@@ -290,8 +389,8 @@ export default function DataVisualisationPage() {
             trend={[1200, 1340, 1480, 1600, 1720, 1780, 1842]}
             context='This week'
           />
-          <DataCard size='sm' label='Sell-through' context='Target 85%'>
-            <Meter label='Sell-through' value={68} max={100} target={85} />
+          <DataCard size='sm' label='VIP sell-through' context='Target 85%'>
+            <Meter label='VIP sell-through' value={68} max={100} target={85} />
           </DataCard>
           <div className='w-48'>
             <Sparkline
@@ -299,6 +398,25 @@ export default function DataVisualisationPage() {
               label='Tickets sold, this week'
             />
           </div>
+        </div>
+        <div className='max-w-xl'>
+          <Chart
+            label='Where buyers came from'
+            takeaway='Email brings in nearly half of orders'
+            source='Oztix sales.'
+            size='md'
+          >
+            <RankedBars
+              data={[
+                { channel: 'Email', orders: 612 },
+                { channel: 'Instagram', orders: 388 },
+                { channel: 'Direct', orders: 301 }
+              ]}
+              x='channel'
+              y='orders'
+              highlight='Email'
+            />
+          </Chart>
         </div>
       </section>
 
@@ -320,27 +438,72 @@ export default function DataVisualisationPage() {
             }
           >
             <DatavizSwatches kind='categorical' />
+            <div className='max-w-xl'>
+              <Chart
+                label='Ticket type mix'
+                takeaway='GA carries both nights'
+                source='Oztix sales.'
+                size='md'
+              >
+                <StackedBars data={MIX} x='show' y='sold' series='type' />
+              </Chart>
+            </div>
           </PaletteBlock>
           <PaletteBlock
             title='Sequential shows how much'
             description='Stage heat runs from the surface to the strongest colour. In dark mode the busiest cells glow.'
           >
             <DatavizSwatches kind='heat' />
-            <HeatmapExample />
+            <Chart
+              label='When fans buy'
+              takeaway='Fans buy most on Friday evenings'
+              source='Oztix sales, venue time.'
+              size='lg'
+            >
+              <Heatmap
+                data={WHEN}
+                rows='weekday'
+                columns='hour'
+                value='orders'
+              />
+            </Chart>
           </PaletteBlock>
           <PaletteBlock
             title='Diverging shows ahead of or behind'
             description='Cool is ahead, warm is behind, grey is on the benchmark.'
           >
             <DatavizSwatches kind='diverging' />
-            <DivergingBarsExample />
+            <div className='max-w-xl'>
+              <Chart
+                label='Pace by section'
+                takeaway='The balconies are behind'
+                source='Oztix sales.'
+                size='md'
+              >
+                <Heatmap
+                  data={VERSUS}
+                  rows='venue'
+                  columns='section'
+                  value='versus'
+                  scale='diverging'
+                  format='percent'
+                />
+              </Chart>
+            </div>
           </PaletteBlock>
           <PaletteBlock
             title='Status carries meaning'
             description='Good, warning, serious and critical. Only for meaning, never as a series colour, and always with an icon or label.'
           >
             <DatavizSwatches kind='status' />
-            <div className='grid gap-3 sm:grid-cols-2'>
+            <div className='grid gap-3 sm:grid-cols-3'>
+              <StatTile
+                label='Sell-through'
+                value={0.61}
+                format='percent'
+                delta={{ value: 9, format: 'points' }}
+                context='Target 85%'
+              />
               <StatTile
                 label='Gross revenue'
                 value={118400}
@@ -349,8 +512,8 @@ export default function DataVisualisationPage() {
                 context='This week'
               />
               <StatTile
-                label='Tickets sold'
-                value={1842}
+                label='Orders'
+                value={1310}
                 delta={{ value: 0.18, format: 'percent' }}
                 context='This week'
               />
@@ -360,7 +523,7 @@ export default function DataVisualisationPage() {
             </p>
           </PaletteBlock>
         </div>
-        <Guideline title='Emphasis and ink'>
+        <Guideline headingLevel={3} title='Emphasis and ink'>
           <Guideline.Do>
             <p>
               Highlight the story series in <Code>--chart-highlight</Code> and
@@ -407,7 +570,10 @@ export default function DataVisualisationPage() {
             </>
           ]}
         />
-        <PaceChartExample />
+        <PaceChart
+          label='Pace against similar shows'
+          title='Tracking ahead of similar shows'
+        />
       </section>
 
       <section className='grid gap-6'>
@@ -448,7 +614,11 @@ export default function DataVisualisationPage() {
           and grammar guidelines, and unslop. No dashes as punctuation,
           anywhere.
         </p>
-        <Table head={['Part', 'Rule', 'Do', 'Don’t']} rows={WRITING} />
+        <Table
+          label='Writing for charts'
+          head={['Part', 'Rule', 'Do', 'Don’t']}
+          rows={WRITING}
+        />
       </section>
 
       <section className='grid gap-6'>
@@ -501,7 +671,22 @@ export default function DataVisualisationPage() {
         <h2 className='text-display-prose-3 text-strong'>
           Ticketing reference
         </h2>
-        <Table head={['Term', 'What it means', 'Chart']} rows={TERMS} />
+        <h3 className='text-display-ui-5 text-strong'>Terms</h3>
+        <Table
+          label='Terms'
+          head={['Term', 'What it means', 'Chart']}
+          rows={TERMS}
+        />
+        <h3 className='text-display-ui-5 text-strong'>Questions and charts</h3>
+        <Table
+          label='Questions and charts'
+          head={['Question', 'Term', 'Chart']}
+          rows={TICKETING_REFERENCE.map((row) => [
+            row.question,
+            row.term,
+            row.chart
+          ])}
+        />
         <p className='max-w-prose text-sm text-subtle'>
           Every token and its value are on the{' '}
           <Link href='/tokens/dataviz' className='underline'>

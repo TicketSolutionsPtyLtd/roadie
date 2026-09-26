@@ -36,12 +36,19 @@ function pairs(count: number, adjacentOnly: boolean): [number, number][] {
   return out
 }
 
+// A spread into Math.min overflows the call stack on large data.
+function min(values: readonly number[]): number {
+  let out = Infinity
+  for (const value of values) if (value < out) out = value
+  return out
+}
+
 function worst(
   colors: readonly Oklch[],
   list: [number, number][],
   score: (a: Oklch, b: Oklch) => number
 ) {
-  return Math.min(...list.map(([i, j]) => score(colors[i]!, colors[j]!)))
+  return min(list.map(([i, j]) => score(colors[i]!, colors[j]!)))
 }
 
 export function validatePalette(p: Palette = defaultPalette): Failure[] {

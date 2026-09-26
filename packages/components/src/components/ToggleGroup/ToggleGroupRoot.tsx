@@ -3,6 +3,7 @@
 import {
   type RefAttributes,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState
@@ -42,7 +43,8 @@ export type ToggleGroupRootProps<Value extends string = string> = Omit<
     /**
      * The track at rest, as on Toggle. `normal` is bordered and `subtle` is
      * tinted, each with a solid pressed pill. `subtler` has no track and a
-     * tinted pill.
+     * soft pill and a strong
+     * label.
      *
      * @default 'normal'
      */
@@ -65,6 +67,7 @@ export function ToggleGroupRoot<Value extends string = string>({
   multiple = false,
   onValueChange,
   onFocus,
+  onBlur,
   onPointerDown,
   onClick,
   ...props
@@ -91,16 +94,44 @@ export function ToggleGroupRoot<Value extends string = string>({
 
   // Keyboard entry lands on the pressed item, as in a radio group. A pointer
   // focuses what it presses; the flag lasts until that focus or the click.
+  // A window blur leaves its item active, and the window coming back refocuses
+  // it with no relatedTarget, so that focus is a return, not an entry. Focus
+  // landing outside the group first cancels the return.
   const pointerActive = useRef(false)
+  const windowBlurred = useRef(false)
+  const stopWatchingReturn = useRef<(() => void) | null>(null)
+  useEffect(() => () => stopWatchingReturn.current?.(), [])
   const handleFocus: typeof onFocus = (event) => {
     onFocus?.(event)
     const byPointer = pointerActive.current
+    const returning = windowBlurred.current
     pointerActive.current = false
+    windowBlurred.current = false
     const group = event.currentTarget
-    if (multiple || byPointer) return
+    if (multiple || byPointer || returning) return
     if (group.contains(event.relatedTarget as Node | null)) return
     const pressed = group.querySelector<HTMLElement>(PRESSED_ITEM)
     if (pressed && pressed !== event.target) pressed.focus()
+  }
+  const handleBlur: typeof onBlur = (event) => {
+    onBlur?.(event)
+    const group = event.currentTarget
+    const doc = group.ownerDocument
+    stopWatchingReturn.current?.()
+    windowBlurred.current =
+      event.relatedTarget === null && event.target === doc.activeElement
+    if (!windowBlurred.current) return
+    const watchReturn = (focus: FocusEvent) => {
+      stop()
+      if (!(focus.target instanceof Node && group.contains(focus.target)))
+        windowBlurred.current = false
+    }
+    const stop = () => {
+      doc.removeEventListener('focusin', watchReturn, true)
+      stopWatchingReturn.current = null
+    }
+    doc.addEventListener('focusin', watchReturn, true)
+    stopWatchingReturn.current = stop
   }
   const handlePointerDown: typeof onPointerDown = (event) => {
     onPointerDown?.(event)
@@ -119,6 +150,7 @@ export function ToggleGroupRoot<Value extends string = string>({
         multiple={multiple}
         onValueChange={handleValueChange}
         onFocus={handleFocus}
+        onBlur={handleBlur}
         onPointerDown={handlePointerDown}
         onClick={handleClick}
         className={cn(

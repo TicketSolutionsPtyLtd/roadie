@@ -1,3 +1,4 @@
+import { ChartLineIcon } from '@phosphor-icons/react'
 import { act, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
@@ -513,6 +514,70 @@ describe('Tabs', () => {
       await user.keyboard('{ArrowRight}')
       expect(document.activeElement).toBe(b)
       expect(b.tagName.toLowerCase()).toBe('a')
+    })
+  })
+
+  describe('icon-only tabs', () => {
+    function IconTabs({ labelled = true }: { labelled?: boolean }) {
+      return (
+        <Tabs defaultValue='chart'>
+          <Tabs.List aria-label='View'>
+            <Tabs.Tab value='chart' aria-label={labelled ? 'Chart' : undefined}>
+              <ChartLineIcon weight='bold' className='size-4' />
+            </Tabs.Tab>
+            <Tabs.Tab value='table' aria-labelledby='table-label'>
+              <svg />
+            </Tabs.Tab>
+            <Tabs.Tab value='week'>Week</Tabs.Tab>
+            <Tabs.Tab value='grid'>
+              <svg />
+              Grid
+            </Tabs.Tab>
+          </Tabs.List>
+          <span id='table-label'>Table</span>
+        </Tabs>
+      )
+    }
+
+    it('marks a tab that holds only an icon', () => {
+      const { getByRole } = render(<IconTabs />)
+      expect(getByRole('tab', { name: 'Chart' })).toHaveAttribute(
+        'data-icon-only'
+      )
+      expect(getByRole('tab', { name: 'Table' })).toHaveAttribute(
+        'data-icon-only'
+      )
+      expect(getByRole('tab', { name: 'Week' })).not.toHaveAttribute(
+        'data-icon-only'
+      )
+      expect(getByRole('tab', { name: 'Grid' })).not.toHaveAttribute(
+        'data-icon-only'
+      )
+    })
+
+    it('squares an icon-only tab', () => {
+      const { getByRole } = render(<IconTabs />)
+      expect(getByRole('tab', { name: 'Chart' }).className).toContain(
+        'data-[icon-only]:aspect-square'
+      )
+    })
+
+    it('does not warn when every icon-only tab has a name', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      render(<IconTabs />)
+      expect(warn).not.toHaveBeenCalled()
+      warn.mockRestore()
+    })
+
+    it('warns once when an icon-only tab has no accessible name', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { rerender } = render(<IconTabs labelled={false} />)
+      rerender(<IconTabs labelled={false} />)
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(String(warn.mock.calls[0]?.[0])).toMatch(
+        /Tabs\.Tab 'chart'.*aria-label/
+      )
+      warn.mockRestore()
     })
   })
 })

@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "138 kB"
+    "limit": "138.5 kB"
   },
   {
     "name": "Single component (Button)",
@@ -70,7 +70,7 @@
     "name": "ToggleGroup",
     "path": "dist/components/ToggleGroup/index.js",
     "import": "*",
-    "limit": "2.5 kB",
+    "limit": "2.6 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -105,7 +105,7 @@
     "name": "DataCard",
     "path": "dist/components/DataCard/index.js",
     "import": "*",
-    "limit": "3 kB",
+    "limit": "4 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -119,14 +119,14 @@
     "name": "StatTile",
     "path": "dist/components/StatTile/index.js",
     "import": "*",
-    "limit": "4 kB",
+    "limit": "5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Dashboard",
     "path": "dist/components/Dashboard/index.js",
     "import": "*",
-    "limit": "3 kB",
+    "limit": "5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {

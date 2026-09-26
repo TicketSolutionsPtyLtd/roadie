@@ -343,6 +343,10 @@ function utilityPreview({ name, family, group, kind }: TokenEntry) {
             <span className='size-8 emphasis-raised rounded-md is-translucent' />
           </span>
         )
+      if (name === 'is-selected')
+        return (
+          <span className={cn(tile, 'rounded-full emphasis-subtle', name)} />
+        )
       if (name === 'is-interactive')
         return (
           <button

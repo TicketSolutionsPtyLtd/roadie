@@ -53,7 +53,7 @@ export const toggleGroupItemVariants = cva(
       {
         raisePressed: true,
         emphasis: 'subtler',
-        className: 'data-[pressed]:emphasis-subtle'
+        className: 'data-[pressed]:emphasis-subtle data-[pressed]:is-selected'
       }
     ],
     defaultVariants: { size: 'md', emphasis: 'normal', raisePressed: true }
@@ -75,7 +75,7 @@ export const toggleGroupIndicatorVariants = cva(
       emphasis: {
         normal: 'emphasis-strong',
         subtle: 'emphasis-strong',
-        subtler: 'emphasis-subtle'
+        subtler: 'emphasis-subtle is-selected'
       }
     },
     defaultVariants: { emphasis: 'normal' }
