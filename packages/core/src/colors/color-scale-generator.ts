@@ -1,4 +1,5 @@
 import { getContrastColor } from './contrast'
+import { getAccentChromaSync } from './srgb-to-oklch'
 
 // --- Types ---
 
@@ -158,7 +159,7 @@ export async function generateAccentScale(
   const Color = await getColorClass()
   const color = new Color(accentHex).to('oklch')
   const hue = Number(color.coords[2]) || 0
-  const chroma = Math.max(Number(color.coords[1]) || 0, 0.1)
+  const chroma = Math.max(getAccentChromaSync(accentHex), 0.1)
 
   const light = curveToHex(Color, ACCENT_LIGHT_CURVE, hue, chroma)
   const dark = curveToHex(Color, ACCENT_DARK_CURVE, hue, chroma)
