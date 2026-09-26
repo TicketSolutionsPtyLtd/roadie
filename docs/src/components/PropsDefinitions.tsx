@@ -100,6 +100,14 @@ const BASE_UI_COMPOUNDS: Record<string, BaseUiCompound> = {
       GroupLabel: 'grouplabel'
     }
   },
+  OTPField: {
+    slug: 'otp-field',
+    parts: {
+      Root: 'root',
+      Input: 'input',
+      Separator: 'separator'
+    }
+  },
   NumberField: {
     slug: 'number-field',
     parts: {

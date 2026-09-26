@@ -23,6 +23,7 @@ import {
   Menu as MenuViaBarrel,
   Navigator as NavigatorViaBarrel,
   NumberField as NumberFieldViaBarrel,
+  OTPField as OTPFieldViaBarrel,
   Pane as PaneViaBarrel,
   Popover as PopoverViaBarrel,
   Progress as ProgressViaBarrel,
@@ -52,6 +53,7 @@ import { Logo } from '@oztix/roadie-components/logo'
 import { Menu } from '@oztix/roadie-components/menu'
 import { Navigator } from '@oztix/roadie-components/navigator'
 import { NumberField } from '@oztix/roadie-components/number-field'
+import { OTPField } from '@oztix/roadie-components/otp-field'
 import { Pane } from '@oztix/roadie-components/pane'
 import { Popover } from '@oztix/roadie-components/popover'
 import { Progress } from '@oztix/roadie-components/progress'
@@ -537,6 +539,25 @@ export default function RscSmokePage() {
           <TooltipViaBarrel.Trigger>Hover for a label</TooltipViaBarrel.Trigger>
           <TooltipViaBarrel.Content>A label</TooltipViaBarrel.Content>
         </TooltipViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          OTPField as bare root (canonical)
+        </h2>
+        <OTPField length={6} groupSize={3} aria-label='Login code' />
+        <OTPField.Root length={4} aria-label='Door code'>
+          <OTPField.Input />
+          <OTPField.Input />
+          <OTPField.Separator />
+          <OTPField.Input />
+          <OTPField.Input />
+        </OTPField.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>OTPField via barrel</h2>
+        <OTPFieldViaBarrel length={6} aria-label='Login code' />
       </section>
 
       <section className='grid gap-2'>
