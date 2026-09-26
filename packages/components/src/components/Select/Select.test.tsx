@@ -232,3 +232,37 @@ describe('Select', () => {
     expect(getByRole('combobox')).not.toHaveAttribute('data-disabled')
   })
 })
+
+describe('Field text description', () => {
+  it('stays on the helper text when only the control is invalid', () => {
+    const { getByRole } = render(
+      <Field>
+        <Field.Label>Industry</Field.Label>
+        <Select invalid>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick one' />
+          </Select.Trigger>
+        </Select>
+        <Field.HelperText>Helper</Field.HelperText>
+        <Field.ErrorText>Error</Field.ErrorText>
+      </Field>
+    )
+    expect(getByRole('combobox')).toHaveAccessibleDescription('Helper')
+  })
+
+  it('points at the error text when the Field is invalid', () => {
+    const { getByRole } = render(
+      <Field invalid>
+        <Field.Label>Industry</Field.Label>
+        <Select>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick one' />
+          </Select.Trigger>
+        </Select>
+        <Field.HelperText>Helper</Field.HelperText>
+        <Field.ErrorText>Error</Field.ErrorText>
+      </Field>
+    )
+    expect(getByRole('combobox')).toHaveAccessibleDescription('Error')
+  })
+})

@@ -45,7 +45,7 @@ export function NumberFieldInput({
     pointerFocus,
     setPointerFocus
   } = use(NumberFieldContext)
-  const { errorTextId, helperTextId } = useFieldContext()
+  const field = useFieldContext()
   const chip = emphasis === 'subtler' && editable
   const flowFormat = animatableFormat(format)
   const animates = value != null && flowFormat !== null
@@ -91,7 +91,9 @@ export function NumberFieldInput({
         data-pointer-focus={pointerFocus || undefined}
         readOnly={!editable || undefined}
         aria-invalid={invalid || undefined}
-        aria-describedby={(invalid ? errorTextId : helperTextId) || undefined}
+        aria-describedby={
+          (field.invalid ? field.errorTextId : field.helperTextId) || undefined
+        }
         onPointerDown={(event) => {
           setPointerFocus?.(false)
           setEditingSince?.(stepCount)
