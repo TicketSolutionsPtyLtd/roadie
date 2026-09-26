@@ -112,7 +112,7 @@ describe('Menu', () => {
     const shortcut = item.querySelector('[data-slot="menu-item-shortcut"]')
     expect(shortcut?.tagName).toBe('KBD')
     expect(shortcut).toHaveTextContent('⌘D')
-    expect(item).toHaveClass('data-[highlighted]:bg-subtle')
+    expect(item).toHaveClass('data-[highlighted]:focus-visible:bg-subtle')
   })
 
   it('colours a destructive item with its intent', async () => {
