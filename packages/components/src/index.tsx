@@ -44,6 +44,17 @@ export {
 export { Badge, badgeVariants, type BadgeProps } from './components/Badge'
 
 export {
+  Callout,
+  calloutVariants,
+  type CalloutProps,
+  type CalloutIconProps,
+  type CalloutTitleProps,
+  type CalloutDescriptionProps,
+  type CalloutActionsProps,
+  type CalloutEmphasis
+} from './components/Callout'
+
+export {
   CalendarTile,
   calendarTileVariants,
   type CalendarTileProps

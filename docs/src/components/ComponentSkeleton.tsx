@@ -458,6 +458,15 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <div className='mt-1 h-6 w-20 emphasis-normal rounded-full' />
         </div>
       )
+    case 'callout':
+      return (
+        <div className='grid w-44 grid-cols-[auto_1fr] items-start gap-x-2 gap-y-1.5 rounded-xl emphasis-subtle p-3 intent-info'>
+          <div className='size-3 rounded-full bg-strong/40' />
+          <Skel className='h-2 w-16' />
+          <Skel className='col-start-2 h-1.5 w-full' />
+          <Skel className='col-start-2 h-1.5 w-20' />
+        </div>
+      )
     case 'skeleton':
       return (
         <div className='flex w-40 items-center gap-3'>

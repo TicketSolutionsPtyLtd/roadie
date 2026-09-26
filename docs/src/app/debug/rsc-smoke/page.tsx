@@ -14,6 +14,7 @@ import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
 import { createShowDashboard } from '@oztix/roadie-charts/examples'
 import {
   Avatar as AvatarViaBarrel,
+  Callout as CalloutViaBarrel,
   CheckboxGroup as CheckboxGroupViaBarrel,
   Collapsible as CollapsibleViaBarrel,
   Dialog as DialogViaBarrel,
@@ -38,6 +39,7 @@ import { Accordion } from '@oztix/roadie-components/accordion'
 import { Autocomplete } from '@oztix/roadie-components/autocomplete'
 import { Avatar } from '@oztix/roadie-components/avatar'
 import { Breadcrumb } from '@oztix/roadie-components/breadcrumb'
+import { Callout } from '@oztix/roadie-components/callout'
 import { Card } from '@oztix/roadie-components/card'
 import { Carousel } from '@oztix/roadie-components/carousel'
 import { Checkbox } from '@oztix/roadie-components/checkbox'
@@ -869,6 +871,23 @@ export default function RscSmokePage() {
           <QRCode value='A7K2MKWX' className='w-32' />
           <QRCode value='A7K2MKWX' branded={false} className='w-32' />
         </div>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Callout</h2>
+        <Callout intent='info' title='Doors open at 7pm'>
+          Short form, rendered from a server component.
+        </Callout>
+        <Callout.Root intent='warning'>
+          <Callout.Icon />
+          <Callout.Title render={<h3 />}>
+            Only 20 tickets left at this price
+          </Callout.Title>
+          <Callout.Description>
+            Explicit <code>&lt;Callout.Root&gt;</code> with every part.
+          </Callout.Description>
+        </Callout.Root>
+        <CalloutViaBarrel intent='success'>Via the barrel</CalloutViaBarrel>
       </section>
 
       <section className='grid gap-4'>
