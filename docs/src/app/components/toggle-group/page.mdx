@@ -1,0 +1,223 @@
+export const metadata = {
+  title: 'Toggle group',
+  description: 'A segmented control for picking a view, a date range or a set of options',
+  status: 'beta',
+  category: 'Actions',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A segmented control for picking a view, a date range or a set of options.
+
+## Import
+
+```tsx
+import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
+```
+
+## Examples
+
+### Default
+
+A bordered track with a solid pill on the pressed item. The pill slides when the choice changes. Segments share the width of the widest.
+
+```tsx-live
+<ToggleGroup aria-label='Date range' defaultValue={['30d']}>
+  <ToggleGroup.Item value='7d'>7 days</ToggleGroup.Item>
+  <ToggleGroup.Item value='30d'>30 days</ToggleGroup.Item>
+  <ToggleGroup.Item value='90d'>90 days</ToggleGroup.Item>
+</ToggleGroup>
+```
+
+### Emphasis
+
+Emphasis sets the track at rest, as on `Toggle`, where pressed steps up to strong. `normal` has a bordered track and `subtle` a tinted one, each with a solid pill. `subtler` is the only one without a track, with a tinted pill, for dense toolbars. The height is the same at every emphasis.
+
+```tsx-live
+<div className='grid justify-items-start gap-4'>
+  {['normal', 'subtle', 'subtler'].map((emphasis) => (
+    <ToggleGroup key={emphasis} emphasis={emphasis} aria-label='Date range' defaultValue={['30d']}>
+      <ToggleGroup.Item value='7d'>7 days</ToggleGroup.Item>
+      <ToggleGroup.Item value='30d'>30 days</ToggleGroup.Item>
+      <ToggleGroup.Item value='90d'>90 days</ToggleGroup.Item>
+    </ToggleGroup>
+  ))}
+</div>
+```
+
+### Sizes
+
+The control is as tall as a `Button` of the same size, so it lines up in a toolbar.
+
+```tsx-live
+<div className='grid justify-items-start gap-4'>
+  {['sm', 'md', 'lg'].map((size) => (
+    <div key={size} className='flex items-center gap-2'>
+      <ToggleGroup size={size} aria-label='Date range' defaultValue={['30d']}>
+        <ToggleGroup.Item value='7d'>7 days</ToggleGroup.Item>
+        <ToggleGroup.Item value='30d'>30 days</ToggleGroup.Item>
+        <ToggleGroup.Item value='90d'>90 days</ToggleGroup.Item>
+      </ToggleGroup>
+      <Button size={size}>Export</Button>
+    </div>
+  ))}
+</div>
+```
+
+### Intents
+
+The intent colours the pill and tints the labels and the track.
+
+```tsx-live
+<div className='grid justify-items-start gap-4'>
+  <ToggleGroup intent='accent' aria-label='Seating' defaultValue={['seated']}>
+    <ToggleGroup.Item value='seated'>Seated</ToggleGroup.Item>
+    <ToggleGroup.Item value='standing'>Standing</ToggleGroup.Item>
+  </ToggleGroup>
+  <ToggleGroup intent='brand' aria-label='Seating' defaultValue={['seated']}>
+    <ToggleGroup.Item value='seated'>Seated</ToggleGroup.Item>
+    <ToggleGroup.Item value='standing'>Standing</ToggleGroup.Item>
+  </ToggleGroup>
+</div>
+```
+
+### States
+
+```tsx-live
+<div className='grid justify-items-start gap-4'>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>Nothing chosen yet</p>
+    <ToggleGroup aria-label='Ticket type'>
+      <ToggleGroup.Item value='ga'>General admission</ToggleGroup.Item>
+      <ToggleGroup.Item value='vip'>VIP</ToggleGroup.Item>
+    </ToggleGroup>
+  </div>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>One item disabled</p>
+    <ToggleGroup aria-label='Ticket type' defaultValue={['ga']}>
+      <ToggleGroup.Item value='ga'>General admission</ToggleGroup.Item>
+      <ToggleGroup.Item value='vip' disabled>VIP</ToggleGroup.Item>
+    </ToggleGroup>
+  </div>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <ToggleGroup aria-label='Ticket type' defaultValue={['ga']} disabled>
+      <ToggleGroup.Item value='ga'>General admission</ToggleGroup.Item>
+      <ToggleGroup.Item value='vip'>VIP</ToggleGroup.Item>
+    </ToggleGroup>
+  </div>
+</div>
+```
+
+### Composition
+
+#### With icons
+
+An item whose only child is an icon renders square. Give it an `aria-label`.
+
+```tsx-live
+<div className='grid justify-items-start gap-4'>
+  <ToggleGroup aria-label='View' defaultValue={['list']}>
+    <ToggleGroup.Item value='list' aria-label='List'>
+      <ListBulletsIcon weight='bold' />
+    </ToggleGroup.Item>
+    <ToggleGroup.Item value='grid' aria-label='Grid'>
+      <SquaresFourIcon weight='bold' />
+    </ToggleGroup.Item>
+  </ToggleGroup>
+  <ToggleGroup aria-label='View' defaultValue={['list']}>
+    <ToggleGroup.Item value='list'>
+      <ListBulletsIcon weight='bold' />
+      List
+    </ToggleGroup.Item>
+    <ToggleGroup.Item value='grid'>
+      <SquaresFourIcon weight='bold' />
+      Grid
+    </ToggleGroup.Item>
+  </ToggleGroup>
+</div>
+```
+
+#### Multiple
+
+With `multiple`, each item toggles on its own and any number can be pressed, including none. Each pressed item raises itself.
+
+```tsx-live
+<ToggleGroup multiple aria-label='Text style' defaultValue={['bold']}>
+  <ToggleGroup.Item value='bold' aria-label='Bold'>
+    <TextBIcon weight='bold' />
+  </ToggleGroup.Item>
+  <ToggleGroup.Item value='italic' aria-label='Italic'>
+    <TextItalicIcon weight='bold' />
+  </ToggleGroup.Item>
+  <ToggleGroup.Item value='underline' aria-label='Underline'>
+    <TextUnderlineIcon weight='bold' />
+  </ToggleGroup.Item>
+</ToggleGroup>
+```
+
+#### Vertical direction
+
+```tsx-live
+<ToggleGroup direction='vertical' aria-label='Sort' defaultValue={['date']}>
+  <ToggleGroup.Item value='date'>Date</ToggleGroup.Item>
+  <ToggleGroup.Item value='price'>Price</ToggleGroup.Item>
+  <ToggleGroup.Item value='popularity'>Popularity</ToggleGroup.Item>
+</ToggleGroup>
+```
+
+#### Full width
+
+Stretch the track and the segments share the space equally.
+
+```tsx-live
+<ToggleGroup className='w-full' aria-label='Delivery' defaultValue={['mobile']}>
+  <ToggleGroup.Item value='mobile'>Mobile ticket</ToggleGroup.Item>
+  <ToggleGroup.Item value='print'>Print at home</ToggleGroup.Item>
+</ToggleGroup>
+```
+
+#### Controlled dashboard range
+
+`value` is always an array. In single mode it holds one item.
+
+```tsx-live-noinline
+function SalesRange() {
+  const [range, setRange] = useState(['30d'])
+  const days = { '7d': 7, '30d': 30, '90d': 90 }[range[0]]
+  return (
+    <div className='grid gap-3'>
+      <div className='flex flex-wrap items-center justify-between gap-3'>
+        <h3 className='text-display-ui-5 text-strong'>Tickets sold</h3>
+        <ToggleGroup size='sm' aria-label='Date range' value={range} onValueChange={setRange}>
+          <ToggleGroup.Item value='7d'>7 days</ToggleGroup.Item>
+          <ToggleGroup.Item value='30d'>30 days</ToggleGroup.Item>
+          <ToggleGroup.Item value='90d'>90 days</ToggleGroup.Item>
+        </ToggleGroup>
+      </div>
+      <p className='text-sm text-subtle'>Showing the last {days} days at The Paper Lantern, Fitzroy.</p>
+    </div>
+  )
+}
+
+render(<SalesRange />)
+```
+
+## Guidelines
+
+- **Tabs switch panels; a toggle group sets a value.** Use `Tabs` when each choice shows its own content below. Use a toggle group when the choice changes how the same content is filtered or shown, such as a date range or a list or grid view.
+- **It is as tall as a `Button` of the same size**, so it lines up beside buttons in a toolbar or a dashboard header.
+- **Use `subtler` in a dense toolbar.** It has no track, so it sits quietly beside other controls.
+- **Keep it to two to five short options.** For more, or for long labels, use `Select` or `RadioGroup`.
+- **A single-choice group can't be emptied.** Clicking the pressed item leaves it pressed, so a chart always has a range. Set `defaultValue` so something is chosen from the start.
+- **Use `multiple` for independent switches** such as text styles. For a single on and off switch, use `Toggle`.
+- **Label the group.** Give the root an `aria-label`, or point `aria-labelledby` at a visible heading.
+
+## Accessibility
+
+- Renders `role='group'`. Each item is a `<button>` with `aria-pressed`, so screen readers read which items are on.
+- **Keyboard:** `Tab` moves into the group, onto the pressed item, and out again. Arrow keys move between items (`ArrowLeft` and `ArrowRight`, or `ArrowUp` and `ArrowDown` when vertical), and `Home` and `End` jump to the ends. `Space` and `Enter` press the focused item.
+- A disabled item is skipped by the arrow keys.
+- **Reduced motion:** under `prefers-reduced-motion: reduce` the pill moves without sliding.
+
+<PropsDefinitions componentPath='packages/components/src/components/ToggleGroup' />

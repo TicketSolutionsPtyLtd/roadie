@@ -34,7 +34,6 @@
   /* A raised trigger's rim is a resting highlight. Once a state colours the
      border, the border is the edge, and the rim inside it shows as a white
      gap. */
-  &:hover,
   &:focus,
   &[aria-invalid='true'],
   &[data-popup-open] {
@@ -42,9 +41,12 @@
   }
 
   /* Hover — neutral tint */
-  &:hover {
-    background-color: var(--field-hover-bg);
-    border-color: var(--color-neutral-7);
+  @media (hover: hover) {
+    &:hover {
+      --rim-light-strong: 0 0 #0000;
+      background-color: var(--field-hover-bg);
+      border-color: var(--color-neutral-7);
+    }
   }
 
   /* Focus — accent border + outline ring */
@@ -54,9 +56,11 @@
     outline-width: var(--focus-ring-width);
   }
 
-  &:hover:focus {
-    background-color: var(--field-focus-bg);
-    border-color: var(--color-accent-9);
+  @media (hover: hover) {
+    &:hover:focus {
+      background-color: var(--field-focus-bg);
+      border-color: var(--color-accent-9);
+    }
   }
 
   /* Invalid — danger border + outline ring */
@@ -70,9 +74,11 @@
     );
   }
 
-  &[aria-invalid='true']:hover {
-    background-color: var(--color-danger-3);
-    border-color: var(--color-danger-9);
+  @media (hover: hover) {
+    &[aria-invalid='true']:hover {
+      background-color: var(--color-danger-3);
+      border-color: var(--color-danger-9);
+    }
   }
 
   &[aria-invalid='true']:focus {
@@ -135,7 +141,6 @@
   /* A raised trigger's rim is a resting highlight. Once a state colours the
      border, the border is the edge, and the rim inside it shows as a white
      gap. */
-  &:hover,
   &:focus-within,
   &[aria-invalid='true'],
   &[data-popup-open] {
@@ -143,9 +148,12 @@
   }
 
   /* Hover — neutral tint */
-  &:hover {
-    background-color: var(--field-hover-bg);
-    border-color: var(--color-neutral-7);
+  @media (hover: hover) {
+    &:hover {
+      --rim-light-strong: 0 0 #0000;
+      background-color: var(--field-hover-bg);
+      border-color: var(--color-neutral-7);
+    }
   }
 
   /* Focus-within — accent border + outline ring */
@@ -155,9 +163,11 @@
     outline-width: var(--focus-ring-width);
   }
 
-  &:hover:focus-within {
-    background-color: var(--field-focus-bg);
-    border-color: var(--color-accent-9);
+  @media (hover: hover) {
+    &:hover:focus-within {
+      background-color: var(--field-focus-bg);
+      border-color: var(--color-accent-9);
+    }
   }
 
   /* Invalid — danger border + outline ring */
@@ -171,9 +181,11 @@
     );
   }
 
-  &[aria-invalid='true']:hover {
-    background-color: var(--color-danger-3);
-    border-color: var(--color-danger-9);
+  @media (hover: hover) {
+    &[aria-invalid='true']:hover {
+      background-color: var(--color-danger-3);
+      border-color: var(--color-danger-9);
+    }
   }
 
   &[aria-invalid='true']:focus-within {
@@ -206,10 +218,23 @@
   }
 }
 
-/* ─── Disclosure animation (details/summary) ─── */
+/* ─── Disclosure animation ─── */
 
-/* Put on a `<details>` so its content opens and closes by height. */
+/* Put on a `<details>`, or a Base UI collapsible panel, so its content opens
+   and closes by height. */
 .is-disclosure-animated {
+  /* Base UI measures the panel into --collapsible-panel-height. */
+  &:not(details) {
+    height: var(--collapsible-panel-height);
+    overflow: clip;
+    transition: height var(--duration-moderate) var(--ease-enter);
+
+    &[data-starting-style],
+    &[data-ending-style] {
+      height: 0;
+    }
+  }
+
   &::details-content {
     height: 0;
     overflow: clip;

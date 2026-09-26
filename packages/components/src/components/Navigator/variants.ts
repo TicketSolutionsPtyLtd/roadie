@@ -1,5 +1,7 @@
 import { cva } from 'class-variance-authority'
 
+import { menuItemVariants, menuPopupClass } from '../Menu/variants'
+
 // dvh so collapsing browser chrome doesn't crop the bar.
 export const navigatorRootClass = [
   'group/navigator',
@@ -342,12 +344,6 @@ export const navigatorIndicatorVariants = cva(
 
 export type NavigatorIndicatorSurface = 'horizontal' | 'vertical'
 
-export const navigatorMenuPopupClass = [
-  'grid min-w-48 max-h-(--available-height) origin-(--transform-origin) gap-0.5 p-1',
-  'rounded-xl emphasis-floating is-translucent motion-scale outline-none'
-].join(' ')
+export const navigatorMenuPopupClass = menuPopupClass
 
-export const navigatorMenuItemClass = [
-  'flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-normal outline-none select-none',
-  'data-[highlighted]:bg-subtle'
-].join(' ')
+export const navigatorMenuItemClass = menuItemVariants()
