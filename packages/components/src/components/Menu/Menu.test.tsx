@@ -180,6 +180,40 @@ describe('Menu', () => {
     expect(view).toHaveAttribute('aria-disabled', 'true')
   })
 
+  it('forwards standard item attributes on action and link rows', async () => {
+    const onKeyDown = vi.fn()
+    render(
+      <Menu defaultOpen>
+        <Menu.Trigger>Open</Menu.Trigger>
+        <Menu.Content>
+          <Menu.Item
+            id='edit-row'
+            style={{ order: 1 }}
+            aria-describedby='edit-hint'
+            data-row='edit'
+            onKeyDown={onKeyDown}
+          >
+            Edit
+          </Menu.Item>
+          <Menu.Item href='/events/123' id='view-row' data-row='view'>
+            View
+          </Menu.Item>
+        </Menu.Content>
+      </Menu>
+    )
+    const edit = await screen.findByRole('menuitem', { name: 'Edit' })
+    expect(edit).toHaveAttribute('id', 'edit-row')
+    expect(edit).toHaveAttribute('aria-describedby', 'edit-hint')
+    expect(edit).toHaveAttribute('data-row', 'edit')
+    expect(edit).toHaveStyle({ order: '1' })
+    edit.focus()
+    await userEvent.keyboard('{Shift}')
+    expect(onKeyDown).toHaveBeenCalled()
+    const view = screen.getByRole('menuitem', { name: 'View' })
+    expect(view).toHaveAttribute('id', 'view-row')
+    expect(view).toHaveAttribute('data-row', 'view')
+  })
+
   it('toggles a checkbox item and shows its check', async () => {
     const user = userEvent.setup()
     const onCheckedChange = vi.fn()

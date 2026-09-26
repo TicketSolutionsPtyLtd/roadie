@@ -1,6 +1,6 @@
 'use client'
 
-import type { MouseEvent, ReactNode, Ref } from 'react'
+import type { RefAttributes } from 'react'
 
 import { Menu as MenuPrimitive } from '@base-ui/react/menu'
 
@@ -11,22 +11,22 @@ import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { type MenuItemDecorations, itemContent } from './itemContent'
 import { menuItemVariants } from './variants'
 
-export type MenuItemProps = MenuItemDecorations & {
-  /** Makes the row a link. Internal paths route through `RoadieLinkProvider`; external URLs open in a new tab. */
-  href?: string
-  onClick?: (event: MouseEvent<HTMLElement>) => void
-  /** `danger` for a destructive action. */
-  intent?: RoadieIntent
-  /** A disabled link row can't be followed. */
-  disabled?: boolean
-  /** @default true */
-  closeOnClick?: boolean
-  /** Text matched by type-ahead when the children aren't plain text. */
-  label?: string
-  className?: string
-  children: ReactNode
-  ref?: Ref<HTMLElement>
-}
+export type MenuItemProps = Omit<
+  MenuPrimitive.Item.Props,
+  'render' | 'nativeButton' | 'className'
+> &
+  RefAttributes<HTMLElement> &
+  MenuItemDecorations & {
+    /** Makes the row a link. Internal paths route through `RoadieLinkProvider`; external URLs open in a new tab. */
+    href?: string
+    /** `danger` for a destructive action. */
+    intent?: RoadieIntent
+    /** A disabled link row can't be followed. */
+    disabled?: boolean
+    /** @default true */
+    closeOnClick?: boolean
+    className?: string
+  }
 
 export function MenuItem({
   href,
@@ -52,8 +52,8 @@ export function MenuItem({
     return (
       // Client routing keeps the page mounted, so following a link must close the menu.
       <MenuPrimitive.LinkItem
-        {...shared}
-        ref={ref as Ref<HTMLAnchorElement>}
+        {...(shared as MenuPrimitive.LinkItem.Props)}
+        ref={ref}
         render={<RoadieRoutedLink href={href} />}
       >
         {content}
