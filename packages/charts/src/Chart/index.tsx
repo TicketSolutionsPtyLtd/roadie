@@ -4,6 +4,7 @@ import {
   Component,
   type ReactNode,
   useCallback,
+  useEffect,
   useId,
   useMemo,
   useState
@@ -171,6 +172,10 @@ export function Chart({
   ...props
 }: ChartProps) {
   const [report, setReport] = useState<ChartReport | null>(null)
+  // A real chart reports its table in its own mount effect, which fires
+  // before this one, so it never sees this flag turn true without a report.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
   // The failure belongs to the plot that caused it, so new children retry.
   const [failedOn, setFailedOn] = useState<ReactNode>(null)
   const failed = failedOn !== null && failedOn === children
@@ -239,6 +244,10 @@ export function Chart({
                     caption={label}
                     plain
                   />
+                ) : mounted ? (
+                  // A custom child with no table prop and no report of its
+                  // own never fills this in, so stop waiting after mount.
+                  <p className='text-sm text-subtle'>No table for this chart</p>
                 ) : (
                   // The chart reports its table from an effect, so a server
                   // render has none until it hydrates.

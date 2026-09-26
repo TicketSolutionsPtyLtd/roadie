@@ -139,7 +139,20 @@ describe('Chart', () => {
     )
     const pane = container.querySelector('[data-chart-view=table]')!
     expect(pane.querySelector('[data-slot=skeleton]')).toBeNull()
+    expect(pane.querySelector('[data-slot=skeleton]')).not.toBeInTheDocument()
+    expect(screen.queryByText('No table for this chart')).toBeNull()
     expect(screen.getByRole('table')).toBeInTheDocument()
+  })
+
+  it('shows the empty state, not a forever skeleton, for a custom child with no table', () => {
+    const { container } = render(
+      <Chart label='Custom' source='Oztix sales.' view='table'>
+        <svg role='img' aria-label='Custom plot' />
+      </Chart>
+    )
+    const pane = container.querySelector('[data-chart-view=table]')!
+    expect(pane.querySelector('[data-slot=skeleton]')).toBeNull()
+    expect(screen.getByText('No table for this chart')).toBeInTheDocument()
   })
 
   it('places its size on the grid child', () => {
