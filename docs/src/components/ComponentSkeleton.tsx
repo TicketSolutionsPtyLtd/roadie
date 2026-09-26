@@ -95,6 +95,21 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='h-2 w-16 opacity-50' />
         </div>
       )
+    case 'number-field':
+      return (
+        <div className='flex w-32 items-center justify-between rounded-lg border border-subtle bg-normal p-1'>
+          <div className='grid size-6 place-items-center rounded-full bg-subtle text-subtle'>
+            <div className='h-0.5 w-2.5 rounded-full bg-current' />
+          </div>
+          <span className='text-sm font-semibold text-strong tabular-nums'>
+            2
+          </span>
+          <div className='grid size-6 place-items-center rounded-full bg-subtle text-subtle *:col-start-1 *:row-start-1'>
+            <div className='h-0.5 w-2.5 rounded-full bg-current' />
+            <div className='h-2.5 w-0.5 rounded-full bg-current' />
+          </div>
+        </div>
+      )
     case 'textarea':
       return (
         <div className='grid w-40 gap-1.5 rounded-lg border border-subtle bg-normal px-3 py-2'>
