@@ -15,6 +15,10 @@ export const intentVariants = {
 /** The title style for a surface that owns a region of the screen. */
 export const surfaceTitleClass = 'text-display-ui-4 text-strong'
 
+/** A disclosure caret's size and turn. Pair with an open-state `rotate-180`. */
+export const disclosureCaretClass =
+  'size-4 shrink-0 transition-transform duration-moderate ease-enter'
+
 /** A literal union, because `react-docgen-typescript` can't read CVA types. */
 export type RoadieIntent = keyof typeof intentVariants
 

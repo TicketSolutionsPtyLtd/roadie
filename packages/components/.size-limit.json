@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "123 kB"
+    "limit": "130 kB"
   },
   {
     "name": "Single component (Button)",
@@ -17,6 +17,13 @@
     "path": "dist/components/Navigator/index.js",
     "import": "*",
     "limit": "38 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Menu",
+    "path": "dist/components/Menu/index.js",
+    "import": "*",
+    "limit": "3 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -120,6 +127,55 @@
     "path": "dist/components/Dashboard/index.js",
     "import": "*",
     "limit": "3 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Progress",
+    "path": "dist/components/Progress/index.js",
+    "import": "*",
+    "limit": "1.5 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Collapsible",
+    "path": "dist/components/Collapsible/index.js",
+    "import": "*",
+    "limit": "2.5 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Checkbox",
+    "path": "dist/components/Checkbox/index.js",
+    "import": "*",
+    "limit": "2 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "CheckboxGroup",
+    "path": "dist/components/CheckboxGroup/index.js",
+    "import": "*",
+    "limit": "3 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Switch",
+    "path": "dist/components/Switch/index.js",
+    "import": "*",
+    "limit": "2.5 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "NumberField",
+    "path": "dist/components/NumberField/index.js",
+    "import": "*",
+    "limit": "9.5 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Avatar",
+    "path": "dist/components/Avatar/index.js",
+    "import": "*",
+    "limit": "2.5 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]
