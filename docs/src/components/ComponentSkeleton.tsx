@@ -132,6 +132,18 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'progress':
+      return (
+        <div className='grid w-40 gap-2'>
+          <div className='flex items-center justify-between'>
+            <Skel className='h-2 w-20' />
+            <Skel className='h-2 w-6' />
+          </div>
+          <div className='h-1.5 overflow-hidden rounded-full bg-(--intent-4)'>
+            <div className='h-full w-3/5 bg-chart-highlight' />
+          </div>
+        </div>
+      )
     case 'code':
       return (
         <div className='rounded-md emphasis-subtle px-2 py-0.5 font-mono text-xs'>

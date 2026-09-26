@@ -139,6 +139,11 @@ const playsNowUtilities = [
     name: 'animate-shimmer',
     description:
       'Pulse plus a viewport-anchored highlight, for loading placeholders'
+  },
+  {
+    name: 'animate-indeterminate',
+    description:
+      'A bar sweeping across its clipped parent, for work of unknown length'
   }
 ]
 
