@@ -21,6 +21,7 @@ import {
   Navigator as NavigatorViaBarrel,
   Pane as PaneViaBarrel,
   Popover as PopoverViaBarrel,
+  Progress as ProgressViaBarrel,
   ScrollArea as ScrollAreaViaBarrel,
   Tabs as TabsViaBarrel,
   Tooltip as TooltipViaBarrel
@@ -42,6 +43,7 @@ import { Logo } from '@oztix/roadie-components/logo'
 import { Navigator } from '@oztix/roadie-components/navigator'
 import { Pane } from '@oztix/roadie-components/pane'
 import { Popover } from '@oztix/roadie-components/popover'
+import { Progress } from '@oztix/roadie-components/progress'
 import { QRCode } from '@oztix/roadie-components/qr-code'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { ScrollArea } from '@oztix/roadie-components/scroll-area'
@@ -520,6 +522,24 @@ export default function RscSmokePage() {
             Imported from the root barrel.
           </CollapsibleViaBarrel.Panel>
         </CollapsibleViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Progress as bare root (canonical)
+        </h2>
+        <Progress value={120} max={400} valueText='120 of 400'>
+          <Progress.Label>Importing attendees</Progress.Label>
+          <Progress.Value />
+          <Progress.Track>
+            <Progress.Indicator />
+          </Progress.Track>
+        </Progress>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Progress via barrel</h2>
+        <ProgressViaBarrel value={null} label='Preparing export' />
       </section>
 
       <section className='grid gap-2'>

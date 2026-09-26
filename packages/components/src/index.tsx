@@ -137,6 +137,15 @@ export {
 } from './components/Skeleton'
 
 export {
+  Progress,
+  type ProgressProps,
+  type ProgressLabelProps,
+  type ProgressValueProps,
+  type ProgressTrackProps,
+  type ProgressIndicatorProps
+} from './components/Progress'
+
+export {
   ScrollArea,
   scrollAreaRootVariants,
   scrollAreaViewportVariants,
