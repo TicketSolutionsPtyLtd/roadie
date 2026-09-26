@@ -22,14 +22,14 @@
 
   &.is-interactive:focus-visible,
   &.is-interactive-within:has([data-interactive-target]:focus-visible) {
-    background-color: var(--intent-11);
+    background-color: var(--intent-bg-strong-hover);
     transform: translateY(-1px);
     box-shadow: var(--rim-light-subtle), var(--shadow-sm);
   }
   @media (hover: hover) {
     &.is-interactive:hover,
     &.is-interactive-within:has([data-interactive-target]:hover) {
-      background-color: var(--intent-11);
+      background-color: var(--intent-bg-strong-hover);
       transform: translateY(-1px);
       box-shadow: var(--rim-light-subtle), var(--shadow-sm);
     }
@@ -37,7 +37,7 @@
   &.is-interactive:active,
   &.is-interactive.is-active,
   &.is-interactive-within:has([data-interactive-target]:active) {
-    background-color: var(--intent-12);
+    background-color: var(--intent-bg-strong-active);
     transform: translateY(0) scale(0.99);
     box-shadow: none;
   }
@@ -122,9 +122,11 @@
   }
 }
 
+/* Step 0, not text-inverted: that is the ink for strong fills, which a
+   colour intent keeps dark in light mode. */
 @utility emphasis-inverted {
   background-color: var(--intent-bg-inverted);
-  color: var(--intent-text-inverted);
+  color: var(--intent-0);
 }
 
 @utility emphasis-raised {
@@ -235,7 +237,7 @@
   background-color: oklch(0.1 0.04 var(--intent-hue) / 0.55);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  color: var(--intent-text-inverted);
+  color: var(--intent-0);
 
   @media (prefers-reduced-transparency: reduce) {
     -webkit-backdrop-filter: none;
@@ -247,5 +249,5 @@
    peeks over its page. */
 @utility emphasis-overlay-subtle {
   background-color: oklch(0.1 0.04 var(--intent-hue) / 0.25);
-  color: var(--intent-text-inverted);
+  color: var(--intent-0);
 }

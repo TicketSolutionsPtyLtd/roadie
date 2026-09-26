@@ -140,14 +140,16 @@ export default function ColorsPage() {
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>strong</td>
-                <td className='py-2 pr-4'>step 9 (neutral: 12)</td>
+                <td className='py-2 pr-4'>step 9 (neutral: 13)</td>
                 <td className='py-2 pr-4'>step 13</td>
                 <td className='py-2'>step 9</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>inverted</td>
                 <td className='py-2 pr-4'>step 12</td>
-                <td className='py-2 pr-4'>step 0</td>
+                <td className='py-2 pr-4'>
+                  step 0 (colour intents in light mode: 13)
+                </td>
                 <td className='py-2'>step 12</td>
               </tr>
               <tr>
@@ -268,6 +270,13 @@ export default function ColorsPage() {
           Set <Code>intent-*</Code> on a container to choose the color palette.
           Use <Code>emphasis-*</Code> shortcuts for combined bg + text +
           interactive states, or individual utilities for composability.
+        </p>
+        <p className='text-subtle'>
+          <Code>text-inverted</Code> is the text colour for a strong fill. On a
+          colour intent the fill is a mid tone, so the text is dark in both
+          modes and reads at 4.5:1 or better. On neutral the fill is near black
+          in light mode, so the text is white. Hover and press lighten a colour
+          fill, which keeps the text readable.
         </p>
         <div className='grid gap-6'>
           {intents.map((intent) => (
