@@ -339,20 +339,19 @@ export const buttonVariants = cva('base-classes is-interactive', {
 Every link-bearing Roadie component (`Button`, `IconButton`, `Card`,
 `Card.Link`, `Breadcrumb.Link`, `Carousel.TitleLink`, `Tabs.Tab`, `List.Item`,
 `Menu.Item`, `Navigator.Item`, `Navigator.MenuItem`, `Navigator.Brand`) accepts a single
-`href` prop. Internal hrefs route through the configured
-`RoadieLinkProvider`; external hrefs (`http(s)://`, `//…`) auto-render
+`href` prop. Internal hrefs route through the Link given to
+`RoadieProvider` (or `RoadieLinkProvider`); external hrefs (`http(s)://`, `//…`) auto-render
 `<a target='_blank' rel='noopener noreferrer'>`; `mailto:` / `tel:` /
 `sms:` render plain `<a>`. No `href` and a button-shaped component
 renders `<button>`.
 
 ```tsx
-// Mount once at the app root (alongside ThemeProvider)
+// app/providers.tsx ('use client'), rendered around the root layout's children
+// Mounts links, theme, toasts, tooltips; each part takes options or `false`.
 import NextLink from 'next/link'
-import { RoadieLinkProvider, ThemeProvider } from '@oztix/roadie-components'
+import { RoadieProvider } from '@oztix/roadie-components'
 
-<RoadieLinkProvider Link={NextLink}>
-  <ThemeProvider>{children}</ThemeProvider>
-</RoadieLinkProvider>
+<RoadieProvider link={NextLink}>{children}</RoadieProvider>
 
 // Consumers pass href and stop thinking
 <Button href='/events/123'>View</Button>
@@ -365,7 +364,11 @@ Key conventions:
 
 1. **Don't import `next/link` from inside Roadie.** The provider is the
    only seam — Roadie stays framework-agnostic. Apps without a router
-   pass `null` (or omit the provider) and get plain `<a>` fallbacks.
+   omit `link` (or pass `null`) and get plain `<a>` fallbacks.
+   `RoadieProvider` composes `RoadieLinkProvider`, `ThemeProvider`,
+   `Toast.Provider` + `Toast.Viewport`, `Tooltip.Provider` and Base UI's
+   `DirectionProvider`. Each stays exported for scoped overrides (nearest
+   wins), and a dev warning flags duplicates at the root.
 2. **Don't reach for `render` first.** It's the escape hatch for the
    rare cases `href` can't express (custom elements, full prop control,
    state-aware rendering). Base UI consumers (`Button`, `IconButton`,

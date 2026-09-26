@@ -23,6 +23,7 @@ import { Drawer } from '../Drawer'
 import { PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
 import { PaneInspectorDrawerContext } from './PaneInspectorContext'
+import { PaneStackContext } from './PaneStackContext'
 import { PaneTitle } from './PaneTitle'
 import { PaneTitleCompact } from './PaneTitleCompact'
 import { traverseToBackHref } from './paneBack'
@@ -60,6 +61,7 @@ export function PaneHeader({
   const pane = use(PaneContext)
   const chrome = use(PaneChromeContext)
   const inDrawer = use(PaneInspectorDrawerContext)
+  const trackHeader = use(PaneStackContext)?.trackHeader
   const headerRef = useRef<HTMLElement>(null)
   const setHeaderRef = useMemo(
     () => mergeRefs<HTMLElement>(headerRef, ref),
@@ -138,11 +140,13 @@ export function PaneHeader({
     const observer =
       typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish)
     observer?.observe(header)
+    const untrack = inDrawer ? undefined : trackHeader?.(header)
     return () => {
       observer?.disconnect()
+      untrack?.()
       paneEl.style.removeProperty('--pane-header-height')
     }
-  }, [visible])
+  }, [visible, inDrawer, trackHeader])
 
   if (!visible) return null
 
