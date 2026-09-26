@@ -152,6 +152,16 @@ const BASE_UI_COMPOUNDS: Record<string, BaseUiCompound> = {
       ScrollDownArrow: 'scrolldownarrow',
       Separator: 'separator'
     }
+  },
+  Toggle: {
+    slug: 'toggle',
+    parts: {}
+  },
+  ToggleGroup: {
+    slug: 'toggle-group',
+    parts: {
+      Root: 'api-reference'
+    }
   }
 }
 

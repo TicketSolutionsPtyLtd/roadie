@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "130 kB"
+    "limit": "131.5 kB"
   },
   {
     "name": "Single component (Button)",
@@ -57,6 +57,20 @@
     "path": "dist/components/Table/index.js",
     "import": "*",
     "limit": "2 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Toggle",
+    "path": "dist/components/Toggle/index.js",
+    "import": "*",
+    "limit": "1 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "ToggleGroup",
+    "path": "dist/components/ToggleGroup/index.js",
+    "import": "*",
+    "limit": "2.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {

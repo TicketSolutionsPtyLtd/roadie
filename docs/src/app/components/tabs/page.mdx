@@ -5,6 +5,7 @@ export const metadata = {
   category: 'Navigation',
 }
 
+import { Guideline } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 Tabbed navigation between related views with an animated active indicator.
@@ -264,6 +265,18 @@ By default, panels mount only when active. Pass `keepMounted` on `Tabs.Panel` to
 - **Use Tabs for related views**, not for top-level page navigation. Reach for `Breadcrumb` or a sidebar instead when tabs would otherwise represent separate pages.
 - **Prefer `emphasis='normal'` inside cards or toolbars.** The segmented track gives the control its own visual frame. Reach for `emphasis='strong'` when tabs need to stand out against a busy or photographic background, `emphasis='subtle'` for a quieter ghost-segmented look, and `emphasis='subtler'` for a flat underline-only row that defers to the surrounding content.
 - **Place the `Tabs.Indicator` inside `Tabs.List`** as a sibling of the tabs themselves, not inside a tab. The indicator is positioned absolutely against the list and reads its geometry from Base UI's `--active-tab-*` CSS variables.
+
+<Guideline
+  title='Tabs switch panels; a toggle group sets a value'
+  description='Use Tabs when each choice shows its own content below. When the choice changes how the same content is filtered or shown, such as a date range or a list or grid view, use a toggle group.'
+>
+  <Guideline.Do code={`<Tabs.Tab value='overview'>Overview</Tabs.Tab>\n<Tabs.Tab value='settings'>Settings</Tabs.Tab>`}>
+    Each tab opens its own panel with different content.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Tabs.Tab value='7d'>7 days</Tabs.Tab>\n<Tabs.Tab value='30d'>30 days</Tabs.Tab>`}>
+    Tabs that only change the range of one chart. There are no separate panels, so use a [ToggleGroup](/components/toggle-group).
+  </Guideline.Dont>
+</Guideline>
 
 ## Accessibility
 
