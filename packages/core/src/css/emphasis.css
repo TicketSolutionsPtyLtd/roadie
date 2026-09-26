@@ -183,16 +183,16 @@
   color: var(--intent-text-normal);
 }
 
-/* The chosen item in a trackless control, over emphasis-subtle. The tint
-   alone reads about 1.1:1 against the page, so the edge carries the 3:1 a
-   selected state needs. Step 11, because border-strong (step 9) drops to 2:1
-   in the light success, warning and danger intents. Doubled to outrank the
-   emphasis in either emit order. */
+/* The chosen item in a trackless control, over emphasis-subtle: a soft fill
+   and a strong icon, which carry the state together. The fill alone is under
+   3:1, so this is for quiet controls. Doubled, and repeated for the
+   interactive states, to outrank the emphasis in either emit order. Forced
+   colours drop the fill, so an edge takes over. */
 @utility is-selected {
-  &:is(&) {
-    border-width: 1px;
-    border-style: solid;
-    border-color: var(--intent-11);
+  &:is(&),
+  &.is-interactive:is(&):is(:hover, :focus-visible, :active) {
+    background-color: var(--intent-5);
+    border-color: transparent;
     color: var(--intent-text-strong);
   }
 

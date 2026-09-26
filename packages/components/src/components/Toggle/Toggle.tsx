@@ -43,7 +43,7 @@ export type ToggleProps = TogglePrimitive.Props &
     intent?: RoadieIntent
     /**
      * Emphasis at rest. Pressed steps up: `normal` and `subtle` to
-     * `strong`, `subtler` to a tinted fill with a strong edge.
+     * `strong`, `subtler` to a soft fill with a strong icon or label.
      *
      * @default 'normal'
      */

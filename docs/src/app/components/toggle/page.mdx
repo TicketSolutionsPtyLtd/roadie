@@ -25,7 +25,7 @@ import { Toggle } from '@oztix/roadie-components/toggle'
 
 ### Emphasis
 
-`emphasis` sets the look at rest. Pressed steps one rung up: `normal` and `subtle` become `strong`. A pressed `subtler` toggle takes a tinted fill, a strong edge and stronger text. A tint alone is too faint to see at small sizes, so the edge keeps at least 3:1 contrast against the surface in every intent, light or dark.
+`emphasis` sets the look at rest. Pressed steps one rung up: `normal` and `subtle` become `strong`. A pressed `subtler` toggle takes a soft fill with no border and a strong icon or label, and an unpressed one rests in subtle text. The subtler selected state relies on the fill and the icon together and doesn't meet 3:1 on the fill alone, so it's for quiet controls. Use `subtle` or `normal` when the state must stand out.
 
 ```tsx-live
 <div className='grid gap-4'>

@@ -42,7 +42,8 @@ export type ToggleGroupRootProps<Value extends string = string> = Omit<
     /**
      * The track at rest, as on Toggle. `normal` is bordered and `subtle` is
      * tinted, each with a solid pressed pill. `subtler` has no track and a
-     * tinted pill with a strong edge.
+     * soft pill and a strong
+     * label.
      *
      * @default 'normal'
      */
