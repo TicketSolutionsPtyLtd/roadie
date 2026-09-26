@@ -290,14 +290,12 @@ function aidKeys(
         ]
       : []),
     ...(band
-      ? [{ label: bandLabel, shape: 'band' as const, color: paint.band }]
-      : []),
-    ...(band?.median
       ? [
           {
-            label: `${bandLabel} median`,
-            shape: 'dash' as const,
-            color: paint.median
+            label: bandLabel,
+            shape: 'band' as const,
+            color: paint.band,
+            ...(band.median ? { median: paint.median } : {})
           }
         ]
       : []),

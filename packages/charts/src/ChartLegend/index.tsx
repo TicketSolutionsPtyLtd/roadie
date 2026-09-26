@@ -10,6 +10,8 @@ export type ChartLegendItem = LegendItem & {
    * dash as those marks.
    */
   slot?: number
+  /** Draws a dashed median in this colour through a `band` key. */
+  median?: string
 }
 export type ChartLegendShape = NonNullable<LegendItem['shape']>
 
@@ -20,14 +22,30 @@ export type ChartLegendProps = Omit<ComponentProps<'ul'>, 'children'> & {
 
 const DEFAULT_COLOR = 'var(--chart-highlight)'
 
+function DashedLine({ color }: { color: string }) {
+  return (
+    <line
+      x1={0}
+      x2={16}
+      y1={4}
+      y2={4}
+      stroke={color}
+      strokeWidth={1.25}
+      strokeDasharray='3 3'
+    />
+  )
+}
+
 export function LegendKey({
   shape = 'swatch',
   color = DEFAULT_COLOR,
-  slot
+  slot,
+  median
 }: {
   shape?: ChartLegendShape
   color?: string
   slot?: number
+  median?: string
 }) {
   return (
     <svg
@@ -48,8 +66,12 @@ export function LegendKey({
         />
       )}
       {shape === 'band' && (
-        <rect x={0} y={1} width={16} height={6} rx={2} fill={color} />
+        <>
+          <rect x={0} y={1} width={16} height={6} rx={2} fill={color} />
+          {median && <DashedLine color={median} />}
+        </>
       )}
+      {shape === 'dash' && <DashedLine color={color} />}
       {shape === 'line' && (
         <line
           x1={0}
@@ -60,17 +82,6 @@ export function LegendKey({
           strokeWidth={2}
           strokeLinecap='round'
           data-chart-dash={slot}
-        />
-      )}
-      {shape === 'dash' && (
-        <line
-          x1={0}
-          x2={16}
-          y1={4}
-          y2={4}
-          stroke={color}
-          strokeWidth={1.25}
-          strokeDasharray='3 3'
         />
       )}
       {shape === 'dot' && (
@@ -94,14 +105,22 @@ export function ChartLegend({ items, className, ...props }: ChartLegendProps) {
     <ul
       data-slot='chart-legend'
       className={cn(
-        'flex flex-wrap gap-x-4 gap-y-1 text-xs text-subtle',
+        'flex flex-wrap gap-x-3 gap-y-1 text-xs text-subtle',
         className
       )}
       {...props}
     >
       {items.map((item) => (
-        <li key={item.label} className='inline-flex items-center gap-1.5'>
-          <LegendKey shape={item.shape} color={item.color} slot={item.slot} />
+        <li
+          key={item.label}
+          className='inline-flex items-center gap-1.5 wrap-anywhere'
+        >
+          <LegendKey
+            shape={item.shape}
+            color={item.color}
+            slot={item.slot}
+            median={item.median}
+          />
           {item.label}
         </li>
       ))}

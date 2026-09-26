@@ -20,7 +20,7 @@ export type StaticRenderOptions = {
 
 const KEY_WIDTH = 16
 const KEY_GAP = 6
-const ITEM_GAP = 16
+const ITEM_GAP = 12
 
 type PlacedItem = ChartLegendItem & { x: number; row: number }
 
@@ -43,16 +43,21 @@ function placeLegend(
   })
 }
 
+const dashedLine = (x: number, y: number, color: string) =>
+  `<line x1="${x}" x2="${x + KEY_WIDTH}" y1="${y}" y2="${y}" stroke="${escapeXml(color)}" stroke-width="1.25" stroke-dasharray="3 3"/>`
+
 function legendKey(item: PlacedItem, y: number, paint: ChartPaint) {
-  const color = escapeXml(item.color ?? paint.highlight)
+  const raw = item.color ?? paint.highlight
+  const color = escapeXml(raw)
   const { x } = item
-  if (item.shape === 'line' || item.shape === 'dash' || item.shape === 'dot') {
+  if (item.shape === 'band')
+    return `<rect x="${x}" y="${y - 3}" width="${KEY_WIDTH}" height="6" rx="2" fill="${color}" fill-opacity="${paint.bandOpacity}"/>${item.median ? dashedLine(x, y, item.median) : ''}`
+  if (item.shape === 'dash') return dashedLine(x, y, raw)
+  if (item.shape === 'line' || item.shape === 'dot') {
     const dash =
-      item.shape === 'dash'
-        ? ' stroke-dasharray="3 3"'
-        : item.shape === 'dot'
-          ? ' stroke-dasharray="0.5 4" stroke-linecap="round"'
-          : ' stroke-linecap="round"'
+      item.shape === 'dot'
+        ? ' stroke-dasharray="0.5 4" stroke-linecap="round"'
+        : ' stroke-linecap="round"'
     return `<line x1="${x}" x2="${x + KEY_WIDTH}" y1="${y}" y2="${y}" stroke="${color}" stroke-width="2"${dash}/>`
   }
   return `<rect x="${x + 4}" y="${y - 4}" width="8" height="8" rx="2" fill="${color}"/>`

@@ -27,6 +27,40 @@ describe('ChartLegend', () => {
   })
 })
 
+describe('ChartLegend band key', () => {
+  it('draws a dashed median through the band when given one', () => {
+    const { container } = render(
+      <ChartLegend
+        items={[
+          {
+            label: 'Similar shows',
+            shape: 'band',
+            color: 'var(--chart-band)',
+            median: 'var(--chart-median)'
+          }
+        ]}
+      />
+    )
+    const key = container.querySelector('[data-shape=band]')!
+    expect(key.querySelector('rect')).toHaveAttribute(
+      'fill',
+      'var(--chart-band)'
+    )
+    expect(key.querySelector('line')).toHaveAttribute(
+      'stroke',
+      'var(--chart-median)'
+    )
+    expect(key.querySelector('line')).toHaveAttribute('stroke-dasharray', '3 3')
+  })
+
+  it('draws the band alone without a median', () => {
+    const { container } = render(
+      <ChartLegend items={[{ label: 'Similar shows', shape: 'band' }]} />
+    )
+    expect(container.querySelector('[data-shape=band] line')).toBeNull()
+  })
+})
+
 describe('ChartLegend keys for forced colours and print', () => {
   it('marks swatches with their texture and lines with their dash', () => {
     const { container } = render(

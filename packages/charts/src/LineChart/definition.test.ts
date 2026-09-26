@@ -228,9 +228,19 @@ describe('lineChart', () => {
       ['Sold', 'line'],
       ['Forecast', 'dot'],
       ['Similar shows', 'band'],
-      ['Similar shows median', 'dash'],
       ['Target 85%', 'line']
     ])
+  })
+
+  it('keys the band and its median as one entry', () => {
+    const similar = lineChart
+      .legend(paceExample, paint, plotFrame(160, 'narrow'))
+      .find((i) => i.label === 'Similar shows')
+    expect(similar).toMatchObject({
+      shape: 'band',
+      color: paint.band,
+      median: paint.median
+    })
   })
 
   it('dots a plain series forecast in its own colour', () => {

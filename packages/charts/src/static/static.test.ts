@@ -79,7 +79,20 @@ describe('renderChartSvg', () => {
     expect(narrow).not.toContain('data-ts-key="label-end')
     const legend = /<g data-slot="chart-legend"[^>]*>(.*?)<\/g>/.exec(narrow)
     expect(legend?.[1]).toMatch(
-      />Sold<.*>Forecast<.*>Similar shows<.*>Similar shows median<.*>Target 85%</
+      />Sold<.*>Forecast<.*>Similar shows<.*>Target 85%</
+    )
+    expect(legend?.[1]).not.toContain('median')
+  })
+
+  it('draws the band key with its median through it, like the live key', () => {
+    const narrow = renderChartSvg(lineChart, paceExample, {
+      mode: 'light',
+      width: 360,
+      height: 260
+    })
+    const legend = /<g data-slot="chart-legend"[^>]*>(.*?)<\/g>/.exec(narrow)
+    expect(legend?.[1]).toMatch(
+      /<rect [^>]*height="6"[^>]*\/><line [^>]*stroke-dasharray="3 3"\/><text [^>]*>Similar shows</
     )
   })
 

@@ -101,7 +101,7 @@ describe('LineChart in a card', () => {
       .not.toBeNull()
     expect(
       container.querySelector('[data-slot=chart-legend]')!.textContent
-    ).toContain('Similar shows median')
+    ).toContain('Similar shows')
     expect(container.querySelector('[data-ts-key^="label-end"]')).toBeNull()
   })
 
@@ -139,6 +139,39 @@ describe('LineChart in a card', () => {
       width: 800
     })
     expect(container.querySelector('[data-ts-key^="series-2:"]')).not.toBeNull()
+  })
+})
+
+// 256px is the dashboards page preview card. Two legend rows leave 175.6px
+// there; the old four rows left 135px.
+const MIN_PACE_PLOT_HEIGHT = 175
+
+describe.each([256, 328, 390])('LineChart legend on a %ipx card', (width) => {
+  it('wraps the pace legend into two rows and leaves the plot room', async () => {
+    const { container } = renderInCard(<LineChart {...paceExample} />, {
+      width
+    })
+    await expect
+      .poll(() => container.querySelector('[data-slot=chart-legend]'))
+      .not.toBeNull()
+    await afterResize()
+    const legend = container.querySelector('[data-slot=chart-legend]')!
+    const card = container.firstElementChild!
+    const rows = new Set(
+      Array.from(legend.children, (item) =>
+        Math.round(item.getBoundingClientRect().top)
+      )
+    )
+    const plot = container
+      .querySelector('[data-slot=chart-plot-host]')!
+      .getBoundingClientRect().height
+    expect(rows.size).toBeLessThanOrEqual(2)
+    expect(plot).toBeGreaterThanOrEqual(MIN_PACE_PLOT_HEIGHT)
+    expect(legend.scrollWidth).toBeLessThanOrEqual(legend.clientWidth)
+    expect(card.scrollWidth).toBeLessThanOrEqual(card.clientWidth)
+    const right = legend.getBoundingClientRect().right
+    for (const item of legend.children)
+      expect(item.getBoundingClientRect().right).toBeLessThanOrEqual(right)
   })
 })
 
