@@ -1,0 +1,55 @@
+export const metadata = {
+  title: 'SmallMultiples',
+  description:
+    'One small line or bar chart per gate, show or channel, on one scale',
+  status: 'beta',
+  category: 'Chart types',
+  order: 9
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+One small line or bar chart per gate, show or channel, on one scale.
+
+## Import
+
+```tsx
+import { SmallMultiples } from '@oztix/roadie-charts/small-multiples'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-180 max-w-full'>
+  <Chart label='Entry by gate' source='Oztix scans.' size='full'>
+    <SmallMultiples
+      data={['North gate', 'South gate', 'River entry'].flatMap((gate, g) =>
+        Array.from({ length: 8 }, (_, i) => ({
+          gate,
+          time: `2026-11-14T${String(17 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`,
+          scans: Math.round([300, 220, 140][g] * Math.exp(-(((i - 3) / 2) ** 2)))
+        }))
+      )}
+      by='gate'
+      chart={{ kind: 'bar', x: 'time', y: 'scans', interval: 'hour' }}
+      takeaway='North gate took the rush, with more than twice the peak of River entry'
+    />
+  </Chart>
+</div>
+```
+
+## Guidelines
+
+- Panels share one scale by default, so a short bar means fewer scans. Set `shared={false}` only when panels measure different things.
+- Panels lay out by the card's width: one column on a phone, more as the card grows.
+- `chart` takes `kind: 'line'` or `kind: 'bar'` and that chart's props, without `data`.
+
+## Accessibility
+
+- Each panel is its own plot and tab stop. It is named by its panel and its own summary, such as "North gate. Scans peaked at 300 at 6:30pm on Sat 14 Nov".
+- The takeaway is announced once, by the card, not by each panel.
+- The card's Table tab combines every panel, with the panel name in the first column.
+
+<PropsDefinitions componentPath='packages/charts/src/SmallMultiples/index.tsx' />

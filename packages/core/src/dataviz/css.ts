@@ -99,18 +99,18 @@ function modeBlock(p: Palette, mode: Mode, modern: boolean) {
   )
   const [l, c] = p.categorical[mode][0]!
   lines.push(
-    decl(
-      'chart-highlight',
-      modern
-        ? `oklch(${l} ${c} var(--accent-hue))`
-        : toHex([l, c, DEFAULT_ACCENT_HUE])
-    ),
+    modern
+      ? decl('chart-highlight-lc', `${l} ${c}`)
+      : decl('chart-highlight', toHex([l, c, DEFAULT_ACCENT_HUE])),
     decl('chart-band', band(p, mode, modern))
   )
   if (!modern)
     lines.push(...aliases(p, mode).map(([n, v]) => decl(n, v)), ...sets(p))
   return lines
 }
+
+const HIGHLIGHT_SCOPE =
+  ":root, .dark, [class*='intent-'], [style*='--accent-hue']"
 
 const inkBlock = [
   ":root, .dark, [class*='intent-'] {",
@@ -149,6 +149,10 @@ export function renderDatavizCss(p: Palette = defaultPalette): string {
     '',
     '  .dark {',
     ...indent(modeBlock(p, 'dark', true)),
+    '  }',
+    '',
+    `  ${HIGHLIGHT_SCOPE} {`,
+    '    --chart-highlight: oklch(var(--chart-highlight-lc) var(--accent-hue));',
     '  }',
     '}',
     ''

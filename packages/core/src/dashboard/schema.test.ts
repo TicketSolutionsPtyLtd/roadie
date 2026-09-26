@@ -54,6 +54,21 @@ describe('dashboardSchema', () => {
       expect(withLegendColor(color)).toBe(false)
   })
 
+  it('keys a band with its median as a flag', () => {
+    const withMedian = (median: unknown) =>
+      dashboardSchema.safeParse(
+        spec([
+          {
+            ...chart,
+            legend: [{ label: 'Similar shows', shape: 'band', median }]
+          }
+        ])
+      ).success
+    expect(withMedian(true)).toBe(true)
+    expect(withMedian(false)).toBe(true)
+    expect(withMedian('var(--chart-median)')).toBe(false)
+  })
+
   it('accepts a valid description', () => {
     expect(dashboardSchema.safeParse(spec([stat, chart])).success).toBe(true)
   })
@@ -64,13 +79,33 @@ describe('dashboardSchema', () => {
     ).toBe(false)
   })
 
-  it('requires a source and table on chart cards', () => {
+  it('requires a source on chart cards', () => {
     expect(
       dashboardSchema.safeParse(spec([withoutKey(chart, 'source')])).success
     ).toBe(false)
+  })
+
+  it('still requires a table when the plot is static', () => {
     expect(
       dashboardSchema.safeParse(spec([withoutKey(chart, 'table')])).success
     ).toBe(false)
+  })
+
+  it('lets a chart card leave out its table when the plot is a chart', () => {
+    const lineCard = {
+      ...withoutKey(chart, 'table'),
+      plot: {
+        kind: 'line',
+        data: [
+          { day: '2026-10-01', sold: 0.14 },
+          { day: '2026-10-02', sold: 0.2 }
+        ],
+        x: 'day',
+        y: 'sold',
+        format: 'percent'
+      }
+    }
+    expect(dashboardSchema.safeParse(spec([lineCard])).success).toBe(true)
   })
 
   it.each(['javascript:alert(1)', 'data:image/svg+xml,<svg/>', 'vbscript:x'])(
@@ -121,5 +156,15 @@ describe('dashboardSchema', () => {
   it('exports JSON Schema for tool inputs', () => {
     expect(dashboardJsonSchema).toMatchObject({ type: 'object' })
     expect(JSON.stringify(dashboardJsonSchema)).toContain('"stat"')
+    const legends: unknown[] = []
+    JSON.stringify(dashboardJsonSchema, (key, value: unknown) => {
+      if (key === 'legend') legends.push(value)
+      return value
+    })
+    expect(legends.length).toBeGreaterThan(0)
+    for (const legend of legends)
+      expect(legend).toMatchObject({
+        items: { properties: { median: { type: 'boolean' } } }
+      })
   })
 })

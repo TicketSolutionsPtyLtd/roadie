@@ -91,7 +91,7 @@ A ghost segmented control. It has no track, just a tinted pill that slides behin
 
 #### subtler
 
-A flat row with a sliding underline. Use for in-page section navigation where tabs should defer to the surrounding content.
+A flat row with a sliding underline. Use for in-page section navigation where tabs should defer to the surrounding content. Under forced colours the underline takes the system highlight colour.
 
 ```tsx-live
 <Tabs defaultValue='week' emphasis='subtler'>
@@ -129,6 +129,71 @@ A flat row with a sliding underline. Use for in-page section navigation where ta
       <Tabs.Tab value='day'>Day</Tabs.Tab>
       <Tabs.Tab value='week'>Week</Tabs.Tab>
       <Tabs.Tab value='month'>Month</Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+  </Tabs>
+</div>
+```
+
+### Icon only
+
+A tab that holds only an icon becomes a circle at every size and emphasis, and the indicator follows its shape. With `subtler`, the underline runs the width of the circle. Give each one an `aria-label`, because the icon has no text for assistive tech to read. Roadie warns in development when a name is missing.
+
+```tsx-live
+<div className='grid gap-4'>
+  <Tabs defaultValue='tickets' emphasis='strong'>
+    <Tabs.List aria-label='Event views'>
+      <Tabs.Tab value='tickets' aria-label='Tickets'>
+        <TicketIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
+      <Tabs.Tab value='attendees' aria-label='Attendees'>
+        <UsersIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
+      <Tabs.Tab value='payouts' aria-label='Payouts'>
+        <WalletIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+  </Tabs>
+  <Tabs defaultValue='tickets' emphasis='normal'>
+    <Tabs.List aria-label='Event views'>
+      <Tabs.Tab value='tickets' aria-label='Tickets'>
+        <TicketIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
+      <Tabs.Tab value='attendees' aria-label='Attendees'>
+        <UsersIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
+      <Tabs.Tab value='payouts' aria-label='Payouts'>
+        <WalletIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+  </Tabs>
+  <Tabs defaultValue='tickets' emphasis='subtle'>
+    <Tabs.List aria-label='Event views'>
+      <Tabs.Tab value='tickets' aria-label='Tickets'>
+        <TicketIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
+      <Tabs.Tab value='attendees' aria-label='Attendees'>
+        <UsersIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
+      <Tabs.Tab value='payouts' aria-label='Payouts'>
+        <WalletIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+  </Tabs>
+  <Tabs defaultValue='tickets' emphasis='subtler'>
+    <Tabs.List aria-label='Event views'>
+      <Tabs.Tab value='tickets' aria-label='Tickets'>
+        <TicketIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
+      <Tabs.Tab value='attendees' aria-label='Attendees'>
+        <UsersIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
+      <Tabs.Tab value='payouts' aria-label='Payouts'>
+        <WalletIcon weight='bold' className='size-4' />
+      </Tabs.Tab>
       <Tabs.Indicator />
     </Tabs.List>
   </Tabs>

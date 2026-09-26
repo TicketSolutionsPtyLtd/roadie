@@ -37,6 +37,16 @@ export const CHART_LABEL_LIMITS: Record<Exclude<CardSize, 'stat'>, number> = {
   full: 27
 }
 
+// Beside a More button: stat tiles at `stat`, chart cards at the rest. Table
+// and note labels keep COPY_LIMITS. Not validated, since actions aren't JSON.
+export const ACTIONS_LABEL_LIMITS: Record<CardSize, number> = {
+  stat: 14,
+  sm: 18,
+  md: 18,
+  lg: 23,
+  full: 23
+}
+
 export const DASHBOARD_WIDTHS = ['desktop', 'tablet', 'phone'] as const
 export type DashboardWidth = (typeof DASHBOARD_WIDTHS)[number]
 

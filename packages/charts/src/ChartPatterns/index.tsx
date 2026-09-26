@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { type CSSProperties, type ReactElement, useId, useMemo } from 'react'
 
 export const CHART_TEXTURE_COUNT = 8
 
@@ -15,7 +15,7 @@ const PATTERNS: readonly ReactElement[] = [
   <path key='8' d='M0 4q1.5-3 3 0t3 0' />
 ]
 
-export function ChartPatterns() {
+function defs(idFor: (slot: number) => string) {
   return (
     <svg
       aria-hidden
@@ -27,8 +27,8 @@ export function ChartPatterns() {
       <defs>
         {PATTERNS.map((shape, i) => (
           <pattern
-            key={chartTextureId(i + 1)}
-            id={chartTextureId(i + 1)}
+            key={idFor(i + 1)}
+            id={idFor(i + 1)}
             width={6}
             height={6}
             patternUnits='userSpaceOnUse'
@@ -42,4 +42,38 @@ export function ChartPatterns() {
     </svg>
   )
 }
+
+/**
+ * Shared, page-wide texture patterns at fixed ids. Render once per page,
+ * near the root — a second copy repeats the ids. `fill-texture-*` and the
+ * forced-colours rules fall back to these ids when no closer instance has
+ * set the `--chart-texture-*` custom properties (see `useChartPatterns`).
+ */
+export function ChartPatterns() {
+  return defs(chartTextureId)
+}
 ChartPatterns.displayName = 'ChartPatterns'
+
+/**
+ * Textures scoped to one chart instance, so several charts on the same page
+ * never repeat ids. Spread `style` onto an element that contains both the
+ * plot and any legend swatches using `fill-texture-*` or `data-chart-texture`
+ * — they read it through inheritance — and render `patterns` anywhere in
+ * that same subtree.
+ */
+export function useChartPatterns(): {
+  patterns: ReactElement
+  style: CSSProperties
+} {
+  // useId's `:` characters are valid in an HTML id but risk trouble unquoted
+  // inside url(#...); strip them rather than rely on browsers to cope.
+  const uid = useId().replace(/:/g, '')
+  const idFor = (slot: number) => `${uid}-texture-${slot}`
+  const style = useMemo(() => {
+    const vars: Record<string, string> = {}
+    for (let slot = 1; slot <= CHART_TEXTURE_COUNT; slot++)
+      vars[`--chart-texture-${slot}`] = `url(#${idFor(slot)})`
+    return vars as CSSProperties
+  }, [uid])
+  return { patterns: defs(idFor), style }
+}

@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 
+import { browserInstances } from '../../vitest.browsers.config.ts'
 import { reactCompilerPreset } from './react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
@@ -30,11 +31,6 @@ function importedPackages() {
   }
   return [...packages]
 }
-
-const browsers = (process.env.ROADIE_BROWSERS ?? 'chromium,webkit,firefox')
-  .split(',')
-  .map((name) => name.trim())
-  .filter(Boolean)
 
 const reduceMotion: BrowserCommand<[reduce: boolean]> = ({ page }, reduce) =>
   page.emulateMedia({ reducedMotion: reduce ? 'reduce' : 'no-preference' })
@@ -92,13 +88,7 @@ export default defineConfig({
             provider: playwright(),
             viewport: { width: 1920, height: 1080 },
             commands: { reduceMotion, forcedColors, parkPointer },
-            // Firefox pages share one active window, so a file that focuses its
-            // page blurs the files running beside it, and their keys and
-            // :focus-visible stop working. Its files run one at a time.
-            instances: browsers.map((browser) => ({
-              browser,
-              fileParallelism: browser !== 'firefox'
-            }))
+            instances: browserInstances
           }
         }
       }

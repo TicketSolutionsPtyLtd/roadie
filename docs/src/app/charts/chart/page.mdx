@@ -19,140 +19,270 @@ import { Chart } from '@oztix/roadie-charts/chart'
 
 ### Default
 
+The chart inside the card supplies the Table view and the summary a screen reader hears.
+
 ```tsx-live
 <div className='w-[560px] max-w-full'>
   <Chart
     label='Sales pace'
     value={0.61}
     format='percent'
-    delta={{ value: 9, format: 'points' }}
-    context='Ahead of similar shows. Forecast 96%'
+    delta={{ value: 16, format: 'points' }}
+    context='Ahead of similar shows'
     source='Oztix sales. 38 similar shows, last 3 years.'
-    table={{
-      columns: [
-        { key: 'days', header: 'Days to show', kind: 'number' },
-        { key: 'show', header: 'This show', kind: 'number', format: 'percent' },
-        { key: 'similar', header: 'Similar shows', kind: 'number', format: 'percent' }
-      ],
-      rows: [
-        { days: 90, show: 0.14, similar: 0.14 },
-        { days: 60, show: 0.38, similar: 0.35 },
-        { days: 30, show: 0.61, similar: 0.52 }
-      ]
-    }}
   >
-    <img src='/charts/pace-ahead-light.svg' alt='This show tracks above the band of 38 similar shows and is forecast to reach 96% by show day' className='size-full object-contain' />
+    <LineChart
+      data={[
+        { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+        { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+        { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+        { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+      ]}
+      x='day'
+      y='sold'
+      format='percent'
+      takeaway='Tracking 16 points ahead of similar shows'
+      band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
+      target={0.85}
+      today='2026-10-15'
+    />
   </Chart>
 </div>
 ```
 
 ### Takeaway
 
+Use a takeaway sentence when no single number answers the question.
+
 ```tsx-live
 <div className='w-[560px] max-w-full'>
   <Chart
-    label='Ticket types'
-    takeaway='VIP is the one to push this month'
-    source='Oztix sales.'
-    table={{
-      columns: [
-        { key: 'type', header: 'Ticket type', kind: 'text' },
-        { key: 'sold', header: 'Sold', kind: 'number' },
-        { key: 'sellThrough', header: 'Sell-through', kind: 'meter', target: 0.85 }
-      ],
-      rows: [
-        { type: 'GA early bird', sold: 400, sellThrough: 1 },
-        { type: 'GA', sold: 1210, sellThrough: 0.76 },
-        { type: 'VIP', sold: 232, sellThrough: 0.58 }
-      ]
-    }}
+    label='Pace to date'
+    takeaway='Tracking ahead of similar shows'
+    source='Oztix sales. 38 similar shows, last 3 years.'
   >
-    <img src='/charts/pace-ahead-light.svg' alt='VIP is the ticket type furthest behind target' className='size-full object-contain' />
+    <LineChart
+      data={[
+        { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+        { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+        { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+        { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+      ]}
+      x='day'
+      y='sold'
+      format='percent'
+      takeaway='Tracking 16 points ahead of similar shows'
+      band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
+      target={0.85}
+    />
   </Chart>
 </div>
 ```
 
 ### Table first
 
+Open on the Table view with `view='table'`. A chart inside the card supplies its table once it runs in the browser. When the Table view renders on the server, or must work without JavaScript, pass `table` from `@oztix/roadie-charts/tables`.
+
+```tsx
+import { lineChartTable } from '@oztix/roadie-charts/tables'
+```
+
+```tsx-live-noinline
+const pace = {
+  data: [
+    { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+    { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+    { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+    { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+  ],
+  x: 'day',
+  y: 'sold',
+  format: 'percent',
+  takeaway: 'Tracking 16 points ahead of similar shows',
+  band: { low: 'low', high: 'high', median: 'median', label: 'Similar shows' },
+  target: 0.85
+}
+
+render(
+  <div className='w-[560px] max-w-full'>
+    <Chart
+      view='table'
+      table={lineChartTable(pace)}
+      label='Sales so far'
+      value={0.61}
+      format='percent'
+      delta={{ value: 16, format: 'points' }}
+      context='Ahead of similar shows'
+      source='Oztix sales. 38 similar shows, last 3 years.'
+    >
+      <LineChart {...pace} />
+    </Chart>
+  </div>
+)
+```
+
+### With a table
+
+Pass `table` to show different numbers from the plot, such as a few key dates. It wins over the table the chart supplies.
+
 ```tsx-live
 <div className='w-[560px] max-w-full'>
   <Chart
-    view='table'
-    label='Sales pace'
+    label='Pace on key dates'
     value={0.61}
     format='percent'
-    delta={{ value: 9, format: 'points' }}
-    context='Ahead of similar shows. Forecast 96%'
+    delta={{ value: 16, format: 'points' }}
+    context='Ahead of similar shows'
     source='Oztix sales. 38 similar shows, last 3 years.'
     table={{
       columns: [
-        { key: 'days', header: 'Days to show', kind: 'number' },
+        { key: 'date', header: 'Date', kind: 'text' },
         { key: 'show', header: 'This show', kind: 'number', format: 'percent' },
         { key: 'similar', header: 'Similar shows', kind: 'number', format: 'percent' }
       ],
       rows: [
-        { days: 90, show: 0.14, similar: 0.14 },
-        { days: 60, show: 0.38, similar: 0.35 },
-        { days: 30, show: 0.61, similar: 0.52 }
+        { date: 'Tue 1 Sep', show: 0.14, similar: 0.14 },
+        { date: 'Thu 1 Oct', show: 0.45, similar: 0.35 },
+        { date: 'Thu 15 Oct', show: 0.61, similar: 0.45 }
       ]
     }}
   >
-    <img src='/charts/pace-ahead-light.svg' alt='This show tracks above the band of 38 similar shows and is forecast to reach 96% by show day' className='size-full object-contain' />
+    <LineChart
+      data={[
+        { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+        { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+        { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+        { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+      ]}
+      x='day'
+      y='sold'
+      format='percent'
+      takeaway='Tracking 16 points ahead of similar shows'
+      band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
+      target={0.85}
+    />
   </Chart>
 </div>
 ```
 
 ### With a legend
 
+A single line gets no legend of its own on a wide card, where end labels name its reading aids. Pass one when you want the line and its aids named at every width. Use the words the plot uses, and the card's legend replaces the one the plot adds on a narrow card.
+
+```tsx-live
+<div className='w-[560px] max-w-full'>
+  <Chart
+    label='Similar shows pace'
+    value={0.61}
+    format='percent'
+    delta={{ value: 16, format: 'points' }}
+    context='Ahead of similar shows'
+    source='Oztix sales. 38 similar shows, last 3 years.'
+    legend={
+      <ChartLegend
+        items={[
+          { label: 'Sold', shape: 'line', slot: 1 },
+          { label: 'Similar shows', shape: 'band', color: 'var(--chart-band)', median: true },
+          { label: 'Target 85%', shape: 'line', color: 'var(--chart-value)' }
+        ]}
+      />
+    }
+  >
+    <LineChart
+      data={[
+        { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+        { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+        { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+        { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+      ]}
+      x='day'
+      y='sold'
+      format='percent'
+      takeaway='Tracking 16 points ahead of similar shows'
+      band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
+      target={0.85}
+    />
+  </Chart>
+</div>
+```
+
+### With actions
+
+Pass `actions` to add controls after the Chart and Table switch. Use at most one visible action, then the More menu last. Pass `DataCard.MoreButton` to a [Menu](/components/menu) trigger's `render`, and it keeps its name and ref. Group the items as the [More menu](/charts/dashboards#card-actions) guideline says, with the danger action last.
+
 ```tsx-live
 <div className='w-[560px] max-w-full'>
   <Chart
     label='Sales pace'
     value={0.61}
     format='percent'
-    delta={{ value: 9, format: 'points' }}
-    context='Ahead of similar shows. Forecast 96%'
+    delta={{ value: 16, format: 'points' }}
+    context='Ahead of similar shows'
     source='Oztix sales. 38 similar shows, last 3 years.'
-    legend={
-      <ChartLegend
-        items={[
-          { label: 'This show', shape: 'line' },
-          { label: 'Forecast', shape: 'dot' },
-          { label: 'Similar shows', shape: 'band', color: 'var(--chart-band)' }
-        ]}
-      />
+    actions={
+      <Menu>
+        <Menu.Trigger render={<DataCard.MoreButton label='Sales pace' />} />
+        <Menu.Content align='end'>
+          <Menu.Group>
+            <Menu.GroupLabel>Chart</Menu.GroupLabel>
+            <Menu.Item icon={<PencilSimpleIcon weight='bold' />}>Edit</Menu.Item>
+            <Menu.Item icon={<CopyIcon weight='bold' />}>Duplicate</Menu.Item>
+          </Menu.Group>
+          <Menu.Separator />
+          <Menu.Group>
+            <Menu.GroupLabel>Display</Menu.GroupLabel>
+            <Menu.Item icon={<EyeSlashIcon weight='bold' />}>Hide description</Menu.Item>
+          </Menu.Group>
+          <Menu.Separator />
+          <Menu.Group>
+            <Menu.GroupLabel>Export</Menu.GroupLabel>
+            <Menu.Item icon={<DownloadIcon weight='bold' />}>Download CSV</Menu.Item>
+            <Menu.Item icon={<ImageIcon weight='bold' />}>Copy as image</Menu.Item>
+          </Menu.Group>
+          <Menu.Separator />
+          <Menu.Group>
+            <Menu.GroupLabel>Dashboard</Menu.GroupLabel>
+            <Menu.Item icon={<ArrowRightIcon weight='bold' />}>Move to</Menu.Item>
+            <Menu.Item intent='danger' icon={<TrashIcon weight='bold' />}>Remove from dashboard</Menu.Item>
+          </Menu.Group>
+        </Menu.Content>
+      </Menu>
     }
-    table={{
-      columns: [
-        { key: 'days', header: 'Days to show', kind: 'number' },
-        { key: 'show', header: 'This show', kind: 'number', format: 'percent' },
-        { key: 'similar', header: 'Similar shows', kind: 'number', format: 'percent' }
-      ],
-      rows: [
-        { days: 90, show: 0.14, similar: 0.14 },
-        { days: 60, show: 0.38, similar: 0.35 },
-        { days: 30, show: 0.61, similar: 0.52 }
-      ]
-    }}
   >
-    <img src='/charts/pace-ahead-light.svg' alt='This show tracks above the band of 38 similar shows and is forecast to reach 96% by show day' className='size-full object-contain' />
+    <LineChart
+      data={[
+        { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+        { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+        { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+        { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+      ]}
+      x='day'
+      y='sold'
+      format='percent'
+      takeaway='Tracking 16 points ahead of similar shows'
+      band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
+      target={0.85}
+    />
   </Chart>
 </div>
 ```
 
 ## Guidelines
 
-- `table` and `source` are required. The table is the full alternative to the plot, and the source belongs to both views.
-- Live plot heights come from the card size: `size='sm'` is 160px, `md` is 220px, `lg` and `full` are 260px.
+- `source` is required. A chart inside the card supplies the Table view, and a `table` prop wins over it. A static image needs a `table`.
+- A chart supplies its table only in the browser, so the Table view shows a skeleton until then. Pass `table` from `@oztix/roadie-charts/tables` when the Table view renders on the server or must work without JavaScript.
+- Live plot heights come from the card size: `size='sm'` is 160px and `md` is 220px. `lg` and `full` start at 260px and grow with the card's width, to 340px at `lg` and 420px at `full`, so a wide plot keeps about a 4:1 shape. One CSS rule sets this for every chart, so there is nothing to tune per dashboard.
 - A static plot in a dashboard spec fills the plot width and takes its height from the image, so render it at the aspect of the box it fills, with text at 12px. Add a `narrow` rendition for plots under 480px wide and a `wide` one for 960px and up, so the text stays readable at every width.
-- Switching between Chart and Table keeps the card's height. The plot sets it, and a longer table scrolls inside it.
-- Plots arrive in a later release. Until then, cards render a static image or a placeholder.
-- The Chart and Table switch is icon-only: `ChartLineIcon` and `TableIcon`, bold, `size-4`. Each tab is named by its `aria-label`, not visible text, so it never competes with the label for space.
+- Switching between Chart and Table keeps the card's height. The plot sets it, and the table fills the card's width. A longer or wider table scrolls inside it.
+- The Chart and Table switch is an icon-only `ToggleGroup`: `ChartLineIcon` and `TableIcon`, bold, `size-4`. Each item is named by its `aria-label`, not visible text, so it never competes with the label for space.
+- The switch is a toggle group, not tabs, because Chart and Table are two views of the same data. See [Tabs switch panels; a toggle group sets a value](/components/tabs#guidelines).
 - Chart labels follow the tighter `CHART_LABEL_LIMITS` from `@oztix/roadie-core/dashboard-layout`, not `COPY_LIMITS`, because the label's row also holds the view switch: 21 characters at `sm` and `md`, 27 at `lg` and `full`.
+- Actions sit after the view switch and stay in every state, so a refresh still works on a card that failed to load. The view switch shows only when there's data. Beside More, keep chart labels within `ACTIONS_LABEL_LIMITS` from `@oztix/roadie-core/dashboard-layout`. See [card actions](/charts/dashboards#card-actions).
 
 ## Accessibility
 
-- The Table tab is the full alternative to the plot, reachable by its `aria-label`.
+- The card is described by the chart's takeaway, so a screen reader hears the point before the numbers.
+- The Table view is the full alternative to the plot. Its toggle is a button named by its `aria-label`, with `aria-pressed` and `aria-controls` pointing at the views. The hidden view is `inert`, so keyboard focus and screen readers reach only the one on show.
 - The plot needs an accessible name that states the takeaway, not just what it is. "Sales pace" describes nothing; "this show tracks above the band of 38 similar shows" does.
 
 <PropsDefinitions componentPath='packages/charts/src/Chart/index.tsx' />

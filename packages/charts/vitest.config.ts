@@ -3,15 +3,21 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import { configDefaults, defineConfig } from 'vitest/config'
+import type { BrowserCommand } from 'vitest/node'
 
+import { browserInstances } from '../../vitest.browsers.config.ts'
 import { reactCompilerPreset } from './react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
 
-const browsers = (process.env.ROADIE_BROWSERS ?? 'chromium,webkit,firefox')
-  .split(',')
-  .map((name) => name.trim())
-  .filter(Boolean)
+const forcedColors: BrowserCommand<[active: boolean]> = ({ page }, active) =>
+  page.emulateMedia({ forcedColors: active ? 'active' : 'none' })
+
+const reducedMotion: BrowserCommand<[active: boolean]> = ({ page }, active) =>
+  page.emulateMedia({ reducedMotion: active ? 'reduce' : 'no-preference' })
+
+const printMedia: BrowserCommand<[active: boolean]> = ({ page }, active) =>
+  page.emulateMedia({ media: active ? 'print' : 'screen' })
 
 export default defineConfig({
   plugins: [react(), babel({ presets: [reactCompilerPreset] })],
@@ -47,7 +53,8 @@ export default defineConfig({
             'react-dom',
             'react-dom/client',
             'react-dom/server',
-            'axe-core'
+            'axe-core',
+            '@tanstack/charts/scales/band'
           ]
         },
         test: {
@@ -58,7 +65,8 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             viewport: { width: 1920, height: 1080 },
-            instances: browsers.map((browser) => ({ browser }))
+            commands: { forcedColors, printMedia, reducedMotion },
+            instances: browserInstances
           }
         }
       }

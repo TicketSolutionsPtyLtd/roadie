@@ -33,6 +33,10 @@
       "style": "./src/css/charts.css",
       "default": "./src/css/charts.css"
     },
+    "./bar-chart": {
+      "types": "./dist/BarChart/index.d.ts",
+      "import": "./dist/BarChart/index.js"
+    },
     "./chart": {
       "types": "./dist/Chart/index.d.ts",
       "import": "./dist/Chart/index.js"
@@ -53,9 +57,49 @@
       "types": "./dist/DashboardView/index.d.ts",
       "import": "./dist/DashboardView/index.js"
     },
+    "./funnel": {
+      "types": "./dist/Funnel/index.d.ts",
+      "import": "./dist/Funnel/index.js"
+    },
+    "./heatmap": {
+      "types": "./dist/Heatmap/index.d.ts",
+      "import": "./dist/Heatmap/index.js"
+    },
+    "./histogram": {
+      "types": "./dist/Histogram/index.d.ts",
+      "import": "./dist/Histogram/index.js"
+    },
+    "./line-chart": {
+      "types": "./dist/LineChart/index.d.ts",
+      "import": "./dist/LineChart/index.js"
+    },
+    "./ranked-bars": {
+      "types": "./dist/RankedBars/index.d.ts",
+      "import": "./dist/RankedBars/index.js"
+    },
+    "./scatter": {
+      "types": "./dist/Scatter/index.d.ts",
+      "import": "./dist/Scatter/index.js"
+    },
+    "./small-multiples": {
+      "types": "./dist/SmallMultiples/index.d.ts",
+      "import": "./dist/SmallMultiples/index.js"
+    },
+    "./stacked-bars": {
+      "types": "./dist/StackedBars/index.d.ts",
+      "import": "./dist/StackedBars/index.js"
+    },
     "./examples": {
       "types": "./dist/examples/index.d.ts",
       "import": "./dist/examples/index.js"
+    },
+    "./static": {
+      "types": "./dist/static/index.d.ts",
+      "import": "./dist/static/index.js"
+    },
+    "./tables": {
+      "types": "./dist/tables/index.d.ts",
+      "import": "./dist/tables/index.js"
     }
   },
   "scripts": {
@@ -73,7 +117,9 @@
     "size:check": "size-limit --limit"
   },
   "dependencies": {
-    "@oztix/roadie-core": "workspace:*"
+    "@oztix/roadie-core": "workspace:*",
+    "@tanstack/charts": "0.18.0",
+    "@tanstack/react-charts": "0.18.0"
   },
   "peerDependencies": {
     "@oztix/roadie-components": "workspace:^",

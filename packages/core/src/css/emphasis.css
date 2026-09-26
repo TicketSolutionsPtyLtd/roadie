@@ -183,6 +183,26 @@
   color: var(--intent-text-normal);
 }
 
+/* The chosen item in a trackless control, over emphasis-subtle: a soft fill
+   and a strong icon, which carry the state together. The fill alone is under
+   3:1, so this is for quiet controls. Doubled, and repeated for the
+   interactive states, to outrank the emphasis in either emit order. Forced
+   colours drop the fill, so an edge takes over. */
+@utility is-selected {
+  &:is(&),
+  &.is-interactive:is(&):is(:hover, :focus-visible, :active) {
+    background-color: var(--intent-5);
+    border-color: transparent;
+    color: var(--intent-text-strong);
+  }
+
+  @media (forced-colors: active) {
+    &:is(&) {
+      border-color: Highlight;
+    }
+  }
+}
+
 /* Pairs with a raised or floating fill. The doubled selector outranks that fill
    in either emit order; a field's hover, focus and invalid fills still win. */
 @utility is-translucent {

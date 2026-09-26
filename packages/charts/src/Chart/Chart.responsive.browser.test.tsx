@@ -5,6 +5,10 @@ import { CHART_LABEL_LIMITS } from '@oztix/roadie-core/dashboard-layout'
 
 import { Chart } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
+import { ChartLegend } from '../ChartLegend'
+import { LineChart } from '../LineChart'
+import { paceExample } from '../LineChart/examples'
+import { afterResize } from '../plot/browserTesting'
 import { loadBrandFont, useStylesheet } from '../testUtils'
 
 let removeStylesheet = () => {}
@@ -43,5 +47,40 @@ describe('Chart label does not truncate at its narrowest width', () => {
     )
     const labelEl = container.querySelector('[data-slot=data-card-label]')!
     expect(labelEl.scrollWidth).toBeLessThanOrEqual(labelEl.clientWidth)
+  })
+})
+
+describe('Chart legend on a narrow card', () => {
+  const pace = (legend?: boolean) =>
+    render(
+      <div style={{ width: 360 }}>
+        <Chart
+          label='Sales pace'
+          size='md'
+          source='Oztix sales.'
+          legend={
+            legend && <ChartLegend items={[{ label: 'Sold', shape: 'line' }]} />
+          }
+        >
+          <LineChart {...paceExample} />
+        </Chart>
+      </div>
+    )
+  const legends = (container: HTMLElement) =>
+    container.querySelectorAll('[data-slot=chart-legend]').length
+
+  it('shows only the card legend when the card passes one', async () => {
+    const { container } = pace(true)
+    await afterResize()
+    expect(legends(container)).toBe(1)
+    expect(
+      container.querySelector('[data-slot=chart-legend]')
+    ).toHaveTextContent('Sold')
+  })
+
+  it('lets the plot add its own legend otherwise', async () => {
+    const { container } = pace(false)
+    await afterResize()
+    expect(legends(container)).toBe(1)
   })
 })

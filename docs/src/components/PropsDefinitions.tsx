@@ -318,7 +318,7 @@ function parseDeprecation(prop: ComponentProp): {
   return { isDeprecated: true, reason, description: rest }
 }
 
-function PropsList({
+export function PropsList({
   props,
   title
 }: {
@@ -332,48 +332,51 @@ function PropsList({
           <p className='text-base font-bold text-subtle'>{title}</p>
         </div>
       )}
-      {Object.entries(props).map(([name, prop]) => {
-        const { isDeprecated, reason, description } = parseDeprecation(prop)
-        return (
-          <div key={name} className='grid gap-1 px-4 py-3'>
-            <dt className='flex flex-wrap items-center gap-x-2 gap-y-1'>
-              <div className='flex flex-col items-baseline gap-1 md:flex-row md:gap-2'>
-                <span className='shrink-0 font-mono text-sm font-semibold'>
-                  {name}
-                </span>
-                <span className='font-mono text-sm text-info-11'>
-                  {formatTypeValues(prop)}
-                </span>
-              </div>
-              {prop.required && (
-                <Badge intent='danger' size='sm'>
-                  Required
-                </Badge>
-              )}
-              {isDeprecated && (
-                <Badge intent='warning' emphasis='subtle' size='sm'>
-                  Deprecated
-                </Badge>
-              )}
-            </dt>
-            <dd>
-              <div className='grid gap-2'>
-                {description && <p className='text-subtle'>{description}</p>}
-                {isDeprecated && reason && (
-                  <p className='text-sm text-subtle intent-warning'>
-                    <span className='font-semibold'>Deprecated:</span> {reason}
-                  </p>
+      <dl className='grid divide-y divide-subtler'>
+        {Object.entries(props).map(([name, prop]) => {
+          const { isDeprecated, reason, description } = parseDeprecation(prop)
+          return (
+            <div key={name} className='grid gap-1 px-4 py-3'>
+              <dt className='flex flex-wrap items-center gap-x-2 gap-y-1'>
+                <div className='flex flex-col items-baseline gap-1 md:flex-row md:gap-2'>
+                  <span className='shrink-0 font-mono text-sm font-semibold'>
+                    {name}
+                  </span>
+                  <span className='font-mono text-sm text-info-11'>
+                    {formatTypeValues(prop)}
+                  </span>
+                </div>
+                {prop.required && (
+                  <Badge intent='danger' size='sm'>
+                    Required
+                  </Badge>
                 )}
-                {prop.defaultValue && (
-                  <p className='text-sm text-subtle'>
-                    Defaults to <Code>{prop.defaultValue.value}</Code>.
-                  </p>
+                {isDeprecated && (
+                  <Badge intent='warning' emphasis='subtle' size='sm'>
+                    Deprecated
+                  </Badge>
                 )}
-              </div>
-            </dd>
-          </div>
-        )
-      })}
+              </dt>
+              <dd>
+                <div className='grid gap-2'>
+                  {description && <p className='text-subtle'>{description}</p>}
+                  {isDeprecated && reason && (
+                    <p className='text-sm text-subtle intent-warning'>
+                      <span className='font-semibold'>Deprecated:</span>{' '}
+                      {reason}
+                    </p>
+                  )}
+                  {prop.defaultValue && (
+                    <p className='text-sm text-subtle'>
+                      Defaults to <Code>{prop.defaultValue.value}</Code>.
+                    </p>
+                  )}
+                </div>
+              </dd>
+            </div>
+          )
+        })}
+      </dl>
     </div>
   )
 }

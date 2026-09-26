@@ -297,6 +297,7 @@ export { Delta, type DeltaProps } from './components/Delta'
 export {
   DataCard,
   type DataCardDelta,
+  type DataCardMoreButtonProps,
   type DataCardProps
 } from './components/DataCard'
 

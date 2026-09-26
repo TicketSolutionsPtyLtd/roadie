@@ -13,6 +13,9 @@ import { cn } from '@oztix/roadie-core/utils'
 import { cardVariants } from '../Card/variants'
 import { Delta } from '../Delta'
 import { Skeleton } from '../Skeleton'
+import { DataCardMoreButton } from './DataCardMoreButton'
+
+export type { DataCardMoreButtonProps } from './DataCardMoreButton'
 
 export type DataCardDelta = {
   value: number
@@ -21,7 +24,7 @@ export type DataCardDelta = {
   baseline?: number
 }
 
-export type DataCardProps = Omit<ComponentProps<'section'>, 'title'> & {
+export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> & {
   /** Fixed name for the card. People and agents refer to the card by it. */
   label: string
   value?: number | string
@@ -32,6 +35,10 @@ export type DataCardProps = Omit<ComponentProps<'section'>, 'title'> & {
   takeaway?: string
   context?: string
   source?: string
+  /**
+   * Controls at the top right, after the label. Shown in every state, so an
+   * action such as refresh still works on a card that failed to load.
+   */
   actions?: ReactNode
   size?: CardSize
   /** @default 'ready' */
@@ -120,8 +127,10 @@ export function DataCard({
 }: DataCardProps) {
   const labelId = useId()
   const showContent = state === 'ready' || state === 'stale'
+  // An article, not a named section: a dashboard repeats labels such as
+  // "Tickets sold" across sections, and landmark names must be unique.
   return (
-    <section
+    <article
       data-slot='data-card'
       data-size={size}
       data-state={state}
@@ -144,8 +153,11 @@ export function DataCard({
             >
               {label}
             </h3>
-            {actions && showContent && (
-              <div className='flex h-0 items-center gap-1 self-center'>
+            {actions && (
+              <div
+                data-slot='data-card-actions'
+                className='flex h-0 items-center gap-1 self-center *:self-center'
+              >
                 {actions}
               </div>
             )}
@@ -215,7 +227,8 @@ export function DataCard({
             </footer>
           )}
       </div>
-    </section>
+    </article>
   )
 }
 DataCard.displayName = 'DataCard'
+DataCard.MoreButton = DataCardMoreButton

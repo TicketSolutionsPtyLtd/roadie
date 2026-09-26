@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -177,6 +177,103 @@ describe('ToggleGroup', () => {
     expect(screen.getByRole('button', { name: 'After' })).toHaveFocus()
     await user.tab({ shift: true })
     expect(screen.getByRole('button', { name: '90 days' })).toHaveFocus()
+  })
+
+  it('keeps focus on an unpressed item when the window regains focus', async () => {
+    const user = userEvent.setup()
+    render(<DateRange />)
+    await user.tab()
+    await user.keyboard('{ArrowRight}')
+    const unpressed = screen.getByRole('button', { name: '90 days' })
+    expect(unpressed).toHaveFocus()
+    fireEvent.focusOut(unpressed, { relatedTarget: null })
+    fireEvent.focusIn(unpressed, { relatedTarget: null })
+    expect(unpressed).toHaveFocus()
+  })
+
+  it('lands on the pressed item again after a window return and a tab out', async () => {
+    const user = userEvent.setup()
+    render(
+      <>
+        <DateRange />
+        <button type='button'>After</button>
+      </>
+    )
+    await user.tab()
+    await user.keyboard('{ArrowRight}')
+    const unpressed = screen.getByRole('button', { name: '90 days' })
+    fireEvent.focusOut(unpressed, { relatedTarget: null })
+    fireEvent.focusIn(unpressed, { relatedTarget: null })
+    await user.tab()
+    expect(screen.getByRole('button', { name: 'After' })).toHaveFocus()
+    await user.tab({ shift: true })
+    expect(screen.getByRole('button', { name: '30 days' })).toHaveFocus()
+  })
+
+  it('treats a blur whose focus already left the group as leaving', async () => {
+    const user = userEvent.setup()
+    render(
+      <>
+        <DateRange />
+        <button type='button'>After</button>
+      </>
+    )
+    await user.tab()
+    await user.keyboard('{ArrowRight}')
+    const unpressed = screen.getByRole('button', { name: '90 days' })
+    act(() => screen.getByRole('button', { name: 'After' }).focus())
+    fireEvent.focusOut(unpressed, { relatedTarget: null })
+    await user.tab({ shift: true })
+    expect(screen.getByRole('button', { name: '30 days' })).toHaveFocus()
+  })
+
+  it('forgets a window blur once focus lands outside the group', async () => {
+    const user = userEvent.setup()
+    render(
+      <>
+        <DateRange />
+        <button type='button'>After</button>
+      </>
+    )
+    await user.tab()
+    await user.keyboard('{ArrowRight}')
+    const unpressed = screen.getByRole('button', { name: '90 days' })
+    fireEvent.focusOut(unpressed, { relatedTarget: null })
+    fireEvent.focusIn(screen.getByRole('button', { name: 'After' }))
+    fireEvent.focusIn(unpressed, { relatedTarget: null })
+    expect(screen.getByRole('button', { name: '30 days' })).toHaveFocus()
+  })
+
+  it('stops watching for a window return when it unmounts', async () => {
+    const user = userEvent.setup()
+    const { unmount } = render(<DateRange />)
+    await user.tab()
+    const add = vi.spyOn(document, 'addEventListener')
+    const remove = vi.spyOn(document, 'removeEventListener')
+    fireEvent.focusOut(screen.getByRole('button', { name: '30 days' }), {
+      relatedTarget: null
+    })
+    const watcher = add.mock.calls.find(([type]) => type === 'focusin')?.[1]
+    expect(watcher).toBeDefined()
+    unmount()
+    expect(remove).toHaveBeenCalledWith('focusin', watcher, true)
+    add.mockRestore()
+    remove.mockRestore()
+  })
+
+  it('keeps one window return watcher across repeated blurs', async () => {
+    const user = userEvent.setup()
+    render(<DateRange />)
+    await user.tab()
+    const item = screen.getByRole('button', { name: '30 days' })
+    const add = vi.spyOn(document, 'addEventListener')
+    const remove = vi.spyOn(document, 'removeEventListener')
+    fireEvent.focusOut(item, { relatedTarget: null })
+    const first = add.mock.calls.find(([type]) => type === 'focusin')?.[1]
+    fireEvent.focusOut(item, { relatedTarget: null })
+    expect(remove).toHaveBeenCalledWith('focusin', first, true)
+    add.mockRestore()
+    remove.mockRestore()
   })
 
   it('tabs onto the first item when nothing is pressed', async () => {

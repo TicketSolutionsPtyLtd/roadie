@@ -6,6 +6,8 @@ import { Tabs as TabsPrimitive } from '@base-ui/react/tabs'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isIconOnly } from '../../utils/isIconOnly'
+import { useDevWarning } from '../../utils/useDevWarning'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { TabsContext } from './TabsContext'
 import { tabsTabVariants } from './variants'
@@ -51,6 +53,14 @@ export function TabsTab({
   ...props
 }: TabsTabProps) {
   const { emphasis, size } = use(TabsContext)
+  const iconOnly = isIconOnly(props.children)
+
+  useDevWarning(
+    iconOnly &&
+      !props['aria-label'] &&
+      !props['aria-labelledby'] &&
+      `[Roadie] Tabs.Tab '${String(props.value)}' shows only an icon. Give it an aria-label or aria-labelledby so assistive tech can name it.`
+  )
 
   // Consumer `render` wins. Pair `href` + `render` warns once via Button
   // (not here — Tabs.Tab consumers are advanced; warn would be noise).
@@ -76,6 +86,7 @@ export function TabsTab({
   return (
     <TabsPrimitive.Tab
       data-slot='tabs-tab'
+      data-icon-only={iconOnly ? '' : undefined}
       className={cn(tabsTabVariants({ emphasis, size }), className)}
       {...props}
       {...(finalRender !== undefined && { nativeButton: false })}

@@ -1,17 +1,24 @@
 import type { ReactNode } from 'react'
 
-import Image from 'next/image'
 import Link from 'next/link'
+
+import {
+  ArrowClockwiseIcon,
+  DownloadSimpleIcon,
+  PencilSimpleIcon
+} from '@phosphor-icons/react/ssr'
 
 import { CodePreview } from '@/components/CodePreview'
 import { Guideline } from '@/components/Guideline'
-import { getAssetPath } from '@/utils/getAssetPath'
+import { CardMenu } from '@/components/charts/CardMenu'
 
 import { Chart } from '@oztix/roadie-charts/chart'
 import { ChartLegend } from '@oztix/roadie-charts/chart-legend'
 import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
 import { createShowDashboard } from '@oztix/roadie-charts/examples'
-import { Button } from '@oztix/roadie-components/button'
+import { LineChart } from '@oztix/roadie-charts/line-chart'
+import { lineChartTable } from '@oztix/roadie-charts/tables'
+import { Button, IconButton } from '@oztix/roadie-components/button'
 import { Code } from '@oztix/roadie-components/code'
 import { DataCard } from '@oztix/roadie-components/data-card'
 import {
@@ -21,6 +28,7 @@ import {
 import { Sparkline } from '@oztix/roadie-components/sparkline'
 import { StatTile } from '@oztix/roadie-components/stat-tile'
 import {
+  ACTIONS_LABEL_LIMITS,
   CARD_SIZES,
   CARD_SPANS,
   CHART_LABEL_LIMITS,
@@ -31,6 +39,9 @@ import {
   DASHBOARD_WIDTHS,
   type DashboardWidth
 } from '@oztix/roadie-core/dashboard-layout'
+
+import { PACE_EXAMPLE } from '../pace-example'
+import { TICKETING_REFERENCE } from '../ticketing-reference'
 
 export const metadata = {
   title: 'Dashboard design',
@@ -95,10 +106,15 @@ const QUESTIONS = [
     'Stat tile with a reference line',
     'Sell-through against 85%'
   ],
-  ['How is it moving', 'Chart card', 'Sales pace'],
   ['Which ones need attention', 'Data table with sparklines', 'Upcoming shows'],
   ['What should I do', 'Note card', 'What to do next'],
-  ['When', 'Chart card with a heatmap', 'When fans buy']
+  ...TICKETING_REFERENCE.map((row) => [
+    row.question.replace(/\?$/, ''),
+    row.chart.startsWith('Annotations')
+      ? 'Annotations on a time chart'
+      : `Chart card showing ${row.chart}`,
+    row.term
+  ])
 ]
 
 const FILLING_ROWS: { name: ReactNode; sizes: CardSize[] }[] = [
@@ -246,56 +262,12 @@ const FILLING_TABLE_ROWS = FILLING_ROWS.map(({ name, sizes }) => [
   ))
 ])
 
-const PACE_TABLE = {
-  columns: [
-    { key: 'days', header: 'Days to show', kind: 'number' },
-    { key: 'show', header: 'This show', kind: 'number', format: 'percent' },
-    {
-      key: 'similar',
-      header: 'Similar shows',
-      kind: 'number',
-      format: 'percent'
-    }
-  ] satisfies DataTableColumn[],
-  rows: [
-    { days: 90, show: 0.14, similar: 0.14 },
-    { days: 60, show: 0.38, similar: 0.35 },
-    { days: 30, show: 0.61, similar: 0.52 }
-  ]
-}
-
-const PACE_ALT =
-  'This show tracks above the band of 38 similar shows and is forecast to reach 96% by show day'
-
-function PacePlot() {
-  return (
-    <>
-      <Image
-        data-theme-image='light'
-        src={getAssetPath('/charts/pace-ahead-light.svg')}
-        width={640}
-        height={240}
-        alt={PACE_ALT}
-        className='size-full object-contain'
-      />
-      <Image
-        data-theme-image='dark'
-        src={getAssetPath('/charts/pace-ahead-dark.svg')}
-        width={640}
-        height={240}
-        alt={PACE_ALT}
-        className='size-full object-contain'
-      />
-    </>
-  )
-}
-
 const ANATOMY = [
-  ['Label', 'Required. Fixed and short.', 'Sales pace'],
+  ['Label', 'Required. Fixed and short.', 'Pace to date'],
   [
     'Headline',
     'A value with a short delta, or a takeaway sentence. Never both.',
-    '61% ↑ 9 pts'
+    '61% ↑ 16 pts'
   ],
   [
     'Context line',
@@ -307,7 +279,7 @@ const ANATOMY = [
     'Top right. The Chart and Table switch, and an optional menu.',
     'Chart, Table'
   ],
-  ['Body', 'A sparkline, plot, table, note text or nothing.', 'The pace curve'],
+  ['Body', 'A sparkline, plot, table, note text or nothing.', 'A LineChart'],
   [
     'Footer',
     'The source, under a hairline. Required on chart and table cards.',
@@ -415,7 +387,10 @@ const SHOW_DASHBOARD_SIZES: CardSize[] = [
   'stat',
   'full',
   'md',
-  'md'
+  'md',
+  'md',
+  'md',
+  'full'
 ]
 
 const DASHBOARD_JSX = `<Dashboard>
@@ -429,8 +404,8 @@ const DASHBOARD_JSX = `<Dashboard>
     <StatTile label='Gross revenue' value={118400} format='compactCurrency' />
   </Dashboard.Section>
   <Dashboard.Section title='Sales'>
-    <Chart size='full' label='Sales pace' source='Oztix sales.' table={pace}>
-      <PacePlot />
+    <Chart size='full' label='Sales pace' source='Oztix sales.'>
+      <LineChart data={pace} x='day' y='sold' format='percent' />
     </Chart>
     <DataCard size='md' label='Ticket types'>
       <DataTable columns={typeColumns} rows={types} />
@@ -438,6 +413,17 @@ const DASHBOARD_JSX = `<Dashboard>
     <DataCard size='md' label='Where buyers are from'>
       <DataTable columns={suburbColumns} rows={suburbs} />
     </DataCard>
+  </Dashboard.Section>
+  <Dashboard.Section title='Buyers'>
+    <Chart size='md' label='Daily orders' takeaway='Orders peak on Fridays and grow each week'>
+      <BarChart data={dailyOrders} x='day' y='orders' />
+    </Chart>
+    <Chart size='md' label='Ticket type mix' takeaway='GA is carrying the show'>
+      <StackedBars data={salesByMonth} x='month' y='sold' series='type' />
+    </Chart>
+    <Chart size='full' label='When fans buy' takeaway='Fans buy most on Friday evenings'>
+      <Heatmap data={ordersByHour} rows='weekday' columns='hour' value='orders' />
+    </Chart>
   </Dashboard.Section>
 </Dashboard>`
 
@@ -463,20 +449,143 @@ const VALIDATE_PROBLEMS = [
   ]
 ]
 
+const MENU_GROUPS = [
+  ['Chart', 'View, Edit, Rename, Duplicate, Alerts'],
+  ['Display', 'Hide description, and the view options'],
+  [
+    'Export',
+    'Download CSV, Copy as image, and Refresh data with “Last updated 4 hours ago” as helper text'
+  ],
+  [
+    'Dashboard',
+    'Move to, Copy to, then Remove from dashboard last, in the danger intent'
+  ]
+]
+
+const CARD_ACTIONS_CODE = `// CardMenu.tsx
+'use client'
+
+import {
+  ArrowRightIcon,
+  CopyIcon,
+  DownloadIcon,
+  EyeSlashIcon,
+  ImageIcon,
+  PencilSimpleIcon,
+  TrashIcon
+} from '@phosphor-icons/react'
+
+import type { ChartTable } from '@oztix/roadie-charts/tables'
+import { DataCard } from '@oztix/roadie-components/data-card'
+import { Menu } from '@oztix/roadie-components/menu'
+
+function csvField(value: unknown) {
+  const text = Array.isArray(value) ? value.join(' ') : String(value ?? '')
+  return /[",\\r\\n]/.test(text) ? \`"\${text.replaceAll('"', '""')}"\` : text
+}
+
+function tableCsv({ columns, rows }: ChartTable) {
+  const lines = [
+    columns.map((column) => csvField(column.header)),
+    ...rows.map((row) => columns.map((column) => csvField(row[column.key])))
+  ]
+  return lines.map((line) => line.join(',')).join('\\n')
+}
+
+function downloadCsv(label: string, table: ChartTable) {
+  const url = URL.createObjectURL(
+    new Blob([tableCsv(table)], { type: 'text/csv' })
+  )
+  const link = document.createElement('a')
+  link.href = url
+  link.download = \`\${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv\`
+  link.click()
+  // Revoking in the same task can cancel the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url))
+}
+
+export function CardMenu({ label, table }: { label: string; table?: ChartTable }) {
+  return (
+    <Menu>
+      <Menu.Trigger render={<DataCard.MoreButton label={label} />} />
+      <Menu.Content align='end'>
+        <Menu.Group>
+          <Menu.GroupLabel>Chart</Menu.GroupLabel>
+          <Menu.Item icon={<PencilSimpleIcon weight='bold' />}>Edit</Menu.Item>
+          <Menu.Item icon={<CopyIcon weight='bold' />}>Duplicate</Menu.Item>
+        </Menu.Group>
+        <Menu.Separator />
+        <Menu.Group>
+          <Menu.GroupLabel>Display</Menu.GroupLabel>
+          <Menu.Item icon={<EyeSlashIcon weight='bold' />}>Hide description</Menu.Item>
+        </Menu.Group>
+        <Menu.Separator />
+        <Menu.Group>
+          <Menu.GroupLabel>Export</Menu.GroupLabel>
+          {table && (
+            <Menu.Item
+              icon={<DownloadIcon weight='bold' />}
+              onClick={() => downloadCsv(label, table)}
+            >
+              Download CSV
+            </Menu.Item>
+          )}
+          <Menu.Item icon={<ImageIcon weight='bold' />}>Copy as image</Menu.Item>
+        </Menu.Group>
+        <Menu.Separator />
+        <Menu.Group>
+          <Menu.GroupLabel>Dashboard</Menu.GroupLabel>
+          <Menu.Item icon={<ArrowRightIcon weight='bold' />}>Move to</Menu.Item>
+          <Menu.Item intent='danger' icon={<TrashIcon weight='bold' />}>
+            Remove from dashboard
+          </Menu.Item>
+        </Menu.Group>
+      </Menu.Content>
+    </Menu>
+  )
+}
+
+// page.tsx
+import { cardTable } from '@oztix/roadie-charts/tables'
+
+<DashboardView
+  spec={spec}
+  cardActions={(card) => (
+    <CardMenu label={card.label} table={cardTable(card)} />
+  )}
+/>`
+
+const HOVER_ONLY_CODE = `<DataCard
+  label='Ticket types'
+  actions={
+    <DataCard.MoreButton
+      label='Ticket types'
+      className='opacity-0 group-hover/card:opacity-100'
+    />
+  }
+/>`
+
 const GAP_WARNING =
   '[Roadie Dashboard] "Pace" has rows that don\'t fill: desktop row 1 leaves 4 empty; desktop row 2 leaves 6 empty; tablet row 2 leaves 3 empty. See /charts/dashboards.'
 
 function Table({
+  label,
   head,
   rows,
   fit = false
 }: {
+  label: string
   head: string[]
   rows: ReactNode[][]
   fit?: boolean
 }) {
   return (
-    <div className='overflow-x-auto'>
+    <div
+      role='region'
+      aria-label={label}
+      tabIndex={0}
+      className='overflow-x-auto rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2'
+    >
       <table className={fit ? 'w-full text-sm' : 'w-full min-w-xl text-sm'}>
         <thead>
           <tr className='border-b border-subtle text-left text-subtle'>
@@ -585,13 +694,13 @@ export default function DashboardsPage() {
           <Code>Dashboard.Section</Code> groups cards under an h2, and sections
           sit 32px apart.
         </p>
-        <Table head={SIZE_HEAD} rows={SIZE_ROWS} />
+        <Table label='Card sizes' head={SIZE_HEAD} rows={SIZE_ROWS} />
         <p className='max-w-prose text-subtle'>
           There are no custom spans, breakpoint overrides or dense packing. If a
           layout needs a size that isn’t here, it gets a new size in Roadie.
         </p>
         <Stage>
-          <DashboardView spec={createShowDashboard(getAssetPath(''))} />
+          <DashboardView spec={createShowDashboard()} />
         </Stage>
         <p className='max-w-prose text-sm text-subtle'>
           This is the{' '}
@@ -600,9 +709,10 @@ export default function DashboardsPage() {
           </Link>
           . It opens with a <Code>full</Code> note that says what to do, then
           four stat tiles, a <Code>full</Code> chart and two <Code>md</Code>{' '}
-          tables side by side. This column is narrower than 960px, so it shows 6
-          tracks or fewer. Here is the same layout at each width, and the JSX
-          behind it.
+          tables side by side. Two <Code>md</Code> charts and a{' '}
+          <Code>full</Code> heatmap close it. This column is narrower than
+          960px, so it shows 6 tracks or fewer. Here is the same layout at each
+          width, and the JSX behind it.
         </p>
         <Stage>
           <RowDiagram sizes={SHOW_DASHBOARD_SIZES} wide />
@@ -617,6 +727,7 @@ export default function DashboardsPage() {
           combinations do.
         </p>
         <Table
+          label='Rows that fill'
           head={['Row', ...DASHBOARD_WIDTHS.map((width) => WIDTH_NAME[width])]}
           rows={FILLING_TABLE_ROWS}
           fit
@@ -626,7 +737,7 @@ export default function DashboardsPage() {
           half. So <Code>lg</Code> then <Code>sm</Code> leaves half a row empty.
           The mirrored <Code>sm</Code> fills it.
         </p>
-        <Guideline title='Mirror a large card'>
+        <Guideline headingLevel={3} title='Mirror a large card'>
           <Guideline.Do
             example={<RowDiagram sizes={['lg', 'sm', 'sm', 'lg']} />}
           >
@@ -664,14 +775,13 @@ export default function DashboardsPage() {
         </p>
         <figure className='grid gap-6'>
           <Chart
-            label='Sales pace'
+            label='Pace to date'
             value={0.61}
             format='percent'
-            delta={{ value: 9, format: 'points' }}
+            delta={{ value: 16, format: 'points' }}
             context='Forecast 96% by show day'
             source='Oztix sales. 38 similar shows.'
             size='md'
-            table={PACE_TABLE}
             legend={
               <ChartLegend
                 items={[
@@ -686,7 +796,10 @@ export default function DashboardsPage() {
               />
             }
           >
-            <PacePlot />
+            <LineChart
+              {...PACE_EXAMPLE}
+              takeaway='Tracking ahead of similar shows, forecast to reach 96%'
+            />
           </Chart>
           <figcaption>
             <ol className='grid list-decimal gap-3 pl-5 text-subtle'>
@@ -717,7 +830,7 @@ export default function DashboardsPage() {
           both. Use a value when one number answers the question. Use a takeaway
           when there’s no single number, such as a channel mix or a table.
         </p>
-        <Guideline title='One headline per card'>
+        <Guideline headingLevel={3} title='One headline per card'>
           <Guideline.Do
             example={
               <Tile>
@@ -753,7 +866,11 @@ export default function DashboardsPage() {
         <h2 className='text-display-prose-3 text-strong'>
           Which card answers which question
         </h2>
-        <Table head={['Question', 'Card', 'Example']} rows={QUESTIONS} />
+        <Table
+          label='Which card answers which question'
+          head={['Question', 'Card', 'Example']}
+          rows={QUESTIONS}
+        />
       </section>
 
       <section className='grid gap-6'>
@@ -762,12 +879,20 @@ export default function DashboardsPage() {
           Copy is sized for the card’s narrowest width. Past these limits it
           truncates.
         </p>
-        <Table head={['Size', 'Label', 'Context']} rows={LIMIT_ROWS} />
+        <Table
+          label='Copy limits'
+          head={['Size', 'Label', 'Context']}
+          rows={LIMIT_ROWS}
+        />
         <p className='max-w-prose text-subtle'>
           Chart cards carry the Chart/Table switch in the label’s row, so their
           label budget is tighter than <Code>COPY_LIMITS</Code>.
         </p>
-        <Table head={['Size', 'Label']} rows={CHART_LABEL_ROWS} />
+        <Table
+          label='Chart label limits'
+          head={['Size', 'Label']}
+          rows={CHART_LABEL_ROWS}
+        />
         <List
           items={[
             'Keep the delta short. It sits next to the value.',
@@ -776,7 +901,7 @@ export default function DashboardsPage() {
             'Sentence case for labels, context and takeaways.'
           ]}
         />
-        <Guideline title='Short label, short delta'>
+        <Guideline headingLevel={3} title='Short label, short delta'>
           <Guideline.Do
             example={
               <Tile>
@@ -823,6 +948,171 @@ export default function DashboardsPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className='grid gap-6'>
+        <h2 className='text-display-prose-3 text-strong'>Card actions</h2>
+        <p className='max-w-prose text-subtle'>
+          Actions sit at the top right of a card, in the label’s row. They carry
+          handlers, so the app adds them and the JSON never does. Pass{' '}
+          <Code>actions</Code> to <Code>DataCard</Code>, <Code>StatTile</Code>{' '}
+          or <Code>Chart</Code>. For cards described as data, pass{' '}
+          <Code>cardActions</Code> to <Code>DashboardView</Code>. It gets each
+          card’s spec and returns its actions, or nothing. When{' '}
+          <Code>DashboardView</Code> renders on the server, return a client
+          component that owns the handlers, not inline handlers.
+        </p>
+        <CodePreview>{CARD_ACTIONS_CODE}</CodePreview>
+        <h3 className='text-display-ui-5 text-strong'>Slot order</h3>
+        <List
+          items={[
+            'The Chart and Table switch comes first, on chart cards.',
+            'Then at most one visible action, for the thing people do most on that card.',
+            'More comes last, always. Every other action goes in its menu.'
+          ]}
+        />
+        <Guideline headingLevel={3} title='One action, then More'>
+          <Guideline.Do
+            example={
+              <Tile>
+                <Chart
+                  label='Sales pace'
+                  value={0.61}
+                  format='percent'
+                  size='sm'
+                  source='Oztix sales.'
+                  actions={
+                    <CardMenu
+                      label='Sales pace'
+                      table={lineChartTable(PACE_EXAMPLE)}
+                    />
+                  }
+                >
+                  <LineChart {...PACE_EXAMPLE} />
+                </Chart>
+              </Tile>
+            }
+          >
+            <p>Put the view switch first and More last.</p>
+          </Guideline.Do>
+          <Guideline.Dont
+            example={
+              <Tile>
+                <DataCard
+                  label='Ticket types'
+                  takeaway='VIP is the one to push'
+                  actions={
+                    <>
+                      <IconButton
+                        aria-label='Refresh data'
+                        size='sm'
+                        emphasis='subtler'
+                      >
+                        <ArrowClockwiseIcon weight='bold' className='size-4' />
+                      </IconButton>
+                      <IconButton
+                        aria-label='Download CSV'
+                        size='sm'
+                        emphasis='subtler'
+                      >
+                        <DownloadSimpleIcon weight='bold' className='size-4' />
+                      </IconButton>
+                      <IconButton
+                        aria-label='Edit'
+                        size='sm'
+                        emphasis='subtler'
+                      >
+                        <PencilSimpleIcon weight='bold' className='size-4' />
+                      </IconButton>
+                      <DataCard.MoreButton label='Ticket types' />
+                    </>
+                  }
+                />
+              </Tile>
+            }
+          >
+            <p>Don’t line up icon buttons. They crowd out the label.</p>
+          </Guideline.Dont>
+        </Guideline>
+        <h3 className='text-display-ui-5 text-strong'>Always visible</h3>
+        <List
+          items={[
+            'Actions show all the time, not only on hover, so they work on touch and by keyboard.',
+            'Tab order follows reading order: the view switch, then the action, then More.',
+            'Actions stay in every state, so Refresh data and Remove from dashboard still work on a card that failed to load. The view switch shows only when there’s data.'
+          ]}
+        />
+        <Guideline headingLevel={3} title='Keep actions in view'>
+          <Guideline.Do
+            example={
+              <Tile>
+                <DataCard
+                  label='Ticket types'
+                  takeaway='VIP is the one to push'
+                  actions={<CardMenu label='Ticket types' />}
+                />
+              </Tile>
+            }
+          >
+            <p>Show More at rest, in every state.</p>
+          </Guideline.Do>
+          <Guideline.Dont code={HOVER_ONLY_CODE}>
+            <p>
+              Don’t hide actions until hover. Touch has no hover, and a hidden
+              button still takes focus.
+            </p>
+          </Guideline.Dont>
+        </Guideline>
+        <h3 className='text-display-ui-5 text-strong'>The More menu</h3>
+        <p className='max-w-prose text-subtle'>
+          Group the menu in this order and leave out what a card can’t do. Build
+          it with <Link href='/components/menu'>Menu</Link>: pass{' '}
+          <Code>DataCard.MoreButton</Code> to <Code>Menu.Trigger</Code> as its{' '}
+          <Code>render</Code>. The button keeps its name, “More actions for” the
+          card’s label, and its ref. Name each group with{' '}
+          <Code>Menu.GroupLabel</Code>, split groups with{' '}
+          <Code>Menu.Separator</Code>, and open the menu with{' '}
+          <Code>align=&apos;end&apos;</Code> so it opens back over the card.
+        </p>
+        <Table
+          label='More menu groups'
+          head={['Group', 'Items']}
+          rows={MENU_GROUPS}
+          fit
+        />
+        <List
+          items={[
+            <>
+              Download CSV from the card’s table. <Code>cardTable(card)</Code>{' '}
+              from <Code>@oztix/roadie-charts/tables</Code> builds it on the
+              server, for a chart card or a table card.
+            </>,
+            <>
+              Copy as image with <Code>renderChartSvg</Code> from{' '}
+              <Code>@oztix/roadie-charts/static</Code>.
+            </>,
+            'Refresh data shows when the numbers were last updated, as helper text under the item.'
+          ]}
+        />
+        <h3 className='text-display-ui-5 text-strong'>Copy</h3>
+        <List
+          items={[
+            'Sentence case, verb first: “Download CSV”, not “CSV download”.',
+            'No dashes as punctuation.',
+            'Destructive actions confirm first. Remove from dashboard asks before it removes.'
+          ]}
+        />
+        <h3 className='text-display-ui-5 text-strong'>Label room</h3>
+        <p className='max-w-prose text-subtle'>
+          More takes room from the label, which truncates past it. Beside More,
+          keep chart labels to {ACTIONS_LABEL_LIMITS.sm} characters at{' '}
+          <Code>sm</Code> and <Code>md</Code> and {ACTIONS_LABEL_LIMITS.lg} at{' '}
+          <Code>lg</Code> and <Code>full</Code>, and stat labels to{' '}
+          {ACTIONS_LABEL_LIMITS.stat}. <Code>ACTIONS_LABEL_LIMITS</Code> holds
+          them. Table and note labels keep their <Code>COPY_LIMITS</Code>.{' '}
+          <Code>validateDashboard</Code> can’t check this, because actions
+          aren’t part of the JSON.
+        </p>
       </section>
 
       <section className='grid gap-6'>
@@ -884,6 +1174,7 @@ export default function DashboardsPage() {
           . It returns these problems.
         </p>
         <Table
+          label='Validation problems'
           head={['Path', 'Message', 'Severity']}
           rows={VALIDATE_PROBLEMS}
         />

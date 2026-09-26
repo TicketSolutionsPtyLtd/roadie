@@ -1,0 +1,77 @@
+export const metadata = {
+  title: 'Scatter',
+  description:
+    'Points by two measures, with named quadrants for a portfolio view',
+  status: 'beta',
+  category: 'Chart types',
+  order: 8
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Points by two measures, with named quadrants for a portfolio view.
+
+## Import
+
+```tsx
+import { Scatter } from '@oztix/roadie-charts/scatter'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-160 max-w-full'>
+  <Chart label='Pace against sell-through' source='Oztix sales.' size='lg'>
+    <Scatter
+      data={[
+        { show: 'The Lantern Room, Fri', pace: 112, sold: 0.61 },
+        { show: 'Harbourside Hall, Sat', pace: 81, sold: 0.4 },
+        { show: 'Wattle Street Social, Thu', pace: 124, sold: 0.88 },
+        { show: 'The Lantern Room, Sun', pace: 96, sold: 0.52 }
+      ]}
+      x='pace'
+      y='sold'
+      xFormat='index'
+      format='percent'
+      label='show'
+    />
+  </Chart>
+</div>
+```
+
+### Quadrants and highlight
+
+```tsx-live
+<div className='w-180 max-w-full'>
+  <Chart label='Portfolio' source='Oztix sales.' size='full'>
+    <Scatter
+      data={[['The Lantern Room, Fri', 112, 0.61, 2400], ['Harbourside Hall, Sat', 81, 0.4, 1800], ['Wattle Street Social, Thu', 124, 0.88, 900], ['The Lantern Room, Sun', 96, 0.52, 2400], ['Harbourside Hall, Fri', 131, 0.72, 1800]].map(([show, pace, sold, capacity]) => ({ show, pace, sold, capacity }))}
+      x='pace'
+      y='sold'
+      xFormat='index'
+      format='percent'
+      size='capacity'
+      label='show'
+      highlight='Harbourside Hall, Sat'
+      quadrants={{ x: 100, y: 0.5, labels: { topLeft: 'Sold, slowing', topRight: 'On a roll', bottomLeft: 'Needs a push', bottomRight: 'Catching up' } }}
+      takeaway='Harbourside Hall on Saturday is behind on both'
+    />
+  </Chart>
+</div>
+```
+
+## Guidelines
+
+- Only highlighted points get labels on the plot. Every point is named in the tooltip and table.
+- `size` scales points by area, not radius.
+- Name quadrants by what to do, not by the numbers.
+
+## Accessibility
+
+- The plot is one tab stop. Left and right arrows move between points from left to right.
+- Each point is read out with its name, both values and its quadrant, such as "Harbourside Hall, Sat, pace 81, sold 40%, needs a push".
+- The Table tab lists every point, including the ones without a label on the plot.
+
+<PropsDefinitions componentPath='packages/charts/src/Scatter/index.tsx' />

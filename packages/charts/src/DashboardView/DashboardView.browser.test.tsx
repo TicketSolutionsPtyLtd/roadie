@@ -4,7 +4,11 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { DashboardView } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
-import { createPortfolioDashboard, createShowDashboard } from '../examples'
+import {
+  createAudienceDashboard,
+  createPortfolioDashboard,
+  createShowDashboard
+} from '../examples'
 import { useStylesheet } from '../testUtils'
 
 let removeStylesheet = () => {}
@@ -17,7 +21,8 @@ afterEach(() => cleanup())
 describe('reference dashboards are accessible', () => {
   it.each([
     ['show', createShowDashboard()],
-    ['portfolio', createPortfolioDashboard()]
+    ['portfolio', createPortfolioDashboard()],
+    ['audience', createAudienceDashboard()]
   ])('%s has no axe violations', async (_, spec) => {
     const { container } = render(
       <main>

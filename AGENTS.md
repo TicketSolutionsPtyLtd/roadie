@@ -141,6 +141,7 @@ Presets combining bg + text + border + interactive states:
 - `emphasis-floating` — raised bg, rim-light-strong, shadow-xl
 - `emphasis-inverted` — inverted bg + text
 - `emphasis-overlay` — dark overlay with backdrop blur
+- `is-selected` — add to `emphasis-subtle` on the chosen item of a trackless control: a soft fill (intent step 5) with no border and strong text, and a `Highlight` edge under forced colours. The fill alone is under 3:1, so fill and icon carry the state together: for quiet controls only. Subtler `Toggle` and `ToggleGroup` use it
 - `is-translucent` — add to `emphasis-raised`, `emphasis-floating` or `bg-raised` so content shows through: 85% fill (88% dark) under a 12px backdrop blur, rim light and shadow kept; solid without `backdrop-filter` support or under `prefers-reduced-transparency`; an `is-interactive-field`'s hover, focus and invalid fills still win
 
 ### Interaction states
@@ -229,6 +230,7 @@ the brand radius stays consistent across components.
 
 Read `docs/src/app/charts/data-visualisation/page.tsx` before building a chart.
 For dashboards, read `docs/src/app/charts/dashboards/page.tsx` and use `Dashboard`, `StatTile`, `DataTable` and `Chart`; describe dashboards with `@oztix/roadie-core/dashboard` and check them with `validateDashboard`.
+For a chart, use the chart types from `@oztix/roadie-charts`: `LineChart`, `BarChart`, `RankedBars`, `StackedBars`, `Histogram`, `Funnel`, `Heatmap`, `Scatter` and `SmallMultiples`, each on its own subpath (`/line-chart`, `/bar-chart`, …) and each read from `docs/src/app/charts/<chart>/page.mdx`. Put a chart inside a `Chart` card with no `table`: the chart supplies its table and summary. In a dashboard description, a chart card's `plot` is `{ kind: 'line' | 'bar' | 'ranked-bars' | 'stacked-bars' | 'histogram' | 'funnel' | 'heatmap' | 'scatter' | 'small-multiples', ...props }`. For reports, PDFs and slides, render SVG in Node with `renderChartSvg(chart, props, { mode, width, height })` from `@oztix/roadie-charts/static`, which also exports the chart definitions. On a server, build a chart's table rows with the functions in `@oztix/roadie-charts/tables`, and a dashboard card's with `cardTable(card)`; the chart subpaths are `'use client'` and export only components. Card actions come from the app, never the JSON: `Chart actions` or `DashboardView cardActions={(card) => …}`, with the More menu last: a `Menu` whose `Menu.Trigger` renders `DataCard.MoreButton` (see Card actions on the Dashboard design page). Charts take no colour props; use `highlight` and `palette`. `@tanstack/*` is imported only inside `packages/charts/src/plot/`, `static/` and each chart's `definition.ts`.
 
 - **Colour by job:** categorical `--chart-1` to `--chart-8` (fixed order, max 6 then "Other"; `--chart-pair-*` / `--chart-trio-*` for 2 or 3 series), sequential `--chart-heat-0` to `-8`, diverging `--chart-diverge-neg-4` to `-pos-4` (cool is ahead), status `--chart-status-good|warning|serious|critical` (meaning only).
 - **Emphasis:** story series in `--chart-highlight` (follows `--accent-hue`), context in `--chart-context`.
