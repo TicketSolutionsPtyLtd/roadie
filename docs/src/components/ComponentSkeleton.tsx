@@ -1,3 +1,5 @@
+import { CheckIcon } from '@phosphor-icons/react/ssr'
+
 import { Logo } from '@oztix/roadie-components/logo'
 import { QRCode } from '@oztix/roadie-components/qr-code'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
@@ -179,6 +181,27 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
           <div className='h-1.5 overflow-hidden rounded-full bg-(--intent-4)'>
             <div className='h-full w-3/5 bg-chart-highlight' />
+          </div>
+        </div>
+      )
+    case 'switch':
+      return (
+        <div className='grid w-40 gap-2.5'>
+          <div className='flex items-center justify-between gap-3'>
+            <Skel className='h-2 w-20' />
+            <div className='flex h-4 w-7 items-center justify-between rounded-full border border-transparent bg-strong p-px intent-accent'>
+              <CheckIcon
+                weight='bold'
+                className='size-2 flex-1 text-(--color-neutral-light-0)'
+              />
+              <div className='size-3 rounded-full bg-(--color-neutral-light-0) shadow-sm' />
+            </div>
+          </div>
+          <div className='flex items-center justify-between gap-3'>
+            <Skel className='h-2 w-16' />
+            <div className='flex h-4 w-7 items-center rounded-full border border-subtle bg-(--intent-8) p-px inset-shadow-sm'>
+              <div className='size-3 rounded-full bg-(--color-neutral-light-0) shadow-sm' />
+            </div>
           </div>
         </div>
       )

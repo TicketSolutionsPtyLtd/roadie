@@ -219,6 +219,10 @@
       "types": "./dist/components/Steps/index.d.ts",
       "import": "./dist/components/Steps/index.js"
     },
+    "./switch": {
+      "types": "./dist/components/Switch/index.d.ts",
+      "import": "./dist/components/Switch/index.js"
+    },
     "./table": {
       "types": "./dist/components/Table/index.d.ts",
       "import": "./dist/components/Table/index.js"

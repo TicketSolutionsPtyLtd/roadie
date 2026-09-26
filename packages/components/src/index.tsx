@@ -475,6 +475,16 @@ export {
 } from './components/Tooltip'
 
 export {
+  Switch,
+  switchVariants,
+  switchThumbVariants,
+  switchTickVariants,
+  type SwitchProps,
+  type SwitchThumbProps,
+  type SwitchSize
+} from './components/Switch'
+
+export {
   Dialog,
   dialogPopupVariants,
   type DialogProps,

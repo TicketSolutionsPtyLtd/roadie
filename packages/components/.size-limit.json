@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "124 kB"
+    "limit": "125 kB"
   },
   {
     "name": "Single component (Button)",
@@ -134,6 +134,13 @@
     "path": "dist/components/CheckboxGroup/index.js",
     "import": "*",
     "limit": "3 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Switch",
+    "path": "dist/components/Switch/index.js",
+    "import": "*",
+    "limit": "2.5 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]
