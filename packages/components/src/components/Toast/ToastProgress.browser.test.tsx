@@ -25,6 +25,12 @@ const toast = () => document.querySelector<HTMLElement>('[data-slot="toast"]')!
 const bar = () =>
   document.querySelector<HTMLElement>('[data-slot="toast-progress"]')!
 const width = () => bar().getBoundingClientRect().width
+// WebKit commits a CSS pause a frame late, at an earlier time than a read
+// taken while it's pending, so the bar can step back once the pause lands.
+const pausedWidth = async () => {
+  await bar().getAnimations()[0]!.ready
+  return width()
+}
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function show(timeout: number, position?: ToastPosition) {
@@ -72,7 +78,7 @@ describe('Toast.Progress', () => {
     await waitFor(() => expect(toast()).toHaveAttribute('data-expanded'), {
       timeout: 10_000
     })
-    const held = width()
+    const held = await pausedWidth()
     await pause(600)
     expect(width()).toBeCloseTo(held, 0)
 
