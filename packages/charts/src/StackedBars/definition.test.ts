@@ -221,6 +221,20 @@ describe('stackedBarsTable', () => {
       format: 'percent'
     })
   })
+
+  it('gives a zero-total row all zero shares, not NaN', () => {
+    const table = stackedBarsTable({
+      data: [
+        { c: 'A', s: 'Sold', v: 0 },
+        { c: 'A', s: 'Comps', v: 0 }
+      ],
+      x: 'c',
+      y: 'v',
+      series: 's',
+      mode: 'share'
+    })
+    expect(table.rows[0]).toMatchObject({ Sold: 0, Comps: 0, total: 0 })
+  })
 })
 
 describe('stackedBarsTable with more segments than the plot shows', () => {
