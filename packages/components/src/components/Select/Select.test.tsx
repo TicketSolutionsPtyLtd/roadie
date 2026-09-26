@@ -1,8 +1,15 @@
 import { render } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { type VariantProps } from 'class-variance-authority'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 
-import { Select, type SelectTriggerProps, selectTriggerVariants } from '.'
+import {
+  Select,
+  type SelectProps,
+  type SelectTriggerProps,
+  selectTriggerVariants
+} from '.'
 import { Field } from '../Field'
 
 describe('Select', () => {
@@ -264,5 +271,100 @@ describe('Field text description', () => {
       </Field>
     )
     expect(getByRole('combobox')).toHaveAccessibleDescription('Error')
+  })
+})
+
+function Bands(props: SelectProps) {
+  return (
+    <Select {...props}>
+      <Select.Trigger aria-label='Band'>
+        <Select.Value placeholder='Pick a band' />
+      </Select.Trigger>
+      <Select.Content>
+        <Select.Item value='bee-gees'>Bee Gees</Select.Item>
+        {['go-betweens'].map((value) => (
+          <Select.Item key={value} value={value}>
+            The Go-Betweens
+          </Select.Item>
+        ))}
+        <Select.Group>
+          <Select.Item value='custard'>
+            <Select.ItemText>Custard</Select.ItemText>
+            <Select.ItemIndicator />
+          </Select.Item>
+        </Select.Group>
+      </Select.Content>
+    </Select>
+  )
+}
+
+describe('Select value label', () => {
+  it('shows the item label for a default value on first render', () => {
+    const { getByRole } = render(<Bands defaultValue='go-betweens' />)
+    expect(getByRole('combobox')).toHaveTextContent('The Go-Betweens')
+  })
+
+  it('shows the label when rendered on the server', () => {
+    expect(renderToStaticMarkup(<Bands defaultValue='bee-gees' />)).toContain(
+      'Bee Gees'
+    )
+  })
+
+  it('reads the label from Select.ItemText', () => {
+    const { getByRole } = render(<Bands defaultValue='custard' />)
+    expect(getByRole('combobox')).toHaveTextContent('Custard')
+  })
+
+  it('shows the label of the item picked', async () => {
+    const user = userEvent.setup()
+    const { getByRole, findByRole } = render(<Bands />)
+    await user.click(getByRole('combobox'))
+    await user.click(await findByRole('option', { name: 'Bee Gees' }))
+    expect(getByRole('combobox')).toHaveTextContent('Bee Gees')
+  })
+
+  it('shows the label of an item from a component it cannot see', async () => {
+    function Band() {
+      return <Select.Item value='regurgitator'>Regurgitator</Select.Item>
+    }
+    const user = userEvent.setup()
+    const { getByRole, findByRole } = render(
+      <Select>
+        <Select.Trigger aria-label='Band'>
+          <Select.Value placeholder='Pick a band' />
+        </Select.Trigger>
+        <Select.Content>
+          <Band />
+        </Select.Content>
+      </Select>
+    )
+    await user.click(getByRole('combobox'))
+    await user.click(await findByRole('option', { name: 'Regurgitator' }))
+    expect(getByRole('combobox')).toHaveTextContent('Regurgitator')
+  })
+
+  it('keeps labels from explicit items', () => {
+    const { getByRole } = render(
+      <Bands defaultValue='bee-gees' items={{ 'bee-gees': 'The Bee Gees' }} />
+    )
+    expect(getByRole('combobox')).toHaveTextContent('The Bee Gees')
+  })
+
+  it('keeps labels from itemToStringLabel', () => {
+    const { getByRole } = render(
+      <Bands
+        defaultValue='bee-gees'
+        itemToStringLabel={(value) => String(value).toUpperCase()}
+      />
+    )
+    expect(getByRole('combobox')).toHaveTextContent('BEE-GEES')
+  })
+
+  it('lists the labels of every value in a multiple select', () => {
+    const { getByRole } = render(
+      // @ts-expect-error Roadie's Select types don't take `multiple` yet
+      <Bands multiple defaultValue={['bee-gees', 'custard']} />
+    )
+    expect(getByRole('combobox')).toHaveTextContent('Bee Gees, Custard')
   })
 })

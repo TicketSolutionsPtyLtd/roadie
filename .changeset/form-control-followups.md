@@ -11,3 +11,9 @@ Switch, Checkbox, CheckboxGroup, RadioGroup, Select, NumberField and OTPField
 now point `aria-describedby` at the text `Field` actually renders. A control
 marked `invalid` inside a valid `Field` pointed at an error text that was never
 rendered, so screen readers lost the helper text.
+
+`Select.Value` now shows the selected item's label instead of its raw value, on
+the server and first render too. Select reads each `Select.Item`'s text (its
+string children or its `Select.ItemText`), and an `items` or
+`itemToStringLabel` you pass still wins. Values of a multiple select show as
+their labels.
