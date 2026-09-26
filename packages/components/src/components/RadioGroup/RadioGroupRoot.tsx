@@ -53,7 +53,7 @@ export function RadioGroupRoot({
         }
         aria-describedby={
           (inField &&
-            (resolvedInvalid
+            (fieldContext.invalid
               ? fieldContext.errorTextId
               : fieldContext.helperTextId)) ||
           undefined

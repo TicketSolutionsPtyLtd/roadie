@@ -257,9 +257,9 @@ function AutocompleteWithGroups() {
 #### With rich items
 
 Use custom markup inside `Autocomplete.Item` to show metadata like venue, date,
-or an avatar alongside the primary label. Use `itemToStringValue` to control
-what text appears in the input when an item is selected, which includes the
-metadata so the user sees full context.
+or an avatar alongside the primary label. Pass the item itself as `value`, and
+use `itemToStringValue` to control what text appears in the input when an item
+is selected, which includes the metadata so the user sees full context.
 
 ```tsx-live
 function AutocompleteRichItems() {
@@ -288,7 +288,7 @@ function AutocompleteRichItems() {
           <Autocomplete.Popup>
             <Autocomplete.List>
               {(event) => (
-                <Autocomplete.Item key={event.name} value={event.name}>
+                <Autocomplete.Item key={event.name} value={event}>
                   <div className='grid gap-0.5 min-w-0'>
                     <span className='truncate font-medium'>{event.name}</span>
                     <span className='truncate text-xs text-subtle'>

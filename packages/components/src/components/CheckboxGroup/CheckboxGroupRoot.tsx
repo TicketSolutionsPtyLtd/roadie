@@ -56,7 +56,7 @@ export function CheckboxGroupRoot({
         }
         aria-describedby={
           (inField &&
-            (resolvedInvalid
+            (fieldContext.invalid
               ? fieldContext.errorTextId
               : fieldContext.helperTextId)) ||
           undefined

@@ -41,7 +41,7 @@ export function SelectTrigger({
       )}
       {...(inField && {
         'aria-labelledby': fieldContext.labelId || undefined,
-        'aria-describedby': invalid
+        'aria-describedby': fieldContext.invalid
           ? fieldContext.errorTextId || undefined
           : fieldContext.helperTextId || undefined,
         'aria-invalid': invalid || undefined,
