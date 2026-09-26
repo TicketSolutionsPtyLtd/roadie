@@ -179,6 +179,17 @@ describe('Slider', () => {
 })
 
 describe('Field + Slider integration', () => {
+  it('describes by the helper text the field renders when only the slider is invalid', () => {
+    render(
+      <Field>
+        <Field.Label>Price</Field.Label>
+        <Slider invalid defaultValue={40} />
+        <Field.HelperText>Up to $250</Field.HelperText>
+      </Field>
+    )
+    expect(screen.getByRole('slider')).toHaveAccessibleDescription('Up to $250')
+  })
+
   it('focuses the first thumb when Field.Label is clicked', async () => {
     render(
       <Field>

@@ -56,7 +56,8 @@ export function SliderRoot<Value extends SliderValueType>({
   const inField = !!field.fieldId
   const hasLabel = !isEmptyNode(label)
   const resolvedInvalid = invalid ?? field.invalid
-  const fieldTextId = resolvedInvalid ? field.errorTextId : field.helperTextId
+  // Field.ErrorText renders from the field's own invalid, not the slider's.
+  const fieldTextId = field.invalid ? field.errorTextId : field.helperTextId
   const thumbCount = countThumbs(props.value ?? props.defaultValue)
 
   return (
