@@ -2,7 +2,13 @@ import '@testing-library/jest-dom/vitest'
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { Button, Code, Highlight, Mark } from './index'
+import {
+  Button,
+  Code,
+  Highlight,
+  Mark,
+  type NumberFieldStepperEmphasis
+} from './index'
 
 describe('Component exports', () => {
   it('exports Button component', () => {
@@ -21,6 +27,11 @@ describe('Component exports', () => {
     expect(Mark).toBeDefined()
     const { container } = render(<Mark>Test</Mark>)
     expect(container).toBeInTheDocument()
+  })
+
+  it('exports the NumberField stepper emphasis type', () => {
+    const emphasis: NumberFieldStepperEmphasis = 'strong'
+    expect(emphasis).toBe('strong')
   })
 
   it('exports Highlight component', () => {

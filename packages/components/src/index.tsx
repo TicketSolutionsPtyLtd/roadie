@@ -413,7 +413,8 @@ export {
   type NumberFieldScrubAreaProps,
   type NumberFieldScrubAreaCursorProps,
   type NumberFieldEmphasis,
-  type NumberFieldSize
+  type NumberFieldSize,
+  type NumberFieldStepperEmphasis
 } from './components/NumberField'
 export {
   RadioGroup,
