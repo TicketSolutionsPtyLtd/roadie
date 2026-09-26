@@ -54,16 +54,27 @@ async function settled(manager: ToastManager, title: string) {
   act(() => {
     id = manager.add({ title, timeout: 0 })
   })
-  await waitFor(
+  const toast = await waitFor(
     () => {
-      const toast = toastTitled(title)
-      expect(toast).not.toHaveAttribute('data-starting-style')
-      expect(toast!.style.getPropertyValue('--toast-height')).not.toBe('')
-      expect(toast!.getAnimations()).toHaveLength(0)
+      const found = toastTitled(title)
+      expect(found).not.toHaveAttribute('data-starting-style')
+      expect(found!.style.getPropertyValue('--toast-height')).not.toBe('')
+      return found!
     },
     { timeout: 10_000 }
   )
+  await transitionsDone(toast)
   return id
+}
+
+// The root's own transitions only; slow engines can take well over a second
+// to finish the enter, so wait on them rather than polling a deadline.
+async function transitionsDone(toast: HTMLElement) {
+  let running = toast.getAnimations()
+  while (running.length > 0) {
+    await Promise.allSettled(running.map((animation) => animation.finished))
+    running = toast.getAnimations()
+  }
 }
 
 function expectFits(toast: HTMLElement | null) {
