@@ -1,4 +1,4 @@
-import { finiteOrNull } from '../plot/values'
+import { finiteOrNull, minMax } from '../plot/values'
 import type { HistogramProps } from './types'
 
 export type Bin = {
@@ -61,8 +61,7 @@ export function binValues(
   { bins, binWidth }: { bins?: number; binWidth?: number }
 ): Bin[] {
   if (values.length === 0) return []
-  const min = Math.min(...values)
-  const max = Math.max(...values)
+  const [min, max] = minMax(values)
   const whole = values.every(Number.isInteger)
   const byWidth = binWidth !== undefined && binWidth > 0
   const target = bins ?? defaultBinCount(values.length)

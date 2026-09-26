@@ -4,7 +4,7 @@ import { OTHER, rollupOther, seriesNames } from '../plot/series'
 import { fieldLabel } from '../plot/table'
 import { isTimeField, parseX } from '../plot/time'
 import type { PlotDatum, Row } from '../plot/types'
-import { finiteOrNull, valueDomain } from '../plot/values'
+import { finiteOrNull, minMax, valueDomain } from '../plot/values'
 import type { LineChartProps } from './types'
 
 export const MIN_POINTS = 2
@@ -47,7 +47,7 @@ export const toLinePoints = (props: LineChartProps): PlotDatum[] =>
 
 export function lineXDomain(points: readonly PlotDatum[]): [number, number] {
   const xs = points.map((p) => Number(p.x))
-  return xs.length ? [Math.min(...xs), Math.max(...xs)] : [0, 1]
+  return xs.length ? minMax(xs) : [0, 1]
 }
 
 export function forecastStart(props: Pick<LineChartProps, 'forecast'>) {

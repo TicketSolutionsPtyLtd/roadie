@@ -148,6 +148,17 @@ const INTERVAL_MS = { hour: 3_600_000, day: 86_400_000, week: 604_800_000 }
 
 type AnnotatedChart = SmallMultiplesPlot['chart']
 
+// A spread into Math.min or Math.max overflows the call stack on large data.
+function minMax(values: readonly number[]): [number, number] {
+  let min = Infinity
+  let max = -Infinity
+  for (const value of values) {
+    if (value < min) min = value
+    if (value > max) max = value
+  }
+  return [min, max]
+}
+
 // Mirrors how the charts place annotations: by wall time on a time axis, where
 // a bar covers its whole interval, and by exact value otherwise.
 function annotationFits(
@@ -160,20 +171,17 @@ function annotationFits(
   if (xs.every(isWallTime)) {
     const time = parseWallTime(at)
     const times = xs.map(parseWallTime).filter((v) => v !== null)
+    const [first, last] = minMax(times)
     const span = chart.kind === 'bar' ? INTERVAL_MS[chart.interval ?? 'day'] : 0
     return (
       time !== null &&
-      time >= Math.min(...times) &&
-      (span ? time < Math.max(...times) + span : time <= Math.max(...times))
+      time >= first &&
+      (span ? time < last + span : time <= last)
     )
   }
   if (chart.kind === 'bar') return xs.some((x) => String(x) === String(at))
-  const numbers = xs.filter((x) => typeof x === 'number')
-  return (
-    typeof at === 'number' &&
-    at >= Math.min(...numbers) &&
-    at <= Math.max(...numbers)
-  )
+  const [low, high] = minMax(xs.filter((x) => typeof x === 'number'))
+  return typeof at === 'number' && at >= low && at <= high
 }
 
 function annotationProblems(

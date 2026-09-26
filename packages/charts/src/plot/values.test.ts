@@ -10,6 +10,11 @@ import {
 } from './values'
 
 describe('value domains', () => {
+  it('spans 200,000 values without overflowing the stack', () => {
+    const values = Array.from({ length: 200_000 }, (_, i) => i)
+    expect(valueDomain(values, { zero: true })).toEqual([0, 200_000])
+  })
+
   it('starts at zero when asked', () => {
     expect(valueDomain([120, 184, 90], { zero: true })[0]).toBe(0)
   })

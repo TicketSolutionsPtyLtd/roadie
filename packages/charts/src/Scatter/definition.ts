@@ -19,7 +19,13 @@ import type {
   PlotDatum,
   PlotFrame
 } from '../plot/types'
-import { axisFormat, fullFormat, gridTicks, isCountAxis } from '../plot/values'
+import {
+  axisFormat,
+  fullFormat,
+  gridTicks,
+  isCountAxis,
+  minMax
+} from '../plot/values'
 import { nounFor, plural } from '../plot/words'
 import {
   MIN_POINTS,
@@ -45,8 +51,7 @@ function extent(
 ): [number, number] {
   const all = reference === undefined ? values : [...values, reference]
   if (all.length === 0) return [0, 1]
-  const min = Math.min(...all)
-  const max = Math.max(...all)
+  const [min, max] = minMax(all)
   const pad = (max - min) * 0.08 || Math.abs(max) * 0.1 || 1
   const scale = scaleLinear()
     .domain([min - pad, max + pad])

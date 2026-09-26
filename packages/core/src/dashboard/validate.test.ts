@@ -642,6 +642,19 @@ describe('validateDashboard checks annotations against the data', () => {
     ).toHaveLength(1)
   })
 
+  it('places an annotation among 200,000 points without overflowing', () => {
+    const data = Array.from({ length: 200_000 }, (_, n) => ({ n, sold: 1 }))
+    expect(
+      problemsAt({
+        kind: 'line',
+        data,
+        x: 'n',
+        y: 'sold',
+        annotations: [{ at: 150_000, label: 'Presale' }]
+      })
+    ).toEqual([])
+  })
+
   it('warns on a category that no bar has', () => {
     expect(
       problemsAt({

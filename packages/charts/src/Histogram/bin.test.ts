@@ -3,6 +3,13 @@ import { describe, expect, it } from 'vitest'
 import { MAX_BINS, binValues, histogramValues, medianOf } from './bin'
 
 describe('binValues', () => {
+  it('bins 200,000 values without overflowing the stack', () => {
+    const values = Array.from({ length: 200_000 }, (_, i) => i % 1000)
+    const bins = binValues(values, {})
+    expect(bins[0]!.from).toBe(0)
+    expect(bins.reduce((sum, b) => sum + b.count, 0)).toBe(200_000)
+  })
+
   it('bins by width from a round start', () => {
     const bins = binValues([0, 3, 6, 7, 13, 14], { binWidth: 7 })
     expect(bins.map((b) => [b.from, b.to, b.count])).toEqual([

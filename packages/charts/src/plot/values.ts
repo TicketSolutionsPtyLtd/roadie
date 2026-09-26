@@ -3,6 +3,17 @@ import { type ValueFormat, formatValue } from '@oztix/roadie-core/dataviz'
 export const COMPACT_FROM = 10_000
 const STEPS = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]
 
+// A spread into Math.min or Math.max overflows the call stack on large data.
+export function minMax(values: readonly number[]): [number, number] {
+  let min = Infinity
+  let max = -Infinity
+  for (const value of values) {
+    if (value < min) min = value
+    if (value > max) max = value
+  }
+  return [min, max]
+}
+
 export const finiteOrNull = (value: unknown) =>
   typeof value === 'number' && Number.isFinite(value) ? value : null
 
@@ -43,8 +54,9 @@ export function valueDomain(
   )
   const whole = nice && isCountAxis(finite, format)
   if (finite.length === 0) return [0, 1]
-  const min = Math.min(...finite, ...(zero ? [0] : []))
-  const max = Math.max(...finite, ...(zero ? [0] : []))
+  const [low, high] = minMax(finite)
+  const min = zero ? Math.min(low, 0) : low
+  const max = zero ? Math.max(high, 0) : high
   const round = nice
     ? (value: number) => niceCeil(value, whole)
     : (value: number) => value
