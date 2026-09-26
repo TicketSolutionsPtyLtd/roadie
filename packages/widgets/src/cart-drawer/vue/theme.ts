@@ -1,7 +1,7 @@
 import { computed, onScopeDispose, toValue, watchEffect } from 'vue'
 import type { MaybeRefOrGetter } from 'vue'
 
-import { getOklchChromaSync, getOklchHueSync } from '@oztix/roadie-core/colors'
+import { getAccentChromaSync, getOklchHueSync } from '@oztix/roadie-core/colors'
 
 /** Roadie's default accent — used when no valid `accentColor` is supplied. */
 const DEFAULT_ACCENT = '#0191eb'
@@ -35,7 +35,7 @@ export function useRoadieTheme(
     const hex = isValidHexColor(raw) ? raw : fallback
     return {
       hue: Math.round(getOklchHueSync(hex)),
-      chroma: +getOklchChromaSync(hex).toFixed(4)
+      chroma: +getAccentChromaSync(hex).toFixed(4)
     }
   })
 

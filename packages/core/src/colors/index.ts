@@ -10,6 +10,7 @@ export {
   hexToOklch,
   getOklchHueSync,
   getOklchChromaSync,
+  getAccentChromaSync,
   type Oklch
 } from './srgb-to-oklch'
 export { getContrastColor } from './contrast'

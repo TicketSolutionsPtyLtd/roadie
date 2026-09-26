@@ -50,7 +50,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   background-color: var(--intent-bg-strong);
-  color: var(--intent-text-inverted);
+  color: var(--intent-text-on-strong);
 
   /* These are the colours of emphasis-strong, and of emphasis-normal below,
      which is what the React component applies. The presets also set a
@@ -87,7 +87,7 @@
      sets the foreground per emphasis. A template applies emphasis-* itself, so
      there is nothing to inherit from and the rule has to be explicit. */
   .emphasis-strong > & {
-    color: var(--intent-text-inverted);
+    color: var(--intent-text-on-strong);
   }
 
   .calendar-tile-sm > & {

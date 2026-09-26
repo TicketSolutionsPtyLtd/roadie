@@ -7,6 +7,8 @@ import { cn } from './cn'
 describe('cn', () => {
   it('dedupes Roadie semantic colour groups (last write wins)', () => {
     expect(cn('text-subtle', 'text-strong')).toBe('text-strong')
+    expect(cn('text-inverted', 'text-on-strong')).toBe('text-on-strong')
+    expect(cn('text-on-strong', 'text-normal')).toBe('text-normal')
     expect(cn('bg-normal', 'bg-raised')).toBe('bg-raised')
     expect(cn('border-subtle', 'border-strong')).toBe('border-strong')
   })

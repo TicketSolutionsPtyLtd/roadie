@@ -123,7 +123,7 @@ export default function AccessibilityPage() {
 
         <Guideline
           title='Meet WCAG AA contrast ratios'
-          description='4.5:1 for normal text. 3:1 for large text (18px bold / 24px regular) and UI components.'
+          description='4.5:1 for normal text. 3:1 for large text (18px bold / 24px regular) and UI components. Labels on strong fills are the exception: they are checked with APCA.'
         >
           <Guideline.Do>
             Use Roadie&apos;s semantic text colours (<Code>text-normal</Code>,{' '}
@@ -399,7 +399,9 @@ export default function AccessibilityPage() {
                   Browser DevTools or contrast checker
                 </td>
                 <td className='py-2'>
-                  All text meets WCAG AA. UI components meet 3:1.
+                  Text meets WCAG AA and UI components meet 3:1. Labels on
+                  strong fills reach APCA Lc 60 instead; some white labels are
+                  3.2 to 3.5:1 by WCAG 2.
                 </td>
               </tr>
               <tr>

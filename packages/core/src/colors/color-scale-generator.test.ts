@@ -7,8 +7,17 @@ import {
   getOklchChroma,
   getOklchHue
 } from './color-scale-generator'
+import { getAccentChromaSync, getOklchHueSync } from './srgb-to-oklch'
 
 const HEX_REGEX = /^#[0-9a-f]{6}$/i
+
+// APCA-W3 0.0.98G Lc for white text, constants from Myndex/apca-w3 (SA98G).
+function whiteTextLc(backgroundHex: string) {
+  const [r, g, b] = new Color(backgroundHex).to('srgb').coords.map(Number)
+  let y = 0.2126729 * r! ** 2.4 + 0.7151522 * g! ** 2.4 + 0.072175 * b! ** 2.4
+  if (y < 0.022) y += (0.022 - y) ** 1.414
+  return -((y ** 0.65 - 1) * 1.14 + 0.027) * 100
+}
 
 function getOklch(hex: string) {
   const c = new Color(hex).to('oklch')
@@ -65,14 +74,40 @@ describe('generateAccentScale', () => {
     expect(L).toBeGreaterThan(0.85)
   })
 
+  describe.each(['#00FF00', '#00FFFF', '#FFFF00', '#FF00FF'])(
+    'a saturated accent of %s',
+    (hex) => {
+      it('matches the capped strong fill the CSS draws', async () => {
+        const { light } = await generateAccentScale(hex)
+        const css = new Color('oklch', [
+          0.639,
+          getAccentChromaSync(hex),
+          getOklchHueSync(hex)
+        ])
+        expect(new Color(light[9]!).deltaE(css, '2000')).toBeLessThan(0.5)
+      })
+
+      it('keeps white text at Lc 60 on the strong fill', async () => {
+        const { light, dark } = await generateAccentScale(hex)
+        expect(whiteTextLc(light[9]!)).toBeGreaterThanOrEqual(60)
+        expect(whiteTextLc(dark[9]!)).toBeGreaterThanOrEqual(60)
+      })
+    }
+  )
+
   it('fgOnStrong is white or black', async () => {
     const result = await generateAccentScale(oztixBlue)
     expect(['white', 'black']).toContain(result.fgOnStrong)
   })
 
-  it('fgOnStrong is black for Oztix Blue (bright accent)', async () => {
+  it('fgOnStrong is white for Oztix Blue, matching text-on-strong', async () => {
     const result = await generateAccentScale(oztixBlue)
-    expect(result.fgOnStrong).toBe('black')
+    expect(result.fgOnStrong).toBe('white')
+  })
+
+  it('keeps a grey accent grey in the fallback scale', async () => {
+    const { light } = await generateAccentScale('#808080')
+    expect(getOklch(light[9]!).C).toBeLessThan(0.01)
   })
 
   it('different inputs produce different scales', async () => {

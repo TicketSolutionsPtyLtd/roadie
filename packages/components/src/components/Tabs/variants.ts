@@ -52,8 +52,8 @@ export const tabsListVariants = cva(
 // `relative z-[1]` keeps the tab text and any focus ring above the
 // indicator pill that sits behind it. The active text colour shifts
 // per emphasis: `text-strong` for raised/tinted/underline pills,
-// `text-inverted` for the dark `emphasis-strong` pill so the label
-// reads against the inverted surface. `is-interactive` wires the
+// `text-on-strong` for the `emphasis-strong` pill so the label
+// reads against the strong fill. `is-interactive` wires the
 // focus ring, cursor, color transition, and disabled state. In
 // vertical direction the tabs left-align their content so labels
 // don't float in the middle of the column.
@@ -68,7 +68,7 @@ export const tabsTabVariants = cva(
   {
     variants: {
       emphasis: {
-        strong: 'rounded-full data-[active]:text-inverted',
+        strong: 'rounded-full data-[active]:text-on-strong',
         normal: 'rounded-full data-[active]:text-strong',
         subtle: 'rounded-full data-[active]:text-strong',
         // Inset, because the scrolling list clips a ring drawn outside it.

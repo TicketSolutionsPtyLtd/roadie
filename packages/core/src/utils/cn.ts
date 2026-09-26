@@ -66,7 +66,8 @@ const twMerge = extendTailwindMerge<
         'text-subtle',
         'text-subtler',
         'text-strong',
-        'text-inverted'
+        'text-inverted',
+        'text-on-strong'
       ],
       'semantic-bg-color': [
         'bg-normal',
