@@ -672,3 +672,11 @@ export {
   type RoadieLinkComponent,
   type RoadieLinkProps
 } from './providers/RoadieLinkProvider'
+
+export {
+  RoadieProvider,
+  type RoadieProviderProps,
+  type RoadieThemeOptions,
+  type RoadieToastOptions,
+  type RoadieTooltipOptions
+} from './providers/RoadieProvider'

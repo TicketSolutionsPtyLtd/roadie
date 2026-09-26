@@ -14,3 +14,6 @@ export const ToastPositionContext = createContext<ToastPosition>('bottom-end')
 
 // Base UI's default; `Toast.Provider` overrides it with its own `timeout`.
 export const ToastTimeoutContext = createContext(5000)
+
+// Lets RoadieProvider notice it sits inside a provider it would duplicate.
+export const ToastProvidedContext = createContext(false)
