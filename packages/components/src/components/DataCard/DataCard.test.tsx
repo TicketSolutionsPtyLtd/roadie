@@ -1,10 +1,12 @@
 import { createRef } from 'react'
 
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DataCard } from '.'
+import { Menu } from '../Menu'
 
 describe('DataCard', () => {
   it('names the card by its label', () => {
@@ -180,5 +182,30 @@ describe('DataCard.MoreButton', () => {
     expect(button).toHaveClass('emphasis-subtler', 'btn-icon-sm')
     button.click()
     expect(onClick).toHaveBeenCalledOnce()
+  })
+
+  it('triggers a Menu by render and keeps its name and ref', async () => {
+    const user = userEvent.setup()
+    const ref = createRef<HTMLButtonElement>()
+    render(
+      <Menu>
+        <Menu.Trigger
+          render={<DataCard.MoreButton label='Sales pace' ref={ref} />}
+        />
+        <Menu.Content>
+          <Menu.Item>Download CSV</Menu.Item>
+        </Menu.Content>
+      </Menu>
+    )
+    const button = screen.getByRole('button', {
+      name: 'More actions for Sales pace'
+    })
+    expect(ref.current).toBe(button)
+    expect(button).toHaveAttribute('aria-haspopup', 'menu')
+    await user.click(button)
+    expect(
+      await screen.findByRole('menuitem', { name: 'Download CSV' })
+    ).toBeInTheDocument()
+    expect(button).toHaveAttribute('aria-expanded', 'true')
   })
 })

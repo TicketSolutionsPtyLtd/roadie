@@ -200,7 +200,7 @@ A single line gets no legend of its own on a wide card, where end labels name it
 
 ### With actions
 
-Pass `actions` to add controls after the Chart and Table switch. Use at most one visible action, then `DataCard.MoreButton` last. It passes its props and ref through, so it becomes the trigger of Roadie's upcoming Menu component with no change.
+Pass `actions` to add controls after the Chart and Table switch. Use at most one visible action, then the More menu last. Pass `DataCard.MoreButton` to a [Menu](/components/menu) trigger's `render`, and it keeps its name and ref. Group the items as the [More menu](/charts/dashboards#card-actions) guideline says, with the danger action last.
 
 ```tsx-live
 <div className='w-[560px] max-w-full'>
@@ -211,7 +211,35 @@ Pass `actions` to add controls after the Chart and Table switch. Use at most one
     delta={{ value: 16, format: 'points' }}
     context='Ahead of similar shows'
     source='Oztix sales. 38 similar shows, last 3 years.'
-    actions={<DataCard.MoreButton label='Sales pace' />}
+    actions={
+      <Menu>
+        <Menu.Trigger render={<DataCard.MoreButton label='Sales pace' />} />
+        <Menu.Content align='end'>
+          <Menu.Group>
+            <Menu.GroupLabel>Chart</Menu.GroupLabel>
+            <Menu.Item icon={<PencilSimpleIcon weight='bold' />}>Edit</Menu.Item>
+            <Menu.Item icon={<CopyIcon weight='bold' />}>Duplicate</Menu.Item>
+          </Menu.Group>
+          <Menu.Separator />
+          <Menu.Group>
+            <Menu.GroupLabel>Display</Menu.GroupLabel>
+            <Menu.Item icon={<EyeSlashIcon weight='bold' />}>Hide description</Menu.Item>
+          </Menu.Group>
+          <Menu.Separator />
+          <Menu.Group>
+            <Menu.GroupLabel>Export</Menu.GroupLabel>
+            <Menu.Item icon={<DownloadIcon weight='bold' />}>Download CSV</Menu.Item>
+            <Menu.Item icon={<ImageIcon weight='bold' />}>Copy as image</Menu.Item>
+          </Menu.Group>
+          <Menu.Separator />
+          <Menu.Group>
+            <Menu.GroupLabel>Dashboard</Menu.GroupLabel>
+            <Menu.Item icon={<ArrowRightIcon weight='bold' />}>Move to</Menu.Item>
+            <Menu.Item intent='danger' icon={<TrashIcon weight='bold' />}>Remove from dashboard</Menu.Item>
+          </Menu.Group>
+        </Menu.Content>
+      </Menu>
+    }
   >
     <LineChart
       data={[

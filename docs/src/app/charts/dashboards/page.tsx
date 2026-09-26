@@ -10,12 +10,14 @@ import {
 
 import { CodePreview } from '@/components/CodePreview'
 import { Guideline } from '@/components/Guideline'
+import { CardMenu } from '@/components/charts/CardMenu'
 
 import { Chart } from '@oztix/roadie-charts/chart'
 import { ChartLegend } from '@oztix/roadie-charts/chart-legend'
 import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
 import { createShowDashboard } from '@oztix/roadie-charts/examples'
 import { LineChart } from '@oztix/roadie-charts/line-chart'
+import { lineChartTable } from '@oztix/roadie-charts/tables'
 import { Button, IconButton } from '@oztix/roadie-components/button'
 import { Code } from '@oztix/roadie-components/code'
 import { DataCard } from '@oztix/roadie-components/data-card'
@@ -451,32 +453,72 @@ const MENU_GROUPS = [
   ['Chart', 'View, Edit, Rename, Duplicate, Alerts'],
   ['Display', 'Hide description, and the view options'],
   [
-    'Dashboard',
-    'Move to, Copy to, then Remove from dashboard last, in the danger intent'
-  ],
-  [
     'Export',
     'Download CSV, Copy as image, and Refresh data with “Last updated 4 hours ago” as helper text'
+  ],
+  [
+    'Dashboard',
+    'Move to, Copy to, then Remove from dashboard last, in the danger intent'
   ]
 ]
 
 const CARD_ACTIONS_CODE = `// CardMenu.tsx
 'use client'
 
-import type { DashboardCard } from '@oztix/roadie-core/dashboard'
+import type { ChartTable } from '@oztix/roadie-charts/tables'
 import { DataCard } from '@oztix/roadie-components/data-card'
+import { Menu } from '@oztix/roadie-components/menu'
 
-export function CardMenu({ card }: { card: DashboardCard }) {
+export function CardMenu({ label, table }: { label: string; table?: ChartTable }) {
   return (
-    <DataCard.MoreButton
-      label={card.label}
-      onClick={() => openCardMenu(card.id)}
-    />
+    <Menu>
+      <Menu.Trigger render={<DataCard.MoreButton label={label} />} />
+      <Menu.Content align='end'>
+        <Menu.Group>
+          <Menu.GroupLabel>Chart</Menu.GroupLabel>
+          <Menu.Item icon={<PencilSimpleIcon weight='bold' />}>Edit</Menu.Item>
+          <Menu.Item icon={<CopyIcon weight='bold' />}>Duplicate</Menu.Item>
+        </Menu.Group>
+        <Menu.Separator />
+        <Menu.Group>
+          <Menu.GroupLabel>Display</Menu.GroupLabel>
+          <Menu.Item icon={<EyeSlashIcon weight='bold' />}>Hide description</Menu.Item>
+        </Menu.Group>
+        <Menu.Separator />
+        <Menu.Group>
+          <Menu.GroupLabel>Export</Menu.GroupLabel>
+          {table && (
+            <Menu.Item
+              icon={<DownloadIcon weight='bold' />}
+              onClick={() => downloadCsv(label, table)}
+            >
+              Download CSV
+            </Menu.Item>
+          )}
+          <Menu.Item icon={<ImageIcon weight='bold' />}>Copy as image</Menu.Item>
+        </Menu.Group>
+        <Menu.Separator />
+        <Menu.Group>
+          <Menu.GroupLabel>Dashboard</Menu.GroupLabel>
+          <Menu.Item icon={<ArrowRightIcon weight='bold' />}>Move to</Menu.Item>
+          <Menu.Item intent='danger' icon={<TrashIcon weight='bold' />}>
+            Remove from dashboard
+          </Menu.Item>
+        </Menu.Group>
+      </Menu.Content>
+    </Menu>
   )
 }
 
 // page.tsx
-<DashboardView spec={spec} cardActions={(card) => <CardMenu card={card} />} />`
+import { cardTable } from '@oztix/roadie-charts/tables'
+
+<DashboardView
+  spec={spec}
+  cardActions={(card) => (
+    <CardMenu label={card.label} table={cardTable(card)} />
+  )}
+/>`
 
 const HOVER_ONLY_CODE = `<DataCard
   label='Ticket types'
@@ -904,7 +946,12 @@ export default function DashboardsPage() {
                   format='percent'
                   size='sm'
                   source='Oztix sales.'
-                  actions={<DataCard.MoreButton label='Sales pace' />}
+                  actions={
+                    <CardMenu
+                      label='Sales pace'
+                      table={lineChartTable(PACE_EXAMPLE)}
+                    />
+                  }
                 >
                   <LineChart {...PACE_EXAMPLE} />
                 </Chart>
@@ -967,7 +1014,7 @@ export default function DashboardsPage() {
                 <DataCard
                   label='Ticket types'
                   takeaway='VIP is the one to push'
-                  actions={<DataCard.MoreButton label='Ticket types' />}
+                  actions={<CardMenu label='Ticket types' />}
                 />
               </Tile>
             }
@@ -983,11 +1030,14 @@ export default function DashboardsPage() {
         </Guideline>
         <h3 className='text-display-ui-5 text-strong'>The More menu</h3>
         <p className='max-w-prose text-subtle'>
-          Group the menu in this order and leave out what a card can’t do. The
-          menu itself comes with Roadie’s upcoming Menu component. Until then,{' '}
-          <Code>DataCard.MoreButton</Code> is a plain icon button named “More
-          actions for” the card’s label. It passes its props and ref through, so
-          it becomes the menu’s trigger with no change.
+          Group the menu in this order and leave out what a card can’t do. Build
+          it with <Link href='/components/menu'>Menu</Link>: pass{' '}
+          <Code>DataCard.MoreButton</Code> to <Code>Menu.Trigger</Code> as its{' '}
+          <Code>render</Code>. The button keeps its name, “More actions for” the
+          card’s label, and its ref. Name each group with{' '}
+          <Code>Menu.GroupLabel</Code>, split groups with{' '}
+          <Code>Menu.Separator</Code>, and open the menu with{' '}
+          <Code>align=&apos;end&apos;</Code> so it opens back over the card.
         </p>
         <Table
           label='More menu groups'
@@ -998,9 +1048,9 @@ export default function DashboardsPage() {
         <List
           items={[
             <>
-              Download CSV from the chart’s Table data. The{' '}
-              <Code>@oztix/roadie-charts/tables</Code> entry builds it on the
-              server.
+              Download CSV from the card’s table. <Code>cardTable(card)</Code>{' '}
+              from <Code>@oztix/roadie-charts/tables</Code> builds it on the
+              server, for a chart card or a table card.
             </>,
             <>
               Copy as image with <Code>renderChartSvg</Code> from{' '}

@@ -59,7 +59,7 @@ import { DataCard } from '@oztix/roadie-components/data-card'
 
 ### Actions
 
-Put at most one visible action first and `DataCard.MoreButton` last. More passes its props and ref through, so it becomes a menu trigger once Roadie's Menu component lands.
+Put at most one visible action first and `DataCard.MoreButton` last. More passes its props and ref through, so pass it to a [Menu](/components/menu) trigger's `render` to open the card's menu.
 
 ```tsx-live
 <div className='w-72'>
