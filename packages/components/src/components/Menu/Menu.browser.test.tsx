@@ -78,6 +78,9 @@ describe('Menu rows on a touch screen', () => {
     await userEvent.keyboard('{Enter}')
     const second = await screen.findByRole('menuitem', { name: 'Tickets sold' })
     const first = screen.getByRole('menuitem', { name: 'Venue' })
+    // The menu focuses its first row a frame after it opens; an arrow pressed
+    // before that is lost.
+    await expect.poll(() => document.activeElement).toBe(first)
     await userEvent.keyboard('{ArrowDown}')
     await expect.poll(() => document.activeElement).toBe(second)
 
