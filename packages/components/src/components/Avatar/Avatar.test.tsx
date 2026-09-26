@@ -204,6 +204,11 @@ describe('Avatar.Group', () => {
     expect(count).toHaveTextContent('+12')
   })
 
+  it('keeps the "N more" name when aria-label is undefined', () => {
+    render(<Avatar.GroupCount count={12} aria-label={undefined} />)
+    expect(screen.getByRole('img', { name: '12 more' })).toBeInTheDocument()
+  })
+
   it('takes a custom label for the count', () => {
     render(<Avatar.GroupCount count={3} aria-label='3 more attendees' />)
     expect(

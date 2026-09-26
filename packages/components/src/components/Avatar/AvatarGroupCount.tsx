@@ -30,6 +30,7 @@ export function AvatarGroupCount({
   size,
   shape,
   intent,
+  'aria-label': ariaLabel,
   ...props
 }: AvatarGroupCountProps) {
   const group = use(AvatarGroupContext)
@@ -37,7 +38,7 @@ export function AvatarGroupCount({
     <span
       data-slot='avatar-group-count'
       role='img'
-      aria-label={`${count} more`}
+      aria-label={ariaLabel ?? `${count} more`}
       className={cn(
         avatarVariants({
           intent,
