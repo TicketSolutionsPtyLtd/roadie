@@ -12,7 +12,7 @@ export type Segment = {
   index: number
 }
 
-type Part = { x: string; series: string; y: number; index: number }
+export type Part = { x: string; series: string; y: number; index: number }
 
 function merged(points: readonly Part[]): Part[] {
   const byKey = new Map<string, Part>()
@@ -32,17 +32,19 @@ function measuredParts(props: StackedBarsProps): Part[] {
       y: finiteOrNull(row[props.y]),
       index
     }))
-    .filter(
-      (p): p is Part => p.x !== '' && p.series !== '' && p.y !== null && p.y > 0
-    )
+    .filter((p): p is Part => p.x !== '' && p.series !== '' && p.y !== null)
 }
+
+/** Every measured value, zeros included, merged by category and series. */
+export const tableParts = (props: StackedBarsProps) =>
+  merged(measuredParts(props))
 
 const parts = (props: StackedBarsProps, rollup: boolean) => {
-  const measured = measuredParts(props)
-  return merged(rollup ? rollupOther(measured) : measured)
+  const drawn = measuredParts(props).filter((p) => p.y > 0)
+  return merged(rollup ? rollupOther(drawn) : drawn)
 }
 
-function seriesOrder(all: readonly Part[]) {
+export function seriesOrder(all: readonly Part[]) {
   const order = [...new Set(all.map((p) => p.series))]
   const other = order.indexOf(OTHER)
   if (other !== -1) order.push(...order.splice(other, 1))

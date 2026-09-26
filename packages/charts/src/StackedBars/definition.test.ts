@@ -166,6 +166,35 @@ describe('stackedBarsTable', () => {
     })
   })
 
+  it('shows zeros the bars leave out', () => {
+    const table = stackedBarsTable(ticketMixExample)
+    expect(table.rows.map((row) => row['Early bird'])).toEqual([300, 0, 0])
+  })
+
+  it('keeps a column for a series that is zero everywhere', () => {
+    const table = stackedBarsTable({
+      data: [
+        { c: 'A', s: 'Sold', v: 4 },
+        { c: 'A', s: 'Comps', v: 0 },
+        { c: 'B', s: 'Sold', v: 6 },
+        { c: 'B', s: 'Comps', v: 0 }
+      ],
+      x: 'c',
+      y: 'v',
+      series: 's'
+    })
+    expect(table.columns.map((c) => c.header)).toEqual([
+      'C',
+      'Sold',
+      'Comps',
+      'Total'
+    ])
+    expect(table.rows).toEqual([
+      { c: 'A', Sold: 4, Comps: 0, total: 4 },
+      { c: 'B', Sold: 6, Comps: 0, total: 6 }
+    ])
+  })
+
   it('keeps a series named Total apart from the total', () => {
     const table = stackedBarsTable({
       data: [
