@@ -44,6 +44,7 @@ import { NavigatorOverflowItems } from './NavigatorOverflowItems'
 import { NavigatorOverflowPane } from './NavigatorOverflowPane'
 import { type NavigatorPageAt, NavigatorPageStep } from './NavigatorPageStep'
 import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
+import { createHeaderClearance } from './headerClearance'
 import { OVERFLOW_LABEL } from './mobileSlots'
 import {
   type DepthEntry,
@@ -466,6 +467,19 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
 
   const [inspectorHandle] = useState(() => DrawerPrimitive.createHandle())
 
+  // The outermost frame owns the viewport's top edge.
+  const [clearance] = useState(createHeaderClearance)
+  const trackHeader = level === 0 ? clearance.track : undefined
+  useEffect(() => {
+    const content = contentRef.current
+    if (level !== 0 || !content) return
+    return clearance.start(content)
+  }, [level, clearance])
+  // Every commit, as a pane can become top with no event, such as under reduced motion.
+  useEffect(() => {
+    if (level === 0) clearance.refresh()
+  })
+
   const stackValue = useMemo<PaneStackContextValue>(
     () => ({
       register,
@@ -475,9 +489,20 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
       topNow,
       moreOpen,
       level,
-      destination: value
+      destination: value,
+      trackHeader
     }),
-    [register, unregister, placeOf, markPushing, topNow, moreOpen, level, value]
+    [
+      register,
+      unregister,
+      placeOf,
+      markPushing,
+      topNow,
+      moreOpen,
+      level,
+      value,
+      trackHeader
+    ]
   )
 
   // Reads the ref, not `ordered`: child effects have registered by now, the render hadn't.

@@ -64,7 +64,7 @@ interface ThemeContextType {
   setDark: (dark: boolean) => void
 }
 
-const ThemeContext = React.createContext<ThemeContextType | undefined>(
+export const ThemeContext = React.createContext<ThemeContextType | undefined>(
   undefined
 )
 

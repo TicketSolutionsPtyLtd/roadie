@@ -34,7 +34,7 @@ export const toastViewportVariants = cva(
       side: {
         bottom:
           'bottom-[calc(max(--spacing(4),env(safe-area-inset-bottom))+var(--toast-viewport-offset-bottom,0px))] sm:bottom-[calc(max(--spacing(6),env(safe-area-inset-bottom))+var(--toast-viewport-offset-bottom,0px))]',
-        top: 'top-[calc(max(--spacing(4),env(safe-area-inset-top))+var(--toast-viewport-offset-top,0px))] sm:top-[calc(max(--spacing(6),env(safe-area-inset-top))+var(--toast-viewport-offset-top,0px))]'
+        top: 'top-[calc(max(--spacing(4),env(safe-area-inset-top),var(--toast-viewport-clear-top,0px)+--spacing(4))+var(--toast-viewport-offset-top,0px))] sm:top-[calc(max(--spacing(6),env(safe-area-inset-top),var(--toast-viewport-clear-top,0px)+--spacing(6))+var(--toast-viewport-offset-top,0px))]'
       },
       align: {
         end: 'sm:start-auto sm:end-6',

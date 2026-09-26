@@ -713,3 +713,29 @@ describe('NumberField', () => {
     })
   })
 })
+
+describe('Field text description', () => {
+  it('stays on the helper text when only the control is invalid', () => {
+    const { getByRole } = render(
+      <Field>
+        <Field.Label>Tickets</Field.Label>
+        <NumberField invalid defaultValue={1} />
+        <Field.HelperText>Helper</Field.HelperText>
+        <Field.ErrorText>Error</Field.ErrorText>
+      </Field>
+    )
+    expect(getByRole('textbox')).toHaveAccessibleDescription('Helper')
+  })
+
+  it('points at the error text when the Field is invalid', () => {
+    const { getByRole } = render(
+      <Field invalid>
+        <Field.Label>Tickets</Field.Label>
+        <NumberField defaultValue={1} />
+        <Field.HelperText>Helper</Field.HelperText>
+        <Field.ErrorText>Error</Field.ErrorText>
+      </Field>
+    )
+    expect(getByRole('textbox')).toHaveAccessibleDescription('Error')
+  })
+})

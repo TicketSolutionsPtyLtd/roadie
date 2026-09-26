@@ -18,40 +18,17 @@ import { Toast, useToastManager } from '@oztix/roadie-components/toast'
 
 ## Setup
 
-Mount `Toast.Provider` once at your app root, next to `RoadieLinkProvider` and `ThemeProvider`, and put a `Toast.Viewport` inside it. The viewport portals to the end of the page. Toasts stack at the bottom end of wide screens and span the bottom of small ones. See [Position](#position) to change that.
+`RoadieProvider` mounts `Toast.Provider` and a `Toast.Viewport` at your app root, so toasts work once you've followed [Installation](/overview/getting-started#4-mount-roadieprovider). The viewport portals to the end of the page. Toasts stack at the bottom end of wide screens and span the bottom of small ones. See [Position](#position) to change that.
 
 ```tsx
-'use client'
-
-import type { ReactNode } from 'react'
-
-import NextLink from 'next/link'
-
-import {
-  type RoadieLinkComponent,
-  RoadieLinkProvider,
-  ThemeProvider
-} from '@oztix/roadie-components'
-import { Toast } from '@oztix/roadie-components/toast'
-
-// next/link takes more props than Roadie needs, so cast it once.
-const Link = NextLink as unknown as RoadieLinkComponent
-
-export function Providers({ children }: { children: ReactNode }) {
-  return (
-    <RoadieLinkProvider Link={Link}>
-      <ThemeProvider>
-        <Toast.Provider>
-          {children}
-          <Toast.Viewport />
-        </Toast.Provider>
-      </ThemeProvider>
-    </RoadieLinkProvider>
-  )
-}
+<RoadieProvider link={NextLink} toast={{ position: 'top-end' }}>
+  {children}
+</RoadieProvider>
 ```
 
-`Toast.Provider` takes `timeout` (5000ms by default) and `limit` (3 on screen by default) for every toast in the app. This site mounts one, so the examples below work as they would in your app.
+Placing providers yourself? Mount one `Toast.Provider` at the root with a `Toast.Viewport` inside it.
+
+`toast` takes `Toast.Provider`'s `timeout` (5000ms by default) and `limit` (3 on screen by default) for every toast in the app. This site mounts one, so the examples below work as they would in your app.
 
 ## Examples
 
@@ -104,7 +81,7 @@ render(<Intents />)
 
 ### Position
 
-Set `position` on `Toast.Viewport` once for the whole app: `bottom-end` (the default), `bottom-center`, `top-end` or `top-center`. `end` follows the reading direction. On small screens toasts always span the chosen edge. Top toasts slide in from the top, stack downwards and swipe up to dismiss.
+Set `position` once for the whole app, in `RoadieProvider`'s `toast` or on `Toast.Viewport`: `bottom-end` (the default), `bottom-center`, `top-end` or `top-center`. `end` follows the reading direction. On small screens toasts always span the chosen edge. Top toasts slide in from the top, stack downwards and swipe up to dismiss.
 
 These buttons each use their own provider so you can compare them. Your app mounts one.
 
@@ -135,6 +112,8 @@ render(<Positions />)
 ### Clearing sticky UI
 
 A fixed bar, cookie banner or chat button can cover the toasts. Set `--toast-viewport-offset-bottom` to its height, on `Toast.Viewport` or any ancestor, and the stack moves up by that much. Top positions read `--toast-viewport-offset-top`. Reach for the offset before moving toasts to the top.
+
+In a [Navigator](/components/navigator) app, top toasts already clear the tallest [Pane.Header](/components/pane) along the top of the window and follow it as it collapses. Set `--toast-viewport-offset-top` only for other fixed UI; it adds to that.
 
 ```tsx-live-noinline
 function Checkout() {

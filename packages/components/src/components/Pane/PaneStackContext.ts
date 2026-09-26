@@ -59,6 +59,8 @@ export type PaneStackContextValue = {
   level: number
   /** The active destination; a new one scrolls every pane not behind the top back to its top. */
   destination?: string
+  /** Counts a pane header as top chrome, so top toasts clear it. Returns the release. */
+  trackHeader?: (header: HTMLElement) => () => void
 }
 
 // Registration, not an element walk: an orchestrator can't see through slots it didn't render.

@@ -2,7 +2,7 @@
 
 import { Toast as ToastPrimitive } from '@base-ui/react/toast'
 
-import { ToastTimeoutContext } from './ToastContext'
+import { ToastProvidedContext, ToastTimeoutContext } from './ToastContext'
 import type { ToastManager } from './createToastManager'
 
 export type ToastProviderProps = Omit<
@@ -19,9 +19,11 @@ export function ToastProvider({
   ...props
 }: ToastProviderProps) {
   return (
-    <ToastTimeoutContext value={timeout}>
-      <ToastPrimitive.Provider timeout={timeout} {...props} />
-    </ToastTimeoutContext>
+    <ToastProvidedContext value>
+      <ToastTimeoutContext value={timeout}>
+        <ToastPrimitive.Provider timeout={timeout} {...props} />
+      </ToastTimeoutContext>
+    </ToastProvidedContext>
   )
 }
 
