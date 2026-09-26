@@ -14,4 +14,7 @@ shows a spinner until the work settles. `Toast.Viewport` takes a `position`
 screens always span the chosen edge. Set `--toast-viewport-offset-bottom` (or
 `-top`) to clear fixed UI such as a checkout bar. Toasts fan out on hover or
 focus and swipe away towards their edge. Core adds the `motion-toast` utility
-that stacks and animates them from either edge.
+that stacks and animates them from either edge: toasts enter, restack and
+snap back on a spring and leave quickly. Core also adds `--ease-spring-lively`,
+a spring with a visible bounce (about 9% overshoot) for transforms that should
+catch the eye.
