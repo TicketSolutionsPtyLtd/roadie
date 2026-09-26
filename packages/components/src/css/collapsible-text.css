@@ -10,6 +10,8 @@
 
     display: block;
     overflow: hidden;
+    /* Fill each line: pretty (Safari evens every line) hides more text behind the clamp. */
+    text-wrap: wrap;
     transition: height var(--duration-moderate) var(--ease-enter);
 
     &:dir(rtl) {
