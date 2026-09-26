@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, use } from 'react'
+import { type ComponentProps, use, useEffect, useId } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -13,13 +13,23 @@ export type RadioGroupLabelProps = ComponentProps<'label'> & {
 
 export function RadioGroupLabel({
   className,
+  id: idProp,
   showIndicator,
   children,
   ...props
 }: RadioGroupLabelProps) {
-  const { required } = use(RadioGroupContext)
+  const { required, setLabelId } = use(RadioGroupContext)
+  const generatedId = useId()
+  const id = idProp ?? generatedId
+
+  useEffect(() => {
+    setLabelId?.(id)
+    return () => setLabelId?.(undefined)
+  }, [id, setLabelId])
+
   return (
     <label
+      id={id}
       data-slot='radio-group-label'
       className={cn(
         'flex w-full items-center gap-1 text-sm font-medium text-normal',

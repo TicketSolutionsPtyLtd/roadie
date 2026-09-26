@@ -6,6 +6,8 @@ import { CaretDownIcon } from '@phosphor-icons/react/ssr'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { disclosureCaretClass } from '../../variants'
+
 export type AccordionTriggerProps = ComponentProps<'summary'>
 
 export function AccordionTrigger({
@@ -57,7 +59,10 @@ export function AccordionTrigger({
       {children}
       <CaretDownIcon
         weight='bold'
-        className='size-4 shrink-0 text-subtle transition-transform duration-moderate ease-enter group-open/item:rotate-180'
+        className={cn(
+          disclosureCaretClass,
+          'text-subtle group-open/item:rotate-180'
+        )}
       />
     </summary>
   )

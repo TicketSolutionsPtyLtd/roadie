@@ -1,0 +1,42 @@
+/* NumberField focus. The input is the stepper's one focusable control; the
+   buttons stay out of the tab order. A mouse press on a button moves focus to
+   the input (Base UI does this so the arrow keys keep working), and the input
+   carries data-pointer-focus until the person types, taps into it or leaves.
+   That focus shows no ring, so only keyboard focus and editing do. */
+
+@layer components {
+  /* No field box and no chip, so the whole stepper takes the ring. */
+  [data-slot='number-field-group'][data-emphasis='subtler'][data-editable='false']:has(
+      [data-slot='number-field-input']:focus-visible:not([data-pointer-focus])
+    ) {
+    outline: var(--focus-ring-width) solid
+      color-mix(
+        in oklch,
+        var(--color-accent-9) var(--focus-ring-opacity),
+        transparent
+      );
+    outline-offset: 2px;
+  }
+
+  .dark
+    [data-slot='number-field-group'][data-emphasis='subtler'][data-editable='false']:has(
+      [data-slot='number-field-input']:focus-visible:not([data-pointer-focus])
+    ) {
+    outline-color: color-mix(
+      in oklch,
+      var(--color-accent-9) var(--focus-ring-opacity-dark),
+      transparent
+    );
+  }
+}
+
+/* The field utilities draw their ring in the utilities layer, so the override
+   has to live there too. */
+@layer utilities {
+  [data-slot='number-field-input'].is-interactive-field[data-pointer-focus]:focus,
+  [data-slot='number-field-group'].is-interactive-field-group:has(
+      [data-pointer-focus]:focus
+    ) {
+    outline-width: 0;
+  }
+}

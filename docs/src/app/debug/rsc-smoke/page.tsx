@@ -13,15 +13,20 @@ import { StarIcon } from '@phosphor-icons/react/ssr'
 import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
 import { createShowDashboard } from '@oztix/roadie-charts/examples'
 import {
+  CheckboxGroup as CheckboxGroupViaBarrel,
+  Collapsible as CollapsibleViaBarrel,
   Dialog as DialogViaBarrel,
   Drawer as DrawerViaBarrel,
   Fieldset as FieldsetViaBarrel,
   List as ListViaBarrel,
   Menu as MenuViaBarrel,
   Navigator as NavigatorViaBarrel,
+  NumberField as NumberFieldViaBarrel,
   Pane as PaneViaBarrel,
   Popover as PopoverViaBarrel,
+  Progress as ProgressViaBarrel,
   ScrollArea as ScrollAreaViaBarrel,
+  Switch as SwitchViaBarrel,
   Tabs as TabsViaBarrel,
   Tooltip as TooltipViaBarrel
 } from '@oztix/roadie-components'
@@ -30,6 +35,9 @@ import { Autocomplete } from '@oztix/roadie-components/autocomplete'
 import { Breadcrumb } from '@oztix/roadie-components/breadcrumb'
 import { Card } from '@oztix/roadie-components/card'
 import { Carousel } from '@oztix/roadie-components/carousel'
+import { Checkbox } from '@oztix/roadie-components/checkbox'
+import { CheckboxGroup } from '@oztix/roadie-components/checkbox-group'
+import { Collapsible } from '@oztix/roadie-components/collapsible'
 import { Combobox } from '@oztix/roadie-components/combobox'
 import { Dialog } from '@oztix/roadie-components/dialog'
 import { Drawer } from '@oztix/roadie-components/drawer'
@@ -40,13 +48,16 @@ import { List } from '@oztix/roadie-components/list'
 import { Logo } from '@oztix/roadie-components/logo'
 import { Menu } from '@oztix/roadie-components/menu'
 import { Navigator } from '@oztix/roadie-components/navigator'
+import { NumberField } from '@oztix/roadie-components/number-field'
 import { Pane } from '@oztix/roadie-components/pane'
 import { Popover } from '@oztix/roadie-components/popover'
+import { Progress } from '@oztix/roadie-components/progress'
 import { QRCode } from '@oztix/roadie-components/qr-code'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { ScrollArea } from '@oztix/roadie-components/scroll-area'
 import { Select } from '@oztix/roadie-components/select'
 import { Steps } from '@oztix/roadie-components/steps'
+import { Switch } from '@oztix/roadie-components/switch'
 import { Tabs } from '@oztix/roadie-components/tabs'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
 
@@ -170,6 +181,31 @@ export default function RscSmokePage() {
             Choose how we reach you.
           </RadioGroup.HelperText>
         </RadioGroup>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Checkbox</h2>
+        <Checkbox label='I agree to the terms and conditions' />
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>
+          CheckboxGroup, bare root (canonical)
+        </h2>
+        <CheckboxGroup defaultValue={['rock']}>
+          <CheckboxGroup.Label>Genres</CheckboxGroup.Label>
+          <CheckboxGroup.Item value='rock' label='Rock' />
+          <CheckboxGroup.Item value='jazz' label='Jazz' />
+          <CheckboxGroup.HelperText>Pick any.</CheckboxGroup.HelperText>
+        </CheckboxGroup>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>CheckboxGroup, barrel</h2>
+        <CheckboxGroupViaBarrel>
+          <CheckboxGroupViaBarrel.Item value='rock' label='Rock' />
+          <CheckboxGroupViaBarrel.Item value='jazz' label='Jazz' />
+        </CheckboxGroupViaBarrel>
       </section>
 
       <section className='grid gap-4'>
@@ -534,6 +570,103 @@ export default function RscSmokePage() {
             <MenuViaBarrel.Item>Edit</MenuViaBarrel.Item>
           </MenuViaBarrel.Content>
         </MenuViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          NumberField as bare root (canonical)
+        </h2>
+        <NumberField aria-label='Tickets' defaultValue={1} min={0} max={10} />
+        <NumberField.Root defaultValue={2}>
+          <NumberField.Group>
+            <NumberField.Decrement />
+            <NumberField.Input aria-label='Add-ons' />
+            <NumberField.Increment />
+          </NumberField.Group>
+        </NumberField.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Collapsible as bare root (canonical)
+        </h2>
+        <Collapsible>
+          <Collapsible.Trigger>Show all ticket types</Collapsible.Trigger>
+          <Collapsible.Panel>
+            Rendered from a server component.
+          </Collapsible.Panel>
+        </Collapsible>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          NumberField via barrel
+        </h2>
+        <NumberFieldViaBarrel aria-label='Tickets' defaultValue={1} />
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Collapsible via barrel
+        </h2>
+        <CollapsibleViaBarrel defaultOpen>
+          <CollapsibleViaBarrel.Trigger>
+            Show set times
+          </CollapsibleViaBarrel.Trigger>
+          <CollapsibleViaBarrel.Panel>
+            Imported from the root barrel.
+          </CollapsibleViaBarrel.Panel>
+        </CollapsibleViaBarrel>
+      </section>
+
+      <section className='grid max-w-sm gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Collapsible.Text</h2>
+        <Collapsible>
+          <Collapsible.Text lines={2}>
+            General admission, standing only. Rendered from a server component
+            and clamped to two lines, with an inline trigger once the text runs
+            past them.
+          </Collapsible.Text>
+        </Collapsible>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Progress as bare root (canonical)
+        </h2>
+        <Progress value={120} max={400} valueText='120 of 400'>
+          <Progress.Label>Importing attendees</Progress.Label>
+          <Progress.Value />
+          <Progress.Track>
+            <Progress.Indicator />
+          </Progress.Track>
+        </Progress>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Progress via barrel</h2>
+        <ProgressViaBarrel value={null} label='Preparing export' />
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Switch as bare root (canonical)
+        </h2>
+        <Switch label='Email me when tickets go on sale' defaultChecked />
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Switch with <code>.Root</code> alias and <code>.Thumb</code>
+        </h2>
+        <Switch.Root aria-label='Presale alerts'>
+          <Switch.Thumb />
+        </Switch.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Switch via barrel</h2>
+        <SwitchViaBarrel label='Presale alerts' />
       </section>
 
       <section className='grid gap-2'>
