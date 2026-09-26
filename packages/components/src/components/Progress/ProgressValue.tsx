@@ -30,7 +30,7 @@ export function ProgressValue({
     <ProgressPrimitive.Value
       data-slot='progress-value'
       className={cn(
-        'col-start-2 text-end text-sm text-subtle tabular-nums',
+        'col-start-2 justify-self-end text-sm whitespace-nowrap text-subtle tabular-nums',
         className
       )}
       {...props}
