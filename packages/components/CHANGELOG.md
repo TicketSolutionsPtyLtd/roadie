@@ -1,5 +1,211 @@
 # @oztix/roadie-components
 
+## 2.15.0
+
+### Minor Changes
+
+- c95a44e: Add `Avatar`, a person's photo with initials or an icon behind it, built on Base
+  UI's avatar primitive. `<Avatar src name />` covers most uses: it draws initials
+  from `name`, falls back to a user icon without one, and shows whichever is
+  underneath if the photo fails. `Avatar.Image` and `Avatar.Fallback` compose it
+  by hand, and the image stays mounted so it lazy loads and can render through
+  Roadie `Image`. Sizes run `xs` to `xl`, `shape` is `circle` or `square`, and the
+  fallback takes the surrounding intent. `Avatar.Group` overlaps a row of avatars
+  with a ring in the page colour, and `Avatar.GroupCount` ends it with `+N`.
+  `getInitials` is exported too.
+- 4aeab89: Add `Callout`, an inline message that sits in the flow of the page. The short
+  form takes `intent`, `title` and the body as children, and shows a status icon
+  for `info`, `success`, `warning` and `danger`. The compound form
+  (`Callout.Icon`, `Callout.Title`, `Callout.Description`, `Callout.Actions`)
+  covers actions and rich bodies; actions sit below the text in a narrow callout
+  and beside it in a wide one. `emphasis` takes Badge's values and defaults to
+  `subtle`, `onDismiss` adds a dismiss button, and `Callout.Title` becomes a
+  heading through `render`.
+- 686e594: Add `Checkbox` and `CheckboxGroup`, styled as siblings of `RadioGroup`.
+  `Checkbox` takes a `label` and `description`, shows a tick or, when
+  `indeterminate`, a dash, and picks up `invalid`, `required` and `disabled`
+  from a surrounding `Field`. `CheckboxGroup` tracks an array of ticked values,
+  lays out vertically or horizontally in `subtler` or `normal` emphasis, and
+  supports a parent "select all" item through `allValues` and `parent`.
+- 97854ae: Add `Collapsible`, a single panel that a trigger shows and hides.
+  `Collapsible.Trigger` shows a trailing caret that turns when open (`showCaret={false}`
+  hides it) and renders onto a Roadie `Button` through `render`.
+  `Collapsible.Panel` passes `keepMounted` and `hiddenUntilFound` through.
+  `Collapsible.Text`, placed inside a `Collapsible`, clamps a paragraph to `lines` (3 by default) and ends the
+  last line with an inline "…more" that fades the text behind it. The trigger shows
+  only when the text overflows; `lessLabel={null}` makes it expand only. The
+  `Collapsible` root now owns the open state and shares it with its parts.
+
+  `is-disclosure-animated` now also animates Base UI panels that aren't `<details>`,
+  by height from `--collapsible-panel-height`.
+
+- 200dbed: Add the dashboard components: `Dashboard` with named card sizes that reflow by
+  container width, `DataCard`, `StatTile`, `Delta`, `Sparkline`, `Meter`,
+  `DataTable` with inline sparkline and meter columns that hide by priority on
+  narrow cards, and general `Table` primitives. Every one renders completely on
+  the server.
+- 4697bd3: Align existing form controls and Popover with the newer components.
+
+  - `RadioGroup` and `Select` inherit `disabled` from `Field`. Their own
+    `disabled` prop still wins.
+  - `RadioGroup.Item` uses `description` to describe the radio, not to name it.
+    `label` and `description` accept any React node.
+  - `RadioGroup.Label` names the group when you use it.
+  - `Popover.Content` takes `side`, `align`, `sideOffset` and `alignOffset`
+    directly, like `Tooltip.Content`. They win over the same keys in
+    `positionerProps`, which are now deprecated. `Tooltip.Content` gains
+    `alignOffset`, so Tooltip, Menu and Popover take the same four.
+  - The `intent` prop on `Input`, `Textarea` and `Select.Trigger` is deprecated.
+    Form controls take their colour from state, and `is-interactive-field`
+    handles it. It still works and will be removed in v3.
+
+- 4e50f4a: Add `Menu`, a dropdown list of actions that opens from a button.
+  `Menu.Content` wraps the portal, positioner and popup and takes `side`,
+  `align`, `sideOffset` and `alignOffset` directly. Items take a leading `icon`,
+  a trailing `shortcut` and an `intent` (use `danger` for destructive actions).
+  `Menu.Item` takes an `href`, routed through `RoadieLinkProvider`. Checkbox and
+  radio items, groups with labels, separators and submenus are included, and
+  Navigator menus now share the same surface and row styles. On a touch screen a
+  tapped row that keeps the menu open no longer stays highlighted; the keyboard
+  highlight still shows.
+- 6acda84: Add `NumberField`, a number input with decrement and increment buttons, built on
+  Base UI's number field primitive. `<NumberField min={0} max={10} />` renders the
+  whole stepper; compose `NumberField.Group`, `Input`, `Decrement`, `Increment`
+  and `ScrubArea` when you need a different layout. The buttons turn off at `min`
+  and `max`. `format` takes `Intl.NumberFormat` options for currency, percentages
+  and units. It inherits `invalid`, `required` and `disabled` from `Field`.
+
+  - `size` and `emphasis` work like `Input`. `emphasis='subtler'` drops the field
+    box for round buttons, sized like `IconButton`, either side of the value.
+  - `Decrement` and `Increment` take `emphasis` and `intent`, so
+    `<NumberField.Increment emphasis='strong' intent='accent' />` gives an accent
+    add button.
+  - `removable` turns the decrease button into a Remove button with a trash icon
+    one step above `min`.
+  - `editable={false}` stops typing while the buttons and arrow keys still step,
+    unlike `readOnly`, which stops every change.
+  - The field is only as wide as its widest value, from `min`, `max` and
+    `format`. A typeable value keeps a tap target of at least 2.75rem, 3.5rem on
+    touch screens, and at `subtler` sits in a chip that behaves like a subtle
+    `Input`. Pass `className='w-full'` to stretch the field.
+  - The value animates with NumberFlow at every emphasis, using the same `format`
+    and `locale`, and stays still for people who prefer reduced motion.
+
+- 10ae9b5: Add `OTPField`, a one-time code input with one slot per character. `<OTPField
+length={6} />` renders every slot, and `groupSize={3}` splits them 3-3 with a
+  separator. Compose `OTPField.Input` and `OTPField.Separator` for other layouts.
+  Slots look like `Input` and match its 32, 40 and 48px heights. Pasting a full
+  code fills every slot, the first slot offers `autoComplete='one-time-code'`,
+  numeric codes bring up the number pad, and `onValueComplete` fires once the last
+  digit lands. It inherits `invalid`, `required` and `disabled` from `Field`.
+- 6ec114f: Add `Progress`, a bar for a task underway.
+  `<Progress value={40} label='Uploading' />` renders the label, the value and
+  the track; `valueText` swaps the percentage for text such as "120 of 400" and
+  reads it to screen readers. Pass `value={null}` while the length is unknown
+  and the bar sweeps across the track. The parts (`Label`, `Value`, `Track`,
+  `Indicator`) compose for custom layouts. The fill is the accent by default,
+  like `Meter`, and takes the intent when you pass `intent`, such as `success`
+  or `danger` once a task has ended. Core gains the `animate-indeterminate`
+  utility behind the sweep, which holds a still, soft bar under reduced motion.
+- 037bd53: Add `RoadieProvider`, one root provider for a Roadie app:
+  `<RoadieProvider link={NextLink}>{children}</RoadieProvider>`. It mounts
+  `RoadieLinkProvider`, `ThemeProvider`, `Toast.Provider` with a `Toast.Viewport`,
+  `Tooltip.Provider` and Base UI's `DirectionProvider`. Each part takes its usual
+  options through `theme`, `toast` (plus the viewport's `position` and
+  `container`), `tooltip` and `direction`, and `false` leaves it out. Every
+  individual provider stays exported, and a nested one still overrides its part.
+  In development, Roadie warns when a `RoadieProvider` sits inside another one,
+  or when a `ThemeProvider` or `Toast.Provider` it already mounts wraps it or
+  sits straight inside it.
+
+  Top toasts now clear `Pane.Header`. A `Navigator` frame tracks the bottom of
+  the tallest pane header along the top of the window, and keeps it in step as
+  the header collapses, so `top-end` and `top-center` toasts sit just below it.
+  `--toast-viewport-offset-top` stays yours and adds to that. Bottom positions
+  are unchanged.
+
+- f2eac42: Add `Slider`, for picking a number or a range by dragging. `<Slider
+label='Price' defaultValue={[20, 80]} />` renders the label, the value, the
+  track and one thumb per value. `format` takes `Intl.NumberFormat` options,
+  such as AUD currency, and formats in `en-AU` unless you pass a `locale`.
+  Inside `Field` it takes its name, helper or error text, and `invalid` and
+  `disabled` from there. The fill is accent, like `Switch` and `Checkbox`, and
+  turns danger when invalid. `size` (`sm`, `md`, `lg`) scales the thumb and
+  track, each keeping a 44px touch target, and `direction='vertical'` runs it up
+  the page. The parts (`Label`, `Value`, `Control`, `Track`, `Indicator`,
+  `Thumb`) compose for custom layouts such as tick marks.
+- 2be7abc: Add `Switch`, an on or off control for settings that apply straight away. Pass
+  `label` and `description` for a labelled settings row, or drop it into `Field`
+  and it takes its name, helper or error text, and `invalid`, `required` and
+  `disabled` from there. The checked track is accent with a tick, the thumb slides
+  with a transition that stops under reduced motion, and `size` is `sm` or `md`.
+- 47c7147: Add `Toast`, a brief message that confirms an action or reports its result.
+  Mount `Toast.Provider` with a `Toast.Viewport` once at the app root, then call
+  `useToastManager().add({ title, description, intent, actionProps })` from any
+  component, or `createToastManager()` from outside React. `intent` (`success`,
+  `danger`, `warning` or `info`) colours the toast and leads it with a matching
+  icon, `actionProps` adds a small button such as Undo or Retry, and `promise`
+  shows a spinner until the work settles. A thin `Toast.Progress` bar along the
+  bottom of timed toasts shows how long they have left, pausing whenever their
+  timer pauses (hover, focus, a background window). `Toast.Viewport` takes a `position`
+  (`bottom-end` by default, `bottom-center`, `top-end` or `top-center`); small
+  screens always span the chosen edge. Set `--toast-viewport-offset-bottom` (or
+  `-top`) to clear fixed UI such as a checkout bar. Toasts fan out on hover or
+  focus and swipe away towards their edge. Core adds the `motion-toast` utility
+  that stacks and animates them from either edge: toasts enter, restack and
+  snap back on a spring and leave quickly. Core also adds `--ease-spring-lively`,
+  a spring with a visible bounce (about 9% overshoot) for transforms that should
+  catch the eye.
+
+  The `@base-ui/react` peer range rises to `^1.8.0`. Toast relies on 1.8 for
+  `update(id, previous => …)` and for timers that keep their remaining time
+  across repeated pauses, which the progress bar follows.
+
+- 3cd9e12: Add `Toggle` and `ToggleGroup`. `Toggle` is a pressed or unpressed button that
+  takes Button's sizes and steps up one emphasis when pressed; with only an icon
+  inside it renders square. `ToggleGroup` is a segmented control with a pill that
+  slides to the pressed item. `emphasis` follows Toggle: `normal` (the
+  default) has a bordered track and `subtle` a tinted one, each with a solid pill,
+  and `subtler` has no track and a tinted pill. It is single select by default and
+  never ends up empty, takes `multiple` for independent toggles, and has `size`
+  (matching Button heights), `direction` and `disabled`.
+
+### Patch Changes
+
+- b67cf46: `ThemeProvider`, `getAccentStyleSync` and the cart drawer's accent theming cap
+  the accent's chroma to what sRGB can show at step 9, through
+  `getAccentChromaSync` from `@oztix/roadie-core/colors`. A saturated green or
+  cyan accent no longer renders its strong fill too light for white text.
+- 3ef4a98: Raise the `@base-ui/react` peer range from `^1.0.0` to `^1.6.0`. Roadie
+  already needed 1.6: `Drawer`, the `InputGroup` parts of `Combobox` and
+  `Autocomplete`, and `Select.Label` don't exist before 1.3, and `Navigator`
+  menus and tooltips fail their tests before 1.6. If you pin `@base-ui/react`
+  below 1.6, upgrade it along with this release.
+- b270fa6: Select, Combobox and Autocomplete options no longer stay filled after a tap on a
+  touch screen when the list stays open, such as a multiple select. A highlight
+  the pointer made only fills where the pointer can hover, and a keyboard
+  highlight still shows everywhere.
+
+  Switch, Checkbox, CheckboxGroup, RadioGroup, Select, NumberField and OTPField
+  now point `aria-describedby` at the text `Field` actually renders. A control
+  marked `invalid` inside a valid `Field` pointed at an error text that was never
+  rendered, so screen readers lost the helper text.
+
+  `Select.Value` now shows the selected item's label instead of its raw value, on
+  the server and first render too. Select reads each `Select.Item`'s text (its
+  string children or its `Select.ItemText`), and an `items` or
+  `itemToStringLabel` you pass still wins. Values of a multiple select show as
+  their labels.
+
+- Updated dependencies [97854ae]
+- Updated dependencies [200dbed]
+- Updated dependencies [b4ca530]
+- Updated dependencies [6ec114f]
+- Updated dependencies [b67cf46]
+- Updated dependencies [47c7147]
+- Updated dependencies [f898797]
+  - @oztix/roadie-core@2.10.0
+
 ## 2.14.0
 
 ### Minor Changes
