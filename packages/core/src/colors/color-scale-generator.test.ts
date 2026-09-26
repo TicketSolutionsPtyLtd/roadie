@@ -100,9 +100,14 @@ describe('generateAccentScale', () => {
     expect(['white', 'black']).toContain(result.fgOnStrong)
   })
 
-  it('fgOnStrong is black for Oztix Blue (bright accent)', async () => {
+  it('fgOnStrong is white for Oztix Blue, matching text-inverted', async () => {
     const result = await generateAccentScale(oztixBlue)
-    expect(result.fgOnStrong).toBe('black')
+    expect(result.fgOnStrong).toBe('white')
+  })
+
+  it('keeps a grey accent grey in the fallback scale', async () => {
+    const { light } = await generateAccentScale('#808080')
+    expect(getOklch(light[9]!).C).toBeLessThan(0.01)
   })
 
   it('different inputs produce different scales', async () => {
