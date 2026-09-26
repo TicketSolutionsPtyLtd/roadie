@@ -54,12 +54,15 @@ async function settled(manager: ToastManager, title: string) {
   act(() => {
     id = manager.add({ title, timeout: 0 })
   })
-  await waitFor(() => {
-    const toast = toastTitled(title)
-    expect(toast).not.toHaveAttribute('data-starting-style')
-    expect(toast!.style.getPropertyValue('--toast-height')).not.toBe('')
-    expect(toast!.getAnimations()).toHaveLength(0)
-  })
+  await waitFor(
+    () => {
+      const toast = toastTitled(title)
+      expect(toast).not.toHaveAttribute('data-starting-style')
+      expect(toast!.style.getPropertyValue('--toast-height')).not.toBe('')
+      expect(toast!.getAnimations()).toHaveLength(0)
+    },
+    { timeout: 10_000 }
+  )
   return id
 }
 

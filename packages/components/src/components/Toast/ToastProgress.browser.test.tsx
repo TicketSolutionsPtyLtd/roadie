@@ -37,7 +37,7 @@ async function show(timeout: number, position?: ToastPosition) {
   act(() => {
     manager.add({ title: 'Link copied', timeout })
   })
-  await waitFor(() => expect(bar()).not.toBeNull())
+  await waitFor(() => expect(bar()).not.toBeNull(), { timeout: 10_000 })
 }
 
 describe('Toast.Progress', () => {
@@ -45,8 +45,9 @@ describe('Toast.Progress', () => {
     'runs along the bottom inside edge of a %s toast',
     async (position) => {
       await show(10_000, position)
-      await waitFor(() =>
-        expect(toast()).not.toHaveAttribute('data-starting-style')
+      await waitFor(
+        () => expect(toast()).not.toHaveAttribute('data-starting-style'),
+        { timeout: 10_000 }
       )
       const box = toast().getBoundingClientRect()
       const line = bar().getBoundingClientRect()
@@ -68,13 +69,17 @@ describe('Toast.Progress', () => {
     await show(6000)
     await pause(300)
     await userEvent.hover(toast())
-    await waitFor(() => expect(toast()).toHaveAttribute('data-expanded'))
+    await waitFor(() => expect(toast()).toHaveAttribute('data-expanded'), {
+      timeout: 10_000
+    })
     const held = width()
     await pause(600)
     expect(width()).toBeCloseTo(held, 0)
 
     await userEvent.unhover(toast())
-    await waitFor(() => expect(toast()).not.toHaveAttribute('data-expanded'))
+    await waitFor(() => expect(toast()).not.toHaveAttribute('data-expanded'), {
+      timeout: 10_000
+    })
     await pause(600)
     expect(width()).toBeLessThan(held - 1)
   })

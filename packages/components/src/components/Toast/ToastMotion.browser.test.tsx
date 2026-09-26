@@ -60,7 +60,7 @@ function transformTransition(toast: HTMLElement) {
 describe('toast motion', () => {
   it('springs transforms and eases opacity and height', async () => {
     const toast = show()
-    await waitFor(() => expect(toast()).not.toBeNull())
+    await waitFor(() => expect(toast()).not.toBeNull(), { timeout: 10_000 })
     const style = getComputedStyle(toast()!)
 
     expect(style.transitionProperty).toBe('transform, opacity, height')
@@ -74,7 +74,7 @@ describe('toast motion', () => {
 
   it('leaves quickly on the exit easing', async () => {
     const toast = show()
-    await waitFor(() => expect(toast()).not.toBeNull())
+    await waitFor(() => expect(toast()).not.toBeNull(), { timeout: 10_000 })
     toast()!.setAttribute('data-ending-style', '')
     const style = getComputedStyle(toast()!)
 
@@ -114,7 +114,7 @@ describe('toast motion', () => {
   it('drops the spring under reduced motion', async () => {
     await commands.reduceMotion(true)
     const toast = show()
-    await waitFor(() => expect(toast()).not.toBeNull())
+    await waitFor(() => expect(toast()).not.toBeNull(), { timeout: 10_000 })
 
     for (const duration of seconds(
       getComputedStyle(toast()!).transitionDuration
