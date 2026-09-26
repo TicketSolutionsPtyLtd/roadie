@@ -52,9 +52,49 @@ Using widgets or charts too? Add `@oztix/roadie-widgets/css` or `@oztix/roadie-c
 @import '@oztix/roadie-charts/css';
 ```
 
-### 4. Mount the providers
+### 4. Mount RoadieProvider
 
-Wrap your app once, at the root. `RoadieLinkProvider` routes every `href` through your router, `ThemeProvider` handles light and dark, and `Toast.Provider` with `Toast.Viewport` shows the [toasts](/components/toast) any component adds.
+Wrap your app once, at the root. `RoadieProvider` routes every `href` through your router, handles light and dark, shows the [toasts](/components/toast) any component adds, and groups tooltips so a neighbour opens straight away.
+
+```tsx
+// app/providers.tsx
+'use client'
+
+import type { ReactNode } from 'react'
+
+import NextLink from 'next/link'
+
+import { RoadieProvider } from '@oztix/roadie-components'
+
+export function Providers({ children }: { children: ReactNode }) {
+  return <RoadieProvider link={NextLink}>{children}</RoadieProvider>
+}
+```
+
+Render `<Providers>` around `{children}` in your root layout. The file is a client component because a Link component can't cross from the server, and your layout and pages stay server components. Each part takes its usual options, and `false` leaves that part out:
+
+| Prop | Sets up | Leave it out |
+| --- | --- | --- |
+| `link` | The Link component internal hrefs render through | Omit it for plain anchors |
+| `theme` | `ThemeProvider` options, such as `followSystem` or `accentColor` | `theme={false}` |
+| `toast` | `Toast.Provider` options, plus the viewport's `position` and `container` | `toast={false}` |
+| `tooltip` | `Tooltip.Provider` options, such as `delay` | `tooltip={false}` |
+| `direction` | `ltr` or `rtl` for every component. Set `dir` on `<html>` to match | Omit it to inherit |
+| `pendingIndicator` | The pending indicator on a `Navigator` frame | `pendingIndicator={false}` |
+
+```tsx
+<RoadieProvider
+  link={NextLink}
+  theme={{ followSystem: true }}
+  toast={{ position: 'top-end', timeout: 6000 }}
+>
+  {children}
+</RoadieProvider>
+```
+
+### Placing providers yourself
+
+Every part is still exported on its own, and the nearest provider wins. This is what `RoadieProvider` mounts:
 
 ```tsx
 'use client'
@@ -63,29 +103,37 @@ import type { ReactNode } from 'react'
 
 import NextLink from 'next/link'
 
-import {
-  type RoadieLinkComponent,
-  RoadieLinkProvider,
-  ThemeProvider
-} from '@oztix/roadie-components'
+import { RoadieLinkProvider, ThemeProvider } from '@oztix/roadie-components'
 import { Toast } from '@oztix/roadie-components/toast'
-
-// next/link takes more props than Roadie needs, so cast it once.
-const Link = NextLink as unknown as RoadieLinkComponent
+import { Tooltip } from '@oztix/roadie-components/tooltip'
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <RoadieLinkProvider Link={Link}>
+    <RoadieLinkProvider Link={NextLink}>
       <ThemeProvider>
-        <Toast.Provider>
-          {children}
-          <Toast.Viewport />
-        </Toast.Provider>
+        <Tooltip.Provider>
+          <Toast.Provider>
+            {children}
+            <Toast.Viewport />
+          </Toast.Provider>
+        </Tooltip.Provider>
       </ThemeProvider>
     </RoadieLinkProvider>
   )
 }
 ```
+
+Place them yourself when one root doesn't fit:
+
+- **Widgets** in a page you don't own. Mount only what the widget uses, inside its own root, and leave the theme to the host page.
+- **Scoped regions** that need something different, such as a collection route with its own accent (`<ThemeProvider accentColor={…}>`) or a panel with its own `Toast.Provider` and viewport.
+- **Multiple React roots.** Context doesn't cross roots, so each root needs providers. Mount the theme in one root only, since it writes to the document, and give the others `<RoadieProvider theme={false} toast={false}>` or just the providers they use.
+
+### Moving to RoadieProvider
+
+Replace your root's `RoadieLinkProvider`, `ThemeProvider` and `Toast.Provider` with one `RoadieProvider`, and move their props across: `Link` becomes `link`, the theme's props go in `theme`, and the toast provider's props and the viewport's `position` go in `toast`. Nothing else changes, and the individual providers keep working.
+
+Keep an individual provider only for a deliberate scoped override. In development, Roadie warns when a `RoadieProvider` sits inside another one, or when a `ThemeProvider` or `Toast.Provider` it already mounts wraps it or sits straight inside it.
 
 ## Usage
 

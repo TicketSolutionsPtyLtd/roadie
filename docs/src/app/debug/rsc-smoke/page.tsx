@@ -28,6 +28,7 @@ import {
   Pane as PaneViaBarrel,
   Popover as PopoverViaBarrel,
   Progress as ProgressViaBarrel,
+  RoadieProvider,
   ScrollArea as ScrollAreaViaBarrel,
   Slider as SliderViaBarrel,
   Switch as SwitchViaBarrel,
@@ -40,6 +41,7 @@ import { Accordion } from '@oztix/roadie-components/accordion'
 import { Autocomplete } from '@oztix/roadie-components/autocomplete'
 import { Avatar } from '@oztix/roadie-components/avatar'
 import { Breadcrumb } from '@oztix/roadie-components/breadcrumb'
+import { Button } from '@oztix/roadie-components/button'
 import { Callout } from '@oztix/roadie-components/callout'
 import { Card } from '@oztix/roadie-components/card'
 import { Carousel } from '@oztix/roadie-components/carousel'
@@ -774,6 +776,20 @@ export default function RscSmokePage() {
       <section className='grid gap-2'>
         <h2 className='text-display-ui-3 text-strong'>Slider via barrel</h2>
         <SliderViaBarrel aria-label='Volume' defaultValue={60} />
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          RoadieProvider from a server component
+        </h2>
+        <p className='text-sm text-subtle'>
+          Server children inside it, rendered from a server page. The link needs
+          a client file, which the site&apos;s own <code>Providers.tsx</code>{' '}
+          covers; theme and toasts stay with it too.
+        </p>
+        <RoadieProvider theme={false} toast={false} direction='ltr'>
+          <Button href='/components/toast'>Toast docs</Button>
+        </RoadieProvider>
       </section>
 
       <section className='grid gap-2'>
