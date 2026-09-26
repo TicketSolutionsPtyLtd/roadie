@@ -1,8 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { Tooltip } from '.'
+import { TooltipPositioner } from './TooltipPositioner'
+
+// jsdom has no layout, so offsets never show up in the computed position.
+vi.mock('./TooltipPositioner', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('./TooltipPositioner')>()
+  return { ...mod, TooltipPositioner: vi.fn(mod.TooltipPositioner) }
+})
 
 const positioner = () =>
   document.querySelector('[data-slot="tooltip-positioner"]')
@@ -36,6 +43,23 @@ describe('Tooltip', () => {
     )
     await screen.findByText('Home page')
     expect(positioner()).toHaveAttribute('data-side', 'inline-end')
+  })
+
+  it('passes placement offsets to the positioner', async () => {
+    render(
+      <Tooltip defaultOpen>
+        <Tooltip.Trigger>Home</Tooltip.Trigger>
+        <Tooltip.Content align='start' sideOffset={10} alignOffset={12}>
+          Home page
+        </Tooltip.Content>
+      </Tooltip>
+    )
+    await screen.findByText('Home page')
+    expect(vi.mocked(TooltipPositioner).mock.lastCall?.[0]).toMatchObject({
+      align: 'start',
+      sideOffset: 10,
+      alignOffset: 12
+    })
   })
 
   it('offers a floating surface', async () => {

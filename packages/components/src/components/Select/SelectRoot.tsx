@@ -10,7 +10,12 @@ export type SelectRootProps = SelectPrimitive.Root.Props<unknown> & {
   required?: boolean
 }
 
-export function SelectRoot({ invalid, required, ...props }: SelectRootProps) {
+export function SelectRoot({
+  invalid,
+  required,
+  disabled,
+  ...props
+}: SelectRootProps) {
   const fieldContext = useFieldContext()
   const resolvedInvalid = invalid ?? fieldContext.invalid
   const resolvedRequired = required ?? fieldContext.required
@@ -19,7 +24,10 @@ export function SelectRoot({ invalid, required, ...props }: SelectRootProps) {
     <SelectContext
       value={{ invalid: resolvedInvalid, required: resolvedRequired }}
     >
-      <SelectPrimitive.Root {...props} />
+      <SelectPrimitive.Root
+        disabled={disabled ?? fieldContext.disabled}
+        {...props}
+      />
     </SelectContext>
   )
 }
