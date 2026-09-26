@@ -162,8 +162,29 @@ describe('stackedBarsTable', () => {
       GA: 414,
       VIP: 60,
       'Early bird': 300,
-      Total: 774
+      total: 774
     })
+  })
+
+  it('keeps a series named Total apart from the total', () => {
+    const table = stackedBarsTable({
+      data: [
+        { c: 'A', s: 'Total', v: 5 },
+        { c: 'A', s: 'Other', v: 2 }
+      ],
+      x: 'c',
+      y: 'v',
+      series: 's'
+    })
+    expect(table.columns.map((c) => c.header)).toEqual([
+      'C',
+      'Total',
+      'Other',
+      'Total'
+    ])
+    const keys = table.columns.map((c) => c.key)
+    expect(new Set(keys).size).toBe(keys.length)
+    expect(table.rows[0]).toMatchObject({ Total: 5, Other: 2, total: 7 })
   })
 
   it('shows shares as percents in share mode', () => {
@@ -186,7 +207,7 @@ describe('stackedBarsTable with more segments than the plot shows', () => {
       ...Array.from({ length: 9 }, (_, i) => `S${i}`),
       'Total'
     ])
-    expect(table.rows[0]).toMatchObject({ S0: 1, S8: 9, Total: 45 })
+    expect(table.rows[0]).toMatchObject({ S0: 1, S8: 9, total: 45 })
   })
 })
 
