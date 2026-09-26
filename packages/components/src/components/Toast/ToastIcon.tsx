@@ -2,44 +2,21 @@
 
 import { type ComponentProps, use } from 'react'
 
-import {
-  CheckCircleIcon,
-  CircleNotchIcon,
-  InfoIcon,
-  WarningCircleIcon,
-  WarningIcon
-} from '@phosphor-icons/react/ssr'
+import { CircleNotchIcon } from '@phosphor-icons/react/ssr'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { statusIcon } from '../../utils/statusIcon'
 import { ToastObjectContext } from './ToastContext'
 import { toastIntent } from './variants'
 
 export type ToastIconProps = ComponentProps<'span'>
 
-const iconClass = 'size-5'
-
 function iconFor(type: string | undefined) {
   if (type === 'loading') {
-    return (
-      <CircleNotchIcon
-        weight='bold'
-        className={cn(iconClass, 'animate-spin')}
-      />
-    )
+    return <CircleNotchIcon weight='bold' className='size-5 animate-spin' />
   }
-  switch (toastIntent(type)) {
-    case 'success':
-      return <CheckCircleIcon weight='bold' className={iconClass} />
-    case 'danger':
-      return <WarningCircleIcon weight='bold' className={iconClass} />
-    case 'warning':
-      return <WarningIcon weight='bold' className={iconClass} />
-    case 'info':
-      return <InfoIcon weight='bold' className={iconClass} />
-    default:
-      return null
-  }
+  return statusIcon(toastIntent(type))
 }
 
 /** The toast's intent icon, or a spinner while loading. Pass children to use your own icon. */

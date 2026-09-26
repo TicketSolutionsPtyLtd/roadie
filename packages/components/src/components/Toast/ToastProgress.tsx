@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties, type ComponentProps, use } from 'react'
+import { type CSSProperties, type ComponentProps, use, useState } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -22,11 +22,22 @@ export function ToastProgress({
 }: ToastProgressProps) {
   const toast = use(ToastObjectContext)
   const providerTimeout = use(ToastTimeoutContext)
-  const timeout = toast?.timeout ?? providerTimeout
-  if (!toast || toast.type === 'loading' || !(timeout > 0)) return null
+  // Base UI reads the provider default only when a timer starts, so a later
+  // change to it mustn't restart the bar either.
+  const loading = toast?.type === 'loading'
+  const run = `${String(toast && timerRun(toast))}-${toast?.timeout}-${loading}`
+  const [started, setStarted] = useState({
+    run,
+    timeout: toast?.timeout ?? providerTimeout
+  })
+  if (started.run !== run) {
+    setStarted({ run, timeout: toast?.timeout ?? providerTimeout })
+  }
+  const { timeout } = started
+  if (!toast || loading || !(timeout > 0)) return null
   return (
     <div
-      key={`${String(timerRun(toast))}-${timeout}`}
+      key={run}
       data-slot='toast-progress'
       aria-hidden='true'
       style={{ '--toast-timeout': `${timeout}ms`, ...style } as CSSProperties}

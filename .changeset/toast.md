@@ -20,3 +20,7 @@ that stacks and animates them from either edge: toasts enter, restack and
 snap back on a spring and leave quickly. Core also adds `--ease-spring-lively`,
 a spring with a visible bounce (about 9% overshoot) for transforms that should
 catch the eye.
+
+The `@base-ui/react` peer range rises to `^1.8.0`. Toast relies on 1.8 for
+`update(id, previous => …)` and for timers that keep their remaining time
+across repeated pauses, which the progress bar follows.

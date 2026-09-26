@@ -30,10 +30,12 @@ export type ToastViewportProps = ToastPrimitive.Viewport.Props &
   }
 
 // Base UI pauses toast timers while the window is in the background but
-// doesn't expose that, so mirror its window blur and focus handling.
-function useWindowBlurred() {
+// doesn't expose that, so mirror its window blur and focus handling. Like
+// Base UI, it only listens while there are toasts.
+function useWindowBlurred(listening: boolean) {
   const [blurred, setBlurred] = useState(false)
   useEffect(() => {
+    if (!listening) return undefined
     const track = (event: FocusEvent) => {
       if (event.target === event.currentTarget)
         setBlurred(event.type === 'blur')
@@ -44,7 +46,7 @@ function useWindowBlurred() {
       window.removeEventListener('blur', track, true)
       window.removeEventListener('focus', track, true)
     }
-  }, [])
+  }, [listening])
   return blurred
 }
 
@@ -79,7 +81,8 @@ export function ToastViewport({
   children,
   ...props
 }: ToastViewportProps) {
-  const windowBlurred = useWindowBlurred()
+  const hasToasts = ToastPrimitive.useToastManager().toasts.length > 0
+  const windowBlurred = useWindowBlurred(hasToasts)
   return (
     <ToastPositionContext value={position}>
       <ToastPrimitive.Portal container={container}>

@@ -23,14 +23,23 @@ Mount `Toast.Provider` once at your app root, next to `RoadieLinkProvider` and `
 ```tsx
 'use client'
 
+import type { ReactNode } from 'react'
+
 import NextLink from 'next/link'
 
-import { RoadieLinkProvider, ThemeProvider } from '@oztix/roadie-components'
+import {
+  type RoadieLinkComponent,
+  RoadieLinkProvider,
+  ThemeProvider
+} from '@oztix/roadie-components'
 import { Toast } from '@oztix/roadie-components/toast'
 
-export function Providers({ children }) {
+// next/link takes more props than Roadie needs, so cast it once.
+const Link = NextLink as unknown as RoadieLinkComponent
+
+export function Providers({ children }: { children: ReactNode }) {
   return (
-    <RoadieLinkProvider Link={NextLink}>
+    <RoadieLinkProvider Link={Link}>
       <ThemeProvider>
         <Toast.Provider>
           {children}

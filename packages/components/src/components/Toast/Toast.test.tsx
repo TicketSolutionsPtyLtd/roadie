@@ -406,6 +406,46 @@ describe('Toast.Progress', () => {
     expect(bar()).not.toBe(first)
   })
 
+  it('keeps its run when the provider timeout changes mid-toast', async () => {
+    const manager = createToastManager()
+    const app = (timeout: number) => (
+      <Toast.Provider toastManager={manager} timeout={timeout}>
+        <Toast.Viewport />
+      </Toast.Provider>
+    )
+    const { rerender } = render(app(4000))
+    act(() => {
+      manager.add({ title: 'Link copied' })
+    })
+    await screen.findByText('Link copied')
+    const first = bar()
+
+    rerender(app(9000))
+
+    expect(bar()).toBe(first)
+    expect(bar()?.getAttribute('style')).toContain('--toast-timeout: 4000ms')
+  })
+
+  it('ignores the window while there are no toasts, like Base UI', async () => {
+    const manager = createToastManager()
+    render(
+      <Toast.Provider toastManager={manager}>
+        <Toast.Viewport />
+      </Toast.Provider>
+    )
+    act(() => {
+      window.dispatchEvent(new FocusEvent('blur'))
+    })
+    act(() => {
+      manager.add({ title: 'Link copied' })
+    })
+    await screen.findByText('Link copied')
+
+    expect(
+      document.querySelector('[data-slot="toast-viewport"]')
+    ).not.toHaveAttribute('data-window-blurred')
+  })
+
   it('marks the viewport while the window is in the background', async () => {
     await showWith({ title: 'Link copied' })
     const viewport = document.querySelector('[data-slot="toast-viewport"]')
