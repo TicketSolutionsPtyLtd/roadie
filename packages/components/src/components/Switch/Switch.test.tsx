@@ -109,6 +109,14 @@ describe('Switch', () => {
     expect(switchVariants({ size: 'sm' })).toContain('h-5')
   })
 
+  it('keeps the checked track accent when invalid, with a danger edge', () => {
+    const classes = switchVariants()
+    expect(classes).not.toMatch(/aria-invalid:data-checked:bg-/)
+    expect(classes).toContain(
+      'aria-invalid:data-checked:border-[var(--color-danger-9)]'
+    )
+  })
+
   it('marks the switch invalid', () => {
     render(<Switch aria-label='Terms' invalid />)
     expect(screen.getByRole('switch')).toHaveAttribute('aria-invalid', 'true')

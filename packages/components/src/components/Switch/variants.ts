@@ -6,7 +6,7 @@ export const switchVariants = cva(
     'transition-[background-color,border-color,outline-width,outline-color] duration-moderate',
     'outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] focus-visible:outline-[length:var(--focus-ring-width)]',
     'data-checked:border-transparent data-checked:bg-[var(--color-accent-9)]',
-    'aria-invalid:border-[var(--color-danger-9)] aria-invalid:outline-[color-mix(in_oklch,var(--color-danger-9)_var(--focus-ring-opacity),transparent)] aria-invalid:data-checked:bg-[var(--color-danger-9)]',
+    'aria-invalid:border-[var(--color-danger-9)] aria-invalid:outline-[color-mix(in_oklch,var(--color-danger-9)_var(--focus-ring-opacity),transparent)] aria-invalid:data-checked:border-[var(--color-danger-9)]',
     'data-disabled:cursor-not-allowed data-disabled:opacity-50',
     'data-readonly:cursor-default'
   ],
