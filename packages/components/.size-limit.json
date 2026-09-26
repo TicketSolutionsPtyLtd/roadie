@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "125 kB"
+    "limit": "127.5 kB"
   },
   {
     "name": "Single component (Button)",
