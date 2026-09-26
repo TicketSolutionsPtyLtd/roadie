@@ -72,6 +72,23 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'collapsible':
+      return (
+        <div className='grid w-44 gap-2'>
+          <div className='grid gap-1.5'>
+            <Skel className='h-2 w-full' />
+            <Skel className='h-2 w-32' />
+          </div>
+          <div className='flex w-fit items-center gap-1.5 rounded-full border border-subtle bg-normal px-3 py-1.5'>
+            <Skel className='h-2 w-14' />
+            <Skel className='size-2' />
+          </div>
+          <div className='grid gap-1.5 rounded-md border border-subtle bg-normal px-3 py-2'>
+            <Skel className='h-1.5 w-full' />
+            <Skel className='h-1.5 w-24' />
+          </div>
+        </div>
+      )
     case 'input':
       return (
         <div className='w-40 rounded-lg border border-subtle bg-normal px-3 py-2'>
@@ -131,6 +148,39 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <div className='flex items-center gap-2'>
             <div className='size-3.5 rounded-full border-2 border-subtle' />
             <Skel className='h-2 w-12' />
+          </div>
+        </div>
+      )
+    case 'checkbox':
+      return (
+        <div className='grid gap-2'>
+          <div className='flex items-center gap-2'>
+            <div className='grid size-4 emphasis-strong place-content-center rounded-sm intent-accent'>
+              <div className='mb-0.5 h-2 w-1 rotate-45 border-r-2 border-b-2 border-current' />
+            </div>
+            <Skel className='h-2 w-14' />
+          </div>
+          <div className='flex items-center gap-2'>
+            <div className='grid size-4 emphasis-strong place-content-center rounded-sm intent-accent'>
+              <div className='mb-0.5 h-2 w-1 rotate-45 border-r-2 border-b-2 border-current' />
+            </div>
+            <Skel className='h-2 w-16' />
+          </div>
+          <div className='flex items-center gap-2'>
+            <div className='size-4 rounded-sm border-2 border-subtle' />
+            <Skel className='h-2 w-12' />
+          </div>
+        </div>
+      )
+    case 'progress':
+      return (
+        <div className='grid w-40 gap-2'>
+          <div className='flex items-center justify-between'>
+            <Skel className='h-2 w-20' />
+            <Skel className='h-2 w-6' />
+          </div>
+          <div className='h-1.5 overflow-hidden rounded-full bg-(--intent-4)'>
+            <div className='h-full w-3/5 bg-chart-highlight' />
           </div>
         </div>
       )

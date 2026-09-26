@@ -1,0 +1,222 @@
+export const metadata = {
+  title: 'Checkbox',
+  description: 'A box people tick to opt in, or to pick any number of options from a set',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A box people tick to opt in, or to pick any number of options from a set.
+
+## Import
+
+```tsx
+import { Checkbox } from '@oztix/roadie-components/checkbox'
+import { CheckboxGroup } from '@oztix/roadie-components/checkbox-group'
+```
+
+## Examples
+
+### Default
+
+A single checkbox for a yes or no choice. Pass `label` and the whole row
+becomes the click target.
+
+```tsx-live
+<Checkbox label='Send me news about upcoming events' />
+```
+
+### With description
+
+```tsx-live
+<Checkbox
+  label='Add ticket insurance'
+  description='Get a refund if you cannot make it on the night.'
+/>
+```
+
+### Group
+
+Use `CheckboxGroup` when people can pick more than one option. It tracks the
+ticked values as an array.
+
+```tsx-live
+<CheckboxGroup defaultValue={['rock']}>
+  <CheckboxGroup.Label>Genres</CheckboxGroup.Label>
+  <CheckboxGroup.Item value='rock' label='Rock' />
+  <CheckboxGroup.Item value='jazz' label='Jazz' />
+  <CheckboxGroup.Item value='hip-hop' label='Hip hop' />
+  <CheckboxGroup.Item value='electronic' label='Electronic' />
+</CheckboxGroup>
+```
+
+### Select all
+
+Give the group `allValues` and add an item with `parent`. The parent ticks or
+clears every child, and shows a dash when only some are ticked. The group must
+be controlled.
+
+```tsx-live-noinline
+function GenreFilter() {
+  const genres = ['rock', 'jazz', 'hip-hop', 'electronic']
+  const [value, setValue] = useState(['rock', 'jazz'])
+
+  return (
+    <CheckboxGroup value={value} onValueChange={setValue} allValues={genres}>
+      <CheckboxGroup.Label>Filter by genre</CheckboxGroup.Label>
+      <CheckboxGroup.Item parent label='All genres' />
+      <div className='grid gap-2 ps-6'>
+        <CheckboxGroup.Item value='rock' label='Rock' />
+        <CheckboxGroup.Item value='jazz' label='Jazz' />
+        <CheckboxGroup.Item value='hip-hop' label='Hip hop' />
+        <CheckboxGroup.Item value='electronic' label='Electronic' />
+      </div>
+    </CheckboxGroup>
+  )
+}
+
+render(<GenreFilter />)
+```
+
+### With Field
+
+Wrap a checkbox in [Field](/components/field) to get helper and error text.
+The checkbox picks up `invalid`, `required` and `disabled` from the Field, and
+screen readers hear the helper or error text with it.
+
+```tsx-live-noinline
+function TermsOptIn() {
+  const [agreed, setAgreed] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const invalid = submitted && !agreed
+
+  return (
+    <form
+      noValidate
+      className='grid justify-items-start gap-4'
+      onSubmit={(event) => {
+        event.preventDefault()
+        setSubmitted(true)
+      }}
+    >
+      <Field invalid={invalid} required>
+        <Checkbox
+          checked={agreed}
+          onCheckedChange={setAgreed}
+          label={
+            <>
+              I agree to the <Link href='#' className='underline'>terms and conditions</Link>
+            </>
+          }
+        />
+        <Field.ErrorText>Accept the terms to buy tickets.</Field.ErrorText>
+      </Field>
+      <Button type='submit' intent='accent' emphasis='strong'>
+        Buy tickets
+      </Button>
+    </form>
+  )
+}
+
+render(<TermsOptIn />)
+```
+
+A group in a Field takes its label from `Field.Label`.
+
+```tsx-live
+<Field required>
+  <Field.Label showIndicator>Where did you hear about Neon Lanes?</Field.Label>
+  <CheckboxGroup>
+    <CheckboxGroup.Item value='social' label='Social media' />
+    <CheckboxGroup.Item value='radio' label='Radio' />
+    <CheckboxGroup.Item value='friend' label='A friend' />
+  </CheckboxGroup>
+  <Field.HelperText>Tick all that apply.</Field.HelperText>
+</Field>
+```
+
+### Variants
+
+#### Horizontal direction
+
+```tsx-live
+<CheckboxGroup direction='horizontal'>
+  <CheckboxGroup.Item value='fri' label='Friday' />
+  <CheckboxGroup.Item value='sat' label='Saturday' />
+  <CheckboxGroup.Item value='sun' label='Sunday' />
+</CheckboxGroup>
+```
+
+### Emphasis
+
+`normal` turns each item into a card, with the box on the right. Set it on the
+group, or on a single `Checkbox`.
+
+#### Normal
+
+```tsx-live
+<CheckboxGroup emphasis='normal' defaultValue={['parking']}>
+  <CheckboxGroup.Item
+    value='parking'
+    label='Parking pass'
+    description='A spot in the Southbank car park.'
+  />
+  <CheckboxGroup.Item
+    value='merch'
+    label='Merch bundle'
+    description='Tee and tote, collect at the door.'
+  />
+</CheckboxGroup>
+```
+
+### States
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Unchecked</p>
+    <Checkbox label='Send me event news' />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Checked</p>
+    <Checkbox label='Send me event news' defaultChecked />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Indeterminate</p>
+    <Checkbox label='All genres' indeterminate />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Invalid</p>
+    <Checkbox label='I agree to the terms and conditions' invalid />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <Checkbox label='Send me event news' disabled defaultChecked />
+  </div>
+</div>
+```
+
+## Guidelines
+
+- Use a checkbox for choices that take effect on submit. For a setting that
+  applies straight away, use a switch.
+- Use a [RadioGroup](/components/radio-group) when people must pick exactly one
+  option.
+- Word the label so ticking it means yes. "Send me event news", not "Don't send
+  me event news".
+- Never tick a marketing or terms opt-in for people by default.
+
+## Accessibility
+
+- **Keyboard**: `Tab` moves between checkboxes. `Space` ticks or clears the
+  focused one.
+- **ARIA**: Base UI renders `role="checkbox"` with `aria-checked`, which reads
+  `mixed` when indeterminate. `CheckboxGroup` renders `role="group"`.
+- **Labels**: `label` wraps the box in a `<label>`, so it names the checkbox
+  and the whole row is clickable. Label a group with `CheckboxGroup.Label`,
+  `Field.Label`, or a `Fieldset` legend.
+
+<PropsDefinitions componentPath='packages/components/src/components/Checkbox/Checkbox.tsx' />
+
+<PropsDefinitions componentPath='packages/components/src/components/CheckboxGroup' />

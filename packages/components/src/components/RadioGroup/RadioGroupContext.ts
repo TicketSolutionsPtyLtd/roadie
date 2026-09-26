@@ -10,6 +10,7 @@ export type RadioGroupContextValue = {
   direction: RadioGroupDirection
   invalid?: boolean
   required?: boolean
+  setLabelId?: (id: string | undefined) => void
 }
 
 export const RadioGroupContext = createContext<RadioGroupContextValue>({
