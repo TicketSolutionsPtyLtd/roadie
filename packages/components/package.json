@@ -47,6 +47,10 @@
       "types": "./dist/components/CalendarTile/index.d.ts",
       "import": "./dist/components/CalendarTile/index.js"
     },
+    "./callout": {
+      "types": "./dist/components/Callout/index.d.ts",
+      "import": "./dist/components/Callout/index.js"
+    },
     "./card": {
       "types": "./dist/components/Card/index.d.ts",
       "import": "./dist/components/Card/index.js"
@@ -223,6 +227,10 @@
       "types": "./dist/components/Skeleton/index.d.ts",
       "import": "./dist/components/Skeleton/index.js"
     },
+    "./slider": {
+      "types": "./dist/components/Slider/index.d.ts",
+      "import": "./dist/components/Slider/index.js"
+    },
     "./sparkline": {
       "types": "./dist/components/Sparkline/index.d.ts",
       "import": "./dist/components/Sparkline/index.js"
@@ -250,6 +258,10 @@
     "./textarea": {
       "types": "./dist/components/Textarea/index.d.ts",
       "import": "./dist/components/Textarea/index.js"
+    },
+    "./toast": {
+      "types": "./dist/components/Toast/index.d.ts",
+      "import": "./dist/components/Toast/index.js"
     },
     "./toggle": {
       "types": "./dist/components/Toggle/index.d.ts",
@@ -300,7 +312,7 @@
   },
   "peerDependencies": {
     "@ark-ui/react": "^5.0.0",
-    "@base-ui/react": "^1.6.0",
+    "@base-ui/react": "^1.8.0",
     "@phosphor-icons/react": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "react": "^19.2.0",

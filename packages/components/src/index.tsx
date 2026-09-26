@@ -44,6 +44,17 @@ export {
 export { Badge, badgeVariants, type BadgeProps } from './components/Badge'
 
 export {
+  Callout,
+  calloutVariants,
+  type CalloutProps,
+  type CalloutIconProps,
+  type CalloutTitleProps,
+  type CalloutDescriptionProps,
+  type CalloutActionsProps,
+  type CalloutEmphasis
+} from './components/Callout'
+
+export {
   CalendarTile,
   calendarTileVariants,
   type CalendarTileProps
@@ -533,6 +544,30 @@ export {
 } from './components/Tooltip'
 
 export {
+  Toast,
+  useToastManager,
+  createToastManager,
+  toastRootVariants,
+  toastViewportVariants,
+  type ToastProps,
+  type ToastProviderProps,
+  type ToastViewportProps,
+  type ToastContentProps,
+  type ToastIconProps,
+  type ToastTitleProps,
+  type ToastDescriptionProps,
+  type ToastActionProps,
+  type ToastCloseProps,
+  type ToastProgressProps,
+  type ToastIntent,
+  type ToastPosition,
+  type ToastAddOptions,
+  type ToastUpdateOptions,
+  type ToastManager,
+  type UseToastManagerReturnValue
+} from './components/Toast'
+
+export {
   Toggle,
   toggleVariants,
   type ToggleProps,
@@ -561,6 +596,17 @@ export {
   type SwitchThumbProps,
   type SwitchSize
 } from './components/Switch'
+
+export {
+  Slider,
+  type SliderProps,
+  type SliderLabelProps,
+  type SliderValueProps,
+  type SliderControlProps,
+  type SliderTrackProps,
+  type SliderIndicatorProps,
+  type SliderThumbProps
+} from './components/Slider'
 
 export {
   Dialog,
@@ -627,3 +673,11 @@ export {
   type RoadieLinkComponent,
   type RoadieLinkProps
 } from './providers/RoadieLinkProvider'
+
+export {
+  RoadieProvider,
+  type RoadieProviderProps,
+  type RoadieThemeOptions,
+  type RoadieToastOptions,
+  type RoadieTooltipOptions
+} from './providers/RoadieProvider'

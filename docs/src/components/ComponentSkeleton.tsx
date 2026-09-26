@@ -458,6 +458,15 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <div className='mt-1 h-6 w-20 emphasis-normal rounded-full' />
         </div>
       )
+    case 'callout':
+      return (
+        <div className='grid w-44 grid-cols-[auto_1fr] items-start gap-x-2 gap-y-1.5 rounded-xl emphasis-subtle p-3 intent-info'>
+          <div className='size-3 rounded-full bg-strong/40' />
+          <Skel className='h-2 w-16' />
+          <Skel className='col-start-2 h-1.5 w-full' />
+          <Skel className='col-start-2 h-1.5 w-20' />
+        </div>
+      )
     case 'skeleton':
       return (
         <div className='flex w-40 items-center gap-3'>
@@ -608,6 +617,33 @@ export function ComponentSkeleton({ name }: { name: string }) {
             <div className='flex items-center gap-2 px-2 py-1.5 intent-danger'>
               <div className='size-2.5 rounded-sm bg-strong/40' />
               <div className='h-1.5 w-12 rounded-sm bg-strong/40' />
+            </div>
+          </div>
+        </div>
+      )
+    case 'slider':
+      return (
+        <div className='grid w-40 gap-2.5'>
+          <div className='flex justify-between'>
+            <Skel className='h-2 w-12' />
+            <Skel className='h-2 w-10' />
+          </div>
+          <div className='relative h-1.5 rounded-full bg-strong/15'>
+            <div className='absolute inset-y-0 right-1/4 left-1/5 rounded-full bg-strong intent-accent' />
+            <div className='absolute top-1/2 left-1/5 size-4 -translate-1/2 rounded-full bg-[var(--color-neutral-light-0)] shadow-sm' />
+            <div className='absolute top-1/2 right-1/4 size-4 translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-neutral-light-0)] shadow-sm' />
+          </div>
+        </div>
+      )
+    case 'toast':
+      return (
+        <div className='relative grid w-44 pt-2'>
+          <div className='absolute inset-x-3 top-0 h-8 rounded-xl emphasis-floating opacity-60' />
+          <div className='relative flex items-center gap-2.5 rounded-xl emphasis-floating p-2.5'>
+            <div className='size-5 shrink-0 emphasis-strong rounded-full intent-success' />
+            <div className='grid flex-1 gap-1.5'>
+              <Skel className='h-2 w-16' />
+              <Skel className='h-1.5 w-24' />
             </div>
           </div>
         </div>

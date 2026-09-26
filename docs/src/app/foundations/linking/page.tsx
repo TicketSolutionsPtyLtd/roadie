@@ -29,19 +29,22 @@ export default function LinkingPage() {
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Quick start</h2>
         <p className='text-subtle'>
-          Mount <Code>RoadieLinkProvider</Code> once at your app root, alongside{' '}
-          <Code>ThemeProvider</Code>. Pass <Code>next/link</Code> directly, or
-          any wrapper that takes <Code>href</Code> + <Code>children</Code>.
+          Pass <Code>next/link</Code> to <Code>RoadieProvider</Code> once at
+          your app root, or any wrapper that takes <Code>href</Code> +{' '}
+          <Code>children</Code>. <Code>RoadieLinkProvider</Code> does the same
+          on its own, if you{' '}
+          <Link href='/overview/getting-started#placing-providers-yourself'>
+            place providers yourself
+          </Link>
+          .
         </p>
-        <CodePreview>{`import NextLink from 'next/link'
-import { RoadieLinkProvider, ThemeProvider } from '@oztix/roadie-components'
+        <CodePreview>{`'use client'
+
+import NextLink from 'next/link'
+import { RoadieProvider } from '@oztix/roadie-components'
 
 export function Providers({ children }) {
-  return (
-    <RoadieLinkProvider Link={NextLink}>
-      <ThemeProvider>{children}</ThemeProvider>
-    </RoadieLinkProvider>
-  )
+  return <RoadieProvider link={NextLink}>{children}</RoadieProvider>
 }`}</CodePreview>
         <p className='text-subtle'>
           Now every Roadie component that accepts <Code>href</Code> routes

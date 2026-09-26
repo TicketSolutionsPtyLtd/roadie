@@ -98,6 +98,12 @@ const easingTokens = [
     value: 'linear(...)',
     use: 'Transforms only. Slight overshoot for physical feel.',
     property: 'Transforms'
+  },
+  {
+    token: '--ease-spring-lively',
+    value: 'linear(...)',
+    use: 'Transforms only. A visible bounce for surfaces that should catch the eye, like toasts.',
+    property: 'Transforms'
   }
 ]
 
@@ -159,6 +165,10 @@ const entersLeavesUtilities = [
   {
     name: 'motion-drawer',
     description: 'Anchored-edge slide, tracks live swipe offset'
+  },
+  {
+    name: 'motion-toast',
+    description: 'Toast stack: collapses, fans out, tracks live swipe offset'
   }
 ]
 
@@ -345,6 +355,12 @@ export default function MotionPage() {
                 token: 'ease-spring',
                 desc: 'Overshoot, for transforms only',
                 className: 'ease-spring'
+              },
+              {
+                label: 'Lively spring',
+                token: 'ease-spring-lively',
+                desc: 'A visible bounce, for toasts',
+                className: 'ease-spring-lively'
               }
             ].map(({ label, token, desc, className }) => (
               <div

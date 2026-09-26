@@ -59,6 +59,7 @@ import {
 } from '@phosphor-icons/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Highlight, themes } from 'prism-react-renderer'
+import { createPortal } from 'react-dom'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
 
 import * as RoadieCharts from '@oztix/roadie-charts'
@@ -144,6 +145,7 @@ const scope = {
   createDemoCart,
   DemoRouter,
   Link,
+  createPortal,
   use,
   useState,
   useEffect,

@@ -57,7 +57,7 @@ export function OTPFieldRoot({
 }: OTPFieldRootProps) {
   const field = useFieldContext()
   const resolvedInvalid = invalid ?? field.invalid
-  const describedBy = resolvedInvalid ? field.errorTextId : field.helperTextId
+  const describedBy = field.invalid ? field.errorTextId : field.helperTextId
 
   return (
     <OTPFieldContext

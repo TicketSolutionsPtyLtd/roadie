@@ -229,7 +229,8 @@ function ComboboxWithGroups() {
 #### With rich items
 
 Use custom markup inside `Combobox.Item` to show metadata like a subtitle or
-secondary label alongside the primary text.
+secondary label alongside the primary text. Pass the item itself as `value`, and
+use `itemToStringLabel` to set the text the input shows and filters on.
 
 ```tsx-live
 function ComboboxRichItems() {
@@ -245,7 +246,7 @@ function ComboboxRichItems() {
   ]
 
   return (
-    <Combobox items={venues} getOptionLabel={(venue) => venue.name} getOptionString={(venue) => venue.name}>
+    <Combobox items={venues} itemToStringLabel={(venue) => venue.name}>
       <Combobox.InputGroup>
         <Combobox.Input placeholder='Search venues...' />
         <Combobox.Clear />
@@ -256,7 +257,7 @@ function ComboboxRichItems() {
           <Combobox.Popup>
             <Combobox.List>
               {(venue) => (
-                <Combobox.Item key={venue.name} value={venue.name}>
+                <Combobox.Item key={venue.name} value={venue}>
                   <div className='grid gap-0.5 min-w-0'>
                     <span className='truncate font-medium'>{venue.name}</span>
                     <span className='truncate text-xs text-subtle'>{venue.location}</span>

@@ -14,6 +14,7 @@ import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
 import { createShowDashboard } from '@oztix/roadie-charts/examples'
 import {
   Avatar as AvatarViaBarrel,
+  Callout as CalloutViaBarrel,
   CheckboxGroup as CheckboxGroupViaBarrel,
   Collapsible as CollapsibleViaBarrel,
   Dialog as DialogViaBarrel,
@@ -27,9 +28,12 @@ import {
   Pane as PaneViaBarrel,
   Popover as PopoverViaBarrel,
   Progress as ProgressViaBarrel,
+  RoadieProvider,
   ScrollArea as ScrollAreaViaBarrel,
+  Slider as SliderViaBarrel,
   Switch as SwitchViaBarrel,
   Tabs as TabsViaBarrel,
+  Toast as ToastViaBarrel,
   ToggleGroup as ToggleGroupViaBarrel,
   Tooltip as TooltipViaBarrel
 } from '@oztix/roadie-components'
@@ -37,6 +41,8 @@ import { Accordion } from '@oztix/roadie-components/accordion'
 import { Autocomplete } from '@oztix/roadie-components/autocomplete'
 import { Avatar } from '@oztix/roadie-components/avatar'
 import { Breadcrumb } from '@oztix/roadie-components/breadcrumb'
+import { Button } from '@oztix/roadie-components/button'
+import { Callout } from '@oztix/roadie-components/callout'
 import { Card } from '@oztix/roadie-components/card'
 import { Carousel } from '@oztix/roadie-components/carousel'
 import { Checkbox } from '@oztix/roadie-components/checkbox'
@@ -61,9 +67,11 @@ import { QRCode } from '@oztix/roadie-components/qr-code'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { ScrollArea } from '@oztix/roadie-components/scroll-area'
 import { Select } from '@oztix/roadie-components/select'
+import { Slider } from '@oztix/roadie-components/slider'
 import { Steps } from '@oztix/roadie-components/steps'
 import { Switch } from '@oztix/roadie-components/switch'
 import { Tabs } from '@oztix/roadie-components/tabs'
+import { Toast } from '@oztix/roadie-components/toast'
 import { Toggle } from '@oztix/roadie-components/toggle'
 import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
@@ -562,6 +570,13 @@ export default function RscSmokePage() {
 
       <section className='grid gap-2'>
         <h2 className='text-display-ui-3 text-strong'>
+          Slider as bare root (canonical)
+        </h2>
+        <Slider label='Price' defaultValue={[40, 150]} max={250} />
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
           Avatar as bare root (canonical)
         </h2>
         <Avatar.Group aria-label='Attendees'>
@@ -743,6 +758,57 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Slider with <code>.Root</code> alias and parts
+        </h2>
+        <Slider.Root defaultValue={25}>
+          <Slider.Label>Search radius</Slider.Label>
+          <Slider.Value />
+          <Slider.Control>
+            <Slider.Track>
+              <Slider.Indicator />
+              <Slider.Thumb />
+            </Slider.Track>
+          </Slider.Control>
+        </Slider.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Slider via barrel</h2>
+        <SliderViaBarrel aria-label='Volume' defaultValue={60} />
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          RoadieProvider from a server component
+        </h2>
+        <p className='text-sm text-subtle'>
+          Server children inside it, rendered from a server page. The link needs
+          a client file, which the site&apos;s own <code>Providers.tsx</code>{' '}
+          covers; theme and toasts stay with it too.
+        </p>
+        <RoadieProvider theme={false} toast={false} direction='ltr'>
+          <Button href='/components/toast'>Toast docs</Button>
+        </RoadieProvider>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Toast.Provider and Toast.Viewport via subpath
+        </h2>
+        <Toast.Provider>
+          <Toast.Viewport />
+        </Toast.Provider>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Toast via barrel</h2>
+        <ToastViaBarrel.Provider timeout={0}>
+          <ToastViaBarrel.Viewport />
+        </ToastViaBarrel.Provider>
+      </section>
+
+      <section className='grid gap-2'>
         <h2 className='text-display-ui-3 text-strong'>Dialog via subpath</h2>
         <Dialog>
           <Dialog.Trigger>Open dialog</Dialog.Trigger>
@@ -839,6 +905,23 @@ export default function RscSmokePage() {
           <QRCode value='A7K2MKWX' className='w-32' />
           <QRCode value='A7K2MKWX' branded={false} className='w-32' />
         </div>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Callout</h2>
+        <Callout intent='info' title='Doors open at 7pm'>
+          Short form, rendered from a server component.
+        </Callout>
+        <Callout.Root intent='warning'>
+          <Callout.Icon />
+          <Callout.Title render={<h3 />}>
+            Only 20 tickets left at this price
+          </Callout.Title>
+          <Callout.Description>
+            Explicit <code>&lt;Callout.Root&gt;</code> with every part.
+          </Callout.Description>
+        </Callout.Root>
+        <CalloutViaBarrel intent='success'>Via the barrel</CalloutViaBarrel>
       </section>
 
       <section className='grid gap-4'>
