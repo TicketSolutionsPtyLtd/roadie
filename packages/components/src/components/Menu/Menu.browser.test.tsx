@@ -1,5 +1,13 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { Menu } from '.'
@@ -19,6 +27,15 @@ beforeAll(() => {
   }
 })
 afterAll(() => removeStylesheets())
+// A pointer left over a row by an earlier test would hover the next popup
+// as it mounts, and Firefox then moves focus to that row.
+beforeEach(async () => {
+  const corner = document.createElement('div')
+  corner.style.cssText = 'position:fixed;right:0;bottom:0;width:4px;height:4px'
+  document.body.append(corner)
+  await userEvent.hover(corner)
+  corner.remove()
+})
 afterEach(() => {
   setHoverCapable(true)
   cleanup()
@@ -78,6 +95,7 @@ describe('Menu rows on a touch screen', () => {
     await userEvent.keyboard('{Enter}')
     const second = await screen.findByRole('menuitem', { name: 'Tickets sold' })
     const first = screen.getByRole('menuitem', { name: 'Venue' })
+    await expect.poll(() => document.activeElement).toBe(first)
     await userEvent.keyboard('{ArrowDown}')
     await expect.poll(() => document.activeElement).toBe(second)
 
