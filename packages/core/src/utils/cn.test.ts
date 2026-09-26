@@ -62,6 +62,7 @@ describe('cn', () => {
   it('dedupes Roadie loading animations against built-in ones', () => {
     expect(cn('animate-pulse-subtle', 'animate-none')).toBe('animate-none')
     expect(cn('animate-shimmer', 'animate-none')).toBe('animate-none')
+    expect(cn('animate-indeterminate', 'animate-none')).toBe('animate-none')
     expect(cn('animate-pulse', 'animate-pulse-subtle')).toBe(
       'animate-pulse-subtle'
     )

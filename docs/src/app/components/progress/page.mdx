@@ -1,0 +1,249 @@
+export const metadata = {
+  title: 'Progress',
+  description: 'A bar that shows how far a task has got while it runs',
+  status: 'beta',
+  category: 'Status',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A bar that shows how far a task has got while it runs.
+
+## Import
+
+```tsx
+import { Progress } from '@oztix/roadie-components/progress'
+```
+
+## Examples
+
+### Default
+
+Pass a `value` from 0 to 100 and a `label`. The value shows beside the label as a percentage.
+
+```tsx-live
+<Progress value={40} label='Uploading event image' />
+```
+
+### Value text
+
+Set `max` for a count, and `valueText` to say it in words. Screen readers read the same text.
+
+```tsx-live
+<Progress
+  value={120}
+  max={400}
+  label='Importing attendees'
+  valueText='120 of 400'
+/>
+```
+
+### Indeterminate
+
+Pass `value={null}` while the length of the task is unknown. A short bar sweeps across the track until you set a number.
+
+```tsx-live
+<Progress value={null} label='Preparing export' />
+```
+
+### Without a label
+
+Leave out `label` for a bare track, such as inside a table row that already names the task. Give it an `aria-label` instead.
+
+```tsx-live
+<Progress value={65} aria-label='Upload for Harbourside Lights poster' />
+```
+
+### Intents
+
+The fill is the accent by default, like [Meter](/charts/meter). Pass `intent` to colour the result once a task has ended, such as `success` or `danger`.
+
+```tsx-live
+<div className='grid gap-4'>
+  <Progress value={40} label='Uploading' />
+  <Progress value={100} label='Upload done' valueText='Done' intent='success' />
+  <Progress value={72} label='Upload failed' valueText='Failed' intent='danger' />
+</div>
+```
+
+### Running a task
+
+The fill eases to each new value. The root carries `data-progressing`, `data-complete` or `data-indeterminate` for styling around it.
+
+```tsx-live-noinline
+function UploadEventImage() {
+  const [value, setValue] = useState(null)
+
+  useEffect(() => {
+    if (value === null || value >= 100) return
+    const timer = setTimeout(() => setValue((v) => Math.min(100, v + 15)), 500)
+    return () => clearTimeout(timer)
+  }, [value])
+
+  return (
+    <div className='grid gap-4'>
+      <Progress
+        value={value ?? 0}
+        label={value === 100 ? 'Uploaded' : 'Uploading event image'}
+      />
+      <div className='flex gap-2'>
+        <Button onClick={() => setValue(0)}>Start upload</Button>
+      </div>
+    </div>
+  )
+}
+
+render(<UploadEventImage />)
+```
+
+### Showing the outcome
+
+Reaching 100% only means the bar has finished. Wait until the app knows how the task ended, then set `intent` and say the result in `valueText`. A failed task stays where it stopped, with a [Callout](/components/callout) that explains what went wrong and offers a way to try again.
+
+```tsx-live-noinline
+function Upload({ name, failAt }) {
+  const [value, setValue] = useState(0)
+  const [result, setResult] = useState(null)
+
+  useEffect(() => {
+    if (result) return
+    const failed = value === failAt
+    const timer = setTimeout(
+      () =>
+        failed ? setResult('failed')
+        : value === 100 ? setResult('done')
+        : setValue((v) => v + 20),
+      500
+    )
+    return () => clearTimeout(timer)
+  }, [value, result, failAt])
+
+  const retry = () => {
+    setValue(0)
+    setResult(null)
+  }
+
+  return (
+    <div className='grid gap-3'>
+      <Progress
+        value={value}
+        label={
+          result === 'failed' ? `Couldn't upload ${name}`
+          : result === 'done' ? `Uploaded ${name}`
+          : `Uploading ${name}`
+        }
+        valueText={
+          result === 'failed' ? 'Failed'
+          : result === 'done' ? 'Done'
+          : undefined
+        }
+        intent={
+          result === 'failed' ? 'danger'
+          : result === 'done' ? 'success'
+          : undefined
+        }
+      />
+      {result === 'failed' && (
+        <Callout intent='danger'>
+          <Callout.Icon />
+          <Callout.Description>
+            The connection dropped at {value}%. Check your network and try again.
+          </Callout.Description>
+          <Callout.Actions>
+            <Button size='sm' onClick={retry}>
+              Retry
+            </Button>
+          </Callout.Actions>
+        </Callout>
+      )}
+    </div>
+  )
+}
+
+function Outcomes() {
+  const [run, setRun] = useState(0)
+
+  return (
+    <div className='grid gap-6'>
+      <Upload key={`done-${run}`} name='guest list' />
+      <Upload key={`failed-${run}`} name='seating plan' failAt={60} />
+      <div className='flex gap-2'>
+        <Button onClick={() => setRun((r) => r + 1)}>Run again</Button>
+      </div>
+    </div>
+  )
+}
+
+render(<Outcomes />)
+```
+
+### Composition
+
+Compose the parts for a custom layout. `Progress.Value` shows the root's `valueText` when it has one, or takes its own text as children.
+
+```tsx-live
+<Progress value={3} max={5} valueText='3 of 5 files'>
+  <div className='col-span-full flex items-center gap-2'>
+    <UsersIcon weight='bold' className='size-4 text-subtle' />
+    <Progress.Label className='flex-1'>Guest lists for Dune Sessions</Progress.Label>
+    <Progress.Value />
+  </div>
+  <Progress.Track>
+    <Progress.Indicator />
+  </Progress.Track>
+</Progress>
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Use it for a task, not a measure'>
+  <Guideline.Do code={`<Progress value={120} max={400} label='Importing attendees' valueText='120 of 400' />`}>
+    Use Progress for work that is underway and will finish, such as an upload, an import or an export.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Progress value={1842} max={2400} label='Tickets sold' />`}>
+    Don't use Progress for an amount against a limit, such as capacity or tickets sold. Nothing is running there, so use a [Meter](/charts/meter) instead.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Say how much is known'>
+  <Guideline.Do>
+    Start indeterminate while you wait for a size, then switch to a value as soon as you have one.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't fake a value or hold a bar at 99%. An honest sweep is better than a number that stops moving.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Change the intent once you know the result'>
+  <Guideline.Do code={`<Progress value={100} label='Guest list uploaded' valueText='Done' intent='success' />`}>
+    Set `success` or `danger` when the app knows how the task ended, such as when the server confirms the upload.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Progress value={value} intent={value === 100 ? 'success' : undefined} />`}>
+    Don't turn the bar green at 100%. A finished bar isn't a success yet, because the server can still reject the file.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title="Don't rely on colour alone">
+  <Guideline.Do>
+    Say Done or Failed in the label or `valueText`. For a failure, put a [Callout](/components/callout) next to the bar with the reason and a Retry action.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't change only the intent. People who can't tell green from red, and screen reader users, won't know how the task ended.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- The root has `role='progressbar'` with `aria-valuemin`, `aria-valuemax` and `aria-valuenow`. `label` or `Progress.Label` names it.
+- `valueText` becomes `aria-valuetext`. Without it, screen readers hear the percentage.
+- An indeterminate bar has no `aria-valuenow`, which tells screen readers the amount is unknown.
+- Under `prefers-reduced-motion: reduce` the fill jumps to each value, and an indeterminate bar holds still as a soft full-width tint.
+- In forced colours mode the fill draws in the system text colour and the track gets an outline, so it stays visible.
+- A progress bar doesn't announce each change. When the task finishes, tell people in a live region or a toast.
+
+<PropsDefinitions componentPath='packages/components/src/components/Progress' />

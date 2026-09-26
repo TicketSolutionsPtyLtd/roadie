@@ -1,0 +1,202 @@
+export const metadata = {
+  title: 'OTP field',
+  description: 'A one-time code input with one slot per character',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A one-time code input with one slot per character.
+
+## Import
+
+```tsx
+import { OTPField } from '@oztix/roadie-components/otp-field'
+```
+
+## Examples
+
+### Default
+
+Set `length` and `OTPField` renders that many slots. Typing moves to the next slot, Backspace moves back, and pasting a full code fills every slot at once. Codes are numeric by default, so phones show the number pad.
+
+```tsx-live
+<Field>
+  <Field.Label>Login code</Field.Label>
+  <OTPField length={6} />
+</Field>
+```
+
+### Grouped
+
+`groupSize` splits the slots into groups with a separator between them. Six digits read as 3-3, which is easier to hold in your head while switching between apps.
+
+```tsx-live
+<Field>
+  <Field.Label>Login code</Field.Label>
+  <OTPField length={6} groupSize={3} />
+</Field>
+```
+
+### Emphasis
+
+`normal` is the sunken field surface that `Input` uses. `subtle` swaps the border for a tinted fill.
+
+```tsx-live
+<div className='grid gap-4'>
+  <OTPField length={6} aria-label='Normal' />
+  <OTPField length={6} aria-label='Subtle' emphasis='subtle' />
+</div>
+```
+
+### Sizes
+
+Slots match `Input` heights: `sm` is 32px, `md` 40px and `lg` 48px square, so they sit level with an `Input` or `Button` of the same size. Use `lg` for touch, such as checkout on a phone. When the row runs out of room, the slots shrink together rather than wrap.
+
+```tsx-live
+<div className='grid gap-4'>
+  <OTPField length={6} aria-label='Small' size='sm' />
+  <OTPField length={6} aria-label='Medium' size='md' />
+  <OTPField length={6} aria-label='Large' size='lg' />
+</div>
+```
+
+### States
+
+Each slot uses `is-interactive-field`: neutral at rest, accent on focus, danger when invalid.
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <OTPField length={6} aria-label='Default' />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Filled</p>
+    <OTPField length={6} aria-label='Filled' defaultValue='482913' />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Invalid</p>
+    <OTPField length={6} aria-label='Invalid' defaultValue='482913' invalid />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <OTPField length={6} aria-label='Disabled' disabled />
+  </div>
+</div>
+```
+
+### Composition
+
+#### With Field
+
+Wrap it in [Field](/components/field) for the label, helper text and spacing. `Field.Label` names the first slot and the group, and the helper text describes the group.
+
+```tsx-live
+<Field required>
+  <Field.Label showIndicator>Verification code</Field.Label>
+  <OTPField length={6} groupSize={3} />
+  <Field.HelperText>We sent a code to your email</Field.HelperText>
+</Field>
+```
+
+#### With Field and error
+
+Set `invalid` on the `Field`. Every slot turns danger and the group points at the error text.
+
+```tsx-live
+<Field invalid>
+  <Field.Label>Verification code</Field.Label>
+  <OTPField length={6} groupSize={3} defaultValue='204816' />
+  <Field.ErrorText>That code has expired</Field.ErrorText>
+</Field>
+```
+
+#### Custom parts
+
+Pass `OTPField.Input` and `OTPField.Separator` as children to lay the slots out yourself. The number of inputs must match `length`.
+
+```tsx-live
+<Field>
+  <Field.Label>Door code</Field.Label>
+  <OTPField length={4}>
+    <OTPField.Input />
+    <OTPField.Input />
+    <OTPField.Separator className='w-2' />
+    <OTPField.Input />
+    <OTPField.Input />
+  </OTPField>
+</Field>
+```
+
+### Submit when complete
+
+`onValueComplete` fires once the last slot fills, whether the code was typed, pasted or autofilled. Use it to check the code straight away. `autoSubmit` submits the surrounding form instead.
+
+```tsx-live-noinline
+function LoginCode() {
+  const [status, setStatus] = useState('idle')
+
+  return (
+    <form
+      className='grid max-w-sm gap-4'
+      onSubmit={(event) => event.preventDefault()}
+    >
+      <Field invalid={status === 'expired'}>
+        <Field.Label>Login code</Field.Label>
+        <OTPField
+          length={6}
+          groupSize={3}
+          onValueChange={() => setStatus('idle')}
+          onValueComplete={(code) =>
+            setStatus(code === '123456' ? 'verified' : 'expired')
+          }
+        />
+        <Field.HelperText>
+          {status === 'verified'
+            ? 'Code accepted. Signing you in.'
+            : 'We sent a code to your email. Try 123456.'}
+        </Field.HelperText>
+        <Field.ErrorText>That code has expired</Field.ErrorText>
+      </Field>
+    </form>
+  )
+}
+
+render(<LoginCode />)
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Let the browser fill the code'>
+  <Guideline.Do code={`<OTPField length={6} onValueComplete={verify} />`}>
+    Keep the default `autoComplete='one-time-code'` so phones offer the code from a text or email. Check it in `onValueComplete` so nobody has to find a button.
+  </Guideline.Do>
+  <Guideline.Dont code={`<OTPField length={6} autoComplete='off' />`}>
+    Don't turn autofill off or make people press Continue after the last digit.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Say what went wrong'>
+  <Guideline.Do code={`<Field.ErrorText>That code has expired</Field.ErrorText>`}>
+    Name the problem, such as an expired or incorrect code, and offer a way to send a new one.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Field.ErrorText>Invalid input</Field.ErrorText>`}>
+    Don't use a generic error. People can't tell if they mistyped or need a fresh code.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- The root is a `group`. `Field.Label` names the group and the first slot, and the other slots are named by position, such as "Character 2 of 6". Outside `Field`, `aria-label` on the root does the same job.
+- Only the active slot is in the tab order, so Tab moves in and out of the whole code. Arrow Left and Arrow Right move one slot at a time, up to the first empty slot, and Backspace clears and steps back.
+- Each slot is a real `<input>`, so screen readers, password managers and SMS autofill see it. A hidden input carries the whole value for forms.
+- `Field.HelperText` or `Field.ErrorText` describes the group, and `invalid` sets `aria-invalid` on every slot.
+
+<PropsDefinitions componentPath='packages/components/src/components/OTPField' />
