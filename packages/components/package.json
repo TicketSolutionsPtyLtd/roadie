@@ -51,6 +51,14 @@
       "types": "./dist/components/Carousel/index.d.ts",
       "import": "./dist/components/Carousel/index.js"
     },
+    "./checkbox": {
+      "types": "./dist/components/Checkbox/index.d.ts",
+      "import": "./dist/components/Checkbox/index.js"
+    },
+    "./checkbox-group": {
+      "types": "./dist/components/CheckboxGroup/index.d.ts",
+      "import": "./dist/components/CheckboxGroup/index.js"
+    },
     "./code": {
       "types": "./dist/components/Code/index.d.ts",
       "import": "./dist/components/Code/index.js"
