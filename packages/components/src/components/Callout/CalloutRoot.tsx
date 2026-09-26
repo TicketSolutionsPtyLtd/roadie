@@ -78,7 +78,7 @@ export function CalloutRoot({
               data-slot='callout-dismiss'
               aria-label={dismissLabel}
               size='sm'
-              emphasis={emphasis === 'strong' ? 'strong' : 'subtler'}
+              emphasis={emphasis === 'strong' ? 'normal' : 'subtler'}
               onClick={onDismiss}
               className='-my-1.5 -me-2'
             >

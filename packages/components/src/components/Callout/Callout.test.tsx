@@ -228,6 +228,17 @@ describe('Callout dismiss', () => {
     expect(onDismiss).toHaveBeenCalledOnce()
   })
 
+  it('gives the dismiss button its own fill on a strong callout', () => {
+    render(
+      <Callout emphasis='strong' onDismiss={() => {}}>
+        Body
+      </Callout>
+    )
+    const dismiss = screen.getByRole('button', { name: 'Dismiss' })
+    expect(dismiss).toHaveClass('emphasis-normal')
+    expect(dismiss).not.toHaveClass('emphasis-strong')
+  })
+
   it('takes a dismiss label', () => {
     render(
       <Callout onDismiss={() => {}} dismissLabel='Hide notice'>
