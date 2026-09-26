@@ -157,7 +157,7 @@ export async function generateAccentScale(
 ): Promise<ScaleResult> {
   const Color = await getColorClass()
   const color = new Color(accentHex).to('oklch')
-  const hue = Number(color.coords[2]) || 0
+  const hue = Math.round(Number(color.coords[2]) || 0)
   const chroma = getAccentChromaSync(accentHex)
 
   const light = curveToHex(Color, ACCENT_LIGHT_CURVE, hue, chroma)

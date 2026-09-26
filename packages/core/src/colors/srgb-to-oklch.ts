@@ -124,17 +124,21 @@ function inSrgbGamut(l: number, c: number, h: number): boolean {
  * The accent chroma to set as `--accent-chroma`: the hex's own chroma, capped
  * to what sRGB can show at the strong step. Browsers clip an out-of-gamut
  * fill, which lightens it, so a saturated green or cyan accent would otherwise
- * render too light for its white text.
+ * render too light for its white text. The cap is taken at the whole-degree
+ * hue and 4-decimal chroma that `--accent-hue` and `--accent-chroma` carry,
+ * since the gamut edge moves with hue.
  */
 export function getAccentChromaSync(hex: string): number {
   const { c, h } = hexToOklch(hex)
-  if (inSrgbGamut(ACCENT_STRONG_LIGHTNESS, c, h)) return c
+  const hue = Math.round(h)
+  const serialized = Math.floor(c * 1e4) / 1e4
+  if (inSrgbGamut(ACCENT_STRONG_LIGHTNESS, serialized, hue)) return serialized
   let low = 0
-  let high = c
+  let high = serialized
   for (let step = 0; step < 24; step++) {
     const mid = (low + high) / 2
-    if (inSrgbGamut(ACCENT_STRONG_LIGHTNESS, mid, h)) low = mid
+    if (inSrgbGamut(ACCENT_STRONG_LIGHTNESS, mid, hue)) low = mid
     else high = mid
   }
-  return low
+  return Math.floor(low * 1e4) / 1e4
 }

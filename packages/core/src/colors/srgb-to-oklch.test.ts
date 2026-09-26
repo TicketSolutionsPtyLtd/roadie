@@ -109,21 +109,21 @@ describe('getOklchHueSync / getOklchChromaSync', () => {
 })
 
 describe('getAccentChromaSync', () => {
-  // Step 9 of the accent scale sits at this lightness in both modes.
-  const strongFill = (hex: string) =>
-    new Color('oklch', [0.639, getAccentChromaSync(hex), getOklchHueSync(hex)])
+  it.each([...PALETTE, '#b800f8'])(
+    'keeps %s inside sRGB as the CSS writes it',
+    (hex) => {
+      const hue = Math.round(getOklchHueSync(hex))
+      const chroma = +getAccentChromaSync(hex).toFixed(4)
+      expect(
+        new Color('oklch', [0.639, chroma, hue]).inGamut('srgb', {
+          epsilon: 0.0005
+        })
+      ).toBe(true)
+    }
+  )
 
-  for (const hex of PALETTE) {
-    it(`keeps the strong accent fill for ${hex} inside sRGB`, () => {
-      expect(strongFill(hex).inGamut('srgb', { epsilon: 0.0005 })).toBe(true)
-    })
-  }
-
-  it('leaves an accent the gamut can already show alone', () => {
-    expect(getAccentChromaSync('#0091EB')).toBeCloseTo(
-      getOklchChromaSync('#0091EB'),
-      4
-    )
+  it('gives Oztix blue the default accent chroma', () => {
+    expect(getAccentChromaSync('#0091EB')).toBe(0.168)
   })
 
   it('caps a saturated green to what sRGB shows at the strong step', () => {
