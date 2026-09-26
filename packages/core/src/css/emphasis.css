@@ -183,6 +183,26 @@
   color: var(--intent-text-normal);
 }
 
+/* The chosen item in a trackless control, over emphasis-subtle. The tint
+   alone reads about 1.1:1 against the page, so the edge carries the 3:1 a
+   selected state needs. Step 11, because border-strong (step 9) drops to 2:1
+   in the light success, warning and danger intents. Doubled to outrank the
+   emphasis in either emit order. */
+@utility is-selected {
+  &:is(&) {
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--intent-11);
+    color: var(--intent-text-strong);
+  }
+
+  @media (forced-colors: active) {
+    &:is(&) {
+      border-color: Highlight;
+    }
+  }
+}
+
 /* Pairs with a raised or floating fill. The doubled selector outranks that fill
    in either emit order; a field's hover, focus and invalid fills still win. */
 @utility is-translucent {

@@ -134,7 +134,7 @@ export const tabsIndicatorVariants = cva(
         ].join(' '),
         subtler: [
           'bottom-0 left-[var(--active-tab-left)] h-[2px] w-[var(--active-tab-width)]',
-          'bg-[var(--intent-bg-strong)]',
+          'bg-[var(--intent-bg-strong)] forced-colors:bg-[Highlight]',
           'data-[orientation=vertical]:left-0 data-[orientation=vertical]:bottom-auto',
           'data-[orientation=vertical]:top-[var(--active-tab-top)] data-[orientation=vertical]:h-[var(--active-tab-height)] data-[orientation=vertical]:w-[2px]'
         ].join(' ')

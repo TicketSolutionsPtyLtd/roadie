@@ -106,7 +106,7 @@ function ViewSwitch({
   return (
     <ToggleGroup<ChartView>
       aria-label={`${label} view`}
-      size='sm'
+      size='md'
       emphasis='subtler'
       value={[view]}
       onValueChange={([next]) => next && onViewChange(next)}

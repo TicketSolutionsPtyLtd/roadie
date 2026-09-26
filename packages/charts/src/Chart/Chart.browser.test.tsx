@@ -124,8 +124,8 @@ describe('Chart views', () => {
       '[data-slot=toggle-group-item]'
     )) {
       const { width, height } = item.getBoundingClientRect()
-      expect(width).toBeGreaterThanOrEqual(24)
-      expect(height).toBeGreaterThanOrEqual(24)
+      expect(width).toBeGreaterThanOrEqual(32)
+      expect(height).toBeGreaterThanOrEqual(32)
       expect(Math.abs(width - height)).toBeLessThanOrEqual(0.5)
     }
   })

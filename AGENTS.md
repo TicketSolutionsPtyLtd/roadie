@@ -139,6 +139,7 @@ Presets combining bg + text + border + interactive states:
 - `emphasis-floating` — raised bg, rim-light-strong, shadow-xl
 - `emphasis-inverted` — inverted bg + text
 - `emphasis-overlay` — dark overlay with backdrop blur
+- `is-selected` — add to `emphasis-subtle` on the chosen item of a trackless control: a strong edge (intent step 11) and strong text, at least 3:1 against the surface, with a `Highlight` edge under forced colours. Subtler `Toggle` and `ToggleGroup` use it
 - `is-translucent` — add to `emphasis-raised`, `emphasis-floating` or `bg-raised` so content shows through: 85% fill (88% dark) under a 12px backdrop blur, rim light and shadow kept; solid without `backdrop-filter` support or under `prefers-reduced-transparency`; an `is-interactive-field`'s hover, focus and invalid fills still win
 
 ### Interaction states
