@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "129 kB"
+    "limit": "130 kB"
   },
   {
     "name": "Single component (Button)",
@@ -155,6 +155,13 @@
     "path": "dist/components/NumberField/index.js",
     "import": "*",
     "limit": "9.5 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Avatar",
+    "path": "dist/components/Avatar/index.js",
+    "import": "*",
+    "limit": "2.5 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]

@@ -27,6 +27,20 @@ export {
   type CollapsibleTriggerProps
 } from './components/Collapsible'
 
+export {
+  Avatar,
+  avatarVariants,
+  avatarGroupVariants,
+  getInitials,
+  type AvatarProps,
+  type AvatarImageProps,
+  type AvatarFallbackProps,
+  type AvatarGroupProps,
+  type AvatarGroupCountProps,
+  type AvatarShape,
+  type AvatarSize
+} from './components/Avatar'
+
 export { Badge, badgeVariants, type BadgeProps } from './components/Badge'
 
 export {

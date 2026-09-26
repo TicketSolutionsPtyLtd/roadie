@@ -13,6 +13,7 @@ import { StarIcon } from '@phosphor-icons/react/ssr'
 import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
 import { createShowDashboard } from '@oztix/roadie-charts/examples'
 import {
+  Avatar as AvatarViaBarrel,
   CheckboxGroup as CheckboxGroupViaBarrel,
   Collapsible as CollapsibleViaBarrel,
   Dialog as DialogViaBarrel,
@@ -32,6 +33,7 @@ import {
 } from '@oztix/roadie-components'
 import { Accordion } from '@oztix/roadie-components/accordion'
 import { Autocomplete } from '@oztix/roadie-components/autocomplete'
+import { Avatar } from '@oztix/roadie-components/avatar'
 import { Breadcrumb } from '@oztix/roadie-components/breadcrumb'
 import { Card } from '@oztix/roadie-components/card'
 import { Carousel } from '@oztix/roadie-components/carousel'
@@ -532,6 +534,24 @@ export default function RscSmokePage() {
           <TooltipViaBarrel.Trigger>Hover for a label</TooltipViaBarrel.Trigger>
           <TooltipViaBarrel.Content>A label</TooltipViaBarrel.Content>
         </TooltipViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Avatar as bare root (canonical)
+        </h2>
+        <Avatar.Group aria-label='Attendees'>
+          <Avatar name='Mia Tran' />
+          <Avatar.Root>
+            <Avatar.Fallback>LP</Avatar.Fallback>
+          </Avatar.Root>
+          <Avatar.GroupCount count={12} />
+        </Avatar.Group>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Avatar via barrel</h2>
+        <AvatarViaBarrel name='Mia Tran' />
       </section>
 
       <section className='grid gap-2'>

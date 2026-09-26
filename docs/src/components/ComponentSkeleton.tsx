@@ -1,5 +1,6 @@
 import { CheckIcon } from '@phosphor-icons/react/ssr'
 
+import { Avatar } from '@oztix/roadie-components/avatar'
 import { Logo } from '@oztix/roadie-components/logo'
 import { QRCode } from '@oztix/roadie-components/qr-code'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
@@ -45,6 +46,14 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <div className='absolute -bottom-5 left-2 size-14 rotate-45 rounded-md bg-subtle' />
           <div className='absolute -bottom-7 left-16 size-20 rotate-45 rounded-md bg-strong/15' />
         </div>
+      )
+    case 'avatar':
+      return (
+        <Avatar.Group aria-hidden>
+          <Avatar name='Mia Tran' intent='accent' />
+          <Avatar name='Sam Okafor' />
+          <Avatar.GroupCount count={12} />
+        </Avatar.Group>
       )
     case 'badge':
       return (
