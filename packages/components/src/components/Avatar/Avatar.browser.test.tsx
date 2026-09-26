@@ -49,6 +49,64 @@ describe('Avatar scales its contents with the box', () => {
     })
   }
 
+  for (const [size, box] of [
+    ['xs', 24],
+    ['md', 40],
+    ['xl', 56]
+  ] as const) {
+    it(`keeps a failed photo out of the layout at ${size}`, async () => {
+      const { container } = render(
+        <>
+          <div id='plain'>
+            <Avatar size={size} name='Ada Nguyen' />
+          </div>
+          <div id='failed'>
+            <Avatar size={size} src='/missing-avatar.png' name='Ada Nguyen' />
+          </div>
+        </>
+      )
+      const part = (id: string, name: string) =>
+        container.querySelector<HTMLElement>(`#${id} [data-slot="${name}"]`)!
+      await expect
+        .poll(() => part('failed', 'avatar-image').hasAttribute('data-error'))
+        .toBe(true)
+
+      for (const id of ['plain', 'failed']) {
+        const root = part(id, 'avatar').getBoundingClientRect()
+        const fallback = part(id, 'avatar-fallback')
+        const rect = fallback.getBoundingClientRect()
+        expect(root.width).toBeCloseTo(box, 0)
+        expect(rect.width).toBeCloseTo(root.width, 0)
+        expect(rect.height).toBeCloseTo(root.height, 0)
+        expect(rect.left).toBeCloseTo(root.left, 0)
+        expect(rect.top).toBeCloseTo(root.top, 0)
+        expect(getComputedStyle(fallback).borderTopWidth).toBe('1px')
+      }
+      expect(fontSize(part('failed', 'avatar-fallback'))).toBe(
+        fontSize(part('plain', 'avatar-fallback'))
+      )
+    })
+  }
+
+  it('shows a loaded photo over the whole box', async () => {
+    render(
+      <Avatar
+        size='md'
+        name='Ada Nguyen'
+        src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+      />
+    )
+    await expect
+      .poll(() => document.querySelector('[data-slot="avatar-fallback"]'))
+      .toBeNull()
+    const image = slot('avatar-image')
+    expect(getComputedStyle(image).visibility).toBe('visible')
+    const root = slot('avatar').getBoundingClientRect()
+    const rect = image.getBoundingClientRect()
+    expect(rect.width).toBeCloseTo(root.width, 0)
+    expect(rect.height).toBeCloseTo(root.height, 0)
+  })
+
   it('sizes the group count text with its box', () => {
     render(<Avatar.GroupCount size='xl' count={12} />)
     const text = slot('avatar-group-count').firstElementChild!

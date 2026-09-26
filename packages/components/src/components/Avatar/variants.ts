@@ -9,8 +9,9 @@ export type AvatarShape = 'circle' | 'square'
 // Boxes and square radii match IconTile so the two line up in a row.
 // `@container` lets initials and the icon scale with any size, custom ones too.
 // The subtle fallback is translucent; `bg-normal` keeps overlapping avatars opaque.
+// Fixed tracks stop a hidden broken image's intrinsic size from growing the cell.
 export const avatarVariants = cva(
-  '@container relative inline-grid shrink-0 overflow-hidden bg-normal align-middle select-none *:[grid-area:1/1]',
+  '@container relative inline-grid shrink-0 grid-cols-1 grid-rows-1 overflow-hidden bg-normal align-middle select-none *:[grid-area:1/1]',
   {
     variants: {
       intent: intentVariants,
