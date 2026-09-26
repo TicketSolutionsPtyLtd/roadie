@@ -244,6 +244,38 @@ describe('ToggleGroup', () => {
     expect(screen.getByRole('button', { name: '30 days' })).toHaveFocus()
   })
 
+  it('stops watching for a window return when it unmounts', async () => {
+    const user = userEvent.setup()
+    const { unmount } = render(<DateRange />)
+    await user.tab()
+    const add = vi.spyOn(document, 'addEventListener')
+    const remove = vi.spyOn(document, 'removeEventListener')
+    fireEvent.focusOut(screen.getByRole('button', { name: '30 days' }), {
+      relatedTarget: null
+    })
+    const watcher = add.mock.calls.find(([type]) => type === 'focusin')?.[1]
+    expect(watcher).toBeDefined()
+    unmount()
+    expect(remove).toHaveBeenCalledWith('focusin', watcher, true)
+    add.mockRestore()
+    remove.mockRestore()
+  })
+
+  it('keeps one window return watcher across repeated blurs', async () => {
+    const user = userEvent.setup()
+    render(<DateRange />)
+    await user.tab()
+    const item = screen.getByRole('button', { name: '30 days' })
+    const add = vi.spyOn(document, 'addEventListener')
+    const remove = vi.spyOn(document, 'removeEventListener')
+    fireEvent.focusOut(item, { relatedTarget: null })
+    const first = add.mock.calls.find(([type]) => type === 'focusin')?.[1]
+    fireEvent.focusOut(item, { relatedTarget: null })
+    expect(remove).toHaveBeenCalledWith('focusin', first, true)
+    add.mockRestore()
+    remove.mockRestore()
+  })
+
   it('tabs onto the first item when nothing is pressed', async () => {
     const user = userEvent.setup()
     render(<DateRange defaultValue={[]} />)

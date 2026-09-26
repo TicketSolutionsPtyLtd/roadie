@@ -3,6 +3,7 @@
 import {
   type RefAttributes,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState
@@ -98,6 +99,8 @@ export function ToggleGroupRoot<Value extends string = string>({
   // landing outside the group first cancels the return.
   const pointerActive = useRef(false)
   const windowBlurred = useRef(false)
+  const stopWatchingReturn = useRef<(() => void) | null>(null)
+  useEffect(() => () => stopWatchingReturn.current?.(), [])
   const handleFocus: typeof onFocus = (event) => {
     onFocus?.(event)
     const byPointer = pointerActive.current
@@ -114,17 +117,21 @@ export function ToggleGroupRoot<Value extends string = string>({
     onBlur?.(event)
     const group = event.currentTarget
     const doc = group.ownerDocument
+    stopWatchingReturn.current?.()
     windowBlurred.current =
       event.relatedTarget === null && event.target === doc.activeElement
     if (!windowBlurred.current) return
-    doc.addEventListener(
-      'focusin',
-      (focus) => {
-        if (!(focus.target instanceof Node && group.contains(focus.target)))
-          windowBlurred.current = false
-      },
-      { capture: true, once: true }
-    )
+    const watchReturn = (focus: FocusEvent) => {
+      stop()
+      if (!(focus.target instanceof Node && group.contains(focus.target)))
+        windowBlurred.current = false
+    }
+    const stop = () => {
+      doc.removeEventListener('focusin', watchReturn, true)
+      stopWatchingReturn.current = null
+    }
+    doc.addEventListener('focusin', watchReturn, true)
+    stopWatchingReturn.current = stop
   }
   const handlePointerDown: typeof onPointerDown = (event) => {
     onPointerDown?.(event)
