@@ -1,3 +1,6 @@
+import { CheckIcon } from '@phosphor-icons/react/ssr'
+
+import { Avatar } from '@oztix/roadie-components/avatar'
 import { Logo } from '@oztix/roadie-components/logo'
 import { QRCode } from '@oztix/roadie-components/qr-code'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
@@ -28,6 +31,31 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'toggle':
+      return (
+        <div className='flex gap-2'>
+          <div className='grid size-8 emphasis-strong place-content-center rounded-full'>
+            <div className='size-3.5 rounded-full bg-normal opacity-50' />
+          </div>
+          <div className='grid size-8 emphasis-normal place-content-center rounded-full'>
+            <Skel className='size-3.5 rounded-full' />
+          </div>
+        </div>
+      )
+    case 'toggle-group':
+      return (
+        <div className='grid w-40 emphasis-normal auto-cols-fr grid-flow-col gap-1 rounded-full p-1'>
+          <div className='grid h-6 place-content-center'>
+            <Skel className='h-1.5 w-6' />
+          </div>
+          <div className='grid h-6 emphasis-strong place-content-center rounded-full'>
+            <div className='h-1.5 w-6 rounded-sm bg-normal opacity-50' />
+          </div>
+          <div className='grid h-6 place-content-center'>
+            <Skel className='h-1.5 w-6' />
+          </div>
+        </div>
+      )
     case 'card':
       return (
         <div className='grid w-40 gap-2 rounded-lg border border-subtle bg-normal p-3'>
@@ -43,6 +71,14 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <div className='absolute -bottom-5 left-2 size-14 rotate-45 rounded-md bg-subtle' />
           <div className='absolute -bottom-7 left-16 size-20 rotate-45 rounded-md bg-strong/15' />
         </div>
+      )
+    case 'avatar':
+      return (
+        <Avatar.Group aria-hidden>
+          <Avatar name='Mia Tran' intent='accent' />
+          <Avatar name='Sam Okafor' />
+          <Avatar.GroupCount count={12} />
+        </Avatar.Group>
       )
     case 'badge':
       return (
@@ -70,10 +106,42 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'collapsible':
+      return (
+        <div className='grid w-44 gap-2'>
+          <div className='grid gap-1.5'>
+            <Skel className='h-2 w-full' />
+            <Skel className='h-2 w-32' />
+          </div>
+          <div className='flex w-fit items-center gap-1.5 rounded-full border border-subtle bg-normal px-3 py-1.5'>
+            <Skel className='h-2 w-14' />
+            <Skel className='size-2' />
+          </div>
+          <div className='grid gap-1.5 rounded-md border border-subtle bg-normal px-3 py-2'>
+            <Skel className='h-1.5 w-full' />
+            <Skel className='h-1.5 w-24' />
+          </div>
+        </div>
+      )
     case 'input':
       return (
         <div className='w-40 rounded-lg border border-subtle bg-normal px-3 py-2'>
           <Skel className='h-2 w-16 opacity-50' />
+        </div>
+      )
+    case 'number-field':
+      return (
+        <div className='flex w-32 items-center justify-between rounded-lg border border-subtle bg-normal p-1'>
+          <div className='grid size-6 place-items-center rounded-full bg-subtle text-subtle'>
+            <div className='h-0.5 w-2.5 rounded-full bg-current' />
+          </div>
+          <span className='text-sm font-semibold text-strong tabular-nums'>
+            2
+          </span>
+          <div className='grid size-6 place-items-center rounded-full bg-subtle text-subtle *:col-start-1 *:row-start-1'>
+            <div className='h-0.5 w-2.5 rounded-full bg-current' />
+            <div className='h-2.5 w-0.5 rounded-full bg-current' />
+          </div>
         </div>
       )
     case 'textarea':
@@ -149,6 +217,60 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <div className='flex items-center gap-2'>
             <div className='size-3.5 rounded-full border-2 border-subtle' />
             <Skel className='h-2 w-12' />
+          </div>
+        </div>
+      )
+    case 'checkbox':
+      return (
+        <div className='grid gap-2'>
+          <div className='flex items-center gap-2'>
+            <div className='grid size-4 emphasis-strong place-content-center rounded-sm intent-accent'>
+              <div className='mb-0.5 h-2 w-1 rotate-45 border-r-2 border-b-2 border-current' />
+            </div>
+            <Skel className='h-2 w-14' />
+          </div>
+          <div className='flex items-center gap-2'>
+            <div className='grid size-4 emphasis-strong place-content-center rounded-sm intent-accent'>
+              <div className='mb-0.5 h-2 w-1 rotate-45 border-r-2 border-b-2 border-current' />
+            </div>
+            <Skel className='h-2 w-16' />
+          </div>
+          <div className='flex items-center gap-2'>
+            <div className='size-4 rounded-sm border-2 border-subtle' />
+            <Skel className='h-2 w-12' />
+          </div>
+        </div>
+      )
+    case 'progress':
+      return (
+        <div className='grid w-40 gap-2'>
+          <div className='flex items-center justify-between'>
+            <Skel className='h-2 w-20' />
+            <Skel className='h-2 w-6' />
+          </div>
+          <div className='h-1.5 overflow-hidden rounded-full bg-(--intent-4)'>
+            <div className='h-full w-3/5 bg-chart-highlight' />
+          </div>
+        </div>
+      )
+    case 'switch':
+      return (
+        <div className='grid w-40 gap-2.5'>
+          <div className='flex items-center justify-between gap-3'>
+            <Skel className='h-2 w-20' />
+            <div className='flex h-4 w-7 items-center justify-between rounded-full border border-transparent bg-strong p-px intent-accent'>
+              <CheckIcon
+                weight='bold'
+                className='size-2 flex-1 text-(--color-neutral-light-0)'
+              />
+              <div className='size-3 rounded-full bg-(--color-neutral-light-0) shadow-sm' />
+            </div>
+          </div>
+          <div className='flex items-center justify-between gap-3'>
+            <Skel className='h-2 w-16' />
+            <div className='flex h-4 w-7 items-center rounded-full border border-subtle bg-(--intent-8) p-px inset-shadow-sm'>
+              <div className='size-3 rounded-full bg-(--color-neutral-light-0) shadow-sm' />
+            </div>
           </div>
         </div>
       )
@@ -462,6 +584,31 @@ export function ComponentSkeleton({ name }: { name: string }) {
             <div className='mb-0.5 h-1 w-6 rounded-full bg-strong/15' />
             <Skel className='h-2 w-16' />
             <Skel className='h-1.5 w-24' />
+          </div>
+        </div>
+      )
+    case 'menu':
+      return (
+        <div className='grid justify-items-end gap-1.5'>
+          <div className='flex size-7 emphasis-normal items-center justify-center gap-0.5 rounded-full'>
+            <Skel className='size-1 rounded-full' />
+            <Skel className='size-1 rounded-full' />
+            <Skel className='size-1 rounded-full' />
+          </div>
+          <div className='grid w-36 emphasis-raised gap-1 rounded-xl p-1'>
+            <div className='flex items-center gap-2 rounded-lg bg-subtle px-2 py-1.5'>
+              <Skel className='size-2.5' />
+              <Skel className='h-1.5 w-14' />
+            </div>
+            <div className='flex items-center gap-2 px-2 py-1.5'>
+              <Skel className='size-2.5' />
+              <Skel className='h-1.5 w-16' />
+            </div>
+            <div className='mx-1 border-t border-subtle' />
+            <div className='flex items-center gap-2 px-2 py-1.5 intent-danger'>
+              <div className='size-2.5 rounded-sm bg-strong/40' />
+              <div className='h-1.5 w-12 rounded-sm bg-strong/40' />
+            </div>
           </div>
         </div>
       )

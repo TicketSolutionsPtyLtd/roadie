@@ -57,9 +57,25 @@ const BASE_UI_COMPOUNDS: Record<string, BaseUiCompound> = {
       GroupLabel: 'grouplabel'
     }
   },
+  Avatar: {
+    slug: 'avatar',
+    parts: {
+      Root: 'root',
+      Image: 'image',
+      Fallback: 'fallback'
+    }
+  },
   Button: {
     slug: 'button',
     parts: {}
+  },
+  Collapsible: {
+    slug: 'collapsible',
+    parts: {
+      Root: 'root',
+      Trigger: 'trigger',
+      Panel: 'panel'
+    }
   },
   Combobox: {
     slug: 'combobox',
@@ -92,6 +108,26 @@ const BASE_UI_COMPOUNDS: Record<string, BaseUiCompound> = {
       Separator: 'separator'
     }
   },
+  NumberField: {
+    slug: 'number-field',
+    parts: {
+      Root: 'root',
+      Group: 'group',
+      Input: 'input',
+      Decrement: 'decrement',
+      Increment: 'increment',
+      ScrubArea: 'scrubarea',
+      ScrubAreaCursor: 'scrubareacursor'
+    }
+  },
+  Checkbox: {
+    slug: 'checkbox',
+    parts: { Root: 'root' }
+  },
+  CheckboxGroup: {
+    slug: 'checkbox-group',
+    parts: { Root: 'checkboxgroup' }
+  },
   RadioGroup: {
     slug: 'radio',
     parts: {
@@ -123,6 +159,16 @@ const BASE_UI_COMPOUNDS: Record<string, BaseUiCompound> = {
       ScrollUpArrow: 'scrolluparrow',
       ScrollDownArrow: 'scrolldownarrow',
       Separator: 'separator'
+    }
+  },
+  Toggle: {
+    slug: 'toggle',
+    parts: {}
+  },
+  ToggleGroup: {
+    slug: 'toggle-group',
+    parts: {
+      Root: 'api-reference'
     }
   }
 }
