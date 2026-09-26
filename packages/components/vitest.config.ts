@@ -42,6 +42,10 @@ const reduceMotion: BrowserCommand<[reduce: boolean]> = ({ page }, reduce) =>
 const forcedColors: BrowserCommand<[active: boolean]> = ({ page }, active) =>
   page.emulateMedia({ forcedColors: active ? 'active' : 'none' })
 
+// The pointer stays wherever the last test file on the page left it, so a
+// test that needs nothing hovered parks it in the top-left corner first.
+const parkPointer: BrowserCommand<[]> = ({ page }) => page.mouse.move(0, 0)
+
 export default defineConfig({
   plugins: [react(), babel({ presets: [reactCompilerPreset] })],
   resolve: {
@@ -87,7 +91,7 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             viewport: { width: 1920, height: 1080 },
-            commands: { reduceMotion, forcedColors },
+            commands: { reduceMotion, forcedColors, parkPointer },
             // Firefox pages share one active window, so a file that focuses its
             // page blurs the files running beside it, and their keys and
             // :focus-visible stop working. Its files run one at a time.
