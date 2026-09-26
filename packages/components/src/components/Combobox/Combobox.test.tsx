@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
-import { Combobox, comboboxInputGroupVariants } from '.'
+import { Combobox, type ComboboxProps, comboboxInputGroupVariants } from '.'
 import { Field } from '../Field'
 
 describe('Combobox', () => {
@@ -99,5 +99,44 @@ describe('Combobox', () => {
     const input = container.querySelector('input')!
     expect(input).not.toHaveAttribute('aria-invalid')
     expect(input).not.toHaveAttribute('aria-required')
+  })
+})
+
+describe('Combobox value types', () => {
+  it('types a single value, with null for a cleared one', () => {
+    ;<Combobox
+      items={['Rock', 'Jazz']}
+      value='Rock'
+      onValueChange={(value) => {
+        expectTypeOf(value).toEqualTypeOf<string | null>()
+      }}
+    />
+  })
+
+  it('types a multiple value as an array', () => {
+    ;<Combobox
+      items={['Rock', 'Jazz']}
+      multiple
+      value={['Rock']}
+      onValueChange={(value) => {
+        expectTypeOf(value).toEqualTypeOf<string[]>()
+      }}
+    />
+  })
+
+  it('takes an array handler once multiple is set', () => {
+    const onValueChange = (value: string[]) => value
+    ;<Combobox multiple defaultValue={['Jazz']} onValueChange={onValueChange} />
+    // @ts-expect-error a single combobox hands over one value, not an array
+    ;<Combobox defaultValue='Jazz' onValueChange={onValueChange} />
+  })
+
+  it('types the props of a wrapper', () => {
+    expectTypeOf<ComboboxProps<string>['value']>().toEqualTypeOf<
+      string | null | undefined
+    >()
+    expectTypeOf<ComboboxProps<string, true>['value']>().toEqualTypeOf<
+      string[] | null | undefined
+    >()
   })
 })

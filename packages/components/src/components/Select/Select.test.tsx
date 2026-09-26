@@ -274,7 +274,9 @@ describe('Field text description', () => {
   })
 })
 
-function Bands(props: SelectProps) {
+function Bands<Multiple extends boolean | undefined = false>(
+  props: SelectProps<string, Multiple>
+) {
   return (
     <Select {...props}>
       <Select.Trigger aria-label='Band'>
@@ -362,10 +364,50 @@ describe('Select value label', () => {
 
   it('lists the labels of every value in a multiple select', () => {
     const { getByRole } = render(
-      // @ts-expect-error Roadie's Select types don't take `multiple` yet
       <Bands multiple defaultValue={['bee-gees', 'custard']} />
     )
     expect(getByRole('combobox')).toHaveTextContent('Bee Gees, Custard')
+  })
+})
+
+describe('Select value types', () => {
+  it('types a single value, with null for a cleared one', () => {
+    ;<Select
+      value='bee-gees'
+      onValueChange={(value) => {
+        expectTypeOf(value).toEqualTypeOf<string | null>()
+      }}
+    />
+  })
+
+  it('types a multiple value as an array', () => {
+    ;<Select
+      multiple
+      value={['bee-gees', 'custard']}
+      onValueChange={(value) => {
+        expectTypeOf(value).toEqualTypeOf<string[]>()
+      }}
+    />
+  })
+
+  it('takes an array handler once multiple is set', () => {
+    const onValueChange = (value: string[]) => value
+    ;<Select
+      multiple
+      defaultValue={['custard']}
+      onValueChange={onValueChange}
+    />
+    // @ts-expect-error a single select hands over one value, not an array
+    ;<Select defaultValue='custard' onValueChange={onValueChange} />
+  })
+
+  it('types the props of a wrapper', () => {
+    expectTypeOf<SelectProps<string>['value']>().toEqualTypeOf<
+      string | null | undefined
+    >()
+    expectTypeOf<SelectProps<string, true>['value']>().toEqualTypeOf<
+      string[] | null | undefined
+    >()
   })
 })
 

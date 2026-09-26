@@ -226,6 +226,30 @@ wrapper. Use `showIndicator` to show a required or optional indicator.
 </Select>
 ```
 
+#### With multiple selection
+
+Set `multiple` to let people pick more than one option. The popup stays open
+between picks, and the trigger lists every label. `value`, `defaultValue` and
+`onValueChange` then take an array.
+
+```tsx-live
+<Field>
+  <Field.Label>Bands to see</Field.Label>
+  <Select multiple defaultValue={['bee-gees', 'custard']}>
+    <Select.Trigger>
+      <Select.Value placeholder='Pick bands' />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Item value='bee-gees'>Bee Gees</Select.Item>
+      <Select.Item value='custard'>Custard</Select.Item>
+      <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+      <Select.Item value='regurgitator'>Regurgitator</Select.Item>
+    </Select.Content>
+  </Select>
+</Field>
+```
+
 ## Guidelines
 
 ### When to use Select
