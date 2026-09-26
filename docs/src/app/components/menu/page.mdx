@@ -24,13 +24,13 @@ Pass the button to `Menu.Trigger` with `render`. `Menu.Content` wraps the portal
 
 ```tsx-live
 <Menu>
-  <Menu.Trigger render={<IconButton aria-label='More actions' emphasis='subtle'><DotsThree weight='bold' className='size-4' /></IconButton>} />
+  <Menu.Trigger render={<IconButton aria-label='More actions'><DotsThreeIcon weight='bold' className='size-4' /></IconButton>} />
   <Menu.Content>
-    <Menu.Item icon={<PencilSimple weight='bold' />} shortcut='⌘E'>Edit</Menu.Item>
-    <Menu.Item icon={<Copy weight='bold' />} shortcut='⌘D'>Duplicate</Menu.Item>
-    <Menu.Item href='https://example.com/events/neon-harbour-sessions' icon={<ArrowSquareOut weight='bold' />}>View on site</Menu.Item>
+    <Menu.Item icon={<PencilSimpleIcon weight='bold' />} shortcut='⌘E'>Edit</Menu.Item>
+    <Menu.Item icon={<CopyIcon weight='bold' />} shortcut='⌘D'>Duplicate</Menu.Item>
+    <Menu.Item href='https://example.com/events/neon-harbour-sessions' icon={<ArrowSquareOutIcon weight='bold' />}>View on site</Menu.Item>
     <Menu.Separator />
-    <Menu.Item intent='danger' icon={<XCircle weight='bold' />}>Cancel event</Menu.Item>
+    <Menu.Item intent='danger' icon={<XCircleIcon weight='bold' />}>Cancel event</Menu.Item>
   </Menu.Content>
 </Menu>
 ```
@@ -41,7 +41,7 @@ Give `Menu.Item` an `href`, like every Roadie link, and it renders as a link. In
 
 ```tsx-live
 <Menu>
-  <Menu.Trigger render={<Button>Go to<CaretDown weight='bold' className='size-4' /></Button>} />
+  <Menu.Trigger render={<Button>Go to<CaretDownIcon weight='bold' className='size-4' /></Button>} />
   <Menu.Content>
     <Menu.Item href='/components/menu#links'>Orders</Menu.Item>
     <Menu.Item href='/components/menu#links'>Attendees</Menu.Item>
@@ -60,13 +60,13 @@ Give `Menu.Item` an `href`, like every Roadie link, and it renders as a link. In
   <Menu.Content>
     <Menu.Group>
       <Menu.GroupLabel>Attendees</Menu.GroupLabel>
-      <Menu.Item icon={<Download weight='bold' />}>Download CSV</Menu.Item>
-      <Menu.Item icon={<Envelope weight='bold' />}>Email to me</Menu.Item>
+      <Menu.Item icon={<DownloadIcon weight='bold' />}>Download CSV</Menu.Item>
+      <Menu.Item icon={<EnvelopeIcon weight='bold' />}>Email to me</Menu.Item>
     </Menu.Group>
     <Menu.Separator />
     <Menu.Group>
       <Menu.GroupLabel>Sales</Menu.GroupLabel>
-      <Menu.Item icon={<Download weight='bold' />}>Download CSV</Menu.Item>
+      <Menu.Item icon={<DownloadIcon weight='bold' />}>Download CSV</Menu.Item>
     </Menu.Group>
   </Menu.Content>
 </Menu>
@@ -123,19 +123,19 @@ Wrap a `Menu.SubmenuTrigger` and its own `Menu.Content` in `Menu.SubmenuRoot`. T
 
 ```tsx-live
 <Menu>
-  <Menu.Trigger render={<IconButton aria-label='More actions' emphasis='subtle'><DotsThree weight='bold' className='size-4' /></IconButton>} />
+  <Menu.Trigger render={<IconButton aria-label='More actions'><DotsThreeIcon weight='bold' className='size-4' /></IconButton>} />
   <Menu.Content>
-    <Menu.Item icon={<PencilSimple weight='bold' />}>Edit</Menu.Item>
-    <Menu.Item icon={<Copy weight='bold' />}>Duplicate</Menu.Item>
+    <Menu.Item icon={<PencilSimpleIcon weight='bold' />}>Edit</Menu.Item>
+    <Menu.Item icon={<CopyIcon weight='bold' />}>Duplicate</Menu.Item>
     <Menu.SubmenuRoot>
-      <Menu.SubmenuTrigger icon={<ShareNetwork weight='bold' />}>Share</Menu.SubmenuTrigger>
+      <Menu.SubmenuTrigger icon={<ShareNetworkIcon weight='bold' />}>Share</Menu.SubmenuTrigger>
       <Menu.Content>
-        <Menu.Item icon={<LinkSimple weight='bold' />}>Copy link</Menu.Item>
-        <Menu.Item icon={<Envelope weight='bold' />}>Email</Menu.Item>
+        <Menu.Item icon={<LinkSimpleIcon weight='bold' />}>Copy link</Menu.Item>
+        <Menu.Item icon={<EnvelopeIcon weight='bold' />}>Email</Menu.Item>
       </Menu.Content>
     </Menu.SubmenuRoot>
     <Menu.Separator />
-    <Menu.Item intent='danger' icon={<XCircle weight='bold' />}>Cancel event</Menu.Item>
+    <Menu.Item intent='danger' icon={<XCircleIcon weight='bold' />}>Cancel event</Menu.Item>
   </Menu.Content>
 </Menu>
 ```
@@ -171,10 +171,10 @@ Disable an item that can't run right now. It stays in place, so the menu doesn't
 <Menu>
   <Menu.Trigger render={<Button>Actions</Button>} />
   <Menu.Content>
-    <Menu.Item icon={<PencilSimple weight='bold' />}>Edit</Menu.Item>
-    <Menu.Item icon={<Download weight='bold' />} disabled>Download tickets</Menu.Item>
+    <Menu.Item icon={<PencilSimpleIcon weight='bold' />}>Edit</Menu.Item>
+    <Menu.Item icon={<DownloadIcon weight='bold' />} disabled>Download tickets</Menu.Item>
     <Menu.Separator />
-    <Menu.Item intent='danger' icon={<Trash weight='bold' />}>Delete draft</Menu.Item>
+    <Menu.Item intent='danger' icon={<TrashIcon weight='bold' />}>Delete draft</Menu.Item>
   </Menu.Content>
 </Menu>
 ```
