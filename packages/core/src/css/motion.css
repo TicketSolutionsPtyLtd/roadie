@@ -133,6 +133,15 @@
   }
 }
 
+@keyframes indeterminate-sweep {
+  from {
+    inset-inline-start: -40%;
+  }
+  to {
+    inset-inline-start: 100%;
+  }
+}
+
 @keyframes pop-in {
   from {
     opacity: 0;
@@ -243,6 +252,26 @@
 
   @media (prefers-reduced-motion: reduce) {
     background-image: none;
+  }
+}
+
+/* Work of unknown length: a bar sweeping across a positioned parent that clips
+   its overflow, such as a progress track. The sweep animates the logical inset,
+   so it runs right to left under `dir='rtl'`. Reduced motion holds a full-width
+   bar at a soft tint, since the global reset would otherwise park it off the
+   end of the track. */
+@utility animate-indeterminate {
+  position: absolute;
+  inset-block: 0;
+  width: 40%;
+  animation: indeterminate-sweep var(--duration-ambient) var(--ease-standard)
+    infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    inset-inline-start: 0;
+    width: 100%;
+    opacity: 0.4;
   }
 }
 

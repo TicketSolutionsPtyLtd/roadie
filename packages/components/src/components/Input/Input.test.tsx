@@ -1,10 +1,17 @@
 import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { type VariantProps } from 'class-variance-authority'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 
-import { Input } from '.'
+import { Input, type InputProps, inputVariants } from '.'
 
 describe('Input', () => {
+  it('keeps the deprecated intent prop accepting what it did before', () => {
+    expectTypeOf<InputProps['intent']>().toEqualTypeOf<
+      VariantProps<typeof inputVariants>['intent']
+    >()
+  })
+
   it('renders with default props', () => {
     const { container } = render(<Input />)
     const input = container.querySelector('input')!

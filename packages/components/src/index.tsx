@@ -19,6 +19,13 @@ export {
   accordionVariants,
   type AccordionProps
 } from './components/Accordion'
+export {
+  Collapsible,
+  type CollapsiblePanelProps,
+  type CollapsibleProps,
+  type CollapsibleTextProps,
+  type CollapsibleTriggerProps
+} from './components/Collapsible'
 
 export {
   Avatar,
@@ -143,6 +150,15 @@ export {
   type SkeletonProps,
   type SkeletonShape
 } from './components/Skeleton'
+
+export {
+  Progress,
+  type ProgressProps,
+  type ProgressLabelProps,
+  type ProgressValueProps,
+  type ProgressTrackProps,
+  type ProgressIndicatorProps
+} from './components/Progress'
 
 export {
   ScrollArea,
@@ -401,6 +417,20 @@ export {
   type AutocompleteStatusProps
 } from './components/Autocomplete'
 export {
+  NumberField,
+  numberFieldGroupVariants,
+  type NumberFieldProps,
+  type NumberFieldGroupProps,
+  type NumberFieldInputProps,
+  type NumberFieldDecrementProps,
+  type NumberFieldIncrementProps,
+  type NumberFieldScrubAreaProps,
+  type NumberFieldScrubAreaCursorProps,
+  type NumberFieldEmphasis,
+  type NumberFieldSize,
+  type NumberFieldStepperEmphasis
+} from './components/NumberField'
+export {
   RadioGroup,
   radioGroupVariants,
   radioGroupItemVariants,
@@ -410,6 +440,20 @@ export {
   type RadioGroupHelperTextProps,
   type RadioGroupErrorTextProps
 } from './components/RadioGroup'
+export {
+  Checkbox,
+  checkboxVariants,
+  type CheckboxProps
+} from './components/Checkbox'
+export {
+  CheckboxGroup,
+  checkboxGroupVariants,
+  type CheckboxGroupProps,
+  type CheckboxGroupItemProps,
+  type CheckboxGroupLabelProps,
+  type CheckboxGroupHelperTextProps,
+  type CheckboxGroupErrorTextProps
+} from './components/CheckboxGroup'
 
 // Fieldset is the pilot for the Pattern A migration. The compound ships as
 // a namespace re-export backed by per-file leaves (tsdown unbundle mode);
@@ -444,6 +488,26 @@ export {
 } from './components/Popover'
 
 export {
+  Menu,
+  menuItemVariants,
+  type MenuProps,
+  type MenuTriggerProps,
+  type MenuPortalProps,
+  type MenuPositionerProps,
+  type MenuPopupProps,
+  type MenuContentProps,
+  type MenuItemProps,
+  type MenuSeparatorProps,
+  type MenuGroupProps,
+  type MenuGroupLabelProps,
+  type MenuCheckboxItemProps,
+  type MenuRadioGroupProps,
+  type MenuRadioItemProps,
+  type MenuSubmenuRootProps,
+  type MenuSubmenuTriggerProps
+} from './components/Menu'
+
+export {
   Tooltip,
   tooltipPopupVariants,
   type TooltipProps,
@@ -457,6 +521,16 @@ export {
   type TooltipEmphasis,
   type TooltipSide
 } from './components/Tooltip'
+
+export {
+  Switch,
+  switchVariants,
+  switchThumbVariants,
+  switchTickVariants,
+  type SwitchProps,
+  type SwitchThumbProps,
+  type SwitchSize
+} from './components/Switch'
 
 export {
   Dialog,
