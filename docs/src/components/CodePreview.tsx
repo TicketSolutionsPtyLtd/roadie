@@ -63,6 +63,7 @@ import { createPortal } from 'react-dom'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
 
 import * as RoadieCharts from '@oztix/roadie-charts'
+import { lineChartTable } from '@oztix/roadie-charts/tables'
 import * as RoadieComponents from '@oztix/roadie-components'
 import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
@@ -134,6 +135,7 @@ const PhosphorIconsSuffixed = Object.fromEntries(
 const scope = {
   ...RoadieComponents,
   ...RoadieCharts,
+  lineChartTable,
   ...SpotIllustrations,
   ...PhosphorIcons,
   ...PhosphorIconsSuffixed,

@@ -81,35 +81,44 @@ Use a takeaway sentence when no single number answers the question.
 
 ### Table first
 
-Open on the Table view with `view='table'`.
+Open on the Table view with `view='table'`. A chart inside the card supplies its table once it runs in the browser. When the Table view renders on the server, or must work without JavaScript, pass `table` from `@oztix/roadie-charts/tables`.
 
-```tsx-live
-<div className='w-[560px] max-w-full'>
-  <Chart
-    view='table'
-    label='Sales so far'
-    value={0.61}
-    format='percent'
-    delta={{ value: 16, format: 'points' }}
-    context='Ahead of similar shows'
-    source='Oztix sales. 38 similar shows, last 3 years.'
-  >
-    <LineChart
-      data={[
-        { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
-        { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
-        { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
-        { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
-      ]}
-      x='day'
-      y='sold'
+```tsx
+import { lineChartTable } from '@oztix/roadie-charts/tables'
+```
+
+```tsx-live-noinline
+const pace = {
+  data: [
+    { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+    { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+    { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+    { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+  ],
+  x: 'day',
+  y: 'sold',
+  format: 'percent',
+  takeaway: 'Tracking 16 points ahead of similar shows',
+  band: { low: 'low', high: 'high', median: 'median', label: 'Similar shows' },
+  target: 0.85
+}
+
+render(
+  <div className='w-[560px] max-w-full'>
+    <Chart
+      view='table'
+      table={lineChartTable(pace)}
+      label='Sales so far'
+      value={0.61}
       format='percent'
-      takeaway='Tracking 16 points ahead of similar shows'
-      band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
-      target={0.85}
-    />
-  </Chart>
-</div>
+      delta={{ value: 16, format: 'points' }}
+      context='Ahead of similar shows'
+      source='Oztix sales. 38 similar shows, last 3 years.'
+    >
+      <LineChart {...pace} />
+    </Chart>
+  </div>
+)
 ```
 
 ### With a table
@@ -261,6 +270,7 @@ Pass `actions` to add controls after the Chart and Table switch. Use at most one
 ## Guidelines
 
 - `source` is required. A chart inside the card supplies the Table view, and a `table` prop wins over it. A static image needs a `table`.
+- A chart supplies its table only in the browser, so the Table view shows a skeleton until then. Pass `table` from `@oztix/roadie-charts/tables` when the Table view renders on the server or must work without JavaScript.
 - Live plot heights come from the card size: `size='sm'` is 160px and `md` is 220px. `lg` and `full` start at 260px and grow with the card's width, to 340px at `lg` and 420px at `full`, so a wide plot keeps about a 4:1 shape. One CSS rule sets this for every chart, so there is nothing to tune per dashboard.
 - A static plot in a dashboard spec fills the plot width and takes its height from the image, so render it at the aspect of the box it fills, with text at 12px. Add a `narrow` rendition for plots under 480px wide and a `wide` one for 960px and up, so the text stays readable at every width.
 - Switching between Chart and Table keeps the card's height. The plot sets it, and the table fills the card's width. A longer or wider table scrolls inside it.

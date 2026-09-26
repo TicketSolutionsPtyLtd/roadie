@@ -20,6 +20,7 @@ import {
   type DataTableColumn,
   type DataTableRow
 } from '@oztix/roadie-components/data-table'
+import { Skeleton } from '@oztix/roadie-components/skeleton'
 import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -46,7 +47,9 @@ export type ChartProps = Omit<
   bodyHeight?: string
   /**
    * Exact numbers behind the chart, shown in the Table view. A chart inside
-   * the card supplies its own, and this wins over it.
+   * the card supplies its own once it runs in the browser, and this wins over
+   * it. When the Table view renders on the server, or must work without
+   * JavaScript, pass `table` from `@oztix/roadie-charts/tables`.
    */
   table?: ChartTable
   /** @default 'chart' */
@@ -89,8 +92,6 @@ class PlotBoundary extends Component<PlotBoundaryProps, PlotBoundaryState> {
     return this.state.failed ? null : this.props.children
   }
 }
-
-const EMPTY_TABLE: ChartTable = { columns: [], rows: [] }
 
 function ViewSwitch({
   label,
@@ -184,7 +185,7 @@ export function Chart({
     () => ({ plotHeight, report: setReport, fail, hasLegend }),
     [plotHeight, fail, hasLegend]
   )
-  const shownTable = table ?? report?.table ?? EMPTY_TABLE
+  const shownTable = table ?? report?.table
   const showViews = !failed && hasData(state)
   return (
     <ChartCardContext.Provider value={context}>
@@ -231,12 +232,21 @@ export function Chart({
                 </div>
               </ViewPane>
               <ViewPane view='table' shown={shownView}>
-                <DataTable
-                  columns={shownTable.columns}
-                  rows={shownTable.rows}
-                  caption={label}
-                  plain
-                />
+                {shownTable ? (
+                  <DataTable
+                    columns={shownTable.columns}
+                    rows={shownTable.rows}
+                    caption={label}
+                    plain
+                  />
+                ) : (
+                  // The chart reports its table from an effect, so a server
+                  // render has none until it hydrates.
+                  <Skeleton
+                    shape='block'
+                    style={{ height: bodyHeight ?? 'var(--chart-plot-height)' }}
+                  />
+                )}
               </ViewPane>
             </div>
           </div>

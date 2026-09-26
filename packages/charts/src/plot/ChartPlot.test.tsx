@@ -54,9 +54,7 @@ describe('ChartPlot', () => {
         />
       </Chart>
     )
-    expect(
-      screen.getByRole('table', { name: 'Test' }).querySelectorAll('tbody tr')
-    ).toHaveLength(0)
+    expect(screen.queryByRole('table', { hidden: true })).toBeNull()
   })
 
   it('has a polite live region for spoken values', () => {

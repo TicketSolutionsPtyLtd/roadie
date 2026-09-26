@@ -6,6 +6,8 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Chart } from '.'
 import { CHART_TEXTURE_COUNT } from '../ChartPatterns'
+import { LineChart } from '../LineChart'
+import { paceExample } from '../LineChart/examples'
 import { ChartCardContext } from './context'
 
 const textureCount = (container: HTMLElement, slot: number) =>
@@ -114,6 +116,30 @@ describe('Chart', () => {
     )
     expect(html).toContain('Pace chart')
     expect(html).toContain('Days to show')
+  })
+
+  it('server renders a skeleton, not an empty table, before the chart reports', () => {
+    const html = renderToString(
+      <Chart label='Sales pace' source='Oztix sales.' view='table'>
+        <LineChart {...paceExample} />
+      </Chart>
+    )
+    const page = document.createElement('div')
+    page.innerHTML = html
+    const pane = page.querySelector('[data-chart-view=table]')!
+    expect(pane.querySelector('[data-slot=skeleton]')).not.toBeNull()
+    expect(pane.querySelector('table')).toBeNull()
+  })
+
+  it('swaps the skeleton for the table once the chart reports', () => {
+    const { container } = render(
+      <Chart label='Sales pace' source='Oztix sales.' view='table'>
+        <LineChart {...paceExample} />
+      </Chart>
+    )
+    const pane = container.querySelector('[data-chart-view=table]')!
+    expect(pane.querySelector('[data-slot=skeleton]')).toBeNull()
+    expect(screen.getByRole('table')).toBeInTheDocument()
   })
 
   it('places its size on the grid child', () => {
