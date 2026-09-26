@@ -85,7 +85,10 @@ export default async function ChartsPage() {
           <Code>@oztix/roadie-charts/tables</Code> builds the rows behind each
           chart&apos;s Table view without loading the chart engine. Call it on
           the server to send exact numbers with a report, or to fill a{' '}
-          <Code>DataTable</Code>.
+          <Code>DataTable</Code>. For a dashboard description,{' '}
+          <Code>plotTable</Code> takes any chart card&apos;s <Code>plot</Code>,
+          and <Code>cardTable</Code> takes a whole card and returns its table,
+          ready for an action such as Download CSV.
         </p>
         <CodePreview language='tsx'>{TABLES_EXAMPLE}</CodePreview>
       </section>

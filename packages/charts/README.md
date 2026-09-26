@@ -25,19 +25,23 @@ A `DataCard` framed with a Chart and Table toggle. The chart view renders the
 ```tsx
 import { Chart } from '@oztix/roadie-charts'
 
-;<Chart
-  label='Sales pace'
-  value={0.61}
-  format='percent'
-  source='Oztix sales. 38 similar shows.'
-  size='lg'
-  table={{
-    columns: [{ key: 'day', header: 'Days to show', kind: 'number' }],
-    rows: [{ day: 30 }]
-  }}
->
-  <MyPlot />
-</Chart>
+export function SalesPace() {
+  return (
+    <Chart
+      label='Sales pace'
+      value={0.61}
+      format='percent'
+      source='Oztix sales. 38 similar shows.'
+      size='lg'
+      table={{
+        columns: [{ key: 'day', header: 'Days to show', kind: 'number' }],
+        rows: [{ day: 30 }]
+      }}
+    >
+      <MyPlot />
+    </Chart>
+  )
+}
 ```
 
 ## License

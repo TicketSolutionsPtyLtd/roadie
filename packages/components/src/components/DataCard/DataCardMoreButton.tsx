@@ -13,6 +13,7 @@ export type DataCardMoreButtonProps = Omit<
 /**
  * The More button at the end of a card's actions. It spreads every other
  * prop and the ref onto the button, so it can be a menu trigger's `render`.
+ * As a `Menu.Trigger` render, its `data-slot` becomes the trigger's.
  */
 export function DataCardMoreButton({
   label,

@@ -16,7 +16,7 @@ import { Menu } from '@oztix/roadie-components/menu'
 
 function csvField(value: unknown) {
   const text = Array.isArray(value) ? value.join(' ') : String(value ?? '')
-  return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
+  return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
 }
 
 function tableCsv({ columns, rows }: ChartTable) {
@@ -35,7 +35,8 @@ function downloadCsv(label: string, table: ChartTable) {
   link.href = url
   link.download = `${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv`
   link.click()
-  URL.revokeObjectURL(url)
+  // Revoking in the same task can cancel the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url))
 }
 
 export function CardMenu({
