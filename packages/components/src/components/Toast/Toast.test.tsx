@@ -326,3 +326,100 @@ describe('Toast.Viewport position', () => {
     expect(viewport?.className).not.toContain('offset-bottom')
   })
 })
+
+describe('Toast.Progress', () => {
+  const bar = () => document.querySelector('[data-slot="toast-progress"]')
+
+  async function showWith(options: ToastAddOptions, timeout?: number) {
+    const manager = createToastManager()
+    render(
+      <Toast.Provider toastManager={manager} timeout={timeout}>
+        <Toast.Viewport />
+      </Toast.Provider>
+    )
+    let id = ''
+    act(() => {
+      id = manager.add(options)
+    })
+    await screen.findByText(String(options.title))
+    return { manager, id: () => id }
+  }
+
+  it('shows a hidden bar that runs for the provider timeout', async () => {
+    await showWith({ title: 'Link copied' }, 4000)
+    expect(bar()).toHaveAttribute('aria-hidden', 'true')
+    expect(bar()?.getAttribute('style')).toContain('--toast-timeout: 4000ms')
+  })
+
+  it('runs for the toast’s own timeout', async () => {
+    await showWith({ title: 'Event saved', timeout: 8000 })
+    expect(bar()?.getAttribute('style')).toContain('--toast-timeout: 8000ms')
+  })
+
+  it('shows on a timed toast with an action', async () => {
+    await showWith({
+      title: 'Event saved',
+      timeout: 8000,
+      actionProps: { children: 'Undo' }
+    })
+    expect(bar()).toBeInTheDocument()
+  })
+
+  it('leaves out toasts that wait to be dismissed', async () => {
+    await showWith({ title: 'Ticket types not saved', timeout: 0 })
+    expect(bar()).not.toBeInTheDocument()
+  })
+
+  it('waits for a promise to settle', async () => {
+    const manager = createToastManager()
+    render(
+      <Toast.Provider toastManager={manager}>
+        <Toast.Viewport />
+      </Toast.Provider>
+    )
+    let settle = () => {}
+    act(() => {
+      void manager.promise(
+        new Promise<string>((resolve) => {
+          settle = () => resolve('done')
+        }),
+        { loading: 'Publishing', success: 'Published', error: 'Not published' }
+      )
+    })
+    await screen.findByText('Publishing')
+    expect(bar()).not.toBeInTheDocument()
+    await act(async () => settle())
+    await screen.findByText('Published')
+    expect(bar()).toBeInTheDocument()
+  })
+
+  it('restarts when an update resets the timer', async () => {
+    const { manager, id } = await showWith({ title: 'Saving' })
+    const first = bar()
+    act(() => {
+      manager.update(id(), { title: 'Still saving' })
+    })
+    expect(bar()).toBe(first)
+    act(() => {
+      manager.update(id(), { title: 'Saved', timeout: 5000 })
+    })
+    expect(bar()).not.toBe(first)
+  })
+
+  it('marks the viewport while the window is in the background', async () => {
+    await showWith({ title: 'Link copied' })
+    const viewport = document.querySelector('[data-slot="toast-viewport"]')
+    act(() => {
+      window.dispatchEvent(new FocusEvent('blur'))
+    })
+    expect(viewport).toHaveAttribute('data-window-blurred')
+    act(() => {
+      // Base UI's own handler throws on a synthetic event in jsdom, and a
+      // related target makes it bail.
+      window.dispatchEvent(
+        new FocusEvent('focus', { relatedTarget: document.body })
+      )
+    })
+    expect(viewport).not.toHaveAttribute('data-window-blurred')
+  })
+})

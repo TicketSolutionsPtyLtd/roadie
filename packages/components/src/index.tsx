@@ -459,6 +459,7 @@ export {
   type ToastDescriptionProps,
   type ToastActionProps,
   type ToastCloseProps,
+  type ToastProgressProps,
   type ToastIntent,
   type ToastPosition,
   type ToastAddOptions,

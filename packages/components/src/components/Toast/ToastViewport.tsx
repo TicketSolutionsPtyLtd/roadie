@@ -1,6 +1,6 @@
 'use client'
 
-import type { RefAttributes } from 'react'
+import { type RefAttributes, useEffect, useState } from 'react'
 
 import { Toast as ToastPrimitive } from '@base-ui/react/toast'
 
@@ -12,6 +12,7 @@ import { ToastContent } from './ToastContent'
 import { ToastPositionContext } from './ToastContext'
 import { ToastDescription } from './ToastDescription'
 import { ToastIcon } from './ToastIcon'
+import { ToastProgress } from './ToastProgress'
 import { ToastRoot } from './ToastRoot'
 import { ToastTitle } from './ToastTitle'
 import { toastSide, toastViewportVariants } from './variants'
@@ -28,6 +29,25 @@ export type ToastViewportProps = ToastPrimitive.Viewport.Props &
     position?: 'bottom-end' | 'bottom-center' | 'top-end' | 'top-center'
   }
 
+// Base UI pauses toast timers while the window is in the background but
+// doesn't expose that, so mirror its window blur and focus handling.
+function useWindowBlurred() {
+  const [blurred, setBlurred] = useState(false)
+  useEffect(() => {
+    const track = (event: FocusEvent) => {
+      if (event.target === event.currentTarget)
+        setBlurred(event.type === 'blur')
+    }
+    window.addEventListener('blur', track, true)
+    window.addEventListener('focus', track, true)
+    return () => {
+      window.removeEventListener('blur', track, true)
+      window.removeEventListener('focus', track, true)
+    }
+  }, [])
+  return blurred
+}
+
 function ToastList() {
   const { toasts } = ToastPrimitive.useToastManager()
   return toasts.map((toast) => (
@@ -40,6 +60,7 @@ function ToastList() {
         </div>
         <ToastAction />
         <ToastClose />
+        <ToastProgress />
       </ToastContent>
     </ToastRoot>
   ))
@@ -58,12 +79,14 @@ export function ToastViewport({
   children,
   ...props
 }: ToastViewportProps) {
+  const windowBlurred = useWindowBlurred()
   return (
     <ToastPositionContext value={position}>
       <ToastPrimitive.Portal container={container}>
         <ToastPrimitive.Viewport
           data-slot='toast-viewport'
           data-position={position}
+          data-window-blurred={windowBlurred ? '' : undefined}
           className={cn(
             toastViewportVariants({
               side: toastSide(position),

@@ -48,7 +48,7 @@ export function Providers({ children }) {
 
 ### Default
 
-Call `useToastManager()` in any component under the provider, then `add` a toast. A title on its own is often enough.
+Call `useToastManager()` in any component under the provider, then `add` a toast. A title on its own is often enough. A thin bar along the bottom shows how long the toast has left.
 
 ```tsx-live-noinline
 function CopyLink() {
@@ -173,9 +173,15 @@ In your own CSS you can set it wherever the bar appears:
 }
 ```
 
+### Timing
+
+A toast stays for the provider's `timeout`, 5000ms by default, or its own `timeout` if you pass one. The bar along its bottom empties in that time. Hovering or focusing the toasts pauses every timer and the bar with it, and they carry on from the same point afterwards. They also pause while the window is in the background. F6 moves focus to the toasts from anywhere on the page.
+
+`timeout: 0` keeps a toast until it's dismissed and drops the bar. So does a `promise` toast while it's loading. It starts its timer when the work settles.
+
 ### With an action
 
-`actionProps` adds a small button. It takes any button props, with the label as `children`. Keep it to one short verb, such as Undo. Set `timeout: 0` so the toast stays until the person acts or dismisses it.
+`actionProps` adds a small button. It takes any button props, with the label as `children`. Keep it to one short verb, such as Undo. A toast with a convenience action like Undo still times out, but give it longer to read and reach, about 8000ms.
 
 ```tsx-live-noinline
 function SaveEvent() {
@@ -185,7 +191,7 @@ function SaveEvent() {
       title: 'Event saved',
       description: 'Midnight Static at The Lantern Room, Fitzroy',
       intent: 'success',
-      timeout: 0,
+      timeout: 8000,
       actionProps: {
         children: 'Undo',
         onClick: () => toast.add({ title: 'Changes undone' })
@@ -197,7 +203,7 @@ function SaveEvent() {
 render(<SaveEvent />)
 ```
 
-An error that the person can fix by trying again gets a Retry action. Set `timeout: 0` so it waits for them.
+When the action is the only way forward, such as Retry, set `timeout: 0` so the toast waits for them. If the problem needs more than a retry, show a [Callout](/components/callout) next to it instead.
 
 ```tsx-live-noinline
 function SaveTicketTypes() {
@@ -301,7 +307,7 @@ toasts.add({ title: 'Session expired', intent: 'warning' })
 
 ### Composition
 
-`Toast.Viewport` renders every toast for you. To lay a toast out differently, pass your own list as children and build each one from its parts. `Toast.Title`, `Toast.Description` and `Toast.Action` fill themselves from the toast, and `Toast.Icon` picks the intent's icon.
+`Toast.Viewport` renders every toast for you. To lay a toast out differently, pass your own list as children and build each one from its parts. `Toast.Title`, `Toast.Description` and `Toast.Action` fill themselves from the toast, `Toast.Icon` picks the intent's icon, and `Toast.Progress` draws the time-left bar.
 
 ```tsx
 function Toasts() {
@@ -316,6 +322,7 @@ function Toasts() {
         </div>
         <Toast.Action />
         <Toast.Close />
+        <Toast.Progress />
       </Toast.Content>
     </Toast>
   ))
@@ -349,11 +356,11 @@ function Toasts() {
 </Guideline>
 
 <Guideline title='One action at most'>
-  <Guideline.Do code={`actionProps: { children: 'Undo', onClick: undo }`}>
-    Offer one quick follow-up, like Undo or Retry. Make sure the same thing can be done somewhere else on the page. Set `timeout: 0` on a toast with an action so it waits until the person dismisses it.
+  <Guideline.Do code={`timeout: 8000,\nactionProps: { children: 'Undo', onClick: undo }`}>
+    Offer one quick follow-up, like Undo. Let it time out, with about 8000ms so there's time to reach it, and make sure the change can also be reversed somewhere else, such as a bin or history. Hovering or focusing the toast pauses it for anyone who needs longer.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't stack several buttons in a toast, and don't make the action the only way to do something.
+    Don't stack several buttons in a toast. If the action is the only way forward, like Retry, View order or Update card, set `timeout: 0`, or better, show a Callout next to the problem.
   </Guideline.Dont>
 </Guideline>
 
@@ -373,6 +380,7 @@ function Toasts() {
 - Toasts are announced politely by a live region. Pass `priority: 'high'` for an urgent message so it is announced straight away.
 - F6 moves focus to the toast region. Tab moves through the toasts' actions and dismiss buttons, and Escape dismisses the focused toast.
 - Hovering or focusing the region fans the stack out and pauses every timer.
+- The time-left bar is hidden from screen readers. With reduced motion it isn't shown, since it can't empty smoothly.
 - Swipe towards the viewport's edge, or sideways, to dismiss on touch.
 - With reduced motion, toasts appear and leave without sliding.
 - The dismiss button is labelled Dismiss. Pass `aria-label` to `Toast.Close` to change it.

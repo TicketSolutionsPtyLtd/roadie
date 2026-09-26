@@ -4,6 +4,7 @@ import { ToastClose } from './ToastClose'
 import { ToastContent } from './ToastContent'
 import { ToastDescription } from './ToastDescription'
 import { ToastIcon } from './ToastIcon'
+import { ToastProgress } from './ToastProgress'
 import { ToastProvider } from './ToastProvider'
 import { ToastRoot } from './ToastRoot'
 import { ToastTitle } from './ToastTitle'
@@ -19,6 +20,7 @@ const Toast = ToastRoot as typeof ToastRoot & {
   Description: typeof ToastDescription
   Action: typeof ToastAction
   Close: typeof ToastClose
+  Progress: typeof ToastProgress
 }
 
 Toast.Root = ToastRoot
@@ -30,6 +32,7 @@ Toast.Title = ToastTitle
 Toast.Description = ToastDescription
 Toast.Action = ToastAction
 Toast.Close = ToastClose
+Toast.Progress = ToastProgress
 
 export { Toast }
 export { useToastManager } from './useToastManager'
@@ -46,6 +49,7 @@ export type { ToastTitleProps } from './ToastTitle'
 export type { ToastDescriptionProps } from './ToastDescription'
 export type { ToastActionProps } from './ToastAction'
 export type { ToastCloseProps } from './ToastClose'
+export type { ToastProgressProps } from './ToastProgress'
 export {
   toastRootVariants,
   toastViewportVariants,

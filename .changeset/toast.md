@@ -9,7 +9,9 @@ Mount `Toast.Provider` with a `Toast.Viewport` once at the app root, then call
 component, or `createToastManager()` from outside React. `intent` (`success`,
 `danger`, `warning` or `info`) colours the toast and leads it with a matching
 icon, `actionProps` adds a small button such as Undo or Retry, and `promise`
-shows a spinner until the work settles. `Toast.Viewport` takes a `position`
+shows a spinner until the work settles. A thin `Toast.Progress` bar along the
+bottom of timed toasts shows how long they have left, pausing whenever their
+timer pauses (hover, focus, a background window). `Toast.Viewport` takes a `position`
 (`bottom-end` by default, `bottom-center`, `top-end` or `top-center`); small
 screens always span the chosen edge. Set `--toast-viewport-offset-bottom` (or
 `-top`) to clear fixed UI such as a checkout bar. Toasts fan out on hover or

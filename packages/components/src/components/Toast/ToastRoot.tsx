@@ -7,7 +7,7 @@ import { Toast as ToastPrimitive } from '@base-ui/react/toast'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { ToastPositionContext, ToastTypeContext } from './ToastContext'
+import { ToastObjectContext, ToastPositionContext } from './ToastContext'
 import {
   type ToastPosition,
   toastIntent,
@@ -43,7 +43,7 @@ export function ToastRoot({
   const direction = useDirection()
   const side = toastSide(position)
   return (
-    <ToastTypeContext value={toast.type}>
+    <ToastObjectContext value={toast}>
       <ToastPrimitive.Root
         data-slot='toast'
         data-side={side}
@@ -57,7 +57,7 @@ export function ToastRoot({
         )}
         {...props}
       />
-    </ToastTypeContext>
+    </ToastObjectContext>
   )
 }
 

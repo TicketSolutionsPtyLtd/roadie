@@ -15,7 +15,7 @@ export function ToastContent({ className, ...props }: ToastContentProps) {
     <ToastPrimitive.Content
       data-slot='toast-content'
       className={cn(
-        'flex h-full items-center gap-3 overflow-hidden py-3 ps-4 pe-3',
+        'relative flex h-full items-center gap-3 overflow-hidden rounded-[inherit] py-3 ps-4 pe-3',
         'transition-opacity duration-moderate data-[behind]:opacity-0 data-[expanded]:opacity-100',
         className
       )}

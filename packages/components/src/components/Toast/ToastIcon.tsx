@@ -12,7 +12,7 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { ToastTypeContext } from './ToastContext'
+import { ToastObjectContext } from './ToastContext'
 import { toastIntent } from './variants'
 
 export type ToastIconProps = ComponentProps<'span'>
@@ -44,7 +44,7 @@ function iconFor(type: string | undefined) {
 
 /** The toast's intent icon, or a spinner while loading. Pass children to use your own icon. */
 export function ToastIcon({ className, children, ...props }: ToastIconProps) {
-  const icon = children ?? iconFor(use(ToastTypeContext))
+  const icon = children ?? iconFor(use(ToastObjectContext)?.type)
   if (!icon) return null
   return (
     <span
