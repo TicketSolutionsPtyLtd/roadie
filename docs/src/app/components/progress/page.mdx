@@ -99,7 +99,7 @@ render(<UploadEventImage />)
 
 ### Showing the outcome
 
-Reaching 100% only means the bar has finished. Wait until the app knows how the task ended, then set `intent` and say the result in `valueText`. A failed task stays where it stopped, with a message and a way to try again.
+Reaching 100% only means the bar has finished. Wait until the app knows how the task ended, then set `intent` and say the result in `valueText`. A failed task stays where it stopped, with a [Callout](/components/callout) that explains what went wrong and offers a way to try again.
 
 ```tsx-live-noinline
 function Upload({ name, failAt }) {
@@ -145,14 +145,17 @@ function Upload({ name, failAt }) {
         }
       />
       {result === 'failed' && (
-        <div className='flex items-center gap-3'>
-          <p className='flex-1 text-sm text-subtle'>
+        <Callout intent='danger'>
+          <Callout.Icon />
+          <Callout.Description>
             The connection dropped at {value}%. Check your network and try again.
-          </p>
-          <Button size='sm' onClick={retry}>
-            Retry
-          </Button>
-        </div>
+          </Callout.Description>
+          <Callout.Actions>
+            <Button size='sm' onClick={retry}>
+              Retry
+            </Button>
+          </Callout.Actions>
+        </Callout>
       )}
     </div>
   )
@@ -225,7 +228,7 @@ Compose the parts for a custom layout. `Progress.Value` shows the root's `valueT
 
 <Guideline title="Don't rely on colour alone">
   <Guideline.Do>
-    Say Done or Failed in the label or `valueText`. For a failure, add a message and a way to retry next to the bar.
+    Say Done or Failed in the label or `valueText`. For a failure, put a [Callout](/components/callout) next to the bar with the reason and a Retry action.
   </Guideline.Do>
   <Guideline.Dont>
     Don't change only the intent. People who can't tell green from red, and screen reader users, won't know how the task ended.
