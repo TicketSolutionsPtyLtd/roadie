@@ -48,6 +48,24 @@ describe('parseWallTime', () => {
     expect(parseWallTime('2028-02-29')).toBe(Date.UTC(2028, 1, 29))
   })
 
+  it('keeps seconds and milliseconds', () => {
+    expect(parseWallTime('2026-11-14T19:30:45')).toBe(
+      Date.UTC(2026, 10, 14, 19, 30, 45)
+    )
+    expect(parseWallTime('2026-11-14 19:30:45.5')).toBe(
+      Date.UTC(2026, 10, 14, 19, 30, 45, 500)
+    )
+    expect(parseWallTime('2026-11-14T19:30:45.123456Z')).toBe(
+      Date.UTC(2026, 10, 14, 19, 30, 45, 123)
+    )
+  })
+
+  it('refuses seconds that do not exist', () => {
+    expect(parseWallTime('2026-11-14T19:30:99')).toBeNull()
+    expect(parseWallTime('2026-11-14T19:30:60')).toBeNull()
+    expect(isWallTime('2026-11-14 19:30:99')).toBe(false)
+  })
+
   it('knows a wall time string', () => {
     expect(isWallTime('2026-11-14T10:00')).toBe(true)
     expect(isWallTime('Mon')).toBe(false)

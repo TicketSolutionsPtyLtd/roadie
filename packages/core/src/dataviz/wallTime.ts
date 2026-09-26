@@ -1,20 +1,24 @@
 const ISO =
-  /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/
+  /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/
 
 function wallTimeOf(value: string): number | null {
   const match = ISO.exec(value)
   if (!match) return null
-  const [y, m, d, h, min] = match.slice(1).map((part) => Number(part ?? 0))
-  const ms = Date.UTC(y!, m! - 1, d!, h, min)
-  const date = new Date(ms)
+  const [y, m, d, h, min, s] = match
+    .slice(1, 7)
+    .map((part) => Number(part ?? 0))
+  const ms = Number((match[7] ?? '').slice(0, 3).padEnd(3, '0'))
+  const time = Date.UTC(y!, m! - 1, d!, h, min, s, ms)
+  const date = new Date(time)
   // Date.UTC rolls 31 February into March; a real date survives the round trip.
   const real =
     date.getUTCFullYear() === y &&
     date.getUTCMonth() === m! - 1 &&
     date.getUTCDate() === d &&
     date.getUTCHours() === h &&
-    date.getUTCMinutes() === min
-  return real ? ms : null
+    date.getUTCMinutes() === min &&
+    date.getUTCSeconds() === s
+  return real ? time : null
 }
 
 export const isWallTime = (value: unknown): value is string =>

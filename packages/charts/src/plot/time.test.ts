@@ -119,6 +119,14 @@ describe('time', () => {
     expect(hasTimeOfDay(20261114)).toBe(false)
   })
 
+  it('keeps seconds in the plotted time and titles to the minute', () => {
+    const ms = parseX('2026-11-14T19:30:45')
+    expect(ms).toBe(Date.UTC(2026, 10, 14, 19, 30, 45))
+    expect(hasTimeOfDay('2026-11-14T19:30:45')).toBe(true)
+    expect(formatTimeTitle(ms!, true)).toBe('Sat 14 Nov, 7:30pm')
+    expect(hasTimeOfDay('2026-11-14T19:30:99')).toBe(false)
+  })
+
   it('plots a warehouse space separated time at its wall time', () => {
     expect(parseX('2026-11-14 19:30')).toBe(Date.UTC(2026, 10, 14, 19, 30))
     expect(isTimeField([{ at: '2026-11-14 19:30:00' }], 'at')).toBe(true)
