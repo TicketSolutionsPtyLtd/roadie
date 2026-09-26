@@ -195,7 +195,7 @@ render(<LoginCode />)
 ## Accessibility
 
 - The root is a `group`. `Field.Label` names the group and the first slot, and the other slots are named by position, such as "Character 2 of 6". Outside `Field`, `aria-label` on the root does the same job.
-- Only the active slot is in the tab order, so Tab moves in and out of the whole code. Arrow Left and Arrow Right move between filled slots, and Backspace clears and steps back.
+- Only the active slot is in the tab order, so Tab moves in and out of the whole code. Arrow Left and Arrow Right move one slot at a time, up to the first empty slot, and Backspace clears and steps back.
 - Each slot is a real `<input>`, so screen readers, password managers and SMS autofill see it. A hidden input carries the whole value for forms.
 - `Field.HelperText` or `Field.ErrorText` describes the group, and `invalid` sets `aria-invalid` on every slot.
 
