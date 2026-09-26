@@ -119,19 +119,19 @@ An item whose only child is an icon renders square. Give it an `aria-label`.
 <div className='grid justify-items-start gap-4'>
   <ToggleGroup aria-label='View' defaultValue={['list']}>
     <ToggleGroup.Item value='list' aria-label='List'>
-      <ListBullets weight='bold' />
+      <ListBulletsIcon weight='bold' />
     </ToggleGroup.Item>
     <ToggleGroup.Item value='grid' aria-label='Grid'>
-      <SquaresFour weight='bold' />
+      <SquaresFourIcon weight='bold' />
     </ToggleGroup.Item>
   </ToggleGroup>
   <ToggleGroup aria-label='View' defaultValue={['list']}>
     <ToggleGroup.Item value='list'>
-      <ListBullets weight='bold' />
+      <ListBulletsIcon weight='bold' />
       List
     </ToggleGroup.Item>
     <ToggleGroup.Item value='grid'>
-      <SquaresFour weight='bold' />
+      <SquaresFourIcon weight='bold' />
       Grid
     </ToggleGroup.Item>
   </ToggleGroup>
@@ -145,13 +145,13 @@ With `multiple`, each item toggles on its own and any number can be pressed, inc
 ```tsx-live
 <ToggleGroup multiple aria-label='Text style' defaultValue={['bold']}>
   <ToggleGroup.Item value='bold' aria-label='Bold'>
-    <TextB weight='bold' />
+    <TextBIcon weight='bold' />
   </ToggleGroup.Item>
   <ToggleGroup.Item value='italic' aria-label='Italic'>
-    <TextItalic weight='bold' />
+    <TextItalicIcon weight='bold' />
   </ToggleGroup.Item>
   <ToggleGroup.Item value='underline' aria-label='Underline'>
-    <TextUnderline weight='bold' />
+    <TextUnderlineIcon weight='bold' />
   </ToggleGroup.Item>
 </ToggleGroup>
 ```

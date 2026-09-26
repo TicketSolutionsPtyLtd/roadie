@@ -1,17 +1,23 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 
 import { ToggleGroup, type ToggleGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { setHoverCapable } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
+import { Toggle } from '../Toggle'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
   removeStylesheet = useStylesheet(roadieCss)
 })
 afterAll(() => removeStylesheet())
-afterEach(() => cleanup())
+afterEach(async () => {
+  setHoverCapable(true)
+  await userEvent.unhover(document.body)
+  cleanup()
+})
 
 const EMPHASES = ['normal', 'subtle', 'subtler'] as const
 
@@ -124,4 +130,53 @@ it('keeps the same height at every emphasis', () => {
     .getAllByRole('group')
     .map((group) => group.getBoundingClientRect().height)
   expect(new Set(heights).size).toBe(1)
+})
+
+function look(element: Element) {
+  const { color, backgroundColor, boxShadow, transform } =
+    getComputedStyle(element)
+  return { color, backgroundColor, boxShadow, transform }
+}
+
+describe('a tap on a touch screen', () => {
+  let removeStill = () => {}
+  beforeAll(() => {
+    removeStill = useStylesheet(
+      '*, *::before, *::after { transition: none !important }'
+    )
+  })
+  afterAll(() => removeStill())
+
+  it.each(EMPHASES)(
+    'leaves no hover on a %s group item, pressed or not',
+    async (emphasis) => {
+      setHoverCapable(false)
+      render(<DateRange emphasis={emphasis} />)
+      await expectPillOver('30 days')
+      for (const name of ['7 days', '30 days']) {
+        const item = screen.getByRole('button', { name })
+        const rest = look(item)
+        await userEvent.hover(item)
+        expect(item.matches(':hover')).toBe(true)
+        await expect.poll(() => look(item)).toEqual(rest)
+      }
+    }
+  )
+
+  it('leaves no hover on a pressed or unpressed Toggle', async () => {
+    setHoverCapable(false)
+    render(
+      <>
+        <Toggle>Notify me</Toggle>
+        <Toggle defaultPressed>Presale alerts</Toggle>
+      </>
+    )
+    for (const name of ['Notify me', 'Presale alerts']) {
+      const toggle = screen.getByRole('button', { name })
+      const rest = look(toggle)
+      await userEvent.hover(toggle)
+      expect(toggle.matches(':hover')).toBe(true)
+      await expect.poll(() => look(toggle)).toEqual(rest)
+    }
+  })
 })

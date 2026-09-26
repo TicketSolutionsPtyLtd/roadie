@@ -57,10 +57,10 @@ The same sizes as `Button`. A toggle whose only child is an icon renders square.
     <Toggle size='lg'>Large</Toggle>
   </div>
   <div className='flex flex-wrap items-center gap-2'>
-    <Toggle size='xs' aria-label='Bold'><TextB weight='bold' /></Toggle>
-    <Toggle size='sm' aria-label='Bold'><TextB weight='bold' /></Toggle>
-    <Toggle size='md' aria-label='Bold'><TextB weight='bold' /></Toggle>
-    <Toggle size='lg' aria-label='Bold'><TextB weight='bold' /></Toggle>
+    <Toggle size='xs' aria-label='Bold'><TextBIcon weight='bold' /></Toggle>
+    <Toggle size='sm' aria-label='Bold'><TextBIcon weight='bold' /></Toggle>
+    <Toggle size='md' aria-label='Bold'><TextBIcon weight='bold' /></Toggle>
+    <Toggle size='lg' aria-label='Bold'><TextBIcon weight='bold' /></Toggle>
   </div>
 </div>
 ```
@@ -106,12 +106,11 @@ function Favourite() {
   return (
     <Toggle
       aria-label='Favourite'
-      emphasis='subtler'
       intent='danger'
       pressed={pressed}
       onPressedChange={setPressed}
     >
-      <Heart weight={pressed ? 'fill' : 'bold'} />
+      <HeartIcon weight={pressed ? 'fill' : 'bold'} />
     </Toggle>
   )
 }
