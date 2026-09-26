@@ -323,7 +323,8 @@ export default function IconographyPage() {
         </p>
         <p className='text-subtle'>
           Tile the item, not the action. Inside buttons, menu items, tabs,
-          badges and inputs, use a bare bold icon at <Code>size-4</Code>. See{' '}
+          badges and inputs, use a bare bold icon at the size the control sets.
+          See{' '}
           <Link href='/components/icon-tile' className='underline'>
             Icon Tile
           </Link>
