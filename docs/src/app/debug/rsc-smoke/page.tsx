@@ -28,6 +28,7 @@ import {
   Popover as PopoverViaBarrel,
   Progress as ProgressViaBarrel,
   ScrollArea as ScrollAreaViaBarrel,
+  Slider as SliderViaBarrel,
   Switch as SwitchViaBarrel,
   Tabs as TabsViaBarrel,
   ToggleGroup as ToggleGroupViaBarrel,
@@ -61,6 +62,7 @@ import { QRCode } from '@oztix/roadie-components/qr-code'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { ScrollArea } from '@oztix/roadie-components/scroll-area'
 import { Select } from '@oztix/roadie-components/select'
+import { Slider } from '@oztix/roadie-components/slider'
 import { Steps } from '@oztix/roadie-components/steps'
 import { Switch } from '@oztix/roadie-components/switch'
 import { Tabs } from '@oztix/roadie-components/tabs'
@@ -562,6 +564,13 @@ export default function RscSmokePage() {
 
       <section className='grid gap-2'>
         <h2 className='text-display-ui-3 text-strong'>
+          Slider as bare root (canonical)
+        </h2>
+        <Slider label='Price' defaultValue={[40, 150]} max={250} />
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
           Avatar as bare root (canonical)
         </h2>
         <Avatar.Group aria-label='Attendees'>
@@ -740,6 +749,27 @@ export default function RscSmokePage() {
             Grid
           </ToggleGroupViaBarrel.Item>
         </ToggleGroupViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Slider with <code>.Root</code> alias and parts
+        </h2>
+        <Slider.Root defaultValue={25}>
+          <Slider.Label>Search radius</Slider.Label>
+          <Slider.Value />
+          <Slider.Control>
+            <Slider.Track>
+              <Slider.Indicator />
+              <Slider.Thumb />
+            </Slider.Track>
+          </Slider.Control>
+        </Slider.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Slider via barrel</h2>
+        <SliderViaBarrel aria-label='Volume' defaultValue={60} />
       </section>
 
       <section className='grid gap-2'>

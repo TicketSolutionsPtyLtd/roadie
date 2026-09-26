@@ -170,6 +170,18 @@ const BASE_UI_COMPOUNDS: Record<string, BaseUiCompound> = {
     parts: {
       Root: 'api-reference'
     }
+  },
+  Slider: {
+    slug: 'slider',
+    parts: {
+      Root: 'root',
+      Label: 'label',
+      Value: 'value',
+      Control: 'control',
+      Track: 'track',
+      Indicator: 'indicator',
+      Thumb: 'thumb'
+    }
   }
 }
 

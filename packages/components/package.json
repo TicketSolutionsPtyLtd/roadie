@@ -223,6 +223,10 @@
       "types": "./dist/components/Skeleton/index.d.ts",
       "import": "./dist/components/Skeleton/index.js"
     },
+    "./slider": {
+      "types": "./dist/components/Slider/index.d.ts",
+      "import": "./dist/components/Slider/index.js"
+    },
     "./sparkline": {
       "types": "./dist/components/Sparkline/index.d.ts",
       "import": "./dist/components/Sparkline/index.js"
