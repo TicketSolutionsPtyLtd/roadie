@@ -21,11 +21,13 @@ export type ToggleGroupItemProps<Value extends string = string> = Omit<
 
 export function ToggleGroupItem<Value extends string = string>({
   className,
+  nativeButton,
   ...props
 }: ToggleGroupItemProps<Value>) {
   const { size, emphasis, raisePressed } = use(ToggleGroupContext)
   return (
     <TogglePrimitive<Value>
+      nativeButton={nativeButton ?? !props.render}
       data-slot='toggle-group-item'
       data-icon-only={isIconOnly(props.children) ? '' : undefined}
       className={cn(

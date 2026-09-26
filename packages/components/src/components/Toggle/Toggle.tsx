@@ -61,10 +61,12 @@ export function Toggle({
   intent,
   emphasis,
   size,
+  nativeButton,
   ...props
 }: ToggleProps) {
   return (
     <TogglePrimitive
+      nativeButton={nativeButton ?? !props.render}
       data-slot='toggle'
       data-icon-only={isIconOnly(props.children) ? '' : undefined}
       className={cn(toggleVariants({ intent, emphasis, size }), className)}

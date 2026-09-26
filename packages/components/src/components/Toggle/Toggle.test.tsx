@@ -105,4 +105,28 @@ describe('Toggle', () => {
     expect(toggle).toHaveAttribute('aria-pressed', 'false')
     expect(toggle).toHaveAttribute('data-disabled')
   })
+
+  it('keeps a non-button render focusable and pressable by keyboard', async () => {
+    const user = userEvent.setup()
+    const warn = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<Toggle render={<div />}>Notify me</Toggle>)
+    const toggle = screen.getByRole('button', { name: 'Notify me' })
+    expect(toggle.tagName).toBe('DIV')
+    expect(toggle).toHaveAttribute('tabindex', '0')
+    await user.tab()
+    expect(toggle).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+
+  it('keeps an explicit nativeButton', () => {
+    render(
+      <Toggle render={<span />} nativeButton>
+        Notify me
+      </Toggle>
+    )
+    expect(screen.getByText('Notify me')).not.toHaveAttribute('role')
+  })
 })

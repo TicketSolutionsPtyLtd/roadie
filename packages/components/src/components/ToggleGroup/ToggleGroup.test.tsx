@@ -249,4 +249,26 @@ describe('ToggleGroup', () => {
     render(<DateRange intent='accent' />)
     expect(screen.getByRole('group')).toHaveClass('intent-accent')
   })
+
+  it('keeps a non-button item focusable and pressable by keyboard', async () => {
+    const user = userEvent.setup()
+    const warn = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <ToggleGroup aria-label='View' defaultValue={['list']}>
+        <ToggleGroup.Item value='list'>List</ToggleGroup.Item>
+        <ToggleGroup.Item value='grid' render={<div />}>
+          Grid
+        </ToggleGroup.Item>
+      </ToggleGroup>
+    )
+    const grid = screen.getByRole('button', { name: 'Grid' })
+    expect(grid.tagName).toBe('DIV')
+    await user.tab()
+    await user.keyboard('{ArrowRight}')
+    expect(grid).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(grid).toHaveAttribute('aria-pressed', 'true')
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
 })
