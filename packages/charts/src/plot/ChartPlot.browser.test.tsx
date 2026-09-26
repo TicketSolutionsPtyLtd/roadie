@@ -304,7 +304,7 @@ describe('ChartPlot in a card', () => {
     const { container, getByRole } = renderInCard()
     const card = container.querySelector('[data-slot=data-card]')!
     const before = card.getBoundingClientRect().height
-    await userEvent.click(getByRole('tab', { name: 'Table' }))
+    await userEvent.click(getByRole('button', { name: 'Table' }))
     expect(
       Math.abs(card.getBoundingClientRect().height - before)
     ).toBeLessThanOrEqual(0.5)

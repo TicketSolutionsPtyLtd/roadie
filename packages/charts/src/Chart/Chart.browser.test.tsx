@@ -73,11 +73,11 @@ describe('Chart views', () => {
       const card = container.querySelector('[data-slot=data-card]')!
       const chartHeight = heightOf(card)
 
-      await userEvent.click(getByRole('tab', { name: 'Table' }))
+      await userEvent.click(getByRole('button', { name: 'Table' }))
       expect(getByRole('table')).toBeVisible()
       expect(Math.abs(heightOf(card) - chartHeight)).toBeLessThanOrEqual(0.5)
 
-      await userEvent.click(getByRole('tab', { name: 'Chart' }))
+      await userEvent.click(getByRole('button', { name: 'Chart' }))
       expect(Math.abs(heightOf(card) - chartHeight)).toBeLessThanOrEqual(0.5)
     }
   )
@@ -91,10 +91,21 @@ describe('Chart views', () => {
     const card = container.querySelector('[data-slot=data-card]')!
     const chartHeight = heightOf(card)
 
-    await userEvent.click(getByRole('tab', { name: 'Table' }))
+    await userEvent.click(getByRole('button', { name: 'Table' }))
     const scroller = container.querySelector('[data-slot=data-table-scroller]')!
     expect(Math.abs(heightOf(card) - chartHeight)).toBeLessThanOrEqual(0.5)
     expect(scroller.scrollHeight).toBeGreaterThan(scroller.clientHeight)
+  })
+
+  it('switches to the table by keyboard', async () => {
+    const { getByRole, queryByRole } = renderChart()
+    await userEvent.tab()
+    expect(getByRole('button', { name: 'Chart' })).toHaveFocus()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(getByRole('button', { name: 'Table' })).toHaveFocus()
+    await userEvent.keyboard('{Enter}')
+    expect(getByRole('table')).toBeVisible()
+    expect(queryByRole('img', { name: 'Pace chart' })).toBeNull()
   })
 
   it('hides the inactive view from assistive tech', () => {
@@ -109,8 +120,10 @@ describe('Chart views', () => {
     const label = container.querySelector('[data-slot=data-card-label]')!
     const row = label.parentElement!
     expect(heightOf(row)).toBeLessThanOrEqual(heightOf(label) + 0.5)
-    for (const tab of container.querySelectorAll('[role=tab]')) {
-      const { width, height } = tab.getBoundingClientRect()
+    for (const item of container.querySelectorAll(
+      '[data-slot=toggle-group-item]'
+    )) {
+      const { width, height } = item.getBoundingClientRect()
       expect(width).toBeGreaterThanOrEqual(24)
       expect(height).toBeGreaterThanOrEqual(24)
       expect(Math.abs(width - height)).toBeLessThanOrEqual(0.5)
@@ -156,7 +169,7 @@ describe('Chart table view never clips a column', () => {
       { size: 'full', width: 1800 },
       wideColumns
     )
-    await userEvent.click(getByRole('tab', { name: 'Table' }))
+    await userEvent.click(getByRole('button', { name: 'Table' }))
     const scroller = container.querySelector('[data-slot=data-table-scroller]')!
     const panel = container.querySelector('[data-chart-view=table]')!
     expect(scroller.scrollWidth).toBeLessThanOrEqual(scroller.clientWidth)
@@ -176,7 +189,7 @@ describe('Chart table view never clips a column', () => {
       { size: 'md', width: 320 },
       wideColumns
     )
-    await userEvent.click(getByRole('tab', { name: 'Table' }))
+    await userEvent.click(getByRole('button', { name: 'Table' }))
     const scroller = container.querySelector<HTMLElement>(
       '[data-slot=data-table-scroller]'
     )!

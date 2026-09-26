@@ -1,6 +1,6 @@
 import { useContext, useEffect } from 'react'
 
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -49,19 +49,56 @@ describe('Chart', () => {
     expect(
       screen.getByText('Oztix sales. 38 similar shows.')
     ).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Chart' })).toHaveAttribute(
-      'aria-selected',
+    expect(screen.getByRole('button', { name: 'Chart' })).toHaveAttribute(
+      'aria-pressed',
       'true'
     )
   })
 
   it('opens on the table when asked', () => {
     renderChart('table')
-    expect(screen.getByRole('tab', { name: 'Table' })).toHaveAttribute(
-      'aria-selected',
+    expect(screen.getByRole('button', { name: 'Table' })).toHaveAttribute(
+      'aria-pressed',
       'true'
     )
     expect(screen.getByRole('cell', { name: '61%' })).toBeInTheDocument()
+  })
+
+  it('switches views with a toggle that controls the view area', () => {
+    const { container } = renderChart()
+    const views = container.querySelector('[data-slot=chart-views]')!
+    const chartView = container.querySelector('[data-chart-view=chart]')!
+    const tableView = container.querySelector('[data-chart-view=table]')!
+    const chart = screen.getByRole('button', { name: 'Chart' })
+    const tableButton = screen.getByRole('button', { name: 'Table' })
+    expect(views.id).not.toBe('')
+    for (const item of [chart, tableButton])
+      expect(item).toHaveAttribute('aria-controls', views.id)
+    expect(tableView).toHaveAttribute('inert')
+    expect(chartView).not.toHaveAttribute('inert')
+
+    fireEvent.click(tableButton)
+    expect(tableButton).toHaveAttribute('aria-pressed', 'true')
+    expect(chartView).toHaveAttribute('inert')
+    expect(tableView).not.toHaveAttribute('inert')
+    expect(screen.getByRole('table', { name: 'Sales pace' })).toBeVisible()
+  })
+
+  it('always keeps one view selected', () => {
+    renderChart()
+    const chart = screen.getByRole('button', { name: 'Chart' })
+    fireEvent.click(chart)
+    expect(chart).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Table' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
+  })
+
+  it('has no tab roles', () => {
+    renderChart()
+    expect(screen.queryByRole('tab')).toBeNull()
+    expect(screen.queryByRole('tabpanel')).toBeNull()
   })
 
   it('server renders both views', () => {
@@ -139,8 +176,9 @@ describe('Chart actions', () => {
       </Chart>
     )
     const slot = container.querySelector('[data-slot=data-card-actions]')!
-    const [tabs, action] = [...slot.children]
-    expect(tabs).toHaveAttribute('role', 'tablist')
+    const [views, action] = [...slot.children]
+    expect(views).toHaveAttribute('role', 'group')
+    expect(views).toHaveAccessibleName('Sales pace view')
     expect(action).toHaveTextContent('More actions for Sales pace')
   })
 
@@ -156,7 +194,9 @@ describe('Chart actions', () => {
           <svg role='img' aria-label='Pace chart' />
         </Chart>
       )
-      expect(screen.queryByRole('tablist')).toBeNull()
+      expect(
+        screen.queryByRole('group', { name: 'Sales pace view' })
+      ).toBeNull()
       expect(
         screen.getByRole('button', { name: 'More actions for Sales pace' })
       ).toBeInTheDocument()

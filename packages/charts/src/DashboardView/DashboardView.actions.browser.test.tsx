@@ -181,7 +181,7 @@ describe('a chart with a More button', () => {
   it('tabs from the view switch to More', async () => {
     const { getByRole } = renderChart(PHONE_CONTENT_WIDTH)
     await userEvent.tab()
-    expect(getByRole('tab', { name: 'Chart' })).toHaveFocus()
+    expect(getByRole('button', { name: 'Chart' })).toHaveFocus()
     await userEvent.tab()
     expect(
       getByRole('button', { name: 'More actions for Sales pace' })
@@ -194,12 +194,12 @@ describe('a chart with a More button', () => {
       const { container, getByRole } = renderChart(width)
       const card = container.querySelector('[data-slot=data-card]')!
       const chartHeight = rectOf(card).height
-      await userEvent.click(getByRole('tab', { name: 'Table' }))
+      await userEvent.click(getByRole('button', { name: 'Table' }))
       expect(getByRole('table')).toBeVisible()
       expect(Math.abs(rectOf(card).height - chartHeight)).toBeLessThanOrEqual(
         0.5
       )
-      await userEvent.click(getByRole('tab', { name: 'Chart' }))
+      await userEvent.click(getByRole('button', { name: 'Chart' }))
       expect(Math.abs(rectOf(card).height - chartHeight)).toBeLessThanOrEqual(
         0.5
       )

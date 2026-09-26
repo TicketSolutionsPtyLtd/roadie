@@ -15,6 +15,12 @@ server can call without the chart engine. A chart inside a `Chart` card now
 supplies the card's table and summary, so `table` is optional, and a chart
 that can't draw puts its card in the error state.
 
+The `Chart` card's Chart and Table switch is now an icon-only `ToggleGroup`,
+because both are views of the same data. Each item is a button with
+`aria-pressed` and `aria-controls`, and the hidden view is `inert` but keeps
+its box, so the card height holds across the switch. There are no `tab` or
+`tabpanel` roles any more.
+
 Cards take actions at the top right. `Chart` has an `actions` prop that sits
 after the Chart and Table switch, and `DashboardView` has a `cardActions`
 render prop that adds actions to every card kind described as data.

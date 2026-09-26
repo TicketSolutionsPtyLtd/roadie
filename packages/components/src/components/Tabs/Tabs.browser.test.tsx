@@ -13,9 +13,9 @@ beforeAll(() => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
-const SIZES: TabsRootSize[] = ['xs', 'sm', 'md', 'lg']
+const SIZES: TabsRootSize[] = ['sm', 'md', 'lg']
 const EMPHASES: TabsRootEmphasis[] = ['strong', 'normal', 'subtle', 'subtler']
-const TEXT_TAB_WIDTH_PADDING = { xs: 20, sm: 24, md: 32, lg: 40 }
+const TEXT_TAB_WIDTH_PADDING = { sm: 24, md: 32, lg: 40 }
 
 function ViewTabs({
   size,

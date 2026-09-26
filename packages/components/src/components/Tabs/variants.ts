@@ -83,7 +83,6 @@ export const tabsTabVariants = cva(
           'rounded-none data-[active]:text-strong focus-visible:outline-offset-[-4px]'
       },
       size: {
-        xs: 'h-6 px-2.5 text-xs',
         sm: 'h-8 px-3 text-sm',
         md: 'h-10 px-4 text-sm',
         lg: 'h-12 px-5 text-base'
@@ -160,5 +159,5 @@ export type TabsRootIntent =
   | 'warning'
   | 'info'
 export type TabsRootEmphasis = 'strong' | 'normal' | 'subtle' | 'subtler'
-export type TabsRootSize = 'xs' | 'sm' | 'md' | 'lg'
+export type TabsRootSize = 'sm' | 'md' | 'lg'
 export type TabsRootDirection = 'horizontal' | 'vertical'

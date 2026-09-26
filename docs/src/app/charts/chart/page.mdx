@@ -237,14 +237,15 @@ Pass `actions` to add controls after the Chart and Table switch. Use at most one
 - Live plot heights come from the card size: `size='sm'` is 160px and `md` is 220px. `lg` and `full` start at 260px and grow with the card's width, to 340px at `lg` and 420px at `full`, so a wide plot keeps about a 4:1 shape. One CSS rule sets this for every chart, so there is nothing to tune per dashboard.
 - A static plot in a dashboard spec fills the plot width and takes its height from the image, so render it at the aspect of the box it fills, with text at 12px. Add a `narrow` rendition for plots under 480px wide and a `wide` one for 960px and up, so the text stays readable at every width.
 - Switching between Chart and Table keeps the card's height. The plot sets it, and the table fills the card's width. A longer or wider table scrolls inside it.
-- The Chart and Table switch is icon-only: `ChartLineIcon` and `TableIcon`, bold, `size-4`. Each tab is named by its `aria-label`, not visible text, so it never competes with the label for space.
+- The Chart and Table switch is an icon-only `ToggleGroup`: `ChartLineIcon` and `TableIcon`, bold, `size-4`. Each item is named by its `aria-label`, not visible text, so it never competes with the label for space.
+- The switch is a toggle group, not tabs, because Chart and Table are two views of the same data. See [Tabs switch panels; a toggle group sets a value](/components/tabs#guidelines).
 - Chart labels follow the tighter `CHART_LABEL_LIMITS` from `@oztix/roadie-core/dashboard-layout`, not `COPY_LIMITS`, because the label's row also holds the view switch: 21 characters at `sm` and `md`, 27 at `lg` and `full`.
 - Actions sit after the view switch and stay in every state, so a refresh still works on a card that failed to load. The view switch shows only when there's data. Beside More, keep chart labels within `ACTIONS_LABEL_LIMITS` from `@oztix/roadie-core/dashboard-layout`. See [card actions](/charts/dashboards#card-actions).
 
 ## Accessibility
 
 - The card is described by the chart's takeaway, so a screen reader hears the point before the numbers.
-- The Table tab is the full alternative to the plot, reachable by its `aria-label`.
+- The Table view is the full alternative to the plot. Its toggle is a button named by its `aria-label`, with `aria-pressed` and `aria-controls` pointing at the views. The hidden view is `inert`, so keyboard focus and screen readers reach only the one on show.
 - The plot needs an accessible name that states the takeaway, not just what it is. "Sales pace" describes nothing; "this show tracks above the band of 38 similar shows" does.
 
 <PropsDefinitions componentPath='packages/charts/src/Chart/index.tsx' />

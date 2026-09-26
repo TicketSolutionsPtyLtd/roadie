@@ -20,7 +20,7 @@ import {
   type DataTableColumn,
   type DataTableRow
 } from '@oztix/roadie-components/data-table'
-import { Tabs } from '@oztix/roadie-components/tabs'
+import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useChartPatterns } from '../ChartPatterns'
@@ -92,17 +92,64 @@ class PlotBoundary extends Component<PlotBoundaryProps, PlotBoundaryState> {
 
 const EMPTY_TABLE: ChartTable = { columns: [], rows: [] }
 
-function ViewSwitch({ label }: { label: string }) {
+function ViewSwitch({
+  label,
+  view,
+  viewsId,
+  onViewChange
+}: {
+  label: string
+  view: ChartView
+  viewsId: string
+  onViewChange: (view: ChartView) => void
+}) {
   return (
-    <Tabs.List aria-label={`${label} view`}>
-      <Tabs.Tab value='chart' aria-label='Chart' title='Chart'>
+    <ToggleGroup<ChartView>
+      aria-label={`${label} view`}
+      size='sm'
+      emphasis='subtler'
+      value={[view]}
+      onValueChange={([next]) => next && onViewChange(next)}
+    >
+      <ToggleGroup.Item
+        value='chart'
+        aria-label='Chart'
+        title='Chart'
+        aria-controls={viewsId}
+      >
         <ChartLineIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Tab value='table' aria-label='Table' title='Table'>
+      </ToggleGroup.Item>
+      <ToggleGroup.Item
+        value='table'
+        aria-label='Table'
+        title='Table'
+        aria-controls={viewsId}
+      >
         <TableIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Indicator />
-    </Tabs.List>
+      </ToggleGroup.Item>
+    </ToggleGroup>
+  )
+}
+
+function ViewPane({
+  view,
+  shown,
+  children
+}: {
+  view: ChartView
+  shown: ChartView
+  children: ReactNode
+}) {
+  const hidden = view !== shown
+  // Both views stay laid out in one grid cell so the card keeps its height.
+  return (
+    <div
+      data-chart-view={view}
+      data-hidden={hidden ? '' : undefined}
+      inert={hidden}
+    >
+      {children}
+    </div>
   )
 }
 
@@ -128,7 +175,9 @@ export function Chart({
   const failed = failedOn !== null && failedOn === children
   const fail = useCallback(() => setFailedOn(children), [children])
   const { patterns, style: patternStyle } = useChartPatterns()
+  const [shownView, setShownView] = useState(view)
   const summaryId = useId()
+  const viewsId = useId()
   const plotHeight = PLOT_HEIGHTS[size ?? 'md']
   const hasLegend = Boolean(legend)
   const context = useMemo(
@@ -139,12 +188,9 @@ export function Chart({
   const showViews = !failed && hasData(state)
   return (
     <ChartCardContext.Provider value={context}>
-      <Tabs.Root
-        defaultValue={view}
+      <div
         data-size={size}
         data-slot='chart'
-        emphasis='subtle'
-        size='xs'
         className={cn('h-full', className)}
         style={patternStyle}
       >
@@ -157,7 +203,14 @@ export function Chart({
           actions={
             showViews || actions ? (
               <>
-                {showViews && <ViewSwitch label={label} />}
+                {showViews && (
+                  <ViewSwitch
+                    label={label}
+                    view={shownView}
+                    viewsId={viewsId}
+                    onViewChange={setShownView}
+                  />
+                )}
                 {actions}
               </>
             ) : undefined
@@ -171,34 +224,24 @@ export function Chart({
               </p>
             )}
             {legend}
-            <div data-slot='chart-views'>
-              <Tabs.Panel
-                value='chart'
-                keepMounted
-                hidden={false}
-                data-chart-view='chart'
-              >
+            <div id={viewsId} data-slot='chart-views'>
+              <ViewPane view='chart' shown={shownView}>
                 <div data-slot='chart-plot' className='w-full'>
                   <PlotBoundary onError={fail}>{children}</PlotBoundary>
                 </div>
-              </Tabs.Panel>
-              <Tabs.Panel
-                value='table'
-                keepMounted
-                hidden={false}
-                data-chart-view='table'
-              >
+              </ViewPane>
+              <ViewPane view='table' shown={shownView}>
                 <DataTable
                   columns={shownTable.columns}
                   rows={shownTable.rows}
                   caption={label}
                   plain
                 />
-              </Tabs.Panel>
+              </ViewPane>
             </div>
           </div>
         </DataCard>
-      </Tabs.Root>
+      </div>
       {patterns}
     </ChartCardContext.Provider>
   )
