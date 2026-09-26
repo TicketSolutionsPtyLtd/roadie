@@ -1,4 +1,4 @@
-import { getOklchChromaSync, getOklchHueSync } from '../colors/srgb-to-oklch'
+import { getAccentChromaSync, getOklchHueSync } from '../colors/srgb-to-oklch'
 
 const THEME_STORAGE_KEY = 'theme'
 const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
@@ -90,7 +90,7 @@ export function getBootstrapScript(options?: {
     )
   }
   const hue = Math.round(getOklchHueSync(accent))
-  const chroma = +getOklchChromaSync(accent).toFixed(4)
+  const chroma = +getAccentChromaSync(accent).toFixed(4)
   const accentPart = `<style id="roadie-accent-theme">:root{--accent-hue:${hue};--accent-chroma:${chroma}}</style>`
   return themePart + accentPart
 }

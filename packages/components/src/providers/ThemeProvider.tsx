@@ -5,8 +5,7 @@ import * as React from 'react'
 import {
   generateAccentScale,
   generateNeutralScale,
-  getOklchChroma,
-  getOklchChromaSync,
+  getAccentChromaSync,
   getOklchHue,
   getOklchHueSync
 } from '@oztix/roadie-core/colors'
@@ -114,7 +113,7 @@ export async function getAccentStyleTag(
   const result = await generateAccentScale(accentHex)
   const neutral = await generateNeutralScale(accentHex)
   const hue = Math.round(await getOklchHue(accentHex))
-  const chroma = +(await getOklchChroma(accentHex)).toFixed(4)
+  const chroma = +getAccentChromaSync(accentHex).toFixed(4)
 
   // Hex fallbacks for accent (non-oklch browsers)
   const accentVars = result.light
@@ -169,7 +168,7 @@ export function getAccentStyleSync(accentHex: string): string {
     throw new InvalidColorError(accentHex)
   }
   const hue = Math.round(getOklchHueSync(accentHex))
-  const chroma = +getOklchChromaSync(accentHex).toFixed(4)
+  const chroma = +getAccentChromaSync(accentHex).toFixed(4)
   return `:root{--accent-hue:${hue};--accent-chroma:${chroma}}`
 }
 
@@ -196,7 +195,7 @@ export function getAccentStyleTagSync(
     throw new InvalidColorError(accentHex)
   }
   const hue = Math.round(getOklchHueSync(accentHex))
-  const chroma = +getOklchChromaSync(accentHex).toFixed(4)
+  const chroma = +getAccentChromaSync(accentHex).toFixed(4)
   const safeId = id.replace(/[<>"&]/g, '')
   return `<style id="${safeId}">:root{--accent-hue:${hue};--accent-chroma:${chroma}}</style>`
 }
@@ -371,7 +370,7 @@ export function ThemeProvider({
 
     async function updateAccent() {
       const hue = Math.round(await getOklchHue(accentColor))
-      const chroma = +(await getOklchChroma(accentColor)).toFixed(4)
+      const chroma = +getAccentChromaSync(accentColor).toFixed(4)
 
       if (cancelled) return
 

@@ -98,3 +98,43 @@ export function getOklchHueSync(hex: string): number {
 export function getOklchChromaSync(hex: string): number {
   return hexToOklch(hex).c
 }
+
+/** Lightness of the accent's strong step (step 9) in both modes. */
+const ACCENT_STRONG_LIGHTNESS = 0.639
+
+function inSrgbGamut(l: number, c: number, h: number): boolean {
+  const radians = (h * Math.PI) / 180
+  const a = c * Math.cos(radians)
+  const b = c * Math.sin(radians)
+
+  // Oklab → LMS (non-linear) → LMS, Ottosson's inverse matrices
+  const lCube = (l + 0.3963377774 * a + 0.2158037573 * b) ** 3
+  const mCube = (l - 0.1055613458 * a - 0.0638541728 * b) ** 3
+  const sCube = (l - 0.0894841775 * a - 1.291485548 * b) ** 3
+
+  const channels = [
+    4.0767416621 * lCube - 3.3077115913 * mCube + 0.2309699292 * sCube,
+    -1.2684380046 * lCube + 2.6097574011 * mCube - 0.3413193965 * sCube,
+    -0.0041960863 * lCube - 0.7034186147 * mCube + 1.707614701 * sCube
+  ]
+  return channels.every((channel) => channel >= 0 && channel <= 1)
+}
+
+/**
+ * The accent chroma to set as `--accent-chroma`: the hex's own chroma, capped
+ * to what sRGB can show at the strong step. Browsers clip an out-of-gamut
+ * fill, which lightens it, so a saturated green or cyan accent would otherwise
+ * render too light for its white text.
+ */
+export function getAccentChromaSync(hex: string): number {
+  const { c, h } = hexToOklch(hex)
+  if (inSrgbGamut(ACCENT_STRONG_LIGHTNESS, c, h)) return c
+  let low = 0
+  let high = c
+  for (let step = 0; step < 24; step++) {
+    const mid = (low + high) / 2
+    if (inSrgbGamut(ACCENT_STRONG_LIGHTNESS, mid, h)) low = mid
+    else high = mid
+  }
+  return low
+}

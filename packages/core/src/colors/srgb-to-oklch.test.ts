@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import { getOklchChroma, getOklchHue } from './color-scale-generator'
 import {
+  getAccentChromaSync,
   getOklchChromaSync,
   getOklchHueSync,
   hexToOklch
@@ -104,5 +105,30 @@ describe('getOklchHueSync / getOklchChromaSync', () => {
     const { l, c } = hexToOklch('#FFFFFF')
     expect(l).toBeCloseTo(1, 4)
     expect(c).toBeCloseTo(0, 4)
+  })
+})
+
+describe('getAccentChromaSync', () => {
+  // Step 9 of the accent scale sits at this lightness in both modes.
+  const strongFill = (hex: string) =>
+    new Color('oklch', [0.639, getAccentChromaSync(hex), getOklchHueSync(hex)])
+
+  for (const hex of PALETTE) {
+    it(`keeps the strong accent fill for ${hex} inside sRGB`, () => {
+      expect(strongFill(hex).inGamut('srgb', { epsilon: 0.0005 })).toBe(true)
+    })
+  }
+
+  it('leaves an accent the gamut can already show alone', () => {
+    expect(getAccentChromaSync('#0091EB')).toBeCloseTo(
+      getOklchChromaSync('#0091EB'),
+      4
+    )
+  })
+
+  it('caps a saturated green to what sRGB shows at the strong step', () => {
+    expect(getAccentChromaSync('#00FF00')).toBeLessThan(
+      getOklchChromaSync('#00FF00')
+    )
   })
 })
