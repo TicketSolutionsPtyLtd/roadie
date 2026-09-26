@@ -8,6 +8,7 @@ import {
   CARD_HEIGHTS,
   afterResize,
   expectFillsPlot,
+  expectLabelsInsideSvg,
   expectMinFontSize,
   expectNoOverlap,
   expectTableKeepsHeight,
@@ -16,6 +17,25 @@ import {
 } from '../plot/browserTesting'
 import { loadBrandFont, useStylesheet } from '../testUtils'
 import { paceExample, salesByTypeExample } from './examples'
+import type { LineChartProps } from './types'
+
+const todayAtEnd: LineChartProps = {
+  data: [
+    { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+    { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+    { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+    { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+  ],
+  x: 'day',
+  y: 'sold',
+  format: 'percent',
+  band: { low: 'low', high: 'high', median: 'median', label: 'Similar shows' },
+  target: 0.85,
+  today: '2026-10-15',
+  annotations: [{ at: '2026-10-14', label: 'Final release' }]
+}
+
+const labelledExamples = { pace: paceExample, 'today at the end': todayAtEnd }
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -43,42 +63,23 @@ describe('LineChart in a card', () => {
   })
 
   it('keeps today clear of the end labels when today is the last point', async () => {
-    const { container } = renderInCard(
-      <LineChart
-        data={[
-          {
-            day: '2026-09-01',
-            sold: 0.14,
-            low: 0.07,
-            high: 0.22,
-            median: 0.14
-          },
-          { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
-          {
-            day: '2026-10-01',
-            sold: 0.45,
-            low: 0.28,
-            high: 0.43,
-            median: 0.35
-          },
-          { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
-        ]}
-        x='day'
-        y='sold'
-        format='percent'
-        band={{
-          low: 'low',
-          high: 'high',
-          median: 'median',
-          label: 'Similar shows'
-        }}
-        target={0.85}
-        today='2026-10-15'
-      />
-    )
+    const { container } = renderInCard(<LineChart {...todayAtEnd} />)
     await afterResize()
     expect(container.querySelector('[data-ts-key^="today"]')).not.toBeNull()
     expectNoOverlap(container, '[data-ts-key^="label-"] text')
+  })
+
+  describe.each([328, 390])('at %ipx', (width) => {
+    it.each(Object.entries(labelledExamples))(
+      'keeps every %s label inside the plot',
+      async (_, props) => {
+        const { container } = renderInCard(<LineChart {...props} />, {
+          width
+        })
+        await afterResize()
+        expectLabelsInsideSvg(container)
+      }
+    )
   })
 
   it('shows a legend instead of end labels on a phone', async () => {

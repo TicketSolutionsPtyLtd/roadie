@@ -53,7 +53,12 @@ describe('reading aids', () => {
     ),
     targetMark(0.85, 10, 0.3, paint),
     ...todayMarks({ x: 6, y: 0.5, label: 'Today 50%' }, paint, frame),
-    ...annotationMarks([{ x: 3, label: 'Line-up drop', y: 1 }], paint, frame)
+    ...annotationMarks(
+      [{ x: 3, label: 'Line-up drop', y: 1, across: 0.3 }],
+      paint,
+      frame,
+      { width: 400, left: 0, right: 0 }
+    )
   ])
 
   it.each([

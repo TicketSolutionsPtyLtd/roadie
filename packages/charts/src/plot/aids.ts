@@ -107,15 +107,16 @@ const TODAY_DOT_RADIUS = 3.5
 const TODAY_LABEL_GAP = 0.5
 
 /**
- * A dot at today, labelled above. Pass `labelled: false` when an end label
- * already carries the label, so the two never collide.
+ * A dot at today, labelled above and shifted `dx` px to stay inside the plot.
+ * Pass a null label when an end label already carries it, so the two never
+ * collide.
  */
 export function todayMarks(
   point: TodayPoint,
   paint: ChartPaint,
   frame: PlotFrame,
   color = paint.highlight,
-  labelled = true
+  label: { dx: number } | null = { dx: 0 }
 ): ChartMark[] {
   return [
     decorative(
@@ -129,7 +130,7 @@ export function todayMarks(
         strokeWidth: 1.5
       })
     ),
-    ...(labelled
+    ...(label
       ? [
           decorative(
             text([point], {
@@ -137,6 +138,7 @@ export function todayMarks(
               x: 'x',
               y: 'y',
               text: 'label',
+              dx: label.dx,
               // The text is centred on dy, so half its size clears the dot.
               dy: -(frame.fontSize / 2 + TODAY_DOT_RADIUS + TODAY_LABEL_GAP),
               fill: paint.value,

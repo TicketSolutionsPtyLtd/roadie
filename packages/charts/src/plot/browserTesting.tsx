@@ -76,6 +76,24 @@ export function expectNoOverlap(container: HTMLElement, selector: string) {
     }
 }
 
+// Only labels the charts place; the engine sizes its axes from painted glyph
+// bounds, which Firefox's advance-width boxes overstate by a pixel or two.
+export function expectLabelsInsideSvg(container: HTMLElement) {
+  const svg = container.querySelector('svg.ts-chart')!
+  const frame = svg.getBoundingClientRect()
+  const labels = [...svg.querySelectorAll('[data-ts-key^="label-"] text')]
+  expect(labels.length).toBeGreaterThan(0)
+  for (const label of labels) {
+    const box = emBox(label)
+    const inside =
+      box.left >= frame.left - 0.5 &&
+      box.right <= frame.right + 0.5 &&
+      box.top >= frame.top - 0.5 &&
+      box.bottom <= frame.bottom + 0.5
+    expect(inside, `"${label.textContent}" leaves the plot`).toBe(true)
+  }
+}
+
 export function expectMinFontSize(container: HTMLElement, min = 11) {
   for (const text of container.querySelectorAll('svg.ts-chart text'))
     expect(parseFloat(getComputedStyle(text).fontSize)).toBeGreaterThanOrEqual(

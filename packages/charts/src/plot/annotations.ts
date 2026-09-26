@@ -4,11 +4,21 @@ import { decorative } from '@tanstack/charts/mark/decorative'
 
 import type { PlotAnnotation } from '@oztix/roadie-core/dashboard'
 
+import { textWidth } from './endLabels'
+import { type PlotSpan, besideAnchor, spanPixel } from './frame'
 import { parseX } from './time'
 import type { ChartPaint, PlotFrame } from './types'
 import { finiteOrNull } from './values'
 
-export type PlacedAnnotation = { x: number | string; label: string; y: number }
+/** `across` is how far along the plot the annotation sits, from 0 to 1. */
+export type PlacedAnnotation = {
+  x: number | string
+  label: string
+  y: number
+  across: number
+}
+
+const LABEL_GAP = 4
 
 /** Places annotations on a continuous x axis, dropping any outside `domain`. */
 export function annotationsOnAxis(
@@ -19,7 +29,9 @@ export function annotationsOnAxis(
 ): PlacedAnnotation[] {
   return annotations.flatMap(({ at, label }) => {
     const x = isTime ? parseX(at) : finiteOrNull(at)
-    return x === null || x < start || x > end ? [] : [{ x, label, y }]
+    if (x === null || x < start || x > end) return []
+    const across = end > start ? (x - start) / (end - start) : 0
+    return [{ x, label, y, across }]
   })
 }
 
@@ -64,16 +76,33 @@ export function annotationsOnBars(
 ): PlacedAnnotation[] {
   return annotations.flatMap(({ at, label }) => {
     const bar = barFor(at, bars, span)
-    return bar ? [{ x: bar.key, label, y }] : []
+    if (!bar) return []
+    const across = (bars.indexOf(bar) + 0.5) / bars.length
+    return [{ x: bar.key, label, y, across }]
   })
 }
 
+/** Each label reads right of its rule, or left when it would leave `span`. */
 export function annotationMarks(
   annotations: readonly PlacedAnnotation[],
   paint: ChartPaint,
-  frame: PlotFrame
+  frame: PlotFrame,
+  span: PlotSpan
 ): ChartMark[] {
   if (annotations.length === 0) return []
+  const placed = annotations.map((annotation) => {
+    const anchor = besideAnchor(
+      spanPixel(span, annotation.across),
+      LABEL_GAP,
+      textWidth(annotation.label, frame),
+      span.width
+    )
+    return {
+      ...annotation,
+      anchor,
+      dx: anchor === 'start' ? LABEL_GAP : -LABEL_GAP
+    }
+  })
   return [
     decorative(
       ruleX(annotations, {
@@ -85,14 +114,14 @@ export function annotationMarks(
       })
     ),
     decorative(
-      text(annotations, {
+      text(placed, {
         id: 'label-annotations',
         x: 'x',
         y: 'y',
         text: 'label',
-        dx: 4,
+        dx: (d) => d.dx,
         dy: 4,
-        anchor: 'start',
+        anchor: (d) => d.anchor,
         fill: paint.label,
         fontSize: frame.fontSize,
         fontWeight: 600

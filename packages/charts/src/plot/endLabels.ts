@@ -2,6 +2,7 @@ import { text } from '@tanstack/charts'
 import type { ChartMark } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
 
+import type { PlotSpan } from './frame'
 import type { ChartPaint, PlotFrame } from './types'
 
 export type EndLabel = {
@@ -19,15 +20,29 @@ const AXIS_ROOM = 34
 const MAX_END_LABELS = 4
 const CHAR_WIDTH = 0.62
 const LABEL_PADDING = 12
+const Y_AXIS_PADDING = 8
+
+export const textWidth = (text: string, frame: PlotFrame) =>
+  Math.ceil(text.length * frame.fontSize * CHAR_WIDTH)
 
 export function textRoom(
   texts: readonly string[],
   frame: PlotFrame,
   padding: number
 ) {
-  const longest = Math.max(0, ...texts.map((t) => t.length))
-  return Math.ceil(longest * frame.fontSize * CHAR_WIDTH) + padding
+  return Math.max(0, ...texts.map((t) => textWidth(t, frame))) + padding
 }
+
+/** The frame's pixels, with room on the left for the y tick labels. */
+export const plotSpan = (
+  frame: PlotFrame,
+  yTickLabels: readonly string[],
+  right: number
+): PlotSpan => ({
+  width: frame.width,
+  left: textRoom(yTickLabels, frame, Y_AXIS_PADDING),
+  right
+})
 
 type Stack = { labels: EndLabel[]; top: number }
 

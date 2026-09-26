@@ -1,6 +1,15 @@
+import { createChartScene, defineChart } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { renderChartSvg } from '@tanstack/charts/svg'
 import { describe, expect, it } from 'vitest'
 
-import { annotationsOnAxis, annotationsOnBars } from './annotations'
+import {
+  annotationMarks,
+  annotationsOnAxis,
+  annotationsOnBars
+} from './annotations'
+import { plotFrame } from './frame'
+import { hexPaint } from './paint'
 import { parseX } from './time'
 
 const HOUR = 3_600_000
@@ -22,6 +31,17 @@ describe('annotationsOnBars', () => {
 
   it('measures a gap to each bar centre, not its start', () => {
     expect(onBars('2026-08-03T11:20')).toEqual(['2026-08-03T10:00'])
+  })
+
+  it('says how far across the plot the bar sits', () => {
+    expect(
+      annotationsOnBars(
+        [{ at: '2026-08-03T12:00', label: 'On sale' }],
+        hours,
+        HOUR,
+        10
+      )[0]?.across
+    ).toBeCloseTo(2.5 / 3, 5)
   })
 
   it('drops a date outside hourly bars', () => {
@@ -63,4 +83,50 @@ describe('annotationsOnAxis', () => {
       ).map((a) => a.label)
     ).toEqual(['Inside'])
   })
+
+  it('says how far across the plot each annotation sits', () => {
+    expect(
+      annotationsOnAxis(
+        [
+          { at: '2026-10-01', label: 'Start' },
+          { at: '2026-10-15', label: 'End' }
+        ],
+        domain,
+        true,
+        1
+      ).map((a) => a.across)
+    ).toEqual([0, 1])
+  })
+})
+
+describe('annotationMarks', () => {
+  const paint = hexPaint('light')
+  const frame = plotFrame(220, 'narrow', undefined, 320)
+  const span = { width: 320, left: 40, right: 8 }
+  const render = (across: number) =>
+    renderChartSvg(
+      createChartScene(
+        defineChart({
+          marks: annotationMarks(
+            [{ x: across * 10, label: 'Final release', y: 1, across }],
+            paint,
+            frame,
+            span
+          ),
+          scales: {
+            x: { scale: scaleLinear().domain([0, 10]) },
+            y: { scale: scaleLinear().domain([0, 1]) }
+          },
+          margin: { left: span.left, right: span.right }
+        }),
+        { width: span.width, height: 220 }
+      ),
+      { ariaLabel: 'Annotations' }
+    )
+
+  it('reads right of its rule with room to spare', () =>
+    expect(render(0.2)).toMatch(/text-anchor="start"/))
+
+  it('flips left of its rule near the right edge', () =>
+    expect(render(0.95)).toMatch(/text-anchor="end"/))
 })

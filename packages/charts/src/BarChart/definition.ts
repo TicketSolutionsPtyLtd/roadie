@@ -6,7 +6,7 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { formatValue } from '@oztix/roadie-core/dataviz'
 
 import { annotationMarks, annotationsOnBars } from '../plot/annotations'
-import { textRoom } from '../plot/endLabels'
+import { plotSpan, textRoom } from '../plot/endLabels'
 import { fieldLabel } from '../plot/table'
 import {
   formatTimeTick,
@@ -125,6 +125,7 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
   const format = axisFormat(props.format, yDomain[1])
   const line = props.line
   const end = lineLabel(props, bars)
+  const rightMargin = end ? textRoom([end.text], frame, LABEL_PADDING) : 8
 
   return defineChart({
     marks: [
@@ -139,7 +140,8 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
           yDomain[1]
         ),
         paint,
-        frame
+        frame,
+        plotSpan(frame, gridTicks(yDomain).map(format), rightMargin)
       ),
       barY(data, {
         id: 'series-1',
@@ -209,9 +211,7 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
         }
       })
     },
-    margin: {
-      right: end ? textRoom([end.text], frame, LABEL_PADDING) : 8
-    },
+    margin: { right: rightMargin },
     theme: { muted: paint.label, foreground: paint.value, grid: paint.grid },
     focus: 'group-x'
   })

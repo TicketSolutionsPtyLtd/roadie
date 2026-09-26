@@ -2,6 +2,7 @@ import { type SceneNode, createChartScene } from '@tanstack/charts'
 import { renderChartSvg as renderSceneSvg } from '@tanstack/charts/svg'
 import { describe, expect, it } from 'vitest'
 
+import { textWidth } from '../plot/endLabels'
 import { plotFrame } from '../plot/frame'
 import { hexPaint } from '../plot/paint'
 import { OTHER } from '../plot/series'
@@ -469,6 +470,28 @@ describe('lineChart today label', () => {
     }
     expect(offsetAt('default')).toBeCloseTo(-10, 5)
     expect(offsetAt('narrow')).toBeCloseTo(-9.5, 5)
+  })
+
+  it('slides left to stay inside a phone plot when today is the last point', () => {
+    const width = 328
+    const svg = renderSceneSvg(
+      createChartScene(
+        lineChart.build(
+          salesToDate,
+          paint,
+          plotFrame(160, 'narrow', undefined, width)
+        ),
+        { width, height: 160 }
+      ),
+      { ariaLabel: 'x' }
+    )
+    const attr = (pattern: RegExp) => Number(pattern.exec(svg)?.[1])
+    const label = attr(/data-ts-key="label-today[^"]*"[^>]*\sx="([\d.]+)"/)
+    const dot = attr(/data-ts-key="today[^"]*"[^>]*\scx="([\d.]+)"/)
+    expect(label).toBeLessThan(dot)
+    expect(
+      label + textWidth('Today 1,464', plotFrame(160, 'narrow')) / 2
+    ).toBeLessThanOrEqual(width)
   })
 })
 

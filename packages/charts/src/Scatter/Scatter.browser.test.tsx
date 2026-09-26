@@ -8,6 +8,7 @@ import {
   CARD_HEIGHTS,
   afterResize,
   expectFillsPlot,
+  expectLabelsInsideSvg,
   expectMinFontSize,
   expectNoOverlap,
   expectTableKeepsHeight,
@@ -32,6 +33,20 @@ describe('Scatter in a card', () => {
     })
     expectFillsPlot(container, height)
   })
+
+  it.each([328, 390])(
+    'keeps the quadrant and point labels inside the plot at %ipx',
+    async (width) => {
+      const { container } = renderInCard(<Scatter {...portfolioExample} />, {
+        width
+      })
+      await afterResize()
+      expect(
+        container.querySelector('[data-ts-key^="label-quadrants"]')
+      ).not.toBeNull()
+      expectLabelsInsideSvg(container)
+    }
+  )
 
   it('reaches every point by keyboard, left to right', async () => {
     const { container } = renderInCard(<Scatter {...portfolioExample} />, {

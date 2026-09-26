@@ -22,10 +22,11 @@ import {
   endLabelRoom,
   endLabelsFit,
   labelGap,
+  plotSpan,
   stackLabels,
-  textRoom
+  textWidth
 } from '../plot/endLabels'
-import { pixelsToX } from '../plot/frame'
+import { centredShift, pixelsToX, spanPixel } from '../plot/frame'
 import {
   OTHER,
   type SeriesStyle,
@@ -76,7 +77,6 @@ const EMPTY = 'Not enough data yet to show a trend'
 const FORECAST_LABEL = 'Forecast'
 const TYPICAL_RANGE = 'Typical range'
 const DAY = 86_400_000
-const Y_AXIS_PADDING = 8
 
 function styles(
   props: LineChartProps,
@@ -330,8 +330,9 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
   const band = props.band
   const yTicks = gridTicks(yDomain)
   const rightMargin = ends.length ? endLabelRoom(ends, frame) : 8
-  const margins =
-    rightMargin + textRoom(yTicks.map(format), frame, Y_AXIS_PADDING)
+  const pixels = plotSpan(frame, yTicks.map(format), rightMargin)
+  const margins = pixels.left + pixels.right
+  const across = (x: number) => (span > 0 ? (x - xDomain[0]) / span : 0)
 
   const marks = [
     ...(band
@@ -353,12 +354,27 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
           )
         ]),
     ...(today && series[0]
-      ? todayMarks(today, paint, frame, series[0].color, !todayInEnds)
+      ? todayMarks(
+          today,
+          paint,
+          frame,
+          series[0].color,
+          todayInEnds
+            ? null
+            : {
+                dx: centredShift(
+                  spanPixel(pixels, across(today.x)),
+                  textWidth(today.label, frame),
+                  frame.width
+                )
+              }
+        )
       : []),
     ...annotationMarks(
       annotationsOnAxis(props.annotations, xDomain, isTime, yDomain[1]),
       paint,
-      frame
+      frame,
+      pixels
     ),
     ...(ends.length ? [endLabelMark(ends, xDomain[1], paint, frame)] : [])
   ]
