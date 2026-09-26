@@ -6,6 +6,7 @@ export const metadata = {
 }
 
 import { IconTile } from '@oztix/roadie-components'
+import { List } from '@oztix/roadie-components/list'
 import {
   CheckCircleIcon,
   GearIcon,
@@ -128,6 +129,15 @@ Use `weight='bold'` up to 48px (the `lg` size), then switch to `weight='duotone'
 ## Guidelines
 
 <div className='grid gap-8'>
+
+<Guideline title='Tile the item, not the action'>
+  <Guideline.Do example={<div className='w-64'><List contained emphasis='subtle'><List.Item title='Account' description='Profile, security, sign-in' leading={<IconTile intent='accent'><GearIcon weight='bold' /></IconTile>} /></List></div>}>
+    Frame an icon that stands for the thing it sits beside, like a list row, a settings row, a feature block or an <code>EmptyState</code>.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Menu.Item\n  icon={\n    <IconTile>\n      <GearIcon weight='bold' />\n    </IconTile>\n  }\n>\n  Settings\n</Menu.Item>`}>
+    Don't put a tile in a button, menu item, tab, badge or input, where the icon only labels the action. Use a bare bold icon there, at the size the control sets.
+  </Guideline.Dont>
+</Guideline>
 
 <Guideline title='Frame a single icon'>
   <Guideline.Do example={<IconTile intent='accent'><GearIcon weight='bold' /></IconTile>}>

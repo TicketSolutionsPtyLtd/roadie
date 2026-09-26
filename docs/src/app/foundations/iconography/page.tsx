@@ -321,6 +321,15 @@ export default function IconographyPage() {
           state. The tile sizes and centres the icon for you, so you pass a bare
           icon as children with no size class.
         </p>
+        <p className='text-subtle'>
+          Tile the item, not the action. Inside buttons, menu items, tabs,
+          badges and inputs, use a bare bold icon at the size the control sets.
+          See{' '}
+          <Link href='/components/icon-tile' className='underline'>
+            Icon Tile
+          </Link>
+          .
+        </p>
 
         <div className='flex flex-wrap items-center gap-3'>
           <IconTile intent='accent' size='lg'>

@@ -199,3 +199,33 @@ describe('CheckboxGroup', () => {
     })
   })
 })
+
+describe('Field text description', () => {
+  it('stays on the helper text when only the control is invalid', () => {
+    const { getByRole } = render(
+      <Field>
+        <Field.Label>Genres</Field.Label>
+        <CheckboxGroup invalid>
+          <CheckboxGroup.Item value='rock' label='Rock' />
+        </CheckboxGroup>
+        <Field.HelperText>Helper</Field.HelperText>
+        <Field.ErrorText>Error</Field.ErrorText>
+      </Field>
+    )
+    expect(getByRole('group')).toHaveAccessibleDescription('Helper')
+  })
+
+  it('points at the error text when the Field is invalid', () => {
+    const { getByRole } = render(
+      <Field invalid>
+        <Field.Label>Genres</Field.Label>
+        <CheckboxGroup>
+          <CheckboxGroup.Item value='rock' label='Rock' />
+        </CheckboxGroup>
+        <Field.HelperText>Helper</Field.HelperText>
+        <Field.ErrorText>Error</Field.ErrorText>
+      </Field>
+    )
+    expect(getByRole('group')).toHaveAccessibleDescription('Error')
+  })
+})
