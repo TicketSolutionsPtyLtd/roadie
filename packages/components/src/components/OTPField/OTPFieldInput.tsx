@@ -1,11 +1,20 @@
 'use client'
 
-import { type RefAttributes, use } from 'react'
+import {
+  type ComponentProps,
+  type ReactElement,
+  type Ref,
+  type RefAttributes,
+  cloneElement,
+  use
+} from 'react'
 
+import { mergeProps } from '@base-ui/react/merge-props'
 import { OTPField as OTPFieldPrimitive } from '@base-ui/react/otp-field'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { mergeRefs } from '../../utils/mergeRefs'
 import { OTPFieldContext } from './OTPFieldContext'
 import {
   type OTPFieldEmphasis,
@@ -43,6 +52,28 @@ function slotLabel(
   return {}
 }
 
+type InputRender = OTPFieldPrimitive.Input.Props['render']
+type InputElementProps = ComponentProps<'input'> & {
+  ref?: Ref<HTMLInputElement>
+}
+
+// Mirrors Base UI's element merge: the element's own props win, refs combine.
+function renderSlot(
+  render: InputRender,
+  props: InputElementProps,
+  state: OTPFieldPrimitive.Input.State
+) {
+  if (typeof render === 'function') return render(props, state)
+  if (!render) return <input {...props} />
+  const element = render as ReactElement<InputElementProps>
+  const ownRef = element.props.ref
+  return cloneElement(element, {
+    ...mergeProps<'input'>(props, element.props),
+    ref:
+      ownRef && props.ref ? mergeRefs(props.ref, ownRef) : (ownRef ?? props.ref)
+  })
+}
+
 export function OTPFieldInput({
   className,
   size,
@@ -65,14 +96,12 @@ export function OTPFieldInput({
         )
       }
       aria-invalid={context.invalid || undefined}
-      render={
-        render ??
-        ((inputProps, state) => (
-          <input
-            {...inputProps}
-            {...slotLabel(inputProps, state, context.label)}
-          />
-        ))
+      render={(inputProps, state) =>
+        renderSlot(
+          render,
+          { ...inputProps, ...slotLabel(inputProps, state, context.label) },
+          state
+        )
       }
       {...props}
     />

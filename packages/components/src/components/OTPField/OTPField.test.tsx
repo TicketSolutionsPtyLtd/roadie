@@ -46,6 +46,56 @@ describe('OTPField', () => {
     ).toBeInTheDocument()
   })
 
+  it('names slots rendered through a render function', () => {
+    render(
+      <OTPField length={2} aria-label='Login code'>
+        <OTPField.Input
+          render={(props) => <input {...props} data-custom='' />}
+        />
+        <OTPField.Input
+          render={(props) => <input {...props} data-custom='' />}
+        />
+      </OTPField>
+    )
+    expect(screen.getByRole('textbox', { name: 'Login code' })).toHaveAttribute(
+      'data-custom'
+    )
+    expect(
+      screen.getByRole('textbox', { name: 'Character 2 of 2' })
+    ).toHaveAttribute('data-custom')
+  })
+
+  it('keeps typing working through a render element', async () => {
+    const user = userEvent.setup()
+    const ownRef = vi.fn()
+    render(
+      <OTPField length={2} aria-label='Login code'>
+        <OTPField.Input render={<input ref={ownRef} />} />
+        <OTPField.Input render={<input />} />
+      </OTPField>
+    )
+    await user.type(screen.getByRole('textbox', { name: 'Login code' }), '4')
+    expect(
+      screen.getByRole('textbox', { name: 'Character 2 of 2' })
+    ).toHaveFocus()
+    expect(ownRef).toHaveBeenCalledWith(expect.any(HTMLInputElement))
+  })
+
+  it('names slots rendered through a render element', () => {
+    render(
+      <OTPField length={2} aria-label='Login code'>
+        <OTPField.Input render={<input data-custom='' />} />
+        <OTPField.Input render={<input data-custom='' />} />
+      </OTPField>
+    )
+    expect(screen.getByRole('textbox', { name: 'Login code' })).toHaveAttribute(
+      'data-custom'
+    )
+    expect(
+      screen.getByRole('textbox', { name: 'Character 2 of 2' })
+    ).toHaveAttribute('data-custom')
+  })
+
   it('splits slots into groups with a separator between them', () => {
     const { container } = render(
       <OTPField length={6} groupSize={3} aria-label='Login code' />
