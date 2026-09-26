@@ -165,7 +165,7 @@ describe('Tabs', () => {
     const activeTab = container.querySelector(
       '[data-slot="tabs-tab"][data-active]'
     )!
-    expect(activeTab.className).toContain('data-[active]:text-inverted')
+    expect(activeTab.className).toContain('data-[active]:text-on-strong')
   })
 
   it('every tab carries the is-interactive utility', () => {

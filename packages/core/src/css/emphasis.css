@@ -16,20 +16,20 @@
 
 @utility emphasis-strong {
   background-color: var(--intent-bg-strong);
-  color: var(--intent-text-inverted);
+  color: var(--intent-text-on-strong);
   border: 1px solid transparent;
   box-shadow: var(--rim-light-subtle);
 
   &.is-interactive:focus-visible,
   &.is-interactive-within:has([data-interactive-target]:focus-visible) {
-    background-color: var(--intent-11);
+    background-color: var(--intent-bg-strong-hover);
     transform: translateY(-1px);
     box-shadow: var(--rim-light-subtle), var(--shadow-sm);
   }
   @media (hover: hover) {
     &.is-interactive:hover,
     &.is-interactive-within:has([data-interactive-target]:hover) {
-      background-color: var(--intent-11);
+      background-color: var(--intent-bg-strong-hover);
       transform: translateY(-1px);
       box-shadow: var(--rim-light-subtle), var(--shadow-sm);
     }
@@ -37,7 +37,7 @@
   &.is-interactive:active,
   &.is-interactive.is-active,
   &.is-interactive-within:has([data-interactive-target]:active) {
-    background-color: var(--intent-12);
+    background-color: var(--intent-bg-strong-active);
     transform: translateY(0) scale(0.99);
     box-shadow: none;
   }

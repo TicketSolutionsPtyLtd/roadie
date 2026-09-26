@@ -1,8 +1,16 @@
 import type { CSSProperties } from 'react'
 
 import { act, cleanup, render, waitFor } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it
+} from 'vitest'
+import { commands, page } from 'vitest/browser'
 
 import { Toast, type ToastPosition, createToastManager } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -25,6 +33,8 @@ afterAll(async () => {
   removeStylesheets()
   await page.viewport(1920, 1080)
 })
+// A pointer left over the viewport fans the stack out.
+beforeEach(() => commands.parkPointer())
 afterEach(() => cleanup())
 
 const toasts = () => [

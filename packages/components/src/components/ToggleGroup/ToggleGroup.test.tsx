@@ -111,8 +111,8 @@ describe('ToggleGroup', () => {
   })
 
   it.each([
-    ['normal', 'emphasis-normal', 'emphasis-strong', 'text-inverted'],
-    ['subtle', 'emphasis-subtle', 'emphasis-strong', 'text-inverted'],
+    ['normal', 'emphasis-normal', 'emphasis-strong', 'text-on-strong'],
+    ['subtle', 'emphasis-subtle', 'emphasis-strong', 'text-on-strong'],
     ['subtler', 'border', 'emphasis-subtle', 'text-strong']
   ] as const)(
     'gives a %s group a %s track, a %s pill and %s pressed text',

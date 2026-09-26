@@ -1,4 +1,4 @@
-import { getContrastColor } from './contrast'
+import { getAccentChromaSync } from './srgb-to-oklch'
 
 // --- Types ---
 
@@ -7,7 +7,7 @@ export interface ScaleResult {
   light: string[]
   /** 14 hex colors (steps 0-13) */
   dark: string[]
-  /** Recommended foreground color on step 9 (strong surface) */
+  /** Text colour for step 9 (strong surface), whichever reads better by APCA */
   fgOnStrong: 'white' | 'black'
 }
 
@@ -157,13 +157,18 @@ export async function generateAccentScale(
 ): Promise<ScaleResult> {
   const Color = await getColorClass()
   const color = new Color(accentHex).to('oklch')
-  const hue = Number(color.coords[2]) || 0
-  const chroma = Math.max(Number(color.coords[1]) || 0, 0.1)
+  const hue = Math.round(Number(color.coords[2]) || 0)
+  const chroma = getAccentChromaSync(accentHex)
 
   const light = curveToHex(Color, ACCENT_LIGHT_CURVE, hue, chroma)
   const dark = curveToHex(Color, ACCENT_DARK_CURVE, hue, chroma)
 
-  const fgOnStrong = getContrastColor(light[9] ?? '#000000')
+  const strong = new Color(light[9] ?? '#000000')
+  const fgOnStrong =
+    Math.abs(strong.contrast(new Color('white'), 'APCA')) >=
+    Math.abs(strong.contrast(new Color('black'), 'APCA'))
+      ? 'white'
+      : 'black'
 
   return { light, dark, fgOnStrong }
 }

@@ -38,8 +38,8 @@ export const toggleGroupItemVariants = cva(
         lg: "h-10 px-4 text-base [&_svg:not([class*='size-'])]:size-5"
       },
       emphasis: {
-        normal: 'data-[pressed]:text-inverted',
-        subtle: 'data-[pressed]:text-inverted',
+        normal: 'data-[pressed]:text-on-strong',
+        subtle: 'data-[pressed]:text-on-strong',
         subtler: 'data-[pressed]:text-strong'
       },
       raisePressed: { true: '', false: '' }

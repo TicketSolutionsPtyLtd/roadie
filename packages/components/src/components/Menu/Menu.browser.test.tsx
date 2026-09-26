@@ -8,7 +8,7 @@ import {
   expect,
   it
 } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { commands, userEvent } from 'vitest/browser'
 
 import { Menu } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -29,13 +29,7 @@ beforeAll(() => {
 afterAll(() => removeStylesheets())
 // A pointer left over a row by an earlier test would hover the next popup
 // as it mounts, and Firefox then moves focus to that row.
-beforeEach(async () => {
-  const corner = document.createElement('div')
-  corner.style.cssText = 'position:fixed;right:0;bottom:0;width:4px;height:4px'
-  document.body.append(corner)
-  await userEvent.hover(corner)
-  corner.remove()
-})
+beforeEach(() => commands.parkPointer())
 afterEach(() => {
   setHoverCapable(true)
   cleanup()
@@ -95,6 +89,8 @@ describe('Menu rows on a touch screen', () => {
     await userEvent.keyboard('{Enter}')
     const second = await screen.findByRole('menuitem', { name: 'Tickets sold' })
     const first = screen.getByRole('menuitem', { name: 'Venue' })
+    // The menu focuses its first row a frame after it opens; an arrow pressed
+    // before that is lost.
     await expect.poll(() => document.activeElement).toBe(first)
     await userEvent.keyboard('{ArrowDown}')
     await expect.poll(() => document.activeElement).toBe(second)

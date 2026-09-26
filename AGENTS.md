@@ -97,6 +97,8 @@ Three Tailwind-native utility namespaces, each scoped to its own CSS property:
 | `text-normal`    | `color`               | Body text        |
 | `text-subtle`    | `color`               | Secondary text   |
 | `text-strong`    | `color`               | Headings         |
+| `text-inverted`  | `color`               | Page text flipped, on `bg-inverted` |
+| `text-on-strong` | `color`               | Labels on strong fills |
 | `border-subtle`  | `border-color`        | Dividers         |
 | `border-normal`  | `border-color`        | Standard borders |
 | `divide-subtler` | children border-color | Table rows       |
