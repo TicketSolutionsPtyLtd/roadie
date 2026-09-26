@@ -1,6 +1,6 @@
 {
   "name": "@oztix/roadie-charts",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Roadie chart and dashboard composition for Oztix apps",
   "type": "module",
   "license": "ISC",

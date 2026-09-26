@@ -1,5 +1,22 @@
 # @oztix/roadie-widgets
 
+## 3.6.2
+
+### Patch Changes
+
+- b67cf46: `ThemeProvider`, `getAccentStyleSync` and the cart drawer's accent theming cap
+  the accent's chroma to what sRGB can show at step 9, through
+  `getAccentChromaSync` from `@oztix/roadie-core/colors`. A saturated green or
+  cyan accent no longer renders its strong fill too light for white text.
+- Updated dependencies [97854ae]
+- Updated dependencies [200dbed]
+- Updated dependencies [b4ca530]
+- Updated dependencies [6ec114f]
+- Updated dependencies [b67cf46]
+- Updated dependencies [47c7147]
+- Updated dependencies [f898797]
+  - @oztix/roadie-core@2.10.0
+
 ## 3.6.1
 
 ### Patch Changes

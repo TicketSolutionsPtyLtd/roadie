@@ -1,5 +1,123 @@
 # @oztix/roadie-core
 
+## 2.10.0
+
+### Minor Changes
+
+- 97854ae: Add `Collapsible`, a single panel that a trigger shows and hides.
+  `Collapsible.Trigger` shows a trailing caret that turns when open (`showCaret={false}`
+  hides it) and renders onto a Roadie `Button` through `render`.
+  `Collapsible.Panel` passes `keepMounted` and `hiddenUntilFound` through.
+  `Collapsible.Text`, placed inside a `Collapsible`, clamps a paragraph to `lines` (3 by default) and ends the
+  last line with an inline "…more" that fades the text behind it. The trigger shows
+  only when the text overflows; `lessLabel={null}` makes it expand only. The
+  `Collapsible` root now owns the open state and shares it with its parts.
+
+  `is-disclosure-animated` now also animates Base UI panels that aren't `<details>`,
+  by height from `--collapsible-panel-height`.
+
+- 200dbed: Add dashboard support. `@oztix/roadie-core/dashboard` describes a dashboard as
+  JSON, with a Zod schema, a JSON Schema export for tool inputs, and
+  `validateDashboard`, which reports every problem with its path, including rows
+  that leave gaps, copy that will truncate, and unknown keys. A zod-free
+  `@oztix/roadie-core/dashboard-layout` subpath exposes the card sizes, spans,
+  tracks, `findRowGaps` and `COPY_LIMITS` for UI code that must not load Zod.
+  `@oztix/roadie-core/dataviz` gains `formatValue` and delta helpers in the
+  house number formats, and `chartHex` now returns chrome colours for static
+  renderers. Chart ink now follows nested `.dark` and `intent-*` sections, the
+  highlight's hex fallback uses the default accent hue, and chart marks get
+  texture patterns under forced colours and print.
+- b4ca530: Add data visualisation colours. Charts get `--chart-1` to `--chart-8` for
+  series, `--chart-heat-*` for amounts, `--chart-diverge-*` for ahead of or
+  behind a benchmark, `--chart-status-*` for meaning, and `--chart-highlight`,
+  which follows `--accent-hue`. Each comes with `bg-`, `fill-`, `stroke-` and
+  `text-chart-*` utilities, in light and dark. Canvas, SVG and PDF renderers can
+  read the same values as hex from `@oztix/roadie-core/dataviz`, with the greys
+  tinted by the accent hue as the CSS ones are, and
+  `chartColorVar(i)` gives a CSS variable when the slot is dynamic. The palette
+  is checked for colour-blind separation in CI.
+- 6ec114f: Add `Progress`, a bar for a task underway.
+  `<Progress value={40} label='Uploading' />` renders the label, the value and
+  the track; `valueText` swaps the percentage for text such as "120 of 400" and
+  reads it to screen readers. Pass `value={null}` while the length is unknown
+  and the bar sweeps across the track. The parts (`Label`, `Value`, `Track`,
+  `Indicator`) compose for custom layouts. The fill is the accent by default,
+  like `Meter`, and takes the intent when you pass `intent`, such as `success`
+  or `danger` once a task has ended. Core gains the `animate-indeterminate`
+  utility behind the sweep, which holds a still, soft bar under reduced motion.
+- b67cf46: Add `text-on-strong` (`--intent-text-on-strong`), the label colour for strong
+  fills. Each intent takes whichever text colour reads better on its fill, and
+  reaches APCA Lc 60 in both modes, at rest, on hover and when pressed, in
+  browsers that support `color-mix()`. `emphasis-strong`, CalendarTile's strong
+  band, and the strong Tabs and ToggleGroup pills use it.
+
+  - White on brand, accent, info and danger, in both modes. Danger's strong fill
+    moves one step deeper, to step 10. In dark mode, hover and press darken the
+    fill to steps 8 and 7.
+  - Dark text on success, warning and brand-secondary: step 13 in light mode, step
+    0 in dark mode. Success and brand-secondary lift their fill 10% toward white.
+    Hover and press lighten the fill further in both modes.
+
+  `text-inverted` is unchanged: it's still the page's text colour flipped, and
+  pairs with `bg-inverted`. To migrate, use `text-on-strong` for labels on
+  `bg-strong` or `emphasis-strong` fills where you used `text-inverted`.
+
+  A custom accent keeps its white text too. The new `getAccentChromaSync(hex)`
+  caps an accent's chroma to what sRGB can show at step 9, because browsers clip
+  a more saturated fill and the clip makes it lighter. `getBootstrapScript` and
+  `generateAccentScale`, which writes the hex fallback scale, now use it, so a
+  saturated green or cyan accent no longer renders too light.
+
+  Browsers that draw `oklch()` but not `color-mix()` (Safari 15.4 to 16.1) get
+  step 9 for the lifted strong fills and steps 7 and 6 for hover and press, so
+  the fills stay solid there. Success and brand-secondary read at about Lc 57 to
+  58 at rest in those browsers.
+
+  `generateAccentScale` now reports `fgOnStrong` by APCA, so it matches
+  `text-on-strong`: `white` for Oztix blue, where it used to say `black`. It also
+  no longer lifts a grey accent to chroma 0.1, so the hex fallback matches the
+  CSS.
+
+  White labels on brand, accent, info and danger are 3.2 to 3.5:1 by WCAG 2. That
+  meets 3:1, not the 4.5:1 WCAG 2 asks of normal-size text. The accessibility
+  page now names strong-fill labels as the APCA exception.
+
+  Hover and press use the new `--intent-bg-strong-hover` and
+  `--intent-bg-strong-active` tokens. Neutral is unchanged.
+
+  This is a minor bump because it adds a utility and tokens, and some strong fills
+  and their label colours change.
+
+- 47c7147: Add `Toast`, a brief message that confirms an action or reports its result.
+  Mount `Toast.Provider` with a `Toast.Viewport` once at the app root, then call
+  `useToastManager().add({ title, description, intent, actionProps })` from any
+  component, or `createToastManager()` from outside React. `intent` (`success`,
+  `danger`, `warning` or `info`) colours the toast and leads it with a matching
+  icon, `actionProps` adds a small button such as Undo or Retry, and `promise`
+  shows a spinner until the work settles. A thin `Toast.Progress` bar along the
+  bottom of timed toasts shows how long they have left, pausing whenever their
+  timer pauses (hover, focus, a background window). `Toast.Viewport` takes a `position`
+  (`bottom-end` by default, `bottom-center`, `top-end` or `top-center`); small
+  screens always span the chosen edge. Set `--toast-viewport-offset-bottom` (or
+  `-top`) to clear fixed UI such as a checkout bar. Toasts fan out on hover or
+  focus and swipe away towards their edge. Core adds the `motion-toast` utility
+  that stacks and animates them from either edge: toasts enter, restack and
+  snap back on a spring and leave quickly. Core also adds `--ease-spring-lively`,
+  a spring with a visible bounce (about 9% overshoot) for transforms that should
+  catch the eye.
+
+  The `@base-ui/react` peer range rises to `^1.8.0`. Toast relies on 1.8 for
+  `update(id, previous => …)` and for timers that keep their remaining time
+  across repeated pauses, which the progress bar follows.
+
+### Patch Changes
+
+- f898797: Emphasis and field hover states now only apply on devices that can hover. On a
+  touch screen the last button tapped kept its hover colour and lift, so it looked
+  stuck or half disabled until something else was tapped. A tapped raised field
+  also keeps its rim light, and a translucent field stays see-through. Focus and
+  press states are unchanged.
+
 ## 2.9.0
 
 ### Minor Changes
