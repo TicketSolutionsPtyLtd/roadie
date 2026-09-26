@@ -113,3 +113,80 @@ describe('Autocomplete options on a touch screen', () => {
       .toBe('Brisbane')
   })
 })
+
+const [palms, lowtide] = [
+  {
+    name: 'Under the Palms',
+    venue: 'Somerside Lawns, Crawley',
+    date: '19 Apr'
+  },
+  { name: 'Lowtide Fest', venue: 'Tideline Brewery, Fremantle', date: '11 Apr' }
+]
+const events = [palms, lowtide]
+type LiveEvent = typeof palms
+const eventText = (event: unknown) => {
+  const { name, venue, date } = event as LiveEvent
+  return `${name} · ${venue} · ${date}`
+}
+
+function Events() {
+  return (
+    <Autocomplete items={events} itemToStringValue={eventText}>
+      <Autocomplete.InputGroup>
+        <Autocomplete.Input aria-label='Event' />
+      </Autocomplete.InputGroup>
+      <Autocomplete.Portal>
+        <Autocomplete.Positioner>
+          <Autocomplete.Popup>
+            <Autocomplete.List>
+              {(event: LiveEvent) => (
+                <Autocomplete.Item key={event.name} value={event}>
+                  {event.name}
+                </Autocomplete.Item>
+              )}
+            </Autocomplete.List>
+          </Autocomplete.Popup>
+        </Autocomplete.Positioner>
+      </Autocomplete.Portal>
+    </Autocomplete>
+  )
+}
+
+describe('Autocomplete with object items', () => {
+  it('starts empty and filters on the text itemToStringValue gives', async () => {
+    render(<Events />)
+    const input = screen.getByRole('combobox', { name: 'Event' })
+    expect(input).toHaveValue('')
+    await userEvent.click(input)
+    await userEvent.keyboard('Crawley')
+    await expect
+      .poll(() => screen.queryAllByRole('option').map((o) => o.textContent))
+      .toEqual(['Under the Palms'])
+    expect(input).toHaveValue('Crawley')
+  })
+
+  it('fills the input from itemToStringValue when an option is tapped', async () => {
+    render(<Events />)
+    const input = screen.getByRole('combobox', { name: 'Event' })
+    await userEvent.click(input)
+    await userEvent.keyboard('Lowtide')
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Lowtide Fest' })
+    )
+    await expect
+      .poll(() => (input as HTMLInputElement).value)
+      .toBe(eventText(lowtide))
+  })
+
+  it('fills the input from itemToStringValue when chosen by keyboard', async () => {
+    render(<Events />)
+    const input = screen.getByRole('combobox', { name: 'Event' })
+    await userEvent.click(input)
+    await userEvent.keyboard('Palms')
+    await screen.findByRole('option', { name: 'Under the Palms' })
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+    await expect
+      .poll(() => (input as HTMLInputElement).value)
+      .toBe(eventText(palms))
+  })
+})

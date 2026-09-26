@@ -111,3 +111,51 @@ describe('Combobox options on a touch screen', () => {
     )
   })
 })
+
+const venues = [
+  { name: 'The Longacre', location: 'Fortitude Valley, QLD' },
+  { name: 'Meridian Stage', location: 'South Bank, QLD' }
+]
+type Venue = (typeof venues)[number]
+
+function Venues() {
+  return (
+    <Combobox
+      items={venues}
+      itemToStringLabel={(venue) => (venue as Venue).name}
+    >
+      <Combobox.InputGroup>
+        <Combobox.Input aria-label='Venue' />
+      </Combobox.InputGroup>
+      <Combobox.Portal>
+        <Combobox.Positioner>
+          <Combobox.Popup>
+            <Combobox.List>
+              {(venue: Venue) => (
+                <Combobox.Item key={venue.name} value={venue}>
+                  {venue.name}
+                </Combobox.Item>
+              )}
+            </Combobox.List>
+          </Combobox.Popup>
+        </Combobox.Positioner>
+      </Combobox.Portal>
+    </Combobox>
+  )
+}
+
+describe('Combobox with object items', () => {
+  it('filters on the label and fills the input with it', async () => {
+    render(<Venues />)
+    const input = screen.getByRole('combobox', { name: 'Venue' })
+    await userEvent.click(input)
+    await userEvent.keyboard('Meridian')
+    await expect
+      .poll(() => screen.queryAllByRole('option').map((o) => o.textContent))
+      .toEqual(['Meridian Stage'])
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+    await expect
+      .poll(() => (input as HTMLInputElement).value)
+      .toBe('Meridian Stage')
+  })
+})
