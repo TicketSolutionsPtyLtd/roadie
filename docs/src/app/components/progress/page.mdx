@@ -57,14 +57,13 @@ Leave out `label` for a bare track, such as inside a table row that already name
 
 ### Intents
 
-The fill takes the intent in context. Pass `intent` to set it directly, such as `danger` for an upload that stalled.
+The fill is the accent by default, like [Meter](/charts/meter). Pass `intent` to colour the result once a task has ended, such as `success` or `danger`.
 
 ```tsx-live
 <div className='grid gap-4'>
   <Progress value={40} label='Uploading' />
-  <Progress value={40} label='Uploading' intent='accent' />
-  <Progress value={100} label='Uploaded' intent='success' />
-  <Progress value={72} label='Upload paused' intent='danger' />
+  <Progress value={100} label='Upload done' valueText='Done' intent='success' />
+  <Progress value={72} label='Upload failed' valueText='Failed' intent='danger' />
 </div>
 ```
 
@@ -96,6 +95,84 @@ function UploadEventImage() {
 }
 
 render(<UploadEventImage />)
+```
+
+### Showing the outcome
+
+Reaching 100% only means the bar has finished. Wait until the app knows how the task ended, then set `intent` and say the result in `valueText`. A failed task stays where it stopped, with a message and a way to try again.
+
+```tsx-live-noinline
+function Upload({ name, failAt }) {
+  const [value, setValue] = useState(0)
+  const [result, setResult] = useState(null)
+
+  useEffect(() => {
+    if (result) return
+    const failed = value === failAt
+    const timer = setTimeout(
+      () =>
+        failed ? setResult('failed')
+        : value === 100 ? setResult('done')
+        : setValue((v) => v + 20),
+      500
+    )
+    return () => clearTimeout(timer)
+  }, [value, result, failAt])
+
+  const retry = () => {
+    setValue(0)
+    setResult(null)
+  }
+
+  return (
+    <div className='grid gap-3'>
+      <Progress
+        value={value}
+        label={
+          result === 'failed' ? `Couldn't upload ${name}`
+          : result === 'done' ? `Uploaded ${name}`
+          : `Uploading ${name}`
+        }
+        valueText={
+          result === 'failed' ? 'Failed'
+          : result === 'done' ? 'Done'
+          : undefined
+        }
+        intent={
+          result === 'failed' ? 'danger'
+          : result === 'done' ? 'success'
+          : undefined
+        }
+      />
+      {result === 'failed' && (
+        <div className='flex items-center gap-3'>
+          <p className='flex-1 text-sm text-subtle'>
+            The connection dropped at {value}%. Check your network and try again.
+          </p>
+          <Button size='sm' onClick={retry}>
+            Retry
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Outcomes() {
+  const [run, setRun] = useState(0)
+
+  return (
+    <div className='grid gap-6'>
+      <Upload key={`done-${run}`} name='guest list' />
+      <Upload key={`failed-${run}`} name='seating plan' failAt={60} />
+      <div className='flex gap-2'>
+        <Button onClick={() => setRun((r) => r + 1)}>Run again</Button>
+      </div>
+    </div>
+  )
+}
+
+render(<Outcomes />)
 ```
 
 ### Composition
@@ -134,6 +211,24 @@ Compose the parts for a custom layout. `Progress.Value` shows the root's `valueT
   </Guideline.Do>
   <Guideline.Dont>
     Don't fake a value or hold a bar at 99%. An honest sweep is better than a number that stops moving.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Change the intent once you know the result'>
+  <Guideline.Do code={`<Progress value={100} label='Guest list uploaded' valueText='Done' intent='success' />`}>
+    Set `success` or `danger` when the app knows how the task ended, such as when the server confirms the upload.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Progress value={value} intent={value === 100 ? 'success' : undefined} />`}>
+    Don't turn the bar green at 100%. A finished bar isn't a success yet, because the server can still reject the file.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title="Don't rely on colour alone">
+  <Guideline.Do>
+    Say Done or Failed in the label or `valueText`. For a failure, add a message and a way to retry next to the bar.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't change only the intent. People who can't tell green from red, and screen reader users, won't know how the task ended.
   </Guideline.Dont>
 </Guideline>
 

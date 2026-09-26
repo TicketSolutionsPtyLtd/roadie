@@ -7,7 +7,10 @@ import { Progress as ProgressPrimitive } from '@base-ui/react/progress'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { type RoadieIntent, intentVariants } from '../../variants'
-import { ProgressValueTextContext } from './ProgressContext'
+import {
+  ProgressHasIntentContext,
+  ProgressValueTextContext
+} from './ProgressContext'
 import { ProgressIndicator } from './ProgressIndicator'
 import { ProgressLabel } from './ProgressLabel'
 import { ProgressTrack } from './ProgressTrack'
@@ -19,6 +22,7 @@ export type ProgressRootProps = ProgressPrimitive.Root.Props &
     label?: ReactNode
     /** Spoken and shown in place of the percentage, such as "120 of 400". */
     valueText?: string
+    /** Colours the fill, such as `success` once a task has ended. Without it, the fill is the accent. */
     intent?: RoadieIntent
   }
 
@@ -32,31 +36,33 @@ export function ProgressRoot({
 }: ProgressRootProps) {
   return (
     <ProgressValueTextContext value={valueText}>
-      <ProgressPrimitive.Root
-        data-slot='progress'
-        // An explicit undefined would wipe Base UI's default and getAriaValueText
-        {...(valueText !== undefined && { 'aria-valuetext': valueText })}
-        className={cn(
-          'grid w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-1.5',
-          intent && intentVariants[intent],
-          className
-        )}
-        {...props}
-      >
-        {children ?? (
-          <>
-            {label != null && (
-              <>
-                <ProgressLabel>{label}</ProgressLabel>
-                <ProgressValue />
-              </>
-            )}
-            <ProgressTrack>
-              <ProgressIndicator />
-            </ProgressTrack>
-          </>
-        )}
-      </ProgressPrimitive.Root>
+      <ProgressHasIntentContext value={intent !== undefined}>
+        <ProgressPrimitive.Root
+          data-slot='progress'
+          // An explicit undefined would wipe Base UI's default and getAriaValueText
+          {...(valueText !== undefined && { 'aria-valuetext': valueText })}
+          className={cn(
+            'grid w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-1.5',
+            intent && intentVariants[intent],
+            className
+          )}
+          {...props}
+        >
+          {children ?? (
+            <>
+              {label != null && (
+                <>
+                  <ProgressLabel>{label}</ProgressLabel>
+                  <ProgressValue />
+                </>
+              )}
+              <ProgressTrack>
+                <ProgressIndicator />
+              </ProgressTrack>
+            </>
+          )}
+        </ProgressPrimitive.Root>
+      </ProgressHasIntentContext>
     </ProgressValueTextContext>
   )
 }

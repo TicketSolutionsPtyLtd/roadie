@@ -119,24 +119,47 @@ describe('Progress', () => {
     expect(slot(container, 'progress-value')).toHaveTextContent('2 of 5 files')
   })
 
-  it('matches the Meter track and takes its fill from the intent', () => {
+  it('matches the Meter track and accent fill by default', () => {
     const { container } = render(<Progress value={40} aria-label='Upload' />)
     expect(slot(container, 'progress-track')).toHaveClass(
       'h-1.5',
       'rounded-full',
       'bg-(--intent-4)'
     )
-    expect(slot(container, 'progress-indicator')).toHaveClass('bg-strong')
+    const indicator = slot(container, 'progress-indicator')
+    expect(indicator).toHaveClass('bg-chart-highlight')
+    expect(indicator).not.toHaveClass('bg-strong')
+    expect(slot(container, 'progress')?.className).not.toMatch(/intent-/)
   })
 
-  it('takes no intent unless asked', () => {
-    const { container, rerender } = render(
-      <Progress value={40} aria-label='Upload' />
+  it('keeps the accent fill while indeterminate', () => {
+    const { container } = render(
+      <Progress value={null} aria-label='Preparing export' />
     )
-    expect(slot(container, 'progress')?.className).not.toMatch(/intent-/)
+    expect(slot(container, 'progress-indicator')).toHaveClass(
+      'bg-chart-highlight'
+    )
+  })
 
-    rerender(<Progress value={40} aria-label='Upload' intent='danger' />)
+  it('fills with the intent when one is passed', () => {
+    const { container } = render(
+      <Progress value={40} aria-label='Upload' intent='danger' />
+    )
     expect(slot(container, 'progress')).toHaveClass('intent-danger')
+    const indicator = slot(container, 'progress-indicator')
+    expect(indicator).toHaveClass('bg-strong')
+    expect(indicator).not.toHaveClass('bg-chart-highlight')
+  })
+
+  it('fills composed parts with the intent', () => {
+    const { container } = render(
+      <Progress value={40} aria-label='Upload' intent='success'>
+        <Progress.Track>
+          <Progress.Indicator />
+        </Progress.Track>
+      </Progress>
+    )
+    expect(slot(container, 'progress-indicator')).toHaveClass('bg-strong')
   })
 
   it('forwards attributes to the root', () => {

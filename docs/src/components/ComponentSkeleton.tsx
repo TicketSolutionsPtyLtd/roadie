@@ -139,8 +139,8 @@ export function ComponentSkeleton({ name }: { name: string }) {
             <Skel className='h-2 w-20' />
             <Skel className='h-2 w-6' />
           </div>
-          <div className='h-1.5 overflow-hidden rounded-full bg-(--intent-4) intent-accent'>
-            <div className='h-full w-3/5 bg-strong' />
+          <div className='h-1.5 overflow-hidden rounded-full bg-(--intent-4)'>
+            <div className='h-full w-3/5 bg-chart-highlight' />
           </div>
         </div>
       )
