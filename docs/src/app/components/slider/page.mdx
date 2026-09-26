@@ -169,7 +169,7 @@ Compose the parts to name each thumb, such as the lowest and highest price in a 
 
 ### With Field
 
-Inside [Field](/components/field), leave out `label` and compose the parts so `Slider.Value` still shows the value. The slider takes its name from `Field.Label`, its description from the helper or error text, and `invalid` and `disabled` from the field. Clicking the label focuses the first thumb.
+Inside [Field](/components/field), leave out `label` and compose the parts so `Slider.Value` still shows the value. With no `Slider.Label`, the value sits at the end of the track. The slider takes its name from `Field.Label`, its description from the helper or error text, and `invalid` and `disabled` from the field. Clicking the label focuses the first thumb.
 
 ```tsx-live
 <Field>

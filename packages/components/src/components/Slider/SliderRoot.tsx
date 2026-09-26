@@ -79,7 +79,7 @@ export function SliderRoot<Value extends SliderValueType>({
         orientation={direction}
         locale={locale}
         className={cn(
-          'group/slider grid w-full grid-cols-[1fr_auto] items-baseline gap-x-3',
+          'group/slider grid w-full grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1.5',
           'data-[orientation=vertical]:w-auto',
           className
         )}

@@ -1,19 +1,22 @@
 import { cva } from 'class-variance-authority'
 
-// Padding is half the thumb along the track, so thumbs stay inside at min and
-// max, and makes up 44px across it. Base UI subtracts it, so values line up.
+// The box is as thick as the thumb, with half a thumb of padding along the
+// track so thumbs stay inside at min and max (Base UI subtracts it). The
+// before: band takes presses 44px across without taking layout space.
 export const sliderControlVariants = cva(
   [
-    'col-span-full flex touch-none items-center select-none',
-    'data-[orientation=vertical]:h-40 data-[orientation=vertical]:w-11 data-[orientation=vertical]:justify-center',
+    'relative col-span-full flex touch-none items-center select-none peer-first/value:col-span-1 peer-first/value:row-start-1',
+    'before:absolute before:inset-x-0 before:top-1/2 before:h-11 before:-translate-y-1/2',
+    'data-[orientation=vertical]:h-40 data-[orientation=vertical]:justify-center',
+    'data-[orientation=vertical]:before:inset-x-auto data-[orientation=vertical]:before:inset-y-0 data-[orientation=vertical]:before:top-0 data-[orientation=vertical]:before:left-1/2 data-[orientation=vertical]:before:h-auto data-[orientation=vertical]:before:w-11 data-[orientation=vertical]:before:translate-x-[-50%] data-[orientation=vertical]:before:translate-y-0',
     'data-disabled:cursor-not-allowed data-disabled:opacity-50'
   ],
   {
     variants: {
       size: {
-        sm: 'px-2 py-3.5 data-[orientation=vertical]:px-3.5 data-[orientation=vertical]:py-2',
-        md: 'px-2.5 py-3 data-[orientation=vertical]:px-3 data-[orientation=vertical]:py-2.5',
-        lg: 'px-3 py-2.5 data-[orientation=vertical]:px-2.5 data-[orientation=vertical]:py-3'
+        sm: 'h-4 px-2 data-[orientation=vertical]:h-40 data-[orientation=vertical]:w-4 data-[orientation=vertical]:px-0 data-[orientation=vertical]:py-2',
+        md: 'h-5 px-2.5 data-[orientation=vertical]:h-40 data-[orientation=vertical]:w-5 data-[orientation=vertical]:px-0 data-[orientation=vertical]:py-2.5',
+        lg: 'h-6 px-3 data-[orientation=vertical]:h-40 data-[orientation=vertical]:w-6 data-[orientation=vertical]:px-0 data-[orientation=vertical]:py-3'
       }
     },
     defaultVariants: { size: 'md' }
