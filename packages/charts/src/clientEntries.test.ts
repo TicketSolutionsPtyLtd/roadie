@@ -47,10 +47,12 @@ describe('tables entry', () => {
     const tables = await import('./tables')
     expect(Object.keys(tables).sort()).toEqual([
       'barChartTable',
+      'cardTable',
       'funnelTable',
       'heatmapTable',
       'histogramTable',
       'lineChartTable',
+      'plotTable',
       'rankedBarsTable',
       'scatterTable',
       'smallMultiplesTable',

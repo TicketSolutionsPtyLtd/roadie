@@ -12,7 +12,8 @@ import type {
 
 import { Chart } from '../Chart'
 import { ChartLegend } from '../ChartLegend'
-import { PlotView, plotTable } from './plots'
+import { cardTable } from '../tables/cardTable'
+import { PlotView } from './plots'
 
 export type DashboardViewProps = {
   spec: DashboardSpec
@@ -81,10 +82,7 @@ function Card({ card, size, actions }: CardProps) {
           delta={card.delta}
           takeaway={card.takeaway}
           view={card.view}
-          table={
-            card.table ??
-            (card.plot.kind === 'static' ? undefined : plotTable(card.plot))
-          }
+          table={cardTable(card)}
           legend={card.legend && <ChartLegend items={card.legend} />}
         >
           <PlotView

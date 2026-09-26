@@ -13,7 +13,8 @@ import { channelExample } from '../RankedBars/examples'
 import { portfolioExample } from '../Scatter/examples'
 import { gatesExample } from '../SmallMultiples/examples'
 import { ticketMixExample } from '../StackedBars/examples'
-import { PlotView, plotTable } from './plots'
+import { plotTable } from '../tables/cardTable'
+import { PlotView } from './plots'
 
 const plots: ChartPlot[] = [
   { kind: 'line', ...paceExample },

@@ -2,6 +2,7 @@
 // for any chart without the chart engine or a client boundary.
 export type { ChartTable } from '../Chart'
 export { barChartTable } from '../BarChart/table'
+export { cardTable, plotTable } from './cardTable'
 export { funnelTable } from '../Funnel/table'
 export { heatmapTable } from '../Heatmap/table'
 export { histogramTable } from '../Histogram/table'

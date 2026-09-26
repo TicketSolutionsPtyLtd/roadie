@@ -8,47 +8,14 @@ import type {
 } from '@oztix/roadie-core/dashboard'
 
 import { BarChart } from '../BarChart'
-import { barChartTable } from '../BarChart/table'
-import type { ChartTable } from '../Chart'
 import { Funnel } from '../Funnel'
-import { funnelTable } from '../Funnel/table'
 import { Heatmap } from '../Heatmap'
-import { heatmapTable } from '../Heatmap/table'
 import { Histogram } from '../Histogram'
-import { histogramTable } from '../Histogram/table'
 import { LineChart } from '../LineChart'
-import { lineChartTable } from '../LineChart/table'
 import { RankedBars } from '../RankedBars'
-import { rankedBarsTable } from '../RankedBars/table'
 import { Scatter } from '../Scatter'
-import { scatterTable } from '../Scatter/table'
 import { SmallMultiples } from '../SmallMultiples'
-import { smallMultiplesTable } from '../SmallMultiples/table'
 import { StackedBars } from '../StackedBars'
-import { stackedBarsTable } from '../StackedBars/table'
-
-export function plotTable(plot: ChartPlot): ChartTable {
-  switch (plot.kind) {
-    case 'line':
-      return lineChartTable(plot)
-    case 'bar':
-      return barChartTable(plot)
-    case 'ranked-bars':
-      return rankedBarsTable(plot)
-    case 'stacked-bars':
-      return stackedBarsTable(plot)
-    case 'histogram':
-      return histogramTable(plot)
-    case 'funnel':
-      return funnelTable(plot)
-    case 'heatmap':
-      return heatmapTable(plot)
-    case 'scatter':
-      return scatterTable(plot)
-    case 'small-multiples':
-      return smallMultiplesTable(plot)
-  }
-}
 
 function ThemedImage({ image, alt }: { image: StaticPlotImage; alt: string }) {
   return (

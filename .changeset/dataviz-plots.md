@@ -25,7 +25,10 @@ Cards take actions at the top right. `Chart` has an `actions` prop that sits
 after the Chart and Table switch, and `DashboardView` has a `cardActions`
 render prop that adds actions to every card kind described as data.
 `DataCard.MoreButton` is the More button that ends a card's actions. It passes
-its props and ref through, so it can become a menu trigger. `DataCard` now
+its props and ref through, so it is the trigger of the card's `Menu`, passed to
+`Menu.Trigger` as its `render`. `@oztix/roadie-charts/tables` adds
+`plotTable`, the Table view rows for any chart plot in a dashboard description,
+and `cardTable`, the table behind any card, for actions such as Download CSV. `DataCard` now
 shows its actions in every state, so a refresh works on a card that failed to
 load; `Chart` hides only its view switch without data. Repeated `BarChart`
 x values add up their bars, and the `line` keeps the first value it has.
