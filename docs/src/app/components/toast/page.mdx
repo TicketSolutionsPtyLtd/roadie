@@ -55,7 +55,7 @@ function CopyLink() {
   const toast = useToastManager()
   return (
     <Button onClick={() => toast.add({ title: 'Link copied' })}>
-      <LinkSimple weight='bold' className='size-4' />
+      <LinkSimpleIcon weight='bold' className='size-4' />
       Copy link
     </Button>
   )
@@ -144,7 +144,7 @@ function Checkout() {
             data-checkout-bar
             className='fixed inset-x-0 bottom-0 z-50 flex h-20 items-center justify-end px-6 emphasis-raised'
           >
-            <Button emphasis='strong' intent='accent'>Continue</Button>
+            <Button>Continue</Button>
           </div>,
           document.body
         )}
@@ -247,7 +247,7 @@ function PublishEvent() {
       }),
       error: {
         title: 'Harbourlight Sessions not published',
-        description: 'Check the event for missing details and try again.'
+        description: 'We lost the connection. Try again in a moment.'
       }
     })
   }
@@ -260,6 +260,8 @@ function PublishEvent() {
 }
 render(<PublishEvent />)
 ```
+
+If the work fails because something needs fixing, such as missing event details, show a [Callout](/components/callout) next to the problem instead. It stays until the problem is fixed.
 
 ### Updating a toast
 
