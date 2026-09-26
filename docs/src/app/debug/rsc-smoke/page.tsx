@@ -32,6 +32,7 @@ import {
   Slider as SliderViaBarrel,
   Switch as SwitchViaBarrel,
   Tabs as TabsViaBarrel,
+  Toast as ToastViaBarrel,
   ToggleGroup as ToggleGroupViaBarrel,
   Tooltip as TooltipViaBarrel
 } from '@oztix/roadie-components'
@@ -68,6 +69,7 @@ import { Slider } from '@oztix/roadie-components/slider'
 import { Steps } from '@oztix/roadie-components/steps'
 import { Switch } from '@oztix/roadie-components/switch'
 import { Tabs } from '@oztix/roadie-components/tabs'
+import { Toast } from '@oztix/roadie-components/toast'
 import { Toggle } from '@oztix/roadie-components/toggle'
 import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
@@ -772,6 +774,22 @@ export default function RscSmokePage() {
       <section className='grid gap-2'>
         <h2 className='text-display-ui-3 text-strong'>Slider via barrel</h2>
         <SliderViaBarrel aria-label='Volume' defaultValue={60} />
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Toast.Provider and Toast.Viewport via subpath
+        </h2>
+        <Toast.Provider>
+          <Toast.Viewport />
+        </Toast.Provider>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Toast via barrel</h2>
+        <ToastViaBarrel.Provider timeout={0}>
+          <ToastViaBarrel.Viewport />
+        </ToastViaBarrel.Provider>
       </section>
 
       <section className='grid gap-2'>

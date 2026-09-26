@@ -44,6 +44,27 @@
     1
   );
 
+  /* ~9% overshoot (damping 0.6). `--ease-spring` peaks at 1.7%, invisible on
+     a slide under 100px; this one shows the bounce on toasts. */
+  --ease-spring-lively: linear(
+    0,
+    0.012 1.7%,
+    0.044 3.3%,
+    0.092 5%,
+    0.223 8.3%,
+    0.607 16.7%,
+    0.744 20%,
+    0.859 23.3%,
+    0.949 26.7%,
+    1.015 30%,
+    1.073 35%,
+    1.094 40%,
+    1.085 46.7%,
+    1.008 66.7%,
+    0.991 81.7%,
+    1
+  );
+
   /* ═══ Stagger ═══ */
   --stagger-base: 30ms;
 }
@@ -376,6 +397,97 @@
     transition-duration: calc(
       var(--drawer-swipe-strength, 1) * var(--duration-slow)
     );
+  }
+}
+
+/* A toast in a Base UI toast viewport. Collapsed, the stack sits behind the
+   frontmost toast, clamped to its height and peeking out away from the edge;
+   fanned out while the viewport is hovered or focused. Enters, restacks and
+   snaps back from a swipe on a lively spring; leaves quickly towards its edge
+   or the way it was swiped. Pair with `absolute bottom-0 origin-bottom`, or with
+   `absolute top-0 origin-top` and `data-side='top'` for a top viewport. */
+@utility motion-toast {
+  /* -1 stacks upwards from a bottom edge, 1 downwards from a top one. */
+  --toast-away: -1;
+  --toast-gap: calc(var(--spacing) * 3);
+  --toast-peek: calc(var(--spacing) * 3);
+  --toast-scale: max(0, 1 - var(--toast-index) * 0.05);
+  --toast-collapsed-height: var(--toast-frontmost-height, var(--toast-height));
+  --toast-lift: calc(
+    var(--toast-swipe-movement-y) + var(--toast-away) *
+      (var(--toast-offset-y) + var(--toast-index) * var(--toast-gap))
+  );
+  --toast-offscreen: calc(var(--toast-away) * -150%);
+  z-index: calc(1000 - var(--toast-index));
+  /* Base UI measures a toast by setting `height: auto` and reading it back.
+     The root's `allow-keywords` would start a transition to auto instead, so
+     the read returns the old height and the toast never grows. */
+  interpolate-size: numeric-only;
+  height: var(--toast-collapsed-height);
+  transform: translateX(var(--toast-swipe-movement-x))
+    translateY(
+      calc(
+        var(--toast-swipe-movement-y) + var(--toast-away) *
+          (
+            var(--toast-index) * var(--toast-peek) + (1 - var(--toast-scale)) *
+              var(--toast-collapsed-height)
+          )
+      )
+    )
+    scale(var(--toast-scale));
+  transition-property: transform, opacity, height;
+  /* Height stays off the spring: an overshoot would show clipped content. */
+  transition-timing-function:
+    var(--ease-spring-lively), var(--ease-enter), var(--ease-enter);
+  transition-duration:
+    var(--duration-slower), var(--duration-slower), var(--duration-normal);
+
+  &[data-side='top'] {
+    --toast-away: 1;
+  }
+
+  &[data-expanded] {
+    height: var(--toast-height);
+    transform: translateX(var(--toast-swipe-movement-x))
+      translateY(var(--toast-lift));
+  }
+
+  &[data-starting-style] {
+    opacity: 0;
+    transform: translateY(var(--toast-offscreen)) scale(0.9);
+  }
+
+  &[data-ending-style] {
+    transition-timing-function: var(--ease-exit);
+    transition-duration:
+      var(--duration-slow), var(--duration-slow), var(--duration-normal);
+  }
+
+  &[data-ending-style],
+  &[data-limited] {
+    opacity: 0;
+  }
+
+  &[data-ending-style]:not([data-limited]):not([data-swipe-direction]) {
+    transform: translateY(var(--toast-offscreen));
+  }
+
+  &[data-ending-style][data-swipe-direction='down'] {
+    transform: translateY(calc(var(--toast-swipe-movement-y) + 150%));
+  }
+
+  &[data-ending-style][data-swipe-direction='up'] {
+    transform: translateY(calc(var(--toast-swipe-movement-y) - 150%));
+  }
+
+  &[data-ending-style][data-swipe-direction='right'] {
+    transform: translateX(calc(var(--toast-swipe-movement-x) + 150%))
+      translateY(var(--toast-lift));
+  }
+
+  &[data-ending-style][data-swipe-direction='left'] {
+    transform: translateX(calc(var(--toast-swipe-movement-x) - 150%))
+      translateY(var(--toast-lift));
   }
 }
 

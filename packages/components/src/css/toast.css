@@ -1,0 +1,25 @@
+/* A toast's time-left bar. It empties over the toast's timeout on the same
+   clock as Base UI's timer: paused while the viewport is expanded (hovered or
+   focused) or the window is in the background, then resumed from where it
+   stopped. The global reduced-motion reset would snap it empty, so it hides
+   instead. */
+
+@layer components {
+  [data-slot='toast-progress'] {
+    animation: toast-time-left var(--toast-timeout) linear forwards;
+
+    :where([data-slot='toast'][data-expanded], [data-window-blurred]) & {
+      animation-play-state: paused;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      display: none;
+    }
+  }
+}
+
+@keyframes toast-time-left {
+  to {
+    transform: scaleX(0);
+  }
+}

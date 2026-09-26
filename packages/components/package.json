@@ -259,6 +259,10 @@
       "types": "./dist/components/Textarea/index.d.ts",
       "import": "./dist/components/Textarea/index.js"
     },
+    "./toast": {
+      "types": "./dist/components/Toast/index.d.ts",
+      "import": "./dist/components/Toast/index.js"
+    },
     "./toggle": {
       "types": "./dist/components/Toggle/index.d.ts",
       "import": "./dist/components/Toggle/index.js"
@@ -308,7 +312,7 @@
   },
   "peerDependencies": {
     "@ark-ui/react": "^5.0.0",
-    "@base-ui/react": "^1.6.0",
+    "@base-ui/react": "^1.8.0",
     "@phosphor-icons/react": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "react": "^19.2.0",
