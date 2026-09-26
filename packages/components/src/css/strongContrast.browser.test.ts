@@ -243,6 +243,22 @@ describe('without color-mix', () => {
           )
         })
 
+        it('lightens to its fallback step while hovered', async () => {
+          setTheme(mode)
+          setHoverCapable(true)
+          const hoverStep = mode === 'dark' ? 11 : 7
+          const target = mount(
+            `<div class="intent-${intent}">${strongButton(intent)}<i data-step style="background: var(--color-${intent}-${hoverStep})"></i></div>`
+          )
+          await userEvent.hover(target)
+          await frame()
+          const step = host!.querySelector<HTMLElement>('[data-step]')!
+          expect(getComputedStyle(target).backgroundColor).toBe(
+            getComputedStyle(step).backgroundColor
+          )
+          expect(contrast(target)).toBeGreaterThanOrEqual(FALLBACK_LABEL_LC)
+        })
+
         it.each(['', 'is-active'])(
           'fills the strong surface %s with a solid colour that reads',
           async (state) => {
