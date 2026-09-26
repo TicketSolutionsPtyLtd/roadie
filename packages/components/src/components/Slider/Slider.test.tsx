@@ -179,6 +179,42 @@ describe('Slider', () => {
 })
 
 describe('Field + Slider integration', () => {
+  it('names the thumbs by its own label and describes them by the field text', () => {
+    render(
+      <Field>
+        <Slider label='Search radius' defaultValue={[10, 40]} />
+        <Field.HelperText>Events within this distance</Field.HelperText>
+      </Field>
+    )
+    for (const thumb of screen.getAllByRole('slider')) {
+      expect(thumb).toHaveAccessibleName('Search radius')
+      expect(thumb).toHaveAccessibleDescription('Events within this distance')
+    }
+  })
+
+  it('describes by the error text when the field is invalid', () => {
+    render(
+      <Field invalid>
+        <Slider label='Price' defaultValue={40} />
+        <Field.HelperText>Up to $250</Field.HelperText>
+        <Field.ErrorText>Pick a lower price</Field.ErrorText>
+      </Field>
+    )
+    expect(screen.getByRole('slider')).toHaveAccessibleDescription(
+      'Pick a lower price'
+    )
+  })
+
+  it('focuses the first thumb when its own label is clicked inside Field', async () => {
+    render(
+      <Field>
+        <Slider label='Price' defaultValue={[20, 80]} />
+      </Field>
+    )
+    await userEvent.click(screen.getByText('Price'))
+    expect(screen.getAllByRole('slider')[0]).toHaveFocus()
+  })
+
   it('describes by the helper text the field renders when only the slider is invalid', () => {
     render(
       <Field>

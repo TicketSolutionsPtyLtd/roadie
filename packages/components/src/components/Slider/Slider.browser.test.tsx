@@ -79,29 +79,20 @@ for (const width of [1280, 390]) {
       expect(Math.abs(numberGap - inputGap)).toBeLessThanOrEqual(2)
     })
 
-    it('puts the value beside the track when Field.Label names it', () => {
+    it('puts its label and value on one line above the track inside Field', () => {
       render(
         <Field>
-          <Field.Label>Search radius</Field.Label>
-          <Slider defaultValue={25}>
-            <Slider.Value />
-            <Slider.Control>
-              <Slider.Track>
-                <Slider.Indicator />
-                <Slider.Thumb />
-              </Slider.Track>
-            </Slider.Control>
-          </Slider>
+          <Slider label='Search radius' defaultValue={25} />
+          <Field.HelperText>Shows events near Fitzroy</Field.HelperText>
         </Field>
       )
-      expect(gapUnderLabel(slot('slider-thumb'))).toBeCloseTo(6, 0)
+      const label = rect(slot('slider-label'))
       const value = rect(slot('slider-value'))
-      const track = rect(slot('slider-track'))
-      expect(value.left).toBeGreaterThan(track.right)
-      expect(value.top + value.height / 2).toBeCloseTo(
-        track.top + track.height / 2,
-        0
-      )
+      const box = rect(slot('slider'))
+      expect(Math.abs(value.top - label.top)).toBeLessThanOrEqual(2)
+      expect(value.right).toBeCloseTo(box.right, 0)
+      expect(label.left).toBeCloseTo(box.left, 0)
+      expect(rect(slot('slider-thumb')).top - label.bottom).toBeCloseTo(6, 0)
     })
 
     for (const size of sizes) {

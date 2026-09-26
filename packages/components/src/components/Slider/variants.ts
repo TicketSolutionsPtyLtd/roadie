@@ -5,7 +5,7 @@ import { cva } from 'class-variance-authority'
 // before: band takes presses 44px across without taking layout space.
 export const sliderControlVariants = cva(
   [
-    'relative col-span-full flex touch-none items-center select-none peer-first/value:col-span-1 peer-first/value:row-start-1',
+    'relative col-span-full flex touch-none items-center select-none',
     'before:absolute before:inset-x-0 before:top-1/2 before:h-11 before:-translate-y-1/2',
     'data-[orientation=vertical]:h-40 data-[orientation=vertical]:justify-center',
     'data-[orientation=vertical]:before:inset-x-auto data-[orientation=vertical]:before:inset-y-0 data-[orientation=vertical]:before:top-0 data-[orientation=vertical]:before:left-1/2 data-[orientation=vertical]:before:h-auto data-[orientation=vertical]:before:w-11 data-[orientation=vertical]:before:translate-x-[-50%] data-[orientation=vertical]:before:translate-y-0',

@@ -30,7 +30,7 @@ export type SliderRootProps<Value extends SliderValueType = SliderValueType> =
       direction?: SliderDirection
       /** @default 'md' */
       size?: SliderSize
-      /** A visible label, with the value shown beside it. Leave it out inside `Field`. */
+      /** A visible label, with the value shown beside it. Inside `Field` it stands in for `Field.Label`. */
       label?: ReactNode
       /** Marks the slider invalid. Inherits from `Field` when unset. */
       invalid?: boolean
