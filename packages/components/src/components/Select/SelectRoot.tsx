@@ -6,7 +6,7 @@ import {
   isValidElement,
   useCallback,
   useMemo,
-  useState
+  useRef
 } from 'react'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
@@ -37,6 +37,21 @@ function collectLabels(node: ReactNode, labels: Map<unknown, ItemLabel>) {
   return labels
 }
 
+// Base UI's own label for a value it has no label for.
+function fallbackLabel(value: unknown) {
+  if (value && typeof value === 'object') {
+    if ('label' in value && value.label != null) return String(value.label)
+    if ('value' in value) return String(value.value)
+  }
+  if (value == null) return ''
+  if (typeof value === 'string') return value
+  try {
+    return JSON.stringify(value)
+  } catch {
+    return String(value)
+  }
+}
+
 export function SelectRoot({
   invalid,
   required,
@@ -50,21 +65,25 @@ export function SelectRoot({
   const resolvedInvalid = invalid ?? fieldContext.invalid
   const resolvedRequired = required ?? fieldContext.required
 
-  // Items rendered by other components only show up here once they mount.
-  const [mounted, setMounted] = useState(() => new Map<unknown, ItemLabel>())
+  // Items inside other components can't be read from here, so they register
+  // their label on mount. A ref, so an inline object value can't loop renders.
+  const mountedLabels = useRef(new Map<unknown, ItemLabel>())
   const registerLabel = useCallback((value: unknown, label: ItemLabel) => {
-    setMounted((labels) =>
-      labels.get(value) === label ? labels : new Map(labels).set(value, label)
-    )
+    mountedLabels.current.set(value, label)
   }, [])
 
-  const labelledItems = useMemo(() => {
-    if (items || itemToStringLabel) return items
-    const labels = collectLabels(children, new Map(mounted))
-    return labels.size
-      ? Array.from(labels, ([value, label]) => ({ value, label }))
-      : undefined
-  }, [items, itemToStringLabel, children, mounted])
+  const renderedLabels = useMemo(
+    () => collectLabels(children, new Map()),
+    [children]
+  )
+  const labelOf = useCallback(
+    (value: unknown) => {
+      const label =
+        renderedLabels.get(value) ?? mountedLabels.current.get(value)
+      return label === undefined ? fallbackLabel(value) : String(label)
+    },
+    [renderedLabels]
+  )
 
   return (
     <SelectContext
@@ -76,8 +95,8 @@ export function SelectRoot({
     >
       <SelectPrimitive.Root
         disabled={disabled ?? fieldContext.disabled}
-        items={labelledItems}
-        itemToStringLabel={itemToStringLabel}
+        items={items}
+        itemToStringLabel={itemToStringLabel ?? (items ? undefined : labelOf)}
         {...props}
       >
         {children}

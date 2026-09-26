@@ -368,3 +368,44 @@ describe('Select value label', () => {
     expect(getByRole('combobox')).toHaveTextContent('Bee Gees, Custard')
   })
 })
+
+const saints = { id: 1, slug: 'saints' }
+const custard = { id: 2, slug: 'custard' }
+
+describe('Select object value label', () => {
+  it('shows the label of an object default value', () => {
+    const { getByRole } = render(
+      <Select defaultValue={custard}>
+        <Select.Trigger aria-label='Band'>
+          <Select.Value />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value={saints}>The Saints</Select.Item>
+          <Select.Item value={custard}>Custard</Select.Item>
+        </Select.Content>
+      </Select>
+    )
+    expect(getByRole('combobox')).toHaveTextContent('Custard')
+  })
+
+  it('shows the label of an object item picked from a wrapper', async () => {
+    function Band({ band, name }: { band: typeof saints; name: string }) {
+      return <Select.Item value={band}>{name}</Select.Item>
+    }
+    const user = userEvent.setup()
+    const { getByRole, findByRole } = render(
+      <Select>
+        <Select.Trigger aria-label='Band'>
+          <Select.Value placeholder='Pick a band' />
+        </Select.Trigger>
+        <Select.Content>
+          <Band band={saints} name='The Saints' />
+          <Band band={custard} name='Custard' />
+        </Select.Content>
+      </Select>
+    )
+    await user.click(getByRole('combobox'))
+    await user.click(await findByRole('option', { name: 'The Saints' }))
+    expect(getByRole('combobox')).toHaveTextContent('The Saints')
+  })
+})

@@ -20,9 +20,7 @@ export function SelectItem({ className, children, ...props }: SelectItemProps) {
   const label = itemLabel(children)
   const { value } = props
   useIsomorphicLayoutEffect(() => {
-    // An object value made inline would be new each render and never settle.
-    if (label !== undefined && (typeof value !== 'object' || value === null))
-      registerLabel?.(value, label)
+    if (label !== undefined) registerLabel?.(value, label)
   }, [registerLabel, value, label])
 
   const content =
