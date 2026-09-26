@@ -13,14 +13,14 @@ function joined(labels: ReactNode[]) {
   ))
 }
 
-// How many leading labels fit beside a "+N" for the rest. The first label
-// always shows, truncated if it has to be.
+// How many leading labels fit beside a "+N" for the rest. Widths are summed,
+// not read from offsets, so right-to-left text counts the same way. The first
+// label always shows, truncated if it has to be.
 function fittingCount(ruler: HTMLElement, available: number, total: number) {
   const parts = Array.from(ruler.children) as HTMLElement[]
-  const ends = parts
-    .slice(0, total)
-    .map((part) => part.offsetLeft + part.offsetWidth)
-  if (ends[total - 1]! <= available) return total
+  let end = 0
+  const ends = parts.slice(0, total).map((part) => (end += part.offsetWidth))
+  if (total === 1 || ends[total - 1]! <= available) return total
   const more = parts[total]!.offsetWidth
   let count = total - 1
   while (count > 1 && ends[count - 1]! + more > available) count--
@@ -44,6 +44,8 @@ export function SelectValueSummary({ labels }: { labels: ReactNode[] }) {
     fit()
     const observer = new ResizeObserver(fit)
     observer.observe(box)
+    // Labels change width without the box resizing, e.g. once a font loads.
+    observer.observe(ruler)
     return () => observer.disconnect()
   })
 

@@ -198,6 +198,53 @@ describe('Select multiple value summary', () => {
       .toBe('Bee Gees, Custard, Powderfinger, Regurgitator')
   })
 
+  it('counts the labels that do not fit right to left', async () => {
+    await page.viewport(390, 844)
+    const names = ['הלהקה הראשונה', 'הלהקה השנייה', 'הלהקה השלישית', 'הרביעית']
+    render(
+      <div dir='rtl' style={{ padding: 16 }}>
+        <Field>
+          <Field.Label>להקות</Field.Label>
+          <Select multiple defaultValue={names}>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Icon />
+            </Select.Trigger>
+            <Select.Content>
+              {names.map((name) => (
+                <Select.Item key={name} value={name}>
+                  {name}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select>
+        </Field>
+      </div>
+    )
+    await expect.poll(() => measure().shown).toMatch(/ \+\d$/)
+  })
+
+  it('truncates a lone label without counting it', async () => {
+    await page.viewport(390, 844)
+    render(<Bands multiple defaultValue={['long']} />)
+    await expect.poll(() => measure().shown).toBe(BANDS[4][1])
+  })
+
+  it('recounts when the labels change width', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <Bands
+        multiple
+        defaultValue={BANDS.slice(0, 4).map(([value]) => value)}
+      />
+    )
+    await expect.poll(() => measure().shown).not.toMatch(/\+/)
+    // Let the observer's first report pass, so only a width change can recount.
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    measure().trigger.style.letterSpacing = '2em'
+    await expect.poll(() => measure().shown).toMatch(/ \+\d$/)
+  })
+
   it('keeps every label in the accessible text', async () => {
     await page.viewport(390, 844)
     render(<Bands multiple defaultValue={BANDS.map(([value]) => value)} />)
