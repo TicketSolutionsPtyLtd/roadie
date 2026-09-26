@@ -13,8 +13,8 @@ In development, Roadie warns when a `RoadieProvider` sits inside another one,
 or when a `ThemeProvider` or `Toast.Provider` it already mounts wraps it or
 sits straight inside it.
 
-Top toasts now clear `Pane.Header`. A `Navigator` frame sets
-`--toast-viewport-offset-top` on the document to the bottom of the tallest pane
-header along the top of the window, and keeps it in step as the header
-collapses, so `top-end` and `top-center` toasts sit just below it. Bottom
-positions are unchanged.
+Top toasts now clear `Pane.Header`. A `Navigator` frame tracks the bottom of
+the tallest pane header along the top of the window, and keeps it in step as
+the header collapses, so `top-end` and `top-center` toasts sit just below it.
+`--toast-viewport-offset-top` stays yours and adds to that. Bottom positions
+are unchanged.

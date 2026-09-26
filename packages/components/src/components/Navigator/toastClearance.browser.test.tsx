@@ -12,6 +12,7 @@ import { Toast, type ToastPosition, createToastManager } from '../Toast'
 // Frozen so the stack's geometry can be read straight away.
 const FREEZE = '[data-slot="toast"] { transition: none !important; }'
 const OFFSET = '--toast-viewport-offset-top'
+const CLEARANCE = '--toast-viewport-clear-top'
 
 let removeStylesheets = () => {}
 beforeAll(async () => {
@@ -49,9 +50,16 @@ async function settle() {
   await frames()
 }
 
-async function renderApp(position: ToastPosition) {
-  const manager = createToastManager()
-  const { container } = render(
+function App({
+  manager,
+  position,
+  detailReached = true
+}: {
+  manager: ReturnType<typeof createToastManager>
+  position: ToastPosition
+  detailReached?: boolean
+}) {
+  return (
     <Toast.Provider toastManager={manager}>
       <div style={{ height: '100vh', display: 'grid' }}>
         <Navigator value='/shows/paperbark'>
@@ -61,7 +69,7 @@ async function renderApp(position: ToastPosition) {
             </Pane.Header>
             <p>Paperbark Sessions</p>
           </Pane>
-          <Pane>
+          <Pane reached={detailReached}>
             <Pane.Header onBack={() => {}}>
               <Pane.Title>Paperbark Sessions</Pane.Title>
               <Pane.Search value='' onValueChange={() => {}} />
@@ -72,6 +80,13 @@ async function renderApp(position: ToastPosition) {
       </div>
       <Toast.Viewport position={position} />
     </Toast.Provider>
+  )
+}
+
+async function renderApp(position: ToastPosition) {
+  const manager = createToastManager()
+  const { container, rerender } = render(
+    <App manager={manager} position={position} />
   )
   await settle()
   act(() => {
@@ -99,7 +114,13 @@ async function renderApp(position: ToastPosition) {
   const detail = container.querySelectorAll<HTMLElement>(
     '[data-slot="pane-viewport"]'
   )[1]!
-  return { lowestHeaderEdge, toast, detail }
+  const popToList = async () => {
+    rerender(
+      <App manager={manager} position={position} detailReached={false} />
+    )
+    await settle()
+  }
+  return { lowestHeaderEdge, toast, detail, popToList }
 }
 
 async function collapse(viewport: HTMLElement) {
@@ -138,6 +159,43 @@ describe('a top toast in a Pane app', () => {
     }
   )
 
+  it.each([
+    ['with reduced motion', true],
+    ['with motion', false]
+  ] as const)(
+    'moves to the new top header after a phone pops back, %s',
+    async (_, reduce) => {
+      await commands.reduceMotion(reduce)
+      await page.viewport(PHONE.width, PHONE.height)
+      const { lowestHeaderEdge, toast, popToList } = await renderApp('top-end')
+      const detailEdge = lowestHeaderEdge()
+
+      await popToList()
+      const listEdge = lowestHeaderEdge()
+      expect(listEdge).toBeLessThan(detailEdge)
+      await waitFor(() =>
+        expect(toast().top).toBeCloseTo(listEdge + PHONE.edge, 0)
+      )
+      await commands.reduceMotion(true)
+    }
+  )
+
+  it('adds your own top offset on top of the header', async () => {
+    await page.viewport(WIDE.width, WIDE.height)
+    const removeOffset = useStylesheet(`:root { ${OFFSET}: 40px; }`)
+    try {
+      const { lowestHeaderEdge, toast } = await renderApp('top-end')
+      expect(toast().top).toBeCloseTo(lowestHeaderEdge() + WIDE.edge + 40, 0)
+      cleanup()
+      await frames()
+      expect(
+        getComputedStyle(document.documentElement).getPropertyValue(OFFSET)
+      ).toBe('40px')
+    } finally {
+      removeOffset()
+    }
+  })
+
   it('leaves a bottom toast where it was', async () => {
     await page.viewport(WIDE.width, WIDE.height)
     const { toast } = await renderApp('bottom-end')
@@ -145,12 +203,15 @@ describe('a top toast in a Pane app', () => {
     expect(WIDE.height - toast().bottom).toBeCloseTo(WIDE.edge, 0)
   })
 
-  it('clears the offset once the app unmounts', async () => {
+  it('clears the header clearance once the app unmounts', async () => {
     await page.viewport(WIDE.width, WIDE.height)
     await renderApp('top-end')
+    expect(document.documentElement.style.getPropertyValue(CLEARANCE)).not.toBe(
+      ''
+    )
     cleanup()
     await frames()
 
-    expect(document.documentElement.style.getPropertyValue(OFFSET)).toBe('')
+    expect(document.documentElement.style.getPropertyValue(CLEARANCE)).toBe('')
   })
 })

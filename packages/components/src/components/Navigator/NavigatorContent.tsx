@@ -475,6 +475,10 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
     if (level !== 0 || !content) return
     return clearance.start(content)
   }, [level, clearance])
+  // Every commit, as a pane can become top with no event, such as under reduced motion.
+  useEffect(() => {
+    if (level === 0) clearance.refresh()
+  })
 
   const stackValue = useMemo<PaneStackContextValue>(
     () => ({

@@ -1,5 +1,6 @@
-// Toast reads this; Navigator writes it, so Toast never imports Pane.
-const TOAST_OFFSET_TOP = '--toast-viewport-offset-top'
+// Toast reads this; Navigator writes it, so Toast never imports Pane. Not the
+// public offset: that stays the app's, and adds to this.
+const CLEAR_TOP = '--toast-viewport-clear-top'
 
 const shown = (header: HTMLElement, box: DOMRect) =>
   box.height > 0 &&
@@ -35,8 +36,8 @@ export function createHeaderClearance() {
         edge = Math.max(edge, box.bottom)
     }
     const root = document.documentElement.style
-    if (edge > 0) root.setProperty(TOAST_OFFSET_TOP, `${edge}px`)
-    else root.removeProperty(TOAST_OFFSET_TOP)
+    if (edge > 0) root.setProperty(CLEAR_TOP, `${edge}px`)
+    else root.removeProperty(CLEAR_TOP)
   }
 
   const schedule = () => {
@@ -54,7 +55,7 @@ export function createHeaderClearance() {
     }
   }
 
-  // Resizes catch a collapsing header; transitions catch a pane sliding in or out.
+  // Resizes catch a collapsing header; transitions and animations catch panes moving.
   const start = (frameElement: HTMLElement) => {
     resize =
       typeof ResizeObserver === 'undefined'
@@ -65,6 +66,8 @@ export function createHeaderClearance() {
     window.addEventListener('resize', schedule)
     frameElement.addEventListener('transitionend', schedule)
     frameElement.addEventListener('transitioncancel', schedule)
+    frameElement.addEventListener('animationend', schedule)
+    frameElement.addEventListener('animationcancel', schedule)
     schedule()
     return () => {
       resize?.disconnect()
@@ -72,13 +75,15 @@ export function createHeaderClearance() {
       window.removeEventListener('resize', schedule)
       frameElement.removeEventListener('transitionend', schedule)
       frameElement.removeEventListener('transitioncancel', schedule)
+      frameElement.removeEventListener('animationend', schedule)
+      frameElement.removeEventListener('animationcancel', schedule)
       cancelAnimationFrame(frame)
       frame = 0
-      document.documentElement.style.removeProperty(TOAST_OFFSET_TOP)
+      document.documentElement.style.removeProperty(CLEAR_TOP)
     }
   }
 
-  return { track, start }
+  return { track, start, refresh: schedule }
 }
 
 export type HeaderClearance = ReturnType<typeof createHeaderClearance>

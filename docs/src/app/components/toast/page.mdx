@@ -113,7 +113,7 @@ render(<Positions />)
 
 A fixed bar, cookie banner or chat button can cover the toasts. Set `--toast-viewport-offset-bottom` to its height, on `Toast.Viewport` or any ancestor, and the stack moves up by that much. Top positions read `--toast-viewport-offset-top`. Reach for the offset before moving toasts to the top.
 
-In a [Navigator](/components/navigator) app you don't set the top offset yourself. The frame sets it to the bottom of the tallest [Pane.Header](/components/pane) along the top of the window, so top toasts sit just below the header and follow it as it collapses.
+In a [Navigator](/components/navigator) app, top toasts already clear the tallest [Pane.Header](/components/pane) along the top of the window and follow it as it collapses. Set `--toast-viewport-offset-top` only for other fixed UI; it adds to that.
 
 ```tsx-live-noinline
 function Checkout() {
