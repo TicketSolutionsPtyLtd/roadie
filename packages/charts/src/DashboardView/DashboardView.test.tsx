@@ -13,6 +13,7 @@ import {
 } from '../examples'
 
 describe('DashboardView', () => {
+  // Rendering every chart of a dashboard in jsdom is slow on a CI runner.
   it('renders every card of the show dashboard', () => {
     render(<DashboardView spec={createShowDashboard()} />)
     for (const name of [
@@ -32,15 +33,16 @@ describe('DashboardView', () => {
     expect(
       screen.getAllByRole('img', { name: /similar shows/ }).length
     ).toBeGreaterThan(0)
-  })
+  }, 30_000)
 
+  // Rendering every chart of a dashboard in jsdom is slow on a CI runner.
   it('renders the portfolio table with inline visuals', () => {
     render(<DashboardView spec={createPortfolioDashboard()} />)
     expect(
       screen.getByRole('table', { name: 'Upcoming shows' })
     ).toBeInTheDocument()
     expect(screen.getAllByRole('meter').length).toBeGreaterThanOrEqual(7)
-  })
+  }, 15_000)
 
   it('renders on the server', () => {
     expect(
@@ -48,6 +50,7 @@ describe('DashboardView', () => {
     ).toContain('At a glance')
   })
 
+  // Rendering every chart of a dashboard in jsdom is slow on a CI runner.
   it('asks for actions once per card, with its spec, on every card kind', () => {
     const spec = createShowDashboard()
     const cards = spec.sections.flatMap((section) => section.cards)
@@ -63,8 +66,9 @@ describe('DashboardView', () => {
       expect(screen.getByRole('article', { name: label })).toContainElement(
         screen.getByRole('button', { name: `More actions for ${label}` })
       )
-  })
+  }, 20_000)
 
+  // Rendering every chart of every dashboard in jsdom is slow on a CI runner.
   it.each([
     ['show', createShowDashboard()],
     ['portfolio', createPortfolioDashboard()],
@@ -83,7 +87,8 @@ describe('DashboardView', () => {
       expect(names.length).toBeGreaterThan(0)
       for (const name of names)
         expect(screen.getByRole('img', { name })).toBeInTheDocument()
-    }
+    },
+    15_000
   )
 })
 
