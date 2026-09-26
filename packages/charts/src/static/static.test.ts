@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { CHART_PLOT_KINDS } from '@oztix/roadie-core/dashboard'
+import { chartHex } from '@oztix/roadie-core/dataviz'
 
 import * as staticEntry from '.'
 import { renderChartSvg } from '.'
@@ -93,6 +94,9 @@ describe('renderChartSvg', () => {
     const legend = /<g data-slot="chart-legend"[^>]*>(.*?)<\/g>/.exec(narrow)
     expect(legend?.[1]).toMatch(
       /<rect [^>]*height="6"[^>]*\/><line [^>]*stroke-dasharray="3 3"\/><text [^>]*>Similar shows</
+    )
+    expect(legend?.[1]).toContain(
+      `stroke="${chartHex('light').greys.median}" stroke-width="1.25" stroke-dasharray="3 3"`
     )
   })
 

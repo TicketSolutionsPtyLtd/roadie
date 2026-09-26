@@ -185,6 +185,35 @@ describe('validateDashboard with chart plots', () => {
     expect(result.ok).toBe(true)
   })
 
+  it('passes a band legend key with its median', () => {
+    const legend = [
+      { label: 'Sold', shape: 'line' },
+      { label: 'Similar shows', shape: 'band', median: true }
+    ]
+    const result = validateDashboard(
+      spec([
+        chartCard({ kind: 'line', data: rows, x: 'day', y: 'sold' }, { legend })
+      ])
+    )
+    expect(result.problems).toEqual([])
+  })
+
+  it('reports a legend median that is not a flag', () => {
+    const legend = [
+      { label: 'Similar shows', shape: 'band', median: 'var(--chart-median)' }
+    ]
+    expect(
+      paths(
+        spec([
+          chartCard(
+            { kind: 'line', data: rows, x: 'day', y: 'sold' },
+            { legend }
+          )
+        ])
+      )
+    ).toContain('sections[0].cards[0].legend[0].median')
+  })
+
   it('names a field no row has', () => {
     expect(
       paths(

@@ -122,6 +122,49 @@ describe('DashboardView with a line plot', () => {
   })
 })
 
+describe('DashboardView with a legend', () => {
+  it('keys a band with its median from the description', () => {
+    const { container } = render(
+      <DashboardView
+        spec={{
+          version: 1,
+          title: 'Pace',
+          sections: [
+            {
+              title: 'Sales',
+              cards: [
+                {
+                  id: 'pace',
+                  kind: 'chart',
+                  size: 'md',
+                  label: 'Sales pace',
+                  source: 'Oztix sales.',
+                  plot: { kind: 'static', src: '/pace.svg', alt: 'Pace' },
+                  table: {
+                    columns: [{ key: 'day', header: 'Day', kind: 'number' }],
+                    rows: [{ day: 90 }]
+                  },
+                  legend: [
+                    { label: 'Sold', shape: 'line' },
+                    { label: 'Similar shows', shape: 'band', median: true }
+                  ]
+                }
+              ]
+            }
+          ]
+        }}
+      />
+    )
+    const band = container.querySelector(
+      '[data-slot=chart-legend] [data-shape=band]'
+    )
+    expect(band?.querySelector('line')).toHaveAttribute(
+      'stroke',
+      'var(--chart-median)'
+    )
+  })
+})
+
 describe('DashboardView when a plot fails to draw', () => {
   it('recovers once the spec brings data that draws', () => {
     const build = lineChart.build

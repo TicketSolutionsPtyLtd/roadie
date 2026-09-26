@@ -54,6 +54,21 @@ describe('dashboardSchema', () => {
       expect(withLegendColor(color)).toBe(false)
   })
 
+  it('keys a band with its median as a flag', () => {
+    const withMedian = (median: unknown) =>
+      dashboardSchema.safeParse(
+        spec([
+          {
+            ...chart,
+            legend: [{ label: 'Similar shows', shape: 'band', median }]
+          }
+        ])
+      ).success
+    expect(withMedian(true)).toBe(true)
+    expect(withMedian(false)).toBe(true)
+    expect(withMedian('var(--chart-median)')).toBe(false)
+  })
+
   it('accepts a valid description', () => {
     expect(dashboardSchema.safeParse(spec([stat, chart])).success).toBe(true)
   })
@@ -141,5 +156,15 @@ describe('dashboardSchema', () => {
   it('exports JSON Schema for tool inputs', () => {
     expect(dashboardJsonSchema).toMatchObject({ type: 'object' })
     expect(JSON.stringify(dashboardJsonSchema)).toContain('"stat"')
+    const legends: unknown[] = []
+    JSON.stringify(dashboardJsonSchema, (key, value: unknown) => {
+      if (key === 'legend') legends.push(value)
+      return value
+    })
+    expect(legends.length).toBeGreaterThan(0)
+    for (const legend of legends)
+      expect(legend).toMatchObject({
+        items: { properties: { median: { type: 'boolean' } } }
+      })
   })
 })

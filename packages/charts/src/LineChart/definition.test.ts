@@ -239,7 +239,7 @@ describe('lineChart', () => {
     expect(similar).toMatchObject({
       shape: 'band',
       color: paint.band,
-      median: paint.median
+      median: true
     })
   })
 

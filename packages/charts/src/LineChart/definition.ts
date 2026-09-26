@@ -295,7 +295,7 @@ function aidKeys(
             label: bandLabel,
             shape: 'band' as const,
             color: paint.band,
-            ...(band.median ? { median: paint.median } : {})
+            ...(band.median ? { median: true } : {})
           }
         ]
       : []),

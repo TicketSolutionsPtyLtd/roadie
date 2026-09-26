@@ -28,7 +28,7 @@ describe('ChartLegend', () => {
 })
 
 describe('ChartLegend band key', () => {
-  it('draws a dashed median through the band when given one', () => {
+  it('draws a dashed median through the band when asked', () => {
     const { container } = render(
       <ChartLegend
         items={[
@@ -36,7 +36,7 @@ describe('ChartLegend band key', () => {
             label: 'Similar shows',
             shape: 'band',
             color: 'var(--chart-band)',
-            median: 'var(--chart-median)'
+            median: true
           }
         ]}
       />

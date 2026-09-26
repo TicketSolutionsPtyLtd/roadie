@@ -36,7 +36,9 @@ x values add up their bars, and the `line` keeps the first value it has.
 
 In core, a chart card's `plot` accepts every chart kind, each with its own
 schema exported from `@oztix/roadie-core/dashboard`, and `validateDashboard`
-checks plot fields, annotations outside the data and repeated names.
+checks plot fields, annotations outside the data and repeated names. A legend
+item takes `median: true` to draw a dashed median through a `band` key, in
+`ChartLegend` and in a dashboard description alike.
 `parseWallTime` in `@oztix/roadie-core/dataviz` reads an ISO string as venue
 wall time, and `isWallTime` says whether a value is one. Both accept a space
 in place of the `T`, as in `2026-11-14 19:30`, read the whole string and

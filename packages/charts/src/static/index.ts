@@ -47,11 +47,12 @@ const dashedLine = (x: number, y: number, color: string) =>
   `<line x1="${x}" x2="${x + KEY_WIDTH}" y1="${y}" y2="${y}" stroke="${escapeXml(color)}" stroke-width="1.25" stroke-dasharray="3 3"/>`
 
 function legendKey(item: PlacedItem, y: number, paint: ChartPaint) {
+  // dashedLine escapes its own colour, so it takes the raw one.
   const raw = item.color ?? paint.highlight
   const color = escapeXml(raw)
   const { x } = item
   if (item.shape === 'band')
-    return `<rect x="${x}" y="${y - 3}" width="${KEY_WIDTH}" height="6" rx="2" fill="${color}" fill-opacity="${paint.bandOpacity}"/>${item.median ? dashedLine(x, y, item.median) : ''}`
+    return `<rect x="${x}" y="${y - 3}" width="${KEY_WIDTH}" height="6" rx="2" fill="${color}" fill-opacity="${paint.bandOpacity}"/>${item.median ? dashedLine(x, y, paint.median) : ''}`
   if (item.shape === 'dash') return dashedLine(x, y, raw)
   if (item.shape === 'line' || item.shape === 'dot') {
     const dash =

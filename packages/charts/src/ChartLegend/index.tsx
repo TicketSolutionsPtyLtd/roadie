@@ -10,8 +10,8 @@ export type ChartLegendItem = LegendItem & {
    * dash as those marks.
    */
   slot?: number
-  /** Draws a dashed median in this colour through a `band` key. */
-  median?: string
+  /** Draws a dashed median through a `band` key. */
+  median?: boolean
 }
 export type ChartLegendShape = NonNullable<LegendItem['shape']>
 
@@ -21,6 +21,7 @@ export type ChartLegendProps = Omit<ComponentProps<'ul'>, 'children'> & {
 }
 
 const DEFAULT_COLOR = 'var(--chart-highlight)'
+const MEDIAN_COLOR = 'var(--chart-median)'
 
 function DashedLine({ color }: { color: string }) {
   return (
@@ -45,7 +46,7 @@ export function LegendKey({
   shape?: ChartLegendShape
   color?: string
   slot?: number
-  median?: string
+  median?: boolean
 }) {
   return (
     <svg
@@ -68,7 +69,7 @@ export function LegendKey({
       {shape === 'band' && (
         <>
           <rect x={0} y={1} width={16} height={6} rx={2} fill={color} />
-          {median && <DashedLine color={median} />}
+          {median && <DashedLine color={MEDIAN_COLOR} />}
         </>
       )}
       {shape === 'dash' && <DashedLine color={color} />}

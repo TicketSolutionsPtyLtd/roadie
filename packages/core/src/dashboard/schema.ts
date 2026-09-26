@@ -43,7 +43,8 @@ const legendItem = z.strictObject({
       CHART_TOKEN_REFERENCE,
       'Use a Roadie chart token, like var(--chart-1)'
     )
-    .optional()
+    .optional(),
+  median: z.boolean().optional()
 })
 
 const base = {
