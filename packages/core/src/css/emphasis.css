@@ -16,7 +16,7 @@
 
 @utility emphasis-strong {
   background-color: var(--intent-bg-strong);
-  color: var(--intent-text-inverted);
+  color: var(--intent-text-on-strong);
   border: 1px solid transparent;
   box-shadow: var(--rim-light-subtle);
 
@@ -122,11 +122,9 @@
   }
 }
 
-/* Step 0, not text-inverted: that is the ink for strong fills, which a
-   colour intent keeps dark in light mode. */
 @utility emphasis-inverted {
   background-color: var(--intent-bg-inverted);
-  color: var(--intent-0);
+  color: var(--intent-text-inverted);
 }
 
 @utility emphasis-raised {
@@ -237,7 +235,7 @@
   background-color: oklch(0.1 0.04 var(--intent-hue) / 0.55);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  color: var(--intent-0);
+  color: var(--intent-text-inverted);
 
   @media (prefers-reduced-transparency: reduce) {
     -webkit-backdrop-filter: none;
@@ -249,5 +247,5 @@
    peeks over its page. */
 @utility emphasis-overlay-subtle {
   background-color: oklch(0.1 0.04 var(--intent-hue) / 0.25);
-  color: var(--intent-0);
+  color: var(--intent-text-inverted);
 }

@@ -3,8 +3,9 @@
    Each @utility sets --intent-* CSS custom properties.
    Children inherit via CSS cascade.
 
-   Strong text takes whichever polarity reaches APCA Lc 60 on the fill, the
-   same in both themes. White on brand, accent, info and danger (one step
+   --intent-text-on-strong is the label colour for strong fills. It takes
+   whichever polarity reaches APCA Lc 60 on the fill, the same in both
+   themes. White on brand, accent, info and danger (one step
    deeper to get there), whose hover darkens. Dark on success, warning and
    brand-secondary, whose hover lightens; success and brand-secondary lift
    their fill 10% toward white to get there. WCAG 2 ratios overrate dark text
@@ -33,6 +34,7 @@
   --intent-text-normal: var(--color-neutral-12);
   --intent-text-strong: var(--color-neutral-13);
   --intent-text-inverted: var(--color-neutral-0);
+  --intent-text-on-strong: var(--color-neutral-0);
 
   /* Raw scale steps */
   --intent-0: var(--color-neutral-0);
@@ -93,6 +95,7 @@
   --intent-text-normal: var(--color-neutral-12);
   --intent-text-strong: var(--color-neutral-13);
   --intent-text-inverted: var(--color-neutral-0);
+  --intent-text-on-strong: var(--color-neutral-0);
 
   /* Raw scale steps */
   --intent-0: var(--color-neutral-0);
@@ -149,7 +152,8 @@
   --intent-text-subtle: var(--color-brand-11);
   --intent-text-normal: var(--color-brand-12);
   --intent-text-strong: var(--color-brand-13);
-  --intent-text-inverted: var(--color-neutral-light-0);
+  --intent-text-inverted: var(--color-brand-0);
+  --intent-text-on-strong: var(--color-neutral-light-0);
 
   /* Raw scale steps */
   --intent-0: var(--color-brand-0);
@@ -220,7 +224,8 @@
   --intent-text-subtle: var(--color-brand-secondary-11);
   --intent-text-normal: var(--color-brand-secondary-12);
   --intent-text-strong: var(--color-brand-secondary-13);
-  --intent-text-inverted: var(--color-brand-secondary-13);
+  --intent-text-inverted: var(--color-brand-secondary-0);
+  --intent-text-on-strong: var(--color-brand-secondary-13);
 
   /* Raw scale steps */
   --intent-0: var(--color-brand-secondary-0);
@@ -269,7 +274,7 @@
     --intent-bg-normal: var(--color-brand-secondary-2);
     --intent-bg-raised: var(--color-brand-secondary-2);
     --intent-bg-sunken: var(--color-brand-secondary-0);
-    --intent-text-inverted: var(--color-brand-secondary-0);
+    --intent-text-on-strong: var(--color-brand-secondary-0);
   }
 
   /* Safari 15.4 to 16.1 draw oklch but not color-mix, which would leave these
@@ -307,7 +312,8 @@
   --intent-text-subtle: var(--color-accent-11);
   --intent-text-normal: var(--color-accent-12);
   --intent-text-strong: var(--color-accent-13);
-  --intent-text-inverted: var(--color-neutral-light-0);
+  --intent-text-inverted: var(--color-accent-0);
+  --intent-text-on-strong: var(--color-neutral-light-0);
 
   /* Raw scale steps */
   --intent-0: var(--color-accent-0);
@@ -366,7 +372,8 @@
   --intent-text-subtle: var(--color-danger-11);
   --intent-text-normal: var(--color-danger-12);
   --intent-text-strong: var(--color-danger-13);
-  --intent-text-inverted: var(--color-neutral-light-0);
+  --intent-text-inverted: var(--color-danger-0);
+  --intent-text-on-strong: var(--color-neutral-light-0);
 
   /* Raw scale steps */
   --intent-0: var(--color-danger-0);
@@ -437,7 +444,8 @@
   --intent-text-subtle: var(--color-success-11);
   --intent-text-normal: var(--color-success-12);
   --intent-text-strong: var(--color-success-13);
-  --intent-text-inverted: var(--color-success-13);
+  --intent-text-inverted: var(--color-success-0);
+  --intent-text-on-strong: var(--color-success-13);
 
   /* Raw scale steps */
   --intent-0: var(--color-success-0);
@@ -470,7 +478,7 @@
     --intent-bg-normal: var(--color-success-2);
     --intent-bg-raised: var(--color-success-2);
     --intent-bg-sunken: var(--color-success-0);
-    --intent-text-inverted: var(--color-success-0);
+    --intent-text-on-strong: var(--color-success-0);
   }
 
   /* Safari 15.4 to 16.1 draw oklch but not color-mix, which would leave these
@@ -516,7 +524,8 @@
   --intent-text-subtle: var(--color-warning-11);
   --intent-text-normal: var(--color-warning-12);
   --intent-text-strong: var(--color-warning-13);
-  --intent-text-inverted: var(--color-warning-13);
+  --intent-text-inverted: var(--color-warning-0);
+  --intent-text-on-strong: var(--color-warning-13);
 
   /* Raw scale steps */
   --intent-0: var(--color-warning-0);
@@ -549,7 +558,7 @@
     --intent-bg-normal: var(--color-warning-2);
     --intent-bg-raised: var(--color-warning-2);
     --intent-bg-sunken: var(--color-warning-0);
-    --intent-text-inverted: var(--color-warning-0);
+    --intent-text-on-strong: var(--color-warning-0);
   }
 
   /* Safari 15.4 to 16.1 draw oklch but not color-mix, which would leave these
@@ -587,7 +596,8 @@
   --intent-text-subtle: var(--color-info-11);
   --intent-text-normal: var(--color-info-12);
   --intent-text-strong: var(--color-info-13);
-  --intent-text-inverted: var(--color-neutral-light-0);
+  --intent-text-inverted: var(--color-info-0);
+  --intent-text-on-strong: var(--color-neutral-light-0);
 
   /* Raw scale steps */
   --intent-0: var(--color-info-0);

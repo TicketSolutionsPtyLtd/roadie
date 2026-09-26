@@ -100,7 +100,7 @@ describe('generateAccentScale', () => {
     expect(['white', 'black']).toContain(result.fgOnStrong)
   })
 
-  it('fgOnStrong is white for Oztix Blue, matching text-inverted', async () => {
+  it('fgOnStrong is white for Oztix Blue, matching text-on-strong', async () => {
     const result = await generateAccentScale(oztixBlue)
     expect(result.fgOnStrong).toBe('white')
   })

@@ -70,10 +70,13 @@ function StrongTextTable() {
     <div className='grid gap-4'>
       <h3 className='text-display-ui-4 text-strong'>Text on strong fills</h3>
       <p className='text-subtle'>
-        <Code>text-inverted</Code> is the text colour for a strong fill. Each
-        intent uses white or dark text, whichever reads better on its fill.
-        Roadie checks these labels with APCA, the contrast method in the WCAG 3
-        draft, and needs Lc 60 or more at rest, on hover and when pressed.
+        <Code>text-on-strong</Code> is the label colour for strong fills, chosen
+        per intent: white or dark text, whichever reads better on the fill.{' '}
+        <Code>emphasis-strong</Code> uses it. Roadie checks these labels with
+        APCA, the contrast method in the WCAG 3 draft, and needs Lc 60 or more
+        at rest, on hover and when pressed. <Code>text-inverted</Code> is
+        different: it&apos;s the page&apos;s text colour flipped, and pairs with{' '}
+        <Code>bg-inverted</Code>.
       </p>
       <p className='text-subtle'>
         WCAG 2 ratios rate dark text on bright mid tones higher than it reads,
@@ -226,9 +229,19 @@ export default function ColorsPage() {
                 <td className='py-2 pr-4 text-strong'>inverted</td>
                 <td className='py-2 pr-4'>step 12</td>
                 <td className='py-2 pr-4'>
-                  white or step 13, per intent (see below)
+                  step 0: the page&apos;s text flipped, pairs with{' '}
+                  <Code>bg-inverted</Code>
                 </td>
                 <td className='py-2'>step 12</td>
+              </tr>
+              <tr>
+                <td className='py-2 pr-4 text-strong'>on-strong</td>
+                <td className='py-2 pr-4'>None</td>
+                <td className='py-2 pr-4'>
+                  white or step 13, chosen per intent: the label colour for
+                  strong fills (see below)
+                </td>
+                <td className='py-2'>None</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>raised</td>

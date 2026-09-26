@@ -29,6 +29,7 @@
   --text-color-subtle: var(--intent-text-subtle);
   --text-color-strong: var(--intent-text-strong);
   --text-color-inverted: var(--intent-text-inverted);
+  --text-color-on-strong: var(--intent-text-on-strong);
   --text-color-mark: var(--intent-mark-text);
 
   /* Borders: border-subtle, border-b-subtler, divide-subtle, etc. */

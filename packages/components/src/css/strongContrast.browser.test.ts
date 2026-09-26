@@ -158,6 +158,37 @@ describe.each(MODES)('%s mode', (mode) => {
       await frame()
       expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
+
+    it('reads at Lc 60 with text-inverted on bg-inverted', async () => {
+      setTheme(mode)
+      const target = mount(
+        `<div data-target class="intent-${intent} bg-inverted text-inverted font-bold">Sold out</div>`
+      )
+      await frame()
+      expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
+    })
+
+    it('reads at Lc 60 with text-on-strong on bg-strong', async () => {
+      setTheme(mode)
+      const target = mount(
+        `<div data-target class="intent-${intent} bg-strong text-on-strong font-bold">Sold out</div>`
+      )
+      await frame()
+      expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
+    })
+
+    it('flips text-inverted with the page, unlike text-on-strong', async () => {
+      setTheme(mode)
+      const target = mount(
+        `<div class="intent-${intent}"><span data-target class="text-inverted"></span><span data-page class="text-normal"></span></div>`
+      )
+      await frame()
+      const page = host!.querySelector<HTMLElement>('[data-page]')!
+      const inverted = Math.abs(
+        apcaLc(getComputedStyle(target).color, getComputedStyle(page).color)
+      )
+      expect(inverted).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
+    })
   })
 
   describe.each(ACCENTS)('an accent of $name', (accent) => {
