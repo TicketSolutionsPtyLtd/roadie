@@ -84,7 +84,11 @@ description, not as part of its name.
   </div>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Invalid</p>
-    <Switch label='I accept the terms' invalid />
+    <Switch label='Instant payouts' invalid />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Invalid and on</p>
+    <Switch label='Instant payouts' invalid defaultChecked />
   </div>
 </div>
 ```
@@ -97,15 +101,17 @@ Inside [Field](/components/field), Switch takes `invalid`, `required` and
 
 ```tsx-live-noinline
 function Example() {
-  const [accepted, setAccepted] = useState(false)
+  const [instant, setInstant] = useState(true)
   return (
-    <Field invalid={!accepted} required className='max-w-md'>
+    <Field invalid={instant} className='max-w-md'>
       <Switch
-        label='I accept the event terms'
-        checked={accepted}
-        onCheckedChange={setAccepted}
+        label='Instant payouts'
+        checked={instant}
+        onCheckedChange={setInstant}
       />
-      <Field.ErrorText>Accept the terms to buy tickets.</Field.ErrorText>
+      <Field.ErrorText>
+        Verify your bank account to turn on instant payouts.
+      </Field.ErrorText>
     </Field>
   )
 }
@@ -136,7 +142,8 @@ render(<Example />)
 ## Guidelines
 
 - **Use a switch when the change applies at once**, like a notification
-  setting. For a choice that waits for a submit button, use a radio group.
+  setting. For a yes or no choice that waits for a submit button, like
+  accepting terms, use a [checkbox](/components/checkbox).
 - **Name the setting, not the action.** "Presale alerts", not "Turn on presale
   alerts". The switch already says on or off.
 
