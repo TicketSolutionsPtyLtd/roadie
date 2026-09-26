@@ -1,6 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { getAccentChromaSync, getOklchHueSync } from '@oztix/roadie-core/colors'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { useStylesheet } from '../components/Pane/testUtils'
 import { setHoverCapable } from './testUtils'
@@ -19,15 +21,26 @@ const INTENTS = [
   'info'
 ]
 const MODES = ['light', 'dark'] as const
+// Accents as ThemeProvider sets them from a hex, saturated ones included.
 const ACCENTS = [
-  { name: 'Oztix blue', hue: 247, chroma: 0.168 },
-  { name: 'red', hue: 28, chroma: 0.2 },
-  { name: 'yellow', hue: 86, chroma: 0.16 },
-  { name: 'green', hue: 145, chroma: 0.2 },
-  { name: 'violet', hue: 303, chroma: 0.25 },
-  { name: 'pink', hue: 350, chroma: 0.25 }
-]
-const AA_TEXT = 4.5
+  '#0091eb',
+  '#e5484d',
+  '#b68200',
+  '#16a34a',
+  '#7c3aed',
+  '#e83068',
+  '#0000f0',
+  '#00ff00',
+  '#ffff00',
+  '#ff00ff',
+  '#00ffff'
+].map((hex) => ({
+  name: hex,
+  hue: Math.round(getOklchHueSync(hex)),
+  chroma: +getAccentChromaSync(hex).toFixed(4)
+}))
+// APCA's floor for bold, button-sized labels.
+const STRONG_LABEL_LC = 60
 const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
@@ -70,24 +83,32 @@ function toRgb(color: string) {
   canvas.clearRect(0, 0, 1, 1)
   canvas.fillStyle = color
   canvas.fillRect(0, 0, 1, 1)
-  return Array.from(canvas.getImageData(0, 0, 1, 1).data.slice(0, 3))
+  return Array.from(canvas.getImageData(0, 0, 1, 1).data.slice(0, 3)).map(
+    (channel) => channel / 255
+  ) as [number, number, number]
 }
 
-function luminance(color: string) {
-  const [r, g, b] = toRgb(color).map((channel) => {
-    const c = channel / 255
-    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
-  })
-  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!
+// APCA-W3 0.0.98G, constants as published in Myndex/apca-w3
+// (src/apca-w3.js, SA98G). Returns Lc; negative is light text on dark.
+function apcaLc(text: string, background: string) {
+  const screenY = ([r, g, b]: [number, number, number]) => {
+    const y = 0.2126729 * r ** 2.4 + 0.7151522 * g ** 2.4 + 0.072175 * b ** 2.4
+    return y < 0.022 ? y + (0.022 - y) ** 1.414 : y
+  }
+  const textY = screenY(toRgb(text))
+  const backgroundY = screenY(toRgb(background))
+  if (Math.abs(backgroundY - textY) < 0.0005) return 0
+  if (backgroundY > textY) {
+    const sapc = (backgroundY ** 0.56 - textY ** 0.57) * 1.14
+    return sapc < 0.1 ? 0 : (sapc - 0.027) * 100
+  }
+  const sapc = (backgroundY ** 0.65 - textY ** 0.62) * 1.14
+  return sapc > -0.1 ? 0 : (sapc + 0.027) * 100
 }
 
 function contrast(element: HTMLElement) {
-  const style = getComputedStyle(element)
-  const [light, dark] = [
-    luminance(style.backgroundColor),
-    luminance(style.color)
-  ].sort((a, b) => b - a)
-  return (light! + 0.05) / (dark! + 0.05)
+  const { color, backgroundColor } = getComputedStyle(element)
+  return Math.abs(apcaLc(color, backgroundColor))
 }
 
 function setTheme(mode: (typeof MODES)[number], accent = ACCENTS[0]!) {
@@ -98,18 +119,18 @@ function setTheme(mode: (typeof MODES)[number], accent = ACCENTS[0]!) {
 }
 
 const strongButton = (intent: string, extra = '') =>
-  `<button data-target class="intent-${intent} emphasis-strong is-interactive ${extra} h-10 rounded-full px-4 text-sm">Buy tickets</button>`
+  `<button data-target class="intent-${intent} emphasis-strong is-interactive ${extra} h-10 rounded-full px-4 text-sm font-bold">Buy tickets</button>`
 
 describe.each(MODES)('%s mode', (mode) => {
   describe.each(INTENTS)('intent-%s', (intent) => {
-    it('reads at AA on a strong fill', async () => {
+    it('reads at Lc 60 on a strong fill', async () => {
       setTheme(mode)
       const target = mount(strongButton(intent))
       await frame()
-      expect(contrast(target)).toBeGreaterThanOrEqual(AA_TEXT)
+      expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
 
-    it('still reads at AA while hovered', async () => {
+    it('still reads at Lc 60 while hovered', async () => {
       setTheme(mode)
       setHoverCapable(true)
       const target = mount(strongButton(intent))
@@ -117,32 +138,46 @@ describe.each(MODES)('%s mode', (mode) => {
       await userEvent.hover(target)
       await frame()
       expect(getComputedStyle(target).backgroundColor).not.toBe(rest)
-      expect(contrast(target)).toBeGreaterThanOrEqual(AA_TEXT)
+      expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
 
-    it('still reads at AA while pressed', async () => {
+    it('still reads at Lc 60 while pressed', async () => {
       setTheme(mode)
       const target = mount(strongButton(intent, 'is-active'))
       await frame()
-      expect(contrast(target)).toBeGreaterThanOrEqual(AA_TEXT)
+      expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
 
-    it('reads at AA on an inverted fill', async () => {
+    it('reads at Lc 60 on an inverted fill', async () => {
       setTheme(mode)
       const target = mount(
         `<div data-target class="intent-${intent} emphasis-inverted">Sold out</div>`
       )
       await frame()
-      expect(contrast(target)).toBeGreaterThanOrEqual(AA_TEXT)
+      expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
   })
 
   describe.each(ACCENTS)('an accent of $name', (accent) => {
-    it('reads at AA on a strong accent fill', async () => {
+    it('reads at Lc 60 on a strong accent fill', async () => {
       setTheme(mode, accent)
       const target = mount(strongButton('accent'))
       await frame()
-      expect(contrast(target)).toBeGreaterThanOrEqual(AA_TEXT)
+      expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
+    })
+
+    it('still reads at Lc 60 while hovered or pressed', async () => {
+      setTheme(mode, accent)
+      setHoverCapable(true)
+      const hovered = mount(strongButton('accent'))
+      await userEvent.hover(hovered)
+      await frame()
+      expect(contrast(hovered)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
+      host?.remove()
+
+      const pressed = mount(strongButton('accent', 'is-active'))
+      await frame()
+      expect(contrast(pressed)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
   })
 })

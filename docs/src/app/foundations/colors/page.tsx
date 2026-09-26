@@ -48,6 +48,81 @@ function ColorScale({ intent }: { intent: string }) {
   )
 }
 
+const strongText = [
+  { intent: 'neutral', text: 'White', dark: 'Step 0', apca: 107, wcag: 18.7 },
+  { intent: 'brand', text: 'White', dark: 'White', apca: 66, wcag: 3.4 },
+  {
+    intent: 'brand-secondary',
+    text: 'Step 13',
+    dark: 'Step 0',
+    apca: 61,
+    wcag: 8.6
+  },
+  { intent: 'accent', text: 'White', dark: 'White', apca: 66, wcag: 3.4 },
+  { intent: 'danger', text: 'White', dark: 'White', apca: 64, wcag: 3.2 },
+  { intent: 'success', text: 'Step 13', dark: 'Step 0', apca: 62, wcag: 8.3 },
+  { intent: 'warning', text: 'Step 13', dark: 'Step 0', apca: 62, wcag: 8.3 },
+  { intent: 'info', text: 'White', dark: 'White', apca: 68, wcag: 3.5 }
+] as const
+
+function StrongTextTable() {
+  return (
+    <div className='grid gap-4'>
+      <h3 className='text-display-ui-4 text-strong'>Text on strong fills</h3>
+      <p className='text-subtle'>
+        <Code>text-inverted</Code> is the text colour for a strong fill. Each
+        intent uses white or dark text, whichever reads better on its fill.
+        Roadie checks these labels with APCA, the contrast method in the WCAG 3
+        draft, and needs Lc 60 or more at rest, on hover and when pressed.
+      </p>
+      <p className='text-subtle'>
+        WCAG 2 ratios rate dark text on bright mid tones higher than it reads,
+        so they would pick dark text on blue. White on Spotlight blue is 3.4:1.
+        That passes WCAG 2 for large text and controls (3:1), not for body text
+        (4.5:1). Danger, success and brand-secondary move their fill slightly to
+        reach Lc 60.
+      </p>
+      <p className='text-subtle'>
+        A custom accent keeps white text too. <Code>ThemeProvider</Code> caps
+        its chroma to what sRGB can show at step 9, because a browser clips a
+        more saturated fill and the clip makes it lighter.
+      </p>
+      <div className='overflow-x-auto'>
+        <table className='w-full text-sm'>
+          <thead>
+            <tr className='border-b border-subtle'>
+              <th className='py-2 pr-4 text-left font-semibold'>Intent</th>
+              <th className='py-2 pr-4 text-left font-semibold'>Light</th>
+              <th className='py-2 pr-4 text-left font-semibold'>Dark</th>
+              <th className='py-2 pr-4 text-left font-semibold'>
+                APCA Lc, light
+              </th>
+              <th className='py-2 text-left font-semibold'>WCAG 2, light</th>
+            </tr>
+          </thead>
+          <tbody className='divide-y divide-subtler text-subtle'>
+            {strongText.map((row) => (
+              <tr key={row.intent}>
+                <td className='py-2 pr-4'>
+                  <span
+                    className={`intent-${row.intent} emphasis-strong rounded-full px-2 py-0.5 text-xs font-semibold`}
+                  >
+                    {row.intent}
+                  </span>
+                </td>
+                <td className='py-2 pr-4'>{row.text}</td>
+                <td className='py-2 pr-4'>{row.dark}</td>
+                <td className='py-2 pr-4'>{row.apca}</td>
+                <td className='py-2'>{row.wcag}:1</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 function IntentDemo({ intent }: { intent: string }) {
   return (
     <div className={`intent-${intent} grid gap-3`}>
@@ -140,7 +215,7 @@ export default function ColorsPage() {
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>strong</td>
-                <td className='py-2 pr-4'>step 9 (neutral: 13)</td>
+                <td className='py-2 pr-4'>step 9 (neutral: 13, danger: 10)</td>
                 <td className='py-2 pr-4'>step 13</td>
                 <td className='py-2'>step 9</td>
               </tr>
@@ -148,7 +223,7 @@ export default function ColorsPage() {
                 <td className='py-2 pr-4 text-strong'>inverted</td>
                 <td className='py-2 pr-4'>step 12</td>
                 <td className='py-2 pr-4'>
-                  step 0 (colour intents in light mode: 13)
+                  white or step 13, per intent (see below)
                 </td>
                 <td className='py-2'>step 12</td>
               </tr>
@@ -271,13 +346,7 @@ export default function ColorsPage() {
           Use <Code>emphasis-*</Code> shortcuts for combined bg + text +
           interactive states, or individual utilities for composability.
         </p>
-        <p className='text-subtle'>
-          <Code>text-inverted</Code> is the text colour for a strong fill. On a
-          colour intent the fill is a mid tone, so the text is dark in both
-          modes and reads at 4.5:1 or better. On neutral the fill is near black
-          in light mode, so the text is white. Hover and press lighten a colour
-          fill, which keeps the text readable.
-        </p>
+        <StrongTextTable />
         <div className='grid gap-6'>
           {intents.map((intent) => (
             <IntentDemo key={intent} intent={intent} />

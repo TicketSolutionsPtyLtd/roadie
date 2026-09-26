@@ -3,10 +3,12 @@
    Each @utility sets --intent-* CSS custom properties.
    Children inherit via CSS cascade.
 
-   A colour intent's strong fill (step 9) is a mid tone, where white text
-   falls short of 4.5:1, so its ink is dark in both themes and hover lightens
-   the fill away from it. Neutral's strong fill is near black, so its ink
-   stays white.
+   Strong text takes whichever polarity reaches APCA Lc 60 on the fill, the
+   same in both themes. White on brand, accent, info and danger (one step
+   deeper to get there), whose hover darkens. Dark on success, warning and
+   brand-secondary, whose hover lightens; success and brand-secondary lift
+   their fill 10% toward white to get there. WCAG 2 ratios overrate dark text
+   on these mid tones, so they don't decide it.
    ═══════════════════════════════════════════════════════════ */
 
 /* --- Default intent (neutral) on :root --- */
@@ -131,16 +133,8 @@
   --intent-hue: 247;
   --intent-bg-normal: var(--color-brand-1);
   --intent-bg-strong: var(--color-brand-9);
-  --intent-bg-strong-hover: color-mix(
-    in oklab,
-    var(--color-brand-9) 80%,
-    var(--color-brand-0)
-  );
-  --intent-bg-strong-active: color-mix(
-    in oklab,
-    var(--color-brand-9) 65%,
-    var(--color-brand-0)
-  );
+  --intent-bg-strong-hover: var(--color-brand-11);
+  --intent-bg-strong-active: var(--color-brand-12);
   --intent-bg-inverted: var(--color-brand-12);
   --intent-bg-raised: var(--color-brand-1);
   --intent-bg-sunken: var(--color-brand-2);
@@ -155,7 +149,7 @@
   --intent-text-subtle: var(--color-brand-11);
   --intent-text-normal: var(--color-brand-12);
   --intent-text-strong: var(--color-brand-13);
-  --intent-text-inverted: var(--color-brand-13);
+  --intent-text-inverted: var(--color-neutral-light-0);
 
   /* Raw scale steps */
   --intent-0: var(--color-brand-0);
@@ -188,9 +182,8 @@
     --intent-bg-normal: var(--color-brand-2);
     --intent-bg-raised: var(--color-brand-2);
     --intent-bg-sunken: var(--color-brand-0);
-    --intent-bg-strong-hover: var(--color-brand-11);
-    --intent-bg-strong-active: var(--color-brand-12);
-    --intent-text-inverted: var(--color-brand-0);
+    --intent-bg-strong-hover: var(--color-brand-8);
+    --intent-bg-strong-active: var(--color-brand-7);
   }
 }
 
@@ -198,16 +191,20 @@
 @utility intent-brand-secondary {
   --intent-hue: 42;
   --intent-bg-normal: var(--color-brand-secondary-1);
-  --intent-bg-strong: var(--color-brand-secondary-9);
+  --intent-bg-strong: color-mix(
+    in oklab,
+    var(--color-brand-secondary-9) 90%,
+    var(--color-neutral-light-0)
+  );
   --intent-bg-strong-hover: color-mix(
     in oklab,
-    var(--color-brand-secondary-9) 80%,
-    var(--color-brand-secondary-0)
+    var(--color-brand-secondary-9) 75%,
+    var(--color-neutral-light-0)
   );
   --intent-bg-strong-active: color-mix(
     in oklab,
-    var(--color-brand-secondary-9) 65%,
-    var(--color-brand-secondary-0)
+    var(--color-brand-secondary-9) 60%,
+    var(--color-neutral-light-0)
   );
   --intent-bg-inverted: var(--color-brand-secondary-12);
   --intent-bg-raised: var(--color-brand-secondary-1);
@@ -272,8 +269,6 @@
     --intent-bg-normal: var(--color-brand-secondary-2);
     --intent-bg-raised: var(--color-brand-secondary-2);
     --intent-bg-sunken: var(--color-brand-secondary-0);
-    --intent-bg-strong-hover: var(--color-brand-secondary-11);
-    --intent-bg-strong-active: var(--color-brand-secondary-12);
     --intent-text-inverted: var(--color-brand-secondary-0);
   }
 }
@@ -283,16 +278,8 @@
   --intent-hue: var(--accent-hue, 247);
   --intent-bg-normal: var(--color-accent-1);
   --intent-bg-strong: var(--color-accent-9);
-  --intent-bg-strong-hover: color-mix(
-    in oklab,
-    var(--color-accent-9) 80%,
-    var(--color-accent-0)
-  );
-  --intent-bg-strong-active: color-mix(
-    in oklab,
-    var(--color-accent-9) 65%,
-    var(--color-accent-0)
-  );
+  --intent-bg-strong-hover: var(--color-accent-11);
+  --intent-bg-strong-active: var(--color-accent-12);
   --intent-bg-inverted: var(--color-accent-12);
   --intent-bg-raised: var(--color-accent-1);
   --intent-bg-sunken: var(--color-accent-2);
@@ -307,7 +294,7 @@
   --intent-text-subtle: var(--color-accent-11);
   --intent-text-normal: var(--color-accent-12);
   --intent-text-strong: var(--color-accent-13);
-  --intent-text-inverted: var(--color-accent-13);
+  --intent-text-inverted: var(--color-neutral-light-0);
 
   /* Raw scale steps */
   --intent-0: var(--color-accent-0);
@@ -340,9 +327,8 @@
     --intent-bg-normal: var(--color-accent-2);
     --intent-bg-raised: var(--color-accent-2);
     --intent-bg-sunken: var(--color-accent-0);
-    --intent-bg-strong-hover: var(--color-accent-11);
-    --intent-bg-strong-active: var(--color-accent-12);
-    --intent-text-inverted: var(--color-accent-0);
+    --intent-bg-strong-hover: var(--color-accent-8);
+    --intent-bg-strong-active: var(--color-accent-7);
   }
 }
 
@@ -350,17 +336,9 @@
 @utility intent-danger {
   --intent-hue: 28;
   --intent-bg-normal: var(--color-danger-1);
-  --intent-bg-strong: var(--color-danger-9);
-  --intent-bg-strong-hover: color-mix(
-    in oklab,
-    var(--color-danger-9) 80%,
-    var(--color-danger-0)
-  );
-  --intent-bg-strong-active: color-mix(
-    in oklab,
-    var(--color-danger-9) 65%,
-    var(--color-danger-0)
-  );
+  --intent-bg-strong: var(--color-danger-10);
+  --intent-bg-strong-hover: var(--color-danger-11);
+  --intent-bg-strong-active: var(--color-danger-12);
   --intent-bg-inverted: var(--color-danger-12);
   --intent-bg-raised: var(--color-danger-1);
   --intent-bg-sunken: var(--color-danger-2);
@@ -375,7 +353,7 @@
   --intent-text-subtle: var(--color-danger-11);
   --intent-text-normal: var(--color-danger-12);
   --intent-text-strong: var(--color-danger-13);
-  --intent-text-inverted: var(--color-danger-13);
+  --intent-text-inverted: var(--color-neutral-light-0);
 
   /* Raw scale steps */
   --intent-0: var(--color-danger-0);
@@ -408,9 +386,8 @@
     --intent-bg-normal: var(--color-danger-2);
     --intent-bg-raised: var(--color-danger-2);
     --intent-bg-sunken: var(--color-danger-0);
-    --intent-bg-strong-hover: var(--color-danger-11);
-    --intent-bg-strong-active: var(--color-danger-12);
-    --intent-text-inverted: var(--color-danger-0);
+    --intent-bg-strong-hover: var(--color-danger-8);
+    --intent-bg-strong-active: var(--color-danger-7);
   }
 }
 
@@ -418,16 +395,20 @@
 @utility intent-success {
   --intent-hue: 185;
   --intent-bg-normal: var(--color-success-1);
-  --intent-bg-strong: var(--color-success-9);
+  --intent-bg-strong: color-mix(
+    in oklab,
+    var(--color-success-9) 90%,
+    var(--color-neutral-light-0)
+  );
   --intent-bg-strong-hover: color-mix(
     in oklab,
-    var(--color-success-9) 80%,
-    var(--color-success-0)
+    var(--color-success-9) 75%,
+    var(--color-neutral-light-0)
   );
   --intent-bg-strong-active: color-mix(
     in oklab,
-    var(--color-success-9) 65%,
-    var(--color-success-0)
+    var(--color-success-9) 60%,
+    var(--color-neutral-light-0)
   );
   --intent-bg-inverted: var(--color-success-12);
   --intent-bg-raised: var(--color-success-1);
@@ -476,8 +457,6 @@
     --intent-bg-normal: var(--color-success-2);
     --intent-bg-raised: var(--color-success-2);
     --intent-bg-sunken: var(--color-success-0);
-    --intent-bg-strong-hover: var(--color-success-11);
-    --intent-bg-strong-active: var(--color-success-12);
     --intent-text-inverted: var(--color-success-0);
   }
 }
@@ -489,13 +468,13 @@
   --intent-bg-strong: var(--color-warning-9);
   --intent-bg-strong-hover: color-mix(
     in oklab,
-    var(--color-warning-9) 80%,
-    var(--color-warning-0)
+    var(--color-warning-9) 85%,
+    var(--color-neutral-light-0)
   );
   --intent-bg-strong-active: color-mix(
     in oklab,
-    var(--color-warning-9) 65%,
-    var(--color-warning-0)
+    var(--color-warning-9) 70%,
+    var(--color-neutral-light-0)
   );
   --intent-bg-inverted: var(--color-warning-12);
   --intent-bg-raised: var(--color-warning-1);
@@ -544,8 +523,6 @@
     --intent-bg-normal: var(--color-warning-2);
     --intent-bg-raised: var(--color-warning-2);
     --intent-bg-sunken: var(--color-warning-0);
-    --intent-bg-strong-hover: var(--color-warning-11);
-    --intent-bg-strong-active: var(--color-warning-12);
     --intent-text-inverted: var(--color-warning-0);
   }
 }
@@ -555,16 +532,8 @@
   --intent-hue: 303;
   --intent-bg-normal: var(--color-info-1);
   --intent-bg-strong: var(--color-info-9);
-  --intent-bg-strong-hover: color-mix(
-    in oklab,
-    var(--color-info-9) 80%,
-    var(--color-info-0)
-  );
-  --intent-bg-strong-active: color-mix(
-    in oklab,
-    var(--color-info-9) 65%,
-    var(--color-info-0)
-  );
+  --intent-bg-strong-hover: var(--color-info-11);
+  --intent-bg-strong-active: var(--color-info-12);
   --intent-bg-inverted: var(--color-info-12);
   --intent-bg-raised: var(--color-info-1);
   --intent-bg-sunken: var(--color-info-2);
@@ -579,7 +548,7 @@
   --intent-text-subtle: var(--color-info-11);
   --intent-text-normal: var(--color-info-12);
   --intent-text-strong: var(--color-info-13);
-  --intent-text-inverted: var(--color-info-13);
+  --intent-text-inverted: var(--color-neutral-light-0);
 
   /* Raw scale steps */
   --intent-0: var(--color-info-0);
@@ -612,8 +581,7 @@
     --intent-bg-normal: var(--color-info-2);
     --intent-bg-raised: var(--color-info-2);
     --intent-bg-sunken: var(--color-info-0);
-    --intent-bg-strong-hover: var(--color-info-11);
-    --intent-bg-strong-active: var(--color-info-12);
-    --intent-text-inverted: var(--color-info-0);
+    --intent-bg-strong-hover: var(--color-info-8);
+    --intent-bg-strong-active: var(--color-info-7);
   }
 }
