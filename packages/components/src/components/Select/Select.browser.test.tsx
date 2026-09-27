@@ -1,10 +1,11 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { Select } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
+import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
 const STILL = '*, *::before, *::after { transition: none !important }'
@@ -28,7 +29,6 @@ const fill = (element: Element) => getComputedStyle(element).backgroundColor
 
 async function tapJazz() {
   render(
-    // @ts-expect-error Roadie's Select types don't take `multiple` yet
     <Select multiple>
       <Select.Trigger aria-label='Genres'>
         <Select.Value placeholder='Pick genres' />
@@ -85,5 +85,267 @@ describe('Select options on a touch screen', () => {
     await expect.poll(() => document.activeElement).toBe(second)
 
     expect(fill(second)).not.toBe(fill(first))
+  })
+})
+
+const BANDS = [
+  ['bee-gees', 'Bee Gees'],
+  ['custard', 'Custard'],
+  ['powderfinger', 'Powderfinger'],
+  ['regurgitator', 'Regurgitator'],
+  ['long', 'The Midnight Paddock Collective and the Very Long Name Orchestra']
+] as const
+
+function Bands({
+  multiple,
+  defaultValue
+}: {
+  multiple?: boolean
+  defaultValue: string | string[]
+}) {
+  return (
+    <div data-testid='container' style={{ padding: 16 }}>
+      <Field>
+        <Field.Label>Bands</Field.Label>
+        <Select multiple={multiple} defaultValue={defaultValue}>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick bands' />
+            <Select.Icon />
+          </Select.Trigger>
+          <Select.Content>
+            {BANDS.map(([value, label]) => (
+              <Select.Item key={value} value={value}>
+                {label}
+              </Select.Item>
+            ))}
+          </Select.Content>
+        </Select>
+      </Field>
+    </div>
+  )
+}
+
+async function nudgeFrames() {
+  await userEvent.hover(document.body)
+  await new Promise(requestAnimationFrame)
+  await new Promise(requestAnimationFrame)
+}
+
+function measure() {
+  const trigger = screen.getByRole('combobox')
+  const field = trigger.parentElement!
+  const icon = trigger.querySelector('[data-slot="select-icon"]')!
+  const box = trigger.getBoundingClientRect()
+  return {
+    trigger,
+    overflow: box.right - field.getBoundingClientRect().right,
+    iconInside: icon.getBoundingClientRect().right <= box.right,
+    shown: Array.from(
+      trigger.querySelectorAll(
+        '[data-slot="select-value-shown"], [data-slot="select-value-more"]'
+      )
+    )
+      .map((part) => part.textContent)
+      .join(' ')
+  }
+}
+
+describe.each([
+  ['a phone', 390, 844],
+  ['a desktop', 1280, 800]
+])('Select trigger on %s', (_, width, height) => {
+  beforeAll(() => page.viewport(width, height))
+  afterAll(() => page.viewport(1920, 1080))
+
+  it.each([1, 2, 3, 4])(
+    'stays inside its container with %i selected',
+    async (count) => {
+      render(
+        <Bands
+          multiple
+          defaultValue={BANDS.slice(0, count).map(([value]) => value)}
+        />
+      )
+      await expect.poll(() => measure().overflow).toBeLessThanOrEqual(0)
+      expect(measure().iconInside).toBe(true)
+    }
+  )
+
+  it('stays inside its container with a long label', async () => {
+    render(<Bands defaultValue='long' />)
+    await expect.poll(() => measure().overflow).toBeLessThanOrEqual(0)
+    const value = measure().trigger.querySelector('[data-slot="select-value"]')!
+    if (width < 768)
+      expect(value.scrollWidth).toBeGreaterThan(value.clientWidth)
+    expect(measure().iconInside).toBe(true)
+  })
+})
+
+describe('Select multiple value summary', () => {
+  afterAll(() => page.viewport(1920, 1080))
+
+  it('counts the labels that do not fit', async () => {
+    await page.viewport(390, 844)
+    render(<Bands multiple defaultValue={BANDS.map(([value]) => value)} />)
+    await expect.poll(() => measure().shown).toMatch(/ \+\d$/)
+    expect(measure().shown).toMatch(/^Bee Gees/)
+  })
+
+  it('lists every label when they fit', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <Bands
+        multiple
+        defaultValue={BANDS.slice(0, 4).map(([value]) => value)}
+      />
+    )
+    await expect
+      .poll(() => measure().shown)
+      .toBe('Bee Gees, Custard, Powderfinger, Regurgitator')
+  })
+
+  it('counts the labels that do not fit right to left', async () => {
+    await page.viewport(390, 844)
+    const names = ['הלהקה הראשונה', 'הלהקה השנייה', 'הלהקה השלישית', 'הרביעית']
+    render(
+      <div dir='rtl' style={{ padding: 16 }}>
+        <Field>
+          <Field.Label>להקות</Field.Label>
+          <Select multiple defaultValue={names}>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Icon />
+            </Select.Trigger>
+            <Select.Content>
+              {names.map((name) => (
+                <Select.Item key={name} value={name}>
+                  {name}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select>
+        </Field>
+      </div>
+    )
+    await expect.poll(() => measure().shown).toMatch(/ \+\d$/)
+  })
+
+  it('makes room for the count it shows, not the largest one', async () => {
+    await page.viewport(1280, 800)
+    const bands = Array.from({ length: 11 }, (_, index) => `Band ${index + 1}`)
+    render(
+      <div data-testid='sized' style={{ width: 1200 }}>
+        <Select multiple defaultValue={bands}>
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Icon />
+          </Select.Trigger>
+          <Select.Content>
+            {bands.map((band) => (
+              <Select.Item key={band} value={band}>
+                {band}
+              </Select.Item>
+            ))}
+          </Select.Content>
+        </Select>
+      </div>
+    )
+    await expect.poll(() => measure().shown).not.toMatch(/\+/)
+    const value = measure().trigger.querySelector('[data-slot="select-value"]')!
+    const ruler = value.querySelector('.invisible')!
+    const widths = Array.from(
+      ruler.children,
+      (part) => (part as HTMLElement).offsetWidth
+    )
+    const tenLabels = widths.slice(0, 10).reduce((sum, width) => sum + width)
+    const probe = document.createElement('span')
+    probe.className = 'ps-1'
+    probe.textContent = '+1'
+    ruler.append(probe)
+    const plusOne = probe.offsetWidth
+    probe.remove()
+    const sized = screen.getByTestId('sized')
+    sized.style.width = `${1200 - value.clientWidth + tenLabels + plusOne + 1}px`
+    await expect.poll(() => measure().shown).toMatch(/ \+1$/)
+  })
+
+  it('recounts when labels change but read the same joined', async () => {
+    await page.viewport(1280, 800)
+    const items = {
+      pop: 'Pop',
+      alpha: 'Alpha alpha alpha',
+      alphaBeta: 'Alpha alpha alpha\nBeta beta beta',
+      betaChi: 'Beta beta beta\nChi',
+      chi: 'Chi'
+    }
+    function Genres({ value }: { value: string[] }) {
+      return (
+        <div data-testid='sized' style={{ width: 1200 }}>
+          <Select multiple items={items} value={value}>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Icon />
+            </Select.Trigger>
+          </Select>
+        </div>
+      )
+    }
+    const wide = ['pop', 'alpha', 'betaChi']
+    const narrow = ['pop', 'alphaBeta', 'chi']
+    const { rerender } = render(<Genres value={wide} />)
+    const value = measure().trigger.querySelector('[data-slot="select-value"]')!
+    const parts = Array.from(
+      value.querySelector('.invisible')!.children,
+      (part) => (part as HTMLElement).offsetWidth
+    )
+    const twoLabelsAndOne = parts[0]! + parts[1]! + parts[3]!
+    screen.getByTestId('sized').style.width =
+      `${1200 - value.clientWidth + twoLabelsAndOne + 2}px`
+    await nudgeFrames()
+    await expect.poll(() => measure().shown).toBe('Pop, Alpha alpha alpha +1')
+
+    rerender(<Genres value={narrow} />)
+    await expect.poll(() => measure().shown).toBe('Pop +2')
+  })
+
+  it('truncates a lone label without counting it', async () => {
+    await page.viewport(390, 844)
+    render(<Bands multiple defaultValue={['long']} />)
+    await expect.poll(() => measure().shown).toBe(BANDS[4][1])
+  })
+
+  it('recounts when the labels change width', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <Bands
+        multiple
+        defaultValue={BANDS.slice(0, 4).map(([value]) => value)}
+      />
+    )
+    const errors: string[] = []
+    const record = (event: ErrorEvent) => errors.push(event.message)
+    window.addEventListener('error', record)
+    try {
+      await expect.poll(() => measure().shown).not.toMatch(/\+/)
+      // Headless WebKit on Linux runs no frames while idle, so observers only
+      // report after an input event. The first nudge lets the observer's
+      // initial report pass, so only the width change below can recount.
+      await nudgeFrames()
+      measure().trigger.style.letterSpacing = '2em'
+      await nudgeFrames()
+      await expect.poll(() => measure().shown).toMatch(/ \+\d$/)
+    } finally {
+      window.removeEventListener('error', record)
+    }
+    expect(errors).toEqual([])
+  })
+
+  it('keeps every label in the accessible text', async () => {
+    await page.viewport(390, 844)
+    render(<Bands multiple defaultValue={BANDS.map(([value]) => value)} />)
+    const value = measure().trigger.querySelector('[data-slot="select-value"]')!
+    const spoken = value.cloneNode(true) as Element
+    spoken.querySelectorAll('[aria-hidden]').forEach((node) => node.remove())
+    expect(spoken.textContent).toBe(BANDS.map(([, label]) => label).join(', '))
   })
 })

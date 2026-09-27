@@ -274,7 +274,9 @@ describe('Field text description', () => {
   })
 })
 
-function Bands(props: SelectProps) {
+function Bands<Multiple extends boolean | undefined = false>(
+  props: SelectProps<string, Multiple>
+) {
   return (
     <Select {...props}>
       <Select.Trigger aria-label='Band'>
@@ -362,10 +364,137 @@ describe('Select value label', () => {
 
   it('lists the labels of every value in a multiple select', () => {
     const { getByRole } = render(
-      // @ts-expect-error Roadie's Select types don't take `multiple` yet
       <Bands multiple defaultValue={['bee-gees', 'custard']} />
     )
     expect(getByRole('combobox')).toHaveTextContent('Bee Gees, Custard')
+  })
+})
+
+describe('Select multiple labels', () => {
+  it.each([
+    ['a record', { 'bee-gees': 'Bee Gees', custard: 'Custard' }],
+    [
+      'an array',
+      [
+        { value: 'bee-gees', label: 'Bee Gees' },
+        { value: 'custard', label: 'Custard' }
+      ]
+    ],
+    [
+      'groups',
+      [
+        { value: 'Brisbane', items: [{ value: 'custard', label: 'Custard' }] },
+        { value: 'Sydney', items: [{ value: 'bee-gees', label: 'Bee Gees' }] }
+      ]
+    ]
+  ])('reads each label from items given as %s', (_, items) => {
+    const { getByRole } = render(
+      <Select multiple items={items} defaultValue={['bee-gees', 'custard']}>
+        <Select.Trigger>
+          <Select.Value />
+        </Select.Trigger>
+      </Select>
+    )
+    const spoken = getByRole('combobox').cloneNode(true) as Element
+    spoken.querySelectorAll('[aria-hidden]').forEach((node) => node.remove())
+    expect(spoken).toHaveTextContent('Bee Gees, Custard')
+  })
+
+  it('skips itemToStringLabel for a null value, like Base UI', () => {
+    const picked = [null, { name: 'Custard' }] as { name: string }[]
+    const { getByRole } = render(
+      <Select
+        multiple
+        defaultValue={picked}
+        itemToStringLabel={(band) => band.name}
+      >
+        <Select.Trigger>
+          <Select.Value />
+        </Select.Trigger>
+      </Select>
+    )
+    expect(getByRole('combobox')).toHaveTextContent('Custard')
+  })
+
+  it('looks up items when a value object has no label', () => {
+    const items = [{ value: 'custard', label: 'Custard' }]
+    const picked = [{ value: 'custard', label: undefined }]
+    const { getByRole } = render(
+      <Select multiple items={items} defaultValue={picked}>
+        <Select.Trigger>
+          <Select.Value />
+        </Select.Trigger>
+      </Select>
+    )
+    expect(getByRole('combobox')).toHaveTextContent('Custard')
+  })
+
+  it('mounts a rich label once', () => {
+    const items = [
+      { value: 'bee-gees', label: <b id='bee-gees-label'>Bee Gees</b> },
+      { value: 'custard', label: 'Custard' }
+    ]
+    const { container } = render(
+      <Select multiple items={items} defaultValue={['bee-gees', 'custard']}>
+        <Select.Trigger>
+          <Select.Value />
+        </Select.Trigger>
+      </Select>
+    )
+    expect(container.querySelectorAll('#bee-gees-label')).toHaveLength(1)
+    expect(container).toHaveTextContent('Bee Gees, Custard')
+  })
+
+  it('shows the placeholder when nothing is picked', () => {
+    const { getByRole } = render(
+      <Select multiple defaultValue={[]}>
+        <Select.Trigger>
+          <Select.Value placeholder='Pick bands' />
+        </Select.Trigger>
+      </Select>
+    )
+    expect(getByRole('combobox')).toHaveTextContent('Pick bands')
+  })
+})
+
+describe('Select value types', () => {
+  it('types a single value, with null for a cleared one', () => {
+    ;<Select
+      value='bee-gees'
+      onValueChange={(value) => {
+        expectTypeOf(value).toEqualTypeOf<string | null>()
+      }}
+    />
+  })
+
+  it('types a multiple value as an array', () => {
+    ;<Select
+      multiple
+      value={['bee-gees', 'custard']}
+      onValueChange={(value) => {
+        expectTypeOf(value).toEqualTypeOf<string[]>()
+      }}
+    />
+  })
+
+  it('takes an array handler once multiple is set', () => {
+    const onValueChange = (value: string[]) => value
+    ;<Select
+      multiple
+      defaultValue={['custard']}
+      onValueChange={onValueChange}
+    />
+    // @ts-expect-error a single select hands over one value, not an array
+    ;<Select defaultValue='custard' onValueChange={onValueChange} />
+  })
+
+  it('types the props of a wrapper', () => {
+    expectTypeOf<SelectProps<string>['value']>().toEqualTypeOf<
+      string | null | undefined
+    >()
+    expectTypeOf<SelectProps<string, true>['value']>().toEqualTypeOf<
+      string[] | null | undefined
+    >()
   })
 })
 

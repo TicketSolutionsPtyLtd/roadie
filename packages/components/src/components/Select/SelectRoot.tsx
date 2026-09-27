@@ -14,9 +14,12 @@ import { Select as SelectPrimitive } from '@base-ui/react/select'
 import { useFieldContext } from '../Field'
 import { SelectContext } from './SelectContext'
 import { SelectItem } from './SelectItem'
-import { type ItemLabel, itemLabel } from './itemLabels'
+import { type ItemLabel, itemLabel, labelFromItems } from './itemLabels'
 
-export type SelectRootProps = SelectPrimitive.Root.Props<unknown> & {
+export type SelectRootProps<
+  Value = unknown,
+  Multiple extends boolean | undefined = false
+> = SelectPrimitive.Root.Props<Value, Multiple> & {
   invalid?: boolean
   required?: boolean
 }
@@ -52,15 +55,19 @@ function fallbackLabel(value: unknown) {
   }
 }
 
-export function SelectRoot({
+export function SelectRoot<
+  Value,
+  Multiple extends boolean | undefined = false
+>({
   invalid,
   required,
   disabled,
+  multiple,
   items,
   itemToStringLabel,
   children,
   ...props
-}: SelectRootProps) {
+}: SelectRootProps<Value, Multiple>) {
   const fieldContext = useFieldContext()
   const resolvedInvalid = invalid ?? fieldContext.invalid
   const resolvedRequired = required ?? fieldContext.required
@@ -84,17 +91,31 @@ export function SelectRoot({
     },
     [renderedLabels]
   )
+  // Mirrors the order Base UI resolves a label in, for Select.Value to lay
+  // out a multiple value one label at a time.
+  const displayLabel = useCallback(
+    (value: unknown): ReactNode => {
+      if (itemToStringLabel && value != null)
+        return itemToStringLabel(value as Value)
+      if (!items) return labelOf(value)
+      return labelFromItems(items, value) ?? fallbackLabel(value)
+    },
+    [itemToStringLabel, items, labelOf]
+  )
 
   return (
     <SelectContext
       value={{
         invalid: resolvedInvalid,
         required: resolvedRequired,
-        registerLabel
+        registerLabel,
+        multiple: !!multiple,
+        displayLabel
       }}
     >
       <SelectPrimitive.Root
         disabled={disabled ?? fieldContext.disabled}
+        multiple={multiple}
         items={items}
         itemToStringLabel={itemToStringLabel ?? (items ? undefined : labelOf)}
         {...props}
