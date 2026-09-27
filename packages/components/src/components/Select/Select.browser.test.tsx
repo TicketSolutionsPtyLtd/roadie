@@ -125,6 +125,12 @@ function Bands({
   )
 }
 
+async function nudgeFrames() {
+  await userEvent.hover(document.body)
+  await new Promise(requestAnimationFrame)
+  await new Promise(requestAnimationFrame)
+}
+
 function measure() {
   const trigger = screen.getByRole('combobox')
   const field = trigger.parentElement!
@@ -277,11 +283,22 @@ describe('Select multiple value summary', () => {
         defaultValue={BANDS.slice(0, 4).map(([value]) => value)}
       />
     )
-    await expect.poll(() => measure().shown).not.toMatch(/\+/)
-    // Let the observer's first report pass, so only a width change can recount.
-    await new Promise((resolve) => setTimeout(resolve, 100))
-    measure().trigger.style.letterSpacing = '2em'
-    await expect.poll(() => measure().shown).toMatch(/ \+\d$/)
+    const errors: string[] = []
+    const record = (event: ErrorEvent) => errors.push(event.message)
+    window.addEventListener('error', record)
+    try {
+      await expect.poll(() => measure().shown).not.toMatch(/\+/)
+      // Headless WebKit on Linux runs no frames while idle, so observers only
+      // report after an input event. The first nudge lets the observer's
+      // initial report pass, so only the width change below can recount.
+      await nudgeFrames()
+      measure().trigger.style.letterSpacing = '2em'
+      await nudgeFrames()
+      await expect.poll(() => measure().shown).toMatch(/ \+\d$/)
+    } finally {
+      window.removeEventListener('error', record)
+    }
+    expect(errors).toEqual([])
   })
 
   it('keeps every label in the accessible text', async () => {
