@@ -416,6 +416,19 @@ describe('Select multiple labels', () => {
     expect(getByRole('combobox')).toHaveTextContent('Custard')
   })
 
+  it('looks up items when a value object has no label', () => {
+    const items = [{ value: 'custard', label: 'Custard' }]
+    const picked = [{ value: 'custard', label: undefined }]
+    const { getByRole } = render(
+      <Select multiple items={items} defaultValue={picked}>
+        <Select.Trigger>
+          <Select.Value />
+        </Select.Trigger>
+      </Select>
+    )
+    expect(getByRole('combobox')).toHaveTextContent('Custard')
+  })
+
   it('mounts a rich label once', () => {
     const items = [
       { value: 'bee-gees', label: <b id='bee-gees-label'>Bee Gees</b> },

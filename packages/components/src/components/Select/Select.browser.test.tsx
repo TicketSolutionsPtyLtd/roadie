@@ -269,6 +269,45 @@ describe('Select multiple value summary', () => {
     await expect.poll(() => measure().shown).toMatch(/ \+1$/)
   })
 
+  it('recounts when labels change but read the same joined', async () => {
+    await page.viewport(1280, 800)
+    const items = {
+      pop: 'Pop',
+      alpha: 'Alpha alpha alpha',
+      alphaBeta: 'Alpha alpha alpha\nBeta beta beta',
+      betaChi: 'Beta beta beta\nChi',
+      chi: 'Chi'
+    }
+    function Genres({ value }: { value: string[] }) {
+      return (
+        <div data-testid='sized' style={{ width: 1200 }}>
+          <Select multiple items={items} value={value}>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Icon />
+            </Select.Trigger>
+          </Select>
+        </div>
+      )
+    }
+    const wide = ['pop', 'alpha', 'betaChi']
+    const narrow = ['pop', 'alphaBeta', 'chi']
+    const { rerender } = render(<Genres value={wide} />)
+    const value = measure().trigger.querySelector('[data-slot="select-value"]')!
+    const parts = Array.from(
+      value.querySelector('.invisible')!.children,
+      (part) => (part as HTMLElement).offsetWidth
+    )
+    const twoLabelsAndOne = parts[0]! + parts[1]! + parts[3]!
+    screen.getByTestId('sized').style.width =
+      `${1200 - value.clientWidth + twoLabelsAndOne + 2}px`
+    await nudgeFrames()
+    await expect.poll(() => measure().shown).toBe('Pop, Alpha alpha alpha +1')
+
+    rerender(<Genres value={narrow} />)
+    await expect.poll(() => measure().shown).toBe('Pop +2')
+  })
+
   it('truncates a lone label without counting it', async () => {
     await page.viewport(390, 844)
     render(<Bands multiple defaultValue={['long']} />)

@@ -43,7 +43,7 @@ export function SelectValueSummary({
   const rulerRef = useRef<HTMLSpanElement>(null)
   const [shown, setShown] = useState(labels.length)
   const total = labels.length
-  const labelsKey = labels.join('\n')
+  const labelsKey = JSON.stringify(labels)
 
   // Counts before paint whenever the labels change.
   useIsomorphicLayoutEffect(() => {
