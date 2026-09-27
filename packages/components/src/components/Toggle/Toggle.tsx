@@ -25,7 +25,7 @@ export const toggleVariants = cva('btn is-interactive', {
       subtle:
         'not-data-[pressed]:emphasis-subtle data-[pressed]:emphasis-strong',
       subtler:
-        'not-data-[pressed]:emphasis-subtler data-[pressed]:emphasis-subtle'
+        'not-data-[pressed]:emphasis-subtler not-data-[pressed]:text-subtle data-[pressed]:emphasis-subtle data-[pressed]:is-selected'
     },
     size: {
       xs: 'btn-xs data-[icon-only]:btn-icon-xs',
@@ -43,7 +43,7 @@ export type ToggleProps = TogglePrimitive.Props &
     intent?: RoadieIntent
     /**
      * Emphasis at rest. Pressed steps up: `normal` and `subtle` to
-     * `strong`, `subtler` to `subtle`.
+     * `strong`, `subtler` to a soft fill with a strong icon or label.
      *
      * @default 'normal'
      */

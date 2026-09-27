@@ -54,7 +54,14 @@ export const TOKENS: Catalogue = {
 
 export const CHARTS: Catalogue = {
   route: '/charts',
-  categories: ['Guidelines', 'Layout', 'Data pieces', 'Chart parts', 'Examples']
+  categories: [
+    'Guidelines',
+    'Layout',
+    'Data pieces',
+    'Chart types',
+    'Chart parts',
+    'Examples'
+  ]
 }
 
 export const WIDGETS: Catalogue = { route: '/roadie-widgets', categories: [] }

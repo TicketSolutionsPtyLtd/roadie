@@ -91,7 +91,7 @@ const VARIABLE_RULES: Rule[] = [
   [/^--chart-heat-/, 'dataviz', 'Sequential'],
   [/^--chart-diverge-/, 'dataviz', 'Diverging'],
   [/^--chart-status-/, 'dataviz', 'Status'],
-  [/^--chart-highlight$/, 'dataviz', 'Highlight'],
+  [/^--chart-highlight(-lc)?$/, 'dataviz', 'Highlight'],
   [/^--chart-(context|band|median|other|missing)$/, 'dataviz', 'Data greys'],
   [/^--chart-(grid|axis|label|value|gap)$/, 'dataviz', 'Chart ink'],
   [/^--color-chart-/, 'dataviz', 'Tailwind utilities'],
@@ -115,7 +115,7 @@ const VARIABLE_RULES: Rule[] = [
 
 const UTILITY_RULES: Rule[] = [
   [/^intent-/, 'intents', 'Intent utilities'],
-  [/^(emphasis-|is-translucent$)/, 'emphasis', 'Emphasis presets'],
+  [/^(emphasis-|is-translucent$|is-selected$)/, 'emphasis', 'Emphasis presets'],
   [/^is-interactive/, 'emphasis', 'Interaction states'],
   [/^(inset-)?shadow-/, 'elevation', 'Shadows'],
   [/^rim-light$/, 'elevation', 'Rim light'],

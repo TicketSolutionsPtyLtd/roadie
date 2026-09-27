@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { findRowGaps } from './layout'
+import {
+  ACTIONS_LABEL_LIMITS,
+  CHART_LABEL_LIMITS,
+  COPY_LIMITS,
+  findRowGaps
+} from './layout'
 
 const cards = (...sizes: string[]) =>
   sizes.map((size, i) => ({ id: `c${i}`, size })) as Parameters<
@@ -39,5 +44,13 @@ describe('findRowGaps', () => {
     expect(findRowGaps(cards('sm', 'sm', 'sm')).map((g) => g.width)).toEqual([
       'tablet'
     ])
+  })
+})
+
+describe('ACTIONS_LABEL_LIMITS', () => {
+  it('is tighter than the label limits without actions', () => {
+    expect(ACTIONS_LABEL_LIMITS.stat).toBeLessThan(COPY_LIMITS.stat.label)
+    for (const size of ['sm', 'md', 'lg', 'full'] as const)
+      expect(ACTIONS_LABEL_LIMITS[size]).toBeLessThan(CHART_LABEL_LIMITS[size])
   })
 })

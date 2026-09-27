@@ -29,6 +29,18 @@ import { ChartLegend } from '@oztix/roadie-charts/chart-legend'
 />
 ```
 
+### With a median
+
+```tsx-live
+<ChartLegend
+  items={[
+    { label: 'Sold', shape: 'line', slot: 1 },
+    { label: 'Similar shows', shape: 'band', color: 'var(--chart-band)', median: true },
+    { label: 'Target 85%', shape: 'line', color: 'var(--chart-value)' }
+  ]}
+/>
+```
+
 ### Categorical
 
 ```tsx-live
@@ -45,10 +57,12 @@ import { ChartLegend } from '@oztix/roadie-charts/chart-legend'
 ## Guidelines
 
 - Label each item with the exact word used on the plot. A legend that renames a series makes readers cross-reference instead of read.
+- Name a band and the median drawn through it as one item. Set `median` and the key draws the dashed median through the band, as the plot does. A dashboard description takes the same `median: true`.
 - Reach for a legend only when a chart's marks need a name the axes and labels don't already give it. A single-series chart with a labelled axis rarely needs one.
 
 ## Accessibility
 
 - The legend is plain list text. Each item's shape is decorative; the label alone carries the meaning.
+- Give an item the `slot` of the series it names. Under forced colours and in print, its swatch takes that series' texture and its line takes that series' dash, so the key still matches the marks.
 
 <PropsDefinitions componentPath='packages/charts/src/ChartLegend/index.tsx' />

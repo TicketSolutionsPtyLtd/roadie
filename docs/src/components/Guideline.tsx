@@ -88,15 +88,18 @@ function Dont({
 export function Guideline({
   title,
   description,
+  headingLevel = 4,
   children
 }: {
   title: string
   description?: ReactNode
+  headingLevel?: 3 | 4
   children: ReactNode
 }) {
+  const Heading = headingLevel === 3 ? 'h3' : 'h4'
   return (
     <div data-slot='guideline' className='grid gap-2'>
-      <h4 className='text-display-ui-5 text-strong'>{title}</h4>
+      <Heading className='text-display-ui-5 text-strong'>{title}</Heading>
       {description && <p className='text-sm text-subtle'>{description}</p>}
       <div className='grid gap-4 sm:grid-cols-2'>{children}</div>
     </div>

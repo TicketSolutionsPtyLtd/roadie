@@ -196,7 +196,7 @@ export function DocsNavigator({
                 }
               >
                 {destination.title}
-                {destination.groups && !isWide ? (
+                {destination.groups ? (
                   <Navigator.Secondary
                     aria-label={destination.title}
                     overview={destination.overview}
@@ -228,7 +228,7 @@ export function DocsNavigator({
                       </Navigator.Group>
                     ))}
                   </Navigator.Secondary>
-                ) : subItems.length > 0 && !isWide ? (
+                ) : subItems.length > 0 ? (
                   <Navigator.Secondary
                     aria-label={`${destination.title} pages`}
                     overview={destination.overview}

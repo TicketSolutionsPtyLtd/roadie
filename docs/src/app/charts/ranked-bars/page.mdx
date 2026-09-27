@@ -1,0 +1,103 @@
+export const metadata = {
+  title: 'RankedBars',
+  description:
+    'Horizontal bars sorted largest first, for channels, places and brackets',
+  status: 'beta',
+  category: 'Chart types',
+  order: 3
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Horizontal bars sorted largest first, for channels, places and brackets.
+
+## Import
+
+```tsx
+import { RankedBars } from '@oztix/roadie-charts/ranked-bars'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Where buyers came from' source='Oztix sales.' size='md'>
+    <RankedBars
+      data={[
+        { channel: 'Email', orders: 612 },
+        { channel: 'Instagram', orders: 388 },
+        { channel: 'Direct', orders: 301 },
+        { channel: 'Venue site', orders: 164 }
+      ]}
+      x='channel'
+      y='orders'
+    />
+  </Chart>
+</div>
+```
+
+### Highlight and Other
+
+Past `limit` bars, the smallest roll into Other, which always sits last.
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Where buyers came from' source='Oztix sales.' size='md'>
+    <RankedBars
+      data={[['Email', 612], ['Instagram', 388], ['Direct', 301], ['Venue site', 164], ['TikTok', 142], ['Google', 97], ['Partner', 33]].map(([channel, orders]) => ({ channel, orders }))}
+      x='channel'
+      y='orders'
+      highlight='Email'
+      limit={5}
+      takeaway='Email brings in over a third of orders'
+    />
+  </Chart>
+</div>
+```
+
+### Share
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Where buyers live' source='Oztix sales, billing postcodes.' size='md'>
+    <RankedBars
+      data={[['Fortitude Valley', 205], ['West End', 161], ['Paddington', 132], ['Newstead', 102]].map(([suburb, buyers]) => ({ suburb, buyers }))}
+      x='suburb'
+      y='buyers'
+      share
+    />
+  </Chart>
+</div>
+```
+
+### Reference
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Turn-up' source='Oztix scans.' size='md'>
+    <RankedBars
+      data={[{ show: 'Friday', attended: 0.94, similar: 0.9 }, { show: 'Saturday', attended: 0.91, similar: 0.92 }, { show: 'Sunday matinee', attended: 0.83, similar: 0.86 }]}
+      x='show'
+      y='attended'
+      format='percent'
+      reference={{ field: 'similar', label: 'Similar shows' }}
+    />
+  </Chart>
+</div>
+```
+
+## Guidelines
+
+- Use ranked bars for shares, not a pie. Bars compare more accurately.
+- Report shares, not counts, when totals differ between the things you compare.
+- The table lists every row, including the ones rolled into Other.
+
+## Accessibility
+
+- The plot is one tab stop that starts on the top bar. Up and down arrows move between bars in rank order, and Home and End jump to the first and last.
+- Each bar is read out with its value and, with `share`, its share of the total.
+- The reference tick is keyed in the legend and read out with each bar.
+
+<PropsDefinitions componentPath='packages/charts/src/RankedBars/index.tsx' />

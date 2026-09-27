@@ -1,19 +1,8 @@
 import { z } from 'zod'
 
+import { goodWhen, valueFormat } from './fields'
 import { CARD_SIZES, CARD_STATES, COLUMN_KINDS } from './layout'
-
-const VALUE_FORMATS = [
-  'number',
-  'compact',
-  'percent',
-  'currency',
-  'compactCurrency',
-  'points',
-  'index'
-] as const
-
-const valueFormat = z.enum(VALUE_FORMATS)
-const goodWhen = z.enum(['up', 'down', 'neither'])
+import { plotSchema } from './plots'
 
 const delta = z.strictObject({
   value: z.number(),
@@ -43,24 +32,6 @@ const tableData = z.strictObject({
   rows: z.array(z.record(z.string(), cell))
 })
 
-const UNSAFE_SCHEME = /^\s*(javascript|data|vbscript):/i
-const isSafeImageUrl = (url: string) => !UNSAFE_SCHEME.test(url)
-
-const safeUrl = z
-  .string()
-  .min(1)
-  .refine(isSafeImageUrl, { message: 'Use an http(s) or relative image URL' })
-
-const plotImage = { src: safeUrl, srcDark: safeUrl.optional() }
-
-const staticPlot = z.strictObject({
-  kind: z.literal('static'),
-  ...plotImage,
-  alt: z.string().min(1),
-  narrow: z.strictObject(plotImage).optional(),
-  wide: z.strictObject(plotImage).optional()
-})
-
 const CHART_TOKEN_REFERENCE = /^var\(--chart-[a-z0-9-]+\)$/
 
 const legendItem = z.strictObject({
@@ -72,7 +43,8 @@ const legendItem = z.strictObject({
       CHART_TOKEN_REFERENCE,
       'Use a Roadie chart token, like var(--chart-1)'
     )
-    .optional()
+    .optional(),
+  median: z.boolean().optional()
 })
 
 const base = {
@@ -121,16 +93,28 @@ const tableCard = z.strictObject({
   source: z.string().min(1)
 })
 
-const chartCard = z.strictObject({
-  ...base,
-  ...headline,
-  kind: z.literal('chart'),
-  plot: staticPlot,
-  table: tableData,
-  legend: z.array(legendItem).optional(),
-  view: z.enum(['chart', 'table']).optional(),
-  source: z.string().min(1)
-})
+const chartCard = z
+  .strictObject({
+    ...base,
+    ...headline,
+    kind: z.literal('chart'),
+    plot: plotSchema,
+    table: tableData.optional(),
+    legend: z.array(legendItem).optional(),
+    view: z.enum(['chart', 'table']).optional(),
+    source: z.string().min(1)
+  })
+  // .check() keeps chartCard a ZodObject (a .refine() wrapper wouldn't),
+  // which the discriminatedUnion above needs.
+  .check((payload) => {
+    if (payload.value.plot.kind === 'static' && !payload.value.table)
+      payload.issues.push({
+        code: 'custom',
+        message: 'A static plot needs a table',
+        path: ['table'],
+        input: payload.value
+      })
+  })
 
 const noteCard = z.strictObject({
   ...base,
@@ -163,8 +147,6 @@ export type TableColumn = z.infer<typeof column>
 export type TableCell = z.infer<typeof cell>
 export type TableRow = Record<string, TableCell>
 export type TableData = z.infer<typeof tableData>
-export type StaticPlot = z.infer<typeof staticPlot>
-export type StaticPlotImage = NonNullable<StaticPlot['narrow']>
 export type LegendItem = z.infer<typeof legendItem>
 export type StatCard = z.infer<typeof statCard>
 export type TableCard = z.infer<typeof tableCard>
