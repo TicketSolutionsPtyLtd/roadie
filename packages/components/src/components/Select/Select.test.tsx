@@ -400,6 +400,22 @@ describe('Select multiple labels', () => {
     expect(spoken).toHaveTextContent('Bee Gees, Custard')
   })
 
+  it('mounts a rich label once', () => {
+    const items = [
+      { value: 'bee-gees', label: <b id='bee-gees-label'>Bee Gees</b> },
+      { value: 'custard', label: 'Custard' }
+    ]
+    const { container } = render(
+      <Select multiple items={items} defaultValue={['bee-gees', 'custard']}>
+        <Select.Trigger>
+          <Select.Value />
+        </Select.Trigger>
+      </Select>
+    )
+    expect(container.querySelectorAll('#bee-gees-label')).toHaveLength(1)
+    expect(container).toHaveTextContent('Bee Gees, Custard')
+  })
+
   it('shows the placeholder when nothing is picked', () => {
     const { getByRole } = render(
       <Select multiple defaultValue={[]}>

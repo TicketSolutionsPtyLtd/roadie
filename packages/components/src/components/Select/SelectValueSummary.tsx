@@ -28,7 +28,11 @@ function fittingCount(ruler: HTMLElement, available: number, total: number) {
   return count
 }
 
-export function SelectValueSummary({ labels }: { labels: ReactNode[] }) {
+export function SelectValueSummary({
+  labels
+}: {
+  labels: (string | number)[]
+}) {
   const boxRef = useRef<HTMLSpanElement>(null)
   const rulerRef = useRef<HTMLSpanElement>(null)
   const [shown, setShown] = useState(labels.length)
