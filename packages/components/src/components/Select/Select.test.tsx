@@ -400,6 +400,22 @@ describe('Select multiple labels', () => {
     expect(spoken).toHaveTextContent('Bee Gees, Custard')
   })
 
+  it('skips itemToStringLabel for a null value, like Base UI', () => {
+    const picked = [null, { name: 'Custard' }] as { name: string }[]
+    const { getByRole } = render(
+      <Select
+        multiple
+        defaultValue={picked}
+        itemToStringLabel={(band) => band.name}
+      >
+        <Select.Trigger>
+          <Select.Value />
+        </Select.Trigger>
+      </Select>
+    )
+    expect(getByRole('combobox')).toHaveTextContent('Custard')
+  })
+
   it('mounts a rich label once', () => {
     const items = [
       { value: 'bee-gees', label: <b id='bee-gees-label'>Bee Gees</b> },

@@ -95,7 +95,8 @@ export function SelectRoot<
   // out a multiple value one label at a time.
   const displayLabel = useCallback(
     (value: unknown): ReactNode => {
-      if (itemToStringLabel) return itemToStringLabel(value as Value)
+      if (itemToStringLabel && value != null)
+        return itemToStringLabel(value as Value)
       if (!items) return labelOf(value)
       return labelFromItems(items, value) ?? fallbackLabel(value)
     },
