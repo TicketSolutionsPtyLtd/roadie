@@ -21,13 +21,33 @@ for the full design and integration contract.
 
 ## Install
 
+The skins' dependencies are optional peers, so install the set for your
+framework.
+
+React:
+
 ```bash
-pnpm add @oztix/roadie-widgets
+pnpm add @oztix/roadie-widgets @oztix/roadie-core @oztix/roadie-components \
+  react react-dom @tanstack/react-query motion @number-flow/react \
+  @phosphor-icons/react react-focus-lock
+```
+
+Vue:
+
+```bash
+pnpm add @oztix/roadie-widgets @oztix/roadie-core \
+  vue motion @number-flow/vue @phosphor-icons/vue
 ```
 
 ## Quick start
 
 ### React (Next.js / Vite / CRA)
+
+```css
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-widgets/css';
+```
 
 ```tsx
 import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
@@ -52,23 +72,23 @@ const cart = createCartClient({
 
 > **Breaking in `3.0.0`.** The Vue skin now emits raw Roadie/Tailwind utility
 > classes (like the React skin) instead of a self-contained `rc-` stylesheet.
-> The **host must run Tailwind CSS v4**, import `@oztix/roadie-core/css`, and
-> `@source`-scan the widget dist so those utilities compile. A host that does
-> neither renders the drawer **unstyled**. Hosts that cannot adopt Tailwind v4
+> The **host must run Tailwind CSS v4** and import `@oztix/roadie-core/css`
+> and `@oztix/roadie-widgets/css` so those utilities compile. A host that skips
+> them renders the drawer **unstyled**. Hosts that cannot adopt Tailwind v4
 > stay on `2.x`.
 
 ```css
 /* host global CSS (compiled by the host's Tailwind v4 build) */
 @import '@oztix/roadie-core/css';
-@source '../node_modules/@oztix/roadie-widgets/dist/cart-drawer/vue';
+@import '@oztix/roadie-widgets/css';
 ```
 
 ```js
 import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/vue'
 
-// All styling — colours, spacing, animation — comes from the host's
-// Tailwind v4 + Roadie core build. No widget stylesheet to import.
+// Styling comes from the host's Tailwind v4 build, which compiles the
+// utilities the widget CSS import above registers.
 
 app.component('cart-drawer', CartDrawer)
 

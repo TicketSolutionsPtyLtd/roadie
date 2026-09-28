@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Roadie docs
 
-## Getting Started
+The documentation site for the Roadie Design System, published at
+[ticketsolutionsptyltd.github.io/roadie](https://ticketsolutionsptyltd.github.io/roadie/).
+Next.js 16 with MDX, exported as a static site.
 
-First, run the development server:
+## Run it
+
+From the repo root:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm --filter docs dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+It opens on [localhost:9614](http://localhost:9614). The docs import the
+packages from their `dist`, so after changing a package, rebuild it and
+restart the dev server.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Where things live
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Path                      | What it holds                                             |
+| ------------------------- | --------------------------------------------------------- |
+| `src/app/overview/`       | Installation, philosophy and the Vue guide                |
+| `src/app/foundations/`    | Layout, typography, colour, shape and other foundations   |
+| `src/app/tokens/`         | Token reference pages                                     |
+| `src/app/components/`     | One page per component                                    |
+| `src/app/charts/`         | Chart guidelines, chart types, data pieces and dashboards |
+| `src/app/roadie-widgets/` | Widget pages, such as the cart drawer                     |
+| `contributing/`           | Guides for building and documenting components            |
+| `solutions/`              | Recorded learnings from past bugs and fixes               |
 
-## Learn More
+## Writing a page
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Component pages follow
+[`contributing/COMPONENT_DOC_TEMPLATE.md`](contributing/COMPONENT_DOC_TEMPLATE.md).
+Live examples use the `tsx-live` code fence, and every Roadie component is in
+scope. Edit `.mdx` files by hand: the format scripts skip them.

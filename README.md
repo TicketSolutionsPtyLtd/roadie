@@ -1,14 +1,17 @@
 # Roadie Design System
 
-A design system for Oztix's applications, built on Tailwind CSS v4 with semantic color tokens, an intent/emphasis styling system, and a React component library.
+A design system for Oztix's applications, built on Tailwind CSS v4 with semantic colour tokens, an intent and emphasis styling system, a React component library, and charts.
 
 ## Packages
 
-| Package                                           | Description                                                                             |
-| ------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [`@oztix/roadie-core`](packages/core)             | CSS foundation — tokens, intents, emphasis, elevation, typography, interactions, motion |
-| [`@oztix/roadie-components`](packages/components) | React component library — 24 components built on Base UI                                |
-| [`docs`](docs)                                    | Documentation site — Next.js with live code examples                                    |
+| Package                                           | Description                                                                            |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [`@oztix/roadie-core`](packages/core)             | CSS foundation: tokens, intents, emphasis, elevation, typography, interactions, motion |
+| [`@oztix/roadie-components`](packages/components) | React components built on Base UI                                                      |
+| [`@oztix/roadie-charts`](packages/charts)         | Chart types, chart cards and dashboards                                                |
+| [`@oztix/roadie-widgets`](packages/widgets)       | Shared widgets with React and Vue skins, such as the cart drawer                       |
+| [`docs`](docs)                                    | Documentation site: Next.js with live code examples                                    |
+| [`skills`](skills)                                | Claude Code plugin with Roadie skills, such as `/roadie:audit`                         |
 
 ## Quick start
 
@@ -18,32 +21,52 @@ Install the packages:
 pnpm add @oztix/roadie-core @oztix/roadie-components @phosphor-icons/react
 ```
 
-Import the CSS in your main stylesheet:
+Import the CSS in your main stylesheet. Each package ships its own `@source`,
+so import every package you use:
 
 ```css
 @import '@oztix/roadie-core/css';
-
-/* Scan component dist for Tailwind class detection */
-@source '../../node_modules/@oztix/roadie-components/dist';
+@import '@oztix/roadie-components/css';
 ```
 
-Use components:
+Mount `RoadieProvider` once at the root. It routes `href`s through your router
+and sets up theme, toasts and tooltips:
 
 ```tsx
-import { Button, Field } from '@oztix/roadie-components'
+// app/providers.tsx
+'use client'
 
-function MyApp() {
+import type { ReactNode } from 'react'
+
+import NextLink from 'next/link'
+
+import { RoadieProvider } from '@oztix/roadie-components'
+
+export function Providers({ children }: { children: ReactNode }) {
+  return <RoadieProvider link={NextLink}>{children}</RoadieProvider>
+}
+```
+
+Use components from their subpaths:
+
+```tsx
+import { Button } from '@oztix/roadie-components/button'
+
+export function Welcome() {
   return (
     <div className='grid gap-6 p-6'>
       <h1 className='text-display-ui-2 text-strong'>Welcome</h1>
       <p className='text-subtle'>Get started with Roadie.</p>
-      <Button intent='accent' emphasis='strong'>
-        Get started
+      <Button href='/events' intent='accent' emphasis='strong'>
+        Browse events
       </Button>
     </div>
   )
 }
 ```
+
+See [Installation](https://ticketsolutionsptyltd.github.io/roadie/overview/getting-started)
+for fonts, provider options and scoped providers.
 
 ## CSS-only usage (Vue, Svelte, etc.)
 
@@ -71,21 +94,26 @@ See the [Vue integration guide](https://ticketsolutionsptyltd.github.io/roadie/o
 
 ## Key concepts
 
-**Intent** sets the color palette — `intent-accent`, `intent-brand`, `intent-danger`, etc. Children inherit via CSS cascade.
+**Intent** sets the colour palette: `intent-accent`, `intent-brand`,
+`intent-danger` and so on. Children inherit it through the cascade.
 
-**Emphasis** sets the visual weight — `emphasis-strong` (solid), `emphasis-normal` (bordered), `emphasis-subtle` (tinted), `emphasis-subtler` (minimal).
+**Emphasis** sets the visual weight: `emphasis-strong` (solid),
+`emphasis-normal` (bordered), `emphasis-subtle` (tinted), `emphasis-subtler`
+(minimal), plus surfaces such as `emphasis-raised` and `emphasis-floating`.
 
-**Semantic colors** replace default Tailwind colors — `bg-normal`, `text-subtle`, `border-normal`, etc.
+**Semantic colours** replace Tailwind's palette: `bg-normal`, `text-subtle`,
+`border-normal` and so on.
 
-**Dark mode** works automatically — add the `dark` class to `<html>`. No `dark:` variants needed.
+**Dark mode** needs no `dark:` variants. `RoadieProvider` sets the `dark` class
+on `<html>`, and every token swaps.
 
 ## Bundle size
 
-|          | Raw     | Gzip    | Brotli |
-| -------- | ------- | ------- | ------ |
-| Core CSS | 82.6 KB | 12.8 KB | 9.4 KB |
+|          | Raw      | Gzip    | Brotli  |
+| -------- | -------- | ------- | ------- |
+| Core CSS | 134.7 KB | 19.7 KB | 14.9 KB |
 
-Components are tree-shakeable — import only what you use.
+Components are tree-shakeable. Import each one from its subpath.
 
 ## Development
 
@@ -118,6 +146,8 @@ Browse the full documentation at [ticketsolutionsptyltd.github.io/roadie](https:
 - Icons: @phosphor-icons/react
 - Styling: Tailwind CSS v4 with custom `@utility` directives
 - Language: TypeScript (strict mode)
+- Charts: TanStack Charts
+- Testing: Vitest, with browser mode on Playwright for layout
 - Documentation: Next.js v16 with MDX
 
 ## License
