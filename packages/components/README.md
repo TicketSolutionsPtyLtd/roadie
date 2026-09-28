@@ -11,7 +11,7 @@ pnpm add @oztix/roadie-core @oztix/roadie-components \
   @base-ui/react @ark-ui/react @phosphor-icons/react class-variance-authority
 ```
 
-Needs React 19.
+Needs `react` and `react-dom` 19.2 or later.
 
 ## Setup
 

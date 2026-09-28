@@ -21,8 +21,22 @@ for the full design and integration contract.
 
 ## Install
 
+The skins' dependencies are optional peers, so install the set for your
+framework.
+
+React:
+
 ```bash
-pnpm add @oztix/roadie-widgets
+pnpm add @oztix/roadie-widgets @oztix/roadie-core @oztix/roadie-components \
+  react react-dom @tanstack/react-query motion @number-flow/react \
+  @phosphor-icons/react react-focus-lock
+```
+
+Vue:
+
+```bash
+pnpm add @oztix/roadie-widgets @oztix/roadie-core \
+  vue motion @number-flow/vue @phosphor-icons/vue
 ```
 
 ## Quick start
@@ -73,8 +87,8 @@ const cart = createCartClient({
 import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/vue'
 
-// All styling — colours, spacing, animation — comes from the host's
-// Tailwind v4 + Roadie core build. No widget stylesheet to import.
+// Styling comes from the host's Tailwind v4 build, which compiles the
+// utilities the widget CSS import above registers.
 
 app.component('cart-drawer', CartDrawer)
 

@@ -74,9 +74,11 @@ import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
 
 ## Server and static output
 
-- **`@oztix/roadie-charts/static`** renders any chart to an SVG string in Node
-  with `renderChartSvg(definition, props, { mode, width, height })`, for
-  reports, PDFs and slides.
+- **`@oztix/roadie-charts/static`** renders charts to SVG strings in Node, for
+  reports, PDFs and slides. `renderChartSvg(definition, props, { mode, width,
+height })` takes a definition such as `lineChart`. `SmallMultiples` sizes
+  its own height, so it has `renderSmallMultiplesSvg(props, { mode, width,
+columns })`.
 - **`@oztix/roadie-charts/tables`** builds a chart's table rows on the server,
   and `cardTable(card)` builds a dashboard card's.
 
