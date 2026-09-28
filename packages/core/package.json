@@ -7,6 +7,7 @@
     "type": "git",
     "url": "https://github.com/TicketSolutionsPtyLtd/roadie"
   },
+  "homepage": "https://ticketsolutionsptyltd.github.io/roadie/",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
