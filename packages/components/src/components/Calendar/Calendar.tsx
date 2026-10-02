@@ -162,7 +162,7 @@ type AnyCalendarProps = CalendarBaseProps & {
   max?: number
 }
 
-const EMPTY_RANGE: CalendarDateRange = { start: null, end: null }
+const emptyRange = (): CalendarDateRange => ({ start: null, end: null })
 
 const dayVariants = cva(
   'relative grid size-10 place-content-center rounded-full border text-sm tabular-nums is-interactive',
@@ -172,7 +172,7 @@ const dayVariants = cva(
         plain: 'emphasis-subtler border-transparent',
         chosen: 'intent-accent emphasis-strong font-semibold',
         middle:
-          'intent-accent emphasis-subtle rounded-none border-transparent shadow-none'
+          'intent-accent emphasis-subtle rounded-none border-transparent shadow-none active:transform-none'
       },
       outside: { true: '', false: '' }
     },
@@ -229,7 +229,7 @@ export function Calendar(props: CalendarProps) {
     max,
     disabled,
     modifiers,
-    numberOfMonths = 1,
+    numberOfMonths: numberOfMonthsProp = 1,
     captionLayout = 'label',
     fixedWeeks = false,
     showOutsideDays = false,
@@ -250,11 +250,11 @@ export function Calendar(props: CalendarProps) {
 
   const id = useId()
   const rootRef = useRef<HTMLDivElement>(null)
-  const pendingFocus = useRef(false)
+  const numberOfMonths = Math.max(1, Math.floor(numberOfMonthsProp))
   const today = useToday(todayProp, timeZone)
 
   const emptySelection =
-    mode === 'multiple' ? [] : mode === 'range' ? EMPTY_RANGE : null
+    mode === 'multiple' ? [] : mode === 'range' ? emptyRange() : null
   const [uncontrolledSelection, setUncontrolledSelection] = useState(
     defaultSelected ?? emptySelection
   )
@@ -273,11 +273,16 @@ export function Calendar(props: CalendarProps) {
     return month
   }
 
-  const [uncontrolledMonth, setUncontrolledMonth] = useState(() =>
-    monthOf(defaultMonth ?? firstSelectedOf(mode, selection) ?? today)
+  const [initialAnchor] = useState(
+    () => defaultMonth ?? firstSelectedOf(mode, selection)
   )
+  // Null until the reader turns the page, so the opening month follows today
+  // once hydration swaps the server's UTC date for the viewer's.
+  const [navigatedMonth, setNavigatedMonth] = useState<string | null>(null)
   const firstMonth = clampMonth(
-    monthProp ? monthOf(monthProp) : uncontrolledMonth
+    monthProp
+      ? monthOf(monthProp)
+      : (navigatedMonth ?? monthOf(initialAnchor ?? today))
   )
   const months = Array.from({ length: numberOfMonths }, (_, i) =>
     addMonths(firstMonth, i)
@@ -289,6 +294,7 @@ export function Calendar(props: CalendarProps) {
   const [hasFocus, setHasFocus] = useState(false)
   const [hoverDate, setHoverDate] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
+  const [focusRequest, setFocusRequest] = useState(0)
 
   const focusTarget =
     [focusedDate, firstSelectedOf(mode, selection), today].find(
@@ -305,9 +311,15 @@ export function Calendar(props: CalendarProps) {
 
   const range = mode === 'range' ? (selection as CalendarDateRange) : null
   const extending = !!range?.start && !range.end
-  const preview = range
-    ? previewRange(range, hoverDate ?? (hasFocus ? focusTarget : null))
-    : null
+  const isOutOfRange = (date: string) =>
+    extending &&
+    date !== range!.start &&
+    !withinLength(range!.start!, date, { min, max })
+  const previewTarget = hoverDate ?? (hasFocus ? focusTarget : null)
+  const preview =
+    range && previewTarget && !isOutOfRange(previewTarget)
+      ? previewRange(range, previewTarget)
+      : null
   const span =
     range?.start && range.end
       ? { start: range.start, end: range.end }
@@ -322,10 +334,7 @@ export function Calendar(props: CalendarProps) {
     disabled === true ||
     (minDate !== null && compareDates(date, minDate) < 0) ||
     (maxDate !== null && compareDates(date, maxDate) > 0) ||
-    matchesDate(date, disabledMatchers) ||
-    (extending &&
-      date !== range!.start &&
-      !withinLength(range!.start!, date, { min, max }))
+    matchesDate(date, disabledMatchers)
 
   const monthsLabel = (month: string) =>
     numberOfMonths === 1
@@ -335,7 +344,7 @@ export function Calendar(props: CalendarProps) {
   function changeMonth(next: string) {
     const month = clampMonth(monthOf(next))
     if (month === firstMonth) return
-    if (monthProp === undefined) setUncontrolledMonth(month)
+    if (monthProp === undefined) setNavigatedMonth(month)
     onMonthChange?.(month)
     setAnnouncement(monthsLabel(month))
   }
@@ -364,6 +373,7 @@ export function Calendar(props: CalendarProps) {
   function select(date: string) {
     if (isDayDisabled(date)) return
     const next = selectDate(mode, selection, date, { required, min, max })
+    if (next === selection) return
     commit(next)
     setAnnouncement(announceSelection(date, next))
   }
@@ -371,7 +381,7 @@ export function Calendar(props: CalendarProps) {
   function moveFocus(date: string) {
     setFocusedDate(date)
     setHoverDate(null)
-    pendingFocus.current = true
+    setFocusRequest((request) => request + 1)
     if (compareDates(date, firstMonth) < 0) changeMonth(date)
     else if (compareDates(date, lastVisibleDay) > 0)
       changeMonth(addMonths(monthOf(date), 1 - numberOfMonths))
@@ -387,7 +397,7 @@ export function Calendar(props: CalendarProps) {
     if (event.key === 'Escape' && extending) {
       event.preventDefault()
       event.stopPropagation()
-      commit(EMPTY_RANGE)
+      commit(emptyRange())
       setAnnouncement('Selection cleared')
       return
     }
@@ -410,10 +420,10 @@ export function Calendar(props: CalendarProps) {
       ?.focus()
 
   useEffect(() => {
-    if (!pendingFocus.current) return
-    pendingFocus.current = false
-    focusDay(focusTarget)
-  })
+    if (focusRequest) focusDay(focusTarget)
+    // Only a key asks for focus; a month turned by its arrows keeps focus there.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusRequest])
 
   useEffect(() => {
     if (autoFocus) focusDay(focusTarget)
@@ -447,9 +457,8 @@ export function Calendar(props: CalendarProps) {
     const monthNumber = monthNumberOf(month)
     const year = yearOf(month)
     const outOfBounds = (candidate: string) =>
-      (!!firstAllowedMonth &&
-        compareDates(candidate, monthOf(startMonth!)) < 0) ||
-      (!!endMonth && compareDates(candidate, monthOf(endMonth)) > 0)
+      (!!minDate && compareDates(candidate, minDate) < 0) ||
+      (!!maxDate && compareDates(candidate, maxDate) > 0)
     return (
       <div className='flex justify-center gap-1'>
         <span id={captionId} className='sr-only'>
@@ -492,6 +501,7 @@ export function Calendar(props: CalendarProps) {
     const rangeMiddle = inSpan && !rangeStart && !rangeEnd
     const previewing = !!preview && inSpan
     const isDisabled = isDayDisabled(date)
+    const outOfRange = isOutOfRange(date)
     const isToday = date === today
     const isFocusTarget = !outside && date === focusTarget
     const multiDay = !!span && span.start !== span.end
@@ -537,15 +547,23 @@ export function Calendar(props: CalendarProps) {
           data-today={isToday ? '' : undefined}
           data-outside={outside ? '' : undefined}
           data-disabled={isDisabled ? '' : undefined}
+          data-out-of-range={outOfRange ? '' : undefined}
           data-focused={hasFocus && isFocusTarget ? '' : undefined}
-          aria-label={dayLabel(date, locale)}
+          aria-label={[
+            isToday && 'Today',
+            dayLabel(date, locale),
+            selected && 'selected'
+          ]
+            .filter(Boolean)
+            .join(', ')}
           aria-disabled={isDisabled || undefined}
           aria-current={isToday ? 'date' : undefined}
           tabIndex={isFocusTarget ? 0 : -1}
           className={cn(
             dayVariants({ look, outside }),
             look === 'middle' && firstVisible && 'rounded-s-full',
-            look === 'middle' && lastVisible && 'rounded-e-full'
+            look === 'middle' && lastVisible && 'rounded-e-full',
+            outOfRange && 'opacity-50'
           )}
           onClick={() => {
             if (isDisabled) return
@@ -589,7 +607,8 @@ export function Calendar(props: CalendarProps) {
       </div>
       {months.map((month, index) => (
         <div
-          key={month}
+          // By position, so the arrows and selects keep focus as months turn.
+          key={index}
           data-slot='calendar-month'
           className='grid w-70 content-start gap-2'
         >
@@ -638,6 +657,7 @@ export function Calendar(props: CalendarProps) {
           </div>
           <table
             role='grid'
+            aria-multiselectable={mode !== 'single' || undefined}
             aria-labelledby={`${id}-caption-${index}`}
             className='border-separate border-spacing-x-0 border-spacing-y-0.5'
             onPointerLeave={() => setHoverDate(null)}
@@ -690,7 +710,7 @@ function CaptionSelect({ onChange, options, ...props }: CaptionSelectProps) {
       <select
         {...props}
         onChange={(event) => onChange(Number(event.target.value))}
-        className='is-interactive h-8 appearance-none rounded-full emphasis-subtler border border-transparent ps-3 pe-7 text-sm font-semibold text-strong [grid-area:1/1]'
+        className='is-interactive h-8 appearance-none rounded-full emphasis-subtler border border-transparent ps-3 pe-7 text-sm font-semibold text-strong [grid-area:1/1] [&_option]:bg-raised [&_option]:text-normal'
       >
         {options.map((option) => (
           <option

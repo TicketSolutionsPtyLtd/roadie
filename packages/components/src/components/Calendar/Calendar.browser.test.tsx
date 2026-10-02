@@ -129,6 +129,46 @@ describe('Calendar keyboard', () => {
   })
 })
 
+describe('Calendar focus', () => {
+  it('keeps focus on the month arrows as they turn the page', async () => {
+    render(<Calendar today={TODAY} />)
+    await userEvent.tab()
+    expect(document.activeElement).toHaveAccessibleName('Previous month')
+    await userEvent.keyboard('{Enter}')
+    expect(document.activeElement).toHaveAccessibleName('Previous month')
+    await userEvent.tab()
+    expect(document.activeElement).toHaveAccessibleName('Next month')
+    await userEvent.keyboard('{Enter}{Enter}')
+    expect(caption()).toEqual(['April 2027'])
+    expect(document.activeElement).toHaveAccessibleName('Next month')
+  })
+
+  it('keeps focus on a caption select as it changes the month', async () => {
+    render(<Calendar today={TODAY} captionLayout='dropdown' />)
+    const month = screen.getByRole('combobox', { name: 'Month' })
+    await userEvent.selectOptions(month, 'July')
+    expect(caption()).toEqual(['July 2027'])
+    expect(screen.getByRole('combobox', { name: 'Month' })).toBe(month)
+  })
+
+  it.each([
+    ['Home on the first day of the week', '2027-03-08', '{Home}'],
+    ['an arrow at the last month', '2027-03-31', '{ArrowRight}']
+  ])('lets focus leave after %s', async (_, today, key) => {
+    render(
+      <>
+        <Calendar today={today} endMonth='2027-03-01' />
+        <input aria-label='After' />
+      </>
+    )
+    await tabIntoGrid()
+    await userEvent.keyboard(key)
+    expect(focused()).toBe(today)
+    await userEvent.tab()
+    expect(document.activeElement).toHaveAccessibleName('After')
+  })
+})
+
 describe('Calendar pointer', () => {
   it('previews a range under the pointer', async () => {
     render(<Calendar today={TODAY} mode='range' />)

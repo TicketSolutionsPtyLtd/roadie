@@ -66,7 +66,7 @@ render(<Default />)
 
 ### With a range
 
-`mode='range'` takes `{ start, end }`. The first press sets `start` and leaves `end` null, and the days between preview as the pointer or focus moves. `min` and `max` limit the length in days, both ends counted. Preset ranges such as "Last 7 days" come with `DateRangePicker`.
+`mode='range'` takes `{ start, end }`. The first press sets `start` and leaves `end` null, and the days between preview as the pointer or focus moves. `min` and `max` limit the length in days, both ends counted. Days that would break them dim, and pressing one starts a new range there.
 
 ```tsx-live-noinline
 function Range() {
@@ -115,12 +115,15 @@ const sessions = ['2026-11-05', '2026-11-06', '2026-11-07', '2026-11-12', '2026-
 const soldOut = ['2026-11-07']
 
 render(
-  <Calendar
-    defaultMonth='2026-11-01'
-    modifiers={{ hasSession: sessions, soldOut }}
-    disabled={[(date) => !sessions.includes(date), ...soldOut]}
-    className='**:data-has-session:font-bold **:data-sold-out:line-through'
-  />
+  <div className='grid gap-4'>
+    <Calendar
+      defaultMonth='2026-11-01'
+      modifiers={{ hasSession: sessions, soldOut }}
+      disabled={[(date) => !sessions.includes(date), ...soldOut]}
+      className='**:data-has-session:font-bold **:data-sold-out:line-through'
+    />
+    <p className='text-sm text-subtle'>Bold nights have a show. Struck-through nights are sold out.</p>
+  </div>
 )
 ```
 
@@ -167,7 +170,7 @@ render(
 
 ## Accessibility
 
-- Each month is a `grid` named by its caption, such as "November 2026". Each day is a button inside a `gridcell`, named by its full date, such as "Friday, 27 November 2026". Selected days set `aria-selected` on the cell, and today has `aria-current='date'`.
+- Each month is a `grid` named by its caption, such as "November 2026", and is `aria-multiselectable` in multiple and range modes. Each day is a button inside a `gridcell`, named by its full date with today and selection added, such as "Today, Friday, 27 November 2026, selected". Selected days also set `aria-selected` on the cell, and today has `aria-current='date'`.
 - One day holds the tab stop: the focused day, then the selected day, then today. Focus moves separately from selection, so moving through the grid selects nothing.
 - Arrow keys move by a day or a week. `Page Up` and `Page Down` move by a month, and with `Shift` by a year. `Home` and `End` move to the start and end of the week. Focus crosses into the next or previous month and the calendar follows, so no day is skipped.
 - `Enter` and `Space` select the focused day. While a range is half chosen, `Escape` drops its start.

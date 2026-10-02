@@ -15,8 +15,6 @@ export type SelectOptions = {
   max?: number
 }
 
-const EMPTY_RANGE: CalendarDateRange = { start: null, end: null }
-
 function ordered(a: string, b: string): [string, string] {
   return compareDates(a, b) <= 0 ? [a, b] : [b, a]
 }
@@ -59,7 +57,9 @@ export function selectDate(
   const extending = range.start !== null && range.end === null
   if (!extending) return { start: date, end: null }
   if (!withinLength(range.start!, date, options)) {
-    return date === range.start ? EMPTY_RANGE : { start: date, end: null }
+    return date === range.start
+      ? { start: null, end: null }
+      : { start: date, end: null }
   }
   const [start, end] = ordered(range.start!, date)
   return { start, end }

@@ -209,7 +209,7 @@ describe('Calendar', () => {
       expect(cellOf('2027-03-04')).toHaveAttribute('aria-selected', 'false')
     })
 
-    it('keeps a range within min and max days', async () => {
+    it('marks days that break min or max, and restarts the range there', async () => {
       const onSelect = vi.fn()
       render(
         <Calendar
@@ -222,16 +222,26 @@ describe('Calendar', () => {
       )
       await userEvent.click(day('2027-03-10'))
       for (const date of ['2027-03-11', '2027-03-15', '2027-03-05'])
-        expect(day(date)).toHaveAttribute('aria-disabled', 'true')
-      for (const date of ['2027-03-12', '2027-03-14', '2027-03-06'])
-        expect(day(date)).not.toHaveAttribute('aria-disabled')
-      onSelect.mockClear()
-      fireEvent.click(day('2027-03-15'))
-      expect(onSelect).not.toHaveBeenCalled()
-      await userEvent.click(day('2027-03-14'))
-      expect(onSelect).toHaveBeenCalledWith({
-        start: '2027-03-10',
-        end: '2027-03-14'
+        expect(day(date)).toHaveAttribute('data-out-of-range')
+      for (const date of [
+        '2027-03-12',
+        '2027-03-14',
+        '2027-03-06',
+        '2027-03-10'
+      ])
+        expect(day(date)).not.toHaveAttribute('data-out-of-range')
+      expect(day('2027-03-15')).not.toHaveAttribute('aria-disabled')
+      fireEvent.pointerEnter(day('2027-03-20'), { pointerType: 'mouse' })
+      expect(day('2027-03-12')).not.toHaveAttribute('data-range-preview')
+      await userEvent.click(day('2027-03-20'))
+      expect(onSelect).toHaveBeenLastCalledWith({
+        start: '2027-03-20',
+        end: null
+      })
+      await userEvent.click(day('2027-03-16'))
+      expect(onSelect).toHaveBeenLastCalledWith({
+        start: '2027-03-16',
+        end: '2027-03-20'
       })
     })
 
@@ -267,6 +277,55 @@ describe('Calendar', () => {
       expect(day('2027-03-14')).toHaveAttribute('aria-disabled', 'true')
       expect(screen.getByRole('button', { name: 'Next month' })).toBeDisabled()
     })
+  })
+
+  it('names each day with whether it is today or selected', () => {
+    render(<Calendar today={TODAY} defaultSelected='2027-03-14' />)
+    expect(day(TODAY)).toHaveAccessibleName('Today, Wednesday, 10 March 2027')
+    expect(day('2027-03-14')).toHaveAccessibleName(
+      'Sunday, 14 March 2027, selected'
+    )
+  })
+
+  it('marks a grid that takes several days as multiselectable', () => {
+    const { unmount } = render(<Calendar today={TODAY} />)
+    expect(screen.getByRole('grid')).not.toHaveAttribute('aria-multiselectable')
+    unmount()
+    render(<Calendar today={TODAY} mode='range' />)
+    expect(screen.getByRole('grid')).toHaveAttribute(
+      'aria-multiselectable',
+      'true'
+    )
+  })
+
+  it('reports nothing when a required last date is pressed again', async () => {
+    const onSelect = vi.fn()
+    render(
+      <Calendar
+        today={TODAY}
+        mode='multiple'
+        required
+        defaultSelected={['2027-03-14']}
+        onSelect={onSelect}
+      />
+    )
+    await userEvent.click(day('2027-03-14'))
+    expect(onSelect).not.toHaveBeenCalled()
+    expect(live()).toHaveTextContent('')
+  })
+
+  it('shows at least one month', () => {
+    render(<Calendar today={TODAY} numberOfMonths={0} />)
+    expect(screen.getAllByRole('grid')).toHaveLength(1)
+  })
+
+  it('follows today to a new month until the reader turns the page', async () => {
+    const { rerender } = render(<Calendar today='2027-03-31' />)
+    rerender(<Calendar today='2027-04-01' />)
+    expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    rerender(<Calendar today='2027-04-02' />)
+    expect(screen.getByRole('grid')).toHaveAccessibleName('May 2027')
   })
 
   it('names days with modifiers as data attributes', () => {
@@ -381,7 +440,7 @@ describe('Calendar', () => {
 
   it('spreads other props onto the root', () => {
     const { container } = render(
-      <Calendar today={TODAY} className='custom' aria-label='Dates' id='cal' />
+      <Calendar today={TODAY} className='custom' id='cal' />
     )
     const root = container.firstElementChild!
     expect(root).toHaveAttribute('data-slot', 'calendar')

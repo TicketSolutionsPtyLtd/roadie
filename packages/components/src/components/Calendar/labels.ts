@@ -28,15 +28,21 @@ export function rangeLabel(start: string, end: string, locale: string): string {
   )
 }
 
+// A calendar formats the same few patterns on every render.
+const formatters = new Map<string, Intl.DateTimeFormat>()
+
 function format(
   date: string,
   locale: string,
   options: Intl.DateTimeFormatOptions
 ) {
-  return new Intl.DateTimeFormat(locale, {
-    ...options,
-    timeZone: 'UTC'
-  }).format(instantOf(date))
+  const key = `${locale}|${JSON.stringify(options)}`
+  let formatter = formatters.get(key)
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, { ...options, timeZone: 'UTC' })
+    formatters.set(key, formatter)
+  }
+  return formatter.format(instantOf(date))
 }
 
 /** "March 2027" */
