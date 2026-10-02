@@ -1,0 +1,413 @@
+import { useState } from 'react'
+
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import { Calendar, type CalendarDateRange } from '.'
+
+// 1 March 2027 is a Monday, so March fills five Monday-first weeks exactly.
+const TODAY = '2027-03-10'
+
+const day = (date: string) =>
+  screen
+    .getAllByRole('button')
+    .find(
+      (button) =>
+        button.dataset.date === date && !button.hasAttribute('data-outside')
+    )!
+
+const cellOf = (date: string) => day(date).closest('td')!
+
+const live = () => screen.getByRole('status')
+
+describe('Calendar', () => {
+  it('renders a whole month with no children', () => {
+    render(<Calendar today={TODAY} />)
+    const grid = screen.getByRole('grid', { name: 'March 2027' })
+    const headers = within(grid).getAllByRole('columnheader')
+    expect(headers.map((th) => th.getAttribute('aria-label'))).toEqual([
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ])
+    expect(within(grid).getAllByRole('row')).toHaveLength(6)
+    expect(
+      screen.getByRole('button', { name: 'Sunday, 14 March 2027' })
+    ).toBeInTheDocument()
+  })
+
+  it('starts the week on the day given', () => {
+    render(<Calendar today={TODAY} weekStart={7} />)
+    expect(screen.getAllByRole('columnheader')[0]).toHaveAttribute(
+      'aria-label',
+      'Sunday'
+    )
+  })
+
+  it('marks today and gives it the tab stop', () => {
+    render(<Calendar today={TODAY} />)
+    expect(day(TODAY)).toHaveAttribute('data-today')
+    expect(day(TODAY)).toHaveAttribute('aria-current', 'date')
+    const stops = screen
+      .getAllByRole('button')
+      .filter((button) => button.dataset.date && button.tabIndex === 0)
+    expect(stops).toEqual([day(TODAY)])
+  })
+
+  it('works out today in the time zone given', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    // 1:30am on 14 March in Sydney, still 10:30pm on 13 March in Perth.
+    vi.setSystemTime(new Date('2027-03-13T14:30:00Z'))
+    const { unmount } = render(<Calendar timeZone='Australia/Sydney' />)
+    expect(day('2027-03-14')).toHaveAttribute('data-today')
+    unmount()
+    render(<Calendar timeZone='Australia/Perth' />)
+    expect(day('2027-03-13')).toHaveAttribute('data-today')
+  })
+
+  afterEach(() => vi.useRealTimers())
+
+  it('opens on the selected month, then today', () => {
+    const { unmount } = render(
+      <Calendar today={TODAY} defaultSelected='2027-06-02' />
+    )
+    expect(screen.getByRole('grid')).toHaveAccessibleName('June 2027')
+    unmount()
+    render(<Calendar today={TODAY} defaultMonth='2027-09-20' />)
+    expect(screen.getByRole('grid')).toHaveAccessibleName('September 2027')
+  })
+
+  it('hides days from other months unless asked', () => {
+    const { unmount } = render(
+      <Calendar today={TODAY} defaultMonth='2027-04-01' />
+    )
+    expect(
+      screen.queryByRole('button', { name: 'Wednesday, 31 March 2027' })
+    ).toBeNull()
+    unmount()
+    render(<Calendar today={TODAY} defaultMonth='2027-04-01' showOutsideDays />)
+    const outside = screen.getByRole('button', {
+      name: 'Wednesday, 31 March 2027'
+    })
+    expect(outside).toHaveAttribute('data-outside')
+    expect(outside.tabIndex).toBe(-1)
+  })
+
+  it('keeps six weeks with fixedWeeks', () => {
+    render(<Calendar today={TODAY} fixedWeeks />)
+    expect(within(screen.getByRole('grid')).getAllByRole('row')).toHaveLength(7)
+  })
+
+  describe('single', () => {
+    it('selects a day and reports it', async () => {
+      const onSelect = vi.fn()
+      render(<Calendar today={TODAY} onSelect={onSelect} />)
+      await userEvent.click(day('2027-03-14'))
+      expect(onSelect).toHaveBeenCalledWith('2027-03-14')
+      expect(day('2027-03-14')).toHaveAttribute('data-selected')
+      expect(cellOf('2027-03-14')).toHaveAttribute('aria-selected', 'true')
+      expect(cellOf('2027-03-15')).toHaveAttribute('aria-selected', 'false')
+      expect(live()).toHaveTextContent('Selected Sunday, 14 March 2027')
+    })
+
+    it('clears the day on a second press unless required', async () => {
+      const onSelect = vi.fn()
+      const { unmount } = render(
+        <Calendar
+          today={TODAY}
+          defaultSelected='2027-03-14'
+          onSelect={onSelect}
+        />
+      )
+      await userEvent.click(day('2027-03-14'))
+      expect(onSelect).toHaveBeenLastCalledWith(null)
+      unmount()
+      render(
+        <Calendar
+          today={TODAY}
+          defaultSelected='2027-03-14'
+          required
+          onSelect={onSelect}
+        />
+      )
+      await userEvent.click(day('2027-03-14'))
+      expect(day('2027-03-14')).toHaveAttribute('data-selected')
+    })
+
+    it('follows a controlled value', async () => {
+      const onSelect = vi.fn()
+      render(
+        <Calendar today={TODAY} selected='2027-03-02' onSelect={onSelect} />
+      )
+      await userEvent.click(day('2027-03-14'))
+      expect(onSelect).toHaveBeenCalledWith('2027-03-14')
+      expect(day('2027-03-02')).toHaveAttribute('data-selected')
+      expect(day('2027-03-14')).not.toHaveAttribute('data-selected')
+    })
+  })
+
+  it('keeps a controlled null selection empty', async () => {
+    render(
+      <Calendar today={TODAY} selected={null} defaultSelected='2027-03-02' />
+    )
+    expect(day('2027-03-02')).not.toHaveAttribute('data-selected')
+  })
+
+  it('toggles days in multiple mode', async () => {
+    const onSelect = vi.fn()
+    render(<Calendar today={TODAY} mode='multiple' onSelect={onSelect} />)
+    await userEvent.click(day('2027-03-14'))
+    await userEvent.click(day('2027-03-02'))
+    expect(onSelect).toHaveBeenLastCalledWith(['2027-03-02', '2027-03-14'])
+    await userEvent.click(day('2027-03-14'))
+    expect(onSelect).toHaveBeenLastCalledWith(['2027-03-02'])
+    expect(live()).toHaveTextContent('Deselected Sunday, 14 March 2027')
+  })
+
+  describe('range', () => {
+    it('selects a start, then an end, and marks the span', async () => {
+      const onSelect = vi.fn()
+      render(<Calendar today={TODAY} mode='range' onSelect={onSelect} />)
+      await userEvent.click(day('2027-03-07'))
+      expect(onSelect).toHaveBeenLastCalledWith({
+        start: '2027-03-07',
+        end: null
+      })
+      await userEvent.click(day('2027-03-03'))
+      expect(onSelect).toHaveBeenLastCalledWith({
+        start: '2027-03-03',
+        end: '2027-03-07'
+      })
+      expect(day('2027-03-03')).toHaveAttribute('data-range-start')
+      expect(day('2027-03-05')).toHaveAttribute('data-range-middle')
+      expect(day('2027-03-07')).toHaveAttribute('data-range-end')
+      for (const date of ['2027-03-03', '2027-03-05', '2027-03-07'])
+        expect(cellOf(date)).toHaveAttribute('aria-selected', 'true')
+      expect(live()).toHaveTextContent(
+        'Selected Wednesday, 3 to Sunday, 7 March 2027'
+      )
+    })
+
+    it('previews the range under the pointer', async () => {
+      render(
+        <Calendar
+          today={TODAY}
+          mode='range'
+          defaultSelected={{ start: '2027-03-03', end: null }}
+        />
+      )
+      fireEvent.pointerEnter(day('2027-03-06'), { pointerType: 'mouse' })
+      for (const date of ['2027-03-03', '2027-03-04', '2027-03-06'])
+        expect(day(date)).toHaveAttribute('data-range-preview')
+      expect(day('2027-03-07')).not.toHaveAttribute('data-range-preview')
+      expect(day('2027-03-06')).toHaveAttribute('data-range-end')
+      expect(cellOf('2027-03-04')).toHaveAttribute('aria-selected', 'false')
+    })
+
+    it('keeps a range within min and max days', async () => {
+      const onSelect = vi.fn()
+      render(
+        <Calendar
+          today={TODAY}
+          mode='range'
+          min={3}
+          max={5}
+          onSelect={onSelect}
+        />
+      )
+      await userEvent.click(day('2027-03-10'))
+      for (const date of ['2027-03-11', '2027-03-15', '2027-03-05'])
+        expect(day(date)).toHaveAttribute('aria-disabled', 'true')
+      for (const date of ['2027-03-12', '2027-03-14', '2027-03-06'])
+        expect(day(date)).not.toHaveAttribute('aria-disabled')
+      onSelect.mockClear()
+      fireEvent.click(day('2027-03-15'))
+      expect(onSelect).not.toHaveBeenCalled()
+      await userEvent.click(day('2027-03-14'))
+      expect(onSelect).toHaveBeenCalledWith({
+        start: '2027-03-10',
+        end: '2027-03-14'
+      })
+    })
+
+    it('lets Escape drop a started range', async () => {
+      const onSelect = vi.fn()
+      render(<Calendar today={TODAY} mode='range' onSelect={onSelect} />)
+      await userEvent.click(day('2027-03-07'))
+      await userEvent.keyboard('{Escape}')
+      expect(onSelect).toHaveBeenLastCalledWith({ start: null, end: null })
+    })
+  })
+
+  describe('disabled', () => {
+    it.each([
+      ['a date', '2027-03-14', '2027-03-14'],
+      ['before', { before: TODAY }, '2027-03-09'],
+      ['after', { after: TODAY }, '2027-03-11'],
+      ['a range', { start: '2027-03-12', end: '2027-03-16' }, '2027-03-16'],
+      ['weekdays', { dayOfWeek: [6, 7] }, '2027-03-13'],
+      ['a test', (date: string) => date === '2027-03-20', '2027-03-20']
+    ])('disables days by %s, still focusable', async (_, disabled, date) => {
+      const onSelect = vi.fn()
+      render(<Calendar today={TODAY} disabled={disabled} onSelect={onSelect} />)
+      expect(day(date)).toHaveAttribute('aria-disabled', 'true')
+      expect(day(date)).toHaveAttribute('data-disabled')
+      expect(day(date)).not.toBeDisabled()
+      fireEvent.click(day(date))
+      expect(onSelect).not.toHaveBeenCalled()
+    })
+
+    it('disables every day and the navigation with true', () => {
+      render(<Calendar today={TODAY} disabled />)
+      expect(day('2027-03-14')).toHaveAttribute('aria-disabled', 'true')
+      expect(screen.getByRole('button', { name: 'Next month' })).toBeDisabled()
+    })
+  })
+
+  it('names days with modifiers as data attributes', () => {
+    render(
+      <Calendar
+        today={TODAY}
+        modifiers={{
+          hasSession: ['2027-03-12', '2027-03-13'],
+          soldOut: { dayOfWeek: [1] }
+        }}
+      />
+    )
+    expect(day('2027-03-12')).toHaveAttribute('data-has-session')
+    expect(day('2027-03-14')).not.toHaveAttribute('data-has-session')
+    expect(day('2027-03-15')).toHaveAttribute('data-sold-out')
+  })
+
+  describe('months', () => {
+    it('steps months and announces the new one', async () => {
+      const onMonthChange = vi.fn()
+      render(<Calendar today={TODAY} onMonthChange={onMonthChange} />)
+      expect(live()).toHaveTextContent('')
+      await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+      expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
+      expect(onMonthChange).toHaveBeenLastCalledWith('2027-04-01')
+      expect(live()).toHaveTextContent('April 2027')
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Previous month' })
+      )
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Previous month' })
+      )
+      expect(screen.getByRole('grid')).toHaveAccessibleName('February 2027')
+    })
+
+    it('follows a controlled month', async () => {
+      function Controlled() {
+        const [month, setMonth] = useState('2027-03-01')
+        return (
+          <>
+            <Calendar today={TODAY} month={month} onMonthChange={setMonth} />
+            <button type='button' onClick={() => setMonth('2028-01-15')}>
+              Jump
+            </button>
+          </>
+        )
+      }
+      render(<Controlled />)
+      await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+      expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
+      await userEvent.click(screen.getByRole('button', { name: 'Jump' }))
+      expect(screen.getByRole('grid')).toHaveAccessibleName('January 2028')
+    })
+
+    it('stays inside startMonth and endMonth', async () => {
+      render(
+        <Calendar today={TODAY} startMonth='2027-03-01' endMonth='2027-04-30' />
+      )
+      expect(
+        screen.getByRole('button', { name: 'Previous month' })
+      ).toBeDisabled()
+      await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+      expect(screen.getByRole('button', { name: 'Next month' })).toBeDisabled()
+    })
+
+    it('shows several months, with the arrows at either end', () => {
+      render(<Calendar today={TODAY} numberOfMonths={2} />)
+      const grids = screen.getAllByRole('grid')
+      expect(grids).toHaveLength(2)
+      expect(grids[0]).toHaveAccessibleName('March 2027')
+      expect(grids[1]).toHaveAccessibleName('April 2027')
+      expect(
+        screen.getAllByRole('button', { name: 'Next month' })
+      ).toHaveLength(1)
+    })
+
+    it('picks a month and a year from dropdowns', async () => {
+      const onMonthChange = vi.fn()
+      render(
+        <Calendar
+          today={TODAY}
+          captionLayout='dropdown'
+          onMonthChange={onMonthChange}
+        />
+      )
+      await userEvent.selectOptions(
+        screen.getByRole('combobox', { name: 'Month' }),
+        'July'
+      )
+      await userEvent.selectOptions(
+        screen.getByRole('combobox', { name: 'Year' }),
+        '2029'
+      )
+      expect(onMonthChange).toHaveBeenLastCalledWith('2029-07-01')
+      expect(screen.getByRole('grid')).toHaveAccessibleName('July 2029')
+    })
+
+    it('moves the month when a key takes focus past it', async () => {
+      render(<Calendar today='2027-03-31' />)
+      act(() => day('2027-03-31').focus())
+      await userEvent.keyboard('{ArrowRight}')
+      expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
+      expect(day('2027-04-01')).toHaveFocus()
+      expect(live()).toHaveTextContent('April 2027')
+    })
+  })
+
+  it('focuses the tab stop on mount with autoFocus', () => {
+    render(<Calendar today={TODAY} defaultSelected='2027-03-20' autoFocus />)
+    expect(day('2027-03-20')).toHaveFocus()
+  })
+
+  it('spreads other props onto the root', () => {
+    const { container } = render(
+      <Calendar today={TODAY} className='custom' aria-label='Dates' id='cal' />
+    )
+    const root = container.firstElementChild!
+    expect(root).toHaveAttribute('data-slot', 'calendar')
+    expect(root).toHaveClass('custom')
+    expect(root).toHaveAttribute('id', 'cal')
+  })
+
+  it('takes a controlled range', async () => {
+    function Controlled() {
+      const [range, setRange] = useState<CalendarDateRange>({
+        start: '2027-03-03',
+        end: '2027-03-05'
+      })
+      return (
+        <Calendar
+          today={TODAY}
+          mode='range'
+          selected={range}
+          onSelect={setRange}
+        />
+      )
+    }
+    render(<Controlled />)
+    expect(day('2027-03-04')).toHaveAttribute('data-range-middle')
+    await userEvent.click(day('2027-03-20'))
+    expect(day('2027-03-04')).not.toHaveAttribute('data-selected')
+    expect(day('2027-03-20')).toHaveAttribute('data-range-start')
+  })
+})

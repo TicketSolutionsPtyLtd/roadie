@@ -56,6 +56,18 @@ export {
 } from './components/Callout'
 
 export {
+  Calendar,
+  type CalendarDateRange,
+  type CalendarMatcher,
+  type CalendarMatchers,
+  type CalendarMode,
+  type CalendarMultipleProps,
+  type CalendarProps,
+  type CalendarRangeProps,
+  type CalendarSingleProps
+} from './components/Calendar'
+
+export {
   CalendarTile,
   calendarTileVariants,
   type CalendarTileProps
