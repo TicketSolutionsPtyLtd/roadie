@@ -20,7 +20,7 @@ type Suggestions<Value> = {
 const NONE: readonly never[] = []
 
 function isThenable<T>(value: T | PromiseLike<T>): value is PromiseLike<T> {
-  return typeof (value as PromiseLike<T>).then === 'function'
+  return value != null && typeof (value as PromiseLike<T>).then === 'function'
 }
 
 // Asks again when the text, the open state or the pending field changes, not

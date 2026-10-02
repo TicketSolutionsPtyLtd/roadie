@@ -80,6 +80,15 @@ const chipElement = (id: string) =>
   document.querySelector<HTMLElement>(
     `[data-slot=combobox-chip][data-chip-id="${id}"]`
   )
+const hinted = () =>
+  screen
+    .queryAllByRole('option')
+    .filter((option) => option.querySelector('kbd'))
+    .map(
+      (option) =>
+        option.querySelector('[data-slot=query-field-option-label]')
+          ?.textContent
+    )
 const optionNames = () =>
   screen
     .queryAllByRole('option')
@@ -215,15 +224,6 @@ describe('QueryField', () => {
     render(<Harness />)
     await typeInto('long')
     await waitFor(() => expect(optionNames()).toHaveLength(3))
-    const hinted = () =>
-      screen
-        .getAllByRole('option')
-        .filter((option) => option.querySelector('kbd'))
-        .map(
-          (option) =>
-            option.querySelector('[data-slot=query-field-option-label]')
-              ?.textContent
-        )
     expect(hinted()).toEqual(['Search for “long”'])
     await userEvent.keyboard('{ArrowDown}')
     await waitFor(() => expect(hinted()).toEqual(['Venue is The Longacre']))
@@ -490,6 +490,67 @@ describe('QueryField', () => {
     await waitFor(() => expect(optionNames()).toEqual(['Venue']))
     await userEvent.keyboard('{Enter}')
     expect(onAccept).toHaveBeenLastCalledWith(venueField)
+  })
+
+  it('keeps a hovered filter out of Enter when the caret moves', async () => {
+    const onAccept = vi.fn()
+    render(<Harness onAccept={onAccept} />)
+    await typeInto('long')
+    await userEvent.hover(
+      await screen.findByRole('option', { name: /Venue is The Longacre/ })
+    )
+    await userEvent.keyboard('{End}')
+    expect(hinted()).toEqual(['Search for “long”'])
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: 'search' })
+    )
+  })
+
+  it('hands Enter back to the search once the pointer takes over', async () => {
+    const onAccept = vi.fn()
+    render(<Harness onAccept={onAccept} />)
+    await typeInto('long')
+    await waitFor(() => expect(optionNames()).toHaveLength(3))
+    await userEvent.keyboard('{ArrowDown}')
+    await userEvent.hover(screen.getByRole('option', { name: /^Venue$/ }))
+    expect(hinted()).toEqual(['Search for “long”'])
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: 'search' })
+    )
+  })
+
+  it('starts the value step with no value as Enter target', async () => {
+    const onAccept = vi.fn()
+    function ValueStep() {
+      const [pending, setPending] = useState(false)
+      return (
+        <Harness
+          pendingChip={pending ? { id: 'venue', label: 'Venue is' } : undefined}
+          suggest={(text) =>
+            pending
+              ? [{ id: 'values', label: 'Venue is', items: [longacre] }]
+              : suggestFor(text)
+          }
+          onAccept={(suggestion) => {
+            onAccept(suggestion)
+            if (suggestion.kind === 'field') setPending(true)
+          }}
+        />
+      )
+    }
+    render(<ValueStep />)
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowDown}')
+    await waitFor(() => expect(optionNames()).toEqual(['Venue']))
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() =>
+      expect(optionNames()).toEqual(['Venue is The Longacre'])
+    )
+    expect(hinted()).toEqual([])
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenCalledTimes(1)
   })
 
   it('tells assistive technology Enter edits a chip', () => {

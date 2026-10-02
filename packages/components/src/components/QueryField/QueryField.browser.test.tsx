@@ -139,6 +139,7 @@ describe('QueryField', () => {
     await userEvent.keyboard('long')
     const filter = await screen.findByRole('option', { name: /The Longacre/ })
     await userEvent.hover(filter)
+    expect(filter.querySelector('kbd')).toBeNull()
     await userEvent.keyboard('{Enter}')
     expect(accepted).toEqual(['search'])
   })

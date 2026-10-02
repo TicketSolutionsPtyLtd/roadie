@@ -91,15 +91,6 @@ export type QueryFieldProps<Value = unknown> = {
 const DEFAULT_PLACEHOLDER = 'Search and filter'
 const NO_CHIPS: readonly QueryFieldChip[] = []
 
-const NAVIGATION_KEYS = new Set([
-  'ArrowDown',
-  'ArrowUp',
-  'PageDown',
-  'PageUp',
-  'Home',
-  'End'
-])
-
 function isComposing(event: KeyboardEvent) {
   return event.nativeEvent.isComposing || event.keyCode === 229
 }
@@ -188,6 +179,8 @@ export function QueryField<Value = unknown>({
     : undefined
 
   function accept(suggestion: QueryFieldAccepted<Value>) {
+    // The value step's list lands on the same index; it wasn't arrowed to.
+    if (suggestion.kind === 'field') setHighlightByKeyboard(false)
     if (suggestion.kind !== 'search') setText('')
     if (suggestion.kind !== 'field') setOpen(false)
     onAccept?.(suggestion)
@@ -216,7 +209,11 @@ export function QueryField<Value = unknown>({
   function handleInputKeyDown(
     event: BaseUIEvent<KeyboardEvent<HTMLInputElement>>
   ) {
-    if (NAVIGATION_KEYS.has(event.key)) setHighlightByKeyboard(true)
+    if (
+      (event.key === 'ArrowDown' || event.key === 'ArrowUp') &&
+      !isComposing(event)
+    )
+      setHighlightByKeyboard(true)
     if (event.key === 'Enter') {
       if (isModified(event)) {
         // Base UI ignores a modified Enter; keep it from submitting a form.
@@ -305,9 +302,9 @@ export function QueryField<Value = unknown>({
         if (details.reason === 'input-change') setText(next)
       }}
       open={open}
-      onOpenChange={(next) => {
+      onOpenChange={(next, details) => {
         setOpen(next)
-        if (!next) setHighlightByKeyboard(false)
+        if (details.reason !== 'list-navigation') setHighlightByKeyboard(false)
       }}
       onItemHighlighted={(item, details) => {
         setHighlightId(item?.id)
