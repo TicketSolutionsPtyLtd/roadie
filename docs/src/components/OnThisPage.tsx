@@ -13,6 +13,8 @@ import { useRoute } from '@/lib/route'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { landOn } from './landOn'
+
 const SCROLL_OFFSET_PX = 80
 // Smooth scroll usually settles in <500ms but we leave headroom for slow
 // machines + the inertia tail before honouring observer updates again.
@@ -147,10 +149,19 @@ export function useDocHeadings(): DocHeadings {
     }
 
     collect()
+    // A hash jump lands before the examples around it mount, which would push it away.
+    const landOnHash = () => {
+      const id = decodeURIComponent(window.location.hash.slice(1))
+      const target = id && document.getElementById(id)
+      if (target && mainEl.contains(target)) landOn(target, false)
+    }
+    landOnHash()
+    window.addEventListener('hashchange', landOnHash)
     // The page's content can be swapped for new nodes after this effect runs.
     const mutations = new MutationObserver(collect)
     mutations.observe(mainEl, { childList: true, subtree: true })
     return () => {
+      window.removeEventListener('hashchange', landOnHash)
       mutations.disconnect()
       observer.disconnect()
     }
@@ -176,7 +187,7 @@ export function useDocHeadings(): DocHeadings {
       programmaticScrollLockRef.current =
         Date.now() + PROGRAMMATIC_SCROLL_LOCK_MS
       // The pane scrolls, not the window; its scroll-pt keeps the heading clear.
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      landOn(target, true)
       setActiveHeading(id)
       if (window.history.replaceState) {
         window.history.replaceState(null, '', `#${id}`)
