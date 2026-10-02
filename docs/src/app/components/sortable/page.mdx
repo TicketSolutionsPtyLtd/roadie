@@ -6,14 +6,10 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
 
 Drag to reorder items, with a Move menu on each handle for keyboard and screen
 reader users.
-
-`Sortable` holds the order and reports changes. Each item gets a drag handle.
-Drag the handle to move the item, or click it (or press Enter or Space) to open
-a menu with Move up, Move down, Move to top and Move to bottom. Dragging uses the browser's own drag
-and drop, so the preview is the browser's snapshot of the item.
 
 ## Import
 
@@ -27,7 +23,8 @@ import { Sortable } from '@oztix/roadie-components/sortable'
 
 Wrap a `List` in `Sortable` and give each `List.Item` a `value`. The row takes
 a drag handle in front. Pass the values in order as `items`, and store the new
-order in `onReorder`.
+order in `onReorder`. Drag a handle to move its row, or click it to open the
+Move menu. The drag preview is the browser's own snapshot of the row.
 
 ```tsx-live-noinline
 function Columns() {
@@ -53,7 +50,7 @@ function Columns() {
 render(<Columns />)
 ```
 
-### Horizontal
+### Variants
 
 Set `orientation='horizontal'` for items in a row. Drops land on the left or
 right edge, and the menu moves items left and right, or to the start and end.
@@ -103,7 +100,10 @@ render(<Stages />)
 
 `Sortable.Item` renders a `<div>` by default. Pass `render` to swap the
 element, such as `<li />` inside your own list, and put a `Sortable.Handle`
-anywhere inside it. Give each item a `label` so the handle and menu can name
+anywhere inside it. Each item sets `data-dragging` while it is dragged and
+`data-drop-edge` (`top`, `bottom`, `left` or `right`) while it is the drop
+target, for your own styling; the dimmed item and the accent drop line are
+built in. Give each item a `label` so the handle and menu can name
 it: "Reorder Sydney", "Move Sydney up".
 
 ```tsx-live-noinline
@@ -133,7 +133,7 @@ function Cities() {
 render(<Cities />)
 ```
 
-### In a popover
+### With a popover
 
 Drag and drop works inside a modal `Popover`. A long list scrolls by itself
 while you drag near its top or bottom edge.
@@ -166,25 +166,36 @@ render(<ColumnSettings />)
 
 ## Guidelines
 
-- **Keep the handle.** It is the only place a drag starts, so taps on the
-  item's other controls work. The whole item is draggable, so its text can't
-  be selected, and Firefox struggles with text fields inside it: keep trailing
-  controls to buttons and toggles.
-- **Key items by value.** Render each item with `key={value}`, so focus returns
-  to the handle of the item that moved.
-- **Wrap the list, not the items.** `Sortable` adds a hidden live region after
-  its children, so put it around the `List` or `<ul>`, never inside one.
-- **Name each item.** `List.Item` uses a text `title` as the item's name. Give
-  `Sortable.Item` a `label` so the handle reads "Reorder SKU" rather than
-  "Reorder".
-- **Name the collection.** `label` on `Sortable` ends each announcement, as in
-  "SKU moved to position 3 of 7 columns".
-- **Reorderable rows are static.** A `List.Item` with a `value` inside a
-  `Sortable` is not a link or button and ignores `href`, `onClick`, `current`
-  and `chevron`. Put any action in its `trailing` slot.
-- **Style with data attributes.** Each item sets `data-dragging` while it is
-  dragged and `data-drop-edge` (`top`, `bottom`, `left` or `right`) while it is
-  the drop target. The dimmed item and the accent drop line are built in.
+<div className='grid gap-8'>
+
+<Guideline title='Wrap the list, keyed by value'>
+  <Guideline.Do code={`<Sortable items={order} onReorder={setOrder} label='columns'>\n  <List>\n    {order.map((value) => (\n      <List.Item key={value} value={value} title={names[value]} />\n    ))}\n  </List>\n</Sortable>`}>
+    Put <code>Sortable</code> around the <code>List</code> and key each row by its value, so focus returns to the handle of the row that moved.
+  </Guideline.Do>
+  <Guideline.Dont code={`<List>\n  <Sortable items={order} onReorder={setOrder}>\n    {order.map((value, index) => (\n      <List.Item key={index} value={value} title={value} />\n    ))}\n  </Sortable>\n</List>`}>
+    Don't put it inside the list or key rows by index. Sortable adds a hidden live region after its children, which can't sit inside a list, and index keys send focus to the wrong handle.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Name the items and the collection'>
+  <Guideline.Do code={`<Sortable label='columns' …>\n  <Sortable.Item value='sku' label='SKU'>…</Sortable.Item>\n</Sortable>`}>
+    Give each item a <code>label</code> (a text <code>List.Item</code> title does this for you) and the root a <code>label</code>. The handle reads "Reorder SKU" and moves are announced as "SKU moved to position 3 of 7 columns".
+  </Guideline.Do>
+  <Guideline.Dont code={`<Sortable.Item value='sku'>\n  <SkuIcon />\n</Sortable.Item>`}>
+    Don't leave an item unnamed. Every handle then reads "Reorder", and a screen reader user can't tell the rows apart.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep rows static and drag from the handle'>
+  <Guideline.Do code={`<List.Item value='sku' title='SKU' trailing={<Toggle … />} />`}>
+    Put actions in the row's <code>trailing</code> slot as buttons or toggles. A reorderable row is not a link or button, and ignores <code>href</code>, <code>onClick</code>, <code>current</code> and <code>chevron</code>.
+  </Guideline.Do>
+  <Guideline.Dont code={`<List.Item value='sku' title={<input … />} />`}>
+    Don't put text fields in a sortable item. The whole item is draggable, so its text can't be selected, and Firefox struggles with fields inside it.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
 
 ## Accessibility
 
