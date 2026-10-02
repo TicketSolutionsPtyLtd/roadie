@@ -60,7 +60,7 @@ export function buildCheckoutUrl(
  * pattern-scanners (Aikido) flag on `onNavigate`.
  *
  * Returns the Oztix internal collection (events) route:
- *   /collection/?id={collectionId}
+ *   /collection/{collectionId}
  *
  * The route shape is hard-coded because both consumers (OnlineOutlet and the
  * Oztix website) use the same path. Lift to a template prop if a third
@@ -68,5 +68,5 @@ export function buildCheckoutUrl(
  */
 export function buildBrowseHref(collectionId: string): string {
   if (typeof collectionId !== 'string' || collectionId.length === 0) return '/'
-  return `/collection/?id=${encodeURIComponent(collectionId)}`
+  return `/collection/${encodeURIComponent(collectionId)}`
 }
