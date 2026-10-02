@@ -158,8 +158,12 @@ export function useDocHeadings(): DocHeadings {
       } catch {
         return
       }
-      const target = id && document.getElementById(id)
-      if (target && mainEl.contains(target)) landOn(target, false)
+      if (!id) return
+      // A .tsx page's headings get their ids only once followed.
+      const target = document.getElementById(id) ?? elementsRef.current.get(id)
+      if (!target || !mainEl.contains(target)) return
+      target.id = id
+      landOn(target, false)
     }
     landOnHash()
     window.addEventListener('hashchange', landOnHash)

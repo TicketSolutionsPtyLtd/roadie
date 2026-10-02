@@ -84,6 +84,13 @@ describe('useDocHeadings', () => {
     expect(next.querySelector('h3')?.id).toBe('stattile')
   })
 
+  it('lands a hash on a heading that has no id in the markup', () => {
+    window.history.replaceState(null, '', '#meter-2')
+    const { content } = mountPage()
+    expect(content.querySelectorAll('h3')[1]?.id).toBe('meter-2')
+    window.history.replaceState(null, '', '#')
+  })
+
   it('leaves out headings inside a live example as it renders', async () => {
     const { content, result } = mountPage()
     const example = document.createElement('div')
