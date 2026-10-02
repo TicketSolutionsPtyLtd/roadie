@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   deltaSentiment,
@@ -103,5 +103,49 @@ describe('describeDelta', () => {
     expect(describeDelta(-0.04, 'percent', 'up')).toBe('down 4%, worse')
     expect(describeDelta(3, 'number', 'neither')).toBe('up 3')
     expect(describeDelta(0, 'percent')).toBe('no change')
+  })
+})
+
+describe('formatter reuse', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('builds each number format once across many values', async () => {
+    vi.resetModules()
+    const { formatValue: fresh } = await import('./format')
+    const construct = vi.spyOn(Intl, 'NumberFormat')
+    const formatAll = () => {
+      for (let value = 0; value < 500; value += 1) {
+        fresh(value * 1.5, 'number')
+        fresh(value * 100, 'currency')
+        fresh(value / 1000, 'percent')
+      }
+    }
+
+    formatAll()
+    const built = construct.mock.calls.length
+    expect(built).toBeGreaterThan(0)
+    expect(built).toBeLessThanOrEqual(8)
+
+    formatAll()
+    expect(construct.mock.calls.length).toBe(built)
+  })
+
+  it('keeps each option set on its own formatter', () => {
+    const interleaved = [
+      formatValue(1200, 'currency'),
+      formatValue(19.95, 'currency'),
+      formatValue(0.77, 'percent'),
+      formatValue(0.045, 'percent'),
+      formatValue(1200, 'currency'),
+      formatValue(0.77, 'percent')
+    ]
+    expect(interleaved).toEqual([
+      '$1,200',
+      '$19.95',
+      '77%',
+      '4.5%',
+      '$1,200',
+      '77%'
+    ])
   })
 })

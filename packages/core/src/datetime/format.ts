@@ -122,6 +122,38 @@ function trimAbbreviation(value: string): string {
   return value.replace(/\.$/, '')
 }
 
+// Keyed by the constructor too, so a replaced Intl.DateTimeFormat (a polyfill,
+// a test double) never serves formatters built by the old one.
+const formatters = new WeakMap<object, Map<string, Intl.DateTimeFormat>>()
+
+// Locale and time zone come from callers, so the cache drops its oldest
+// formatter rather than grow for the life of the process.
+const MAX_FORMATTERS = 200
+
+// Building a formatter costs far more than formatting with one, and a table
+// formats hundreds of values with the same few option sets.
+function dateTimeFormat(
+  locale: string,
+  options: Intl.DateTimeFormatOptions
+): Intl.DateTimeFormat {
+  const Format = Intl.DateTimeFormat
+  let cache = formatters.get(Format)
+  if (!cache) {
+    cache = new Map()
+    formatters.set(Format, cache)
+  }
+  const key = `${locale}|${JSON.stringify(options)}`
+  let formatter = cache.get(key)
+  if (!formatter) {
+    formatter = new Format(locale, options)
+    if (cache.size >= MAX_FORMATTERS) {
+      cache.delete(cache.keys().next().value as string)
+    }
+    cache.set(key, formatter)
+  }
+  return formatter
+}
+
 function zoneParts(
   value: Instantish,
   timeZone: string,
@@ -130,13 +162,13 @@ function zoneParts(
   const date = toDate(value)
   if (Number.isNaN(date.getTime())) return null
   try {
-    const long = new Intl.DateTimeFormat(locale, {
+    const long = dateTimeFormat(locale, {
       timeZone,
       weekday: 'long',
       month: 'long'
     }).formatToParts(date)
 
-    const short = new Intl.DateTimeFormat(locale, {
+    const short = dateTimeFormat(locale, {
       timeZone,
       weekday: 'short',
       month: 'short'
@@ -144,7 +176,7 @@ function zoneParts(
 
     // Latin digits. Reading numbers from the localised pass yields '٢٧' under
     // ar-EG, which Number() turns into NaN.
-    const numeric = new Intl.DateTimeFormat('en-US', {
+    const numeric = dateTimeFormat('en-US', {
       timeZone,
       day: 'numeric',
       month: 'numeric',
@@ -260,7 +292,7 @@ function zoneAbbreviation(
   locale: string
 ): string | null {
   try {
-    const parts = new Intl.DateTimeFormat(locale, {
+    const parts = dateTimeFormat(locale, {
       timeZone,
       timeZoneName: 'short'
     }).formatToParts(date)
@@ -272,7 +304,7 @@ function zoneAbbreviation(
 
 function zoneOffset(date: Date, timeZone: string): string | null {
   try {
-    const parts = new Intl.DateTimeFormat('en-US', {
+    const parts = dateTimeFormat('en-US', {
       timeZone,
       timeZoneName: 'longOffset'
     }).formatToParts(date)
