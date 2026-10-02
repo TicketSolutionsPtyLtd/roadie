@@ -6,6 +6,7 @@ import type {
   TableRow,
   TableTotals
 } from '@oztix/roadie-core/dashboard'
+import { resolveTableTotals } from '@oztix/roadie-core/dashboard-layout'
 
 import { DataTableSortable } from './DataTableSortable'
 import { DataTableView } from './DataTableView'
@@ -18,7 +19,7 @@ import {
 
 export type DataTableColumn = TableColumn
 export type DataTableRow = TableRow
-export type DataTableTotals = TableTotals
+export type DataTableTotals = true | TableTotals
 export type { DataTableSort, DataTableSortDirection }
 export { sortDataTableRows } from './sort'
 
@@ -57,7 +58,7 @@ export type DataTableProps = Omit<ComponentProps<'div'>, 'children'> & {
    * shares, indexes and points, and any column with `total: false`. Give
    * `values`, with a `label`, to show your own, such as the server's totals.
    */
-  totals?: true | DataTableTotals
+  totals?: DataTableTotals
   /**
    * Names the rows in the default totals label, as in "Totals for 12 events".
    * @default { one: 'record', other: 'records' }
@@ -76,6 +77,8 @@ export function DataTable({
   getSortHref,
   showAllLabel = 'Show all columns',
   plain = false,
+  totals,
+  recordName,
   ...props
 }: DataTableProps) {
   // Keys and hrefs are resolved here so a server component never hands the
@@ -85,7 +88,22 @@ export function DataTable({
     row,
     href: getRowHref?.(row)
   }))
-  const shared = { ...props, rows: keyedRows, showAllLabel, plain }
+  // Summed before any sort, so the figures never shift with the order.
+  const resolvedTotals =
+    totals &&
+    resolveTableTotals(
+      props.columns,
+      rows,
+      totals === true ? 'sum' : totals,
+      recordName
+    )
+  const shared = {
+    ...props,
+    rows: keyedRows,
+    showAllLabel,
+    plain,
+    totals: resolvedTotals
+  }
 
   if (getSortHref)
     return (

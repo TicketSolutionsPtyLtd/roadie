@@ -1,12 +1,10 @@
 import type { ComponentProps, ReactNode } from 'react'
 
 import type {
-  RecordName,
+  ResolvedTotals,
   TableColumn,
-  TableRow,
-  TableTotals
+  TableRow
 } from '@oztix/roadie-core/dashboard'
-import { resolveTableTotals } from '@oztix/roadie-core/dashboard-layout'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
@@ -30,8 +28,7 @@ export type DataTableViewProps = Omit<ComponentProps<'div'>, 'children'> & {
   sortControl?: (column: TableColumn) => DataTableSortControl | undefined
   showAllLabel: string
   plain: boolean
-  totals?: true | TableTotals
-  recordName?: RecordName
+  totals?: ResolvedTotals
 }
 
 const titleColumn = (columns: readonly TableColumn[]) =>
@@ -93,15 +90,14 @@ export function DataTableView({
   sortControl,
   showAllLabel,
   plain,
-  totals,
-  recordName,
+  totals: footer,
   className,
   ...props
 }: DataTableViewProps) {
   const title = titleColumn(columns)
   const linksRows = rows.some(({ href }) => href)
   const priorityOf = (column: TableColumn) =>
-    (linksRows && column === title) || (totals && column === columns[0])
+    (linksRows && column === title) || (footer && column === columns[0])
       ? undefined
       : column.priority
   if (linksRows && title?.priority !== undefined) warnTitlePriority(title.key)
@@ -113,15 +109,6 @@ export function DataTableView({
     'data-pin': column.pin || undefined,
     align: alignOf(column)
   })
-  // Sums every row given, not just those in view, so it holds as the table sorts or narrows.
-  const footer =
-    totals &&
-    resolveTableTotals(
-      columns,
-      rows.map(({ row }) => row),
-      totals === true ? 'sum' : totals,
-      recordName
-    )
   const header = (column: TableColumn): ReactNode => {
     const control = sortControl?.(column)
     if (!control) return column.header

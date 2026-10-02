@@ -12,7 +12,7 @@ Styled table primitives for any screen.
 ## Import
 
 ```tsx
-import { Table } from '@oztix/roadie-components/table'
+import { Table, tableCellClass } from '@oztix/roadie-components/table'
 ```
 
 ## Examples
@@ -50,7 +50,7 @@ import { Table } from '@oztix/roadie-components/table'
 
 ### Foot
 
-`Table.Foot` holds a summary row, such as totals, in strong text over a rule.
+`Table.Foot` holds a summary row, such as totals, in strong text over a rule. Make its label a row header, a `th` with `scope='row'` styled by `tableCellClass()`, so screen readers announce it with each figure.
 
 ```tsx-live
 <Table>
@@ -72,7 +72,9 @@ import { Table } from '@oztix/roadie-components/table'
   </Table.Body>
   <Table.Foot>
     <Table.Row>
-      <Table.Cell>Totals for 2 events</Table.Cell>
+      <th scope='row' className={tableCellClass()}>
+        Totals for 2 events
+      </th>
       <Table.Cell align='end'>4,047</Table.Cell>
     </Table.Row>
   </Table.Foot>

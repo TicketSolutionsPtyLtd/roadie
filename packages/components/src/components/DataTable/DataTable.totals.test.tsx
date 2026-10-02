@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
-import { DataTable, type DataTableColumn } from '.'
+import { DataTable, type DataTableColumn, type DataTableTotals } from '.'
 
 const columns: DataTableColumn[] = [
   { key: 'show', header: 'Show', kind: 'text', pin: true },
@@ -117,6 +117,31 @@ describe('DataTable totals row', () => {
       />
     )
     expect(container.querySelector('[data-priority]')).toBeNull()
+  })
+
+  it('sums in the given order however the rows are sorted', () => {
+    const { container } = render(
+      <DataTable
+        sortable
+        totals
+        defaultSort={{ key: 'sold', direction: 'descending' }}
+        columns={columns.slice(0, 2)}
+        rows={[
+          { show: 'Ocean Alley', sold: 1e16 },
+          { show: 'Ball Park Music', sold: -1e16 },
+          { show: 'Julia Jacklin', sold: 1 }
+        ]}
+      />
+    )
+    expect(footer(container)[1]).toBe('1')
+  })
+
+  it('types the true shorthand as DataTableTotals', () => {
+    const shorthand: DataTableTotals = true
+    const { container } = render(
+      <DataTable totals={shorthand} columns={columns} rows={rows} />
+    )
+    expect(container.querySelector('tfoot')).not.toBeNull()
   })
 
   it('renders no footer without totals', () => {

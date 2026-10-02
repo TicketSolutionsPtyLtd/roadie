@@ -328,7 +328,10 @@ function totalsProblems(
       )
     )
   const first = card.columns[0]
-  if (first && (given.values ? first.key in given.values : isSummable(first)))
+  if (
+    first &&
+    (given.values ? Object.hasOwn(given.values, first.key) : isSummable(first))
+  )
     problems.push(
       warning(
         at,

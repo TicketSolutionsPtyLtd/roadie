@@ -23,19 +23,19 @@ function csvField(value: unknown) {
   return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
 }
 
+// A status key is an id; the label is what people read.
+const cellField = (column: ChartTable['columns'][number], value: unknown) =>
+  csvField(
+    column.kind === 'status' && value != null && value !== ''
+      ? columnStatus(column, String(value)).label
+      : value
+  )
+
 function tableCsv({ columns, rows }: ChartTable) {
   const lines = [
     columns.map((column) => csvField(column.header)),
     ...rows.map((row) =>
-      columns.map((column) => {
-        const value = row[column.key]
-        // A status key is an id; the label is what people read.
-        return csvField(
-          column.kind === 'status' && value != null
-            ? columnStatus(column, String(value)).label
-            : value
-        )
-      })
+      columns.map((column) => cellField(column, row[column.key]))
     )
   ]
   return lines.map((line) => line.join(',')).join('\n')
@@ -43,11 +43,20 @@ function tableCsv({ columns, rows }: ChartTable) {
 
 function totalsCsv({ columns, rows, totals }: ChartTable) {
   if (!totals) return []
-  const { label, values } = resolveTableTotals(columns, rows, totals)
+  const { label, values } = resolveTableTotals(
+    columns,
+    rows,
+    totals === true ? 'sum' : totals
+  )
   return [
     columns
       .map((column, index) =>
-        csvField(index === 0 ? label : values[column.key])
+        index === 0
+          ? csvField(label)
+          : cellField(
+              column,
+              Object.hasOwn(values, column.key) ? values[column.key] : undefined
+            )
       )
       .join(',')
   ]

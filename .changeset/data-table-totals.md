@@ -12,9 +12,9 @@ records", or the `recordName` you pass. Shares, indexes, points and columns with
 `{ label, values }` to show your own figures, such as the server's totals for a
 paged report or an average; with `values`, nothing is summed, and without a
 label the row reads "Totals". The first column holds the label, so it never
-hides while the totals show. `DataTableTotals` types the prop, and
-`tableCellClass(align)` gives a body cell's classes, for a `th` that heads a
-row.
+hides while the totals show. `DataTableTotals` types the prop, `true`
+included, and `tableCellClass(align)` gives a body cell's classes, for a `th`
+that heads a row.
 
 A dashboard table card takes the same `totals`, and columns take `total: false`.
 `validateDashboard` checks them: values need a label and must name a column,

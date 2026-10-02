@@ -198,6 +198,16 @@ describe('validateDashboard totals rows', () => {
     ])
   })
 
+  it('reads only the values given for the first column', () => {
+    const table = reportTable({ label: 'All shows', values: { gross: 9 } })
+    const card = table.sections[0]!.cards[0]!
+    card.columns = [
+      { ...card.columns[0]!, key: 'constructor' },
+      card.columns[1]!
+    ]
+    expect(validateDashboard(table).problems).toEqual([])
+  })
+
   it('checks the label copy', () => {
     expect(
       validateDashboard(reportTable({ label: 'Totals – all shows' })).problems
