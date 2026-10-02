@@ -54,6 +54,15 @@ describe('resolveTableTotals', () => {
     expect(values.gross).toBe(-1.13)
   })
 
+  it('rounds a tiny negative currency sum to zero, not minus zero', () => {
+    const { values } = resolveTableTotals(
+      [columns[2]!],
+      [{ gross: -0.001 }],
+      'sum'
+    )
+    expect(Object.is(values.gross, 0)).toBe(true)
+  })
+
   it('keeps a total for any column key, __proto__ included', () => {
     const { values } = resolveTableTotals(
       [{ key: '__proto__', header: 'Sold', kind: 'number' }],

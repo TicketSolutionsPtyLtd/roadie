@@ -45,7 +45,7 @@ function sum(column: TableColumn, rows: readonly TableRow[]) {
   if (!any) return undefined
   // Float sums drift, as 0.1 + 0.2 does; money adds up to the cent.
   return CURRENCY_FORMATS.has(column.format ?? '')
-    ? (Math.sign(total) * Math.round(Math.abs(total) * 100)) / 100
+    ? (Math.sign(total) * Math.round(Math.abs(total) * 100)) / 100 + 0
     : total
 }
 

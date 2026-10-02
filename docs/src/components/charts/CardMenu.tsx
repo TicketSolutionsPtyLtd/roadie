@@ -35,7 +35,12 @@ function tableCsv({ columns, rows }: ChartTable) {
   const lines = [
     columns.map((column) => csvField(column.header)),
     ...rows.map((row) =>
-      columns.map((column) => cellField(column, row[column.key]))
+      columns.map((column) =>
+        cellField(
+          column,
+          Object.hasOwn(row, column.key) ? row[column.key] : undefined
+        )
+      )
     )
   ]
   return lines.map((line) => line.join(',')).join('\n')
