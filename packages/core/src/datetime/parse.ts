@@ -208,8 +208,14 @@ function completeDate(partial: PartialDate, today: string): string | null {
   return closestTo(today, partial.month, partial.day)
 }
 
+// The formatters lead with the weekday, so a shown date reads back as typed.
+function withoutWeekday(text: string): string {
+  const m = /^([a-z]+) (.+)$/.exec(text)
+  return m && nameIndex(WEEKDAYS, m[1]!) ? m[2]! : text
+}
+
 function parseDate(text: string, today: string): string | null {
-  const partial = parsePartial(text, false)
+  const partial = parsePartial(withoutWeekday(text), false)
   return partial ? completeDate(partial, today) : null
 }
 

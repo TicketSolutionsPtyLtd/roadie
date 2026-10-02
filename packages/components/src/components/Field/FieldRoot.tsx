@@ -1,10 +1,10 @@
 'use client'
 
-import { type ComponentProps, useId } from 'react'
+import { type ComponentProps, useCallback, useId, useState } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { FieldContext } from './FieldContext'
+import { FieldContext, FieldControlErrorContext } from './FieldContext'
 
 export type FieldRootProps = ComponentProps<'div'> & {
   invalid?: boolean
@@ -24,6 +24,16 @@ export function FieldRoot({
   const labelId = `${fieldId}-label`
   const helperTextId = `${fieldId}-helper`
   const errorTextId = `${fieldId}-error`
+  // Keyed by control, so one control clearing its error leaves another's.
+  const [controlErrors, setControlErrors] = useState<Record<string, string>>({})
+  const setControlError = useCallback(
+    (control: string, message: string | null) =>
+      setControlErrors(({ [control]: _, ...others }) =>
+        message === null ? others : { ...others, [control]: message }
+      ),
+    []
+  )
+  const controlError = Object.values(controlErrors)[0] ?? null
 
   return (
     <FieldContext
@@ -37,11 +47,13 @@ export function FieldRoot({
         errorTextId
       }}
     >
-      <div
-        data-slot='field'
-        className={cn('grid gap-1.5', className)}
-        {...props}
-      />
+      <FieldControlErrorContext value={{ controlError, setControlError }}>
+        <div
+          data-slot='field'
+          className={cn('grid gap-1.5', className)}
+          {...props}
+        />
+      </FieldControlErrorContext>
     </FieldContext>
   )
 }

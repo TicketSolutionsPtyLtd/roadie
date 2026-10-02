@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "158.5 kB"
+    "limit": "168 kB"
   },
   {
     "name": "Single component (Button)",
@@ -232,6 +232,27 @@
     "path": "dist/components/Calendar/index.js",
     "import": "*",
     "limit": "7.25 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "DateField",
+    "path": "dist/components/DateField/index.js",
+    "import": "*",
+    "limit": "3.1 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "TimeField",
+    "path": "dist/components/TimeField/index.js",
+    "import": "*",
+    "limit": "3 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "DatePicker",
+    "path": "dist/components/DatePicker/index.js",
+    "import": "*",
+    "limit": "13.75 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]

@@ -100,6 +100,14 @@
       "types": "./dist/components/DataTable/index.d.ts",
       "import": "./dist/components/DataTable/index.js"
     },
+    "./date-field": {
+      "types": "./dist/components/DateField/index.d.ts",
+      "import": "./dist/components/DateField/index.js"
+    },
+    "./date-picker": {
+      "types": "./dist/components/DatePicker/index.d.ts",
+      "import": "./dist/components/DatePicker/index.js"
+    },
     "./date-time": {
       "types": "./dist/components/DateTime/index.d.ts",
       "import": "./dist/components/DateTime/index.js"
@@ -271,6 +279,10 @@
     "./textarea": {
       "types": "./dist/components/Textarea/index.d.ts",
       "import": "./dist/components/Textarea/index.js"
+    },
+    "./time-field": {
+      "types": "./dist/components/TimeField/index.d.ts",
+      "import": "./dist/components/TimeField/index.js"
     },
     "./toast": {
       "types": "./dist/components/Toast/index.d.ts",
