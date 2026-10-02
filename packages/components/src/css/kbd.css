@@ -1,0 +1,6 @@
+/* The nearest emphasis surface decides a subtle keycap's colours, so a light
+   card or field inside a strong or inverted fill gets the plain keycap back.
+   Nesting a fill inside a light surface inside the same kind of fill again is
+   not handled. */
+@custom-variant kbd-on-strong (:where(.emphasis-strong) &:not(:where(.emphasis-strong) :where(.emphasis-normal, .emphasis-raised, .emphasis-floating, .emphasis-sunken, .emphasis-field, .emphasis-inverted, .emphasis-overlay, .emphasis-overlay-subtle) &));
+@custom-variant kbd-on-inverted (:where(.emphasis-inverted, .emphasis-overlay, .emphasis-overlay-subtle) &:not(:where(.emphasis-inverted, .emphasis-overlay, .emphasis-overlay-subtle) :where(.emphasis-normal, .emphasis-raised, .emphasis-floating, .emphasis-sunken, .emphasis-field, .emphasis-strong) &));

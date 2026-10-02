@@ -1,9 +1,13 @@
+import type { ReactNode } from 'react'
+
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { Kbd } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { apcaLc, over, shownFill } from '../../css/contrastTestUtils'
 import { setHoverCapable } from '../../css/testUtils'
+import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
@@ -54,16 +58,30 @@ describe('Kbd', () => {
     expect(display(container.firstElementChild!)).toBe('inline-flex')
   })
 
-  it('takes its colour from the surface, so it reads on a strong fill', () => {
+  it('takes a subtler key colour from the surface', () => {
     const { container } = render(
       <div className='emphasis-strong'>
-        <Kbd>K</Kbd>
         <Kbd emphasis='subtler'>K</Kbd>
       </div>
     )
     const surface = container.firstElementChild!
-    for (const kbd of surface.children)
-      expect(getComputedStyle(kbd).color).toBe(getComputedStyle(surface).color)
+    expect(getComputedStyle(surface.firstElementChild!).color).toBe(
+      getComputedStyle(surface).color
+    )
+  })
+
+  it('gives a joined keycap the height of a single one', () => {
+    const { container } = render(
+      <>
+        <Kbd>K</Kbd>
+        <Kbd keys={['mod', 'shift', 'k']} joined />
+      </>
+    )
+    const [single, joined] = Array.from(container.children, (cap) =>
+      cap.getBoundingClientRect()
+    )
+    expect(joined!.height).toBe(single!.height)
+    expect(joined!.width).toBeGreaterThan(single!.width)
   })
 
   it.each(['sm', 'md'] as const)(
@@ -85,5 +103,91 @@ describe('Kbd', () => {
     const { container } = render(<Kbd>Enter</Kbd>)
     const svg = container.querySelector('svg')!.getBoundingClientRect()
     expect([svg.width, svg.height]).toEqual([12, 12])
+  })
+})
+
+const EMPHASES = ['normal', 'subtle', 'subtler'] as const
+const SURFACES = {
+  page: (kbd: ReactNode) => <div className='bg-normal'>{kbd}</div>,
+  'strong neutral': (kbd: ReactNode) => (
+    <div className='emphasis-strong'>{kbd}</div>
+  ),
+  'strong accent button': (kbd: ReactNode) => (
+    <Button emphasis='strong' intent='accent'>
+      Save {kbd}
+    </Button>
+  ),
+  'strong brand': (kbd: ReactNode) => (
+    <div className='emphasis-strong intent-brand'>{kbd}</div>
+  ),
+  'strong warning': (kbd: ReactNode) => (
+    <div className='emphasis-strong intent-warning'>{kbd}</div>
+  ),
+  inverted: (kbd: ReactNode) => <div className='emphasis-inverted'>{kbd}</div>,
+  'field inside inverted': (kbd: ReactNode) => (
+    <div className='emphasis-inverted p-2'>
+      <div className='emphasis-field'>{kbd}</div>
+    </div>
+  ),
+  'card inside strong': (kbd: ReactNode) => (
+    <div className='emphasis-strong p-2'>
+      <div className='emphasis-normal'>{kbd}</div>
+    </div>
+  ),
+  'inverted inside strong': (kbd: ReactNode) => (
+    <div className='emphasis-strong p-2'>
+      <div className='emphasis-inverted'>{kbd}</div>
+    </div>
+  ),
+  'strong inside inverted': (kbd: ReactNode) => (
+    <div className='emphasis-inverted p-2'>
+      <div className='emphasis-strong'>{kbd}</div>
+    </div>
+  )
+}
+// emphasis-overlay's own text is dark on dark in dark mode, so it is checked
+// in light mode only.
+const OVERLAY = {
+  overlay: (kbd: ReactNode) => <div className='emphasis-overlay'>{kbd}</div>
+}
+// APCA's floor for bold, button-sized labels, as strongContrast checks.
+const KEY_LC = 60
+
+describe.each(['light', 'dark'] as const)('Kbd contrast in %s mode', (mode) => {
+  beforeAll(() => {
+    document.documentElement.classList.toggle('dark', mode === 'dark')
+  })
+  afterAll(() => document.documentElement.classList.remove('dark'))
+
+  const surfaces = Object.entries(
+    mode === 'light' ? { ...SURFACES, ...OVERLAY } : SURFACES
+  )
+  describe.each(surfaces)('on a %s', (_, surface) => {
+    it.each(EMPHASES)('keeps %s keys readable', (emphasis) => {
+      const { container } = render(
+        surface(
+          <>
+            <Kbd emphasis={emphasis} data-testid='cap'>
+              K
+            </Kbd>
+            <Kbd
+              emphasis={emphasis}
+              keys={['mod', 'k']}
+              joined
+              data-testid='cap'
+            />
+          </>
+        )
+      )
+      const caps = container.querySelectorAll('[data-testid="cap"]')
+      expect(caps).toHaveLength(2)
+      for (const cap of caps) {
+        const background = shownFill(cap)
+        const text = over(background, getComputedStyle(cap).color)
+        expect(Math.abs(apcaLc(text, background))).toBeGreaterThanOrEqual(
+          KEY_LC
+        )
+      }
+    })
   })
 })

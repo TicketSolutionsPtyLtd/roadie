@@ -301,11 +301,11 @@ export function ComponentSkeleton({ name }: { name: string }) {
       )
     case 'kbd':
       return (
-        <div className='flex gap-1 text-xs font-medium text-subtle'>
-          <span className='grid h-6 min-w-6 place-content-center rounded-md border border-current/15 bg-current/10 px-1.5'>
+        <div className='flex gap-1 text-xs font-medium'>
+          <span className='grid h-6 min-w-6 place-content-center rounded-md emphasis-subtle px-1.5'>
             ⌘
           </span>
-          <span className='grid h-6 min-w-6 place-content-center rounded-md border border-current/15 bg-current/10 px-1.5'>
+          <span className='grid h-6 min-w-6 place-content-center rounded-md emphasis-subtle px-1.5'>
             K
           </span>
         </div>

@@ -13,31 +13,52 @@ import { type KeyPlatform, useKeyPlatform } from './platform'
 const HIDE_WITHOUT_HOVER =
   '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
 
-// Tinted from the inherited colour, so a keycap reads on any surface,
-// strong fills and tooltips included.
+// emphasis-subtle's fill is translucent, so a strong or inverted fill would
+// show through under its dark text. A strong fill's hover tone is where its
+// label is guaranteed to read; an inverted fill has none, so it tints instead.
 const kbdVariants = cva(
   'inline-flex items-center justify-center gap-1 font-sans text-xs whitespace-nowrap [&_svg]:size-3 [&_svg]:shrink-0',
   {
     variants: {
       emphasis: {
-        normal: 'rounded-md border border-current/15 bg-current/10 font-medium',
+        normal: 'emphasis-normal rounded-md font-medium',
+        subtle: [
+          'emphasis-subtle rounded-md font-medium',
+          'kbd-on-strong:bg-[var(--intent-bg-strong-hover)] kbd-on-strong:text-on-strong',
+          'kbd-on-inverted:bg-[color-mix(in_oklch,var(--intent-text-inverted)_15%,transparent)] kbd-on-inverted:text-inverted'
+        ],
         subtler: 'tracking-wide'
       },
       size: { sm: '', md: '' }
     },
     compoundVariants: [
-      { emphasis: 'normal', size: 'sm', class: 'h-5 min-w-5 px-1' },
-      { emphasis: 'normal', size: 'md', class: 'h-6 min-w-6 px-1.5' }
+      { emphasis: ['normal', 'subtle'], size: 'sm', class: 'h-5 min-w-5 px-1' },
+      {
+        emphasis: ['normal', 'subtle'],
+        size: 'md',
+        class: 'h-6 min-w-6 px-1.5'
+      }
     ],
-    defaultVariants: { emphasis: 'normal', size: 'md' }
+    defaultVariants: { emphasis: 'subtle', size: 'md' }
   }
 )
 
 export type KbdProps = ComponentProps<'kbd'> & {
-  /** A combination, each key its own keycap: `['mod', 'k']`. Overrides `children`. */
+  /** A combination: `['mod', 'k']`. Overrides `children`. */
   keys?: readonly string[]
-  /** `normal` is a keycap; `subtler` is plain text, for menus. Both take the surrounding text colour. @default 'normal' */
-  emphasis?: 'normal' | 'subtler'
+  /**
+   * Draws `keys` in one keycap, such as ⌘K, rather than a keycap each.
+   * `subtler` keys have no keycap, so it changes nothing there.
+   * @default false
+   */
+  joined?: boolean
+  /**
+   * `normal` is a bordered keycap and `subtle` a tinted one, which takes the
+   * label colour on a strong fill. `subtler` is plain text in the surrounding
+   * colour, for menus.
+   * @default 'subtle'
+   */
+  emphasis?: 'normal' | 'subtle' | 'subtler'
   /** The keycap's height. Plain `subtler` text follows the font size instead. @default 'md' */
   size?: 'sm' | 'md'
   /**
@@ -86,9 +107,45 @@ function capContent(
   )
 }
 
+type KeyListProps = {
+  keys: readonly string[]
+  platform: KeyPlatform | null
+  announce: boolean
+  plus: boolean
+  slot: 'kbd' | 'kbd-key'
+  className: string
+}
+
+function KeyList({
+  keys,
+  platform,
+  announce,
+  plus,
+  slot,
+  className
+}: KeyListProps) {
+  return keys.map((key, index) => (
+    <Fragment key={`${index}-${key}`}>
+      {plus && index > 0 ? (
+        <span
+          data-slot='kbd-plus'
+          aria-hidden='true'
+          className={cn('text-xs', platform ? undefined : 'invisible')}
+        >
+          +
+        </span>
+      ) : null}
+      <kbd data-slot={slot} className={className}>
+        {capContent(key, platform, announce)}
+      </kbd>
+    </Fragment>
+  ))
+}
+
 export function Kbd({
   keys,
-  emphasis = 'normal',
+  joined = false,
+  emphasis = 'subtle',
   size = 'md',
   announce = false,
   className,
@@ -98,8 +155,34 @@ export function Kbd({
   const platform = useKeyPlatform()
   const hidden = announce ? undefined : true
   const hideWithoutHover = announce ? undefined : HIDE_WITHOUT_HOVER
-  // Plain keys run together off Apple, where shortcuts read Ctrl+D, not CtrlD.
-  const joined = emphasis === 'subtler' && platform !== 'apple'
+  const plain = emphasis === 'subtler'
+  // Keys that share a run read Ctrl+D off Apple, not CtrlD.
+  const plus = (plain || joined) && platform !== 'apple'
+
+  if (keys && joined && !plain) {
+    return (
+      <kbd
+        data-slot='kbd'
+        aria-hidden={hidden}
+        className={cn(
+          kbdVariants({ emphasis, size }),
+          'gap-0.5',
+          hideWithoutHover,
+          className
+        )}
+        {...props}
+      >
+        <KeyList
+          keys={keys}
+          platform={platform}
+          announce={announce}
+          plus={plus}
+          slot='kbd-key'
+          className='inline-flex items-center gap-1'
+        />
+      </kbd>
+    )
+  }
 
   if (keys) {
     return (
@@ -108,28 +191,20 @@ export function Kbd({
         aria-hidden={hidden}
         className={cn(
           'inline-flex items-center',
-          emphasis === 'normal' ? 'gap-1' : 'gap-0.5',
+          plain ? 'gap-0.5' : 'gap-1',
           hideWithoutHover,
           className
         )}
         {...props}
       >
-        {keys.map((key, index) => (
-          <Fragment key={`${index}-${key}`}>
-            {joined && index > 0 ? (
-              <span
-                data-slot='kbd-plus'
-                aria-hidden='true'
-                className={cn('text-xs', platform ? undefined : 'invisible')}
-              >
-                +
-              </span>
-            ) : null}
-            <kbd data-slot='kbd' className={kbdVariants({ emphasis, size })}>
-              {capContent(key, platform, announce)}
-            </kbd>
-          </Fragment>
-        ))}
+        <KeyList
+          keys={keys}
+          platform={platform}
+          announce={announce}
+          plus={plus}
+          slot='kbd'
+          className={kbdVariants({ emphasis, size })}
+        />
       </kbd>
     )
   }

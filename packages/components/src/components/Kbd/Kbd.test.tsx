@@ -12,13 +12,20 @@ function onPlatform(platform: string) {
 afterEach(() => vi.restoreAllMocks())
 
 describe('Kbd', () => {
-  it('renders a keycap hidden from assistive tech', () => {
+  it('renders a subtle keycap hidden from assistive tech', () => {
     const { container } = render(<Kbd>/</Kbd>)
     const kbd = container.querySelector('kbd')!
     expect(kbd).toHaveAttribute('data-slot', 'kbd')
     expect(kbd).toHaveAttribute('aria-hidden', 'true')
-    expect(kbd).toHaveClass('rounded-md', 'bg-current/10', 'text-xs', 'h-6')
+    expect(kbd).toHaveClass('rounded-md', 'emphasis-subtle', 'text-xs', 'h-6')
     expect(kbd).toHaveTextContent('/')
+  })
+
+  it('builds normal on emphasis-normal', () => {
+    const { container } = render(<Kbd emphasis='normal'>/</Kbd>)
+    const kbd = container.querySelector('kbd')!
+    expect(kbd).toHaveClass('rounded-md', 'emphasis-normal', 'h-6')
+    expect(kbd).not.toHaveClass('emphasis-subtle')
   })
 
   it('hides itself on screens without hover', () => {
@@ -58,7 +65,7 @@ describe('Kbd', () => {
     for (const cap of caps) {
       expect(cap.tagName).toBe('KBD')
       expect(cap).not.toHaveAttribute('aria-hidden')
-      expect(cap).toHaveClass('bg-current/10')
+      expect(cap).toHaveClass('emphasis-subtle')
     }
   })
 
@@ -71,7 +78,9 @@ describe('Kbd', () => {
   it('renders plain text when emphasis is subtler', () => {
     const { container } = render(<Kbd emphasis='subtler'>/</Kbd>)
     const kbd = container.querySelector('kbd')!
-    expect(kbd).not.toHaveClass('bg-current/10')
+    expect(kbd).toHaveClass('tracking-wide')
+    expect(kbd).not.toHaveClass('emphasis-subtle')
+    expect(kbd).not.toHaveClass('emphasis-subtler')
     expect(kbd).not.toHaveClass('h-6')
   })
 
@@ -91,7 +100,7 @@ describe('Kbd', () => {
       <Kbd keys={['shift', 'k']} emphasis='subtler' />
     )
     for (const cap of container.querySelectorAll('[data-slot="kbd"]'))
-      expect(cap).not.toHaveClass('bg-current/10')
+      expect(cap).not.toHaveClass('emphasis-subtle')
   })
 
   it('joins plain keys with a hidden plus off Apple platforms', () => {
@@ -147,6 +156,53 @@ describe('Kbd', () => {
     }
   })
 
+  it('joins keys in one keycap', () => {
+    onPlatform('Win32')
+    const { container } = render(<Kbd keys={['mod', 'k']} joined />)
+    const cap = container.firstElementChild!
+    expect(cap.tagName).toBe('KBD')
+    expect(cap).toHaveAttribute('data-slot', 'kbd')
+    expect(cap).toHaveAttribute('aria-hidden', 'true')
+    expect(cap).toHaveClass(
+      'emphasis-subtle',
+      'h-6',
+      '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
+    )
+    expect(cap.querySelectorAll('[data-slot="kbd"]')).toHaveLength(0)
+    const keys = cap.querySelectorAll('[data-slot="kbd-key"]')
+    expect(Array.from(keys, (key) => key.tagName)).toEqual(['KBD', 'KBD'])
+    expect(cap).toHaveTextContent('Ctrl+K')
+  })
+
+  it('runs joined keys together on Apple platforms', () => {
+    onPlatform('MacIntel')
+    const { container } = render(
+      <Kbd keys={['mod', 'k']} joined emphasis='normal' size='sm' />
+    )
+    const cap = container.firstElementChild!
+    expect(cap).toHaveClass('emphasis-normal', 'h-5')
+    expect(cap.querySelector('[data-slot="kbd-plus"]')).toBeNull()
+    expect(cap.querySelector('svg')).toBeInTheDocument()
+    expect(cap.textContent).toBe('K')
+  })
+
+  it('announces joined keys by name', () => {
+    onPlatform('MacIntel')
+    render(<Kbd keys={['mod', 'k']} joined announce />)
+    expect(screen.getByText('Command')).toHaveClass('sr-only')
+    expect(screen.getByText('Command').closest('[aria-hidden]')).toBeNull()
+  })
+
+  it('keeps subtler keys plain when joined', () => {
+    onPlatform('Win32')
+    const { container } = render(
+      <Kbd keys={['mod', 'k']} joined emphasis='subtler' />
+    )
+    const group = container.firstElementChild!
+    expect(group).toHaveAttribute('data-slot', 'kbd-group')
+    expect(group).toHaveTextContent('Ctrl+K')
+  })
+
   it('forwards props to the root', () => {
     const { container } = render(
       <Kbd keys={['k']} className='custom' data-testid='root' />
@@ -157,6 +213,15 @@ describe('Kbd', () => {
 })
 
 describe('Kbd platform keys across hydration', () => {
+  it('hides a joined plus until the platform is known', () => {
+    const html = renderToString(<Kbd keys={['mod', 'd']} joined />)
+    const holder = document.createElement('div')
+    holder.innerHTML = html
+    expect(holder.querySelector('[data-slot="kbd-plus"]')).toHaveClass(
+      'invisible'
+    )
+  })
+
   async function hydrate(platform: string) {
     const element = <Kbd keys={['mod', 'k']} announce />
     const serverHtml = renderToString(element)

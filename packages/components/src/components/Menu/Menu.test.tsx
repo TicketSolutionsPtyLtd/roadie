@@ -130,7 +130,7 @@ describe('Menu', () => {
     expect(shortcut).toHaveClass(
       '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
     )
-    expect(shortcut).not.toHaveClass('bg-current/10')
+    expect(shortcut).not.toHaveClass('emphasis-subtle')
     expect(shortcut).toHaveClass('text-subtle')
   })
 

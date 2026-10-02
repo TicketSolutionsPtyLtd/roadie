@@ -44,19 +44,56 @@ Pass a key as text. Known key names, in any case, show their glyph or short word
 
 The known names are `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `arrowup`, `arrowdown`, `arrowleft`, `arrowright`, `mod`, `meta`, `shift`, `alt` and `ctrl`. They also take the aliases `return`, `esc`, `del`, `up`, `down`, `left`, `right`, `cmd` and `command` (for `mod`), `option` and `control`, and `KeyboardEvent.key` values such as `ArrowUp`, `Escape` and `Meta`. `meta` is ⌘ on Apple devices and Win elsewhere. Any other key shows as text, with a single letter in capitals.
 
+### Joined
+
+`joined` draws the whole combination on one keycap, such as ⌘K. Off Apple devices, the keys are joined with a plus, as in Ctrl+K.
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Separate</p>
+    <div><Kbd keys={['mod', 'shift', 'p']} /></div>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Joined</p>
+    <div><Kbd keys={['mod', 'shift', 'p']} joined /></div>
+  </div>
+</div>
+```
+
 ### Emphasis
 
-`normal` is a keycap. `subtler` is plain text for places that already frame it, such as a menu row. Off Apple devices, `subtler` joins keys with a plus, as in Ctrl+D. Both take the surrounding text colour, so they read on any surface, strong fills and tooltips included.
+`normal` is a bordered keycap that stands out. `subtle`, the default, is a tinted keycap. `subtler` is plain text in the surrounding colour, for places that already frame it, such as a menu row. Off Apple devices, `subtler` joins keys with a plus, as in Ctrl+D.
 
 ```tsx-live
 <div className='grid gap-4'>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Normal</p>
+    <div><Kbd keys={['mod', 'd']} emphasis='normal' /></div>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Subtle</p>
     <div><Kbd keys={['mod', 'd']} /></div>
   </div>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Subtler</p>
     <div><Kbd keys={['mod', 'd']} emphasis='subtler' /></div>
+  </div>
+</div>
+```
+
+Each emphasis reads on a strong fill. There a subtle keycap takes the fill's hover tone and label colour, a normal keycap keeps its own face and label colour, and subtler text takes the label colour.
+
+```tsx-live
+<div className='flex flex-wrap items-center gap-3'>
+  <Button emphasis='strong' intent='accent' aria-keyshortcuts='Meta+S Control+S'>
+    Save
+    <Kbd keys={['mod', 's']} size='sm' joined />
+  </Button>
+  <div className='flex flex-wrap items-center gap-3 rounded-xl emphasis-strong px-4 py-2 text-sm'>
+    <Kbd keys={['mod', 'z']} size='sm' emphasis='normal' />
+    <Kbd keys={['mod', 'z']} size='sm' />
+    <Kbd keys={['mod', 'z']} emphasis='subtler' />
   </div>
 </div>
 ```
@@ -134,6 +171,24 @@ In instructions, the keys are the content. `announce` reads each key aloud by it
   </Guideline.Do>
   <Guideline.Dont code={`<Kbd>⌘S</Kbd>`}>
     Don't type a platform's symbols. Windows and Android readers would see keys they don't have.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Join keys where space is tight'>
+  <Guideline.Do code={`<Kbd keys={['mod', 'k']} size='sm' joined />`}>
+    Join a combination inside a button, a field or a tooltip, where one keycap reads as one hint.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Kbd keys={['mod', 'shift', 'p']} joined announce />`}>
+    Don't join keys in instructions or a shortcut list. Separate keycaps show each key to press.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Choose the emphasis by place'>
+  <Guideline.Do code={`<Kbd keys={['mod', 'k']} />`}>
+    Keep <code>subtle</code> in toolbars, fields, buttons and tooltips. Use <code>subtler</code> in menu rows, and <code>normal</code> in a shortcut list or a help page, where keys should stand out.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Kbd keys={['mod', 'k']} emphasis='normal' />`}>
+    Don't put a <code>normal</code> keycap inside a button. Its border competes with the button's own edge.
   </Guideline.Dont>
 </Guideline>
 
