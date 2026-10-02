@@ -13,20 +13,16 @@ import { type KeyPlatform, useKeyPlatform } from './platform'
 const HIDE_WITHOUT_HOVER =
   '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
 
-// emphasis-subtle's tint would sink into a strong or inverted fill, so a
-// subtle keycap takes the nearest surface's --surface-tint-* (see core's
-// emphasis.css). They resolve on that surface, so an intent on the keycap
-// only colours it on light surfaces.
+// subtle is drawn from the surrounding text colour, so it reads on any fill.
+// Without color-mix the fill drops out rather than painting over the label.
 const kbdVariants = cva(
   'inline-flex items-center justify-center gap-1 font-sans text-xs whitespace-nowrap [&_svg]:size-3 [&_svg]:shrink-0',
   {
     variants: {
       emphasis: {
         normal: 'emphasis-normal rounded-md font-medium',
-        subtle: [
-          'emphasis-subtle rounded-md font-medium',
-          'bg-[var(--surface-tint-bg,var(--intent-bg-subtle))] text-[color:var(--surface-tint-text,var(--intent-text-normal))]'
-        ],
+        subtle:
+          'rounded-md bg-[color-mix(in_oklch,currentColor_10%,transparent)] font-medium',
         subtler: 'tracking-wide'
       },
       size: { sm: '', md: '' }
@@ -53,9 +49,9 @@ export type KbdProps = ComponentProps<'kbd'> & {
    */
   joined?: boolean
   /**
-   * `normal` is a bordered keycap and `subtle` a tinted one, which takes the
-   * label colour on a strong fill. `subtler` is plain text in the surrounding
-   * colour, for menus.
+   * `subtle` is a soft keycap tinted from the surrounding text colour, so it
+   * follows any surface. `normal` is its own bordered surface, light even on
+   * a dark fill. `subtler` is plain text in the surrounding colour, for menus.
    * @default 'subtle'
    */
   emphasis?: 'normal' | 'subtle' | 'subtler'

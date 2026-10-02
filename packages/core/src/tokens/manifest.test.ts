@@ -27,8 +27,6 @@ const INTERNAL = [
   '--field-hover-bg',
   '--interactive-within-control-position',
   '--interactive-within-control-z',
-  '--surface-tint-bg',
-  '--surface-tint-text',
   '--toast-away',
   '--toast-collapsed-height',
   '--toast-gap',

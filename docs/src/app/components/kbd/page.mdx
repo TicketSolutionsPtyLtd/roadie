@@ -63,7 +63,7 @@ The known names are `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `a
 
 ### Emphasis
 
-`normal` is a bordered keycap that stands out. `subtle`, the default, is a tinted keycap. `subtler` is plain text in the surrounding colour, for places that already frame it, such as a menu row. Off Apple devices, `subtler` joins keys with a plus, as in Ctrl+D.
+`subtle`, the default, is a soft keycap tinted from the surrounding text colour, with no border, so it follows whatever surface it sits on. `normal` is its own opaque, bordered surface, so it keeps its own colours on any fill. `subtler` is plain text in the surrounding colour, for places that already frame it, such as a menu row. Off Apple devices, `subtler` joins keys with a plus, as in Ctrl+D.
 
 ```tsx-live
 <div className='grid gap-4'>
@@ -82,7 +82,7 @@ The known names are `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `a
 </div>
 ```
 
-Each emphasis reads on a strong fill. There a subtle keycap takes the fill's pressed tone and label colour, a normal keycap keeps its own face and label colour, and subtler text takes the label colour.
+On a strong fill, a subtle keycap and subtler text take the fill's label colour, and a normal keycap keeps its own colours.
 
 ```tsx-live
 <div className='flex flex-wrap items-center gap-3'>

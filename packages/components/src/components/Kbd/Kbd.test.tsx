@@ -5,6 +5,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Kbd } from '.'
 
+const SUBTLE_FILL = 'bg-[color-mix(in_oklch,currentColor_10%,transparent)]'
+
 function onPlatform(platform: string) {
   vi.spyOn(navigator, 'platform', 'get').mockReturnValue(platform)
 }
@@ -17,7 +19,7 @@ describe('Kbd', () => {
     const kbd = container.querySelector('kbd')!
     expect(kbd).toHaveAttribute('data-slot', 'kbd')
     expect(kbd).toHaveAttribute('aria-hidden', 'true')
-    expect(kbd).toHaveClass('rounded-md', 'emphasis-subtle', 'text-xs', 'h-6')
+    expect(kbd).toHaveClass('rounded-md', SUBTLE_FILL, 'text-xs', 'h-6')
     expect(kbd).toHaveTextContent('/')
   })
 
@@ -25,7 +27,7 @@ describe('Kbd', () => {
     const { container } = render(<Kbd emphasis='normal'>/</Kbd>)
     const kbd = container.querySelector('kbd')!
     expect(kbd).toHaveClass('rounded-md', 'emphasis-normal', 'h-6')
-    expect(kbd).not.toHaveClass('emphasis-subtle')
+    expect(kbd).not.toHaveClass(SUBTLE_FILL)
   })
 
   it('hides itself on screens without hover', () => {
@@ -65,7 +67,7 @@ describe('Kbd', () => {
     for (const cap of caps) {
       expect(cap.tagName).toBe('KBD')
       expect(cap).not.toHaveAttribute('aria-hidden')
-      expect(cap).toHaveClass('emphasis-subtle')
+      expect(cap).toHaveClass(SUBTLE_FILL)
     }
   })
 
@@ -79,7 +81,7 @@ describe('Kbd', () => {
     const { container } = render(<Kbd emphasis='subtler'>/</Kbd>)
     const kbd = container.querySelector('kbd')!
     expect(kbd).toHaveClass('tracking-wide')
-    expect(kbd).not.toHaveClass('emphasis-subtle')
+    expect(kbd).not.toHaveClass(SUBTLE_FILL)
     expect(kbd).not.toHaveClass('emphasis-subtler')
     expect(kbd).not.toHaveClass('h-6')
   })
@@ -100,7 +102,7 @@ describe('Kbd', () => {
       <Kbd keys={['shift', 'k']} emphasis='subtler' />
     )
     for (const cap of container.querySelectorAll('[data-slot="kbd"]'))
-      expect(cap).not.toHaveClass('emphasis-subtle')
+      expect(cap).not.toHaveClass(SUBTLE_FILL)
   })
 
   it('joins plain keys with a hidden plus off Apple platforms', () => {
@@ -164,7 +166,7 @@ describe('Kbd', () => {
     expect(cap).toHaveAttribute('data-slot', 'kbd')
     expect(cap).toHaveAttribute('aria-hidden', 'true')
     expect(cap).toHaveClass(
-      'emphasis-subtle',
+      SUBTLE_FILL,
       'h-6',
       '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
     )

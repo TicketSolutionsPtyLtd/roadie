@@ -2,11 +2,10 @@ import type { ReactNode } from 'react'
 
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
 
 import { Kbd } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { apcaLc, flatten, over, shownFill } from '../../css/contrastTestUtils'
+import { apcaLc, over, shownFill } from '../../css/contrastTestUtils'
 import { setHoverCapable } from '../../css/testUtils'
 import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
@@ -126,49 +125,20 @@ describe('Kbd', () => {
   })
 })
 
-describe('Kbd on a surface inside a strong or inverted fill', () => {
-  it.each(['emphasis-strong', 'emphasis-inverted'])(
-    'keeps the plain subtle keycap on a light toggle inside %s',
-    (fill) => {
-      const { container } = render(
-        <div className={fill}>
-          <Toggle>
-            Bold <Kbd data-testid='cap'>B</Kbd>
-          </Toggle>
-        </div>
-      )
-      const cap = container.querySelector('[data-testid="cap"]')!
-      expect(getComputedStyle(cap).getPropertyValue('--surface-tint-bg')).toBe(
-        ''
-      )
-    }
-  )
-
-  // A subtle overlay is a scrim for imagery, so its label is not measured on
-  // a white page; the keycap still takes its white tint.
-  it('tints a keycap on a subtle overlay', () => {
+describe('a subtle keycap', () => {
+  it('takes the surrounding text colour and draws no border', () => {
     const { container } = render(
-      <div className='emphasis-overlay-subtle'>
+      <div className='emphasis-strong intent-accent'>
         <Kbd data-testid='cap'>K</Kbd>
       </div>
     )
-    const cap = container.querySelector('[data-testid="cap"]')!
-    expect(flatten(getComputedStyle(cap).color)).toEqual([255, 255, 255])
-  })
-
-  it('keeps a keycap distinct from a strong button while hovered', async () => {
-    const { container } = render(
-      <Button emphasis='strong' intent='accent'>
-        Save <Kbd data-testid='cap'>S</Kbd>
-      </Button>
+    const surface = container.firstElementChild!
+    const cap = getComputedStyle(
+      container.querySelector('[data-testid="cap"]')!
     )
-    const button = container.querySelector('button')!
-    await userEvent.hover(button)
-    const cap = container.querySelector('[data-testid="cap"]')!
-    expect(getComputedStyle(cap).backgroundColor).not.toBe(
-      getComputedStyle(button).backgroundColor
-    )
-    await userEvent.unhover(button)
+    expect(cap.color).toBe(getComputedStyle(surface).color)
+    expect(cap.borderTopWidth).toBe('0px')
+    expect(cap.backgroundColor).not.toBe(getComputedStyle(surface).color)
   })
 })
 
