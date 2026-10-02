@@ -115,6 +115,60 @@ describe('Menu', () => {
     expect(item).toHaveClass('data-[highlighted]:focus-visible:bg-subtle')
   })
 
+  it('renders the shortcut as plain Kbd text, hidden on touch', async () => {
+    render(
+      <Menu defaultOpen>
+        <Menu.Trigger>Open</Menu.Trigger>
+        <Menu.Content>
+          <Menu.Item shortcut='⌘D'>Duplicate</Menu.Item>
+        </Menu.Content>
+      </Menu>
+    )
+    const item = await screen.findByRole('menuitem', { name: 'Duplicate' })
+    const shortcut = item.querySelector('[data-slot="menu-item-shortcut"]')
+    expect(shortcut).toHaveAttribute('aria-hidden', 'true')
+    expect(shortcut).toHaveClass('[@media_not_(hover:hover)]:hidden')
+    expect(shortcut).not.toHaveClass('bg-current/10')
+    expect(shortcut).toHaveClass('text-subtle')
+  })
+
+  it.each([
+    ['item', <Menu.Item shortcut={['mod', 'd']}>Duplicate</Menu.Item>],
+    [
+      'checkbox item',
+      <Menu.CheckboxItem shortcut={['mod', 'd']}>Duplicate</Menu.CheckboxItem>
+    ],
+    [
+      'radio item',
+      <Menu.RadioGroup>
+        <Menu.RadioItem value='d' shortcut={['mod', 'd']}>
+          Duplicate
+        </Menu.RadioItem>
+      </Menu.RadioGroup>
+    ]
+  ])('renders a key list as platform keys on a %s', async (_, row) => {
+    vi.spyOn(navigator, 'platform', 'get').mockReturnValue('Win32')
+    render(
+      <Menu defaultOpen>
+        <Menu.Trigger>Open</Menu.Trigger>
+        <Menu.Content>{row}</Menu.Content>
+      </Menu>
+    )
+    const item = (await screen.findByText('Duplicate')).closest(
+      '[role^="menuitem"]'
+    )!
+    expect(item).toHaveAccessibleName('Duplicate')
+    const shortcut = item.querySelector('[data-slot="menu-item-shortcut"]')
+    expect(shortcut).toHaveAttribute('aria-hidden', 'true')
+    expect(
+      Array.from(
+        shortcut!.querySelectorAll('[data-slot="kbd"]'),
+        (key) => key.textContent
+      )
+    ).toEqual(['Ctrl', 'D'])
+    vi.restoreAllMocks()
+  })
+
   it('colours a destructive item with its intent', async () => {
     const user = userEvent.setup()
     render(<RowActions />)

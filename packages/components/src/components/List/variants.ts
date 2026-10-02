@@ -83,13 +83,15 @@ const listItemContainedClasses = [
 
 export const listItemVariants = cva(
   [
-    'is-interactive flex min-h-11 items-stretch rounded-xl px-3 text-left',
+    'flex min-h-11 items-stretch rounded-xl px-3 text-left',
     // Only subtler bleeds: nothing paints at rest, so the pill needs room.
     'group-data-[emphasis=subtler]/list:-mx-3',
     ...listItemContainedClasses
   ],
   {
     variants: {
+      // False for a row whose link or control sits inside it, styled by `is-interactive-within`.
+      interactive: { true: 'is-interactive', false: '' },
       selected: {
         true: 'intent-accent emphasis-subtle',
         false: [
@@ -99,7 +101,7 @@ export const listItemVariants = cva(
         ]
       }
     },
-    defaultVariants: { selected: false }
+    defaultVariants: { interactive: true, selected: false }
   }
 )
 

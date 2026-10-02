@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { List } from '.'
+import { listItemVariants } from './variants'
 
 const item = (title: string) =>
   screen.getByText(title).closest('[data-slot="list-item"]')
@@ -594,5 +595,17 @@ describe('List', () => {
         screen.getByRole('heading', { level: 4, name: 'Inputs' })
       ).toBeInTheDocument()
     })
+  })
+})
+
+describe('listItemVariants', () => {
+  it('makes a row interactive by default', () => {
+    expect(listItemVariants().split(' ')).toContain('is-interactive')
+  })
+
+  it('leaves is-interactive off when interactive is false', () => {
+    const classes = listItemVariants({ interactive: false }).split(' ')
+    expect(classes).not.toContain('is-interactive')
+    expect(classes).toContain('min-h-11')
   })
 })
