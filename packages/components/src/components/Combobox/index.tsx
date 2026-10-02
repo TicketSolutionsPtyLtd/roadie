@@ -2,6 +2,9 @@
 //
 // NO `'use client'` — server-safe property-assignment layer.
 // See docs/contributing/COMPOUND_PATTERNS.md.
+import { ComboboxChip } from './ComboboxChip'
+import { ComboboxChipRemove } from './ComboboxChipRemove'
+import { ComboboxChips } from './ComboboxChips'
 import { ComboboxClear } from './ComboboxClear'
 import { ComboboxCollection } from './ComboboxCollection'
 import { ComboboxEmpty } from './ComboboxEmpty'
@@ -19,12 +22,17 @@ import { ComboboxPositioner } from './ComboboxPositioner'
 import { ComboboxRoot } from './ComboboxRoot'
 import { ComboboxStatus } from './ComboboxStatus'
 import { ComboboxTrigger } from './ComboboxTrigger'
+import { ComboboxValue } from './ComboboxValue'
 
 const Combobox = ComboboxRoot as typeof ComboboxRoot & {
   Root: typeof ComboboxRoot
   Label: typeof ComboboxLabel
   InputGroup: typeof ComboboxInputGroup
   Input: typeof ComboboxInput
+  Value: typeof ComboboxValue
+  Chips: typeof ComboboxChips
+  Chip: typeof ComboboxChip
+  ChipRemove: typeof ComboboxChipRemove
   Trigger: typeof ComboboxTrigger
   Clear: typeof ComboboxClear
   Portal: typeof ComboboxPortal
@@ -44,6 +52,10 @@ Combobox.Root = ComboboxRoot
 Combobox.Label = ComboboxLabel
 Combobox.InputGroup = ComboboxInputGroup
 Combobox.Input = ComboboxInput
+Combobox.Value = ComboboxValue
+Combobox.Chips = ComboboxChips
+Combobox.Chip = ComboboxChip
+Combobox.ChipRemove = ComboboxChipRemove
 Combobox.Trigger = ComboboxTrigger
 Combobox.Clear = ComboboxClear
 Combobox.Portal = ComboboxPortal
@@ -63,6 +75,10 @@ export type { ComboboxRootProps as ComboboxProps } from './ComboboxRoot'
 export type { ComboboxLabelProps } from './ComboboxLabel'
 export type { ComboboxInputGroupProps } from './ComboboxInputGroup'
 export type { ComboboxInputProps } from './ComboboxInput'
+export type { ComboboxValueProps } from './ComboboxValue'
+export type { ComboboxChipsProps } from './ComboboxChips'
+export type { ComboboxChipProps } from './ComboboxChip'
+export type { ComboboxChipRemoveProps } from './ComboboxChipRemove'
 export type { ComboboxTriggerProps } from './ComboboxTrigger'
 export type { ComboboxClearProps } from './ComboboxClear'
 export type { ComboboxPortalProps } from './ComboboxPortal'
