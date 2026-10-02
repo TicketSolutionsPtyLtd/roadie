@@ -280,12 +280,12 @@
 
 /* Fixed-dark so it stays a scrim in both themes (the intent scale flips
    light/dark), tinted by the intent hue: neutral near-black, danger a dark red.
-   A chip's tint comes from fixed white, which reads on it in both themes. */
+   Its label, and a chip's tint, are fixed white for the same reason. */
 @utility emphasis-overlay {
   background-color: oklch(0.1 0.04 var(--intent-hue) / 0.55);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  color: var(--intent-text-inverted);
+  color: var(--color-neutral-light-0);
   --surface-tint-bg: transparent;
   --surface-tint-text: var(--color-neutral-light-0);
 
@@ -307,7 +307,7 @@
    peeks over its page. */
 @utility emphasis-overlay-subtle {
   background-color: oklch(0.1 0.04 var(--intent-hue) / 0.25);
-  color: var(--intent-text-inverted);
+  color: var(--color-neutral-light-0);
   --surface-tint-bg: transparent;
   --surface-tint-text: var(--color-neutral-light-0);
 

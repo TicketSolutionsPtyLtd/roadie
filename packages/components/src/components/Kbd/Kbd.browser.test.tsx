@@ -318,13 +318,8 @@ describe.each(['light', 'dark'] as const)('Kbd contrast in %s mode', (mode) => {
   })
   afterAll(() => document.documentElement.classList.remove('dark'))
 
-  describe.each(Object.entries(SURFACES))('on a %s', (name, surface) => {
-    // A subtler key takes the overlay's own label, which is dark in dark mode.
-    const emphases =
-      name === 'overlay' && mode === 'dark'
-        ? EMPHASES.filter((emphasis) => emphasis !== 'subtler')
-        : EMPHASES
-    it.each(emphases)('keeps %s keys readable', async (emphasis) => {
+  describe.each(Object.entries(SURFACES))('on a %s', (_, surface) => {
+    it.each(EMPHASES)('keeps %s keys readable', async (emphasis) => {
       const { container } = render(
         surface(
           <>
