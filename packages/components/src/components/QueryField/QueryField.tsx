@@ -138,11 +138,16 @@ export function QueryField<Value = unknown>({
   const [open, setOpen] = useState(false)
   const [highlightId, setHighlightId] = useState<string>()
   // Only arrows may make an item Enter's target. A list that changes under
-  // the highlight re-highlights with reason `none`, so the mark belongs to
-  // the step it was made in and lapses when the value step starts or ends.
-  const step = pendingChip?.id ?? ''
-  const [keyboardStep, setKeyboardStep] = useState<string | null>(null)
-  const keyboardHighlightId = keyboardStep === step ? highlightId : undefined
+  // the highlight re-highlights with reason `none`, so the mark lapses
+  // whenever the value step starts or ends.
+  const step = pendingChip?.id
+  const [markedStep, setMarkedStep] = useState(step)
+  const [arrowed, setArrowed] = useState(false)
+  if (markedStep !== step) {
+    setMarkedStep(step)
+    setArrowed(false)
+  }
+  const keyboardHighlightId = arrowed ? highlightId : undefined
 
   const isDisabled = disabled ?? field.disabled
   const isInvalid = invalid ?? field.invalid
@@ -213,7 +218,7 @@ export function QueryField<Value = unknown>({
       (event.key === 'ArrowDown' || event.key === 'ArrowUp') &&
       !isComposing(event)
     )
-      setKeyboardStep(step)
+      setArrowed(true)
     if (event.key === 'Enter') {
       if (isModified(event)) {
         // Base UI ignores a modified Enter; keep it from submitting a form.
@@ -304,11 +309,11 @@ export function QueryField<Value = unknown>({
       open={open}
       onOpenChange={(next, details) => {
         setOpen(next)
-        if (details.reason !== 'list-navigation') setKeyboardStep(null)
+        if (details.reason !== 'list-navigation') setArrowed(false)
       }}
       onItemHighlighted={(item, details) => {
         setHighlightId(item?.id)
-        if (details.reason === 'pointer') setKeyboardStep(null)
+        if (details.reason === 'pointer') setArrowed(false)
       }}
       itemToStringLabel={(item: { label: string }) => item.label}
       disabled={isDisabled}

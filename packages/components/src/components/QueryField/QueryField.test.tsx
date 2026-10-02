@@ -583,6 +583,41 @@ describe('QueryField', () => {
     expect(onAccept).not.toHaveBeenCalled()
   })
 
+  it('keeps an arrowed field out of Enter after the value step is cancelled', async () => {
+    const onAccept = vi.fn()
+    function ValueStep() {
+      const [pending, setPending] = useState(false)
+      return (
+        <Harness
+          pendingChip={pending ? { id: 'venue', label: 'Venue is' } : undefined}
+          onPendingChipCancel={() => setPending(false)}
+          suggest={(text) =>
+            pending
+              ? [{ id: 'values', label: 'Venue is', items: [longacre] }]
+              : suggestFor(text)
+          }
+          onAccept={(suggestion) => {
+            onAccept(suggestion)
+            if (suggestion.kind === 'field') setPending(true)
+          }}
+        />
+      )
+    }
+    render(<ValueStep />)
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowDown}')
+    await waitFor(() => expect(optionNames()).toEqual(['Venue']))
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() =>
+      expect(optionNames()).toEqual(['Venue is The Longacre'])
+    )
+    await userEvent.keyboard('{Backspace}')
+    await waitFor(() => expect(optionNames()).toEqual(['Venue']))
+    expect(hinted()).toEqual([])
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenCalledTimes(1)
+  })
+
   it('tells assistive technology Enter edits a chip', () => {
     render(<Harness initialChips={[scope, status]} onEditChip={() => {}} />)
     expect(chipElement('status')).toHaveAttribute('aria-keyshortcuts', 'Enter')
