@@ -70,8 +70,11 @@ describe('SmallMultiples with nothing to split', () => {
     ['a by field no row has', { ...gatesExample, by: 'zone' }]
   ])('shows the panel chart empty copy for %s', (_, props) => {
     render(<SmallMultiples {...props} />)
+    const empty = screen
+      .getByText('Nothing to show for this period yet')
+      .closest('[data-slot="chart-empty"]')
     expect(
-      screen.getByText('Nothing to show for this period yet')
-    ).toHaveAttribute('data-slot', 'chart-empty')
+      empty!.querySelector('[data-slot="empty-state-icon-tile"]')
+    ).toBeInTheDocument()
   })
 })

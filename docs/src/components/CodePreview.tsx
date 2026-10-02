@@ -62,6 +62,8 @@ import { Highlight, themes } from 'prism-react-renderer'
 import { createPortal } from 'react-dom'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
 
+import { getAssetPath } from '@/utils/getAssetPath'
+
 import * as RoadieCharts from '@oztix/roadie-charts'
 import { lineChartTable } from '@oztix/roadie-charts/tables'
 import * as RoadieComponents from '@oztix/roadie-components'
@@ -146,6 +148,7 @@ const scope = {
   QueryClientProvider,
   createDemoCart,
   DemoRouter,
+  getAssetPath,
   Link,
   createPortal,
   use,

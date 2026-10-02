@@ -107,6 +107,36 @@ describe('RoadieRoutedLink', () => {
     })
   })
 
+  describe('download hrefs', () => {
+    it('renders a plain <a> past the provider, as a file is not a route', () => {
+      const { getByText } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <RoadieRoutedLink href='/files/lineup.pdf' download>
+            Line-up
+          </RoadieRoutedLink>
+        </RoadieLinkProvider>
+      )
+      const link = getByText('Line-up')
+      expect(link).not.toHaveAttribute('data-testid', 'stub-link')
+      expect(link).toHaveAttribute('href', '/files/lineup.pdf')
+      expect(link).toHaveAttribute('download')
+      expect(link).not.toHaveAttribute('target')
+    })
+
+    it('keeps a named download', () => {
+      const { getByText } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <RoadieRoutedLink href='/files/a.csv' download='orders.csv'>
+            Orders
+          </RoadieRoutedLink>
+        </RoadieLinkProvider>
+      )
+      const link = getByText('Orders')
+      expect(link).not.toHaveAttribute('data-testid', 'stub-link')
+      expect(link).toHaveAttribute('download', 'orders.csv')
+    })
+  })
+
   describe('external hrefs', () => {
     it('renders a plain <a> for https:// and ignores the provider', () => {
       const { getByTestId, queryByTestId } = render(
@@ -279,9 +309,16 @@ describe('RoadieRoutedLink', () => {
     })
 
     it('leaves a download link to the browser', () => {
-      expect(
-        clicked(<RoadieRoutedLink href='/events.ics' download />)
-      ).toBeNull()
+      const { getByText } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Probe />
+          <RoadieRoutedLink href='/events.ics' download>
+            Calendar
+          </RoadieRoutedLink>
+        </RoadieLinkProvider>
+      )
+      fireEvent.click(getByText('Calendar'))
+      expect(seen.store?.get() ?? null).toBeNull()
     })
 
     it('leaves a hash on this page alone', () => {

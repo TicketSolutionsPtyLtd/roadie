@@ -20,6 +20,7 @@ import { ChartCardContext } from '../Chart/context'
 import { ChartLegend } from '../ChartLegend'
 import { useChartPatterns } from '../ChartPatterns'
 import { ChartTooltip } from '../ChartTooltip'
+import { ChartState } from './ChartState'
 import { DRAW_ERROR, draw } from './draw'
 import {
   DEFAULT_PLOT_HEIGHT,
@@ -186,14 +187,12 @@ export function ChartPlot<P>({
     focusPoint(null)
   }
 
-  if (empty || !drawing)
+  if (empty) return <ChartState height={height}>{empty}</ChartState>
+  if (!drawing)
     return (
-      <p
-        data-slot={empty ? 'chart-empty' : 'chart-error'}
-        className='text-sm text-subtle'
-      >
-        {empty ?? DRAW_ERROR}
-      </p>
+      <ChartState error height={height}>
+        {DRAW_ERROR}
+      </ChartState>
     )
 
   return (

@@ -134,12 +134,12 @@ Hover each button. The browser status bar shows the resolved `href` exactly as R
 
 ### Download
 
-Add `download` to an `href` button to save the file instead of opening it, optionally under a filename.
+Add `download` to an `href` button to save the file instead of opening it, optionally under a filename. A file isn't a route, so the button renders a plain `<a>` and skips the provider's Link, which would otherwise prefetch the file as a page. That also means it gets no base path: if your app has one, add it to the `href` yourself. This site does that with `getAssetPath`.
 
 ```tsx-live
-<Button href='/spec.pdf' download='spec.pdf'>
+<Button href={getAssetPath('/roadie-logo.png')} download='roadie-logo.png'>
   <DownloadIcon weight='bold' className='size-4' />
-  Download spec
+  Download logo
 </Button>
 ```
 

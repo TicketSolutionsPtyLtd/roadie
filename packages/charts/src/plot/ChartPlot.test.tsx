@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
@@ -27,10 +27,28 @@ describe('ChartPlot', () => {
     render(
       <ChartPlot chart={testChart} props={{ points: testPoints.slice(0, 1) }} />
     )
+    const empty = screen
+      .getByText('Not enough data yet to show a trend')
+      .closest('[data-slot="chart-empty"]')
+    expect(empty).toHaveClass('py-12')
     expect(
-      screen.getByText('Not enough data yet to show a trend')
-    ).toHaveAttribute('data-slot', 'chart-empty')
+      empty!.querySelector('[data-slot="empty-state-icon-tile"]')
+    ).toBeInTheDocument()
     expect(screen.queryByRole('img')).toBeNull()
+  })
+
+  it('sizes the empty state small inside a card', () => {
+    render(
+      <Chart label='Test' source='Oztix sales.' size='md'>
+        <ChartPlot
+          chart={testChart}
+          props={{ points: testPoints.slice(0, 1) }}
+        />
+      </Chart>
+    )
+    expect(document.querySelector('[data-slot="chart-empty"]')).toHaveClass(
+      'py-8'
+    )
   })
 
   it('fills the card table from its own props', () => {
@@ -86,6 +104,53 @@ describe('ChartPlot', () => {
   })
 })
 
+describe('ChartPlot states', () => {
+  it.each([
+    ['alone', false],
+    ['in a card', true]
+  ])(
+    'titles the state with a paragraph and hides its tile (%s)',
+    (_, inCard) => {
+      const plot = (
+        <ChartPlot
+          chart={testChart}
+          props={{ points: testPoints.slice(0, 1) }}
+        />
+      )
+      render(
+        inCard ? (
+          <Chart label='Test' source='Oztix sales.' size='md'>
+            {plot}
+          </Chart>
+        ) : (
+          plot
+        )
+      )
+      const empty = document.querySelector<HTMLElement>(
+        '[data-slot="chart-empty"]'
+      )!
+      expect(within(empty).queryByRole('heading')).toBeNull()
+      expect(
+        within(empty).getByText('Not enough data yet to show a trend').tagName
+      ).toBe('P')
+      expect(
+        empty.querySelector('[data-slot="empty-state-icon-tile"]')
+      ).toHaveAttribute('aria-hidden', 'true')
+    }
+  )
+
+  it('titles the draw error with a paragraph', () => {
+    render(<ChartPlot chart={brokenChart} props={{ points: testPoints }} />)
+    const error = document.querySelector<HTMLElement>(
+      '[data-slot="chart-error"]'
+    )!
+    expect(within(error).queryByRole('heading')).toBeNull()
+    expect(
+      error.querySelector('[data-slot="empty-state-icon-tile"]')
+    ).toHaveAttribute('aria-hidden', 'true')
+  })
+})
+
 describe('ChartPlot when the chart cannot draw', () => {
   it('shows the error copy instead of throwing on the server', () => {
     let html = ''
@@ -95,6 +160,17 @@ describe('ChartPlot when the chart cannot draw', () => {
       )
     }).not.toThrow()
     expect(html).toContain('data-slot="chart-error"')
+  })
+
+  it('shows the draw error as a danger empty state', () => {
+    render(<ChartPlot chart={brokenChart} props={{ points: testPoints }} />)
+    const error = screen
+      .getByText("This chart couldn't be drawn")
+      .closest('[data-slot="chart-error"]')
+    expect(error).toHaveClass('intent-danger')
+    expect(
+      error!.querySelector('[data-slot="empty-state-icon-tile"]')
+    ).toBeInTheDocument()
   })
 
   it('puts its card in the error state', () => {

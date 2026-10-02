@@ -213,7 +213,7 @@ const buy = async () => {
                   <Code>rel=&apos;noopener noreferrer&apos;</Code>
                 </td>
               </tr>
-              <tr>
+              <tr className='border-b border-subtle'>
                 <td>
                   <Code>mailto:</Code>, <Code>tel:</Code>, <Code>sms:</Code>
                 </td>
@@ -222,6 +222,18 @@ const buy = async () => {
                 </td>
                 <td>
                   None: no <Code>target</Code>, no <Code>rel</Code>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  Any internal href with <Code>download</Code>
+                </td>
+                <td>
+                  <Code>&lt;a&gt;</Code>
+                </td>
+                <td>
+                  None: a file isn&apos;t a route, so the provider&apos;s{' '}
+                  <Code>Link</Code> never prefetches it
                 </td>
               </tr>
             </tbody>
@@ -234,6 +246,11 @@ const buy = async () => {
           <Code>https://oztix.com.au/x</Code> URL to force internal routing
           through the provider; pass <Code>external</Code> on an internal
           redirect path to open in a new tab.
+        </p>
+        <p className='text-subtle'>
+          A <Code>download</Code> link skips the provider, so a router&apos;s
+          base path isn&apos;t added to it. If your app has one, include it in
+          the <Code>href</Code> yourself.
         </p>
       </section>
 
