@@ -120,6 +120,12 @@ describe('parseDatePhrase: relative words', () => {
     ])
   })
 
+  it('keeps completing a phrase that contains to', () => {
+    expect(parseDatePhrase('month to d', SYDNEY)).toEqual(
+      one('Month to date', { period: 'month', offset: 0, toDate: true })
+    )
+  })
+
   it('offers each unit for a bare count', () => {
     expect(parseDatePhrase('next 3', SYDNEY).map((s) => s.label)).toEqual([
       'Next 3 days',

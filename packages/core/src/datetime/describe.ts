@@ -96,8 +96,8 @@ export function formatResolved(
   if (range.kind === 'dates') {
     return (
       formatDateRange(
-        plainDateInstant(range.start!),
-        plainDateInstant(range.end!),
+        plainDateInstant(range.start),
+        plainDateInstant(range.end),
         { timeZone: 'UTC', dateStyle: 'medium', locale }
       ) ?? ''
     )

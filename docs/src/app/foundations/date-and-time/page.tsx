@@ -330,10 +330,8 @@ const COMPARISON_ROWS = COMPARISONS.map(([code, comparison]) => {
   const range = resolveComparison(COMPARED, comparison, RANGE_EXAMPLE)
   const covers =
     range?.kind === 'dates'
-      ? describeDateRange(
-          { start: range.start!, end: range.end! },
-          RANGE_EXAMPLE
-        ).detail
+      ? describeDateRange({ start: range.start, end: range.end }, RANGE_EXAMPLE)
+          .detail
       : ''
   return [code, describeComparison(comparison), covers]
 })
@@ -1330,7 +1328,9 @@ const viewer = useViewerTimeZone()
           <code>describeComparison</code> gives the context line under a delta.
           The previous period has the same length and ends the day before. The
           previous year takes the same dates a year earlier, and 29 February
-          becomes the 28th. Here each compares month to date.
+          becomes the 28th. Pass <code>alignWeekday</code> to go back 52 weeks
+          instead, so Mondays compare with Mondays. Here each compares month to
+          date.
         </p>
         <Table
           head={['Comparison', 'Context line', 'Covers']}
@@ -1358,8 +1358,8 @@ const viewer = useViewerTimeZone()
           </li>
           <li>
             A word with two readings never becomes a label of its own. A
-            fortnight is the next 14 days, and next weekend offers both weekends
-            by date.
+            fortnight is the next 14 days. Next weekend offers the one after
+            this, by date, then this weekend.
           </li>
         </ul>
       </section>

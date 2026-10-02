@@ -46,10 +46,17 @@ export {
 } from './plainDate'
 export type { MonthGridOptions } from './plainDate'
 
-export { resolveComparison, resolveDateRange } from './ranges'
+export {
+  isAbsoluteRange,
+  isPeriodRange,
+  isRollingRange,
+  resolveComparison,
+  resolveDateRange
+} from './ranges'
 export type {
   AbsoluteRange,
   Comparison,
+  ComparisonOptions,
   DateRangeOptions,
   DateRangeValue,
   PeriodRange,

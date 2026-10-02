@@ -139,7 +139,6 @@ const SHORT_FORMS: Record<string, string> = {
 
 type PartialDate = { day: number; month?: number; year?: number }
 
-/** 1-based position of a full name, its first three letters, or a known short form. */
 function nameIndex(names: string[], word: string): number | null {
   const full = SHORT_FORMS[word] ?? word
   const index = names.findIndex(
@@ -392,7 +391,7 @@ export function parseDatePhrase(
   m = /^(?:between |from )?(.+?) (?:and|to) (.+)$/.exec(input)
   if (m) {
     const range = parseRange(m[1]!, m[2]!, today)
-    return range ? [describe(range)] : []
+    if (range) return [describe(range)]
   }
 
   const date = parseDate(input, today)

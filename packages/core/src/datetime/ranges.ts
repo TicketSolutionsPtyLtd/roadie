@@ -76,7 +76,7 @@ export type DateRangeOptions = {
  * are inclusive, and null is open.
  */
 export type ResolvedDateRange =
-  | { kind: 'dates'; start: string | null; end: string | null }
+  | { kind: 'dates'; start: string; end: string }
   | { kind: 'instants'; start: number | null; end: number | null }
 
 const HOUR = 3_600_000
@@ -97,7 +97,7 @@ export function isPeriodRange(value: unknown): value is PeriodRange {
   return typeof value === 'object' && value !== null && 'period' in value
 }
 
-function dates(start: string | null, end: string | null): ResolvedDateRange {
+function dates(start: string, end: string): ResolvedDateRange {
   return { kind: 'dates', start, end }
 }
 
@@ -239,13 +239,6 @@ function parseEnd(value: string, timeZone: string): AbsoluteEnd {
     throw new RangeError(`Not an ISO date or date-time: '${value}'`)
   }
   const [, date, hour, minute, second, fraction, zone] = m
-  if (zone) {
-    const epoch = Date.parse(value)
-    if (Number.isNaN(epoch))
-      throw new RangeError(`Not a valid date-time: '${value}'`)
-    return { kind: 'instant', epoch }
-  }
-  // A date-time with no offset is a wall-clock time in the given zone.
   const clock = {
     date: date!,
     hour: Number(hour),
@@ -256,6 +249,8 @@ function parseEnd(value: string, timeZone: string): AbsoluteEnd {
   if (clock.hour > 23 || clock.minute > 59 || clock.second > 59) {
     throw new RangeError(`Not a valid date-time: '${value}'`)
   }
+  if (zone) return { kind: 'instant', epoch: Date.parse(value) }
+  // A date-time with no offset is a wall-clock time in the given zone.
   return { kind: 'instant', epoch: zonedInstant(clock, timeZone) }
 }
 
@@ -317,19 +312,37 @@ export function resolveDateRange(
   return resolveNamed(value, now, today, options)
 }
 
-function previousYearInstant(epoch: number, timeZone: string): number {
-  const clock = wallClockOf(epoch, timeZone)
-  return zonedInstant({ ...clock, date: addMonths(clock.date, -12) }, timeZone)
+export type ComparisonOptions = DateRangeOptions & {
+  /**
+   * Previous year only: go back 52 weeks instead of to the same dates, so
+   * each day lines up with the same weekday. Mondays compare with Mondays.
+   */
+  alignWeekday?: boolean
+}
+
+function yearEarlier(date: string, alignWeekday: boolean | undefined): string {
+  return alignWeekday ? addDays(date, -364) : addMonths(date, -12)
+}
+
+function previousYearInstant(
+  epoch: number,
+  options: ComparisonOptions
+): number {
+  const clock = wallClockOf(epoch, options.timeZone)
+  return zonedInstant(
+    { ...clock, date: yearEarlier(clock.date, options.alignWeekday) },
+    options.timeZone
+  )
 }
 
 /**
- * The range to compare `range` against. Null when the range is open-ended,
- * since an unbounded range has no length to repeat.
+ * The range to compare `range` against. Null when the range is open-ended or
+ * a single instant, since neither has a length to repeat.
  */
 export function resolveComparison(
   range: DateRangeValue,
   comparison: Comparison,
-  options: DateRangeOptions
+  options: ComparisonOptions
 ): ResolvedDateRange | null {
   if (isAbsoluteRange(comparison)) {
     return resolveAbsolute(comparison, options.timeZone)
@@ -337,20 +350,22 @@ export function resolveComparison(
   const resolved = resolveDateRange(range, options)
   if (resolved.kind === 'dates') {
     const { start, end } = resolved
-    if (start === null || end === null) return null
     if (comparison === 'previous-year') {
-      return dates(addMonths(start, -12), addMonths(end, -12))
+      return dates(
+        yearEarlier(start, options.alignWeekday),
+        yearEarlier(end, options.alignWeekday)
+      )
     }
     const length = dayNumber(end) - dayNumber(start)
     const before = addDays(start, -1)
     return dates(addDays(before, -length), before)
   }
   const { start, end } = resolved
-  if (start === null || end === null) return null
+  if (start === null || end === null || start === end) return null
   if (comparison === 'previous-year') {
     return instants(
-      previousYearInstant(start, options.timeZone),
-      previousYearInstant(end, options.timeZone)
+      previousYearInstant(start, options),
+      previousYearInstant(end, options)
     )
   }
   const before = start - 1

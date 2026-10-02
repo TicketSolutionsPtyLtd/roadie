@@ -344,6 +344,29 @@ describe('resolveComparison', () => {
     )
   })
 
+  it('aligns weekdays a year back when asked', () => {
+    // Mon 5 to Sun 11 Oct 2026 against Mon 6 to Sun 12 Oct 2025.
+    expect(
+      resolveComparison('next-week', 'previous-year', {
+        ...SYDNEY,
+        alignWeekday: true
+      })
+    ).toEqual(dates('2025-10-06', '2025-10-12'))
+  })
+
+  it('has nothing to compare now against', () => {
+    expect(resolveComparison('ongoing', 'previous-period', SYDNEY)).toBeNull()
+  })
+
+  it('rejects an out of range time even with an offset', () => {
+    expect(() =>
+      resolveDateRange(
+        { start: '2026-10-04T00:00Z', end: '2026-10-04T24:00Z' },
+        SYDNEY
+      )
+    ).toThrow(RangeError)
+  })
+
   it('takes a custom comparison as given', () => {
     expect(
       resolveComparison(
