@@ -440,8 +440,9 @@ export function Calendar(props: CalendarProps) {
     commit(next)
   }
 
+  // The day's own onFocus records it, so the tab stop never moves to a day
+  // that a controlled parent hasn't shown yet.
   function moveFocus(date: string) {
-    setFocusedDate(date)
     setHoverDate(null)
     setPendingFocus({ date })
     if (compareDates(date, firstMonth) < 0) changeMonth(date)
@@ -680,6 +681,11 @@ export function Calendar(props: CalendarProps) {
         className
       )}
       {...rest}
+      onFocus={(event) => {
+        rest.onFocus?.(event)
+        if ((event.target as HTMLElement).dataset.date !== pendingFocus?.date)
+          setPendingFocus(null)
+      }}
       onBlur={(event) => {
         rest.onBlur?.(event)
         if (!event.currentTarget.contains(event.relatedTarget))

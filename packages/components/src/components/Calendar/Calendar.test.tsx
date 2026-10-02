@@ -568,6 +568,39 @@ describe('Calendar', () => {
     expect(screen.getByRole('grid')).toHaveAccessibleName('January 2027')
   })
 
+  it('keeps the tab stop on the focused day while a parent ignores the turn', async () => {
+    render(<Calendar today={TODAY} month='2027-03-01' />)
+    act(() => day('2027-03-31').focus())
+    await userEvent.keyboard('{ArrowRight}')
+    expect(day('2027-03-31')).toHaveFocus()
+    expect(day('2027-03-31')).toHaveAttribute('tabindex', '0')
+    expect(day('2027-03-31')).toHaveAttribute('data-focused')
+    expect(day(TODAY)).toHaveAttribute('tabindex', '-1')
+  })
+
+  it('drops a waiting focus request when focus moves to another control', async () => {
+    function Deferred() {
+      const [month, setMonth] = useState('2027-03-01')
+      return (
+        <Calendar
+          today='2027-03-31'
+          month={month}
+          onMonthChange={(next) => setTimeout(() => setMonth(next), 50)}
+        />
+      )
+    }
+    render(<Deferred />)
+    act(() => day('2027-03-31').focus())
+    await userEvent.keyboard('{ArrowRight}')
+    await userEvent.tab({ shift: true })
+    const next = screen.getByRole('button', { name: 'Next month' })
+    expect(next).toHaveFocus()
+    await waitFor(() =>
+      expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
+    )
+    expect(next).toHaveFocus()
+  })
+
   it('focuses the day once a controlled parent shows its month', async () => {
     function Deferred() {
       const [month, setMonth] = useState('2027-03-01')
