@@ -116,7 +116,11 @@ export function Kbd({
         {keys.map((key, index) => (
           <Fragment key={`${index}-${key}`}>
             {joined && index > 0 ? (
-              <span data-slot='kbd-plus' aria-hidden='true'>
+              <span
+                data-slot='kbd-plus'
+                aria-hidden='true'
+                className={cn('text-xs', platform ? undefined : 'invisible')}
+              >
                 +
               </span>
             ) : null}

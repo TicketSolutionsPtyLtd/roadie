@@ -102,6 +102,20 @@ describe('Kbd', () => {
       expect(plus).toHaveAttribute('aria-hidden', 'true')
   })
 
+  it('sets the plus in the keys type, hidden until the platform is known', () => {
+    const html = renderToString(<Kbd keys={['mod', 'd']} emphasis='subtler' />)
+    const holder = document.createElement('div')
+    holder.innerHTML = html
+    const plus = holder.querySelector('[data-slot="kbd-plus"]')!
+    expect(plus).toHaveClass('invisible', 'text-xs')
+
+    onPlatform('Win32')
+    const { container } = render(<Kbd keys={['mod', 'd']} emphasis='subtler' />)
+    const shown = container.querySelector('[data-slot="kbd-plus"]')!
+    expect(shown).toHaveClass('text-xs')
+    expect(shown).not.toHaveClass('invisible')
+  })
+
   it('runs plain keys together on Apple platforms', () => {
     onPlatform('MacIntel')
     const { container } = render(<Kbd keys={['mod', 'd']} emphasis='subtler' />)
