@@ -68,4 +68,18 @@ describe('useDocHeadings', () => {
     act(() => result.current.onSelect(event, 'stattile'))
     expect(content.querySelector('h3')?.id).toBe('stattile')
   })
+
+  it('leaves out headings inside a live example as it renders', async () => {
+    const { content, result } = mountPage()
+    const example = document.createElement('div')
+    example.dataset.liveExample = 'rendered'
+    example.innerHTML = '<h2>Demo heading</h2>'
+    content.append(example)
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)))
+    expect(result.current.headings.map((h) => h.id)).toEqual([
+      'api-reference',
+      'meter',
+      'meter-2'
+    ])
+  })
 })

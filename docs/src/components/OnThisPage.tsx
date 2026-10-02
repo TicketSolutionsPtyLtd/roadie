@@ -123,7 +123,7 @@ export function useDocHeadings(): DocHeadings {
         if (!text) return
 
         // Skip example headings (Roadie parts carry data-slot) inside the content only.
-        const slot = el.closest('[data-slot]')
+        const slot = el.closest('[data-slot], [data-live-example]')
         if (slot && mainEl.contains(slot)) return
 
         // The page may not have hydrated yet, so the id is only written on click.
