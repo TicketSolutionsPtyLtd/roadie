@@ -87,17 +87,15 @@ export function SwitchRoot({
   return (
     <div
       data-slot='switch-row'
-      className={cn(
-        'group/switch flex items-center justify-between gap-4',
-        className
-      )}
+      className={cn('flex items-center justify-between gap-4', className)}
     >
-      <div className='grid gap-0.5 group-has-data-disabled/switch:opacity-50'>
+      {/* `in-*`, not `group-has-*`: a universal after :has() restyles the page on every DOM change. */}
+      <div className='grid gap-0.5 in-[[data-slot=switch-row]:has([data-disabled])]:opacity-50'>
         {hasLabel && (
           <label
             id={labelId}
             htmlFor={inputId}
-            className='cursor-pointer text-sm text-normal select-none group-has-data-disabled/switch:cursor-not-allowed'
+            className='cursor-pointer text-sm text-normal select-none in-[[data-slot=switch-row]:has([data-disabled])]:cursor-not-allowed'
           >
             {label}
           </label>

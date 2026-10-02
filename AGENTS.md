@@ -475,6 +475,7 @@ Field wraps **all** form controls — Input, Textarea, Select, RadioGroup, Combo
 5. Prefer `gap` over `margin`
 6. Use raw `<p>`, `<h1>`-`<h6>`, `<span>` for text — no wrapper components
 7. Use sentence case for content
+8. End any selector that runs past a `:has()` on a class, a variable the anchor sets, or a rare attribute named first, and never write an unkeyed `:has(~ …)`: Chromium otherwise restyles the whole page on small changes. See [`docs/solutions/best-practices/has-invalidation-scales-with-page.md`](docs/solutions/best-practices/has-invalidation-scales-with-page.md).
 
 ## Testing
 

@@ -5,7 +5,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { Table } from '../Table'
 import { DataTableCellContent } from './DataTableCell'
-import { DataTableShowAll } from './DataTableShowAll'
+import { DataTableFrame, DataTableShowAll } from './DataTableShowAll'
 
 export type DataTableColumn = TableColumn
 export type DataTableRow = TableRow
@@ -77,8 +77,8 @@ export function DataTable({
     align: alignOf(column)
   })
   return (
-    <div
-      data-slot='data-table'
+    <DataTableFrame
+      showAll={hasPriorities}
       className={cn('grid gap-2', className)}
       {...props}
     >
@@ -132,7 +132,7 @@ export function DataTable({
         </Table>
       </div>
       {hasPriorities && <DataTableShowAll label={showAllLabel} />}
-    </div>
+    </DataTableFrame>
   )
 }
 DataTable.displayName = 'DataTable'

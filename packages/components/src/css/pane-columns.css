@@ -1083,6 +1083,9 @@
     }
   }
 
+  /* `[data-level]` leads each subject: Chromium restyles every element with
+     the first attribute named after a :has() when anything under it changes,
+     and nearly every element has a data-slot. */
   [data-slot='navigator']:not(
       [data-slot='navigator-panes'][data-level='0'] *
     ):has(
@@ -1090,7 +1093,7 @@
           [data-slot='navigator-panes'][data-level='0'] *
         )
     )
-    [data-slot='navigator-panes'][data-level='0'] {
+    [data-level='0'][data-slot='navigator-panes'] {
     --pane-stack-inset-start: 0px;
   }
   [data-slot='navigator']:is(
@@ -1100,7 +1103,7 @@
           [data-slot='navigator-panes'][data-level='0'] *
         ):not([data-slot='navigator-panes'][data-level='1'] *)
     )
-    [data-slot='navigator-panes'][data-level='1'] {
+    [data-level='1'][data-slot='navigator-panes'] {
     --pane-stack-inset-start: 0px;
   }
   @media (width >= 48rem) {
@@ -1111,9 +1114,7 @@
             [data-slot='navigator-panes'][data-level='0'] *
           )
       )
-      [data-slot='navigator-content']:has(
-        > [data-slot='navigator-panes'][data-level='0']
-      ) {
+      [data-level='0'][data-slot='navigator-content'] {
       margin-inline-start: -0.5rem;
       padding-inline-start: 0.5rem;
     }
@@ -1124,9 +1125,7 @@
             [data-slot='navigator-panes'][data-level='0'] *
           )
       )
-      [data-slot='navigator-content']:has(
-        > [data-slot='navigator-panes'][data-level='0']
-      )::before {
+      [data-level='0'][data-slot='navigator-content']::before {
       content: '';
       position: absolute;
       inset-block: 0;
@@ -1143,9 +1142,7 @@
             [data-slot='navigator-panes'][data-level='0'] *
           ):not([data-slot='navigator-panes'][data-level='1'] *)
       )
-      [data-slot='navigator-content']:has(
-        > [data-slot='navigator-panes'][data-level='1']
-      ) {
+      [data-level='1'][data-slot='navigator-content'] {
       margin-inline-start: -0.5rem;
       padding-inline-start: 0.5rem;
     }
@@ -1156,9 +1153,7 @@
             [data-slot='navigator-panes'][data-level='0'] *
           ):not([data-slot='navigator-panes'][data-level='1'] *)
       )
-      [data-slot='navigator-content']:has(
-        > [data-slot='navigator-panes'][data-level='1']
-      )::before {
+      [data-level='1'][data-slot='navigator-content']::before {
       content: '';
       position: absolute;
       inset-block: 0;
@@ -1176,7 +1171,7 @@
               [data-slot='navigator-panes'][data-level='0'] *
             )
         )
-        [data-slot='navigator-panes'][data-level='0'] {
+        [data-level='0'][data-slot='navigator-panes'] {
         padding-inline-start: 0;
       }
       [data-slot='navigator']:is(
@@ -1186,7 +1181,7 @@
               [data-slot='navigator-panes'][data-level='0'] *
             ):not([data-slot='navigator-panes'][data-level='1'] *)
         )
-        [data-slot='navigator-panes'][data-level='1'] {
+        [data-level='1'][data-slot='navigator-panes'] {
         padding-inline-start: 0;
       }
     }

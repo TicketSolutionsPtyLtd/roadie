@@ -1419,8 +1419,7 @@ describe('default brand', () => {
   })
 
   it('keeps a wordmark-only Logo visible collapsed, shrunk to the mark’s column', async () => {
-    const markless =
-      '[data-slot=logo]:not(:has([data-slot=logo-mark])) [data-slot=logo-wordmark]'
+    const markless = '[data-slot=logo]>[data-slot=logo-wordmark]:first-child'
     const { rerender } = render(
       <BrandNav
         brand={
@@ -1994,17 +1993,16 @@ describe('items without an icon', () => {
     const label = (name: string) =>
       tile(name).querySelector('[data-slot="navigator-item-label"]')!
     expect(label('Home')).toHaveClass('col-start-2', 'ms-3')
-    expect(label('Settings')).toHaveClass('col-start-1', 'col-span-2', 'ms-0')
-    expect(label('Settings')).not.toHaveClass('col-start-2')
-    expect(label('about us')).toHaveClass(
-      'col-start-1',
-      'group-has-[[data-slot=navigator-item-icon]]/capsule:col-start-2'
+    expect(label('Settings')).toHaveClass(
+      'col-start-[var(--navigator-label-start,1)] col-end-3'
     )
-    for (const capsule of vertical().querySelectorAll(
-      '[data-slot="navigator-capsule"]'
-    )) {
-      expect(capsule).toHaveClass('group/capsule')
-    }
+    expect(label('Settings')).not.toHaveClass('col-start-2', 'ms-3')
+    // The capsule moves an iconless label to the icon's column when a sibling has one.
+    expect(
+      label('about us').closest('[data-slot="navigator-capsule"]')
+    ).toHaveClass(
+      'has-[[data-slot=navigator-item-icon]]:[--navigator-label-start:2]'
+    )
   })
 
   it('shows the initial on the phone bar tab', async () => {

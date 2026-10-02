@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
@@ -142,5 +142,23 @@ describe('DataTable', () => {
     })
     expect(region).toHaveAttribute('tabindex', '0')
     expect(region).toHaveAttribute('data-slot', 'data-table-scroller')
+  })
+
+  it('collapses again once the priority columns go and come back', () => {
+    const plain = columns.map(({ priority: _, ...column }) => column)
+    const { rerender } = render(<DataTable columns={columns} rows={rows} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Show all columns' }))
+    rerender(<DataTable columns={plain} rows={rows} />)
+    rerender(<DataTable columns={columns} rows={rows} />)
+    expect(
+      screen.getByRole('button', { name: 'Show all columns' })
+    ).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('keeps Show all state authoritative over a passed data-show-all', () => {
+    const { container } = render(
+      <DataTable columns={columns} rows={rows} data-show-all='' />
+    )
+    expect(container.firstElementChild).not.toHaveAttribute('data-show-all')
   })
 })

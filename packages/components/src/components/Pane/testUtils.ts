@@ -71,7 +71,9 @@ export function rowMarkup(spec: RowSpec) {
 }
 
 export function contentMarkup(row: string) {
-  return `<main data-slot="navigator-content" class="${navigatorContentClass}" style="height: 400px">${row}</main>`
+  // NavigatorContent shares its row's level.
+  const level = /data-level="(\d+)"/.exec(row)?.[1] ?? '0'
+  return `<main data-slot="navigator-content" data-level="${level}" class="${navigatorContentClass}" style="height: 400px">${row}</main>`
 }
 
 /** The sheet as an engine without container style queries reads it: every such block is dropped. */

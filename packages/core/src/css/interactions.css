@@ -316,6 +316,8 @@
   /* Positions only once a target is present, and never over the surface's own position. */
   :where(&:has([data-interactive-target])) {
     position: relative;
+    --interactive-within-control-position: relative;
+    --interactive-within-control-z: 2;
   }
   & [data-interactive-target] {
     outline: none;
@@ -326,13 +328,15 @@
     inset: 0;
     z-index: 1;
   }
-  /* Zero specificity, so a control's own position or z-index still wins. */
-  :where(&:has([data-interactive-target]))
+  /* Zero specificity, so a control's own position or z-index still wins.
+     Raised by the variables above, not a selector after the :has(), which
+     would restyle every control on the page whenever anything changed. */
+  :where(&)
     :where(a[href], button, input, select, textarea, summary, [tabindex]):where(
       :not([data-interactive-target])
     ) {
-    position: relative;
-    z-index: 2;
+    position: var(--interactive-within-control-position, revert-layer);
+    z-index: var(--interactive-within-control-z, revert-layer);
   }
 
   &:has([data-interactive-target]:active) {

@@ -572,6 +572,7 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
     <main
       ref={contentRef}
       data-slot='navigator-content'
+      data-level={level}
       className={navigatorContentClass}
     >
       <PaneStackContext value={stackValue}>

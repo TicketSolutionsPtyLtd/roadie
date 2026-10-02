@@ -453,10 +453,10 @@ describe('List', () => {
     const group = container.querySelector('[data-slot="list"]')
     // `:has()` can't nest, so the row-above rule is split three ways.
     expect(group).toHaveClass(
-      '[&>li:is(:hover,:has(>:is(:focus-visible,[aria-current])))>*>[data-slot=list-item-content]]:after:bg-transparent',
-      '[&>li:has(+li:hover)>*>[data-slot=list-item-content]]:after:bg-transparent',
-      '[&>li:has(+li_:focus-visible)>*>[data-slot=list-item-content]]:after:bg-transparent',
-      '[&>li:has(+li_[aria-current])>*>[data-slot=list-item-content]]:after:bg-transparent'
+      '[&>li:is(:hover,:has(>:is(:focus-visible,[aria-current])))]:[--list-divider:transparent]',
+      '[&>li:has(+li:hover)]:[--list-divider:transparent]',
+      '[&>li:has(+li_:focus-visible)]:[--list-divider:transparent]',
+      '[&>li:has(+li_[aria-current])]:[--list-divider:transparent]'
     )
   })
 
