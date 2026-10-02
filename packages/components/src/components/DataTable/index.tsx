@@ -34,6 +34,7 @@ export type DataTableProps = Omit<ComponentProps<'div'>, 'children'> & {
   sort?: DataTableSort
   /** The column sorted first, when `sortable` and uncontrolled. */
   defaultSort?: DataTableSort
+  /** Called with the new sort when a header is pressed. */
   onSortChange?: (sort: DataTableSort) => void
   /**
    * Links headers for server sorting. The server returns rows in the new
