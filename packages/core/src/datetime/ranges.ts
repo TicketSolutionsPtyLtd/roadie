@@ -85,16 +85,25 @@ const DATE_TIME =
 
 const MONTHS_IN: Record<'quarter' | 'year', number> = { quarter: 3, year: 12 }
 
-export function isAbsoluteRange(value: unknown): value is AbsoluteRange {
-  return typeof value === 'object' && value !== null && 'start' in value
+/** Tells apart values already known to be valid; it does not validate. */
+export function isAbsoluteRange(
+  value: DateRangeValue | Comparison
+): value is AbsoluteRange {
+  return typeof value === 'object' && 'start' in value
 }
 
-export function isRollingRange(value: unknown): value is RollingRange {
-  return typeof value === 'object' && value !== null && 'direction' in value
+/** Tells apart values already known to be valid; it does not validate. */
+export function isRollingRange(
+  value: DateRangeValue | Comparison
+): value is RollingRange {
+  return typeof value === 'object' && 'direction' in value
 }
 
-export function isPeriodRange(value: unknown): value is PeriodRange {
-  return typeof value === 'object' && value !== null && 'period' in value
+/** Tells apart values already known to be valid; it does not validate. */
+export function isPeriodRange(
+  value: DateRangeValue | Comparison
+): value is PeriodRange {
+  return typeof value === 'object' && 'period' in value
 }
 
 function dates(start: string, end: string): ResolvedDateRange {
@@ -249,7 +258,13 @@ function parseEnd(value: string, timeZone: string): AbsoluteEnd {
   if (clock.hour > 23 || clock.minute > 59 || clock.second > 59) {
     throw new RangeError(`Not a valid date-time: '${value}'`)
   }
-  if (zone) return { kind: 'instant', epoch: Date.parse(value) }
+  if (zone) {
+    const epoch = Date.parse(value)
+    if (Number.isNaN(epoch)) {
+      throw new RangeError(`Not a valid date-time: '${value}'`)
+    }
+    return { kind: 'instant', epoch }
+  }
   // A date-time with no offset is a wall-clock time in the given zone.
   return { kind: 'instant', epoch: zonedInstant(clock, timeZone) }
 }

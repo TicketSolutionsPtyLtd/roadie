@@ -87,6 +87,13 @@ describe('addMonths', () => {
   })
 })
 
+describe('whole-number deltas', () => {
+  it.each([1.5, Number.NaN, Infinity])('rejects %s', (delta) => {
+    expect(() => addDays('2026-10-02', delta)).toThrow(RangeError)
+    expect(() => addMonths('2026-10-02', delta)).toThrow(RangeError)
+  })
+})
+
 describe('compareDates', () => {
   it('orders ISO dates', () => {
     expect(compareDates('2026-10-02', '2026-10-03')).toBe(-1)

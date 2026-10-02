@@ -81,12 +81,20 @@ export function plainDateOf(instant: Instantish, timeZone: string): string {
   return date
 }
 
+function assertWholeNumber(value: number, name: string) {
+  if (!Number.isInteger(value)) {
+    throw new RangeError(`${name} must be a whole number, got ${value}`)
+  }
+}
+
 export function addDays(date: string, days: number): string {
+  assertWholeNumber(days, 'days')
   return fromDayNumber(dayNumber(date) + days)
 }
 
 /** Clamps to the month's last day: 31 Jan plus a month is 28 or 29 Feb. */
 export function addMonths(date: string, months: number): string {
+  assertWholeNumber(months, 'months')
   const { year, month, day } = plainDateParts(date)
   const index = year * 12 + (month - 1) + months
   const targetYear = Math.floor(index / 12)

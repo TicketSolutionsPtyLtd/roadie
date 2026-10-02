@@ -234,6 +234,15 @@ describe('parseDatePhrase: times', () => {
   })
 })
 
+describe('parseDatePhrase: input size', () => {
+  it('stays linear on a long run of separators', () => {
+    const text = `a to ${'a to '.repeat(20_000)}`
+    const started = performance.now()
+    expect(parseDatePhrase(text, SYDNEY)).toEqual([])
+    expect(performance.now() - started).toBeLessThan(200)
+  })
+})
+
 describe('parseDatePhrase: nothing to offer', () => {
   it.each([
     '',

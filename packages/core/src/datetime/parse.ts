@@ -372,7 +372,8 @@ export function parseDatePhrase(
       new Date(Date.UTC(2000, 0, 1, hour, minute)),
       {
         timeZone: 'UTC',
-        timeStyle: 'short'
+        timeStyle: 'short',
+        locale: options.locale
       }
     )
     return [{ label: label ?? time, value: { time } }]
@@ -387,9 +388,10 @@ export function parseDatePhrase(
     return [{ label: `${word} ${formatDay(date)}`, value }]
   }
 
-  m = /^(?:between |from )?(.+?) (?:and|to) (.+)$/.exec(input)
-  if (m) {
-    const range = parseRange(m[1]!, m[2]!, today)
+  // Split rather than match: a lazy pattern backtracks on many separators.
+  const ends = input.replace(/^(?:between|from) /, '').split(/ (?:and|to) /)
+  if (ends.length === 2) {
+    const range = parseRange(ends[0]!, ends[1]!, today)
     if (range) return [describe(range)]
   }
 

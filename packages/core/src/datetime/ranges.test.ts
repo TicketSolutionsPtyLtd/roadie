@@ -358,6 +358,15 @@ describe('resolveComparison', () => {
     expect(resolveComparison('ongoing', 'previous-period', SYDNEY)).toBeNull()
   })
 
+  it('rejects an offset no zone has', () => {
+    expect(() =>
+      resolveDateRange(
+        { start: '2026-10-04T00:00+25:00', end: '2026-10-04T12:00Z' },
+        SYDNEY
+      )
+    ).toThrow(RangeError)
+  })
+
   it('rejects an out of range time even with an offset', () => {
     expect(() =>
       resolveDateRange(
