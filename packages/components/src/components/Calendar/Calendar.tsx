@@ -8,8 +8,7 @@ import {
   useId,
   useMemo,
   useRef,
-  useState,
-  useSyncExternalStore
+  useState
 } from 'react'
 
 import {
@@ -23,9 +22,7 @@ import {
   addDays,
   addMonths,
   compareDates,
-  monthGrid,
-  plainDateOf,
-  viewerTimeZone
+  monthGrid
 } from '@oztix/roadie-core/datetime'
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -53,6 +50,7 @@ import {
   selectDate,
   withinLength
 } from './selection'
+import { useToday } from './today'
 
 type CalendarBaseProps = Omit<
   ComponentProps<'div'>,
@@ -180,18 +178,6 @@ const dayVariants = cva(
   }
 )
 
-const noSubscription = () => () => {}
-
-function useToday(today: string | undefined, timeZone: string | undefined) {
-  const zoned = useSyncExternalStore(
-    noSubscription,
-    () => plainDateOf(new Date(), timeZone ?? viewerTimeZone()),
-    // The server can't know the viewer's zone; the client corrects it after hydration.
-    () => plainDateOf(new Date(), timeZone ?? 'UTC')
-  )
-  return today ?? zoned
-}
-
 function monthOf(date: string): string {
   return `${date.slice(0, 7)}-01`
 }
@@ -250,7 +236,17 @@ export function Calendar(props: CalendarProps) {
 
   const id = useId()
   const rootRef = useRef<HTMLDivElement>(null)
-  const numberOfMonths = Math.max(1, Math.floor(numberOfMonthsProp))
+  const boundedSpan =
+    startMonth && endMonth
+      ? (yearOf(endMonth) - yearOf(startMonth)) * 12 +
+        monthNumberOf(endMonth) -
+        monthNumberOf(startMonth) +
+        1
+      : Infinity
+  const numberOfMonths = Math.max(
+    1,
+    Math.min(Math.floor(numberOfMonthsProp), boundedSpan)
+  )
   const today = useToday(todayProp, timeZone)
   // The grid is Gregorian, so its labels must be too, whatever the locale prefers.
   const locale = new Intl.Locale(localeProp, { calendar: 'gregory' }).toString()
@@ -286,11 +282,13 @@ export function Calendar(props: CalendarProps) {
   // Null until the reader turns the page, so the opening month follows today
   // once hydration swaps the server's UTC date for the viewer's.
   const [navigatedMonth, setNavigatedMonth] = useState<string | null>(null)
-  const firstMonth = clampMonth(
-    monthProp
-      ? monthOf(monthProp)
-      : (navigatedMonth ?? monthOf(initialAnchor ?? today))
-  )
+  const anchor = initialAnchor ?? today
+  const shownMonth = monthProp
+    ? monthOf(monthProp)
+    : (navigatedMonth ?? (anchor ? monthOf(anchor) : null))
+  // With nothing to place it, the month waits for the client to know today.
+  const waitingForToday = shownMonth === null
+  const firstMonth = clampMonth(shownMonth ?? '2000-01-01')
   const months = Array.from({ length: numberOfMonths }, (_, i) =>
     addMonths(firstMonth, i)
   )
@@ -301,7 +299,11 @@ export function Calendar(props: CalendarProps) {
   const [hasFocus, setHasFocus] = useState(false)
   const [hoverDate, setHoverDate] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
-  const [focusRequest, setFocusRequest] = useState(0)
+  const [pendingFocus, setPendingFocus] = useState<{
+    date: string
+    id: number
+  } | null>(null)
+  const servedFocus = useRef(0)
 
   const focusTarget =
     [focusedDate, firstSelectedOf(mode, selection), today].find(
@@ -356,6 +358,11 @@ export function Calendar(props: CalendarProps) {
     setAnnouncement(monthsLabel(month))
   }
 
+  function turnMonth(next: string) {
+    setPendingFocus(null)
+    changeMonth(next)
+  }
+
   function commit(next: CalendarSelection) {
     if (selectedProp === undefined) setUncontrolled({ mode, selection: next })
     onSelect?.(next)
@@ -388,7 +395,7 @@ export function Calendar(props: CalendarProps) {
   function moveFocus(date: string) {
     setFocusedDate(date)
     setHoverDate(null)
-    setFocusRequest((request) => request + 1)
+    setPendingFocus((request) => ({ date, id: (request?.id ?? 0) + 1 }))
     if (compareDates(date, firstMonth) < 0) changeMonth(date)
     else if (compareDates(date, lastVisibleDay) > 0)
       changeMonth(addMonths(monthOf(date), 1 - numberOfMonths))
@@ -420,18 +427,20 @@ export function Calendar(props: CalendarProps) {
     moveFocus(clampDate(next))
   }
 
-  const focusDay = (date: string) =>
-    rootRef.current
-      ?.querySelector<HTMLButtonElement>(
-        `button[data-date="${date}"]:not([data-outside])`
-      )
-      ?.focus()
+  const findDay = (date: string) =>
+    rootRef.current?.querySelector<HTMLButtonElement>(
+      `button[data-date="${date}"]:not([data-outside])`
+    )
+  const focusDay = (date: string) => findDay(date)?.focus()
 
+  // A key's target may render later, when a controlled parent moves `month`.
   useEffect(() => {
-    if (focusRequest) focusDay(focusTarget)
-    // Only a key asks for focus; a month turned by its arrows keeps focus there.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusRequest])
+    if (!pendingFocus || servedFocus.current === pendingFocus.id) return
+    const button = findDay(pendingFocus.date)
+    if (!button) return
+    servedFocus.current = pendingFocus.id
+    button.focus()
+  }, [pendingFocus, firstMonth])
 
   useEffect(() => {
     if (autoFocus) focusDay(focusTarget)
@@ -440,7 +449,7 @@ export function Calendar(props: CalendarProps) {
   }, [])
 
   const navDisabled = disabled === true
-  const todayYear = yearOf(today)
+  const todayYear = yearOf(today ?? firstMonth)
   const firstYear = startMonth
     ? yearOf(startMonth)
     : Math.min(yearOf(firstMonth), todayYear) - 100
@@ -461,12 +470,16 @@ export function Calendar(props: CalendarProps) {
         </div>
       )
     }
-    const shift = (next: string) => changeMonth(addMonths(next, -index))
+    const shift = (next: string) => turnMonth(addMonths(next, -index))
     const monthNumber = monthNumberOf(month)
     const year = yearOf(month)
-    const outOfBounds = (candidate: string) =>
-      (!!minDate && compareDates(candidate, minDate) < 0) ||
-      (!!maxDate && compareDates(candidate, maxDate) > 0)
+    const outOfBounds = (candidate: string) => {
+      const first = addMonths(candidate, -index)
+      return (
+        (!!firstAllowedMonth && compareDates(first, firstAllowedMonth) < 0) ||
+        (!!lastAllowedMonth && compareDates(first, lastAllowedMonth) > 0)
+      )
+    }
     return (
       <div className='flex justify-center gap-1'>
         <span id={captionId} className='sr-only'>
@@ -609,95 +622,105 @@ export function Calendar(props: CalendarProps) {
         className
       )}
       {...rest}
+      onBlur={(event) => {
+        rest.onBlur?.(event)
+        if (!event.currentTarget.contains(event.relatedTarget))
+          setPendingFocus(null)
+      }}
     >
       <div role='status' className='sr-only'>
         {announcement}
       </div>
-      {months.map((month, index) => (
-        <div
-          // By position, so the arrows and selects keep focus as months turn.
-          key={index}
-          data-slot='calendar-month'
-          className='grid w-70 content-start gap-2'
-        >
-          <div className='grid h-8 grid-cols-[2rem_1fr_2rem] items-center gap-1'>
-            {index === 0 ? (
-              <IconButton
-                emphasis='subtler'
-                size='sm'
-                aria-label='Previous month'
-                disabled={
-                  navDisabled ||
-                  (!!firstAllowedMonth &&
-                    compareDates(firstMonth, firstAllowedMonth) <= 0)
-                }
-                onClick={() => changeMonth(addMonths(firstMonth, -1))}
-              >
-                <CaretLeftIcon
-                  weight='bold'
-                  className='size-4 rtl:-scale-x-100'
-                />
-              </IconButton>
-            ) : (
-              <span />
-            )}
-            {renderCaption(month, index)}
-            {index === numberOfMonths - 1 ? (
-              <IconButton
-                emphasis='subtler'
-                size='sm'
-                aria-label='Next month'
-                disabled={
-                  navDisabled ||
-                  (!!lastAllowedMonth &&
-                    compareDates(firstMonth, lastAllowedMonth) >= 0)
-                }
-                onClick={() => changeMonth(addMonths(firstMonth, 1))}
-              >
-                <CaretRightIcon
-                  weight='bold'
-                  className='size-4 rtl:-scale-x-100'
-                />
-              </IconButton>
-            ) : (
-              <span />
-            )}
-          </div>
-          <table
-            role='grid'
-            aria-multiselectable={mode !== 'single' || undefined}
-            aria-labelledby={`${id}-caption-${index}`}
-            className='border-separate border-spacing-x-0 border-spacing-y-0.5'
-            onPointerLeave={() => setHoverDate(null)}
+      {waitingForToday &&
+        months.map((month) => (
+          <div key={month} aria-hidden='true' className='h-82 w-70' />
+        ))}
+      {!waitingForToday &&
+        months.map((month, index) => (
+          <div
+            // By position, so the arrows and selects keep focus as months turn.
+            key={index}
+            data-slot='calendar-month'
+            className='grid w-70 content-start gap-2'
           >
-            <thead>
-              <tr role='row'>
-                {labels.weekdays.map((weekday) => (
-                  <th
-                    key={weekday.long}
-                    role='columnheader'
-                    scope='col'
-                    aria-label={weekday.long}
-                    className='h-8 p-0 text-xs font-medium text-subtle'
-                  >
-                    {weekday.short}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {monthGrid(yearOf(month), monthNumberOf(month), {
-                weekStart,
-                fixedWeeks
-              }).map((week) => (
-                <tr key={week[0]} role='row'>
-                  {week.map((date, column) => renderDay(date, month, column))}
+            <div className='grid h-8 grid-cols-[2rem_1fr_2rem] items-center gap-1'>
+              {index === 0 ? (
+                <IconButton
+                  emphasis='subtler'
+                  size='sm'
+                  aria-label='Previous month'
+                  disabled={
+                    navDisabled ||
+                    (!!firstAllowedMonth &&
+                      compareDates(firstMonth, firstAllowedMonth) <= 0)
+                  }
+                  onClick={() => turnMonth(addMonths(firstMonth, -1))}
+                >
+                  <CaretLeftIcon
+                    weight='bold'
+                    className='size-4 rtl:-scale-x-100'
+                  />
+                </IconButton>
+              ) : (
+                <span />
+              )}
+              {renderCaption(month, index)}
+              {index === numberOfMonths - 1 ? (
+                <IconButton
+                  emphasis='subtler'
+                  size='sm'
+                  aria-label='Next month'
+                  disabled={
+                    navDisabled ||
+                    (!!lastAllowedMonth &&
+                      compareDates(firstMonth, lastAllowedMonth) >= 0)
+                  }
+                  onClick={() => turnMonth(addMonths(firstMonth, 1))}
+                >
+                  <CaretRightIcon
+                    weight='bold'
+                    className='size-4 rtl:-scale-x-100'
+                  />
+                </IconButton>
+              ) : (
+                <span />
+              )}
+            </div>
+            <table
+              role='grid'
+              aria-multiselectable={mode !== 'single' || undefined}
+              aria-labelledby={`${id}-caption-${index}`}
+              className='border-separate border-spacing-x-0 border-spacing-y-0.5'
+              onPointerLeave={() => setHoverDate(null)}
+            >
+              <thead>
+                <tr role='row'>
+                  {labels.weekdays.map((weekday) => (
+                    <th
+                      key={weekday.long}
+                      role='columnheader'
+                      scope='col'
+                      aria-label={weekday.long}
+                      className='h-8 p-0 text-xs font-medium text-subtle'
+                    >
+                      {weekday.short}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ))}
+              </thead>
+              <tbody>
+                {monthGrid(yearOf(month), monthNumberOf(month), {
+                  weekStart,
+                  fixedWeeks
+                }).map((week) => (
+                  <tr key={week[0]} role='row'>
+                    {week.map((date, column) => renderDay(date, month, column))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
     </div>
   )
 }

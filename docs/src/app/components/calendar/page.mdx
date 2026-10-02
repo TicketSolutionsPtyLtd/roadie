@@ -20,7 +20,7 @@ import { Calendar } from '@oztix/roadie-components/calendar'
 
 ### Default
 
-Calendar opens on the selected month, or on today's. Every value is a plain ISO date string such as `'2026-11-27'`, never a `Date`.
+Calendar opens on the selected month, or on today's. Every value is a plain ISO date string such as `'2026-11-27'`, never a `Date`. Today moves on at midnight in `timeZone`. Server HTML may be read on a later day, so the server leaves today unmarked, and a calendar with nothing else to place its month renders an empty frame until the browser fills it in. Pass `today`, `month` or `defaultMonth` to render it in full on the server.
 
 ```tsx-live-noinline
 function Default() {

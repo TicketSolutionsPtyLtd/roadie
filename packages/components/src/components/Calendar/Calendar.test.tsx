@@ -1,7 +1,16 @@
 import { useState } from 'react'
 
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { hydrateRoot } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Calendar, type CalendarDateRange } from '.'
@@ -369,6 +378,104 @@ describe('Calendar', () => {
     expect(day('2027-03-30')).toHaveFocus()
     await userEvent.keyboard('{Escape}')
     expect(onSelect).not.toHaveBeenCalled()
+  })
+
+  describe('today', () => {
+    afterEach(() => vi.useRealTimers())
+
+    it('moves to the next day at midnight in its zone', () => {
+      vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+      // 11:59:30pm on 31 March in Sydney.
+      vi.setSystemTime(new Date('2027-03-31T12:59:30Z'))
+      render(<Calendar timeZone='Australia/Sydney' />)
+      expect(day('2027-03-31')).toHaveAttribute('data-today')
+      act(() => vi.advanceTimersByTime(60_000))
+      expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
+      expect(day('2027-04-01')).toHaveAttribute('data-today')
+    })
+
+    it('catches up when a hidden tab is shown again', () => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date('2027-03-10T01:00:00Z'))
+      render(<Calendar timeZone='Australia/Sydney' />)
+      vi.setSystemTime(new Date('2027-03-12T01:00:00Z'))
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+      expect(day('2027-03-12')).toHaveAttribute('data-today')
+    })
+
+    it('hydrates server HTML from the day before without a mismatch', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date('2027-03-31T05:00:00Z'))
+      const html = renderToString(<Calendar timeZone='Australia/Sydney' />)
+      vi.setSystemTime(new Date('2027-04-01T05:00:00Z'))
+      const container = document.createElement('div')
+      container.innerHTML = html
+      document.body.append(container)
+      const onRecoverableError = vi.fn()
+      await act(async () => {
+        hydrateRoot(container, <Calendar timeZone='Australia/Sydney' />, {
+          onRecoverableError
+        })
+      })
+      expect(onRecoverableError).not.toHaveBeenCalled()
+      expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
+      expect(day('2027-04-01')).toHaveAttribute('data-today')
+      container.remove()
+    })
+  })
+
+  it('shows no more months than startMonth to endMonth holds', () => {
+    render(
+      <Calendar
+        today={TODAY}
+        numberOfMonths={3}
+        startMonth='2027-03-01'
+        endMonth='2027-04-30'
+      />
+    )
+    expect(screen.getAllByRole('grid')).toHaveLength(2)
+    expect(screen.getAllByRole('grid')[1]).toHaveAccessibleName('April 2027')
+  })
+
+  it('disables month options that would turn past the bounds', () => {
+    render(
+      <Calendar
+        today={TODAY}
+        numberOfMonths={2}
+        captionLayout='dropdown'
+        startMonth='2027-03-01'
+        endMonth='2027-06-30'
+      />
+    )
+    const [first, second] = screen.getAllByRole('combobox', { name: 'Month' })
+    const option = (select: HTMLElement, name: string) =>
+      within(select).getByRole('option', { name }) as HTMLOptionElement
+    expect(option(first!, 'May').disabled).toBe(false)
+    expect(option(first!, 'June').disabled).toBe(true)
+    expect(option(second!, 'April').disabled).toBe(false)
+    expect(option(second!, 'March').disabled).toBe(true)
+  })
+
+  it('focuses the day once a controlled parent shows its month', async () => {
+    function Deferred() {
+      const [month, setMonth] = useState('2027-03-01')
+      return (
+        <Calendar
+          today='2027-03-31'
+          month={month}
+          onMonthChange={(next) => setTimeout(() => setMonth(next), 10)}
+        />
+      )
+    }
+    render(<Deferred />)
+    act(() => day('2027-03-31').focus())
+    await userEvent.keyboard('{ArrowRight}')
+    await waitFor(() =>
+      expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
+    )
+    await waitFor(() => expect(day('2027-04-01')).toHaveFocus())
   })
 
   it('names days with modifiers as data attributes', () => {

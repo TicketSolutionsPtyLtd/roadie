@@ -23,3 +23,9 @@ and a polite live region announces the month and the selection. Days carry
 `data-selected`, `data-range-start`, `data-range-middle`, `data-range-end`,
 `data-range-preview`, `data-today`, `data-outside`, `data-disabled`,
 `data-out-of-range` and `data-focused` for styling.
+
+Today follows midnight in `timeZone` and catches up when a hidden tab is shown
+again. The server leaves today unmarked, so cached HTML read on a later day
+hydrates without a mismatch, and a calendar with no `today`, `month`,
+`defaultMonth` or selection renders an empty frame until the browser knows
+today.
