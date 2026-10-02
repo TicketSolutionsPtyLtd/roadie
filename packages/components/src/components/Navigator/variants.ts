@@ -88,7 +88,7 @@ export const navigatorPrimaryPinnedClass = 'relative grid gap-3 px-3'
 
 // `rounded-4xl` scales to a pill when collapsed. Opaque: nothing scrolls beneath, so a blur costs GPU for nothing.
 export const navigatorCapsuleClass =
-  'group/capsule relative grid gap-1 p-1 rounded-4xl emphasis-raised'
+  'relative grid gap-1 p-1 rounded-4xl emphasis-raised'
 
 // --navigator-primary-col is one bar slot; -edge is a collapsed circle's travel;
 // -lead is how many slots the track sits in from the lane's start; -inset is the bar's own padding.
@@ -265,11 +265,12 @@ export const navigatorBrandClass = [
   'navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:grid-cols-[1fr] navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:opacity-100',
   'motion-safe:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:[transition:grid-template-columns_var(--navigator-primary-motion),opacity_var(--duration-fast)_var(--ease-exit)]',
   'motion-safe:navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:[transition:grid-template-columns_var(--navigator-primary-motion),opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]',
-  // Keeps a wordmark-only Logo visible while collapsed.
+  // Keeps a wordmark-only Logo visible while collapsed. `:first-child`, not
+  // `:not(:has(mark))`: a selector after a :has() restyles every match on the page.
   '[&>[data-slot=logo]:not(:has([data-slot=logo-mark]))]:mx-0',
-  '[&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:h-[min(1em,calc(3rem*42/128))] [&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:opacity-100',
-  'navigator-expanded:[&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:h-[1em]',
-  'motion-safe:[&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:[transition:height_var(--navigator-primary-motion)]'
+  '[&_[data-slot=logo]>[data-slot=logo-wordmark]:first-child]:h-[min(1em,calc(3rem*42/128))] [&_[data-slot=logo]>[data-slot=logo-wordmark]:first-child]:opacity-100',
+  'navigator-expanded:[&_[data-slot=logo]>[data-slot=logo-wordmark]:first-child]:h-[1em]',
+  'motion-safe:[&_[data-slot=logo]>[data-slot=logo-wordmark]:first-child]:[transition:height_var(--navigator-primary-motion)]'
 ].join(' ')
 
 export const navigatorItemTrailingClass =
@@ -294,9 +295,10 @@ export const navigatorItemLabelClass =
   'col-start-2 row-start-1 ms-3 truncate opacity-0 navigator-expanded:opacity-100 motion-safe:[transition:opacity_var(--duration-fast)_var(--ease-exit)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]'
 
 // Without an icon the label takes the icon column, unless a capsule sibling's icon needs it for alignment.
+// `in-*`, not `group-has-*`: a universal after :has() restyles the page on every DOM change.
 export const navigatorItemIconlessLabelClass = [
   'col-span-2 col-start-1 ms-0',
-  'group-has-[[data-slot=navigator-item-icon]]/capsule:col-span-1 group-has-[[data-slot=navigator-item-icon]]/capsule:col-start-2 group-has-[[data-slot=navigator-item-icon]]/capsule:ms-3'
+  'in-[[data-slot=navigator-capsule]:has([data-slot=navigator-item-icon])]:col-span-1 in-[[data-slot=navigator-capsule]:has([data-slot=navigator-item-icon])]:col-start-2 in-[[data-slot=navigator-capsule]:has([data-slot=navigator-item-icon])]:ms-3'
 ].join(' ')
 
 export const navigatorItemInitialClass =

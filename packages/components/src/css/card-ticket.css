@@ -37,9 +37,18 @@
       background-color: var(--card-fill);
     }
 
-    &:has(> [data-slot='card-footer']) > * {
-      background-color: var(--card-fill);
-      transition: background-color var(--duration-moderate) var(--ease-standard);
+    /* The parts read variables the card sets, not `&:has(footer) > *`: a
+       selector after a :has() restyles its matches across the page whenever
+       anything changes, and `*` matches everything. */
+    &:has(> [data-slot='card-footer']) {
+      --card-part-fill: var(--card-fill);
+      --card-part-transition: background-color var(--duration-moderate)
+        var(--ease-standard);
+    }
+
+    & > * {
+      background-color: var(--card-part-fill, revert-layer);
+      transition: var(--card-part-transition, revert-layer);
     }
 
     & > [data-slot='card-footer'] {

@@ -1419,8 +1419,7 @@ describe('default brand', () => {
   })
 
   it('keeps a wordmark-only Logo visible collapsed, shrunk to the mark’s column', async () => {
-    const markless =
-      '[data-slot=logo]:not(:has([data-slot=logo-mark])) [data-slot=logo-wordmark]'
+    const markless = '[data-slot=logo]>[data-slot=logo-wordmark]:first-child'
     const { rerender } = render(
       <BrandNav
         brand={
@@ -1998,13 +1997,12 @@ describe('items without an icon', () => {
     expect(label('Settings')).not.toHaveClass('col-start-2')
     expect(label('about us')).toHaveClass(
       'col-start-1',
-      'group-has-[[data-slot=navigator-item-icon]]/capsule:col-start-2'
+      'in-[[data-slot=navigator-capsule]:has([data-slot=navigator-item-icon])]:col-start-2'
     )
-    for (const capsule of vertical().querySelectorAll(
-      '[data-slot="navigator-capsule"]'
-    )) {
-      expect(capsule).toHaveClass('group/capsule')
-    }
+    // The label's variant finds its capsule by this slot.
+    expect(
+      label('about us').closest('[data-slot="navigator-capsule"]')
+    ).not.toBeNull()
   })
 
   it('shows the initial on the phone bar tab', async () => {

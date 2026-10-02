@@ -318,7 +318,9 @@ describe('an inspector', () => {
 
     const inner = contentMarkup(rowMarkup({ ...inspectorRow(2), level: 1 }))
     content = at(rem(120), { ...three, inner })
-    const nestedRow = content.querySelector('[data-level="1"]')!
+    const nestedRow = content.querySelector(
+      '[data-slot="navigator-panes"][data-level="1"]'
+    )!
     nestedRow
       .querySelector('[data-slot="pane"]')!
       .insertAdjacentHTML('beforeend', trigger)
@@ -362,7 +364,9 @@ describe('an inspector', () => {
       inspector: 'lg',
       inner
     })
-    const nestedRow = content.querySelector('[data-level="1"]')!
+    const nestedRow = content.querySelector(
+      '[data-slot="navigator-panes"][data-level="1"]'
+    )!
     nestedRow
       .querySelector('[data-slot="pane"]')!
       .insertAdjacentHTML('beforeend', trigger)
@@ -497,7 +501,9 @@ describe('push motion', () => {
     )
     const content = at(600, { ...reachedRow([true]), inner })
     await frames()
-    const innerRow = content.querySelector<HTMLElement>('[data-level="1"]')!
+    const innerRow = content.querySelector<HTMLElement>(
+      '[data-slot="navigator-panes"][data-level="1"]'
+    )!
     rowOf(content).setAttribute('data-pushing', '')
     innerRow.querySelector('[data-depth="1"]')!.setAttribute('data-reached', '')
     expect(namesOf(innerRow.querySelector('[data-depth="1"]')!)).toEqual([])

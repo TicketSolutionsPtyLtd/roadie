@@ -1,15 +1,17 @@
 import { cva } from 'class-variance-authority'
 
 // `:focus-visible`, which a click doesn't leave behind; child combinators skip nested groups.
+// :has() rows set --list-divider rather than style a descendant, since a
+// selector after a :has() restyles every match on the page.
 export const listSectionClass = [
   // Buttons shrink-wrap even as block flex; a width would break the -mx bleed.
-  'grid [&>li]:grid',
+  'grid [&>li]:grid [--list-divider:initial]',
   '[&>li:last-child>*>[data-slot=list-item-content]]:after:bg-transparent',
-  '[&>li:is(:hover,:has(>:is(:focus-visible,[aria-current])))>*>[data-slot=list-item-content]]:after:bg-transparent',
+  '[&>li:is(:hover,:has(>:is(:focus-visible,[aria-current])))]:[--list-divider:transparent]',
   // `:has()` can't nest, and `:is()` hides the error, so these stay split.
-  '[&>li:has(+li:hover)>*>[data-slot=list-item-content]]:after:bg-transparent',
-  '[&>li:has(+li_:focus-visible)>*>[data-slot=list-item-content]]:after:bg-transparent',
-  '[&>li:has(+li_[aria-current])>*>[data-slot=list-item-content]]:after:bg-transparent'
+  '[&>li:has(+li:hover)]:[--list-divider:transparent]',
+  '[&>li:has(+li_:focus-visible)]:[--list-divider:transparent]',
+  '[&>li:has(+li_[aria-current])]:[--list-divider:transparent]'
 ].join(' ')
 
 // `not-has-*` hands the card to each group once the root holds one.
@@ -19,10 +21,8 @@ export const listVariants = cva(['group/list', listSectionClass], {
       true: [
         'not-has-[>[data-slot=list-group]]:overflow-hidden',
         'not-has-[>[data-slot=list-group]]:rounded-xl',
-        'not-has-[>[data-slot=list-group]]:[&_[data-slot=list-item]]:rounded-none',
-        'not-has-[>[data-slot=list-group]]:[&_[data-slot=list-item]]:border-0',
-        'not-has-[>[data-slot=list-group]]:[&_[data-slot=list-item]]:mx-0',
-        'has-[>[data-slot=list-group]]:[&>li>*>[data-slot=list-item-content]]:after:bg-transparent'
+        // Rows beside groups inherit it; each group's section resets it.
+        'has-[>[data-slot=list-group]]:[--list-divider:transparent]'
       ],
       false: ''
     },
@@ -33,18 +33,12 @@ export const listVariants = cva(['group/list', listSectionClass], {
     {
       contained: true,
       emphasis: 'subtle',
-      class: [
-        'not-has-[>[data-slot=list-group]]:emphasis-subtle',
-        'has-[>[data-slot=list-group]]:[&>li>[data-slot=list-item]]:emphasis-subtle'
-      ]
+      class: 'not-has-[>[data-slot=list-group]]:emphasis-subtle'
     },
     {
       contained: true,
       emphasis: 'normal',
-      class: [
-        'not-has-[>[data-slot=list-group]]:emphasis-normal',
-        'has-[>[data-slot=list-group]]:[&>li>[data-slot=list-item]]:emphasis-normal'
-      ]
+      class: 'not-has-[>[data-slot=list-group]]:emphasis-normal'
     },
     {
       contained: false,
@@ -98,6 +92,16 @@ export const listItemVariants = cva(
   }
 )
 
+// The contained root's card reaches its rows from the row's side, so the
+// selector after the root's :has() ends on a class.
+export const listItemContainedClass = [
+  '[[data-slot=list][data-contained]:not(:has(>[data-slot=list-group]))_&]:rounded-none',
+  '[[data-slot=list][data-contained]:not(:has(>[data-slot=list-group]))_&]:border-0',
+  '[[data-slot=list][data-contained]:not(:has(>[data-slot=list-group]))_&]:mx-0',
+  '[[data-slot=list][data-contained=subtle]:has(>[data-slot=list-group])>li>&]:emphasis-subtle',
+  '[[data-slot=list][data-contained=normal]:has(>[data-slot=list-group])>li>&]:emphasis-normal'
+].join(' ')
+
 // Padding lives here, not on the row, so the divider starts at the title.
 export const listItemLeadingClass = 'flex shrink-0 items-center py-3 pr-3'
 
@@ -105,7 +109,7 @@ export const listItemLeadingClass = 'flex shrink-0 items-center py-3 pr-3'
 export const listItemContentClass = [
   'relative flex min-w-0 flex-1 items-center gap-3 py-3',
   'after:pointer-events-none after:absolute after:inset-x-0 after:h-px',
-  'after:-bottom-px after:bg-[var(--intent-border-subtle)]'
+  'after:-bottom-px after:bg-[var(--list-divider,var(--intent-border-subtle))]'
 ].join(' ')
 
 export const listItemBodyClass = 'grid min-w-0 flex-1 gap-0.5'
