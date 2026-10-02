@@ -83,3 +83,24 @@ describe('Sortable teardown', () => {
     expect(item).not.toHaveAttribute('data-drop-edge')
   })
 })
+
+describe('Sortable unknown values', () => {
+  it('does not register an item whose value is not in items', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.mocked(dnd.sortableItem).mockClear()
+    render(
+      <Sortable items={['A']} onReorder={() => {}}>
+        {['A', 'Z'].map((value) => (
+          <Sortable.Item key={value} value={value} label={value}>
+            <Sortable.Handle />
+          </Sortable.Item>
+        ))}
+      </Sortable>
+    )
+    await waitFor(() => expect(dnd.sortableItem).toHaveBeenCalled())
+    expect(
+      vi.mocked(dnd.sortableItem).mock.calls.map(([options]) => options.value)
+    ).toEqual(['A'])
+    warn.mockRestore()
+  })
+})

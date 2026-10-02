@@ -53,6 +53,8 @@ export function SortableItem({
   const { items, axis, dir, group, nameItem } = root
   const disabled = root.disabled || itemDisabled
   const index = items.indexOf(value)
+  // An unlisted item would take drops at index -1, so it isn't registered.
+  const listed = index !== -1
   const [element, setElement] = useState<HTMLElement | null>(null)
   const [handle, setHandle] = useState<HTMLElement | null>(null)
   const [dragging, setDragging] = useState(false)
@@ -72,7 +74,7 @@ export function SortableItem({
   })
 
   useEffect(() => {
-    if (!element || !handle) return
+    if (!element || !handle || !listed) return
     const cleanup = sortableItem({
       element,
       handle,
@@ -94,10 +96,10 @@ export function SortableItem({
       setDragging(false)
       setDropEdge(null)
     }
-  }, [element, handle, group, value, axis, disabled])
+  }, [element, handle, group, value, axis, disabled, listed])
 
   useDevWarning(
-    index === -1 &&
+    !listed &&
       `Roadie: Sortable.Item "${value}" is not in its Sortable's items, so it can't move.`
   )
 
