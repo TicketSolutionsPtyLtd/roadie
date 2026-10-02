@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react'
 
+import { KbdShortcut } from '../Kbd/KbdShortcut'
+
 export type MenuItemDecorations = {
   /** Pass a bold Phosphor icon; it is sized for you. */
   icon?: ReactNode
-  /** e.g. `⌘D`. Visual only; bind the keys yourself. */
+  /** Keys such as `['mod', 'd']`, shown per platform, or text such as `⌘D`. Visual only; bind the keys yourself. */
   shortcut?: ReactNode
 }
 
@@ -29,13 +31,12 @@ export function itemContent({
       </span>
       {shortcut ? (
         // Hidden so the shortcut stays out of the item's accessible name.
-        <kbd
+        <KbdShortcut
+          shortcut={shortcut}
+          emphasis='subtler'
           data-slot='menu-item-shortcut'
-          aria-hidden='true'
-          className='ms-4 shrink-0 font-sans text-xs tracking-wide text-subtle'
-        >
-          {shortcut}
-        </kbd>
+          className='ms-4 shrink-0'
+        />
       ) : null}
       {trailing}
     </>

@@ -20,14 +20,14 @@ import { Menu } from '@oztix/roadie-components/menu'
 
 ### Default
 
-Pass the button to `Menu.Trigger` with `render`. `Menu.Content` wraps the portal, positioner and popup, and opens below the trigger, aligned to its start edge. Give each item an `icon` and, where a key binding exists, a `shortcut`. Put a destructive action last, after a separator, with `intent='danger'`.
+Pass the button to `Menu.Trigger` with `render`. `Menu.Content` wraps the portal, positioner and popup, and opens below the trigger, aligned to its start edge. Give each item an `icon` and, where a key binding exists, a `shortcut`: a key list such as `['mod', 'e']` renders through [Kbd](/components/kbd), so each reader sees their own platform's keys. Put a destructive action last, after a separator, with `intent='danger'`.
 
 ```tsx-live
 <Menu>
   <Menu.Trigger render={<IconButton aria-label='More actions'><DotsThreeIcon weight='bold' className='size-4' /></IconButton>} />
   <Menu.Content>
-    <Menu.Item icon={<PencilSimpleIcon weight='bold' />} shortcut='⌘E'>Edit</Menu.Item>
-    <Menu.Item icon={<CopyIcon weight='bold' />} shortcut='⌘D'>Duplicate</Menu.Item>
+    <Menu.Item icon={<PencilSimpleIcon weight='bold' />} shortcut={['mod', 'e']}>Edit</Menu.Item>
+    <Menu.Item icon={<CopyIcon weight='bold' />} shortcut={['mod', 'd']}>Duplicate</Menu.Item>
     <Menu.Item href='https://example.com/events/neon-harbour-sessions' icon={<ArrowSquareOutIcon weight='bold' />}>View on site</Menu.Item>
     <Menu.Separator />
     <Menu.Item intent='danger' icon={<XCircleIcon weight='bold' />}>Cancel event</Menu.Item>
@@ -218,6 +218,6 @@ Disable an item that can't run right now. It stays in place, so the menu doesn't
 - Enter, Space or the down arrow opens the menu from the trigger. The arrow keys move between items, Home and End jump to the first and last, and typing a letter jumps to the next item that starts with it.
 - The right arrow opens a submenu and the left arrow closes it. These follow the reading direction.
 - Escape closes the menu and returns focus to the trigger.
-- Shortcuts are visual hints and stay out of the item's name. Bind the keys yourself.
+- Shortcuts are visual hints, hidden on touch screens and kept out of the item's name. Bind the keys yourself and put them on the item as `aria-keyshortcuts`.
 
 <PropsDefinitions componentPath='packages/components/src/components/Menu' />

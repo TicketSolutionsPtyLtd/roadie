@@ -10,6 +10,7 @@ export {
 } from './components/LinkButton'
 export { Code, codeVariants, type CodeProps } from './components/Code'
 export { Highlight, type HighlightProps } from './components/Highlight'
+export { Kbd, kbdVariants, type KbdProps } from './components/Kbd'
 export { Mark, markVariants, type MarkProps } from './components/Mark'
 export { Prose, proseVariants, type ProseProps } from './components/Prose'
 

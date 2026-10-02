@@ -1,0 +1,149 @@
+export const metadata = {
+  title: 'Kbd',
+  description: 'A keyboard key or shortcut, drawn as a keycap',
+  status: 'beta',
+  category: 'Text',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A keyboard key or shortcut, drawn as a keycap.
+
+## Import
+
+```tsx
+import { Kbd } from '@oztix/roadie-components/kbd'
+```
+
+## Examples
+
+### Default
+
+Pass a key as text. Known key names, in any case, show their glyph or short word: `Enter` shows the return glyph and the word.
+
+```tsx-live
+<div className='flex flex-wrap items-center gap-2'>
+  <Kbd>Enter</Kbd>
+  <Kbd>Esc</Kbd>
+  <Kbd>/</Kbd>
+</div>
+```
+
+### Keys
+
+`keys` draws a combination, each key on its own keycap. `mod` is the platform's main modifier: ⌘ on Apple devices and Ctrl elsewhere. `shift`, `alt` and `ctrl` follow the platform too, as glyphs on Apple devices and words elsewhere.
+
+```tsx-live
+<div className='flex flex-wrap items-center gap-4'>
+  <Kbd keys={['mod', 'k']} />
+  <Kbd keys={['mod', 'shift', 'p']} />
+  <Kbd keys={['alt', 'arrowup']} />
+</div>
+```
+
+The known names are `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `arrowup`, `arrowdown`, `arrowleft`, `arrowright`, `mod`, `shift`, `alt` (or `option`) and `ctrl`. They also accept `KeyboardEvent.key` values such as `ArrowUp` and `Escape`. Any other key shows as text, with a single letter in capitals.
+
+### Emphasis
+
+`normal` is a keycap. `subtler` is plain text for places that already frame it, such as a menu row.
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Normal</p>
+    <div><Kbd keys={['mod', 'd']} /></div>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Subtler</p>
+    <div><Kbd keys={['mod', 'd']} emphasis='subtler' /></div>
+  </div>
+</div>
+```
+
+### Sizes
+
+`md` suits a toolbar or a field. Use `sm` inside a button or beside small text.
+
+```tsx-live
+<div className='flex flex-wrap items-center gap-4'>
+  <Kbd keys={['mod', 'k']} size='sm' />
+  <Kbd keys={['mod', 'k']} size='md' />
+</div>
+```
+
+### Composition
+
+Put the hint inside the control it triggers. Kbd is hidden from assistive tech, so the button's name stays "Search", and `aria-keyshortcuts` carries the real shortcut.
+
+```tsx-live
+<Button aria-keyshortcuts='Meta+K Control+K'>
+  <MagnifyingGlassIcon weight='bold' className='size-4' />
+  Search
+  <Kbd keys={['mod', 'k']} size='sm' />
+</Button>
+```
+
+`Menu.Item` and `Tooltip.Content` take a `shortcut` and render it through Kbd.
+
+```tsx-live
+<div className='flex flex-wrap gap-3'>
+  <Menu>
+    <Menu.Trigger render={<Button>Actions</Button>} />
+    <Menu.Content>
+      <Menu.Item icon={<PencilSimpleIcon weight='bold' />} shortcut={['mod', 'e']} aria-keyshortcuts='Meta+E Control+E'>Edit</Menu.Item>
+      <Menu.Item icon={<CopyIcon weight='bold' />} shortcut={['mod', 'd']} aria-keyshortcuts='Meta+D Control+D'>Duplicate</Menu.Item>
+    </Menu.Content>
+  </Menu>
+  <Tooltip>
+    <Tooltip.Trigger render={<IconButton aria-label='Search' aria-keyshortcuts='Meta+K Control+K'><MagnifyingGlassIcon weight='bold' className='size-4' /></IconButton>} />
+    <Tooltip.Content shortcut={['mod', 'k']}>
+      <Tooltip.Arrow />
+      Search
+    </Tooltip.Content>
+  </Tooltip>
+</div>
+```
+
+### Announced
+
+In instructions, the keys are the content. `announce` reads each key aloud by its name, such as "Command" or "Control", "Enter" and "Up arrow".
+
+```tsx-live
+<p>
+  Press <Kbd keys={['mod', 'enter']} size='sm' announce /> to send the message.
+</p>
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Hint where people use a keyboard'>
+  <Guideline.Do code={`<Kbd keys={['mod', 'k']} />`}>
+    Show a hint on keyboard-first surfaces, like search, command menus and the row actions of a busy table. Kbd hides itself on touch screens, which have no keyboard to hint at.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't make a hint the only way to learn an action. A shortcut speeds up an action that is already on screen.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Name keys, not symbols'>
+  <Guideline.Do code={`<Kbd keys={['mod', 's']} />`}>
+    Pass <code>mod</code> for the main modifier. Each reader sees their own platform's key.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Kbd>⌘S</Kbd>`}>
+    Don't type a platform's symbols. Windows and Android readers would see keys they don't have.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- Kbd is `aria-hidden` by default. It repeats a shortcut the control already announces, so put the real shortcut on the control as `aria-keyshortcuts`, such as `aria-keyshortcuts='Meta+K Control+K'`. Bind the keys yourself.
+- Use `announce` where the keys are the content, such as instructions in a help article. Each key is then read by name.
+- Kbd is hidden on screens without hover, so touch readers never see a key they can't press.
+- `mod`, `shift`, `alt` and `ctrl` depend on the platform. The server and the first render hold their space with an invisible keycap, and the right key appears once the page has loaded, so hydration never mismatches.
+
+<PropsDefinitions componentPath='packages/components/src/components/Kbd/index.tsx' />

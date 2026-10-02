@@ -118,6 +118,48 @@ describe('Tooltip', () => {
     expect(trigger).not.toHaveAttribute('aria-describedby')
   })
 
+  it('shows a shortcut as keycaps after the label', async () => {
+    vi.spyOn(navigator, 'platform', 'get').mockReturnValue('Win32')
+    render(
+      <Tooltip defaultOpen>
+        <Tooltip.Trigger aria-label='Save' aria-keyshortcuts='Control+S'>
+          💾
+        </Tooltip.Trigger>
+        <Tooltip.Content shortcut={['mod', 's']}>
+          <Tooltip.Arrow />
+          Save
+        </Tooltip.Content>
+      </Tooltip>
+    )
+    await screen.findByText('Save')
+    const keys = popup()!.querySelector('[data-slot="tooltip-shortcut"]')!
+    expect(keys).toHaveAttribute('aria-hidden', 'true')
+    expect(popup()!.lastElementChild).toBe(keys)
+    expect(
+      Array.from(keys.querySelectorAll('[data-slot="kbd"]'), (key) => [
+        key.textContent,
+        key.classList.contains('h-5')
+      ])
+    ).toEqual([
+      ['Ctrl', true],
+      ['S', true]
+    ])
+    expect(popup()).toHaveClass('flex', 'items-center', 'gap-2')
+    vi.restoreAllMocks()
+  })
+
+  it('keeps its block layout without a shortcut', async () => {
+    render(
+      <Tooltip defaultOpen>
+        <Tooltip.Trigger>Save</Tooltip.Trigger>
+        <Tooltip.Content>Save changes</Tooltip.Content>
+      </Tooltip>
+    )
+    await screen.findByText('Save changes')
+    expect(popup()).not.toHaveClass('flex')
+    expect(popup()!.querySelector('kbd')).toBeNull()
+  })
+
   it('opens a grouped neighbour instantly, without the scale-in', async () => {
     const user = userEvent.setup()
     render(
