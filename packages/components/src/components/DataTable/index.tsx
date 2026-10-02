@@ -77,7 +77,11 @@ export function DataTable({
     align: alignOf(column)
   })
   return (
-    <DataTableFrame className={cn('grid gap-2', className)} {...props}>
+    <DataTableFrame
+      showAll={hasPriorities}
+      className={cn('grid gap-2', className)}
+      {...props}
+    >
       <div
         data-slot='data-table-scroller'
         role='region'

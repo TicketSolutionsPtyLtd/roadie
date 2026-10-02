@@ -89,22 +89,38 @@ function splitList(list: string) {
   return [...parts, list.slice(start).trim()]
 }
 
+// A compound's own selectors, without functional pseudo arguments, and the
+// branch lists of its :is() and :where().
+function compoundParts(compound: string) {
+  const groups: string[] = []
+  let own = ''
+  for (let at = 0; at < compound.length; at += 1) {
+    const pseudo = /^:([\w-]+)\(/.exec(compound.slice(at))
+    if (compound[at] === '\\') {
+      own += compound.slice(at, at + 2)
+      at += 1
+    } else if (compound[at] === '[') {
+      const end = compound.indexOf(']', at)
+      own += compound.slice(at, end + 1)
+      at = end
+    } else if (pseudo) {
+      const close = closingParen(compound, at + pseudo[0].length - 1)
+      if (pseudo[1] === 'is' || pseudo[1] === 'where')
+        groups.push(compound.slice(at + pseudo[0].length, close))
+      at = close
+    } else own += compound[at]
+  }
+  return { own, groups }
+}
+
 // Chromium's pick for a compound: a class or id, else its first attribute,
 // else its tag. An :is() or :where() is narrow when every branch is.
 function isNarrow(compound: string): boolean {
-  if (/(^|[^\\])[.#](?!\d)/.test(compound.replace(/\[[^\]]*\]/g, '')))
-    return true
-  const attribute = /^[^[]*?\[([\w-]+)/.exec(
-    compound.replace(/:(?:not|has)\((?:[^()]|\([^()]*\))*\)/g, '')
-  )
+  const { own, groups } = compoundParts(compound)
+  if (/(^|[^\\])[.#](?!\d)/.test(own.replace(/\[[^\]]*\]/g, ''))) return true
+  const attribute = /^[^[]*?\[([\w-]+)/.exec(own)
   if (attribute) return RARE_ATTRIBUTES.has(attribute[1]!)
-  const groups = [
-    ...compound.matchAll(/:(?:is|where)\(((?:[^()]|\([^()]*\))*)\)/g)
-  ].map((match) => match[1]!)
-  return (
-    groups.length > 0 &&
-    groups.some((group) => splitList(group).every(isNarrow))
-  )
+  return groups.some((group) => splitList(group).every(isNarrow))
 }
 
 /** The broad subjects a selector puts after a :has() anchor. */
@@ -150,17 +166,7 @@ function compoundAround(selector: string, at: number) {
 // Whether a compound names a tag, class, id or attribute of its own, or holds
 // an :is() or :where() whose every branch does.
 function hasKey(compound: string): boolean {
-  const groups: string[] = []
-  let own = ''
-  for (let at = 0; at < compound.length; at += 1) {
-    const pseudo = /^:([\w-]+)\(/.exec(compound.slice(at))
-    if (pseudo) {
-      const close = closingParen(compound, at + pseudo[0].length - 1)
-      if (pseudo[1] === 'is' || pseudo[1] === 'where')
-        groups.push(compound.slice(at + pseudo[0].length, close))
-      at = close
-    } else own += compound[at]
-  }
+  const { own, groups } = compoundParts(compound)
   if (/[\w\]]/.test(own.replace(/::?[\w-]+/g, ''))) return true
   return groups.some((group) => splitList(group).every(hasKey))
 }
@@ -186,6 +192,9 @@ describe('Roadie CSS and :has() invalidation', () => {
     expect(broad('.a > li:has(+ li) > div')).toBe(true)
     expect(broad('.a:not(:has(.b)) [data-priority="3"]')).toBe(true)
     expect(broad(':where(.a:has(.b)) :where(a[href], button)')).toBe(true)
+    expect(broad('.a:has(.b) :is(.c, *)')).toBe(true)
+    expect(broad('.a:has(.b) :not(.c)')).toBe(true)
+    expect(broad('.a:has(.b) [data-slot="c"]:not(.d)')).toBe(true)
     expect(broad('.a:has(.b) .c')).toBe(false)
     expect(broad('.a:has(.b) [data-slot="c"].d:hover')).toBe(false)
     expect(broad('.a:has(.b) [data-level="0"][data-slot="c"]')).toBe(false)

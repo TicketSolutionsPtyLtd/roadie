@@ -5,8 +5,13 @@ import { type ComponentProps, createContext, use, useState } from 'react'
 const ShowAllContext = createContext({ expanded: false, toggle: () => {} })
 
 /** The table's root, owning whether every column shows. */
-export function DataTableFrame(props: ComponentProps<'div'>) {
+export function DataTableFrame({
+  showAll,
+  ...props
+}: ComponentProps<'div'> & { showAll: boolean }) {
   const [expanded, setExpanded] = useState(false)
+  // Collapses with the control, as the button's own state did when it unmounted.
+  if (expanded && !showAll) setExpanded(false)
   const toggle = () => setExpanded((current) => !current)
   // An attribute, not `:has([aria-expanded])`, which made Chromium restyle the
   // whole page whenever any disclosure on it opened.
