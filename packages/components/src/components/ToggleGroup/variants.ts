@@ -38,8 +38,11 @@ export const toggleGroupItemVariants = cva(
         lg: "h-10 px-4 text-base [&_svg:not([class*='size-'])]:size-5"
       },
       emphasis: {
-        normal: 'data-[pressed]:text-on-strong',
-        subtle: 'data-[pressed]:text-on-strong',
+        // The fill can be the indicator, a sibling, so the tint is set here.
+        normal:
+          'data-[pressed]:text-on-strong data-[pressed]:[--surface-tint-bg:var(--intent-bg-strong-active)] data-[pressed]:[--surface-tint-text:var(--intent-text-on-strong)]',
+        subtle:
+          'data-[pressed]:text-on-strong data-[pressed]:[--surface-tint-bg:var(--intent-bg-strong-active)] data-[pressed]:[--surface-tint-text:var(--intent-text-on-strong)]',
         subtler: 'data-[pressed]:text-strong'
       },
       raisePressed: { true: '', false: '' }

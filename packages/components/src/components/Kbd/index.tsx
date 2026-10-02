@@ -13,10 +13,10 @@ import { type KeyPlatform, useKeyPlatform } from './platform'
 const HIDE_WITHOUT_HOVER =
   '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
 
-// emphasis-subtle's fill is translucent, so a strong or inverted fill would
-// show through under its dark text. kbd.css gives the nearest such surface's
-// colours: a strong fill's hover tone, where its label is guaranteed to read,
-// or a tint of an inverted fill's label.
+// emphasis-subtle's tint would sink into a strong or inverted fill, so a
+// subtle keycap takes the nearest surface's --surface-tint-* (see core's
+// emphasis.css). They resolve on that surface, so an intent on the keycap
+// only colours it on light surfaces.
 const kbdVariants = cva(
   'inline-flex items-center justify-center gap-1 font-sans text-xs whitespace-nowrap [&_svg]:size-3 [&_svg]:shrink-0',
   {
@@ -25,7 +25,7 @@ const kbdVariants = cva(
         normal: 'emphasis-normal rounded-md font-medium',
         subtle: [
           'emphasis-subtle rounded-md font-medium',
-          'bg-[var(--kbd-subtle-bg,var(--intent-bg-subtle))] text-[color:var(--kbd-subtle-text,var(--intent-text-normal))]'
+          'bg-[var(--surface-tint-bg,var(--intent-bg-subtle))] text-[color:var(--surface-tint-text,var(--intent-text-normal))]'
         ],
         subtler: 'tracking-wide'
       },

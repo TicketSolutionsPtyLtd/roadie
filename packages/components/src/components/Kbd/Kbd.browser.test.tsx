@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 
 import { Kbd } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -9,12 +10,22 @@ import { apcaLc, over, shownFill } from '../../css/contrastTestUtils'
 import { setHoverCapable } from '../../css/testUtils'
 import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
+import { Tabs } from '../Tabs'
+import { Toggle } from '../Toggle'
+import { ToggleGroup } from '../ToggleGroup'
 
-let removeStylesheet = () => {}
+const STILL = '*, *::before, *::after { transition: none !important }'
+
+let removeStylesheets = () => {}
 beforeAll(() => {
-  removeStylesheet = useStylesheet(roadieCss)
+  const removeRoadie = useStylesheet(roadieCss)
+  const removeStill = useStylesheet(STILL)
+  removeStylesheets = () => {
+    removeRoadie()
+    removeStill()
+  }
 })
-afterAll(() => removeStylesheet())
+afterAll(() => removeStylesheets())
 afterEach(() => {
   setHoverCapable(true)
   cleanup()
@@ -115,6 +126,53 @@ describe('Kbd', () => {
   })
 })
 
+describe('Kbd on a surface inside a strong or inverted fill', () => {
+  it.each(['emphasis-strong', 'emphasis-inverted'])(
+    'keeps the plain subtle keycap on a light toggle inside %s',
+    (fill) => {
+      const { container } = render(
+        <div className={fill}>
+          <Toggle>
+            Bold <Kbd data-testid='cap'>B</Kbd>
+          </Toggle>
+        </div>
+      )
+      const cap = container.querySelector('[data-testid="cap"]')!
+      expect(getComputedStyle(cap).getPropertyValue('--surface-tint-bg')).toBe(
+        ''
+      )
+    }
+  )
+
+  // A subtle overlay is a scrim for imagery, so its label is not measured on
+  // a white page; the keycap still takes its inverted tint.
+  it('tints a keycap on a subtle overlay', () => {
+    const { container } = render(
+      <div className='emphasis-overlay-subtle'>
+        <Kbd data-testid='cap'>K</Kbd>
+      </div>
+    )
+    const cap = container.querySelector('[data-testid="cap"]')!
+    const surface = container.firstElementChild!
+    expect(getComputedStyle(cap).color).toBe(getComputedStyle(surface).color)
+  })
+
+  it('keeps a keycap distinct from a strong button while hovered', async () => {
+    const { container } = render(
+      <Button emphasis='strong' intent='accent'>
+        Save <Kbd data-testid='cap'>S</Kbd>
+      </Button>
+    )
+    const button = container.querySelector('button')!
+    await userEvent.hover(button)
+    const cap = container.querySelector('[data-testid="cap"]')!
+    expect(getComputedStyle(cap).backgroundColor).not.toBe(
+      getComputedStyle(button).backgroundColor
+    )
+    await userEvent.unhover(button)
+  })
+})
+
 const EMPHASES = ['normal', 'subtle', 'subtler'] as const
 const SURFACES = {
   page: (kbd: ReactNode) => <div className='bg-normal'>{kbd}</div>,
@@ -131,6 +189,14 @@ const SURFACES = {
   ),
   'strong warning': (kbd: ReactNode) => (
     <div className='emphasis-strong intent-warning'>{kbd}</div>
+  ),
+  ...Object.fromEntries(
+    ['brand-secondary', 'success', 'danger', 'info'].map((intent) => [
+      `strong ${intent}`,
+      (kbd: ReactNode) => (
+        <div className={`intent-${intent} emphasis-strong`}>{kbd}</div>
+      )
+    ])
   ),
   inverted: (kbd: ReactNode) => <div className='emphasis-inverted'>{kbd}</div>,
   'field inside inverted': (kbd: ReactNode) => (
@@ -162,6 +228,48 @@ const SURFACES = {
       </div>
     </div>
   ),
+  'pressed strong toggle': (kbd: ReactNode) => (
+    <Toggle pressed emphasis='subtle'>
+      Bold {kbd}
+    </Toggle>
+  ),
+  'selected subtler toggle inside inverted': (kbd: ReactNode) => (
+    <div className='emphasis-inverted p-2'>
+      <Toggle pressed emphasis='subtler'>
+        Bold {kbd}
+      </Toggle>
+    </div>
+  ),
+  'selected item inside inverted': (kbd: ReactNode) => (
+    <div className='emphasis-inverted p-2'>
+      <div className='emphasis-subtle is-selected'>{kbd}</div>
+    </div>
+  ),
+  'translucent floating panel inside strong': (kbd: ReactNode) => (
+    <div className='emphasis-strong p-2'>
+      <div className='emphasis-floating is-translucent'>{kbd}</div>
+    </div>
+  ),
+  'danger intent inside strong': (kbd: ReactNode) => (
+    <div className='emphasis-strong p-2'>
+      <div className='intent-danger'>{kbd}</div>
+    </div>
+  ),
+  'active strong tab': (kbd: ReactNode) => (
+    <Tabs defaultValue='a' emphasis='strong'>
+      <Tabs.List>
+        <Tabs.Tab value='a'>Search {kbd}</Tabs.Tab>
+        <Tabs.Tab value='b'>Filters</Tabs.Tab>
+        <Tabs.Indicator />
+      </Tabs.List>
+    </Tabs>
+  ),
+  'pressed toggle group item': (kbd: ReactNode) => (
+    <ToggleGroup aria-label='View' defaultValue={['a']}>
+      <ToggleGroup.Item value='a'>List {kbd}</ToggleGroup.Item>
+      <ToggleGroup.Item value='b'>Grid</ToggleGroup.Item>
+    </ToggleGroup>
+  ),
   'strong inside inverted': (kbd: ReactNode) => (
     <div className='emphasis-inverted p-2'>
       <div className='emphasis-strong'>{kbd}</div>
@@ -186,7 +294,7 @@ describe.each(['light', 'dark'] as const)('Kbd contrast in %s mode', (mode) => {
     mode === 'light' ? { ...SURFACES, ...OVERLAY } : SURFACES
   )
   describe.each(surfaces)('on a %s', (_, surface) => {
-    it.each(EMPHASES)('keeps %s keys readable', (emphasis) => {
+    it.each(EMPHASES)('keeps %s keys readable', async (emphasis) => {
       const { container } = render(
         surface(
           <>
@@ -202,10 +310,19 @@ describe.each(['light', 'dark'] as const)('Kbd contrast in %s mode', (mode) => {
           </>
         )
       )
+      // Sliding indicators measure their item after a frame.
+      await new Promise((resolve) => requestAnimationFrame(resolve))
+      await new Promise((resolve) => requestAnimationFrame(resolve))
       const caps = container.querySelectorAll('[data-testid="cap"]')
       expect(caps).toHaveLength(2)
+      // Tabs and toggle groups paint the pressed fill on a sibling indicator.
+      const indicator = container.querySelector(
+        '[data-slot="tabs-indicator"], [data-slot="toggle-group-indicator"]'
+      )
       for (const cap of caps) {
-        const background = shownFill(cap)
+        const background = indicator
+          ? over(shownFill(indicator), getComputedStyle(cap).backgroundColor)
+          : shownFill(cap)
         const text = over(background, getComputedStyle(cap).color)
         expect(Math.abs(apcaLc(text, background))).toBeGreaterThanOrEqual(
           KEY_LC

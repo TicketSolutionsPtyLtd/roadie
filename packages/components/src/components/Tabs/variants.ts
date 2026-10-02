@@ -75,7 +75,9 @@ export const tabsTabVariants = cva(
   {
     variants: {
       emphasis: {
-        strong: 'rounded-full data-[active]:text-on-strong',
+        // The fill is the indicator, a sibling, so the tint is set here.
+        strong:
+          'rounded-full data-[active]:text-on-strong data-[active]:[--surface-tint-bg:var(--intent-bg-strong-active)] data-[active]:[--surface-tint-text:var(--intent-text-on-strong)]',
         normal: 'rounded-full data-[active]:text-strong',
         subtle: 'rounded-full data-[active]:text-strong',
         // Inset, because the scrolling list clips a ring drawn outside it.

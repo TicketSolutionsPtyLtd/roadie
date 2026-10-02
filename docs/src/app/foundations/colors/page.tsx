@@ -79,6 +79,18 @@ function StrongTextTable() {
         <Code>bg-inverted</Code>.
       </p>
       <p className='text-subtle'>
+        A tinted chip on a strong fill, such as a keycap in a button, would sink
+        into it. Each <Code>emphasis-*</Code> surface sets{' '}
+        <Code>--surface-tint-bg</Code> and <Code>--surface-tint-text</Code> for
+        that: the pressed tone and label colour on a strong fill, a tint of the
+        label on an inverted or overlay fill, and nothing on light surfaces.
+        They inherit, so the nearest surface wins. Read them with a fallback,
+        such as{' '}
+        <Code>var(--surface-tint-bg, var(--intent-bg-subtle))</Code>. Only{' '}
+        <Code>emphasis-*</Code> surfaces set them, not <Code>bg-*</Code>{' '}
+        utilities.
+      </p>
+      <p className='text-subtle'>
         WCAG 2 ratios rate dark text on bright mid tones higher than it reads,
         so they would pick dark text on blue. White on Spotlight blue is 3.4:1.
         That passes WCAG 2 for large text and controls (3:1), not for body text

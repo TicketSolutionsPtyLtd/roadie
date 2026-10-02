@@ -12,6 +12,11 @@
    Hover only applies where a pointer can hover. A touch screen
    keeps :hover on the last element tapped, which left buttons
    looking stuck in their hover colour.
+   --surface-tint-bg and --surface-tint-text are the fill and
+   label a translucent chip takes on the nearest surface, for
+   when emphasis-subtle's tint would sink into a strong or
+   inverted fill. Opaque light surfaces clear them; translucent
+   ones (subtle, subtler) leave their parent's.
    ═══════════════════════════════════════════════════════════ */
 
 @utility emphasis-strong {
@@ -19,6 +24,8 @@
   color: var(--intent-text-on-strong);
   border: 1px solid transparent;
   box-shadow: var(--rim-light-subtle);
+  --surface-tint-bg: var(--intent-bg-strong-active);
+  --surface-tint-text: var(--intent-text-on-strong);
 
   &.is-interactive:focus-visible,
   &.is-interactive-within:has([data-interactive-target]:focus-visible) {
@@ -47,6 +54,8 @@
   background-color: var(--intent-bg-normal);
   color: var(--intent-text-normal);
   border: 1px solid var(--intent-border-normal);
+  --surface-tint-bg: initial;
+  --surface-tint-text: initial;
 
   &.is-interactive:focus-visible,
   &.is-interactive-within:has([data-interactive-target]:focus-visible) {
@@ -125,12 +134,24 @@
 @utility emphasis-inverted {
   background-color: var(--intent-bg-inverted);
   color: var(--intent-text-inverted);
+  --surface-tint-bg: transparent;
+  --surface-tint-text: var(--intent-text-inverted);
+
+  @supports (color: color-mix(in oklch, red, red)) {
+    --surface-tint-bg: color-mix(
+      in oklch,
+      var(--intent-text-inverted) 15%,
+      transparent
+    );
+  }
 }
 
 @utility emphasis-raised {
   background-color: var(--intent-bg-raised);
   box-shadow: var(--rim-light-strong), var(--shadow-md);
   color: var(--intent-text-normal);
+  --surface-tint-bg: initial;
+  --surface-tint-text: initial;
 
   &.is-interactive:focus-visible,
   &.is-interactive-within:has([data-interactive-target]:focus-visible) {
@@ -156,6 +177,8 @@
   background-color: var(--intent-bg-sunken);
   box-shadow: var(--inset-shadow-sm);
   color: var(--intent-text-normal);
+  --surface-tint-bg: initial;
+  --surface-tint-text: initial;
 }
 
 /* Text fields: sunken, with one translucent edge that takes the fill's tint
@@ -175,12 +198,16 @@
   border: 1px solid var(--field-border-color);
   box-shadow: var(--inset-shadow-xs);
   color: var(--intent-text-normal);
+  --surface-tint-bg: initial;
+  --surface-tint-text: initial;
 }
 
 @utility emphasis-floating {
   background-color: var(--intent-bg-raised);
   box-shadow: var(--rim-light-strong), var(--shadow-xl);
   color: var(--intent-text-normal);
+  --surface-tint-bg: initial;
+  --surface-tint-text: initial;
 }
 
 /* The chosen item in a trackless control, over emphasis-subtle: a soft fill
@@ -189,6 +216,8 @@
    interactive states, to outrank the emphasis in either emit order. Forced
    colours drop the fill, so an edge takes over. */
 @utility is-selected {
+  --surface-tint-bg: initial;
+  --surface-tint-text: initial;
   &:is(&),
   &.is-interactive:is(&):is(:hover, :focus-visible, :active) {
     background-color: var(--intent-5);
@@ -256,6 +285,16 @@
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   color: var(--intent-text-inverted);
+  --surface-tint-bg: transparent;
+  --surface-tint-text: var(--intent-text-inverted);
+
+  @supports (color: color-mix(in oklch, red, red)) {
+    --surface-tint-bg: color-mix(
+      in oklch,
+      var(--intent-text-inverted) 15%,
+      transparent
+    );
+  }
 
   @media (prefers-reduced-transparency: reduce) {
     -webkit-backdrop-filter: none;
@@ -268,4 +307,14 @@
 @utility emphasis-overlay-subtle {
   background-color: oklch(0.1 0.04 var(--intent-hue) / 0.25);
   color: var(--intent-text-inverted);
+  --surface-tint-bg: transparent;
+  --surface-tint-text: var(--intent-text-inverted);
+
+  @supports (color: color-mix(in oklch, red, red)) {
+    --surface-tint-bg: color-mix(
+      in oklch,
+      var(--intent-text-inverted) 15%,
+      transparent
+    );
+  }
 }
