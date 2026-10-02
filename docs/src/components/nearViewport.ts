@@ -16,7 +16,7 @@ export const exampleHeights = new Map<string, number>()
 
 const SCROLLS = /^(?:auto|scroll|overlay)$/
 
-// A mount that never reports (a chunk that fails to load) mustn't stall the queue.
+// A mount that never reports mustn't stall the queue.
 const MOUNT_TIMEOUT_MS = 2000
 
 /** The nearest ancestor that scrolls vertically, or null for the document. */
@@ -135,13 +135,17 @@ export function pauseLiveExamples(): () => void {
   }
 }
 
+const loaded = () => Promise.resolve()
+
 /**
  * True once the element comes within reach of view and its turn in the mount
  * queue arrives; it stays true, so a rendered example isn't torn down. Call
- * the returned `onMounted` when the example's first render commits.
+ * the returned `onMounted` when the example's first render commits. `ready`
+ * resolves when the code that renders the example has loaded.
  */
 export function useNearViewport<T extends Element>(
-  eager = false
+  eager = false,
+  ready: () => Promise<unknown> = loaded
 ): [RefObject<T | null>, boolean, () => void] {
   const ref = useRef<T>(null)
   const [near, setNear] = useState(eager)
@@ -165,9 +169,21 @@ export function useNearViewport<T extends Element>(
 
   useEffect(() => {
     if (!near) return
-    const timeout = setTimeout(onMounted, MOUNT_TIMEOUT_MS)
-    return () => clearTimeout(timeout)
-  }, [near, onMounted])
+    let active = true
+    let timeout: ReturnType<typeof setTimeout> | undefined
+    // The timeout starts after the download, so a slow chunk can't release the
+    // queue early and mount every waiting example at once when it lands.
+    ready().then(
+      () => {
+        if (active) timeout = setTimeout(onMounted, MOUNT_TIMEOUT_MS)
+      },
+      () => onMounted()
+    )
+    return () => {
+      active = false
+      clearTimeout(timeout)
+    }
+  }, [near, onMounted, ready])
 
   // An example unmounted mid-turn (a route change) frees the queue.
   useEffect(() => () => onMounted(), [onMounted])

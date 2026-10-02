@@ -22,7 +22,8 @@ import {
 
 // react-live and the example scope (every component, chart and widget) load
 // with the first example that nears the viewport, not with the page.
-const LiveRunner = lazy(() => import('./LiveRunner'))
+const loadLiveRunner = () => import('./LiveRunner')
+const LiveRunner = lazy(loadLiveRunner)
 
 type CodePreviewProps = {
   children: string
@@ -108,7 +109,10 @@ function LiveExample({
   exampleHref?: string
   eager: boolean
 }) {
-  const [ref, near, onMounted] = useNearViewport<HTMLDivElement>(eager)
+  const [ref, near, onMounted] = useNearViewport<HTMLDivElement>(
+    eager,
+    loadLiveRunner
+  )
   const [expanded, setExpanded] = useState(false)
   const [editorOpened, setEditorOpened] = useState(false)
   const heightKey = exampleHref ?? `${code.length}:${code.slice(0, 120)}`

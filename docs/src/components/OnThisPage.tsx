@@ -151,7 +151,12 @@ export function useDocHeadings(): DocHeadings {
     collect()
     // A hash jump lands before the examples around it mount, which would push it away.
     const landOnHash = () => {
-      const id = decodeURIComponent(window.location.hash.slice(1))
+      let id: string
+      try {
+        id = decodeURIComponent(window.location.hash.slice(1))
+      } catch {
+        return
+      }
       const target = id && document.getElementById(id)
       if (target && mainEl.contains(target)) landOn(target, false)
     }

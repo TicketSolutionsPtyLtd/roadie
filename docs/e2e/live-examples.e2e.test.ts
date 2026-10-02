@@ -140,6 +140,23 @@ describe('live examples', () => {
     await page.context().close()
   }, 60_000)
 
+  it('ignore a malformed hash', async () => {
+    const { page, errors } = await open(
+      '/components/number-field/#%E0%A4%A',
+      1280
+    )
+    await page.waitForTimeout(1000)
+
+    expect(
+      await page
+        .getByRole('navigation', { name: 'On this page' })
+        .getByRole('link')
+        .count()
+    ).toBeGreaterThan(0)
+    expect(errors).toEqual([])
+    await page.context().close()
+  }, 60_000)
+
   it('keep code edits when the code is hidden and shown again', async () => {
     const { page } = await open('/components/number-field/', 1280)
     const blocks = page.locator('[data-live-example]').locator('..')
