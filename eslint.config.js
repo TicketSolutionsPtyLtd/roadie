@@ -81,6 +81,24 @@ export default [
     }
   },
   {
+    // Sortable's drag library stays behind one folder, so it can be swapped.
+    files: ['packages/components/src/**/*.{ts,tsx}'],
+    ignores: ['packages/components/src/components/Sortable/dnd/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@atlaskit/*'],
+              message: 'Import the drag library only in Sortable/dnd.'
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
     // Hydration-time syncs from the DOM, storage or Embla. Each needs a
     // useSyncExternalStore rework, not a one-line fix.
     files: [
