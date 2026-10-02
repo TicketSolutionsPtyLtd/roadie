@@ -14,10 +14,12 @@ import { useRoute } from '@/lib/route'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { landOn } from './landOn'
+import { scrollParentOf } from './nearViewport'
 
-const SCROLL_OFFSET_PX = 80
+// A heading takes over once it rises into the top 30% of the scroller.
+const ACTIVE_LINE = 0.3
 // Smooth scroll usually settles in <500ms but we leave headroom for slow
-// machines + the inertia tail before honouring observer updates again.
+// machines + the inertia tail before honouring scroll updates again.
 const PROGRAMMATIC_SCROLL_LOCK_MS = 800
 
 type Heading = { id: string; text: string; level: 2 | 3 }
@@ -65,7 +67,7 @@ export function useDocHeadings(): DocHeadings {
   const route = useRoute()
   const [headings, setHeadings] = useState<Heading[]>([])
 
-  // Tracks programmatic (click-driven) scrolls so the IntersectionObserver
+  // Tracks programmatic (click-driven) scrolls so the scroll tracking
   // doesn't briefly highlight headings that pass through the active band
   // while smooth-scrolling toward the user's target.
   const programmaticScrollLockRef = useRef<number>(0)
@@ -90,22 +92,26 @@ export function useDocHeadings(): DocHeadings {
     const selector = ['/components', '/tokens/reference'].includes(route)
       ? 'h2'
       : 'h2, h3'
-    const idOf = new Map<Element, string>()
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (Date.now() < programmaticScrollLockRef.current) return
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort(
-            (a, b) =>
-              a.target.getBoundingClientRect().top -
-              b.target.getBoundingClientRect().top
-          )
-        const id = visible[0] && idOf.get(visible[0].target)
-        if (id) setActiveHeading(id)
-      },
-      { rootMargin: `-${SCROLL_OFFSET_PX}px 0px -70% 0px`, threshold: 0 }
-    )
+    // Read from positions on every scroll: an observer reports only headings
+    // crossing a band, so a jump landing between headings kept a stale one.
+    let frame = 0
+    const highlight = () => {
+      frame = 0
+      if (Date.now() < programmaticScrollLockRef.current) return
+      const scroller = scrollParentOf(mainEl)
+      const top = scroller?.getBoundingClientRect().top ?? 0
+      const height = scroller?.clientHeight ?? window.innerHeight
+      const line = top + height * ACTIVE_LINE
+      let active: string | undefined
+      for (const [id, el] of elementsRef.current) {
+        if (active && el.getBoundingClientRect().top > line) break
+        active = id
+      }
+      if (active) setActiveHeading(active)
+    }
+    const scheduleHighlight = () => {
+      frame ||= requestAnimationFrame(highlight)
+    }
 
     const collect = () => {
       // Seed with every id on the page, so an assigned id never collides.
@@ -116,8 +122,6 @@ export function useDocHeadings(): DocHeadings {
       )
       const collected: Heading[] = []
       const elements = new Map<string, HTMLHeadingElement>()
-      observer.disconnect()
-      idOf.clear()
 
       mainEl.querySelectorAll<HTMLHeadingElement>(selector).forEach((el) => {
         const text = el.textContent?.trim() ?? ''
@@ -140,13 +144,12 @@ export function useDocHeadings(): DocHeadings {
         }
         usedIds.add(id)
         elements.set(id, el)
-        idOf.set(el, id)
-        observer.observe(el)
         collected.push({ id, text, level: el.tagName === 'H2' ? 2 : 3 })
       })
 
       elementsRef.current = elements
       setHeadings(collected)
+      scheduleHighlight()
     }
 
     collect()
@@ -167,6 +170,12 @@ export function useDocHeadings(): DocHeadings {
     }
     landOnHash()
     window.addEventListener('hashchange', landOnHash)
+    // Capture hears the pane's scroll as well as the window's.
+    document.addEventListener('scroll', scheduleHighlight, {
+      capture: true,
+      passive: true
+    })
+    window.addEventListener('resize', scheduleHighlight)
     // The page's content can be swapped for new nodes after this effect runs.
     const mutations = new MutationObserver(collect)
     mutations.observe(mainEl, { childList: true, subtree: true })
@@ -184,9 +193,13 @@ export function useDocHeadings(): DocHeadings {
     replaced.observe(document.body, { childList: true, subtree: true })
     return () => {
       window.removeEventListener('hashchange', landOnHash)
+      document.removeEventListener('scroll', scheduleHighlight, {
+        capture: true
+      })
+      window.removeEventListener('resize', scheduleHighlight)
+      cancelAnimationFrame(frame)
       mutations.disconnect()
       replaced.disconnect()
-      observer.disconnect()
     }
   }, [route])
 
@@ -238,6 +251,7 @@ export function OnThisPage({ headings, onSelect }: DocHeadings) {
           >
             <a
               href={`#${h.id}`}
+              aria-current={activeId === h.id ? 'location' : undefined}
               onClick={(event) => onSelect(event, h.id)}
               className={cn(
                 'block text-sm transition-colors',

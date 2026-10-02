@@ -9,10 +9,6 @@ import { useDocHeadings } from './OnThisPage'
 vi.mock('next/navigation', () => ({ usePathname: () => '/charts/meter' }))
 
 beforeAll(() => {
-  globalThis.IntersectionObserver = class {
-    observe() {}
-    disconnect() {}
-  } as unknown as typeof IntersectionObserver
   Element.prototype.scrollIntoView = () => {}
 })
 
