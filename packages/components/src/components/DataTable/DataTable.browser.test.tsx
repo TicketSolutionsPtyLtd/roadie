@@ -2,7 +2,7 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
-import { DataTable, type DataTableColumn } from '.'
+import { DataTable, type DataTableColumn, type DataTableRow } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 
@@ -157,6 +157,152 @@ describe('DataTable never clips', () => {
     expect(pinnedCell.getBoundingClientRect().left).toBeCloseTo(
       scroller.getBoundingClientRect().left,
       0
+    )
+  })
+})
+
+describe('DataTable row links', () => {
+  const linkColumns: DataTableColumn[] = [
+    { key: 'show', header: 'Show', kind: 'text', pin: true },
+    { key: 'city', header: 'City', kind: 'text' },
+    { key: 'sold', header: 'Tickets sold', kind: 'number' },
+    { key: 'gross', header: 'Gross', kind: 'number', format: 'currency' }
+  ]
+  const linkRows = [
+    { show: 'Ball Park Music', city: 'Brisbane', sold: 1840, gross: 118400 },
+    { show: 'Angie McMahon', city: 'Melbourne', sold: 620, gross: 40200 }
+  ]
+
+  const renderLinked = (width: number, pin = true) =>
+    render(
+      <div style={{ width }}>
+        <DataTable
+          columns={linkColumns.map((column) =>
+            column.key === 'show' ? { ...column, pin } : column
+          )}
+          rows={linkRows}
+          getRowHref={(row) => `#${String(row.city).toLowerCase()}`}
+        />
+      </div>
+    )
+
+  const centre = (element: Element) => {
+    const box = element.getBoundingClientRect()
+    return [box.left + box.width / 2, box.top + box.height / 2] as const
+  }
+  const linkAt = (element: Element) =>
+    document.elementFromPoint(...centre(element))?.closest('a')
+
+  it.each([true, false])(
+    'covers every cell with the title link (pinned: %s)',
+    (pin) => {
+      const { container } = renderLinked(600, pin)
+      const row = container.querySelector('tbody tr')!
+      for (const cell of row.querySelectorAll('td'))
+        expect(linkAt(cell)?.getAttribute('href')).toBe('#brisbane')
+    }
+  )
+
+  it('covers the visible row of a scrolled table without widening it', () => {
+    const { container } = renderLinked(280)
+    const scroller = container.querySelector<HTMLElement>(
+      '[data-slot=data-table-scroller]'
+    )!
+    const unlinked = render(
+      <div style={{ width: 280 }}>
+        <DataTable columns={linkColumns} rows={linkRows} />
+      </div>
+    ).container.querySelector<HTMLElement>('[data-slot=data-table-scroller]')!
+    expect(scroller.scrollWidth).toBeGreaterThan(scroller.clientWidth)
+    expect(scroller.scrollWidth).toBe(unlinked.scrollWidth)
+    scroller.scrollLeft = scroller.scrollWidth
+    const cells = container.querySelectorAll('tbody tr:first-child td')
+    expect(linkAt(cells[cells.length - 1]!)?.getAttribute('href')).toBe(
+      '#brisbane'
+    )
+  })
+
+  it.each([600, 280])(
+    'covers a row whose pinned title is second, at %ipx, without widening it',
+    (width) => {
+      const secondColumns: DataTableColumn[] = [
+        { key: 'sold', header: 'Tickets sold', kind: 'number' },
+        { key: 'show', header: 'Show', kind: 'text', pin: true },
+        { key: 'city', header: 'City', kind: 'text' },
+        { key: 'gross', header: 'Gross', kind: 'number', format: 'currency' }
+      ]
+      const table = (getRowHref?: (row: DataTableRow) => string) =>
+        render(
+          <div style={{ width }}>
+            <DataTable
+              columns={secondColumns}
+              rows={linkRows}
+              getRowHref={getRowHref}
+            />
+          </div>
+        ).container
+      const unlinked = table().querySelector<HTMLElement>(
+        '[data-slot=data-table-scroller]'
+      )!
+      const container = table((row) => `#${String(row.city).toLowerCase()}`)
+      const scroller = container.querySelector<HTMLElement>(
+        '[data-slot=data-table-scroller]'
+      )!
+      expect(scroller.scrollWidth).toBe(unlinked.scrollWidth)
+      const coversRow = () => {
+        for (const cell of container.querySelectorAll(
+          'tbody tr:first-child td'
+        )) {
+          const box = cell.getBoundingClientRect()
+          const view = scroller.getBoundingClientRect()
+          // Only the part of a cell the scroller shows can be pressed.
+          const left = Math.max(box.left, view.left) + 2
+          const right = Math.min(box.right, view.right) - 2
+          if (right <= left) continue
+          for (const x of [left, (left + right) / 2, right])
+            expect(
+              document
+                .elementFromPoint(x, box.top + box.height / 2)
+                ?.closest('a')
+                ?.getAttribute('href')
+            ).toBe('#brisbane')
+        }
+      }
+      coversRow()
+      scroller.scrollLeft = scroller.scrollWidth
+      coversRow()
+    }
+  )
+
+  it('rings the row on keyboard focus', async () => {
+    const { container } = renderLinked(600)
+    const row = container.querySelector<HTMLElement>('tbody tr')!
+    // Tab skips links in WebKit, and a click earlier in the file stops a key press alone reading as keyboard focus.
+    await userEvent.keyboard('{Shift}')
+    const link = row.querySelector('a')!
+    link.focus({ focusVisible: true })
+    await new Promise(requestAnimationFrame)
+    const ring = getComputedStyle(link, '::after')
+    expect(ring.outlineStyle).toBe('solid')
+    expect(parseFloat(ring.outlineWidth)).toBe(4)
+  })
+
+  it('tints the row on hover without shrinking it', async () => {
+    const { container } = renderLinked(600)
+    const row = container.querySelector<HTMLElement>('tbody tr')!
+    const cell = row.querySelector('td:last-child')!
+    const rest = getComputedStyle(cell).backgroundColor
+    await userEvent.hover(row.querySelector('a')!)
+    expect(getComputedStyle(cell).backgroundColor).not.toBe(rest)
+    expect(getComputedStyle(row).transform).toBe('none')
+  })
+})
+
+describe('DataTable pinned cells', () => {
+  it('leaves a data-pin outside a DataTable in normal flow', () => {
+    const { container } = render(<div data-pin=''>Elsewhere</div>)
+    expect(getComputedStyle(container.firstElementChild!).position).toBe(
+      'static'
     )
   })
 })

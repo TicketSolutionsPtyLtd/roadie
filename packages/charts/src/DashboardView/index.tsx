@@ -7,7 +7,9 @@ import { StatTile } from '@oztix/roadie-components/stat-tile'
 import type {
   CardSize,
   DashboardCard,
-  DashboardSpec
+  DashboardSpec,
+  TableCard,
+  TableRow
 } from '@oztix/roadie-core/dashboard'
 
 import { Chart } from '../Chart'
@@ -25,6 +27,11 @@ export type DashboardViewProps = {
    * handlers.
    */
   cardActions?: (card: DashboardCard) => ReactNode
+  /**
+   * Links a table card's row to its own page, such as a show to its event
+   * view. Like actions, links come from the app rather than the spec.
+   */
+  getRowHref?: (card: TableCard, row: TableRow) => string | undefined
   className?: string
 }
 
@@ -39,9 +46,14 @@ const cardProps = (card: DashboardCard, actions: ReactNode) => ({
   source: card.source
 })
 
-type CardProps = { card: DashboardCard; size: CardSize; actions: ReactNode }
+type CardProps = {
+  card: DashboardCard
+  size: CardSize
+  actions: ReactNode
+  getRowHref?: DashboardViewProps['getRowHref']
+}
 
-function Card({ card, size, actions }: CardProps) {
+function Card({ card, size, actions, getRowHref }: CardProps) {
   switch (card.kind) {
     case 'stat':
       return (
@@ -68,6 +80,7 @@ function Card({ card, size, actions }: CardProps) {
             columns={card.columns}
             rows={card.rows}
             caption={card.label}
+            getRowHref={getRowHref && ((row) => getRowHref(card, row))}
           />
         </DataCard>
       )
@@ -107,6 +120,7 @@ function Card({ card, size, actions }: CardProps) {
 export function DashboardView({
   spec,
   cardActions,
+  getRowHref,
   className
 }: DashboardViewProps) {
   return (
@@ -123,6 +137,7 @@ export function DashboardView({
               card={card}
               size={card.size}
               actions={cardActions?.(card)}
+              getRowHref={getRowHref}
             />
           ))}
         </Dashboard.Section>

@@ -315,7 +315,8 @@ export {
   type DataTableProps,
   type DataTableRow,
   type DataTableSort,
-  type DataTableSortDirection
+  type DataTableSortDirection,
+  sortDataTableRows
 } from './components/DataTable'
 
 export {

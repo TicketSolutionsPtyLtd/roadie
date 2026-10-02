@@ -1,7 +1,9 @@
 import type { TableCell, TableColumn } from '@oztix/roadie-core/dashboard'
 import { formatValue } from '@oztix/roadie-core/dataviz'
+import { cn } from '@oztix/roadie-core/utils'
 
 import { Delta } from '../Delta'
+import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { Meter } from '../Meter'
 import { SPARKLINE_MIN_POINTS, Sparkline } from '../Sparkline'
 
@@ -15,22 +17,39 @@ export function DataTableCellContent({
   column,
   value,
   secondary,
-  plain
+  plain,
+  href
 }: {
   column: TableColumn
   value: TableCell | undefined
   secondary?: TableCell
   plain: boolean
+  /** Links a text cell's primary text, the row's title, as the row's link. */
+  href?: string
 }) {
   if (value === null || value === undefined)
     return <Muted>{column.emptyText ?? NOT_AVAILABLE}</Muted>
   if (typeof value === 'string' && column.kind !== 'text')
     return <Muted>{value}</Muted>
 
-  if (column.kind === 'text')
+  if (column.kind === 'text') {
+    const primaryClass = 'font-semibold text-strong'
     return (
       <span className='grid'>
-        <span className='font-semibold text-strong'>{String(value)}</span>
+        {href ? (
+          <RoadieRoutedLink
+            href={href}
+            data-interactive-target=''
+            className={cn(
+              primaryClass,
+              'justify-self-start no-underline underline-offset-2 hover:underline'
+            )}
+          >
+            {String(value)}
+          </RoadieRoutedLink>
+        ) : (
+          <span className={primaryClass}>{String(value)}</span>
+        )}
         {typeof secondary === 'string' && (
           <span className='text-xs whitespace-normal text-subtle'>
             {secondary}
@@ -38,6 +57,7 @@ export function DataTableCellContent({
         )}
       </span>
     )
+  }
 
   if (column.kind === 'sparkline') {
     if (!Array.isArray(value)) return <Muted>{NOT_AVAILABLE}</Muted>

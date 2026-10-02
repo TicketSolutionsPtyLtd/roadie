@@ -1,8 +1,9 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-import { DataTable, type DataTableColumn } from '.'
+import { DataTable, type DataTableColumn, sortDataTableRows } from '.'
+import { compareText, sortValue } from './sort'
 
 const columns: DataTableColumn[] = [
   {
@@ -160,5 +161,173 @@ describe('DataTable', () => {
       <DataTable columns={columns} rows={rows} data-show-all='' />
     )
     expect(container.firstElementChild).not.toHaveAttribute('data-show-all')
+  })
+})
+
+const sortColumns: DataTableColumn[] = [
+  { key: 'show', header: 'Show', kind: 'text' },
+  { key: 'gross', header: 'Gross', kind: 'number' },
+  { key: 'daily', header: 'Daily', kind: 'sparkline' }
+]
+const sortRows = [
+  { show: 'Ocean Alley', gross: 22900, daily: [1, 2, 3] },
+  { show: 'angie McMahon', gross: null, daily: [1, 2, 3] },
+  { show: 'Ball Park Music', gross: 183000, daily: [1, 2, 3] },
+  { show: 'Julia Jacklin', gross: 'On sale soon', daily: [1, 2, 3] },
+  { show: 'Alex Lahey', gross: 118400, daily: [1, 2, 3] }
+]
+const shownOrder = () =>
+  screen
+    .getAllByRole('row')
+    .slice(1)
+    .map((row) => within(row).getAllByRole('cell')[0]!.textContent)
+const header = (name: string) =>
+  screen.getByRole('columnheader', { name: new RegExp(name) })
+
+describe('DataTable sorting', () => {
+  it('sorts numbers largest first, then flips', () => {
+    render(<DataTable sortable columns={sortColumns} rows={sortRows} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Gross' }))
+    expect(header('Gross')).toHaveAttribute('aria-sort', 'descending')
+    expect(shownOrder()).toEqual([
+      'Ball Park Music',
+      'Alex Lahey',
+      'Ocean Alley',
+      'angie McMahon',
+      'Julia Jacklin'
+    ])
+    fireEvent.click(screen.getByRole('button', { name: 'Gross' }))
+    expect(header('Gross')).toHaveAttribute('aria-sort', 'ascending')
+    expect(shownOrder()).toEqual([
+      'Ocean Alley',
+      'Alex Lahey',
+      'Ball Park Music',
+      'angie McMahon',
+      'Julia Jacklin'
+    ])
+  })
+
+  it('sorts text A to Z first, ignoring case', () => {
+    render(<DataTable sortable columns={sortColumns} rows={sortRows} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Show' }))
+    expect(shownOrder()).toEqual([
+      'Alex Lahey',
+      'angie McMahon',
+      'Ball Park Music',
+      'Julia Jacklin',
+      'Ocean Alley'
+    ])
+    expect(header('Gross')).not.toHaveAttribute('aria-sort')
+  })
+
+  it('starts from defaultSort and leaves sparklines unsortable', () => {
+    render(
+      <DataTable
+        sortable
+        defaultSort={{ key: 'gross', direction: 'ascending' }}
+        columns={sortColumns}
+        rows={sortRows}
+      />
+    )
+    expect(shownOrder()[0]).toBe('Ocean Alley')
+    expect(
+      within(header('Daily')).queryByRole('button')
+    ).not.toBeInTheDocument()
+  })
+
+  it('reports changes and follows a controlled sort', () => {
+    const onSortChange = vi.fn()
+    render(
+      <DataTable
+        sortable
+        sort={{ key: 'show', direction: 'descending' }}
+        onSortChange={onSortChange}
+        columns={sortColumns}
+        rows={sortRows}
+      />
+    )
+    expect(shownOrder()[0]).toBe('Ocean Alley')
+    fireEvent.click(screen.getByRole('button', { name: 'Show' }))
+    expect(onSortChange).toHaveBeenCalledWith({
+      key: 'show',
+      direction: 'ascending'
+    })
+    expect(shownOrder()[0]).toBe('Ocean Alley')
+  })
+
+  it('keeps row keys with their rows', () => {
+    const { container } = render(
+      <DataTable
+        sortable
+        defaultSort={{ key: 'show', direction: 'ascending' }}
+        getRowKey={(row) => String(row.show)}
+        columns={sortColumns}
+        rows={sortRows}
+      />
+    )
+    expect(container.querySelector('tbody tr')).toHaveTextContent('Alex Lahey')
+  })
+
+  it('server renders a sortable table in its sorted order', () => {
+    const html = renderToString(
+      <DataTable
+        sortable
+        defaultSort={{ key: 'gross', direction: 'descending' }}
+        columns={sortColumns}
+        rows={sortRows}
+      />
+    )
+    expect(html.indexOf('Ball Park Music')).toBeLessThan(
+      html.indexOf('Ocean Alley')
+    )
+  })
+
+  it('sorts rows on a server the same way', () => {
+    const sorted = sortDataTableRows(sortRows, sortColumns, {
+      key: 'gross',
+      direction: 'descending'
+    })
+    expect(sorted.map((row) => row.show)).toEqual([
+      'Ball Park Music',
+      'Alex Lahey',
+      'Ocean Alley',
+      'angie McMahon',
+      'Julia Jacklin'
+    ])
+  })
+
+  it('links unsorted number headers largest first', () => {
+    render(
+      <DataTable
+        columns={sortColumns}
+        rows={sortRows}
+        getSortHref={(key, direction) => `?sort=${key}&dir=${direction}`}
+      />
+    )
+    expect(screen.getByRole('link', { name: 'Gross' })).toHaveAttribute(
+      'href',
+      '?sort=gross&dir=descending'
+    )
+    expect(screen.getByRole('link', { name: 'Show' })).toHaveAttribute(
+      'href',
+      '?sort=show&dir=ascending'
+    )
+    expect(screen.queryByRole('link', { name: 'Daily' })).toBeNull()
+  })
+})
+
+describe('shared sort helpers', () => {
+  it('compares text naturally and ignoring case', () => {
+    expect(compareText('angie', 'Ball')).toBeLessThan(0)
+    expect(compareText('Show 2', 'Show 10')).toBeLessThan(0)
+  })
+
+  it('treats missing values as undefined', () => {
+    const number = { key: 'gross', header: 'Gross', kind: 'number' } as const
+    expect(sortValue(number, 'On sale soon')).toBeUndefined()
+    expect(sortValue(number, null)).toBeUndefined()
+    expect(sortValue(number, 12)).toBe(12)
+    const text = { key: 'show', header: 'Show', kind: 'text' } as const
+    expect(sortValue(text, 42)).toBe('42')
   })
 })
