@@ -85,9 +85,8 @@ function StrongTextTable() {
         that: the pressed tone and label colour on a strong fill, a tint of the
         label on an inverted or overlay fill, and nothing on light surfaces.
         They inherit, so the nearest surface wins. Read them with a fallback,
-        such as{' '}
-        <Code>var(--surface-tint-bg, var(--intent-bg-subtle))</Code>. Only{' '}
-        <Code>emphasis-*</Code> surfaces set them, not <Code>bg-*</Code>{' '}
+        such as <Code>var(--surface-tint-bg, var(--intent-bg-subtle))</Code>.
+        Only <Code>emphasis-*</Code> surfaces set them, not <Code>bg-*</Code>{' '}
         utilities.
       </p>
       <p className='text-subtle'>
