@@ -478,7 +478,10 @@ import {
 import type { ChartTable } from '@oztix/roadie-charts/tables'
 import { DataCard } from '@oztix/roadie-components/data-card'
 import { Menu } from '@oztix/roadie-components/menu'
-import { columnStatus } from '@oztix/roadie-core/dashboard-layout'
+import {
+  columnStatus,
+  resolveTableTotals
+} from '@oztix/roadie-core/dashboard-layout'
 
 function csvField(value: unknown) {
   const text = Array.isArray(value) ? value.join(' ') : String(value ?? '')
@@ -503,13 +506,13 @@ function tableCsv({ columns, rows }: ChartTable) {
   return lines.map((line) => line.join(',')).join('\\n')
 }
 
-function totalsCsv({ columns, totals }: ChartTable) {
-  // cardTable sums the totals row, so it arrives as a label and values.
-  if (!totals || totals === 'sum') return []
+function totalsCsv({ columns, rows, totals }: ChartTable) {
+  if (!totals) return []
+  const { label, values } = resolveTableTotals(columns, rows, totals)
   return [
     columns
       .map((column, index) =>
-        csvField(index === 0 ? totals.label : totals.values?.[column.key])
+        csvField(index === 0 ? label : values[column.key])
       )
       .join(',')
   ]

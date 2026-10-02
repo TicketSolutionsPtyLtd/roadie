@@ -311,7 +311,7 @@ function totalsProblems(
       problems.push(
         error(
           `${at}.label`,
-          'Give a label with values. The rows may be only some of them, so the default count could be wrong'
+          'Give a label with values, so readers know what the figures cover'
         )
       )
     const keys = new Set(card.columns.map((column) => column.key))
@@ -381,7 +381,8 @@ function statusProblems(table: TableData, path: string) {
           const cell = row[column.key]
           // A table shows a number key as its string, as it does here.
           const key =
-            typeof cell === 'string' || typeof cell === 'number'
+            (typeof cell === 'string' && cell !== '') ||
+            typeof cell === 'number'
               ? String(cell)
               : undefined
           return key !== undefined &&

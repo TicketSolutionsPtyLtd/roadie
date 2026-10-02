@@ -888,6 +888,15 @@ describe('validateDashboard status columns', () => {
     ])
   })
 
+  it('leaves an empty status alone, since it shows as empty', () => {
+    const result = validateDashboard(
+      ordersTable({ status: { paid: { intent: 'success' } } }, [
+        { order: 'OZ-1001', status: '' }
+      ])
+    )
+    expect(result.problems).toEqual([])
+  })
+
   it('warns when a non-status column has a status map', () => {
     const result = validateDashboard(
       ordersTable({ kind: 'text', status: { paid: { intent: 'success' } } }, [])

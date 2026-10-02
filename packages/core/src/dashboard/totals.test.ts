@@ -45,6 +45,15 @@ describe('resolveTableTotals', () => {
     expect(values.gross).toBe(10.01)
   })
 
+  it('rounds a negative currency sum away from zero, as its cells do', () => {
+    const { values } = resolveTableTotals(
+      [columns[2]!],
+      [{ gross: -1.125 }],
+      'sum'
+    )
+    expect(values.gross).toBe(-1.13)
+  })
+
   it('names the rows and counts them in house format', () => {
     const many = Array.from({ length: 1240 }, () => rows[0]!)
     expect(
@@ -139,13 +148,13 @@ describe('validateDashboard totals rows', () => {
     expect(validateDashboard(reportTable('average')).ok).toBe(false)
   })
 
-  it('needs a label with values, since the rows may be only a page', () => {
+  it('needs a label with values, to say what they cover', () => {
     const result = validateDashboard(reportTable({ values: { gross: 9 } }))
     expect(result.ok).toBe(false)
     expect(result.problems).toContainEqual({
       path: 'sections[0].cards[0].totals.label',
       message:
-        'Give a label with values. The rows may be only some of them, so the default count could be wrong',
+        'Give a label with values, so readers know what the figures cover',
       severity: 'error'
     })
   })
