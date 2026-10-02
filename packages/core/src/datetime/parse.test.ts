@@ -204,6 +204,12 @@ describe('parseDatePhrase: dates', () => {
     expect(april('2026-09-15T00:00:00Z')).toEqual({ on: '2026-04-01' })
   })
 
+  it('finds a leap day more than a year away', () => {
+    expect(parseDatePhrase('29 feb', SYDNEY)).toEqual(
+      one('Tue 29 Feb 2028', { on: '2028-02-29' })
+    )
+  })
+
   it('reads today in the given zone', () => {
     // 1am Sat 3 Oct in Sydney, still Fri 2 Oct in Perth.
     const now = new Date('2026-10-02T15:00:00Z')
@@ -252,6 +258,9 @@ describe('parseDatePhrase: nothing to offer', () => {
     '29 feb 2027',
     '13/13',
     'next 0 days',
+    'next 99999999999999999999999 days',
+    'next 99999999 days',
+    'last 99999999',
     '25:00',
     '13pm',
     'between 14 and 1 mar 2027',

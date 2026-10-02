@@ -378,10 +378,10 @@ export function resolveComparison(
   const { start, end } = resolved
   if (start === null || end === null || start === end) return null
   if (comparison === 'previous-year') {
-    return instants(
-      previousYearInstant(start, options),
-      previousYearInstant(end, options)
-    )
+    const from = previousYearInstant(start, options)
+    const to = previousYearInstant(end, options)
+    // A window across a repeated DST hour can come back reversed; keep its length.
+    return instants(from, to < from ? from + (end - start) : to)
   }
   const before = start - 1
   return instants(before - (end - start), before)

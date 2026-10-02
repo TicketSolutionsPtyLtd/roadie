@@ -13,6 +13,9 @@ const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/
 export type PlainDateParts = { year: number; month: number; day: number }
 
 export function toPlainDate(year: number, month: number, day: number): string {
+  if (!Number.isInteger(year) || year < 0 || year > 9999) {
+    throw new RangeError(`Year ${year} is outside 0000 to 9999`)
+  }
   return `${String(year).padStart(4, '0')}-${pad(month)}-${pad(day)}`
 }
 

@@ -178,6 +178,7 @@ function parsePartial(text: string, bareDay: boolean): PartialDate | null {
 }
 
 function dateIn(year: number, month: number, day: number): string | null {
+  if (year < 0 || year > 9999) return null
   const date = toPlainDate(year, month, day)
   return isPlainDate(date) ? date : null
 }
@@ -186,7 +187,8 @@ function closestTo(today: string, month: number, day: number): string | null {
   const { year } = plainDateParts(today)
   let best: string | null = null
   let bestDistance = Infinity
-  for (const candidate of [year - 1, year, year + 1]) {
+  // Leap years can be eight apart (2096 to 2104), so 29 Feb looks that far.
+  for (let candidate = year - 8; candidate <= year + 8; candidate++) {
     const date = dateIn(candidate, month, day)
     if (!date) continue
     const distance = Math.abs(dayNumber(date) - dayNumber(today))
@@ -345,14 +347,15 @@ export function parseDatePhrase(
       : [explicit]
   }
 
-  let m = /^(next|last|past) (\d+) ([a-z]+?)s?$/.exec(input)
+  // Four digits is far beyond any real window and keeps dates in range.
+  let m = /^(next|last|past) (\d{1,4}) ([a-z]+?)s?$/.exec(input)
   if (m && UNITS[m[3]!]) {
     const amount = Number(m[2])
     return amount < 1 ? [] : [describe(rolling(m[1]!, amount, UNITS[m[3]!]!))]
   }
   m = /^(next|last|past) hour$/.exec(input)
   if (m) return [describe(rolling(m[1]!, 1, 'hour'))]
-  m = /^(next|last|past) (\d+)$/.exec(input)
+  m = /^(next|last|past) (\d{1,4})$/.exec(input)
   if (m) {
     const amount = Number(m[2])
     if (amount < 1) return []

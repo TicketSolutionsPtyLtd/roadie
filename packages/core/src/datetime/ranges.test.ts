@@ -411,6 +411,17 @@ describe('resolveComparison', () => {
     ).toEqual(instants('2026-01-04T08:00:00Z', '2026-01-04T11:00:00Z'))
   })
 
+  it('keeps a previous-year window in order across a repeated hour', () => {
+    // 2:50am AEDT to 2:10am AEST on Sun 4 Apr 2027: twenty minutes.
+    const range = resolveComparison(
+      { start: '2027-04-03T15:50:00Z', end: '2027-04-03T16:10:00Z' },
+      'previous-year',
+      SYDNEY
+    )
+    expect(range?.kind).toBe('instants')
+    expect((range!.end as number) - (range!.start as number)).toBe(20 * 60_000)
+  })
+
   it('has nothing to compare an open-ended range against', () => {
     expect(resolveComparison('upcoming', 'previous-period', SYDNEY)).toBeNull()
     expect(resolveComparison('past', 'previous-year', SYDNEY)).toBeNull()

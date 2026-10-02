@@ -94,6 +94,15 @@ describe('whole-number deltas', () => {
   })
 })
 
+describe('the supported range', () => {
+  it('throws rather than leave four-digit years', () => {
+    expect(() => addDays('9999-12-31', 1)).toThrow(RangeError)
+    expect(() => addDays('0000-01-01', -1)).toThrow(RangeError)
+    expect(() => addDays('2026-10-02', 1e12)).toThrow(RangeError)
+    expect(() => addMonths('9999-12-31', 1)).toThrow(RangeError)
+  })
+})
+
 describe('compareDates', () => {
   it('orders ISO dates', () => {
     expect(compareDates('2026-10-02', '2026-10-03')).toBe(-1)
