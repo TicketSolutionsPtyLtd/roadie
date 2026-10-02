@@ -38,7 +38,7 @@ export const sortsByOrder = (column: TableColumn) =>
 
 export const sortValue = (column: TableColumn, cell: TableCell | undefined) => {
   if (column.kind === 'status') {
-    if (cell === null || cell === undefined) return undefined
+    if (cell === null || cell === undefined || cell === '') return undefined
     const { label, order } = columnStatus(column, String(cell))
     // Undefined, so keys without an order sit last whichever way it runs.
     if (sortsByOrder(column)) return order

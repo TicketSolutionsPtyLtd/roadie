@@ -38,11 +38,11 @@ const titleColumn = (columns: readonly TableColumn[]) =>
   columns.find((column) => column.pin && column.kind === 'text') ??
   columns.find((column) => column.kind === 'text')
 
-let warnedTitlePriority = false
+const warnedTitlePriority = new Set<string>()
 
 function warnTitlePriority(key: string) {
-  if (warnedTitlePriority || !isDev()) return
-  warnedTitlePriority = true
+  if (warnedTitlePriority.has(key) || !isDev()) return
+  warnedTitlePriority.add(key)
   console.warn(
     `[Roadie] DataTable column "${key}" holds the row links, so its priority is ignored: it never hides.`
   )
@@ -101,7 +101,9 @@ export function DataTableView({
   const title = titleColumn(columns)
   const linksRows = rows.some(({ href }) => href)
   const priorityOf = (column: TableColumn) =>
-    linksRows && column === title ? undefined : column.priority
+    (linksRows && column === title) || (totals && column === columns[0])
+      ? undefined
+      : column.priority
   if (linksRows && title?.priority !== undefined) warnTitlePriority(title.key)
   const hasPriorities = columns.some(
     (column) => priorityOf(column) !== undefined

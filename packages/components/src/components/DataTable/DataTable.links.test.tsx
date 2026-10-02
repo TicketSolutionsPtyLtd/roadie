@@ -81,6 +81,23 @@ describe('DataTable row links', () => {
     warn.mockRestore()
   })
 
+  it('warns once for each title column', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const prioritised = columns.map((column) =>
+      column.key === 'city'
+        ? { ...column, kind: 'text' as const, pin: true, priority: 3 as const }
+        : column
+    )
+    render(<Routed onNavigate={vi.fn()} columns={prioritised} />)
+    render(<Routed onNavigate={vi.fn()} columns={prioritised} />)
+    expect(
+      warn.mock.calls.filter(([message]) =>
+        String(message).includes('"city" holds the row links')
+      )
+    ).toHaveLength(1)
+    warn.mockRestore()
+  })
+
   it('keeps a title column priority when no row links', () => {
     const { container } = render(
       <DataTable

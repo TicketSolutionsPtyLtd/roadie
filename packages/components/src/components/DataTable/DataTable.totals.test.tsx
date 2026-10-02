@@ -108,6 +108,17 @@ describe('DataTable totals row', () => {
     expect(footer(container)[2]).toBe('$324,300.50')
   })
 
+  it('never hides the first column, which holds the label', () => {
+    const { container } = render(
+      <DataTable
+        totals
+        columns={[{ ...columns[0]!, priority: 2 }, ...columns.slice(1)]}
+        rows={rows}
+      />
+    )
+    expect(container.querySelector('[data-priority]')).toBeNull()
+  })
+
   it('renders no footer without totals', () => {
     const { container } = render(<DataTable columns={columns} rows={rows} />)
     expect(container.querySelector('tfoot')).toBeNull()

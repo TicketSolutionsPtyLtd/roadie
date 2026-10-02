@@ -29,7 +29,11 @@ export function DataTableCellContent({
   /** Links a text cell's primary text, the row's title, as the row's link. */
   href?: string
 }) {
-  if (value === null || value === undefined)
+  if (
+    value === null ||
+    value === undefined ||
+    (column.kind === 'status' && value === '')
+  )
     return <Muted>{column.emptyText ?? NOT_AVAILABLE}</Muted>
   if (column.kind === 'status') {
     const { intent, label } = columnStatus(column, String(value))

@@ -175,6 +175,20 @@ describe('validateDashboard totals rows', () => {
     ])
   })
 
+  it('warns when the first column, which holds the label, is a sum', () => {
+    const table = reportTable('sum')
+    const card = table.sections[0]!.cards[0]!
+    card.columns = [card.columns[1]!, card.columns[0]!]
+    expect(validateDashboard(table).problems).toEqual([
+      {
+        path: 'sections[0].cards[0].totals',
+        message:
+          'The first column holds the label, so its sum never shows. Lead with a text column',
+        severity: 'warning'
+      }
+    ])
+  })
+
   it('checks the label copy', () => {
     expect(
       validateDashboard(reportTable({ label: 'Totals – all shows' })).problems

@@ -50,6 +50,20 @@ describe('DataTable status columns', () => {
     expect(screen.getByText('On sale')).not.toHaveAttribute('data-slot')
   })
 
+  it('shows an empty status as empty and sorts it last', () => {
+    const withEmpty = [...rows, { show: 'Alex Lahey', status: '' }]
+    render(<DataTable columns={columns} rows={withEmpty} />)
+    const row = screen.getByText('Alex Lahey').closest('tr')!
+    expect(row.querySelector('[data-slot=badge]')).toBeNull()
+    expect(row).toHaveTextContent('Not available')
+    expect(
+      sortDataTableRows(withEmpty, columns, {
+        key: 'status',
+        direction: 'ascending'
+      }).at(-1)?.show
+    ).toBe('Alex Lahey')
+  })
+
   it('sorts by label, A to Z first', () => {
     render(<DataTable sortable columns={columns} rows={rows} />)
     fireEvent.click(screen.getByRole('button', { name: 'Status' }))

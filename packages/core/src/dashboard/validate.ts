@@ -327,6 +327,14 @@ function totalsProblems(
         'No number column to sum, so the row shows only its label. Pass values'
       )
     )
+  const first = card.columns[0]
+  if (first && (given.values ? first.key in given.values : isSummable(first)))
+    problems.push(
+      warning(
+        at,
+        'The first column holds the label, so its sum never shows. Lead with a text column'
+      )
+    )
   return problems
 }
 

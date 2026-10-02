@@ -118,7 +118,7 @@ Narrow the table and lower-priority columns hide behind Show all columns first. 
 
 ### Totals row
 
-Pass `totals` to add a totals row as the table's footer, such as a report's line for all its events. The first column holds its label, so give that column no `priority`, or the label hides with it. `recordName` names the rows in the default label, as in "Totals for 4 events".
+Pass `totals` to add a totals row as the table's footer, such as a report's line for all its events. The first column holds its label and never hides while the totals show, so lead with a text column. `recordName` names the rows in the default label, as in "Totals for 4 events".
 
 `totals` adds up every number column over all the rows you pass, not only the ones in view, so the figure holds however the table sorts or narrows. Plain number columns sum too, so give a column that doesn't add up, such as capacity, `total: false`. Shares, indexes, points, deltas, meters, sparklines and text stay blank, and currency sums round to the cent.
 

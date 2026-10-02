@@ -1160,7 +1160,9 @@ export default function DashboardsPage() {
               <Code>validateDashboard</Code> rejects an unknown intent and warns
               about keys the map lacks. <Code>cardTable(card)</Code> keeps the
               keys in its rows, since a table needs them to pick each intent, so
-              use <Code>cellText(column, value)</Code> for text such as a CSV.
+              for text such as a CSV use{' '}
+              <Code>columnStatus(column, key).label</Code>, or{' '}
+              <Code>cellText(column, value)</Code> for any cell.
             </>,
             <>
               Give each column a <Code>priority</Code>. As the card narrows,
@@ -1168,11 +1170,12 @@ export default function DashboardsPage() {
             </>,
             <>
               For a report’s “Totals for 12 events” line, give a table card{' '}
-              <Code>totals: &apos;sum&apos;</Code>. It adds up the number
-              columns, except those with <Code>total: false</Code>, and its
-              label takes the first column, so give that column no priority. For
-              a page of server rows or an average, pass{' '}
-              <Code>{'{ label, values }'}</Code> instead.{' '}
+              <Code>totals: {"{ label: 'Totals for 12 events' }"}</Code>, or{' '}
+              <Code>&apos;sum&apos;</Code> for “Totals for 12 records”. It adds
+              up the number columns, except those with <Code>total: false</Code>
+              , and its label takes the first column, which then never hides, so
+              lead with a text column. For a page of server rows or an average,
+              pass <Code>{'{ label, values }'}</Code> instead.{' '}
               <Code>cardTable(card)</Code> returns the row summed, for a CSV.
             </>,
             <>
