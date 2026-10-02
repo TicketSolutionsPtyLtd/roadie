@@ -11,7 +11,7 @@ import {
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { Sortable, type SortableMove } from '.'
+import { Sortable, type SortableHandleProps, type SortableMove } from '.'
 import { List } from '../List'
 
 const COLUMNS = ['Date', 'Event', 'SKU', 'Price']
@@ -289,6 +289,33 @@ describe('Sortable', () => {
     expect(down).toHaveAttribute('aria-disabled', 'true')
     await user.click(down)
     expect(onReorder).not.toHaveBeenCalled()
+  })
+
+  it('keeps the handle a button: it takes no href or disabled of its own', () => {
+    const handleProps = (props: SortableHandleProps) => props
+    // @ts-expect-error the handle never navigates
+    handleProps({ href: '/elsewhere' })
+    // @ts-expect-error disable the item, not its handle
+    handleProps({ disabled: true })
+    expect(handleProps({})).toEqual({})
+  })
+
+  it('disables one item and its handle with disabled on the item', () => {
+    render(
+      <Sortable items={['A', 'B']} onReorder={() => {}}>
+        <Sortable.Item value='A' label='A' disabled>
+          <Sortable.Handle />
+        </Sortable.Item>
+        <Sortable.Item value='B' label='B'>
+          <Sortable.Handle />
+        </Sortable.Item>
+      </Sortable>
+    )
+    expect(handle('A')).toBeDisabled()
+    expect(handle('B')).toBeEnabled()
+    expect(handle('A').closest('[data-slot="sortable-item"]')).toHaveAttribute(
+      'data-disabled'
+    )
   })
 
   it('disables every handle when disabled', () => {

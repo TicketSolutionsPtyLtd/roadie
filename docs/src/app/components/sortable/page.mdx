@@ -82,7 +82,9 @@ render(<Stages />)
 
 ### States
 
-`disabled` turns off dragging and the Move menu for every item.
+`disabled` on `Sortable` turns off dragging and the Move menu for every item.
+Set `disabled` on one `Sortable.Item` to lock just that item in place; the
+others can still move around it.
 
 ```tsx-live
 <div className='grid gap-2'>

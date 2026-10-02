@@ -31,6 +31,8 @@ export type SortableItemProps = Omit<ComponentProps<'div'>, 'children'> & {
   value: string
   /** The item's name in the Move menu and announcements, as in "Move SKU down". */
   label?: string
+  /** Locks this item in place: no drag and no Move menu. Others can still move around it. @default false */
+  disabled?: boolean
   /** Swaps the default `<div>`, e.g. `<li />` inside a list. */
   render?: RoadieRenderProp
   children?: React.ReactNode
@@ -40,6 +42,7 @@ export type SortableItemProps = Omit<ComponentProps<'div'>, 'children'> & {
 export function SortableItem({
   value,
   label,
+  disabled: itemDisabled = false,
   render,
   className,
   children,
@@ -47,7 +50,8 @@ export function SortableItem({
   ...props
 }: SortableItemProps) {
   const root = useSortableRoot('Sortable.Item')
-  const { items, axis, dir, disabled, group, nameItem } = root
+  const { items, axis, dir, group, nameItem } = root
+  const disabled = root.disabled || itemDisabled
   const index = items.indexOf(value)
   const [element, setElement] = useState<HTMLElement | null>(null)
   const [handle, setHandle] = useState<HTMLElement | null>(null)
@@ -102,8 +106,8 @@ export function SortableItem({
   }, [root, handle, value, index])
 
   const context = useMemo<SortableItemContextValue>(
-    () => ({ value, label, index, setHandle }),
-    [value, label, index]
+    () => ({ value, label, index, disabled, setHandle }),
+    [value, label, index, disabled]
   )
 
   return (
@@ -114,6 +118,7 @@ export function SortableItem({
           'data-slot': 'sortable-item',
           'data-dragging': dragging ? '' : undefined,
           'data-drop-edge': dropEdge ?? undefined,
+          'data-disabled': disabled ? '' : undefined,
           ...props,
           ref: setElement,
           className: cn(sortableItemVariants(), className),

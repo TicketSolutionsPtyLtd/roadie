@@ -34,7 +34,7 @@ import { sortableHandleVariants } from './variants'
 
 export type SortableHandleProps = Omit<
   IconButtonProps,
-  'aria-label' | 'children' | 'render'
+  'aria-label' | 'children' | 'render' | 'href' | 'disabled'
 > & {
   /** @default "Reorder {label}" from the item's `label` */
   'aria-label'?: string
@@ -61,7 +61,6 @@ function moveIcon(direction: MoveDirection, dir: TextDirection) {
  */
 export function SortableHandle({
   className,
-  disabled: disabledProp,
   size = 'sm',
   emphasis = 'subtler',
   onClick,
@@ -71,12 +70,11 @@ export function SortableHandle({
   const root = useSortableRoot('Sortable.Handle')
   const item = use(SortableItemContext)
   if (!item) throw new Error('Sortable.Handle must be inside a Sortable.Item')
-  const { value, label, index, setHandle } = item
+  const { value, label, index, disabled, setHandle } = item
   const [open, setOpen] = useState(false)
   // The menu opens on press, which would cover the list as a drag starts,
   // so a mouse press waits for the click a drag never sends.
   const pressedRef = useRef(false)
-  const disabled = root.disabled || disabledProp
   const DotsIcon = root.axis === 'vertical' ? DotsSixVerticalIcon : DotsSixIcon
 
   return (

@@ -209,6 +209,33 @@ describe('Sortable drag and drop', () => {
     await drop()
   })
 
+  it('does not drag a disabled item', async () => {
+    const onReorder = vi.fn<Reorder>()
+    render(
+      <Sortable items={COLUMNS} onReorder={onReorder}>
+        <List>
+          {COLUMNS.map((value) => (
+            <Sortable.Item
+              key={value}
+              value={value}
+              label={value}
+              disabled={value === 'Date'}
+              render={<li />}
+            >
+              <Sortable.Handle />
+              {value}
+            </Sortable.Item>
+          ))}
+        </List>
+      </Sortable>
+    )
+    await startDrag('Date')
+    await hover(item('SKU'), 0.8)
+    await drop()
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(onReorder).not.toHaveBeenCalled()
+  })
+
   it('does not open the Move menu when a drag starts', async () => {
     render(<Columns />)
     await startDrag('Date')

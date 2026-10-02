@@ -5,7 +5,8 @@
 Add `Sortable` (`@oztix/roadie-components/sortable`), drag to reorder built on
 the browser's native drag and drop. `Sortable` takes the item values in order
 as `items` and reports `onReorder(next, { value, from, to })`; `Sortable.Item`
-marks each item and `Sortable.Handle` drags it. Clicking the handle, or
+marks each item (`disabled` locks one in place) and `Sortable.Handle` drags
+it. Clicking the handle, or
 pressing Enter or Space on it, opens a Move menu (up, down, to top, to bottom;
 left, right, start and end for `orientation='horizontal'`) for keyboard and
 screen reader users; a press that turns into a drag doesn't. Focus returns to

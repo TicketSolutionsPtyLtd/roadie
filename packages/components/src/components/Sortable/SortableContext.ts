@@ -37,6 +37,7 @@ export type SortableItemContextValue = {
   value: string
   label?: string
   index: number
+  disabled: boolean
   setHandle: (handle: HTMLElement | null) => void
 }
 
