@@ -44,11 +44,12 @@ export function useToday(
   const subscribe = useCallback(
     (onChange: () => void) => {
       let timer: ReturnType<typeof setTimeout>
+      let stopped = false
       const schedule = () => {
         timer = setTimeout(
           () => {
             onChange()
-            schedule()
+            if (!stopped) schedule()
           },
           msToMidnight(timeZone ?? viewerTimeZone())
         )
@@ -56,6 +57,7 @@ export function useToday(
       schedule()
       document.addEventListener('visibilitychange', onChange)
       return () => {
+        stopped = true
         clearTimeout(timer)
         document.removeEventListener('visibilitychange', onChange)
       }

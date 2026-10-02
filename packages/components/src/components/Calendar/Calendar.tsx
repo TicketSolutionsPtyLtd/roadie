@@ -299,11 +299,11 @@ export function Calendar(props: CalendarProps) {
   const [hasFocus, setHasFocus] = useState(false)
   const [hoverDate, setHoverDate] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
-  const [pendingFocus, setPendingFocus] = useState<{
-    date: string
-    id: number
-  } | null>(null)
-  const servedFocus = useRef(0)
+  const [pendingFocus, setPendingFocus] = useState<{ date: string } | null>(
+    null
+  )
+  const servedFocus = useRef<{ date: string } | null>(null)
+  const autoFocused = useRef(false)
 
   const focusTarget =
     [focusedDate, firstSelectedOf(mode, selection), today].find(
@@ -395,7 +395,7 @@ export function Calendar(props: CalendarProps) {
   function moveFocus(date: string) {
     setFocusedDate(date)
     setHoverDate(null)
-    setPendingFocus((request) => ({ date, id: (request?.id ?? 0) + 1 }))
+    setPendingFocus({ date })
     if (compareDates(date, firstMonth) < 0) changeMonth(date)
     else if (compareDates(date, lastVisibleDay) > 0)
       changeMonth(addMonths(monthOf(date), 1 - numberOfMonths))
@@ -435,18 +435,21 @@ export function Calendar(props: CalendarProps) {
 
   // A key's target may render later, when a controlled parent moves `month`.
   useEffect(() => {
-    if (!pendingFocus || servedFocus.current === pendingFocus.id) return
+    if (!pendingFocus || servedFocus.current === pendingFocus) return
     const button = findDay(pendingFocus.date)
     if (!button) return
-    servedFocus.current = pendingFocus.id
+    servedFocus.current = pendingFocus
     button.focus()
   }, [pendingFocus, firstMonth])
 
+  const todayKnown = today !== null
   useEffect(() => {
-    if (autoFocus) focusDay(focusTarget)
-    // Mount only: autoFocus places focus once, as on an input.
+    if (!autoFocus || autoFocused.current || !todayKnown) return
+    autoFocused.current = true
+    focusDay(focusTarget)
+    // Once, as on an input, but only after hydration knows today.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [todayKnown])
 
   const navDisabled = disabled === true
   const todayYear = yearOf(today ?? firstMonth)
@@ -503,7 +506,8 @@ export function Calendar(props: CalendarProps) {
           onChange={(value) => shift(addMonths(month, (value - year) * 12))}
           options={Array.from({ length: lastYear - firstYear + 1 }, (_, i) => ({
             value: firstYear + i,
-            label: String(firstYear + i)
+            label: String(firstYear + i),
+            disabled: outOfBounds(addMonths(month, (firstYear + i - year) * 12))
           }))}
         />
       </div>

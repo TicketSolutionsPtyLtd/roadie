@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import {
   act,
+  cleanup,
   fireEvent,
   render,
   screen,
@@ -11,7 +12,7 @@ import {
 import userEvent from '@testing-library/user-event'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { Calendar, type CalendarDateRange } from '.'
 
@@ -381,7 +382,10 @@ describe('Calendar', () => {
   })
 
   describe('today', () => {
-    afterEach(() => vi.useRealTimers())
+    afterEach(() => {
+      cleanup()
+      vi.useRealTimers()
+    })
 
     it('moves to the next day at midnight in its zone', () => {
       vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
@@ -405,24 +409,41 @@ describe('Calendar', () => {
       expect(day('2027-03-12')).toHaveAttribute('data-today')
     })
 
+    async function hydrate(html: string, calendar: React.ReactElement) {
+      const container = document.createElement('div')
+      container.innerHTML = html
+      document.body.append(container)
+      const onRecoverableError = vi.fn()
+      const root = await act(async () =>
+        hydrateRoot(container, calendar, { onRecoverableError })
+      )
+      onTestFinished(() => {
+        act(() => root.unmount())
+        container.remove()
+      })
+      return onRecoverableError
+    }
+
     it('hydrates server HTML from the day before without a mismatch', async () => {
       vi.useFakeTimers({ toFake: ['Date'] })
       vi.setSystemTime(new Date('2027-03-31T05:00:00Z'))
       const html = renderToString(<Calendar timeZone='Australia/Sydney' />)
       vi.setSystemTime(new Date('2027-04-01T05:00:00Z'))
-      const container = document.createElement('div')
-      container.innerHTML = html
-      document.body.append(container)
-      const onRecoverableError = vi.fn()
-      await act(async () => {
-        hydrateRoot(container, <Calendar timeZone='Australia/Sydney' />, {
-          onRecoverableError
-        })
-      })
+      const onRecoverableError = await hydrate(
+        html,
+        <Calendar timeZone='Australia/Sydney' />
+      )
       expect(onRecoverableError).not.toHaveBeenCalled()
       expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
       expect(day('2027-04-01')).toHaveAttribute('data-today')
-      container.remove()
+    })
+
+    it('places autoFocus on today once hydration knows it', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date('2027-04-01T05:00:00Z'))
+      const calendar = <Calendar timeZone='Australia/Sydney' autoFocus />
+      await hydrate(renderToString(calendar), calendar)
+      expect(day('2027-04-01')).toHaveFocus()
     })
   })
 
@@ -456,6 +477,54 @@ describe('Calendar', () => {
     expect(option(first!, 'June').disabled).toBe(true)
     expect(option(second!, 'April').disabled).toBe(false)
     expect(option(second!, 'March').disabled).toBe(true)
+  })
+
+  it.each([
+    ['focus leaves and comes back', false],
+    ['the month arrows turn the page', true]
+  ])('keeps moving focus by key after %s', async (_, turnPage) => {
+    render(
+      <>
+        <Calendar today={TODAY} />
+        <input aria-label='After' />
+      </>
+    )
+    act(() => day(TODAY).focus())
+    await userEvent.keyboard('{ArrowRight}')
+    expect(day('2027-03-11')).toHaveFocus()
+    if (turnPage) {
+      await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Previous month' })
+      )
+      act(() => day('2027-03-11').focus())
+    } else {
+      await userEvent.tab()
+      expect(screen.getByRole('textbox', { name: 'After' })).toHaveFocus()
+      await userEvent.tab({ shift: true })
+      expect(day('2027-03-11')).toHaveFocus()
+    }
+    await userEvent.keyboard('{ArrowRight}')
+    expect(day('2027-03-12')).toHaveFocus()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(day('2027-03-13')).toHaveFocus()
+  })
+
+  it('disables years that would turn past the bounds', () => {
+    render(
+      <Calendar
+        today='2026-12-10'
+        numberOfMonths={2}
+        captionLayout='dropdown'
+        startMonth='2026-12-01'
+        endMonth='2027-01-31'
+      />
+    )
+    const second = screen.getAllByRole('combobox', { name: 'Year' })[1]!
+    const option = (name: string) =>
+      within(second).getByRole('option', { name }) as HTMLOptionElement
+    expect(option('2026').disabled).toBe(true)
+    expect(option('2027').disabled).toBe(false)
   })
 
   it('focuses the day once a controlled parent shows its month', async () => {
