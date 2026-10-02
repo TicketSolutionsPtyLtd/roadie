@@ -123,6 +123,28 @@ describe('Card ticket without a footer', () => {
   })
 })
 
+describe('Card ticket nested in a ticket with a footer', () => {
+  it('leaves its own parts unfilled when it has no footer', () => {
+    const { container } = render(
+      <Card variant='ticket' emphasis='raised'>
+        <Card.Content>
+          <Card variant='ticket' emphasis='raised' data-testid='inner'>
+            <Card.Content>
+              <p>Inner</p>
+            </Card.Content>
+          </Card>
+        </Card.Content>
+        <Card.Footer>
+          <p>Sam Okafor</p>
+        </Card.Footer>
+      </Card>
+    )
+    const inner = container.querySelector<HTMLElement>('[data-testid=inner]')!
+    const part = inner.querySelector<HTMLElement>('[data-slot=card-content]')!
+    expect(getComputedStyle(part).backgroundColor).toBe('rgba(0, 0, 0, 0)')
+  })
+})
+
 describe('Card ticket with a tall body', () => {
   it('paints the fill all the way to the top', async () => {
     const { container } = render(

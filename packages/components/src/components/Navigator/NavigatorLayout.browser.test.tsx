@@ -245,3 +245,42 @@ describe('right to left, beside a vertical primary', () => {
     ).toBe(0)
   })
 })
+
+describe('items without an icon', () => {
+  const Svg = () => <svg viewBox='0 0 1 1' />
+  it('take the icon column unless a capsule sibling has an icon', async () => {
+    render(
+      <Navigator value='/settings'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/home' href='/home' icon={<Svg />}>
+            Home
+          </Navigator.Item>
+          <Navigator.Item value='/about' href='/about'>
+            about us
+          </Navigator.Item>
+          <Navigator.Group>
+            <Navigator.Item value='/settings' href='/settings'>
+              Settings
+            </Navigator.Item>
+          </Navigator.Group>
+        </Navigator.Primary>
+      </Navigator>,
+      { container: frame(1280) }
+    )
+    await frames(4)
+    const label = (name: string) =>
+      getComputedStyle(
+        [
+          ...document.querySelectorAll<HTMLElement>(
+            '[data-orientation="vertical"] [data-slot="navigator-item-label"]'
+          )
+        ].find((node) => node.textContent === name)!
+      )
+    const home = label('Home')
+    expect(label('about us').gridColumnStart).toBe(home.gridColumnStart)
+    expect(label('about us').marginInlineStart).toBe(home.marginInlineStart)
+    expect(label('Settings').gridColumnStart).toBe('1')
+    expect(['span 2', '3']).toContain(label('Settings').gridColumnEnd)
+    expect(label('Settings').marginInlineStart).toBe('0px')
+  })
+})

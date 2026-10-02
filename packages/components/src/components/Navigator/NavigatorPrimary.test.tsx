@@ -1993,16 +1993,16 @@ describe('items without an icon', () => {
     const label = (name: string) =>
       tile(name).querySelector('[data-slot="navigator-item-label"]')!
     expect(label('Home')).toHaveClass('col-start-2', 'ms-3')
-    expect(label('Settings')).toHaveClass('col-start-1', 'col-span-2', 'ms-0')
-    expect(label('Settings')).not.toHaveClass('col-start-2')
-    expect(label('about us')).toHaveClass(
-      'col-start-1',
-      'in-[[data-slot=navigator-capsule]:has([data-slot=navigator-item-icon])]:col-start-2'
+    expect(label('Settings')).toHaveClass(
+      'col-start-[var(--navigator-label-start,1)] col-end-3'
     )
-    // The label's variant finds its capsule by this slot.
+    expect(label('Settings')).not.toHaveClass('col-start-2', 'ms-3')
+    // The capsule moves an iconless label to the icon's column when a sibling has one.
     expect(
       label('about us').closest('[data-slot="navigator-capsule"]')
-    ).not.toBeNull()
+    ).toHaveClass(
+      'has-[[data-slot=navigator-item-icon]]:[--navigator-label-start:2]'
+    )
   })
 
   it('shows the initial on the phone bar tab', async () => {

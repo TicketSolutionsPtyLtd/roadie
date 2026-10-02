@@ -95,11 +95,11 @@ export const listItemVariants = cva(
 // The contained root's card reaches its rows from the row's side, so the
 // selector after the root's :has() ends on a class.
 export const listItemContainedClass = [
-  '[[data-slot=list][data-contained]:not(:has(>[data-slot=list-group]))_&]:rounded-none',
-  '[[data-slot=list][data-contained]:not(:has(>[data-slot=list-group]))_&]:border-0',
-  '[[data-slot=list][data-contained]:not(:has(>[data-slot=list-group]))_&]:mx-0',
-  '[[data-slot=list][data-contained=subtle]:has(>[data-slot=list-group])>li>&]:emphasis-subtle',
-  '[[data-slot=list][data-contained=normal]:has(>[data-slot=list-group])>li>&]:emphasis-normal'
+  '[[data-contained]:not(:has(>[data-slot=list-group]))_&]:rounded-none',
+  '[[data-contained]:not(:has(>[data-slot=list-group]))_&]:border-0',
+  '[[data-contained]:not(:has(>[data-slot=list-group]))_&]:mx-0',
+  '[[data-contained=subtle]:has(>[data-slot=list-group])>li>&]:emphasis-subtle',
+  '[[data-contained=normal]:has(>[data-slot=list-group])>li>&]:emphasis-normal'
 ].join(' ')
 
 // Padding lives here, not on the row, so the divider starts at the title.
