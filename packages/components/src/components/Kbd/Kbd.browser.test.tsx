@@ -6,7 +6,7 @@ import { userEvent } from 'vitest/browser'
 
 import { Kbd } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { apcaLc, over, shownFill } from '../../css/contrastTestUtils'
+import { apcaLc, flatten, over, shownFill } from '../../css/contrastTestUtils'
 import { setHoverCapable } from '../../css/testUtils'
 import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
@@ -145,7 +145,7 @@ describe('Kbd on a surface inside a strong or inverted fill', () => {
   )
 
   // A subtle overlay is a scrim for imagery, so its label is not measured on
-  // a white page; the keycap still takes its inverted tint.
+  // a white page; the keycap still takes its white tint.
   it('tints a keycap on a subtle overlay', () => {
     const { container } = render(
       <div className='emphasis-overlay-subtle'>
@@ -153,8 +153,7 @@ describe('Kbd on a surface inside a strong or inverted fill', () => {
       </div>
     )
     const cap = container.querySelector('[data-testid="cap"]')!
-    const surface = container.firstElementChild!
-    expect(getComputedStyle(cap).color).toBe(getComputedStyle(surface).color)
+    expect(flatten(getComputedStyle(cap).color)).toEqual([255, 255, 255])
   })
 
   it('keeps a keycap distinct from a strong button while hovered', async () => {
@@ -199,6 +198,7 @@ const SURFACES = {
     ])
   ),
   inverted: (kbd: ReactNode) => <div className='emphasis-inverted'>{kbd}</div>,
+  overlay: (kbd: ReactNode) => <div className='emphasis-overlay'>{kbd}</div>,
   'field inside inverted': (kbd: ReactNode) => (
     <div className='emphasis-inverted p-2'>
       <div className='emphasis-field'>{kbd}</div>
@@ -264,6 +264,39 @@ const SURFACES = {
       </Tabs.List>
     </Tabs>
   ),
+  ...Object.fromEntries(
+    ['emphasis-inverted', 'emphasis-strong'].flatMap((fill) => [
+      [
+        `active normal tab inside ${fill}`,
+        (kbd: ReactNode) => (
+          <div className={`${fill} p-2`}>
+            <Tabs defaultValue='a'>
+              <Tabs.List>
+                <Tabs.Tab value='a'>Search {kbd}</Tabs.Tab>
+                <Tabs.Tab value='b'>Filters</Tabs.Tab>
+                <Tabs.Indicator />
+              </Tabs.List>
+            </Tabs>
+          </div>
+        )
+      ],
+      [
+        `pressed subtler toggle group item inside ${fill}`,
+        (kbd: ReactNode) => (
+          <div className={`${fill} p-2`}>
+            <ToggleGroup
+              aria-label='View'
+              defaultValue={['a']}
+              emphasis='subtler'
+            >
+              <ToggleGroup.Item value='a'>List {kbd}</ToggleGroup.Item>
+              <ToggleGroup.Item value='b'>Grid</ToggleGroup.Item>
+            </ToggleGroup>
+          </div>
+        )
+      ]
+    ])
+  ),
   'pressed toggle group item': (kbd: ReactNode) => (
     <ToggleGroup aria-label='View' defaultValue={['a']}>
       <ToggleGroup.Item value='a'>List {kbd}</ToggleGroup.Item>
@@ -276,11 +309,6 @@ const SURFACES = {
     </div>
   )
 }
-// emphasis-overlay's own text is dark on dark in dark mode, so it is checked
-// in light mode only.
-const OVERLAY = {
-  overlay: (kbd: ReactNode) => <div className='emphasis-overlay'>{kbd}</div>
-}
 // APCA's floor for bold, button-sized labels, as strongContrast checks.
 const KEY_LC = 60
 
@@ -290,11 +318,13 @@ describe.each(['light', 'dark'] as const)('Kbd contrast in %s mode', (mode) => {
   })
   afterAll(() => document.documentElement.classList.remove('dark'))
 
-  const surfaces = Object.entries(
-    mode === 'light' ? { ...SURFACES, ...OVERLAY } : SURFACES
-  )
-  describe.each(surfaces)('on a %s', (_, surface) => {
-    it.each(EMPHASES)('keeps %s keys readable', async (emphasis) => {
+  describe.each(Object.entries(SURFACES))('on a %s', (name, surface) => {
+    // A subtler key takes the overlay's own label, which is dark in dark mode.
+    const emphases =
+      name === 'overlay' && mode === 'dark'
+        ? EMPHASES.filter((emphasis) => emphasis !== 'subtler')
+        : EMPHASES
+    it.each(emphases)('keeps %s keys readable', async (emphasis) => {
       const { container } = render(
         surface(
           <>
