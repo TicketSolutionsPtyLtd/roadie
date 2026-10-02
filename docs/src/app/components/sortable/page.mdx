@@ -1,0 +1,194 @@
+export const metadata = {
+  title: 'Sortable',
+  description: 'Drag to reorder items, with a Move menu on each handle for keyboard and screen reader users',
+  status: 'alpha',
+  category: 'Collections',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Drag to reorder items, with a Move menu on each handle for keyboard and screen
+reader users.
+
+`Sortable` holds the order and reports changes. Each item gets a drag handle.
+Drag the handle to move the item, or press it to open a menu with Move up,
+Move down, Move to top and Move to bottom. Dragging uses the browser's own drag
+and drop, so the preview is the browser's snapshot of the item.
+
+## Import
+
+```tsx
+import { Sortable } from '@oztix/roadie-components/sortable'
+```
+
+## Examples
+
+### Default
+
+Wrap a `List` in `Sortable` and give each `List.Item` a `value`. The row takes
+a drag handle in front. Pass the values in order as `items`, and store the new
+order in `onReorder`.
+
+```tsx-live-noinline
+function Columns() {
+  const names = {
+    date: 'Date',
+    event: 'Event',
+    sku: 'SKU',
+    price: 'Price',
+    sold: 'Sold'
+  }
+  const [order, setOrder] = useState(Object.keys(names))
+  return (
+    <Sortable items={order} onReorder={setOrder} label='columns'>
+      <List>
+        {order.map((value) => (
+          <List.Item key={value} value={value} title={names[value]} />
+        ))}
+      </List>
+    </Sortable>
+  )
+}
+
+render(<Columns />)
+```
+
+### Horizontal
+
+Set `orientation='horizontal'` for items in a row. Drops land on the left or
+right edge, and the menu moves items left and right, or to the start and end.
+
+```tsx-live-noinline
+function Stages() {
+  const [order, setOrder] = useState(['Doors', 'Support', 'Headliner', 'Encore'])
+  return (
+    <Sortable items={order} onReorder={setOrder} orientation='horizontal' label='set times'>
+      <div className='flex gap-2 overflow-x-auto'>
+        {order.map((value) => (
+          <Sortable.Item
+            key={value}
+            value={value}
+            label={value}
+            className='flex h-10 shrink-0 items-center gap-1 rounded-full emphasis-subtle pr-4 pl-1'
+          >
+            <Sortable.Handle size='xs' />
+            <span className='font-semibold text-strong'>{value}</span>
+          </Sortable.Item>
+        ))}
+      </div>
+    </Sortable>
+  )
+}
+
+render(<Stages />)
+```
+
+### States
+
+`disabled` turns off dragging and the Move menu for every item.
+
+```tsx-live
+<div className='grid gap-2'>
+  <p className='text-sm text-subtle'>Disabled</p>
+  <Sortable items={['date', 'event']} onReorder={() => {}} disabled>
+    <List>
+      <List.Item value='date' title='Date' />
+      <List.Item value='event' title='Event' />
+    </List>
+  </Sortable>
+</div>
+```
+
+### Composition
+
+`Sortable.Item` renders a `<div>` by default. Pass `render` to swap the
+element, such as `<li />` inside your own list, and put a `Sortable.Handle`
+anywhere inside it. Give each item a `label` so the handle and menu can name
+it: "Reorder Sydney", "Move Sydney up".
+
+```tsx-live-noinline
+function Cities() {
+  const [order, setOrder] = useState(['Brisbane', 'Sydney', 'Melbourne', 'Perth'])
+  return (
+    <Sortable items={order} onReorder={setOrder} label='tour stops'>
+      <ol className='grid gap-2'>
+        {order.map((value, index) => (
+          <Sortable.Item
+            key={value}
+            value={value}
+            label={value}
+            render={<li />}
+            className='flex items-center gap-3 rounded-xl emphasis-normal p-2'
+          >
+            <Sortable.Handle />
+            <span className='w-5 text-sm text-subtle tabular-nums'>{index + 1}</span>
+            <span className='font-semibold text-strong'>{value}</span>
+          </Sortable.Item>
+        ))}
+      </ol>
+    </Sortable>
+  )
+}
+
+render(<Cities />)
+```
+
+### In a popover
+
+Drag and drop works inside a modal `Popover`. A long list scrolls by itself
+while you drag near its top or bottom edge.
+
+```tsx-live-noinline
+function ColumnSettings() {
+  const [order, setOrder] = useState(
+    Array.from({ length: 12 }, (_, index) => `Column ${index + 1}`)
+  )
+  return (
+    <Popover modal>
+      <Popover.Trigger render={<Button>Columns</Button>} />
+      <Popover.Content>
+        <Popover.Body className='max-h-72 overflow-y-auto'>
+          <Sortable items={order} onReorder={setOrder} label='columns'>
+            <List>
+              {order.map((value) => (
+                <List.Item key={value} value={value} title={value} />
+              ))}
+            </List>
+          </Sortable>
+        </Popover.Body>
+      </Popover.Content>
+    </Popover>
+  )
+}
+
+render(<ColumnSettings />)
+```
+
+## Guidelines
+
+- **Keep the handle.** It is the only place a drag starts, so text in the row
+  stays selectable and taps on the row's other controls work.
+- **Name each item.** `List.Item` uses a text `title` as the item's name. Give
+  `Sortable.Item` a `label` so the handle reads "Reorder SKU" rather than
+  "Reorder".
+- **Name the collection.** `label` on `Sortable` ends each announcement, as in
+  "SKU moved to position 3 of 7 columns".
+- **Reorderable rows are static.** A `List.Item` with a `value` inside a
+  `Sortable` is not a link or button. Put any action in its `trailing` slot.
+- **Style with data attributes.** Each item sets `data-dragging` while it is
+  dragged and `data-drop-edge` (`top`, `bottom`, `left` or `right`) while it is
+  the drop target. The dimmed item and the accent drop line are built in.
+
+## Accessibility
+
+- **Keyboard and screen readers**: there is no keyboard dragging. The handle is
+  a menu button. Enter or Space opens the Move menu, and moves past the ends
+  are disabled. After a move, focus returns to the moved item's handle.
+- **Announcements**: every move, by menu or by drag, is announced in a polite
+  live region: "SKU moved to position 3 of 7 columns".
+- **Pointer**: a press on the handle that turns into a drag never opens the
+  menu. A click without a drag does.
+- **Motion**: the dragged item fades without a transition when reduced motion
+  is on. In forced colours the drop line uses the system highlight colour.
+
+<PropsDefinitions componentPath='packages/components/src/components/Sortable' />

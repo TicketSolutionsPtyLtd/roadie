@@ -261,6 +261,31 @@ a chevron by default; suppress it with `chevron={false}`.
 </List>
 ```
 
+### Reorderable
+
+Wrap the list in [`Sortable`](/components/sortable) and give each row a
+`value`. The row takes a drag handle in front and is no longer a link or
+button, so put any action in its `trailing` slot. Pressing the handle opens a
+Move menu for keyboard and screen reader users.
+
+```tsx-live-noinline
+function Columns() {
+  const names = { date: 'Date', event: 'Event', sku: 'SKU', sold: 'Sold' }
+  const [order, setOrder] = useState(Object.keys(names))
+  return (
+    <Sortable items={order} onReorder={setOrder} label='columns'>
+      <List contained emphasis='subtle'>
+        {order.map((value) => (
+          <List.Item key={value} value={value} title={names[value]} />
+        ))}
+      </List>
+    </Sortable>
+  )
+}
+
+render(<Columns />)
+```
+
 ## Guidelines
 
 - **One list is one run of rows.** Keep related rows in a single `List` so
@@ -291,5 +316,8 @@ a chevron by default; suppress it with `chevron={false}`.
   of its name, so it is announced once.
 - **Selection**: `current` sets `aria-current` on the row so screen
   readers announce the active choice.
+- **Reordering**: a reorderable row's handle is a menu button named after the
+  row's title, and each move is announced. See
+  [`Sortable`](/components/sortable).
 
 <PropsDefinitions componentPath='packages/components/src/components/List' />

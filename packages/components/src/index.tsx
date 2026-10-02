@@ -249,6 +249,17 @@ export {
 } from './components/List'
 
 export {
+  Sortable,
+  sortableItemVariants,
+  sortableDropIndicatorVariants,
+  sortableHandleVariants,
+  type SortableProps,
+  type SortableMove,
+  type SortableItemProps,
+  type SortableHandleProps
+} from './components/Sortable'
+
+export {
   Steps,
   stepsVariants,
   useSteps,

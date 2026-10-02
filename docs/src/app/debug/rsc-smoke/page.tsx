@@ -938,6 +938,11 @@ export default function RscSmokePage() {
             title='Reports'
             description='Rendered from a server component via the subpath import.'
           />
+          <List.Item
+            value='sold'
+            title='Sold'
+            description='A valued row outside a Sortable stays a plain row.'
+          />
         </List>
       </section>
 

@@ -1,20 +1,11 @@
 import { type MouseEvent, type ReactNode, useId } from 'react'
 
-import { CaretRightIcon } from '@phosphor-icons/react/ssr'
-
 import { cn } from '@oztix/roadie-core/utils'
 
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
-import {
-  listItemBodyClass,
-  listItemChevronClass,
-  listItemContentClass,
-  listItemDescriptionClass,
-  listItemLeadingClass,
-  listItemTitleClass,
-  listItemTrailingClass,
-  listItemVariants
-} from './variants'
+import { ListItemContent } from './ListItemContent'
+import { ListItemSortable } from './ListItemSortable'
+import { listItemVariants } from './variants'
 
 export type ListItemProps = {
   /** Primary text; the only required prop. */
@@ -31,78 +22,13 @@ export type ListItemProps = {
   href?: string
   /** Marks the item as current; `true` or a token sets `aria-current`. */
   current?: ListItemCurrent
+  /** Inside a `Sortable`, makes the row reorderable: a drag handle leads, and the row is no longer a link or button. */
+  value?: string
   className?: string
   onClick?: (event: MouseEvent<HTMLElement>) => void
 }
 
 export type ListItemCurrent = boolean | 'page' | 'step' | 'location'
-
-export type ListItemContentProps = Pick<
-  ListItemProps,
-  'title' | 'description' | 'leading' | 'trailing'
-> & {
-  chevron: boolean
-  /** Moves the description out of the name, for a row that points `aria-describedby` at this id. */
-  descriptionId?: string
-}
-
-/** A row's anatomy, for a row whose element `List.Item` can't render, e.g. a menu trigger. */
-export function ListItemContent({
-  title,
-  description,
-  leading,
-  trailing,
-  chevron,
-  descriptionId
-}: ListItemContentProps) {
-  const hasTrailing = trailing != null || chevron
-  return (
-    <>
-      {leading != null ? (
-        <span data-slot='list-item-leading' className={listItemLeadingClass}>
-          {leading}
-        </span>
-      ) : null}
-      <span data-slot='list-item-content' className={listItemContentClass}>
-        {description != null ? (
-          <span data-slot='list-item-body' className={listItemBodyClass}>
-            <span data-slot='list-item-title' className={listItemTitleClass}>
-              {title}
-            </span>
-            {/* Out of the name; `aria-describedby` still reads a hidden target. */}
-            <span
-              data-slot='list-item-description'
-              id={descriptionId}
-              aria-hidden={descriptionId != null ? 'true' : undefined}
-              className={listItemDescriptionClass}
-            >
-              {description}
-            </span>
-          </span>
-        ) : (
-          <span data-slot='list-item-title' className={listItemTitleClass}>
-            {title}
-          </span>
-        )}
-        {hasTrailing ? (
-          <span
-            data-slot='list-item-trailing'
-            className={listItemTrailingClass}
-          >
-            {trailing}
-            {chevron ? (
-              <CaretRightIcon
-                weight='bold'
-                data-slot='list-item-chevron'
-                className={listItemChevronClass}
-              />
-            ) : null}
-          </span>
-        ) : null}
-      </span>
-    </>
-  )
-}
 
 /** A row in a `List`: a link when `href` is set, otherwise a `<button>`. */
 export function ListItem({
@@ -113,6 +39,7 @@ export function ListItem({
   chevron,
   href,
   current = false,
+  value,
   className,
   onClick
 }: ListItemProps) {
@@ -136,7 +63,7 @@ export function ListItem({
   )
   const ariaCurrent = current === false ? undefined : current
 
-  return (
+  const row = (
     <li>
       {href !== undefined ? (
         <RoadieRoutedLink
@@ -162,6 +89,20 @@ export function ListItem({
         </button>
       )}
     </li>
+  )
+
+  if (value === undefined) return row
+  return (
+    <ListItemSortable
+      value={value}
+      title={title}
+      description={description}
+      leading={leading}
+      trailing={trailing}
+      className={className}
+      actionable={href !== undefined || onClick !== undefined}
+      fallback={row}
+    />
   )
 }
 

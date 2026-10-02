@@ -1,4 +1,4 @@
-import { CheckIcon } from '@phosphor-icons/react/ssr'
+import { CheckIcon, DotsSixVerticalIcon } from '@phosphor-icons/react/ssr'
 
 import { Avatar } from '@oztix/roadie-components/avatar'
 import { Logo } from '@oztix/roadie-components/logo'
@@ -550,6 +550,24 @@ export function ComponentSkeleton({ name }: { name: string }) {
               <Skel className={`h-2 ${width}`} />
             </div>
           ))}
+        </div>
+      )
+    case 'sortable':
+      return (
+        <div className='relative grid w-44 divide-y divide-subtle rounded-lg border border-subtle bg-normal px-3'>
+          {['w-20', 'w-16', 'w-24'].map((width, index) => (
+            <div
+              key={width}
+              className={`flex items-center gap-2 py-2 ${index === 1 ? 'opacity-40' : ''}`}
+            >
+              <DotsSixVerticalIcon
+                weight='bold'
+                className='size-4 text-subtle'
+              />
+              <Skel className={`h-2 ${width}`} />
+            </div>
+          ))}
+          <div className='absolute inset-x-2 top-2/3 h-0.5 rounded-full bg-strong intent-accent' />
         </div>
       )
     case 'pane':
