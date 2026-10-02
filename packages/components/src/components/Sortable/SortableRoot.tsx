@@ -57,6 +57,7 @@ export function SortableRoot({
   // Stable, so a re-render mid-drag never tears down the monitor.
   const [actions] = useState(() => {
     const names = new Map<string, string | undefined>()
+    const locked = new Set<string>()
     let focusTarget: string | null = null
     let frame = 0
     function move(itemValue: string, to: number, focus: boolean) {
@@ -81,6 +82,8 @@ export function SortableRoot({
       })
     }
     function drop({ value: dragged, target, edge }: SortableDrop) {
+      // An item disabled mid-drag loses its draggable, but the drag in flight still lands here.
+      if (locked.has(dragged)) return
       const { items, axis, dir } = latest.current
       const to = dropIndex({
         from: items.indexOf(dragged),
@@ -100,6 +103,12 @@ export function SortableRoot({
           names.delete(itemValue)
         }
       },
+      lockItem: (itemValue: string) => {
+        locked.add(itemValue)
+        return () => {
+          locked.delete(itemValue)
+        }
+      },
       takeFocus: (itemValue: string) => {
         if (focusTarget !== itemValue) return false
         focusTarget = null
@@ -117,6 +126,7 @@ export function SortableRoot({
       group,
       move: actions.move,
       nameItem: actions.nameItem,
+      lockItem: actions.lockItem,
       takeFocus: actions.takeFocus,
       Item: SortableItem,
       Handle: SortableHandle

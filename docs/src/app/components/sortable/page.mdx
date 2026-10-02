@@ -83,19 +83,49 @@ render(<Stages />)
 ### States
 
 `disabled` on `Sortable` turns off dragging and the Move menu for every item.
-Set `disabled` on one `Sortable.Item` to lock just that item in place; the
-others can still move around it.
+`disabled` on one `Sortable.Item` stops that item being dragged or moved from
+its own menu; other items can still move past it. A `List.Item` has no
+per-row `disabled`, so build a row you need to hold back with `Sortable.Item`.
 
-```tsx-live
-<div className='grid gap-2'>
-  <p className='text-sm text-subtle'>Disabled</p>
-  <Sortable items={['date', 'event']} onReorder={() => {}} disabled>
-    <List>
-      <List.Item value='date' title='Date' />
-      <List.Item value='event' title='Event' />
-    </List>
-  </Sortable>
-</div>
+```tsx-live-noinline
+function Columns() {
+  const [order, setOrder] = useState(['Event', 'Date', 'SKU'])
+  return (
+    <div className='grid gap-4'>
+      <div className='grid gap-2'>
+        <p className='text-sm text-subtle'>Disabled</p>
+        <Sortable items={['Date', 'Event']} onReorder={() => {}} disabled>
+          <List>
+            <List.Item value='Date' title='Date' />
+            <List.Item value='Event' title='Event' />
+          </List>
+        </Sortable>
+      </div>
+      <div className='grid gap-2'>
+        <p className='text-sm text-subtle'>One item disabled</p>
+        <Sortable items={order} onReorder={setOrder} label='columns'>
+          <ul className='grid gap-2'>
+            {order.map((value) => (
+              <Sortable.Item
+                key={value}
+                value={value}
+                label={value}
+                disabled={value === 'Event'}
+                render={<li />}
+                className='flex items-center gap-3 rounded-xl emphasis-normal p-2 data-disabled:text-subtle'
+              >
+                <Sortable.Handle />
+                <span className='font-semibold'>{value}</span>
+              </Sortable.Item>
+            ))}
+          </ul>
+        </Sortable>
+      </div>
+    </div>
+  )
+}
+
+render(<Columns />)
 ```
 
 ### Composition

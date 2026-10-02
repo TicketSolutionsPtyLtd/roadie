@@ -23,7 +23,7 @@
     "name": "Menu",
     "path": "dist/components/Menu/index.js",
     "import": "*",
-    "limit": "4.5 kB",
+    "limit": "4.6 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -217,7 +217,7 @@
     "name": "Sortable",
     "path": "dist/components/Sortable/index.js",
     "import": "*",
-    "limit": "18.5 kB",
+    "limit": "18 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {

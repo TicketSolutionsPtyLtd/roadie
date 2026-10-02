@@ -104,3 +104,74 @@ describe('Sortable unknown values', () => {
     warn.mockRestore()
   })
 })
+
+describe('Sortable disabled items', () => {
+  const view = (locked: string[], items = ['A', 'B']) => (
+    <Sortable items={items} onReorder={onReorder}>
+      {['A', 'B', 'Z'].map((value) => (
+        <Sortable.Item
+          key={value}
+          value={value}
+          label={value}
+          disabled={locked.includes(value)}
+        >
+          <Sortable.Handle />
+        </Sortable.Item>
+      ))}
+    </Sortable>
+  )
+  const onReorder = vi.fn()
+  const lastCall = (value: string) =>
+    vi
+      .mocked(dnd.sortableItem)
+      .mock.calls.map(([options]) => options)
+      .filter((options) => options.value === value)
+      .at(-1)
+
+  it('registers a disabled item as a drop target that does not drag', async () => {
+    vi.mocked(dnd.sortableItem).mockClear()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(view(['A']))
+    await waitFor(() => expect(lastCall('B')).toBeDefined())
+    expect(lastCall('A')?.draggable).toBe(false)
+    expect(lastCall('B')?.draggable).toBe(true)
+    warn.mockRestore()
+  })
+
+  it('registers an item once its value joins items', async () => {
+    vi.mocked(dnd.sortableItem).mockClear()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { rerender } = render(view([]))
+    await waitFor(() => expect(lastCall('B')).toBeDefined())
+    expect(lastCall('Z')).toBeUndefined()
+    rerender(view([], ['A', 'B', 'Z']))
+    await waitFor(() => expect(lastCall('Z')).toBeDefined())
+    warn.mockRestore()
+  })
+
+  it('ignores a drop from an item disabled mid-drag', async () => {
+    vi.mocked(dnd.sortableMonitor).mockClear()
+    onReorder.mockClear()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { rerender } = render(view([]))
+    await waitFor(() => expect(dnd.sortableMonitor).toHaveBeenCalled())
+    const { onDrop } = vi.mocked(dnd.sortableMonitor).mock.calls[0]![0]
+    rerender(view(['A']))
+    act(() => onDrop({ value: 'A', target: 'B', edge: 'bottom' }))
+    expect(onReorder).not.toHaveBeenCalled()
+    act(() => onDrop({ value: 'B', target: 'A', edge: 'top' }))
+    expect(onReorder).toHaveBeenCalledWith(['B', 'A'], {
+      value: 'B',
+      from: 1,
+      to: 0
+    })
+    warn.mockRestore()
+  })
+
+  it('disables the handle of an item that is not in items', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(view([]))
+    expect(screen.getByRole('button', { name: 'Reorder Z' })).toBeDisabled()
+    warn.mockRestore()
+  })
+})

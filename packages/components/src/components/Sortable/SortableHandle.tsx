@@ -17,8 +17,12 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import type { ButtonHrefProps } from '../Button/Button'
 import { IconButton, type IconButtonProps } from '../Button/IconButton'
-import { Menu } from '../Menu'
+import { MenuContent } from '../Menu/MenuContent'
+import { MenuItem } from '../Menu/MenuItem'
+import { MenuRoot } from '../Menu/MenuRoot'
+import { MenuTrigger } from '../Menu/MenuTrigger'
 import { SortableItemContext, useSortableRoot } from './SortableContext'
 import {
   type MoveDirection,
@@ -31,7 +35,7 @@ import { sortableHandleVariants } from './variants'
 
 export type SortableHandleProps = Omit<
   IconButtonProps,
-  'aria-label' | 'children' | 'render' | 'href' | 'disabled'
+  'aria-label' | 'children' | 'render' | 'disabled' | keyof ButtonHrefProps
 > & {
   /** @default "Reorder {label}" from the item's `label` */
   'aria-label'?: string
@@ -75,14 +79,14 @@ export function SortableHandle({
   const DotsIcon = root.axis === 'vertical' ? DotsSixVerticalIcon : DotsSixIcon
 
   return (
-    <Menu
+    <MenuRoot
       open={open}
       onOpenChange={(next, details) => {
         if (next && details.event?.type === 'mousedown') return
         setOpen(next)
       }}
     >
-      <Menu.Trigger
+      <MenuTrigger
         data-slot='sortable-handle'
         disabled={disabled}
         ref={setHandle}
@@ -107,8 +111,8 @@ export function SortableHandle({
         }
       >
         <DotsIcon weight='bold' />
-      </Menu.Trigger>
-      <Menu.Content align='start'>
+      </MenuTrigger>
+      <MenuContent align='start'>
         {menuMoves({
           index,
           total: root.items.length,
@@ -117,18 +121,18 @@ export function SortableHandle({
         }).map(({ direction, to, disabled: unavailable }) => {
           const Icon = moveIcon(direction, root.dir)
           return (
-            <Menu.Item
+            <MenuItem
               key={direction}
               disabled={unavailable || disabled}
               icon={<Icon weight='bold' />}
               onClick={() => root.move(value, to, true)}
             >
               {reorderLabel(direction, label)}
-            </Menu.Item>
+            </MenuItem>
           )
         })}
-      </Menu.Content>
-    </Menu>
+      </MenuContent>
+    </MenuRoot>
   )
 }
 

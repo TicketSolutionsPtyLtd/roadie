@@ -31,7 +31,7 @@ export type SortableItemProps = Omit<ComponentProps<'div'>, 'children'> & {
   value: string
   /** The item's name in the Move menu and announcements, as in "Move SKU down". */
   label?: string
-  /** Locks this item in place: no drag and no Move menu. Others can still move around it. @default false */
+  /** Stops this item being dragged or moved from its own Move menu. Other items can still move past it. @default false */
   disabled?: boolean
   /** Swaps the default `<div>`, e.g. `<li />` inside a list. */
   render?: RoadieRenderProp
@@ -50,11 +50,11 @@ export function SortableItem({
   ...props
 }: SortableItemProps) {
   const root = useSortableRoot('Sortable.Item')
-  const { items, axis, dir, group, nameItem } = root
-  const disabled = root.disabled || itemDisabled
+  const { items, axis, dir, group, nameItem, lockItem } = root
   const index = items.indexOf(value)
   // An unlisted item would take drops at index -1, so it isn't registered.
   const listed = index !== -1
+  const disabled = root.disabled || itemDisabled || !listed
   const [element, setElement] = useState<HTMLElement | null>(null)
   const [handle, setHandle] = useState<HTMLElement | null>(null)
   const [dragging, setDragging] = useState(false)
@@ -67,6 +67,9 @@ export function SortableItem({
   }, [element, forwarded])
 
   useEffect(() => nameItem(value, label), [nameItem, value, label])
+  useEffect(() => {
+    if (disabled) return lockItem(value)
+  }, [lockItem, value, disabled])
 
   const position = useRef({ items, index, dir })
   useEffect(() => {

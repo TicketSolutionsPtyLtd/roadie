@@ -16,6 +16,8 @@ export type SortableRootContextValue = {
   move: (value: string, to: number, focus: boolean) => void
   /** Records the item's name for announcements; returns its cleanup. */
   nameItem: (value: string, name: string | undefined) => () => void
+  /** Marks a disabled item, so a drop from it is ignored; returns its cleanup. */
+  lockItem: (value: string) => () => void
   /** Moved by the menu; its handle takes focus once it re-renders. */
   takeFocus: (value: string) => boolean
   // Passed through context so `List` can render a sortable row without
