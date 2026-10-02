@@ -357,7 +357,6 @@ export function Calendar(props: CalendarProps) {
     if (month === firstMonth) return
     if (monthProp === undefined) setNavigatedMonth(month)
     onMonthChange?.(month)
-    setAnnouncement(monthsLabel(month))
   }
 
   function turnMonth(next: string) {
@@ -370,13 +369,25 @@ export function Calendar(props: CalendarProps) {
     onSelect?.(next)
   }
 
-  function announceSelection(date: string, next: CalendarSelection) {
+  function describeSelection(
+    previous: CalendarSelection,
+    next: CalendarSelection
+  ) {
     if (mode === 'multiple') {
-      const added = (next as readonly string[]).includes(date)
-      return `${added ? 'Selected' : 'Deselected'} ${dayLabel(date, locale)}`
+      const before = previous as readonly string[]
+      const after = next as readonly string[]
+      const added = after.filter((date) => !before.includes(date))
+      const removed = before.filter((date) => !after.includes(date))
+      if (added.length + removed.length !== 1)
+        return `${after.length} dates selected`
+      return added[0]
+        ? `Selected ${dayLabel(added[0], locale)}`
+        : `Deselected ${dayLabel(removed[0]!, locale)}`
     }
     if (mode === 'single') {
-      return next ? `Selected ${dayLabel(date, locale)}` : 'Selection cleared'
+      return next
+        ? `Selected ${dayLabel(next as string, locale)}`
+        : 'Selection cleared'
     }
     const { start, end } = next as CalendarDateRange
     if (!start) return 'Selection cleared'
@@ -386,12 +397,35 @@ export function Calendar(props: CalendarProps) {
       : `Selected ${rangeLabel(start, end, locale)}`
   }
 
+  // Announced from what renders, not what was asked for, so a controlled
+  // parent that keeps, defers or makes a change is heard as it really is.
+  const selectionKey = JSON.stringify(selection)
+  const shownMonthKey = waitingForToday ? null : firstMonth
+  const [heard, setHeard] = useState({
+    mode,
+    selectionKey,
+    selection,
+    month: shownMonthKey
+  })
+  if (
+    heard.mode !== mode ||
+    heard.selectionKey !== selectionKey ||
+    heard.month !== shownMonthKey
+  ) {
+    const messages = []
+    if (heard.month && shownMonthKey && heard.month !== shownMonthKey)
+      messages.push(monthsLabel(shownMonthKey))
+    if (heard.mode === mode && heard.selectionKey !== selectionKey)
+      messages.push(describeSelection(heard.selection, selection))
+    setHeard({ mode, selectionKey, selection, month: shownMonthKey })
+    if (messages.length) setAnnouncement(messages.join('. '))
+  }
+
   function select(date: string) {
     if (isDayDisabled(date)) return
     const next = selectDate(mode, selection, date, { required, min, max })
     if (next === selection) return
     commit(next)
-    setAnnouncement(announceSelection(date, next))
   }
 
   function moveFocus(date: string) {
@@ -414,7 +448,6 @@ export function Calendar(props: CalendarProps) {
       event.preventDefault()
       event.stopPropagation()
       commit(emptyRange())
-      setAnnouncement('Selection cleared')
       return
     }
     const rtl = getComputedStyle(event.currentTarget).direction === 'rtl'

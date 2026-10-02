@@ -2,32 +2,22 @@ import { useCallback, useSyncExternalStore } from 'react'
 
 import { plainDateOf, viewerTimeZone } from '@oztix/roadie-core/datetime'
 
-const HOUR = 3_600_000
-const DAY = 24 * HOUR
+// Longer than any day, daylight saving included.
+const SEARCH_SPAN = 26 * 3_600_000
 
-const clocks = new Map<string, Intl.DateTimeFormat>()
-
-function msToMidnight(timeZone: string): number {
-  let clock = clocks.get(timeZone)
-  if (!clock) {
-    clock = new Intl.DateTimeFormat('en-AU', {
-      timeZone,
-      hourCycle: 'h23',
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric'
-    })
-    clocks.set(timeZone, clock)
-  }
+// Searched rather than counted from midnight, because a daylight saving jump
+// can move the date change off midnight or skip midnight altogether.
+function msToNextDate(timeZone: string): number {
   const now = Date.now()
-  const part = (type: string) =>
-    Number(clock.formatToParts(now).find((p) => p.type === type)?.value ?? 0)
-  const elapsed =
-    (part('hour') * 3600 + part('minute') * 60 + part('second')) * 1000 +
-    (now % 1000)
-  // Woken at least hourly, so a daylight saving change before midnight can
-  // only make the wake early, never an hour late.
-  return Math.min(DAY - elapsed + 50, HOUR)
+  const today = plainDateOf(new Date(now), timeZone)
+  let before = now
+  let after = now + SEARCH_SPAN
+  while (after - before > 1000) {
+    const middle = Math.floor((before + after) / 2)
+    if (plainDateOf(new Date(middle), timeZone) === today) before = middle
+    else after = middle
+  }
+  return after - now + 50
 }
 
 const noSubscription = () => () => {}
@@ -51,7 +41,7 @@ export function useToday(
             onChange()
             if (!stopped) schedule()
           },
-          msToMidnight(timeZone ?? viewerTimeZone())
+          msToNextDate(timeZone ?? viewerTimeZone())
         )
       }
       schedule()

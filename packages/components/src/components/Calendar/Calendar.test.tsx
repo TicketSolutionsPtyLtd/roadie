@@ -398,6 +398,16 @@ describe('Calendar', () => {
       expect(day('2027-04-01')).toHaveAttribute('data-today')
     })
 
+    it('moves on when daylight saving skips to midnight', () => {
+      vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+      // 10:30pm on 27 March 2027 in Nuuk; at 11pm the clocks jump to midnight.
+      vi.setSystemTime(new Date('2027-03-28T00:30:00Z'))
+      render(<Calendar timeZone='America/Nuuk' />)
+      expect(day('2027-03-27')).toHaveAttribute('data-today')
+      act(() => vi.advanceTimersByTime(31 * 60_000))
+      expect(day('2027-03-28')).toHaveAttribute('data-today')
+    })
+
     it('catches up when a hidden tab is shown again', () => {
       vi.useFakeTimers({ toFake: ['Date'] })
       vi.setSystemTime(new Date('2027-03-10T01:00:00Z'))
@@ -563,6 +573,89 @@ describe('Calendar', () => {
       expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
     )
     await waitFor(() => expect(day('2027-04-01')).toHaveFocus())
+  })
+
+  describe('announcements follow what the calendar shows', () => {
+    it('stays quiet when a controlled parent keeps its value', async () => {
+      render(
+        <Calendar
+          today={TODAY}
+          selected='2027-03-02'
+          month='2027-03-01'
+          onSelect={() => {}}
+        />
+      )
+      await userEvent.click(day('2027-03-14'))
+      await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+      expect(live()).toHaveTextContent('')
+    })
+
+    it('stays quiet when a controlled range is kept on Escape', async () => {
+      render(
+        <Calendar
+          today={TODAY}
+          mode='range'
+          selected={{ start: '2027-03-03', end: null }}
+        />
+      )
+      act(() => day('2027-03-03').focus())
+      await userEvent.keyboard('{Escape}')
+      expect(live()).toHaveTextContent('')
+    })
+
+    it('speaks once a deferred parent applies the change', async () => {
+      function Deferred() {
+        const [date, setDate] = useState<string | null>(null)
+        return (
+          <Calendar
+            today={TODAY}
+            selected={date}
+            onSelect={(next) => setTimeout(() => setDate(next), 10)}
+          />
+        )
+      }
+      render(<Deferred />)
+      await userEvent.click(day('2027-03-14'))
+      expect(live()).toHaveTextContent('')
+      await waitFor(() =>
+        expect(live()).toHaveTextContent('Selected Sunday, 14 March 2027')
+      )
+    })
+
+    it('speaks changes the parent makes on its own', async () => {
+      function External() {
+        const [date, setDate] = useState<string | null>(null)
+        const [month, setMonth] = useState('2027-03-01')
+        return (
+          <>
+            <Calendar today={TODAY} selected={date} month={month} />
+            <button type='button' onClick={() => setDate('2027-03-20')}>
+              Pick
+            </button>
+            <button type='button' onClick={() => setMonth('2027-05-01')}>
+              May
+            </button>
+          </>
+        )
+      }
+      render(<External />)
+      await userEvent.click(screen.getByRole('button', { name: 'Pick' }))
+      expect(live()).toHaveTextContent('Selected Saturday, 20 March 2027')
+      await userEvent.click(screen.getByRole('button', { name: 'May' }))
+      expect(live()).toHaveTextContent('May 2027')
+    })
+
+    it('says both when one press selects and turns the page', async () => {
+      render(
+        <Calendar today={TODAY} defaultMonth='2027-04-01' showOutsideDays />
+      )
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Wednesday, 31 March 2027' })
+      )
+      expect(live()).toHaveTextContent(
+        'March 2027. Selected Wednesday, 31 March 2027'
+      )
+    })
   })
 
   it('names days with modifiers as data attributes', () => {
