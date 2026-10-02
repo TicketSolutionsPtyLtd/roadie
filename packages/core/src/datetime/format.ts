@@ -132,7 +132,7 @@ const MAX_FORMATTERS = 200
 
 // Building a formatter costs far more than formatting with one, and a table
 // formats hundreds of values with the same few option sets.
-function dateTimeFormat(
+export function dateTimeFormat(
   locale: string,
   options: Intl.DateTimeFormatOptions
 ): Intl.DateTimeFormat {

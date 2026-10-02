@@ -1,24 +1,17 @@
-import { type Instantish } from './format'
+import { type Instantish, dateTimeFormat } from './format'
 import { plainDateParts } from './plainDate'
 
-const formatters = new Map<string, Intl.DateTimeFormat>()
-
 function wallClockFormat(timeZone: string): Intl.DateTimeFormat {
-  let format = formatters.get(timeZone)
-  if (!format) {
-    format = new Intl.DateTimeFormat('en-US', {
-      timeZone,
-      hourCycle: 'h23',
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric'
-    })
-    formatters.set(timeZone, format)
-  }
-  return format
+  return dateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric'
+  })
 }
 
 export function epochOf(instant: Instantish): number {
