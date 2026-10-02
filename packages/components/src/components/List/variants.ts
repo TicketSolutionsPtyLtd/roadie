@@ -71,11 +71,22 @@ export const listGroupTitleVariants = cva([
 ])
 
 // `selected` skips group emphasis, which is more specific and would win.
+// The contained root's card reaches its rows from the row's side, so the
+// selector after the root's :has() ends on a class.
+const listItemContainedClasses = [
+  '[[data-contained]:not(:has(>[data-slot=list-group]))_&]:rounded-none',
+  '[[data-contained]:not(:has(>[data-slot=list-group]))_&]:border-0',
+  '[[data-contained]:not(:has(>[data-slot=list-group]))_&]:mx-0',
+  '[[data-contained=subtle]:has(>[data-slot=list-group])>li>&]:emphasis-subtle',
+  '[[data-contained=normal]:has(>[data-slot=list-group])>li>&]:emphasis-normal'
+]
+
 export const listItemVariants = cva(
   [
     'is-interactive flex min-h-11 items-stretch rounded-xl px-3 text-left',
     // Only subtler bleeds: nothing paints at rest, so the pill needs room.
-    'group-data-[emphasis=subtler]/list:-mx-3'
+    'group-data-[emphasis=subtler]/list:-mx-3',
+    ...listItemContainedClasses
   ],
   {
     variants: {
@@ -91,16 +102,6 @@ export const listItemVariants = cva(
     defaultVariants: { selected: false }
   }
 )
-
-// The contained root's card reaches its rows from the row's side, so the
-// selector after the root's :has() ends on a class.
-export const listItemContainedClass = [
-  '[[data-contained]:not(:has(>[data-slot=list-group]))_&]:rounded-none',
-  '[[data-contained]:not(:has(>[data-slot=list-group]))_&]:border-0',
-  '[[data-contained]:not(:has(>[data-slot=list-group]))_&]:mx-0',
-  '[[data-contained=subtle]:has(>[data-slot=list-group])>li>&]:emphasis-subtle',
-  '[[data-contained=normal]:has(>[data-slot=list-group])>li>&]:emphasis-normal'
-].join(' ')
 
 // Padding lives here, not on the row, so the divider starts at the title.
 export const listItemLeadingClass = 'flex shrink-0 items-center py-3 pr-3'

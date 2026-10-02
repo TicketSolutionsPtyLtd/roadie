@@ -17,7 +17,7 @@ import {
   RoadieLinkProvider
 } from '../../providers/RoadieLinkProvider'
 import { Badge } from '../Badge'
-import { listItemContainedClass } from '../List/variants'
+import { listItemVariants } from '../List/variants'
 import {
   FakeIcon,
   flushViewportMeasurement,
@@ -402,7 +402,7 @@ describe('Navigator.Menu', () => {
     ).toHaveTextContent('Account')
     expect(row.querySelector('[data-slot="list-item-chevron"]')).toBeNull()
     // Squares up in a contained List like a List.Item.
-    expect(row.className).toContain(listItemContainedClass)
+    expect(row.className).toBe(listItemVariants({ selected: false }))
     await user.click(row)
     expect(
       (await screen.findByRole('menu')).closest('[data-side]')

@@ -6,7 +6,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { List, type ListProps } from '../List'
 import { ListItemContent } from '../List/ListItem'
-import { listItemContainedClass, listItemVariants } from '../List/variants'
+import { listItemVariants } from '../List/variants'
 import {
   NavigatorActionsContext,
   NavigatorDisclosureContext,
@@ -72,12 +72,9 @@ export function NavigatorOverflowItems({
             type='button'
             data-slot='list-item'
             onClick={() => activateItem(slot.value)}
-            className={cn(
-              listItemVariants({
-                selected: openMenu === menuId(`overflow-${set}`, slot.value)
-              }),
-              listItemContainedClass
-            )}
+            className={listItemVariants({
+              selected: openMenu === menuId(`overflow-${set}`, slot.value)
+            })}
           >
             <ListItemContent
               title={slot.label}

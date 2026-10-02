@@ -5,6 +5,7 @@ import { userEvent } from 'vitest/browser'
 import { List } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { useStylesheet } from '../Pane/testUtils'
+import { listItemVariants } from './variants'
 
 const STILL = '*, *::before, *::after { transition: none !important }'
 
@@ -99,6 +100,21 @@ describe('contained List', () => {
     expect(style.marginLeft).toBe('0px')
     expect(style.borderTopWidth).toBe('0px')
     expect(dividers(['Shows', 'Orders'])).toEqual([true, false])
+  })
+
+  it('squares a custom row built from listItemVariants', () => {
+    render(
+      <List contained emphasis='subtle'>
+        <li>
+          <a href='/shows' data-slot='list-item' className={listItemVariants()}>
+            Shows
+          </a>
+        </li>
+      </List>
+    )
+    const style = getComputedStyle(row('Shows'))
+    expect(style.borderTopLeftRadius).toBe('0px')
+    expect(style.marginLeft).toBe('0px')
   })
 
   it('gives loose rows beside groups their own surface and no dividers', () => {

@@ -36,13 +36,13 @@ A second form: a `:has(~ …)` with nothing else in its compound, such as
 `> :not([data-priority]):not(:has(~ :not([data-priority])))` or
 `> :is(:has(~ .footer), …)`. Chromium tries it on every element and flags
 them all, so a change beside many siblings re-checks every one of them. A
-menu next to 2,000 siblings took 950ms.
+menu next to 2,000 siblings took 900ms.
 
 ## How it was traced
 
 - **CDP metrics:** `Performance.getMetrics` gives running `RecalcStyleDuration`
-  and `LayoutDuration` totals. The perf project exposes them as
-  `commands.renderMetrics()` (`packages/components/vitest.config.ts`).
+  and `LayoutDuration` totals. Read them before and after the interaction,
+  through a CDP session on the page.
 - **Traces:** a trace with `devtools.timeline` and
   `disabled-by-default-devtools.timeline.invalidationTracking` shows
   `UpdateLayoutTree` element counts, `ScheduleStyleInvalidationTracking` with

@@ -8,7 +8,6 @@ import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import {
   listItemBodyClass,
   listItemChevronClass,
-  listItemContainedClass,
   listItemContentClass,
   listItemDescriptionClass,
   listItemLeadingClass,
@@ -133,7 +132,6 @@ export function ListItem({
 
   const finalClassName = cn(
     listItemVariants({ selected: current !== false }),
-    listItemContainedClass,
     className
   )
   const ariaCurrent = current === false ? undefined : current
