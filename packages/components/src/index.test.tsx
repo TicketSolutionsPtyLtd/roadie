@@ -8,7 +8,8 @@ import {
   Highlight,
   Kbd,
   Mark,
-  type NumberFieldStepperEmphasis
+  type NumberFieldStepperEmphasis,
+  QueryField
 } from './index'
 
 describe('Component exports', () => {
@@ -38,6 +39,13 @@ describe('Component exports', () => {
   it('exports Kbd component', () => {
     const { container } = render(<Kbd>Enter</Kbd>)
     expect(container.querySelector('kbd')).toHaveTextContent('Enter')
+  })
+
+  it('exports QueryField component', () => {
+    const { getByRole } = render(
+      <QueryField aria-label='Search orders' suggest={() => []} />
+    )
+    expect(getByRole('combobox', { name: 'Search orders' })).toBeInTheDocument()
   })
 
   it('exports Highlight component', () => {

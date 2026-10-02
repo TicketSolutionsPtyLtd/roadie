@@ -1,0 +1,403 @@
+export const metadata = {
+  title: 'Query field',
+  description: 'A search field that turns what you type into filter chips',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A search field that turns what you type into filter chips.
+
+## Import
+
+```tsx
+import { QueryField } from '@oztix/roadie-components/query-field'
+```
+
+## Examples
+
+### Default
+
+Pass the chips you hold and a `suggest` function. Suggestions come back in
+groups, and `onAccept` hands you the one taken: add a chip for a filter, or
+search for the text when Enter sends `kind: 'search'`.
+
+```tsx-live
+function QueryFieldDefault() {
+  const venues = ['The Longacre', 'Meridian Stage', 'The Signal Hall', 'The Burrow']
+  const [chips, setChips] = useState([])
+  const [search, setSearch] = useState('')
+
+  function suggest(text) {
+    const query = text.trim().toLowerCase()
+    const items = venues
+      .filter((venue) => query && venue.toLowerCase().includes(query))
+      .map((venue) => ({
+        id: `venue:${venue}`,
+        label: `Venue is ${venue}`,
+        kind: 'filter',
+        value: venue,
+      }))
+    return [{ id: 'filters', label: 'Filters', items }]
+  }
+
+  function accept(suggestion) {
+    if (suggestion.kind === 'search') setSearch(suggestion.value)
+    if (suggestion.kind === 'filter' && !chips.some((chip) => chip.id === suggestion.id))
+      setChips([...chips, { id: suggestion.id, label: suggestion.label }])
+  }
+
+  return (
+    <div className='grid gap-2'>
+      <QueryField
+        aria-label='Search events'
+        chips={chips}
+        onRemoveChip={(id) => setChips(chips.filter((chip) => chip.id !== id))}
+        suggest={suggest}
+        onAccept={accept}
+      />
+      <p className='text-sm text-subtle'>
+        {search ? `Searching for “${search}”` : 'Type a venue, then pick it or press Enter'}
+      </p>
+    </div>
+  )
+}
+```
+
+### Emphasis
+
+```tsx-live
+<div className='grid gap-2'>
+  <QueryField aria-label='Normal emphasis' emphasis='normal' suggest={() => []} />
+  <QueryField aria-label='Subtle emphasis' emphasis='subtle' suggest={() => []} />
+</div>
+```
+
+### Sizes
+
+```tsx-live
+<div className='grid gap-2'>
+  <QueryField aria-label='Small' size='sm' suggest={() => []} />
+  <QueryField aria-label='Medium' size='md' suggest={() => []} />
+  <QueryField aria-label='Large' size='lg' suggest={() => []} />
+</div>
+```
+
+### States
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <QueryField
+      aria-label='Search events'
+      chips={[{ id: 'status', label: 'Status is On sale' }]}
+      suggest={() => []}
+    />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Invalid</p>
+    <QueryField aria-label='Search events' invalid suggest={() => []} />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <QueryField
+      aria-label='Search events'
+      disabled
+      chips={[{ id: 'status', label: 'Status is On sale' }]}
+      suggest={() => []}
+    />
+  </div>
+</div>
+```
+
+### Composition
+
+#### With Field
+
+Inside [Field](/components/field), the label names the input, and the field
+takes `invalid`, `disabled` and `required` from it.
+
+```tsx-live
+<Field>
+  <Field.Label>Find events</Field.Label>
+  <QueryField suggest={() => []} />
+  <Field.HelperText>Search by name, or filter by venue and status.</Field.HelperText>
+</Field>
+```
+
+### With the value step
+
+Picking a field, such as Venue, starts the value step. Show a `pendingChip`
+and swap what `suggest` returns for that field's values. Taking a value adds
+the chip and ends the step; Backspace on the empty field or Escape calls
+`onPendingChipCancel` to go back.
+
+```tsx-live
+function QueryFieldValueStep() {
+  const values = {
+    venue: ['The Longacre', 'Meridian Stage', 'The Signal Hall', 'The Burrow'],
+    status: ['On sale', 'Sold out', 'Postponed', 'Cancelled'],
+  }
+  const fields = [
+    { id: 'field:venue', label: 'Venue', kind: 'field', value: 'venue' },
+    { id: 'field:status', label: 'Status', kind: 'field', value: 'status' },
+  ]
+  const label = { venue: 'Venue is', status: 'Status is' }
+  const [chips, setChips] = useState([])
+  const [pending, setPending] = useState(null)
+
+  function filter(field, value, text) {
+    return { id: `${field}:${value}`, label: text, kind: 'filter', value: { field, value } }
+  }
+
+  function suggest(text) {
+    const query = text.trim().toLowerCase()
+    const matches = (name) => name.toLowerCase().includes(query)
+    if (pending) {
+      const items = values[pending].filter(matches).map((value) => filter(pending, value, value))
+      return [{ id: 'values', label: label[pending], items }]
+    }
+    if (!query) return [{ id: 'fields', label: 'Filter by', items: fields }]
+    const filters = Object.keys(values).flatMap((field) =>
+      values[field].filter(matches).map((value) => filter(field, value, `${label[field]} ${value}`))
+    )
+    return [
+      { id: 'filters', label: 'Filters', items: filters },
+      { id: 'fields', label: 'Fields', items: fields.filter((field) => matches(field.label)) },
+    ]
+  }
+
+  function accept(suggestion) {
+    if (suggestion.kind === 'field') setPending(suggestion.value)
+    if (suggestion.kind === 'filter') {
+      const { field, value } = suggestion.value
+      setPending(null)
+      setChips((current) =>
+        current.some((chip) => chip.id === suggestion.id)
+          ? current
+          : [...current, { id: suggestion.id, label: `${label[field]} ${value}` }]
+      )
+    }
+  }
+
+  return (
+    <QueryField
+      aria-label='Search events'
+      chips={chips}
+      onRemoveChip={(id) => setChips((current) => current.filter((chip) => chip.id !== id))}
+      pendingChip={pending ? { id: pending, label: label[pending] } : undefined}
+      onPendingChipCancel={() => setPending(null)}
+      suggest={suggest}
+      onAccept={accept}
+    />
+  )
+}
+```
+
+### With locked chips
+
+A chip the page sets, such as the event a list is scoped to, is `locked`. It
+shows first, explains itself with a "Set by this page" tooltip, and nothing in
+the field removes it: not its own keys, not Backspace, not Clear.
+
+```tsx-live
+function QueryFieldLocked() {
+  const [chips, setChips] = useState([
+    { id: 'event', label: 'Event is Neon Nights', locked: true },
+    { id: 'status', label: 'Ticket status is Valid' },
+  ])
+
+  return (
+    <QueryField
+      aria-label='Search tickets'
+      chips={chips}
+      onRemoveChip={(id) => setChips((current) => current.filter((chip) => chip.id !== id))}
+      suggest={() => []}
+    />
+  )
+}
+```
+
+### With chip editing
+
+Pass `onEditChip` and each unlocked chip becomes a button. Open your editor in
+a `Popover` against the chip it hands you, and send focus back to the chip
+when it closes.
+
+```tsx-live
+function QueryFieldChipEditing() {
+  const statuses = ['On sale', 'Sold out', 'Postponed']
+  const [status, setStatus] = useState('On sale')
+  const [anchor, setAnchor] = useState(null)
+
+  return (
+    <>
+      <QueryField
+        aria-label='Search events'
+        chips={[{ id: 'status', label: `Status is ${status}` }]}
+        suggest={() => []}
+        onEditChip={(id, element) => setAnchor(element)}
+      />
+      <Popover open={!!anchor} onOpenChange={(open) => !open && setAnchor(null)}>
+        <Popover.Portal>
+          <Popover.Positioner anchor={anchor} side='bottom' align='start'>
+            <Popover.Popup finalFocus={{ current: anchor }}>
+              <Popover.Body>
+                <RadioGroup
+                  aria-label='Status'
+                  value={status}
+                  onValueChange={(value) => {
+                    setStatus(value)
+                    setAnchor(null)
+                  }}
+                >
+                  {statuses.map((option) => (
+                    <RadioGroup.Item key={option} value={option} label={option} />
+                  ))}
+                </RadioGroup>
+              </Popover.Body>
+            </Popover.Popup>
+          </Popover.Positioner>
+        </Popover.Portal>
+      </Popover>
+    </>
+  )
+}
+```
+
+### With exact matches
+
+Enter searches the free text. When the text names one record exactly, such as
+an order number, mark that suggestion `exact` and Enter takes it instead.
+
+```tsx-live
+function QueryFieldExact() {
+  const orders = { 'ORD-2041': 'Neon Nights, 2 tickets', 'ORD-2042': 'Harbour Lights, 4 tickets' }
+  const [taken, setTaken] = useState('')
+
+  function suggest(text) {
+    const code = text.trim().toUpperCase()
+    const items = Object.keys(orders)
+      .filter((id) => code && id.startsWith(code))
+      .map((id) => ({
+        id,
+        label: `Order ${id}`,
+        description: orders[id],
+        kind: 'record',
+        value: id,
+        exact: id === code,
+      }))
+    return [{ id: 'orders', label: 'Orders', items }]
+  }
+
+  return (
+    <div className='grid gap-2'>
+      <QueryField
+        aria-label='Search orders'
+        placeholder='Search orders or type an order number'
+        suggest={suggest}
+        onAccept={(suggestion) =>
+          setTaken(suggestion.kind === 'record' ? `Opened ${suggestion.label}` : `Searched for “${suggestion.value}”`)
+        }
+      />
+      <p className='text-sm text-subtle'>{taken || 'Try ORD-2041, then press Enter'}</p>
+    </div>
+  )
+}
+```
+
+### With a shortcut and recent searches
+
+Set `shortcut` to let a key focus the field from anywhere on the page. The
+field ignores it while you type in another field. `recent` lists earlier
+searches above the fields while the field is empty.
+
+```tsx-live
+function QueryFieldShortcut() {
+  const recent = [
+    { id: 'recent:longacre', label: 'Venue is The Longacre', kind: 'filter', value: 'The Longacre' },
+    { id: 'recent:sold-out', label: 'Status is Sold out', kind: 'filter', value: 'Sold out' },
+  ]
+  const [chips, setChips] = useState([])
+
+  return (
+    <QueryField
+      aria-label='Search events'
+      shortcut='/'
+      recent={recent}
+      chips={chips}
+      onRemoveChip={(id) => setChips((current) => current.filter((chip) => chip.id !== id))}
+      onAccept={(suggestion) =>
+        suggestion.kind === 'filter' &&
+        setChips((current) =>
+          current.some((chip) => chip.id === suggestion.id)
+            ? current
+            : [...current, { id: suggestion.id, label: suggestion.label }]
+        )
+      }
+      suggest={() => []}
+    />
+  )
+}
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Order suggestions by what Enter does'>
+  <Guideline.Do>
+    Return filters first, then fields. The field adds "Search for …" last, and
+    Enter takes it unless a suggestion is an exact match.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't mark a filter `exact` to make Enter take it. People expect Enter to
+    search what they typed; filters are picked with the arrows or a click.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Write each chip as the whole condition'>
+  <Guideline.Do code={`{ id: 'venue', label: 'Venue is The Longacre' }`}>
+    Label a chip with field, operator and value, so it reads on its own.
+  </Guideline.Do>
+  <Guideline.Dont code={`{ id: 'venue', label: 'The Longacre' }`}>
+    Don't show the value alone. "The Longacre" could be a venue, a promoter or
+    a search.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Lock what the page decides'>
+  <Guideline.Do>
+    Lock a chip the page sets, such as the event a ticket list belongs to.
+    Clear leaves it alone.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't lock a filter someone added themselves. They need a way to remove it.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- The input is a combobox. Name it with `aria-label`, or put the field in
+  `Field` and use `Field.Label`.
+- **Arrow keys** move through the suggestions and **Enter** takes the one
+  you moved to. With nothing chosen, Enter takes an exact match, or searches
+  the text. The suggestion Enter would take shows an Enter key hint.
+- **Backspace** in an empty field selects the last chip you can remove; a
+  second Backspace removes it and returns focus to the input. **Left Arrow**
+  from the start of the input moves to the chips, and **Left** and **Right**
+  move between them.
+- On a chip, **Backspace** or **Delete** removes it, and **Enter** or
+  **Space** opens its editor when you pass `onEditChip`. Locked chips ignore
+  all four.
+- **Escape** closes the suggestions, or ends the value step. It never clears
+  the chips.
+- `shortcut` adds `aria-keyshortcuts` to the input. The key hint beside the
+  field is visual only, and hides once the field has focus.
+
+<PropsDefinitions componentPath='packages/components/src/components/QueryField' />
