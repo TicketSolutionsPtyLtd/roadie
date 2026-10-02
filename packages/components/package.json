@@ -144,6 +144,10 @@
       "types": "./dist/components/Input/index.d.ts",
       "import": "./dist/components/Input/index.js"
     },
+    "./kbd": {
+      "types": "./dist/components/Kbd/index.d.ts",
+      "import": "./dist/components/Kbd/index.js"
+    },
     "./label": {
       "types": "./dist/components/Label/index.d.ts",
       "import": "./dist/components/Label/index.js"

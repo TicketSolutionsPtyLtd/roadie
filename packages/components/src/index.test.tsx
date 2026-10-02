@@ -6,6 +6,7 @@ import {
   Button,
   Code,
   Highlight,
+  Kbd,
   Mark,
   type NumberFieldStepperEmphasis
 } from './index'
@@ -32,6 +33,11 @@ describe('Component exports', () => {
   it('exports the NumberField stepper emphasis type', () => {
     const emphasis: NumberFieldStepperEmphasis = 'strong'
     expect(emphasis).toBe('strong')
+  })
+
+  it('exports Kbd component', () => {
+    const { container } = render(<Kbd>Enter</Kbd>)
+    expect(container.querySelector('kbd')).toHaveTextContent('Enter')
   })
 
   it('exports Highlight component', () => {

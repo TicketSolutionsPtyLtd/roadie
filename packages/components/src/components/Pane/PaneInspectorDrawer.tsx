@@ -79,7 +79,7 @@ export function PaneInspectorDrawer({
       <Drawer.Content
         data-inspector-yielded=''
         size={size}
-        className='[--pane-surface:var(--intent-bg-raised)]'
+        className='[--pane-sticky-bottom:var(--pane-footer-height,0px)] [--pane-surface:var(--intent-bg-raised)]'
         {...label}
       >
         {/* Content with its own Pane.Header closes from there instead. */}

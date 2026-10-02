@@ -549,6 +549,13 @@ render(<Loading />)
 - `Pane.Body` is a Suspense boundary inside a `<div>` that fills the height the
   header leaves. A band or background on it reaches the pane's bottom edge,
   and a child with `grow` in a `flex flex-col` body does too.
+- A direct child of `Pane.Body` marked `data-pane-fill` takes the height the
+  rest of the body leaves. Give it its own overflow and it scrolls inside
+  itself, so the pane doesn't scroll.
+- Sticky content at the bottom of a pane can clear `Pane.Footer` with
+  `bottom: var(--pane-sticky-bottom)`. The pane keeps it at the footer's
+  height. On a phone the pane's padding already lifts sticky content above
+  the tab bar.
 - A pane catches a wait outside `Pane.Body` too. Then a skeleton header stands
   in for the real one.
 - `loading` on the pane replaces the default skeleton. `loading` on

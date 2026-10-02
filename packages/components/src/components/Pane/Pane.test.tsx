@@ -400,6 +400,15 @@ describe('the pane element', () => {
     warn.mockRestore()
     error.mockRestore()
   })
+
+  it('leaves no tab-bar clearance outside a Navigator, which has no tab bar', async () => {
+    await renderPane(<Pane>Body</Pane>)
+    expect(
+      document
+        .querySelector('[data-slot="pane-viewport"]')
+        ?.className.includes('max-md:pb-24')
+    ).toBe(false)
+  })
 })
 
 describe('an inspector', () => {

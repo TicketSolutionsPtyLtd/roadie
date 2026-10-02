@@ -77,4 +77,122 @@ describe('Pane.Body', () => {
 
     expect(getComputedStyle(content).display).toBe('block')
   })
+
+  it('gives a data-pane-fill child the height the rest leave, without scrolling', () => {
+    const { container, box } = renderPane(
+      <Pane.Body>
+        <div data-testid='fill' data-pane-fill style={{ overflow: 'auto' }}>
+          <div style={{ height: 3000 }} />
+        </div>
+        <p data-testid='after'>12 shows</p>
+      </Pane.Body>
+    )
+    const viewport = container.querySelector<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )!
+    const fill = container
+      .querySelector('[data-testid="fill"]')!
+      .getBoundingClientRect()
+    const after = container
+      .querySelector('[data-testid="after"]')!
+      .getBoundingClientRect()
+
+    expect(viewport.scrollHeight - viewport.clientHeight).toBeLessThanOrEqual(1)
+    expect(fill.top).toBeCloseTo(box('pane-header').bottom, 0)
+    expect(fill.height).toBeGreaterThan(200)
+    expect(after.bottom).toBeLessThanOrEqual(box('pane-viewport').bottom + 1)
+  })
+})
+
+describe('Pane sticky bottom', () => {
+  it('publishes the footer height as --pane-sticky-bottom, and drops it with the footer', async () => {
+    function Body({ footer }: { footer: boolean }) {
+      return (
+        <div style={{ width: 600, height: 500, display: 'grid' }}>
+          <Pane>
+            <Pane.Body>
+              <p>General admission</p>
+            </Pane.Body>
+            {footer && (
+              <Pane.Footer>
+                <p>Footer</p>
+              </Pane.Footer>
+            )}
+          </Pane>
+        </div>
+      )
+    }
+    const { container, rerender } = render(<Body footer={false} />)
+    const viewport = container.querySelector<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )!
+    const inset = () =>
+      getComputedStyle(viewport).getPropertyValue('--pane-sticky-bottom').trim()
+
+    expect(inset()).toBe('0px')
+    rerender(<Body footer />)
+    const footer = container.querySelector<HTMLElement>(
+      '[data-slot="pane-footer"]'
+    )!
+    await expect.poll(inset).toBe(`${footer.offsetHeight}px`)
+    expect(footer.offsetHeight).toBeGreaterThan(0)
+    rerender(<Body footer={false} />)
+    await expect.poll(inset).toBe('0px')
+  })
+})
+
+describe('Pane sticky bottom as the footer resizes', () => {
+  it('follows the footer to its new height', async () => {
+    const { container } = renderPane(
+      <>
+        <Pane.Body>
+          <p>General admission</p>
+        </Pane.Body>
+        <Pane.Footer>
+          <p data-testid='footer-content'>Footer</p>
+        </Pane.Footer>
+      </>
+    )
+    const viewport = container.querySelector<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )!
+    const footer = container.querySelector<HTMLElement>(
+      '[data-slot="pane-footer"]'
+    )!
+    const inset = () =>
+      getComputedStyle(viewport).getPropertyValue('--pane-sticky-bottom').trim()
+    await expect.poll(inset).toBe(`${footer.offsetHeight}px`)
+    const before = footer.offsetHeight
+
+    container.querySelector<HTMLElement>(
+      '[data-testid="footer-content"]'
+    )!.style.height = '120px'
+
+    expect(footer.offsetHeight).toBeGreaterThan(before)
+    await expect.poll(inset).toBe(`${footer.offsetHeight}px`)
+  })
+})
+
+describe('Pane.Footer', () => {
+  it('casts its shadow up over the body', () => {
+    const { container, box } = renderPane(
+      <>
+        <Pane.Body>
+          <p>General admission</p>
+        </Pane.Body>
+        <Pane.Footer>
+          <p>Footer</p>
+        </Pane.Footer>
+      </>
+    )
+    const footer = container.querySelector<HTMLElement>(
+      '[data-slot="pane-footer"]'
+    )!
+    const shade = getComputedStyle(footer, '::after')
+    const content = footer.querySelector('p')!.getBoundingClientRect()
+
+    expect(shade.boxShadow).not.toBe('none')
+    expect(shade.scale).toBe('1 -1')
+    expect(content.top - box('pane-footer').top).toBeCloseTo(12, 0)
+  })
 })
