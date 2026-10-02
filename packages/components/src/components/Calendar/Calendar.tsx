@@ -241,7 +241,7 @@ export function Calendar(props: CalendarProps) {
     endMonth,
     today: todayProp,
     timeZone,
-    locale = 'en-AU',
+    locale: localeProp = 'en-AU',
     autoFocus = false,
     className,
     ref,
@@ -252,14 +252,21 @@ export function Calendar(props: CalendarProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const numberOfMonths = Math.max(1, Math.floor(numberOfMonthsProp))
   const today = useToday(todayProp, timeZone)
+  // The grid is Gregorian, so its labels must be too, whatever the locale prefers.
+  const locale = new Intl.Locale(localeProp, { calendar: 'gregory' }).toString()
 
   const emptySelection =
     mode === 'multiple' ? [] : mode === 'range' ? emptyRange() : null
-  const [uncontrolledSelection, setUncontrolledSelection] = useState(
-    defaultSelected ?? emptySelection
-  )
+  const [uncontrolled, setUncontrolled] = useState(() => ({
+    mode,
+    selection: defaultSelected ?? emptySelection
+  }))
   const selection =
-    selectedProp !== undefined ? selectedProp : uncontrolledSelection
+    selectedProp !== undefined
+      ? selectedProp
+      : uncontrolled.mode === mode
+        ? uncontrolled.selection
+        : emptySelection
 
   const firstAllowedMonth = startMonth ? monthOf(startMonth) : null
   const lastAllowedMonth = endMonth
@@ -350,7 +357,7 @@ export function Calendar(props: CalendarProps) {
   }
 
   function commit(next: CalendarSelection) {
-    if (selectedProp === undefined) setUncontrolledSelection(next)
+    if (selectedProp === undefined) setUncontrolled({ mode, selection: next })
     onSelect?.(next)
   }
 
@@ -394,7 +401,7 @@ export function Calendar(props: CalendarProps) {
   }
 
   function onDayKeyDown(event: KeyboardEvent<HTMLButtonElement>, date: string) {
-    if (event.key === 'Escape' && extending) {
+    if (event.key === 'Escape' && extending && disabled !== true) {
       event.preventDefault()
       event.stopPropagation()
       commit(emptyRange())
@@ -409,6 +416,7 @@ export function Calendar(props: CalendarProps) {
     })
     if (!next) return
     event.preventDefault()
+    if (disabled === true && !isVisible(next)) return
     moveFocus(clampDate(next))
   }
 

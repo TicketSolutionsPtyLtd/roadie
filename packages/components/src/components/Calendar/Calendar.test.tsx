@@ -328,6 +328,49 @@ describe('Calendar', () => {
     expect(screen.getByRole('grid')).toHaveAccessibleName('May 2027')
   })
 
+  it('writes Gregorian labels whatever calendar the locale prefers', () => {
+    render(<Calendar today={TODAY} locale='th-TH' captionLayout='dropdown' />)
+    expect(
+      screen.getByRole('grid').getAttribute('aria-labelledby')
+    ).toBeTruthy()
+    expect(screen.getByRole('grid')).toHaveAccessibleName(/2027/)
+    expect(day('2027-03-14')).toHaveAccessibleName(/2027/)
+  })
+
+  it.each(['multiple', 'range'] as const)(
+    'starts empty when an uncontrolled calendar changes to %s mode',
+    async (mode) => {
+      const { rerender } = render(<Calendar today={TODAY} />)
+      rerender(<Calendar today={TODAY} mode={mode} />)
+      expect(screen.getByRole('grid')).toHaveAccessibleName('March 2027')
+      await userEvent.click(day('2027-03-14'))
+      expect(day('2027-03-14')).toHaveAttribute('data-selected')
+    }
+  )
+
+  it('keeps a disabled calendar on its month and its range', async () => {
+    const onMonthChange = vi.fn()
+    const onSelect = vi.fn()
+    render(
+      <Calendar
+        today='2027-03-31'
+        mode='range'
+        disabled
+        defaultSelected={{ start: '2027-03-30', end: null }}
+        onMonthChange={onMonthChange}
+        onSelect={onSelect}
+      />
+    )
+    act(() => day('2027-03-31').focus())
+    await userEvent.keyboard('{ArrowRight}{PageDown}')
+    expect(screen.getByRole('grid')).toHaveAccessibleName('March 2027')
+    expect(onMonthChange).not.toHaveBeenCalled()
+    await userEvent.keyboard('{ArrowLeft}')
+    expect(day('2027-03-30')).toHaveFocus()
+    await userEvent.keyboard('{Escape}')
+    expect(onSelect).not.toHaveBeenCalled()
+  })
+
   it('names days with modifiers as data attributes', () => {
     render(
       <Calendar
