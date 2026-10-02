@@ -182,6 +182,9 @@ function resolveRolling(
   const sign = direction === 'next' ? 1 : -1
   if (unit === 'hour') {
     const other = now + sign * amount * HOUR
+    if (Number.isNaN(new Date(other).getTime())) {
+      throw new RangeError(`${amount} hours runs past the supported dates`)
+    }
     return sign > 0 ? instants(now, other) : instants(other, now)
   }
   // Rolling windows count today, so "next 7 days" is today and six more.

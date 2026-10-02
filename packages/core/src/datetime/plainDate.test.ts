@@ -40,6 +40,15 @@ describe('plainDateOf', () => {
     ).toBe('2026-10-03')
   })
 
+  it('pads early years and throws past 9999', () => {
+    expect(plainDateOf(new Date('0001-06-01T00:00:00Z'), 'UTC')).toBe(
+      '0001-06-01'
+    )
+    expect(() =>
+      plainDateOf(new Date('+010000-06-01T00:00:00Z'), 'UTC')
+    ).toThrow(RangeError)
+  })
+
   it('throws on an invalid instant', () => {
     expect(() => plainDateOf(new Date('nope'), 'UTC')).toThrow(RangeError)
   })

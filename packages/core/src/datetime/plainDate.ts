@@ -79,9 +79,11 @@ export function fromDayNumber(days: number): string {
  * event time and the viewer's for a timestamp.
  */
 export function plainDateOf(instant: Instantish, timeZone: string): string {
-  const date = formatMachine(instant, { timeZone })
-  if (!date) throw new RangeError('Not a valid instant')
-  return date
+  const m = /^(\d+)-(\d{2})-(\d{2})$/.exec(
+    formatMachine(instant, { timeZone }) ?? ''
+  )
+  if (!m) throw new RangeError('Not a valid instant')
+  return toPlainDate(Number(m[1]), Number(m[2]), Number(m[3]))
 }
 
 function assertWholeNumber(value: number, name: string) {

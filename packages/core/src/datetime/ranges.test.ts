@@ -308,6 +308,15 @@ describe('resolveDateRange: instants', () => {
     expect(range.end).toBe(Date.parse('2026-10-04T13:00:00Z') - 1)
   })
 
+  it('rejects an hour window past the end of time', () => {
+    expect(() =>
+      resolveDateRange(
+        { direction: 'next', amount: Number.MAX_SAFE_INTEGER, unit: 'hour' },
+        SYDNEY
+      )
+    ).toThrow(RangeError)
+  })
+
   it('rejects a malformed or reversed range', () => {
     expect(() =>
       resolveDateRange({ start: '2026-10-14', end: '2026-10-01' }, SYDNEY)
