@@ -124,7 +124,7 @@ export function SortableHandle({
           return (
             <MenuItem
               key={direction}
-              disabled={unavailable}
+              disabled={unavailable || disabled}
               icon={<Icon weight='bold' />}
               onClick={() => root.move(value, to, true)}
             >

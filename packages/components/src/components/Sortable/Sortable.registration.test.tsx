@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -54,5 +54,32 @@ describe('Sortable registration', () => {
 
     expect(dnd.sortableItem).toHaveBeenCalledTimes(3)
     expect(dnd.sortableMonitor).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('Sortable teardown', () => {
+  it('clears the dragging state when a registration is torn down mid-drag', async () => {
+    const view = (disabled: boolean) => (
+      <Sortable items={['A', 'B']} onReorder={() => {}} disabled={disabled}>
+        {['A', 'B'].map((value) => (
+          <Sortable.Item key={value} value={value} label={value}>
+            <Sortable.Handle />
+          </Sortable.Item>
+        ))}
+      </Sortable>
+    )
+    vi.mocked(dnd.sortableItem).mockClear()
+    const { rerender } = render(view(false))
+    await waitFor(() => expect(dnd.sortableItem).toHaveBeenCalledTimes(2))
+    const options = vi.mocked(dnd.sortableItem).mock.calls[0]![0]
+    act(() => {
+      options.onDraggingChange(true)
+      options.onDropEdgeChange('bottom')
+    })
+    const item = document.querySelector('[data-slot="sortable-item"]')!
+    expect(item).toHaveAttribute('data-dragging')
+    rerender(view(true))
+    expect(item).not.toHaveAttribute('data-dragging')
+    expect(item).not.toHaveAttribute('data-drop-edge')
   })
 })

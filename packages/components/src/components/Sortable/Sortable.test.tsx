@@ -271,6 +271,26 @@ describe('Sortable', () => {
     expect(await screen.findByRole('menu')).toBeInTheDocument()
   })
 
+  it('disables the moves in an open menu when the sortable becomes disabled', async () => {
+    const onReorder = vi.fn()
+    const view = (disabled: boolean) => (
+      <Sortable items={['A', 'B']} onReorder={onReorder} disabled={disabled}>
+        {['A', 'B'].map((value) => (
+          <Sortable.Item key={value} value={value} label={value}>
+            <Sortable.Handle />
+          </Sortable.Item>
+        ))}
+      </Sortable>
+    )
+    const { rerender } = render(view(false))
+    const { user } = await openMenu('A')
+    rerender(view(true))
+    const down = screen.getByRole('menuitem', { name: 'Move A down' })
+    expect(down).toHaveAttribute('aria-disabled', 'true')
+    await user.click(down)
+    expect(onReorder).not.toHaveBeenCalled()
+  })
+
   it('disables every handle when disabled', () => {
     render(<Columns disabled />)
     for (const name of COLUMNS) expect(handle(name)).toBeDisabled()

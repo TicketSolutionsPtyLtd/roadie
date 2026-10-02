@@ -69,7 +69,7 @@ export function SortableItem({
 
   useEffect(() => {
     if (!element || !handle) return
-    return sortableItem({
+    const cleanup = sortableItem({
       element,
       handle,
       group,
@@ -84,6 +84,12 @@ export function SortableItem({
         return dropIndex({ from, target: index, edge, axis, dir }) !== from
       }
     })
+    // A drag torn down mid-flight never gets its drop, so reset here.
+    return () => {
+      cleanup()
+      setDragging(false)
+      setDropEdge(null)
+    }
   }, [element, handle, group, value, axis, disabled])
 
   useDevWarning(
