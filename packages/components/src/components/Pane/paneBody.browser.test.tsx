@@ -141,6 +141,38 @@ describe('Pane sticky bottom', () => {
   })
 })
 
+describe('Pane sticky bottom as the footer resizes', () => {
+  it('follows the footer to its new height', async () => {
+    const { container } = renderPane(
+      <>
+        <Pane.Body>
+          <p>General admission</p>
+        </Pane.Body>
+        <Pane.Footer>
+          <p data-testid='footer-content'>Footer</p>
+        </Pane.Footer>
+      </>
+    )
+    const viewport = container.querySelector<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )!
+    const footer = container.querySelector<HTMLElement>(
+      '[data-slot="pane-footer"]'
+    )!
+    const inset = () =>
+      getComputedStyle(viewport).getPropertyValue('--pane-sticky-bottom').trim()
+    await expect.poll(inset).toBe(`${footer.offsetHeight}px`)
+    const before = footer.offsetHeight
+
+    container.querySelector<HTMLElement>(
+      '[data-testid="footer-content"]'
+    )!.style.height = '120px'
+
+    expect(footer.offsetHeight).toBeGreaterThan(before)
+    await expect.poll(inset).toBe(`${footer.offsetHeight}px`)
+  })
+})
+
 describe('Pane.Footer', () => {
   it('casts its shadow up over the body', () => {
     const { container, box } = renderPane(
