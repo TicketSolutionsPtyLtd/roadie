@@ -20,6 +20,8 @@ export type ReadDateOptions = {
   weekStart?: number
   locale?: string
   disabled?: CalendarMatchers
+  /** How a refused date is named in its error. */
+  dateStyle?: DateStyle
 }
 
 export type ReadResult = { value: string | null } | { error: string }
@@ -80,7 +82,7 @@ export function readDate(text: string, options: ReadDateOptions): ReadResult {
   if (!date) return { error: TYPE_A_DATE }
   if (matchesDate(date, options.disabled)) {
     return {
-      error: `${formatDate(date, { locale: options.locale })} isn’t available`
+      error: `${formatDate(date, options)} isn’t available`
     }
   }
   return { value: date }

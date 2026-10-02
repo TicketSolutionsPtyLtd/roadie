@@ -71,7 +71,7 @@ render(<Default />)
 
 ### States
 
-Text that names no date stays in the field so it can be fixed, the field turns danger, and the value becomes null, so nothing stale is submitted. `Escape` puts back the last date.
+Text that names no date stays in the field so it can be fixed, the field turns danger, and the value becomes null, so nothing stale is submitted. `Escape` puts back the last date. On its own the field only marks itself invalid; put it in a `Field` with `Field.ErrorText` to say why.
 
 ```tsx-live
 <div className='grid max-w-64 gap-4'>
@@ -105,6 +105,7 @@ Wrap it in [Field](/components/field) for the label, helper text and spacing. It
   <Field.Label showIndicator>Show date</Field.Label>
   <DateField />
   <Field.HelperText>Type a date or a day, like 14 Mar or next Fri</Field.HelperText>
+  <Field.ErrorText />
 </Field>
 ```
 
@@ -138,7 +139,7 @@ render(
 
 ### With the venue's today
 
-Words like "today" and "next fri" are read on the calendar of `timeZone`, the viewer's by default. Pass the venue's zone when the date belongs to the venue. After midnight on a Friday in Sydney, "today" in Perth is still Friday.
+Words like "today" and "next fri" are read on the calendar of `timeZone`, the viewer's by default. Pass the venue's zone when the date belongs to the venue. Just after midnight in Sydney, as Saturday starts, it's still Friday in Perth.
 
 ```tsx-live
 <Field className='max-w-64'>
@@ -176,6 +177,6 @@ Words like "today" and "next fri" are read on the calendar of `timeZone`, the vi
 - It's a text input, so screen readers and every keyboard work as they do in any text field.
 - The text is read on blur or `Enter`. While text is being edited, `Enter` commits it instead of submitting the form, and `Escape` puts back the last date instead of closing a surrounding popover or dialog.
 - Unreadable text sets `aria-invalid`. Inside a `Field`, `aria-describedby` points at `Field.ErrorText`, which says what to type and is announced as an alert.
-- With a `name`, a hidden input submits the ISO date, so a form never receives the formatted text.
+- With a `name`, a hidden input submits the ISO date, so a form never receives the formatted text. A disabled field submits nothing.
 
 <PropsDefinitions componentPath='packages/components/src/components/DateField/DateField.tsx' />

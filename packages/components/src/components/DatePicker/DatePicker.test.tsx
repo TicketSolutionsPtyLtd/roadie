@@ -112,7 +112,78 @@ describe('DatePicker', () => {
     )
   })
 
+  it('keeps showing the value when a controlled parent refuses a change', async () => {
+    render(
+      <DatePicker
+        aria-label='Show date'
+        today={TODAY}
+        value='2026-11-27'
+        onValueChange={() => {}}
+      />
+    )
+    const input = screen.getByRole('textbox')
+    await userEvent.clear(input)
+    await userEvent.type(input, '14 mar{Enter}')
+    expect(input).toHaveValue('Fri 27 Nov 2026')
+  })
+
+  it('leaves a disabled value out of the form', () => {
+    const { container } = render(
+      <form>
+        <DatePicker
+          aria-label='Show date'
+          name='showDate'
+          defaultValue='2026-11-27'
+          disabled
+        />
+      </form>
+    )
+    expect(new FormData(container.querySelector('form')!).get('showDate')).toBe(
+      null
+    )
+  })
+
+  it('names the calendar popup', async () => {
+    render(<DatePicker aria-label='Show date' today={TODAY} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Choose date' }))
+    expect(
+      await screen.findByRole('dialog', { name: 'Choose date' })
+    ).toBeInTheDocument()
+  })
+
+  it('passes placeholder and inputRef to the date input', () => {
+    const ref = { current: null as HTMLInputElement | null }
+    render(
+      <DatePicker
+        aria-label='Show date'
+        placeholder='14 Mar or next Fri'
+        inputRef={ref}
+      />
+    )
+    const input = screen.getByRole('textbox')
+    expect(input).toHaveAttribute('placeholder', '14 Mar or next Fri')
+    expect(ref.current).toBe(input)
+  })
+
   describe('at minute granularity', () => {
+    it('shows the time a daylight saving jump moves it to', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DatePicker
+          aria-label='Doors'
+          granularity='minute'
+          timeZone='Australia/Sydney'
+          today={TODAY}
+          defaultValue='2026-10-04'
+          onValueChange={onValueChange}
+        />
+      )
+      const time = screen.getByRole('textbox', { name: 'Time' })
+      await userEvent.type(time, '2:30am{Enter}')
+      expect(onValueChange).toHaveBeenCalledWith('2026-10-04T03:30:00+11:00')
+      expect(time).toHaveValue('3:30am')
+    })
+
     it('groups a date and a time under one name', () => {
       render(
         <DatePicker

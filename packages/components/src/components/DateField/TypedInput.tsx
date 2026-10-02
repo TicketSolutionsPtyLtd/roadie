@@ -12,8 +12,6 @@ export type TypedInputProps = Omit<
   typed: ReturnType<typeof useTypedValue>
   disabled?: boolean
   invalid?: boolean
-  /** Takes the id `Field.Label` points at. Only one input in a field can. */
-  labelledByField?: boolean
 }
 
 /** A text input wired to a typed value and the surrounding `Field`. */
@@ -21,8 +19,8 @@ export function TypedInput({
   typed,
   disabled,
   invalid,
-  labelledByField = true,
   name,
+  form,
   id,
   required,
   onBlur,
@@ -33,6 +31,7 @@ export function TypedInput({
   const isInvalid = !!typed.error || (invalid ?? field.invalid)
   const describedBy = isInvalid ? field.errorTextId : field.helperTextId
   const isRequired = required ?? field.required
+  const isDisabled = disabled || field.disabled || undefined
 
   return (
     <>
@@ -40,8 +39,9 @@ export function TypedInput({
         type='text'
         autoComplete='off'
         spellCheck={false}
-        id={id ?? ((labelledByField && field.fieldId) || undefined)}
-        disabled={disabled || field.disabled || undefined}
+        id={id ?? (field.fieldId || undefined)}
+        form={form}
+        disabled={isDisabled}
         required={isRequired}
         aria-required={isRequired || undefined}
         aria-invalid={isInvalid || undefined}
@@ -59,7 +59,15 @@ export function TypedInput({
           if (!event.defaultPrevented) typed.onKeyDown(event)
         }}
       />
-      {name && <input type='hidden' name={name} value={typed.value ?? ''} />}
+      {name && (
+        <input
+          type='hidden'
+          name={name}
+          form={form}
+          disabled={isDisabled}
+          value={typed.value ?? ''}
+        />
+      )}
     </>
   )
 }

@@ -24,16 +24,22 @@ export function FieldRoot({
   const labelId = `${fieldId}-label`
   const helperTextId = `${fieldId}-helper`
   const errorTextId = `${fieldId}-error`
-  // Keyed by control, so one control clearing its error leaves another's.
-  const [controlErrors, setControlErrors] = useState<Record<string, string>>({})
+  // Keyed by control, so one control clearing its error leaves another's, and
+  // a control changing its message keeps its place.
+  const [controlErrors, setControlErrors] = useState<[string, string][]>([])
   const setControlError = useCallback(
     (control: string, message: string | null) =>
-      setControlErrors(({ [control]: _, ...others }) =>
-        message === null ? others : { ...others, [control]: message }
-      ),
+      setControlErrors((errors) => {
+        if (message === null) return errors.filter(([key]) => key !== control)
+        if (!errors.some(([key]) => key === control))
+          return [...errors, [control, message]]
+        return errors.map((error) =>
+          error[0] === control ? [control, message] : error
+        )
+      }),
     []
   )
-  const controlError = Object.values(controlErrors)[0] ?? null
+  const controlError = controlErrors[0]?.[1] ?? null
 
   return (
     <FieldContext

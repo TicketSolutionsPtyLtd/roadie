@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, useRef, useState } from 'react'
+import { type ComponentProps, type Ref, useRef, useState } from 'react'
 
 import { CalendarBlankIcon } from '@phosphor-icons/react'
 
@@ -69,19 +69,44 @@ export type DatePickerProps = Omit<
   size?: 'sm' | 'md' | 'lg'
   /** @default 'normal' */
   emphasis?: 'normal' | 'subtle'
-  /** @default 'long' */
+  /** Hint in the empty date input, such as "14 Mar or next Fri". */
+  placeholder?: string
+  /** A ref to the date input, for focusing it. */
+  inputRef?: Ref<HTMLInputElement>
+  /**
+   * How the date reads when not being edited, from the datetime formatters.
+   *
+   * @default 'long'
+   */
   dateStyle?: DateStyle
-  /** @default 12 */
+  /**
+   * At `minute` granularity, `12` reads "7:30pm" and `24` reads "19:30".
+   *
+   * @default 12
+   */
   hourCycle?: HourCycle
-  /** @default 1 */
+  /**
+   * At `minute` granularity, minutes per step of the time field's arrow keys.
+   * A typed time off the step shows an error.
+   *
+   * @default 1
+   */
   minuteStep?: number
   /** Today as an ISO date. Defaults to today in `timeZone`. */
   today?: string
-  /** @default 1 */
+  /**
+   * First day of the week in the calendar: 1 is Monday and 7 is Sunday.
+   *
+   * @default 1
+   */
   weekStart?: number
   /** @default 'en-AU' */
   locale?: string
-  /** @default 'label' */
+  /**
+   * `dropdown` swaps the calendar's month name for month and year selects.
+   *
+   * @default 'label'
+   */
   captionLayout?: 'label' | 'dropdown'
   /** The earliest month the calendar reaches, as any ISO date in it. */
   startMonth?: string
@@ -89,9 +114,13 @@ export type DatePickerProps = Omit<
   endMonth?: string
   /** Whether the calendar is open. Pair with `onOpenChange`. */
   open?: boolean
+  /** Whether the calendar starts open when uncontrolled. */
   defaultOpen?: boolean
+  /** Called when the calendar opens or closes. */
   onOpenChange?: (open: boolean) => void
 }
+
+const EMPTY: DateTimeParts = { date: null, time: null }
 
 /** A typed date field with a calendar to choose from, and a time when needed. */
 export function DatePicker({
@@ -107,6 +136,8 @@ export function DatePicker({
   name,
   size = 'md',
   emphasis,
+  placeholder,
+  inputRef,
   dateStyle,
   hourCycle,
   minuteStep,
@@ -122,6 +153,7 @@ export function DatePicker({
   className,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy,
+  'aria-describedby': ariaDescribedBy,
   ...props
 }: DatePickerProps) {
   const field = useFieldContext()
@@ -131,22 +163,31 @@ export function DatePicker({
   const disabledDays = typeof disabled === 'boolean' ? undefined : disabled
   const isInvalid = invalid ?? field.invalid
 
-  const [state, setState] = useState(() => ({
+  const [local, setLocal] = useState(() => ({
     parts: splitValue(valueProp ?? defaultValue, zone),
     seen: valueProp,
     emitted: undefined as string | null | undefined
   }))
-  // A value from outside replaces the parts; the one just emitted does not,
-  // so a date waiting for its time survives a parent that holds null.
-  if (valueProp !== undefined && valueProp !== state.seen) {
-    setState({
+  // A value from outside replaces the local parts; the one just emitted does
+  // not, so a date waiting for its time survives a parent that holds null.
+  if (valueProp !== undefined && valueProp !== local.seen) {
+    setLocal({
       parts:
-        valueProp === state.emitted ? state.parts : splitValue(valueProp, zone),
+        valueProp === local.emitted ? local.parts : splitValue(valueProp, zone),
       seen: valueProp,
       emitted: undefined
     })
   }
-  const { parts } = state
+  // A controlled value decides what shows, so a refused change doesn't linger.
+  // Local parts show only while they wait for their other half.
+  const parts =
+    valueProp === undefined
+      ? local.parts
+      : valueProp !== null
+        ? splitValue(valueProp, zone)
+        : joinValue(local.parts, granularity, zone) === null
+          ? local.parts
+          : EMPTY
   const value =
     valueProp !== undefined ? valueProp : joinValue(parts, granularity, zone)
 
@@ -154,9 +195,10 @@ export function DatePicker({
     const next = { ...parts, ...patch }
     const joined = joinValue(next, granularity, zone)
     const changed = joined !== value
-    setState((current) => ({
+    setLocal((current) => ({
       ...current,
-      parts: next,
+      // Read back, so a time a daylight saving jump skips shows where it lands.
+      parts: joined && withTime ? splitValue(joined, zone) : next,
       emitted: changed ? joined : current.emitted
     }))
     if (changed) onValueChange?.(joined)
@@ -213,10 +255,7 @@ export function DatePicker({
           data-slot='date-picker-group'
           aria-invalid={isInvalid || !!date.error || undefined}
           data-disabled={isDisabled || undefined}
-          className={cn(
-            datePickerGroupVariants({ size, emphasis }),
-            isDisabled && 'opacity-50'
-          )}
+          className={datePickerGroupVariants({ size, emphasis })}
         >
           <TypedInput
             data-slot='date-picker-input'
@@ -227,6 +266,9 @@ export function DatePicker({
             readOnly={readOnly}
             aria-label={withTime ? 'Date' : ariaLabel}
             aria-labelledby={withTime ? undefined : ariaLabelledBy}
+            {...(ariaDescribedBy && { 'aria-describedby': ariaDescribedBy })}
+            placeholder={placeholder}
+            ref={inputRef}
             className='h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle'
           />
           <Popover.Trigger
@@ -236,6 +278,8 @@ export function DatePicker({
                 aria-label='Choose date'
                 emphasis='subtler'
                 size={triggerSizes[size]}
+                // The disabled group already dims, so the button doesn't again.
+                className='in-data-disabled:opacity-100!'
               >
                 <CalendarBlankIcon weight='bold' className='size-4' />
               </IconButton>
@@ -244,6 +288,7 @@ export function DatePicker({
         </div>
         <Popover.Content
           ref={popupRef}
+          aria-label='Choose date'
           align='start'
           positionerProps={{ anchor: groupRef }}
           className='max-w-[var(--available-width)]'
@@ -289,7 +334,14 @@ export function DatePicker({
           locale={locale}
         />
       )}
-      {name && <input type='hidden' name={name} value={value ?? ''} />}
+      {name && (
+        <input
+          type='hidden'
+          name={name}
+          disabled={isDisabled || undefined}
+          value={value ?? ''}
+        />
+      )}
     </div>
   )
 }

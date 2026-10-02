@@ -119,7 +119,7 @@ Wrap it in [Field](/components/field). The label points at the date input, and `
 ```tsx-live
 <Field required className='max-w-64'>
   <Field.Label showIndicator>Show date</Field.Label>
-  <DatePicker />
+  <DatePicker placeholder='14 Mar or next Fri' />
   <Field.HelperText>Type a date or choose one</Field.HelperText>
   <Field.ErrorText />
 </Field>
@@ -188,10 +188,10 @@ Wrap it in [Field](/components/field). The label points at the date input, and `
 
 ## Accessibility
 
-- The date is a text input, labelled by `Field.Label` or `aria-label`. The calendar button is labelled "Choose date".
+- The date is a text input, labelled by `Field.Label` or `aria-label`. The calendar button and the calendar popup are labelled "Choose date".
 - At `minute` granularity the date and the time are a `group` named by the label, with inputs named "Date" and "Time".
 - Opening the calendar moves focus to the chosen day, or to today. Arrow keys, `Page Up`, `Page Down`, `Home` and `End` move as in [Calendar](/components/calendar). `Enter` or `Space` chooses the focused day and closes it. `Escape` closes it without a change. Either way focus goes back to the button, so on a phone the keyboard doesn't open.
 - While text is being edited, `Enter` commits it instead of submitting the form, and `Escape` puts back the last date.
-- With a `name`, a hidden input submits the value, so a form never receives the formatted text.
+- With a `name`, a hidden input submits the value, so a form never receives the formatted text. A disabled picker submits nothing.
 
 <PropsDefinitions componentPath='packages/components/src/components/DatePicker/DatePicker.tsx' />

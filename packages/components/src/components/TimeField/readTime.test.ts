@@ -57,6 +57,13 @@ describe('formatTime', () => {
   })
 })
 
+describe('a minute step that is not a whole number of 1 or more', () => {
+  it('reads as 1', () => {
+    expect(readTime('7:32pm', { minuteStep: 0 })).toEqual({ value: '19:32' })
+    expect(stepTime('19:30', 1, 0)).toBe('19:31')
+  })
+})
+
 describe('stepTime', () => {
   it.each([
     ['19:30', 1, 15, '19:45'],

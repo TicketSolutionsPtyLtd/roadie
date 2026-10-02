@@ -135,6 +135,14 @@ describe('DatePicker on a phone', () => {
 })
 
 describe('DatePicker field', () => {
+  it('dims once when disabled', () => {
+    render(<DatePicker aria-label='Show date' disabled />)
+    let opacity = 1
+    for (let node: Element | null = trigger(); node; node = node.parentElement)
+      opacity *= Number(getComputedStyle(node).opacity)
+    expect(opacity).toBeCloseTo(0.5)
+  })
+
   it('takes the field’s accent ring when its text has focus', async () => {
     render(<ShowDate />)
     const group = document.querySelector<HTMLElement>(

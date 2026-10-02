@@ -4,6 +4,10 @@ import type { ReadResult } from '../DateField/readDate'
 
 export type HourCycle = 12 | 24
 
+function wholeStep(minuteStep: number): number {
+  return Number.isInteger(minuteStep) && minuteStep >= 1 ? minuteStep : 1
+}
+
 const MINUTES_IN_DAY = 24 * 60
 
 function minutesOf(time: string): number {
@@ -54,8 +58,9 @@ export function readTime(
       error: `Enter a time, like ${hourCycle === 24 ? '19:30' : '7:30pm'}`
     }
   }
-  if (minutesOf(found) % minuteStep !== 0) {
-    return { error: `Choose a time in ${minuteStep}-minute steps` }
+  const step = wholeStep(minuteStep)
+  if (minutesOf(found) % step !== 0) {
+    return { error: `Choose a time in ${step}-minute steps` }
   }
   return { value: found }
 }
@@ -66,10 +71,11 @@ export function stepTime(
   direction: 1 | -1,
   minuteStep: number
 ): string {
+  const step = wholeStep(minuteStep)
   const minutes = minutesOf(time)
   const onStep =
     direction > 0
-      ? Math.floor(minutes / minuteStep) * minuteStep + minuteStep
-      : Math.ceil(minutes / minuteStep) * minuteStep - minuteStep
+      ? Math.floor(minutes / step) * step + step
+      : Math.ceil(minutes / step) * step - step
   return timeOf(onStep)
 }

@@ -85,6 +85,22 @@ describe('DateField', () => {
     expect(screen.getByRole('textbox')).not.toHaveAttribute('name')
   })
 
+  it('leaves a disabled value out of the form', () => {
+    const { container } = render(
+      <form>
+        <DateField
+          aria-label='Show date'
+          name='showDate'
+          defaultValue='2026-11-27'
+          disabled
+        />
+      </form>
+    )
+    expect(new FormData(container.querySelector('form')!).get('showDate')).toBe(
+      null
+    )
+  })
+
   it('leaves the value alone when focused and left untouched', async () => {
     const onValueChange = vi.fn()
     render(

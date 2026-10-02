@@ -83,6 +83,7 @@ export function DateField({
         timeZone,
         weekStart,
         locale,
+        dateStyle,
         disabled: typeof disabled === 'boolean' ? undefined : disabled
       })
   })

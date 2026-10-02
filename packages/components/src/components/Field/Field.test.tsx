@@ -489,3 +489,30 @@ describe('Field.ErrorText and a control’s own error', () => {
     expect(getByRole('alert')).toHaveTextContent('Enter a time')
   })
 })
+
+describe('Field.ErrorText with two controls’ errors', () => {
+  function Control({ error }: { error: string | null }) {
+    useFieldControlError(error)
+    return null
+  }
+
+  it('keeps showing the first while it changes its message', () => {
+    const { getByRole, rerender } = render(
+      <Field>
+        <Control error='Enter a date' />
+        <Control error='Enter a time' />
+        <Field.ErrorText />
+      </Field>
+    )
+    rerender(
+      <Field>
+        <Control error='Thu 1 Oct 2026 isn’t available' />
+        <Control error='Enter a time' />
+        <Field.ErrorText />
+      </Field>
+    )
+    expect(getByRole('alert')).toHaveTextContent(
+      'Thu 1 Oct 2026 isn’t available'
+    )
+  })
+})

@@ -54,8 +54,11 @@ export function useFieldControlError(message: string | null) {
   const control = useId()
   const { setControlError } = use(FieldControlErrorContext)
   useEffect(() => {
-    if (!setControlError || message === null) return
-    setControlError(control, message)
-    return () => setControlError(control, null)
+    setControlError?.(control, message)
   }, [setControlError, control, message])
+  // Cleared only on unmount, so a changed message keeps its place.
+  useEffect(
+    () => () => setControlError?.(control, null),
+    [setControlError, control]
+  )
 }

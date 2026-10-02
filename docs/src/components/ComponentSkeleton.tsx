@@ -166,7 +166,7 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <div className='flex items-center justify-between rounded-lg border border-subtle bg-normal py-1 ps-3 pe-1'>
             <span className='text-sm text-normal'>Fri 27 Nov 2026</span>
             <div className='grid size-6 place-items-center rounded-full text-subtle'>
-              <CalendarBlankIcon weight='bold' className='size-3.5' />
+              <CalendarBlankIcon weight='bold' className='size-3' />
             </div>
           </div>
           <div className='grid w-28 grid-cols-7 gap-0.5 rounded-xl emphasis-floating p-1.5'>

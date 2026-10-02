@@ -20,7 +20,7 @@ import { TimeField } from '@oztix/roadie-components/time-field'
 
 ### Default
 
-Type a time the way you would say it: "7:30pm", "7pm", "19:30" or "noon". The text is read when the field loses focus or on `Enter`. The value is `'HH:MM'` on a 24-hour clock, such as `'19:30'`, or null. A time has no date and no zone, so pair it with a date where it matters, or use [DatePicker](/components/date-picker) with `granularity='minute'`.
+Type a time the way you would say it: "7:30pm", "7pm", "19:30" or "noon". A time with no "am" or "pm" reads on a 24-hour clock, so "7:30" is morning. The text is read when the field loses focus or on `Enter`. The value is `'HH:MM'` on a 24-hour clock, such as `'19:30'`, or null. A time has no date and no zone, so pair it with a date where it matters, or use [DatePicker](/components/date-picker) with `granularity='minute'`.
 
 ```tsx-live-noinline
 function Default() {
@@ -136,5 +136,6 @@ Wrap it in [Field](/components/field) for the label and helper text. It takes `i
 - It's a text input. `ArrowUp` and `ArrowDown` step the time by `minuteStep`, wrapping at midnight.
 - The text is read on blur or `Enter`. While text is being edited, `Enter` commits it instead of submitting the form, and `Escape` puts back the last time.
 - Unreadable text sets `aria-invalid`, and inside a `Field` points `aria-describedby` at `Field.ErrorText`.
+- On its own the field only marks itself invalid. Put it in a `Field` with `Field.ErrorText` so the reason is shown and read out.
 
 <PropsDefinitions componentPath='packages/components/src/components/TimeField/TimeField.tsx' />
