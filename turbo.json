@@ -8,8 +8,11 @@
     },
     "build": {
       "dependsOn": ["^build"],
+      "env": ["NEXT_PUBLIC_BASE_PATH"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css,json}",
+        "src/**/*.mdx",
+        "mdx-components.tsx",
         "src/**/*.html",
         "scripts/**/*.{js,mjs,cjs,ts}",
         "*.config.{js,mjs,cjs,ts}",

@@ -71,7 +71,7 @@ async function scrollThrough(page: Page) {
   }
 }
 
-/** How far a heading sits from where a jump should land it: its scroller's top, past scroll-padding and scroll-margin. A heading too near the end to reach that spot counts as landed once its scroller is at the end. */
+/** How far a heading sits from where a jump should land it: its scroller's top, past scroll-padding and scroll-margin. */
 const headingOffset = (page: Page, id: string) =>
   page.evaluate((id) => {
     const heading = document.getElementById(id)!
@@ -82,10 +82,7 @@ const headingOffset = (page: Page, id: string) =>
     const padding = parseFloat(getComputedStyle(target).scrollPaddingTop) || 0
     const margin = parseFloat(getComputedStyle(heading).scrollMarginTop) || 0
     const top = scroller ? target.getBoundingClientRect().top : 0
-    const offset = heading.getBoundingClientRect().top - top - padding - margin
-    const atEnd =
-      target.scrollTop + target.clientHeight >= target.scrollHeight - 1
-    return atEnd && offset > 0 ? 0 : offset
+    return heading.getBoundingClientRect().top - top - padding - margin
   }, id)
 
 const sideways = (page: Page) =>
@@ -115,12 +112,11 @@ describe('live examples', () => {
     await page.context().close()
   }, 120_000)
 
-  it('let On this page land on the last heading, past every pending example', async () => {
+  it('let On this page land on a heading past every pending example', async () => {
     const { page, errors } = await open('/components/number-field/', 1280)
     const link = page
       .getByRole('navigation', { name: 'On this page' })
-      .getByRole('link')
-      .last()
+      .getByRole('link', { name: 'Accessibility', exact: true })
     const id = (await link.getAttribute('href'))!.slice(1)
 
     await link.click()
