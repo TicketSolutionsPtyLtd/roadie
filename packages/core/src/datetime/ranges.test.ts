@@ -288,6 +288,15 @@ describe('resolveDateRange: instants', () => {
     })
   })
 
+  it('keeps a year under 100 in its own century', () => {
+    const range = resolveDateRange(
+      { start: '0050-06-01T12:00', end: '0050-06-01T13:00' },
+      { now: FRIDAY, timeZone: 'UTC' }
+    )
+    expect(new Date(range.start as number).getUTCFullYear()).toBe(50)
+    expect(new Date(range.start as number).getUTCHours()).toBe(12)
+  })
+
   it('honours an explicit offset', () => {
     expect(
       resolveDateRange(

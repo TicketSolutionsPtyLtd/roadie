@@ -5,6 +5,7 @@ function wallClockFormat(timeZone: string): Intl.DateTimeFormat {
   return dateTimeFormat('en-US', {
     timeZone,
     hourCycle: 'h23',
+    era: 'short',
     year: 'numeric',
     month: 'numeric',
     day: 'numeric',
@@ -23,15 +24,15 @@ function offsetAt(epoch: number, timeZone: string): number {
   const parts = wallClockFormat(timeZone).formatToParts(new Date(epoch))
   const get = (type: string) =>
     Number(parts.find((p) => p.type === type)?.value)
-  const wall = Date.UTC(
-    get('year'),
-    get('month') - 1,
-    get('day'),
-    get('hour') % 24,
-    get('minute'),
-    get('second')
-  )
-  return wall - Math.floor(epoch / 1000) * 1000
+  // Intl counts 1 BC as year 1 of the BC era; the proleptic year is 0.
+  const year =
+    parts.find((p) => p.type === 'era')?.value === 'BC'
+      ? 1 - get('year')
+      : get('year')
+  const wall = new Date(0)
+  wall.setUTCFullYear(year, get('month') - 1, get('day'))
+  wall.setUTCHours(get('hour') % 24, get('minute'), get('second'))
+  return wall.getTime() - Math.floor(epoch / 1000) * 1000
 }
 
 export type WallClock = {
