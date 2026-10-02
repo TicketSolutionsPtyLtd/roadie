@@ -47,9 +47,15 @@ describe('Combobox', () => {
   })
 
   it('renders InputGroup with different sizes', () => {
-    expect(comboboxInputGroupVariants({ size: 'sm' })).toContain('h-8')
-    expect(comboboxInputGroupVariants({ size: 'md' })).toContain('h-10')
-    expect(comboboxInputGroupVariants({ size: 'lg' })).toContain('h-12')
+    for (const [size, height] of [
+      ['sm', 'min-h-8'],
+      ['md', 'min-h-10'],
+      ['lg', 'min-h-12']
+    ] as const) {
+      const classes = comboboxInputGroupVariants({ size })
+      expect(classes.split(' ')).toContain(height)
+      expect(classes).not.toMatch(/(^|\s)h-\d/)
+    }
   })
 
   it('renders Label sub-component', () => {

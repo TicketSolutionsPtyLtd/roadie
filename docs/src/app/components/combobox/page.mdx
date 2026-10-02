@@ -6,6 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
 
 A searchable dropdown for filtering and selecting from a list of options.
 
@@ -275,6 +276,82 @@ function ComboboxRichItems() {
 }
 ```
 
+### Multiple selection
+
+Set `multiple` to pick more than one value. `Combobox.Value` hands the current
+values to a function; render a `Combobox.Chip` for each one inside
+`Combobox.Chips`, with the input last. Put the text in `Combobox.ChipLabel` so a
+long value truncates. The input group grows as the chips wrap.
+
+```tsx-live
+function ComboboxMultiple() {
+  const genres = [
+    'Rock',
+    'Indie',
+    'Hip hop',
+    'Electronic',
+    'Jazz',
+    'Folk',
+    'Country',
+    'Metal',
+    'Punk',
+    'Soul',
+  ]
+
+  return (
+    <Field>
+      <Field.Label>Genres</Field.Label>
+      <Combobox items={genres} multiple defaultValue={['Indie', 'Folk']}>
+        <Combobox.InputGroup>
+          <Combobox.Value>
+            {(value) => (
+              <Combobox.Chips
+                aria-label={value.length > 0 ? 'Selected genres' : undefined}
+              >
+                {value.map((genre) => (
+                  <Combobox.Chip
+                    key={genre}
+                    aria-label={genre}
+                    aria-description='Press Backspace or Delete to remove'
+                  >
+                    <Combobox.ChipLabel>{genre}</Combobox.ChipLabel>
+                    <Combobox.ChipRemove aria-label={`Remove ${genre}`} />
+                  </Combobox.Chip>
+                ))}
+                <Combobox.Input
+                  placeholder={value.length > 0 ? '' : 'Search genres...'}
+                  aria-description={
+                    value.length > 0
+                      ? `${value.length} selected. Press Left Arrow to move to them`
+                      : undefined
+                  }
+                />
+              </Combobox.Chips>
+            )}
+          </Combobox.Value>
+          <Combobox.Trigger />
+        </Combobox.InputGroup>
+        <Combobox.Portal>
+          <Combobox.Positioner>
+            <Combobox.Popup>
+              <Combobox.List>
+                {(genre) => (
+                  <Combobox.Item key={genre} value={genre}>
+                    {genre}
+                    <Combobox.ItemIndicator />
+                  </Combobox.Item>
+                )}
+              </Combobox.List>
+              <Combobox.Empty>No genres found</Combobox.Empty>
+            </Combobox.Popup>
+          </Combobox.Positioner>
+        </Combobox.Portal>
+      </Combobox>
+    </Field>
+  )
+}
+```
+
 ## Guidelines
 
 ### When to use Combobox
@@ -339,15 +416,56 @@ For server-side search, update the `items` prop as results arrive. Use
 </Combobox>
 ```
 
-### Keyboard behaviour
+### Chips
 
-- **Arrow keys** navigate the list
-- **Enter** confirms the highlighted item
-- **Escape** closes the popup
-- Typing filters the list in real time
+<div className='grid gap-8'>
 
-### Accessibility
+<Guideline title='Name every chip and its remove button'>
+  <Guideline.Do code={`<Combobox.Chip aria-label={genre}>
+  <Combobox.ChipLabel>{genre}</Combobox.ChipLabel>
+  <Combobox.ChipRemove aria-label={\`Remove \${genre}\`} />
+</Combobox.Chip>`}>
+    Label each chip with its value and each remove button with what it
+    removes, such as "Remove Folk".
+  </Guideline.Do>
+  <Guideline.Dont code={`<Combobox.ChipRemove aria-label='Remove' />`}>
+    Don't give every remove button the same name. A screen reader can't tell
+    them apart.
+  </Guideline.Dont>
+</Guideline>
 
+<Guideline title='Let the chips replace the placeholder'>
+  <Guideline.Do>
+    Clear the placeholder once a value is chosen. The chips already say what
+    the field holds.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't keep "Search genres..." beside three chosen genres.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- **Arrow keys** move through the list; **Enter** picks the highlighted item
+  and **Escape** closes the popup. Typing filters the list as you go.
+- With `multiple`, **Backspace** in an empty input removes the last chip.
+  **Left Arrow** from the start of the input moves to the chips, **Left** and
+  **Right** move between them (swapped in a right-to-left layout), and
+  **Backspace** or **Delete** removes the focused one. Focus moves to the
+  next chip, or the previous one after the last, and returns to the input
+  once no chips are left.
+- **Escape** while the popup is closed clears every value, not just the last
+  one.
+- `Combobox.Chips` becomes a toolbar once it holds chips, so screen readers
+  stay in focus mode while the arrows move between them. Name it with
+  `aria-label` while it holds chips.
+- `Combobox.ChipRemove` stays out of the tab order. Click it to remove a chip;
+  from the keyboard, press Backspace on the chip. Leave it out of a `readOnly`
+  combobox, where it can't remove anything.
+- `aria-description` on the chip and input, as in the example, adds a hint for
+  screen readers that support it. The labels must make sense without it.
 - Use a `<label>` or `Combobox.Label` to name the input.
 - `Combobox.ItemIndicator` shows a check on the selected item, include it for clarity.
 - `Combobox.Empty` announces "no results" to screen readers automatically.
