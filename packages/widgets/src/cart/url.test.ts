@@ -97,15 +97,18 @@ describe('buildCheckoutUrl', () => {
 describe('buildBrowseHref', () => {
   const COLLECTION = 'abc-123-DEF'
 
-  it('builds the /collection/ events route with the id', () => {
-    expect(buildBrowseHref(COLLECTION)).toBe('/collection/?id=abc-123-DEF')
+  it('builds the /collection/{id} events route', () => {
+    expect(buildBrowseHref(COLLECTION)).toBe('/collection/abc-123-DEF')
   })
   it('returns "/" when collectionId is empty', () => {
     expect(buildBrowseHref('')).toBe('/')
   })
-  it('encodes collectionId so a hostile value cannot inject query params', () => {
-    const href = buildBrowseHref('&inject=evil')
-    expect(href).toContain('id=%26inject%3Devil')
-    expect(href).not.toMatch(/[?&]inject=evil/)
+  it('encodes collectionId so a hostile value stays in one path segment', () => {
+    expect(buildBrowseHref('../admin?x=1#y')).toBe(
+      '/collection/..%2Fadmin%3Fx%3D1%23y'
+    )
+  })
+  it('returns a safe relative path for a hostile collectionId', () => {
+    expect(isSafeRelativePath(buildBrowseHref('//evil.com'))).toBe(true)
   })
 })
