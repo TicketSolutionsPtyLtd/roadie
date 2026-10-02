@@ -54,6 +54,16 @@ describe('resolveTableTotals', () => {
     expect(values.gross).toBe(-1.13)
   })
 
+  it('keeps a total for any column key, __proto__ included', () => {
+    const { values } = resolveTableTotals(
+      [{ key: '__proto__', header: 'Sold', kind: 'number' }],
+      [JSON.parse('{"__proto__": 4}'), JSON.parse('{"__proto__": 5}')],
+      'sum'
+    )
+    expect(Object.hasOwn(values, '__proto__')).toBe(true)
+    expect(values['__proto__']).toBe(9)
+  })
+
   it('names the rows and counts them in house format', () => {
     const many = Array.from({ length: 1240 }, () => rows[0]!)
     expect(

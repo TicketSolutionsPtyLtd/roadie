@@ -888,6 +888,21 @@ describe('validateDashboard status columns', () => {
     ])
   })
 
+  it('reads every cell the way a table shows it, arrays included', () => {
+    const result = validateDashboard(
+      ordersTable({ status: { paid: { intent: 'success' } } }, [
+        { order: 'OZ-1001', status: [1, 2] }
+      ])
+    )
+    expect(result.problems).toEqual([
+      {
+        path: 'sections[0].cards[0].columns[1].status',
+        message: '"1,2" has no status, so it shows as neutral',
+        severity: 'warning'
+      }
+    ])
+  })
+
   it('leaves an empty status alone, since it shows as empty', () => {
     const result = validateDashboard(
       ordersTable({ status: { paid: { intent: 'success' } } }, [

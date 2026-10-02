@@ -8,6 +8,9 @@ import { columnStatus } from '@oztix/roadie-core/dashboard-layout'
 export type DataTableSortDirection = 'ascending' | 'descending'
 export type DataTableSort = { key: string; direction: DataTableSortDirection }
 
+export const cellOf = (row: TableRow, key: string) =>
+  Object.hasOwn(row, key) ? row[key] : undefined
+
 export const isSortableColumn = (column: TableColumn) =>
   column.kind !== 'sparkline'
 
@@ -60,7 +63,7 @@ export function sortedRowOrder(
   const column = columns.find((candidate) => candidate.key === sort?.key)
   if (!sort || !column || !isSortableColumn(column)) return order
 
-  const values = rows.map((row) => sortValue(column, row[column.key]))
+  const values = rows.map((row) => sortValue(column, cellOf(row, column.key)))
   const sign = sort.direction === 'ascending' ? 1 : -1
   return order.sort((a, b) => {
     const left = values[a]

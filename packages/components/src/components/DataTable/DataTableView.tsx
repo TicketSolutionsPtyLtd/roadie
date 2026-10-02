@@ -15,6 +15,7 @@ import { SortIcon } from './SortIcon'
 import {
   type DataTableSort,
   type DataTableSortDirection,
+  cellOf,
   isSortableColumn
 } from './sort'
 
@@ -158,8 +159,8 @@ export function DataTableView({
               const linked =
                 !!href &&
                 title !== undefined &&
-                row[title.key] != null &&
-                row[title.key] !== ''
+                cellOf(row, title.key) != null &&
+                cellOf(row, title.key) !== ''
               return (
                 <Table.Row
                   key={key}
@@ -170,10 +171,10 @@ export function DataTableView({
                     <Table.Cell key={column.key} {...cellAttributes(column)}>
                       <DataTableCellContent
                         column={column}
-                        value={row[column.key]}
+                        value={cellOf(row, column.key)}
                         secondary={
                           column.secondaryKey
-                            ? row[column.secondaryKey]
+                            ? cellOf(row, column.secondaryKey)
                             : undefined
                         }
                         plain={plain}
@@ -201,7 +202,7 @@ export function DataTableView({
                         {footer.label}
                       </th>
                     )
-                  const value = footer.values[column.key]
+                  const value = cellOf(footer.values, column.key)
                   return (
                     <Table.Cell key={column.key} {...attributes} align={align}>
                       {value !== undefined && (

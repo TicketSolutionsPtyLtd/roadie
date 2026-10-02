@@ -63,7 +63,7 @@ export function resolveTableTotals(
   const label =
     given.label ??
     `Totals for ${count.format(rows.length)} ${rows.length === 1 ? recordName.one : recordName.other}`
-  const values: Record<string, TableCell> = {}
+  const values: Record<string, TableCell> = Object.create(null)
   for (const column of columns) {
     if (!isSummable(column)) continue
     const total = sum(column, rows)

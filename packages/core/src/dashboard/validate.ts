@@ -381,13 +381,14 @@ function statusProblems(table: TableData, path: string) {
     const unknown = [
       ...new Set(
         table.rows.flatMap((row) => {
-          const cell = row[column.key]
-          // A table shows a number key as its string, as it does here.
+          const cell = Object.hasOwn(row, column.key)
+            ? row[column.key]
+            : undefined
+          // A table shows any other cell as its string, as it does here.
           const key =
-            (typeof cell === 'string' && cell !== '') ||
-            typeof cell === 'number'
-              ? String(cell)
-              : undefined
+            cell === null || cell === undefined || cell === ''
+              ? undefined
+              : String(cell)
           return key !== undefined &&
             !(column.status && Object.hasOwn(column.status, key))
             ? [key]

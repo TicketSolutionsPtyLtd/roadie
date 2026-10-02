@@ -1,7 +1,12 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { DataTable, type DataTableColumn, sortDataTableRows } from '.'
+import {
+  DataTable,
+  type DataTableColumn,
+  type DataTableRow,
+  sortDataTableRows
+} from '.'
 
 const status: DataTableColumn = {
   key: 'status',
@@ -62,6 +67,31 @@ describe('DataTable status columns', () => {
         direction: 'ascending'
       }).at(-1)?.show
     ).toBe('Alex Lahey')
+  })
+
+  it('reads only a row own fields, so a missing constructor stays empty', () => {
+    const special: DataTableColumn = { ...status, key: 'constructor' }
+    const specialRows: DataTableRow[] = [
+      { show: 'Ocean Alley' },
+      { show: 'Alex Lahey', constructor: 'on_sale' }
+    ]
+    const { container } = render(
+      <DataTable
+        columns={[columns[0]!, special]}
+        rows={specialRows}
+        totals={{ label: 'All shows', values: {} }}
+      />
+    )
+    const row = screen.getByText('Ocean Alley').closest('tr')!
+    expect(row.querySelector('[data-slot=badge]')).toBeNull()
+    expect(row).toHaveTextContent('Not available')
+    expect(container.querySelector('tfoot')!.textContent).toBe('All shows')
+    expect(
+      sortDataTableRows(specialRows, [special], {
+        key: 'constructor',
+        direction: 'ascending'
+      }).map((row) => row.show)
+    ).toEqual(['Alex Lahey', 'Ocean Alley'])
   })
 
   it('sorts by label, A to Z first', () => {
