@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { createRef, useState } from 'react'
 
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -73,8 +73,12 @@ function Harness({ initialChips = [], ...props }: HarnessProps) {
 
 const input = () => screen.getByRole('combobox', { name: 'Search orders' })
 const chipNames = () =>
-  [...document.querySelectorAll('[data-slot=combobox-chip]')].map((chip) =>
-    chip.getAttribute('aria-label')
+  [...document.querySelectorAll('[data-slot=combobox-chip]')].map(
+    (chip) => chip.querySelector('[data-slot=combobox-chip-label]')?.textContent
+  )
+const chipElement = (id: string) =>
+  document.querySelector<HTMLElement>(
+    `[data-slot=combobox-chip][data-chip-id="${id}"]`
   )
 const optionNames = () =>
   screen
@@ -272,10 +276,7 @@ describe('QueryField', () => {
     await userEvent.tab()
     await userEvent.keyboard('{Backspace}')
     expect(chipNames()).toHaveLength(3)
-    expect(document.activeElement).toHaveAttribute(
-      'aria-label',
-      'City is Perth'
-    )
+    expect(document.activeElement).toBe(chipElement('city'))
     await userEvent.keyboard('{Backspace}')
     expect(chipNames()).toEqual(['Event is Neon Nights', 'Status is On sale'])
     expect(document.activeElement).toBe(input())
@@ -287,10 +288,7 @@ describe('QueryField', () => {
     await userEvent.keyboard('{Backspace}{Backspace}')
     expect(chipNames()).toEqual(['Event is Neon Nights'])
     await userEvent.keyboard('{ArrowLeft}')
-    expect(document.activeElement).toHaveAttribute(
-      'aria-label',
-      'Event is Neon Nights'
-    )
+    expect(document.activeElement).toBe(chipElement('event'))
     await userEvent.keyboard('{Delete}{Backspace}')
     expect(chipNames()).toEqual(['Event is Neon Nights'])
   })
@@ -310,19 +308,185 @@ describe('QueryField', () => {
     expect(chipNames()).toEqual(['Event is Neon Nights'])
   })
 
-  it('opens a chip editor on click, Enter or Space', async () => {
+  it('opens a chip editor on click, Enter or Space, anchored to the chip', async () => {
     const onEditChip = vi.fn()
     render(<Harness initialChips={[scope, status]} onEditChip={onEditChip} />)
-    const chip = screen.getByRole('button', { name: 'Status is On sale' })
-    await userEvent.click(chip)
+    const chip = chipElement('status')!
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Status is On sale' })
+    )
     expect(onEditChip).toHaveBeenLastCalledWith('status', chip)
     chip.focus()
     await userEvent.keyboard('{Enter}')
     await userEvent.keyboard(' ')
     expect(onEditChip).toHaveBeenCalledTimes(3)
     expect(
-      screen.queryByRole('button', { name: 'Event is Neon Nights' })
+      screen.queryByRole('button', { name: /Event is Neon Nights/ })
     ).not.toBeInTheDocument()
+  })
+
+  it('keeps the remove button outside the edit button', () => {
+    render(<Harness initialChips={[status]} onEditChip={() => {}} />)
+    const edit = screen.getByRole('button', { name: 'Status is On sale' })
+    const remove = screen.getByRole('button', {
+      name: 'Remove Status is On sale'
+    })
+    expect(edit.contains(remove)).toBe(false)
+    expect(chipElement('status')).not.toHaveAttribute('role')
+    expect(chipElement('status')).not.toHaveAttribute('aria-label')
+  })
+
+  it('tells screen readers a locked chip is set by the page', () => {
+    render(<Harness initialChips={[scope]} />)
+    expect(chipElement('event')).toHaveTextContent(
+      'Event is Neon Nights, set by this page'
+    )
+  })
+
+  it('describes the input with the pending chip, alongside Field help', () => {
+    render(
+      <Field>
+        <Field.Label>Find orders</Field.Label>
+        <QueryField
+          suggest={suggestFor}
+          pendingChip={{ id: 'venue', label: 'Venue is' }}
+        />
+        <Field.HelperText>Search by name</Field.HelperText>
+      </Field>
+    )
+    expect(
+      screen.getByRole('combobox', { name: 'Find orders' })
+    ).toHaveAccessibleDescription('Search by name Venue is')
+  })
+
+  it('does nothing to chips or text while disabled', async () => {
+    const onEditChip = vi.fn()
+    render(
+      <Harness
+        disabled
+        shortcut='/'
+        defaultInputValue='neon'
+        initialChips={[status]}
+        onEditChip={onEditChip}
+      />
+    )
+    expect(
+      screen.queryByRole('button', { name: 'Clear' })
+    ).not.toBeInTheDocument()
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Status is On sale' })
+    )
+    chipElement('status')!.focus()
+    await userEvent.keyboard('{Enter}{Backspace}')
+    expect(onEditChip).not.toHaveBeenCalled()
+    expect(chipNames()).toEqual(['Status is On sale'])
+    document.body.focus()
+    const slash = new KeyboardEvent('keydown', { key: '/', cancelable: true })
+    document.dispatchEvent(slash)
+    expect(slash.defaultPrevented).toBe(false)
+  })
+
+  it('searches the free text after arrowing to the search row', async () => {
+    const onAccept = vi.fn()
+    render(<Harness onAccept={onAccept} />)
+    await typeInto('long')
+    await waitFor(() => expect(optionNames()).toHaveLength(3))
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: 'search', value: 'long' })
+    )
+  })
+
+  it('never lets Enter take a suggestion the pointer rests on', async () => {
+    const onAccept = vi.fn()
+    render(<Harness onAccept={onAccept} />)
+    await typeInto('long')
+    await userEvent.hover(
+      await screen.findByRole('option', { name: /Venue is The Longacre/ })
+    )
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: 'search' })
+    )
+  })
+
+  it('never lets Enter take a value under the pointer after a click', async () => {
+    const onAccept = vi.fn()
+    function ValueStep() {
+      const [pending, setPending] = useState(false)
+      return (
+        <Harness
+          pendingChip={pending ? { id: 'venue', label: 'Venue is' } : undefined}
+          suggest={(text) =>
+            pending
+              ? [{ id: 'values', label: 'Venue is', items: [longacre, order] }]
+              : suggestFor(text)
+          }
+          onAccept={(suggestion) => {
+            onAccept(suggestion)
+            if (suggestion.kind === 'field') setPending(true)
+          }}
+        />
+      )
+    }
+    render(<ValueStep />)
+    await userEvent.click(input())
+    await userEvent.click(await screen.findByRole('option', { name: /Venue/ }))
+    await waitFor(() => expect(optionNames()).toContain('Order 1042'))
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(order)
+  })
+
+  it('ignores an exact match found for older text', async () => {
+    const onAccept = vi.fn()
+    const later = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
+    render(
+      <Harness
+        onAccept={onAccept}
+        suggest={(text) =>
+          text === '1042x' ? later.promise : suggestFor(text)
+        }
+      />
+    )
+    await typeInto('1042')
+    await waitFor(() => expect(optionNames()).toContain('Order 1042'))
+    await userEvent.keyboard('x{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: 'search', value: '1042x' })
+    )
+  })
+
+  it('leaves Enter alone while composing or with a modifier', async () => {
+    const onAccept = vi.fn()
+    render(<Harness onAccept={onAccept} />)
+    await typeInto('long')
+    fireEvent.keyDown(input(), { key: 'Enter', isComposing: true })
+    fireEvent.keyDown(input(), { key: 'Enter', keyCode: 229 })
+    fireEvent.keyDown(input(), { key: 'Enter', metaKey: true })
+    expect(onAccept).not.toHaveBeenCalled()
+  })
+
+  it('keeps recent items out of the value step', async () => {
+    render(
+      <Harness
+        recent={[longacre]}
+        pendingChip={{ id: 'venue', label: 'Venue is' }}
+      />
+    )
+    await userEvent.click(input())
+    await waitFor(() => expect(optionNames()).toEqual(['Venue']))
+  })
+
+  it('hands its input to inputRef', () => {
+    const inputRef = createRef<HTMLInputElement>()
+    render(<Harness inputRef={inputRef} />)
+    expect(inputRef.current).toBe(input())
+  })
+
+  it('leaves form validity to the app', () => {
+    render(<Harness required />)
+    expect(input()).toHaveAttribute('aria-required', 'true')
+    expect(document.querySelector('input[required]')).toBeNull()
   })
 
   it('clears text and unlocked chips, never locked ones', async () => {

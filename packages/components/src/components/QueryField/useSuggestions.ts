@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import type { QueryFieldSuggestionGroup } from './types'
@@ -10,6 +10,12 @@ type Suggest<Value> = (
 ) =>
   | readonly QueryFieldSuggestionGroup<Value>[]
   | Promise<readonly QueryFieldSuggestionGroup<Value>[]>
+
+type Suggestions<Value> = {
+  groups: readonly QueryFieldSuggestionGroup<Value>[]
+  /** The text these groups were asked for. */
+  inputValue: string
+}
 
 const NONE: readonly never[] = []
 
@@ -25,19 +31,31 @@ export function useSuggestions<Value>(
   useIsomorphicLayoutEffect(() => {
     suggestRef.current = suggest
   })
-  const [groups, setGroups] =
-    useState<readonly QueryFieldSuggestionGroup<Value>[]>(NONE)
+  const [suggestions, setSuggestions] = useState<Suggestions<Value>>({
+    groups: NONE,
+    inputValue: ''
+  })
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!open) return
     let current = true
-    Promise.resolve(suggestRef.current(inputValue)).then((next) => {
-      if (current) setGroups(next)
-    })
+    const result = suggestRef.current(inputValue)
+    if (!(result instanceof Promise)) {
+      setSuggestions({ groups: result, inputValue })
+      return
+    }
+    result.then(
+      (groups) => {
+        if (current) setSuggestions({ groups, inputValue })
+      },
+      () => {
+        if (current) setSuggestions({ groups: NONE, inputValue })
+      }
+    )
     return () => {
       current = false
     }
   }, [inputValue, open, pendingId])
 
-  return groups
+  return suggestions
 }

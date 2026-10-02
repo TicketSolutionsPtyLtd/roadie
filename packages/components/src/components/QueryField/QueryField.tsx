@@ -2,14 +2,14 @@
 
 import {
   type KeyboardEvent,
-  type MouseEvent,
-  type RefObject,
-  useEffect,
+  type Ref,
+  useId,
   useMemo,
   useRef,
   useState
 } from 'react'
 
+import type { BaseUIEvent } from '@base-ui/react/types'
 import {
   LockSimpleIcon,
   MagnifyingGlassIcon,
@@ -31,6 +31,7 @@ import type {
   QueryFieldSuggestion,
   QueryFieldSuggestionGroup
 } from './types'
+import { useControlledText, useShortcut } from './useShortcut'
 import { useSuggestions } from './useSuggestions'
 
 export type QueryFieldProps<Value = unknown> = {
@@ -38,7 +39,7 @@ export type QueryFieldProps<Value = unknown> = {
   chips?: readonly QueryFieldChip[]
   /** A chip's remove button, Backspace on a selected chip, or Clear asks to remove it. */
   onRemoveChip?: (id: string) => void
-  /** Makes unlocked chips buttons: open your editor `Popover` against `anchor`. */
+  /** Gives unlocked chips an edit button: open your editor `Popover` against `anchor`, the chip. */
   onEditChip?: (id: string, anchor: HTMLElement) => void
   /** Replaces the `onRemoveChip` calls Clear makes for each unlocked chip. */
   onClear?: () => void
@@ -46,8 +47,11 @@ export type QueryFieldProps<Value = unknown> = {
   pendingChip?: { id: string; label: string }
   /** Backspace on an empty field or Escape, while a chip is pending. */
   onPendingChipCancel?: () => void
+  /** The typed text, searched as it changes. Controlled. */
   inputValue?: string
+  /** The typed text to start with. Uncontrolled. */
   defaultInputValue?: string
+  /** Typing changed the text, or taking a suggestion cleared it. */
   onInputValueChange?: (value: string) => void
   /** Suggestions for the text, in the order shown: filters first, then fields. */
   suggest: (
@@ -61,8 +65,14 @@ export type QueryFieldProps<Value = unknown> = {
   recent?: readonly QueryFieldSuggestion<Value>[]
   /** @default 'Search and filter' */
   placeholder?: string
-  /** A key that focuses the field from anywhere on the page, such as `/`. Ignored while typing elsewhere. */
+  /**
+   * A single key, such as `/`, that focuses the field from anywhere on the
+   * page. Ignored while typing in another field. Unlike `Menu.Item`'s
+   * display-only `shortcut`, this binds the key.
+   */
   shortcut?: string
+  /** The input, for focusing it after an editor closes. */
+  inputRef?: Ref<HTMLInputElement>
   /** @default 'md' */
   size?: 'sm' | 'md' | 'lg'
   /** @default 'normal' */
@@ -71,56 +81,27 @@ export type QueryFieldProps<Value = unknown> = {
   invalid?: boolean
   /** Inherits from `Field` when omitted. */
   disabled?: boolean
-  /** Inherits from `Field` when omitted. */
+  /** Announced as required; the field never blocks a form. Inherits from `Field` when omitted. */
   required?: boolean
+  /** Names the field when it isn't inside `Field`. */
   'aria-label'?: string
   className?: string
 }
 
+type HighlightReason = 'keyboard' | 'pointer' | 'none'
+
 const DEFAULT_PLACEHOLDER = 'Search and filter'
 const NO_CHIPS: readonly QueryFieldChip[] = []
 
-function isTyping(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) return false
+function isEnterForSomethingElse(event: KeyboardEvent) {
   return (
-    target.isContentEditable ||
-    target.closest(
-      'input, textarea, select, [contenteditable=""], [contenteditable="true"]'
-    ) !== null
+    event.nativeEvent.isComposing ||
+    event.keyCode === 229 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.altKey ||
+    event.shiftKey
   )
-}
-
-function useShortcut(
-  key: string | undefined,
-  inputRef: RefObject<HTMLInputElement | null>
-) {
-  useEffect(() => {
-    if (!key) return
-    function onKeyDown(event: globalThis.KeyboardEvent) {
-      if (event.key !== key || event.defaultPrevented) return
-      if (event.metaKey || event.ctrlKey || event.altKey) return
-      if (isTyping(event.target)) return
-      event.preventDefault()
-      inputRef.current?.focus()
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [key, inputRef])
-}
-
-function useControlledText(
-  value: string | undefined,
-  defaultValue: string,
-  onChange?: (value: string) => void
-) {
-  const [own, setOwn] = useState(defaultValue)
-  const text = value ?? own
-  function setText(next: string) {
-    if (next === text) return
-    if (value === undefined) setOwn(next)
-    onChange?.(next)
-  }
-  return [text, setText] as const
 }
 
 export function QueryField<Value = unknown>({
@@ -138,6 +119,7 @@ export function QueryField<Value = unknown>({
   recent,
   placeholder = DEFAULT_PLACEHOLDER,
   shortcut,
+  inputRef: inputRefProp,
   size,
   emphasis,
   invalid,
@@ -147,17 +129,25 @@ export function QueryField<Value = unknown>({
   className
 }: QueryFieldProps<Value>) {
   const field = useFieldContext()
+  const pendingId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
-  const chipElements = useRef(new Map<string, HTMLElement>())
+  const inputRefs = useMemo(
+    () => mergeRefs(inputRef, inputRefProp),
+    [inputRefProp]
+  )
+  const highlightReason = useRef<HighlightReason>('none')
   const [text, setText] = useControlledText(
     inputValue,
     defaultInputValue,
     onInputValueChange
   )
   const [open, setOpen] = useState(false)
-  const [keyboardHighlight, setKeyboardHighlight] =
-    useState<QueryFieldAccepted<Value>>()
-  useShortcut(shortcut, inputRef)
+  const [keyboardHighlightId, setKeyboardHighlightId] = useState<string>()
+
+  const isDisabled = disabled ?? field.disabled
+  const isInvalid = invalid ?? field.invalid
+  const isRequired = required ?? field.required
+  useShortcut(isDisabled ? undefined : shortcut, inputRef)
 
   const ordered = useMemo(
     () => [
@@ -167,19 +157,28 @@ export function QueryField<Value = unknown>({
     [chips]
   )
   const unlocked = ordered.filter((chip) => !chip.locked)
-  const groups = useSuggestions(suggest, text, open, pendingChip?.id)
+  const suggestions = useSuggestions(suggest, text, open, pendingChip?.id)
   const list = listGroups({
-    groups,
+    groups: suggestions.groups,
     inputValue: text,
     recent,
     pending: !!pendingChip
   })
-  const exact = exactSuggestion(groups)
-  const search = list.find((group) => group.id === 'search')?.items[0]
-  const enterTarget = keyboardHighlight ?? exact ?? search
+  const exact =
+    suggestions.inputValue === text
+      ? exactSuggestion(suggestions.groups)
+      : undefined
+  const search = list
+    .flatMap((group) => group.items)
+    .find((item) => item.kind === 'search')
+  const enterTargetId = keyboardHighlightId ?? exact?.id ?? search?.id
 
-  const isDisabled = disabled ?? field.disabled
-  const isInvalid = invalid ?? field.invalid
+  const fieldDescription = field.invalid
+    ? field.errorTextId
+    : field.helperTextId
+  const describedBy = pendingChip
+    ? [field.fieldId && fieldDescription, pendingId].filter(Boolean).join(' ')
+    : undefined
 
   function accept(suggestion: QueryFieldAccepted<Value>) {
     if (suggestion.kind !== 'search') setText('')
@@ -194,13 +193,24 @@ export function QueryField<Value = unknown>({
     inputRef.current?.focus()
   }
 
+  function chipElement(id: string) {
+    const group = inputRef.current?.closest('[data-slot=query-field]')
+    return [
+      ...(group?.querySelectorAll<HTMLElement>('[data-slot=combobox-chip]') ??
+        [])
+    ].find((element) => element.dataset.chipId === id)
+  }
+
+  function edit(chip: QueryFieldChip) {
+    const element = chipElement(chip.id)
+    if (element) onEditChip?.(chip.id, element)
+  }
+
   function handleInputKeyDown(
-    event: KeyboardEvent<HTMLInputElement> & {
-      preventBaseUIHandler: () => void
-    }
+    event: BaseUIEvent<KeyboardEvent<HTMLInputElement>>
   ) {
-    const empty = event.currentTarget.value === ''
-    if (event.key === 'Enter' && !keyboardHighlight) {
+    if (event.key === 'Enter') {
+      if (isEnterForSomethingElse(event) || keyboardHighlightId) return
       event.preventBaseUIHandler()
       event.preventDefault()
       const target = exact ?? search
@@ -217,21 +227,22 @@ export function QueryField<Value = unknown>({
       event.preventBaseUIHandler()
       return
     }
-    if (event.key === 'Backspace' && empty) {
+    if (event.key === 'Backspace' && event.currentTarget.value === '') {
       event.preventBaseUIHandler()
       if (pendingChip) {
         onPendingChipCancel?.()
         return
       }
       const last = unlocked.at(-1)
-      if (last) chipElements.current.get(last.id)?.focus()
+      if (last) chipElement(last.id)?.focus()
     }
   }
 
   function handleChipKeyDown(
     chip: QueryFieldChip,
-    event: KeyboardEvent<HTMLDivElement> & { preventBaseUIHandler: () => void }
+    event: BaseUIEvent<KeyboardEvent<HTMLDivElement>>
   ) {
+    if (isDisabled) return
     if (event.key === 'Backspace' || event.key === 'Delete') {
       event.preventBaseUIHandler()
       event.preventDefault()
@@ -247,30 +258,24 @@ export function QueryField<Value = unknown>({
     ) {
       event.preventBaseUIHandler()
       event.preventDefault()
-      onEditChip(chip.id, event.currentTarget)
-    }
-  }
-
-  function chipRef(id: string) {
-    return (element: HTMLDivElement | null) => {
-      if (element) chipElements.current.set(id, element)
-      else chipElements.current.delete(id)
+      edit(chip)
     }
   }
 
   const showShortcut =
-    !!shortcut && !text && ordered.length === 0 && !pendingChip
+    !!shortcut && !isDisabled && !text && ordered.length === 0 && !pendingChip
 
   return (
     <Combobox
       multiple
       items={list}
       filter={null}
-      value={ordered as unknown as QueryFieldAccepted<Value>[]}
+      value={ordered as readonly unknown[] as QueryFieldAccepted<Value>[]}
       onValueChange={(next, details) => {
         details.cancel()
         if (next.length > ordered.length) {
-          accept(next.at(-1) as QueryFieldAccepted<Value>)
+          const taken = next.at(-1)
+          if (taken) accept(taken)
           return
         }
         const removed = ordered.find(
@@ -285,25 +290,26 @@ export function QueryField<Value = unknown>({
       open={open}
       onOpenChange={(next) => {
         setOpen(next)
-        if (!next) setKeyboardHighlight(undefined)
+        if (!next) setKeyboardHighlightId(undefined)
       }}
-      onItemHighlighted={(item, details) =>
-        setKeyboardHighlight(
-          details.reason === 'pointer'
-            ? undefined
-            : (item as QueryFieldAccepted<Value> | undefined)
+      onItemHighlighted={(item, details) => {
+        // A list that changes under the pointer re-highlights with reason
+        // `none`; only arrows may make an item Enter's target.
+        const reason = details.reason as HighlightReason
+        if (reason !== 'none') highlightReason.current = reason
+        setKeyboardHighlightId(
+          highlightReason.current === 'keyboard' ? item?.id : undefined
         )
-      }
+      }}
       itemToStringLabel={(item: { label: string }) => item.label}
       disabled={isDisabled}
-      required={required ?? field.required}
     >
       <Combobox.InputGroup
         data-slot='query-field'
         size={size}
         emphasis={emphasis}
         aria-invalid={isInvalid || undefined}
-        className={cn('group/query-field gap-2 ps-3', className)}
+        className={cn('group/query-field gap-2', className)}
       >
         <MagnifyingGlassIcon
           aria-hidden
@@ -318,18 +324,20 @@ export function QueryField<Value = unknown>({
                   render={(props) => (
                     <Combobox.Chip
                       {...(props as ComboboxChipProps)}
-                      ref={mergeRefs(props.ref, chipRef(chip.id))}
                       data-slot='combobox-chip'
+                      data-chip-id={chip.id}
                       data-locked=''
-                      aria-label={chip.label}
                       className={cn(
                         props.className,
                         'gap-1 ps-2 pe-2.5',
                         chip.intent && intentVariants[chip.intent]
                       )}
                       onKeyDown={(event) => {
-                        props.onKeyDown?.(event as never)
-                        handleChipKeyDown(chip, event as never)
+                        props.onKeyDown?.(event)
+                        handleChipKeyDown(
+                          chip,
+                          event as BaseUIEvent<KeyboardEvent<HTMLDivElement>>
+                        )
                       }}
                     />
                   )}
@@ -340,34 +348,37 @@ export function QueryField<Value = unknown>({
                     className='size-3 shrink-0'
                   />
                   <Combobox.ChipLabel>{chip.label}</Combobox.ChipLabel>
+                  <span className='sr-only'>, set by this page</span>
                 </Tooltip.Trigger>
                 <Tooltip.Content>Set by this page</Tooltip.Content>
               </Tooltip>
             ) : (
               <Combobox.Chip
                 key={chip.id}
-                ref={chipRef(chip.id)}
-                aria-label={chip.label}
-                role={onEditChip ? 'button' : undefined}
-                className={cn(
-                  onEditChip && 'cursor-pointer',
-                  chip.intent && intentVariants[chip.intent]
-                )}
-                onClick={
-                  onEditChip
-                    ? (event: MouseEvent<HTMLDivElement>) =>
-                        onEditChip(chip.id, event.currentTarget)
-                    : undefined
-                }
-                onKeyDown={(event) => handleChipKeyDown(chip, event as never)}
+                data-chip-id={chip.id}
+                className={cn(chip.intent && intentVariants[chip.intent])}
+                onKeyDown={(event) => handleChipKeyDown(chip, event)}
               >
-                <Combobox.ChipLabel>{chip.label}</Combobox.ChipLabel>
+                {onEditChip ? (
+                  <button
+                    type='button'
+                    tabIndex={-1}
+                    disabled={isDisabled}
+                    className='inline-flex min-w-0 cursor-pointer outline-none'
+                    onClick={() => edit(chip)}
+                  >
+                    <Combobox.ChipLabel>{chip.label}</Combobox.ChipLabel>
+                  </button>
+                ) : (
+                  <Combobox.ChipLabel>{chip.label}</Combobox.ChipLabel>
+                )}
                 <Combobox.ChipRemove aria-label={`Remove ${chip.label}`} />
               </Combobox.Chip>
             )
           )}
           {pendingChip && (
             <span
+              id={pendingId}
               data-slot='query-field-pending-chip'
               className='inline-flex h-6 max-w-full min-w-0 items-center rounded-full border border-dashed border-normal px-2.5 text-sm font-medium text-subtle'
             >
@@ -375,12 +386,14 @@ export function QueryField<Value = unknown>({
             </span>
           )}
           <Combobox.Input
-            ref={inputRef}
+            ref={inputRefs}
             aria-label={ariaLabel}
             aria-invalid={isInvalid || undefined}
+            aria-required={isRequired || undefined}
             aria-keyshortcuts={shortcut}
+            {...(describedBy && { 'aria-describedby': describedBy })}
             placeholder={ordered.length > 0 || pendingChip ? '' : placeholder}
-            onKeyDown={(event) => handleInputKeyDown(event as never)}
+            onKeyDown={handleInputKeyDown}
           />
         </Combobox.Chips>
         {showShortcut && (
@@ -392,7 +405,7 @@ export function QueryField<Value = unknown>({
             {shortcut}
           </Kbd>
         )}
-        {(text || unlocked.length > 0) && (
+        {!isDisabled && (text || unlocked.length > 0) && (
           <button
             type='button'
             aria-label='Clear'
@@ -427,7 +440,7 @@ export function QueryField<Value = unknown>({
                             </span>
                           )}
                         </span>
-                        {enterTarget === item && (
+                        {enterTargetId === item.id && (
                           <Kbd size='sm' className='text-subtle'>
                             Enter
                           </Kbd>

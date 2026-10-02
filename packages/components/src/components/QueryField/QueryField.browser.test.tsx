@@ -130,12 +130,25 @@ describe('QueryField', () => {
     expect(search.querySelector('kbd')).toBeNull()
   })
 
+  it('searches on Enter while the pointer rests on a filter', async () => {
+    const accepted: string[] = []
+    render(
+      <Harness onAccept={(suggestion) => accepted.push(suggestion.kind)} />
+    )
+    await userEvent.click(input())
+    await userEvent.keyboard('long')
+    const filter = await screen.findByRole('option', { name: /The Longacre/ })
+    await userEvent.hover(filter)
+    await userEvent.keyboard('{Enter}')
+    expect(accepted).toEqual(['search'])
+  })
+
   it('rings the chip the first Backspace selects', async () => {
     render(<Harness initialChips={chips.slice(0, 2)} />)
     await userEvent.click(input())
     await userEvent.keyboard('{Escape}{Backspace}')
     const chip = document.activeElement!
-    expect(chip).toHaveAttribute('aria-label', 'Status is On sale')
+    expect(chip).toHaveAttribute('data-chip-id', 'status')
     expect(parseFloat(getComputedStyle(chip).outlineWidth)).toBeGreaterThan(0)
   })
 

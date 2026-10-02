@@ -73,6 +73,16 @@ describe('listGroups', () => {
       ids: ['filters']
     },
     {
+      name: 'keeps recent items out of the value step',
+      input: {
+        groups: [fields],
+        inputValue: '',
+        recent: [longacre],
+        pending: true
+      },
+      ids: ['fields']
+    },
+    {
       name: 'drops empty groups',
       input: {
         groups: [{ id: 'none', label: 'None', items: [] }, fields],

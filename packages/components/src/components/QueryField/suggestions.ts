@@ -30,7 +30,7 @@ export function listGroups<Value>({
 }: ListGroupsInput<Value>): QueryFieldListGroup<Value>[] {
   const text = inputValue.trim()
   const list: QueryFieldListGroup<Value>[] = []
-  if (!text && recent?.length)
+  if (!text && !pending && recent?.length)
     list.push({ id: 'recent', label: 'Recent', items: recent })
   list.push(...groups.filter((group) => group.items.length > 0))
   if (text && !pending)

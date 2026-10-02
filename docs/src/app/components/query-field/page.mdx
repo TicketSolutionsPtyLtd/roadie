@@ -223,14 +223,15 @@ function QueryFieldLocked() {
 
 ### With chip editing
 
-Pass `onEditChip` and each unlocked chip becomes a button. Open your editor in
-a `Popover` against the chip it hands you, and send focus back to the chip
+Pass `onEditChip` and each unlocked chip gets an edit button. Open your editor
+in a `Popover` against the chip it hands you, and send focus back to the chip
 when it closes.
 
 ```tsx-live
 function QueryFieldChipEditing() {
   const statuses = ['On sale', 'Sold out', 'Postponed']
   const [status, setStatus] = useState('On sale')
+  const [open, setOpen] = useState(false)
   const [anchor, setAnchor] = useState(null)
 
   return (
@@ -239,19 +240,22 @@ function QueryFieldChipEditing() {
         aria-label='Search events'
         chips={[{ id: 'status', label: `Status is ${status}` }]}
         suggest={() => []}
-        onEditChip={(id, element) => setAnchor(element)}
+        onEditChip={(id, element) => {
+          setAnchor(element)
+          setOpen(true)
+        }}
       />
-      <Popover open={!!anchor} onOpenChange={(open) => !open && setAnchor(null)}>
+      <Popover open={open} onOpenChange={setOpen}>
         <Popover.Portal>
           <Popover.Positioner anchor={anchor} side='bottom' align='start'>
-            <Popover.Popup finalFocus={{ current: anchor }}>
+            <Popover.Popup finalFocus={() => anchor}>
               <Popover.Body>
                 <RadioGroup
                   aria-label='Status'
                   value={status}
                   onValueChange={(value) => {
                     setStatus(value)
-                    setAnchor(null)
+                    setOpen(false)
                   }}
                 >
                   {statuses.map((option) => (
@@ -397,6 +401,9 @@ function QueryFieldShortcut() {
   all four.
 - **Escape** closes the suggestions, or ends the value step. It never clears
   the chips.
+- A locked chip reads "set by this page" after its label. A pending chip
+  describes the input, so the value step is announced.
+- `required` is announced but never blocks a form: an empty search is valid.
 - `shortcut` adds `aria-keyshortcuts` to the input. The key hint beside the
   field is visual only, and hides once the field has focus.
 
