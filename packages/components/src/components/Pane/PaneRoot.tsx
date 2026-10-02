@@ -372,7 +372,8 @@ export function PaneRoot({
         ref={viewportRef}
         data-slot='pane-viewport'
         className={paneViewportVariants({
-          clearsTabBar: tabBar !== 'hidden'
+          // Only a Navigator draws a tab bar, and only its stack provides one.
+          clearsTabBar: stack !== null && tabBar !== 'hidden'
         })}
         style={CLIP_HORIZONTAL}
       >
