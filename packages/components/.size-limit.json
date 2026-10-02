@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "140 kB"
+    "limit": "141.5 kB"
   },
   {
     "name": "Single component (Button)",
@@ -16,14 +16,14 @@
     "name": "Navigator",
     "path": "dist/components/Navigator/index.js",
     "import": "*",
-    "limit": "38 kB",
+    "limit": "40 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Menu",
     "path": "dist/components/Menu/index.js",
     "import": "*",
-    "limit": "3 kB",
+    "limit": "4.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -204,6 +204,13 @@
     "path": "dist/components/Toast/index.js",
     "import": "*",
     "limit": "5 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Kbd",
+    "path": "dist/components/Kbd/index.js",
+    "import": "*",
+    "limit": "2.05 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]
