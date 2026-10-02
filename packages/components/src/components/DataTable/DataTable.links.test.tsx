@@ -55,6 +55,14 @@ function Routed({
 }
 
 describe('DataTable row links', () => {
+  it('leaves a row with an empty href unlinked', () => {
+    const { container } = render(
+      <Routed onNavigate={vi.fn()} getRowHref={() => ''} />
+    )
+    expect(container.querySelector('tr[data-linked]')).toBeNull()
+    expect(screen.queryByRole('link')).toBeNull()
+  })
+
   it('links the first text column through the provider', async () => {
     const onNavigate = vi.fn()
     render(<Routed onNavigate={onNavigate} />)

@@ -133,7 +133,7 @@ export function DataTableView({
             {rows.map(({ key, row, href }) => {
               // An empty title shows a muted placeholder, with nothing to link.
               const linked =
-                href !== undefined &&
+                !!href &&
                 title !== undefined &&
                 row[title.key] != null &&
                 row[title.key] !== ''
