@@ -185,6 +185,21 @@ const header = (name: string) =>
   screen.getByRole('columnheader', { name: new RegExp(name) })
 
 describe('DataTable sorting', () => {
+  it('keeps empty text at the bottom either way', () => {
+    const textRows = [
+      { show: 'Ocean Alley' },
+      { show: '' },
+      { show: 'Alex Lahey' }
+    ]
+    const textColumns = sortColumns.slice(0, 1)
+    for (const direction of ['ascending', 'descending'] as const)
+      expect(
+        sortDataTableRows(textRows, textColumns, { key: 'show', direction }).at(
+          -1
+        )
+      ).toEqual({ show: '' })
+  })
+
   it.each([
     ['sortable', { sortable: true }],
     ['getSortHref', { getSortHref: () => '#' }]

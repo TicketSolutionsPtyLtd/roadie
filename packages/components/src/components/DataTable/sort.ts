@@ -28,7 +28,9 @@ export const compareText = (a: string, b: string) => collator.compare(a, b)
 
 export const sortValue = (column: TableColumn, cell: TableCell | undefined) => {
   if (column.kind === 'text')
-    return cell === null || cell === undefined ? undefined : String(cell)
+    return cell === null || cell === undefined || cell === ''
+      ? undefined
+      : String(cell)
   return typeof cell === 'number' && Number.isFinite(cell) ? cell : undefined
 }
 
