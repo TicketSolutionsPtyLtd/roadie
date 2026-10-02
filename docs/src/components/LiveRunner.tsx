@@ -251,7 +251,6 @@ function Preview({
     <div
       ref={ref}
       data-live-example='rendered'
-      data-keyboard-hints='always'
       className={className}
       style={
         !settled

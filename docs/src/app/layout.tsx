@@ -132,7 +132,7 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: getNavigatorExpandedScript() }}
         />
       </head>
-      <body className='isolate'>
+      <body className='isolate' data-keyboard-hints='always'>
         <Providers>
           <DocsNavigator
             items={items}
