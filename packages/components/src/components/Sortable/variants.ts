@@ -24,6 +24,4 @@ export const sortableDropIndicatorVariants = cva(
   }
 )
 
-export const sortableHandleVariants = cva(
-  'cursor-grab active:cursor-grabbing disabled:cursor-default'
-)
+export const sortableHandleVariants = cva('cursor-grab active:cursor-grabbing')

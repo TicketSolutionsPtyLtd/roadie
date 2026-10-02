@@ -10,7 +10,7 @@ import {
 } from './SortableContext'
 import { SortableHandle } from './SortableHandle'
 import { SortableItem } from './SortableItem'
-import { createSortableGroup, sortableMonitor } from './dnd'
+import { type SortableDrop, createSortableGroup, sortableMonitor } from './dnd'
 import { dropIndex, moveAnnouncement, moveItem } from './order'
 
 export type SortableMove = {
@@ -47,83 +47,93 @@ export function SortableRoot({
 }: SortableRootProps) {
   const dir = useDirection()
   const [group] = useState(createSortableGroup)
-  const [announcement, setAnnouncement] = useState({ text: '', count: 0 })
-  const focusRef = useRef<string | null>(null)
-  const namesRef = useRef(new Map<string, string | undefined>())
+  const [announcement, setAnnouncement] = useState('')
   const latest = useRef({ items, onReorder, axis, dir, label })
 
   useEffect(() => {
     latest.current = { items, onReorder, axis, dir, label }
   })
 
-  const value = useMemo<SortableRootContextValue>(() => {
+  // Stable, so a re-render mid-drag never tears down the monitor.
+  const [actions] = useState(() => {
+    const names = new Map<string, string | undefined>()
+    let focusTarget: string | null = null
+    let frame = 0
     function move(itemValue: string, to: number, focus: boolean) {
       const { items, onReorder, label } = latest.current
       const from = items.indexOf(itemValue)
       if (from === -1 || from === to || to < 0 || to >= items.length) return
-      if (focus) focusRef.current = itemValue
+      focusTarget = focus ? itemValue : null
       onReorder(moveItem(items, from, to), { value: itemValue, from, to })
-      const name = namesRef.current.get(itemValue)
-      setAnnouncement((previous) => ({
-        text: moveAnnouncement({
-          name,
-          to,
-          total: items.length,
-          collection: label
-        }),
-        count: previous.count + 1
-      }))
+      const text = moveAnnouncement({
+        name: names.get(itemValue),
+        to,
+        total: items.length,
+        collection: label
+      })
+      // Emptied first, so the same message twice is still read twice. The
+      // focus claim lapses with it, in case the move was never applied.
+      setAnnouncement('')
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        focusTarget = null
+        setAnnouncement(text)
+      })
+    }
+    function drop({ value: dragged, target, edge }: SortableDrop) {
+      const { items, axis, dir } = latest.current
+      const to = dropIndex({
+        from: items.indexOf(dragged),
+        target: items.indexOf(target),
+        edge,
+        axis,
+        dir
+      })
+      move(dragged, to, false)
     }
     return {
+      move,
+      drop,
+      nameItem: (itemValue: string, name: string | undefined) => {
+        names.set(itemValue, name)
+        return () => {
+          names.delete(itemValue)
+        }
+      },
+      takeFocus: (itemValue: string) => {
+        if (focusTarget !== itemValue) return false
+        focusTarget = null
+        return true
+      }
+    }
+  })
+
+  const value = useMemo<SortableRootContextValue>(
+    () => ({
       items,
       axis,
       dir,
       disabled,
       group,
-      move,
-      nameItem: (itemValue, name) => {
-        namesRef.current.set(itemValue, name)
-        return () => {
-          namesRef.current.delete(itemValue)
-        }
-      },
-      takeFocus: (itemValue) => {
-        if (focusRef.current !== itemValue) return false
-        focusRef.current = null
-        return true
-      },
+      move: actions.move,
+      nameItem: actions.nameItem,
+      takeFocus: actions.takeFocus,
       Item: SortableItem,
       Handle: SortableHandle
-    }
-  }, [items, axis, dir, disabled, group])
+    }),
+    [items, axis, dir, disabled, group, actions]
+  )
 
   useEffect(() => {
     if (disabled) return
-    return sortableMonitor({
-      group,
-      axis,
-      onDrop: ({ value: dragged, target, edge }) => {
-        const { items, axis, dir } = latest.current
-        const to = dropIndex({
-          from: items.indexOf(dragged),
-          target: items.indexOf(target),
-          edge,
-          axis,
-          dir
-        })
-        value.move(dragged, to, false)
-      }
-    })
-  }, [group, axis, disabled, value])
+    return sortableMonitor({ group, axis, onDrop: actions.drop })
+  }, [group, axis, disabled, actions])
 
   return (
     <SortableRootContext value={value}>
       {children}
       <span role='status' aria-live='polite' className='sr-only'>
-        {/* A trailing space alternates so a repeated message is read again. */}
-        {announcement.text
-          ? `${announcement.text}${announcement.count % 2 ? '' : ' '}`
-          : null}
+        {announcement}
       </span>
     </SortableRootContext>
   )

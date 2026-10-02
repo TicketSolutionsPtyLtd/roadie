@@ -11,8 +11,8 @@ Drag to reorder items, with a Move menu on each handle for keyboard and screen
 reader users.
 
 `Sortable` holds the order and reports changes. Each item gets a drag handle.
-Drag the handle to move the item, or press it to open a menu with Move up,
-Move down, Move to top and Move to bottom. Dragging uses the browser's own drag
+Drag the handle to move the item, or click it (or press Enter or Space) to open
+a menu with Move up, Move down, Move to top and Move to bottom. Dragging uses the browser's own drag
 and drop, so the preview is the browser's snapshot of the item.
 
 ## Import
@@ -166,15 +166,22 @@ render(<ColumnSettings />)
 
 ## Guidelines
 
-- **Keep the handle.** It is the only place a drag starts, so text in the row
-  stays selectable and taps on the row's other controls work.
+- **Keep the handle.** It is the only place a drag starts, so taps on the
+  item's other controls work. The whole item is draggable, so its text can't
+  be selected, and Firefox struggles with text fields inside it: keep trailing
+  controls to buttons and toggles.
+- **Key items by value.** Render each item with `key={value}`, so focus returns
+  to the handle of the item that moved.
+- **Wrap the list, not the items.** `Sortable` adds a hidden live region after
+  its children, so put it around the `List` or `<ul>`, never inside one.
 - **Name each item.** `List.Item` uses a text `title` as the item's name. Give
   `Sortable.Item` a `label` so the handle reads "Reorder SKU" rather than
   "Reorder".
 - **Name the collection.** `label` on `Sortable` ends each announcement, as in
   "SKU moved to position 3 of 7 columns".
 - **Reorderable rows are static.** A `List.Item` with a `value` inside a
-  `Sortable` is not a link or button. Put any action in its `trailing` slot.
+  `Sortable` is not a link or button and ignores `href`, `onClick`, `current`
+  and `chevron`. Put any action in its `trailing` slot.
 - **Style with data attributes.** Each item sets `data-dragging` while it is
   dragged and `data-drop-edge` (`top`, `bottom`, `left` or `right`) while it is
   the drop target. The dimmed item and the accent drop line are built in.

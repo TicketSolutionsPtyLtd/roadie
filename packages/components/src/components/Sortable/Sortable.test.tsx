@@ -157,28 +157,91 @@ describe('Sortable', () => {
     expect(status).toBeEmptyDOMElement()
     const { user } = await openMenu('SKU')
     await user.click(screen.getByRole('menuitem', { name: 'Move SKU up' }))
-    expect(status).toHaveTextContent('SKU moved to position 2 of 4 columns')
+    await waitFor(() =>
+      expect(status).toHaveTextContent('SKU moved to position 2 of 4 columns')
+    )
   })
 
-  it('announces a repeat of the same move again', async () => {
+  it('empties the live region before each message, so a repeat is read', async () => {
     render(<Columns initial={['A', 'B']} />)
-    let { user } = await openMenu('A')
+    const status = screen.getByRole('status')
+    const seen: string[] = []
+    new MutationObserver(() => seen.push(status.textContent ?? '')).observe(
+      status,
+      { childList: true, characterData: true, subtree: true }
+    )
+    const move = async (label: string) => {
+      const { user } = await openMenu('A')
+      await user.click(screen.getByRole('menuitem', { name: label }))
+      await waitFor(() =>
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+      )
+      await waitFor(() => expect(status).not.toBeEmptyDOMElement())
+    }
+    await move('Move A down')
+    await move('Move A up')
+    await move('Move A down')
+    expect(seen.filter((text) => text !== '').at(-1)).toBe(
+      'A moved to position 2 of 2 columns'
+    )
+    expect(seen.at(-2)).toBe('')
+  })
+
+  it('does not pull focus later when a move is not applied', async () => {
+    function Rejecting() {
+      const [items, setItems] = useState(['A', 'B', 'C'])
+      return (
+        <>
+          <button type='button' onClick={() => setItems(['C', 'B', 'A'])}>
+            Reverse
+          </button>
+          <Sortable items={items} onReorder={() => {}}>
+            {items.map((value) => (
+              <Sortable.Item key={value} value={value} label={value}>
+                <Sortable.Handle />
+              </Sortable.Item>
+            ))}
+          </Sortable>
+        </>
+      )
+    }
+    render(<Rejecting />)
+    const { user } = await openMenu('A')
     await user.click(screen.getByRole('menuitem', { name: 'Move A down' }))
-    const first = screen.getByRole('status').textContent
     await waitFor(() =>
       expect(screen.queryByRole('menu')).not.toBeInTheDocument()
     )
-    ;({ user } = await openMenu('B'))
-    await user.click(screen.getByRole('menuitem', { name: 'Move B down' }))
-    await waitFor(() =>
-      expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    await act(() => new Promise((resolve) => setTimeout(resolve, 50)))
+    const reverse = screen.getByRole('button', { name: 'Reverse' })
+    await user.click(reverse)
+    expect(reverse).toHaveFocus()
+  })
+
+  it('passes a ref through to the item element', () => {
+    const ref = { current: null as HTMLDivElement | null }
+    render(
+      <Sortable items={['A']} onReorder={() => {}}>
+        <Sortable.Item value='A' ref={ref}>
+          <Sortable.Handle />
+        </Sortable.Item>
+      </Sortable>
     )
-    ;({ user } = await openMenu('B'))
-    await user.click(screen.getByRole('menuitem', { name: 'Move B up' }))
-    expect(screen.getByRole('status').textContent).not.toBe(first)
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'B moved to position 1 of 2 columns'
+    expect(ref.current).toHaveAttribute('data-slot', 'sortable-item')
+  })
+
+  it('warns about an item whose value is not in items', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Sortable items={['A']} onReorder={() => {}}>
+        <Sortable.Item value='Z'>
+          <Sortable.Handle />
+        </Sortable.Item>
+      </Sortable>
     )
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('"Z" is not in its Sortable\'s items')
+    )
+    warn.mockRestore()
   })
 
   it('names horizontal moves by side', async () => {

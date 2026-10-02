@@ -125,8 +125,10 @@ describe('Sortable drag and drop', () => {
       )
     )
     expect(order()).toEqual(['Event', 'SKU', 'Date', 'Price'])
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Date moved to position 3 of 4 columns'
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Date moved to position 3 of 4 columns'
+      )
     )
   })
 
@@ -250,6 +252,22 @@ describe('Sortable Move menu', () => {
     render(<Columns />)
     await userEvent.click(handle('SKU'))
     expect(await screen.findByRole('menu')).toBeVisible()
+  })
+
+  it('closes on a second, slow click of the handle and stays closed', async () => {
+    render(<Columns />)
+    await userEvent.click(handle('SKU'))
+    await screen.findByRole('menu')
+    const at = centre(handle('SKU'))
+    await commands.pointer([
+      { type: 'move', ...at },
+      { type: 'down' },
+      { type: 'wait', ms: 80 },
+      { type: 'up' }
+    ])
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    expect(screen.queryByRole('menu')).toBeNull()
   })
 
   it('moves by keyboard and keeps focus on the handle', async () => {

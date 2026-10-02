@@ -265,8 +265,9 @@ a chevron by default; suppress it with `chevron={false}`.
 
 Wrap the list in [`Sortable`](/components/sortable) and give each row a
 `value`. The row takes a drag handle in front and is no longer a link or
-button, so put any action in its `trailing` slot. Pressing the handle opens a
-Move menu for keyboard and screen reader users.
+button: it ignores `href`, `onClick`, `current` and `chevron`, so put any
+action in its `trailing` slot. Clicking the handle, or pressing Enter on it,
+opens a Move menu for keyboard and screen reader users.
 
 ```tsx-live-noinline
 function Columns() {

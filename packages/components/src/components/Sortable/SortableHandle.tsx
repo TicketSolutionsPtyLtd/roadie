@@ -93,7 +93,7 @@ export function SortableHandle({
         ref={setHandle}
         onMouseDown={(event) => {
           onMouseDown?.(event)
-          pressedRef.current = event.button === 0
+          pressedRef.current = event.button === 0 && !open
         }}
         onClick={(event) => {
           onClick?.(event)

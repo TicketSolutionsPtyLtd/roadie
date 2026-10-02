@@ -1,10 +1,21 @@
 'use client'
 
-import { type ComponentProps, useEffect, useMemo, useState } from 'react'
+import {
+  type ComponentProps,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { type RoadieRenderProp, resolveRender } from '../../utils/resolveRender'
+import {
+  type RoadieRenderProp,
+  resolveRender,
+  setRef
+} from '../../utils/resolveRender'
+import { useDevWarning } from '../../utils/useDevWarning'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import {
   SortableItemContext,
@@ -32,6 +43,7 @@ export function SortableItem({
   render,
   className,
   children,
+  ref: forwarded,
   ...props
 }: SortableItemProps) {
   const root = useSortableRoot('Sortable.Item')
@@ -41,8 +53,19 @@ export function SortableItem({
   const [handle, setHandle] = useState<HTMLElement | null>(null)
   const [dragging, setDragging] = useState(false)
   const [dropEdge, setDropEdge] = useState<SortableEdge | null>(null)
+  // Set from an effect: a ref passed through to the render prop counts as read during render.
+  useIsomorphicLayoutEffect(() => {
+    if (!element) return
+    setRef(forwarded, element)
+    return () => setRef(forwarded, null)
+  }, [element, forwarded])
 
   useEffect(() => nameItem(value, label), [nameItem, value, label])
+
+  const position = useRef({ items, index, dir })
+  useEffect(() => {
+    position.current = { items, index, dir }
+  })
 
   useEffect(() => {
     if (!element || !handle) return
@@ -56,11 +79,17 @@ export function SortableItem({
       onDraggingChange: setDragging,
       onDropEdgeChange: setDropEdge,
       movesTo: (source, edge) => {
+        const { items, index, dir } = position.current
         const from = items.indexOf(source)
         return dropIndex({ from, target: index, edge, axis, dir }) !== from
       }
     })
-  }, [element, handle, group, value, axis, dir, disabled, items, index])
+  }, [element, handle, group, value, axis, disabled])
+
+  useDevWarning(
+    index === -1 &&
+      `Roadie: Sortable.Item "${value}" is not in its Sortable's items, so it can't move.`
+  )
 
   useIsomorphicLayoutEffect(() => {
     if (handle && root.takeFocus(value)) handle.focus()
