@@ -30,13 +30,24 @@ export const paneVariants = cva(
   }
 )
 
-export const paneViewportVariants = cva(['size-full overscroll-contain'], {
-  variants: {
-    // Clears the floating tab bar.
-    clearsTabBar: { true: 'max-md:pb-24', false: '' }
-  },
-  defaultVariants: { clearsTabBar: true }
-})
+// --pane-sticky-bottom: what bottom-sticky content clears. Only the footer: the
+// tab bar padding below already insets where sticky parts stick, in every engine.
+export const paneViewportVariants = cva(
+  [
+    'size-full overscroll-contain',
+    '[--pane-sticky-bottom:var(--pane-footer-height,0px)]'
+  ],
+  {
+    variants: {
+      // Clears the floating tab bar.
+      clearsTabBar: {
+        true: 'max-md:pb-24',
+        false: ''
+      }
+    },
+    defaultVariants: { clearsTabBar: true }
+  }
+)
 
 // Translucent against --pane-surface; Content overrides the fallback to sunken.
 const PANE_CHROME_SURFACE =
@@ -167,5 +178,7 @@ export const paneFooterClass = [
   'sticky bottom-0 z-sticky',
   PANE_CHROME_SURFACE,
   'rounded-b-(--pane-radius)',
-  '-mx-(--content-inset) px-(--content-inset) pt-2 pb-4'
+  '-mx-(--content-inset) px-(--content-inset) pt-3 pb-4',
+  // Flipped, so the downward shadow token casts up over the content.
+  "after:pointer-events-none after:absolute after:inset-0 after:-scale-y-100 after:shadow-md after:content-['']"
 ].join(' ')

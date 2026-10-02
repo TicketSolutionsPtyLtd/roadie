@@ -324,6 +324,38 @@ describe("an inspector drawer's Close", () => {
   })
 })
 
+describe("an inspector drawer's sticky bottom", () => {
+  it('publishes the footer height as --pane-sticky-bottom in the drawer', async () => {
+    mount(
+      NARROW,
+      <Navigator className='h-[600px]'>
+        <Pane aria-label='Paperbark Sessions'>
+          <p>Event details</p>
+        </Pane>
+        <Pane column='inspector' aria-label='Tickets' reveal>
+          <Pane.Body>
+            <p data-testid='sticky'>12 tickets</p>
+          </Pane.Body>
+          <Pane.Footer>
+            <p>Footer</p>
+          </Pane.Footer>
+        </Pane>
+      </Navigator>
+    )
+    const drawer = await screen.findByRole('dialog')
+    const footer = drawer.querySelector<HTMLElement>(
+      '[data-slot="pane-footer"]'
+    )!
+    const inset = () =>
+      getComputedStyle(screen.getByTestId('sticky'))
+        .getPropertyValue('--pane-sticky-bottom')
+        .trim()
+
+    await expect.poll(inset).toBe(`${footer.offsetHeight}px`)
+    expect(footer.offsetHeight).toBeGreaterThan(0)
+  })
+})
+
 describe("pane-inspector-yielded: on the inspector's own content", () => {
   const marker = () =>
     Array.from(
