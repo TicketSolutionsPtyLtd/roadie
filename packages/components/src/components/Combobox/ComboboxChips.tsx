@@ -14,7 +14,7 @@ export function ComboboxChips({ className, ...props }: ComboboxChipsProps) {
     <ComboboxPrimitive.Chips
       data-slot='combobox-chips'
       className={cn(
-        'flex min-w-0 flex-1 flex-wrap items-center gap-1 py-1 *:data-[slot=combobox-input]:min-w-16',
+        'flex min-w-0 flex-1 flex-wrap items-center gap-1 py-(--combobox-chips-py) *:data-[slot=combobox-input]:min-w-16',
         className
       )}
       {...props}

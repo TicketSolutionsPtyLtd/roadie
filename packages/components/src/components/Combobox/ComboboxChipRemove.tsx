@@ -25,7 +25,7 @@ export function ComboboxChipRemove({
     <ComboboxPrimitive.ChipRemove
       data-slot='combobox-chip-remove'
       className={cn(
-        'is-interactive inline-grid size-5 shrink-0 place-items-center rounded-full emphasis-subtler data-disabled:opacity-100 data-disabled:filter-none',
+        'is-interactive relative inline-grid size-5 shrink-0 place-items-center rounded-full emphasis-subtler after:absolute after:-inset-0.5 data-disabled:opacity-100 data-disabled:filter-none',
         className
       )}
       {...props}

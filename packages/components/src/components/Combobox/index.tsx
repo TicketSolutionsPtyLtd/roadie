@@ -3,6 +3,7 @@
 // NO `'use client'` — server-safe property-assignment layer.
 // See docs/contributing/COMPOUND_PATTERNS.md.
 import { ComboboxChip } from './ComboboxChip'
+import { ComboboxChipLabel } from './ComboboxChipLabel'
 import { ComboboxChipRemove } from './ComboboxChipRemove'
 import { ComboboxChips } from './ComboboxChips'
 import { ComboboxClear } from './ComboboxClear'
@@ -32,6 +33,7 @@ const Combobox = ComboboxRoot as typeof ComboboxRoot & {
   Value: typeof ComboboxValue
   Chips: typeof ComboboxChips
   Chip: typeof ComboboxChip
+  ChipLabel: typeof ComboboxChipLabel
   ChipRemove: typeof ComboboxChipRemove
   Trigger: typeof ComboboxTrigger
   Clear: typeof ComboboxClear
@@ -55,6 +57,7 @@ Combobox.Input = ComboboxInput
 Combobox.Value = ComboboxValue
 Combobox.Chips = ComboboxChips
 Combobox.Chip = ComboboxChip
+Combobox.ChipLabel = ComboboxChipLabel
 Combobox.ChipRemove = ComboboxChipRemove
 Combobox.Trigger = ComboboxTrigger
 Combobox.Clear = ComboboxClear
@@ -78,6 +81,7 @@ export type { ComboboxInputProps } from './ComboboxInput'
 export type { ComboboxValueProps } from './ComboboxValue'
 export type { ComboboxChipsProps } from './ComboboxChips'
 export type { ComboboxChipProps } from './ComboboxChip'
+export type { ComboboxChipLabelProps } from './ComboboxChipLabel'
 export type { ComboboxChipRemoveProps } from './ComboboxChipRemove'
 export type { ComboboxTriggerProps } from './ComboboxTrigger'
 export type { ComboboxClearProps } from './ComboboxClear'

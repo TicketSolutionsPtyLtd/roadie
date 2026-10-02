@@ -397,6 +397,7 @@ export {
   type ComboboxValueProps,
   type ComboboxChipsProps,
   type ComboboxChipProps,
+  type ComboboxChipLabelProps,
   type ComboboxChipRemoveProps,
   type ComboboxTriggerProps,
   type ComboboxClearProps,

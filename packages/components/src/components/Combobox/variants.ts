@@ -13,9 +13,9 @@ export const comboboxInputGroupVariants = cva(
           'bg-subtle text-normal border border-transparent is-interactive-field-group'
       },
       size: {
-        sm: 'min-h-8 px-1.5 text-base',
-        md: 'min-h-10 px-2 text-base',
-        lg: 'min-h-12 px-2 text-base'
+        sm: 'min-h-8 px-1.5 text-base [--combobox-chips-py:--spacing(0.75)]',
+        md: 'min-h-10 px-2 text-base [--combobox-chips-py:--spacing(1.75)]',
+        lg: 'min-h-12 px-2 text-base [--combobox-chips-py:--spacing(2.75)]'
       }
     },
     defaultVariants: {

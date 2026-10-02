@@ -9,10 +9,12 @@ const genres = ['Rock', 'Jazz', 'Hip hop', 'Folk']
 
 function Genres({
   defaultValue = ['Rock', 'Jazz'],
-  onValueChange
+  onValueChange,
+  disabled
 }: {
   defaultValue?: string[]
   onValueChange?: (value: string[]) => void
+  disabled?: boolean
 }) {
   return (
     <Combobox
@@ -20,6 +22,7 @@ function Genres({
       multiple
       defaultValue={defaultValue}
       onValueChange={onValueChange}
+      disabled={disabled}
     >
       <Combobox.InputGroup data-testid='group'>
         <Combobox.Value>
@@ -27,7 +30,7 @@ function Genres({
             <Combobox.Chips aria-label='Selected genres'>
               {value.map((genre) => (
                 <Combobox.Chip key={genre} aria-label={genre}>
-                  {genre}
+                  <Combobox.ChipLabel>{genre}</Combobox.ChipLabel>
                   <Combobox.ChipRemove aria-label={`Remove ${genre}`} />
                 </Combobox.Chip>
               ))}
@@ -85,18 +88,66 @@ describe('Combobox chips', () => {
 
   it('removes the last chip with Backspace in an empty input', async () => {
     render(<Genres />)
-    await userEvent.click(screen.getByRole('combobox', { name: 'Genres' }))
-    await userEvent.keyboard('{Escape}{Backspace}')
+    await userEvent.tab()
+    await userEvent.keyboard('{Backspace}')
     expect(chipNames()).toEqual(['Rock'])
   })
 
   it('moves to the chips with the left arrow and removes the focused one', async () => {
     render(<Genres />)
-    await userEvent.click(screen.getByRole('combobox', { name: 'Genres' }))
-    await userEvent.keyboard('{Escape}{ArrowLeft}{ArrowLeft}')
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}')
     expect(document.activeElement).toHaveAttribute('aria-label', 'Rock')
-    await userEvent.keyboard('{Backspace}')
+    await userEvent.keyboard('{Delete}')
     expect(chipNames()).toEqual(['Jazz'])
+  })
+
+  it('returns focus to the input after the remove button is pressed', async () => {
+    render(<Genres />)
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Jazz' }))
+    expect(document.activeElement).toBe(
+      screen.getByRole('combobox', { name: 'Genres' })
+    )
+  })
+
+  it('clears every chip with Escape while the popup is closed', async () => {
+    render(<Genres />)
+    await userEvent.tab()
+    await userEvent.keyboard('{Escape}')
+    expect(chipNames()).toEqual([])
+  })
+
+  it('keeps every chip while disabled', async () => {
+    render(<Genres disabled />)
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Rock' }))
+    expect(chipNames()).toEqual(['Rock', 'Jazz'])
+  })
+
+  it('takes custom remove button content in place of the icon', () => {
+    render(
+      <Combobox items={genres} multiple defaultValue={['Rock']}>
+        <Combobox.Chips>
+          <Combobox.Chip>
+            Rock
+            <Combobox.ChipRemove aria-label='Remove Rock'>
+              ×
+            </Combobox.ChipRemove>
+          </Combobox.Chip>
+        </Combobox.Chips>
+      </Combobox>
+    )
+    const remove = screen.getByRole('button', { name: 'Remove Rock' })
+    expect(remove).toHaveTextContent('×')
+    expect(remove.querySelector('svg')).not.toBeInTheDocument()
+  })
+
+  it('truncates a chip label', () => {
+    render(<Genres />)
+    expect(screen.getByText('Rock')).toHaveAttribute(
+      'data-slot',
+      'combobox-chip-label'
+    )
+    expect(screen.getByText('Rock')).toHaveClass('truncate')
   })
 
   it('keeps the field wiring on the input inside the chips', () => {
@@ -117,12 +168,5 @@ describe('Combobox chips', () => {
       'true'
     )
     expect(screen.getByTestId('group')).toHaveAttribute('aria-invalid', 'true')
-  })
-
-  it('lets the input group grow past its size when chips wrap', () => {
-    render(<Genres />)
-    const group = screen.getByTestId('group')
-    expect(group).toHaveClass('min-h-10')
-    expect(group).not.toHaveClass('h-10')
   })
 })

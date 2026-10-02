@@ -30,10 +30,12 @@ const bands = [
 
 function Bands({
   defaultValue,
-  disabled
+  disabled,
+  size
 }: {
   defaultValue: string[]
   disabled?: boolean
+  size?: 'sm' | 'md' | 'lg'
 }) {
   return (
     <div style={{ width: 320 }}>
@@ -43,13 +45,13 @@ function Bands({
         defaultValue={defaultValue}
         disabled={disabled}
       >
-        <Combobox.InputGroup data-testid='group'>
+        <Combobox.InputGroup data-testid='group' size={size}>
           <Combobox.Value>
             {(value: string[]) => (
               <Combobox.Chips>
                 {value.map((band) => (
                   <Combobox.Chip key={band} aria-label={band}>
-                    {band}
+                    <Combobox.ChipLabel>{band}</Combobox.ChipLabel>
                     <Combobox.ChipRemove aria-label={`Remove ${band}`} />
                   </Combobox.Chip>
                 ))}
@@ -68,9 +70,45 @@ const chip = (name: string) =>
   document.querySelector(`[data-slot=combobox-chip][aria-label="${name}"]`)!
 
 describe('Combobox chips', () => {
-  it('keep the size-md height while they fit on one line', () => {
+  it.each([
+    ['sm', 32],
+    ['md', 40],
+    ['lg', 48]
+  ] as const)(
+    'keep the size-%s height while they fit on one line',
+    (size, height) => {
+      render(<Bands defaultValue={['Saltwater Choir']} size={size} />)
+      const group = box(screen.getByTestId('group'))
+      expect(group.height).toBe(height)
+      const offset = box(chip('Saltwater Choir')).top - group.top
+      cleanup()
+      render(<Bands defaultValue={bands} size={size} />)
+      const wrapped = box(screen.getByTestId('group'))
+      expect(wrapped.height).toBeGreaterThan(height)
+      expect(box(chip(bands[0]!)).top - wrapped.top).toBeCloseTo(offset, 0)
+    }
+  )
+
+  it('truncate a long label inside the chip, keeping its remove button', () => {
+    const long =
+      'The Midnight Paddock Collective and the Very Long Name Orchestra'
+    render(<Bands defaultValue={[long]} />)
+    const group = box(screen.getByTestId('group'))
+    const chipBox = box(chip(long))
+    const remove = box(screen.getByRole('button', { name: `Remove ${long}` }))
+    expect(chipBox.right).toBeLessThanOrEqual(group.right)
+    expect(remove.right).toBeLessThanOrEqual(chipBox.right)
+    expect(remove.width).toBeGreaterThan(0)
+  })
+
+  it('take a press just outside the remove button', () => {
     render(<Bands defaultValue={['Saltwater Choir']} />)
-    expect(box(screen.getByTestId('group')).height).toBe(40)
+    const remove = screen.getByRole('button', {
+      name: 'Remove Saltwater Choir'
+    })
+    const { left, top, height } = box(remove)
+    const hit = document.elementFromPoint(left - 1, top + height / 2)
+    expect(remove.contains(hit)).toBe(true)
   })
 
   it('wrap onto new lines and grow the input group', () => {
@@ -103,8 +141,8 @@ describe('Combobox chips', () => {
 
   it('show a focus ring on the chip the arrow keys move to', async () => {
     render(<Bands defaultValue={['Saltwater Choir', 'Velvet Kingfisher']} />)
-    await userEvent.click(screen.getByRole('combobox', { name: 'Bands' }))
-    await userEvent.keyboard('{Escape}{ArrowLeft}')
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowLeft}')
     const focused = chip('Velvet Kingfisher')
     await expect.poll(() => document.activeElement).toBe(focused)
     expect(parseFloat(getComputedStyle(focused).outlineWidth)).toBeGreaterThan(
@@ -115,8 +153,8 @@ describe('Combobox chips', () => {
   it('remove a value with Backspace and return focus to the input', async () => {
     render(<Bands defaultValue={['Saltwater Choir', 'Velvet Kingfisher']} />)
     const input = screen.getByRole('combobox', { name: 'Bands' })
-    await userEvent.click(input)
-    await userEvent.keyboard('{Escape}{Backspace}')
+    await userEvent.tab()
+    await userEvent.keyboard('{Backspace}')
     await expect
       .poll(() => document.querySelectorAll('[data-slot=combobox-chip]').length)
       .toBe(1)
