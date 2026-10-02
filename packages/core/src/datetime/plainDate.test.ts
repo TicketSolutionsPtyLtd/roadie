@@ -44,6 +44,9 @@ describe('plainDateOf', () => {
     expect(plainDateOf(new Date('0001-06-01T00:00:00Z'), 'UTC')).toBe(
       '0001-06-01'
     )
+    const yearZero = new Date(Date.UTC(2000, 5, 1))
+    yearZero.setUTCFullYear(0)
+    expect(plainDateOf(yearZero, 'UTC')).toBe('0000-06-01')
     expect(() =>
       plainDateOf(new Date('+010000-06-01T00:00:00Z'), 'UTC')
     ).toThrow(RangeError)
