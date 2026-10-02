@@ -1,4 +1,5 @@
 import type { ChartPlot, DashboardCard } from '@oztix/roadie-core/dashboard'
+import { resolveTableTotals } from '@oztix/roadie-core/dashboard-layout'
 
 import { barChartTable } from '../BarChart/table'
 import type { ChartTable } from '../Chart'
@@ -38,6 +39,8 @@ export function plotTable(plot: ChartPlot): ChartTable {
 /**
  * The table behind a dashboard card, such as for a Download CSV action: a
  * chart card's Table view or a table card's rows. Other cards have none.
+ * Status cells stay keys, since a table needs them to pick each intent; use
+ * `cellText(column, value)` from `@oztix/roadie-core/dashboard` for text.
  */
 export function cardTable(card: DashboardCard): ChartTable | undefined {
   switch (card.kind) {
@@ -47,7 +50,14 @@ export function cardTable(card: DashboardCard): ChartTable | undefined {
         (card.plot.kind === 'static' ? undefined : plotTable(card.plot))
       )
     case 'table':
-      return { columns: card.columns, rows: card.rows }
+      return {
+        columns: card.columns,
+        rows: card.rows,
+        // Summed here, so a CSV gets the figures the table shows.
+        ...(card.totals && {
+          totals: resolveTableTotals(card.columns, card.rows, card.totals)
+        })
+      }
     default:
       return undefined
   }

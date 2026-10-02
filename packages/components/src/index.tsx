@@ -295,7 +295,8 @@ export {
   type TableAlign,
   type TableCellProps,
   type TableHeaderCellProps,
-  type TableProps
+  type TableProps,
+  tableCellClass
 } from './components/Table'
 
 export {

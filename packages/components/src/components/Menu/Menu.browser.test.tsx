@@ -98,3 +98,26 @@ describe('Menu rows on a touch screen', () => {
     expect(fill(second)).not.toBe(fill(first))
   })
 })
+
+describe('Menu shortcuts on a touch screen', () => {
+  afterEach(() => {
+    delete document.body.dataset.keyboardHints
+  })
+
+  it('shows a portalled shortcut when the page keeps keyboard hints', async () => {
+    document.body.dataset.keyboardHints = 'always'
+    render(
+      <Menu>
+        <Menu.Trigger>Actions</Menu.Trigger>
+        <Menu.Content>
+          <Menu.Item shortcut={['mod', 'd']}>Duplicate</Menu.Item>
+        </Menu.Content>
+      </Menu>
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Actions' }))
+    const row = await screen.findByRole('menuitem', { name: 'Duplicate' })
+    setHoverCapable(false)
+    const shortcut = row.querySelector('[data-slot="menu-item-shortcut"]')!
+    expect(getComputedStyle(shortcut).display).not.toBe('none')
+  })
+})

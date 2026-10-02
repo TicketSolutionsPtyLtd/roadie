@@ -3,9 +3,13 @@ import type {
   TableColumn,
   TableRow
 } from '@oztix/roadie-core/dashboard'
+import { columnStatus } from '@oztix/roadie-core/dashboard-layout'
 
 export type DataTableSortDirection = 'ascending' | 'descending'
 export type DataTableSort = { key: string; direction: DataTableSortDirection }
+
+export const cellOf = (row: TableRow, key: string) =>
+  Object.hasOwn(row, key) ? row[key] : undefined
 
 export const isSortableColumn = (column: TableColumn) =>
   column.kind !== 'sparkline'
@@ -16,7 +20,9 @@ export const nextSortDirection = (
 ): DataTableSortDirection => {
   if (sort?.key === column.key)
     return sort.direction === 'ascending' ? 'descending' : 'ascending'
-  return column.kind === 'text' ? 'ascending' : 'descending'
+  return column.kind === 'text' || column.kind === 'status'
+    ? 'ascending'
+    : 'descending'
 }
 
 const collator = new Intl.Collator('en-AU', {
@@ -26,7 +32,21 @@ const collator = new Intl.Collator('en-AU', {
 
 export const compareText = (a: string, b: string) => collator.compare(a, b)
 
+/** Whether a status column sorts by its map's `order` rather than by label. */
+export const sortsByOrder = (column: TableColumn) =>
+  column.kind === 'status' &&
+  Object.values(column.status ?? {}).some(
+    (option) => option.order !== undefined
+  )
+
 export const sortValue = (column: TableColumn, cell: TableCell | undefined) => {
+  if (column.kind === 'status') {
+    if (cell === null || cell === undefined || cell === '') return undefined
+    const { label, order } = columnStatus(column, String(cell))
+    // Undefined, so keys without an order sit last whichever way it runs.
+    if (sortsByOrder(column)) return order
+    return label
+  }
   if (column.kind === 'text')
     return cell === null || cell === undefined || cell === ''
       ? undefined
@@ -43,7 +63,7 @@ export function sortedRowOrder(
   const column = columns.find((candidate) => candidate.key === sort?.key)
   if (!sort || !column || !isSortableColumn(column)) return order
 
-  const values = rows.map((row) => sortValue(column, row[column.key]))
+  const values = rows.map((row) => sortValue(column, cellOf(row, column.key)))
   const sign = sort.direction === 'ascending' ? 1 : -1
   return order.sort((a, b) => {
     const left = values[a]

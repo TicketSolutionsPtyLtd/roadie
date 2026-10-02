@@ -11,6 +11,8 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 A data-driven table with inline sparklines and meters.
 
+Each column's `kind` sets how its cells read: `text`, `number`, `delta`, `sparkline`, `meter` or `status`.
+
 ## Import
 
 ```tsx
@@ -35,6 +37,38 @@ import { DataTable } from '@oztix/roadie-components/data-table'
     { show: 'Ball Park Music', venue: 'The Lantern Room, Fortitude Valley', daily: [22, 30, 41, 52, 61, 72, 81, 96, 112, 131, 152, 160], sellThrough: 0.77, pace: 112, gross: 118400 },
     { show: 'Ocean Alley', venue: 'Parkside Amphitheatre, Geelong', daily: [90, 95, 102, 94, 108, 97, 104, 110, 101, 106, 110, 112], sellThrough: 0.51, pace: 101, gross: 183000 },
     { show: 'Julia Jacklin', venue: 'The Gasworks Room, Hobart', daily: [18, 16, 15, 14, 12, 11, 10, 9, 8, 7, 6, 6], sellThrough: 0.46, pace: 78, gross: 22900 }
+  ]}
+/>
+```
+
+### Status
+
+A `status` column shows each value, a status key, as a small Badge. Its `status` map gives each key an intent and an optional label, which defaults to the key in sentence case. A key the map lacks shows as a neutral badge in its raw text. It sorts by label, or by `order` when the map gives one.
+
+```tsx-live
+<DataTable
+  sortable
+  caption='Upcoming shows'
+  columns={[
+    { key: 'show', header: 'Show', kind: 'text', pin: true },
+    {
+      key: 'status',
+      header: 'Status',
+      kind: 'status',
+      status: {
+        on_sale: { intent: 'success', order: 1 },
+        selling_fast: { intent: 'warning', order: 2 },
+        sold_out: { intent: 'neutral', order: 3 },
+        cancelled: { intent: 'danger', label: 'Cancelled by the promoter', order: 4 }
+      }
+    },
+    { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency' }
+  ]}
+  rows={[
+    { show: 'Ball Park Music', status: 'selling_fast', gross: 118400 },
+    { show: 'Ocean Alley', status: 'sold_out', gross: 183000 },
+    { show: 'Julia Jacklin', status: 'on_sale', gross: 22900 },
+    { show: 'Angie McMahon', status: 'cancelled', gross: null }
   ]}
 />
 ```
@@ -82,6 +116,48 @@ Narrow the table and lower-priority columns hide behind Show all columns first. 
 />
 ```
 
+### Totals row
+
+Pass `totals` to add a totals row as the table's footer, such as a report's line for all its events. The first column holds its label and never hides while the totals show, so lead with a text column. `recordName` names the rows in the default label, as in "Totals for 4 events".
+
+`totals` adds up every number column over all the rows you pass, not only the ones in view, so the figure holds however the table sorts or narrows. Plain number columns sum too, so give a column that doesn't add up, such as capacity, `total: false`. Shares, indexes, points, deltas, meters, sparklines and text stay blank, and currency sums round to the cent.
+
+```tsx-live
+<DataTable
+  sortable
+  caption='Shows this month'
+  totals
+  recordName={{ one: 'event', other: 'events' }}
+  columns={[
+    { key: 'show', header: 'Event', kind: 'text', pin: true, secondaryKey: 'venue' },
+    { key: 'orders', header: 'Orders', kind: 'number' },
+    { key: 'tickets', header: 'Tickets', kind: 'number' },
+    { key: 'capacity', header: 'Capacity', kind: 'number', total: false },
+    { key: 'gross', header: 'Gross', kind: 'number', format: 'currency' }
+  ]}
+  rows={[
+    { show: 'Ball Park Music', venue: 'The Lantern Room, Fortitude Valley', orders: 912, tickets: 1840, capacity: 2400, gross: 118400 },
+    { show: 'Ocean Alley', venue: 'Parkside Amphitheatre, Geelong', orders: 1306, tickets: 2210, capacity: 2400, gross: 183000 },
+    { show: 'Julia Jacklin', venue: 'The Gasworks Room, Hobart', orders: 288, tickets: 512, capacity: 1100, gross: 22900 },
+    { show: 'Angie McMahon', venue: 'The Paper Moth, Brunswick', orders: 64, tickets: 120, capacity: 650, gross: 5880 }
+  ]}
+/>
+```
+
+When the server pages or filters the rows, or a figure is an average rather than a sum, pass `values` instead. With `values`, nothing is summed, and each value takes its column's format. Give a `label` with them, since the table may hold only some rows; without one, the row reads "Totals".
+
+```tsx
+<DataTable
+  caption='Shows this month'
+  columns={columns}
+  rows={page.rows}
+  totals={{
+    label: `Totals for ${page.total} events`,
+    values: { orders: page.totals.orders, gross: page.totals.gross }
+  }}
+/>
+```
+
 ### Sorting
 
 Add `sortable` and press a header to sort by it. Number, meter and delta columns sort largest first and text A to Z, and a second press flips the direction. Empty and text values in a number column stay at the bottom. `defaultSort` sets the starting order.
@@ -126,7 +202,7 @@ const sort = { key: searchParams.sort ?? 'gross', direction: searchParams.dir ??
 
 ### Row links
 
-Pass `getRowHref` so each row opens its own page, such as a show opening its event view. The title cell, the pinned text column or else the first text column, becomes the link, and pressing anywhere on the row follows it. Internal links route through the Link given to `RoadieProvider`, and external links open in a new tab. Return `undefined` to leave a row unlinked.
+Pass `getRowHref` so each row opens its own page, such as a show opening its event view. The title cell, the pinned text column or else the first text column, becomes the link, and pressing anywhere on the row follows it. Internal links route through the Link given to `RoadieProvider`, and external links open in a new tab. Return `undefined` to leave a row unlinked. While rows link, the title column never hides: its `priority` is ignored, with a warning in development.
 
 ```tsx-live
 <DataTable
@@ -156,6 +232,7 @@ Pass `getRowHref` so each row opens its own page, such as a show opening its eve
 ## Accessibility
 
 - `caption` names the table for screen readers, even though it renders visually hidden.
+- The totals row sits in the table's `<tfoot>`, with its label as a row header, so screen readers announce it as the table's summary.
 - Sortable headers are buttons, or links with `getSortHref`, named by the header text. The sorted column carries `aria-sort`, and the caret is hidden from screen readers.
 - Sparkline columns don't sort.
 - A linked row has one tab stop, its title link, so screen readers hear the title as the link name. The row shows the link's focus ring and hover.

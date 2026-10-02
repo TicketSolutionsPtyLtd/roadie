@@ -40,6 +40,25 @@ describe('cardTable', () => {
     ).toEqual({ columns, rows })
   })
 
+  it('resolves a table card totals row with its sums', () => {
+    expect(
+      cardTable({
+        ...base,
+        kind: 'table',
+        source: 'Oztix sales.',
+        columns: [
+          ...columns,
+          { key: 'orders', header: 'Orders', kind: 'number' }
+        ],
+        rows: [
+          { day: 'Fri 27 Nov', orders: 120 },
+          { day: 'Sat 28 Nov', orders: 80 }
+        ],
+        totals: 'sum'
+      })?.totals
+    ).toEqual({ label: 'Totals for 2 records', values: { orders: 200 } })
+  })
+
   it('has nothing for a stat', () => {
     expect(cardTable({ ...base, kind: 'stat', value: 1464 })).toBeUndefined()
   })

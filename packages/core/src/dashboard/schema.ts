@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { STATUS_INTENTS } from './cells'
 import { goodWhen, valueFormat } from './fields'
 import { CARD_SIZES, CARD_STATES, COLUMN_KINDS } from './layout'
 import { plotSchema } from './plots'
@@ -11,6 +12,12 @@ const delta = z.strictObject({
   baseline: z.number().optional()
 })
 
+const status = z.strictObject({
+  intent: z.enum(STATUS_INTENTS),
+  label: z.string().min(1).optional(),
+  order: z.number().optional()
+})
+
 const column = z.strictObject({
   key: z.string().min(1),
   header: z.string().min(1),
@@ -20,10 +27,14 @@ const column = z.strictObject({
   baseline: z.number().optional(),
   target: z.number().optional(),
   max: z.number().positive().optional(),
+  /** `false` leaves a number column out of a totals row's sum. */
+  total: z.boolean().optional(),
   priority: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
   pin: z.boolean().optional(),
   secondaryKey: z.string().optional(),
-  emptyText: z.string().optional()
+  emptyText: z.string().optional(),
+  /** A status column's keys, each with its intent and label. */
+  status: z.record(z.string(), status).optional()
 })
 
 const cell = z.union([z.string(), z.number(), z.null(), z.array(z.number())])
@@ -84,12 +95,22 @@ const statCard = z.strictObject({
   source: z.string().optional()
 })
 
+const totals = z.union([
+  z.literal('sum'),
+  z.strictObject({
+    label: z.string().min(1).optional(),
+    values: z.record(z.string(), cell).optional()
+  })
+])
+
 const tableCard = z.strictObject({
   ...base,
   ...headline,
   kind: z.literal('table'),
   columns: tableData.shape.columns,
   rows: tableData.shape.rows,
+  /** A footer row: 'sum' adds up the number columns, or give a label and values. */
+  totals: totals.optional(),
   source: z.string().min(1)
 })
 

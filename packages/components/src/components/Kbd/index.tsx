@@ -9,8 +9,9 @@ import { cn } from '@oztix/roadie-core/utils'
 import { type KeyFace, keyFace } from './keys'
 import { type KeyPlatform, useKeyPlatform } from './platform'
 
-// A touch screen has no keyboard to hint at.
-const HIDE_WITHOUT_HOVER = '[@media_not_(hover:hover)]:hidden'
+// A touch screen has no keyboard to hint at, unless a container opts in.
+const HIDE_WITHOUT_HOVER =
+  '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
 
 // Tinted from the inherited colour, so a keycap reads on any surface,
 // strong fills and tooltips included.
