@@ -266,8 +266,8 @@ a chevron by default; suppress it with `chevron={false}`.
 Wrap the list in [`Sortable`](/components/sortable) and give each row a
 `value`. The row takes a drag handle in front and is no longer a link or
 button: it ignores `href`, `onClick`, `current` and `chevron`, so put any
-action in its `trailing` slot. Clicking the handle, or pressing Enter on it,
-opens a Move menu for keyboard and screen reader users.
+action in its `trailing` slot. Clicking the handle, or pressing Enter or
+Space on it, opens a Move menu for keyboard and screen reader users.
 
 ```tsx-live-noinline
 function Columns() {
@@ -318,7 +318,7 @@ render(<Columns />)
 - **Selection**: `current` sets `aria-current` on the row so screen
   readers announce the active choice.
 - **Reordering**: a reorderable row's handle is a menu button named after the
-  row's title, and each move is announced. See
+  row's text title, and each move is announced. See
   [`Sortable`](/components/sortable).
 
 <PropsDefinitions componentPath='packages/components/src/components/List' />

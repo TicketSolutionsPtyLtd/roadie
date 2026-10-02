@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Sortable',
-  description: 'Drag to reorder items, with a Move menu on each handle for keyboard and screen reader users',
+  description: 'A drag-to-reorder wrapper for lists and rows, with a Move menu on each handle for keyboard and screen reader users',
   status: 'alpha',
   category: 'Collections',
 }
@@ -8,8 +8,8 @@ export const metadata = {
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
 
-Drag to reorder items, with a Move menu on each handle for keyboard and screen
-reader users.
+A drag-to-reorder wrapper for lists and rows, with a Move menu on each handle
+for keyboard and screen reader users.
 
 ## Import
 
@@ -59,14 +59,14 @@ right edge, and the menu moves items left and right, or to the start and end.
 function Stages() {
   const [order, setOrder] = useState(['Doors', 'Support', 'Headliner', 'Encore'])
   return (
-    <Sortable items={order} onReorder={setOrder} orientation='horizontal' label='set times'>
+    <Sortable items={order} onReorder={setOrder} orientation='horizontal' label='running order'>
       <div className='flex flex-wrap gap-2'>
         {order.map((value) => (
           <Sortable.Item
             key={value}
             value={value}
             label={value}
-            className='flex h-10 shrink-0 items-center gap-1 rounded-full emphasis-subtle pr-4 pl-1'
+            className='flex h-10 shrink-0 items-center gap-1 rounded-full emphasis-subtle pe-4 ps-1'
           >
             <Sortable.Handle size='xs' />
             <span className='font-semibold text-strong'>{value}</span>
@@ -112,7 +112,7 @@ function Cities() {
   return (
     <Sortable items={order} onReorder={setOrder} label='tour stops'>
       <ol className='grid gap-2'>
-        {order.map((value, index) => (
+        {order.map((value) => (
           <Sortable.Item
             key={value}
             value={value}
@@ -121,7 +121,6 @@ function Cities() {
             className='flex items-center gap-3 rounded-xl emphasis-normal p-2'
           >
             <Sortable.Handle />
-            <span className='w-5 text-sm text-subtle tabular-nums'>{index + 1}</span>
             <span className='font-semibold text-strong'>{value}</span>
           </Sortable.Item>
         ))}
@@ -191,7 +190,7 @@ render(<ColumnSettings />)
     Put actions in the row's <code>trailing</code> slot as buttons or toggles. A reorderable row is not a link or button, and ignores <code>href</code>, <code>onClick</code>, <code>current</code> and <code>chevron</code>.
   </Guideline.Do>
   <Guideline.Dont code={`<List.Item value='sku' title={<input … />} />`}>
-    Don't put text fields in a sortable item. The whole item is draggable, so its text can't be selected, and Firefox struggles with fields inside it.
+    Don't put text fields in a sortable item. The whole item is draggable, so its text can't be selected, and Firefox can't place the caret in a field inside it.
   </Guideline.Dont>
 </Guideline>
 
