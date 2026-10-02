@@ -1,6 +1,30 @@
-/* The nearest emphasis surface decides a subtle keycap's colours, so a light
-   card or field inside a strong or inverted fill gets the plain keycap back.
-   Nesting a fill inside a light surface inside the same kind of fill again is
-   not handled. */
-@custom-variant kbd-on-strong (:where(.emphasis-strong) &:not(:where(.emphasis-strong) :where(.emphasis-normal, .emphasis-raised, .emphasis-floating, .emphasis-sunken, .emphasis-field, .emphasis-inverted, .emphasis-overlay, .emphasis-overlay-subtle) &));
-@custom-variant kbd-on-inverted (:where(.emphasis-inverted, .emphasis-overlay, .emphasis-overlay-subtle) &:not(:where(.emphasis-inverted, .emphasis-overlay, .emphasis-overlay-subtle) :where(.emphasis-normal, .emphasis-raised, .emphasis-floating, .emphasis-sunken, .emphasis-field, .emphasis-strong) &));
+/* A subtle keycap's colours come from its nearest emphasis surface. They
+   inherit, so each surface sets or clears them and the closest one wins. A
+   subtle or subtler surface is translucent, so it leaves its parent's. */
+
+@layer components {
+  .emphasis-strong {
+    --kbd-subtle-bg: var(--intent-bg-strong-hover);
+    --kbd-subtle-text: var(--intent-text-on-strong);
+  }
+
+  .emphasis-inverted,
+  .emphasis-overlay,
+  .emphasis-overlay-subtle {
+    --kbd-subtle-bg: color-mix(
+      in oklch,
+      var(--intent-text-inverted) 15%,
+      transparent
+    );
+    --kbd-subtle-text: var(--intent-text-inverted);
+  }
+
+  .emphasis-normal,
+  .emphasis-raised,
+  .emphasis-floating,
+  .emphasis-sunken,
+  .emphasis-field {
+    --kbd-subtle-bg: initial;
+    --kbd-subtle-text: initial;
+  }
+}

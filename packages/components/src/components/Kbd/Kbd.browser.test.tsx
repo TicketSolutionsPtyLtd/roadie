@@ -99,6 +99,15 @@ describe('Kbd', () => {
     }
   )
 
+  it('sets joined keys in the keycap font, not the monospace kbd default', () => {
+    const { container } = render(<Kbd keys={['mod', 'k']} joined />)
+    const cap = container.firstElementChild!
+    for (const key of cap.querySelectorAll('[data-slot="kbd-key"]'))
+      expect(getComputedStyle(key).fontFamily).toBe(
+        getComputedStyle(cap).fontFamily
+      )
+  })
+
   it('draws glyphs at 12px', () => {
     const { container } = render(<Kbd>Enter</Kbd>)
     const svg = container.querySelector('svg')!.getBoundingClientRect()
@@ -137,6 +146,20 @@ const SURFACES = {
   'inverted inside strong': (kbd: ReactNode) => (
     <div className='emphasis-strong p-2'>
       <div className='emphasis-inverted'>{kbd}</div>
+    </div>
+  ),
+  'strong inside a card inside strong': (kbd: ReactNode) => (
+    <div className='emphasis-strong p-2'>
+      <div className='emphasis-normal p-2'>
+        <div className='emphasis-strong intent-accent'>{kbd}</div>
+      </div>
+    </div>
+  ),
+  'inverted inside a field inside inverted': (kbd: ReactNode) => (
+    <div className='emphasis-inverted p-2'>
+      <div className='emphasis-field p-2'>
+        <div className='emphasis-inverted'>{kbd}</div>
+      </div>
     </div>
   ),
   'strong inside inverted': (kbd: ReactNode) => (

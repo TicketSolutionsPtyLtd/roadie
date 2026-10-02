@@ -14,8 +14,9 @@ const HIDE_WITHOUT_HOVER =
   '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
 
 // emphasis-subtle's fill is translucent, so a strong or inverted fill would
-// show through under its dark text. A strong fill's hover tone is where its
-// label is guaranteed to read; an inverted fill has none, so it tints instead.
+// show through under its dark text. kbd.css gives the nearest such surface's
+// colours: a strong fill's hover tone, where its label is guaranteed to read,
+// or a tint of an inverted fill's label.
 const kbdVariants = cva(
   'inline-flex items-center justify-center gap-1 font-sans text-xs whitespace-nowrap [&_svg]:size-3 [&_svg]:shrink-0',
   {
@@ -24,8 +25,7 @@ const kbdVariants = cva(
         normal: 'emphasis-normal rounded-md font-medium',
         subtle: [
           'emphasis-subtle rounded-md font-medium',
-          'kbd-on-strong:bg-[var(--intent-bg-strong-hover)] kbd-on-strong:text-on-strong',
-          'kbd-on-inverted:bg-[color-mix(in_oklch,var(--intent-text-inverted)_15%,transparent)] kbd-on-inverted:text-inverted'
+          'bg-[var(--kbd-subtle-bg,var(--intent-bg-subtle))] text-[color:var(--kbd-subtle-text,var(--intent-text-normal))]'
         ],
         subtler: 'tracking-wide'
       },
@@ -178,7 +178,7 @@ export function Kbd({
           announce={announce}
           plus={plus}
           slot='kbd-key'
-          className='inline-flex items-center gap-1'
+          className='inline-flex items-center gap-1 font-sans'
         />
       </kbd>
     )
