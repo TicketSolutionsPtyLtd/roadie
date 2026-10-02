@@ -422,6 +422,15 @@ describe('resolveComparison', () => {
     expect((range!.end as number) - (range!.start as number)).toBe(20 * 60_000)
   })
 
+  it('keeps a previous-year window open across a skipped hour', () => {
+    const range = resolveComparison(
+      { start: '2027-10-04T02:30', end: '2027-10-04T03:30' },
+      'previous-year',
+      SYDNEY
+    )
+    expect((range!.end as number) - (range!.start as number)).toBe(3_600_000)
+  })
+
   it('has nothing to compare an open-ended range against', () => {
     expect(resolveComparison('upcoming', 'previous-period', SYDNEY)).toBeNull()
     expect(resolveComparison('past', 'previous-year', SYDNEY)).toBeNull()
