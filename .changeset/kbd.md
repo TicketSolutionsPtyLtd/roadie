@@ -7,9 +7,10 @@ as a keycap. Known key names show a glyph or short word, `keys={['mod', 'k']}`
 draws a combination with a keycap per key, `joined` draws it on one keycap
 (⌘K, or Ctrl+K off Apple), and `mod`, `meta`, `shift`, `alt` and `ctrl` follow
 the reader's platform without a hydration mismatch. `emphasis` is `subtle` (the
-default: a soft, borderless keycap tinted from the surrounding text colour, so
-it follows any surface), `normal` (its own opaque, bordered surface, built on
-`emphasis-normal`) or `subtler` (plain text in the surrounding colour). Kbd is
+default: a soft, borderless keycap tinted from the surrounding text colour,
+for the page, cards, fields and neutral surfaces), `normal` (its own
+opaque, bordered surface, built on `emphasis-normal`) or `subtler` (plain text
+in the surrounding colour, for menu rows and strong coloured fills). Kbd is
 `aria-hidden` unless `announce` is set, and is hidden on screens without hover
 unless announced.
 

@@ -145,27 +145,16 @@ describe('a subtle keycap', () => {
 const EMPHASES = ['normal', 'subtle', 'subtler'] as const
 const SURFACES = {
   page: (kbd: ReactNode) => <div className='bg-normal'>{kbd}</div>,
+  card: (kbd: ReactNode) => <div className='emphasis-normal'>{kbd}</div>,
+  'raised panel': (kbd: ReactNode) => (
+    <div className='emphasis-raised'>{kbd}</div>
+  ),
+  'sunken panel': (kbd: ReactNode) => (
+    <div className='emphasis-sunken'>{kbd}</div>
+  ),
+  field: (kbd: ReactNode) => <div className='emphasis-field'>{kbd}</div>,
   'strong neutral': (kbd: ReactNode) => (
     <div className='emphasis-strong'>{kbd}</div>
-  ),
-  'strong accent button': (kbd: ReactNode) => (
-    <Button emphasis='strong' intent='accent'>
-      Save {kbd}
-    </Button>
-  ),
-  'strong brand': (kbd: ReactNode) => (
-    <div className='emphasis-strong intent-brand'>{kbd}</div>
-  ),
-  'strong warning': (kbd: ReactNode) => (
-    <div className='emphasis-strong intent-warning'>{kbd}</div>
-  ),
-  ...Object.fromEntries(
-    ['brand-secondary', 'success', 'danger', 'info'].map((intent) => [
-      `strong ${intent}`,
-      (kbd: ReactNode) => (
-        <div className={`intent-${intent} emphasis-strong`}>{kbd}</div>
-      )
-    ])
   ),
   inverted: (kbd: ReactNode) => <div className='emphasis-inverted'>{kbd}</div>,
   overlay: (kbd: ReactNode) => <div className='emphasis-overlay'>{kbd}</div>,
@@ -182,13 +171,6 @@ const SURFACES = {
   'inverted inside strong': (kbd: ReactNode) => (
     <div className='emphasis-strong p-2'>
       <div className='emphasis-inverted'>{kbd}</div>
-    </div>
-  ),
-  'strong inside a card inside strong': (kbd: ReactNode) => (
-    <div className='emphasis-strong p-2'>
-      <div className='emphasis-normal p-2'>
-        <div className='emphasis-strong intent-accent'>{kbd}</div>
-      </div>
     </div>
   ),
   'inverted inside a field inside inverted': (kbd: ReactNode) => (
@@ -279,6 +261,43 @@ const SURFACES = {
     </div>
   )
 }
+// A tint drawn from the label sinks below Lc 60 on the coloured strong fills,
+// whose labels only just clear it. The Kbd guideline puts subtler there.
+const COLOURED_FILLS = {
+  'strong accent button': (kbd: ReactNode) => (
+    <Button emphasis='strong' intent='accent'>
+      Save {kbd}
+    </Button>
+  ),
+  'strong success button': (kbd: ReactNode) => (
+    <Button emphasis='strong' intent='success'>
+      Publish {kbd}
+    </Button>
+  ),
+  ...Object.fromEntries(
+    [
+      'accent',
+      'brand',
+      'warning',
+      'brand-secondary',
+      'success',
+      'danger',
+      'info'
+    ].map((intent) => [
+      `strong ${intent}`,
+      (kbd: ReactNode) => (
+        <div className={`intent-${intent} emphasis-strong`}>{kbd}</div>
+      )
+    ])
+  ),
+  'strong inside a card inside strong': (kbd: ReactNode) => (
+    <div className='emphasis-strong p-2'>
+      <div className='emphasis-normal p-2'>
+        <div className='emphasis-strong intent-accent'>{kbd}</div>
+      </div>
+    </div>
+  )
+}
 // APCA's floor for bold, button-sized labels, as strongContrast checks.
 const KEY_LC = 60
 
@@ -288,8 +307,20 @@ describe.each(['light', 'dark'] as const)('Kbd contrast in %s mode', (mode) => {
   })
   afterAll(() => document.documentElement.classList.remove('dark'))
 
-  describe.each(Object.entries(SURFACES))('on a %s', (_, surface) => {
-    it.each(EMPHASES)('keeps %s keys readable', async (emphasis) => {
+  const rows = [
+    ...Object.entries(SURFACES).map(([name, surface]) => ({
+      name,
+      surface,
+      emphases: EMPHASES
+    })),
+    ...Object.entries(COLOURED_FILLS).map(([name, surface]) => ({
+      name,
+      surface,
+      emphases: ['normal', 'subtler'] as const
+    }))
+  ]
+  describe.each(rows)('on a $name', ({ surface, emphases }) => {
+    it.each(emphases)('keeps %s keys readable', async (emphasis) => {
       const { container } = render(
         surface(
           <>
