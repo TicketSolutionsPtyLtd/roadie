@@ -7,7 +7,11 @@ import { Table } from '../Table'
 import { DataTableCellContent } from './DataTableCell'
 import { DataTableFrame, DataTableShowAll } from './DataTableShowAll'
 import { SortIcon } from './SortIcon'
-import type { DataTableSort, DataTableSortDirection } from './sort'
+import {
+  type DataTableSort,
+  type DataTableSortDirection,
+  isSortableColumn
+} from './sort'
 
 export type DataTableSortControl = { href: string } | { onSort: () => void }
 
@@ -115,7 +119,9 @@ export function DataTableView({
                   key={column.key}
                   {...cellAttributes(column)}
                   aria-sort={
-                    sort?.key === column.key ? sort.direction : undefined
+                    sort?.key === column.key && isSortableColumn(column)
+                      ? sort.direction
+                      : undefined
                   }
                 >
                   {header(column)}

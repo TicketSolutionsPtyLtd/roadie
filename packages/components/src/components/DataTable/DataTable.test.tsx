@@ -185,6 +185,26 @@ const header = (name: string) =>
   screen.getByRole('columnheader', { name: new RegExp(name) })
 
 describe('DataTable sorting', () => {
+  it.each([
+    ['sortable', { sortable: true }],
+    ['getSortHref', { getSortHref: () => '#' }]
+  ])('never marks a sparkline column sorted (%s)', (_, mode) => {
+    render(
+      <DataTable
+        {...mode}
+        defaultSort={{ key: 'daily', direction: 'ascending' }}
+        sort={
+          'getSortHref' in mode
+            ? { key: 'daily', direction: 'ascending' }
+            : undefined
+        }
+        columns={sortColumns}
+        rows={sortRows}
+      />
+    )
+    expect(header('Daily')).not.toHaveAttribute('aria-sort')
+  })
+
   it('sorts numbers largest first, then flips', () => {
     render(<DataTable sortable columns={sortColumns} rows={sortRows} />)
     fireEvent.click(screen.getByRole('button', { name: 'Gross' }))
