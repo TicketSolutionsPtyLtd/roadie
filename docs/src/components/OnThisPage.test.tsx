@@ -69,6 +69,21 @@ describe('useDocHeadings', () => {
     expect(content.querySelector('h3')?.id).toBe('stattile')
   })
 
+  it('follows a content wrapper that streaming replaces after collecting', async () => {
+    const { content, result } = mountPage()
+    const next = document.createElement('div')
+    next.id = 'docs-content'
+    next.innerHTML = '<h2>API reference</h2><h3>StatTile</h3>'
+    content.replaceWith(next)
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)))
+    expect(result.current.headings.map((h) => h.id)).toEqual([
+      'api-reference',
+      'stattile'
+    ])
+    act(() => result.current.onSelect(event, 'stattile'))
+    expect(next.querySelector('h3')?.id).toBe('stattile')
+  })
+
   it('leaves out headings inside a live example as it renders', async () => {
     const { content, result } = mountPage()
     const example = document.createElement('div')

@@ -111,7 +111,8 @@ describe('remarkLiveExamples', () => {
   })
 })
 
-describe('getLiveExamples', () => {
+// Compiles every MDX page, which outlasts the 5s default on CI runners.
+describe('getLiveExamples', { timeout: 30_000 }, () => {
   it('lists every live example on the number field page with stable ids', async () => {
     const examples = (await getLiveExamples()).filter(
       ({ page }) => page === 'components/number-field'

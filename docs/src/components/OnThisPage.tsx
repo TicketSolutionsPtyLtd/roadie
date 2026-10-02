@@ -79,11 +79,12 @@ export function useDocHeadings(): DocHeadings {
       return
     }
     // Scope to the content wrapper, not the Navigator's <main>.
-    const mainEl = document.getElementById('docs-content')
-    if (!mainEl) {
+    const found = document.getElementById('docs-content')
+    if (!found) {
       setHeadings([])
       return
     }
+    let mainEl: HTMLElement = found
 
     // These pages' h3s duplicate the navigation or run to dozens.
     const selector = ['/components', '/tokens/reference'].includes(route)
@@ -165,9 +166,22 @@ export function useDocHeadings(): DocHeadings {
     // The page's content can be swapped for new nodes after this effect runs.
     const mutations = new MutationObserver(collect)
     mutations.observe(mainEl, { childList: true, subtree: true })
+    // Streaming can replace the wrapper itself, leaving the observers on a detached node.
+    const replaced = new MutationObserver(() => {
+      if (mainEl.isConnected) return
+      const next = document.getElementById('docs-content')
+      if (!next) return
+      mainEl = next
+      mutations.disconnect()
+      mutations.observe(mainEl, { childList: true, subtree: true })
+      collect()
+      landOnHash()
+    })
+    replaced.observe(document.body, { childList: true, subtree: true })
     return () => {
       window.removeEventListener('hashchange', landOnHash)
       mutations.disconnect()
+      replaced.disconnect()
       observer.disconnect()
     }
   }, [route])
