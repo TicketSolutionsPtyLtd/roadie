@@ -55,6 +55,63 @@ function Routed({
 }
 
 describe('DataTable row links', () => {
+  it('never hides a linked title by priority, and says so once', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const prioritised = columns.map((column) =>
+      column.key === 'show' ? { ...column, priority: 2 as const } : column
+    )
+    const { container, rerender } = render(
+      <Routed onNavigate={vi.fn()} columns={prioritised} />
+    )
+    const titleCells = () =>
+      [...container.querySelectorAll('td, th')].filter((cell) =>
+        /Show|Ball Park Music|Angie McMahon/.test(cell.textContent ?? '')
+      )
+    for (const cell of titleCells())
+      expect(cell).not.toHaveAttribute('data-priority')
+    expect(
+      screen.queryByRole('button', { name: 'Show all columns' })
+    ).toBeNull()
+    rerender(<Routed onNavigate={vi.fn()} columns={prioritised} />)
+    const tableWarnings = warn.mock.calls.filter(([message]) =>
+      String(message).startsWith('[Roadie] DataTable')
+    )
+    expect(tableWarnings).toHaveLength(1)
+    expect(tableWarnings[0]![0]).toMatch(/"show".*priority is ignored/)
+    warn.mockRestore()
+  })
+
+  it('warns once for each title column', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const prioritised = columns.map((column) =>
+      column.key === 'city'
+        ? { ...column, kind: 'text' as const, pin: true, priority: 3 as const }
+        : column
+    )
+    render(<Routed onNavigate={vi.fn()} columns={prioritised} />)
+    render(<Routed onNavigate={vi.fn()} columns={prioritised} />)
+    expect(
+      warn.mock.calls.filter(([message]) =>
+        String(message).includes('"city" holds the row links')
+      )
+    ).toHaveLength(1)
+    warn.mockRestore()
+  })
+
+  it('keeps a title column priority when no row links', () => {
+    const { container } = render(
+      <DataTable
+        columns={columns.map((column) =>
+          column.key === 'show' ? { ...column, priority: 2 as const } : column
+        )}
+        rows={rows}
+      />
+    )
+    expect(container.querySelector('th[data-priority="2"]')).toHaveTextContent(
+      'Show'
+    )
+  })
+
   it('leaves a row with an empty href unlinked', () => {
     const { container } = render(
       <Routed onNavigate={vi.fn()} getRowHref={() => ''} />

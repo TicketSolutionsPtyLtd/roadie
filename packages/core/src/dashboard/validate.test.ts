@@ -810,3 +810,117 @@ describe('validateDashboard checks repeated names', () => {
     )
   })
 })
+
+describe('validateDashboard status columns', () => {
+  const ordersTable = (column: Record<string, unknown>, rows: unknown[]) =>
+    spec([
+      {
+        id: 'orders',
+        kind: 'table',
+        size: 'full',
+        label: 'Recent orders',
+        source: 'Oztix sales.',
+        columns: [
+          { key: 'order', header: 'Order', kind: 'text' },
+          { key: 'status', header: 'Status', kind: 'status', ...column }
+        ],
+        rows
+      }
+    ])
+
+  it('accepts a status column with an intent and label map', () => {
+    const result = validateDashboard(
+      ordersTable(
+        {
+          status: {
+            paid: { intent: 'success', label: 'Paid' },
+            refunded: { intent: 'neutral', order: 2 }
+          }
+        },
+        [{ order: 'OZ-1001', status: 'paid' }]
+      )
+    )
+    expect(result.ok).toBe(true)
+    expect(result.problems).toEqual([])
+  })
+
+  it('rejects an unknown intent', () => {
+    const result = validateDashboard(
+      ordersTable({ status: { paid: { intent: 'green' } } }, [])
+    )
+    expect(result.ok).toBe(false)
+    expect(result.problems.map((problem) => problem.path)).toContain(
+      'sections[0].cards[0].columns[1].status.paid.intent'
+    )
+  })
+
+  it('warns about a key the map lacks, which shows as neutral', () => {
+    const result = validateDashboard(
+      ordersTable({ status: { paid: { intent: 'success' } } }, [
+        { order: 'OZ-1001', status: 'paid' },
+        { order: 'OZ-1002', status: 'disputed' },
+        { order: 'OZ-1003', status: 'disputed' }
+      ])
+    )
+    expect(result.ok).toBe(true)
+    expect(result.problems).toEqual([
+      {
+        path: 'sections[0].cards[0].columns[1].status',
+        message: '"disputed" has no status, so it shows as neutral',
+        severity: 'warning'
+      }
+    ])
+  })
+
+  it('reads numeric keys the way a table shows them', () => {
+    const result = validateDashboard(
+      ordersTable({ status: { '2': { intent: 'warning' } } }, [
+        { order: 'OZ-1001', status: 2 },
+        { order: 'OZ-1002', status: 3 }
+      ])
+    )
+    expect(result.problems).toEqual([
+      {
+        path: 'sections[0].cards[0].columns[1].status',
+        message: '"3" has no status, so it shows as neutral',
+        severity: 'warning'
+      }
+    ])
+  })
+
+  it('reads every cell the way a table shows it, arrays included', () => {
+    const result = validateDashboard(
+      ordersTable({ status: { paid: { intent: 'success' } } }, [
+        { order: 'OZ-1001', status: [1, 2] }
+      ])
+    )
+    expect(result.problems).toEqual([
+      {
+        path: 'sections[0].cards[0].columns[1].status',
+        message: '"1,2" has no status, so it shows as neutral',
+        severity: 'warning'
+      }
+    ])
+  })
+
+  it('leaves an empty status alone, since it shows as empty', () => {
+    const result = validateDashboard(
+      ordersTable({ status: { paid: { intent: 'success' } } }, [
+        { order: 'OZ-1001', status: '' }
+      ])
+    )
+    expect(result.problems).toEqual([])
+  })
+
+  it('warns when a non-status column has a status map', () => {
+    const result = validateDashboard(
+      ordersTable({ kind: 'text', status: { paid: { intent: 'success' } } }, [])
+    )
+    expect(result.problems).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].columns[1].status',
+        severity: 'warning'
+      })
+    )
+  })
+})

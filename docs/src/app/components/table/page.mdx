@@ -12,7 +12,7 @@ Styled table primitives for any screen.
 ## Import
 
 ```tsx
-import { Table } from '@oztix/roadie-components/table'
+import { Table, tableCellClass } from '@oztix/roadie-components/table'
 ```
 
 ## Examples
@@ -45,6 +45,39 @@ import { Table } from '@oztix/roadie-components/table'
       <Table.Cell align='end'>$22,900</Table.Cell>
     </Table.Row>
   </Table.Body>
+</Table>
+```
+
+### Foot
+
+`Table.Foot` holds a summary row, such as totals, in strong text over a rule. Make its label a row header, a `th` with `scope='row'` styled by `tableCellClass()`, so screen readers announce it with each figure.
+
+```tsx-live
+<Table>
+  <Table.Head>
+    <Table.Row>
+      <Table.HeaderCell>Show</Table.HeaderCell>
+      <Table.HeaderCell align='end'>Sold</Table.HeaderCell>
+    </Table.Row>
+  </Table.Head>
+  <Table.Body>
+    <Table.Row>
+      <Table.Cell>Ball Park Music</Table.Cell>
+      <Table.Cell align='end'>1,842</Table.Cell>
+    </Table.Row>
+    <Table.Row>
+      <Table.Cell>Ocean Alley</Table.Cell>
+      <Table.Cell align='end'>2,205</Table.Cell>
+    </Table.Row>
+  </Table.Body>
+  <Table.Foot>
+    <Table.Row>
+      <th scope='row' className={tableCellClass()}>
+        Totals for 2 events
+      </th>
+      <Table.Cell align='end'>4,047</Table.Cell>
+    </Table.Row>
+  </Table.Foot>
 </Table>
 ```
 

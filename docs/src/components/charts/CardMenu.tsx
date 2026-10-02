@@ -13,23 +13,65 @@ import {
 import type { ChartTable } from '@oztix/roadie-charts/tables'
 import { DataCard } from '@oztix/roadie-components/data-card'
 import { Menu } from '@oztix/roadie-components/menu'
+import {
+  columnStatus,
+  resolveTableTotals
+} from '@oztix/roadie-core/dashboard-layout'
 
 function csvField(value: unknown) {
   const text = Array.isArray(value) ? value.join(' ') : String(value ?? '')
   return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
 }
 
+// A status key is an id; the label is what people read.
+const cellField = (column: ChartTable['columns'][number], value: unknown) =>
+  csvField(
+    column.kind === 'status' && value != null && value !== ''
+      ? columnStatus(column, String(value)).label
+      : value
+  )
+
 function tableCsv({ columns, rows }: ChartTable) {
   const lines = [
     columns.map((column) => csvField(column.header)),
-    ...rows.map((row) => columns.map((column) => csvField(row[column.key])))
+    ...rows.map((row) =>
+      columns.map((column) =>
+        cellField(
+          column,
+          Object.hasOwn(row, column.key) ? row[column.key] : undefined
+        )
+      )
+    )
   ]
   return lines.map((line) => line.join(',')).join('\n')
 }
 
+function totalsCsv({ columns, rows, totals }: ChartTable) {
+  if (!totals) return []
+  const { label, values } = resolveTableTotals(
+    columns,
+    rows,
+    totals === true ? 'sum' : totals
+  )
+  return [
+    columns
+      .map((column, index) =>
+        index === 0
+          ? csvField(label)
+          : cellField(
+              column,
+              Object.hasOwn(values, column.key) ? values[column.key] : undefined
+            )
+      )
+      .join(',')
+  ]
+}
+
 function downloadCsv(label: string, table: ChartTable) {
   const url = URL.createObjectURL(
-    new Blob([tableCsv(table)], { type: 'text/csv' })
+    new Blob([[tableCsv(table), ...totalsCsv(table)].join('\n')], {
+      type: 'text/csv'
+    })
   )
   const link = document.createElement('a')
   link.href = url

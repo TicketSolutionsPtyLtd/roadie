@@ -77,6 +77,7 @@ function Card({ card, size, actions, getRowHref }: CardProps) {
           takeaway={card.takeaway}
         >
           <DataTable
+            totals={card.totals}
             columns={card.columns}
             rows={card.rows}
             caption={card.label}

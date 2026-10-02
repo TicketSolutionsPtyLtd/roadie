@@ -19,7 +19,8 @@ import {
 import {
   DataTable,
   type DataTableColumn,
-  type DataTableRow
+  type DataTableRow,
+  type DataTableTotals
 } from '@oztix/roadie-components/data-table'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
 import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
@@ -31,6 +32,8 @@ import { ChartCardContext, type ChartReport, PLOT_HEIGHTS } from './context'
 export type ChartTable = {
   columns: readonly DataTableColumn[]
   rows: readonly DataTableRow[]
+  /** A footer row, as `DataTable` takes it. */
+  totals?: DataTableTotals
 }
 export type ChartView = 'chart' | 'table'
 
@@ -241,6 +244,7 @@ export function Chart({
                   <DataTable
                     columns={shownTable.columns}
                     rows={shownTable.rows}
+                    totals={shownTable.totals}
                     caption={label}
                     plain
                   />

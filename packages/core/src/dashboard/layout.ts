@@ -12,7 +12,8 @@ export const COLUMN_KINDS = [
   'number',
   'delta',
   'sparkline',
-  'meter'
+  'meter',
+  'status'
 ] as const
 
 export type CardSize = (typeof CARD_SIZES)[number]
