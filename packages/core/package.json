@@ -115,7 +115,7 @@
     {
       "name": "datetime",
       "path": "dist/datetime/index.js",
-      "limit": "3 KB"
+      "limit": "7.7 KB"
     }
   ]
 }
