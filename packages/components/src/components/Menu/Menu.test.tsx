@@ -127,7 +127,7 @@ describe('Menu', () => {
     const item = await screen.findByRole('menuitem', { name: 'Duplicate' })
     const shortcut = item.querySelector('[data-slot="menu-item-shortcut"]')
     expect(shortcut).toHaveAttribute('aria-hidden', 'true')
-    expect(shortcut).toHaveClass('[@media_not_(hover:hover)]:hidden')
+    expect(shortcut).toHaveClass('[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden')
     expect(shortcut).not.toHaveClass('bg-current/10')
     expect(shortcut).toHaveClass('text-subtle')
   })
