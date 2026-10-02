@@ -41,8 +41,21 @@ function closingParen(selector: string, open: number) {
   return selector.length
 }
 
+// The `)` closing the wrapper a position sits in, if any.
+function enclosingClose(selector: string, from: number) {
+  let depth = 0
+  for (let at = from; at < selector.length; at += 1) {
+    if (selector[at] === '\\') at += 1
+    else if (selector[at] === '[') at = selector.indexOf(']', at)
+    else if (selector[at] === '(') depth += 1
+    else if (selector[at] === ')' && depth-- === 0) return at
+  }
+  return -1
+}
+
 // The compounds from the anchor to the subject. A wrapper such as :not()
-// closing before any combinator means the anchor is the compound outside it.
+// closing before any combinator means the anchor is the compound outside it;
+// a comma inside a wrapper skips the wrapper's other branches.
 function compoundsAfter(selector: string, from: number) {
   let compounds = ['anchor']
   for (let at = from; at < selector.length; at += 1) {
@@ -63,7 +76,10 @@ function compoundsAfter(selector: string, from: number) {
       if (compounds.length > 1) return compounds
       compounds = ['anchor']
     } else if (char === ',') {
-      return compounds
+      const close = enclosingClose(selector, at)
+      if (close === -1 || compounds.length > 1) return compounds
+      compounds = ['anchor']
+      at = close
     } else if (/[\s>~+]/.test(char)) {
       if (compounds[last]!.trim()) compounds.push('')
     } else {
@@ -195,6 +211,8 @@ describe('Roadie CSS and :has() invalidation', () => {
     expect(broad('.a:has(.b) :is(.c, *)')).toBe(true)
     expect(broad('.a:has(.b) :not(.c)')).toBe(true)
     expect(broad('.a:has(.b) [data-slot="c"]:not(.d)')).toBe(true)
+    expect(broad('.a:is(:has(.b), .c) *')).toBe(true)
+    expect(broad(':where(.a:has(.b), .c) [data-slot="d"]')).toBe(true)
     expect(broad('.a:has(.b) .c')).toBe(false)
     expect(broad('.a:has(.b) [data-slot="c"].d:hover')).toBe(false)
     expect(broad('.a:has(.b) [data-level="0"][data-slot="c"]')).toBe(false)
