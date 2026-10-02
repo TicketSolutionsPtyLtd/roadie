@@ -18,9 +18,9 @@ export function DataTableFrame({
   return (
     <ShowAllContext value={{ expanded, toggle }}>
       <div
+        {...props}
         data-slot='data-table'
         data-show-all={expanded ? '' : undefined}
-        {...props}
       />
     </ShowAllContext>
   )

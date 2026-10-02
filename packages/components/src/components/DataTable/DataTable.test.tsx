@@ -154,4 +154,11 @@ describe('DataTable', () => {
       screen.getByRole('button', { name: 'Show all columns' })
     ).toHaveAttribute('aria-expanded', 'false')
   })
+
+  it('keeps Show all state authoritative over a passed data-show-all', () => {
+    const { container } = render(
+      <DataTable columns={columns} rows={rows} data-show-all='' />
+    )
+    expect(container.firstElementChild).not.toHaveAttribute('data-show-all')
+  })
 })
