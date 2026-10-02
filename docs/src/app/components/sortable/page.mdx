@@ -1,0 +1,243 @@
+export const metadata = {
+  title: 'Sortable',
+  description: 'A drag-to-reorder wrapper for lists and rows, with a Move menu on each handle for keyboard and screen reader users',
+  status: 'alpha',
+  category: 'Collections',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A drag-to-reorder wrapper for lists and rows, with a Move menu on each handle
+for keyboard and screen reader users.
+
+## Import
+
+```tsx
+import { Sortable } from '@oztix/roadie-components/sortable'
+```
+
+## Examples
+
+### Default
+
+Wrap a `List` in `Sortable` and give each `List.Item` a `value`. The row takes
+a drag handle in front. Pass the values in order as `items`, and store the new
+order in `onReorder`. Drag a handle to move its row, or click it to open the
+Move menu. The drag preview is the browser's own snapshot of the row.
+
+```tsx-live-noinline
+function Columns() {
+  const names = {
+    date: 'Date',
+    event: 'Event',
+    sku: 'SKU',
+    price: 'Price',
+    sold: 'Sold'
+  }
+  const [order, setOrder] = useState(Object.keys(names))
+  return (
+    <Sortable items={order} onReorder={setOrder} label='columns'>
+      <List>
+        {order.map((value) => (
+          <List.Item key={value} value={value} title={names[value]} />
+        ))}
+      </List>
+    </Sortable>
+  )
+}
+
+render(<Columns />)
+```
+
+### Variants
+
+Set `orientation='horizontal'` for items in a row. Drops land on the left or
+right edge, and the menu moves items left and right, or to the start and end.
+
+```tsx-live-noinline
+function Stages() {
+  const [order, setOrder] = useState(['Doors', 'Support', 'Headliner', 'Encore'])
+  return (
+    <Sortable items={order} onReorder={setOrder} orientation='horizontal' label='running order'>
+      <div className='flex flex-wrap gap-2'>
+        {order.map((value) => (
+          <Sortable.Item
+            key={value}
+            value={value}
+            label={value}
+            className='flex h-10 shrink-0 items-center gap-1 rounded-full emphasis-subtle pe-4 ps-1'
+          >
+            <Sortable.Handle size='xs' />
+            <span className='font-semibold text-strong'>{value}</span>
+          </Sortable.Item>
+        ))}
+      </div>
+    </Sortable>
+  )
+}
+
+render(<Stages />)
+```
+
+### States
+
+`disabled` on `Sortable` turns off dragging and the Move menu for every item.
+`disabled` on one `Sortable.Item` stops that item being dragged or moved from
+its own menu; other items can still move past it. A `List.Item` has no
+per-row `disabled`, so build a row you need to hold back with `Sortable.Item`.
+
+```tsx-live-noinline
+function Columns() {
+  const [order, setOrder] = useState(['Event', 'Date', 'SKU'])
+  return (
+    <div className='grid gap-4'>
+      <div className='grid gap-2'>
+        <p className='text-sm text-subtle'>Disabled</p>
+        <Sortable items={['Date', 'Event']} onReorder={() => {}} disabled>
+          <List>
+            <List.Item value='Date' title='Date' />
+            <List.Item value='Event' title='Event' />
+          </List>
+        </Sortable>
+      </div>
+      <div className='grid gap-2'>
+        <p className='text-sm text-subtle'>One item disabled</p>
+        <Sortable items={order} onReorder={setOrder} label='columns'>
+          <ul className='grid gap-2'>
+            {order.map((value) => (
+              <Sortable.Item
+                key={value}
+                value={value}
+                label={value}
+                disabled={value === 'Event'}
+                render={<li />}
+                className='flex items-center gap-3 rounded-xl emphasis-normal p-2 data-disabled:text-subtle'
+              >
+                <Sortable.Handle />
+                <span className='font-semibold'>{value}</span>
+              </Sortable.Item>
+            ))}
+          </ul>
+        </Sortable>
+      </div>
+    </div>
+  )
+}
+
+render(<Columns />)
+```
+
+### Composition
+
+`Sortable.Item` renders a `<div>` by default. Pass `render` to swap the
+element, such as `<li />` inside your own list, and put a `Sortable.Handle`
+anywhere inside it. Each item sets `data-dragging` while it is dragged and
+`data-drop-edge` (`top`, `bottom`, `left` or `right`) while it is the drop
+target, for your own styling; the dimmed item and the accent drop line are
+built in. Give each item a `label` so the handle and menu can name
+it: "Reorder Sydney", "Move Sydney up".
+
+```tsx-live-noinline
+function Cities() {
+  const [order, setOrder] = useState(['Brisbane', 'Sydney', 'Melbourne', 'Perth'])
+  return (
+    <Sortable items={order} onReorder={setOrder} label='tour stops'>
+      <ol className='grid gap-2'>
+        {order.map((value) => (
+          <Sortable.Item
+            key={value}
+            value={value}
+            label={value}
+            render={<li />}
+            className='flex items-center gap-3 rounded-xl emphasis-normal p-2'
+          >
+            <Sortable.Handle />
+            <span className='font-semibold text-strong'>{value}</span>
+          </Sortable.Item>
+        ))}
+      </ol>
+    </Sortable>
+  )
+}
+
+render(<Cities />)
+```
+
+### With a popover
+
+Drag and drop works inside a modal `Popover`. A long list scrolls by itself
+while you drag near its top or bottom edge.
+
+```tsx-live-noinline
+function ColumnSettings() {
+  const [order, setOrder] = useState(
+    Array.from({ length: 12 }, (_, index) => `Column ${index + 1}`)
+  )
+  return (
+    <Popover modal>
+      <Popover.Trigger render={<Button>Columns</Button>} />
+      <Popover.Content>
+        <Popover.Body className='max-h-72 overflow-y-auto'>
+          <Sortable items={order} onReorder={setOrder} label='columns'>
+            <List>
+              {order.map((value) => (
+                <List.Item key={value} value={value} title={value} />
+              ))}
+            </List>
+          </Sortable>
+        </Popover.Body>
+      </Popover.Content>
+    </Popover>
+  )
+}
+
+render(<ColumnSettings />)
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Wrap the list, keyed by value'>
+  <Guideline.Do code={`<Sortable items={order} onReorder={setOrder} label='columns'>\n  <List>\n    {order.map((value) => (\n      <List.Item key={value} value={value} title={names[value]} />\n    ))}\n  </List>\n</Sortable>`}>
+    Put <code>Sortable</code> around the <code>List</code> and key each row by its value, so focus returns to the handle of the row that moved.
+  </Guideline.Do>
+  <Guideline.Dont code={`<List>\n  <Sortable items={order} onReorder={setOrder}>\n    {order.map((value, index) => (\n      <List.Item key={index} value={value} title={value} />\n    ))}\n  </Sortable>\n</List>`}>
+    Don't put it inside the list or key rows by index. Sortable adds a hidden live region after its children, which can't sit inside a list, and index keys send focus to the wrong handle.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Name the items and the collection'>
+  <Guideline.Do code={`<Sortable label='columns' …>\n  <Sortable.Item value='sku' label='SKU'>…</Sortable.Item>\n</Sortable>`}>
+    Give each item a <code>label</code> (a text <code>List.Item</code> title does this for you) and the root a <code>label</code>. The handle reads "Reorder SKU" and moves are announced as "SKU moved to position 3 of 7 columns".
+  </Guideline.Do>
+  <Guideline.Dont code={`<Sortable.Item value='sku'>\n  <SkuIcon />\n</Sortable.Item>`}>
+    Don't leave an item unnamed. Every handle then reads "Reorder", and a screen reader user can't tell the rows apart.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep rows static and drag from the handle'>
+  <Guideline.Do code={`<List.Item value='sku' title='SKU' trailing={<Toggle … />} />`}>
+    Put actions in the row's <code>trailing</code> slot as buttons or toggles. A reorderable row is not a link or button, and ignores <code>href</code>, <code>onClick</code>, <code>current</code> and <code>chevron</code>.
+  </Guideline.Do>
+  <Guideline.Dont code={`<List.Item value='sku' title={<input … />} />`}>
+    Don't put text fields in a sortable item. The whole item is draggable, so its text can't be selected, and Firefox can't place the caret in a field inside it.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- **Keyboard and screen readers**: there is no keyboard dragging. The handle is
+  a menu button. Enter or Space opens the Move menu, and moves past the ends
+  are disabled. After a move, focus returns to the moved item's handle.
+- **Announcements**: every move, by menu or by drag, is announced in a polite
+  live region: "SKU moved to position 3 of 7 columns".
+- **Pointer**: a press on the handle that turns into a drag never opens the
+  menu. A click without a drag does.
+- **Motion**: the dragged item fades without a transition when reduced motion
+  is on. In forced colours the drop line uses the system highlight colour.
+
+<PropsDefinitions componentPath='packages/components/src/components/Sortable' />

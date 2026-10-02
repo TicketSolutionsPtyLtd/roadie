@@ -240,6 +240,10 @@
       "types": "./dist/components/Slider/index.d.ts",
       "import": "./dist/components/Slider/index.js"
     },
+    "./sortable": {
+      "types": "./dist/components/Sortable/index.d.ts",
+      "import": "./dist/components/Sortable/index.js"
+    },
     "./sparkline": {
       "types": "./dist/components/Sparkline/index.d.ts",
       "import": "./dist/components/Sparkline/index.js"
@@ -328,6 +332,9 @@
     "react-dom": "^19.2.0"
   },
   "dependencies": {
+    "@atlaskit/pragmatic-drag-and-drop": "4.0.0",
+    "@atlaskit/pragmatic-drag-and-drop-auto-scroll": "3.2.1",
+    "@atlaskit/pragmatic-drag-and-drop-hitbox": "3.0.0",
     "@number-flow/react": "0.6.2",
     "@oztix/roadie-core": "workspace:*",
     "embla-carousel": "9.0.0-rc03",

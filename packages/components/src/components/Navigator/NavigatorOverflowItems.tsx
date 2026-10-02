@@ -5,7 +5,7 @@ import { type ReactElement, use } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { List, type ListProps } from '../List'
-import { ListItemContent } from '../List/ListItem'
+import { ListItemContent } from '../List/ListItemContent'
 import { listItemVariants } from '../List/variants'
 import {
   NavigatorActionsContext,

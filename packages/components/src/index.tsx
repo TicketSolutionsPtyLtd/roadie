@@ -261,6 +261,17 @@ export {
 } from './components/List'
 
 export {
+  Sortable,
+  sortableItemVariants,
+  sortableDropIndicatorVariants,
+  sortableHandleVariants,
+  type SortableProps,
+  type SortableMove,
+  type SortableItemProps,
+  type SortableHandleProps
+} from './components/Sortable'
+
+export {
   Steps,
   stepsVariants,
   useSteps,
@@ -406,6 +417,11 @@ export {
   type ComboboxLabelProps,
   type ComboboxInputGroupProps,
   type ComboboxInputProps,
+  type ComboboxValueProps,
+  type ComboboxChipsProps,
+  type ComboboxChipProps,
+  type ComboboxChipLabelProps,
+  type ComboboxChipRemoveProps,
   type ComboboxTriggerProps,
   type ComboboxClearProps,
   type ComboboxPortalProps,
