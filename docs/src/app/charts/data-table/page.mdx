@@ -84,22 +84,68 @@ Narrow the table and lower-priority columns hide behind Show all columns first. 
 
 ### Sorting
 
+Add `sortable` and press a header to sort by it. Number, meter and delta columns sort largest first and text A to Z, and a second press flips the direction. Empty and text values in a number column stay at the bottom. `defaultSort` sets the starting order.
+
 ```tsx-live
 <DataTable
-  caption='Upcoming shows, sorted by gross'
-  sort={{ key: 'gross', direction: 'descending' }}
-  getSortHref={() => '#sort=gross'}
+  sortable
+  caption='Upcoming shows'
+  defaultSort={{ key: 'gross', direction: 'descending' }}
   columns={[
     { key: 'show', header: 'Show', kind: 'text', pin: true },
+    { key: 'sellThrough', header: 'Sell-through', kind: 'meter', target: 0.85 },
+    { key: 'pace', header: 'Pace index', kind: 'delta', format: 'index', baseline: 100 },
     { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency' }
   ]}
   rows={[
-    { show: 'Ocean Alley', gross: 183000 },
-    { show: 'Ball Park Music', gross: 118400 },
-    { show: 'Julia Jacklin', gross: 22900 }
+    { show: 'Ocean Alley', sellThrough: 0.92, pace: 131, gross: 183000 },
+    { show: 'Ball Park Music', sellThrough: 0.77, pace: 112, gross: 118400 },
+    { show: 'Julia Jacklin', sellThrough: 0.41, pace: 88, gross: 22900 },
+    { show: 'Angie McMahon', sellThrough: 0.18, pace: 'On sale 2 days', gross: null }
   ]}
 />
 ```
+
+### Server sorting
+
+For tables paged or sorted on the server, pass `sort` and `getSortHref` instead. Headers become links, the server returns rows in the new order, and sorting works without JavaScript. `sortDataTableRows` sorts rows on the server the same way `sortable` does.
+
+```tsx
+import { DataTable, sortDataTableRows } from '@oztix/roadie-components/data-table'
+
+const sort = { key: searchParams.sort ?? 'gross', direction: searchParams.dir ?? 'descending' }
+
+<DataTable
+  caption='Upcoming shows'
+  columns={columns}
+  rows={sortDataTableRows(rows, columns, sort)}
+  sort={sort}
+  getSortHref={(key, direction) => `?sort=${key}&dir=${direction}`}
+/>
+```
+
+### Row links
+
+Pass `getRowHref` so each row opens its own page, such as a show opening its event view. The title cell, the pinned text column or else the first text column, becomes the link, and pressing anywhere on the row follows it. Internal links route through the Link given to `RoadieProvider`, and external links open in a new tab. Return `undefined` to leave a row unlinked.
+
+```tsx-live
+<DataTable
+  caption='Upcoming shows'
+  getRowHref={(row) => `#${row.id}`}
+  columns={[
+    { key: 'show', header: 'Show', kind: 'text', pin: true, secondaryKey: 'venue' },
+    { key: 'sellThrough', header: 'Sell-through', kind: 'meter', target: 0.85 },
+    { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency' }
+  ]}
+  rows={[
+    { id: 'ball-park-music', show: 'Ball Park Music', venue: 'The Lantern Room, Fortitude Valley', sellThrough: 0.77, gross: 118400 },
+    { id: 'ocean-alley', show: 'Ocean Alley', venue: 'Parkside Amphitheatre, Geelong', sellThrough: 0.51, gross: 183000 },
+    { id: 'julia-jacklin', show: 'Julia Jacklin', venue: 'The Gasworks Room, Hobart', sellThrough: 0.46, gross: 22900 }
+  ]}
+/>
+```
+
+`getRowHref` runs where the table renders, so a server component can pass it. In a dashboard, pass it to `DashboardView` instead, since a description is JSON and holds no functions. See [Dashboards](/charts/dashboards).
 
 ## Guidelines
 
@@ -110,6 +156,8 @@ Narrow the table and lower-priority columns hide behind Show all columns first. 
 ## Accessibility
 
 - `caption` names the table for screen readers, even though it renders visually hidden.
-- The sorted column carries `aria-sort`, and `getSortHref` renders header links, so sorting works without JavaScript.
+- Sortable headers are buttons, or links with `getSortHref`, named by the header text. The sorted column carries `aria-sort`, and the caret is hidden from screen readers.
+- Sparkline columns don't sort.
+- A linked row has one tab stop, its title link, so screen readers hear the title as the link name. The row shows the link's focus ring and hover.
 
 <PropsDefinitions componentPath='packages/components/src/components/DataTable/index.tsx' />

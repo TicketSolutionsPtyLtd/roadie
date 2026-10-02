@@ -2,6 +2,12 @@ import { render, screen } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
+import type {
+  DashboardSpec,
+  TableCard,
+  TableRow
+} from '@oztix/roadie-core/dashboard'
+
 import { DashboardView } from '.'
 import { checkoutExample } from '../Funnel/examples'
 import { lineChart } from '../LineChart/definition'
@@ -90,6 +96,67 @@ describe('DashboardView', () => {
     },
     15_000
   )
+})
+
+const tableDashboard: DashboardSpec = {
+  version: 1,
+  title: 'Shows',
+  sections: [
+    {
+      title: 'Upcoming',
+      cards: [
+        {
+          id: 'shows',
+          kind: 'table',
+          size: 'full',
+          label: 'Upcoming shows',
+          source: 'Oztix sales.',
+          columns: [
+            { key: 'show', header: 'Show', kind: 'text' },
+            { key: 'sold', header: 'Tickets sold', kind: 'number' }
+          ],
+          rows: [
+            { id: 'show-1', show: 'Ball Park Music', sold: 1840 },
+            { id: 'show-2', show: 'Angie McMahon', sold: 620 }
+          ]
+        },
+        {
+          id: 'note',
+          kind: 'note',
+          size: 'full',
+          label: 'What to do next',
+          body: 'Push the Brisbane show this week.'
+        }
+      ]
+    }
+  ]
+}
+
+describe('DashboardView row links', () => {
+  it('links table card rows with the app supplied href', () => {
+    const getRowHref = vi.fn(
+      (card: TableCard, row: TableRow) => `/${card.id}/${row.id}`
+    )
+    render(<DashboardView spec={tableDashboard} getRowHref={getRowHref} />)
+    expect(
+      screen.getByRole('link', { name: 'Ball Park Music' })
+    ).toHaveAttribute('href', '/shows/show-1')
+    expect(getRowHref).toHaveBeenCalledTimes(2)
+    expect(getRowHref.mock.calls[0]![0]).toBe(
+      tableDashboard.sections[0]!.cards[0]
+    )
+  })
+
+  it('renders row links on the server', () => {
+    expect(
+      renderToString(
+        <DashboardView
+          spec={tableDashboard}
+          getRowHref={(_, row) => `/shows/${row.id}`}
+        />
+      )
+    ).toContain('href="/shows/show-2"')
+  })
 })
 
 const lineDashboard = {

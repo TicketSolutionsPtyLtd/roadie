@@ -32,9 +32,73 @@
   overflow-x: auto;
 }
 
-[data-pin] {
+[data-slot='data-table'] [data-pin] {
   position: sticky;
   left: 0;
   z-index: 1;
   background: var(--data-card-surface, var(--intent-bg-normal));
+}
+
+/* A linked row (getRowHref) is an is-interactive-within surface: its title
+   link's overlay covers the row. Hovering the row hovers the link. */
+@media (hover: hover) {
+  [data-slot='data-table'] tr[data-linked]:hover > td {
+    background-color: color-mix(
+      in oklch,
+      var(--intent-9) 6%,
+      var(--data-card-surface, var(--intent-bg-normal)) 94%
+    );
+  }
+}
+
+/* A table row doesn't shrink on press like a card does. Its own outline is
+   hidden by cells, and WebKit never paints it, so the overlay draws the
+   ring inset instead. */
+[data-slot='data-table'] tr[data-linked] {
+  transform: none;
+  outline: none;
+}
+
+[data-slot='data-table']
+  tr[data-linked]
+  [data-interactive-target]:focus-visible::after {
+  outline: var(--focus-ring-width) solid
+    color-mix(in oklch, var(--intent-9) var(--focus-ring-opacity), transparent);
+  outline-offset: calc(var(--focus-ring-width) * -1);
+}
+
+.dark
+  [data-slot='data-table']
+  tr[data-linked]
+  [data-interactive-target]:focus-visible::after {
+  outline-color: color-mix(
+    in oklch,
+    var(--intent-9) var(--focus-ring-opacity-dark),
+    transparent
+  );
+}
+
+/* A sticky cell is the overlay's containing block. A pinned title in the
+   first cell sticks to the start edge, so its overlay spans the table's
+   visible width from there. */
+[data-slot='data-table']
+  tr[data-linked]
+  > [data-pin]:first-child
+  [data-interactive-target]::after {
+  inset-inline-end: auto;
+  inline-size: 100cqi;
+}
+
+/* A later pinned title sits anywhere in view, so its overlay reaches a
+   visible width either side, and the table clips what overhangs so it never
+   adds scroll width. */
+[data-slot='data-table']
+  tr[data-linked]
+  > [data-pin]:not(:first-child)
+  [data-interactive-target]::after {
+  inset-inline: -100cqi;
+}
+
+[data-slot='data-table'] table[data-overlay-clip] {
+  overflow-x: clip;
 }

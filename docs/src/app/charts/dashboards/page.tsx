@@ -555,6 +555,13 @@ import { cardTable } from '@oztix/roadie-charts/tables'
   )}
 />`
 
+const ROW_LINKS_CODE = `<DashboardView
+  spec={spec}
+  getRowHref={(card, row) =>
+    card.id === 'shows' ? \`/events/\${row.id}\` : undefined
+  }
+/>`
+
 const HOVER_ONLY_CODE = `<DataCard
   label='Ticket types'
   actions={
@@ -1130,9 +1137,16 @@ export default function DashboardsPage() {
               The “Show all columns” button switches to horizontal scrolling and
               holds the <Code>pin</Code> column in place.
             </>,
-            'A sparkline cell needs 5 points. With fewer, it shows “Not enough history”.'
+            'A sparkline cell needs 5 points. With fewer, it shows “Not enough history”.',
+            <>
+              To open a row, such as a show’s event view, pass{' '}
+              <Code>getRowHref</Code> to <Code>DashboardView</Code>. It gets the
+              table card and the row and returns an href, or nothing. Like
+              actions, links come from the app, never the JSON.
+            </>
           ]}
         />
+        <CodePreview>{ROW_LINKS_CODE}</CodePreview>
         <DataCard
           label='Upcoming shows'
           takeaway='One show is behind similar shows'

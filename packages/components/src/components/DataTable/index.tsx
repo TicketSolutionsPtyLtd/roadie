@@ -1,16 +1,20 @@
 import type { ComponentProps } from 'react'
 
 import type { TableColumn, TableRow } from '@oztix/roadie-core/dashboard'
-import { cn } from '@oztix/roadie-core/utils'
 
-import { Table } from '../Table'
-import { DataTableCellContent } from './DataTableCell'
-import { DataTableFrame, DataTableShowAll } from './DataTableShowAll'
+import { DataTableSortable } from './DataTableSortable'
+import { DataTableView } from './DataTableView'
+import {
+  type DataTableSort,
+  type DataTableSortDirection,
+  isSortableColumn,
+  nextSortDirection
+} from './sort'
 
 export type DataTableColumn = TableColumn
 export type DataTableRow = TableRow
-export type DataTableSortDirection = 'ascending' | 'descending'
-export type DataTableSort = { key: string; direction: DataTableSortDirection }
+export type { DataTableSort, DataTableSortDirection }
+export { sortDataTableRows } from './sort'
 
 export type DataTableProps = Omit<ComponentProps<'div'>, 'children'> & {
   columns: readonly DataTableColumn[]
@@ -18,8 +22,24 @@ export type DataTableProps = Omit<ComponentProps<'div'>, 'children'> & {
   /** Accessible name for the table. */
   caption?: string
   getRowKey?: (row: DataTableRow, index: number) => string
+  /**
+   * Links a row to its own page. The title cell (the pinned text column, or
+   * else the first text column) becomes the link, routed through
+   * `RoadieProvider`, and the whole row follows it when pressed.
+   */
+  getRowHref?: (row: DataTableRow) => string | undefined
+  /** Sorts rows in the browser when a header is pressed. */
+  sortable?: boolean
+  /** The sorted column. Pass with `onSortChange` to control it. */
   sort?: DataTableSort
-  /** Makes headers sortable. The server returns rows in the new order. */
+  /** The column sorted first, when `sortable` and uncontrolled. */
+  defaultSort?: DataTableSort
+  /** Called with the new sort when a header is pressed. */
+  onSortChange?: (sort: DataTableSort) => void
+  /**
+   * Links headers for server sorting. The server returns rows in the new
+   * order, so `rows` render as given. Takes precedence over `sortable`.
+   */
   getSortHref?: (key: string, direction: DataTableSortDirection) => string
   /** @default 'Show all columns' */
   showAllLabel?: string
@@ -27,112 +47,51 @@ export type DataTableProps = Omit<ComponentProps<'div'>, 'children'> & {
   plain?: boolean
 }
 
-const alignOf = (column: DataTableColumn): 'start' | 'end' =>
-  column.kind === 'number' || column.kind === 'delta' ? 'end' : 'start'
-
-const nextDirection = (
-  sort: DataTableSort | undefined,
-  key: string
-): DataTableSortDirection =>
-  sort?.key === key && sort.direction === 'ascending'
-    ? 'descending'
-    : 'ascending'
-
-function HeaderLabel({
-  column,
-  sort,
-  getSortHref
-}: {
-  column: DataTableColumn
-  sort?: DataTableSort
-  getSortHref?: DataTableProps['getSortHref']
-}) {
-  if (!getSortHref) return column.header
-  return (
-    <a
-      href={getSortHref(column.key, nextDirection(sort, column.key))}
-      className='underline-offset-4 hover:underline'
-    >
-      {column.header}
-    </a>
-  )
-}
-
 export function DataTable({
-  columns,
   rows,
-  caption,
   getRowKey = (_, index) => String(index),
+  getRowHref,
+  sortable = false,
   sort,
+  defaultSort,
+  onSortChange,
   getSortHref,
   showAllLabel = 'Show all columns',
   plain = false,
-  className,
   ...props
 }: DataTableProps) {
-  const hasPriorities = columns.some((column) => column.priority !== undefined)
-  const cellAttributes = (column: DataTableColumn) => ({
-    'data-priority': column.priority,
-    'data-pin': column.pin || undefined,
-    align: alignOf(column)
-  })
-  return (
-    <DataTableFrame
-      showAll={hasPriorities}
-      className={cn('grid gap-2', className)}
-      {...props}
-    >
-      <div
-        data-slot='data-table-scroller'
-        role='region'
-        tabIndex={0}
-        aria-label={`${caption ?? 'Table'}, scrolls sideways`}
-      >
-        <Table>
-          {caption && <caption className='sr-only'>{caption}</caption>}
-          <Table.Head>
-            <Table.Row>
-              {columns.map((column) => (
-                <Table.HeaderCell
-                  key={column.key}
-                  {...cellAttributes(column)}
-                  aria-sort={
-                    sort?.key === column.key ? sort.direction : undefined
-                  }
-                >
-                  <HeaderLabel
-                    column={column}
-                    sort={sort}
-                    getSortHref={getSortHref}
-                  />
-                </Table.HeaderCell>
-              ))}
-            </Table.Row>
-          </Table.Head>
-          <Table.Body>
-            {rows.map((row, index) => (
-              <Table.Row key={getRowKey(row, index)}>
-                {columns.map((column) => (
-                  <Table.Cell key={column.key} {...cellAttributes(column)}>
-                    <DataTableCellContent
-                      column={column}
-                      value={row[column.key]}
-                      secondary={
-                        column.secondaryKey
-                          ? row[column.secondaryKey]
-                          : undefined
-                      }
-                      plain={plain}
-                    />
-                  </Table.Cell>
-                ))}
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
-      </div>
-      {hasPriorities && <DataTableShowAll label={showAllLabel} />}
-    </DataTableFrame>
-  )
+  // Keys and hrefs are resolved here so a server component never hands the
+  // client table a function.
+  const keyedRows = rows.map((row, index) => ({
+    key: getRowKey(row, index),
+    row,
+    href: getRowHref?.(row)
+  }))
+  const shared = { ...props, rows: keyedRows, showAllLabel, plain }
+
+  if (getSortHref)
+    return (
+      <DataTableView
+        {...shared}
+        sort={sort}
+        sortControl={(column) =>
+          isSortableColumn(column)
+            ? {
+                href: getSortHref(column.key, nextSortDirection(column, sort))
+              }
+            : undefined
+        }
+      />
+    )
+  if (sortable)
+    return (
+      <DataTableSortable
+        {...shared}
+        sort={sort}
+        defaultSort={defaultSort}
+        onSortChange={onSortChange}
+      />
+    )
+  return <DataTableView {...shared} sort={sort} />
 }
 DataTable.displayName = 'DataTable'
