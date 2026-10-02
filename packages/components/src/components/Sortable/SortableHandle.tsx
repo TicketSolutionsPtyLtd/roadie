@@ -18,10 +18,7 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { IconButton, type IconButtonProps } from '../Button/IconButton'
-import { MenuContent } from '../Menu/MenuContent'
-import { MenuItem } from '../Menu/MenuItem'
-import { MenuRoot } from '../Menu/MenuRoot'
-import { MenuTrigger } from '../Menu/MenuTrigger'
+import { Menu } from '../Menu'
 import { SortableItemContext, useSortableRoot } from './SortableContext'
 import {
   type MoveDirection,
@@ -78,14 +75,14 @@ export function SortableHandle({
   const DotsIcon = root.axis === 'vertical' ? DotsSixVerticalIcon : DotsSixIcon
 
   return (
-    <MenuRoot
+    <Menu
       open={open}
       onOpenChange={(next, details) => {
         if (next && details.event?.type === 'mousedown') return
         setOpen(next)
       }}
     >
-      <MenuTrigger
+      <Menu.Trigger
         data-slot='sortable-handle'
         disabled={disabled}
         ref={setHandle}
@@ -110,8 +107,8 @@ export function SortableHandle({
         }
       >
         <DotsIcon weight='bold' />
-      </MenuTrigger>
-      <MenuContent align='start'>
+      </Menu.Trigger>
+      <Menu.Content align='start'>
         {menuMoves({
           index,
           total: root.items.length,
@@ -120,18 +117,18 @@ export function SortableHandle({
         }).map(({ direction, to, disabled: unavailable }) => {
           const Icon = moveIcon(direction, root.dir)
           return (
-            <MenuItem
+            <Menu.Item
               key={direction}
               disabled={unavailable || disabled}
               icon={<Icon weight='bold' />}
               onClick={() => root.move(value, to, true)}
             >
               {reorderLabel(direction, label)}
-            </MenuItem>
+            </Menu.Item>
           )
         })}
-      </MenuContent>
-    </MenuRoot>
+      </Menu.Content>
+    </Menu>
   )
 }
 
