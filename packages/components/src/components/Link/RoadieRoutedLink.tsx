@@ -25,6 +25,8 @@ import { resolveLinkKind } from '../../utils/resolveLinkKind'
  *   no `rel`.
  * - **Internal**: the configured Link component if a provider is wired,
  *   otherwise a plain `<a>` fallback.
+ * - **Download** (a `download` attribute): plain `<a>`. A file isn't a
+ *   route, and a router Link would prefetch it as one.
  * - **Unsafe** (`javascript:`, `data:`, `vbscript:`, `blob:`, `file:`):
  *   refused. Renders `<a href='#'>` so the click is inert, and logs a
  *   dev-only warning. These protocols never have a legitimate place in
@@ -98,7 +100,9 @@ export function RoadieRoutedLink({
     )
   }
 
-  if (Link) {
+  const isDownload = rest.download !== undefined && rest.download !== false
+
+  if (Link && !isDownload) {
     const linkProps: ComponentProps<typeof Link> = {
       href,
       ref,
