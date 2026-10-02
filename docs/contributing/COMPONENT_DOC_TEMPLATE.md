@@ -35,6 +35,13 @@ The skeleton contains:
 13. **State labels**: `<p className='text-sm text-subtle'>Label</p>` above each state.
 14. **Hooks**: every public hook gets a `## Hooks` section, after Accessibility and before `<PropsDefinitions>`, on the page of the component it belongs to: a `tsx` signature, then a return-value table. Foundations pages link to it and never re-document the signature or return shape.
 
+## Live examples
+
+- A `tsx-live` fence renders when it comes within a screen of view, and shows a placeholder and its code until then. Add `-noinline` when the code calls `render()`, and `-expand` for a Full width button.
+- Each example on an MDX page also gets its own page at `/examples/<page>/<id>/`, opened from the button beside Copy. The id is the nearest heading's slug, with `-2`, `-3` for later examples under the same heading.
+- Fence meta after the language sets options: `id=orders` pins the id (lowercase kebab-case, unique on the page), so a link survives a heading rename; `eager` renders the example on load, for the rare one that must.
+- Examples on `.tsx` pages (`<CodePreview language='tsx-live'>`) load lazily too, but have no page of their own.
+
 ## `<PropsDefinitions>` usage
 
 - **Single component** → point at the `index.tsx` file: `componentPath='packages/components/src/components/Badge/index.tsx'`.

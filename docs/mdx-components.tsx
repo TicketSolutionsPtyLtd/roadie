@@ -3,11 +3,18 @@ import type { ComponentPropsWithoutRef } from 'react'
 import Link from 'next/link'
 
 import { CodePreview } from '@/components/CodePreview'
+import { exampleHref } from '@/lib/live-examples.mjs'
 
 import { Code, type CodeProps } from '@oztix/roadie-components'
 
 type AnchorProps = ComponentPropsWithoutRef<'a'>
 type BlockquoteProps = ComponentPropsWithoutRef<'blockquote'>
+/** Set on live fences by `src/lib/live-examples.mjs`. */
+type FenceProps = CodeProps & {
+  'data-example-id'?: string
+  'data-example-page'?: string
+  'data-example-eager'?: string
+}
 
 const components = {
   h1: (props: ComponentPropsWithoutRef<'h1'>) => (
@@ -78,13 +85,23 @@ const components = {
   pre: ({ children }: ComponentPropsWithoutRef<'pre'>) => (
     <div className='min-w-0'>{children}</div>
   ),
-  code: ({ children, className }: CodeProps) => {
+  code: ({
+    children,
+    className,
+    'data-example-id': id,
+    'data-example-page': page,
+    'data-example-eager': eager
+  }: FenceProps) => {
     if (className === undefined) {
       return <Code>{children}</Code>
     }
 
     return (
-      <CodePreview language={className?.replace('language-', '')}>
+      <CodePreview
+        language={className?.replace('language-', '')}
+        exampleHref={id && page ? exampleHref(page, id) : undefined}
+        eager={eager !== undefined}
+      >
         {children?.toString() ?? ''}
       </CodePreview>
     )

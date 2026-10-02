@@ -8,8 +8,11 @@
     },
     "build": {
       "dependsOn": ["^build"],
+      "env": ["NEXT_PUBLIC_BASE_PATH"],
       "inputs": [
-        "src/**/*.{js,jsx,ts,tsx,css,json}",
+        "src/**/*.{js,jsx,mjs,ts,tsx,mts,css,json}",
+        "src/**/*.mdx",
+        "mdx-components.tsx",
         "src/**/*.html",
         "scripts/**/*.{js,mjs,cjs,ts}",
         "*.config.{js,mjs,cjs,ts}",
@@ -69,7 +72,7 @@
     "test": {
       "dependsOn": ["^build"],
       "inputs": [
-        "src/**/*.{js,jsx,ts,tsx}",
+        "src/**/*.{js,jsx,mjs,ts,tsx,mts}",
         "**/*.test.{js,jsx,ts,tsx}",
         "jest.config.*",
         "*.config.{js,mjs,cjs,ts}",

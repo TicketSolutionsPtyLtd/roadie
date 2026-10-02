@@ -1,240 +1,29 @@
 'use client'
 
-import { type CSSProperties, use, useEffect, useId, useState } from 'react'
+import { Suspense, lazy, useState } from 'react'
 
-import Link from 'next/link'
+import { ArrowsOutIcon } from '@phosphor-icons/react'
+
+import { Button } from '@oztix/roadie-components/button'
+import { Skeleton } from '@oztix/roadie-components/skeleton'
 
 import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  ArrowSquareOutIcon,
-  ArrowsOutIcon,
-  BellRingingIcon,
-  BuildingsIcon,
-  CaretDownIcon,
-  CaretLeftIcon,
-  CaretRightIcon,
-  CaretUpIcon,
-  CheckCircleIcon,
-  CheckIcon,
-  CopyIcon,
-  CubeIcon,
-  DotsThreeIcon,
-  DownloadIcon,
-  EnvelopeIcon,
-  ExportIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  GearIcon,
-  HeartIcon,
-  HouseIcon,
-  ImageIcon,
-  InfoIcon,
-  LinkSimpleIcon,
-  ListBulletsIcon,
-  MagnifyingGlassIcon,
-  MinusIcon,
-  PauseIcon,
-  PencilSimpleIcon,
-  PhoneIcon,
-  PlayIcon,
-  PlusIcon,
-  ShareNetworkIcon,
-  ShoppingCartIcon,
-  SlidersHorizontalIcon,
-  SquaresFourIcon,
-  StarIcon,
-  TextBIcon,
-  TextItalicIcon,
-  TextUnderlineIcon,
-  TicketIcon,
-  TrashIcon,
-  UserCircleIcon,
-  UserIcon,
-  UsersIcon,
-  WalletIcon,
-  WarningIcon,
-  XCircleIcon,
-  XIcon
-} from '@phosphor-icons/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Highlight, themes } from 'prism-react-renderer'
-import { createPortal } from 'react-dom'
-import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
+  CodePanel,
+  HighlightedCode,
+  canCollapse,
+  highlightLanguageOf,
+  useCodeTheme
+} from './codeChrome'
+import {
+  DEFAULT_PREVIEW_HEIGHT,
+  exampleHeights,
+  useNearViewport
+} from './nearViewport'
 
-import { getAssetPath } from '@/utils/getAssetPath'
-
-import * as RoadieCharts from '@oztix/roadie-charts'
-import { lineChartTable } from '@oztix/roadie-charts/tables'
-import * as RoadieComponents from '@oztix/roadie-components'
-import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
-import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
-import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
-
-import { DemoRouter } from './DemoRouter'
-import { createDemoCart } from './cartDrawerDemo'
-import { useCopy } from './useCopy'
-
-// Bare-name keys so MDX live examples can use `<CheckCircle />` etc.
-const PhosphorIcons = {
-  BellRinging: BellRingingIcon,
-  CheckCircle: CheckCircleIcon,
-  Check: CheckIcon,
-  LinkSimple: LinkSimpleIcon,
-  X: XIcon,
-  XCircle: XCircleIcon,
-  Info: InfoIcon,
-  Warning: WarningIcon,
-  Star: StarIcon,
-  Ticket: TicketIcon,
-  Plus: PlusIcon,
-  Minus: MinusIcon,
-  CaretDown: CaretDownIcon,
-  CaretUp: CaretUpIcon,
-  CaretLeft: CaretLeftIcon,
-  CaretRight: CaretRightIcon,
-  ArrowRight: ArrowRightIcon,
-  ArrowLeft: ArrowLeftIcon,
-  ArrowSquareOut: ArrowSquareOutIcon,
-  Heart: HeartIcon,
-  MagnifyingGlass: MagnifyingGlassIcon,
-  Gear: GearIcon,
-  Copy: CopyIcon,
-  Trash: TrashIcon,
-  PencilSimple: PencilSimpleIcon,
-  Eye: EyeIcon,
-  EyeSlash: EyeSlashIcon,
-  Pause: PauseIcon,
-  Play: PlayIcon,
-  Envelope: EnvelopeIcon,
-  Phone: PhoneIcon,
-  ShareNetwork: ShareNetworkIcon,
-  ShoppingCart: ShoppingCartIcon,
-  DotsThree: DotsThreeIcon,
-  SlidersHorizontal: SlidersHorizontalIcon,
-  Download: DownloadIcon,
-  House: HouseIcon,
-  Image: ImageIcon,
-  Cube: CubeIcon,
-  Export: ExportIcon,
-  UserCircle: UserCircleIcon,
-  User: UserIcon,
-  Buildings: BuildingsIcon,
-  Users: UsersIcon,
-  Wallet: WalletIcon,
-  ListBullets: ListBulletsIcon,
-  SquaresFour: SquaresFourIcon,
-  TextB: TextBIcon,
-  TextItalic: TextItalicIcon,
-  TextUnderline: TextUnderlineIcon
-}
-
-// Icon-suffixed keys (`<TicketIcon />`) derived from the bare map.
-const PhosphorIconsSuffixed = Object.fromEntries(
-  Object.entries(PhosphorIcons).map(([name, Icon]) => [`${name}Icon`, Icon])
-)
-
-const scope = {
-  ...RoadieComponents,
-  ...RoadieCharts,
-  lineChartTable,
-  ...SpotIllustrations,
-  ...PhosphorIcons,
-  ...PhosphorIconsSuffixed,
-  // Widgets + the helpers their live demos need.
-  CartDrawer,
-  CartContents,
-  QueryClient,
-  QueryClientProvider,
-  createDemoCart,
-  DemoRouter,
-  getAssetPath,
-  Link,
-  createPortal,
-  use,
-  useState,
-  useEffect,
-  useId
-}
-
-const { Button, Dialog, IconButton } = RoadieComponents
-
-const customDarkTheme = {
-  ...themes.nightOwl,
-  plain: {
-    ...themes.nightOwl.plain,
-    backgroundColor: 'var(--intent-bg-sunken)'
-  }
-}
-
-const customLightTheme = {
-  ...themes.nightOwlLight,
-  plain: {
-    ...themes.nightOwlLight.plain,
-    backgroundColor: 'var(--intent-bg-sunken)'
-  }
-}
-
-const MAX_COLLAPSED_LINES = 5
-// Approx: 5 lines of font-mono text-sm (line-height ~24px) + 32px vertical
-// padding. Enough to show 5 source lines with the bottom line clipped under
-// the gradient, hinting that more code exists below.
-const COLLAPSED_HEIGHT_PX = 5 * 24 + 32
-
-function ViewCodeShade({
-  expanded,
-  onToggle
-}: {
-  expanded: boolean
-  onToggle: () => void
-}) {
-  if (expanded) {
-    return (
-      <div className='flex justify-center border-t border-subtler bg-subtler py-1.5'>
-        <button
-          type='button'
-          onClick={onToggle}
-          className='is-interactive rounded-full px-3 py-1 text-sm text-subtle hover:text-normal'
-        >
-          Hide code
-        </button>
-      </div>
-    )
-  }
-  return (
-    <>
-      <div
-        aria-hidden
-        className='pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[var(--intent-bg-sunken)] to-transparent'
-      />
-      <button
-        type='button'
-        onClick={onToggle}
-        className='is-interactive absolute bottom-3 left-1/2 -translate-x-1/2 emphasis-normal rounded-full px-4 py-1.5 text-sm font-medium'
-      >
-        View code
-      </button>
-    </>
-  )
-}
-
-function CopyButton({ code }: { code: string }) {
-  const { copied, copy } = useCopy()
-
-  return (
-    <div className='absolute top-2 right-2 z-docked'>
-      <Button
-        onClick={() => copy(code)}
-        size='sm'
-        emphasis='normal'
-        aria-label='Copy code to clipboard'
-      >
-        {copied && 'Copied!'}
-        <CopyIcon weight='bold' className='size-4' />
-      </Button>
-    </div>
-  )
-}
+// react-live and the example scope (every component, chart and widget) load
+// with the first example that nears the viewport, not with the page.
+const loadLiveRunner = () => import('./LiveRunner')
+const LiveRunner = lazy(loadLiveRunner)
 
 type CodePreviewProps = {
   children: string
@@ -243,36 +32,120 @@ type CodePreviewProps = {
   className?: string
   /** Adds a button that opens the live example in a full-width dialog. A `-expand` fence suffix does the same. */
   expandable?: boolean
+  /** The example's own page; adds an action that opens it in a new tab. */
+  exampleHref?: string
+  /** Renders the live example on load instead of when it nears the viewport. An `eager` fence meta does the same. */
+  eager?: boolean
 }
 
-function FullWidthPreview() {
+/** What a live example shows until it renders: a reserved preview and its static code. */
+function LivePlaceholder({
+  code,
+  language,
+  heightKey,
+  exampleHref,
+  expandable,
+  expanded,
+  onExpandedChange
+}: {
+  code: string
+  language: string
+  heightKey: string
+  exampleHref?: string
+  expandable: boolean
+  expanded: boolean
+  onExpandedChange: (expanded: boolean) => void
+}) {
+  const theme = useCodeTheme()
+  const highlightLanguage = highlightLanguageOf(language)
   return (
-    <div className='flex justify-end border-b border-subtle bg-normal p-2 max-md:hidden'>
-      <Dialog>
-        <Dialog.Trigger
-          render={
-            <Button size='sm' emphasis='subtler'>
-              <ArrowsOutIcon weight='bold' className='size-4' />
-              Full width
-            </Button>
-          }
-        />
-        <Dialog.Content className='max-w-none gap-4 p-4'>
-          <div className='flex items-center justify-between gap-4'>
-            <Dialog.Title className='text-display-ui-6'>
-              Full-width example
-            </Dialog.Title>
-            <Dialog.Close
-              render={
-                <IconButton aria-label='Close' size='sm' emphasis='subtler'>
-                  <XIcon weight='bold' className='size-4' />
-                </IconButton>
-              }
-            />
-          </div>
-          <LivePreview className='min-w-0 font-sans whitespace-normal' />
-        </Dialog.Content>
-      </Dialog>
+    <>
+      {expandable && (
+        <div className='flex justify-end border-b border-subtle bg-normal p-2 max-md:hidden'>
+          <Button size='sm' emphasis='subtler' disabled>
+            <ArrowsOutIcon weight='bold' className='size-4' />
+            Full width
+          </Button>
+        </div>
+      )}
+      <div
+        data-live-example='pending'
+        className='grid bg-normal p-4 sm:p-6'
+        style={{
+          minHeight: exampleHeights.get(heightKey) ?? DEFAULT_PREVIEW_HEIGHT
+        }}
+      >
+        <Skeleton shape='block' emphasis='subtler' className='h-full' />
+      </div>
+      <CodePanel
+        code={code}
+        exampleHref={exampleHref}
+        expanded={expanded}
+        onExpandedChange={onExpandedChange}
+      >
+        <div className='emphasis-sunken'>
+          <HighlightedCode
+            code={code}
+            language={highlightLanguage}
+            theme={theme}
+            collapsed={canCollapse(code) && !expanded}
+          />
+        </div>
+      </CodePanel>
+    </>
+  )
+}
+
+function LiveExample({
+  code,
+  language,
+  expandable,
+  exampleHref,
+  eager
+}: {
+  code: string
+  language: string
+  expandable: boolean
+  exampleHref?: string
+  eager: boolean
+}) {
+  const [ref, near, onMounted] = useNearViewport<HTMLDivElement>(
+    eager,
+    loadLiveRunner
+  )
+  const [expanded, setExpanded] = useState(false)
+  const [editorOpened, setEditorOpened] = useState(false)
+  const heightKey = exampleHref ?? `${code.length}:${code.slice(0, 120)}`
+  const shared = {
+    code,
+    language,
+    heightKey,
+    exampleHref,
+    expandable,
+    expanded,
+    onExpandedChange: (next: boolean) => {
+      setExpanded(next)
+      if (next) setEditorOpened(true)
+    }
+  }
+  const placeholder = <LivePlaceholder {...shared} />
+
+  return (
+    <div
+      ref={ref}
+      className='relative mb-8 min-w-0 overflow-hidden rounded-xl border border-subtle'
+    >
+      {near ? (
+        <Suspense fallback={placeholder}>
+          <LiveRunner
+            {...shared}
+            editorOpened={editorOpened}
+            onMounted={onMounted}
+          />
+        </Suspense>
+      ) : (
+        placeholder
+      )}
     </div>
   )
 }
@@ -282,137 +155,50 @@ export function CodePreview({
   language = 'tsx',
   showCopy = true,
   className,
-  expandable = false
+  expandable = false,
+  exampleHref,
+  eager = false
 }: CodePreviewProps) {
-  const [colorMode, setColorMode] = useState<'light' | 'dark'>('light')
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading DOM state on mount
-    setColorMode(
-      document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-    )
-    const observer = new MutationObserver(() => {
-      setColorMode(
-        document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-      )
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    })
-    return () => observer.disconnect()
-  }, [])
-
-  const theme = colorMode === 'dark' ? customDarkTheme : customLightTheme
-  // Match the `bleed-x` segment regardless of a trailing `-noinline` so a
-  // `tsx-live-bleed-x-noinline` fence still gets the bleed-x padding.
-  const isBleedX = /^(?:tsx|jsx)-live-bleed-x/.test(language)
+  const theme = useCodeTheme()
+  const [expanded, setExpanded] = useState(false)
   const isLiveLang = /^(?:tsx|jsx)-live/.test(language)
   const isLivePrefix =
     children.startsWith('live') && (language === 'tsx' || language === 'jsx')
-  const isLive = isLiveLang || isLivePrefix
-  const isExpandable = expandable || /-expand\b/.test(language)
-  const trimmedCode = isLivePrefix
+  const code = isLivePrefix
     ? children.replace('live', '').trim()
     : children.trim()
 
-  const lineCount = trimmedCode.split('\n').length
-  const canCollapse = lineCount > MAX_COLLAPSED_LINES
-  const [isExpanded, setIsExpanded] = useState(false)
-  const isCollapsed = canCollapse && !isExpanded
-
-  const collapseStyle: CSSProperties | undefined = isCollapsed
-    ? { maxHeight: `${COLLAPSED_HEIGHT_PX}px`, overflow: 'hidden' }
-    : undefined
-
-  if (!isLive) {
+  if (isLiveLang || isLivePrefix) {
     return (
-      <div
-        className={
-          className ?? 'relative mb-8 min-w-0 rounded-lg emphasis-sunken'
-        }
-      >
-        {showCopy && <CopyButton code={trimmedCode} />}
-        <div className='relative' style={collapseStyle}>
-          <Highlight code={trimmedCode} language={language} theme={theme}>
-            {({ tokens, getLineProps, getTokenProps }) => (
-              <pre
-                // Focusable so keyboard users can scroll wide code sideways.
-                tabIndex={0}
-                role='group'
-                aria-label={`Code, ${language.split('-')[0]}`}
-                className='min-w-0 overflow-x-auto p-3 font-mono text-xs sm:p-4 sm:text-sm'
-                style={{ scrollbarWidth: 'none' }}
-              >
-                {tokens.map((line, i) => {
-                  const { key: _key, ...linePropsWithoutKey } = getLineProps({
-                    line,
-                    key: i
-                  })
-                  return (
-                    <div key={i} {...linePropsWithoutKey}>
-                      {line.map((token, key) => {
-                        const { key: _tokenKey, ...tokenPropsWithoutKey } =
-                          getTokenProps({ token, key })
-                        return <span key={key} {...tokenPropsWithoutKey} />
-                      })}
-                    </div>
-                  )
-                })}
-              </pre>
-            )}
-          </Highlight>
-          {isCollapsed && (
-            <ViewCodeShade
-              expanded={false}
-              onToggle={() => setIsExpanded(true)}
-            />
-          )}
-        </div>
-        {canCollapse && isExpanded && (
-          <ViewCodeShade expanded onToggle={() => setIsExpanded(false)} />
-        )}
-      </div>
+      <LiveExample
+        code={code}
+        language={language}
+        expandable={expandable || /-expand\b/.test(language)}
+        exampleHref={exampleHref}
+        eager={eager}
+      />
     )
   }
 
   return (
-    <div className='relative mb-8 min-w-0 overflow-hidden rounded-xl border border-subtle'>
-      <LiveProvider
-        code={trimmedCode}
-        scope={scope}
-        theme={theme}
-        noInline={language.includes('noinline')}
-        language={language.split('-')[0]}
+    <div
+      className={
+        className ?? 'relative mb-8 min-w-0 rounded-lg emphasis-sunken'
+      }
+    >
+      <CodePanel
+        code={code}
+        showActions={showCopy}
+        expanded={expanded}
+        onExpandedChange={setExpanded}
       >
-        {isExpandable && <FullWidthPreview />}
-        <LivePreview
-          // whitespace-normal resets the `white-space: pre` inherited from the
-          // MDX code-fence <pre> wrapper, so rendered examples wrap text like a
-          // real app instead of forcing single-line width.
-          //
-          // overflow-y-hidden is not redundant: setting overflow-x to anything
-          // but visible forces the other axis to auto. The pane has no max
-          // height, so it can only ever overflow vertically by a sub-pixel, and
-          // that was enough to flicker a scrollbar on and off under an animated
-          // example.
-          className={`min-w-0 overflow-x-auto overflow-y-hidden bg-normal font-sans whitespace-normal ${isBleedX ? 'py-4 sm:py-6' : 'px-4 py-4 sm:px-6 sm:py-6'}`}
+        <HighlightedCode
+          code={code}
+          language={language}
+          theme={theme}
+          collapsed={canCollapse(code) && !expanded}
         />
-        <LiveError className='bg-subtler px-4 py-3 text-sm text-subtle intent-danger' />
-        <div className='relative min-w-0' style={collapseStyle}>
-          <CopyButton code={trimmedCode} />
-          <LiveEditor className='min-w-0 overflow-x-auto emphasis-sunken p-3 font-mono text-xs sm:p-4 sm:text-sm' />
-          {isCollapsed && (
-            <ViewCodeShade
-              expanded={false}
-              onToggle={() => setIsExpanded(true)}
-            />
-          )}
-        </div>
-        {canCollapse && isExpanded && (
-          <ViewCodeShade expanded onToggle={() => setIsExpanded(false)} />
-        )}
-      </LiveProvider>
+      </CodePanel>
     </div>
   )
 }
