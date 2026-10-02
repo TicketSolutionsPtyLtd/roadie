@@ -592,3 +592,38 @@ describe('ChartPlot announcements', () => {
     await expect.poll(() => live.textContent).not.toBe('')
   })
 })
+
+describe('ChartPlot states', () => {
+  const emptyPoints = testPoints.slice(0, 1)
+
+  it('keeps the empty state inside a narrow small card', async () => {
+    const { container } = render(
+      <div style={{ width: 200 }}>
+        <Chart label='Test' source='Oztix sales.' size='sm'>
+          <ChartPlot chart={testChart} props={{ points: emptyPoints }} />
+        </Chart>
+      </div>
+    )
+    await afterResize()
+    const plot = container.querySelector('[data-slot=chart-plot]')!
+    const state = container.querySelector('[data-slot=chart-empty]')!
+    expect(state.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      plot.getBoundingClientRect().bottom + 0.5
+    )
+  })
+
+  it('fits the empty state in a plot of a set height', async () => {
+    const { container } = render(
+      <div style={{ width: 240 }}>
+        <ChartPlot
+          chart={testChart}
+          props={{ points: emptyPoints }}
+          height={140}
+        />
+      </div>
+    )
+    await afterResize()
+    const state = container.querySelector('[data-slot=chart-empty]')!
+    expect(state.getBoundingClientRect().height).toBeLessThanOrEqual(140)
+  })
+})

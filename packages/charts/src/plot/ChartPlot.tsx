@@ -187,8 +187,13 @@ export function ChartPlot<P>({
     focusPoint(null)
   }
 
-  if (empty) return <ChartState>{empty}</ChartState>
-  if (!drawing) return <ChartState error>{DRAW_ERROR}</ChartState>
+  if (empty) return <ChartState height={height}>{empty}</ChartState>
+  if (!drawing)
+    return (
+      <ChartState error height={height}>
+        {DRAW_ERROR}
+      </ChartState>
+    )
 
   return (
     <div

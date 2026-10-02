@@ -176,6 +176,16 @@
   height: auto;
 }
 
+/* A wrapped state title can outgrow the plot height, so grow the box. */
+[data-slot='chart-plot']:has(
+  > [data-slot='chart-empty'],
+  > [data-slot='chart-error']
+) {
+  display: grid;
+  height: auto;
+  min-height: var(--chart-plot-height, 220px);
+}
+
 /* Without scripts the plot is never measured, so show the server drawing. */
 @media (scripting: none) {
   [data-slot='chart-plot-host'] .ts-chart-host {
