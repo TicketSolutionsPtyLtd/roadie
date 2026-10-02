@@ -152,11 +152,10 @@ function fullYear(text: string | undefined): number | undefined {
   return text.length === 2 ? 2000 + Number(text) : Number(text)
 }
 
-const ORDINAL = '(\\d{1,2})(?:st|nd|rd|th)?'
-const DAY_MONTH = new RegExp(`^${ORDINAL} ([a-z]+)(?: (\\d{4}))?$`)
-const MONTH_DAY = new RegExp(`^([a-z]+) ${ORDINAL}(?: (\\d{4}))?$`)
+const DAY_MONTH = /^(\d{1,2})(?:st|nd|rd|th)? ([a-z]+)(?: (\d{4}))?$/
+const MONTH_DAY = /^([a-z]+) (\d{1,2})(?:st|nd|rd|th)?(?: (\d{4}))?$/
 const SLASHED = /^(\d{1,2})\/(\d{1,2})(?:\/(\d{2}|\d{4}))?$/
-const BARE_DAY = new RegExp(`^${ORDINAL}$`)
+const BARE_DAY = /^(\d{1,2})(?:st|nd|rd|th)?$/
 
 function parsePartial(text: string, bareDay: boolean): PartialDate | null {
   if (isPlainDate(text)) return plainDateParts(text)
