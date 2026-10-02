@@ -17,8 +17,10 @@ import {
 import {
   type DashboardCard,
   type DashboardSpec,
+  type TableData,
   dashboardSchema
 } from './schema'
+import { isSummable } from './totals'
 
 export type DashboardProblem = {
   path: string
@@ -295,6 +297,39 @@ function duplicateProblems(plot: ChartPlot, plotPath: string) {
   }
 }
 
+function totalsProblems(
+  card: Extract<DashboardCard, { kind: 'table' }>,
+  path: string
+) {
+  const { totals } = card
+  if (!totals) return []
+  const at = `${path}.totals`
+  const given = totals === 'sum' ? {} : totals
+  const problems = copyProblems(at, 'label', given.label)
+  if (given.values) {
+    if (!given.label)
+      problems.push(
+        error(
+          `${at}.label`,
+          'Give a label with values. The rows may be only some of them, so the default count could be wrong'
+        )
+      )
+    const keys = new Set(card.columns.map((column) => column.key))
+    for (const key of Object.keys(given.values))
+      if (!keys.has(key))
+        problems.push(
+          error(`${at}.values.${key}`, `No column has the key "${key}"`)
+        )
+  } else if (!card.columns.some(isSummable))
+    problems.push(
+      warning(
+        at,
+        'No number column to sum, so the row shows only its label. Pass values'
+      )
+    )
+  return problems
+}
+
 function plotProblems(plot: ChartPlot, path: string) {
   const problems: DashboardProblem[] = []
   const plotPath = `${path}.plot`
@@ -323,6 +358,40 @@ function plotProblems(plot: ChartPlot, path: string) {
       ...annotationProblems(plot.chart, plot.data, `${plotPath}.chart`)
     )
   return problems
+}
+
+function statusProblems(table: TableData, path: string) {
+  return table.columns.flatMap((column, i) => {
+    const at = `${path}[${i}].status`
+    if (column.kind !== 'status')
+      return column.status
+        ? [warning(at, 'Only a status column shows a status map')]
+        : []
+    const unknown = [
+      ...new Set(
+        table.rows.flatMap((row) => {
+          const cell = row[column.key]
+          // A table shows a number key as its string, as it does here.
+          const key =
+            typeof cell === 'string' || typeof cell === 'number'
+              ? String(cell)
+              : undefined
+          return key !== undefined &&
+            !(column.status && Object.hasOwn(column.status, key))
+            ? [key]
+            : []
+        })
+      )
+    ]
+    return unknown.length
+      ? [
+          warning(
+            at,
+            `${quoted(unknown)} ${unknown.length === 1 ? 'has' : 'have'} no status, so ${unknown.length === 1 ? 'it shows' : 'they show'} as neutral`
+          )
+        ]
+      : []
+  })
 }
 
 function cardProblems(card: DashboardCard, path: string) {
@@ -384,6 +453,11 @@ function cardProblems(card: DashboardCard, path: string) {
       )
     )
 
+  if (card.kind === 'table')
+    problems.push(...statusProblems(card, `${path}.columns`))
+  if (card.kind === 'chart' && card.table)
+    problems.push(...statusProblems(card.table, `${path}.table.columns`))
+
   problems.push(...copyProblems(path, 'label', card.label))
   problems.push(...copyProblems(path, 'context', card.context))
   if (card.kind === 'chart' || card.kind === 'table')
@@ -402,6 +476,7 @@ function cardProblems(card: DashboardCard, path: string) {
           )
         )
     })
+  if (card.kind === 'table') problems.push(...totalsProblems(card, path))
   return problems
 }
 

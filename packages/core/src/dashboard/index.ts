@@ -1,5 +1,7 @@
+export * from './cells'
 export * from './fields'
 export * from './layout'
 export * from './plots'
 export * from './schema'
 export * from './validate'
+export * from './totals'

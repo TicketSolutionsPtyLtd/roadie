@@ -7,6 +7,13 @@ export type TableAlign = 'start' | 'end'
 const alignClass = (align: TableAlign) =>
   align === 'end' ? 'text-right' : 'text-left'
 
+/** A body cell's padding, border and alignment, for a `th` that heads a row. */
+export const tableCellClass = (align: TableAlign = 'start') =>
+  cn(
+    'border-b border-subtler px-2.5 py-2 align-middle whitespace-nowrap first:pl-0 last:pr-0',
+    alignClass(align)
+  )
+
 export type TableProps = ComponentProps<'table'>
 
 function TableRoot({ className, ...props }: TableProps) {
@@ -35,6 +42,21 @@ function TableBody({ className, ...props }: ComponentProps<'tbody'>) {
   )
 }
 TableBody.displayName = 'Table.Body'
+
+/** A summary row, such as totals: strong text over a rule, with no rule below. */
+function TableFoot({ className, ...props }: ComponentProps<'tfoot'>) {
+  return (
+    <tfoot
+      data-slot='table-foot'
+      className={cn(
+        '[&>tr>*]:border-t [&>tr>*]:border-b-0 [&>tr>*]:border-normal [&>tr>*]:font-semibold [&>tr>*]:text-strong',
+        className
+      )}
+      {...props}
+    />
+  )
+}
+TableFoot.displayName = 'Table.Foot'
 
 function TableRow({ className, ...props }: ComponentProps<'tr'>) {
   return <tr data-slot='table-row' className={cn(className)} {...props} />
@@ -75,11 +97,7 @@ function TableCell({ align = 'start', className, ...props }: TableCellProps) {
   return (
     <td
       data-slot='table-cell'
-      className={cn(
-        'border-b border-subtler px-2.5 py-2 align-middle whitespace-nowrap first:pl-0 last:pr-0',
-        alignClass(align),
-        className
-      )}
+      className={cn(tableCellClass(align), className)}
       {...props}
     />
   )
@@ -89,12 +107,14 @@ TableCell.displayName = 'Table.Cell'
 const Table = TableRoot as typeof TableRoot & {
   Head: typeof TableHead
   Body: typeof TableBody
+  Foot: typeof TableFoot
   Row: typeof TableRow
   HeaderCell: typeof TableHeaderCell
   Cell: typeof TableCell
 }
 Table.Head = TableHead
 Table.Body = TableBody
+Table.Foot = TableFoot
 Table.Row = TableRow
 Table.HeaderCell = TableHeaderCell
 Table.Cell = TableCell

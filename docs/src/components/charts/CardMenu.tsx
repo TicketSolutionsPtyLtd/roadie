@@ -13,6 +13,7 @@ import {
 import type { ChartTable } from '@oztix/roadie-charts/tables'
 import { DataCard } from '@oztix/roadie-components/data-card'
 import { Menu } from '@oztix/roadie-components/menu'
+import { columnStatus } from '@oztix/roadie-core/dashboard-layout'
 
 function csvField(value: unknown) {
   const text = Array.isArray(value) ? value.join(' ') : String(value ?? '')
@@ -22,14 +23,38 @@ function csvField(value: unknown) {
 function tableCsv({ columns, rows }: ChartTable) {
   const lines = [
     columns.map((column) => csvField(column.header)),
-    ...rows.map((row) => columns.map((column) => csvField(row[column.key])))
+    ...rows.map((row) =>
+      columns.map((column) => {
+        const value = row[column.key]
+        // A status key is an id; the label is what people read.
+        return csvField(
+          column.kind === 'status' && value != null
+            ? columnStatus(column, String(value)).label
+            : value
+        )
+      })
+    )
   ]
   return lines.map((line) => line.join(',')).join('\n')
 }
 
+function totalsCsv({ columns, totals }: ChartTable) {
+  // cardTable sums the totals row, so it arrives as a label and values.
+  if (!totals || totals === 'sum') return []
+  return [
+    columns
+      .map((column, index) =>
+        csvField(index === 0 ? totals.label : totals.values?.[column.key])
+      )
+      .join(',')
+  ]
+}
+
 function downloadCsv(label: string, table: ChartTable) {
   const url = URL.createObjectURL(
-    new Blob([tableCsv(table)], { type: 'text/csv' })
+    new Blob([[tableCsv(table), ...totalsCsv(table)].join('\n')], {
+      type: 'text/csv'
+    })
   )
   const link = document.createElement('a')
   link.href = url

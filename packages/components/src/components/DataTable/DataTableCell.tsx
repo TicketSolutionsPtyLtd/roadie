@@ -1,7 +1,9 @@
 import type { TableCell, TableColumn } from '@oztix/roadie-core/dashboard'
+import { columnStatus } from '@oztix/roadie-core/dashboard-layout'
 import { formatValue } from '@oztix/roadie-core/dataviz'
 import { cn } from '@oztix/roadie-core/utils'
 
+import { Badge } from '../Badge'
 import { Delta } from '../Delta'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { Meter } from '../Meter'
@@ -29,6 +31,16 @@ export function DataTableCellContent({
 }) {
   if (value === null || value === undefined)
     return <Muted>{column.emptyText ?? NOT_AVAILABLE}</Muted>
+  if (column.kind === 'status') {
+    const { intent, label } = columnStatus(column, String(value))
+    if (plain) return <span>{label}</span>
+    // Normal, not subtle: its opaque fill reads on a row's hover tint and on a card's image banner alike.
+    return (
+      <Badge size='sm' intent={intent}>
+        {label}
+      </Badge>
+    )
+  }
   if (typeof value === 'string' && column.kind !== 'text')
     return <Muted>{value}</Muted>
 

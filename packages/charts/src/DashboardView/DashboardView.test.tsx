@@ -345,3 +345,46 @@ describe('DashboardView with a plot other than a line', () => {
     expect(html).toContain('<table')
   })
 })
+
+const totalsDashboard: Parameters<typeof DashboardView>[0]['spec'] = {
+  version: 1,
+  title: 'Reports',
+  sections: [
+    {
+      title: 'This month',
+      cards: [
+        {
+          id: 'report',
+          kind: 'table',
+          size: 'full',
+          label: 'Shows this month',
+          source: 'Oztix sales.',
+          columns: [
+            { key: 'show', header: 'Show', kind: 'text' },
+            { key: 'tickets', header: 'Tickets', kind: 'number' }
+          ],
+          rows: [
+            { show: 'Ball Park Music', tickets: 1840 },
+            { show: 'Angie McMahon', tickets: 620 }
+          ],
+          totals: 'sum'
+        }
+      ]
+    }
+  ]
+}
+
+describe('DashboardView totals rows', () => {
+  it('renders a table card totals row from the description', () => {
+    const { container } = render(<DashboardView spec={totalsDashboard} />)
+    const footer = container.querySelector('tfoot')!
+    expect(footer).toHaveTextContent('Totals for 2 records')
+    expect(footer).toHaveTextContent('2,460')
+  })
+
+  it('renders the totals row on the server', () => {
+    expect(renderToString(<DashboardView spec={totalsDashboard} />)).toContain(
+      '<tfoot'
+    )
+  })
+})

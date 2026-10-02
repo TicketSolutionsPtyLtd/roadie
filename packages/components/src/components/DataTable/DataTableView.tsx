@@ -1,9 +1,16 @@
 import type { ComponentProps, ReactNode } from 'react'
 
-import type { TableColumn, TableRow } from '@oztix/roadie-core/dashboard'
+import type {
+  RecordName,
+  TableColumn,
+  TableRow,
+  TableTotals
+} from '@oztix/roadie-core/dashboard'
+import { resolveTableTotals } from '@oztix/roadie-core/dashboard-layout'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { Table } from '../Table'
+import { isDev } from '../../utils/isDev'
+import { Table, tableCellClass } from '../Table'
 import { DataTableCellContent } from './DataTableCell'
 import { DataTableFrame, DataTableShowAll } from './DataTableShowAll'
 import { SortIcon } from './SortIcon'
@@ -23,11 +30,23 @@ export type DataTableViewProps = Omit<ComponentProps<'div'>, 'children'> & {
   sortControl?: (column: TableColumn) => DataTableSortControl | undefined
   showAllLabel: string
   plain: boolean
+  totals?: true | TableTotals
+  recordName?: RecordName
 }
 
 const titleColumn = (columns: readonly TableColumn[]) =>
   columns.find((column) => column.pin && column.kind === 'text') ??
   columns.find((column) => column.kind === 'text')
+
+let warnedTitlePriority = false
+
+function warnTitlePriority(key: string) {
+  if (warnedTitlePriority || !isDev()) return
+  warnedTitlePriority = true
+  console.warn(
+    `[Roadie] DataTable column "${key}" holds the row links, so its priority is ignored: it never hides.`
+  )
+}
 
 const alignOf = (column: TableColumn): 'start' | 'end' =>
   column.kind === 'number' || column.kind === 'delta' ? 'end' : 'start'
@@ -74,16 +93,33 @@ export function DataTableView({
   sortControl,
   showAllLabel,
   plain,
+  totals,
+  recordName,
   className,
   ...props
 }: DataTableViewProps) {
-  const hasPriorities = columns.some((column) => column.priority !== undefined)
   const title = titleColumn(columns)
+  const linksRows = rows.some(({ href }) => href)
+  const priorityOf = (column: TableColumn) =>
+    linksRows && column === title ? undefined : column.priority
+  if (linksRows && title?.priority !== undefined) warnTitlePriority(title.key)
+  const hasPriorities = columns.some(
+    (column) => priorityOf(column) !== undefined
+  )
   const cellAttributes = (column: TableColumn) => ({
-    'data-priority': column.priority,
+    'data-priority': priorityOf(column),
     'data-pin': column.pin || undefined,
     align: alignOf(column)
   })
+  // Sums every row given, not just those in view, so it holds as the table sorts or narrows.
+  const footer =
+    totals &&
+    resolveTableTotals(
+      columns,
+      rows.map(({ row }) => row),
+      totals === true ? 'sum' : totals,
+      recordName
+    )
   const header = (column: TableColumn): ReactNode => {
     const control = sortControl?.(column)
     if (!control) return column.header
@@ -106,9 +142,7 @@ export function DataTableView({
       >
         <Table
           data-overlay-clip={
-            title?.pin && title !== columns[0] && rows.some(({ href }) => href)
-              ? ''
-              : undefined
+            title?.pin && title !== columns[0] && linksRows ? '' : undefined
           }
         >
           {caption && <caption className='sr-only'>{caption}</caption>}
@@ -162,6 +196,38 @@ export function DataTableView({
               )
             })}
           </Table.Body>
+          {footer && (
+            <Table.Foot data-slot='data-table-totals'>
+              <Table.Row>
+                {columns.map((column, index) => {
+                  const { align, ...attributes } = cellAttributes(column)
+                  if (index === 0)
+                    return (
+                      <th
+                        key={column.key}
+                        scope='row'
+                        {...attributes}
+                        className={tableCellClass()}
+                      >
+                        {footer.label}
+                      </th>
+                    )
+                  const value = footer.values[column.key]
+                  return (
+                    <Table.Cell key={column.key} {...attributes} align={align}>
+                      {value !== undefined && (
+                        <DataTableCellContent
+                          column={column}
+                          value={value}
+                          plain={plain}
+                        />
+                      )}
+                    </Table.Cell>
+                  )
+                })}
+              </Table.Row>
+            </Table.Foot>
+          )}
         </Table>
       </div>
       {hasPriorities && <DataTableShowAll label={showAllLabel} />}

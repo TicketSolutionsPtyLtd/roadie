@@ -478,6 +478,7 @@ import {
 import type { ChartTable } from '@oztix/roadie-charts/tables'
 import { DataCard } from '@oztix/roadie-components/data-card'
 import { Menu } from '@oztix/roadie-components/menu'
+import { columnStatus } from '@oztix/roadie-core/dashboard-layout'
 
 function csvField(value: unknown) {
   const text = Array.isArray(value) ? value.join(' ') : String(value ?? '')
@@ -487,14 +488,38 @@ function csvField(value: unknown) {
 function tableCsv({ columns, rows }: ChartTable) {
   const lines = [
     columns.map((column) => csvField(column.header)),
-    ...rows.map((row) => columns.map((column) => csvField(row[column.key])))
+    ...rows.map((row) =>
+      columns.map((column) => {
+        const value = row[column.key]
+        // A status key is an id; the label is what people read.
+        return csvField(
+          column.kind === 'status' && value != null
+            ? columnStatus(column, String(value)).label
+            : value
+        )
+      })
+    )
   ]
   return lines.map((line) => line.join(',')).join('\\n')
 }
 
+function totalsCsv({ columns, totals }: ChartTable) {
+  // cardTable sums the totals row, so it arrives as a label and values.
+  if (!totals || totals === 'sum') return []
+  return [
+    columns
+      .map((column, index) =>
+        csvField(index === 0 ? totals.label : totals.values?.[column.key])
+      )
+      .join(',')
+  ]
+}
+
 function downloadCsv(label: string, table: ChartTable) {
   const url = URL.createObjectURL(
-    new Blob([tableCsv(table)], { type: 'text/csv' })
+    new Blob([[tableCsv(table), ...totalsCsv(table)].join('\\n')], {
+      type: 'text/csv'
+    })
   )
   const link = document.createElement('a')
   link.href = url
@@ -1130,8 +1155,25 @@ export default function DashboardsPage() {
           items={[
             'Use at most two visual columns, sparkline or meter, per table.',
             <>
+              A <Code>status</Code> column shows each key as a Badge, with the
+              intent and label its <Code>status</Code> map gives.{' '}
+              <Code>validateDashboard</Code> rejects an unknown intent and warns
+              about keys the map lacks. <Code>cardTable(card)</Code> keeps the
+              keys in its rows, since a table needs them to pick each intent, so
+              use <Code>cellText(column, value)</Code> for text such as a CSV.
+            </>,
+            <>
               Give each column a <Code>priority</Code>. As the card narrows,
               higher numbers hide first. Columns without one always show.
+            </>,
+            <>
+              For a report’s “Totals for 12 events” line, give a table card{' '}
+              <Code>totals: &apos;sum&apos;</Code>. It adds up the number
+              columns, except those with <Code>total: false</Code>, and its
+              label takes the first column, so give that column no priority. For
+              a page of server rows or an average, pass{' '}
+              <Code>{'{ label, values }'}</Code> instead.{' '}
+              <Code>cardTable(card)</Code> returns the row summed, for a CSV.
             </>,
             <>
               The “Show all columns” button switches to horizontal scrolling and

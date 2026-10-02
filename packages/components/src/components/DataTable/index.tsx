@@ -1,6 +1,11 @@
 import type { ComponentProps } from 'react'
 
-import type { TableColumn, TableRow } from '@oztix/roadie-core/dashboard'
+import type {
+  RecordName,
+  TableColumn,
+  TableRow,
+  TableTotals
+} from '@oztix/roadie-core/dashboard'
 
 import { DataTableSortable } from './DataTableSortable'
 import { DataTableView } from './DataTableView'
@@ -13,6 +18,7 @@ import {
 
 export type DataTableColumn = TableColumn
 export type DataTableRow = TableRow
+export type DataTableTotals = TableTotals
 export type { DataTableSort, DataTableSortDirection }
 export { sortDataTableRows } from './sort'
 
@@ -45,6 +51,18 @@ export type DataTableProps = Omit<ComponentProps<'div'>, 'children'> & {
   showAllLabel?: string
   /** Plain numbers only, for a chart's table view. */
   plain?: boolean
+  /**
+   * Adds a totals row as the table's footer, its label in the first column.
+   * `true` or `'sum'` adds up the number columns over every row, except
+   * shares, indexes and points, and any column with `total: false`. Give
+   * `values`, with a `label`, to show your own, such as the server's totals.
+   */
+  totals?: true | DataTableTotals
+  /**
+   * Names the rows in the default totals label, as in "Totals for 12 events".
+   * @default { one: 'record', other: 'records' }
+   */
+  recordName?: RecordName
 }
 
 export function DataTable({
