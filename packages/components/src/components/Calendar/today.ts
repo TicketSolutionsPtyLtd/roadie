@@ -17,7 +17,8 @@ function msToNextDate(timeZone: string): number {
     if (plainDateOf(new Date(middle), timeZone) === today) before = middle
     else after = middle
   }
-  return after - now + 50
+  // Timers stop while a laptop sleeps, so wake at least hourly to catch up.
+  return Math.min(after - now + 50, 3_600_000)
 }
 
 const noSubscription = () => () => {}

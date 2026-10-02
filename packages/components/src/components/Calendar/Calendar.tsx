@@ -378,6 +378,8 @@ export function Calendar(props: CalendarProps) {
       const after = next as readonly string[]
       const added = after.filter((date) => !before.includes(date))
       const removed = before.filter((date) => !after.includes(date))
+      if (!added.length && !removed.length) return null
+      if (!after.length) return 'Selection cleared'
       if (added.length + removed.length !== 1)
         return `${after.length} dates selected`
       return added[0]
@@ -401,6 +403,8 @@ export function Calendar(props: CalendarProps) {
   // parent that keeps, defers or makes a change is heard as it really is.
   const selectionKey = JSON.stringify(selection)
   const shownMonthKey = waitingForToday ? null : firstMonth
+  // Null while the month follows today, so a midnight rollover isn't spoken.
+  const chosenMonth = monthProp ?? navigatedMonth
   const [heard, setHeard] = useState({
     mode,
     selectionKey,
@@ -413,10 +417,18 @@ export function Calendar(props: CalendarProps) {
     heard.month !== shownMonthKey
   ) {
     const messages = []
-    if (heard.month && shownMonthKey && heard.month !== shownMonthKey)
+    if (
+      chosenMonth &&
+      heard.month &&
+      shownMonthKey &&
+      heard.month !== shownMonthKey
+    )
       messages.push(monthsLabel(shownMonthKey))
-    if (heard.mode === mode && heard.selectionKey !== selectionKey)
-      messages.push(describeSelection(heard.selection, selection))
+    const selectionMessage =
+      heard.mode === mode &&
+      heard.selectionKey !== selectionKey &&
+      describeSelection(heard.selection, selection)
+    if (selectionMessage) messages.push(selectionMessage)
     setHeard({ mode, selectionKey, selection, month: shownMonthKey })
     if (messages.length) setAnnouncement(messages.join('. '))
   }

@@ -333,6 +333,7 @@ describe('Calendar', () => {
     const { rerender } = render(<Calendar today='2027-03-31' />)
     rerender(<Calendar today='2027-04-01' />)
     expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
+    expect(live()).toHaveTextContent('')
     await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
     rerender(<Calendar today='2027-04-02' />)
     expect(screen.getByRole('grid')).toHaveAccessibleName('May 2027')
@@ -408,6 +409,17 @@ describe('Calendar', () => {
       expect(day('2027-03-28')).toHaveAttribute('data-today')
     })
 
+    it('wakes within the hour, so a sleeping laptop catches up', () => {
+      vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+      // 10pm on 31 March in Sydney.
+      vi.setSystemTime(new Date('2027-03-31T11:00:00Z'))
+      render(<Calendar timeZone='Australia/Sydney' />)
+      // The machine sleeps until 7am; its pending timers don't advance.
+      vi.setSystemTime(new Date('2027-03-31T20:00:00Z'))
+      act(() => vi.advanceTimersByTime(60 * 60_000))
+      expect(day('2027-04-01')).toHaveAttribute('data-today')
+    })
+
     it('catches up when a hidden tab is shown again', () => {
       vi.useFakeTimers({ toFake: ['Date'] })
       vi.setSystemTime(new Date('2027-03-10T01:00:00Z'))
@@ -444,6 +456,7 @@ describe('Calendar', () => {
         <Calendar timeZone='Australia/Sydney' />
       )
       expect(onRecoverableError).not.toHaveBeenCalled()
+      expect(live()).toHaveTextContent('')
       expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
       expect(day('2027-04-01')).toHaveAttribute('data-today')
     })
@@ -576,6 +589,42 @@ describe('Calendar', () => {
   })
 
   describe('announcements follow what the calendar shows', () => {
+    it('stays quiet when the mode changes', () => {
+      const { rerender } = render(
+        <Calendar today={TODAY} defaultSelected='2027-03-14' />
+      )
+      rerender(<Calendar today={TODAY} mode='multiple' />)
+      expect(live()).toHaveTextContent('')
+    })
+
+    it('says what a parent did to several dates', () => {
+      const { rerender } = render(
+        <Calendar
+          today={TODAY}
+          mode='multiple'
+          selected={['2027-03-02', '2027-03-14']}
+        />
+      )
+      rerender(
+        <Calendar
+          today={TODAY}
+          mode='multiple'
+          selected={['2027-03-14', '2027-03-02']}
+        />
+      )
+      expect(live()).toHaveTextContent('')
+      rerender(
+        <Calendar
+          today={TODAY}
+          mode='multiple'
+          selected={['2027-03-01', '2027-03-02', '2027-03-03']}
+        />
+      )
+      expect(live()).toHaveTextContent('3 dates selected')
+      rerender(<Calendar today={TODAY} mode='multiple' selected={[]} />)
+      expect(live()).toHaveTextContent('Selection cleared')
+    })
+
     it('stays quiet when a controlled parent keeps its value', async () => {
       render(
         <Calendar
