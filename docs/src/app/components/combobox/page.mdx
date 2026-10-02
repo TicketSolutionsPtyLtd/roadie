@@ -453,8 +453,9 @@ For server-side search, update the `items` prop as results arrive. Use
 - With `multiple`, **Backspace** in an empty input removes the last chip.
   **Left Arrow** from the start of the input moves to the chips, **Left** and
   **Right** move between them (swapped in a right-to-left layout), and
-  **Backspace** or **Delete** removes the focused one. Focus returns to the
-  input after a removal.
+  **Backspace** or **Delete** removes the focused one. Focus moves to the
+  next chip, or the previous one after the last, and returns to the input
+  once no chips are left.
 - **Escape** while the popup is closed clears every value, not just the last
   one.
 - `Combobox.Chips` becomes a toolbar once it holds chips, so screen readers

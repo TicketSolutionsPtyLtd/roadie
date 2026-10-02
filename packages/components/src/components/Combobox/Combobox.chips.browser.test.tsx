@@ -150,7 +150,7 @@ describe('Combobox chips', () => {
     )
   })
 
-  it('remove a value with Backspace and return focus to the input', async () => {
+  it('remove the last value with Backspace from the input, keeping focus there', async () => {
     render(<Bands defaultValue={['Saltwater Choir', 'Velvet Kingfisher']} />)
     const input = screen.getByRole('combobox', { name: 'Bands' })
     await userEvent.tab()
@@ -159,6 +159,35 @@ describe('Combobox chips', () => {
       .poll(() => document.querySelectorAll('[data-slot=combobox-chip]').length)
       .toBe(1)
     expect(document.activeElement).toBe(input)
+  })
+
+  it('move focus to the next chip after removing a focused one, then to the input', async () => {
+    render(
+      <Bands
+        defaultValue={[
+          'Saltwater Choir',
+          'Velvet Kingfisher',
+          'Northbound Static'
+        ]}
+      />
+    )
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}')
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(chip('Velvet Kingfisher'))
+    await userEvent.keyboard('{Backspace}')
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(chip('Northbound Static'))
+    await userEvent.keyboard('{Backspace}')
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(chip('Saltwater Choir'))
+    await userEvent.keyboard('{Backspace}')
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(screen.getByRole('combobox', { name: 'Bands' }))
   })
 
   it('fade once with the input group when disabled', () => {
