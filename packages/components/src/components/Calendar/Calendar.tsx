@@ -168,9 +168,11 @@ const dayVariants = cva(
     variants: {
       look: {
         plain: 'emphasis-subtler border-transparent',
-        chosen: 'intent-accent emphasis-strong font-semibold',
+        // Forced colours drop the fills, so a Highlight edge carries the state.
+        chosen:
+          'intent-accent emphasis-strong font-semibold forced-colors:border-[Highlight]',
         middle:
-          'intent-accent emphasis-subtle rounded-none border-transparent shadow-none active:transform-none'
+          'intent-accent emphasis-subtle rounded-none border-transparent shadow-none active:transform-none forced-colors:border-[Highlight]'
       },
       outside: { true: '', false: '' }
     },
@@ -476,6 +478,13 @@ export function Calendar(props: CalendarProps) {
     const shift = (next: string) => turnMonth(addMonths(next, -index))
     const monthNumber = monthNumberOf(month)
     const year = yearOf(month)
+    // The page turn clamps to the nearest allowed month, so a year is open
+    // when any of its months can sit in this caption.
+    const yearHoldsAllowedMonth = (candidateYear: number) =>
+      (!firstAllowedMonth ||
+        candidateYear >= yearOf(addMonths(firstAllowedMonth, index))) &&
+      (!lastAllowedMonth ||
+        candidateYear <= yearOf(addMonths(lastAllowedMonth, index)))
     const outOfBounds = (candidate: string) => {
       const first = addMonths(candidate, -index)
       return (
@@ -507,7 +516,7 @@ export function Calendar(props: CalendarProps) {
           options={Array.from({ length: lastYear - firstYear + 1 }, (_, i) => ({
             value: firstYear + i,
             label: String(firstYear + i),
-            disabled: outOfBounds(addMonths(month, (firstYear + i - year) * 12))
+            disabled: !yearHoldsAllowedMonth(firstYear + i)
           }))}
         />
       </div>

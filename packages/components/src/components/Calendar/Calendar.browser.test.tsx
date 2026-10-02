@@ -1,5 +1,13 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
 import { Calendar } from '.'
@@ -270,5 +278,34 @@ describe('Calendar layout', () => {
       document.querySelector('[data-slot="calendar"]')!.getBoundingClientRect()
         .width
     ).toBeLessThanOrEqual(390)
+  })
+})
+
+describe('Calendar under forced colours', () => {
+  it('edges chosen and in-range days in Highlight', async (context) => {
+    render(
+      <>
+        <Calendar
+          today={TODAY}
+          mode='range'
+          defaultSelected={{ start: '2027-03-03', end: '2027-03-05' }}
+        />
+        <span data-probe className='bg-[Canvas]' />
+      </>
+    )
+    await commands.forcedColors(true)
+    onTestFinished(() => commands.forcedColors(false))
+    if (!matchMedia('(forced-colors: active)').matches) {
+      context.skip()
+      return
+    }
+    const canvas = getComputedStyle(
+      document.querySelector('[data-probe]')!
+    ).backgroundColor
+    const edge = (date: string) => getComputedStyle(day(date)).borderTopColor
+    for (const date of ['2027-03-03', '2027-03-04', '2027-03-05']) {
+      expect(edge(date)).not.toBe(canvas)
+      expect(edge(date)).not.toBe(edge('2027-03-20'))
+    }
   })
 })

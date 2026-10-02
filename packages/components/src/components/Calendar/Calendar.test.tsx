@@ -527,6 +527,24 @@ describe('Calendar', () => {
     expect(option('2027').disabled).toBe(false)
   })
 
+  it('enables a year that holds an allowed month, and lands on it', async () => {
+    render(
+      <Calendar
+        today='2026-12-10'
+        captionLayout='dropdown'
+        startMonth='2026-12-01'
+        endMonth='2027-01-31'
+      />
+    )
+    const year = screen.getByRole('combobox', { name: 'Year' })
+    const option = within(year).getByRole('option', {
+      name: '2027'
+    }) as HTMLOptionElement
+    expect(option.disabled).toBe(false)
+    await userEvent.selectOptions(year, '2027')
+    expect(screen.getByRole('grid')).toHaveAccessibleName('January 2027')
+  })
+
   it('focuses the day once a controlled parent shows its month', async () => {
     function Deferred() {
       const [month, setMonth] = useState('2027-03-01')
