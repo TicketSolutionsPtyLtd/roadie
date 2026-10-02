@@ -148,8 +148,9 @@ export function DocsNavigator({
     [scrollToHeading]
   )
 
-  // The bare canary owns the whole window; see docs/src/app/debug/bare.
-  if (route.startsWith('/debug/bare')) return children
+  // The bare canary and isolated examples own the whole window.
+  if (route.startsWith('/debug/bare') || route.startsWith('/examples/'))
+    return children
 
   return (
     <>

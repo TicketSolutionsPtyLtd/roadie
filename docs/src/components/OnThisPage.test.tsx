@@ -68,4 +68,40 @@ describe('useDocHeadings', () => {
     act(() => result.current.onSelect(event, 'stattile'))
     expect(content.querySelector('h3')?.id).toBe('stattile')
   })
+
+  it('follows a content wrapper that streaming replaces after collecting', async () => {
+    const { content, result } = mountPage()
+    const next = document.createElement('div')
+    next.id = 'docs-content'
+    next.innerHTML = '<h2>API reference</h2><h3>StatTile</h3>'
+    content.replaceWith(next)
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)))
+    expect(result.current.headings.map((h) => h.id)).toEqual([
+      'api-reference',
+      'stattile'
+    ])
+    act(() => result.current.onSelect(event, 'stattile'))
+    expect(next.querySelector('h3')?.id).toBe('stattile')
+  })
+
+  it('lands a hash on a heading that has no id in the markup', () => {
+    window.history.replaceState(null, '', '#meter-2')
+    const { content } = mountPage()
+    expect(content.querySelectorAll('h3')[1]?.id).toBe('meter-2')
+    window.history.replaceState(null, '', '#')
+  })
+
+  it('leaves out headings inside a live example as it renders', async () => {
+    const { content, result } = mountPage()
+    const example = document.createElement('div')
+    example.dataset.liveExample = 'rendered'
+    example.innerHTML = '<h2>Demo heading</h2>'
+    content.append(example)
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)))
+    expect(result.current.headings.map((h) => h.id)).toEqual([
+      'api-reference',
+      'meter',
+      'meter-2'
+    ])
+  })
 })

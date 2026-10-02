@@ -132,7 +132,7 @@ const MAX_FORMATTERS = 200
 
 // Building a formatter costs far more than formatting with one, and a table
 // formats hundreds of values with the same few option sets.
-function dateTimeFormat(
+export function dateTimeFormat(
   locale: string,
   options: Intl.DateTimeFormatOptions
 ): Intl.DateTimeFormat {
@@ -181,13 +181,16 @@ function zoneParts(
       day: 'numeric',
       month: 'numeric',
       year: 'numeric',
+      era: 'short',
       hour: '2-digit',
       minute: '2-digit',
       hour12: false
     }).formatToParts(date)
 
     const day = Number(pick(numeric, 'day'))
-    const year = Number(pick(numeric, 'year'))
+    // Intl counts 1 BC as year 1 of the BC era; the proleptic year is 0.
+    const eraYear = Number(pick(numeric, 'year'))
+    const year = pick(numeric, 'era') === 'BC' ? 1 - eraYear : eraYear
     const monthNumber = Number(pick(numeric, 'month'))
     const minute = Number(pick(numeric, 'minute'))
     // 'hour12: false' can emit 24 at midnight.
@@ -341,7 +344,7 @@ export function formatMachine(
   const { timeZone, locale, timeStyle } = resolve(opts)
   const parts = zoneParts(date, timeZone, locale)
   if (!parts) return null
-  const day = `${parts.year}-${pad(parts.monthNumber)}-${pad(parts.day)}`
+  const day = `${String(parts.year).padStart(4, '0')}-${pad(parts.monthNumber)}-${pad(parts.day)}`
   if (!timeStyle) return day
   const offset = zoneOffset(toDate(date), timeZone)
   // A caller that asked for a time and got a bare date has been handed less
