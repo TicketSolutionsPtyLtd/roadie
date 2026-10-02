@@ -798,3 +798,33 @@ describe('bad input', () => {
     expect(formatLong(start, { timeZone: 'Mars/Olympus' })).toBeNull()
   })
 })
+
+describe('formatter reuse', () => {
+  it('builds each Intl formatter once, however many values it formats', () => {
+    const DateTimeFormat = vi.spyOn(Intl, 'DateTimeFormat')
+    const opts = { timeZone: SYD, timeStyle: 'long' } as const
+    formatDateTime(start, opts)
+    formatMachine(start, opts)
+    const built = DateTimeFormat.mock.calls.length
+
+    for (let day = 1; day <= 20; day++) {
+      const value = new Date(start.getTime() + day * 86_400_000)
+      formatDateTime(value, opts)
+      formatMachine(value, opts)
+    }
+
+    expect(DateTimeFormat.mock.calls.length).toBe(built)
+    DateTimeFormat.mockRestore()
+  })
+  it('builds afresh when Intl.DateTimeFormat is replaced', () => {
+    const opts = { timeZone: SYD } as const
+    const before = formatShort(start, opts)
+    const DateTimeFormat = vi.spyOn(Intl, 'DateTimeFormat')
+    try {
+      expect(formatShort(start, opts)).toBe(before)
+      expect(DateTimeFormat).toHaveBeenCalled()
+    } finally {
+      DateTimeFormat.mockRestore()
+    }
+  })
+})

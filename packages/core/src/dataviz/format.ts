@@ -12,12 +12,23 @@ export type DeltaSentiment = 'good' | 'bad' | 'neutral'
 const LOCALE = 'en-AU'
 const NOT_AVAILABLE = 'Not available'
 
+const formatters = new Map<string, Intl.NumberFormat>()
+
+function numberFormat(options: Intl.NumberFormatOptions) {
+  const key = JSON.stringify(options)
+  const cached = formatters.get(key)
+  if (cached) return cached
+  const formatter = new Intl.NumberFormat(LOCALE, options)
+  formatters.set(key, formatter)
+  return formatter
+}
+
 export function normalizeMinusSign(text: string) {
   return text.replace(/−/g, '-')
 }
 
 const number = (value: number, maximumFractionDigits = 1) =>
-  new Intl.NumberFormat(LOCALE, { maximumFractionDigits }).format(value)
+  numberFormat({ maximumFractionDigits }).format(value)
 
 const roundToOneDecimal = (value: number) => Math.round(value * 10) / 10
 
@@ -45,7 +56,7 @@ function compact(value: number) {
 
 function currency(value: number) {
   const round = Number.isInteger(value)
-  return new Intl.NumberFormat(LOCALE, {
+  return numberFormat({
     style: 'currency',
     currency: 'AUD',
     currencyDisplay: 'narrowSymbol',
@@ -56,7 +67,7 @@ function currency(value: number) {
 
 function percent(value: number) {
   const digits = Math.abs(value) < 0.1 && !Number.isInteger(value * 100) ? 1 : 0
-  return new Intl.NumberFormat(LOCALE, {
+  return numberFormat({
     style: 'percent',
     maximumFractionDigits: digits
   }).format(value)
