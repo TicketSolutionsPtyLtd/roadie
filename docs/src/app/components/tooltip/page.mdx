@@ -80,6 +80,20 @@ Pass the control to `Tooltip.Trigger` with `render`. The control keeps its own a
 </div>
 ```
 
+### Shortcut
+
+`shortcut` adds the control's keys after the label, drawn by [Kbd](/components/kbd). Pass a key list such as `['mod', 's']` so each reader sees their own platform's keys. The keys are visual only, so put the shortcut on the trigger as `aria-keyshortcuts` too.
+
+```tsx-live
+<Tooltip>
+  <Tooltip.Trigger render={<IconButton aria-label='Search' aria-keyshortcuts='Meta+K Control+K'><MagnifyingGlassIcon weight='bold' className='size-4' /></IconButton>} />
+  <Tooltip.Content shortcut={['mod', 'k']}>
+    <Tooltip.Arrow />
+    Search
+  </Tooltip.Content>
+</Tooltip>
+```
+
 ### Delay group
 
 Wrap related controls in `Tooltip.Provider`. The first tooltip waits for the delay; moving to a neighbour while one is open shows it straight away.
@@ -130,6 +144,7 @@ Wrap related controls in `Tooltip.Provider`. The first tooltip waits for the del
 
 - The tooltip isn't announced. The trigger carries its own name. That is an `aria-label` on an icon-only control, or visible or visually hidden text.
 - Keyboard focus opens the tooltip; Escape closes it.
+- A `shortcut` is hidden from assistive tech and on touch screens. Give the trigger `aria-keyshortcuts` with the same keys.
 - Hover and focus only. Don't use a tooltip for anything a keyboard, screen reader or touch user needs.
 
 <PropsDefinitions componentPath='packages/components/src/components/Tooltip' />
