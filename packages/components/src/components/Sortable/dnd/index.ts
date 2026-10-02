@@ -37,6 +37,10 @@ export function createSortableGroup(): SortableGroup {
   return {}
 }
 
+export function sortableItemData(group: SortableGroup, value: string): Payload {
+  return { [GROUP]: group, [VALUE]: value }
+}
+
 export type SortableItemOptions = {
   element: HTMLElement
   handle: HTMLElement
@@ -62,7 +66,7 @@ export function sortableItem({
   onDropEdgeChange,
   movesTo
 }: SortableItemOptions): Cleanup {
-  const data = { [GROUP]: group, [VALUE]: value }
+  const data = sortableItemData(group, value)
   const showEdge = ({
     self,
     source
@@ -124,19 +128,35 @@ export function sortableMonitor({
       },
       onDrop: ({ source, location }) => {
         stopScrolling()
-        const target = location.current.dropTargets[0]
-        if (!target || !inGroup(target.data, group)) return
-        const edge = extractClosestEdge(target.data)
-        if (!edge) return
-        onDrop({
-          value: source.data[VALUE] as string,
-          target: target.data[VALUE] as string,
-          edge
-        })
+        const drop = sortableDropFrom(
+          location.current.dropTargets,
+          source,
+          group
+        )
+        if (drop) onDrop(drop)
       }
     }),
     () => stopScrolling()
   )
+}
+
+/**
+ * The drop for this group. Targets run innermost first, and the innermost can
+ * belong to another drag feature or a nested Sortable, so it may not be ours.
+ */
+export function sortableDropFrom(
+  targets: readonly { data: Payload }[],
+  source: { data: Payload },
+  group: SortableGroup
+): SortableDrop | null {
+  const target = targets.find(({ data }) => inGroup(data, group))
+  const edge = target ? extractClosestEdge(target.data) : null
+  if (!target || !edge) return null
+  return {
+    value: source.data[VALUE] as string,
+    target: target.data[VALUE] as string,
+    edge
+  }
 }
 
 // Registered when a drag starts, so containers that became scrollable after
