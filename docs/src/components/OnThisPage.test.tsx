@@ -1,7 +1,13 @@
 // @vitest-environment jsdom
 import type { MouseEvent } from 'react'
 
-import { act, render, renderHook, waitFor } from '@testing-library/react'
+import {
+  act,
+  cleanup,
+  render,
+  renderHook,
+  waitFor
+} from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { OnThisPage, useDocHeadings } from './OnThisPage'
@@ -12,7 +18,9 @@ beforeAll(() => {
   Element.prototype.scrollIntoView = () => {}
 })
 
+// Unmounting cancels the highlight frame, which would otherwise render after jsdom closes.
 afterEach(() => {
+  cleanup()
   document.body.innerHTML = ''
 })
 
