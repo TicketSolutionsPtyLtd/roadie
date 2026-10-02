@@ -50,7 +50,9 @@ describe('Kbd', () => {
     expect(group.tagName).toBe('KBD')
     expect(group).toHaveAttribute('data-slot', 'kbd-group')
     expect(group).toHaveAttribute('aria-hidden', 'true')
-    expect(group).toHaveClass('[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden')
+    expect(group).toHaveClass(
+      '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
+    )
     const caps = group.querySelectorAll('[data-slot="kbd"]')
     expect(Array.from(caps, (cap) => cap.textContent)).toEqual(['Ctrl', 'K'])
     for (const cap of caps) {
