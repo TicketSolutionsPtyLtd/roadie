@@ -193,6 +193,21 @@ describe('live examples', () => {
     }, 60_000)
   }
 
+  it('give examples the live scope on their own page', async () => {
+    const { page, errors } = await open(
+      '/examples/components/button/download/',
+      1280
+    )
+
+    expect(
+      await page
+        .getByRole('link', { name: 'Download logo' })
+        .getAttribute('href')
+    ).toBe(`${BASE_PATH}/roadie-logo.png`)
+    expect(errors).toEqual([])
+    await page.context().close()
+  }, 60_000)
+
   it('link each example to its own page', async () => {
     const { page } = await open('/components/badge/', 1280)
     const link = page
