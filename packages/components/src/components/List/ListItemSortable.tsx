@@ -49,7 +49,12 @@ export function ListItemSortable({
     >
       <div
         data-slot='list-item'
-        className={cn(listItemVariants({ interactive: false }), className)}
+        className={cn(
+          listItemVariants({ interactive: false }),
+          // A static subtler row would keep its tint, where a plain row paints nothing at rest.
+          'group-data-[contained=subtler]/list:bg-transparent group-data-[emphasis=subtler]/list:bg-transparent',
+          className
+        )}
       >
         <ListItemContent
           title={title}

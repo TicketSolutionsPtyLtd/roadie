@@ -222,6 +222,29 @@ describe('Sortable drag and drop', () => {
   })
 })
 
+describe('Sortable List rows', () => {
+  const background = (name: string) =>
+    getComputedStyle(
+      handle(name).closest<HTMLElement>('[data-slot="list-item"]')!
+    ).backgroundColor
+
+  it('paint nothing at rest in a subtler list, like plain rows', () => {
+    render(<Columns />)
+    expect(background('Date')).toBe('rgba(0, 0, 0, 0)')
+  })
+
+  it('keep the fill of a subtle list', () => {
+    render(
+      <Sortable items={['Date']} onReorder={() => {}}>
+        <List emphasis='subtle'>
+          <List.Item value='Date' title='Date' />
+        </List>
+      </Sortable>
+    )
+    expect(background('Date')).not.toBe('rgba(0, 0, 0, 0)')
+  })
+})
+
 describe('Sortable Move menu', () => {
   it('opens on a click of the handle', async () => {
     render(<Columns />)
