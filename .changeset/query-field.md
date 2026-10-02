@@ -10,5 +10,6 @@ the text unless a suggestion is marked `exact`; filters are taken by arrow or
 click. Locked chips come first with a "Set by this page" tooltip and nothing in
 the field removes them. Backspace on an empty field selects the last chip, then
 removes it. `pendingChip` shows the field being given a value, `onEditChip`
-makes chips open your editor, and `shortcut` focuses the field from anywhere on
-the page. It works alone with `aria-label` or inside `Field`.
+gives chips an edit button that opens your editor, `shortcut` focuses the field
+from anywhere on the page, and `inputRef` reaches the input. It works alone with
+`aria-label` or inside `Field`; `required` is announced but never blocks a form.

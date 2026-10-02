@@ -143,6 +143,46 @@ describe('QueryField', () => {
     expect(accepted).toEqual(['search'])
   })
 
+  it('takes no value under the pointer after clicking a field', async () => {
+    const accepted: string[] = []
+    function ValueStep() {
+      const [pending, setPending] = useState(false)
+      return (
+        <Harness
+          pendingChip={pending ? { id: 'venue', label: 'Venue is' } : undefined}
+          suggest={() =>
+            pending
+              ? suggest('values')
+              : [
+                  {
+                    id: 'fields',
+                    label: 'Filter by',
+                    items: [
+                      {
+                        id: 'venue',
+                        label: 'Venue',
+                        kind: 'field',
+                        value: 'venue'
+                      }
+                    ]
+                  }
+                ]
+          }
+          onAccept={(suggestion) => {
+            accepted.push(suggestion.kind)
+            if (suggestion.kind === 'field') setPending(true)
+          }}
+        />
+      )
+    }
+    render(<ValueStep />)
+    await userEvent.click(input())
+    await userEvent.click(await screen.findByRole('option', { name: 'Venue' }))
+    await screen.findByRole('option', { name: /The Longacre/ })
+    await userEvent.keyboard('{Enter}')
+    expect(accepted).toEqual(['field'])
+  })
+
   it('rings the chip the first Backspace selects', async () => {
     render(<Harness initialChips={chips.slice(0, 2)} />)
     await userEvent.click(input())

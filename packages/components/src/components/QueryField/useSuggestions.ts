@@ -19,6 +19,10 @@ type Suggestions<Value> = {
 
 const NONE: readonly never[] = []
 
+function isThenable<T>(value: T | PromiseLike<T>): value is PromiseLike<T> {
+  return typeof (value as PromiseLike<T>).then === 'function'
+}
+
 // Asks again when the text, the open state or the pending field changes, not
 // when `suggest` does, so an inline function doesn't loop.
 export function useSuggestions<Value>(
@@ -40,7 +44,7 @@ export function useSuggestions<Value>(
     if (!open) return
     let current = true
     const result = suggestRef.current(inputValue)
-    if (!(result instanceof Promise)) {
+    if (!isThenable(result)) {
       setSuggestions({ groups: result, inputValue })
       return
     }

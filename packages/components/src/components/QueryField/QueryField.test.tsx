@@ -460,10 +460,42 @@ describe('QueryField', () => {
     const onAccept = vi.fn()
     render(<Harness onAccept={onAccept} />)
     await typeInto('long')
+    await waitFor(() => expect(optionNames()).toHaveLength(3))
+    await userEvent.keyboard('{ArrowDown}')
     fireEvent.keyDown(input(), { key: 'Enter', isComposing: true })
     fireEvent.keyDown(input(), { key: 'Enter', keyCode: 229 })
-    fireEvent.keyDown(input(), { key: 'Enter', metaKey: true })
     expect(onAccept).not.toHaveBeenCalled()
+    const modified = fireEvent.keyDown(input(), { key: 'Enter', metaKey: true })
+    expect(onAccept).not.toHaveBeenCalled()
+    expect(modified).toBe(false)
+  })
+
+  it('takes the first suggestion after opening with ArrowDown', async () => {
+    const onAccept = vi.fn()
+    render(<Harness onAccept={onAccept} />)
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowDown}')
+    await waitFor(() => expect(optionNames()).toEqual(['Venue']))
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(venueField)
+  })
+
+  it('takes an arrowed suggestion after an earlier pointer highlight', async () => {
+    const onAccept = vi.fn()
+    render(<Harness onAccept={onAccept} />)
+    await userEvent.click(input())
+    await userEvent.hover(await screen.findByRole('option', { name: /Venue/ }))
+    await userEvent.keyboard('{Escape}')
+    await userEvent.keyboard('{ArrowDown}')
+    await waitFor(() => expect(optionNames()).toEqual(['Venue']))
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(venueField)
+  })
+
+  it('tells assistive technology Enter edits a chip', () => {
+    render(<Harness initialChips={[scope, status]} onEditChip={() => {}} />)
+    expect(chipElement('status')).toHaveAttribute('aria-keyshortcuts', 'Enter')
+    expect(chipElement('event')).not.toHaveAttribute('aria-keyshortcuts')
   })
 
   it('keeps recent items out of the value step', async () => {

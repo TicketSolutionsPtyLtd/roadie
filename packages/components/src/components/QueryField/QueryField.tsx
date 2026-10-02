@@ -24,6 +24,7 @@ import { Combobox, type ComboboxChipProps } from '../Combobox'
 import { useFieldContext } from '../Field'
 import { Kbd } from '../Kbd'
 import { Tooltip } from '../Tooltip'
+import { useControlledText, useShortcut } from './hooks'
 import { exactSuggestion, listGroups } from './suggestions'
 import type {
   QueryFieldAccepted,
@@ -31,7 +32,6 @@ import type {
   QueryFieldSuggestion,
   QueryFieldSuggestionGroup
 } from './types'
-import { useControlledText, useShortcut } from './useShortcut'
 import { useSuggestions } from './useSuggestions'
 
 export type QueryFieldProps<Value = unknown> = {
@@ -71,7 +71,7 @@ export type QueryFieldProps<Value = unknown> = {
    * display-only `shortcut`, this binds the key.
    */
   shortcut?: string
-  /** The input, for focusing it after an editor closes. */
+  /** The input, for focusing it after an editor closes. Pass a stable ref. */
   inputRef?: Ref<HTMLInputElement>
   /** @default 'md' */
   size?: 'sm' | 'md' | 'lg'
@@ -88,20 +88,24 @@ export type QueryFieldProps<Value = unknown> = {
   className?: string
 }
 
-type HighlightReason = 'keyboard' | 'pointer' | 'none'
-
 const DEFAULT_PLACEHOLDER = 'Search and filter'
 const NO_CHIPS: readonly QueryFieldChip[] = []
 
-function isEnterForSomethingElse(event: KeyboardEvent) {
-  return (
-    event.nativeEvent.isComposing ||
-    event.keyCode === 229 ||
-    event.metaKey ||
-    event.ctrlKey ||
-    event.altKey ||
-    event.shiftKey
-  )
+const NAVIGATION_KEYS = new Set([
+  'ArrowDown',
+  'ArrowUp',
+  'PageDown',
+  'PageUp',
+  'Home',
+  'End'
+])
+
+function isComposing(event: KeyboardEvent) {
+  return event.nativeEvent.isComposing || event.keyCode === 229
+}
+
+function isModified(event: KeyboardEvent) {
+  return event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
 }
 
 export function QueryField<Value = unknown>({
@@ -135,14 +139,17 @@ export function QueryField<Value = unknown>({
     () => mergeRefs(inputRef, inputRefProp),
     [inputRefProp]
   )
-  const highlightReason = useRef<HighlightReason>('none')
   const [text, setText] = useControlledText(
     inputValue,
     defaultInputValue,
     onInputValueChange
   )
   const [open, setOpen] = useState(false)
-  const [keyboardHighlightId, setKeyboardHighlightId] = useState<string>()
+  const [highlightId, setHighlightId] = useState<string>()
+  // Only arrows may make an item Enter's target; a list that changes under
+  // the pointer re-highlights with reason `none`, which keeps the last cause.
+  const [highlightByKeyboard, setHighlightByKeyboard] = useState(false)
+  const keyboardHighlightId = highlightByKeyboard ? highlightId : undefined
 
   const isDisabled = disabled ?? field.disabled
   const isInvalid = invalid ?? field.invalid
@@ -209,8 +216,18 @@ export function QueryField<Value = unknown>({
   function handleInputKeyDown(
     event: BaseUIEvent<KeyboardEvent<HTMLInputElement>>
   ) {
+    if (NAVIGATION_KEYS.has(event.key)) setHighlightByKeyboard(true)
     if (event.key === 'Enter') {
-      if (isEnterForSomethingElse(event) || keyboardHighlightId) return
+      if (isModified(event)) {
+        // Base UI ignores a modified Enter; keep it from submitting a form.
+        event.preventDefault()
+        return
+      }
+      if (isComposing(event)) {
+        event.preventBaseUIHandler()
+        return
+      }
+      if (keyboardHighlightId) return
       event.preventBaseUIHandler()
       event.preventDefault()
       const target = exact ?? search
@@ -290,16 +307,12 @@ export function QueryField<Value = unknown>({
       open={open}
       onOpenChange={(next) => {
         setOpen(next)
-        if (!next) setKeyboardHighlightId(undefined)
+        if (!next) setHighlightByKeyboard(false)
       }}
       onItemHighlighted={(item, details) => {
-        // A list that changes under the pointer re-highlights with reason
-        // `none`; only arrows may make an item Enter's target.
-        const reason = details.reason as HighlightReason
-        if (reason !== 'none') highlightReason.current = reason
-        setKeyboardHighlightId(
-          highlightReason.current === 'keyboard' ? item?.id : undefined
-        )
+        setHighlightId(item?.id)
+        if (details.reason === 'keyboard') setHighlightByKeyboard(true)
+        if (details.reason === 'pointer') setHighlightByKeyboard(false)
       }}
       itemToStringLabel={(item: { label: string }) => item.label}
       disabled={isDisabled}
@@ -356,6 +369,7 @@ export function QueryField<Value = unknown>({
               <Combobox.Chip
                 key={chip.id}
                 data-chip-id={chip.id}
+                aria-keyshortcuts={onEditChip ? 'Enter' : undefined}
                 className={cn(chip.intent && intentVariants[chip.intent])}
                 onKeyDown={(event) => handleChipKeyDown(chip, event)}
               >
@@ -365,6 +379,7 @@ export function QueryField<Value = unknown>({
                     tabIndex={-1}
                     disabled={isDisabled}
                     className='inline-flex min-w-0 cursor-pointer outline-none'
+                    onMouseDown={(event) => event.preventDefault()}
                     onClick={() => edit(chip)}
                   >
                     <Combobox.ChipLabel>{chip.label}</Combobox.ChipLabel>
