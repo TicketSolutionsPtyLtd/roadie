@@ -115,3 +115,27 @@ jobs:
       # -r so widgets is covered too; it had been over budget unnoticed.
       - name: Check bundle size
         run: pnpm -r size:check
+
+      # --affected skips the docs build when nothing it uses changed, and the
+      # e2e tests read its static export, so they run only when it exists.
+      - name: Read Playwright version
+        if: hashFiles('docs/out/index.html') != ''
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        if: hashFiles('docs/out/index.html') != ''
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}-chromium
+
+      - name: Install Playwright Chromium
+        if: hashFiles('docs/out/index.html') != ''
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Docs e2e tests
+        if: hashFiles('docs/out/index.html') != ''
+        run: pnpm --filter docs test:e2e
+        env:
+          NEXT_PUBLIC_BASE_PATH: /roadie

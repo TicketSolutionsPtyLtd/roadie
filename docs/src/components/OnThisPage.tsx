@@ -13,6 +13,8 @@ import { useRoute } from '@/lib/route'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { landOn } from './landOn'
+
 const SCROLL_OFFSET_PX = 80
 // Smooth scroll usually settles in <500ms but we leave headroom for slow
 // machines + the inertia tail before honouring observer updates again.
@@ -77,11 +79,12 @@ export function useDocHeadings(): DocHeadings {
       return
     }
     // Scope to the content wrapper, not the Navigator's <main>.
-    const mainEl = document.getElementById('docs-content')
-    if (!mainEl) {
+    const found = document.getElementById('docs-content')
+    if (!found) {
       setHeadings([])
       return
     }
+    let mainEl: HTMLElement = found
 
     // These pages' h3s duplicate the navigation or run to dozens.
     const selector = ['/components', '/tokens/reference'].includes(route)
@@ -121,7 +124,7 @@ export function useDocHeadings(): DocHeadings {
         if (!text) return
 
         // Skip example headings (Roadie parts carry data-slot) inside the content only.
-        const slot = el.closest('[data-slot]')
+        const slot = el.closest('[data-slot], [data-live-example]')
         if (slot && mainEl.contains(slot)) return
 
         // The page may not have hydrated yet, so the id is only written on click.
@@ -147,11 +150,42 @@ export function useDocHeadings(): DocHeadings {
     }
 
     collect()
+    // A hash jump lands before the examples around it mount, which would push it away.
+    const landOnHash = () => {
+      let id: string
+      try {
+        id = decodeURIComponent(window.location.hash.slice(1))
+      } catch {
+        return
+      }
+      if (!id) return
+      // A .tsx page's headings get their ids only once followed.
+      const target = document.getElementById(id) ?? elementsRef.current.get(id)
+      if (!target || !mainEl.contains(target)) return
+      target.id = id
+      landOn(target, false)
+    }
+    landOnHash()
+    window.addEventListener('hashchange', landOnHash)
     // The page's content can be swapped for new nodes after this effect runs.
     const mutations = new MutationObserver(collect)
     mutations.observe(mainEl, { childList: true, subtree: true })
-    return () => {
+    // Streaming can replace the wrapper itself, leaving the observers on a detached node.
+    const replaced = new MutationObserver(() => {
+      if (mainEl.isConnected) return
+      const next = document.getElementById('docs-content')
+      if (!next) return
+      mainEl = next
       mutations.disconnect()
+      mutations.observe(mainEl, { childList: true, subtree: true })
+      collect()
+      landOnHash()
+    })
+    replaced.observe(document.body, { childList: true, subtree: true })
+    return () => {
+      window.removeEventListener('hashchange', landOnHash)
+      mutations.disconnect()
+      replaced.disconnect()
       observer.disconnect()
     }
   }, [route])
@@ -176,7 +210,7 @@ export function useDocHeadings(): DocHeadings {
       programmaticScrollLockRef.current =
         Date.now() + PROGRAMMATIC_SCROLL_LOCK_MS
       // The pane scrolls, not the window; its scroll-pt keeps the heading clear.
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      landOn(target, true)
       setActiveHeading(id)
       if (window.history.replaceState) {
         window.history.replaceState(null, '', `#${id}`)

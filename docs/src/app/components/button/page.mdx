@@ -114,7 +114,9 @@ Pass `href` to render the button as a routed anchor. Roadie picks the right elem
 ```tsx-live
 <div className='flex flex-row flex-wrap items-center gap-2'>
   {/* Internal routes through RoadieLinkProvider */}
-  <Button href='/checkout' emphasis='strong' intent='accent'>Checkout</Button>
+  <Button href='/foundations/linking' emphasis='strong' intent='accent'>
+    Read about linking
+  </Button>
 
   {/* External gets target='_blank' rel='noopener noreferrer' */}
   <Button href='https://oztix.com.au' emphasis='normal'>

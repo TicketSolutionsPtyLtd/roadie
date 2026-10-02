@@ -1,4 +1,5 @@
 import createMDX from '@next/mdx'
+import { fileURLToPath } from 'url'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -29,7 +30,11 @@ const nextConfig = {
 
 const withMDX = createMDX({
   options: {
-    remarkPlugins: ['remark-gfm'],
+    remarkPlugins: [
+      'remark-gfm',
+      // Turbopack takes plugins by name; absolute, since it resolves from the workspace root.
+      fileURLToPath(new URL('./src/lib/live-examples.mjs', import.meta.url))
+    ],
     rehypePlugins: ['rehype-slug']
   }
 })
