@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   formatCountdown,
@@ -800,6 +800,8 @@ describe('bad input', () => {
 })
 
 describe('formatter reuse', () => {
+  afterEach(() => vi.restoreAllMocks())
+
   it('builds each Intl formatter once, however many values it formats', () => {
     const DateTimeFormat = vi.spyOn(Intl, 'DateTimeFormat')
     const opts = { timeZone: SYD, timeStyle: 'long' } as const
@@ -814,17 +816,28 @@ describe('formatter reuse', () => {
     }
 
     expect(DateTimeFormat.mock.calls.length).toBe(built)
-    DateTimeFormat.mockRestore()
   })
+
   it('builds afresh when Intl.DateTimeFormat is replaced', () => {
     const opts = { timeZone: SYD } as const
     const before = formatShort(start, opts)
     const DateTimeFormat = vi.spyOn(Intl, 'DateTimeFormat')
-    try {
-      expect(formatShort(start, opts)).toBe(before)
-      expect(DateTimeFormat).toHaveBeenCalled()
-    } finally {
-      DateTimeFormat.mockRestore()
-    }
+    expect(formatShort(start, opts)).toBe(before)
+    expect(DateTimeFormat).toHaveBeenCalled()
+  })
+
+  it('lets go of old formatters once many time zones have been used', () => {
+    const DateTimeFormat = vi.spyOn(Intl, 'DateTimeFormat')
+    const zones = Intl.supportedValuesOf('timeZone')
+    formatShort(start, { timeZone: SYD })
+    const built = DateTimeFormat.mock.calls.length
+    formatShort(start, { timeZone: SYD })
+    expect(DateTimeFormat.mock.calls.length).toBe(built)
+
+    for (const timeZone of zones) formatShort(start, { timeZone })
+    const afterZones = DateTimeFormat.mock.calls.length
+    formatShort(start, { timeZone: SYD })
+
+    expect(DateTimeFormat.mock.calls.length).toBeGreaterThan(afterZones)
   })
 })

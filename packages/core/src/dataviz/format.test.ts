@@ -109,14 +109,25 @@ describe('describeDelta', () => {
 describe('formatter reuse', () => {
   afterEach(() => vi.restoreAllMocks())
 
-  it('builds each number format once across many values', () => {
+  it('builds each number format once across many values', async () => {
+    vi.resetModules()
+    const { formatValue: fresh } = await import('./format')
     const construct = vi.spyOn(Intl, 'NumberFormat')
-    for (let value = 0; value < 500; value += 1) {
-      formatValue(value * 1.5, 'number')
-      formatValue(value * 100, 'currency')
-      formatValue(value / 1000, 'percent')
+    const formatAll = () => {
+      for (let value = 0; value < 500; value += 1) {
+        fresh(value * 1.5, 'number')
+        fresh(value * 100, 'currency')
+        fresh(value / 1000, 'percent')
+      }
     }
-    expect(construct.mock.calls.length).toBeLessThanOrEqual(8)
+
+    formatAll()
+    const built = construct.mock.calls.length
+    expect(built).toBeGreaterThan(0)
+    expect(built).toBeLessThanOrEqual(8)
+
+    formatAll()
+    expect(construct.mock.calls.length).toBe(built)
   })
 
   it('keeps each option set on its own formatter', () => {
