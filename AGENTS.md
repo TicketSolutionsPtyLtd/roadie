@@ -61,6 +61,9 @@ the compiled sheet comes out empty.
   `packages/components/package.json`. Docs and consumers import the
   per-component subpath, never the root barrel.
 - **Providers** live in `packages/components/src/providers/`.
+- **Drag and drop** goes through `Sortable`. Its library,
+  `@atlaskit/pragmatic-drag-and-drop`, is imported only in
+  `Sortable/dnd/` (ESLint enforces it), so it can be swapped there.
 
 For what a finished component looks like, read `Badge/index.tsx`. It is the
 reference for cva structure, variant naming, and letting children inherit their
