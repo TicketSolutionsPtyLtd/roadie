@@ -501,6 +501,36 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'calendar':
+      return (
+        <div className='grid w-35 gap-1.5'>
+          <div className='flex items-center justify-between'>
+            <Skel className='size-3 rounded-full' />
+            <Skel className='h-2 w-14' />
+            <Skel className='size-3 rounded-full' />
+          </div>
+          <div className='grid grid-cols-7 gap-y-1'>
+            {Array.from({ length: 21 }, (_, day) => {
+              if (day === 9 || day === 12)
+                return (
+                  <div
+                    key={day}
+                    className={`bg-subtle intent-accent ${day === 9 ? 'rounded-s-full' : 'rounded-e-full'}`}
+                  >
+                    <div className='size-5 emphasis-strong rounded-full' />
+                  </div>
+                )
+              if (day > 9 && day < 12)
+                return <div key={day} className='h-5 bg-subtle intent-accent' />
+              return (
+                <div key={day} className='grid size-5 place-content-center'>
+                  <Skel className='size-1.5 rounded-full' />
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )
     case 'calendar-tile':
       return (
         <div className='grid w-14 overflow-hidden rounded-xl emphasis-subtle text-center intent-accent'>

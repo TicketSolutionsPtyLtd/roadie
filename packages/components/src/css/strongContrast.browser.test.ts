@@ -177,6 +177,19 @@ describe.each(MODES)('%s mode', (mode) => {
       expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
 
+    // Overlays are fixed dark in both themes, so their label is fixed white.
+    it.each(['emphasis-overlay', 'emphasis-overlay-subtle'])(
+      'labels %s in white',
+      async (overlay) => {
+        setTheme(mode)
+        const target = mount(
+          `<div data-target class="intent-${intent} ${overlay}">Sold out</div>`
+        )
+        await frame()
+        expect(toRgb(getComputedStyle(target).color)).toEqual([1, 1, 1])
+      }
+    )
+
     it('flips text-inverted with the page, unlike text-on-strong', async () => {
       setTheme(mode)
       const target = mount(

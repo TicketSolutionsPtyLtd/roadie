@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   Button,
+  Calendar,
   Code,
   Highlight,
   Kbd,
@@ -46,6 +47,11 @@ describe('Component exports', () => {
       <QueryField aria-label='Search orders' suggest={() => []} />
     )
     expect(getByRole('combobox', { name: 'Search orders' })).toBeInTheDocument()
+  })
+
+  it('exports Calendar component', () => {
+    const { getAllByRole } = render(<Calendar today='2027-03-10' />)
+    expect(getAllByRole('grid')).toHaveLength(1)
   })
 
   it('exports Highlight component', () => {
