@@ -3,6 +3,15 @@ import Link from 'next/link'
 
 import { Guideline } from '@/components/Guideline'
 
+import {
+  type Comparison,
+  type DateRangeValue,
+  describeComparison,
+  describeDateRange,
+  parseDatePhrase,
+  resolveComparison
+} from '@oztix/roadie-core/datetime'
+
 export const metadata: Metadata = {
   title: 'Date and time',
   description:
@@ -263,6 +272,93 @@ const YEAR_RULE = [
   ['Range, both ends same year', 'On the later end only'],
   ['Range straddling a year', 'Both ends']
 ]
+
+// Every range example on this page is computed from this moment, so the
+// tables cannot drift from what the functions return.
+const RANGE_EXAMPLE = {
+  now: new Date('2026-10-02T00:00:00Z'),
+  timeZone: 'Australia/Sydney'
+}
+
+const RELATIVE_RANGES: [string, DateRangeValue][] = [
+  ["'today'", 'today'],
+  ["'this-week'", 'this-week'],
+  ["'this-weekend'", 'this-weekend'],
+  ["'next-week'", 'next-week'],
+  [
+    "{ direction: 'next', amount: 7, unit: 'day' }",
+    { direction: 'next', amount: 7, unit: 'day' }
+  ],
+  [
+    "{ direction: 'past', amount: 30, unit: 'day' }",
+    { direction: 'past', amount: 30, unit: 'day' }
+  ],
+  [
+    "{ direction: 'next', amount: 3, unit: 'hour' }",
+    { direction: 'next', amount: 3, unit: 'hour' }
+  ],
+  [
+    "{ period: 'month', offset: 0, toDate: true }",
+    { period: 'month', offset: 0, toDate: true }
+  ],
+  ["{ period: 'quarter', offset: -1 }", { period: 'quarter', offset: -1 }],
+  [
+    "{ period: 'year', offset: 0, fiscal: true }",
+    { period: 'year', offset: 0, fiscal: true }
+  ],
+  ["'upcoming'", 'upcoming'],
+  ["'ongoing'", 'ongoing']
+]
+
+const RANGE_ROWS = RELATIVE_RANGES.map(([code, value]) => {
+  const { label, detail } = describeDateRange(value, RANGE_EXAMPLE)
+  return [code, label, detail]
+})
+
+const COMPARED: DateRangeValue = { period: 'month', offset: 0, toDate: true }
+
+const COMPARISONS: [string, Comparison][] = [
+  ["'previous-period'", 'previous-period'],
+  ["'previous-year'", 'previous-year'],
+  [
+    "{ start: '2026-09-01', end: '2026-09-02' }",
+    { start: '2026-09-01', end: '2026-09-02' }
+  ]
+]
+
+const COMPARISON_ROWS = COMPARISONS.map(([code, comparison]) => {
+  const range = resolveComparison(COMPARED, comparison, RANGE_EXAMPLE)
+  const covers =
+    range?.kind === 'dates'
+      ? describeDateRange(
+          { start: range.start!, end: range.end! },
+          RANGE_EXAMPLE
+        ).detail
+      : ''
+  return [code, describeComparison(comparison), covers]
+})
+
+const PHRASES = [
+  'this weekend',
+  'next 7 days',
+  'fortnight',
+  'next weekend',
+  'fri',
+  '14 mar',
+  '1/12',
+  'after 1 dec',
+  'between 1 and 14 mar',
+  'last quarter',
+  'this financial year',
+  '7:30pm'
+]
+
+const PHRASE_ROWS = PHRASES.map((text) => [
+  text,
+  parseDatePhrase(text, RANGE_EXAMPLE)
+    .map((suggestion) => suggestion.label)
+    .join(' or ')
+])
 
 function Table({
   head,
@@ -1135,6 +1231,137 @@ const viewer = useViewerTimeZone()
             refund conversation.
           </Guideline.Dont>
         </Guideline>
+      </section>
+
+      <section className='grid gap-6'>
+        <h2 className='text-display-prose-3 text-strong'>Date ranges</h2>
+        <p className='max-w-prose text-subtle'>
+          A date filter, a date range picker and a dashboard period all hold the
+          same value, a <code>DateRangeValue</code>. It is either two inclusive
+          ends, <code>{'{ start, end }'}</code>, or a relative range. A relative
+          range stays relative when it is saved, so a saved &ldquo;This
+          month&rdquo; view still means this month next month.
+        </p>
+        <p className='max-w-prose text-subtle'>
+          The examples below are worked out on Fri 2 Oct 2026, at 10am in
+          Sydney.
+        </p>
+
+        <h3 className='mt-6 text-display-ui-5 text-strong'>
+          Each relative word has one meaning
+        </h3>
+        <Table head={['Value', 'Label', 'Covers']} rows={RANGE_ROWS} mono={1} />
+        <ul className='grid max-w-prose list-disc gap-1 pl-5 text-subtle'>
+          <li>
+            A week runs Monday to Sunday. Pass <code>weekStart</code> to change
+            it.
+          </li>
+          <li>
+            A weekend is Saturday and Sunday. On a Sunday, this weekend is
+            yesterday and today.
+          </li>
+          <li>
+            A rolling window counts today. The next 7 days are today and the six
+            after it.
+          </li>
+          <li>
+            <code>upcoming</code> and <code>past</code> run from now with no
+            other end. <code>ongoing</code> holds whatever contains now.
+          </li>
+          <li>
+            The financial year starts in July. Pass <code>fiscalYearStart</code>{' '}
+            for another month.
+          </li>
+        </ul>
+
+        <Guideline
+          title='Show the words, keep the dates reachable'
+          description={
+            <>
+              <code>describeDateRange</code> returns a <code>label</code> to
+              show and a <code>detail</code> with the dates it stands for. Put
+              the detail in a tooltip or beside the label, so anyone can check
+              it against a calendar.
+            </>
+          }
+        >
+          <Guideline.Do code={`Month to date\ntooltip: 1 to 2 Oct 2026`}>
+            The words for the choice, the dates for the check.
+          </Guideline.Do>
+          <Guideline.Dont code={`MTD\nThis period`}>
+            An abbreviation some readers will not know, and a label that names
+            no dates at all.
+          </Guideline.Dont>
+        </Guideline>
+
+        <h3 className='mt-6 text-display-ui-5 text-strong'>
+          Resolve in the zone the moment belongs to
+        </h3>
+        <p className='max-w-prose text-subtle'>
+          <code>resolveDateRange</code> turns a value into what it covers today.
+          Calendar ranges come back as plain dates, read in the zone you pass.
+          Hour windows, <code>upcoming</code>, <code>past</code>,{' '}
+          <code>ongoing</code> and ends with a time come back as instants. Late
+          on a Friday night in Sydney it is still Friday evening in Perth, and
+          both are right about their own weekend.
+        </p>
+        <Guideline
+          title='Pass the zone, never lean on the browser'
+          description='Rule 7 again. Event times filter on the venue’s calendar, timestamps on the reader’s.'
+        >
+          <Guideline.Do
+            code={`resolveDateRange('this-weekend', {\n  now,\n  timeZone: venue.timeZone\n})\n// { kind: 'dates', start: '2026-10-03', end: '2026-10-04' }`}
+          >
+            A plain date is the same date for everyone. It is never shifted into
+            another zone.
+          </Guideline.Do>
+          <Guideline.Dont
+            code={`const today = new Date()\ntoday.setDate(today.getDate() + 7)`}
+          >
+            The browser&rsquo;s zone and clock, by accident. Near midnight this
+            is a day out for half the country.
+          </Guideline.Dont>
+        </Guideline>
+
+        <h3 className='mt-6 text-display-ui-5 text-strong'>Comparisons</h3>
+        <p className='max-w-prose text-subtle'>
+          A dashboard compares its period with another.{' '}
+          <code>resolveComparison</code> works out the other range and{' '}
+          <code>describeComparison</code> gives the context line under a delta.
+          The previous period has the same length and ends the day before. The
+          previous year takes the same dates a year earlier, and 29 February
+          becomes the 28th. Here each compares month to date.
+        </p>
+        <Table
+          head={['Comparison', 'Context line', 'Covers']}
+          rows={COMPARISON_ROWS}
+          mono={1}
+        />
+
+        <h3 className='mt-6 text-display-ui-5 text-strong'>Typed phrases</h3>
+        <p className='max-w-prose text-subtle'>
+          <code>parseDatePhrase</code> turns what someone types into ranked
+          suggestions. Each one has a label and an explicit value: a range,{' '}
+          <code>{'{ on }'}</code>, <code>{'{ before }'}</code>,{' '}
+          <code>{'{ after }'}</code> or <code>{'{ time }'}</code>. Text that is
+          not a date returns nothing.
+        </p>
+        <Table head={['Typed', 'Suggests']} rows={PHRASE_ROWS} mono={1} />
+        <ul className='grid max-w-prose list-disc gap-1 pl-5 text-subtle'>
+          <li>
+            Numbers are day first. <code>1/12</code> is 1 December.
+          </li>
+          <li>
+            A date with no year takes the occurrence closest to today, either
+            way. In October, <code>14 mar</code> is next March and{' '}
+            <code>20 sep</code> is last month.
+          </li>
+          <li>
+            A word with two readings never becomes a label of its own. A
+            fortnight is the next 14 days, and next weekend offers both weekends
+            by date.
+          </li>
+        </ul>
       </section>
 
       <section className='grid gap-6'>
