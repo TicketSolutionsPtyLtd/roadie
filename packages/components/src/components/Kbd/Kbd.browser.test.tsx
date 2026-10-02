@@ -36,6 +36,18 @@ describe('Kbd', () => {
     for (const root of container.children) expect(display(root)).toBe('none')
   })
 
+  it('keeps hints on a touch screen inside keyboard-hints always', () => {
+    const { container } = render(
+      <div data-keyboard-hints='always'>
+        <Kbd>/</Kbd>
+        <Kbd keys={['mod', 'k']} />
+      </div>
+    )
+    setHoverCapable(false)
+    for (const root of container.firstElementChild!.children)
+      expect(display(root)).not.toBe('none')
+  })
+
   it('keeps an announced key on a touch screen, where it is content', () => {
     const { container } = render(<Kbd keys={['mod', 'enter']} announce />)
     setHoverCapable(false)
