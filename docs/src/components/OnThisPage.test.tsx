@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import type { MouseEvent } from 'react'
 
-import { act, renderHook } from '@testing-library/react'
+import { act, render, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { useDocHeadings } from './OnThisPage'
+import { OnThisPage, useDocHeadings } from './OnThisPage'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/charts/meter' }))
 
@@ -99,5 +99,32 @@ describe('useDocHeadings', () => {
       'meter',
       'meter-2'
     ])
+  })
+
+  it('passes over a hidden heading when highlighting', async () => {
+    const content = document.createElement('div')
+    content.id = 'docs-content'
+    content.innerHTML = '<h2>Above</h2><h2>Hidden</h2><h2>Below</h2>'
+    document.body.append(content)
+    const [above, hidden, below] = content.querySelectorAll('h2')
+    // A display: none box reports a top of 0 and no client rects.
+    const place = (el: Element, top: number, boxes = 1) => {
+      el.getBoundingClientRect = () => ({ top }) as DOMRect
+      el.getClientRects = () => ({ length: boxes }) as DOMRectList
+    }
+    place(above!, -100)
+    place(hidden!, 0, 0)
+    place(below!, 600)
+
+    function Toc() {
+      return <OnThisPage {...useDocHeadings()} />
+    }
+    const { getByRole } = render(<Toc />)
+
+    await waitFor(() =>
+      expect(
+        getByRole('link', { name: 'Above' }).getAttribute('aria-current')
+      ).toBe('location')
+    )
   })
 })

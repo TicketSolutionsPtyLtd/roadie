@@ -68,8 +68,8 @@ export function useDocHeadings(): DocHeadings {
   const [headings, setHeadings] = useState<Heading[]>([])
 
   // Tracks programmatic (click-driven) scrolls so the scroll tracking
-  // doesn't briefly highlight headings that pass through the active band
-  // while smooth-scrolling toward the user's target.
+  // doesn't briefly highlight headings that pass the active line while
+  // smooth-scrolling toward the user's target.
   const programmaticScrollLockRef = useRef<number>(0)
   const elementsRef = useRef(new Map<string, HTMLHeadingElement>())
 
@@ -92,18 +92,29 @@ export function useDocHeadings(): DocHeadings {
     const selector = ['/components', '/tokens/reference'].includes(route)
       ? 'h2'
       : 'h2, h3'
-    // Read from positions on every scroll: an observer reports only headings
-    // crossing a band, so a jump landing between headings kept a stale one.
+    // Read from positions, not crossings, so a jump between headings still lands.
     let frame = 0
+    let afterLock: ReturnType<typeof setTimeout> | undefined
     const highlight = () => {
       frame = 0
-      if (Date.now() < programmaticScrollLockRef.current) return
-      const scroller = scrollParentOf(mainEl)
-      const top = scroller?.getBoundingClientRect().top ?? 0
-      const height = scroller?.clientHeight ?? window.innerHeight
-      const line = top + height * ACTIVE_LINE
+      const locked = programmaticScrollLockRef.current - Date.now()
+      if (locked > 0) {
+        clearTimeout(afterLock)
+        afterLock = setTimeout(scheduleHighlight, locked)
+        return
+      }
+      const pane = scrollParentOf(mainEl)
+      const scroller = pane ?? document.documentElement
+      const top = pane?.getBoundingClientRect().top ?? 0
+      const height = pane?.clientHeight ?? window.innerHeight
+      // Short closing sections can't rise to the line, so the end of the page takes them all.
+      const atEnd =
+        scroller.scrollTop + height >= scroller.scrollHeight - 1 &&
+        scroller.scrollTop > 0
+      const line = top + (atEnd ? height : height * ACTIVE_LINE)
       let active: string | undefined
       for (const [id, el] of elementsRef.current) {
+        if (!el.getClientRects().length) continue
         if (active && el.getBoundingClientRect().top > line) break
         active = id
       }
@@ -198,6 +209,7 @@ export function useDocHeadings(): DocHeadings {
       })
       window.removeEventListener('resize', scheduleHighlight)
       cancelAnimationFrame(frame)
+      clearTimeout(afterLock)
       mutations.disconnect()
       replaced.disconnect()
     }
