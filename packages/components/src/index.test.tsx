@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   Button,
+  Calendar,
   Code,
   Highlight,
   Kbd,
@@ -38,6 +39,11 @@ describe('Component exports', () => {
   it('exports Kbd component', () => {
     const { container } = render(<Kbd>Enter</Kbd>)
     expect(container.querySelector('kbd')).toHaveTextContent('Enter')
+  })
+
+  it('exports Calendar component', () => {
+    const { getAllByRole } = render(<Calendar today='2027-03-10' />)
+    expect(getAllByRole('grid')).toHaveLength(1)
   })
 
   it('exports Highlight component', () => {

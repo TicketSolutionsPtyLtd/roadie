@@ -44,6 +44,10 @@
       "types": "./dist/components/Button/index.d.ts",
       "import": "./dist/components/Button/index.js"
     },
+    "./calendar": {
+      "types": "./dist/components/Calendar/index.d.ts",
+      "import": "./dist/components/Calendar/index.js"
+    },
     "./calendar-tile": {
       "types": "./dist/components/CalendarTile/index.d.ts",
       "import": "./dist/components/CalendarTile/index.js"

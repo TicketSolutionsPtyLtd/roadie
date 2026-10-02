@@ -1,0 +1,181 @@
+export const metadata = {
+  title: 'Calendar',
+  description: 'A month grid for choosing a date, several dates or a range',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A month grid for choosing a date, several dates or a range.
+
+## Import
+
+```tsx
+import { Calendar } from '@oztix/roadie-components/calendar'
+```
+
+## Examples
+
+### Default
+
+Calendar opens on the selected month, or on today's. Every value is a plain ISO date string such as `'2026-11-27'`, never a `Date`. Today moves on at midnight in `timeZone`. Server HTML may be read on a later day, so the server leaves today unmarked, and a calendar with nothing else to place its month renders an empty six-week frame until the browser fills it in. Pass `today`, `month`, `defaultMonth` or a selection to render it in full on the server.
+
+```tsx-live-noinline
+function Default() {
+  const [date, setDate] = useState(null)
+  return (
+    <div className='grid gap-4'>
+      <Calendar selected={date} onSelect={setDate} />
+      <p className='text-sm text-subtle'>Selected: {date ?? 'none'}</p>
+    </div>
+  )
+}
+
+render(<Default />)
+```
+
+### Variants
+
+`captionLayout='dropdown'` swaps the month name for month and year selects, for dates far from today such as a date of birth. `startMonth` and `endMonth` limit how far either way they reach.
+
+```tsx-live
+<Calendar
+  captionLayout='dropdown'
+  defaultMonth='1990-06-01'
+  startMonth='1920-01-01'
+  endMonth='2010-12-31'
+/>
+```
+
+### States
+
+```tsx-live
+<div className='flex flex-wrap gap-8'>
+  <div className='grid content-start gap-2'>
+    <p className='text-sm text-subtle'>Selected</p>
+    <Calendar defaultMonth='2026-11-01' defaultSelected='2026-11-27' />
+  </div>
+  <div className='grid content-start gap-2'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <Calendar defaultMonth='2026-11-01' disabled />
+  </div>
+</div>
+```
+
+### With a range
+
+`mode='range'` takes `{ start, end }`. The first press sets `start` and leaves `end` null, and the days between preview as the pointer or focus moves. `min` and `max` limit the length in days, both ends counted. Days that would break them dim, and pressing one starts a new range there.
+
+```tsx-live-noinline
+function Range() {
+  const [range, setRange] = useState({ start: null, end: null })
+  return (
+    <div className='grid gap-4'>
+      <Calendar mode='range' max={14} selected={range} onSelect={setRange} />
+      <p className='text-sm text-subtle'>
+        {range.start ?? '…'} to {range.end ?? '…'}
+      </p>
+    </div>
+  )
+}
+
+render(<Range />)
+```
+
+### With several dates
+
+`mode='multiple'` takes a list of dates and keeps it in order.
+
+```tsx-live
+<Calendar
+  mode='multiple'
+  defaultMonth='2026-11-01'
+  defaultSelected={['2026-11-06', '2026-11-13', '2026-11-20']}
+/>
+```
+
+### With past dates disabled
+
+`disabled` takes matchers: a date, a list of dates, `{ start, end }`, `{ before }`, `{ after }`, `{ dayOfWeek }` with 1 for Monday, or a function of the date. Disabled days can still be focused, so keyboard users can move past them.
+
+```tsx-live-noinline
+const today = plainDateOf(new Date(), viewerTimeZone())
+
+render(<Calendar disabled={{ before: today }} showOutsideDays />)
+```
+
+### With modifiers
+
+`modifiers` names sets of days with the same matchers. Each name becomes a data attribute on its days, so `hasSession` renders `data-has-session` to style. Here Neon Nights at The Lantern Rooms runs on the bold nights, and the struck-through night is sold out.
+
+```tsx-live-noinline
+const sessions = ['2026-11-05', '2026-11-06', '2026-11-07', '2026-11-12', '2026-11-13', '2026-11-14']
+const soldOut = ['2026-11-07']
+
+render(
+  <div className='grid gap-4'>
+    <Calendar
+      defaultMonth='2026-11-01'
+      modifiers={{ hasSession: sessions, soldOut }}
+      disabled={[(date) => !sessions.includes(date), ...soldOut]}
+      className='**:data-has-session:font-bold **:data-sold-out:line-through'
+    />
+    <p className='text-sm text-subtle'>Bold nights have a show. Struck-through nights are sold out.</p>
+  </div>
+)
+```
+
+### With two months
+
+`numberOfMonths` shows months side by side where they fit and stacks them where they don't. The previous arrow sits on the first month and the next arrow on the last, and each moves the set one month.
+
+```tsx-live
+<Calendar mode='range' numberOfMonths={2} />
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Pass plain dates'>
+  <Guideline.Do code={`<Calendar selected='2026-11-27' />`}>
+    Pass ISO date strings. A plain date names the same day in every time zone.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Calendar selected={new Date('2026-11-27')} />`}>
+    Don't pass a <code>Date</code>. It is an instant, so it can land on the day before or after in another zone.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Disable days, rather than hide them'>
+  <Guideline.Do code={`<Calendar disabled={{ before: today }} />`}>
+    Disable days that can't be chosen, so the grid keeps its shape and keyboard users can move past them.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't style a day to look unavailable without disabling it. It still selects.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Say what a modifier means'>
+  <Guideline.Do>
+    Explain a styled modifier in text near the calendar, such as "Bold nights have a show". Modifiers are styling only, and screen readers don't hear them.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't rely on colour alone to mark a modifier. Change the weight, add a mark or strike the day through.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- Each month is a `grid` named by its caption, such as "November 2026", and is `aria-multiselectable` in multiple and range modes. Each day is a button inside a `gridcell`, named by its full date with today and selection added, such as "Today, Friday, 27 November 2026, selected". Selected days also set `aria-selected` on the cell, and today has `aria-current='date'`.
+- One day holds the tab stop: the focused day, then the selected day, then today. Focus moves separately from selection, so moving through the grid selects nothing.
+- Arrow keys move by a day or a week. `Page Up` and `Page Down` move by a month, and with `Shift` by a year. `Home` and `End` move to the start and end of the week. Focus crosses into the next or previous month and the calendar follows, so no day is skipped.
+- `Enter` and `Space` select the focused day. While a range is half chosen, `Escape` drops its start.
+- Disabled days are focusable with `aria-disabled`, so they can be read and passed, but not selected.
+- A polite live region announces the month when it changes and the selection when it changes, such as "Selected Wednesday, 3 to Sunday, 7 March 2027".
+- The month arrows are labelled "Previous month" and "Next month". In the dropdown layout the selects are labelled "Month" and "Year".
+
+<PropsDefinitions componentPath='packages/components/src/components/Calendar/Calendar.tsx' />
