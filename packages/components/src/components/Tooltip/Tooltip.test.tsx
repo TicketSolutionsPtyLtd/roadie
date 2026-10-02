@@ -148,6 +148,18 @@ describe('Tooltip', () => {
     vi.restoreAllMocks()
   })
 
+  it('ignores an empty shortcut', async () => {
+    render(
+      <Tooltip defaultOpen>
+        <Tooltip.Trigger>Save</Tooltip.Trigger>
+        <Tooltip.Content shortcut={[]}>Save changes</Tooltip.Content>
+      </Tooltip>
+    )
+    await screen.findByText('Save changes')
+    expect(popup()).not.toHaveClass('flex')
+    expect(popup()!.querySelector('kbd')).toBeNull()
+  })
+
   it('keeps its block layout without a shortcut', async () => {
     render(
       <Tooltip defaultOpen>

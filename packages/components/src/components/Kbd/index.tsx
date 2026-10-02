@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentProps, ReactNode } from 'react'
+import { type ComponentProps, Fragment, type ReactNode } from 'react'
 
 import { cva } from 'class-variance-authority'
 
@@ -12,13 +12,15 @@ import { type KeyPlatform, useKeyPlatform } from './platform'
 // A touch screen has no keyboard to hint at.
 const HIDE_WITHOUT_HOVER = '[@media_not_(hover:hover)]:hidden'
 
-export const kbdVariants = cva(
-  'inline-flex items-center justify-center gap-1 font-sans text-xs font-medium whitespace-nowrap [&_svg]:size-3 [&_svg]:shrink-0',
+// Tinted from the inherited colour, so a keycap reads on any surface,
+// strong fills and tooltips included.
+const kbdVariants = cva(
+  'inline-flex items-center justify-center gap-1 font-sans text-xs whitespace-nowrap [&_svg]:size-3 [&_svg]:shrink-0',
   {
     variants: {
       emphasis: {
-        normal: 'emphasis-subtle rounded-md text-subtle',
-        subtler: 'tracking-wide text-subtle'
+        normal: 'rounded-md border border-current/15 bg-current/10 font-medium',
+        subtler: 'tracking-wide'
       },
       size: { sm: '', md: '' }
     },
@@ -33,14 +35,15 @@ export const kbdVariants = cva(
 export type KbdProps = ComponentProps<'kbd'> & {
   /** A combination, each key its own keycap: `['mod', 'k']`. Overrides `children`. */
   keys?: readonly string[]
-  /** `normal` is a keycap; `subtler` is plain text, for menus. @default 'normal' */
+  /** `normal` is a keycap; `subtler` is plain text, for menus. Both take the surrounding text colour. @default 'normal' */
   emphasis?: 'normal' | 'subtler'
-  /** @default 'md' */
+  /** The keycap's height. Plain `subtler` text follows the font size instead. @default 'md' */
   size?: 'sm' | 'md'
   /**
    * Read the keys aloud, by name. Off by default: a control carries its
    * shortcut in `aria-keyshortcuts`, so the hint is visual. Turn it on where
-   * the keys are the content, such as instructions in prose.
+   * the keys are the content, such as instructions in prose. Announced keys
+   * also stay on touch screens.
    * @default false
    */
   announce?: boolean
@@ -93,6 +96,9 @@ export function Kbd({
 }: KbdProps) {
   const platform = useKeyPlatform()
   const hidden = announce ? undefined : true
+  const hideWithoutHover = announce ? undefined : HIDE_WITHOUT_HOVER
+  // Plain keys run together off Apple, where shortcuts read Ctrl+D, not CtrlD.
+  const joined = emphasis === 'subtler' && platform !== 'apple'
 
   if (keys) {
     return (
@@ -102,19 +108,22 @@ export function Kbd({
         className={cn(
           'inline-flex items-center',
           emphasis === 'normal' ? 'gap-1' : 'gap-0.5',
-          HIDE_WITHOUT_HOVER,
+          hideWithoutHover,
           className
         )}
         {...props}
       >
         {keys.map((key, index) => (
-          <kbd
-            key={`${index}-${key}`}
-            data-slot='kbd'
-            className={kbdVariants({ emphasis, size })}
-          >
-            {capContent(key, platform, announce)}
-          </kbd>
+          <Fragment key={`${index}-${key}`}>
+            {joined && index > 0 ? (
+              <span data-slot='kbd-plus' aria-hidden='true'>
+                +
+              </span>
+            ) : null}
+            <kbd data-slot='kbd' className={kbdVariants({ emphasis, size })}>
+              {capContent(key, platform, announce)}
+            </kbd>
+          </Fragment>
         ))}
       </kbd>
     )
@@ -126,7 +135,7 @@ export function Kbd({
       aria-hidden={hidden}
       className={cn(
         kbdVariants({ emphasis, size }),
-        HIDE_WITHOUT_HOVER,
+        hideWithoutHover,
         className
       )}
       {...props}

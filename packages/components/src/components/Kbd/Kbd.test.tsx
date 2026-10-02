@@ -17,7 +17,7 @@ describe('Kbd', () => {
     const kbd = container.querySelector('kbd')!
     expect(kbd).toHaveAttribute('data-slot', 'kbd')
     expect(kbd).toHaveAttribute('aria-hidden', 'true')
-    expect(kbd).toHaveClass('emphasis-subtle', 'rounded-md', 'text-xs', 'h-6')
+    expect(kbd).toHaveClass('rounded-md', 'bg-current/10', 'text-xs', 'h-6')
     expect(kbd).toHaveTextContent('/')
   })
 
@@ -56,7 +56,7 @@ describe('Kbd', () => {
     for (const cap of caps) {
       expect(cap.tagName).toBe('KBD')
       expect(cap).not.toHaveAttribute('aria-hidden')
-      expect(cap).toHaveClass('emphasis-subtle')
+      expect(cap).toHaveClass('bg-current/10')
     }
   })
 
@@ -69,9 +69,8 @@ describe('Kbd', () => {
   it('renders plain text when emphasis is subtler', () => {
     const { container } = render(<Kbd emphasis='subtler'>/</Kbd>)
     const kbd = container.querySelector('kbd')!
-    expect(kbd).not.toHaveClass('emphasis-subtle')
+    expect(kbd).not.toHaveClass('bg-current/10')
     expect(kbd).not.toHaveClass('h-6')
-    expect(kbd).toHaveClass('text-subtle')
   })
 
   it('sizes the keycap', () => {
@@ -79,14 +78,41 @@ describe('Kbd', () => {
     expect(container.querySelector('kbd')).toHaveClass('h-5', 'min-w-5')
   })
 
-  it('passes size and emphasis to every keycap in a group', () => {
+  it('passes size to every keycap in a group', () => {
+    const { container } = render(<Kbd keys={['shift', 'k']} size='sm' />)
+    for (const cap of container.querySelectorAll('[data-slot="kbd"]'))
+      expect(cap).toHaveClass('h-5', 'min-w-5')
+  })
+
+  it('passes emphasis to every keycap in a group', () => {
     const { container } = render(
-      <Kbd keys={['shift', 'k']} size='sm' emphasis='subtler' />
+      <Kbd keys={['shift', 'k']} emphasis='subtler' />
     )
-    for (const cap of container.querySelectorAll('[data-slot="kbd"]')) {
-      expect(cap).not.toHaveClass('emphasis-subtle')
-      expect(cap).not.toHaveClass('[@media_not_(hover:hover)]:hidden')
-    }
+    for (const cap of container.querySelectorAll('[data-slot="kbd"]'))
+      expect(cap).not.toHaveClass('bg-current/10')
+  })
+
+  it('joins plain keys with a hidden plus off Apple platforms', () => {
+    onPlatform('Win32')
+    const { container } = render(
+      <Kbd keys={['mod', 'shift', 'd']} emphasis='subtler' />
+    )
+    expect(container.firstElementChild).toHaveTextContent('Ctrl+Shift+D')
+    for (const plus of container.querySelectorAll('[data-slot="kbd-plus"]'))
+      expect(plus).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('runs plain keys together on Apple platforms', () => {
+    onPlatform('MacIntel')
+    const { container } = render(<Kbd keys={['mod', 'd']} emphasis='subtler' />)
+    expect(container.querySelector('[data-slot="kbd-plus"]')).toBeNull()
+  })
+
+  it('keeps announced keys on touch screens, where they are content', () => {
+    const { container } = render(<Kbd keys={['mod', 'k']} announce />)
+    expect(container.firstElementChild).not.toHaveClass(
+      '[@media_not_(hover:hover)]:hidden'
+    )
   })
 
   it('announces each key by name when asked', () => {

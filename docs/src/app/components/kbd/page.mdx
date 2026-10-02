@@ -42,11 +42,11 @@ Pass a key as text. Known key names, in any case, show their glyph or short word
 </div>
 ```
 
-The known names are `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `arrowup`, `arrowdown`, `arrowleft`, `arrowright`, `mod`, `shift`, `alt` (or `option`) and `ctrl`. They also accept `KeyboardEvent.key` values such as `ArrowUp` and `Escape`. Any other key shows as text, with a single letter in capitals.
+The known names are `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `arrowup`, `arrowdown`, `arrowleft`, `arrowright`, `mod`, `meta`, `shift`, `alt` and `ctrl`. They also take the aliases `return`, `esc`, `del`, `up`, `down`, `left`, `right`, `cmd` and `command` (for `mod`), `option` and `control`, and `KeyboardEvent.key` values such as `ArrowUp`, `Escape` and `Meta`. `meta` is ⌘ on Apple devices and Win elsewhere. Any other key shows as text, with a single letter in capitals.
 
 ### Emphasis
 
-`normal` is a keycap. `subtler` is plain text for places that already frame it, such as a menu row.
+`normal` is a keycap. `subtler` is plain text for places that already frame it, such as a menu row. Off Apple devices, `subtler` joins keys with a plus, as in Ctrl+D. Both take the surrounding text colour, so they read on any surface, strong fills and tooltips included.
 
 ```tsx-live
 <div className='grid gap-4'>
@@ -143,7 +143,7 @@ In instructions, the keys are the content. `announce` reads each key aloud by it
 
 - Kbd is `aria-hidden` by default. It repeats a shortcut the control already announces, so put the real shortcut on the control as `aria-keyshortcuts`, such as `aria-keyshortcuts='Meta+K Control+K'`. Bind the keys yourself.
 - Use `announce` where the keys are the content, such as instructions in a help article. Each key is then read by name.
-- Kbd is hidden on screens without hover, so touch readers never see a key they can't press.
-- `mod`, `shift`, `alt` and `ctrl` depend on the platform. The server and the first render hold their space with an invisible keycap, and the right key appears once the page has loaded, so hydration never mismatches.
+- Kbd is hidden on screens without hover, so touch readers never see a key they can't press. Announced keys stay, because they are content.
+- `mod`, `meta`, `shift`, `alt` and `ctrl` depend on the platform. The server and the first render show an empty keycap in their place, and the right key appears once the page has loaded, so hydration never mismatches.
 
 <PropsDefinitions componentPath='packages/components/src/components/Kbd/index.tsx' />

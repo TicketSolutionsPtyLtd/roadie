@@ -26,8 +26,8 @@ Pass the button to `Menu.Trigger` with `render`. `Menu.Content` wraps the portal
 <Menu>
   <Menu.Trigger render={<IconButton aria-label='More actions'><DotsThreeIcon weight='bold' className='size-4' /></IconButton>} />
   <Menu.Content>
-    <Menu.Item icon={<PencilSimpleIcon weight='bold' />} shortcut={['mod', 'e']}>Edit</Menu.Item>
-    <Menu.Item icon={<CopyIcon weight='bold' />} shortcut={['mod', 'd']}>Duplicate</Menu.Item>
+    <Menu.Item icon={<PencilSimpleIcon weight='bold' />} shortcut={['mod', 'e']} aria-keyshortcuts='Meta+E Control+E'>Edit</Menu.Item>
+    <Menu.Item icon={<CopyIcon weight='bold' />} shortcut={['mod', 'd']} aria-keyshortcuts='Meta+D Control+D'>Duplicate</Menu.Item>
     <Menu.Item href='https://example.com/events/neon-harbour-sessions' icon={<ArrowSquareOutIcon weight='bold' />}>View on site</Menu.Item>
     <Menu.Separator />
     <Menu.Item intent='danger' icon={<XCircleIcon weight='bold' />}>Cancel event</Menu.Item>

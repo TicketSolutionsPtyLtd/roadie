@@ -40,6 +40,10 @@ const FACES: Record<string, KeyFace | PlatformFaces> = {
     apple: { glyph: CommandIcon, name: 'Command' },
     other: { label: 'Ctrl', name: 'Control' }
   },
+  meta: {
+    apple: { glyph: CommandIcon, name: 'Command' },
+    other: { label: 'Win', name: 'Windows' }
+  },
   shift: {
     apple: { glyph: ArrowFatUpIcon, name: 'Shift' },
     other: { label: 'Shift', name: 'Shift' }
@@ -62,6 +66,8 @@ const ALIASES: Record<string, string> = {
   down: 'arrowdown',
   left: 'arrowleft',
   right: 'arrowright',
+  cmd: 'mod',
+  command: 'mod',
   option: 'alt',
   control: 'ctrl'
 }

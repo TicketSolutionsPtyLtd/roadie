@@ -128,7 +128,8 @@ describe('Menu', () => {
     const shortcut = item.querySelector('[data-slot="menu-item-shortcut"]')
     expect(shortcut).toHaveAttribute('aria-hidden', 'true')
     expect(shortcut).toHaveClass('[@media_not_(hover:hover)]:hidden')
-    expect(shortcut).not.toHaveClass('emphasis-subtle')
+    expect(shortcut).not.toHaveClass('bg-current/10')
+    expect(shortcut).toHaveClass('text-subtle')
   })
 
   it.each([

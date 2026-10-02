@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import { KbdShortcut } from '../Kbd/KbdShortcut'
+import { KbdShortcut, hasShortcut } from '../Kbd/KbdShortcut'
 
 export type MenuItemDecorations = {
   /** Pass a bold Phosphor icon; it is sized for you. */
@@ -29,13 +29,12 @@ export function itemContent({
       <span data-slot='menu-item-label' className='min-w-0 flex-1 truncate'>
         {children}
       </span>
-      {shortcut ? (
-        // Hidden so the shortcut stays out of the item's accessible name.
+      {hasShortcut(shortcut) ? (
         <KbdShortcut
           shortcut={shortcut}
           emphasis='subtler'
           data-slot='menu-item-shortcut'
-          className='ms-4 shrink-0'
+          className='ms-4 shrink-0 text-subtle'
         />
       ) : null}
       {trailing}

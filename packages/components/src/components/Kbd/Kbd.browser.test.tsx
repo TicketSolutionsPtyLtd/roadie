@@ -36,6 +36,24 @@ describe('Kbd', () => {
     for (const root of container.children) expect(display(root)).toBe('none')
   })
 
+  it('keeps an announced key on a touch screen, where it is content', () => {
+    const { container } = render(<Kbd keys={['mod', 'enter']} announce />)
+    setHoverCapable(false)
+    expect(display(container.firstElementChild!)).toBe('inline-flex')
+  })
+
+  it('takes its colour from the surface, so it reads on a strong fill', () => {
+    const { container } = render(
+      <div className='emphasis-strong'>
+        <Kbd>K</Kbd>
+        <Kbd emphasis='subtler'>K</Kbd>
+      </div>
+    )
+    const surface = container.firstElementChild!
+    for (const kbd of surface.children)
+      expect(getComputedStyle(kbd).color).toBe(getComputedStyle(surface).color)
+  })
+
   it.each(['sm', 'md'] as const)(
     'gives every %s keycap in a group one height, glyph or word',
     (size) => {

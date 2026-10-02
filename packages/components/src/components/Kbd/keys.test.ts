@@ -57,6 +57,21 @@ describe('keyFace', () => {
       { label: 'Alt', name: 'Alt' }
     ],
     [
+      'cmd',
+      { glyph: CommandIcon, name: 'Command' },
+      { label: 'Ctrl', name: 'Control' }
+    ],
+    [
+      'command',
+      { glyph: CommandIcon, name: 'Command' },
+      { label: 'Ctrl', name: 'Control' }
+    ],
+    [
+      'Meta',
+      { glyph: CommandIcon, name: 'Command' },
+      { label: 'Win', name: 'Windows' }
+    ],
+    [
       'ctrl',
       { glyph: ControlIcon, name: 'Control' },
       { label: 'Ctrl', name: 'Control' }
