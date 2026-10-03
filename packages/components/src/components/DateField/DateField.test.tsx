@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -228,6 +228,21 @@ describe('DateField', () => {
     render(<DateField aria-label='Show date' ref={ref} />)
     await userEvent.type(screen.getByRole('textbox'), '14 mar')
     expect(ref).toHaveBeenCalledTimes(1)
+  })
+
+  it('leaves Enter to an input method that is composing', () => {
+    const onValueChange = vi.fn()
+    render(
+      <DateField
+        aria-label='Show date'
+        today={TODAY}
+        onValueChange={onValueChange}
+      />
+    )
+    const input = screen.getByRole('textbox')
+    fireEvent.change(input, { target: { value: '14 mar' } })
+    fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 })
+    expect(onValueChange).not.toHaveBeenCalled()
   })
 
   it('goes back to the value on Escape', async () => {

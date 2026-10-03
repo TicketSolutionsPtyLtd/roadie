@@ -89,7 +89,13 @@ export function useTypedValue({
 
   /** Enter and Escape act on a draft and are left alone otherwise. */
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (draft === null || event.nativeEvent.isComposing) return
+    if (
+      draft === null ||
+      event.nativeEvent.isComposing ||
+      // Safari's composing keydown can say it isn't, but carries 229.
+      event.keyCode === 229
+    )
+      return
     if (event.key === 'Enter') {
       event.preventDefault()
       commit()

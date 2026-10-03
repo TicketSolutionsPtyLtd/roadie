@@ -31,6 +31,8 @@ afterEach(async () => {
 })
 
 const focusedDate = () => (document.activeElement as HTMLElement).dataset.date
+// Calendar's own live region is also a status while the popup animates out.
+const shown = () => document.querySelector('output')!
 const trigger = () => screen.getByRole('button', { name: 'Choose date' })
 const day = (date: string) =>
   document.querySelector<HTMLButtonElement>(
@@ -70,7 +72,7 @@ describe('DatePicker by keyboard', () => {
     await userEvent.keyboard('14 mar')
     await userEvent.tab()
     expect(document.activeElement).toBe(trigger())
-    expect(screen.getByRole('status')).toHaveTextContent('2027-03-14')
+    expect(shown()).toHaveTextContent('2027-03-14')
   })
 
   it('chooses a day with the arrows and Enter, then hands focus back', async () => {
@@ -79,8 +81,10 @@ describe('DatePicker by keyboard', () => {
     await userEvent.keyboard('{Enter}')
     await expect.poll(focusedDate).toBe('2026-10-23')
     await userEvent.keyboard('{ArrowRight}{ArrowDown}{Enter}')
-    await expect.poll(() => screen.queryByRole('dialog')).toBe(null)
-    expect(screen.getByRole('status')).toHaveTextContent('2026-10-31')
+    await expect
+      .poll(() => trigger().getAttribute('aria-expanded'))
+      .toBe('false')
+    expect(shown()).toHaveTextContent('2026-10-31')
     expect(screen.getByLabelText('Show date')).toHaveValue('Sat 31 Oct 2026')
     await expect.poll(() => document.activeElement).toBe(trigger())
   })
@@ -90,8 +94,10 @@ describe('DatePicker by keyboard', () => {
     await userEvent.click(trigger())
     await expect.poll(focusedDate).toBe('2026-10-23')
     await userEvent.keyboard('{ArrowRight}{Escape}')
-    await expect.poll(() => screen.queryByRole('dialog')).toBe(null)
-    expect(screen.getByRole('status')).toHaveTextContent('2026-10-23')
+    await expect
+      .poll(() => trigger().getAttribute('aria-expanded'))
+      .toBe('false')
+    expect(shown()).toHaveTextContent('2026-10-23')
     await expect.poll(() => document.activeElement).toBe(trigger())
   })
 
@@ -127,8 +133,10 @@ describe('DatePicker on a phone', () => {
     await userEvent.click(trigger())
     await screen.findByRole('dialog')
     await userEvent.click(day('2026-10-29'))
-    await expect.poll(() => screen.queryByRole('dialog')).toBe(null)
-    expect(screen.getByRole('status')).toHaveTextContent('2026-10-29')
+    await expect
+      .poll(() => trigger().getAttribute('aria-expanded'))
+      .toBe('false')
+    expect(shown()).toHaveTextContent('2026-10-29')
     // Focus on the text field would raise the on-screen keyboard.
     expect(document.activeElement).not.toBe(screen.getByLabelText('Show date'))
   })
