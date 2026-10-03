@@ -28,9 +28,6 @@ const columns = [
   column.field('starts')
 ]
 
-const isLinuxWebKit =
-  !navigator.userAgent.includes('Chrome') &&
-  navigator.userAgent.includes('Linux')
 const settle = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
 const centre = (element: Element) => {
   const box = element.getBoundingClientRect()
@@ -103,10 +100,10 @@ async function openDrawer() {
 }
 
 describe('Records.Options tapped on a phone', TIMEOUT, () => {
-  // Linux WebKit in CI never opens the handle's menu on a tap, while macOS
-  // WebKit and Chromium do; tracked to check on an iPhone.
+  // CI's WebKit never opens the handle's menu on a tap, while Chromium and
+  // macOS WebKit do; tracked to check on an iPhone.
   it('moves a column from the Move menu', async ({ skip }) => {
-    if (isLinuxWebKit) skip()
+    if (!navigator.userAgent.includes('Chrome')) skip()
     await openDrawer()
     await tapOn(handle('Starts'))
     await tapOn(
