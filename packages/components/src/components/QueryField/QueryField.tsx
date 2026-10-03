@@ -515,20 +515,21 @@ export function QueryField<Value = unknown>({
             {shortcut}
           </Kbd>
         )}
-        {!isDisabled && (text || (removable && unlocked.length > 0)) && (
-          <button
-            type='button'
-            aria-label='Clear'
-            data-slot='query-field-clear'
-            className={cn(
-              'grid shrink-0 cursor-pointer text-subtle hover:text-normal',
-              FIRST_ROW
-            )}
-            onClick={clear}
-          >
-            <XIcon aria-hidden weight='bold' className='size-4' />
-          </button>
-        )}
+        {!isDisabled &&
+          (text || pendingChip || (removable && unlocked.length > 0)) && (
+            <button
+              type='button'
+              aria-label='Clear'
+              data-slot='query-field-clear'
+              className={cn(
+                'grid shrink-0 cursor-pointer text-subtle hover:text-normal',
+                FIRST_ROW
+              )}
+              onClick={clear}
+            >
+              <XIcon aria-hidden weight='bold' className='size-4' />
+            </button>
+          )}
       </Combobox.InputGroup>
       <Combobox.Portal>
         <Combobox.Positioner>

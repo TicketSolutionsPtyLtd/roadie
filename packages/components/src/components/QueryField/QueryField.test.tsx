@@ -1046,4 +1046,16 @@ describe('QueryField', () => {
     fireEvent.keyDown(input(), { key: 'Escape', isComposing: true })
     expect(outside).not.toHaveBeenCalled()
   })
+
+  it('offers Clear to end a value step on an otherwise empty field', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(
+      <Harness
+        pendingChip={{ id: 'venue', label: 'Venue is' }}
+        onPendingChipCancel={onPendingChipCancel}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Clear' }))
+    expect(onPendingChipCancel).toHaveBeenCalledOnce()
+  })
 })
