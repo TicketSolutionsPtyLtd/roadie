@@ -210,7 +210,10 @@ describe('matchesRecordQuery', () => {
       false
     ],
     [{ field: 'created', operator: 'after', value: '2026-10-04T03:15' }, false],
-    [{ field: 'created', operator: 'before', value: '2026-10-04T03:15' }, true]
+    [{ field: 'created', operator: 'before', value: '2026-10-04T03:15' }, true],
+    [{ field: 'created', operator: 'on', value: '2026-10-04T02:30' }, true],
+    // Every skipped time reads as the jump, so they are all the same moment.
+    [{ field: 'created', operator: 'after', value: '2026-10-04T02:10' }, false]
   ])(
     'reads a row time skipped by daylight saving as the jump, like a filter: %j',
     (filter, expected) => {
@@ -226,6 +229,41 @@ describe('matchesRecordQuery', () => {
           eventFields
         )
       ).toBe(expected)
+    }
+  )
+
+  it('reads a repeated row time as its first pass, as an index stores it', () => {
+    const resolved = resolveRecordQuery(
+      {
+        search: '',
+        filters: [
+          { field: 'created', operator: 'after', value: '2026-04-05T02:15' }
+        ],
+        sort: []
+      },
+      eventFields,
+      { now: new Date('2026-10-03T02:00:00Z'), timeZone: SYDNEY }
+    )
+    expect(
+      matchesRecordQuery({ created: '2026-04-05T02:30' }, resolved, eventFields)
+    ).toBe(false)
+  })
+
+  it.each(['2026-10-03T24:00', '2026-10-03T10:00:00.123456'])(
+    'treats an impossible venue time %s as no date',
+    (starts) => {
+      const resolved = resolveRecordQuery(
+        {
+          search: '',
+          filters: [{ field: 'starts', operator: 'on', value: '2026-10-03' }],
+          sort: []
+        },
+        eventFields,
+        { now: new Date('2026-10-03T02:00:00Z'), timeZone: SYDNEY }
+      )
+      expect(
+        matchesRecordQuery({ starts, zone: SYDNEY }, resolved, eventFields)
+      ).toBe(false)
     }
   )
 

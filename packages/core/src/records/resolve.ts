@@ -5,7 +5,7 @@ import {
   resolveDateRange
 } from '../datetime/ranges'
 import { startOfDayInstant } from '../datetime/zone'
-import { boundEnd, boundStart, readBound } from './bounds'
+import { boundEnd, boundStart, pointSpan, readBound } from './bounds'
 import { fieldIndex, momentOf } from './fields'
 import type {
   RecordField,
@@ -100,10 +100,11 @@ function filterRange(
           ? dates(null, addDays(point.date, -1))
           : dates(addDays(point.date, 1), null)
       }
-      if (filter.operator === 'on') return instants(point.start, point.end)
+      const [first, last] = pointSpan(point, timeZone)
+      if (filter.operator === 'on') return instants(first, last)
       return filter.operator === 'before'
-        ? instants(null, point.start - 1)
-        : instants(point.end + 1, null)
+        ? instants(null, first - 1)
+        : instants(last + 1, null)
     }
   }
 }

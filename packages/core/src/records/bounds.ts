@@ -62,14 +62,24 @@ export function boundEnd(bound: Bound, timeZone: string): number {
 }
 
 /**
- * A row's own time as a span of instants. A time skipped by a DST jump reads
- * as the jump, like a filter bound; a repeated time spans both passes.
+ * The instants a bound names as a point: a skipped time is the jump alone,
+ * and a repeated time covers both passes.
+ */
+export function pointSpan(bound: Bound, timeZone: string): [number, number] {
+  const start = boundStart(bound, timeZone)
+  return [start, Math.max(start, boundEnd(bound, timeZone))]
+}
+
+/**
+ * A row's own time. A row holds one instant, as an index does, so a wall time
+ * reads as its first pass, or the jump when DST skipped it; a plain date
+ * spans its day.
  */
 export function rowInstantSpan(
   value: string,
   timeZone: string
 ): [number, number] {
   const bound = readBound(value, timeZone)
-  const start = boundStart(bound, timeZone)
-  return [start, Math.max(start, boundEnd(bound, timeZone))]
+  if (bound.kind === 'date') return pointSpan(bound, timeZone)
+  return [bound.start, bound.start]
 }

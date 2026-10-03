@@ -47,6 +47,8 @@ const rows: Row[] = [
   { id: 'empty-object', venue: {}, genres: ['jazz'], capacity: 400 },
   { id: 'listed-capacity', capacity: [400, 900], name: 'Two Rooms' },
   { id: 'gap', created: '2026-10-04T02:30' },
+  { id: 'repeat', created: '2026-04-05T02:30' },
+  { id: 'jump', created: '2026-10-04T03:00' },
   { id: 'backslashes', venue: 'two\\\\', name: 'Even \\\\"quoted\\\\"' },
   {
     id: 'quoted',
@@ -62,6 +64,14 @@ const rows: Row[] = [
 const msRow: Row = { id: 'ms', created: Date.parse('2026-10-03T01:59:59.700Z') }
 
 const FILTERS: RecordFilter[] = [
+  { field: 'created', operator: 'after', value: '2026-04-05T02:15' },
+  {
+    field: 'created',
+    operator: 'between',
+    value: ['2026-04-05T02:40', '2026-04-05T02:50']
+  },
+  { field: 'created', operator: 'on', value: '2026-10-04T02:30' },
+  { field: 'created', operator: 'on', value: '2026-04-05T02:30' },
   {
     field: 'created',
     operator: 'between',
