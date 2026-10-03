@@ -1,5 +1,6 @@
 import { type RecordField, formatRecordValue } from '@oztix/roadie-core/records'
 
+import { NOT_AVAILABLE } from '../Records/RecordValue'
 import type { RecordColumnWidth, RecordTableColumn } from './types'
 
 export type ColumnLayout = {
@@ -21,7 +22,7 @@ const BADGE_EXTRA = 2
 
 const cellLength = (field: RecordField, row: object, timeZone: string) => {
   const text = formatRecordValue(row, field, { timeZone })
-  if (text === null) return 0
+  if (text === null) return NOT_AVAILABLE.length
   return text.length + (field.status ? BADGE_EXTRA : 0)
 }
 

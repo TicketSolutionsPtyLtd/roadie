@@ -374,3 +374,37 @@ describe('RecordTable states', () => {
     expect(Math.abs(middle(title) - middle(frameBox))).toBeLessThanOrEqual(1)
   })
 })
+
+describe('RecordTable status badges', () => {
+  it('ends a long label with an ellipsis in a narrow column', async () => {
+    const fields = showFields.map((field) =>
+      field.key === 'status'
+        ? {
+            ...field,
+            status: {
+              on_sale: {
+                intent: 'success' as const,
+                label: 'On sale until the doors close tonight'
+              }
+            }
+          }
+        : field
+    )
+    const column = tableColumns<ReturnType<typeof testShows>[number]>(fields)
+    const { container } = render(
+      <RecordTable
+        data={testShows(1)}
+        fields={fields}
+        columns={[column.field('status', { width: { min: 6 } })]}
+      />
+    )
+    await frame()
+    const badge = slot(container, 'badge')
+    const label = badge.firstElementChild as HTMLElement
+    expect(label.scrollWidth).toBeGreaterThan(label.clientWidth)
+    expect(rect(label).left).toBeGreaterThanOrEqual(rect(badge).left)
+    expect(rect(badge).right).toBeLessThanOrEqual(
+      rect(badge.closest('[role="cell"]')!).right + 0.5
+    )
+  })
+})

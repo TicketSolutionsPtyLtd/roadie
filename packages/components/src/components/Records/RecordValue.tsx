@@ -8,7 +8,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { Badge } from '../Badge'
 
-const NOT_AVAILABLE = 'Not available'
+export const NOT_AVAILABLE = 'Not available'
 const noSubscription = () => () => {}
 const serverZone = () => 'UTC'
 
@@ -50,9 +50,9 @@ export function RecordValue({
       <Badge
         size='sm'
         intent={status?.intent ?? 'neutral'}
-        className={className}
+        className={cn('max-w-full min-w-0', className)}
       >
-        {text}
+        <span className='min-w-0 truncate'>{text}</span>
       </Badge>
     )
   }

@@ -120,6 +120,17 @@ describe('columnWidths', () => {
     expect(city!.grow).toBeGreaterThanOrEqual('City of the performance'.length)
   })
 
+  it('makes room for the empty text a column shows', () => {
+    const [sold] = columnWidths(
+      [
+        column('sold', { field: { key: 'sold', label: 'Sold', type: 'money' } })
+      ],
+      [{ sold: 5 }, { sold: null }, { sold: null }],
+      'UTC'
+    )
+    expect(sold!.min).toBeGreaterThanOrEqual('Not available'.length * 0.55)
+  })
+
   it('keeps an explicit width', () => {
     const width: RecordColumnWidth = { min: 7 }
     expect(widths([column('show', { width })])).toEqual([width])
