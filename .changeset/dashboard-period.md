@@ -18,17 +18,19 @@ shows, and rejects a comparison delta on a dashboard with no period. The field's
 type is `DashboardPeriodSpec`.
 
 `@oztix/roadie-components`: add `DashboardPeriod`
-(`@oztix/roadie-components/dashboard-period`), a `DateRangePicker` with
-`commit='apply'` and a comparison `Select` beside it: previous period, previous
-year, custom dates (with a second picker) or none, each with the dates it
-covers. Its value is `DashboardPeriodValue`, `{ range, compare? }`. Its presets
-default to `dashboardPeriodPresets`: next 30 and 90 days, last 30 days, last 12
-months and this financial year. `dataStart`, `dataEnd` and `alignWeekday` match
-the app's `resolveComparison`, so each comparison lists the dates the app
-fetches. It takes `presets`, `readOnly`, `disabled`, `size`, `timeZone`,
-`today`, `weekStart`, `fiscalYearStart` and `locale`, and places `children`,
-such as a benchmark, after the comparison. On a narrow container its controls
-stack.
+(`@oztix/roadie-components/dashboard-period`), one `DateRangePicker` button
+with `commit='apply'` that shows the period and the dates it compares with.
+Under the range, a Compare switch turns the comparison on and a toggle group
+picks previous period or previous year, with the dates it covers, or "Not
+enough history" or "Nothing to compare". A custom comparison set by the app
+shows as Custom dates. Apply sends both together; Cancel drops both. Its value
+is `DashboardPeriodValue`, `{ range, compare? }`. Its presets default to
+`dashboardPeriodPresets`: next 30 and 90 days, last 30 days, last 12 months
+and this financial year. `dataStart`, `dataEnd` and `alignWeekday` match the
+app's `resolveComparison`, so the comparison shows the dates the app fetches.
+It takes `presets`, `readOnly`, `disabled`, `size`, `timeZone`, `today`,
+`weekStart`, `fiscalYearStart` and `locale`, and places `children`, such as a
+benchmark, after the period. On a narrow container they stack.
 
 `@oztix/roadie-charts`: `DashboardView` shows a description's `period` above its
 sections. `onPeriodChange` receives the new `{ range, compare? }`; without it

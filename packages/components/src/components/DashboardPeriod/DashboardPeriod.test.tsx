@@ -16,12 +16,16 @@ const THIS_MONTH: DashboardPeriodValue = {
 
 const picker = () =>
   screen.getByRole('button', { name: /^Choose dates, Period/ })
-const comparison = () => screen.getByRole('combobox', { name: 'Compare with' })
-
-async function choose(name: RegExp) {
-  await userEvent.click(comparison())
-  await userEvent.click(await screen.findByRole('option', { name }))
+async function openPicker() {
+  await userEvent.click(picker())
+  return screen.findByRole('dialog')
 }
+const compareSwitch = (dialog: HTMLElement) =>
+  within(dialog).getByRole('switch', { name: 'Compare' })
+const compareDates = (dialog: HTMLElement) =>
+  dialog.querySelector('[data-slot="dashboard-period-compare-dates"]')
+const apply = (dialog: HTMLElement) =>
+  userEvent.click(within(dialog).getByRole('button', { name: 'Apply' }))
 
 function Controlled({
   initial = THIS_MONTH,
@@ -54,38 +58,39 @@ describe('DashboardPeriod', () => {
       <DashboardPeriod today={TODAY} value={THIS_MONTH} emphasis={emphasis} />
     )
     expect(picker()).toHaveClass(className)
-    expect(comparison()).toHaveClass(className)
+    expect(picker()).not.toHaveClass('emphasis-raised')
   })
 
-  it('lets a subtler comparison hug its value', () => {
-    render(
-      <DashboardPeriod today={TODAY} value={THIS_MONTH} emphasis='subtler' />
-    )
-    expect(comparison()).toHaveClass('w-fit')
-    expect(comparison()).not.toHaveClass('w-full')
-  })
-
-  it('shows the period and what it compares with, as a named group', () => {
+  it('shows the period and its comparison on one button, in a named group', () => {
     render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
-    expect(
-      screen.getByRole('group', { name: 'Dashboard period' })
-    ).toBeInTheDocument()
+    const group = screen.getByRole('group', { name: 'Dashboard period' })
+    expect(within(group).getAllByRole('button')).toHaveLength(1)
+    expect(picker()).toHaveAccessibleName(
+      'Choose dates, Period (This month, 1 to 31 Oct 2026, vs 1 to 30 Sept 2026)'
+    )
+    expect(picker()).toHaveTextContent('vs 1 to 30 Sept 2026')
+  })
+
+  it('shows no comparison on the button without one', () => {
+    render(<DashboardPeriod today={TODAY} value={{ range: 'this-month' }} />)
     expect(picker()).toHaveAccessibleName(
       'Choose dates, Period (This month, 1 to 31 Oct 2026)'
     )
-    expect(comparison()).toHaveTextContent('vs previous period')
   })
 
-  it('lists each comparison with the dates it covers', async () => {
+  it('shows the comparison and the dates it covers in the picker', async () => {
     render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
-    await userEvent.click(comparison())
-    const options = await screen.findAllByRole('option')
-    expect(options[0]).toHaveAccessibleName(
-      'Previous period, 1 to 30 Sept 2026'
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).toBeChecked()
+    const choices = within(dialog).getByRole('group', { name: 'Compare with' })
+    expect(
+      within(choices).getByRole('button', { name: 'Previous period' })
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(compareDates(dialog)).toHaveTextContent('1 to 30 Sept 2026')
+    await userEvent.click(
+      within(choices).getByRole('button', { name: 'Previous year' })
     )
-    expect(options[1]).toHaveAccessibleName('Previous year, 1 to 31 Oct 2025')
-    expect(options[2]).toHaveAccessibleName('Custom dates')
-    expect(options[3]).toHaveAccessibleName('No comparison')
+    expect(compareDates(dialog)).toHaveTextContent('1 to 31 Oct 2025')
   })
 
   it('lists the dates the data reaches and weekday-aligned years', async () => {
@@ -97,34 +102,41 @@ describe('DashboardPeriod', () => {
         alignWeekday
       />
     )
-    await userEvent.click(comparison())
-    const options = await screen.findAllByRole('option')
-    expect(options[0]).toHaveAccessibleName('Previous period, 1 to 7 Sept 2026')
+    const dialog = await openPicker()
+    expect(compareDates(dialog)).toHaveTextContent('1 to 7 Sept 2026')
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Previous year' })
+    )
     // Thu 1 to Wed 7 Oct 2026 against Thu 2 to Wed 8 Oct 2025.
-    expect(options[1]).toHaveAccessibleName('Previous year, 2 to 8 Oct 2025')
+    expect(compareDates(dialog)).toHaveTextContent('2 to 8 Oct 2025')
   })
 
-  it('starts custom dates from what the data reaches', async () => {
-    const onValueChange = vi.fn()
+  it('says when the data holds too little to compare', async () => {
     render(
       <DashboardPeriod
         today={TODAY}
-        value={THIS_MONTH}
-        dataEnd={TODAY}
-        onValueChange={onValueChange}
+        value={{ range: 'this-month', compare: 'previous-year' }}
+        dataStart='2026-01-01'
       />
     )
-    await choose(/^Custom dates/)
-    expect(onValueChange).toHaveBeenLastCalledWith({
-      range: 'this-month',
-      compare: { start: '2026-09-01', end: '2026-09-07' }
-    })
+    const dialog = await openPicker()
+    expect(compareDates(dialog)?.textContent).toMatch(
+      /^(Not enough history|Nothing to compare)$/
+    )
+  })
+
+  it('follows the period being edited', async () => {
+    render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
+    const dialog = await openPicker()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Last 30 days/ })
+    )
+    expect(compareDates(dialog)).toHaveTextContent('9 Aug to 7 Sept 2026')
   })
 
   it('offers the spec’s dashboard presets by default', async () => {
     render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
-    await userEvent.click(picker())
-    const dialog = await screen.findByRole('dialog')
+    const dialog = await openPicker()
     for (const name of [
       /^Next 30 days/,
       /^Next 90 days/,
@@ -135,53 +147,76 @@ describe('DashboardPeriod', () => {
       expect(within(dialog).getByRole('button', { name })).toBeInTheDocument()
   })
 
-  it('emits the comparison chosen with the same range', async () => {
+  it('applies a comparison chosen with the same range', async () => {
     const onValueChange = vi.fn()
     render(<Controlled onValueChange={onValueChange} />)
-    await choose(/^Previous year/)
+    const dialog = await openPicker()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Previous year' })
+    )
+    expect(onValueChange).not.toHaveBeenCalled()
+    await apply(dialog)
     expect(onValueChange).toHaveBeenLastCalledWith({
       range: 'this-month',
       compare: 'previous-year'
     })
-    expect(comparison()).toHaveTextContent('vs previous year')
+    expect(picker()).toHaveTextContent('vs 1 to 31 Oct 2025')
   })
 
-  it('drops the comparison for no comparison', async () => {
+  it('drops the comparison when Compare is turned off', async () => {
     const onValueChange = vi.fn()
     render(<Controlled onValueChange={onValueChange} />)
-    await choose(/^No comparison/)
+    const dialog = await openPicker()
+    await userEvent.click(compareSwitch(dialog))
+    expect(
+      within(dialog).queryByRole('group', { name: 'Compare with' })
+    ).toBeNull()
+    await apply(dialog)
     expect(onValueChange).toHaveBeenLastCalledWith({ range: 'this-month' })
     expect(onValueChange.mock.lastCall![0]).not.toHaveProperty('compare')
-    expect(comparison()).toHaveTextContent('No comparison')
+    expect(picker()).not.toHaveTextContent('vs')
   })
 
-  it('starts custom dates from the previous period and shows their picker', async () => {
+  it('discards a changed comparison on Cancel', async () => {
     const onValueChange = vi.fn()
     render(<Controlled onValueChange={onValueChange} />)
+    let dialog = await openPicker()
+    await userEvent.click(compareSwitch(dialog))
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Cancel' })
+    )
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(onValueChange).not.toHaveBeenCalled()
+    dialog = await openPicker()
+    expect(compareSwitch(dialog)).toBeChecked()
+  })
+
+  it('shows custom comparison dates it is given', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{
+          range: 'this-month',
+          compare: { start: '2026-09-01', end: '2026-09-07' }
+        }}
+      />
+    )
+    expect(picker()).toHaveTextContent('vs 1 to 7 Sept 2026')
+    const dialog = await openPicker()
     expect(
-      screen.queryByRole('button', { name: /^Choose dates, Comparison dates/ })
-    ).not.toBeInTheDocument()
-    await choose(/^Custom dates/)
-    expect(onValueChange).toHaveBeenLastCalledWith({
-      range: 'this-month',
-      compare: { start: '2026-09-01', end: '2026-09-30' }
-    })
-    expect(comparison()).toHaveTextContent('vs custom dates')
-    expect(
-      screen.getByRole('button', { name: /^Choose dates, Comparison dates/ })
-    ).toHaveAccessibleName('Choose dates, Comparison dates (1 to 30 Sept 2026)')
+      within(dialog).getByRole('button', { name: 'Custom dates' })
+    ).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('keeps the comparison when the period changes', async () => {
     const onValueChange = vi.fn()
     render(<Controlled onValueChange={onValueChange} />)
-    await userEvent.click(picker())
-    const dialog = await screen.findByRole('dialog')
+    const dialog = await openPicker()
     await userEvent.click(
       within(dialog).getByRole('button', { name: /^Last 30 days/ })
     )
     expect(onValueChange).not.toHaveBeenCalled()
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Apply' }))
+    await apply(dialog)
     expect(onValueChange).toHaveBeenLastCalledWith({
       range: { direction: 'past', amount: 30, unit: 'day' },
       compare: 'previous-period'
@@ -191,28 +226,13 @@ describe('DashboardPeriod', () => {
   it('shows a set period without letting it change', async () => {
     render(<DashboardPeriod today={TODAY} value={THIS_MONTH} readOnly />)
     expect(picker()).toHaveAttribute('aria-disabled', 'true')
-    await userEvent.click(comparison())
-    expect(screen.queryByRole('option')).not.toBeInTheDocument()
-    expect(comparison()).toHaveAttribute('aria-readonly', 'true')
-  })
-
-  it('stays shut when read-only is lifted', async () => {
-    const { rerender } = render(
-      <DashboardPeriod today={TODAY} value={THIS_MONTH} />
-    )
-    await userEvent.click(comparison())
-    expect(await screen.findAllByRole('option')).toHaveLength(4)
-    rerender(<DashboardPeriod today={TODAY} value={THIS_MONTH} readOnly />)
-    await waitFor(() => expect(screen.queryAllByRole('option')).toHaveLength(0))
-    rerender(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
-    await new Promise((resolve) => setTimeout(resolve, 50))
-    expect(screen.queryAllByRole('option')).toHaveLength(0)
+    await userEvent.click(picker())
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('needs a period before Apply', async () => {
     render(<Controlled />)
-    await userEvent.click(picker())
-    const dialog = await screen.findByRole('dialog')
+    const dialog = await openPicker()
     await userEvent.clear(
       within(dialog).getByRole('combobox', { name: 'Start' })
     )
@@ -230,8 +250,7 @@ describe('DashboardPeriod', () => {
         onValueChange={onValueChange}
       />
     )
-    await userEvent.click(picker())
-    const dialog = await screen.findByRole('dialog')
+    const dialog = await openPicker()
     await userEvent.click(
       within(dialog).getByRole('button', { name: /^Last 30 days/ })
     )
@@ -243,15 +262,14 @@ describe('DashboardPeriod', () => {
         disabled
       />
     )
-    const apply = screen.queryByRole('button', { name: 'Apply' })
-    if (apply) await userEvent.click(apply)
+    const button = screen.queryByRole('button', { name: 'Apply' })
+    if (button) await userEvent.click(button)
     expect(onValueChange).not.toHaveBeenCalled()
   })
 
-  it('turns both controls off when disabled', () => {
+  it('turns off when disabled', () => {
     render(<DashboardPeriod today={TODAY} value={THIS_MONTH} disabled />)
     expect(picker()).toBeDisabled()
-    expect(comparison()).toHaveAttribute('data-disabled')
   })
 
   it('starts from a default when uncontrolled', async () => {
@@ -263,13 +281,15 @@ describe('DashboardPeriod', () => {
         onValueChange={onValueChange}
       />
     )
-    expect(comparison()).toHaveTextContent('No comparison')
-    await choose(/^Previous period/)
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).not.toBeChecked()
+    await userEvent.click(compareSwitch(dialog))
+    await apply(dialog)
     expect(onValueChange).toHaveBeenLastCalledWith({
       range: 'last-month',
       compare: 'previous-period'
     })
-    expect(comparison()).toHaveTextContent('vs previous period')
+    expect(picker()).toHaveTextContent('vs 1 to 31 Aug 2026')
   })
 
   it('places the app’s own controls after its own', () => {
