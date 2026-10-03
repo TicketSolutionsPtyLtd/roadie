@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomplete'
 
 import {
@@ -13,13 +15,14 @@ export type AutocompleteRootProps = Omit<
 > & {
   /**
    * Whether the first suggestion is highlighted, so Enter takes it.
-   * - `'always'`: whenever suggestions show.
+   * - `'always'`: whenever suggestions show, even with no text.
    * - `true`: once the user types.
    * - `false`: only an item moved to with the arrows.
    *
-   * Defaults to `false` in `both` and `inline` mode, where a highlight
-   * fills the input.
-   * @default 'always'
+   * By default, the first suggestion is highlighted while the input has
+   * text, including suggestions that arrive later. With no text, Enter
+   * submits the form. In `both` and `inline` mode nothing is highlighted,
+   * since a highlight there fills the input.
    */
   autoHighlight?: boolean | 'always'
 }
@@ -27,17 +30,32 @@ export type AutocompleteRootProps = Omit<
 export function AutocompleteRoot({
   onItemHighlighted,
   mode,
-  autoHighlight = mode === 'both' || mode === 'inline' ? false : 'always',
+  value,
+  defaultValue,
+  onValueChange,
+  autoHighlight,
   ...props
 }: AutocompleteRootProps) {
   const [byPointer, handleItemHighlighted] =
     usePointerHighlight(onItemHighlighted)
+  const [uncontrolledText, setUncontrolledText] = useState(defaultValue ?? '')
+  const text = String(value ?? uncontrolledText)
+  const fillsInput = mode === 'both' || mode === 'inline'
   return (
     <PointerHighlightContext value={byPointer}>
       <AutocompletePrimitive.Root
         onItemHighlighted={handleItemHighlighted}
         mode={mode}
-        autoHighlight={autoHighlight}
+        value={value}
+        defaultValue={defaultValue}
+        onValueChange={(next, details) => {
+          setUncontrolledText(next)
+          onValueChange?.(next, details)
+        }}
+        autoHighlight={
+          autoHighlight ??
+          (!fillsInput && text.trim() !== '' ? 'always' : false)
+        }
         {...props}
       />
     </PointerHighlightContext>

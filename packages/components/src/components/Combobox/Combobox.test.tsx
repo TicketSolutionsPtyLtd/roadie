@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
@@ -236,6 +238,47 @@ describe('Combobox first match', () => {
     await screen.findByRole('option', { name: 'Folk' })
     await userEvent.keyboard('{Enter}')
     expect(onValueChange).toHaveBeenLastCalledWith(['Rock'], expect.anything())
+  })
+
+  it('highlights matches that arrive after typing', async () => {
+    function Late() {
+      const [items, setItems] = useState<string[]>([])
+      return (
+        <Genres
+          items={items}
+          filter={null}
+          onInputValueChange={(text) =>
+            setTimeout(() => setItems(text ? ['Rock', 'Folk'] : []))
+          }
+        />
+      )
+    }
+    render(<Late />)
+    await userEvent.type(genreInput(), 'o')
+    const first = await screen.findByRole('option', { name: 'Rock' })
+    await waitFor(() => expect(first).toHaveAttribute('data-highlighted'))
+  })
+
+  it('picks the first match after retyping over a chosen value', async () => {
+    const onValueChange = vi.fn()
+    render(<Genres defaultValue='Folk' onValueChange={onValueChange} />)
+    await userEvent.clear(genreInput())
+    await userEvent.type(genreInput(), 'o')
+    await screen.findByRole('option', { name: 'Folk' })
+    await userEvent.keyboard('{Enter}')
+    expect(onValueChange).toHaveBeenLastCalledWith('Rock', expect.anything())
+  })
+
+  it('highlights the chosen value, not the first, when reopened', async () => {
+    render(<Genres defaultValue='Folk' />)
+    await userEvent.click(screen.getByRole('button', { name: 'Show genres' }))
+    const folk = await screen.findByRole('option', { name: 'Folk' })
+    await waitFor(() =>
+      expect(screen.getByRole('option', { name: 'Rock' })).not.toHaveAttribute(
+        'data-highlighted'
+      )
+    )
+    expect(folk).toBeInTheDocument()
   })
 
   it('picks nothing on Enter with autoHighlight off', async () => {

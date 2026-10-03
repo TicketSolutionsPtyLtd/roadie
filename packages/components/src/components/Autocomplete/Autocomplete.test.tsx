@@ -1,6 +1,8 @@
+import { useState } from 'react'
+
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   Autocomplete,
@@ -139,11 +141,67 @@ describe('Autocomplete first suggestion', () => {
     expect(first).toHaveAttribute('data-highlighted')
   })
 
-  it('highlights the first suggestion when the list opens empty', async () => {
+  it('highlights nothing when the list opens with no text', async () => {
     render(<Cities />)
     await userEvent.click(screen.getByRole('button', { name: 'Show cities' }))
     const first = await screen.findByRole('option', { name: 'Brisbane' })
+    expect(first).not.toHaveAttribute('data-highlighted')
+    expect(cityInput()).not.toHaveAttribute('aria-activedescendant')
+  })
+
+  it('submits an empty field on Enter while suggestions show', async () => {
+    const onSubmit = vi.fn((event: SubmitEvent) => event.preventDefault())
+    render(
+      <form onSubmit={(event) => onSubmit(event.nativeEvent as SubmitEvent)}>
+        <Cities openOnInputClick />
+        <button type='submit'>Search</button>
+      </form>
+    )
+    await userEvent.click(cityInput())
+    await screen.findByRole('option', { name: 'Brisbane' })
+    await userEvent.keyboard('{Enter}')
+    expect(cityInput()).toHaveValue('')
+    expect(onSubmit).toHaveBeenCalled()
+  })
+
+  it('drops the highlight once the text is cleared', async () => {
+    render(<Cities />)
+    await userEvent.type(cityInput(), 'e')
+    const first = await screen.findByRole('option', { name: 'Brisbane' })
     await waitFor(() => expect(first).toHaveAttribute('data-highlighted'))
+    await userEvent.keyboard('{Backspace}')
+    await waitFor(() => expect(first).not.toHaveAttribute('data-highlighted'))
+  })
+
+  it('highlights suggestions that arrive after typing', async () => {
+    function Late() {
+      const [items, setItems] = useState<string[]>([])
+      return (
+        <Cities
+          items={items}
+          filter={null}
+          onValueChange={(text) =>
+            setTimeout(() => setItems(text ? ['Hobart', 'Perth'] : []))
+          }
+        />
+      )
+    }
+    render(<Late />)
+    await userEvent.type(cityInput(), 'h')
+    const first = await screen.findByRole('option', { name: 'Hobart' })
+    await waitFor(() => expect(first).toHaveAttribute('data-highlighted'))
+  })
+
+  it('follows controlled text', async () => {
+    function Controlled() {
+      const [value, setValue] = useState('')
+      return <Cities value={value} onValueChange={setValue} />
+    }
+    render(<Controlled />)
+    await userEvent.type(cityInput(), 'e')
+    await screen.findByRole('option', { name: 'Sydney' })
+    await userEvent.keyboard('{Enter}')
+    expect(cityInput()).toHaveValue('Brisbane')
   })
 
   it('moves to the second suggestion on the first Arrow Down', async () => {
@@ -154,12 +212,20 @@ describe('Autocomplete first suggestion', () => {
     expect(cityInput()).toHaveValue('Sydney')
   })
 
-  it('wraps from the first suggestion to the last on Arrow Up', async () => {
+  it('wraps at either end instead of returning to the input', async () => {
     render(<Cities />)
     await userEvent.type(cityInput(), 'e')
     await screen.findByRole('option', { name: 'Sydney' })
-    await userEvent.keyboard('{ArrowUp}{Enter}')
-    expect(cityInput()).toHaveValue('Melbourne')
+    await userEvent.keyboard('{ArrowUp}{ArrowDown}{Enter}')
+    expect(cityInput()).toHaveValue('Brisbane')
+  })
+
+  it('keeps typed text that matches on Escape then Enter', async () => {
+    render(<Cities />)
+    await userEvent.type(cityInput(), 'e')
+    await screen.findByRole('option', { name: 'Sydney' })
+    await userEvent.keyboard('{Escape}{Enter}')
+    expect(cityInput()).toHaveValue('e')
   })
 
   it('keeps the typed text when no suggestion matches', async () => {
