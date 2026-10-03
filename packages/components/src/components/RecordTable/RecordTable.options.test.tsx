@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -24,11 +24,13 @@ const headers = () =>
 async function openOptions(user = userEvent.setup()) {
   await user.click(screen.getByRole('button', { name: 'Configure table' }))
   const panel = await screen.findByRole('dialog', { name: 'Configure table' })
+  // The table's columns load on first open.
+  await within(panel).findByRole('region', { name: 'Columns' })
   return { user, panel }
 }
 
 describe('Records.Options', () => {
-  it('is a normal icon button the height of the search, named for the layout', () => {
+  it('is a normal icon button at the field size, named for the layout', () => {
     render(
       <RecordTable
         data={testShows(5)}
@@ -264,7 +266,9 @@ describe('Records.Options', () => {
         { field: 'city', direction: 'ascending' },
         { field: 'show', direction: 'ascending' }
       ])
-      await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
+      await user.click(
+        within(panel).getByRole('combobox', { name: 'Then by, level 2' })
+      )
       expect(
         (await screen.findAllByRole('option')).map(
           (option) => option.textContent
@@ -320,6 +324,170 @@ describe('Records.Options', () => {
       expect(
         within(panel).getByRole('region', { name: 'Columns' })
       ).toBeInTheDocument()
+    })
+  })
+
+  describe('focus', () => {
+    it('moves to the new level, and after a remove to the next control', async () => {
+      render(
+        <RecordTable
+          data={testShows(5)}
+          fields={showFields}
+          columns={showColumns}
+          defaultView={{
+            query: {
+              sort: [
+                { field: 'city', direction: 'ascending' },
+                { field: 'sold', direction: 'descending' }
+              ]
+            }
+          }}
+        />
+      )
+      const { user, panel } = await openOptions()
+      await user.click(
+        within(panel).getByRole('button', { name: 'Add another sort' })
+      )
+      expect(
+        within(panel).getByRole('combobox', { name: 'Then by, level 3' })
+      ).toHaveFocus()
+      await user.click(
+        within(panel).getByRole('button', { name: 'Remove sort by Show' })
+      )
+      expect(
+        within(panel).getByRole('button', { name: 'Remove sort by Sold' })
+      ).toHaveFocus()
+      await user.click(
+        within(panel).getByRole('button', { name: 'Remove sort by City' })
+      )
+      expect(
+        within(panel).getByRole('button', { name: 'Remove sort by Sold' })
+      ).toHaveFocus()
+      await user.click(
+        within(panel).getByRole('button', { name: 'Remove sort by Sold' })
+      )
+      expect(
+        within(panel).getByRole('button', { name: 'Add sort' })
+      ).toHaveFocus()
+    })
+
+    it('moves a column by keyboard and keeps focus on its handle', async () => {
+      render(
+        <RecordTable
+          data={testShows(5)}
+          fields={showFields}
+          columns={showColumns}
+        />
+      )
+      const { user, panel } = await openOptions()
+      within(panel).getByRole('button', { name: 'Reorder Gross' }).focus()
+      await user.keyboard('{Enter}')
+      await screen.findByRole('menuitem', { name: 'Move Gross to top' })
+      await user.keyboard('{ArrowDown}{ArrowDown}{Enter}')
+      expect(headers()).toEqual(['Show', 'Gross', 'City', 'Sold'])
+      await waitFor(() =>
+        expect(
+          within(panel).getByRole('button', { name: 'Reorder Gross' })
+        ).toHaveFocus()
+      )
+      expect(screen.getByRole('dialog', { name: 'Configure table' })).toBe(
+        panel
+      )
+    })
+
+    it('returns to the button on Escape', async () => {
+      render(
+        <RecordTable
+          data={testShows(5)}
+          fields={showFields}
+          columns={showColumns}
+        />
+      )
+      const { user } = await openOptions()
+      await user.keyboard('{Escape}')
+      await waitFor(() =>
+        expect(
+          screen.queryByRole('dialog', { name: 'Configure table' })
+        ).toBeNull()
+      )
+      expect(
+        screen.getByRole('button', { name: 'Configure table' })
+      ).toHaveFocus()
+    })
+  })
+
+  it('keeps levels it does not show, and shows a repeated field once', async () => {
+    const onViewChange = vi.fn()
+    render(
+      <RecordTable
+        data={testShows(5)}
+        fields={showFields}
+        columns={showColumns}
+        defaultView={{
+          query: {
+            sort: [
+              { field: 'nope', direction: 'ascending' },
+              { field: 'city', direction: 'ascending' },
+              { field: 'city', direction: 'descending' }
+            ]
+          }
+        }}
+        onViewChange={onViewChange}
+      />
+    )
+    const { user, panel } = await openOptions()
+    expect(
+      within(panel)
+        .getAllByRole('combobox')
+        .map((box) => box.textContent)
+    ).toEqual(['City', 'A to Z'])
+    await user.click(
+      within(panel).getByRole('combobox', { name: 'City order' })
+    )
+    await user.click(await screen.findByRole('option', { name: 'Z to A' }))
+    expect(onViewChange.mock.lastCall![0].query.sort).toEqual([
+      { field: 'nope', direction: 'ascending' },
+      { field: 'city', direction: 'descending' },
+      { field: 'city', direction: 'descending' }
+    ])
+  })
+
+  it("says why the last shown column can't hide", async () => {
+    const unpinned = [column.field('city'), column.field('sold')]
+    render(
+      <RecordTable data={testShows(5)} fields={showFields} columns={unpinned} />
+    )
+    const { user, panel } = await openOptions()
+    await user.click(within(panel).getByRole('button', { name: 'Show City' }))
+    expect(
+      within(panel).getByRole('button', { name: 'Show Sold' })
+    ).toHaveAccessibleDescription('A table shows at least one column')
+    expect(
+      within(panel).getByRole('button', { name: 'Show City' })
+    ).not.toHaveAccessibleDescription()
+  })
+
+  it('keeps columns this table does not have in the view', async () => {
+    const onViewChange = vi.fn()
+    render(
+      <RecordTable
+        data={testShows(5)}
+        fields={showFields}
+        columns={showColumns}
+        defaultView={{
+          layout: {
+            type: 'table',
+            columns: { order: ['gross'], hidden: ['fees'] }
+          }
+        }}
+        onViewChange={onViewChange}
+      />
+    )
+    const { user, panel } = await openOptions()
+    await user.click(within(panel).getByRole('button', { name: 'Show City' }))
+    expect(onViewChange.mock.lastCall![0].layout).toEqual({
+      type: 'table',
+      columns: { order: ['gross'], hidden: ['city', 'fees'] }
     })
   })
 

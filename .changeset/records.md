@@ -53,5 +53,7 @@ Remove) and the shown layout's settings. For the table these are its
 columns: drag a handle, or use its Move menu, to reorder them, and an eye
 toggle to show or hide each one. They write `view.query.sort` and
 `view.layout.columns`, leaving out an order or hidden list that matches the
-columns as defined. A layout definition adds its own settings with
-`Settings`.
+columns as defined and keeping keys for columns the table doesn't have.
+`label` renames the button, which is "Configure table" for the table. A
+layout definition adds its own settings with `Settings`; the table loads
+its columns list on first open.

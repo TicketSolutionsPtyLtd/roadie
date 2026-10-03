@@ -71,26 +71,46 @@ export function columnSettings<C extends Column>(
   }
 }
 
+const sameKeys = (a: readonly string[], b: readonly string[]) =>
+  a.length === b.length && a.every((key, index) => key === b[index])
+
 /**
- * A table layout that orders and hides these columns, leaving out whatever
- * matches the columns as defined, so a view put back compares equal.
+ * The table layout after a change to the columns. What matches the columns as
+ * defined is left out, so a view put back compares equal; an order that
+ * still shows the same is kept as written; keys for columns this table
+ * doesn't have, such as one only some people see, are kept.
  */
 export function tableColumnsLayout(
   columns: readonly Column[],
-  { order, hidden }: { order: readonly string[]; hidden: readonly string[] }
+  { order, hidden }: { order: readonly string[]; hidden: readonly string[] },
+  current: RecordLayout
 ): RecordLayout {
-  const ordered = orderedColumns(columns, order).map((column) => column.key)
-  const defined = columns.filter((column) => !column.pin)
-  const moved = ordered.some((key, index) => key !== defined[index]!.key)
+  const settings = tableSettings(current)
+  const known = new Set(columns.map((column) => column.key))
+  const others = (keys: readonly string[] = []) =>
+    keys.filter((key) => !known.has(key))
+  const keys = (list: readonly Column[]) => list.map((column) => column.key)
+
+  const ordered = keys(orderedColumns(columns, order))
+  const defined = keys(columns.filter((column) => !column.pin))
+  const nextOrder = sameKeys(
+    ordered,
+    keys(orderedColumns(columns, settings?.order))
+  )
+    ? (settings?.order ?? [])
+    : sameKeys(ordered, defined)
+      ? others(settings?.order)
+      : [...ordered, ...others(settings?.order)]
   const hiding = new Set(hidden)
-  const hiddenKeys = defined
-    .filter((column) => hiding.has(column.key))
-    .map((column) => column.key)
-  const settings = {
-    ...(moved && { order: ordered }),
-    ...(hiddenKeys.length > 0 && { hidden: hiddenKeys })
+  const nextHidden = [
+    ...defined.filter((key) => hiding.has(key)),
+    ...others(settings?.hidden)
+  ]
+  const next = {
+    ...(nextOrder.length > 0 && { order: [...nextOrder] }),
+    ...(nextHidden.length > 0 && { hidden: nextHidden })
   }
-  return Object.keys(settings).length > 0
-    ? { type: 'table', columns: settings }
+  return Object.keys(next).length > 0
+    ? { type: 'table', columns: next }
     : { type: 'table' }
 }

@@ -146,6 +146,8 @@ describe('RecordTable performance', () => {
     expect(latency).toBeLessThanOrEqual(300)
     expect(opening).toBeLessThanOrEqual(150)
     expect(closing).toBeLessThanOrEqual(150)
+    // Options rendering proves the counter is wired, so zero rows means zero.
+    expect(renders['Records.Options']).toBeGreaterThan(0)
     expect(renders.RecordTableRow ?? 0).toBe(0)
   })
 })

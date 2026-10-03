@@ -20,6 +20,7 @@ const listFormat = new Intl.ListFormat('en-AU', {
 export function RecordTableSettings({ config }: { config: TableLayoutConfig }) {
   const { records } = useRecordsContext()
   const headingId = useId()
+  const lastShownId = useId()
   const { pinned, columns } = columnSettings(
     config.columns,
     records.view.layout
@@ -32,7 +33,9 @@ export function RecordTableSettings({ config }: { config: TableLayoutConfig }) {
     .map(({ column }) => column.key)
   const shownCount = pinned.length + columns.length - hidden.length
   const write = (next: { order: string[]; hidden: string[] }) =>
-    records.setLayout(tableColumnsLayout(config.columns, next))
+    records.setLayout(
+      tableColumnsLayout(config.columns, next, records.view.layout)
+    )
 
   return (
     <section aria-labelledby={headingId} className='grid gap-2'>
@@ -69,8 +72,10 @@ export function RecordTableSettings({ config }: { config: TableLayoutConfig }) {
                     size='sm'
                     emphasis='subtler'
                     pressed={!isHidden}
-                    // A table keeps at least one column.
                     disabled={!isHidden && shownCount === 1}
+                    aria-describedby={
+                      !isHidden && shownCount === 1 ? lastShownId : undefined
+                    }
                     onPressedChange={(show) =>
                       write({
                         order,
@@ -92,7 +97,10 @@ export function RecordTableSettings({ config }: { config: TableLayoutConfig }) {
           })}
         </List>
       </Sortable>
+      <span id={lastShownId} hidden>
+        A table shows at least one column
+      </span>
     </section>
   )
 }
-RecordTableSettings.displayName = 'RecordTable.Settings'
+RecordTableSettings.displayName = 'RecordTableSettings'

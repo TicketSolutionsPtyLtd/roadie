@@ -20,7 +20,9 @@ const nameOf = (type: unknown): string | undefined => {
   return undefined
 }
 
-let counting: Record<string, number> | undefined
+// On globalThis: the setup file and a test's import of it can be separate
+// module instances, and react-dom holds the first one's hook.
+const shared = globalThis as { __roadieRenderCounts?: Record<string, number> }
 
 Object.assign(globalThis, {
   __REACT_DEVTOOLS_GLOBAL_HOOK__: {
@@ -28,6 +30,7 @@ Object.assign(globalThis, {
     renderers: new Map(),
     inject: () => 1,
     onCommitFiberRoot: (_: number, root: { current: Fiber }) => {
+      const counting = shared.__roadieRenderCounts
       if (!counting) return
       const stack = [root.current]
       while (stack.length > 0) {
@@ -49,11 +52,12 @@ Object.assign(globalThis, {
 
 /** Counts component re-renders, by name, while `run` goes. */
 export async function countRenders(run: () => Promise<void>) {
-  counting = {}
+  const counting: Record<string, number> = {}
+  shared.__roadieRenderCounts = counting
   try {
     await run()
     return counting
   } finally {
-    counting = undefined
+    shared.__roadieRenderCounts = undefined
   }
 }

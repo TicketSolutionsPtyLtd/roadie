@@ -58,6 +58,7 @@ async function openDrawer() {
   )
   await tapOn(screen.getByRole('button', { name: 'Configure table' }))
   const drawer = await screen.findByRole('dialog', { name: 'Configure table' })
+  await within(drawer).findByRole('region', { name: 'Columns' })
   await settle(600)
   return drawer
 }
@@ -95,21 +96,30 @@ describe('Records.Options tapped on a phone', TIMEOUT, () => {
     skip
   }) => {
     if (!navigator.userAgent.includes('Chrome')) skip()
-    const drawer = await openDrawer()
-    const title = within(drawer).getByText('Sold')
-    const from = centre(title)
-    await commands.swipe(from, { x: from.x, y: from.y - 120 })
-    await settle()
-    expect(headers()).toEqual([
-      'Show',
-      'City',
-      'Sold',
-      'Gross',
-      'Status',
-      'Starts'
-    ])
-    expect(
-      screen.getByRole('dialog', { name: 'Configure table' })
-    ).toBeVisible()
+    await page.viewport(390, 560)
+    try {
+      const drawer = await openDrawer()
+      const body = drawer.querySelector<HTMLElement>(
+        '[data-slot="drawer-body"]'
+      )!
+      expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
+      const from = centre(within(drawer).getByText('Gross'))
+      await commands.swipe(from, { x: from.x, y: from.y - 160 })
+      await settle()
+      expect(body.scrollTop).toBeGreaterThan(0)
+      expect(headers()).toEqual([
+        'Show',
+        'City',
+        'Sold',
+        'Gross',
+        'Status',
+        'Starts'
+      ])
+      expect(
+        screen.getByRole('dialog', { name: 'Configure table' })
+      ).toBeVisible()
+    } finally {
+      await page.viewport(390, 844)
+    }
   })
 })

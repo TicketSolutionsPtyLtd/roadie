@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import type { RecordLayout } from '@oztix/roadie-core/records'
+
 import { showFields } from '../Records/testUtils'
 import type { TestShow } from '../Records/testUtils'
 import {
@@ -147,14 +149,67 @@ describe('tableColumnsLayout', () => {
       { type: 'table', columns: { order: ['gross', 'city', 'sold'] } }
     ]
   ])('%s', (_, settings, layout) => {
-    expect(tableColumnsLayout(columns, settings)).toEqual(layout)
+    expect(tableColumnsLayout(columns, settings, { type: 'table' })).toEqual(
+      layout
+    )
+  })
+
+  it('keeps an order that still shows the same, as written', () => {
+    expect(
+      tableColumnsLayout(
+        columns,
+        { order: ['gross', 'city', 'sold'], hidden: ['city'] },
+        { type: 'table', columns: { order: ['gross'] } }
+      )
+    ).toEqual({
+      type: 'table',
+      columns: { order: ['gross'], hidden: ['city'] }
+    })
+  })
+
+  it("keeps keys for columns this table doesn't have", () => {
+    const current: RecordLayout = {
+      type: 'table',
+      columns: { order: ['fees', 'gross'], hidden: ['fees'] }
+    }
+    expect(
+      tableColumnsLayout(
+        columns,
+        { order: ['gross', 'city', 'sold'], hidden: ['sold'] },
+        current
+      )
+    ).toEqual({
+      type: 'table',
+      columns: { order: ['fees', 'gross'], hidden: ['sold', 'fees'] }
+    })
+    expect(
+      tableColumnsLayout(
+        columns,
+        { order: ['city', 'sold', 'gross'], hidden: [] },
+        current
+      )
+    ).toEqual({
+      type: 'table',
+      columns: { order: ['fees'], hidden: ['fees'] }
+    })
+    expect(
+      tableColumnsLayout(
+        columns,
+        { order: ['sold', 'city', 'gross'], hidden: [] },
+        current
+      )
+    ).toEqual({
+      type: 'table',
+      columns: { order: ['sold', 'city', 'gross', 'fees'], hidden: ['fees'] }
+    })
   })
 
   it('round-trips through shownColumns and columnSettings', () => {
-    const layout = tableColumnsLayout(columns, {
-      order: ['sold', 'gross', 'city'],
-      hidden: ['gross']
-    })
+    const layout = tableColumnsLayout(
+      columns,
+      { order: ['sold', 'gross', 'city'], hidden: ['gross'] },
+      { type: 'table' }
+    )
     expect(shownColumns(columns, layout).map((c) => c.key)).toEqual([
       'show',
       'sold',

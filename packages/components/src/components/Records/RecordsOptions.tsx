@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useRef, useState } from 'react'
+import { Suspense, useId, useRef, useState } from 'react'
 
 import { SlidersHorizontalIcon } from '@phosphor-icons/react'
 
@@ -20,6 +20,10 @@ export type RecordsOptionsProps = {
   label?: string
   className?: string
 }
+
+// "Table" reads "table" mid-sentence; "CSV preview" keeps its capitals.
+const inSentence = (label: string) =>
+  /^[A-Z][a-z]/.test(label) ? label[0]!.toLowerCase() + label.slice(1) : label
 
 // The panel itself, so no field looks active on open; Tab reaches the first control.
 const focusPanel = (popup: HTMLElement) => popup
@@ -41,7 +45,7 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
   const sorts = sortableFields(records.fields).length > 0
   if (!sorts && !Settings) return null
   const name =
-    label ?? (layout ? `Configure ${layout.label.toLowerCase()}` : 'Configure')
+    label ?? (layout ? `Configure ${inSentence(layout.label)}` : 'Configure')
 
   return (
     <PickerOverlay
@@ -55,7 +59,7 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
       initialFocus={focusPanel}
       align='end'
       modal
-      className='w-[22rem] overflow-y-auto'
+      className='w-88 overflow-y-auto'
       trigger={
         <>
           <span id={labelId} hidden>
@@ -89,7 +93,12 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
     >
       <div data-slot='records-options' className='grid gap-6'>
         {sorts && <RecordsSortSettings />}
-        {Settings && layout && <Settings config={layout.config as never} />}
+        {Settings && layout && (
+          // A layout may load its settings on first open, as the table does.
+          <Suspense fallback={null}>
+            <Settings config={layout.config as never} />
+          </Suspense>
+        )}
       </div>
     </PickerOverlay>
   )
