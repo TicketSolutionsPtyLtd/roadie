@@ -5,8 +5,9 @@ import { type ReactNode, useLayoutEffect, useRef } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { RecordsSearch } from './RecordsSearch'
+import { useRecordsContext } from './context'
 import { useStickyTop } from './stickyTop'
-import { surfaceClass } from './surface'
+import { surfaceClass, useSurface } from './surface'
 
 export type RecordsToolbarProps = {
   /** Replaces the standard controls, today the search. */
@@ -22,27 +23,31 @@ export function RecordsToolbar({
   searchPlaceholder,
   className
 }: RecordsToolbarProps) {
+  const { setToolbar } = useRecordsContext()
   const ref = useRef<HTMLDivElement>(null)
-  const top = useStickyTop(ref, { underToolbar: false })
+  const top = useStickyTop(ref, null)
+  useSurface(ref)
 
   // The content's header stacks under this height while both are stuck.
   useLayoutEffect(() => {
-    const toolbar = ref.current
-    const root = toolbar?.closest<HTMLElement>('[data-slot="records"]')
-    if (!toolbar || !root) return
-    const measure = () =>
-      root.style.setProperty(
-        '--records-toolbar-height',
-        `${toolbar.offsetHeight}px`
+    const element = ref.current
+    if (!element) return
+    const measure = () => {
+      const height = element.offsetHeight
+      setToolbar((held) =>
+        held?.element === element && held.height === height
+          ? held
+          : { element, height }
       )
+    }
     measure()
     const observer = new ResizeObserver(measure)
-    observer.observe(toolbar)
+    observer.observe(element)
     return () => {
       observer.disconnect()
-      root.style.removeProperty('--records-toolbar-height')
+      setToolbar(null)
     }
-  }, [])
+  }, [setToolbar])
 
   return (
     <div
@@ -50,7 +55,8 @@ export function RecordsToolbar({
       data-slot='records-toolbar'
       style={{ top }}
       className={cn(
-        'sticky z-docked -mb-3 flex flex-wrap items-center gap-2 pb-3',
+        // Its padding takes the place of the gap below, so the surface reaches the content while stuck.
+        'sticky z-docked mb-[calc(var(--records-gap,0px)*-1)] flex flex-wrap items-center gap-2 pb-3',
         surfaceClass,
         className
       )}

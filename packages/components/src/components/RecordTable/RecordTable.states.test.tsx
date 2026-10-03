@@ -102,10 +102,13 @@ describe('RecordTable error', () => {
     expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull()
   })
 
-  it('shows a string error as given', () => {
+  it('shows a string error as given, without the connection advice', () => {
     render(<Table error='The box office is offline' />)
     expect(inTable('The box office is offline')).toBeInTheDocument()
     expect(screen.queryByText("Couldn't load shows")).toBeNull()
+    expect(
+      screen.queryByText('Check your connection and try again.')
+    ).toBeNull()
   })
 
   it('calls onRetry from the Retry button', async () => {

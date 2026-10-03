@@ -3,7 +3,7 @@ import type { RecordField, RecordLayout } from '@oztix/roadie-core/records'
 import type { RecordTableColumn, RecordTableColumnOptions } from './types'
 
 /** Builds table columns from an entity's fields: each column presents one field. */
-export function tableColumns<Row extends object>(
+export function tableColumns<Row extends object = Record<string, unknown>>(
   fields: readonly RecordField[]
 ) {
   return {

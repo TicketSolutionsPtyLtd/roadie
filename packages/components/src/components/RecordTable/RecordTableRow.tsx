@@ -3,6 +3,7 @@ import { type CSSProperties, memo } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { RecordValue } from '../Records/RecordValue'
+import { surfaceClass } from '../Records/surface'
 import type { ColumnLayout } from './layout'
 import type { RecordTableColumn } from './types'
 
@@ -27,7 +28,7 @@ export const cellClass = (column: RecordTableColumn) =>
     'flex min-w-0 items-center px-2.5 first:ps-0 last:pe-0',
     isFigure(column) ? 'justify-end text-end' : 'justify-start',
     column.pin &&
-      'sticky start-(--record-table-pin-start) z-docked bg-(--records-surface,var(--pane-surface,var(--intent-bg-normal)))'
+      cn('sticky start-(--record-table-pin-start) z-docked', surfaceClass)
   )
 
 export const pinStyle = (start: number | undefined) =>
@@ -70,7 +71,12 @@ export const RecordTableRow = memo(function RecordTableRow({
           key={column.key}
           role='cell'
           data-pin={column.pin || undefined}
-          className={cn(cellClass(column), cellOverflowClass)}
+          className={cn(
+            cellClass(column),
+            cellOverflowClass,
+            // On the cell, so a custom cell inherits it and an empty value stays muted.
+            column === title && 'font-semibold text-strong'
+          )}
           style={pinStyle(layout.pinnedStart[index])}
         >
           {column.cell ? (
@@ -84,10 +90,7 @@ export const RecordTableRow = memo(function RecordTableRow({
               field={column.field}
               row={record}
               timeZone={timeZone}
-              className={cn(
-                'min-w-0 truncate',
-                column === title && 'font-semibold text-strong'
-              )}
+              className='min-w-0 truncate'
             />
           )}
         </div>

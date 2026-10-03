@@ -41,7 +41,7 @@ type Built<Key extends string> = RecordField & { key: Key }
  * Typed builders for an entity's `RecordField`s: each takes a key of `Row`,
  * and so does every option that names another row key.
  */
-export function recordFields<Row extends object>() {
+export function recordFields<Row extends object = Record<string, unknown>>() {
   return {
     text: <Key extends KeyOf<Row>>(
       key: Key,

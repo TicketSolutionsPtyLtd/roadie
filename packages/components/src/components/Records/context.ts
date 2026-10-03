@@ -1,19 +1,24 @@
 'use client'
 
-import { createContext, use } from 'react'
+import { type Dispatch, type SetStateAction, createContext, use } from 'react'
 
-import type { RecordLayoutDefinition } from './layouts'
+import type { AnyRecordLayout } from './layouts'
 import type { RecordsInstance } from './useRecords'
 
 export type RecordsContextValue = {
   records: RecordsInstance
-  layouts: readonly RecordLayoutDefinition[]
+  layouts: readonly AnyRecordLayout[]
   /** Accessible name for the records, such as the table's. */
   caption?: string
+  /** The mounted toolbar and its height, so Content's header sticks under it. */
+  toolbar: RecordsToolbarBox | null
+  setToolbar: Dispatch<SetStateAction<RecordsToolbarBox | null>>
   /** Whether Content fills its parent's height. */
   contentFill: boolean
   setContentFill: (fill: boolean) => void
 }
+
+export type RecordsToolbarBox = { element: HTMLElement; height: number }
 
 export const RecordsContext = createContext<RecordsContextValue | null>(null)
 

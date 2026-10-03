@@ -30,7 +30,11 @@ Records.Status = RecordsStatus
 export { Records, RecordValue }
 export { useRecords } from './useRecords'
 export type { RecordsInstance, UseRecordsOptions } from './useRecords'
-export type { RecordLayoutDefinition, RecordsContentProps } from './layouts'
+export type {
+  AnyRecordLayout,
+  RecordLayoutDefinition,
+  RecordsContentProps
+} from './layouts'
 export type { RecordName, RecordViewDefaults, RecordsRow } from './types'
 export type { RecordValueProps } from './RecordValue'
 export type { RecordsPaginationProps } from './RecordsPagination'

@@ -493,6 +493,7 @@ export {
   Records,
   RecordValue,
   useRecords,
+  type AnyRecordLayout,
   type RecordLayoutDefinition,
   type RecordName,
   type RecordValueProps,
@@ -517,6 +518,7 @@ export {
   type RecordTableColumn,
   type RecordTableColumnOptions,
   type RecordTableProps,
+  type TableLayoutConfig,
   type TableLayoutDefinition
 } from './components/RecordTable'
 export {

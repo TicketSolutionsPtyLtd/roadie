@@ -3,7 +3,7 @@ export { RecordTable } from './RecordTablePreset'
 export { tableColumns } from './columns'
 export { tableLayout } from './tableLayout'
 export type { RecordTableProps } from './RecordTablePreset'
-export type { TableLayoutDefinition } from './tableLayout'
+export type { TableLayoutConfig, TableLayoutDefinition } from './tableLayout'
 export type {
   RecordCellContext,
   RecordColumnWidth,

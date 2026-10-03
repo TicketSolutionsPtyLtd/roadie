@@ -1,33 +1,46 @@
-const TRANSPARENT = 'rgba(0, 0, 0, 0)'
+'use client'
+
+import { type RefObject, useLayoutEffect } from 'react'
+
 const AUTO = 'data-records-surface'
+
+// A translucent fill would let rows show through a sticky part, so only an
+// opaque one counts.
+function isOpaque(color: string) {
+  const alpha =
+    /\/\s*([\d.]+%?)\s*\)$|rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\s*\)/.exec(color)
+  if (!alpha) return color !== 'transparent'
+  const value = alpha[1] ?? alpha[2]!
+  return value.endsWith('%') ? parseFloat(value) >= 100 : parseFloat(value) >= 1
+}
 
 const paintedBehind = (element: HTMLElement) => {
   for (let node = element.parentElement; node; node = node.parentElement) {
     const color = getComputedStyle(node).backgroundColor
-    if (color !== TRANSPARENT) return color
+    if (isOpaque(color)) return color
   }
   return 'var(--intent-bg-normal)'
 }
 
 /**
- * Sticky parts paint the colour behind the records, since `--pane-surface`
- * inherits into cards that paint something else. A surface the consumer sets
- * on or above the records is kept.
+ * A sticky part paints the colour behind it, since `--pane-surface` inherits
+ * into cards that paint something else. A surface the consumer sets on or
+ * above the records is kept.
  */
-function settle(root: HTMLElement) {
-  if (root.hasAttribute(AUTO)) root.style.removeProperty('--records-surface')
-  if (getComputedStyle(root).getPropertyValue('--records-surface')) {
-    root.removeAttribute(AUTO)
+function settle(part: HTMLElement) {
+  if (part.hasAttribute(AUTO)) part.style.removeProperty('--records-surface')
+  if (getComputedStyle(part).getPropertyValue('--records-surface')) {
+    part.removeAttribute(AUTO)
     return
   }
-  root.setAttribute(AUTO, '')
-  root.style.setProperty('--records-surface', paintedBehind(root))
+  part.setAttribute(AUTO, '')
+  part.style.setProperty('--records-surface', paintedBehind(part))
 }
 
 /** Settles now and again whenever the theme switches. */
-export function watchSurface(root: HTMLElement) {
-  settle(root)
-  const observer = new MutationObserver(() => settle(root))
+function watchSurface(part: HTMLElement) {
+  settle(part)
+  const observer = new MutationObserver(() => settle(part))
   observer.observe(document.documentElement, {
     attributes: true,
     attributeFilter: ['class', 'data-theme', 'style']
@@ -38,3 +51,10 @@ export function watchSurface(root: HTMLElement) {
 /** The opaque colour sticky parts paint. */
 export const surfaceClass =
   'bg-(--records-surface,var(--pane-surface,var(--intent-bg-normal)))'
+
+/** Paints a sticky part opaque in the colour behind it. */
+export function useSurface(ref: RefObject<HTMLElement | null>) {
+  useLayoutEffect(() => {
+    if (ref.current) return watchSurface(ref.current)
+  }, [ref])
+}

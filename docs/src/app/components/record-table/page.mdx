@@ -18,7 +18,7 @@ import { Records, useRecords } from '@oztix/roadie-components/records'
 import { recordFields } from '@oztix/roadie-core/records'
 ```
 
-Fields with a `match`, columns with a `cell`, `getRowId` and the `useRecords` instance all hold functions, so they can't pass from a Server Component. Build them and render the table in a client component, a file that starts with `'use client'`.
+Fields with a `match` hold a RegExp, and columns with a `cell`, `getRowId` and the `useRecords` instance hold functions, so they can't pass from a Server Component. Build them and render the table in a client component, a file that starts with `'use client'`.
 
 ## Examples
 
@@ -67,6 +67,52 @@ render(
 ```
 
 In TypeScript, give the builders your row type so every key is checked: `recordFields<Show>()` and `tableColumns<Show>(fields)`.
+
+### States
+
+Pass `loading` while records load and `error` when the load fails. With no records yet, `loading` shows still placeholder rows; with records, it dims them and runs a bar under the header. An error replaces the rows, and `onRetry` adds a Retry button. With no records, the empty state says whether none exist yet or none match, and offers to clear the search and filters.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [field.text('show', { label: 'Show' }), field.text('city', { label: 'City' }), field.number('sold', { label: 'Sold' })]
+const column = tableColumns(fields)
+const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold')]
+const shows = [
+  { id: 'a', show: 'Ocean Alley', city: 'Brisbane', sold: 1840 },
+  { id: 'b', show: 'Alex Lahey', city: 'Melbourne', sold: 920 }
+]
+const props = {
+  fields,
+  columns,
+  getRowId: (row) => row.id,
+  recordName: { one: 'show', other: 'shows' }
+}
+
+render(
+  <div className='grid gap-8'>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>Loading, no records yet</p>
+      <RecordTable {...props} caption='Loading shows' data={[]} loading defaultPosition={{ pageSize: 3 }} />
+    </div>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>Loading, with records</p>
+      <RecordTable {...props} caption='Refreshing shows' data={shows} loading />
+    </div>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>Empty</p>
+      <RecordTable {...props} caption='No shows' data={[]} />
+    </div>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>No match</p>
+      <RecordTable {...props} caption='Unmatched shows' data={shows} defaultView={{ query: { search: 'Darwin' } }} />
+    </div>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>Error</p>
+      <RecordTable {...props} caption='Failed shows' data={[]} error onRetry={() => {}} />
+    </div>
+  </div>
+)
+```
 
 ### Composition
 
@@ -198,16 +244,18 @@ A field describes one fact about a record, and its type decides how the value re
 | --- | --- |
 | `text` | The text. A list joins with commas. |
 | `option` | Each value's label from `options`. With a `status` map, a small Badge in the key's intent. |
-| `number` | Its `format`, `number` by default. Figures end-align and sort largest first. |
+| `number` | Its `format`, `number` by default. Figures end-align. |
 | `money` | Its `format`, `currency` by default. `currency` or `currencyKey` names a currency that isn't dollars. |
 | `date` | House formats: event and access dates in the venue's zone from `timeZoneKey`, timestamps in the reader's zone, a range when the field has an `end`. |
 | `boolean` | Yes or No. |
 
 A record that holds nothing for a field shows "Not available". Text a field can't read shows as given: "To be announced" in a date field, or "On sale soon" in a number or money field, which also takes a quieter colour.
 
+A header sorts by its field alone: words A to Z first, figures and dates largest or latest first, and a second click flips it. A field with `sortable: false` has no sort button.
+
 A column presents one field. `tableColumns(fields).field(key, options)` takes:
 
-- `pin` to hold the column at the start while the table scrolls sideways. The first pinned text column is the row's title, in strong text.
+- `pin` to hold the column at the start while the table scrolls sideways. The first pinned text column, or else the first text column, is the row's title, in strong text. A custom `cell` there inherits it.
 - `width` as `{ min, grow }` in rem, when the content's own width doesn't suit. Without it, each column sizes from a sample of its values.
 - `cell` to render the value yourself, such as an order number in `font-mono`.
 
@@ -258,9 +306,9 @@ render(
 
 ### Views
 
-A view holds the search, filters, sort and layout; a position holds the page and page size. Both work uncontrolled, with `defaultView` and `defaultPosition`, or controlled, with `view` and `onViewChange`, and `position` and `onPositionChange`. A change to the search, filters or sort returns to the first page.
+A view holds the search, filters, sort and layout; a position holds the page and page size. Both work uncontrolled, with `defaultView` and `defaultPosition`, or controlled, with `view` and `onViewChange`, and `position` and `onPositionChange`. A change to the search, filters or sort returns to the first page: `onPositionChange` hears that first, then `onViewChange` gets the view and the new position, so a parent writing both to one URL ends with the two agreeing.
 
-Keep the view in the URL with `toSearchParams` and `fromSearchParams`, as [Records model](/foundations/records) shows. A view can name a filter on a field these records don't have, or one its field can't read, such as a date range that ends before it starts. The records skip it, show the rest, and warn in development.
+Keep the view in the URL with `toSearchParams` and `fromSearchParams`, as [Records model](/foundations/records) shows. A view can name a filter on a field these records don't have, or one its field can't read, such as a date range that ends before it starts. The records skip it, show the rest, list it in `skippedFilters`, and warn in development. A sort on a field that doesn't sort is skipped the same way.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -347,52 +395,6 @@ render(
     defaultPosition={{ pageSize: 100 }}
     maxHeight='24rem'
   />
-)
-```
-
-### States
-
-Pass `loading` while records load and `error` when the load fails. With no records yet, `loading` shows still placeholder rows; with records, it dims them and runs a bar under the header. An error replaces the rows, and `onRetry` adds a Retry button. With no records, the empty state says whether none exist yet or none match, and offers to clear the search and filters.
-
-```tsx-live-noinline
-const field = recordFields()
-const fields = [field.text('show', { label: 'Show' }), field.text('city', { label: 'City' }), field.number('sold', { label: 'Sold' })]
-const column = tableColumns(fields)
-const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold')]
-const shows = [
-  { id: 'a', show: 'Ocean Alley', city: 'Brisbane', sold: 1840 },
-  { id: 'b', show: 'Alex Lahey', city: 'Melbourne', sold: 920 }
-]
-const props = {
-  fields,
-  columns,
-  getRowId: (row) => row.id,
-  recordName: { one: 'show', other: 'shows' }
-}
-
-render(
-  <div className='grid gap-8'>
-    <div className='grid gap-2'>
-      <p className='text-sm text-subtle'>Loading, no records yet</p>
-      <RecordTable {...props} caption='Loading shows' data={[]} loading defaultPosition={{ pageSize: 3 }} />
-    </div>
-    <div className='grid gap-2'>
-      <p className='text-sm text-subtle'>Loading, with records</p>
-      <RecordTable {...props} caption='Refreshing shows' data={shows} loading />
-    </div>
-    <div className='grid gap-2'>
-      <p className='text-sm text-subtle'>Empty</p>
-      <RecordTable {...props} caption='No shows' data={[]} />
-    </div>
-    <div className='grid gap-2'>
-      <p className='text-sm text-subtle'>No match</p>
-      <RecordTable {...props} caption='Unmatched shows' data={shows} defaultView={{ query: { search: 'Darwin' } }} />
-    </div>
-    <div className='grid gap-2'>
-      <p className='text-sm text-subtle'>Error</p>
-      <RecordTable {...props} caption='Failed shows' data={[]} error onRetry={() => {}} />
-    </div>
-  </div>
 )
 ```
 
@@ -506,6 +508,7 @@ Holds the view and position, and searches, filters, sorts and pages the records 
 | `position` | `{ page: number; pageSize: number; row: number }` | The page, zero-based, and its size. |
 | `pageCount` | `number` | Pages at this size, at least one. |
 | `setView` | `(view: RecordView) => void` | Replaces the view. |
+| `skippedFilters` | `readonly number[]` | Filters in the view, by index, that these fields can't apply. |
 | `setSearch` | `(search: string) => void` | Sets the search and returns to the first page. |
 | `addFilter` | `(filter: RecordFilter) => void` | Adds a filter. |
 | `updateFilter` | `(index: number, filter: RecordFilter) => void` | Replaces the filter at an index. |

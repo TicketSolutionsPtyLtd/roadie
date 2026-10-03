@@ -93,8 +93,8 @@ const COLUMN_RULES: ReactNode[] = [
   </>,
   <>
     <span className='text-strong'>One title column.</span> Pin it with{' '}
-    <Code>pin: true</Code>. The first pinned text column reads as the row&apos;s
-    title, in strong text.
+    <Code>pin: true</Code>. The first pinned text column, or else the first text
+    column, reads as the row&apos;s title, in strong text.
   </>,
   <>
     <span className='text-strong'>Numbers end-aligned.</span> Number and money

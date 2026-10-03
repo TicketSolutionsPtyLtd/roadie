@@ -1,4 +1,4 @@
-import type { ComponentType, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 import type { RecordLayout } from '@oztix/roadie-core/records'
 
@@ -10,13 +10,20 @@ export type RecordsContentProps = {
   fill?: boolean
 }
 
-/** One way to show records, picked by the view's `layout.type`. */
-export type RecordLayoutDefinition = {
+/**
+ * One way to show records, picked by the view's `layout.type`. `config`, such
+ * as a table's columns, reaches a stable `Content`, so building a definition
+ * in render doesn't remount it.
+ */
+export type RecordLayoutDefinition<Config = unknown> = {
   type: RecordLayout['type']
   label: string
   icon: ReactNode
-  /** Receives the definition, so a layout's own settings, like table columns, ride on it. */
-  Content: ComponentType<
-    RecordsContentProps & { layout: RecordLayoutDefinition }
-  >
+  config: Config
+  Content: (props: RecordsContentProps & { config: Config }) => ReactNode
+}
+
+/** A layout of any config, as `Records` takes them. */
+export type AnyRecordLayout = Omit<RecordLayoutDefinition, 'Content'> & {
+  Content: (props: RecordsContentProps & { config: never }) => ReactNode
 }

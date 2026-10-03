@@ -50,11 +50,61 @@ describe('RecordTable content', () => {
 
   it('makes the first pinned text column the row title', () => {
     render(<Table />)
-    expect(screen.getByText('Ocean Alley 1')).toHaveClass(
-      'font-semibold',
-      'text-strong'
-    )
-    expect(screen.getAllByText('Brisbane')[0]).not.toHaveClass('font-semibold')
+    expect(
+      screen.getByText('Ocean Alley 1').closest('[role="cell"]')
+    ).toHaveClass('font-semibold', 'text-strong')
+    expect(
+      screen.getAllByText('Brisbane')[0]!.closest('[role="cell"]')
+    ).not.toHaveClass('font-semibold')
+  })
+
+  it('styles the title cell, so a custom cell inherits it and empty stays muted', () => {
+    function Titled() {
+      const records = useRecords({
+        data: [{ ...testShows(1)[0]!, show: '' }, testShows(2)[1]!],
+        fields: showFields
+      })
+      return (
+        <Records.Root
+          records={records}
+          layouts={[
+            tableLayout([
+              column.field('show', {
+                pin: true,
+                cell: ({ value }) => (value ? `${String(value)}!` : null)
+              }),
+              column.field('city', { pin: true })
+            ])
+          ]}
+        >
+          <Records.Content />
+        </Records.Root>
+      )
+    }
+    render(<Titled />)
+    expect(
+      screen.getByText('Ball Park Music 1!').closest('[role="cell"]')
+    ).toHaveClass('font-semibold', 'text-strong')
+  })
+
+  it('mutes an empty title', () => {
+    function EmptyTitle() {
+      const records = useRecords({
+        data: [{ ...testShows(1)[0]!, show: '' }],
+        fields: showFields
+      })
+      return (
+        <Records.Root records={records} layouts={layouts}>
+          <Records.Content />
+        </Records.Root>
+      )
+    }
+    render(<EmptyTitle />)
+    const title = within(screen.getAllByRole('row')[1]!).getAllByRole(
+      'cell'
+    )[0]!
+    expect(title).toHaveClass('text-strong')
+    expect(within(title).getByText('Not available')).toHaveClass('text-subtle')
   })
 
   it('sorts from the header and marks the column', () => {

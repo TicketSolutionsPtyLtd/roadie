@@ -21,6 +21,7 @@ export function RecordsContent(props: RecordsContentProps) {
     )
   }, [layout])
   if (!layout) return null
-  return <layout.Content {...props} layout={layout} />
+  // Each definition pairs its Content with its own config.
+  return <layout.Content {...props} config={layout.config as never} />
 }
 RecordsContent.displayName = 'Records.Content'

@@ -311,6 +311,22 @@ describe('RecordTable surface', () => {
     await expect.poll(() => bg(container, 'record-table-head')).toBe(pane)
   })
 
+  it('looks past a translucent fill to an opaque one', async () => {
+    const { container } = render(
+      <InPane>
+        <div style={{ backgroundColor: 'rgb(255 0 0 / 0.5)' }}>
+          <RecordTable
+            data={testShows(20)}
+            fields={showFields}
+            columns={showColumns}
+          />
+        </div>
+      </InPane>
+    )
+    const pane = getComputedStyle(slot(container, 'pane')).backgroundColor
+    await expect.poll(() => bg(container, 'record-table-head')).toBe(pane)
+  })
+
   it('keeps a surface the consumer sets', async () => {
     const { container } = render(
       <div className='bg-raised [--records-surface:var(--intent-bg-raised)]'>

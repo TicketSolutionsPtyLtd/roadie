@@ -1,24 +1,21 @@
 'use client'
 
-import {
-  type ComponentProps,
-  type ReactNode,
-  useLayoutEffect,
-  useRef,
-  useState
-} from 'react'
+import { type ComponentProps, type ReactNode, useState } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { RecordsContext, useRecordsContext } from './context'
-import type { RecordLayoutDefinition } from './layouts'
-import { watchSurface } from './surface'
+import {
+  RecordsContext,
+  type RecordsToolbarBox,
+  useRecordsContext
+} from './context'
+import type { AnyRecordLayout } from './layouts'
 import type { RecordsInstance } from './useRecords'
 
 export type RecordsProviderProps<Row extends object = object> = {
   records: RecordsInstance<Row>
   /** The ways to show the records. Content shows the one the view names, or the first. */
-  layouts: readonly RecordLayoutDefinition[]
+  layouts: readonly AnyRecordLayout[]
   /** Accessible name for the records, such as the table's. */
   caption?: string
   children?: ReactNode
@@ -32,6 +29,7 @@ export function RecordsProvider<Row extends object>({
   children
 }: RecordsProviderProps<Row>) {
   const [contentFill, setContentFill] = useState(false)
+  const [toolbar, setToolbar] = useState<RecordsToolbarBox | null>(null)
   return (
     <RecordsContext
       value={{
@@ -39,6 +37,8 @@ export function RecordsProvider<Row extends object>({
         records: records as unknown as RecordsInstance,
         layouts,
         caption,
+        toolbar,
+        setToolbar,
         contentFill,
         setContentFill
       }}
@@ -68,18 +68,14 @@ RecordsRoot.displayName = 'Records.Root'
 
 function RecordsRootElement({ className, ...props }: ComponentProps<'div'>) {
   const { contentFill } = useRecordsContext()
-  const ref = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => {
-    if (ref.current) return watchSurface(ref.current)
-  }, [])
   return (
     <div
-      ref={ref}
       data-slot='records'
       // A Pane.Body gives the height a filling Content takes.
       data-pane-fill={contentFill || undefined}
       className={cn(
-        'grid grid-cols-1 gap-3',
+        // The toolbar's padding stands in for this gap while it sticks.
+        'grid grid-cols-1 gap-(--records-gap) [--records-gap:--spacing(3)]',
         contentFill && 'flex h-full min-h-0 flex-col',
         className
       )}

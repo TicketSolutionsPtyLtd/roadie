@@ -30,9 +30,11 @@ export function RecordsError({ records }: { records: RecordsInstance }) {
       <EmptyState.Title render={stateTitle}>
         {errorMessage(records)}
       </EmptyState.Title>
-      <EmptyState.Description>
-        Check your connection and try again.
-      </EmptyState.Description>
+      {typeof records.error !== 'string' && (
+        <EmptyState.Description>
+          Check your connection and try again.
+        </EmptyState.Description>
+      )}
       {records.onRetry && (
         <EmptyState.Actions>
           <Button emphasis='strong' onClick={records.onRetry}>

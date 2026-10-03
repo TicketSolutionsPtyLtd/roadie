@@ -489,3 +489,53 @@ describe('RecordTable fill', () => {
     })
   }
 })
+
+describe('Records spread across a pane by a Provider', () => {
+  const layouts = [tableLayout(wideColumns)]
+
+  function ProviderPane() {
+    const records = useRecords({
+      data: testShows(100),
+      fields: showFields,
+      defaultPosition: ALL
+    })
+    return (
+      <Records.Provider records={records} layouts={layouts} caption='Shows'>
+        <Pane>
+          <Pane.Header>
+            <Pane.Title>Shows</Pane.Title>
+          </Pane.Header>
+          <Pane.Body>
+            <Records.Toolbar />
+            <Records.Content />
+          </Pane.Body>
+          <Pane.Footer>
+            <Records.Pagination />
+          </Pane.Footer>
+        </Pane>
+      </Records.Provider>
+    )
+  }
+
+  it('keeps the header under the toolbar, at rest and stuck', async () => {
+    const { container } = render(
+      <div style={{ height: 600, width: WIDE_PANE, display: 'grid' }}>
+        <ProviderPane />
+      </div>
+    )
+    await frame()
+    const toolbar = () => rect(slot(container, 'records-toolbar'))
+    const head = () => rect(slot(container, 'record-table-head'))
+    expect(head().top).toBeGreaterThanOrEqual(toolbar().bottom - 0.5)
+    const pane = slot(container, 'pane-viewport')
+    await expect
+      .poll(() => {
+        pane.scrollTop = 1500
+        return Math.abs(head().top - toolbar().bottom)
+      })
+      .toBeLessThanOrEqual(1)
+    expect(
+      getComputedStyle(slot(container, 'record-table-head')).backgroundColor
+    ).toBe(getComputedStyle(slot(container, 'pane')).backgroundColor)
+  })
+})

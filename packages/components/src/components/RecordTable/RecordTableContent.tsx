@@ -21,12 +21,9 @@ import { SortIcon } from '../DataTable/SortIcon'
 import { Progress } from '../Progress'
 import { RecordsEmpty, RecordsError } from '../Records/RecordsStates'
 import { useRecordsContext } from '../Records/context'
-import type {
-  RecordLayoutDefinition,
-  RecordsContentProps
-} from '../Records/layouts'
+import type { RecordsContentProps } from '../Records/layouts'
 import { useStickyTop } from '../Records/stickyTop'
-import { surfaceClass } from '../Records/surface'
+import { surfaceClass, useSurface } from '../Records/surface'
 import { ScrollArea } from '../ScrollArea'
 import {
   RecordTableRow,
@@ -38,7 +35,7 @@ import {
 import { RecordTableSkeletonRows, StateRow } from './RecordTableStates'
 import { shownColumns } from './columns'
 import { columnLayout, columnWidths, sameWidths } from './layout'
-import type { TableLayoutDefinition } from './tableLayout'
+import type { TableLayoutConfig } from './tableLayout'
 
 /**
  * In a box, sizes the table to its rows inside Base UI's measured content, so
@@ -97,22 +94,23 @@ function nextSort(field: RecordField, sort: readonly RecordSort[]) {
 }
 
 export type RecordTableContentProps = RecordsContentProps & {
-  layout: RecordLayoutDefinition
+  config: TableLayoutConfig
 }
 
 export function RecordTableContent({
   className,
   maxHeight,
   fill = false,
-  layout: definition
+  config
 }: RecordTableContentProps) {
-  const { records, caption, setContentFill } = useRecordsContext()
+  const { records, caption, toolbar, setContentFill } = useRecordsContext()
   const headRef = useRef<HTMLDivElement>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
-  const headTop = useStickyTop(headRef, { underToolbar: true })
   // In its own box, one viewport scrolls both ways; otherwise only the rows scroll sideways.
   const boxed = fill || Boolean(maxHeight)
-  const { columns: allColumns } = definition as TableLayoutDefinition
+  const headTop = useStickyTop(headRef, toolbar, boxed)
+  useSurface(headRef)
+  const allColumns = config.columns
   const viewLayout = records.view.layout
   const columns = useMemo(
     () => shownColumns(allColumns, viewLayout),
@@ -344,4 +342,4 @@ export function RecordTableContent({
     </ScrollArea>
   )
 }
-RecordTableContent.displayName = 'RecordTable.Content'
+RecordTableContent.displayName = 'RecordTableContent'
