@@ -141,7 +141,7 @@ export function FoundationPreview({ name }: { name: string }) {
     case 'date-and-time':
       return (
         <div className='flex items-center gap-3'>
-          <ComponentSkeleton name='calendar-tile' />
+          {ComponentSkeleton({ name: 'calendar-tile' })}
           <div className='grid gap-1'>
             <p className='text-sm font-semibold text-strong'>Fri 27 Nov</p>
             <p className='text-xs text-subtle'>7:30pm AEDT</p>
@@ -163,6 +163,38 @@ export function FoundationPreview({ name }: { name: string }) {
             <Skel className='h-2 w-full' />
             <Skel className='h-2 w-28' />
             <Skel className='h-2 w-32' />
+          </div>
+        </div>
+      )
+    case 'tables':
+      return (
+        <div className='grid w-44 grid-cols-[3fr_2fr] gap-1.5'>
+          <div className='row-span-2 grid content-start rounded-lg bg-normal px-2 py-1'>
+            <div className='flex h-4 items-center justify-between border-b border-normal'>
+              <Skel className='h-1 w-7 opacity-60' />
+              <Skel className='h-1 w-4 opacity-60' />
+            </div>
+            {['w-10', 'w-7', 'w-9', 'w-8'].map((width) => (
+              <div
+                key={width}
+                className='flex h-4 items-center justify-between border-b border-subtler last:border-b-0'
+              >
+                <Skel className={`h-1.5 ${width}`} />
+                <Skel className='h-1.5 w-4' />
+              </div>
+            ))}
+          </div>
+          <div className='grid emphasis-raised content-start gap-1 rounded-lg p-1.5'>
+            <Skel className='h-1 w-8' />
+            <p className='text-sm/none font-semibold text-strong'>8,412</p>
+          </div>
+          <div className='grid divide-y divide-subtle rounded-lg bg-normal px-1.5'>
+            {['w-8', 'w-6'].map((width) => (
+              <div key={width} className='flex items-center gap-1 py-1'>
+                <div className='size-2 shrink-0 rounded-full bg-subtle' />
+                <Skel className={`h-1.5 ${width}`} />
+              </div>
+            ))}
           </div>
         </div>
       )
@@ -212,9 +244,9 @@ export function FoundationPreview({ name }: { name: string }) {
         </div>
       )
     case 'forms':
-      return <ComponentSkeleton name='field' />
+      return ComponentSkeleton({ name: 'field' })
     case 'navigation':
-      return <ComponentSkeleton name='navigator' />
+      return ComponentSkeleton({ name: 'navigator' })
     case 'linking':
       return (
         <div className='flex items-center gap-2 text-subtle'>
@@ -236,12 +268,6 @@ export function FoundationPreview({ name }: { name: string }) {
         </div>
       )
     default:
-      return (
-        <div className='grid w-40 gap-1.5'>
-          <Skel className='h-2 w-20' />
-          <Skel className='h-2 w-full' />
-          <Skel className='h-2 w-16' />
-        </div>
-      )
+      return null
   }
 }

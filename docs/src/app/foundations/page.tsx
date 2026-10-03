@@ -1,4 +1,4 @@
-import { FoundationPreview } from '@/components/FoundationPreview'
+import { CataloguePreview } from '@/components/CataloguePreview'
 import { PreviewCard, PreviewSection } from '@/components/PreviewGrid'
 import { FOUNDATIONS, getCatalogue } from '@/lib/page-manifest'
 
@@ -18,7 +18,7 @@ export default async function FoundationsPage() {
         <PreviewSection key={category.name} title={category.name}>
           {category.entries.map((entry) => (
             <PreviewCard key={entry.name} href={entry.href} title={entry.title}>
-              <FoundationPreview name={entry.name} />
+              <CataloguePreview route={FOUNDATIONS.route} entry={entry} />
             </PreviewCard>
           ))}
         </PreviewSection>

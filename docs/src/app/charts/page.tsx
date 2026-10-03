@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-import { ChartPreview } from '@/components/ChartPreview'
+import { CataloguePreview } from '@/components/CataloguePreview'
 import { CodePreview } from '@/components/CodePreview'
 import { PreviewCard, PreviewSection } from '@/components/PreviewGrid'
 import { CHARTS, getCatalogue } from '@/lib/page-manifest'
@@ -39,7 +39,7 @@ export default async function ChartsPage() {
         <PreviewSection key={category.name} title={category.name}>
           {category.entries.map((entry) => (
             <PreviewCard key={entry.name} href={entry.href} title={entry.title}>
-              <ChartPreview name={entry.name} />
+              <CataloguePreview route={CHARTS.route} entry={entry} />
             </PreviewCard>
           ))}
         </PreviewSection>
