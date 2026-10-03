@@ -26,6 +26,19 @@ describe('recordFilterOperators', () => {
   })
 })
 
+describe('recordFilterOperators for a list of dates', () => {
+  it('offers none, since filters cannot read one yet', () => {
+    expect(
+      recordFilterOperators({
+        key: 'sessions',
+        label: 'Sessions',
+        type: 'date',
+        multiple: true
+      })
+    ).toEqual([])
+  })
+})
+
 describe('recordFieldOptions', () => {
   it('returns the options given', () => {
     expect(recordFieldOptions(field('city'))[0]).toEqual({

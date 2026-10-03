@@ -300,4 +300,23 @@ describe('parseQuery', () => {
     expect(ongoing!.label).toBe('Starts: Happening now')
     expect(ongoing!.score).toBeLessThan(exact!.score)
   })
+
+  it('leaves out a date field that holds a list', () => {
+    const fields = [
+      ...eventFields,
+      {
+        key: 'sessions',
+        label: 'Sessions',
+        type: 'date' as const,
+        multiple: true
+      }
+    ]
+    const read = (text: string) =>
+      parseQuery(text, { ...options, fields, limit: 50 }).map(
+        (s) => s.value.field
+      )
+    expect(read('')).not.toContain('sessions')
+    expect(read('today')).not.toContain('sessions')
+    expect(read('sessions:today')).toEqual([])
+  })
 })

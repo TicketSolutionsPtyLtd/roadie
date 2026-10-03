@@ -4,6 +4,7 @@ import { isPlainDate } from '../datetime/plainDate'
 import { resolveAbsolute } from '../datetime/ranges'
 import {
   fieldIndex,
+  isDateList,
   isFilterable,
   isSortable,
   momentOf,
@@ -151,16 +152,16 @@ function filterProblems(
   const field = byKey.get(filter.field)
   if (!field)
     return [error(`${path}.field`, unknownField(filter.field, fields))]
-  if (!isFilterable(field)) {
-    return [error(`${path}.field`, `"${field.label}" is not filterable`)]
-  }
-  if (field.type === 'date' && field.multiple) {
+  if (isDateList(field)) {
     return [
       error(
         `${path}.field`,
         `"${field.label}" holds a list of dates, which filters cannot read yet`
       )
     ]
+  }
+  if (!isFilterable(field)) {
+    return [error(`${path}.field`, `"${field.label}" is not filterable`)]
   }
   const operators = recordFilterOperators(field)
   if (!operators.includes(filter.operator)) {

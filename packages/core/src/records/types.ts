@@ -82,7 +82,7 @@ export type RecordField = {
   sortable?: boolean
   /** Free-text search reads it. Defaults to true for text, false otherwise. */
   searchable?: boolean
-  /** The row holds a list: `is` means has any of, `is-not` has none of. */
+  /** The row holds a list: `is` means has any of, `is-not` has none of. Date fields cannot be filtered as lists yet. */
   multiple?: boolean
   /** A date range: the key holding the end. Filters test overlap. */
   end?: string

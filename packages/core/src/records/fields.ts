@@ -23,7 +23,9 @@ export function recordFilterOperators(
     case 'money':
       return ['eq', 'neq', 'lt', 'gt', 'between', ...EMPTINESS]
     case 'date':
-      return ['on', 'before', 'after', 'between', 'within', ...EMPTINESS]
+      return isDateList(field)
+        ? []
+        : ['on', 'before', 'after', 'between', 'within', ...EMPTINESS]
     case 'boolean':
       return ['is-true', 'is-false', ...EMPTINESS]
   }
@@ -50,8 +52,13 @@ export function momentOf(field: RecordField): RecordMoment {
   return field.moment ?? 'timestamp'
 }
 
+/** Filters cannot read a list of dates yet. */
+export function isDateList(field: RecordField): boolean {
+  return field.type === 'date' && field.multiple === true
+}
+
 export function isFilterable(field: RecordField): boolean {
-  return field.filterable !== false
+  return field.filterable !== false && !isDateList(field)
 }
 
 export function isSortable(field: RecordField): boolean {
