@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -162,6 +162,24 @@ describe('Autocomplete first suggestion', () => {
     await userEvent.keyboard('{Enter}')
     expect(cityInput()).toHaveValue('')
     expect(onSubmit).toHaveBeenCalled()
+  })
+
+  it('highlights nothing when opened over a default value', async () => {
+    render(<Cities defaultValue='e' />)
+    await userEvent.click(screen.getByRole('button', { name: 'Show cities' }))
+    const first = await screen.findByRole('option', { name: 'Brisbane' })
+    expect(first).not.toHaveAttribute('data-highlighted')
+  })
+
+  it('highlights nothing after autofill', async () => {
+    render(<Cities openOnInputClick />)
+    await userEvent.click(cityInput())
+    fireEvent.input(cityInput(), {
+      target: { value: 'e' },
+      inputType: 'insertReplacementText'
+    })
+    const first = await screen.findByRole('option', { name: 'Brisbane' })
+    expect(first).not.toHaveAttribute('data-highlighted')
   })
 
   it('drops the highlight once the text is cleared', async () => {

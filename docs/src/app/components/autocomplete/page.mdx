@@ -389,10 +389,11 @@ since a highlight there would replace what the user typed.
 ### Keyboard behaviour
 
 - Typing filters the list in real time.
-- While the input has text, the first suggestion is highlighted, including
-  suggestions that arrive later, so typing then pressing **Enter** takes it.
-  With no text, nothing is highlighted.
-- **Arrow keys** move on from the first suggestion and wrap at either end.
+- Typing highlights the first suggestion, including suggestions that arrive
+  later, so typing then pressing **Enter** takes it. Opening the list without
+  typing highlights nothing new.
+- **Arrow keys** move through the list. Once typing has highlighted the first
+  suggestion, they move on from it and wrap at either end.
 - **Enter** takes the highlighted suggestion. With nothing highlighted it
   keeps the typed text and submits the form. To keep text that matches a
   suggestion, press **Escape** to close the list, then **Enter**.

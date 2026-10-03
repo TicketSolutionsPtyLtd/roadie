@@ -1,12 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 
 import {
   PointerHighlightContext,
-  usePointerHighlight
+  usePointerHighlight,
+  useTypedQuery
 } from '../../utils/optionHighlight'
 
 export type ComboboxRootProps<
@@ -42,9 +41,8 @@ export function ComboboxRoot<
 }: ComboboxRootProps<Value, Multiple, Item>) {
   const [byPointer, handleItemHighlighted] =
     usePointerHighlight(onItemHighlighted)
-  const [typed, setTyped] = useState(false)
-  // Base UI's `true` only highlights items present when the text changes;
-  // its Autocomplete-only 'always' also catches late async results.
+  const { typed, handleQueryChange, resetTyped } = useTypedQuery(props.open)
+  // Base UI types 'always' for Autocomplete only; its Combobox handles it.
   const mode = (autoHighlight && typed ? 'always' : false) as AutoHighlightMode
   return (
     <PointerHighlightContext value={byPointer}>
@@ -52,16 +50,16 @@ export function ComboboxRoot<
         onItemHighlighted={handleItemHighlighted}
         autoHighlight={mode}
         onInputValueChange={(next, details) => {
-          if (details.reason === 'input-change') setTyped(next.trim() !== '')
           onInputValueChange?.(next, details)
+          handleQueryChange(next, details)
         }}
         onOpenChange={(open, details) => {
-          if (!open) setTyped(false)
           onOpenChange?.(open, details)
+          if (!open) resetTyped(details)
         }}
         onValueChange={(next, details) => {
-          setTyped(false)
           onValueChange?.(next, details)
+          resetTyped(details)
         }}
         {...props}
       />

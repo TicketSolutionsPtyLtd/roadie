@@ -9,9 +9,9 @@ that arrive after typing, such as server results, are highlighted too.
 Opening the list without typing still highlights nothing new, so Enter there
 picks no value, and an empty `Autocomplete` still submits its form. While
 suggestions show for typed text, Enter fills the first one instead of
-submitting; press Escape first to keep the typed text. The first Down Arrow
-now moves to the second suggestion, and the arrows wrap at either end instead
-of returning to the input. `Autocomplete` in `both` or `inline` mode is
+submitting; press Escape first to keep the typed text. After typing, the first
+Down Arrow moves to the second suggestion, and the arrows wrap at either end
+instead of returning to the input. `Autocomplete` in `both` or `inline` mode is
 unchanged, since a highlight there replaces the typed text.
 
 Pass `autoHighlight={false}` to keep the old behaviour. `Autocomplete` also

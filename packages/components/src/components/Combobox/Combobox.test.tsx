@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 
@@ -279,6 +279,27 @@ describe('Combobox first match', () => {
       )
     )
     expect(folk).toBeInTheDocument()
+  })
+
+  it('highlights nothing after a controlled close and reopen', async () => {
+    function Controlled() {
+      const [open, setOpen] = useState(false)
+      return (
+        <>
+          <Genres open={open} onOpenChange={setOpen} />
+          <button type='button' data-close onClick={() => setOpen(false)}>
+            Close
+          </button>
+        </>
+      )
+    }
+    render(<Controlled />)
+    await userEvent.type(genreInput(), 'o')
+    await screen.findByRole('option', { name: 'Folk' })
+    fireEvent.click(document.querySelector('[data-close]')!)
+    await userEvent.click(screen.getByRole('button', { name: 'Show genres' }))
+    const first = await screen.findByRole('option', { name: 'Rock' })
+    expect(first).not.toHaveAttribute('data-highlighted')
   })
 
   it('picks nothing on Enter with autoHighlight off', async () => {
