@@ -187,13 +187,17 @@ export function ComponentSkeleton({ name }: { name: string }) {
     case 'dashboard-period':
       return (
         <div className='grid w-48 gap-1.5'>
-          <div className='flex flex-wrap gap-1.5'>
-            <div className='flex emphasis-raised items-center gap-1.5 rounded-lg px-2.5 py-1'>
+          <div className='flex gap-1.5'>
+            <div className='flex emphasis-raised items-center gap-1 rounded-lg px-1.5 py-1'>
               <CalendarBlankIcon weight='bold' className='size-3 text-subtle' />
-              <span className='text-sm text-normal'>This month</span>
+              <span className='text-xs whitespace-nowrap text-normal'>
+                This month
+              </span>
             </div>
-            <div className='flex emphasis-raised items-center gap-1.5 rounded-lg px-2.5 py-1'>
-              <span className='text-sm text-subtle'>vs previous</span>
+            <div className='flex emphasis-raised items-center gap-1 rounded-lg px-1.5 py-1'>
+              <span className='text-xs whitespace-nowrap text-subtle'>
+                vs previous
+              </span>
               <CaretDownIcon weight='bold' className='size-3 text-subtle' />
             </div>
           </div>
