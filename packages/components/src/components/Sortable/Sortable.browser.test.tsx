@@ -388,3 +388,86 @@ describe('Sortable in context', () => {
     expect(onReorder.mock.calls[0]![1].to).toBeGreaterThan(3)
   })
 })
+
+describe('Sortable handle alignment', () => {
+  const SIZES = ['xs', 'sm', 'md', 'lg'] as const
+  const offset = (name: string) => {
+    const icon = handle(name).querySelector('svg')!
+    return centre(icon).y - centre(item(name)).y
+  }
+
+  it.each(SIZES)('centres a %s handle in a horizontal pill', (size) => {
+    render(
+      <Sortable
+        items={['A']}
+        label='tags'
+        orientation='horizontal'
+        onReorder={() => {}}
+      >
+        <Sortable.Item
+          value='A'
+          label='A'
+          className='flex h-10 shrink-0 items-center gap-1 rounded-full emphasis-subtle ps-1 pe-4'
+        >
+          <Sortable.Handle size={size} />
+          <span className='font-semibold text-strong'>A</span>
+        </Sortable.Item>
+      </Sortable>
+    )
+    expect(Math.abs(offset('A'))).toBeLessThanOrEqual(1)
+  })
+
+  it.each(SIZES)('centres a %s handle in a tall vertical row', (size) => {
+    render(
+      <Sortable items={['A']} label='rows' onReorder={() => {}}>
+        <Sortable.Item
+          value='A'
+          label='A'
+          className='flex h-16 emphasis-normal items-center gap-3 rounded-xl p-2'
+        >
+          <Sortable.Handle size={size} />
+          <span className='font-semibold'>A</span>
+        </Sortable.Item>
+      </Sortable>
+    )
+    expect(Math.abs(offset('A'))).toBeLessThanOrEqual(1)
+  })
+
+  it.each([
+    ['without', undefined],
+    ['with', <span className='size-10' />]
+  ])('centres the handle in a List row %s a leading slot', (_, leading) => {
+    render(
+      <Sortable items={['A']} label='rows' onReorder={() => {}}>
+        <List>
+          <List.Item
+            value='A'
+            title='A'
+            description='Two lines tall'
+            leading={leading}
+          />
+        </List>
+      </Sortable>
+    )
+    const row = item('A').querySelector('[data-slot="list-item"]')!
+    const icon = handle('A').querySelector('svg')!
+    expect(Math.abs(centre(icon).y - centre(row).y)).toBeLessThanOrEqual(1)
+  })
+
+  it('follows a row that aligns its items to the start', () => {
+    render(
+      <Sortable items={['A']} label='rows' onReorder={() => {}}>
+        <Sortable.Item
+          value='A'
+          label='A'
+          className='flex h-16 emphasis-normal items-start gap-3 rounded-xl p-2'
+        >
+          <Sortable.Handle />
+          <span className='font-semibold'>A</span>
+        </Sortable.Item>
+      </Sortable>
+    )
+    const labelTop = screen.getByText('A').getBoundingClientRect().top
+    expect(handle('A').getBoundingClientRect().top).toBeCloseTo(labelTop, 0)
+  })
+})
