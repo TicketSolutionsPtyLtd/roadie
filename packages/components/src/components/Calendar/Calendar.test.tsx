@@ -817,7 +817,7 @@ describe('Calendar', () => {
       expect(screen.getByRole('button', { name: 'Next month' })).toBeDisabled()
     })
 
-    it('shows several months, with the arrows at either end', () => {
+    it('shows several months, with one pair of arrows', () => {
       render(<Calendar today={TODAY} numberOfMonths={2} />)
       const grids = screen.getAllByRole('grid')
       expect(grids).toHaveLength(2)
@@ -894,5 +894,231 @@ describe('Calendar', () => {
     await userEvent.click(day('2027-03-20'))
     expect(day('2027-03-04')).not.toHaveAttribute('data-selected')
     expect(day('2027-03-20')).toHaveAttribute('data-range-start')
+  })
+})
+
+describe('Calendar navigation', () => {
+  it('puts the title first and both arrows after it', () => {
+    render(<Calendar today={TODAY} />)
+    const header = document.querySelector<HTMLElement>(
+      '[data-slot="calendar-header"]'
+    )!
+    const [title, ...rest] = Array.from(header.children)
+    expect(title).toHaveTextContent('March 2027')
+    expect(
+      within(header)
+        .getAllByRole('button')
+        .map((b) => b.ariaLabel)
+    ).toEqual(['Previous month', 'Next month'])
+    expect(rest).not.toHaveLength(0)
+  })
+
+  it('keeps both arrows together beside the last month of several', () => {
+    render(<Calendar today={TODAY} numberOfMonths={2} />)
+    const nav = document.querySelector('[data-slot="calendar-nav"]')!
+    expect(within(nav as HTMLElement).getAllByRole('button')).toHaveLength(2)
+  })
+
+  it('marks its direction and keeps the arrow names when vertical', () => {
+    render(<Calendar today={TODAY} direction='vertical' />)
+    expect(document.querySelector('[data-slot="calendar"]')).toHaveAttribute(
+      'data-direction',
+      'vertical'
+    )
+    expect(
+      screen.getByRole('button', { name: 'Next month' })
+    ).toBeInTheDocument()
+  })
+})
+
+describe('Calendar week view', () => {
+  const grid = () => screen.getByRole('grid')
+  const shownDays = () =>
+    within(grid())
+      .getAllByRole('button')
+      .map((button) => button.dataset.date)
+
+  it('shows the week holding the selection, then today', () => {
+    const { unmount } = render(
+      <Calendar view='week' today={TODAY} defaultSelected='2027-03-31' />
+    )
+    expect(shownDays()).toEqual([
+      '2027-03-29',
+      '2027-03-30',
+      '2027-03-31',
+      '2027-04-01',
+      '2027-04-02',
+      '2027-04-03',
+      '2027-04-04'
+    ])
+    expect(grid()).toHaveAccessibleName(
+      'Monday, 29 March to Sunday, 4 April 2027'
+    )
+    expect(
+      document.querySelector('[data-slot="calendar-header"]')
+    ).toHaveTextContent('March to April 2027')
+    unmount()
+    render(<Calendar view='week' today={TODAY} />)
+    expect(shownDays()[0]).toBe('2027-03-08')
+    expect(within(grid()).getAllByRole('row')).toHaveLength(2)
+  })
+
+  it('steps a week at a time and reports the month it moves into', async () => {
+    const onMonthChange = vi.fn()
+    render(<Calendar view='week' today={TODAY} onMonthChange={onMonthChange} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    expect(shownDays()[0]).toBe('2027-03-15')
+    expect(live()).toHaveTextContent('Monday, 15 to Sunday, 21 March 2027')
+    expect(onMonthChange).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    expect(shownDays()[0]).toBe('2027-03-29')
+    expect(onMonthChange).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    expect(shownDays()[0]).toBe('2027-04-05')
+    expect(onMonthChange).toHaveBeenLastCalledWith('2027-04-01')
+    await userEvent.click(screen.getByRole('button', { name: 'Previous week' }))
+    expect(shownDays()[0]).toBe('2027-03-29')
+  })
+
+  it('keeps a tab stop in a week away from today and the selection', async () => {
+    render(<Calendar view='week' today={TODAY} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    const stops = within(grid())
+      .getAllByRole('button')
+      .filter((button) => button.tabIndex === 0)
+    expect(stops.map((button) => button.dataset.date)).toEqual(['2027-03-29'])
+  })
+
+  it('follows the keyboard into the next week', async () => {
+    render(<Calendar view='week' today='2027-03-14' />)
+    act(() => day('2027-03-14').focus())
+    await userEvent.keyboard('{ArrowRight}')
+    expect(shownDays()[0]).toBe('2027-03-15')
+    expect(day('2027-03-15')).toHaveFocus()
+    await userEvent.keyboard('{PageDown}')
+    expect(shownDays()).toContain('2027-04-15')
+    expect(day('2027-04-15')).toHaveFocus()
+  })
+
+  it('stops at startMonth and endMonth', () => {
+    render(
+      <Calendar
+        view='week'
+        today='2027-03-02'
+        startMonth='2027-03-01'
+        endMonth='2027-03-31'
+      />
+    )
+    expect(screen.getByRole('button', { name: 'Previous week' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Next week' })).toBeEnabled()
+  })
+
+  it('opens on the first week of a controlled month it moves to', () => {
+    const { rerender } = render(
+      <Calendar view='week' today={TODAY} month='2027-03-01' />
+    )
+    expect(shownDays()[0]).toBe('2027-03-08')
+    rerender(<Calendar view='week' today={TODAY} month='2027-05-01' />)
+    expect(shownDays()[0]).toBe('2027-04-26')
+  })
+
+  it('switches between week and month with the views toggle', async () => {
+    const onViewChange = vi.fn()
+    render(
+      <Calendar
+        today={TODAY}
+        views={['week', 'month']}
+        defaultView='week'
+        onViewChange={onViewChange}
+      />
+    )
+    const toggle = screen.getByRole('button', { name: 'Month view' })
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(toggle)
+    expect(onViewChange).toHaveBeenLastCalledWith('month')
+    expect(grid()).toHaveAccessibleName('March 2027')
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(toggle)
+    expect(shownDays()[0]).toBe('2027-03-08')
+  })
+
+  it('puts the view toggle beside the title, before the arrows', () => {
+    render(<Calendar today={TODAY} views={['week', 'month']} />)
+    const header = document.querySelector<HTMLElement>(
+      '[data-slot="calendar-header"]'
+    )!
+    expect(
+      within(header)
+        .getAllByRole('button')
+        .map((button) => button.ariaLabel)
+    ).toEqual(['Month view', 'Previous month', 'Next month'])
+  })
+
+  it('follows a controlled view', async () => {
+    render(<Calendar today={TODAY} view='month' views={['week', 'month']} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Month view' }))
+    expect(grid()).toHaveAccessibleName('March 2027')
+  })
+
+  it('shows months as a list when the layout scrolls', () => {
+    render(<Calendar today={TODAY} view='week' layout='scroll' />)
+    expect(
+      screen.getAllByRole('grid')[0]!.getAttribute('aria-labelledby')
+    ).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Next week' })).toBeNull()
+  })
+})
+
+describe('Calendar day content', () => {
+  const content = (date: string) =>
+    date === '2027-03-03'
+      ? 'Sold out'
+      : date >= '2027-03-04' && date <= '2027-03-07'
+        ? `$29`
+        : null
+
+  it('adds content under the number and describes the day with it', () => {
+    render(<Calendar today={TODAY} getDayContent={content} />)
+    const thursday = day('2027-03-04')
+    expect(thursday).toHaveTextContent('4$29')
+    expect(thursday).toHaveAccessibleName('Thursday, 4 March 2027')
+    expect(thursday).toHaveAccessibleDescription('$29')
+    expect(thursday).toHaveAttribute('data-content', '')
+    expect(day('2027-03-01')).not.toHaveAttribute('data-content')
+    expect(day('2027-03-01')).not.toHaveAttribute('aria-describedby')
+  })
+
+  it('strikes through a disabled day that has content', () => {
+    render(
+      <Calendar
+        today={TODAY}
+        getDayContent={content}
+        disabled={['2027-03-03', '2027-03-01']}
+      />
+    )
+    const struck = (date: string) =>
+      day(date).querySelector('[data-slot="calendar-day-number"]')!
+    expect(struck('2027-03-03')).toHaveClass('line-through')
+    expect(struck('2027-03-01')).not.toHaveClass('line-through')
+  })
+
+  it('draws tiles in week view and wherever days have content', () => {
+    const { rerender } = render(<Calendar today={TODAY} />)
+    expect(
+      document.querySelector('[data-slot="calendar"]')
+    ).not.toHaveAttribute('data-tiles')
+    rerender(<Calendar today={TODAY} getDayContent={content} />)
+    expect(document.querySelector('[data-slot="calendar"]')).toHaveAttribute(
+      'data-tiles',
+      ''
+    )
+    rerender(<Calendar today={TODAY} view='week' />)
+    expect(document.querySelector('[data-slot="calendar"]')).toHaveAttribute(
+      'data-tiles',
+      ''
+    )
   })
 })

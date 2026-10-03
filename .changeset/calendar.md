@@ -21,13 +21,28 @@ side by side where they fit and stacked where they don't, or with
 weekdays, adding months as it nears either end. It takes month and year
 selects under `captionLayout='dropdown'`,
 `fixedWeeks`, `showOutsideDays`, `weekStart`, `startMonth` and `endMonth`,
-and a controlled `month`. Focus moves separately from selection with a roving
-tab stop: arrows, Page Up and Down (with Shift for a year), Home and End.
-Disabled days stay focusable, ranges preview under the pointer or keyboard,
-and a polite live region announces the month and the selection. Days carry
+and a controlled `month`. The month's name sits at the start of the header
+and both arrows at the end, together even with several months.
+
+On a touch screen a swipe turns the page, the days following the finger
+unless motion is reduced, and the other way in a right-to-left page.
+`direction='vertical'` turns the months up and down instead: the arrows
+point up and down and a finger swipes up for the next month.
+`view='week'` (with `defaultView` and `onViewChange`) shows one week as a
+row of larger days that turns a week at a time, and `views={['week',
+'month']}` adds a "Month view" toggle beside the title. `getDayContent` puts
+content such as a price or a status mark under each day's number in either
+view. Days with content become tiles that grow to fit, the content describes
+the day to screen readers, and a disabled day with content is struck
+through. Days without content stay plain compact circles.
+
+Focus moves separately from selection with a roving tab stop: arrows, Page
+Up and Down (with Shift for a year), Home and End. Disabled days stay
+focusable, ranges preview under the pointer or keyboard, and a polite live
+region announces the month, or the week's dates, and the selection. Days carry
 `data-selected`, `data-range-start`, `data-range-middle`, `data-range-end`,
 `data-range-preview`, `data-today`, `data-outside`, `data-disabled`,
-`data-out-of-range` and `data-focused` for styling.
+`data-out-of-range`, `data-focused` and `data-content` for styling.
 
 Today follows midnight in `timeZone` and catches up when a hidden tab is shown
 again. The server leaves today unmarked, so cached HTML read on a later day

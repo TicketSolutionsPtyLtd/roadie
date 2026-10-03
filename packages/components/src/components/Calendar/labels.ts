@@ -68,3 +68,17 @@ export function weekdayNames(weekStart: number, locale: string) {
     }
   })
 }
+
+/** "March 2027", or "March to April 2027" for a week across two months */
+export function weekCaption(
+  start: string,
+  end: string,
+  locale: string
+): string {
+  if (start.slice(0, 7) === end.slice(0, 7)) return monthLabel(start, locale)
+  const from =
+    start.slice(0, 4) === end.slice(0, 4)
+      ? format(start, locale, { month: 'long' })
+      : monthLabel(start, locale)
+  return `${from} to ${monthLabel(end, locale)}`
+}

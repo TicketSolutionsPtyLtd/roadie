@@ -576,9 +576,9 @@ export function ComponentSkeleton({ name }: { name: string }) {
     case 'calendar':
       return (
         <div className='grid w-35 gap-1.5'>
-          <div className='flex items-center justify-between'>
-            <Skel className='size-3 rounded-full' />
+          <div className='grid grid-cols-[1fr_auto_auto] items-center gap-1'>
             <Skel className='h-2 w-14' />
+            <Skel className='size-3 rounded-full' />
             <Skel className='size-3 rounded-full' />
           </div>
           <div className='grid grid-cols-7 gap-y-1'>

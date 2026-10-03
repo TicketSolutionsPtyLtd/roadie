@@ -22,6 +22,8 @@ import { Calendar } from '@oztix/roadie-components/calendar'
 
 Calendar opens on the selected month, or on today's. Every value is a plain ISO date string such as `'2026-11-27'`, never a `Date`. Today moves on at midnight in `timeZone`. Server HTML may be read on a later day, so the server leaves today unmarked, and a calendar with nothing else to place its month renders an empty six-week frame until the browser fills it in. Pass `today`, `month`, `defaultMonth` or a selection to render it in full on the server.
 
+The month's name sits at the start of the header and both arrows sit at the end. On a touch screen, swipe the days sideways to turn the month. The days follow the finger, or turn straight away when the reader prefers reduced motion, and the swipe runs the other way in a right-to-left page.
+
 ```tsx-live-noinline
 function Default() {
   const [date, setDate] = useState(null)
@@ -130,7 +132,7 @@ render(
 
 ### With two months
 
-`numberOfMonths` shows months side by side where they fit and stacks them where they don't. The previous arrow sits on the first month and the next arrow on the last, and each moves the set one month.
+`numberOfMonths` shows months side by side where they fit and stacks them where they don't. Both arrows sit together at the top end, and each moves the set one month.
 
 ```tsx-live
 <Calendar mode='range' numberOfMonths={2} />
@@ -149,6 +151,102 @@ render(
     className='px-4 **:data-[slot=calendar-weekdays]:-mx-4 **:data-[slot=calendar-weekdays]:px-4'
   />
 </div>
+```
+
+### With vertical paging
+
+`direction='vertical'` turns the months up and down: the arrows point up and down, and a finger swipes up for the next month. The days still scroll the page sideways only, so use it where the calendar has the screen to itself. For one continuous list of months, use `layout='scroll'` instead.
+
+```tsx-live
+<Calendar direction='vertical' defaultMonth='2026-11-01' />
+```
+
+### With a week view
+
+`view='week'` shows one week as a row of larger days, and the arrows and a swipe turn a week at a time. It suits choosing a session in the coming days. `views` lists the views the reader can switch between. With both, a "Month view" toggle sits beside the title. Use `defaultView` to open on one, or `view` and `onViewChange` to control it.
+
+```tsx-live-noinline
+function Week() {
+  const [date, setDate] = useState(null)
+  return (
+    <div className='grid gap-4'>
+      <Calendar
+        defaultView='week'
+        views={['week', 'month']}
+        defaultMonth='2026-11-01'
+        selected={date}
+        onSelect={setDate}
+      />
+      <p className='text-sm text-subtle'>Selected: {date ?? 'none'}</p>
+    </div>
+  )
+}
+
+render(<Week />)
+```
+
+### With day content
+
+`getDayContent` adds content under a day's number, such as a price or how many sessions are left, in the month and the week alike. Return null for a plain day. Days become tiles that grow to fit, so a long line wraps rather than spills. A disabled day with content is struck through, so here sold-out nights read as unavailable while nights outside the run stay plain. The content describes the day to screen readers, so give a mark like a dot some words too.
+
+```tsx-live-noinline
+const nights = {
+  '2026-10-28': { price: 29, left: 2 },
+  '2026-10-29': { price: 29, left: 4 },
+  '2026-10-30': { soldOut: true },
+  '2026-10-31': { price: 35, left: 1 },
+  '2026-11-01': { price: 35, left: 3 },
+  '2026-11-04': { price: 29, left: 4 },
+  '2026-11-05': { price: 29, left: 2 },
+  '2026-11-06': { price: 35, left: 1 },
+  '2026-11-07': { soldOut: true },
+  '2026-11-08': { price: 35, left: 4 },
+  '2026-11-11': { price: 29, left: 4 },
+  '2026-11-12': { price: 29, left: 3 },
+  '2026-11-13': { price: 39, left: 4 },
+  '2026-11-14': { price: 39, left: 4 },
+  '2026-11-15': { price: 39, left: 2 }
+}
+
+function nightContent(date) {
+  const night = nights[date]
+  if (!night) return null
+  if (night.soldOut) return 'Sold out'
+  return (
+    <>
+      <span>${night.price}</span>
+      <span aria-hidden='true' className='flex gap-0.5'>
+        {Array.from({ length: night.left }, (_, i) => (
+          <span key={i} className='size-1 rounded-full bg-current' />
+        ))}
+      </span>
+      <span className='sr-only'>
+        {night.left === 1 ? '1 session left' : `${night.left} sessions left`}
+      </span>
+    </>
+  )
+}
+
+function Sessions() {
+  const [date, setDate] = useState(null)
+  return (
+    <div className='grid max-w-md gap-4'>
+      <Calendar
+        views={['week', 'month']}
+        defaultMonth='2026-11-01'
+        selected={date}
+        onSelect={setDate}
+        disabled={(date) => !nights[date] || nights[date].soldOut}
+        getDayContent={nightContent}
+      />
+      <p className='text-sm text-subtle'>
+        Ember Galah Ball at Kazoo Hollow Room. Dots show sessions left.
+      </p>
+    </div>
+  )
+}
+
+render(<Sessions />)
 ```
 
 ## Guidelines
@@ -175,6 +273,15 @@ render(
   </Guideline.Dont>
 </Guideline>
 
+<Guideline title='Give day content words'>
+  <Guideline.Do>
+    Pair a mark, such as a dot for each session left, with hidden text like "2 sessions left". The content describes the day to screen readers.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put content in every day to make the calendar look full. Plain compact days are the default, and tiles are for days that have something to say.
+  </Guideline.Dont>
+</Guideline>
+
 <Guideline title='Say what a modifier means'>
   <Guideline.Do>
     Explain a styled modifier in text near the calendar, such as "Bold nights have a show". Modifiers are styling only, and screen readers don't hear them.
@@ -194,7 +301,10 @@ render(
 - `Enter` and `Space` select the focused day. While a range is half chosen, `Escape` drops its start.
 - Disabled days are focusable with `aria-disabled`, so they can be read and passed, but not selected.
 - A polite live region announces the month when it changes and the selection when it changes, such as "Selected Wednesday, 3 to Sunday, 7 March 2027".
-- The month arrows are labelled "Previous month" and "Next month". In the dropdown layout the selects are labelled "Month" and "Year".
+- The month arrows are labelled "Previous month" and "Next month", and in week view "Previous week" and "Next week". In the dropdown layout the selects are labelled "Month" and "Year". The view toggle is a button labelled "Month view", pressed in month view.
+- Swiping turns the page on a touch screen, and the arrows do the same for everyone else. With reduced motion the days don't slide.
+- In week view the grid is named by its dates, such as "Monday, 26 October to Sunday, 1 November 2026", and turning a week announces them.
+- `getDayContent` describes its day: a day with a price is read as its date, then the price.
 - With `layout='scroll'`, each month keeps its own column headers for screen readers, and the pinned weekday row is hidden from them.
 
 <PropsDefinitions componentPath='packages/components/src/components/Calendar/Calendar.tsx' />

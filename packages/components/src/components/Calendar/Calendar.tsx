@@ -4,6 +4,7 @@ import {
   type ComponentProps,
   type KeyboardEvent,
   type PointerEvent,
+  type ReactNode,
   useEffect,
   useId,
   useMemo,
@@ -12,9 +13,11 @@ import {
 } from 'react'
 
 import {
+  CalendarDotsIcon,
   CaretDownIcon,
   CaretLeftIcon,
-  CaretRightIcon
+  CaretRightIcon,
+  CaretUpIcon
 } from '@phosphor-icons/react'
 import { cva } from 'class-variance-authority'
 
@@ -22,7 +25,8 @@ import {
   addDays,
   addMonths,
   compareDates,
-  monthGrid
+  monthGrid,
+  startOfWeek
 } from '@oztix/roadie-core/datetime'
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -30,12 +34,14 @@ import { mergeRefs } from '../../utils/mergeRefs'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { IconButton } from '../Button/IconButton'
 import { surfaceClass, useSurface } from '../Records/surface'
+import { Toggle } from '../Toggle'
 import { dateForKey } from './keys'
 import {
   dayLabel,
   monthLabel,
   monthNames,
   rangeLabel,
+  weekCaption,
   weekdayNames
 } from './labels'
 import {
@@ -53,6 +59,7 @@ import {
   selectDate,
   withinLength
 } from './selection'
+import { type SwipeStep, useSwipeToTurn } from './swipe'
 import { useToday } from './today'
 
 type CalendarBaseProps = Omit<
@@ -86,6 +93,37 @@ type CalendarBaseProps = Omit<
    * @default 'paged'
    */
   layout?: 'paged' | 'scroll'
+  /**
+   * The way a paged calendar turns: its arrows point this way and a finger
+   * swipes this way. `layout='scroll'` always runs down the page.
+   *
+   * @default 'horizontal'
+   */
+  direction?: 'horizontal' | 'vertical'
+  /**
+   * `month` shows whole months. `week` shows one week in a row of larger days
+   * that turns a week at a time. Paged only.
+   * Pair with `onViewChange`.
+   *
+   * @default 'month'
+   */
+  view?: 'month' | 'week'
+  /** The view shown first when uncontrolled. */
+  defaultView?: 'month' | 'week'
+  /** Called with the new view when the reader switches it. */
+  onViewChange?: (view: 'month' | 'week') => void
+  /**
+   * The views the reader can switch between. With both, a "Month view"
+   * toggle sits beside the title. Paged only.
+   */
+  views?: readonly ('month' | 'week')[]
+  /**
+   * Extra content under a day's number, such as a price or a status mark.
+   * Return null for a plain day. Days become tiles that grow to fit, and the
+   * content describes the day to screen readers. A disabled day with content
+   * is struck through.
+   */
+  getDayContent?: (date: string) => ReactNode
   /**
    * `dropdown` swaps the month name for month and year selects. Paged only.
    *
@@ -174,21 +212,33 @@ type AnyCalendarProps = CalendarBaseProps & {
 }
 
 export type CalendarLayout = 'paged' | 'scroll'
+export type CalendarDirection = 'horizontal' | 'vertical'
+export type CalendarView = 'month' | 'week'
 
 const emptyRange = (): CalendarDateRange => ({ start: null, end: null })
 
 const dayVariants = cva(
-  'relative mx-auto grid aspect-square w-full max-w-12 place-content-center rounded-full border text-sm tabular-nums is-interactive',
+  'relative grid w-full border tabular-nums is-interactive',
   {
     variants: {
+      shape: {
+        circle:
+          'mx-auto aspect-square max-w-12 place-content-center rounded-full text-sm',
+        // Aspect ratio is a floor, so a tile grows to fit its content.
+        tile: 'mx-auto aspect-square max-w-16 content-center justify-items-center gap-0.5 rounded-xl p-1 text-sm',
+        week: 'mx-auto aspect-4/5 max-w-20 content-center justify-items-center gap-1 rounded-xl p-1 text-base'
+      },
       look: {
         plain: 'emphasis-subtler border-transparent',
+        filled: 'emphasis-subtle border-transparent',
         // Forced colours drop the fills, so a Highlight edge carries the state.
         chosen:
           'intent-accent emphasis-strong font-semibold forced-colors:border-[Highlight]',
         // The band is the cell's, so it runs edge to edge past the circle.
         middle:
-          'intent-accent emphasis-subtler border-transparent forced-colors:border-[Highlight]'
+          'intent-accent emphasis-subtler border-transparent forced-colors:border-[Highlight]',
+        'middle-tile':
+          'intent-accent emphasis-subtle border-transparent forced-colors:border-[Highlight]'
       },
       outside: { true: '', false: '' }
     },
@@ -243,6 +293,10 @@ function scrollingAncestor(node: HTMLElement): HTMLElement | null {
   return null
 }
 
+function weekTouches(start: string, month: string) {
+  return monthOf(start) === month || monthOf(addDays(start, 6)) === month
+}
+
 function firstSelectedOf(mode: CalendarMode, selection: CalendarSelection) {
   if (mode === 'single') return selection as string | null
   if (mode === 'multiple') return (selection as readonly string[])[0] ?? null
@@ -262,6 +316,12 @@ export function Calendar(props: CalendarProps) {
     modifiers,
     numberOfMonths: numberOfMonthsProp = 1,
     layout = 'paged',
+    direction = 'horizontal',
+    view: viewProp,
+    defaultView = 'month',
+    onViewChange,
+    views,
+    getDayContent,
     captionLayout: captionLayoutProp = 'label',
     fixedWeeks = false,
     showOutsideDays = false,
@@ -286,6 +346,13 @@ export function Calendar(props: CalendarProps) {
   useSurface(weekdaysRef, layout)
   const scrolling = layout === 'scroll'
   const captionLayout = scrolling ? 'label' : captionLayoutProp
+  const [uncontrolledView, setUncontrolledView] = useState(defaultView)
+  const view = viewProp ?? uncontrolledView
+  const weekView = view === 'week' && !scrolling
+  const showViewToggle =
+    !scrolling && !!views?.includes('week') && views.includes('month')
+  const tiles = weekView || !!getDayContent
+  const vertical = direction === 'vertical'
   const boundedSpan =
     startMonth && endMonth
       ? (yearOf(endMonth) - yearOf(startMonth)) * 12 +
@@ -293,9 +360,10 @@ export function Calendar(props: CalendarProps) {
         monthNumberOf(startMonth) +
         1
       : Infinity
-  const numberOfMonths = scrolling
-    ? 1
-    : Math.max(1, Math.min(Math.floor(numberOfMonthsProp), boundedSpan))
+  const numberOfMonths =
+    scrolling || weekView
+      ? 1
+      : Math.max(1, Math.min(Math.floor(numberOfMonthsProp), boundedSpan))
   const today = useToday(todayProp, timeZone)
   // The grid is Gregorian, so its labels must be too, whatever the locale prefers.
   const locale = new Intl.Locale(localeProp, { calendar: 'gregory' }).toString()
@@ -357,12 +425,28 @@ export function Calendar(props: CalendarProps) {
         addMonths(currentRun.start, i)
       )
     : Array.from({ length: numberOfMonths }, (_, i) => addMonths(firstMonth, i))
-  const visibleStart = months[0]!
-  const lastVisibleDay = lastDayOf(months[months.length - 1]!)
-  const isVisible = (date: string) =>
-    between(date, visibleStart, lastVisibleDay)
 
   const [focusedDate, setFocusedDate] = useState<string | null>(null)
+  // Null until the reader turns a week, and kept while it touches the month
+  // shown, so switching views or a parent's `month` lands somewhere sensible.
+  const [navigatedWeek, setNavigatedWeek] = useState<string | null>(null)
+  const weekFor = (month: string) =>
+    startOfWeek(
+      [focusedDate, firstSelectedOf(mode, selection), today].find(
+        (date): date is string => !!date && monthOf(date) === month
+      ) ?? month,
+      weekStart
+    )
+  const shownWeek =
+    navigatedWeek && weekTouches(navigatedWeek, firstMonth)
+      ? navigatedWeek
+      : weekFor(firstMonth)
+  const visibleStart = weekView ? shownWeek : months[0]!
+  const lastVisibleDay = weekView
+    ? addDays(shownWeek, 6)
+    : lastDayOf(months[months.length - 1]!)
+  const isVisible = (date: string) =>
+    between(date, visibleStart, lastVisibleDay)
   const [hasFocus, setHasFocus] = useState(false)
   const [hoverDate, setHoverDate] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
@@ -375,7 +459,7 @@ export function Calendar(props: CalendarProps) {
   const focusTarget =
     [focusedDate, firstSelectedOf(mode, selection), today].find(
       (date): date is string => !!date && isVisible(date)
-    ) ?? firstMonth
+    ) ?? visibleStart
 
   const labels = useMemo(
     () => ({
@@ -429,6 +513,40 @@ export function Calendar(props: CalendarProps) {
     changeMonth(next)
   }
 
+  function showWeek(start: string, month: string) {
+    setNavigatedWeek(start)
+    if (!weekTouches(start, firstMonth)) changeMonth(month)
+  }
+
+  const canTurn = (step: SwipeStep) => {
+    if (disabled === true) return false
+    if (weekView) {
+      const edge = addDays(shownWeek, step === 1 ? 7 : -1)
+      return step === 1
+        ? !maxDate || compareDates(edge, maxDate) <= 0
+        : !minDate || compareDates(edge, minDate) >= 0
+    }
+    const limit = step === 1 ? lastAllowedMonth : firstAllowedMonth
+    return !limit || compareDates(firstMonth, limit) * step < 0
+  }
+
+  function turn(step: SwipeStep) {
+    if (!weekView) return turnMonth(addMonths(firstMonth, step))
+    setPendingFocus(null)
+    const start = addDays(shownWeek, step * 7)
+    showWeek(start, monthOf(step === 1 ? start : addDays(start, 6)))
+  }
+
+  function changeView(next: CalendarView) {
+    if (next === view) return
+    setPendingFocus(null)
+    if (viewProp === undefined) setUncontrolledView(next)
+    onViewChange?.(next)
+  }
+
+  const swipeable = !scrolling && !waitingForToday && disabled !== true
+  useSwipeToTurn(rootRef, { enabled: swipeable, vertical, canTurn, turn })
+
   function commit(next: CalendarSelection) {
     if (selectedProp === undefined) setUncontrolled({ mode, selection: next })
     onSelect?.(next)
@@ -467,9 +585,13 @@ export function Calendar(props: CalendarProps) {
   // Announced from what renders, not what was asked for, so a controlled
   // parent that keeps, defers or makes a change is heard as it really is.
   const selectionKey = JSON.stringify(selection)
-  const shownMonthKey = waitingForToday ? null : firstMonth
+  const shownMonthKey = waitingForToday
+    ? null
+    : weekView
+      ? shownWeek
+      : firstMonth
   // Null while the month follows today, so a midnight rollover isn't spoken.
-  const chosenMonth = monthProp ?? navigatedMonth
+  const chosenMonth = (weekView && navigatedWeek) || monthProp || navigatedMonth
   const [heard, setHeard] = useState({
     mode,
     selectionKey,
@@ -490,7 +612,11 @@ export function Calendar(props: CalendarProps) {
       shownMonthKey &&
       heard.month !== shownMonthKey
     )
-      messages.push(monthsLabel(shownMonthKey))
+      messages.push(
+        weekView
+          ? rangeLabel(shownWeek, addDays(shownWeek, 6), locale)
+          : monthsLabel(shownMonthKey)
+      )
     const selectionMessage =
       heard.mode === mode &&
       heard.selectionKey !== selectionKey &&
@@ -532,6 +658,11 @@ export function Calendar(props: CalendarProps) {
     setPendingFocus({ date })
     if (scrolling) {
       if (!isVisible(date)) extendRun(date)
+      return
+    }
+    if (weekView) {
+      if (!isVisible(date))
+        showWeek(startOfWeek(date, weekStart), monthOf(date))
       return
     }
     if (compareDates(date, firstMonth) < 0) changeMonth(date)
@@ -796,10 +927,7 @@ export function Calendar(props: CalendarProps) {
       return (
         <div
           id={captionId}
-          className={cn(
-            'text-sm font-semibold text-strong',
-            scrolling ? 'text-start' : 'text-center'
-          )}
+          className='truncate text-sm font-semibold text-strong'
         >
           {label}
         </div>
@@ -823,7 +951,7 @@ export function Calendar(props: CalendarProps) {
       )
     }
     return (
-      <div className='flex justify-center gap-1'>
+      <div className='flex gap-1'>
         <span id={captionId} className='sr-only'>
           {label}
         </span>
@@ -872,12 +1000,20 @@ export function Calendar(props: CalendarProps) {
     const firstVisible = column === 0 || (!showOutsideDays && date === month)
     const lastVisible =
       column === 6 || (!showOutsideDays && date === lastDayOf(month))
+    const content = getDayContent?.(date)
+    const hasContent = content != null && content !== false && content !== ''
+    const contentId = hasContent ? `${id}-content-${date}` : undefined
     const look =
       rangeStart || rangeEnd || (mode !== 'range' && selected)
         ? 'chosen'
         : rangeMiddle
-          ? 'middle'
-          : 'plain'
+          ? tiles
+            ? 'middle-tile'
+            : 'middle'
+          : hasContent
+            ? 'filled'
+            : 'plain'
+    const band = rangeMiddle && !tiles
 
     const modifierAttributes = Object.fromEntries(
       Object.entries(modifiers ?? {})
@@ -892,10 +1028,11 @@ export function Calendar(props: CalendarProps) {
         aria-selected={selected}
         className={cn(
           'relative p-0',
-          rangeMiddle && 'bg-subtle intent-accent',
-          rangeMiddle && firstVisible && 'rounded-s-full',
-          rangeMiddle && lastVisible && 'rounded-e-full',
-          multiDay &&
+          band && 'bg-subtle intent-accent',
+          band && firstVisible && 'rounded-s-full',
+          band && lastVisible && 'rounded-e-full',
+          !tiles &&
+            multiDay &&
             ((rangeStart && !lastVisible) || (rangeEnd && !firstVisible)) &&
             "intent-accent before:absolute before:inset-y-0 before:w-1/2 before:bg-subtle before:content-['']",
           rangeStart && 'before:end-0',
@@ -916,6 +1053,7 @@ export function Calendar(props: CalendarProps) {
           data-disabled={isDisabled ? '' : undefined}
           data-out-of-range={outOfRange ? '' : undefined}
           data-focused={hasFocus && isFocusTarget ? '' : undefined}
+          data-content={hasContent ? '' : undefined}
           aria-label={[
             isToday && 'Today',
             dayLabel(date, locale),
@@ -923,11 +1061,16 @@ export function Calendar(props: CalendarProps) {
           ]
             .filter(Boolean)
             .join(', ')}
+          aria-describedby={contentId}
           aria-disabled={isDisabled || undefined}
           aria-current={isToday ? 'date' : undefined}
           tabIndex={isFocusTarget ? 0 : -1}
           className={cn(
-            dayVariants({ look, outside }),
+            dayVariants({
+              shape: weekView ? 'week' : tiles ? 'tile' : 'circle',
+              look,
+              outside
+            }),
             outOfRange && 'opacity-50',
             // Scrolled into view below the pinned weekdays, not under them.
             scrolling && 'scroll-mt-10'
@@ -947,8 +1090,31 @@ export function Calendar(props: CalendarProps) {
             if (event.pointerType !== 'touch') setHoverDate(date)
           }}
         >
-          {Number(date.slice(8))}
-          {isToday && (
+          <span
+            data-slot='calendar-day-number'
+            className={cn(
+              isDisabled && hasContent
+                ? 'line-through'
+                : tiles &&
+                    isToday &&
+                    'underline decoration-2 underline-offset-4'
+            )}
+          >
+            {Number(date.slice(8))}
+          </span>
+          {hasContent && (
+            <span
+              id={contentId}
+              data-slot='calendar-day-content'
+              className={cn(
+                'grid justify-items-center gap-0.5 text-xs leading-tight font-normal',
+                look !== 'chosen' && 'text-subtle'
+              )}
+            >
+              {content}
+            </span>
+          )}
+          {isToday && !tiles && (
             <span
               aria-hidden='true'
               className='absolute inset-x-0 bottom-1 mx-auto size-1 rounded-full bg-current'
@@ -963,14 +1129,173 @@ export function Calendar(props: CalendarProps) {
     <span key={weekday.long}>{weekday.short}</span>
   ))
 
+  const inlineNav = !scrolling && (numberOfMonths === 1 || showViewToggle)
+  const unit = weekView ? 'week' : 'month'
+  const PreviousIcon = vertical ? CaretUpIcon : CaretLeftIcon
+  const NextIcon = vertical ? CaretDownIcon : CaretRightIcon
+  const arrowClass = cn('size-4', !vertical && 'rtl:-scale-x-100')
+  const nav = (
+    <div
+      data-slot='calendar-nav'
+      className={cn('flex gap-1', !inlineNav && 'absolute end-0 top-0')}
+    >
+      <IconButton
+        emphasis='subtler'
+        size='sm'
+        aria-label={`Previous ${unit}`}
+        disabled={!canTurn(-1)}
+        onClick={() => turn(-1)}
+      >
+        <PreviousIcon weight='bold' className={arrowClass} />
+      </IconButton>
+      <IconButton
+        emphasis='subtler'
+        size='sm'
+        aria-label={`Next ${unit}`}
+        disabled={!canTurn(1)}
+        onClick={() => turn(1)}
+      >
+        <NextIcon weight='bold' className={arrowClass} />
+      </IconButton>
+    </div>
+  )
+
+  const weekLabel = rangeLabel(shownWeek, addDays(shownWeek, 6), locale)
+  const headerCaption = weekView ? (
+    captionLayout === 'dropdown' ? (
+      renderCaption(firstMonth, 0)
+    ) : (
+      <div className='truncate text-sm font-semibold text-strong'>
+        {weekCaption(shownWeek, addDays(shownWeek, 6), locale)}
+      </div>
+    )
+  ) : numberOfMonths === 1 ? (
+    renderCaption(firstMonth, 0)
+  ) : (
+    <div className='truncate text-sm font-semibold text-strong'>
+      {monthsLabel(firstMonth)}
+    </div>
+  )
+
+  const header = (
+    <div data-slot='calendar-header' className='flex h-8 items-center gap-2'>
+      <div className='min-w-0'>{headerCaption}</div>
+      {showViewToggle && (
+        <Toggle
+          size='sm'
+          emphasis='subtler'
+          aria-label='Month view'
+          pressed={view === 'month'}
+          onPressedChange={(pressed) => changeView(pressed ? 'month' : 'week')}
+        >
+          <CalendarDotsIcon weight='bold' className='size-4' />
+        </Toggle>
+      )}
+      <div className='ms-auto'>{nav}</div>
+    </div>
+  )
+
+  const swipeAxis = vertical ? 'touch-pan-x' : 'touch-pan-y'
+
+  const monthsShown = waitingForToday
+    ? months.slice(0, scrolling ? 1 : undefined).map((month) => (
+        <div
+          key={month}
+          aria-hidden='true'
+          className='@container min-w-70 flex-[1_1_--spacing(70)]'
+        >
+          {/* The days as wide as the month allows, with its caption and weekdays. */}
+          <div
+            className={
+              weekView
+                ? 'h-[calc((100cqi/7-var(--spacing))*1.25+--spacing(22))]'
+                : 'h-[calc(min(100cqi/7,--spacing(12))*6+--spacing(22))]'
+            }
+          />
+        </div>
+      ))
+    : months.map((month, index) => (
+        <div
+          // By position, so the selects keep focus as months turn.
+          key={scrolling ? month : index}
+          data-slot='calendar-month'
+          data-month={month}
+          // Contained, so a month asks for 280px and takes whatever more it is given.
+          className='grid min-w-70 flex-[1_1_--spacing(70)] content-start gap-2 [contain:inline-size]'
+        >
+          {!inlineNav && (
+            <div className={cn('grid h-8 items-center', !scrolling && 'pe-17')}>
+              {renderCaption(month, index)}
+            </div>
+          )}
+          <div className='grid in-data-swiping:overflow-clip'>
+            <table
+              role='grid'
+              data-slot='calendar-grid'
+              aria-multiselectable={mode !== 'single' || undefined}
+              aria-label={weekView ? weekLabel : undefined}
+              aria-labelledby={weekView ? undefined : `${id}-caption-${index}`}
+              className={cn(
+                'w-full table-fixed border-separate',
+                tiles
+                  ? 'border-spacing-1'
+                  : 'border-spacing-x-0 border-spacing-y-0.5',
+                swipeable && [swipeAxis, 'touch-pinch-zoom']
+              )}
+              onPointerLeave={() => setHoverDate(null)}
+            >
+              <thead className={scrolling ? 'sr-only' : undefined}>
+                <tr role='row'>
+                  {labels.weekdays.map((weekday) => (
+                    <th
+                      key={weekday.long}
+                      role='columnheader'
+                      scope='col'
+                      aria-label={weekday.long}
+                      className='h-8 p-0 text-xs font-medium text-subtle'
+                    >
+                      {weekday.short}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {weekView ? (
+                  <tr role='row'>
+                    {Array.from({ length: 7 }, (_, column) => {
+                      const date = addDays(shownWeek, column)
+                      return renderDay(date, monthOf(date), column)
+                    })}
+                  </tr>
+                ) : (
+                  monthGrid(yearOf(month), monthNumberOf(month), {
+                    weekStart,
+                    fixedWeeks
+                  }).map((week) => (
+                    <tr key={week[0]} role='row'>
+                      {week.map((date, column) =>
+                        renderDay(date, month, column)
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))
+
   return (
     <div
       ref={mergeRefs(rootRef, ref)}
       data-slot='calendar'
       data-layout={layout}
+      data-direction={direction}
+      data-view={weekView ? 'week' : 'month'}
+      data-tiles={tiles ? '' : undefined}
       className={cn(
-        'relative w-full',
-        scrolling ? 'grid gap-6' : 'flex flex-wrap gap-x-6 gap-y-4',
+        'relative grid w-full',
+        scrolling ? 'gap-6' : 'gap-2',
         className
       )}
       {...rest}
@@ -1008,111 +1333,20 @@ export function Calendar(props: CalendarProps) {
           className='pointer-events-none absolute inset-x-0 top-0 h-px'
         />
       )}
-      {waitingForToday &&
-        months.slice(0, scrolling ? 1 : undefined).map((month) => (
+      {scrolling ? (
+        monthsShown
+      ) : (
+        <>
+          {inlineNav && !waitingForToday && header}
           <div
-            key={month}
-            aria-hidden='true'
-            className='@container min-w-70 flex-[1_1_--spacing(70)]'
+            data-slot='calendar-months'
+            className='relative flex flex-wrap gap-x-6 gap-y-4'
           >
-            {/* Six weeks of days as wide as the month allows, with its caption and weekdays. */}
-            <div className='h-[calc(min(100cqi/7,--spacing(12))*6+--spacing(22))]' />
+            {!inlineNav && !waitingForToday && nav}
+            {monthsShown}
           </div>
-        ))}
-      {!waitingForToday &&
-        months.map((month, index) => (
-          <div
-            // By position, so the arrows and selects keep focus as months turn.
-            key={scrolling ? month : index}
-            data-slot='calendar-month'
-            data-month={month}
-            // Contained, so a month asks for 280px and takes whatever more it is given.
-            className='grid min-w-70 flex-[1_1_--spacing(70)] content-start gap-2 [contain:inline-size]'
-          >
-            {scrolling ? (
-              <div className='grid h-8 items-center'>
-                {renderCaption(month, index)}
-              </div>
-            ) : (
-              <div className='grid h-8 grid-cols-[2rem_1fr_2rem] items-center gap-1'>
-                {index === 0 ? (
-                  <IconButton
-                    emphasis='subtler'
-                    size='sm'
-                    aria-label='Previous month'
-                    disabled={
-                      navDisabled ||
-                      (!!firstAllowedMonth &&
-                        compareDates(firstMonth, firstAllowedMonth) <= 0)
-                    }
-                    onClick={() => turnMonth(addMonths(firstMonth, -1))}
-                  >
-                    <CaretLeftIcon
-                      weight='bold'
-                      className='size-4 rtl:-scale-x-100'
-                    />
-                  </IconButton>
-                ) : (
-                  <span />
-                )}
-                {renderCaption(month, index)}
-                {index === numberOfMonths - 1 ? (
-                  <IconButton
-                    emphasis='subtler'
-                    size='sm'
-                    aria-label='Next month'
-                    disabled={
-                      navDisabled ||
-                      (!!lastAllowedMonth &&
-                        compareDates(firstMonth, lastAllowedMonth) >= 0)
-                    }
-                    onClick={() => turnMonth(addMonths(firstMonth, 1))}
-                  >
-                    <CaretRightIcon
-                      weight='bold'
-                      className='size-4 rtl:-scale-x-100'
-                    />
-                  </IconButton>
-                ) : (
-                  <span />
-                )}
-              </div>
-            )}
-            <table
-              role='grid'
-              aria-multiselectable={mode !== 'single' || undefined}
-              aria-labelledby={`${id}-caption-${index}`}
-              className='w-full table-fixed border-separate border-spacing-x-0 border-spacing-y-0.5'
-              onPointerLeave={() => setHoverDate(null)}
-            >
-              <thead className={scrolling ? 'sr-only' : undefined}>
-                <tr role='row'>
-                  {labels.weekdays.map((weekday) => (
-                    <th
-                      key={weekday.long}
-                      role='columnheader'
-                      scope='col'
-                      aria-label={weekday.long}
-                      className='h-8 p-0 text-xs font-medium text-subtle'
-                    >
-                      {weekday.short}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {monthGrid(yearOf(month), monthNumberOf(month), {
-                  weekStart,
-                  fixedWeeks
-                }).map((week) => (
-                  <tr key={week[0]} role='row'>
-                    {week.map((date, column) => renderDay(date, month, column))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ))}
+        </>
+      )}
       {scrolling && canAddLater && (
         <div
           ref={laterRef}
