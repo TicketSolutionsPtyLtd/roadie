@@ -194,18 +194,28 @@ describe('validateRecordView', () => {
 
   it.each([
     [['2026-10-03T20:00Z', '2026-10-03']],
-    [['2026-10-03', '2026-10-03T05:00Z']]
-  ])(
-    'rejects mixed ends that could run backwards in some zone: %j',
-    (value) => {
-      expect(
-        errors(view([{ field: 'created', operator: 'between', value }]))[0]
-      ).toMatchObject({
-        path: 'query.filters[0].value',
-        message: expect.stringContaining('both ends')
-      })
-    }
-  )
+    [['2026-10-03', '2026-10-03T05:00Z']],
+    [['2026-10-03', '2026-10-03T09:00+10:00']],
+    [['2026-10-03T10:00', '2026-10-03T11:00+10:00']]
+  ])('rejects an end with an offset beside one without: %j', (value) => {
+    expect(
+      errors(view([{ field: 'created', operator: 'between', value }]))[0]
+    ).toMatchObject({
+      path: 'query.filters[0].value',
+      message:
+        'Give both ends an offset, or neither, so the range means the same in every zone'
+    })
+  })
+
+  it.each([
+    [['2026-10-03T10:00', '2026-10-03T11:00']],
+    [['2026-10-03T10:00+10:00', '2026-10-03T01:30Z']],
+    [['2026-10-03', '2026-10-03T11:00']]
+  ])('accepts ends that read the same way in every zone: %j', (value) => {
+    expect(
+      errors(view([{ field: 'created', operator: 'between', value }]))
+    ).toEqual([])
+  })
 
   it('rejects a malformed relative range', () => {
     expect(

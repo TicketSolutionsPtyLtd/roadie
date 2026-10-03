@@ -31,7 +31,7 @@ export function isEmptyValue(value: unknown): boolean {
   if (Array.isArray(value)) return value.length === 0
   return (
     typeof value === 'object' &&
-    Object.getPrototypeOf(value) === Object.prototype &&
+    [Object.prototype, null].includes(Object.getPrototypeOf(value)) &&
     Object.keys(value).length === 0
   )
 }

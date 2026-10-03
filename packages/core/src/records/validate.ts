@@ -103,13 +103,13 @@ function valueProblem(filter: RecordFilter, field: RecordField): string | null {
         }
         const problem = dateProblem(field, start) ?? dateProblem(field, end)
         if (problem) return problem
-        if (!resolvesInOrder(start, end, 'UTC')) {
-          return 'The range starts after it ends'
+        // An end with an offset is fixed; one without moves with the viewer's zone.
+        if (OFFSET.test(start) !== OFFSET.test(end)) {
+          return 'Give both ends an offset, or neither, so the range means the same in every zone'
         }
-        // A date end moves with the viewer's zone; a date-time with an offset does not.
-        return EXTREME_ZONES.every((zone) => resolvesInOrder(start, end, zone))
+        return resolvesInOrder(start, end, 'UTC')
           ? null
-          : 'Give both ends as dates, or both as date-times, so the range runs forwards in every zone'
+          : 'The range starts after it ends'
       }
       if (typeof start !== 'number' || typeof end !== 'number') {
         return `"${field.label}" is ${ARTICLE[field.type]} field, so between takes two numbers`
@@ -131,7 +131,7 @@ function valueProblem(filter: RecordFilter, field: RecordField): string | null {
   }
 }
 
-const EXTREME_ZONES = ['Etc/GMT-14', 'Etc/GMT+12']
+const OFFSET = /(?:Z|[+-]\d{2}:\d{2})$/
 
 function resolvesInOrder(start: string, end: string, zone: string): boolean {
   try {

@@ -51,6 +51,7 @@ const rows: Row[] = [
   ...Object.values(eventRows),
   { id: 'empty-object', venue: {}, genres: ['jazz'], capacity: 400 },
   { id: 'listed-capacity', capacity: [400, 900], name: 'Two Rooms' },
+  { id: 'backslashes', venue: 'two\\\\', name: 'Even \\\\"quoted\\\\"' },
   {
     id: 'quoted',
     venue: 'say "hi" a\\b',
@@ -65,6 +66,8 @@ const rows: Row[] = [
 const msRow: Row = { id: 'ms', created: Date.parse('2026-10-03T01:59:59.700Z') }
 
 const FILTERS: RecordFilter[] = [
+  { field: 'venue', operator: 'is', values: ['two\\\\'] },
+  { field: 'name', operator: 'contains', value: '\\\\"quoted' },
   { field: 'venue', operator: 'is', values: ['say "hi" a\\b', 'velvet-room'] },
   { field: 'venue', operator: 'is-not', values: ['SAY "HI" A\\B', 'nope'] },
   { field: 'onSale', operator: 'within', value: 'next-week' },

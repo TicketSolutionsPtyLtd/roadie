@@ -53,10 +53,13 @@ const RESERVED = new Set([
   'FALSE'
 ])
 
-// Meilisearch unescapes only \" inside quotes; any other backslash stays as
-// typed, so a value ending in one, or holding \", has no faithful encoding.
+// Inside quotes Meilisearch pairs each backslash with the next character and
+// then unescapes only \", so an odd run of backslashes before a quote or at
+// the end has no faithful encoding.
+const ODD_BACKSLASHES = /(?:^|[^\\])(?:\\\\)*\\(?:"|$)/
+
 function quote(text: string): string {
-  if (/\\$|\\"/.test(text)) {
+  if (ODD_BACKSLASHES.test(text)) {
     throw new Error(
       `Meilisearch filters cannot hold a backslash before a quote or at the end: ${text}`
     )
@@ -70,12 +73,20 @@ function attribute(key: string): string {
     : quote(key)
 }
 
-// Meilisearch's unquoted values have no exponent form.
+const EXPONENT = /^(-?)(\d)(?:\.(\d+))?e([+-]\d+)$/
+
+// Meilisearch's unquoted values have no exponent form, so write every digit.
 function numberLiteral(value: number): string {
-  return value.toLocaleString('en-US', {
-    useGrouping: false,
-    maximumFractionDigits: 20
-  })
+  if (Object.is(value, -0)) return '0'
+  const text = String(value)
+  const m = EXPONENT.exec(text)
+  if (!m) return text
+  const [, sign, lead, rest = '', power] = m
+  const digits = lead! + rest
+  const exponent = Number(power)
+  return exponent >= 0
+    ? sign + digits.padEnd(exponent + 1, '0')
+    : `${sign}0.${'0'.repeat(-exponent - 1)}${digits}`
 }
 
 function list(values: readonly string[]): string {

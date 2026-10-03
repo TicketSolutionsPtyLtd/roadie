@@ -172,6 +172,12 @@ describe('matchesRecordQuery', () => {
       true
     ],
     [
+      'an empty null-prototype object is not set',
+      { venue: Object.create(null) as object },
+      { field: 'venue', operator: 'is-set' },
+      false
+    ],
+    [
       'a class instance with no own keys is set',
       { venue: new (class Venue {})() },
       { field: 'venue', operator: 'is-set' },

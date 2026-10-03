@@ -107,7 +107,16 @@ describe('toMeilisearch', () => {
     ).toEqual(['name CONTAINS "say \\"hi\\" a\\b"'])
   })
 
-  it.each(['ends in \\', 'holds \\" here'])(
+  it.each([
+    ['a\\\\', '"a\\\\"'],
+    ['a\\\\"b', '"a\\\\\\"b"']
+  ])('keeps an even run of backslashes: %s', (value, quoted) => {
+    expect(filterFor({ field: 'name', operator: 'contains', value })).toEqual([
+      `name CONTAINS ${quoted}`
+    ])
+  })
+
+  it.each(['ends in \\', 'holds \\" here', 'three \\\\\\" here'])(
     'refuses a value Meilisearch cannot read back: %s',
     (value) => {
       expect(() =>
@@ -136,7 +145,10 @@ describe('toMeilisearch', () => {
   it.each<[number, string]>([
     [1e21, 'capacity = 1000000000000000000000'],
     [1e-7, 'capacity = 0.0000001'],
-    [-0.5, 'capacity = -0.5']
+    [-0.5, 'capacity = -0.5'],
+    [1.23456789e-15, 'capacity = 0.00000000000000123456789'],
+    [-1e-21, 'capacity = -0.000000000000000000001'],
+    [-0, 'capacity = 0']
   ])('writes %d without an exponent', (value, expected) => {
     expect(filterFor({ field: 'capacity', operator: 'eq', value })).toEqual([
       expected

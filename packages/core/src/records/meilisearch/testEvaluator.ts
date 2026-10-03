@@ -20,8 +20,8 @@ function tokenise(source: string): Token[] {
       let text = ''
       i++
       while (source[i] !== '"') {
-        if (source[i] === '\\' && source[i + 1] === '"') {
-          text += '"'
+        if (source[i] === '\\') {
+          text += source[i + 1] === '"' ? '"' : source.slice(i, i + 2)
           i += 2
         } else text += source[i++]
       }
