@@ -24,4 +24,8 @@ export const sortableDropIndicatorVariants = cva(
   }
 )
 
-export const sortableHandleVariants = cva('cursor-grab active:cursor-grabbing')
+// Centred in its row: the btn utility's place-self: start would override the
+// row's items-center.
+export const sortableHandleVariants = cva(
+  'cursor-grab self-center active:cursor-grabbing'
+)
