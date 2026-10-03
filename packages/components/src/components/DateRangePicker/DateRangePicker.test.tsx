@@ -824,6 +824,50 @@ describe('DateRangePicker', () => {
       expect(end).toHaveAccessibleDescription('Spans more than 1 day')
     })
 
+    it('drops its edit when the parent changes the value while open', async () => {
+      const picker = (value: DateRangeValue) => (
+        <DateRangePicker
+          aria-label='Period'
+          commit='apply'
+          today={TODAY}
+          value={value}
+          defaultOpen
+        />
+      )
+      const { rerender } = render(picker('yesterday'))
+      const dialog = await screen.findByRole('dialog')
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Last 7 days' })
+      )
+      rerender(picker('last-month'))
+      expect(
+        within(dialog).getByRole('button', { name: 'Last month' })
+      ).toHaveAttribute('aria-pressed', 'true')
+    })
+
+    it('keeps its edit when the parent takes what it emitted', async () => {
+      function Controlled() {
+        const [value, setValue] = useState<DateRangeValue | null>('yesterday')
+        return (
+          <DateRangePicker
+            aria-label='Period'
+            today={TODAY}
+            value={value}
+            onValueChange={setValue}
+          />
+        )
+      }
+      render(<Controlled />)
+      const dialog = await open()
+      const start = within(dialog).getByRole('textbox', { name: 'Start' })
+      await userEvent.clear(start)
+      await userEvent.type(start, '1 oct{Enter}')
+      expect(within(dialog).getByRole('textbox', { name: 'End' })).toHaveValue(
+        '6 Oct 2026'
+      )
+      expect(start).toHaveValue('1 Oct 2026')
+    })
+
     it('is required when its Field is', () => {
       render(
         <Field required>

@@ -232,7 +232,7 @@ render(<Toolbar />)
 ## Accessibility
 
 - The button is named after the picker and its range, such as "Choose dates, Sales period (Last 30 days, 8 Sept to 7 Oct 2026)", so pickers side by side stay apart. The popup is named "Choose dates, Sales period".
-- Opening moves focus to the chosen preset, or to the calendar's first chosen day. `Escape` closes without a change and puts focus back on the button.
+- Opening moves focus to the chosen preset, or to the calendar's first chosen day. `Escape` closes and puts focus back on the button. With `commit='apply'` it drops the changes; in immediate mode, dates already chosen or committed stay.
 - Presets are [Toggle](/components/toggle) buttons with `aria-pressed`, in groups named by their headings. Custom range is pressed when the value is no preset, and moves focus to the start date.
 - Start and End are text inputs with their own labels and errors. While text is being edited, `Enter` commits it, and `Escape` puts back the last date. An end before the start says "Ends before it starts".
 - The calendar works as in [Calendar](/components/calendar): arrow keys, `Page Up`, `Page Down`, `Home` and `End` move, and `Enter` or `Space` chooses. `Escape` after the first day of a range drops it and keeps the dates you had.

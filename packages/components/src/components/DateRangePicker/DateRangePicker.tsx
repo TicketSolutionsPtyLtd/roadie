@@ -244,8 +244,20 @@ export function DateRangePicker({
 
   const [uncontrolled, setUncontrolled] = useState(defaultValue ?? null)
   const value = valueProp !== undefined ? valueProp : uncontrolled
+  // A value from outside replaces an open edit; the one just emitted does not.
+  const [sync, setSync] = useState<{
+    seen: DateRangeValue | null
+    emitted?: DateRangeValue | null
+  }>({ seen: value })
+  const [edit, setEdit] = useState<Edit>(NO_EDIT)
+  if (!sameRange(sync.seen, value)) {
+    setSync({ seen: value })
+    if (sync.emitted === undefined || !sameRange(value, sync.emitted))
+      setEdit(NO_EDIT)
+  }
   function emit(next: DateRangeValue | null) {
     if (sameRange(next, value)) return
+    setSync({ ...sync, emitted: next })
     if (valueProp === undefined) setUncontrolled(next)
     onValueChange?.(next)
   }
@@ -255,7 +267,6 @@ export function DateRangePicker({
     defaultOpen,
     onOpenChange
   })
-  const [edit, setEdit] = useState<Edit>(NO_EDIT)
   // Each opening starts from the value, however it opens or closes, so an
   // edit left by a click outside never comes back.
   const [seenOpen, setSeenOpen] = useState(open)
