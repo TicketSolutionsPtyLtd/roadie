@@ -28,6 +28,8 @@ export function useTypedValue({
   const value = valueProp !== undefined ? valueProp : uncontrolled
   const [draft, setDraft] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // The value before unreadable text made it null, for Escape to put back.
+  const [beforeError, setBeforeError] = useState<string | null>()
   // A value from outside replaces the draft; the one just emitted does not.
   const [sync, setSync] = useState<{
     seen: string | null
@@ -38,6 +40,7 @@ export function useTypedValue({
     if (value !== sync.emitted) {
       setDraft(null)
       setError(null)
+      setBeforeError(undefined)
     }
   }
 
@@ -51,6 +54,7 @@ export function useTypedValue({
   function setValue(next: string | null) {
     setDraft(null)
     setError(null)
+    setBeforeError(undefined)
     emit(next)
   }
 
@@ -60,6 +64,7 @@ export function useTypedValue({
     const result = read(draft)
     if ('error' in result) {
       setError(result.error)
+      if (error === null) setBeforeError(value)
       emit(null)
       return undefined
     }
@@ -75,8 +80,11 @@ export function useTypedValue({
   }
 
   function revert() {
-    setDraft(null)
-    setError(null)
+    if (beforeError !== undefined) setValue(beforeError)
+    else {
+      setDraft(null)
+      setError(null)
+    }
   }
 
   /** Enter and Escape act on a draft and are left alone otherwise. */

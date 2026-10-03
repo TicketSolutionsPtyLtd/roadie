@@ -182,10 +182,17 @@ export function DatePicker({
   const disabledDays = typeof disabled === 'boolean' ? undefined : disabled
   const isInvalid = invalid ?? field.invalid
 
-  const [uncontrolled, setUncontrolled] = useState(() =>
-    joinValue(splitValue(defaultValue, zone), granularity, zone)
-  )
-  const value = valueProp !== undefined ? valueProp : uncontrolled
+  // Unset until the picker changes, so a default is read in the zone of each
+  // render, the viewer's once hydrated, not fixed in the server's.
+  const [changedValue, setChangedValue] = useState<string | null>()
+  const stored =
+    changedValue !== undefined ? changedValue : (defaultValue ?? null)
+  // Read at the current granularity and zone, so the value always has the
+  // shape the props promise.
+  const value =
+    valueProp !== undefined
+      ? valueProp
+      : joinValue(splitValue(stored, zone), granularity, zone)
   const [local, setLocal] = useState(() => ({
     parts: splitValue(valueProp ?? defaultValue, zone),
     seen: value,
@@ -193,9 +200,18 @@ export function DatePicker({
   }))
   // A value from outside replaces the local parts; the one just emitted does
   // not, so a date waiting for its time survives a parent that holds null.
+  // Uncontrolled, a null value comes from a granularity change, and the date
+  // stays.
   if (value !== local.seen) {
     setLocal({
-      parts: value === local.emitted ? local.parts : splitValue(value, zone),
+      parts:
+        value === local.emitted
+          ? local.parts
+          : value !== null
+            ? splitValue(value, zone)
+            : valueProp === undefined
+              ? splitValue(stored, zone)
+              : EMPTY,
       seen: value,
       emitted: undefined
     })
@@ -221,7 +237,7 @@ export function DatePicker({
       emitted: changed ? joined : current.emitted
     }))
     if (!changed) return
-    if (valueProp === undefined) setUncontrolled(joined)
+    if (valueProp === undefined) setChangedValue(joined)
     onValueChange?.(joined)
   }
 
@@ -344,7 +360,8 @@ export function DatePicker({
               if (day) date.setValue(day)
               setOpen(false)
             }}
-            disabled={disabledDays}
+            // An open-by-prop calendar mustn't change what can't be changed.
+            disabled={isDisabled || readOnly || disabledDays}
             today={today}
             timeZone={zone}
             weekStart={weekStart}

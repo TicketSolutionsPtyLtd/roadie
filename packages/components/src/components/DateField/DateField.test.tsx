@@ -219,6 +219,24 @@ describe('DateField', () => {
     expect(input).toHaveValue('Fri 27 Nov 2026')
   })
 
+  it('puts back the last date on Escape after unreadable text', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DateField
+        aria-label='Show date'
+        today={TODAY}
+        defaultValue='2026-11-27'
+        onValueChange={onValueChange}
+      />
+    )
+    const input = screen.getByRole('textbox')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'someday{Enter}{Escape}')
+    expect(input).toHaveValue('Fri 27 Nov 2026')
+    expect(onValueChange).toHaveBeenLastCalledWith('2026-11-27')
+    expect(input).not.toHaveAttribute('aria-invalid')
+  })
+
   it('empties to null', async () => {
     const onValueChange = vi.fn()
     render(

@@ -111,6 +111,22 @@ describe('DatePicker', () => {
     expect(day('2026-10-06')).toHaveAttribute('aria-disabled', 'true')
   })
 
+  it.each(['disabled', 'readOnly'])(
+    'can’t change from an open calendar while %s',
+    (state) => {
+      render(
+        <DatePicker
+          aria-label='Show date'
+          today={TODAY}
+          defaultValue='2026-10-23'
+          open
+          {...{ [state]: true }}
+        />
+      )
+      expect(day('2026-10-24')).toHaveAttribute('aria-disabled', 'true')
+    }
+  )
+
   it('turns off the field and the button with disabled', () => {
     render(<DatePicker aria-label='Show date' disabled />)
     expect(screen.getByRole('textbox')).toBeDisabled()

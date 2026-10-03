@@ -33,7 +33,13 @@ export function useTimeInput({
   })
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.defaultPrevented || readOnly || event.nativeEvent.isComposing)
+    if (
+      event.defaultPrevented ||
+      readOnly ||
+      event.nativeEvent.isComposing ||
+      // Safari's composing keydown can say it isn't, but carries 229.
+      event.keyCode === 229
+    )
       return
     if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return
     event.preventDefault()

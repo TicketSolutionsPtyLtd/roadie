@@ -39,7 +39,90 @@ describe('DatePicker with no timeZone', () => {
   })
 })
 
+async function hydrate(picker: React.ReactElement) {
+  const container = document.createElement('div')
+  container.innerHTML = renderToString(<form>{picker}</form>)
+  document.body.append(container)
+  onTestFinished(() => container.remove())
+  const onRecoverableError = vi.fn()
+  const root = await act(async () =>
+    hydrateRoot(container, <form>{picker}</form>, { onRecoverableError })
+  )
+  onTestFinished(() => act(() => root.unmount()))
+  expect(onRecoverableError).not.toHaveBeenCalled()
+  return new FormData(container.querySelector('form')!)
+}
+
+describe('DatePicker hydrated in the viewer’s zone', () => {
+  it('reads a wall-clock default on the viewer’s clock', async () => {
+    const form = await hydrate(
+      <DatePicker
+        aria-label='Doors'
+        granularity='minute'
+        name='doors'
+        defaultValue='2026-11-27T19:30'
+      />
+    )
+    expect(screen.getByRole('textbox', { name: 'Time' })).toHaveValue('7:30pm')
+    expect(form.get('doors')).toBe('2026-11-27T19:30:00+08:00')
+  })
+
+  it('reads an instant default as the viewer’s date', async () => {
+    const form = await hydrate(
+      <DatePicker
+        aria-label='Show date'
+        name='showDate'
+        defaultValue='2026-11-27T20:00:00Z'
+      />
+    )
+    expect(screen.getByRole('textbox')).toHaveValue('Sat 28 Nov 2026')
+    expect(form.get('showDate')).toBe('2026-11-28')
+  })
+
+  it('submits the instant with the viewer’s offset', async () => {
+    const form = await hydrate(
+      <DatePicker
+        aria-label='Doors'
+        granularity='minute'
+        name='doors'
+        defaultValue={DOORS}
+      />
+    )
+    expect(form.get('doors')).toBe('2026-11-27T16:30:00+08:00')
+  })
+})
+
 describe('DatePicker uncontrolled', () => {
+  it.each([
+    ['day', 'minute', '', 'Fri 27 Nov 2026'],
+    ['minute', 'day', '2026-11-27', 'Fri 27 Nov 2026']
+  ] as const)(
+    'submits the new shape when granularity goes from %s to %s',
+    (from, to, submitted, shown) => {
+      const picker = (granularity: 'day' | 'minute') => (
+        <form>
+          <DatePicker
+            aria-label='Doors'
+            granularity={granularity}
+            timeZone='Australia/Melbourne'
+            name='doors'
+            defaultValue={
+              from === 'day' ? '2026-11-27' : '2026-11-27T19:30:00+11:00'
+            }
+          />
+        </form>
+      )
+      const { container, rerender } = render(picker(from))
+      rerender(picker(to))
+      expect(new FormData(container.querySelector('form')!).get('doors')).toBe(
+        submitted
+      )
+      expect(
+        container.querySelector('[data-slot="date-picker-input"]')
+      ).toHaveValue(shown)
+    }
+  )
+
   it('keeps the instant when timeZone changes', async () => {
     const { container, rerender } = render(
       <form>
@@ -65,7 +148,7 @@ describe('DatePicker uncontrolled', () => {
     )
     expect(screen.getByRole('textbox', { name: 'Time' })).toHaveValue('4:30pm')
     expect(new FormData(container.querySelector('form')!).get('doors')).toBe(
-      '2026-11-27T19:30:00+11:00'
+      '2026-11-27T16:30:00+08:00'
     )
   })
 })
@@ -82,6 +165,7 @@ describe('DatePicker time during composition', () => {
     )
     const time = screen.getByRole('textbox', { name: 'Time' })
     fireEvent.keyDown(time, { key: 'ArrowUp', isComposing: true })
+    fireEvent.keyDown(time, { key: 'ArrowUp', keyCode: 229 })
     expect(time).toHaveValue('7:30pm')
   })
 })
