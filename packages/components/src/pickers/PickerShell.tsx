@@ -236,6 +236,10 @@ export type PickerOverlayProps = {
   action: string
   /** Where focus goes on open. Defaults to the calendar's focusable day. */
   initialFocus?: (popup: HTMLElement) => HTMLElement | null | undefined
+  /** Which edge of the anchor the popover lines up with. @default 'start' */
+  align?: 'start' | 'end'
+  /** Locks the page behind the popover, as a menu does. @default false */
+  modal?: boolean
   /** Classes for the popover. */
   className?: string
   /** Actions after the content, kept in view at the foot of a drawer. */
@@ -297,6 +301,8 @@ export function PickerOverlay({
   labelSource,
   action,
   initialFocus = calendarTabStop,
+  align = 'start',
+  modal = false,
   className,
   footer,
   drawerContent,
@@ -316,13 +322,17 @@ export function PickerOverlay({
     <PickerTriggerContext
       value={{ ref: triggerRef, drawerOpen: shown && drawer }}
     >
-      <Popover open={shown && !drawer} onOpenChange={onOpenChange}>
+      <Popover
+        open={shown && !drawer}
+        onOpenChange={onOpenChange}
+        modal={modal}
+      >
         <Drawer open={shown && drawer} onOpenChange={onOpenChange}>
           {trigger}
           <Popover.Content
             ref={popupRef}
             aria-labelledby={ariaLabelledBy}
-            align='start'
+            align={align}
             positionerProps={{ anchor }}
             className={cn('max-w-[var(--available-width)]', className)}
             initialFocus={focusOnOpen}

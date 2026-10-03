@@ -2,6 +2,7 @@ import { TableIcon } from '@phosphor-icons/react/ssr'
 
 import type { RecordLayoutDefinition } from '../Records/layouts'
 import { RecordTableContent } from './RecordTableContent'
+import { RecordTableSettings } from './RecordTableSettings'
 import type { RecordTableColumn } from './types'
 
 export type TableLayoutConfig = { columns: readonly RecordTableColumn[] }
@@ -19,6 +20,10 @@ export function tableLayout<Row extends object>(
     // A column's cell reads the consumer's Row; the table hands it the same row.
     config: { columns: columns as readonly RecordTableColumn[] },
     Content: RecordTableContent,
+    // Pinned columns neither move nor hide, so they alone leave nothing to set.
+    Settings: columns.some((column) => !column.pin)
+      ? RecordTableSettings
+      : undefined,
     bulkActions: 'header'
   }
 }
