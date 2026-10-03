@@ -206,6 +206,19 @@ describe('validateRecordView', () => {
     ).toBe('query.filters[0].value.amount')
   })
 
+  it.each([
+    [
+      { field: 'name', operator: 'contains', value: '' },
+      'query.filters[0].value'
+    ],
+    [
+      { field: 'venue', operator: 'is', values: ['velvet-room', ''] },
+      'query.filters[0].values[1]'
+    ]
+  ])('rejects empty text where a value is needed: %j', (filter, path) => {
+    expect(errors(view([filter]))[0]!.path).toBe(path)
+  })
+
   it('rejects a filter missing its value', () => {
     expect(errors(view([{ field: 'capacity', operator: 'eq' }]))[0]!.path).toBe(
       'query.filters[0].value'

@@ -10,6 +10,7 @@
  * - A range field stores its end on every record; a single moment repeats its
  *   start there.
  * - `contains` needs Meilisearch's `containsFilter` experimental feature.
+ * - `searchableAttributes` lists the fields marked `searchable`.
  */
 import { fieldIndex, momentOf } from '../fields'
 import {
@@ -49,8 +50,15 @@ const RESERVED = new Set([
   'FALSE'
 ])
 
+// Meilisearch unescapes only \" inside quotes; any other backslash stays as
+// typed, so a value ending in one, or holding \", has no faithful encoding.
 function quote(text: string): string {
-  return `"${text.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
+  if (/\\$|\\"/.test(text)) {
+    throw new Error(
+      `Meilisearch filters cannot hold a backslash before a quote or at the end: ${text}`
+    )
+  }
+  return `"${text.replace(/"/g, '\\"')}"`
 }
 
 function attribute(key: string): string {
@@ -175,10 +183,12 @@ function filterExpression(
 }
 
 /**
- * A view as Meilisearch's `q`, `filter` and `sort`, with the same meaning as
- * `matchesRecordQuery` in the browser. Relative dates resolve at `now`.
- * Throws when a field the view names is unknown, or when an event or access
- * field filtered by date has no `localDateKey`.
+ * A view as Meilisearch's `q`, `filter` and `sort`. Filters mean the same as
+ * `matchesRecordQuery` in the browser; search ranks with Meilisearch's prefix
+ * and typo rules over the index's `searchableAttributes`, which should list
+ * the fields marked `searchable`. Relative dates resolve at `now`. Throws on
+ * an unknown field, on an event or access field filtered by date with no
+ * `localDateKey`, and on text Meilisearch cannot quote.
  */
 export function toMeilisearch(
   view: RecordView,

@@ -22,7 +22,7 @@ const full: RecordView = {
       { field: 'capacity', operator: 'between', value: [100, 500] },
       { field: 'capacity', operator: 'gt', value: -1.5 },
       { field: 'name', operator: 'contains', value: 'a, b: 100% c' },
-      { field: 'name', operator: 'not-contains', value: '' },
+      { field: 'name', operator: 'not-contains', value: 'test' },
       { field: 'featured', operator: 'is-true' },
       { field: 'gross', operator: 'is-not-set' },
       {
@@ -75,7 +75,7 @@ const FULL_PARAMS = [
   ['f', 'capacity:between:100,500'],
   ['f', 'capacity:gt:-1.5'],
   ['f', 'name:contains:a, b: 100% c'],
-  ['f', 'name:not-contains:'],
+  ['f', 'name:not-contains:test'],
   ['f', 'featured:is-true'],
   ['f', 'gross:is-not-set'],
   ['f', 'created:within:next-7-day'],

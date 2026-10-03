@@ -220,4 +220,39 @@ describe('resolveRecordQuery', () => {
       )
     ).toThrow('Unknown field "nope"')
   })
+
+  it.each<[RecordFilter]>([
+    [
+      {
+        field: 'birthday',
+        operator: 'within',
+        value: { direction: 'past', amount: 3, unit: 'hour' }
+      }
+    ],
+    [
+      {
+        field: 'birthday',
+        operator: 'between',
+        value: ['2026-10-01T00:00', '2026-10-03T12:00']
+      }
+    ]
+  ])('refuses times on a plain date field, even unvalidated: %j', (filter) => {
+    expect(() =>
+      resolveOne(filter, '2026-10-03T02:00:00Z', 'Australia/Sydney')
+    ).toThrow('"Birthday" holds plain dates')
+  })
+
+  it('throws on an unknown sort field', () => {
+    expect(() =>
+      resolveRecordQuery(
+        {
+          search: '',
+          filters: [],
+          sort: [{ field: 'nope', direction: 'ascending' }]
+        },
+        eventFields,
+        { now: new Date(), timeZone: 'Australia/Sydney' }
+      )
+    ).toThrow('Unknown field "nope"')
+  })
 })

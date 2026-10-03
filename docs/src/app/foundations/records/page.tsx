@@ -133,7 +133,7 @@ const VIEW: RecordView = {
 const NOW = new Date('2026-10-02T13:30:00Z')
 const ZONE = 'Australia/Melbourne'
 
-const params = [...toSearchParams(VIEW, { page: 1 })]
+const params = [...toSearchParams(VIEW, { page: 0 })]
 const meilisearch = toMeilisearch(VIEW, FIELDS, { now: NOW, timeZone: ZONE })
 const suggestions = parseQuery('melb this weekend', {
   fields: FIELDS,
@@ -324,11 +324,7 @@ export default function RecordsPage() {
               'Session start, doors',
               'Venue-local calendar date, never converted'
             ],
-            [
-              'access',
-              'On sale, presale',
-              'Venue-local date, and the chip names the zone'
-            ],
+            ['access', 'On sale, presale', 'Venue-local date'],
             ['timestamp', 'Order placed', "The viewer's day, as instants"],
             ['date', 'Birthday, all-day on-sale', 'A plain date with no zone']
           ]}
@@ -337,9 +333,10 @@ export default function RecordsPage() {
           Relative ranges have one fixed meaning: a week is Monday to Sunday, a
           weekend is Saturday and Sunday, rolling windows count today, and the
           financial year starts in July. Hour windows and the open ranges
-          upcoming, past and ongoing compare the instant. A range field matches
-          when any part of it overlaps, so a five-night festival is on this
-          weekend if one night is.
+          upcoming, past and ongoing compare the instant, except on a plain
+          date, where upcoming starts today and past ends yesterday. A range
+          field matches when any part of it overlaps, so a five-night festival
+          is on this weekend if one night is.
         </p>
       </Section>
 
@@ -364,8 +361,10 @@ export default function RecordsPage() {
           <Code>epoch: &apos;milliseconds&apos;</Code> otherwise), event and
           access dates under <Code>localDateKey</Code>, and a range&apos;s end
           on every record. Text <Code>contains</Code> needs Meilisearch&apos;s{' '}
-          <Code>containsFilter</Code> feature. Scope facet value search to the
-          user&apos;s permissions on the server.
+          <Code>containsFilter</Code> feature, and the index&apos;s{' '}
+          <Code>searchableAttributes</Code> should list the fields marked{' '}
+          <Code>searchable</Code>. Scope facet value search to the user&apos;s
+          permissions on the server.
         </p>
       </Section>
 
@@ -373,8 +372,9 @@ export default function RecordsPage() {
         <p className='max-w-prose text-subtle'>
           <Code>parseQuery(text, {'{ fields, now, timeZone }'})</Code> reads
           typed text into ranked suggestions, shaped for <Code>QueryField</Code>
-          . It knows nothing about any one entity, so a search across events and
-          orders passes both field lists. It reads identifiers,{' '}
+          . It knows nothing about any one entity: to search events and orders
+          together, call it once per entity with its <Code>entity</Code> and
+          merge the results by <Code>score</Code>. It reads identifiers,{' '}
           <Code>field:value</Code>, field names, option and status values, and
           date phrases. Each part of the text gets its best reading first, with
           the rest kept as <Code>remainder</Code>. A phrase always becomes a
@@ -430,7 +430,7 @@ export default function RecordsPage() {
                 <Code key='k'>page</Code>, <Code key='s'>size</Code>,{' '}
                 <Code key='r'>row</Code>
               </>,
-              'Where the reader is. Page counts from 1'
+              'Where the reader is. The URL counts pages from 1; position.page counts from 0'
             ]
           ]}
         />

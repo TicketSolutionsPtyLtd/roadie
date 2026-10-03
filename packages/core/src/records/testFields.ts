@@ -75,3 +75,63 @@ export const eventFields: RecordField[] = [
   { key: 'featured', label: 'Featured', type: 'boolean' },
   { key: 'notes', label: 'Notes', type: 'text', filterable: false }
 ]
+
+const SYDNEY = 'Australia/Sydney'
+const PERTH = 'Australia/Perth'
+
+export const eventRows = {
+  // 7:30pm Saturday in Sydney.
+  velvet: {
+    id: 'velvet',
+    name: 'Neon Nights',
+    venue: 'velvet-room',
+    city: 'sydney',
+    genres: ['jazz', 'folk'],
+    status: 'selling_fast',
+    capacity: 400,
+    gross: 12_500,
+    starts: '2026-10-03T19:30:00+10:00',
+    zone: SYDNEY,
+    created: '2026-09-01T10:00:00Z',
+    featured: true
+  },
+  // 11:30pm Saturday in Perth, already Sunday in Sydney.
+  swan: {
+    id: 'swan',
+    name: 'Late Laughs',
+    venue: 'swan-lane-social',
+    city: 'perth',
+    genres: ['comedy'],
+    status: 'on_sale',
+    capacity: null,
+    gross: 0,
+    starts: '2026-10-03T23:30:00+08:00',
+    zone: PERTH,
+    created: 1_788_000_000_000,
+    featured: false
+  },
+  // A festival running Thursday to Monday, across Sydney's DST change.
+  festival: {
+    id: 'festival',
+    name: 'Harbour Sounds Festival',
+    venue: 'harbourside-hall',
+    city: 'sydney',
+    genres: [],
+    status: 'sold_out',
+    capacity: 5000,
+    starts: '2026-10-01T18:00:00+10:00',
+    ends: '2026-10-05T23:00:00+11:00',
+    zone: SYDNEY,
+    created: new Date('2026-08-15T00:00:00Z')
+  },
+  // No venue yet, no capacity, no start.
+  tba: {
+    id: 'tba',
+    name: 'Mystery Matinee',
+    venue: '',
+    genres: null,
+    status: 'on_sale',
+    capacity: undefined,
+    birthday: '1990-10-03'
+  }
+}

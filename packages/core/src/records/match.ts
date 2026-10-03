@@ -23,14 +23,19 @@ function read(row: Row, key: string | undefined): unknown {
   return key === undefined ? undefined : (row as Record<string, unknown>)[key]
 }
 
-/** Null, undefined, empty text and empty lists are not set. */
+/** Null, undefined, empty text, empty lists and empty objects are not set. */
 export function isEmptyValue(value: unknown): boolean {
+  if (value === null || value === undefined || value === '') return true
+  if (Array.isArray(value)) return value.length === 0
   return (
-    value === null ||
-    value === undefined ||
-    value === '' ||
-    (Array.isArray(value) && value.length === 0)
+    typeof value === 'object' &&
+    !(value instanceof Date) &&
+    Object.keys(value).length === 0
   )
+}
+
+function numbers(value: unknown): number[] {
+  return list(value).filter((v): v is number => typeof v === 'number')
 }
 
 function list(value: unknown): unknown[] {
@@ -159,18 +164,16 @@ function matchesFilter(
         )
       )
     case 'eq':
-      return value === filter.value
+      return numbers(value).some((v) => v === filter.value)
     case 'neq':
-      return value !== filter.value
+      return !numbers(value).some((v) => v === filter.value)
     case 'lt':
-      return typeof value === 'number' && value < filter.value
+      return numbers(value).some((v) => v < filter.value)
     case 'gt':
-      return typeof value === 'number' && value > filter.value
+      return numbers(value).some((v) => v > filter.value)
     case 'between':
-      return (
-        typeof value === 'number' &&
-        value >= filter.value[0] &&
-        value <= filter.value[1]
+      return numbers(value).some(
+        (v) => v >= filter.value[0] && v <= filter.value[1]
       )
     case 'is-true':
       return value === true
@@ -200,10 +203,11 @@ function searchText(row: Row, fields: readonly RecordField[]): string {
 }
 
 /**
- * Whether a row belongs in a resolved query's results, with the same meaning
- * as the Meilisearch adapter. Negative filters (is-not, not-contains, neq)
- * keep rows where the field is empty. Search needs every word somewhere in
- * the searchable fields.
+ * Whether a row belongs in a resolved query's results. Filters mean the same
+ * as in the Meilisearch adapter: negative filters (is-not, not-contains, neq)
+ * keep rows where the field is empty, and text compares without case. Search
+ * is simpler than Meilisearch's: every word must appear, as typed, somewhere
+ * in the searchable fields or their option labels.
  */
 export function matchesRecordQuery(
   row: Row,

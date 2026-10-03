@@ -10,7 +10,7 @@ const options = {
   timeZone: 'Australia/Sydney'
 }
 
-const parse = (text: string, extra: { limit?: number } = {}) =>
+const parse = (text: string, extra: { limit?: number; entity?: string } = {}) =>
   parseQuery(text, { ...options, ...extra })
 
 const summary = (s: RecordSuggestion) =>
@@ -254,5 +254,23 @@ describe('parseQuery', () => {
     }
     const shaped: QueryFieldSuggestionShape[] = parse('melb')
     expect(shaped.length).toBeGreaterThan(0)
+  })
+
+  it('ranks a completed phrase below one typed in full', () => {
+    const [week] = parse('this')
+    const [weekend] = parse('this weekend')
+    expect(week!.label).toBe('Starts: This week')
+    expect(week!.score).toBeLessThan(weekend!.score)
+  })
+
+  it('tags suggestions with an entity, so several entities can merge', () => {
+    const events = parse('status', { entity: 'events' })
+    const orders = parse('status', { entity: 'orders' })
+    expect(events[0]).toMatchObject({
+      entity: 'events',
+      id: 'events:field:status'
+    })
+    const merged = [...events, ...orders].map((s) => s.id)
+    expect(new Set(merged).size).toBe(merged.length)
   })
 })

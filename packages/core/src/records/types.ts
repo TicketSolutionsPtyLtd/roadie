@@ -94,7 +94,7 @@ export type RecordField = {
   localDateKey?: string
   /** Event and access ranges: the stored venue-local date of the end. */
   endLocalDateKey?: string
-  /** Identifiers, such as order numbers, matched exactly. */
+  /** Identifiers, such as order numbers, matched exactly. Anchor it with ^ and $. */
   match?: RegExp
   /** A fixed ISO 4217 code. */
   currency?: string

@@ -15,6 +15,8 @@ type SuggestionBase = {
   score: number
   /** The typed text this suggestion leaves unread, to keep in the field. */
   remainder: string
+  /** The `entity` option, when given. */
+  entity?: string
 }
 
 /**
@@ -31,8 +33,13 @@ export type RecordSuggestion =
   | (SuggestionBase & { kind: 'field'; value: { field: string } })
 
 export type ParseQueryOptions = RecordQueryOptions & {
-  /** One entity's fields, or several entities' for a universal search. */
+  /**
+   * One entity's fields. To search several entities, call once per entity
+   * with its `entity` and merge the results by `score`.
+   */
   fields: readonly RecordField[]
+  /** Tags each suggestion and prefixes its id, so entities can merge. */
+  entity?: string
   /** Defaults to 10. */
   limit?: number
   locale?: string
@@ -210,7 +217,10 @@ function dateReadings(
         {
           filter,
           label: `${field.label}: ${phrase.label}`,
-          quality: (p === 0 ? 1 : 0.9) * (1 - DATE_FIELD_DECAY * f),
+          quality:
+            (p === 0 ? 1 : 0.9) *
+            (completed ? 0.8 : 1) *
+            (1 - DATE_FIELD_DECAY * f),
           complete: !completed,
           ...(detail && detail !== phrase.label && { description: detail })
         }
@@ -422,8 +432,11 @@ function namedField(
   )
 }
 
-function strip({ span: _span, order: _order, ...suggestion }: Candidate) {
-  return suggestion as RecordSuggestion
+function finish(entity: string | undefined) {
+  return ({ span: _span, order: _order, ...suggestion }: Candidate) =>
+    (entity
+      ? { ...suggestion, id: `${entity}:${suggestion.id}`, entity }
+      : suggestion) as RecordSuggestion
 }
 
 /**
@@ -439,6 +452,7 @@ export function parseQuery(
   options: ParseQueryOptions
 ): RecordSuggestion[] {
   const { limit = 10 } = options
+  const strip = finish(options.entity)
   const fields = options.fields.filter(isFilterable)
   const input = text.trim().replace(/\s+/g, ' ')
   if (!input) {

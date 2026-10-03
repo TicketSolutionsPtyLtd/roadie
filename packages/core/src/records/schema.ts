@@ -38,12 +38,14 @@ function buildSchema() {
     z.strictObject({
       field,
       operator: z.enum(['is', 'is-not', 'has-all']),
-      values: z.array(z.string()).min(1, 'Pick at least one value')
+      values: z
+        .array(z.string().min(1, 'Use a value, not empty text'))
+        .min(1, 'Pick at least one value')
     }),
     z.strictObject({
       field,
       operator: z.enum(['contains', 'not-contains']),
-      value: z.string()
+      value: z.string().min(1, 'Type some text to look for')
     }),
     z.strictObject({
       field,

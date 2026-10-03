@@ -77,7 +77,7 @@ describe('toMeilisearch', () => {
     ],
     [
       { field: 'name', operator: 'is', values: ['Say "hi" \\ bye'] },
-      'name = "Say \\"hi\\" \\\\ bye"'
+      'name = "Say \\"hi\\" \\ bye"'
     ],
     [{ field: 'capacity', operator: 'eq', value: 400 }, 'capacity = 400'],
     [{ field: 'capacity', operator: 'neq', value: 400 }, 'capacity != 400'],
@@ -99,6 +99,38 @@ describe('toMeilisearch', () => {
     ]
   ])('writes %j', (filter, expected) => {
     expect(filterFor(filter)).toEqual([expected])
+  })
+
+  it('escapes quotes and leaves backslashes as Meilisearch reads them', () => {
+    expect(
+      filterFor({ field: 'name', operator: 'contains', value: 'say "hi" a\\b' })
+    ).toEqual(['name CONTAINS "say \\"hi\\" a\\b"'])
+  })
+
+  it.each(['ends in \\', 'holds \\" here'])(
+    'refuses a value Meilisearch cannot read back: %s',
+    (value) => {
+      expect(() =>
+        filterFor({ field: 'name', operator: 'contains', value })
+      ).toThrow('cannot hold a backslash')
+    }
+  )
+
+  it('throws on an unknown sort field', () => {
+    expect(() =>
+      toMeilisearch(
+        {
+          query: {
+            search: '',
+            filters: [],
+            sort: [{ field: 'nope', direction: 'ascending' }]
+          },
+          layout: { type: 'table' }
+        },
+        eventFields,
+        options
+      )
+    ).toThrow('Unknown field "nope"')
   })
 
   describe('dates', () => {

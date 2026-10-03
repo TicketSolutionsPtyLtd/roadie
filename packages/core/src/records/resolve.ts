@@ -115,21 +115,26 @@ function toInstants(
   )
 }
 
-/** A plain date has no hours, so "now" becomes today. */
+const OPEN_DAYS = new Set(['upcoming', 'past', 'ongoing'])
+
+/** A plain date has no hours, so "now" in an open range becomes today. */
 function toDates(
+  filter: DateFilter,
   range: ResolvedRecordRange,
+  field: RecordField,
   options: RecordQueryOptions
 ): ResolvedRecordRange {
   if (range.kind === 'dates') return range
-  const today = plainDateOf(options.now, options.timeZone)
-  const open = (bound: number | null, side: 'start' | 'end') => {
-    if (bound === null) return null
-    const date = plainDateOf(new Date(bound), options.timeZone)
-    if (range.start === range.end) return date
-    // "Past" stops before today and "upcoming" starts from it.
-    return side === 'end' && date === today ? addDays(today, -1) : date
+  const value = filter.operator === 'within' ? filter.value : null
+  if (typeof value !== 'string' || !OPEN_DAYS.has(value)) {
+    throw new RangeError(
+      `"${field.label}" holds plain dates, so it cannot be filtered by time`
+    )
   }
-  return dates(open(range.start, 'start'), open(range.end, 'end'))
+  const today = plainDateOf(options.now, options.timeZone)
+  if (value === 'upcoming') return dates(today, null)
+  if (value === 'past') return dates(null, addDays(today, -1))
+  return dates(today, today)
 }
 
 function resolveDateFilter(
@@ -146,7 +151,7 @@ function resolveDateFilter(
       moment === 'timestamp'
         ? toInstants(range, options.timeZone)
         : moment === 'date'
-          ? toDates(range, options)
+          ? toDates(filter, range, field, options)
           : range
   }
 }
@@ -163,6 +168,9 @@ export function resolveRecordQuery(
   options: RecordQueryOptions
 ): ResolvedRecordQuery {
   const byKey = fieldIndex(fields)
+  for (const { field } of query.sort) {
+    if (!byKey.has(field)) throw new RangeError(`Unknown field "${field}"`)
+  }
   return {
     search: query.search,
     sort: query.sort,
