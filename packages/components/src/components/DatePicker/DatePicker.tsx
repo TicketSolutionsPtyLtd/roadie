@@ -65,6 +65,8 @@ export type DatePickerProps = Omit<
   readOnly?: boolean
   /** Submits the value with a form under this name. */
   name?: string
+  /** The id of a form outside the picker to submit the value with. */
+  form?: string
   /** @default 'md' */
   size?: 'sm' | 'md' | 'lg'
   /** @default 'normal' */
@@ -134,6 +136,7 @@ export function DatePicker({
   required,
   readOnly,
   name,
+  form,
   size = 'md',
   emphasis,
   placeholder,
@@ -215,6 +218,7 @@ export function DatePicker({
         timeZone: zone,
         weekStart,
         locale,
+        dateStyle,
         disabled: disabledDays
       })
   })
@@ -234,7 +238,9 @@ export function DatePicker({
         role: 'group',
         'aria-label': ariaLabel,
         'aria-labelledby':
-          ariaLabelledBy ?? (ariaLabel ? undefined : field.labelId || undefined)
+          ariaLabelledBy ??
+          (ariaLabel ? undefined : field.labelId || undefined),
+        'aria-describedby': ariaDescribedBy
       }
     : {}
 
@@ -266,7 +272,7 @@ export function DatePicker({
             readOnly={readOnly}
             aria-label={withTime ? 'Date' : ariaLabel}
             aria-labelledby={withTime ? undefined : ariaLabelledBy}
-            {...(ariaDescribedBy && { 'aria-describedby': ariaDescribedBy })}
+            aria-describedby={withTime ? undefined : ariaDescribedBy}
             placeholder={placeholder}
             ref={inputRef}
             className='h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle'
@@ -338,6 +344,7 @@ export function DatePicker({
         <input
           type='hidden'
           name={name}
+          form={form}
           disabled={isDisabled || undefined}
           value={value ?? ''}
         />

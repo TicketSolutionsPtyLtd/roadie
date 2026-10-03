@@ -127,6 +127,62 @@ describe('DatePicker', () => {
     expect(input).toHaveValue('Fri 27 Nov 2026')
   })
 
+  it('names a refused date in its own date style', async () => {
+    render(
+      <Field>
+        <Field.Label>Show date</Field.Label>
+        <DatePicker
+          today={TODAY}
+          dateStyle='medium'
+          disabled={{ before: TODAY }}
+        />
+        <Field.ErrorText />
+      </Field>
+    )
+    await userEvent.type(screen.getByLabelText('Show date'), '1 oct{Enter}')
+    expect(screen.getByRole('alert').textContent).toBe(
+      '1 Oct 2026 isn’t available'
+    )
+  })
+
+  it('submits with a form it sits outside', () => {
+    const { container } = render(
+      <>
+        <form id='booking' />
+        <DatePicker
+          aria-label='Show date'
+          name='showDate'
+          form='booking'
+          defaultValue='2026-11-27'
+        />
+      </>
+    )
+    expect(new FormData(container.querySelector('form')!).get('showDate')).toBe(
+      '2026-11-27'
+    )
+  })
+
+  it('empties when a controlled parent clears a full value', async () => {
+    function Reset() {
+      const [value, setValue] = useState<string | null>('2026-11-27')
+      return (
+        <>
+          <DatePicker
+            aria-label='Show date'
+            value={value}
+            onValueChange={setValue}
+          />
+          <button type='button' onClick={() => setValue(null)}>
+            Reset
+          </button>
+        </>
+      )
+    }
+    render(<Reset />)
+    await userEvent.click(screen.getByRole('button', { name: 'Reset' }))
+    expect(screen.getByRole('textbox')).toHaveValue('')
+  })
+
   it('leaves a disabled value out of the form', () => {
     const { container } = render(
       <form>
@@ -257,6 +313,44 @@ describe('DatePicker', () => {
       await screen.findByRole('dialog')
       await userEvent.click(day('2026-10-08'))
       expect(onValueChange).toHaveBeenCalledWith('2026-10-08T19:30:00+11:00')
+    })
+
+    it('shows nothing when a parent holding null refuses a full value', async () => {
+      render(
+        <DatePicker
+          aria-label='Doors'
+          granularity='minute'
+          timeZone={MELBOURNE}
+          today={TODAY}
+          value={null}
+          onValueChange={() => {}}
+        />
+      )
+      const date = screen.getByRole('textbox', { name: 'Date' })
+      await userEvent.type(date, '27 nov{Enter}')
+      expect(date).toHaveValue('Fri 27 Nov 2026')
+      await userEvent.type(
+        screen.getByRole('textbox', { name: 'Time' }),
+        '7:30pm{Enter}'
+      )
+      expect(date).toHaveValue('')
+    })
+
+    it('describes the group with a consumer’s description', () => {
+      render(
+        <>
+          <DatePicker
+            aria-label='Doors'
+            granularity='minute'
+            timeZone={MELBOURNE}
+            aria-describedby='doors-note'
+          />
+          <p id='doors-note'>Melbourne time</p>
+        </>
+      )
+      expect(screen.getByRole('group')).toHaveAccessibleDescription(
+        'Melbourne time'
+      )
     })
 
     it('keeps a half-entered value when the parent holds null', async () => {

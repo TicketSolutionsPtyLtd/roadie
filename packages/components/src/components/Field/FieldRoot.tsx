@@ -30,9 +30,10 @@ export function FieldRoot({
   const setControlError = useCallback(
     (control: string, message: string | null) =>
       setControlErrors((errors) => {
-        if (message === null) return errors.filter(([key]) => key !== control)
-        if (!errors.some(([key]) => key === control))
-          return [...errors, [control, message]]
+        const known = errors.some(([key]) => key === control)
+        if (message === null)
+          return known ? errors.filter(([key]) => key !== control) : errors
+        if (!known) return [...errors, [control, message]]
         return errors.map((error) =>
           error[0] === control ? [control, message] : error
         )

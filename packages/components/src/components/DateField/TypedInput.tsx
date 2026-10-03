@@ -21,6 +21,7 @@ export function TypedInput({
   invalid,
   name,
   form,
+  'aria-describedby': ariaDescribedBy,
   id,
   required,
   onBlur,
@@ -29,7 +30,10 @@ export function TypedInput({
 }: TypedInputProps) {
   const field = useFieldContext()
   const isInvalid = !!typed.error || (invalid ?? field.invalid)
-  const describedBy = isInvalid ? field.errorTextId : field.helperTextId
+  const describedBy =
+    [isInvalid ? field.errorTextId : field.helperTextId, ariaDescribedBy]
+      .filter(Boolean)
+      .join(' ') || undefined
   const isRequired = required ?? field.required
   const isDisabled = disabled || field.disabled || undefined
 
@@ -45,7 +49,7 @@ export function TypedInput({
         required={isRequired}
         aria-required={isRequired || undefined}
         aria-invalid={isInvalid || undefined}
-        aria-describedby={describedBy || undefined}
+        aria-describedby={describedBy}
         data-editing={typed.editing || undefined}
         {...props}
         value={typed.text}

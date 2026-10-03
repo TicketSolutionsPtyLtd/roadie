@@ -38,7 +38,7 @@ render(<Default />)
 
 ### Variants
 
-`granularity='minute'` adds a [TimeField](/components/time-field) beside the date. The value is then the instant the date and time name in `timeZone`, with its offset, such as `'2026-11-27T19:30:00+11:00'`, and it stays null until both are filled in. Pass the venue's zone, so a Perth organiser setting doors for a Melbourne show sets them on Melbourne's clock.
+`granularity='minute'` adds a [TimeField](/components/time-field) beside the date. The value is then the instant the date and time name in `timeZone`, with its offset, such as `'2026-11-27T19:30:00+11:00'`, and it stays null until both are filled in. Pass the venue's zone, so a Perth organiser setting doors for a Melbourne show sets them on Melbourne's clock. A time that daylight saving skips, such as 2:30am on the morning the clocks go forward, moves to where it lands, 3:30am, and the field shows it.
 
 ```tsx-live-noinline
 function Doors() {

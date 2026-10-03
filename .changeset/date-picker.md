@@ -24,8 +24,8 @@ the calendar button. `granularity='minute'` adds a `TimeField`, and the value
 becomes the instant the date and time name in `timeZone`, with its offset,
 such as `'2026-11-27T19:30:00+11:00'`, so event times are set on the venue's
 clock. It also takes `disabled` matchers, `readOnly`, `captionLayout`,
-`startMonth`, `endMonth`, `placeholder`, `inputRef` and a controlled
-`open`.
+`startMonth`, `endMonth`, `placeholder`, `inputRef`, `form` and a
+controlled `open`.
 
 `Field.ErrorText` now also shows a control's own error, such as "Enter a date,
 like 14 Mar or next Fri", when typed text names nothing. It shows even when

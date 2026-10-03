@@ -251,6 +251,20 @@ describe('DateField', () => {
       expect(input).toHaveAccessibleDescription('Choose a show date')
     })
 
+    it('adds its own description to the Field’s', () => {
+      render(
+        <Field>
+          <Field.Label>Show date</Field.Label>
+          <DateField aria-describedby='venue-note' />
+          <Field.HelperText>Type a date</Field.HelperText>
+          <p id='venue-note'>The Tin Shed is closed Mondays</p>
+        </Field>
+      )
+      expect(screen.getByLabelText('Show date')).toHaveAccessibleDescription(
+        'Type a date The Tin Shed is closed Mondays'
+      )
+    })
+
     it('says why typed text is wrong in Field.ErrorText', async () => {
       render(
         <Field>
