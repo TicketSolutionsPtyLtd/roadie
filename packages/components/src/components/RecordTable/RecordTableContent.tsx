@@ -26,6 +26,7 @@ import { RecordsEmpty, RecordsError } from '../Records/RecordsStates'
 import { useRecordsContext } from '../Records/context'
 import type { RecordsContentProps } from '../Records/layouts'
 import { pageState } from '../Records/selection'
+import { firstDirection } from '../Records/sortOptions'
 import { useStickyTop } from '../Records/stickyTop'
 import { surfaceClass, useSurface } from '../Records/surface'
 import { SURVIVOR } from '../Records/useBulkActions'
@@ -87,10 +88,6 @@ function syncScroll(
   if (element && element.scrollLeft !== source.scrollLeft)
     element.scrollLeft = source.scrollLeft
 }
-
-// As DataTable: words A to Z first, figures and dates largest or latest first.
-const firstDirection = (field: RecordField): RecordSortDirection =>
-  field.type === 'text' || field.type === 'option' ? 'ascending' : 'descending'
 
 /** A header click sorts by that field alone: first its natural way, then flipped. */
 function nextSort(field: RecordField, sort: readonly RecordSort[]) {

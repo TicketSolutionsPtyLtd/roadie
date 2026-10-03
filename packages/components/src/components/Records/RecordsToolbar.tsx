@@ -5,6 +5,7 @@ import { type ReactNode, useLayoutEffect, useRef } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { RecordsActions } from './RecordsActions'
+import { RecordsOptions } from './RecordsOptions'
 import { RecordsSearch } from './RecordsSearch'
 import { RecordsSelect } from './RecordsSelect'
 import { useRecordsContext } from './context'
@@ -14,7 +15,7 @@ import { surfaceClass, useSurface } from './surface'
 import type { RecordsAction } from './types'
 
 export type RecordsToolbarProps<Row extends object = object> = {
-  /** Replaces the standard controls: the search and the actions. */
+  /** Replaces the standard controls: the search, the options and the actions. */
   children?: ReactNode
   /** The standard search's placeholder. @default 'Search' */
   searchPlaceholder?: string
@@ -88,6 +89,7 @@ export function RecordsToolbar<Row extends object>({
             className='min-w-48 grow basis-64'
           />
           <RecordsSelect />
+          <RecordsOptions />
           {actions && <RecordsActions actions={actions} className='ms-auto' />}
         </>
       )}

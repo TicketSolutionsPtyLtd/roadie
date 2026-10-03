@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import { globSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import type { CDPSession } from 'playwright'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 
@@ -12,6 +13,7 @@ import { reactCompilerPreset } from './react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
 const TOUCH_TESTS = 'src/**/*.touch.browser.test.{ts,tsx}'
+const PERF_TESTS = 'src/**/*.perf.browser.test.{ts,tsx}'
 
 const SRC = new URL('./src/', import.meta.url)
 const JSDOM_ONLY = /(?<!\.browser)\.test\.tsx?$/
@@ -115,6 +117,35 @@ const swipe: BrowserCommand<
   await session.detach()
 }
 
+const throttleCpu: BrowserCommand<[rate: number]> = async ({ page }, rate) => {
+  const session = await page.context().newCDPSession(page)
+  await session.send('Emulation.setCPUThrottlingRate', { rate })
+}
+
+const metricSessions = new WeakMap<object, Promise<CDPSession>>()
+
+// Chromium's running style and layout totals for the page.
+const renderMetrics: BrowserCommand<[]> = async ({ page }) => {
+  let session = metricSessions.get(page)
+  if (!session) {
+    session = page
+      .context()
+      .newCDPSession(page)
+      .then(async (created) => {
+        await created.send('Performance.enable')
+        return created
+      })
+    metricSessions.set(page, session)
+  }
+  const { metrics } = await (await session).send('Performance.getMetrics')
+  const value = (name: string) =>
+    metrics.find((metric) => metric.name === name)?.value ?? 0
+  return {
+    styleMs: value('RecalcStyleDuration') * 1000,
+    layoutMs: value('LayoutDuration') * 1000
+  }
+}
+
 const browserTest = {
   enabled: true,
   headless: true,
@@ -164,7 +195,7 @@ export default defineConfig({
         test: {
           name: 'browser',
           include: [BROWSER_TESTS],
-          exclude: [...configDefaults.exclude, TOUCH_TESTS],
+          exclude: [...configDefaults.exclude, TOUCH_TESTS, PERF_TESTS],
           browser: {
             ...browserTest,
             provider: playwright(),
@@ -192,6 +223,24 @@ export default defineConfig({
                   !(process.env.CI && browser === 'webkit')
               )
               .map((instance) => ({ ...instance }))
+          }
+        }
+      },
+      {
+        extends: true,
+        plugins: [tailwindcss()],
+        optimizeDeps: { ...optimizeDeps, force: true },
+        test: {
+          name: 'perf',
+          include: [PERF_TESTS],
+          // Hooks React before react-dom loads, to count re-renders.
+          setupFiles: ['./src/components/RecordTable/renderCounter.ts'],
+          browser: {
+            ...browserTest,
+            provider: playwright(),
+            viewport: { width: 1440, height: 900 },
+            commands: { throttleCpu, renderMetrics },
+            instances: [{ browser: 'chromium' }]
           }
         }
       }

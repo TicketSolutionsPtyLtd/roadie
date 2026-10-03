@@ -168,7 +168,11 @@ describe('Records Select mode', () => {
     await user.click(
       within(floating()!).getByRole('button', { name: 'Cancel' })
     )
-    await screen.findByRole('alertdialog')
+    const confirm = await screen.findByRole('alertdialog')
+    // The confirm takes focus a frame after it opens; Escape before then is the bar's.
+    await waitFor(() =>
+      expect(confirm).toContainElement(document.activeElement as HTMLElement)
+    )
     await user.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
     expect(floating()).toHaveTextContent('1 selected')

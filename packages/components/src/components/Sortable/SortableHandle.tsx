@@ -65,7 +65,7 @@ export function SortableHandle({
   size = 'sm',
   emphasis = 'subtler',
   onClick,
-  onMouseDown,
+  onPointerDown,
   ...props
 }: SortableHandleProps) {
   const root = useSortableRoot('Sortable.Handle')
@@ -74,7 +74,9 @@ export function SortableHandle({
   const { value, label, index, disabled, setHandle } = item
   const [open, setOpen] = useState(false)
   // The menu opens on press, which would cover the list as a drag starts,
-  // so a mouse press waits for the click a drag never sends.
+  // so a press waits for the click a drag never sends. Pointer, not mouse,
+  // events: WebKit sends a tap no mouse events once its pointerdown is
+  // cancelled, as a drawer does.
   const pressedRef = useRef(false)
   const DotsIcon = root.axis === 'vertical' ? DotsSixVerticalIcon : DotsSixIcon
 
@@ -90,8 +92,8 @@ export function SortableHandle({
         data-slot='sortable-handle'
         disabled={disabled}
         ref={setHandle}
-        onMouseDown={(event) => {
-          onMouseDown?.(event)
+        onPointerDown={(event) => {
+          onPointerDown?.(event)
           pressedRef.current = event.button === 0 && !open
         }}
         onClick={(event) => {

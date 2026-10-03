@@ -44,3 +44,17 @@ actions ask first unless `confirm` is `false`, and any action given
 `shownColumns` for the columns a view shows. `Records.Search` takes an
 `aria-label`, `Records.Toolbar` a `searchLabel`, and `Records.Status`
 announces the selection and a search's count once typing settles.
+
+`Records.Options` is a Configure button for the view, in the standard
+toolbar after the search and before the table actions. It opens a popover,
+or a bottom drawer on a phone, with the sort (a field and direction per
+level, in the field's own terms such as Low to high, with Add sort and
+Remove) and the shown layout's settings. For the table these are its
+columns: drag a handle, or use its Move menu, to reorder them, and an eye
+toggle to show or hide each one. They write `view.query.sort` and
+`view.layout.columns`, leaving out an order or hidden list that matches the
+columns as defined and keeping keys for columns the table doesn't have.
+`label` renames the button, which is "Configure table" for the table. A
+layout definition adds its own settings with `Settings`, which can carry a
+`preload` that runs once the page is idle or the button is reached; the
+table's columns list loads that way, out of the table's first load.

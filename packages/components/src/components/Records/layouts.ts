@@ -23,9 +23,20 @@ export type RecordLayoutDefinition<Config = unknown> = {
   Content: (props: RecordsContentProps & { config: Config }) => ReactNode
   /** Where `Records.BulkActions` shows: in the layout's header row, which its Content provides, or floating at the foot of the screen. @default 'floating' */
   bulkActions?: 'header' | 'floating'
+  /** The layout's own part of `Records.Options`, under the sort, such as the table's columns. */
+  Settings?: RecordLayoutSettings<Config>
 }
 
+/** A layout's settings. A lazy one can `preload`, which Options calls once the page is idle or its button is reached. */
+export type RecordLayoutSettings<Config = unknown> = ((props: {
+  config: Config
+}) => ReactNode) & { preload?: () => void }
+
 /** A layout of any config, as `Records` takes them. */
-export type AnyRecordLayout = Omit<RecordLayoutDefinition, 'Content'> & {
+export type AnyRecordLayout = Omit<
+  RecordLayoutDefinition,
+  'Content' | 'Settings'
+> & {
   Content: (props: RecordsContentProps & { config: never }) => ReactNode
+  Settings?: RecordLayoutSettings<never>
 }
