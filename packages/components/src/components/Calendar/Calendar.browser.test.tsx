@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import { cleanup, render, screen } from '@testing-library/react'
 import {
   afterAll,
@@ -488,6 +490,63 @@ describe('Calendar scrolling months', () => {
     await expect.poll(() => scroller().scrollTop).toBeGreaterThan(0)
     scroller().scrollTop += 700
     await expect.poll(() => months.at(-1)).toMatch(/^2027-0[4-9]-01$/)
+  })
+
+  it('stays where it is scrolled when the parent keeps month', async () => {
+    function Fixed() {
+      const [, setHovered] = useState(0)
+      return (
+        <div
+          data-testid='scroller'
+          className='h-100 w-97.5 overflow-y-auto bg-raised'
+          onPointerOver={() => setHovered((n) => n + 1)}
+        >
+          <Calendar today={TODAY} layout='scroll' month='2027-03-01' />
+        </div>
+      )
+    }
+    render(<Fixed />)
+    await expect.poll(() => scroller().scrollTop).toBeGreaterThan(0)
+    const opened = scroller().scrollTop
+    scroller().scrollTop = opened + 700
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    await userEvent.hover(day('2027-05-12'))
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(scroller().scrollTop).toBeGreaterThan(opened + 300)
+  })
+
+  it('keeps its months in place as it scrolls after a far jump', async () => {
+    function Jumping() {
+      const [month, setMonth] = useState('2027-03-01')
+      return (
+        <>
+          <button type='button' onClick={() => setMonth('2029-03-01')}>
+            Jump
+          </button>
+          <div
+            data-testid='scroller'
+            className='h-100 w-97.5 overflow-y-auto bg-raised'
+          >
+            <Calendar
+              today={TODAY}
+              layout='scroll'
+              month={month}
+              onMonthChange={setMonth}
+            />
+          </div>
+        </>
+      )
+    }
+    render(<Jumping />)
+    await expect.poll(() => scroller().scrollTop).toBeGreaterThan(0)
+    await userEvent.click(screen.getByRole('button', { name: 'Jump' }))
+    await expect.poll(() => monthsShown()).toContain('2029-03-01')
+    const first = monthsShown()[0]
+    scroller().scrollTop += 500
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    scroller().scrollTop += 500
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    expect(monthsShown()[0]).toBe(first)
   })
 
   it('stops growing in a box that only scrolls sideways', async () => {

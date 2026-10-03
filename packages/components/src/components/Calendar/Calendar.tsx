@@ -79,8 +79,8 @@ type CalendarBaseProps = Omit<
    * `paged` turns the months with arrows. `scroll` stacks them in a list
    * that scrolls, under one pinned row of weekdays, adding months as it
    * nears either end. It opens on `month`, the selection or today, scrolls
-   * to `month` when it changes, and calls `onMonthChange` with the month at
-   * the top as it scrolls.
+   * to `month` when it changes, and in a box that scrolls calls
+   * `onMonthChange` with the month at the top as it scrolls.
    *
    * @default 'paged'
    */
@@ -581,10 +581,17 @@ export function Calendar(props: CalendarProps) {
 
   // Brings the first month to the top of the list, under the weekdays, when
   // it opens and whenever the first month changes.
+  // Scrolls only for a new first month, never back to one the parent
+  // keeps, and not for the one the list reported as it scrolled.
   const scrolledTo = useRef<string | null>(null)
+  const reported = useRef<string | null>(null)
   useIsomorphicLayoutEffect(() => {
     if (!scrolling || waitingForToday || scrolledTo.current === firstMonth)
       return
+    if (reported.current === firstMonth) {
+      scrolledTo.current = firstMonth
+      return
+    }
     const root = rootRef.current
     const month = root?.querySelector(`[data-month="${firstMonth}"]`)
     const scroller = root && scrollingAncestor(root)
@@ -632,9 +639,9 @@ export function Calendar(props: CalendarProps) {
     ).find((month) => month.getBoundingClientRect().bottom > below + 1)
     const month = top?.dataset.month
     if (!month || month === firstMonth) return
-    scrolledTo.current = month
+    reported.current = month
     // Held, so the run doesn't recentre on the month scrolled to.
-    if (!run) setRun(currentRun)
+    if (run !== currentRun) setRun(currentRun)
     changeMonth(month)
   }
   const followTopRef = useRef(followTop)
@@ -691,13 +698,16 @@ export function Calendar(props: CalendarProps) {
     const scrolled = () => (root ? root.scrollTop : window.scrollY)
     const observer = new IntersectionObserver(
       (entries) => {
-        const near = entries.find((entry) => entry.isIntersecting)
+        // With no box of its own to scroll, months added above would push
+        // the page down, so the list only grows below.
+        const near = entries.find(
+          (entry) =>
+            entry.isIntersecting &&
+            (root || entry.target !== earlierRef.current)
+        )
         // Only after a scroll: a new observer reports an end still in reach,
         // and growing for that alone would never stop.
         if (!near || grownAt.current === scrolled()) return
-        // With no box of its own to scroll, months added above would push
-        // the page down, so the list only grows below.
-        if (!root && near.target === earlierRef.current) return
         grownAt.current = scrolled()
         growRunRef.current(near.target === earlierRef.current)
       },

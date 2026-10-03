@@ -79,7 +79,8 @@ function summarise(
   reversed: boolean
 ): string {
   const options = { timeZone: 'UTC', dateStyle: 'medium', locale } as const
-  if (reversed) return 'Ends before it starts'
+  if (reversed || (start && end && compareDates(start, end) > 0))
+    return 'Ends before it starts'
   if (start && end) {
     const count = (noonOf(end).getTime() - noonOf(start).getTime()) / DAY + 1
     return joinWithFact(
