@@ -125,12 +125,13 @@ describe('Kbd', () => {
     (size) => {
       const { container } = render(
         <Button size={size}>
-          Search <Kbd keys={['mod', 'k']} size='sm' />
-          <Kbd keys={['mod', 'k']} size='sm' combined />
+          Search <Kbd keys={['enter', 'arrowup']} size='sm' />
+          <Kbd keys={['enter', 'arrowup']} size='sm' combined />
         </Button>
       )
+      // Return and the arrows are glyphs on every platform; mod is a word off Apple.
       const glyphs = container.querySelectorAll('kbd svg')
-      expect(glyphs.length).toBeGreaterThan(0)
+      expect(glyphs).toHaveLength(4)
       for (const svg of glyphs) {
         const { width, height } = svg.getBoundingClientRect()
         expect([width, height]).toEqual([12, 12])
