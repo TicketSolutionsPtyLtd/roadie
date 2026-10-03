@@ -1,0 +1,177 @@
+import { useState } from 'react'
+
+import { cleanup, render, screen, within } from '@testing-library/react'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { commands, page, userEvent } from 'vitest/browser'
+
+import roadieCss from '../../vitest.browser.css?inline'
+import { Autocomplete } from '../components/Autocomplete'
+import { Button } from '../components/Button'
+import { Combobox } from '../components/Combobox'
+import { DateRangePicker } from '../components/DateRangePicker'
+import { Drawer } from '../components/Drawer'
+import { Menu } from '../components/Menu'
+import { useStylesheet } from '../components/Pane/testUtils'
+import { Select } from '../components/Select'
+
+const TIMEOUT = { timeout: 20_000 }
+const VENUES = ['Kazoo Hollow Room', 'Lantern Yard', 'Velvet Ferry']
+
+let removeStylesheet = () => {}
+beforeAll(async () => {
+  removeStylesheet = useStylesheet(roadieCss)
+  await page.viewport(390, 844)
+})
+afterAll(() => removeStylesheet())
+afterEach(() => cleanup())
+
+const settle = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
+
+// Waits out a popup's scale-in, so the tap lands where the option ends up.
+async function tapOn(element: Element) {
+  await settle(300)
+  const { left, top, width, height } = element.getBoundingClientRect()
+  await commands.tap(left + Math.min(20, width / 2), top + height / 2)
+  await settle(200)
+}
+
+function InDrawer({ children }: { children: React.ReactNode }) {
+  return (
+    <Drawer defaultOpen>
+      <Drawer.Content>
+        <Drawer.Body>{children}</Drawer.Body>
+      </Drawer.Content>
+    </Drawer>
+  )
+}
+
+describe('A tapped option in a drawer', TIMEOUT, () => {
+  it('is chosen from an Autocomplete', async () => {
+    render(
+      <InDrawer>
+        <Autocomplete items={VENUES}>
+          <Autocomplete.Input aria-label='Venue' />
+          <Autocomplete.Portal>
+            <Autocomplete.Positioner>
+              <Autocomplete.Popup>
+                <Autocomplete.List>
+                  {(venue: string) => (
+                    <Autocomplete.Item key={venue} value={venue}>
+                      {venue}
+                    </Autocomplete.Item>
+                  )}
+                </Autocomplete.List>
+              </Autocomplete.Popup>
+            </Autocomplete.Positioner>
+          </Autocomplete.Portal>
+        </Autocomplete>
+      </InDrawer>
+    )
+    await settle()
+    const input = screen.getByRole('combobox', { name: 'Venue' })
+    await tapOn(input)
+    await userEvent.type(input, 'lan')
+    await tapOn(await screen.findByRole('option', { name: 'Lantern Yard' }))
+    expect(input).toHaveValue('Lantern Yard')
+  })
+
+  it('is chosen from a Combobox', async () => {
+    function Venue() {
+      const [venue, setVenue] = useState<string | null>(null)
+      return (
+        <InDrawer>
+          <Combobox items={VENUES} value={venue} onValueChange={setVenue}>
+            <Combobox.InputGroup>
+              <Combobox.Input aria-label='Venue' />
+              <Combobox.Trigger />
+            </Combobox.InputGroup>
+            <Combobox.Portal>
+              <Combobox.Positioner>
+                <Combobox.Popup>
+                  <Combobox.List>
+                    {(item: string) => (
+                      <Combobox.Item key={item} value={item}>
+                        {item}
+                      </Combobox.Item>
+                    )}
+                  </Combobox.List>
+                </Combobox.Popup>
+              </Combobox.Positioner>
+            </Combobox.Portal>
+          </Combobox>
+          <output>{venue}</output>
+        </InDrawer>
+      )
+    }
+    render(<Venue />)
+    await settle()
+    const input = screen.getByRole('combobox', { name: 'Venue' })
+    await tapOn(input)
+    await userEvent.type(input, 'vel')
+    await tapOn(await screen.findByRole('option', { name: 'Velvet Ferry' }))
+    expect(document.querySelector('output')).toHaveTextContent('Velvet Ferry')
+  })
+
+  it('is chosen from a Select', async () => {
+    function Venue() {
+      const [venue, setVenue] = useState<string | null>(null)
+      return (
+        <InDrawer>
+          <Select value={venue} onValueChange={setVenue}>
+            <Select.Trigger aria-label='Venue'>
+              <Select.Value placeholder='Choose' />
+              <Select.Icon />
+            </Select.Trigger>
+            <Select.Content>
+              {VENUES.map((item) => (
+                <Select.Item key={item} value={item}>
+                  {item}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select>
+          <output>{venue}</output>
+        </InDrawer>
+      )
+    }
+    render(<Venue />)
+    await settle()
+    await tapOn(screen.getByRole('combobox', { name: 'Venue' }))
+    await settle()
+    await tapOn(await screen.findByRole('option', { name: 'Lantern Yard' }))
+    expect(document.querySelector('output')).toHaveTextContent('Lantern Yard')
+  })
+
+  it('runs from a Menu', async () => {
+    const chosen: string[] = []
+    render(
+      <InDrawer>
+        <Menu>
+          <Menu.Trigger render={<Button />}>Actions</Menu.Trigger>
+          <Menu.Content>
+            <Menu.Item onClick={() => chosen.push('duplicate')}>
+              Duplicate
+            </Menu.Item>
+          </Menu.Content>
+        </Menu>
+      </InDrawer>
+    )
+    await settle()
+    await tapOn(screen.getByRole('button', { name: 'Actions' }))
+    await tapOn(await screen.findByRole('menuitem', { name: 'Duplicate' }))
+    expect(chosen).toEqual(['duplicate'])
+  })
+
+  it('fills a DateRangePicker end from its suggestions', async () => {
+    render(<DateRangePicker aria-label='Sales period' today='2026-10-07' />)
+    await tapOn(screen.getByRole('button', { name: /^Choose dates/ }))
+    const drawer = await screen.findByRole('dialog')
+    await settle(800)
+    const start = within(drawer).getByRole('combobox', { name: 'Start' })
+    await tapOn(start)
+    await userEvent.type(start, 'tom')
+    await tapOn(await screen.findByRole('option', { name: /^Tomorrow/ }))
+    expect(start).toHaveValue('8 Oct 2026')
+    expect(screen.queryByRole('listbox')).toBeNull()
+  })
+})

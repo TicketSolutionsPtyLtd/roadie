@@ -137,11 +137,16 @@ render(
 
 ### With scrolling months
 
-`layout='scroll'` stacks the months in a list that scrolls, as on a phone, under one row of weekdays that stays pinned. There are no arrows: it opens on `month`, the selection or today, and adds months as it nears either end or the keyboard moves past them. A new `month` scrolls the list to it, and in a box that scrolls `onMonthChange` reports the month at the top as it scrolls. Put it in a box that scrolls. Pickers use it in their phone drawer.
+`layout='scroll'` stacks the months in a list that scrolls, as on a phone, under one row of weekdays that stays pinned. There are no arrows: it opens on `month`, the selection or today, and adds months as it nears either end or the keyboard moves past them. A new `month` scrolls the list to it, and in a box that scrolls `onMonthChange` reports the month at the top as it scrolls. Put it in a box that scrolls. To run the pinned row to the box's edges, pad the calendar and pull its `calendar-weekdays` slot out by the same amount, as here. Pickers use it in their phone drawer.
 
 ```tsx-live
-<div className='h-96 overflow-y-auto rounded-xl emphasis-raised px-4'>
-  <Calendar layout='scroll' mode='range' defaultSelected={{ start: '2026-11-06', end: '2026-11-12' }} />
+<div className='h-96 overflow-y-auto rounded-xl emphasis-raised'>
+  <Calendar
+    layout='scroll'
+    mode='range'
+    defaultSelected={{ start: '2026-11-06', end: '2026-11-12' }}
+    className='px-4 **:data-[slot=calendar-weekdays]:-mx-4 **:data-[slot=calendar-weekdays]:px-4'
+  />
 </div>
 ```
 

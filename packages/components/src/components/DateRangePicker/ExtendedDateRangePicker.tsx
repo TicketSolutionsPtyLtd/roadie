@@ -482,7 +482,13 @@ export function ExtendedDateRangePicker({
     !draft.start.unreadable &&
     !draft.end.unreadable
   const calendarView = (
-    <Calendar mode='range' layout='scroll' {...calendarProps} />
+    <Calendar
+      mode='range'
+      layout='scroll'
+      // The pinned weekdays run to the drawer's edges, padded back over the days.
+      className='**:data-[slot=calendar-weekdays]:-mx-(--content-inset) **:data-[slot=calendar-weekdays]:px-(--content-inset)'
+      {...calendarProps}
+    />
   )
   const drawerContent: ReactNode = (
     <>

@@ -41,6 +41,7 @@ const day = (date: string) =>
 const months = () =>
   document.querySelectorAll('[data-slot="calendar-month"]').length
 const box = (element: Element) => element.getBoundingClientRect()
+const settle = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function Period({
   initial = 'last-week' as DateRangeValue | null,
@@ -383,6 +384,39 @@ for (const [width, height] of [
         .toBe(Math.round(box(weekdays).bottom))
     })
 
+    it('pins a weekday row as wide as the drawer, over the day columns', async () => {
+      render(<Period initial={{ start: '2026-10-05', end: '2026-10-09' }} />)
+      await userEvent.click(trigger())
+      const drawer = await screen.findByRole('dialog')
+      await expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+      const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')!
+      expect(box(weekdays).left).toBe(box(drawer).left)
+      expect(box(weekdays).right).toBe(box(drawer).right)
+      const labels = Array.from(weekdays.children, box)
+      const cells = Array.from(
+        drawer.querySelectorAll(
+          '[data-month="2026-10-01"] tbody tr:nth-child(2) td'
+        ),
+        box
+      )
+      labels.forEach((label, i) =>
+        expect(label.left + label.width / 2).toBeCloseTo(
+          cells[i]!.left + cells[i]!.width / 2,
+          0
+        )
+      )
+    })
+
+    it('sizes Start and End as touch-sized fields', async () => {
+      render(<Period initial={{ start: '2026-10-05', end: '2026-10-09' }} />)
+      await userEvent.click(trigger())
+      const drawer = await screen.findByRole('dialog')
+      for (const name of ['Start', 'End'])
+        expect(
+          box(within(drawer).getByRole('combobox', { name })).height
+        ).toBeGreaterThanOrEqual(40)
+    })
+
     it('keeps Clear and Apply in view at the foot', async () => {
       render(<Period commit='apply' />)
       await userEvent.click(trigger())
@@ -524,6 +558,45 @@ describe('DateRangePicker on a phone', TIMEOUT, () => {
       within(drawer).getByRole('combobox', { name: 'Start' })
     ).toBeVisible()
     expect(drawer.querySelector('[data-slot="calendar"]')).not.toBeNull()
+  })
+})
+
+describe('DateRangePicker finishing a range in another month', TIMEOUT, () => {
+  afterAll(() => page.viewport(1920, 1080))
+
+  it('ends it in the next month after turning the page', async () => {
+    await page.viewport(900, 900)
+    render(<Period initial={null} commit='apply' />)
+    await userEvent.click(trigger())
+    const popup = await screen.findByRole('dialog')
+    await userEvent.click(day('2026-10-01'))
+    await userEvent.click(
+      within(popup).getByRole('button', { name: 'Next month' })
+    )
+    await userEvent.click(day('2026-11-05'))
+    expect(within(popup).getByRole('combobox', { name: 'Start' })).toHaveValue(
+      '1 Oct 2026'
+    )
+    expect(within(popup).getByRole('combobox', { name: 'End' })).toHaveValue(
+      '5 Nov 2026'
+    )
+  })
+
+  it('ends it in a month scrolled to on a phone', async () => {
+    await page.viewport(390, 844)
+    setHoverCapable(false)
+    render(<Period initial={null} commit='apply' />)
+    await userEvent.click(trigger())
+    const drawer = await screen.findByRole('dialog')
+    await expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+    await userEvent.click(day('2026-10-01'))
+    const body = bodyOf(drawer)
+    const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')!
+    const november = drawer.querySelector('[data-month="2026-11-01"]')!
+    body.scrollTop += box(november).top - box(weekdays).bottom
+    await settle()
+    await userEvent.click(day('2026-11-05'))
+    expect(textOf(summary(drawer))).toMatch(/^1 Oct to 5 Nov 2026 · 36 days$/)
   })
 })
 

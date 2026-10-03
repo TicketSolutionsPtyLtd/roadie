@@ -126,7 +126,7 @@ function RangeEndInputs({
         ref={inputRef}
         data-picking={picking ? '' : undefined}
         className={cn(
-          inputVariants({ size: 'sm' }),
+          inputVariants(),
           picking && 'border-normal intent-accent'
         )}
       />
@@ -137,7 +137,7 @@ function RangeEndInputs({
           id={field.fieldId ? `${field.fieldId}-time` : undefined}
           aria-label={`${label} time`}
           placeholder='Any time'
-          className={inputVariants({ size: 'sm' })}
+          className={inputVariants()}
           onKeyDown={time.onKeyDown}
         />
       )}

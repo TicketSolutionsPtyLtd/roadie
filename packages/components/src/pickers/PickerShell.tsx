@@ -263,7 +263,8 @@ export function PickerDrawerHeader({
   children
 }: PickerDrawerHeaderProps) {
   return (
-    <Drawer.Header>
+    // Above sticky rows pinned under it, so its shadow falls over them.
+    <Drawer.Header className='z-2'>
       <Drawer.Close
         render={
           <IconButton aria-label='Close' emphasis='normal'>

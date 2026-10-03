@@ -6,6 +6,7 @@ import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { keepTouchTap } from '../../utils/keepTouchTap'
 import {
   PointerHighlightContext,
   optionHighlightClass
@@ -14,7 +15,12 @@ import {
 export type ComboboxItemProps = ComboboxPrimitive.Item.Props &
   RefAttributes<HTMLDivElement>
 
-export function ComboboxItem({ className, ...props }: ComboboxItemProps) {
+export function ComboboxItem({
+  className,
+  onPointerDownCapture,
+  onMouseUp,
+  ...props
+}: ComboboxItemProps) {
   const byPointer = use(PointerHighlightContext)
   return (
     <ComboboxPrimitive.Item
@@ -24,6 +30,7 @@ export function ComboboxItem({ className, ...props }: ComboboxItemProps) {
         optionHighlightClass(byPointer),
         className
       )}
+      {...keepTouchTap({ onPointerDownCapture, onMouseUp })}
       {...props}
     />
   )

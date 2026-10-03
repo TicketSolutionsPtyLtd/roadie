@@ -12,7 +12,7 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
-import { Calendar, type CalendarSingleProps } from '.'
+import { Calendar, type CalendarDateRange, type CalendarSingleProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
@@ -547,6 +547,71 @@ describe('Calendar scrolling months', () => {
     scroller().scrollTop += 500
     await new Promise((resolve) => setTimeout(resolve, 200))
     expect(monthsShown()[0]).toBe(first)
+  })
+
+  it('ends a range in a month scrolled to while the parent controls month', async () => {
+    function Controlled() {
+      const [month, setMonth] = useState('2027-03-01')
+      const [range, setRange] = useState<CalendarDateRange>({
+        start: null,
+        end: null
+      })
+      return (
+        <div
+          data-testid='scroller'
+          className='h-100 w-97.5 overflow-y-auto bg-raised'
+        >
+          <Calendar
+            today={TODAY}
+            layout='scroll'
+            mode='range'
+            month={month}
+            onMonthChange={setMonth}
+            selected={range}
+            onSelect={setRange}
+          />
+        </div>
+      )
+    }
+    render(<Controlled />)
+    await expect.poll(() => scroller().scrollTop).toBeGreaterThan(0)
+    await userEvent.click(day('2027-03-03'))
+    const april = document.querySelector('[data-month="2027-04-01"]')!
+    scroller().scrollTop +=
+      april.getBoundingClientRect().top -
+      weekdays().getBoundingClientRect().bottom
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    await userEvent.click(day('2027-04-05'))
+    expect(day('2027-03-03')).toHaveAttribute('data-range-start')
+    expect(day('2027-04-05')).toHaveAttribute('data-range-end')
+  })
+
+  it('runs its pinned row to the box edges when pulled out of the padding', () => {
+    render(
+      <div
+        data-testid='scroller'
+        className='h-100 w-97.5 overflow-y-auto bg-raised'
+      >
+        <Calendar
+          today={TODAY}
+          layout='scroll'
+          className='px-4 **:data-[slot=calendar-weekdays]:-mx-4 **:data-[slot=calendar-weekdays]:px-4'
+        />
+      </div>
+    )
+    const row = weekdays().getBoundingClientRect()
+    const box = scroller().getBoundingClientRect()
+    expect([row.left, row.right]).toEqual([box.left, box.left + 390])
+    const labels = Array.from(weekdays().children, (label) =>
+      label.getBoundingClientRect()
+    )
+    const cells = cellsOf(screen.getAllByRole('grid')[0]!)
+    labels.forEach((label, i) =>
+      expect(label.left + label.width / 2).toBeCloseTo(
+        cells[i]!.left + cells[i]!.width / 2,
+        0
+      )
+    )
   })
 
   it('stops growing in a box that only scrolls sideways', async () => {
