@@ -3,7 +3,7 @@ import { Activity, type ReactNode, StrictMode, useMemo, useState } from 'react'
 import { cleanup, render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { userEvent as browserUser, page } from 'vitest/browser'
 
 import { type RecordPosition, placeRange } from '@oztix/roadie-core/records'
 
@@ -39,7 +39,8 @@ function Ranged({
   rowCount,
   spans,
   failAt,
-  slowAt
+  slowAt,
+  maxHeight
 }: {
   total: number
   rowCount?: number
@@ -48,6 +49,8 @@ function Ranged({
   failAt?: number
   /** Settles the range starting here a moment later, so the test sees it pending. */
   slowAt?: number
+  /** Scrolls the table in its own box rather than the outer one. */
+  maxHeight?: string
 }) {
   // Rows built on request: 100,000 up front would slow every render.
   const show = useMemo(() => {
@@ -61,9 +64,13 @@ function Ranged({
   const [data, setData] = useState<(TestShow | undefined)[]>([])
   const [failed] = useState(() => new Set<number>())
   return (
-    <div data-testid='box' style={{ height: 600, overflowY: 'auto' }}>
+    <div
+      data-testid='box'
+      style={maxHeight ? undefined : { height: 600, overflowY: 'auto' }}
+    >
       <RecordTable
         caption='Shows'
+        maxHeight={maxHeight}
         data={data}
         fields={showFields}
         columns={showColumns}
@@ -317,6 +324,38 @@ describe('RecordTable range failure in a browser', () => {
       expect(spans.filter(({ start }) => start === failAt).length).toBe(2)
     }
   )
+
+  it('keeps a failed range and a keyboard Retry inside a table in its own box', async () => {
+    const spans: Span[] = []
+    const { container } = render(
+      <Ranged
+        total={5000}
+        rowCount={5000}
+        spans={spans}
+        failAt={1000}
+        slowAt={1000}
+        maxHeight='30rem'
+      />
+    )
+    const viewport = container.querySelector<HTMLElement>(
+      '[data-slot="record-table-viewport"]'
+    )!
+    const top = await scrollUntilRequested(viewport, spans, 1000, 5000)
+    await framed(() => inlineError(container)).not.toBeNull()
+    expect(viewport.scrollTop).toBe(top)
+    inlineError(container)!
+      .querySelector<HTMLElement>('button')!
+      .focus({ preventScroll: true })
+    await browserUser.keyboard('{Enter}')
+    expect(document.activeElement).toBe(viewport)
+    expect(viewport).toHaveAccessibleName('Shows, scrolls')
+    expect(viewport.matches(':focus-visible')).toBe(true)
+    expect(getComputedStyle(viewport).outlineStyle).toBe('solid')
+    await framed(
+      () => inlineError(container) === null && dataRows(container).length > 0
+    ).toBe(true)
+    expect(viewport.scrollTop).toBe(top)
+  })
 
   it('keeps the scroll position when a range lands at the end of the list', async () => {
     const spans: Span[] = []

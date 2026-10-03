@@ -21,13 +21,6 @@ function marginOf(body: HTMLElement, element: HTMLElement | null) {
     : top + window.scrollY
 }
 
-// TanStack rounds each measured row; over a hundred cards the rounding adds up to px off a restored row.
-const exactHeight = (
-  element: Element,
-  entry: ResizeObserverEntry | undefined
-) =>
-  entry?.borderBoxSize?.[0]?.blockSize ?? element.getBoundingClientRect().height
-
 type Scroller = { element: HTMLElement | null; ready: boolean }
 
 export type RowWindowOptions = {
@@ -36,24 +29,15 @@ export type RowWindowOptions = {
   onChange?: (virtualizer: Watched) => void
   /** Measures the px a scrolled-to row keeps clear at the top, as for a stuck header. */
   measureInset?: (body: HTMLElement) => number
-  /** Each row's height in px, or its estimate when measured. */
-  estimateSize?: number
-  /** Measures each rendered row through `measureElement`, for rows that size to their content. */
-  measure?: boolean
-  /** Px between rows. */
-  gap?: number
 }
 
-export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
+export function useRowWindow({
   count,
   getItemKey,
   onChange,
-  measureInset,
-  estimateSize = ROW_HEIGHT,
-  measure = false,
-  gap = 0
+  measureInset
 }: RowWindowOptions) {
-  const bodyRef = useRef<Body>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
   const [scroller, setScroller] = useState<Scroller>({
     element: null,
     ready: false
@@ -86,29 +70,25 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
   const elementVirtualizer = useVirtualizer({
     count,
     getScrollElement: () => scroller.element,
-    estimateSize: () => estimateSize,
+    estimateSize: () => ROW_HEIGHT,
     overscan: OVERSCAN,
     scrollMargin: margin,
     initialRect: INITIAL_RECT,
     getItemKey,
     onChange,
     scrollPaddingStart: inset,
-    gap,
-    measureElement: exactHeight,
     // Enabled before the scroll element is known so INITIAL_RECT paints a first window.
     enabled: !usesWindow
   })
   const windowVirtualizer = useWindowVirtualizer({
     count,
-    estimateSize: () => estimateSize,
+    estimateSize: () => ROW_HEIGHT,
     overscan: OVERSCAN,
     scrollMargin: margin,
     initialRect: INITIAL_RECT,
     getItemKey,
     onChange,
     scrollPaddingStart: inset,
-    gap,
-    measureElement: exactHeight,
     enabled: usesWindow
   })
   const virtualizer = usesWindow ? windowVirtualizer : elementVirtualizer
@@ -136,8 +116,6 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
     visible: virtualizer.range,
     /** The first row wholly below the stuck header. */
     firstClear: firstClearRow(items, virtualizer.scrollOffset ?? 0, inset),
-    /** A ref for each rendered row, which needs `data-index`; undefined unless measuring. */
-    measureElement: measure ? virtualizer.measureElement : undefined,
     margin,
     inset,
     scrollElement: scroller.element,

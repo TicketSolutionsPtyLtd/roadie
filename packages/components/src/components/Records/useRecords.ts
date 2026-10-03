@@ -27,7 +27,7 @@ import {
 
 import { isDev } from '../../utils/isDev'
 import { applyQuery, isFiltered, toView } from './query'
-import { MAX_RANGE_ROWS, type RecordRange, rangeKey } from './ranges'
+import { MAX_RANGE_ROWS, type RecordsRange, rangeKey } from './ranges'
 import {
   EMPTY_SELECTION,
   selectedCount as countSelected,
@@ -42,7 +42,7 @@ import {
 import type {
   RecordName,
   RecordViewDefaults,
-  RecordsRange,
+  RecordsRangeState,
   RecordsRow
 } from './types'
 import { useRangeLoading } from './useRangeLoading'
@@ -91,7 +91,7 @@ export type UseRecordsOptions<Row extends object> = {
   /**
    * Turns on range mode: one long list, searched, filtered and sorted on the server, that loads the records on screen as people scroll. Each range is one page of `pageSize` records, `end` exclusive, so it starts at `page * pageSize`. Put the records in `data` at their index with `placeRange`, then resolve. With `rowCount` the list is that long from the start; without it, ranges load one after another until one comes back short. A rejection shows the range's error with Retry.
    */
-  loadRange?: (range: RecordRange) => Promise<void> | void
+  loadRange?: (range: RecordsRange) => Promise<void> | void
 }
 
 export type RecordsInstance<Row extends object = object> = {
@@ -129,7 +129,7 @@ export type RecordsInstance<Row extends object = object> = {
   /** Range mode: reports the first row on screen as `position.row`, when it changed and something keeps it. */
   setRow: (row: number) => void
   /** Range mode's loading state, for a layout to render rows at their index. Undefined in other modes. */
-  range?: RecordsRange<Row>
+  range?: RecordsRangeState<Row>
   /** Every record the search and filters match, sorted, across pages. In server mode, only the page held. */
   matchingRows: readonly RecordsRow<Row>[]
   selectable: boolean
@@ -314,7 +314,11 @@ export function useRecords<Row extends object>({
       rows.push(row)
       at.push(index)
     })
-    return { rows, at }
+    // Without gaps, `data` itself, as the consumer passed it.
+    return {
+      rows: rows.length === data.length ? (data as readonly Row[]) : rows,
+      at
+    }
   }, [data])
   // Every index a record sits at, so a record listed twice keeps both.
   const indexesOf = useMemo(() => {
@@ -391,7 +395,7 @@ export function useRecords<Row extends object>({
     [ranged, loaded.at, matchingRows]
   )
   // Stable between loads, so the window and its memoised rows hold while scrolling.
-  const rangeState = useMemo<RecordsRange<Row> | undefined>(
+  const rangeState = useMemo<RecordsRangeState<Row> | undefined>(
     () =>
       byIndex
         ? {
@@ -399,11 +403,10 @@ export function useRecords<Row extends object>({
             count: range.count,
             total: range.total,
             loading: range.loading,
-            attempt: range.attempt,
             failed: range.failed,
             retry: range.retry,
             rowAt: (index) => byIndex.get(index),
-            view: range.view
+            show: range.view
           }
         : undefined,
     [
@@ -412,7 +415,6 @@ export function useRecords<Row extends object>({
       range.count,
       range.total,
       range.loading,
-      range.attempt,
       range.failed,
       range.retry,
       range.view

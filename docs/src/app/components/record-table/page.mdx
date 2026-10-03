@@ -694,7 +694,7 @@ The example fetches `view`, which only the table changes. A view from a URL read
 
 ### Range loading
 
-Pass `loadRange` for one long list with no pages that loads the records on screen as people scroll. The list asks for the rows on screen plus a screen either side, one page at a time, as `{ start, end }` with `end` exclusive. Each range starts at a multiple of the page size, so it is page `start / pageSize`. Fetch it, put the records in `data` at their index with `placeRange` from `@oztix/roadie-core/records`, then resolve. Rows that haven't arrived show as grey placeholders. Pass `rowCount` as the total that matches, so the scrollbar is the right length from the first frame.
+Pass `loadRange` for one long list with no pages that loads the records on screen as people scroll. The list asks for the rows on screen plus a screen either side, a page per request, as `{ start, end }` with `end` exclusive. Each range is one whole page, page `start / pageSize`, so fetch `pageSize` records from `start`; the last one can run past the end of the list. Fetch it, put the records in `data` at their index with `placeRange` from `@oztix/roadie-core/records`, then resolve. Rows that haven't arrived show as grey placeholders. Pass `rowCount` as the total that matches, so the scrollbar is the right length from the first frame.
 
 The server searches, filters and sorts, as in server mode, and the search waits for a pause in typing. Clear `data` when the query or the zone changes, or the old records count as loaded and are never fetched again. This example keeps the records with the query they belong to, drops a response for an older one, and keeps the last total until the new query's first response, so the scrollbar holds its length. Every request waits 400ms.
 
@@ -760,6 +760,7 @@ function RangeShows() {
         view={view}
         onViewChange={setView}
         defaultPosition={{ pageSize }}
+        timeZone={timeZone}
         loadRange={async (range) => {
           const next = await pretendServer(view, range)
           setResult((current) =>
@@ -790,7 +791,7 @@ The list reports the first row on screen as `position.row`, through `onPositionC
 
 ### Long lists
 
-By default the page, or the pane, scrolls the rows down, and the table scrolls sideways on its own with a Roadie scrollbar that sticks to the bottom of whatever scrolls the page. Past 100 rows, only the rows near the screen render, so a long page scrolls smoothly. Give `Records.Content` (or `RecordTable`) a `maxHeight` to scroll the rows both ways in a box of their own, with the header and the pinned column held in place. `fill` does the same at its parent's height, such as a `Pane.Body`.
+By default the page, or the pane, scrolls the rows down, and the table scrolls sideways on its own with a Roadie scrollbar that sticks to the bottom of whatever scrolls the page. Past 100 rows, only the rows near the screen render, so a long page scrolls smoothly. Find in page and printing then see only those rows, so keep pages to 100 where people search the page or print it. If the focused row scrolls away, focus moves to the table, keeping the reader's place. Give `Records.Content` (or `RecordTable`) a `maxHeight` to scroll the rows both ways in a box of their own, with the header and the pinned column held in place. `fill` does the same at its parent's height, such as a `Pane.Body`.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -992,7 +993,7 @@ column.field('city', { pin: true })`}
 - A sortable column's header is a button. The sorted column carries `aria-sort`.
 - When the table scrolls sideways, its frame is a region named "Shows, scrolls sideways" for a caption of Shows, and the scroller is its one tab stop, so keyboard users can scroll it with the arrow keys. In its own box (`maxHeight` or `fill`), the box is the region, named "Shows, scrolls".
 - `Records.Status` is a live region. It announces Loading, the error, and the result count while a search or filter narrows the list.
-- When the table holds only some of its rows (a page of several, more than 100 rows, or a list loaded by range), it carries `aria-rowcount`, counting every match and the header row, and each row its `aria-rowindex`, so screen readers announce "row 52 of 121". Loading by range, the count is `-1` until the total is known.
+- When the table holds only some of its rows (a page of several, more than 100 rows, or a list loaded by range), it carries `aria-rowcount`, counting every match (up to 300,000 loading by range) and the header row, and each row its `aria-rowindex`, so screen readers announce "row 52 of 121". Loading by range, the count is `-1` until the total is known.
 - Loading by range, the table is `aria-busy` while a range loads, placeholders are hidden from screen readers, and a failed range is announced, such as "Couldn't load more shows". The result count is announced only once the total is known. The header checkbox is named "Select loaded rows".
 - State titles are paragraphs, not headings, since the table can't know the page's outline. Their icon tiles are hidden from screen readers.
 - Escape clears the search. The clear button keeps focus in the search field. Give `Records.Search` an `aria-label` when its placeholder doesn't name it well enough.
@@ -1039,7 +1040,7 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `setPage` | `(page: number) => void` | Goes to a page, within the pages there are. |
 | `setPageSize` | `(pageSize: number) => void` | Sets the page size and returns to the first page. |
 | `setRow` | `(row: number) => void` | Range mode: reports the first row on screen as `position.row`, when it changed and a parent listens or holds the position. |
-| `range` | `RecordsRange \| undefined` | Range mode's loading state, for a layout that renders records at their index: `count`, `total`, `loading`, `failed`, `retry`, `rowAt(index)` and `view(first, last)`. |
+| `range` | `RecordsRangeState \| undefined` | Range mode's loading state, for a layout that renders records at their index: `count`, `total`, `loading`, `failed`, `retry`, `rowAt(index)` and `show(first, last)`. |
 | `matchingRows` | `readonly { id: string; row: Row }[]` | Every record the search and filters match, sorted, across pages. In server mode, only the page. |
 | `selectable` | `boolean` | Whether records can be selected. |
 | `selection` | `RecordSelection` | `{ ids }`, or `{ allMatching: true, except }`. |

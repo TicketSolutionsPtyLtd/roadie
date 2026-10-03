@@ -285,7 +285,8 @@ export function RecordTableContent({
           ref={contentRef}
           role='table'
           aria-label={caption}
-          aria-rowcount={rowCount}
+          // A state in place of the rows is no row of the count.
+          aria-rowcount={state ? undefined : rowCount}
           aria-busy={busy || range?.loading || undefined}
           data-slot='record-table-content'
           className='text-sm tabular-nums'

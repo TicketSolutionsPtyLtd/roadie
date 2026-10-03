@@ -130,6 +130,51 @@ function KeyedRanged({
   )
 }
 
+// The docs example: the total arrives with each range and is kept across a new query until then.
+function CountedRanged() {
+  const all = useMemo(() => testShows(500), [])
+  const [view, setView] = useState<RecordView>(EMPTY_VIEW)
+  const key = JSON.stringify(view.query)
+  const [result, setResult] = useState<{
+    key: string
+    data: (TestShow | undefined)[]
+    rowCount?: number
+  }>({ key, data: [] })
+  if (result.key !== key) setResult({ ...result, key, data: [] })
+  return (
+    <RecordTable
+      caption='Shows'
+      data={result.data}
+      rowCount={result.rowCount}
+      fields={showFields}
+      columns={showColumns}
+      getRowId={(row) => row.id}
+      view={view}
+      onViewChange={setView}
+      loadRange={async ({ start, end }) => {
+        await Promise.resolve()
+        const needle = view.query.search.toLowerCase()
+        const matching = all.filter((row) =>
+          row.show.toLowerCase().includes(needle)
+        )
+        setResult((current) =>
+          current.key === key
+            ? {
+                key,
+                rowCount: matching.length,
+                data: placeRange(
+                  current.data,
+                  start,
+                  matching.slice(start, end)
+                )
+              }
+            : current
+        )
+      }}
+    />
+  )
+}
+
 describe('RecordTable range mode', () => {
   it.each([
     ['with rowCount', 500],
@@ -152,6 +197,31 @@ describe('RecordTable range mode', () => {
       await loaded('Perth ')
     }
   )
+
+  it('loads again after a search with no matches is cleared', async () => {
+    const user = userEvent.setup()
+    render(<CountedRanged />)
+    await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
+    const search = screen.getByRole('searchbox')
+    await user.type(search, 'zzzz')
+    await waitFor(() =>
+      expect(screen.getByText('No records match')).toBeInTheDocument()
+    )
+    await user.clear(search)
+    await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
+  })
+
+  it('fills the first page after a query with fewer matches', async () => {
+    const user = userEvent.setup()
+    render(<CountedRanged />)
+    await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
+    const search = screen.getByRole('searchbox')
+    await user.type(search, 'Ocean Alley 7')
+    await waitFor(() => expect(dataRows()).toHaveLength(11))
+    await user.clear(search)
+    await waitFor(() => expect(placeholders()).toHaveLength(0))
+    expect(dataRows().length).toBeGreaterThan(11)
+  })
 
   it('sizes the table for rowCount without pagination', async () => {
     const spans: Span[] = []

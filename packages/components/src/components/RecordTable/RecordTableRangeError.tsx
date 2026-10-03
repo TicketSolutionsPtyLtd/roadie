@@ -1,18 +1,21 @@
 'use client'
 
+import { useRef } from 'react'
+
 import { WarningIcon } from '@phosphor-icons/react'
 
 import { Button } from '../Button'
 import { rangeErrorMessage } from '../Records/RecordsStates'
 import { useRecordsContext } from '../Records/context'
-import type { RecordsRange } from '../Records/types'
+import type { RecordsRangeState } from '../Records/types'
+import { tableFocusTarget, useKeepFocusInTable } from './tableFocus'
 
 /**
  * Where a row sits in a failed range: the error shows at the first one on
  * screen, so it stays in view, and the rest are blank. Undefined outside one.
  */
 export function failedRowAt(
-  range: Pick<RecordsRange, 'failed'>,
+  range: Pick<RecordsRangeState, 'failed'>,
   index: number,
   first = 0
 ): { start: number; error: boolean } | undefined {
@@ -34,8 +37,11 @@ export function RecordTableRangeError({
   columns: number
 }) {
   const { records } = useRecordsContext()
+  const rowRef = useRef<HTMLDivElement>(null)
+  useKeepFocusInTable(rowRef)
   return (
     <div
+      ref={rowRef}
       role='row'
       aria-rowindex={rowIndex}
       data-slot='record-table-range-error'
@@ -59,9 +65,9 @@ export function RecordTableRangeError({
           size='sm'
           onClick={(event) => {
             // Retry unmounts this button; the table keeps focus, and its place.
-            event.currentTarget
-              .closest<HTMLElement>('[data-slot="record-table-scroller"]')
-              ?.focus({ preventScroll: true })
+            tableFocusTarget(event.currentTarget)?.focus({
+              preventScroll: true
+            })
             records.range?.retry()
           }}
         >

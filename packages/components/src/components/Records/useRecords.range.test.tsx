@@ -80,7 +80,7 @@ const requests = (result: Harness) =>
   result.current.calls.current.map(({ start, end }) => ({ start, end }))
 
 const view = (result: Harness, first: number, last: number) =>
-  act(async () => result.current.records.range!.view(first, last))
+  act(async () => result.current.records.range!.show(first, last))
 
 const fakeTimers = () =>
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
@@ -151,7 +151,7 @@ describe('useRecords range mode', () => {
         loadRange
       })
     )
-    await act(async () => result.current.range!.view(120, 135))
+    await act(async () => result.current.range!.show(120, 135))
     expect(loadRange.mock.calls.map(([range]) => range)).toEqual([
       { start: 100, end: 125 },
       { start: 125, end: 150 },
@@ -204,11 +204,8 @@ describe('useRecords range mode', () => {
     await view(result, 0, 15)
     expect(requests(result)).toHaveLength(1)
 
-    const attempt = result.current.records.range!.attempt
     await act(async () => result.current.records.onRetry!())
     expect(onRetry).toHaveBeenCalledTimes(1)
-    expect(result.current.records.range!.attempt).toBe(attempt + 1)
-    await view(result, 0, 15)
     expect(requests(result)).toEqual([
       { start: 0, end: 50 },
       { start: 0, end: 50 }
@@ -259,7 +256,7 @@ describe('useRecords range mode', () => {
         }
       })
     )
-    await act(async () => result.current.range!.view(0, 15))
+    await act(async () => result.current.range!.show(0, 15))
     expect(result.current.range!.loading).toBe(false)
     expect(result.current.range!.failed).toEqual([{ start: 0, end: 50 }])
     expect(result.current.range!.count).toBe(50)
@@ -291,6 +288,53 @@ describe('useRecords range mode', () => {
     const before = result.current.records.range!.key
     rerender({ timeZone: 'Australia/Sydney' })
     expect(result.current.records.range!.key).not.toBe(before)
+  })
+
+  it('asks for a whole page past a count that may be stale', async () => {
+    const { result } = renderHook(() =>
+      useRangeHarness({ total: 1000, rowCount: 3, respond: 'manual' })
+    )
+    await view(result, 0, 2)
+    expect(requests(result)).toEqual([{ start: 0, end: 50 }])
+  })
+
+  it('loads a list whose count reads 0 until a range of its query says so', async () => {
+    const { result, rerender } = renderHook(
+      ({ rowCount }: { rowCount: number }) =>
+        useRangeHarness({ total: 1000, rowCount, respond: 'manual' }),
+      { initialProps: { rowCount: 0 } }
+    )
+    expect(result.current.records.range!.count).toBe(50)
+    await view(result, 0, 15)
+    expect(requests(result)).toEqual([{ start: 0, end: 50 }])
+    await act(async () => result.current.calls.current[0]!.resolve())
+    rerender({ rowCount: 1000 })
+    expect(result.current.records.range!.count).toBe(1000)
+  })
+
+  it('shows an empty list once a range confirms a count of 0', async () => {
+    const { result } = renderHook(() =>
+      useRangeHarness({ total: 0, rowCount: 0 })
+    )
+    await view(result, 0, 15)
+    expect(result.current.records.range!.count).toBe(0)
+    expect(result.current.records.range!.total).toBe(0)
+  })
+
+  it('loads a new query after one with no matches', async () => {
+    const { result } = renderHook(() =>
+      useRangeHarness({ total: 1000, rowCount: 0, respond: 'manual' })
+    )
+    await view(result, 0, 15)
+    await act(async () => result.current.calls.current[0]!.settle())
+    expect(result.current.records.range!.count).toBe(0)
+    await act(async () => result.current.records.addFilter(perth))
+    expect(result.current.records.range!.count).toBe(50)
+    await view(result, 0, 15)
+    expect(requests(result)).toEqual([
+      { start: 0, end: 50 },
+      { start: 0, end: 50 }
+    ])
   })
 
   it('never requests rows already held, with rowCount', async () => {

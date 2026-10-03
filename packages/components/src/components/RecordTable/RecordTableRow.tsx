@@ -2,7 +2,8 @@ import {
   type CSSProperties,
   type MouseEvent,
   type ReactNode,
-  memo
+  memo,
+  useRef
 } from 'react'
 
 import { formatRecordValue } from '@oztix/roadie-core/records'
@@ -14,6 +15,7 @@ import { RecordsRowActions } from '../Records/RecordsRowActions'
 import { handleRowClick, onRowControl } from '../Records/rowLink'
 import { RecordTableRowCheckbox } from './RecordTableSelectCell'
 import type { ColumnLayout } from './layout'
+import { useKeepFocusInTable } from './tableFocus'
 import type { RecordTableColumn } from './types'
 
 export const ROW_HEIGHT = 48
@@ -114,6 +116,8 @@ export const RecordTableRow = memo(function RecordTableRow({
   href,
   rowIndex
 }: RecordTableRowProps) {
+  const rowRef = useRef<HTMLDivElement>(null)
+  useKeepFocusInTable(rowRef)
   const name = titleText(record, title)
   const linked = href !== undefined && name !== undefined
   const selectable = selected !== undefined
@@ -126,6 +130,7 @@ export const RecordTableRow = memo(function RecordTableRow({
     )
   return (
     <div
+      ref={rowRef}
       role='row'
       aria-rowindex={rowIndex}
       data-slot='record-table-row'

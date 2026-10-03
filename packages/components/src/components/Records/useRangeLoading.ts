@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
-import { MAX_RANGE_ROWS, type RecordRange, rangesToLoad } from './ranges'
+import { MAX_RANGE_ROWS, type RecordsRange, rangesToLoad } from './ranges'
 
 type Book = {
   key: string
@@ -10,8 +10,10 @@ type Book = {
   token: object
   pending: number
   settledEnd: number
-  failed: readonly RecordRange[]
+  failed: readonly RecordsRange[]
   attempt: number
+  /** A range has loaded, so a count of 0 is this query's. */
+  counted: boolean
   /** Started because `data` lost rows, so it plans from the last window itself. */
   refill: boolean
 }
@@ -23,6 +25,7 @@ const freshBook = (key: string, refill = false): Book => ({
   settledEnd: 0,
   failed: [],
   attempt: 0,
+  counted: false,
   refill
 })
 
@@ -34,7 +37,7 @@ export function useRangeLoading({
   data,
   held
 }: {
-  loadRange?: (range: RecordRange) => Promise<void> | void
+  loadRange?: (range: RecordsRange) => Promise<void> | void
   key: string
   rowCount?: number
   size: number
@@ -57,18 +60,21 @@ export function useRangeLoading({
       setStored(freshBook(key, true))
   }, [key, held])
 
+  // A parent keeps the last count until a new query's first range returns,
+  // and a stale 0 would show an empty list that never asks for one.
+  const known = rowCount === 0 && !book.counted ? undefined : rowCount
   const ended =
-    rowCount === undefined &&
+    known === undefined &&
     book.pending === 0 &&
     book.settledEnd > 0 &&
     loadedLength < book.settledEnd
   const count =
-    rowCount === undefined
+    known === undefined
       ? ended
         ? loadedLength
         : loadedLength + size
-      : Math.min(rowCount, MAX_RANGE_ROWS)
-  const total = rowCount ?? (ended ? loadedLength : undefined)
+      : Math.min(known, MAX_RANGE_ROWS)
+  const total = known ?? (ended ? loadedLength : undefined)
 
   // Requests dedupe synchronously; state only drives what renders.
   const requested = useRef({
@@ -76,9 +82,9 @@ export function useRangeLoading({
     starts: new Set<number>(),
     nextStart: 0
   })
-  const latest = useRef({ loadRange, rowCount, size, book, ended, data })
+  const latest = useRef({ loadRange, rowCount: known, size, book, ended, data })
   useLayoutEffect(() => {
-    latest.current = { loadRange, rowCount, size, book, ended, data }
+    latest.current = { loadRange, rowCount: known, size, book, ended, data }
   })
 
   const lastView = useRef<{
@@ -141,6 +147,7 @@ export function useRangeLoading({
               forBook((current) => ({
                 ...current,
                 pending: current.pending - 1,
+                counted: true,
                 settledEnd: Math.max(current.settledEnd, range.end)
               })),
             () => {

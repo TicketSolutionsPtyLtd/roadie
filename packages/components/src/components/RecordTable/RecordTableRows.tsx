@@ -8,7 +8,7 @@ import {
   useState
 } from 'react'
 
-import type { RecordsRange, RecordsRow } from '../Records/types'
+import type { RecordsRangeState, RecordsRow } from '../Records/types'
 import {
   RecordTableRangeError,
   failedRowAt,
@@ -48,7 +48,7 @@ export type RecordTableRowsProps = RowsShared & {
   /** One-based index of the first row, counting the header, when the table holds only some of its rows. */
   firstIndex?: number
   /** Range mode: rows render windowed at their index, with placeholders for gaps. */
-  range?: RecordsRange
+  range?: RecordsRangeState
   /** Range mode: the first row on screen, from the position. */
   row?: number
   /** Range mode: reports the first row on screen as the reader scrolls. */
@@ -146,11 +146,11 @@ function useRangeWindow({
   row,
   onRow
 }: {
-  range: RecordsRange
+  range: RecordsRangeState
   row: number
   onRow?: (row: number) => void
 }) {
-  const { rowAt, view, count, total: rowTotal, loading } = range
+  const { rowAt, show, count, total: rowTotal, loading } = range
   const loaded = useCallback(
     (index: number) => rowAt(index) !== undefined,
     [rowAt]
@@ -191,7 +191,7 @@ function useRangeWindow({
     inset,
     margin,
     position,
-    view
+    view: show
   })
   // Loading is a dep so a settled range plans again; row, so a new target
   // does; the key, so a new query plans even when the window hasn't moved.
@@ -207,7 +207,7 @@ function RangeRows({
   onRow,
   shared
 }: {
-  range: RecordsRange
+  range: RecordsRangeState
   row: number
   onRow?: (row: number) => void
   shared: RowsShared
@@ -221,6 +221,9 @@ function RangeRows({
     <WindowBody bodyRef={bodyRef} items={items} total={total} margin={margin}>
       {items.map((item) => {
         const rowIndex = item.index + 2
+        // With the query too, so a new search's row starts fresh, with no
+        // hover or open menu left from the record that sat there.
+        const key = `${range.key}${indexKey(item.index)}`
         const held = range.rowAt(item.index)
         const failed = held ? undefined : failedRowAt(range, item.index, first)
         if (failed?.error)
@@ -233,15 +236,10 @@ function RangeRows({
           )
         return held ? (
           // By index: a shifting offset API can return one id twice.
-          <Row
-            key={indexKey(item.index)}
-            shared={shared}
-            row={held}
-            rowIndex={rowIndex}
-          />
+          <Row key={key} shared={shared} row={held} rowIndex={rowIndex} />
         ) : (
           <RecordTableSkeletonRow
-            key={indexKey(item.index)}
+            key={key}
             columns={shared.columns}
             layout={shared.layout}
             select={shared.isSelected !== undefined}

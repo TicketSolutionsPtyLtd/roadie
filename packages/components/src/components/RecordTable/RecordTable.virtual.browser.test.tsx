@@ -114,6 +114,54 @@ describe('RecordTable virtualised rows', () => {
   })
 })
 
+describe('RecordTable focus in a window of rows', () => {
+  it.each([
+    ['scrolling with the page', undefined, 'record-table-scroller'],
+    ['in its own box', '24rem', 'record-table-viewport']
+  ] as const)(
+    'hands focus to the table when the focused row scrolls away (%s)',
+    async (_, maxHeight, target) => {
+      const { container } = render(
+        <div data-testid='box' style={{ height: 600, overflowY: 'auto' }}>
+          <RecordTable
+            caption='Shows'
+            data={testShows(300)}
+            fields={showFields}
+            columns={showColumns}
+            getRowId={(row) => row.id}
+            bulkActions={[{ label: 'Archive', onAction: () => {} }]}
+            defaultPosition={{ pageSize: 300 }}
+            maxHeight={maxHeight}
+          />
+        </div>
+      )
+      await framed(() =>
+        container.querySelector<HTMLElement>(
+          '[data-row-id="show-4"] [role="checkbox"], [data-row-id="show-4"] input'
+        )
+      ).not.toBeNull()
+      container
+        .querySelector<HTMLElement>(
+          '[data-row-id="show-4"] [role="checkbox"], [data-row-id="show-4"] input'
+        )!
+        .focus()
+      const scroller =
+        maxHeight === undefined
+          ? container.querySelector<HTMLElement>('[data-testid="box"]')!
+          : container.querySelector<HTMLElement>(
+              '[data-slot="record-table-viewport"]'
+            )!
+      await framed(() => {
+        scroller.scrollTop = 200 * ROW_HEIGHT
+        return container.querySelector('[data-row-id="show-4"]')
+      }).toBeNull()
+      expect(document.activeElement).toBe(
+        container.querySelector(`[data-slot="${target}"]`)
+      )
+    }
+  )
+})
+
 describe('findScrollParent', () => {
   afterEach(() => {
     document.body.innerHTML = ''

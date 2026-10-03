@@ -66,12 +66,12 @@ describe('rangesToLoad with rowCount', () => {
     ).toEqual([{ start: 150, end: 200 }])
   })
 
-  it('clamps the last range to rowCount', () => {
+  it('asks for the whole last page, past rowCount', () => {
     expect(
       rangesToLoad(plan({ first: 990, last: 999, rowCount: 1010 }))
     ).toEqual([
       { start: 950, end: 1000 },
-      { start: 1000, end: 1010 }
+      { start: 1000, end: 1050 }
     ])
   })
 

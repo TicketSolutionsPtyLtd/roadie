@@ -48,7 +48,7 @@ export type RecordsAction<Row extends object = object> = {
 }
 
 /** Range mode's loading state, which a layout reads to render records at their index. */
-export type RecordsRange<Row = object> = {
+export type RecordsRangeState<Row = object> = {
   /** What the loaded records belong to: the search, filters, sort and zone. */
   key: string
   /** Rows the list is sized for, loaded or not. */
@@ -61,10 +61,8 @@ export type RecordsRange<Row = object> = {
   failed: readonly { start: number; end: number }[]
   /** Loads the failed ranges again. */
   retry: () => void
-  /** Bumped by each retry. */
-  attempt: number
   /** The record loaded at an index, or undefined for a gap. */
   rowAt: (index: number) => RecordsRow<Row> | undefined
   /** Reports the rows on screen, inclusive, and a row to reach, so missing ranges load. */
-  view: (first: number, last: number, target?: number) => void
+  show: (first: number, last: number, target?: number) => void
 }
