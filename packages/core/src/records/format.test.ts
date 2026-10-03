@@ -18,8 +18,8 @@ describe('formatRecordValue', () => {
     [
       'an unknown option as given',
       'venue',
-      { venue: 'Boulevard' },
-      'Boulevard'
+      { venue: 'Swan Lane Social' },
+      'Swan Lane Social'
     ],
     ['an unknown status as given', 'status', { status: 'held' }, 'held'],
     ['a status label', 'status', eventRows.velvet, 'Selling fast'],

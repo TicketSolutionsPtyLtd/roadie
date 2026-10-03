@@ -150,11 +150,11 @@ On a phone the table keeps its columns and scrolls sideways, with the pinned col
 ```tsx-live-noinline-expand id=in-a-pane
 const venues = [
   { value: 'lantern-room', label: 'The Lantern Room', timeZone: 'Australia/Brisbane' },
-  { value: 'copper-hall', label: 'Copper Hall', timeZone: 'Australia/Melbourne' },
-  { value: 'saltbush-theatre', label: 'Saltbush Theatre', timeZone: 'Australia/Perth' },
-  { value: 'harbourside-shed', label: 'Harbourside Shed', timeZone: 'Australia/Sydney' }
+  { value: 'velvet-room', label: 'The Velvet Room', timeZone: 'Australia/Melbourne' },
+  { value: 'swan-lane-social', label: 'Swan Lane Social', timeZone: 'Australia/Perth' },
+  { value: 'harbourside-hall', label: 'Harbourside Hall', timeZone: 'Australia/Sydney' }
 ]
-const names = ['Paper Lanterns', 'Saltwater Social', 'The Velvet Hours', 'Northbound Choir', 'Glasshouse Disco', 'Kite Season']
+const names = ['Paper Lanterns', 'Saltwater Social', 'Paperbark Sessions', 'Neon Dusk', 'Echo Garden', 'Midnight Frequency']
 const statuses = ['on_sale', 'on_sale', 'selling_fast', 'sold_out', 'cancelled']
 const events = Array.from({ length: 60 }, (_, index) => ({
   id: `event-${index}`,
@@ -378,7 +378,7 @@ const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
 const shows = Array.from({ length: 100 }, (_, index) => ({
   id: `show-${index}`,
   show: `Julia Jacklin ${index + 1}`,
-  venue: 'Copper Hall',
+  venue: 'The Velvet Room',
   city: cities[index % cities.length],
   sold: (index * 37) % 2400,
   capacity: 2400,

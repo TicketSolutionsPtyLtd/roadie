@@ -135,7 +135,7 @@ const COLUMN_RULES: ReactNode[] = [
 ]
 
 const ORDERS_EXAMPLE = `const customers = ['Mia Tran', 'Jack Ellis', 'Ava Nguyen', 'Noah Smith', 'Isla Brown', 'Leo Wilson']
-const eventNames = ['Paper Lanterns', 'Saltwater Social', 'The Velvet Hours', 'Glasshouse Disco']
+const eventNames = ['Paper Lanterns', 'Saltwater Social', 'Paperbark Sessions', 'Echo Garden']
 const statuses = ['paid', 'paid', 'paid', 'pending', 'refunded']
 const orders = Array.from({ length: 60 }, (_, index) => ({
   id: \`order-\${index}\`,
@@ -202,10 +202,10 @@ const TOP_EVENTS_EXAMPLE = `<div className='w-full max-w-md'>
       ]}
       rows={[
         { event: 'Paper Lanterns', venue: 'The Lantern Room, Brisbane', sellThrough: 0.94, gross: 212400 },
-        { event: 'Saltwater Social', venue: 'Copper Hall, Melbourne', sellThrough: 0.81, gross: 168900 },
-        { event: 'The Velvet Hours', venue: 'Saltbush Theatre, Adelaide', sellThrough: 0.66, gross: 97300 },
-        { event: 'Glasshouse Disco', venue: 'Harbourside Shed, Hobart', sellThrough: 0.58, gross: 61200 },
-        { event: 'Kite Season', venue: 'The Lantern Room, Brisbane', sellThrough: 0.37, gross: 28800 }
+        { event: 'Saltwater Social', venue: 'The Velvet Room, Melbourne', sellThrough: 0.81, gross: 168900 },
+        { event: 'Paperbark Sessions', venue: 'Swan Lane Social, Adelaide', sellThrough: 0.66, gross: 97300 },
+        { event: 'Echo Garden', venue: 'Harbourside Hall, Hobart', sellThrough: 0.58, gross: 61200 },
+        { event: 'Midnight Frequency', venue: 'The Lantern Room, Brisbane', sellThrough: 0.37, gross: 28800 }
       ]}
     />
   </DataCard>

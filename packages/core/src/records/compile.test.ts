@@ -38,10 +38,10 @@ describe('compileRecordQuery', () => {
         label: 'Venue',
         type: 'option',
         searchable: true,
-        options: [{ value: '1', label: 'Zinc Hall' }]
+        options: [{ value: '1', label: 'The Lantern Room' }]
       }
     ]
-    const matches = compileRecordQuery(resolve('zinc', [], fields), fields)
+    const matches = compileRecordQuery(resolve('lantern', [], fields), fields)
     expect(matches({ venue: 1 })).toBe(true)
   })
 

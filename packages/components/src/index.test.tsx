@@ -94,13 +94,13 @@ describe('Component exports', () => {
     const { getByRole } = render(
       <RecordTable
         caption='Shows'
-        data={[{ show: 'Neon Nights' }]}
+        data={[{ show: 'Paper Lanterns' }]}
         fields={fields}
         columns={columns}
       />
     )
     expect(getByRole('table', { name: 'Shows' })).toHaveTextContent(
-      'Neon Nights'
+      'Paper Lanterns'
     )
   })
 })

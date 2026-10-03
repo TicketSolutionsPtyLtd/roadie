@@ -32,7 +32,7 @@ const fields: RecordField[] = [
     label: 'Venue',
     type: 'option',
     options: [
-      { value: 'zz', label: 'Arcadia Hall' },
+      { value: 'zz', label: 'Harbourside Hall' },
       { value: 'aa', label: 'The Velvet Room' }
     ]
   },
@@ -109,7 +109,7 @@ describe('sortRecords', () => {
     const venues: Show[] = [
       { id: 'velvet', venue: 'aa' },
       { id: 'arcadia', venue: 'zz' },
-      { id: 'unknown', venue: 'Boulevard' }
+      { id: 'unknown', venue: 'Swan Lane Social' }
     ]
     expect(ids(venues, [{ field: 'venue', direction: 'ascending' }])).toEqual([
       'arcadia',
@@ -125,8 +125,8 @@ describe('sortRecords', () => {
         label: 'Venue',
         type: 'option',
         options: [
-          { value: '1', label: 'Zinc Hall' },
-          { value: '2', label: 'Arcadia Hall' }
+          { value: '1', label: 'The Lantern Room' },
+          { value: '2', label: 'Harbourside Hall' }
         ]
       }
     ]
@@ -151,7 +151,7 @@ describe('sortRecords', () => {
         type: 'option',
         multiple: true,
         options: [
-          { value: 'zz', label: 'Arcadia Hall' },
+          { value: 'zz', label: 'Harbourside Hall' },
           { value: 'aa', label: 'The Velvet Room' }
         ]
       },
