@@ -337,6 +337,43 @@ describe('useRecords range mode', () => {
     ])
   })
 
+  it('loads the rows a count that grows within a query adds', async () => {
+    const { result, rerender } = renderHook(
+      ({ rowCount }: { rowCount: number }) =>
+        useRangeHarness({ total: 120, rowCount, respond: 'manual' }),
+      { initialProps: { rowCount: 120 } }
+    )
+    await view(result, 100, 119)
+    expect(requests(result)).toEqual([
+      { start: 50, end: 100 },
+      { start: 100, end: 150 }
+    ])
+    rerender({ rowCount: 125 })
+    await view(result, 105, 124)
+    expect(requests(result)).toHaveLength(2)
+    await act(async () => {
+      result.current.calls.current[0]!.resolve()
+      result.current.calls.current[1]!.resolve()
+    })
+    await view(result, 105, 124)
+    expect(requests(result).slice(2)).toEqual([{ start: 100, end: 150 }])
+    await view(result, 105, 124)
+    expect(requests(result)).toHaveLength(3)
+  })
+
+  it('treats the rows a last page holds as held', async () => {
+    const { result } = renderHook(() =>
+      useRangeHarness({
+        total: 120,
+        rowCount: 120,
+        respond: 'manual',
+        seed: 120
+      })
+    )
+    await view(result, 100, 119)
+    expect(requests(result)).toEqual([])
+  })
+
   it('never requests rows already held, with rowCount', async () => {
     const { result } = renderHook(() =>
       useRangeHarness({

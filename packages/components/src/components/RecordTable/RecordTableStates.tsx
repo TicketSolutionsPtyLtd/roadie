@@ -1,4 +1,4 @@
-import { type ReactNode, memo } from 'react'
+import { type ReactNode, memo, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -11,6 +11,7 @@ import {
   selectCellClass
 } from './RecordTableRow'
 import type { ColumnLayout } from './layout'
+import { useKeepFocusInTable } from './tableFocus'
 import type { RecordTableColumn } from './types'
 
 const SKELETON_ROWS = 8
@@ -23,8 +24,11 @@ export function StateRow({
   columns: number
   children: ReactNode
 }) {
+  const ref = useRef<HTMLDivElement>(null)
+  // Retry or Clear replaces the state, and its button with it.
+  useKeepFocusInTable(ref)
   return (
-    <div role='rowgroup'>
+    <div ref={ref} role='rowgroup'>
       <div role='row' className='block'>
         <div role='cell' aria-colspan={columns} className='block'>
           {children}

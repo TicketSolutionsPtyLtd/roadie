@@ -79,7 +79,8 @@ export function useRangeLoading({
   // Requests dedupe synchronously; state only drives what renders.
   const requested = useRef({
     token: book.token,
-    starts: new Set<number>(),
+    starts: new Map<number, number>(),
+    pending: new Set<number>(),
     nextStart: 0
   })
   const latest = useRef({ loadRange, rowCount: known, size, book, ended, data })
@@ -102,7 +103,8 @@ export function useRangeLoading({
       if (requested.current.token !== now.book.token)
         requested.current = {
           token: now.book.token,
-          starts: new Set(),
+          starts: new Map(),
+          pending: new Set(),
           nextStart: 0
         }
       const mine = requested.current
@@ -111,7 +113,15 @@ export function useRangeLoading({
         last,
         size: now.size,
         rowCount: now.rowCount,
-        requested: mine.starts,
+        // A count that grew since a page was asked for may hold more of it.
+        requested: new Set(
+          [...mine.starts]
+            .filter(
+              ([start, count]) =>
+                mine.pending.has(start) || count >= (now.rowCount ?? -1)
+            )
+            .map(([start]) => start)
+        ),
         failed: new Set(now.book.failed.map((range) => range.start)),
         pending: now.book.pending,
         // Rows already in `data`, as from a cache or a remount, aren't fetched again.
@@ -119,7 +129,8 @@ export function useRangeLoading({
         ended: now.ended,
         target,
         held: ({ start, end }) => {
-          for (let index = start; index < end; index++)
+          const last = Math.min(end, now.rowCount ?? end)
+          for (let index = start; index < last; index++)
             if (now.data[index] === undefined) return false
           return true
         }
@@ -130,7 +141,8 @@ export function useRangeLoading({
           current.token === mine.token ? update(current) : current
         )
       for (const range of ranges) {
-        mine.starts.add(range.start)
+        mine.starts.set(range.start, now.rowCount ?? -1)
+        mine.pending.add(range.start)
         mine.nextStart = Math.max(mine.nextStart, range.end)
       }
       forBook((current) => ({
@@ -143,15 +155,18 @@ export function useRangeLoading({
         Promise.resolve()
           .then(() => load(range))
           .then(
-            () =>
+            () => {
+              mine.pending.delete(range.start)
               forBook((current) => ({
                 ...current,
                 pending: current.pending - 1,
                 counted: true,
                 settledEnd: Math.max(current.settledEnd, range.end)
-              })),
+              }))
+            },
             () => {
               mine.starts.delete(range.start)
+              mine.pending.delete(range.start)
               mine.nextStart = Math.min(mine.nextStart, range.start)
               forBook((current) => ({
                 ...current,

@@ -2,11 +2,12 @@
 
 import { type RefObject, useLayoutEffect } from 'react'
 
-/** The table's own tab stop: its box when it scrolls in one, else its sideways scroller. */
+/** The table's named region: its box when it scrolls in one, else its sideways scroller. */
 export function tableFocusTarget(from: Element) {
-  const box = from.closest<HTMLElement>('[data-slot="record-table-viewport"]')
-  if (box && box.tabIndex >= 0) return box
-  return from.closest<HTMLElement>('[data-slot="record-table-scroller"]')
+  return (
+    from.closest<HTMLElement>('[data-slot="record-table-viewport"]') ??
+    from.closest<HTMLElement>('[data-slot="record-table-scroller"]')
+  )
 }
 
 /**
