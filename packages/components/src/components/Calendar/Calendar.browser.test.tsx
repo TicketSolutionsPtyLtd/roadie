@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { type ReactElement, useState } from 'react'
 
 import { cleanup, render, screen } from '@testing-library/react'
+import { renderToString } from 'react-dom/server'
 import {
   afterAll,
   afterEach,
@@ -383,80 +384,59 @@ describe('Calendar layout', () => {
     expect(second!.top).toBe(first!.top)
   })
 
-  it('holds the frame of the month it will show while today is unknown', () => {
-    const { rerender } = render(
-      <div className='w-97.5'>
-        <Calendar fixedWeeks />
-      </div>
-    )
-    const frame = document
+  // The server doesn't know today, so its HTML is the placeholder.
+  function serverHeight(width: string, calendar: ReactElement) {
+    const host = document.createElement('div')
+    host.className = width
+    document.body.append(host)
+    host.innerHTML = renderToString(calendar)
+    const height = host
       .querySelector('[data-slot="calendar"]')!
       .getBoundingClientRect().height
-    rerender(
-      <div className='w-97.5'>
-        <Calendar fixedWeeks today={TODAY} />
-      </div>
-    )
-    expect(
-      document.querySelector('[data-slot="calendar"]')!.getBoundingClientRect()
-        .height
-    ).toBe(frame)
-  })
+    host.remove()
+    return height
+  }
 
-  it('holds about the frame of the week it will show while today is unknown', () => {
-    const { rerender } = render(
-      <div className='w-97.5'>
-        <Calendar view='week' />
-      </div>
-    )
-    const height = () =>
-      document.querySelector('[data-slot="calendar"]')!.getBoundingClientRect()
-        .height
-    const frame = height()
-    rerender(
-      <div className='w-97.5'>
-        <Calendar view='week' today={TODAY} />
-      </div>
-    )
-    expect(Math.abs(height() - frame)).toBeLessThan(4)
-  })
-
-  it('holds about the frame of a capped week in a wide container', () => {
-    const { rerender } = render(
-      <div className='w-200'>
-        <Calendar view='week' />
-      </div>
-    )
-    const height = () =>
-      document.querySelector('[data-slot="calendar"]')!.getBoundingClientRect()
-        .height
-    const frame = height()
-    rerender(
-      <div className='w-200'>
-        <Calendar view='week' today={TODAY} />
-      </div>
-    )
-    expect(Math.abs(height() - frame)).toBeLessThan(4)
-  })
-
-  it('holds about the frame of a month of tiles while today is unknown', () => {
-    const price = () => '$29'
-    const { rerender } = render(
-      <div className='w-200'>
-        <Calendar fixedWeeks getDayContent={price} />
-      </div>
-    )
-    const height = () =>
-      document.querySelector('[data-slot="calendar"]')!.getBoundingClientRect()
-        .height
-    const frame = height()
-    rerender(
-      <div className='w-200'>
-        <Calendar fixedWeeks getDayContent={price} today={TODAY} />
-      </div>
-    )
-    expect(Math.abs(height() - frame)).toBeLessThan(4)
-  })
+  const price = () => '$29'
+  it.each([
+    ['a month', 'w-97.5', { fixedWeeks: true, showOutsideDays: true }, 4],
+    ['a week', 'w-97.5', { view: 'week' }, 4],
+    ['a capped week', 'w-200', { view: 'week' }, 4],
+    [
+      'a month of tiles',
+      'w-200',
+      { fixedWeeks: true, showOutsideDays: true, getDayContent: price },
+      4
+    ],
+    [
+      'several months with a toggle',
+      'w-97.5',
+      {
+        fixedWeeks: true,
+        showOutsideDays: true,
+        numberOfMonths: 2,
+        views: ['month', 'week']
+      },
+      4
+    ]
+  ] as const)(
+    'holds the frame of %s while today is unknown',
+    (_, width, props, tolerance) => {
+      const frame = serverHeight(
+        width,
+        <Calendar {...(props as CalendarSingleProps)} />
+      )
+      render(
+        <div className={width}>
+          <Calendar {...(props as CalendarSingleProps)} today={TODAY} />
+        </div>
+      )
+      const height = document
+        .querySelector('[data-slot="calendar"]')!
+        .getBoundingClientRect().height
+      expect(Math.abs(height - frame)).toBeLessThan(tolerance)
+    }
+  )
 
   it('puts months side by side where they fit', () => {
     render(

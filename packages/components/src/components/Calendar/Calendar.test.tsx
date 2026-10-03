@@ -1118,6 +1118,75 @@ describe('Calendar week view', () => {
     expect(shownDays()).toContain('2027-03-10')
   })
 
+  it('stays quiet for a later switch the parent makes', async () => {
+    function Controlled() {
+      const [view, setView] = useState<'week' | 'month'>('week')
+      return (
+        <>
+          <Calendar
+            today={TODAY}
+            view={view}
+            views={['week', 'month']}
+            onViewChange={setView}
+          />
+          <button type='button' onClick={() => setView('week')}>
+            Week
+          </button>
+          <button type='button' onClick={() => setView('month')}>
+            Month
+          </button>
+        </>
+      )
+    }
+    render(<Controlled />)
+    await userEvent.click(screen.getByRole('button', { name: 'Month view' }))
+    expect(live()).toHaveTextContent('March 2027')
+    await userEvent.click(screen.getByRole('button', { name: 'Week' }))
+    await userEvent.click(day('2027-03-11'))
+    expect(live()).toHaveTextContent('Selected Thursday, 11 March 2027')
+    await userEvent.click(screen.getByRole('button', { name: 'Month' }))
+    expect(live()).toHaveTextContent('Selected Thursday, 11 March 2027')
+  })
+
+  it('drops a turned week when a month is picked from the selects', async () => {
+    render(
+      <Calendar
+        view='week'
+        captionLayout='dropdown'
+        today='2027-03-04'
+        defaultSelected='2027-04-20'
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    const month = screen.getByRole('combobox', { name: 'Month' })
+    await userEvent.selectOptions(month, 'June')
+    await userEvent.selectOptions(month, 'April')
+    expect(shownDays()).toContain('2027-04-20')
+  })
+
+  it('keeps a turned week when focus only passes through the month', async () => {
+    render(
+      <Calendar
+        today='2027-03-04'
+        defaultView='week'
+        views={['week', 'month']}
+      />
+    )
+    for (let i = 0; i < 5; i++)
+      await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    const toggle = screen.getByRole('button', { name: 'Month view' })
+    await userEvent.click(toggle)
+    await userEvent.tab()
+    await userEvent.tab()
+    await userEvent.tab()
+    await userEvent.tab({ shift: true })
+    await userEvent.tab({ shift: true })
+    await userEvent.tab({ shift: true })
+    expect(toggle).toHaveFocus()
+    await userEvent.keyboard(' ')
+    expect(shownDays()[0]).toBe('2027-04-05')
+  })
+
   it('stays quiet when only the layout changes', () => {
     const { rerender } = render(
       <Calendar today={TODAY} view='week' layout='scroll' />

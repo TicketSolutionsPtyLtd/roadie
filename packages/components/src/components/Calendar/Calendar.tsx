@@ -518,13 +518,13 @@ export function Calendar(props: CalendarProps) {
     const month = clampMonth(monthOf(next))
     if (month === firstMonth) return
     if (monthProp === undefined) setNavigatedMonth(month)
-    // Paging months leaves the week behind; a week turn sets its own.
-    if (!weekView) setNavigatedWeek(null)
     onMonthChange?.(month)
   }
 
   function turnMonth(next: string) {
     setPendingFocus(null)
+    // Paging months leaves a turned week behind.
+    setNavigatedWeek(null)
     changeMonth(next)
   }
 
@@ -641,6 +641,7 @@ export function Calendar(props: CalendarProps) {
       describeSelection(heard.selection, selection)
     if (selectionMessage) messages.push(selectionMessage)
     setHeard({ mode, selectionKey, selection, month: shownMonthKey, view })
+    if (toggledView) setToggledView(null)
     if (messages.length) setAnnouncement(messages.join('. '))
   }
 
@@ -683,6 +684,7 @@ export function Calendar(props: CalendarProps) {
         showWeek(startOfWeek(date, weekStart), monthOf(date))
       return
     }
+    setNavigatedWeek(null)
     if (compareDates(date, firstMonth) < 0) changeMonth(date)
     else if (compareDates(date, lastVisibleDay) > 0)
       changeMonth(addMonths(monthOf(date), 1 - numberOfMonths))
@@ -1094,6 +1096,7 @@ export function Calendar(props: CalendarProps) {
             scrolling && 'scroll-mt-10'
           )}
           onClick={() => {
+            if (!weekView) setNavigatedWeek(null)
             if (isDisabled) return
             select(date)
             if (outside) moveFocus(date)
@@ -1101,7 +1104,6 @@ export function Calendar(props: CalendarProps) {
           onFocus={() => {
             setHasFocus(true)
             if (!outside) setFocusedDate(date)
-            if (!weekView) setNavigatedWeek(null)
           }}
           onBlur={() => setHasFocus(false)}
           onKeyDown={(event) => onDayKeyDown(event, date)}
@@ -1211,7 +1213,7 @@ export function Calendar(props: CalendarProps) {
 
   const header = (
     <div data-slot='calendar-header' className='flex h-8 items-center gap-2'>
-      <div className='min-w-0'>{!monthCaptions && headerCaption}</div>
+      {!monthCaptions && <div className='min-w-0'>{headerCaption}</div>}
       {viewToggle}
       {nav}
     </div>
@@ -1230,9 +1232,9 @@ export function Calendar(props: CalendarProps) {
           <div
             className={
               weekView
-                ? 'h-[calc(min(100cqi/7-var(--spacing),--spacing(20))*1.25+--spacing(22))]'
+                ? 'h-[calc(min(100cqi/7-var(--spacing),--spacing(20))*1.25+--spacing(21))]'
                 : tiles
-                  ? 'h-[calc(min(100cqi/7-var(--spacing),--spacing(16))*6+--spacing(25))]'
+                  ? 'h-[calc(min(100cqi/7-var(--spacing),--spacing(16))*6+--spacing(26))]'
                   : 'h-[calc(min(100cqi/7,--spacing(12))*6+--spacing(22))]'
             }
           />
@@ -1367,7 +1369,11 @@ export function Calendar(props: CalendarProps) {
         monthsShown
       ) : (
         <>
-          {inlineNav && !waitingForToday && header}
+          {inlineNav &&
+            (!waitingForToday
+              ? header
+              : // Each month's placeholder holds its own caption, but not this row.
+                monthCaptions && <div aria-hidden='true' className='h-8' />)}
           <div
             data-slot='calendar-months'
             className='relative flex flex-wrap gap-x-6 gap-y-4'
