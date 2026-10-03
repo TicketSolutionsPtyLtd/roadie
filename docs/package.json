@@ -41,7 +41,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-focus-lock": "2.13.7",
-    "react-live": "4.1.8",
+    "react-live": "5.0.0",
     "remark-gfm": "4.0.1",
     "vue": "3.5.43"
   },
