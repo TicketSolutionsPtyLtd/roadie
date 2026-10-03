@@ -63,7 +63,8 @@ export type RecordPosition = {
  * except some. Session state like the position, never part of a view.
  */
 export type RecordSelection =
-  { ids: readonly string[] } | { allMatching: true; except: readonly string[] }
+  | { readonly ids: readonly string[] }
+  | { readonly allMatching: true; readonly except: readonly string[] }
 
 export type RecordFieldType =
   'text' | 'option' | 'number' | 'money' | 'date' | 'boolean'

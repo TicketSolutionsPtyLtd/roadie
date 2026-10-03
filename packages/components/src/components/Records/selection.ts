@@ -4,7 +4,7 @@ export const EMPTY_SELECTION: RecordSelection = { ids: [] }
 
 const isAll = (
   selection: RecordSelection
-): selection is { allMatching: true; except: readonly string[] } =>
+): selection is Extract<RecordSelection, { allMatching: true }> =>
   'allMatching' in selection
 
 // Selections are immutable, so one Set per object keeps lookups O(1).
