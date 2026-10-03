@@ -11,9 +11,16 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
 - **Branch from the latest `main`** in its own worktree:
   `git worktree add ../roadie-<slug> -b <branch> origin/main`, then
   `pnpm install --frozen-lockfile`.
-- **New components and new system-level APIs** start from a spec agreed
-  before any code. Committed plans live in `docs/plans/`; local drafts may
-  sit in the gitignored `docs/superpowers/`.
+- **Agree the intent before any code** for new components and system-level
+  APIs. Don't commit plan or spec files: they bloat the diff and go stale.
+  - **One PR:** the PR description is the plan and the record (section 7).
+  - **A series of PRs:** keep a working spec in the gitignored
+    `docs/superpowers/`. As each PR lands, move its lasting decisions into the
+    maintained docs below and drop them from the spec.
+- **Lasting knowledge goes where it's maintained:** consumer changes in the
+  changeset, rules in `AGENTS.md` and the foundations pages, behaviour on the
+  component's docs page, learnings in `docs/solutions/`, follow-ups in Jira
+  (section 9).
 - **Look for what already exists.** Before adding a token, utility, prop or
   mechanism, show that the cascade, intent, emphasis, data attributes or an
   existing component can't already do it. A second way to say the same thing
@@ -27,10 +34,12 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
 - **Fix root causes.** No retries, sleeps or `!important` to make something
   pass. If a component's styles leak into another (a parent's descendant
   selector resizing a nested icon), fix the scope, not the symptom.
-- **Wire new public subpaths everywhere:** `package.json` `exports`,
-  `tsdown.config.ts`, a Size Limit budget about 10% above what you measure
-  (`.size-limit.json`, or the `size-limit` field in `package.json` for core
-  and widgets), and `src/css/safelist.html` for new `@utility` classes.
+- **Wire new public subpaths everywhere they ship from:** an `exports`
+  entry in `package.json`; for JavaScript, a `tsdown.config.ts` entry unless
+  a wildcard already covers it (components does) and a Size Limit budget
+  about 10% above what you measure (`.size-limit.json`, or the `size-limit`
+  field in `package.json` for core and widgets). New `@utility` classes also
+  go in `src/css/safelist.html`.
 - **Changesets.** `minor` for a new export, `patch` for a fix, per package
   touched. While a release is held, edit the existing changeset of an
   unreleased API rather than adding a "breaking" entry for something nobody
@@ -113,8 +122,10 @@ the PR only when both passes are clean.
 
 ## 7. Open the PR and see it through
 
-- Body: what it is for, what changes, where it comes from, checks run, and
-  any decisions the spec left open.
+- **The body is the record.** Fill in `.github/pull_request_template.md`:
+  why, what changes, decisions a reader might question, what's out of scope
+  (with Jira keys), and the checks run. Keep it short and true when merged;
+  the squash commit carries it into `git log`.
 - Request Copilot's review. It reads `.github/copilot-instructions.md`;
   update that file when a convention or a deliberate decision changes, and
   keep it under 4,000 characters (Copilot reads no further).

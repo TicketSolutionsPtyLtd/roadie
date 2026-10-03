@@ -57,5 +57,7 @@ ESLint already enforce.
   warning, danger and brand-secondary fills, and Lc 55 in muted text).
 - Unreleased APIs change by editing their existing changeset, not by adding
   a "breaking" one.
+- Plans and specs live in the PR description, not committed files; don't ask
+  for a plan document.
 - `pnpm-workspace.yaml` `audit.ignore` entries carry their reason inline;
   only flag one whose reason no longer holds.
