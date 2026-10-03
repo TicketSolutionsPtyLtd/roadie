@@ -28,6 +28,8 @@ export type {
   TextFieldOptions
 } from './builder'
 export { sortRecords } from './sort'
+export { formatRecordValue } from './format'
+export type { FormatRecordValueOptions } from './format'
 export { validateRecordView } from './validate'
 export type { RecordViewValidation } from './validate'
 export { resolveRecordQuery } from './resolve'
