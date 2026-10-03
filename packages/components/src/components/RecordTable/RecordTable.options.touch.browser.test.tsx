@@ -77,8 +77,22 @@ async function tapOn(element: Element) {
   element.scrollIntoView({ block: 'center' })
   await still(element)
   const { top, bottom } = element.getBoundingClientRect()
-  if (top < 0 || bottom > window.innerHeight)
-    throw new Error('The element is out of view')
+  if (top < 0 || bottom > window.innerHeight) {
+    const drawer = document.querySelector('[data-slot="drawer-popup"]')
+    const body = document.querySelector('[data-slot="drawer-body"]')
+    throw new Error(
+      `The element is out of view: ${JSON.stringify({
+        top,
+        bottom,
+        innerHeight: window.innerHeight,
+        visual: window.visualViewport?.height,
+        drawer: drawer?.getBoundingClientRect(),
+        body: body?.getBoundingClientRect(),
+        bodyScroll: [body?.scrollTop, body?.scrollHeight, body?.clientHeight],
+        transform: drawer && getComputedStyle(drawer).transform
+      })}`
+    )
+  }
   const { x, y } = centre(element)
   await commands.tap(x, y)
   await settle(200)

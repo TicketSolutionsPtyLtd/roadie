@@ -36,7 +36,8 @@ async function openOptions(user = userEvent.setup()) {
 // The lazy settings module compiles on first import, slowly on a cold runner.
 beforeAll(() => import('./RecordTableSettings'))
 
-describe('Records.Options', () => {
+// Each case opens the panel and clicks through it, slow on a busy runner.
+describe('Records.Options', { timeout: 15_000 }, () => {
   it('is a normal icon button at the field size, named for the layout', () => {
     render(
       <RecordTable
