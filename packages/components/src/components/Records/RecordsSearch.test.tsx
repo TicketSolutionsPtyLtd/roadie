@@ -520,7 +520,9 @@ describe('Records.Search', () => {
     const user = userEvent.setup()
     render(<Late />)
     await user.click(
-      within(chip('City is Perth')).getByRole('button', { name: 'City is Perth' })
+      within(chip('City is Perth')).getByRole('button', {
+        name: 'City is Perth'
+      })
     )
     const dialog = await editor()
     await user.click(within(dialog).getByRole('checkbox', { name: 'Hobart' }))

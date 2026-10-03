@@ -116,6 +116,15 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     const moved = await settledBox(after)
     expect(moved.top).toBeGreaterThan(box(chip('Starts')).bottom)
     expect(Math.abs(moved.left - box(chip('Starts')).left)).toBeLessThan(2)
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    await userEvent.click(
+      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
+    )
+    const reopened = await settledBox(
+      await screen.findByRole('dialog', { name: 'Starts' })
+    )
+    expect(reopened.top).toBeGreaterThan(box(chip('Starts')).bottom)
   })
 
   it('edits a chip in a bottom drawer on a phone', async () => {

@@ -21,7 +21,11 @@ import { cn } from '@oztix/roadie-core/utils'
 import { IconButton } from '../components/Button/IconButton'
 import { Drawer, type DrawerSize } from '../components/Drawer'
 import { useFieldContext } from '../components/Field'
-import { Popover, type PopoverTriggerProps } from '../components/Popover'
+import {
+  Popover,
+  type PopoverContentProps,
+  type PopoverTriggerProps
+} from '../components/Popover'
 import { mergeRefs } from '../utils/mergeRefs'
 
 const noSubscription = () => () => {}
@@ -228,7 +232,7 @@ export type PickerOverlayProps = {
   surface: PickerSurface
   /** What the popover lines up with. It holds the `PickerTrigger`. */
   trigger: ReactNode
-  anchor: RefObject<HTMLElement | null>
+  anchor: NonNullable<PopoverContentProps['positionerProps']>['anchor']
   'aria-labelledby': string
   /** The ids naming the picker, shown as the drawer's title. */
   labelSource: string | undefined

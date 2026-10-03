@@ -6,6 +6,7 @@ import type { RecordField, RecordFilter } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { PickerOverlay, usePickerSurface } from '../../pickers/PickerShell'
+import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { QueryField, type QueryFieldAccepted } from '../QueryField'
 import { RecordsFilterEditorLazy } from './RecordsFilterEditorLazy'
 import { useRecordsContext } from './context'
@@ -39,12 +40,13 @@ type Editing = {
   index: number | null
   /** Kept through the close, so the editor stays as it leaves. */
   open: boolean
-  /** The filter as last written, to find it again if the list moves under it. */
-  sent: RecordFilter | null
+  /**
+   * The filter as opened and each version written since, to find it again
+   * if the list moves under it or a parent shows a write late.
+   */
+  written: RecordFilter[]
   /** Each opening edits afresh. */
   session: number
-  /** The chip's id while it is edited, so its node, the editor's anchor, stays put as its filter changes. */
-  chipId: string
 }
 
 const MAX_LISTED_VALUES = 1000
@@ -115,6 +117,31 @@ export function RecordsSearch({
   const returnTo = useRef<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const anchorRef = useRef<HTMLElement | null>(null)
+  // A chip remounts as its filter changes, so the editor follows the chip
+  // holding the filter now, by id.
+  const anchorId = useRef<string | null>(null)
+  const [anchor] = useState(() => {
+    let last = new DOMRect()
+    const current = () => {
+      const held = anchorRef.current
+      if (held?.isConnected || !anchorId.current) return held
+      const found = held?.ownerDocument.querySelector<HTMLElement>(
+        `[data-slot=combobox-chip][data-chip-id="${CSS.escape(anchorId.current)}"]`
+      )
+      if (found) anchorRef.current = found
+      return found ?? held
+    }
+    return {
+      getBoundingClientRect: () => {
+        const element = current()
+        if (element?.isConnected) last = element.getBoundingClientRect()
+        return last
+      },
+      get contextElement() {
+        return current() ?? undefined
+      }
+    }
+  })
   const labelId = useId()
   const editorOpen = editing?.open ?? false
   const surface = usePickerSurface(editorOpen)
@@ -129,6 +156,11 @@ export function RecordsSearch({
     fields,
     filters: [...records.scope, ...filters]
   }
+  const chipIds = filterChipIds(filters)
+  const chips = searchChips(
+    { scope: records.scope, filters, skipped: records.skippedFilters },
+    { ...options, fields }
+  )
 
   const group = () =>
     inputRef.current?.closest<HTMLElement>('[data-slot=query-field]') ?? null
@@ -138,8 +170,9 @@ export function RecordsSearch({
     anchor: HTMLElement | null
   ) {
     anchorRef.current = anchor
+    anchorId.current = null
     returnTo.current = null
-    const sent = next.index === null ? null : (filters[next.index] ?? null)
+    const opened = next.index === null ? undefined : filters[next.index]
     emptied.current = false
     const session = ++sessions.current
     // Opens with its controls, so focus has somewhere to land.
@@ -147,13 +180,9 @@ export function RecordsSearch({
       if (ready && session === sessions.current)
         setEditing({
           ...next,
-          sent,
+          written: opened ? [opened] : [],
           open: true,
-          session,
-          chipId:
-            next.index === null
-              ? `filter:new#${session}`
-              : filterChipIds(filters)[next.index]!
+          session
         })
     })
   }
@@ -196,29 +225,23 @@ export function RecordsSearch({
   /** Where the edited filter is now, or null for one not written yet. */
   function editingAt(): number | null {
     if (!editing || editing.index === null) return null
-    const { sent, index, field } = editing
+    const { written, index } = editing
+    if (written.length === 0) return index < filters.length ? index : null
+    const ours = (filter: RecordFilter) =>
+      written.some((version) => sameFilter(filter, version))
     const held = filters[index]
-    // Written but not yet shown, as a parent may commit late.
-    if (!held) return sent ? index : null
-    if (!sent || sameFilter(held, sent) || held.field === field) return index
-    const found = filters.findIndex((filter) => sameFilter(filter, sent))
-    return found >= 0 ? found : null
+    if (held && ours(held)) return index
+    const found = filters.findIndex(ours)
+    if (found >= 0) return found
+    // A new filter written but not shown yet.
+    return !held && index === filters.length ? index : null
   }
   const at = editingAt()
-  const chipIds = filterChipIds(filters)
-  if (editing && at !== null && at < chipIds.length)
-    chipIds[at] = editing.chipId
-  const chips = searchChips(
-    {
-      scope: records.scope,
-      filters,
-      skipped: records.skippedFilters,
-      ids: chipIds
-    },
-    { ...options, fields }
-  )
+  useIsomorphicLayoutEffect(() => {
+    if (editing?.open && at !== null) anchorId.current = chipIds[at] ?? null
+  })
   // The filter went, such as with the view replaced, so its editor goes too.
-  if (editing?.open && editing.sent && at === null)
+  if (editing?.open && editing.written.length > 0 && at === null)
     setEditing({ ...editing, open: false })
 
   function closeEditor() {
@@ -238,7 +261,11 @@ export function RecordsSearch({
   function write(filter: RecordFilter) {
     if (!editing) return
     if (at !== null) {
-      setEditing({ ...editing, index: at, sent: filter })
+      setEditing({
+        ...editing,
+        index: at,
+        written: [...editing.written, filter]
+      })
       records.updateFilter(at, filter)
       return
     }
@@ -246,7 +273,7 @@ export function RecordsSearch({
     setEditing({
       ...editing,
       index: same >= 0 ? same : filters.length,
-      sent: filter
+      written: [...editing.written, filter]
     })
     if (same < 0) records.addFilter(filter)
   }
@@ -256,7 +283,7 @@ export function RecordsSearch({
     records.removeFilter(at)
     returnTo.current = null
     emptied.current = false
-    setEditing({ ...editing, index: null, sent: null, open: false })
+    setEditing({ ...editing, index: null, written: [], open: false })
   }
 
   return (
@@ -308,7 +335,7 @@ export function RecordsSearch({
           }}
           surface={surface}
           trigger={null}
-          anchor={anchorRef}
+          anchor={anchor}
           aria-labelledby={labelId}
           labelSource={labelId}
           action='Edit filter'

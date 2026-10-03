@@ -394,8 +394,15 @@ export function useRecords<Row extends object>({
     countSelected(next, matchingIds)
 
   // Writes build on each other until the view shown changes, as a parent's
-  // state may commit late (a transition, a URL); then they start from it.
+  // state may commit late (a transition, a URL). A parent that renders twice
+  // without showing a write turned it down, so the next one starts afresh.
   const written = useRef<{ base: RecordView; next: RecordView } | null>(null)
+  const writes = useRef(0)
+  const writesSeen = useRef(0)
+  useEffect(() => {
+    if (writes.current === writesSeen.current) written.current = null
+    writesSeen.current = writes.current
+  })
   const latestView = () =>
     written.current && written.current.base === view
       ? written.current.next
@@ -405,6 +412,7 @@ export function useRecords<Row extends object>({
     nextPosition: Required<RecordPosition> = position
   ) => {
     written.current = { base: view, next }
+    writes.current++
     if (!controlledView) setOwnView(next)
     onViewChange?.(next, nextPosition)
   }
