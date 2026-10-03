@@ -382,7 +382,12 @@ export function DateRangePicker({
             />
           )}
           <div className='grid content-start gap-4'>
-            <div className='grid gap-3 sm:grid-cols-2'>
+            <div
+              className={cn(
+                'grid gap-3',
+                withTime ? 'sm:grid-cols-2' : 'grid-cols-2'
+              )}
+            >
               <RangeEndField
                 label='Start'
                 parts={draft.start}

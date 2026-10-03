@@ -198,12 +198,12 @@ export function ComponentSkeleton({ name }: { name: string }) {
             </div>
             <div className='grid grid-cols-7 gap-y-0.5'>
               {Array.from({ length: 14 }, (_, day) =>
-                day === 3 || day === 8 ? (
+                day === 1 || day === 5 ? (
                   <div
                     key={day}
                     className='size-3 emphasis-strong rounded-full intent-accent'
                   />
-                ) : day > 3 && day < 8 ? (
+                ) : day > 1 && day < 5 ? (
                   <div
                     key={day}
                     className='h-3 emphasis-subtle intent-accent'

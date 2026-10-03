@@ -143,6 +143,9 @@ describe('DateRangePicker on a phone', TIMEOUT, () => {
       box(popup).right
     )
     expect(popup.scrollWidth).toBeLessThanOrEqual(popup.clientWidth)
+    const start = within(popup).getByRole('textbox', { name: 'Start' })
+    const end = within(popup).getByRole('textbox', { name: 'End' })
+    expect(box(start).top).toBe(box(end).top)
   })
 
   it('scrolls a popup taller than the screen', async () => {
