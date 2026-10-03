@@ -17,7 +17,8 @@ export function previewArt(
   route: string,
   entry: Pick<CatalogueEntry, 'name' | 'crossListedFrom'>
 ): ReactNode {
-  // Called rather than rendered, so an unknown name is visible here as null.
+  // Called rather than rendered, so an unknown name is visible here as null;
+  // the art functions must stay free of hooks.
   return (
     ART_BY_ROUTE[entry.crossListedFrom ?? route]?.({ name: entry.name }) ?? null
   )

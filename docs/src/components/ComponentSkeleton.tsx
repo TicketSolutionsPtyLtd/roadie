@@ -1,6 +1,5 @@
 import {
   CalendarBlankIcon,
-  CaretDownIcon,
   CheckIcon,
   DotsSixVerticalIcon
 } from '@phosphor-icons/react/ssr'
@@ -181,41 +180,6 @@ export function ComponentSkeleton({ name }: { name: string }) {
                 <Skel key={day} className='size-3 rounded-full opacity-50' />
               )
             )}
-          </div>
-        </div>
-      )
-    case 'dashboard-period':
-      return (
-        <div className='grid w-48 gap-1.5'>
-          <div className='flex gap-1.5'>
-            <div className='flex emphasis-raised items-center gap-1 rounded-lg px-1.5 py-1'>
-              <CalendarBlankIcon weight='bold' className='size-3 text-subtle' />
-              <span className='text-xs whitespace-nowrap text-normal'>
-                This month
-              </span>
-            </div>
-            <div className='flex emphasis-raised items-center gap-1 rounded-lg px-1.5 py-1'>
-              <span className='text-xs whitespace-nowrap text-subtle'>
-                vs previous
-              </span>
-              <CaretDownIcon weight='bold' className='size-3 text-subtle' />
-            </div>
-          </div>
-          <div className='grid grid-cols-2 gap-1.5'>
-            {['w-10', 'w-8'].map((width) => (
-              <div
-                key={width}
-                className='grid emphasis-raised gap-1 rounded-md p-1.5'
-              >
-                <Skel className='h-1.5 w-8' />
-                <div className='flex items-center gap-1'>
-                  <Skel className={`h-2 ${width} bg-strong/30`} />
-                  <span className='text-[0.625rem] font-semibold text-chart-status-good'>
-                    +4%
-                  </span>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       )
@@ -716,7 +680,7 @@ export function ComponentSkeleton({ name }: { name: string }) {
               key={width}
               className='grid h-5 grid-cols-[1fr_auto_auto] items-center gap-3 border-b border-subtler last:border-b-0'
             >
-              <div className={`h-1.5 rounded-sm bg-strong/40 ${width}`} />
+              <Skel className={`h-1.5 bg-strong/40 ${width}`} />
               <Skel className='h-1.5 w-5' />
               <Skel className='h-1.5 w-6' />
             </div>

@@ -22,9 +22,10 @@ const DATAVIZ_RAMPS = [
   ],
   [
     'bg-chart-diverge-neg-4',
+    'bg-chart-diverge-neg-3',
     'bg-chart-diverge-neg-2',
-    'bg-chart-diverge-0',
     'bg-chart-diverge-pos-2',
+    'bg-chart-diverge-pos-3',
     'bg-chart-diverge-pos-4'
   ],
   [
