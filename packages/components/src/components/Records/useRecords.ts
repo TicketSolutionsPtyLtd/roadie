@@ -27,6 +27,7 @@ import {
 
 import { isDev } from '../../utils/isDev'
 import { applyQuery, isFiltered, toView } from './query'
+import { MAX_RANGE_ROWS, type RecordRange, rangeKey } from './ranges'
 import {
   EMPTY_SELECTION,
   selectedCount as countSelected,
@@ -38,24 +39,30 @@ import {
   toggleRange,
   withinMatching
 } from './selection'
-import type { RecordName, RecordViewDefaults, RecordsRow } from './types'
+import type {
+  RecordName,
+  RecordViewDefaults,
+  RecordsRange,
+  RecordsRow
+} from './types'
+import { useRangeLoading } from './useRangeLoading'
 
 export type UseRecordsOptions<Row extends object> = {
-  /** Every record, which Records filters, sorts and pages in the browser. With `rowCount`, the page the server returned. */
-  data: readonly Row[]
+  /** Every record, which Records filters, sorts and pages in the browser. With `rowCount`, the page the server returned. With `loadRange`, the records loaded so far, each at its index, with gaps left undefined (`placeRange` puts a range in place). */
+  data: readonly (Row | undefined)[]
   /**
    * How many records the search and filters match on the server. Giving it turns on server mode: `data` is one page, already searched, filtered, sorted and paged, and the search waits for a pause in typing. Fetch `appliedView.query` at `position` in `timeZone`. Once given, server mode stays: an `undefined` count keeps the last one. Pass 0 until the first count arrives.
    */
   rowCount?: number
   /** What each record holds. Keep the array stable (module scope or `useMemo`). */
   fields: readonly RecordField[]
-  /** Defaults to the record's index in `data`. Selecting in server mode needs it, as index ids repeat on every page. */
+  /** Defaults to the record's index in `data`. Selecting in server or range mode needs it, as index ids repeat on every page and a refetch. */
   getRowId?: (row: Row, index: number) => string
   view?: RecordView
   defaultView?: RecordViewDefaults
   /** Gets the position too: a change to the search, filters or sort returns to the first page, and `onPositionChange` hears that first. */
   onViewChange?: (view: RecordView, position: Required<RecordPosition>) => void
-  /** Page and page size: session state, never part of a view. */
+  /** Page, page size and, in range mode, the first row on screen: session state, never part of a view. */
   position?: RecordPosition
   defaultPosition?: RecordPosition
   onPositionChange?: (position: Required<RecordPosition>) => void
@@ -81,12 +88,16 @@ export type UseRecordsOptions<Row extends object> = {
   rowActions?: (row: Row) => ReactNode
   /** The record's page. Return `undefined` for a record with none. */
   getRowHref?: (row: Row) => string | undefined
+  /**
+   * Turns on range mode: one long list, searched, filtered and sorted on the server, that loads the records on screen as people scroll. Each range is one page of `pageSize` records, `end` exclusive, so it starts at `page * pageSize`. Put the records in `data` at their index with `placeRange`, then resolve. With `rowCount` the list is that long from the start; without it, ranges load one after another until one comes back short. A rejection shows the range's error with Retry.
+   */
+  loadRange?: (range: RecordRange) => Promise<void> | void
 }
 
 export type RecordsInstance<Row extends object = object> = {
-  /** `server` once `rowCount` is given. */
-  mode: 'browser' | 'server'
-  /** Every record held, before search, filters and paging; in server mode, the page. */
+  /** `server` once `rowCount` is given, `range` once `loadRange` is. */
+  mode: 'browser' | 'server' | 'range'
+  /** Every record held, before search, filters and paging; in server mode, the page; in range mode, the records loaded, in order. */
   data: readonly Row[]
   fields: readonly RecordField[]
   view: RecordView
@@ -95,7 +106,7 @@ export type RecordsInstance<Row extends object = object> = {
   /** What the search field shows. In server mode it runs ahead of the view's search until typing pauses. */
   searchText: string
   resolvedQuery: ResolvedRecordQuery
-  /** The current page. */
+  /** The current page; in range mode, every record loaded. */
   rows: readonly RecordsRow<Row>[]
   resultCount: number
   /** A search or filter narrows the records. */
@@ -115,6 +126,10 @@ export type RecordsInstance<Row extends object = object> = {
   setLayout: (layout: RecordLayout) => void
   setPage: (page: number) => void
   setPageSize: (pageSize: number) => void
+  /** Range mode: reports the first row on screen as `position.row`, when it changed and something keeps it. */
+  setRow: (row: number) => void
+  /** Range mode's loading state, for a layout to render rows at their index. Undefined in other modes. */
+  range?: RecordsRange<Row>
   /** Every record the search and filters match, sorted, across pages. In server mode, only the page held. */
   matchingRows: readonly RecordsRow<Row>[]
   selectable: boolean
@@ -187,7 +202,8 @@ export function useRecords<Row extends object>({
   defaultSelection,
   onSelectionChange,
   rowActions,
-  getRowHref
+  getRowHref,
+  loadRange
 }: UseRecordsOptions<Row>): RecordsInstance<Row> {
   const [ownView, setOwnView] = useState(() => toView(defaultView))
   const view = controlledView ?? ownView
@@ -216,7 +232,8 @@ export function useRecords<Row extends object>({
   if (rowCount !== undefined && !Object.is(rowCount, lastCount))
     setLastCount(rowCount)
   const count = rowCount ?? lastCount
-  const server = count !== undefined
+  const ranged = loadRange !== undefined
+  const server = count !== undefined || ranged
   // The field paints each keystroke; filtering thousands of rows follows. A
   // server's search already waited for typing to pause.
   const deferredSearch = useDeferredValue(view.query.search)
@@ -247,7 +264,12 @@ export function useRecords<Row extends object>({
   )
 
   const warned = useRef(new Set<string>())
-  const unidentified = server && selectable && getRowId === indexId
+  const unidentified =
+    count !== undefined && !ranged && selectable && getRowId === indexId
+  const rangeUnidentified = ranged && getRowId === indexId
+  const rangePaged =
+    ranged && heldPosition.page !== undefined && heldPosition.page > 0
+  const rangeCapped = ranged && count !== undefined && count > MAX_RANGE_ROWS
   useEffect(() => {
     if (!isDev()) return
     const warn = (message: string) => {
@@ -263,31 +285,83 @@ export function useRecords<Row extends object>({
       warn(
         '[Roadie] Records in server mode need getRowId to select: index ids repeat on every page.'
       )
-  }, [applied.skipped, unidentified])
+    if (rangeUnidentified)
+      warn(
+        '[Roadie] Records with loadRange need getRowId, so a selection survives refetching.'
+      )
+    if (rangePaged)
+      warn(
+        '[Roadie] Records with loadRange ignore the page: the list scrolls, and position.row keeps the place.'
+      )
+    if (rangeCapped)
+      warn(
+        '[Roadie] Records with loadRange stop at 300,000 rows. Filter the list or use paged server mode.'
+      )
+  }, [
+    applied.skipped,
+    unidentified,
+    rangeUnidentified,
+    rangePaged,
+    rangeCapped
+  ])
 
+  // The records held, gaps left out, each with its index in `data`.
+  const loaded = useMemo(() => {
+    const rows: Row[] = []
+    const at: number[] = []
+    data.forEach((row, index) => {
+      if (row === undefined) return
+      rows.push(row)
+      at.push(index)
+    })
+    return { rows, at }
+  }, [data])
   // Every index a record sits at, so a record listed twice keeps both.
   const indexesOf = useMemo(() => {
     const indexes = new Map<Row, number[]>()
-    data.forEach((row, index) => {
+    loaded.rows.forEach((row, k) => {
+      const index = loaded.at[k]!
       const held = indexes.get(row)
       if (held) held.push(index)
       else indexes.set(row, [index])
     })
     return indexes
-  }, [data])
+  }, [loaded])
   const matching = useMemo(() => {
-    if (server) return data
+    if (server) return loaded.rows
     const matches = compileRecordQuery(resolvedQuery, fields)
-    return sortRecords(data.filter(matches), resolvedQuery.sort, fields, {
-      timeZone: zone
-    })
-  }, [server, data, resolvedQuery, fields, zone])
+    return sortRecords(
+      loaded.rows.filter(matches),
+      resolvedQuery.sort,
+      fields,
+      {
+        timeZone: zone
+      }
+    )
+  }, [server, loaded, resolvedQuery, fields, zone])
 
-  const resultCount = server ? whole(count, 0, 0) : matching.length
-  const pageCount = Math.max(1, Math.ceil(resultCount / position.pageSize))
+  const key = rangeKey(appliedQuery, zone)
+  const range = useRangeLoading({
+    loadRange,
+    key,
+    rowCount: count === undefined ? undefined : whole(count, 0, 0),
+    size: position.pageSize,
+    data,
+    held: loaded.rows.length
+  })
+
+  const resultCount = ranged
+    ? (range.total ?? loaded.rows.length)
+    : server
+      ? whole(count, 0, 0)
+      : matching.length
+  // A range list is one long page.
+  const pageCount = ranged
+    ? 1
+    : Math.max(1, Math.ceil(resultCount / position.pageSize))
   const lastPage = pageCount - 1
   // A count from a pending or failed fetch would wipe a deep-linked page.
-  const outOfRange = !loading && !error && position.page > lastPage
+  const outOfRange = !ranged && !loading && !error && position.page > lastPage
   // Clamped during render, not in an effect, so the stale page never paints.
   if (!controlledPosition && outOfRange)
     setOwnPosition({ ...position, page: lastPage })
@@ -309,6 +383,41 @@ export function useRecords<Row extends object>({
       return { id: getRowId(row, indexesOf.get(row)?.[taken] ?? 0), row }
     })
   }, [matching, indexesOf, getRowId])
+  const byIndex = useMemo(
+    () =>
+      ranged
+        ? new Map(loaded.at.map((index, k) => [index, matchingRows[k]!]))
+        : undefined,
+    [ranged, loaded.at, matchingRows]
+  )
+  // Stable between loads, so the window and its memoised rows hold while scrolling.
+  const rangeState = useMemo<RecordsRange<Row> | undefined>(
+    () =>
+      byIndex
+        ? {
+            key,
+            count: range.count,
+            total: range.total,
+            loading: range.loading,
+            attempt: range.attempt,
+            failed: range.failed,
+            retry: range.retry,
+            rowAt: (index) => byIndex.get(index),
+            view: range.view
+          }
+        : undefined,
+    [
+      byIndex,
+      key,
+      range.count,
+      range.total,
+      range.loading,
+      range.attempt,
+      range.failed,
+      range.retry,
+      range.view
+    ]
+  )
   const matchingIds = useMemo(
     () => matchingRows.map((row) => row.id),
     [matchingRows]
@@ -481,8 +590,8 @@ export function useRecords<Row extends object>({
   }
 
   return {
-    mode: server ? 'server' : 'browser',
-    data,
+    mode: ranged ? 'range' : server ? 'server' : 'browser',
+    data: loaded.rows,
     fields,
     view,
     appliedView,
@@ -518,6 +627,13 @@ export function useRecords<Row extends object>({
         setPosition({ ...position, page: next, row: 0 })
     },
     setPageSize: (pageSize) => setPosition({ page: 0, pageSize, row: 0 }),
+    setRow: (row) => {
+      const next = whole(row, 0, 0)
+      if (next === position.row || (!controlledPosition && !onPositionChange))
+        return
+      setPosition({ ...position, row: next })
+    },
+    range: rangeState,
     matchingRows,
     selectable,
     selection,
@@ -548,8 +664,15 @@ export function useRecords<Row extends object>({
     getRowHref,
     recordName,
     loading,
-    error,
-    onRetry,
+    // Once records have loaded, a failed range shows in place of its rows.
+    error:
+      error || (ranged && range.failed.length > 0 && loaded.rows.length === 0),
+    onRetry: ranged
+      ? () => {
+          range.retry()
+          onRetry?.()
+        }
+      : onRetry,
     timeZone: zone
   }
 }

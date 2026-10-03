@@ -80,7 +80,7 @@ export function useBulkActions({
   const run = async (index: number) => {
     const action = actions[index]
     if (!action) return
-    const server = records.mode === 'server'
+    const server = records.mode !== 'browser'
     const matchingIds = records.matchingRows.map((row) => row.id)
     // The server decides what matches; in the browser a hidden record is never acted on.
     const submitted = server

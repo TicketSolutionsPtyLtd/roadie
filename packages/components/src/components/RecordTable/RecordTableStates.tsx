@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, memo } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -34,41 +34,60 @@ export function StateRow({
   )
 }
 
-export function RecordTableSkeletonRows({
-  columns,
-  layout,
-  size,
-  select,
-  actions
-}: {
+type SkeletonRowProps = {
   columns: readonly RecordTableColumn[]
   layout: ColumnLayout
-  size: number
   /** The checkbox and row actions tracks, kept empty so cells stay in their columns. */
   select: boolean
   actions: boolean
+}
+
+/** One row of grey bars; static, as a shimmer would repaint every one each scroll frame. */
+export const RecordTableSkeletonRow = memo(function RecordTableSkeletonRow({
+  columns,
+  layout,
+  select,
+  actions,
+  rowIndex,
+  blank = false
+}: SkeletonRowProps & {
+  /** One-based, counting the header row, when the table holds only some of its rows. */
+  rowIndex?: number
+  /** No bars: a row of a failed range, which isn't loading. */
+  blank?: boolean
 }) {
   return (
-    <div role='rowgroup' aria-hidden data-slot='record-table-skeleton'>
-      {Array.from({ length: Math.min(size, SKELETON_ROWS) }, (_, row) => (
+    <div
+      role='row'
+      aria-hidden
+      aria-rowindex={rowIndex}
+      data-slot='record-table-placeholder-row'
+      className={cn(rowClass, 'h-12 border-b border-subtler')}
+    >
+      {select && <div role='cell' className={selectCellClass} />}
+      {columns.map((column, index) => (
         <div
-          key={row}
-          role='row'
-          className={cn(rowClass, 'h-12 border-b border-subtler')}
+          key={column.key}
+          role='cell'
+          className={cellClass(column)}
+          style={pinStyle(layout.pinnedStart[index])}
         >
-          {select && <div role='cell' className={selectCellClass} />}
-          {columns.map((column, index) => (
-            <div
-              key={column.key}
-              role='cell'
-              className={cellClass(column)}
-              style={pinStyle(layout.pinnedStart[index])}
-            >
-              <Skeleton shape='text' className='animate-none' />
-            </div>
-          ))}
-          {actions && <div role='cell' className={actionsCellClass} />}
+          {!blank && <Skeleton shape='text' className='animate-none' />}
         </div>
+      ))}
+      {actions && <div role='cell' className={actionsCellClass} />}
+    </div>
+  )
+})
+
+export function RecordTableSkeletonRows({
+  size,
+  ...row
+}: SkeletonRowProps & { size: number }) {
+  return (
+    <div role='rowgroup' aria-hidden data-slot='record-table-skeleton'>
+      {Array.from({ length: Math.min(size, SKELETON_ROWS) }, (_, index) => (
+        <RecordTableSkeletonRow key={index} {...row} />
       ))}
     </div>
   )

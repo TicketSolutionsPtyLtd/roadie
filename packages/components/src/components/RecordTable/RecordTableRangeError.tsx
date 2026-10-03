@@ -1,0 +1,73 @@
+'use client'
+
+import { WarningIcon } from '@phosphor-icons/react'
+
+import { Button } from '../Button'
+import { rangeErrorMessage } from '../Records/RecordsStates'
+import { useRecordsContext } from '../Records/context'
+import type { RecordsRange } from '../Records/types'
+
+/**
+ * Where a row sits in a failed range: the error shows at the first one on
+ * screen, so it stays in view, and the rest are blank. Undefined outside one.
+ */
+export function failedRowAt(
+  range: Pick<RecordsRange, 'failed'>,
+  index: number,
+  first = 0
+): { start: number; error: boolean } | undefined {
+  const failed = range.failed.find(
+    ({ start, end }) => index >= start && index < end
+  )
+  if (!failed) return undefined
+  const shown = Math.min(Math.max(first, failed.start), failed.end - 1)
+  return { start: failed.start, error: index === shown }
+}
+
+export const rangeErrorKey = (start: number) => `range-error-${start}`
+
+export function RecordTableRangeError({
+  rowIndex,
+  columns
+}: {
+  rowIndex: number
+  columns: number
+}) {
+  const { records } = useRecordsContext()
+  return (
+    <div
+      role='row'
+      aria-rowindex={rowIndex}
+      data-slot='record-table-range-error'
+      className='flex h-12 min-w-(--record-table-min-width) border-b border-subtler'
+    >
+      {/* Sticky, so it stays in view when the table scrolls sideways. */}
+      <div
+        role='cell'
+        aria-colspan={columns}
+        className='sticky start-0 flex items-center gap-2'
+      >
+        <WarningIcon
+          weight='bold'
+          aria-hidden
+          className='size-4 shrink-0 text-strong intent-danger'
+        />
+        <span className='min-w-0 flex-1 truncate'>
+          {rangeErrorMessage(records)}
+        </span>
+        <Button
+          size='sm'
+          onClick={(event) => {
+            // Retry unmounts this button; the table keeps focus, and its place.
+            event.currentTarget
+              .closest<HTMLElement>('[data-slot="record-table-scroller"]')
+              ?.focus({ preventScroll: true })
+            records.range?.retry()
+          }}
+        >
+          Retry
+        </Button>
+      </div>
+    </div>
+  )
+}

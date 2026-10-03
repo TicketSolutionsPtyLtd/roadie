@@ -394,6 +394,8 @@ export default function RecordsPage() {
             RecordTable
           </Link>{' '}
           takes that count as <Code>rowCount</Code> and the page as its data.
+          Loading by range, each range is one page: fetch{' '}
+          <Code>{'{ page: start / pageSize, pageSize }'}</Code>.
         </p>
       </Section>
 
@@ -459,7 +461,7 @@ export default function RecordsPage() {
                 <Code key='k'>page</Code>, <Code key='s'>size</Code>,{' '}
                 <Code key='r'>row</Code>
               </>,
-              'Where the reader is. The URL counts pages from 1; position.page counts from 0'
+              'Where the reader is: the page, or in a list loaded by range, the first row on screen. The URL counts pages from 1; position.page counts from 0'
             ]
           ]}
         />

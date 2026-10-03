@@ -52,8 +52,10 @@ export type {
   RecordsAction,
   RecordsActionConfirm,
   RecordsBulkAction,
+  RecordsRange,
   RecordsRow
 } from './types'
+export type { RecordRange } from './ranges'
 export type { RecordsActionsProps } from './RecordsActions'
 export type { RecordsOptionsProps } from './RecordsOptions'
 export type { RecordsBulkActionsProps } from './RecordsBulkActions'

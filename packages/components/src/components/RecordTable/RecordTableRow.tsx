@@ -96,6 +96,8 @@ type RecordTableRowProps = {
   onToggle: (id: string, range: boolean) => void
   rowActions?: (row: object) => ReactNode
   href?: string
+  /** One-based, counting the header row, when the table holds only some of its rows. */
+  rowIndex?: number
 }
 
 // Memoised so rows a change doesn't touch skip re-rendering.
@@ -109,7 +111,8 @@ export const RecordTableRow = memo(function RecordTableRow({
   selected,
   onToggle,
   rowActions,
-  href
+  href,
+  rowIndex
 }: RecordTableRowProps) {
   const name = titleText(record, title)
   const linked = href !== undefined && name !== undefined
@@ -124,6 +127,7 @@ export const RecordTableRow = memo(function RecordTableRow({
   return (
     <div
       role='row'
+      aria-rowindex={rowIndex}
       data-slot='record-table-row'
       data-row-id={id}
       data-selected={selected || undefined}

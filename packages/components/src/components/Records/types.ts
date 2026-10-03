@@ -46,3 +46,25 @@ export type RecordsAction<Row extends object = object> = {
     records: RecordsInstance<Row>
   ) => void | Promise<void>
 }
+
+/** Range mode's loading state, which a layout reads to render records at their index. */
+export type RecordsRange<Row = object> = {
+  /** What the loaded records belong to: the search, filters, sort and zone. */
+  key: string
+  /** Rows the list is sized for, loaded or not. */
+  count: number
+  /** Every match, once known: `rowCount`, or the records loaded after a short last range. */
+  total?: number
+  /** A range is loading. */
+  loading: boolean
+  /** Ranges whose load failed, shown as an error in place of their rows. */
+  failed: readonly { start: number; end: number }[]
+  /** Loads the failed ranges again. */
+  retry: () => void
+  /** Bumped by each retry. */
+  attempt: number
+  /** The record loaded at an index, or undefined for a gap. */
+  rowAt: (index: number) => RecordsRow<Row> | undefined
+  /** Reports the rows on screen, inclusive, and a row to reach, so missing ranges load. */
+  view: (first: number, last: number, target?: number) => void
+}
