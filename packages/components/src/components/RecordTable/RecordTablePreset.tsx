@@ -1,0 +1,56 @@
+'use client'
+
+import { useMemo } from 'react'
+
+import { cn } from '@oztix/roadie-core/utils'
+
+import { Records } from '../Records'
+import { type UseRecordsOptions, useRecords } from '../Records/useRecords'
+import { tableLayout } from './tableLayout'
+import type { RecordTableColumn } from './types'
+
+export type RecordTableProps<Row extends object> = UseRecordsOptions<Row> & {
+  columns: readonly RecordTableColumn<Row>[]
+  /** Accessible name for the table. */
+  caption?: string
+  /** Names the search field too. @default 'Search' */
+  searchPlaceholder?: string
+  /** @default [25, 50, 100] */
+  pageSizes?: number[]
+  /** Scrolls the rows in their own box this tall, any CSS length. */
+  maxHeight?: string
+  /** Fills its parent's height and scrolls both ways inside, like `maxHeight`. The parent needs a definite height, such as `Pane.Body`. */
+  fill?: boolean
+  className?: string
+}
+
+/** Records in a table with the standard toolbar, pagination and status. */
+export function RecordTable<Row extends object>({
+  columns,
+  caption,
+  searchPlaceholder,
+  pageSizes,
+  maxHeight,
+  fill,
+  className,
+  ...options
+}: RecordTableProps<Row>) {
+  const records = useRecords(options)
+  const layouts = useMemo(() => [tableLayout(columns)], [columns])
+  return (
+    <Records.Root
+      records={records}
+      layouts={layouts}
+      caption={caption}
+      // Set here too, so a server render already fills.
+      data-pane-fill={fill || undefined}
+      className={cn(fill && 'flex h-full min-h-0 flex-col', className)}
+    >
+      <Records.Toolbar searchPlaceholder={searchPlaceholder} />
+      <Records.Content maxHeight={maxHeight} fill={fill} />
+      <Records.Pagination pageSizes={pageSizes} />
+      <Records.Status />
+    </Records.Root>
+  )
+}
+RecordTable.displayName = 'RecordTable'

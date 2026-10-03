@@ -490,6 +490,36 @@ export {
   type QueryFieldSuggestionGroup
 } from './components/QueryField'
 export {
+  Records,
+  RecordValue,
+  useRecords,
+  type RecordLayoutDefinition,
+  type RecordName,
+  type RecordValueProps,
+  type RecordViewDefaults,
+  type RecordsContentProps,
+  type RecordsInstance,
+  type RecordsPaginationProps,
+  type RecordsProps,
+  type RecordsProviderProps,
+  type RecordsRootProps,
+  type RecordsRow,
+  type RecordsSearchProps,
+  type RecordsToolbarProps,
+  type UseRecordsOptions
+} from './components/Records'
+export {
+  RecordTable,
+  tableColumns,
+  tableLayout,
+  type RecordCellContext,
+  type RecordColumnWidth,
+  type RecordTableColumn,
+  type RecordTableColumnOptions,
+  type RecordTableProps,
+  type TableLayoutDefinition
+} from './components/RecordTable'
+export {
   NumberField,
   numberFieldGroupVariants,
   type NumberFieldProps,
