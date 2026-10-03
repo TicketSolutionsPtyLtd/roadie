@@ -2,6 +2,8 @@
 
 import { type ComponentProps, useRef } from 'react'
 
+import { flushSync } from 'react-dom'
+
 import { mergeRefs } from '../../utils/mergeRefs'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { useFieldContext } from '../Field'
@@ -35,7 +37,6 @@ export function TypedInput({
   const inputRef = useRef<HTMLInputElement>(null)
   // The text box holds unreadable text, so required alone would let a form
   // submit; the parse error blocks it as native validation.
-  // Before paint, so an onBlur that submits the form already sees it.
   useIsomorphicLayoutEffect(() => {
     inputRef.current?.setCustomValidity(typed.error ?? '')
   }, [typed.error])
@@ -66,7 +67,8 @@ export function TypedInput({
         value={typed.text}
         onChange={(event) => typed.setText(event.target.value)}
         onBlur={(event) => {
-          typed.commit()
+          // Flushed, so an onBlur that submits the form sees the result.
+          flushSync(() => typed.commit())
           onBlur?.(event)
         }}
         onKeyDown={(event) => {

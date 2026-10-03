@@ -182,17 +182,18 @@ export function DatePicker({
   const disabledDays = typeof disabled === 'boolean' ? undefined : disabled
   const isInvalid = invalid ?? field.invalid
 
-  // Unset until the picker changes, so a default is read in the zone of each
-  // render, the viewer's once hydrated, not fixed in the server's.
+  // The raw default is kept, and read in the zone of each render, so
+  // hydration reads it on the viewer's clock rather than the server's.
+  const [initialValue] = useState(defaultValue ?? null)
   const [changedValue, setChangedValue] = useState<string | null>()
-  const stored =
-    changedValue !== undefined ? changedValue : (defaultValue ?? null)
-  // Read at the current granularity and zone, so the value always has the
-  // shape the props promise.
-  const value =
-    valueProp !== undefined
-      ? valueProp
-      : joinValue(splitValue(stored, zone), granularity, zone)
+  const stored = changedValue !== undefined ? changedValue : initialValue
+  // Read at the current granularity and zone, controlled or not, so the
+  // value always has the shape the props promise.
+  const value = joinValue(
+    splitValue(valueProp !== undefined ? valueProp : stored, zone),
+    granularity,
+    zone
+  )
   const [local, setLocal] = useState(() => ({
     parts: splitValue(valueProp ?? defaultValue, zone),
     seen: value,
@@ -200,8 +201,8 @@ export function DatePicker({
   }))
   // A value from outside replaces the local parts; the one just emitted does
   // not, so a date waiting for its time survives a parent that holds null.
-  // Uncontrolled, a null value comes from a granularity change, and the date
-  // stays.
+  // Uncontrolled, the stored date stays when a granularity change empties
+  // the value.
   if (value !== local.seen) {
     setLocal({
       parts:
@@ -234,11 +235,12 @@ export function DatePicker({
       ...current,
       // Read back, so a time a daylight saving jump skips shows where it lands.
       parts: joined && withTime ? splitValue(joined, zone) : next,
-      emitted: changed ? joined : current.emitted
+      // An emit the parent never took isn't waited for again.
+      emitted: changed ? joined : undefined
     }))
-    if (!changed) return
-    if (valueProp === undefined) setChangedValue(joined)
-    onValueChange?.(joined)
+    // A date waiting for its time is kept, so switching to day still has it.
+    if (valueProp === undefined) setChangedValue(joined ?? next.date)
+    if (changed) onValueChange?.(joined)
   }
 
   const date = useTypedValue({

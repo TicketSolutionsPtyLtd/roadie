@@ -1,6 +1,7 @@
 import { act } from 'react'
 
 import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
@@ -150,6 +151,47 @@ describe('DatePicker uncontrolled', () => {
     expect(new FormData(container.querySelector('form')!).get('doors')).toBe(
       '2026-11-27T16:30:00+08:00'
     )
+  })
+})
+
+describe('DatePicker uncontrolled, switching granularity', () => {
+  const picker = (granularity: 'day' | 'minute') => (
+    <form>
+      <DatePicker
+        aria-label='Doors'
+        granularity={granularity}
+        timeZone='Australia/Melbourne'
+        today='2026-10-07'
+        name='doors'
+      />
+    </form>
+  )
+  const submitted = (container: HTMLElement) =>
+    new FormData(container.querySelector('form')!).get('doors')
+
+  it('keeps a date waiting for its time when the time goes away', async () => {
+    const { container, rerender } = render(picker('minute'))
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'Date' }),
+      '27 nov{Enter}'
+    )
+    rerender(picker('day'))
+    expect(submitted(container)).toBe('2026-11-27')
+  })
+
+  it('keeps the time through minute, day and back', async () => {
+    const { container, rerender } = render(picker('minute'))
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'Date' }),
+      '27 nov{Enter}'
+    )
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'Time' }),
+      '7:30pm{Enter}'
+    )
+    rerender(picker('day'))
+    rerender(picker('minute'))
+    expect(submitted(container)).toBe('2026-11-27T19:30:00+11:00')
   })
 })
 

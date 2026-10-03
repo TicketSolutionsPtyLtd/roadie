@@ -190,6 +190,31 @@ describe('DateField', () => {
     ).toEqual({ value: '2026-03-27' })
   })
 
+  it('has applied unreadable text by the time onBlur runs', async () => {
+    const seen: [boolean, ReturnType<FormData['get']>][] = []
+    render(
+      <form>
+        <DateField
+          aria-label='Show date'
+          name='showDate'
+          today={TODAY}
+          defaultValue='2026-11-27'
+          onBlur={(event) =>
+            seen.push([
+              event.currentTarget.validity.valid,
+              new FormData(event.currentTarget.form!).get('showDate')
+            ])
+          }
+        />
+      </form>
+    )
+    const input = screen.getByRole('textbox')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'someday')
+    await userEvent.tab()
+    expect(seen).toEqual([[false, '']])
+  })
+
   it('is valid again once Escape drops unreadable text', async () => {
     render(<DateField aria-label='Show date' today={TODAY} />)
     const input = screen.getByRole<HTMLInputElement>('textbox')

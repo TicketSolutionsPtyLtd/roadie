@@ -133,6 +133,30 @@ describe('DatePicker', () => {
     expect(screen.getByRole('button', { name: 'Choose date' })).toBeDisabled()
   })
 
+  it('submits a controlled value in the shape of its granularity', () => {
+    const { container } = render(
+      <form>
+        <DatePicker
+          aria-label='Doors'
+          granularity='minute'
+          timeZone={MELBOURNE}
+          name='doors'
+          value='2026-11-27'
+          onValueChange={() => {}}
+        />
+      </form>
+    )
+    expect(new FormData(container.querySelector('form')!).get('doors')).toBe('')
+  })
+
+  it('starts from defaultValue and ignores later ones', () => {
+    const { rerender } = render(
+      <DatePicker aria-label='Show date' defaultValue='2026-11-27' />
+    )
+    rerender(<DatePicker aria-label='Show date' defaultValue='2026-12-25' />)
+    expect(screen.getByRole('textbox')).toHaveValue('Fri 27 Nov 2026')
+  })
+
   it('submits the value under its name', () => {
     const { container } = render(
       <form>
