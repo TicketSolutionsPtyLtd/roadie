@@ -114,8 +114,11 @@ describe('RecordTable bulk actions', () => {
     await user.click(
       screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
     )
-    await user.click(screen.getByRole('searchbox'))
+    await user.click(
+      screen.getByRole('combobox', { name: 'Search and filter' })
+    )
     await user.paste('Perth')
+    await user.keyboard('{Escape}')
     await user.click(
       screen.getByRole('checkbox', { name: 'Select angie McMahon 1' })
     )
@@ -215,8 +218,11 @@ describe('RecordTable bulk actions', () => {
   it('announces the selection and the results together while searching', async () => {
     const user = userEvent.setup()
     render(<Bulk actions={[{ label: 'Export', onAction: vi.fn() }]} />)
-    await user.click(screen.getByRole('searchbox'))
+    await user.click(
+      screen.getByRole('combobox', { name: 'Search and filter' })
+    )
     await user.paste('Perth')
+    await user.keyboard('{Escape}')
     await user.click(
       screen.getByRole('checkbox', { name: 'Select angie McMahon 1' })
     )
@@ -721,7 +727,7 @@ describe('Records.Search', () => {
     }
     render(<Named />)
     expect(
-      screen.getByRole('searchbox', { name: 'Search shows by name' })
+      screen.getByRole('combobox', { name: 'Search shows by name' })
     ).toHaveAttribute('placeholder', 'Search')
   })
 
@@ -736,7 +742,7 @@ describe('Records.Search', () => {
       />
     )
     expect(
-      screen.getByRole('searchbox', { name: 'Search shows by name' })
+      screen.getByRole('combobox', { name: 'Search shows by name' })
     ).toHaveAttribute('placeholder', 'Search')
   })
 })

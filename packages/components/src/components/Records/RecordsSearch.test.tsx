@@ -1,0 +1,305 @@
+import { act, render, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+
+import {
+  type RecordFilter,
+  type RecordView,
+  recordFields
+} from '@oztix/roadie-core/records'
+
+import { Records } from '.'
+import { tableColumns, tableLayout } from '../RecordTable'
+import { type TestShow, testShows } from './testUtils'
+import { type UseRecordsOptions, useRecords } from './useRecords'
+
+// jsdom never upgrades NumberField's animated number, so its hooks don't exist.
+vi.mock('@number-flow/react', async () => {
+  const { createElement } = await import('react')
+  return {
+    default: ({ value }: { value: unknown }) =>
+      createElement('number-flow-react', null, String(value))
+  }
+})
+
+const field = recordFields<TestShow>()
+const fields = [
+  field.text('show', { label: 'Show' }),
+  field.option('city', { label: 'City' }),
+  field.number('sold', { label: 'Sold' }),
+  field.option('status', {
+    label: 'Status',
+    status: {
+      on_sale: { intent: 'success' },
+      sold_out: { intent: 'danger' },
+      cancelled: { intent: 'neutral' }
+    }
+  }),
+  field.date('starts', { label: 'Starts', moment: 'date' })
+]
+const column = tableColumns<TestShow>(fields)
+const layouts = [
+  tableLayout([column.field('show', { pin: true }), column.field('city')])
+]
+const shows = testShows(30)
+// Midday Saturday 3 October 2026 in Sydney.
+const NOW = new Date('2026-10-03T02:00:00Z')
+
+function Shows(options: Partial<UseRecordsOptions<TestShow>>) {
+  const records = useRecords({
+    data: shows,
+    fields,
+    getRowId: (row) => row.id,
+    timeZone: 'Australia/Sydney',
+    now: NOW,
+    ...options
+  })
+  return (
+    <Records.Root records={records} layouts={layouts}>
+      <Records.Toolbar />
+      <Records.Content />
+    </Records.Root>
+  )
+}
+
+function setup(options: Partial<UseRecordsOptions<TestShow>> = {}) {
+  const onViewChange = vi.fn()
+  const user = userEvent.setup()
+  render(<Shows onViewChange={onViewChange} {...options} />)
+  const lastView = () => onViewChange.mock.lastCall?.[0] as RecordView
+  return { user, onViewChange, lastView }
+}
+
+const input = () => screen.getByRole('combobox', { name: 'Search and filter' })
+const chipLabels = () =>
+  [...document.querySelectorAll('[data-slot=combobox-chip]')].map(
+    (chip) => chip.querySelector('[data-slot=combobox-chip-label]')?.textContent
+  )
+const chip = (label: string) =>
+  [...document.querySelectorAll<HTMLElement>('[data-slot=combobox-chip]')].find(
+    (element) => element.textContent?.includes(label)
+  )!
+const option = (name: string | RegExp) => screen.findByRole('option', { name })
+const editor = () => screen.findByRole('dialog', { name: /./ })
+const rows = () =>
+  screen
+    .queryAllByRole('row')
+    .filter((row) => within(row).queryAllByRole('cell').length)
+
+describe('Records.Search', () => {
+  it('searches as people type, and keeps the text on Enter', async () => {
+    const { user, lastView } = setup()
+    await user.click(input())
+    await user.keyboard('ocean{Enter}')
+    expect(input()).toHaveValue('ocean')
+    expect(lastView().query.search).toBe('ocean')
+    expect(rows()).toHaveLength(5)
+  })
+
+  it('suggests a filter from the values the records hold', async () => {
+    const { user, lastView } = setup()
+    await user.click(input())
+    await user.keyboard('melb')
+    await user.click(await option(/City is Melbourne/))
+    expect(chipLabels()).toEqual(['City is Melbourne'])
+    expect(input()).toHaveValue('')
+    expect(lastView().query).toMatchObject({
+      search: '',
+      filters: [{ field: 'city', operator: 'is', values: ['Melbourne'] }]
+    })
+    expect(rows()).toHaveLength(6)
+  })
+
+  it('keeps searching the words a filter did not read', async () => {
+    const { user, lastView } = setup()
+    await user.click(input())
+    await user.keyboard('melb ocean')
+    await user.click(await option(/City is Melbourne/))
+    expect(input()).toHaveValue('ocean')
+    expect(lastView().query).toMatchObject({
+      search: 'ocean',
+      filters: [{ field: 'city', operator: 'is', values: ['Melbourne'] }]
+    })
+  })
+
+  it('picks a field, then its values, adding to the field’s chip', async () => {
+    const { user, lastView } = setup()
+    await user.click(input())
+    await user.click(await option('City'))
+    expect(
+      document.querySelector('[data-slot=query-field-pending-chip]')
+    ).toHaveTextContent('City is')
+    // Typing in the value step narrows the values, not the records.
+    await user.keyboard('syd')
+    expect(lastView()?.query.search ?? '').toBe('')
+    await user.click(await option('Sydney'))
+    expect(chipLabels()).toEqual(['City is Sydney'])
+    await user.click(input())
+    await user.click(await option('City'))
+    await user.click(await option('Perth'))
+    expect(chipLabels()).toEqual(['City is Sydney or Perth'])
+  })
+
+  it('offers dates for a date field, each with what it stands for', async () => {
+    const { user, lastView } = setup()
+    await user.click(input())
+    await user.click(await option('Starts'))
+    const weekend = await option(/This weekend/)
+    expect(weekend).toHaveTextContent('3 to 4 Oct 2026')
+    await user.click(weekend)
+    expect(chipLabels()).toEqual(['Starts: This weekend'])
+    expect(chip('Starts')).toHaveTextContent('3 to 4 Oct 2026')
+    expect(lastView().query.filters).toEqual([
+      { field: 'starts', operator: 'within', value: 'this-weekend' }
+    ])
+  })
+
+  it('edits a chip’s values and condition, as they change', async () => {
+    const { user, lastView } = setup({
+      defaultView: {
+        query: {
+          filters: [{ field: 'city', operator: 'is', values: ['Perth'] }]
+        }
+      }
+    })
+    await user.click(
+      within(chip('City is Perth')).getByRole('button', {
+        name: 'City is Perth'
+      })
+    )
+    const dialog = await editor()
+    expect(dialog).toHaveAccessibleName('City')
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Hobart' }))
+    expect(chipLabels()).toEqual(['City is Perth or Hobart'])
+    await user.click(
+      within(dialog).getByRole('combobox', { name: 'City condition' })
+    )
+    await user.click(await screen.findByRole('option', { name: 'Is not' }))
+    expect(lastView().query.filters).toEqual([
+      { field: 'city', operator: 'is-not', values: ['Perth', 'Hobart'] }
+    ])
+    expect(rows()).toHaveLength(18)
+  })
+
+  it('removes a filter from its editor, returning focus to the field', async () => {
+    const { user } = setup({
+      defaultView: {
+        query: { filters: [{ field: 'sold', operator: 'gt', value: 100 }] }
+      }
+    })
+    chip('Sold').focus()
+    await user.keyboard('{Enter}')
+    const dialog = await editor()
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Remove filter' })
+    )
+    await waitFor(() => expect(chipLabels()).toEqual([]))
+    await waitFor(() => expect(input()).toHaveFocus())
+  })
+
+  it('returns focus to the chip when its editor closes', async () => {
+    const { user } = setup({
+      defaultView: {
+        query: { filters: [{ field: 'sold', operator: 'gt', value: 100 }] }
+      }
+    })
+    chip('Sold').focus()
+    await user.keyboard('{Enter}')
+    await editor()
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(chip('Sold')).toHaveFocus())
+  })
+
+  it('opens an editor for a number field, adding the filter once it has a value', async () => {
+    const { user, lastView } = setup()
+    await user.click(input())
+    await user.click(await option('Sold'))
+    const dialog = await editor()
+    expect(chipLabels()).toEqual([])
+    const value = within(dialog).getByRole('textbox', { name: 'Sold value' })
+    await waitFor(() => expect(value).toHaveFocus())
+    await user.keyboard('1500')
+    expect(chipLabels()).toEqual(['Sold is 1,500'])
+    await user.click(
+      within(dialog).getByRole('combobox', { name: 'Sold condition' })
+    )
+    await user.click(
+      await screen.findByRole('option', { name: 'Is more than' })
+    )
+    expect(chipLabels()).toEqual(['Sold is more than 1,500'])
+    expect(lastView().query.filters).toEqual([
+      { field: 'sold', operator: 'gt', value: 1500 }
+    ])
+  })
+
+  it('shows the page’s scope first, locked, and never clears it', async () => {
+    const scope: RecordFilter[] = [
+      { field: 'city', operator: 'is', values: ['Perth'] }
+    ]
+    const { user, lastView } = setup({
+      scope,
+      defaultView: {
+        query: {
+          search: 'ocean',
+          filters: [{ field: 'status', operator: 'is', values: ['on_sale'] }]
+        }
+      }
+    })
+    expect(chipLabels()).toEqual(['City is Perth', 'Status is On sale'])
+    expect(chip('City is Perth')).toHaveAttribute('data-locked')
+    expect(within(chip('City is Perth')).queryByRole('button')).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Clear' }))
+    expect(chipLabels()).toEqual(['City is Perth'])
+    expect(lastView().query).toMatchObject({ search: '', filters: [] })
+    expect(rows()).toHaveLength(6)
+  })
+
+  it('marks a filter its records can’t apply', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    setup({
+      defaultView: {
+        query: { filters: [{ field: 'venue', operator: 'is', values: ['x'] }] }
+      }
+    })
+    expect(chip('venue is x')).toHaveClass('intent-warning')
+    expect(chip('venue is x')).toHaveTextContent('Not applied')
+  })
+
+  it('focuses on /, unless something else takes typing', async () => {
+    const { user } = setup()
+    await user.keyboard('/')
+    expect(input()).toHaveFocus()
+    expect(input()).toHaveValue('')
+  })
+
+  it('takes no shortcut when asked', async () => {
+    function NoShortcut() {
+      const records = useRecords({ data: shows, fields })
+      return (
+        <Records.Root records={records} layouts={layouts}>
+          <Records.Search shortcut={false} />
+        </Records.Root>
+      )
+    }
+    const user = userEvent.setup()
+    render(<NoShortcut />)
+    await user.keyboard('/')
+    expect(input()).not.toHaveFocus()
+  })
+
+  it('never suggests a filter already applied', async () => {
+    const { user } = setup({
+      defaultView: {
+        query: {
+          filters: [{ field: 'city', operator: 'is', values: ['Melbourne'] }]
+        }
+      }
+    })
+    await user.click(input())
+    await user.keyboard('melb')
+    await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+    expect(
+      screen.queryByRole('option', { name: /City is Melbourne/ })
+    ).toBeNull()
+  })
+})

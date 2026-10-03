@@ -99,8 +99,11 @@ describe('RecordTable table actions', () => {
   it('acts on the applied query and the records, with nothing selected', async () => {
     const onAction = vi.fn()
     render(<Shows actions={actions(onAction)} bulk />)
-    await userEvent.click(screen.getByRole('searchbox'))
+    await userEvent.click(
+      screen.getByRole('combobox', { name: 'Search and filter' })
+    )
     await userEvent.paste('ocean')
+    await userEvent.keyboard('{Escape}')
     await userEvent.click(screen.getByRole('button', { name: 'Export CSV' }))
     expect(onAction).toHaveBeenCalledOnce()
     const [query, records] = onAction.mock.calls[0]!

@@ -892,4 +892,96 @@ describe('QueryField', () => {
     )
     expect(optionNames()).not.toContain('Order 1042')
   })
+
+  it('leaves the words a suggestion did not read in the field', async () => {
+    const melbourne: QueryFieldSuggestion = {
+      id: 'city:melbourne',
+      label: 'City is Melbourne',
+      kind: 'filter',
+      value: 'melbourne',
+      remainder: 'this weekend'
+    }
+    const onAccept = vi.fn()
+    const onInputValueChange = vi.fn()
+    render(
+      <Harness
+        onAccept={onAccept}
+        onInputValueChange={onInputValueChange}
+        suggest={() => [
+          { id: 'filters', label: 'Filters', items: [melbourne] }
+        ]}
+      />
+    )
+    await typeInto('melb this weekend')
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+    expect(onAccept).toHaveBeenCalledWith(melbourne)
+    expect(input()).toHaveValue('this weekend')
+    expect(onInputValueChange).toHaveBeenLastCalledWith('this weekend')
+  })
+
+  it('clears the text on Escape once the list is closed, keeping chips', async () => {
+    render(<Harness initialChips={[scope, status]} />)
+    await typeInto('igua')
+    await userEvent.keyboard('{Escape}')
+    expect(input()).toHaveValue('igua')
+    await userEvent.keyboard('{Escape}')
+    expect(input()).toHaveValue('')
+    expect(chipNames()).toHaveLength(2)
+  })
+
+  it('describes a chip to screen readers', () => {
+    render(
+      <Harness
+        initialChips={[
+          {
+            id: 'starts',
+            label: 'Starts: This weekend',
+            description: '3 to 4 Oct'
+          },
+          { ...scope, description: 'Fri 9 Oct' }
+        ]}
+      />
+    )
+    expect(chipElement('starts')).toHaveTextContent(
+      'Starts: This weekend, 3 to 4 Oct'
+    )
+    expect(chipElement('event')).toHaveTextContent(
+      'Event is Lampshade Disco, set by this page, Fri 9 Oct'
+    )
+  })
+
+  it('shows one Enter hint when a recent item repeats a suggestion', async () => {
+    render(
+      <Harness
+        recent={[iguana]}
+        suggest={() => [{ id: 'filters', label: 'Filters', items: [iguana] }]}
+      />
+    )
+    await userEvent.click(input())
+    await waitFor(() => expect(optionNames()).toHaveLength(2))
+    await userEvent.keyboard('{ArrowDown}')
+    expect(hinted()).toEqual(['Venue is Iguana Teapot Hall'])
+    expect(
+      screen.getAllByRole('option').filter((o) => o.querySelector('kbd'))
+    ).toHaveLength(1)
+  })
+
+  it('drops the arrow mark when typing changes the text', async () => {
+    const onAccept = vi.fn()
+    render(<Harness onAccept={onAccept} />)
+    await typeInto('igua')
+    await waitFor(() => expect(optionNames()).toHaveLength(3))
+    await userEvent.keyboard('{ArrowDown}n{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: 'search', value: 'iguan' })
+    )
+  })
+
+  it('attaches an inline inputRef once', () => {
+    const inputRef = vi.fn()
+    const { rerender } = render(<Harness inputRef={(node) => inputRef(node)} />)
+    rerender(<Harness inputRef={(node) => inputRef(node)} />)
+    rerender(<Harness inputRef={(node) => inputRef(node)} />)
+    expect(inputRef.mock.calls).toEqual([[input()]])
+  })
 })

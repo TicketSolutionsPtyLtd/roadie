@@ -44,9 +44,12 @@ describe('RecordTable render budget', () => {
     render(<RecordTable data={shows} fields={showFields} columns={columns} />)
     cellRenders.mockClear()
     act(() => {
-      fireEvent.change(screen.getByRole('searchbox'), {
-        target: { value: 'Hobart' }
-      })
+      fireEvent.change(
+        screen.getByRole('combobox', { name: 'Search and filter' }),
+        {
+          target: { value: 'Hobart' }
+        }
+      )
     })
     expect(screen.getAllByRole('row')).toHaveLength(11)
     expect(cellRenders).not.toHaveBeenCalled()

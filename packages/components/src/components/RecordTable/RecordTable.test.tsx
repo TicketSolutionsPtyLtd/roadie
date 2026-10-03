@@ -325,8 +325,8 @@ describe('RecordTable preset', () => {
       />
     )
     await userEvent.type(
-      screen.getByRole('searchbox', { name: 'Search' }),
-      'Hobart'
+      screen.getByRole('combobox', { name: 'Search and filter' }),
+      'Hobart{Escape}'
     )
     expect(await screen.findByText('24 results')).toBeInTheDocument()
     expect(bodyRows().every((row) => row.textContent?.includes('Hobart'))).toBe(
@@ -396,13 +396,13 @@ describe('RecordTable preset', () => {
         columns={showColumns}
       />
     )
-    const field = screen.getByRole('searchbox', { name: 'Search' })
-    expect(screen.queryByRole('button', { name: 'Clear search' })).toBeNull()
+    const field = screen.getByRole('combobox', { name: 'Search and filter' })
+    expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull()
     await userEvent.type(field, 'Perth')
-    await userEvent.click(screen.getByRole('button', { name: 'Clear search' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Clear' }))
     expect(field).toHaveValue('')
     expect(field).toHaveFocus()
-    await userEvent.type(field, 'Hobart{Escape}')
+    await userEvent.type(field, 'Hobart{Escape}{Escape}')
     expect(field).toHaveValue('')
   })
 
@@ -415,7 +415,7 @@ describe('RecordTable preset', () => {
         defaultView={{ query: { search: 'ろっく' } }}
       />
     )
-    const field = screen.getByRole('searchbox')
+    const field = screen.getByRole('combobox', { name: 'Search and filter' })
     fireEvent.keyDown(field, { key: 'Escape', isComposing: true })
     expect(field).toHaveValue('ろっく')
     fireEvent.keyDown(field, { key: 'Escape', keyCode: 229 })
@@ -432,7 +432,7 @@ describe('RecordTable preset', () => {
       />
     )
     expect(
-      screen.getByRole('searchbox', { name: 'Search shows' })
+      screen.getByRole('combobox', { name: 'Search shows' })
     ).toHaveAttribute('placeholder', 'Search shows')
   })
 })
@@ -452,10 +452,14 @@ describe('Records composition', () => {
     expect(
       screen
         .getByRole('table')
-        .compareDocumentPosition(screen.getByRole('searchbox')) &
-        Node.DOCUMENT_POSITION_FOLLOWING
+        .compareDocumentPosition(
+          screen.getByRole('combobox', { name: 'Search and filter' })
+        ) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
-    await userEvent.type(screen.getByRole('searchbox'), 'Perth')
+    await userEvent.type(
+      screen.getByRole('combobox', { name: 'Search and filter' }),
+      'Perth{Escape}'
+    )
     expect(bodyRows()).toHaveLength(24)
     expect(bodyRows().every((row) => row.textContent?.includes('Perth'))).toBe(
       true

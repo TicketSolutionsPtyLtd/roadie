@@ -25,6 +25,7 @@ import {
 } from '@oztix/roadie-core/records'
 
 import { isDev } from '../../utils/isDev'
+import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { applyQuery, isFiltered, toView } from './query'
 import {
   EMPTY_SELECTION,
@@ -65,6 +66,12 @@ export type UseRecordsOptions<Row extends object> = {
   timeZone?: string
   /** The moment relative dates resolve against. Defaults to when the list mounted. */
   now?: Instantish
+  /**
+   * Filters the page sets, such as the event a list of tickets belongs to.
+   * They filter like the view's but are never part of it, so they are never
+   * saved, cleared or edited: `Records.Search` shows them as locked chips.
+   */
+  scope?: readonly RecordFilter[]
   /** Lets people pick records for bulk actions. @default false */
   selectable?: boolean
   /** Session state, like the position. A search or filter change drops picked records it hides. */
@@ -96,6 +103,8 @@ export type RecordsInstance<Row extends object = object> = {
   setView: (view: RecordView) => void
   /** Filters in the view, by index, that these fields can't apply, so they filter nothing. */
   skippedFilters: readonly number[]
+  /** The page's own filters, applied before the view's. */
+  scope: readonly RecordFilter[]
   setSearch: (search: string) => void
   addFilter: (filter: RecordFilter) => void
   updateFilter: (index: number, filter: RecordFilter) => void
@@ -131,6 +140,8 @@ export type RecordsInstance<Row extends object = object> = {
   error: boolean | string
   onRetry?: () => void
   timeZone: string
+  /** The moment relative dates resolve against. */
+  now: Date
 }
 
 const RECORD: RecordName = { one: 'record', other: 'records' }
@@ -152,6 +163,7 @@ function useEqualValue<T>(value: T): T {
   return value
 }
 const serverZone = () => 'UTC'
+const NO_SCOPE: readonly RecordFilter[] = []
 
 /**
  * What a selection was taken against: the search and the unresolved filters,
@@ -160,7 +172,10 @@ const serverZone = () => 'UTC'
 const matchKey = ({
   search,
   filters
-}: Pick<RecordView['query'], 'search' | 'filters'>) =>
+}: {
+  search: string
+  filters: readonly RecordFilter[]
+}) =>
   JSON.stringify([
     search.trim(),
     filters.map((filter) => JSON.stringify(filter)).sort()
@@ -182,6 +197,7 @@ export function useRecords<Row extends object>({
   onRetry,
   timeZone,
   now,
+  scope: scopeOption = NO_SCOPE,
   selectable = false,
   selection: controlledSelection,
   defaultSelection,
@@ -209,11 +225,13 @@ export function useRecords<Row extends object>({
   const [mounted] = useState(() => new Date())
   const at = now ?? mounted
   const atTime = at instanceof Date ? at.getTime() : at.epochMilliseconds
+  const resolvedAt = useMemo(() => new Date(atTime), [atTime])
 
   // The field paints each keystroke; filtering thousands of rows follows.
   const search = useDeferredValue(view.query.search)
   const filters = useEqualValue(view.query.filters)
   const sort = useEqualValue(view.query.sort)
+  const scope = useEqualValue(scopeOption)
   const applied = useMemo(
     () =>
       applyQuery({ search, filters, sort }, fields, {
@@ -222,16 +240,37 @@ export function useRecords<Row extends object>({
       }),
     [search, filters, sort, fields, atTime, zone]
   )
-  const resolvedQuery = applied.resolved
+  const appliedScope = useMemo(
+    () =>
+      applyQuery({ search: '', filters: [...scope], sort: [] }, fields, {
+        now: new Date(atTime),
+        timeZone: zone
+      }),
+    [scope, fields, atTime, zone]
+  )
+  const resolvedQuery = useMemo(
+    () => ({
+      ...applied.resolved,
+      filters: [...appliedScope.resolved.filters, ...applied.resolved.filters]
+    }),
+    [applied, appliedScope]
+  )
+  const skipped = useMemo(
+    () => [
+      ...appliedScope.skipped.map((problem) => `scope ${problem}`),
+      ...applied.skipped
+    ],
+    [applied, appliedScope]
+  )
 
   const warned = useRef(new Set<string>())
   useEffect(() => {
-    if (!isDev() || applied.skipped.length === 0) return
-    const message = `[Roadie] Records skipped part of the view:\n${applied.skipped.join('\n')}`
+    if (!isDev() || skipped.length === 0) return
+    const message = `[Roadie] Records skipped part of the view:\n${skipped.join('\n')}`
     if (warned.current.has(message)) return
     warned.current.add(message)
     console.warn(message)
-  }, [applied.skipped])
+  }, [skipped])
 
   // Every index a record sits at, so a record listed twice keeps both.
   const indexesOf = useMemo(() => {
@@ -291,7 +330,7 @@ export function useRecords<Row extends object>({
   const anchor = useRef<string | undefined>(undefined)
   // A pick made here acts on the rows on screen, so it belongs to the applied
   // query, even while a newer search waits to apply.
-  const appliedKey = matchKey({ search, filters })
+  const appliedKey = matchKey({ search, filters: [...scope, ...filters] })
   const [picked, setPicked] = useState<{
     selection: RecordSelection
     key: string
@@ -310,7 +349,10 @@ export function useRecords<Row extends object>({
 
   // A selection from outside, like the URL or the parent, keys to the query as
   // set, so one set with a new search keeps it before the search applies.
-  const queryKey = matchKey({ search: view.query.search, filters })
+  const queryKey = matchKey({
+    search: view.query.search,
+    filters: [...scope, ...filters]
+  })
   // A search's matches exist only once it renders, so pruning waits for it.
   const searchApplied = search === view.query.search
   const [taken, setTaken] = useState({
@@ -352,10 +394,18 @@ export function useRecords<Row extends object>({
   const countSelection = (next: RecordSelection) =>
     countSelected(next, matchingIds)
 
+  // Writes in one event build on each other, as a parent's state won't have
+  // rendered between them; the next render starts again from what it shows.
+  const written = useRef<RecordView | null>(null)
+  useIsomorphicLayoutEffect(() => {
+    written.current = null
+  })
+  const latestView = () => written.current ?? view
   const setView = (
     next: RecordView,
     nextPosition: Required<RecordPosition> = position
   ) => {
+    written.current = next
     if (!controlledView) setOwnView(next)
     onViewChange?.(next, nextPosition)
   }
@@ -365,10 +415,13 @@ export function useRecords<Row extends object>({
   }
   // The position goes first and the view last, carrying the new position, so
   // a parent writing both to one URL ends with the two agreeing.
-  const setQuery = (query: Partial<RecordView['query']>) => {
+  const setQuery = (
+    query: (current: RecordView['query']) => Partial<RecordView['query']>
+  ) => {
     const first = { ...position, page: 0, row: 0 }
     if (position.page !== 0 || position.row !== 0) setPosition(first)
-    setView({ ...view, query: { ...view.query, ...query } }, first)
+    const base = latestView()
+    setView({ ...base, query: { ...base.query, ...query(base.query) } }, first)
   }
 
   return {
@@ -383,22 +436,28 @@ export function useRecords<Row extends object>({
     resolvedQuery,
     rows,
     resultCount,
-    filtered: isFiltered(resolvedQuery),
+    filtered: isFiltered(applied.resolved),
     position,
     pageCount,
     setView: (next) => setView(next),
     skippedFilters: applied.skippedFilters,
-    setSearch: (next) => setQuery({ search: next }),
-    addFilter: (filter) => setQuery({ filters: [...filters, filter] }),
+    scope,
+    setSearch: (next) => setQuery(() => ({ search: next })),
+    addFilter: (filter) =>
+      setQuery((query) => ({ filters: [...query.filters, filter] })),
     updateFilter: (index, filter) =>
-      setQuery({
-        filters: filters.map((current, at) => (at === index ? filter : current))
-      }),
+      setQuery((query) => ({
+        filters: query.filters.map((current, at) =>
+          at === index ? filter : current
+        )
+      })),
     removeFilter: (index) =>
-      setQuery({ filters: filters.filter((_, at) => at !== index) }),
-    clearQuery: () => setQuery({ search: '', filters: [] }),
-    setSort: (next) => setQuery({ sort: next }),
-    setLayout: (layout) => setView({ ...view, layout }),
+      setQuery((query) => ({
+        filters: query.filters.filter((_, at) => at !== index)
+      })),
+    clearQuery: () => setQuery(() => ({ search: '', filters: [] })),
+    setSort: (next) => setQuery(() => ({ sort: next })),
+    setLayout: (layout) => setView({ ...latestView(), layout }),
     setPage: (page) => {
       const next = Math.max(0, Math.min(page, lastPage))
       if (next !== position.page)
@@ -437,6 +496,7 @@ export function useRecords<Row extends object>({
     loading,
     error,
     onRetry,
-    timeZone: zone
+    timeZone: zone,
+    now: resolvedAt
   }
 }

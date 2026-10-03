@@ -167,27 +167,76 @@ describe('RecordTable empty', () => {
     render(<Table defaultView={{ query: { search: 'zzzz' } }} />)
     expect(screen.getByText('No shows match')).toBeInTheDocument()
     expect(
-      screen.getByText('Try a different search or clear the filters.')
+      screen.getByText(
+        'Nothing matches “zzzz”. Try a different search or clear the filters.'
+      )
     ).toBeInTheDocument()
     await user.click(
       screen.getByRole('button', { name: 'Clear search and filters' })
     )
     expect(screen.queryByText('No shows match')).toBeNull()
     expect(dataRows()).toHaveLength(30)
-    expect(screen.getByRole('searchbox')).toHaveValue('')
+    expect(
+      screen.getByRole('combobox', { name: 'Search and filter' })
+    ).toHaveValue('')
   })
 
-  it('treats a filter as filtering', () => {
+  it('treats a filter as filtering, and names what matched nothing', () => {
     render(
       <Table
         defaultView={{
           query: {
-            filters: [{ field: 'city', operator: 'is', values: ['Nowhere'] }]
+            search: 'ocean',
+            filters: [
+              { field: 'city', operator: 'is', values: ['Nowhere'] },
+              { field: 'sold', operator: 'gt', value: 100 }
+            ]
           }
         }}
       />
     )
     expect(screen.getByText('No shows match')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Nothing matches “ocean”, City is Nowhere and Sold is more than 100. Try a different search or clear the filters.'
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('counts what matched nothing once it is long', () => {
+    render(
+      <Table
+        defaultView={{
+          query: {
+            filters: [
+              { field: 'city', operator: 'is', values: ['Nowhere'] },
+              { field: 'sold', operator: 'gt', value: 100 },
+              { field: 'sold', operator: 'lt', value: 10 },
+              { field: 'show', operator: 'contains', value: 'x' }
+            ]
+          }
+        }}
+      />
+    )
+    expect(
+      screen.getByText(
+        'Nothing matches these 4 filters. Try a different search or clear the filters.'
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the page’s scope when clearing', async () => {
+    const user = userEvent.setup()
+    render(
+      <Table
+        scope={[{ field: 'city', operator: 'contains', value: 'Perth' }]}
+        defaultView={{ query: { search: 'zzzz' } }}
+      />
+    )
+    await user.click(
+      screen.getByRole('button', { name: 'Clear search and filters' })
+    )
+    expect(dataRows()).toHaveLength(6)
   })
 
   it('ignores filters on fields it does not know', () => {
