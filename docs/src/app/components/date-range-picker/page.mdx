@@ -1,0 +1,241 @@
+export const metadata = {
+  title: 'Date range picker',
+  description: 'A button showing a date range, opening presets, typed dates and a calendar',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A button showing a date range, opening presets, typed dates and a calendar.
+
+## Import
+
+```tsx
+import { DateRangePicker } from '@oztix/roadie-components/date-range-picker'
+```
+
+## Examples
+
+### Default
+
+Press the button and choose a preset, type a start and an end, or press two days in the calendar. A preset keeps its words, so "Last 30 days" saved today still means the last 30 days next week. Typed or pressed dates become an absolute range, `{ start, end }`, with both ends included. The button shows the range in words, with the dates a relative range stands for beside it.
+
+```tsx-live-noinline
+function Default() {
+  const [range, setRange] = useState({ direction: 'past', amount: 30, unit: 'day' })
+  return (
+    <div className='grid max-w-96 gap-4'>
+      <DateRangePicker aria-label='Sales period' value={range} onValueChange={setRange} />
+      <p className='text-sm text-subtle'>Value: {JSON.stringify(range)}</p>
+    </div>
+  )
+}
+
+render(<Default />)
+```
+
+### Variants
+
+`commit='apply'` holds every change until Apply is pressed, and Cancel or `Escape` drops them. Use it when a change refetches a whole page, such as a dashboard's period. The default, `immediate`, changes the value with each choice, as a filter does.
+
+```tsx-live-noinline
+function Apply() {
+  const [range, setRange] = useState('last-month')
+  return (
+    <div className='grid max-w-96 gap-4'>
+      <DateRangePicker aria-label='Dashboard period' commit='apply' value={range} onValueChange={setRange} />
+      <p className='text-sm text-subtle'>Value: {JSON.stringify(range)}</p>
+    </div>
+  )
+}
+
+render(<Apply />)
+```
+
+`granularity='minute'` adds an optional time to each end, read on the clock of `timeZone`. An end with a time becomes an instant with its offset, such as `'2026-11-02T09:00:00+11:00'`; an end with no time covers its whole day.
+
+```tsx-live-noinline
+function Presale() {
+  const [range, setRange] = useState({ start: '2026-11-02T09:00:00+11:00', end: '2026-11-04' })
+  return (
+    <div className='grid max-w-96 gap-4'>
+      <Field>
+        <Field.Label>Presale, Sydney time</Field.Label>
+        <DateRangePicker
+          granularity='minute'
+          timeZone='Australia/Sydney'
+          presets={[]}
+          value={range}
+          onValueChange={setRange}
+        />
+      </Field>
+      <p className='text-sm text-subtle'>Value: {JSON.stringify(range)}</p>
+    </div>
+  )
+}
+
+render(<Presale />)
+```
+
+### Emphasis
+
+```tsx-live
+<div className='grid max-w-80 gap-4'>
+  <DateRangePicker aria-label='Normal' defaultValue='last-week' />
+  <DateRangePicker aria-label='Subtle' emphasis='subtle' defaultValue='last-week' />
+</div>
+```
+
+### Sizes
+
+```tsx-live
+<div className='grid max-w-80 gap-4'>
+  <DateRangePicker aria-label='Small' size='sm' defaultValue='last-week' />
+  <DateRangePicker aria-label='Medium' size='md' defaultValue='last-week' />
+  <DateRangePicker aria-label='Large' size='lg' defaultValue='last-week' />
+</div>
+```
+
+### States
+
+`readOnly` shows the range with a lock and doesn't open, for a period the page has set. `disabled` turns the button off.
+
+```tsx-live
+<div className='grid max-w-80 gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <DateRangePicker aria-label='Default' defaultValue='last-week' />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Invalid</p>
+    <DateRangePicker aria-label='Invalid' defaultValue='last-week' invalid />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Read only</p>
+    <DateRangePicker aria-label='Read only' defaultValue='last-week' readOnly />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <DateRangePicker aria-label='Disabled' defaultValue='last-week' disabled />
+  </div>
+</div>
+```
+
+### Composition
+
+#### With Field
+
+Wrap it in [Field](/components/field). The label names the button, and the helper or error text describes it. Typed start and end dates explain their own errors inside the popup.
+
+```tsx-live
+<Field className='max-w-80'>
+  <Field.Label>Sales period</Field.Label>
+  <DateRangePicker />
+  <Field.HelperText>Orders placed in this period</Field.HelperText>
+</Field>
+```
+
+#### With a comparison
+
+A dashboard's comparison is a separate control beside the picker, such as a [Select](/components/select). Resolve both with `resolveDateRange` and `resolveComparison` from `@oztix/roadie-core/datetime`, passing the picker's `timeZone`, `weekStart` and `fiscalYearStart`, so they agree on what the words mean. A benchmark that isn't a date, such as similar venues, belongs in its own control.
+
+```tsx-live-noinline
+function Toolbar() {
+  const [range, setRange] = useState({ direction: 'past', amount: 30, unit: 'day' })
+  const [compare, setCompare] = useState('previous-period')
+  return (
+    <div className='flex flex-wrap items-center gap-2'>
+      <DateRangePicker aria-label='Period' size='sm' commit='apply' className='w-fit' value={range} onValueChange={setRange} />
+      <Select value={compare} onValueChange={setCompare}>
+        <Select.Trigger size='sm' className='w-auto gap-2' aria-label='Compare to'>
+          <Select.Value />
+          <Select.Icon />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value='previous-period'>Previous period</Select.Item>
+          <Select.Item value='previous-year'>Same period last year</Select.Item>
+        </Select.Content>
+      </Select>
+    </div>
+  )
+}
+
+render(<Toolbar />)
+```
+
+### With presets
+
+`presets` replaces the list, and `group` sets presets under a heading. Spread `dateRangePresets` to add to the defaults instead. A preset's `label` defaults to its value in words. Here Spring Tide Festival adds its on-sale week, and a dashboard keeps the periods it reports on.
+
+```tsx-live
+<div className='grid max-w-80 gap-4'>
+  <DateRangePicker
+    aria-label='Festival period'
+    presets={[
+      ...dateRangePresets,
+      { label: 'On-sale week', value: { start: '2026-11-02', end: '2026-11-08' }, group: 'Spring Tide Festival' }
+    ]}
+  />
+  <DateRangePicker
+    aria-label='Dashboard period'
+    commit='apply'
+    presets={[
+      { value: { direction: 'next', amount: 30, unit: 'day' } },
+      { value: { direction: 'next', amount: 90, unit: 'day' } },
+      { value: { direction: 'past', amount: 30, unit: 'day' } },
+      { value: { direction: 'past', amount: 12, unit: 'month' } },
+      { value: { period: 'year', offset: 0, fiscal: true } }
+    ]}
+  />
+</div>
+```
+
+### With disabled days
+
+`disabled` takes the same matchers as [Calendar](/components/calendar). Matched days are disabled in the calendar and refused when typed. Here sales data starts on 1 July 2026.
+
+```tsx-live
+<DateRangePicker
+  aria-label='Sales period'
+  className='max-w-80'
+  disabled={{ before: '2026-07-01' }}
+  startMonth='2026-07-01'
+/>
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Keep relative ranges relative'>
+  <Guideline.Do code={`saveView({ period: range })`}>
+    Save the value as it comes. "Last 30 days" stays the last 30 days, and the button shows the dates it stands for today.
+  </Guideline.Do>
+  <Guideline.Dont code={`saveView({ period: resolveDateRange(range, options) })`}>
+    Don't save resolved dates for a relative choice. The view stops moving with time.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Apply when a change is expensive'>
+  <Guideline.Do>
+    Use `commit='apply'` for a dashboard period, where every card refetches.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't make a filter wait for Apply. Filters change the list as each choice is made.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- The button is named after the picker and its range, such as "Choose dates, Sales period (Last 30 days, 8 Sept to 7 Oct 2026)", so pickers side by side stay apart. The popup is named "Choose dates, Sales period".
+- Opening moves focus to the chosen preset, or to the calendar's first chosen day. `Escape` closes without a change and puts focus back on the button.
+- Presets are buttons with `aria-pressed`, in groups named by their headings. Custom range is pressed when the dates match no preset, and moves focus to the start date.
+- Start and End are text inputs with their own labels and errors. While text is being edited, `Enter` commits it, and `Escape` puts back the last date. An end before the start says "Ends before it starts".
+- The calendar works as in [Calendar](/components/calendar): arrow keys, `Page Up`, `Page Down`, `Home` and `End` move, and `Enter` or `Space` chooses.
+- On a phone, the presets come first and one month follows, and the popup scrolls when it is taller than the screen.
+
+<PropsDefinitions componentPath='packages/components/src/components/DateRangePicker/DateRangePicker.tsx' />

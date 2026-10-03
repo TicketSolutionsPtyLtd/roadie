@@ -1,0 +1,530 @@
+import { useState } from 'react'
+
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+
+import type { DateRangeValue } from '@oztix/roadie-core/datetime'
+
+import { DateRangePicker } from '.'
+import { Field } from '../Field'
+
+// Wed 7 Oct 2026.
+const TODAY = '2026-10-07'
+
+const day = (date: string) =>
+  document.querySelector<HTMLButtonElement>(
+    `[data-slot="calendar"] button[data-date="${date}"]:not([data-outside])`
+  )!
+
+const trigger = () => screen.getByRole('button', { name: /^Choose dates/ })
+
+async function open() {
+  await userEvent.click(trigger())
+  return screen.findByRole('dialog')
+}
+
+describe('DateRangePicker', () => {
+  it('shows a placeholder until a range is chosen', () => {
+    render(<DateRangePicker aria-label='Period' today={TODAY} />)
+    expect(trigger()).toHaveTextContent('Choose dates')
+    expect(trigger()).toHaveAccessibleName('Choose dates, Period')
+  })
+
+  it('shows a relative range in words with the dates it stands for', () => {
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        defaultValue={{ direction: 'past', amount: 7, unit: 'day' }}
+      />
+    )
+    expect(trigger()).toHaveTextContent('Last 7 days')
+    expect(trigger()).toHaveTextContent('1 to 7 Oct 2026')
+    expect(trigger()).toHaveAccessibleName(
+      'Choose dates, Period (Last 7 days, 1 to 7 Oct 2026)'
+    )
+  })
+
+  it('takes its name, description and state from Field', () => {
+    render(
+      <Field invalid>
+        <Field.Label>Sales period</Field.Label>
+        <DateRangePicker today={TODAY} defaultValue='yesterday' />
+        <Field.HelperText>Helps</Field.HelperText>
+        <Field.ErrorText>Choose a period with sales</Field.ErrorText>
+      </Field>
+    )
+    expect(trigger()).toHaveAccessibleName(
+      'Choose dates, Sales period (Yesterday, 6 Oct 2026)'
+    )
+    expect(trigger()).toHaveAccessibleDescription('Choose a period with sales')
+    expect(trigger()).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('keeps two pickers apart by name', () => {
+    render(
+      <>
+        <DateRangePicker aria-label='On sale' today={TODAY} />
+        <DateRangePicker aria-label='Event dates' today={TODAY} />
+      </>
+    )
+    expect(
+      screen.getByRole('button', { name: 'Choose dates, On sale' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Choose dates, Event dates' })
+    ).toBeInTheDocument()
+  })
+
+  describe('presets', () => {
+    it('lists the default presets in groups and marks the chosen one', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          defaultValue={{ period: 'month', offset: 0, toDate: true }}
+        />
+      )
+      const dialog = await open()
+      expect(dialog).toHaveAccessibleName('Choose dates, Period')
+      const recent = within(dialog).getByRole('group', { name: 'Recent' })
+      expect(
+        within(recent).getByRole('button', { name: 'Last 30 days' })
+      ).toHaveAttribute('aria-pressed', 'false')
+      expect(
+        within(dialog).getByRole('button', { name: 'Month to date' })
+      ).toHaveAttribute('aria-pressed', 'true')
+      expect(
+        within(dialog).getByRole('button', { name: 'Custom range' })
+      ).toHaveAttribute('aria-pressed', 'false')
+    })
+
+    it('focuses the chosen preset on open', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          defaultValue='yesterday'
+        />
+      )
+      const dialog = await open()
+      await vi.waitFor(() =>
+        expect(
+          within(dialog).getByRole('button', { name: 'Yesterday' })
+        ).toHaveFocus()
+      )
+    })
+
+    it('emits a preset as given, so it stays relative, and closes', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Last 30 days' })
+      )
+      expect(onValueChange).toHaveBeenCalledWith({
+        direction: 'past',
+        amount: 30,
+        unit: 'day'
+      })
+      await vi.waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      )
+      expect(trigger()).toHaveTextContent('Last 30 days')
+      expect(trigger()).toHaveFocus()
+    })
+
+    it('takes an app’s presets, labelled and grouped', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          onValueChange={onValueChange}
+          presets={[
+            { value: { direction: 'next', amount: 30, unit: 'day' } },
+            {
+              label: 'On-sale week',
+              value: { start: '2026-11-02', end: '2026-11-08' },
+              group: 'Spring Tide Festival'
+            }
+          ]}
+        />
+      )
+      const dialog = await open()
+      expect(
+        within(dialog).queryByRole('button', { name: 'Today' })
+      ).not.toBeInTheDocument()
+      const festival = within(dialog).getByRole('group', {
+        name: 'Spring Tide Festival'
+      })
+      await userEvent.click(
+        within(festival).getByRole('button', { name: 'On-sale week' })
+      )
+      expect(onValueChange).toHaveBeenCalledWith({
+        start: '2026-11-02',
+        end: '2026-11-08'
+      })
+    })
+
+    it('hides the list when given none', async () => {
+      render(<DateRangePicker aria-label='Period' today={TODAY} presets={[]} />)
+      const dialog = await open()
+      expect(
+        within(dialog).queryByRole('button', { name: 'Custom range' })
+      ).not.toBeInTheDocument()
+    })
+
+    it('marks custom range for dates no preset names and moves to the start field', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          defaultValue={{ start: '2026-10-02', end: '2026-10-05' }}
+        />
+      )
+      const dialog = await open()
+      const custom = within(dialog).getByRole('button', {
+        name: 'Custom range'
+      })
+      expect(custom).toHaveAttribute('aria-pressed', 'true')
+      await userEvent.click(custom)
+      expect(
+        within(dialog).getByRole('textbox', { name: 'Start' })
+      ).toHaveFocus()
+    })
+  })
+
+  describe('calendar', () => {
+    it('shows the range’s dates in the calendar and fields', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          defaultValue='last-week'
+          numberOfMonths={2}
+        />
+      )
+      const dialog = await open()
+      expect(day('2026-09-28')).toHaveAttribute('data-range-start')
+      expect(day('2026-10-04')).toHaveAttribute('data-range-end')
+      expect(
+        within(dialog).getByRole('textbox', { name: 'Start' })
+      ).toHaveValue('28 Sept 2026')
+      expect(within(dialog).getByRole('textbox', { name: 'End' })).toHaveValue(
+        '4 Oct 2026'
+      )
+    })
+
+    it('emits the days chosen as absolute dates and closes', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          defaultValue='today'
+          onValueChange={onValueChange}
+        />
+      )
+      await open()
+      await userEvent.click(day('2026-10-12'))
+      expect(onValueChange).not.toHaveBeenCalled()
+      await userEvent.click(day('2026-10-16'))
+      expect(onValueChange).toHaveBeenCalledWith({
+        start: '2026-10-12',
+        end: '2026-10-16'
+      })
+      await vi.waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      )
+      expect(trigger()).toHaveTextContent('12 to 16 Oct 2026')
+    })
+  })
+
+  describe('typed dates', () => {
+    it('reads typed start and end dates and stays open', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('textbox', { name: 'Start' }),
+        '1 oct{Enter}'
+      )
+      expect(onValueChange).not.toHaveBeenCalled()
+      await userEvent.type(
+        within(dialog).getByRole('textbox', { name: 'End' }),
+        'next fri{Enter}'
+      )
+      expect(onValueChange).toHaveBeenCalledWith({
+        start: '2026-10-01',
+        end: '2026-10-16'
+      })
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+    })
+
+    it('refuses an end before the start', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          defaultValue={{ start: '2026-10-10', end: '2026-10-12' }}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      await userEvent.clear(end)
+      await userEvent.type(end, '2 oct{Enter}')
+      expect(onValueChange).not.toHaveBeenCalled()
+      expect(end).toHaveAttribute('aria-invalid', 'true')
+      expect(end).toHaveAccessibleDescription('Ends before it starts')
+    })
+
+    it('says why typed text isn’t a date', async () => {
+      render(<DateRangePicker aria-label='Period' today={TODAY} />)
+      const dialog = await open()
+      const start = within(dialog).getByRole('textbox', { name: 'Start' })
+      await userEvent.type(start, 'someday{Enter}')
+      expect(start).toHaveAccessibleDescription(
+        'Enter a date, like 14 Mar or next Fri'
+      )
+    })
+
+    it('empties the range when both dates are cleared', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          defaultValue={{ start: '2026-10-10', end: '2026-10-12' }}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      await userEvent.clear(
+        within(dialog).getByRole('textbox', { name: 'Start' })
+      )
+      await userEvent.clear(
+        within(dialog).getByRole('textbox', { name: 'End' })
+      )
+      await userEvent.tab()
+      expect(onValueChange).toHaveBeenLastCalledWith(null)
+    })
+  })
+
+  describe("commit='apply'", () => {
+    it('holds changes until Apply', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          commit='apply'
+          today={TODAY}
+          defaultValue='yesterday'
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Last 7 days' })
+      )
+      expect(onValueChange).not.toHaveBeenCalled()
+      expect(
+        within(dialog).getByRole('button', { name: 'Last 7 days' })
+      ).toHaveAttribute('aria-pressed', 'true')
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Apply' })
+      )
+      expect(onValueChange).toHaveBeenCalledWith({
+        direction: 'past',
+        amount: 7,
+        unit: 'day'
+      })
+      await vi.waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      )
+    })
+
+    it('drops changes on Cancel and on Escape', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          commit='apply'
+          today={TODAY}
+          defaultValue='yesterday'
+          onValueChange={onValueChange}
+        />
+      )
+      let dialog = await open()
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Last 7 days' })
+      )
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Cancel' })
+      )
+      await vi.waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      )
+      dialog = await open()
+      expect(
+        within(dialog).getByRole('button', { name: 'Yesterday' })
+      ).toHaveAttribute('aria-pressed', 'true')
+      await userEvent.click(day('2026-10-12'))
+      await userEvent.click(day('2026-10-14'))
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+      await userEvent.keyboard('{Escape}')
+      await vi.waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      )
+      expect(onValueChange).not.toHaveBeenCalled()
+      expect(trigger()).toHaveTextContent('Yesterday')
+    })
+
+    it('turns Apply off until the range is whole', async () => {
+      render(
+        <DateRangePicker aria-label='Period' commit='apply' today={TODAY} />
+      )
+      const dialog = await open()
+      const apply = within(dialog).getByRole('button', { name: 'Apply' })
+      await userEvent.click(day('2026-10-12'))
+      expect(apply).toBeDisabled()
+      await userEvent.click(day('2026-10-13'))
+      expect(apply).toBeEnabled()
+    })
+  })
+
+  describe("granularity='minute'", () => {
+    it('adds optional times, read on the zone’s clock', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Presale'
+          granularity='minute'
+          timeZone='Australia/Sydney'
+          today={TODAY}
+          presets={[]}
+          defaultValue={{ start: '2026-11-02', end: '2026-11-04' }}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('textbox', { name: 'Start time' }),
+        '9am{Enter}'
+      )
+      expect(onValueChange).toHaveBeenCalledWith({
+        start: '2026-11-02T09:00:00+11:00',
+        end: '2026-11-04'
+      })
+    })
+
+    it('shows a date-time value on the zone’s clock', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Presale'
+          granularity='minute'
+          timeZone='Australia/Perth'
+          today={TODAY}
+          presets={[]}
+          defaultValue={{
+            start: '2026-11-02T09:00:00+11:00',
+            end: '2026-11-04'
+          }}
+        />
+      )
+      const dialog = await open()
+      expect(
+        within(dialog).getByRole('textbox', { name: 'Start time' })
+      ).toHaveValue('6:00am')
+    })
+  })
+
+  describe('states', () => {
+    it('is turned off by disabled, here or on Field', () => {
+      render(
+        <Field disabled>
+          <Field.Label>Period</Field.Label>
+          <DateRangePicker today={TODAY} />
+        </Field>
+      )
+      expect(trigger()).toBeDisabled()
+    })
+
+    it('shows a read-only range without opening', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          defaultValue='yesterday'
+          readOnly
+        />
+      )
+      expect(trigger()).toHaveAttribute('aria-disabled', 'true')
+      expect(trigger()).toHaveAttribute('data-readonly')
+      await userEvent.click(trigger())
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    it('disables matched days and refuses them typed', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          disabled={{ before: '2026-10-01' }}
+        />
+      )
+      const dialog = await open()
+      expect(day('2026-10-01')).not.toHaveAttribute('data-disabled')
+      await userEvent.type(
+        within(dialog).getByRole('textbox', { name: 'Start' }),
+        '30 sep{Enter}'
+      )
+      expect(
+        within(dialog).getByRole('textbox', { name: 'Start' })
+      ).toHaveAccessibleDescription('30 Sept 2026 isn’t available')
+    })
+  })
+
+  it('follows a controlled value', async () => {
+    function Controlled() {
+      const [value, setValue] = useState<DateRangeValue | null>('today')
+      return (
+        <>
+          <DateRangePicker
+            aria-label='Period'
+            today={TODAY}
+            value={value}
+            onValueChange={setValue}
+          />
+          <button type='button' onClick={() => setValue('last-month')}>
+            Reset
+          </button>
+        </>
+      )
+    }
+    render(<Controlled />)
+    expect(trigger()).toHaveTextContent('Today')
+    await userEvent.click(screen.getByRole('button', { name: 'Reset' }))
+    expect(trigger()).toHaveTextContent('Last month')
+    const dialog = await open()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Yesterday' })
+    )
+    expect(trigger()).toHaveTextContent('Yesterday')
+  })
+})

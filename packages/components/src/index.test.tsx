@@ -8,12 +8,14 @@ import {
   Code,
   DateField,
   DatePicker,
+  DateRangePicker,
   Highlight,
   Kbd,
   Mark,
   type NumberFieldStepperEmphasis,
   QueryField,
-  TimeField
+  TimeField,
+  dateRangePresets
 } from './index'
 
 describe('Component exports', () => {
@@ -54,6 +56,16 @@ describe('Component exports', () => {
       </>
     )
     expect(getAllByRole('textbox')).toHaveLength(3)
+  })
+
+  it('exports DateRangePicker and its presets', () => {
+    const { getByRole } = render(
+      <DateRangePicker aria-label='Period' today='2026-10-07' />
+    )
+    expect(
+      getByRole('button', { name: 'Choose dates, Period' })
+    ).toBeInTheDocument()
+    expect(dateRangePresets.length).toBeGreaterThan(0)
   })
 
   it('exports QueryField component', () => {

@@ -1,0 +1,188 @@
+import { useState } from 'react'
+
+import { cleanup, render, screen, within } from '@testing-library/react'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { commands, page, userEvent } from 'vitest/browser'
+
+import type { DateRangeValue } from '@oztix/roadie-core/datetime'
+
+import { DateRangePicker } from '.'
+import roadieCss from '../../../vitest.browser.css?inline'
+import { setHoverCapable } from '../../css/testUtils'
+import { Field } from '../Field'
+import { useStylesheet } from '../Pane/testUtils'
+
+const STILL = '*, *::before, *::after { transition: none !important }'
+// Wed 7 Oct 2026.
+const TODAY = '2026-10-07'
+const TIMEOUT = { timeout: 15_000 }
+
+let removeStylesheets = () => {}
+beforeAll(() => {
+  const removeRoadie = useStylesheet(roadieCss)
+  const removeStill = useStylesheet(STILL)
+  removeStylesheets = () => {
+    removeRoadie()
+    removeStill()
+  }
+})
+afterAll(() => removeStylesheets())
+afterEach(async () => {
+  setHoverCapable(true)
+  cleanup()
+  await commands.parkPointer()
+})
+
+const trigger = () => screen.getByRole('button', { name: /^Choose dates/ })
+const day = (date: string) =>
+  document.querySelector<HTMLButtonElement>(
+    `[data-slot="calendar"] button[data-date="${date}"]:not([data-outside])`
+  )!
+const months = () =>
+  document.querySelectorAll('[data-slot="calendar-month"]').length
+const box = (element: Element) => element.getBoundingClientRect()
+
+function Period({
+  initial = 'last-week' as DateRangeValue | null,
+  commit
+}: {
+  initial?: DateRangeValue | null
+  commit?: 'immediate' | 'apply'
+}) {
+  const [value, setValue] = useState(initial)
+  return (
+    <div className='grid gap-2 p-4'>
+      <Field>
+        <Field.Label>Sales period</Field.Label>
+        <DateRangePicker
+          today={TODAY}
+          commit={commit}
+          value={value}
+          onValueChange={setValue}
+          className='w-fit'
+        />
+      </Field>
+      <output>{JSON.stringify(value)}</output>
+    </div>
+  )
+}
+
+describe('DateRangePicker on a wide screen', TIMEOUT, () => {
+  beforeAll(() => page.viewport(1440, 900))
+  afterAll(() => page.viewport(1920, 1080))
+
+  it('shows two months beside the presets', async () => {
+    render(<Period />)
+    await userEvent.click(trigger())
+    const popup = await screen.findByRole('dialog')
+    await expect.poll(months).toBe(2)
+    const presets = within(popup).getByRole('group', { name: 'Presets' })
+    const calendar = popup.querySelector('[data-slot="calendar"]')!
+    expect(box(presets).right).toBeLessThanOrEqual(box(calendar).left)
+    const [first, second] = popup.querySelectorAll(
+      '[data-slot="calendar-month"]'
+    )
+    expect(box(first!).top).toBe(box(second!).top)
+    expect(box(popup).right).toBeLessThanOrEqual(window.innerWidth)
+  })
+
+  it('opens on the chosen preset and closes back to the trigger', async () => {
+    render(<Period />)
+    trigger().focus()
+    await userEvent.keyboard('{Enter}')
+    await expect
+      .poll(() => document.activeElement?.textContent)
+      .toBe('Last week')
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(() => document.activeElement).toBe(trigger())
+  })
+
+  it('fills the chosen preset and leaves the others quiet', async () => {
+    render(<Period />)
+    await userEvent.click(trigger())
+    const popup = await screen.findByRole('dialog')
+    const chosen = within(popup).getByRole('button', { name: 'Last week' })
+    const other = within(popup).getByRole('button', { name: 'Last month' })
+    expect(getComputedStyle(chosen).backgroundColor).not.toBe(
+      getComputedStyle(other).backgroundColor
+    )
+  })
+
+  it('previews the range under the pointer, then applies it', async () => {
+    render(<Period commit='apply' initial={null} />)
+    await userEvent.click(trigger())
+    const popup = await screen.findByRole('dialog')
+    await userEvent.click(day('2026-10-12'))
+    await userEvent.hover(day('2026-10-15'))
+    await expect
+      .poll(() => day('2026-10-14').hasAttribute('data-range-preview'))
+      .toBe(true)
+    await userEvent.click(day('2026-10-15'))
+    await userEvent.click(within(popup).getByRole('button', { name: 'Apply' }))
+    await expect
+      .poll(() => document.querySelector('output')!.textContent)
+      .toBe('{"start":"2026-10-12","end":"2026-10-15"}')
+  })
+})
+
+describe('DateRangePicker on a phone', TIMEOUT, () => {
+  beforeAll(() => page.viewport(390, 844))
+  afterAll(() => page.viewport(1920, 1080))
+
+  it('puts the presets first, then one month, inside the screen', async () => {
+    render(<Period />)
+    await userEvent.click(trigger())
+    const popup = await screen.findByRole('dialog')
+    await expect.poll(months).toBe(1)
+    const presets = within(popup).getByRole('group', { name: 'Presets' })
+    const calendar = popup.querySelector('[data-slot="calendar"]')!
+    expect(box(presets).bottom).toBeLessThanOrEqual(box(calendar).top)
+    expect(box(popup).left).toBeGreaterThanOrEqual(0)
+    expect(box(popup).right).toBeLessThanOrEqual(window.innerWidth)
+    expect(box(screen.getByRole('grid')).right).toBeLessThanOrEqual(
+      box(popup).right
+    )
+    expect(popup.scrollWidth).toBeLessThanOrEqual(popup.clientWidth)
+  })
+
+  it('scrolls a popup taller than the screen', async () => {
+    await page.viewport(390, 500)
+    render(<Period />)
+    await userEvent.click(trigger())
+    const popup = await screen.findByRole('dialog')
+    await expect.poll(() => box(popup).bottom).toBeLessThanOrEqual(500)
+    expect(popup.scrollHeight).toBeGreaterThan(popup.clientHeight)
+    expect(getComputedStyle(popup).overflowY).toBe('auto')
+  })
+
+  it('chooses a tapped preset', async () => {
+    setHoverCapable(false)
+    render(<Period />)
+    await userEvent.click(trigger())
+    const popup = await screen.findByRole('dialog')
+    await userEvent.click(
+      within(popup).getByRole('button', { name: 'Last 30 days' })
+    )
+    await expect
+      .poll(() => trigger().getAttribute('aria-expanded'))
+      .toBe('false')
+    expect(trigger().textContent).toContain('Last 30 days')
+  })
+})
+
+describe('DateRangePicker trigger', TIMEOUT, () => {
+  it('dims once when disabled', () => {
+    render(<DateRangePicker aria-label='Period' disabled />)
+    let opacity = 1
+    for (let node: Element | null = trigger(); node; node = node.parentElement)
+      opacity *= Number(getComputedStyle(node).opacity)
+    expect(opacity).toBeCloseTo(0.5)
+  })
+
+  it('keeps a read-only range at full strength', () => {
+    render(
+      <DateRangePicker aria-label='Period' defaultValue='today' readOnly />
+    )
+    expect(getComputedStyle(trigger()).opacity).toBe('1')
+  })
+})

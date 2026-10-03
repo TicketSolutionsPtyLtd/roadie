@@ -108,6 +108,10 @@
       "types": "./dist/components/DatePicker/index.d.ts",
       "import": "./dist/components/DatePicker/index.js"
     },
+    "./date-range-picker": {
+      "types": "./dist/components/DateRangePicker/index.d.ts",
+      "import": "./dist/components/DateRangePicker/index.js"
+    },
     "./date-time": {
       "types": "./dist/components/DateTime/index.d.ts",
       "import": "./dist/components/DateTime/index.js"
