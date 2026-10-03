@@ -128,13 +128,13 @@
     {
       "name": "records",
       "path": "dist/records/index.js",
-      "limit": "36.6 KB"
+      "limit": "37.5 KB"
     },
     {
       "name": "records without validation",
       "path": "dist/records/index.js",
       "import": "{ matchesRecordQuery, resolveRecordQuery, parseQuery, toSearchParams, equalViews }",
-      "limit": "10.5 KB"
+      "limit": "12.2 KB"
     },
     {
       "name": "records/meilisearch",

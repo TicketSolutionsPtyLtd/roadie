@@ -126,8 +126,8 @@ describe('RecordTable server mode', () => {
     const user = fakeTimers()
     const onViewChange = vi.fn()
     render(<Server onViewChange={onViewChange} />)
-    const field = screen.getByRole('searchbox')
-    await user.type(field, 'Perth')
+    const field = screen.getByRole('combobox', { name: 'Search and filter' })
+    await user.type(field, 'Perth{Escape}')
     expect(field).toHaveValue('Perth')
     expect(onViewChange).not.toHaveBeenCalled()
     act(() => vi.advanceTimersByTime(250))
@@ -144,10 +144,10 @@ describe('RecordTable server mode', () => {
     const user = fakeTimers()
     const onViewChange = vi.fn()
     render(<Server onViewChange={onViewChange} />)
-    const field = screen.getByRole('searchbox')
-    await user.type(field, 'Perth')
+    const field = screen.getByRole('combobox', { name: 'Search and filter' })
+    await user.type(field, 'Perth{Escape}')
     act(() => vi.advanceTimersByTime(250))
-    await user.click(screen.getByRole('button', { name: 'Clear search' }))
+    await user.click(screen.getByRole('button', { name: 'Clear' }))
     expect(field).toHaveValue('')
     expect(onViewChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
@@ -155,7 +155,7 @@ describe('RecordTable server mode', () => {
       })
     )
     await user.type(field, 'Hob')
-    await user.keyboard('{Escape}')
+    await user.keyboard('{Escape}{Escape}')
     expect(field).toHaveValue('')
     act(() => vi.advanceTimersByTime(250))
     expect(onViewChange).toHaveBeenCalledTimes(2)
@@ -168,7 +168,10 @@ describe('RecordTable server mode', () => {
       screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
     )
     expect(bar()).toHaveTextContent('1 selected')
-    await user.type(screen.getByRole('searchbox'), 'Perth')
+    await user.type(
+      screen.getByRole('combobox', { name: 'Search and filter' }),
+      'Perth{Escape}'
+    )
     expect(bar()).toHaveTextContent('1 selected')
     act(() => vi.advanceTimersByTime(250))
     expect(bar()).toBeNull()
@@ -222,7 +225,10 @@ describe('RecordTable server mode', () => {
     await user.click(
       screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
     )
-    await user.type(screen.getByRole('searchbox'), 'Per')
+    await user.type(
+      screen.getByRole('combobox', { name: 'Search and filter' }),
+      'Per{Escape}'
+    )
     await user.click(screen.getByRole('button', { name: 'Export' }))
     expect(onAction).toHaveBeenCalledWith(
       { ids: ['show-0'] },
@@ -280,7 +286,7 @@ describe('Records server search in a custom field', () => {
     }
     render(<Table />)
     const field = screen.getByRole('textbox', { name: 'Find' })
-    await user.type(field, 'Perth')
+    await user.type(field, 'Perth{Escape}')
     expect(field).toHaveValue('Perth')
     expect(onViewChange).not.toHaveBeenCalled()
     act(() => vi.advanceTimersByTime(250))
@@ -335,8 +341,8 @@ describe('Records server search set from outside', () => {
   it('shows each search the URL sets, including one it sent before', async () => {
     const user = fakeTimers()
     render(<Outside />)
-    const field = screen.getByRole('searchbox')
-    await user.type(field, 'Perth')
+    const field = screen.getByRole('combobox', { name: 'Search and filter' })
+    await user.type(field, 'Perth{Escape}')
     act(() => vi.advanceTimersByTime(250))
     await user.click(screen.getByRole('button', { name: 'Set ""' }))
     expect(field).toHaveValue('')
@@ -348,8 +354,8 @@ describe('Records server search set from outside', () => {
     const user = fakeTimers()
     const onViewChange = vi.fn()
     render(<Outside onViewChange={onViewChange} />)
-    const field = screen.getByRole('searchbox')
-    await user.type(field, 'Per')
+    const field = screen.getByRole('combobox', { name: 'Search and filter' })
+    await user.type(field, 'Per{Escape}')
     await user.click(screen.getByRole('button', { name: 'Set "Hobart"' }))
     act(() => vi.advanceTimersByTime(250))
     expect(field).toHaveValue('Hobart')
@@ -360,7 +366,10 @@ describe('Records server search set from outside', () => {
     const user = fakeTimers()
     const onSelectionChange = vi.fn()
     render(<Outside onSelectionChange={onSelectionChange} />)
-    await user.type(screen.getByRole('searchbox'), 'Perth')
+    await user.type(
+      screen.getByRole('combobox', { name: 'Search and filter' }),
+      'Perth{Escape}'
+    )
     act(() => vi.advanceTimersByTime(250))
     expect(onSelectionChange).not.toHaveBeenCalled()
   })
@@ -371,11 +380,11 @@ describe('Records server search with an async router', () => {
     const user = fakeTimers()
     const onViewChange = vi.fn()
     render(<Outside echo={150} onViewChange={onViewChange} />)
-    const field = screen.getByRole('searchbox')
-    await user.type(field, 'Perth')
+    const field = screen.getByRole('combobox', { name: 'Search and filter' })
+    await user.type(field, 'Perth{Escape}')
     act(() => vi.advanceTimersByTime(250))
     act(() => vi.advanceTimersByTime(100))
-    await user.type(field, ' W')
+    await user.type(field, ' W{Escape}')
     // Separate acts, so the echo renders before the debounce fires.
     act(() => vi.advanceTimersByTime(100))
     act(() => vi.advanceTimersByTime(1000))
@@ -391,8 +400,8 @@ describe('Records server search with an async router', () => {
     const user = fakeTimers()
     const onViewChange = vi.fn()
     render(<Outside echo={150} onViewChange={onViewChange} />)
-    const field = screen.getByRole('searchbox')
-    await user.type(field, 'Per')
+    const field = screen.getByRole('combobox', { name: 'Search and filter' })
+    await user.type(field, 'Per{Escape}')
     await user.click(screen.getByRole('button', { name: 'Set "Hobart"' }))
     await user.click(screen.getByRole('button', { name: 'Set ""' }))
     act(() => vi.advanceTimersByTime(1000))
@@ -538,7 +547,10 @@ describe('Records server selection in the render a query applies', () => {
     await pickFromCount(user, 'Select all 120 records')
     expect(bar()).toHaveTextContent('120 selected')
     onSelectionChange.mockClear()
-    await user.type(screen.getByRole('searchbox'), 'Perth')
+    await user.type(
+      screen.getByRole('combobox', { name: 'Search and filter' }),
+      'Perth{Escape}'
+    )
     act(() => vi.advanceTimersByTime(250))
     expect(
       seen.filter(({ search, selected }) => search === 'Perth' && selected)
@@ -558,11 +570,16 @@ describe('Records server selection in the render a query applies', () => {
       expect(bar()).toHaveTextContent('120 selected')
     }
     await selectAll()
-    await user.type(screen.getByRole('searchbox'), 'Perth')
+    await user.type(
+      screen.getByRole('combobox', { name: 'Search and filter' }),
+      'Perth{Escape}'
+    )
     act(() => vi.advanceTimersByTime(250))
     expect(bar()).toBeNull()
     await selectAll()
-    await user.clear(screen.getByRole('searchbox'))
+    await user.clear(
+      screen.getByRole('combobox', { name: 'Search and filter' })
+    )
     expect(bar()).toBeNull()
     expect(onSelectionChange).toHaveBeenLastCalledWith({ ids: [] })
   })
@@ -624,13 +641,13 @@ describe('Records server search with a slow router', () => {
     const user = fakeTimers()
     const onViewChange = vi.fn()
     render(<Outside echo={400} onViewChange={onViewChange} />)
-    const field = screen.getByRole('searchbox')
-    await user.type(field, 'Pe')
+    const field = screen.getByRole('combobox', { name: 'Search and filter' })
+    await user.type(field, 'Pe{Escape}')
     act(() => vi.advanceTimersByTime(250))
-    await user.type(field, 'rth')
+    await user.type(field, 'rth{Escape}')
     act(() => vi.advanceTimersByTime(250))
     act(() => vi.advanceTimersByTime(100))
-    await user.type(field, ' W')
+    await user.type(field, ' W{Escape}')
     act(() => vi.advanceTimersByTime(50))
     expect(field).toHaveValue('Perth W')
     act(() => vi.advanceTimersByTime(2000))

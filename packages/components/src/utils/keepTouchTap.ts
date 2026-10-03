@@ -34,6 +34,34 @@ const touched = new WeakSet<Element>()
 const chosenByTap = new WeakMap<Element, number>()
 /** Closes put off while a finger was down, for when it lifts. */
 let heldCloses: (() => void)[] = []
+/** Where and when a lift last chose, for the mouse events the tap sends after. */
+let lastTap: { x: number; y: number; at: number } | null = null
+let ghostsWatched = false
+
+// A choice can change what sits under the finger, such as a list moving on to
+// a field's values, and the tap's late mousedown would then focus the page
+// below and close it.
+function dropGhost(event: globalThis.MouseEvent) {
+  if (choosing || !lastTap) return
+  if (performance.now() - lastTap.at >= HOLD) {
+    lastTap = null
+    return
+  }
+  if (Math.hypot(event.clientX - lastTap.x, event.clientY - lastTap.y) > SLOP)
+    return
+  if (event.type === 'click') lastTap = null
+  event.preventDefault()
+  event.stopPropagation()
+}
+
+function watchGhosts() {
+  if (ghostsWatched || typeof document === 'undefined') return
+  ghostsWatched = true
+  for (const type of ['mousedown', 'mouseup', 'click'] as const)
+    document.addEventListener(type, dropGhost, true)
+  // A new touch's own mouse events are real.
+  document.addEventListener('pointerdown', () => (lastTap = null), true)
+}
 
 function endPress() {
   pressed = null
@@ -109,6 +137,12 @@ export function keepTouchTap<T extends Element>({
       pressed = null
       if (tapped) {
         chosenByTap.set(element, performance.now())
+        lastTap = {
+          x: event.clientX,
+          y: event.clientY,
+          at: performance.now()
+        }
+        watchGhosts()
         choosing = true
         try {
           ;(element as unknown as HTMLElement).click()

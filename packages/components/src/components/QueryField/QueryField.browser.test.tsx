@@ -211,4 +211,34 @@ describe('QueryField', () => {
     expect(getComputedStyle(pending).borderStyle).toBe('dashed')
     expect(box(pending).height).toBe(24)
   })
+
+  it("shows a chip's description on hover", async () => {
+    render(
+      <Harness
+        initialChips={[
+          {
+            id: 'starts',
+            label: 'Starts: This weekend',
+            description: '3 to 4 Oct'
+          }
+        ]}
+      />
+    )
+    await userEvent.hover(
+      document.querySelector('[data-slot=combobox-chip][data-chip-id=starts]')!
+    )
+    expect(await screen.findByText('3 to 4 Oct')).toBeVisible()
+  })
+
+  it('keeps the icon and Clear on the first row as chips wrap', () => {
+    render(<Harness initialChips={chips} />)
+    const first = document.querySelector('[data-slot=combobox-chip]')!
+    const middle = (element: Element) =>
+      box(element).top + box(element).height / 2
+    expect(box(group()).height).toBeGreaterThan(40)
+    const icon = group().querySelector('svg')!
+    const clear = screen.getByRole('button', { name: 'Clear' })
+    expect(Math.abs(middle(icon) - middle(first))).toBeLessThanOrEqual(1)
+    expect(Math.abs(middle(clear) - middle(first))).toBeLessThanOrEqual(1)
+  })
 })

@@ -13,3 +13,13 @@ removes it. `pendingChip` shows the field being given a value, `onEditChip`
 gives chips an edit button that opens your editor, `shortcut` focuses the field
 from anywhere on the page, and `inputRef` reaches the input. It works alone with
 `aria-label` or inside `Field`; `required` is announced but never blocks a form.
+
+A suggestion's `remainder` stays in the field once it is taken, so "melb this
+weekend" can take Melbourne and keep "this weekend" for the next suggestion. A
+chip's `description`, such as the dates "This weekend" stands for, shows in a
+tooltip and is read after its label. Escape with the list closed clears the
+typed text and keeps the chips, and an Escape the field uses doesn't reach
+the page. When several fields ask for the same `shortcut`, the first one
+mounted takes it and shows its hint. Clear also ends the value step, and with
+`onClear` it hands over the text and chips in one call. The
+search icon and Clear stay on the first row as chips wrap.

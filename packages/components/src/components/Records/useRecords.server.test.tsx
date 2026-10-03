@@ -188,6 +188,43 @@ describe('useRecords server mode', () => {
   })
 })
 
+describe('useRecords server scope', () => {
+  const perth = { field: 'city', operator: 'contains', value: 'Perth' } as const
+
+  it('puts the scope first in the query to fetch, never in the view', async () => {
+    const onViewChange = vi.fn()
+    const { result } = setup({ scope: [perth], onViewChange })
+    expect(result.current.scopedQuery.filters).toEqual([perth])
+    expect(result.current.appliedView.query.filters).toEqual([])
+    await act(() =>
+      result.current.addFilter({
+        field: 'status',
+        operator: 'is',
+        values: ['on_sale']
+      })
+    )
+    expect(onViewChange.mock.lastCall![0].query.filters).toEqual([
+      { field: 'status', operator: 'is', values: ['on_sale'] }
+    ])
+    expect(result.current.scopedQuery.filters).toEqual([
+      perth,
+      { field: 'status', operator: 'is', values: ['on_sale'] }
+    ])
+  })
+
+  it('keeps one scoped query while its content holds', () => {
+    const { result, rerender } = setup({ scope: [perth] })
+    const first = result.current.scopedQuery
+    rerender({ scope: [{ ...perth }] })
+    expect(result.current.scopedQuery).toBe(first)
+  })
+
+  it('fetches the applied query itself with no scope', () => {
+    const { result } = setup()
+    expect(result.current.scopedQuery).toBe(result.current.appliedView.query)
+  })
+})
+
 describe('useRecords server search', () => {
   it('shows each keystroke and sets the search once typing pauses', async () => {
     fakeTimers()

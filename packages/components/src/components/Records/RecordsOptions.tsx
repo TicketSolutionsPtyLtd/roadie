@@ -13,6 +13,7 @@ import { IconButton } from '../Button'
 import { Tooltip } from '../Tooltip'
 import { RecordsSortSettings } from './RecordsSortSettings'
 import { activeLayout, useRecordsContext } from './context'
+import { whenIdle } from './idle'
 import { sortableFields } from './sortOptions'
 
 export type RecordsOptionsProps = {
@@ -29,16 +30,6 @@ const inSentence = (label: string) =>
 
 // The panel itself, so no field looks active on open; Tab reaches the first control.
 const focusPanel = (popup: HTMLElement) => popup
-
-/** Runs once the page is idle, or soon where the browser can't say when. */
-function whenIdle(run: () => void) {
-  if (typeof requestIdleCallback === 'function') {
-    const id = requestIdleCallback(() => run(), { timeout: 2000 })
-    return () => cancelIdleCallback(id)
-  }
-  const id = setTimeout(run, 200)
-  return () => clearTimeout(id)
-}
 
 /**
  * A button that opens the view's options: the sort, and the shown layout's

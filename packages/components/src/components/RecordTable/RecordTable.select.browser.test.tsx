@@ -44,6 +44,11 @@ function Shows() {
   )
 }
 
+const searchField = () =>
+  screen
+    .getByRole('combobox', { name: 'Search and filter' })
+    .closest<HTMLElement>('[data-slot="query-field"]')!
+
 describe('RecordTable selection in a browser', () => {
   it('tints every cell of a selected row the same opaque colour', async () => {
     const { container } = render(<Shows />)
@@ -95,7 +100,7 @@ describe('RecordTable selection in a browser', () => {
   it('keeps the toolbar actions at the search field height', async () => {
     render(<Shows />)
     await frame()
-    const search = rect(screen.getByRole('searchbox')).height
+    const search = rect(searchField()).height
     expect(
       rect(screen.getByRole('button', { name: 'Export CSV' })).height
     ).toBe(search)

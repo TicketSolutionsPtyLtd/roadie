@@ -9,6 +9,8 @@ export type QueryFieldChip = {
   label: string
   /** Set by the page, such as a scope: shown first, with no remove button. */
   locked?: boolean
+  /** More about the condition, such as the dates "This weekend" stands for: in a tooltip, and read after the label. */
+  description?: string
   intent?: QueryFieldIntent
 }
 
@@ -21,6 +23,8 @@ export type QueryFieldSuggestion<Value = unknown> = {
   value: Value
   /** The text names this one exactly, such as an order number, so Enter takes it. */
   exact?: boolean
+  /** The typed words it doesn't read, left in the field once it is taken. */
+  remainder?: string
 }
 
 export type QueryFieldSearchSuggestion = {

@@ -47,7 +47,7 @@ export function RecordsProvider<Row extends object>({
   // Parts read rows as plain objects; the consumer's Row narrows them.
   const shared = records as unknown as RecordsInstance
   const latestRecords = useRef(shared)
-  const searchKey = matchKey(shared.appliedView.query)
+  const searchKey = matchKey(shared.scopedQuery)
   const queryRevision = useRef({ key: searchKey, count: 0 })
   useLayoutEffect(() => {
     latestRecords.current = shared

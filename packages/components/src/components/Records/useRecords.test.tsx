@@ -383,6 +383,132 @@ describe('useRecords', () => {
   })
 })
 
+describe('useRecords scope', () => {
+  const perth = { field: 'city', operator: 'contains', value: 'Perth' } as const
+
+  it('filters by its scope as well as the view, and never saves it', async () => {
+    const onViewChange = vi.fn()
+    const { result } = setup({ scope: [perth], onViewChange })
+    expect(result.current.resultCount).toBe(24)
+    expect(result.current.scope).toEqual([perth])
+    expect(result.current.resolvedQuery.filters).toHaveLength(1)
+    expect(result.current.filtered).toBe(false)
+    expect(result.current.view.query.filters).toEqual([])
+    await act(() =>
+      result.current.addFilter({
+        field: 'status',
+        operator: 'is',
+        values: ['on_sale']
+      })
+    )
+    expect(onViewChange.mock.lastCall![0].query.filters).toHaveLength(1)
+    expect(result.current.filtered).toBe(true)
+    await act(() => result.current.clearQuery())
+    expect(result.current.resultCount).toBe(24)
+  })
+
+  it('drops picked rows a new scope hides', async () => {
+    const { result, rerender } = setup({
+      selectable: true,
+      getRowId: (row) => row.id
+    })
+    await act(() => result.current.toggleRow('show-0'))
+    await act(() => result.current.toggleRow('show-3'))
+    rerender({ scope: [perth] })
+    expect(result.current.selection).toEqual({ ids: ['show-3'] })
+  })
+})
+
+describe('useRecords writes in one event', () => {
+  it('builds each write on the one before, uncontrolled', async () => {
+    const onViewChange = vi.fn()
+    const { result } = setup({ onViewChange })
+    await act(() => {
+      result.current.setSearch('ocean')
+      result.current.addFilter({
+        field: 'city',
+        operator: 'contains',
+        value: 'Brisbane'
+      })
+      result.current.setSort([{ field: 'sold', direction: 'descending' }])
+    })
+    expect(result.current.view.query).toEqual({
+      search: 'ocean',
+      filters: [{ field: 'city', operator: 'contains', value: 'Brisbane' }],
+      sort: [{ field: 'sold', direction: 'descending' }]
+    })
+    expect(onViewChange).toHaveBeenCalledTimes(3)
+  })
+
+  it('builds each write on the one before, controlled', async () => {
+    const onViewChange = vi.fn()
+    const { result } = setup({ view: view(), onViewChange })
+    await act(() => {
+      result.current.setSearch('ocean')
+      result.current.addFilter({
+        field: 'city',
+        operator: 'contains',
+        value: 'Brisbane'
+      })
+    })
+    expect(onViewChange.mock.lastCall![0].query).toMatchObject({
+      search: 'ocean',
+      filters: [{ field: 'city', operator: 'contains', value: 'Brisbane' }]
+    })
+  })
+
+  it('builds on a write the parent hasn’t rendered yet, as with a late commit', async () => {
+    const onViewChange = vi.fn()
+    const { result } = setup({ view: view(), onViewChange })
+    await act(() =>
+      result.current.addFilter({ field: 'sold', operator: 'gt', value: 1 })
+    )
+    await act(() => result.current.setSearch('ocean'))
+    expect(onViewChange.mock.lastCall![0].query).toMatchObject({
+      search: 'ocean',
+      filters: [{ field: 'sold', operator: 'gt', value: 1 }]
+    })
+  })
+
+  it('keeps building when a parent rebuilds the same view before showing a write', async () => {
+    const onViewChange = vi.fn()
+    const { result, rerender } = setup({ view: view(), onViewChange })
+    await act(() =>
+      result.current.addFilter({ field: 'sold', operator: 'gt', value: 1 })
+    )
+    rerender({ view: view() })
+    await act(() => result.current.setSearch('ocean'))
+    expect(onViewChange.mock.lastCall![0].query).toMatchObject({
+      search: 'ocean',
+      filters: [{ field: 'sold', operator: 'gt', value: 1 }]
+    })
+  })
+
+  it('starts afresh once a parent renders twice without showing a write', async () => {
+    const onViewChange = vi.fn()
+    const shown = view()
+    const { result, rerender } = setup({ view: shown, onViewChange })
+    await act(() =>
+      result.current.addFilter({ field: 'sold', operator: 'gt', value: 1 })
+    )
+    rerender({ view: shown })
+    rerender({ view: shown })
+    await act(() => result.current.setSearch('ocean'))
+    expect(onViewChange.mock.lastCall![0].query.filters).toEqual([])
+  })
+
+  it('starts from the view shown once it renders', async () => {
+    const onViewChange = vi.fn()
+    const { result, rerender } = setup({ view: view(), onViewChange })
+    await act(() => result.current.setSearch('ocean'))
+    // The parent turned the change down and rendered the same view, twice.
+    rerender({ view: view() })
+    rerender({ view: view() })
+    await act(() => result.current.setSort([]))
+    expect(onViewChange.mock.lastCall![0].query.search).toBe('')
+  })
+})
+
 describe('useRecords selection', () => {
   const byId = (options: Partial<UseRecordsOptions<TestShow>> = {}) =>
     setup({ getRowId: (row) => row.id, ...options })

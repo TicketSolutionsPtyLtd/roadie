@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'RecordTable',
-  description: 'A table of records to search, sort and page through',
+  description: 'A table of records to search, filter, sort and page through',
   status: 'alpha',
   category: 'Collections'
 }
@@ -8,7 +8,7 @@ export const metadata = {
 import { Guideline } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-A table of records to search, sort and page through.
+A table of records to search, filter, sort and page through.
 
 ## Import
 
@@ -134,7 +134,7 @@ function Shows() {
 }
 ```
 
-`Records.Toolbar` holds the standard controls: the search, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
+`Records.Toolbar` holds the standard controls: the search and filter field, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
 
 `Records.BulkActions` can sit anywhere inside the Provider: the table's `Records.Content` shows it in its header row.
 
@@ -310,6 +310,103 @@ render(
     columns={columns}
     getRowId={(row) => row.id}
     defaultView={{ layout: { type: 'table', columns: { order: ['total'], hidden: ['gift'] } } }}
+  />
+)
+```
+
+### Search and filters
+
+The toolbar's search is a [query field](/components/query-field) named "Search and filter". Typing searches the searchable fields as you type, and suggests filters the fields can read: an option's values, a status, a boolean by its name, an identifier's `match`, and date phrases such as "this weekend" or "after 1 dec" for each date field. Take a suggestion with the arrows and Enter, or a click, and it becomes a chip; Enter on its own keeps searching the text. Typing "melb this weekend" offers both City is Melbourne and Starts: This weekend, and the words a filter doesn't read stay in the field for the next one.
+
+Focusing the empty field lists the fields to filter by. An option or boolean field then lists its values, and a date field its quick dates, upcoming for event dates and recent for timestamps, with Custom dates last. A number or text field opens its editor straight away. Picking another value for an option field adds it to that field's chip, since a chip's values are ORed and chips are ANDed.
+
+Click a chip, or press Enter on it, to edit it: its condition and value, applied as you change them, in a popover under the chip or a bottom drawer on a phone. Options are a list of checkboxes, dates use the [date range picker](/components/date-range-picker) or [date picker](/components/date-picker), numbers a [number field](/components/number-field), and booleans Yes or No. Remove filter is at the foot, and a filter whose values you clear is removed as its editor closes. An option field with no `options` lists the values its records hold, in the browser, and otherwise takes what you type. A chip with more values than it shows names them all in its tooltip. A relative date chip shows its dates in a tooltip, and a filter these fields can't apply shows in warning colours and filters nothing. Press `/` to focus the search from anywhere on the page. With several on a page, the first one takes the key; set `searchShortcut` on `RecordTable` or `Records.Toolbar`, or `shortcut` on `Records.Search`, to another key or `false`.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [
+  field.text('show', { label: 'Show' }),
+  field.option('city', { label: 'City' }),
+  field.option('venue', { label: 'Venue' }),
+  field.option('status', {
+    label: 'Status',
+    status: { on_sale: { intent: 'success', order: 1 }, selling_fast: { intent: 'warning', order: 2 }, sold_out: { intent: 'danger', order: 3 } }
+  }),
+  field.date('starts', { label: 'Starts', moment: 'date' }),
+  field.number('sold', { label: 'Sold' })
+]
+const column = tableColumns(fields)
+const columns = [
+  column.field('show', { pin: true }),
+  column.field('city'),
+  column.field('venue'),
+  column.field('status'),
+  column.field('starts'),
+  column.field('sold')
+]
+const bands = ['Ocean Alley', 'Ball Park Music', 'Julia Jacklin', 'Angie McMahon', 'Alex Lahey', 'Middle Kids']
+const places = [
+  ['Melbourne', 'Kazoo Hollow Room'],
+  ['Sydney', 'Echidna Gaslight Theatre'],
+  ['Brisbane', 'Iguana Teapot Hall'],
+  ['Perth', 'Saltbush Trumpet Ballroom'],
+  ['Hobart', 'Nimbus Thistle Hall']
+]
+const statuses = ['on_sale', 'selling_fast', 'sold_out']
+const day = (offset) => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10)
+const shows = Array.from({ length: 60 }, (_, index) => ({
+  id: `show-${index}`,
+  show: bands[index % bands.length],
+  city: places[index % places.length][0],
+  venue: places[index % places.length][1],
+  status: statuses[index % statuses.length],
+  starts: day(index % 45),
+  sold: (index * 137) % 2400
+}))
+
+render(
+  <RecordTable
+    caption='Upcoming shows'
+    data={shows}
+    fields={fields}
+    columns={columns}
+    getRowId={(row) => row.id}
+    defaultView={{ query: { filters: [{ field: 'status', operator: 'is', values: ['on_sale', 'selling_fast'] }] } }}
+    defaultPosition={{ pageSize: 10 }}
+  />
+)
+```
+
+#### Scope
+
+A page that shows part of a list, such as one venue's shows or one event's tickets, passes `scope`: filters it sets, not the person. They show first as locked chips with a "Set by this page" tooltip, filter with the view, and are never part of it, so they never reach a saved view or the URL, Clear and the empty state's Clear search and filters keep them, and a list with only its scope counts as unfiltered. In server mode, fetch `records.scopedQuery`, which puts the scope's filters first; `toMeilisearch` reads a view, so pass it `{ ...records.appliedView, query: records.scopedQuery }`. Table and bulk actions get that query too, so acting on every match stays within the page. The scope can hold anything a filter can, so an app can resolve "products on this event, any of its days or its collection" into filters it understands.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [
+  field.text('show', { label: 'Show' }),
+  field.option('venue', { label: 'Venue' }),
+  field.number('sold', { label: 'Sold' })
+]
+const column = tableColumns(fields)
+const columns = [column.field('show', { pin: true }), column.field('venue'), column.field('sold')]
+const venues = ['Kazoo Hollow Room', 'Opal Harpoon Room', 'Antler Kettle Hall']
+const bands = ['Ocean Alley', 'Ball Park Music', 'Julia Jacklin', 'Angie McMahon']
+const shows = Array.from({ length: 24 }, (_, index) => ({
+  id: `show-${index}`,
+  show: bands[index % bands.length],
+  venue: venues[index % venues.length],
+  sold: (index * 211) % 1800
+}))
+
+render(
+  <RecordTable
+    caption='Shows at Kazoo Hollow Room'
+    data={shows}
+    fields={fields}
+    columns={columns}
+    getRowId={(row) => row.id}
+    scope={[{ field: 'venue', operator: 'is', values: ['Kazoo Hollow Room'] }]}
   />
 )
 ```
@@ -690,7 +787,7 @@ const response = await client.index('events').search(q, params)
 const page = { rows: response.hits, rowCount: response.totalHits }
 ```
 
-The example fetches `view`, which only the table changes. A view from a URL read with `fromSearchParams`, or checked with `validateRecordView`, is safe to fetch too. Built from `useRecords`, fetch `records.appliedView.query` instead: it leaves out the filters and sorts the fields can't apply, as the table does.
+The example fetches `view`, which only the table changes. A view from a URL read with `fromSearchParams`, or checked with `validateRecordView`, is safe to fetch too. Built from `useRecords`, fetch `records.scopedQuery` instead: it leaves out the filters and sorts the fields can't apply, as the table does, and puts the page's `scope` first. A view never holds the scope, so a `RecordTable` given `scope` adds those filters to what it fetches too.
 
 ### Long lists
 
@@ -801,6 +898,19 @@ column.field('city', { pin: true })`}
   </Guideline.Dont>
 </Guideline>
 
+<Guideline title="Set a page's scope, don't add it as a filter">
+  <Guideline.Do code={`<RecordTable scope={[{ field: 'venue', operator: 'is', values: [venueId] }]} {...props} />`}>
+    Pass what the page is about as `scope`. It shows as a locked chip, and
+    Clear, a saved view and the URL leave it alone.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`<RecordTable defaultView={{ query: { filters: [{ field: 'venue', operator: 'is', values: [venueId] }] } }} {...props} />`}
+  >
+    Don't start the view with the page's own filter. People can remove it
+    and see records the page isn't about, and saving the view keeps it.
+  </Guideline.Dont>
+</Guideline>
+
 <Guideline title='Put the More menu last'>
   <Guideline.Do
     code={`tableActions={[
@@ -883,7 +993,8 @@ column.field('city', { pin: true })`}
 - When the table scrolls sideways, its frame is a region named "Shows, scrolls sideways" for a caption of Shows, and the scroller is its one tab stop, so keyboard users can scroll it with the arrow keys. In its own box (`maxHeight` or `fill`), the box is the region, named "Shows, scrolls".
 - `Records.Status` is a live region. It announces Loading, the error, and the result count while a search or filter narrows the list.
 - State titles are paragraphs, not headings, since the table can't know the page's outline. Their icon tiles are hidden from screen readers.
-- Escape clears the search. The clear button keeps focus in the search field. Give `Records.Search` an `aria-label` when its placeholder doesn't name it well enough.
+- The search is a combobox named "Search and filter", or by its `aria-label`. Suggestions open as you type, on a click or with the arrows, not on Tab, and while they're open the rest of the page is hidden from screen readers, as for any combobox. Enter searches the text unless you moved to a suggestion with the arrows. Escape closes the suggestions, and a second Escape clears the text. Clear keeps focus in the field and keeps the page's scope. `/` focuses the field from anywhere, except while typing in another one.
+- Chips are a toolbar named "Filters": Left and Right move between them, Backspace on the empty field selects the last one and a second removes it, and Enter or a click opens its editor, a dialog named after the field. Focus returns to the chip when the editor closes, or to the field once the filter is removed. Each chip's remove button is named "Remove" and the chip. A locked scope chip says it is set by the page, and a chip's dates or a note that it can't apply are read after its label.
 - Each record's checkbox is named "Select" followed by the record's title, or its id with no title, and the header checkbox is named "Select page", with a mixed state when only some of the page is checked.
 - `Records.Status` also announces the selection, such as "3 selected, 24 results". It announces a search's count once typing settles, not on every keystroke, and against a server once the new count loads.
 - While records are selected, the bulk actions are a toolbar named "Bulk actions" in the header row, beside "Select page", which keeps focus as the bar replaces the column headers. The headers stay in the table for screen readers, and the toolbar sits in a last header with no cells under it. Arrow keys move between its controls. Escape clears the selection and returns focus to "Select page".
@@ -899,7 +1010,7 @@ column.field('city', { pin: true })`}
 function useRecords<Row extends object>(options: UseRecordsOptions<Row>): RecordsInstance<Row>
 ```
 
-Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data`, `rowCount`, `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is) and `now` (when relative dates resolve, by default when the list mounted). Pass the result to `Records` or `Records.Provider`.
+Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data`, `rowCount`, `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is) and `now` (when relative dates resolve, by default when the list mounted). Pass the result to `Records` or `Records.Provider`.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -907,7 +1018,7 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `data` | `readonly Row[]` | Every record held, before search, filters and paging. In server mode, the page. |
 | `fields` | `readonly RecordField[]` | What each record holds. |
 | `view` | `RecordView` | The search, filters, sort and layout. |
-| `appliedView` | `RecordView` | The view the rows show, and the one to fetch in server mode, without the filters and sorts the fields can't apply. In the browser its search lags typing while a long list filters. Its `query` keeps its identity while its content holds. Key a fetch on it, the position and `timeZone`. |
+| `appliedView` | `RecordView` | The view the rows show, without the filters and sorts the fields can't apply, and without the page's scope. In the browser its search lags typing while a long list filters. Its `query` keeps its identity while its content holds. |
 | `searchText` | `string` | What the search field shows. In server mode it runs ahead of the view's search until typing pauses. |
 | `resolvedQuery` | `ResolvedRecordQuery` | The applied query, with relative dates fixed and unusable filters skipped. |
 | `rows` | `readonly { id: string; row: Row }[]` | The current page. |
@@ -917,6 +1028,8 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `pageCount` | `number` | Pages at this size, at least one. |
 | `setView` | `(view: RecordView) => void` | Replaces the view. |
 | `skippedFilters` | `readonly number[]` | Filters in the view, by index, that these fields can't apply. |
+| `scope` | `readonly RecordFilter[]` | The page's own filters, applied before the view's and never part of it. |
+| `scopedQuery` | `RecordQuery` | The applied view's query with the scope's filters first: what to fetch in server mode, and what actions act on. It keeps its identity while its content holds, so key a fetch on it, the position and `timeZone`. |
 | `setSearch` | `(search: string) => void` | Sets the search and returns to the first page. In server mode, once typing pauses for 250ms, or at once when cleared. |
 | `addFilter` | `(filter: RecordFilter) => void` | Adds a filter. |
 | `updateFilter` | `(index: number, filter: RecordFilter) => void` | Replaces the filter at an index. |
@@ -946,6 +1059,7 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `error` | `boolean \| string` | Whether the load failed, or its message. |
 | `onRetry` | `(() => void) \| undefined` | Loads again. |
 | `timeZone` | `string` | The reader's zone in use. |
+| `now` | `Date` | The moment relative dates resolve against. |
 
 <PropsDefinitions componentPath='packages/components/src/components/RecordTable/RecordTablePreset.tsx' />
 
