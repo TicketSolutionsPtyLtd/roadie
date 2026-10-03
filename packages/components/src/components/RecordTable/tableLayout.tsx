@@ -1,17 +1,9 @@
-import { lazy } from 'react'
-
 import { TableIcon } from '@phosphor-icons/react/ssr'
 
 import type { RecordLayoutDefinition } from '../Records/layouts'
 import { RecordTableContent } from './RecordTableContent'
+import { RecordTableSettingsLazy } from './RecordTableSettingsLazy'
 import type { RecordTableColumn } from './types'
-
-// Loaded on first open, so a table that's never configured skips drag and drop.
-const RecordTableSettings = lazy(() =>
-  import('./RecordTableSettings').then((module) => ({
-    default: module.RecordTableSettings
-  }))
-)
 
 export type TableLayoutConfig = { columns: readonly RecordTableColumn[] }
 
@@ -30,7 +22,7 @@ export function tableLayout<Row extends object>(
     Content: RecordTableContent,
     // Pinned columns neither move nor hide, so they alone leave nothing to set.
     Settings: columns.some((column) => !column.pin)
-      ? RecordTableSettings
+      ? RecordTableSettingsLazy
       : undefined,
     bulkActions: 'header'
   }

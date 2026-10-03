@@ -55,5 +55,5 @@ toggle to show or hide each one. They write `view.query.sort` and
 `view.layout.columns`, leaving out an order or hidden list that matches the
 columns as defined and keeping keys for columns the table doesn't have.
 `label` renames the button, which is "Configure table" for the table. A
-layout definition adds its own settings with `Settings`; the table loads
-its columns list on first open.
+layout definition adds its own settings with `Settings`, which can carry a
+`preload`; the table loads its columns list only as the button is reached.

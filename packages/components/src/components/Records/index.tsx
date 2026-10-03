@@ -43,6 +43,7 @@ export type { RecordsInstance, UseRecordsOptions } from './useRecords'
 export type {
   AnyRecordLayout,
   RecordLayoutDefinition,
+  RecordLayoutSettings,
   RecordsContentProps
 } from './layouts'
 export type {

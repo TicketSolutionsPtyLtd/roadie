@@ -75,10 +75,10 @@ const sameKeys = (a: readonly string[], b: readonly string[]) =>
   a.length === b.length && a.every((key, index) => key === b[index])
 
 /**
- * The table layout after a change to the columns. What matches the columns as
- * defined is left out, so a view put back compares equal; an order that
- * still shows the same is kept as written; keys for columns this table
- * doesn't have, such as one only some people see, are kept.
+ * The table layout after a change to the columns. An order the change doesn't
+ * rearrange stays as written. A new order keeps each key for a column this
+ * table doesn't have, such as one only some people see, in its slot, and is
+ * left out when it is back to the columns as defined; so is an empty hidden.
  */
 export function tableColumnsLayout(
   columns: readonly Column[],
@@ -87,24 +87,26 @@ export function tableColumnsLayout(
 ): RecordLayout {
   const settings = tableSettings(current)
   const known = new Set(columns.map((column) => column.key))
-  const others = (keys: readonly string[] = []) =>
-    keys.filter((key) => !known.has(key))
   const keys = (list: readonly Column[]) => list.map((column) => column.key)
 
   const ordered = keys(orderedColumns(columns, order))
   const defined = keys(columns.filter((column) => !column.pin))
-  const nextOrder = sameKeys(
-    ordered,
-    keys(orderedColumns(columns, settings?.order))
-  )
-    ? (settings?.order ?? [])
-    : sameKeys(ordered, defined)
-      ? others(settings?.order)
-      : [...ordered, ...others(settings?.order)]
+  let nextOrder: readonly string[] = settings?.order ?? []
+  if (!sameKeys(ordered, keys(orderedColumns(columns, settings?.order)))) {
+    const queue = [...ordered]
+    const slotted = nextOrder.flatMap((key) =>
+      known.has(key) ? queue.splice(0, 1) : [key]
+    )
+    const merged = [...slotted, ...queue]
+    nextOrder =
+      sameKeys(ordered, defined) && merged.every((key) => known.has(key))
+        ? []
+        : merged
+  }
   const hiding = new Set(hidden)
   const nextHidden = [
     ...defined.filter((key) => hiding.has(key)),
-    ...others(settings?.hidden)
+    ...(settings?.hidden ?? []).filter((key) => !known.has(key))
   ]
   const next = {
     ...(nextOrder.length > 0 && { order: [...nextOrder] }),

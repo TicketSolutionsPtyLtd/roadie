@@ -190,7 +190,7 @@ describe('tableColumnsLayout', () => {
       )
     ).toEqual({
       type: 'table',
-      columns: { order: ['fees'], hidden: ['fees'] }
+      columns: { order: ['fees', 'city', 'sold', 'gross'], hidden: ['fees'] }
     })
     expect(
       tableColumnsLayout(
@@ -200,8 +200,34 @@ describe('tableColumnsLayout', () => {
       )
     ).toEqual({
       type: 'table',
-      columns: { order: ['sold', 'city', 'gross', 'fees'], hidden: ['fees'] }
+      columns: { order: ['fees', 'sold', 'city', 'gross'], hidden: ['fees'] }
     })
+  })
+
+  it("keeps another column's slot when moved back to the definition", () => {
+    expect(
+      tableColumnsLayout(
+        columns,
+        { order: ['city', 'sold', 'gross'], hidden: [] },
+        {
+          type: 'table',
+          columns: { order: ['sold', 'city', 'gross', 'fees'] }
+        }
+      )
+    ).toEqual({
+      type: 'table',
+      columns: { order: ['city', 'sold', 'gross', 'fees'] }
+    })
+  })
+
+  it('leaves out an order moved back to the definition', () => {
+    expect(
+      tableColumnsLayout(
+        columns,
+        { order: ['city', 'sold', 'gross'], hidden: [] },
+        { type: 'table', columns: { order: ['gross', 'show'] } }
+      )
+    ).toEqual({ type: 'table' })
   })
 
   it('round-trips through shownColumns and columnSettings', () => {

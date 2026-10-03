@@ -21,9 +21,11 @@ export type RecordsOptionsProps = {
   className?: string
 }
 
-// "Table" reads "table" mid-sentence; "CSV preview" keeps its capitals.
+// "Table" reads "table" mid-sentence; "CSV preview" and "Kanban Board" keep their capitals.
 const inSentence = (label: string) =>
-  /^[A-Z][a-z]/.test(label) ? label[0]!.toLowerCase() + label.slice(1) : label
+  /^[A-Z][^A-Z]*$/.test(label)
+    ? label[0]!.toLowerCase() + label.slice(1)
+    : label
 
 // The panel itself, so no field looks active on open; Tab reaches the first control.
 const focusPanel = (popup: HTMLElement) => popup
@@ -75,6 +77,8 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
                       aria-label={name}
                       emphasis='normal'
                       className={className}
+                      onPointerEnter={Settings?.preload}
+                      onFocus={Settings?.preload}
                     >
                       <SlidersHorizontalIcon
                         weight='bold'

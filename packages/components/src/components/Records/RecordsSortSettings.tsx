@@ -28,33 +28,41 @@ export function RecordsSortSettings() {
   const { records } = useRecordsContext()
   const headingId = useId()
   const sectionRef = useRef<HTMLElement>(null)
-  // Where focus goes once a change renders, as the control used may be gone.
-  const focusNext = useRef<Focus | null>(null)
+  // Where focus goes once the change shows, as the control used may be gone.
+  const focusNext = useRef<{
+    focus: Focus
+    from: readonly RecordSort[]
+  } | null>(null)
   const fields = sortableFields(records.fields)
   const byKey = new Map(fields.map((field) => [field.key, field]))
-  const sort = records.view.query.sort
-  // Levels the fields can't sort, or that repeat a field, sort nothing, so
-  // they aren't shown; edits keep them in place.
-  const seen = new Set<string>()
-  const levels = sort.flatMap((level, at) => {
-    if (!byKey.has(level.field) || seen.has(level.field)) return []
-    seen.add(level.field)
-    return [{ level, at }]
-  })
+  // A repeated field sorts nothing more, so edits drop it.
+  const sort = records.view.query.sort.filter(
+    (level, at, all) =>
+      all.findIndex(({ field }) => field === level.field) === at
+  )
+  // Levels the fields can't sort aren't shown, and edits keep them in place.
+  const levels = sort.flatMap((level, at) =>
+    byKey.has(level.field) ? [{ level, at }] : []
+  )
+  const shown = new Set(levels.map(({ level }) => level.field))
+  const change = (next: RecordSort[], focus?: Focus) => {
+    focusNext.current = focus ? { focus, from: records.view.query.sort } : null
+    records.setSort(next)
+  }
   const setLevel = (at: number, level: RecordSort) =>
-    records.setSort(
-      sort.map((current, index) => (index === at ? level : current))
-    )
+    change(sort.map((current, index) => (index === at ? level : current)))
   const added = addSort(
     levels.map(({ level }) => level),
     fields
   )[levels.length]
 
   useLayoutEffect(() => {
-    const focus = focusNext.current
+    const pending = focusNext.current
     const section = sectionRef.current
-    if (!focus || !section) return
+    // Until the sort changes, the control used is still there.
+    if (!pending || !section || pending.from === records.view.query.sort) return
     focusNext.current = null
+    const { focus } = pending
     const scope =
       focus.part === 'add'
         ? section
@@ -106,7 +114,7 @@ export function RecordsSortSettings() {
               </Select.Trigger>
               <Select.Content>
                 {fields
-                  .filter(({ key }) => key === level.field || !seen.has(key))
+                  .filter(({ key }) => key === level.field || !shown.has(key))
                   .map(({ key, label }) => (
                     <Select.Item key={key} value={key}>
                       {label}
@@ -142,11 +150,12 @@ export function RecordsSortSettings() {
               emphasis='subtler'
               onClick={() => {
                 const left = levels.length - 1
-                focusNext.current =
+                change(
+                  sort.filter((_, other) => other !== at),
                   left > 0
                     ? { part: 'remove', level: Math.min(index, left - 1) }
                     : { part: 'add' }
-                records.setSort(sort.filter((_, other) => other !== at))
+                )
               }}
             >
               <XIcon weight='bold' className='size-4' aria-hidden />
@@ -160,10 +169,9 @@ export function RecordsSortSettings() {
           size='sm'
           emphasis='subtler'
           className='justify-self-start'
-          onClick={() => {
-            focusNext.current = { part: 'field', level: levels.length }
-            records.setSort([...sort, added])
-          }}
+          onClick={() =>
+            change([...sort, added], { part: 'field', level: levels.length })
+          }
         >
           <PlusIcon weight='bold' className='size-4' aria-hidden />
           {levels.length === 0 ? 'Add sort' : 'Add another sort'}

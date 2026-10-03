@@ -416,7 +416,7 @@ describe('Records.Options', () => {
     })
   })
 
-  it('keeps levels it does not show, and shows a repeated field once', async () => {
+  it('keeps a level on a field that does not sort, and shows a repeated field once', async () => {
     const onViewChange = vi.fn()
     render(
       <RecordTable
@@ -447,9 +447,80 @@ describe('Records.Options', () => {
     await user.click(await screen.findByRole('option', { name: 'Z to A' }))
     expect(onViewChange.mock.lastCall![0].query.sort).toEqual([
       { field: 'nope', direction: 'ascending' },
-      { field: 'city', direction: 'descending' },
       { field: 'city', direction: 'descending' }
     ])
+  })
+
+  it('drops a repeated field with its level', async () => {
+    const onViewChange = vi.fn()
+    render(
+      <RecordTable
+        data={testShows(5)}
+        fields={showFields}
+        columns={showColumns}
+        defaultView={{
+          query: {
+            sort: [
+              { field: 'city', direction: 'ascending' },
+              { field: 'sold', direction: 'descending' },
+              { field: 'city', direction: 'descending' }
+            ]
+          }
+        }}
+        onViewChange={onViewChange}
+      />
+    )
+    const { user, panel } = await openOptions()
+    await user.click(within(panel).getByRole('combobox', { name: 'Sort by' }))
+    await user.click(await screen.findByRole('option', { name: 'Gross' }))
+    expect(onViewChange.mock.lastCall![0].query.sort).toEqual([
+      { field: 'gross', direction: 'descending' },
+      { field: 'sold', direction: 'descending' }
+    ])
+    await user.click(
+      within(panel).getByRole('button', { name: 'Remove sort by Gross' })
+    )
+    expect(onViewChange.mock.lastCall![0].query.sort).toEqual([
+      { field: 'sold', direction: 'descending' }
+    ])
+  })
+
+  it('moves focus only once the change shows', async () => {
+    // Applies column changes but not sort changes, as a parent might.
+    function LayoutOnly() {
+      const [view, setView] = useState<RecordView>({
+        query: {
+          search: '',
+          filters: [],
+          sort: [{ field: 'city', direction: 'ascending' }]
+        },
+        layout: { type: 'table' }
+      })
+      return (
+        <RecordTable
+          data={testShows(5)}
+          fields={showFields}
+          columns={showColumns}
+          view={view}
+          onViewChange={(next) =>
+            setView((held) =>
+              next.layout === held.layout
+                ? held
+                : { ...held, layout: next.layout }
+            )
+          }
+        />
+      )
+    }
+    render(<LayoutOnly />)
+    const { user, panel } = await openOptions()
+    await user.click(
+      within(panel).getByRole('button', { name: 'Remove sort by City' })
+    )
+    await user.click(within(panel).getByRole('button', { name: 'Show Sold' }))
+    expect(
+      within(panel).getByRole('button', { name: 'Show Sold' })
+    ).toHaveFocus()
   })
 
   it("says why the last shown column can't hide", async () => {
