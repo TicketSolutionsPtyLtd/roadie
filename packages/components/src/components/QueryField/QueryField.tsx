@@ -173,6 +173,7 @@ export function QueryField<Value = unknown>({
     [chips]
   )
   const unlocked = ordered.filter((chip) => !chip.locked)
+  const removable = !!(onRemoveChip || onClear)
   const suggestions = useSuggestions(suggest, text, open, pendingChip?.id)
   const list = listGroups({
     groups: suggestions.groups,
@@ -267,7 +268,7 @@ export function QueryField<Value = unknown>({
         onPendingChipCancel?.()
         return
       }
-      const last = unlocked.at(-1)
+      const last = onRemoveChip ? unlocked.at(-1) : undefined
       if (last) chipElement(last.id)?.focus()
     }
   }
@@ -403,7 +404,9 @@ export function QueryField<Value = unknown>({
                 ) : (
                   <Combobox.ChipLabel>{chip.label}</Combobox.ChipLabel>
                 )}
-                <Combobox.ChipRemove aria-label={`Remove ${chip.label}`} />
+                {onRemoveChip && (
+                  <Combobox.ChipRemove aria-label={`Remove ${chip.label}`} />
+                )}
               </Combobox.Chip>
             )
           )}
@@ -436,7 +439,7 @@ export function QueryField<Value = unknown>({
             {shortcut}
           </Kbd>
         )}
-        {!isDisabled && (text || unlocked.length > 0) && (
+        {!isDisabled && (text || (removable && unlocked.length > 0)) && (
           <button
             type='button'
             aria-label='Clear'

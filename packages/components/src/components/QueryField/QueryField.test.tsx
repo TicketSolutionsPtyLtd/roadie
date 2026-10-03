@@ -678,6 +678,25 @@ describe('QueryField', () => {
     expect(optionNames()).toEqual(['Venue is The Longacre'])
   })
 
+  it('offers no removal when chips cannot be removed', async () => {
+    render(
+      <QueryField
+        aria-label='Search orders'
+        chips={[status]}
+        suggest={suggestFor}
+      />
+    )
+    expect(
+      screen.queryByRole('button', { name: 'Remove Status is On sale' })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Clear' })
+    ).not.toBeInTheDocument()
+    await userEvent.tab()
+    await userEvent.keyboard('{Backspace}')
+    expect(document.activeElement).toBe(input())
+  })
+
   it('tells assistive technology Enter edits a chip', () => {
     render(<Harness initialChips={[scope, status]} onEditChip={() => {}} />)
     expect(chipElement('status')).toHaveAttribute('aria-keyshortcuts', 'Enter')
