@@ -1215,6 +1215,15 @@ describe('Calendar week view', () => {
     expect(shownDays()).toContain('2027-04-20')
   })
 
+  it('opens a parent week view on a day chosen in a later month shown', async () => {
+    const { rerender } = render(
+      <Calendar today={TODAY} numberOfMonths={2} view='month' />
+    )
+    await userEvent.click(day('2027-04-20'))
+    rerender(<Calendar today={TODAY} numberOfMonths={2} view='week' />)
+    expect(shownDays()).toContain('2027-04-20')
+  })
+
   it('stays quiet when only the layout changes', () => {
     const { rerender } = render(
       <Calendar today={TODAY} view='week' layout='scroll' />

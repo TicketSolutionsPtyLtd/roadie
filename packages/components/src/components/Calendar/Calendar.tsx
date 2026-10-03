@@ -556,17 +556,29 @@ export function Calendar(props: CalendarProps) {
     if (next === view) return
     setPendingFocus(null)
     setToggledView(next)
-    // A day picked in a later month shown is the one the week should hold.
-    const chosen = [focusedDate, firstSelectedOf(mode, selection)].find(
-      (date): date is string => !!date && isVisible(date)
-    )
-    if (next === 'week' && chosen && monthOf(chosen) !== firstMonth) {
-      setNavigatedWeek(startOfWeek(chosen, weekStart))
-      changeMonth(chosen)
-    }
     if (viewProp === undefined) setUncontrolledView(next)
     onViewChange?.(next)
   }
+
+  // Entering week view, by the toggle or a parent, a day picked in a later
+  // month shown is the one the week should hold.
+  const monthViewShown = useRef<{ start: string; end: string } | null>(null)
+  useIsomorphicLayoutEffect(() => {
+    if (!weekView)
+      monthViewShown.current = { start: visibleStart, end: lastVisibleDay }
+  })
+  useIsomorphicLayoutEffect(() => {
+    const shown = monthViewShown.current
+    if (!weekView || !shown) return
+    const chosen = [focusedDate, firstSelectedOf(mode, selection)].find(
+      (date): date is string => !!date && between(date, shown.start, shown.end)
+    )
+    if (!chosen || monthOf(chosen) === firstMonth) return
+    setNavigatedWeek(startOfWeek(chosen, weekStart))
+    changeMonth(chosen)
+    // Only as the view turns to week; the rest is read as it was then.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weekView])
 
   const swipeable = !scrolling && !waitingForToday && disabled !== true
   useSwipeToTurn(rootRef, { enabled: swipeable, vertical, canTurn, turn })
@@ -1119,18 +1131,21 @@ export function Calendar(props: CalendarProps) {
             if (event.pointerType !== 'touch') setHoverDate(date)
           }}
         >
-          <span
-            data-slot='calendar-day-number'
-            className={cn(
-              isDisabled && hasContent
-                ? 'line-through'
-                : tiles &&
-                    isToday &&
-                    'underline decoration-2 underline-offset-4'
-            )}
-          >
-            {Number(date.slice(8))}
-          </span>
+          {tiles ? (
+            <span
+              data-slot='calendar-day-number'
+              className={cn(
+                isDisabled && hasContent
+                  ? 'line-through'
+                  : isToday && 'underline decoration-2 underline-offset-4'
+              )}
+            >
+              {Number(date.slice(8))}
+            </span>
+          ) : (
+            // Bare in compact days, as a scrolling list renders hundreds.
+            Number(date.slice(8))
+          )}
           {hasContent && (
             <span
               id={contentId}
