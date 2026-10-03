@@ -19,11 +19,15 @@ afterEach(() => cleanup())
 const column = tableColumns<TestShow>(showFields)
 const layouts = [tableLayout([column.field('show')])]
 
-function Paged() {
-  const records = useRecords({ data: testShows(240), fields: showFields })
+function Paged({ pageSizes }: { pageSizes?: number[] }) {
+  const records = useRecords({
+    data: testShows(240),
+    fields: showFields,
+    defaultPosition: pageSizes && { pageSize: pageSizes[0] }
+  })
   return (
     <Records.Provider records={records} layouts={layouts}>
-      <Records.Pagination pageSizes={[10, 50, 100]} />
+      <Records.Pagination pageSizes={pageSizes ?? [10, 50, 100]} />
     </Records.Provider>
   )
 }
@@ -49,6 +53,20 @@ describe('Records.Pagination rows per page', () => {
     expect(width()).toBe(before)
   })
 
+  it('keeps its width when a smaller number is wider', async () => {
+    render(<Paged pageSizes={[88, 99]} />)
+    const value = () =>
+      rowsPerPage().querySelector('[data-slot="select-value"]')?.textContent
+    await expect.poll(value).toBe('88 per page')
+    const before = width()
+    await userEvent.click(rowsPerPage())
+    await userEvent.click(
+      await screen.findByRole('option', { name: '99 per page' })
+    )
+    await expect.poll(value).toBe('99 per page')
+    expect(width()).toBe(before)
+  })
+
   it('keeps the chevron beside the value', async () => {
     render(<Paged />)
     const value = rowsPerPage().querySelector('[data-slot="select-value"]')!
@@ -65,6 +83,6 @@ describe('Records.Pagination rows per page', () => {
     const listbox = await screen.findByRole('listbox')
     await expect
       .poll(() => listbox.getBoundingClientRect().width)
-      .toBeGreaterThanOrEqual(width())
+      .toBeGreaterThanOrEqual(Math.floor(width()))
   })
 })

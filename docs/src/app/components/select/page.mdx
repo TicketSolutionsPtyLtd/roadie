@@ -121,8 +121,11 @@ wrapping. Use `Select.Content` as a convenience wrapper for Portal + Positioner 
 
 ### States
 
-The trigger uses `is-interactive-field` for state-based colour transitions:
-neutral at rest, accent on focus/open, danger when invalid.
+`normal` and `subtle` triggers use `is-interactive-field` for state-based
+colour transitions: neutral at rest, accent on focus/open, danger when invalid.
+A `subtler` trigger uses `is-interactive` instead, so it behaves like a subtler
+`Button`: no fill at rest, a light fill on hover, press and while open, and a
+danger edge when invalid.
 
 ```tsx-live
 <div className='grid gap-4'>

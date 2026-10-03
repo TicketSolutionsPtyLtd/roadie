@@ -54,7 +54,7 @@ export function RecordsPagination({
             emphasis='subtler'
           >
             {/* Reserves the widest label so the width holds; slack goes first. */}
-            <span className='grid'>
+            <span className='grid tabular-nums'>
               <span aria-hidden className='invisible [grid-area:1/1]'>
                 {`${Math.max(...sizeOptions)} per page`}
               </span>
