@@ -56,7 +56,9 @@ const MAX_WORDS = 8
 const MAX_SPAN = 4
 const FIELD_WEIGHT = 0.9
 const DATE_FIELD_DECAY = 0.95
-const NUMBER = '(-?\\d+(?:\\.\\d+)?)'
+// A dollar sign and thousands commas only where they belong, so "1,2" reads nothing.
+const NUMBER = '(-?\\$?(?:\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.\\d+)?)'
+const amount = (text: string) => Number(text.replace(/[$,]/g, ''))
 const NUMBER_RANGE = new RegExp(`^${NUMBER}(?:-|\\.\\.|to)${NUMBER}$`)
 const NUMBER_COMPARE = new RegExp(`^(>|<|=|!=)?${NUMBER}$`)
 const TRUE_WORDS = new Set(['yes', 'true', 'y'])
@@ -132,7 +134,7 @@ function dateFilter(
 function numberFilter(field: RecordField, text: string) {
   const range = NUMBER_RANGE.exec(text)
   if (range) {
-    const value: [number, number] = [Number(range[1]), Number(range[2])]
+    const value: [number, number] = [amount(range[1]!), amount(range[2]!)]
     return value.every(Number.isFinite) && value[0] <= value[1]
       ? {
           filter: { field: field.key, operator: 'between', value } as const,
@@ -142,7 +144,7 @@ function numberFilter(field: RecordField, text: string) {
   }
   const compare = NUMBER_COMPARE.exec(text)
   if (!compare) return null
-  const value = Number(compare[2])
+  const value = amount(compare[2]!)
   if (!Number.isFinite(value)) return null
   const [operator, words] =
     (
@@ -266,7 +268,7 @@ function fieldValueReadings(
       ]
     case 'number':
     case 'money': {
-      const reading = numberFilter(field, text.replace(/[\s$,]+/g, ''))
+      const reading = numberFilter(field, text.replace(/\s+/g, ''))
       return reading ? [{ ...reading, quality: 1 }] : []
     }
     case 'boolean': {

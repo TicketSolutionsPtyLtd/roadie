@@ -259,6 +259,13 @@ describe('parseQuery', () => {
       ])
     })
 
+    it.each(['capacity:1,2', 'capacity:1$2', 'capacity:12,34'])(
+      'reads nothing from a misplaced comma or dollar sign in %s',
+      (text) => {
+        expect(parse(text).filter((s) => s.kind === 'filter')).toEqual([])
+      }
+    )
+
     it('names a field whose label holds a colon', () => {
       const fields = [
         ...eventFields,

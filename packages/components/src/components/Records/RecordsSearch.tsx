@@ -186,7 +186,7 @@ export function RecordsSearch({
       // The chip may have gone while the editor loaded, as with Clear.
       const gone =
         next.index !== null &&
-        !(opened && now[next.index] && sameFilter(now[next.index]!, opened))
+        !(opened && now.some((filter) => sameFilter(filter, opened)))
       if (ready && !gone && session === sessions.current)
         setEditing({
           ...next,
