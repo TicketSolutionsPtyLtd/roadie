@@ -232,7 +232,7 @@ describe('matchesRecordQuery', () => {
     }
   )
 
-  it('reads a repeated row time as its first pass, as an index stores it', () => {
+  it('reads a repeated row time as its first pass, after an earlier first pass', () => {
     const resolved = resolveRecordQuery(
       {
         search: '',
@@ -246,7 +246,7 @@ describe('matchesRecordQuery', () => {
     )
     expect(
       matchesRecordQuery({ created: '2026-04-05T02:30' }, resolved, eventFields)
-    ).toBe(false)
+    ).toBe(true)
   })
 
   it.each(['2026-10-03T24:00', '2026-10-03T10:00:00.123456'])(
@@ -266,6 +266,73 @@ describe('matchesRecordQuery', () => {
       ).toBe(false)
     }
   )
+
+  it.each<[RecordFilter, boolean]>([
+    [{ field: 'created', operator: 'before', value: '2026-10-03T10:00' }, true],
+    [{ field: 'created', operator: 'on', value: '2026-10-03T10:00' }, false],
+    [{ field: 'created', operator: 'after', value: '2026-10-03T10:00' }, false],
+    [{ field: 'created', operator: 'on', value: '2026-10-03' }, true]
+  ])(
+    'reads a plain date row on a timestamp as the start of its day: %j',
+    (filter, expected) => {
+      const resolved = resolveRecordQuery(
+        { search: '', filters: [filter], sort: [] },
+        eventFields,
+        { now: new Date('2026-10-03T02:00:00Z'), timeZone: SYDNEY }
+      )
+      expect(
+        matchesRecordQuery({ created: '2026-10-03' }, resolved, eventFields)
+      ).toBe(expected)
+    }
+  )
+
+  it.each<[string, string, string, [string, string]]>([
+    [
+      'Australia/Sydney',
+      'a gap end',
+      '2026-10-04T02:30',
+      ['2026-10-04T01:00', '2026-10-04T02:30']
+    ],
+    [
+      'Australia/Lord_Howe',
+      'a half-hour gap end',
+      '2026-10-04T02:15',
+      ['2026-10-04T01:00', '2026-10-04T02:15']
+    ],
+    [
+      'America/Santiago',
+      'a midnight gap end',
+      '2026-09-06T00:00',
+      ['2026-09-05T22:00', '2026-09-06T00:00']
+    ]
+  ])('includes a row on %s (%s) in between', (timeZone, _, created, value) => {
+    const resolved = resolveRecordQuery(
+      {
+        search: '',
+        filters: [{ field: 'created', operator: 'between', value }],
+        sort: []
+      },
+      eventFields,
+      { now: new Date('2026-10-03T02:00:00Z'), timeZone }
+    )
+    expect(matchesRecordQuery({ created }, resolved, eventFields)).toBe(true)
+  })
+
+  it.each<[string, string, string]>([
+    ['Australia/Lord_Howe', '2026-04-05T01:45', '2026-04-05T01:30'],
+    ['America/Santiago', '2026-04-04T23:50', '2026-04-04T23:00']
+  ])('keeps on a repeated time to that time in %s', (timeZone, created, on) => {
+    const resolved = resolveRecordQuery(
+      {
+        search: '',
+        filters: [{ field: 'created', operator: 'on', value: on }],
+        sort: []
+      },
+      eventFields,
+      { now: new Date('2026-10-03T02:00:00Z'), timeZone }
+    )
+    expect(matchesRecordQuery({ created }, resolved, eventFields)).toBe(false)
+  })
 
   describe('event dates compare the venue-local date', () => {
     it.each<[string, RecordFilter, string[]]>([

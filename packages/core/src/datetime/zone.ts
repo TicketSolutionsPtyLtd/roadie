@@ -82,16 +82,11 @@ export function wallClockOf(epoch: number, timeZone: string): WallClock {
 }
 
 /**
- * The instant bounding a range at a wall-clock time. A start takes the first
- * moment the clock shows that time or later, so a time skipped by a DST jump
- * starts at the jump; an end takes the last moment it shows that time or
- * earlier, so a repeated time ends on its second pass.
+ * The one instant a wall-clock time names: its first pass when the clock
+ * repeats it, or the jump when daylight saving skips it. It never goes
+ * backwards as the wall clock goes forwards.
  */
-export function wallBoundInstant(
-  clock: WallClock,
-  timeZone: string,
-  side: 'start' | 'end'
-): number {
+export function wallInstant(clock: WallClock, timeZone: string): number {
   const { year, month, day } = plainDateParts(clock.date)
   const date = new Date(0)
   date.setUTCFullYear(year, month - 1, day)
@@ -102,15 +97,12 @@ export function wallBoundInstant(
   const candidates = [before, after].filter(
     (t) => t + offsetAt(t, timeZone) === local
   )
-  if (candidates.length) {
-    return side === 'start' ? Math.min(...candidates) : Math.max(...candidates)
-  }
-  const jump = transitionBetween(
+  if (candidates.length) return Math.min(...candidates)
+  return transitionBetween(
     Math.min(before, after),
     Math.max(before, after),
     timeZone
   )
-  return side === 'start' ? jump : jump - 1
 }
 
 /** The first instant at or after `low` that already has `high`'s offset. */

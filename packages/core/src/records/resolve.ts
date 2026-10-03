@@ -5,7 +5,7 @@ import {
   resolveDateRange
 } from '../datetime/ranges'
 import { startOfDayInstant } from '../datetime/zone'
-import { boundEnd, boundStart, pointSpan, readBound } from './bounds'
+import { boundEnd, boundStart, readBound } from './bounds'
 import { fieldIndex, momentOf } from './fields'
 import type {
   RecordField,
@@ -79,16 +79,17 @@ function filterRange(
       return fromResolved(resolveDateRange(filter.value, options))
     case 'between': {
       const [start, end] = filter.value as [string, string]
-      // Order is checked on the clock. A range wholly inside a DST gap holds
-      // only the jump, which is where a row's skipped time reads too.
-      resolveAbsolute({ start, end }, 'UTC')
       const from = readBound(start, timeZone)
       const to = readBound(end, timeZone)
       if (from.kind === 'date' && to.kind === 'date') {
-        return dates(from.date, to.date)
+        return fromResolved(resolveAbsolute({ start, end }, timeZone))
       }
       const first = boundStart(from, timeZone)
-      return instants(first, Math.max(first, boundEnd(to, timeZone)))
+      const last = boundEnd(to, timeZone)
+      if (first > last) {
+        throw new RangeError(`Range starts after it ends: ${start}`)
+      }
+      return instants(first, last)
     }
     case 'on':
     case 'before':
@@ -100,11 +101,10 @@ function filterRange(
           ? dates(null, addDays(point.date, -1))
           : dates(addDays(point.date, 1), null)
       }
-      const [first, last] = pointSpan(point, timeZone)
-      if (filter.operator === 'on') return instants(first, last)
+      if (filter.operator === 'on') return instants(point.at, point.at)
       return filter.operator === 'before'
-        ? instants(null, first - 1)
-        : instants(last + 1, null)
+        ? instants(null, point.at - 1)
+        : instants(point.at + 1, null)
     }
   }
 }

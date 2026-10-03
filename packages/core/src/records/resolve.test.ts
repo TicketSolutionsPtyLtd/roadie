@@ -271,12 +271,12 @@ describe('resolveRecordQuery', () => {
       ['2026-10-04T02:30', '2026-10-04T04:00'],
       ['2026-10-03T16:00:00Z', '2026-10-03T17:00:00Z']
     ],
-    // An end in the gap stops just before the jump.
+    // An end in the gap ends at the jump, where a row in the gap reads.
     [
       'Australia/Sydney',
       'spring gap end',
       ['2026-10-04T01:30', '2026-10-04T02:30'],
-      ['2026-10-03T15:30:00Z', '2026-10-03T15:59:59.999Z']
+      ['2026-10-03T15:30:00Z', '2026-10-03T16:00:00Z']
     ],
     // Lord Howe skips 2am to 2:30am.
     [
@@ -285,18 +285,18 @@ describe('resolveRecordQuery', () => {
       ['2026-10-04T02:20', '2026-10-04T02:35'],
       ['2026-10-03T15:30:00Z', '2026-10-03T15:35:00Z']
     ],
-    // 2am to 3am happens twice on 5 Apr 2026: the start takes the first, the end the second.
+    // 2am to 3am happens twice on 5 Apr 2026: a wall time names its first pass.
     [
       'Australia/Sydney',
       'autumn repeat',
       ['2026-04-05T02:00', '2026-04-05T02:59'],
-      ['2026-04-04T15:00:00Z', '2026-04-04T16:59:00Z']
+      ['2026-04-04T15:00:00Z', '2026-04-04T15:59:00Z']
     ],
     [
       'Australia/Lord_Howe',
       'half-hour repeat',
       ['2026-04-05T01:30', '2026-04-05T01:59'],
-      ['2026-04-04T14:30:00Z', '2026-04-04T15:29:00Z']
+      ['2026-04-04T14:30:00Z', '2026-04-04T14:59:00Z']
     ],
     // A range wholly inside the gap holds only the jump.
     [
@@ -335,6 +335,42 @@ describe('resolveRecordQuery', () => {
     ).toThrow('starts after it ends')
   })
 
+  it.each([
+    [['2026-10-04T20:00+11:00', '2026-10-04T12:00']],
+    [['2026-10-04T10:00', '2026-10-03T22:00Z']]
+  ])('checks unvalidated mixed ends in the viewer zone: %j', (value) => {
+    expect(() =>
+      resolveOne(
+        {
+          field: 'created',
+          operator: 'between',
+          value: value as [string, string]
+        },
+        '2026-10-03T02:00:00Z',
+        'Australia/Sydney'
+      )
+    ).toThrow('starts after it ends')
+  })
+
+  it('accepts unvalidated mixed ends in order in the viewer zone', () => {
+    expect(
+      resolveOne(
+        {
+          field: 'created',
+          operator: 'between',
+          value: ['2026-10-04T10:00', '2026-10-04T05:00Z']
+        },
+        '2026-10-03T02:00:00Z',
+        'Australia/Sydney'
+      )
+    ).toMatchObject({
+      range: {
+        start: ms('2026-10-03T23:00:00Z'),
+        end: ms('2026-10-04T05:00:00Z')
+      }
+    })
+  })
+
   it('reads before and after a gap time from the jump', () => {
     expect(
       resolveOne(
@@ -349,7 +385,7 @@ describe('resolveRecordQuery', () => {
         '2026-10-03T02:00:00Z',
         'Australia/Sydney'
       )
-    ).toMatchObject({ range: { start: ms('2026-04-04T16:30:00Z') + 1 } })
+    ).toMatchObject({ range: { start: ms('2026-04-04T15:30:00Z') + 1 } })
   })
 
   it('still throws on dates in the wrong order', () => {

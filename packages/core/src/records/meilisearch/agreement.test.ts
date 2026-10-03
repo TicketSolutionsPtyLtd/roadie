@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { plainDateOf } from '../../datetime/plainDate'
-import { rowInstantSpan } from '../bounds'
+import { rowInstant } from '../bounds'
 import { momentOf } from '../fields'
 import { matchesRecordQuery } from '../match'
 import { resolveRecordQuery } from '../resolve'
@@ -16,7 +16,7 @@ type Row = Record<string, unknown>
 function epoch(value: unknown, zone: string): number {
   if (typeof value === 'number') return value
   if (value instanceof Date) return value.getTime()
-  return rowInstantSpan(String(value), zone)[0]
+  return rowInstant(String(value), zone)
 }
 
 /** The row as an index would store it, per the adapter's documented shape. */
@@ -47,6 +47,7 @@ const rows: Row[] = [
   { id: 'empty-object', venue: {}, genres: ['jazz'], capacity: 400 },
   { id: 'listed-capacity', capacity: [400, 900], name: 'Two Rooms' },
   { id: 'gap', created: '2026-10-04T02:30' },
+  { id: 'day', created: '2026-10-03' },
   { id: 'repeat', created: '2026-04-05T02:30' },
   { id: 'jump', created: '2026-10-04T03:00' },
   { id: 'backslashes', venue: 'two\\\\', name: 'Even \\\\"quoted\\\\"' },
@@ -64,6 +65,14 @@ const rows: Row[] = [
 const msRow: Row = { id: 'ms', created: Date.parse('2026-10-03T01:59:59.700Z') }
 
 const FILTERS: RecordFilter[] = [
+  {
+    field: 'created',
+    operator: 'between',
+    value: ['2026-10-04T01:00', '2026-10-04T02:30']
+  },
+  { field: 'created', operator: 'on', value: '2026-10-03T10:00' },
+  { field: 'created', operator: 'after', value: '2026-10-03T10:00' },
+  { field: 'created', operator: 'on', value: '2026-10-03' },
   { field: 'created', operator: 'after', value: '2026-04-05T02:15' },
   {
     field: 'created',

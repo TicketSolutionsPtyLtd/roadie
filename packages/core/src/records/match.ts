@@ -1,5 +1,5 @@
 import { isPlainDate, plainDateOf } from '../datetime/plainDate'
-import { readBound, rowInstantSpan } from './bounds'
+import { readBound, rowInstant } from './bounds'
 import {
   fieldIndex,
   isSearchable,
@@ -95,7 +95,8 @@ function epochSpan(value: unknown, zone: string): [number, number] | null {
   }
   if (typeof value !== 'string') return null
   try {
-    return rowInstantSpan(value, zone)
+    const at = rowInstant(value, zone)
+    return [at, at]
   } catch {
     return null
   }

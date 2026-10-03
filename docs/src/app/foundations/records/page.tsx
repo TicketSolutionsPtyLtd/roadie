@@ -338,6 +338,13 @@ export default function RecordsPage() {
           field matches when any part of it overlaps, so a five-night festival
           is on this weekend if one night is.
         </p>
+        <p className='max-w-prose text-subtle'>
+          A time written without an offset names one moment, in the
+          record&apos;s or the viewer&apos;s zone. When daylight saving repeats
+          an hour it is the first pass, and when it skips one it is the moment
+          the clocks jump. Records and filters read times the same way, so a
+          record is always before, on or after a time, never two of these.
+        </p>
       </Section>
 
       <Section title='Browser and server'>
