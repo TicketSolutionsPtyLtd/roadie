@@ -4,10 +4,15 @@
 
 Add `Kbd` (`@oztix/roadie-components/kbd`), a keyboard key or shortcut drawn
 as a keycap. Known key names show a glyph or short word, `keys={['mod', 'k']}`
-draws a combination, and `mod`, `meta`, `shift`, `alt` and `ctrl` follow the
-reader's platform without a hydration mismatch. It takes the surrounding text
-colour, is `aria-hidden` unless `announce` is set, and is hidden on screens
-without hover unless announced.
+draws a combination with a keycap per key, `combined` draws it on one keycap
+(⌘K, or Ctrl+K off Apple), and `separator` goes between keys, such as `'+'` or
+`'then'` for a sequence. `mod`, `meta`, `shift`, `alt` and `ctrl` follow the
+reader's platform without a hydration mismatch. `emphasis` is `subtle` (the
+default: a soft, borderless keycap tinted from the surrounding text colour),
+`normal` (its own opaque, bordered surface, built on `emphasis-normal`) or
+`subtler` (plain text in the surrounding colour, for menu rows). Kbd is
+`aria-hidden` unless `announce` is set, and is hidden on screens without hover
+unless announced.
 
 `Menu` item `shortcut`s now render through `Kbd` and accept a key list such as
 `['mod', 'd']`. Text such as `'⌘D'` keeps its characters, but a known key name
