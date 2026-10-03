@@ -190,6 +190,14 @@ describe('QueryField', () => {
     expect(input()).toHaveValue('long')
   })
 
+  it('highlights no suggestion while typing, so only the hint marks Enter', async () => {
+    render(<Harness />)
+    await typeInto('long')
+    await waitFor(() => expect(optionNames()).toHaveLength(3))
+    expect(input()).not.toHaveAttribute('aria-activedescendant')
+    expect(document.querySelector('[data-highlighted]')).toBeNull()
+  })
+
   it('takes an exact identifier on Enter', async () => {
     const onAccept = vi.fn()
     render(<Harness onAccept={onAccept} />)

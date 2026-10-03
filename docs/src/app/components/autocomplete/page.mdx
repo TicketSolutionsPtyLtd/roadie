@@ -379,16 +379,25 @@ The `mode` prop controls how filtering and inline autocompletion behave:
 - **`none`**: items are static and the input value doesn't change based on
   highlighting.
 
+In `both` and `inline` mode the first suggestion isn't highlighted for you,
+since a highlight there would replace what the user typed.
+
 ### Keyboard behaviour
 
-- **Arrow keys** navigate the list
-- **Enter** confirms the highlighted item (or submits the form if no item is highlighted)
-- **Escape** closes the popup
-- Typing filters the list in real time
+- Typing filters the list in real time.
+- The first suggestion is highlighted whenever suggestions show, so typing
+  then pressing **Enter** takes it. Set `autoHighlight={false}` to highlight
+  only what the user moves to, or `autoHighlight` to wait until they type.
+- **Arrow keys** move from the first suggestion through the list.
+- **Enter** takes the highlighted suggestion. With no suggestions it keeps
+  the typed text and submits the form.
+- **Escape** closes the popup.
 
 ## Accessibility
 
 - Wrap in `Field` and use `Field.Label` to name the input, which provides automatic `htmlFor` wiring.
+- The input points `aria-activedescendant` at the highlighted suggestion, so
+  screen readers read the first suggestion as the list filters.
 - `Autocomplete.Empty` announces "no results" to screen readers automatically.
 - `Autocomplete.Status` is a live region, use it for async status like loading
   or result counts.

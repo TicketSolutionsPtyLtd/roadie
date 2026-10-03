@@ -98,7 +98,7 @@ describe('Autocomplete options on a touch screen', () => {
   it('still highlight the option a keyboard moves to', async () => {
     setHoverCapable(false)
     const { first, second } = await openCities()
-    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+    await userEvent.keyboard('{ArrowDown}')
     await expect.poll(() => second.hasAttribute('data-highlighted')).toBe(true)
 
     expect(fill(second)).not.toBe(fill(first))
@@ -108,9 +108,7 @@ describe('Autocomplete options on a touch screen', () => {
     const onItemHighlighted = vi.fn()
     await openCities(onItemHighlighted)
     await userEvent.keyboard('{ArrowDown}')
-    await expect
-      .poll(() => onItemHighlighted.mock.lastCall?.[0])
-      .toBe('Brisbane')
+    await expect.poll(() => onItemHighlighted.mock.lastCall?.[0]).toBe('Sydney')
   })
 })
 

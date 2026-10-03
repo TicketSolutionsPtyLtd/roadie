@@ -11,19 +11,34 @@ export type ComboboxRootProps<
   Value = unknown,
   Multiple extends boolean | undefined = false,
   Item = Value
-> = ComboboxPrimitive.Root.Props<Value, Multiple, Item>
+> = Omit<
+  ComboboxPrimitive.Root.Props<Value, Multiple, Item>,
+  'autoHighlight'
+> & {
+  /**
+   * Whether the first match is highlighted once the user types, so Enter
+   * picks it. Opening the list without typing highlights nothing new.
+   * @default true
+   */
+  autoHighlight?: boolean
+}
 
 export function ComboboxRoot<
   Value,
   Multiple extends boolean | undefined = false,
   Item = Value
->({ onItemHighlighted, ...props }: ComboboxRootProps<Value, Multiple, Item>) {
+>({
+  onItemHighlighted,
+  autoHighlight = true,
+  ...props
+}: ComboboxRootProps<Value, Multiple, Item>) {
   const [byPointer, handleItemHighlighted] =
     usePointerHighlight(onItemHighlighted)
   return (
     <PointerHighlightContext value={byPointer}>
       <ComboboxPrimitive.Root
         onItemHighlighted={handleItemHighlighted}
+        autoHighlight={autoHighlight}
         {...props}
       />
     </PointerHighlightContext>

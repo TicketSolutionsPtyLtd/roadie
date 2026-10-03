@@ -1,5 +1,6 @@
-import { render } from '@testing-library/react'
-import { describe, expect, expectTypeOf, it } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 
 import { Combobox, type ComboboxProps, comboboxInputGroupVariants } from '.'
 import { Field } from '../Field'
@@ -144,5 +145,105 @@ describe('Combobox value types', () => {
     expectTypeOf<ComboboxProps<string, true>['value']>().toEqualTypeOf<
       string[] | null | undefined
     >()
+  })
+})
+
+function Genres(props: Partial<ComboboxProps<string>>) {
+  return (
+    <Combobox items={['Rock', 'Jazz', 'Folk']} {...props}>
+      <Combobox.InputGroup>
+        <Combobox.Input aria-label='Genre' />
+        <Combobox.Trigger aria-label='Show genres' />
+      </Combobox.InputGroup>
+      <Combobox.Portal>
+        <Combobox.Positioner>
+          <Combobox.Popup>
+            <Combobox.List>
+              {(genre: string) => (
+                <Combobox.Item key={genre} value={genre}>
+                  {genre}
+                </Combobox.Item>
+              )}
+            </Combobox.List>
+          </Combobox.Popup>
+        </Combobox.Positioner>
+      </Combobox.Portal>
+    </Combobox>
+  )
+}
+
+const genreInput = () => screen.getByRole('combobox', { name: 'Genre' })
+
+describe('Combobox first match', () => {
+  it('picks the first match on Enter after typing', async () => {
+    const onValueChange = vi.fn()
+    render(<Genres onValueChange={onValueChange} />)
+    await userEvent.type(genreInput(), 'o')
+    await screen.findByRole('option', { name: 'Folk' })
+    await userEvent.keyboard('{Enter}')
+    expect(onValueChange).toHaveBeenLastCalledWith('Rock', expect.anything())
+    expect(genreInput()).toHaveValue('Rock')
+  })
+
+  it('points the input at the highlighted match for screen readers', async () => {
+    render(<Genres />)
+    await userEvent.type(genreInput(), 'o')
+    const first = await screen.findByRole('option', { name: 'Rock' })
+    await waitFor(() =>
+      expect(genreInput()).toHaveAttribute('aria-activedescendant', first.id)
+    )
+  })
+
+  it('picks nothing on Enter after opening without typing', async () => {
+    const onValueChange = vi.fn()
+    render(<Genres onValueChange={onValueChange} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Show genres' }))
+    const first = await screen.findByRole('option', { name: 'Rock' })
+    expect(first).not.toHaveAttribute('data-highlighted')
+    await userEvent.keyboard('{Enter}')
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
+  it('adds the first match as a chip on Enter with multiple', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Combobox
+        multiple
+        items={['Rock', 'Jazz', 'Folk']}
+        onValueChange={onValueChange}
+      >
+        <Combobox.InputGroup>
+          <Combobox.Chips>
+            <Combobox.Input aria-label='Genre' />
+          </Combobox.Chips>
+        </Combobox.InputGroup>
+        <Combobox.Portal>
+          <Combobox.Positioner>
+            <Combobox.Popup>
+              <Combobox.List>
+                {(genre: string) => (
+                  <Combobox.Item key={genre} value={genre}>
+                    {genre}
+                  </Combobox.Item>
+                )}
+              </Combobox.List>
+            </Combobox.Popup>
+          </Combobox.Positioner>
+        </Combobox.Portal>
+      </Combobox>
+    )
+    await userEvent.type(genreInput(), 'o')
+    await screen.findByRole('option', { name: 'Folk' })
+    await userEvent.keyboard('{Enter}')
+    expect(onValueChange).toHaveBeenLastCalledWith(['Rock'], expect.anything())
+  })
+
+  it('picks nothing on Enter with autoHighlight off', async () => {
+    const onValueChange = vi.fn()
+    render(<Genres autoHighlight={false} onValueChange={onValueChange} />)
+    await userEvent.type(genreInput(), 'o')
+    await screen.findByRole('option', { name: 'Folk' })
+    await userEvent.keyboard('{Enter}')
+    expect(onValueChange).not.toHaveBeenCalled()
   })
 })

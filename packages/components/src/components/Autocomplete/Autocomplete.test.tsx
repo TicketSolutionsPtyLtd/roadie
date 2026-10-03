@@ -1,7 +1,12 @@
-import { render } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
-import { Autocomplete, autocompleteInputGroupVariants } from '.'
+import {
+  Autocomplete,
+  type AutocompleteProps,
+  autocompleteInputGroupVariants
+} from '.'
 import { Field } from '../Field'
 
 describe('Autocomplete', () => {
@@ -87,4 +92,98 @@ describe('Autocomplete', () => {
     expect(input).not.toHaveAttribute('aria-invalid')
     expect(input).not.toHaveAttribute('aria-required')
   })
+})
+
+function Cities(props: Partial<AutocompleteProps>) {
+  return (
+    <Autocomplete items={['Brisbane', 'Sydney', 'Melbourne']} {...props}>
+      <Autocomplete.InputGroup>
+        <Autocomplete.Input aria-label='City' />
+        <Autocomplete.Trigger aria-label='Show cities' />
+      </Autocomplete.InputGroup>
+      <Autocomplete.Portal>
+        <Autocomplete.Positioner>
+          <Autocomplete.Popup>
+            <Autocomplete.List>
+              {(city: string) => (
+                <Autocomplete.Item key={city} value={city}>
+                  {city}
+                </Autocomplete.Item>
+              )}
+            </Autocomplete.List>
+          </Autocomplete.Popup>
+        </Autocomplete.Positioner>
+      </Autocomplete.Portal>
+    </Autocomplete>
+  )
+}
+
+const cityInput = () => screen.getByRole('combobox', { name: 'City' })
+
+describe('Autocomplete first suggestion', () => {
+  it('takes the first suggestion on Enter after typing', async () => {
+    render(<Cities />)
+    await userEvent.type(cityInput(), 'e')
+    await screen.findByRole('option', { name: 'Sydney' })
+    await userEvent.keyboard('{Enter}')
+    expect(cityInput()).toHaveValue('Brisbane')
+  })
+
+  it('points the input at the highlighted suggestion for screen readers', async () => {
+    render(<Cities />)
+    await userEvent.type(cityInput(), 'ne')
+    const first = await screen.findByRole('option', { name: 'Brisbane' })
+    await waitFor(() =>
+      expect(cityInput()).toHaveAttribute('aria-activedescendant', first.id)
+    )
+    expect(first).toHaveAttribute('data-highlighted')
+  })
+
+  it('highlights the first suggestion when the list opens empty', async () => {
+    render(<Cities />)
+    await userEvent.click(screen.getByRole('button', { name: 'Show cities' }))
+    const first = await screen.findByRole('option', { name: 'Brisbane' })
+    await waitFor(() => expect(first).toHaveAttribute('data-highlighted'))
+  })
+
+  it('moves to the second suggestion on the first Arrow Down', async () => {
+    render(<Cities />)
+    await userEvent.type(cityInput(), 'e')
+    await screen.findByRole('option', { name: 'Sydney' })
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+    expect(cityInput()).toHaveValue('Sydney')
+  })
+
+  it('wraps from the first suggestion to the last on Arrow Up', async () => {
+    render(<Cities />)
+    await userEvent.type(cityInput(), 'e')
+    await screen.findByRole('option', { name: 'Sydney' })
+    await userEvent.keyboard('{ArrowUp}{Enter}')
+    expect(cityInput()).toHaveValue('Melbourne')
+  })
+
+  it('keeps the typed text when no suggestion matches', async () => {
+    render(<Cities />)
+    await userEvent.type(cityInput(), 'Perth{Enter}')
+    expect(cityInput()).toHaveValue('Perth')
+  })
+
+  it('keeps the typed text on Enter with autoHighlight off', async () => {
+    render(<Cities autoHighlight={false} />)
+    await userEvent.type(cityInput(), 'e')
+    await screen.findByRole('option', { name: 'Sydney' })
+    await userEvent.keyboard('{Enter}')
+    expect(cityInput()).toHaveValue('e')
+  })
+
+  it.each(['both', 'inline'] as const)(
+    'leaves the typed text alone in %s mode',
+    async (mode) => {
+      render(<Cities mode={mode} />)
+      await userEvent.type(cityInput(), 'Syd')
+      await screen.findByRole('option', { name: 'Sydney' })
+      expect(cityInput()).toHaveValue('Syd')
+      expect(cityInput()).not.toHaveAttribute('aria-activedescendant')
+    }
+  )
 })
