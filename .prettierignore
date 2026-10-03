@@ -56,10 +56,11 @@ packages/core/src/css/dataviz.css
 # here, so none of these files go through the formatter.
 docs/**/*.mdx
 
-# Plans and brainstorms quote MDX inside fenced blocks; the formatter
-# collapses the nested fences and silently drops their contents.
-docs/plans/**/*.md
-docs/brainstorms/**/*.md
+# Local plans and specs (gitignored). The docs format script reads only this
+# file, and the formatter collapses nested MDX fences in them.
+docs/plans/
+docs/brainstorms/
+docs/superpowers/
 
 # Misc
 .DS_Store

@@ -2,6 +2,11 @@
 
 This file provides guidance to AI coding agents when working with code in this repository.
 
+> **Making a change?** Follow
+> [`docs/contributing/PR_WORKFLOW.md`](docs/contributing/PR_WORKFLOW.md):
+> the conventions and foundations gate, the two pre-PR reviews, Copilot,
+> merge criteria and how deferred findings are tracked.
+
 ## Repository Overview
 
 Roadie is a design system for Oztix's applications, built as a monorepo using pnpm workspaces and Turborepo. It provides CSS design tokens, a React component library, and documentation.
@@ -12,6 +17,8 @@ Roadie is a design system for Oztix's applications, built as a monorepo using pn
 - Build System: Turborepo
 - Framework: React v19
 - Component Primitives: @base-ui/react (for accessible interactive components)
+  (Steps is the one exception, built on `@ark-ui/react/steps`; build new
+  components on Base UI)
 - Icons: @phosphor-icons/react (use `@phosphor-icons/react/ssr` in server components)
 - Styling: Tailwind CSS v4 with custom `@utility` directives
 - Language: TypeScript v5 (strict mode)
@@ -52,6 +59,11 @@ Anything new has to be wired in two more places or it will not ship: a JS
 subpath needs an entry in `tsdown.config.ts`, and a CSS `@utility` needs its
 class named in `src/css/safelist.html`, or Tailwind purges the definition and
 the compiled sheet comes out empty.
+
+A new utility in a family where one class replaces another (intent, emphasis,
+semantic colour, z-index, duration, easing, text style) also goes in its
+group in `src/utils/cn.ts`, or `cn()` keeps both classes and a consumer's
+class can't override the component's.
 
 ### Components Package (`packages/components/`)
 
@@ -167,6 +179,9 @@ CSS-native OKLCH scales parameterized by `--accent-hue` and `--accent-chroma`:
 - 14 steps (0-13) per intent
 - Neutral scale tinted with accent hue
 - Dark mode swaps values via `.dark` class — no `dark:` variants needed
+- For colour that must stay the same in dark mode, use the fixed
+  `--color-{scale}-light-{0|5|12|13}` tokens (`.dark` doesn't override them;
+  only neutral has step 0)
 
 ### Layout
 
@@ -241,6 +256,16 @@ For a chart, use the chart types from `@oztix/roadie-charts`: `LineChart`, `BarC
 - **Utilities:** `fill-chart-*`, `stroke-chart-*`, `bg-chart-*`. For dynamic slots use `chartColorVar(i)`; for canvas/PDF use `chartHex(mode)` from `@oztix/roadie-core/dataviz`.
 - **Never hardcode chart colours.** `palette.ts` generates `dataviz.css`; change the palette, then run `pnpm --filter @oztix/roadie-core test -u`. CI rejects palettes that fail the colour-blind validator.
 - **Copy:** headline titles that state the takeaway, no dashes, Australian spelling, house date and number formats.
+
+### Records
+
+Before building a list screen, saved views, filters or a search across
+records, read `docs/src/app/foundations/records/page.tsx`. Describe each
+entity once as `RecordField[]` from `@oztix/roadie-core/records` (per-row facts
+are keys, never functions), save views as `RecordView` JSON, and use
+`matchesRecordQuery` in the browser or `toMeilisearch` from
+`@oztix/roadie-core/records/meilisearch` on a server. URLs use
+`toSearchParams` / `fromSearchParams` (format `v=1`).
 
 ### Typography
 

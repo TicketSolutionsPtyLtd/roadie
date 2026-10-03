@@ -123,6 +123,11 @@ interface CartClient {
 }
 ```
 
+The drawer checks two fields from the cart API. `extrasUrl` must be a
+same-origin path with one leading slash, or `checkoutUrl` returns `null` and
+checkout is unavailable. `imageUrl` must be an absolute http or https URL, or
+the event image is dropped.
+
 ## Event schedules
 
 Each `CartEvent` formats its own time row from structured fields. Supply UTC
@@ -137,6 +142,11 @@ way in every skin and consumer.
 
 Pass `eventDateDisplay` to override the computed schedule with a pre-formatted
 string. It's an escape hatch, so prefer the structured fields.
+
+Events are ordered by `eventStartAtUtc` and grouped into days by
+`eventDateKey` (`YYYY-MM-DD` at the venue). Times show in `eventTimeZone`,
+which must be an IANA id such as `Australia/Brisbane`. Without it, times show
+in the viewer's time zone, so supply it whenever venue time matters.
 
 ## Reserved seating
 
@@ -255,6 +265,25 @@ const [open, setOpen] = useState(false)
 <!-- Vue: v-model:open -->
 <button @click="open = true">View cart</button>
 <CartDrawer v-model:open="open" :cart="cart" … />
+```
+
+## Page layout
+
+The docked drawer writes its height to `--cart-drawer-height` on `<html>`, and
+`onHeightChange` reports the same height in pixels. The drawer also floats
+above the bottom edge (`bottom-3`, or `bottom-4` from `sm`), so pad the bottom
+of your page by both or the last of your content sits under the drawer.
+
+```css
+main {
+  padding-bottom: calc(var(--cart-drawer-height, 0px) + 0.75rem);
+}
+
+@media (width >= 40rem) {
+  main {
+    padding-bottom: calc(var(--cart-drawer-height, 0px) + 1rem);
+  }
+}
 ```
 
 ## Mount context

@@ -80,3 +80,39 @@ export function wallClockOf(epoch: number, timeZone: string): WallClock {
     millisecond: shifted.getUTCMilliseconds()
   }
 }
+
+/**
+ * The one instant a wall-clock time names: its first pass when the clock
+ * repeats it, or the jump when daylight saving skips it. It never goes
+ * backwards as the wall clock goes forwards.
+ */
+export function wallInstant(clock: WallClock, timeZone: string): number {
+  const { year, month, day } = plainDateParts(clock.date)
+  const date = new Date(0)
+  date.setUTCFullYear(year, month - 1, day)
+  date.setUTCHours(clock.hour, clock.minute, clock.second, clock.millisecond)
+  const local = date.getTime()
+  const before = local - offsetAt(local - 86_400_000, timeZone)
+  const after = local - offsetAt(local + 86_400_000, timeZone)
+  const candidates = [before, after].filter(
+    (t) => t + offsetAt(t, timeZone) === local
+  )
+  if (candidates.length) return Math.min(...candidates)
+  return transitionBetween(
+    Math.min(before, after),
+    Math.max(before, after),
+    timeZone
+  )
+}
+
+/** The first instant at or after `low` that already has `high`'s offset. */
+function transitionBetween(low: number, high: number, timeZone: string) {
+  const target = offsetAt(high, timeZone)
+  let [lo, hi] = [low, high]
+  while (hi - lo > 1) {
+    const mid = Math.floor((lo + hi) / 2)
+    if (offsetAt(mid, timeZone) === target) hi = mid
+    else lo = mid
+  }
+  return offsetAt(lo, timeZone) === target ? lo : hi
+}

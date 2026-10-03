@@ -263,4 +263,3 @@ If a future compound regresses from RSC-safe — via `'use client'` on `index.ts
 - [tsdown unbundle mode](https://tsdown.dev/options/unbundle)
 - `@base-ui/react@1.3.0` on-disk source — `node_modules/.pnpm/@base-ui+react@1.3.0.../esm/combobox/`
 - `docs/contributing/COMPOUND_PATTERNS.md` — authoring checklist
-- `docs/plans/2026-04-15-refactor-components-consistency-cleanup-plan.md` — Phase 3 migration plan

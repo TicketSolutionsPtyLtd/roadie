@@ -16,8 +16,8 @@ Vue 3 / Webpack consumers. Framework-agnostic core (BYOF transport, drag math,
 urgency state machine, formatting, URL validation) with React 19 and Vue 3
 skins on top.
 
-See [`docs/plans/2026-05-26-shared-cart-drawer-design.md`](../../docs/plans/2026-05-26-shared-cart-drawer-design.md)
-for the full design and integration contract.
+See the [cart drawer docs](https://ticketsolutionsptyltd.github.io/roadie/roadie-widgets/cart-drawer/)
+for the full integration contract.
 
 ## Install
 
@@ -50,7 +50,7 @@ pnpm add @oztix/roadie-widgets @oztix/roadie-core \
 ```
 
 ```tsx
-import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
+import { createCartClient } from '@oztix/roadie-widgets/cart'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
 const cart = createCartClient({
@@ -84,7 +84,7 @@ const cart = createCartClient({
 ```
 
 ```js
-import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
+import { createCartClient } from '@oztix/roadie-widgets/cart'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/vue'
 
 // Styling comes from the host's Tailwind v4 build, which compiles the
