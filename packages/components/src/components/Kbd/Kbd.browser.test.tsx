@@ -271,8 +271,9 @@ const SURFACES = {
     </div>
   )
 }
-// A subtle keycap in muted text measures about Lc 58 in dark mode; it is held
-// to Lc 55 there until the floor for it is decided.
+// A subtle keycap in muted text measures about Lc 58 in dark mode. The user
+// accepted Lc 55 here: the keys are aria-hidden and repeat the control's own
+// aria-keyshortcuts.
 const MUTED_TEXT_LC = 55
 const MUTED_TEXT = {
   'muted text': (kbd: ReactNode) => (
