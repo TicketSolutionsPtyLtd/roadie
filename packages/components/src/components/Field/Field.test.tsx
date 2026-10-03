@@ -516,3 +516,28 @@ describe('Field.ErrorText with two controls’ errors', () => {
     )
   })
 })
+
+describe('Field.ErrorText ordering', () => {
+  function Control({ error }: { error: string | null }) {
+    useFieldControlError(error)
+    return null
+  }
+
+  it('shows the first control’s error, whichever failed first', () => {
+    const { getByRole, rerender } = render(
+      <Field>
+        <Control error={null} />
+        <Control error='Enter a time' />
+        <Field.ErrorText />
+      </Field>
+    )
+    rerender(
+      <Field>
+        <Control error='Enter a date' />
+        <Control error='Enter a time' />
+        <Field.ErrorText />
+      </Field>
+    )
+    expect(getByRole('alert')).toHaveTextContent('Enter a date')
+  })
+})

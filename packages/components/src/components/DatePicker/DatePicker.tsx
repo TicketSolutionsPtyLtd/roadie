@@ -228,7 +228,12 @@ export function DatePicker({
         : EMPTY
 
   function update(patch: Partial<DateTimeParts>) {
-    const next = { ...parts, ...patch }
+    // An unreadable half counts as empty, so a stale one never joins.
+    const next = {
+      date: date.error ? null : parts.date,
+      time: timeError ? null : parts.time,
+      ...patch
+    }
     const joined = joinValue(next, granularity, zone)
     const changed = joined !== value
     setLocal((current) => ({

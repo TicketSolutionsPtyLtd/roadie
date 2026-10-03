@@ -488,6 +488,28 @@ describe('DatePicker', () => {
       )
     })
 
+    it('doesn’t join a new date to an unreadable time', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DatePicker
+          aria-label='Doors'
+          granularity='minute'
+          timeZone={MELBOURNE}
+          today={TODAY}
+          value='2026-10-07T19:30:00+11:00'
+          onValueChange={onValueChange}
+        />
+      )
+      const time = screen.getByRole('textbox', { name: 'Time' })
+      await userEvent.clear(time)
+      await userEvent.type(time, 'soon{Enter}')
+      onValueChange.mockClear()
+      await userEvent.click(screen.getByRole('button', { name: 'Choose date' }))
+      await screen.findByRole('dialog')
+      await userEvent.click(day('2026-10-08'))
+      expect(onValueChange).toHaveBeenLastCalledWith(null)
+    })
+
     it('keeps a half-entered value when the parent holds null', async () => {
       function Controlled() {
         const [value, setValue] = useState<string | null>(null)

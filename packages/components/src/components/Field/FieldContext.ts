@@ -25,7 +25,11 @@ export const FieldContext = createContext<FieldContextValue>({
  */
 export type FieldControlErrorValue = {
   controlError: string | null
-  setControlError?: (control: string, message: string | null) => void
+  /** `undefined` removes the control, as it unmounts. */
+  setControlError?: (
+    control: string,
+    message: string | null | undefined
+  ) => void
 }
 
 export const FieldControlErrorContext = createContext<FieldControlErrorValue>({
@@ -56,9 +60,9 @@ export function useFieldControlError(message: string | null) {
   useEffect(() => {
     setControlError?.(control, message)
   }, [setControlError, control, message])
-  // Cleared only on unmount, so a changed message keeps its place.
+  // Removed only on unmount, so the control keeps its place.
   useEffect(
-    () => () => setControlError?.(control, null),
+    () => () => setControlError?.(control, undefined),
     [setControlError, control]
   )
 }
