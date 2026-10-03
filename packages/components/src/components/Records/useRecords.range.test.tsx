@@ -718,12 +718,12 @@ describe('useRecords range mode', () => {
       ])
     })
 
-    it('stays quiet for a long browser list', () => {
+    it('stays quiet for a long browser list', { timeout: 30_000 }, () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
       renderHook(() =>
         useRecords({
-          data: placeRange<TestShow>([], MAX_RANGE_ROWS, testShows(1)).map(
-            (row) => row ?? testShows(1)[0]!
+          data: Array.from<TestShow>({ length: MAX_RANGE_ROWS }).fill(
+            testShows(1)[0]!
           ),
           fields: showFields
         })

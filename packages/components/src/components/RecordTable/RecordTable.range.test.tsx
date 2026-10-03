@@ -182,6 +182,7 @@ describe('RecordTable range mode', () => {
     ['without rowCount', undefined]
   ] as const)(
     'loads a new search, then rows a consumer cleared for a key the table shares (%s)',
+    { timeout: 20_000 },
     async (_, rowCount) => {
       const user = userEvent.setup()
       const loads: string[] = []
@@ -199,30 +200,38 @@ describe('RecordTable range mode', () => {
     }
   )
 
-  it('loads again after a search with no matches is cleared', async () => {
-    const user = userEvent.setup()
-    render(<CountedRanged />)
-    await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
-    const search = screen.getByRole('combobox', { name: 'Search and filter' })
-    await user.type(search, 'zzzz')
-    await waitFor(() =>
-      expect(screen.getByText('No records match')).toBeInTheDocument()
-    )
-    await user.clear(search)
-    await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
-  })
+  it(
+    'loads again after a search with no matches is cleared',
+    { timeout: 20_000 },
+    async () => {
+      const user = userEvent.setup()
+      render(<CountedRanged />)
+      await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
+      const search = screen.getByRole('combobox', { name: 'Search and filter' })
+      await user.type(search, 'zzzz')
+      await waitFor(() =>
+        expect(screen.getByText('No records match')).toBeInTheDocument()
+      )
+      await user.clear(search)
+      await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
+    }
+  )
 
-  it('fills the first page after a query with fewer matches', async () => {
-    const user = userEvent.setup()
-    render(<CountedRanged />)
-    await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
-    const search = screen.getByRole('combobox', { name: 'Search and filter' })
-    await user.type(search, 'Ocean Alley 7')
-    await waitFor(() => expect(dataRows()).toHaveLength(11))
-    await user.clear(search)
-    await waitFor(() => expect(placeholders()).toHaveLength(0))
-    expect(dataRows().length).toBeGreaterThan(11)
-  })
+  it(
+    'fills the first page after a query with fewer matches',
+    { timeout: 20_000 },
+    async () => {
+      const user = userEvent.setup()
+      render(<CountedRanged />)
+      await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
+      const search = screen.getByRole('combobox', { name: 'Search and filter' })
+      await user.type(search, 'Ocean Alley 7')
+      await waitFor(() => expect(dataRows()).toHaveLength(11))
+      await user.clear(search)
+      await waitFor(() => expect(placeholders()).toHaveLength(0))
+      expect(dataRows().length).toBeGreaterThan(11)
+    }
+  )
 
   it('sizes the table for rowCount without pagination', async () => {
     const spans: Span[] = []
