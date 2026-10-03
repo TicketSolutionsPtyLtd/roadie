@@ -41,9 +41,10 @@ export function RecordValue({
   const text = formatRecordValue(row, field, { timeZone: zone })
   if (text === null)
     return <span className={cn('text-subtle', className)}>{NOT_AVAILABLE}</span>
-  if (field.status && typeof raw === 'string') {
-    const status = Object.hasOwn(field.status, raw)
-      ? field.status[raw]
+  if (field.status && (typeof raw === 'string' || typeof raw === 'number')) {
+    const key = String(raw)
+    const status = Object.hasOwn(field.status, key)
+      ? field.status[key]
       : undefined
     // Normal, not subtle: its opaque fill reads on a row's hover tint and on a card's image banner alike.
     return (

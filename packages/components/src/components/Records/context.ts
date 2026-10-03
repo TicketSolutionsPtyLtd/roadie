@@ -24,6 +24,9 @@ export const RecordsContext = createContext<RecordsContextValue | null>(null)
 
 export function useRecordsContext() {
   const context = use(RecordsContext)
-  if (!context) throw new Error('Records parts must be inside Records.Root')
+  if (!context)
+    throw new Error(
+      'Records parts must be inside Records.Root or Records.Provider'
+    )
   return context
 }

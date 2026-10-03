@@ -172,10 +172,16 @@ export function useRecords<Row extends object>({
     console.warn(message)
   }, [applied.skipped])
 
-  const indexOf = useMemo(
-    () => new Map(data.map((row, index) => [row, index])),
-    [data]
-  )
+  // Every index a record sits at, so a record listed twice keeps both.
+  const indexesOf = useMemo(() => {
+    const indexes = new Map<Row, number[]>()
+    data.forEach((row, index) => {
+      const held = indexes.get(row)
+      if (held) held.push(index)
+      else indexes.set(row, [index])
+    })
+    return indexes
+  }, [data])
   const matching = useMemo(() => {
     const matches = compileRecordQuery(resolvedQuery, fields)
     return sortRecords(data.filter(matches), resolvedQuery.sort, fields, {
@@ -200,10 +206,20 @@ export function useRecords<Row extends object>({
       onPositionChange?.({ page: clampedPage, pageSize, row })
   }, [controlled, clampedPage, pageSize, row, onPositionChange])
 
+  // A repeated record sorts with equal keys, so its copies keep their order.
+  const seen = new Map<Row, number>()
+  const nextIndex = (row: Row) => {
+    const taken = seen.get(row) ?? 0
+    seen.set(row, taken + 1)
+    return indexesOf.get(row)?.[taken] ?? 0
+  }
+  matching
+    .slice(0, position.page * position.pageSize)
+    .forEach((row) => nextIndex(row))
   const start = position.page * position.pageSize
   const rows = matching
     .slice(start, start + position.pageSize)
-    .map((row) => ({ id: getRowId(row, indexOf.get(row) ?? 0), row }))
+    .map((row) => ({ id: getRowId(row, nextIndex(row)), row }))
 
   const setView = (
     next: RecordView,

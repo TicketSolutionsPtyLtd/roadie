@@ -38,6 +38,12 @@ describe('useRecords', () => {
     expect(result.current.rows[3]).toEqual({ id: 'show-3', row: shows[3] })
   })
 
+  it('gives each occurrence of a repeated record its own index id', () => {
+    const show = shows[0]!
+    const { result } = setup({ data: [show, shows[1]!, show] })
+    expect(result.current.rows.map((row) => row.id)).toEqual(['0', '1', '2'])
+  })
+
   it('searches every word, trimmed and ignoring case', async () => {
     const { result } = setup()
     await act(() => result.current.setSearch('  OCEAN alley 1 '))

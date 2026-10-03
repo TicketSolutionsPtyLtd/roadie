@@ -41,22 +41,30 @@ function keyReader(
         return epochSpan(value, rowZone(row, field, timeZone))?.[0]
       }
     case 'option': {
+      const values = (row: object) => {
+        const value = read(row, field.key)
+        if (isEmptyValue(value)) return []
+        return (Array.isArray(value) ? value : [value]).map(String)
+      }
       if (field.status && sortsByOrder(field)) {
         const status = field.status
+        // A list sorts by the earliest status it holds.
         return (row) => {
-          const value = read(row, field.key)
-          return typeof value === 'string' && Object.hasOwn(status, value)
-            ? status[value]!.order
-            : undefined
+          const orders = values(row).flatMap((value) => {
+            const order = Object.hasOwn(status, value)
+              ? status[value]!.order
+              : undefined
+            return order === undefined ? [] : [order]
+          })
+          return orders.length ? Math.min(...orders) : undefined
         }
       }
       const labels = new Map(
         recordFieldOptions(field).map((option) => [option.value, option.label])
       )
       return (row) => {
-        const value = read(row, field.key)
-        if (isEmptyValue(value)) return undefined
-        return labels.get(String(value)) ?? String(value)
+        const shown = values(row).map((value) => labels.get(value) ?? value)
+        return shown.length ? shown.join(', ') : undefined
       }
     }
     case 'text':

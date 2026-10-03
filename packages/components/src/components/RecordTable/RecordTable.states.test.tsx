@@ -288,6 +288,36 @@ describe('RecordTable status column', () => {
     expect(badges[1]).toHaveClass('intent-danger')
   })
 
+  it('shows a status held as a number as its badge', () => {
+    const fields = showFields.map((field) =>
+      field.key === 'status'
+        ? {
+            ...field,
+            status: { 1: { intent: 'success' as const, label: 'Live' } }
+          }
+        : field
+    )
+    const column = tableColumns<TestShow>(fields)
+    function Numbered() {
+      const records = useRecords({
+        data: [{ ...SHOWS[0]!, status: 1 as unknown as string }],
+        fields
+      })
+      return (
+        <Records
+          records={records}
+          layouts={[tableLayout([column.field('status')])]}
+        >
+          <Records.Content />
+        </Records>
+      )
+    }
+    render(<Numbered />)
+    const badge = dataRows()[0]!.querySelector('[data-slot="badge"]')
+    expect(badge).toHaveTextContent('Live')
+    expect(badge).toHaveClass('intent-success')
+  })
+
   it('shows an unknown status as a neutral badge in its raw text', () => {
     const data = [{ ...SHOWS[0]!, status: 'disputed' }]
     render(<Table data={data} />)

@@ -143,6 +143,41 @@ describe('sortRecords', () => {
     ).toEqual(['a', 'z'])
   })
 
+  it('sorts a list of options by the labels it shows, and a list of statuses by its first in order', () => {
+    const lists: RecordField[] = [
+      {
+        key: 'venues',
+        label: 'Venues',
+        type: 'option',
+        multiple: true,
+        options: [
+          { value: 'zz', label: 'Arcadia Hall' },
+          { value: 'aa', label: 'The Velvet Room' }
+        ]
+      },
+      {
+        key: 'states',
+        label: 'States',
+        type: 'option',
+        multiple: true,
+        status: {
+          late: { intent: 'warning', order: 2 },
+          early: { intent: 'info', order: 1 }
+        }
+      }
+    ]
+    const rows = [
+      { id: 'velvet', venues: ['aa'], states: ['late'] },
+      { id: 'arcadia', venues: ['zz', 'aa'], states: ['late', 'early'] }
+    ]
+    const by = (field: string) =>
+      sortRecords(rows, [{ field, direction: 'ascending' }], lists, {
+        timeZone: 'UTC'
+      }).map((row) => row.id)
+    expect(by('venues')).toEqual(['arcadia', 'velvet'])
+    expect(by('states')).toEqual(['arcadia', 'velvet'])
+  })
+
   it('sorts dates by instant across zones and stored forms', () => {
     const shows: Show[] = [
       // 9pm in Perth is 11pm in Sydney.
