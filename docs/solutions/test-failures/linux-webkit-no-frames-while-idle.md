@@ -81,6 +81,37 @@ keep coming without changing what is hovered. A pixel is under every engine's
 drag threshold, so it is safe with a button held. Point it somewhere else to
 hover something else, rather than mixing it with `userEvent.hover`.
 
+The components package has an equivalent `nudgeFrames()` in
+`packages/components/src/css/testUtils.ts`, which moves the pointer in the
+frame's top left corner. For a single wait that only frames can end, wrap it:
+`await withFrames(() => expect.poll(...))` runs `keepFramesRunning` from the
+corner until the wait settles.
+
+## Waits that look safe but aren't
+
+An input event doesn't bring steady frames back at once. Measured in the
+Playwright Linux image right after the click that opens a drawer: 1 frame by
+100ms, 2 by 400ms, then steady frames only from 800ms. So:
+
+- **A transition.** Roadie drawers slide for `--duration-slow` (300ms), and
+  a transition only advances in a rendering update. A poll for the drawer's
+  bottom edge can stop with the drawer short of it (`expected 864 to be 844`).
+  Turn transitions off with a `transition: none !important` sheet when the
+  test isn't about them, so the wait needs one frame rather than 300ms of
+  them, and wait with `withFrames`.
+- **An entrance, an exit and the focus return.** Base UI drops
+  `data-starting-style` in a frame, waits a frame before unmounting a closed
+  popup even with transitions off, and returns focus to the trigger as the
+  popup unmounts. So polls for the drawer's edge, for `queryByRole('dialog')`
+  to be null, or for focus back on the trigger all need `withFrames`.
+- **A programmatic scroll.** `element.scrollTop = n` updates layout at once,
+  so a poll on geometry passes straight away, but the `scroll` event only
+  fires in the next rendering update. A component that follows scrolling (the
+  scrolling Calendar reports the month at the top a frame after the event)
+  hasn't seen it yet, and typing next races it. That failed every time in the
+  Linux image (`expected -1158 to be 342`) until the test called
+  `nudgeFrames()` after the scroll.
+
 ## Reproduce locally
 
 Run the file in the Playwright Linux image, e.g.

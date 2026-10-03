@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { type ReactElement, useState } from 'react'
 
 import { cleanup, render, screen } from '@testing-library/react'
+import { renderToString } from 'react-dom/server'
 import {
   afterAll,
   afterEach,
@@ -271,23 +272,89 @@ describe('Calendar layout', () => {
     expect(rect.left - column.left).toBeCloseTo(column.right - rect.right, 0)
   })
 
-  it('spans its container with the month arrows', () => {
+  it('puts the title at the start and both arrows at the end', () => {
     render(
       <div className='w-97.5'>
         <Calendar today={TODAY} />
       </div>
     )
-    const month = document
-      .querySelector('[data-slot="calendar-month"]')!
+    const header = document
+      .querySelector('[data-slot="calendar-header"]')!
       .getBoundingClientRect()
+    const title = screen.getByText('March 2027').getBoundingClientRect()
     const previous = screen
       .getByRole('button', { name: 'Previous month' })
       .getBoundingClientRect()
     const next = screen
       .getByRole('button', { name: 'Next month' })
       .getBoundingClientRect()
-    expect(previous.left).toBe(month.left)
-    expect(next.right).toBe(month.right)
+    expect(header.width).toBe(390)
+    expect(title.left).toBe(header.left)
+    expect(next.right).toBe(header.right)
+    expect(previous.right).toBeLessThan(next.left)
+    expect(previous.left).toBeGreaterThan(title.right)
+    expect(previous.top).toBe(next.top)
+  })
+
+  it('keeps both arrows at the top end beside several months', () => {
+    render(
+      <div className='w-200'>
+        <Calendar today={TODAY} numberOfMonths={2} />
+      </div>
+    )
+    const months = Array.from(
+      document.querySelectorAll('[data-slot="calendar-month"]'),
+      (month) => month.getBoundingClientRect()
+    )
+    const next = screen
+      .getByRole('button', { name: 'Next month' })
+      .getBoundingClientRect()
+    const previous = screen
+      .getByRole('button', { name: 'Previous month' })
+      .getBoundingClientRect()
+    expect(next.right).toBe(months[1]!.right)
+    expect(next.top).toBe(months[1]!.top)
+    expect(previous.left).toBeGreaterThan(months[1]!.left)
+    const caption = screen.getByText('April 2027').getBoundingClientRect()
+    expect(caption.left).toBe(months[1]!.left)
+    expect(caption.right).toBeLessThanOrEqual(previous.left)
+  })
+
+  it('keeps a stacked first caption clear of the toggle and arrows', () => {
+    render(
+      <div className='w-75'>
+        <Calendar
+          today={TODAY}
+          defaultMonth='2027-09-01'
+          numberOfMonths={2}
+          views={['week', 'month']}
+        />
+      </div>
+    )
+    const toggle = screen
+      .getByRole('button', { name: 'Month view' })
+      .getBoundingClientRect()
+    const caption = screen.getByText('September 2027')
+    expect(caption.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      toggle.bottom
+    )
+    expect(caption.scrollWidth).toBeLessThanOrEqual(caption.clientWidth)
+  })
+
+  it('keeps the arrows at the top end when months stack', () => {
+    render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} numberOfMonths={2} />
+      </div>
+    )
+    const first = document
+      .querySelector('[data-slot="calendar-month"]')!
+      .getBoundingClientRect()
+    const next = screen
+      .getByRole('button', { name: 'Next month' })
+      .getBoundingClientRect()
+    expect(next.top).toBe(first.top)
+    expect(next.right).toBe(first.right)
   })
 
   it('keeps 40px days in a 280px month where it sizes to its content', () => {
@@ -317,25 +384,59 @@ describe('Calendar layout', () => {
     expect(second!.top).toBe(first!.top)
   })
 
-  it('holds the frame of the month it will show while today is unknown', () => {
-    const { rerender } = render(
-      <div className='w-97.5'>
-        <Calendar fixedWeeks />
-      </div>
-    )
-    const frame = document
+  // The server doesn't know today, so its HTML is the placeholder.
+  function serverHeight(width: string, calendar: ReactElement) {
+    const host = document.createElement('div')
+    host.className = width
+    document.body.append(host)
+    host.innerHTML = renderToString(calendar)
+    const height = host
       .querySelector('[data-slot="calendar"]')!
       .getBoundingClientRect().height
-    rerender(
-      <div className='w-97.5'>
-        <Calendar fixedWeeks today={TODAY} />
-      </div>
-    )
-    expect(
-      document.querySelector('[data-slot="calendar"]')!.getBoundingClientRect()
-        .height
-    ).toBe(frame)
-  })
+    host.remove()
+    return height
+  }
+
+  const price = () => '$29'
+  it.each([
+    ['a month', 'w-97.5', { fixedWeeks: true, showOutsideDays: true }, 4],
+    ['a week', 'w-97.5', { view: 'week' }, 4],
+    ['a capped week', 'w-200', { view: 'week' }, 4],
+    [
+      'a month of tiles',
+      'w-200',
+      { fixedWeeks: true, showOutsideDays: true, getDayContent: price },
+      4
+    ],
+    [
+      'several months with a toggle',
+      'w-97.5',
+      {
+        fixedWeeks: true,
+        showOutsideDays: true,
+        numberOfMonths: 2,
+        views: ['month', 'week']
+      },
+      4
+    ]
+  ] as const)(
+    'holds the frame of %s while today is unknown',
+    (_, width, props, tolerance) => {
+      const frame = serverHeight(
+        width,
+        <Calendar {...(props as CalendarSingleProps)} />
+      )
+      render(
+        <div className={width}>
+          <Calendar {...(props as CalendarSingleProps)} today={TODAY} />
+        </div>
+      )
+      const height = document
+        .querySelector('[data-slot="calendar"]')!
+        .getBoundingClientRect().height
+      expect(Math.abs(height - frame)).toBeLessThan(tolerance)
+    }
+  )
 
   it('puts months side by side where they fit', () => {
     render(
@@ -368,6 +469,110 @@ describe('Calendar layout', () => {
       document.querySelector('[data-slot="calendar"]')!.getBoundingClientRect()
         .width
     ).toBeLessThanOrEqual(390)
+  })
+})
+
+describe('Calendar day tiles', () => {
+  const price = (date: string) =>
+    date === '2027-03-04' ? (
+      <>
+        <span>$29</span>
+        <span>4 sessions</span>
+      </>
+    ) : date === '2027-03-05' ? (
+      '$35'
+    ) : null
+
+  it('grows a row of tiles to fit the tallest content', () => {
+    render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} getDayContent={price} />
+      </div>
+    )
+    const tall = day('2027-03-04').getBoundingClientRect()
+    const short = day('2027-03-05').getBoundingClientRect()
+    const plain = day('2027-03-01').getBoundingClientRect()
+    expect(tall.height).toBeGreaterThan(tall.width)
+    const content = day('2027-03-04')
+      .querySelector('[data-slot="calendar-day-content"]')!
+      .getBoundingClientRect()
+    expect(content.bottom).toBeLessThanOrEqual(tall.bottom)
+    const row = (date: string) =>
+      day(date).closest('td')!.getBoundingClientRect().height
+    expect(row('2027-03-05')).toBe(row('2027-03-04'))
+    expect(short.width).toBeCloseTo(tall.width, 1)
+    expect(plain.width).toBeCloseTo(tall.width, 1)
+  })
+
+  it('caps tiles in a wide calendar, centred in their columns', () => {
+    render(
+      <div className='w-200'>
+        <Calendar today={TODAY} view='week' />
+      </div>
+    )
+    const rect = day(TODAY).getBoundingClientRect()
+    const column = day(TODAY).closest('td')!.getBoundingClientRect()
+    expect(rect.width).toBe(80)
+    expect(rect.left - column.left).toBeCloseTo(column.right - rect.right, 0)
+  })
+
+  it('gives every day a tile once days can have content, plain ones unfilled', () => {
+    render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} getDayContent={() => null} />
+      </div>
+    )
+    expect(document.querySelector('[data-slot="calendar"]')).toHaveAttribute(
+      'data-tiles'
+    )
+    const rect = day(TODAY).getBoundingClientRect()
+    expect(rect.height).toBeCloseTo(rect.width, 0)
+  })
+
+  it('draws a week as a row of tiles taller than they are wide', () => {
+    render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} view='week' />
+      </div>
+    )
+    const rect = day(TODAY).getBoundingClientRect()
+    expect(rect.width).toBeGreaterThan(48)
+    expect(rect.height).toBeGreaterThan(rect.width)
+    expect(screen.getAllByRole('row')).toHaveLength(2)
+  })
+
+  it('fits the view toggle beside a long title in a phone-sized month', () => {
+    render(
+      <div className='w-80'>
+        <Calendar
+          today={TODAY}
+          view='week'
+          defaultMonth='2027-09-01'
+          views={['week', 'month']}
+        />
+      </div>
+    )
+    const header = document
+      .querySelector('[data-slot="calendar-header"]')!
+      .getBoundingClientRect()
+    const next = screen
+      .getByRole('button', { name: 'Next week' })
+      .getBoundingClientRect()
+    const previous = screen
+      .getByRole('button', { name: 'Previous week' })
+      .getBoundingClientRect()
+    const toggle = screen
+      .getByRole('button', { name: 'Month view' })
+      .getBoundingClientRect()
+    const title = screen.getByText('August to September 2027')
+    expect(title.scrollWidth).toBeLessThanOrEqual(title.clientWidth)
+    expect(title.getBoundingClientRect().left).toBe(header.left)
+    expect(toggle.left).toBeGreaterThanOrEqual(
+      title.getBoundingClientRect().right
+    )
+    expect(toggle.right).toBeLessThan(previous.left)
+    expect(next.right).toBe(header.right)
+    expect(header.height).toBe(32)
   })
 })
 

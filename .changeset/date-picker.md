@@ -29,7 +29,7 @@ date. Suggestions are read in `timeZone` and against `today`, and dates that
 
 `DatePicker` pairs a typed date with a calendar in a `Popover`, or below 48rem
 in a bottom `Drawer` titled with the picker's label, whose days grow to fill the
-width up to 48px. Opening it focuses the chosen day or today; choosing a day
+width up to 48px and turn a month with a sideways swipe. Opening it focuses the chosen day or today; choosing a day
 closes it and returns focus to the calendar button. The button is named after
 the picker's label and date, such as "Choose date, Doors (Fri 27 Nov 2026)", and
 the popup "Choose date, Doors". The button is labelled by the `Field` label too,

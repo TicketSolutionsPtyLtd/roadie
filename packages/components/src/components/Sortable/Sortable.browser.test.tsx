@@ -15,7 +15,7 @@ import { commands, userEvent } from 'vitest/browser'
 
 import { Sortable, type SortableMove } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { keepFramesRunning } from '../../css/testUtils'
+import { keepFramesRunning, releaseDragPointer } from '../../css/testUtils'
 import { List } from '../List'
 import { useStylesheet } from '../Pane/testUtils'
 import { Popover } from '../Popover'
@@ -36,7 +36,10 @@ afterAll(() => removeStylesheets())
 // After a drop the library covers the pointer until it moves, so each test
 // starts by moving it inside the frame.
 beforeEach(() => commands.pointer([{ type: 'move', x: 1, y: 1, steps: 2 }]))
-afterEach(() => cleanup())
+afterEach(async () => {
+  cleanup()
+  await releaseDragPointer()
+})
 
 type Reorder = (next: string[], move: SortableMove) => void
 
@@ -302,12 +305,16 @@ describe('Sortable Move menu', () => {
         await commands.pointer([{ type: 'up' }])
       }
     }
-    keepFramesRunning(() => at)
-    await new Promise((resolve) => setTimeout(resolve, 200))
-    expect(handle('SKU')).toHaveAttribute('aria-expanded', 'false')
-    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull(), {
-      timeout: 5000
-    })
+    const stopFrames = keepFramesRunning(() => at)
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 200))
+      expect(handle('SKU')).toHaveAttribute('aria-expanded', 'false')
+      await waitFor(() => expect(screen.queryByRole('menu')).toBeNull(), {
+        timeout: 5000
+      })
+    } finally {
+      await stopFrames()
+    }
   })
 
   it('moves by keyboard and keeps focus on the handle', async () => {
