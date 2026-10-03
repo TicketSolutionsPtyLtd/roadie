@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  type ReactNode,
   useDeferredValue,
   useEffect,
   useMemo,
@@ -15,6 +16,7 @@ import {
   type RecordFilter,
   type RecordLayout,
   type RecordPosition,
+  type RecordSelection,
   type RecordSort,
   type RecordView,
   type ResolvedRecordQuery,
@@ -24,6 +26,16 @@ import {
 
 import { isDev } from '../../utils/isDev'
 import { applyQuery, isFiltered, toView } from './query'
+import {
+  EMPTY_SELECTION,
+  selectedCount as countSelected,
+  isSelected,
+  sameSelection,
+  selectPage as selectPageIds,
+  toggle,
+  toggleRange,
+  withinMatching
+} from './selection'
 import type { RecordName, RecordViewDefaults, RecordsRow } from './types'
 
 export type UseRecordsOptions<Row extends object> = {
@@ -53,6 +65,16 @@ export type UseRecordsOptions<Row extends object> = {
   timeZone?: string
   /** The moment relative dates resolve against. Defaults to when the list mounted. */
   now?: Instantish
+  /** Lets people pick records for bulk actions. @default false */
+  selectable?: boolean
+  /** Session state, like the position. A search or filter change drops picked records it hides. */
+  selection?: RecordSelection
+  defaultSelection?: RecordSelection
+  onSelectionChange?: (selection: RecordSelection) => void
+  /** Menu items for one record, such as `Menu.Item`s, shown in a menu on its row. */
+  rowActions?: (row: Row) => ReactNode
+  /** The record's page. Return `undefined` for a record with none. */
+  getRowHref?: (row: Row) => string | undefined
 }
 
 export type RecordsInstance<Row extends object = object> = {
@@ -84,6 +106,26 @@ export type RecordsInstance<Row extends object = object> = {
   setLayout: (layout: RecordLayout) => void
   setPage: (page: number) => void
   setPageSize: (pageSize: number) => void
+  /** Every record the search and filters match, sorted, across pages. */
+  matchingRows: readonly RecordsRow<Row>[]
+  selectable: boolean
+  selection: RecordSelection
+  /** Selected records the search and filters still match. */
+  selectedCount: number
+  countSelection: (selection: RecordSelection) => number
+  isSelected: (id: string) => boolean
+  setSelection: (selection: RecordSelection) => void
+  /** `range` selects from the last record toggled to this one, in sorted order. */
+  toggleRow: (id: string, options?: { range?: boolean }) => void
+  selectPage: (value: boolean) => void
+  selectAllMatching: () => void
+  clearSelection: () => void
+  /** Select mode: taps select records rather than open them, for layouts without checkboxes. Only selectable records enter it. */
+  selecting: boolean
+  /** Leaving clears the selection, unless `keep`. */
+  setSelecting: (value: boolean, options?: { keep?: boolean }) => void
+  rowActions?: (row: Row) => ReactNode
+  getRowHref?: (row: Row) => string | undefined
   recordName: RecordName
   loading: boolean
   error: boolean | string
@@ -111,6 +153,16 @@ function useEqualValue<T>(value: T): T {
 }
 const serverZone = () => 'UTC'
 
+/**
+ * What a selection was taken against: the search and the unresolved filters,
+ * in any order, so "today" rolling over doesn't drop it.
+ */
+const matchKey = ({ search, filters }: RecordView['query']) =>
+  JSON.stringify([
+    search.trim(),
+    filters.map((filter) => JSON.stringify(filter)).sort()
+  ])
+
 export function useRecords<Row extends object>({
   data,
   fields,
@@ -126,7 +178,13 @@ export function useRecords<Row extends object>({
   error = false,
   onRetry,
   timeZone,
-  now
+  now,
+  selectable = false,
+  selection: controlledSelection,
+  defaultSelection,
+  onSelectionChange,
+  rowActions,
+  getRowHref
 }: UseRecordsOptions<Row>): RecordsInstance<Row> {
   const [ownView, setOwnView] = useState(() => toView(defaultView))
   const view = controlledView ?? ownView
@@ -206,20 +264,71 @@ export function useRecords<Row extends object>({
       onPositionChange?.({ page: clampedPage, pageSize, row })
   }, [controlled, clampedPage, pageSize, row, onPositionChange])
 
-  // A repeated record sorts with equal keys, so its copies keep their order.
-  const seen = new Map<Row, number>()
-  const nextIndex = (row: Row) => {
-    const taken = seen.get(row) ?? 0
-    seen.set(row, taken + 1)
-    return indexesOf.get(row)?.[taken] ?? 0
-  }
-  matching
-    .slice(0, position.page * position.pageSize)
-    .forEach((row) => nextIndex(row))
+  const matchingRows = useMemo(() => {
+    // A repeated record sorts with equal keys, so its copies keep their order.
+    const seen = new Map<Row, number>()
+    return matching.map((row) => {
+      const taken = seen.get(row) ?? 0
+      seen.set(row, taken + 1)
+      return { id: getRowId(row, indexesOf.get(row)?.[taken] ?? 0), row }
+    })
+  }, [matching, indexesOf, getRowId])
+  const matchingIds = useMemo(
+    () => matchingRows.map((row) => row.id),
+    [matchingRows]
+  )
   const start = position.page * position.pageSize
-  const rows = matching
-    .slice(start, start + position.pageSize)
-    .map((row) => ({ id: getRowId(row, nextIndex(row)), row }))
+  const rows = matchingRows.slice(start, start + position.pageSize)
+  const pageIds = rows.map((row) => row.id)
+
+  const [ownSelection, setOwnSelection] = useState<RecordSelection>(
+    defaultSelection ?? EMPTY_SELECTION
+  )
+  const heldSelection = controlledSelection ?? ownSelection
+  const anchor = useRef<string | undefined>(undefined)
+  const setSelection = (next: RecordSelection) => {
+    if (!controlledSelection) setOwnSelection(next)
+    onSelectionChange?.(next)
+  }
+  const clearSelection = () => {
+    anchor.current = undefined
+    setSelection(EMPTY_SELECTION)
+  }
+  const [selectingState, setSelectingState] = useState(false)
+  const selecting = selectable && selectingState
+
+  // Keyed on the applied query, so a change from the URL or the parent counts
+  // too, and a search's matches exist only once it renders.
+  const queryKey = matchKey({ search, filters, sort })
+  const [taken, setTaken] = useState({
+    held: heldSelection,
+    key: queryKey,
+    selection: heldSelection
+  })
+  let selection = heldSelection
+  // A selection set with its query, like one restored from the URL, keeps it.
+  if (!sameSelection(taken.held, heldSelection))
+    setTaken({ held: heldSelection, key: queryKey, selection })
+  else if (taken.key !== queryKey) {
+    // Derived in render, so no paint pairs the old selection with the new query.
+    const empty = 'ids' in heldSelection && heldSelection.ids.length === 0
+    selection = empty
+      ? heldSelection
+      : 'allMatching' in heldSelection
+        ? EMPTY_SELECTION
+        : withinMatching(heldSelection, matchingIds)
+    setTaken({ held: heldSelection, key: queryKey, selection })
+  } else if (taken.selection !== taken.held) selection = taken.selection
+  // Keyed on the record, fresh per derivation, as EMPTY_SELECTION is shared.
+  const notified = useRef<typeof taken | null>(null)
+  useEffect(() => {
+    if (taken.selection === taken.held || notified.current === taken) return
+    notified.current = taken
+    // Own state follows and the parent is told, which render can't do.
+    setSelection(taken.selection)
+  })
+  const countSelection = (next: RecordSelection) =>
+    countSelected(next, matchingIds)
 
   const setView = (
     next: RecordView,
@@ -274,6 +383,34 @@ export function useRecords<Row extends object>({
         setPosition({ ...position, page: next, row: 0 })
     },
     setPageSize: (pageSize) => setPosition({ page: 0, pageSize, row: 0 }),
+    matchingRows,
+    selectable,
+    selection,
+    selectedCount: countSelection(selection),
+    countSelection,
+    isSelected: (id) => isSelected(selection, id),
+    setSelection,
+    toggleRow: (id, { range = false } = {}) => {
+      const value = !isSelected(selection, id)
+      setSelection(
+        range
+          ? toggleRange(selection, matchingIds, anchor.current, id, value)
+          : toggle(selection, id, value)
+      )
+      anchor.current = id
+    },
+    selectPage: (value) =>
+      setSelection(selectPageIds(selection, pageIds, value)),
+    selectAllMatching: () => setSelection({ allMatching: true, except: [] }),
+    clearSelection,
+    selecting,
+    setSelecting: (value, { keep = false } = {}) => {
+      if (value && !selectable) return
+      if (!value && !keep) clearSelection()
+      setSelectingState(value)
+    },
+    rowActions,
+    getRowHref,
     recordName,
     loading,
     error,

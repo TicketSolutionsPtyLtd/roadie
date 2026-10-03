@@ -14,8 +14,8 @@ A table of records to search, sort and page through.
 
 ```tsx
 import { RecordTable, tableColumns, tableLayout } from '@oztix/roadie-components/record-table'
-import { Records, useRecords } from '@oztix/roadie-components/records'
-import { recordFields } from '@oztix/roadie-core/records'
+import { Records, downloadCsv, useRecords } from '@oztix/roadie-components/records'
+import { recordFields, recordsToCsv } from '@oztix/roadie-core/records'
 ```
 
 Fields with a `match` hold a RegExp, and columns with a `cell`, `getRowId` and the `useRecords` instance hold functions, so they can't pass from a Server Component. Build them and render the table in a client component, a file that starts with `'use client'`.
@@ -134,7 +134,9 @@ function Shows() {
 }
 ```
 
-`Records.Toolbar` holds the standard controls, today the search. Pass children to replace them, such as a `Records.Search` with your own placeholder beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
+`Records.Toolbar` holds the standard controls: the search, `Records.Select`, and with `actions`, the table actions as `Records.Actions` at the end. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
+
+`Records.BulkActions` can sit anywhere inside the Provider: the table shows it in its header row. `Records.Select` shows Select and Done for a layout that has no checkbox per record, and renders nothing beside the table, which has one.
 
 ### In a Pane
 
@@ -144,6 +146,7 @@ Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Recor
 - `Records.Content` in `Pane.Body`, below the toolbar. Its column headers stick under the toolbar.
 - `Records.Status` anywhere inside the Provider. It renders nothing visible.
 - `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
+- `Records.BulkActions` anywhere inside the Provider. On the table it takes the column headers' place while records are selected.
 
 On a phone the table keeps its columns and scrolls sideways, with the pinned column held at the start. The second frame shows it at 390px.
 
@@ -202,6 +205,7 @@ function EventsPane() {
     data: events,
     fields,
     getRowId: (row) => row.id,
+    selectable: true,
     recordName: { one: 'event', other: 'events' },
     defaultView: { query: { sort: [{ field: 'startsAt', direction: 'ascending' }] } }
   })
@@ -215,6 +219,12 @@ function EventsPane() {
           <Records.Toolbar searchPlaceholder='Search events' />
           <Records.Content />
           <Records.Status />
+          <Records.BulkActions
+            actions={[
+              { label: 'Export', icon: <ExportIcon weight='bold' />, onAction: (selection) => console.log('export', selection) },
+              { label: 'Cancel', icon: <XCircleIcon weight='bold' />, intent: 'danger', onAction: (selection) => console.log('cancel', selection) }
+            ]}
+          />
         </Pane.Body>
         <Pane.Footer>
           <Records.Pagination />
@@ -351,6 +361,148 @@ function Controlled() {
 render(<Controlled />)
 ```
 
+### Selection and actions
+
+`bulkActions` turns on a checkbox for each record and shows the bulk actions once something is selected. An action gets the selection and the query it was taken against: the picked ids, or every matching record but some. It never gets a record the search and filters hide. Selection is session state, like the page, and works controlled with `selection` and `onSelectionChange` or uncontrolled with `defaultSelection`. A search or filter change drops picked records it hides, and drops a "select all".
+
+`rowActions` returns menu items for a record, shown in a menu on its row named "More actions for" the record. `getRowHref` links each record to its page through the title column. When records can be selected, clicking anywhere else on a row selects it, and Shift extends the selection from the last one picked; otherwise the click follows the link. Cmd or Ctrl opens the record in a new tab. Return `undefined` for a record with no page.
+
+While records are selected, the bulk actions take the column headers' place in the same sticky row, so the rows never move and the bar stays in view as the table scrolls down or sideways. The page checkbox stays at the start. The count, such as "3 selected", opens a menu with Clear selection, and with "Select all" once the whole page is checked and more records match. Actions follow as buttons, and those that don't fit move into a More actions menu at the end. The headers come back once the selection clears. An action with `confirm` asks first; danger actions always do.
+
+```tsx-live-noinline
+const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
+const names = ['Ocean Alley', 'Ball Park Music', 'Julia Jacklin', 'Angie McMahon', 'Alex Lahey', 'Middle Kids']
+const shows = Array.from({ length: 40 }, (_, index) => ({
+  id: `show-${index}`,
+  show: `${names[index % names.length]} at The Lantern Room`,
+  city: cities[index % cities.length],
+  sold: (index * 37) % 2400,
+  gross: (index * 7919) % 250000
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('show', { label: 'Show' }),
+  field.text('city', { label: 'City' }),
+  field.number('sold', { label: 'Sold' }),
+  field.money('gross', { label: 'Gross', format: 'compactCurrency' })
+]
+const column = tableColumns(fields)
+const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold'), column.field('gross')]
+
+function ShowActions() {
+  return (
+    <DemoRouter initialPath='/shows'>
+      {(path) => (
+        <div className='grid gap-2'>
+          <p className='text-sm text-subtle'>Current route: {path}</p>
+          <RecordTable
+            caption='Upcoming shows'
+            data={shows}
+            fields={fields}
+            columns={columns}
+            getRowId={(row) => row.id}
+            getRowHref={(row) => `/shows/${row.id}`}
+            rowActions={(row) => (
+              <>
+                <Menu.Item icon={<PencilSimpleIcon weight='bold' />} onClick={() => console.log('edit', row.id)}>Edit</Menu.Item>
+                <Menu.Item icon={<CopyIcon weight='bold' />} onClick={() => console.log('duplicate', row.id)}>Duplicate</Menu.Item>
+              </>
+            )}
+            bulkActions={[
+              { label: 'Export', icon: <ExportIcon weight='bold' />, onAction: (selection) => console.log('export', selection) },
+              {
+                label: 'Cancel',
+                icon: <XCircleIcon weight='bold' />,
+                intent: 'danger',
+                confirm: { description: 'Ticket holders are refunded and told by email.' },
+                onAction: (selection) => console.log('cancel', selection)
+              }
+            ]}
+            recordName={{ one: 'show', other: 'shows' }}
+          />
+        </div>
+      )}
+    </DemoRouter>
+  )
+}
+
+render(<ShowActions />)
+```
+
+### Table actions and export
+
+`tableActions` act on everything the search and filters match, with nothing selected, such as exporting an attendee list. Each gets the applied query and the records. The first shows as a button at the end of the toolbar and the rest sit in a "More actions" menu after it. In a toolbar under 40rem they all sit in the menu. Danger actions confirm first, as bulk actions do. They stay in the toolbar while records are selected, apart from the bulk actions in the header row, so it stays clear which actions use the selection.
+
+`recordsToCsv(rows, fields, { timeZone })` from `@oztix/roadie-core/records` writes rows as CSV, one column per field, each value as the table shows it, and `downloadCsv` saves it. In the browser, `records.matchingRows` holds every matching record in the current sort, across pages. Pass `{ values: 'raw' }` to write plain numbers a spreadsheet can sum. Text that starts like a formula, such as `=` or `@`, is written with a leading apostrophe so a spreadsheet shows it rather than runs it. A column with its own `cell` exports its field's value, not what your cell draws.
+
+```tsx-live-noinline
+const names = ['Mia Tran', 'Jack Ellis', 'Ava Nguyen']
+const tickets = [
+  { value: 'ga', label: 'General admission' },
+  { value: 'vip', label: 'VIP' },
+  { value: 'early', label: 'Early bird' }
+]
+const attendees = Array.from({ length: 60 }, (_, index) => ({
+  id: `attendee-${index}`,
+  name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
+  ticket: tickets[index % tickets.length].value,
+  order: `OZ-${48210 + index * 7}`,
+  paid: [79.9, 149, 59][index % tickets.length]
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Name' }),
+  field.option('ticket', { label: 'Ticket type', options: tickets }),
+  field.text('order', { label: 'Order' }),
+  field.money('paid', { label: 'Paid' })
+]
+const column = tableColumns(fields)
+const columns = fields.map((field, index) => column.field(field.key, { pin: index === 0 }))
+
+render(
+  <RecordTable
+    caption='Attendees'
+    data={attendees}
+    fields={fields}
+    columns={columns}
+    getRowId={(row) => row.id}
+    recordName={{ one: 'attendee', other: 'attendees' }}
+    tableActions={[
+      {
+        label: 'Export CSV',
+        icon: <DownloadIcon weight='bold' className='size-4' />,
+        onAction: (_, records) =>
+          downloadCsv(
+            recordsToCsv(records.matchingRows.map(({ row }) => row), fields, { timeZone: records.timeZone }),
+            'attendees.csv'
+          )
+      },
+      { label: 'Print door list', onAction: (query) => console.log('print', query) }
+    ]}
+  />
+)
+```
+
+When the browser doesn't hold every record, export on the server with the same fields and the query. Have the server send the CSV without a byte order mark, since `downloadCsv` adds one.
+
+```tsx
+tableActions={[
+  {
+    label: 'Export CSV',
+    onAction: async (query) => {
+      const response = await fetch('/api/attendees/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(query)
+      })
+      downloadCsv(await response.text(), 'attendees.csv')
+    }
+  }
+]}
+```
+
 ### Long lists
 
 By default the page, or the pane, scrolls the rows down, and the table scrolls sideways on its own with a Roadie scrollbar that sticks to the bottom of whatever scrolls the page. Give `Records.Content` (or `RecordTable`) a `maxHeight` to scroll the rows both ways in a box of their own, with the header and the pinned column held in place. `fill` does the same at its parent's height, such as a `Pane.Body`.
@@ -460,6 +612,47 @@ column.field('city', { pin: true })`}
   </Guideline.Dont>
 </Guideline>
 
+<Guideline title='Put the More menu last'>
+  <Guideline.Do
+    code={`tableActions={[
+  { label: 'Export CSV', onAction: exportCsv },
+  { label: 'Print door list', onAction: printDoorList }
+]}`}
+  >
+    Lead with the action people use most. It shows as a button, and the rest
+    sit in the More actions menu at the end of the toolbar.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`<Records.Toolbar>
+  <Menu>{/* More actions */}</Menu>
+  <Records.Search />
+  <Button>Export CSV</Button>
+</Records.Toolbar>`}
+  >
+    Don't put a menu before the search or other actions. The More menu
+    always comes last in an action group.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Act on the selection the bar shows'>
+  <Guideline.Do
+    code={`bulkActions={[{
+  label: 'Cancel',
+  intent: 'danger',
+  onAction: (selection, query) => cancel(selection, query)
+}]}`}
+  >
+    Act on the selection and query the action gets. They hold only records
+    the search and filters still show, and "all matching" means the query.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`onAction: () => cancel(mySelectedIds)`}
+  >
+    Don't keep your own list of ids. It can hold records the search has
+    since hidden, which people never confirmed.
+  </Guideline.Dont>
+</Guideline>
+
 <Guideline title='Let the table show its own states'>
   <Guideline.Do code={`<RecordTable loading={isLoading} error={failed} onRetry={refetch} {...props} />`}>
     Pass `loading`, `error` and `onRetry`. The table shows the matching
@@ -482,7 +675,12 @@ column.field('city', { pin: true })`}
 - When the table scrolls sideways, its frame is a region named "Shows, scrolls sideways" for a caption of Shows, and the scroller is its one tab stop, so keyboard users can scroll it with the arrow keys. In its own box (`maxHeight` or `fill`), the box is the region, named "Shows, scrolls".
 - `Records.Status` is a live region. It announces Loading, the error, and the result count while a search or filter narrows the list.
 - State titles are paragraphs, not headings, since the table can't know the page's outline. Their icon tiles are hidden from screen readers.
-- Escape clears the search. The clear button keeps focus in the search field.
+- Escape clears the search. The clear button keeps focus in the search field. Give `Records.Search` an `aria-label` when its placeholder doesn't name it well enough.
+- Each record's checkbox is named "Select" followed by the record's title, or its id with no title, and the header checkbox is named "Select page", with a mixed state when only some of the page is checked.
+- `Records.Status` also announces the selection, such as "3 selected, 24 results". It announces a search's count once typing settles, not on every keystroke.
+- While records are selected, the bulk actions are a toolbar named "Bulk actions" in the header row, beside "Select page", which keeps focus as the bar replaces the column headers. The headers stay in the table for screen readers, and the toolbar sits in a last header with no cells under it. Arrow keys move between its controls. Escape clears the selection and returns focus to "Select page".
+- Each row's actions menu is named "More actions for" the record's title. Table actions past the first sit behind a button named "More actions". A running action's control stays focusable but disabled, with `aria-busy`. A confirmation is an alert dialog.
+- A row with `getRowHref` holds a real link: it opens in a new tab with Cmd or Ctrl, and works with every other link convention, not just a click handler.
 
 ## Hooks
 
@@ -492,7 +690,7 @@ column.field('city', { pin: true })`}
 function useRecords<Row extends object>(options: UseRecordsOptions<Row>): RecordsInstance<Row>
 ```
 
-Holds the view and position, and searches, filters, sorts and pages the records in the browser. Takes `data`, `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `position`, `defaultPosition`, `onPositionChange`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is) and `now` (when relative dates resolve, by default when the list mounted). Pass the result to `Records` or `Records.Provider`.
+Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser. Takes `data`, `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is) and `now` (when relative dates resolve, by default when the list mounted). Pass the result to `Records` or `Records.Provider`.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -518,6 +716,20 @@ Holds the view and position, and searches, filters, sorts and pages the records 
 | `setLayout` | `(layout: RecordLayout) => void` | Sets the layout, such as the table's column order. |
 | `setPage` | `(page: number) => void` | Goes to a page, within the pages there are. |
 | `setPageSize` | `(pageSize: number) => void` | Sets the page size and returns to the first page. |
+| `matchingRows` | `readonly { id: string; row: Row }[]` | Every record the search and filters match, sorted, across pages. |
+| `selectable` | `boolean` | Whether records can be selected. |
+| `selection` | `RecordSelection` | `{ ids }`, or `{ allMatching: true, except }`. |
+| `selectedCount` | `number` | Selected records the search and filters still match. |
+| `isSelected` | `(id: string) => boolean` | Whether a record is selected. |
+| `setSelection` | `(selection: RecordSelection) => void` | Replaces the selection. |
+| `toggleRow` | `(id: string, options?: { range?: boolean }) => void` | Picks or drops a record; `range` covers every record from the last one toggled, in sorted order. |
+| `selectPage` | `(value: boolean) => void` | Picks or drops every record on the page. |
+| `selectAllMatching` | `() => void` | Picks every record the search and filters match. |
+| `clearSelection` | `() => void` | Drops the selection. |
+| `selecting` | `boolean` | Whether Select mode is on, for a layout without checkboxes. |
+| `setSelecting` | `(value: boolean, options?: { keep?: boolean }) => void` | Enters or leaves Select mode. Leaving clears the selection unless `keep`. |
+| `rowActions` | `((row: Row) => ReactNode) \| undefined` | Menu items for a record's row. |
+| `getRowHref` | `((row: Row) => string \| undefined) \| undefined` | A record's page. |
 | `recordName` | `{ one: string; other: string }` | What the records are called in messages. |
 | `loading` | `boolean` | Whether a load is under way. |
 | `error` | `boolean \| string` | Whether the load failed, or its message. |

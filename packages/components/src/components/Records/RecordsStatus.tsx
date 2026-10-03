@@ -1,14 +1,46 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 import { errorMessage } from './RecordsStates'
-import { useRecordsContext } from './context'
+import { isSelecting, useRecordsContext } from './context'
 
 const count = new Intl.NumberFormat('en-AU')
+// Long enough to sit between keystrokes, so a search announces its count once.
+const SETTLE_MS = 500
 
-/** Announces loading, errors and the result count to screen readers. */
+/** The value once it has held still, so a burst of changes announces once. */
+function useSettled(value: string) {
+  const [settled, setSettled] = useState(value)
+  useEffect(() => {
+    if (value === settled) return
+    const timer = setTimeout(() => setSettled(value), SETTLE_MS)
+    return () => clearTimeout(timer)
+  }, [value, settled])
+  return settled
+}
+
+/** Announces loading, errors, the result count and the selection to screen readers. */
 export function RecordsStatus() {
-  const { records } = useRecordsContext()
+  const { records, selectMode } = useRecordsContext()
   const total = records.resultCount
+  const selected = records.selectedCount
+  const results = useSettled(
+    records.filtered
+      ? `${count.format(total)} ${total === 1 ? 'result' : 'results'}`
+      : ''
+  )
+  const selection =
+    selected || isSelecting(records, selectMode)
+      ? [
+          // Entering says so; once records are picked the count is enough.
+          !selected && 'Select mode',
+          `${count.format(selected)} selected`,
+          results
+        ]
+          .filter(Boolean)
+          .join(', ')
+      : results
   // A retained error goes quiet during the fetch so it announces again after.
   const message = records.error
     ? records.loading
@@ -16,9 +48,7 @@ export function RecordsStatus() {
       : errorMessage(records)
     : records.loading && records.rows.length === 0
       ? 'Loading'
-      : records.filtered
-        ? `${count.format(total)} ${total === 1 ? 'result' : 'results'}`
-        : ''
+      : selection
   return (
     <p role='status' data-slot='records-status' className='sr-only'>
       {message}

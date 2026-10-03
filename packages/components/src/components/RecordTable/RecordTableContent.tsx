@@ -4,6 +4,8 @@ import {
   type CSSProperties,
   type ReactNode,
   type RefObject,
+  useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -17,24 +19,30 @@ import {
 } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isDev } from '../../utils/isDev'
 import { SortIcon } from '../DataTable/SortIcon'
 import { Progress } from '../Progress'
 import { RecordsEmpty, RecordsError } from '../Records/RecordsStates'
 import { useRecordsContext } from '../Records/context'
 import type { RecordsContentProps } from '../Records/layouts'
+import { pageState } from '../Records/selection'
 import { useStickyTop } from '../Records/stickyTop'
 import { surfaceClass, useSurface } from '../Records/surface'
+import { SURVIVOR } from '../Records/useBulkActions'
 import { ScrollArea } from '../ScrollArea'
 import {
   RecordTableRow,
+  actionsCellClass,
   cellClass,
   pinStyle,
   rowClass,
+  selectCellClass,
   titleColumn
 } from './RecordTableRow'
+import { RecordTablePageCheckbox } from './RecordTableSelectCell'
 import { RecordTableSkeletonRows, StateRow } from './RecordTableStates'
 import { shownColumns } from './columns'
-import { columnLayout, columnWidths, sameWidths } from './layout'
+import { SELECT_WIDTH, columnLayout, columnWidths, sameWidths } from './layout'
 import type { TableLayoutConfig } from './tableLayout'
 
 /**
@@ -63,6 +71,8 @@ const SIDEWAYS_ONLY = {
   overscrollBehaviorX: 'contain',
   overscrollBehaviorY: 'auto'
 } as const
+
+const headerTextClass = 'text-xs font-semibold whitespace-nowrap text-subtle'
 
 const STICKY_BAR = {
   position: 'sticky',
@@ -104,7 +114,14 @@ export function RecordTableContent({
   fill = false,
   config
 }: RecordTableContentProps) {
-  const { records, caption, toolbar, setContentFill } = useRecordsContext()
+  const {
+    records,
+    caption,
+    toolbar,
+    setContentFill,
+    bulkMounted,
+    setBulkSlot
+  } = useRecordsContext()
   const headRef = useRef<HTMLDivElement>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
   // In its own box, one viewport scrolls both ways; otherwise only the rows scroll sideways.
@@ -125,6 +142,33 @@ export function RecordTableContent({
     return () => setContentFill(false)
   }, [fill, setContentFill])
 
+  const { selectable, getRowHref } = records
+  // Presence, not identity: an inline rowActions is new every render.
+  const hasRowActions = Boolean(records.rowActions)
+  // Stable, so a selection change or an inline rowActions leaves other rows alone.
+  const latest = useRef(records)
+  useLayoutEffect(() => {
+    latest.current = records
+  })
+  const toggleRow = useCallback(
+    (id: string, range: boolean) => latest.current.toggleRow(id, { range }),
+    []
+  )
+  const rowActions = useCallback(
+    (row: object) => latest.current.rowActions?.(row),
+    []
+  )
+  const missingLinkColumn = getRowHref !== undefined && title === undefined
+  // Once per table: a warning per row would flood the console.
+  const warnedNoLinkColumn = useRef(false)
+  useEffect(() => {
+    if (!missingLinkColumn || warnedNoLinkColumn.current || !isDev()) return
+    warnedNoLinkColumn.current = true
+    console.warn(
+      '[Roadie] Records getRowHref is set but no column can carry the link: show a text column for the link to attach to.'
+    )
+  }, [missingLinkColumn])
+
   const sampled = useMemo(
     () => columnWidths(columns, records.data, records.timeZone),
     [columns, records.data, records.timeZone]
@@ -133,7 +177,14 @@ export function RecordTableContent({
   const [kept, keep] = useState(sampled)
   const widths = sameWidths(kept, sampled) ? kept : sampled
   if (widths !== kept) keep(widths)
-  const layout = useMemo(() => columnLayout(columns, widths), [columns, widths])
+  const layout = useMemo(
+    () =>
+      columnLayout(columns, widths, {
+        select: selectable,
+        actions: hasRowActions
+      }),
+    [columns, widths, selectable, hasRowActions]
+  )
   const style = {
     '--record-table-columns': layout.template,
     '--record-table-min-width': `${layout.minWidth}rem`
@@ -145,10 +196,33 @@ export function RecordTableContent({
   const awaitingRows = busy && rows.length === 0
   // What the rows show: a sort the fields can't apply marks nothing.
   const sort = records.resolvedQuery.sort
+  const pageIds = rows.map((row) => row.id)
+
+  const hasBulkSlot = bulkMounted && selectable
+  // The bulk actions take the header's place, so the rows never move.
+  const barShown = hasBulkSlot && records.selectedCount > 0
+  // A sort button under the bar unmounts; its focus lands on Select page.
+  const sortFocused = useRef(false)
+  useLayoutEffect(() => {
+    if (!barShown || !sortFocused.current) return
+    sortFocused.current = false
+    const active = document.activeElement
+    if (active && active !== document.body && active.isConnected) return
+    headRef.current
+      ?.querySelector<HTMLElement>('[data-slot="record-table-page-checkbox"]')
+      ?.focus()
+  }, [barShown])
+  // The head scrolls only with the header row; back, it rejoins the rows.
+  useLayoutEffect(() => {
+    if (!barShown && scrollerRef.current)
+      syncScroll(scrollerRef.current, headRef)
+  }, [barShown])
+  const columnCount =
+    columns.length + (selectable ? 1 : 0) + (hasRowActions ? 1 : 0)
 
   // Error, then skeleton, then empty: what replaces the rows.
   const state = records.error ? (
-    <StateRow columns={columns.length}>
+    <StateRow columns={columnCount}>
       <RecordsError records={records} />
     </StateRow>
   ) : awaitingRows ? (
@@ -158,7 +232,7 @@ export function RecordTableContent({
       size={records.position.pageSize}
     />
   ) : rows.length === 0 ? (
-    <StateRow columns={columns.length}>
+    <StateRow columns={columnCount}>
       <RecordsEmpty records={records} />
     </StateRow>
   ) : null
@@ -173,6 +247,10 @@ export function RecordTableContent({
           layout={layout}
           title={title}
           timeZone={records.timeZone}
+          selected={selectable ? records.isSelected(row.id) : undefined}
+          onToggle={toggleRow}
+          rowActions={hasRowActions ? rowActions : undefined}
+          href={getRowHref?.(row.row)}
         />
       ))}
     </div>
@@ -181,10 +259,12 @@ export function RecordTableContent({
   const content = (
     <div
       data-slot='record-table-frame'
+      data-records-content=''
       // In a box, the viewport is the region: it holds the focus.
       role={boxed ? undefined : 'region'}
       aria-label={boxed ? undefined : `${caption ?? 'Table'}, scrolls sideways`}
-      className={boxed ? undefined : className}
+      // A container, so the bulk actions bar spans the frame's visible width.
+      className={boxed ? undefined : cn('@container', className)}
     >
       <MeasuredWidth measured={boxed}>
         <div
@@ -210,14 +290,46 @@ export function RecordTableContent({
             className={cn(
               'sticky z-docked',
               surfaceClass,
-              !boxed && 'overflow-hidden'
+              // The bar fits the frame, so nothing to clip but its focus rings.
+              !boxed && !barShown && 'overflow-hidden'
             )}
           >
             <div
               role='row'
               data-slot='record-table-head-row'
-              className={cn(rowClass, 'h-9 border-b border-normal')}
+              onFocus={(event) => {
+                sortFocused.current = event.target.hasAttribute('data-sort')
+              }}
+              onBlur={(event) => {
+                // A removed button may blur on its way out; that one still counts.
+                if (event.relatedTarget || event.target.isConnected)
+                  sortFocused.current = false
+              }}
+              className={cn(
+                'h-9 border-b border-normal',
+                // Frame wide and stuck at its start, so it never scrolls sideways with the columns.
+                barShown
+                  ? 'sticky start-0 flex w-[100cqi] items-center'
+                  : rowClass
+              )}
             >
+              {selectable && (
+                <div
+                  role='columnheader'
+                  className={cn(
+                    selectCellClass,
+                    headerTextClass,
+                    barShown && 'h-full shrink-0'
+                  )}
+                  style={barShown ? { width: `${SELECT_WIDTH}rem` } : undefined}
+                >
+                  <RecordTablePageCheckbox
+                    state={pageState(records.selection, pageIds)}
+                    onChange={records.selectPage}
+                    disabled={rows.length === 0 || Boolean(records.error)}
+                  />
+                </div>
+              )}
               {columns.map((column, index) => {
                 const direction =
                   sort[0]?.field === column.key ? sort[0].direction : undefined
@@ -227,17 +339,20 @@ export function RecordTableContent({
                     role='columnheader'
                     aria-sort={direction}
                     data-pin={column.pin || undefined}
-                    className={cn(
-                      cellClass(column),
-                      'text-xs font-semibold whitespace-nowrap text-subtle'
-                    )}
+                    className={
+                      // Still read under the bar, so cells keep their headers.
+                      barShown
+                        ? 'sr-only'
+                        : cn(cellClass(column), headerTextClass)
+                    }
                     style={pinStyle(layout.pinnedStart[index])}
                   >
-                    {column.field.sortable === false ? (
+                    {barShown || column.field.sortable === false ? (
                       column.field.label
                     ) : (
                       <button
                         type='button'
+                        data-sort=''
                         onClick={() =>
                           records.setSort(nextSort(column.field, sort))
                         }
@@ -256,6 +371,26 @@ export function RecordTableContent({
                   </div>
                 )
               })}
+              {hasRowActions && (
+                <div
+                  role='columnheader'
+                  className={
+                    barShown ? 'sr-only' : cn(actionsCellClass, headerTextClass)
+                  }
+                >
+                  <span className='sr-only'>Actions</span>
+                </div>
+              )}
+              {hasBulkSlot && (
+                <div
+                  ref={setBulkSlot}
+                  // Last, with no cells under it, so every column keeps its own header.
+                  role='columnheader'
+                  data-slot='record-table-bulk-slot'
+                  hidden={!barShown}
+                  className='flex h-full min-w-0 flex-1'
+                />
+              )}
             </div>
             {dimmed && (
               <div
@@ -275,6 +410,7 @@ export function RecordTableContent({
             <div
               ref={scrollerRef}
               data-slot='record-table-scroller'
+              {...{ [SURVIVOR]: 'rows' }}
               tabIndex={-1}
               className={cn('isolate', dimmed && 'opacity-60')}
             >
@@ -289,6 +425,7 @@ export function RecordTableContent({
               <ScrollArea.Viewport
                 ref={scrollerRef}
                 data-slot='record-table-scroller'
+                {...{ [SURVIVOR]: 'rows' }}
                 // Focusable, so not Base UI's presentation role; the frame names the region.
                 role={undefined}
                 tabIndex={0}
@@ -320,7 +457,11 @@ export function RecordTableContent({
       data-slot='record-table-box'
       data-pane-fill={fill || undefined}
       // basis-0, not flex-1: a percentage basis in a column of unknown height falls back to content.
-      className={cn(fill && 'h-full min-h-0 grow basis-0', className)}
+      className={cn(
+        '@container',
+        fill && 'h-full min-h-0 grow basis-0',
+        className
+      )}
     >
       <ScrollArea.Viewport
         data-slot='record-table-viewport'

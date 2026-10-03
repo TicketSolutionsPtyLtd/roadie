@@ -1,6 +1,12 @@
 'use client'
 
-import { type ComponentProps, type ReactNode, useState } from 'react'
+import {
+  type ComponentProps,
+  type ReactNode,
+  useLayoutEffect,
+  useRef,
+  useState
+} from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -10,6 +16,7 @@ import {
   useRecordsContext
 } from './context'
 import type { AnyRecordLayout } from './layouts'
+import { leaveSelectOnEscape } from './selectMode'
 import type { RecordsInstance } from './useRecords'
 
 export type RecordsProviderProps<Row extends object = object> = {
@@ -30,17 +37,41 @@ export function RecordsProvider<Row extends object>({
 }: RecordsProviderProps<Row>) {
   const [contentFill, setContentFill] = useState(false)
   const [toolbar, setToolbar] = useState<RecordsToolbarBox | null>(null)
+  const [selectMode, setSelectMode] = useState(false)
+  const [bulkMounted, setBulkMounted] = useState(false)
+  const [bulkSlot, setBulkSlot] = useState<HTMLElement | null>(null)
+  const [selectControls, setSelectControls] = useState(false)
+  const [bulkRunning, setBulkRunning] = useState<number | null>(null)
+  const [bulkConfirming, setBulkConfirming] = useState<number | null>(null)
+  // Parts read rows as plain objects; the consumer's Row narrows them.
+  const shared = records as unknown as RecordsInstance
+  const latestRecords = useRef(shared)
+  useLayoutEffect(() => {
+    latestRecords.current = shared
+  })
   return (
     <RecordsContext
       value={{
-        // Parts read rows as plain objects; the consumer's Row narrows them.
-        records: records as unknown as RecordsInstance,
+        records: shared,
         layouts,
         caption,
         toolbar,
         setToolbar,
         contentFill,
-        setContentFill
+        setContentFill,
+        selectMode,
+        setSelectMode,
+        bulkMounted,
+        setBulkMounted,
+        bulkSlot,
+        setBulkSlot,
+        selectControls,
+        setSelectControls,
+        bulkRunning,
+        setBulkRunning,
+        bulkConfirming,
+        setBulkConfirming,
+        latestRecords
       }}
     >
       {children}
@@ -66,8 +97,13 @@ export function RecordsRoot<Row extends object>({
 }
 RecordsRoot.displayName = 'Records.Root'
 
-function RecordsRootElement({ className, ...props }: ComponentProps<'div'>) {
-  const { contentFill } = useRecordsContext()
+function RecordsRootElement({
+  className,
+  onKeyDown,
+  ...props
+}: ComponentProps<'div'>) {
+  const { records, contentFill } = useRecordsContext()
+  const leaveSelect = leaveSelectOnEscape(records)
   return (
     <div
       data-slot='records'
@@ -79,6 +115,10 @@ function RecordsRootElement({ className, ...props }: ComponentProps<'div'>) {
         contentFill && 'flex h-full min-h-0 flex-col',
         className
       )}
+      onKeyDown={(event) => {
+        onKeyDown?.(event)
+        leaveSelect(event)
+      }}
       {...props}
     />
   )

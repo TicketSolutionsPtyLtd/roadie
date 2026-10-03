@@ -9,6 +9,7 @@ export type {
   RecordPosition,
   RecordQuery,
   RecordQueryOptions,
+  RecordSelection,
   RecordSort,
   RecordSortDirection,
   RecordView,
@@ -29,6 +30,8 @@ export type {
 } from './builder'
 export { sortRecords } from './sort'
 export { formatRecordValue } from './format'
+export { recordsToCsv } from './csv'
+export type { RecordsToCsvOptions } from './csv'
 export type { FormatRecordValueOptions } from './format'
 export { validateRecordView } from './validate'
 export type { RecordViewValidation } from './validate'

@@ -7,7 +7,7 @@ export type ColumnLayout = {
   template: string
   /** In rem. */
   minWidth: number
-  /** Each pinned column's sticky offset, in rem. */
+  /** Each pinned column's sticky offset, in rem, after any select track. */
   pinnedStart: (number | undefined)[]
 }
 
@@ -71,12 +71,21 @@ export const sameWidths = (
 const track = ({ min, grow }: RecordColumnWidth) =>
   grow ? `minmax(${min}rem, ${grow}fr)` : `${min}rem`
 
+/** The checkbox track, pinned first. In rem. */
+export const SELECT_WIDTH = 2.5
+/** The row actions track, pinned last. In rem. */
+export const ACTIONS_WIDTH = 3
+
 export function columnLayout(
   columns: readonly RecordTableColumn[],
-  widths: readonly RecordColumnWidth[]
+  widths: readonly RecordColumnWidth[],
+  {
+    select = false,
+    actions = false
+  }: { select?: boolean; actions?: boolean } = {}
 ): ColumnLayout {
-  let minWidth = 0
-  let pinnedOffset = 0
+  let minWidth = (select ? SELECT_WIDTH : 0) + (actions ? ACTIONS_WIDTH : 0)
+  let pinnedOffset = select ? SELECT_WIDTH : 0
   const pinnedStart: (number | undefined)[] = []
   const tracks = columns.map((column, index) => {
     const width = widths[index]!
@@ -87,5 +96,7 @@ export function columnLayout(
     const offsetsNext = column.pin && columns[index + 1]?.pin === true
     return offsetsNext ? `${width.min}rem` : track(width)
   })
+  if (select) tracks.unshift(`${SELECT_WIDTH}rem`)
+  if (actions) tracks.push(`${ACTIONS_WIDTH}rem`)
   return { template: tracks.join(' '), minWidth, pinnedStart }
 }

@@ -58,6 +58,13 @@ export type RecordPosition = {
   row?: number
 }
 
+/**
+ * The records an action takes: picked ids, or everything the query matches
+ * except some. Session state like the position, never part of a view.
+ */
+export type RecordSelection =
+  { ids: readonly string[] } | { allMatching: true; except: readonly string[] }
+
 export type RecordFieldType =
   'text' | 'option' | 'number' | 'money' | 'date' | 'boolean'
 

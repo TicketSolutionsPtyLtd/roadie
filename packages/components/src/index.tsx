@@ -504,12 +504,18 @@ export {
 export {
   Records,
   RecordValue,
+  downloadCsv,
   useRecords,
   type AnyRecordLayout,
   type RecordLayoutDefinition,
   type RecordName,
   type RecordValueProps,
   type RecordViewDefaults,
+  type RecordsAction,
+  type RecordsActionConfirm,
+  type RecordsActionsProps,
+  type RecordsBulkAction,
+  type RecordsBulkActionsProps,
   type RecordsContentProps,
   type RecordsInstance,
   type RecordsPaginationProps,
@@ -518,6 +524,7 @@ export {
   type RecordsRootProps,
   type RecordsRow,
   type RecordsSearchProps,
+  type RecordsSelectProps,
   type RecordsToolbarProps,
   type UseRecordsOptions
 } from './components/Records'

@@ -378,3 +378,157 @@ describe('useRecords', () => {
     expect(result.current.onRetry).toBe(onRetry)
   })
 })
+
+describe('useRecords selection', () => {
+  const byId = (options: Partial<UseRecordsOptions<TestShow>> = {}) =>
+    setup({ getRowId: (row) => row.id, ...options })
+
+  it('starts empty and unselectable unless asked', () => {
+    const { result } = byId()
+    expect(result.current.selectable).toBe(false)
+    expect(result.current.selection).toEqual({ ids: [] })
+    expect(result.current.selectedCount).toBe(0)
+    expect(byId({ selectable: true }).result.current.selectable).toBe(true)
+  })
+
+  it('toggles a row and counts it', async () => {
+    const { result } = byId()
+    await act(() => result.current.toggleRow('show-3'))
+    expect(result.current.selectedCount).toBe(1)
+    expect(result.current.isSelected('show-3')).toBe(true)
+  })
+
+  it('selects a range with shift in the sorted order, across pages', async () => {
+    const { result } = byId({
+      defaultView: {
+        query: { sort: [{ field: 'show', direction: 'ascending' }] }
+      }
+    })
+    const order = result.current.matchingRows.map((row) => row.id)
+    await act(() => result.current.toggleRow(order[48]!))
+    await act(() => result.current.toggleRow(order[52]!, { range: true }))
+    expect(result.current.selectedCount).toBe(5)
+    expect(order.slice(48, 53).every(result.current.isSelected)).toBe(true)
+  })
+
+  it('selects the page, then every matching row', async () => {
+    const { result } = byId()
+    await act(() => result.current.selectPage(true))
+    expect(result.current.selectedCount).toBe(50)
+    await act(() => result.current.selectAllMatching())
+    expect(result.current.selectedCount).toBe(120)
+    await act(() => result.current.clearSelection())
+    expect(result.current.selection).toEqual({ ids: [] })
+  })
+
+  it('drops all-matching when the search changes, keeping picked ids', async () => {
+    const { result } = byId()
+    await act(() => result.current.toggleRow('show-4'))
+    await act(() => result.current.setSearch('Hobart'))
+    expect(result.current.selectedCount).toBe(1)
+    await act(() => result.current.selectAllMatching())
+    await act(() => result.current.setSearch('Perth'))
+    expect(result.current.selection).toEqual({ ids: [] })
+  })
+
+  it('drops picked rows a new search or filter hides', async () => {
+    const { result } = byId()
+    await act(() => result.current.toggleRow('show-0'))
+    await act(() => result.current.setSearch('Perth'))
+    await act(() => result.current.toggleRow('show-3'))
+    expect(result.current.selection).toEqual({ ids: ['show-3'] })
+    await act(() =>
+      result.current.addFilter({
+        field: 'status',
+        operator: 'is',
+        values: ['cancelled']
+      })
+    )
+    expect(result.current.selection).toEqual({ ids: [] })
+  })
+
+  it('keeps the selection when only the sort or page changes', async () => {
+    const { result } = byId()
+    await act(() => result.current.selectAllMatching())
+    await act(() =>
+      result.current.setSort([{ field: 'sold', direction: 'descending' }])
+    )
+    await act(() => result.current.setPage(1))
+    expect(result.current.selectedCount).toBe(120)
+  })
+
+  it('keeps the selection when a relative filter resolves against a new now', async () => {
+    const { result, rerender } = byId({
+      now: new Date('2026-03-01T12:00:00Z'),
+      defaultView: {
+        query: {
+          filters: [{ field: 'starts', operator: 'within', value: 'past' }]
+        }
+      }
+    })
+    await act(() => result.current.selectAllMatching())
+    rerender({ now: new Date('2026-03-02T12:00:00Z') })
+    expect('allMatching' in result.current.selection).toBe(true)
+  })
+
+  it('reports changes and follows a controlled selection', async () => {
+    const onSelectionChange = vi.fn()
+    const { result } = byId({
+      selection: { ids: ['show-1'] },
+      onSelectionChange
+    })
+    await act(() => result.current.toggleRow('show-2'))
+    expect(onSelectionChange).toHaveBeenCalledWith({
+      ids: ['show-1', 'show-2']
+    })
+    expect(result.current.selectedCount).toBe(1)
+  })
+
+  it('tells a controlled parent when a search hides picked rows', async () => {
+    const onSelectionChange = vi.fn()
+    const { result } = byId({
+      selection: { ids: ['show-0', 'show-3'] },
+      onSelectionChange
+    })
+    await act(() => result.current.setSearch('Perth'))
+    expect(onSelectionChange).toHaveBeenLastCalledWith({ ids: ['show-3'] })
+    expect(result.current.selection).toEqual({ ids: ['show-3'] })
+  })
+
+  it('lists every matching row, sorted, across pages', async () => {
+    const { result } = byId()
+    await act(() => result.current.setSearch('Perth'))
+    expect(result.current.matchingRows).toHaveLength(24)
+    expect(result.current.matchingRows[0]).toEqual({
+      id: 'show-3',
+      row: shows[3]
+    })
+  })
+
+  it('enters Select mode only when selectable, and leaving clears', async () => {
+    expect(
+      (() => {
+        const { result } = byId()
+        act(() => result.current.setSelecting(true))
+        return result.current.selecting
+      })()
+    ).toBe(false)
+    const { result } = byId({ selectable: true })
+    await act(() => result.current.setSelecting(true))
+    await act(() => result.current.toggleRow('show-1'))
+    expect(result.current.selecting).toBe(true)
+    await act(() => result.current.setSelecting(false, { keep: true }))
+    expect(result.current.selectedCount).toBe(1)
+    await act(() => result.current.setSelecting(true))
+    await act(() => result.current.setSelecting(false))
+    expect(result.current.selectedCount).toBe(0)
+  })
+
+  it('passes row actions and links through', () => {
+    const rowActions = () => null
+    const getRowHref = (row: TestShow) => `/shows/${row.id}`
+    const { result } = byId({ rowActions, getRowHref })
+    expect(result.current.rowActions).toBe(rowActions)
+    expect(result.current.getRowHref).toBe(getRowHref)
+  })
+})
