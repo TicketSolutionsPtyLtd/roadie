@@ -301,3 +301,100 @@ describe('Autocomplete first suggestion', () => {
     }
   )
 })
+
+const suggestionNames = () =>
+  screen.getAllByRole('option').map((option) => option.textContent)
+
+type Region = { value: string; items: string[] }
+
+describe('Autocomplete closest match', () => {
+  it('takes the exact match on Enter, not the first in the list', async () => {
+    render(<Cities items={['North Sydney', 'Sydney']} />)
+    await userEvent.type(cityInput(), 'Sydney')
+    await screen.findByRole('option', { name: 'North Sydney' })
+    expect(suggestionNames()).toEqual(['Sydney', 'North Sydney'])
+    await userEvent.keyboard('{Enter}')
+    expect(cityInput()).toHaveValue('Sydney')
+  })
+
+  it('ranks suggestions within each group and keeps the group order', async () => {
+    render(
+      <Autocomplete
+        items={[
+          { value: 'Victoria', items: ['North Melbourne', 'Melbourne'] },
+          { value: 'Queensland', items: ['Brisbane', 'Melbourne Street'] }
+        ]}
+      >
+        <Autocomplete.Input aria-label='City' />
+        <Autocomplete.Portal>
+          <Autocomplete.Positioner>
+            <Autocomplete.Popup>
+              <Autocomplete.List>
+                {(group: Region) => (
+                  <Autocomplete.Group key={group.value} items={group.items}>
+                    <Autocomplete.GroupLabel>
+                      {group.value}
+                    </Autocomplete.GroupLabel>
+                    <Autocomplete.Collection>
+                      {(city: string) => (
+                        <Autocomplete.Item key={city} value={city}>
+                          {city}
+                        </Autocomplete.Item>
+                      )}
+                    </Autocomplete.Collection>
+                  </Autocomplete.Group>
+                )}
+              </Autocomplete.List>
+            </Autocomplete.Popup>
+          </Autocomplete.Positioner>
+        </Autocomplete.Portal>
+      </Autocomplete>
+    )
+    await userEvent.type(cityInput(), 'melbourne')
+    await screen.findByRole('option', { name: 'Melbourne Street' })
+    expect(suggestionNames()).toEqual([
+      'Melbourne',
+      'North Melbourne',
+      'Melbourne Street'
+    ])
+    expect(screen.getAllByRole('group')).toHaveLength(2)
+  })
+
+  it('keeps the order a consumer filter gives', async () => {
+    render(
+      <Cities
+        items={['North Sydney', 'Sydney']}
+        filter={(item, query) =>
+          String(item).toLowerCase().includes(query.toLowerCase())
+        }
+      />
+    )
+    await userEvent.type(cityInput(), 'Sydney')
+    await screen.findByRole('option', { name: 'Sydney' })
+    expect(suggestionNames()).toEqual(['North Sydney', 'Sydney'])
+  })
+
+  it('keeps the order of results with filter off', async () => {
+    render(<Cities items={['North Sydney', 'Sydney']} filter={null} />)
+    await userEvent.type(cityInput(), 'Sydney')
+    await screen.findByRole('option', { name: 'Sydney' })
+    expect(suggestionNames()).toEqual(['North Sydney', 'Sydney'])
+  })
+
+  it.each(['none', 'inline'] as const)(
+    'keeps the given order in %s mode, which does not filter',
+    async (mode) => {
+      render(<Cities items={['North Sydney', 'Sydney']} mode={mode} />)
+      await userEvent.type(cityInput(), 'Sydney')
+      await screen.findByRole('option', { name: 'Sydney' })
+      expect(suggestionNames()).toEqual(['North Sydney', 'Sydney'])
+    }
+  )
+
+  it('ranks in both mode', async () => {
+    render(<Cities items={['North Sydney', 'Sydney']} mode='both' />)
+    await userEvent.type(cityInput(), 'Sydney')
+    await screen.findByRole('option', { name: 'North Sydney' })
+    expect(suggestionNames()).toEqual(['Sydney', 'North Sydney'])
+  })
+})

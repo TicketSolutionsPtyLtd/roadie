@@ -7,6 +7,7 @@ import {
   usePointerHighlight,
   useTypedQuery
 } from '../../utils/optionHighlight'
+import { useRankedItems } from '../../utils/rankMatches'
 
 export type ComboboxRootProps<
   Value = unknown,
@@ -37,11 +38,22 @@ export function ComboboxRoot<
   onOpenChange,
   onValueChange,
   autoHighlight = true,
+  items,
   ...props
 }: ComboboxRootProps<Value, Multiple, Item>) {
   const [byPointer, handleItemHighlighted] =
     usePointerHighlight(onItemHighlighted)
-  const { typed, handleQueryChange, resetTyped } = useTypedQuery(props.open)
+  const { typed, query, handleQueryChange, resetTyped } = useTypedQuery(
+    props.open
+  )
+  const ranked = useRankedItems(items, {
+    enabled: props.filter === undefined && props.filteredItems === undefined,
+    query,
+    open: props.open,
+    defaultOpen: props.defaultOpen,
+    label: props.itemToStringLabel,
+    locale: props.locale
+  })
   // Base UI types 'always' for Autocomplete only; its Combobox handles it.
   const mode = (autoHighlight && typed ? 'always' : false) as AutoHighlightMode
   return (
@@ -49,6 +61,7 @@ export function ComboboxRoot<
       <ComboboxPrimitive.Root
         onItemHighlighted={handleItemHighlighted}
         autoHighlight={mode}
+        items={ranked.items}
         onInputValueChange={(next, details) => {
           onInputValueChange?.(next, details)
           handleQueryChange(next, details)
@@ -56,6 +69,7 @@ export function ComboboxRoot<
         onOpenChange={(open, details) => {
           onOpenChange?.(open, details)
           if (!open) resetTyped(details)
+          ranked.handleOpenChange(open, details)
         }}
         onValueChange={(next, details) => {
           onValueChange?.(next, details)

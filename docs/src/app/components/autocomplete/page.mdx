@@ -232,7 +232,7 @@ function AutocompleteWithGroups() {
         <Autocomplete.Positioner>
           <Autocomplete.Popup>
             <Autocomplete.List>
-              {groups.map((group) => (
+              {(group) => (
                 <Autocomplete.Group key={group.value} items={group.items}>
                   <Autocomplete.GroupLabel>{group.value}</Autocomplete.GroupLabel>
                   <Autocomplete.Collection>
@@ -243,7 +243,7 @@ function AutocompleteWithGroups() {
                     )}
                   </Autocomplete.Collection>
                 </Autocomplete.Group>
-              ))}
+              )}
             </Autocomplete.List>
             <Autocomplete.Empty>No cities found</Autocomplete.Empty>
           </Autocomplete.Popup>
@@ -354,17 +354,30 @@ item:
 `Autocomplete.Empty` only renders when the filtered list is empty. It requires
 the `items` prop on root.
 
-Enter takes the first suggestion, so order `items` with the likeliest match
-first, such as an exact match before partial ones. The filter keeps your
-order.
+The closest matches come first, so Enter takes the likeliest suggestion. An
+exact match leads, then labels that start with the text, then labels with a
+word that starts with it, then labels that contain it anywhere. Matches of the
+same kind keep the order of `items`, and grouped items are ranked within their
+group. Case and accents don't count, as in the filter.
+
+Typing "Sydney" over `['North Sydney', 'Sydney']` lists Sydney first, so Enter
+takes it. Opening the list without typing shows `items` in your order.
+
+Roadie ranks only what its default filter matches, in `list` and `both` mode.
+Pass your own `filter` or `filteredItems` to control the order yourself.
 
 ### Async loading
 
-For server-side search, update the `items` prop as results arrive. Use
+For server-side search, update the `items` prop as results arrive, and pass
+`filter={null}` so the server's matches keep their order. Use
 `Autocomplete.Status` to announce state changes to screen readers:
 
 ```tsx
-<Autocomplete items={results} onValueChange={(value) => fetchResults(value)}>
+<Autocomplete
+  items={results}
+  filter={null}
+  onValueChange={(value) => fetchResults(value)}
+>
   ...
   <Autocomplete.Status>{isLoading ? 'Loading...' : `${results.length} results`}</Autocomplete.Status>
 </Autocomplete>
@@ -388,7 +401,7 @@ since a highlight there would replace what the user typed.
 
 ### Keyboard behaviour
 
-- Typing filters the list in real time.
+- Typing filters the list in real time and puts the closest matches first.
 - Typing highlights the first suggestion, including suggestions that arrive
   later, so typing then pressing **Enter** takes it. Opening the list without
   typing highlights nothing new.

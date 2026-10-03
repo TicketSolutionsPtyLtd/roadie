@@ -310,3 +310,186 @@ describe('Combobox first match', () => {
     expect(onValueChange).not.toHaveBeenCalled()
   })
 })
+
+const optionNames = () =>
+  screen.getAllByRole('option').map((option) => option.textContent)
+
+type Genre = { value: string; items: string[] }
+
+function GroupedGenres(props: Partial<ComboboxProps<string, false, Genre>>) {
+  return (
+    <Combobox
+      items={[
+        { value: 'Heavy', items: ['Hard rock', 'Rock', 'Metal'] },
+        { value: 'Light', items: ['Soft rock', 'Rock and roll'] }
+      ]}
+      {...props}
+    >
+      <Combobox.Input aria-label='Genre' />
+      <Combobox.Portal>
+        <Combobox.Positioner>
+          <Combobox.Popup>
+            <Combobox.List>
+              {(group: Genre) => (
+                <Combobox.Group key={group.value} items={group.items}>
+                  <Combobox.GroupLabel>{group.value}</Combobox.GroupLabel>
+                  <Combobox.Collection>
+                    {(genre: string) => (
+                      <Combobox.Item key={genre} value={genre}>
+                        {genre}
+                      </Combobox.Item>
+                    )}
+                  </Combobox.Collection>
+                </Combobox.Group>
+              )}
+            </Combobox.List>
+          </Combobox.Popup>
+        </Combobox.Positioner>
+      </Combobox.Portal>
+    </Combobox>
+  )
+}
+
+describe('Combobox closest match', () => {
+  it('picks the exact match on Enter, not the first in the list', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Genres items={['Hard rock', 'Rock']} onValueChange={onValueChange} />
+    )
+    await userEvent.type(genreInput(), 'Rock')
+    await screen.findByRole('option', { name: 'Hard rock' })
+    expect(optionNames()).toEqual(['Rock', 'Hard rock'])
+    await userEvent.keyboard('{Enter}')
+    expect(onValueChange).toHaveBeenLastCalledWith('Rock', expect.anything())
+  })
+
+  it('holds the ranked order while the list closes', async () => {
+    render(<Genres items={['Hard rock', 'Rock']} />)
+    await userEvent.type(genreInput(), 'Rock')
+    await screen.findByRole('option', { name: 'Hard rock' })
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() =>
+      expect(genreInput()).toHaveAttribute('aria-expanded', 'false')
+    )
+    expect(optionNames()).toEqual(['Rock', 'Hard rock'])
+  })
+
+  it('ranks matches within each group and keeps the group order', async () => {
+    render(<GroupedGenres />)
+    await userEvent.type(genreInput(), 'rock')
+    await screen.findByRole('option', { name: 'Soft rock' })
+    expect(optionNames()).toEqual([
+      'Rock',
+      'Hard rock',
+      'Rock and roll',
+      'Soft rock'
+    ])
+    const groups = screen.getAllByRole('group')
+    expect(
+      groups.map((group) => group.getAttribute('aria-labelledby'))
+    ).toEqual([screen.getByText('Heavy').id, screen.getByText('Light').id])
+  })
+
+  it('shows the given order when opened without typing', async () => {
+    render(<Genres items={['Hard rock', 'Rock']} defaultValue='Rock' />)
+    await userEvent.click(screen.getByRole('button', { name: 'Show genres' }))
+    await screen.findByRole('option', { name: 'Hard rock' })
+    expect(optionNames()).toEqual(['Hard rock', 'Rock'])
+  })
+
+  it('shows the given order when reopened after adding a chip', async () => {
+    render(
+      <Combobox multiple items={['Hard rock', 'Rock', 'Jazz']}>
+        <Combobox.InputGroup>
+          <Combobox.Chips>
+            <Combobox.Input aria-label='Genre' />
+          </Combobox.Chips>
+        </Combobox.InputGroup>
+        <Combobox.Portal>
+          <Combobox.Positioner>
+            <Combobox.Popup>
+              <Combobox.List>
+                {(genre: string) => (
+                  <Combobox.Item key={genre} value={genre}>
+                    {genre}
+                  </Combobox.Item>
+                )}
+              </Combobox.List>
+            </Combobox.Popup>
+          </Combobox.Positioner>
+        </Combobox.Portal>
+      </Combobox>
+    )
+    await userEvent.type(genreInput(), 'Rock')
+    await screen.findByRole('option', { name: 'Hard rock' })
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() => expect(genreInput()).toHaveValue(''))
+    await userEvent.keyboard('{ArrowDown}')
+    await screen.findByRole('option', { name: 'Jazz' })
+    expect(optionNames()).toEqual(['Hard rock', 'Rock', 'Jazz'])
+  })
+
+  it('shows the given order when reopened in code', async () => {
+    function Controlled() {
+      const [open, setOpen] = useState(false)
+      return (
+        <>
+          <Genres
+            items={['Hard rock', 'Rock']}
+            open={open}
+            onOpenChange={setOpen}
+          />
+          <button
+            type='button'
+            data-toggle
+            onClick={() => setOpen((was) => !was)}
+          >
+            Toggle
+          </button>
+        </>
+      )
+    }
+    render(<Controlled />)
+    await userEvent.type(genreInput(), 'r')
+    await screen.findByRole('option', { name: 'Rock' })
+    expect(optionNames()).toEqual(['Rock', 'Hard rock'])
+    fireEvent.click(document.querySelector('[data-toggle]')!)
+    await waitFor(() => expect(screen.queryByRole('option')).toBeNull())
+    fireEvent.click(document.querySelector('[data-toggle]')!)
+    await screen.findByRole('option', { name: 'Rock' })
+    expect(optionNames()).toEqual(['Hard rock', 'Rock'])
+  })
+
+  it('keeps the order a consumer filter gives', async () => {
+    render(
+      <Genres
+        items={['Hard rock', 'Rock']}
+        filter={(item: string, query) =>
+          item.toLowerCase().includes(query.toLowerCase())
+        }
+      />
+    )
+    await userEvent.type(genreInput(), 'Rock')
+    await screen.findByRole('option', { name: 'Rock' })
+    expect(optionNames()).toEqual(['Hard rock', 'Rock'])
+  })
+
+  it('keeps the order of filteredItems', async () => {
+    render(
+      <Genres
+        items={['Hard rock', 'Rock']}
+        filteredItems={['Hard rock', 'Rock']}
+      />
+    )
+    await userEvent.type(genreInput(), 'Rock')
+    await screen.findByRole('option', { name: 'Rock' })
+    expect(optionNames()).toEqual(['Hard rock', 'Rock'])
+  })
+
+  it('keeps the order of results with filter off', async () => {
+    render(<Genres items={['Hard rock', 'Rock']} filter={null} />)
+    await userEvent.type(genreInput(), 'Rock')
+    await screen.findByRole('option', { name: 'Rock' })
+    expect(optionNames()).toEqual(['Hard rock', 'Rock'])
+  })
+})

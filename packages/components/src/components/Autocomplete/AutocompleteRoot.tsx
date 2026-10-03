@@ -7,6 +7,7 @@ import {
   usePointerHighlight,
   useTypedQuery
 } from '../../utils/optionHighlight'
+import { useRankedItems } from '../../utils/rankMatches'
 
 export type AutocompleteRootProps = Omit<
   AutocompletePrimitive.Root.Props<unknown>,
@@ -31,12 +32,27 @@ export function AutocompleteRoot({
   onValueChange,
   onOpenChange,
   autoHighlight,
+  items,
   ...props
 }: AutocompleteRootProps) {
   const [byPointer, handleItemHighlighted] =
     usePointerHighlight(onItemHighlighted)
-  const { typed, handleQueryChange, resetTyped } = useTypedQuery(props.open)
+  const { typed, query, handleQueryChange, resetTyped } = useTypedQuery(
+    props.open
+  )
   const fillsInput = mode === 'both' || mode === 'inline'
+  const filters = mode === undefined || mode === 'list' || mode === 'both'
+  const ranked = useRankedItems(items, {
+    enabled:
+      filters &&
+      props.filter === undefined &&
+      props.filteredItems === undefined,
+    query,
+    open: props.open,
+    defaultOpen: props.defaultOpen,
+    label: props.itemToStringValue,
+    locale: props.locale
+  })
   const highlightsFirst =
     autoHighlight === 'always' || ((autoHighlight ?? !fillsInput) && typed)
   return (
@@ -44,6 +60,7 @@ export function AutocompleteRoot({
       <AutocompletePrimitive.Root
         onItemHighlighted={handleItemHighlighted}
         mode={mode}
+        items={ranked.items}
         autoHighlight={highlightsFirst ? 'always' : false}
         onValueChange={(next, details) => {
           onValueChange?.(next, details)
@@ -54,6 +71,7 @@ export function AutocompleteRoot({
         onOpenChange={(open, details) => {
           onOpenChange?.(open, details)
           if (!open) resetTyped(details)
+          ranked.handleOpenChange(open, details)
         }}
         {...props}
       />
