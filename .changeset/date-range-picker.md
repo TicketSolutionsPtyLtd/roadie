@@ -12,9 +12,8 @@ The value is a `DateRangeValue` from `@oztix/roadie-core/datetime`. A preset
 is emitted as given, so "Last 30 days" stays relative when saved; typed or
 pressed dates become an absolute `{ start, end }`, and null when both are
 cleared. Nothing is emitted while typed text names no date. The typed Start
-and End are comboboxes that suggest dates as `DateField` does, and ranges too:
-choosing "Next week" from either fills both ends, and ranges that `min` or
-`max` refuse aren't offered. The button shows the range in words with the dates
+and End are comboboxes that suggest single dates as `DateField` does, never
+ranges, and End suggests nothing before the start. The button shows the range in words with the dates
 a relative range stands for, and is named "Choose dates, <label> (<range>)".
 
 `presets` replaces the default list (today, yesterday, recent periods and
@@ -28,6 +27,9 @@ takes `disabled` matchers, `readOnly` (shown with a lock), `invalid`,
 screens, one on narrow), `min`, `max`, `captionLayout`, `startMonth`,
 `endMonth`, `today`, `weekStart`, `locale` and `open`, `defaultOpen` and
 `onOpenChange`, and inherits its label, description, `invalid`, `required`
-and `disabled` from `Field`. In the drawer the presets come first, one month
-follows with days up to 48px wide, and Apply stays in view at its foot, with
-the header's Close as Cancel.
+and `disabled` from `Field`. The drawer fills the screen's height. Under its title a line sums up the dates
+chosen ("8 Sept to 7 Oct 2026 · 30 days"), and Periods and Calendar tabs
+switch between a list of presets, each with its dates, and Start and End over
+months that scroll under a pinned weekday row. Tapping End or Start picks
+which end the next day sets. With `commit='apply'`, Clear and Apply stay in
+view at its foot, with the header's Close as Cancel.

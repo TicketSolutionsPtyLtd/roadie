@@ -2,8 +2,6 @@
 
 import { useId } from 'react'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import { Toggle } from '../Toggle'
 import { type DateRangePreset, groupPresets, presetLabel } from './range'
 
@@ -11,8 +9,6 @@ const presetClass = 'justify-start whitespace-nowrap'
 
 export type PresetListProps = {
   presets: readonly DateRangePreset[]
-  /** A column beside the calendar from `sm`, rather than rows above it. */
-  beside?: boolean
   pressed: DateRangePreset | 'custom' | null
   onChoose: (preset: DateRangePreset) => void
   onCustom: () => void
@@ -23,7 +19,6 @@ export type PresetListProps = {
 /** Presets in their groups, then Custom range. */
 export function PresetList({
   presets,
-  beside = true,
   pressed,
   onChoose,
   onCustom,
@@ -32,7 +27,7 @@ export function PresetList({
 }: PresetListProps) {
   const id = useId()
   const buttons = (list: DateRangePreset[]) => (
-    <div className={cn('flex flex-wrap gap-1', beside && 'sm:grid sm:gap-0.5')}>
+    <div className={'flex flex-wrap gap-1 sm:grid sm:gap-0.5'}>
       {list.map((preset) => (
         <Toggle
           key={presets.indexOf(preset)}
@@ -55,10 +50,7 @@ export function PresetList({
       role='group'
       aria-label='Presets'
       data-slot='date-range-picker-presets'
-      className={cn(
-        'grid content-start gap-3',
-        beside && 'sm:border-e sm:border-subtle sm:pe-4'
-      )}
+      className='grid content-start gap-3 sm:border-e sm:border-subtle sm:pe-4'
     >
       {groupPresets(presets).map(({ group, presets: list }, index) =>
         group === undefined ? (
@@ -80,7 +72,7 @@ export function PresetList({
           </div>
         )
       )}
-      <div className={cn('flex', beside && 'sm:grid')}>
+      <div className='flex sm:grid'>
         <Toggle
           data-slot='date-range-picker-preset'
           data-custom=''

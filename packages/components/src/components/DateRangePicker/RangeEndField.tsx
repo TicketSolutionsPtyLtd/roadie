@@ -33,10 +33,11 @@ export type RangeEndFieldProps = {
   locale?: string
   disabled?: boolean
   inputRef?: Ref<HTMLInputElement>
-  /** The fewest and most days a suggested range may span. */
-  span?: { min?: number; max?: number }
-  /** A suggested range was taken: both ends change. */
-  onRange: (range: { start: string; end: string }) => void
+  /** The earliest date to suggest, such as the start for the end. */
+  suggestFrom?: string | null
+  /** The end the calendar sets next, marked so a tap reads as aimed. */
+  picking?: boolean
+  onFocus?: () => void
 }
 
 /** One end of a range: a typed date and, at minute granularity, a time. */
@@ -64,8 +65,9 @@ function RangeEndInputs({
   minuteStep,
   locale,
   inputRef,
-  span,
-  onRange
+  suggestFrom,
+  picking,
+  onFocus
 }: Omit<RangeEndFieldProps, 'error' | 'disabled'>) {
   const field = useFieldContext()
   const date = useTypedValue({
@@ -117,23 +119,16 @@ function RangeEndInputs({
         data-slot='date-range-picker-input'
         typed={date}
         suggest={(text) =>
-          suggestDates(text, {
-            ...read,
-            locale,
-            ranges: true,
-            minDays: span?.min,
-            maxDays: span?.max
-          })
+          suggestDates(text, { ...read, locale, from: suggestFrom })
         }
-        onChoose={({ start, end }) => {
-          if (start === end) return date.setValue(start)
-          // The range may leave this end's date as it was, so the typed
-          // text would stay; it has been taken, so it goes.
-          date.discard()
-          onRange({ start, end })
-        }}
+        onChoose={({ start }) => date.setValue(start)}
+        onFocus={onFocus}
         ref={inputRef}
-        className={inputVariants({ size: 'sm' })}
+        data-picking={picking ? '' : undefined}
+        className={cn(
+          inputVariants({ size: 'sm' }),
+          picking && 'border-normal intent-accent'
+        )}
       />
       {withTime && (
         <TypedInput

@@ -263,29 +263,18 @@ describe('DateRangePicker', () => {
   })
 
   describe('typed dates', () => {
-    it('fills both ends from a range suggested in the End field', async () => {
-      const onValueChange = vi.fn()
-      render(
-        <DateRangePicker
-          aria-label='Period'
-          today={TODAY}
-          onValueChange={onValueChange}
-        />
-      )
+    it('suggests no ranges in the Start field', async () => {
+      render(<DateRangePicker aria-label='Period' today={TODAY} />)
       const dialog = await open()
       await userEvent.type(
-        within(dialog).getByRole('combobox', { name: 'End' }),
+        within(dialog).getByRole('combobox', { name: 'Start' }),
         'next week'
       )
-      await screen.findByRole('option', { name: /^Next week/ })
-      await userEvent.keyboard('{Enter}')
-      expect(onValueChange).toHaveBeenCalledWith({
-        start: '2026-10-12',
-        end: '2026-10-18'
-      })
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      expect(screen.queryByRole('option', { name: /^Next week/ })).toBeNull()
     })
 
-    it('drops the typed text once a suggested range is taken', async () => {
+    it('suggests no End before the start', async () => {
       render(
         <DateRangePicker
           aria-label='Period'
@@ -294,28 +283,14 @@ describe('DateRangePicker', () => {
         />
       )
       const dialog = await open()
-      const start = within(dialog).getByRole('combobox', { name: 'Start' })
-      await userEvent.clear(start)
-      await userEvent.type(start, 'next week')
-      await screen.findByRole('option', { name: /^Next week/ })
-      await userEvent.keyboard('{Enter}')
-      expect(start).toHaveValue('12 Oct 2026')
-      expect(within(dialog).getByRole('combobox', { name: 'End' })).toHaveValue(
-        '18 Oct 2026'
-      )
-    })
-
-    it('leaves out suggested ranges outside min and max', async () => {
-      render(
-        <DateRangePicker aria-label='Period' today={TODAY} min={3} max={7} />
-      )
-      const dialog = await open()
-      await userEvent.type(
-        within(dialog).getByRole('combobox', { name: 'Start' }),
-        'this wee'
-      )
-      await screen.findByRole('option', { name: /^This week/ })
-      expect(screen.queryByRole('option', { name: /^This weekend/ })).toBeNull()
+      const end = within(dialog).getByRole('combobox', { name: 'End' })
+      await userEvent.clear(end)
+      await userEvent.type(end, 'tom')
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      expect(screen.queryByRole('option', { name: /^Tomorrow/ })).toBeNull()
+      await userEvent.clear(end)
+      await userEvent.type(end, 'next tue')
+      await screen.findByRole('option', { name: /^Next Tue/ })
     })
 
     it('reads typed start and end dates and stays open', async () => {
@@ -1018,7 +993,7 @@ describe('DateRangePicker', () => {
 })
 
 describe('DateRangePicker on a phone', () => {
-  it('keeps Apply in the drawer footer, out of the scroll', async () => {
+  it('keeps Clear and Apply in the drawer footer, out of the scroll', async () => {
     onPhone()
     const onValueChange = vi.fn()
     render(
@@ -1034,25 +1009,80 @@ describe('DateRangePicker on a phone', () => {
     )
     const dialog = await open()
     expect(dialog).toHaveAccessibleName('Choose dates, Sales period')
-    expect(within(dialog).getByRole('heading')).toHaveTextContent(
+    expect(within(dialog).getAllByRole('heading')[0]).toHaveTextContent(
       'Sales period'
     )
     const footer = dialog.querySelector<HTMLElement>(
       '[data-slot="drawer-footer"]'
     )!
     const body = dialog.querySelector<HTMLElement>('[data-slot="drawer-body"]')!
-    expect(within(body).getByRole('group', { name: 'Presets' })).toBeVisible()
+    expect(within(body).getByRole('list', { name: 'Periods' })).toBeVisible()
     expect(within(body).queryByRole('button', { name: 'Apply' })).toBeNull()
     expect(within(dialog).queryByRole('button', { name: 'Cancel' })).toBeNull()
+    expect(within(footer).getByRole('button', { name: 'Clear' })).toBeVisible()
     await userEvent.click(
-      within(dialog).getByRole('button', { name: 'Last week' })
+      within(dialog).getByRole('button', { name: /^Last week/ })
     )
+    expect(onValueChange).not.toHaveBeenCalled()
     await userEvent.click(within(footer).getByRole('button', { name: 'Apply' }))
     expect(onValueChange).toHaveBeenCalledWith('last-week')
     await vi.waitFor(() =>
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     )
     expect(trigger()).toHaveFocus()
+  })
+
+  it('clears the dates, and Apply sends null', async () => {
+    onPhone()
+    const onValueChange = vi.fn()
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        commit='apply'
+        defaultValue='yesterday'
+        onValueChange={onValueChange}
+      />
+    )
+    const dialog = await open()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Clear' }))
+    expect(within(dialog).getByRole('button', { name: 'Clear' })).toBeDisabled()
+    expect(dialog).toHaveAccessibleDescription('No dates chosen')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Apply' }))
+    expect(onValueChange).toHaveBeenCalledWith(null)
+  })
+
+  it('keeps Apply off after Clear when a range is required', async () => {
+    onPhone()
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        commit='apply'
+        required
+        defaultValue='yesterday'
+      />
+    )
+    const dialog = await open()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Clear' }))
+    expect(within(dialog).getByRole('button', { name: 'Apply' })).toBeDisabled()
+  })
+
+  it('reopens on the view the value calls for, whatever was left', async () => {
+    onPhone()
+    render(
+      <DateRangePicker aria-label='Period' today={TODAY} defaultValue='today' />
+    )
+    let dialog = await open()
+    await userEvent.click(within(dialog).getByRole('tab', { name: 'Calendar' }))
+    await userEvent.keyboard('{Escape}')
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    dialog = await open()
+    expect(
+      within(dialog).getByRole('tab', { name: 'Periods' })
+    ).toHaveAttribute('aria-selected', 'true')
   })
 })
 
