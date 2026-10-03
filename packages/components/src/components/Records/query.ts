@@ -24,6 +24,7 @@ export type AppliedQuery = {
   resolved: ResolvedRecordQuery
   /** What the view asks for that these fields can't apply, for a dev warning. */
   skipped: string[]
+  skippedFilters: number[]
 }
 
 function describe(filter: RecordFilter) {
@@ -40,8 +41,11 @@ export function applyQuery(
   options: RecordQueryOptions
 ): AppliedQuery {
   const skipped: string[] = []
-  const keys = new Set(fields.map((field) => field.key))
-  const filters = query.filters.flatMap((filter) => {
+  const skippedFilters: number[] = []
+  const sortable = new Set(
+    fields.filter((field) => field.sortable !== false).map((field) => field.key)
+  )
+  const filters = query.filters.flatMap((filter, index) => {
     try {
       const [resolved] = resolveRecordQuery(
         { search: '', filters: [filter], sort: [] },
@@ -51,12 +55,13 @@ export function applyQuery(
       return [resolved!]
     } catch (error) {
       skipped.push(`${describe(filter)}: ${(error as Error).message}`)
+      skippedFilters.push(index)
       return []
     }
   })
   const sort = query.sort.filter(({ field }) => {
-    if (keys.has(field)) return true
-    skipped.push(`sort on unknown field "${field}"`)
+    if (sortable.has(field)) return true
+    skipped.push(`sort on "${field}", which no sortable field has`)
     return false
   })
   return {
@@ -66,7 +71,8 @@ export function applyQuery(
       sort,
       timeZone: options.timeZone
     },
-    skipped
+    skipped,
+    skippedFilters
   }
 }
 

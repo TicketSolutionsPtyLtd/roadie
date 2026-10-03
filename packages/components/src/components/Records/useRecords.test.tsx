@@ -7,9 +7,8 @@ import { type TestShow, showFields, testShows } from './testUtils'
 import { type UseRecordsOptions, useRecords } from './useRecords'
 
 const shows = testShows(120)
-const names = (result: {
-  current: { rows: readonly { record: TestShow }[] }
-}) => result.current.rows.map((row) => row.record.show)
+const names = (result: { current: { rows: readonly { row: TestShow }[] } }) =>
+  result.current.rows.map((row) => row.row.show)
 
 const setup = (options: Partial<UseRecordsOptions<TestShow>> = {}) =>
   renderHook(
@@ -36,7 +35,7 @@ describe('useRecords', () => {
   it('ids rows by getRowId, or by their index in data', () => {
     expect(setup().result.current.rows[3]!.id).toBe('3')
     const { result } = setup({ getRowId: (row) => row.id })
-    expect(result.current.rows[3]).toEqual({ id: 'show-3', record: shows[3] })
+    expect(result.current.rows[3]).toEqual({ id: 'show-3', row: shows[3] })
   })
 
   it('searches every word, trimmed and ignoring case', async () => {
@@ -73,7 +72,7 @@ describe('useRecords', () => {
     await act(() =>
       result.current.setSort([{ field: 'gross', direction: 'descending' }])
     )
-    const gross = result.current.rows.map((row) => row.record.gross)
+    const gross = result.current.rows.map((row) => row.row.gross)
     const numbers = gross.filter((value) => typeof value === 'number')
     expect(numbers).toEqual([...numbers].sort((a, b) => b - a))
     expect(
@@ -101,7 +100,7 @@ describe('useRecords', () => {
     expect(
       result.current.rows.every(
         (row) =>
-          row.record.city === 'Perth' && row.record.starts.startsWith('2026-03')
+          row.row.city === 'Perth' && row.row.starts.startsWith('2026-03')
       )
     ).toBe(true)
   })
@@ -167,9 +166,26 @@ describe('useRecords', () => {
     })
     rerender({})
     expect(result.current.resultCount).toBe(24)
+    expect(result.current.skippedFilters).toEqual([0, 2])
     expect(result.current.filtered).toBe(true)
     expect(warn).toHaveBeenCalledTimes(1)
     expect(warn.mock.calls[0]![0]).toMatch(/\[Roadie\] Records.*venue/s)
+    warn.mockRestore()
+  })
+
+  it('skips a sort on a field that does not sort', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const fields = showFields.map((field) =>
+      field.key === 'sold' ? { ...field, sortable: false } : field
+    )
+    const { result } = setup({
+      fields,
+      defaultView: {
+        query: { sort: [{ field: 'sold', direction: 'ascending' }] }
+      }
+    })
+    expect(result.current.resolvedQuery.sort).toEqual([])
+    expect(names(result)[0]).toBe(shows[0]!.show)
     warn.mockRestore()
   })
 
@@ -180,7 +196,8 @@ describe('useRecords', () => {
     await act(() => result.current.setLayout(layout))
     expect(result.current.view.layout).toEqual(layout)
     expect(onViewChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({ layout })
+      expect.objectContaining({ layout }),
+      { page: 0, pageSize: 50, row: 0 }
     )
   })
 
@@ -262,12 +279,55 @@ describe('useRecords', () => {
       view: view({ search: 'Hobart' }),
       onViewChange
     })
-    expect(
-      result.current.rows.every((row) => row.record.city === 'Hobart')
-    ).toBe(true)
+    expect(result.current.rows.every((row) => row.row.city === 'Hobart')).toBe(
+      true
+    )
     await act(() => result.current.setSearch('Perth'))
-    expect(onViewChange).toHaveBeenCalledWith(view({ search: 'Perth' }))
+    expect(onViewChange).toHaveBeenCalledWith(view({ search: 'Perth' }), {
+      page: 0,
+      pageSize: 50,
+      row: 0
+    })
     expect(result.current.view.query.search).toBe('Hobart')
+  })
+
+  it('reports the page it resets first, then the view with that position', async () => {
+    const calls: string[] = []
+    const onViewChange = vi.fn((_view: RecordView, position: unknown) =>
+      calls.push(`view ${JSON.stringify(position)}`)
+    )
+    const onPositionChange = vi.fn(() => calls.push('position'))
+    const { result } = setup({
+      defaultPosition: { page: 2 },
+      onViewChange,
+      onPositionChange
+    })
+    await act(() => result.current.setSearch('Perth'))
+    expect(calls).toEqual(['position', 'view {"page":0,"pageSize":50,"row":0}'])
+  })
+
+  it('keeps its work for a view that is new but the same', () => {
+    const { result, rerender } = setup({ view: view({ search: 'Perth' }) })
+    const resolved = result.current.resolvedQuery
+    rerender({ view: view({ search: 'Perth' }) })
+    expect(result.current.resolvedQuery).toBe(resolved)
+    rerender({ view: view({ search: 'Hobart' }) })
+    expect(result.current.resolvedQuery).not.toBe(resolved)
+  })
+
+  it.each<[RecordPosition, Required<RecordPosition>]>([
+    [
+      { page: -1, pageSize: 0 },
+      { page: 0, pageSize: 1, row: 0 }
+    ],
+    [
+      { page: 1.5, pageSize: Number.NaN },
+      { page: 1, pageSize: 50, row: 0 }
+    ],
+    [{ pageSize: -10 }, { page: 0, pageSize: 1, row: 0 }]
+  ])('reads position %j as %j', (position, expected) => {
+    const { result } = setup({ position })
+    expect(result.current.position).toEqual(expected)
   })
 
   it('survives a new data array every render', () => {

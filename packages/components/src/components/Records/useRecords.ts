@@ -35,7 +35,8 @@ export type UseRecordsOptions<Row extends object> = {
   getRowId?: (row: Row, index: number) => string
   view?: RecordView
   defaultView?: RecordViewDefaults
-  onViewChange?: (view: RecordView) => void
+  /** Gets the position too: a change to the search, filters or sort returns to the first page, and `onPositionChange` hears that first. */
+  onViewChange?: (view: RecordView, position: Required<RecordPosition>) => void
   /** Page and page size: session state, never part of a view. */
   position?: RecordPosition
   defaultPosition?: RecordPosition
@@ -71,6 +72,8 @@ export type RecordsInstance<Row extends object = object> = {
   position: Required<RecordPosition>
   pageCount: number
   setView: (view: RecordView) => void
+  /** Filters in the view, by index, that these fields can't apply, so they filter nothing. */
+  skippedFilters: readonly number[]
   setSearch: (search: string) => void
   addFilter: (filter: RecordFilter) => void
   updateFilter: (index: number, filter: RecordFilter) => void
@@ -92,6 +95,20 @@ const RECORD: RecordName = { one: 'record', other: 'records' }
 const PAGE_SIZE = 50
 const indexId = (_: unknown, index: number) => String(index)
 const noSubscription = () => () => {}
+
+const whole = (value: number | undefined, min: number, fallback: number) =>
+  value === undefined || !Number.isFinite(value)
+    ? fallback
+    : Math.max(min, Math.floor(value))
+
+/** The last value equal by content, so a new but equal object keeps memos. */
+function useEqualValue<T>(value: T): T {
+  const [held, setHeld] = useState(value)
+  if (held === value) return held
+  if (JSON.stringify(held) === JSON.stringify(value)) return held
+  setHeld(value)
+  return value
+}
 const serverZone = () => 'UTC'
 
 export function useRecords<Row extends object>({
@@ -116,9 +133,9 @@ export function useRecords<Row extends object>({
   const [ownPosition, setOwnPosition] = useState(defaultPosition ?? {})
   const heldPosition = controlledPosition ?? ownPosition
   const position = {
-    page: heldPosition.page ?? 0,
-    pageSize: heldPosition.pageSize ?? PAGE_SIZE,
-    row: heldPosition.row ?? 0
+    page: whole(heldPosition.page, 0, 0),
+    pageSize: whole(heldPosition.pageSize, 1, PAGE_SIZE),
+    row: whole(heldPosition.row, 0, 0)
   }
   // The server can't know the viewer's zone, so it renders UTC and hydration
   // moves to the viewer's.
@@ -134,7 +151,8 @@ export function useRecords<Row extends object>({
 
   // The field paints each keystroke; filtering thousands of rows follows.
   const search = useDeferredValue(view.query.search)
-  const { filters, sort } = view.query
+  const filters = useEqualValue(view.query.filters)
+  const sort = useEqualValue(view.query.sort)
   const applied = useMemo(
     () =>
       applyQuery({ search, filters, sort }, fields, {
@@ -185,26 +203,25 @@ export function useRecords<Row extends object>({
   const start = position.page * position.pageSize
   const rows = matching
     .slice(start, start + position.pageSize)
-    .map((record) => ({
-      id: getRowId(record, indexOf.get(record) ?? 0),
-      record
-    }))
+    .map((row) => ({ id: getRowId(row, indexOf.get(row) ?? 0), row }))
 
-  const setView = (next: RecordView) => {
+  const setView = (
+    next: RecordView,
+    nextPosition: Required<RecordPosition> = position
+  ) => {
     if (!controlledView) setOwnView(next)
-    onViewChange?.(next)
+    onViewChange?.(next, nextPosition)
   }
   const setPosition = (next: Required<RecordPosition>) => {
     if (!controlledPosition) setOwnPosition(next)
     onPositionChange?.(next)
   }
-  const restart = () => {
-    if (position.page !== 0 || position.row !== 0)
-      setPosition({ ...position, page: 0, row: 0 })
-  }
+  // The position goes first and the view last, carrying the new position, so
+  // a parent writing both to one URL ends with the two agreeing.
   const setQuery = (query: Partial<RecordView['query']>) => {
-    setView({ ...view, query: { ...view.query, ...query } })
-    restart()
+    const first = { ...position, page: 0, row: 0 }
+    if (position.page !== 0 || position.row !== 0) setPosition(first)
+    setView({ ...view, query: { ...view.query, ...query } }, first)
   }
 
   return {
@@ -222,7 +239,8 @@ export function useRecords<Row extends object>({
     filtered: isFiltered(resolvedQuery),
     position,
     pageCount,
-    setView,
+    setView: (next) => setView(next),
+    skippedFilters: applied.skippedFilters,
     setSearch: (next) => setQuery({ search: next }),
     addFilter: (filter) => setQuery({ filters: [...filters, filter] }),
     updateFilter: (index, filter) =>

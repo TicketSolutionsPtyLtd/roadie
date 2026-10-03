@@ -80,6 +80,20 @@ describe('formatRecordValue', () => {
     ).toBe('$12,500')
   })
 
+  it('reads another currency like dollars at the edges', () => {
+    const gross: RecordField = {
+      key: 'gross',
+      label: 'Gross',
+      type: 'money',
+      currency: 'NZD'
+    }
+    const read = (value: number, format?: RecordField['format']) =>
+      formatRecordValue({ gross: value }, { ...gross, format }, options)
+    expect(read(Number.POSITIVE_INFINITY)).toBe('Not available')
+    expect(read(-1234.5)).toBe('-NZD\u00a01,234.50')
+    expect(read(1_234_567, 'compactCurrency')).toBe('NZD\u00a01.2M')
+  })
+
   it('shows text it cannot format as given', () => {
     expect(
       formatRecordValue({ starts: 'To be announced' }, field('starts'), options)

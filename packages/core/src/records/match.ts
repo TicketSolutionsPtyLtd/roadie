@@ -204,7 +204,7 @@ function matchesFilter(
   }
 }
 
-type SearchField = { key: string; labels: Map<unknown, string> }
+type SearchField = { key: string; labels: Map<string, string> }
 
 function searchFields(fields: readonly RecordField[]): SearchField[] {
   return fields.filter(isSearchable).map((field) => ({
@@ -221,7 +221,7 @@ function searchText(row: Row, fields: readonly SearchField[]): string {
       const value = read(row, key)
       if (isEmptyValue(value)) return []
       return list(value).flatMap((v) => {
-        const label = labels.get(v)
+        const label = labels.get(String(v))
         return label === undefined ? [String(v)] : [String(v), label]
       })
     })

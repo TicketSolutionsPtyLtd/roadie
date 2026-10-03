@@ -130,7 +130,7 @@ export const OZTIX_RECORDS: readonly OztixRecord[] = [
       {
         label: 'Last order',
         type: 'date',
-        shows: 'Medium date (27 Nov 2026)'
+        shows: 'Date and time in the reader’s zone (27 Nov 2026, 2:14pm)'
       },
       { label: 'Marketing', type: 'boolean', shows: 'Yes or No' }
     ],
@@ -180,7 +180,11 @@ export const OZTIX_RECORDS: readonly OztixRecord[] = [
         pin: true
       },
       { label: 'Status', type: 'option', shows: 'Badge' },
-      { label: 'Paid', type: 'date', shows: 'Medium date (27 Nov 2026)' },
+      {
+        label: 'Paid',
+        type: 'date',
+        shows: 'Date and time in the reader’s zone (27 Nov 2026, 2:14pm)'
+      },
       {
         label: 'Gross',
         type: 'money',
@@ -250,7 +254,7 @@ export const OZTIX_RECORDS: readonly OztixRecord[] = [
         shows: 'Compact currency',
         format: 'compactCurrency'
       },
-      { label: 'Ends', type: 'date', shows: 'Medium date' }
+      { label: 'Ends', type: 'date', shows: 'Long date (Fri 27 Nov 2026)' }
     ],
     pane: 'Search by code.',
     dashboard:

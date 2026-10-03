@@ -34,7 +34,9 @@ export function RecordsSearch({
         value={value}
         onChange={(event) => records.setSearch(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key !== 'Escape' || !value) return
+          // Escape in a composition cancels the composition, not the search.
+          if (event.key !== 'Escape' || !value || event.nativeEvent.isComposing)
+            return
           event.preventDefault()
           records.setSearch('')
         }}

@@ -118,6 +118,31 @@ describe('sortRecords', () => {
     ])
   })
 
+  it('reads a number held for a string option as that option', () => {
+    const numbered: RecordField[] = [
+      {
+        key: 'venue',
+        label: 'Venue',
+        type: 'option',
+        options: [
+          { value: '1', label: 'Zinc Hall' },
+          { value: '2', label: 'Arcadia Hall' }
+        ]
+      }
+    ]
+    expect(
+      sortRecords(
+        [
+          { id: 'z', venue: 1 },
+          { id: 'a', venue: 2 }
+        ],
+        [{ field: 'venue', direction: 'ascending' }],
+        numbered,
+        { timeZone: 'UTC' }
+      ).map((row) => row.id)
+    ).toEqual(['a', 'z'])
+  })
+
   it('sorts dates by instant across zones and stored forms', () => {
     const shows: Show[] = [
       // 9pm in Perth is 11pm in Sydney.

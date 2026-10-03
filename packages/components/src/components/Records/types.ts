@@ -8,4 +8,4 @@ export type RecordViewDefaults = Omit<Partial<RecordView>, 'query'> & {
 }
 
 /** A row on the current page, with the id `getRowId` gave it. */
-export type RecordsRow<Row> = { id: string; record: Row }
+export type RecordsRow<Row> = { id: string; row: Row }

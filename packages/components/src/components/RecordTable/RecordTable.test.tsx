@@ -308,6 +308,20 @@ describe('RecordTable preset', () => {
     expect(field).toHaveValue('')
   })
 
+  it('leaves Escape to an IME composing a word', () => {
+    render(
+      <RecordTable
+        data={testShows(3)}
+        fields={showFields}
+        columns={showColumns}
+        defaultView={{ query: { search: 'ろっく' } }}
+      />
+    )
+    const field = screen.getByRole('searchbox')
+    fireEvent.keyDown(field, { key: 'Escape', isComposing: true })
+    expect(field).toHaveValue('ろっく')
+  })
+
   it('takes a search placeholder that names the field', () => {
     render(
       <RecordTable

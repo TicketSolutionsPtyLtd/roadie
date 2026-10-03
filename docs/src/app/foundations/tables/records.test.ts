@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { OZTIX_RECORDS } from './records'
@@ -56,8 +57,18 @@ describe('Oztix records reference', () => {
   })
 
   it('links only to Pane examples that exist on the RecordTable page', () => {
+    const page = readFileSync(
+      new URL('../../components/record-table/page.mdx', import.meta.url),
+      'utf8'
+    )
+    const anchors = [...page.matchAll(/^#{2,4} (.+)$/gm)].map(([, heading]) =>
+      heading!
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+    )
     for (const record of OZTIX_RECORDS)
-      if (record.example) expect(['in-a-pane']).toContain(record.example.anchor)
+      if (record.example) expect(anchors).toContain(record.example.anchor)
   })
 
   it('has no dashes in its copy', () => {

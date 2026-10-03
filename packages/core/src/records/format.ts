@@ -1,4 +1,4 @@
-import { formatValue } from '../dataviz/format'
+import { formatValue, normalizeMinusSign } from '../dataviz/format'
 import {
   type FormatOptions,
   type Instantish,
@@ -27,17 +27,22 @@ function money(value: number, field: RecordField, row: object) {
   if (
     typeof code !== 'string' ||
     code.toUpperCase() === 'AUD' ||
-    !MONEY_FORMATS.has(format)
+    !MONEY_FORMATS.has(format) ||
+    !Number.isFinite(value)
   )
     return formatValue(value, format)
+  const compact = format === 'compactCurrency' && Math.abs(value) >= 1_000
   try {
-    const whole = Number.isInteger(value)
-    return new Intl.NumberFormat('en-AU', {
-      style: 'currency',
-      currency: code,
-      notation: format === 'compactCurrency' ? 'compact' : 'standard',
-      minimumFractionDigits: whole ? 0 : undefined
-    }).format(value)
+    return normalizeMinusSign(
+      new Intl.NumberFormat('en-AU', {
+        style: 'currency',
+        currency: code,
+        notation: compact ? 'compact' : 'standard',
+        maximumFractionDigits: compact ? 1 : undefined,
+        minimumFractionDigits:
+          compact || Number.isInteger(value) ? 0 : undefined
+      }).format(value)
+    )
   } catch {
     return formatValue(value, format)
   }

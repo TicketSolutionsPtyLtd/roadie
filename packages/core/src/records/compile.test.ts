@@ -31,6 +31,20 @@ describe('compileRecordQuery', () => {
     )
   })
 
+  it('searches the label of an option held as a number', () => {
+    const fields: RecordField[] = [
+      {
+        key: 'venue',
+        label: 'Venue',
+        type: 'option',
+        searchable: true,
+        options: [{ value: '1', label: 'Zinc Hall' }]
+      }
+    ]
+    const matches = compileRecordQuery(resolve('zinc', [], fields), fields)
+    expect(matches({ venue: 1 })).toBe(true)
+  })
+
   it('matches nothing on a filter for a field it does not know', () => {
     const matches = compileRecordQuery(
       {

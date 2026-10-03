@@ -225,7 +225,8 @@ describe('RecordTable empty', () => {
     expect(onViewChange).toHaveBeenCalledWith(
       expect.objectContaining({
         query: { search: '', filters: [], sort: [] }
-      })
+      }),
+      expect.objectContaining({ page: 0 })
     )
   })
 })

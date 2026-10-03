@@ -166,7 +166,7 @@ export function RecordTableContent({
         <RecordTableRow
           key={row.id}
           id={row.id}
-          record={row.record}
+          record={row.row}
           columns={columns}
           layout={layout}
           title={title}

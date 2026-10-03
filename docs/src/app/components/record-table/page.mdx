@@ -203,7 +203,7 @@ A field describes one fact about a record, and its type decides how the value re
 | `date` | House formats: event and access dates in the venue's zone from `timeZoneKey`, timestamps in the reader's zone, a range when the field has an `end`. |
 | `boolean` | Yes or No. |
 
-A record that holds nothing for a field shows "Not available". Text a number or date field can't read, like "On sale soon", shows as given in a quieter colour.
+A record that holds nothing for a field shows "Not available". Text a field can't read shows as given: "To be announced" in a date field, or "On sale soon" in a number or money field, which also takes a quieter colour.
 
 A column presents one field. `tableColumns(fields).field(key, options)` takes:
 
@@ -500,7 +500,7 @@ Holds the view and position, and searches, filters, sorts and pages the records 
 | `view` | `RecordView` | The search, filters, sort and layout. |
 | `appliedView` | `RecordView` | The view the rows show. Its search lags typing while a long list filters. |
 | `resolvedQuery` | `ResolvedRecordQuery` | The applied query, with relative dates fixed and unusable filters skipped. |
-| `rows` | `readonly { id: string; record: Row }[]` | The current page. |
+| `rows` | `readonly { id: string; row: Row }[]` | The current page. |
 | `resultCount` | `number` | Records the search and filters match. |
 | `filtered` | `boolean` | Whether a search or filter narrows the records. |
 | `position` | `{ page: number; pageSize: number; row: number }` | The page, zero-based, and its size. |

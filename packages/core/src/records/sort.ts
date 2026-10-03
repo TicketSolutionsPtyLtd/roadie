@@ -56,7 +56,7 @@ function keyReader(
       return (row) => {
         const value = read(row, field.key)
         if (isEmptyValue(value)) return undefined
-        return labels.get(value as string) ?? String(value)
+        return labels.get(String(value)) ?? String(value)
       }
     }
     case 'text':
