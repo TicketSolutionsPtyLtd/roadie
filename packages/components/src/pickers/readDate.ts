@@ -8,7 +8,10 @@ import {
   viewerTimeZone
 } from '@oztix/roadie-core/datetime'
 
-import { type CalendarMatchers, matchesDate } from '../Calendar/matchers'
+import {
+  type CalendarMatchers,
+  matchesDate
+} from '../components/Calendar/matchers'
 
 export type DateStyle = 'full' | 'long' | 'medium'
 

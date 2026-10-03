@@ -4,9 +4,9 @@ import { type ComponentProps, useRef } from 'react'
 
 import { flushSync } from 'react-dom'
 
-import { mergeRefs } from '../../utils/mergeRefs'
-import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
-import { useFieldContext } from '../Field'
+import { useFieldContext } from '../components/Field'
+import { mergeRefs } from '../utils/mergeRefs'
+import { useIsomorphicLayoutEffect } from '../utils/useIsomorphicLayoutEffect'
 import type { useTypedValue } from './useTypedValue'
 
 export type TypedInputProps = Omit<
