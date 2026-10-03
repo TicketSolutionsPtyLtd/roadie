@@ -82,9 +82,64 @@ describe('Records.ViewActions', { timeout: 15_000 }, () => {
     expect(screen.queryByRole('button', { name: /^View/ })).toBeNull()
   })
 
-  it('renders nothing when an unmodified preset offers no action', () => {
+  it('names a preset with no action in a button that opens nothing', async () => {
     render(<Harness baseline={upcoming} />)
-    expect(screen.queryByRole('button', { name: /^View/ })).toBeNull()
+    expect(trigger()).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.setup().click(trigger())
+    expect(screen.queryByRole('menu')).toBeNull()
+  })
+
+  it('keeps focus on the button once Reset leaves nothing to offer', async () => {
+    render(
+      <Harness
+        baseline={upcoming}
+        initialView={{ ...upcoming, query: { ...upcoming.query, sort: [] } }}
+      />
+    )
+    const { user, menu } = await openMenu()
+    await user.click(within(menu).getByRole('menuitem', { name: 'Reset view' }))
+    await waitFor(() => expect(trigger()).toHaveFocus())
+    expect(trigger()).toHaveAccessibleName('View: Upcoming')
+  })
+
+  it('calls a baseline with no name Untitled view', () => {
+    const untitled: RecordView = { ...upcoming }
+    delete untitled.name
+    render(<Harness baseline={untitled} {...handlers()} />)
+    expect(trigger()).toHaveAccessibleName('View: Untitled view')
+  })
+
+  it('holds the dialog open while its handler runs, even on Escape', async () => {
+    let finish = () => {}
+    const onSaveAs = vi.fn(
+      () => new Promise<void>((resolve) => (finish = resolve))
+    )
+    render(<Harness baseline={upcoming} {...handlers()} onSaveAs={onSaveAs} />)
+    const { user, menu } = await openMenu()
+    await user.click(
+      within(menu).getByRole('menuitem', { name: 'Save as new view' })
+    )
+    const dialog = await screen.findByRole('dialog')
+    await user.type(within(dialog).getByRole('textbox'), 'Perth{Enter}')
+    await user.keyboard('{Escape}')
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+    expect(screen.getByRole('dialog')).toBe(dialog)
+    finish()
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('shows the full name in a tooltip, with unsaved changes', async () => {
+    render(
+      <Harness
+        baseline={upcoming}
+        initialView={{ ...upcoming, query: { ...upcoming.query, sort: [] } }}
+        {...handlers()}
+      />
+    )
+    await userEvent.setup().hover(trigger())
+    expect(
+      await screen.findByText('Upcoming, unsaved changes')
+    ).toBeInTheDocument()
   })
 
   it('names the baseline in a normal button, after the search', () => {
@@ -208,7 +263,7 @@ describe('Records.ViewActions', { timeout: 15_000 }, () => {
     await waitFor(() => expect(name).toHaveFocus())
     expect(name).toHaveValue('')
 
-    await user.click(within(dialog).getByRole('button', { name: 'Save view' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
     expect(actions.onSaveAs).not.toHaveBeenCalled()
     expect(within(dialog).getByText('Enter a name')).toBeInTheDocument()
     expect(name).toHaveAttribute('aria-invalid', 'true')
@@ -235,7 +290,7 @@ describe('Records.ViewActions', { timeout: 15_000 }, () => {
     expect(
       await within(dialog).findByText('You already have a view called Perth')
     ).toBeInTheDocument()
-    await user.click(within(dialog).getByRole('button', { name: 'Save view' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(onSaveAs).toHaveBeenCalledTimes(2)
   })
@@ -266,7 +321,7 @@ describe('Records.ViewActions', { timeout: 15_000 }, () => {
     )
     const dialog = await screen.findByRole('dialog')
     await user.type(within(dialog).getByRole('textbox'), 'Perth{Enter}')
-    const submit = within(dialog).getByRole('button', { name: 'Save view' })
+    const submit = within(dialog).getByRole('button', { name: 'Save' })
     expect(submit).toHaveAttribute('aria-busy', 'true')
     await user.type(within(dialog).getByRole('textbox'), '{Enter}')
     expect(onSaveAs).toHaveBeenCalledTimes(1)

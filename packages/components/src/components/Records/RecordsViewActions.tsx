@@ -16,6 +16,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { Button } from '../Button'
 import { Menu } from '../Menu'
+import { Tooltip } from '../Tooltip'
 import { reportActionError } from './RecordsConfirm'
 import {
   RecordsViewDelete,
@@ -24,8 +25,8 @@ import {
 } from './RecordsViewDialogs'
 import { useRecordsContext } from './context'
 
-/** Saves a view where the app keeps views. Reject to say it failed. */
-export type RecordsViewHandler = (view: RecordView) => void | Promise<void>
+/** Writes to the views the app keeps. Return a promise to hold the control busy, and reject to say it failed. */
+export type RecordsViewHandler = (view: RecordView) => void | Promise<unknown>
 
 export type RecordsViewActionsProps = {
   /** Saves the changes over the `baseline`: gets the view with the baseline's id and name. Leave it out for a view people can't change, such as a preset. */
@@ -62,9 +63,11 @@ export function RecordsViewActions({
   const reset = baseline && modified
   const rename = onRename && baseline
   const remove = onDelete && baseline
-  if (!save && !reset && !onSaveAs && !rename && !remove) return null
+  if (!baseline && !onSaveAs) return null
+  // Kept while there's nothing to offer, so Reset or a save doesn't drop focus.
+  const offers = Boolean(save || reset || onSaveAs || rename || remove)
 
-  const name = baseline?.name ?? 'Unsaved view'
+  const name = baseline ? (baseline.name ?? 'Untitled view') : 'Unsaved view'
   const runSave = async () => {
     if (!onSave || !baseline) return
     setSaving(true)
@@ -85,79 +88,94 @@ export function RecordsViewActions({
   return (
     <>
       <Menu>
-        <Menu.Trigger
-          render={
-            <Button
-              ref={triggerRef}
-              emphasis='normal'
-              aria-label={`View: ${name}${modified ? ', modified' : ''}`}
-              aria-busy={saving || undefined}
-              disabled={saving}
-              focusableWhenDisabled
-              data-slot='records-view-actions'
-              className={cn('max-w-64 shrink-0', className)}
-            >
-              <span className='truncate'>{name}</span>
-              {modified && (
-                <span
-                  data-slot='records-view-modified'
-                  aria-hidden
-                  className='size-2 shrink-0 rounded-full bg-strong intent-accent forced-colors:bg-[Highlight]'
-                />
-              )}
-              <CaretDownIcon weight='bold' className='size-4' aria-hidden />
-            </Button>
-          }
-        />
-        <Menu.Content>
-          {reset && (
-            <>
-              <Menu.Group>
-                <Menu.GroupLabel>Unsaved changes</Menu.GroupLabel>
-                {save && (
-                  <Menu.Item
-                    icon={<FloppyDiskIcon weight='bold' />}
-                    onClick={() => void runSave()}
+        <Tooltip>
+          <Tooltip.Trigger
+            render={
+              <Menu.Trigger
+                render={
+                  <Button
+                    ref={triggerRef}
+                    emphasis='normal'
+                    aria-label={`View: ${name}${modified ? ', modified' : ''}`}
+                    aria-busy={saving || undefined}
+                    disabled={saving || !offers}
+                    focusableWhenDisabled
+                    data-slot='records-view-actions'
+                    className={cn('max-w-64 shrink-0', className)}
                   >
-                    Save view
+                    <span className='truncate'>{name}</span>
+                    {modified && (
+                      <span
+                        data-slot='records-view-modified'
+                        aria-hidden
+                        className='size-2 shrink-0 rounded-full bg-strong forced-color-adjust-none intent-accent forced-colors:bg-[Highlight]'
+                      />
+                    )}
+                    <CaretDownIcon
+                      weight='bold'
+                      className='size-4'
+                      aria-hidden
+                    />
+                  </Button>
+                }
+              />
+            }
+          />
+          <Tooltip.Content>
+            {modified ? `${name}, unsaved changes` : name}
+          </Tooltip.Content>
+        </Tooltip>
+        {offers && (
+          <Menu.Content>
+            {reset && (
+              <>
+                <Menu.Group>
+                  <Menu.GroupLabel>Unsaved changes</Menu.GroupLabel>
+                  {save && (
+                    <Menu.Item
+                      icon={<FloppyDiskIcon weight='bold' />}
+                      onClick={() => void runSave()}
+                    >
+                      Save view
+                    </Menu.Item>
+                  )}
+                  <Menu.Item
+                    icon={<ArrowCounterClockwiseIcon weight='bold' />}
+                    onClick={records.resetView}
+                  >
+                    Reset view
                   </Menu.Item>
-                )}
-                <Menu.Item
-                  icon={<ArrowCounterClockwiseIcon weight='bold' />}
-                  onClick={records.resetView}
-                >
-                  Reset view
-                </Menu.Item>
-              </Menu.Group>
-              {(onSaveAs || rename || remove) && <Menu.Separator />}
-            </>
-          )}
-          {onSaveAs && (
-            <Menu.Item
-              icon={<CopyIcon weight='bold' />}
-              onClick={() => setDialog('save-as')}
-            >
-              Save as new view
-            </Menu.Item>
-          )}
-          {rename && (
-            <Menu.Item
-              icon={<PencilSimpleIcon weight='bold' />}
-              onClick={() => setDialog('rename')}
-            >
-              Rename view
-            </Menu.Item>
-          )}
-          {remove && (
-            <Menu.Item
-              icon={<TrashIcon weight='bold' />}
-              intent='danger'
-              onClick={() => setDialog('delete')}
-            >
-              Delete view
-            </Menu.Item>
-          )}
-        </Menu.Content>
+                </Menu.Group>
+                {(onSaveAs || rename || remove) && <Menu.Separator />}
+              </>
+            )}
+            {onSaveAs && (
+              <Menu.Item
+                icon={<CopyIcon weight='bold' />}
+                onClick={() => setDialog('save-as')}
+              >
+                Save as new view
+              </Menu.Item>
+            )}
+            {rename && (
+              <Menu.Item
+                icon={<PencilSimpleIcon weight='bold' />}
+                onClick={() => setDialog('rename')}
+              >
+                Rename view
+              </Menu.Item>
+            )}
+            {remove && (
+              <Menu.Item
+                icon={<TrashIcon weight='bold' />}
+                intent='danger'
+                onClick={() => setDialog('delete')}
+              >
+                Delete view
+              </Menu.Item>
+            )}
+          </Menu.Content>
+        )}
       </Menu>
       {dialog === 'save-as' && onSaveAs && (
         <RecordsViewName

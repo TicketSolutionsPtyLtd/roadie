@@ -1,7 +1,11 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { RecordView } from '@oztix/roadie-core/records'
+import {
+  type RecordView,
+  fromSearchParams,
+  toSearchParams
+} from '@oztix/roadie-core/records'
 
 import { type TestShow, showFields, testShows } from './testUtils'
 import { type UseRecordsOptions, useRecords } from './useRecords'
@@ -47,18 +51,43 @@ describe('useRecords baseline', () => {
   })
 
   it('compares as equalViews does, ignoring id, name and chip order', () => {
+    const city = upcoming.query.filters[0]!
+    const sold = { field: 'sold', operator: 'gt', value: 10 } as const
+    const baseline = {
+      ...upcoming,
+      query: { ...upcoming.query, filters: [city, sold] }
+    }
     const { result } = setup({
       view: {
-        query: {
-          ...upcoming.query,
-          search: '  ',
-          filters: [...upcoming.query.filters]
-        },
-        layout: upcoming.layout
+        query: { ...baseline.query, search: '  ', filters: [sold, city] },
+        layout: { type: 'table', columns: { hidden: ['gross'], order: [] } }
       },
-      baseline: upcoming
+      baseline
     })
     expect(result.current.modified).toBe(false)
+  })
+
+  it('reads a null baseline as none', () => {
+    const { result } = setup({
+      baseline: null as unknown as RecordView
+    })
+    expect(result.current.modified).toBe(false)
+  })
+
+  it('reads the view and its id back from the URL, still modified', () => {
+    const changed = {
+      ...upcoming,
+      query: { ...upcoming.query, search: 'Perth' }
+    }
+    const params = toSearchParams(changed)
+    expect(params.get('v')).toBe('1')
+    expect(params.get('view')).toBe('upcoming')
+    const { view } = fromSearchParams(params, showFields)
+    const baseline = [upcoming].find((saved) => saved.id === view.id)
+    const { result } = setup({ view, baseline })
+    expect(result.current.baseline).toBe(upcoming)
+    expect(result.current.modified).toBe(true)
+    act(() => result.current.resetView())
   })
 
   it('reads a layout change as modified', async () => {

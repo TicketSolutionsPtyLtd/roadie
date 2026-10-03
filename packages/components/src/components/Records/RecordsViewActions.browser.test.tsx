@@ -61,7 +61,8 @@ function Shows() {
             setBaseline(next)
             setView(next)
           },
-          onRename: setBaseline
+          onRename: setBaseline,
+          onDelete: () => setBaseline({ ...upcoming, id: 'all', name: 'All' })
         }}
       />
     </div>
@@ -153,5 +154,49 @@ describe('Records.ViewActions in a browser', TIMEOUT, () => {
       expect.poll(() => screen.queryByRole('dialog')).toBeNull()
     )
     expect(trigger()).toHaveAccessibleName('View: Perth')
+  })
+
+  it('returns focus to the button from a phone drawer closed with Escape', async () => {
+    await page.viewport(390, 844)
+    render(<Shows />)
+    await userEvent.click(trigger())
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Rename view' })
+    )
+    await screen.findByRole('dialog', { name: 'Rename view' })
+    await userEvent.keyboard('{Escape}')
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
+    await expect.poll(() => document.activeElement).toBe(trigger())
+  })
+
+  it('asks to delete in an alert dialog on a phone, then returns focus', async () => {
+    await page.viewport(390, 844)
+    render(<Shows />)
+    await userEvent.click(trigger())
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Delete view' })
+    )
+    const alert = await screen.findByRole('alertdialog')
+    expect(alert).toHaveAttribute('data-slot', 'dialog-popup')
+    await userEvent.click(
+      within(alert).getByRole('button', { name: 'Delete view' })
+    )
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('alertdialog')).toBeNull()
+    )
+    expect(trigger()).toHaveAccessibleName('View: All, modified')
+    await expect.poll(() => document.activeElement).toBe(trigger())
+  })
+
+  it('keeps focus on the button after Reset', async () => {
+    render(<Shows />)
+    await userEvent.click(trigger())
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Reset view' })
+    )
+    await expect.poll(() => document.activeElement).toBe(trigger())
+    expect(trigger()).toHaveAccessibleName('View: Upcoming shows in every city')
   })
 })

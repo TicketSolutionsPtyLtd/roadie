@@ -592,8 +592,8 @@ export function useRecords<Row extends object>({
       replaceDraft(next.query.search)
       setView(next)
     },
-    baseline,
-    modified: baseline !== undefined && !equalViews(view, baseline),
+    baseline: baseline ?? undefined,
+    modified: baseline != null && !equalViews(view, baseline),
     resetView: () => {
       if (baseline) resetTo(baseline)
     },

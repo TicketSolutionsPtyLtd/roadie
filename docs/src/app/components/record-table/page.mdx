@@ -134,7 +134,7 @@ function Shows() {
 }
 ```
 
-`Records.Toolbar` holds the standard controls: the search and filter field, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions`, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
+`Records.Toolbar` holds the standard controls: the search and filter field, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions` after the search, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
 
 `Records.BulkActions` can sit anywhere inside the Provider: the table's `Records.Content` shows it in its header row.
 
@@ -519,7 +519,7 @@ function Configured() {
 render(<Configured />)
 ```
 
-`label` renames the button, its tooltip and the panel, which are "Configure table" for the table. In your own toolbar, put `Records.Options` after the search and before `Records.Actions`. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which `Records.Options` calls once the page is idle or its button is reached.
+`label` renames the button, its tooltip and the panel, which are "Configure table" for the table. In your own toolbar, put `Records.Options` after the search and any `Records.ViewActions`, and before `Records.Actions`. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which `Records.Options` calls once the page is idle or its button is reached.
 
 ### Saved views
 
@@ -527,7 +527,7 @@ A saved view is a view with a name that people come back to. Apps ship preset vi
 
 Pass the saved view the screen opened as `baseline`. `modified` says whether the view now shows something else, by `equalViews`, which ignores the id, the name, spacing in the search and the order of chips. `resetView` goes back to the baseline from the first page. The page's `scope` is never part of a view, so it never makes one read as modified.
 
-`viewActions` on `RecordTable` or `Records.Toolbar` shows the baseline's name after the search, as `Records.ViewActions`, with a dot once the view is modified. Its menu offers what your handlers allow:
+`viewActions` on `RecordTable` or `Records.Toolbar` takes the handlers below as one object, the props of `Records.ViewActions`, unlike the arrays `actions` and `bulkActions` take. It shows the baseline's name after the search and Select, before Configure, with a dot once the view is modified and a tooltip with the whole name. In your own toolbar, put `Records.ViewActions` in the same place. Its menu offers what your handlers allow:
 
 - **Save view** calls `onSave` with the view under the baseline's id and name. It shows while the view is modified.
 - **Reset view** goes back to the baseline. It shows while the view is modified, and needs no handler.
@@ -535,15 +535,17 @@ Pass the saved view the screen opened as `baseline`. `modified` says whether the
 - **Rename view** asks for a new name, then calls `onRename` with the baseline under it. Unsaved changes stay unsaved.
 - **Delete view** asks first, then calls `onDelete` with the baseline. Open another view once it resolves.
 
-Leave out the handlers a view doesn't allow. A preset takes `onSaveAs` alone, so people can start their own view from it but can't change it for everyone. With no baseline, the button reads Unsaved view and offers Save as new view. With nothing to offer, it renders nothing.
+Leave out the handlers a view doesn't allow. A preset takes `onSaveAs` alone, so people can start their own view from it but can't change it for everyone. With no baseline, the button reads Unsaved view and offers Save as new view, and a baseline with no name reads Untitled view. A baseline with nothing to offer still shows its name, in a button that opens nothing, so focus stays put after a reset. With neither a baseline nor `onSaveAs`, it renders nothing.
 
-Names are asked for in a dialog, or a bottom drawer on a phone. A handler can return a promise, and the button or the dialog's action stays busy until it settles. Reject to say it failed. The dialog stays open and shows the error's message, so reject with one people can read, such as "You already have a view called Perth". Without a message it says the view wasn't saved. A failed Save view goes to `reportError`, so show your own toast too.
+Names are asked for in a dialog, or a bottom drawer on a phone, and Delete view asks in an alert dialog on every screen. A handler can return a promise, and the button or the dialog's action stays busy until it settles. Reject to say it failed. The dialog stays open and shows the error's message, so reject with one people can read, such as "You already have a view called Perth". Without a message it says plainly that the view wasn't saved, renamed or deleted. While a handler runs, the dialog stays open. A failed Save view goes to `reportError`, so show your own toast too.
 
-Keep the open view in the URL. `toSearchParams` writes its id as `view`, so a link opens the same view with the same changes. On load, read the URL with `fromSearchParams` and find the baseline by the view's id:
+Keep the open view in the URL. `toSearchParams` writes its id as `view`, so a link opens the same view with the same changes. A link to a saved view as it is can carry its id alone, `?view=on-sale`, which `fromSearchParams` reads as no view, so pass that saved view as the fallback. Then find the baseline by the view's id:
 
 ```tsx
-const { view } = fromSearchParams(searchParams, fields, { fallback: presets[0] })
-const baseline = [...presets, ...myViews].find((saved) => saved.id === view.id)
+const saved = [...presets, ...myViews]
+const opened = saved.find((held) => held.id === searchParams.get('view')) ?? presets[0]
+const { view } = fromSearchParams(searchParams, fields, { fallback: opened })
+const baseline = saved.find((held) => held.id === view.id)
 ```
 
 #### Views in a Pane
@@ -607,6 +609,12 @@ const presets = [
 
 function ViewPane({ baseline, preset, onSave, onSaveAs, onRename, onDelete }) {
   const [view, setView] = useState(baseline)
+  const [opened, setOpened] = useState(baseline.id)
+  // Another view opens in the same pane, so focus stays on the view button.
+  if (opened !== baseline.id) {
+    setOpened(baseline.id)
+    setView(baseline)
+  }
   const records = useRecords({
     data: events,
     fields,
@@ -673,7 +681,6 @@ function EventViews() {
               </Navigator.Item>
             </Navigator.Primary>
             <ViewPane
-              key={baseline.id}
               baseline={baseline}
               preset={Boolean(preset)}
               onSave={replace}

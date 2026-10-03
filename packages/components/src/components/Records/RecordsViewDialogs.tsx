@@ -23,7 +23,7 @@ export type ViewDialog = 'save-as' | 'rename' | 'delete'
 const COPY = {
   'save-as': {
     title: 'Save as new view',
-    submit: 'Save view',
+    submit: 'Save',
     failed: 'The view wasn’t saved. Try again.'
   },
   rename: {
@@ -45,12 +45,11 @@ const COPY = {
 const messageOf = (error: unknown, fallback: string) =>
   error instanceof Error && error.message ? error.message : fallback
 
-/** Runs a handler once at a time, holding its failure as a message. */
 function useRun(failed: string, onDone: () => void) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const running = useRef(false)
-  const run = async (action: () => void | Promise<void>) => {
+  const run = async (action: () => void | Promise<unknown>) => {
     if (running.current) return
     running.current = true
     setPending(true)
@@ -70,6 +69,10 @@ function useRun(failed: string, onDone: () => void) {
 }
 
 type SurfaceProps = {
+  /** A handler is running, so the surface can't close under it. */
+  pending: boolean
+  /** Below 48rem, a bottom drawer. A confirmation stays a dialog, as the bulk actions' does. */
+  drawer?: boolean
   role?: 'alertdialog'
   intent?: 'danger'
   title: string
@@ -83,6 +86,8 @@ type SurfaceProps = {
 
 /** A dialog, or a bottom drawer on a phone where the keyboard takes the lower half. */
 function ViewSurface({
+  pending,
+  drawer = true,
   role,
   intent,
   title,
@@ -95,10 +100,10 @@ function ViewSurface({
 }: SurfaceProps) {
   const surface = usePickerSurface(true)
   const onOpenChange = (open: boolean) => {
-    if (!open) onClose()
+    if (!open && !pending) onClose()
   }
   const focus = initialFocus && (() => initialFocus() ?? true)
-  if (surface === 'drawer')
+  if (drawer && surface === 'drawer')
     return (
       <Drawer open onOpenChange={onOpenChange}>
         <Drawer.Content
@@ -111,7 +116,11 @@ function ViewSurface({
           <Drawer.Header>
             <Drawer.Close
               render={
-                <IconButton aria-label='Close' emphasis='normal'>
+                <IconButton
+                  aria-label='Close'
+                  emphasis='normal'
+                  disabled={pending}
+                >
                   <XIcon weight='bold' className='size-5' />
                 </IconButton>
               }
@@ -154,7 +163,7 @@ export type RecordsViewNameProps = {
   initialName: string
   finalFocus: RefObject<HTMLElement | null>
   onClose: () => void
-  onSubmit: (name: string) => void | Promise<void>
+  onSubmit: (name: string) => void | Promise<unknown>
 }
 
 /** Asks for a view's name, for Save as new view and Rename view. */
@@ -183,6 +192,7 @@ export function RecordsViewName({
 
   return (
     <ViewSurface
+      pending={pending}
       title={copy.title}
       finalFocus={finalFocus}
       onClose={onClose}
@@ -211,7 +221,9 @@ export function RecordsViewName({
       }
       actions={
         <>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button disabled={pending} onClick={onClose}>
+            Cancel
+          </Button>
           <Button
             type='submit'
             form={formId}
@@ -232,7 +244,7 @@ export type RecordsViewDeleteProps = {
   name: string
   finalFocus: RefObject<HTMLElement | null>
   onClose: () => void
-  onConfirm: () => void | Promise<void>
+  onConfirm: () => void | Promise<unknown>
 }
 
 export function RecordsViewDelete({
@@ -245,6 +257,8 @@ export function RecordsViewDelete({
   const { pending, error, run } = useRun(copy.failed, onClose)
   return (
     <ViewSurface
+      pending={pending}
+      drawer={false}
       role='alertdialog'
       intent='danger'
       title={`Delete ${name}?`}
@@ -260,7 +274,9 @@ export function RecordsViewDelete({
       }
       actions={
         <>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button disabled={pending} onClick={onClose}>
+            Cancel
+          </Button>
           <Button
             intent='danger'
             emphasis='strong'
