@@ -218,19 +218,17 @@ function totals(days: readonly number[]) {
   return { sold, gross, refundRate: sold ? refunds / sold : 0 }
 }
 
-/**
- * Daily up to a month, then weeks back from the period's end. The first week
- * may be short, so the trend still adds up to the period.
- */
+/** Daily up to a month, then whole weeks back from the period's end. */
 function buckets(days: readonly number[]): number[][] {
   const size = days.length <= 31 ? 1 : 7
   const out: number[][] = []
-  for (let end = days.length; end > 0; end -= size)
-    out.unshift(days.slice(Math.max(0, end - size), end))
+  for (let end = days.length; end >= size; end -= size)
+    out.unshift(days.slice(end - size, end))
   return out
 }
 
-// Per day, so a custom comparison of another length still compares fairly.
+// Per day, so a comparison of another length, such as custom dates or a
+// month cut short by the data, still compares fairly.
 const change = (
   now: number,
   nowDays: number,
@@ -272,7 +270,7 @@ function periodStats({ range, compare }: PortfolioPeriod) {
     refunds: {
       value: Math.round(now.refundRate * 1000) / 1000,
       delta: before.sold
-        ? Math.round((now.refundRate - before.refundRate) * 1000) / 10
+        ? Math.round((now.refundRate - before.refundRate) * 1000) / 10 || 0
         : 0,
       trend: trend.map((t) => Math.round(t.refundRate * 10000) / 10000)
     }

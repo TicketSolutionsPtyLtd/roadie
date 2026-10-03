@@ -38,7 +38,7 @@ const JSX = `<Dashboard>
 </Dashboard>`
 
 const PERIOD = {
-  note: 'Each period’s numbers come from daily sales, as an app would fetch them. Sales start on 20 July, when the first show went on sale, so a year back there is nothing to compare. As data shows the default period.',
+  note: 'Each period’s numbers come from daily sales, as an app would fetch them. Sales start on 20 July, when the first show went on sale, so a year back there is nothing to compare. The As data section shows the default period.',
   code: `'use client'
 
 function PortfolioDashboard() {

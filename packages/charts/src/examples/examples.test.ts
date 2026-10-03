@@ -53,8 +53,6 @@ describe('reference dashboards', () => {
 type Spec = ReturnType<typeof createPortfolioDashboard>
 type Period = Parameters<typeof createPortfolioDashboard>[0]
 
-const sum = (values: readonly number[]) => values.reduce((a, b) => a + b, 0)
-
 const tile = (spec: Spec, id: string) => {
   const card = spec.sections.flatMap((s) => s.cards).find((c) => c.id === id)
   if (card?.kind !== 'stat') throw new Error(`No stat card ${id}`)
@@ -145,7 +143,7 @@ describe('the portfolio dashboard period', () => {
       compare: 'previous-period'
     })
     expect(tile(spec, 'tickets').value).toBe(6377)
-    expect(tile(spec, 'tickets').trend).toHaveLength(13)
+    expect(tile(spec, 'tickets').trend).toHaveLength(12)
   })
 
   it('has nothing to compare a year back, before the shows went on sale', () => {
@@ -178,12 +176,12 @@ describe('the portfolio dashboard period', () => {
     })
   })
 
-  it('adds up every day of the period in its trend', () => {
+  it('leaves a short first week out of the trend, so it never dips', () => {
     const sold = tile(
       createPortfolioDashboard({ range: { period: 'quarter', offset: -1 } }),
       'tickets'
     )
-    expect(sum(sold.trend ?? [])).toBe(sold.value)
+    expect(sold.trend).toHaveLength(10)
   })
 
   it('compares a day’s average when the comparison is a different length', () => {

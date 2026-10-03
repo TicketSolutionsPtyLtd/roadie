@@ -3,6 +3,6 @@
 ---
 
 `DateRangePicker` no longer puts `aria-required` on its button, where ARIA
-doesn't allow it: a required picker, and so every `DashboardPeriod`, failed
-axe's `aria-allowed-attr` check. A required picker now says "Required" in its
-button's description instead.
+doesn't allow it: a required picker failed axe's `aria-allowed-attr` check,
+and so did `DashboardPeriod`, which marks its pickers required. A required
+picker now says "Required" in its button's description instead.
