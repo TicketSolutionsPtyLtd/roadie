@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "168 kB"
+    "limit": "172 kB"
   },
   {
     "name": "Single component (Button)",
@@ -16,14 +16,14 @@
     "name": "Navigator",
     "path": "dist/components/Navigator/index.js",
     "import": "*",
-    "limit": "40 kB",
+    "limit": "41 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Menu",
     "path": "dist/components/Menu/index.js",
     "import": "*",
-    "limit": "4.6 kB",
+    "limit": "5.3 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -210,7 +210,7 @@
     "name": "Kbd",
     "path": "dist/components/Kbd/index.js",
     "import": "*",
-    "limit": "2.05 kB",
+    "limit": "2.55 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -253,6 +253,13 @@
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
     "limit": "14.75 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "QueryField",
+    "path": "dist/components/QueryField/index.js",
+    "import": "*",
+    "limit": "9.4 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]

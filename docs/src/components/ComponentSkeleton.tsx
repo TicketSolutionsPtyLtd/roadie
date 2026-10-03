@@ -191,6 +191,19 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='h-2 w-10 opacity-50' />
         </div>
       )
+    case 'query-field':
+      return (
+        <div className='flex w-44 items-center gap-1.5 rounded-lg emphasis-field px-2 py-1.5'>
+          <Skel className='size-2.5 shrink-0 rounded-full' />
+          <div className='flex h-4 items-center rounded-full emphasis-subtle px-2'>
+            <Skel className='h-1.5 w-8' />
+          </div>
+          <div className='flex h-4 items-center rounded-full emphasis-subtle px-2'>
+            <Skel className='h-1.5 w-6' />
+          </div>
+          <Skel className='h-1.5 w-6 opacity-50' />
+        </div>
+      )
     case 'otp-field':
       return (
         <div className='flex items-center gap-1'>
@@ -340,11 +353,11 @@ export function ComponentSkeleton({ name }: { name: string }) {
       )
     case 'kbd':
       return (
-        <div className='flex gap-1 text-xs font-medium text-subtle'>
-          <span className='grid h-6 min-w-6 place-content-center rounded-md border border-current/15 bg-current/10 px-1.5'>
+        <div className='flex gap-1 text-xs font-medium'>
+          <span className='grid h-6 min-w-6 place-content-center rounded-md bg-[color-mix(in_oklch,currentColor_10%,transparent)] px-1.5'>
             ⌘
           </span>
-          <span className='grid h-6 min-w-6 place-content-center rounded-md border border-current/15 bg-current/10 px-1.5'>
+          <span className='grid h-6 min-w-6 place-content-center rounded-md bg-[color-mix(in_oklch,currentColor_10%,transparent)] px-1.5'>
             K
           </span>
         </div>

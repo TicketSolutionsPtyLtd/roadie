@@ -12,6 +12,7 @@ import {
   Kbd,
   Mark,
   type NumberFieldStepperEmphasis,
+  QueryField,
   TimeField
 } from './index'
 
@@ -53,6 +54,13 @@ describe('Component exports', () => {
       </>
     )
     expect(getAllByRole('textbox')).toHaveLength(3)
+  })
+
+  it('exports QueryField component', () => {
+    const { getByRole } = render(
+      <QueryField aria-label='Search orders' suggest={() => []} />
+    )
+    expect(getByRole('combobox', { name: 'Search orders' })).toBeInTheDocument()
   })
 
   it('exports Calendar component', () => {

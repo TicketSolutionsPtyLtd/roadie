@@ -562,3 +562,14 @@ Follow [`docs/contributing/COMPONENT_DOC_TEMPLATE.md`](docs/contributing/COMPONE
 - `is-interactive-field` — for form inputs. Provides state-based colour transitions: neutral at rest → accent on focus → danger when invalid.
 - `is-interactive-field-group` — for composite form controls (e.g., Combobox input group). Same transitions as `is-interactive-field` but scoped to the group wrapper.
 - `is-interactive-within` — for a surface whose main link sits inside it (a card that also holds other actions). Mark the link `data-interactive-target`; its overlay covers the surface, other controls sit above it, and the surface takes the emphasis hover/press/focus states from the link. `Card.Link` does this for cards.
+
+<!-- BEGIN:turborepo-agent-rules -->
+
+# This is NOT the Turborepo you know
+
+Turborepo configuration, task behavior, and CLI commands can vary between installed versions and may differ from your training data. Resolve the `turbo` package from this file's directory or relevant workspace; in monorepos, it may not be visible from the repository root. For example, run `node -p "require.resolve('turbo/package.json')"` from a workspace that depends on `turbo`.
+
+Read `docs/README.md` inside that installed package first, then read the relevant pages from its `docs/` directory before changing Turborepo configuration or commands. Heed deprecation notices. These bundled docs match the installed package version and are available without network access.
+
+This block is written and re-added by `turbo` before repository-scoped commands when an AI agent is detected. In the Turborepo source repository, its template is defined in `crates/turborepo-cli/src/cli/agent_guidance.rs`. Removing the managed block while updates are enabled means a later qualifying invocation will add it again. Set `"agentGuidance": false` in the root `turbo.json` or `turbo.jsonc` to opt out; this does not remove an existing block. Keep the block committed with your work to avoid an uncommitted change on the next agent invocation.
+<!-- END:turborepo-agent-rules -->
