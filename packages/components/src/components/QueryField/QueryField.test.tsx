@@ -707,6 +707,26 @@ describe('QueryField', () => {
     expect(screen.queryByText('Loading suggestions')).not.toBeInTheDocument()
   })
 
+  it('says it is loading for a later request, and settles on a failure', async () => {
+    const later = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
+    render(
+      <Harness
+        pendingChip={{ id: 'venue', label: 'Venue is' }}
+        suggest={(text) =>
+          text
+            ? later.promise
+            : Promise.resolve<QueryFieldSuggestionGroup[]>([])
+        }
+      />
+    )
+    await userEvent.click(input())
+    expect(await screen.findByText('No suggestions')).toBeInTheDocument()
+    await userEvent.keyboard('z')
+    expect(await screen.findByText('Loading suggestions')).toBeInTheDocument()
+    await act(async () => later.reject(new Error('offline')))
+    expect(screen.getByText('No suggestions')).toBeInTheDocument()
+  })
+
   it('tells assistive technology Enter edits a chip', () => {
     render(<Harness initialChips={[scope, status]} onEditChip={() => {}} />)
     expect(chipElement('status')).toHaveAttribute('aria-keyshortcuts', 'Enter')
