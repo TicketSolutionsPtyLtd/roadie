@@ -6,7 +6,7 @@ import { commands, page, userEvent } from 'vitest/browser'
 
 import { DatePicker } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { setHoverCapable } from '../../css/testUtils'
+import { setHoverCapable, withFrames } from '../../css/testUtils'
 import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -88,7 +88,9 @@ describe('DatePicker by keyboard', () => {
     expect(screen.getByRole('combobox', { name: 'Show date' })).toHaveValue(
       'Sat 31 Oct 2026'
     )
-    await expect.poll(() => document.activeElement).toBe(trigger())
+    await withFrames(() =>
+      expect.poll(() => document.activeElement).toBe(trigger())
+    )
   })
 
   it('closes on Escape without changing the value', async () => {
@@ -100,7 +102,9 @@ describe('DatePicker by keyboard', () => {
       .poll(() => trigger().getAttribute('aria-expanded'))
       .toBe('false')
     expect(shown()).toHaveTextContent('2026-10-23')
-    await expect.poll(() => document.activeElement).toBe(trigger())
+    await withFrames(() =>
+      expect.poll(() => document.activeElement).toBe(trigger())
+    )
   })
 
   it('reverts a draft on Escape', async () => {
@@ -132,7 +136,9 @@ describe('DatePicker on a phone', TIMEOUT, () => {
       })
       expect(drawer).toHaveAttribute('data-slot', 'drawer-popup')
       await expect.poll(focusedDate).toBe('2026-10-23')
-      await expect.poll(() => rect(drawer).bottom).toBe(window.innerHeight)
+      await withFrames(() =>
+        expect.poll(() => rect(drawer).bottom).toBe(window.innerHeight)
+      )
       expect(rect(drawer).left).toBe(0)
       expect(rect(drawer).right).toBe(window.innerWidth)
       expect(rect(screen.getByRole('grid')).right).toBeLessThanOrEqual(
@@ -150,10 +156,14 @@ describe('DatePicker on a phone', TIMEOUT, () => {
     await userEvent.click(trigger())
     await screen.findByRole('dialog')
     await userEvent.click(day('2026-10-29'))
-    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
     expect(shown()).toHaveTextContent('2026-10-29')
     // Focus on the text field would raise the on-screen keyboard.
-    await expect.poll(() => document.activeElement).toBe(trigger())
+    await withFrames(() =>
+      expect.poll(() => document.activeElement).toBe(trigger())
+    )
   })
 
   it('closes on Escape without a change', async () => {
@@ -163,9 +173,13 @@ describe('DatePicker on a phone', TIMEOUT, () => {
     await screen.findByRole('dialog')
     await expect.poll(focusedDate).toBe('2026-10-23')
     await userEvent.keyboard('{ArrowRight}{Escape}')
-    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
     expect(shown()).toHaveTextContent('2026-10-23')
-    await expect.poll(() => document.activeElement).toBe(trigger())
+    await withFrames(() =>
+      expect.poll(() => document.activeElement).toBe(trigger())
+    )
   })
 })
 
@@ -181,7 +195,9 @@ describe('DatePicker from the phone breakpoint up', TIMEOUT, () => {
     const field = document.querySelector('[data-slot="date-picker-group"]')!
     expect(rect(popup).top).toBeGreaterThan(rect(field).bottom)
     // Measured once the popover has finished scaling in.
-    await expect.poll(() => rect(day('2026-10-23')).width).toBe(40)
+    await withFrames(() =>
+      expect.poll(() => rect(day('2026-10-23')).width).toBe(40)
+    )
   })
 })
 

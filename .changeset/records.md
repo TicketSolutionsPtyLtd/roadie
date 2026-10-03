@@ -80,9 +80,29 @@ clear it. The toolbar keeps its buttons at the top as chips wrap.
 `useRecords` takes a `scope`: filters the page sets, such as the event a list
 of tickets belongs to. They filter with the view but are never part of it,
 so they are never saved, put in the URL, cleared or counted as filtering, and
-`Records.Search` shows them first as locked chips. Table and bulk actions get
-the query with the scope's filters first, so acting on every match stays
-within the page. The instance gains `scope`
+`Records.Search` shows them first as locked chips. `scopedQuery` is the
+applied query with the scope's filters first: fetch it in server mode, and
+table and bulk actions get it, so acting on every match stays within the
+page. The instance gains `scope`
 and `now`, and writes made in one event, such as a search and a filter
 together, build on each other. With no match, the empty state names the
 search and filters that matched nothing.
+
+Give `useRecords` a `rowCount` and it runs in server mode (`mode: 'server'`):
+`data` is the page the server returned, shown in its order, and `rowCount`
+counts every match for pagination and selection. The search waits for a
+250ms pause in typing before `onViewChange` hears it (clearing is
+immediate), and `searchText` holds what the field shows meanwhile. Records
+picked on different pages stay selected, Select all counts `rowCount` less
+its `except` ids, and bulk actions get the selection as picked, since the
+server decides what matches. A new search or filter clears the selection,
+and an action that settles after one leaves the new selection alone. Once
+given, `rowCount` keeps server mode on, and an `undefined` count keeps the
+last one. Selecting without `getRowId` in server mode warns in development,
+as index ids repeat on every page. `appliedView` now leaves out the filters
+and sorts the fields can't apply, and its `query` keeps its identity while
+its content holds; key a fetch on `scopedQuery`, the position and
+`timeZone`. Selection treats a chip's values in any order as the same
+filter, and ignores filters the fields can't apply. `Records.Status`
+holds a count while `loading` and announces it once loaded, and
+`Records.Pagination` reads a page past the end as the last page.

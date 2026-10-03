@@ -78,10 +78,10 @@ export function useControlledText(
 ) {
   const [own, setOwn] = useState(defaultValue)
   const text = value ?? own
-  function setText(next: string) {
+  function setText(next: string, { silent = false } = {}) {
     if (next === text) return
     if (value === undefined) setOwn(next)
-    onChange?.(next)
+    if (!silent) onChange?.(next)
   }
   return [text, setText] as const
 }

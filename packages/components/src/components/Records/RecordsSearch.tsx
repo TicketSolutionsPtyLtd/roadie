@@ -345,7 +345,7 @@ export function RecordsSearch({
           setPending(null)
           setStepText('')
         }}
-        inputValue={pendingField ? stepText : records.view.query.search}
+        inputValue={pendingField ? stepText : records.searchText}
         onInputValueChange={(text) =>
           pendingField ? setStepText(text) : records.setSearch(text)
         }

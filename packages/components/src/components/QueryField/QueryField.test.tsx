@@ -835,9 +835,10 @@ describe('QueryField', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('hands Clear to onClear when given', async () => {
+  it('hands Clear to onClear when given, text and chips together', async () => {
     const onClear = vi.fn()
     const onRemoveChip = vi.fn()
+    const onInputValueChange = vi.fn()
     render(
       <QueryField
         aria-label='Search orders'
@@ -845,11 +846,15 @@ describe('QueryField', () => {
         suggest={suggestFor}
         onClear={onClear}
         onRemoveChip={onRemoveChip}
+        defaultInputValue='igua'
+        onInputValueChange={onInputValueChange}
       />
     )
     await userEvent.click(screen.getByRole('button', { name: 'Clear' }))
     expect(onClear).toHaveBeenCalledOnce()
     expect(onRemoveChip).not.toHaveBeenCalled()
+    expect(onInputValueChange).not.toHaveBeenCalled()
+    expect(input()).toHaveValue('')
   })
 
   it('focuses on its shortcut, unless another field has focus', async () => {

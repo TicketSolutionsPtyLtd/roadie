@@ -17,6 +17,7 @@ import {
 } from './context'
 import type { AnyRecordLayout } from './layouts'
 import { leaveSelectOnEscape } from './selectMode'
+import { matchKey } from './selection'
 import type { RecordsInstance } from './useRecords'
 
 export type RecordsProviderProps<Row extends object = object> = {
@@ -46,8 +47,17 @@ export function RecordsProvider<Row extends object>({
   // Parts read rows as plain objects; the consumer's Row narrows them.
   const shared = records as unknown as RecordsInstance
   const latestRecords = useRef(shared)
+  const searchKey = matchKey(shared.scopedQuery)
+  const queryRevision = useRef({ key: searchKey, count: 0 })
   useLayoutEffect(() => {
     latestRecords.current = shared
+    // Counted, not compared, so a search that changes and changes back still
+    // reads as changed to an action that started before it.
+    if (queryRevision.current.key !== searchKey)
+      queryRevision.current = {
+        key: searchKey,
+        count: queryRevision.current.count + 1
+      }
   })
   return (
     <RecordsContext
@@ -71,7 +81,8 @@ export function RecordsProvider<Row extends object>({
         setBulkRunning,
         bulkConfirming,
         setBulkConfirming,
-        latestRecords
+        latestRecords,
+        queryRevision
       }}
     >
       {children}

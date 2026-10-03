@@ -9,14 +9,14 @@ const count = new Intl.NumberFormat('en-AU')
 // Long enough to sit between keystrokes, so a search announces its count once.
 const SETTLE_MS = 500
 
-/** The value once it has held still, so a burst of changes announces once. */
-function useSettled(value: string) {
-  const [settled, setSettled] = useState(value)
+/** The value once it has held still, so a burst of changes announces once. While `hold`, it keeps the last one. */
+function useSettled(value: string, hold: boolean) {
+  const [settled, setSettled] = useState(hold ? '' : value)
   useEffect(() => {
-    if (value === settled) return
+    if (hold || value === settled) return
     const timer = setTimeout(() => setSettled(value), SETTLE_MS)
     return () => clearTimeout(timer)
-  }, [value, settled])
+  }, [value, settled, hold])
   return settled
 }
 
@@ -28,7 +28,9 @@ export function RecordsStatus() {
   const results = useSettled(
     records.filtered
       ? `${count.format(total)} ${total === 1 ? 'result' : 'results'}`
-      : ''
+      : '',
+    // A server's count is the last search's until the new one loads.
+    records.loading
   )
   const selection =
     selected || isSelecting(records, selectMode)

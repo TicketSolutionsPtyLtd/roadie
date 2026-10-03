@@ -27,9 +27,8 @@ const NAMED_PARTS = 3
 
 /** The search and filters that matched nothing, as people read their chips. */
 function unmatched(records: RecordsInstance): string {
-  const { search, filters } = records.appliedView.query
-  const skipped = new Set(records.skippedFilters)
-  const applied = filters.filter((_, index) => !skipped.has(index))
+  // The applied view leaves out filters the fields can't apply.
+  const { search, filters: applied } = records.appliedView.query
   const words = search.trim()
   const parts = [
     ...(words ? [`“${words}”`] : []),

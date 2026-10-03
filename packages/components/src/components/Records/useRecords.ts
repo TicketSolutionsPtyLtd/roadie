@@ -4,6 +4,7 @@ import {
   type ReactNode,
   useDeferredValue,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -16,6 +17,7 @@ import {
   type RecordFilter,
   type RecordLayout,
   type RecordPosition,
+  type RecordQuery,
   type RecordSelection,
   type RecordSort,
   type RecordView,
@@ -30,6 +32,7 @@ import {
   EMPTY_SELECTION,
   selectedCount as countSelected,
   isSelected,
+  matchKey,
   sameSelection,
   selectPage as selectPageIds,
   toggle,
@@ -39,11 +42,15 @@ import {
 import type { RecordName, RecordViewDefaults, RecordsRow } from './types'
 
 export type UseRecordsOptions<Row extends object> = {
-  /** Every record. Records filters, sorts and pages them in the browser. */
+  /** Every record, which Records filters, sorts and pages in the browser. With `rowCount`, the page the server returned. */
   data: readonly Row[]
+  /**
+   * How many records the search and filters match on the server. Giving it turns on server mode: `data` is one page, already searched, filtered, sorted and paged, and the search waits for a pause in typing. Fetch `scopedQuery` at `position` in `timeZone`. Once given, server mode stays: an `undefined` count keeps the last one. Pass 0 until the first count arrives.
+   */
+  rowCount?: number
   /** What each record holds. Keep the array stable (module scope or `useMemo`). */
   fields: readonly RecordField[]
-  /** Defaults to the record's index in `data`. */
+  /** Defaults to the record's index in `data`. Selecting in server mode needs it, as index ids repeat on every page. */
   getRowId?: (row: Row, index: number) => string
   view?: RecordView
   defaultView?: RecordViewDefaults
@@ -69,6 +76,7 @@ export type UseRecordsOptions<Row extends object> = {
    * Filters the page sets, such as the event a list of tickets belongs to.
    * They filter like the view's but are never part of it, so they are never
    * saved, cleared or edited: `Records.Search` shows them as locked chips.
+   * In server mode they reach the fetch through `scopedQuery`.
    */
   scope?: readonly RecordFilter[]
   /** Lets people pick records for bulk actions. @default false */
@@ -84,13 +92,18 @@ export type UseRecordsOptions<Row extends object> = {
 }
 
 export type RecordsInstance<Row extends object = object> = {
-  mode: 'browser'
-  /** Every record held, before search, filters and paging. */
+  /** `server` once `rowCount` is given. */
+  mode: 'browser' | 'server'
+  /** Every record held, before search, filters and paging; in server mode, the page. */
   data: readonly Row[]
   fields: readonly RecordField[]
   view: RecordView
-  /** The view the rows show: the search lags typing while thousands of rows filter. */
+  /** The view the rows show, without the filters and sorts these fields can't apply, and without the page's `scope`. In the browser its search lags typing while thousands of rows filter. It and its `query` keep their identity while their content holds. Key a fetch on `query`, the position and `timeZone`, as relative dates resolve in the zone, which moves from UTC to the viewer's after hydration. */
   appliedView: RecordView
+  /** The applied view's query with the page's `scope` first: what to fetch in server mode, and what actions act on. It keeps its identity while its content holds. */
+  scopedQuery: RecordQuery
+  /** What the search field shows. In server mode it runs ahead of the view's search until typing pauses. */
+  searchText: string
   resolvedQuery: ResolvedRecordQuery
   /** The current page. */
   rows: readonly RecordsRow<Row>[]
@@ -114,12 +127,13 @@ export type RecordsInstance<Row extends object = object> = {
   setLayout: (layout: RecordLayout) => void
   setPage: (page: number) => void
   setPageSize: (pageSize: number) => void
-  /** Every record the search and filters match, sorted, across pages. */
+  /** Every record the search and filters match, sorted, across pages. In server mode, only the page held. */
   matchingRows: readonly RecordsRow<Row>[]
   selectable: boolean
   selection: RecordSelection
-  /** Selected records the search and filters still match. */
+  /** Selected records the search and filters still match. In server mode, the ids picked, or `rowCount` less the exceptions. */
   selectedCount: number
+  /** How many records a selection holds, counted as `selectedCount` is. */
   countSelection: (selection: RecordSelection) => number
   isSelected: (id: string) => boolean
   setSelection: (selection: RecordSelection) => void
@@ -145,6 +159,8 @@ export type RecordsInstance<Row extends object = object> = {
 
 const RECORD: RecordName = { one: 'record', other: 'records' }
 const PAGE_SIZE = 50
+// Long enough to sit between keystrokes, so a request leaves once per pause.
+const SEARCH_DEBOUNCE_MS = 250
 const indexId = (_: unknown, index: number) => String(index)
 const noSubscription = () => () => {}
 
@@ -164,24 +180,9 @@ function useEqualValue<T>(value: T): T {
 const serverZone = () => 'UTC'
 const NO_SCOPE: readonly RecordFilter[] = []
 
-/**
- * What a selection was taken against: the search and the unresolved filters,
- * in any order, so "today" rolling over doesn't drop it.
- */
-const matchKey = ({
-  search,
-  filters
-}: {
-  search: string
-  filters: readonly RecordFilter[]
-}) =>
-  JSON.stringify([
-    search.trim(),
-    filters.map((filter) => JSON.stringify(filter)).sort()
-  ])
-
 export function useRecords<Row extends object>({
   data,
+  rowCount,
   fields,
   getRowId = indexId,
   view: controlledView,
@@ -226,8 +227,17 @@ export function useRecords<Row extends object>({
   const atTime = at instanceof Date ? at.getTime() : at.epochMilliseconds
   const resolvedAt = useMemo(() => new Date(atTime), [atTime])
 
-  // The field paints each keystroke; filtering thousands of rows follows.
-  const search = useDeferredValue(view.query.search)
+  // A page that loads without a count keeps the last one, so the records
+  // don't fall back to the browser and prune the selection or the page.
+  const [lastCount, setLastCount] = useState(rowCount)
+  if (rowCount !== undefined && !Object.is(rowCount, lastCount))
+    setLastCount(rowCount)
+  const count = rowCount ?? lastCount
+  const server = count !== undefined
+  // The field paints each keystroke; filtering thousands of rows follows. A
+  // server's search already waited for typing to pause.
+  const deferredSearch = useDeferredValue(view.query.search)
+  const search = server ? view.query.search : deferredSearch
   const filters = useEqualValue(view.query.filters)
   const sort = useEqualValue(view.query.sort)
   const scope = useEqualValue(scopeOption)
@@ -261,15 +271,52 @@ export function useRecords<Row extends object>({
     ],
     [applied, appliedScope]
   )
+  const appliedQuery = useEqualValue(
+    useMemo(() => {
+      const skipped = new Set(applied.skippedFilters)
+      return {
+        search,
+        filters: filters.filter((_, index) => !skipped.has(index)),
+        sort: applied.resolved.sort
+      }
+    }, [search, filters, applied])
+  )
+  const appliedView = useEqualValue(
+    useMemo(() => ({ ...view, query: appliedQuery }), [view, appliedQuery])
+  )
+  const scopedFilters = useEqualValue(
+    useMemo(() => {
+      const skippedScope = new Set(appliedScope.skippedFilters)
+      return scope.filter((_, index) => !skippedScope.has(index))
+    }, [appliedScope, scope])
+  )
+  const scopedQuery = useMemo(
+    () =>
+      scopedFilters.length === 0
+        ? appliedQuery
+        : {
+            ...appliedQuery,
+            filters: [...scopedFilters, ...appliedQuery.filters]
+          },
+    [appliedQuery, scopedFilters]
+  )
 
   const warned = useRef(new Set<string>())
+  const unidentified = server && selectable && getRowId === indexId
   useEffect(() => {
-    if (!isDev() || skipped.length === 0) return
-    const message = `[Roadie] Records skipped part of the view:\n${skipped.join('\n')}`
-    if (warned.current.has(message)) return
-    warned.current.add(message)
-    console.warn(message)
-  }, [skipped])
+    if (!isDev()) return
+    const warn = (message: string) => {
+      if (warned.current.has(message)) return
+      warned.current.add(message)
+      console.warn(message)
+    }
+    if (skipped.length > 0)
+      warn(`[Roadie] Records skipped part of the view:\n${skipped.join('\n')}`)
+    if (unidentified)
+      warn(
+        '[Roadie] Records in server mode need getRowId to select: index ids repeat on every page.'
+      )
+  }, [skipped, unidentified])
 
   // Every index a record sits at, so a record listed twice keeps both.
   const indexesOf = useMemo(() => {
@@ -282,13 +329,14 @@ export function useRecords<Row extends object>({
     return indexes
   }, [data])
   const matching = useMemo(() => {
+    if (server) return data
     const matches = compileRecordQuery(resolvedQuery, fields)
     return sortRecords(data.filter(matches), resolvedQuery.sort, fields, {
       timeZone: zone
     })
-  }, [data, resolvedQuery, fields, zone])
+  }, [server, data, resolvedQuery, fields, zone])
 
-  const resultCount = matching.length
+  const resultCount = server ? whole(count, 0, 0) : matching.length
   const pageCount = Math.max(1, Math.ceil(resultCount / position.pageSize))
   const lastPage = pageCount - 1
   // A count from a pending or failed fetch would wipe a deep-linked page.
@@ -318,8 +366,12 @@ export function useRecords<Row extends object>({
     () => matchingRows.map((row) => row.id),
     [matchingRows]
   )
-  const start = position.page * position.pageSize
-  const rows = matchingRows.slice(start, start + position.pageSize)
+  // A controlled page the parent never clamped shows the last page, as
+  // Records.Pagination reads it.
+  const start = Math.min(position.page, lastPage) * position.pageSize
+  const rows = server
+    ? matchingRows
+    : matchingRows.slice(start, start + position.pageSize)
   const pageIds = rows.map((row) => row.id)
 
   const [ownSelection, setOwnSelection] = useState<RecordSelection>(
@@ -329,7 +381,7 @@ export function useRecords<Row extends object>({
   const anchor = useRef<string | undefined>(undefined)
   // A pick made here acts on the rows on screen, so it belongs to the applied
   // query, even while a newer search waits to apply.
-  const appliedKey = matchKey({ search, filters: [...scope, ...filters] })
+  const appliedKey = matchKey(scopedQuery)
   const [picked, setPicked] = useState<{
     selection: RecordSelection
     key: string
@@ -350,7 +402,7 @@ export function useRecords<Row extends object>({
   // set, so one set with a new search keeps it before the search applies.
   const queryKey = matchKey({
     search: view.query.search,
-    filters: [...scope, ...filters]
+    filters: scopedQuery.filters
   })
   // A search's matches exist only once it renders, so pruning waits for it.
   const searchApplied = search === view.query.search
@@ -374,9 +426,10 @@ export function useRecords<Row extends object>({
   } else if (searchApplied && taken.key !== queryKey) {
     // Derived in render, so no paint pairs the old selection with the new query.
     const empty = 'ids' in heldSelection && heldSelection.ids.length === 0
+    // Only the server knows what a new search matches.
     selection = empty
       ? heldSelection
-      : 'allMatching' in heldSelection
+      : server || 'allMatching' in heldSelection
         ? EMPTY_SELECTION
         : withinMatching(heldSelection, matchingIds)
     setTaken({ held: heldSelection, key: queryKey, selection })
@@ -390,8 +443,54 @@ export function useRecords<Row extends object>({
     // Own state follows and the parent is told, which render can't do.
     setSelection(taken.selection)
   })
-  const countSelection = (next: RecordSelection) =>
-    countSelected(next, matchingIds)
+  const countSelection = useMemo(
+    () =>
+      server
+        ? (next: RecordSelection) =>
+            'allMatching' in next
+              ? Math.max(0, resultCount - new Set(next.except).size)
+              : new Set(next.ids).size
+        : (next: RecordSelection) => countSelected(next, matchingIds),
+    [server, resultCount, matchingIds]
+  )
+  const selectedCount = useMemo(
+    () => countSelection(selection),
+    [countSelection, selection]
+  )
+
+  // A server's search waits for typing to pause, so the field shows a draft.
+  const committed = view.query.search
+  const [draft, setDraft] = useState(committed)
+  const [seen, setSeen] = useState(committed)
+  // Searches sent and not yet seen back, oldest first, so a slow parent's
+  // late echo of an earlier one isn't read as a change from outside.
+  const [sent, setSent] = useState<readonly string[]>([])
+  // Bumped by each search set from outside, which voids a pending draft.
+  const [outside, setOutside] = useState(0)
+  if (server && committed !== seen) {
+    setSeen(committed)
+    const echo = sent.indexOf(committed)
+    if (echo !== -1) setSent(sent.slice(echo + 1))
+    else {
+      // A search set from outside, like a reset or the URL, replaces the draft.
+      setDraft(committed)
+      setSent([])
+      setOutside(outside + 1)
+    }
+  } else if (server && sent.length > 0 && committed === sent.at(-1))
+    // The parent holds the last search sent, so earlier ones it skipped
+    // can't echo back and mask a later change from outside.
+    setSent([])
+  const searchTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+  useEffect(() => () => clearTimeout(searchTimer.current), [])
+  // What the parent will hold once every search sent has echoed.
+  const expected = server ? (sent.at(-1) ?? committed) : committed
+  const replaceDraft = (next: string) => {
+    clearTimeout(searchTimer.current)
+    if (!server) return
+    setDraft(next)
+    if (next !== expected) setSent((held) => [...held, next].slice(-20))
+  }
 
   // Writes build on each other until the view shown changes, as a parent's
   // state may commit late (a transition, a URL). A parent that renders twice
@@ -433,26 +532,50 @@ export function useRecords<Row extends object>({
     const base = latestView()
     setView({ ...base, query: { ...base.query, ...query(base.query) } }, first)
   }
+  const commitSearch = (next: string) => {
+    replaceDraft(next)
+    if (next !== expected) setQuery(() => ({ search: next }))
+  }
+  // The timer fires after renders its closure never saw.
+  const latest = useRef({ commitSearch, outside, server })
+  useLayoutEffect(() => {
+    latest.current = { commitSearch, outside, server }
+  })
+  // Reads the latest render, so a setSearch kept from an older one still works.
+  const setSearch = (next: string) => {
+    if (!latest.current.server || next === '')
+      return latest.current.commitSearch(next)
+    setDraft(next)
+    clearTimeout(searchTimer.current)
+    const base = latest.current.outside
+    searchTimer.current = setTimeout(() => {
+      // A search set from outside while typing paused wins over the draft,
+      // even one that has since changed back; the records' own echo doesn't.
+      if (latest.current.outside === base) latest.current.commitSearch(next)
+    }, SEARCH_DEBOUNCE_MS)
+  }
 
   return {
-    mode: 'browser',
+    mode: server ? 'server' : 'browser',
     data,
     fields,
     view,
-    appliedView:
-      search === view.query.search
-        ? view
-        : { ...view, query: { ...view.query, search } },
+    appliedView,
+    searchText: server ? draft : committed,
     resolvedQuery,
     rows,
     resultCount,
     filtered: isFiltered(applied.resolved),
     position,
     pageCount,
-    setView: (next) => setView(next),
+    setView: (next) => {
+      replaceDraft(next.query.search)
+      setView(next)
+    },
     skippedFilters: applied.skippedFilters,
     scope,
-    setSearch: (next) => setQuery(() => ({ search: next })),
+    scopedQuery,
+    setSearch,
     addFilter: (filter) =>
       setQuery((query) => ({ filters: [...query.filters, filter] })),
     updateFilter: (index, filter) =>
@@ -465,7 +588,10 @@ export function useRecords<Row extends object>({
       setQuery((query) => ({
         filters: query.filters.filter((_, at) => at !== index)
       })),
-    clearQuery: () => setQuery(() => ({ search: '', filters: [] })),
+    clearQuery: () => {
+      replaceDraft('')
+      setQuery(() => ({ search: '', filters: [] }))
+    },
     setSort: (next) => setQuery(() => ({ sort: next })),
     setLayout: (layout) => setView({ ...latestView(), layout }),
     setPage: (page) => {
@@ -477,7 +603,7 @@ export function useRecords<Row extends object>({
     matchingRows,
     selectable,
     selection,
-    selectedCount: countSelection(selection),
+    selectedCount,
     countSelection,
     isSelected: (id) => isSelected(selection, id),
     setSelection,

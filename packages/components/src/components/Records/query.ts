@@ -10,7 +10,6 @@ import {
 } from '@oztix/roadie-core/records'
 
 import type { RecordViewDefaults } from './types'
-import type { RecordsInstance } from './useRecords'
 
 export const EMPTY_QUERY: RecordQuery = { search: '', filters: [], sort: [] }
 
@@ -94,16 +93,3 @@ export function applyQuery(
 
 export const isFiltered = (query: ResolvedRecordQuery) =>
   query.search.trim() !== '' || query.filters.length > 0
-
-/**
- * The query an action acts on: the applied view's, with the page's scope
- * first, so "every match" never reaches records the page leaves out.
- */
-export function actionQuery(
-  records: Pick<RecordsInstance, 'scope' | 'appliedView'>
-): RecordQuery {
-  const { query } = records.appliedView
-  return records.scope.length === 0
-    ? query
-    : { ...query, filters: [...records.scope, ...query.filters] }
-}

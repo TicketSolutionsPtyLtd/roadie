@@ -12,6 +12,7 @@ import { commands, page, userEvent } from 'vitest/browser'
 
 import { RecordTable } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { releaseDragPointer } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { showFields, testShows } from '../Records/testUtils'
 import { tableColumns } from './columns'
@@ -35,6 +36,7 @@ afterAll(() => removeStylesheets())
 beforeEach(() => commands.pointer([{ type: 'move', x: 1, y: 1, steps: 2 }]))
 afterEach(async () => {
   cleanup()
+  await releaseDragPointer()
   await page.viewport(1920, 1080)
 })
 

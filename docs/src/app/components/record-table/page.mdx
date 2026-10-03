@@ -379,7 +379,7 @@ render(
 
 #### Scope
 
-A page that shows part of a list, such as one venue's shows or one event's tickets, passes `scope`: filters it sets, not the person. They show first as locked chips with a "Set by this page" tooltip, filter with the view, and are never part of it, so they never reach a saved view or the URL, Clear and the empty state's Clear search and filters keep them, and a list with only its scope counts as unfiltered. In server mode, fetch with the scope's filters too: `toMeilisearch` reads a view, so pass it one whose filters are `[...records.scope, ...view.query.filters]`. The scope can hold anything a filter can, so an app can resolve "products on this event, any of its days or its collection" into filters it understands.
+A page that shows part of a list, such as one venue's shows or one event's tickets, passes `scope`: filters it sets, not the person. They show first as locked chips with a "Set by this page" tooltip, filter with the view, and are never part of it, so they never reach a saved view or the URL, Clear and the empty state's Clear search and filters keep them, and a list with only its scope counts as unfiltered. In server mode, fetch `records.scopedQuery`, which puts the scope's filters first; `toMeilisearch` reads a view, so pass it `{ ...records.appliedView, query: records.scopedQuery }`. Table and bulk actions get that query too, so acting on every match stays within the page. The scope can hold anything a filter can, so an app can resolve "products on this event, any of its days or its collection" into filters it understands.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -668,6 +668,127 @@ tableActions={[
 ]}
 ```
 
+### Server data
+
+Pass `rowCount` and the records stop searching, filtering, sorting and paging in the browser. `data` is one page, in the order the server returned it, and `rowCount` counts every record that matches. Hold the view and position yourself, usually in the URL, and fetch whenever either changes, or the viewer's zone does: relative dates such as "today" resolve in it, and a server render reads UTC until the page hydrates. The search waits for a 250ms pause in typing before `onViewChange` hears it, so a request doesn't leave on every keystroke. Clearing it is immediate.
+
+Set `loading` from whether the rows for the current view and position have arrived, so it is already true in the render where either changes. While `loading` or `error` is set, the records keep a page past the old count, so a linked page waits for the new count before it moves, and `Records.Status` waits for the new count before it announces it. Once given, `rowCount` keeps server mode on: left `undefined` while a page loads, it keeps the last count. Pass 0 until the first count arrives. Take each change `onViewChange` reports: a parent that ignores a search leaves the field showing it.
+
+Selection works against the total. Records ticked on different pages stay selected, and Select all picks `{ allMatching: true, except }`, counted from `rowCount`. A bulk action gets that selection and the query it was taken against, so the server acts on the same records. A new search or filter clears the selection, since only the server knows what still matches; a new sort or page keeps it. Selecting needs `getRowId`, as index ids repeat on every page. `matchingRows` holds only the page, so export on the server, as Table actions shows.
+
+This example's server is pretend: it filters and sorts with core's `resolveRecordQuery`, `compileRecordQuery` and `sortRecords`, as an index would, waits half a second, and shows the Meilisearch search it stands in for.
+
+```tsx-live-noinline
+const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Opal Harpoon Room', 'Saltbush Trumpet Ballroom']
+const names = ['Ochre Kite Weekender', 'Lampshade Disco', 'Raffia Spaceship', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Marzipan Thunderclap']
+const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
+const everyShow = Array.from({ length: 400 }, (_, index) => ({
+  id: `show-${index}`,
+  show: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
+  venue: venues[index % venues.length],
+  city: cities[index % cities.length],
+  status: ['on_sale', 'on_sale', 'sold_out', 'cancelled'][index % 4],
+  sold: (index * 37) % 2400
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('show', { label: 'Show' }),
+  field.text('venue', { label: 'Venue' }),
+  field.text('city', { label: 'City' }),
+  field.option('status', {
+    label: 'Status',
+    status: {
+      on_sale: { intent: 'success', label: 'On sale' },
+      sold_out: { intent: 'neutral', label: 'Sold out' },
+      cancelled: { intent: 'danger', label: 'Cancelled' }
+    }
+  }),
+  field.number('sold', { label: 'Sold' })
+]
+const column = tableColumns(fields)
+const columns = fields.map((field, index) => column.field(field.key, { pin: index === 0 }))
+const timeZone = 'Australia/Sydney'
+
+function pretendServer(view, position) {
+  const now = new Date()
+  const query = resolveRecordQuery(view.query, fields, { now, timeZone })
+  const matching = sortRecords(everyShow.filter(compileRecordQuery(query, fields)), query.sort, fields, { timeZone })
+  const start = position.page * position.pageSize
+  return new Promise((resolve) =>
+    setTimeout(
+      () =>
+        resolve({
+          rows: matching.slice(start, start + position.pageSize),
+          rowCount: matching.length,
+          search: toMeilisearch(view, fields, { now, timeZone, position })
+        }),
+      500
+    )
+  )
+}
+
+const firstView = { query: { search: '', filters: [], sort: [] }, layout: { type: 'table' } }
+
+function ServerShows() {
+  const [view, setView] = useState(firstView)
+  const [position, setPosition] = useState({ page: 0, pageSize: 25, row: 0 })
+  const [result, setResult] = useState({ rows: [], rowCount: 0, key: null })
+  const key = JSON.stringify([view.query, position.page, position.pageSize])
+
+  useEffect(() => {
+    let current = true
+    pretendServer(view, position).then((next) => {
+      if (current) setResult({ ...next, key })
+    })
+    return () => {
+      current = false
+    }
+  }, [key])
+
+  return (
+    <div className='grid gap-3'>
+      <RecordTable
+        caption='Shows'
+        data={result.rows}
+        rowCount={result.rowCount}
+        loading={result.key !== key}
+        fields={fields}
+        columns={columns}
+        getRowId={(row) => row.id}
+        recordName={{ one: 'show', other: 'shows' }}
+        view={view}
+        onViewChange={setView}
+        position={position}
+        onPositionChange={setPosition}
+        bulkActions={[{ label: 'Export', onAction: (selection, query) => console.log('export', selection, query) }]}
+      />
+      {result.search && (
+        <pre className='rounded-md bg-sunken p-3 font-mono text-xs break-all whitespace-pre-wrap text-subtle'>
+          {JSON.stringify(result.search)}
+        </pre>
+      )}
+    </div>
+  )
+}
+
+render(<ServerShows />)
+```
+
+With Meilisearch, `toMeilisearch(view, fields, { now, timeZone, position })` from `@oztix/roadie-core/records/meilisearch` turns the view and position into a search. It adds `page` and `hitsPerPage`, so the response's `totalHits` counts the matches for `rowCount`. Meilisearch stops counting at the index's `pagination.maxTotalHits`, 1,000 by default, so raise it to the most records a screen can match. Pass the viewer's zone, `records.timeZone`, so "today" means their day. [Records model](/foundations/records) lists the index shape it needs.
+
+```tsx
+const { q, ...params } = toMeilisearch(view, fields, {
+  now: new Date(),
+  timeZone,
+  position
+})
+const response = await client.index('events').search(q, params)
+const page = { rows: response.hits, rowCount: response.totalHits }
+```
+
+The example fetches `view`, which only the table changes. A view from a URL read with `fromSearchParams`, or checked with `validateRecordView`, is safe to fetch too. Built from `useRecords`, fetch `records.scopedQuery` instead: it leaves out the filters and sorts the fields can't apply, as the table does, and puts the page's `scope` first. A view never holds the scope, so a `RecordTable` given `scope` adds those filters to what it fetches too.
+
 ### Long lists
 
 By default the page, or the pane, scrolls the rows down, and the table scrolls sideways on its own with a Roadie scrollbar that sticks to the bottom of whatever scrolls the page. Give `Records.Content` (or `RecordTable`) a `maxHeight` to scroll the rows both ways in a box of their own, with the header and the pinned column held in place. `fill` does the same at its parent's height, such as a `Pane.Body`.
@@ -875,7 +996,7 @@ column.field('city', { pin: true })`}
 - The search is a combobox named "Search and filter", or by its `aria-label`. Suggestions open as you type, on a click or with the arrows, not on Tab, and while they're open the rest of the page is hidden from screen readers, as for any combobox. Enter searches the text unless you moved to a suggestion with the arrows. Escape closes the suggestions, and a second Escape clears the text. Clear keeps focus in the field and keeps the page's scope. `/` focuses the field from anywhere, except while typing in another one.
 - Chips are a toolbar named "Filters": Left and Right move between them, Backspace on the empty field selects the last one and a second removes it, and Enter or a click opens its editor, a dialog named after the field. Focus returns to the chip when the editor closes, or to the field once the filter is removed. Each chip's remove button is named "Remove" and the chip. A locked scope chip says it is set by the page, and a chip's dates or a note that it can't apply are read after its label.
 - Each record's checkbox is named "Select" followed by the record's title, or its id with no title, and the header checkbox is named "Select page", with a mixed state when only some of the page is checked.
-- `Records.Status` also announces the selection, such as "3 selected, 24 results". It announces a search's count once typing settles, not on every keystroke.
+- `Records.Status` also announces the selection, such as "3 selected, 24 results". It announces a search's count once typing settles, not on every keystroke, and against a server once the new count loads.
 - While records are selected, the bulk actions are a toolbar named "Bulk actions" in the header row, beside "Select page", which keeps focus as the bar replaces the column headers. The headers stay in the table for screen readers, and the toolbar sits in a last header with no cells under it. Arrow keys move between its controls. Escape clears the selection and returns focus to "Select page".
 - Each row's actions menu is named "More actions for" the record's title. Table actions past the first sit behind a button named "More actions". A running action's control stays focusable but disabled, with `aria-busy`. A confirmation is an alert dialog.
 - The Configure button is named "Configure table", as is the dialog it opens. Its sort controls are named "Sort by", then "Then by, level 2" and so on, and for each level the field's order, such as "Sold order". Adding a level moves focus to its field, and removing one moves focus to the Remove of the level that takes its place, or of the one before it, or to Add sort. Each column's handle is named "Reorder" and the column, its eye is a toggle button named "Show" and the column, pressed while the column shows (the last shown column's is disabled and says why), and each move is announced, such as "Gross moved to position 1 of 4 columns".
@@ -889,25 +1010,27 @@ column.field('city', { pin: true })`}
 function useRecords<Row extends object>(options: UseRecordsOptions<Row>): RecordsInstance<Row>
 ```
 
-Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser. Takes `data`, `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is) and `now` (when relative dates resolve, by default when the list mounted). Pass the result to `Records` or `Records.Provider`.
+Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data`, `rowCount`, `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is) and `now` (when relative dates resolve, by default when the list mounted). Pass the result to `Records` or `Records.Provider`.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `mode` | `'browser'` | Where the records are searched and paged. |
-| `data` | `readonly Row[]` | Every record held, before search, filters and paging. |
+| `mode` | `'browser' \| 'server'` | Where the records are searched and paged: `server` once `rowCount` is given. |
+| `data` | `readonly Row[]` | Every record held, before search, filters and paging. In server mode, the page. |
 | `fields` | `readonly RecordField[]` | What each record holds. |
 | `view` | `RecordView` | The search, filters, sort and layout. |
-| `appliedView` | `RecordView` | The view the rows show. Its search lags typing while a long list filters. |
+| `appliedView` | `RecordView` | The view the rows show, without the filters and sorts the fields can't apply, and without the page's scope. In the browser its search lags typing while a long list filters. Its `query` keeps its identity while its content holds. |
+| `searchText` | `string` | What the search field shows. In server mode it runs ahead of the view's search until typing pauses. |
 | `resolvedQuery` | `ResolvedRecordQuery` | The applied query, with relative dates fixed and unusable filters skipped. |
 | `rows` | `readonly { id: string; row: Row }[]` | The current page. |
-| `resultCount` | `number` | Records the search and filters match. |
+| `resultCount` | `number` | Records the search and filters match: `rowCount` in server mode. |
 | `filtered` | `boolean` | Whether a search or filter narrows the records. |
 | `position` | `{ page: number; pageSize: number; row: number }` | The page, zero-based, and its size. |
 | `pageCount` | `number` | Pages at this size, at least one. |
 | `setView` | `(view: RecordView) => void` | Replaces the view. |
 | `skippedFilters` | `readonly number[]` | Filters in the view, by index, that these fields can't apply. |
 | `scope` | `readonly RecordFilter[]` | The page's own filters, applied before the view's and never part of it. |
-| `setSearch` | `(search: string) => void` | Sets the search and returns to the first page. |
+| `scopedQuery` | `RecordQuery` | The applied view's query with the scope's filters first: what to fetch in server mode, and what actions act on. It keeps its identity while its content holds, so key a fetch on it, the position and `timeZone`. |
+| `setSearch` | `(search: string) => void` | Sets the search and returns to the first page. In server mode, once typing pauses for 250ms, or at once when cleared. |
 | `addFilter` | `(filter: RecordFilter) => void` | Adds a filter. |
 | `updateFilter` | `(index: number, filter: RecordFilter) => void` | Replaces the filter at an index. |
 | `removeFilter` | `(index: number) => void` | Removes the filter at an index. |
@@ -916,12 +1039,12 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `setLayout` | `(layout: RecordLayout) => void` | Sets the layout, such as the table's column order. |
 | `setPage` | `(page: number) => void` | Goes to a page, within the pages there are. |
 | `setPageSize` | `(pageSize: number) => void` | Sets the page size and returns to the first page. |
-| `matchingRows` | `readonly { id: string; row: Row }[]` | Every record the search and filters match, sorted, across pages. |
+| `matchingRows` | `readonly { id: string; row: Row }[]` | Every record the search and filters match, sorted, across pages. In server mode, only the page. |
 | `selectable` | `boolean` | Whether records can be selected. |
 | `selection` | `RecordSelection` | `{ ids }`, or `{ allMatching: true, except }`. |
-| `selectedCount` | `number` | Selected records the search and filters still match. |
+| `selectedCount` | `number` | Selected records the search and filters still match. In server mode, the ids picked, or `rowCount` less the exceptions. |
 | `isSelected` | `(id: string) => boolean` | Whether a record is selected. |
-| `countSelection` | `(selection: RecordSelection) => number` | How many records a selection holds that the search and filters still match. |
+| `countSelection` | `(selection: RecordSelection) => number` | How many records a selection holds that the search and filters still match. In server mode, the ids picked, or `rowCount` less the exceptions. |
 | `setSelection` | `(selection: RecordSelection) => void` | Replaces the selection. |
 | `toggleRow` | `(id: string, options?: { range?: boolean }) => void` | Picks or drops a record; `range` covers every record from the last one toggled, in sorted order. |
 | `selectPage` | `(value: boolean) => void` | Picks or drops every record on the page. |

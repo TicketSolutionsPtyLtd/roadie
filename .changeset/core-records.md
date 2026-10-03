@@ -60,3 +60,8 @@ Weekender 2027 › Opening Night"). A chip listing more than two values names
 them all in `detail`. `parseQuery` labels its filters the same way, names a
 field whose label holds a colon in `field:value`, and reads `$` and
 thousands commas in a number's value.
+
+`toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
+and `hitsPerPage`, so the response's `totalHits` counts the matches (up to
+the index's `pagination.maxTotalHits`). A page below 0 or a page size below
+1 throws a RangeError.

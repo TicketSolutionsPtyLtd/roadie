@@ -43,7 +43,10 @@ export type QueryFieldProps<Value = unknown> = {
   onRemoveChip?: (id: string) => void
   /** Gives unlocked chips an edit button: open your editor `Popover` against `anchor`, the chip. */
   onEditChip?: (id: string, anchor: HTMLElement) => void
-  /** Replaces the `onRemoveChip` calls Clear makes for each unlocked chip. */
+  /**
+   * Clear calls it in place of clearing the text through `onInputValueChange`
+   * and removing each unlocked chip, so one update can clear both.
+   */
   onClear?: () => void
   /** The field being given a value, such as "Venue is", shown after the chips. */
   pendingChip?: { id: string; label: string }
@@ -231,10 +234,14 @@ export function QueryField<Value = unknown>({
   }
 
   function clear() {
-    setText('')
     if (pendingChip) onPendingChipCancel?.()
-    if (onClear) onClear()
-    else unlocked.forEach((chip) => onRemoveChip?.(chip.id))
+    if (onClear) {
+      setText('', { silent: true })
+      onClear()
+    } else {
+      setText('')
+      unlocked.forEach((chip) => onRemoveChip?.(chip.id))
+    }
     inputRef.current?.focus()
   }
 

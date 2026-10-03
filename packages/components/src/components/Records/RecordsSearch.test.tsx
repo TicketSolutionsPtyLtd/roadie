@@ -564,4 +564,45 @@ describe('Records.Search', () => {
     await new Promise((resolve) => setTimeout(resolve, 150))
     expect(chipLabels()).toEqual([])
   })
+
+  it('adds chips and keeps the scope in server mode', async () => {
+    const onViewChange = vi.fn()
+    function Server() {
+      const records = useRecords({
+        data: shows.slice(0, 10),
+        rowCount: 30,
+        fields,
+        getRowId: (row) => row.id,
+        scope: [{ field: 'status', operator: 'is', values: ['on_sale'] }],
+        onViewChange
+      })
+      return (
+        <Records.Root records={records} layouts={layouts}>
+          <Records.Search />
+          <output data-testid='fetch'>
+            {JSON.stringify(records.scopedQuery)}
+          </output>
+        </Records.Root>
+      )
+    }
+    const user = userEvent.setup()
+    render(<Server />)
+    expect(chipLabels()).toEqual(['Status is On sale'])
+    await user.click(input())
+    await user.click(await option('Sold'))
+    const dialog = await editor()
+    const value = within(dialog).getByRole('textbox', { name: 'Sold value' })
+    await waitFor(() => expect(value).toHaveFocus())
+    await user.keyboard('100')
+    expect(chipLabels()).toEqual(['Status is On sale', 'Sold is 100'])
+    expect(
+      JSON.parse(screen.getByTestId('fetch').textContent!).filters
+    ).toEqual([
+      { field: 'status', operator: 'is', values: ['on_sale'] },
+      { field: 'sold', operator: 'eq', value: 100 }
+    ])
+    expect(onViewChange.mock.lastCall![0].query.filters).toEqual([
+      { field: 'sold', operator: 'eq', value: 100 }
+    ])
+  })
 })
