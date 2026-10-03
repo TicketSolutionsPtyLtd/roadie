@@ -200,10 +200,10 @@ render(<Sales />)
 </Guideline>
 
 <Guideline title='Pair it with large controls'>
-  <Guideline.Do example={<div className='flex flex-wrap items-start gap-2'><DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }} /><Button size='lg'>Export</Button></div>} code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='lg'>Export</Button>\n</DashboardPeriod>`}>
+  <Guideline.Do example={<div className='grid w-72'><DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }}><Button size='lg'>Export</Button></DashboardPeriod></div>} code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='lg'>Export</Button>\n</DashboardPeriod>`}>
     Put large Buttons, IconButtons and Selects beside it, so the row shares one height.
   </Guideline.Do>
-  <Guideline.Dont example={<div className='flex flex-wrap items-start gap-2'><DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }} /><Button size='sm'>Export</Button></div>} code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='sm'>Export</Button>\n</DashboardPeriod>`}>
+  <Guideline.Dont example={<div className='grid w-72'><DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }}><Button size='sm'>Export</Button></DashboardPeriod></div>} code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='sm'>Export</Button>\n</DashboardPeriod>`}>
     Don't set small or medium controls beside it. They sit short of its edge.
   </Guideline.Dont>
 </Guideline>
