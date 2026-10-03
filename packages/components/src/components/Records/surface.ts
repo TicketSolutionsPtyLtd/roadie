@@ -53,8 +53,12 @@ export const surfaceClass =
   'bg-(--records-surface,var(--pane-surface,var(--intent-bg-normal)))'
 
 /** Paints a sticky part opaque in the colour behind it. */
-export function useSurface(ref: RefObject<HTMLElement | null>) {
+export function useSurface(
+  ref: RefObject<HTMLElement | null>,
+  /** Changes when the part may have remounted. */
+  placement?: unknown
+) {
   useLayoutEffect(() => {
     if (ref.current) return watchSurface(ref.current)
-  }, [ref])
+  }, [ref, placement])
 }

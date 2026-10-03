@@ -78,8 +78,9 @@ function syncScroll(
     element.scrollLeft = source.scrollLeft
 }
 
+// As DataTable: words A to Z first, figures and dates largest or latest first.
 const firstDirection = (field: RecordField): RecordSortDirection =>
-  field.type === 'number' || field.type === 'money' ? 'descending' : 'ascending'
+  field.type === 'text' || field.type === 'option' ? 'ascending' : 'descending'
 
 /** A header click sorts by that field alone: first its natural way, then flipped. */
 function nextSort(field: RecordField, sort: readonly RecordSort[]) {
@@ -108,8 +109,10 @@ export function RecordTableContent({
   const scrollerRef = useRef<HTMLDivElement>(null)
   // In its own box, one viewport scrolls both ways; otherwise only the rows scroll sideways.
   const boxed = fill || Boolean(maxHeight)
+  const contentRef = useRef<HTMLDivElement>(null)
   const headTop = useStickyTop(headRef, toolbar, boxed)
-  useSurface(headRef)
+  // On the table, so the head and pinned cells inherit it.
+  useSurface(contentRef, boxed)
   const allColumns = config.columns
   const viewLayout = records.view.layout
   const columns = useMemo(
@@ -140,7 +143,8 @@ export function RecordTableContent({
   const busy = records.loading && !records.error
   const dimmed = busy && rows.length > 0
   const awaitingRows = busy && rows.length === 0
-  const sort = records.view.query.sort
+  // What the rows show: a sort the fields can't apply marks nothing.
+  const sort = records.resolvedQuery.sort
 
   // Error, then skeleton, then empty: what replaces the rows.
   const state = records.error ? (
@@ -184,6 +188,7 @@ export function RecordTableContent({
     >
       <MeasuredWidth measured={boxed}>
         <div
+          ref={contentRef}
           role='table'
           aria-label={caption}
           aria-busy={busy || undefined}

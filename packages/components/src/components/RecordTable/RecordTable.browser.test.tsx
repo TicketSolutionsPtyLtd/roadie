@@ -274,6 +274,44 @@ describe('RecordTable surface', () => {
     expect(bg(container, 'records-toolbar')).toBe(card)
   })
 
+  it('paints pinned body cells with the same surface', async () => {
+    const { container } = render(
+      <div data-testid='card' className='bg-sunken'>
+        <RecordTable
+          data={testShows(5)}
+          fields={showFields}
+          columns={showColumns}
+        />
+      </div>
+    )
+    const card = getComputedStyle(
+      container.querySelector('[data-testid="card"]')!
+    ).backgroundColor
+    const pinned = slot(container, 'record-table-row').querySelector(
+      '[data-pin]'
+    )!
+    await expect.poll(() => getComputedStyle(pinned).backgroundColor).toBe(card)
+  })
+
+  it('keeps the surface when the table moves into its own box', async () => {
+    const table = (maxHeight?: string) => (
+      <div data-testid='card' className='bg-sunken'>
+        <RecordTable
+          data={testShows(5)}
+          fields={showFields}
+          columns={showColumns}
+          maxHeight={maxHeight}
+        />
+      </div>
+    )
+    const { container, rerender } = render(table())
+    rerender(table('20rem'))
+    const card = getComputedStyle(
+      container.querySelector('[data-testid="card"]')!
+    ).backgroundColor
+    await expect.poll(() => bg(container, 'record-table-head')).toBe(card)
+  })
+
   it('follows the theme when it switches', async () => {
     const { container } = render(
       <div data-testid='card' className='bg-sunken'>

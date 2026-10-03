@@ -35,7 +35,9 @@ export function RecordsToolbar({
     const measure = () => {
       const height = element.offsetHeight
       setToolbar((held) =>
-        held?.element === element && held.height === height
+        // The first toolbar mounted keeps the place another one would take.
+        (held?.element === element && held.height === height) ||
+        (held && held.element !== element && held.element.isConnected)
           ? held
           : { element, height }
       )
@@ -45,7 +47,7 @@ export function RecordsToolbar({
     observer.observe(element)
     return () => {
       observer.disconnect()
-      setToolbar(null)
+      setToolbar((held) => (held?.element === element ? null : held))
     }
   }, [setToolbar])
 

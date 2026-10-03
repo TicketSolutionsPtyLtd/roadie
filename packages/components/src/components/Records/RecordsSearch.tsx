@@ -35,8 +35,10 @@ export function RecordsSearch({
         onChange={(event) => records.setSearch(event.target.value)}
         onKeyDown={(event) => {
           // Escape in a composition cancels the composition, not the search.
-          if (event.key !== 'Escape' || !value || event.nativeEvent.isComposing)
-            return
+          // WebKit ends the composition before this keydown, flagging it only by 229.
+          const composing =
+            event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229
+          if (event.key !== 'Escape' || !value || composing) return
           event.preventDefault()
           records.setSearch('')
         }}

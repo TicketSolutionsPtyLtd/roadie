@@ -493,7 +493,7 @@ describe('RecordTable fill', () => {
 describe('Records spread across a pane by a Provider', () => {
   const layouts = [tableLayout(wideColumns)]
 
-  function ProviderPane() {
+  function ProviderPane({ second = false }: { second?: boolean }) {
     const records = useRecords({
       data: testShows(100),
       fields: showFields,
@@ -507,6 +507,7 @@ describe('Records spread across a pane by a Provider', () => {
           </Pane.Header>
           <Pane.Body>
             <Records.Toolbar />
+            {second && <Records.Toolbar className='hidden' />}
             <Records.Content />
           </Pane.Body>
           <Pane.Footer>
@@ -537,5 +538,23 @@ describe('Records spread across a pane by a Provider', () => {
     expect(
       getComputedStyle(slot(container, 'record-table-head')).backgroundColor
     ).toBe(getComputedStyle(slot(container, 'pane')).backgroundColor)
+  })
+
+  it('sticks under the first toolbar when a second one mounts', async () => {
+    const { container } = render(
+      <div style={{ height: 600, width: WIDE_PANE, display: 'grid' }}>
+        <ProviderPane second />
+      </div>
+    )
+    const pane = slot(container, 'pane-viewport')
+    await expect
+      .poll(() => {
+        pane.scrollTop = 1500
+        return Math.abs(
+          rect(slot(container, 'record-table-head')).top -
+            rect(slot(container, 'records-toolbar')).bottom
+        )
+      })
+      .toBeLessThanOrEqual(1)
   })
 })

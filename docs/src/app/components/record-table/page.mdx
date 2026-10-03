@@ -306,9 +306,9 @@ render(
 
 ### Views
 
-A view holds the search, filters, sort and layout; a position holds the page and page size. Both work uncontrolled, with `defaultView` and `defaultPosition`, or controlled, with `view` and `onViewChange`, and `position` and `onPositionChange`. A change to the search, filters or sort returns to the first page: `onPositionChange` hears that first, then `onViewChange` gets the view and the new position, so a parent writing both to one URL ends with the two agreeing.
+A view holds the search, filters, sort and layout; a position holds the page and page size. Both work uncontrolled, with `defaultView` and `defaultPosition`, or controlled, with `view` and `onViewChange`, and `position` and `onPositionChange`. A change to the search, filters or sort returns to the first page: when the page changes, `onPositionChange` hears that first, then `onViewChange` gets the view and the new position, so a parent writing both to one URL ends with the two agreeing.
 
-Keep the view in the URL with `toSearchParams` and `fromSearchParams`, as [Records model](/foundations/records) shows. A view can name a filter on a field these records don't have, or one its field can't read, such as a date range that ends before it starts. The records skip it, show the rest, list it in `skippedFilters`, and warn in development. A sort on a field that doesn't sort is skipped the same way.
+Keep the view in the URL with `toSearchParams` and `fromSearchParams`, as [Records model](/foundations/records) shows. A view can name a filter on a field these records don't have, or one its field can't read, such as a date range that ends before it starts. The records skip it, show the rest, list it in `skippedFilters`, and warn in development. A sort on a field that doesn't sort is skipped too, with the same warning, and no header shows it.
 
 ```tsx-live-noinline
 const field = recordFields()

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { RecordTable, tableColumns, tableLayout } from '.'
 import { Records, useRecords } from '../Records'
@@ -120,6 +120,42 @@ describe('RecordTable content', () => {
       'aria-sort',
       'descending'
     )
+  })
+
+  it('sorts dates latest first', () => {
+    render(
+      <RecordTable
+        data={testShows(3)}
+        fields={showFields}
+        columns={[column.field('show'), column.field('starts')]}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Starts' }))
+    expect(
+      screen.getByRole('columnheader', { name: /Starts/ })
+    ).toHaveAttribute('aria-sort', 'descending')
+  })
+
+  it('marks only a sort it applies', () => {
+    const fields = showFields.map((field) =>
+      field.key === 'city' ? { ...field, sortable: false } : field
+    )
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const columns = tableColumns<TestShow>(fields)
+    render(
+      <RecordTable
+        data={testShows(3)}
+        fields={fields}
+        columns={[columns.field('show'), columns.field('city')]}
+        defaultView={{
+          query: { sort: [{ field: 'city', direction: 'ascending' }] }
+        }}
+      />
+    )
+    expect(
+      screen.getByRole('columnheader', { name: 'City' })
+    ).not.toHaveAttribute('aria-sort')
+    warn.mockRestore()
   })
 
   it('sorts numbers largest first', () => {
@@ -358,7 +394,7 @@ describe('RecordTable preset', () => {
     expect(field).toHaveValue('')
   })
 
-  it('leaves Escape to an IME composing a word', () => {
+  it('leaves Escape to an IME, even once WebKit ends the composition', () => {
     render(
       <RecordTable
         data={testShows(3)}
@@ -369,6 +405,8 @@ describe('RecordTable preset', () => {
     )
     const field = screen.getByRole('searchbox')
     fireEvent.keyDown(field, { key: 'Escape', isComposing: true })
+    expect(field).toHaveValue('ろっく')
+    fireEvent.keyDown(field, { key: 'Escape', keyCode: 229 })
     expect(field).toHaveValue('ろっく')
   })
 
