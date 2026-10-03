@@ -95,6 +95,13 @@ function summarise(
 
 type View = 'periods' | 'calendar'
 
+// Two lines in about a large control's height, a pairing with large controls.
+const twoLineClasses = {
+  button: 'h-auto min-h-12 px-2 py-1.5',
+  first: 'truncate text-base leading-tight',
+  second: 'text-sm leading-tight'
+}
+
 /** For pickers built on this one, such as `DashboardPeriod`. Not public. */
 export type DateRangePickerExtension = {
   /**
@@ -109,13 +116,8 @@ export type DateRangePickerExtension = {
    * dates are empty, without calling the picker required.
    */
   clearable?: boolean
-  /** Shown quieter after the range on the button, and read in its name. */
+  /** A quieter second line on the button, read in its name too. */
   valueSuffix?: string | null
-  /**
-   * The suffix in fewer words, for a narrow container, where the range's own
-   * dates give way to it so the button keeps one line.
-   */
-  valueSuffixShort?: string | null
 }
 
 /** DateRangePicker, with the hooks pickers built on it need. */
@@ -157,7 +159,6 @@ export function ExtendedDateRangePicker({
   onApply,
   clearable = true,
   valueSuffix,
-  valueSuffixShort,
   ...props
 }: DateRangePickerProps & DateRangePickerExtension) {
   const field = useFieldContext()
@@ -318,6 +319,7 @@ export function ExtendedDateRangePicker({
           ? `Spans fewer than ${days(min)}`
           : null
   const locked = isDisabled || readOnly
+  const twoLines = !!description && !!valueSuffix
   const drawer = surface === 'drawer'
   const hasPresets = presets.length > 0
   // Opens on the presets when the value is one of them.
@@ -647,7 +649,8 @@ export function ExtendedDateRangePicker({
             data-slot='date-range-picker-trigger'
             className={cn(
               selectTriggerVariants({ size, emphasis }),
-              'gap-2 data-readonly:cursor-default'
+              'gap-2 data-readonly:cursor-default',
+              twoLines && twoLineClasses.button
             )}
           >
             <CalendarBlankIcon
@@ -655,41 +658,26 @@ export function ExtendedDateRangePicker({
               aria-hidden='true'
               className='size-4 shrink-0 text-subtle'
             />
-            {/* In a narrow container the comparison's words replace the dates, so the button keeps one line at its size. */}
             <span
               className={cn(
-                'min-w-0 flex-1 truncate',
+                'min-w-0 flex-1',
+                twoLines && 'grid text-start',
+                !twoLines && 'truncate',
                 !description && 'text-subtle'
               )}
             >
-              {description?.label ?? placeholder}
-              {description?.detail && (
-                <span
-                  className={cn(
-                    'text-subtle',
-                    valueSuffixShort && '@max-sm:hidden'
-                  )}
-                >
-                  {' '}
-                  {description.detail}
-                </span>
-              )}
-              {description && valueSuffix && (
+              <span className={cn(twoLines && twoLineClasses.first)}>
+                {description?.label ?? placeholder}
+                {description?.detail && (
+                  <span className='text-subtle'> {description.detail}</span>
+                )}
+              </span>
+              {twoLines && (
                 <span
                   data-slot='date-range-picker-suffix'
-                  className={cn(
-                    'text-subtle',
-                    valueSuffixShort && '@max-sm:hidden'
-                  )}
+                  className={cn('truncate text-subtle', twoLineClasses.second)}
                 >
-                  {' '}
                   {valueSuffix}
-                </span>
-              )}
-              {description && valueSuffixShort && (
-                <span className='hidden text-subtle @max-sm:inline'>
-                  {' '}
-                  {valueSuffixShort}
                 </span>
               )}
             </span>

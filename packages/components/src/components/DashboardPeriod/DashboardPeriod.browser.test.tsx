@@ -63,15 +63,6 @@ describe('DashboardPeriod layout', TIMEOUT, () => {
     const own = screen.getByRole('button', { name: 'Similar venues' })
     expect(middle(box(own))).toBeCloseTo(middle(box(picker())), 0)
     expect(box(picker()).width).toBeLessThan(box(group).width)
-    // One line, so it keeps its size's height beside the app's controls.
-    const suffix = picker().querySelector(
-      '[data-slot="date-range-picker-suffix"]'
-    )!
-    expect(box(suffix).top).toBeLessThan(
-      box(suffix.previousElementSibling!).bottom
-    )
-    expect(box(picker()).height).toBe(40)
-    expect(picker().textContent).toMatch(/vs 1 to 30 Sept? 2026/)
   })
 })
 
@@ -144,35 +135,47 @@ for (const [width, height] of [
         '{"range":"this-month","compare":"previous-period"}'
       )
     })
-
-    it('keeps one line, its comparison in words, at each size', () => {
-      render(
-        <div className='grid gap-2 p-4'>
-          {(['sm', 'md', 'lg'] as const).map((size) => (
-            <DashboardPeriod
-              key={size}
-              size={size}
-              today={TODAY}
-              defaultValue={{ range: 'this-month', compare: 'previous-year' }}
-            />
-          ))}
-        </div>
-      )
-      const buttons = screen.getAllByRole('button', {
-        name: /^Choose dates, Period/
-      })
-      expect(buttons.map((button) => box(button).height)).toEqual([32, 40, 48])
-      for (const button of buttons) {
-        expect(button).toHaveAccessibleName(/vs 1 to 31 Oct 2025\)$/)
-        const shown = Array.from(
-          button.querySelectorAll<HTMLElement>('span'),
-          (span) => (span.offsetParent ? span.textContent : '')
-        ).join('')
-        expect(shown).toContain('vs previous year')
-      }
-    })
   })
 }
+
+for (const width of [358, 1100])
+  describe(`DashboardPeriod's button at ${width}px`, TIMEOUT, () => {
+    const button = () =>
+      screen.getByRole('button', { name: /^Choose dates, Period/ })
+
+    it('puts the comparison and its dates on a second line', () => {
+      render(
+        <div style={{ width }}>
+          <DashboardPeriod
+            today={TODAY}
+            defaultValue={{ range: 'this-month', compare: 'previous-year' }}
+          />
+        </div>
+      )
+      const second = button().querySelector<HTMLElement>(
+        '[data-slot="date-range-picker-suffix"]'
+      )!
+      const first = second.previousElementSibling as HTMLElement
+      expect(first.textContent).toMatch(/^This month\s+1 to 31 Oct 2026$/)
+      expect(second.textContent).toMatch(/^vs 1 to 31 Oct 2025$/)
+      expect(second.offsetParent).not.toBeNull()
+      expect(box(second).top).toBeGreaterThanOrEqual(box(first).bottom - 1)
+      expect(box(button()).height).toBeGreaterThanOrEqual(48)
+      expect(box(button()).height).toBeLessThanOrEqual(56)
+    })
+
+    it('is 48px tall, a large control, with no comparison', () => {
+      render(
+        <div style={{ width }}>
+          <DashboardPeriod
+            today={TODAY}
+            defaultValue={{ range: 'this-month' }}
+          />
+        </div>
+      )
+      expect(box(button()).height).toBe(48)
+    })
+  })
 
 describe('DashboardPeriod on a wide screen', TIMEOUT, () => {
   beforeAll(() => page.viewport(1280, 900))

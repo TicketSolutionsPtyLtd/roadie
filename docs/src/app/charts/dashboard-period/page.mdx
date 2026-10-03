@@ -6,6 +6,8 @@ export const metadata = {
   alsoIn: [{ route: '/components', category: 'Date and time' }]
 }
 
+import { Button } from '@oztix/roadie-components/button'
+import { DashboardPeriod } from '@oztix/roadie-components/dashboard-period'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
 
@@ -35,20 +37,6 @@ function Default() {
 }
 
 render(<Default />)
-```
-
-### Sizes
-
-`size` matches the Buttons and Selects beside it in a toolbar: 32, 40 or 48px tall, on one line. In a narrow container the comparison is said in words, such as "vs previous year", in place of the dates; its dates stay in the button's name and in the picker.
-
-```tsx-live
-<div className='grid gap-4'>
-  {['sm', 'md', 'lg'].map((size) => (
-    <DashboardPeriod key={size} size={size} defaultValue={{ range: 'last-month', compare: 'previous-year' }}>
-      <Button size={size}>Export</Button>
-    </DashboardPeriod>
-  ))}
-</div>
 ```
 
 ### States
@@ -124,7 +112,7 @@ The comparison is dates only. A benchmark that isn’t a date, such as similar v
 ```tsx-live
 <DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-period' }}>
   <Select defaultValue='similar-venues'>
-    <Select.Trigger aria-label='Benchmark' className='w-full @sm:w-fit gap-2'>
+    <Select.Trigger size='lg' aria-label='Benchmark' className='w-full @sm:w-fit gap-2'>
       <Select.Value />
       <Select.Icon />
     </Select.Trigger>
@@ -197,6 +185,7 @@ render(<Sales />)
 
 - **Previous period follows the calendar.** This month compares with last month, this quarter with last quarter, and month to date with last month to the same day. Rolling and custom ranges compare with the same number of days, ending the day before.
 - **Say when there’s nothing to compare.** Pass `dataStart` to `resolveComparison` and to this toolbar. When the comparison starts before the data, the cards say “Not enough history”; when it ends before, “Nothing to compare”. Neither shows a delta.
+- **One size, paired with large controls.** The button is a large control: 48px tall, with the comparison's dates on a second line. On the same row, use `size='lg'` Buttons, IconButtons and Selects.
 - **Keep the period in the description.** The toolbar shows the description’s `period`, so cards and controls never disagree.
 
 <div className='grid gap-8'>
@@ -207,6 +196,15 @@ render(<Sales />)
   </Guideline.Do>
   <Guideline.Dont code={`resolveComparison('this-month', 'previous-period', { now, timeZone })`}>
     Don’t compare a month that’s two days old with a whole month. The delta looks like a fall.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Pair it with large controls'>
+  <Guideline.Do example={<div className='flex flex-wrap items-start gap-2'><DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }} /><Button size='lg'>Export</Button></div>} code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='lg'>Export</Button>\n</DashboardPeriod>`}>
+    Put large Buttons, IconButtons and Selects beside it, so the row shares one height.
+  </Guideline.Do>
+  <Guideline.Dont example={<div className='flex flex-wrap items-start gap-2'><DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }} /><Button size='sm'>Export</Button></div>} code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='sm'>Export</Button>\n</DashboardPeriod>`}>
+    Don't set small or medium controls beside it. They sit short of its edge.
   </Guideline.Dont>
 </Guideline>
 

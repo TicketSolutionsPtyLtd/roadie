@@ -64,8 +64,6 @@ export type DashboardPeriodProps = Omit<
   /** Shows the period with a lock, without letting it change. */
   readOnly?: boolean
   disabled?: boolean
-  /** @default 'md' */
-  size?: 'sm' | 'md' | 'lg'
   /** @default 'normal' */
   emphasis?: 'normal' | 'subtle' | 'subtler'
   /**
@@ -151,7 +149,6 @@ export function DashboardPeriod({
   alignWeekday,
   readOnly,
   disabled,
-  size = 'md',
   emphasis,
   timeZone,
   today: todayProp,
@@ -206,10 +203,9 @@ export function DashboardPeriod({
   const shown = value.compare
     ? compared(value.range, value.compare, options, locale)
     : null
-  const inWords = value.compare
-    ? `vs ${CHOICES.find((c) => c.value === choiceOf(value.compare!))!.label.toLowerCase()}`
+  const suffix = value.compare
+    ? `vs ${shown?.dates ?? CHOICES.find((c) => c.value === choiceOf(value.compare!))!.label.toLowerCase()}`
     : null
-  const suffix = value.compare && shown?.dates ? `vs ${shown.dates}` : inWords
 
   const choices = CHOICES.filter(
     (choice) =>
@@ -275,7 +271,7 @@ export function DashboardPeriod({
       {...props}
     >
       <ExtendedDateRangePicker
-        size={size}
+        size='lg'
         emphasis={emphasis}
         timeZone={timeZone}
         today={todayProp}
@@ -295,7 +291,6 @@ export function DashboardPeriod({
           setLastChoice(value.compare ?? 'previous-period')
         }}
         valueSuffix={suffix}
-        valueSuffixShort={inWords}
         extra={compareRow}
         onApply={(range) => {
           const next = periodOf(range ?? value.range, compare)
