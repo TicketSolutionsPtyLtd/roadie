@@ -359,6 +359,29 @@ describe('DateRangePicker', () => {
       )
     })
 
+    it('keeps Apply off for an empty range when required', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          commit='apply'
+          required
+          today={TODAY}
+          defaultValue={{ start: '2026-10-10', end: '2026-10-12' }}
+        />
+      )
+      const dialog = await open()
+      await userEvent.clear(
+        within(dialog).getByRole('textbox', { name: 'Start' })
+      )
+      await userEvent.clear(
+        within(dialog).getByRole('textbox', { name: 'End' })
+      )
+      await userEvent.tab()
+      expect(
+        within(dialog).getByRole('button', { name: 'Apply' })
+      ).toBeDisabled()
+    })
+
     it('drops changes on Cancel and on Escape', async () => {
       const onValueChange = vi.fn()
       render(

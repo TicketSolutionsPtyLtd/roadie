@@ -401,10 +401,11 @@ function shift(date: string, unit: CalendarUnit, times: number): string {
 function previousCalendar(
   start: string,
   end: string,
-  unit: CalendarUnit
+  unit: CalendarUnit,
+  toDate: boolean
 ): ResolvedDateRange {
   const before = addDays(start, -1)
-  const whole = end === addDays(shift(start, unit, 1), -1)
+  const whole = !toDate && end === addDays(shift(start, unit, 1), -1)
   return dates(
     shift(start, unit, -1),
     whole ? before : minDate(before, shift(end, unit, -1))
@@ -495,7 +496,8 @@ function previousRange(
   value: DateRangeValue,
   resolved: ResolvedDateRange,
   comparison: 'previous-period' | 'previous-year',
-  options: ComparisonOptions
+  options: ComparisonOptions,
+  toDate: boolean
 ): ResolvedDateRange {
   if (resolved.kind === 'dates') {
     const { start, end } = resolved
@@ -506,7 +508,7 @@ function previousRange(
       )
     }
     const unit = calendarUnit(value)
-    if (unit) return previousCalendar(start, end, unit)
+    if (unit) return previousCalendar(start, end, unit, toDate)
     const length = dayNumber(end) - dayNumber(start)
     const before = addDays(start, -1)
     return dates(addDays(before, -length), before)
@@ -544,9 +546,12 @@ export function resolveComparison(
   ) {
     return { status: 'unavailable', range: null }
   }
+  const reached = soFar(resolved, options)
+  const toDate =
+    reached !== resolved || (isPeriodRange(range) && !!range.toDate)
   const compared = isAbsoluteRange(comparison)
     ? resolveAbsolute(comparison, options.timeZone)
-    : previousRange(range, soFar(resolved, options), comparison, options)
+    : previousRange(range, reached, comparison, options, toDate)
   // A period the data hasn't reached has nothing to set against anything.
   if (startsAfterData(resolved, options))
     return { status: 'unavailable', range: compared }

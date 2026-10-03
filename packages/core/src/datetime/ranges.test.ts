@@ -382,7 +382,9 @@ describe('resolveComparison', () => {
     ['2027-03-31T01:00:00Z', '2027-02-01', '2027-02-28'],
     // March to the 30th has no 30 February, so all of February.
     ['2027-03-30T01:00:00Z', '2027-02-01', '2027-02-28'],
-    ['2027-03-15T01:00:00Z', '2027-02-01', '2027-02-15']
+    ['2027-03-15T01:00:00Z', '2027-02-01', '2027-02-15'],
+    // To date keeps to the same day, even on a month's last.
+    ['2027-02-28T01:00:00Z', '2027-01-01', '2027-01-28']
   ])('month to date on %s against last month', (now, start, end) => {
     expect(
       resolveComparison(

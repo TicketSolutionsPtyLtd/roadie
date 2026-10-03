@@ -188,6 +188,45 @@ describe('DashboardPeriod', () => {
     expect(screen.queryAllByRole('option')).toHaveLength(0)
   })
 
+  it('needs a period before Apply', async () => {
+    render(<Controlled />)
+    await userEvent.click(picker())
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.clear(
+      within(dialog).getByRole('textbox', { name: 'Start' })
+    )
+    await userEvent.clear(within(dialog).getByRole('textbox', { name: 'End' }))
+    await userEvent.tab()
+    expect(within(dialog).getByRole('button', { name: 'Apply' })).toBeDisabled()
+  })
+
+  it('commits nothing once locked mid-edit', async () => {
+    const onValueChange = vi.fn()
+    const { rerender } = render(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        onValueChange={onValueChange}
+      />
+    )
+    await userEvent.click(picker())
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Last 30 days/ })
+    )
+    rerender(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        onValueChange={onValueChange}
+        disabled
+      />
+    )
+    const apply = screen.queryByRole('button', { name: 'Apply' })
+    if (apply) await userEvent.click(apply)
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
   it('turns both controls off when disabled', () => {
     render(<DashboardPeriod today={TODAY} value={THIS_MONTH} disabled />)
     expect(picker()).toBeDisabled()

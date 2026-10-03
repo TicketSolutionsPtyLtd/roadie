@@ -176,6 +176,8 @@ export function DashboardPeriod({
   const custom = customOf(value.compare)
 
   function emit(next: DashboardPeriodValue) {
+    // A picker left open keeps its Apply after the toolbar locks.
+    if (readOnly || disabled) return
     if (valueProp === undefined) setUncontrolled(next)
     onValueChange?.(next)
   }
@@ -211,6 +213,7 @@ export function DashboardPeriod({
     readOnly,
     disabled,
     commit: 'apply' as const,
+    required: true,
     className: 'w-full @sm:w-fit'
   }
 

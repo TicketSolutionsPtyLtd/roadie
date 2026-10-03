@@ -11,7 +11,7 @@ for hour windows and open ranges. `resolveComparison` finds the previous
 period or the previous year to compare with, by date or, with
 `alignWeekday`, by weekday. A calendar period's previous period is the one
 before it: this month compares with last month, and month to date with last
-month to the same day; other ranges compare with the same number of days,
+month to the same day, even on the month's last day; other ranges compare with the same number of days,
 ending the day before. It returns `{ status, range }`: given the data's
 `dataStart` and `dataEnd`, a comparison the data only partly covers is
 `partial`, and one it misses, or one with an open-ended range, is
