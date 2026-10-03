@@ -134,7 +134,7 @@ function Shows() {
 }
 ```
 
-`Records.Toolbar` holds the standard controls: the search and filter field, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
+`Records.Toolbar` holds the standard controls: the search and filter field, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions`, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
 
 `Records.BulkActions` can sit anywhere inside the Provider: the table's `Records.Content` shows it in its header row.
 
@@ -520,6 +520,189 @@ render(<Configured />)
 ```
 
 `label` renames the button, its tooltip and the panel, which are "Configure table" for the table. In your own toolbar, put `Records.Options` after the search and before `Records.Actions`. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which `Records.Options` calls once the page is idle or its button is reached.
+
+### Saved views
+
+A saved view is a view with a name that people come back to. Apps ship preset views for a screen, such as On sale and Sold out on an events screen, and people save their own beside them. Roadie applies views and tells when one has changed. Your app stores the views and lists them.
+
+Pass the saved view the screen opened as `baseline`. `modified` says whether the view now shows something else, by `equalViews`, which ignores the id, the name, spacing in the search and the order of chips. `resetView` goes back to the baseline from the first page. The page's `scope` is never part of a view, so it never makes one read as modified.
+
+`viewActions` on `RecordTable` or `Records.Toolbar` shows the baseline's name after the search, as `Records.ViewActions`, with a dot once the view is modified. Its menu offers what your handlers allow:
+
+- **Save view** calls `onSave` with the view under the baseline's id and name. It shows while the view is modified.
+- **Reset view** goes back to the baseline. It shows while the view is modified, and needs no handler.
+- **Save as new view** asks for a name, then calls `onSaveAs` with the view, that name and no id, for your app to assign one.
+- **Rename view** asks for a new name, then calls `onRename` with the baseline under it. Unsaved changes stay unsaved.
+- **Delete view** asks first, then calls `onDelete` with the baseline. Open another view once it resolves.
+
+Leave out the handlers a view doesn't allow. A preset takes `onSaveAs` alone, so people can start their own view from it but can't change it for everyone. With no baseline, the button reads Unsaved view and offers Save as new view. With nothing to offer, it renders nothing.
+
+Names are asked for in a dialog, or a bottom drawer on a phone. A handler can return a promise, and the button or the dialog's action stays busy until it settles. Reject to say it failed. The dialog stays open and shows the error's message, so reject with one people can read, such as "You already have a view called Perth". Without a message it says the view wasn't saved. A failed Save view goes to `reportError`, so show your own toast too.
+
+Keep the open view in the URL. `toSearchParams` writes its id as `view`, so a link opens the same view with the same changes. On load, read the URL with `fromSearchParams` and find the baseline by the view's id:
+
+```tsx
+const { view } = fromSearchParams(searchParams, fields, { fallback: presets[0] })
+const baseline = [...presets, ...myViews].find((saved) => saved.id === view.id)
+```
+
+#### Views in a Pane
+
+List the views where people move between pages: a `Navigator.Secondary` beside the records, or a `List` in a `Pane` of its own. Put the presets first and people's own views in a group after them, and title the records' pane with the view's name. Here, Save as new view adds a view to Your views and opens it, and Delete view goes back to All events.
+
+```tsx-live-noinline-expand id=views-in-a-pane
+const venues = ['Kazoo Hollow Room', 'The Quilted Walrus Room', 'Drongo Bell Social Club', 'Antler Kettle Hall']
+const cities = ['Brisbane', 'Melbourne', 'Perth', 'Sydney']
+const names = ['Nectarine Hoedown', 'Lampshade Disco', 'Ember Galah Ball', 'Raffia Spaceship', 'Sapphire Cassowary Night', 'Tuxedo Possum Cabaret']
+const events = Array.from({ length: 48 }, (_, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
+  venue: venues[index % venues.length],
+  city: cities[index % cities.length],
+  startsAt: `2026-${10 + (index % 3)}-${String((index % 27) + 1).padStart(2, '0')}`,
+  status: index % 5 === 0 ? 'sold_out' : 'on_sale',
+  sold: (index * 37) % 2400
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  field.text('venue', { label: 'Venue' }),
+  field.text('city', { label: 'City' }),
+  field.date('startsAt', { label: 'Starts', moment: 'date' }),
+  field.option('status', {
+    label: 'Status',
+    status: { on_sale: { intent: 'success', label: 'On sale' }, sold_out: { intent: 'neutral', label: 'Sold out' } }
+  }),
+  field.number('sold', { label: 'Sold' })
+]
+const column = tableColumns(fields)
+const layouts = [
+  tableLayout([
+    column.field('name', { pin: true }),
+    column.field('startsAt'),
+    column.field('venue'),
+    column.field('city'),
+    column.field('status'),
+    column.field('sold')
+  ])
+]
+
+const soonest = [{ field: 'startsAt', direction: 'ascending' }]
+const presets = [
+  { id: 'all', name: 'All events', query: { search: '', filters: [], sort: soonest }, layout: { type: 'table' } },
+  {
+    id: 'on-sale',
+    name: 'On sale',
+    query: { search: '', filters: [{ field: 'status', operator: 'is', values: ['on_sale'] }], sort: soonest },
+    layout: { type: 'table', columns: { hidden: ['status'] } }
+  },
+  {
+    id: 'sold-out',
+    name: 'Sold out',
+    query: { search: '', filters: [{ field: 'status', operator: 'is', values: ['sold_out'] }], sort: [{ field: 'sold', direction: 'descending' }] },
+    layout: { type: 'table' }
+  }
+]
+
+function ViewPane({ baseline, preset, onSave, onSaveAs, onRename, onDelete }) {
+  const [view, setView] = useState(baseline)
+  const records = useRecords({
+    data: events,
+    fields,
+    getRowId: (row) => row.id,
+    view,
+    onViewChange: setView,
+    baseline,
+    recordName: { one: 'event', other: 'events' }
+  })
+  return (
+    <Records.Provider records={records} layouts={layouts} caption={baseline.name}>
+      <Pane className='h-full'>
+        <Pane.Header>
+          <Pane.Title>{baseline.name}</Pane.Title>
+        </Pane.Header>
+        <Pane.Body>
+          <Records.Toolbar
+            searchPlaceholder='Search events'
+            viewActions={preset ? { onSaveAs } : { onSave, onSaveAs, onRename, onDelete }}
+          />
+          <Records.Content />
+          <Records.Status />
+        </Pane.Body>
+        <Pane.Footer>
+          <Records.Pagination />
+        </Pane.Footer>
+      </Pane>
+    </Records.Provider>
+  )
+}
+
+function EventViews() {
+  const [mine, setMine] = useState([])
+  const replace = (saved) => setMine((views) => views.map((held) => (held.id === saved.id ? saved : held)))
+  const item = (view) => (
+    <Navigator.Item key={view.id} value={`/events/${view.id}`} href={`/events/${view.id}`}>
+      {view.name}
+    </Navigator.Item>
+  )
+  return (
+    <DemoRouter initialPath='/events/all'>
+      {(path, navigate) => {
+        const id = path.split('/')[2] ?? 'all'
+        const preset = presets.find((view) => view.id === id)
+        const baseline = preset ?? mine.find((view) => view.id === id) ?? presets[0]
+        return (
+          <Navigator value={path} className='h-full'>
+            <Navigator.Primary aria-label='Organiser'>
+              <Navigator.Brand href='/events/all' />
+              <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
+                Events
+                <Navigator.Secondary aria-label='Event views'>
+                  <Navigator.Group>
+                    <Navigator.GroupTitle>Views</Navigator.GroupTitle>
+                    {presets.map(item)}
+                  </Navigator.Group>
+                  {mine.length > 0 && (
+                    <Navigator.Group>
+                      <Navigator.GroupTitle>Your views</Navigator.GroupTitle>
+                      {mine.map(item)}
+                    </Navigator.Group>
+                  )}
+                </Navigator.Secondary>
+              </Navigator.Item>
+            </Navigator.Primary>
+            <ViewPane
+              key={baseline.id}
+              baseline={baseline}
+              preset={Boolean(preset)}
+              onSave={replace}
+              onRename={replace}
+              onSaveAs={(view) => {
+                const saved = { ...view, id: `mine-${mine.length + 1}-${Date.now()}` }
+                setMine((views) => [...views, saved])
+                navigate(`/events/${saved.id}`)
+              }}
+              onDelete={(view) => {
+                setMine((views) => views.filter((held) => held.id !== view.id))
+                navigate('/events/all')
+              }}
+            />
+          </Navigator>
+        )
+      }}
+    </DemoRouter>
+  )
+}
+
+render(
+  <div className='h-[40rem] overflow-hidden rounded-2xl border border-subtle'>
+    <EventViews />
+  </div>
+)
+```
+
+Keep the views your app stores as `RecordView` JSON, the same shape as the URL reads, so a view saved on one screen opens from a link, a preset or a search hand-off alike.
 
 ### Selection and actions
 
@@ -911,6 +1094,29 @@ column.field('city', { pin: true })`}
   </Guideline.Dont>
 </Guideline>
 
+<Guideline title='Let people copy a preset, not change it'>
+  <Guideline.Do
+    code={`viewActions={preset ? { onSaveAs } : { onSave, onSaveAs, onRename, onDelete }}`}
+  >
+    Give a preset Save as new view alone. People make it their own without
+    changing the screen's starting point for everyone.
+  </Guideline.Do>
+  <Guideline.Dont code={`viewActions={{ onSave: savePreset, onSaveAs }}`}>
+    Don't let one person save over a preset. Everyone who opens the screen
+    then starts from their filters.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title="Keep the whole view in the URL">
+  <Guideline.Do code={`router.replace(\`?\${toSearchParams(view, position)}\`)`}>
+    Write the whole view with its id, so a link or a reload opens the same
+    view with the same changes, still marked as modified.
+  </Guideline.Do>
+  <Guideline.Dont code={`router.replace(\`?view=\${view.id}\`)`}>
+    Don't write the id alone. A reload loses the changes without a word.
+  </Guideline.Dont>
+</Guideline>
+
 <Guideline title='Put the More menu last'>
   <Guideline.Do
     code={`tableActions={[
@@ -999,6 +1205,7 @@ column.field('city', { pin: true })`}
 - `Records.Status` also announces the selection, such as "3 selected, 24 results". It announces a search's count once typing settles, not on every keystroke, and against a server once the new count loads.
 - While records are selected, the bulk actions are a toolbar named "Bulk actions" in the header row, beside "Select page", which keeps focus as the bar replaces the column headers. The headers stay in the table for screen readers, and the toolbar sits in a last header with no cells under it. Arrow keys move between its controls. Escape clears the selection and returns focus to "Select page".
 - Each row's actions menu is named "More actions for" the record's title. Table actions past the first sit behind a button named "More actions". A running action's control stays focusable but disabled, with `aria-busy`. A confirmation is an alert dialog.
+- The view button is named "View:" and the view's name, with ", modified" once the view has changed, and opens a menu. Save view and Reset view sit in a group named "Unsaved changes". Save as new view and Rename view open a dialog of that name with focus in its Name field, the whole name selected to rename, and an empty name says "Enter a name". Delete view asks in an alert dialog. Focus returns to the view button as each closes. While a handler runs, its control stays focusable but disabled, with `aria-busy`.
 - The Configure button is named "Configure table", as is the dialog it opens. Its sort controls are named "Sort by", then "Then by, level 2" and so on, and for each level the field's order, such as "Sold order". Adding a level moves focus to its field, and removing one moves focus to the Remove of the level that takes its place, or of the one before it, or to Add sort. Each column's handle is named "Reorder" and the column, its eye is a toggle button named "Show" and the column, pressed while the column shows (the last shown column's is disabled and says why), and each move is announced, such as "Gross moved to position 1 of 4 columns".
 - A row with `getRowHref` holds a real link: it opens in a new tab with Cmd or Ctrl, and works with every other link convention, not just a click handler.
 
@@ -1010,7 +1217,7 @@ column.field('city', { pin: true })`}
 function useRecords<Row extends object>(options: UseRecordsOptions<Row>): RecordsInstance<Row>
 ```
 
-Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data`, `rowCount`, `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is) and `now` (when relative dates resolve, by default when the list mounted). Pass the result to `Records` or `Records.Provider`.
+Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data`, `rowCount`, `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `baseline` (the saved view the screen opened), `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is) and `now` (when relative dates resolve, by default when the list mounted). Pass the result to `Records` or `Records.Provider`.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1027,6 +1234,9 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `position` | `{ page: number; pageSize: number; row: number }` | The page, zero-based, and its size. |
 | `pageCount` | `number` | Pages at this size, at least one. |
 | `setView` | `(view: RecordView) => void` | Replaces the view. |
+| `baseline` | `RecordView \| undefined` | The saved or preset view the screen opened. |
+| `modified` | `boolean` | Whether the view shows something other than `baseline`, by `equalViews`. Always false without one. |
+| `resetView` | `() => void` | Goes back to `baseline` from the first page. Does nothing without one. |
 | `skippedFilters` | `readonly number[]` | Filters in the view, by index, that these fields can't apply. |
 | `scope` | `readonly RecordFilter[]` | The page's own filters, applied before the view's and never part of it. |
 | `scopedQuery` | `RecordQuery` | The applied view's query with the scope's filters first: what to fetch in server mode, and what actions act on. It keeps its identity while its content holds, so key a fetch on it, the position and `timeZone`. |

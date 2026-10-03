@@ -106,3 +106,16 @@ its content holds; key a fetch on `scopedQuery`, the position and
 filter, and ignores filters the fields can't apply. `Records.Status`
 holds a count while `loading` and announces it once loaded, and
 `Records.Pagination` reads a page past the end as the last page.
+
+Saved views: `useRecords` takes a `baseline`, the saved or preset view the
+screen opened, and gives `modified` (the view differs from it by
+`equalViews`) and `resetView`, which goes back to it from the first page.
+`Records.ViewActions` (or `viewActions` on `Records.Toolbar` and
+`RecordTable`) shows the view's name after the search, with a dot once
+it's modified, and a menu of Save view, Reset view, Save as new view, Rename
+view and Delete view. The app keeps the views: each action calls its
+handler (`onSave`, `onSaveAs`, `onRename`, `onDelete`) with a `RecordView`,
+and each action but Reset shows only when its handler is given, so a
+preset takes `onSaveAs` alone. Names are asked for in a dialog, or a bottom drawer on a
+phone, and delete asks first. A handler can return a promise; a dialog
+stays open with the rejection's message until it succeeds.

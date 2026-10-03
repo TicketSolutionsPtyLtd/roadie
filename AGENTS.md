@@ -273,7 +273,10 @@ Build fields with `recordFields<Row>()`. Show a list with `useRecords` and
 `RecordTable` preset); keep a table's search in `Records.Toolbar`, never
 `Pane.Search`. For records a server pages, pass `rowCount` and one page as
 `data`, and search with `toMeilisearch(view, fields, { now, timeZone,
-position })`. See `docs/src/app/components/record-table/page.mdx`.
+position })`. For saved views, pass the open one as `baseline` and the app's
+`onSave`, `onSaveAs`, `onRename` and `onDelete` as `viewActions`; the app
+stores and lists views, and presets take `onSaveAs` alone. See
+`docs/src/app/components/record-table/page.mdx`.
 
 ### Typography
 

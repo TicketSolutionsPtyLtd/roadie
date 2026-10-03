@@ -122,7 +122,9 @@ function ViewSurface({
             )}
           </Drawer.Header>
           {body && <Drawer.Body>{body}</Drawer.Body>}
-          <Drawer.Footer className='grid grid-cols-2'>{actions}</Drawer.Footer>
+          <Drawer.Footer className='grid grid-cols-2 *:w-full'>
+            {actions}
+          </Drawer.Footer>
         </Drawer.Content>
       </Drawer>
     )
