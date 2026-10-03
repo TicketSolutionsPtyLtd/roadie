@@ -68,9 +68,10 @@ export function useBulkActions({
     if (!action) return
     const matchingIds = records.matchingRows.map((row) => row.id)
     const submitted = withinMatching(records.selection, matchingIds)
+    const except = new Set('allMatching' in submitted ? submitted.except : [])
     const acted = new Set(
       'allMatching' in submitted
-        ? matchingIds.filter((id) => !submitted.except.includes(id))
+        ? matchingIds.filter((id) => !except.has(id))
         : submitted.ids
     )
     setRunning(index)

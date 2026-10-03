@@ -677,6 +677,35 @@ describe('RecordTable row titles', () => {
   })
 })
 
+describe('RecordTable row titles: lists', () => {
+  it('names and links a row by a title held as a list', () => {
+    type Act = { id: string; names: string[] }
+    const fields = [{ key: 'names', label: 'Acts', type: 'text' as const }]
+    const acts = [tableLayout([tableColumns<Act>(fields).field('names')])]
+    function Acts() {
+      const records = useRecords<Act>({
+        data: [{ id: 'a', names: ['Ocean Alley', 'Middle Kids'] }],
+        fields,
+        getRowId: (row) => row.id,
+        selectable: true,
+        getRowHref: (row) => `/acts/${row.id}`
+      })
+      return (
+        <Records.Root records={records} layouts={acts}>
+          <Records.Content />
+        </Records.Root>
+      )
+    }
+    render(<Acts />)
+    expect(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley, Middle Kids' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Ocean Alley, Middle Kids' })
+    ).toHaveAttribute('href', '/acts/a')
+  })
+})
+
 describe('Records.Search', () => {
   it('takes its own accessible name', () => {
     function Named() {

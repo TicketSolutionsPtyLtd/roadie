@@ -5,6 +5,7 @@ import {
   memo
 } from 'react'
 
+import { formatRecordValue } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
@@ -64,13 +65,12 @@ export const titleColumn = (columns: readonly RecordTableColumn[]) =>
   columns.find((column) => column.pin && column.field.type === 'text') ??
   columns.find((column) => column.field.type === 'text')
 
+// The title column is text, which reads the same in any zone.
 const titleText = (record: object, title: RecordTableColumn | undefined) => {
-  const value = title
-    ? (record as Record<string, unknown>)[title.key]
-    : undefined
-  const text =
-    typeof value === 'string' || typeof value === 'number' ? String(value) : ''
-  return text.trim() ? text : undefined
+  const text = title
+    ? formatRecordValue(record, title.field, { timeZone: 'UTC' })
+    : null
+  return text?.trim() ? text : undefined
 }
 
 // Full literals: Tailwind's scanner misses class names assembled in JS.
