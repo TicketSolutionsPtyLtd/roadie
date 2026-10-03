@@ -17,12 +17,15 @@ const resolve = (
 describe('compileRecordQuery', () => {
   it.each<[string, RecordFilter[]]>([
     ['', []],
-    ['velvet', []],
+    ['quilted', []],
     ['comedy', []],
-    ['', [{ field: 'venue', operator: 'is-not', values: ['velvet-room'] }]],
+    [
+      '',
+      [{ field: 'venue', operator: 'is-not', values: ['quilted-walrus-room'] }]
+    ],
     ['', [{ field: 'capacity', operator: 'gt', value: 100 }]],
     ['', [{ field: 'starts', operator: 'within', value: 'this-weekend' }]],
-    ['nights', [{ field: 'featured', operator: 'is-true' }]]
+    ['disco', [{ field: 'featured', operator: 'is-true' }]]
   ])('agrees with matchesRecordQuery (%j, %j)', (search, filters) => {
     const query = resolve(search, filters)
     const matches = compileRecordQuery(query, eventFields)
@@ -38,10 +41,10 @@ describe('compileRecordQuery', () => {
         label: 'Venue',
         type: 'option',
         searchable: true,
-        options: [{ value: '1', label: 'The Lantern Room' }]
+        options: [{ value: '1', label: 'Kazoo Hollow Room' }]
       }
     ]
-    const matches = compileRecordQuery(resolve('lantern', [], fields), fields)
+    const matches = compileRecordQuery(resolve('kazoo', [], fields), fields)
     expect(matches({ venue: 1 })).toBe(true)
   })
 

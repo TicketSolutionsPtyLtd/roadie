@@ -52,7 +52,7 @@ describe('columnLayout', () => {
 
 describe('columnWidths', () => {
   const rows = Array.from({ length: 30 }, (_, index) => ({
-    show: `Ball Park Music at The Lantern Room ${index}`,
+    show: `Ball Park Music at Kazoo Hollow Room ${index}`,
     city: index % 2 ? 'Brisbane' : 'Perth',
     sold: index * 37,
     state: 'x',
@@ -109,7 +109,7 @@ describe('columnWidths', () => {
     const full = (characters: number) => characters * 0.55 + 1.25
     expect(city!.min).toBeGreaterThanOrEqual(full('Brisbane'.length))
     expect(show!.min).toBeLessThan(
-      full('Ball Park Music at The Lantern Room 29'.length)
+      full('Ball Park Music at Kazoo Hollow Room 29'.length)
     )
   })
 

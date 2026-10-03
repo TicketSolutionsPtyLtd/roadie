@@ -33,7 +33,7 @@ const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
 const names = ['Ocean Alley', 'Ball Park Music', 'Julia Jacklin', 'Angie McMahon', 'Alex Lahey', 'Middle Kids']
 const shows = Array.from({ length: 240 }, (_, index) => ({
   id: `show-${index}`,
-  show: `${names[index % names.length]} at The Lantern Room`,
+  show: `${names[index % names.length]} at Kazoo Hollow Room`,
   city: cities[index % cities.length],
   sold: (index * 37) % 2400,
   gross: (index * 7919) % 250000
@@ -149,12 +149,12 @@ On a phone the table keeps its columns and scrolls sideways, with the pinned col
 
 ```tsx-live-noinline-expand id=in-a-pane
 const venues = [
-  { value: 'lantern-room', label: 'The Lantern Room', timeZone: 'Australia/Brisbane' },
-  { value: 'velvet-room', label: 'The Velvet Room', timeZone: 'Australia/Melbourne' },
-  { value: 'swan-lane-social', label: 'Swan Lane Social', timeZone: 'Australia/Perth' },
-  { value: 'harbourside-hall', label: 'Harbourside Hall', timeZone: 'Australia/Sydney' }
+  { value: 'kazoo-hollow-room', label: 'Kazoo Hollow Room', timeZone: 'Australia/Brisbane' },
+  { value: 'quilted-walrus-room', label: 'The Quilted Walrus Room', timeZone: 'Australia/Melbourne' },
+  { value: 'drongo-bell-social-club', label: 'Drongo Bell Social Club', timeZone: 'Australia/Perth' },
+  { value: 'antler-kettle-hall', label: 'Antler Kettle Hall', timeZone: 'Australia/Sydney' }
 ]
-const names = ['Paper Lanterns', 'Saltwater Social', 'Paperbark Sessions', 'Neon Dusk', 'Echo Garden', 'Midnight Frequency']
+const names = ['Paper Lanterns', 'Marzipan Thunderclap', 'Corduroy Lagoon Sessions', 'Sapphire Cassowary Night', 'Echo Garden', 'Midnight Frequency']
 const statuses = ['on_sale', 'on_sale', 'selling_fast', 'sold_out', 'cancelled']
 const events = Array.from({ length: 60 }, (_, index) => ({
   id: `event-${index}`,
@@ -378,7 +378,7 @@ const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
 const shows = Array.from({ length: 100 }, (_, index) => ({
   id: `show-${index}`,
   show: `Julia Jacklin ${index + 1}`,
-  venue: 'The Velvet Room',
+  venue: 'The Quilted Walrus Room',
   city: cities[index % cities.length],
   sold: (index * 37) % 2400,
   capacity: 2400,
