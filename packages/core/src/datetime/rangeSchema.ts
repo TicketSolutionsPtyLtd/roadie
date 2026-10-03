@@ -19,8 +19,8 @@ const NAMED_RANGES = [
 ] as const satisfies readonly Extract<RelativeRange, string>[]
 
 /**
- * Zod schemas for date ranges, built on call so the datetime entry never
- * loads zod. Shapes only: whether absolute ends are real dates is checked by
+ * Zod schemas for date ranges, built on call so records can build its schema
+ * lazily. Shapes only: whether absolute ends are real dates is checked by
  * resolving them.
  */
 export function dateRangeSchemas() {

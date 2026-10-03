@@ -563,6 +563,16 @@ describe('resolveComparison: history', () => {
     ).toBe('unavailable')
   })
 
+  it('has nothing to compare an open-ended range with, custom dates included', () => {
+    expect(
+      resolveComparison(
+        'upcoming',
+        { start: '2026-01-01', end: '2026-01-31' },
+        SYDNEY
+      )
+    ).toEqual({ status: 'unavailable', range: null })
+  })
+
   it('stays open-ended whatever the data', () => {
     expect(
       resolveComparison('upcoming', 'previous-period', {
@@ -618,6 +628,20 @@ describe('resolveComparison: a period in progress', () => {
     )
   })
 
+  it.each<[DateRangeValue, string]>([
+    // Data loaded overnight lags a day: on the 1st, this month has none yet.
+    ['this-month', '2026-09-30'],
+    ['today', '2026-10-01']
+  ])(
+    'has nothing to compare when %j starts after the data ends',
+    (value, dataEnd) => {
+      expect(
+        resolveComparison(value, 'previous-period', { ...SYDNEY, dataEnd })
+          .status
+      ).toBe('unavailable')
+    }
+  )
+
   it('cuts at a data end that lags today', () => {
     expect(
       resolveComparison('this-month', 'previous-period', {
@@ -625,13 +649,6 @@ describe('resolveComparison: a period in progress', () => {
         dataEnd: '2026-10-01'
       })
     ).toEqual(available(dates('2026-09-01', '2026-09-01')))
-  })
-
-  it('leaves a range that starts after the data alone', () => {
-    // Next month compares with this month, which the data only half covers.
-    expect(
-      resolveComparison('next-month', 'previous-period', inProgress)
-    ).toEqual({ status: 'partial', range: dates('2026-10-01', '2026-10-31') })
   })
 
   it('cuts an instant window at the end of the last day', () => {

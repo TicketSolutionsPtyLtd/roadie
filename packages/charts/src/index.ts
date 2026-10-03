@@ -22,7 +22,7 @@ export {
 } from './ChartPatterns'
 export {
   DashboardView,
-  type DashboardPeriodControl,
+  type DashboardViewPeriodProps,
   type DashboardViewProps
 } from './DashboardView'
 export { BarChart, type BarChartInterval, type BarChartProps } from './BarChart'

@@ -342,10 +342,12 @@ export type ComparisonOptions = DateRangeOptions & {
    */
   dataStart?: string
   /**
-   * The last day the data holds, as an ISO date, usually today. A range that
-   * runs past it is still in progress, so its comparison stops at the same
-   * point. A comparison past it is partial or unavailable, as before
-   * `dataStart`.
+   * The last day the data holds, as an ISO date, for data recorded as it
+   * happens, such as sales. A range that runs past it is still in progress,
+   * so its comparison stops at the same point; one that starts after it has
+   * no data, so its comparison is unavailable. A comparison past it is
+   * partial or unavailable, as before `dataStart`. Leave it out for dates
+   * already known ahead, such as shows coming up.
    */
   dataEnd?: string
 }
@@ -458,6 +460,16 @@ function soFar(
     : range
 }
 
+function startsAfterData(
+  range: ResolvedDateRange,
+  { dataEnd, timeZone }: ComparisonOptions
+): boolean {
+  if (!dataEnd) return false
+  return range.kind === 'dates'
+    ? compareDates(range.start, dataEnd) > 0
+    : range.start! > endOfDayInstant(dataEnd, timeZone)
+}
+
 function covered(
   range: ResolvedDateRange,
   { dataStart, dataEnd, timeZone }: ComparisonOptions
@@ -523,9 +535,6 @@ export function resolveComparison(
   options: ComparisonOptions
 ): ResolvedComparison {
   assertDataDates(options)
-  if (isAbsoluteRange(comparison)) {
-    return covered(resolveAbsolute(comparison, options.timeZone), options)
-  }
   const resolved = resolveDateRange(range, options)
   if (
     resolved.kind === 'instants' &&
@@ -535,8 +544,11 @@ export function resolveComparison(
   ) {
     return { status: 'unavailable', range: null }
   }
-  return covered(
-    previousRange(range, soFar(resolved, options), comparison, options),
-    options
-  )
+  const compared = isAbsoluteRange(comparison)
+    ? resolveAbsolute(comparison, options.timeZone)
+    : previousRange(range, soFar(resolved, options), comparison, options)
+  // A period the data hasn't reached has nothing to set against anything.
+  if (startsAfterData(resolved, options))
+    return { status: 'unavailable', range: compared }
+  return covered(compared, options)
 }

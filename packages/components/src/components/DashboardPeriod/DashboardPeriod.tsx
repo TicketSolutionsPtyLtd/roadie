@@ -6,7 +6,7 @@ import { LockSimpleIcon } from '@phosphor-icons/react/ssr'
 
 import {
   type Comparison,
-  type DateRangeOptions,
+  type ComparisonOptions,
   type DateRangeValue,
   describeDateRange,
   isAbsoluteRange,
@@ -19,6 +19,7 @@ import { useToday } from '../Calendar/today'
 import { DateRangePicker } from '../DateRangePicker'
 import type { DateRangePreset } from '../DateRangePicker/range'
 import { Select } from '../Select'
+import { dashboardPeriodPresets } from './presets'
 
 /** A dashboard's period and what it compares with. No `compare`, no comparison. */
 export type DashboardPeriodValue = {
@@ -46,9 +47,17 @@ export type DashboardPeriodProps = Omit<
   /**
    * The period's presets, as on `DateRangePicker`.
    *
-   * @default dateRangePresets
+   * @default dashboardPeriodPresets
    */
   presets?: readonly DateRangePreset[]
+  /**
+   * The first and last days the data holds, as given to `resolveComparison`,
+   * so each comparison lists the dates the app will fetch.
+   */
+  dataStart?: string
+  dataEnd?: string
+  /** Previous year goes back 52 weeks, as given to `resolveComparison`. */
+  alignWeekday?: boolean
   /** Shows the period with a lock, without letting it change. */
   readOnly?: boolean
   disabled?: boolean
@@ -104,7 +113,7 @@ function noonOf(date: string): Date {
 function comparedDates(
   range: DateRangeValue,
   compare: 'previous-period' | 'previous-year',
-  options: DateRangeOptions | null
+  options: ComparisonOptions | null
 ): { start: string; end: string } | null {
   if (!options) return null
   try {
@@ -122,7 +131,10 @@ export function DashboardPeriod({
   value: valueProp,
   defaultValue = DEFAULT_VALUE,
   onValueChange,
-  presets,
+  presets = dashboardPeriodPresets,
+  dataStart,
+  dataEnd,
+  alignWeekday,
   readOnly,
   disabled,
   size = 'md',
@@ -133,16 +145,25 @@ export function DashboardPeriod({
   locale,
   children,
   className,
-  'aria-label': ariaLabel = 'Period',
+  'aria-label': ariaLabel = 'Dashboard period',
   ...props
 }: DashboardPeriodProps) {
   const zone = usePickerZone(timeZone)
   const today = useToday(todayProp, zone)
   // Read against noon of today in UTC, as DateRangePicker does, so both
   // agree on the dates whatever zone the code runs in.
-  const options: DateRangeOptions | null = today
-    ? { now: noonOf(today), timeZone: 'UTC', weekStart, fiscalYearStart }
+  const options: ComparisonOptions | null = today
+    ? {
+        now: noonOf(today),
+        timeZone: 'UTC',
+        weekStart,
+        fiscalYearStart,
+        dataStart,
+        dataEnd,
+        alignWeekday
+      }
     : null
+  const [selectOpen, setSelectOpen] = useState(false)
 
   const [uncontrolled, setUncontrolled] = useState(defaultValue)
   const value = valueProp ?? uncontrolled
@@ -208,12 +229,15 @@ export function DashboardPeriod({
           if (range) emit(periodOf(range, value.compare))
         }}
       />
-      <Select
+      <Select<Choice>
         value={choice}
-        onValueChange={(next) => choose(next as Choice)}
+        onValueChange={(next) => {
+          if (next) choose(next)
+        }}
         readOnly={readOnly}
         // Read-only stays shut, like the period beside it.
-        open={readOnly ? false : undefined}
+        open={selectOpen && !readOnly}
+        onOpenChange={setSelectOpen}
         disabled={disabled}
       >
         <Select.Trigger

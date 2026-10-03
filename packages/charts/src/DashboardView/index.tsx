@@ -17,7 +17,11 @@ import type {
   TableCard,
   TableRow
 } from '@oztix/roadie-core/dashboard'
-import { describeComparison } from '@oztix/roadie-core/datetime'
+import {
+  type Comparison,
+  type DescribeComparisonOptions,
+  describeComparison
+} from '@oztix/roadie-core/datetime'
 
 import { Chart } from '../Chart'
 import { ChartLegend } from '../ChartLegend'
@@ -50,11 +54,11 @@ export type DashboardViewProps = {
    * `timeZone`, `fiscalYearStart`, `disabled` while refetching, and
    * `children` for the app's own controls, such as a benchmark.
    */
-  periodControl?: DashboardPeriodControl
+  periodProps?: DashboardViewPeriodProps
   className?: string
 }
 
-export type DashboardPeriodControl = Omit<
+export type DashboardViewPeriodProps = Omit<
   DashboardPeriodProps,
   'value' | 'defaultValue' | 'onValueChange' | 'readOnly'
 >
@@ -64,6 +68,18 @@ const HISTORY_MESSAGE = {
   unavailable: 'Nothing to compare'
 } as const
 
+function comparisonLine(
+  compare: Comparison,
+  where: DescribeComparisonOptions
+): string {
+  try {
+    return describeComparison(compare, where)
+  } catch {
+    // validateDashboard rejects custom date-times; an unchecked spec still renders.
+    return 'vs custom dates'
+  }
+}
+
 /**
  * A delta marked `comparison` follows the dashboard's: hidden with no
  * comparison, replaced by a message when the data can't cover it, and
@@ -72,7 +88,7 @@ const HISTORY_MESSAGE = {
 function headline(
   card: Exclude<DashboardCard, { kind: 'note' }>,
   period: DashboardPeriodSpec | undefined,
-  timeZone: string | undefined
+  where: Pick<DescribeComparisonOptions, 'timeZone' | 'locale'>
 ) {
   if (!card.delta) return { delta: undefined, context: card.context }
   const { comparison, ...delta } = card.delta
@@ -82,7 +98,7 @@ function headline(
     return { delta: undefined, context: HISTORY_MESSAGE[period.history] }
   return {
     delta,
-    context: card.context ?? describeComparison(period.compare, { timeZone })
+    context: card.context ?? comparisonLine(period.compare, where)
   }
 }
 
@@ -104,6 +120,7 @@ type CardProps = {
   getRowHref?: DashboardViewProps['getRowHref']
   period?: DashboardPeriodSpec
   timeZone?: string
+  locale?: string
 }
 
 function Card({
@@ -112,7 +129,8 @@ function Card({
   actions,
   getRowHref,
   period,
-  timeZone
+  timeZone,
+  locale
 }: CardProps) {
   if (card.kind === 'note')
     return (
@@ -120,7 +138,7 @@ function Card({
         <p className='text-sm text-normal'>{card.body}</p>
       </DataCard>
     )
-  const { delta, context } = headline(card, period, timeZone)
+  const { delta, context } = headline(card, period, { timeZone, locale })
   const common = { ...cardProps(card, actions), context }
   switch (card.kind) {
     case 'stat':
@@ -185,7 +203,7 @@ export function DashboardView({
   cardActions,
   getRowHref,
   onPeriodChange,
-  periodControl,
+  periodProps,
   className
 }: DashboardViewProps) {
   const { period } = spec
@@ -193,7 +211,7 @@ export function DashboardView({
     <Dashboard className={className}>
       {period && (
         <DashboardPeriod
-          {...periodControl}
+          {...periodProps}
           value={{ range: period.range, compare: period.compare }}
           onValueChange={onPeriodChange}
           readOnly={!onPeriodChange}
@@ -213,7 +231,8 @@ export function DashboardView({
               actions={cardActions?.(card)}
               getRowHref={getRowHref}
               period={period}
-              timeZone={periodControl?.timeZone}
+              timeZone={periodProps?.timeZone}
+              locale={periodProps?.locale}
             />
           ))}
         </Dashboard.Section>

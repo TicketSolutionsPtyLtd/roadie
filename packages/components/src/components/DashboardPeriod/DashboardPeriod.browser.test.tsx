@@ -33,7 +33,7 @@ function renderAt(width: number) {
       </DashboardPeriod>
     </div>
   )
-  const group = screen.getByRole('group', { name: 'Period' })
+  const group = screen.getByRole('group', { name: 'Dashboard period' })
   const controls = [
     screen.getByRole('button', { name: /^Choose dates, Period/ }),
     screen.getByRole('combobox', { name: 'Compare with' }),

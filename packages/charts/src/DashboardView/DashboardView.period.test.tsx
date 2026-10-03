@@ -56,22 +56,22 @@ const deltaIn = (name: string) =>
 const contextIn = (name: string) =>
   card(name).querySelector('[data-slot="data-card-context"]')?.textContent
 
-const periodControl = { today: TODAY }
+const periodProps = { today: TODAY }
 
 describe('DashboardView periods', () => {
   it('shows no period controls without a period', () => {
     render(<DashboardView spec={dashboard()} />)
-    expect(screen.queryByRole('group', { name: 'Period' })).toBeNull()
+    expect(screen.queryByRole('group', { name: 'Dashboard period' })).toBeNull()
   })
 
   it('shows the period read-only when the app can’t change it', () => {
     render(
       <DashboardView
         spec={dashboard({ range: 'this-month', compare: 'previous-period' })}
-        periodControl={periodControl}
+        periodProps={periodProps}
       />
     )
-    const group = screen.getByRole('group', { name: 'Period' })
+    const group = screen.getByRole('group', { name: 'Dashboard period' })
     expect(
       within(group).getByRole('button', { name: /^Choose dates, Period/ })
     ).toHaveAttribute('aria-disabled', 'true')
@@ -86,7 +86,7 @@ describe('DashboardView periods', () => {
           compare: 'previous-period',
           history: 'partial'
         })}
-        periodControl={periodControl}
+        periodProps={periodProps}
         onPeriodChange={onPeriodChange}
       />
     )
@@ -174,6 +174,31 @@ describe('DashboardView periods', () => {
     expect(contextIn('Sell-through')).toBe('Week target is 85%')
   })
 
+  it('names custom dates in the toolbar’s locale', () => {
+    render(
+      <DashboardView
+        spec={dashboard({
+          range: 'this-month',
+          compare: { start: '2026-09-01', end: '2026-09-14' }
+        })}
+        periodProps={{ ...periodProps, locale: 'en-US' }}
+      />
+    )
+    expect(contextIn('Tickets sold')).toBe('vs 1 to 14 Sep 2026')
+  })
+
+  it('falls back to words for custom date-times it can’t place', () => {
+    render(
+      <DashboardView
+        spec={dashboard({
+          range: 'this-month',
+          compare: { start: '2026-09-01T09:00', end: '2026-09-02' }
+        })}
+      />
+    )
+    expect(contextIn('Tickets sold')).toBe('vs custom dates')
+  })
+
   it('keeps the comparison flag out of the page', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(
@@ -189,14 +214,14 @@ describe('DashboardView periods', () => {
     render(
       <DashboardView
         spec={dashboard({ range: 'this-month' })}
-        periodControl={{
-          ...periodControl,
+        periodProps={{
+          ...periodProps,
           children: <button type='button'>Similar venues</button>
         }}
       />
     )
     expect(
-      within(screen.getByRole('group', { name: 'Period' })).getByRole(
+      within(screen.getByRole('group', { name: 'Dashboard period' })).getByRole(
         'button',
         { name: 'Similar venues' }
       )

@@ -683,7 +683,11 @@ function SalesDashboard({ spec }: { spec: DashboardSpec }) {
     <DashboardView
       spec={{ ...spec, period: { ...period, history }, sections: cards }}
       onPeriodChange={setPeriod}
-      periodControl={{ timeZone: venue.timeZone }}
+      periodProps={{
+        timeZone: venue.timeZone,
+        dataStart: sales.firstDay,
+        dataEnd: sales.lastDay
+      }}
     />
   )
 }`
@@ -1331,7 +1335,7 @@ export default function DashboardsPage() {
           , with the period picker and a comparison of the previous period, the
           previous year, custom dates or none. Comparisons are dates only. A
           benchmark such as similar venues is the app’s own control, passed as{' '}
-          <Code>periodControl.children</Code>.
+          <Code>periodProps.children</Code>.
         </p>
         <CodePreview language='json'>{PERIOD_JSON}</CodePreview>
         <List
@@ -1349,9 +1353,11 @@ export default function DashboardsPage() {
               same number of days, ending the day before.
             </>,
             <>
-              Pass <Code>dataEnd</Code>, the last day the data holds, so a
-              period still in progress compares like with like: 1 to 7 October
-              with 1 to 7 September, not all of September.
+              For data recorded as it happens, such as sales, pass{' '}
+              <Code>dataEnd</Code>, the last day the data holds, so a period
+              still in progress compares like with like: 1 to 7 Oct with 1 to 7
+              Sept, not all of September. Leave it out for dates known ahead,
+              such as shows coming up.
             </>,
             <>
               Pass <Code>dataStart</Code>, the first day the data holds.{' '}
@@ -1360,6 +1366,11 @@ export default function DashboardsPage() {
               it ends before it. Set the period’s <Code>history</Code> to that
               status, and comparison deltas give way to “Not enough history” or
               “Nothing to compare”.
+            </>,
+            <>
+              To open a card’s records for the same dates, read{' '}
+              <Code>spec.period</Code> in <Code>getRowHref</Code>. A records
+              filter takes the same <Code>DateRangeValue</Code>.
             </>,
             <>
               No chart draws a comparison series yet. Show the comparison as a

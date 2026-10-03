@@ -991,6 +991,16 @@ describe('validateDashboard periods', () => {
     }
   })
 
+  it('rejects an hour window, since a period covers whole days', () => {
+    const result = validateDashboard(
+      withPeriod({ range: { direction: 'past', amount: 6, unit: 'hour' } })
+    )
+    expect(result.ok).toBe(false)
+    expect(result.problems).toContainEqual(
+      expect.objectContaining({ path: 'period.range', severity: 'error' })
+    )
+  })
+
   it('warns that an open-ended range has nothing to compare', () => {
     expect(
       problems(withPeriod({ range: 'upcoming', compare: 'previous-period' }))

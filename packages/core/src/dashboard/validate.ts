@@ -5,7 +5,8 @@ import { compareDates, isPlainDate } from '../datetime/plainDate'
 import {
   type Comparison,
   type DateRangeValue,
-  isAbsoluteRange
+  isAbsoluteRange,
+  isRollingRange
 } from '../datetime/ranges'
 import {
   CHART_LABEL_LIMITS,
@@ -439,6 +440,13 @@ function periodProblems(period: DashboardPeriodSpec | undefined) {
   if (!period) return []
   const { range, compare, history } = period
   const problems = absoluteProblems('period.range', range)
+  if (isRollingRange(range) && range.unit === 'hour')
+    problems.push(
+      error(
+        'period.range',
+        'Use days, weeks or months. A dashboard period covers whole days'
+      )
+    )
   if (compare) {
     problems.push(...absoluteProblems('period.compare', compare))
     if (OPEN_ENDED.includes(range))

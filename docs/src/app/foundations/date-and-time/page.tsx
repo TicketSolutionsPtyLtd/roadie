@@ -1348,7 +1348,10 @@ const viewer = useViewerTimeZone()
           range. Show “Not enough history” or “Nothing to compare” for those,
           not a delta. A period that runs past <code>dataEnd</code> is still in
           progress, so its comparison stops at the same point: this month on 2
-          October compares 1 and 2 October with 1 and 2 September.
+          Oct compares 1 and 2 Oct with 1 and 2 Sept. One that starts after it
+          has no data yet, so its comparison is unavailable. Pass{' '}
+          <code>dataEnd</code> only for data recorded as it happens, such as
+          sales.
         </p>
 
         <h3 className='mt-6 text-display-ui-5 text-strong'>Typed phrases</h3>

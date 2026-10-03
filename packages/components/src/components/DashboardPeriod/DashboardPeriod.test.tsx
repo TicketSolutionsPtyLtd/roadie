@@ -46,7 +46,9 @@ function Controlled({
 describe('DashboardPeriod', () => {
   it('shows the period and what it compares with, as a named group', () => {
     render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
-    expect(screen.getByRole('group', { name: 'Period' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'Dashboard period' })
+    ).toBeInTheDocument()
     expect(picker()).toHaveAccessibleName(
       'Choose dates, Period (This month, 1 to 31 Oct 2026)'
     )
@@ -63,6 +65,53 @@ describe('DashboardPeriod', () => {
     expect(options[1]).toHaveAccessibleName('Previous year, 1 to 31 Oct 2025')
     expect(options[2]).toHaveAccessibleName('Custom dates')
     expect(options[3]).toHaveAccessibleName('No comparison')
+  })
+
+  it('lists the dates the data reaches and weekday-aligned years', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        dataEnd={TODAY}
+        alignWeekday
+      />
+    )
+    await userEvent.click(comparison())
+    const options = await screen.findAllByRole('option')
+    expect(options[0]).toHaveAccessibleName('Previous period, 1 to 7 Sept 2026')
+    // Thu 1 to Wed 7 Oct 2026 against Thu 2 to Wed 8 Oct 2025.
+    expect(options[1]).toHaveAccessibleName('Previous year, 2 to 8 Oct 2025')
+  })
+
+  it('starts custom dates from what the data reaches', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        dataEnd={TODAY}
+        onValueChange={onValueChange}
+      />
+    )
+    await choose(/^Custom dates/)
+    expect(onValueChange).toHaveBeenLastCalledWith({
+      range: 'this-month',
+      compare: { start: '2026-09-01', end: '2026-09-07' }
+    })
+  })
+
+  it('offers the spec’s dashboard presets by default', async () => {
+    render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
+    await userEvent.click(picker())
+    const dialog = await screen.findByRole('dialog')
+    for (const name of [
+      /^Next 30 days/,
+      /^Next 90 days/,
+      /^Last 30 days/,
+      /^Last 12 months/,
+      /^This financial year/
+    ])
+      expect(within(dialog).getByRole('button', { name })).toBeInTheDocument()
   })
 
   it('emits the comparison chosen with the same range', async () => {
@@ -108,12 +157,12 @@ describe('DashboardPeriod', () => {
     await userEvent.click(picker())
     const dialog = await screen.findByRole('dialog')
     await userEvent.click(
-      within(dialog).getByRole('button', { name: /^Last month/ })
+      within(dialog).getByRole('button', { name: /^Last 30 days/ })
     )
     expect(onValueChange).not.toHaveBeenCalled()
     await userEvent.click(within(dialog).getByRole('button', { name: 'Apply' }))
     expect(onValueChange).toHaveBeenLastCalledWith({
-      range: 'last-month',
+      range: { direction: 'past', amount: 30, unit: 'day' },
       compare: 'previous-period'
     })
   })
@@ -156,7 +205,7 @@ describe('DashboardPeriod', () => {
         <button type='button'>Similar venues</button>
       </DashboardPeriod>
     )
-    const group = screen.getByRole('group', { name: 'Period' })
+    const group = screen.getByRole('group', { name: 'Dashboard period' })
     expect(within(group).getAllByRole('button').at(-1)).toHaveTextContent(
       'Similar venues'
     )

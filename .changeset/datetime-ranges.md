@@ -15,8 +15,9 @@ month to the same day; other ranges compare with the same number of days,
 ending the day before. It returns `{ status, range }`: given the data's
 `dataStart` and `dataEnd`, a comparison the data only partly covers is
 `partial`, and one it misses, or one with an open-ended range, is
-`unavailable`. A period that runs past `dataEnd` compares only as far as the
-data goes. `describeDateRange` returns the words to show and the dates they
+`unavailable`, as its `ResolvedComparison` type says. A period that runs
+past `dataEnd` compares only as far as the data goes, and one that starts
+after it is `unavailable`. `describeDateRange` returns the words to show and the dates they
 stand for, and `describeComparison` the context line under a delta.
 
 `parseDatePhrase` turns typed text such as "this weekend", "next 7 days",

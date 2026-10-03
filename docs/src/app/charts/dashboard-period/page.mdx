@@ -21,7 +21,7 @@ import { DashboardPeriod } from '@oztix/roadie-components/dashboard-period'
 
 ### Default
 
-The period is a [DateRangePicker](/components/date-range-picker) that waits for Apply, because each change refetches every card. The comparison beside it is the previous period, the previous year, custom dates or none. Each choice in its list shows the dates it covers. The value is `{ range, compare }`, and no comparison leaves `compare` out.
+The period is a [DateRangePicker](/components/date-range-picker) that waits for Apply, because each change refetches every card. Its presets look ahead 30 and 90 days, back 30 days and 12 months, and over this financial year. The comparison beside it is the previous period, the previous year, custom dates or none. Each choice in its list shows the dates it covers. The value is `{ range, compare }`, and no comparison leaves `compare` out.
 
 ```tsx-live-noinline
 function Default() {
@@ -91,18 +91,25 @@ render(<Custom />)
 
 ### With presets
 
-`presets` replaces the period’s list, as on DateRangePicker. A dashboard of upcoming shows looks ahead.
+`presets` replaces the period’s list, as on DateRangePicker. A sales dashboard reports on periods to date, so it takes the picker’s own `dateRangePresets`.
 
 ```tsx-live
 <DashboardPeriod
-  defaultValue={{ range: { direction: 'next', amount: 30, unit: 'day' }, compare: 'previous-year' }}
-  presets={[
-    { value: { direction: 'next', amount: 30, unit: 'day' } },
-    { value: { direction: 'next', amount: 90, unit: 'day' } },
-    { value: { direction: 'past', amount: 30, unit: 'day' } },
-    { value: { direction: 'past', amount: 12, unit: 'month' } },
-    { value: { period: 'year', offset: 0, fiscal: true } }
-  ]}
+  defaultValue={{ range: { period: 'month', offset: 0, toDate: true }, compare: 'previous-period' }}
+  presets={dateRangePresets}
+/>
+```
+
+### With the data’s dates
+
+Pass the same `dataStart`, `dataEnd` and `alignWeekday` you give `resolveComparison`, and each comparison lists the dates the app will fetch. Here sales data runs to today, so this month compares with the same days of last month, and the previous year lines up weekdays.
+
+```tsx-live
+<DashboardPeriod
+  today='2026-10-07'
+  dataEnd='2026-10-07'
+  alignWeekday
+  defaultValue={{ range: 'this-month', compare: 'previous-period' }}
 />
 ```
 
@@ -127,19 +134,26 @@ The comparison is dates only. A benchmark that isn’t a date, such as similar v
 
 ### In a dashboard
 
-Give a dashboard description a `period`, and [DashboardView](/charts/dashboards#periods-and-comparisons) shows this toolbar above its sections. Its `onPeriodChange` gets the new period: resolve it with `resolveDateRange` and `resolveComparison`, fetch, and pass back a description with the new `period` and its `history`. A delta marked `comparison: true` follows the comparison. Here sales data starts on 1 March 2026, so last month has nothing to compare with a year back. Choose the previous period to see the deltas.
+Give a dashboard description a `period`, and [DashboardView](/charts/dashboards#periods-and-comparisons) shows this toolbar above its sections. Its `onPeriodChange` gets the new period: resolve it with `resolveDateRange` and `resolveComparison`, fetch, and pass back a description with the new `period` and its `history`. A delta marked `comparison: true` follows the comparison. Here sales data starts on 1 March 2026, so month to date has nothing to compare with a year back. Choose the previous period to see the deltas.
 
 ```tsx-live-noinline
-const SALES_DATA = { timeZone: 'Australia/Melbourne', dataStart: '2026-03-01' }
+// Wed 7 Oct 2026 in Melbourne. Sales data runs from 1 March to today.
+const TODAY = '2026-10-07'
+const SALES_DATA = {
+  now: new Date('2026-10-07T02:00:00Z'),
+  timeZone: 'Australia/Melbourne',
+  dataStart: '2026-03-01',
+  dataEnd: TODAY
+}
 
 function historyOf({ range, compare }) {
   if (!compare) return undefined
-  const { status } = resolveComparison(range, compare, { ...SALES_DATA, now: new Date() })
+  const { status } = resolveComparison(range, compare, SALES_DATA)
   return status === 'available' ? undefined : status
 }
 
 function Sales() {
-  const [period, setPeriod] = useState({ range: 'last-month', compare: 'previous-year' })
+  const [period, setPeriod] = useState({ range: { period: 'month', offset: 0, toDate: true }, compare: 'previous-year' })
   const history = historyOf(period)
   const spec = {
     version: 1,
@@ -161,7 +175,12 @@ function Sales() {
     <DashboardView
       spec={spec}
       onPeriodChange={setPeriod}
-      periodControl={{ timeZone: SALES_DATA.timeZone }}
+      periodProps={{
+        today: TODAY,
+        timeZone: SALES_DATA.timeZone,
+        dataStart: SALES_DATA.dataStart,
+        dataEnd: SALES_DATA.dataEnd
+      }}
     />
   )
 }
@@ -172,17 +191,17 @@ render(<Sales />)
 ## Guidelines
 
 - **Previous period follows the calendar.** This month compares with last month, this quarter with last quarter, and month to date with last month to the same day. Rolling and custom ranges compare with the same number of days, ending the day before.
-- **Say when there’s nothing to compare.** Pass `dataStart` to `resolveComparison`. When the comparison starts before the data, the cards say “Not enough history”; when it ends before, “Nothing to compare”. Neither shows a delta.
+- **Say when there’s nothing to compare.** Pass `dataStart` to `resolveComparison` and to this toolbar. When the comparison starts before the data, the cards say “Not enough history”; when it ends before, “Nothing to compare”. Neither shows a delta.
 - **Keep the period in the description.** The toolbar shows the description’s `period`, so cards and controls never disagree.
 
 <div className='grid gap-8'>
 
 <Guideline title='Compare like with like'>
   <Guideline.Do code={`resolveComparison(range, compare, { now, timeZone, dataEnd: today })`}>
-    Pass `dataEnd` for data that stops at today. A period still in progress then compares with the same days of the period before.
+    Pass `dataEnd` for data recorded as it happens, such as sales. A period still in progress then compares with the same days of the period before. Leave it out for dates known ahead, such as shows coming up.
   </Guideline.Do>
   <Guideline.Dont code={`resolveComparison('this-month', 'previous-period', { now, timeZone })`}>
-    Don't compare a month that’s two days old with a whole month. The delta looks like a fall.
+    Don’t compare a month that’s two days old with a whole month. The delta looks like a fall.
   </Guideline.Dont>
 </Guideline>
 
@@ -191,7 +210,7 @@ render(<Sales />)
     Put a benchmark such as similar venues in its own control, beside the comparison.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't add benchmarks to the comparison list. A comparison is always another date range.
+    Don’t add benchmarks to the comparison list. A comparison is always another date range.
   </Guideline.Dont>
 </Guideline>
 
@@ -199,9 +218,9 @@ render(<Sales />)
 
 ## Accessibility
 
-- The toolbar is a group named “Period”, or by your `aria-label`.
+- The toolbar is a group named “Dashboard period”, or by your `aria-label`.
 - The period button is named after its range, such as “Choose dates, Period (This month, 1 to 31 Oct 2026)”. It works as [DateRangePicker](/components/date-range-picker) does with `commit='apply'`: Cancel or `Escape` drops changes.
-- The comparison is a [Select](/components/select) named “Compare with”. It shows “vs previous period”, and each choice reads its dates, such as “Previous period, 1 to 30 Sept 2026”.
+- The comparison is a [Select](/components/select) named “Compare with”. It shows “vs previous period”, and each choice reads the dates it covers, such as “Previous period, 1 to 7 Sept 2026” on 7 Oct with `dataEnd`.
 - Read only, both controls show a lock and don’t open, and the comparison has `aria-readonly`.
 
 <PropsDefinitions componentPath='packages/components/src/components/DashboardPeriod/DashboardPeriod.tsx' />
