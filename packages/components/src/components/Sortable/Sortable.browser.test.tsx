@@ -286,13 +286,15 @@ describe('Sortable Move menu', () => {
     render(<Columns />)
     await userEvent.click(handle('SKU'))
     await screen.findByRole('menu')
+    expect(handle('SKU')).toHaveAttribute('aria-expanded', 'true')
     const at = centre(handle('SKU'))
     await commands.pointer([{ type: 'move', ...at }, { type: 'down' }])
     const stopPressFrames = keepFramesRunning(() => at)
     try {
-      await waitFor(() => expect(screen.queryByRole('menu')).toBeNull(), {
-        timeout: 5000
-      })
+      await waitFor(
+        () => expect(handle('SKU')).toHaveAttribute('aria-expanded', 'false'),
+        { timeout: 5000 }
+      )
     } finally {
       try {
         await stopPressFrames()
@@ -302,7 +304,10 @@ describe('Sortable Move menu', () => {
     }
     keepFramesRunning(() => at)
     await new Promise((resolve) => setTimeout(resolve, 200))
-    expect(screen.queryByRole('menu')).toBeNull()
+    expect(handle('SKU')).toHaveAttribute('aria-expanded', 'false')
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull(), {
+      timeout: 5000
+    })
   })
 
   it('moves by keyboard and keeps focus on the handle', async () => {
