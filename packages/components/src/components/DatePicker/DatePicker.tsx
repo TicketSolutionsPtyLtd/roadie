@@ -1,6 +1,12 @@
 'use client'
 
-import { type ComponentProps, type Ref, useRef, useState } from 'react'
+import {
+  type ComponentProps,
+  type Ref,
+  useRef,
+  useState,
+  useSyncExternalStore
+} from 'react'
 
 import { CalendarBlankIcon } from '@phosphor-icons/react'
 
@@ -125,6 +131,8 @@ export type DatePickerProps = Omit<
 
 const EMPTY: DateTimeParts = { date: null, time: null }
 
+const noSubscription = () => () => {}
+
 /** A typed date field with a calendar to choose from, and a time when needed. */
 export function DatePicker({
   value: valueProp,
@@ -161,39 +169,46 @@ export function DatePicker({
   ...props
 }: DatePickerProps) {
   const field = useFieldContext()
-  const zone = timeZone ?? viewerTimeZone()
+  // The server can't know the viewer's zone, so it renders UTC and hydration
+  // moves to the viewer's, re-reading the same instant.
+  const viewerZone = useSyncExternalStore(
+    noSubscription,
+    viewerTimeZone,
+    () => 'UTC'
+  )
+  const zone = timeZone ?? viewerZone
   const withTime = granularity === 'minute'
   const isDisabled = disabled === true || !!field.disabled
   const disabledDays = typeof disabled === 'boolean' ? undefined : disabled
   const isInvalid = invalid ?? field.invalid
 
+  const [uncontrolled, setUncontrolled] = useState(() =>
+    joinValue(splitValue(defaultValue, zone), granularity, zone)
+  )
+  const value = valueProp !== undefined ? valueProp : uncontrolled
   const [local, setLocal] = useState(() => ({
     parts: splitValue(valueProp ?? defaultValue, zone),
-    seen: valueProp,
+    seen: value,
     emitted: undefined as string | null | undefined
   }))
   // A value from outside replaces the local parts; the one just emitted does
   // not, so a date waiting for its time survives a parent that holds null.
-  if (valueProp !== undefined && valueProp !== local.seen) {
+  if (value !== local.seen) {
     setLocal({
-      parts:
-        valueProp === local.emitted ? local.parts : splitValue(valueProp, zone),
-      seen: valueProp,
+      parts: value === local.emitted ? local.parts : splitValue(value, zone),
+      seen: value,
       emitted: undefined
     })
   }
-  // A controlled value decides what shows, so a refused change doesn't linger.
-  // Local parts show only while they wait for their other half.
+  // The value decides what shows, as an instant re-read in the current zone,
+  // so a refused change doesn't linger and a new zone keeps the moment. Local
+  // parts show only while they wait for their other half.
   const parts =
-    valueProp === undefined
-      ? local.parts
-      : valueProp !== null
-        ? splitValue(valueProp, zone)
-        : joinValue(local.parts, granularity, zone) === null
-          ? local.parts
-          : EMPTY
-  const value =
-    valueProp !== undefined ? valueProp : joinValue(parts, granularity, zone)
+    value !== null
+      ? splitValue(value, zone)
+      : joinValue(local.parts, granularity, zone) === null
+        ? local.parts
+        : EMPTY
 
   function update(patch: Partial<DateTimeParts>) {
     const next = { ...parts, ...patch }
@@ -205,7 +220,9 @@ export function DatePicker({
       parts: joined && withTime ? splitValue(joined, zone) : next,
       emitted: changed ? joined : current.emitted
     }))
-    if (changed) onValueChange?.(joined)
+    if (!changed) return
+    if (valueProp === undefined) setUncontrolled(joined)
+    onValueChange?.(joined)
   }
 
   const date = useTypedValue({

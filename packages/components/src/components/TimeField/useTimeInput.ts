@@ -33,7 +33,8 @@ export function useTimeInput({
   })
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.defaultPrevented || readOnly) return
+    if (event.defaultPrevented || readOnly || event.nativeEvent.isComposing)
+      return
     if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return
     event.preventDefault()
     const base = typed.draftValue()

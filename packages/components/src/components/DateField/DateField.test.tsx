@@ -190,6 +190,21 @@ describe('DateField', () => {
     ).toEqual({ value: '2026-03-27' })
   })
 
+  it('is valid again once Escape drops unreadable text', async () => {
+    render(<DateField aria-label='Show date' today={TODAY} />)
+    const input = screen.getByRole<HTMLInputElement>('textbox')
+    await userEvent.type(input, 'someday{Enter}')
+    await userEvent.type(input, 'x{Escape}')
+    expect(input.validity.valid).toBe(true)
+  })
+
+  it('keeps a callback ref attached while typing', async () => {
+    const ref = vi.fn()
+    render(<DateField aria-label='Show date' ref={ref} />)
+    await userEvent.type(screen.getByRole('textbox'), '14 mar')
+    expect(ref).toHaveBeenCalledTimes(1)
+  })
+
   it('goes back to the value on Escape', async () => {
     render(
       <DateField

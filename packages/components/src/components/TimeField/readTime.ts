@@ -64,7 +64,7 @@ export function readTime(
   return { value: found }
 }
 
-/** One step later or earlier, landing on the step and wrapping at midnight. */
+/** One step later or earlier, on the step grid, past midnight to its far end. */
 export function stepTime(
   time: string,
   direction: 1 | -1,

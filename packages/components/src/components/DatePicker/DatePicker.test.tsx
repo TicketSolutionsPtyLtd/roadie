@@ -182,6 +182,19 @@ describe('DatePicker', () => {
     )
   })
 
+  it('fails native validation while its time names nothing', async () => {
+    render(
+      <DatePicker
+        aria-label='Doors'
+        granularity='minute'
+        timeZone={MELBOURNE}
+      />
+    )
+    const time = screen.getByRole<HTMLInputElement>('textbox', { name: 'Time' })
+    await userEvent.type(time, 'soon{Enter}')
+    expect(time.validity.valid).toBe(false)
+  })
+
   it('puts both inputs in a form it sits outside', () => {
     render(
       <DatePicker

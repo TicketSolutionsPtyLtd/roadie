@@ -1,8 +1,9 @@
 'use client'
 
-import { type ComponentProps, useEffect, useRef } from 'react'
+import { type ComponentProps, useRef } from 'react'
 
 import { mergeRefs } from '../../utils/mergeRefs'
+import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { useFieldContext } from '../Field'
 import type { useTypedValue } from './useTypedValue'
 
@@ -34,7 +35,8 @@ export function TypedInput({
   const inputRef = useRef<HTMLInputElement>(null)
   // The text box holds unreadable text, so required alone would let a form
   // submit; the parse error blocks it as native validation.
-  useEffect(() => {
+  // Before paint, so an onBlur that submits the form already sees it.
+  useIsomorphicLayoutEffect(() => {
     inputRef.current?.setCustomValidity(typed.error ?? '')
   }, [typed.error])
   const isInvalid = !!typed.error || (invalid ?? field.invalid)
