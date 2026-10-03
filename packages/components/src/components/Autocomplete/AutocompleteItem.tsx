@@ -18,8 +18,11 @@ export type AutocompleteItemProps = AutocompletePrimitive.Item.Props &
 export function AutocompleteItem({
   className,
   onPointerDownCapture,
+  onPointerMove,
+  onPointerUp,
   onPointerCancel,
   onMouseUp,
+  onClickCapture,
   ...props
 }: AutocompleteItemProps) {
   const byPointer = use(PointerHighlightContext)
@@ -31,7 +34,14 @@ export function AutocompleteItem({
         optionHighlightClass(byPointer),
         className
       )}
-      {...keepTouchTap({ onPointerDownCapture, onPointerCancel, onMouseUp })}
+      {...keepTouchTap({
+        onPointerDownCapture,
+        onPointerMove,
+        onPointerUp,
+        onPointerCancel,
+        onMouseUp,
+        onClickCapture
+      })}
       {...props}
     />
   )

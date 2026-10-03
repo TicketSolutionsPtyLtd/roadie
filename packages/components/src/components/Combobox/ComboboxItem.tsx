@@ -18,8 +18,11 @@ export type ComboboxItemProps = ComboboxPrimitive.Item.Props &
 export function ComboboxItem({
   className,
   onPointerDownCapture,
+  onPointerMove,
+  onPointerUp,
   onPointerCancel,
   onMouseUp,
+  onClickCapture,
   ...props
 }: ComboboxItemProps) {
   const byPointer = use(PointerHighlightContext)
@@ -31,7 +34,14 @@ export function ComboboxItem({
         optionHighlightClass(byPointer),
         className
       )}
-      {...keepTouchTap({ onPointerDownCapture, onPointerCancel, onMouseUp })}
+      {...keepTouchTap({
+        onPointerDownCapture,
+        onPointerMove,
+        onPointerUp,
+        onPointerCancel,
+        onMouseUp,
+        onClickCapture
+      })}
       {...props}
     />
   )

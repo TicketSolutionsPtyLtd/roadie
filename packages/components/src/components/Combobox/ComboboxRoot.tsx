@@ -2,6 +2,7 @@
 
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 
+import { touchOnOption } from '../../utils/keepTouchTap'
 import {
   PointerHighlightContext,
   usePointerHighlight,
@@ -70,6 +71,12 @@ export function ComboboxRoot<
           handleQueryChange(next, details)
         }}
         onOpenChange={(open, details) => {
+          // A finger down on an option holds the list until it lifts, as
+          // the keyboard going can blur the input or move the page first.
+          if (!open && touchOnOption()) {
+            details.cancel()
+            return
+          }
           onOpenChange?.(open, details)
           if (!open) resetTyped(details)
           handleRankOpenChange(open, details)

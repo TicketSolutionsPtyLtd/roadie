@@ -244,3 +244,75 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
       expect(screen.queryByRole('listbox')).toBeNull()
     })
   })
+
+describe('A touch on a suggestion', TIMEOUT, () => {
+  function Venue() {
+    return (
+      <InDrawer>
+        <Autocomplete items={VENUES}>
+          <Autocomplete.Input aria-label='Venue' />
+          <Autocomplete.Portal>
+            <Autocomplete.Positioner>
+              <Autocomplete.Popup>
+                <Autocomplete.List>
+                  {(venue: string) => (
+                    <Autocomplete.Item key={venue} value={venue}>
+                      {venue}
+                    </Autocomplete.Item>
+                  )}
+                </Autocomplete.List>
+              </Autocomplete.Popup>
+            </Autocomplete.Positioner>
+          </Autocomplete.Portal>
+        </Autocomplete>
+      </InDrawer>
+    )
+  }
+
+  it('that moves away before it lifts chooses nothing', async ({ skip }) => {
+    if (!navigator.userAgent.includes('Chrome')) skip()
+    render(<Venue />)
+    await settle()
+    const input = screen.getByRole('combobox', { name: 'Venue' })
+    await tapOn(input)
+    await userEvent.type(input, 'la')
+    const option = await screen.findByRole('option', { name: 'Lantern Yard' })
+    await settle(300)
+    const { left, top, height } = option.getBoundingClientRect()
+    const y = top + height / 2
+    await commands.swipe({ x: left + 20, y }, { x: left + 20, y: y + 60 })
+    await settle()
+    expect(input).toHaveValue('la')
+  })
+
+  it('chooses on lifting even when the input blurs and the page resizes first', async () => {
+    render(<Venue />)
+    await settle()
+    const input = screen.getByRole('combobox', { name: 'Venue' })
+    await tapOn(input)
+    await userEvent.type(input, 'la')
+    const option = await screen.findByRole('option', { name: 'Lantern Yard' })
+    await settle(300)
+    const { left, top, height } = option.getBoundingClientRect()
+    const at = { clientX: left + 20, clientY: top + height / 2 }
+    const pointer = {
+      ...at,
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      pointerId: 7,
+      pointerType: 'touch',
+      isPrimary: true
+    }
+    option.dispatchEvent(new PointerEvent('pointerdown', pointer))
+    // The keyboard dismissing: the input blurs and the viewport grows.
+    input.blur()
+    window.visualViewport?.dispatchEvent(new Event('resize'))
+    window.dispatchEvent(new Event('resize'))
+    await settle(150)
+    const lifted = screen.getByRole('option', { name: 'Lantern Yard' })
+    lifted.dispatchEvent(new PointerEvent('pointerup', pointer))
+    await settle()
+    expect(input).toHaveValue('Lantern Yard')
+  })
+})
