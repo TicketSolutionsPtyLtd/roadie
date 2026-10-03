@@ -39,7 +39,7 @@ export function TooltipPopup({
       {withShortcut ? (
         <KbdShortcut
           shortcut={shortcut}
-          size='sm'
+          emphasis='subtler'
           data-slot='tooltip-shortcut'
         />
       ) : null}

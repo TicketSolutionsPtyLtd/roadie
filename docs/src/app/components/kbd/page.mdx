@@ -46,9 +46,9 @@ Pass a key as text. Known key names, in any case, show their glyph or short word
 
 The known names are `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `arrowup`, `arrowdown`, `arrowleft`, `arrowright`, `mod`, `meta`, `shift`, `alt` and `ctrl`. They also take the aliases `return`, `esc`, `del`, `up`, `down`, `left`, `right`, `cmd` and `command` (for `mod`), `option` and `control`, and `KeyboardEvent.key` values such as `ArrowUp`, `Escape` and `Meta`. `meta` is ⌘ on Apple devices and Win elsewhere. Any other key shows as text, with a single letter in capitals.
 
-### Joined
+### Combined
 
-`joined` draws the whole combination on one keycap, such as ⌘K. Off Apple devices, the keys are joined with a plus, as in Ctrl+K.
+`combined` draws the whole combination on one keycap, such as ⌘K. Off Apple devices, the keys are joined with a plus, as in Ctrl+K.
 
 ```tsx-live
 <div className='grid gap-4'>
@@ -57,15 +57,15 @@ The known names are `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `a
     <div><Kbd keys={['mod', 'shift', 'p']} /></div>
   </div>
   <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Joined</p>
-    <div><Kbd keys={['mod', 'shift', 'p']} joined /></div>
+    <p className='text-sm text-subtle'>Combined</p>
+    <div><Kbd keys={['mod', 'shift', 'p']} combined /></div>
   </div>
 </div>
 ```
 
 ### Emphasis
 
-`subtle`, the default, is a soft keycap tinted from the surrounding text colour, with no border. It suits the page, cards, fields and neutral surfaces, the default strong tooltip included. `normal` is its own opaque, bordered surface, so it keeps its own colours on any fill. `subtler` is plain text in the surrounding colour, for places that already frame it, such as a menu row. Off Apple devices, `subtler` joins keys with a plus, as in Ctrl+D.
+`subtle`, the default, is a soft keycap tinted from the surrounding text colour, with no border. It suits the page, cards, fields and neutral surfaces. `normal` is its own opaque, bordered surface, so it keeps its own colours on any fill. `subtler` is plain text in the surrounding colour, for places that already frame it, such as a menu row. Off Apple devices, `subtler` joins keys with a plus, as in Ctrl+D.
 
 ```tsx-live
 <div className='grid gap-4'>
@@ -84,14 +84,7 @@ The known names are `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `a
 </div>
 ```
 
-On a strong coloured fill, such as a success or danger button, use `subtler`. The fill's own label only just reads there, and a keycap's tint would dull it.
-
-```tsx-live
-<Button emphasis='strong' intent='success' aria-keyshortcuts='Meta+Enter Control+Enter'>
-  Publish
-  <Kbd keys={['mod', 'enter']} emphasis='subtler' />
-</Button>
-```
+On a strong fill with an intent, such as an accent, success or danger button, use `subtler`. The fill's own label only just reads there, and a keycap's tint would dull it. See the guidelines below.
 
 ### Sizes
 
@@ -112,11 +105,11 @@ Put the hint inside the control it triggers. Kbd is hidden from assistive tech, 
 <Button aria-keyshortcuts='Meta+K Control+K'>
   <MagnifyingGlassIcon weight='bold' className='size-4' />
   Search
-  <Kbd keys={['mod', 'k']} size='sm' />
+  <Kbd keys={['mod', 'k']} size='sm' combined />
 </Button>
 ```
 
-`Menu.Item` and `Tooltip.Content` take a `shortcut` and render it through Kbd.
+`Menu.Item` and `Tooltip.Content` take a `shortcut` and render it through Kbd as plain `subtler` keys, which read on a menu row and on a tooltip of any intent.
 
 ```tsx-live
 <div className='flex flex-wrap gap-3'>
@@ -169,27 +162,27 @@ In instructions, the keys are the content. `announce` reads each key aloud by it
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Join keys where space is tight'>
-  <Guideline.Do code={`<Kbd keys={['mod', 'k']} size='sm' joined />`}>
+<Guideline title='Combine keys where space is tight'>
+  <Guideline.Do code={`<Kbd keys={['mod', 'k']} size='sm' combined />`}>
     Join a combination inside a button, a field or a tooltip, where one keycap reads as one hint.
   </Guideline.Do>
-  <Guideline.Dont code={`<Kbd keys={['mod', 'shift', 'p']} joined announce />`}>
-    Don't join keys in instructions or a shortcut list. Separate keycaps show each key to press.
+  <Guideline.Dont code={`<Kbd keys={['mod', 'shift', 'p']} combined announce />`}>
+    Don't combine keys in instructions or a shortcut list. Separate keycaps show each key to press.
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='On a strong coloured fill, use subtler'>
-  <Guideline.Do example={<Button emphasis='strong' intent='success'>Publish <Kbd keys={['mod', 'enter']} emphasis='subtler' /></Button>}>
-    Use <code>subtler</code> keys on a strong success, warning, danger or brand fill. They take the fill's label colour, which is tuned to read there.
+<Guideline title='On a strong fill with an intent, use subtler'>
+  <Guideline.Do example={<Button emphasis='strong' intent='success'>Publish <Kbd keys={['mod', 'enter']} emphasis='subtler' size='sm' combined /></Button>}>
+    Use <code>subtler</code> keys on a strong fill with an intent, such as accent, success or danger. They take the fill's label colour, which is tuned to read there.
   </Guideline.Do>
-  <Guideline.Dont example={<Button emphasis='strong' intent='success'>Publish <Kbd keys={['mod', 'enter']} /></Button>}>
-    Don't put a <code>subtle</code> keycap on a coloured fill. Its tint pulls the fill towards the label, and the keys stop reading clearly.
+  <Guideline.Dont example={<Button emphasis='strong' intent='success'>Publish <Kbd keys={['mod', 'enter']} size='sm' combined /></Button>}>
+    Don't put a <code>subtle</code> keycap on a strong fill with an intent. Its tint pulls the fill towards the label, and the keys stop reading clearly.
   </Guideline.Dont>
 </Guideline>
 
 <Guideline title='Choose the emphasis by place'>
   <Guideline.Do code={`<Kbd keys={['mod', 'k']} />`}>
-    Keep <code>subtle</code> in toolbars, fields, neutral buttons and tooltips. Use <code>subtler</code> in menu rows, and <code>normal</code> in a shortcut list or a help page, where keys should stand out.
+    Keep <code>subtle</code> in toolbars, fields and neutral buttons. Use <code>subtler</code> in menu rows and on strong fills with an intent, and <code>normal</code> in a shortcut list or a help page, where keys should stand out.
   </Guideline.Do>
   <Guideline.Dont code={`<Kbd keys={['mod', 'k']} emphasis='normal' />`}>
     Don't put a <code>normal</code> keycap inside a button. Its border competes with the button's own edge.

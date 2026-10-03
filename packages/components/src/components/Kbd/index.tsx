@@ -13,7 +13,6 @@ import { type KeyPlatform, useKeyPlatform } from './platform'
 const HIDE_WITHOUT_HOVER =
   '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
 
-// subtle is drawn from the surrounding text colour, so it reads on any fill.
 // Without color-mix the fill drops out rather than painting over the label.
 const kbdVariants = cva(
   'inline-flex items-center justify-center gap-1 font-sans text-xs whitespace-nowrap [&_svg]:size-3 [&_svg]:shrink-0',
@@ -47,11 +46,12 @@ export type KbdProps = ComponentProps<'kbd'> & {
    * `subtler` keys have no keycap, so it changes nothing there.
    * @default false
    */
-  joined?: boolean
+  combined?: boolean
   /**
-   * `subtle` is a soft keycap tinted from the surrounding text colour, so it
-   * follows any surface. `normal` is its own bordered surface, light even on
-   * a dark fill. `subtler` is plain text in the surrounding colour, for menus.
+   * `subtle` is a soft keycap tinted from the surrounding text colour; on a
+   * strong fill with an intent, use `subtler`. `normal` is its own bordered
+   * surface and keeps its own colours on any fill. `subtler` is plain text in
+   * the surrounding colour, for menus, tooltips and strong fills.
    * @default 'subtle'
    */
   emphasis?: 'normal' | 'subtle' | 'subtler'
@@ -140,7 +140,7 @@ function KeyList({
 
 export function Kbd({
   keys,
-  joined = false,
+  combined = false,
   emphasis = 'subtle',
   size = 'md',
   announce = false,
@@ -153,9 +153,9 @@ export function Kbd({
   const hideWithoutHover = announce ? undefined : HIDE_WITHOUT_HOVER
   const plain = emphasis === 'subtler'
   // Keys that share a run read Ctrl+D off Apple, not CtrlD.
-  const plus = (plain || joined) && platform !== 'apple'
+  const plus = (plain || combined) && platform !== 'apple'
 
-  if (keys && joined && !plain) {
+  if (keys && combined && !plain) {
     return (
       <kbd
         data-slot='kbd'

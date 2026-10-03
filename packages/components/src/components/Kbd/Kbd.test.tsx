@@ -158,9 +158,9 @@ describe('Kbd', () => {
     }
   })
 
-  it('joins keys in one keycap', () => {
+  it('combines keys in one keycap', () => {
     onPlatform('Win32')
-    const { container } = render(<Kbd keys={['mod', 'k']} joined />)
+    const { container } = render(<Kbd keys={['mod', 'k']} combined />)
     const cap = container.firstElementChild!
     expect(cap.tagName).toBe('KBD')
     expect(cap).toHaveAttribute('data-slot', 'kbd')
@@ -176,10 +176,10 @@ describe('Kbd', () => {
     expect(cap).toHaveTextContent('Ctrl+K')
   })
 
-  it('runs joined keys together on Apple platforms', () => {
+  it('runs combined keys together on Apple platforms', () => {
     onPlatform('MacIntel')
     const { container } = render(
-      <Kbd keys={['mod', 'k']} joined emphasis='normal' size='sm' />
+      <Kbd keys={['mod', 'k']} combined emphasis='normal' size='sm' />
     )
     const cap = container.firstElementChild!
     expect(cap).toHaveClass('emphasis-normal', 'h-5')
@@ -188,17 +188,17 @@ describe('Kbd', () => {
     expect(cap.textContent).toBe('K')
   })
 
-  it('announces joined keys by name', () => {
+  it('announces combined keys by name', () => {
     onPlatform('MacIntel')
-    render(<Kbd keys={['mod', 'k']} joined announce />)
+    render(<Kbd keys={['mod', 'k']} combined announce />)
     expect(screen.getByText('Command')).toHaveClass('sr-only')
     expect(screen.getByText('Command').closest('[aria-hidden]')).toBeNull()
   })
 
-  it('keeps subtler keys plain when joined', () => {
+  it('keeps subtler keys plain when combined', () => {
     onPlatform('Win32')
     const { container } = render(
-      <Kbd keys={['mod', 'k']} joined emphasis='subtler' />
+      <Kbd keys={['mod', 'k']} combined emphasis='subtler' />
     )
     const group = container.firstElementChild!
     expect(group).toHaveAttribute('data-slot', 'kbd-group')
@@ -215,8 +215,8 @@ describe('Kbd', () => {
 })
 
 describe('Kbd platform keys across hydration', () => {
-  it('hides a joined plus until the platform is known', () => {
-    const html = renderToString(<Kbd keys={['mod', 'd']} joined />)
+  it('hides a combined plus until the platform is known', () => {
+    const html = renderToString(<Kbd keys={['mod', 'd']} combined />)
     const holder = document.createElement('div')
     holder.innerHTML = html
     expect(holder.querySelector('[data-slot="kbd-plus"]')).toHaveClass(

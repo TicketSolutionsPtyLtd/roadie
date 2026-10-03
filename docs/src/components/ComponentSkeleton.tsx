@@ -302,10 +302,10 @@ export function ComponentSkeleton({ name }: { name: string }) {
     case 'kbd':
       return (
         <div className='flex gap-1 text-xs font-medium'>
-          <span className='grid h-6 min-w-6 place-content-center rounded-md bg-current/10 px-1.5'>
+          <span className='grid h-6 min-w-6 place-content-center rounded-md bg-[color-mix(in_oklch,currentColor_10%,transparent)] px-1.5'>
             ⌘
           </span>
-          <span className='grid h-6 min-w-6 place-content-center rounded-md bg-current/10 px-1.5'>
+          <span className='grid h-6 min-w-6 place-content-center rounded-md bg-[color-mix(in_oklch,currentColor_10%,transparent)] px-1.5'>
             K
           </span>
         </div>

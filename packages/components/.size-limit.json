@@ -210,7 +210,7 @@
     "name": "Kbd",
     "path": "dist/components/Kbd/index.js",
     "import": "*",
-    "limit": "2.45 kB",
+    "limit": "2.4 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
