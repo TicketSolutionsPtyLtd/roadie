@@ -114,7 +114,8 @@ describe('RecordTable bulk actions', () => {
     await user.click(
       screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
     )
-    await user.type(screen.getByRole('searchbox'), 'Perth')
+    await user.click(screen.getByRole('searchbox'))
+    await user.paste('Perth')
     await user.click(
       screen.getByRole('checkbox', { name: 'Select angie McMahon 1' })
     )
@@ -141,7 +142,8 @@ describe('RecordTable bulk actions', () => {
         getRowId: (row) => row.id,
         selectable: true,
         view,
-        onViewChange: setView
+        onViewChange: setView,
+        defaultPosition: { pageSize: 10 }
       })
       return (
         <Records.Root records={records} layouts={layouts}>
@@ -213,7 +215,8 @@ describe('RecordTable bulk actions', () => {
   it('announces the selection and the results together while searching', async () => {
     const user = userEvent.setup()
     render(<Bulk actions={[{ label: 'Export', onAction: vi.fn() }]} />)
-    await user.type(screen.getByRole('searchbox'), 'Perth')
+    await user.click(screen.getByRole('searchbox'))
+    await user.paste('Perth')
     await user.click(
       screen.getByRole('checkbox', { name: 'Select angie McMahon 1' })
     )

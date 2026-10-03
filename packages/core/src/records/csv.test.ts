@@ -92,7 +92,8 @@ describe('recordsToCsv', () => {
     ['-x', "'-x"],
     ['@SUM(A1)', "'@SUM(A1)"],
     ['\tcmd', "'\tcmd"],
-    ['\rcmd', '"\'\rcmd"']
+    ['\rcmd', '"\'\rcmd"'],
+    ['\n=HYPERLINK("x")', '"\'\n=HYPERLINK(""x"")"']
   ])('neutralises a formula-like %j', (text, expected) => {
     const [, row] = lines(csvOf([{ ...attendees[2]!, name: text }]))
     expect(row!.split(',')[0]).toBe(expected)

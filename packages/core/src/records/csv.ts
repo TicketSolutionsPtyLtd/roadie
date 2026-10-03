@@ -12,7 +12,7 @@ const quote = (text: string) =>
 
 // Spreadsheets run text that opens like a formula; an apostrophe keeps it text.
 const neutralise = (text: string) =>
-  /^[=+\-@\t\r]/.test(text) ? `'${text}` : text
+  /^[=+\-@\t\r\n]/.test(text) ? `'${text}` : text
 
 const isFigure = (field: RecordField) =>
   field.type === 'number' || field.type === 'money'
