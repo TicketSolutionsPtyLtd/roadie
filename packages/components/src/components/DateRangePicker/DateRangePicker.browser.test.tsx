@@ -166,6 +166,24 @@ describe('DateRangePicker closed by a click outside', TIMEOUT, () => {
   })
 })
 
+describe('DateRangePicker closed with text half typed', TIMEOUT, () => {
+  it('commits the text on the way out, as a field does on blur', async () => {
+    render(<Period initial={{ start: '2026-10-10', end: '2026-10-12' }} />)
+    await userEvent.click(trigger())
+    const popup = await screen.findByRole('dialog')
+    const start = within(popup).getByRole('textbox', { name: 'Start' })
+    await userEvent.clear(start)
+    await userEvent.type(start, '1 oct')
+    await userEvent.click(document.querySelector('output')!)
+    await expect
+      .poll(() => trigger().getAttribute('aria-expanded'))
+      .toBe('false')
+    expect(document.querySelector('output')).toHaveTextContent(
+      '{"start":"2026-10-01","end":"2026-10-12"}'
+    )
+  })
+})
+
 describe('DateRangePicker on a phone', TIMEOUT, () => {
   beforeAll(() => page.viewport(390, 844))
   afterAll(() => page.viewport(1920, 1080))

@@ -646,6 +646,127 @@ describe('DateRangePicker', () => {
       expect(time).toHaveValue('3:30am')
     })
 
+    it('closes on Escape with only an end typed, keeping the value', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          numberOfMonths={1}
+          defaultValue={{ start: '2026-10-10', end: '2026-10-12' }}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      await userEvent.clear(
+        within(dialog).getByRole('textbox', { name: 'Start' })
+      )
+      await userEvent.keyboard('{Enter}')
+      day('2026-10-12').focus()
+      await userEvent.keyboard('{Escape}')
+      await vi.waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      )
+      expect(onValueChange).not.toHaveBeenCalled()
+    })
+
+    it('starts a new range from a later day pressed after only an end', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('textbox', { name: 'End' }),
+        '20 oct{Enter}'
+      )
+      await userEvent.click(day('2026-10-25'))
+      expect(onValueChange).not.toHaveBeenCalled()
+      expect(
+        within(dialog).getByRole('textbox', { name: 'Start' })
+      ).toHaveValue('25 Oct 2026')
+    })
+
+    it('refuses typed dates longer than max', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          max={7}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('textbox', { name: 'Start' }),
+        '1 oct{Enter}'
+      )
+      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      await userEvent.type(end, '30 oct{Enter}')
+      expect(onValueChange).not.toHaveBeenCalled()
+      expect(end).toHaveAccessibleDescription('Spans more than 7 days')
+    })
+
+    it('refuses typed dates shorter than min', async () => {
+      render(<DateRangePicker aria-label='Period' today={TODAY} min={3} />)
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('textbox', { name: 'Start' }),
+        '1 oct{Enter}'
+      )
+      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      await userEvent.type(end, '2 oct{Enter}')
+      expect(end).toHaveAccessibleDescription('Spans fewer than 3 days')
+    })
+
+    it('starts each opening from the value when open is controlled', async () => {
+      const picker = (isOpen: boolean) => (
+        <DateRangePicker
+          aria-label='Period'
+          commit='apply'
+          today={TODAY}
+          defaultValue={{ start: '2026-10-10', end: '2026-10-12' }}
+          open={isOpen}
+        />
+      )
+      const { rerender } = render(picker(true))
+      let dialog = await screen.findByRole('dialog')
+      const start = within(dialog).getByRole('textbox', { name: 'Start' })
+      await userEvent.clear(start)
+      await userEvent.type(start, '1 oct{Enter}')
+      rerender(picker(false))
+      await vi.waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      )
+      rerender(picker(true))
+      dialog = await screen.findByRole('dialog')
+      expect(
+        within(dialog).getByRole('textbox', { name: 'Start' })
+      ).toHaveValue('10 Oct 2026')
+    })
+
+    it('leaves the calendar where it is for a typed date already in view', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          numberOfMonths={2}
+          defaultValue={{ start: '2026-10-10', end: '2026-10-12' }}
+        />
+      )
+      const dialog = await open()
+      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      await userEvent.clear(end)
+      await userEvent.type(end, '20 oct{Enter}')
+      expect(day('2026-11-01')).not.toBeNull()
+      expect(day('2026-10-20')).toHaveAttribute('data-range-end')
+    })
+
     it('is required when its Field is', () => {
       render(
         <Field required>

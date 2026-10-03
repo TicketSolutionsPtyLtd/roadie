@@ -194,7 +194,7 @@ render(<Toolbar />)
 
 ### With disabled days
 
-`disabled` takes the same matchers as [Calendar](/components/calendar). Matched days are disabled in the calendar and refused when typed. Presets aren't checked against them, so leave out presets that reach matched days. Here sales data starts on 1 July 2026.
+`disabled` takes the same matchers as [Calendar](/components/calendar). Matched days are disabled in the calendar and refused when typed. `min` and `max` limit the length in days, both ends counted, and typed dates that break them say so. Presets aren't checked against either, so leave out presets that reach matched days or break the length. Here sales data starts on 1 July 2026.
 
 ```tsx-live
 <DateRangePicker

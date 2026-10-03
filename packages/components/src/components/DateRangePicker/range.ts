@@ -7,6 +7,7 @@ import {
 } from '@oztix/roadie-core/datetime'
 
 import { type DateTimeParts, joinValue, splitValue } from '../../pickers/value'
+import { withinLength } from '../Calendar/selection'
 
 /** A choice in the picker's preset list. */
 export type DateRangePreset = {
@@ -61,6 +62,7 @@ export type DraftResult =
   | { kind: 'value'; value: DateRangeValue | null }
   | { kind: 'incomplete' }
   | { kind: 'reversed' }
+  | { kind: 'too-short' | 'too-long' }
 
 const EMPTY: DateTimeParts = { date: null, time: null }
 
@@ -138,7 +140,8 @@ function joinEnd(
 export function draftValue(
   draft: RangeDraft,
   granularity: 'day' | 'minute',
-  zone: string
+  zone: string,
+  { min, max }: { min?: number; max?: number } = {}
 ): DraftResult {
   if (draft.chosen !== null) return { kind: 'value', value: draft.chosen }
   if (draft.start.unreadable || draft.end.unreadable) {
@@ -154,6 +157,10 @@ export function draftValue(
   } catch {
     return { kind: 'reversed' }
   }
+  const first = draft.start.date!
+  const last = draft.end.date!
+  if (!withinLength(first, last, { min })) return { kind: 'too-short' }
+  if (!withinLength(first, last, { max })) return { kind: 'too-long' }
   return { kind: 'value', value }
 }
 

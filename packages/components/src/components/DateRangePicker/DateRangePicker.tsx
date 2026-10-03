@@ -13,7 +13,11 @@ import {
   LockSimpleIcon
 } from '@phosphor-icons/react'
 
-import { type DateRangeValue, addMonths } from '@oztix/roadie-core/datetime'
+import {
+  type DateRangeValue,
+  addMonths,
+  compareDates
+} from '@oztix/roadie-core/datetime'
 import { cn } from '@oztix/roadie-core/utils'
 
 import {
@@ -249,16 +253,21 @@ export function DateRangePicker({
     onOpenChange
   })
   const [edit, setEdit] = useState<Edit>(NO_EDIT)
+  // Each opening starts from the value, however it opens or closes, so an
+  // edit left by a click outside never comes back.
+  const [seenOpen, setSeenOpen] = useState(open)
+  if (seenOpen !== open) {
+    setSeenOpen(open)
+    setEdit(NO_EDIT)
+  }
   const draft = edit.draft ?? draftFrom(value, context)
-  const result = draftValue(draft, granularity, zone)
+  const length = { min, max }
+  const result = draftValue(draft, granularity, zone, length)
   const wideScreen = useSyncExternalStore(subscribeWide, isWide, () => false)
   const months = numberOfMonths ?? (wideScreen ? 2 : 1)
 
-  // Each opening starts from the value, so an edit left by a click outside
-  // never comes back.
   function changeOpen(next: boolean) {
     if (next && (isDisabled || readOnly)) return
-    setEdit(NO_EDIT)
     setOpen(next)
   }
 
@@ -266,8 +275,6 @@ export function DateRangePicker({
     next: RangeDraft,
     { close = false, month }: { close?: boolean; month?: string | null } = {}
   ) {
-    // A typed field blurred by the click that closed the popup commits late.
-    if (!open) return
     setEdit({
       draft: {
         ...next,
@@ -278,15 +285,30 @@ export function DateRangePicker({
       month: month ?? edit.month
     })
     if (commit === 'apply') return
-    const nextResult = draftValue(next, granularity, zone)
+    const nextResult = draftValue(next, granularity, zone, length)
     if (nextResult.kind !== 'value') return
     emit(nextResult.value)
     if (close) changeOpen(false)
   }
 
-  /** The first month shown, so `date` is in view. */
-  const monthShowing = (date: string | null, last = false) =>
-    date ? addMonths(date.slice(0, 8) + '01', last ? 1 - months : 0) : null
+  const firstOf = (date: string) => `${date.slice(0, 8)}01`
+  const opening = draftFrom(value, context)
+  const openingDate = opening.start.date ?? opening.end.date ?? today
+  const shownMonth =
+    edit.month ?? (openingDate ? firstOf(openingDate) : undefined)
+
+  /** The first month to show so `date` is in view, moving only if it isn't. */
+  const monthShowing = (date: string | null, last = false) => {
+    if (!date) return null
+    const month = firstOf(date)
+    if (
+      shownMonth &&
+      compareDates(month, shownMonth) >= 0 &&
+      compareDates(month, addMonths(shownMonth, months - 1)) <= 0
+    )
+      return shownMonth
+    return addMonths(month, last ? 1 - months : 0)
+  }
 
   const description =
     value === null ? null : describeRange(value, context, locale)
@@ -320,7 +342,14 @@ export function DateRangePicker({
     dateStyle: 'medium' as const,
     disabled: disabledDays
   }
-  const endError = result.kind === 'reversed' ? 'Ends before it starts' : null
+  const endError =
+    result.kind === 'reversed'
+      ? 'Ends before it starts'
+      : result.kind === 'too-long'
+        ? `Spans more than ${max} days`
+        : result.kind === 'too-short'
+          ? `Spans fewer than ${min} days`
+          : null
   const locked = isDisabled || readOnly
 
   return (
@@ -467,13 +496,17 @@ export function DateRangePicker({
             </div>
             <Calendar
               mode='range'
-              // With only an end typed, the next day pressed extends from it.
-              selected={
-                draft.start.date === null && draft.end.date !== null
-                  ? { start: draft.end.date, end: null }
-                  : { start: draft.start.date, end: draft.end.date }
-              }
-              onSelect={(range) =>
+              selected={{ start: draft.start.date, end: draft.end.date }}
+              onSelect={(pressed) => {
+                // With only an end typed, a day up to it becomes the start.
+                const typedEnd = draft.start.date === null && draft.end.date
+                const range =
+                  typedEnd &&
+                  pressed.start &&
+                  pressed.end === null &&
+                  compareDates(pressed.start, typedEnd) <= 0
+                    ? { start: pressed.start, end: typedEnd }
+                    : pressed
                 change(
                   {
                     chosen: null,
@@ -482,13 +515,17 @@ export function DateRangePicker({
                       date: range.start,
                       unreadable: false
                     },
-                    end: { ...draft.end, date: range.end, unreadable: false }
+                    end: {
+                      ...draft.end,
+                      date: range.end,
+                      unreadable: false
+                    }
                   },
                   { close: !withTime && range.end !== null }
                 )
-              }
+              }}
               disabled={locked || disabledDays}
-              month={edit.month ?? undefined}
+              month={shownMonth}
               onMonthChange={(month) => setEdit({ ...edit, month })}
               numberOfMonths={months}
               min={min}
