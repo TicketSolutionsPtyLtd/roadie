@@ -220,7 +220,7 @@ render(<Sales />)
 ## Accessibility
 
 - The toolbar is a group named “Dashboard period”, or by your `aria-label`.
-- The period button is named after its range, such as “Choose dates, Period (This month, 1 to 31 Oct 2026)”. It works as [DateRangePicker](/components/date-range-picker) does with `commit='apply'`: Cancel or `Escape` drops changes.
+- The period button is named after its range, such as “Choose dates, Period (This month, 1 to 31 Oct 2026)”. It works as [DateRangePicker](/components/date-range-picker) does with `commit='apply'`: Cancel or `Escape` drops changes. On a phone it opens in a bottom drawer with Apply kept in view; its Close cancels.
 - The comparison is a [Select](/components/select) named “Compare with”. It shows “vs previous period”, and each choice reads the dates it covers, such as “Previous period, 1 to 7 Sept 2026” on 7 Oct with `dataEnd`.
 - Read only, both controls show a lock and don’t open, and the comparison has `aria-readonly`.
 

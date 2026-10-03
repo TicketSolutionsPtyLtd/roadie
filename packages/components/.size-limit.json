@@ -252,21 +252,21 @@
     "name": "DatePicker",
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
-    "limit": "14.75 kB",
+    "limit": "19.8 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DashboardPeriod",
     "path": "dist/components/DashboardPeriod/index.js",
     "import": "*",
-    "limit": "24.7 kB",
+    "limit": "29.2 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DateRangePicker",
     "path": "dist/components/DateRangePicker/index.js",
     "import": "*",
-    "limit": "19.2 kB",
+    "limit": "24.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {

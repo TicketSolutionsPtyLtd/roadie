@@ -1,11 +1,6 @@
 'use client'
 
-import {
-  type ComponentProps,
-  useRef,
-  useState,
-  useSyncExternalStore
-} from 'react'
+import { type ComponentProps, useRef, useState } from 'react'
 
 import {
   CalendarBlankIcon,
@@ -21,9 +16,12 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import {
-  PickerPopover,
+  PickerOverlay,
+  PickerTrigger,
+  useMediaMatch,
   usePickerLabels,
   usePickerOpen,
+  usePickerSurface,
   usePickerZone
 } from '../../pickers/PickerShell'
 import type { HourCycle } from '../../pickers/readTime'
@@ -32,7 +30,6 @@ import { Calendar } from '../Calendar'
 import type { CalendarMatchers } from '../Calendar/matchers'
 import { useToday } from '../Calendar/today'
 import { useFieldContext } from '../Field'
-import { Popover } from '../Popover'
 import { selectTriggerVariants } from '../Select/variants'
 import { PresetList } from './PresetList'
 import { RangeEndField } from './RangeEndField'
@@ -170,12 +167,6 @@ export type DateRangePickerProps = Omit<
 }
 
 const WIDE = '(min-width: 64rem)'
-function subscribeWide(onChange: () => void) {
-  const query = window.matchMedia(WIDE)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
-}
-const isWide = () => window.matchMedia(WIDE).matches
 
 type Edit = {
   draft: RangeDraft | null
@@ -278,10 +269,11 @@ export function DateRangePicker({
     setSeenOpen(open)
     setEdit(NO_EDIT)
   }
+  const surface = usePickerSurface(open)
   const draft = edit.draft ?? draftFrom(value, context)
   const length = { min, max }
   const result = draftValue(draft, granularity, zone, length)
-  const wideScreen = useSyncExternalStore(subscribeWide, isWide, () => false)
+  const wideScreen = useMediaMatch(WIDE)
   const months = Math.max(1, Math.floor(numberOfMonths ?? (wideScreen ? 2 : 1)))
 
   function changeOpen(next: boolean) {
@@ -369,6 +361,33 @@ export function DateRangePicker({
           ? `Spans fewer than ${days(min)}`
           : null
   const locked = isDisabled || readOnly
+  const drawer = surface === 'drawer'
+  const footer = (
+    <>
+      {/* In a drawer, the header's Close cancels. */}
+      {!drawer && (
+        <Button size='sm' onClick={() => changeOpen(false)}>
+          Cancel
+        </Button>
+      )}
+      <Button
+        size={drawer ? 'md' : 'sm'}
+        className={drawer ? 'w-full' : undefined}
+        intent='accent'
+        emphasis='strong'
+        disabled={
+          result.kind !== 'value' || (isRequired && result.value === null)
+        }
+        onClick={() => {
+          if (result.kind !== 'value') return
+          emit(result.value)
+          changeOpen(false)
+        }}
+      >
+        Apply
+      </Button>
+    </>
+  )
 
   return (
     <div
@@ -377,12 +396,16 @@ export function DateRangePicker({
       {...props}
     >
       {labels.labels}
-      <PickerPopover
+      <PickerOverlay
         open={open}
         onOpenChange={changeOpen}
+        surface={surface}
         anchor={anchorRef}
         aria-labelledby={labels.popupLabelledBy}
+        labelSource={labels.labelSource}
+        action='Choose dates'
         className='overflow-y-auto'
+        footer={commit === 'apply' && footer}
         initialFocus={(popup) =>
           popup.querySelector<HTMLElement>(
             '[data-slot="date-range-picker-preset"][aria-pressed="true"]:not([data-custom])'
@@ -392,7 +415,7 @@ export function DateRangePicker({
           )
         }
         trigger={
-          <Popover.Trigger
+          <PickerTrigger
             ref={anchorRef}
             id={field.fieldId || undefined}
             disabled={isDisabled}
@@ -437,19 +460,20 @@ export function DateRangePicker({
                 className='size-4 shrink-0 text-subtle transition-transform duration-moderate in-data-popup-open:rotate-180'
               />
             )}
-          </Popover.Trigger>
+          </PickerTrigger>
         }
       >
         <div
           data-slot='date-range-picker-popup'
           className={cn(
             'grid gap-4',
-            presets.length > 0 && 'sm:grid-cols-[auto_minmax(0,1fr)]'
+            presets.length > 0 && !drawer && 'sm:grid-cols-[auto_minmax(0,1fr)]'
           )}
         >
           {presets.length > 0 && (
             <PresetList
               presets={presets}
+              beside={!drawer}
               pressed={pressed}
               locale={locale}
               disabled={locked}
@@ -565,36 +589,8 @@ export function DateRangePicker({
               endMonth={endMonth}
             />
           </div>
-          {commit === 'apply' && (
-            <Popover.Footer
-              className={cn(
-                'justify-end',
-                presets.length > 0 && 'sm:col-span-2'
-              )}
-            >
-              <Button size='sm' onClick={() => changeOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                size='sm'
-                intent='accent'
-                emphasis='strong'
-                disabled={
-                  result.kind !== 'value' ||
-                  (isRequired && result.value === null)
-                }
-                onClick={() => {
-                  if (result.kind !== 'value') return
-                  emit(result.value)
-                  changeOpen(false)
-                }}
-              >
-                Apply
-              </Button>
-            </Popover.Footer>
-          )}
         </div>
-      </PickerPopover>
+      </PickerOverlay>
     </div>
   )
 }

@@ -7,9 +7,11 @@ import { CalendarBlankIcon } from '@phosphor-icons/react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import {
-  PickerPopover,
+  PickerOverlay,
+  PickerTrigger,
   usePickerLabels,
   usePickerOpen,
+  usePickerSurface,
   usePickerZone
 } from '../../pickers/PickerShell'
 import { TypedInput } from '../../pickers/TypedInput'
@@ -25,7 +27,6 @@ import type { CalendarMatchers } from '../Calendar/matchers'
 import { useFieldContext } from '../Field'
 import { useFieldControlError } from '../Field/FieldContext'
 import { inputVariants } from '../Input'
-import { Popover } from '../Popover'
 
 export type DatePickerProps = Omit<
   ComponentProps<'div'>,
@@ -274,6 +275,7 @@ export function DatePicker({
     defaultOpen,
     onOpenChange
   })
+  const surface = usePickerSurface(open)
   const pickerLabels = usePickerLabels({
     action: 'Choose date',
     'aria-label': ariaLabel,
@@ -305,11 +307,14 @@ export function DatePicker({
       {...props}
     >
       {pickerLabels.labels}
-      <PickerPopover
+      <PickerOverlay
         open={open}
         onOpenChange={setOpen}
+        surface={surface}
         anchor={groupRef}
         aria-labelledby={pickerLabels.popupLabelledBy}
+        labelSource={pickerLabels.labelSource}
+        action='Choose date'
         trigger={
           <div
             ref={groupRef}
@@ -333,7 +338,7 @@ export function DatePicker({
               ref={inputRef}
               className='h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle'
             />
-            <Popover.Trigger
+            <PickerTrigger
               disabled={isDisabled || readOnly}
               render={
                 <IconButton
@@ -369,7 +374,7 @@ export function DatePicker({
           startMonth={startMonth}
           endMonth={endMonth}
         />
-      </PickerPopover>
+      </PickerOverlay>
       {withTime && (
         <TypedInput
           data-slot='date-picker-time'

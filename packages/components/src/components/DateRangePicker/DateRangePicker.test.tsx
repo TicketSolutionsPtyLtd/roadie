@@ -1,12 +1,13 @@
 import { useState } from 'react'
 
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { DateRangeValue } from '@oztix/roadie-core/datetime'
 
 import { DateRangePicker } from '.'
+import { onPhone } from '../../pickers/testUtils'
 import { Field } from '../Field'
 
 // Wed 7 Oct 2026.
@@ -940,5 +941,67 @@ describe('DateRangePicker', () => {
       within(dialog).getByRole('button', { name: 'Yesterday' })
     )
     expect(trigger()).toHaveTextContent('Yesterday')
+  })
+})
+
+describe('DateRangePicker on a phone', () => {
+  it('keeps Apply in the drawer footer, out of the scroll', async () => {
+    onPhone()
+    const onValueChange = vi.fn()
+    render(
+      <Field>
+        <Field.Label>Sales period</Field.Label>
+        <DateRangePicker
+          today={TODAY}
+          commit='apply'
+          defaultValue='yesterday'
+          onValueChange={onValueChange}
+        />
+      </Field>
+    )
+    const dialog = await open()
+    expect(dialog).toHaveAccessibleName('Choose dates, Sales period')
+    expect(within(dialog).getByRole('heading')).toHaveTextContent(
+      'Sales period'
+    )
+    const footer = dialog.querySelector<HTMLElement>(
+      '[data-slot="drawer-footer"]'
+    )!
+    const body = dialog.querySelector<HTMLElement>('[data-slot="drawer-body"]')!
+    expect(within(body).getByRole('group', { name: 'Presets' })).toBeVisible()
+    expect(within(body).queryByRole('button', { name: 'Apply' })).toBeNull()
+    expect(within(dialog).queryByRole('button', { name: 'Cancel' })).toBeNull()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Last week' })
+    )
+    await userEvent.click(within(footer).getByRole('button', { name: 'Apply' }))
+    expect(onValueChange).toHaveBeenCalledWith('last-week')
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    expect(trigger()).toHaveFocus()
+  })
+})
+
+describe('DateRangePicker across the phone breakpoint', () => {
+  it('keeps its button, and focus, as the screen narrows', () => {
+    const screenSize = onPhone(false)
+    render(<DateRangePicker aria-label='Period' today={TODAY} />)
+    const button = trigger()
+    button.focus()
+    act(() => screenSize.set(true))
+    expect(trigger()).toBe(button)
+    expect(button).toHaveFocus()
+  })
+
+  it('marks its button expanded while the drawer is open', async () => {
+    onPhone()
+    render(<DateRangePicker aria-label='Period' today={TODAY} />)
+    await open()
+    const button = document.querySelector(
+      '[data-slot="date-range-picker-trigger"]'
+    )!
+    expect(button).toHaveAttribute('aria-expanded', 'true')
+    expect(button).toHaveAttribute('data-popup-open')
   })
 })
