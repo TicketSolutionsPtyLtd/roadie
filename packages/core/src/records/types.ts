@@ -1,4 +1,5 @@
 import type { TableStatus } from '../dashboard/cells'
+import type { ValueFormat } from '../dataviz/format'
 import type { Instantish } from '../datetime/format'
 import type { RelativeRange } from '../datetime/ranges'
 
@@ -96,6 +97,8 @@ export type RecordField = {
   endLocalDateKey?: string
   /** Identifiers, such as order numbers, matched exactly. Anchor it with ^ and $. */
   match?: RegExp
+  /** How a number or money field's values read. Defaults to `number`, or `currency` for money. */
+  format?: ValueFormat
   /** A fixed ISO 4217 code. */
   currency?: string
   /** The row key holding the ISO 4217 code. */

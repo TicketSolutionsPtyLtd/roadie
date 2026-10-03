@@ -14,8 +14,10 @@ import {
   Mark,
   type NumberFieldStepperEmphasis,
   QueryField,
+  RecordTable,
   TimeField,
-  dateRangePresets
+  dateRangePresets,
+  tableColumns
 } from './index'
 
 describe('Component exports', () => {
@@ -84,5 +86,21 @@ describe('Component exports', () => {
     expect(Highlight).toBeDefined()
     const { container } = render(<Highlight text='Test' query='Te' />)
     expect(container).toBeInTheDocument()
+  })
+
+  it('exports RecordTable and its columns', () => {
+    const fields = [{ key: 'show', label: 'Show', type: 'text' as const }]
+    const columns = [tableColumns<{ show: string }>(fields).field('show')]
+    const { getByRole } = render(
+      <RecordTable
+        caption='Shows'
+        data={[{ show: 'Paper Lanterns' }]}
+        fields={fields}
+        columns={columns}
+      />
+    )
+    expect(getByRole('table', { name: 'Shows' })).toHaveTextContent(
+      'Paper Lanterns'
+    )
   })
 })

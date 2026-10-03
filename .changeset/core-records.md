@@ -26,6 +26,16 @@ back to a `fallback` view when the URL is invalid, and `equalViews` tells
 whether a view was modified. `recordFilterOperators` and `recordFieldOptions`
 list what a field accepts.
 
+`recordFields<Row>()` builds an entity's fields with typed row keys
+(`text`, `option`, `number`, `money`, `date`, `boolean`), and a number or
+money field takes a `format`. `compileRecordQuery` turns a resolved query
+into a predicate that reads the fields once, for filtering a long list;
+`matchesRecordQuery` uses it. `sortRecords` sorts rows the way an index
+would: text and labels as people read them, statuses by their `order`,
+dates by instant, empty values last. `formatRecordValue` reads a value as
+its field shows it: option and status labels, numbers and money in their
+format and currency, Yes or No, and dates in the house formats.
+
 New `@oztix/roadie-core/records/meilisearch` exports `toMeilisearch`, which
 turns a view into Meilisearch `q`, `filter` and `sort` with the same filter
 meaning. It needs Meilisearch 1.15 or later. The index stores instants as
