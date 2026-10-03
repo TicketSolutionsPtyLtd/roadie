@@ -235,13 +235,17 @@ export function useRowRestore({
       const geometry = `${inset} ${margin}`
       // Scrolls once, then again only if the header or margin moves, never against a reader's scrollbar.
       if (scrolled.current?.row !== row) jumped.current = true
-      if (
-        scrolled.current?.row !== row ||
-        scrolled.current.geometry !== geometry
-      )
+      const moved =
+        scrolled.current?.row === row && scrolled.current.geometry !== geometry
+      if (scrolled.current?.row !== row || moved)
         virtualizer.scrollToIndex(row, { align: 'start' })
       scrolled.current = { row, geometry }
-      // Once per restore: held while the header and margin settle after mount.
+      // Held while the header and margin settle after mount; each move they
+      // make starts the wait again, as a slow page settles in steps.
+      if (moved) {
+        clearTimeout(hold.current)
+        hold.current = undefined
+      }
       hold.current ??= setTimeout(release, SETTLE_MS)
     }
     return () => {

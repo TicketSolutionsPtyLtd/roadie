@@ -317,6 +317,47 @@ describe('RecordTable range mode', () => {
     expect(await countMenuItems(user)).toContain('Select all 5,000 records')
   })
 
+  it('offers no select all while the total is unknown, even with a repeated id', async () => {
+    const user = userEvent.setup()
+    const shows = testShows(100)
+    render(
+      <RecordTable
+        caption='Shows'
+        data={shows}
+        fields={showFields}
+        columns={showColumns}
+        // A shifting offset API repeats the record on the boundary.
+        getRowId={(row) => (row.id === 'show-50' ? 'show-49' : row.id)}
+        bulkActions={bulkActions}
+        loadRange={() => new Promise<void>(() => {})}
+      />
+    )
+    await settle()
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Select loaded rows' })
+    )
+    expect(await countMenuItems(user)).toEqual(['Clear selection'])
+  })
+
+  it('runs onRetry from an inline range error too', async () => {
+    const user = userEvent.setup()
+    const onRetry = vi.fn()
+    render(
+      <Ranged
+        rowCount={5000}
+        failAt={10}
+        onRetry={onRetry}
+        defaultPosition={{ pageSize: 10 }}
+      />
+    )
+    await settle()
+    const error = document.querySelector<HTMLElement>(
+      '[data-slot="record-table-range-error"]'
+    )!
+    await user.click(within(error).getByRole('button', { name: 'Retry' }))
+    expect(onRetry).toHaveBeenCalledTimes(1)
+  })
+
   it('submits the selection as held, like server mode', async () => {
     const user = userEvent.setup()
     const onAction = vi.fn()

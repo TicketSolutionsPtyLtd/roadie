@@ -169,7 +169,7 @@ export function RecordTableContent({
   const widths = useColumnWidths(columns, {
     mode: records.mode,
     data: records.data,
-    query: records.appliedView.query,
+    query: records.scopedQuery,
     timeZone: records.timeZone
   })
   const layout = useMemo(

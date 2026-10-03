@@ -78,7 +78,8 @@ export function RecordTableRangeError({
             tableFocusTarget(event.currentTarget)?.focus({
               preventScroll: true
             })
-            records.range?.retry()
+            // The app's own recovery runs too, as from the error state.
+            records.onRetry?.()
           }}
         >
           Retry
