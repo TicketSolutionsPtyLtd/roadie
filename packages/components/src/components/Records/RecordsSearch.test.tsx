@@ -494,4 +494,40 @@ describe('Records.Search', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(onViewChange).not.toHaveBeenCalled()
   })
+
+  it('keeps its editor open and every edit when the parent commits late', async () => {
+    function Late() {
+      const [view, setView] = useState<RecordView>({
+        query: {
+          search: '',
+          filters: [{ field: 'city', operator: 'is', values: ['Perth'] }],
+          sort: []
+        },
+        layout: { type: 'table' }
+      })
+      const records = useRecords({
+        data: shows,
+        fields,
+        view,
+        onViewChange: (next) => setTimeout(() => setView(next), 20)
+      })
+      return (
+        <Records.Root records={records} layouts={layouts}>
+          <Records.Search />
+        </Records.Root>
+      )
+    }
+    const user = userEvent.setup()
+    render(<Late />)
+    await user.click(
+      within(chip('City is Perth')).getByRole('button', { name: 'City is Perth' })
+    )
+    const dialog = await editor()
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Hobart' }))
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Sydney' }))
+    await waitFor(() =>
+      expect(chipLabels()).toEqual(['City is Perth, Hobart or 1 more'])
+    )
+    expect(screen.getByRole('dialog')).toBe(dialog)
+  })
 })

@@ -280,6 +280,8 @@ export type ChipOptions = {
   scope: readonly RecordFilter[]
   filters: readonly RecordFilter[]
   skipped: readonly number[]
+  /** The filters' chip ids, from `filterChipIds` unless given. */
+  ids?: readonly string[]
 }
 
 export const scopeChipId = (index: number) => `scope:${index}`
@@ -300,12 +302,11 @@ export function filterChipIds(filters: readonly RecordFilter[]): string[] {
 
 /** Scope chips, locked, then the view's filters in order. */
 export function searchChips(
-  { scope, filters, skipped }: ChipOptions,
+  { scope, filters, skipped, ids = filterChipIds(filters) }: ChipOptions,
   context: Omit<SearchContext, 'filters'>
 ): QueryFieldChip[] {
   const describe = (filter: RecordFilter) =>
     describeRecordFilter(filter, context.fields, context)
-  const ids = filterChipIds(filters)
   return [
     ...scope.map((filter, index) => {
       const { label, detail } = describe(filter)

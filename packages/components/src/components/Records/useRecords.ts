@@ -25,7 +25,6 @@ import {
 } from '@oztix/roadie-core/records'
 
 import { isDev } from '../../utils/isDev'
-import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { applyQuery, isFiltered, toView } from './query'
 import {
   EMPTY_SELECTION,
@@ -394,13 +393,9 @@ export function useRecords<Row extends object>({
   const countSelection = (next: RecordSelection) =>
     countSelected(next, matchingIds)
 
-  // Writes build on each other until the parent renders, as its state may
-  // commit late (a transition, a URL); a render showing another view, or the
-  // same one again, starts over from it.
+  // Writes build on each other until the view shown changes, as a parent's
+  // state may commit late (a transition, a URL); then they start from it.
   const written = useRef<{ base: RecordView; next: RecordView } | null>(null)
-  useIsomorphicLayoutEffect(() => {
-    written.current = null
-  })
   const latestView = () =>
     written.current && written.current.base === view
       ? written.current.next
