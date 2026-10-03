@@ -363,8 +363,9 @@ export function DatePicker({
           <Calendar
             selected={parts.date}
             onSelect={(day) => {
-              // Pressing the chosen day again unselects it; keep it and close.
-              if (day) date.setValue(day)
+              // Pressing the chosen day again unselects it; keep it, dropping
+              // any unreadable draft, and close.
+              date.setValue(day ?? parts.date)
               setOpen(false)
             }}
             // An open-by-prop calendar mustn't change what can't be changed.

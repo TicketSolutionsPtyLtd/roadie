@@ -87,6 +87,25 @@ describe('DatePicker', () => {
     expect(screen.getByRole('textbox')).toHaveValue('Fri 23 Oct 2026')
   })
 
+  it('pressing the chosen day clears an unreadable draft', async () => {
+    render(
+      <DatePicker
+        aria-label='Show date'
+        today={TODAY}
+        value='2026-10-23'
+        onValueChange={() => {}}
+      />
+    )
+    const input = screen.getByRole('textbox')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'someday{Enter}')
+    await userEvent.click(screen.getByRole('button', { name: 'Choose date' }))
+    await screen.findByRole('dialog')
+    await userEvent.click(day('2026-10-23'))
+    expect(input).toHaveValue('Fri 23 Oct 2026')
+    expect(input).not.toHaveAttribute('aria-invalid')
+  })
+
   it('opens the calendar on the typed date', async () => {
     render(<DatePicker aria-label='Show date' today={TODAY} />)
     await userEvent.type(screen.getByRole('textbox'), '14 mar{Enter}')
