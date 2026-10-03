@@ -12,7 +12,7 @@ export const metadata = {
 }
 
 const JSX = `<Dashboard>
-  <DashboardPeriod value={period} onValueChange={setPeriod} presets={dateRangePresets} dataStart='2026-07-20' dataEnd='2026-10-15' />
+  <DashboardPeriod value={period} onValueChange={setPeriod} presets={dateRangePresets} today='2026-10-15' timeZone='Australia/Melbourne' dataStart='2026-07-20' dataEnd='2026-10-15' />
   <Dashboard.Section title='At a glance'>
     <DataCard size='full' label='What to do next'>
       <p>Julia Jacklin and Genesis Owusu are furthest behind similar shows. Julia Jacklin plays first, so start there.</p>
@@ -38,7 +38,7 @@ const JSX = `<Dashboard>
 </Dashboard>`
 
 const PERIOD = {
-  note: 'Each period’s numbers come from daily sales, as an app would fetch them. Sales start on 20 July, when the first show went on sale, so a year back there is nothing to compare.',
+  note: 'Each period’s numbers come from daily sales, as an app would fetch them. Sales start on 20 July, when the first show went on sale, so a year back there is nothing to compare. As data shows the default period.',
   code: `'use client'
 
 function PortfolioDashboard() {

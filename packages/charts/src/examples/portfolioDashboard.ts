@@ -4,6 +4,7 @@ import type {
 } from '@oztix/roadie-core/dashboard'
 import {
   type ResolvedDateRange,
+  plainDateOf,
   resolveComparison,
   resolveDateRange
 } from '@oztix/roadie-core/datetime'
@@ -191,13 +192,14 @@ export type PortfolioPeriod = Pick<DashboardPeriodSpec, 'range' | 'compare'>
 
 const dayOf = (iso: string) =>
   Math.round((Date.parse(iso) - Date.parse(portfolioDates.dataStart)) / DAY)
-const isoIn = (ms: number) =>
-  new Intl.DateTimeFormat('en-CA', {
-    timeZone: portfolioDates.timeZone
-  }).format(ms)
-
 const dayAt = (edge: string | number | null, open: number) =>
-  edge === null ? open : dayOf(typeof edge === 'string' ? edge : isoIn(edge))
+  edge === null
+    ? open
+    : dayOf(
+        typeof edge === 'string'
+          ? edge
+          : plainDateOf(new Date(edge), portfolioDates.timeZone)
+      )
 
 function daysIn(range: ResolvedDateRange | null): number[] {
   if (!range) return []
@@ -216,17 +218,28 @@ function totals(days: readonly number[]) {
   return { sold, gross, refundRate: sold ? refunds / sold : 0 }
 }
 
-/** Daily up to a month, then whole weeks back from the period's end. */
+/**
+ * Daily up to a month, then weeks back from the period's end. The first week
+ * may be short, so the trend still adds up to the period.
+ */
 function buckets(days: readonly number[]): number[][] {
   const size = days.length <= 31 ? 1 : 7
   const out: number[][] = []
-  for (let end = days.length; end >= size; end -= size)
-    out.unshift(days.slice(end - size, end))
+  for (let end = days.length; end > 0; end -= size)
+    out.unshift(days.slice(Math.max(0, end - size), end))
   return out
 }
 
-const change = (now: number, before: number) =>
-  before ? Math.round((now / before - 1) * 100) / 100 : 0
+// Per day, so a custom comparison of another length still compares fairly.
+const change = (
+  now: number,
+  nowDays: number,
+  before: number,
+  beforeDays: number
+) =>
+  before && nowDays
+    ? Math.round((((now / nowDays) * beforeDays) / before - 1) * 100) / 100
+    : 0
 
 function periodStats({ range, compare }: PortfolioPeriod) {
   const options = { now: NOW, ...portfolioDates }
@@ -234,20 +247,26 @@ function periodStats({ range, compare }: PortfolioPeriod) {
   const compared = compare
     ? resolveComparison(range, compare, options)
     : undefined
+  const beforeDays = daysIn(compared?.range ?? null)
   const now = totals(days)
-  const before = totals(daysIn(compared?.range ?? null))
+  const before = totals(beforeDays)
+  const nothingBefore = compared?.status === 'available' && !before.sold
   const trend = buckets(days).map(totals)
   return {
-    history:
-      compared && compared.status !== 'available' ? compared.status : undefined,
+    history: nothingBefore
+      ? ('unavailable' as const)
+      : compared && compared.status !== 'available'
+        ? compared.status
+        : undefined,
+    state: now.sold ? undefined : ('empty' as const),
     sold: {
       value: now.sold,
-      delta: change(now.sold, before.sold),
+      delta: change(now.sold, days.length, before.sold, beforeDays.length),
       trend: trend.map((t) => t.sold)
     },
     gross: {
       value: Math.round(now.gross),
-      delta: change(now.gross, before.gross),
+      delta: change(now.gross, days.length, before.gross, beforeDays.length),
       trend: trend.map((t) => Math.round(t.gross))
     },
     refunds: {
@@ -267,7 +286,8 @@ function periodStats({ range, compare }: PortfolioPeriod) {
 export function createPortfolioDashboard(
   period: PortfolioPeriod = DEFAULT_PERIOD
 ): DashboardSpec {
-  const { history, sold, gross, refunds } = periodStats(period)
+  const { history, state, sold, gross, refunds } = periodStats(period)
+  const empty = state && { state, emptyMessage: 'No sales in this period' }
   return {
     version: 1,
     title: 'Ostrich Bonnet Touring',
@@ -285,6 +305,7 @@ export function createPortfolioDashboard(
           },
           {
             id: 'tickets',
+            ...empty,
             kind: 'stat',
             size: 'stat',
             label: 'Tickets sold',
@@ -294,6 +315,7 @@ export function createPortfolioDashboard(
           },
           {
             id: 'gross',
+            ...empty,
             kind: 'stat',
             size: 'stat',
             label: 'Gross revenue',
@@ -314,6 +336,7 @@ export function createPortfolioDashboard(
           },
           {
             id: 'refunds',
+            ...empty,
             kind: 'stat',
             size: 'stat',
             label: 'Refund rate',

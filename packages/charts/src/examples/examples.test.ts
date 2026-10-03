@@ -53,6 +53,8 @@ describe('reference dashboards', () => {
 type Spec = ReturnType<typeof createPortfolioDashboard>
 type Period = Parameters<typeof createPortfolioDashboard>[0]
 
+const sum = (values: readonly number[]) => values.reduce((a, b) => a + b, 0)
+
 const tile = (spec: Spec, id: string) => {
   const card = spec.sections.flatMap((s) => s.cards).find((c) => c.id === id)
   if (card?.kind !== 'stat') throw new Error(`No stat card ${id}`)
@@ -133,8 +135,7 @@ describe('the portfolio dashboard period', () => {
       }),
       'tickets'
     )
-    const past30 = tile(createPortfolioDashboard(), 'tickets')
-    expect(lastMonth.value).not.toBe(past30.value)
+    expect(lastMonth.value).toBe(2111)
     expect(lastMonth.trend).toHaveLength(30)
   })
 
@@ -144,7 +145,7 @@ describe('the portfolio dashboard period', () => {
       compare: 'previous-period'
     })
     expect(tile(spec, 'tickets').value).toBe(6377)
-    expect(tile(spec, 'tickets').trend).toHaveLength(12)
+    expect(tile(spec, 'tickets').trend).toHaveLength(13)
   })
 
   it('has nothing to compare a year back, before the shows went on sale', () => {
@@ -175,5 +176,42 @@ describe('the portfolio dashboard period', () => {
       dataStart: '2026-07-20',
       dataEnd: '2026-10-15'
     })
+  })
+
+  it('adds up every day of the period in its trend', () => {
+    const sold = tile(
+      createPortfolioDashboard({ range: { period: 'quarter', offset: -1 } }),
+      'tickets'
+    )
+    expect(sum(sold.trend ?? [])).toBe(sold.value)
+  })
+
+  it('compares a day’s average when the comparison is a different length', () => {
+    const sold = tile(
+      createPortfolioDashboard({
+        range: { direction: 'past', amount: 30, unit: 'day' },
+        compare: { start: '2026-09-06', end: '2026-09-15' }
+      }),
+      'tickets'
+    )
+    expect(sold.delta?.value).toBeCloseTo(2531 / 30 / (734 / 10) - 1, 2)
+  })
+
+  it('has nothing to compare when the comparison holds no sales', () => {
+    const spec = createPortfolioDashboard({
+      range: { start: '2026-08-01', end: '2026-08-10' },
+      compare: { start: '2026-01-01', end: '2026-03-01' }
+    })
+    expect(spec.period?.history).toBe('unavailable')
+  })
+
+  it('shows the period tiles empty when the period holds no sales', () => {
+    const spec = createPortfolioDashboard({
+      range: { start: '2026-01-01', end: '2026-03-01' },
+      compare: { start: '2026-08-01', end: '2026-08-10' }
+    })
+    for (const id of ['tickets', 'gross', 'refunds'])
+      expect(tile(spec, id).state).toBe('empty')
+    expect(validateDashboard(spec).problems).toEqual([])
   })
 })

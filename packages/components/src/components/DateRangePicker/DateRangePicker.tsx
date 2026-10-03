@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, useRef, useState } from 'react'
+import { type ComponentProps, useId, useRef, useState } from 'react'
 
 import {
   CalendarBlankIcon,
@@ -352,8 +352,13 @@ export function DateRangePicker({
 
   const anchorRef = useRef<HTMLButtonElement>(null)
   const startRef = useRef<HTMLInputElement>(null)
+  const requiredId = useId()
   const describedBy =
-    [isInvalid ? field.errorTextId : field.helperTextId, ariaDescribedBy]
+    [
+      isInvalid ? field.errorTextId : field.helperTextId,
+      isRequired && requiredId,
+      ariaDescribedBy
+    ]
       .filter(Boolean)
       .join(' ') || undefined
   const readOptions = {
@@ -407,6 +412,11 @@ export function DateRangePicker({
       {...props}
     >
       {labels.labels}
+      {isRequired && (
+        <span id={requiredId} hidden>
+          Required
+        </span>
+      )}
       <PickerOverlay
         open={open}
         onOpenChange={changeOpen}
