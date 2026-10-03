@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { RecordView } from '@oztix/roadie-core/records'
+import type { RecordSelection, RecordView } from '@oztix/roadie-core/records'
 
 import { type TestShow, showFields, testShows } from './testUtils'
 import { useRecords } from './useRecords'
@@ -43,5 +43,43 @@ describe('useRecords selection while a search lags', () => {
     lag.held = undefined
     rerender({ current: view('Ocean') })
     expect(result.current.selection).toEqual({ ids: ['show-0'] })
+  })
+
+  it('reads an outside selection as outside, even when it equals an old pick', async () => {
+    const { result, rerender } = renderHook(
+      ({
+        current,
+        selection
+      }: {
+        current: RecordView
+        selection: RecordSelection
+      }) =>
+        useRecords<TestShow>({
+          data: shows,
+          fields: showFields,
+          getRowId: (row) => row.id,
+          view: current,
+          selection
+        }),
+      {
+        initialProps: {
+          current: view(''),
+          selection: { ids: [] } as RecordSelection
+        }
+      }
+    )
+    await act(() => result.current.selectAllMatching())
+    rerender({
+      current: view(''),
+      selection: { allMatching: true, except: [] }
+    })
+    rerender({ current: view(''), selection: { ids: [] } })
+    await act(async () =>
+      rerender({
+        current: view('Ocean'),
+        selection: { allMatching: true, except: [] }
+      })
+    )
+    expect(result.current.selection).toEqual({ allMatching: true, except: [] })
   })
 })

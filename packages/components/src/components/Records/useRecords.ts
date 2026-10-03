@@ -323,6 +323,8 @@ export function useRecords<Row extends object>({
   if (!sameSelection(taken.held, heldSelection)) {
     const own =
       picked !== null && sameSelection(picked.selection, heldSelection)
+    // Read once: a later outside change that happens to equal it is not ours.
+    if (picked !== null) setPicked(null)
     setTaken({
       held: heldSelection,
       key: own ? picked.key : queryKey,
