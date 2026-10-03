@@ -246,10 +246,10 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
   })
 
 describe('A touch on a suggestion', TIMEOUT, () => {
-  function Venue() {
+  function Venue({ open }: { open?: boolean }) {
     return (
       <InDrawer>
-        <Autocomplete items={VENUES}>
+        <Autocomplete items={VENUES} open={open}>
           <Autocomplete.Input aria-label='Venue' />
           <Autocomplete.Portal>
             <Autocomplete.Positioner>
@@ -384,6 +384,25 @@ describe('A touch on a suggestion', TIMEOUT, () => {
 
   it('closes, once a held finger scrolls away, when asked to while it was down', async () => {
     render(<Venue />)
+    await settle()
+    const input = screen.getByRole('combobox', { name: 'Venue' })
+    await tapOn(input)
+    await userEvent.type(input, 'li')
+    const option = await screen.findByRole('option', {
+      name: 'Lighthouse Fig Lawn'
+    })
+    await settle(300)
+    option.dispatchEvent(new PointerEvent('pointerdown', touchAt(option, 12)))
+    await userEvent.keyboard('{Escape}')
+    await settle(100)
+    expect(screen.queryByRole('listbox')).not.toBeNull()
+    option.dispatchEvent(new PointerEvent('pointercancel', touchAt(option, 12)))
+    await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    expect(input).toHaveValue('li')
+  })
+
+  it('closes, once a held finger scrolls away, when asked to while it was down, with open passed as undefined', async () => {
+    render(<Venue open={undefined} />)
     await settle()
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await tapOn(input)

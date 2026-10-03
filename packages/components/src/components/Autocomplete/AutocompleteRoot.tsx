@@ -78,9 +78,10 @@ export function AutocompleteRoot({
             handleQueryChange(next, details)
           else resetTyped(details)
         }}
+        {...props}
+        // After the rest, so an explicit open={undefined} can't undo it.
         open={open}
         onOpenChange={handleOpenChange}
-        {...props}
       />
     </PointerHighlightContext>
   )

@@ -79,13 +79,14 @@ export function ComboboxRoot<
           onInputValueChange?.(next, details)
           handleQueryChange(next, details)
         }}
-        open={open}
-        onOpenChange={handleOpenChange}
         onValueChange={(next, details) => {
           onValueChange?.(next, details)
           resetTyped(details)
         }}
         {...props}
+        // After the rest, so an explicit open={undefined} can't undo it.
+        open={open}
+        onOpenChange={handleOpenChange}
       />
     </PointerHighlightContext>
   )

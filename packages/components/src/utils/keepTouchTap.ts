@@ -161,10 +161,12 @@ export function useHeldOpen<
     shownRef.current = shown
   })
   const apply: OpenChange<D> = (next, details) => {
+    onOpenChange(next, details)
+    // The consumer can still cancel it, as Base UI allows.
+    if (details.isCanceled) return
     // Now, not on render, so a held close queued before it sees it.
     shownRef.current = next
     if (open === undefined) setOwn(next)
-    onOpenChange(next, details)
   }
   const change: OpenChange<D> = (next, details) => {
     if (!next && pressed) {

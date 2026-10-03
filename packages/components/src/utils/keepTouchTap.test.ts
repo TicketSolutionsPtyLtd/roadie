@@ -29,6 +29,14 @@ function touch(element: Element, type: 'down' | 'up' | 'cancel') {
 }
 
 describe('useHeldOpen', () => {
+  it('keeps its state when the consumer cancels the change', () => {
+    const { result } = renderHook(() =>
+      useHeldOpen<Details>(undefined, false, (_, details) => details.cancel())
+    )
+    act(() => result.current[1](true, detailsFor('input-press')))
+    expect(result.current[0]).toBe(false)
+  })
+
   it("doesn't close twice when the lift's choice already closed it", () => {
     const onOpenChange = vi.fn()
     const { result } = renderHook(() =>
