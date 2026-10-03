@@ -2,6 +2,11 @@
 
 This file provides guidance to AI coding agents when working with code in this repository.
 
+> **Making a change?** Follow
+> [`docs/contributing/PR_WORKFLOW.md`](docs/contributing/PR_WORKFLOW.md):
+> the conventions and foundations gate, the two pre-PR reviews, Copilot,
+> merge criteria and how deferred findings are tracked.
+
 ## Repository Overview
 
 Roadie is a design system for Oztix's applications, built as a monorepo using pnpm workspaces and Turborepo. It provides CSS design tokens, a React component library, and documentation.
