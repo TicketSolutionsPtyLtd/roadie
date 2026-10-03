@@ -1,6 +1,16 @@
-import type { MouseEvent, PointerEvent, SyntheticEvent } from 'react'
+'use client'
+
+import {
+  type MouseEvent,
+  type PointerEvent,
+  type SyntheticEvent,
+  useRef,
+  useState
+} from 'react'
 
 import type { BaseUIEvent } from '@base-ui/react/types'
+
+import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect'
 
 type Handler<E extends SyntheticEvent> =
   ((event: BaseUIEvent<E>) => void) | undefined
@@ -15,14 +25,22 @@ let pressed: {
   pointerId: number
   x: number
   y: number
-  at: number
 } | null = null
-const chosenByTap = new WeakMap<Element, number>()
+let pressTimer: ReturnType<typeof setTimeout> | undefined
 let choosing = false
+/** Options a touch went down on: their mouseup isn't Base UI's to choose. */
+const touched = new WeakSet<Element>()
+/** Options a lift chose, whose late click mustn't choose again. */
+const chosenByTap = new WeakMap<Element, number>()
+/** Closes put off while a finger was down, for when it lifts. */
+let heldCloses: (() => void)[] = []
 
-/** Whether a finger is down on an option, so the list must stay open. */
-export function touchOnOption(): boolean {
-  return !!pressed && performance.now() - pressed.at < HOLD
+function endPress() {
+  pressed = null
+  clearTimeout(pressTimer)
+  const closes = heldCloses
+  heldCloses = []
+  for (const close of closes) close()
 }
 
 /**
@@ -30,8 +48,8 @@ export function touchOnOption(): boolean {
  * an option's pointerdown to keep the input focused, which makes WebKit drop
  * the tap's click, and on an iPhone the click can also arrive after the list
  * has closed as the keyboard goes. A lift on the option it went down on, close
- * to where it went down, chooses it; the mouse events and click that follow
- * are swallowed, so it isn't chosen twice.
+ * to where it went down, chooses it. The tap's mouseup never chooses, and its
+ * late click doesn't choose again.
  */
 export function keepTouchTap<T extends Element>({
   onPointerDownCapture,
@@ -48,24 +66,28 @@ export function keepTouchTap<T extends Element>({
   onMouseUp?: Handler<MouseEvent<T>>
   onClickCapture?: Handler<MouseEvent<T>>
 }) {
-  const recentlyTapped = (element: Element) =>
-    performance.now() - (chosenByTap.get(element) ?? -Infinity) < HOLD
   return {
     onPointerDownCapture(event: BaseUIEvent<PointerEvent<T>>) {
       onPointerDownCapture?.(event)
-      // Not gated on isPrimary: a lone tap on an iPhone can arrive without it,
-      // and Base UI's cancel would then drop its click.
+      const element = event.currentTarget
+      // A mouse after a tap clicks as a mouse does.
+      chosenByTap.delete(element)
       if (event.pointerType === 'mouse') {
-        pressed = null
+        touched.delete(element)
+        endPress()
         return
       }
+      // Not gated on isPrimary: a lone tap on an iPhone can arrive without it,
+      // and Base UI's cancel would then drop its click.
+      touched.add(element)
+      endPress()
       pressed = {
-        element: event.currentTarget,
+        element,
         pointerId: event.pointerId,
         x: event.clientX,
-        y: event.clientY,
-        at: performance.now()
+        y: event.clientY
       }
+      pressTimer = setTimeout(endPress, HOLD)
       event.preventBaseUIHandler()
     },
     onPointerMove(event: BaseUIEvent<PointerEvent<T>>) {
@@ -74,42 +96,81 @@ export function keepTouchTap<T extends Element>({
         pressed?.pointerId === event.pointerId &&
         Math.hypot(event.clientX - pressed.x, event.clientY - pressed.y) > SLOP
       )
-        pressed = null
+        endPress()
     },
     onPointerUp(event: BaseUIEvent<PointerEvent<T>>) {
       onPointerUp?.(event)
       const press = pressed
       if (!press || press.pointerId !== event.pointerId) return
-      pressed = null
       const element = event.currentTarget
-      if (
-        press.element !== element ||
-        Math.hypot(event.clientX - press.x, event.clientY - press.y) > SLOP
-      )
-        return
-      chosenByTap.set(element, performance.now())
-      choosing = true
-      try {
-        ;(element as unknown as HTMLElement).click()
-      } finally {
-        choosing = false
+      const tapped =
+        press.element === element &&
+        Math.hypot(event.clientX - press.x, event.clientY - press.y) <= SLOP
+      pressed = null
+      if (tapped) {
+        chosenByTap.set(element, performance.now())
+        choosing = true
+        try {
+          ;(element as unknown as HTMLElement).click()
+        } finally {
+          choosing = false
+        }
       }
+      endPress()
     },
     // A tap that became a scroll or a long press.
     onPointerCancel(event: BaseUIEvent<PointerEvent<T>>) {
       onPointerCancel?.(event)
-      if (pressed?.pointerId === event.pointerId) pressed = null
+      if (pressed?.pointerId === event.pointerId) endPress()
     },
     onMouseUp(event: BaseUIEvent<MouseEvent<T>>) {
       onMouseUp?.(event)
-      if (recentlyTapped(event.currentTarget)) event.preventBaseUIHandler()
+      if (touched.delete(event.currentTarget)) event.preventBaseUIHandler()
     },
     onClickCapture(event: BaseUIEvent<MouseEvent<T>>) {
       onClickCapture?.(event)
-      if (choosing || !recentlyTapped(event.currentTarget)) return
-      chosenByTap.delete(event.currentTarget)
+      const element = event.currentTarget
+      if (choosing) return
+      const at = chosenByTap.get(element)
+      chosenByTap.delete(element)
+      if (at === undefined || performance.now() - at >= HOLD) return
       event.stopPropagation()
       event.preventDefault()
     }
   }
+}
+
+type OpenChange<D> = (open: boolean, details: D) => void
+
+/**
+ * A list's open state that waits while a finger is down on an option: the
+ * keyboard going can blur the input or move the page first. A close asked for
+ * meanwhile happens once the finger lifts, unless the lift already closed it.
+ */
+export function useHeldOpen<D extends { cancel: () => void }>(
+  open: boolean | undefined,
+  defaultOpen: boolean | undefined,
+  onOpenChange: OpenChange<D>
+) {
+  const [own, setOwn] = useState(defaultOpen ?? false)
+  const shown = open ?? own
+  const shownRef = useRef(shown)
+  useIsomorphicLayoutEffect(() => {
+    shownRef.current = shown
+  })
+  const apply: OpenChange<D> = (next, details) => {
+    if (open === undefined) setOwn(next)
+    onOpenChange(next, details)
+  }
+  const change: OpenChange<D> = (next, details) => {
+    if (!next && pressed) {
+      details.cancel()
+      heldCloses.push(() => {
+        if (shownRef.current) apply(false, details)
+      })
+      return
+    }
+    apply(next, details)
+  }
+  return [shown, change] as const
 }

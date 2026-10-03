@@ -1,7 +1,15 @@
 import { useState } from 'react'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
 
 import roadieCss from '../../vitest.browser.css?inline'
@@ -311,6 +319,87 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     option.dispatchEvent(new PointerEvent('pointerup', pointer))
     await settle()
     expect(input).toHaveValue('Lantern Yard')
+  })
+
+  const touchAt = (option: Element, pointerId: number, dy = 0) => {
+    const { left, top, height } = option.getBoundingClientRect()
+    return {
+      clientX: left + 20,
+      clientY: top + height / 2 + dy,
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      pointerId,
+      pointerType: 'touch',
+      isPrimary: true
+    }
+  }
+
+  it('chooses once when a slight drift still ends in a click', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <InDrawer>
+        <Autocomplete items={VENUES} onValueChange={onValueChange}>
+          <Autocomplete.Input aria-label='Venue' />
+          <Autocomplete.Portal>
+            <Autocomplete.Positioner>
+              <Autocomplete.Popup>
+                <Autocomplete.List>
+                  {(venue: string) => (
+                    <Autocomplete.Item key={venue} value={venue}>
+                      {venue}
+                    </Autocomplete.Item>
+                  )}
+                </Autocomplete.List>
+              </Autocomplete.Popup>
+            </Autocomplete.Positioner>
+          </Autocomplete.Portal>
+        </Autocomplete>
+      </InDrawer>
+    )
+    await settle()
+    const input = screen.getByRole('combobox', { name: 'Venue' })
+    await tapOn(input)
+    await userEvent.type(input, 'la')
+    const option = await screen.findByRole('option', { name: 'Lantern Yard' })
+    await settle(300)
+    onValueChange.mockClear()
+    option.dispatchEvent(new PointerEvent('pointerdown', touchAt(option, 11)))
+    option.dispatchEvent(
+      new PointerEvent('pointermove', touchAt(option, 11, 12))
+    )
+    option.dispatchEvent(new PointerEvent('pointerup', touchAt(option, 11, 12)))
+    // The compatibility events a browser still sends inside its own slop.
+    option.dispatchEvent(
+      new MouseEvent('mousedown', { bubbles: true, button: 0 })
+    )
+    option.dispatchEvent(
+      new MouseEvent('mouseup', { bubbles: true, button: 0 })
+    )
+    option.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0 }))
+    await settle()
+    expect(
+      onValueChange.mock.calls.filter(
+        ([, details]) => details.reason === 'item-press'
+      )
+    ).toHaveLength(1)
+  })
+
+  it('closes, once a held finger scrolls away, when asked to while it was down', async () => {
+    render(<Venue />)
+    await settle()
+    const input = screen.getByRole('combobox', { name: 'Venue' })
+    await tapOn(input)
+    await userEvent.type(input, 'la')
+    const option = await screen.findByRole('option', { name: 'Lantern Yard' })
+    await settle(300)
+    option.dispatchEvent(new PointerEvent('pointerdown', touchAt(option, 12)))
+    await userEvent.keyboard('{Escape}')
+    await settle(100)
+    expect(screen.queryByRole('listbox')).not.toBeNull()
+    option.dispatchEvent(new PointerEvent('pointercancel', touchAt(option, 12)))
+    await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    expect(input).toHaveValue('la')
   })
 
   it('chooses on lifting even when the input blurs and the page resizes first', async () => {

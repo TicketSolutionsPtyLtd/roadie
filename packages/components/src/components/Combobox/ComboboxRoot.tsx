@@ -2,7 +2,7 @@
 
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 
-import { touchOnOption } from '../../utils/keepTouchTap'
+import { useHeldOpen } from '../../utils/keepTouchTap'
 import {
   PointerHighlightContext,
   usePointerHighlight,
@@ -60,6 +60,15 @@ export function ComboboxRoot<
   })
   // Base UI types 'always' for Autocomplete only; its Combobox handles it.
   const mode = (autoHighlight && typed ? 'always' : false) as AutoHighlightMode
+  const [open, handleOpenChange] = useHeldOpen(
+    props.open,
+    props.defaultOpen,
+    (open: boolean, details: ComboboxPrimitive.Root.ChangeEventDetails) => {
+      onOpenChange?.(open, details)
+      if (!open) resetTyped(details)
+      handleRankOpenChange(open, details)
+    }
+  )
   return (
     <PointerHighlightContext value={byPointer}>
       <ComboboxPrimitive.Root
@@ -70,17 +79,8 @@ export function ComboboxRoot<
           onInputValueChange?.(next, details)
           handleQueryChange(next, details)
         }}
-        onOpenChange={(open, details) => {
-          // A finger down on an option holds the list until it lifts, as
-          // the keyboard going can blur the input or move the page first.
-          if (!open && touchOnOption()) {
-            details.cancel()
-            return
-          }
-          onOpenChange?.(open, details)
-          if (!open) resetTyped(details)
-          handleRankOpenChange(open, details)
-        }}
+        open={open}
+        onOpenChange={handleOpenChange}
         onValueChange={(next, details) => {
           onValueChange?.(next, details)
           resetTyped(details)

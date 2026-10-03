@@ -386,8 +386,9 @@ export function ExtendedDateRangePicker({
     disabled: locked || disabledDays,
     month: shownMonth,
     onMonthChange: (month: string) => setEdit({ ...edit, month }),
-    min,
-    max,
+    // Picking the start anew, so the old start's length limits don't apply.
+    min: picking === 'start' ? undefined : min,
+    max: picking === 'start' ? undefined : max,
     today: todayProp,
     timeZone: zone,
     weekStart,

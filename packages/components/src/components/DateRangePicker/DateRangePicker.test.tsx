@@ -1109,6 +1109,26 @@ describe('DateRangePicker aiming a tap on a phone', () => {
     expect(summary(dialog)).toHaveTextContent('From 15 Oct 2026')
   })
 
+  it('moves the start anywhere once Start is tapped, whatever max says', async () => {
+    onPhone()
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        commit='apply'
+        max={14}
+        defaultValue={null}
+      />
+    )
+    const dialog = await open()
+    await userEvent.click(day('2026-10-01'))
+    await userEvent.click(
+      within(dialog).getByRole('combobox', { name: 'Start' })
+    )
+    await userEvent.click(day('2026-10-28'))
+    expect(summary(dialog)).toHaveTextContent('From 28 Oct 2026')
+  })
+
   it('keeps the range when the aimed end would break max', async () => {
     onPhone()
     render(
