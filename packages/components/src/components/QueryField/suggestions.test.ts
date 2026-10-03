@@ -49,7 +49,7 @@ describe('listGroups', () => {
   it.each([
     {
       name: 'appends a search group after the given groups',
-      input: { groups: [filters, fields], inputValue: 'long' },
+      input: { groups: [filters, fields], inputValue: 'igua' },
       ids: ['filters', 'fields', 'search']
     },
     {
@@ -69,7 +69,7 @@ describe('listGroups', () => {
     },
     {
       name: 'offers no free-text search while a chip is pending',
-      input: { groups: [filters], inputValue: 'long', pending: true },
+      input: { groups: [filters], inputValue: 'igua', pending: true },
       ids: ['filters']
     },
     {

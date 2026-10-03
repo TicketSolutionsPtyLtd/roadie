@@ -10,6 +10,10 @@ READMEs. Suburbs follow the cities rule when they say where a venue is
 (`Kazoo Hollow Room, Fortitude Valley`), not when they stand in as a venue
 name. Slugs and ids follow the name: `kazoo-hollow-room`.
 
+A listed name can carry a year, an edition or a ticket type after it, such as
+`Ochre Kite Weekender 2026`, `Feathered Anchor Sessions Opening Night` or
+`Jellybean Tractor Fest glamping`. The name itself stays exact.
+
 ## Adding a name
 
 Generic names, such as a time of day plus a place or a sound, are usually

@@ -121,7 +121,7 @@ describe('QueryField', () => {
   it('shows the Enter hint on the suggestion Enter takes', async () => {
     render(<Harness />)
     await userEvent.click(input())
-    await userEvent.keyboard('long')
+    await userEvent.keyboard('igua')
     const search = await screen.findByRole('option', { name: /Search for/ })
     expect(shown(search.querySelector('kbd'))).toBe(true)
     await userEvent.keyboard('{ArrowDown}')
@@ -136,7 +136,7 @@ describe('QueryField', () => {
       <Harness onAccept={(suggestion) => accepted.push(suggestion.kind)} />
     )
     await userEvent.click(input())
-    await userEvent.keyboard('long')
+    await userEvent.keyboard('igua')
     const filter = await screen.findByRole('option', {
       name: /Iguana Teapot Hall/
     })

@@ -156,12 +156,12 @@ describe('QueryField', () => {
 
   it('lists suggestions in the order given, then free-text search', async () => {
     render(<Harness />)
-    await typeInto('long')
+    await typeInto('igua')
     await waitFor(() =>
       expect(optionNames()).toEqual([
         'Venue is Iguana Teapot Hall',
         'Venue',
-        'Search for “long”'
+        'Search for “igua”'
       ])
     )
   })
@@ -178,16 +178,16 @@ describe('QueryField', () => {
   it('searches the free text on Enter, never taking a filter it was not moved to', async () => {
     const onAccept = vi.fn()
     render(<Harness onAccept={onAccept} />)
-    await typeInto('long')
+    await typeInto('igua')
     await waitFor(() => expect(optionNames()).toHaveLength(3))
     await userEvent.keyboard('{Enter}')
     expect(onAccept).toHaveBeenCalledWith({
       id: 'search',
       kind: 'search',
-      label: 'Search for “long”',
-      value: 'long'
+      label: 'Search for “igua”',
+      value: 'igua'
     })
-    expect(input()).toHaveValue('long')
+    expect(input()).toHaveValue('igua')
   })
 
   it('takes an exact identifier on Enter', async () => {
@@ -202,7 +202,7 @@ describe('QueryField', () => {
   it('takes a filter moved to with the arrows, and clears the text', async () => {
     const onAccept = vi.fn()
     render(<Harness onAccept={onAccept} />)
-    await typeInto('long')
+    await typeInto('igua')
     await waitFor(() => expect(optionNames()).toHaveLength(3))
     await userEvent.keyboard('{ArrowDown}{Enter}')
     expect(onAccept).toHaveBeenCalledWith(iguana)
@@ -212,7 +212,7 @@ describe('QueryField', () => {
   it('takes a clicked suggestion', async () => {
     const onAccept = vi.fn()
     render(<Harness onAccept={onAccept} />)
-    await typeInto('long')
+    await typeInto('igua')
     await userEvent.click(
       await screen.findByRole('option', { name: /Venue is Iguana Teapot Hall/ })
     )
@@ -222,9 +222,9 @@ describe('QueryField', () => {
 
   it('shows the Enter hint on the suggestion Enter would take', async () => {
     render(<Harness />)
-    await typeInto('long')
+    await typeInto('igua')
     await waitFor(() => expect(optionNames()).toHaveLength(3))
-    expect(hinted()).toEqual(['Search for “long”'])
+    expect(hinted()).toEqual(['Search for “igua”'])
     await userEvent.keyboard('{ArrowDown}')
     await waitFor(() =>
       expect(hinted()).toEqual(['Venue is Iguana Teapot Hall'])
@@ -394,18 +394,18 @@ describe('QueryField', () => {
   it('searches the free text after arrowing to the search row', async () => {
     const onAccept = vi.fn()
     render(<Harness onAccept={onAccept} />)
-    await typeInto('long')
+    await typeInto('igua')
     await waitFor(() => expect(optionNames()).toHaveLength(3))
     await userEvent.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{Enter}')
     expect(onAccept).toHaveBeenLastCalledWith(
-      expect.objectContaining({ kind: 'search', value: 'long' })
+      expect.objectContaining({ kind: 'search', value: 'igua' })
     )
   })
 
   it('never lets Enter take a suggestion the pointer rests on', async () => {
     const onAccept = vi.fn()
     render(<Harness onAccept={onAccept} />)
-    await typeInto('long')
+    await typeInto('igua')
     await userEvent.hover(
       await screen.findByRole('option', { name: /Venue is Iguana Teapot Hall/ })
     )
@@ -464,7 +464,7 @@ describe('QueryField', () => {
   it('leaves Enter alone while composing or with a modifier', async () => {
     const onAccept = vi.fn()
     render(<Harness onAccept={onAccept} />)
-    await typeInto('long')
+    await typeInto('igua')
     await waitFor(() => expect(optionNames()).toHaveLength(3))
     await userEvent.keyboard('{ArrowDown}')
     fireEvent.keyDown(input(), { key: 'Enter', isComposing: true })
@@ -500,12 +500,12 @@ describe('QueryField', () => {
   it('keeps a hovered filter out of Enter when the caret moves', async () => {
     const onAccept = vi.fn()
     render(<Harness onAccept={onAccept} />)
-    await typeInto('long')
+    await typeInto('igua')
     await userEvent.hover(
       await screen.findByRole('option', { name: /Venue is Iguana Teapot Hall/ })
     )
     await userEvent.keyboard('{End}')
-    expect(hinted()).toEqual(['Search for “long”'])
+    expect(hinted()).toEqual(['Search for “igua”'])
     await userEvent.keyboard('{Enter}')
     expect(onAccept).toHaveBeenLastCalledWith(
       expect.objectContaining({ kind: 'search' })
@@ -515,11 +515,11 @@ describe('QueryField', () => {
   it('hands Enter back to the search once the pointer takes over', async () => {
     const onAccept = vi.fn()
     render(<Harness onAccept={onAccept} />)
-    await typeInto('long')
+    await typeInto('igua')
     await waitFor(() => expect(optionNames()).toHaveLength(3))
     await userEvent.keyboard('{ArrowDown}')
     await userEvent.hover(screen.getByRole('option', { name: /^Venue$/ }))
-    expect(hinted()).toEqual(['Search for “long”'])
+    expect(hinted()).toEqual(['Search for “igua”'])
     await userEvent.keyboard('{Enter}')
     expect(onAccept).toHaveBeenLastCalledWith(
       expect.objectContaining({ kind: 'search' })
@@ -626,14 +626,14 @@ describe('QueryField', () => {
   it('hands Enter back to the search when End moves the caret', async () => {
     const onAccept = vi.fn()
     render(<Harness onAccept={onAccept} />)
-    await typeInto('long')
+    await typeInto('igua')
     await waitFor(() => expect(optionNames()).toHaveLength(3))
     await userEvent.keyboard('{ArrowDown}')
     await waitFor(() =>
       expect(hinted()).toEqual(['Venue is Iguana Teapot Hall'])
     )
     await userEvent.keyboard('{End}')
-    expect(hinted()).toEqual(['Search for “long”'])
+    expect(hinted()).toEqual(['Search for “igua”'])
     await userEvent.keyboard('{Enter}')
     expect(onAccept).toHaveBeenLastCalledWith(
       expect.objectContaining({ kind: 'search' })
@@ -654,14 +654,14 @@ describe('QueryField', () => {
         suggest={() => [{ id: 'search', label: 'Fields', items: [clash] }]}
       />
     )
-    await typeInto('long')
+    await typeInto('igua')
     await waitFor(() =>
-      expect(optionNames()).toEqual(['Search venues', 'Search for “long”'])
+      expect(optionNames()).toEqual(['Search venues', 'Search for “igua”'])
     )
-    expect(hinted()).toEqual(['Search for “long”'])
+    expect(hinted()).toEqual(['Search for “igua”'])
     await userEvent.keyboard('{Enter}')
     expect(onAccept).toHaveBeenLastCalledWith(
-      expect.objectContaining({ kind: 'search', value: 'long' })
+      expect.objectContaining({ kind: 'search', value: 'igua' })
     )
   })
 
@@ -740,12 +740,12 @@ describe('QueryField', () => {
     render(
       <Harness
         onAccept={onAccept}
-        suggest={(text) => (text === 'lo' ? newer.promise : suggestFor(text))}
+        suggest={(text) => (text === 'ig' ? newer.promise : suggestFor(text))}
       />
     )
-    await typeInto('l')
+    await typeInto('i')
     await waitFor(() => expect(optionNames()).toHaveLength(3))
-    await userEvent.keyboard('o{ArrowDown}')
+    await userEvent.keyboard('g{ArrowDown}')
     await waitFor(() =>
       expect(hinted()).toEqual(['Venue is Iguana Teapot Hall'])
     )
@@ -754,10 +754,10 @@ describe('QueryField', () => {
         { id: 'orders', label: 'Orders', items: [{ ...order, exact: false }] }
       ])
     )
-    expect(hinted()).toEqual(['Search for “lo”'])
+    expect(hinted()).toEqual(['Search for “ig”'])
     await userEvent.keyboard('{Enter}')
     expect(onAccept).toHaveBeenLastCalledWith(
-      expect.objectContaining({ kind: 'search', value: 'lo' })
+      expect.objectContaining({ kind: 'search', value: 'ig' })
     )
   })
 
@@ -874,10 +874,10 @@ describe('QueryField', () => {
   it('ignores suggestions that arrive after newer ones', async () => {
     const slow = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
     const suggest = vi.fn((text: string) =>
-      text === 'l' ? slow.promise : suggestFor(text)
+      text === 'i' ? slow.promise : suggestFor(text)
     )
     render(<Harness suggest={suggest} />)
-    await typeInto('lo')
+    await typeInto('ig')
     await waitFor(() => expect(optionNames()).toHaveLength(3))
     await act(async () =>
       slow.resolve([{ id: 'stale', label: 'Stale', items: [order] }])
