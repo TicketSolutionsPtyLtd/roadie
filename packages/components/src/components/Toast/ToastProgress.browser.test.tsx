@@ -28,13 +28,11 @@ afterAll(async () => {
 
 const AWAY = { x: 5, y: 5 }
 let pointerAt = AWAY
-let stopFrames = async () => {}
 beforeEach(() => {
   pointerAt = AWAY
-  stopFrames = keepFramesRunning(() => pointerAt)
+  keepFramesRunning(() => pointerAt)
 })
 afterEach(async () => {
-  await stopFrames()
   await commands.reduceMotion(false)
   cleanup()
 })
@@ -148,8 +146,8 @@ describe('Toast.Progress', () => {
       },
       { timeout: 10_000 }
     )
-    const ranOut = await done
-    expect(ranOut, 'the bar was cut off before it ran out').not.toBeNull()
+    const ranOut = await Promise.race([done, pause(2000).then(() => null)])
+    expect(ranOut, 'the bar did not run out with the toast').not.toBeNull()
     expect(Math.abs(left - ranOut!)).toBeLessThan(400)
   })
 

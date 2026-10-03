@@ -294,8 +294,11 @@ describe('Sortable Move menu', () => {
         timeout: 5000
       })
     } finally {
-      await stopPressFrames()
-      await commands.pointer([{ type: 'up' }])
+      try {
+        await stopPressFrames()
+      } finally {
+        await commands.pointer([{ type: 'up' }])
+      }
     }
     keepFramesRunning(() => at)
     await new Promise((resolve) => setTimeout(resolve, 200))

@@ -51,21 +51,27 @@ After a change that only an observer or a frame will pick up, nudge rendering
 with an input event before polling:
 
 ```ts
+let nudges = 0
 async function nudgeFrames() {
-  await userEvent.hover(document.body)
+  const { width } = document.body.getBoundingClientRect()
+  await userEvent.hover(document.body, {
+    position: { x: width - 2 - (nudges++ % 2), y: 1 }
+  })
   await new Promise(requestAnimationFrame)
   await new Promise(requestAnimationFrame)
 }
 ```
+
+Each call hovers a pixel away from the last, because hovering the same point
+again may not count as a move.
 
 To check that an observer (not its first report) did the work, nudge once
 before the change as well, so the initial report has already been delivered.
 
 When a poll waits on a frame, nudge on every check. The charts package
 exports this helper as `nudgeFrames` from
-`packages/charts/src/plot/browserTesting.tsx`, alternating between hovering
-`html` and `body` so each call really moves the pointer; the Funnel test
-calls it inside its poll.
+`packages/charts/src/plot/browserTesting.tsx`, hovering the top right corner,
+clear of the charts; the Funnel test calls it inside its poll.
 
 When the pointer has to stay put (on a menu trigger, or on or off a toast),
 use `keepFramesRunning(() => point)` from
