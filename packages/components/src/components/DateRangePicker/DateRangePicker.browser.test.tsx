@@ -41,7 +41,6 @@ const day = (date: string) =>
 const months = () =>
   document.querySelectorAll('[data-slot="calendar-month"]').length
 const box = (element: Element) => element.getBoundingClientRect()
-const settle = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function Period({
   initial = 'last-week' as DateRangeValue | null,
@@ -94,6 +93,10 @@ describe('DateRangePicker on a wide screen', TIMEOUT, () => {
     const popup = await screen.findByRole('dialog')
     expect(popup).not.toHaveAttribute('data-slot', 'drawer-popup')
     await expect.poll(months).toBe(2)
+    // Measured once the popover has finished scaling in.
+    await withFrames(() =>
+      expect.poll(() => box(day('2026-10-12')).width).toBe(40)
+    )
     const [first, second] = Array.from(
       popup.querySelectorAll('[data-slot="calendar-month"]'),
       box
@@ -101,7 +104,6 @@ describe('DateRangePicker on a wide screen', TIMEOUT, () => {
     expect(first!.width).toBe(280)
     expect(second!.width).toBe(280)
     expect(second!.top).toBe(first!.top)
-    expect(box(day('2026-10-12')).width).toBe(40)
     expect(within(popup).queryByRole('tab')).toBeNull()
     await page.viewport(1440, 900)
   })
@@ -114,7 +116,9 @@ describe('DateRangePicker on a wide screen', TIMEOUT, () => {
       .poll(() => document.activeElement?.textContent)
       .toBe('Last week')
     await userEvent.keyboard('{Escape}')
-    await expect.poll(() => document.activeElement).toBe(trigger())
+    await withFrames(() =>
+      expect.poll(() => document.activeElement).toBe(trigger())
+    )
   })
 
   it('closes only the suggestions on Escape in the popover', async () => {
@@ -249,7 +253,9 @@ for (const [width, height] of [
         name: 'Choose dates, Sales period'
       })
       expect(drawer).toHaveAttribute('data-slot', 'drawer-popup')
-      await expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+      await withFrames(() =>
+        expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+      )
       expect(box(drawer).left).toBe(0)
       expect(box(drawer).right).toBe(window.innerWidth)
       expect(tab('Periods')).toHaveAttribute('aria-selected', 'true')
@@ -398,7 +404,9 @@ for (const [width, height] of [
       render(<Period initial={{ start: '2026-10-05', end: '2026-10-09' }} />)
       await userEvent.click(trigger())
       const drawer = await screen.findByRole('dialog')
-      await expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+      await withFrames(() =>
+        expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+      )
       const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')!
       expect(box(weekdays).left).toBe(box(drawer).left)
       expect(box(weekdays).right).toBe(box(drawer).right)
@@ -435,7 +443,9 @@ for (const [width, height] of [
       )
       await userEvent.click(trigger())
       const drawer = await screen.findByRole('dialog')
-      await expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+      await withFrames(() =>
+        expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+      )
       await userEvent.click(tab('Calendar'))
       const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')!
       const september = () => drawer.querySelector('[data-month="2026-09-01"]')!
@@ -559,7 +569,9 @@ describe('DateRangePicker on a phone', TIMEOUT, () => {
     expect(document.querySelector('output')).toHaveTextContent(
       '{"start":"2026-10-12","end":"2026-10-15"}'
     )
-    await expect.poll(() => document.activeElement).toBe(trigger())
+    await withFrames(() =>
+      expect.poll(() => document.activeElement).toBe(trigger())
+    )
   })
 
   it('moves only the end once End is tapped', async () => {
@@ -633,13 +645,15 @@ describe('DateRangePicker finishing a range in another month', TIMEOUT, () => {
     render(<Period initial={null} commit='apply' />)
     await userEvent.click(trigger())
     const drawer = await screen.findByRole('dialog')
-    await expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+    await withFrames(() =>
+      expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+    )
     await userEvent.click(day('2026-10-01'))
     const body = bodyOf(drawer)
     const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')!
     const november = drawer.querySelector('[data-month="2026-11-01"]')!
     body.scrollTop += box(november).top - box(weekdays).bottom
-    await settle()
+    await nudgeFrames()
     await userEvent.click(day('2026-11-05'))
     expect(textOf(summary(drawer))).toMatch(/^1 Oct to 5 Nov 2026 · 36 days$/)
   })

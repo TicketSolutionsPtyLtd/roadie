@@ -306,12 +306,15 @@ describe('Sortable Move menu', () => {
       }
     }
     const stopFrames = keepFramesRunning(() => at)
-    await new Promise((resolve) => setTimeout(resolve, 200))
-    expect(handle('SKU')).toHaveAttribute('aria-expanded', 'false')
-    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull(), {
-      timeout: 5000
-    })
-    await stopFrames()
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 200))
+      expect(handle('SKU')).toHaveAttribute('aria-expanded', 'false')
+      await waitFor(() => expect(screen.queryByRole('menu')).toBeNull(), {
+        timeout: 5000
+      })
+    } finally {
+      await stopFrames()
+    }
   })
 
   it('moves by keyboard and keeps focus on the handle', async () => {

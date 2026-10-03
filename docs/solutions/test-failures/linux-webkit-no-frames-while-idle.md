@@ -93,14 +93,17 @@ An input event doesn't bring steady frames back at once. Measured in the
 Playwright Linux image right after the click that opens a drawer: 1 frame by
 100ms, 2 by 400ms, then steady frames only from 800ms. So:
 
-- **A transition.** Roadie drawers slide for
-  `--duration-slow` (300ms), and a transition only advances in a rendering
-  update. A poll for the drawer's bottom edge can stop with the drawer short
-  of it (`expected 864 to be 844`). Wait with `withFrames`.
-- **A popup's exit.** Base UI unmounts a popup when its exit animation
-  finishes, and waits a frame before checking even with transitions turned
-  off, so a poll for `queryByRole('dialog')` to be null needs `withFrames`
-  too.
+- **A transition.** Roadie drawers slide for `--duration-slow` (300ms), and
+  a transition only advances in a rendering update. A poll for the drawer's
+  bottom edge can stop with the drawer short of it (`expected 864 to be 844`).
+  Turn transitions off with a `transition: none !important` sheet when the
+  test isn't about them, so the wait needs one frame rather than 300ms of
+  them, and wait with `withFrames`.
+- **An entrance, an exit and the focus return.** Base UI drops
+  `data-starting-style` in a frame, waits a frame before unmounting a closed
+  popup even with transitions off, and returns focus to the trigger as the
+  popup unmounts. So polls for the drawer's edge, for `queryByRole('dialog')`
+  to be null, or for focus back on the trigger all need `withFrames`.
 - **A programmatic scroll.** `element.scrollTop = n` updates layout at once,
   so a poll on geometry passes straight away, but the `scroll` event only
   fires in the next rendering update. A component that follows scrolling (the
