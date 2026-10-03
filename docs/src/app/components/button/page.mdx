@@ -45,6 +45,17 @@ import { Button } from '@oztix/roadie-components'
 </div>
 ```
 
+### Full width
+
+A button is as wide as its label and takes its parent's alignment. Add `w-full` to fill the space. A parent's `items-stretch` or `self-stretch` won't widen it. To go back to the label's width at a breakpoint, use `w-fit`, not `w-auto`.
+
+```tsx-live
+<div className='grid max-w-sm gap-2'>
+  <Button emphasis='strong' className='w-full'>Checkout</Button>
+  <Button className='w-full sm:w-fit'>Keep browsing</Button>
+</div>
+```
+
 ### Intents
 
 Neutral is the default intent. Each intent communicates a different purpose: accent for primary actions, danger for destructive actions, and so on. Hover and focus states adapt automatically.
