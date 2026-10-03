@@ -411,8 +411,9 @@ keep the order of `items`, and grouped items are ranked within their group.
 Case and accents don't count, as in the filter.
 
 Typing "Rock" over `['Hard rock', 'Rock']` lists Rock first, so Enter picks it.
-Opening the list without typing shows `items` in your order. With `limit`,
-ranking comes first, so the closest matches are the ones kept.
+Opening the list without typing shows `items` in your order. With `limit` on a
+flat list, ranking comes first, so the closest matches are the ones kept.
+Grouped items fill the limit group by group, in your group order.
 
 Roadie ranks only with its default filter, and only an array of `items`; a
 `createItems()` collection keeps its order. Pass your own `filter` or

@@ -430,6 +430,20 @@ describe('Autocomplete closest match', () => {
     expect(suggestionNames()).toEqual(['Sydney', 'North Sydney'])
   })
 
+  it('ranks by the text Base UI keeps after a cancelled change', async () => {
+    render(
+      <Cities
+        items={['North Sydney', 'Sydney']}
+        onValueChange={(_, details) => details.cancel()}
+      />
+    )
+    await userEvent.type(cityInput(), 'Sydney')
+    expect(cityInput()).toHaveValue('Sydney')
+    await userEvent.click(screen.getByRole('button', { name: 'Show cities' }))
+    await screen.findByRole('option', { name: 'North Sydney' })
+    expect(suggestionNames()).toEqual(['Sydney', 'North Sydney'])
+  })
+
   it('ranks by a value set in code', async () => {
     render(
       <Cities items={['North Sydney', 'Sydney']} value='sydney' defaultOpen />

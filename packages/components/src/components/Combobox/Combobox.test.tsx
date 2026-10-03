@@ -364,14 +364,55 @@ describe('Combobox closest match', () => {
   })
 
   it('holds the ranked order while the list closes', async () => {
-    render(<Genres items={['Hard rock', 'Rock']} />)
+    render(
+      <Combobox items={['Hard rock', 'Rock']}>
+        <Combobox.Input aria-label='Genre' />
+        <Combobox.Portal keepMounted>
+          <Combobox.Positioner>
+            <Combobox.Popup>
+              <Combobox.List>
+                {(genre: string) => (
+                  <Combobox.Item key={genre} value={genre}>
+                    {genre}
+                  </Combobox.Item>
+                )}
+              </Combobox.List>
+            </Combobox.Popup>
+          </Combobox.Positioner>
+        </Combobox.Portal>
+      </Combobox>
+    )
     await userEvent.type(genreInput(), 'Rock')
     await screen.findByRole('option', { name: 'Hard rock' })
     await userEvent.keyboard('{Enter}')
-    await waitFor(() =>
-      expect(genreInput()).toHaveAttribute('aria-expanded', 'false')
-    )
+    await waitFor(() => expect(screen.queryByRole('option')).toBeNull())
+    expect(
+      screen
+        .getAllByRole('option', { hidden: true })
+        .map((option) => option.textContent)
+    ).toEqual(['Rock', 'Hard rock'])
+  })
+
+  it('keeps the closest matches within a limit', async () => {
+    render(<Genres items={['Hard rock', 'Punk rock', 'Rock']} limit={2} />)
+    await userEvent.type(genreInput(), 'rock')
+    await screen.findByRole('option', { name: 'Hard rock' })
     expect(optionNames()).toEqual(['Rock', 'Hard rock'])
+  })
+
+  it('fills a limit group by group in the given group order', async () => {
+    render(
+      <GroupedGenres
+        limit={1}
+        items={[
+          { value: 'Heavy', items: ['Hard rock'] },
+          { value: 'Light', items: ['Rock'] }
+        ]}
+      />
+    )
+    await userEvent.type(genreInput(), 'rock')
+    await screen.findByRole('option', { name: 'Hard rock' })
+    expect(optionNames()).toEqual(['Hard rock'])
   })
 
   it('ranks matches within each group and keeps the group order', async () => {
