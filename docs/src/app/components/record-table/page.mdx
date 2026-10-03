@@ -698,7 +698,9 @@ Pass `loadRange` for one long list with no pages that loads the records on scree
 
 The server searches, filters and sorts, as in server mode, and the search waits for a pause in typing. Clear `data` when the query or the zone changes, or the old records count as loaded and are never fetched again. This example keeps the records with the query they belong to, drops a response for an older one, and keeps the last total until the new query's first response, so the scrollbar holds its length. Every request waits 400ms.
 
-If `loadRange` rejects, the range shows an error row in place of its records, with Retry, and the records already loaded stay. When nothing has loaded yet, the table shows its error state instead. Range mode stops at 300,000 rows. `Records.Pagination` shows the count instead of pages, such as "1,284 shows", or "50+ shows" while the total is unknown.
+If `loadRange` rejects, the range shows an error row in place of its records, with Retry, and the records already loaded stay. When nothing has loaded yet, the table shows its error state instead. Range mode stops at 300,000 rows. With range loading, `Records.Pagination` shows the count instead of pages, such as "1,284 shows", or "50+ shows" while the total is unknown, with no page buttons and no rows per page: the list scrolls. Paging stays for paged tables.
+
+Use range loading for long lists people scroll, open a record and come back to. Use pages when people jump to a known page, or the list is short.
 
 ```tsx-live-noinline
 const names = ['Ochre Kite Weekender', 'Lampshade Disco', 'Raffia Spaceship', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Marzipan Thunderclap']

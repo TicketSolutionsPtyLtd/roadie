@@ -492,6 +492,42 @@ describe('RecordTable range footer', () => {
     expect(footer()!.querySelector('button')).toBeNull()
   })
 
+  it('shows only the count, with no page buttons or page size, loading by range', async () => {
+    render(
+      <Ranged
+        total={240}
+        rowCount={240}
+        recordName={{ one: 'show', other: 'shows' }}
+      />
+    )
+    await settle()
+    expect(footer()!.textContent).toBe('240 shows')
+    expect(screen.queryByRole('button', { name: 'Next page' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Previous page' })).toBeNull()
+    expect(screen.queryByRole('combobox', { name: 'Rows per page' })).toBeNull()
+  })
+
+  it('keeps page buttons and page size on a paged table', () => {
+    render(
+      <RecordTable
+        data={testShows(240)}
+        fields={showFields}
+        columns={showColumns}
+        recordName={{ one: 'show', other: 'shows' }}
+      />
+    )
+    expect(footer()!.textContent).toContain('1–50 of 240')
+    expect(
+      screen.getByRole('button', { name: 'Next page' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Previous page' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('combobox', { name: 'Rows per page' })
+    ).toBeInTheDocument()
+  })
+
   it('shows the loaded rows with a plus while the total is unknown', async () => {
     render(<Ranged total={1284} recordName={{ one: 'show', other: 'shows' }} />)
     await settle()
