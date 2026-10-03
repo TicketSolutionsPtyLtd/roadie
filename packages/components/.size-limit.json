@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "182 kB"
+    "limit": "187 kB"
   },
   {
     "name": "Single component (Button)",
@@ -253,6 +253,13 @@
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
     "limit": "14.75 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "DateRangePicker",
+    "path": "dist/components/DateRangePicker/index.js",
+    "import": "*",
+    "limit": "19.2 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {

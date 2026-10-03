@@ -20,12 +20,18 @@ keys step by. Both take `size`, `emphasis`, `invalid` and `name`, and inherit
 
 `DatePicker` pairs a typed date with a calendar in a `Popover`. Opening it
 focuses the chosen day or today; choosing a day closes it and returns focus to
-the calendar button. `granularity='minute'` adds a `TimeField`, and the value
-becomes the instant the date and time name in `timeZone`, with its offset,
-such as `'2026-11-27T19:30:00+11:00'`, so event times are set on the venue's
-clock. It also takes `disabled` matchers, `readOnly`, `captionLayout`,
-`startMonth`, `endMonth`, `placeholder`, `inputRef`, `form` and a
-controlled `open`.
+the calendar button. The button is named after the picker's label and date,
+such as "Choose date, Doors (Fri 27 Nov 2026)", and the popup "Choose date,
+Doors". The button is labelled by the `Field` label too, so a test that finds
+the input with `getByLabelText` should use
+`getByRole('textbox', { name })`, and one that finds the button by the exact
+name "Choose date" should match its start.
+
+`granularity='minute'` adds a `TimeField`, and the value becomes the instant
+the date and time name in `timeZone`, with its offset, such as
+`'2026-11-27T19:30:00+11:00'`, so event times are set on the venue's clock. It
+also takes `disabled` matchers, `readOnly`, `captionLayout`, `startMonth`,
+`endMonth`, `placeholder`, `inputRef`, `form` and a controlled `open`.
 
 `Field.ErrorText` now also shows a control's own error, such as "Enter a date,
 like 14 Mar or next Fri", when typed text names nothing. It shows even when

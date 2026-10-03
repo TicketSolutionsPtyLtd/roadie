@@ -33,7 +33,7 @@ afterEach(async () => {
 const focusedDate = () => (document.activeElement as HTMLElement).dataset.date
 // Calendar's own live region is also a status while the popup animates out.
 const shown = () => document.querySelector('output')!
-const trigger = () => screen.getByRole('button', { name: 'Choose date' })
+const trigger = () => screen.getByRole('button', { name: /^Choose date/ })
 const day = (date: string) =>
   document.querySelector<HTMLButtonElement>(
     `[data-slot="calendar"] button[data-date="${date}"]:not([data-outside])`
@@ -68,7 +68,7 @@ describe('DatePicker by keyboard', () => {
 
   it('tabs from the typed field to the button, committing on the way', async () => {
     render(<ShowDate initial={null} />)
-    await userEvent.click(screen.getByLabelText('Show date'))
+    await userEvent.click(screen.getByRole('textbox', { name: 'Show date' }))
     await userEvent.keyboard('14 mar')
     await userEvent.tab()
     expect(document.activeElement).toBe(trigger())
@@ -85,7 +85,9 @@ describe('DatePicker by keyboard', () => {
       .poll(() => trigger().getAttribute('aria-expanded'))
       .toBe('false')
     expect(shown()).toHaveTextContent('2026-10-31')
-    expect(screen.getByLabelText('Show date')).toHaveValue('Sat 31 Oct 2026')
+    expect(screen.getByRole('textbox', { name: 'Show date' })).toHaveValue(
+      'Sat 31 Oct 2026'
+    )
     await expect.poll(() => document.activeElement).toBe(trigger())
   })
 
@@ -103,7 +105,7 @@ describe('DatePicker by keyboard', () => {
 
   it('reverts a draft on Escape', async () => {
     render(<ShowDate />)
-    const input = screen.getByLabelText('Show date')
+    const input = screen.getByRole('textbox', { name: 'Show date' })
     await userEvent.clear(input)
     await userEvent.keyboard('someday{Escape}')
     expect(input).toHaveValue('Fri 23 Oct 2026')
@@ -138,7 +140,9 @@ describe('DatePicker on a phone', () => {
       .toBe('false')
     expect(shown()).toHaveTextContent('2026-10-29')
     // Focus on the text field would raise the on-screen keyboard.
-    expect(document.activeElement).not.toBe(screen.getByLabelText('Show date'))
+    expect(document.activeElement).not.toBe(
+      screen.getByRole('textbox', { name: 'Show date' })
+    )
   })
 })
 
@@ -157,7 +161,7 @@ describe('DatePicker field', () => {
       '[data-slot="date-picker-group"]'
     )!
     const resting = getComputedStyle(group).borderColor
-    await userEvent.click(screen.getByLabelText('Show date'))
+    await userEvent.click(screen.getByRole('textbox', { name: 'Show date' }))
     await expect
       .poll(() => getComputedStyle(group).borderColor)
       .not.toBe(resting)
@@ -168,7 +172,7 @@ describe('DatePicker field', () => {
     const group = document.querySelector<HTMLElement>(
       '[data-slot="date-picker-group"]'
     )!
-    const input = screen.getByLabelText('Show date')
+    const input = screen.getByRole('textbox', { name: 'Show date' })
     await userEvent.click(input)
     const focusedBorder = getComputedStyle(group).borderColor
     await userEvent.clear(input)
