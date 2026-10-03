@@ -44,6 +44,27 @@ function Controlled({
 }
 
 describe('DashboardPeriod', () => {
+  it.each([
+    [undefined, 'emphasis-normal'],
+    ['normal', 'emphasis-normal'],
+    ['subtle', 'bg-subtle'],
+    ['subtler', 'emphasis-subtler']
+  ] as const)('styles %s triggers with %s', (emphasis, className) => {
+    render(
+      <DashboardPeriod today={TODAY} value={THIS_MONTH} emphasis={emphasis} />
+    )
+    expect(picker()).toHaveClass(className)
+    expect(comparison()).toHaveClass(className)
+  })
+
+  it('lets a subtler comparison hug its value', () => {
+    render(
+      <DashboardPeriod today={TODAY} value={THIS_MONTH} emphasis='subtler' />
+    )
+    expect(comparison()).toHaveClass('w-fit')
+    expect(comparison()).not.toHaveClass('w-full')
+  })
+
   it('shows the period and what it compares with, as a named group', () => {
     render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
     expect(

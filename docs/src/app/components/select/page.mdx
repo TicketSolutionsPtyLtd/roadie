@@ -6,6 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
 
 A dropdown for choosing from a list of options.
 
@@ -40,6 +41,8 @@ wrapping. Use `Select.Content` as a convenience wrapper for Portal + Positioner 
 
 ### Emphasis
 
+`normal` is the default: a plain fill with a visible border, like a normal `Button`. `subtle` sits on a tinted fill. `subtler` has no fill or border at rest, for quiet controls inside something else, such as rows per page under a table.
+
 ```tsx-live
 <div className='grid gap-2'>
   <Select defaultValue='go-betweens'>
@@ -62,6 +65,23 @@ wrapping. Use `Select.Content` as a convenience wrapper for Portal + Positioner 
       <Select.Item value='savage-garden'>Savage Garden</Select.Item>
     </Select.Content>
   </Select>
+  <div className='flex items-center justify-between gap-3 text-sm text-subtle'>
+    <p>1–50 of 240</p>
+    <Select defaultValue='50'>
+      <Select.Trigger
+        aria-label='Rows per page'
+        emphasis='subtler'
+        size='sm'
+      >
+        <Select.Value />
+        <Select.Icon />
+      </Select.Trigger>
+      <Select.Content>
+        <Select.Item value='50'>50 per page</Select.Item>
+        <Select.Item value='100'>100 per page</Select.Item>
+      </Select.Content>
+    </Select>
+  </div>
 </div>
 ```
 
@@ -101,8 +121,11 @@ wrapping. Use `Select.Content` as a convenience wrapper for Portal + Positioner 
 
 ### States
 
-The trigger uses `is-interactive-field` for state-based colour transitions:
-neutral at rest, accent on focus/open, danger when invalid.
+`normal` and `subtle` triggers use `is-interactive-field` for state-based
+colour transitions: neutral at rest, accent on focus/open, danger when invalid.
+A `subtler` trigger uses `is-interactive` instead, so it behaves like a subtler
+`Button`: no fill at rest, a light fill on hover, press and while open, and a
+danger edge when invalid.
 
 ```tsx-live
 <div className='grid gap-4'>
@@ -262,6 +285,21 @@ picks from a closed set. They don't need to search or type a custom value.
 - Status or category pickers
 - Sort-by controls
 - Any list under ~15 items where scanning is faster than typing
+
+### Choosing an emphasis
+
+<div className='grid gap-8'>
+
+<Guideline title='Save subtler for in-context controls'>
+  <Guideline.Do code={`<Select.Trigger emphasis='subtler' size='sm' />`}>
+    Use <code>subtler</code> for a control that adjusts what is already on screen, such as rows per page, sort order or a chart's comparison, beside other subtler buttons. A subtler trigger takes only the width of its value and icon, where normal and subtle fill their container. If the value changes length, hold the width with the widest label so the controls beside it stay put.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't use <code>subtler</code> for a select in a form. With no border at rest, it doesn't read as a field to fill in next to an <code>Input</code>.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
 
 ### When to use Combobox instead
 

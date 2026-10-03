@@ -125,7 +125,7 @@ export type DateRangePickerProps = Omit<
   /** @default 'md' */
   size?: 'sm' | 'md' | 'lg'
   /** @default 'normal' */
-  emphasis?: 'normal' | 'subtle'
+  emphasis?: 'normal' | 'subtle' | 'subtler'
   /** Shown while no range is chosen. @default 'Choose dates' */
   placeholder?: string
   /**

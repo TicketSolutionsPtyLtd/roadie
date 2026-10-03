@@ -48,8 +48,18 @@ export function RecordsPagination({
           value={String(pageSize)}
           onValueChange={(value) => records.setPageSize(Number(value))}
         >
-          <Select.Trigger aria-label='Rows per page' size='sm'>
-            <Select.Value />
+          <Select.Trigger
+            aria-label='Rows per page'
+            size='sm'
+            emphasis='subtler'
+          >
+            {/* Reserves the widest label so the width holds; slack goes first. */}
+            <span className='grid tabular-nums'>
+              <span aria-hidden className='invisible [grid-area:1/1]'>
+                {`${Math.max(...sizeOptions)} per page`}
+              </span>
+              <Select.Value className='justify-self-end [grid-area:1/1]' />
+            </span>
             <Select.Icon />
           </Select.Trigger>
           <Select.Content>

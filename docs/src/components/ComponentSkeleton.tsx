@@ -186,7 +186,7 @@ export function ComponentSkeleton({ name }: { name: string }) {
     case 'date-range-picker':
       return (
         <div className='grid w-48 gap-1.5'>
-          <div className='flex emphasis-raised items-center gap-1.5 rounded-lg px-2.5 py-1'>
+          <div className='flex emphasis-normal items-center gap-1.5 rounded-lg px-2.5 py-1'>
             <CalendarBlankIcon weight='bold' className='size-3 text-subtle' />
             <span className='text-sm text-normal'>Last 30 days</span>
           </div>
@@ -259,7 +259,7 @@ export function ComponentSkeleton({ name }: { name: string }) {
       )
     case 'select':
       return (
-        <div className='flex w-40 items-center justify-between rounded-lg border border-subtle bg-normal px-3 py-2'>
+        <div className='flex w-40 emphasis-normal items-center justify-between rounded-lg px-3 py-2'>
           <Skel className='h-2 w-16' />
           <Skel className='size-2' />
         </div>

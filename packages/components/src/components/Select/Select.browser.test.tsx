@@ -6,7 +6,7 @@ import { Select } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
 import { Field } from '../Field'
-import { useStylesheet } from '../Pane/testUtils'
+import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 
 const STILL = '*, *::before, *::after { transition: none !important }'
 
@@ -347,5 +347,135 @@ describe('Select multiple value summary', () => {
     const spoken = value.cloneNode(true) as Element
     spoken.querySelectorAll('[aria-hidden]').forEach((node) => node.remove())
     expect(spoken.textContent).toBe(BANDS.map(([, label]) => label).join(', '))
+  })
+})
+
+function Genre({
+  emphasis,
+  invalid
+}: {
+  emphasis?: 'normal' | 'subtle' | 'subtler'
+  invalid?: boolean
+}) {
+  return (
+    <Field invalid={invalid}>
+      <Field.Label>Genre</Field.Label>
+      <Select>
+        <Select.Trigger emphasis={emphasis}>
+          <Select.Value placeholder='Pick a genre' />
+          <Select.Icon />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value='rock'>Rock</Select.Item>
+        </Select.Content>
+      </Select>
+    </Field>
+  )
+}
+
+const TRANSPARENT = /rgba\(0, 0, 0, 0\)|transparent/
+const trigger = () => screen.getByRole('combobox', { name: 'Genre' })
+const style = () => getComputedStyle(trigger())
+
+describe('Select trigger emphasis', () => {
+  it.each(['normal', 'subtle', 'subtler'] as const)(
+    'casts no shadow at rest with %s',
+    (emphasis) => {
+      render(<Genre emphasis={emphasis} />)
+      expect(style().boxShadow).toBe('none')
+    }
+  )
+
+  it('draws a normal trigger with a visible border', () => {
+    render(<Genre />)
+    expect(style().borderTopWidth).toBe('1px')
+    expect(style().borderTopColor).not.toMatch(TRANSPARENT)
+  })
+
+  it('leaves a subtler trigger without a fill or edge at rest', () => {
+    render(<Genre emphasis='subtler' />)
+    expect(style().backgroundColor).toMatch(TRANSPARENT)
+    expect(style().borderTopColor).toMatch(TRANSPARENT)
+  })
+
+  it.each(['normal', 'subtle', 'subtler'] as const)(
+    'rings a %s trigger the keyboard focuses',
+    async (emphasis) => {
+      render(<Genre emphasis={emphasis} />)
+      await userEvent.tab()
+      await expect.poll(() => style().outlineWidth).not.toBe('0px')
+    }
+  )
+
+  it.each(['normal', 'subtle', 'subtler'] as const)(
+    'fills a %s trigger while its list is open',
+    async (emphasis) => {
+      render(<Genre emphasis={emphasis} />)
+      const resting = style().backgroundColor
+      await userEvent.click(trigger())
+      await screen.findByRole('option', { name: 'Rock' })
+      await userEvent.unhover(trigger())
+      await expect.poll(() => style().backgroundColor).not.toBe(resting)
+    }
+  )
+
+  it.each(['normal', 'subtle', 'subtler'] as const)(
+    'edges an invalid %s trigger in danger',
+    (emphasis) => {
+      render(<Genre emphasis={emphasis} />)
+      const valid = style().borderTopColor
+      cleanup()
+      render(<Genre emphasis={emphasis} invalid />)
+      expect(style().borderTopColor).not.toMatch(TRANSPARENT)
+      expect(style().borderTopColor).not.toBe(valid)
+    }
+  )
+})
+
+describe('Select trigger width', () => {
+  beforeAll(() => loadBrandFont())
+
+  function Sized({ emphasis }: { emphasis: 'normal' | 'subtler' }) {
+    return (
+      <div data-testid='box' style={{ width: 400 }}>
+        <Select defaultValue='rock'>
+          <Select.Trigger aria-label='Genre' emphasis={emphasis}>
+            <Select.Value />
+            <Select.Icon />
+          </Select.Trigger>
+          <Select.Content>
+            <Select.Item value='rock'>Rock</Select.Item>
+          </Select.Content>
+        </Select>
+      </div>
+    )
+  }
+
+  it('fills its container at normal', () => {
+    render(<Sized emphasis='normal' />)
+    expect(trigger().getBoundingClientRect().width).toBe(400)
+  })
+
+  it('hugs its value and icon at subtler', async () => {
+    render(<Sized emphasis='subtler' />)
+    const value = trigger().querySelector('[data-slot="select-value"]')!
+    const icon = trigger().querySelector('[data-slot="select-icon"]')!
+    await expect.poll(() => value.textContent).toBe('Rock')
+    const box = trigger().getBoundingClientRect()
+    const { paddingLeft, paddingRight, borderLeftWidth, borderRightWidth } =
+      style()
+    const gap =
+      icon.getBoundingClientRect().left - value.getBoundingClientRect().right
+    expect(gap).toBeCloseTo(6, 0)
+    expect(box.width).toBeCloseTo(
+      value.getBoundingClientRect().width +
+        gap +
+        icon.getBoundingClientRect().width +
+        parseFloat(paddingLeft) +
+        parseFloat(paddingRight) +
+        parseFloat(borderLeftWidth) +
+        parseFloat(borderRightWidth),
+      0
+    )
   })
 })

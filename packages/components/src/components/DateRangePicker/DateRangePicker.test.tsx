@@ -26,6 +26,19 @@ async function open() {
 }
 
 describe('DateRangePicker', () => {
+  it.each([
+    [undefined, 'emphasis-normal'],
+    ['normal', 'emphasis-normal'],
+    ['subtle', 'bg-subtle'],
+    ['subtler', 'emphasis-subtler']
+  ] as const)('styles a %s trigger with %s', (emphasis, className) => {
+    render(
+      <DateRangePicker aria-label='Period' today={TODAY} emphasis={emphasis} />
+    )
+    expect(trigger()).toHaveClass(className)
+    expect(trigger()).not.toHaveClass('emphasis-raised')
+  })
+
   it('shows a placeholder until a range is chosen', () => {
     render(<DateRangePicker aria-label='Period' today={TODAY} />)
     expect(trigger()).toHaveTextContent('Choose dates')

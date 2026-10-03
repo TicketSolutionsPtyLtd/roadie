@@ -496,7 +496,7 @@ export default function InteractionsPage() {
             For form inputs, such as text fields, textareas and selects.
             Provides state-based colour transitions: neutral at rest, accent on
             focus, danger when invalid. Pair with <Code>emphasis-field</Code>{' '}
-            for text fields, or <Code>emphasis-raised</Code> for select
+            for text fields, or <Code>emphasis-normal</Code> for select
             triggers.
           </p>
 
@@ -597,7 +597,7 @@ export default function InteractionsPage() {
           <p className='text-sm text-subtle'>
             Use on the wrapping element that contains the child inputs. Focus
             within any child triggers the accent transition on the group. Pair
-            with <Code>emphasis-field</Code>, or <Code>emphasis-raised</Code>{' '}
+            with <Code>emphasis-field</Code>, or <Code>emphasis-normal</Code>{' '}
             for a button-like trigger.
           </p>
         </div>
@@ -697,8 +697,13 @@ export default function InteractionsPage() {
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Select</td>
                   <td className='py-2 font-mono text-xs'>
-                    emphasis-raised border border-transparent
-                    is-interactive-field
+                    emphasis-normal is-interactive-field
+                  </td>
+                </tr>
+                <tr>
+                  <td className='py-2 pr-4 text-strong'>Select (subtler)</td>
+                  <td className='py-2 font-mono text-xs'>
+                    emphasis-subtler is-interactive
                   </td>
                 </tr>
                 <tr>
