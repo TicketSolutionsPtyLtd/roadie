@@ -158,9 +158,10 @@ export function usePickerSurface(open: boolean): PickerSurface {
   return (holding && held) || live
 }
 
-const PickerTriggerContext = createContext<RefObject<HTMLElement | null>>({
-  current: null
-})
+const PickerTriggerContext = createContext<{
+  ref: RefObject<HTMLElement | null> | null
+  drawerOpen: boolean
+}>({ ref: null, drawerOpen: false })
 
 export type PickerTriggerProps = Omit<
   PopoverTriggerProps,
@@ -173,9 +174,16 @@ export type PickerTriggerProps = Omit<
  * its focus; the drawer opens from the same state and hands focus back to it.
  */
 export function PickerTrigger({ ref, ...props }: PickerTriggerProps) {
-  const triggerRef = use(PickerTriggerContext)
-  const refs = useMemo(() => mergeRefs(ref, triggerRef), [ref, triggerRef])
-  return <Popover.Trigger ref={refs} {...props} />
+  const { ref: triggerRef, drawerOpen } = use(PickerTriggerContext)
+  const refs = useMemo(
+    () => mergeRefs(ref, triggerRef ?? undefined),
+    [ref, triggerRef]
+  )
+  // The popover's state can't see the drawer, so the drawer's is given.
+  const expanded = drawerOpen
+    ? { 'aria-expanded': true, 'data-popup-open': '' }
+    : {}
+  return <Popover.Trigger ref={refs} {...props} {...expanded} />
 }
 
 /** The picker's label as shown, without its required or optional mark. */
@@ -268,7 +276,9 @@ export function PickerOverlay({
   const shown = open && !hydrating
 
   return (
-    <PickerTriggerContext value={triggerRef}>
+    <PickerTriggerContext
+      value={{ ref: triggerRef, drawerOpen: shown && drawer }}
+    >
       <Popover open={shown && !drawer} onOpenChange={onOpenChange}>
         <Drawer open={shown && drawer} onOpenChange={onOpenChange}>
           {trigger}

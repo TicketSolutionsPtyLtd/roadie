@@ -993,4 +993,15 @@ describe('DateRangePicker across the phone breakpoint', () => {
     expect(trigger()).toBe(button)
     expect(button).toHaveFocus()
   })
+
+  it('marks its button expanded while the drawer is open', async () => {
+    onPhone()
+    render(<DateRangePicker aria-label='Period' today={TODAY} />)
+    await open()
+    const button = document.querySelector(
+      '[data-slot="date-range-picker-trigger"]'
+    )!
+    expect(button).toHaveAttribute('aria-expanded', 'true')
+    expect(button).toHaveAttribute('data-popup-open')
+  })
 })
