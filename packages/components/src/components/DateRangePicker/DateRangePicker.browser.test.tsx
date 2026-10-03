@@ -212,6 +212,19 @@ describe('DateRangePicker on a phone', TIMEOUT, () => {
     expect(box(start).top).toBe(box(end).top)
   })
 
+  it('stacks the presets above the calendar on a wide phone too', async () => {
+    await page.viewport(700, 400)
+    render(<Period />)
+    await userEvent.click(trigger())
+    const drawer = await screen.findByRole('dialog')
+    expect(drawer).toHaveAttribute('data-slot', 'drawer-popup')
+    const presets = within(drawer).getByRole('group', { name: 'Presets' })
+    const calendar = drawer.querySelector('[data-slot="calendar"]')!
+    expect(box(presets).bottom).toBeLessThanOrEqual(box(calendar).top)
+    const body = drawer.querySelector('[data-slot="drawer-body"]')!
+    expect(body.scrollWidth).toBeLessThanOrEqual(body.clientWidth)
+  })
+
   it('scrolls a tall drawer and keeps Apply in view', async () => {
     await page.viewport(390, 500)
     render(<Period commit='apply' />)
@@ -223,6 +236,9 @@ describe('DateRangePicker on a phone', TIMEOUT, () => {
     const apply = within(drawer).getByRole('button', { name: 'Apply' })
     expect(box(apply).bottom).toBeLessThanOrEqual(500)
     expect(box(apply).top).toBeGreaterThanOrEqual(box(body).bottom)
+    // The header's Close cancels, so the footer holds only the way forward.
+    expect(within(drawer).queryByRole('button', { name: 'Cancel' })).toBeNull()
+    expect(box(apply).width).toBeGreaterThan(box(body).width - 64)
   })
 
   it('chooses a tapped preset', async () => {

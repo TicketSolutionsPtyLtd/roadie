@@ -163,7 +163,7 @@ type AnyCalendarProps = CalendarBaseProps & {
 const emptyRange = (): CalendarDateRange => ({ start: null, end: null })
 
 const dayVariants = cva(
-  'relative grid size-(--day) place-content-center rounded-full border text-sm tabular-nums is-interactive',
+  'relative grid size-(--calendar-day-size) place-content-center rounded-full border text-sm tabular-nums is-interactive',
   {
     variants: {
       look: {
@@ -678,7 +678,7 @@ export function Calendar(props: CalendarProps) {
       data-slot='calendar'
       className={cn(
         // A picker's drawer sets --calendar-day so days fill a phone's width.
-        'flex w-fit max-w-full flex-wrap gap-x-6 gap-y-4 [--day:var(--calendar-day,--spacing(10))]',
+        'flex w-fit max-w-full flex-wrap gap-x-6 gap-y-4 [--calendar-day-size:var(--calendar-day,--spacing(10))]',
         className
       )}
       {...rest}
@@ -701,7 +701,7 @@ export function Calendar(props: CalendarProps) {
           <div
             key={month}
             aria-hidden='true'
-            className='h-[calc(var(--day)*6+--spacing(22))] w-[calc(var(--day)*7)]'
+            className='h-[calc(var(--calendar-day-size)*6+--spacing(22))] w-[calc(var(--calendar-day-size)*7)]'
           />
         ))}
       {!waitingForToday &&
@@ -710,7 +710,7 @@ export function Calendar(props: CalendarProps) {
             // By position, so the arrows and selects keep focus as months turn.
             key={index}
             data-slot='calendar-month'
-            className='grid w-[calc(var(--day)*7)] content-start gap-2'
+            className='grid w-[calc(var(--calendar-day-size)*7)] content-start gap-2'
           >
             <div className='grid h-8 grid-cols-[2rem_1fr_2rem] items-center gap-1'>
               {index === 0 ? (

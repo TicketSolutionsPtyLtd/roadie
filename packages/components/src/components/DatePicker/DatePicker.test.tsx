@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -734,5 +734,22 @@ describe('DatePicker on a phone', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     )
     expect(onValueChange).not.toHaveBeenCalled()
+  })
+})
+
+describe('DatePicker turned while open', () => {
+  it('gives focus back to the button after the drawer closes', async () => {
+    const screenSize = onPhone()
+    render(<DatePicker aria-label='Doors' today={TODAY} />)
+    const button = screen.getByRole('button', { name: /^Choose date/ })
+    await userEvent.click(button)
+    await screen.findByRole('dialog')
+    act(() => screenSize.set(false))
+    await userEvent.click(day('2026-10-23'))
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    expect(screen.getByRole('button', { name: /^Choose date/ })).toBe(button)
+    expect(button).toHaveFocus()
   })
 })

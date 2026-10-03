@@ -5,7 +5,9 @@ import {
   type RefObject,
   createContext,
   use,
+  useCallback,
   useId,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore
@@ -20,6 +22,7 @@ import { IconButton } from '../components/Button/IconButton'
 import { Drawer } from '../components/Drawer'
 import { useFieldContext } from '../components/Field'
 import { Popover, type PopoverTriggerProps } from '../components/Popover'
+import { mergeRefs } from '../utils/mergeRefs'
 
 const noSubscription = () => () => {}
 
@@ -112,12 +115,22 @@ export function usePickerLabels({
 /** Below Navigator's phone breakpoint, a picker opens in a bottom drawer. */
 export const PHONE = '(width < 48rem)'
 
-function subscribePhone(onChange: () => void) {
-  const query = window.matchMedia(PHONE)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
+/** Whether a media query matches; false on the server and through hydration. */
+export function useMediaMatch(query: string): boolean {
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      const list = window.matchMedia(query)
+      list.addEventListener('change', onChange)
+      return () => list.removeEventListener('change', onChange)
+    },
+    [query]
+  )
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(query).matches,
+    () => false
+  )
 }
-const isPhone = () => window.matchMedia(PHONE).matches
 
 // True on the server and through hydration, so the first client render matches.
 const useHydrating = () =>
@@ -135,7 +148,7 @@ export type PickerSurface = 'popover' | 'drawer'
  * surface under the person using it.
  */
 export function usePickerSurface(open: boolean): PickerSurface {
-  const phone = useSyncExternalStore(subscribePhone, isPhone, () => false)
+  const phone = useMediaMatch(PHONE)
   const hydrating = useHydrating()
   const live: PickerSurface = phone ? 'drawer' : 'popover'
   const [held, setHeld] = useState<PickerSurface | null>(null)
@@ -145,20 +158,24 @@ export function usePickerSurface(open: boolean): PickerSurface {
   return (holding && held) || live
 }
 
-const PickerSurfaceContext = createContext<PickerSurface>('popover')
+const PickerTriggerContext = createContext<RefObject<HTMLElement | null>>({
+  current: null
+})
 
 export type PickerTriggerProps = Omit<
   PopoverTriggerProps,
   'handle' | 'payload' | 'openOnHover' | 'delay' | 'closeDelay'
 >
 
-/** The button that opens the picker's popover or drawer. */
-export function PickerTrigger(props: PickerTriggerProps) {
-  return use(PickerSurfaceContext) === 'drawer' ? (
-    <Drawer.Trigger {...props} />
-  ) : (
-    <Popover.Trigger {...props} />
-  )
+/**
+ * The button that opens the picker's popover or drawer. It is always the
+ * popover's trigger, so crossing the breakpoint never remounts it and loses
+ * its focus; the drawer opens from the same state and hands focus back to it.
+ */
+export function PickerTrigger({ ref, ...props }: PickerTriggerProps) {
+  const triggerRef = use(PickerTriggerContext)
+  const refs = useMemo(() => mergeRefs(ref, triggerRef), [ref, triggerRef])
+  return <Popover.Trigger ref={refs} {...props} />
 }
 
 /** The picker's label as shown, without its required or optional mark. */
@@ -244,12 +261,16 @@ export function PickerOverlay({
   const popupRef = useRef<HTMLDivElement>(null)
   const focusOnOpen = () =>
     (popupRef.current && initialFocus(popupRef.current)) ?? true
+  const triggerRef = useRef<HTMLElement>(null)
   const drawer = surface === 'drawer'
+  // The surface is only known after hydration, so neither opens before it.
+  const hydrating = useHydrating()
+  const shown = open && !hydrating
 
   return (
-    <PickerSurfaceContext value={surface}>
-      <Popover open={open && !drawer} onOpenChange={onOpenChange}>
-        <Drawer open={open && drawer} onOpenChange={onOpenChange}>
+    <PickerTriggerContext value={triggerRef}>
+      <Popover open={shown && !drawer} onOpenChange={onOpenChange}>
+        <Drawer open={shown && drawer} onOpenChange={onOpenChange}>
           {trigger}
           <Popover.Content
             ref={popupRef}
@@ -268,6 +289,7 @@ export function PickerOverlay({
             ref={popupRef}
             aria-labelledby={ariaLabelledBy}
             initialFocus={focusOnOpen}
+            finalFocus={triggerRef}
           >
             <Drawer.Header>
               <Drawer.Close
@@ -279,7 +301,6 @@ export function PickerOverlay({
               />
               <PickerTitle labelSource={labelSource} action={action} />
             </Drawer.Header>
-            {/* Days grow to fill the drawer, up to a 48px target. */}
             <Drawer.Body
               className={cn(
                 '@container [--calendar-day:min(--spacing(12),100cqi/7)]',
@@ -293,6 +314,6 @@ export function PickerOverlay({
           </Drawer.Content>
         </Drawer>
       </Popover>
-    </PickerSurfaceContext>
+    </PickerTriggerContext>
   )
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -945,7 +945,7 @@ describe('DateRangePicker', () => {
 })
 
 describe('DateRangePicker on a phone', () => {
-  it('keeps Apply and Cancel in the drawer footer, out of the scroll', async () => {
+  it('keeps Apply in the drawer footer, out of the scroll', async () => {
     onPhone()
     const onValueChange = vi.fn()
     render(
@@ -970,6 +970,7 @@ describe('DateRangePicker on a phone', () => {
     const body = dialog.querySelector<HTMLElement>('[data-slot="drawer-body"]')!
     expect(within(body).getByRole('group', { name: 'Presets' })).toBeVisible()
     expect(within(body).queryByRole('button', { name: 'Apply' })).toBeNull()
+    expect(within(dialog).queryByRole('button', { name: 'Cancel' })).toBeNull()
     await userEvent.click(
       within(dialog).getByRole('button', { name: 'Last week' })
     )
@@ -979,5 +980,17 @@ describe('DateRangePicker on a phone', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     )
     expect(trigger()).toHaveFocus()
+  })
+})
+
+describe('DateRangePicker across the phone breakpoint', () => {
+  it('keeps its button, and focus, as the screen narrows', () => {
+    const screenSize = onPhone(false)
+    render(<DateRangePicker aria-label='Period' today={TODAY} />)
+    const button = trigger()
+    button.focus()
+    act(() => screenSize.set(true))
+    expect(trigger()).toBe(button)
+    expect(button).toHaveFocus()
   })
 })

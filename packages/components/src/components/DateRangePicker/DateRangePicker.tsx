@@ -1,11 +1,6 @@
 'use client'
 
-import {
-  type ComponentProps,
-  useRef,
-  useState,
-  useSyncExternalStore
-} from 'react'
+import { type ComponentProps, useRef, useState } from 'react'
 
 import {
   CalendarBlankIcon,
@@ -23,6 +18,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import {
   PickerOverlay,
   PickerTrigger,
+  useMediaMatch,
   usePickerLabels,
   usePickerOpen,
   usePickerSurface,
@@ -171,12 +167,6 @@ export type DateRangePickerProps = Omit<
 }
 
 const WIDE = '(min-width: 64rem)'
-function subscribeWide(onChange: () => void) {
-  const query = window.matchMedia(WIDE)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
-}
-const isWide = () => window.matchMedia(WIDE).matches
 
 type Edit = {
   draft: RangeDraft | null
@@ -283,7 +273,7 @@ export function DateRangePicker({
   const draft = edit.draft ?? draftFrom(value, context)
   const length = { min, max }
   const result = draftValue(draft, granularity, zone, length)
-  const wideScreen = useSyncExternalStore(subscribeWide, isWide, () => false)
+  const wideScreen = useMediaMatch(WIDE)
   const months = Math.max(1, Math.floor(numberOfMonths ?? (wideScreen ? 2 : 1)))
 
   function changeOpen(next: boolean) {
@@ -371,18 +361,18 @@ export function DateRangePicker({
           ? `Spans fewer than ${days(min)}`
           : null
   const locked = isDisabled || readOnly
-  // A drawer's actions fill its foot, at a size for thumbs.
-  const footerButton =
-    surface === 'drawer'
-      ? ({ size: 'md', className: 'flex-1' } as const)
-      : ({ size: 'sm' } as const)
+  const drawer = surface === 'drawer'
   const footer = (
     <>
-      <Button {...footerButton} onClick={() => changeOpen(false)}>
-        Cancel
-      </Button>
+      {/* In a drawer, the header's Close cancels. */}
+      {!drawer && (
+        <Button size='sm' onClick={() => changeOpen(false)}>
+          Cancel
+        </Button>
+      )}
       <Button
-        {...footerButton}
+        size={drawer ? 'md' : 'sm'}
+        className={drawer ? 'w-full' : undefined}
         intent='accent'
         emphasis='strong'
         disabled={
@@ -477,12 +467,13 @@ export function DateRangePicker({
           data-slot='date-range-picker-popup'
           className={cn(
             'grid gap-4',
-            presets.length > 0 && 'sm:grid-cols-[auto_minmax(0,1fr)]'
+            presets.length > 0 && !drawer && 'sm:grid-cols-[auto_minmax(0,1fr)]'
           )}
         >
           {presets.length > 0 && (
             <PresetList
               presets={presets}
+              beside={!drawer}
               pressed={pressed}
               locale={locale}
               disabled={locked}
