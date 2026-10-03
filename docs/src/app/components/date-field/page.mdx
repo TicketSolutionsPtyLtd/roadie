@@ -38,7 +38,7 @@ render(<Default />)
 
 ### Variants
 
-`dateStyle` sets how the date reads when the field isn't being edited, using the [date and time](/foundations/date-and-time) styles. `long` is the default. With another `locale`, the field shows and reads back that locale's month and weekday names, and English still types in. Where a locale shows the month as a number, type the date as `1/12` or in English.
+`dateStyle` sets how the date reads when the field isn't being edited, using the [date and time](/foundations/date-and-time) styles. `long` is the default. With another `locale`, the field shows and reads back that locale's month and weekday names, and English types in too. Where a local name matches an English one, the local meaning wins, so in Sesotho "27 Jan" is in June. Where a locale shows the month as a number, type the date as `1/12` or in English.
 
 ```tsx-live
 <div className='grid max-w-64 gap-4'>
