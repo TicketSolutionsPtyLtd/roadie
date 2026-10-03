@@ -28,9 +28,11 @@ export const COMPONENTS: Catalogue = {
     'Navigation',
     'Layout',
     'Actions',
-    'Forms',
-    'Overlays',
+    'Fields',
+    'Choices',
+    'Date and time',
     'Collections',
+    'Overlays',
     'Status',
     'Media & brand',
     'Text'
