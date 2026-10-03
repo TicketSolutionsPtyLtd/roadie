@@ -1,4 +1,4 @@
-import { addMonths, formatDateRange } from '@oztix/roadie-core/datetime'
+import { formatDateRange } from '@oztix/roadie-core/datetime'
 
 import { matchesDate } from '../components/Calendar/matchers'
 import { type ReadDateOptions, formatDate, readDays, todayOf } from './readDate'
@@ -87,7 +87,7 @@ const own = (phrase: string): Candidate => ({
 })
 
 function hints(today: string): Candidate[] {
-  const nextMonth = Number(addMonths(today, 1).slice(5, 7))
+  const nextMonth = (Number(today.slice(5, 7)) % 12) + 1
   return [
     'today',
     'tomorrow',

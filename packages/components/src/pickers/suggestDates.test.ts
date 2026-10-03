@@ -56,6 +56,13 @@ describe('suggestDates: hints for an empty field', () => {
     ])
   })
 
+  it('keeps the other hints when next month is past year 9999', () => {
+    expect(dates('', { today: '9999-12-01' })[0]).toEqual([
+      'Today',
+      '9999-12-01'
+    ])
+  })
+
   it('treats spaces alone as empty', () => {
     expect(dates('   ')).toEqual(dates(''))
   })

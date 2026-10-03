@@ -312,8 +312,20 @@ function dateAhead(today: string, count: string, unit: string): string | null {
   return null
 }
 
-function endOf(period: string, today: string, weekStart: number): string {
-  if (period === 'week') return addDays(startOfWeek(today, weekStart), 6)
+/** The last day of this week, month or year, or null past year 9999. */
+function endOf(
+  period: string,
+  today: string,
+  weekStart: number
+): string | null {
+  if (period === 'week') {
+    const start = startOfWeek(today, weekStart)
+    try {
+      return addDays(start, 6)
+    } catch {
+      return null
+    }
+  }
   const { year, month } = plainDateParts(today)
   if (period === 'year') return toPlainDate(year, 12, 31)
   return toPlainDate(year, month, daysInMonth(year, month))
@@ -401,7 +413,10 @@ export function parseDatePhrase(
     return date ? [on(date)] : []
   }
   m = /^end of (?:the )?(week|month|year)$/.exec(input)
-  if (m) return [on(endOf(m[1]!, today, weekStart))]
+  if (m) {
+    const date = endOf(m[1]!, today, weekStart)
+    return date ? [on(date)] : []
+  }
 
   m = /^(?:(this|next|last) )?([a-z]+)$/.exec(input)
   const weekday = m ? nameIndex(WEEKDAYS, m[2]!) : null

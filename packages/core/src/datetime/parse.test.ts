@@ -194,6 +194,14 @@ describe('parseDatePhrase: in and end of', () => {
     })
   })
 
+  it('offers no end of week past year 9999', () => {
+    const last = { now: new Date('9999-12-31T12:00:00Z'), timeZone: 'UTC' }
+    expect(parseDatePhrase('end of week', last)).toEqual([])
+    expect(parseDatePhrase('end of month', last)[0]?.value).toEqual({
+      on: '9999-12-31'
+    })
+  })
+
   it('ends the week on the day before weekStart', () => {
     expect(
       parseDatePhrase('end of week', { ...SYDNEY, weekStart: 7 })[0]?.value
