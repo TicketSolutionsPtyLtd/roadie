@@ -154,6 +154,14 @@ function filterProblems(
   if (!isFilterable(field)) {
     return [error(`${path}.field`, `"${field.label}" is not filterable`)]
   }
+  if (field.type === 'date' && field.multiple) {
+    return [
+      error(
+        `${path}.field`,
+        `"${field.label}" holds a list of dates, which filters cannot read yet`
+      )
+    ]
+  }
   const operators = recordFilterOperators(field)
   if (!operators.includes(filter.operator)) {
     return [

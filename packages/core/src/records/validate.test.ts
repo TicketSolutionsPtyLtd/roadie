@@ -244,6 +244,27 @@ describe('validateRecordView', () => {
     expect(errors(view([filter]))[0]!.path).toBe(path)
   })
 
+  it('rejects filtering a date field that holds a list', () => {
+    const fields = [
+      ...eventFields,
+      {
+        key: 'sessions',
+        label: 'Sessions',
+        type: 'date' as const,
+        multiple: true
+      }
+    ]
+    expect(
+      validateRecordView(
+        view([{ field: 'sessions', operator: 'within', value: 'today' }]),
+        fields
+      ).problems[0]
+    ).toMatchObject({
+      path: 'query.filters[0].field',
+      message: '"Sessions" holds a list of dates, which filters cannot read yet'
+    })
+  })
+
   it('rejects a filter missing its value', () => {
     expect(errors(view([{ field: 'capacity', operator: 'eq' }]))[0]!.path).toBe(
       'query.filters[0].value'

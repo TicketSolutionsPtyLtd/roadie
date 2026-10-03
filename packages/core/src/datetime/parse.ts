@@ -403,7 +403,18 @@ export function parseDatePhrase(
 
   if (input.length < 2) return []
   const seen = new Set<string>()
-  return PHRASES.filter(([words]) => words.startsWith(input))
+  const completions = PHRASES.filter(([words]) => words.startsWith(input))
     .map(([, value]) => describe(value))
     .filter(({ label }) => !seen.has(label) && seen.add(label))
+  for (const suggestion of completions) COMPLETIONS.add(suggestion)
+  return completions
+}
+
+const COMPLETIONS = new WeakSet<DatePhraseSuggestion>()
+
+/** Whether a suggestion finishes a phrase from its first letters, like "ongo". */
+export function isDatePhraseCompletion(
+  suggestion: DatePhraseSuggestion
+): boolean {
+  return COMPLETIONS.has(suggestion)
 }

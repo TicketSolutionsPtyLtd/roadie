@@ -86,6 +86,15 @@ export const eventFields: RecordField[] = [
     ]
   },
   {
+    key: 'city',
+    label: 'City',
+    type: 'option',
+    options: [
+      { value: 'melbourne', label: 'Melbourne' },
+      { value: 'sydney', label: 'Sydney' }
+    ]
+  },
+  {
     key: 'offer',
     label: 'Availability',
     type: 'option',

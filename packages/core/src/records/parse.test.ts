@@ -290,4 +290,14 @@ describe('parseQuery', () => {
       expect(parse(text)).toEqual([])
     }
   )
+
+  it('completes a phrase whose label differs from its words only at the end', () => {
+    expect(parse('ongo melb').map((s) => s.label)).not.toContain(
+      'Starts: Happening now'
+    )
+    const [ongoing] = parse('ongo')
+    const [exact] = parse('ongoing')
+    expect(ongoing!.label).toBe('Starts: Happening now')
+    expect(ongoing!.score).toBeLessThan(exact!.score)
+  })
 })

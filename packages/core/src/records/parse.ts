@@ -1,5 +1,9 @@
 import { describeDateRange } from '../datetime/describe'
-import { type DatePhraseValue, parseDatePhrase } from '../datetime/parse'
+import {
+  type DatePhraseValue,
+  isDatePhraseCompletion,
+  parseDatePhrase
+} from '../datetime/parse'
 import type { DateRangeValue } from '../datetime/ranges'
 import { encodeFilter } from './encoding'
 import { isFilterable, momentOf, recordFieldOptions } from './fields'
@@ -207,12 +211,7 @@ function dateReadings(
       if (!filter) return []
       const range = phraseRange(phrase.value)
       const detail = range && describeDateRange(range, options).detail
-      const words = phrase.label.toLowerCase()
-      const completed =
-        range !== null &&
-        !(typeof range === 'object' && 'start' in range) &&
-        words !== text &&
-        words.startsWith(text)
+      const completed = isDatePhraseCompletion(phrase)
       return [
         {
           filter,
