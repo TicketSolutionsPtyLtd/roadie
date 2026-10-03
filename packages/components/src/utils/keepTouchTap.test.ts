@@ -13,7 +13,7 @@ const detailsFor = (reason: string): Details => ({
   }
 })
 
-function touch(element: Element, type: 'down' | 'cancel') {
+function touch(element: Element, type: 'down' | 'up' | 'cancel') {
   const handlers = keepTouchTap({})
   const event = {
     pointerType: 'touch',
@@ -24,10 +24,28 @@ function touch(element: Element, type: 'down' | 'cancel') {
     preventBaseUIHandler: () => {}
   } as unknown as Parameters<typeof handlers.onPointerDownCapture>[0]
   if (type === 'down') handlers.onPointerDownCapture(event)
+  else if (type === 'up') handlers.onPointerUp(event)
   else handlers.onPointerCancel(event)
 }
 
 describe('useHeldOpen', () => {
+  it("doesn't close twice when the lift's choice already closed it", () => {
+    const onOpenChange = vi.fn()
+    const { result } = renderHook(() =>
+      useHeldOpen<Details>(undefined, true, onOpenChange)
+    )
+    const option = document.createElement('div')
+    touch(option, 'down')
+    act(() => result.current[1](false, detailsFor('focus-out')))
+    // The lift's choice closes the list, then the press ends.
+    option.addEventListener('click', () =>
+      result.current[1](false, detailsFor('item-press'))
+    )
+    act(() => touch(option, 'up'))
+    expect(onOpenChange).toHaveBeenCalledTimes(1)
+    expect(onOpenChange.mock.calls[0]![1].reason).toBe('item-press')
+  })
+
   it('closes after a held finger lets go, as an accepted close', () => {
     const onOpenChange = vi.fn()
     const { result } = renderHook(() =>

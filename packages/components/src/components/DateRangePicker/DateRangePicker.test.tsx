@@ -1213,6 +1213,23 @@ describe('DateRangePicker aiming a tap on a phone', { timeout: 15_000 }, () => {
     expect(clear).toBeDisabled()
   })
 
+  it('turns the periods off when read-only and opened anyway', async () => {
+    onPhone()
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        readOnly
+        open
+        defaultValue='today'
+      />
+    )
+    const dialog = await screen.findByRole('dialog')
+    expect(
+      within(dialog).getByRole('button', { name: /^Yesterday/ })
+    ).toBeDisabled()
+  })
+
   it('changes nothing when read-only and opened anyway', async () => {
     onPhone()
     const onValueChange = vi.fn()

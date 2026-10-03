@@ -545,6 +545,7 @@ export function ExtendedDateRangePicker({
                 onChoose={choosePreset}
                 context={context}
                 locale={locale}
+                disabled={locked}
               />
             </Tabs.Panel>
             <Tabs.Panel value='calendar'>{calendarView}</Tabs.Panel>

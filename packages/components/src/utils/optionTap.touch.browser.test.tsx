@@ -22,6 +22,7 @@ import { Drawer } from '../components/Drawer'
 import { Menu } from '../components/Menu'
 import { useStylesheet } from '../components/Pane/testUtils'
 import { Select } from '../components/Select'
+import { tapOn } from './touchTestUtils'
 
 const TIMEOUT = { timeout: 20_000 }
 const VENUES = ['Kazoo Hollow Room', 'Lighthouse Fig Lawn', 'Opal Harpoon Room']
@@ -35,22 +36,6 @@ afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
 const settle = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
-
-type Spot = 'text' | 'far right' | 'top padding'
-
-// Waits out a popup's scale-in, so the tap lands where the row ends up.
-async function tapOn(element: Element, spot: Spot = 'text') {
-  await settle(300)
-  const { left, top, right, width, height } = element.getBoundingClientRect()
-  const [x, y] =
-    spot === 'far right'
-      ? [right - 4, top + height / 2]
-      : spot === 'top padding'
-        ? [left + width / 2, top + 2]
-        : [left + Math.min(20, width / 2), top + height / 2]
-  await commands.tap(x, y)
-  await settle(200)
-}
 
 function InDrawer({ children }: { children: React.ReactNode }) {
   return (

@@ -8,6 +8,7 @@ import type { DateRangeValue } from '@oztix/roadie-core/datetime'
 
 import { DateRangePicker } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { tapOn as tapAt } from '../../utils/touchTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 
 const TIMEOUT = { timeout: 20_000 }
@@ -27,12 +28,7 @@ const day = (date: string) =>
     `[data-slot="calendar"] button[data-date="${date}"]:not([data-outside])`
   )!
 
-async function tapOn(element: Element) {
-  await settle()
-  const { left, top, width, height } = box(element)
-  await commands.tap(left + width / 2, top + height / 2)
-  await settle(200)
-}
+const tapOn = (element: Element) => tapAt(element, 'centre')
 
 function Period() {
   const [value, setValue] = useState<DateRangeValue | null>(null)
@@ -109,9 +105,15 @@ describe('DateRangePicker tapped on a phone', TIMEOUT, () => {
     await settle(600)
     await tapOn(within(drawer).getByRole('tab', { name: 'Calendar' }))
     await settle(600)
-    const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')!
-    const september = drawer.querySelector('[data-month="2026-09-01"]')!
-    expect(Math.abs(box(september).top - box(weekdays).bottom)).toBeLessThan(2)
+    await expect
+      .poll(() => {
+        const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')
+        const september = drawer.querySelector('[data-month="2026-09-01"]')
+        return weekdays && september
+          ? Math.abs(box(september).top - box(weekdays).bottom)
+          : Infinity
+      })
+      .toBeLessThan(2)
   })
 
   it('ends a range in a month scrolled to', async () => {

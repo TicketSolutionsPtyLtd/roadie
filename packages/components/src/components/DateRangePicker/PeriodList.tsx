@@ -19,6 +19,7 @@ export type PeriodListProps = {
   onChoose: (preset: DateRangePreset) => void
   context: RangeContext
   locale?: string
+  disabled?: boolean
 }
 
 /** A drawer's presets: one row each, its dates beside it, in their groups. */
@@ -27,7 +28,8 @@ export function PeriodList({
   chosen,
   onChoose,
   context,
-  locale
+  locale,
+  disabled
 }: PeriodListProps) {
   const row = (preset: DateRangePreset) => {
     const current = chosen === preset
@@ -61,17 +63,20 @@ export function PeriodList({
   }
 
   return (
-    <List aria-label='Periods' data-slot='date-range-picker-periods'>
-      {groupPresets(presets).map(({ group, presets: list }) =>
-        group === undefined ? (
-          list.map(row)
-        ) : (
-          <List.Group key={group}>
-            <List.GroupTitle render={<h3 />}>{group}</List.GroupTitle>
-            {list.map(row)}
-          </List.Group>
-        )
-      )}
-    </List>
+    // A disabled fieldset turns off every row's button at once.
+    <fieldset disabled={disabled} className='contents'>
+      <List aria-label='Periods' data-slot='date-range-picker-periods'>
+        {groupPresets(presets).map(({ group, presets: list }) =>
+          group === undefined ? (
+            list.map(row)
+          ) : (
+            <List.Group key={group}>
+              <List.GroupTitle render={<h3 />}>{group}</List.GroupTitle>
+              {list.map(row)}
+            </List.Group>
+          )
+        )}
+      </List>
+    </fieldset>
   )
 }
