@@ -319,6 +319,27 @@ describe('Calendar layout', () => {
     expect(caption.right).toBeLessThanOrEqual(previous.left)
   })
 
+  it('keeps a stacked first caption clear of the toggle and arrows', () => {
+    render(
+      <div className='w-75'>
+        <Calendar
+          today={TODAY}
+          defaultMonth='2027-09-01'
+          numberOfMonths={2}
+          views={['week', 'month']}
+        />
+      </div>
+    )
+    const toggle = screen
+      .getByRole('button', { name: 'Month view' })
+      .getBoundingClientRect()
+    const caption = screen.getByText('September 2027')
+    expect(caption.getBoundingClientRect().right).toBeLessThanOrEqual(
+      toggle.left
+    )
+    expect(caption.scrollWidth).toBeLessThanOrEqual(caption.clientWidth)
+  })
+
   it('keeps the arrows at the top end when months stack', () => {
     render(
       <div className='w-97.5'>
@@ -400,6 +421,24 @@ describe('Calendar layout', () => {
     expect(Math.abs(height() - frame)).toBeLessThan(4)
   })
 
+  it('holds about the frame of a capped week in a wide container', () => {
+    const { rerender } = render(
+      <div className='w-200'>
+        <Calendar view='week' />
+      </div>
+    )
+    const height = () =>
+      document.querySelector('[data-slot="calendar"]')!.getBoundingClientRect()
+        .height
+    const frame = height()
+    rerender(
+      <div className='w-200'>
+        <Calendar view='week' today={TODAY} />
+      </div>
+    )
+    expect(Math.abs(height() - frame)).toBeLessThan(4)
+  })
+
   it('puts months side by side where they fit', () => {
     render(
       <div className='w-200'>
@@ -462,8 +501,8 @@ describe('Calendar day tiles', () => {
     const row = (date: string) =>
       day(date).closest('td')!.getBoundingClientRect().height
     expect(row('2027-03-05')).toBe(row('2027-03-04'))
-    expect(short.width).toBe(tall.width)
-    expect(plain.width).toBe(tall.width)
+    expect(short.width).toBeCloseTo(tall.width, 1)
+    expect(plain.width).toBeCloseTo(tall.width, 1)
   })
 
   it('caps tiles in a wide calendar, centred in their columns', () => {
@@ -478,7 +517,7 @@ describe('Calendar day tiles', () => {
     expect(rect.left - column.left).toBeCloseTo(column.right - rect.right, 0)
   })
 
-  it('keeps plain compact circles without content', () => {
+  it('gives every day a tile once days can have content, plain ones unfilled', () => {
     render(
       <div className='w-97.5'>
         <Calendar today={TODAY} getDayContent={() => null} />

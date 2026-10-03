@@ -95,7 +95,9 @@ type CalendarBaseProps = Omit<
   layout?: 'paged' | 'scroll'
   /**
    * The way a paged calendar turns: its arrows point this way and a finger
-   * swipes this way. `layout='scroll'` always runs down the page.
+   * swipes this way. Vertical takes up and down swipes over the days, so the
+   * page can't be scrolled from there. `layout='scroll'` always runs down the
+   * page.
    *
    * @default 'horizontal'
    */
@@ -108,7 +110,11 @@ type CalendarBaseProps = Omit<
    * @default 'month'
    */
   view?: 'month' | 'week'
-  /** The view shown first when uncontrolled. */
+  /**
+   * The view shown first when uncontrolled.
+   *
+   * @default 'month', or the first of `views` when it leaves month out
+   */
   defaultView?: 'month' | 'week'
   /** Called with the new view when the reader switches it. */
   onViewChange?: (view: 'month' | 'week') => void
@@ -119,8 +125,9 @@ type CalendarBaseProps = Omit<
   views?: readonly ('month' | 'week')[]
   /**
    * Extra content under a day's number, such as a price or a status mark.
-   * Return null for a plain day. Days become tiles that grow to fit, and the
-   * content describes the day to screen readers. A disabled day with content
+   * Return null, not an empty element, for a plain day. Every day becomes a
+   * tile so the columns line up, and tiles grow to fit. Content fills its
+   * tile and describes the day to screen readers. A disabled day with content
    * is struck through.
    */
   getDayContent?: (date: string) => ReactNode
@@ -318,7 +325,7 @@ export function Calendar(props: CalendarProps) {
     layout = 'paged',
     direction = 'horizontal',
     view: viewProp,
-    defaultView = 'month',
+    defaultView: defaultViewProp,
     onViewChange,
     views,
     getDayContent,
@@ -346,7 +353,11 @@ export function Calendar(props: CalendarProps) {
   useSurface(weekdaysRef, layout)
   const scrolling = layout === 'scroll'
   const captionLayout = scrolling ? 'label' : captionLayoutProp
-  const [uncontrolledView, setUncontrolledView] = useState(defaultView)
+  const [uncontrolledView, setUncontrolledView] = useState(
+    () =>
+      defaultViewProp ??
+      (views?.length && !views.includes('month') ? views[0]! : 'month')
+  )
   const view = viewProp ?? uncontrolledView
   const weekView = view === 'week' && !scrolling
   const showViewToggle =
@@ -540,6 +551,8 @@ export function Calendar(props: CalendarProps) {
   function changeView(next: CalendarView) {
     if (next === view) return
     setPendingFocus(null)
+    // Back in week view, the week follows the focus or selection, not an old turn.
+    setNavigatedWeek(null)
     if (viewProp === undefined) setUncontrolledView(next)
     onViewChange?.(next)
   }
@@ -596,21 +609,23 @@ export function Calendar(props: CalendarProps) {
     mode,
     selectionKey,
     selection,
-    month: shownMonthKey
+    month: shownMonthKey,
+    weekView
   })
   if (
     heard.mode !== mode ||
     heard.selectionKey !== selectionKey ||
-    heard.month !== shownMonthKey
+    heard.month !== shownMonthKey ||
+    heard.weekView !== weekView
   ) {
     const messages = []
     // A scrolled list is read as it scrolls; its months aren't announced.
     if (
       !scrolling &&
-      chosenMonth &&
       heard.month &&
       shownMonthKey &&
-      heard.month !== shownMonthKey
+      (heard.weekView !== weekView ||
+        (chosenMonth && heard.month !== shownMonthKey))
     )
       messages.push(
         weekView
@@ -622,7 +637,7 @@ export function Calendar(props: CalendarProps) {
       heard.selectionKey !== selectionKey &&
       describeSelection(heard.selection, selection)
     if (selectionMessage) messages.push(selectionMessage)
-    setHeard({ mode, selectionKey, selection, month: shownMonthKey })
+    setHeard({ mode, selectionKey, selection, month: shownMonthKey, weekView })
     if (messages.length) setAnnouncement(messages.join('. '))
   }
 
@@ -1002,7 +1017,7 @@ export function Calendar(props: CalendarProps) {
       column === 6 || (!showOutsideDays && date === lastDayOf(month))
     const content = getDayContent?.(date)
     const hasContent = content != null && content !== false && content !== ''
-    const contentId = hasContent ? `${id}-content-${date}` : undefined
+    const contentId = hasContent ? `${id}-content-${month}-${date}` : undefined
     const look =
       rangeStart || rangeEnd || (mode !== 'range' && selected)
         ? 'chosen'
@@ -1129,16 +1144,31 @@ export function Calendar(props: CalendarProps) {
     <span key={weekday.long}>{weekday.short}</span>
   ))
 
-  const inlineNav = !scrolling && (numberOfMonths === 1 || showViewToggle)
+  const inlineNav = !scrolling && numberOfMonths === 1
   const unit = weekView ? 'week' : 'month'
   const PreviousIcon = vertical ? CaretUpIcon : CaretLeftIcon
   const NextIcon = vertical ? CaretDownIcon : CaretRightIcon
   const arrowClass = cn('size-4', !vertical && 'rtl:-scale-x-100')
+  const viewToggle = showViewToggle && (
+    <Toggle
+      size='sm'
+      emphasis='subtler'
+      aria-label='Month view'
+      pressed={view === 'month'}
+      onPressedChange={(pressed) => changeView(pressed ? 'month' : 'week')}
+    >
+      <CalendarDotsIcon weight='bold' className='size-4' />
+    </Toggle>
+  )
   const nav = (
     <div
       data-slot='calendar-nav'
-      className={cn('flex gap-1', !inlineNav && 'absolute end-0 top-0')}
+      className={cn(
+        'flex gap-1',
+        inlineNav ? 'ms-auto' : 'absolute end-0 top-0'
+      )}
     >
+      {!inlineNav && viewToggle}
       <IconButton
         emphasis='subtler'
         size='sm'
@@ -1169,29 +1199,15 @@ export function Calendar(props: CalendarProps) {
         {weekCaption(shownWeek, addDays(shownWeek, 6), locale)}
       </div>
     )
-  ) : numberOfMonths === 1 ? (
-    renderCaption(firstMonth, 0)
   ) : (
-    <div className='truncate text-sm font-semibold text-strong'>
-      {monthsLabel(firstMonth)}
-    </div>
+    renderCaption(firstMonth, 0)
   )
 
   const header = (
     <div data-slot='calendar-header' className='flex h-8 items-center gap-2'>
       <div className='min-w-0'>{headerCaption}</div>
-      {showViewToggle && (
-        <Toggle
-          size='sm'
-          emphasis='subtler'
-          aria-label='Month view'
-          pressed={view === 'month'}
-          onPressedChange={(pressed) => changeView(pressed ? 'month' : 'week')}
-        >
-          <CalendarDotsIcon weight='bold' className='size-4' />
-        </Toggle>
-      )}
-      <div className='ms-auto'>{nav}</div>
+      {viewToggle}
+      {nav}
     </div>
   )
 
@@ -1204,11 +1220,11 @@ export function Calendar(props: CalendarProps) {
           aria-hidden='true'
           className='@container min-w-70 flex-[1_1_--spacing(70)]'
         >
-          {/* The days as wide as the month allows, with its caption and weekdays. */}
+          {/* Estimated, so the page doesn't jump when the client fills it in. */}
           <div
             className={
               weekView
-                ? 'h-[calc((100cqi/7-var(--spacing))*1.25+--spacing(22))]'
+                ? 'h-[calc(min(100cqi/7-var(--spacing),--spacing(20))*1.25+--spacing(22))]'
                 : 'h-[calc(min(100cqi/7,--spacing(12))*6+--spacing(22))]'
             }
           />
@@ -1224,7 +1240,13 @@ export function Calendar(props: CalendarProps) {
           className='grid min-w-70 flex-[1_1_--spacing(70)] content-start gap-2 [contain:inline-size]'
         >
           {!inlineNav && (
-            <div className={cn('grid h-8 items-center', !scrolling && 'pe-17')}>
+            <div
+              className={cn(
+                'grid h-8 items-center',
+                // Clear of the arrows, which sit over whichever month is top right.
+                !scrolling && (showViewToggle ? 'pe-26' : 'pe-17')
+              )}
+            >
               {renderCaption(month, index)}
             </div>
           )}
@@ -1342,8 +1364,8 @@ export function Calendar(props: CalendarProps) {
             data-slot='calendar-months'
             className='relative flex flex-wrap gap-x-6 gap-y-4'
           >
-            {!inlineNav && !waitingForToday && nav}
             {monthsShown}
+            {!inlineNav && !waitingForToday && nav}
           </div>
         </>
       )}

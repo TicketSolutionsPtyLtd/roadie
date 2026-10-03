@@ -61,7 +61,8 @@ export function useSwipeToTurn(
     }
     let gesture: Gesture | null = null
     let settling = false
-    let swipedAt = -Infinity
+    let disposed = false
+    let suppressClickUntil = -Infinity
     const running: Animation[] = []
 
     const grids = () => Array.from(root.querySelectorAll<HTMLElement>(GRIDS))
@@ -101,17 +102,19 @@ export function useSwipeToTurn(
       settling = false
     }
 
-    async function settle(along: number, step: SwipeStep | null) {
+    async function settle(along: number, size: number, step: SwipeStep | null) {
       settling = true
       const still = prefersReducedMotion()
       if (step) {
-        const out = Math.sign(along) * gesture!.size
+        const out = Math.sign(along) * size
         if (!still) await slide(along, out, OUT_MS, 'ease-in')
-        if (!root!.isConnected) return finish()
+        // Torn down mid-slide, such as by the calendar being disabled.
+        if (disposed || !root!.isConnected) return
         flushSync(() => latest.current.turn(step))
         place(0)
         stopAnimations()
         if (!still) await slide(-out, 0, IN_MS, 'ease-out')
+        if (disposed) return
       } else if (!still && along) {
         place(0)
         await slide(along, 0, IN_MS, 'ease-out')
@@ -120,7 +123,10 @@ export function useSwipeToTurn(
     }
 
     const onPointerDown = (event: PointerEvent) => {
+      suppressClickUntil = -Infinity
       if (event.pointerType === 'mouse' || !event.isPrimary || settling) return
+      // Headers, selects and toggles keep their own gestures.
+      if (!(event.target as Element).closest(GRIDS)) return
       gesture = {
         id: event.pointerId,
         x: event.clientX,
@@ -159,12 +165,14 @@ export function useSwipeToTurn(
 
     const onPointerUp = (event: PointerEvent) => {
       if (!gesture || event.pointerId !== gesture.id) return
-      const { engaged, along, samples, size } = gesture
+      const { engaged, samples, size } = gesture
+      const along = gesture.along
       if (!engaged) {
         gesture = null
         return
       }
-      swipedAt = performance.now()
+      gesture = null
+      suppressClickUntil = performance.now() + CLICK_AFTER_SWIPE_MS
       const first = samples[0]
       const last = samples[samples.length - 1]
       const speed =
@@ -178,19 +186,19 @@ export function useSwipeToTurn(
         Math.abs(speed) > FLICK &&
         Math.sign(speed) === Math.sign(along)
       const turns = (far || flicked) && latest.current.canTurn(step)
-      void settle(gesture.along, turns ? step : null).finally(() => {
-        gesture = null
-      })
+      void settle(along, size, turns ? step : null)
     }
 
     const onPointerCancel = (event: PointerEvent) => {
       if (!gesture || event.pointerId !== gesture.id) return
-      if (gesture.engaged) void settle(gesture.along, null)
+      if (gesture.engaged) void settle(gesture.along, gesture.size, null)
       gesture = null
     }
 
+    // Only the click the lifted finger fires; a keyboard click has no detail.
     const onClick = (event: MouseEvent) => {
-      if (performance.now() - swipedAt > CLICK_AFTER_SWIPE_MS) return
+      if (event.detail === 0 || performance.now() > suppressClickUntil) return
+      suppressClickUntil = -Infinity
       event.preventDefault()
       event.stopPropagation()
     }
@@ -201,6 +209,7 @@ export function useSwipeToTurn(
     root.addEventListener('pointercancel', onPointerCancel)
     root.addEventListener('click', onClick, true)
     return () => {
+      disposed = true
       root.removeEventListener('pointerdown', onPointerDown)
       root.removeEventListener('pointermove', onPointerMove)
       root.removeEventListener('pointerup', onPointerUp)

@@ -1057,6 +1057,86 @@ describe('Calendar week view', () => {
     ).toEqual(['Month view', 'Previous month', 'Next month'])
   })
 
+  it('names every month and keeps the toggle beside the arrows with several months', () => {
+    render(
+      <Calendar today={TODAY} numberOfMonths={2} views={['week', 'month']} />
+    )
+    expect(
+      screen.getAllByRole('grid').map((g) => g.textContent && g)
+    ).toHaveLength(2)
+    const [march, april] = screen.getAllByRole('grid')
+    expect(march).toHaveAccessibleName('March 2027')
+    expect(april).toHaveAccessibleName('April 2027')
+    const nav = document.querySelector<HTMLElement>(
+      '[data-slot="calendar-nav"]'
+    )!
+    expect(
+      within(nav)
+        .getAllByRole('button')
+        .map((b) => b.ariaLabel)
+    ).toEqual(['Month view', 'Previous month', 'Next month'])
+  })
+
+  it('gives each day its own content id when a date shows twice', () => {
+    render(
+      <Calendar
+        today={TODAY}
+        numberOfMonths={2}
+        showOutsideDays
+        getDayContent={() => '$29'}
+      />
+    )
+    const ids = Array.from(
+      document.querySelectorAll('[data-slot="calendar-day-content"]'),
+      (node) => node.id
+    )
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('puts the arrows after the month selects in the tab order', () => {
+    render(
+      <Calendar today={TODAY} numberOfMonths={2} captionLayout='dropdown' />
+    )
+    const order = Array.from(
+      document.querySelectorAll('select, button[aria-label$="month"]'),
+      (node) => node.getAttribute('aria-label')
+    )
+    expect(order.slice(-2)).toEqual(['Previous month', 'Next month'])
+  })
+
+  it('returns to the week of the chosen day after paging months', async () => {
+    render(
+      <Calendar today={TODAY} defaultView='week' views={['week', 'month']} />
+    )
+    const toggle = screen.getByRole('button', { name: 'Month view' })
+    for (let i = 0; i < 3; i++)
+      await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    await userEvent.click(toggle)
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    await userEvent.click(day('2027-04-20'))
+    await userEvent.click(toggle)
+    expect(shownDays()).toContain('2027-04-20')
+  })
+
+  it('announces what a view switch shows', async () => {
+    render(
+      <Calendar
+        today='2027-06-02'
+        defaultView='week'
+        views={['week', 'month']}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Month view' }))
+    expect(live()).toHaveTextContent('June 2027')
+    await userEvent.click(screen.getByRole('button', { name: 'Month view' }))
+    expect(live()).toHaveTextContent('Monday, 31 May to Sunday, 6 June 2027')
+  })
+
+  it('opens on the only view listed', () => {
+    render(<Calendar today={TODAY} views={['week']} />)
+    expect(shownDays()).toHaveLength(7)
+  })
+
   it('follows a controlled view', async () => {
     render(<Calendar today={TODAY} view='month' views={['week', 'month']} />)
     await userEvent.click(screen.getByRole('button', { name: 'Month view' }))

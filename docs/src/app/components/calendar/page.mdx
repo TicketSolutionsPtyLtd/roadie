@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Calendar',
-  description: 'A month grid for choosing a date, several dates or a range',
+  description: 'A month or week grid for choosing a date, several dates or a range',
   status: 'beta',
   category: 'Date and time',
 }
@@ -8,7 +8,7 @@ export const metadata = {
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
 
-A month grid for choosing a date, several dates or a range.
+A month or week grid for choosing a date, several dates or a range.
 
 ## Import
 
@@ -155,7 +155,7 @@ render(
 
 ### With vertical paging
 
-`direction='vertical'` turns the months up and down: the arrows point up and down, and a finger swipes up for the next month. The days still scroll the page sideways only, so use it where the calendar has the screen to itself. For one continuous list of months, use `layout='scroll'` instead.
+`direction='vertical'` turns the months up and down: the arrows point up and down, and a finger swipes up for the next month. Over the days, a finger no longer scrolls the page up and down, so use it only where the calendar has the screen to itself. For one continuous list of months, use `layout='scroll'` instead.
 
 ```tsx-live
 <Calendar direction='vertical' defaultMonth='2026-11-01' />
@@ -187,7 +187,7 @@ render(<Week />)
 
 ### With day content
 
-`getDayContent` adds content under a day's number, such as a price or how many sessions are left, in the month and the week alike. Return null for a plain day. Days become tiles that grow to fit, so a long line wraps rather than spills. A disabled day with content is struck through, so here sold-out nights read as unavailable while nights outside the run stay plain. The content describes the day to screen readers, so give a mark like a dot some words too.
+`getDayContent` adds content under a day's number, such as a price or how many sessions are left, in the month and the week alike. Return null for a plain day, not an empty element. Every day becomes a tile so the columns line up, days with content are filled, and tiles grow to fit, so a long line wraps rather than spills. Tiles stay up to 64px wide, or 80px in a week. A disabled day with content is struck through, so here sold-out nights read as unavailable while nights outside the run stay plain. The content describes the day to screen readers, so give a mark like a dot some words too.
 
 ```tsx-live-noinline
 const nights = {
@@ -251,7 +251,7 @@ render(<Sessions />)
 
 ## Guidelines
 
-- **It fills its container.** The seven columns share the width, each day stays a circle up to 48px across in the middle of its column, and a range's band runs from edge to edge. In a popover, it takes 280px a month. Set the width on the container, not the calendar.
+- **It fills its container.** The seven columns share the width, each day stays a circle up to 48px across, or a tile up to 64px with `getDayContent`, in the middle of its column, and a range's band runs from edge to edge. In a popover, it takes 280px a month. Set the width on the container, not the calendar.
 
 <div className='grid gap-8'>
 
@@ -278,7 +278,7 @@ render(<Sessions />)
     Pair a mark, such as a dot for each session left, with hidden text like "2 sessions left". The content describes the day to screen readers.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't put content in every day to make the calendar look full. Plain compact days are the default, and tiles are for days that have something to say.
+    Don't put content in every day to make the calendar look full. Without `getDayContent`, days stay compact circles, and filled tiles are for days that have something to say.
   </Guideline.Dont>
 </Guideline>
 

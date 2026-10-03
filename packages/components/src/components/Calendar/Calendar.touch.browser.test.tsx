@@ -96,6 +96,34 @@ describe('Calendar swiped on a phone', TIMEOUT, () => {
     expect(onSelect).toHaveBeenLastCalledWith('2027-03-17')
   })
 
+  it('chooses a day tapped straight after a short drag', async ({ skip }) => {
+    if (!navigator.userAgent.includes('Chrome')) skip()
+    const onSelect = vi.fn()
+    render(<Paged onSelect={onSelect} />)
+    const box = grid()
+    const x = box.left + box.width / 2
+    const y = box.top + box.height / 2
+    await commands.swipe({ x, y }, { x: x - 20, y })
+    await tapOn(day('2027-03-17'), 'centre')
+    expect(onSelect).toHaveBeenLastCalledWith('2027-03-17')
+  })
+
+  it('turns only when the swipe starts on the days', async ({ skip }) => {
+    if (!navigator.userAgent.includes('Chrome')) skip()
+    render(<Paged />)
+    const header = document
+      .querySelector('[data-slot="calendar-header"]')!
+      .getBoundingClientRect()
+    const y = header.top + header.height / 2
+    await commands.swipe({ x: header.left + 40, y }, { x: header.left + 10, y })
+    await commands.swipe(
+      { x: header.left + 200, y },
+      { x: header.left + 40, y }
+    )
+    await settle()
+    expect(caption()).toContain('March 2027')
+  })
+
   it('swipes the other way in a right-to-left page', async ({ skip }) => {
     if (!navigator.userAgent.includes('Chrome')) skip()
     render(
