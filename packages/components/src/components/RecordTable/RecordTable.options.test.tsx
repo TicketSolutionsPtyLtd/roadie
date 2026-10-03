@@ -371,30 +371,6 @@ describe('Records.Options', () => {
       ).toHaveFocus()
     })
 
-    it('moves a column by keyboard and keeps focus on its handle', async () => {
-      render(
-        <RecordTable
-          data={testShows(5)}
-          fields={showFields}
-          columns={showColumns}
-        />
-      )
-      const { user, panel } = await openOptions()
-      within(panel).getByRole('button', { name: 'Reorder Gross' }).focus()
-      await user.keyboard('{Enter}')
-      await screen.findByRole('menuitem', { name: 'Move Gross to top' })
-      await user.keyboard('{ArrowDown}{ArrowDown}{Enter}')
-      expect(headers()).toEqual(['Show', 'Gross', 'City', 'Sold'])
-      await waitFor(() =>
-        expect(
-          within(panel).getByRole('button', { name: 'Reorder Gross' })
-        ).toHaveFocus()
-      )
-      expect(screen.getByRole('dialog', { name: 'Configure table' })).toBe(
-        panel
-      )
-    })
-
     it('returns to the button on Escape', async () => {
       render(
         <RecordTable
@@ -521,6 +497,60 @@ describe('Records.Options', () => {
     expect(
       within(panel).getByRole('button', { name: 'Show Sold' })
     ).toHaveFocus()
+  })
+
+  it('waits for the change even when the parent rebuilds an equal view', async () => {
+    function Rebuilt() {
+      const [layout, setLayout] = useState<RecordView['layout']>({
+        type: 'table'
+      })
+      return (
+        <RecordTable
+          data={testShows(5)}
+          fields={showFields}
+          columns={showColumns}
+          view={{
+            query: {
+              search: '',
+              filters: [],
+              sort: [{ field: 'city', direction: 'ascending' }]
+            },
+            layout
+          }}
+          onViewChange={(next) => setLayout(next.layout)}
+        />
+      )
+    }
+    render(<Rebuilt />)
+    const { user, panel } = await openOptions()
+    await user.click(
+      within(panel).getByRole('button', { name: 'Remove sort by City' })
+    )
+    await user.click(within(panel).getByRole('button', { name: 'Show Sold' }))
+    expect(
+      within(panel).getByRole('button', { name: 'Show Sold' })
+    ).toHaveFocus()
+  })
+
+  it('preloads a lazy layout setting as the button is reached', async () => {
+    const preload = vi.fn()
+    const table = tableLayout(showColumns)
+    const Settings = Object.assign(() => null, { preload })
+    function Preloading() {
+      const records = useRecords({ data: testShows(5), fields: showFields })
+      return (
+        <Records records={records} layouts={[{ ...table, Settings }]}>
+          <Records.Toolbar />
+        </Records>
+      )
+    }
+    render(<Preloading />)
+    const user = userEvent.setup()
+    await user.hover(screen.getByRole('button', { name: 'Configure table' }))
+    expect(preload).toHaveBeenCalled()
+    preload.mockClear()
+    screen.getByRole('button', { name: 'Configure table' }).focus()
+    expect(preload).toHaveBeenCalled()
   })
 
   it("says why the last shown column can't hide", async () => {

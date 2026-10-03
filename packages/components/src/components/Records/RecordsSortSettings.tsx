@@ -21,6 +21,14 @@ import {
 
 const DIRECTIONS: RecordSortDirection[] = ['ascending', 'descending']
 
+// By content: a parent may rebuild an unchanged view on every render.
+const sameSort = (a: readonly RecordSort[], b: readonly RecordSort[]) =>
+  a.length === b.length &&
+  a.every(
+    (level, index) =>
+      level.field === b[index]!.field && level.direction === b[index]!.direction
+  )
+
 type Focus = { part: 'field' | 'remove'; level: number } | { part: 'add' }
 
 /** The view's sort in `Records.Options`: a field and direction per level. */
@@ -60,7 +68,8 @@ export function RecordsSortSettings() {
     const pending = focusNext.current
     const section = sectionRef.current
     // Until the sort changes, the control used is still there.
-    if (!pending || !section || pending.from === records.view.query.sort) return
+    if (!pending || !section || sameSort(pending.from, records.view.query.sort))
+      return
     focusNext.current = null
     const { focus } = pending
     const scope =

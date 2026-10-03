@@ -159,6 +159,35 @@ describe('Records.Options', TIMEOUT, () => {
     ])
   })
 
+  it('moves a column by keyboard inside the popover, keeping focus on its handle', async () => {
+    render(<Shows />)
+    const panel = await open()
+    handle('Gross').focus()
+    await userEvent.keyboard('{Enter}')
+    await expect
+      .poll(() => document.activeElement?.textContent)
+      .toBe('Move Gross up')
+    await userEvent.keyboard('{ArrowDown}')
+    await expect
+      .poll(() => document.activeElement?.textContent)
+      .toBe('Move Gross down')
+    await userEvent.keyboard('{ArrowDown}')
+    await expect
+      .poll(() => document.activeElement?.textContent)
+      .toBe('Move Gross to top')
+    await userEvent.keyboard('{Enter}')
+    expect(headers()).toEqual([
+      'Show',
+      'Gross',
+      'City',
+      'Sold',
+      'Status',
+      'Starts'
+    ])
+    await expect.poll(() => document.activeElement).toBe(handle('Gross'))
+    expect(screen.getByRole('dialog', { name: 'Configure table' })).toBe(panel)
+  })
+
   it('dims a hidden column but keeps its toggle clear', async () => {
     render(<Shows />)
     const panel = await open()

@@ -94,8 +94,10 @@ export function tableColumnsLayout(
   let nextOrder: readonly string[] = settings?.order ?? []
   if (!sameKeys(ordered, keys(orderedColumns(columns, settings?.order)))) {
     const queue = [...ordered]
+    const movable = new Set(defined)
+    // A pinned or repeated key holds no slot.
     const slotted = nextOrder.flatMap((key) =>
-      known.has(key) ? queue.splice(0, 1) : [key]
+      !known.has(key) ? [key] : movable.delete(key) ? queue.splice(0, 1) : []
     )
     const merged = [...slotted, ...queue]
     nextOrder =

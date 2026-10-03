@@ -220,6 +220,22 @@ describe('tableColumnsLayout', () => {
     })
   })
 
+  it('gives pinned and repeated keys no slot', () => {
+    expect(
+      tableColumnsLayout(
+        columns,
+        { order: ['gross', 'city', 'sold'], hidden: [] },
+        {
+          type: 'table',
+          columns: { order: ['show', 'city', 'city', 'fees'] }
+        }
+      )
+    ).toEqual({
+      type: 'table',
+      columns: { order: ['gross', 'fees', 'city', 'sold'] }
+    })
+  })
+
   it('leaves out an order moved back to the definition', () => {
     expect(
       tableColumnsLayout(
