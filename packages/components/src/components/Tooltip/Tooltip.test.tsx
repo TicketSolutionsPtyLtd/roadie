@@ -118,16 +118,14 @@ describe('Tooltip', () => {
     expect(trigger).not.toHaveAttribute('aria-describedby')
   })
 
-  // A tooltip is a strong fill, often with an intent, where a keycap's tint
-  // would dull the label; plain keys read there, as in a menu row.
-  it('shows a shortcut as plain keys after the label', async () => {
+  it('shows a shortcut as keycaps after the label', async () => {
     vi.spyOn(navigator, 'platform', 'get').mockReturnValue('Win32')
     render(
       <Tooltip defaultOpen>
         <Tooltip.Trigger aria-label='Save' aria-keyshortcuts='Control+S'>
           💾
         </Tooltip.Trigger>
-        <Tooltip.Content shortcut={['mod', 's']} className='intent-accent'>
+        <Tooltip.Content shortcut={['mod', 's']}>
           <Tooltip.Arrow />
           Save
         </Tooltip.Content>
@@ -137,11 +135,15 @@ describe('Tooltip', () => {
     const keys = popup()!.querySelector('[data-slot="tooltip-shortcut"]')!
     expect(keys).toHaveAttribute('aria-hidden', 'true')
     expect(popup()!.lastElementChild).toBe(keys)
-    expect(keys).toHaveTextContent('Ctrl+S')
-    for (const key of keys.querySelectorAll('[data-slot="kbd"]')) {
-      expect(key).toHaveClass('tracking-wide')
-      expect(key).not.toHaveClass('rounded-md')
-    }
+    expect(
+      Array.from(keys.querySelectorAll('[data-slot="kbd"]'), (key) => [
+        key.textContent,
+        key.classList.contains('h-5')
+      ])
+    ).toEqual([
+      ['Ctrl', true],
+      ['S', true]
+    ])
     expect(popup()).toHaveClass('flex', 'items-center', 'gap-2')
     vi.restoreAllMocks()
   })

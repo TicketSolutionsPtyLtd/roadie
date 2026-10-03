@@ -5,12 +5,12 @@
 Add `Kbd` (`@oztix/roadie-components/kbd`), a keyboard key or shortcut drawn
 as a keycap. Known key names show a glyph or short word, `keys={['mod', 'k']}`
 draws a combination with a keycap per key, `combined` draws it on one keycap
-(⌘K, or Ctrl+K off Apple), and `mod`, `meta`, `shift`, `alt` and `ctrl` follow
-the reader's platform without a hydration mismatch. `emphasis` is `subtle` (the
-default: a soft, borderless keycap tinted from the surrounding text colour,
-for the page, cards, fields and neutral surfaces), `normal` (its own
-opaque, bordered surface, built on `emphasis-normal`) or `subtler` (plain text
-in the surrounding colour, for menu rows and strong fills with an intent). Kbd is
+(⌘K, or Ctrl+K off Apple), and `separator` goes between keys, such as `'+'` or
+`'then'` for a sequence. `mod`, `meta`, `shift`, `alt` and `ctrl` follow the
+reader's platform without a hydration mismatch. `emphasis` is `subtle` (the
+default: a soft, borderless keycap tinted from the surrounding text colour),
+`normal` (its own opaque, bordered surface, built on `emphasis-normal`) or
+`subtler` (plain text in the surrounding colour, for menu rows). Kbd is
 `aria-hidden` unless `announce` is set, and is hidden on screens without hover
 unless announced.
 
@@ -20,4 +20,4 @@ given as text now shows its `Kbd` face (`'Enter'` gains the return glyph,
 `'Delete'` reads "Del", `'Shift'` becomes ⇧ on Apple devices) and a single
 letter shows in capitals. Menu shortcuts are now hidden on screens without
 hover. `Tooltip.Content` and `Tooltip.Popup` take a new `shortcut` that shows
-plain keys after the label, readable on a tooltip of any intent.
+keys after the label.

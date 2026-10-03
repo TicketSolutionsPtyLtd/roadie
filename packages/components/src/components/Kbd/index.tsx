@@ -13,13 +13,14 @@ import { type KeyPlatform, useKeyPlatform } from './platform'
 const HIDE_WITHOUT_HOVER =
   '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
 
-// Without color-mix the fill drops out rather than painting over the label.
 const kbdVariants = cva(
   'inline-flex items-center justify-center gap-1 font-sans text-xs whitespace-nowrap [&_svg]:size-3 [&_svg]:shrink-0',
   {
     variants: {
       emphasis: {
         normal: 'emphasis-normal rounded-md font-medium',
+        // Without color-mix the fill drops out rather than painting over the
+        // label.
         subtle:
           'rounded-md bg-[color-mix(in_oklch,currentColor_10%,transparent)] font-medium',
         subtler: 'tracking-wide'
@@ -48,14 +49,19 @@ export type KbdProps = ComponentProps<'kbd'> & {
    */
   combined?: boolean
   /**
-   * `subtle` is a soft keycap tinted from the surrounding text colour; on a
-   * strong fill with an intent, use `subtler`. `normal` is its own bordered
-   * surface and keeps its own colours on any fill. `subtler` is plain text in
-   * the surrounding colour, for menus, tooltips and strong fills.
+   * Placed between `keys`, such as `'+'` or `'then'`. By default nothing on
+   * Apple devices, and off them a plus inside a combined keycap or between
+   * subtler keys, as in Ctrl+K. A word is read aloud when `announce` is on.
+   */
+  separator?: ReactNode
+  /**
+   * `subtle` is a soft keycap tinted from the surrounding text colour.
+   * `normal` is its own bordered surface and keeps its own colours on any
+   * fill. `subtler` is plain text in the surrounding colour, for menus.
    * @default 'subtle'
    */
   emphasis?: 'normal' | 'subtle' | 'subtler'
-  /** The keycap's height. Plain `subtler` text follows the font size instead. @default 'md' */
+  /** The keycap's height. `subtler` has no keycap, so it ignores size. @default 'md' */
   size?: 'sm' | 'md'
   /**
    * Read the keys aloud, by name. Off by default: a control carries its
@@ -76,7 +82,9 @@ function KeyCapContent({ face, announce }: KeyCapProps) {
   const { glyph: Glyph, label, name, pending } = face
   const visible = (
     <>
-      {Glyph ? <Glyph weight='bold' aria-hidden='true' /> : null}
+      {Glyph ? (
+        <Glyph weight='bold' aria-hidden='true' className='size-3' />
+      ) : null}
       {label ? <span>{label}</span> : null}
     </>
   )
@@ -107,28 +115,35 @@ type KeyListProps = {
   keys: readonly string[]
   platform: KeyPlatform | null
   announce: boolean
-  plus: boolean
+  separator: ReactNode
+  /** The platform default, hidden until the platform is known. */
+  pending: boolean
   slot: 'kbd' | 'kbd-key'
   className: string
 }
+
+const isWord = (node: ReactNode) =>
+  typeof node === 'string' && /\p{L}/u.test(node)
 
 function KeyList({
   keys,
   platform,
   announce,
-  plus,
+  separator,
+  pending,
   slot,
   className
 }: KeyListProps) {
+  const spoken = announce && isWord(separator)
   return keys.map((key, index) => (
     <Fragment key={`${index}-${key}`}>
-      {plus && index > 0 ? (
+      {separator != null && separator !== false && index > 0 ? (
         <span
-          data-slot='kbd-plus'
-          aria-hidden='true'
-          className={cn('text-xs', platform ? undefined : 'invisible')}
+          data-slot='kbd-separator'
+          aria-hidden={spoken ? undefined : 'true'}
+          className={cn('text-xs', pending ? 'invisible' : undefined)}
         >
-          +
+          {separator}
         </span>
       ) : null}
       <kbd data-slot={slot} className={className}>
@@ -141,6 +156,7 @@ function KeyList({
 export function Kbd({
   keys,
   combined = false,
+  separator,
   emphasis = 'subtle',
   size = 'md',
   announce = false,
@@ -154,6 +170,11 @@ export function Kbd({
   const plain = emphasis === 'subtler'
   // Keys that share a run read Ctrl+D off Apple, not CtrlD.
   const plus = (plain || combined) && platform !== 'apple'
+  const given = separator !== undefined
+  const between = {
+    separator: given ? separator : plus ? '+' : null,
+    pending: !given && platform === null
+  }
 
   if (keys && combined && !plain) {
     return (
@@ -172,7 +193,7 @@ export function Kbd({
           keys={keys}
           platform={platform}
           announce={announce}
-          plus={plus}
+          {...between}
           slot='kbd-key'
           className='inline-flex items-center gap-1 font-sans'
         />
@@ -197,7 +218,7 @@ export function Kbd({
           keys={keys}
           platform={platform}
           announce={announce}
-          plus={plus}
+          {...between}
           slot='kbd'
           className={kbdVariants({ emphasis, size })}
         />

@@ -7,8 +7,6 @@ export const metadata = {
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
-import { Button } from '@oztix/roadie-components/button'
-import { Kbd } from '@oztix/roadie-components/kbd'
 
 A keyboard key or shortcut, drawn as a keycap.
 
@@ -46,26 +44,9 @@ Pass a key as text. Known key names, in any case, show their glyph or short word
 
 The known names are `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `arrowup`, `arrowdown`, `arrowleft`, `arrowright`, `mod`, `meta`, `shift`, `alt` and `ctrl`. They also take the aliases `return`, `esc`, `del`, `up`, `down`, `left`, `right`, `cmd` and `command` (for `mod`), `option` and `control`, and `KeyboardEvent.key` values such as `ArrowUp`, `Escape` and `Meta`. `meta` is ⌘ on Apple devices and Win elsewhere. Any other key shows as text, with a single letter in capitals.
 
-### Combined
-
-`combined` draws the whole combination on one keycap, such as ⌘K. Off Apple devices, the keys are joined with a plus, as in Ctrl+K.
-
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Separate</p>
-    <div><Kbd keys={['mod', 'shift', 'p']} /></div>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Combined</p>
-    <div><Kbd keys={['mod', 'shift', 'p']} combined /></div>
-  </div>
-</div>
-```
-
 ### Emphasis
 
-`subtle`, the default, is a soft keycap tinted from the surrounding text colour, with no border. It suits the page, cards, fields and neutral surfaces. `normal` is its own opaque, bordered surface, so it keeps its own colours on any fill. `subtler` is plain text in the surrounding colour, for places that already frame it, such as a menu row. Off Apple devices, `subtler` joins keys with a plus, as in Ctrl+D.
+`subtle`, the default, is a soft keycap tinted from the surrounding text colour, with no border, so it suits any surface, a strong button included. `normal` is its own opaque, bordered surface, so it keeps its own colours on any fill. `subtler` is plain text in the surrounding colour, for places that already frame it, such as a menu row. Off Apple devices, `subtler` joins keys with a plus, as in Ctrl+D.
 
 ```tsx-live
 <div className='grid gap-4'>
@@ -83,8 +64,6 @@ The known names are `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `a
   </div>
 </div>
 ```
-
-On a strong fill with an intent, such as an accent, success or danger button, use `subtler`. The fill's own label only just reads there, and a keycap's tint would dull it. See the guidelines below.
 
 ### Sizes
 
@@ -109,7 +88,7 @@ Put the hint inside the control it triggers. Kbd is hidden from assistive tech, 
 </Button>
 ```
 
-`Menu.Item` and `Tooltip.Content` take a `shortcut` and render it through Kbd as plain `subtler` keys, which read on a menu row and on a tooltip of any intent.
+`Menu.Item` and `Tooltip.Content` take a `shortcut` and render it through Kbd: plain `subtler` keys in a menu row, and small keycaps in a tooltip.
 
 ```tsx-live
 <div className='flex flex-wrap gap-3'>
@@ -127,6 +106,40 @@ Put the hint inside the control it triggers. Kbd is hidden from assistive tech, 
       Search
     </Tooltip.Content>
   </Tooltip>
+</div>
+```
+
+### Combined
+
+`combined` draws a combination on one keycap, such as ⌘K, for keys pressed together. Off Apple devices, the keys are joined with a plus, as in Ctrl+K.
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Separate</p>
+    <div><Kbd keys={['mod', 'shift', 'p']} /></div>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Combined</p>
+    <div><Kbd keys={['mod', 'shift', 'p']} combined /></div>
+  </div>
+</div>
+```
+
+### Separator
+
+`separator` goes between keys, in separate keycaps or a combined one. Use a word such as `then` for a sequence, keys pressed one after another. By default there is none on Apple devices, and off them a plus inside a combined keycap or between subtler keys.
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Plus</p>
+    <div><Kbd keys={['mod', 'k']} separator='+' /></div>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Sequence</p>
+    <div><Kbd keys={['g', 'i']} separator='then' /></div>
+  </div>
 </div>
 ```
 
@@ -164,25 +177,25 @@ In instructions, the keys are the content. `announce` reads each key aloud by it
 
 <Guideline title='Combine keys where space is tight'>
   <Guideline.Do code={`<Kbd keys={['mod', 'k']} size='sm' combined />`}>
-    Join a combination inside a button, a field or a tooltip, where one keycap reads as one hint.
+    Combine keys inside a button or a field, where one keycap reads as one hint.
   </Guideline.Do>
   <Guideline.Dont code={`<Kbd keys={['mod', 'shift', 'p']} combined announce />`}>
     Don't combine keys in instructions or a shortcut list. Separate keycaps show each key to press.
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='On a strong fill with an intent, use subtler'>
-  <Guideline.Do example={<Button emphasis='strong' intent='success'>Publish <Kbd keys={['mod', 'enter']} emphasis='subtler' size='sm' combined /></Button>}>
-    Use <code>subtler</code> keys on a strong fill with an intent, such as accent, success or danger. They take the fill's label colour, which is tuned to read there.
+<Guideline title='Show a sequence with a word'>
+  <Guideline.Do code={`<Kbd keys={['g', 'i']} separator='then' />`}>
+    Put <code>then</code> between keys pressed one after another, so a sequence doesn't read as a combination.
   </Guideline.Do>
-  <Guideline.Dont example={<Button emphasis='strong' intent='success'>Publish <Kbd keys={['mod', 'enter']} size='sm' combined /></Button>}>
-    Don't put a <code>subtle</code> keycap on a strong fill with an intent. Its tint pulls the fill towards the label, and the keys stop reading clearly.
+  <Guideline.Dont code={`<Kbd keys={['g', 'i']} combined />`}>
+    Don't combine keys that aren't pressed together. One keycap means one chord.
   </Guideline.Dont>
 </Guideline>
 
 <Guideline title='Choose the emphasis by place'>
   <Guideline.Do code={`<Kbd keys={['mod', 'k']} />`}>
-    Keep <code>subtle</code> in toolbars, fields and neutral buttons. Use <code>subtler</code> in menu rows and on strong fills with an intent, and <code>normal</code> in a shortcut list or a help page, where keys should stand out.
+    Keep <code>subtle</code> in toolbars, fields, buttons and tooltips. Use <code>subtler</code> in menu rows, and <code>normal</code> in a shortcut list or a help page, where keys should stand out.
   </Guideline.Do>
   <Guideline.Dont code={`<Kbd keys={['mod', 'k']} emphasis='normal' />`}>
     Don't put a <code>normal</code> keycap inside a button. Its border competes with the button's own edge.
@@ -194,7 +207,8 @@ In instructions, the keys are the content. `announce` reads each key aloud by it
 ## Accessibility
 
 - Kbd is `aria-hidden` by default. It repeats a shortcut the control already announces, so put the real shortcut on the control as `aria-keyshortcuts`, such as `aria-keyshortcuts='Meta+K Control+K'`. Bind the keys yourself.
-- Use `announce` where the keys are the content, such as instructions in a help article. Each key is then read by name.
+- Use `announce` where the keys are the content, such as instructions in a help article. Each key is then read by name, and a word `separator` such as `then` is read between them. A symbol separator such as `+` stays silent.
+- On strong success, warning, danger and brand-secondary fills, a subtle keycap's tint takes its keys as low as about APCA Lc 53, under the Lc 60 those fills' labels reach. That's accepted because the keys are a visual hint that repeats the control's `aria-keyshortcuts`. Use `normal` or `subtler` there when the keys must read as strongly as the label.
 - Kbd is hidden on screens without hover, so touch readers never see a key they can't press. Announced keys stay, because they are content. To keep every hint inside a container visible, for example a help page about shortcuts or a tablet with a keyboard, set `data-keyboard-hints='always'` on the container.
 - `mod`, `meta`, `shift`, `alt` and `ctrl` depend on the platform. The server and the first render show an empty keycap in their place, and the right key appears once the page has loaded, so hydration never mismatches.
 
