@@ -171,6 +171,36 @@ describe('Autocomplete first suggestion', () => {
     expect(first).not.toHaveAttribute('data-highlighted')
   })
 
+  it('highlights nothing when reopened after Escape', async () => {
+    render(<Cities />)
+    await userEvent.type(cityInput(), 'e{Escape}')
+    await waitFor(() => expect(screen.queryByRole('option')).toBeNull())
+    await userEvent.click(screen.getByRole('button', { name: 'Show cities' }))
+    const first = await screen.findByRole('option', { name: 'Brisbane' })
+    expect(first).not.toHaveAttribute('data-highlighted')
+    expect(cityInput()).toHaveValue('e')
+  })
+
+  it('highlights suggestions that arrive later with autoHighlight', async () => {
+    function Late() {
+      const [items, setItems] = useState<string[]>([])
+      return (
+        <Cities
+          autoHighlight
+          items={items}
+          filter={null}
+          onValueChange={(text) =>
+            setTimeout(() => setItems(text ? ['Hobart', 'Perth'] : []))
+          }
+        />
+      )
+    }
+    render(<Late />)
+    await userEvent.type(cityInput(), 'h')
+    const first = await screen.findByRole('option', { name: 'Hobart' })
+    await waitFor(() => expect(first).toHaveAttribute('data-highlighted'))
+  })
+
   it('highlights nothing after autofill', async () => {
     render(<Cities openOnInputClick />)
     await userEvent.click(cityInput())

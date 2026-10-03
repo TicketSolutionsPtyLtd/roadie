@@ -14,14 +14,13 @@ export type AutocompleteRootProps = Omit<
 > & {
   /**
    * Whether the first suggestion is highlighted, so Enter takes it.
+   * - `true`: once the user types, including suggestions that arrive later.
+   *   Opening the list without typing highlights nothing, so Enter submits.
    * - `'always'`: whenever suggestions show, even with no text.
-   * - `true`: once the user types.
    * - `false`: only an item moved to with the arrows.
    *
-   * By default, the first suggestion is highlighted once the user types,
-   * including suggestions that arrive later. Opening the list without typing
-   * highlights nothing, so Enter submits the form. In `both` and `inline`
-   * mode nothing is highlighted, since a highlight there fills the input.
+   * Defaults to `true`, or `false` in `both` and `inline` mode, where a
+   * highlight fills the input.
    */
   autoHighlight?: boolean | 'always'
 }
@@ -38,14 +37,14 @@ export function AutocompleteRoot({
     usePointerHighlight(onItemHighlighted)
   const { typed, handleQueryChange, resetTyped } = useTypedQuery(props.open)
   const fillsInput = mode === 'both' || mode === 'inline'
+  const highlightsFirst =
+    autoHighlight === 'always' || ((autoHighlight ?? !fillsInput) && typed)
   return (
     <PointerHighlightContext value={byPointer}>
       <AutocompletePrimitive.Root
         onItemHighlighted={handleItemHighlighted}
         mode={mode}
-        autoHighlight={
-          autoHighlight ?? (!fillsInput && typed ? 'always' : false)
-        }
+        autoHighlight={highlightsFirst ? 'always' : false}
         onValueChange={(next, details) => {
           onValueChange?.(next, details)
           if (details.reason === 'input-change')

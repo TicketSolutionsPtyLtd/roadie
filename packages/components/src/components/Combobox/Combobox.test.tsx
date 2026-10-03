@@ -273,12 +273,10 @@ describe('Combobox first match', () => {
     render(<Genres defaultValue='Folk' />)
     await userEvent.click(screen.getByRole('button', { name: 'Show genres' }))
     const folk = await screen.findByRole('option', { name: 'Folk' })
-    await waitFor(() =>
-      expect(screen.getByRole('option', { name: 'Rock' })).not.toHaveAttribute(
-        'data-highlighted'
-      )
+    await waitFor(() => expect(folk).toHaveAttribute('data-highlighted'))
+    expect(screen.getByRole('option', { name: 'Rock' })).not.toHaveAttribute(
+      'data-highlighted'
     )
-    expect(folk).toBeInTheDocument()
   })
 
   it('highlights nothing after a controlled close and reopen', async () => {
@@ -297,6 +295,7 @@ describe('Combobox first match', () => {
     await userEvent.type(genreInput(), 'o')
     await screen.findByRole('option', { name: 'Folk' })
     fireEvent.click(document.querySelector('[data-close]')!)
+    await waitFor(() => expect(screen.queryByRole('option')).toBeNull())
     await userEvent.click(screen.getByRole('button', { name: 'Show genres' }))
     const first = await screen.findByRole('option', { name: 'Rock' })
     expect(first).not.toHaveAttribute('data-highlighted')
