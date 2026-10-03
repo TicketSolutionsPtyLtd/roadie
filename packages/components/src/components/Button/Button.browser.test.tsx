@@ -99,6 +99,27 @@ describe('Button width overrides', () => {
     expect(width).toBe(rowWidth)
   })
 
+  it('spans a flex column with w-full', () => {
+    const { width, rowWidth } = place(
+      'flex flex-col',
+      <Button className='w-full'>Save</Button>
+    )
+    expect(width).toBe(rowWidth)
+  })
+
+  it('shares a flex row with flex-1', () => {
+    render(
+      <div data-testid='row' className='flex w-80 gap-2'>
+        <Button className='flex-1'>Keep browsing</Button>
+        <Button className='flex-1'>Pay</Button>
+      </div>
+    )
+    const [first, second] = screen
+      .getAllByRole('button')
+      .map((button) => button.getBoundingClientRect().width)
+    expect(first).toBe(second)
+  })
+
   it('keeps an IconButton square in a flex column', () => {
     const { width, height } = place(
       'flex flex-col',
