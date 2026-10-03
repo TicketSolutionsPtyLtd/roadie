@@ -201,6 +201,29 @@ describe('DatePicker', () => {
     expect(new FormData(container.querySelector('form')!).get('doors')).toBe('')
   })
 
+  it('drops a time error when the time goes away', async () => {
+    const { rerender } = render(
+      <Field>
+        <Field.Label>Doors</Field.Label>
+        <DatePicker granularity='minute' timeZone={MELBOURNE} today={TODAY} />
+        <Field.ErrorText />
+      </Field>
+    )
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'Time' }),
+      'soon{Enter}'
+    )
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    rerender(
+      <Field>
+        <Field.Label>Doors</Field.Label>
+        <DatePicker granularity='day' timeZone={MELBOURNE} today={TODAY} />
+        <Field.ErrorText />
+      </Field>
+    )
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
   it('empties when a controlled parent clears a full value', async () => {
     function Reset() {
       const [value, setValue] = useState<string | null>('2026-11-27')

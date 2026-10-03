@@ -233,10 +233,11 @@ export function DatePicker({
     locale,
     readOnly
   })
-  useFieldControlError(time.typed.error)
+  const timeError = withTime ? time.typed.error : null
+  useFieldControlError(timeError)
   // Unreadable text has made the value null, but a controlled parent may
   // still hold the old one; the form gets nothing it can't see.
-  const unreadable = !!date.error || !!time.typed.error
+  const unreadable = !!date.error || !!timeError
 
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen)
   const open = openProp ?? uncontrolledOpen

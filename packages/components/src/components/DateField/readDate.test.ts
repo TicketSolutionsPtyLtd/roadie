@@ -58,15 +58,39 @@ describe('formatDate', () => {
     expect(formatDate('2026-11-27', { dateStyle })).toBe(text)
   })
 
-  it('reads back what it shows in another locale', () => {
-    for (const locale of ['de-DE', 'fr-FR', 'en-US']) {
-      for (const dateStyle of ['full', 'long', 'medium'] as const) {
-        const text = formatDate('2026-03-27', { dateStyle, locale })
-        expect(readDate(text, { today: TODAY, locale })).toEqual({
-          value: '2026-03-27'
-        })
+  it.each(['de-DE', 'fr-FR', 'es-ES', 'it-IT', 'nl-NL', 'en-US'])(
+    'reads back every month it shows in %s',
+    (locale) => {
+      for (let month = 1; month <= 12; month++) {
+        const date = `2026-${String(month).padStart(2, '0')}-27`
+        for (const dateStyle of ['full', 'long', 'medium'] as const) {
+          const text = formatDate(date, { dateStyle, locale })
+          expect(readDate(text, { today: TODAY, locale }), text).toEqual({
+            value: date
+          })
+        }
       }
     }
+  )
+
+  it('still reads English typed in another locale', () => {
+    for (const locale of ['fr-FR', 'es-ES', 'it-IT']) {
+      expect(readDate('27 mar', { today: TODAY, locale })).toEqual({
+        value: '2027-03-27'
+      })
+    }
+  })
+
+  it('refuses rather than guesses a name it can’t read', () => {
+    expect(
+      readDate('27 فروردین 2026', { today: TODAY, locale: 'fa-IR' })
+    ).toEqual({ error: TYPE_A_DATE })
+  })
+
+  it('reads on with a locale tag Intl rejects', () => {
+    expect(readDate('14 mar', { today: TODAY, locale: 'en_AU' })).toEqual({
+      value: '2027-03-14'
+    })
   })
 
   it('reads back what it shows', () => {

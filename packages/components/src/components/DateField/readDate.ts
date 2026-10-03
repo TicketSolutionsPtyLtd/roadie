@@ -62,54 +62,96 @@ function singleDate(
     : null
 }
 
-const ENGLISH = new Intl.Locale('en')
-const nameCache = new Map<string, Map<string, string>>()
+type LocalNames = { weekdays: string[]; months: [RegExp, string][] }
 
-// 2 Mar 2026 was a Monday, so weekdays and months line up with these dates.
-function localNames(locale: string): Map<string, string> {
-  let names = nameCache.get(locale)
-  if (names) return names
-  names = new Map()
-  const add = (options: Intl.DateTimeFormatOptions, dates: string[]) => {
-    const local = new Intl.DateTimeFormat(locale, {
-      ...options,
-      timeZone: 'UTC'
-    })
-    const english = new Intl.DateTimeFormat(ENGLISH, {
-      ...options,
-      timeZone: 'UTC'
-    })
-    for (const date of dates) {
-      const key = local.format(instantOf(date)).toLowerCase().replace(/\.$/, '')
-      names!.set(key, english.format(instantOf(date)).toLowerCase())
+const nameCache = new Map<string, LocalNames | null>()
+
+function namePart(
+  locale: string,
+  options: Intl.DateTimeFormatOptions,
+  date: string,
+  type: 'month' | 'weekday'
+): string {
+  // Asked for as the datetime formatters ask, so the names match what shows,
+  // and Gregorian, as the field's dates are, whatever the locale's calendar.
+  const parts = new Intl.DateTimeFormat(locale, {
+    ...options,
+    calendar: 'gregory',
+    timeZone: 'UTC'
+  }).formatToParts(instantOf(date))
+  return (parts.find((part) => part.type === type)?.value ?? '')
+    .toLowerCase()
+    .replace(/\.$/, '')
+}
+
+function escape(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function localNames(locale: string): LocalNames | null {
+  if (nameCache.has(locale)) return nameCache.get(locale)!
+  let names: LocalNames | null = null
+  try {
+    const months = new Map<string, string>()
+    const weekdays = new Set<string>()
+    for (const style of ['long', 'short'] as const) {
+      for (let month = 1; month <= 12; month++) {
+        const date = `2026-${String(month).padStart(2, '0')}-15`
+        const name = namePart(
+          locale,
+          { weekday: style, month: style },
+          date,
+          'month'
+        )
+        if (name)
+          months.set(name, namePart('en', { month: 'long' }, date, 'month'))
+      }
+      // 2 Mar 2026 was a Monday.
+      for (let day = 2; day <= 8; day++) {
+        const name = namePart(
+          locale,
+          { weekday: style, month: style },
+          `2026-03-0${day}`,
+          'weekday'
+        )
+        if (name) weekdays.add(name)
+      }
     }
-  }
-  const months = Array.from(
-    { length: 12 },
-    (_, i) => `2026-${String(i + 1).padStart(2, '0')}-15`
-  )
-  const weekdays = Array.from(
-    { length: 7 },
-    (_, i) => `2026-03-${String(2 + i).padStart(2, '0')}`
-  )
-  for (const style of ['long', 'short'] as const) {
-    add({ month: style }, months)
-    add({ weekday: style }, weekdays)
+    const longestFirst = (a: string, b: string) => b.length - a.length
+    names = {
+      weekdays: [...weekdays].sort(longestFirst),
+      months: [...months.keys()]
+        .sort(longestFirst)
+        .map((name) => [
+          new RegExp(`(^|\\s)${escape(name)}\\.?(?=\\s|$)`, 'u'),
+          months.get(name)!
+        ])
+    }
+  } catch {
+    names = null
   }
   nameCache.set(locale, names)
   return names
 }
 
-// The parser reads English names, so a field shown in another locale has its
-// month and day names put back into English before it is read.
-function inEnglish(text: string, locale: string | undefined): string {
-  if (!locale || new Intl.Locale(locale).language === 'en') return text
+/**
+ * The parser reads English, so a date shown in another locale has its
+ * leading weekday dropped and its month put into English. Weekdays are only
+ * taken from the start, so a month that shares a short name with a weekday
+ * ("mar" in Spanish) stays a month.
+ */
+function inEnglish(text: string, locale: string): string | null {
   const names = localNames(locale)
-  return text
-    .toLowerCase()
-    .split(/(\s+|,)/)
-    .map((word) => names.get(word.replace(/\.$/, '')) ?? word)
-    .join('')
+  if (!names) return null
+  let local = text.toLowerCase().replace(/,/g, ' ').replace(/\s+/g, ' ').trim()
+  const weekday = names.weekdays.find(
+    (name) => local.startsWith(`${name} `) || local.startsWith(`${name}. `)
+  )
+  if (weekday) local = local.slice(weekday.length).replace(/^\.? /, '')
+  for (const [name, english] of names.months) {
+    if (name.test(local)) return local.replace(name, `$1${english}`)
+  }
+  return null
 }
 
 /** The one date typed text names, or why it names none. */
@@ -126,9 +168,12 @@ export function readDate(text: string, options: ReadDateOptions): ReadResult {
     weekStart: options.weekStart,
     locale: options.locale
   }
-  const date = parseDatePhrase(inEnglish(text, options.locale), phraseOptions)
-    .map(({ value }) => singleDate(value, phraseOptions))
-    .find((found): found is string => found !== null)
+  const dateIn = (phrase: string) =>
+    parseDatePhrase(phrase, phraseOptions)
+      .map(({ value }) => singleDate(value, phraseOptions))
+      .find((found): found is string => found !== null)
+  const local = options.locale ? inEnglish(text, options.locale) : null
+  const date = dateIn(text) ?? (local ? dateIn(local) : undefined)
   if (!date) return { error: TYPE_A_DATE }
   if (matchesDate(date, options.disabled)) {
     return {
