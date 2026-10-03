@@ -72,7 +72,6 @@ wrapping. Use `Select.Content` as a convenience wrapper for Portal + Positioner 
         aria-label='Rows per page'
         emphasis='subtler'
         size='sm'
-        className='w-auto'
       >
         <Select.Value />
         <Select.Icon />
@@ -290,7 +289,7 @@ picks from a closed set. They don't need to search or type a custom value.
 
 <Guideline title='Save subtler for in-context controls'>
   <Guideline.Do code={`<Select.Trigger emphasis='subtler' size='sm' />`}>
-    Use <code>subtler</code> for a control that adjusts what is already on screen, such as rows per page, sort order or a chart's comparison, beside other subtler buttons.
+    Use <code>subtler</code> for a control that adjusts what is already on screen, such as rows per page, sort order or a chart's comparison, beside other subtler buttons. A subtler trigger takes only the width of its value and icon, where normal and subtle fill their container. If the value changes length, hold the width with the widest label so the controls beside it stay put.
   </Guideline.Do>
   <Guideline.Dont>
     Don't use <code>subtler</code> for a select in a form. With no border at rest, it doesn't read as a field to fill in next to an <code>Input</code>.

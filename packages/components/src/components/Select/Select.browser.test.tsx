@@ -6,7 +6,7 @@ import { Select } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
 import { Field } from '../Field'
-import { useStylesheet } from '../Pane/testUtils'
+import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 
 const STILL = '*, *::before, *::after { transition: none !important }'
 
@@ -430,4 +430,52 @@ describe('Select trigger emphasis', () => {
       expect(style().borderTopColor).not.toBe(valid)
     }
   )
+})
+
+describe('Select trigger width', () => {
+  beforeAll(() => loadBrandFont())
+
+  function Sized({ emphasis }: { emphasis: 'normal' | 'subtler' }) {
+    return (
+      <div data-testid='box' style={{ width: 400 }}>
+        <Select defaultValue='rock'>
+          <Select.Trigger aria-label='Genre' emphasis={emphasis}>
+            <Select.Value />
+            <Select.Icon />
+          </Select.Trigger>
+          <Select.Content>
+            <Select.Item value='rock'>Rock</Select.Item>
+          </Select.Content>
+        </Select>
+      </div>
+    )
+  }
+
+  it('fills its container at normal', () => {
+    render(<Sized emphasis='normal' />)
+    expect(trigger().getBoundingClientRect().width).toBe(400)
+  })
+
+  it('hugs its value and icon at subtler', async () => {
+    render(<Sized emphasis='subtler' />)
+    const value = trigger().querySelector('[data-slot="select-value"]')!
+    const icon = trigger().querySelector('[data-slot="select-icon"]')!
+    await expect.poll(() => value.textContent).toBe('Rock')
+    const box = trigger().getBoundingClientRect()
+    const { paddingLeft, paddingRight, borderLeftWidth, borderRightWidth } =
+      style()
+    const gap =
+      icon.getBoundingClientRect().left - value.getBoundingClientRect().right
+    expect(gap).toBeCloseTo(6, 0)
+    expect(box.width).toBeCloseTo(
+      value.getBoundingClientRect().width +
+        gap +
+        icon.getBoundingClientRect().width +
+        parseFloat(paddingLeft) +
+        parseFloat(paddingRight) +
+        parseFloat(borderLeftWidth) +
+        parseFloat(borderRightWidth),
+      0
+    )
+  })
 })

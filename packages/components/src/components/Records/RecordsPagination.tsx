@@ -53,7 +53,13 @@ export function RecordsPagination({
             size='sm'
             emphasis='subtler'
           >
-            <Select.Value />
+            {/* Holds the widest label's width so the trigger doesn't jump. */}
+            <span className='grid'>
+              <span aria-hidden className='invisible [grid-area:1/1]'>
+                {`${Math.max(...sizeOptions)} per page`}
+              </span>
+              <Select.Value className='[grid-area:1/1]' />
+            </span>
             <Select.Icon />
           </Select.Trigger>
           <Select.Content>
