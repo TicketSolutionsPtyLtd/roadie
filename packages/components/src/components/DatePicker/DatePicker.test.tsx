@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DatePicker } from '.'
+import { onPhone } from '../../pickers/testUtils'
 import { Field } from '../Field'
 
 // Wed 7 Oct 2026.
@@ -651,5 +652,87 @@ describe('DatePicker', () => {
       )
       expect(screen.getByRole('group', { name: 'Doors' })).toBeInTheDocument()
     })
+  })
+})
+
+describe('DatePicker on a phone', () => {
+  it('opens the calendar in a drawer titled with its label', async () => {
+    onPhone()
+    render(
+      <Field required>
+        <Field.Label showIndicator>Doors</Field.Label>
+        <DatePicker today={TODAY} />
+      </Field>
+    )
+    await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
+    const drawer = await screen.findByRole('dialog', {
+      name: 'Choose date, Doors'
+    })
+    expect(drawer).toHaveAttribute('data-slot', 'drawer-popup')
+    expect(within(drawer).getByRole('heading').textContent).toBe('Doors')
+    expect(within(drawer).getByRole('grid')).toBeInTheDocument()
+  })
+
+  it('titles a picker named by aria-label, else by what it does', async () => {
+    onPhone()
+    render(
+      <>
+        <DatePicker aria-label='Curfew' today={TODAY} />
+        <DatePicker today={TODAY} />
+      </>
+    )
+    const [named, unnamed] = screen.getAllByRole('button', {
+      name: /^Choose date/
+    })
+    await userEvent.click(named!)
+    let drawer = await screen.findByRole('dialog')
+    expect(within(drawer).getByRole('heading')).toHaveTextContent('Curfew')
+    await userEvent.keyboard('{Escape}')
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    await userEvent.click(unnamed!)
+    drawer = await screen.findByRole('dialog')
+    expect(within(drawer).getByRole('heading')).toHaveTextContent('Choose date')
+  })
+
+  it('closes on a chosen day and gives focus back to the button', async () => {
+    onPhone()
+    const onValueChange = vi.fn()
+    render(
+      <DatePicker
+        aria-label='Doors'
+        today={TODAY}
+        onValueChange={onValueChange}
+      />
+    )
+    const button = screen.getByRole('button', { name: /^Choose date/ })
+    await userEvent.click(button)
+    await screen.findByRole('dialog')
+    await userEvent.click(day('2026-10-23'))
+    expect(onValueChange).toHaveBeenCalledWith('2026-10-23')
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    expect(button).toHaveFocus()
+  })
+
+  it('closes from its Close button without a change', async () => {
+    onPhone()
+    const onValueChange = vi.fn()
+    render(
+      <DatePicker
+        aria-label='Doors'
+        today={TODAY}
+        onValueChange={onValueChange}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
+    const drawer = await screen.findByRole('dialog')
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Close' }))
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    expect(onValueChange).not.toHaveBeenCalled()
   })
 })

@@ -3,17 +3,23 @@
 import {
   type ReactNode,
   type RefObject,
+  createContext,
+  use,
   useId,
   useRef,
   useState,
   useSyncExternalStore
 } from 'react'
 
+import { XIcon } from '@phosphor-icons/react'
+
 import { viewerTimeZone } from '@oztix/roadie-core/datetime'
 import { cn } from '@oztix/roadie-core/utils'
 
+import { IconButton } from '../components/Button/IconButton'
+import { Drawer } from '../components/Drawer'
 import { useFieldContext } from '../components/Field'
-import { Popover } from '../components/Popover'
+import { Popover, type PopoverTriggerProps } from '../components/Popover'
 
 const noSubscription = () => () => {}
 
@@ -103,16 +109,112 @@ export function usePickerLabels({
   }
 }
 
-export type PickerPopoverProps = {
+/** Below Navigator's phone breakpoint, a picker opens in a bottom drawer. */
+export const PHONE = '(width < 48rem)'
+
+function subscribePhone(onChange: () => void) {
+  const query = window.matchMedia(PHONE)
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
+const isPhone = () => window.matchMedia(PHONE).matches
+
+// True on the server and through hydration, so the first client render matches.
+const useHydrating = () =>
+  useSyncExternalStore(
+    noSubscription,
+    () => false,
+    () => true
+  )
+
+export type PickerSurface = 'popover' | 'drawer'
+
+/**
+ * A popover from the phone breakpoint up and a drawer below it. Chosen as the
+ * picker opens and held while it is open, so turning the phone can't swap the
+ * surface under the person using it.
+ */
+export function usePickerSurface(open: boolean): PickerSurface {
+  const phone = useSyncExternalStore(subscribePhone, isPhone, () => false)
+  const hydrating = useHydrating()
+  const live: PickerSurface = phone ? 'drawer' : 'popover'
+  const [held, setHeld] = useState<PickerSurface | null>(null)
+  const holding = open && !hydrating
+  if (holding && held === null) setHeld(live)
+  if (!holding && held !== null) setHeld(null)
+  return (holding && held) || live
+}
+
+const PickerSurfaceContext = createContext<PickerSurface>('popover')
+
+export type PickerTriggerProps = Omit<
+  PopoverTriggerProps,
+  'handle' | 'payload' | 'openOnHover' | 'delay' | 'closeDelay'
+>
+
+/** The button that opens the picker's popover or drawer. */
+export function PickerTrigger(props: PickerTriggerProps) {
+  return use(PickerSurfaceContext) === 'drawer' ? (
+    <Drawer.Trigger {...props} />
+  ) : (
+    <Popover.Trigger {...props} />
+  )
+}
+
+/** The picker's label as shown, without its required or optional mark. */
+function labelText(ids: string | undefined): string {
+  return (ids ?? '')
+    .split(' ')
+    .map((id) => {
+      const label = id && document.getElementById(id)
+      if (!label) return ''
+      const copy = label.cloneNode(true) as HTMLElement
+      copy
+        .querySelectorAll(
+          '[aria-hidden="true"], [data-slot="optional-indicator"]'
+        )
+        .forEach((mark) => mark.remove())
+      return copy.textContent?.trim() ?? ''
+    })
+    .filter(Boolean)
+    .join(' ')
+}
+
+// The label is the page's own markup, so it is read from the page as the
+// drawer opens.
+function PickerTitle({
+  labelSource,
+  action
+}: {
+  labelSource: string | undefined
+  action: string
+}) {
+  const label = useSyncExternalStore(
+    noSubscription,
+    () => labelText(labelSource),
+    () => ''
+  )
+  return <Drawer.Title>{label || action}</Drawer.Title>
+}
+
+export type PickerOverlayProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** What the popup lines up with. It holds the `Popover.Trigger`. */
+  surface: PickerSurface
+  /** What the popover lines up with. It holds the `PickerTrigger`. */
   trigger: ReactNode
   anchor: RefObject<HTMLElement | null>
   'aria-labelledby': string
+  /** The ids naming the picker, shown as the drawer's title. */
+  labelSource: string | undefined
+  /** The drawer's title when nothing names the picker, such as "Choose date". */
+  action: string
   /** Where focus goes on open. Defaults to the calendar's focusable day. */
   initialFocus?: (popup: HTMLElement) => HTMLElement | null | undefined
+  /** Classes for the popover. */
   className?: string
+  /** Actions after the content, kept in view at the foot of a drawer. */
+  footer?: ReactNode
   children: ReactNode
 }
 
@@ -121,33 +223,76 @@ const calendarTabStop = (popup: HTMLElement) =>
     '[data-slot="calendar"] button[data-date][tabindex="0"]'
   )
 
-/** A field with a popup that lines up with its start edge. */
-export function PickerPopover({
+/**
+ * A field with a popup: a popover that lines up with its start edge, or on a
+ * phone a bottom drawer with the picker's label, its content and its actions.
+ */
+export function PickerOverlay({
   open,
   onOpenChange,
+  surface,
   trigger,
   anchor,
   'aria-labelledby': ariaLabelledBy,
+  labelSource,
+  action,
   initialFocus = calendarTabStop,
   className,
+  footer,
   children
-}: PickerPopoverProps) {
+}: PickerOverlayProps) {
   const popupRef = useRef<HTMLDivElement>(null)
+  const focusOnOpen = () =>
+    (popupRef.current && initialFocus(popupRef.current)) ?? true
+  const drawer = surface === 'drawer'
+
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
-      {trigger}
-      <Popover.Content
-        ref={popupRef}
-        aria-labelledby={ariaLabelledBy}
-        align='start'
-        positionerProps={{ anchor }}
-        className={cn('max-w-[var(--available-width)]', className)}
-        initialFocus={() =>
-          (popupRef.current && initialFocus(popupRef.current)) ?? true
-        }
-      >
-        {children}
-      </Popover.Content>
-    </Popover>
+    <PickerSurfaceContext value={surface}>
+      <Popover open={open && !drawer} onOpenChange={onOpenChange}>
+        <Drawer open={open && drawer} onOpenChange={onOpenChange}>
+          {trigger}
+          <Popover.Content
+            ref={popupRef}
+            aria-labelledby={ariaLabelledBy}
+            align='start'
+            positionerProps={{ anchor }}
+            className={cn('max-w-[var(--available-width)]', className)}
+            initialFocus={focusOnOpen}
+          >
+            {children}
+            {footer && (
+              <Popover.Footer className='justify-end'>{footer}</Popover.Footer>
+            )}
+          </Popover.Content>
+          <Drawer.Content
+            ref={popupRef}
+            aria-labelledby={ariaLabelledBy}
+            initialFocus={focusOnOpen}
+          >
+            <Drawer.Header>
+              <Drawer.Close
+                render={
+                  <IconButton aria-label='Close' emphasis='normal'>
+                    <XIcon weight='bold' className='size-5' />
+                  </IconButton>
+                }
+              />
+              <PickerTitle labelSource={labelSource} action={action} />
+            </Drawer.Header>
+            {/* Days grow to fill the drawer, up to a 48px target. */}
+            <Drawer.Body
+              className={cn(
+                '@container [--calendar-day:min(--spacing(12),100cqi/7)]',
+                // With no footer to clear it, the body clears the home indicator.
+                !footer && 'pb-[max(--spacing(6),env(safe-area-inset-bottom))]'
+              )}
+            >
+              {children}
+            </Drawer.Body>
+            {footer && <Drawer.Footer>{footer}</Drawer.Footer>}
+          </Drawer.Content>
+        </Drawer>
+      </Popover>
+    </PickerSurfaceContext>
   )
 }

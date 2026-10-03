@@ -1,8 +1,13 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { Field } from '../components/Field'
-import { type PickerLabelOptions, usePickerLabels } from './PickerShell'
+import {
+  type PickerLabelOptions,
+  usePickerLabels,
+  usePickerSurface
+} from './PickerShell'
+import { onPhone } from './testUtils'
 
 function Named(options: PickerLabelOptions) {
   const labels = usePickerLabels(options)
@@ -48,5 +53,34 @@ describe('usePickerLabels', () => {
     const [first, second] = screen.getAllByRole('button')
     expect(first).toHaveAccessibleName('Choose date, Curfew')
     expect(second).toHaveAccessibleName('Choose date, Doors')
+  })
+})
+
+function Surface({ open }: { open: boolean }) {
+  return <output>{usePickerSurface(open)}</output>
+}
+
+describe('usePickerSurface', () => {
+  it('is a popover from the phone breakpoint up', () => {
+    render(<Surface open={false} />)
+    expect(screen.getByRole('status')).toHaveTextContent('popover')
+  })
+
+  it('is a drawer below it', () => {
+    onPhone()
+    render(<Surface open={false} />)
+    expect(screen.getByRole('status')).toHaveTextContent('drawer')
+  })
+
+  it('follows the screen while closed and holds still while open', () => {
+    const screenSize = onPhone(false)
+    const { rerender } = render(<Surface open={false} />)
+    act(() => screenSize.set(true))
+    expect(screen.getByRole('status')).toHaveTextContent('drawer')
+    rerender(<Surface open />)
+    act(() => screenSize.set(false))
+    expect(screen.getByRole('status')).toHaveTextContent('drawer')
+    rerender(<Surface open={false} />)
+    expect(screen.getByRole('status')).toHaveTextContent('popover')
   })
 })

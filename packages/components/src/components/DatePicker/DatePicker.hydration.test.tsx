@@ -7,6 +7,7 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { DatePicker } from '.'
+import { onPhone } from '../../pickers/testUtils'
 
 // The viewer sits in Perth, which the server can't know.
 vi.mock('@oztix/roadie-core/datetime', async (importOriginal) => ({
@@ -209,5 +210,28 @@ describe('DatePicker time during composition', () => {
     fireEvent.keyDown(time, { key: 'ArrowUp', isComposing: true })
     fireEvent.keyDown(time, { key: 'ArrowUp', keyCode: 229 })
     expect(time).toHaveValue('7:30pm')
+  })
+})
+
+describe('DatePicker hydrated open on a phone', () => {
+  it('hydrates without a mismatch, then opens in a drawer', async () => {
+    onPhone()
+    const picker = (
+      <DatePicker aria-label='Doors' today='2026-10-07' defaultOpen />
+    )
+    const container = document.createElement('div')
+    container.innerHTML = renderToString(picker)
+    document.body.append(container)
+    onTestFinished(() => container.remove())
+    const onRecoverableError = vi.fn()
+    const root = await act(async () =>
+      hydrateRoot(container, picker, { onRecoverableError })
+    )
+    onTestFinished(() => act(() => root.unmount()))
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    const dialogs = await screen.findAllByRole('dialog')
+    expect(dialogs.map((dialog) => dialog.dataset.slot)).toEqual([
+      'drawer-popup'
+    ])
   })
 })

@@ -112,37 +112,75 @@ describe('DatePicker by keyboard', () => {
   })
 })
 
-describe('DatePicker on a phone', () => {
+const TIMEOUT = { timeout: 15_000 }
+const rect = (element: Element) => element.getBoundingClientRect()
+
+describe('DatePicker on a phone', TIMEOUT, () => {
   afterAll(() => page.viewport(1920, 1080))
 
-  it('keeps the calendar inside a 390px screen', async () => {
-    await page.viewport(390, 844)
-    render(<ShowDate />)
-    await userEvent.click(trigger())
-    const popup = await screen.findByRole('dialog')
-    await expect.poll(focusedDate).toBe('2026-10-23')
-    const box = popup.getBoundingClientRect()
-    expect(box.left).toBeGreaterThanOrEqual(0)
-    expect(box.right).toBeLessThanOrEqual(window.innerWidth)
-    const grid = screen.getByRole('grid').getBoundingClientRect()
-    expect(grid.right).toBeLessThanOrEqual(box.right)
-  })
+  it.each([
+    [390, 844],
+    [360, 740]
+  ])(
+    'opens a drawer at the foot of a %ipx screen with days a thumb can hit',
+    async (width, height) => {
+      await page.viewport(width, height)
+      render(<ShowDate />)
+      await userEvent.click(trigger())
+      const drawer = await screen.findByRole('dialog', {
+        name: 'Choose date, Show date'
+      })
+      expect(drawer).toHaveAttribute('data-slot', 'drawer-popup')
+      await expect.poll(focusedDate).toBe('2026-10-23')
+      await expect.poll(() => rect(drawer).bottom).toBe(window.innerHeight)
+      expect(rect(drawer).left).toBe(0)
+      expect(rect(drawer).right).toBe(window.innerWidth)
+      expect(rect(screen.getByRole('grid')).right).toBeLessThanOrEqual(
+        rect(drawer).right
+      )
+      expect(rect(day('2026-10-23')).width).toBeGreaterThanOrEqual(44)
+      expect(rect(day('2026-10-23')).width).toBeLessThanOrEqual(48)
+    }
+  )
 
-  it('chooses a tapped day and leaves focus off the text field', async () => {
+  it('chooses a tapped day and gives focus back to the button', async () => {
     await page.viewport(390, 844)
     setHoverCapable(false)
     render(<ShowDate />)
     await userEvent.click(trigger())
     await screen.findByRole('dialog')
     await userEvent.click(day('2026-10-29'))
-    await expect
-      .poll(() => trigger().getAttribute('aria-expanded'))
-      .toBe('false')
+    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
     expect(shown()).toHaveTextContent('2026-10-29')
     // Focus on the text field would raise the on-screen keyboard.
-    expect(document.activeElement).not.toBe(
-      screen.getByRole('textbox', { name: 'Show date' })
-    )
+    await expect.poll(() => document.activeElement).toBe(trigger())
+  })
+
+  it('closes on Escape without a change', async () => {
+    await page.viewport(390, 844)
+    render(<ShowDate />)
+    await userEvent.click(trigger())
+    await screen.findByRole('dialog')
+    await expect.poll(focusedDate).toBe('2026-10-23')
+    await userEvent.keyboard('{ArrowRight}{Escape}')
+    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    expect(shown()).toHaveTextContent('2026-10-23')
+    await expect.poll(() => document.activeElement).toBe(trigger())
+  })
+})
+
+describe('DatePicker from the phone breakpoint up', TIMEOUT, () => {
+  afterAll(() => page.viewport(1920, 1080))
+
+  it('opens a popover under the field with 40px days', async () => {
+    await page.viewport(768, 1024)
+    render(<ShowDate />)
+    await userEvent.click(trigger())
+    const popup = await screen.findByRole('dialog')
+    expect(popup).toHaveAttribute('data-slot', 'popover-popup')
+    const field = document.querySelector('[data-slot="date-picker-group"]')!
+    expect(rect(popup).top).toBeGreaterThan(rect(field).bottom)
+    expect(rect(day('2026-10-23')).width).toBe(40)
   })
 })
 

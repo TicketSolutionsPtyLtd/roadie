@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { DateRangeValue } from '@oztix/roadie-core/datetime'
 
 import { DateRangePicker } from '.'
+import { onPhone } from '../../pickers/testUtils'
 import { Field } from '../Field'
 
 // Wed 7 Oct 2026.
@@ -940,5 +941,43 @@ describe('DateRangePicker', () => {
       within(dialog).getByRole('button', { name: 'Yesterday' })
     )
     expect(trigger()).toHaveTextContent('Yesterday')
+  })
+})
+
+describe('DateRangePicker on a phone', () => {
+  it('keeps Apply and Cancel in the drawer footer, out of the scroll', async () => {
+    onPhone()
+    const onValueChange = vi.fn()
+    render(
+      <Field>
+        <Field.Label>Sales period</Field.Label>
+        <DateRangePicker
+          today={TODAY}
+          commit='apply'
+          defaultValue='yesterday'
+          onValueChange={onValueChange}
+        />
+      </Field>
+    )
+    const dialog = await open()
+    expect(dialog).toHaveAccessibleName('Choose dates, Sales period')
+    expect(within(dialog).getByRole('heading')).toHaveTextContent(
+      'Sales period'
+    )
+    const footer = dialog.querySelector<HTMLElement>(
+      '[data-slot="drawer-footer"]'
+    )!
+    const body = dialog.querySelector<HTMLElement>('[data-slot="drawer-body"]')!
+    expect(within(body).getByRole('group', { name: 'Presets' })).toBeVisible()
+    expect(within(body).queryByRole('button', { name: 'Apply' })).toBeNull()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Last week' })
+    )
+    await userEvent.click(within(footer).getByRole('button', { name: 'Apply' }))
+    expect(onValueChange).toHaveBeenCalledWith('last-week')
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    expect(trigger()).toHaveFocus()
   })
 })

@@ -188,47 +188,71 @@ describe('DateRangePicker on a phone', TIMEOUT, () => {
   beforeAll(() => page.viewport(390, 844))
   afterAll(() => page.viewport(1920, 1080))
 
-  it('puts the presets first, then one month, inside the screen', async () => {
+  it('opens a drawer with the presets first, then one month', async () => {
     render(<Period />)
     await userEvent.click(trigger())
-    const popup = await screen.findByRole('dialog')
+    const drawer = await screen.findByRole('dialog', {
+      name: 'Choose dates, Sales period'
+    })
+    expect(drawer).toHaveAttribute('data-slot', 'drawer-popup')
     await expect.poll(months).toBe(1)
-    const presets = within(popup).getByRole('group', { name: 'Presets' })
-    const calendar = popup.querySelector('[data-slot="calendar"]')!
+    await expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+    const presets = within(drawer).getByRole('group', { name: 'Presets' })
+    const calendar = drawer.querySelector('[data-slot="calendar"]')!
     expect(box(presets).bottom).toBeLessThanOrEqual(box(calendar).top)
-    expect(box(popup).left).toBeGreaterThanOrEqual(0)
-    expect(box(popup).right).toBeLessThanOrEqual(window.innerWidth)
+    expect(box(drawer).left).toBe(0)
+    expect(box(drawer).right).toBe(window.innerWidth)
     expect(box(screen.getByRole('grid')).right).toBeLessThanOrEqual(
-      box(popup).right
+      box(drawer).right
     )
-    expect(popup.scrollWidth).toBeLessThanOrEqual(popup.clientWidth)
-    const start = within(popup).getByRole('textbox', { name: 'Start' })
-    const end = within(popup).getByRole('textbox', { name: 'End' })
+    const body = drawer.querySelector('[data-slot="drawer-body"]')!
+    expect(body.scrollWidth).toBeLessThanOrEqual(body.clientWidth)
+    const start = within(drawer).getByRole('textbox', { name: 'Start' })
+    const end = within(drawer).getByRole('textbox', { name: 'End' })
     expect(box(start).top).toBe(box(end).top)
   })
 
-  it('scrolls a popup taller than the screen', async () => {
+  it('scrolls a tall drawer and keeps Apply in view', async () => {
     await page.viewport(390, 500)
-    render(<Period />)
+    render(<Period commit='apply' />)
     await userEvent.click(trigger())
-    const popup = await screen.findByRole('dialog')
-    await expect.poll(() => box(popup).bottom).toBeLessThanOrEqual(500)
-    expect(popup.scrollHeight).toBeGreaterThan(popup.clientHeight)
-    expect(getComputedStyle(popup).overflowY).toBe('auto')
+    const drawer = await screen.findByRole('dialog')
+    await expect.poll(() => box(drawer).bottom).toBe(500)
+    const body = drawer.querySelector('[data-slot="drawer-body"]')!
+    expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
+    const apply = within(drawer).getByRole('button', { name: 'Apply' })
+    expect(box(apply).bottom).toBeLessThanOrEqual(500)
+    expect(box(apply).top).toBeGreaterThanOrEqual(box(body).bottom)
   })
 
   it('chooses a tapped preset', async () => {
+    await page.viewport(390, 844)
     setHoverCapable(false)
     render(<Period />)
     await userEvent.click(trigger())
-    const popup = await screen.findByRole('dialog')
+    const drawer = await screen.findByRole('dialog')
     await userEvent.click(
-      within(popup).getByRole('button', { name: 'Last 30 days' })
+      within(drawer).getByRole('button', { name: 'Last 30 days' })
     )
-    await expect
-      .poll(() => trigger().getAttribute('aria-expanded'))
-      .toBe('false')
+    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
     expect(trigger().textContent).toContain('Last 30 days')
+  })
+
+  it('applies tapped days and gives focus back to the button', async () => {
+    await page.viewport(360, 740)
+    setHoverCapable(false)
+    render(<Period commit='apply' initial={null} />)
+    await userEvent.click(trigger())
+    const drawer = await screen.findByRole('dialog')
+    expect(box(day('2026-10-12')).width).toBeGreaterThanOrEqual(44)
+    await userEvent.click(day('2026-10-12'))
+    await userEvent.click(day('2026-10-15'))
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Apply' }))
+    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    expect(document.querySelector('output')).toHaveTextContent(
+      '{"start":"2026-10-12","end":"2026-10-15"}'
+    )
+    await expect.poll(() => document.activeElement).toBe(trigger())
   })
 })
 

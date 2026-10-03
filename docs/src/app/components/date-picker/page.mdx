@@ -198,6 +198,7 @@ Wrap it in [Field](/components/field). The label points at the date input, and `
 ## Accessibility
 
 - The date is a text input, labelled by `Field.Label` or `aria-label`. The calendar button is named after the picker and its date, such as "Choose date, Doors (Fri 27 Nov 2026)", and the popup "Choose date, Doors", so pickers side by side stay apart.
+- On a screen narrower than 48rem, the calendar opens in a bottom [Drawer](/components/drawer) instead of a popover. Screen readers announce a dialog with the same name. Its title is the picker's label, days grow to fill the width up to 48px, and Close, `Escape`, a tap outside or a swipe down closes it.
 - At `minute` granularity the date and the time are a `group` named by the label, with inputs named "Date" and "Time".
 - Opening the calendar moves focus to the chosen day, or to today. Arrow keys, `Page Up`, `Page Down`, `Home` and `End` move as in [Calendar](/components/calendar). `Enter` or `Space` chooses the focused day and closes it. `Escape` closes it without a change. Either way focus goes back to the button, so on a phone the keyboard doesn't open.
 - While text is being edited, `Enter` commits it instead of submitting the form, and `Escape` puts back the last date.

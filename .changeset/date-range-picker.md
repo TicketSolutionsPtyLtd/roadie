@@ -4,7 +4,7 @@
 
 Add `DateRangePicker` (`@oztix/roadie-components/date-range-picker`), a button
 showing a date range that opens presets, typed start and end dates, and a
-range `Calendar` in a `Popover`. `DateRangePreset` and the default
+range `Calendar` in a `Popover`, or below 48rem in a bottom `Drawer`. `DateRangePreset` and the default
 `dateRangePresets` are exported from the subpath and the package root.
 
 The value is a `DateRangeValue` from `@oztix/roadie-core/datetime`. A preset
@@ -25,5 +25,6 @@ takes `disabled` matchers, `readOnly` (shown with a lock), `invalid`,
 screens, one on narrow), `min`, `max`, `captionLayout`, `startMonth`,
 `endMonth`, `today`, `weekStart`, `locale` and `open`, `defaultOpen` and
 `onOpenChange`, and inherits its label, description, `invalid`, `required`
-and `disabled` from `Field`. On a phone the presets come first and one month
-follows.
+and `disabled` from `Field`. In the drawer the presets come first, one month
+follows with days up to 48px wide, and Cancel and Apply stay in view at its
+foot.
