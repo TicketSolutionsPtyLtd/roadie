@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { StrictMode, useState } from 'react'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
@@ -82,6 +82,32 @@ describe('DateRangePicker tapped on a phone', TIMEOUT, () => {
       '5 Nov 2026'
     )
     await page.viewport(390, 844)
+  })
+
+  it('opens the Calendar tab on the chosen month', async () => {
+    function Last30() {
+      return (
+        <DateRangePicker
+          aria-label='Sales period'
+          today='2026-10-07'
+          defaultValue={{ direction: 'past', amount: 30, unit: 'day' }}
+        />
+      )
+    }
+    // Strict, as in development, and with the panels' transitions left on.
+    render(
+      <StrictMode>
+        <Last30 />
+      </StrictMode>
+    )
+    await tapOn(screen.getByRole('button', { name: /^Choose dates/ }))
+    const drawer = await screen.findByRole('dialog')
+    await settle(600)
+    await tapOn(within(drawer).getByRole('tab', { name: 'Calendar' }))
+    await settle(600)
+    const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')!
+    const september = drawer.querySelector('[data-month="2026-09-01"]')!
+    expect(Math.abs(box(september).top - box(weekdays).bottom)).toBeLessThan(2)
   })
 
   it('ends a range in a month scrolled to', async () => {

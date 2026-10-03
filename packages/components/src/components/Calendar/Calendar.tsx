@@ -218,6 +218,8 @@ function between(date: string, start: string, end: string) {
 /** Months either side of the opening month a scrolling calendar starts with. */
 const SCROLL_BEFORE = 3
 const SCROLL_AFTER = 6
+/** What tells a scrolling calendar the reader has taken over its scroll. */
+const TAKE_OVER = ['pointerdown', 'wheel', 'touchstart', 'keydown'] as const
 /** Months a scrolling calendar adds as it nears an end. */
 // Many at a time, so adding above, which moves the scroll, is rare.
 const SCROLL_STEP = 12
@@ -585,6 +587,7 @@ export function Calendar(props: CalendarProps) {
   // keeps, and not for the one the list reported as it scrolled.
   const scrolledTo = useRef<string | null>(null)
   const reported = useRef<string | null>(null)
+  const settling = useRef<(() => void) | null>(null)
   useIsomorphicLayoutEffect(() => {
     if (!scrolling || waitingForToday || scrolledTo.current === firstMonth)
       return
@@ -598,16 +601,52 @@ export function Calendar(props: CalendarProps) {
     // Hidden or not laid out yet, so try again on a later render.
     if (!month || !scroller || scroller.clientHeight === 0) return
     scrolledTo.current = firstMonth
-    const weekdays = weekdaysRef.current?.getBoundingClientRect()
-    const stuckAt =
-      scroller.getBoundingClientRect().top +
-      (weekdays ? weekdays.height : 0) +
-      (parseFloat(getComputedStyle(weekdaysRef.current!).top) || 0)
-    scroller.scrollBy({
-      top: month.getBoundingClientRect().top - stuckAt,
-      behavior: 'instant'
-    })
+    const target = firstMonth
+    const align = () => {
+      const weekdays = weekdaysRef.current
+      const month = rootRef.current?.querySelector(`[data-month="${target}"]`)
+      if (!weekdays || !month) return
+      const stuckAt =
+        scroller.getBoundingClientRect().top +
+        weekdays.getBoundingClientRect().height +
+        (parseFloat(getComputedStyle(weekdays).top) || 0)
+      const by = month.getBoundingClientRect().top - stuckAt
+      if (Math.abs(by) >= 1) scroller.scrollBy({ top: by, behavior: 'instant' })
+      aligned = scroller.scrollTop
+    }
+    let aligned = scroller.scrollTop
+    align()
+    // Content around the list can still move as it opens, such as a tab
+    // panel on its way out, so it stays aligned until the reader takes over.
+    settling.current?.()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(align)
+    observer.observe(scroller.firstElementChild ?? root)
+    // A scroll that isn't its own is the reader's, or the page's.
+    const onScroll = () => {
+      if (Math.abs(scroller.scrollTop - aligned) > 1) stop()
+    }
+    const stop = () => {
+      observer.disconnect()
+      clearTimeout(timer)
+      for (const type of TAKE_OVER) scroller.removeEventListener(type, stop)
+      scroller.removeEventListener('scroll', onScroll)
+      settling.current = null
+    }
+    const timer = setTimeout(stop, 1000)
+    for (const type of TAKE_OVER)
+      scroller.addEventListener(type, stop, { passive: true })
+    scroller.addEventListener('scroll', onScroll, { passive: true })
+    settling.current = stop
   })
+  // Only once it has really gone: a development remount keeps the same DOM.
+  useEffect(
+    () => () =>
+      queueMicrotask(() => {
+        if (!rootRef.current?.isConnected) settling.current?.()
+      }),
+    []
+  )
 
   // Months added above would push what is in view down; the scroll moves
   // with them. Engines that anchor scrolling themselves leave nothing to do.
@@ -629,6 +668,8 @@ export function Calendar(props: CalendarProps) {
   // The month at the top of a scrolled list is the first month, so a parent
   // that moves `month` somewhere already in view still scrolls to it.
   const followTop = () => {
+    // Its own aligning isn't the reader scrolling.
+    if (settling.current) return
     const root = rootRef.current
     const scroller = root && scrollingAncestor(root)
     const weekdays = weekdaysRef.current

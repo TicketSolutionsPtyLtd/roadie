@@ -391,7 +391,10 @@ export function ExtendedDateRangePicker({
     picking ?? (draft.start.date && !draft.end.date ? 'end' : 'start')
   const endFields = (
     <div
-      className={cn('grid gap-3', withTime ? 'sm:grid-cols-2' : 'grid-cols-2')}
+      className={cn(
+        'grid items-start gap-3',
+        withTime ? 'sm:grid-cols-2' : 'grid-cols-2'
+      )}
     >
       <RangeEndField
         key={`start-${cleared}`}

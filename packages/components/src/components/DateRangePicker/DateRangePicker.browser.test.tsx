@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { StrictMode, useState } from 'react'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
@@ -415,6 +415,35 @@ for (const [width, height] of [
         expect(
           box(within(drawer).getByRole('combobox', { name })).height
         ).toBeGreaterThanOrEqual(40)
+    })
+
+    it('opens the Calendar tab on the chosen month, in strict mode too', async () => {
+      render(
+        <StrictMode>
+          <Period initial={{ direction: 'past', amount: 30, unit: 'day' }} />
+        </StrictMode>
+      )
+      await userEvent.click(trigger())
+      const drawer = await screen.findByRole('dialog')
+      await expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+      await userEvent.click(tab('Calendar'))
+      const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')!
+      const september = () => drawer.querySelector('[data-month="2026-09-01"]')!
+      await expect
+        .poll(() => Math.abs(box(september()).top - box(weekdays).bottom))
+        .toBeLessThan(2)
+    })
+
+    it('keeps Start and End level when one shows an error', async () => {
+      render(<Period initial={{ start: '2026-10-05', end: '2026-10-09' }} />)
+      await userEvent.click(trigger())
+      const drawer = await screen.findByRole('dialog')
+      const start = within(drawer).getByRole('combobox', { name: 'Start' })
+      const end = within(drawer).getByRole('combobox', { name: 'End' })
+      await userEvent.clear(start)
+      await userEvent.type(start, '20 oct 2026{Enter}')
+      await expect.element(end).toHaveAttribute('aria-invalid', 'true')
+      expect(box(start).top).toBe(box(end).top)
     })
 
     it('keeps Clear and Apply in view at the foot', async () => {
