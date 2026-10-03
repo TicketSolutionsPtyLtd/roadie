@@ -15,7 +15,7 @@ import type { RecordField } from './types'
 
 type Row = object
 
-function read(row: Row, key: string | undefined): unknown {
+export function read(row: Row, key: string | undefined): unknown {
   return key === undefined ? undefined : (row as Record<string, unknown>)[key]
 }
 
@@ -60,7 +60,11 @@ function same(a: unknown, b: string): boolean {
 }
 
 /** The zone a row's own times are read in. */
-function rowZone(row: Row, field: RecordField, viewerZone: string): string {
+export function rowZone(
+  row: Row,
+  field: RecordField,
+  viewerZone: string
+): string {
   const moment = momentOf(field)
   if (moment !== 'event' && moment !== 'access') return viewerZone
   const zone = read(row, field.timeZoneKey)
@@ -83,7 +87,10 @@ function isTimeZone(zone: string): boolean {
   return known
 }
 
-function epochSpan(value: unknown, zone: string): [number, number] | null {
+export function epochSpan(
+  value: unknown,
+  zone: string
+): [number, number] | null {
   if (typeof value === 'number') {
     return Number.isNaN(new Date(value).getTime()) ? null : [value, value]
   }
@@ -197,16 +204,25 @@ function matchesFilter(
   }
 }
 
-function searchText(row: Row, fields: readonly RecordField[]): string {
+type SearchField = { key: string; labels: Map<unknown, string> }
+
+function searchFields(fields: readonly RecordField[]): SearchField[] {
+  return fields.filter(isSearchable).map((field) => ({
+    key: field.key,
+    labels: new Map(
+      recordFieldOptions(field).map((option) => [option.value, option.label])
+    )
+  }))
+}
+
+function searchText(row: Row, fields: readonly SearchField[]): string {
   return fields
-    .filter(isSearchable)
-    .flatMap((field) => {
-      const value = read(row, field.key)
+    .flatMap(({ key, labels }) => {
+      const value = read(row, key)
       if (isEmptyValue(value)) return []
-      const options = recordFieldOptions(field)
       return list(value).flatMap((v) => {
-        const option = options.find((o) => o.value === v)
-        return option ? [String(v), option.label] : [String(v)]
+        const label = labels.get(v)
+        return label === undefined ? [String(v)] : [String(v), label]
       })
     })
     .join('\n')
@@ -214,25 +230,43 @@ function searchText(row: Row, fields: readonly RecordField[]): string {
 }
 
 /**
+ * `matchesRecordQuery` as a predicate built once for a query, so filtering a
+ * list reads the field definitions once rather than once per row.
+ */
+export function compileRecordQuery(
+  query: ResolvedRecordQuery,
+  fields: readonly RecordField[]
+): (row: Row) => boolean {
+  const byKey = fieldIndex(fields)
+  const filters = query.filters.map((filter) => ({
+    filter,
+    field: byKey.get(filter.field)
+  }))
+  const words = query.search.toLowerCase().split(/\s+/).filter(Boolean)
+  const searched = words.length ? searchFields(fields) : []
+  return (row) => {
+    const allMatch = filters.every(({ filter, field }) =>
+      field ? matchesFilter(row, filter, field, query.timeZone) : false
+    )
+    if (!allMatch) return false
+    if (!words.length) return true
+    const text = searchText(row, searched)
+    return words.every((word) => text.includes(word))
+  }
+}
+
+/**
  * Whether a row belongs in a resolved query's results. Filters mean the same
  * as in the Meilisearch adapter: negative filters (is-not, not-contains, neq)
  * keep rows where the field is empty, and text compares without case. Search
  * is simpler than Meilisearch's: every word must appear, as typed, somewhere
- * in the searchable fields or their option labels.
+ * in the searchable fields or their option labels. To test many rows, use
+ * `compileRecordQuery`.
  */
 export function matchesRecordQuery(
   row: Row,
   query: ResolvedRecordQuery,
   fields: readonly RecordField[]
 ): boolean {
-  const byKey = fieldIndex(fields)
-  const allMatch = query.filters.every((filter) => {
-    const field = byKey.get(filter.field)
-    return field ? matchesFilter(row, filter, field, query.timeZone) : false
-  })
-  if (!allMatch) return false
-  const words = query.search.toLowerCase().split(/\s+/).filter(Boolean)
-  if (!words.length) return true
-  const text = searchText(row, fields)
-  return words.every((word) => text.includes(word))
+  return compileRecordQuery(query, fields)(row)
 }

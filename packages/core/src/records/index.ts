@@ -18,6 +18,16 @@ export type {
 export type { RelativeRange } from '../datetime/ranges'
 
 export { recordFieldOptions, recordFilterOperators } from './fields'
+export { recordFields } from './builder'
+export type {
+  BooleanFieldOptions,
+  DateFieldOptions,
+  MoneyFieldOptions,
+  NumberFieldOptions,
+  OptionFieldOptions,
+  TextFieldOptions
+} from './builder'
+export { sortRecords } from './sort'
 export { validateRecordView } from './validate'
 export type { RecordViewValidation } from './validate'
 export { resolveRecordQuery } from './resolve'
@@ -26,7 +36,7 @@ export type {
   ResolvedRecordQuery,
   ResolvedRecordRange
 } from './resolve'
-export { matchesRecordQuery } from './match'
+export { compileRecordQuery, matchesRecordQuery } from './match'
 export { parseQuery } from './parse'
 export type { ParseQueryOptions, RecordSuggestion } from './parse'
 export {
