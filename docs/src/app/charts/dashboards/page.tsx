@@ -1344,8 +1344,8 @@ export default function DashboardsPage() {
             <>
               A delta with <Code>comparison: true</Code> follows the period’s
               comparison. Its context line names it, such as “vs previous
-              period”. With no comparison it hides. Other deltas, such as
-              against a target, stay as they are.
+              period”, in place of any card context. With no comparison it
+              hides. Other deltas, such as against a target, stay as they are.
             </>,
             <>
               The previous period follows the calendar. This month compares with

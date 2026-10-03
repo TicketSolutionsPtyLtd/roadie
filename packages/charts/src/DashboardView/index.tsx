@@ -84,7 +84,7 @@ function comparisonLine(
 /**
  * A delta marked `comparison` follows the dashboard's: hidden with no
  * comparison, replaced by a message when the data can't cover it, and
- * otherwise named on the context line.
+ * otherwise named on the context line, over any context the card gives.
  */
 function headline(
   card: Exclude<DashboardCard, { kind: 'note' }>,
@@ -99,7 +99,7 @@ function headline(
     return { delta: undefined, context: HISTORY_MESSAGE[period.history] }
   return {
     delta,
-    context: card.context ?? comparisonLine(period.compare, where)
+    context: comparisonLine(period.compare, where)
   }
 }
 

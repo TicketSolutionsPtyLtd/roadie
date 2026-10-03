@@ -480,7 +480,7 @@ function deltaProblems(
     ? [
         warning(
           `${path}.context`,
-          'The context line names the comparison. Leave context out, so it follows the period'
+          'The context line names the comparison, so this context never shows. Leave it out'
         )
       ]
     : []

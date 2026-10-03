@@ -1043,7 +1043,7 @@ describe('validateDashboard periods', () => {
     expect(problems(withPeriod({ range: 'this-month' }, [table]))).toEqual([])
   })
 
-  it('warns when a comparison delta writes its own context', () => {
+  it('warns that a comparison delta’s own context is ignored', () => {
     expect(
       problems(
         withPeriod({ range: 'this-month', compare: 'previous-period' }, [

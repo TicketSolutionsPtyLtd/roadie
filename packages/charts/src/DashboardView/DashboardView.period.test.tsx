@@ -118,6 +118,23 @@ describe('DashboardView periods', () => {
     expect(contextIn('Shows on sale')).toBe('vs previous period')
   })
 
+  it('names the comparison over a card’s own context, so it can’t go stale', () => {
+    render(
+      <DashboardView
+        spec={{
+          ...dashboard({ range: 'this-month', compare: 'previous-year' }),
+          sections: [
+            {
+              title: 'At a glance',
+              cards: [{ ...sold, context: 'vs previous period' }]
+            }
+          ]
+        }}
+      />
+    )
+    expect(contextIn('Tickets sold')).toBe('vs previous year')
+  })
+
   it('names custom comparison dates', () => {
     render(
       <DashboardView
