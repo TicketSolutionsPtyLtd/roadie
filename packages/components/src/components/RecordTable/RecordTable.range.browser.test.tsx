@@ -1,4 +1,11 @@
-import { Activity, type ReactNode, StrictMode, useMemo, useState } from 'react'
+import {
+  Activity,
+  type ReactNode,
+  StrictMode,
+  useEffect,
+  useMemo,
+  useState
+} from 'react'
 
 import { cleanup, render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
@@ -533,6 +540,34 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     box(container).scrollTop = 200 * ROW_HEIGHT
     await framed(() => rows.at(-1)).toBeDefined()
     expect(Math.abs(rows.at(-1)! - 200)).toBeLessThanOrEqual(2)
+  })
+
+  it('follows a pane header that grows while the row restores', async () => {
+    function GrowingPane({ children }: { children: ReactNode }) {
+      const [tall, setTall] = useState(false)
+      useEffect(() => {
+        const timer = setTimeout(() => setTall(true), 200)
+        return () => clearTimeout(timer)
+      }, [])
+      return (
+        <div style={{ height: 600, display: 'grid' }}>
+          <Pane>
+            <Pane.Header>
+              <Pane.Title>Shows</Pane.Title>
+              {tall && <div style={{ height: 40 }} />}
+            </Pane.Header>
+            <Pane.Body>{children}</Pane.Body>
+          </Pane>
+        </div>
+      )
+    }
+    const { container } = render(
+      <GrowingPane>
+        <Positioned total={5000} rowCount={5000} row={480} spans={[]} />
+      </GrowingPane>
+    )
+    await wait(900)
+    await framed(() => underHeader(container, 480)).toBeLessThanOrEqual(1)
   })
 
   it('restores the row under the header in a pane, and again on remount', async () => {
