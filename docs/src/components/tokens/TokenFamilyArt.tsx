@@ -3,6 +3,38 @@ import type { TokenFamily } from '@roadie-core/tokens'
 const SCALES = ['neutral', 'brand', 'accent', 'danger', 'success', 'info']
 const STEPS = [2, 4, 6, 8, 9, 11]
 
+const DATAVIZ_RAMPS = [
+  [
+    'bg-chart-1',
+    'bg-chart-2',
+    'bg-chart-3',
+    'bg-chart-4',
+    'bg-chart-5',
+    'bg-chart-6'
+  ],
+  [
+    'bg-chart-heat-1',
+    'bg-chart-heat-2',
+    'bg-chart-heat-4',
+    'bg-chart-heat-5',
+    'bg-chart-heat-7',
+    'bg-chart-heat-8'
+  ],
+  [
+    'bg-chart-diverge-neg-4',
+    'bg-chart-diverge-neg-2',
+    'bg-chart-diverge-0',
+    'bg-chart-diverge-pos-2',
+    'bg-chart-diverge-pos-4'
+  ],
+  [
+    'bg-chart-status-good',
+    'bg-chart-status-warning',
+    'bg-chart-status-serious',
+    'bg-chart-status-critical'
+  ]
+]
+
 /** A family's card art, authored at roughly `w-40` for `PreviewThumbnail`. */
 export function TokenFamilyArt({ family }: { family: TokenFamily }) {
   switch (family) {
@@ -34,6 +66,21 @@ export function TokenFamilyArt({ family }: { family: TokenFamily }) {
               </div>
             )
           )}
+        </div>
+      )
+    case 'dataviz':
+      return (
+        <div className='grid w-40 gap-1'>
+          {DATAVIZ_RAMPS.map((ramp) => (
+            <div key={ramp[0]} className='flex gap-0.5'>
+              {ramp.map((swatch) => (
+                <span
+                  key={swatch}
+                  className={`h-4 flex-1 rounded-xs ${swatch}`}
+                />
+              ))}
+            </div>
+          ))}
         </div>
       )
     case 'emphasis':

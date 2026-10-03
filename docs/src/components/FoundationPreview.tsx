@@ -166,6 +166,38 @@ export function FoundationPreview({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'tables':
+      return (
+        <div className='grid w-44 grid-cols-[3fr_2fr] gap-1.5'>
+          <div className='row-span-2 grid content-start rounded-md bg-normal px-2 py-1'>
+            <div className='flex h-4 items-center justify-between border-b border-normal'>
+              <Skel className='h-1 w-7 opacity-60' />
+              <Skel className='h-1 w-4 opacity-60' />
+            </div>
+            {['w-10', 'w-7', 'w-9', 'w-8'].map((width) => (
+              <div
+                key={width}
+                className='flex h-4 items-center justify-between border-b border-subtler last:border-b-0'
+              >
+                <Skel className={`h-1.5 ${width}`} />
+                <Skel className='h-1.5 w-4' />
+              </div>
+            ))}
+          </div>
+          <div className='grid emphasis-raised content-start gap-1 rounded-md p-1.5'>
+            <Skel className='h-1 w-8' />
+            <p className='text-sm/none font-semibold text-strong'>8,412</p>
+          </div>
+          <div className='grid divide-y divide-subtle rounded-md bg-normal px-1.5'>
+            {['w-8', 'w-6'].map((width) => (
+              <div key={width} className='flex items-center gap-1 py-1'>
+                <div className='size-2 shrink-0 rounded-full bg-subtle' />
+                <Skel className={`h-1.5 ${width}`} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )
     case 'interactions':
       return (
         <div className='relative flex gap-2'>
@@ -236,12 +268,6 @@ export function FoundationPreview({ name }: { name: string }) {
         </div>
       )
     default:
-      return (
-        <div className='grid w-40 gap-1.5'>
-          <Skel className='h-2 w-20' />
-          <Skel className='h-2 w-full' />
-          <Skel className='h-2 w-16' />
-        </div>
-      )
+      return null
   }
 }

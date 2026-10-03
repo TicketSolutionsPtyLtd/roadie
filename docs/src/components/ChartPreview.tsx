@@ -1,6 +1,8 @@
+import { CalendarBlankIcon, CaretDownIcon } from '@phosphor-icons/react/ssr'
+
 import { ChartPatterns } from '@oztix/roadie-charts/chart-patterns'
 
-import { ComponentSkeleton, Skel } from './ComponentSkeleton'
+import { Skel } from './ComponentSkeleton'
 
 const SALES = ['h-4', 'h-6', 'h-5', 'h-8', 'h-10']
 
@@ -100,6 +102,19 @@ export function ChartPreview({ name }: { name: string }) {
             )
           )}
           <div className='col-span-2 h-10 rounded-md bg-strong/15' />
+        </div>
+      )
+    case 'dashboard-period':
+      return (
+        <div className='grid w-40 gap-1.5'>
+          <div className='flex emphasis-raised items-center gap-1.5 rounded-lg px-2.5 py-1'>
+            <CalendarBlankIcon weight='bold' className='size-3 text-subtle' />
+            <span className='text-sm text-normal'>This month</span>
+          </div>
+          <div className='flex emphasis-raised items-center justify-between gap-1.5 rounded-lg px-2.5 py-1'>
+            <span className='text-sm text-normal'>Previous period</span>
+            <CaretDownIcon weight='bold' className='size-3 text-subtle' />
+          </div>
         </div>
       )
     case 'data-card':
@@ -448,6 +463,6 @@ export function ChartPreview({ name }: { name: string }) {
         </div>
       )
     default:
-      return <ComponentSkeleton name={name} />
+      return null
   }
 }

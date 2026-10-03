@@ -703,6 +703,26 @@ export function ComponentSkeleton({ name }: { name: string }) {
           ))}
         </div>
       )
+    case 'table':
+      return (
+        <div className='grid w-40 rounded-xl bg-normal px-3 py-2'>
+          <div className='grid h-5 grid-cols-[1fr_auto_auto] items-center gap-3 border-b border-normal'>
+            <Skel className='h-1 w-8 opacity-60' />
+            <Skel className='h-1 w-5 opacity-60' />
+            <Skel className='h-1 w-6 opacity-60' />
+          </div>
+          {['w-14', 'w-10', 'w-12', 'w-9'].map((width) => (
+            <div
+              key={width}
+              className='grid h-5 grid-cols-[1fr_auto_auto] items-center gap-3 border-b border-subtler last:border-b-0'
+            >
+              <div className={`h-1.5 rounded-sm bg-strong/40 ${width}`} />
+              <Skel className='h-1.5 w-5' />
+              <Skel className='h-1.5 w-6' />
+            </div>
+          ))}
+        </div>
+      )
     case 'record-table':
       return (
         <div className='grid w-40 gap-1.5 rounded-xl bg-normal p-2'>
@@ -873,12 +893,6 @@ export function ComponentSkeleton({ name }: { name: string }) {
         </div>
       )
     default:
-      return (
-        <div className='grid w-40 gap-1.5'>
-          <Skel className='h-2 w-20' />
-          <Skel className='h-2 w-full' />
-          <Skel className='h-2 w-16' />
-        </div>
-      )
+      return null
   }
 }
