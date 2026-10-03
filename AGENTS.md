@@ -12,6 +12,8 @@ Roadie is a design system for Oztix's applications, built as a monorepo using pn
 - Build System: Turborepo
 - Framework: React v19
 - Component Primitives: @base-ui/react (for accessible interactive components)
+  (Steps is the one exception, built on `@ark-ui/react/steps`; build new
+  components on Base UI)
 - Icons: @phosphor-icons/react (use `@phosphor-icons/react/ssr` in server components)
 - Styling: Tailwind CSS v4 with custom `@utility` directives
 - Language: TypeScript v5 (strict mode)
@@ -52,6 +54,11 @@ Anything new has to be wired in two more places or it will not ship: a JS
 subpath needs an entry in `tsdown.config.ts`, and a CSS `@utility` needs its
 class named in `src/css/safelist.html`, or Tailwind purges the definition and
 the compiled sheet comes out empty.
+
+A new utility in a family where one class replaces another (intent, emphasis,
+semantic colour, z-index, duration, easing, text style) also goes in its
+group in `src/utils/cn.ts`, or `cn()` keeps both classes and a consumer's
+class can't override the component's.
 
 ### Components Package (`packages/components/`)
 
@@ -167,6 +174,9 @@ CSS-native OKLCH scales parameterized by `--accent-hue` and `--accent-chroma`:
 - 14 steps (0-13) per intent
 - Neutral scale tinted with accent hue
 - Dark mode swaps values via `.dark` class — no `dark:` variants needed
+- For colour that must stay the same in dark mode, use the fixed
+  `--color-{scale}-light-{0|5|12|13}` tokens (`.dark` doesn't override them;
+  only neutral has step 0)
 
 ### Layout
 

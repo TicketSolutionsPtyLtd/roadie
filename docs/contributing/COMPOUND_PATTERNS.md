@@ -544,7 +544,7 @@ Before April 2026, Roadie compounds used runtime property assignment (`Compound.
 
 Phase 3 of the April 2026 components cleanup plan replaced the old pattern with **per-file leaves + server-safe property assignment + tsdown `unbundle: true`**. The shape is identical to the pre-Phase-3 property-assignment pattern — `Compound.Sub = SubFn` at module scope — but it works now because the compound's `index.tsx` is a **server-safe module** (no `'use client'`). The property assignments happen in ordinary server-side JavaScript, not inside a client-reference proxy, so Next.js can follow them at build time.
 
-The full migration rationale and evidence trail live in [`docs/solutions/rsc-patterns/compound-export-namespace.md`](../solutions/rsc-patterns/compound-export-namespace.md) and the plan document [`docs/plans/2026-04-15-refactor-components-consistency-cleanup-plan.md`](../plans/2026-04-15-refactor-components-consistency-cleanup-plan.md).
+The full migration rationale and evidence trail live in [`docs/solutions/rsc-patterns/compound-export-namespace.md`](../solutions/rsc-patterns/compound-export-namespace.md).
 
 The pilot went through four shapes before landing the final one:
 

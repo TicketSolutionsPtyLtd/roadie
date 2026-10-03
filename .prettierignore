@@ -56,11 +56,6 @@ packages/core/src/css/dataviz.css
 # here, so none of these files go through the formatter.
 docs/**/*.mdx
 
-# Plans and brainstorms quote MDX inside fenced blocks; the formatter
-# collapses the nested fences and silently drops their contents.
-docs/plans/**/*.md
-docs/brainstorms/**/*.md
-
 # Misc
 .DS_Store
 *.pem
