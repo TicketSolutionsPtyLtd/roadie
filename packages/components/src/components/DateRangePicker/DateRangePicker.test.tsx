@@ -868,6 +868,18 @@ describe('DateRangePicker', () => {
       expect(start).toHaveValue('1 Oct 2026')
     })
 
+    it('reads a month count below one as one', async () => {
+      render(
+        <DateRangePicker aria-label='Period' today={TODAY} numberOfMonths={0} />
+      )
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('textbox', { name: 'End' }),
+        '5 dec{Enter}'
+      )
+      expect(day('2026-12-05')).toHaveAttribute('data-selected')
+    })
+
     it('is required when its Field is', () => {
       render(
         <Field required>

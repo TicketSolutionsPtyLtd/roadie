@@ -278,7 +278,7 @@ export function DateRangePicker({
   const length = { min, max }
   const result = draftValue(draft, granularity, zone, length)
   const wideScreen = useSyncExternalStore(subscribeWide, isWide, () => false)
-  const months = numberOfMonths ?? (wideScreen ? 2 : 1)
+  const months = Math.max(1, Math.floor(numberOfMonths ?? (wideScreen ? 2 : 1)))
 
   function changeOpen(next: boolean) {
     if (next && (isDisabled || readOnly)) return
