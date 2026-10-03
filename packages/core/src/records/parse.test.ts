@@ -319,4 +319,20 @@ describe('parseQuery', () => {
     expect(read('today')).not.toContain('sessions')
     expect(read('sessions:today')).toEqual([])
   })
+
+  it.each(['constructor', '__proto__', 'toString', 'hasOwnProperty'])(
+    'leaves %s as free text instead of throwing',
+    (text) => {
+      expect(() => parse(text)).not.toThrow()
+      expect(parse(text).filter((s) => s.kind === 'filter')).toEqual([])
+    }
+  )
+
+  it.each(['next 2 constructors', 'next 2 __proto__s', 'constructor 14'])(
+    'reads %s without taking an inherited name as a unit or month',
+    (text) => {
+      expect(() => parse(text)).not.toThrow()
+      expect(parse(text).map((s) => s.remainder)).not.toContain('')
+    }
+  )
 })

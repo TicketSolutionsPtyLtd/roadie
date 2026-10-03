@@ -1,5 +1,5 @@
 import { isPlainDate, plainDateOf } from '../datetime/plainDate'
-import { readBound, rowInstant } from './bounds'
+import { rowInstant } from './bounds'
 import {
   fieldIndex,
   isSearchable,
@@ -14,8 +14,6 @@ import type {
 import type { RecordField } from './types'
 
 type Row = object
-
-const WALL_CLOCK = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/
 
 function read(row: Row, key: string | undefined): unknown {
   return key === undefined ? undefined : (row as Record<string, unknown>)[key]
@@ -103,17 +101,7 @@ function epochSpan(value: unknown, zone: string): [number, number] | null {
 }
 
 function localDate(value: unknown, zone: string): string | null {
-  if (typeof value === 'string') {
-    if (isPlainDate(value)) return value
-    if (WALL_CLOCK.test(value)) {
-      try {
-        readBound(value, zone)
-        return value.slice(0, 10)
-      } catch {
-        return null
-      }
-    }
-  }
+  if (typeof value === 'string' && isPlainDate(value)) return value
   const span = epochSpan(value, zone)
   return span ? plainDateOf(new Date(span[0]), zone) : null
 }

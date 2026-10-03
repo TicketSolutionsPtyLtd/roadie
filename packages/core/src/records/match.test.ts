@@ -349,6 +349,26 @@ describe('matchesRecordQuery', () => {
     ).toBe(false)
   })
 
+  it('reads a venue time skipped with a whole day as the date it lands on', () => {
+    // Samoa skipped 30 December 2011 when it crossed the date line.
+    const on = (value: string) =>
+      matchesRecordQuery(
+        { starts: '2011-12-30T12:00', zone: 'Pacific/Apia' },
+        resolveRecordQuery(
+          {
+            search: '',
+            filters: [{ field: 'starts', operator: 'on', value }],
+            sort: []
+          },
+          eventFields,
+          { now: new Date('2026-10-03T02:00:00Z'), timeZone: SYDNEY }
+        ),
+        eventFields
+      )
+    expect(on('2011-12-31')).toBe(true)
+    expect(on('2011-12-30')).toBe(false)
+  })
+
   describe('event dates compare the venue-local date', () => {
     it.each<[string, RecordFilter, string[]]>([
       // Swan starts at 1:30am Sunday Sydney time, but it is a Saturday gig in Perth.

@@ -32,3 +32,6 @@ meaning. It needs Meilisearch 1.15 or later. The index stores instants as
 epoch seconds (or milliseconds with `epoch: 'milliseconds'`), event and
 access dates under their local date keys, and a range's end on every record;
 `contains` needs Meilisearch's `containsFilter` feature.
+
+`parseDatePhrase` no longer reads inherited object names such as
+`constructor` as a date alias, unit or month.

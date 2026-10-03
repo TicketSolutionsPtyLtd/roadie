@@ -140,7 +140,7 @@ const SHORT_FORMS: Record<string, string> = {
 type PartialDate = { day: number; month?: number; year?: number }
 
 function nameIndex(names: string[], word: string): number | null {
-  const full = SHORT_FORMS[word] ?? word
+  const full = Object.hasOwn(SHORT_FORMS, word) ? SHORT_FORMS[word]! : word
   const index = names.findIndex(
     (name) => name === full || name.slice(0, 3) === full
   )
@@ -334,7 +334,7 @@ export function parseDatePhrase(
 
   const phrase = PHRASES.find(([words]) => words === input)
   if (phrase) return [describe(phrase[1])]
-  const alias = ALIASES[input]
+  const alias = Object.hasOwn(ALIASES, input) ? ALIASES[input] : undefined
   if (alias) return [describe(alias)]
 
   if (input === 'last weekend' || input === 'next weekend') {
@@ -349,7 +349,7 @@ export function parseDatePhrase(
 
   // Four digits is far beyond any real window and keeps dates in range.
   let m = /^(next|last|past) (\d{1,4}) ([a-z]+?)s?$/.exec(input)
-  if (m && UNITS[m[3]!]) {
+  if (m && Object.hasOwn(UNITS, m[3]!)) {
     const amount = Number(m[2])
     return amount < 1 ? [] : [describe(rolling(m[1]!, amount, UNITS[m[3]!]!))]
   }
