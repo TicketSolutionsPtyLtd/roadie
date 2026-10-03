@@ -784,7 +784,12 @@ describe('QueryField', () => {
     await userEvent.tab()
     await userEvent.keyboard('{ArrowDown}')
     await act(async () => first.resolve(suggestFor('')))
-    await userEvent.keyboard('l{ArrowDown}')
+    await waitFor(() => expect(optionNames()).toEqual(['Venue']))
+    await userEvent.keyboard('l')
+    await waitFor(() =>
+      expect(optionNames()).toEqual(['Venue', 'Search for “l”'])
+    )
+    await userEvent.keyboard('{ArrowDown}')
     await waitFor(() => expect(hinted()).toEqual(['Venue']))
     await act(async () =>
       typed.resolve([
