@@ -73,7 +73,12 @@ async function still(element: Element) {
 }
 
 async function tapOn(element: Element) {
+  // A row low in the drawer can sit below the fold, where a tap lands on nothing.
+  element.scrollIntoView({ block: 'center' })
   await still(element)
+  const { top, bottom } = element.getBoundingClientRect()
+  if (top < 0 || bottom > window.innerHeight)
+    throw new Error('The element is out of view')
   const { x, y } = centre(element)
   await commands.tap(x, y)
   await settle(200)

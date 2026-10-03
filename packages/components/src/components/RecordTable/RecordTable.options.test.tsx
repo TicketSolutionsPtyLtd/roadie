@@ -601,6 +601,19 @@ describe('Records.Options', () => {
     })
   })
 
+  it('renders nothing for a lone column that can neither move nor hide', () => {
+    const field = recordFields<TestShow>()
+    const fields = [field.text('city', { label: 'City', sortable: false })]
+    render(
+      <RecordTable
+        data={testShows(5)}
+        fields={fields}
+        columns={[tableColumns<TestShow>(fields).field('city')]}
+      />
+    )
+    expect(screen.queryByRole('button', { name: 'Configure table' })).toBeNull()
+  })
+
   it('renders nothing with nothing to set', () => {
     const field = recordFields<TestShow>()
     const fields = [field.text('show', { label: 'Show', sortable: false })]
