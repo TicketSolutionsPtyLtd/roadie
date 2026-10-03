@@ -256,27 +256,107 @@ describe('resolveRecordQuery', () => {
     ).toThrow('Unknown field "nope"')
   })
 
-  it('orders a range that a daylight saving gap turns backwards', () => {
-    expect(
+  it.each<[string, string, [string, string], [string, string] | null]>([
+    // 2am to 3am does not exist in Sydney on 4 Oct 2026: a start in the gap
+    // begins at the jump, 3am AEDT.
+    [
+      'Australia/Sydney',
+      'spring gap start',
+      ['2026-10-04T02:30', '2026-10-04T03:10'],
+      ['2026-10-03T16:00:00Z', '2026-10-03T16:10:00Z']
+    ],
+    [
+      'Australia/Sydney',
+      'spring gap start, end after',
+      ['2026-10-04T02:30', '2026-10-04T04:00'],
+      ['2026-10-03T16:00:00Z', '2026-10-03T17:00:00Z']
+    ],
+    // An end in the gap stops just before the jump.
+    [
+      'Australia/Sydney',
+      'spring gap end',
+      ['2026-10-04T01:30', '2026-10-04T02:30'],
+      ['2026-10-03T15:30:00Z', '2026-10-03T15:59:59.999Z']
+    ],
+    // Lord Howe skips 2am to 2:30am.
+    [
+      'Australia/Lord_Howe',
+      'half-hour gap',
+      ['2026-10-04T02:20', '2026-10-04T02:35'],
+      ['2026-10-03T15:30:00Z', '2026-10-03T15:35:00Z']
+    ],
+    // 2am to 3am happens twice on 5 Apr 2026: the start takes the first, the end the second.
+    [
+      'Australia/Sydney',
+      'autumn repeat',
+      ['2026-04-05T02:00', '2026-04-05T02:59'],
+      ['2026-04-04T15:00:00Z', '2026-04-04T16:59:00Z']
+    ],
+    [
+      'Australia/Lord_Howe',
+      'half-hour repeat',
+      ['2026-04-05T01:30', '2026-04-05T01:59'],
+      ['2026-04-04T14:30:00Z', '2026-04-04T15:29:00Z']
+    ],
+    // A range wholly inside the gap holds no instant, so it matches nothing.
+    [
+      'Australia/Sydney',
+      'inside the gap',
+      ['2026-10-04T02:15', '2026-10-04T02:45'],
+      null
+    ]
+  ])('%s %s', (timeZone, _, value, expected) => {
+    const resolved = resolveOne(
+      { field: 'created', operator: 'between', value },
+      '2026-10-03T02:00:00Z',
+      timeZone
+    )
+    if (!expected) {
+      expect(resolved).toMatchObject({ range: { kind: 'instants' } })
+      const range = (resolved as { range: { start: number; end: number } })
+        .range
+      expect(range.start).toBeGreaterThan(range.end)
+      return
+    }
+    expect(resolved).toEqual({
+      field: 'created',
+      operator: 'overlaps',
+      range: { kind: 'instants', start: ms(expected[0]), end: ms(expected[1]) }
+    })
+  })
+
+  it.each([
+    [['2026-10-05T10:00Z', '2026-10-01T10:00Z']],
+    [['2026-10-05T05:00', '2026-10-04T04:00']]
+  ])('still throws on unvalidated times in the wrong order: %j', (value) => {
+    expect(() =>
       resolveOne(
         {
           field: 'created',
           operator: 'between',
-          value: ['2026-10-04T02:30', '2026-10-04T03:10']
+          value: value as [string, string]
         },
         '2026-10-03T02:00:00Z',
         'Australia/Sydney'
       )
-    ).toEqual({
-      field: 'created',
-      operator: 'overlaps',
-      // 2:30am does not exist that night and lands at 3:30am, after 3:10am.
-      range: {
-        kind: 'instants',
-        start: ms('2026-10-03T16:10:00Z'),
-        end: ms('2026-10-03T16:30:00Z')
-      }
-    })
+    ).toThrow('starts after it ends')
+  })
+
+  it('reads before and after a gap time from the jump', () => {
+    expect(
+      resolveOne(
+        { field: 'created', operator: 'before', value: '2026-10-04T02:30' },
+        '2026-10-03T02:00:00Z',
+        'Australia/Sydney'
+      )
+    ).toMatchObject({ range: { end: ms('2026-10-03T16:00:00Z') - 1 } })
+    expect(
+      resolveOne(
+        { field: 'created', operator: 'after', value: '2026-04-05T02:30' },
+        '2026-10-03T02:00:00Z',
+        'Australia/Sydney'
+      )
+    ).toMatchObject({ range: { start: ms('2026-04-04T16:30:00Z') + 1 } })
   })
 
   it('still throws on dates in the wrong order', () => {

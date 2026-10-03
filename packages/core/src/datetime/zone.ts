@@ -80,3 +80,47 @@ export function wallClockOf(epoch: number, timeZone: string): WallClock {
     millisecond: shifted.getUTCMilliseconds()
   }
 }
+
+/**
+ * The instant bounding a range at a wall-clock time. A start takes the first
+ * moment the clock shows that time or later, so a time skipped by a DST jump
+ * starts at the jump; an end takes the last moment it shows that time or
+ * earlier, so a repeated time ends on its second pass.
+ */
+export function wallBoundInstant(
+  clock: WallClock,
+  timeZone: string,
+  side: 'start' | 'end'
+): number {
+  const { year, month, day } = plainDateParts(clock.date)
+  const date = new Date(0)
+  date.setUTCFullYear(year, month - 1, day)
+  date.setUTCHours(clock.hour, clock.minute, clock.second, clock.millisecond)
+  const local = date.getTime()
+  const before = local - offsetAt(local - 86_400_000, timeZone)
+  const after = local - offsetAt(local + 86_400_000, timeZone)
+  const candidates = [before, after].filter(
+    (t) => t + offsetAt(t, timeZone) === local
+  )
+  if (candidates.length) {
+    return side === 'start' ? Math.min(...candidates) : Math.max(...candidates)
+  }
+  const jump = transitionBetween(
+    Math.min(before, after),
+    Math.max(before, after),
+    timeZone
+  )
+  return side === 'start' ? jump : jump - 1
+}
+
+/** The first instant at or after `low` that already has `high`'s offset. */
+function transitionBetween(low: number, high: number, timeZone: string) {
+  const target = offsetAt(high, timeZone)
+  let [lo, hi] = [low, high]
+  while (hi - lo > 1) {
+    const mid = Math.floor((lo + hi) / 2)
+    if (offsetAt(mid, timeZone) === target) hi = mid
+    else lo = mid
+  }
+  return offsetAt(lo, timeZone) === target ? lo : hi
+}
