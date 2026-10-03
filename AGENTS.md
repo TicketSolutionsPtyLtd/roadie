@@ -564,6 +564,7 @@ For detailed guidance on styling conventions, read the foundation pages:
 - Elevation: `docs/src/app/foundations/elevation/page.tsx`
 - Iconography: `docs/src/app/foundations/iconography/page.tsx`
 - Date and time: `docs/src/app/foundations/date-and-time/page.tsx`
+- Forms: `docs/src/app/foundations/forms/page.mdx`
 
 ### Guideline component (docs-only)
 

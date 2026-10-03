@@ -211,6 +211,8 @@ export function FoundationPreview({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'forms':
+      return <ComponentSkeleton name='field' />
     case 'navigation':
       return <ComponentSkeleton name='navigator' />
     case 'linking':
