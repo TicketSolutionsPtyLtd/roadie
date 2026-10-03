@@ -25,7 +25,7 @@ function epoch(value: unknown, zone: string): number {
 }
 
 /** The row as an index would store it, per the adapter's documented shape. */
-function toDocument(row: Row): Row {
+function toDocument(row: Row, scale: number): Row {
   const doc: Row = { ...row }
   for (const field of eventFields) {
     if (field.type !== 'date' || momentOf(field) === 'date') continue
@@ -34,8 +34,8 @@ function toDocument(row: Row): Row {
     const zone =
       (field.timeZoneKey && (row[field.timeZoneKey] as string)) || VIEWER
     const end = (field.end && row[field.end]) ?? start
-    doc[field.key] = Math.floor(epoch(start, zone) / 1000)
-    if (field.end) doc[field.end] = Math.floor(epoch(end, zone) / 1000)
+    doc[field.key] = Math.floor(epoch(start, zone) / scale)
+    if (field.end) doc[field.end] = Math.floor(epoch(end, zone) / scale)
     if (field.localDateKey) {
       doc[field.localDateKey] = plainDateOf(new Date(epoch(start, zone)), zone)
     }
@@ -50,10 +50,34 @@ function toDocument(row: Row): Row {
 const rows: Row[] = [
   ...Object.values(eventRows),
   { id: 'empty-object', venue: {}, genres: ['jazz'], capacity: 400 },
-  { id: 'listed-capacity', capacity: [400, 900], name: 'Two Rooms' }
+  { id: 'listed-capacity', capacity: [400, 900], name: 'Two Rooms' },
+  {
+    id: 'quoted',
+    venue: 'say "hi" a\\b',
+    featured: 'true',
+    onSale: '2026-10-05T09:00:00+08:00',
+    zone: 'Australia/Perth',
+    birthday: '2026-10-03'
+  }
 ]
 
+// Seconds lose the milliseconds, so this row only agrees with a millisecond index.
+const msRow: Row = { id: 'ms', created: Date.parse('2026-10-03T01:59:59.700Z') }
+
 const FILTERS: RecordFilter[] = [
+  { field: 'venue', operator: 'is', values: ['say "hi" a\\b', 'velvet-room'] },
+  { field: 'venue', operator: 'is-not', values: ['SAY "HI" A\\B', 'nope'] },
+  { field: 'onSale', operator: 'within', value: 'next-week' },
+  { field: 'onSale', operator: 'after', value: '2026-10-04' },
+  { field: 'onSale', operator: 'within', value: 'upcoming' },
+  { field: 'birthday', operator: 'within', value: 'upcoming' },
+  { field: 'birthday', operator: 'within', value: 'ongoing' },
+  {
+    field: 'created',
+    operator: 'after',
+    value: '2026-10-03T11:59:59.500+10:00'
+  },
+  { field: 'created', operator: 'within', value: 'past' },
   {
     field: 'venue',
     operator: 'is',
@@ -106,34 +130,42 @@ const FILTERS: RecordFilter[] = [
   { field: 'birthday', operator: 'within', value: 'past' }
 ]
 
-describe('the browser predicate and the Meilisearch adapter agree', () => {
-  describe.each(['2026-10-03T02:00:00Z', '2026-10-03T08:00:00Z'])(
-    'at %s',
-    (now) => {
-      it.each(FILTERS.map((filter) => [JSON.stringify(filter), filter]))(
-        '%s',
-        (_, filter) => {
-          const options = { now: new Date(now), timeZone: VIEWER }
-          const query = {
-            search: '',
-            filters: [filter as RecordFilter],
-            sort: []
+describe.each([
+  ['seconds', 1000, rows],
+  ['milliseconds', 1, [...rows, msRow]]
+] as const)(
+  'the browser predicate and the Meilisearch adapter agree, epoch in %s',
+  (epochUnit, scale, docs) => {
+    describe.each(['2026-10-03T02:00:00Z', '2026-10-03T08:00:00Z'])(
+      'at %s',
+      (now) => {
+        it.each(FILTERS.map((filter) => [JSON.stringify(filter), filter]))(
+          '%s',
+          (_, filter) => {
+            const options = { now: new Date(now), timeZone: VIEWER }
+            const query = {
+              search: '',
+              filters: [filter as RecordFilter],
+              sort: []
+            }
+            const resolved = resolveRecordQuery(query, eventFields, options)
+            const [expression] = toMeilisearch(
+              { query, layout: { type: 'table' } },
+              eventFields,
+              { ...options, epoch: epochUnit }
+            ).filter
+            const browser = docs
+              .filter((row) => matchesRecordQuery(row, resolved, eventFields))
+              .map((row) => row.id)
+            const meilisearch = docs
+              .filter((row) =>
+                evaluateMeilisearch(expression!, toDocument(row, scale))
+              )
+              .map((row) => row.id)
+            expect(browser).toEqual(meilisearch)
           }
-          const resolved = resolveRecordQuery(query, eventFields, options)
-          const [expression] = toMeilisearch(
-            { query, layout: { type: 'table' } },
-            eventFields,
-            options
-          ).filter
-          const browser = rows
-            .filter((row) => matchesRecordQuery(row, resolved, eventFields))
-            .map((row) => row.id)
-          const meilisearch = rows
-            .filter((row) => evaluateMeilisearch(expression!, toDocument(row)))
-            .map((row) => row.id)
-          expect(browser).toEqual(meilisearch)
-        }
-      )
-    }
-  )
-})
+        )
+      }
+    )
+  }
+)

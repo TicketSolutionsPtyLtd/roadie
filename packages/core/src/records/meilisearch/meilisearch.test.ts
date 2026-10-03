@@ -133,6 +133,16 @@ describe('toMeilisearch', () => {
     ).toThrow('Unknown field "nope"')
   })
 
+  it.each<[number, string]>([
+    [1e21, 'capacity = 1000000000000000000000'],
+    [1e-7, 'capacity = 0.0000001'],
+    [-0.5, 'capacity = -0.5']
+  ])('writes %d without an exponent', (value, expected) => {
+    expect(filterFor({ field: 'capacity', operator: 'eq', value })).toEqual([
+      expected
+    ])
+  })
+
   describe('dates', () => {
     it.each<[RecordFilter, string]>([
       // Event moments compare the stored venue-local dates, and test overlap.

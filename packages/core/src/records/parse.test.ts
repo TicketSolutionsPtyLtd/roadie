@@ -28,6 +28,16 @@ describe('parseQuery', () => {
     )
   })
 
+  it('finds an identifier among other words', () => {
+    const [first] = parse('oz-12345 velvet')
+    expect(first).not.toHaveProperty('exact')
+    expect(first).toMatchObject({
+      kind: 'filter',
+      remainder: 'velvet',
+      value: { field: 'orderNumber', operator: 'is', values: ['oz-12345'] }
+    })
+  })
+
   it('takes an identifier as an exact match, first', () => {
     const [first] = parse('oz-12345')
     expect(first).toMatchObject({

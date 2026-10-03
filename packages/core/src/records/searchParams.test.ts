@@ -218,6 +218,11 @@ describe('fromSearchParams', () => {
     ['v=1&f=starts:within:someday', 'query.filters[0].value', ''],
     ['v=1&f=venue', 'query.filters[0]', 'field:operator'],
     ['v=1&f=venue:is:', 'query.filters[0].values', 'Pick at least one value'],
+    [
+      'v=1&f=featured:is-true:garbage',
+      'query.filters[0].value',
+      'takes no value'
+    ],
     ['v=1&layout=board', 'layout', 'Unknown layout "board"']
   ])('rejects %s and falls back', (text, path, message) => {
     const result = fromSearchParams(text, eventFields, {

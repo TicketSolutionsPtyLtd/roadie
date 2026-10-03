@@ -192,6 +192,21 @@ describe('validateRecordView', () => {
     expect(errors(view([filter]))[0]).toMatchObject({ path, message })
   })
 
+  it.each([
+    [['2026-10-03T20:00Z', '2026-10-03']],
+    [['2026-10-03', '2026-10-03T05:00Z']]
+  ])(
+    'rejects mixed ends that could run backwards in some zone: %j',
+    (value) => {
+      expect(
+        errors(view([{ field: 'created', operator: 'between', value }]))[0]
+      ).toMatchObject({
+        path: 'query.filters[0].value',
+        message: expect.stringContaining('both ends')
+      })
+    }
+  )
+
   it('rejects a malformed relative range', () => {
     expect(
       errors(

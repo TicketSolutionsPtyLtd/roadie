@@ -82,6 +82,13 @@ function decodeFilter(text: string, byKey: Map<string, RecordField>): Decoded {
     case 'before':
     case 'after':
       return { filter: { field, operator, value: payload } }
+    case 'is-true':
+    case 'is-false':
+    case 'is-set':
+    case 'is-not-set':
+      return payload
+        ? { problem: `"${operator}" takes no value`, at: '.value' }
+        : { filter: { field, operator } }
     default:
       return { filter: { field, operator } }
   }

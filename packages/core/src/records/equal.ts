@@ -19,6 +19,11 @@ function filterKey(filter: RecordFilter): string {
   return encodeFilter(filter)
 }
 
+// A repeated chip filters nothing more, so chips compare as a set.
+function chipKeys(view: RecordView): string[] {
+  return [...new Set(view.query.filters.map(filterKey))].sort()
+}
+
 function sameList(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((item, i) => item === b[i])
 }
@@ -53,10 +58,7 @@ export function equalViews(a: RecordView, b: RecordView): boolean {
     (a.entity ?? '') === (b.entity ?? '') &&
     (a.group ?? '') === (b.group ?? '') &&
     normaliseSearch(a.query.search) === normaliseSearch(b.query.search) &&
-    sameList(
-      a.query.filters.map(filterKey).sort(),
-      b.query.filters.map(filterKey).sort()
-    ) &&
+    sameList(chipKeys(a), chipKeys(b)) &&
     sameList(
       a.query.sort.map((s) => `${s.direction} ${s.field}`),
       b.query.sort.map((s) => `${s.direction} ${s.field}`)

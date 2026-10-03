@@ -363,6 +363,12 @@ function spanCandidates(
           )
         )
       }
+      // Exact only when it is the whole text: Enter must not drop the rest.
+      if (end - start === 1 && words.length > 1) {
+        identifierReadings(fields, words[start]!).forEach((reading) =>
+          add({ ...reading, exact: false })
+        )
+      }
       fields.forEach((field) => {
         const q = Math.max(quality(field.label, text), quality(field.key, text))
         if (q > 0) {
@@ -444,7 +450,8 @@ function finish(entity: string | undefined) {
  * the same function serves one list screen or a search across entities.
  * Reads identifiers (a field's `match`, offered as exact), `field:value`,
  * field names, option and status values, booleans by name, and date phrases
- * for each date field. Empty text lists the filterable fields. Free text is
+ * for each date field. A number field's `field:value` takes `100`, `>100`,
+ * `<100`, `!=100` or `100-500`. Empty text lists the filterable fields. Free text is
  * left to the caller, as a search.
  */
 export function parseQuery(
@@ -461,7 +468,8 @@ export function parseQuery(
       .map((field, i) => strip(fieldSuggestion(field, 0, '', [0, 0], i)))
   }
 
-  const whole: [number, number] = [0, 1]
+  const words = input.split(' ')
+  const whole: [number, number] = [0, words.length]
   const identifiers = identifierReadings(fields, input).map((reading, i) =>
     filterSuggestion(reading, 1, '', whole, i)
   )
@@ -480,7 +488,6 @@ export function parseQuery(
       .map(strip)
   }
 
-  const words = input.split(' ')
   return rank([...identifiers, ...spanCandidates(words, fields, options)])
     .slice(0, limit)
     .map(strip)

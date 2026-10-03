@@ -81,6 +81,10 @@ describe('equalViews', () => {
           columns: { order: ['name', 'starts'], hidden: ['capacity', 'gross'] }
         }
       }
+    ],
+    [
+      'a repeated chip',
+      withQuery({ filters: [...base.query.filters, base.query.filters[0]!] })
     ]
   ])('treats %s as the same view', (_, other) => {
     expect(equalViews(base, other)).toBe(true)
@@ -107,10 +111,6 @@ describe('equalViews', () => {
   it.each<[string, RecordView]>([
     ['a different search', withQuery({ search: 'neon' })],
     ['a chip removed', withQuery({ filters: base.query.filters.slice(1) })],
-    [
-      'a repeated chip',
-      withQuery({ filters: [...base.query.filters, base.query.filters[0]!] })
-    ],
     [
       'the operator flipped',
       withQuery({

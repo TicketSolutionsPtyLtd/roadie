@@ -134,6 +134,58 @@ describe('matchesRecordQuery', () => {
     expect(ids(filters)).toEqual(expected)
   })
 
+  it.each<[string, object, RecordFilter, boolean]>([
+    [
+      'is-true on a list',
+      { featured: [false, true] },
+      { field: 'featured', operator: 'is-true' },
+      true
+    ],
+    [
+      'is-false on a list',
+      { featured: [false] },
+      { field: 'featured', operator: 'is-false' },
+      true
+    ],
+    [
+      'contains reads text only',
+      { name: 400 },
+      { field: 'name', operator: 'contains', value: '40' },
+      false
+    ],
+    [
+      'NaN is not set',
+      { capacity: NaN },
+      { field: 'capacity', operator: 'is-set' },
+      false
+    ],
+    [
+      'an invalid date is not set',
+      { created: new Date('nope') },
+      { field: 'created', operator: 'is-set' },
+      false
+    ],
+    [
+      'a Date with no own keys is set',
+      { created: new Date('2026-10-03') },
+      { field: 'created', operator: 'is-set' },
+      true
+    ],
+    [
+      'a class instance with no own keys is set',
+      { venue: new (class Venue {})() },
+      { field: 'venue', operator: 'is-set' },
+      true
+    ]
+  ])('%s', (_, row, filter, expected) => {
+    const resolved = resolveRecordQuery(
+      { search: '', filters: [filter], sort: [] },
+      eventFields,
+      { now: new Date('2026-10-03T02:00:00Z'), timeZone: SYDNEY }
+    )
+    expect(matchesRecordQuery(row, resolved, eventFields)).toBe(expected)
+  })
+
   describe('event dates compare the venue-local date', () => {
     it.each<[string, RecordFilter, string[]]>([
       // Swan starts at 1:30am Sunday Sydney time, but it is a Saturday gig in Perth.
@@ -188,6 +240,23 @@ describe('matchesRecordQuery', () => {
       ]
     ])('%s', (_, filter, expected) => {
       expect(ids([filter])).toEqual(expected)
+    })
+
+    it('skips a row whose venue zone is not a real zone, without throwing', () => {
+      const resolved = resolveRecordQuery(
+        {
+          search: '',
+          filters: [{ field: 'starts', operator: 'on', value: '2026-10-03' }],
+          sort: []
+        },
+        eventFields,
+        { now: new Date('2026-10-03T02:00:00Z'), timeZone: SYDNEY }
+      )
+      const row = { starts: '2026-10-03T19:30:00+10:00', zone: 'Mars/Base' }
+      expect(matchesRecordQuery(row, resolved, eventFields)).toBe(true)
+      expect(
+        matchesRecordQuery({ ...row, zone: 42 }, resolved, eventFields)
+      ).toBe(true)
     })
 
     it('uses the stored local date when the row has one', () => {

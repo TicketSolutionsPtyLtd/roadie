@@ -2,6 +2,9 @@
  * Records views as Meilisearch search parameters. Kept on its own subpath so
  * the records model stays backend-agnostic.
  *
+ * Needs Meilisearch 1.15 or later, which compares strings with <, >, and TO,
+ * for the date filters.
+ *
  * Index shape the filters assume:
  * - Instants (timestamp moments, and event and access times) as epoch
  *   seconds, or milliseconds with `epoch: 'milliseconds'`.
@@ -67,6 +70,14 @@ function attribute(key: string): string {
     : quote(key)
 }
 
+// Meilisearch's unquoted values have no exponent form.
+function numberLiteral(value: number): string {
+  return value.toLocaleString('en-US', {
+    useGrouping: false,
+    maximumFractionDigits: 20
+  })
+}
+
 function list(values: readonly string[]): string {
   return `[${values.map(quote).join(', ')}]`
 }
@@ -84,10 +95,10 @@ function rangeExpression(
   to: Bound | null
 ): string {
   const literal = (bound: Bound) =>
-    typeof bound === 'number' ? String(bound) : quote(bound)
+    typeof bound === 'number' ? numberLiteral(bound) : quote(bound)
   if (start === end && from !== null && to !== null) {
     return typeof from === 'number'
-      ? `${start} ${from} TO ${to}`
+      ? `${start} ${literal(from)} TO ${literal(to)}`
       : group(
           [`${start} >= ${literal(from)}`, `${start} <= ${literal(to)}`],
           'AND'
@@ -160,15 +171,15 @@ function filterExpression(
     case 'not-contains':
       return `NOT ${name} CONTAINS ${quote(filter.value)}`
     case 'eq':
-      return `${name} = ${filter.value}`
+      return `${name} = ${numberLiteral(filter.value)}`
     case 'neq':
-      return `${name} != ${filter.value}`
+      return `${name} != ${numberLiteral(filter.value)}`
     case 'lt':
-      return `${name} < ${filter.value}`
+      return `${name} < ${numberLiteral(filter.value)}`
     case 'gt':
-      return `${name} > ${filter.value}`
+      return `${name} > ${numberLiteral(filter.value)}`
     case 'between':
-      return `${name} ${filter.value[0]} TO ${filter.value[1]}`
+      return `${name} ${numberLiteral(filter.value[0])} TO ${numberLiteral(filter.value[1])}`
     case 'is-true':
       return `${name} = true`
     case 'is-false':

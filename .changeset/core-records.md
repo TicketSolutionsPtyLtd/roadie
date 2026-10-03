@@ -28,7 +28,7 @@ list what a field accepts.
 
 New `@oztix/roadie-core/records/meilisearch` exports `toMeilisearch`, which
 turns a view into Meilisearch `q`, `filter` and `sort` with the same filter
-meaning. The index stores instants as epoch seconds (or milliseconds with
-`epoch: 'milliseconds'`), event and access dates under their local date keys,
-and a range's end on every record; `contains` needs Meilisearch's
-`containsFilter` feature.
+meaning. It needs Meilisearch 1.15 or later. The index stores instants as
+epoch seconds (or milliseconds with `epoch: 'milliseconds'`), event and
+access dates under their local date keys, and a range's end on every record;
+`contains` needs Meilisearch's `containsFilter` feature.

@@ -357,7 +357,8 @@ export default function RecordsPage() {
 })
 // ${JSON.stringify(meilisearch, null, 2).split('\n').join('\n// ')}`}</CodePreview>
         <p className='max-w-prose text-subtle'>
-          The index stores instants as epoch seconds (pass{' '}
+          It needs Meilisearch 1.15 or later, which compares date strings. The
+          index stores instants as epoch seconds (pass{' '}
           <Code>epoch: &apos;milliseconds&apos;</Code> otherwise), event and
           access dates under <Code>localDateKey</Code>, and a range&apos;s end
           on every record. Text <Code>contains</Code> needs Meilisearch&apos;s{' '}

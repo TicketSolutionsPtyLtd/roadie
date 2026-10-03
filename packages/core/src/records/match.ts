@@ -26,11 +26,28 @@ function read(row: Row, key: string | undefined): unknown {
 /** Null, undefined, empty text, empty lists and empty objects are not set. */
 export function isEmptyValue(value: unknown): boolean {
   if (value === null || value === undefined || value === '') return true
+  if (typeof value === 'number') return Number.isNaN(value)
+  if (value instanceof Date) return Number.isNaN(value.getTime())
   if (Array.isArray(value)) return value.length === 0
   return (
     typeof value === 'object' &&
-    !(value instanceof Date) &&
+    Object.getPrototypeOf(value) === Object.prototype &&
     Object.keys(value).length === 0
+  )
+}
+
+function texts(value: unknown): string[] {
+  return list(value)
+    .filter((v): v is string => typeof v === 'string')
+    .map((v) => v.toLowerCase())
+}
+
+// Meilisearch indexes booleans as the facet strings "true" and "false".
+function hasBoolean(value: unknown, wanted: boolean): boolean {
+  return list(value).some(
+    (v) =>
+      v === wanted ||
+      (typeof v === 'string' && v.toLowerCase() === String(wanted))
   )
 }
 
@@ -51,7 +68,23 @@ function rowZone(row: Row, field: RecordField, viewerZone: string): string {
   const moment = momentOf(field)
   if (moment !== 'event' && moment !== 'access') return viewerZone
   const zone = read(row, field.timeZoneKey)
-  return typeof zone === 'string' && zone ? zone : viewerZone
+  return typeof zone === 'string' && isTimeZone(zone) ? zone : viewerZone
+}
+
+const knownZones = new Map<string, boolean>()
+
+function isTimeZone(zone: string): boolean {
+  let known = knownZones.get(zone)
+  if (known === undefined) {
+    try {
+      new Intl.DateTimeFormat('en', { timeZone: zone })
+      known = true
+    } catch {
+      known = false
+    }
+    knownZones.set(zone, known)
+  }
+  return known
 }
 
 function epochSpan(value: unknown, zone: string): [number, number] | null {
@@ -150,19 +183,9 @@ function matchesFilter(
         filter.values.every((w) => list(value).some((v) => same(v, w)))
       )
     case 'contains':
-      return (
-        !empty &&
-        list(value).some((v) =>
-          String(v).toLowerCase().includes(filter.value.toLowerCase())
-        )
-      )
+      return texts(value).some((v) => v.includes(filter.value.toLowerCase()))
     case 'not-contains':
-      return (
-        empty ||
-        !list(value).some((v) =>
-          String(v).toLowerCase().includes(filter.value.toLowerCase())
-        )
-      )
+      return !texts(value).some((v) => v.includes(filter.value.toLowerCase()))
     case 'eq':
       return numbers(value).some((v) => v === filter.value)
     case 'neq':
@@ -176,9 +199,9 @@ function matchesFilter(
         (v) => v >= filter.value[0] && v <= filter.value[1]
       )
     case 'is-true':
-      return value === true
+      return hasBoolean(value, true)
     case 'is-false':
-      return value === false
+      return hasBoolean(value, false)
     case 'overlaps': {
       const span = rowSpan(row, field, filter.range.kind, viewerZone)
       return span !== null && overlaps(span, filter.range)
