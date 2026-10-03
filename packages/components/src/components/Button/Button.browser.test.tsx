@@ -69,4 +69,43 @@ describe.each(buttons)('%s alignment', (_, button) => {
     expect(height).toBeLessThan(ROW)
     expect(width).toBeLessThan(rowWidth)
   })
+
+  it('centres in a grid with justify-items-center', () => {
+    const { left, width, rowWidth } = place('grid justify-items-center', button)
+    expect(left).toBeCloseTo((rowWidth - width) / 2, 0)
+  })
+
+  it('keeps its width at the start of a default flex column', () => {
+    const { left, width, rowWidth } = place('flex flex-col', button)
+    expect(left).toBe(0)
+    expect(width).toBeLessThan(rowWidth)
+  })
+
+  it('centres across an items-center flex column', () => {
+    const { left, width, rowWidth } = place(
+      'flex flex-col items-center',
+      button
+    )
+    expect(left).toBeCloseTo((rowWidth - width) / 2, 0)
+  })
+})
+
+describe('Button width overrides', () => {
+  it('spans its cell with w-full', () => {
+    const { width, rowWidth } = place(
+      'grid',
+      <Button className='w-full'>Save</Button>
+    )
+    expect(width).toBe(rowWidth)
+  })
+
+  it('keeps an IconButton square in a flex column', () => {
+    const { width, height } = place(
+      'flex flex-col',
+      <IconButton aria-label='Save'>
+        <span />
+      </IconButton>
+    )
+    expect(width).toBe(height)
+  })
 })
