@@ -1,38 +1,11 @@
 import { z } from 'zod'
 
-const NAMED_RANGES = [
-  'today',
-  'tomorrow',
-  'yesterday',
-  'this-week',
-  'this-weekend',
-  'next-week',
-  'last-week',
-  'this-month',
-  'next-month',
-  'last-month',
-  'upcoming',
-  'past',
-  'ongoing'
-] as const
+import { dateRangeSchemas } from '../datetime/rangeSchema'
 
 function buildSchema() {
   const field = z.string().min(1)
 
-  const rolling = z.strictObject({
-    direction: z.enum(['next', 'past']),
-    amount: z.number().int().min(1).max(9999),
-    unit: z.enum(['hour', 'day', 'week', 'month'])
-  })
-
-  const period = z.strictObject({
-    period: z.enum(['day', 'week', 'month', 'quarter', 'year']),
-    offset: z.number().int().min(-9999).max(9999),
-    toDate: z.boolean().optional(),
-    fiscal: z.boolean().optional()
-  })
-
-  const relativeRange = z.union([z.enum(NAMED_RANGES), rolling, period])
+  const { relativeRange } = dateRangeSchemas()
 
   const filter = z.discriminatedUnion('operator', [
     z.strictObject({

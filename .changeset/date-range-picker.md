@@ -17,7 +17,8 @@ the range in words with the dates a relative range stands for, and is named
 `presets` replaces the default list (today, yesterday, recent periods and
 periods to date, with the financial year from `fiscalYearStart`), and `group`
 sets presets under a heading. `commit='apply'` holds changes until Apply is
-pressed, for a dashboard period. `granularity='minute'` adds an optional time
+pressed, for a dashboard period; with `required`, Apply stays off while both
+dates are empty. `granularity='minute'` adds an optional time
 to each end, read in `timeZone`, with `hourCycle` and `minuteStep`. It also
 takes `disabled` matchers, `readOnly` (shown with a lock), `invalid`,
 `required`, `size`, `emphasis`, `placeholder`, `numberOfMonths` (two on wide

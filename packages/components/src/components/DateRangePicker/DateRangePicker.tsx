@@ -120,7 +120,10 @@ export type DateRangePickerProps = Omit<
   invalid?: boolean
   /** Shows the range with a lock, without letting it change. */
   readOnly?: boolean
-  /** Inherits from `Field` when omitted. */
+  /**
+   * With `commit='apply'`, keeps Apply off while both dates are empty.
+   * Inherits from `Field` when omitted.
+   */
   required?: boolean
   /** @default 'md' */
   size?: 'sm' | 'md' | 'lg'
@@ -240,6 +243,7 @@ export function DateRangePicker({
   const isDisabled = disabled === true || !!field.disabled
   const disabledDays = typeof disabled === 'boolean' ? undefined : disabled
   const isInvalid = invalid ?? field.invalid
+  const isRequired = required ?? field.required
   const withTime = granularity === 'minute'
 
   const [uncontrolled, setUncontrolled] = useState(defaultValue ?? null)
@@ -395,7 +399,7 @@ export function DateRangePicker({
             aria-labelledby={labels.triggerLabelledBy}
             aria-describedby={describedBy}
             aria-invalid={isInvalid || undefined}
-            aria-required={(required ?? field.required) || undefined}
+            aria-required={isRequired || undefined}
             aria-disabled={readOnly || undefined}
             data-readonly={readOnly || undefined}
             data-slot='date-range-picker-trigger'
@@ -575,7 +579,10 @@ export function DateRangePicker({
                 size='sm'
                 intent='accent'
                 emphasis='strong'
-                disabled={result.kind !== 'value'}
+                disabled={
+                  result.kind !== 'value' ||
+                  (isRequired && result.value === null)
+                }
                 onClick={() => {
                   if (result.kind !== 'value') return
                   emit(result.value)
