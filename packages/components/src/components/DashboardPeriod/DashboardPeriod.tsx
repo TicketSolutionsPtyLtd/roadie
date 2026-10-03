@@ -257,7 +257,7 @@ export function DashboardPeriod({
           emphasis={emphasis}
           aria-label='Compare with'
           aria-readonly={readOnly || undefined}
-          className='w-full gap-2 @sm:w-fit'
+          className='gap-2 @sm:w-fit'
         >
           <Select.Value>
             {(shown: Choice) =>
