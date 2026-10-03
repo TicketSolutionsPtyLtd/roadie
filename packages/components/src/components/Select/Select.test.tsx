@@ -86,6 +86,18 @@ describe('Select', () => {
     )
   })
 
+  it('treats a null emphasis as the default', () => {
+    render(
+      <Select>
+        <Select.Trigger aria-label='Rows' emphasis={null}>
+          <Select.Value />
+        </Select.Trigger>
+      </Select>
+    )
+    const trigger = screen.getByRole('combobox', { name: 'Rows' })
+    expect(trigger).toHaveClass('emphasis-normal', 'w-full')
+  })
+
   it('renders Trigger with different sizes', () => {
     expect(selectTriggerVariants({ size: 'sm' })).toContain('h-8')
     expect(selectTriggerVariants({ size: 'md' })).toContain('h-10')

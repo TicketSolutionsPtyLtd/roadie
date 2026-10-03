@@ -49,7 +49,12 @@ export function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot='select-trigger'
       className={cn(
-        selectTriggerVariants({ intent, emphasis, size, className })
+        selectTriggerVariants({
+          intent,
+          emphasis: emphasis ?? undefined,
+          size,
+          className
+        })
       )}
       {...(inField && {
         'aria-labelledby': fieldContext.labelId || undefined,
