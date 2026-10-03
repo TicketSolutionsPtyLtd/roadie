@@ -17,6 +17,20 @@ export type FormatRecordValueOptions = {
   now?: Instantish
 }
 
+// A table formats a field for every row, so its labels are built once.
+const labelCache = new WeakMap<RecordField, Map<string, string>>()
+
+function labelsOf(field: RecordField) {
+  let labels = labelCache.get(field)
+  if (!labels) {
+    labels = new Map(
+      recordFieldOptions(field).map((option) => [option.value, option.label])
+    )
+    labelCache.set(field, labels)
+  }
+  return labels
+}
+
 const list = (value: unknown) => (Array.isArray(value) ? value : [value])
 
 const MONEY_FORMATS = new Set(['currency', 'compactCurrency'])
@@ -119,9 +133,7 @@ export function formatRecordValue(
     case 'boolean':
       return typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)
     case 'option': {
-      const labels = new Map(
-        recordFieldOptions(field).map((option) => [option.value, option.label])
-      )
+      const labels = labelsOf(field)
       return list(value)
         .map((item) => labels.get(String(item)) ?? String(item))
         .join(', ')

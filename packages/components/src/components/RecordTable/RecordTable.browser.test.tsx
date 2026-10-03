@@ -218,6 +218,25 @@ describe('RecordTable columns', () => {
   })
 })
 
+describe('RecordTable cells', () => {
+  it('clip with room for a focus ring where the engine can', () => {
+    const { container } = render(
+      <RecordTable
+        data={testShows(2)}
+        fields={showFields}
+        columns={showColumns}
+      />
+    )
+    const style = getComputedStyle(
+      slot(container, 'record-table-row').querySelector('[role="cell"]')!
+    )
+    if (CSS.supports('overflow-clip-margin', '0.25rem')) {
+      expect(style.overflowX).toBe('clip')
+      expect(style.overflowClipMargin).not.toBe('0px')
+    } else expect(style.overflowX).toBe('visible')
+  })
+})
+
 describe('RecordTable sticky chrome', () => {
   it('scrolls its own box with the scrollbar under the header', async () => {
     const { container } = render(

@@ -188,6 +188,18 @@ describe('RecordTable content', () => {
     expect(screen.queryByRole('button', { name: 'City' })).toBeNull()
   })
 
+  it('renders the same cell classes on the server and in the browser', () => {
+    const html = renderToString(<Table count={1} />)
+    const cell =
+      /role="cell"[^>]*class="([^"]+)"|class="([^"]+)"[^>]*role="cell"/.exec(
+        html
+      )!
+    render(<Table count={1} />)
+    const className = within(bodyRows()[0]!).getAllByRole('cell')[0]!.className
+    expect(className).toBe(cell[1] ?? cell[2])
+    expect(className).toContain('supports-[overflow-clip-margin:0.25rem]')
+  })
+
   it('pins a column with a sticky offset', () => {
     render(<Table />)
     const header = screen.getByRole('columnheader', { name: /Show/ })

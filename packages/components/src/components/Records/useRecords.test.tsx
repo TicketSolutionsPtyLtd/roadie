@@ -179,6 +179,29 @@ describe('useRecords', () => {
     warn.mockRestore()
   })
 
+  it.each<[string, RecordView['query']['filters'][number]]>([
+    [
+      'an operator its field does not take',
+      { field: 'city', operator: 'gt', value: 1 }
+    ],
+    [
+      'a field that does not filter',
+      { field: 'show', operator: 'contains', value: 'zzz' }
+    ]
+  ])('skips %s', (_, filter) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const fields = showFields.map((field) =>
+      field.key === 'show' ? { ...field, filterable: false } : field
+    )
+    const { result } = setup({
+      fields,
+      defaultView: { query: { filters: [filter] } }
+    })
+    expect(result.current.skippedFilters).toEqual([0])
+    expect(result.current.resultCount).toBe(120)
+    warn.mockRestore()
+  })
+
   it('skips a sort on a field that does not sort', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const fields = showFields.map((field) =>

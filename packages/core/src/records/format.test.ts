@@ -72,6 +72,23 @@ describe('formatRecordValue', () => {
     ).toBe('Sat 3 Oct 2026, Sun 4 Oct 2026')
   })
 
+  it("reads a field's options once for many values", () => {
+    let reads = 0
+    const venue = field('venue')
+    const counted: RecordField = {
+      ...venue,
+      get options() {
+        reads += 1
+        return venue.options
+      }
+    }
+    formatRecordValue(eventRows.velvet, counted, options)
+    const first = reads
+    for (let i = 0; i < 50; i++)
+      formatRecordValue(eventRows.velvet, counted, options)
+    expect(reads).toBe(first)
+  })
+
   it('formats with the field format', () => {
     const sold: RecordField = {
       key: 'sold',

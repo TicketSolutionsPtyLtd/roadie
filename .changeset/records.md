@@ -3,10 +3,11 @@
 ---
 
 New `@oztix/roadie-components/records` shows a list of records. `useRecords`
-takes the records, their `RecordField`s and a `RecordView` (controlled or
-not) with its page and page size, and searches, filters, sorts and pages
-them in the browser. Filters a view names but the fields can't apply are
-skipped, with a warning in development. `Records.Root` (or
+takes the records, their `RecordField`s, a `RecordView` and a separate
+`RecordPosition` for the page and page size (each controlled or not), and
+searches, filters, sorts and pages them in the browser. Filters a view names
+but the fields can't apply are skipped, listed in `skippedFilters` and
+warned about in development. `Records.Root` (or
 `Records.Provider`, which adds no element, for parts spread across a
 `Pane`) shares it with `Records.Toolbar` and its plain-text
 `Records.Search`, `Records.Content`, `Records.Pagination` and a

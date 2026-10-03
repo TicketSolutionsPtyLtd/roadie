@@ -9,13 +9,10 @@ import type { RecordTableColumn } from './types'
 
 export const ROW_HEIGHT = 48
 
-// WebKit builds without overflow-clip-margin drop the clip instead of the ring.
-const clipsWithMargin =
-  typeof CSS !== 'undefined' &&
-  CSS.supports?.('overflow-clip-margin', '0.25rem')
-const cellOverflowClass = clipsWithMargin
-  ? 'overflow-clip [overflow-clip-margin:--spacing(1)]'
-  : 'overflow-visible'
+// WebKit builds without overflow-clip-margin drop the clip instead of the
+// ring. Decided in CSS, so the server and browser render the same classes.
+const cellOverflowClass =
+  'overflow-visible supports-[overflow-clip-margin:0.25rem]:overflow-clip supports-[overflow-clip-margin:0.25rem]:[overflow-clip-margin:--spacing(1)]'
 
 export const rowClass =
   'grid min-w-(--record-table-min-width) grid-cols-(--record-table-columns)'
