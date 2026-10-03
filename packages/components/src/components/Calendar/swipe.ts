@@ -118,6 +118,7 @@ export function useSwipeToTurn(
       } else if (!still && along) {
         place(0)
         await slide(along, 0, IN_MS, 'ease-out')
+        if (disposed) return
       }
       finish()
     }

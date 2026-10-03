@@ -120,7 +120,8 @@ type CalendarBaseProps = Omit<
   onViewChange?: (view: 'month' | 'week') => void
   /**
    * The views the reader can switch between. With both, a "Month view"
-   * toggle sits beside the title. Paged only.
+   * toggle sits beside the title, or above several months. A `defaultView`
+   * outside the list gives way to its first view. Paged only.
    */
   views?: readonly ('month' | 'week')[]
   /**
@@ -353,11 +354,12 @@ export function Calendar(props: CalendarProps) {
   useSurface(weekdaysRef, layout)
   const scrolling = layout === 'scroll'
   const captionLayout = scrolling ? 'label' : captionLayoutProp
-  const [uncontrolledView, setUncontrolledView] = useState(
-    () =>
-      defaultViewProp ??
-      (views?.length && !views.includes('month') ? views[0]! : 'month')
-  )
+  const [uncontrolledView, setUncontrolledView] = useState(() => {
+    const preferred = defaultViewProp ?? 'month'
+    return views?.length && !views.includes(preferred) ? views[0]! : preferred
+  })
+  // The view the reader last chose, so only their own switch is announced.
+  const [toggledView, setToggledView] = useState<CalendarView | null>(null)
   const view = viewProp ?? uncontrolledView
   const weekView = view === 'week' && !scrolling
   const showViewToggle =
@@ -516,6 +518,8 @@ export function Calendar(props: CalendarProps) {
     const month = clampMonth(monthOf(next))
     if (month === firstMonth) return
     if (monthProp === undefined) setNavigatedMonth(month)
+    // Paging months leaves the week behind; a week turn sets its own.
+    if (!weekView) setNavigatedWeek(null)
     onMonthChange?.(month)
   }
 
@@ -551,8 +555,7 @@ export function Calendar(props: CalendarProps) {
   function changeView(next: CalendarView) {
     if (next === view) return
     setPendingFocus(null)
-    // Back in week view, the week follows the focus or selection, not an old turn.
-    setNavigatedWeek(null)
+    setToggledView(next)
     if (viewProp === undefined) setUncontrolledView(next)
     onViewChange?.(next)
   }
@@ -610,13 +613,13 @@ export function Calendar(props: CalendarProps) {
     selectionKey,
     selection,
     month: shownMonthKey,
-    weekView
+    view
   })
   if (
     heard.mode !== mode ||
     heard.selectionKey !== selectionKey ||
     heard.month !== shownMonthKey ||
-    heard.weekView !== weekView
+    heard.view !== view
   ) {
     const messages = []
     // A scrolled list is read as it scrolls; its months aren't announced.
@@ -624,7 +627,7 @@ export function Calendar(props: CalendarProps) {
       !scrolling &&
       heard.month &&
       shownMonthKey &&
-      (heard.weekView !== weekView ||
+      ((heard.view !== view && toggledView === view) ||
         (chosenMonth && heard.month !== shownMonthKey))
     )
       messages.push(
@@ -637,7 +640,7 @@ export function Calendar(props: CalendarProps) {
       heard.selectionKey !== selectionKey &&
       describeSelection(heard.selection, selection)
     if (selectionMessage) messages.push(selectionMessage)
-    setHeard({ mode, selectionKey, selection, month: shownMonthKey, weekView })
+    setHeard({ mode, selectionKey, selection, month: shownMonthKey, view })
     if (messages.length) setAnnouncement(messages.join('. '))
   }
 
@@ -1098,6 +1101,7 @@ export function Calendar(props: CalendarProps) {
           onFocus={() => {
             setHasFocus(true)
             if (!outside) setFocusedDate(date)
+            if (!weekView) setNavigatedWeek(null)
           }}
           onBlur={() => setHasFocus(false)}
           onKeyDown={(event) => onDayKeyDown(event, date)}
@@ -1144,7 +1148,10 @@ export function Calendar(props: CalendarProps) {
     <span key={weekday.long}>{weekday.short}</span>
   ))
 
-  const inlineNav = !scrolling && numberOfMonths === 1
+  // The toggle stays in the header in both views, so it keeps focus as the
+  // view changes how many months show.
+  const inlineNav = !scrolling && (numberOfMonths === 1 || showViewToggle)
+  const monthCaptions = scrolling || numberOfMonths > 1
   const unit = weekView ? 'week' : 'month'
   const PreviousIcon = vertical ? CaretUpIcon : CaretLeftIcon
   const NextIcon = vertical ? CaretDownIcon : CaretRightIcon
@@ -1168,7 +1175,6 @@ export function Calendar(props: CalendarProps) {
         inlineNav ? 'ms-auto' : 'absolute end-0 top-0'
       )}
     >
-      {!inlineNav && viewToggle}
       <IconButton
         emphasis='subtler'
         size='sm'
@@ -1205,7 +1211,7 @@ export function Calendar(props: CalendarProps) {
 
   const header = (
     <div data-slot='calendar-header' className='flex h-8 items-center gap-2'>
-      <div className='min-w-0'>{headerCaption}</div>
+      <div className='min-w-0'>{!monthCaptions && headerCaption}</div>
       {viewToggle}
       {nav}
     </div>
@@ -1225,7 +1231,9 @@ export function Calendar(props: CalendarProps) {
             className={
               weekView
                 ? 'h-[calc(min(100cqi/7-var(--spacing),--spacing(20))*1.25+--spacing(22))]'
-                : 'h-[calc(min(100cqi/7,--spacing(12))*6+--spacing(22))]'
+                : tiles
+                  ? 'h-[calc(min(100cqi/7-var(--spacing),--spacing(16))*6+--spacing(25))]'
+                  : 'h-[calc(min(100cqi/7,--spacing(12))*6+--spacing(22))]'
             }
           />
         </div>
@@ -1239,12 +1247,12 @@ export function Calendar(props: CalendarProps) {
           // Contained, so a month asks for 280px and takes whatever more it is given.
           className='grid min-w-70 flex-[1_1_--spacing(70)] content-start gap-2 [contain:inline-size]'
         >
-          {!inlineNav && (
+          {monthCaptions && (
             <div
               className={cn(
                 'grid h-8 items-center',
                 // Clear of the arrows, which sit over whichever month is top right.
-                !scrolling && (showViewToggle ? 'pe-26' : 'pe-17')
+                !inlineNav && !scrolling && 'pe-17'
               )}
             >
               {renderCaption(month, index)}
@@ -1364,8 +1372,8 @@ export function Calendar(props: CalendarProps) {
             data-slot='calendar-months'
             className='relative flex flex-wrap gap-x-6 gap-y-4'
           >
-            {monthsShown}
             {!inlineNav && !waitingForToday && nav}
+            {monthsShown}
           </div>
         </>
       )}

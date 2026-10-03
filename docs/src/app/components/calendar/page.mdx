@@ -163,7 +163,7 @@ render(
 
 ### With a week view
 
-`view='week'` shows one week as a row of larger days, and the arrows and a swipe turn a week at a time. It suits choosing a session in the coming days. `views` lists the views the reader can switch between. With both, a "Month view" toggle sits beside the title. Use `defaultView` to open on one, or `view` and `onViewChange` to control it.
+`view='week'` shows one week as a row of larger days, and the arrows and a swipe turn a week at a time. It suits choosing a session in the coming days. `views` lists the views the reader can switch between. With both, a "Month view" toggle sits beside the title, or above the months when there are several. Use `defaultView` to open on one, or `view` and `onViewChange` to control it.
 
 ```tsx-live-noinline
 function Week() {
@@ -278,7 +278,7 @@ render(<Sessions />)
     Pair a mark, such as a dot for each session left, with hidden text like "2 sessions left". The content describes the day to screen readers.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't put content in every day to make the calendar look full. Without `getDayContent`, days stay compact circles, and filled tiles are for days that have something to say.
+    Don't put content in every day to make the calendar look full. Without `getDayContent`, a month keeps compact circles, and filled tiles are for days that have something to say.
   </Guideline.Dont>
 </Guideline>
 

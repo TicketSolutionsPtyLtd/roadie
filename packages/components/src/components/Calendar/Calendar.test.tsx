@@ -1057,24 +1057,78 @@ describe('Calendar week view', () => {
     ).toEqual(['Month view', 'Previous month', 'Next month'])
   })
 
-  it('names every month and keeps the toggle beside the arrows with several months', () => {
+  it('names every month and keeps the toggle in place with several months', async () => {
     render(
-      <Calendar today={TODAY} numberOfMonths={2} views={['week', 'month']} />
+      <Calendar
+        today={TODAY}
+        numberOfMonths={2}
+        views={['week', 'month']}
+        defaultView='week'
+      />
     )
-    expect(
-      screen.getAllByRole('grid').map((g) => g.textContent && g)
-    ).toHaveLength(2)
+    const toggle = screen.getByRole('button', { name: 'Month view' })
+    act(() => toggle.focus())
+    await userEvent.keyboard(' ')
     const [march, april] = screen.getAllByRole('grid')
     expect(march).toHaveAccessibleName('March 2027')
     expect(april).toHaveAccessibleName('April 2027')
-    const nav = document.querySelector<HTMLElement>(
-      '[data-slot="calendar-nav"]'
-    )!
-    expect(
-      within(nav)
-        .getAllByRole('button')
-        .map((b) => b.ariaLabel)
-    ).toEqual(['Month view', 'Previous month', 'Next month'])
+    expect(toggle).toHaveFocus()
+    await userEvent.keyboard(' ')
+    expect(toggle).toHaveFocus()
+  })
+
+  it('keeps the week the reader turned to after a look at the month', async () => {
+    render(
+      <Calendar
+        today='2027-03-04'
+        defaultView='week'
+        views={['week', 'month']}
+      />
+    )
+    for (let i = 0; i < 5; i++)
+      await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    expect(shownDays()[0]).toBe('2027-04-05')
+    const toggle = screen.getByRole('button', { name: 'Month view' })
+    await userEvent.click(toggle)
+    await userEvent.click(toggle)
+    expect(shownDays()[0]).toBe('2027-04-05')
+  })
+
+  it('follows a day chosen in month view when a parent switches back to week', async () => {
+    function Controlled() {
+      const [view, setView] = useState<'week' | 'month'>('week')
+      return (
+        <>
+          <Calendar today={TODAY} view={view} />
+          <button
+            type='button'
+            onClick={() => setView(view === 'week' ? 'month' : 'week')}
+          >
+            Switch
+          </button>
+        </>
+      )
+    }
+    render(<Controlled />)
+    for (let i = 0; i < 3; i++)
+      await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Switch' }))
+    await userEvent.click(day('2027-03-10'))
+    await userEvent.click(screen.getByRole('button', { name: 'Switch' }))
+    expect(shownDays()).toContain('2027-03-10')
+  })
+
+  it('stays quiet when only the layout changes', () => {
+    const { rerender } = render(
+      <Calendar today={TODAY} view='week' layout='scroll' />
+    )
+    rerender(<Calendar today={TODAY} view='week' layout='paged' />)
+    expect(live()).toHaveTextContent('')
+  })
+
+  it('opens on a listed view when defaultView is not listed', () => {
+    render(<Calendar today={TODAY} views={['week']} defaultView='month' />)
+    expect(shownDays()).toHaveLength(7)
   })
 
   it('gives each day its own content id when a date shows twice', () => {
@@ -1093,15 +1147,13 @@ describe('Calendar week view', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  it('puts the arrows after the month selects in the tab order', () => {
-    render(
-      <Calendar today={TODAY} numberOfMonths={2} captionLayout='dropdown' />
-    )
+  it('puts the arrows before the days with several months', () => {
+    render(<Calendar today={TODAY} numberOfMonths={2} />)
     const order = Array.from(
-      document.querySelectorAll('select, button[aria-label$="month"]'),
+      document.querySelectorAll('[data-slot="calendar"] button'),
       (node) => node.getAttribute('aria-label')
     )
-    expect(order.slice(-2)).toEqual(['Previous month', 'Next month'])
+    expect(order.slice(0, 2)).toEqual(['Previous month', 'Next month'])
   })
 
   it('returns to the week of the chosen day after paging months', async () => {

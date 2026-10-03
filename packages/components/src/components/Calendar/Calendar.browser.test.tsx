@@ -334,8 +334,8 @@ describe('Calendar layout', () => {
       .getByRole('button', { name: 'Month view' })
       .getBoundingClientRect()
     const caption = screen.getByText('September 2027')
-    expect(caption.getBoundingClientRect().right).toBeLessThanOrEqual(
-      toggle.left
+    expect(caption.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      toggle.bottom
     )
     expect(caption.scrollWidth).toBeLessThanOrEqual(caption.clientWidth)
   })
@@ -434,6 +434,25 @@ describe('Calendar layout', () => {
     rerender(
       <div className='w-200'>
         <Calendar view='week' today={TODAY} />
+      </div>
+    )
+    expect(Math.abs(height() - frame)).toBeLessThan(4)
+  })
+
+  it('holds about the frame of a month of tiles while today is unknown', () => {
+    const price = () => '$29'
+    const { rerender } = render(
+      <div className='w-200'>
+        <Calendar fixedWeeks getDayContent={price} />
+      </div>
+    )
+    const height = () =>
+      document.querySelector('[data-slot="calendar"]')!.getBoundingClientRect()
+        .height
+    const frame = height()
+    rerender(
+      <div className='w-200'>
+        <Calendar fixedWeeks getDayContent={price} today={TODAY} />
       </div>
     )
     expect(Math.abs(height() - frame)).toBeLessThan(4)
