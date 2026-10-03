@@ -21,7 +21,8 @@ export type RecordsOptionsProps = {
   className?: string
 }
 
-const noInitialFocus = () => null
+// The panel itself, so no field looks active on open; Tab reaches the first control.
+const focusPanel = (popup: HTMLElement) => popup
 
 /**
  * A button that opens the view's options: the sort, and the shown layout's
@@ -51,7 +52,7 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
       aria-labelledby={labelId}
       labelSource={labelId}
       action={name}
-      initialFocus={noInitialFocus}
+      initialFocus={focusPanel}
       align='end'
       modal
       className='w-[22rem] overflow-y-auto'

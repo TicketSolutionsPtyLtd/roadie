@@ -132,7 +132,7 @@ describe('Records.Options', TIMEOUT, () => {
       Math.abs(rect(panel).right - rect(configure()).right)
     ).toBeLessThanOrEqual(1)
     expect(rect(panel).top).toBeGreaterThan(rect(configure()).bottom)
-    expect(panel).toContainElement(document.activeElement as HTMLElement)
+    expect(document.activeElement).toBe(panel)
   })
 
   it('reorders the table by dragging a column in the popover', async () => {
