@@ -124,7 +124,7 @@ describe('Records.ViewActions in a browser', TIMEOUT, () => {
     await withFrames(() =>
       expect.poll(() => screen.queryByRole('dialog')).toBeNull()
     )
-    expect(trigger()).toHaveAccessibleName('View: Coming up, modified')
+    expect(trigger()).toHaveAccessibleName('View: Coming up, unsaved changes')
   })
 
   it('asks for the name in a bottom drawer on a phone', async () => {
@@ -186,7 +186,7 @@ describe('Records.ViewActions in a browser', TIMEOUT, () => {
     await withFrames(() =>
       expect.poll(() => screen.queryByRole('alertdialog')).toBeNull()
     )
-    expect(trigger()).toHaveAccessibleName('View: All, modified')
+    expect(trigger()).toHaveAccessibleName('View: All, unsaved changes')
     await expect.poll(() => document.activeElement).toBe(trigger())
   })
 

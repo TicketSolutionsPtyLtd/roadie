@@ -44,7 +44,7 @@ export type RecordsViewActionsProps = {
  * The open view's name, marked when it has changed, with a menu to save,
  * save as, rename, reset or delete it. The app keeps the views: each action
  * calls its handler, and Reset goes back to the records' `baseline`. Renders
- * nothing with no action to offer.
+ * nothing with no baseline and no `onSaveAs`.
  */
 export function RecordsViewActions({
   onSave,
@@ -96,7 +96,7 @@ export function RecordsViewActions({
                   <Button
                     ref={triggerRef}
                     emphasis='normal'
-                    aria-label={`View: ${name}${modified ? ', modified' : ''}`}
+                    aria-label={`View: ${name}${modified ? ', unsaved changes' : ''}`}
                     aria-busy={saving || undefined}
                     disabled={saving || !offers}
                     focusableWhenDisabled

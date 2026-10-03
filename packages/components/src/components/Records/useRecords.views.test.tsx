@@ -84,10 +84,12 @@ describe('useRecords baseline', () => {
     expect(params.get('view')).toBe('upcoming')
     const { view } = fromSearchParams(params, showFields)
     const baseline = [upcoming].find((saved) => saved.id === view.id)
-    const { result } = setup({ view, baseline })
+    const { result } = setup({ defaultView: view, baseline })
     expect(result.current.baseline).toBe(upcoming)
     expect(result.current.modified).toBe(true)
     act(() => result.current.resetView())
+    expect(result.current.modified).toBe(false)
+    expect(result.current.view.query.search).toBe('')
   })
 
   it('reads a layout change as modified', async () => {

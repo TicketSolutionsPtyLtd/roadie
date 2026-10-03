@@ -180,7 +180,7 @@ describe('Records.ViewActions', { timeout: 15_000 }, () => {
         {...handlers()}
       />
     )
-    expect(trigger()).toHaveAccessibleName('View: Upcoming, modified')
+    expect(trigger()).toHaveAccessibleName('View: Upcoming, unsaved changes')
     expect(
       trigger().querySelector('[data-slot="records-view-modified"]')
     ).not.toBeNull()
