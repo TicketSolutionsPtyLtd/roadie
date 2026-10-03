@@ -95,11 +95,12 @@ function summarise(
 
 type View = 'periods' | 'calendar'
 
-// Two lines in about a large control's height, a pairing with large controls.
+// Two lines in exactly a large control's height, with fixed line heights so
+// every engine's font metrics land on 48px.
 const twoLineClasses = {
-  button: 'h-auto min-h-12 px-2 py-1.5',
-  first: 'truncate text-base leading-tight',
-  second: 'text-sm leading-tight'
+  button: 'h-12 px-2',
+  first: 'truncate text-base leading-5',
+  second: 'text-sm leading-4'
 }
 
 /** For pickers built on this one, such as `DashboardPeriod`. Not public. */

@@ -160,8 +160,9 @@ for (const width of [358, 1100])
       expect(second.textContent).toMatch(/^vs 1 to 31 Oct 2025$/)
       expect(second.offsetParent).not.toBeNull()
       expect(box(second).top).toBeGreaterThanOrEqual(box(first).bottom - 1)
-      expect(box(button()).height).toBeGreaterThanOrEqual(48)
-      expect(box(button()).height).toBeLessThanOrEqual(56)
+      expect(box(button()).height).toBe(48)
+      expect(box(second).bottom).toBeLessThanOrEqual(box(button()).bottom)
+      expect(box(first).top).toBeGreaterThanOrEqual(box(button()).top)
     })
 
     it('is 48px tall, a large control, with no comparison', () => {
