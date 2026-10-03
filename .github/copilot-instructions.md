@@ -22,7 +22,8 @@ ESLint already enforce.
 
 - Colours only through Roadie utilities and intents (`bg-subtle`,
   `text-strong`, `intent-accent`, `emphasis-*`). No Tailwind palette colours,
-  hex or `rgb()`, no `dark:` variants.
+  hex or `rgb()`, no `dark:` variants. Exception: SpotIllustration source
+  SVGs keep exact hex fills for the conversion script (see its README).
 - Layout: `grid gap-*` for stacks, `flex` only when children size
   themselves, `gap` not margin between siblings.
 - Interactive elements use `is-interactive` (fields `is-interactive-field`);
@@ -45,7 +46,7 @@ ESLint already enforce.
 - Docs: sentence case, Australian spelling, no em dashes, invented venues
   and events; `.mdx` is edited by hand.
 - New public subpaths are wired into `package.json` exports, the build
-  config and `.size-limit.json`.
+  config and the package's Size Limit budget.
 
 ## Deliberate decisions (don't flag)
 

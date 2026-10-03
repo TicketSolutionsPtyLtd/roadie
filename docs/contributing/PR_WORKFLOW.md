@@ -27,8 +27,9 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   pass. If a component's styles leak into another (a parent's descendant
   selector resizing a nested icon), fix the scope, not the symptom.
 - **Wire new public subpaths everywhere:** `package.json` `exports`,
-  `tsdown.config.ts`, a `.size-limit.json` budget about 10% above what you
-  measure, and `src/css/safelist.html` for new `@utility` classes.
+  `tsdown.config.ts`, a Size Limit budget about 10% above what you measure
+  (`.size-limit.json`, or the `size-limit` field in `package.json` for core
+  and widgets), and `src/css/safelist.html` for new `@utility` classes.
 - **Changesets.** `minor` for a new export, `patch` for a fix, per package
   touched. While a release is held, edit the existing changeset of an
   unreleased API rather than adding a "breaking" entry for something nobody
@@ -42,7 +43,7 @@ Every PR is checked against these before review. Fix every real hit.
   interaction utilities, layout (grid first, `gap` not margin), shape tiers,
   iconography (bold Phosphor, `Icon` suffix, Tailwind sizing), typography
   (raw elements with `text-display-*`), linking (`href`, never `next/link`
-  inside Roadie), forms (`Field` wraps every control), styling rule 8 for
+  inside `packages/`; the docs app may use it), forms (`Field` wraps every control), styling rule 8 for
   `:has()`, and the code-quality rules.
 - **Foundations pages** in `docs/src/app/foundations/` for the area you
   touch: layout, typography, shape, interactions, colours, elevation,
@@ -78,8 +79,9 @@ Every PR is checked against these before review. Fix every real hit.
 ## 5. Verify locally
 
 - `pnpm build && pnpm typecheck && pnpm lint && pnpm test`, the browser
-  tests for the files you touched, and the `size` script of every package you touched
-  (`pnpm --filter <package> size`).
+  tests for the files you touched, and the `size` script of every
+  touched package that has one (`pnpm --filter <package> size`; `docs`
+  has none).
 - Rebuild before browser tests; stale `dist` misleads the `:has()` guard.
 - **Keep the machine cool.** Iterate in one engine (`ROADIE_BROWSERS=chromium`),
   cap workers (`--maxWorkers=4`), run the three-engine set once before
