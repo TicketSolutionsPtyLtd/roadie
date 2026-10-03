@@ -9,8 +9,8 @@ searches, filters, sorts and pages them in the browser. Filters a view names
 but the fields can't apply are skipped, listed in `skippedFilters` and
 warned about in development. `Records.Root` (or
 `Records.Provider`, which adds no element, for parts spread across a
-`Pane`) shares it with `Records.Toolbar` and its plain-text
-`Records.Search`, `Records.Content`, `Records.Pagination` and a
+`Pane`) shares it with `Records.Toolbar` and its `Records.Search`,
+`Records.Content`, `Records.Pagination` and a
 `Records.Status` live region. Content shows the view's layout, or the first
 one given, with skeleton rows while loading, an error with Retry, and an
 empty state that says whether nothing exists yet or nothing matches.
@@ -59,6 +59,35 @@ layout definition adds its own settings with `Settings`, which can carry a
 `preload` that runs once the page is idle or the button is reached; the
 table's columns list loads that way, out of the table's first load.
 
+`Records.Search` searches and filters in one `QueryField`, named "Search and
+filter". Typing searches the searchable fields as before and suggests filters
+from the fields: option values (or, in the browser, the values an option
+field without `options` holds), statuses, booleans by name, identifiers and
+date phrases such as "this weekend", each becoming a chip; the words a
+suggestion doesn't read stay in the field. Picking a field lists its values,
+or for a date its quick dates and Custom dates; a number or text field opens
+its editor. Option values added to a field join its chip. Each chip opens an
+editor for its condition and value as they change (a list of values, a date
+range picker with relative presets, a date picker, a number, text, or Yes and
+No), in a popover under the chip or a bottom drawer on a phone, with Remove
+filter; a filter whose values are cleared is removed as its editor closes,
+and the editor loads while the page is idle. A relative date chip shows its dates
+in a tooltip, and a filter the fields can't apply shows in warning colours.
+`/` focuses the search unless `shortcut` (or `searchShortcut` on
+`Records.Toolbar` and `RecordTable`) says otherwise, and Clear and Escape
+clear it. The toolbar keeps its buttons at the top as chips wrap.
+
+`useRecords` takes a `scope`: filters the page sets, such as the event a list
+of tickets belongs to. They filter with the view but are never part of it,
+so they are never saved, put in the URL, cleared or counted as filtering, and
+`Records.Search` shows them first as locked chips. `scopedQuery` is the
+applied query with the scope's filters first: fetch it in server mode, and
+table and bulk actions get it, so acting on every match stays within the
+page. The instance gains `scope`
+and `now`, and writes made in one event, such as a search and a filter
+together, build on each other. With no match, the empty state names the
+search and filters that matched nothing.
+
 Give `useRecords` a `rowCount` and it runs in server mode (`mode: 'server'`):
 `data` is the page the server returned, shown in its order, and `rowCount`
 counts every match for pagination and selection. The search waits for a
@@ -72,8 +101,9 @@ given, `rowCount` keeps server mode on, and an `undefined` count keeps the
 last one. Selecting without `getRowId` in server mode warns in development,
 as index ids repeat on every page. `appliedView` now leaves out the filters
 and sorts the fields can't apply, and its `query` keeps its identity while
-its content holds; key a fetch on it, the position and `timeZone`. Selection treats a chip's values in any order as the
-same filter, and ignores filters the fields can't apply. `Records.Status`
+its content holds; key a fetch on `scopedQuery`, the position and
+`timeZone`. Selection treats a chip's values in any order as the same
+filter, and ignores filters the fields can't apply. `Records.Status`
 holds a count while `loading` and announces it once loaded, and
 `Records.Pagination` reads a page past the end as the last page.
 

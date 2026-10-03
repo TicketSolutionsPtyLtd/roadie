@@ -430,6 +430,20 @@ describe('useRecords range mode', () => {
     expect(result.current.records.range!.loading).toBe(true)
   })
 
+  it('asks again when a pending search gains a trailing space', async () => {
+    const { result } = renderHook(() =>
+      useRangeHarness({ total: 70, respond: 'manual' })
+    )
+    await search(result, 'Perth')
+    await view(result, 0, 15)
+    await search(result, 'Perth ')
+    await view(result, 0, 15)
+    expect(requests(result)).toEqual([
+      { start: 0, end: 50 },
+      { start: 0, end: 50 }
+    ])
+  })
+
   it('ignores a reply for a query that changed and came back', async () => {
     const { result } = renderHook(() =>
       useRangeHarness({ total: 70, respond: 'manual' })

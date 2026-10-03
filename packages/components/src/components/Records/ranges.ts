@@ -51,8 +51,11 @@ export function rangesToLoad(plan: RangePlan): RecordsRange[] {
   return ranges
 }
 
-/** What loaded rows belong to: a new search, filter, sort or zone starts over. */
+/**
+ * What loaded rows belong to: a new search, filter, sort or zone starts over.
+ * The search as typed, as an app keys its data on the search it sent.
+ */
 export const rangeKey = (
   query: Pick<RecordQuery, 'search' | 'filters' | 'sort'>,
   timeZone: string
-) => JSON.stringify([matchKey(query), query.sort, timeZone])
+) => JSON.stringify([query.search, matchKey(query), query.sort, timeZone])

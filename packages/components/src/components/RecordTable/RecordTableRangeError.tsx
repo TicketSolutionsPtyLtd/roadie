@@ -11,11 +11,12 @@ import type { RecordsRangeState } from '../Records/types'
 import { tableFocusTarget, useKeepFocusInTable } from './tableFocus'
 
 /**
- * Where a row sits in a failed range: the error shows at the first one on
- * screen, so it stays in view, and the rest are blank. Undefined outside one.
+ * Where a row sits in a failed range: the error shows at the first row on
+ * screen not loaded, so it stays in view beside any rows the page did load,
+ * and the rest are blank. Undefined outside one.
  */
 export function failedRowAt(
-  range: Pick<RecordsRangeState, 'failed'>,
+  range: Pick<RecordsRangeState, 'failed' | 'count' | 'rowAt'>,
   index: number,
   first = 0
 ): { start: number; error: boolean } | undefined {
@@ -23,7 +24,16 @@ export function failedRowAt(
     ({ start, end }) => index >= start && index < end
   )
   if (!failed) return undefined
-  const shown = Math.min(Math.max(first, failed.start), failed.end - 1)
+  const end = Math.min(failed.end, range.count)
+  const missing = (from: number) => {
+    for (let at = from; at < end; at++)
+      if (range.rowAt(at) === undefined) return at
+    return undefined
+  }
+  const shown =
+    missing(Math.max(first, failed.start)) ??
+    missing(failed.start) ??
+    failed.start
   return { start: failed.start, error: index === shown }
 }
 

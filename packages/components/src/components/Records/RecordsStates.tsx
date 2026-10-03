@@ -6,6 +6,8 @@ import {
   WarningIcon
 } from '@phosphor-icons/react'
 
+import { describeRecordFilter } from '@oztix/roadie-core/records'
+
 import { Button } from '../Button'
 import { EmptyState } from '../EmptyState'
 import type { RecordsInstance } from './useRecords'
@@ -24,6 +26,31 @@ const stateTitle = <p />
 
 const capitalise = (text: string) =>
   text.charAt(0).toUpperCase() + text.slice(1)
+
+const NAMED_PARTS = 3
+
+/** The search and filters that matched nothing, as people read their chips. */
+function unmatched(records: RecordsInstance): string {
+  // The applied view leaves out filters the fields can't apply.
+  const { search, filters: applied } = records.appliedView.query
+  const words = search.trim()
+  const parts = [
+    ...(words ? [`“${words}”`] : []),
+    ...applied.map(
+      (filter) =>
+        describeRecordFilter(filter, records.fields, {
+          now: records.now,
+          timeZone: records.timeZone
+        }).label
+    )
+  ]
+  if (parts.length > NAMED_PARTS)
+    return words
+      ? `your search and ${applied.length} filters`
+      : `these ${applied.length} filters`
+  if (parts.length < 2) return parts.join('')
+  return `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}`
+}
 
 export function RecordsError({ records }: { records: RecordsInstance }) {
   return (
@@ -64,6 +91,7 @@ export function RecordsEmpty({ records }: { records: RecordsInstance }) {
         </EmptyState.Description>
       </EmptyState>
     )
+  const parts = unmatched(records)
   return (
     <EmptyState size='sm' data-slot='records-empty'>
       <EmptyState.IconTile aria-hidden>
@@ -71,7 +99,8 @@ export function RecordsEmpty({ records }: { records: RecordsInstance }) {
       </EmptyState.IconTile>
       <EmptyState.Title render={stateTitle}>No {other} match</EmptyState.Title>
       <EmptyState.Description>
-        Try a different search or clear the filters.
+        {parts && `Nothing matches ${parts}. `}Try a different search or clear
+        the filters.
       </EmptyState.Description>
       <EmptyState.Actions>
         <Button onClick={records.clearQuery}>Clear search and filters</Button>

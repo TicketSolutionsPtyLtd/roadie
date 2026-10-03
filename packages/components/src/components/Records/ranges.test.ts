@@ -133,11 +133,11 @@ describe('rangeKey', () => {
     ...overrides
   })
 
-  it('ignores chip value order and a trailing space', () => {
+  it('ignores chip value order', () => {
     expect(
       rangeKey(
         query({
-          search: 'Perth ',
+          search: 'Perth',
           filters: [
             { field: 'city', operator: 'is', values: ['Perth', 'Hobart'] }
           ]
@@ -154,6 +154,12 @@ describe('rangeKey', () => {
         }),
         'Australia/Perth'
       )
+    )
+  })
+
+  it('changes with a trailing space, as the app keys its data on the search it sent', () => {
+    expect(rangeKey(query({ search: 'Perth ' }), 'UTC')).not.toBe(
+      rangeKey(query({ search: 'Perth' }), 'UTC')
     )
   })
 

@@ -13,10 +13,12 @@ export type RecordTableProps<Row extends object> = UseRecordsOptions<Row> & {
   columns: readonly RecordTableColumn<Row>[]
   /** Accessible name for the table. */
   caption?: string
-  /** Names the search field too, unless `searchLabel` is given. @default 'Search' */
+  /** Names the search field too, unless `searchLabel` is given. @default 'Search and filter' */
   searchPlaceholder?: string
   /** Names the search field when its placeholder doesn't. */
   searchLabel?: string
+  /** The key that focuses the search, or `false` for none. @default '/' */
+  searchShortcut?: string | false
   /** @default [25, 50, 100] */
   pageSizes?: number[]
   /** Turns on selection and shows the bulk actions once something is selected. */
@@ -36,6 +38,7 @@ export function RecordTable<Row extends object>({
   caption,
   searchPlaceholder,
   searchLabel,
+  searchShortcut,
   pageSizes,
   bulkActions,
   tableActions,
@@ -62,6 +65,7 @@ export function RecordTable<Row extends object>({
       <Records.Toolbar
         searchPlaceholder={searchPlaceholder}
         searchLabel={searchLabel}
+        searchShortcut={searchShortcut}
         actions={tableActions}
       />
       <Records.Content maxHeight={maxHeight} fill={fill} />

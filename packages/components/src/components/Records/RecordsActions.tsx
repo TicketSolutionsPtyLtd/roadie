@@ -47,7 +47,7 @@ export function RecordsActions<Row extends object>({
     try {
       // The consumer's Row narrows the shared instance, as Records.Root's does.
       await action.onAction(
-        current.appliedView.query,
+        current.scopedQuery,
         current as unknown as Parameters<typeof action.onAction>[1]
       )
     } catch (error) {

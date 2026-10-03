@@ -454,7 +454,10 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     }).toBe(true)
     await wait(400)
     const before = rows.length
-    await user.type(screen.getByRole('searchbox'), 'a')
+    await user.type(
+      screen.getByRole('combobox', { name: 'Search and filter' }),
+      'a'
+    )
     await framed(() => scroller.scrollTop).toBe(0)
     await wait(800)
     expect(rows.slice(before)).toEqual(rows.slice(before).map(() => 0))

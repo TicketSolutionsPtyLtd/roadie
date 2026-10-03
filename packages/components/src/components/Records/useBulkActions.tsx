@@ -92,7 +92,7 @@ export function useBulkActions({
         ? matchingIds.filter((id) => !except.has(id))
         : submitted.ids
     )
-    const query = records.appliedView.query
+    const query = records.scopedQuery
     const revision = queryRevision.current.count
     setRunning(index)
     try {

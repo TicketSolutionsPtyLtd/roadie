@@ -20,6 +20,7 @@ import {
 import { RecordTable, type RecordTableProps } from '.'
 import type { RecordsBulkAction } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import { failedRowAt } from './RecordTableRangeError'
 import { firstVisibleRow, stuckInset } from './rowPosition'
 import { bulkBar, countMenuItems, showColumns } from './testUtils'
 
@@ -185,7 +186,7 @@ describe('RecordTable range mode', () => {
       const user = userEvent.setup()
       const loads: string[] = []
       render(<KeyedRanged rowCount={rowCount} loads={loads} />)
-      const search = screen.getByRole('searchbox')
+      const search = screen.getByRole('combobox', { name: 'Search and filter' })
       const loaded = async (key: string) => {
         await waitFor(() => expect(loads).toContain(`${key} 0`))
         await waitFor(() => expect(placeholders()).toHaveLength(0))
@@ -202,7 +203,7 @@ describe('RecordTable range mode', () => {
     const user = userEvent.setup()
     render(<CountedRanged />)
     await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
-    const search = screen.getByRole('searchbox')
+    const search = screen.getByRole('combobox', { name: 'Search and filter' })
     await user.type(search, 'zzzz')
     await waitFor(() =>
       expect(screen.getByText('No records match')).toBeInTheDocument()
@@ -215,7 +216,7 @@ describe('RecordTable range mode', () => {
     const user = userEvent.setup()
     render(<CountedRanged />)
     await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
-    const search = screen.getByRole('searchbox')
+    const search = screen.getByRole('combobox', { name: 'Search and filter' })
     await user.type(search, 'Ocean Alley 7')
     await waitFor(() => expect(dataRows()).toHaveLength(11))
     await user.clear(search)
@@ -538,6 +539,30 @@ describe('RecordTable range footer', () => {
     render(<Ranged respond='never' />)
     await settle()
     expect(footer()).toBeNull()
+  })
+})
+
+describe('failedRowAt', () => {
+  const range = (loaded: number, count = 10) => ({
+    failed: [{ start: 0, end: 50 }],
+    count,
+    rowAt: (index: number) =>
+      index < loaded ? { id: String(index), row: {} } : undefined
+  })
+
+  it('shows the error at the first row on screen', () => {
+    expect(failedRowAt(range(0), 3, 3)).toEqual({ start: 0, error: true })
+    expect(failedRowAt(range(0), 4, 3)).toEqual({ start: 0, error: false })
+  })
+
+  it('shows the error at the first row not loaded when part of the page is', () => {
+    expect(failedRowAt(range(5), 5, 0)).toEqual({ start: 0, error: true })
+    expect(failedRowAt(range(5), 6, 0)).toEqual({ start: 0, error: false })
+  })
+
+  it('keeps the error within the count', () => {
+    expect(failedRowAt(range(5), 5, 30)).toEqual({ start: 0, error: true })
+    expect(failedRowAt(range(5), 30, 30)).toEqual({ start: 0, error: false })
   })
 })
 

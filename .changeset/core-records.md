@@ -51,6 +51,16 @@ value as its field reads in a table, with `values: 'raw'` for plain numbers
 and formula-like text neutralised. `RecordSelection` types the records an
 action takes.
 
+`describeRecordFilter(filter, fields, { now, timeZone })` writes a filter as
+its chip reads ("Venue is Kazoo Hollow Room", "Gross is more than $100",
+"Starts: This weekend"), with the dates a relative range stands for in
+`detail`. `recordOperatorLabel` names an operator ("is more than") and
+`recordOptionPaths` gives each option's label with its parents' ("Ochre Kite
+Weekender 2027 › Opening Night"). A chip listing more than two values names
+them all in `detail`. `parseQuery` labels its filters the same way, names a
+field whose label holds a colon in `field:value`, and reads `$` and
+thousands commas in a number's value.
+
 `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
 and `hitsPerPage`, so the response's `totalHits` counts the matches (up to
 the index's `pagination.maxTotalHits`). A page below 0 or a page size below

@@ -413,6 +413,17 @@ export default function RecordsPage() {
         </p>
         <CodePreview>{`parseQuery('melb this weekend', { fields: eventFields, now, timeZone })
 // ${JSON.stringify(suggestions, null, 2).split('\n').join('\n// ')}`}</CodePreview>
+        <p className='max-w-prose text-subtle'>
+          <Code>
+            describeRecordFilter(filter, fields, {'{ now, timeZone }'})
+          </Code>{' '}
+          writes any filter as its chip reads, such as &ldquo;Gross is more than
+          $100&rdquo;, with the dates a relative range stands for in{' '}
+          <Code>detail</Code>. <Code>parseQuery</Code> labels its filters the
+          same way, so a suggestion and the chip it makes read alike.{' '}
+          <Code>Records.Search</Code> uses both, and shows a page&apos;s{' '}
+          <Code>scope</Code> as locked chips that are never part of the view.
+        </p>
       </Section>
 
       <Section title='URL format'>

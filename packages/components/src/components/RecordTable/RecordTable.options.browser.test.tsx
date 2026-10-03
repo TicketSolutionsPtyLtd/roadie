@@ -114,15 +114,20 @@ async function drag(name: string, onto: string, edge: 'top' | 'bottom') {
   ])
 }
 
+const searchField = () =>
+  screen
+    .getByRole('combobox', { name: 'Search and filter' })
+    .closest<HTMLElement>('[data-slot="query-field"]')!
+
 describe('Records.Options', TIMEOUT, () => {
   it('matches the search height beside the actions, with More last', async () => {
     render(<Shows />)
     await frame()
-    const height = rect(screen.getByRole('searchbox')).height
+    const height = rect(searchField()).height
     expect(height).toBe(40)
-    const toolbar = screen
-      .getByRole('searchbox')
-      .closest<HTMLElement>('[data-slot="records-toolbar"]')!
+    const toolbar = searchField().closest<HTMLElement>(
+      '[data-slot="records-toolbar"]'
+    )!
     const buttons = within(toolbar).getAllByRole('button')
     expect(
       buttons.map(

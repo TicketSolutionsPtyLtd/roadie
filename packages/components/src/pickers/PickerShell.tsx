@@ -21,7 +21,11 @@ import { cn } from '@oztix/roadie-core/utils'
 import { IconButton } from '../components/Button/IconButton'
 import { Drawer, type DrawerSize } from '../components/Drawer'
 import { useFieldContext } from '../components/Field'
-import { Popover, type PopoverTriggerProps } from '../components/Popover'
+import {
+  Popover,
+  type PopoverContentProps,
+  type PopoverTriggerProps
+} from '../components/Popover'
 import { mergeRefs } from '../utils/mergeRefs'
 
 const noSubscription = () => () => {}
@@ -228,7 +232,7 @@ export type PickerOverlayProps = {
   surface: PickerSurface
   /** What the popover lines up with. It holds the `PickerTrigger`. */
   trigger: ReactNode
-  anchor: RefObject<HTMLElement | null>
+  anchor: NonNullable<PopoverContentProps['positionerProps']>['anchor']
   'aria-labelledby': string
   /** The ids naming the picker, shown as the drawer's title. */
   labelSource: string | undefined
@@ -240,6 +244,8 @@ export type PickerOverlayProps = {
   align?: 'start' | 'end'
   /** Locks the page behind the popover, as a menu does. @default false */
   modal?: boolean
+  /** Where focus returns on close, when there is no trigger, such as a chip. Defaults to the trigger. */
+  finalFocus?: () => HTMLElement | null | undefined
   /** Classes for the popover. */
   className?: string
   /** Actions after the content, kept in view at the foot of a drawer. */
@@ -303,6 +309,7 @@ export function PickerOverlay({
   initialFocus = calendarTabStop,
   align = 'start',
   modal = false,
+  finalFocus,
   className,
   footer,
   drawerContent,
@@ -336,6 +343,7 @@ export function PickerOverlay({
             positionerProps={{ anchor }}
             className={cn('max-w-[var(--available-width)]', className)}
             initialFocus={focusOnOpen}
+            {...(finalFocus && { finalFocus: () => finalFocus() ?? true })}
           >
             {children}
             {footer && (
@@ -346,7 +354,7 @@ export function PickerOverlay({
             ref={popupRef}
             aria-labelledby={ariaLabelledBy}
             initialFocus={focusOnOpen}
-            finalFocus={triggerRef}
+            finalFocus={finalFocus ? () => finalFocus() ?? true : triggerRef}
             size={drawerSize}
           >
             {drawerContent ?? (
