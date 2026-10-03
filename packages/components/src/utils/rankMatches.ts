@@ -54,18 +54,35 @@ function defaultLabel(item: unknown) {
   }
 }
 
-const wordCharacter = /^[\p{L}\p{N}\p{M}'’]$/u
+const wordCharacter = /^[\p{L}\p{N}\p{M}]$/u
+const apostrophe = /^['’]$/u
+const lowercase = /^\p{Ll}$/u
 
 function isWordCharacter(character: string | undefined) {
   return character !== undefined && wordCharacter.test(character)
 }
 
+// An apostrophe inside a word joins a lowercase tail ("Don't") but not a
+// capitalised one ("O'Rock"), and after a space it opens a quote.
+function continuesWord(before: string[], first: string | undefined) {
+  const previous = before.at(-1)
+  if (previous !== undefined && apostrophe.test(previous))
+    return (
+      isWordCharacter(before.at(-2)) &&
+      first !== undefined &&
+      lowercase.test(first)
+    )
+  return isWordCharacter(previous)
+}
+
 // The collator ignores spaces and punctuation, so a match can begin on the
 // space before a word; the word starts at the window's first word character.
 function startsWord(label: string, start: number, end: number) {
-  const lead = Array.from(label.slice(start, end)).findIndex(isWordCharacter)
+  const window = Array.from(label.slice(start, end))
+  const lead = window.findIndex(isWordCharacter)
   if (lead === -1) return false
-  return lead > 0 || !isWordCharacter(Array.from(label.slice(0, start)).at(-1))
+  const before = Array.from(label.slice(0, start)).concat(window.slice(0, lead))
+  return !continuesWord(before, window[lead])
 }
 
 function matchTier(label: string, query: string, collator: Intl.Collator) {

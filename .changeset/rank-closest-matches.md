@@ -12,11 +12,11 @@ now lists Rock first. With `limit`, ranking comes first, so the closest
 matches are the ones kept.
 
 `Combobox` opened without typing still shows `items` in your order.
-`Autocomplete` ranks by whatever text is in the input, including a value set
-in code. Pass your own `filter` or `filteredItems` to keep your order. Server
-results passed as `items` without `filter={null}` are now re-ranked; add
-`filter={null}` to keep the server's order. A `createItems()` collection keeps
-its order.
+`Autocomplete` ranks by its value, whether typed or set in code. Pass your own
+`filter` or `filteredItems` to keep your order. Server results passed as
+`items` without `filter={null}` are now re-ranked; add `filter={null}` to keep
+the server's order. A `Combobox` given a `createItems()` collection keeps its
+order.
 
 The docs' grouped examples mapped the source groups inside `List`, which never
 filtered. Pass a function to `Autocomplete.List` or `Combobox.List` instead, as

@@ -361,12 +361,11 @@ same kind keep the order of `items`, and grouped items are ranked within their
 group. Case and accents don't count, as in the filter.
 
 Typing "Sydney" over `['North Sydney', 'Sydney']` lists Sydney first, so Enter
-takes it. The order follows the text in the input, however it got there, and
-with no text `items` keep your order. With `limit`, ranking comes first, so the
+takes it. The order follows the value, whether typed or set in code, and with
+no value `items` keep your order. With `limit`, ranking comes first, so the
 closest matches are the ones kept.
 
-Roadie ranks only with its default filter, in `list` and `both` mode, and only
-an array of `items`; a `createItems()` collection keeps its order. Pass your
+Roadie ranks only with its default filter, in `list` and `both` mode. Pass your
 own `filter` or `filteredItems` to set the order yourself.
 
 ### Async loading

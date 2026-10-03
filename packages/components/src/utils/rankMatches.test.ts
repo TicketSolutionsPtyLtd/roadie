@@ -65,6 +65,18 @@ describe('rankMatches', () => {
       expected: ['Hot tea', "Don't"]
     },
     {
+      name: 'starts a word after an opening quote',
+      items: ['Bedrock', "The 'Rock' Bar"],
+      query: 'rock',
+      expected: ["The 'Rock' Bar", 'Bedrock']
+    },
+    {
+      name: "starts a word after O'",
+      items: ['Xrock', "O'Rock", 'O’Rock'],
+      query: 'rock',
+      expected: ["O'Rock", 'O’Rock', 'Xrock']
+    },
+    {
       name: 'reads a letter outside the basic plane as part of a word',
       items: ['𝐀rock', 'Hard rock'],
       query: 'rock',
