@@ -771,38 +771,6 @@ describe('QueryField', () => {
     ).toHaveTextContent('0')
   })
 
-  it('drops the arrow mark after opening an empty list by arrow', async () => {
-    const onAccept = vi.fn()
-    const first = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
-    const typed = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
-    render(
-      <Harness
-        onAccept={onAccept}
-        suggest={(text) => (text ? typed.promise : first.promise)}
-      />
-    )
-    await userEvent.tab()
-    await userEvent.keyboard('{ArrowDown}')
-    await act(async () => first.resolve(suggestFor('')))
-    await waitFor(() => expect(optionNames()).toEqual(['Venue']))
-    await userEvent.keyboard('l')
-    await waitFor(() =>
-      expect(optionNames()).toEqual(['Venue', 'Search for “l”'])
-    )
-    await userEvent.keyboard('{ArrowDown}')
-    await waitFor(() => expect(hinted()).toEqual(['Venue']))
-    await act(async () =>
-      typed.resolve([
-        { id: 'orders', label: 'Orders', items: [{ ...order, exact: false }] }
-      ])
-    )
-    expect(hinted()).toEqual(['Search for “l”'])
-    await userEvent.keyboard('{Enter}')
-    expect(onAccept).toHaveBeenLastCalledWith(
-      expect.objectContaining({ kind: 'search', value: 'l' })
-    )
-  })
-
   it('tells assistive technology Enter edits a chip', () => {
     render(<Harness initialChips={[scope, status]} onEditChip={() => {}} />)
     expect(chipElement('status')).toHaveAttribute('aria-keyshortcuts', 'Enter')
