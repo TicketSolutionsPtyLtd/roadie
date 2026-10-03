@@ -114,14 +114,17 @@ export function useRangeLoading({
         size: now.size,
         rowCount: now.rowCount,
         // A count that grew since a page was asked for may hold more of it.
-        requested: new Set(
-          [...mine.starts]
-            .filter(
-              ([start, count]) =>
-                mine.pending.has(start) || count >= (now.rowCount ?? -1)
-            )
-            .map(([start]) => start)
-        ),
+        requested:
+          now.rowCount === undefined
+            ? mine.pending
+            : new Set(
+                [...mine.starts]
+                  .filter(
+                    ([start, count]) =>
+                      mine.pending.has(start) || count >= (now.rowCount ?? -1)
+                  )
+                  .map(([start]) => start)
+              ),
         failed: new Set(now.book.failed.map((range) => range.start)),
         pending: now.book.pending,
         // Rows already in `data`, as from a cache or a remount, aren't fetched again.

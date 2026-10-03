@@ -395,6 +395,21 @@ describe('RecordTable range mode', () => {
     )
   })
 
+  it('keeps focus in the table when Retry brings the empty state', async () => {
+    const user = userEvent.setup()
+    render(<Ranged failFirst respond='empty' />)
+    await settle()
+    within(document.querySelector<HTMLElement>('[data-slot="records-error"]')!)
+      .getByRole('button', { name: 'Retry' })
+      .focus()
+    await user.keyboard('{Enter}')
+    await settle()
+    expect(screen.getByText('No records yet')).toBeInTheDocument()
+    expect(document.activeElement).toBe(
+      document.querySelector('[data-slot="record-table-scroller"]')
+    )
+  })
+
   it('retries the failed range without an onRetry option', async () => {
     const user = userEvent.setup()
     const spans: Span[] = []

@@ -235,8 +235,9 @@ export function RecordTableContent({
 
   const empty = range ? range.count === 0 : rows.length === 0
   // Error, then skeleton, then empty: what replaces the rows.
+  // Keyed, so one state replacing another hands its button's focus on.
   const state = records.error ? (
-    <StateRow columns={columnCount}>
+    <StateRow key='error' columns={columnCount}>
       <RecordsError records={records} />
     </StateRow>
   ) : awaitingRows ? (
@@ -248,7 +249,7 @@ export function RecordTableContent({
       actions={hasRowActions}
     />
   ) : empty ? (
-    <StateRow columns={columnCount}>
+    <StateRow key='empty' columns={columnCount}>
       <RecordsEmpty records={records} />
     </StateRow>
   ) : null

@@ -357,8 +357,27 @@ describe('useRecords range mode', () => {
     })
     await view(result, 105, 124)
     expect(requests(result).slice(2)).toEqual([{ start: 100, end: 150 }])
+    // The server has 120 rows, short of its count, so the page stays short.
+    await act(async () => result.current.calls.current[2]!.resolve())
     await view(result, 105, 124)
     expect(requests(result)).toHaveLength(3)
+  })
+
+  it('loads the first record added to an empty list', async () => {
+    const { result, rerender } = renderHook(
+      ({ rowCount }: { rowCount: number }) =>
+        useRangeHarness({ total: 1, rowCount, respond: 'manual' }),
+      { initialProps: { rowCount: 0 } }
+    )
+    await view(result, 0, 15)
+    await act(async () => result.current.calls.current[0]!.settle())
+    expect(result.current.records.range!.count).toBe(0)
+    rerender({ rowCount: 1 })
+    await view(result, 0, 0)
+    expect(requests(result)).toEqual([
+      { start: 0, end: 50 },
+      { start: 0, end: 50 }
+    ])
   })
 
   it('treats the rows a last page holds as held', async () => {
