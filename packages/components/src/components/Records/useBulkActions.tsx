@@ -1,6 +1,6 @@
 'use client'
 
-import type { RefObject } from 'react'
+import { type RefObject, useLayoutEffect, useRef } from 'react'
 
 import {
   RecordsConfirm,
@@ -34,7 +34,8 @@ export function useBulkActions({
     setBulkRunning: setRunning,
     bulkConfirming: confirming,
     setBulkConfirming: setConfirming,
-    latestRecords: latest
+    latestRecords: latest,
+    queryRevision
   } = useRecordsContext()
   const selected = records.selectedCount
   const recordName = recordNameProp ?? records.recordName
@@ -58,6 +59,19 @@ export function useBulkActions({
     )
   }
   const focusSurvivor = () => survivor()?.focus()
+  // A bar the selection clears in render, such as a new search, unmounts with
+  // focus inside; this runs before its nodes leave.
+  const latestFocus = useRef(focusSurvivor)
+  useLayoutEffect(() => {
+    latestFocus.current = focusSurvivor
+  })
+  useLayoutEffect(
+    () => () => {
+      if (barRef.current?.contains(document.activeElement))
+        latestFocus.current()
+    },
+    [barRef]
+  )
   const clearSelection = () => {
     focusSurvivor()
     records.clearSelection()
@@ -66,27 +80,38 @@ export function useBulkActions({
   const run = async (index: number) => {
     const action = actions[index]
     if (!action) return
+    const server = records.mode === 'server'
     const matchingIds = records.matchingRows.map((row) => row.id)
-    const submitted = withinMatching(records.selection, matchingIds)
+    // The server decides what matches; in the browser a hidden record is never acted on.
+    const submitted = server
+      ? records.selection
+      : withinMatching(records.selection, matchingIds)
     const except = new Set('allMatching' in submitted ? submitted.except : [])
     const acted = new Set(
       'allMatching' in submitted
         ? matchingIds.filter((id) => !except.has(id))
         : submitted.ids
     )
+    const query = records.appliedView.query
+    const revision = queryRevision.current.count
     setRunning(index)
     try {
-      await action.onAction(submitted, records.appliedView.query)
+      await action.onAction(submitted, query)
       const current = latest.current
-      // Records ticked while the action ran, which it never touched, stay selected.
+      // A selection taken against a newer query isn't what the action took.
+      if (server && queryRevision.current.count !== revision) return
+      // Records ticked while the action ran, which it never touched, stay
+      // selected. An action on every match took them all.
       const rest =
-        'allMatching' in current.selection
-          ? {
-              ids: current.matchingRows
-                .map((row) => row.id)
-                .filter((id) => current.isSelected(id) && !acted.has(id))
-            }
-          : deselect(current.selection, [...acted])
+        server && 'allMatching' in submitted
+          ? { ids: submitted.except.filter((id) => current.isSelected(id)) }
+          : 'allMatching' in current.selection && !server
+            ? {
+                ids: current.matchingRows
+                  .map((row) => row.id)
+                  .filter((id) => current.isSelected(id) && !acted.has(id))
+              }
+            : deselect(current.selection, [...acted])
       // Ids hidden by a query changed outside the records count for nothing.
       if (current.countSelection(rest) > 0) {
         current.setSelection(rest)

@@ -18,14 +18,14 @@ export type RecordsSearchProps = {
   className?: string
 }
 
-/** A plain-text search across the fields marked searchable. */
+/** A plain-text search across the fields marked searchable. Against a server, it searches once typing pauses. */
 export function RecordsSearch({
   placeholder = 'Search',
   'aria-label': label,
   className
 }: RecordsSearchProps) {
   const { records } = useRecordsContext()
-  const value = records.view.query.search
+  const value = records.searchText
   const fieldRef = useRef<HTMLInputElement>(null)
   return (
     <div data-slot='records-search' className={cn('relative grid', className)}>

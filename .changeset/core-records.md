@@ -50,3 +50,8 @@ access dates under their local date keys, and a range's end on every record;
 value as its field reads in a table, with `values: 'raw'` for plain numbers
 and formula-like text neutralised. `RecordSelection` types the records an
 action takes.
+
+`toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
+and `hitsPerPage`, so the response's `totalHits` counts the matches (up to
+the index's `pagination.maxTotalHits`). A page below 0 or a page size below
+1 throws a RangeError.

@@ -131,6 +131,32 @@ describe('toMeilisearch', () => {
     ).toThrow('finite')
   })
 
+  it('pages with page and hitsPerPage, so the response counts every hit', () => {
+    expect(
+      toMeilisearch(view([]), eventFields, {
+        ...options,
+        position: { page: 0, pageSize: 25 }
+      })
+    ).toEqual({ q: '', filter: [], sort: [], page: 1, hitsPerPage: 25 })
+    expect(
+      toMeilisearch(view([]), eventFields, {
+        ...options,
+        position: { page: 3, pageSize: 50, row: 120 }
+      })
+    ).toMatchObject({ page: 4, hitsPerPage: 50 })
+  })
+
+  it.each([
+    { page: -1, pageSize: 25 },
+    { page: 1.5, pageSize: 25 },
+    { page: 0, pageSize: 0 },
+    { page: 0, pageSize: Number.NaN }
+  ])('refuses a position it cannot page to: %o', (position) => {
+    expect(() =>
+      toMeilisearch(view([]), eventFields, { ...options, position })
+    ).toThrow(RangeError)
+  })
+
   it('throws on an unknown sort field', () => {
     expect(() =>
       toMeilisearch(
