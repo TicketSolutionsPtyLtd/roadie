@@ -139,7 +139,7 @@ Wrap it in [Field](/components/field). The label names the button, the helper or
 
 #### With a comparison
 
-A dashboard's comparison is a separate control beside the picker, such as a [Select](/components/select). Resolve both with `resolveDateRange` and `resolveComparison` from `@oztix/roadie-core/datetime`, passing the picker's `timeZone`, `weekStart` and `fiscalYearStart`, so they agree on what the words mean. A benchmark that isn't a date, such as similar venues, belongs in its own control.
+For a dashboard, use [Dashboard period](/charts/dashboard-period): this picker with the comparison beside it, each choice showing its dates. Elsewhere, put a separate control beside the picker, such as a [Select](/components/select). Resolve both with `resolveDateRange` and `resolveComparison` from `@oztix/roadie-core/datetime`, passing the picker's `timeZone`, `weekStart` and `fiscalYearStart`, so they agree on what the words mean. A benchmark that isn't a date, such as similar venues, belongs in its own control.
 
 ```tsx-live-noinline
 function Toolbar() {

@@ -177,7 +177,7 @@ export const dashboardSchema = z.strictObject({
 })
 
 export type DeltaSpec = z.infer<typeof delta>
-export type DashboardPeriod = z.infer<typeof period>
+export type DashboardPeriodSpec = z.infer<typeof period>
 export type TableColumn = z.infer<typeof column>
 export type TableCell = z.infer<typeof cell>
 export type TableRow = Record<string, TableCell>

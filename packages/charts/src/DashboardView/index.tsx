@@ -12,7 +12,7 @@ import { StatTile } from '@oztix/roadie-components/stat-tile'
 import type {
   CardSize,
   DashboardCard,
-  DashboardPeriod as DashboardPeriodSpec,
+  DashboardPeriodSpec,
   DashboardSpec,
   TableCard,
   TableRow

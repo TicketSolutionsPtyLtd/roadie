@@ -57,12 +57,12 @@ describe('DashboardPeriod', () => {
     render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
     await userEvent.click(comparison())
     const options = await screen.findAllByRole('option')
-    expect(options.map((option) => option.textContent)).toEqual([
-      'Previous period1 to 30 Sept 2026',
-      'Previous year1 to 31 Oct 2025',
-      'Custom dates',
-      'No comparison'
-    ])
+    expect(options[0]).toHaveAccessibleName(
+      'Previous period, 1 to 30 Sept 2026'
+    )
+    expect(options[1]).toHaveAccessibleName('Previous year, 1 to 31 Oct 2025')
+    expect(options[2]).toHaveAccessibleName('Custom dates')
+    expect(options[3]).toHaveAccessibleName('No comparison')
   })
 
   it('emits the comparison chosen with the same range', async () => {

@@ -1,0 +1,207 @@
+export const metadata = {
+  title: 'Dashboard period',
+  description: 'A dashboard’s period picker and the comparison beside it',
+  status: 'beta',
+  category: 'Layout',
+  alsoIn: [{ route: '/components', category: 'Forms' }]
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A dashboard’s period picker and the comparison beside it.
+
+## Import
+
+```tsx
+import { DashboardPeriod } from '@oztix/roadie-components/dashboard-period'
+```
+
+## Examples
+
+### Default
+
+The period is a [DateRangePicker](/components/date-range-picker) that waits for Apply, because each change refetches every card. The comparison beside it is the previous period, the previous year, custom dates or none. Each choice in its list shows the dates it covers. The value is `{ range, compare }`, and no comparison leaves `compare` out.
+
+```tsx-live-noinline
+function Default() {
+  const [period, setPeriod] = useState({ range: 'this-month', compare: 'previous-period' })
+  return (
+    <div className='grid gap-4'>
+      <DashboardPeriod value={period} onValueChange={setPeriod} />
+      <p className='text-sm text-subtle'>Value: {JSON.stringify(period)}</p>
+    </div>
+  )
+}
+
+render(<Default />)
+```
+
+### Sizes
+
+```tsx-live
+<div className='grid gap-4'>
+  <DashboardPeriod size='sm' defaultValue={{ range: 'last-month', compare: 'previous-year' }} />
+  <DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }} />
+  <DashboardPeriod size='lg' defaultValue={{ range: 'last-month', compare: 'previous-year' }} />
+</div>
+```
+
+### States
+
+`readOnly` shows the period and comparison with a lock, for a dashboard whose period the page sets, such as one show’s on-sale window. `disabled` turns both off.
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-period' }} />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Read only</p>
+    <DashboardPeriod readOnly defaultValue={{ range: { start: '2026-11-02', end: '2026-11-29' }, compare: 'previous-year' }} />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <DashboardPeriod disabled defaultValue={{ range: 'last-month', compare: 'previous-period' }} />
+  </div>
+</div>
+```
+
+### With custom dates
+
+Custom dates start from the previous period and add a second picker for the dates to compare with. The value’s `compare` becomes `{ start, end }`.
+
+```tsx-live-noinline
+function Custom() {
+  const [period, setPeriod] = useState({
+    range: { start: '2026-11-02', end: '2026-11-08' },
+    compare: { start: '2025-11-03', end: '2025-11-09' }
+  })
+  return (
+    <div className='grid gap-4'>
+      <DashboardPeriod value={period} onValueChange={setPeriod} />
+      <p className='text-sm text-subtle'>Value: {JSON.stringify(period)}</p>
+    </div>
+  )
+}
+
+render(<Custom />)
+```
+
+### With presets
+
+`presets` replaces the period’s list, as on DateRangePicker. A dashboard of upcoming shows looks ahead.
+
+```tsx-live
+<DashboardPeriod
+  defaultValue={{ range: { direction: 'next', amount: 30, unit: 'day' }, compare: 'previous-year' }}
+  presets={[
+    { value: { direction: 'next', amount: 30, unit: 'day' } },
+    { value: { direction: 'next', amount: 90, unit: 'day' } },
+    { value: { direction: 'past', amount: 30, unit: 'day' } },
+    { value: { direction: 'past', amount: 12, unit: 'month' } },
+    { value: { period: 'year', offset: 0, fiscal: true } }
+  ]}
+/>
+```
+
+### With your own controls
+
+The comparison is dates only. A benchmark that isn’t a date, such as similar venues, is the app’s own control: pass it as `children` and it sits after the comparison.
+
+```tsx-live
+<DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-period' }}>
+  <Select defaultValue='similar-venues'>
+    <Select.Trigger aria-label='Benchmark' className='w-full @sm:w-fit gap-2'>
+      <Select.Value />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Item value='similar-venues'>Similar venues</Select.Item>
+      <Select.Item value='similar-shows'>Similar shows</Select.Item>
+    </Select.Content>
+  </Select>
+</DashboardPeriod>
+```
+
+### In a dashboard
+
+Give a dashboard description a `period`, and [DashboardView](/charts/dashboards#periods-and-comparisons) shows this toolbar above its sections. Its `onPeriodChange` gets the new period: resolve it with `resolveDateRange` and `resolveComparison`, fetch, and pass back a description with the new `period` and its `history`. A delta marked `comparison: true` follows the comparison. Here sales data starts on 1 March 2026, so last month has nothing to compare with a year back. Choose the previous period to see the deltas.
+
+```tsx-live-noinline
+const SALES_DATA = { timeZone: 'Australia/Melbourne', dataStart: '2026-03-01' }
+
+function historyOf({ range, compare }) {
+  if (!compare) return undefined
+  const { status } = resolveComparison(range, compare, { ...SALES_DATA, now: new Date() })
+  return status === 'available' ? undefined : status
+}
+
+function Sales() {
+  const [period, setPeriod] = useState({ range: 'last-month', compare: 'previous-year' })
+  const history = historyOf(period)
+  const spec = {
+    version: 1,
+    title: 'Sales',
+    period: history ? { ...period, history } : period,
+    sections: [
+      {
+        title: 'At a glance',
+        cards: [
+          { id: 'sold', kind: 'stat', size: 'stat', label: 'Tickets sold', value: 2531, delta: { value: 0.04, format: 'percent', comparison: true } },
+          { id: 'gross', kind: 'stat', size: 'stat', label: 'Gross revenue', value: 118400, format: 'compactCurrency', delta: { value: -0.06, format: 'percent', comparison: true } },
+          { id: 'orders', kind: 'stat', size: 'stat', label: 'Orders', value: 1288, delta: { value: 96, comparison: true } },
+          { id: 'through', kind: 'stat', size: 'stat', label: 'Sell-through', value: 0.77, format: 'percent', delta: { value: 9, format: 'points' }, context: 'Target is 85%' }
+        ]
+      }
+    ]
+  }
+  return (
+    <DashboardView
+      spec={spec}
+      onPeriodChange={setPeriod}
+      periodControl={{ timeZone: SALES_DATA.timeZone }}
+    />
+  )
+}
+
+render(<Sales />)
+```
+
+## Guidelines
+
+- **Previous period follows the calendar.** This month compares with last month, this quarter with last quarter, and month to date with last month to the same day. Rolling and custom ranges compare with the same number of days, ending the day before.
+- **Say when there’s nothing to compare.** Pass `dataStart` to `resolveComparison`. When the comparison starts before the data, the cards say “Not enough history”; when it ends before, “Nothing to compare”. Neither shows a delta.
+- **Keep the period in the description.** The toolbar shows the description’s `period`, so cards and controls never disagree.
+
+<div className='grid gap-8'>
+
+<Guideline title='Compare like with like'>
+  <Guideline.Do code={`resolveComparison(range, compare, { now, timeZone, dataEnd: today })`}>
+    Pass `dataEnd` for data that stops at today. A period still in progress then compares with the same days of the period before.
+  </Guideline.Do>
+  <Guideline.Dont code={`resolveComparison('this-month', 'previous-period', { now, timeZone })`}>
+    Don't compare a month that’s two days old with a whole month. The delta looks like a fall.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Dates only'>
+  <Guideline.Do>
+    Put a benchmark such as similar venues in its own control, beside the comparison.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't add benchmarks to the comparison list. A comparison is always another date range.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- The toolbar is a group named “Period”, or by your `aria-label`.
+- The period button is named after its range, such as “Choose dates, Period (This month, 1 to 31 Oct 2026)”. It works as [DateRangePicker](/components/date-range-picker) does with `commit='apply'`: Cancel or `Escape` drops changes.
+- The comparison is a [Select](/components/select) named “Compare with”. It shows “vs previous period”, and each choice reads its dates, such as “Previous period, 1 to 30 Sept 2026”.
+- Read only, both controls show a lock and don’t open, and the comparison has `aria-readonly`.
+
+<PropsDefinitions componentPath='packages/components/src/components/DashboardPeriod/DashboardPeriod.tsx' />

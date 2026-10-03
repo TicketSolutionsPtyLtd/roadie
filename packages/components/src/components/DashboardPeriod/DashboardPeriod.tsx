@@ -2,7 +2,7 @@
 
 import { type ComponentProps, type ReactNode, useState } from 'react'
 
-import { LockSimpleIcon } from '@phosphor-icons/react'
+import { LockSimpleIcon } from '@phosphor-icons/react/ssr'
 
 import {
   type Comparison,
@@ -245,7 +245,11 @@ export function DashboardPeriod({
                 ? detail(option.value)
                 : null
             return (
-              <Select.Item key={option.value} value={option.value}>
+              <Select.Item
+                key={option.value}
+                value={option.value}
+                aria-label={dates ? `${option.label}, ${dates}` : undefined}
+              >
                 <span className='grid min-w-0'>
                   <Select.ItemText>{option.label}</Select.ItemText>
                   {dates && (

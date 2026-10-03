@@ -327,7 +327,7 @@ const COMPARISONS: [string, Comparison][] = [
 ]
 
 const COMPARISON_ROWS = COMPARISONS.map(([code, comparison]) => {
-  const range = resolveComparison(COMPARED, comparison, RANGE_EXAMPLE)
+  const { range } = resolveComparison(COMPARED, comparison, RANGE_EXAMPLE)
   const covers =
     range?.kind === 'dates'
       ? describeDateRange({ start: range.start, end: range.end }, RANGE_EXAMPLE)
@@ -1326,17 +1326,30 @@ const viewer = useViewerTimeZone()
           A dashboard compares its period with another.{' '}
           <code>resolveComparison</code> works out the other range and{' '}
           <code>describeComparison</code> gives the context line under a delta.
-          The previous period has the same length and ends the day before. The
-          previous year takes the same dates a year earlier, and 29 February
-          becomes the 28th. Pass <code>alignWeekday</code> to go back 52 weeks
-          instead, so Mondays compare with Mondays. Here each compares month to
-          date.
+          The previous period of a calendar period is the one before it, so this
+          month compares with last month, and month to date with last month to
+          the same day. Any other range compares with the same number of days,
+          ending the day before. The previous year takes the same dates a year
+          earlier, and 29 February becomes the 28th. Pass{' '}
+          <code>alignWeekday</code> to go back 52 weeks instead, so Mondays
+          compare with Mondays. Here each compares month to date.
         </p>
         <Table
           head={['Comparison', 'Context line', 'Covers']}
           rows={COMPARISON_ROWS}
           mono={1}
         />
+        <p className='max-w-prose text-subtle'>
+          It also says how much of the comparison the data covers. Pass{' '}
+          <code>dataStart</code> and <code>dataEnd</code>, the first and last
+          days the data holds. A comparison that starts before the data, or ends
+          after it, is <code>partial</code>; one wholly outside it is{' '}
+          <code>unavailable</code>, as is any comparison with an open-ended
+          range. Show “Not enough history” or “Nothing to compare” for those,
+          not a delta. A period that runs past <code>dataEnd</code> is still in
+          progress, so its comparison stops at the same point: this month on 2
+          October compares 1 and 2 October with 1 and 2 September.
+        </p>
 
         <h3 className='mt-6 text-display-ui-5 text-strong'>Typed phrases</h3>
         <p className='max-w-prose text-subtle'>

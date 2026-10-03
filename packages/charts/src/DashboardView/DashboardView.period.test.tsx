@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type {
   DashboardCard,
-  DashboardPeriod,
+  DashboardPeriodSpec,
   DashboardSpec
 } from '@oztix/roadie-core/dashboard'
 
@@ -43,7 +43,7 @@ const shows: DashboardCard = {
   source: 'Oztix sales'
 }
 
-const dashboard = (period?: DashboardPeriod): DashboardSpec => ({
+const dashboard = (period?: DashboardPeriodSpec): DashboardSpec => ({
   version: 1,
   title: 'Sales',
   ...(period && { period }),

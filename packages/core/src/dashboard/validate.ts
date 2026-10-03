@@ -22,7 +22,7 @@ import {
 } from './plots'
 import {
   type DashboardCard,
-  type DashboardPeriod,
+  type DashboardPeriodSpec,
   type DashboardSpec,
   type TableData,
   dashboardSchema
@@ -435,7 +435,7 @@ function absoluteProblems(path: string, value: DateRangeValue | Comparison) {
   return []
 }
 
-function periodProblems(period: DashboardPeriod | undefined) {
+function periodProblems(period: DashboardPeriodSpec | undefined) {
   if (!period) return []
   const { range, compare, history } = period
   const problems = absoluteProblems('period.range', range)
@@ -458,7 +458,7 @@ function periodProblems(period: DashboardPeriod | undefined) {
 function deltaProblems(
   card: DashboardCard,
   path: string,
-  period: DashboardPeriod | undefined
+  period: DashboardPeriodSpec | undefined
 ) {
   if (card.kind === 'note' || !card.delta?.comparison) return []
   if (!period)
@@ -481,7 +481,7 @@ function deltaProblems(
 function cardProblems(
   card: DashboardCard,
   path: string,
-  period: DashboardPeriod | undefined
+  period: DashboardPeriodSpec | undefined
 ) {
   const problems: DashboardProblem[] = deltaProblems(card, path, period)
   if (!ALLOWED_SIZES[card.kind].includes(card.size))
