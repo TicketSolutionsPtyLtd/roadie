@@ -140,9 +140,18 @@ describe('parseQuery', () => {
   })
 
   it('offers no hour windows on a plain date field', () => {
-    const fields = parse('next 6 hours').map((s) => s.value.field)
-    expect(fields).toContain('starts')
-    expect(fields).not.toContain('birthday')
+    const hourFields = parse('next 6 hours', { limit: 50 })
+      .filter(
+        (s) =>
+          s.kind === 'filter' &&
+          s.value.operator === 'within' &&
+          typeof s.value.value === 'object' &&
+          'unit' in s.value.value &&
+          s.value.value.unit === 'hour'
+      )
+      .map((s) => s.value.field)
+    expect(hourFields).toContain('starts')
+    expect(hourFields).not.toContain('birthday')
   })
 
   it('ignores a bare time', () => {
@@ -335,4 +344,20 @@ describe('parseQuery', () => {
       expect(parse(text).map((s) => s.remainder)).not.toContain('')
     }
   )
+
+  it('keeps every score between 0 and 1, however many date fields', () => {
+    const fields = Array.from({ length: 30 }, (_, i) => ({
+      key: `date${i}`,
+      label: `Date ${i}`,
+      type: 'date' as const
+    }))
+    const scores = parseQuery('this weekend', {
+      ...options,
+      fields,
+      limit: 100
+    }).map((s) => s.score)
+    expect(scores).toHaveLength(30)
+    expect(scores.every((score) => score > 0 && score <= 1)).toBe(true)
+    expect(scores).toEqual([...scores].sort((a, b) => b - a))
+  })
 })

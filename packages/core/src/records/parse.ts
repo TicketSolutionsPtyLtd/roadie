@@ -54,7 +54,7 @@ type Candidate = RecordSuggestion & { span: [number, number]; order: number }
 const MAX_WORDS = 8
 const MAX_SPAN = 4
 const FIELD_WEIGHT = 0.9
-const DATE_FIELD_DECAY = 0.05
+const DATE_FIELD_DECAY = 0.95
 const NUMBER = '(-?\\d+(?:\\.\\d+)?)'
 const NUMBER_RANGE = new RegExp(`^${NUMBER}(?:-|\\.\\.|to)${NUMBER}$`)
 const NUMBER_COMPARE = new RegExp(`^(>|<|=|!=)?${NUMBER}$`)
@@ -217,9 +217,7 @@ function dateReadings(
           filter,
           label: `${field.label}: ${phrase.label}`,
           quality:
-            (p === 0 ? 1 : 0.9) *
-            (completed ? 0.8 : 1) *
-            (1 - DATE_FIELD_DECAY * f),
+            (p === 0 ? 1 : 0.9) * (completed ? 0.8 : 1) * DATE_FIELD_DECAY ** f,
           complete: !completed,
           ...(detail && detail !== phrase.label && { description: detail })
         }
