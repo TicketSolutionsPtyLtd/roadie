@@ -180,8 +180,8 @@ function TicketsPane({ eventId }) {
 }`
 
 const drillDownExample = `const events = [
-  { id: 'muster-fest-glamping-4821', title: 'Muster Fest glamping', when: 'Mon 5 May · Rockhampton' },
-  { id: 'midnight-frequency-1377', title: 'Midnight Frequency', when: 'Sat 12 Jul · The Longacre' }
+  { id: 'jellybean-tractor-fest-glamping-4821', title: 'Jellybean Tractor Fest glamping', when: 'Mon 5 May · Rockhampton' },
+  { id: 'midnight-frequency-1377', title: 'Midnight Frequency', when: 'Sat 12 Jul · Iguana Teapot Hall' }
 ]
 
 ${pagePane}
@@ -226,8 +226,8 @@ render(<DrillDown />)`
 
 const threePaneExample = `const events = [
   {
-    id: 'muster-fest-glamping-4821',
-    title: 'Muster Fest glamping',
+    id: 'jellybean-tractor-fest-glamping-4821',
+    title: 'Jellybean Tractor Fest glamping',
     when: 'Mon 5 May · Rockhampton',
     tickets: [
       { id: 'tk-9f2c1a', title: 'Bell tent for two', detail: 'Site 14 · check in from 2 pm' },
@@ -237,7 +237,7 @@ const threePaneExample = `const events = [
   {
     id: 'midnight-frequency-1377',
     title: 'Midnight Frequency',
-    when: 'Sat 12 Jul · The Longacre',
+    when: 'Sat 12 Jul · Iguana Teapot Hall',
     tickets: [
       { id: 'tk-2c55b0', title: 'General admission', detail: 'Doors 7 pm' }
     ]
@@ -322,12 +322,12 @@ const fileTree = `app/account/
 const urlPanes = [
   { url: '/account/tickets', panes: 'Tickets' },
   {
-    url: '/account/tickets/muster-fest-glamping-4821',
-    panes: 'Tickets, Muster Fest glamping'
+    url: '/account/tickets/jellybean-tractor-fest-glamping-4821',
+    panes: 'Tickets, Jellybean Tractor Fest glamping'
   },
   {
-    url: '/account/tickets/muster-fest-glamping-4821/tk-9f2c1a',
-    panes: 'Tickets, Muster Fest glamping, Bell tent for two'
+    url: '/account/tickets/jellybean-tractor-fest-glamping-4821/tk-9f2c1a',
+    panes: 'Tickets, Jellybean Tractor Fest glamping, Bell tent for two'
   }
 ]
 
@@ -573,8 +573,8 @@ function App() {
 }`
 
 const reachedExample = `const events = [
-  { id: 'muster-fest-glamping-4821', title: 'Muster Fest glamping', when: 'Mon 5 May · Rockhampton' },
-  { id: 'midnight-frequency-1377', title: 'Midnight Frequency', when: 'Sat 12 Jul · The Longacre' }
+  { id: 'jellybean-tractor-fest-glamping-4821', title: 'Jellybean Tractor Fest glamping', when: 'Mon 5 May · Rockhampton' },
+  { id: 'midnight-frequency-1377', title: 'Midnight Frequency', when: 'Sat 12 Jul · Iguana Teapot Hall' }
 ]
 
 function EmptyDetail() {
@@ -788,9 +788,12 @@ export default function NavigationPage() {
         <CodePreview>{smallestShell}</CodePreview>
         <p className='text-subtle'>
           One URL level is one pane. <Code>/account/tickets</Code> is one pane,{' '}
-          <Code>/account/tickets/muster-fest-glamping-4821</Code> is two, and{' '}
-          <Code>/account/tickets/muster-fest-glamping-4821/tk-9f2c1a</Code> is
-          three. Roadie reads each pane&apos;s depth from the order the panes
+          <Code>/account/tickets/jellybean-tractor-fest-glamping-4821</Code> is
+          two, and{' '}
+          <Code>
+            /account/tickets/jellybean-tractor-fest-glamping-4821/tk-9f2c1a
+          </Code>{' '}
+          is three. Roadie reads each pane&apos;s depth from the order the panes
           render in.
         </p>
         <p className='text-subtle'>Everything else is automatic or opt-in.</p>

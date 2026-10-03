@@ -76,7 +76,7 @@ const juliaPace = Array.from({ length: 46 }, (_, i) => {
 const shows = [
   {
     show: 'Ball Park Music',
-    venue: 'The Lantern Room, Fortitude Valley\u00a0· Sat\u00a014\u00a0Nov',
+    venue: 'Kazoo Hollow Room, Fortitude Valley\u00a0· Sat\u00a014\u00a0Nov',
     daily: DAILY_TICKETS,
     sellThrough: 0.61,
     pace: 112,
@@ -84,7 +84,7 @@ const shows = [
   },
   {
     show: 'Ocean Alley',
-    venue: 'Parkside Amphitheatre, Geelong\u00a0· Sat\u00a012\u00a0Dec',
+    venue: 'Barnacle Bowl Amphitheatre, Geelong\u00a0· Sat\u00a012\u00a0Dec',
     daily: [
       27, 29, 26, 29, 31, 30, 28, 30, 32, 29, 28, 30, 31, 33, 30, 29, 31, 32,
       30, 29, 31, 32, 33, 31, 30, 32, 33, 31, 32, 34
@@ -95,7 +95,7 @@ const shows = [
   },
   {
     show: 'King Stingray',
-    venue: 'Saltwater Hall, Darwin\u00a0· Sat\u00a05\u00a0Dec',
+    venue: 'Nimbus Thistle Hall, Darwin\u00a0· Sat\u00a05\u00a0Dec',
     daily: [
       4, 5, 6, 5, 7, 8, 7, 9, 10, 9, 11, 12, 11, 13, 14, 14, 15, 17, 16, 17, 19,
       18, 20, 21, 20, 22, 23, 23, 24, 26
@@ -106,7 +106,7 @@ const shows = [
   },
   {
     show: 'Middle Kids',
-    venue: 'Harbourline Theatre, Newcastle\u00a0· Sat\u00a021\u00a0Nov',
+    venue: 'Echidna Gaslight Theatre, Newcastle\u00a0· Sat\u00a021\u00a0Nov',
     daily: [
       9, 8, 9, 8, 8, 9, 8, 7, 8, 7, 8, 7, 7, 6, 7, 6, 7, 7, 6, 6, 7, 6, 5, 6, 6,
       5, 6, 5, 5, 6
@@ -117,7 +117,7 @@ const shows = [
   },
   {
     show: 'Julia Jacklin',
-    venue: 'The Gasworks Room, Hobart\u00a0· Sat\u00a028\u00a0Nov',
+    venue: 'Opal Harpoon Room, Hobart\u00a0· Sat\u00a028\u00a0Nov',
     daily: JULIA_DAILY,
     sellThrough: 0.4,
     pace: 78,
@@ -125,7 +125,7 @@ const shows = [
   },
   {
     show: 'Genesis Owusu',
-    venue: 'The Velvet Room, Surry Hills\u00a0· Sat\u00a019\u00a0Dec',
+    venue: 'The Quilted Walrus Room, Surry Hills\u00a0· Sat\u00a019\u00a0Dec',
     daily: [
       3, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1,
       1, 1, 1, 1, 1
@@ -136,7 +136,7 @@ const shows = [
   },
   {
     show: 'Angie McMahon',
-    venue: 'The Paper Moth, Brunswick\u00a0· Sat\u00a030\u00a0Jan',
+    venue: 'Wobbly Teacup Room, Brunswick\u00a0· Sat\u00a030\u00a0Jan',
     daily: [95, 85],
     sellThrough: 0.18,
     pace: 'On sale 2 days',
@@ -155,7 +155,7 @@ const SOLD_PREVIOUS_WINDOW = 2434
 export function createPortfolioDashboard(): DashboardSpec {
   return {
     version: 1,
-    title: 'Riverbend Touring',
+    title: 'Ostrich Bonnet Touring',
     sections: [
       {
         title: 'This month',

@@ -27,7 +27,7 @@ afterEach(async () => {
 
 const PADDING = 12
 const LONG = {
-  title: 'Harbourlight Sessions not published',
+  title: 'Feathered Anchor Sessions not published',
   description: 'Check the event for missing details and try again.',
   intent: 'danger'
 } as const

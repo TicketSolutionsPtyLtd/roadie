@@ -135,7 +135,7 @@ const COLUMN_RULES: ReactNode[] = [
 ]
 
 const ORDERS_EXAMPLE = `const customers = ['Mia Tran', 'Jack Ellis', 'Ava Nguyen', 'Noah Smith', 'Isla Brown', 'Leo Wilson']
-const eventNames = ['Paper Lanterns', 'Saltwater Social', 'Paperbark Sessions', 'Echo Garden']
+const eventNames = ['Paper Lanterns', 'Marzipan Thunderclap', 'Corduroy Lagoon Sessions', 'Echo Garden']
 const statuses = ['paid', 'paid', 'paid', 'pending', 'refunded']
 const orders = Array.from({ length: 60 }, (_, index) => ({
   id: \`order-\${index}\`,
@@ -201,11 +201,11 @@ const TOP_EVENTS_EXAMPLE = `<div className='w-full max-w-md'>
         { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency' }
       ]}
       rows={[
-        { event: 'Paper Lanterns', venue: 'The Lantern Room, Brisbane', sellThrough: 0.94, gross: 212400 },
-        { event: 'Saltwater Social', venue: 'The Velvet Room, Melbourne', sellThrough: 0.81, gross: 168900 },
-        { event: 'Paperbark Sessions', venue: 'Swan Lane Social, Adelaide', sellThrough: 0.66, gross: 97300 },
-        { event: 'Echo Garden', venue: 'Harbourside Hall, Hobart', sellThrough: 0.58, gross: 61200 },
-        { event: 'Midnight Frequency', venue: 'The Lantern Room, Brisbane', sellThrough: 0.37, gross: 28800 }
+        { event: 'Paper Lanterns', venue: 'Kazoo Hollow Room, Brisbane', sellThrough: 0.94, gross: 212400 },
+        { event: 'Marzipan Thunderclap', venue: 'The Quilted Walrus Room, Melbourne', sellThrough: 0.81, gross: 168900 },
+        { event: 'Corduroy Lagoon Sessions', venue: 'Drongo Bell Social Club, Adelaide', sellThrough: 0.66, gross: 97300 },
+        { event: 'Echo Garden', venue: 'Antler Kettle Hall, Hobart', sellThrough: 0.58, gross: 61200 },
+        { event: 'Midnight Frequency', venue: 'Kazoo Hollow Room, Brisbane', sellThrough: 0.37, gross: 28800 }
       ]}
     />
   </DataCard>

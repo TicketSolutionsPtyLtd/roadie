@@ -62,16 +62,16 @@ function App({
   return (
     <Toast.Provider toastManager={manager}>
       <div style={{ height: '100vh', display: 'grid' }}>
-        <Navigator value='/shows/paperbark'>
+        <Navigator value='/shows/corduroy'>
           <Pane column='list'>
             <Pane.Header>
               <Pane.Title>Shows</Pane.Title>
             </Pane.Header>
-            <p>Paperbark Sessions</p>
+            <p>Corduroy Lagoon Sessions</p>
           </Pane>
           <Pane reached={detailReached}>
             <Pane.Header onBack={() => {}}>
-              <Pane.Title>Paperbark Sessions</Pane.Title>
+              <Pane.Title>Corduroy Lagoon Sessions</Pane.Title>
               <Pane.Search value='' onValueChange={() => {}} />
             </Pane.Header>
             <div style={{ height: 4000 }}>Doors 7pm</div>

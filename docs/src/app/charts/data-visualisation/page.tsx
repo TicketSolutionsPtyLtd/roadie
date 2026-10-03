@@ -114,7 +114,7 @@ const WRITING = [
   [
     'Subtitle',
     'One full sentence with what was measured, where and when.',
-    'Tickets sold per day across all Hollow Pines Festival ticket types.',
+    'Tickets sold per day across all Apricot Cyclone Fest ticket types.',
     'tix/day, all TTs'
   ],
   [
@@ -168,7 +168,7 @@ const WRITING = [
   [
     'Summaries and alt text',
     'Takeaway and numbers first, then the comparison, then the scope. No AI vocabulary or hedging.',
-    'Saltwater Sessions sold 4,200 tickets in Sydney, 1,100 more than Melbourne.',
+    'Bunyip Teaspoon Sessions sold 4,200 tickets in Sydney, 1,100 more than Melbourne.',
     'This chart showcases the vibrant sales landscape.'
   ]
 ]
@@ -212,9 +212,9 @@ const WHEN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].flatMap(
 )
 
 const VERSUS = [
-  'The Lantern Room',
-  'Harbourside Hall',
-  'Wattle Street Social'
+  'Kazoo Hollow Room',
+  'Antler Kettle Hall',
+  'Saltbush Trumpet Ballroom'
 ].flatMap((venue, r) =>
   ['Floor', 'Balcony'].map((section, c) => ({
     venue,

@@ -30,7 +30,7 @@ const chart = {
 
 const spec = (cards: unknown[]) => ({
   version: 1,
-  title: 'Ball Park Music at The Lantern Room',
+  title: 'Ball Park Music at Kazoo Hollow Room',
   sections: [{ title: 'At a glance', cards }]
 })
 

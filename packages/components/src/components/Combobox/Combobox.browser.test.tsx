@@ -113,8 +113,8 @@ describe('Combobox options on a touch screen', () => {
 })
 
 const venues = [
-  { name: 'The Longacre', location: 'Fortitude Valley, QLD' },
-  { name: 'Meridian Stage', location: 'South Bank, QLD' }
+  { name: 'Iguana Teapot Hall', location: 'Fortitude Valley, QLD' },
+  { name: 'Jumbuck Orchard Park', location: 'South Bank, QLD' }
 ]
 type Venue = (typeof venues)[number]
 
@@ -149,14 +149,14 @@ describe('Combobox with object items', () => {
     render(<Venues />)
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await userEvent.click(input)
-    await userEvent.keyboard('Meridian')
+    await userEvent.keyboard('Jumbuck')
     await expect
       .poll(() => screen.queryAllByRole('option').map((o) => o.textContent))
-      .toEqual(['Meridian Stage'])
+      .toEqual(['Jumbuck Orchard Park'])
     await userEvent.keyboard('{ArrowDown}{Enter}')
     await expect
       .poll(() => (input as HTMLInputElement).value)
-      .toBe('Meridian Stage')
+      .toBe('Jumbuck Orchard Park')
   })
 })
 

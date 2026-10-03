@@ -45,9 +45,9 @@ function Shell({
       <Pane column='list' aria-label='Events'>
         <p>Events</p>
       </Pane>
-      <Pane aria-label='Paperbark Sessions'>
+      <Pane aria-label='Corduroy Lagoon Sessions'>
         <Pane.Header>
-          <Pane.Title>Paperbark Sessions</Pane.Title>
+          <Pane.Title>Corduroy Lagoon Sessions</Pane.Title>
           <Pane.Actions>
             <Pane.InspectorTrigger aria-label='Tickets'>
               <span>T</span>
@@ -288,9 +288,9 @@ describe("an inspector drawer's Close", () => {
     mount(
       NARROW,
       <Navigator className='h-[600px]'>
-        <Pane aria-label='Paperbark Sessions'>
+        <Pane aria-label='Corduroy Lagoon Sessions'>
           <Pane.Header>
-            <Pane.Title>Paperbark Sessions</Pane.Title>
+            <Pane.Title>Corduroy Lagoon Sessions</Pane.Title>
           </Pane.Header>
         </Pane>
         <Pane column='inspector' aria-label='Tickets' reveal>
@@ -329,7 +329,7 @@ describe("an inspector drawer's sticky bottom", () => {
     mount(
       NARROW,
       <Navigator className='h-[600px]'>
-        <Pane aria-label='Paperbark Sessions'>
+        <Pane aria-label='Corduroy Lagoon Sessions'>
           <p>Event details</p>
         </Pane>
         <Pane column='inspector' aria-label='Tickets' reveal>

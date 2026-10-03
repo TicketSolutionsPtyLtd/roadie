@@ -74,7 +74,9 @@ Every PR is checked against these before review. Fix every real hit.
   exception is written down in the test and the docs.
 - **Comments**: only the why, never the what.
 - **Content**: sentence case, Australian spelling, plain active prose with no
-  em dashes, invented venues and events.
+  em dashes, and venues, events and promoters from
+  [`EXAMPLE_DATA.md`](EXAMPLE_DATA.md). Only Australian cities and bands are
+  real.
 
 ## 4. Docs (blocking for new components)
 

@@ -12,28 +12,28 @@ const options = {
 
 describe('formatRecordValue', () => {
   it.each<[string, string, object, string | null]>([
-    ['text', 'name', eventRows.velvet, 'Neon Nights'],
-    ['an option label', 'venue', eventRows.velvet, 'The Velvet Room'],
-    ['a list of options', 'genres', eventRows.velvet, 'Jazz, Folk'],
+    ['text', 'name', eventRows.walrus, 'Lampshade Disco'],
+    ['an option label', 'venue', eventRows.walrus, 'The Quilted Walrus Room'],
+    ['a list of options', 'genres', eventRows.walrus, 'Jazz, Folk'],
     [
       'an unknown option as given',
       'venue',
-      { venue: 'Swan Lane Social' },
-      'Swan Lane Social'
+      { venue: 'Drongo Bell Social Club' },
+      'Drongo Bell Social Club'
     ],
     ['an unknown status as given', 'status', { status: 'held' }, 'held'],
-    ['a status label', 'status', eventRows.velvet, 'Selling fast'],
-    ['a status key, humanised', 'status', eventRows.swan, 'On sale'],
+    ['a status label', 'status', eventRows.walrus, 'Selling fast'],
+    ['a status key, humanised', 'status', eventRows.drongo, 'On sale'],
     ['a number', 'capacity', { capacity: 1234.56 }, '1,234.6'],
-    ['money in dollars', 'gross', eventRows.velvet, '$12,500'],
-    ['zero as a value', 'gross', eventRows.swan, '$0'],
-    ['a boolean', 'featured', eventRows.velvet, 'Yes'],
-    ['false as a value', 'featured', eventRows.swan, 'No'],
+    ['money in dollars', 'gross', eventRows.walrus, '$12,500'],
+    ['zero as a value', 'gross', eventRows.drongo, '$0'],
+    ['a boolean', 'featured', eventRows.walrus, 'Yes'],
+    ['false as a value', 'featured', eventRows.drongo, 'No'],
     ['a plain date as itself', 'birthday', eventRows.tba, 'Wed 3 Oct 1990'],
     [
       'an event time in the venue zone',
       'starts',
-      eventRows.swan,
+      eventRows.drongo,
       'Sat 3 Oct 2026, 11:30pm'
     ],
     [
@@ -45,7 +45,7 @@ describe('formatRecordValue', () => {
     [
       'a timestamp in the viewer zone',
       'created',
-      eventRows.velvet,
+      eventRows.walrus,
       '1 Sept 2026, 8pm'
     ],
     ['empty text as nothing', 'venue', eventRows.tba, null],
@@ -82,10 +82,10 @@ describe('formatRecordValue', () => {
         return venue.options
       }
     }
-    formatRecordValue(eventRows.velvet, counted, options)
+    formatRecordValue(eventRows.walrus, counted, options)
     const first = reads
     for (let i = 0; i < 50; i++)
-      formatRecordValue(eventRows.velvet, counted, options)
+      formatRecordValue(eventRows.walrus, counted, options)
     expect(reads).toBe(first)
   })
 

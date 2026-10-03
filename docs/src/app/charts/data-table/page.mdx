@@ -34,9 +34,9 @@ import { DataTable } from '@oztix/roadie-components/data-table'
     { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency' }
   ]}
   rows={[
-    { show: 'Ball Park Music', venue: 'The Lantern Room, Fortitude Valley', daily: [22, 30, 41, 52, 61, 72, 81, 96, 112, 131, 152, 160], sellThrough: 0.77, pace: 112, gross: 118400 },
-    { show: 'Ocean Alley', venue: 'Parkside Amphitheatre, Geelong', daily: [90, 95, 102, 94, 108, 97, 104, 110, 101, 106, 110, 112], sellThrough: 0.51, pace: 101, gross: 183000 },
-    { show: 'Julia Jacklin', venue: 'The Gasworks Room, Hobart', daily: [18, 16, 15, 14, 12, 11, 10, 9, 8, 7, 6, 6], sellThrough: 0.46, pace: 78, gross: 22900 }
+    { show: 'Ball Park Music', venue: 'Kazoo Hollow Room, Fortitude Valley', daily: [22, 30, 41, 52, 61, 72, 81, 96, 112, 131, 152, 160], sellThrough: 0.77, pace: 112, gross: 118400 },
+    { show: 'Ocean Alley', venue: 'Barnacle Bowl Amphitheatre, Geelong', daily: [90, 95, 102, 94, 108, 97, 104, 110, 101, 106, 110, 112], sellThrough: 0.51, pace: 101, gross: 183000 },
+    { show: 'Julia Jacklin', venue: 'Opal Harpoon Room, Hobart', daily: [18, 16, 15, 14, 12, 11, 10, 9, 8, 7, 6, 6], sellThrough: 0.46, pace: 78, gross: 22900 }
   ]}
 />
 ```
@@ -89,9 +89,9 @@ Narrow the table and lower-priority columns hide behind Show all columns first. 
       { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency', priority: 1 }
     ]}
     rows={[
-      { show: 'Ball Park Music', venue: 'The Lantern Room, Fortitude Valley', daily: [22, 30, 41, 52, 61, 72, 81, 96, 112, 131, 152, 160], sellThrough: 0.77, pace: 112, gross: 118400 },
-      { show: 'Ocean Alley', venue: 'Parkside Amphitheatre, Geelong', daily: [90, 95, 102, 94, 108, 97, 104, 110, 101, 106, 110, 112], sellThrough: 0.51, pace: 101, gross: 183000 },
-      { show: 'Julia Jacklin', venue: 'The Gasworks Room, Hobart', daily: [18, 16, 15, 14, 12, 11, 10, 9, 8, 7, 6, 6], sellThrough: 0.46, pace: 78, gross: 22900 }
+      { show: 'Ball Park Music', venue: 'Kazoo Hollow Room, Fortitude Valley', daily: [22, 30, 41, 52, 61, 72, 81, 96, 112, 131, 152, 160], sellThrough: 0.77, pace: 112, gross: 118400 },
+      { show: 'Ocean Alley', venue: 'Barnacle Bowl Amphitheatre, Geelong', daily: [90, 95, 102, 94, 108, 97, 104, 110, 101, 106, 110, 112], sellThrough: 0.51, pace: 101, gross: 183000 },
+      { show: 'Julia Jacklin', venue: 'Opal Harpoon Room, Hobart', daily: [18, 16, 15, 14, 12, 11, 10, 9, 8, 7, 6, 6], sellThrough: 0.46, pace: 78, gross: 22900 }
     ]}
   />
 </div>
@@ -136,10 +136,10 @@ Pass `totals` to add a totals row as the table's footer, such as a report's line
     { key: 'gross', header: 'Gross', kind: 'number', format: 'currency' }
   ]}
   rows={[
-    { show: 'Ball Park Music', venue: 'The Lantern Room, Fortitude Valley', orders: 912, tickets: 1840, capacity: 2400, gross: 118400 },
-    { show: 'Ocean Alley', venue: 'Parkside Amphitheatre, Geelong', orders: 1306, tickets: 2210, capacity: 2400, gross: 183000 },
-    { show: 'Julia Jacklin', venue: 'The Gasworks Room, Hobart', orders: 288, tickets: 512, capacity: 1100, gross: 22900 },
-    { show: 'Angie McMahon', venue: 'The Paper Moth, Brunswick', orders: 64, tickets: 120, capacity: 650, gross: 5880 }
+    { show: 'Ball Park Music', venue: 'Kazoo Hollow Room, Fortitude Valley', orders: 912, tickets: 1840, capacity: 2400, gross: 118400 },
+    { show: 'Ocean Alley', venue: 'Barnacle Bowl Amphitheatre, Geelong', orders: 1306, tickets: 2210, capacity: 2400, gross: 183000 },
+    { show: 'Julia Jacklin', venue: 'Opal Harpoon Room, Hobart', orders: 288, tickets: 512, capacity: 1100, gross: 22900 },
+    { show: 'Angie McMahon', venue: 'Wobbly Teacup Room, Brunswick', orders: 64, tickets: 120, capacity: 650, gross: 5880 }
   ]}
 />
 ```
@@ -214,9 +214,9 @@ Pass `getRowHref` so each row opens its own page, such as a show opening its eve
     { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency' }
   ]}
   rows={[
-    { id: 'ball-park-music', show: 'Ball Park Music', venue: 'The Lantern Room, Fortitude Valley', sellThrough: 0.77, gross: 118400 },
-    { id: 'ocean-alley', show: 'Ocean Alley', venue: 'Parkside Amphitheatre, Geelong', sellThrough: 0.51, gross: 183000 },
-    { id: 'julia-jacklin', show: 'Julia Jacklin', venue: 'The Gasworks Room, Hobart', sellThrough: 0.46, gross: 22900 }
+    { id: 'ball-park-music', show: 'Ball Park Music', venue: 'Kazoo Hollow Room, Fortitude Valley', sellThrough: 0.77, gross: 118400 },
+    { id: 'ocean-alley', show: 'Ocean Alley', venue: 'Barnacle Bowl Amphitheatre, Geelong', sellThrough: 0.51, gross: 183000 },
+    { id: 'julia-jacklin', show: 'Julia Jacklin', venue: 'Opal Harpoon Room, Hobart', sellThrough: 0.46, gross: 22900 }
   ]}
 />
 ```

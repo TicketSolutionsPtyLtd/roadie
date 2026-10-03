@@ -60,10 +60,10 @@ Leave out either one. A title on its own suits a short status; a description on 
 ```tsx-live
 <div className='grid gap-3'>
   <Callout intent='info' title='Doors open at 7pm'>
-    The support act starts at 8pm at The Paperbark Room.
+    The support act starts at 8pm at The Quilted Walrus Room.
   </Callout>
   <Callout intent='success' title='Your event is live'>
-    Tickets for Lantern Festival are on sale now.
+    Tickets for Velvet Dingo Fest are on sale now.
   </Callout>
   <Callout intent='warning' title='Only 20 tickets left at this price'>
     The next release is $10 more.
@@ -83,7 +83,7 @@ Build the callout from parts when it needs actions or a rich body. `Callout.Icon
   <Callout.Icon />
   <Callout.Title>Payment failed</Callout.Title>
   <Callout.Description>
-    Update your card to keep your booking for Saltwater Sessions.
+    Update your card to keep your booking for Bunyip Teaspoon Sessions.
   </Callout.Description>
   <Callout.Actions>
     <Button size='sm'>Update card</Button>
@@ -131,7 +131,7 @@ function Example() {
   }
   return (
     <Callout intent='info' title='Doors open at 7pm' onDismiss={() => setOpen(false)}>
-      Entry to Harbour Lights is through the side gate on Beach Road.
+      Entry to Raffia Spaceship is through the side gate on Beach Road.
     </Callout>
   )
 }

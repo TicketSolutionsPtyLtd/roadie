@@ -23,7 +23,7 @@ const AGES: [age: string, gender: string, buyers: number][] = [
 export function createAudienceDashboard(): DashboardSpec {
   return {
     version: 1,
-    title: 'Who is buying for Middle Kids at Wattle Street Social',
+    title: 'Who is buying for Middle Kids at Saltbush Trumpet Ballroom',
     sections: [
       {
         title: 'Buyers',

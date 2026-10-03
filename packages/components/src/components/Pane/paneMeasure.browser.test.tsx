@@ -20,9 +20,9 @@ function renderPane(measure?: PaneMeasure, measureAlign?: PaneMeasureAlign) {
     <div style={{ width: WIDTH, height: 600, display: 'grid' }}>
       <Pane measure={measure} measureAlign={measureAlign}>
         <Pane.Header>
-          <Pane.Title>Paperbark Sessions</Pane.Title>
+          <Pane.Title>Corduroy Lagoon Sessions</Pane.Title>
         </Pane.Header>
-        <Pane.BodyTitle>Paperbark Sessions</Pane.BodyTitle>
+        <Pane.BodyTitle>Corduroy Lagoon Sessions</Pane.BodyTitle>
         <p id='body'>Doors 7pm. General admission, standing.</p>
         <Pane.Footer>Footer</Pane.Footer>
       </Pane>

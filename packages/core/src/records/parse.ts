@@ -244,7 +244,7 @@ function identifierReadings(
   )
 }
 
-/** Readings of `value` for one named field, as in `venue:velvet`. */
+/** Readings of `value` for one named field, as in `venue:quilted`. */
 function fieldValueReadings(
   field: RecordField,
   value: string,

@@ -177,7 +177,7 @@ function SaveEvent() {
   function save() {
     toast.add({
       title: 'Event saved',
-      description: 'Midnight Static at The Lantern Room, Fitzroy',
+      description: 'Cub Sport at Kazoo Hollow Room, Fitzroy',
       intent: 'success',
       timeout: 8000,
       actionProps: {
@@ -223,18 +223,18 @@ function PublishEvent() {
   function publish(succeeds) {
     const request = new Promise((resolve, reject) =>
       setTimeout(
-        () => (succeeds ? resolve('Harbourlight Sessions') : reject()),
+        () => (succeeds ? resolve('Feathered Anchor Sessions') : reject()),
         2000
       )
     )
     toast.promise(request, {
-      loading: 'Publishing Harbourlight Sessions',
+      loading: 'Publishing Feathered Anchor Sessions',
       success: (name) => ({
         title: `${name} is live`,
         description: 'Tickets go on sale Friday at 9am.'
       }),
       error: {
-        title: 'Harbourlight Sessions not published',
+        title: 'Feathered Anchor Sessions not published',
         description: 'We lost the connection. Try again in a moment.'
       }
     })

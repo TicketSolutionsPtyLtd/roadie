@@ -77,7 +77,7 @@ describe('RoadieProvider', () => {
   it('places the viewport where toast options say', () => {
     render(
       <RoadieProvider toast={{ position: 'top-center' }}>
-        <p>Paperbark Sessions</p>
+        <p>Corduroy Lagoon Sessions</p>
       </RoadieProvider>
     )
     expect(viewports()[0]).toHaveAttribute('data-position', 'top-center')
@@ -117,7 +117,7 @@ describe('RoadieProvider', () => {
     it('mounts no toasts with toast={false}', () => {
       render(
         <RoadieProvider toast={false}>
-          <p>Paperbark Sessions</p>
+          <p>Corduroy Lagoon Sessions</p>
         </RoadieProvider>
       )
       expect(viewports()).toHaveLength(0)
@@ -215,7 +215,7 @@ describe('RoadieProvider', () => {
         'nested inside another RoadieProvider',
         <RoadieProvider key='a'>
           <RoadieProvider>
-            <p>Paperbark Sessions</p>
+            <p>Corduroy Lagoon Sessions</p>
           </RoadieProvider>
         </RoadieProvider>,
         /nested inside another RoadieProvider/
@@ -224,7 +224,7 @@ describe('RoadieProvider', () => {
         'wrapping a ThemeProvider',
         <RoadieProvider key='b'>
           <ThemeProvider>
-            <p>Paperbark Sessions</p>
+            <p>Corduroy Lagoon Sessions</p>
           </ThemeProvider>
         </RoadieProvider>,
         /ThemeProvider directly inside RoadieProvider/
@@ -233,7 +233,7 @@ describe('RoadieProvider', () => {
         'wrapped by a ThemeProvider',
         <ThemeProvider key='c'>
           <RoadieProvider>
-            <p>Paperbark Sessions</p>
+            <p>Corduroy Lagoon Sessions</p>
           </RoadieProvider>
         </ThemeProvider>,
         /RoadieProvider inside a ThemeProvider/
@@ -242,7 +242,7 @@ describe('RoadieProvider', () => {
         'wrapping a Toast.Provider',
         <RoadieProvider key='d'>
           <Toast.Provider>
-            <p>Paperbark Sessions</p>
+            <p>Corduroy Lagoon Sessions</p>
             <Toast.Viewport />
           </Toast.Provider>
         </RoadieProvider>,
@@ -252,7 +252,7 @@ describe('RoadieProvider', () => {
         'wrapped by a Toast.Provider',
         <Toast.Provider key='e'>
           <RoadieProvider>
-            <p>Paperbark Sessions</p>
+            <p>Corduroy Lagoon Sessions</p>
           </RoadieProvider>
         </Toast.Provider>,
         /RoadieProvider inside a Toast.Provider/
@@ -278,7 +278,7 @@ describe('RoadieProvider', () => {
       render(
         <RoadieProvider>
           <RoadieProvider theme={false} toast={false} direction='rtl'>
-            <p>Paperbark Sessions</p>
+            <p>Corduroy Lagoon Sessions</p>
           </RoadieProvider>
         </RoadieProvider>
       )
@@ -293,7 +293,7 @@ describe('RoadieProvider', () => {
       render(
         <RoadieProvider>
           <CollectionLayout>
-            <p>Paperbark Sessions</p>
+            <p>Corduroy Lagoon Sessions</p>
           </CollectionLayout>
         </RoadieProvider>
       )
@@ -306,7 +306,7 @@ describe('RoadieProvider', () => {
         <ThemeProvider>
           <Toast.Provider>
             <RoadieProvider theme={false} toast={false}>
-              <p>Paperbark Sessions</p>
+              <p>Corduroy Lagoon Sessions</p>
             </RoadieProvider>
           </Toast.Provider>
         </ThemeProvider>

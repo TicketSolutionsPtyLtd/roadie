@@ -23,17 +23,17 @@ export const ticketMixExample: StackedBarsProps = {
 
 export const presaleExample: StackedBarsProps = {
   data: [
-    { show: 'The Lantern Room', phase: 'Presale', sold: 820 },
-    { show: 'The Lantern Room', phase: 'General', sold: 644 },
-    { show: 'Harbourside Hall', phase: 'Presale', sold: 310 },
-    { show: 'Harbourside Hall', phase: 'General', sold: 1190 }
+    { show: 'Kazoo Hollow Room', phase: 'Presale', sold: 820 },
+    { show: 'Kazoo Hollow Room', phase: 'General', sold: 644 },
+    { show: 'Antler Kettle Hall', phase: 'Presale', sold: 310 },
+    { show: 'Antler Kettle Hall', phase: 'General', sold: 1190 }
   ],
   x: 'show',
   y: 'sold',
   series: 'phase',
   mode: 'share',
   highlight: 'Presale',
-  takeaway: 'Presale did most of the work at The Lantern Room'
+  takeaway: 'Presale did most of the work at Kazoo Hollow Room'
 }
 
 export const resaleExample: StackedBarsProps = {

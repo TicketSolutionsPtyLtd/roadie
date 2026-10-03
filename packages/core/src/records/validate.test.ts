@@ -24,8 +24,8 @@ describe('validateRecordView', () => {
       { field: 'name', operator: 'contains', value: 'night' },
       { field: 'name', operator: 'not-contains', value: 'test' },
       { field: 'orderNumber', operator: 'is', values: ['OZ-12345'] },
-      { field: 'venue', operator: 'is', values: ['velvet-room'] },
-      { field: 'venue', operator: 'is-not', values: ['harbourside-hall'] },
+      { field: 'venue', operator: 'is', values: ['quilted-walrus-room'] },
+      { field: 'venue', operator: 'is-not', values: ['antler-kettle-hall'] },
       { field: 'genres', operator: 'has-all', values: ['jazz', 'folk'] },
       { field: 'capacity', operator: 'gt', value: 200 },
       { field: 'capacity', operator: 'between', value: [100, 500] },
@@ -63,7 +63,7 @@ describe('validateRecordView', () => {
         name: 'Upcoming',
         entity: 'events',
         query: {
-          search: 'neon',
+          search: 'lampshade',
           filters,
           sort: [{ field: 'starts', direction: 'ascending' }]
         },
@@ -237,7 +237,7 @@ describe('validateRecordView', () => {
       'query.filters[0].value'
     ],
     [
-      { field: 'venue', operator: 'is', values: ['velvet-room', ''] },
+      { field: 'venue', operator: 'is', values: ['quilted-walrus-room', ''] },
       'query.filters[0].values[1]'
     ]
   ])('rejects empty text where a value is needed: %j', (filter, path) => {

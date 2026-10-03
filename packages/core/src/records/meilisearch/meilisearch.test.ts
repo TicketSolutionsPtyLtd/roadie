@@ -23,7 +23,7 @@ describe('toMeilisearch', () => {
       toMeilisearch(
         {
           query: {
-            search: '  neon nights ',
+            search: '  lampshade disco ',
             filters: [],
             sort: [
               { field: 'starts', direction: 'ascending' },
@@ -36,7 +36,7 @@ describe('toMeilisearch', () => {
         options
       )
     ).toEqual({
-      q: 'neon nights',
+      q: 'lampshade disco',
       filter: [],
       sort: ['starts:asc', 'gross:desc']
     })
@@ -44,20 +44,20 @@ describe('toMeilisearch', () => {
 
   it.each<[RecordFilter, string]>([
     [
-      { field: 'venue', operator: 'is', values: ['velvet-room'] },
-      'venue = "velvet-room"'
+      { field: 'venue', operator: 'is', values: ['quilted-walrus-room'] },
+      'venue = "quilted-walrus-room"'
     ],
     [
       {
         field: 'venue',
         operator: 'is',
-        values: ['velvet-room', 'harbourside-hall']
+        values: ['quilted-walrus-room', 'antler-kettle-hall']
       },
-      'venue IN ["velvet-room", "harbourside-hall"]'
+      'venue IN ["quilted-walrus-room", "antler-kettle-hall"]'
     ],
     [
-      { field: 'venue', operator: 'is-not', values: ['velvet-room'] },
-      'venue != "velvet-room"'
+      { field: 'venue', operator: 'is-not', values: ['quilted-walrus-room'] },
+      'venue != "quilted-walrus-room"'
     ],
     [
       { field: 'genres', operator: 'is-not', values: ['jazz', 'folk'] },
@@ -68,12 +68,12 @@ describe('toMeilisearch', () => {
       '(genres = "jazz" AND genres = "folk")'
     ],
     [
-      { field: 'name', operator: 'contains', value: 'neon' },
-      'name CONTAINS "neon"'
+      { field: 'name', operator: 'contains', value: 'lampshade' },
+      'name CONTAINS "lampshade"'
     ],
     [
-      { field: 'name', operator: 'not-contains', value: 'neon' },
-      'NOT name CONTAINS "neon"'
+      { field: 'name', operator: 'not-contains', value: 'lampshade' },
+      'NOT name CONTAINS "lampshade"'
     ],
     [
       { field: 'name', operator: 'is', values: ['Say "hi" \\ bye'] },

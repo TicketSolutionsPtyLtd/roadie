@@ -32,8 +32,8 @@ const fields: RecordField[] = [
     label: 'Venue',
     type: 'option',
     options: [
-      { value: 'zz', label: 'Harbourside Hall' },
-      { value: 'aa', label: 'The Velvet Room' }
+      { value: 'zz', label: 'Antler Kettle Hall' },
+      { value: 'aa', label: 'The Quilted Walrus Room' }
     ]
   },
   {
@@ -107,14 +107,14 @@ describe('sortRecords', () => {
 
   it('sorts options by label, not value', () => {
     const venues: Show[] = [
-      { id: 'velvet', venue: 'aa' },
+      { id: 'walrus', venue: 'aa' },
       { id: 'arcadia', venue: 'zz' },
-      { id: 'unknown', venue: 'Swan Lane Social' }
+      { id: 'unknown', venue: 'Drongo Bell Social Club' }
     ]
     expect(ids(venues, [{ field: 'venue', direction: 'ascending' }])).toEqual([
       'arcadia',
       'unknown',
-      'velvet'
+      'walrus'
     ])
   })
 
@@ -125,8 +125,8 @@ describe('sortRecords', () => {
         label: 'Venue',
         type: 'option',
         options: [
-          { value: '1', label: 'The Lantern Room' },
-          { value: '2', label: 'Harbourside Hall' }
+          { value: '1', label: 'Kazoo Hollow Room' },
+          { value: '2', label: 'Antler Kettle Hall' }
         ]
       }
     ]
@@ -151,8 +151,8 @@ describe('sortRecords', () => {
         type: 'option',
         multiple: true,
         options: [
-          { value: 'zz', label: 'Harbourside Hall' },
-          { value: 'aa', label: 'The Velvet Room' }
+          { value: 'zz', label: 'Antler Kettle Hall' },
+          { value: 'aa', label: 'The Quilted Walrus Room' }
         ]
       },
       {
@@ -167,15 +167,15 @@ describe('sortRecords', () => {
       }
     ]
     const rows = [
-      { id: 'velvet', venues: ['aa'], states: ['late'] },
+      { id: 'walrus', venues: ['aa'], states: ['late'] },
       { id: 'arcadia', venues: ['zz', 'aa'], states: ['late', 'early'] }
     ]
     const by = (field: string) =>
       sortRecords(rows, [{ field, direction: 'ascending' }], lists, {
         timeZone: 'UTC'
       }).map((row) => row.id)
-    expect(by('venues')).toEqual(['arcadia', 'velvet'])
-    expect(by('states')).toEqual(['arcadia', 'velvet'])
+    expect(by('venues')).toEqual(['arcadia', 'walrus'])
+    expect(by('states')).toEqual(['arcadia', 'walrus'])
   })
 
   it('sorts a list of dates by its earliest', () => {

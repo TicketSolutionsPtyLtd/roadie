@@ -16,7 +16,7 @@ afterEach(() => cleanup())
 const DETAILS = Array.from(
   { length: 6 },
   () =>
-    'General admission to Harbour Moth at the Paper Lantern Hall in Fitzroy, standing only, with a free drink on arrival.'
+    'General admission to Harbour Moth at Iguana Teapot Hall in Fitzroy, standing only, with a free drink on arrival.'
 ).join(' ')
 
 const WIDTHS = [390, 960]

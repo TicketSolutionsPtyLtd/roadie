@@ -89,7 +89,11 @@ const FILTERS: RecordFilter[] = [
   { field: 'created', operator: 'after', value: '2026-10-04T03:15' },
   { field: 'venue', operator: 'is', values: ['two\\\\'] },
   { field: 'name', operator: 'contains', value: '\\\\"quoted' },
-  { field: 'venue', operator: 'is', values: ['say "hi" a\\b', 'velvet-room'] },
+  {
+    field: 'venue',
+    operator: 'is',
+    values: ['say "hi" a\\b', 'quilted-walrus-room']
+  },
   { field: 'venue', operator: 'is-not', values: ['SAY "HI" A\\B', 'nope'] },
   { field: 'onSale', operator: 'within', value: 'next-week' },
   { field: 'onSale', operator: 'after', value: '2026-10-04' },
@@ -105,19 +109,19 @@ const FILTERS: RecordFilter[] = [
   {
     field: 'venue',
     operator: 'is',
-    values: ['velvet-room', 'swan-lane-social']
+    values: ['quilted-walrus-room', 'drongo-bell-social-club']
   },
-  { field: 'venue', operator: 'is', values: ['VELVET-ROOM'] },
-  { field: 'venue', operator: 'is-not', values: ['velvet-room'] },
+  { field: 'venue', operator: 'is', values: ['QUILTED-WALRUS-ROOM'] },
+  { field: 'venue', operator: 'is-not', values: ['quilted-walrus-room'] },
   { field: 'venue', operator: 'is-set' },
   { field: 'venue', operator: 'is-not-set' },
   { field: 'genres', operator: 'is', values: ['folk', 'comedy'] },
   { field: 'genres', operator: 'is-not', values: ['jazz', 'folk'] },
   { field: 'genres', operator: 'has-all', values: ['jazz', 'folk'] },
   { field: 'genres', operator: 'is-not-set' },
-  { field: 'name', operator: 'contains', value: 'LAUGH' },
-  { field: 'name', operator: 'not-contains', value: 'nights' },
-  { field: 'name', operator: 'is', values: ['neon nights'] },
+  { field: 'name', operator: 'contains', value: 'POSSUM' },
+  { field: 'name', operator: 'not-contains', value: 'disco' },
+  { field: 'name', operator: 'is', values: ['lampshade disco'] },
   { field: 'capacity', operator: 'eq', value: 400 },
   { field: 'capacity', operator: 'neq', value: 400 },
   { field: 'capacity', operator: 'lt', value: 5000 },

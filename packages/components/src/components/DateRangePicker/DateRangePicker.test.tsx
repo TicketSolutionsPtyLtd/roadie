@@ -154,7 +154,7 @@ describe('DateRangePicker', () => {
             {
               label: 'On-sale week',
               value: { start: '2026-11-02', end: '2026-11-08' },
-              group: 'Spring Tide Festival'
+              group: 'Xylophone Tide Festival'
             }
           ]}
         />
@@ -164,7 +164,7 @@ describe('DateRangePicker', () => {
         within(dialog).queryByRole('button', { name: 'Today' })
       ).not.toBeInTheDocument()
       const festival = within(dialog).getByRole('group', {
-        name: 'Spring Tide Festival'
+        name: 'Xylophone Tide Festival'
       })
       await userEvent.click(
         within(festival).getByRole('button', { name: 'On-sale week' })

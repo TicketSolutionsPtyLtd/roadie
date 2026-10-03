@@ -19,7 +19,7 @@ describe('stackSegments', () => {
 
   it('stacks to 1 in share mode', () => {
     const lantern = stackSegments(presaleExample).filter(
-      (s) => s.category === 'The Lantern Room'
+      (s) => s.category === 'Kazoo Hollow Room'
     )
     expect(lantern.at(-1)!.end).toBeCloseTo(1, 9)
     expect(lantern[0]!.share).toBeCloseTo(820 / 1464, 9)

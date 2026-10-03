@@ -26,7 +26,7 @@ search for the text when Enter sends `kind: 'search'`.
 
 ```tsx-live
 function QueryFieldDefault() {
-  const venues = ['The Longacre', 'Meridian Stage', 'The Signal Hall', 'The Burrow']
+  const venues = ['Iguana Teapot Hall', 'Jumbuck Orchard Park', 'Nimbus Thistle Hall', 'Gooseberry Signal Warehouse']
   const [chips, setChips] = useState([])
   const [search, setSearch] = useState('')
 
@@ -142,7 +142,7 @@ the chip and ends the step; Backspace on the empty field or Escape calls
 ```tsx-live
 function QueryFieldValueStep() {
   const values = {
-    venue: ['The Longacre', 'Meridian Stage', 'The Signal Hall', 'The Burrow'],
+    venue: ['Iguana Teapot Hall', 'Jumbuck Orchard Park', 'Nimbus Thistle Hall', 'Gooseberry Signal Warehouse'],
     status: ['On sale', 'Sold out', 'Postponed', 'Cancelled'],
   }
   const fields = [
@@ -210,7 +210,7 @@ the field removes it: not its own keys, not Backspace, not Clear.
 ```tsx-live
 function QueryFieldLocked() {
   const [chips, setChips] = useState([
-    { id: 'event', label: 'Event is Neon Nights', locked: true },
+    { id: 'event', label: 'Event is Lampshade Disco', locked: true },
     { id: 'status', label: 'Ticket status is Valid' },
   ])
 
@@ -283,7 +283,7 @@ an order number, mark that suggestion `exact` and Enter takes it instead.
 
 ```tsx-live
 function QueryFieldExact() {
-  const orders = { 'ORD-2041': 'Neon Nights, 2 tickets', 'ORD-2042': 'Harbour Lights, 4 tickets' }
+  const orders = { 'ORD-2041': 'Lampshade Disco, 2 tickets', 'ORD-2042': 'Raffia Spaceship, 4 tickets' }
   const [taken, setTaken] = useState('')
 
   function suggest(text) {
@@ -326,7 +326,7 @@ searches above the fields while the field is empty.
 ```tsx-live
 function QueryFieldShortcut() {
   const recent = [
-    { id: 'recent:longacre', label: 'Venue is The Longacre', kind: 'filter', value: 'The Longacre' },
+    { id: 'recent:iguana', label: 'Venue is Iguana Teapot Hall', kind: 'filter', value: 'Iguana Teapot Hall' },
     { id: 'recent:sold-out', label: 'Status is Sold out', kind: 'filter', value: 'Sold out' },
   ]
   const [chips, setChips] = useState([])
@@ -368,11 +368,11 @@ function QueryFieldShortcut() {
 </Guideline>
 
 <Guideline title='Write each chip as the whole condition'>
-  <Guideline.Do code={`{ id: 'venue', label: 'Venue is The Longacre' }`}>
+  <Guideline.Do code={`{ id: 'venue', label: 'Venue is Iguana Teapot Hall' }`}>
     Label a chip with field, operator and value, so it reads on its own.
   </Guideline.Do>
-  <Guideline.Dont code={`{ id: 'venue', label: 'The Longacre' }`}>
-    Don't show the value alone. "The Longacre" could be a venue, a promoter or
+  <Guideline.Dont code={`{ id: 'venue', label: 'Iguana Teapot Hall' }`}>
+    Don't show the value alone. "Iguana Teapot Hall" could be a venue, a promoter or
     a search.
   </Guideline.Dont>
 </Guideline>

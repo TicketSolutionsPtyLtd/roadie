@@ -36,23 +36,23 @@ The simplest usage: a Title, a centered row of Dots, and Previous/Next nav butto
       <Card emphasis='subtle'>
         <Card.Content>
           <Card.Title>Midnight Frequency</Card.Title>
-          <Card.Description>The Glasshouse, Northbridge</Card.Description>
+          <Card.Description>Clockwork Wattle Brewery, Northbridge</Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
     <Carousel.Item className='basis-[42%] md:basis-1/3'>
       <Card emphasis='subtle'>
         <Card.Content>
-          <Card.Title>Sunset Sounds</Card.Title>
-          <Card.Description>Riverbend Park, Eastdale</Card.Description>
+          <Card.Title>Quokka Thunder Weekender</Card.Title>
+          <Card.Description>Jumbuck Orchard Park, Eastdale</Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
     <Carousel.Item className='basis-[42%] md:basis-1/3'>
       <Card emphasis='subtle'>
         <Card.Content>
-          <Card.Title>Neon Dusk</Card.Title>
-          <Card.Description>Northside Hall</Card.Description>
+          <Card.Title>Sapphire Cassowary Night</Card.Title>
+          <Card.Description>Antler Kettle Hall</Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
@@ -60,7 +60,7 @@ The simplest usage: a Title, a centered row of Dots, and Previous/Next nav butto
       <Card emphasis='subtle'>
         <Card.Content>
           <Card.Title>Wave Theory</Card.Title>
-          <Card.Description>The Lantern, Westgate</Card.Description>
+          <Card.Description>Kazoo Hollow Room, Footscray</Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
@@ -68,7 +68,7 @@ The simplest usage: a Title, a centered row of Dots, and Previous/Next nav butto
       <Card emphasis='subtle'>
         <Card.Content>
           <Card.Title>Static Bloom</Card.Title>
-          <Card.Description>Hillside Tavern</Card.Description>
+          <Card.Description>Drongo Bell Social Club</Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
@@ -76,7 +76,7 @@ The simplest usage: a Title, a centered row of Dots, and Previous/Next nav butto
       <Card emphasis='subtle'>
         <Card.Content>
           <Card.Title>Echo Garden</Card.Title>
-          <Card.Description>The Driftwood Theatre</Card.Description>
+          <Card.Description>Saltbush Trumpet Ballroom</Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
@@ -266,35 +266,35 @@ Each `Carousel.Item` can wrap a clickable element. The `Card` component renders 
               at={new Date('2026-03-14T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; The Glasshouse
+            &middot; Clockwork Wattle Brewery
           </Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
     <Carousel.Item className='basis-[78%] md:basis-1/3'>
-      <Card emphasis='raised' href='/events/sunset-sounds'>
+      <Card emphasis='raised' href='/events/quokka-thunder-weekender'>
         <Card.Content>
-          <Card.Title>Sunset Sounds</Card.Title>
+          <Card.Title>Quokka Thunder Weekender</Card.Title>
           <Card.Description>
             <DateTime
               at={new Date('2026-03-22T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; Riverbend Park
+            &middot; Jumbuck Orchard Park
           </Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
     <Carousel.Item className='basis-[78%] md:basis-1/3'>
-      <Card emphasis='raised' href='/events/neon-dusk'>
+      <Card emphasis='raised' href='/events/sapphire-cassowary-night'>
         <Card.Content>
-          <Card.Title>Neon Dusk</Card.Title>
+          <Card.Title>Sapphire Cassowary Night</Card.Title>
           <Card.Description>
             <DateTime
               at={new Date('2026-03-30T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; Northside Hall
+            &middot; Antler Kettle Hall
           </Card.Description>
         </Card.Content>
       </Card>
@@ -308,7 +308,7 @@ Each `Carousel.Item` can wrap a clickable element. The `Card` component renders 
               at={new Date('2026-04-05T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; The Lantern
+            &middot; Kazoo Hollow Room
           </Card.Description>
         </Card.Content>
       </Card>
@@ -333,8 +333,8 @@ Embla mounts every slide in the DOM, so native `loading='lazy'` still fetches of
   <Carousel.Content>
     {[
       'Midnight Frequency',
-      'Sunset Sounds',
-      'Neon Dusk',
+      'Quokka Thunder Weekender',
+      'Sapphire Cassowary Night',
       'Wave Theory',
       'Echo Chamber',
       'Lowlight'
@@ -358,7 +358,7 @@ Embla mounts every slide in the DOM, so native `loading='lazy'` still fetches of
               at={new Date('2026-03-14T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; The Glasshouse
+            &middot; Clockwork Wattle Brewery
           </Card.Description>
           </Card.Content>
         </Card>
@@ -392,7 +392,7 @@ Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move 
               at={new Date('2026-03-14T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; The Glasshouse
+            &middot; Clockwork Wattle Brewery
           </Card.Description>
         </Card.Content>
       </Card>
@@ -400,13 +400,13 @@ Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move 
     <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
       <Card emphasis='subtle'>
         <Card.Content>
-          <Card.Title>Sunset Sounds</Card.Title>
+          <Card.Title>Quokka Thunder Weekender</Card.Title>
           <Card.Description>
             <DateTime
               at={new Date('2026-03-22T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; Riverbend Park
+            &middot; Jumbuck Orchard Park
           </Card.Description>
         </Card.Content>
       </Card>
@@ -414,13 +414,13 @@ Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move 
     <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
       <Card emphasis='subtle'>
         <Card.Content>
-          <Card.Title>Neon Dusk</Card.Title>
+          <Card.Title>Sapphire Cassowary Night</Card.Title>
           <Card.Description>
             <DateTime
               at={new Date('2026-03-30T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; Northside Hall
+            &middot; Antler Kettle Hall
           </Card.Description>
         </Card.Content>
       </Card>
@@ -434,7 +434,7 @@ Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move 
               at={new Date('2026-04-05T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; The Lantern
+            &middot; Kazoo Hollow Room
           </Card.Description>
         </Card.Content>
       </Card>
@@ -448,7 +448,7 @@ Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move 
               at={new Date('2026-04-12T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; Hillside Tavern
+            &middot; Drongo Bell Social Club
           </Card.Description>
         </Card.Content>
       </Card>
@@ -462,7 +462,7 @@ Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move 
               at={new Date('2026-04-20T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; The Driftwood Theatre
+            &middot; Saltbush Trumpet Ballroom
           </Card.Description>
         </Card.Content>
       </Card>
@@ -476,7 +476,7 @@ Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move 
               at={new Date('2026-04-25T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; The Aviary
+            &middot; The Quilted Walrus Room
           </Card.Description>
         </Card.Content>
       </Card>
@@ -490,7 +490,7 @@ Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move 
               at={new Date('2026-05-03T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; Foxglove Lodge
+            &middot; Foxglove Tin Pavilion
           </Card.Description>
         </Card.Content>
       </Card>
@@ -518,7 +518,7 @@ If you'd rather step through one slide at a time (handy when each slide has rich
     <Carousel.Item className='basis-[82%] md:basis-1/2'>
       <Card emphasis='subtle'>
         <Card.Content>
-          <Card.Title>Backstage at The Glasshouse</Card.Title>
+          <Card.Title>Backstage at Clockwork Wattle Brewery</Card.Title>
           <Card.Description>Notes from the first night of Velvet Hours: sound checks, setlist changes, and the unexpected encore.</Card.Description>
         </Card.Content>
       </Card>
@@ -526,7 +526,7 @@ If you'd rather step through one slide at a time (handy when each slide has rich
     <Carousel.Item className='basis-[82%] md:basis-1/2'>
       <Card emphasis='subtle'>
         <Card.Content>
-          <Card.Title>On the road with Neon Dusk</Card.Title>
+          <Card.Title>On the road with Sapphire Cassowary Night</Card.Title>
           <Card.Description>Three cities, two tour buses, and the long conversations at 2am about synths and setlists.</Card.Description>
         </Card.Content>
       </Card>
@@ -535,7 +535,7 @@ If you'd rather step through one slide at a time (handy when each slide has rich
       <Card emphasis='subtle'>
         <Card.Content>
           <Card.Title>Recording Echo Garden live</Card.Title>
-          <Card.Description>How a Sunday matinee at The Palisade Theatre turned into a live album.</Card.Description>
+          <Card.Description>How a Sunday matinee at Echidna Gaslight Theatre turned into a live album.</Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
@@ -675,35 +675,35 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
               at={new Date('2026-03-14T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; The Glasshouse
+            &middot; Clockwork Wattle Brewery
           </Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
     <Carousel.Item className='basis-[88%] md:basis-1/2'>
-      <Card emphasis='raised' href='/events/sunset-sounds'>
+      <Card emphasis='raised' href='/events/quokka-thunder-weekender'>
         <Card.Content>
-          <Card.Title>Sunset Sounds</Card.Title>
+          <Card.Title>Quokka Thunder Weekender</Card.Title>
           <Card.Description>
             <DateTime
               at={new Date('2026-03-22T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; Riverbend Park
+            &middot; Jumbuck Orchard Park
           </Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
     <Carousel.Item className='basis-[88%] md:basis-1/2'>
-      <Card emphasis='raised' href='/events/neon-dusk'>
+      <Card emphasis='raised' href='/events/sapphire-cassowary-night'>
         <Card.Content>
-          <Card.Title>Neon Dusk</Card.Title>
+          <Card.Title>Sapphire Cassowary Night</Card.Title>
           <Card.Description>
             <DateTime
               at={new Date('2026-03-30T09:30:00Z')}
               timeZone='Australia/Brisbane'
             />{' '}
-            &middot; Northside Hall
+            &middot; Antler Kettle Hall
           </Card.Description>
         </Card.Content>
       </Card>
@@ -742,9 +742,9 @@ When every slide already fits in the viewport, `Carousel.Previous`, `Carousel.Ne
       </Card>
     </Carousel.Item>
     <Carousel.Item className='basis-[78%] md:basis-1/3'>
-      <Card emphasis='raised' href='/events/riverside-fringe'>
+      <Card emphasis='raised' href='/events/giggling-lantern-comedy-gala'>
         <Card.Content>
-          <Card.Title>Riverside Fringe Comedy Gala</Card.Title>
+          <Card.Title>Giggling Lantern Comedy Gala for Very Serious People</Card.Title>
           <Card.Description>
             <DateTime
               at={new Date('2026-07-03T10:15:00Z')}

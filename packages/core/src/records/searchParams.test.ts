@@ -9,12 +9,12 @@ const full: RecordView = {
   name: 'Upcoming',
   entity: 'events',
   query: {
-    search: 'neon nights',
+    search: 'lampshade disco',
     filters: [
       {
         field: 'venue',
         operator: 'is',
-        values: ['velvet-room', 'harbourside-hall']
+        values: ['quilted-walrus-room', 'antler-kettle-hall']
       },
       { field: 'genres', operator: 'has-all', values: ['jazz', 'folk'] },
       { field: 'city', operator: 'is-not', values: ['perth'] },
@@ -67,8 +67,8 @@ const FULL_PARAMS = [
   ['v', '1'],
   ['view', 'upcoming'],
   ['entity', 'events'],
-  ['q', 'neon nights'],
-  ['f', 'venue:is:velvet-room,harbourside-hall'],
+  ['q', 'lampshade disco'],
+  ['f', 'venue:is:quilted-walrus-room,antler-kettle-hall'],
   ['f', 'genres:has-all:jazz,folk'],
   ['f', 'city:is-not:perth'],
   ['f', 'starts:within:this-weekend'],
@@ -111,7 +111,11 @@ describe('toSearchParams', () => {
         query: {
           search: 'late show',
           filters: [
-            { field: 'venue', operator: 'is', values: ['velvet-room', 'a,b'] },
+            {
+              field: 'venue',
+              operator: 'is',
+              values: ['quilted-walrus-room', 'a,b']
+            },
             { field: 'starts', operator: 'within', value: 'today' }
           ],
           sort: [{ field: 'starts', direction: 'descending' }]
@@ -119,7 +123,7 @@ describe('toSearchParams', () => {
         layout: { type: 'grid', fields: ['name', 'starts'] }
       }).toString()
     ).toBe(
-      'v=1&q=late+show&f=venue%3Ais%3Avelvet-room%2Ca%252Cb&f=starts%3Awithin%3Atoday&sort=-starts&layout=grid&fields=name%2Cstarts'
+      'v=1&q=late+show&f=venue%3Ais%3Aquilted-walrus-room%2Ca%252Cb&f=starts%3Awithin%3Atoday&sort=-starts&layout=grid&fields=name%2Cstarts'
     )
   })
 
@@ -169,13 +173,17 @@ describe('fromSearchParams', () => {
   it('takes a framework search params object', () => {
     expect(
       fromSearchParams(
-        { v: '1', q: 'neon', f: ['venue:is:velvet-room', 'featured:is-true'] },
+        {
+          v: '1',
+          q: 'lampshade',
+          f: ['venue:is:quilted-walrus-room', 'featured:is-true']
+        },
         eventFields
       ).view.query
     ).toEqual({
-      search: 'neon',
+      search: 'lampshade',
       filters: [
-        { field: 'venue', operator: 'is', values: ['velvet-room'] },
+        { field: 'venue', operator: 'is', values: ['quilted-walrus-room'] },
         { field: 'featured', operator: 'is-true' }
       ],
       sort: []

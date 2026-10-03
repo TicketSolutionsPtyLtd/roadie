@@ -122,19 +122,19 @@ describe('stackedBars', () => {
     ).toBe('Aug, VIP, 60 sold')
     expect(
       stackedBars.describe(
-        { x: 'The Lantern Room', y: 820, series: 'Presale', index: 0 },
+        { x: 'Kazoo Hollow Room', y: 820, series: 'Presale', index: 0 },
         presaleExample
       )
-    ).toBe('The Lantern Room, Presale, 820 sold, 56% of the bar')
+    ).toBe('Kazoo Hollow Room, Presale, 820 sold, 56% of the bar')
   })
 
   it('lists every segment of the bar in the tooltip', () => {
     const tooltip = stackedBars.tooltip(
-      [{ x: 'The Lantern Room', y: 820, series: 'Presale', index: 0 }],
+      [{ x: 'Kazoo Hollow Room', y: 820, series: 'Presale', index: 0 }],
       presaleExample,
       paint
     )
-    expect(tooltip.title).toBe('The Lantern Room')
+    expect(tooltip.title).toBe('Kazoo Hollow Room')
     expect(tooltip.rows).toEqual([
       expect.objectContaining({ label: 'Presale', value: '56% (820)' }),
       expect.objectContaining({ label: 'General', value: '44% (644)' })
