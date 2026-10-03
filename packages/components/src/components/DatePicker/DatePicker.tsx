@@ -195,7 +195,7 @@ export function DatePicker({
     zone
   )
   const [local, setLocal] = useState(() => ({
-    parts: splitValue(valueProp ?? defaultValue, zone),
+    parts: splitValue(valueProp !== undefined ? valueProp : defaultValue, zone),
     seen: value,
     emitted: undefined as string | null | undefined
   }))

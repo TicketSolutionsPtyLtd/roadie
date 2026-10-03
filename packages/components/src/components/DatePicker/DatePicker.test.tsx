@@ -168,6 +168,20 @@ describe('DatePicker', () => {
     expect(new FormData(container.querySelector('form')!).get('doors')).toBe('')
   })
 
+  it('lets a controlled null win over defaultValue', () => {
+    render(
+      <DatePicker
+        aria-label='Doors'
+        granularity='minute'
+        timeZone={MELBOURNE}
+        value={null}
+        defaultValue='2026-11-27'
+        onValueChange={() => {}}
+      />
+    )
+    expect(screen.getByRole('textbox', { name: 'Date' })).toHaveValue('')
+  })
+
   it('starts from defaultValue and ignores later ones', () => {
     const { rerender } = render(
       <DatePicker aria-label='Show date' defaultValue='2026-11-27' />
