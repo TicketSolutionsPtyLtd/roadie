@@ -32,7 +32,9 @@ function Bulk({
     data: testShows(rows),
     fields: showFields,
     getRowId: (row) => row.id,
-    selectable: true
+    selectable: true,
+    // Few rows a page keeps each update cheap; 120 records still span pages.
+    defaultPosition: { pageSize: 10 }
   })
   return (
     <Records.Root records={records} layouts={layouts} caption='Shows'>

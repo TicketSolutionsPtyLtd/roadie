@@ -69,7 +69,7 @@ export function RecordsSelectionBar({
     const bar = barRef.current
     const measure = measureRef.current
     if (!bar || !measure) return
-    const fit = () => {
+    const fit = (sync: boolean) => {
       const part = (slot: string) =>
         measure.querySelectorAll(`[data-slot="${slot}"]`)
       const next = fittingActions({
@@ -80,10 +80,12 @@ export function RecordsSelectionBar({
         gap: parseFloat(getComputedStyle(bar).columnGap) || 0
       })
       // Synchronously, so a resize never paints a frame of overflowing buttons.
-      flushSync(() => setShown(next))
+      if (sync) flushSync(() => setShown(next))
+      else setShown(next)
     }
-    fit()
-    const observer = new ResizeObserver(fit)
+    // A layout effect's own update already lands before paint.
+    fit(false)
+    const observer = new ResizeObserver(() => fit(true))
     observer.observe(bar)
     observer.observe(measure)
     return () => observer.disconnect()

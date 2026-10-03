@@ -8,12 +8,7 @@ import {
   reportActionError
 } from './RecordsConfirm'
 import { useRecordsContext } from './context'
-import {
-  EMPTY_SELECTION,
-  deselect,
-  pageState,
-  withinMatching
-} from './selection'
+import { deselect, pageState, withinMatching } from './selection'
 import type { RecordName, RecordsBulkAction } from './types'
 
 const count = new Intl.NumberFormat('en-AU')
@@ -71,19 +66,26 @@ export function useBulkActions({
   const run = async (index: number) => {
     const action = actions[index]
     if (!action) return
-    const submitted = withinMatching(
-      records.selection,
-      records.matchingRows.map((row) => row.id)
+    const matchingIds = records.matchingRows.map((row) => row.id)
+    const submitted = withinMatching(records.selection, matchingIds)
+    const acted = new Set(
+      'allMatching' in submitted
+        ? matchingIds.filter((id) => !submitted.except.includes(id))
+        : submitted.ids
     )
     setRunning(index)
     try {
       await action.onAction(submitted, records.appliedView.query)
       const current = latest.current
-      // Records ticked while the action ran stay selected.
+      // Records ticked while the action ran, which it never touched, stay selected.
       const rest =
-        'allMatching' in submitted
-          ? EMPTY_SELECTION
-          : deselect(current.selection, submitted.ids)
+        'allMatching' in current.selection
+          ? {
+              ids: current.matchingRows
+                .map((row) => row.id)
+                .filter((id) => current.isSelected(id) && !acted.has(id))
+            }
+          : deselect(current.selection, [...acted])
       // Ids hidden by a query changed outside the records count for nothing.
       if (current.countSelection(rest) > 0) {
         current.setSelection(rest)

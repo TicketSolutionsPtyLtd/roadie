@@ -27,7 +27,9 @@ function Bulk({ actions }: { actions: RecordsBulkAction[] }) {
     data: testShows(120),
     fields: showFields,
     getRowId: (row) => row.id,
-    selectable: true
+    selectable: true,
+    // Few rows a page keeps each update cheap; 120 records still span pages.
+    defaultPosition: { pageSize: 10 }
   })
   return (
     <Records.Root records={records} layouts={layouts} caption='Shows'>
@@ -243,6 +245,36 @@ describe('RecordTable bulk actions', () => {
     ).toHaveAttribute('aria-checked', 'true')
     expect(
       screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    ).toHaveAttribute('aria-checked', 'false')
+  })
+
+  it('keeps a record picked while an all-matching action runs', async () => {
+    const user = userEvent.setup()
+    let finish = () => {}
+    const onAction = vi.fn(
+      () => new Promise<void>((resolve) => (finish = resolve))
+    )
+    render(<Bulk actions={[{ label: 'Export', onAction }]} />)
+    await user.click(screen.getByRole('checkbox', { name: 'Select page' }))
+    await pickFromCount(user, 'Select all 120 shows')
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    await user.click(screen.getByRole('button', { name: 'Export' }))
+    expect(onAction).toHaveBeenCalledWith(
+      { allMatching: true, except: ['show-0'] },
+      expect.objectContaining({ search: '' })
+    )
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    await act(async () => finish())
+    expect(bulkBar()!).toHaveTextContent('1 selected')
+    expect(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    ).toHaveAttribute('aria-checked', 'true')
+    expect(
+      screen.getByRole('checkbox', { name: 'Select Ball Park Music 1' })
     ).toHaveAttribute('aria-checked', 'false')
   })
 
