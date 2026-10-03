@@ -1,6 +1,13 @@
 const INTERACTIVE =
   'a, button, input, select, textarea, label, [role="checkbox"], [role="menuitem"], [tabindex], [data-row-control]'
 
+/** Whether an event on the row landed on a control of the row's own. */
+export function onRowControl(event: Event, row: HTMLElement) {
+  const control = (event.target as Element).closest?.(INTERACTIVE)
+  // Bounded to the row: the sideways scroller around it is itself focusable.
+  return control != null && row.contains(control)
+}
+
 /**
  * A row click toggles a selectable row, or else follows the row's link,
  * unless it landed on a control of its own. Cmd, Ctrl and middle clicks
@@ -17,9 +24,7 @@ export function handleRowClick(
   // A portalled node (a menu's content) bubbles through React's tree but
   // never lands inside the row's real DOM.
   if (!row.contains(target)) return
-  const control = (target as Element).closest?.(INTERACTIVE)
-  // Bounded to the row: the sideways scroller around it is itself focusable.
-  if (control && row.contains(control)) return
+  if (onRowControl(event, row)) return
   const selection = window.getSelection()
   // A text selection means the person was copying, not navigating.
   if (selection && !selection.isCollapsed && selection.containsNode(row, true))

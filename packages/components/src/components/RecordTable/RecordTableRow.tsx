@@ -11,7 +11,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { RecordValue } from '../Records/RecordValue'
 import { RecordsRowActions } from '../Records/RecordsRowActions'
-import { handleRowClick } from '../Records/rowLink'
+import { handleRowClick, onRowControl } from '../Records/rowLink'
 import { RecordTableRowCheckbox } from './RecordTableSelectCell'
 import type { ColumnLayout } from './layout'
 import type { RecordTableColumn } from './types'
@@ -130,8 +130,13 @@ export const RecordTableRow = memo(function RecordTableRow({
       onMouseDown={
         selectable
           ? (event) => {
-              // Shift extends the row selection, not a text selection.
-              if (event.shiftKey) event.preventDefault()
+              // Shift extends the row selection, not a text selection; a
+              // control keeps its press, so focus moves to it.
+              if (
+                event.shiftKey &&
+                !onRowControl(event.nativeEvent, event.currentTarget)
+              )
+                event.preventDefault()
             }
           : undefined
       }

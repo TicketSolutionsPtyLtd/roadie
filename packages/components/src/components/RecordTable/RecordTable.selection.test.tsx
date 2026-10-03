@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
@@ -100,6 +100,17 @@ describe('RecordTable checkbox column', () => {
     expect(
       screen.getByRole('checkbox', { name: 'Select show-1' })
     ).toBeInTheDocument()
+  })
+
+  it('lets a Shift press on a checkbox take focus, but not elsewhere on the row', () => {
+    render(<Selectable />)
+    const checkbox = screen.getByRole('checkbox', {
+      name: 'Select Alex Lahey 1'
+    })
+    expect(fireEvent.mouseDown(checkbox, { shiftKey: true })).toBe(true)
+    expect(
+      fireEvent.mouseDown(screen.getAllByText('Perth')[0]!, { shiftKey: true })
+    ).toBe(false)
   })
 
   it('selects a range with Shift+Space from the keyboard', async () => {
