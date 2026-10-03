@@ -361,6 +361,28 @@ for (const [width, height] of [
       expect(box(weekdays).top).toBeGreaterThanOrEqual(box(header).bottom - 1)
     })
 
+    it('scrolls back to a typed start after scrolling away', async () => {
+      render(<Period initial={{ start: '2026-10-05', end: '2026-10-09' }} />)
+      await userEvent.click(trigger())
+      const drawer = await screen.findByRole('dialog')
+      const body = bodyOf(drawer)
+      const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')!
+      const october = () => drawer.querySelector('[data-month="2026-10-01"]')!
+      await expect
+        .poll(() => Math.round(box(october()).top))
+        .toBe(Math.round(box(weekdays).bottom))
+      body.scrollTop += 1500
+      await expect
+        .poll(() => box(october()).bottom)
+        .toBeLessThan(box(weekdays).top)
+      const start = within(drawer).getByRole('combobox', { name: 'Start' })
+      await userEvent.clear(start)
+      await userEvent.type(start, '6 oct 2026{Enter}')
+      await expect
+        .poll(() => Math.round(box(october()).top))
+        .toBe(Math.round(box(weekdays).bottom))
+    })
+
     it('keeps Clear and Apply in view at the foot', async () => {
       render(<Period commit='apply' />)
       await userEvent.click(trigger())

@@ -1156,7 +1156,13 @@ describe('DateRangePicker aiming a tap on a phone', () => {
     const dialog = await open()
     const start = within(dialog).getByRole('combobox', { name: 'Start' })
     await userEvent.type(start, 'zzz{Enter}')
-    expect(within(dialog).getByRole('button', { name: 'Clear' })).toBeEnabled()
+    const clear = within(dialog).getByRole('button', { name: 'Clear' })
+    expect(clear).toBeEnabled()
+    await userEvent.click(clear)
+    const fresh = within(dialog).getByRole('combobox', { name: 'Start' })
+    expect(fresh).toHaveValue('')
+    expect(fresh).not.toHaveAttribute('aria-invalid')
+    expect(clear).toBeDisabled()
   })
 
   it('changes nothing when read-only and opened anyway', async () => {

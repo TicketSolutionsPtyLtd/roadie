@@ -78,8 +78,9 @@ type CalendarBaseProps = Omit<
   /**
    * `paged` turns the months with arrows. `scroll` stacks them in a list
    * that scrolls, under one pinned row of weekdays, adding months as it
-   * nears either end. It opens on `month`, the selection or today, and
-   * scrolls to `month` when it changes; `onMonthChange` doesn't fire.
+   * nears either end. It opens on `month`, the selection or today, scrolls
+   * to `month` when it changes, and calls `onMonthChange` with the month at
+   * the top as it scrolls.
    *
    * @default 'paged'
    */
@@ -337,18 +338,17 @@ export function Calendar(props: CalendarProps) {
 
   // A scrolling calendar shows a run of months around the first one, which
   // grows at either end as it is scrolled or the keyboard leaves it.
-  const [run, setRun] = useState<{
-    around: string
-    start: string
-    count: number
-  } | null>(null)
+  const [run, setRun] = useState<{ start: string; count: number } | null>(null)
   const runAround = (month: string) => {
     const start = clampMonth(addMonths(month, -SCROLL_BEFORE))
     const last = clampMonth(addMonths(month, SCROLL_AFTER))
-    return { around: month, start, count: monthsBetween(start, last) + 1 }
+    return { start, count: monthsBetween(start, last) + 1 }
   }
-  const currentRun =
-    run && run.around === firstMonth ? run : runAround(firstMonth)
+  // A first month already in the run, such as one scrolled to, keeps it.
+  const inRun = (month: string, of: NonNullable<typeof run>) =>
+    compareDates(month, of.start) >= 0 &&
+    compareDates(month, addMonths(of.start, of.count - 1)) <= 0
+  const currentRun = run && inRun(firstMonth, run) ? run : runAround(firstMonth)
   const months = scrolling
     ? Array.from({ length: currentRun.count }, (_, i) =>
         addMonths(currentRun.start, i)
@@ -479,7 +479,9 @@ export function Calendar(props: CalendarProps) {
     heard.month !== shownMonthKey
   ) {
     const messages = []
+    // A scrolled list is read as it scrolls; its months aren't announced.
     if (
+      !scrolling &&
       chosenMonth &&
       heard.month &&
       shownMonthKey &&
@@ -511,7 +513,6 @@ export function Calendar(props: CalendarProps) {
     const last = months[months.length - 1]!
     const end = compareDates(month, last) > 0 ? month : last
     setRun({
-      around: firstMonth,
       start,
       count: monthsBetween(start, end) + 1
     })
@@ -618,6 +619,44 @@ export function Calendar(props: CalendarProps) {
     })
   })
 
+  // The month at the top of a scrolled list is the first month, so a parent
+  // that moves `month` somewhere already in view still scrolls to it.
+  const followTop = () => {
+    const root = rootRef.current
+    const scroller = root && scrollingAncestor(root)
+    const weekdays = weekdaysRef.current
+    if (!root || !scroller || !weekdays) return
+    const below = weekdays.getBoundingClientRect().bottom
+    const top = Array.from(
+      root.querySelectorAll<HTMLElement>('[data-slot="calendar-month"]')
+    ).find((month) => month.getBoundingClientRect().bottom > below + 1)
+    const month = top?.dataset.month
+    if (!month || month === firstMonth) return
+    scrolledTo.current = month
+    // Held, so the run doesn't recentre on the month scrolled to.
+    if (!run) setRun(currentRun)
+    changeMonth(month)
+  }
+  const followTopRef = useRef(followTop)
+  useIsomorphicLayoutEffect(() => {
+    followTopRef.current = followTop
+  })
+  useEffect(() => {
+    if (!scrolling || waitingForToday) return
+    const scroller = rootRef.current && scrollingAncestor(rootRef.current)
+    if (!scroller) return
+    let frame = 0
+    const onScroll = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => followTopRef.current())
+    }
+    scroller.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      cancelAnimationFrame(frame)
+      scroller.removeEventListener('scroll', onScroll)
+    }
+  }, [scrolling, waitingForToday, months.length])
+
   const earlierRef = useRef<HTMLDivElement>(null)
   const laterRef = useRef<HTMLDivElement>(null)
   const canAddEarlier =
@@ -656,6 +695,9 @@ export function Calendar(props: CalendarProps) {
         // Only after a scroll: a new observer reports an end still in reach,
         // and growing for that alone would never stop.
         if (!near || grownAt.current === scrolled()) return
+        // With no box of its own to scroll, months added above would push
+        // the page down, so the list only grows below.
+        if (!root && near.target === earlierRef.current) return
         grownAt.current = scrolled()
         growRunRef.current(near.target === earlierRef.current)
       },

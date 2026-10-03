@@ -75,11 +75,11 @@ const DAY = 24 * 60 * 60 * 1000
 function summarise(
   start: string | null,
   end: string | null,
-  locale: string | undefined
+  locale: string | undefined,
+  reversed: boolean
 ): string {
   const options = { timeZone: 'UTC', dateStyle: 'medium', locale } as const
-  if (start && end && compareDates(start, end) > 0)
-    return 'Ends before it starts'
+  if (reversed) return 'Ends before it starts'
   if (start && end) {
     const count = (noonOf(end).getTime() - noonOf(start).getTime()) / DAY + 1
     return joinWithFact(
@@ -201,6 +201,7 @@ export function ExtendedDateRangePicker({
   // The phone's tab and the end a tap sets, each chosen by the person.
   const [chosenView, setChosenView] = useState<View | null>(null)
   const [picking, setPicking] = useState<'start' | 'end' | null>(null)
+  const [cleared, setCleared] = useState(0)
   if (seenOpen !== open) {
     setSeenOpen(open)
     setEdit(NO_EDIT)
@@ -392,6 +393,7 @@ export function ExtendedDateRangePicker({
       className={cn('grid gap-3', withTime ? 'sm:grid-cols-2' : 'grid-cols-2')}
     >
       <RangeEndField
+        key={`start-${cleared}`}
         label='Start'
         parts={draft.start}
         onChange={(start) =>
@@ -411,6 +413,7 @@ export function ExtendedDateRangePicker({
         onFocus={drawer ? () => setPicking('start') : undefined}
       />
       <RangeEndField
+        key={`end-${cleared}`}
         label='End'
         parts={draft.end}
         onChange={(end) =>
@@ -490,7 +493,12 @@ export function ExtendedDateRangePicker({
           data-slot='date-range-picker-summary'
           className='text-sm'
         >
-          {summarise(draft.start.date, draft.end.date, locale)}
+          {summarise(
+            draft.start.date,
+            draft.end.date,
+            locale,
+            result.kind === 'reversed'
+          )}
         </Drawer.Description>
         {hasPresets && (
           <Tabs.List className='mt-2 grid w-full grid-cols-2'>
@@ -535,6 +543,8 @@ export function ExtendedDateRangePicker({
                   disabled={empty || locked}
                   onClick={() => {
                     setPicking(null)
+                    // Remounted, so text that named nothing goes too.
+                    setCleared(cleared + 1)
                     change({
                       chosen: null,
                       start: { date: null, time: null },

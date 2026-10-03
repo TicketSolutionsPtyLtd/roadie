@@ -482,6 +482,14 @@ describe('Calendar scrolling months', () => {
       .toBeGreaterThanOrEqual(weekdays().getBoundingClientRect().bottom - 1)
   })
 
+  it('reports the month at the top as it scrolls', async () => {
+    const months: string[] = []
+    render(<Scrolling onMonthChange={(month) => months.push(month)} />)
+    await expect.poll(() => scroller().scrollTop).toBeGreaterThan(0)
+    scroller().scrollTop += 700
+    await expect.poll(() => months.at(-1)).toMatch(/^2027-0[4-9]-01$/)
+  })
+
   it('stops growing in a box that only scrolls sideways', async () => {
     render(
       <div className='w-97.5 overflow-x-auto'>
