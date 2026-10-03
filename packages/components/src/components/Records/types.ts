@@ -28,7 +28,7 @@ export type RecordsBulkAction = {
   icon?: ReactNode
   intent?: 'danger'
   confirm?: RecordsActionConfirm
-  /** Gets the selection, narrowed to records the search and filters still match, and the query it was taken against. */
+  /** Gets the selection, narrowed to records the search and filters still match, and the query it was taken against, with the page's `scope` first. */
   onAction: (
     selection: RecordSelection,
     query: RecordQuery
@@ -41,6 +41,7 @@ export type RecordsAction<Row extends object = object> = {
   icon?: ReactNode
   intent?: 'danger'
   confirm?: RecordsActionConfirm
+  /** Gets the applied query, with the page's `scope` first, and the records. */
   onAction: (
     query: RecordQuery,
     records: RecordsInstance<Row>

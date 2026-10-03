@@ -1030,4 +1030,15 @@ describe('QueryField', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Clear' }))
     expect(onPendingChipCancel).toHaveBeenCalledOnce()
   })
+
+  it('keeps an Escape that ends a composition from the page', () => {
+    const outside = vi.fn()
+    render(
+      <div onKeyDown={outside}>
+        <Harness />
+      </div>
+    )
+    fireEvent.keyDown(input(), { key: 'Escape', isComposing: true })
+    expect(outside).not.toHaveBeenCalled()
+  })
 })

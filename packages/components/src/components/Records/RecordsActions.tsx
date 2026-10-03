@@ -16,6 +16,7 @@ import {
 } from './RecordsConfirm'
 import { useRecordsContext } from './context'
 import { useNarrow } from './narrow'
+import { actionQuery } from './query'
 import type { RecordsAction } from './types'
 
 const MORE = 'More actions'
@@ -47,7 +48,7 @@ export function RecordsActions<Row extends object>({
     try {
       // The consumer's Row narrows the shared instance, as Records.Root's does.
       await action.onAction(
-        current.appliedView.query,
+        actionQuery(current),
         current as unknown as Parameters<typeof action.onAction>[1]
       )
     } catch (error) {

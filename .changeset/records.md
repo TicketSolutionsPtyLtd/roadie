@@ -80,7 +80,9 @@ clear it. The toolbar keeps its buttons at the top as chips wrap.
 `useRecords` takes a `scope`: filters the page sets, such as the event a list
 of tickets belongs to. They filter with the view but are never part of it,
 so they are never saved, put in the URL, cleared or counted as filtering, and
-`Records.Search` shows them first as locked chips. The instance gains `scope`
+`Records.Search` shows them first as locked chips. Table and bulk actions get
+the query with the scope's filters first, so acting on every match stays
+within the page. The instance gains `scope`
 and `now`, and writes made in one event, such as a search and a filter
 together, build on each other. With no match, the empty state names the
 search and filters that matched nothing.

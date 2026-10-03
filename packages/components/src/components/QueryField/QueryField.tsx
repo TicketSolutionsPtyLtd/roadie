@@ -277,8 +277,10 @@ export function QueryField<Value = unknown>({
       if (target) accept(target)
       return
     }
+    // Ends the composition only: the page, such as a toolbar, never hears it.
     if (event.key === 'Escape' && isComposing(event)) {
       event.preventBaseUIHandler()
+      event.stopPropagation()
       return
     }
     // An Escape used here is kept from the page, such as a toolbar's.

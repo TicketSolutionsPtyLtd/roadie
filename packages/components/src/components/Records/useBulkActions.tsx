@@ -8,6 +8,7 @@ import {
   reportActionError
 } from './RecordsConfirm'
 import { useRecordsContext } from './context'
+import { actionQuery } from './query'
 import { deselect, pageState, withinMatching } from './selection'
 import type { RecordName, RecordsBulkAction } from './types'
 
@@ -76,7 +77,7 @@ export function useBulkActions({
     )
     setRunning(index)
     try {
-      await action.onAction(submitted, records.appliedView.query)
+      await action.onAction(submitted, actionQuery(records))
       const current = latest.current
       // Records ticked while the action ran, which it never touched, stay selected.
       const rest =

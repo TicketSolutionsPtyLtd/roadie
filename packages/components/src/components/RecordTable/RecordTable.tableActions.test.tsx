@@ -4,6 +4,8 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import type { RecordFilter } from '@oztix/roadie-core/records'
+
 import { RecordTable } from '.'
 import type { RecordsAction } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
@@ -38,10 +40,12 @@ const shows = testShows(12)
 
 function Shows({
   actions,
-  bulk = false
+  bulk = false,
+  scope
 }: {
   actions: RecordsAction<TestShow>[]
   bulk?: boolean
+  scope?: RecordFilter[]
 }) {
   return (
     <RecordTable
@@ -51,6 +55,7 @@ function Shows({
       columns={showColumns}
       getRowId={(row) => row.id}
       tableActions={actions}
+      scope={scope}
       bulkActions={bulk ? [{ label: 'Refund', onAction: vi.fn() }] : undefined}
     />
   )
@@ -94,6 +99,18 @@ describe('RecordTable table actions', () => {
     expect(
       (await screen.findAllByRole('menuitem')).map((item) => item.textContent)
     ).toEqual(['Export CSV', 'Print door list', 'Email everyone'])
+  })
+
+  it('acts within the page’s scope', async () => {
+    const onAction = vi.fn()
+    const perth: RecordFilter = {
+      field: 'city',
+      operator: 'contains',
+      value: 'Perth'
+    }
+    render(<Shows actions={actions(onAction)} scope={[perth]} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Export CSV' }))
+    expect(onAction.mock.calls[0]![0].filters).toEqual([perth])
   })
 
   it('acts on the applied query and the records, with nothing selected', async () => {
