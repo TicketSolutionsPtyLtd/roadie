@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  type Comparison,
   type DateRangeValue,
   resolveComparison,
   resolveDateRange
@@ -339,16 +340,57 @@ describe('resolveDateRange: instants', () => {
   })
 })
 
+const available = (range: unknown) => ({ status: 'available', range })
+
 describe('resolveComparison', () => {
+  // INNO-1039: a calendar period compares with the period before it, so this
+  // month compares with last month, not the 31 days before it.
   it.each<[DateRangeValue, string, string]>([
     [{ start: '2026-10-01', end: '2026-10-14' }, '2026-09-17', '2026-09-30'],
-    ['this-month', '2026-08-31', '2026-09-30'],
+    [{ direction: 'past', amount: 7, unit: 'day' }, '2026-09-19', '2026-09-25'],
+    ['this-month', '2026-09-01', '2026-09-30'],
+    ['last-month', '2026-08-01', '2026-08-31'],
+    ['next-month', '2026-10-01', '2026-10-31'],
     ['today', '2026-10-01', '2026-10-01'],
-    [{ period: 'month', offset: 0, toDate: true }, '2026-09-29', '2026-09-30']
+    ['yesterday', '2026-09-30', '2026-09-30'],
+    ['this-week', '2026-09-21', '2026-09-27'],
+    ['last-week', '2026-09-14', '2026-09-20'],
+    ['this-weekend', '2026-09-26', '2026-09-27'],
+    [{ period: 'month', offset: 0, toDate: true }, '2026-09-01', '2026-09-02'],
+    [{ period: 'week', offset: 0, toDate: true }, '2026-09-21', '2026-09-25'],
+    [{ period: 'quarter', offset: 0 }, '2026-07-01', '2026-09-30'],
+    [
+      { period: 'quarter', offset: 0, toDate: true },
+      '2026-07-01',
+      '2026-07-02'
+    ],
+    [{ period: 'year', offset: 0, fiscal: true }, '2025-07-01', '2026-06-30'],
+    [
+      { period: 'year', offset: 0, toDate: true, fiscal: true },
+      '2025-07-01',
+      '2025-10-02'
+    ],
+    [{ period: 'year', offset: -1 }, '2024-01-01', '2024-12-31']
   ])('previous period of %j', (value, start, end) => {
     expect(resolveComparison(value, 'previous-period', SYDNEY)).toEqual(
-      dates(start, end)
+      available(dates(start, end))
     )
+  })
+
+  it.each<[string, string, string]>([
+    // The whole of March compares with the whole of February.
+    ['2027-03-31T01:00:00Z', '2027-02-01', '2027-02-28'],
+    // March to the 30th has no 30 February, so all of February.
+    ['2027-03-30T01:00:00Z', '2027-02-01', '2027-02-28'],
+    ['2027-03-15T01:00:00Z', '2027-02-01', '2027-02-15']
+  ])('month to date on %s against last month', (now, start, end) => {
+    expect(
+      resolveComparison(
+        { period: 'month', offset: 0, toDate: true },
+        'previous-period',
+        { ...SYDNEY, now: at(now) }
+      )
+    ).toEqual(available(dates(start, end)))
   })
 
   it.each<[DateRangeValue, string, string]>([
@@ -358,7 +400,7 @@ describe('resolveComparison', () => {
     [{ period: 'year', offset: 0, fiscal: true }, '2025-07-01', '2026-06-30']
   ])('previous year of %j', (value, start, end) => {
     expect(resolveComparison(value, 'previous-year', SYDNEY)).toEqual(
-      dates(start, end)
+      available(dates(start, end))
     )
   })
 
@@ -369,11 +411,14 @@ describe('resolveComparison', () => {
         ...SYDNEY,
         alignWeekday: true
       })
-    ).toEqual(dates('2025-10-06', '2025-10-12'))
+    ).toEqual(available(dates('2025-10-06', '2025-10-12')))
   })
 
   it('has nothing to compare now against', () => {
-    expect(resolveComparison('ongoing', 'previous-period', SYDNEY)).toBeNull()
+    expect(resolveComparison('ongoing', 'previous-period', SYDNEY)).toEqual({
+      status: 'unavailable',
+      range: null
+    })
   })
 
   it('rejects an offset no zone has', () => {
@@ -401,7 +446,7 @@ describe('resolveComparison', () => {
         { start: '2026-09-01', end: '2026-09-30' },
         SYDNEY
       )
-    ).toEqual(dates('2026-09-01', '2026-09-30'))
+    ).toEqual(available(dates('2026-09-01', '2026-09-30')))
   })
 
   it('shifts an instant window back by its own length', () => {
@@ -411,11 +456,13 @@ describe('resolveComparison', () => {
         'previous-period',
         SYDNEY
       )
-    ).toEqual({
-      kind: 'instants',
-      start: Date.parse('2026-09-30T00:00:00Z') - 1,
-      end: Date.parse('2026-10-01T00:00:00Z') - 1
-    })
+    ).toEqual(
+      available({
+        kind: 'instants',
+        start: Date.parse('2026-09-30T00:00:00Z') - 1,
+        end: Date.parse('2026-10-01T00:00:00Z') - 1
+      })
+    )
   })
 
   it('keeps the wall clock for a previous year of instants', () => {
@@ -426,12 +473,14 @@ describe('resolveComparison', () => {
         'previous-year',
         SYDNEY
       )
-    ).toEqual(instants('2026-01-04T08:00:00Z', '2026-01-04T11:00:00Z'))
+    ).toEqual(
+      available(instants('2026-01-04T08:00:00Z', '2026-01-04T11:00:00Z'))
+    )
   })
 
   it('keeps a previous-year window in order across a repeated hour', () => {
     // 2:50am AEDT to 2:10am AEST on Sun 4 Apr 2027: twenty minutes.
-    const range = resolveComparison(
+    const { range } = resolveComparison(
       { start: '2027-04-03T15:50:00Z', end: '2027-04-03T16:10:00Z' },
       'previous-year',
       SYDNEY
@@ -441,7 +490,7 @@ describe('resolveComparison', () => {
   })
 
   it('keeps a previous-year window open across a skipped hour', () => {
-    const range = resolveComparison(
+    const { range } = resolveComparison(
       { start: '2027-10-04T02:30', end: '2027-10-04T03:30' },
       'previous-year',
       SYDNEY
@@ -450,7 +499,153 @@ describe('resolveComparison', () => {
   })
 
   it('has nothing to compare an open-ended range against', () => {
-    expect(resolveComparison('upcoming', 'previous-period', SYDNEY)).toBeNull()
-    expect(resolveComparison('past', 'previous-year', SYDNEY)).toBeNull()
+    const none = { status: 'unavailable', range: null }
+    expect(resolveComparison('upcoming', 'previous-period', SYDNEY)).toEqual(
+      none
+    )
+    expect(resolveComparison('past', 'previous-year', SYDNEY)).toEqual(none)
+  })
+})
+
+describe('resolveComparison: history', () => {
+  it.each<[string, Comparison, string, string, string]>([
+    ['2026-09-01', 'previous-period', 'available', '2026-09-01', '2026-09-30'],
+    ['2026-09-10', 'previous-period', 'partial', '2026-09-01', '2026-09-30'],
+    ['2026-09-30', 'previous-period', 'partial', '2026-09-01', '2026-09-30'],
+    [
+      '2026-10-01',
+      'previous-period',
+      'unavailable',
+      '2026-09-01',
+      '2026-09-30'
+    ],
+    ['2026-01-15', 'previous-year', 'unavailable', '2025-10-01', '2025-10-31']
+  ])(
+    'with data from %s, this month against %s is %s',
+    (dataStart, comparison, status, start, end) => {
+      expect(
+        resolveComparison('this-month', comparison, { ...SYDNEY, dataStart })
+      ).toEqual({ status, range: dates(start, end) })
+    }
+  )
+
+  it('measures an instant window against the start of the first day', () => {
+    // The last 24 hours before these 24 ended at 10am on 1 Oct in Sydney.
+    const past24 = { direction: 'past', amount: 24, unit: 'hour' } as const
+    expect(
+      resolveComparison(past24, 'previous-period', {
+        ...SYDNEY,
+        dataStart: '2026-10-01'
+      }).status
+    ).toBe('partial')
+    expect(
+      resolveComparison(past24, 'previous-period', {
+        ...SYDNEY,
+        dataStart: '2026-10-02'
+      }).status
+    ).toBe('unavailable')
+  })
+
+  it('checks a custom comparison against the data too', () => {
+    expect(
+      resolveComparison(
+        'last-month',
+        { start: '2026-09-25', end: '2026-10-10' },
+        { ...SYDNEY, dataStart: '2026-01-01', dataEnd: '2026-10-02' }
+      ).status
+    ).toBe('partial')
+    expect(
+      resolveComparison(
+        'last-month',
+        { start: '2026-10-05', end: '2026-10-10' },
+        { ...SYDNEY, dataEnd: '2026-10-02' }
+      ).status
+    ).toBe('unavailable')
+  })
+
+  it('stays open-ended whatever the data', () => {
+    expect(
+      resolveComparison('upcoming', 'previous-period', {
+        ...SYDNEY,
+        dataStart: '2020-01-01'
+      })
+    ).toEqual({ status: 'unavailable', range: null })
+  })
+
+  it('rejects data dates that are not plain dates or run backwards', () => {
+    expect(() =>
+      resolveComparison('this-month', 'previous-period', {
+        ...SYDNEY,
+        dataStart: '1/9/2026'
+      })
+    ).toThrow(RangeError)
+    expect(() =>
+      resolveComparison('this-month', 'previous-period', {
+        ...SYDNEY,
+        dataStart: '2026-10-02',
+        dataEnd: '2026-10-01'
+      })
+    ).toThrow(RangeError)
+  })
+})
+
+describe('resolveComparison: a period in progress', () => {
+  const inProgress = { ...SYDNEY, dataEnd: '2026-10-02' }
+
+  it.each<[DateRangeValue, Comparison, string, string]>([
+    // Like for like: the first two days of each month.
+    ['this-month', 'previous-period', '2026-09-01', '2026-09-02'],
+    ['this-month', 'previous-year', '2025-10-01', '2025-10-02'],
+    [
+      { period: 'quarter', offset: 0 },
+      'previous-period',
+      '2026-07-01',
+      '2026-07-02'
+    ],
+    ['this-week', 'previous-period', '2026-09-21', '2026-09-25'],
+    // Literal ranges keep their elapsed length: 1 to 2 Oct is two days.
+    [
+      { start: '2026-10-01', end: '2026-10-14' },
+      'previous-period',
+      '2026-09-29',
+      '2026-09-30'
+    ],
+    // Already over, so nothing is cut.
+    ['last-month', 'previous-period', '2026-08-01', '2026-08-31']
+  ])('%j against %s', (value, comparison, start, end) => {
+    expect(resolveComparison(value, comparison, inProgress)).toEqual(
+      available(dates(start, end))
+    )
+  })
+
+  it('cuts at a data end that lags today', () => {
+    expect(
+      resolveComparison('this-month', 'previous-period', {
+        ...SYDNEY,
+        dataEnd: '2026-10-01'
+      })
+    ).toEqual(available(dates('2026-09-01', '2026-09-01')))
+  })
+
+  it('leaves a range that starts after the data alone', () => {
+    // Next month compares with this month, which the data only half covers.
+    expect(
+      resolveComparison('next-month', 'previous-period', inProgress)
+    ).toEqual({ status: 'partial', range: dates('2026-10-01', '2026-10-31') })
+  })
+
+  it('cuts an instant window at the end of the last day', () => {
+    const range = { start: '2026-10-02T00:00', end: '2026-10-03T23:59' }
+    const { range: compared } = resolveComparison(
+      range,
+      'previous-period',
+      inProgress
+    )
+    // Midnight to midnight on 2 Oct against the day before, in Sydney.
+    expect(compared).toEqual({
+      kind: 'instants',
+      start: Date.parse('2026-09-30T14:00:00Z'),
+      end: Date.parse('2026-10-01T14:00:00Z') - 1
+    })
   })
 })

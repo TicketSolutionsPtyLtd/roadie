@@ -336,6 +336,77 @@ export type ComparisonOptions = DateRangeOptions & {
    * each day lines up with the same weekday. Mondays compare with Mondays.
    */
   alignWeekday?: boolean
+  /**
+   * The first day the data holds, as an ISO date. A comparison that starts
+   * before it is partial, and one that ends before it is unavailable.
+   */
+  dataStart?: string
+  /**
+   * The last day the data holds, as an ISO date, usually today. A range that
+   * runs past it is still in progress, so its comparison stops at the same
+   * point. A comparison past it is partial or unavailable, as before
+   * `dataStart`.
+   */
+  dataEnd?: string
+}
+
+/**
+ * The range to compare with, and whether the data covers it. `partial` and
+ * `unavailable` mean a delta would mislead: say "Not enough history" or
+ * "Nothing to compare" instead.
+ */
+export type ResolvedComparison =
+  | { status: 'available' | 'partial'; range: ResolvedDateRange }
+  /** `range` is null when the range is open-ended or a single instant. */
+  | { status: 'unavailable'; range: ResolvedDateRange | null }
+
+type CalendarUnit = { days: number } | { months: number }
+
+const NAMED_UNITS: Partial<
+  Record<Extract<RelativeRange, string>, CalendarUnit>
+> = {
+  today: { days: 1 },
+  tomorrow: { days: 1 },
+  yesterday: { days: 1 },
+  'this-week': { days: 7 },
+  'next-week': { days: 7 },
+  'last-week': { days: 7 },
+  'this-weekend': { days: 7 },
+  'this-month': { months: 1 },
+  'next-month': { months: 1 },
+  'last-month': { months: 1 }
+}
+
+function calendarUnit(value: DateRangeValue): CalendarUnit | null {
+  if (isAbsoluteRange(value) || isRollingRange(value)) return null
+  if (!isPeriodRange(value)) return NAMED_UNITS[value] ?? null
+  if (value.period === 'day') return { days: 1 }
+  if (value.period === 'week') return { days: 7 }
+  return { months: value.period === 'month' ? 1 : MONTHS_IN[value.period] }
+}
+
+function shift(date: string, unit: CalendarUnit, times: number): string {
+  return 'days' in unit
+    ? addDays(date, unit.days * times)
+    : addMonths(date, unit.months * times)
+}
+
+/**
+ * The same span of the period before: a whole period for a whole one, and
+ * as far in for one cut short, so month to date compares with last month to
+ * the same day.
+ */
+function previousCalendar(
+  start: string,
+  end: string,
+  unit: CalendarUnit
+): ResolvedDateRange {
+  const before = addDays(start, -1)
+  const whole = end === addDays(shift(start, unit, 1), -1)
+  return dates(
+    shift(start, unit, -1),
+    whole ? before : minDate(before, shift(end, unit, -1))
+  )
 }
 
 function yearEarlier(date: string, alignWeekday: boolean | undefined): string {
@@ -353,19 +424,67 @@ function previousYearInstant(
   )
 }
 
-/**
- * The range to compare `range` against. Null when the range is open-ended or
- * a single instant, since neither has a length to repeat.
- */
-export function resolveComparison(
-  range: DateRangeValue,
-  comparison: Comparison,
-  options: ComparisonOptions
-): ResolvedDateRange | null {
-  if (isAbsoluteRange(comparison)) {
-    return resolveAbsolute(comparison, options.timeZone)
+function assertDataDates({ dataStart, dataEnd }: ComparisonOptions) {
+  for (const date of [dataStart, dataEnd]) {
+    if (date !== undefined && !isPlainDate(date)) {
+      throw new RangeError(`Not an ISO date: '${date}'`)
+    }
   }
-  const resolved = resolveDateRange(range, options)
+  if (dataStart && dataEnd && compareDates(dataStart, dataEnd) > 0) {
+    throw new RangeError(`dataStart ${dataStart} is after dataEnd ${dataEnd}`)
+  }
+}
+
+function endOfDayInstant(date: string, timeZone: string): number {
+  return startOfDayInstant(addDays(date, 1), timeZone) - 1
+}
+
+/** The part of a range the data has reached, when it runs past `dataEnd`. */
+function soFar(
+  range: ResolvedDateRange,
+  { dataEnd, timeZone }: ComparisonOptions
+): ResolvedDateRange {
+  if (!dataEnd) return range
+  if (range.kind === 'dates') {
+    return compareDates(range.start, dataEnd) <= 0 &&
+      compareDates(range.end, dataEnd) > 0
+      ? dates(range.start, dataEnd)
+      : range
+  }
+  const last = endOfDayInstant(dataEnd, timeZone)
+  const { start, end } = range
+  return start !== null && end !== null && start <= last && end > last
+    ? instants(start, last)
+    : range
+}
+
+function covered(
+  range: ResolvedDateRange,
+  { dataStart, dataEnd, timeZone }: ComparisonOptions
+): ResolvedComparison {
+  const toEpoch = (date: string) => startOfDayInstant(date, timeZone)
+  const [start, end] =
+    range.kind === 'dates'
+      ? [toEpoch(range.start), toEpoch(range.end)]
+      : [range.start!, range.end!]
+  const first = dataStart === undefined ? -Infinity : toEpoch(dataStart)
+  const last =
+    dataEnd === undefined
+      ? Infinity
+      : range.kind === 'dates'
+        ? toEpoch(dataEnd)
+        : endOfDayInstant(dataEnd, timeZone)
+  if (end < first || start > last) return { status: 'unavailable', range }
+  if (start < first || end > last) return { status: 'partial', range }
+  return { status: 'available', range }
+}
+
+function previousRange(
+  value: DateRangeValue,
+  resolved: ResolvedDateRange,
+  comparison: 'previous-period' | 'previous-year',
+  options: ComparisonOptions
+): ResolvedDateRange {
   if (resolved.kind === 'dates') {
     const { start, end } = resolved
     if (comparison === 'previous-year') {
@@ -374,12 +493,14 @@ export function resolveComparison(
         yearEarlier(end, options.alignWeekday)
       )
     }
+    const unit = calendarUnit(value)
+    if (unit) return previousCalendar(start, end, unit)
     const length = dayNumber(end) - dayNumber(start)
     const before = addDays(start, -1)
     return dates(addDays(before, -length), before)
   }
-  const { start, end } = resolved
-  if (start === null || end === null || start === end) return null
+  const start = resolved.start!
+  const end = resolved.end!
   if (comparison === 'previous-year') {
     const from = previousYearInstant(start, options)
     const to = previousYearInstant(end, options)
@@ -388,4 +509,34 @@ export function resolveComparison(
   }
   const before = start - 1
   return instants(before - (end - start), before)
+}
+
+/**
+ * The range to compare `range` against, and how much of it the data covers.
+ * The previous period of a calendar period is the one before it (this month
+ * against last month); of any other range, the same length ending the day
+ * before.
+ */
+export function resolveComparison(
+  range: DateRangeValue,
+  comparison: Comparison,
+  options: ComparisonOptions
+): ResolvedComparison {
+  assertDataDates(options)
+  if (isAbsoluteRange(comparison)) {
+    return covered(resolveAbsolute(comparison, options.timeZone), options)
+  }
+  const resolved = resolveDateRange(range, options)
+  if (
+    resolved.kind === 'instants' &&
+    (resolved.start === null ||
+      resolved.end === null ||
+      resolved.start === resolved.end)
+  ) {
+    return { status: 'unavailable', range: null }
+  }
+  return covered(
+    previousRange(range, soFar(resolved, options), comparison, options),
+    options
+  )
 }

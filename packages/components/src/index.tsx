@@ -378,6 +378,11 @@ export {
 } from './components/DateField'
 export { DatePicker, type DatePickerProps } from './components/DatePicker'
 export {
+  DashboardPeriod,
+  type DashboardPeriodProps,
+  type DashboardPeriodValue
+} from './components/DashboardPeriod'
+export {
   DateRangePicker,
   type DateRangePickerProps,
   type DateRangePreset,

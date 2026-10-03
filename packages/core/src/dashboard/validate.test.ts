@@ -924,3 +924,128 @@ describe('validateDashboard status columns', () => {
     )
   })
 })
+
+describe('validateDashboard periods', () => {
+  const withPeriod = (period: unknown, cards: unknown[] = four) => ({
+    ...spec(cards),
+    period
+  })
+  const problems = (input: unknown) =>
+    validateDashboard(input).problems.map(({ path, severity }) => ({
+      path,
+      severity
+    }))
+  const compared = (id: string) =>
+    stat(id, { delta: { value: 214, comparison: true } })
+
+  it.each([
+    { range: 'last-month' },
+    { range: { period: 'month', offset: 0, toDate: true } },
+    { range: { direction: 'past', amount: 30, unit: 'day' } },
+    { range: 'this-month', compare: 'previous-period' },
+    { range: 'this-month', compare: 'previous-year', history: 'partial' },
+    {
+      range: { start: '2026-10-01', end: '2026-10-14' },
+      compare: { start: '2026-09-01', end: '2026-09-14' }
+    }
+  ])('accepts %j', (period) => {
+    expect(
+      problems(
+        withPeriod(
+          period,
+          four.map((card, i) => (i ? card : compared('a')))
+        )
+      )
+    ).toEqual([])
+  })
+
+  it.each([
+    [{ range: 'this-fortnight' }, 'period.range'],
+    [{ range: { period: 'month', offset: 0.5 } }, 'period.range'],
+    [{ range: 'this-month', compare: 'previous-decade' }, 'period.compare'],
+    [{ range: 'this-month', history: 'none' }, 'period.history'],
+    [{ range: 'this-month', locked: true }, 'period']
+  ])('rejects the shape of %j', (period, path) => {
+    const result = validateDashboard(withPeriod(period))
+    expect(result.ok).toBe(false)
+    expect(result.problems.map((problem) => problem.path)).toContain(path)
+  })
+
+  it.each([
+    [{ start: '2026-10-14', end: '2026-10-01' }, 'Starts after it ends'],
+    [{ start: '14/10/2026', end: '2026-10-20' }, 'Use ISO dates'],
+    [{ start: '2026-10-01T09:00', end: '2026-10-02' }, 'Use plain dates']
+  ])('rejects the absolute range %j', (range, message) => {
+    for (const field of ['range', 'compare'] as const) {
+      const period =
+        field === 'range' ? { range } : { range: 'this-month', compare: range }
+      const result = validateDashboard(withPeriod(period))
+      expect(result.ok).toBe(false)
+      expect(result.problems).toContainEqual(
+        expect.objectContaining({
+          path: `period.${field}`,
+          severity: 'error',
+          message: expect.stringContaining(message)
+        })
+      )
+    }
+  })
+
+  it('warns that an open-ended range has nothing to compare', () => {
+    expect(
+      problems(withPeriod({ range: 'upcoming', compare: 'previous-period' }))
+    ).toEqual([{ path: 'period.compare', severity: 'warning' }])
+  })
+
+  it('warns about history with no comparison', () => {
+    expect(
+      problems(withPeriod({ range: 'this-month', history: 'unavailable' }))
+    ).toEqual([{ path: 'period.history', severity: 'warning' }])
+  })
+
+  it('needs a period for a comparison delta', () => {
+    const result = validateDashboard(
+      spec([compared('a'), stat('b'), stat('c'), stat('d')])
+    )
+    expect(result.ok).toBe(false)
+    expect(
+      problems(spec([compared('a'), stat('b'), stat('c'), stat('d')]))
+    ).toEqual([
+      { path: 'sections[0].cards[0].delta.comparison', severity: 'error' }
+    ])
+  })
+
+  it('checks comparison deltas on table and chart headlines too', () => {
+    const table = {
+      id: 't',
+      kind: 'table',
+      size: 'full',
+      label: 'Shows',
+      value: 12,
+      delta: { value: 2, comparison: true },
+      columns: [{ key: 'name', header: 'Show', kind: 'text' }],
+      rows: [],
+      source: 'Oztix sales'
+    }
+    expect(problems(spec([table]))).toEqual([
+      { path: 'sections[0].cards[0].delta.comparison', severity: 'error' }
+    ])
+    expect(problems(withPeriod({ range: 'this-month' }, [table]))).toEqual([])
+  })
+
+  it('warns when a comparison delta writes its own context', () => {
+    expect(
+      problems(
+        withPeriod({ range: 'this-month', compare: 'previous-period' }, [
+          stat('a', {
+            delta: { value: 214, comparison: true },
+            context: 'On last month'
+          }),
+          stat('b'),
+          stat('c'),
+          stat('d')
+        ])
+      )
+    ).toEqual([{ path: 'sections[0].cards[0].context', severity: 'warning' }])
+  })
+})

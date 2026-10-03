@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { dateRangeSchemas } from '../datetime/rangeSchema'
 import { STATUS_INTENTS } from './cells'
 import { goodWhen, valueFormat } from './fields'
 import { CARD_SIZES, CARD_STATES, COLUMN_KINDS } from './layout'
@@ -9,7 +10,9 @@ const delta = z.strictObject({
   value: z.number(),
   format: valueFormat.optional(),
   goodWhen: goodWhen.optional(),
-  baseline: z.number().optional()
+  baseline: z.number().optional(),
+  /** Compares with the dashboard's period comparison, and follows it. */
+  comparison: z.boolean().optional()
 })
 
 const status = z.strictObject({
@@ -157,13 +160,24 @@ const section = z.strictObject({
   cards: z.array(card)
 })
 
+const ranges = dateRangeSchemas()
+
+const period = z.strictObject({
+  range: ranges.dateRangeValue,
+  compare: ranges.comparison.optional(),
+  /** How much of the comparison the data covers, from `resolveComparison`. */
+  history: z.enum(['partial', 'unavailable']).optional()
+})
+
 export const dashboardSchema = z.strictObject({
   version: z.literal(1),
   title: z.string().min(1),
+  period: period.optional(),
   sections: z.array(section).min(1)
 })
 
 export type DeltaSpec = z.infer<typeof delta>
+export type DashboardPeriod = z.infer<typeof period>
 export type TableColumn = z.infer<typeof column>
 export type TableCell = z.infer<typeof cell>
 export type TableRow = Record<string, TableCell>
