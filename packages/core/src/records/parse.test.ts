@@ -81,7 +81,7 @@ describe('parseQuery', () => {
       'Genres is Jazz',
       { field: 'genres', operator: 'is', values: ['jazz'] }
     ],
-    ['featured', 'Featured is true', { field: 'featured', operator: 'is-true' }]
+    ['featured', 'Featured is Yes', { field: 'featured', operator: 'is-true' }]
   ])('reads "%s" as a value: %s', (text, label, value) => {
     expect(parse(text)[0]).toMatchObject({ kind: 'filter', label, value })
   })
@@ -184,7 +184,7 @@ describe('parseQuery', () => {
       ],
       [
         'name:lampshade',
-        'Name contains "lampshade"',
+        'Name contains “lampshade”',
         { field: 'name', operator: 'contains', value: 'lampshade' }
       ],
       [
@@ -209,12 +209,27 @@ describe('parseQuery', () => {
       ],
       [
         'gross:100-500.5',
-        'Gross is 100 to 500.5',
+        'Gross is $100 to $500.50',
         { field: 'gross', operator: 'between', value: [100, 500.5] }
       ],
       [
+        'gross:$1,500',
+        'Gross is $1,500',
+        { field: 'gross', operator: 'eq', value: 1500 }
+      ],
+      [
+        'gross:>$2,000',
+        'Gross is more than $2,000',
+        { field: 'gross', operator: 'gt', value: 2000 }
+      ],
+      [
+        'capacity:1,000-2,500',
+        'Capacity is 1,000 to 2,500',
+        { field: 'capacity', operator: 'between', value: [1000, 2500] }
+      ],
+      [
         'featured:no',
-        'Featured is false',
+        'Featured is No',
         { field: 'featured', operator: 'is-false' }
       ],
       [
@@ -242,6 +257,19 @@ describe('parseQuery', () => {
       expect(parse('venue:')).toMatchObject([
         { kind: 'field', value: { field: 'venue' } }
       ])
+    })
+
+    it('names a field whose label holds a colon', () => {
+      const fields = [
+        ...eventFields,
+        { key: 'doors', label: 'Doors: main', type: 'number' as const }
+      ]
+      expect(
+        parseQuery('doors: main:>5', { ...options, fields })[0]
+      ).toMatchObject({
+        kind: 'filter',
+        value: { field: 'doors', operator: 'gt', value: 5 }
+      })
     })
 
     it('reads an unknown prefix as ordinary text', () => {

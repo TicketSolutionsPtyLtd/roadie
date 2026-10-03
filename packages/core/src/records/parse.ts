@@ -5,6 +5,7 @@ import {
   parseDatePhrase
 } from '../datetime/parse'
 import type { DateRangeValue } from '../datetime/ranges'
+import { describeRecordFilter } from './describe'
 import { encodeFilter } from './encoding'
 import { isFilterable, momentOf, recordFieldOptions } from './fields'
 import type { RecordField, RecordFilter, RecordQueryOptions } from './types'
@@ -265,7 +266,7 @@ function fieldValueReadings(
       ]
     case 'number':
     case 'money': {
-      const reading = numberFilter(field, text.replace(/\s+/g, ''))
+      const reading = numberFilter(field, text.replace(/[\s$,]+/g, ''))
       return reading ? [{ ...reading, quality: 1 }] : []
     }
     case 'boolean': {
@@ -425,21 +426,44 @@ function rank(candidates: Candidate[]): Candidate[] {
   return [...leaders, ...sorted.filter((c) => !leaders.includes(c))]
 }
 
+/** The field named before a colon, the longest name first, so a label may hold a colon. */
 function namedField(
-  name: string,
+  input: string,
   fields: readonly RecordField[]
-): RecordField | undefined {
-  const text = name.trim().toLowerCase()
-  return fields.find(
-    (f) => f.key.toLowerCase() === text || f.label.toLowerCase() === text
-  )
+): { field: RecordField; value: string } | undefined {
+  const text = input.toLowerCase()
+  let best: { field: RecordField; value: string; length: number } | undefined
+  for (const field of fields) {
+    for (const name of [field.key, field.label]) {
+      const prefix = name.trim().toLowerCase()
+      if (!prefix || (best && prefix.length <= best.length)) continue
+      const rest = text.slice(prefix.length).trimStart()
+      if (text.startsWith(prefix) && rest.startsWith(':')) {
+        const at = input.length - rest.length + 1
+        best = { field, value: input.slice(at).trim(), length: prefix.length }
+      }
+    }
+  }
+  return best && { field: best.field, value: best.value }
 }
 
-function finish(entity: string | undefined) {
-  return ({ span: _span, order: _order, ...suggestion }: Candidate) =>
-    (entity
-      ? { ...suggestion, id: `${entity}:${suggestion.id}`, entity }
-      : suggestion) as RecordSuggestion
+function finish(options: ParseQueryOptions) {
+  const { entity, fields } = options
+  const dateKeys = new Set(
+    fields.filter((field) => field.type === 'date').map((field) => field.key)
+  )
+  return ({ span: _span, order: _order, ...suggestion }: Candidate) => {
+    // A chip reads the same words; a date keeps the phrase as typed.
+    const label =
+      suggestion.kind === 'filter' && !dateKeys.has(suggestion.value.field)
+        ? describeRecordFilter(suggestion.value, fields, options).label
+        : suggestion.label
+    return (
+      entity
+        ? { ...suggestion, label, id: `${entity}:${suggestion.id}`, entity }
+        : { ...suggestion, label }
+    ) as RecordSuggestion
+  }
 }
 
 /**
@@ -448,7 +472,8 @@ function finish(entity: string | undefined) {
  * Reads identifiers (a field's `match`, offered as exact), `field:value`,
  * field names, option and status values, booleans by name, and date phrases
  * for each date field. A number field's `field:value` takes `100`, `>100`,
- * `<100`, `!=100` or `100-500`. Empty text lists the filterable fields. Free text is
+ * `<100`, `!=100` or `100-500`, with `$` and thousands commas allowed.
+ * Filter labels read as `describeRecordFilter` writes chips. Empty text lists the filterable fields. Free text is
  * left to the caller, as a search.
  */
 export function parseQuery(
@@ -456,7 +481,7 @@ export function parseQuery(
   options: ParseQueryOptions
 ): RecordSuggestion[] {
   const { limit = 10 } = options
-  const strip = finish(options.entity)
+  const strip = finish(options)
   const fields = options.fields.filter(isFilterable)
   const input = text.trim().replace(/\s+/g, ' ')
   if (!input) {
@@ -471,11 +496,9 @@ export function parseQuery(
     filterSuggestion(reading, 1, '', whole, i)
   )
 
-  const colon = input.indexOf(':')
-  const field =
-    colon > 0 ? namedField(input.slice(0, colon), fields) : undefined
-  if (field) {
-    const value = input.slice(colon + 1).trim()
+  const named = namedField(input, fields)
+  if (named) {
+    const { field, value } = named
     const readings = value
       ? fieldValueReadings(field, value, options).map((reading, i) =>
           filterSuggestion(reading, round(reading.quality), '', whole, i)

@@ -43,6 +43,15 @@ export type {
 } from './resolve'
 export { compileRecordQuery, matchesRecordQuery } from './match'
 export { parseQuery } from './parse'
+export {
+  describeRecordFilter,
+  recordOperatorLabel,
+  recordOptionPaths
+} from './describe'
+export type {
+  DescribeRecordFilterOptions,
+  RecordFilterDescription
+} from './describe'
 export type { ParseQueryOptions, RecordSuggestion } from './parse'
 export {
   RECORD_VIEW_FORMAT,
