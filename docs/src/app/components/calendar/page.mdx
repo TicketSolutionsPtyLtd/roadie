@@ -135,7 +135,19 @@ render(
 <Calendar mode='range' numberOfMonths={2} />
 ```
 
+### With scrolling months
+
+`layout='scroll'` stacks the months in a list that scrolls, as on a phone, under one row of weekdays that stays pinned. There are no arrows: it opens on the selection, `month` or today, and adds months as it nears either end or the keyboard moves past them. Put it in a box that scrolls. Pickers use it in their phone drawer.
+
+```tsx-live
+<div className='h-96 overflow-y-auto rounded-xl emphasis-raised px-4'>
+  <Calendar layout='scroll' mode='range' defaultSelected={{ start: '2026-11-06', end: '2026-11-12' }} />
+</div>
+```
+
 ## Guidelines
+
+- **It fills its container.** The seven columns share the width, each day stays a circle up to 48px across in the middle of its column, and a range's band runs from edge to edge. In a popover, it takes 280px a month. Set the width on the container, not the calendar.
 
 <div className='grid gap-8'>
 
@@ -177,5 +189,6 @@ render(
 - Disabled days are focusable with `aria-disabled`, so they can be read and passed, but not selected.
 - A polite live region announces the month when it changes and the selection when it changes, such as "Selected Wednesday, 3 to Sunday, 7 March 2027".
 - The month arrows are labelled "Previous month" and "Next month". In the dropdown layout the selects are labelled "Month" and "Year".
+- With `layout='scroll'`, each month keeps its own column headers for screen readers, and the pinned weekday row is hidden from them.
 
 <PropsDefinitions componentPath='packages/components/src/components/Calendar/Calendar.tsx' />
