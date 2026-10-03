@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useId, useMemo, useRef, useState } from 'react'
 
 import type { RecordField, RecordFilter } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
@@ -8,8 +8,9 @@ import { cn } from '@oztix/roadie-core/utils'
 import { PickerOverlay, usePickerSurface } from '../../pickers/PickerShell'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { QueryField, type QueryFieldAccepted } from '../QueryField'
-import { RecordsFilterEditor } from './RecordsFilterEditor'
+import { RecordsFilterEditorLazy } from './RecordsFilterEditorLazy'
 import { useRecordsContext } from './context'
+import { whenIdle } from './idle'
 import {
   type SearchContext,
   type SearchValue,
@@ -107,6 +108,7 @@ export function RecordsSearch({
   const labelId = useId()
   const editorOpen = editing?.open ?? false
   const surface = usePickerSurface(editorOpen)
+  useEffect(() => whenIdle(RecordsFilterEditorLazy.preload), [])
 
   const byKey = new Map(fields.map((field) => [field.key, field]))
   const pendingField = pending ? byKey.get(pending) : undefined
@@ -130,7 +132,12 @@ export function RecordsSearch({
     anchor: HTMLElement | null
   ) {
     anchorRef.current = anchor
-    setEditing({ ...next, open: true, session: ++sessions.current })
+    const session = ++sessions.current
+    // Opens with its controls, so focus has somewhere to land.
+    void RecordsFilterEditorLazy.preload().then(() => {
+      if (session === sessions.current)
+        setEditing({ ...next, open: true, session })
+    })
   }
 
   function add(filter: RecordFilter) {
@@ -240,27 +247,29 @@ export function RecordsSearch({
           <span id={labelId} hidden>
             {editingField.label}
           </span>
-          <RecordsFilterEditor
-            key={editing.session}
-            field={editingField}
-            filter={editingFilter ?? null}
-            timeZone={records.timeZone}
-            onChange={(filter) => {
-              if (editing.index === null) {
-                setEditing({ ...editing, index: filters.length })
-                records.addFilter(filter)
-              } else records.updateFilter(editing.index, filter)
-            }}
-            onRemove={
-              editing.index === null
-                ? undefined
-                : () => {
-                    records.removeFilter(editing.index!)
-                    editingIndex.current = null
-                    setEditing({ ...editing, index: null, open: false })
-                  }
-            }
-          />
+          <Suspense fallback={null}>
+            <RecordsFilterEditorLazy
+              key={editing.session}
+              field={editingField}
+              filter={editingFilter ?? null}
+              timeZone={records.timeZone}
+              onChange={(filter) => {
+                if (editing.index === null) {
+                  setEditing({ ...editing, index: filters.length })
+                  records.addFilter(filter)
+                } else records.updateFilter(editing.index, filter)
+              }}
+              onRemove={
+                editing.index === null
+                  ? undefined
+                  : () => {
+                      records.removeFilter(editing.index!)
+                      editingIndex.current = null
+                      setEditing({ ...editing, index: null, open: false })
+                    }
+              }
+            />
+          </Suspense>
         </PickerOverlay>
       )}
     </>

@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import {
   type RecordFilter,
@@ -10,6 +10,7 @@ import {
 
 import { Records } from '.'
 import { tableColumns, tableLayout } from '../RecordTable'
+import { RecordsFilterEditorLazy } from './RecordsFilterEditorLazy'
 import { type TestShow, testShows } from './testUtils'
 import { type UseRecordsOptions, useRecords } from './useRecords'
 
@@ -85,6 +86,9 @@ const rows = () =>
   screen
     .queryAllByRole('row')
     .filter((row) => within(row).queryAllByRole('cell').length)
+
+// The page loads editors while idle; a test's first import takes longer.
+beforeAll(() => RecordsFilterEditorLazy.preload(), 20_000)
 
 describe('Records.Search', () => {
   it('searches as people type, and keeps the text on Enter', async () => {

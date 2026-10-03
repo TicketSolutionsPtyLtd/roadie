@@ -75,3 +75,28 @@ describe('useHeldOpen', () => {
     expect(result.current[0]).toBe(false)
   })
 })
+
+describe('keepTouchTap', () => {
+  it('drops the mouse events a chosen tap sends after, until a new touch', () => {
+    const option = document.createElement('div')
+    const below = document.createElement('button')
+    document.body.append(option, below)
+    touch(option, 'down')
+    touch(option, 'up')
+    const ghost = new MouseEvent('mousedown', {
+      bubbles: true,
+      cancelable: true
+    })
+    below.dispatchEvent(ghost)
+    expect(ghost.defaultPrevented).toBe(true)
+    document.dispatchEvent(new PointerEvent('pointerdown'))
+    const real = new MouseEvent('mousedown', {
+      bubbles: true,
+      cancelable: true
+    })
+    below.dispatchEvent(real)
+    expect(real.defaultPrevented).toBe(false)
+    option.remove()
+    below.remove()
+  })
+})

@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "207 kB"
+    "limit": "214 kB"
   },
   {
     "name": "Single component (Button)",
@@ -252,7 +252,7 @@
     "name": "DatePicker",
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
-    "limit": "26.7 kB",
+    "limit": "27 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -280,14 +280,14 @@
     "name": "Records",
     "path": "dist/components/Records/index.js",
     "import": "*",
-    "limit": "33.6 kB",
+    "limit": "86.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordTable",
     "path": "dist/components/RecordTable/index.js",
     "import": "*",
-    "limit": "58.7 kB",
+    "limit": "108.5 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]

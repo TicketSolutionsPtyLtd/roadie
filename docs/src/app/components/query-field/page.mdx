@@ -317,6 +317,60 @@ function QueryFieldExact() {
 }
 ```
 
+### With words left over
+
+A suggestion that reads only part of the text, such as the city in
+"melb this weekend", gives the rest as `remainder`. Taking it leaves those
+words in the field, so the next suggestion can read them. `parseQuery` from
+`@oztix/roadie-core/records` fills `remainder` for you.
+
+A chip's `description`, such as the dates a relative range stands for, shows
+in a tooltip and is read after the chip's label.
+
+```tsx-live
+function QueryFieldRemainder() {
+  const [chips, setChips] = useState([])
+
+  function suggest(text) {
+    const words = text.trim().toLowerCase()
+    const items = []
+    if (words.includes('melb'))
+      items.push({
+        id: 'city:melbourne',
+        label: 'City is Melbourne',
+        kind: 'filter',
+        value: { id: 'city', label: 'City is Melbourne' },
+        remainder: words.replace(/\S*melb\S*/, '').trim()
+      })
+    if (words.includes('weekend'))
+      items.push({
+        id: 'starts:weekend',
+        label: 'Starts: This weekend',
+        kind: 'filter',
+        value: { id: 'starts', label: 'Starts: This weekend', description: 'The coming Saturday and Sunday' },
+        remainder: words.replace(/this\s+weekend|weekend/, '').trim()
+      })
+    return [{ id: 'filters', label: 'Filters', items }]
+  }
+
+  return (
+    <QueryField
+      aria-label='Search events'
+      chips={chips}
+      onRemoveChip={(id) => setChips((current) => current.filter((chip) => chip.id !== id))}
+      suggest={suggest}
+      onAccept={(suggestion) => {
+        if (suggestion.kind === 'filter')
+          setChips((current) =>
+            current.some((chip) => chip.id === suggestion.value.id) ? current : [...current, suggestion.value]
+          )
+      }}
+      defaultInputValue='melb this weekend'
+    />
+  )
+}
+```
+
 ### With a shortcut and recent searches
 
 Set `shortcut` to let a key focus the field from anywhere on the page. The
@@ -406,9 +460,10 @@ function QueryFieldShortcut() {
 - On a chip, **Backspace** or **Delete** removes it, and **Enter** or
   **Space** opens its editor when you pass `onEditChip`. Locked chips ignore
   all four.
-- **Escape** closes the suggestions, or ends the value step. It never clears
-  the chips.
-- A locked chip reads "set by this page" after its label. A pending chip
+- **Escape** closes the suggestions, or ends the value step. With the
+  suggestions closed it clears the typed text. It never clears the chips.
+- A locked chip reads "set by this page" after its label, and a chip's
+  `description` is read after its label too. A pending chip
   describes the input, so the value step is announced.
 - `required` is announced but never blocks a form: an empty search is valid.
 - `shortcut` adds `aria-keyshortcuts` to the input. The key hint beside the
