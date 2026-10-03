@@ -727,6 +727,50 @@ describe('QueryField', () => {
     expect(screen.getByText('No suggestions')).toBeInTheDocument()
   })
 
+  it('drops the arrow mark when newer results replace the arrowed one', async () => {
+    const onAccept = vi.fn()
+    const newer = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
+    render(
+      <Harness
+        onAccept={onAccept}
+        suggest={(text) => (text === 'lo' ? newer.promise : suggestFor(text))}
+      />
+    )
+    await typeInto('l')
+    await waitFor(() => expect(optionNames()).toHaveLength(3))
+    await userEvent.keyboard('o{ArrowDown}')
+    await waitFor(() => expect(hinted()).toEqual(['Venue is The Longacre']))
+    await act(async () =>
+      newer.resolve([
+        { id: 'orders', label: 'Orders', items: [{ ...order, exact: false }] }
+      ])
+    )
+    expect(hinted()).toEqual(['Search for “lo”'])
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: 'search', value: 'lo' })
+    )
+  })
+
+  it('shows a description of 0', async () => {
+    render(
+      <Harness
+        suggest={() => [
+          {
+            id: 'orders',
+            label: 'Orders',
+            items: [{ ...order, exact: false, description: 0 }]
+          }
+        ]}
+      />
+    )
+    await userEvent.click(input())
+    const option = await screen.findByRole('option', { name: /Order 1042/ })
+    expect(
+      option.querySelector('[data-slot=query-field-option-description]')
+    ).toHaveTextContent('0')
+  })
+
   it('tells assistive technology Enter edits a chip', () => {
     render(<Harness initialChips={[scope, status]} onEditChip={() => {}} />)
     expect(chipElement('status')).toHaveAttribute('aria-keyshortcuts', 'Enter')

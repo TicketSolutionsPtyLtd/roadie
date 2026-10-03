@@ -154,6 +154,7 @@ export function QueryField<Value = unknown>({
   const step = pendingChip?.id
   const [markedStep, setMarkedStep] = useState(step)
   const [arrowed, setArrowed] = useState(false)
+  const [openingByArrow, setOpeningByArrow] = useState(false)
   if (markedStep !== step) {
     setMarkedStep(step)
     setArrowed(false)
@@ -325,11 +326,19 @@ export function QueryField<Value = unknown>({
       open={open}
       onOpenChange={(next, details) => {
         setOpen(next)
+        const byArrow = next && details.reason === 'list-navigation'
+        setOpeningByArrow(byArrow)
         if (details.reason !== 'list-navigation') setArrowed(false)
       }}
       onItemHighlighted={(item, details) => {
-        setHighlightKey(item && itemKey(item))
+        const key = item && itemKey(item)
+        setHighlightKey(key)
         if (details.reason === 'pointer') setArrowed(false)
+        if (details.reason !== 'none') return
+        // Opening by arrow lands on the first item; any other `none` means
+        // the list changed under the highlight, which nobody arrowed to.
+        if (openingByArrow) setOpeningByArrow(false)
+        else if (key !== highlightKey) setArrowed(false)
       }}
       itemToStringLabel={(item: { label: string }) => item.label}
       disabled={isDisabled}
@@ -468,11 +477,15 @@ export function QueryField<Value = unknown>({
                           >
                             {item.label}
                           </span>
-                          {item.kind !== 'search' && item.description && (
-                            <span className='truncate text-xs text-subtle'>
-                              {item.description}
-                            </span>
-                          )}
+                          {item.kind !== 'search' &&
+                            item.description != null && (
+                              <span
+                                data-slot='query-field-option-description'
+                                className='truncate text-xs text-subtle'
+                              >
+                                {item.description}
+                              </span>
+                            )}
                         </span>
                         {enterTargetKey === itemKey(item) && (
                           <Kbd size='sm' className='text-subtle'>
