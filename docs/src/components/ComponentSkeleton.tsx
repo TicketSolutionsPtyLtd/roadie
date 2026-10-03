@@ -152,6 +152,19 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='h-2 w-10 opacity-50' />
         </div>
       )
+    case 'query-field':
+      return (
+        <div className='flex w-44 items-center gap-1.5 rounded-lg emphasis-field px-2 py-1.5'>
+          <Skel className='size-2.5 shrink-0 rounded-full' />
+          <div className='flex h-4 items-center rounded-full emphasis-subtle px-2'>
+            <Skel className='h-1.5 w-8' />
+          </div>
+          <div className='flex h-4 items-center rounded-full emphasis-subtle px-2'>
+            <Skel className='h-1.5 w-6' />
+          </div>
+          <Skel className='h-1.5 w-6 opacity-50' />
+        </div>
+      )
     case 'otp-field':
       return (
         <div className='flex items-center gap-1'>

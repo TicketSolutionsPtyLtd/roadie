@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "158.5 kB"
+    "limit": "161.5 kB"
   },
   {
     "name": "Single component (Button)",
@@ -232,6 +232,13 @@
     "path": "dist/components/Calendar/index.js",
     "import": "*",
     "limit": "7.25 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "QueryField",
+    "path": "dist/components/QueryField/index.js",
+    "import": "*",
+    "limit": "9.4 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]

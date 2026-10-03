@@ -469,6 +469,16 @@ export {
   type OTPFieldSize
 } from './components/OTPField'
 export {
+  QueryField,
+  type QueryFieldProps,
+  type QueryFieldAccepted,
+  type QueryFieldChip,
+  type QueryFieldIntent,
+  type QueryFieldSearchSuggestion,
+  type QueryFieldSuggestion,
+  type QueryFieldSuggestionGroup
+} from './components/QueryField'
+export {
   NumberField,
   numberFieldGroupVariants,
   type NumberFieldProps,

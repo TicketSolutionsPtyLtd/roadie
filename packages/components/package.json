@@ -216,6 +216,10 @@
       "types": "./dist/components/QRCode/index.d.ts",
       "import": "./dist/components/QRCode/index.js"
     },
+    "./query-field": {
+      "types": "./dist/components/QueryField/index.d.ts",
+      "import": "./dist/components/QueryField/index.js"
+    },
     "./radio-group": {
       "types": "./dist/components/RadioGroup/index.d.ts",
       "import": "./dist/components/RadioGroup/index.js"
