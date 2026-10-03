@@ -67,6 +67,41 @@ function fromResolved(range: ResolvedDateRange): ResolvedRecordRange {
     : instants(range.start, range.end)
 }
 
+/**
+ * A wall-clock time inside a daylight saving gap lands after the jump, which
+ * can put a validated start after its end; those two instants are ordered.
+ */
+function betweenRange(
+  start: string,
+  end: string,
+  timeZone: string
+): ResolvedDateRange {
+  try {
+    return resolveAbsolute({ start, end }, timeZone)
+  } catch (error) {
+    const from = resolveAbsolute({ start, end: start }, timeZone)
+    const to = resolveAbsolute({ start: end, end }, timeZone)
+    if (from.kind === 'dates' && to.kind === 'dates') throw error
+    const [a, b] = [instantsOf(from, timeZone), instantsOf(to, timeZone)]
+    return {
+      kind: 'instants',
+      start: Math.min(a[0], b[0]),
+      end: Math.max(a[1], b[1])
+    }
+  }
+}
+
+function instantsOf(
+  range: ResolvedDateRange,
+  timeZone: string
+): [number, number] {
+  if (range.kind === 'instants') return [range.start!, range.end!]
+  return [
+    startOfDayInstant(range.start, timeZone),
+    startOfDayInstant(addDays(range.end, 1), timeZone) - 1
+  ]
+}
+
 /** What the filter covers, before the field's moment decides the units. */
 function filterRange(
   filter: DateFilter,
@@ -78,7 +113,7 @@ function filterRange(
       return fromResolved(resolveDateRange(filter.value, options))
     case 'between': {
       const [start, end] = filter.value as [string, string]
-      return fromResolved(resolveAbsolute({ start, end }, timeZone))
+      return fromResolved(betweenRange(start, end, timeZone))
     }
     case 'on':
       return fromResolved(

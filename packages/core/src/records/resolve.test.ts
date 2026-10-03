@@ -255,4 +255,41 @@ describe('resolveRecordQuery', () => {
       )
     ).toThrow('Unknown field "nope"')
   })
+
+  it('orders a range that a daylight saving gap turns backwards', () => {
+    expect(
+      resolveOne(
+        {
+          field: 'created',
+          operator: 'between',
+          value: ['2026-10-04T02:30', '2026-10-04T03:10']
+        },
+        '2026-10-03T02:00:00Z',
+        'Australia/Sydney'
+      )
+    ).toEqual({
+      field: 'created',
+      operator: 'overlaps',
+      // 2:30am does not exist that night and lands at 3:30am, after 3:10am.
+      range: {
+        kind: 'instants',
+        start: ms('2026-10-03T16:10:00Z'),
+        end: ms('2026-10-03T16:30:00Z')
+      }
+    })
+  })
+
+  it('still throws on dates in the wrong order', () => {
+    expect(() =>
+      resolveOne(
+        {
+          field: 'birthday',
+          operator: 'between',
+          value: ['2026-10-05', '2026-10-01']
+        },
+        '2026-10-03T02:00:00Z',
+        'Australia/Sydney'
+      )
+    ).toThrow('starts after it ends')
+  })
 })

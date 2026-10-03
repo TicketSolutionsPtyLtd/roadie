@@ -77,6 +77,11 @@ const EXPONENT = /^(-?)(\d)(?:\.(\d+))?e([+-]\d+)$/
 
 // Meilisearch's unquoted values have no exponent form, so write every digit.
 function numberLiteral(value: number): string {
+  if (!Number.isFinite(value)) {
+    throw new RangeError(
+      `Meilisearch filters need a finite number, not ${value}`
+    )
+  }
   if (Object.is(value, -0)) return '0'
   const text = String(value)
   const m = EXPONENT.exec(text)

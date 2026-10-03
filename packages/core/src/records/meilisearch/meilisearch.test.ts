@@ -125,6 +125,12 @@ describe('toMeilisearch', () => {
     }
   )
 
+  it.each([NaN, Infinity])('refuses %d, which has no literal', (value) => {
+    expect(() =>
+      filterFor({ field: 'capacity', operator: 'eq', value })
+    ).toThrow('finite')
+  })
+
   it('throws on an unknown sort field', () => {
     expect(() =>
       toMeilisearch(
