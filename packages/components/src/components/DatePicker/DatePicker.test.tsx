@@ -29,7 +29,7 @@ describe('DatePicker', () => {
       'Fri 27 Nov 2026'
     )
     expect(
-      screen.getByRole('button', { name: 'Choose date' })
+      screen.getByRole('button', { name: /^Choose date/ })
     ).toBeInTheDocument()
   })
 
@@ -56,7 +56,7 @@ describe('DatePicker', () => {
         onValueChange={onValueChange}
       />
     )
-    await userEvent.click(screen.getByRole('button', { name: 'Choose date' }))
+    await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByRole('grid')).toBeInTheDocument()
     await userEvent.click(day('2026-10-23'))
@@ -77,7 +77,7 @@ describe('DatePicker', () => {
         onValueChange={onValueChange}
       />
     )
-    await userEvent.click(screen.getByRole('button', { name: 'Choose date' }))
+    await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
     await screen.findByRole('dialog')
     await userEvent.click(day('2026-10-23'))
     await vi.waitFor(() =>
@@ -99,7 +99,7 @@ describe('DatePicker', () => {
     const input = screen.getByRole('textbox')
     await userEvent.clear(input)
     await userEvent.type(input, 'someday{Enter}')
-    await userEvent.click(screen.getByRole('button', { name: 'Choose date' }))
+    await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
     await screen.findByRole('dialog')
     await userEvent.click(day('2026-10-23'))
     expect(input).toHaveValue('Fri 23 Oct 2026')
@@ -109,7 +109,7 @@ describe('DatePicker', () => {
   it('opens the calendar on the typed date', async () => {
     render(<DatePicker aria-label='Show date' today={TODAY} />)
     await userEvent.type(screen.getByRole('textbox'), '14 mar{Enter}')
-    await userEvent.click(screen.getByRole('button', { name: 'Choose date' }))
+    await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
     await screen.findByRole('dialog')
     expect(day('2027-03-14')).toHaveAttribute('data-selected')
   })
@@ -125,7 +125,7 @@ describe('DatePicker', () => {
     const input = screen.getByRole('textbox')
     await userEvent.type(input, '1 oct{Enter}')
     expect(input).toHaveAttribute('aria-invalid', 'true')
-    await userEvent.click(screen.getByRole('button', { name: 'Choose date' }))
+    await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
     await screen.findByRole('dialog')
     expect(day('2026-10-06')).toHaveAttribute('aria-disabled', 'true')
   })
@@ -149,7 +149,7 @@ describe('DatePicker', () => {
   it('turns off the field and the button with disabled', () => {
     render(<DatePicker aria-label='Show date' disabled />)
     expect(screen.getByRole('textbox')).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Choose date' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^Choose date/ })).toBeDisabled()
   })
 
   it('submits a controlled value in the shape of its granularity', () => {
@@ -232,7 +232,10 @@ describe('DatePicker', () => {
         <Field.ErrorText />
       </Field>
     )
-    await userEvent.type(screen.getByLabelText('Show date'), '1 oct{Enter}')
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'Show date' }),
+      '1 oct{Enter}'
+    )
     expect(screen.getByRole('alert').textContent).toBe(
       '1 Oct 2026 isn’t available'
     )
@@ -367,11 +370,49 @@ describe('DatePicker', () => {
     )
   })
 
+  it('names each calendar button by its label and value', () => {
+    render(
+      <>
+        <Field>
+          <Field.Label>Doors</Field.Label>
+          <DatePicker today={TODAY} defaultValue='2026-11-27' />
+        </Field>
+        <DatePicker aria-label='Curfew' today={TODAY} />
+        <DatePicker aria-labelledby='late' today={TODAY} />
+        <span id='late'>Late entry</span>
+      </>
+    )
+    expect(
+      screen.getByRole('button', {
+        name: 'Choose date, Doors (Fri 27 Nov 2026)'
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Choose date, Curfew' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Choose date, Late entry' })
+    ).toBeInTheDocument()
+  })
+
+  it('names the popup by the picker it belongs to', async () => {
+    render(
+      <Field>
+        <Field.Label>Doors</Field.Label>
+        <DatePicker today={TODAY} />
+      </Field>
+    )
+    await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
+    expect(
+      await screen.findByRole('dialog', { name: 'Choose date, Doors' })
+    ).toBeInTheDocument()
+  })
+
   it('names the calendar popup', async () => {
     render(<DatePicker aria-label='Show date' today={TODAY} />)
-    await userEvent.click(screen.getByRole('button', { name: 'Choose date' }))
+    await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
     expect(
-      await screen.findByRole('dialog', { name: 'Choose date' })
+      await screen.findByRole('dialog', { name: 'Choose date, Show date' })
     ).toBeInTheDocument()
   })
 
@@ -477,7 +518,9 @@ describe('DatePicker', () => {
           onValueChange={onValueChange}
         />
       )
-      await userEvent.click(screen.getByRole('button', { name: 'Choose date' }))
+      await userEvent.click(
+        screen.getByRole('button', { name: /^Choose date/ })
+      )
       await screen.findByRole('dialog')
       await userEvent.click(day('2026-10-08'))
       expect(onValueChange).toHaveBeenCalledWith('2026-10-08T19:30:00+11:00')
@@ -537,7 +580,9 @@ describe('DatePicker', () => {
       await userEvent.clear(time)
       await userEvent.type(time, 'soon{Enter}')
       onValueChange.mockClear()
-      await userEvent.click(screen.getByRole('button', { name: 'Choose date' }))
+      await userEvent.click(
+        screen.getByRole('button', { name: /^Choose date/ })
+      )
       await screen.findByRole('dialog')
       await userEvent.click(day('2026-10-08'))
       expect(onValueChange).toHaveBeenLastCalledWith(null)
@@ -572,10 +617,12 @@ describe('DatePicker', () => {
           <DatePicker />
         </Field>
       )
-      const input = screen.getByLabelText('Show date')
+      const input = screen.getByRole('textbox', { name: 'Show date' })
       expect(input).toBeDisabled()
       expect(input).toHaveAttribute('aria-invalid', 'true')
-      expect(screen.getByRole('button', { name: 'Choose date' })).toBeDisabled()
+      expect(
+        screen.getByRole('button', { name: /^Choose date/ })
+      ).toBeDisabled()
     })
 
     it('says why typed text is wrong in Field.ErrorText', async () => {
@@ -586,7 +633,10 @@ describe('DatePicker', () => {
           <Field.ErrorText />
         </Field>
       )
-      await userEvent.type(screen.getByLabelText('Show date'), 'someday{Enter}')
+      await userEvent.type(
+        screen.getByRole('textbox', { name: 'Show date' }),
+        'someday{Enter}'
+      )
       expect(screen.getByRole('alert')).toHaveTextContent(
         'Enter a date, like 14 Mar or next Fri'
       )
