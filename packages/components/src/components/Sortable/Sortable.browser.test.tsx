@@ -433,24 +433,41 @@ describe('Sortable handle alignment', () => {
     expect(Math.abs(offset('A'))).toBeLessThanOrEqual(1)
   })
 
-  it.each([false, true])(
-    'centres the handle in a List row (leading %s)',
-    (withLeading) => {
-      render(
-        <Sortable items={['A']} label='rows' onReorder={() => {}}>
-          <List>
-            <List.Item
-              value='A'
-              title='A'
-              description='Two lines tall'
-              leading={withLeading ? <span className='size-10' /> : undefined}
-            />
-          </List>
-        </Sortable>
-      )
-      const row = item('A').querySelector('[data-slot="list-item"]')!
-      const icon = handle('A').querySelector('svg')!
-      expect(Math.abs(centre(icon).y - centre(row).y)).toBeLessThanOrEqual(1)
-    }
-  )
+  it.each([
+    ['without', undefined],
+    ['with', <span className='size-10' />]
+  ])('centres the handle in a List row %s a leading slot', (_, leading) => {
+    render(
+      <Sortable items={['A']} label='rows' onReorder={() => {}}>
+        <List>
+          <List.Item
+            value='A'
+            title='A'
+            description='Two lines tall'
+            leading={leading}
+          />
+        </List>
+      </Sortable>
+    )
+    const row = item('A').querySelector('[data-slot="list-item"]')!
+    const icon = handle('A').querySelector('svg')!
+    expect(Math.abs(centre(icon).y - centre(row).y)).toBeLessThanOrEqual(1)
+  })
+
+  it('follows a row that aligns its items to the start', () => {
+    render(
+      <Sortable items={['A']} label='rows' onReorder={() => {}}>
+        <Sortable.Item
+          value='A'
+          label='A'
+          className='flex h-16 emphasis-normal items-start gap-3 rounded-xl p-2'
+        >
+          <Sortable.Handle />
+          <span className='font-semibold'>A</span>
+        </Sortable.Item>
+      </Sortable>
+    )
+    const labelTop = screen.getByText('A').getBoundingClientRect().top
+    expect(handle('A').getBoundingClientRect().top).toBeCloseTo(labelTop, 0)
+  })
 })
