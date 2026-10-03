@@ -144,8 +144,9 @@ Pass `eventDateDisplay` to override the computed schedule with a pre-formatted
 string. It's an escape hatch, so prefer the structured fields.
 
 Events are ordered by `eventStartAtUtc` and grouped into days by
-`eventDateKey` (`YYYY-MM-DD` at the venue). `eventTimeZone` must be an IANA id,
-such as `Australia/Brisbane`.
+`eventDateKey` (`YYYY-MM-DD` at the venue). Times show in `eventTimeZone`,
+which must be an IANA id such as `Australia/Brisbane`. Without it, times show
+in the viewer's time zone, so supply it whenever venue time matters.
 
 ## Reserved seating
 

@@ -6,7 +6,8 @@
 // Carousel.TitleLink / Tabs.Tab and never touch this primitive themselves.
 //
 // A public `<Link>` is deferred until a consumer needs one; custom links use
-// `useRoadieLink`. Flipping later is a one-line export change here.
+// `useRoadieLink`. Publishing one means a public export here and removing
+// `Link` from the exclude list in `scripts/generate-package-exports.mjs`.
 
 export type { RoadieRoutedLinkProps } from './RoadieRoutedLink'
 export { RoadieRoutedLink } from './RoadieRoutedLink'
