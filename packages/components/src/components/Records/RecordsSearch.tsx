@@ -6,6 +6,7 @@ import type { RecordField, RecordFilter } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { PickerOverlay, usePickerSurface } from '../../pickers/PickerShell'
+import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { QueryField, type QueryFieldAccepted } from '../QueryField'
 import { RecordsFilterEditorLazy } from './RecordsFilterEditorLazy'
 import { useRecordsContext } from './context'
@@ -113,6 +114,31 @@ export function RecordsSearch({
   const returnTo = useRef<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const anchorRef = useRef<HTMLElement | null>(null)
+  // A chip remounts as its filter changes, so the editor follows the chip
+  // holding the filter now, by id.
+  const anchorId = useRef<string | null>(null)
+  const [anchor] = useState(() => {
+    let last = new DOMRect()
+    const current = () => {
+      const held = anchorRef.current
+      if (held?.isConnected || !anchorId.current) return held
+      const found = held?.ownerDocument.querySelector<HTMLElement>(
+        `[data-slot=combobox-chip][data-chip-id="${CSS.escape(anchorId.current)}"]`
+      )
+      if (found) anchorRef.current = found
+      return found ?? held
+    }
+    return {
+      getBoundingClientRect: () => {
+        const element = current()
+        if (element?.isConnected) last = element.getBoundingClientRect()
+        return last
+      },
+      get contextElement() {
+        return current() ?? undefined
+      }
+    }
+  })
   const labelId = useId()
   const editorOpen = editing?.open ?? false
   const surface = usePickerSurface(editorOpen)
@@ -141,6 +167,7 @@ export function RecordsSearch({
     anchor: HTMLElement | null
   ) {
     anchorRef.current = anchor
+    anchorId.current = null
     returnTo.current = null
     const sent = next.index === null ? null : (filters[next.index] ?? null)
     emptied.current = false
@@ -198,6 +225,9 @@ export function RecordsSearch({
     return found >= 0 ? found : null
   }
   const at = editingAt()
+  useIsomorphicLayoutEffect(() => {
+    if (editing?.open && at !== null) anchorId.current = chipIds[at] ?? null
+  })
   // The filter went, such as with the view replaced, so its editor goes too.
   if (editing?.open && editing.sent && at === null)
     setEditing({ ...editing, open: false })
@@ -289,7 +319,7 @@ export function RecordsSearch({
           }}
           surface={surface}
           trigger={null}
-          anchor={anchorRef}
+          anchor={anchor}
           aria-labelledby={labelId}
           labelSource={labelId}
           action='Edit filter'

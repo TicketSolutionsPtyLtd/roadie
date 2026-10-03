@@ -110,7 +110,12 @@ describe('Records.Search in a browser', TIMEOUT, () => {
       await screen.findByRole('button', { name: /^Next week/ })
     )
     await expect.poll(() => chip('Starts')?.textContent).toContain('Next week')
-    expect(screen.getByRole('dialog', { name: 'Starts' })).toBeVisible()
+    const after = screen.getByRole('dialog', { name: 'Starts' })
+    expect(after).toBeVisible()
+    // The edited chip remounts; the editor stays under the chip that holds it.
+    const moved = await settledBox(after)
+    expect(moved.top).toBeGreaterThan(box(chip('Starts')).bottom)
+    expect(Math.abs(moved.left - box(chip('Starts')).left)).toBeLessThan(2)
   })
 
   it('edits a chip in a bottom drawer on a phone', async () => {
