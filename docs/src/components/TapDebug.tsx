@@ -71,7 +71,7 @@ export function TapDebug() {
       const parts = [event.type, describe(target)]
       if (event instanceof PointerEvent)
         parts.push(
-          `${event.pointerType} ${Math.round(event.clientX)},${Math.round(event.clientY)}`
+          `${event.pointerType} ${Math.round(event.clientX)},${Math.round(event.clientY)} id=${event.pointerId} primary=${event.isPrimary}`
         )
       if (event instanceof TouchEvent) {
         const touch = event.changedTouches[0]
@@ -84,6 +84,7 @@ export function TapDebug() {
         parts.push(`related=${describe(related)}`)
       if (event.type === 'input' || event.type === 'change')
         parts.push(`value="${(target as HTMLInputElement).value}"`)
+      if (!event.isTrusted) parts.push('synthetic')
       if (event.defaultPrevented) parts.push('prevented')
       log(parts.join(' '))
     }
@@ -139,7 +140,7 @@ export function TapDebug() {
     observer.observe(document.body, { subtree: true, childList: true })
     // A controlled input's value is a property, which no observer sees.
     const poll = setInterval(check, 50)
-    log('logging taps')
+    log('logging taps, build 2')
     return () => {
       for (const type of EVENTS) {
         window.removeEventListener(type, onEvent, true)
