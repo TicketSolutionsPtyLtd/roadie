@@ -1,4 +1,4 @@
-import type { RecordSelection } from '@oztix/roadie-core/records'
+import type { RecordQuery, RecordSelection } from '@oztix/roadie-core/records'
 
 export const EMPTY_SELECTION: RecordSelection = { ids: [] }
 
@@ -105,3 +105,24 @@ export function pageState(
   if (count === 0) return false
   return count === pageIds.length ? true : 'mixed'
 }
+
+/**
+ * What a selection was taken against: the search and the unresolved filters,
+ * chips and their values in any order, so "today" rolling over doesn't drop it.
+ */
+export const matchKey = ({
+  search,
+  filters
+}: Pick<RecordQuery, 'search' | 'filters'>) =>
+  JSON.stringify([
+    search.trim(),
+    filters
+      .map((filter) =>
+        JSON.stringify(
+          'values' in filter
+            ? { ...filter, values: [...filter.values].sort() }
+            : filter
+        )
+      )
+      .sort()
+  ])

@@ -43,6 +43,8 @@ export type RecordsContextValue = {
   setBulkConfirming: (index: number | null) => void
   /** The records as of the last render, for an action that settles after renders its closure never saw. */
   latestRecords: RefObject<RecordsInstance>
+  /** Bumped by each change to the search or filters, so an action can tell its query moved on. */
+  queryRevision: RefObject<{ key: string; count: number }>
 }
 
 export type RecordsToolbarBox = { element: HTMLElement; height: number }

@@ -21,11 +21,19 @@ import {
   type ResolvedRecordRange,
   resolveRecordQuery
 } from '../resolve'
-import type { RecordField, RecordQueryOptions, RecordView } from '../types'
+import type {
+  RecordField,
+  RecordPosition,
+  RecordQueryOptions,
+  RecordView
+} from '../types'
 
 export type MeilisearchOptions = RecordQueryOptions & {
   /** How the index stores instants. Defaults to seconds. */
   epoch?: 'seconds' | 'milliseconds'
+  /** The page to fetch, zero-based like `RecordPosition`. Adds `page` and `hitsPerPage`. */
+  position?: Required<Pick<RecordPosition, 'page' | 'pageSize'>> &
+    Pick<RecordPosition, 'row'>
 }
 
 export type MeilisearchQuery = {
@@ -33,6 +41,9 @@ export type MeilisearchQuery = {
   /** One expression per chip; Meilisearch ANDs the array. */
   filter: string[]
   sort: string[]
+  /** One-based. With `hitsPerPage`, the response's `totalHits` counts the matches for `rowCount`, up to the index's `pagination.maxTotalHits` (1,000 by default). */
+  page?: number
+  hitsPerPage?: number
 }
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$/
@@ -209,18 +220,36 @@ function filterExpression(
   }
 }
 
+function paging({
+  page,
+  pageSize
+}: NonNullable<MeilisearchOptions['position']>) {
+  if (
+    !Number.isInteger(page) ||
+    page < 0 ||
+    !Number.isInteger(pageSize) ||
+    pageSize < 1
+  )
+    throw new RangeError(
+      `Meilisearch pages need a whole page from 0 and a page size from 1, not page ${page} of ${pageSize}`
+    )
+  return { page: page + 1, hitsPerPage: pageSize }
+}
+
 /**
  * A view as Meilisearch's `q`, `filter` and `sort`. Filters mean the same as
  * `matchesRecordQuery` in the browser; search ranks with Meilisearch's prefix
  * and typo rules over the index's `searchableAttributes`, which should list
  * the fields marked `searchable`. Relative dates resolve at `now`. Throws on
  * an unknown field, on an event or access field filtered by date with no
- * `localDateKey`, and on text Meilisearch cannot quote.
+ * `localDateKey`, and on text Meilisearch cannot quote. With `position`, adds
+ * one-based `page` and `hitsPerPage` (its `row` is ignored), and throws a
+ * RangeError on a page below 0 or a page size below 1.
  */
 export function toMeilisearch(
   view: RecordView,
   fields: readonly RecordField[],
-  { epoch = 'seconds', ...options }: MeilisearchOptions
+  { epoch = 'seconds', position, ...options }: MeilisearchOptions
 ): MeilisearchQuery {
   const resolved = resolveRecordQuery(view.query, fields, options)
   const byKey = fieldIndex(fields)
@@ -232,6 +261,7 @@ export function toMeilisearch(
     sort: resolved.sort.map(
       ({ field, direction }) =>
         `${field}:${direction === 'descending' ? 'desc' : 'asc'}`
-    )
+    ),
+    ...(position && paging(position))
   }
 }

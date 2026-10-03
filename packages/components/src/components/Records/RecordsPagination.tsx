@@ -22,14 +22,17 @@ export function RecordsPagination({
 }: RecordsPaginationProps) {
   const { records } = useRecordsContext()
   const { page, pageSize } = records.position
+  // A page past the end, such as a deep link waiting for its count, reads and
+  // steps as the last page.
+  const shownPage = Math.min(page, records.pageCount - 1)
   const sizeOptions = pageSizes.includes(pageSize)
     ? pageSizes
     : [...pageSizes, pageSize].sort((a, b) => a - b)
   const awaiting =
     records.loading && !records.error && records.rows.length === 0
   const total = awaiting ? 0 : records.resultCount
-  const first = total === 0 ? 0 : page * pageSize + 1
-  const last = Math.min(total, (page + 1) * pageSize)
+  const first = total === 0 ? 0 : shownPage * pageSize + 1
+  const last = Math.min(total, (shownPage + 1) * pageSize)
   return (
     <div
       data-slot='records-pagination'
@@ -75,8 +78,8 @@ export function RecordsPagination({
           aria-label='Previous page'
           size='sm'
           emphasis='subtler'
-          disabled={awaiting || page === 0}
-          onClick={() => records.setPage(page - 1)}
+          disabled={awaiting || shownPage === 0}
+          onClick={() => records.setPage(shownPage - 1)}
         >
           <CaretLeftIcon weight='bold' className='size-4' aria-hidden />
         </IconButton>
