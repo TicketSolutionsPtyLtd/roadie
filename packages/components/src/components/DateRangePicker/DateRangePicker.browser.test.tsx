@@ -8,7 +8,7 @@ import type { DateRangeValue } from '@oztix/roadie-core/datetime'
 
 import { DateRangePicker } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { setHoverCapable } from '../../css/testUtils'
+import { nudgeFrames, setHoverCapable } from '../../css/testUtils'
 import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -376,9 +376,10 @@ for (const [width, height] of [
         .poll(() => Math.round(box(october()).top))
         .toBe(Math.round(box(weekdays).bottom))
       body.scrollTop += 1500
-      await expect
-        .poll(() => box(october()).bottom)
-        .toBeLessThan(box(weekdays).top)
+      // The calendar follows the scroll a frame after its scroll event, and
+      // typing before then would land on a month it still thinks is first.
+      await nudgeFrames()
+      expect(box(october()).bottom).toBeLessThan(box(weekdays).top)
       const start = within(drawer).getByRole('combobox', { name: 'Start' })
       await userEvent.clear(start)
       await userEvent.type(start, '6 oct 2026{Enter}')

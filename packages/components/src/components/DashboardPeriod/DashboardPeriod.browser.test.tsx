@@ -6,6 +6,7 @@ import { page, userEvent } from 'vitest/browser'
 
 import { DashboardPeriod, type DashboardPeriodValue } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { withFrames } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
 
 // Wed 7 Oct 2026.
@@ -79,7 +80,9 @@ for (const [width, height] of [
       await userEvent.click(picker())
       const drawer = await screen.findByRole('dialog')
       expect(drawer).toHaveAttribute('data-slot', 'drawer-popup')
-      await expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+      await withFrames(() =>
+        expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+      )
       const footer = drawer.querySelector<HTMLElement>(
         '[data-slot="drawer-footer"]'
       )!
@@ -106,7 +109,9 @@ for (const [width, height] of [
         within(drawer).getByRole('button', { name: /^Last 30 days/ })
       )
       await userEvent.click(apply)
-      await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+      await withFrames(() =>
+        expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+      )
       expect(document.querySelector('output')).toHaveTextContent(
         '{"range":{"direction":"past","amount":30,"unit":"day"},"compare":"previous-year"}'
       )
@@ -117,7 +122,9 @@ for (const [width, height] of [
       render(<Controlled />)
       await userEvent.click(picker())
       const drawer = await screen.findByRole('dialog')
-      await expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+      await withFrames(() =>
+        expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+      )
       await userEvent.click(
         within(drawer).getByRole('switch', { name: 'Compare' })
       )
@@ -130,7 +137,9 @@ for (const [width, height] of [
       await userEvent.click(
         within(drawer).getByRole('button', { name: 'Close' })
       )
-      await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+      await withFrames(() =>
+        expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+      )
       expect(document.querySelector('output')).toHaveTextContent(
         '{"range":"this-month","compare":"previous-period"}'
       )
@@ -194,7 +203,9 @@ describe('DashboardPeriod on a wide screen', TIMEOUT, () => {
       within(popup).getByRole('button', { name: 'Previous year' })
     )
     await userEvent.click(within(popup).getByRole('button', { name: 'Apply' }))
-    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
     expect(document.querySelector('output')).toHaveTextContent(
       '{"range":"this-month","compare":"previous-year"}'
     )
@@ -208,7 +219,9 @@ describe('DashboardPeriod on a wide screen', TIMEOUT, () => {
       within(popup).getByRole('switch', { name: 'Compare' })
     )
     await userEvent.click(within(popup).getByRole('button', { name: 'Cancel' }))
-    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
     expect(document.querySelector('output')).toHaveTextContent(
       '{"range":"this-month","compare":"previous-period"}'
     )

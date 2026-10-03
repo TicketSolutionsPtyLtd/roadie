@@ -57,3 +57,37 @@ export function keepFramesRunning(at: () => Point) {
   onTestFinished(stop)
   return stop
 }
+
+let nudges = 0
+
+// Wakes rendering with a pointer move, then waits two frames, so scroll events
+// the page has queued and the frame callbacks they request have run.
+export async function nudgeFrames(at: Point = { x: 0, y: 0 }) {
+  await commands.pointer([{ type: 'move', x: at.x + (nudges++ % 2), y: at.y }])
+  await new Promise(requestAnimationFrame)
+  await new Promise(requestAnimationFrame)
+}
+
+// Runs a wait that only frames can end, such as a transition settling or an
+// exit animation unmounting a popup, with frames kept running from `at`.
+export async function withFrames<T>(
+  wait: () => Promise<T>,
+  at: () => Point = () => ({ x: 0, y: 0 })
+) {
+  const stop = keepFramesRunning(at)
+  try {
+    return await wait()
+  } finally {
+    await stop()
+  }
+}
+
+// A native drag leaves Linux WebKit counting the mouse as pressed for the whole
+// page, so the next test file's first press fires no pointerdown. A press and
+// release in the corner clears it.
+export const releaseDragPointer = () =>
+  commands.pointer([
+    { type: 'move', x: 0, y: 0 },
+    { type: 'down' },
+    { type: 'up' }
+  ])
