@@ -320,7 +320,8 @@ describe('resolveRecordQuery', () => {
 
   it.each([
     [['2026-10-05T10:00Z', '2026-10-01T10:00Z']],
-    [['2026-10-05T05:00', '2026-10-04T04:00']]
+    [['2026-10-05T05:00', '2026-10-04T04:00']],
+    [['2026-10-04T03:00', '2026-10-04T02:00']]
   ])('still throws on unvalidated times in the wrong order: %j', (value) => {
     expect(() =>
       resolveOne(

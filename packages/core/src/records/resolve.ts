@@ -68,6 +68,8 @@ function fromResolved(range: ResolvedDateRange): ResolvedRecordRange {
     : instants(range.start, range.end)
 }
 
+const OFFSET = /(?:Z|[+-]\d{2}:\d{2})$/
+
 /** What the filter covers, before the field's moment decides the units. */
 function filterRange(
   filter: DateFilter,
@@ -86,6 +88,10 @@ function filterRange(
       }
       const first = boundStart(from, timeZone)
       const last = boundEnd(to, timeZone)
+      // Ends without offsets are ordered on the clock too, since a DST jump
+      // can land two clock times on one instant.
+      const onClock = !OFFSET.test(start) && !OFFSET.test(end)
+      if (onClock) resolveAbsolute({ start, end }, 'UTC')
       if (first > last) {
         throw new RangeError(`Range starts after it ends: ${start}`)
       }
