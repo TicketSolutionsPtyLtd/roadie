@@ -1,5 +1,491 @@
 # @oztix/roadie-components
 
+## 2.16.0
+
+### Minor Changes
+
+- 5a62938: Add `Calendar` (`@oztix/roadie-components/calendar`), a month grid for
+  choosing a date, several dates or a range, built on the plain-date math in
+  `@oztix/roadie-core/datetime`. Every value is an ISO date string, never a
+  `Date`. `mode` is `single`, `multiple` or `range`, with `selected`,
+  `defaultSelected` and `onSelect`; a range's `min` and `max` limit its length
+  in days. Days that would break them dim, and pressing one keeps the start and
+  announces the rule, such as "Ranges can be up to 14 days". `disabled` and `modifiers` take matchers: a date, a list,
+  `{ start, end }`, `{ before }`, `{ after }`, `{ dayOfWeek }` or a function.
+  Each modifier renders as a data attribute on its days, such as
+  `data-has-session`.
+
+  It fills its container: seven columns share the width, each day stays a
+  circle up to 48px across in the middle of its column, and a range's band runs
+  edge to edge. In a popover it takes 280px a month. It shows `numberOfMonths`
+  side by side where they fit and stacked where they don't, or with
+  `layout='scroll'` stacks months in a list that scrolls under one pinned row of
+  weekdays, adding months as it nears either end. It takes month and year
+  selects under `captionLayout='dropdown'`,
+  `fixedWeeks`, `showOutsideDays`, `weekStart`, `startMonth` and `endMonth`,
+  and a controlled `month`. Focus moves separately from selection with a roving
+  tab stop: arrows, Page Up and Down (with Shift for a year), Home and End.
+  Disabled days stay focusable, ranges preview under the pointer or keyboard,
+  and a polite live region announces the month and the selection. Days carry
+  `data-selected`, `data-range-start`, `data-range-middle`, `data-range-end`,
+  `data-range-preview`, `data-today`, `data-outside`, `data-disabled`,
+  `data-out-of-range` and `data-focused` for styling.
+
+  Today follows midnight in `timeZone` and catches up when a hidden tab is shown
+  again. The server leaves today unmarked, so cached HTML read on a later day
+  hydrates without a mismatch, and a calendar with no `today`, `month`,
+  `defaultMonth` or selection renders an empty frame until the browser knows
+  today.
+
+- 0eed3da: `Combobox` gains chip parts for multiple selection: `Combobox.Value`,
+  `Combobox.Chips`, `Combobox.Chip` and `Combobox.ChipRemove`, wrapping Base
+  UI's, and `Combobox.ChipLabel`, which truncates a long value. Chips are subtle
+  pills that inherit the intent around them, with a round remove button.
+  Backspace in an empty input removes the last chip, and the arrow keys move
+  between chips.
+
+  `Combobox.InputGroup` and `comboboxInputGroupVariants` now set a minimum height
+  for each size (`min-h-8`, `min-h-10`, `min-h-12`) instead of a fixed `h-*`, so
+  the group grows when chips wrap. A single line keeps its height, but a child
+  sized with `h-full` now takes its content's height instead of the group's.
+
+- 99111f3: Dashboards gain a period and a comparison.
+
+  `@oztix/roadie-core/dashboard`: a description can carry `period: { range,
+compare?, history? }`, where `range` is a `DateRangeValue`, `compare` a
+  `Comparison`, and `history` (`'partial'` or `'unavailable'`) what
+  `resolveComparison` said about the data. A delta marked `comparison: true`
+  follows it. `validateDashboard` checks the period's shape, rejects custom dates
+  that aren't real plain dates or run backwards and hour windows (a period covers
+  whole days), warns about a comparison with an open-ended range, `history` with
+  no comparison, and a comparison delta that sets its own `context`, which never
+  shows, and rejects a comparison delta on a dashboard with no period. The field's
+  type is `DashboardPeriodSpec`.
+
+  `@oztix/roadie-components`: add `DashboardPeriod`
+  (`@oztix/roadie-components/dashboard-period`), one `DateRangePicker` button
+  with `commit='apply'` that shows the period and the dates it compares with.
+  Under the range, a Compare switch turns the comparison on and a toggle group
+  picks previous period or previous year, with the dates it covers, or "Not
+  enough history" or "Nothing to compare". A custom comparison set by the app
+  shows as Custom dates. Apply sends both together; Cancel drops both. Its value
+  is `DashboardPeriodValue`, `{ range, compare? }`. Its presets default to
+  `dashboardPeriodPresets`: next 30 and 90 days, last 30 days, last 12 months
+  and this financial year. `dataStart`, `dataEnd` and `alignWeekday` match the
+  app's `resolveComparison`, so the comparison shows the dates the app fetches.
+  It takes `presets`, `readOnly`, `disabled`, `timeZone`, `today`,
+  `weekStart`, `fiscalYearStart` and `locale`, and places `children`, such as a
+  benchmark, after the period. On a narrow container they stack. It has one
+  size, a large control: 48px tall, with the comparison's dates on a second line,
+  so pair it with large Buttons and Selects on the same row.
+
+  `@oztix/roadie-charts`: `DashboardView` shows a description's `period` above its
+  sections. `onPeriodChange` receives the new `{ range, compare? }`; without it
+  the period shows read-only. `periodProps` (`DashboardViewPeriodProps`) passes
+  the toolbar's other props. A delta marked `comparison: true` is named on its
+  context line ("vs previous period", over any `context` the card gives), hides
+  with no comparison, and gives way to "Not enough history" or "Nothing to
+  compare" when the period's `history` says so.
+
+- 816a826: `DataTable` links rows with `getRowHref`. The title cell, the pinned text
+  column or else the first text column, becomes a link routed through
+  `RoadieProvider`, with external links opening in a new tab. Its overlay covers
+  the row, so pressing anywhere on it follows the link, and the row takes the
+  link's hover tint and focus ring. The link is the row's only tab stop.
+  `getRowHref` runs where the table renders, so a server component can pass it.
+
+  `DashboardView` takes `getRowHref={(card, row) => …}` to link table card rows,
+  since a dashboard description is JSON and holds no functions.
+
+- 816a826: `DataTable` sorts in the browser with `sortable`. Pressing a header sorts by that
+  column, numbers largest first and text A to Z, and pressing it again flips the
+  direction. Empty and text values in a number column stay at the bottom. Start
+  from `defaultSort`, or control it with `sort` and `onSortChange`. Sortable
+  headers now show a caret: up or down on the sorted column, and a faint up-down
+  caret on the rest, styled with `is-interactive` rather than an underlined
+  link. `getSortHref` still links headers for server sorting: an unsorted
+  number, delta or meter header now links `descending` first, the way a click
+  sorts, and sparkline headers no longer link. `sortDataTableRows` sorts rows on
+  a server the same way. Sparkline columns don't sort.
+
+  Pinned-cell styles now apply only inside a `DataTable`, so a `data-pin`
+  attribute elsewhere on the page no longer makes an element sticky.
+
+- ff2f04d: `DataTable` takes a totals row with `totals`, rendered in a new `Table.Foot`:
+  strong text over a rule, its label in the first column as a row header. `true`
+  or `'sum'` adds up the number columns over every row, labelled "Totals for 12
+  records", or the `recordName` you pass. Shares, indexes, points and columns with
+  `total: false` stay blank, and currency sums round to the cent. Give
+  `{ label, values }` to show your own figures, such as the server's totals for a
+  paged report or an average; with `values`, nothing is summed, and without a
+  label the row reads "Totals". The first column holds the label, so it never
+  hides while the totals show. `DataTableTotals` types the prop, `true`
+  included, and `tableCellClass(align)` gives a body cell's classes, for a `th`
+  that heads a row.
+
+  A dashboard table card takes the same `totals`, and columns take `total: false`.
+  `validateDashboard` checks them: values need a label and must name a column,
+  `'sum'` warns when there's nothing to sum, and either warns when the first
+  column, which holds the label, has a total that would never show.
+  `cardTable(card)` returns the totals summed, and a `Chart` table view shows a
+  `ChartTable`'s totals. In core,
+  `resolveTableTotals(columns, rows, totals)`, `isSummable(column)` and the
+  `RecordName` and `ResolvedTotals` types come from
+  `@oztix/roadie-core/dashboard` and the Zod-free `/dashboard-layout`.
+
+- df311de: Add `DateField` (`@oztix/roadie-components/date-field`), `TimeField`
+  (`@oztix/roadie-components/time-field`) and `DatePicker`
+  (`@oztix/roadie-components/date-picker`), typed date and time fields built on
+  `Calendar` and the date phrase parser in `@oztix/roadie-core/datetime`.
+
+  `DateField` reads what people type, such as "14 mar", "next fri", "tomorrow"
+  or "1/12" (day first), and `TimeField` reads "7:30pm", "19:30" or "noon".
+  Text is committed on blur or Enter, then shown in the house style ("Fri 27 Nov
+  2026", "7:30pm"). Values are plain strings: an ISO date, `'HH:MM'`, or null.
+  Text that names nothing stays on screen, sets `aria-invalid` and makes the
+  value null; Escape puts back the last value. `DateField` takes `dateStyle`,
+  `today`, `timeZone`, `weekStart` and `disabled` matchers as on `Calendar`, and
+  `TimeField` takes `hourCycle` (12 or 24) and `minuteStep`, which the arrow
+  keys step by. Both take `size`, `emphasis`, `invalid` and `name`, and inherit
+  `invalid`, `required` and `disabled` from `Field`.
+
+  `DateField` and the date in `DatePicker` are comboboxes that suggest dates.
+  Focused while empty, they list hints at what can be typed, such as Today,
+  Next Fri, In 2 weeks and End of month, each with its date, and nothing is
+  highlighted, so Enter still submits the form. As text is typed they offer the
+  dates it could mean, with the first highlighted so Enter takes it; Escape
+  closes the list and keeps the text, and a second Escape puts back the last
+  date. Suggestions are read in `timeZone` and against `today`, and dates that
+  `disabled` refuses are left out.
+
+  `DatePicker` pairs a typed date with a calendar in a `Popover`, or below 48rem
+  in a bottom `Drawer` titled with the picker's label, whose days grow to fill the
+  width up to 48px. Opening it focuses the chosen day or today; choosing a day
+  closes it and returns focus to the calendar button. The button is named after
+  the picker's label and date, such as "Choose date, Doors (Fri 27 Nov 2026)", and
+  the popup "Choose date, Doors". The button is labelled by the `Field` label too,
+  so a test that finds the input with `getByLabelText` should use
+  `getByRole('combobox', { name })`, and one that finds the button by the exact
+  name "Choose date" should match its start.
+
+  `granularity='minute'` adds a `TimeField`, and the value becomes the instant
+  the date and time name in `timeZone`, with its offset, such as
+  `'2026-11-27T19:30:00+11:00'`, so event times are set on the venue's clock. It
+  also takes `disabled` matchers, `readOnly`, `captionLayout`, `startMonth`,
+  `endMonth`, `placeholder`, `inputRef`, `form` and a controlled `open`.
+
+  `Field.ErrorText` now also shows a control's own error, such as "Enter a date,
+  like 14 Mar or next Fri", when typed text names nothing. It shows even when
+  the `Field` isn't `invalid`, and wins over the error text's children until the
+  text is fixed.
+
+- 1936d26: Add `DateRangePicker` (`@oztix/roadie-components/date-range-picker`), a button
+  showing a date range that opens presets, typed start and end dates, and a range
+  `Calendar` in a `Popover`, or below 48rem in a bottom `Drawer`.
+  `DateRangePreset` and the default `dateRangePresets` are exported from the
+  subpath and the package root.
+
+  The value is a `DateRangeValue` from `@oztix/roadie-core/datetime`. A preset
+  is emitted as given, so "Last 30 days" stays relative when saved; typed or
+  pressed dates become an absolute `{ start, end }`, and null when both are
+  cleared. Nothing is emitted while typed text names no date. The typed Start
+  and End are comboboxes that suggest single dates as `DateField` does, never
+  ranges, and End suggests nothing before the start. The button shows the range in words with the dates
+  a relative range stands for, and is named "Choose dates, <label> (<range>)".
+
+  `presets` replaces the default list (today, yesterday, recent periods and
+  periods to date, with the financial year from `fiscalYearStart`), and `group`
+  sets presets under a heading. `commit='apply'` holds changes until Apply is
+  pressed, for a dashboard period; with `required`, Apply stays off while both
+  dates are empty. `granularity='minute'` adds an optional time
+  to each end, read in `timeZone`, with `hourCycle` and `minuteStep`. It also
+  takes `disabled` matchers, `readOnly` (shown with a lock), `invalid`,
+  `required`, `size`, `emphasis`, `placeholder`, `numberOfMonths` (two on wide
+  screens, one on narrow), `min`, `max`, `captionLayout`, `startMonth`,
+  `endMonth`, `today`, `weekStart`, `locale` and `open`, `defaultOpen` and
+  `onOpenChange`, and inherits its label, description, `invalid`, `required`
+  and `disabled` from `Field`. The drawer fills the screen's height. Under its title a line sums up the dates
+  chosen ("8 Sept to 7 Oct 2026 · 30 days"), and Periods and Calendar tabs
+  switch between a list of presets, each with its dates, and Start and End over
+  months that scroll under a pinned weekday row. Tapping End or Start picks
+  which end the next day sets. With `commit='apply'`, Clear and Apply stay in
+  view at its foot, with the header's Close as Cancel.
+
+- 02a7d71: Add `Kbd` (`@oztix/roadie-components/kbd`), a keyboard key or shortcut drawn
+  as a keycap. Known key names show a glyph or short word, `keys={['mod', 'k']}`
+  draws a combination with a keycap per key, `combined` draws it on one keycap
+  (⌘K, or Ctrl+K off Apple), and `separator` goes between keys, such as `'+'` or
+  `'then'` for a sequence. `mod`, `meta`, `shift`, `alt` and `ctrl` follow the
+  reader's platform without a hydration mismatch. `emphasis` is `subtle` (the
+  default: a soft, borderless keycap tinted from the surrounding text colour),
+  `normal` (its own opaque, bordered surface, built on `emphasis-normal`) or
+  `subtler` (plain text in the surrounding colour, for menu rows). Kbd is
+  `aria-hidden` unless `announce` is set, and is hidden on screens without hover
+  unless announced.
+
+  `Menu` item `shortcut`s now render through `Kbd` and accept a key list such as
+  `['mod', 'd']`. Text such as `'⌘D'` keeps its characters, but a known key name
+  given as text now shows its `Kbd` face (`'Enter'` gains the return glyph,
+  `'Delete'` reads "Del", `'Shift'` becomes ⇧ on Apple devices) and a single
+  letter shows in capitals. Menu shortcuts are now hidden on screens without
+  hover. `Tooltip.Content` and `Tooltip.Popup` take a new `shortcut` that shows
+  keys after the label.
+
+- 58b2703: `listItemVariants` gains an `interactive` variant, true by default. Set it to
+  false for a row whose link or control sits inside it, and style the row with
+  `is-interactive-within`, marking that link `data-interactive-target`. Without
+  the marked link, a subtler row keeps its tinted fill at rest. `List.Item` is
+  unchanged.
+- 58b2703: `Pane` publishes `--pane-sticky-bottom`, the height of its `Pane.Footer`, so
+  sticky content at the bottom of a pane can clear the footer. A direct child of
+  `Pane.Body` marked `data-pane-fill` takes the height the rest of the body
+  leaves; give it its own overflow and it scrolls while the pane stays put.
+- 7b8d0da: Add `QueryField` at `@oztix/roadie-components/query-field`: a search field
+  that turns what you type into filter chips. It takes your chips and a
+  `suggest` function, lists suggestions in the groups you return with a
+  "Search for …" row last, and hands what was taken to `onAccept`. Enter searches
+  the text unless a suggestion is marked `exact`; filters are taken by arrow or
+  click. Locked chips come first with a "Set by this page" tooltip and nothing in
+  the field removes them. Backspace on an empty field selects the last chip, then
+  removes it. `pendingChip` shows the field being given a value, `onEditChip`
+  gives chips an edit button that opens your editor, `shortcut` focuses the field
+  from anywhere on the page, and `inputRef` reaches the input. It works alone with
+  `aria-label` or inside `Field`; `required` is announced but never blocks a form.
+- 85a054f: New `@oztix/roadie-components/records` shows a list of records. `useRecords`
+  takes the records, their `RecordField`s, a `RecordView` and a separate
+  `RecordPosition` for the page and page size (each controlled or not), and
+  searches, filters, sorts and pages them in the browser. Filters a view names
+  but the fields can't apply are skipped, listed in `skippedFilters` and
+  warned about in development. `Records.Root` (or
+  `Records.Provider`, which adds no element, for parts spread across a
+  `Pane`) shares it with `Records.Toolbar` and its plain-text
+  `Records.Search`, `Records.Content`, `Records.Pagination` and a
+  `Records.Status` live region. Content shows the view's layout, or the first
+  one given, with skeleton rows while loading, an error with Retry, and an
+  empty state that says whether nothing exists yet or nothing matches.
+  `RecordValue` shows one value as its field reads.
+
+  New `@oztix/roadie-components/record-table` adds the table layout:
+  `tableColumns(fields).field(key, { pin, width, cell })` presents a field as
+  a column, `tableLayout(columns)` gives it to `Records.Root`, and the view's
+  `layout.columns` orders and hides them. The table sorts from its headers,
+  pins columns, and scrolls sideways with a Roadie scrollbar that sticks to
+  the bottom of whatever scrolls the page, or both ways in its own box with
+  `maxHeight` or `fill`. `RecordTable` puts the toolbar, table, pagination
+  and status together.
+
+  Records can be selected: `useRecords` takes `selectable` and a
+  `RecordSelection` (`selection`, `defaultSelection`, `onSelectionChange`),
+  picked ids or every match but some. A search or filter change drops picked
+  records it hides and drops a select all; sort and page changes keep it.
+  `matchingRows` lists every match in sort order across pages. `rowActions`
+  puts a menu on each record and `getRowHref` links it through the table's
+  title column; with selection on, a click elsewhere on a row selects it and
+  Shift extends the range, and Cmd, Ctrl or middle click opens the record in
+  a new tab. `Records.BulkActions` acts on the selection: in the header row
+  of a layout whose definition says `bulkActions: 'header'`, as the table's
+  does, with a count menu to select all or clear and a More actions menu for
+  actions that don't fit, otherwise floating at the foot of the screen.
+  `Records.Actions` (or the toolbar's `actions`) acts on every match. Danger
+  actions ask first unless `confirm` is `false`, and any action given
+  `confirm` asks. `downloadCsv` saves CSV text as a file. `RecordTable` takes
+  `bulkActions`, `tableActions` and `searchLabel`, and `record-table` exports
+  `shownColumns` for the columns a view shows. `Records.Search` takes an
+  `aria-label`, `Records.Toolbar` a `searchLabel`, and `Records.Status`
+  announces the selection and a search's count once typing settles.
+
+  `Records.Options` is a Configure button for the view, in the standard
+  toolbar after the search and before the table actions. It opens a popover,
+  or a bottom drawer on a phone, with the sort (a field and direction per
+  level, in the field's own terms such as Low to high, with Add sort and
+  Remove) and the shown layout's settings. For the table these are its
+  columns: drag a handle, or use its Move menu, to reorder them, and an eye
+  toggle to show or hide each one. They write `view.query.sort` and
+  `view.layout.columns`, leaving out an order or hidden list that matches the
+  columns as defined and keeping keys for columns the table doesn't have.
+  `label` renames the button, which is "Configure table" for the table. A
+  layout definition adds its own settings with `Settings`, which can carry a
+  `preload` that runs once the page is idle or the button is reached; the
+  table's columns list loads that way, out of the table's first load.
+
+- e8751a7: Select-style triggers now use a visible border instead of the raised look. `Select.Trigger`, `DateRangePicker` and `DashboardPeriod` default to `emphasis-normal`, with no shadow or rim light, and keep the field states for hover, focus, open and invalid.
+
+  Adds `emphasis='subtler'` to the same three: no fill or border at rest, as wide as its value and icon rather than its container, the hover and press of a subtler `Button`, a danger edge when invalid. `Records.Pagination` uses it for rows per page, so it sits with the subtler page buttons beside it, and keeps the width of its widest option as the page size changes.
+
+- ebc4db6: Add `Sortable` (`@oztix/roadie-components/sortable`), drag to reorder built on
+  the browser's native drag and drop. `Sortable` takes the item values in order
+  as `items` and reports `onReorder(next, { value, from, to })`; `Sortable.Item`
+  marks each item and `Sortable.Handle` drags it. `disabled` on an item stops
+  it being dragged or moved from its own menu, while other items can still move
+  past it. Clicking or tapping the handle, or pressing Enter or Space on it,
+  opens a Move menu (up, down, to top, to bottom; left, right, start and end for
+  `orientation='horizontal'`) for keyboard and screen reader users; a press that
+  turns into a drag doesn't. Focus returns to the moved item's handle, and each
+  move is announced in a polite live region.
+  The drop line is accent coloured, the dragged item dims in place, and a
+  scrolling container scrolls while you drag near its edge.
+
+  The package gains three runtime dependencies for this:
+  `@atlaskit/pragmatic-drag-and-drop`, `@atlaskit/pragmatic-drag-and-drop-hitbox`
+  and `@atlaskit/pragmatic-drag-and-drop-auto-scroll` (Apache-2.0). Only
+  `Sortable` imports them, so importing other components, including `List`,
+  doesn't load them. Importing everything from the root barrel adds about 10 kB.
+
+  `List.Item` takes a `value`. Inside a `Sortable` the row becomes reorderable:
+  a drag handle leads, and the row is static, so it ignores `href`, `onClick`,
+  `current` and `chevron` (a development warning names `href` and `onClick`).
+  Outside a `Sortable` the row is unchanged.
+
+- ff2f04d: Tables take a `status` column kind. The value is a status key, and the column's
+  `status` map gives each key an intent and an optional label, which defaults to
+  the key in sentence case, so `on_sale` reads "On sale". A key the map lacks
+  shows as neutral, in its raw text.
+
+  `DataTable` shows it as a small `Badge` in normal emphasis, or as the label in
+  a `plain` table. It sorts by label, or by each key's `order` when the map gives
+  one, with keys that have no order last. An empty status shows the column's
+  `emptyText` and sorts last.
+
+  In core, `TableColumn` takes `kind: 'status'` and `status`, and
+  `validateDashboard` rejects an unknown intent and warns about keys a map lacks.
+  `columnStatus(column, key)` resolves a key's intent and label, and
+  `cellText(column, value)` gives any cell as the plain text its table shows,
+  and `humaniseStatus(key)` gives a key's default label. They come with the
+  `STATUS_INTENTS`, `StatusIntent`, `TableStatus` and `ResolvedStatus` types, and
+  also from the Zod-free `@oztix/roadie-core/dashboard-layout`. A `status` map on
+  a column of another kind gets a warning. `COLUMN_KINDS` gains `'status'`, so an
+  exhaustive `switch` over a column's `kind` needs a case for it.
+
+### Patch Changes
+
+- 72a5b57: Pressing Enter after typing in an `Autocomplete` or `Combobox` now takes the
+  first suggestion, without moving to it with the arrows first. Suggestions
+  that arrive after typing, such as server results, are highlighted too.
+
+  Opening the list without typing still highlights nothing new, so Enter there
+  picks no value, and an empty `Autocomplete` still submits its form. While
+  suggestions show for typed text, Enter fills the first one instead of
+  submitting; press Escape first to keep the typed text. After typing, the first
+  Down Arrow moves to the second suggestion, and the arrows wrap at either end
+  instead of returning to the input. `Autocomplete` in `both` or `inline` mode is
+  unchanged, since a highlight there replaces the typed text.
+
+  Pass `autoHighlight={false}` to keep the old behaviour. `Autocomplete` also
+  takes `autoHighlight='always'` to highlight the first suggestion with no text.
+  `QueryField` is unchanged: Enter still searches the typed text unless you
+  arrow to a suggestion or one is marked `exact`.
+
+- ddcad84: Buttons now follow their parent's alignment. The `btn` utility set
+  `place-self: start`, which overrode a flex row's `items-center` and a grid's
+  `justify-items`, so every `Button`, `IconButton` and `Toggle` in a taller row
+  sat at the top. It now sets `width: fit-content` instead. With a size class
+  (every `Button`, `IconButton` and `Toggle` has one), a button keeps its own
+  size in a grid cell or a flex column and takes the row's `align-items`
+  (including `items-baseline` and `items-end`), a grid's `justify-items`, or a
+  flex column's `items-center`, as in a horizontal `Card`'s side-column footer.
+
+  To widen a button, use `w-full`. `self-stretch`, `justify-self-stretch` and
+  `place-self-stretch` no longer widen it. To undo `w-full` at a breakpoint, use
+  `w-fit` rather than `w-auto`, which now lets a grid or flex column stretch it.
+  If you load `@oztix/roadie-core/css/compiled` beside your own Tailwind build,
+  import it before your utilities so `w-*` on a button still wins.
+
+- ff2f04d: A `DataTable` whose rows link keeps its title column visible. The title holds
+  each row's only link, so its `priority` is now ignored while rows link, with a
+  warning in development, instead of hiding the column and the row links with it.
+- 7a507d3: `DateRangePicker` no longer puts `aria-required` on its button, where ARIA
+  doesn't allow it: a required picker failed axe's `aria-allowed-attr` check,
+  and so did `DashboardPeriod`, which marks its pickers required. A required
+  picker now says "Required" in its button's description instead.
+- 496217b: A link with `download`, such as `<Button href='/files/lineup.pdf' download>`,
+  now renders a plain `<a>` instead of the provider's Link. A file isn't a route,
+  and Next.js prefetched it as one and logged a 404. Because the router no longer
+  handles it, add any base path to a download `href` yourself.
+- eb8cb85: Large pages no longer restyle every element when something small changes.
+  Chromium gathers whatever a stylesheet selects after a `:has()` into one set,
+  and Navigator and Pane anchor a `:has()` above the whole page, so opening a
+  menu, ticking a row, hovering a list row or typing in a search restyled nearly
+  every element: up to 3 seconds of style work at 4x CPU on a large docs page.
+  Rules that put `*`, a tag or `[data-slot]` after a `:has()` now end on a
+  class, a variable or a rare attribute instead: `List` dividers and contained
+  rows, the wordmark-only `Navigator.Brand` logo, the iconless `Navigator.Item`
+  label, the navigation gutter, the ticket `Card` fill, the disabled `Switch`
+  label, `DataTable`'s Show all columns and `is-interactive-within`'s raised
+  controls. A test keeps the stylesheet free of the pattern.
+
+  `listItemVariants()` now carries the classes that square a row inside a
+  contained `List`, so a custom row built from it still matches `List.Item`.
+
+- d72d07b: Example data uses invented venue, event and promoter names from the contributing guide's vetted list, so no example reads as a real Oztix client. Affects the chart examples from `@oztix/roadie-charts/examples` and JSDoc in core records and QueryField.
+- 49b52fe: `Kbd` hints can now stay visible on touch screens inside a container marked
+  `data-keyboard-hints='always'`, for a help page about shortcuts or a tablet
+  with a keyboard. Elsewhere they still hide where there's no hover.
+- daa17b3: Navigator's pending glow draws its spinning square small and scales it up.
+  The conic gradient sits on a square an eighth of the frame's diagonal, scaled
+  eight times, rather than one drawn at one and a half times the frame's long
+  side. Under heavy load Safari could show the frame's corners while the old,
+  very large layer turned. The square still covers the frame at every angle,
+  and reduced motion still holds it still.
+- 4693788: Navigator no longer logs React's "Each child in a list should have a unique
+  key" warning when a route's child streams in. It used to copy its children
+  with `Children.toArray` to lift out `Navigator.Primary`, and those re-keyed
+  copies flagged a child that had skipped JSX's key check, such as a promise
+  React unwraps. It now renders the rest of its children as given, so apps no
+  longer need to wrap route children in a fragment.
+- 58b2703: `Pane.Footer` has a little more room above its content and casts a soft shadow
+  up over the body. A `Pane` outside a `Navigator` no longer pads its bottom for a
+  phone tab bar that can't be there, so its footer sits at the bottom on phones.
+- d27a4c0: `Autocomplete` and `Combobox` now list the closest matches first as you type,
+  so the highlighted first option, and Enter, take the likeliest one. An exact
+  match leads, then labels that start with the text, then labels with a word
+  that starts with it, then labels that contain it anywhere. Matches of the same
+  kind keep the order of `items`, grouped items are ranked within their group,
+  and case and accents don't count. Typing "Rock" over `['Hard rock', 'Rock']`
+  now lists Rock first. With `limit` on a flat list, ranking comes first, so the
+  closest matches are the ones kept; grouped items fill the limit group by group,
+  in your group order.
+
+  `Combobox` opened without typing still shows `items` in your order.
+  `Autocomplete` ranks by its value, whether typed or set in code. Pass your own
+  `filter` or `filteredItems` to keep your order. Server results passed as
+  `items` without `filter={null}` are now re-ranked; add `filter={null}` to keep
+  the server's order. A `Combobox` given a `createItems()` collection keeps its
+  order.
+
+  The docs' grouped examples mapped the source groups inside `List`, which never
+  filtered. Pass a function to `Autocomplete.List` or `Combobox.List` instead, as
+  the examples now do, so groups filter and rank.
+
+- b2c534d: `Switch` renders a native `<button>`, so a bottom `Drawer`'s swipe no longer
+  swallows a tap on it, and its label's `for` now points at the switch itself.
+- b2c534d: `Autocomplete` and `Combobox` options can be chosen with a tap on an iPhone.
+  Base UI cancels an option's `pointerdown` to keep the input focused, and WebKit
+  then drops the tap's click, so a tapped suggestion closed the list without
+  choosing. Touch and pen now choose an option on lifting, when the finger lifts on
+  the option it went down on without moving off it, and the list stays open
+  while the finger is down, even if the input blurs as the keyboard goes. The
+  mouse events and click that follow the tap don't choose again; a drag or a
+  scroll chooses nothing. This also fixes date suggestions in `DateField`, `DatePicker` and
+  `DateRangePicker`.
+
+  The date suggestions' Enter hint now shows only for a highlight made by typing
+  or the keys. iOS reads a row that grows content under the finger as a hover
+  and drops the tap's click, so a tap on a suggestion's empty right side, where
+  the hint appeared, didn't choose it.
+
+- Updated dependencies [ddcad84]
+- Updated dependencies [54c87b2]
+- Updated dependencies [99111f3]
+- Updated dependencies [ff2f04d]
+- Updated dependencies [df311de]
+- Updated dependencies [c09a86a]
+- Updated dependencies [f57dfba]
+- Updated dependencies [eb8cb85]
+- Updated dependencies [d72d07b]
+- Updated dependencies [fe925b2]
+- Updated dependencies [ff2f04d]
+  - @oztix/roadie-core@2.11.0
+
 ## 2.15.0
 
 ### Minor Changes
