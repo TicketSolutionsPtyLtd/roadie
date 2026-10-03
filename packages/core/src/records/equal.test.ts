@@ -90,6 +90,18 @@ describe('equalViews', () => {
     expect(equalViews(base, other)).toBe(true)
   })
 
+  it('treats a repeated hidden column as the same view', () => {
+    expect(
+      equalViews(
+        { ...base, layout: { type: 'table', columns: { hidden: ['gross'] } } },
+        {
+          ...base,
+          layout: { type: 'table', columns: { hidden: ['gross', 'gross'] } }
+        }
+      )
+    ).toBe(true)
+  })
+
   it('treats missing and empty layout lists as the same', () => {
     expect(
       equalViews(

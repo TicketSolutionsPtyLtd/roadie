@@ -29,7 +29,7 @@ function sameList(a: readonly string[], b: readonly string[]): boolean {
 }
 
 function sorted(items: readonly string[] | undefined): string[] {
-  return [...(items ?? [])].sort()
+  return [...new Set(items)].sort()
 }
 
 function sameLayout(a: RecordLayout, b: RecordLayout): boolean {

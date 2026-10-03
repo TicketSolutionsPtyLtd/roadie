@@ -334,6 +334,21 @@ describe('matchesRecordQuery', () => {
     expect(matchesRecordQuery({ created }, resolved, eventFields)).toBe(false)
   })
 
+  it('skips a number outside the dates JavaScript can hold, without throwing', () => {
+    const resolved = resolveRecordQuery(
+      {
+        search: '',
+        filters: [{ field: 'starts', operator: 'on', value: '2026-10-03' }],
+        sort: []
+      },
+      eventFields,
+      { now: new Date('2026-10-03T02:00:00Z'), timeZone: SYDNEY }
+    )
+    expect(
+      matchesRecordQuery({ starts: 1e20, zone: SYDNEY }, resolved, eventFields)
+    ).toBe(false)
+  })
+
   describe('event dates compare the venue-local date', () => {
     it.each<[string, RecordFilter, string[]]>([
       // Swan starts at 1:30am Sunday Sydney time, but it is a Saturday gig in Perth.

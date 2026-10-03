@@ -283,4 +283,11 @@ describe('parseQuery', () => {
     const merged = [...events, ...orders].map((s) => s.id)
     expect(new Set(merged).size).toBe(merged.length)
   })
+
+  it.each(['capacity:' + '9'.repeat(309), 'capacity:1-' + '9'.repeat(309)])(
+    'offers nothing for a number too large to hold',
+    (text) => {
+      expect(parse(text)).toEqual([])
+    }
+  )
 })

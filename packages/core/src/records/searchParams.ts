@@ -33,9 +33,11 @@ export type RecordSearchParamsResult = {
   problems: RecordViewProblem[]
 }
 
-const EMPTY_VIEW: RecordView = {
-  query: { search: '', filters: [], sort: [] },
-  layout: { type: 'table' }
+function emptyView(): RecordView {
+  return {
+    query: { search: '', filters: [], sort: [] },
+    layout: { type: 'table' }
+  }
 }
 
 type Decoded = { filter: unknown } | { problem: string; at?: string }
@@ -204,7 +206,7 @@ function problem(path: string, message: string): RecordViewProblem {
 export function fromSearchParams(
   input: RecordSearchParamsInput,
   fields: readonly RecordField[],
-  { fallback = EMPTY_VIEW }: { fallback?: RecordView } = {}
+  { fallback = emptyView() }: { fallback?: RecordView } = {}
 ): RecordSearchParamsResult {
   const params = toParams(input)
   const position = readPosition(params)

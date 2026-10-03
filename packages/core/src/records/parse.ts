@@ -51,10 +51,9 @@ const MAX_WORDS = 8
 const MAX_SPAN = 4
 const FIELD_WEIGHT = 0.9
 const DATE_FIELD_DECAY = 0.05
-const FIELD_VALUE = /^([^:]+?)\s*:\s*(.*)$/
 const NUMBER = '(-?\\d+(?:\\.\\d+)?)'
-const NUMBER_RANGE = new RegExp(`^${NUMBER}\\s*(?:-|\\.\\.|to)\\s*${NUMBER}$`)
-const NUMBER_COMPARE = new RegExp(`^(>|<|=|!=)?\\s*${NUMBER}$`)
+const NUMBER_RANGE = new RegExp(`^${NUMBER}(?:-|\\.\\.|to)${NUMBER}$`)
+const NUMBER_COMPARE = new RegExp(`^(>|<|=|!=)?${NUMBER}$`)
 const TRUE_WORDS = new Set(['yes', 'true', 'y'])
 const FALSE_WORDS = new Set(['no', 'false', 'n'])
 
@@ -129,7 +128,7 @@ function numberFilter(field: RecordField, text: string) {
   const range = NUMBER_RANGE.exec(text)
   if (range) {
     const value: [number, number] = [Number(range[1]), Number(range[2])]
-    return value[0] <= value[1]
+    return value.every(Number.isFinite) && value[0] <= value[1]
       ? {
           filter: { field: field.key, operator: 'between', value } as const,
           label: `${field.label} is ${value[0]} to ${value[1]}`
@@ -139,6 +138,7 @@ function numberFilter(field: RecordField, text: string) {
   const compare = NUMBER_COMPARE.exec(text)
   if (!compare) return null
   const value = Number(compare[2])
+  if (!Number.isFinite(value)) return null
   const [operator, words] =
     (
       {
@@ -474,10 +474,11 @@ export function parseQuery(
     filterSuggestion(reading, 1, '', whole, i)
   )
 
-  const named = FIELD_VALUE.exec(input)
-  const field = named && namedField(named[1]!, fields)
-  if (named && field) {
-    const value = named[2]!
+  const colon = input.indexOf(':')
+  const field =
+    colon > 0 ? namedField(input.slice(0, colon), fields) : undefined
+  if (field) {
+    const value = input.slice(colon + 1).trim()
     const readings = value
       ? fieldValueReadings(field, value, options).map((reading, i) =>
           filterSuggestion(reading, round(reading.quality), '', whole, i)

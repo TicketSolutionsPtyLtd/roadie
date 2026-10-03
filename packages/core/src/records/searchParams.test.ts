@@ -182,6 +182,12 @@ describe('fromSearchParams', () => {
     })
   })
 
+  it('gives a fresh default view on each call', () => {
+    const first = fromSearchParams('', eventFields).view
+    first.query.filters.push({ field: 'featured', operator: 'is-true' })
+    expect(fromSearchParams('', eventFields).view.query.filters).toEqual([])
+  })
+
   it('ignores keys it does not know', () => {
     const result = fromSearchParams(
       'utm_source=newsletter&v=1&q=jazz&tab=2',

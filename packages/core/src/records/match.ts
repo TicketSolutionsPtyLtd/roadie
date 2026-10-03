@@ -87,7 +87,7 @@ function isTimeZone(zone: string): boolean {
 
 function epochSpan(value: unknown, zone: string): [number, number] | null {
   if (typeof value === 'number') {
-    return Number.isFinite(value) ? [value, value] : null
+    return Number.isNaN(new Date(value).getTime()) ? null : [value, value]
   }
   if (value instanceof Date) {
     const time = value.getTime()
