@@ -271,7 +271,8 @@ function OptionValues({
       .map((value) => ({ value, label: value }))
   )
   const listed = [...options, ...held]
-  if (options.length === 0)
+  // One typed value edits as text; several typed in turn are ticked off.
+  if (options.length === 0 && held.length <= 1)
     return (
       <Input
         data-filter-value=''

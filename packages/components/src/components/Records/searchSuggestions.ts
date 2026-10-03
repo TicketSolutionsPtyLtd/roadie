@@ -280,6 +280,8 @@ export type ChipOptions = {
   scope: readonly RecordFilter[]
   filters: readonly RecordFilter[]
   skipped: readonly number[]
+  /** Scope filters, by index, that the records skip. */
+  skippedScope?: readonly number[]
 }
 
 export const scopeChipId = (index: number) => `scope:${index}`
@@ -312,7 +314,7 @@ export function filterChipIds(filters: readonly RecordFilter[]): string[] {
 
 /** Scope chips, locked, then the view's filters in order. */
 export function searchChips(
-  { scope, filters, skipped }: ChipOptions,
+  { scope, filters, skipped, skippedScope = [] }: ChipOptions,
   context: Omit<SearchContext, 'filters'>
 ): QueryFieldChip[] {
   const describe = (filter: RecordFilter) =>
@@ -321,7 +323,8 @@ export function searchChips(
   return [
     ...scope.map((filter, index) => {
       const { label, detail } = describe(filter)
-      const unusable = !fits(filter, context.fields)
+      const unusable =
+        skippedScope.includes(index) || !fits(filter, context.fields)
       const description = unusable ? NOT_APPLIED : detail
       return {
         id: scopeChipId(index),

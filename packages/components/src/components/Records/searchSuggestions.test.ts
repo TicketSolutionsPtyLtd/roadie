@@ -270,6 +270,16 @@ describe('searchChips', () => {
       context()
     )
     expect(chip).toMatchObject({ locked: true, intent: 'warning' })
+    const [skipped] = searchChips(
+      {
+        scope: [{ field: 'sold', operator: 'gt', value: 1 }],
+        filters: [],
+        skipped: [],
+        skippedScope: [0]
+      },
+      context()
+    )
+    expect(skipped).toMatchObject({ intent: 'warning' })
   })
 
   it('puts locked scope chips first, and marks a filter that can’t apply', () => {

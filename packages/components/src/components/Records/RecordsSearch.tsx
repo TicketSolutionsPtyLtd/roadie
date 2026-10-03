@@ -12,6 +12,7 @@ import { QueryField, type QueryFieldAccepted } from '../QueryField'
 import { RecordsFilterEditorLazy } from './RecordsFilterEditorLazy'
 import { useRecordsContext } from './context'
 import { whenIdle } from './idle'
+import { applyQuery } from './query'
 import {
   type SearchContext,
   type SearchValue,
@@ -153,6 +154,16 @@ export function RecordsSearch({
   useEffect(() => whenIdle(RecordsFilterEditorLazy.preload), [])
 
   const byKey = new Map(fields.map((field) => [field.key, field]))
+  // As the records apply it, so a scope they skip, such as a reversed range, shows.
+  const skippedScope = useMemo(
+    () =>
+      applyQuery(
+        { search: '', filters: [...records.scope], sort: [] },
+        records.fields,
+        { now: records.now, timeZone: records.timeZone }
+      ).skippedFilters,
+    [records.scope, records.fields, records.now, records.timeZone]
+  )
   const pendingField = pending ? byKey.get(pending) : undefined
   const editingField = editing ? byKey.get(editing.field) : undefined
   const options = { now: records.now, timeZone: records.timeZone }
@@ -163,7 +174,12 @@ export function RecordsSearch({
   }
   const chipIds = filterChipIds(filters)
   const chips = searchChips(
-    { scope: records.scope, filters, skipped: records.skippedFilters },
+    {
+      scope: records.scope,
+      filters,
+      skipped: records.skippedFilters,
+      skippedScope
+    },
     { ...options, fields }
   )
 
