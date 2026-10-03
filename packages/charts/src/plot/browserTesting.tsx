@@ -27,6 +27,21 @@ export function renderInCard(
   )
 }
 
+// Headless WebKit on Linux runs no frames while a page sits idle, so a
+// ResizeObserver stays silent until the pointer moves
+// (docs/solutions/test-failures/linux-webkit-no-frames-while-idle.md). Each
+// call hovers a pixel away from the last, in the top right corner, clear of
+// the charts.
+let nudges = 0
+export async function nudgeFrames() {
+  const { width } = document.body.getBoundingClientRect()
+  await userEvent.hover(document.body, {
+    position: { x: width - 2 - (nudges++ % 2), y: 1 }
+  })
+  await new Promise(requestAnimationFrame)
+  await new Promise(requestAnimationFrame)
+}
+
 /** Waits for the width band, which a ResizeObserver sets after the first paint. */
 export const afterResize = () =>
   new Promise((resolve) =>
