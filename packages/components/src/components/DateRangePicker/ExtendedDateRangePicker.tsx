@@ -111,6 +111,11 @@ export type DateRangePickerExtension = {
   clearable?: boolean
   /** Shown quieter after the range on the button, and read in its name. */
   valueSuffix?: string | null
+  /**
+   * The suffix in fewer words, for a narrow container, where the range's own
+   * dates give way to it so the button keeps one line.
+   */
+  valueSuffixShort?: string | null
 }
 
 /** DateRangePicker, with the hooks pickers built on it need. */
@@ -152,6 +157,7 @@ export function ExtendedDateRangePicker({
   onApply,
   clearable = true,
   valueSuffix,
+  valueSuffixShort,
   ...props
 }: DateRangePickerProps & DateRangePickerExtension) {
   const field = useFieldContext()
@@ -641,10 +647,7 @@ export function ExtendedDateRangePicker({
             data-slot='date-range-picker-trigger'
             className={cn(
               selectTriggerVariants({ size, emphasis }),
-              'gap-2 data-readonly:cursor-default',
-              description &&
-                valueSuffix &&
-                '@max-sm:h-auto @max-sm:py-1.5 @max-sm:text-start'
+              'gap-2 data-readonly:cursor-default'
             )}
           >
             <CalendarBlankIcon
@@ -652,20 +655,41 @@ export function ExtendedDateRangePicker({
               aria-hidden='true'
               className='size-4 shrink-0 text-subtle'
             />
-            {/* In a narrow container the suffix takes a line of its own, so it isn't the first thing cut off. */}
-            <span className='flex min-w-0 flex-1 items-baseline gap-1 @max-sm:grid @max-sm:gap-0'>
-              <span className={cn('truncate', !description && 'text-subtle')}>
-                {description?.label ?? placeholder}
-                {description?.detail && (
-                  <span className='text-subtle'> {description.detail}</span>
-                )}
-              </span>
+            {/* In a narrow container the comparison's words replace the dates, so the button keeps one line at its size. */}
+            <span
+              className={cn(
+                'min-w-0 flex-1 truncate',
+                !description && 'text-subtle'
+              )}
+            >
+              {description?.label ?? placeholder}
+              {description?.detail && (
+                <span
+                  className={cn(
+                    'text-subtle',
+                    valueSuffixShort && '@max-sm:hidden'
+                  )}
+                >
+                  {' '}
+                  {description.detail}
+                </span>
+              )}
               {description && valueSuffix && (
                 <span
                   data-slot='date-range-picker-suffix'
-                  className='truncate text-sm text-subtle'
+                  className={cn(
+                    'text-subtle',
+                    valueSuffixShort && '@max-sm:hidden'
+                  )}
                 >
+                  {' '}
                   {valueSuffix}
+                </span>
+              )}
+              {description && valueSuffixShort && (
+                <span className='hidden text-subtle @max-sm:inline'>
+                  {' '}
+                  {valueSuffixShort}
                 </span>
               )}
             </span>

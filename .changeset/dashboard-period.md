@@ -30,7 +30,10 @@ and this financial year. `dataStart`, `dataEnd` and `alignWeekday` match the
 app's `resolveComparison`, so the comparison shows the dates the app fetches.
 It takes `presets`, `readOnly`, `disabled`, `size`, `timeZone`, `today`,
 `weekStart`, `fiscalYearStart` and `locale`, and places `children`, such as a
-benchmark, after the period. On a narrow container they stack.
+benchmark, after the period. On a narrow container they stack. The button keeps
+one line at each `size`, the height of the Buttons and Selects beside it; in a
+narrow container it says the comparison in words, such as "vs previous year",
+in place of the dates, which stay in its name.
 
 `@oztix/roadie-charts`: `DashboardView` shows a description's `period` above its
 sections. `onPeriodChange` receives the new `{ range, compare? }`; without it

@@ -71,6 +71,7 @@ describe('DashboardPeriod layout', TIMEOUT, () => {
       box(suffix.previousElementSibling!).bottom
     )
     expect(box(picker()).height).toBe(40)
+    expect(picker().textContent).toMatch(/vs 1 to 30 Sept? 2026/)
   })
 })
 
@@ -118,9 +119,7 @@ for (const [width, height] of [
       expect(document.querySelector('output')).toHaveTextContent(
         '{"range":{"direction":"past","amount":30,"unit":"day"},"compare":"previous-year"}'
       )
-      expect(picker().textContent?.replace(/\s+/g, ' ')).toMatch(
-        /vs 8 Sept? to 7 Oct 2025$/
-      )
+      expect(picker()).toHaveAccessibleName(/vs 8 Sept? to 7 Oct 2025\)$/)
     })
 
     it('drops both changes on Close', async () => {
@@ -146,16 +145,31 @@ for (const [width, height] of [
       )
     })
 
-    it('shows the comparison on its own line, not cut off', () => {
-      render(<Controlled />)
-      const suffix = picker().querySelector<HTMLElement>(
-        '[data-slot="date-range-picker-suffix"]'
-      )!
-      expect(suffix.textContent).toMatch(/^vs 1 to 30 Sept? 2026$/)
-      expect(suffix.scrollWidth).toBeLessThanOrEqual(suffix.clientWidth)
-      const period = suffix.previousElementSibling!
-      expect(box(suffix).top).toBeGreaterThanOrEqual(box(period).bottom)
-      expect(box(picker()).height).toBeGreaterThanOrEqual(44)
+    it('keeps one line, its comparison in words, at each size', () => {
+      render(
+        <div className='grid gap-2 p-4'>
+          {(['sm', 'md', 'lg'] as const).map((size) => (
+            <DashboardPeriod
+              key={size}
+              size={size}
+              today={TODAY}
+              defaultValue={{ range: 'this-month', compare: 'previous-year' }}
+            />
+          ))}
+        </div>
+      )
+      const buttons = screen.getAllByRole('button', {
+        name: /^Choose dates, Period/
+      })
+      expect(buttons.map((button) => box(button).height)).toEqual([32, 40, 48])
+      for (const button of buttons) {
+        expect(button).toHaveAccessibleName(/vs 1 to 31 Oct 2025\)$/)
+        const shown = Array.from(
+          button.querySelectorAll<HTMLElement>('span'),
+          (span) => (span.offsetParent ? span.textContent : '')
+        ).join('')
+        expect(shown).toContain('vs previous year')
+      }
     })
   })
 }

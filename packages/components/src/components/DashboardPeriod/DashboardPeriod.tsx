@@ -206,9 +206,10 @@ export function DashboardPeriod({
   const shown = value.compare
     ? compared(value.range, value.compare, options, locale)
     : null
-  const suffix = value.compare
-    ? `vs ${shown?.dates ?? CHOICES.find((c) => c.value === choiceOf(value.compare!))!.label.toLowerCase()}`
+  const inWords = value.compare
+    ? `vs ${CHOICES.find((c) => c.value === choiceOf(value.compare!))!.label.toLowerCase()}`
     : null
+  const suffix = value.compare && shown?.dates ? `vs ${shown.dates}` : inWords
 
   const choices = CHOICES.filter(
     (choice) =>
@@ -294,6 +295,7 @@ export function DashboardPeriod({
           setLastChoice(value.compare ?? 'previous-period')
         }}
         valueSuffix={suffix}
+        valueSuffixShort={inWords}
         extra={compareRow}
         onApply={(range) => {
           const next = periodOf(range ?? value.range, compare)

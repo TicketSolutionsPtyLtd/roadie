@@ -39,11 +39,15 @@ render(<Default />)
 
 ### Sizes
 
+`size` matches the Buttons and Selects beside it in a toolbar: 32, 40 or 48px tall, on one line. In a narrow container the comparison is said in words, such as "vs previous year", in place of the dates; its dates stay in the button's name and in the picker.
+
 ```tsx-live
 <div className='grid gap-4'>
-  <DashboardPeriod size='sm' defaultValue={{ range: 'last-month', compare: 'previous-year' }} />
-  <DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }} />
-  <DashboardPeriod size='lg' defaultValue={{ range: 'last-month', compare: 'previous-year' }} />
+  {['sm', 'md', 'lg'].map((size) => (
+    <DashboardPeriod key={size} size={size} defaultValue={{ range: 'last-month', compare: 'previous-year' }}>
+      <Button size={size}>Export</Button>
+    </DashboardPeriod>
+  ))}
 </div>
 ```
 
