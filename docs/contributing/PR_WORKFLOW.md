@@ -120,7 +120,7 @@ the PR only when both passes are clean.
 - For each finding: fix it test-first and reply naming the commit and test,
   or reply with why it stands. Resolve every thread.
 - **After three Copilot rounds, triage instead of looping.** Fix only what a
-  real user would hit in normal use; defer the rest as `follow-up` issues
+  real user would hit in normal use; defer the rest as Jira follow-ups
   (section 9).
 - **Flaky tests**: a known flake may be re-run once. A flake seen on two
   unrelated PRs gets fixed at its root in its own PR.
@@ -141,9 +141,10 @@ release.
 
 ## 9. Nothing deferred is dropped
 
-Every Minor finding not fixed in its own PR becomes a GitHub issue labelled
-`follow-up`, with the file and line, the finding, and a link to the PR thread
-it came from. Reply on that thread with the issue link before resolving it.
-When a later PR touches the same code, it fixes the issue there and closes
-it. The rest are batched by area into follow-up PRs, or closed with a written
-reason.
+Every Minor finding not fixed in its own PR becomes a Jira work item in the
+**INNO** project with the **Roadie** component and the `follow-up` label,
+holding the file and line, the finding, and a link to the PR thread it came
+from. Group related findings in one item with a checklist. Reply on the PR
+thread with the Jira link before resolving it. When a later PR touches the
+same code, it fixes the item there and closes it. The rest are batched by
+area into follow-up PRs, or closed with a written reason.
