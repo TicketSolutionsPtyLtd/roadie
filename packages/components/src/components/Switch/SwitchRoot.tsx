@@ -60,6 +60,10 @@ export function SwitchRoot({
 
   const control = (
     <SwitchPrimitive.Root
+      // A native button, so a drawer's swipe leaves its press alone and its
+      // label's `for` reaches it.
+      nativeButton
+      render={<button type='button' />}
       data-slot='switch'
       id={inputId}
       required={resolvedRequired}

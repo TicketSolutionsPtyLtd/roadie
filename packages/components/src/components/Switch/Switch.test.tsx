@@ -17,6 +17,13 @@ describe('Switch', () => {
     expect(control.querySelector('[data-slot="switch-thumb"]')).toBeTruthy()
   })
 
+  it('is a native button, so a drawer swipe leaves its press alone', () => {
+    render(<Switch label='Compare' />)
+    const control = screen.getByRole('switch', { name: 'Compare' })
+    expect(control.tagName).toBe('BUTTON')
+    expect(control).toHaveAttribute('type', 'button')
+  })
+
   it('toggles on click and reports the new state', async () => {
     const onCheckedChange = vi.fn()
     render(<Switch aria-label='Dark mode' onCheckedChange={onCheckedChange} />)
