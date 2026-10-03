@@ -41,7 +41,10 @@ const handle = (name: string) =>
   screen.getByRole('button', { name: `Reorder ${name}` })
 
 const sameBox = (a: DOMRect, b: DOMRect) =>
-  a.top === b.top && a.left === b.left && a.height === b.height
+  a.top === b.top &&
+  a.left === b.left &&
+  a.width === b.width &&
+  a.height === b.height
 
 /** Waits for animations to end and the element to hold still, as a slow runner may still be moving it. */
 async function still(element: Element) {
@@ -50,6 +53,7 @@ async function still(element: Element) {
       .getAnimations()
       .filter(
         (animation) =>
+          animation.playState === 'running' &&
           animation.effect?.getComputedTiming().endTime !== Infinity
       )
       .map((animation) => animation.finished.catch(() => {}))
@@ -58,9 +62,14 @@ async function still(element: Element) {
   for (let tries = 0; tries < 40; tries++) {
     await settle(50)
     const now = element.getBoundingClientRect()
-    if (sameBox(last, now)) return
+    if (sameBox(last, now)) {
+      if (!element.isConnected || now.width === 0)
+        throw new Error('Nothing to tap')
+      return
+    }
     last = now
   }
+  throw new Error('The element kept moving')
 }
 
 async function tapOn(element: Element) {

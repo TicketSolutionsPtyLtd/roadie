@@ -33,7 +33,7 @@ const focusPanel = (popup: HTMLElement) => popup
 /** Runs once the page is idle, or soon where the browser can't say when. */
 function whenIdle(run: () => void) {
   if (typeof requestIdleCallback === 'function') {
-    const id = requestIdleCallback(() => run())
+    const id = requestIdleCallback(() => run(), { timeout: 2000 })
     return () => cancelIdleCallback(id)
   }
   const id = setTimeout(run, 200)
@@ -54,10 +54,16 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
 
   const layout = activeLayout(layouts, records.view)
   const Settings = layout?.Settings
-  // A lazy layout's settings load while the page is idle, so the first open
-  // doesn't wait for them and the page's first load doesn't carry them.
-  const preload = Settings?.preload
-  useEffect(() => (preload ? whenIdle(preload) : undefined), [preload])
+  // A lazy layout's settings load once the page is idle, or as the button is
+  // reached, so the first open doesn't wait for them and the page's first
+  // load doesn't carry them. Once per mount: a layout built in render makes a
+  // new `preload` each time.
+  const preload = useRef(Settings?.preload)
+  useEffect(() => {
+    preload.current = Settings?.preload
+  })
+  useEffect(() => whenIdle(() => preload.current?.()), [])
+  const preloadNow = () => preload.current?.()
   const sorts = sortableFields(records.fields).length > 0
   if (!sorts && !Settings) return null
   const name =
@@ -91,6 +97,8 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
                       aria-label={name}
                       emphasis='normal'
                       className={className}
+                      onPointerEnter={preloadNow}
+                      onFocus={preloadNow}
                     >
                       <SlidersHorizontalIcon
                         weight='bold'

@@ -56,5 +56,5 @@ toggle to show or hide each one. They write `view.query.sort` and
 columns as defined and keeping keys for columns the table doesn't have.
 `label` renames the button, which is "Configure table" for the table. A
 layout definition adds its own settings with `Settings`, which can carry a
-`preload` that runs once the page is idle; the table's columns list loads
-that way, out of the table's first load.
+`preload` that runs once the page is idle or the button is reached; the
+table's columns list loads that way, out of the table's first load.

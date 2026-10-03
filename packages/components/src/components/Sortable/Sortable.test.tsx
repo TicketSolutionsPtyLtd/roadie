@@ -271,6 +271,17 @@ describe('Sortable', () => {
     expect(await screen.findByRole('menu')).toBeInTheDocument()
   })
 
+  it('opens the menu on a tap that sends no mouse events', async () => {
+    render(<Columns />)
+    const button = handle('SKU')
+    // WebKit sends no compatibility mouse events when something cancels the
+    // touch's pointerdown, such as a drawer listening for a swipe.
+    fireEvent.pointerDown(button, { pointerType: 'touch' })
+    fireEvent.pointerUp(button, { pointerType: 'touch' })
+    fireEvent.click(button)
+    expect(await screen.findByRole('menu')).toBeInTheDocument()
+  })
+
   it('disables the moves in an open menu when the sortable becomes disabled', async () => {
     const onReorder = vi.fn()
     const view = (disabled: boolean) => (

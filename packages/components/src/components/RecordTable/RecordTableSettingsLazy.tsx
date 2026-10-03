@@ -24,4 +24,8 @@ export function RecordTableSettingsLazy(props: { config: TableLayoutConfig }) {
   return Loaded ? <Loaded {...props} /> : <Suspending {...props} />
 }
 // A failed load shows when the options open, through lazy itself.
-RecordTableSettingsLazy.preload = () => void load().catch(() => {})
+RecordTableSettingsLazy.preload = () =>
+  load().then(
+    () => {},
+    () => {}
+  )

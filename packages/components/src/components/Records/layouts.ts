@@ -27,7 +27,7 @@ export type RecordLayoutDefinition<Config = unknown> = {
   Settings?: RecordLayoutSettings<Config>
 }
 
-/** A layout's settings. A lazy one can `preload`, which Options calls once the page is idle. */
+/** A layout's settings. A lazy one can `preload`, which Options calls once the page is idle or its button is reached. */
 export type RecordLayoutSettings<Config = unknown> = ((props: {
   config: Config
 }) => ReactNode) & { preload?: () => void }

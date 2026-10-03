@@ -539,7 +539,7 @@ describe('Records.Options', () => {
     ).toHaveFocus()
   })
 
-  it('preloads a lazy layout setting once the page is idle', async () => {
+  it('preloads a lazy layout setting once the page is idle, and as the button is reached', async () => {
     const preload = vi.fn()
     const table = tableLayout(showColumns)
     const Settings = Object.assign(() => null, { preload })
@@ -551,9 +551,15 @@ describe('Records.Options', () => {
         </Records>
       )
     }
-    render(<Preloading />)
+    const { rerender } = render(<Preloading />)
     expect(preload).not.toHaveBeenCalled()
+    // A new render with an equal layout doesn't put the preload off again.
+    rerender(<Preloading />)
     await waitFor(() => expect(preload).toHaveBeenCalledTimes(1))
+    await userEvent.hover(
+      screen.getByRole('button', { name: 'Configure table' })
+    )
+    expect(preload).toHaveBeenCalledTimes(2)
   })
 
   it("says why the last shown column can't hide", async () => {

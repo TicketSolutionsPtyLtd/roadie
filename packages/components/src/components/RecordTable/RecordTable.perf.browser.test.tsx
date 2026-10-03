@@ -10,6 +10,7 @@ import { Navigator } from '../Navigator'
 import { Pane } from '../Pane'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { showFields, testShows } from '../Records/testUtils'
+import { RecordTableSettingsLazy } from './RecordTableSettingsLazy'
 import { countRenders } from './renderCounter'
 import { showColumns } from './testUtils'
 
@@ -134,9 +135,8 @@ describe('RecordTable performance', () => {
     const button = container.querySelector<HTMLButtonElement>(
       'button[aria-label="Configure table"]'
     )!
-    // As a page a moment after it loads: Options has preloaded the columns.
-    await new Promise((resolve) => requestIdleCallback(resolve))
-    await import('./RecordTableSettings')
+    // As a page a moment after it loads, once Options has preloaded the columns.
+    await RecordTableSettingsLazy.preload()
     await frame()
     let renders: Record<string, number> = {}
     let latency = 0
