@@ -4,6 +4,7 @@ import { type Ref, useEffect } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { SuggestingInput } from '../../pickers/SuggestingInput'
 import { TypedInput } from '../../pickers/TypedInput'
 import {
   type ReadDateOptions,
@@ -112,20 +113,24 @@ function RangeEndInputs({
         withTime && 'grid-cols-[minmax(0,1fr)_minmax(0,6.5rem)]'
       )}
     >
-      <TypedInput
+      <SuggestingInput
         data-slot='date-range-picker-input'
         typed={date}
-        suggestions={{
-          suggest: (text) =>
-            suggestDates(text, {
-              ...read,
-              locale,
-              ranges: true,
-              minDays: span?.min,
-              maxDays: span?.max
-            }),
-          onChoose: ({ start, end }) =>
-            start === end ? date.setValue(start) : onRange({ start, end })
+        suggest={(text) =>
+          suggestDates(text, {
+            ...read,
+            locale,
+            ranges: true,
+            minDays: span?.min,
+            maxDays: span?.max
+          })
+        }
+        onChoose={({ start, end }) => {
+          if (start === end) return date.setValue(start)
+          // The range may leave this end's date as it was, so the typed
+          // text would stay; it has been taken, so it goes.
+          date.discard()
+          onRange({ start, end })
         }}
         ref={inputRef}
         className={inputVariants({ size: 'sm' })}

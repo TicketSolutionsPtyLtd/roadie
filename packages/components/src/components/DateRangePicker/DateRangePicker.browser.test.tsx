@@ -97,6 +97,20 @@ describe('DateRangePicker on a wide screen', TIMEOUT, () => {
     await expect.poll(() => document.activeElement).toBe(trigger())
   })
 
+  it('closes only the suggestions on Escape in the popover', async () => {
+    render(<Period initial={null} />)
+    await userEvent.click(trigger())
+    const popup = await screen.findByRole('dialog')
+    const start = within(popup).getByRole('combobox', { name: 'Start' })
+    await userEvent.click(start)
+    await userEvent.type(start, 'tom')
+    await screen.findByRole('listbox')
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    expect(screen.getByRole('dialog')).toBe(popup)
+    expect(start).toHaveValue('tom')
+  })
+
   it('fills the chosen preset and leaves the others quiet', async () => {
     render(<Period />)
     await userEvent.click(trigger())

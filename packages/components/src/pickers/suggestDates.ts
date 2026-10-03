@@ -25,7 +25,12 @@ export type SuggestDatesOptions = ReadDateOptions & {
   limit?: number
 }
 
-type Candidate = { phrase: string; label?: string }
+type Candidate = {
+  phrase: string
+  label?: string
+  /** Only a date from today on, for a day number typed alone. */
+  ahead?: boolean
+}
 
 const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 const WEEKDAY_NAMES = [
@@ -103,8 +108,7 @@ function weekdays(modifier: string | undefined, word: string): Candidate[] {
 /** Phrases the text is the start of, so there's something to take as it's typed. */
 function completions(text: string, today: string): Candidate[] {
   const found: Candidate[] = []
-  const startsWith = (phrase: string) =>
-    phrase !== text && phrase.startsWith(text)
+  const startsWith = (phrase: string) => phrase.startsWith(text)
   found.push(...WORDS.filter(startsWith).map(own))
   found.push(...ENDS.filter(startsWith).map(own))
 
@@ -115,10 +119,10 @@ function completions(text: string, today: string): Candidate[] {
   if ('in'.startsWith(text)) found.push(own('in 1 week'), own('in 2 weeks'))
   m = /^in (\d{1,4}|an?)(?: ([a-z]*))?$/.exec(text)
   if (m) {
-    const count = m[1]!
-    const one = count === '1' || count === 'a' || count === 'an'
+    const count = m[1]!.startsWith('a') ? 'a' : m[1]!
+    const one = count === '1' || count === 'a'
     for (const unit of UNITS) {
-      if (!unit.startsWith(m[2] ?? '')) continue
+      if (!`${unit}s`.startsWith(m[2] ?? '')) continue
       found.push(own(`in ${count} ${one ? unit : `${unit}s`}`))
     }
   }
@@ -129,7 +133,7 @@ function completions(text: string, today: string): Candidate[] {
     for (let step = 0; step < 12; step++) {
       const month = (thisMonth + step) % 12
       if (!MONTH_NAMES[month]!.startsWith(m[2] ?? '')) continue
-      found.push(own(`${Number(m[1])} ${MONTHS[month]}`))
+      found.push({ ...own(`${Number(m[1])} ${MONTHS[month]}`), ahead: true })
     }
   }
   return found
@@ -162,8 +166,15 @@ export function suggestDates(
     .replace(/\s+/g, ' ')
     .trim()
   const today = todayOf(options)
+  const completed = typed ? completions(typed, today) : []
+  // A phrase of ours typed in full keeps its words, ahead of its dates.
+  const isTyped = (candidate: Candidate) => candidate.phrase === typed
   const candidates: Candidate[] = typed
-    ? [{ phrase: text }, ...completions(typed, today)]
+    ? [
+        ...completed.filter(isTyped),
+        { phrase: text },
+        ...completed.filter((candidate) => !isTyped(candidate))
+      ]
     : hints(today)
   const suggestions: DateSuggestion[] = []
   const seen = new Set<string>()
@@ -173,11 +184,19 @@ export function suggestDates(
       : (formatDateRange(
           new Date(`${start}T12:00:00Z`),
           new Date(`${end}T12:00:00Z`),
-          { timeZone: 'UTC', dateStyle: 'medium', locale: options.locale }
+          {
+            timeZone: 'UTC',
+            dateStyle: options.dateStyle ?? 'medium',
+            locale: options.locale
+          }
         ) ?? `${start} to ${end}`)
 
   for (const candidate of candidates) {
-    const readings = readDays(candidate.phrase, options)
+    // Our phrases are English, so a locale's own names mustn't read them.
+    const readings = readDays(
+      candidate.phrase,
+      candidate.label ? { ...options, locale: undefined } : options
+    )
     // A phrase of ours means the one date the field reads it as.
     const meant = candidate.label
       ? readings.filter((reading) => reading.start === reading.end).slice(0, 1)
@@ -194,6 +213,7 @@ export function suggestDates(
         if (maxDays !== undefined && span > maxDays) continue
       }
       if (
+        (candidate.ahead && start < today) ||
         matchesDate(start, options.disabled) ||
         matchesDate(end, options.disabled)
       )

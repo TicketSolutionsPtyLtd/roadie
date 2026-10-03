@@ -14,6 +14,7 @@ import {
   usePickerSurface,
   usePickerZone
 } from '../../pickers/PickerShell'
+import { SuggestingInput } from '../../pickers/SuggestingInput'
 import { TypedInput } from '../../pickers/TypedInput'
 import { type DateStyle, formatDate, readDate } from '../../pickers/readDate'
 import type { HourCycle } from '../../pickers/readTime'
@@ -324,14 +325,12 @@ export function DatePicker({
             data-disabled={isDisabled || undefined}
             className={datePickerGroupVariants({ size, emphasis })}
           >
-            <TypedInput
+            <SuggestingInput
               data-slot='date-picker-input'
               typed={date}
-              suggestions={{
-                suggest: (text) => suggestDates(text, readOptions),
-                onChoose: (suggestion) => date.setValue(suggestion.start),
-                anchor: groupRef
-              }}
+              suggest={(text) => suggestDates(text, readOptions)}
+              onChoose={(suggestion) => date.setValue(suggestion.start)}
+              anchor={groupRef}
               form={form}
               disabled={isDisabled}
               invalid={invalid}

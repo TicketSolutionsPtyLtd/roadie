@@ -603,16 +603,39 @@ describe('DateField', () => {
 
     it('reads the hints in the time zone', async () => {
       vi.useFakeTimers({ toFake: ['Date'] })
-      vi.setSystemTime(new Date('2026-10-06T14:30:00Z'))
+      // 2am Wednesday in Perth, still Tuesday in UTC.
+      vi.setSystemTime(new Date('2026-10-06T18:00:00Z'))
       try {
         render(<DateField aria-label='Show date' timeZone='Australia/Perth' />)
         await userEvent.click(screen.getByRole('combobox'))
         expect(
           await screen.findByRole('option', { name: /^Today/ })
-        ).toHaveTextContent('TodayTue 6 Oct 2026')
+        ).toHaveTextContent('TodayWed 7 Oct 2026')
       } finally {
         vi.useRealTimers()
       }
+    })
+
+    it('stays shut when Escape puts back a date after unreadable text', async () => {
+      render(
+        <DateField
+          aria-label='Show date'
+          today={TODAY}
+          defaultValue='2026-11-27'
+        />
+      )
+      const input = screen.getByRole('combobox')
+      await userEvent.clear(input)
+      await userEvent.type(input, 'someday{Enter}{Escape}')
+      expect(input).toHaveValue('Fri 27 Nov 2026')
+      expect(input).toHaveAttribute('aria-expanded', 'false')
+      expect(screen.queryByRole('listbox')).toBeNull()
+    })
+
+    it('stays quiet when weekStart is out of range', async () => {
+      render(<DateField aria-label='Show date' today={TODAY} weekStart={0} />)
+      await userEvent.click(screen.getByRole('combobox'))
+      expect(screen.getByRole('combobox')).toBeInTheDocument()
     })
 
     it('suggests nothing when read only or disabled', async () => {
@@ -620,11 +643,22 @@ describe('DateField', () => {
         <>
           <DateField aria-label='Read only' today={TODAY} readOnly />
           <DateField aria-label='Off' today={TODAY} disabled />
+          <DateField aria-label='Live' today={TODAY} />
         </>
       )
-      await userEvent.click(screen.getByRole('combobox', { name: 'Read only' }))
+      const readOnly = screen.getByRole('combobox', { name: 'Read only' })
+      await userEvent.click(readOnly)
       await userEvent.keyboard('{ArrowDown}')
-      expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+      expect(readOnly).toHaveAttribute('aria-expanded', 'false')
+      const off = screen.getByRole('combobox', { name: 'Off' })
+      expect(off).toBeDisabled()
+      await userEvent.click(off)
+      expect(off).toHaveAttribute('aria-expanded', 'false')
+      // The live field opens in the same way, so the checks above can fail.
+      const live = screen.getByRole('combobox', { name: 'Live' })
+      await userEvent.click(live)
+      await waitFor(() => expect(live).toHaveAttribute('aria-expanded', 'true'))
+      expect(screen.getAllByRole('listbox')).toHaveLength(1)
     })
   })
 })

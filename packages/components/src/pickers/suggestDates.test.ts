@@ -114,7 +114,7 @@ describe('suggestDates: as you type', () => {
     ],
     ['fr', [['Fri', '2026-10-09']]],
     ['next m', [['Next Mon', '2026-10-05']]],
-    ['last fri', [['Fri 2 Oct 2026', '2026-10-02']]],
+    ['last fri', [['Last Fri', '2026-10-02']]],
     [
       '14',
       [
@@ -126,11 +126,26 @@ describe('suggestDates: as you type', () => {
         ['14 Mar', '2027-03-14']
       ]
     ],
+    // A day number looks ahead: 2 Oct has passed and May reads as last May.
     [
-      '14 ma',
+      '2',
       [
-        ['14 Mar', '2027-03-14'],
-        ['14 May', '2026-05-14']
+        ['2 Nov', '2026-11-02'],
+        ['2 Dec', '2026-12-02'],
+        ['2 Jan', '2027-01-02'],
+        ['2 Feb', '2027-02-02'],
+        ['2 Mar', '2027-03-02'],
+        ['2 Apr', '2027-04-02']
+      ]
+    ],
+    ['14 ma', [['14 Mar', '2027-03-14']]],
+    [
+      'in an',
+      [
+        ['In a day', '2026-10-04'],
+        ['In a week', '2026-10-10'],
+        ['In a month', '2026-11-03'],
+        ['In a year', '2027-10-03']
       ]
     ],
     [
@@ -166,10 +181,16 @@ describe('suggestDates: as you type', () => {
     ])
   })
 
+  it('keeps the words of a phrase typed in full', () => {
+    expect(dates('in 2 weeks')).toEqual([['In 2 weeks', '2026-10-17']])
+    expect(dates('end of month')).toEqual([['End of month', '2026-10-31']])
+    expect(dates('Next Fri')).toEqual([['Next Fri', '2026-10-09']])
+  })
+
   it('offers both readings of a word with two', () => {
     // Wed 30 Sep 2026: next week's Friday, then the coming one.
     expect(dates('next fri', { today: '2026-09-30' })).toEqual([
-      ['Fri 9 Oct 2026', '2026-10-09'],
+      ['Next Fri', '2026-10-09'],
       ['Fri 2 Oct 2026', '2026-10-02']
     ])
   })
@@ -186,6 +207,13 @@ describe('suggestDates: as you type', () => {
 
   it('stops at the limit', () => {
     expect(suggestDates('14', { ...SATURDAY, limit: 2 })).toHaveLength(2)
+  })
+
+  it('reads its own hints in English whatever the locale', () => {
+    // In Sesotho "Jan" is June, but the hint "1 Jan" means 1 January.
+    expect(
+      suggestDates('', { today: '2026-12-10', locale: 'st' }).at(-1)?.start
+    ).toBe('2027-01-01')
   })
 
   it('reads a date shown in the locale', () => {
@@ -220,6 +248,13 @@ describe('suggestDates: ranges', () => {
         end: '2026-10-04'
       }
     ])
+  })
+
+  it('describes a range in the date style', () => {
+    expect(
+      suggestDates('this weeke', { ...RANGES, dateStyle: 'long' })[0]
+        ?.description
+    ).toBe('Sat 3 to Sun 4 Oct 2026')
   })
 
   it('names a typed range by its dates', () => {

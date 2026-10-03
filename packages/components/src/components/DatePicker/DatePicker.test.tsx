@@ -105,6 +105,9 @@ describe('DatePicker', () => {
     await userEvent.click(day('2026-10-23'))
     expect(input).toHaveValue('Fri 23 Oct 2026')
     expect(input).not.toHaveAttribute('aria-invalid')
+    // The list the draft left wanting to open stays shut once focus has gone.
+    expect(input).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('listbox')).toBeNull()
   })
 
   it('opens the calendar on the typed date', async () => {

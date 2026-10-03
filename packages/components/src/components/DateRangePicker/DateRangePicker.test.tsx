@@ -250,6 +250,61 @@ describe('DateRangePicker', () => {
   })
 
   describe('typed dates', () => {
+    it('fills both ends from a range suggested in the End field', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('combobox', { name: 'End' }),
+        'next week'
+      )
+      await screen.findByRole('option', { name: /^Next week/ })
+      await userEvent.keyboard('{Enter}')
+      expect(onValueChange).toHaveBeenCalledWith({
+        start: '2026-10-12',
+        end: '2026-10-18'
+      })
+    })
+
+    it('drops the typed text once a suggested range is taken', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          defaultValue={{ start: '2026-10-12', end: '2026-10-13' }}
+        />
+      )
+      const dialog = await open()
+      const start = within(dialog).getByRole('combobox', { name: 'Start' })
+      await userEvent.clear(start)
+      await userEvent.type(start, 'next week')
+      await screen.findByRole('option', { name: /^Next week/ })
+      await userEvent.keyboard('{Enter}')
+      expect(start).toHaveValue('12 Oct 2026')
+      expect(within(dialog).getByRole('combobox', { name: 'End' })).toHaveValue(
+        '18 Oct 2026'
+      )
+    })
+
+    it('leaves out suggested ranges outside min and max', async () => {
+      render(
+        <DateRangePicker aria-label='Period' today={TODAY} min={3} max={7} />
+      )
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('combobox', { name: 'Start' }),
+        'this wee'
+      )
+      await screen.findByRole('option', { name: /^This week/ })
+      expect(screen.queryByRole('option', { name: /^This weekend/ })).toBeNull()
+    })
+
     it('reads typed start and end dates and stays open', async () => {
       const onValueChange = vi.fn()
       render(
