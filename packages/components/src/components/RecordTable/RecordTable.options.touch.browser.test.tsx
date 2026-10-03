@@ -100,10 +100,7 @@ async function openDrawer() {
 }
 
 describe('Records.Options tapped on a phone', TIMEOUT, () => {
-  // CI's WebKit never opens the handle's menu on a tap, while Chromium and
-  // macOS WebKit do; tracked to check on an iPhone.
-  it('moves a column from the Move menu', async ({ skip }) => {
-    if (!navigator.userAgent.includes('Chrome')) skip()
+  it('moves a column from the Move menu', async () => {
     await openDrawer()
     await tapOn(handle('Starts'))
     await tapOn(
