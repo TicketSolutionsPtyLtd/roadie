@@ -46,7 +46,7 @@ Every PR is checked against these before review. Fix every real hit.
   `:has()`, and the code-quality rules.
 - **Foundations pages** in `docs/src/app/foundations/` for the area you
   touch: layout, typography, shape, interactions, colours, elevation,
-  iconography, date and time, tables, linking.
+  iconography, date and time, linking.
 - **Component patterns**: `docs/contributing/BASE_UI.md` for Base UI
   wrappers, `docs/contributing/COMPOUND_PATTERNS.md` for compounds, and
   `Badge/index.tsx` as the cva reference.
@@ -78,7 +78,8 @@ Every PR is checked against these before review. Fix every real hit.
 ## 5. Verify locally
 
 - `pnpm build && pnpm typecheck && pnpm lint && pnpm test`, the browser
-  tests for the files you touched, and `pnpm --filter @oztix/roadie-components size`.
+  tests for the files you touched, and the `size` script of every package you touched
+  (`pnpm --filter <package> size`).
 - Rebuild before browser tests; stale `dist` misleads the `:has()` guard.
 - **Keep the machine cool.** Iterate in one engine (`ROADIE_BROWSERS=chromium`),
   cap workers (`--maxWorkers=4`), run the three-engine set once before
@@ -119,8 +120,8 @@ the PR only when both passes are clean.
 - For each finding: fix it test-first and reply naming the commit and test,
   or reply with why it stands. Resolve every thread.
 - **After three Copilot rounds, triage instead of looping.** Fix only what a
-  real user would hit in normal use; defer the rest with a reply and a line
-  in the follow-up list.
+  real user would hit in normal use; defer the rest as `follow-up` issues
+  (section 9).
 - **Flaky tests**: a known flake may be re-run once. A flake seen on two
   unrelated PRs gets fixed at its root in its own PR.
 - If `main` moves under you, update the branch and wait for CI again,
@@ -140,7 +141,9 @@ release.
 
 ## 9. Nothing deferred is dropped
 
-Every Minor finding not fixed in its own PR goes into the tracked follow-up
-list with its file and line. When a later PR touches the same code, it fixes
-it there. The rest are batched by area into follow-up PRs, or closed with a
-written reason.
+Every Minor finding not fixed in its own PR becomes a GitHub issue labelled
+`follow-up`, with the file and line, the finding, and a link to the PR thread
+it came from. Reply on that thread with the issue link before resolving it.
+When a later PR touches the same code, it fixes the issue there and closes
+it. The rest are batched by area into follow-up PRs, or closed with a written
+reason.
