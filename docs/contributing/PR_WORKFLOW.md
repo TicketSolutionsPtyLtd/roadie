@@ -111,7 +111,10 @@ the PR only when both passes are clean.
 
 - Body: what it is for, what changes, where it comes from, checks run, and
   any decisions the spec left open.
-- Request Copilot's review. A review is clean when it shows "Findings: None"
+- Request Copilot's review. It reads `.github/copilot-instructions.md`;
+  update that file when a convention or a deliberate decision changes, and
+  keep it under 4,000 characters (Copilot reads no further).
+- A review is clean when it shows "Findings: None"
   **and** its body lists no "Previously missed" items.
 - For each finding: fix it test-first and reply naming the commit and test,
   or reply with why it stands. Resolve every thread.
