@@ -112,6 +112,48 @@ describe('A tapped option in a drawer', TIMEOUT, () => {
     expect(document.querySelector('output')).toHaveTextContent('Velvet Ferry')
   })
 
+  it('is chosen once from a multiple Combobox', async () => {
+    function Venues() {
+      const [venues, setVenues] = useState<string[]>([])
+      return (
+        <InDrawer>
+          <Combobox
+            items={VENUES}
+            multiple
+            value={venues}
+            onValueChange={setVenues}
+          >
+            <Combobox.InputGroup>
+              <Combobox.Input aria-label='Venues' />
+              <Combobox.Trigger />
+            </Combobox.InputGroup>
+            <Combobox.Portal>
+              <Combobox.Positioner>
+                <Combobox.Popup>
+                  <Combobox.List>
+                    {(item: string) => (
+                      <Combobox.Item key={item} value={item}>
+                        {item}
+                      </Combobox.Item>
+                    )}
+                  </Combobox.List>
+                </Combobox.Popup>
+              </Combobox.Positioner>
+            </Combobox.Portal>
+          </Combobox>
+          <output>{venues.join(', ')}</output>
+        </InDrawer>
+      )
+    }
+    render(<Venues />)
+    await settle()
+    const input = screen.getByRole('combobox', { name: 'Venues' })
+    await tapOn(input)
+    await userEvent.type(input, 'vel')
+    await tapOn(await screen.findByRole('option', { name: 'Velvet Ferry' }))
+    expect(document.querySelector('output')).toHaveTextContent('Velvet Ferry')
+  })
+
   it('is chosen from a Select', async () => {
     function Venue() {
       const [venue, setVenue] = useState<string | null>(null)

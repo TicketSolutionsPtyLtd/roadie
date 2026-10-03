@@ -66,13 +66,14 @@ render(<Default />)
 
 ### With a range
 
-`mode='range'` takes `{ start, end }`. The first press sets `start` and leaves `end` null, and the days between preview as the pointer or focus moves. `min` and `max` limit the length in days, both ends counted. Days that would break them dim, and pressing one starts a new range there. For a range in a form or a toolbar, with presets and typed dates, use [DateRangePicker](/components/date-range-picker).
+`mode='range'` takes `{ start, end }`. The first press sets `start` and leaves `end` null, and the days between preview as the pointer or focus moves. `min` and `max` limit the length in days, both ends counted. Days that would break them dim. Pressing one keeps the start and announces the rule, such as "Ranges can be up to 14 days", so say the rule in visible text near the calendar too. `Escape` drops the start. For a range in a form or a toolbar, with presets and typed dates, use [DateRangePicker](/components/date-range-picker).
 
 ```tsx-live-noinline
 function Range() {
   const [range, setRange] = useState({ start: null, end: null })
   return (
     <div className='grid gap-4'>
+      <p className='text-sm text-subtle'>Choose up to 14 days.</p>
       <Calendar mode='range' max={14} selected={range} onSelect={setRange} />
       <p className='text-sm text-subtle'>
         {range.start ?? '…'} to {range.end ?? '…'}

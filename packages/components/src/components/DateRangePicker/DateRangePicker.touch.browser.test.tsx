@@ -56,7 +56,11 @@ describe('DateRangePicker tapped on a phone', TIMEOUT, () => {
     await settle(600)
     await tapOn(day('2026-10-01'))
     const x = window.innerWidth / 2
-    while (box(day('2026-11-05')).bottom > window.innerHeight - 150) {
+    for (
+      let swipes = 0;
+      swipes < 10 && box(day('2026-11-05')).bottom > window.innerHeight - 150;
+      swipes++
+    ) {
       const from = window.innerHeight - 200
       await commands.swipe({ x, y: from }, { x, y: from - 120 })
       await settle(400)

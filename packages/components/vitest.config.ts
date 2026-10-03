@@ -87,10 +87,10 @@ const tap: BrowserCommand<[x: number, y: number]> = async (
 }
 
 // A finger drag from one point to another, for touch scrolling. Chromium
-// only, through the DevTools protocol; other engines skip.
+// only, through the DevTools protocol: a test skips it in other engines.
 const swipe: BrowserCommand<
   [from: { x: number; y: number }, to: { x: number; y: number }]
-> = async ({ page, frame, provider }, from, to) => {
+> = async ({ page, frame }, from, to) => {
   const testFrame = await frame()
   const box = await (await testFrame.frameElement()).boundingBox()
   if (!box) throw new Error('The test frame has no box')
@@ -113,7 +113,6 @@ const swipe: BrowserCommand<
     ])
   await send('touchEnd', [])
   await session.detach()
-  void provider
 }
 
 const browserTest = {

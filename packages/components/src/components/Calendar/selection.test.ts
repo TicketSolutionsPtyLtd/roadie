@@ -68,6 +68,11 @@ describe('selectDate', () => {
     ).toEqual({ start: '2027-03-20', end: null })
   })
 
+  it('keeps a started range when a day breaks its length', () => {
+    const started = { start: '2027-03-07', end: null }
+    expect(selectDate('range', started, '2027-03-30', { max: 7 })).toBe(started)
+  })
+
   it('clears a started range pressed again when one day is too short', () => {
     expect(
       selectDate('range', { start: '2027-03-07', end: null }, '2027-03-07', {

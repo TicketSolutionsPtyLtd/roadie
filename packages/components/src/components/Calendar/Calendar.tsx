@@ -48,6 +48,7 @@ import {
   type CalendarMode,
   type CalendarSelection,
   isSelected,
+  lengthRule,
   previewRange,
   selectDate,
   withinLength
@@ -501,6 +502,12 @@ export function Calendar(props: CalendarProps) {
 
   function select(date: string) {
     if (isDayDisabled(date)) return
+    if (isOutOfRange(date)) {
+      const rule = lengthRule({ min, max })
+      // Changed text, so a second refusal is heard again.
+      setAnnouncement((said) => (said === rule ? `${rule}\u00a0` : rule))
+      return
+    }
     const next = selectDate(mode, selection, date, { required, min, max })
     if (next === selection) return
     commit(next)
