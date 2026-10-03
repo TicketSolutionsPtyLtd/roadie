@@ -1,4 +1,4 @@
-import { formatValue } from '../dataviz/format'
+import { formatValue, normalizeMinusSign } from '../dataviz/format'
 import type { ValueFormat } from '../dataviz/format'
 import { describeDateRange, plainDateInstant } from '../datetime/describe'
 import { formatDateRange, formatDateTime } from '../datetime/format'
@@ -96,7 +96,22 @@ function numberFormat(field: RecordField | undefined): ValueFormat {
 }
 
 function number(value: number, field: RecordField | undefined): string {
-  return formatValue(value, numberFormat(field))
+  const format = numberFormat(field)
+  const code = field?.currency?.toUpperCase()
+  // The house formats are dollars; another fixed currency names itself.
+  if (format === 'currency' && code && code !== 'AUD' && Number.isFinite(value))
+    try {
+      return normalizeMinusSign(
+        new Intl.NumberFormat('en-AU', {
+          style: 'currency',
+          currency: code,
+          minimumFractionDigits: Number.isInteger(value) ? 0 : undefined
+        }).format(value)
+      )
+    } catch {
+      return formatValue(value, format)
+    }
+  return formatValue(value, format)
 }
 
 // Plain dates format in UTC, so today is read in the viewer's zone and

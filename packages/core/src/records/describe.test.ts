@@ -159,6 +159,16 @@ describe('describeRecordFilter', () => {
     ).not.toHaveProperty('detail')
   })
 
+  it('names a fixed currency other than dollars', () => {
+    const fields: RecordField[] = [
+      { key: 'gross', label: 'Gross', type: 'money', currency: 'NZD' }
+    ]
+    expect(
+      describeFilter({ field: 'gross', operator: 'gt', value: 100 }, fields)
+        .label
+    ).toBe('Gross is more than NZD\u00a0100')
+  })
+
   it('names an unknown field by its key and shows values as given', () => {
     expect(
       describeFilter({ field: 'promoter', operator: 'is', values: ['ab-1'] })

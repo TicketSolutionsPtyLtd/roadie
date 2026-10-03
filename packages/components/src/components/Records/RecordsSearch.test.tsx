@@ -532,4 +532,36 @@ describe('Records.Search', () => {
     )
     expect(screen.getByRole('dialog')).toBe(dialog)
   })
+
+  it('drops a new filter cleared before a late parent shows it', async () => {
+    function Late() {
+      const [view, setView] = useState<RecordView>({
+        query: { search: '', filters: [], sort: [] },
+        layout: { type: 'table' }
+      })
+      const records = useRecords({
+        data: shows,
+        fields,
+        view,
+        onViewChange: (next) => setTimeout(() => setView(next), 50)
+      })
+      return (
+        <Records.Root records={records} layouts={layouts}>
+          <Records.Search />
+        </Records.Root>
+      )
+    }
+    const user = userEvent.setup()
+    render(<Late />)
+    await user.click(input())
+    await user.click(await option('Sold'))
+    const dialog = await editor()
+    const value = within(dialog).getByRole('textbox', { name: 'Sold value' })
+    await waitFor(() => expect(value).toHaveFocus())
+    await user.keyboard('5')
+    await user.clear(value)
+    await user.keyboard('{Escape}')
+    await new Promise((resolve) => setTimeout(resolve, 150))
+    expect(chipLabels()).toEqual([])
+  })
 })

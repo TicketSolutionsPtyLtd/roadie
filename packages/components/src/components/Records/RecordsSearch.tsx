@@ -51,6 +51,22 @@ type Editing = {
 
 const MAX_LISTED_VALUES = 1000
 
+const optionText = (item: unknown) =>
+  typeof item === 'number' || typeof item === 'boolean' ? String(item) : item
+
+/** The distinct values rows hold for a key, or null past the listing limit. */
+function heldValues(data: readonly object[], key: string): string[] | null {
+  const values = new Set<string>()
+  for (const row of data) {
+    const value = (row as Record<string, unknown>)[key]
+    const items = (Array.isArray(value) ? value : [value]).map(optionText)
+    for (const text of items)
+      if (typeof text === 'string' && text.trim()) values.add(text)
+    if (values.size > MAX_LISTED_VALUES) return null
+  }
+  return [...values].sort((a, b) => a.localeCompare(b, 'en-AU'))
+}
+
 // An option field with no `options` lists the values the records hold.
 function useListedFields(records: RecordsInstance): readonly RecordField[] {
   const { data, fields, mode } = records
@@ -58,21 +74,9 @@ function useListedFields(records: RecordsInstance): readonly RecordField[] {
     if (mode !== 'browser') return fields
     return fields.map((field) => {
       if (field.type !== 'option' || field.options || field.status) return field
-      const values = new Set<string>()
-      for (const row of data) {
-        const value = (row as Record<string, unknown>)[field.key]
-        for (const item of Array.isArray(value) ? value : [value]) {
-          const text =
-            typeof item === 'number' || typeof item === 'boolean'
-              ? String(item)
-              : item
-          if (typeof text === 'string' && text.trim()) values.add(text)
-        }
-        if (values.size > MAX_LISTED_VALUES) return field
-      }
-      const options = [...values]
-        .sort((a, b) => a.localeCompare(b, 'en-AU'))
-        .map((value) => ({ value, label: value }))
+      const values = heldValues(data, field.key)
+      if (!values) return field
+      const options = values.map((value) => ({ value, label: value }))
       return { ...field, options }
     })
   }, [data, fields, mode])

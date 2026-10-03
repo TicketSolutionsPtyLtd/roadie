@@ -34,6 +34,10 @@ import { datePresets, filterKey } from './searchSuggestions'
 
 const SEARCHABLE_OPTIONS = 8
 
+// Timestamps keep their time; venue and plain dates are whole days.
+const granularity = (field: RecordField) =>
+  (field.moment ?? 'timestamp') === 'timestamp' ? 'minute' : 'day'
+
 const capitalise = (text: string) =>
   text.charAt(0).toUpperCase() + text.slice(1)
 
@@ -77,20 +81,21 @@ export function RecordsFilterEditor({
   timeZone
 }: RecordsFilterEditorProps) {
   const [draft, setDraft] = useState(() => draftOf(field, filter))
-  const sent = useRef(filter && filterKey(filter))
+  // The last filter written, which a parent may not have shown yet.
+  const sent = useRef(filter)
   const update = (patch: Partial<FilterDraft>) => {
     const next = { ...draft, ...patch }
     setDraft(next)
+    const held = sent.current
     // Emptied only by clearing the value it holds, not by trying another condition.
     onEmptyChange?.(
-      !!filter &&
-        next.operator === editorOperatorOf(filter, field) &&
+      !!held &&
+        next.operator === editorOperatorOf(held, field) &&
         isEmptyDraft(field, next)
     )
     const made = filterOf(field, next)
-    const key = made && filterKey(made)
-    if (!made || key === sent.current) return
-    sent.current = key
+    if (!made || (held && filterKey(made) === filterKey(held))) return
+    sent.current = made
     onChange(made)
   }
   const name = field.label
@@ -216,9 +221,11 @@ function ValueEditor({ field, draft, update, timeZone }: ValueEditorProps) {
             .filter((value) => value !== 'upcoming' && value !== 'past')
             .map((value) => ({ value }))}
           timeZone={timeZone}
+          granularity={granularity(field)}
         />
       ) : (
         <DatePicker
+          granularity={granularity(field)}
           data-filter-value=''
           aria-label={`${name} date`}
           value={draft.date}
