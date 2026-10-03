@@ -1,6 +1,6 @@
 import { formatTimeOfDay, parseDatePhrase } from '@oztix/roadie-core/datetime'
 
-import type { ReadResult } from './readDate'
+import type { ReadResult } from './useTypedValue'
 
 export type HourCycle = 12 | 24
 
