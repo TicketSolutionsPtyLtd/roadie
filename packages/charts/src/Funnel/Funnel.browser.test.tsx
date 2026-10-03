@@ -6,10 +6,10 @@ import { Funnel } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import {
   CARD_HEIGHTS,
-  afterResize,
   expectFillsPlot,
   expectMinFontSize,
   expectTableKeepsHeight,
+  nudgeFrames,
   renderInCard
 } from '../plot/browserTesting'
 import { loadBrandFont, useStylesheet } from '../testUtils'
@@ -64,11 +64,15 @@ describe('Funnel in a card', () => {
     })
     await expect
       .poll(
-        () =>
-          container.querySelector('[data-ts-key^="label-values"]')?.textContent
+        async () => {
+          await nudgeFrames()
+          return container.querySelector('[data-ts-key^="label-values"]')
+            ?.textContent
+        },
+        { timeout: 10_000 }
       )
       .not.toContain('of previous')
-    await afterResize()
+    await nudgeFrames()
     const card = container
       .querySelector('[data-slot=data-card]')!
       .getBoundingClientRect()
