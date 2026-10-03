@@ -102,6 +102,10 @@ function groupKey(group: { id: string; builtIn?: boolean }) {
   return `${group.builtIn ? 'built-in' : 'suggested'}:${group.id}`
 }
 
+function hasDescription(description: unknown) {
+  return typeof description === 'number' || !!description
+}
+
 function isComposing(event: KeyboardEvent) {
   return event.nativeEvent.isComposing || event.keyCode === 229
 }
@@ -158,6 +162,7 @@ export function QueryField<Value = unknown>({
   if (markedStep !== step) {
     setMarkedStep(step)
     setArrowed(false)
+    setOpeningByArrow(false)
   }
   const keyboardHighlightKey = arrowed ? highlightKey : undefined
 
@@ -334,11 +339,13 @@ export function QueryField<Value = unknown>({
         const key = item && itemKey(item)
         setHighlightKey(key)
         if (details.reason === 'pointer') setArrowed(false)
+        if (details.reason !== 'none' || openingByArrow)
+          setOpeningByArrow(false)
         if (details.reason !== 'none') return
         // Opening by arrow lands on the first item; any other `none` means
         // the list changed under the highlight, which nobody arrowed to.
-        if (openingByArrow) setOpeningByArrow(false)
-        else if (key !== highlightKey) setArrowed(false)
+        const landing = openingByArrow && key !== undefined
+        if (!landing && key !== highlightKey) setArrowed(false)
       }}
       itemToStringLabel={(item: { label: string }) => item.label}
       disabled={isDisabled}
@@ -478,7 +485,7 @@ export function QueryField<Value = unknown>({
                             {item.label}
                           </span>
                           {item.kind !== 'search' &&
-                            item.description != null && (
+                            hasDescription(item.description) && (
                               <span
                                 data-slot='query-field-option-description'
                                 className='truncate text-xs text-subtle'
