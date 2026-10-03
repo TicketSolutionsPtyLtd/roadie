@@ -11,8 +11,9 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
 - **Branch from the latest `main`** in its own worktree:
   `git worktree add ../roadie-<slug> -b <branch> origin/main`, then
   `pnpm install --frozen-lockfile`.
-- **New components and new system-level APIs** start from a spec in
-  `docs/superpowers/specs/`, agreed before any code.
+- **New components and new system-level APIs** start from a spec agreed
+  before any code. Committed plans live in `docs/plans/`; local drafts may
+  sit in the gitignored `docs/superpowers/`.
 - **Look for what already exists.** Before adding a token, utility, prop or
   mechanism, show that the cascade, intent, emphasis, data attributes or an
   existing component can't already do it. A second way to say the same thing
@@ -121,9 +122,10 @@ the PR only when both passes are clean.
   **and** its body lists no "Previously missed" items.
 - For each finding: fix it test-first and reply naming the commit and test,
   or reply with why it stands. Resolve every thread.
-- **After three Copilot rounds, triage instead of looping.** Fix only what a
-  real user would hit in normal use; defer the rest as Jira follow-ups
-  (section 9).
+- **After three Copilot rounds, triage instead of looping.** Critical and
+  Important findings are always fixed, however rare the case. A Minor one is
+  fixed only if a real user would hit it in normal use; the rest become Jira
+  follow-ups (section 9).
 - **Flaky tests**: a known flake may be re-run once. A flake seen on two
   unrelated PRs gets fixed at its root in its own PR.
 - If `main` moves under you, update the branch and wait for CI again,
