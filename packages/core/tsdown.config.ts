@@ -11,7 +11,9 @@ export default defineConfig(({ watch }) => ({
     'dataviz/index': './src/dataviz/index.ts',
     'navigator/index': './src/navigator/index.ts',
     'dashboard/index': './src/dashboard/index.ts',
-    'dashboard-layout/index': './src/dashboard-layout/index.ts'
+    'dashboard-layout/index': './src/dashboard-layout/index.ts',
+    'records/index': './src/records/index.ts',
+    'records/meilisearch/index': './src/records/meilisearch/index.ts'
   },
   format: ['esm'],
   minify: !watch,
