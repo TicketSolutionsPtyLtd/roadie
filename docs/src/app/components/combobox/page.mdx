@@ -404,6 +404,9 @@ Pass the `items` prop to `Combobox` root for built-in client-side filtering. Use
 `Combobox.Empty` only renders when the filtered list is empty. It requires the
 `items` prop on root.
 
+Enter picks the first match, so order `items` with the likeliest match first,
+such as an exact match before partial ones. The filter keeps your order.
+
 ### Async loading
 
 For server-side search, update the `items` prop as results arrive. Use
@@ -450,6 +453,13 @@ For server-side search, update the `items` prop as results arrive. Use
 
 - **Arrow keys** move through the list; **Enter** picks the highlighted item
   and **Escape** closes the popup. Typing filters the list as you go.
+- Typing highlights the first match, including matches that arrive later, so
+  **Enter** picks it straight away. Opening the list without typing doesn't
+  highlight the first match, so Enter can't pick a value nobody chose. While
+  a match is highlighted, the arrows wrap at either end. Set
+  `autoHighlight={false}` to highlight only what the user moves to.
+- The input points `aria-activedescendant` at the highlighted item, so screen
+  readers read the first match as the list filters.
 - With `multiple`, **Backspace** in an empty input removes the last chip.
   **Left Arrow** from the start of the input moves to the chips, **Left** and
   **Right** move between them (swapped in a right-to-left layout), and

@@ -309,6 +309,8 @@ export function QueryField<Value = unknown>({
   return (
     <Combobox
       multiple
+      // Enter searches the text unless arrowed or exact; see enterTargetKey.
+      autoHighlight={false}
       items={list}
       filter={null}
       value={ordered as readonly unknown[] as QueryFieldAccepted<Value>[]}

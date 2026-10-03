@@ -354,6 +354,10 @@ item:
 `Autocomplete.Empty` only renders when the filtered list is empty. It requires
 the `items` prop on root.
 
+Enter takes the first suggestion, so order `items` with the likeliest match
+first, such as an exact match before partial ones. The filter keeps your
+order.
+
 ### Async loading
 
 For server-side search, update the `items` prop as results arrive. Use
@@ -379,16 +383,30 @@ The `mode` prop controls how filtering and inline autocompletion behave:
 - **`none`**: items are static and the input value doesn't change based on
   highlighting.
 
+In `both` and `inline` mode the first suggestion isn't highlighted for you,
+since a highlight there would replace what the user typed.
+
 ### Keyboard behaviour
 
-- **Arrow keys** navigate the list
-- **Enter** confirms the highlighted item (or submits the form if no item is highlighted)
-- **Escape** closes the popup
-- Typing filters the list in real time
+- Typing filters the list in real time.
+- Typing highlights the first suggestion, including suggestions that arrive
+  later, so typing then pressing **Enter** takes it. Opening the list without
+  typing highlights nothing new.
+- **Arrow keys** move through the list. Once typing has highlighted the first
+  suggestion, they move on from it and wrap at either end.
+- **Enter** takes the highlighted suggestion. With nothing highlighted it
+  keeps the typed text and submits the form. To keep text that matches a
+  suggestion, press **Escape** to close the list, then **Enter**.
+- **Escape** closes the popup.
+- Set `autoHighlight={false}` to highlight only what the user moves to, as a
+  search field that should always search the typed text needs.
+  `autoHighlight='always'` also highlights the first suggestion with no text.
 
 ## Accessibility
 
 - Wrap in `Field` and use `Field.Label` to name the input, which provides automatic `htmlFor` wiring.
+- The input points `aria-activedescendant` at the highlighted suggestion, so
+  screen readers read the first suggestion as the list filters.
 - `Autocomplete.Empty` announces "no results" to screen readers automatically.
 - `Autocomplete.Status` is a live region, use it for async status like loading
   or result counts.

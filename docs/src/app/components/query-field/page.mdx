@@ -396,6 +396,9 @@ function QueryFieldShortcut() {
 - **Arrow keys** move through the suggestions and **Enter** takes the one
   you moved to. With nothing chosen, Enter takes an exact match, or searches
   the text. The suggestion Enter would take shows an Enter key hint.
+- Unlike `Combobox` and `Autocomplete`, typing highlights no suggestion, so
+  Enter keeps searching what you typed and the first Down Arrow lands on the
+  first suggestion.
 - **Backspace** in an empty field selects the last chip you can remove; a
   second Backspace removes it and returns focus to the input. **Left Arrow**
   from the start of the input moves to the chips, and **Left** and **Right**
