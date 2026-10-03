@@ -263,6 +263,18 @@ describe('Kbd', () => {
       expect(container.firstElementChild).toHaveTextContent('GthenI')
     })
 
+    it.each([null, false, ''])(
+      'drops the default plus when the separator is %j',
+      (separator) => {
+        onPlatform('Win32')
+        const { container } = render(
+          <Kbd keys={['mod', 'k']} combined separator={separator} />
+        )
+        expect(separators(container)).toHaveLength(0)
+        expect(container.firstElementChild).toHaveTextContent('CtrlK')
+      }
+    )
+
     it('reads a word separator aloud when keys are announced', () => {
       onPlatform('Win32')
       const { container } = render(
@@ -271,6 +283,8 @@ describe('Kbd', () => {
       const [then] = separators(container)
       expect(then).not.toHaveAttribute('aria-hidden')
       expect(then!.closest('[aria-hidden="true"]')).toBeNull()
+      // Spaced, so a screen reader doesn't run it into the key names.
+      expect(then!.textContent).toBe(' then ')
     })
 
     it('keeps a symbol separator silent when keys are announced', () => {

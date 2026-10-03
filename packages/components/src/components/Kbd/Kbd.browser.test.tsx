@@ -138,6 +138,21 @@ describe('Kbd', () => {
     }
   )
 
+  it('draws a custom icon at 12px inside a button', () => {
+    const { container } = render(
+      <Button>
+        Bold{' '}
+        <Kbd size='sm'>
+          <svg viewBox='0 0 1 1' />
+        </Kbd>
+      </Button>
+    )
+    const { width, height } = container
+      .querySelector('kbd svg')!
+      .getBoundingClientRect()
+    expect([width, height]).toEqual([12, 12])
+  })
+
   it('draws glyphs at 12px', () => {
     const { container } = render(<Kbd>Enter</Kbd>)
     const svg = container.querySelector('svg')!.getBoundingClientRect()
@@ -255,8 +270,9 @@ const SURFACES = {
     </div>
   )
 }
-// A subtle keycap in muted text measures about Lc 58 in dark mode, so only
-// the other emphases are held to Lc 60 there.
+// A subtle keycap in muted text measures about Lc 58 in dark mode; it is held
+// to Lc 55 there until the floor for it is decided.
+const MUTED_TEXT_LC = 55
 const MUTED_TEXT = {
   'muted text': (kbd: ReactNode) => (
     <p className='bg-normal text-subtle'>{kbd}</p>
@@ -317,7 +333,7 @@ function fillsOver(
   )
 }
 
-// The floor strongContrast holds strong-fill labels to; a hint, not body text.
+// Matches strongContrast's floor for strong-fill labels.
 const KEY_LC = 60
 // These fills are tuned so their label only just clears Lc 60, and a subtle
 // keycap's tint pulls the fill toward it (lowest measured 52.6). The user
@@ -352,13 +368,19 @@ describe.each(['light', 'dark'] as const)('Kbd contrast in %s mode', (mode) => {
     ...Object.entries(MUTED_TEXT).map(([name, surface]) => ({
       name,
       surface,
-      emphases: ['normal', 'subtler'] as const
+      emphases: EMPHASES
     }))
   ]
   describe.each(rows)('on a $name', ({ name, surface, emphases }) => {
     it.each(emphases)('keeps %s keys readable', async (emphasis) => {
       const floor =
-        emphasis === 'subtle' && TUNED_FILLS.has(name) ? TUNED_FILL_LC : KEY_LC
+        emphasis !== 'subtle'
+          ? KEY_LC
+          : TUNED_FILLS.has(name)
+            ? TUNED_FILL_LC
+            : name in MUTED_TEXT
+              ? MUTED_TEXT_LC
+              : KEY_LC
       const { container } = render(
         surface(
           <>
@@ -371,14 +393,24 @@ describe.each(['light', 'dark'] as const)('Kbd contrast in %s mode', (mode) => {
               combined
               data-testid='cap'
             />
+            <Kbd
+              emphasis={emphasis}
+              keys={['shift', 'k']}
+              data-testid='group'
+            />
           </>
         )
       )
       // Sliding indicators measure their item after a frame.
       await new Promise((resolve) => requestAnimationFrame(resolve))
       await new Promise((resolve) => requestAnimationFrame(resolve))
-      const caps = container.querySelectorAll('[data-testid="cap"]')
-      expect(caps).toHaveLength(2)
+      const caps = [
+        ...container.querySelectorAll('[data-testid="cap"]'),
+        ...container.querySelectorAll(
+          '[data-testid="group"] > [data-slot="kbd"]'
+        )
+      ]
+      expect(caps).toHaveLength(4)
       // Tabs and toggle groups paint the pressed fill on a sibling indicator.
       const indicator = container.querySelector(
         '[data-slot="tabs-indicator"], [data-slot="toggle-group-indicator"]'

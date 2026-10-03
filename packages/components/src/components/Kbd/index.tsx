@@ -14,7 +14,7 @@ const HIDE_WITHOUT_HOVER =
   '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
 
 const kbdVariants = cva(
-  'inline-flex items-center justify-center gap-1 font-sans text-xs whitespace-nowrap [&_svg]:size-3 [&_svg]:shrink-0',
+  'inline-flex items-center justify-center gap-1 font-sans text-xs whitespace-nowrap [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-3',
   {
     variants: {
       emphasis: {
@@ -51,7 +51,8 @@ export type KbdProps = ComponentProps<'kbd'> & {
   /**
    * Placed between `keys`, such as `'+'` or `'then'`. By default nothing on
    * Apple devices, and off them a plus inside a combined keycap or between
-   * subtler keys, as in Ctrl+K. A word is read aloud when `announce` is on.
+   * subtler keys, as in Ctrl+K. Text such as `'then'` is read aloud when
+   * `announce` is on; `null` or `false` removes the default.
    */
   separator?: ReactNode
   /**
@@ -135,15 +136,20 @@ function KeyList({
   className
 }: KeyListProps) {
   const spoken = announce && isWord(separator)
+  const shown =
+    separator != null &&
+    separator !== false &&
+    separator !== true &&
+    separator !== ''
   return keys.map((key, index) => (
     <Fragment key={`${index}-${key}`}>
-      {separator != null && separator !== false && index > 0 ? (
+      {shown && index > 0 ? (
         <span
           data-slot='kbd-separator'
           aria-hidden={spoken ? undefined : 'true'}
           className={cn('text-xs', pending ? 'invisible' : undefined)}
         >
-          {separator}
+          {spoken ? ` ${separator} ` : separator}
         </span>
       ) : null}
       <kbd data-slot={slot} className={className}>
