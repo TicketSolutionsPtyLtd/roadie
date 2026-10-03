@@ -256,7 +256,7 @@ describe('resolveRecordQuery', () => {
     ).toThrow('Unknown field "nope"')
   })
 
-  it.each<[string, string, [string, string], [string, string] | null]>([
+  it.each<[string, string, [string, string], [string, string]]>([
     // 2am to 3am does not exist in Sydney on 4 Oct 2026: a start in the gap
     // begins at the jump, 3am AEDT.
     [
@@ -298,12 +298,12 @@ describe('resolveRecordQuery', () => {
       ['2026-04-05T01:30', '2026-04-05T01:59'],
       ['2026-04-04T14:30:00Z', '2026-04-04T15:29:00Z']
     ],
-    // A range wholly inside the gap holds no instant, so it matches nothing.
+    // A range wholly inside the gap holds only the jump.
     [
       'Australia/Sydney',
       'inside the gap',
       ['2026-10-04T02:15', '2026-10-04T02:45'],
-      null
+      ['2026-10-03T16:00:00Z', '2026-10-03T16:00:00Z']
     ]
   ])('%s %s', (timeZone, _, value, expected) => {
     const resolved = resolveOne(
@@ -311,13 +311,6 @@ describe('resolveRecordQuery', () => {
       '2026-10-03T02:00:00Z',
       timeZone
     )
-    if (!expected) {
-      expect(resolved).toMatchObject({ range: { kind: 'instants' } })
-      const range = (resolved as { range: { start: number; end: number } })
-        .range
-      expect(range.start).toBeGreaterThan(range.end)
-      return
-    }
     expect(resolved).toEqual({
       field: 'created',
       operator: 'overlaps',
@@ -372,4 +365,21 @@ describe('resolveRecordQuery', () => {
       )
     ).toThrow('starts after it ends')
   })
+
+  it.each([
+    ['before', '2026-10-04T25:00'],
+    ['after', '2026-10-04T23:60'],
+    ['on', '2026-10-04T02:30:61']
+  ])(
+    'throws on an impossible clock time, even unvalidated: %s %s',
+    (operator, value) => {
+      expect(() =>
+        resolveOne(
+          { field: 'created', operator, value } as RecordFilter,
+          '2026-10-03T02:00:00Z',
+          'Australia/Sydney'
+        )
+      ).toThrow('Not a valid date-time')
+    }
+  )
 })

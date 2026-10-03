@@ -1,10 +1,11 @@
-import { addDays, isPlainDate, plainDateOf } from '../datetime/plainDate'
+import { addDays, plainDateOf } from '../datetime/plainDate'
 import {
   type ResolvedDateRange,
   resolveAbsolute,
   resolveDateRange
 } from '../datetime/ranges'
-import { startOfDayInstant, wallBoundInstant } from '../datetime/zone'
+import { startOfDayInstant } from '../datetime/zone'
+import { boundEnd, boundStart, readBound } from './bounds'
 import { fieldIndex, momentOf } from './fields'
 import type {
   RecordField,
@@ -67,57 +68,6 @@ function fromResolved(range: ResolvedDateRange): ResolvedRecordRange {
     : instants(range.start, range.end)
 }
 
-const WALL_CLOCK =
-  /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/
-
-type Bound =
-  | { kind: 'date'; date: string }
-  | { kind: 'instant'; start: number; end: number }
-
-/**
- * One end of a range. A wall-clock time without an offset bounds a range
- * by the first moment the clock shows it (a start) or the last (an end), so
- * a time skipped by a DST jump starts at the jump and a repeated time ends on
- * its second pass.
- */
-function readBound(value: string, timeZone: string): Bound {
-  if (isPlainDate(value)) return { kind: 'date', date: value }
-  const wall = WALL_CLOCK.exec(value)
-  if (!wall) {
-    const epoch = resolveAbsolute({ start: value, end: value }, timeZone)
-    return {
-      kind: 'instant',
-      start: epoch.start as number,
-      end: epoch.end as number
-    }
-  }
-  const [, date, hour, minute, second, fraction] = wall
-  const clock = {
-    date: date!,
-    hour: Number(hour),
-    minute: Number(minute),
-    second: Number(second ?? 0),
-    millisecond: Number((fraction ?? '0').padEnd(3, '0'))
-  }
-  return {
-    kind: 'instant',
-    start: wallBoundInstant(clock, timeZone, 'start'),
-    end: wallBoundInstant(clock, timeZone, 'end')
-  }
-}
-
-function boundStart(bound: Bound, timeZone: string): number {
-  return bound.kind === 'instant'
-    ? bound.start
-    : startOfDayInstant(bound.date, timeZone)
-}
-
-function boundEnd(bound: Bound, timeZone: string): number {
-  return bound.kind === 'instant'
-    ? bound.end
-    : startOfDayInstant(addDays(bound.date, 1), timeZone) - 1
-}
-
 /** What the filter covers, before the field's moment decides the units. */
 function filterRange(
   filter: DateFilter,
@@ -129,14 +79,16 @@ function filterRange(
       return fromResolved(resolveDateRange(filter.value, options))
     case 'between': {
       const [start, end] = filter.value as [string, string]
-      // Order is checked on the clock; a range inside a DST gap may still
-      // resolve to no instants at all, which matches nothing.
+      // Order is checked on the clock. A range wholly inside a DST gap holds
+      // only the jump, which is where a row's skipped time reads too.
       resolveAbsolute({ start, end }, 'UTC')
       const from = readBound(start, timeZone)
       const to = readBound(end, timeZone)
-      return from.kind === 'date' && to.kind === 'date'
-        ? dates(from.date, to.date)
-        : instants(boundStart(from, timeZone), boundEnd(to, timeZone))
+      if (from.kind === 'date' && to.kind === 'date') {
+        return dates(from.date, to.date)
+      }
+      const first = boundStart(from, timeZone)
+      return instants(first, Math.max(first, boundEnd(to, timeZone)))
     }
     case 'on':
     case 'before':

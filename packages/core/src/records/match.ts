@@ -1,7 +1,5 @@
 import { isPlainDate, plainDateOf } from '../datetime/plainDate'
-import { addDays } from '../datetime/plainDate'
-import { resolveAbsolute } from '../datetime/ranges'
-import { startOfDayInstant } from '../datetime/zone'
+import { rowInstantSpan } from './bounds'
 import {
   fieldIndex,
   isSearchable,
@@ -97,12 +95,7 @@ function epochSpan(value: unknown, zone: string): [number, number] | null {
   }
   if (typeof value !== 'string') return null
   try {
-    const span = resolveAbsolute({ start: value, end: value }, zone)
-    if (span.kind === 'instants') return [span.start!, span.end!]
-    return [
-      startOfDayInstant(span.start, zone),
-      startOfDayInstant(addDays(span.end, 1), zone) - 1
-    ]
+    return rowInstantSpan(value, zone)
   } catch {
     return null
   }

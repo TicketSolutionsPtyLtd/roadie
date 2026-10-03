@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { plainDateOf } from '../../datetime/plainDate'
-import { resolveAbsolute } from '../../datetime/ranges'
+import { rowInstantSpan } from '../bounds'
 import { momentOf } from '../fields'
 import { matchesRecordQuery } from '../match'
 import { resolveRecordQuery } from '../resolve'
@@ -16,12 +16,7 @@ type Row = Record<string, unknown>
 function epoch(value: unknown, zone: string): number {
   if (typeof value === 'number') return value
   if (value instanceof Date) return value.getTime()
-  const span = resolveAbsolute(
-    { start: String(value), end: String(value) },
-    zone
-  )
-  if (span.kind !== 'instants') throw new Error('Expected an instant')
-  return span.start!
+  return rowInstantSpan(String(value), zone)[0]
 }
 
 /** The row as an index would store it, per the adapter's documented shape. */
@@ -51,6 +46,7 @@ const rows: Row[] = [
   ...Object.values(eventRows),
   { id: 'empty-object', venue: {}, genres: ['jazz'], capacity: 400 },
   { id: 'listed-capacity', capacity: [400, 900], name: 'Two Rooms' },
+  { id: 'gap', created: '2026-10-04T02:30' },
   { id: 'backslashes', venue: 'two\\\\', name: 'Even \\\\"quoted\\\\"' },
   {
     id: 'quoted',
@@ -66,6 +62,12 @@ const rows: Row[] = [
 const msRow: Row = { id: 'ms', created: Date.parse('2026-10-03T01:59:59.700Z') }
 
 const FILTERS: RecordFilter[] = [
+  {
+    field: 'created',
+    operator: 'between',
+    value: ['2026-10-04T02:00', '2026-10-04T02:59']
+  },
+  { field: 'created', operator: 'after', value: '2026-10-04T03:15' },
   { field: 'venue', operator: 'is', values: ['two\\\\'] },
   { field: 'name', operator: 'contains', value: '\\\\"quoted' },
   { field: 'venue', operator: 'is', values: ['say "hi" a\\b', 'velvet-room'] },

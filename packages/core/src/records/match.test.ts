@@ -192,6 +192,43 @@ describe('matchesRecordQuery', () => {
     expect(matchesRecordQuery(row, resolved, eventFields)).toBe(expected)
   })
 
+  it.each<[RecordFilter, boolean]>([
+    [
+      {
+        field: 'created',
+        operator: 'between',
+        value: ['2026-10-04T02:00', '2026-10-04T02:59']
+      },
+      true
+    ],
+    [
+      {
+        field: 'created',
+        operator: 'between',
+        value: ['2026-10-04T03:15', '2026-10-04T03:45']
+      },
+      false
+    ],
+    [{ field: 'created', operator: 'after', value: '2026-10-04T03:15' }, false],
+    [{ field: 'created', operator: 'before', value: '2026-10-04T03:15' }, true]
+  ])(
+    'reads a row time skipped by daylight saving as the jump, like a filter: %j',
+    (filter, expected) => {
+      const resolved = resolveRecordQuery(
+        { search: '', filters: [filter], sort: [] },
+        eventFields,
+        { now: new Date('2026-10-03T02:00:00Z'), timeZone: SYDNEY }
+      )
+      expect(
+        matchesRecordQuery(
+          { created: '2026-10-04T02:30' },
+          resolved,
+          eventFields
+        )
+      ).toBe(expected)
+    }
+  )
+
   describe('event dates compare the venue-local date', () => {
     it.each<[string, RecordFilter, string[]]>([
       // Swan starts at 1:30am Sunday Sydney time, but it is a Saturday gig in Perth.
