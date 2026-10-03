@@ -23,6 +23,7 @@ import {
   type RecordView,
   type ResolvedRecordQuery,
   compileRecordQuery,
+  equalViews,
   sortRecords
 } from '@oztix/roadie-core/records'
 
@@ -56,6 +57,12 @@ export type UseRecordsOptions<Row extends object> = {
   defaultView?: RecordViewDefaults
   /** Gets the position too: a change to the search, filters or sort returns to the first page, and `onPositionChange` hears that first. */
   onViewChange?: (view: RecordView, position: Required<RecordPosition>) => void
+  /**
+   * The saved or preset view the screen opened, so `modified` can tell when
+   * the view moves away from it and `resetView` can go back. Leave it out
+   * when no saved view is open.
+   */
+  baseline?: RecordView
   /** Page and page size: session state, never part of a view. */
   position?: RecordPosition
   defaultPosition?: RecordPosition
@@ -113,6 +120,12 @@ export type RecordsInstance<Row extends object = object> = {
   position: Required<RecordPosition>
   pageCount: number
   setView: (view: RecordView) => void
+  /** The saved or preset view the screen opened. */
+  baseline: RecordView | undefined
+  /** The view shows something other than its `baseline`, by `equalViews`. Always false without one. */
+  modified: boolean
+  /** Goes back to the `baseline` from the first page. Does nothing without one. */
+  resetView: () => void
   /** Filters in the view, by index, that these fields can't apply, so they filter nothing. */
   skippedFilters: readonly number[]
   /** The page's own filters, applied before the view's. */
@@ -188,6 +201,7 @@ export function useRecords<Row extends object>({
   view: controlledView,
   defaultView,
   onViewChange,
+  baseline,
   position: controlledPosition,
   defaultPosition,
   onPositionChange,
@@ -532,6 +546,12 @@ export function useRecords<Row extends object>({
     const base = latestView()
     setView({ ...base, query: { ...base.query, ...query(base.query) } }, first)
   }
+  const resetTo = (next: RecordView) => {
+    replaceDraft(next.query.search)
+    const first = { ...position, page: 0, row: 0 }
+    if (position.page !== 0 || position.row !== 0) setPosition(first)
+    setView(next, first)
+  }
   const commitSearch = (next: string) => {
     replaceDraft(next)
     if (next !== expected) setQuery(() => ({ search: next }))
@@ -571,6 +591,11 @@ export function useRecords<Row extends object>({
     setView: (next) => {
       replaceDraft(next.query.search)
       setView(next)
+    },
+    baseline,
+    modified: baseline !== undefined && !equalViews(view, baseline),
+    resetView: () => {
+      if (baseline) resetTo(baseline)
     },
     skippedFilters: applied.skippedFilters,
     scope,

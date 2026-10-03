@@ -1,0 +1,157 @@
+import { useState } from 'react'
+
+import { cleanup, render, screen, within } from '@testing-library/react'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { page, userEvent } from 'vitest/browser'
+
+import type { RecordView } from '@oztix/roadie-core/records'
+
+import roadieCss from '../../../vitest.browser.css?inline'
+import { withFrames } from '../../css/testUtils'
+import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
+import { RecordTable, tableColumns } from '../RecordTable'
+import { showFields, testShows } from './testUtils'
+
+const TIMEOUT = { timeout: 20_000 }
+
+let removeStylesheet = () => {}
+beforeAll(async () => {
+  removeStylesheet = useStylesheet(roadieCss)
+  await loadBrandFont()
+})
+afterAll(() => removeStylesheet())
+afterEach(async () => {
+  cleanup()
+  await page.viewport(1920, 1080)
+})
+
+const column = tableColumns(showFields)
+const columns = [
+  column.field('show', { pin: true }),
+  column.field('city'),
+  column.field('sold')
+]
+const upcoming: RecordView = {
+  id: 'upcoming',
+  name: 'Upcoming shows in every city',
+  query: { search: '', filters: [], sort: [] },
+  layout: { type: 'table' }
+}
+
+function Shows() {
+  const [baseline, setBaseline] = useState(upcoming)
+  const [view, setView] = useState<RecordView>({
+    ...upcoming,
+    query: { ...upcoming.query, search: 'Perth' }
+  })
+  return (
+    <div style={{ width: '100%', maxWidth: 900 }}>
+      <RecordTable
+        caption='Shows'
+        data={testShows(20)}
+        fields={showFields}
+        columns={columns}
+        view={view}
+        onViewChange={setView}
+        baseline={baseline}
+        viewActions={{
+          onSave: setBaseline,
+          onSaveAs: (saved) => {
+            const next = { ...saved, id: 'perth' }
+            setBaseline(next)
+            setView(next)
+          },
+          onRename: setBaseline
+        }}
+      />
+    </div>
+  )
+}
+
+const trigger = () => screen.getByRole('button', { name: /^View: / })
+
+describe('Records.ViewActions in a browser', TIMEOUT, () => {
+  it('shows the modified mark and keeps a long name to one line', async () => {
+    render(<Shows />)
+    const button = trigger()
+    const mark = button.querySelector('[data-slot="records-view-modified"]')!
+    expect(mark.getBoundingClientRect().width).toBeGreaterThan(0)
+    expect(getComputedStyle(mark).backgroundColor).not.toBe(
+      getComputedStyle(button).backgroundColor
+    )
+    const text = button.querySelector('.truncate')!
+    expect(text.scrollWidth).toBeGreaterThan(text.clientWidth)
+    expect(button.getBoundingClientRect().height).toBe(
+      screen
+        .getByRole('button', { name: 'Configure table' })
+        .getBoundingClientRect().height
+    )
+  })
+
+  it('saves as a new view in a dialog and returns focus to the button', async () => {
+    render(<Shows />)
+    await userEvent.click(trigger())
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Save as new view' })
+    )
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Save as new view'
+    })
+    const name = within(dialog).getByRole('textbox', { name: 'Name' })
+    await expect.poll(() => document.activeElement).toBe(name)
+    await userEvent.keyboard('Perth shows{Enter}')
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
+    expect(trigger()).toHaveAccessibleName('View: Perth shows')
+    await expect.poll(() => document.activeElement).toBe(trigger())
+  })
+
+  it('selects the whole name to rename it', async () => {
+    render(<Shows />)
+    await userEvent.click(trigger())
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Rename view' })
+    )
+    const name = within(
+      await screen.findByRole('dialog', { name: 'Rename view' })
+    ).getByRole<HTMLInputElement>('textbox', { name: 'Name' })
+    await expect.poll(() => document.activeElement).toBe(name)
+    expect(name.selectionStart).toBe(0)
+    expect(name.selectionEnd).toBe(upcoming.name!.length)
+    await userEvent.keyboard('Coming up{Enter}')
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
+    expect(trigger()).toHaveAccessibleName('View: Coming up, modified')
+  })
+
+  it('asks for the name in a bottom drawer on a phone', async () => {
+    await page.viewport(390, 844)
+    render(<Shows />)
+    await userEvent.click(trigger())
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Save as new view' })
+    )
+    const drawer = await screen.findByRole('dialog', {
+      name: 'Save as new view'
+    })
+    expect(
+      drawer.closest('[data-slot="drawer-popup"], [data-slot="dialog-popup"]')
+    ).toHaveAttribute('data-slot', 'drawer-popup')
+    await withFrames(() =>
+      expect
+        .poll(() =>
+          Math.abs(drawer.getBoundingClientRect().bottom - window.innerHeight)
+        )
+        .toBeLessThan(2)
+    )
+    const name = within(drawer).getByRole('textbox', { name: 'Name' })
+    await expect.poll(() => document.activeElement).toBe(name)
+    await userEvent.keyboard('Perth{Enter}')
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
+    expect(trigger()).toHaveAccessibleName('View: Perth')
+  })
+})
