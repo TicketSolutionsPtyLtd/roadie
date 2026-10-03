@@ -349,3 +349,85 @@ describe('Select multiple value summary', () => {
     expect(spoken.textContent).toBe(BANDS.map(([, label]) => label).join(', '))
   })
 })
+
+function Genre({
+  emphasis,
+  invalid
+}: {
+  emphasis?: 'normal' | 'subtle' | 'subtler'
+  invalid?: boolean
+}) {
+  return (
+    <Field invalid={invalid}>
+      <Field.Label>Genre</Field.Label>
+      <Select>
+        <Select.Trigger emphasis={emphasis}>
+          <Select.Value placeholder='Pick a genre' />
+          <Select.Icon />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value='rock'>Rock</Select.Item>
+        </Select.Content>
+      </Select>
+    </Field>
+  )
+}
+
+const TRANSPARENT = /rgba\(0, 0, 0, 0\)|transparent/
+const trigger = () => screen.getByRole('combobox', { name: 'Genre' })
+const style = () => getComputedStyle(trigger())
+
+describe('Select trigger emphasis', () => {
+  it.each(['normal', 'subtle', 'subtler'] as const)(
+    'casts no shadow at rest with %s',
+    (emphasis) => {
+      render(<Genre emphasis={emphasis} />)
+      expect(style().boxShadow).toBe('none')
+    }
+  )
+
+  it('draws a normal trigger with a visible border', () => {
+    render(<Genre />)
+    expect(style().borderTopWidth).toBe('1px')
+    expect(style().borderTopColor).not.toMatch(TRANSPARENT)
+  })
+
+  it('leaves a subtler trigger without a fill or edge at rest', () => {
+    render(<Genre emphasis='subtler' />)
+    expect(style().backgroundColor).toMatch(TRANSPARENT)
+    expect(style().borderTopColor).toMatch(TRANSPARENT)
+  })
+
+  it.each(['normal', 'subtle', 'subtler'] as const)(
+    'rings a %s trigger the keyboard focuses',
+    async (emphasis) => {
+      render(<Genre emphasis={emphasis} />)
+      await userEvent.tab()
+      await expect.poll(() => style().outlineWidth).not.toBe('0px')
+    }
+  )
+
+  it.each(['normal', 'subtle', 'subtler'] as const)(
+    'fills a %s trigger while its list is open',
+    async (emphasis) => {
+      render(<Genre emphasis={emphasis} />)
+      const resting = style().backgroundColor
+      await userEvent.click(trigger())
+      await screen.findByRole('option', { name: 'Rock' })
+      await userEvent.unhover(trigger())
+      await expect.poll(() => style().backgroundColor).not.toBe(resting)
+    }
+  )
+
+  it.each(['normal', 'subtle', 'subtler'] as const)(
+    'edges an invalid %s trigger in danger',
+    (emphasis) => {
+      render(<Genre emphasis={emphasis} />)
+      const valid = style().borderTopColor
+      cleanup()
+      render(<Genre emphasis={emphasis} invalid />)
+      expect(style().borderTopColor).not.toMatch(TRANSPARENT)
+      expect(style().borderTopColor).not.toBe(valid)
+    }
+  )
+})

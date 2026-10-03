@@ -48,7 +48,11 @@ export function RecordsPagination({
           value={String(pageSize)}
           onValueChange={(value) => records.setPageSize(Number(value))}
         >
-          <Select.Trigger aria-label='Rows per page' size='sm'>
+          <Select.Trigger
+            aria-label='Rows per page'
+            size='sm'
+            emphasis='subtler'
+          >
             <Select.Value />
             <Select.Icon />
           </Select.Trigger>

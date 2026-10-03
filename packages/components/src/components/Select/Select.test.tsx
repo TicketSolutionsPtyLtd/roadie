@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { type VariantProps } from 'class-variance-authority'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -37,7 +37,7 @@ describe('Select', () => {
 
   it('renders Trigger with default variant classes', () => {
     const classes = selectTriggerVariants()
-    expect(classes).toContain('emphasis-raised')
+    expect(classes).toContain('emphasis-normal')
     expect(classes).toContain('is-interactive-field')
     expect(classes).not.toContain('intent-neutral')
   })
@@ -56,9 +56,34 @@ describe('Select', () => {
 
   it('renders Trigger with different emphasis', () => {
     expect(selectTriggerVariants({ emphasis: 'normal' })).toContain(
-      'emphasis-raised'
+      'emphasis-normal'
     )
     expect(selectTriggerVariants({ emphasis: 'subtle' })).toContain('bg-subtle')
+    const subtler = selectTriggerVariants({ emphasis: 'subtler' })
+    expect(subtler).toContain('emphasis-subtler')
+    expect(subtler).toContain('is-interactive')
+    expect(subtler).not.toContain('is-interactive-field')
+  })
+
+  it.each(['normal', 'subtle', 'subtler'] as const)(
+    'never raises a %s trigger',
+    (emphasis) => {
+      const classes = selectTriggerVariants({ emphasis })
+      expect(classes).not.toMatch(/emphasis-raised|rim-light|shadow/)
+    }
+  )
+
+  it('passes emphasis to the rendered trigger', () => {
+    render(
+      <Select>
+        <Select.Trigger aria-label='Rows' emphasis='subtler'>
+          <Select.Value />
+        </Select.Trigger>
+      </Select>
+    )
+    expect(screen.getByRole('combobox', { name: 'Rows' })).toHaveClass(
+      'emphasis-subtler'
+    )
   })
 
   it('renders Trigger with different sizes', () => {

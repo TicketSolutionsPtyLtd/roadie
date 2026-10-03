@@ -67,6 +67,8 @@ export type DashboardPeriodProps = Omit<
   disabled?: boolean
   /** @default 'md' */
   size?: 'sm' | 'md' | 'lg'
+  /** @default 'normal' */
+  emphasis?: 'normal' | 'subtle' | 'subtler'
   /**
    * IANA zone whose calendar decides today. Defaults to the viewer's.
    */
@@ -142,6 +144,7 @@ export function DashboardPeriod({
   readOnly,
   disabled,
   size = 'md',
+  emphasis,
   timeZone,
   today: todayProp,
   weekStart,
@@ -205,6 +208,7 @@ export function DashboardPeriod({
 
   const pickerProps = {
     size,
+    emphasis,
     timeZone,
     today: todayProp,
     weekStart,
@@ -250,6 +254,7 @@ export function DashboardPeriod({
       >
         <Select.Trigger
           size={size}
+          emphasis={emphasis}
           aria-label='Compare with'
           aria-readonly={readOnly || undefined}
           className='w-full gap-2 @sm:w-fit'

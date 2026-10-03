@@ -493,6 +493,24 @@ describe('Records composition', () => {
     expect(screen.getByText('1–50 of 120')).toBeInTheDocument()
   })
 
+  it('keeps rows per page quiet beside the subtler page buttons', () => {
+    function Paged() {
+      const records = useRecords({ data: testShows(120), fields: showFields })
+      return (
+        <Records.Provider records={records} layouts={layouts}>
+          <Records.Pagination />
+        </Records.Provider>
+      )
+    }
+    render(<Paged />)
+    expect(screen.getByRole('combobox', { name: 'Rows per page' })).toHaveClass(
+      'emphasis-subtler'
+    )
+    expect(screen.getByRole('button', { name: 'Next page' })).toHaveClass(
+      'emphasis-subtler'
+    )
+  })
+
   it('shows nothing, and says why in development, with no layout', () => {
     function Bare() {
       const records = useRecords({ data: testShows(3), fields: showFields })

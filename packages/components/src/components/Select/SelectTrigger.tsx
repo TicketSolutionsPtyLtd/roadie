@@ -14,7 +14,19 @@ import { selectTriggerVariants } from './variants'
 
 export type SelectTriggerProps = SelectPrimitive.Trigger.Props &
   RefAttributes<HTMLButtonElement> &
-  Omit<VariantProps<typeof selectTriggerVariants>, 'intent'> & {
+  Omit<
+    VariantProps<typeof selectTriggerVariants>,
+    'intent' | 'emphasis' | 'size'
+  > & {
+    /**
+     * `subtler` drops the fill and border for quiet in-context controls,
+     * such as rows per page.
+     *
+     * @default 'normal'
+     */
+    emphasis?: 'normal' | 'subtle' | 'subtler' | null
+    /** @default 'md' */
+    size?: 'sm' | 'md' | 'lg' | null
     /**
      * @deprecated Form controls take their colour from state;
      * `is-interactive-field` handles it. Will be removed in v3.0.0.
