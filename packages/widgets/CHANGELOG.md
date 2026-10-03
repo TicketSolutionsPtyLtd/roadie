@@ -1,5 +1,25 @@
 # @oztix/roadie-widgets
 
+## 3.6.3
+
+### Patch Changes
+
+- c247b1f: `buildBrowseHref`, and so `CartDrawer`'s default "Browse events" target, now
+  returns the collection route with the id in the path,
+  `/collection/{collectionId}`, instead of `/collection/?id={collectionId}`.
+- Updated dependencies [ddcad84]
+- Updated dependencies [54c87b2]
+- Updated dependencies [99111f3]
+- Updated dependencies [ff2f04d]
+- Updated dependencies [df311de]
+- Updated dependencies [c09a86a]
+- Updated dependencies [f57dfba]
+- Updated dependencies [eb8cb85]
+- Updated dependencies [d72d07b]
+- Updated dependencies [fe925b2]
+- Updated dependencies [ff2f04d]
+  - @oztix/roadie-core@2.11.0
+
 ## 3.6.2
 
 ### Patch Changes

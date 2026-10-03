@@ -1,5 +1,209 @@
 # @oztix/roadie-core
 
+## 2.11.0
+
+### Minor Changes
+
+- 54c87b2: New `@oztix/roadie-core/records` describes the lists organisers work
+  through. A `RecordField` names one fact about a record by key: its type,
+  whether it is filterable, sortable or searchable, a list or a date range,
+  how its dates compare (`event`, `access`, `timestamp` or `date`), the keys
+  holding its venue zone and venue-local dates (`localDateKey`,
+  `endLocalDateKey`), an identifier `match`, its currency, its `options` and
+  the dashboard `status` map. A `RecordView` saves a search, filters, sort and
+  layout as JSON; page, page size and scroll row travel beside it as a
+  `RecordPosition`.
+
+  `validateRecordView` checks a view against its fields and says which
+  operators fit. `resolveRecordQuery` fixes relative dates at a moment: event
+  and access dates compare the venue-local date, timestamps the viewer's day.
+  `matchesRecordQuery` filters rows in the browser, testing overlap for date
+  ranges. Text compares without case, and negative filters (is not, does not
+  contain, not equal) keep records where the field is empty. `parseQuery`
+  reads typed text into ranked suggestions for `QueryField`: identifiers,
+  `field:value`, field names, option values and date phrases, tagged with an
+  `entity` when given. `toSearchParams` and `fromSearchParams` write and read a
+  view and position as a versioned URL (`RECORD_VIEW_FORMAT`, `v=1`), falling
+  back to a `fallback` view when the URL is invalid, and `equalViews` tells
+  whether a view was modified. `recordFilterOperators` and `recordFieldOptions`
+  list what a field accepts.
+
+  `recordFields<Row>()` builds an entity's fields with typed row keys
+  (`text`, `option`, `number`, `money`, `date`, `boolean`), and a number or
+  money field takes a `format`. `compileRecordQuery` turns a resolved query
+  into a predicate that reads the fields once, for filtering a long list;
+  `matchesRecordQuery` uses it. `sortRecords` sorts rows the way an index
+  would: text and labels as people read them, statuses by their `order`,
+  dates by instant, empty values last. `formatRecordValue` reads a value as
+  its field shows it: option and status labels, numbers and money in their
+  format and currency, Yes or No, and dates in the house formats.
+
+  New `@oztix/roadie-core/records/meilisearch` exports `toMeilisearch`, which
+  turns a view into Meilisearch `q`, `filter` and `sort` with the same filter
+  meaning. It needs Meilisearch 1.15 or later. The index stores instants as
+  epoch seconds (or milliseconds with `epoch: 'milliseconds'`), event and
+  access dates under their local date keys, and a range's end on every record;
+  `contains` needs Meilisearch's `containsFilter` feature.
+
+  `parseDatePhrase` no longer reads inherited object names such as
+  `constructor` as a date alias, unit or month.
+
+  `recordsToCsv(rows, fields, { timeZone })` writes records as CSV, each
+  value as its field reads in a table, with `values: 'raw'` for plain numbers
+  and formula-like text neutralised. `RecordSelection` types the records an
+  action takes.
+
+- 99111f3: Dashboards gain a period and a comparison.
+
+  `@oztix/roadie-core/dashboard`: a description can carry `period: { range,
+compare?, history? }`, where `range` is a `DateRangeValue`, `compare` a
+  `Comparison`, and `history` (`'partial'` or `'unavailable'`) what
+  `resolveComparison` said about the data. A delta marked `comparison: true`
+  follows it. `validateDashboard` checks the period's shape, rejects custom dates
+  that aren't real plain dates or run backwards and hour windows (a period covers
+  whole days), warns about a comparison with an open-ended range, `history` with
+  no comparison, and a comparison delta that sets its own `context`, which never
+  shows, and rejects a comparison delta on a dashboard with no period. The field's
+  type is `DashboardPeriodSpec`.
+
+  `@oztix/roadie-components`: add `DashboardPeriod`
+  (`@oztix/roadie-components/dashboard-period`), one `DateRangePicker` button
+  with `commit='apply'` that shows the period and the dates it compares with.
+  Under the range, a Compare switch turns the comparison on and a toggle group
+  picks previous period or previous year, with the dates it covers, or "Not
+  enough history" or "Nothing to compare". A custom comparison set by the app
+  shows as Custom dates. Apply sends both together; Cancel drops both. Its value
+  is `DashboardPeriodValue`, `{ range, compare? }`. Its presets default to
+  `dashboardPeriodPresets`: next 30 and 90 days, last 30 days, last 12 months
+  and this financial year. `dataStart`, `dataEnd` and `alignWeekday` match the
+  app's `resolveComparison`, so the comparison shows the dates the app fetches.
+  It takes `presets`, `readOnly`, `disabled`, `timeZone`, `today`,
+  `weekStart`, `fiscalYearStart` and `locale`, and places `children`, such as a
+  benchmark, after the period. On a narrow container they stack. It has one
+  size, a large control: 48px tall, with the comparison's dates on a second line,
+  so pair it with large Buttons and Selects on the same row.
+
+  `@oztix/roadie-charts`: `DashboardView` shows a description's `period` above its
+  sections. `onPeriodChange` receives the new `{ range, compare? }`; without it
+  the period shows read-only. `periodProps` (`DashboardViewPeriodProps`) passes
+  the toolbar's other props. A delta marked `comparison: true` is named on its
+  context line ("vs previous period", over any `context` the card gives), hides
+  with no comparison, and gives way to "Not enough history" or "Nothing to
+  compare" when the period's `history` says so.
+
+- ff2f04d: `DataTable` takes a totals row with `totals`, rendered in a new `Table.Foot`:
+  strong text over a rule, its label in the first column as a row header. `true`
+  or `'sum'` adds up the number columns over every row, labelled "Totals for 12
+  records", or the `recordName` you pass. Shares, indexes, points and columns with
+  `total: false` stay blank, and currency sums round to the cent. Give
+  `{ label, values }` to show your own figures, such as the server's totals for a
+  paged report or an average; with `values`, nothing is summed, and without a
+  label the row reads "Totals". The first column holds the label, so it never
+  hides while the totals show. `DataTableTotals` types the prop, `true`
+  included, and `tableCellClass(align)` gives a body cell's classes, for a `th`
+  that heads a row.
+
+  A dashboard table card takes the same `totals`, and columns take `total: false`.
+  `validateDashboard` checks them: values need a label and must name a column,
+  `'sum'` warns when there's nothing to sum, and either warns when the first
+  column, which holds the label, has a total that would never show.
+  `cardTable(card)` returns the totals summed, and a `Chart` table view shows a
+  `ChartTable`'s totals. In core,
+  `resolveTableTotals(columns, rows, totals)`, `isSummable(column)` and the
+  `RecordName` and `ResolvedTotals` types come from
+  `@oztix/roadie-core/dashboard` and the Zod-free `/dashboard-layout`.
+
+- f57dfba: `@oztix/roadie-core/datetime` gains date ranges. A `DateRangeValue` is either
+  two inclusive ends or a `RelativeRange` with one fixed meaning: today, this
+  weekend, next week, the next 7 days, month to date, last quarter, this
+  financial year and more. `resolveDateRange` works out what a range covers on
+  a given day in a given zone, as plain dates for calendar ranges and instants
+  for hour windows and open ranges. `resolveComparison` finds the previous
+  period or the previous year to compare with, by date or, with
+  `alignWeekday`, by weekday. A calendar period's previous period is the one
+  before it: this month compares with last month, and month to date with last
+  month to the same day, even on the month's last day; other ranges compare with the same number of days,
+  ending the day before. It returns `{ status, range }`: given the data's
+  `dataStart` and `dataEnd`, a comparison the data only partly covers is
+  `partial`, and one it misses, or one with an open-ended range, is
+  `unavailable`, as its `ResolvedComparison` type says. A period that runs
+  past `dataEnd` compares only as far as the data goes, and one that starts
+  after it is `unavailable`. `describeDateRange` returns the words to show and the dates they
+  stand for, and `describeComparison` the context line under a delta.
+
+  `parseDatePhrase` turns typed text such as "this weekend", "next 7 days",
+  "14 mar", "1/12", "in 2 weeks", "end of month", "after 1 dec" or "7:30pm"
+  into ranked suggestions with explicit values. Plain-date helpers come with it:
+  `plainDateOf`, `addDays`, `addMonths`, `compareDates`, `dayOfWeek`,
+  `startOfWeek` and `monthGrid`, plus the `isAbsoluteRange`, `isRollingRange`
+  and `isPeriodRange` guards.
+
+- ff2f04d: Tables take a `status` column kind. The value is a status key, and the column's
+  `status` map gives each key an intent and an optional label, which defaults to
+  the key in sentence case, so `on_sale` reads "On sale". A key the map lacks
+  shows as neutral, in its raw text.
+
+  `DataTable` shows it as a small `Badge` in normal emphasis, or as the label in
+  a `plain` table. It sorts by label, or by each key's `order` when the map gives
+  one, with keys that have no order last. An empty status shows the column's
+  `emptyText` and sorts last.
+
+  In core, `TableColumn` takes `kind: 'status'` and `status`, and
+  `validateDashboard` rejects an unknown intent and warns about keys a map lacks.
+  `columnStatus(column, key)` resolves a key's intent and label, and
+  `cellText(column, value)` gives any cell as the plain text its table shows,
+  and `humaniseStatus(key)` gives a key's default label. They come with the
+  `STATUS_INTENTS`, `StatusIntent`, `TableStatus` and `ResolvedStatus` types, and
+  also from the Zod-free `@oztix/roadie-core/dashboard-layout`. A `status` map on
+  a column of another kind gets a warning. `COLUMN_KINDS` gains `'status'`, so an
+  exhaustive `switch` over a column's `kind` needs a case for it.
+
+### Patch Changes
+
+- ddcad84: Buttons now follow their parent's alignment. The `btn` utility set
+  `place-self: start`, which overrode a flex row's `items-center` and a grid's
+  `justify-items`, so every `Button`, `IconButton` and `Toggle` in a taller row
+  sat at the top. It now sets `width: fit-content` instead. With a size class
+  (every `Button`, `IconButton` and `Toggle` has one), a button keeps its own
+  size in a grid cell or a flex column and takes the row's `align-items`
+  (including `items-baseline` and `items-end`), a grid's `justify-items`, or a
+  flex column's `items-center`, as in a horizontal `Card`'s side-column footer.
+
+  To widen a button, use `w-full`. `self-stretch`, `justify-self-stretch` and
+  `place-self-stretch` no longer widen it. To undo `w-full` at a breakpoint, use
+  `w-fit` rather than `w-auto`, which now lets a grid or flex column stretch it.
+  If you load `@oztix/roadie-core/css/compiled` beside your own Tailwind build,
+  import it before your utilities so `w-*` on a button still wins.
+
+- df311de: `parseDatePhrase` reads a date that leads with its weekday, such as "Fri 27 Nov
+  2026" or "Friday, 27 November 2026", so the formatters' own output reads back.
+  The weekday is ignored and the date wins.
+- c09a86a: Date formatting reuses its `Intl.DateTimeFormat` instances, and `formatValue`
+  reuses its `Intl.NumberFormat` instances. Each formatted date used to build
+  three to five new formatters, which dominated the cost of tables and lists
+  that show a date on every row. The date cache holds at most 200 formatters
+  and drops the oldest first, so many locales or time zones cannot grow it
+  without limit.
+- eb8cb85: Large pages no longer restyle every element when something small changes.
+  Chromium gathers whatever a stylesheet selects after a `:has()` into one set,
+  and Navigator and Pane anchor a `:has()` above the whole page, so opening a
+  menu, ticking a row, hovering a list row or typing in a search restyled nearly
+  every element: up to 3 seconds of style work at 4x CPU on a large docs page.
+  Rules that put `*`, a tag or `[data-slot]` after a `:has()` now end on a
+  class, a variable or a rare attribute instead: `List` dividers and contained
+  rows, the wordmark-only `Navigator.Brand` logo, the iconless `Navigator.Item`
+  label, the navigation gutter, the ticket `Card` fill, the disabled `Switch`
+  label, `DataTable`'s Show all columns and `is-interactive-within`'s raised
+  controls. A test keeps the stylesheet free of the pattern.
+
+  `listItemVariants()` now carries the classes that square a row inside a
+  contained `List`, so a custom row built from it still matches `List.Item`.
+
+- d72d07b: Example data uses invented venue, event and promoter names from the contributing guide's vetted list, so no example reads as a real Oztix client. Affects the chart examples from `@oztix/roadie-charts/examples` and JSDoc in core records and QueryField.
+- fe925b2: `emphasis-overlay` and `emphasis-overlay-subtle` now take a fixed white label,
+  like their fixed dark fill. In dark mode they took the page's flipped text
+  colour, which is dark on that fill.
+
 ## 2.10.0
 
 ### Minor Changes

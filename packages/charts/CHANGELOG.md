@@ -1,5 +1,112 @@
 # @oztix/roadie-charts
 
+## 0.2.0
+
+### Minor Changes
+
+- 99111f3: Dashboards gain a period and a comparison.
+
+  `@oztix/roadie-core/dashboard`: a description can carry `period: { range,
+compare?, history? }`, where `range` is a `DateRangeValue`, `compare` a
+  `Comparison`, and `history` (`'partial'` or `'unavailable'`) what
+  `resolveComparison` said about the data. A delta marked `comparison: true`
+  follows it. `validateDashboard` checks the period's shape, rejects custom dates
+  that aren't real plain dates or run backwards and hour windows (a period covers
+  whole days), warns about a comparison with an open-ended range, `history` with
+  no comparison, and a comparison delta that sets its own `context`, which never
+  shows, and rejects a comparison delta on a dashboard with no period. The field's
+  type is `DashboardPeriodSpec`.
+
+  `@oztix/roadie-components`: add `DashboardPeriod`
+  (`@oztix/roadie-components/dashboard-period`), one `DateRangePicker` button
+  with `commit='apply'` that shows the period and the dates it compares with.
+  Under the range, a Compare switch turns the comparison on and a toggle group
+  picks previous period or previous year, with the dates it covers, or "Not
+  enough history" or "Nothing to compare". A custom comparison set by the app
+  shows as Custom dates. Apply sends both together; Cancel drops both. Its value
+  is `DashboardPeriodValue`, `{ range, compare? }`. Its presets default to
+  `dashboardPeriodPresets`: next 30 and 90 days, last 30 days, last 12 months
+  and this financial year. `dataStart`, `dataEnd` and `alignWeekday` match the
+  app's `resolveComparison`, so the comparison shows the dates the app fetches.
+  It takes `presets`, `readOnly`, `disabled`, `timeZone`, `today`,
+  `weekStart`, `fiscalYearStart` and `locale`, and places `children`, such as a
+  benchmark, after the period. On a narrow container they stack. It has one
+  size, a large control: 48px tall, with the comparison's dates on a second line,
+  so pair it with large Buttons and Selects on the same row.
+
+  `@oztix/roadie-charts`: `DashboardView` shows a description's `period` above its
+  sections. `onPeriodChange` receives the new `{ range, compare? }`; without it
+  the period shows read-only. `periodProps` (`DashboardViewPeriodProps`) passes
+  the toolbar's other props. A delta marked `comparison: true` is named on its
+  context line ("vs previous period", over any `context` the card gives), hides
+  with no comparison, and gives way to "Not enough history" or "Nothing to
+  compare" when the period's `history` says so.
+
+- 816a826: `DataTable` links rows with `getRowHref`. The title cell, the pinned text
+  column or else the first text column, becomes a link routed through
+  `RoadieProvider`, with external links opening in a new tab. Its overlay covers
+  the row, so pressing anywhere on it follows the link, and the row takes the
+  link's hover tint and focus ring. The link is the row's only tab stop.
+  `getRowHref` runs where the table renders, so a server component can pass it.
+
+  `DashboardView` takes `getRowHref={(card, row) => …}` to link table card rows,
+  since a dashboard description is JSON and holds no functions.
+
+- ff2f04d: `DataTable` takes a totals row with `totals`, rendered in a new `Table.Foot`:
+  strong text over a rule, its label in the first column as a row header. `true`
+  or `'sum'` adds up the number columns over every row, labelled "Totals for 12
+  records", or the `recordName` you pass. Shares, indexes, points and columns with
+  `total: false` stay blank, and currency sums round to the cent. Give
+  `{ label, values }` to show your own figures, such as the server's totals for a
+  paged report or an average; with `values`, nothing is summed, and without a
+  label the row reads "Totals". The first column holds the label, so it never
+  hides while the totals show. `DataTableTotals` types the prop, `true`
+  included, and `tableCellClass(align)` gives a body cell's classes, for a `th`
+  that heads a row.
+
+  A dashboard table card takes the same `totals`, and columns take `total: false`.
+  `validateDashboard` checks them: values need a label and must name a column,
+  `'sum'` warns when there's nothing to sum, and either warns when the first
+  column, which holds the label, has a total that would never show.
+  `cardTable(card)` returns the totals summed, and a `Chart` table view shows a
+  `ChartTable`'s totals. In core,
+  `resolveTableTotals(columns, rows, totals)`, `isSummable(column)` and the
+  `RecordName` and `ResolvedTotals` types come from
+  `@oztix/roadie-core/dashboard` and the Zod-free `/dashboard-layout`.
+
+- 7a507d3: The portfolio example dashboard has a period, the past 30 days compared with
+  the previous period, so `DashboardView` shows a period toolbar above it. Spread
+  the new `portfolioDates` into `periodProps` so the toolbar's dates match the
+  data's. `createPortfolioDashboard(period)` works out the sales, gross and
+  refund tiles for any period from daily sales (`PortfolioPeriod`), and their
+  deltas follow the comparison (`comparison: true`). Gross revenue is now the
+  period's, not the shows' lifetime total. The first section is "At a glance",
+  and "Sold, last 30 days" is "Tickets sold".
+
+### Patch Changes
+
+- 9b257cb: A chart with no data now shows an `EmptyState` with an icon: small inside a
+  `Chart` card and medium on its own. A chart that can't draw on its own shows a
+  danger `EmptyState`; inside a card it still puts the card in its error state.
+  A card's plot grows past its height when the state's title wraps. A small
+  multiples panel keeps a small text-only state at its own height. The title is
+  a paragraph, since a chart can't know the page's heading outline, and the
+  `chart-empty` and `chart-error` slots now sit on the `EmptyState` wrapper
+  rather than the text. The static SVG renderer keeps its text message.
+- d72d07b: Example data uses invented venue, event and promoter names from the contributing guide's vetted list, so no example reads as a real Oztix client. Affects the chart examples from `@oztix/roadie-charts/examples` and JSDoc in core records and QueryField.
+- Updated dependencies [ddcad84]
+- Updated dependencies [54c87b2]
+- Updated dependencies [99111f3]
+- Updated dependencies [ff2f04d]
+- Updated dependencies [df311de]
+- Updated dependencies [c09a86a]
+- Updated dependencies [f57dfba]
+- Updated dependencies [eb8cb85]
+- Updated dependencies [d72d07b]
+- Updated dependencies [fe925b2]
+- Updated dependencies [ff2f04d]
+  - @oztix/roadie-core@2.11.0
+
 ## 0.1.0
 
 ### Minor Changes
