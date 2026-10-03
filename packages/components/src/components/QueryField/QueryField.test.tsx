@@ -618,6 +618,56 @@ describe('QueryField', () => {
     expect(onAccept).toHaveBeenCalledTimes(1)
   })
 
+  it('hands Enter back to the search when End moves the caret', async () => {
+    const onAccept = vi.fn()
+    render(<Harness onAccept={onAccept} />)
+    await typeInto('long')
+    await waitFor(() => expect(optionNames()).toHaveLength(3))
+    await userEvent.keyboard('{ArrowDown}{End}')
+    expect(hinted()).toEqual(['Search for “long”'])
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: 'search' })
+    )
+  })
+
+  it('keeps its own rows apart from suggestions that reuse their ids', async () => {
+    const clash: QueryFieldSuggestion = {
+      id: 'search',
+      label: 'Search venues',
+      kind: 'field',
+      value: 'venue'
+    }
+    render(
+      <Harness
+        suggest={() => [{ id: 'search', label: 'Fields', items: [clash] }]}
+      />
+    )
+    await typeInto('long')
+    await waitFor(() =>
+      expect(optionNames()).toEqual(['Search venues', 'Search for “long”'])
+    )
+    expect(hinted()).toEqual(['Search for “long”'])
+  })
+
+  it("shows no earlier step's suggestions while the value step loads", async () => {
+    const values = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
+    const { rerender } = render(<Harness />)
+    await userEvent.click(input())
+    await waitFor(() => expect(optionNames()).toEqual(['Venue']))
+    rerender(
+      <Harness
+        pendingChip={{ id: 'venue', label: 'Venue is' }}
+        suggest={() => values.promise}
+      />
+    )
+    await waitFor(() => expect(optionNames()).toEqual([]))
+    await act(async () =>
+      values.resolve([{ id: 'values', label: 'Venue is', items: [longacre] }])
+    )
+    expect(optionNames()).toEqual(['Venue is The Longacre'])
+  })
+
   it('tells assistive technology Enter edits a chip', () => {
     render(<Harness initialChips={[scope, status]} onEditChip={() => {}} />)
     expect(chipElement('status')).toHaveAttribute('aria-keyshortcuts', 'Enter')

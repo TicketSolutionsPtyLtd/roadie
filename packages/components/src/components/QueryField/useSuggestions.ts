@@ -15,6 +15,7 @@ type Suggestions<Value> = {
   groups: readonly QueryFieldSuggestionGroup<Value>[]
   /** The text these groups were asked for. */
   inputValue: string
+  pendingId: string | undefined
 }
 
 const NONE: readonly never[] = []
@@ -37,7 +38,8 @@ export function useSuggestions<Value>(
   })
   const [suggestions, setSuggestions] = useState<Suggestions<Value>>({
     groups: NONE,
-    inputValue: ''
+    inputValue: '',
+    pendingId: undefined
   })
 
   useIsomorphicLayoutEffect(() => {
@@ -45,15 +47,15 @@ export function useSuggestions<Value>(
     let current = true
     const result = suggestRef.current(inputValue)
     if (!isThenable(result)) {
-      setSuggestions({ groups: result, inputValue })
+      setSuggestions({ groups: result, inputValue, pendingId })
       return
     }
     result.then(
       (groups) => {
-        if (current) setSuggestions({ groups, inputValue })
+        if (current) setSuggestions({ groups, inputValue, pendingId })
       },
       () => {
-        if (current) setSuggestions({ groups: NONE, inputValue })
+        if (current) setSuggestions({ groups: NONE, inputValue, pendingId })
       }
     )
     return () => {
@@ -61,5 +63,8 @@ export function useSuggestions<Value>(
     }
   }, [inputValue, open, pendingId])
 
-  return suggestions
+  // Another step's suggestions never show while this step's load.
+  return suggestions.pendingId === pendingId
+    ? suggestions
+    : { ...suggestions, groups: NONE }
 }

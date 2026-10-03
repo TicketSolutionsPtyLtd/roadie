@@ -45,8 +45,12 @@ function QueryFieldDefault() {
 
   function accept(suggestion) {
     if (suggestion.kind === 'search') setSearch(suggestion.value)
-    if (suggestion.kind === 'filter' && !chips.some((chip) => chip.id === suggestion.id))
-      setChips([...chips, { id: suggestion.id, label: suggestion.label }])
+    if (suggestion.kind === 'filter')
+      setChips((current) =>
+        current.some((chip) => chip.id === suggestion.id)
+          ? current
+          : [...current, { id: suggestion.id, label: suggestion.label }]
+      )
   }
 
   return (
@@ -54,7 +58,7 @@ function QueryFieldDefault() {
       <QueryField
         aria-label='Search events'
         chips={chips}
-        onRemoveChip={(id) => setChips(chips.filter((chip) => chip.id !== id))}
+        onRemoveChip={(id) => setChips((current) => current.filter((chip) => chip.id !== id))}
         suggest={suggest}
         onAccept={accept}
       />

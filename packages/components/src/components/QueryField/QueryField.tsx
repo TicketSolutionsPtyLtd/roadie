@@ -37,7 +37,7 @@ import { useSuggestions } from './useSuggestions'
 export type QueryFieldProps<Value = unknown> = {
   /** The conditions applied, each read as one chip. Locked chips show first. */
   chips?: readonly QueryFieldChip[]
-  /** A chip's remove button, Backspace on a selected chip, or Clear asks to remove it. */
+  /** A chip's remove button, Backspace on a selected chip, or Clear asks to remove it. Clear calls it once per chip, so update state functionally. */
   onRemoveChip?: (id: string) => void
   /** Gives unlocked chips an edit button: open your editor `Popover` against `anchor`, the chip. */
   onEditChip?: (id: string, anchor: HTMLElement) => void
@@ -91,6 +91,13 @@ export type QueryFieldProps<Value = unknown> = {
 const DEFAULT_PLACEHOLDER = 'Search and filter'
 const NO_CHIPS: readonly QueryFieldChip[] = []
 
+const CARET_KEYS = new Set(['Home', 'End', 'PageUp', 'PageDown'])
+
+// Kind and id together, so a suggestion reusing a built-in row's id stays apart.
+function itemKey(item: { kind: string; id: string }) {
+  return `${item.kind}:${item.id}`
+}
+
 function isComposing(event: KeyboardEvent) {
   return event.nativeEvent.isComposing || event.keyCode === 229
 }
@@ -136,7 +143,7 @@ export function QueryField<Value = unknown>({
     onInputValueChange
   )
   const [open, setOpen] = useState(false)
-  const [highlightId, setHighlightId] = useState<string>()
+  const [highlightKey, setHighlightKey] = useState<string>()
   // Only arrows may make an item Enter's target. A list that changes under
   // the highlight re-highlights with reason `none`, so the mark lapses
   // whenever the value step starts or ends.
@@ -147,7 +154,7 @@ export function QueryField<Value = unknown>({
     setMarkedStep(step)
     setArrowed(false)
   }
-  const keyboardHighlightId = arrowed ? highlightId : undefined
+  const keyboardHighlightKey = arrowed ? highlightKey : undefined
 
   const isDisabled = disabled ?? field.disabled
   const isInvalid = invalid ?? field.invalid
@@ -176,7 +183,10 @@ export function QueryField<Value = unknown>({
   const search = list
     .flatMap((group) => group.items)
     .find((item) => item.kind === 'search')
-  const enterTargetId = keyboardHighlightId ?? exact?.id ?? search?.id
+  const enterTargetKey =
+    keyboardHighlightKey ??
+    (exact && itemKey(exact)) ??
+    (search && itemKey(search))
 
   const fieldDescription = field.invalid
     ? field.errorTextId
@@ -214,6 +224,7 @@ export function QueryField<Value = unknown>({
   function handleInputKeyDown(
     event: BaseUIEvent<KeyboardEvent<HTMLInputElement>>
   ) {
+    if (CARET_KEYS.has(event.key)) setArrowed(false)
     if (
       (event.key === 'ArrowDown' || event.key === 'ArrowUp') &&
       !isComposing(event)
@@ -229,7 +240,7 @@ export function QueryField<Value = unknown>({
         event.preventBaseUIHandler()
         return
       }
-      if (keyboardHighlightId) return
+      if (keyboardHighlightKey) return
       event.preventBaseUIHandler()
       event.preventDefault()
       const target = exact ?? search
@@ -312,7 +323,7 @@ export function QueryField<Value = unknown>({
         if (details.reason !== 'list-navigation') setArrowed(false)
       }}
       onItemHighlighted={(item, details) => {
-        setHighlightId(item?.id)
+        setHighlightKey(item && itemKey(item))
         if (details.reason === 'pointer') setArrowed(false)
       }}
       itemToStringLabel={(item: { label: string }) => item.label}
@@ -437,12 +448,15 @@ export function QueryField<Value = unknown>({
         <Combobox.Positioner>
           <Combobox.Popup>
             <Combobox.List>
-              {list.map((group) => (
-                <Combobox.Group key={group.id} items={group.items}>
+              {list.map((group, index) => (
+                <Combobox.Group
+                  key={`${index}:${group.id}`}
+                  items={group.items}
+                >
                   <Combobox.GroupLabel>{group.label}</Combobox.GroupLabel>
                   <Combobox.Collection>
                     {(item: QueryFieldAccepted<Value>) => (
-                      <Combobox.Item key={item.id} value={item}>
+                      <Combobox.Item key={itemKey(item)} value={item}>
                         <span className='grid min-w-0 gap-0.5'>
                           <span
                             data-slot='query-field-option-label'
@@ -456,7 +470,7 @@ export function QueryField<Value = unknown>({
                             </span>
                           )}
                         </span>
-                        {enterTargetId === item.id && (
+                        {enterTargetKey === itemKey(item) && (
                           <Kbd size='sm' className='text-subtle'>
                             Enter
                           </Kbd>
