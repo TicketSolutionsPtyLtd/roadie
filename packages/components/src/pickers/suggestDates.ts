@@ -28,8 +28,8 @@ export type SuggestDatesOptions = ReadDateOptions & {
 type Candidate = {
   phrase: string
   label?: string
-  /** Only a date from today on, for a day number typed alone. */
-  ahead?: boolean
+  /** Finishes a date still being typed, so goes once the text names one. */
+  unfinished?: boolean
 }
 
 const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
@@ -129,11 +129,25 @@ function completions(text: string, today: string): Candidate[] {
 
   m = /^(\d{1,2})(?:st|nd|rd|th)?(?: ([a-z]*))?$/.exec(text)
   if (m) {
-    const thisMonth = Number(today.slice(5, 7)) - 1
-    for (let step = 0; step < 12; step++) {
-      const month = (thisMonth + step) % 12
+    const day = Number(m[1])
+    const [year, thisMonth, todayDay] = today.split('-').map(Number) as [
+      number,
+      number,
+      number
+    ]
+    // The next twelve occurrences from today, each with its year, so a day
+    // that has passed this month comes round again next year.
+    const first = day < todayDay ? 1 : 0
+    for (let step = first; step < first + 12; step++) {
+      const index = thisMonth - 1 + step
+      const month = index % 12
       if (!MONTH_NAMES[month]!.startsWith(m[2] ?? '')) continue
-      found.push({ ...own(`${Number(m[1])} ${MONTHS[month]}`), ahead: true })
+      const short = `${day} ${MONTHS[month]}`
+      found.push({
+        phrase: `${short} ${year + Math.floor(index / 12)}`,
+        label: own(short).label,
+        unfinished: true
+      })
     }
   }
   return found
@@ -166,7 +180,12 @@ export function suggestDates(
     .replace(/\s+/g, ' ')
     .trim()
   const today = todayOf(options)
-  const completed = typed ? completions(typed, today) : []
+  // Text that already names a date isn't finished another way: "1 oct" on
+  // 7 Oct means 1 Oct, not next year's.
+  const named = typed !== '' && readDays(text, options).length > 0
+  const completed = typed
+    ? completions(typed, today).filter((c) => !(named && c.unfinished))
+    : []
   // A phrase of ours typed in full keeps its words, ahead of its dates.
   const isTyped = (candidate: Candidate) => candidate.phrase === typed
   const candidates: Candidate[] = typed
@@ -195,7 +214,9 @@ export function suggestDates(
     // Our phrases are English, so a locale's own names mustn't read them.
     const readings = readDays(
       candidate.phrase,
-      candidate.label ? { ...options, locale: undefined } : options
+      candidate.label && candidate.phrase !== typed
+        ? { ...options, locale: undefined }
+        : options
     )
     // A phrase of ours means the one date the field reads it as.
     const meant = candidate.label
@@ -213,7 +234,6 @@ export function suggestDates(
         if (maxDays !== undefined && span > maxDays) continue
       }
       if (
-        (candidate.ahead && start < today) ||
         matchesDate(start, options.disabled) ||
         matchesDate(end, options.disabled)
       )

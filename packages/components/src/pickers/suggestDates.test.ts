@@ -138,7 +138,13 @@ describe('suggestDates: as you type', () => {
         ['2 Apr', '2027-04-02']
       ]
     ],
-    ['14 ma', [['14 Mar', '2027-03-14']]],
+    [
+      '14 ma',
+      [
+        ['14 Mar', '2027-03-14'],
+        ['14 May', '2027-05-14']
+      ]
+    ],
     [
       'in an',
       [
@@ -207,6 +213,25 @@ describe('suggestDates: as you type', () => {
 
   it('stops at the limit', () => {
     expect(suggestDates('14', { ...SATURDAY, limit: 2 })).toHaveLength(2)
+  })
+
+  it('highlights what the field reads for a phrase typed in full', () => {
+    // In Sesotho "Jan" is June, and the field reads typed text locally.
+    expect(
+      suggestDates('1 jan', { today: '2026-10-03', locale: 'st' })[0]?.start
+    ).toBe('2026-06-01')
+  })
+
+  it('never finishes a typed date as another year', () => {
+    // 1 Oct has passed and is disabled; it is refused, not moved to 2027.
+    expect(
+      dates('1 oct', { ...SATURDAY, disabled: { before: '2026-10-03' } })
+    ).toEqual([])
+  })
+
+  it('rolls a day typed with a month part over to next year', () => {
+    expect(dates('1 o')).toEqual([['1 Oct', '2027-10-01']])
+    expect(dates('30 s')).toEqual([['30 Sept', '2027-09-30']])
   })
 
   it('reads its own hints in English whatever the locale', () => {

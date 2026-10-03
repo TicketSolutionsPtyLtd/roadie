@@ -33,8 +33,8 @@ export type SuggestingInputProps<
   anchor?: RefObject<HTMLElement | null>
 }
 
-// A reading that throws, such as on a bad weekStart, shows no list rather than
-// breaking the page; committing the text still reports it.
+// A reading that throws, such as on a bad weekStart, shows no list rather
+// than breaking the page as the field is focused.
 function suggestSafely<S>(
   suggest: (text: string) => readonly S[],
   text: string
