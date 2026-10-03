@@ -684,6 +684,7 @@ function SalesDashboard({ spec }: { spec: DashboardSpec }) {
       spec={{ ...spec, period: { ...period, history }, sections: cards }}
       onPeriodChange={setPeriod}
       periodProps={{
+        presets: dateRangePresets,
         timeZone: venue.timeZone,
         dataStart: sales.firstDay,
         dataEnd: sales.lastDay
@@ -1369,8 +1370,9 @@ export default function DashboardsPage() {
             </>,
             <>
               To open a card’s records for the same dates, read{' '}
-              <Code>spec.period</Code> in <Code>getRowHref</Code>. A records
-              filter takes the same <Code>DateRangeValue</Code>.
+              <Code>spec.period</Code> in <Code>getRowHref</Code>. A relative
+              period becomes a records <Code>within</Code> filter, and custom
+              dates a <Code>between</Code> filter.
             </>,
             <>
               No chart draws a comparison series yet. Show the comparison as a

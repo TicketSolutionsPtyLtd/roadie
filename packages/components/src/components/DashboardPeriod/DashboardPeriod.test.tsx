@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
@@ -173,6 +173,19 @@ describe('DashboardPeriod', () => {
     await userEvent.click(comparison())
     expect(screen.queryByRole('option')).not.toBeInTheDocument()
     expect(comparison()).toHaveAttribute('aria-readonly', 'true')
+  })
+
+  it('stays shut when read-only is lifted', async () => {
+    const { rerender } = render(
+      <DashboardPeriod today={TODAY} value={THIS_MONTH} />
+    )
+    await userEvent.click(comparison())
+    expect(await screen.findAllByRole('option')).toHaveLength(4)
+    rerender(<DashboardPeriod today={TODAY} value={THIS_MONTH} readOnly />)
+    await waitFor(() => expect(screen.queryAllByRole('option')).toHaveLength(0))
+    rerender(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.queryAllByRole('option')).toHaveLength(0)
   })
 
   it('turns both controls off when disabled', () => {

@@ -176,6 +176,7 @@ function Sales() {
       spec={spec}
       onPeriodChange={setPeriod}
       periodProps={{
+        presets: dateRangePresets,
         today: TODAY,
         timeZone: SALES_DATA.timeZone,
         dataStart: SALES_DATA.dataStart,

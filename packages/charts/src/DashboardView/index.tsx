@@ -50,9 +50,10 @@ export type DashboardViewProps = {
    */
   onPeriodChange?: (period: DashboardPeriodValue) => void
   /**
-   * How the period toolbar reads and what sits beside it: `presets`,
-   * `timeZone`, `fiscalYearStart`, `disabled` while refetching, and
-   * `children` for the app's own controls, such as a benchmark.
+   * The period toolbar's other props: `presets`, `timeZone`, `today`,
+   * `locale`, `weekStart`, `fiscalYearStart`, `dataStart`, `dataEnd`,
+   * `alignWeekday`, `disabled` while refetching, and `children` for the
+   * app's own controls, such as a benchmark.
    */
   periodProps?: DashboardViewPeriodProps
   className?: string

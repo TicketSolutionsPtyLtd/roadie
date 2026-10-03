@@ -51,10 +51,14 @@ export type DashboardPeriodProps = Omit<
    */
   presets?: readonly DateRangePreset[]
   /**
-   * The first and last days the data holds, as given to `resolveComparison`,
-   * so each comparison lists the dates the app will fetch.
+   * The first day the data holds, as given to `resolveComparison`, so each
+   * comparison lists the dates the app will fetch.
    */
   dataStart?: string
+  /**
+   * The last day the data holds, as given to `resolveComparison`. Only for
+   * data recorded as it happens, such as sales.
+   */
   dataEnd?: string
   /** Previous year goes back 52 weeks, as given to `resolveComparison`. */
   alignWeekday?: boolean
@@ -164,6 +168,7 @@ export function DashboardPeriod({
       }
     : null
   const [selectOpen, setSelectOpen] = useState(false)
+  if (readOnly && selectOpen) setSelectOpen(false)
 
   const [uncontrolled, setUncontrolled] = useState(defaultValue)
   const value = valueProp ?? uncontrolled
