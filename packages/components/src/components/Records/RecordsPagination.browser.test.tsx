@@ -49,6 +49,16 @@ describe('Records.Pagination rows per page', () => {
     expect(width()).toBe(before)
   })
 
+  it('keeps the chevron beside the value', async () => {
+    render(<Paged />)
+    const value = rowsPerPage().querySelector('[data-slot="select-value"]')!
+    const icon = rowsPerPage().querySelector('[data-slot="select-icon"]')!
+    await expect.poll(() => value.textContent).toBe('50 per page')
+    expect(
+      icon.getBoundingClientRect().left - value.getBoundingClientRect().right
+    ).toBeCloseTo(6, 0)
+  })
+
   it('opens a list at least as wide as the trigger', async () => {
     render(<Paged />)
     await userEvent.click(rowsPerPage())
