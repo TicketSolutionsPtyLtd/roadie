@@ -11,6 +11,7 @@ tags:
     playwright,
     resize-observer,
     requestAnimationFrame,
+    css-animations,
     ci
   ]
 problem_type: test_failure
@@ -28,6 +29,15 @@ Headless WebKit on Linux doesn't run the rendering step while the page is
 idle. No `requestAnimationFrame` callback fires and no `ResizeObserver` reports
 until an input event arrives. Measured in the Playwright Linux image: 0 frames
 in 300ms of idle, 18 frames after one `userEvent.hover`.
+
+The stall can also start mid-test, straight after an input, and last for
+seconds. A CI trace of the Sortable Move menu test caught it: frames ran
+through the first click, stopped around the second `mousedown` and came
+back 5.7s later, while input events kept arriving. Anything that waits on a
+frame stalls with it: Base UI's menu closes in a `requestAnimationFrame`, a
+chart's width band comes from a `ResizeObserver`, and a CSS animation's
+clock only advances when a frame runs, so a toast's JS timer can run out
+while its progress bar is still frozen.
 
 `ResizeObserver loop completed with undelivered notifications` lines in the
 same CI log come from other tests (ToastHeight) and are a red herring here.
@@ -47,6 +57,17 @@ async function nudgeFrames() {
 
 To check that an observer (not its first report) did the work, nudge once
 before the change as well, so the initial report has already been delivered.
+
+When a poll waits on a frame, nudge on every check, as the chart helper
+`nudgeFrames` in `packages/charts/src/plot/browserTesting.tsx` does in the
+Funnel test.
+
+When the pointer has to stay put (on a menu trigger, or on or off a toast),
+use `keepFramesRunning(() => point)` from
+`packages/components/src/css/testUtils.ts`. It wiggles the pointer a pixel at
+that point until stopped, so frames keep coming without changing what is
+hovered. Point it somewhere else to hover something else, rather than mixing
+it with `userEvent.hover`.
 
 ## Reproduce locally
 

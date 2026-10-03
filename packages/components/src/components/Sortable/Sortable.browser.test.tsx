@@ -15,6 +15,7 @@ import { commands, userEvent } from 'vitest/browser'
 
 import { Sortable, type SortableMove } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { keepFramesRunning } from '../../css/testUtils'
 import { List } from '../List'
 import { useStylesheet } from '../Pane/testUtils'
 import { Popover } from '../Popover'
@@ -292,9 +293,17 @@ describe('Sortable Move menu', () => {
       { type: 'wait', ms: 80 },
       { type: 'up' }
     ])
-    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
-    await new Promise((resolve) => setTimeout(resolve, 200))
-    expect(screen.queryByRole('menu')).toBeNull()
+    const stopFrames = keepFramesRunning(() => at)
+    try {
+      await waitFor(() => expect(screen.queryByRole('menu')).toBeNull(), {
+        timeout: 5000
+      })
+      await new Promise(requestAnimationFrame)
+      await new Promise(requestAnimationFrame)
+      expect(screen.queryByRole('menu')).toBeNull()
+    } finally {
+      await stopFrames()
+    }
   })
 
   it('moves by keyboard and keeps focus on the handle', async () => {

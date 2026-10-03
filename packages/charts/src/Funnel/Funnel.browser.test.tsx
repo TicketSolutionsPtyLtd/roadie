@@ -10,6 +10,7 @@ import {
   expectFillsPlot,
   expectMinFontSize,
   expectTableKeepsHeight,
+  nudgeFrames,
   renderInCard
 } from '../plot/browserTesting'
 import { loadBrandFont, useStylesheet } from '../testUtils'
@@ -64,8 +65,12 @@ describe('Funnel in a card', () => {
     })
     await expect
       .poll(
-        () =>
-          container.querySelector('[data-ts-key^="label-values"]')?.textContent
+        async () => {
+          await nudgeFrames()
+          return container.querySelector('[data-ts-key^="label-values"]')
+            ?.textContent
+        },
+        { timeout: 10_000 }
       )
       .not.toContain('of previous')
     await afterResize()

@@ -27,6 +27,11 @@ export function renderInCard(
   )
 }
 
+// Headless WebKit on Linux runs no frames while a page sits idle, so a
+// ResizeObserver stays silent until an input event arrives
+// (docs/solutions/test-failures/linux-webkit-no-frames-while-idle.md).
+export const nudgeFrames = () => userEvent.hover(document.body)
+
 /** Waits for the width band, which a ResizeObserver sets after the first paint. */
 export const afterResize = () =>
   new Promise((resolve) =>

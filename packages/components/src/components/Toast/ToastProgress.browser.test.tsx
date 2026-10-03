@@ -1,9 +1,18 @@
 import { act, cleanup, render, waitFor } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { commands, page, userEvent } from 'vitest/browser'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it
+} from 'vitest'
+import { commands, page } from 'vitest/browser'
 
 import { Toast, type ToastPosition, createToastManager } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { keepFramesRunning } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
@@ -15,9 +24,17 @@ afterAll(async () => {
   removeStylesheet()
   await page.viewport(1920, 1080)
 })
+
+const AWAY = { x: 5, y: 5 }
+let pointerAt = AWAY
+let stopFrames = async () => {}
+beforeEach(() => {
+  pointerAt = AWAY
+  stopFrames = keepFramesRunning(() => pointerAt)
+})
 afterEach(async () => {
+  await stopFrames()
   await commands.reduceMotion(false)
-  await userEvent.unhover(document.body)
   cleanup()
 })
 
@@ -32,6 +49,20 @@ const pausedWidth = async () => {
   return width()
 }
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+async function hover(expanded: boolean) {
+  const box = toast().getBoundingClientRect()
+  pointerAt = expanded
+    ? { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+    : AWAY
+  await waitFor(
+    () =>
+      expanded
+        ? expect(toast()).toHaveAttribute('data-expanded')
+        : expect(toast()).not.toHaveAttribute('data-expanded'),
+    { timeout: 10_000 }
+  )
+}
 
 async function show(timeout: number, position?: ToastPosition) {
   const manager = createToastManager()
@@ -52,7 +83,14 @@ describe('Toast.Progress', () => {
     async (position) => {
       await show(10_000, position)
       await waitFor(
-        () => expect(toast()).not.toHaveAttribute('data-starting-style'),
+        () => {
+          expect(toast()).not.toHaveAttribute('data-starting-style')
+          expect(
+            toast()
+              .getAnimations()
+              .filter((animation) => animation.playState === 'running')
+          ).toHaveLength(0)
+        },
         { timeout: 10_000 }
       )
       const box = toast().getBoundingClientRect()
@@ -67,46 +105,40 @@ describe('Toast.Progress', () => {
   it('empties over time', async () => {
     await show(4000)
     const start = width()
-    await pause(800)
-    expect(width()).toBeLessThan(start)
+    await expect.poll(width, { timeout: 10_000 }).toBeLessThan(start - 1)
   })
 
   it('holds still while the toasts are hovered, then carries on', async () => {
     await show(6000)
     await pause(300)
-    await userEvent.hover(toast())
-    await waitFor(() => expect(toast()).toHaveAttribute('data-expanded'), {
-      timeout: 10_000
-    })
+    await hover(true)
     const held = await pausedWidth()
     await pause(600)
     expect(width()).toBeCloseTo(held, 0)
 
-    await userEvent.unhover(toast())
-    await waitFor(() => expect(toast()).not.toHaveAttribute('data-expanded'), {
-      timeout: 10_000
-    })
-    await pause(600)
-    expect(width()).toBeLessThan(held - 1)
+    await hover(false)
+    await expect.poll(width, { timeout: 10_000 }).toBeLessThan(held - 1)
   })
 
   it('runs out as the toast leaves, pause included', async () => {
     await show(2000)
     const animation = bar().getAnimations()[0]!
     await pause(500)
-    await userEvent.hover(toast())
+    await hover(true)
     await pause(700)
-    await userEvent.unhover(toast())
+    await hover(false)
 
-    const barDone = animation.finished.then(() => performance.now())
-    const toastLeaving = waitFor(
-      () => {
-        expect(toast()).toHaveAttribute('data-ending-style')
+    const settle = { timeout: 10_000, interval: 10 }
+    const [done, leaving] = await Promise.all([
+      waitFor(() => {
+        expect(animation.playState).toBe('finished')
         return performance.now()
-      },
-      { timeout: 10_000, interval: 10 }
-    )
-    const [done, leaving] = await Promise.all([barDone, toastLeaving])
+      }, settle),
+      waitFor(() => {
+        expect(toast()?.hasAttribute('data-ending-style') ?? true).toBe(true)
+        return performance.now()
+      }, settle)
+    ])
 
     expect(Math.abs(leaving - done)).toBeLessThan(400)
   })
