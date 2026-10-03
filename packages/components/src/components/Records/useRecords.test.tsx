@@ -1,7 +1,11 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { RecordPosition, RecordView } from '@oztix/roadie-core/records'
+import type {
+  RecordPosition,
+  RecordSelection,
+  RecordView
+} from '@oztix/roadie-core/records'
 
 import { type TestShow, showFields, testShows } from './testUtils'
 import { type UseRecordsOptions, useRecords } from './useRecords'
@@ -530,5 +534,36 @@ describe('useRecords selection', () => {
     const { result } = byId({ rowActions, getRowHref })
     expect(result.current.rowActions).toBe(rowActions)
     expect(result.current.getRowHref).toBe(getRowHref)
+  })
+})
+
+describe('useRecords selection set with its query', () => {
+  it('keeps a selection the parent sets in the same update as a new search', async () => {
+    const changes: unknown[] = []
+    const { result, rerender } = renderHook(
+      ({ view, selection }: { view: RecordView; selection: RecordSelection }) =>
+        useRecords({
+          data: shows,
+          fields: showFields,
+          getRowId: (row) => row.id,
+          view,
+          selection,
+          onSelectionChange: (next) => changes.push(next)
+        }),
+      {
+        initialProps: {
+          view: view(),
+          selection: { ids: [] } as RecordSelection
+        }
+      }
+    )
+    await act(async () =>
+      rerender({
+        view: view({ search: 'Ocean' }),
+        selection: { allMatching: true, except: [] }
+      })
+    )
+    expect(result.current.selection).toEqual({ allMatching: true, except: [] })
+    expect(changes).toEqual([])
   })
 })

@@ -103,4 +103,23 @@ describe('RecordTable selection in a browser', () => {
       rect(screen.getByRole('button', { name: 'More actions' })).height
     ).toBe(search)
   })
+
+  it('keeps its content width in a parent sized by its content', async () => {
+    const { container } = render(
+      <div style={{ display: 'flex' }}>
+        <div>
+          <RecordTable
+            caption='Shows'
+            data={testShows(3)}
+            fields={showFields}
+            columns={wideColumns}
+          />
+        </div>
+      </div>
+    )
+    await frame()
+    expect(rect(slot(container, 'record-table-frame')).width).toBeGreaterThan(
+      300
+    )
+  })
 })

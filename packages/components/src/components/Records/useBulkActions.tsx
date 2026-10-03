@@ -71,7 +71,6 @@ export function useBulkActions({
   const run = async (index: number) => {
     const action = actions[index]
     if (!action) return
-    // A hidden record is never acted on.
     const submitted = withinMatching(
       records.selection,
       records.matchingRows.map((row) => row.id)

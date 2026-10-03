@@ -27,17 +27,20 @@ and status together.
 
 Records can be selected: `useRecords` takes `selectable` and a
 `RecordSelection` (`selection`, `defaultSelection`, `onSelectionChange`),
-picked ids or every match but some, and drops what a new search or filter
-hides. `matchingRows` lists every match in sort order across pages.
-`rowActions` puts a menu on each record and `getRowHref` links it through
-the table's title column; with selection on, a click elsewhere on a row
-selects it and Shift extends the range. `Records.BulkActions` acts on the
-selection: in the table's header row while records are selected, with a
-count menu to select all or clear and a More actions menu for actions that
-don't fit, or floating at the foot of the screen for a layout without a
-header row. `Records.Actions` (or the toolbar's `actions`) acts on every
-match. Danger actions and any with `confirm` ask first. `Records.Select`
-gives a layout without checkboxes a Select mode. `downloadCsv` saves CSV
-text as a file. `RecordTable` takes `bulkActions` and `tableActions`.
-`Records.Search` takes an `aria-label`, and `Records.Status` announces the
-selection and a search's count once typing settles.
+picked ids or every match but some. A search or filter change drops picked
+records it hides and drops a select all; sort and page changes keep it.
+`matchingRows` lists every match in sort order across pages. `rowActions`
+puts a menu on each record and `getRowHref` links it through the table's
+title column; with selection on, a click elsewhere on a row selects it and
+Shift extends the range, and Cmd, Ctrl or middle click opens the record in
+a new tab. `Records.BulkActions` acts on the selection: in the header row
+of a layout whose definition says `bulkActions: 'header'`, as the table's
+does, with a count menu to select all or clear and a More actions menu for
+actions that don't fit, otherwise floating at the foot of the screen.
+`Records.Actions` (or the toolbar's `actions`) acts on every match. Danger
+actions ask first unless `confirm` is `false`, and any action given
+`confirm` asks. `downloadCsv` saves CSV text as a file. `RecordTable` takes
+`bulkActions`, `tableActions` and `searchLabel`, and `record-table` exports
+`shownColumns` for the columns a view shows. `Records.Search` takes an
+`aria-label`, `Records.Toolbar` a `searchLabel`, and `Records.Status`
+announces the selection and a search's count once typing settles.

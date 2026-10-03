@@ -2,9 +2,10 @@ import { useEffect } from 'react'
 
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
+import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { tableLayout } from '.'
+import { RecordTable, tableLayout } from '.'
 import { Pane } from '../Pane'
 import {
   Records,
@@ -288,5 +289,45 @@ describe('RecordTable selection bar', () => {
     expect(
       container.querySelector('[data-slot="records-bulk-dock"]')
     ).toBeNull()
+  })
+
+  it('renders no floating bar on the server for a table with a selection', () => {
+    const html = renderToString(
+      <RecordTable
+        data={testShows(12)}
+        fields={showFields}
+        columns={showColumns}
+        getRowId={(row) => row.id}
+        defaultSelection={{ ids: ['show-0'] }}
+        bulkActions={[{ label: 'Export', onAction: vi.fn() }]}
+      />
+    )
+    expect(html).not.toContain('records-bulk-dock')
+  })
+
+  it('shows no bar, and warns, for records that are not selectable', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    function Unselectable() {
+      const records = useRecords<TestShow>({
+        data: testShows(12),
+        fields: showFields,
+        getRowId: (row) => row.id,
+        selection: { ids: ['show-0'] }
+      })
+      return (
+        <Records.Root records={records} layouts={layouts}>
+          <Records.Content />
+          <Records.BulkActions
+            actions={[{ label: 'Export', onAction: vi.fn() }]}
+          />
+        </Records.Root>
+      )
+    }
+    const { container } = render(<Unselectable />)
+    expect(bar()).toBeNull()
+    expect(
+      container.querySelector('[data-slot="records-bulk-dock"]')
+    ).toBeNull()
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('selectable'))
   })
 })

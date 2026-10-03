@@ -524,12 +524,12 @@ export {
   type RecordsRootProps,
   type RecordsRow,
   type RecordsSearchProps,
-  type RecordsSelectProps,
   type RecordsToolbarProps,
   type UseRecordsOptions
 } from './components/Records'
 export {
   RecordTable,
+  shownColumns,
   tableColumns,
   tableLayout,
   type RecordCellContext,

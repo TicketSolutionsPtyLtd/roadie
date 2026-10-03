@@ -165,4 +165,22 @@ describe('recordsToCsv', () => {
     )
     expect(lines(csv)[1]).toBe('Yes,Fri 6 Nov 2026')
   })
+
+  it.each(['formatted', 'raw'] as const)(
+    'writes non-finite figures as empty and negative zero as zero (%s)',
+    (values) => {
+      const csv = csvOf(
+        [
+          { ...attendees[2]!, paid: -0, scans: Number.POSITIVE_INFINITY },
+          { ...attendees[2]!, paid: Number.NaN, scans: -0 }
+        ],
+        { values }
+      )
+      const zero = values === 'raw' ? '0' : '$0'
+      expect(lines(csv).slice(1)).toEqual([
+        `Ava Nguyen,General admission,${zero},,`,
+        'Ava Nguyen,General admission,,0,'
+      ])
+    }
+  )
 })

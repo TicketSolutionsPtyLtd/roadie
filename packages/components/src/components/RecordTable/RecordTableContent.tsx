@@ -230,6 +230,8 @@ export function RecordTableContent({
       columns={columns}
       layout={layout}
       size={records.position.pageSize}
+      select={selectable}
+      actions={hasRowActions}
     />
   ) : rows.length === 0 ? (
     <StateRow columns={columnCount}>
@@ -263,8 +265,7 @@ export function RecordTableContent({
       // In a box, the viewport is the region: it holds the focus.
       role={boxed ? undefined : 'region'}
       aria-label={boxed ? undefined : `${caption ?? 'Table'}, scrolls sideways`}
-      // A container, so the bulk actions bar spans the frame's visible width.
-      className={boxed ? undefined : cn('@container', className)}
+      className={boxed ? undefined : className}
     >
       <MeasuredWidth measured={boxed}>
         <div
@@ -309,7 +310,11 @@ export function RecordTableContent({
                 'h-9 border-b border-normal',
                 // Frame wide and stuck at its start, so it never scrolls sideways with the columns.
                 barShown
-                  ? 'sticky start-0 flex w-[100cqi] items-center'
+                  ? cn(
+                      'sticky start-0 flex items-center',
+                      // In a box the head spans every column; the box's width is what shows.
+                      boxed ? 'w-[100cqi]' : 'w-full'
+                    )
                   : rowClass
               )}
             >
@@ -457,6 +462,7 @@ export function RecordTableContent({
       data-slot='record-table-box'
       data-pane-fill={fill || undefined}
       // basis-0, not flex-1: a percentage basis in a column of unknown height falls back to content.
+      // A container, so the bulk actions bar spans the box's visible width.
       className={cn(
         '@container',
         fill && 'h-full min-h-0 grow basis-0',

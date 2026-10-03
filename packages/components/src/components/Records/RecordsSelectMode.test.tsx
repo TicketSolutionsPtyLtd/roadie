@@ -155,4 +155,23 @@ describe('Records Select mode', () => {
     expect(toggle()).toHaveTextContent('Select')
     expect(floating()).toBeNull()
   })
+
+  it('keeps the selection when Escape cancels a confirm from the floating bar', async () => {
+    const user = userEvent.setup()
+    render(
+      <Shows
+        actions={[{ label: 'Cancel', intent: 'danger', onAction: vi.fn() }]}
+      />
+    )
+    await user.click(toggle())
+    await user.click(screen.getByRole('button', { name: 'Ocean Alley 1' }))
+    await user.click(
+      within(floating()!).getByRole('button', { name: 'Cancel' })
+    )
+    await screen.findByRole('alertdialog')
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
+    expect(floating()).toHaveTextContent('1 selected')
+    expect(toggle()).toHaveTextContent('Done')
+  })
 })

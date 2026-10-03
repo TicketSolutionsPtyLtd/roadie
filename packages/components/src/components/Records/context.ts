@@ -8,6 +8,8 @@ import {
   use
 } from 'react'
 
+import type { RecordView } from '@oztix/roadie-core/records'
+
 import type { AnyRecordLayout } from './layouts'
 import type { RecordsInstance } from './useRecords'
 
@@ -63,3 +65,9 @@ export const isSelecting = (
 ) =>
   records.selecting ||
   (selectMode && records.selectable && records.selectedCount > 0)
+
+/** The layout the view names, or the first one given. */
+export const activeLayout = (
+  layouts: readonly AnyRecordLayout[],
+  view: RecordView
+) => layouts.find(({ type }) => type === view.layout.type) ?? layouts[0]

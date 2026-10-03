@@ -1,18 +1,27 @@
 'use client'
 
-import { type KeyboardEvent, useLayoutEffect, useRef, useState } from 'react'
+import {
+  type KeyboardEvent,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState
+} from 'react'
 
 import { XIcon } from '@phosphor-icons/react'
 import { createPortal, flushSync } from 'react-dom'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isDev } from '../../utils/isDev'
 import { Button, IconButton } from '../Button'
 import { RecordsSelectionBar } from './RecordsSelectionBar'
-import { useRecordsContext } from './context'
+import { activeLayout, useRecordsContext } from './context'
 import { findScrollParent } from './scrollParent'
 import type { RecordName, RecordsBulkAction } from './types'
 import { useBulkActions } from './useBulkActions'
+
+let warnedUnselectable = false
 
 // Tailwind's md container, in rem: below it actions show their icons only.
 const COMPACT_BELOW = 28
@@ -29,19 +38,30 @@ export function RecordsBulkActions({
   recordName,
   className
 }: RecordsBulkActionsProps) {
-  const { records, bulkSlot, setBulkMounted, selectControls } =
+  const { records, layouts, bulkSlot, setBulkMounted, selectControls } =
     useRecordsContext()
+  const layout = activeLayout(layouts, records.view)
+  const { selectable } = records
+  useEffect(() => {
+    if (selectable || warnedUnselectable || !isDev()) return
+    warnedUnselectable = true
+    console.warn(
+      '[Roadie] Records.BulkActions needs records that are selectable: pass selectable to useRecords.'
+    )
+  }, [selectable])
   useLayoutEffect(() => {
     setBulkMounted(true)
     return () => setBulkMounted(false)
   }, [setBulkMounted])
-  if (records.selectedCount === 0) return null
-  // A layout with a header row, like a wide table, takes the bar there.
-  if (bulkSlot)
-    return createPortal(
-      <RecordsSelectionBar actions={actions} recordName={recordName} />,
-      bulkSlot
-    )
+  if (!selectable || records.selectedCount === 0) return null
+  // Decided by the layout up front, so a first render never floats a bar the header takes.
+  if (layout?.bulkActions === 'header')
+    return bulkSlot
+      ? createPortal(
+          <RecordsSelectionBar actions={actions} recordName={recordName} />,
+          bulkSlot
+        )
+      : null
   return (
     <FloatingBulkBar
       actions={actions}
@@ -176,8 +196,10 @@ function FloatingBulkBar({
         role='group'
         aria-label='Bulk actions'
         data-slot='records-bulk-actions'
-        onKeyDown={(event: KeyboardEvent) => {
-          if (event.key !== 'Escape') return
+        onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
+          if (event.key !== 'Escape' || event.defaultPrevented) return
+          // A portalled confirm's keys bubble here through React; its Escape is its own.
+          if (!event.currentTarget.contains(event.target as Node)) return
           event.preventDefault()
           if (records.selecting) records.setSelecting(false)
           else clearSelection()

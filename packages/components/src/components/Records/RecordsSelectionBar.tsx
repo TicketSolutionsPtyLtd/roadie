@@ -171,7 +171,6 @@ export function RecordsSelectionBar({
             render={
               <Toolbar.Button
                 {...busy}
-                aria-label={MORE}
                 aria-busy={(running !== null && running >= shown) || undefined}
                 render={
                   <IconButton size='sm' emphasis='subtler' aria-label={MORE}>

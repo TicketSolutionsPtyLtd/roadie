@@ -23,8 +23,13 @@ function cellText(
   options: RecordsToCsvOptions
 ) {
   const value = read(row, field.key)
-  if (options.values === 'raw' && isFigure(field) && typeof value === 'number')
-    return Number.isFinite(value) ? String(value) : ''
+  if (isFigure(field) && typeof value === 'number') {
+    // A spreadsheet reads no figure better than "Infinity" or "-$0".
+    if (!Number.isFinite(value)) return ''
+    if (Object.is(value, -0))
+      return cellText({ ...row, [field.key]: 0 }, field, options)
+    if (options.values === 'raw') return String(value)
+  }
   const text = formatRecordValue(row, field, options)
   if (text === null) return ''
   // Only text from the data can carry a formula; a formatted figure like -$20 can't.

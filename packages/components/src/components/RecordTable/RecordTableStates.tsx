@@ -3,7 +3,13 @@ import type { ReactNode } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { Skeleton } from '../Skeleton'
-import { cellClass, pinStyle, rowClass } from './RecordTableRow'
+import {
+  actionsCellClass,
+  cellClass,
+  pinStyle,
+  rowClass,
+  selectCellClass
+} from './RecordTableRow'
 import type { ColumnLayout } from './layout'
 import type { RecordTableColumn } from './types'
 
@@ -31,11 +37,16 @@ export function StateRow({
 export function RecordTableSkeletonRows({
   columns,
   layout,
-  size
+  size,
+  select,
+  actions
 }: {
   columns: readonly RecordTableColumn[]
   layout: ColumnLayout
   size: number
+  /** The checkbox and row actions tracks, kept empty so cells stay in their columns. */
+  select: boolean
+  actions: boolean
 }) {
   return (
     <div role='rowgroup' aria-hidden data-slot='record-table-skeleton'>
@@ -45,6 +56,7 @@ export function RecordTableSkeletonRows({
           role='row'
           className={cn(rowClass, 'h-12 border-b border-subtler')}
         >
+          {select && <div role='cell' className={selectCellClass} />}
           {columns.map((column, index) => (
             <div
               key={column.key}
@@ -55,6 +67,7 @@ export function RecordTableSkeletonRows({
               <Skeleton shape='text' className='animate-none' />
             </div>
           ))}
+          {actions && <div role='cell' className={actionsCellClass} />}
         </div>
       ))}
     </div>

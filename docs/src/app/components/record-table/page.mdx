@@ -13,7 +13,7 @@ A table of records to search, sort and page through.
 ## Import
 
 ```tsx
-import { RecordTable, tableColumns, tableLayout } from '@oztix/roadie-components/record-table'
+import { RecordTable, shownColumns, tableColumns, tableLayout } from '@oztix/roadie-components/record-table'
 import { Records, downloadCsv, useRecords } from '@oztix/roadie-components/records'
 import { recordFields, recordsToCsv } from '@oztix/roadie-core/records'
 ```
@@ -134,9 +134,9 @@ function Shows() {
 }
 ```
 
-`Records.Toolbar` holds the standard controls: the search, `Records.Select`, and with `actions`, the table actions as `Records.Actions` at the end. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
+`Records.Toolbar` holds the standard controls: the search, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
 
-`Records.BulkActions` can sit anywhere inside the Provider: the table shows it in its header row. `Records.Select` shows Select and Done for a layout that has no checkbox per record, and renders nothing beside the table, which has one.
+`Records.BulkActions` can sit anywhere inside the Provider: the table shows it in its header row.
 
 ### In a Pane
 
@@ -367,7 +367,7 @@ render(<Controlled />)
 
 `rowActions` returns menu items for a record, shown in a menu on its row named "More actions for" the record. `getRowHref` links each record to its page through the title column. When records can be selected, clicking anywhere else on a row selects it, and Shift extends the selection from the last one picked; otherwise the click follows the link. Cmd or Ctrl opens the record in a new tab. Return `undefined` for a record with no page.
 
-While records are selected, the bulk actions take the column headers' place in the same sticky row, so the rows never move and the bar stays in view as the table scrolls down or sideways. The page checkbox stays at the start. The count, such as "3 selected", opens a menu with Clear selection, and with "Select all" once the whole page is checked and more records match. Actions follow as buttons, and those that don't fit move into a More actions menu at the end. The headers come back once the selection clears. An action with `confirm` asks first; danger actions always do.
+While records are selected, the bulk actions take the column headers' place in the same sticky row, so the rows never move and the bar stays in view as the table scrolls down or sideways. The page checkbox stays at the start. The count, such as "3 selected", opens a menu with Clear selection, and with "Select all" once the whole page is checked and more records match. Actions follow as buttons, and those that don't fit move into a More actions menu at the end. The headers come back once the selection clears. Danger actions ask first unless `confirm` is `false`, and any other action asks when given `confirm`.
 
 ```tsx-live-noinline
 const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
@@ -434,7 +434,7 @@ render(<ShowActions />)
 
 `tableActions` act on everything the search and filters match, with nothing selected, such as exporting an attendee list. Each gets the applied query and the records. The first shows as a button at the end of the toolbar and the rest sit in a "More actions" menu after it. In a toolbar under 40rem they all sit in the menu. Danger actions confirm first, as bulk actions do. They stay in the toolbar while records are selected, apart from the bulk actions in the header row, so it stays clear which actions use the selection.
 
-`recordsToCsv(rows, fields, { timeZone })` from `@oztix/roadie-core/records` writes rows as CSV, one column per field, each value as the table shows it, and `downloadCsv` saves it. In the browser, `records.matchingRows` holds every matching record in the current sort, across pages. Pass `{ values: 'raw' }` to write plain numbers a spreadsheet can sum. Text that starts like a formula, such as `=` or `@`, is written with a leading apostrophe so a spreadsheet shows it rather than runs it. A column with its own `cell` exports its field's value, not what your cell draws.
+`recordsToCsv(rows, fields, { timeZone })` from `@oztix/roadie-core/records` writes rows as CSV, one column per field, each value as the table shows it, and `downloadCsv` saves it. In the browser, `records.matchingRows` holds every matching record in the current sort, across pages, and `shownColumns(columns, records.view.layout)` gives the columns the table shows, in its order. Pass `{ values: 'raw' }` to write plain numbers a spreadsheet can sum. Text that starts like a formula, such as `=` or `@`, is written with a leading apostrophe so a spreadsheet shows it rather than runs it. A column with its own `cell` exports its field's value, not what your cell draws.
 
 ```tsx-live-noinline
 const names = ['Mia Tran', 'Jack Ellis', 'Ava Nguyen']
@@ -460,6 +460,15 @@ const fields = [
 ]
 const column = tableColumns(fields)
 const columns = fields.map((field, index) => column.field(field.key, { pin: index === 0 }))
+const exportCsv = (records) =>
+  downloadCsv(
+    recordsToCsv(
+      records.matchingRows.map(({ row }) => row),
+      shownColumns(columns, records.view.layout).map(({ field }) => field),
+      { timeZone: records.timeZone }
+    ),
+    'attendees.csv'
+  )
 
 render(
   <RecordTable
@@ -472,12 +481,8 @@ render(
     tableActions={[
       {
         label: 'Export CSV',
-        icon: <DownloadIcon weight='bold' className='size-4' />,
-        onAction: (_, records) =>
-          downloadCsv(
-            recordsToCsv(records.matchingRows.map(({ row }) => row), fields, { timeZone: records.timeZone }),
-            'attendees.csv'
-          )
+        icon: <DownloadIcon weight='bold' />,
+        onAction: (_, records) => exportCsv(records)
       },
       { label: 'Print door list', onAction: (query) => console.log('print', query) }
     ]}
@@ -721,6 +726,7 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `selection` | `RecordSelection` | `{ ids }`, or `{ allMatching: true, except }`. |
 | `selectedCount` | `number` | Selected records the search and filters still match. |
 | `isSelected` | `(id: string) => boolean` | Whether a record is selected. |
+| `countSelection` | `(selection: RecordSelection) => number` | How many records a selection holds that the search and filters still match. |
 | `setSelection` | `(selection: RecordSelection) => void` | Replaces the selection. |
 | `toggleRow` | `(id: string, options?: { range?: boolean }) => void` | Picks or drops a record; `range` covers every record from the last one toggled, in sorted order. |
 | `selectPage` | `(value: boolean) => void` | Picks or drops every record on the page. |

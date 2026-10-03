@@ -157,7 +157,10 @@ const serverZone = () => 'UTC'
  * What a selection was taken against: the search and the unresolved filters,
  * in any order, so "today" rolling over doesn't drop it.
  */
-const matchKey = ({ search, filters }: RecordView['query']) =>
+const matchKey = ({
+  search,
+  filters
+}: Pick<RecordView['query'], 'search' | 'filters'>) =>
   JSON.stringify([
     search.trim(),
     filters.map((filter) => JSON.stringify(filter)).sort()
@@ -297,9 +300,11 @@ export function useRecords<Row extends object>({
   const [selectingState, setSelectingState] = useState(false)
   const selecting = selectable && selectingState
 
-  // Keyed on the applied query, so a change from the URL or the parent counts
-  // too, and a search's matches exist only once it renders.
-  const queryKey = matchKey({ search, filters, sort })
+  // Keyed on the query as set, so a change from the URL or the parent counts
+  // too. A selection set with its query keys to it before the search applies.
+  const queryKey = matchKey({ search: view.query.search, filters })
+  // A search's matches exist only once it renders, so pruning waits for it.
+  const searchApplied = search === view.query.search
   const [taken, setTaken] = useState({
     held: heldSelection,
     key: queryKey,
@@ -309,7 +314,7 @@ export function useRecords<Row extends object>({
   // A selection set with its query, like one restored from the URL, keeps it.
   if (!sameSelection(taken.held, heldSelection))
     setTaken({ held: heldSelection, key: queryKey, selection })
-  else if (taken.key !== queryKey) {
+  else if (searchApplied && taken.key !== queryKey) {
     // Derived in render, so no paint pairs the old selection with the new query.
     const empty = 'ids' in heldSelection && heldSelection.ids.length === 0
     selection = empty
@@ -319,7 +324,8 @@ export function useRecords<Row extends object>({
         : withinMatching(heldSelection, matchingIds)
     setTaken({ held: heldSelection, key: queryKey, selection })
   } else if (taken.selection !== taken.held) selection = taken.selection
-  // Keyed on the record, fresh per derivation, as EMPTY_SELECTION is shared.
+  // Compared by identity: each derivation makes a new record, while the
+  // selections inside it can be the same shared EMPTY_SELECTION.
   const notified = useRef<typeof taken | null>(null)
   useEffect(() => {
     if (taken.selection === taken.held || notified.current === taken) return

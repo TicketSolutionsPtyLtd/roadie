@@ -18,6 +18,7 @@ export function tableLayout<Row extends object>(
     icon: <TableIcon weight='bold' className='size-4' aria-hidden />,
     // A column's cell reads the consumer's Row; the table hands it the same row.
     config: { columns: columns as readonly RecordTableColumn[] },
-    Content: RecordTableContent
+    Content: RecordTableContent,
+    bulkActions: 'header'
   }
 }

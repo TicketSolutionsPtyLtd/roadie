@@ -10,13 +10,13 @@ import { RecordTable, tableColumns, tableLayout } from '.'
 import { RoadieLinkProvider } from '../../providers/RoadieLinkProvider'
 import { Menu } from '../Menu'
 import { Records, type RecordsBulkAction, useRecords } from '../Records'
+import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import {
   bulkBar,
   countMenuItems,
-  pickFromCount
-} from '../Records/bulkBarTesting'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
-import { showColumns } from './testUtils'
+  pickFromCount,
+  showColumns
+} from './testUtils'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -626,6 +626,21 @@ describe('Records.Search', () => {
       )
     }
     render(<Named />)
+    expect(
+      screen.getByRole('searchbox', { name: 'Search shows by name' })
+    ).toHaveAttribute('placeholder', 'Search')
+  })
+
+  it('takes its name from the toolbar and the preset', () => {
+    render(
+      <RecordTable
+        data={testShows(3)}
+        fields={showFields}
+        columns={showColumns}
+        searchPlaceholder='Search'
+        searchLabel='Search shows by name'
+      />
+    )
     expect(
       screen.getByRole('searchbox', { name: 'Search shows by name' })
     ).toHaveAttribute('placeholder', 'Search')

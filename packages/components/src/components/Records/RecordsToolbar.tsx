@@ -14,10 +14,12 @@ import { surfaceClass, useSurface } from './surface'
 import type { RecordsAction } from './types'
 
 export type RecordsToolbarProps<Row extends object = object> = {
-  /** Replaces the standard controls: the search, Select, and the actions. */
+  /** Replaces the standard controls: the search and the actions. */
   children?: ReactNode
   /** The standard search's placeholder. @default 'Search' */
   searchPlaceholder?: string
+  /** Names the standard search when its placeholder doesn't. */
+  searchLabel?: string
   /** The standard controls' actions on every matching record, at the end as `Records.Actions`. */
   actions?: readonly RecordsAction<Row>[]
   className?: string
@@ -27,6 +29,7 @@ export type RecordsToolbarProps<Row extends object = object> = {
 export function RecordsToolbar<Row extends object>({
   children,
   searchPlaceholder,
+  searchLabel,
   actions,
   className
 }: RecordsToolbarProps<Row>) {
@@ -81,6 +84,7 @@ export function RecordsToolbar<Row extends object>({
         <>
           <RecordsSearch
             placeholder={searchPlaceholder}
+            aria-label={searchLabel}
             className='min-w-48 grow basis-64'
           />
           <RecordsSelect />

@@ -144,4 +144,44 @@ describe('RecordTable checkbox column', () => {
       screen.getByRole('checkbox', { name: 'Select page' })
     ).toHaveAttribute('data-disabled')
   })
+
+  it('gives skeleton rows the checkbox and actions tracks too', () => {
+    function Loading() {
+      const records = useRecords({
+        data: [],
+        fields: showFields,
+        selectable: true,
+        loading: true,
+        rowActions: () => null
+      })
+      return (
+        <Records.Root records={records} layouts={layouts}>
+          <Records.Content />
+        </Records.Root>
+      )
+    }
+    const { container } = render(<Loading />)
+    const row = container.querySelector(
+      '[data-slot="record-table-skeleton"] [role="row"]'
+    )!
+    expect(row.querySelectorAll('[role="cell"]')).toHaveLength(6)
+  })
+
+  it('puts Content className on its outermost element', () => {
+    function Placed() {
+      const records = useRecords({
+        data: testShows(3),
+        fields: showFields,
+        selectable: true
+      })
+      return (
+        <Records.Root records={records} layouts={layouts}>
+          <Records.Content className='placed' />
+        </Records.Root>
+      )
+    }
+    const { container } = render(<Placed />)
+    const root = container.querySelector('[data-slot="records"]')!
+    expect(root.firstElementChild).toHaveClass('placed')
+  })
 })
