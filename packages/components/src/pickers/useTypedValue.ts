@@ -2,14 +2,16 @@
 
 import { type KeyboardEvent, useState } from 'react'
 
-import type { ReadResult } from './readDate'
+export type ReadResult<T = string> = { value: T | null } | { error: string }
 
-export type TypedValueOptions = {
-  value: string | null | undefined
-  defaultValue: string | null | undefined
-  onValueChange: ((value: string | null) => void) | undefined
-  format: (value: string) => string
-  read: (text: string) => ReadResult
+export type TypedValueOptions<T = string> = {
+  value: T | null | undefined
+  defaultValue: T | null | undefined
+  onValueChange: ((value: T | null) => void) | undefined
+  format: (value: T) => string
+  read: (text: string) => ReadResult<T>
+  /** Whether two values are the same. Defaults to `Object.is`. */
+  isEqual?: (a: T | null, b: T | null) => boolean
 }
 
 /**
@@ -17,41 +19,44 @@ export type TypedValueOptions = {
  * a draft; text that names no value stays on screen with an error, and the
  * value becomes null so nothing stale is submitted.
  */
-export function useTypedValue({
+export function useTypedValue<T = string>({
   value: valueProp,
   defaultValue,
   onValueChange,
   format,
-  read
-}: TypedValueOptions) {
-  const [uncontrolled, setUncontrolled] = useState(defaultValue ?? null)
+  read,
+  isEqual = Object.is
+}: TypedValueOptions<T>) {
+  const [uncontrolled, setUncontrolled] = useState<T | null>(
+    defaultValue ?? null
+  )
   const value = valueProp !== undefined ? valueProp : uncontrolled
   const [draft, setDraft] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   // The value before unreadable text made it null, for Escape to put back.
-  const [beforeError, setBeforeError] = useState<string | null>()
+  const [beforeError, setBeforeError] = useState<T | null>()
   // A value from outside replaces the draft; the one just emitted does not.
   const [sync, setSync] = useState<{
-    seen: string | null
-    emitted: string | null | undefined
+    seen: T | null
+    emitted: T | null | undefined
   }>({ seen: value, emitted: undefined })
-  if (sync.seen !== value) {
+  if (!isEqual(sync.seen, value)) {
     setSync({ seen: value, emitted: undefined })
-    if (value !== sync.emitted) {
+    if (sync.emitted === undefined || !isEqual(value, sync.emitted)) {
       setDraft(null)
       setError(null)
       setBeforeError(undefined)
     }
   }
 
-  function emit(next: string | null) {
-    if (next === value) return
+  function emit(next: T | null) {
+    if (isEqual(next, value)) return
     setSync((current) => ({ ...current, emitted: next }))
     if (valueProp === undefined) setUncontrolled(next)
     onValueChange?.(next)
   }
 
-  function setValue(next: string | null) {
+  function setValue(next: T | null) {
     setDraft(null)
     setError(null)
     setBeforeError(undefined)
@@ -59,7 +64,7 @@ export function useTypedValue({
   }
 
   /** The value the draft commits to, or undefined when it can't be read. */
-  function commit(): string | null | undefined {
+  function commit(): T | null | undefined {
     if (draft === null) return value
     const result = read(draft)
     if ('error' in result) {
@@ -73,7 +78,7 @@ export function useTypedValue({
   }
 
   /** What the draft would commit to, or undefined when it can't be read. */
-  function draftValue(): string | null | undefined {
+  function draftValue(): T | null | undefined {
     if (draft === null) return value
     const result = read(draft)
     return 'error' in result ? undefined : result.value
@@ -108,7 +113,7 @@ export function useTypedValue({
 
   return {
     value,
-    text: draft ?? (value ? format(value) : ''),
+    text: draft ?? (value !== null ? format(value) : ''),
     editing: draft !== null,
     error,
     setText: setDraft,
@@ -118,3 +123,5 @@ export function useTypedValue({
     onKeyDown
   }
 }
+
+export type TypedValue<T = string> = ReturnType<typeof useTypedValue<T>>

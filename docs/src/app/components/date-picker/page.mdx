@@ -166,6 +166,15 @@ Wrap it in [Field](/components/field). The label points at the date input, and `
 
 <div className='grid gap-8'>
 
+<Guideline title='Use DateRangePicker for a range'>
+  <Guideline.Do>
+    Choose a start and an end with [DateRangePicker](/components/date-range-picker), which keeps them in order and offers presets.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put two DatePickers side by side for a range. Nothing stops the end coming before the start.
+  </Guideline.Dont>
+</Guideline>
+
 <Guideline title='Pass the zone the moment belongs to'>
   <Guideline.Do code={`<DatePicker\n  granularity='minute'\n  timeZone={venue.timeZone}\n/>`}>
     Event times are read on the venue's clock. Say so in the label, such as "Doors, Melbourne time".
@@ -188,7 +197,7 @@ Wrap it in [Field](/components/field). The label points at the date input, and `
 
 ## Accessibility
 
-- The date is a text input, labelled by `Field.Label` or `aria-label`. The calendar button and the calendar popup are labelled "Choose date".
+- The date is a text input, labelled by `Field.Label` or `aria-label`. The calendar button is named after the picker and its date, such as "Choose date, Doors (Fri 27 Nov 2026)", and the popup "Choose date, Doors", so pickers side by side stay apart.
 - At `minute` granularity the date and the time are a `group` named by the label, with inputs named "Date" and "Time".
 - Opening the calendar moves focus to the chosen day, or to today. Arrow keys, `Page Up`, `Page Down`, `Home` and `End` move as in [Calendar](/components/calendar). `Enter` or `Space` chooses the focused day and closes it. `Escape` closes it without a change. Either way focus goes back to the button, so on a phone the keyboard doesn't open.
 - While text is being edited, `Enter` commits it instead of submitting the form, and `Escape` puts back the last date.

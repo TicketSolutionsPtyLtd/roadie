@@ -378,6 +378,12 @@ export {
 } from './components/DateField'
 export { DatePicker, type DatePickerProps } from './components/DatePicker'
 export {
+  DateRangePicker,
+  type DateRangePickerProps,
+  type DateRangePreset,
+  dateRangePresets
+} from './components/DateRangePicker'
+export {
   TimeField,
   type TimeFieldHourCycle,
   type TimeFieldProps

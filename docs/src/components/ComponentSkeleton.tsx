@@ -183,6 +183,39 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'date-range-picker':
+      return (
+        <div className='grid w-48 gap-1.5'>
+          <div className='flex emphasis-raised items-center gap-1.5 rounded-lg px-2.5 py-1'>
+            <CalendarBlankIcon weight='bold' className='size-3 text-subtle' />
+            <span className='text-sm text-normal'>Last 30 days</span>
+          </div>
+          <div className='grid grid-cols-[auto_1fr] gap-2 rounded-xl emphasis-floating p-1.5'>
+            <div className='grid content-start gap-1'>
+              <Skel className='h-2 w-8 rounded-full opacity-50' />
+              <div className='h-2 w-8 rounded-full emphasis-subtle intent-accent' />
+              <Skel className='h-2 w-8 rounded-full opacity-50' />
+            </div>
+            <div className='grid grid-cols-7 gap-y-0.5'>
+              {Array.from({ length: 14 }, (_, day) =>
+                day === 1 || day === 5 ? (
+                  <div
+                    key={day}
+                    className='size-3 emphasis-strong rounded-full intent-accent'
+                  />
+                ) : day > 1 && day < 5 ? (
+                  <div
+                    key={day}
+                    className='h-3 emphasis-subtle intent-accent'
+                  />
+                ) : (
+                  <Skel key={day} className='size-3 rounded-full opacity-50' />
+                )
+              )}
+            </div>
+          </div>
+        </div>
+      )
     case 'textarea':
       return (
         <div className='grid w-40 gap-1.5 rounded-lg border border-subtle bg-normal px-3 py-2'>

@@ -5,8 +5,8 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DateField } from '.'
+import { formatDate, readDate } from '../../pickers/readDate'
 import { Field } from '../Field'
-import { formatDate, readDate } from './readDate'
 
 // Wed 7 Oct 2026.
 const TODAY = '2026-10-07'

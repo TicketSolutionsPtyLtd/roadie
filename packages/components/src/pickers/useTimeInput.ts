@@ -2,11 +2,8 @@
 
 import type { KeyboardEvent } from 'react'
 
-import {
-  type TypedValueOptions,
-  useTypedValue
-} from '../DateField/useTypedValue'
 import { type HourCycle, formatTime, readTime, stepTime } from './readTime'
+import { type TypedValueOptions, useTypedValue } from './useTypedValue'
 
 export type TimeInputOptions = Pick<
   TypedValueOptions,

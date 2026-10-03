@@ -66,7 +66,7 @@ render(<Default />)
 
 ### With a range
 
-`mode='range'` takes `{ start, end }`. The first press sets `start` and leaves `end` null, and the days between preview as the pointer or focus moves. `min` and `max` limit the length in days, both ends counted. Days that would break them dim, and pressing one starts a new range there.
+`mode='range'` takes `{ start, end }`. The first press sets `start` and leaves `end` null, and the days between preview as the pointer or focus moves. `min` and `max` limit the length in days, both ends counted. Days that would break them dim, and pressing one starts a new range there. For a range in a form or a toolbar, with presets and typed dates, use [DateRangePicker](/components/date-range-picker).
 
 ```tsx-live-noinline
 function Range() {

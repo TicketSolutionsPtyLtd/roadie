@@ -4,11 +4,11 @@ import type { ComponentProps } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { TypedInput } from '../DateField/TypedInput'
+import { TypedInput } from '../../pickers/TypedInput'
+import type { HourCycle } from '../../pickers/readTime'
+import { useTimeInput } from '../../pickers/useTimeInput'
 import { useFieldControlError } from '../Field/FieldContext'
 import { inputVariants } from '../Input'
-import type { HourCycle } from './readTime'
-import { useTimeInput } from './useTimeInput'
 
 export type TimeFieldProps = Omit<
   ComponentProps<'input'>,

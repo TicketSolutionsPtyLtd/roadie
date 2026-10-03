@@ -1,32 +1,31 @@
 'use client'
 
-import {
-  type ComponentProps,
-  type Ref,
-  useRef,
-  useState,
-  useSyncExternalStore
-} from 'react'
+import { type ComponentProps, type Ref, useRef, useState } from 'react'
 
 import { CalendarBlankIcon } from '@phosphor-icons/react'
 
-import { viewerTimeZone } from '@oztix/roadie-core/datetime'
 import { cn } from '@oztix/roadie-core/utils'
 
+import {
+  PickerPopover,
+  usePickerLabels,
+  usePickerOpen,
+  usePickerZone
+} from '../../pickers/PickerShell'
+import { TypedInput } from '../../pickers/TypedInput'
+import { type DateStyle, formatDate, readDate } from '../../pickers/readDate'
+import type { HourCycle } from '../../pickers/readTime'
+import { useTimeInput } from '../../pickers/useTimeInput'
+import { useTypedValue } from '../../pickers/useTypedValue'
+import { type DateTimeParts, joinValue, splitValue } from '../../pickers/value'
+import { datePickerGroupVariants, triggerSizes } from '../../pickers/variants'
 import { IconButton } from '../Button/IconButton'
 import { Calendar } from '../Calendar'
 import type { CalendarMatchers } from '../Calendar/matchers'
-import { TypedInput } from '../DateField/TypedInput'
-import { type DateStyle, formatDate, readDate } from '../DateField/readDate'
-import { useTypedValue } from '../DateField/useTypedValue'
 import { useFieldContext } from '../Field'
 import { useFieldControlError } from '../Field/FieldContext'
 import { inputVariants } from '../Input'
 import { Popover } from '../Popover'
-import type { HourCycle } from '../TimeField/readTime'
-import { useTimeInput } from '../TimeField/useTimeInput'
-import { type DateTimeParts, joinValue, splitValue } from './value'
-import { datePickerGroupVariants, triggerSizes } from './variants'
 
 export type DatePickerProps = Omit<
   ComponentProps<'div'>,
@@ -131,8 +130,6 @@ export type DatePickerProps = Omit<
 
 const EMPTY: DateTimeParts = { date: null, time: null }
 
-const noSubscription = () => () => {}
-
 /** A typed date field with a calendar to choose from, and a time when needed. */
 export function DatePicker({
   value: valueProp,
@@ -169,14 +166,7 @@ export function DatePicker({
   ...props
 }: DatePickerProps) {
   const field = useFieldContext()
-  // The server can't know the viewer's zone, so it renders UTC and hydration
-  // moves to the viewer's, re-reading the same instant.
-  const viewerZone = useSyncExternalStore(
-    noSubscription,
-    viewerTimeZone,
-    () => 'UTC'
-  )
-  const zone = timeZone ?? viewerZone
+  const zone = usePickerZone(timeZone)
   const withTime = granularity === 'minute'
   const isDisabled = disabled === true || !!field.disabled
   const disabledDays = typeof disabled === 'boolean' ? undefined : disabled
@@ -279,15 +269,19 @@ export function DatePicker({
   // still hold the old one; the form gets nothing it can't see.
   const unreadable = !!date.error || !!timeError
 
-  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen)
-  const open = openProp ?? uncontrolledOpen
-  function setOpen(next: boolean) {
-    if (openProp === undefined) setUncontrolledOpen(next)
-    onOpenChange?.(next)
-  }
+  const [open, setOpen] = usePickerOpen({
+    open: openProp,
+    defaultOpen,
+    onOpenChange
+  })
+  const pickerLabels = usePickerLabels({
+    action: 'Choose date',
+    'aria-label': ariaLabel,
+    'aria-labelledby': ariaLabelledBy,
+    valueText: date.editing || date.error ? undefined : date.text || undefined
+  })
 
   const groupRef = useRef<HTMLDivElement>(null)
-  const popupRef = useRef<HTMLDivElement>(null)
   const groupLabel = withTime
     ? {
         role: 'group',
@@ -310,76 +304,72 @@ export function DatePicker({
       {...groupLabel}
       {...props}
     >
-      <Popover open={open} onOpenChange={setOpen}>
-        <div
-          ref={groupRef}
-          data-slot='date-picker-group'
-          aria-invalid={isInvalid || !!date.error || undefined}
-          data-disabled={isDisabled || undefined}
-          className={datePickerGroupVariants({ size, emphasis })}
-        >
-          <TypedInput
-            data-slot='date-picker-input'
-            typed={date}
-            form={form}
-            disabled={isDisabled}
-            invalid={invalid}
-            required={required}
-            readOnly={readOnly}
-            aria-label={withTime ? 'Date' : ariaLabel}
-            aria-labelledby={withTime ? undefined : ariaLabelledBy}
-            aria-describedby={withTime ? undefined : ariaDescribedBy}
-            placeholder={placeholder}
-            ref={inputRef}
-            className='h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle'
-          />
-          <Popover.Trigger
-            disabled={isDisabled || readOnly}
-            render={
-              <IconButton
-                aria-label='Choose date'
-                emphasis='subtler'
-                size={triggerSizes[size]}
-                // The disabled group already dims, so the button doesn't again.
-                className='in-data-disabled:opacity-100!'
-              >
-                <CalendarBlankIcon weight='bold' className='size-4' />
-              </IconButton>
-            }
-          />
-        </div>
-        <Popover.Content
-          ref={popupRef}
-          aria-label='Choose date'
-          align='start'
-          positionerProps={{ anchor: groupRef }}
-          className='max-w-[var(--available-width)]'
-          initialFocus={() =>
-            popupRef.current?.querySelector<HTMLElement>(
-              '[data-slot="calendar"] button[data-date][tabindex="0"]'
-            ) ?? true
-          }
-        >
-          <Calendar
-            selected={parts.date}
-            onSelect={(day) => {
-              // Pressing the chosen day again unselects it; keep it, dropping
-              // any unreadable draft, and close.
-              date.setValue(day ?? parts.date)
-              setOpen(false)
-            }}
-            // An open-by-prop calendar mustn't change what can't be changed.
-            disabled={isDisabled || readOnly || disabledDays}
-            today={today}
-            timeZone={zone}
-            weekStart={weekStart}
-            locale={locale}
-            captionLayout={captionLayout}
-            startMonth={startMonth}
-            endMonth={endMonth}
-          />
-        </Popover.Content>
-      </Popover>
+      {pickerLabels.labels}
+      <PickerPopover
+        open={open}
+        onOpenChange={setOpen}
+        anchor={groupRef}
+        aria-labelledby={pickerLabels.popupLabelledBy}
+        trigger={
+          <div
+            ref={groupRef}
+            data-slot='date-picker-group'
+            aria-invalid={isInvalid || !!date.error || undefined}
+            data-disabled={isDisabled || undefined}
+            className={datePickerGroupVariants({ size, emphasis })}
+          >
+            <TypedInput
+              data-slot='date-picker-input'
+              typed={date}
+              form={form}
+              disabled={isDisabled}
+              invalid={invalid}
+              required={required}
+              readOnly={readOnly}
+              aria-label={withTime ? 'Date' : ariaLabel}
+              aria-labelledby={withTime ? undefined : ariaLabelledBy}
+              aria-describedby={withTime ? undefined : ariaDescribedBy}
+              placeholder={placeholder}
+              ref={inputRef}
+              className='h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle'
+            />
+            <Popover.Trigger
+              disabled={isDisabled || readOnly}
+              render={
+                <IconButton
+                  aria-label='Choose date'
+                  aria-labelledby={pickerLabels.triggerLabelledBy}
+                  emphasis='subtler'
+                  size={triggerSizes[size]}
+                  // The disabled group already dims, so the button doesn't again.
+                  className='in-data-disabled:opacity-100!'
+                >
+                  <CalendarBlankIcon weight='bold' className='size-4' />
+                </IconButton>
+              }
+            />
+          </div>
+        }
+      >
+        <Calendar
+          selected={parts.date}
+          onSelect={(day) => {
+            // Pressing the chosen day again unselects it; keep it, dropping
+            // any unreadable draft, and close.
+            date.setValue(day ?? parts.date)
+            setOpen(false)
+          }}
+          // An open-by-prop calendar mustn't change what can't be changed.
+          disabled={isDisabled || readOnly || disabledDays}
+          today={today}
+          timeZone={zone}
+          weekStart={weekStart}
+          locale={locale}
+          captionLayout={captionLayout}
+          startMonth={startMonth}
+          endMonth={endMonth}
+        />
+      </PickerPopover>
       {withTime && (
         <TypedInput
           data-slot='date-picker-time'

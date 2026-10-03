@@ -8,7 +8,11 @@ import {
   viewerTimeZone
 } from '@oztix/roadie-core/datetime'
 
-import { type CalendarMatchers, matchesDate } from '../Calendar/matchers'
+import {
+  type CalendarMatchers,
+  matchesDate
+} from '../components/Calendar/matchers'
+import type { ReadResult } from './useTypedValue'
 
 export type DateStyle = 'full' | 'long' | 'medium'
 
@@ -23,8 +27,6 @@ export type ReadDateOptions = {
   /** How a refused date is named in its error. */
   dateStyle?: DateStyle
 }
-
-export type ReadResult = { value: string | null } | { error: string }
 
 const TYPE_A_DATE = 'Enter a date, like 14 Mar or next Fri'
 
