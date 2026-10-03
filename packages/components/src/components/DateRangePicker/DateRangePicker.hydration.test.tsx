@@ -30,7 +30,9 @@ describe('DateRangePicker hydrated', () => {
       now: new Date('2026-10-07T02:00:00Z'),
       toFake: ['Date']
     })
-    onTestFinished(() => vi.useRealTimers())
+    onTestFinished(() => {
+      vi.useRealTimers()
+    })
     const serverText = await hydrate(
       <DateRangePicker
         aria-label='Period'
