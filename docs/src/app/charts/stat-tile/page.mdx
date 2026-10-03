@@ -89,6 +89,7 @@ import { StatTile } from '@oztix/roadie-components/stat-tile'
 
 - Keep the label to about 19 characters and the context to about 20, so the tile fits at phone width.
 - Keep the delta short next to the value. Put what it compares against on the context line.
+- In a [dashboard with a period](/charts/dashboards#periods-and-comparisons), mark a delta against the previous period or year `comparison: true`. The context line then names the comparison, and the delta follows the period.
 - Set `goodWhen='down'` for numbers where falling is good, such as refunds.
 - Pass `trend` whenever history exists. The sparkline hides itself below 5 points.
 - Use a `reference` for a target or benchmark, not a second series.

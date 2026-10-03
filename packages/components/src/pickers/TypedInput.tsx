@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, useRef } from 'react'
+import { type ComponentProps, type FocusEvent, useRef } from 'react'
 
 import { flushSync } from 'react-dom'
 
@@ -20,22 +20,24 @@ export type TypedInputProps<T = string> = Omit<
   invalid?: boolean
 }
 
-/** A text input wired to a typed value and the surrounding `Field`. */
-export function TypedInput<T = string>({
+/**
+ * The attributes a typed input takes from its value and the surrounding
+ * `Field`, and the hidden input a `name`d form submits.
+ */
+export function useTypedInput<T>({
   typed,
   formValue = String,
   disabled,
   invalid,
   name,
-  ref,
   form,
   'aria-describedby': ariaDescribedBy,
   id,
   required,
+  readOnly,
   onBlur,
-  onKeyDown,
   ...props
-}: TypedInputProps<T>) {
+}: Omit<TypedInputProps<T>, 'ref' | 'onFocus' | 'onKeyDown'>) {
   const field = useFieldContext()
   const inputRef = useRef<HTMLInputElement>(null)
   // The text box holds unreadable text, so required alone would let a form
@@ -51,45 +53,62 @@ export function TypedInput<T = string>({
   const isRequired = required ?? field.required
   const isDisabled = disabled || field.disabled || undefined
 
+  const inputProps = {
+    type: 'text',
+    autoComplete: 'off',
+    spellCheck: false,
+    id: id ?? (field.fieldId || undefined),
+    form,
+    disabled: isDisabled,
+    readOnly,
+    required: isRequired,
+    'aria-required': isRequired || undefined,
+    'aria-invalid': isInvalid || undefined,
+    'aria-describedby': describedBy,
+    'data-editing': typed.editing || undefined,
+    ...props,
+    onBlur: (event: FocusEvent<HTMLInputElement>) => {
+      // Flushed, so an onBlur that submits the form sees the result.
+      if (typed.editing) flushSync(() => typed.commit())
+      onBlur?.(event)
+    }
+  }
+
+  const hiddenInput = name && (
+    <input
+      type='hidden'
+      name={name}
+      form={form}
+      disabled={isDisabled}
+      value={typed.error || typed.value === null ? '' : formValue(typed.value)}
+    />
+  )
+  return { inputRef, inputProps, hiddenInput }
+}
+
+/** A text input wired to a typed value and the surrounding `Field`. */
+export function TypedInput<T = string>({
+  ref,
+  onFocus,
+  onKeyDown,
+  ...props
+}: TypedInputProps<T>) {
+  const { inputRef, inputProps, hiddenInput } = useTypedInput(props)
+  const { typed } = props
   return (
     <>
       <input
-        type='text'
-        autoComplete='off'
-        spellCheck={false}
-        id={id ?? (field.fieldId || undefined)}
-        form={form}
-        disabled={isDisabled}
-        required={isRequired}
-        aria-required={isRequired || undefined}
-        aria-invalid={isInvalid || undefined}
-        aria-describedby={describedBy}
-        data-editing={typed.editing || undefined}
-        {...props}
+        {...inputProps}
         ref={mergeRefs(inputRef, ref)}
         value={typed.text}
         onChange={(event) => typed.setText(event.target.value)}
-        onBlur={(event) => {
-          // Flushed, so an onBlur that submits the form sees the result.
-          if (typed.editing) flushSync(() => typed.commit())
-          onBlur?.(event)
-        }}
+        onFocus={onFocus}
         onKeyDown={(event) => {
           onKeyDown?.(event)
           if (!event.defaultPrevented) typed.onKeyDown(event)
         }}
       />
-      {name && (
-        <input
-          type='hidden'
-          name={name}
-          form={form}
-          disabled={isDisabled}
-          value={
-            typed.error || typed.value === null ? '' : formValue(typed.value)
-          }
-        />
-      )}
+      {hiddenInput}
     </>
   )
 }

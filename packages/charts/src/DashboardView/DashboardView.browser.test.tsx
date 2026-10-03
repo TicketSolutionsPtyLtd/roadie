@@ -7,7 +7,8 @@ import roadieCss from '../../vitest.browser.css?inline'
 import {
   createAudienceDashboard,
   createPortfolioDashboard,
-  createShowDashboard
+  createShowDashboard,
+  portfolioDates
 } from '../examples'
 import { useStylesheet } from '../testUtils'
 
@@ -27,7 +28,24 @@ describe('reference dashboards are accessible', () => {
     const { container } = render(
       <main>
         <h1>Dashboard</h1>
-        <DashboardView spec={spec} />
+        <DashboardView spec={spec} periodProps={portfolioDates} />
+      </main>
+    )
+    const results = await axe.run(container)
+    expect(results.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual(
+      []
+    )
+  })
+
+  it('portfolio with a period to change has no axe violations', async () => {
+    const { container } = render(
+      <main>
+        <h1>Dashboard</h1>
+        <DashboardView
+          spec={createPortfolioDashboard()}
+          onPeriodChange={() => {}}
+          periodProps={portfolioDates}
+        />
       </main>
     )
     const results = await axe.run(container)

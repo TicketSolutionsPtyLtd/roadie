@@ -342,6 +342,8 @@ const PHRASES = [
   'fortnight',
   'next weekend',
   'fri',
+  'in 2 weeks',
+  'end of month',
   '14 mar',
   '1/12',
   'after 1 dec',

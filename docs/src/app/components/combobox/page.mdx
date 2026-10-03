@@ -204,7 +204,7 @@ function ComboboxWithGroups() {
         <Combobox.Positioner>
           <Combobox.Popup>
             <Combobox.List>
-              {groups.map((group) => (
+              {(group) => (
                 <Combobox.Group key={group.value} items={group.items}>
                   <Combobox.GroupLabel>{group.value}</Combobox.GroupLabel>
                   <Combobox.Collection>
@@ -216,7 +216,7 @@ function ComboboxWithGroups() {
                     )}
                   </Combobox.Collection>
                 </Combobox.Group>
-              ))}
+              )}
             </Combobox.List>
             <Combobox.Empty>No bands found</Combobox.Empty>
           </Combobox.Popup>
@@ -404,16 +404,33 @@ Pass the `items` prop to `Combobox` root for built-in client-side filtering. Use
 `Combobox.Empty` only renders when the filtered list is empty. It requires the
 `items` prop on root.
 
-Enter picks the first match, so order `items` with the likeliest match first,
-such as an exact match before partial ones. The filter keeps your order.
+The closest matches come first, so Enter picks the likeliest one. An exact
+match leads, then labels that start with the text, then labels with a word that
+starts with it, then labels that contain it anywhere. Matches of the same kind
+keep the order of `items`, and grouped items are ranked within their group.
+Case and accents don't count, as in the filter.
+
+Typing "Rock" over `['Hard rock', 'Rock']` lists Rock first, so Enter picks it.
+Opening the list without typing shows `items` in your order. With `limit` on a
+flat list, ranking comes first, so the closest matches are the ones kept.
+Grouped items fill the limit group by group, in your group order.
+
+Roadie ranks only with its default filter, and only an array of `items`; a
+`createItems()` collection keeps its order. Pass your own `filter` or
+`filteredItems` to set the order yourself.
 
 ### Async loading
 
-For server-side search, update the `items` prop as results arrive. Use
+For server-side search, update the `items` prop as results arrive, and pass
+`filter={null}` so the server's matches keep their order. Use
 `Combobox.Status` to announce state changes to screen readers:
 
 ```tsx
-<Combobox items={results} onInputValueChange={(value) => fetchResults(value)}>
+<Combobox
+  items={results}
+  filter={null}
+  onInputValueChange={(value) => fetchResults(value)}
+>
   ...
   <Combobox.Status>{isLoading ? 'Loading...' : `${results.length} results`}</Combobox.Status>
 </Combobox>
@@ -453,11 +470,12 @@ For server-side search, update the `items` prop as results arrive. Use
 
 - **Arrow keys** move through the list; **Enter** picks the highlighted item
   and **Escape** closes the popup. Typing filters the list as you go.
-- Typing highlights the first match, including matches that arrive later, so
-  **Enter** picks it straight away. Opening the list without typing doesn't
-  highlight the first match, so Enter can't pick a value nobody chose. While
-  a match is highlighted, the arrows wrap at either end. Set
-  `autoHighlight={false}` to highlight only what the user moves to.
+- Typing puts the closest matches first and highlights the first one,
+  including matches that arrive later, so **Enter** picks it straight away.
+  Opening the list without typing doesn't highlight the first match, so Enter
+  can't pick a value nobody chose. While a match is highlighted, the arrows
+  wrap at either end. Set `autoHighlight={false}` to highlight only what the
+  user moves to.
 - The input points `aria-activedescendant` at the highlighted item, so screen
   readers read the first match as the list filters.
 - With `multiple`, **Backspace** in an empty input removes the last chip.

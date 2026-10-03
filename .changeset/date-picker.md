@@ -18,6 +18,15 @@ value null; Escape puts back the last value. `DateField` takes `dateStyle`,
 keys step by. Both take `size`, `emphasis`, `invalid` and `name`, and inherit
 `invalid`, `required` and `disabled` from `Field`.
 
+`DateField` and the date in `DatePicker` are comboboxes that suggest dates.
+Focused while empty, they list hints at what can be typed, such as Today,
+Next Fri, In 2 weeks and End of month, each with its date, and nothing is
+highlighted, so Enter still submits the form. As text is typed they offer the
+dates it could mean, with the first highlighted so Enter takes it; Escape
+closes the list and keeps the text, and a second Escape puts back the last
+date. Suggestions are read in `timeZone` and against `today`, and dates that
+`disabled` refuses are left out.
+
 `DatePicker` pairs a typed date with a calendar in a `Popover`, or below 48rem
 in a bottom `Drawer` titled with the picker's label, whose days grow to fill the
 width up to 48px. Opening it focuses the chosen day or today; choosing a day
@@ -25,7 +34,7 @@ closes it and returns focus to the calendar button. The button is named after
 the picker's label and date, such as "Choose date, Doors (Fri 27 Nov 2026)", and
 the popup "Choose date, Doors". The button is labelled by the `Field` label too,
 so a test that finds the input with `getByLabelText` should use
-`getByRole('textbox', { name })`, and one that finds the button by the exact
+`getByRole('combobox', { name })`, and one that finds the button by the exact
 name "Choose date" should match its start.
 
 `granularity='minute'` adds a `TimeField`, and the value becomes the instant

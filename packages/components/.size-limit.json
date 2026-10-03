@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "201 kB"
+    "limit": "204 kB"
   },
   {
     "name": "Single component (Button)",
@@ -238,7 +238,7 @@
     "name": "DateField",
     "path": "dist/components/DateField/index.js",
     "import": "*",
-    "limit": "4.1 kB",
+    "limit": "11.6 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -252,28 +252,28 @@
     "name": "DatePicker",
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
-    "limit": "19.8 kB",
+    "limit": "26.7 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DashboardPeriod",
     "path": "dist/components/DashboardPeriod/index.js",
     "import": "*",
-    "limit": "29.2 kB",
+    "limit": "34.4 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DateRangePicker",
     "path": "dist/components/DateRangePicker/index.js",
     "import": "*",
-    "limit": "24.5 kB",
+    "limit": "31 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "QueryField",
     "path": "dist/components/QueryField/index.js",
     "import": "*",
-    "limit": "9.4 kB",
+    "limit": "11.2 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {

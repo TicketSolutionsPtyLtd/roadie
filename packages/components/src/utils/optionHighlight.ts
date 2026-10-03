@@ -36,14 +36,14 @@ function isTyping(event: Event) {
 // highlights with no query, so drive 'always' only while the user has typed
 // text since the list opened.
 export function useTypedQuery(open: boolean | undefined) {
-  const [typed, setTyped] = useState(false)
-  if (open === false && typed) setTyped(false)
+  const [query, setQuery] = useState('')
+  if (open === false && query !== '') setQuery('')
   function handleQueryChange(text: string, details: QueryChangeDetails) {
     if (details.isCanceled || details.reason !== 'input-change') return
-    setTyped(isTyping(details.event) && text.trim() !== '')
+    setQuery(isTyping(details.event) ? text.trim() : '')
   }
   function resetTyped(details: { isCanceled: boolean }) {
-    if (!details.isCanceled) setTyped(false)
+    if (!details.isCanceled) setQuery('')
   }
-  return { typed, handleQueryChange, resetTyped }
+  return { typed: query !== '', query, handleQueryChange, resetTyped }
 }

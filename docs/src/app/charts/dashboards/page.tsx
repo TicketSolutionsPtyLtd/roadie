@@ -1041,7 +1041,11 @@ export default function DashboardsPage() {
         <List
           items={[
             'Keep the delta short. It sits next to the value.',
-            'Say what the delta is compared with on the context line.',
+            <>
+              Say what the delta is compared with on the context line. A delta
+              with <Code>comparison: true</Code> gets it from the dashboard’s
+              period.
+            </>,
             'No dashes as punctuation. Use “to” for ranges.',
             'Sentence case for labels, context and takeaways.'
           ]}
@@ -1390,7 +1394,11 @@ export default function DashboardsPage() {
           and comparison: resolve them, fetch, and pass back the description
           with the new <Code>period</Code> and its <Code>history</Code>. Without{' '}
           <Code>onPeriodChange</Code>, the period shows read-only, as when the
-          page sets it. Render it from a client component to change it.
+          page sets it. Render it from a client component to change it. The{' '}
+          <Link href='/charts/portfolio-dashboard' className='underline'>
+            portfolio dashboard
+          </Link>{' '}
+          works this way.
         </p>
         <CodePreview>{PERIOD_FLOW_CODE}</CodePreview>
       </section>

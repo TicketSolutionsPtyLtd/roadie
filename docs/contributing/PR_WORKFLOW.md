@@ -84,7 +84,9 @@ Every PR is checked against these before review. Fix every real hit.
   line by line against `docs/contributing/COMPONENT_DOC_TEMPLATE.md`.
 - A `case` in `docs/src/components/ComponentSkeleton.tsx` so the
   `/components` index shows the component as it ships, checked in light and
-  dark.
+  dark. Chart pages need one in `ChartPreview.tsx`, foundations in
+  `FoundationPreview.tsx` and token families in `tokens/TokenFamilyArt.tsx`;
+  `CataloguePreview.test.tsx` fails for any listed page without art.
 - Edit `.mdx` by hand; never run Prettier on it.
 - Docs never point at files or code that `main` doesn't have.
 

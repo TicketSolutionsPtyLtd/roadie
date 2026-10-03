@@ -26,7 +26,7 @@ describe('DatePicker', () => {
         defaultValue='2026-11-27'
       />
     )
-    expect(screen.getByRole('textbox', { name: 'Show date' })).toHaveValue(
+    expect(screen.getByRole('combobox', { name: 'Show date' })).toHaveValue(
       'Fri 27 Nov 2026'
     )
     expect(
@@ -43,7 +43,7 @@ describe('DatePicker', () => {
         onValueChange={onValueChange}
       />
     )
-    await userEvent.type(screen.getByRole('textbox'), 'next fri{Enter}')
+    await userEvent.type(screen.getByRole('combobox'), 'next fri{Enter}')
     expect(onValueChange).toHaveBeenCalledWith('2026-10-16')
   })
 
@@ -62,7 +62,7 @@ describe('DatePicker', () => {
     expect(within(dialog).getByRole('grid')).toBeInTheDocument()
     await userEvent.click(day('2026-10-23'))
     expect(onValueChange).toHaveBeenCalledWith('2026-10-23')
-    expect(screen.getByRole('textbox')).toHaveValue('Fri 23 Oct 2026')
+    expect(screen.getByRole('combobox')).toHaveValue('Fri 23 Oct 2026')
     await vi.waitFor(() =>
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     )
@@ -85,7 +85,7 @@ describe('DatePicker', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     )
     expect(onValueChange).not.toHaveBeenCalled()
-    expect(screen.getByRole('textbox')).toHaveValue('Fri 23 Oct 2026')
+    expect(screen.getByRole('combobox')).toHaveValue('Fri 23 Oct 2026')
   })
 
   it('pressing the chosen day clears an unreadable draft', async () => {
@@ -97,7 +97,7 @@ describe('DatePicker', () => {
         onValueChange={() => {}}
       />
     )
-    const input = screen.getByRole('textbox')
+    const input = screen.getByRole('combobox')
     await userEvent.clear(input)
     await userEvent.type(input, 'someday{Enter}')
     await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
@@ -105,11 +105,14 @@ describe('DatePicker', () => {
     await userEvent.click(day('2026-10-23'))
     expect(input).toHaveValue('Fri 23 Oct 2026')
     expect(input).not.toHaveAttribute('aria-invalid')
+    // The list the draft left wanting to open stays shut once focus has gone.
+    expect(input).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('listbox')).toBeNull()
   })
 
   it('opens the calendar on the typed date', async () => {
     render(<DatePicker aria-label='Show date' today={TODAY} />)
-    await userEvent.type(screen.getByRole('textbox'), '14 mar{Enter}')
+    await userEvent.type(screen.getByRole('combobox'), '14 mar{Enter}')
     await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
     await screen.findByRole('dialog')
     expect(day('2027-03-14')).toHaveAttribute('data-selected')
@@ -123,7 +126,7 @@ describe('DatePicker', () => {
         disabled={{ before: TODAY }}
       />
     )
-    const input = screen.getByRole('textbox')
+    const input = screen.getByRole('combobox')
     await userEvent.type(input, '1 oct{Enter}')
     expect(input).toHaveAttribute('aria-invalid', 'true')
     await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
@@ -149,7 +152,7 @@ describe('DatePicker', () => {
 
   it('turns off the field and the button with disabled', () => {
     render(<DatePicker aria-label='Show date' disabled />)
-    expect(screen.getByRole('textbox')).toBeDisabled()
+    expect(screen.getByRole('combobox')).toBeDisabled()
     expect(screen.getByRole('button', { name: /^Choose date/ })).toBeDisabled()
   })
 
@@ -180,7 +183,7 @@ describe('DatePicker', () => {
         onValueChange={() => {}}
       />
     )
-    expect(screen.getByRole('textbox', { name: 'Date' })).toHaveValue('')
+    expect(screen.getByRole('combobox', { name: 'Date' })).toHaveValue('')
   })
 
   it('starts from defaultValue and ignores later ones', () => {
@@ -188,7 +191,7 @@ describe('DatePicker', () => {
       <DatePicker aria-label='Show date' defaultValue='2026-11-27' />
     )
     rerender(<DatePicker aria-label='Show date' defaultValue='2026-12-25' />)
-    expect(screen.getByRole('textbox')).toHaveValue('Fri 27 Nov 2026')
+    expect(screen.getByRole('combobox')).toHaveValue('Fri 27 Nov 2026')
   })
 
   it('submits the value under its name', () => {
@@ -215,7 +218,7 @@ describe('DatePicker', () => {
         onValueChange={() => {}}
       />
     )
-    const input = screen.getByRole('textbox')
+    const input = screen.getByRole('combobox')
     await userEvent.clear(input)
     await userEvent.type(input, '14 mar{Enter}')
     expect(input).toHaveValue('Fri 27 Nov 2026')
@@ -234,7 +237,7 @@ describe('DatePicker', () => {
       </Field>
     )
     await userEvent.type(
-      screen.getByRole('textbox', { name: 'Show date' }),
+      screen.getByRole('combobox', { name: 'Show date' }),
       '1 oct{Enter}'
     )
     expect(screen.getByRole('alert').textContent).toBe(
@@ -282,10 +285,9 @@ describe('DatePicker', () => {
       />
     )
     for (const name of ['Date', 'Time'])
-      expect(screen.getByRole('textbox', { name })).toHaveAttribute(
-        'form',
-        'booking'
-      )
+      expect(
+        screen.getByRole(name === 'Date' ? 'combobox' : 'textbox', { name })
+      ).toHaveAttribute('form', 'booking')
   })
 
   it.each([
@@ -305,7 +307,9 @@ describe('DatePicker', () => {
         />
       </form>
     )
-    const input = screen.getByRole('textbox', { name })
+    const input = screen.getByRole(name === 'Date' ? 'combobox' : 'textbox', {
+      name
+    })
     await userEvent.clear(input)
     await userEvent.type(input, `${text}{Enter}`)
     expect(new FormData(container.querySelector('form')!).get('doors')).toBe('')
@@ -352,7 +356,7 @@ describe('DatePicker', () => {
     }
     render(<Reset />)
     await userEvent.click(screen.getByRole('button', { name: 'Reset' }))
-    expect(screen.getByRole('textbox')).toHaveValue('')
+    expect(screen.getByRole('combobox')).toHaveValue('')
   })
 
   it('leaves a disabled value out of the form', () => {
@@ -426,7 +430,7 @@ describe('DatePicker', () => {
         inputRef={ref}
       />
     )
-    const input = screen.getByRole('textbox')
+    const input = screen.getByRole('combobox')
     expect(input).toHaveAttribute('placeholder', '14 Mar or next Fri')
     expect(ref.current).toBe(input)
   })
@@ -460,7 +464,7 @@ describe('DatePicker', () => {
       )
       const group = screen.getByRole('group', { name: 'Doors' })
       expect(
-        within(group).getByRole('textbox', { name: 'Date' })
+        within(group).getByRole('combobox', { name: 'Date' })
       ).toBeInTheDocument()
       expect(
         within(group).getByRole('textbox', { name: 'Time' })
@@ -476,7 +480,7 @@ describe('DatePicker', () => {
           defaultValue='2026-11-27T08:30:00Z'
         />
       )
-      expect(screen.getByRole('textbox', { name: 'Date' })).toHaveValue(
+      expect(screen.getByRole('combobox', { name: 'Date' })).toHaveValue(
         'Fri 27 Nov 2026'
       )
       expect(screen.getByRole('textbox', { name: 'Time' })).toHaveValue(
@@ -496,7 +500,7 @@ describe('DatePicker', () => {
         />
       )
       await userEvent.type(
-        screen.getByRole('textbox', { name: 'Date' }),
+        screen.getByRole('combobox', { name: 'Date' }),
         '27 nov{Enter}'
       )
       expect(onValueChange).not.toHaveBeenCalled()
@@ -538,7 +542,7 @@ describe('DatePicker', () => {
           onValueChange={() => {}}
         />
       )
-      const date = screen.getByRole('textbox', { name: 'Date' })
+      const date = screen.getByRole('combobox', { name: 'Date' })
       await userEvent.type(date, '27 nov{Enter}')
       expect(date).toHaveValue('Fri 27 Nov 2026')
       await userEvent.type(
@@ -604,7 +608,7 @@ describe('DatePicker', () => {
         )
       }
       render(<Controlled />)
-      const date = screen.getByRole('textbox', { name: 'Date' })
+      const date = screen.getByRole('combobox', { name: 'Date' })
       await userEvent.type(date, '27 nov{Enter}')
       expect(date).toHaveValue('Fri 27 Nov 2026')
     })
@@ -618,7 +622,7 @@ describe('DatePicker', () => {
           <DatePicker />
         </Field>
       )
-      const input = screen.getByRole('textbox', { name: 'Show date' })
+      const input = screen.getByRole('combobox', { name: 'Show date' })
       expect(input).toBeDisabled()
       expect(input).toHaveAttribute('aria-invalid', 'true')
       expect(
@@ -635,7 +639,7 @@ describe('DatePicker', () => {
         </Field>
       )
       await userEvent.type(
-        screen.getByRole('textbox', { name: 'Show date' }),
+        screen.getByRole('combobox', { name: 'Show date' }),
         'someday{Enter}'
       )
       expect(screen.getByRole('alert')).toHaveTextContent(

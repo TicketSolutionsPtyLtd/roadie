@@ -10,8 +10,7 @@ import { Button } from '@oztix/roadie-components/button'
 import { EmptyState } from '@oztix/roadie-components/empty-state'
 import { Field } from '@oztix/roadie-components/field'
 
-import { ChartPreview } from './ChartPreview'
-import { ComponentSkeleton } from './ComponentSkeleton'
+import { CataloguePreview } from './CataloguePreview'
 import { PreviewCard, PreviewSection } from './PreviewGrid'
 
 function filterCategories(
@@ -117,11 +116,7 @@ export function ComponentBrowser({
                 href={entry.href}
                 title={entry.title}
               >
-                {entry.crossListedFrom === '/charts' ? (
-                  <ChartPreview name={entry.name} />
-                ) : (
-                  <ComponentSkeleton name={entry.name} />
-                )}
+                <CataloguePreview route='/components' entry={entry} />
               </PreviewCard>
             ))}
           </PreviewSection>

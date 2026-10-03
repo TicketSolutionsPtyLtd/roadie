@@ -21,7 +21,8 @@ after it is `unavailable`. `describeDateRange` returns the words to show and the
 stand for, and `describeComparison` the context line under a delta.
 
 `parseDatePhrase` turns typed text such as "this weekend", "next 7 days",
-"14 mar", "1/12", "after 1 dec" or "7:30pm" into ranked suggestions with
-explicit values. Plain-date helpers come with it: `plainDateOf`, `addDays`,
-`addMonths`, `compareDates`, `dayOfWeek`, `startOfWeek` and `monthGrid`, plus
-the `isAbsoluteRange`, `isRollingRange` and `isPeriodRange` guards.
+"14 mar", "1/12", "in 2 weeks", "end of month", "after 1 dec" or "7:30pm"
+into ranked suggestions with explicit values. Plain-date helpers come with it:
+`plainDateOf`, `addDays`, `addMonths`, `compareDates`, `dayOfWeek`,
+`startOfWeek` and `monthGrid`, plus the `isAbsoluteRange`, `isRollingRange`
+and `isPeriodRange` guards.

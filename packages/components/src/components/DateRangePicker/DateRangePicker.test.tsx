@@ -198,7 +198,7 @@ describe('DateRangePicker', () => {
       expect(custom).toHaveAttribute('aria-pressed', 'true')
       await userEvent.click(custom)
       expect(
-        within(dialog).getByRole('textbox', { name: 'Start' })
+        within(dialog).getByRole('combobox', { name: 'Start' })
       ).toHaveFocus()
     })
   })
@@ -217,9 +217,9 @@ describe('DateRangePicker', () => {
       expect(day('2026-09-28')).toHaveAttribute('data-range-start')
       expect(day('2026-10-04')).toHaveAttribute('data-range-end')
       expect(
-        within(dialog).getByRole('textbox', { name: 'Start' })
+        within(dialog).getByRole('combobox', { name: 'Start' })
       ).toHaveValue('28 Sept 2026')
-      expect(within(dialog).getByRole('textbox', { name: 'End' })).toHaveValue(
+      expect(within(dialog).getByRole('combobox', { name: 'End' })).toHaveValue(
         '4 Oct 2026'
       )
     })
@@ -250,6 +250,61 @@ describe('DateRangePicker', () => {
   })
 
   describe('typed dates', () => {
+    it('fills both ends from a range suggested in the End field', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('combobox', { name: 'End' }),
+        'next week'
+      )
+      await screen.findByRole('option', { name: /^Next week/ })
+      await userEvent.keyboard('{Enter}')
+      expect(onValueChange).toHaveBeenCalledWith({
+        start: '2026-10-12',
+        end: '2026-10-18'
+      })
+    })
+
+    it('drops the typed text once a suggested range is taken', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          defaultValue={{ start: '2026-10-12', end: '2026-10-13' }}
+        />
+      )
+      const dialog = await open()
+      const start = within(dialog).getByRole('combobox', { name: 'Start' })
+      await userEvent.clear(start)
+      await userEvent.type(start, 'next week')
+      await screen.findByRole('option', { name: /^Next week/ })
+      await userEvent.keyboard('{Enter}')
+      expect(start).toHaveValue('12 Oct 2026')
+      expect(within(dialog).getByRole('combobox', { name: 'End' })).toHaveValue(
+        '18 Oct 2026'
+      )
+    })
+
+    it('leaves out suggested ranges outside min and max', async () => {
+      render(
+        <DateRangePicker aria-label='Period' today={TODAY} min={3} max={7} />
+      )
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('combobox', { name: 'Start' }),
+        'this wee'
+      )
+      await screen.findByRole('option', { name: /^This week/ })
+      expect(screen.queryByRole('option', { name: /^This weekend/ })).toBeNull()
+    })
+
     it('reads typed start and end dates and stays open', async () => {
       const onValueChange = vi.fn()
       render(
@@ -261,12 +316,12 @@ describe('DateRangePicker', () => {
       )
       const dialog = await open()
       await userEvent.type(
-        within(dialog).getByRole('textbox', { name: 'Start' }),
+        within(dialog).getByRole('combobox', { name: 'Start' }),
         '1 oct{Enter}'
       )
       expect(onValueChange).not.toHaveBeenCalled()
       await userEvent.type(
-        within(dialog).getByRole('textbox', { name: 'End' }),
+        within(dialog).getByRole('combobox', { name: 'End' }),
         'next fri{Enter}'
       )
       expect(onValueChange).toHaveBeenCalledWith({
@@ -287,7 +342,7 @@ describe('DateRangePicker', () => {
         />
       )
       const dialog = await open()
-      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      const end = within(dialog).getByRole('combobox', { name: 'End' })
       await userEvent.clear(end)
       await userEvent.type(end, '2 oct{Enter}')
       expect(onValueChange).not.toHaveBeenCalled()
@@ -298,7 +353,7 @@ describe('DateRangePicker', () => {
     it('says why typed text isn’t a date', async () => {
       render(<DateRangePicker aria-label='Period' today={TODAY} />)
       const dialog = await open()
-      const start = within(dialog).getByRole('textbox', { name: 'Start' })
+      const start = within(dialog).getByRole('combobox', { name: 'Start' })
       await userEvent.type(start, 'someday{Enter}')
       expect(start).toHaveAccessibleDescription(
         'Enter a date, like 14 Mar or next Fri'
@@ -317,10 +372,10 @@ describe('DateRangePicker', () => {
       )
       const dialog = await open()
       await userEvent.clear(
-        within(dialog).getByRole('textbox', { name: 'Start' })
+        within(dialog).getByRole('combobox', { name: 'Start' })
       )
       await userEvent.clear(
-        within(dialog).getByRole('textbox', { name: 'End' })
+        within(dialog).getByRole('combobox', { name: 'End' })
       )
       await userEvent.tab()
       expect(onValueChange).toHaveBeenLastCalledWith(null)
@@ -372,10 +427,10 @@ describe('DateRangePicker', () => {
       )
       const dialog = await open()
       await userEvent.clear(
-        within(dialog).getByRole('textbox', { name: 'Start' })
+        within(dialog).getByRole('combobox', { name: 'Start' })
       )
       await userEvent.clear(
-        within(dialog).getByRole('textbox', { name: 'End' })
+        within(dialog).getByRole('combobox', { name: 'End' })
       )
       await userEvent.tab()
       expect(
@@ -520,11 +575,11 @@ describe('DateRangePicker', () => {
       )
       expect(day('2026-09-30')).toHaveAttribute('data-disabled')
       await userEvent.type(
-        within(dialog).getByRole('textbox', { name: 'Start' }),
+        within(dialog).getByRole('combobox', { name: 'Start' }),
         '30 sep{Enter}'
       )
       expect(
-        within(dialog).getByRole('textbox', { name: 'Start' })
+        within(dialog).getByRole('combobox', { name: 'Start' })
       ).toHaveAccessibleDescription('30 Sept 2026 isn’t available')
     })
   })
@@ -553,10 +608,13 @@ describe('DateRangePicker', () => {
       }
       render(<Outside />)
       let dialog = await open()
-      const start = within(dialog).getByRole('textbox', { name: 'Start' })
+      const start = within(dialog).getByRole('combobox', { name: 'Start' })
       await userEvent.clear(start)
       await userEvent.type(start, '1 oct')
-      await userEvent.click(screen.getByRole('button', { name: 'Outside' }))
+      // The open suggestions hide the rest of the page from the tree.
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Outside', hidden: true })
+      )
       await vi.waitFor(() =>
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       )
@@ -577,8 +635,8 @@ describe('DateRangePicker', () => {
         />
       )
       const dialog = await open()
-      const start = within(dialog).getByRole('textbox', { name: 'Start' })
-      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      const start = within(dialog).getByRole('combobox', { name: 'Start' })
+      const end = within(dialog).getByRole('combobox', { name: 'End' })
       await userEvent.clear(start)
       await userEvent.type(start, 'zzz{Enter}')
       await userEvent.clear(end)
@@ -626,7 +684,7 @@ describe('DateRangePicker', () => {
         within(dialog).getByRole('button', { name: 'Last quarter' })
       )
       expect(day('2026-07-01')).toHaveAttribute('data-range-start')
-      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      const end = within(dialog).getByRole('combobox', { name: 'End' })
       await userEvent.clear(end)
       await userEvent.type(end, '5 jan 2027{Enter}')
       expect(day('2027-01-05')).toHaveAttribute('data-range-end')
@@ -643,7 +701,7 @@ describe('DateRangePicker', () => {
       )
       const dialog = await open()
       await userEvent.type(
-        within(dialog).getByRole('textbox', { name: 'End' }),
+        within(dialog).getByRole('combobox', { name: 'End' }),
         '20 oct{Enter}'
       )
       await userEvent.click(day('2026-10-12'))
@@ -683,7 +741,7 @@ describe('DateRangePicker', () => {
       )
       const dialog = await open()
       await userEvent.clear(
-        within(dialog).getByRole('textbox', { name: 'Start' })
+        within(dialog).getByRole('combobox', { name: 'Start' })
       )
       await userEvent.keyboard('{Enter}')
       day('2026-10-12').focus()
@@ -705,13 +763,13 @@ describe('DateRangePicker', () => {
       )
       const dialog = await open()
       await userEvent.type(
-        within(dialog).getByRole('textbox', { name: 'End' }),
+        within(dialog).getByRole('combobox', { name: 'End' }),
         '20 oct{Enter}'
       )
       await userEvent.click(day('2026-10-25'))
       expect(onValueChange).not.toHaveBeenCalled()
       expect(
-        within(dialog).getByRole('textbox', { name: 'Start' })
+        within(dialog).getByRole('combobox', { name: 'Start' })
       ).toHaveValue('25 Oct 2026')
     })
 
@@ -727,10 +785,10 @@ describe('DateRangePicker', () => {
       )
       const dialog = await open()
       await userEvent.type(
-        within(dialog).getByRole('textbox', { name: 'Start' }),
+        within(dialog).getByRole('combobox', { name: 'Start' }),
         '1 oct{Enter}'
       )
-      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      const end = within(dialog).getByRole('combobox', { name: 'End' })
       await userEvent.type(end, '30 oct{Enter}')
       expect(onValueChange).not.toHaveBeenCalled()
       expect(end).toHaveAccessibleDescription('Spans more than 7 days')
@@ -740,10 +798,10 @@ describe('DateRangePicker', () => {
       render(<DateRangePicker aria-label='Period' today={TODAY} min={3} />)
       const dialog = await open()
       await userEvent.type(
-        within(dialog).getByRole('textbox', { name: 'Start' }),
+        within(dialog).getByRole('combobox', { name: 'Start' }),
         '1 oct{Enter}'
       )
-      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      const end = within(dialog).getByRole('combobox', { name: 'End' })
       await userEvent.type(end, '2 oct{Enter}')
       expect(end).toHaveAccessibleDescription('Spans fewer than 3 days')
     })
@@ -760,7 +818,7 @@ describe('DateRangePicker', () => {
       )
       const { rerender } = render(picker(true))
       let dialog = await screen.findByRole('dialog')
-      const start = within(dialog).getByRole('textbox', { name: 'Start' })
+      const start = within(dialog).getByRole('combobox', { name: 'Start' })
       await userEvent.clear(start)
       await userEvent.type(start, '1 oct{Enter}')
       rerender(picker(false))
@@ -770,7 +828,7 @@ describe('DateRangePicker', () => {
       rerender(picker(true))
       dialog = await screen.findByRole('dialog')
       expect(
-        within(dialog).getByRole('textbox', { name: 'Start' })
+        within(dialog).getByRole('combobox', { name: 'Start' })
       ).toHaveValue('10 Oct 2026')
     })
 
@@ -784,7 +842,7 @@ describe('DateRangePicker', () => {
         />
       )
       const dialog = await open()
-      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      const end = within(dialog).getByRole('combobox', { name: 'End' })
       await userEvent.clear(end)
       await userEvent.type(end, '20 oct{Enter}')
       expect(day('2026-11-01')).not.toBeNull()
@@ -813,7 +871,7 @@ describe('DateRangePicker', () => {
       )
       const dialog = await open()
       await userEvent.type(
-        within(dialog).getByRole('textbox', { name: 'End' }),
+        within(dialog).getByRole('combobox', { name: 'End' }),
         '20 oct{Enter}'
       )
       expect(day('2026-10-20')).toHaveAttribute('data-selected')
@@ -840,10 +898,10 @@ describe('DateRangePicker', () => {
       render(<DateRangePicker aria-label='Period' today={TODAY} max={1} />)
       const dialog = await open()
       await userEvent.type(
-        within(dialog).getByRole('textbox', { name: 'Start' }),
+        within(dialog).getByRole('combobox', { name: 'Start' }),
         '1 oct{Enter}'
       )
-      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      const end = within(dialog).getByRole('combobox', { name: 'End' })
       await userEvent.type(end, '3 oct{Enter}')
       expect(end).toHaveAccessibleDescription('Spans more than 1 day')
     })
@@ -883,10 +941,10 @@ describe('DateRangePicker', () => {
       }
       render(<Controlled />)
       const dialog = await open()
-      const start = within(dialog).getByRole('textbox', { name: 'Start' })
+      const start = within(dialog).getByRole('combobox', { name: 'Start' })
       await userEvent.clear(start)
       await userEvent.type(start, '1 oct{Enter}')
-      expect(within(dialog).getByRole('textbox', { name: 'End' })).toHaveValue(
+      expect(within(dialog).getByRole('combobox', { name: 'End' })).toHaveValue(
         '6 Oct 2026'
       )
       expect(start).toHaveValue('1 Oct 2026')
@@ -898,20 +956,22 @@ describe('DateRangePicker', () => {
       )
       const dialog = await open()
       await userEvent.type(
-        within(dialog).getByRole('textbox', { name: 'End' }),
+        within(dialog).getByRole('combobox', { name: 'End' }),
         '5 dec{Enter}'
       )
       expect(day('2026-12-05')).toHaveAttribute('data-selected')
     })
 
-    it('is required when its Field is', () => {
+    // ARIA doesn't allow aria-required on a button.
+    it('says it is required in its description, where ARIA allows it', () => {
       render(
         <Field required>
           <Field.Label>Period</Field.Label>
           <DateRangePicker today={TODAY} />
         </Field>
       )
-      expect(trigger()).toHaveAttribute('aria-required', 'true')
+      expect(trigger()).not.toHaveAttribute('aria-required')
+      expect(trigger()).toHaveAccessibleDescription('Required')
     })
   })
 

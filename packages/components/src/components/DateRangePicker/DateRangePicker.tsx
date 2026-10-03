@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, useRef, useState } from 'react'
+import { type ComponentProps, useId, useRef, useState } from 'react'
 
 import {
   CalendarBlankIcon,
@@ -301,6 +301,17 @@ export function DateRangePicker({
     if (close) changeOpen(false)
   }
 
+  function takeRange({ start, end }: { start: string; end: string }) {
+    change(
+      {
+        chosen: null,
+        start: { ...draft.start, date: start, unreadable: false },
+        end: { ...draft.end, date: end, unreadable: false }
+      },
+      { month: monthShowing(start) }
+    )
+  }
+
   const firstOf = (date: string) => `${date.slice(0, 8)}01`
   const opening = draftFrom(value, context)
   const openingDate = opening.start.date ?? opening.end.date ?? today
@@ -341,8 +352,13 @@ export function DateRangePicker({
 
   const anchorRef = useRef<HTMLButtonElement>(null)
   const startRef = useRef<HTMLInputElement>(null)
+  const requiredId = useId()
   const describedBy =
-    [isInvalid ? field.errorTextId : field.helperTextId, ariaDescribedBy]
+    [
+      isInvalid ? field.errorTextId : field.helperTextId,
+      isRequired && requiredId,
+      ariaDescribedBy
+    ]
       .filter(Boolean)
       .join(' ') || undefined
   const readOptions = {
@@ -396,6 +412,11 @@ export function DateRangePicker({
       {...props}
     >
       {labels.labels}
+      {isRequired && (
+        <span id={requiredId} hidden>
+          Required
+        </span>
+      )}
       <PickerOverlay
         open={open}
         onOpenChange={changeOpen}
@@ -422,7 +443,6 @@ export function DateRangePicker({
             aria-labelledby={labels.triggerLabelledBy}
             aria-describedby={describedBy}
             aria-invalid={isInvalid || undefined}
-            aria-required={isRequired || undefined}
             aria-disabled={readOnly || undefined}
             data-readonly={readOnly || undefined}
             data-slot='date-range-picker-trigger'
@@ -517,6 +537,8 @@ export function DateRangePicker({
                 locale={locale}
                 disabled={locked}
                 inputRef={startRef}
+                span={length}
+                onRange={takeRange}
               />
               <RangeEndField
                 label='End'
@@ -534,6 +556,8 @@ export function DateRangePicker({
                 minuteStep={minuteStep}
                 locale={locale}
                 disabled={locked}
+                span={length}
+                onRange={takeRange}
               />
             </div>
             <Calendar

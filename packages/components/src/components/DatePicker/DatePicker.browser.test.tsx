@@ -68,7 +68,7 @@ describe('DatePicker by keyboard', () => {
 
   it('tabs from the typed field to the button, committing on the way', async () => {
     render(<ShowDate initial={null} />)
-    await userEvent.click(screen.getByRole('textbox', { name: 'Show date' }))
+    await userEvent.click(screen.getByRole('combobox', { name: 'Show date' }))
     await userEvent.keyboard('14 mar')
     await userEvent.tab()
     expect(document.activeElement).toBe(trigger())
@@ -85,7 +85,7 @@ describe('DatePicker by keyboard', () => {
       .poll(() => trigger().getAttribute('aria-expanded'))
       .toBe('false')
     expect(shown()).toHaveTextContent('2026-10-31')
-    expect(screen.getByRole('textbox', { name: 'Show date' })).toHaveValue(
+    expect(screen.getByRole('combobox', { name: 'Show date' })).toHaveValue(
       'Sat 31 Oct 2026'
     )
     await expect.poll(() => document.activeElement).toBe(trigger())
@@ -105,7 +105,7 @@ describe('DatePicker by keyboard', () => {
 
   it('reverts a draft on Escape', async () => {
     render(<ShowDate />)
-    const input = screen.getByRole('textbox', { name: 'Show date' })
+    const input = screen.getByRole('combobox', { name: 'Show date' })
     await userEvent.clear(input)
     await userEvent.keyboard('someday{Escape}')
     expect(input).toHaveValue('Fri 23 Oct 2026')
@@ -199,7 +199,7 @@ describe('DatePicker field', () => {
       '[data-slot="date-picker-group"]'
     )!
     const resting = getComputedStyle(group).borderColor
-    await userEvent.click(screen.getByRole('textbox', { name: 'Show date' }))
+    await userEvent.click(screen.getByRole('combobox', { name: 'Show date' }))
     await expect
       .poll(() => getComputedStyle(group).borderColor)
       .not.toBe(resting)
@@ -210,7 +210,7 @@ describe('DatePicker field', () => {
     const group = document.querySelector<HTMLElement>(
       '[data-slot="date-picker-group"]'
     )!
-    const input = screen.getByRole('textbox', { name: 'Show date' })
+    const input = screen.getByRole('combobox', { name: 'Show date' })
     await userEvent.click(input)
     const focusedBorder = getComputedStyle(group).borderColor
     await userEvent.clear(input)
@@ -220,5 +220,46 @@ describe('DatePicker field', () => {
       .not.toBe(focusedBorder)
     // Field.ErrorText hears of the error a render later.
     await expect.poll(() => screen.queryByRole('alert')).not.toBeNull()
+  })
+})
+
+describe('DatePicker suggestions on a phone', () => {
+  beforeAll(() => page.viewport(390, 844))
+  afterAll(() => page.viewport(1920, 1080))
+
+  it('hints under the field, on screen, and takes a tapped hint', async () => {
+    setHoverCapable(false)
+    render(<ShowDate initial={null} />)
+    const input = screen.getByRole('combobox', { name: 'Show date' })
+    await userEvent.click(input)
+    const list = await screen.findByRole('listbox')
+    const group = input.closest('[data-slot="date-picker-group"]')!
+    const listBox = list
+      .closest('[data-slot="autocomplete-popup"]')!
+      .getBoundingClientRect()
+    const groupBox = group.getBoundingClientRect()
+    expect(listBox.top).toBeGreaterThanOrEqual(groupBox.bottom)
+    expect(Math.round(listBox.left)).toBe(Math.round(groupBox.left))
+    expect(listBox.right).toBeLessThanOrEqual(window.innerWidth)
+    expect(
+      screen
+        .getAllByRole('option')
+        .every((o) => !o.hasAttribute('data-highlighted'))
+    ).toBe(true)
+    await userEvent.click(screen.getByRole('option', { name: /^Tomorrow/ }))
+    await expect.poll(() => shown().textContent).toBe('2026-10-08')
+    expect(input).toHaveValue('Thu 8 Oct 2026')
+  })
+
+  it('takes the first suggestion on Enter once typing starts', async () => {
+    render(<ShowDate initial={null} />)
+    const input = screen.getByRole('combobox', { name: 'Show date' })
+    await userEvent.click(input)
+    await userEvent.type(input, 'end of m')
+    await expect
+      .poll(() => screen.queryByRole('option', { name: /^End of month/ }))
+      .toHaveAttribute('data-highlighted')
+    await userEvent.keyboard('{Enter}')
+    await expect.poll(() => shown().textContent).toBe('2026-10-31')
   })
 })
