@@ -10,11 +10,17 @@ import type { RecordTableColumn } from './types'
 const SKELETON_ROWS = 8
 
 /** A state in place of the rows. */
-export function StateRow({ children }: { children: ReactNode }) {
+export function StateRow({
+  columns,
+  children
+}: {
+  columns: number
+  children: ReactNode
+}) {
   return (
     <div role='rowgroup'>
       <div role='row' className='block'>
-        <div role='cell' className='block'>
+        <div role='cell' aria-colspan={columns} className='block'>
           {children}
         </div>
       </div>

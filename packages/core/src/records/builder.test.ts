@@ -70,6 +70,12 @@ describe('recordFields', () => {
     ])
   })
 
+  it('builds a list of dates', () => {
+    expect(
+      field.date('start', { label: 'Sessions', multiple: true }).multiple
+    ).toBe(true)
+  })
+
   it('only takes keys the row has', () => {
     // @ts-expect-error not a key of Session
     field.text('venue', { label: 'Venue' })

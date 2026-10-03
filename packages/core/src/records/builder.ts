@@ -27,6 +27,8 @@ export type MoneyFieldOptions<Row> = NumberFieldOptions & {
   currencyKey?: KeyOf<Row>
 }
 export type DateFieldOptions<Row> = Common & {
+  /** A list of dates. Filters can't read one yet. */
+  multiple?: boolean
   end?: KeyOf<Row>
   moment?: RecordMoment
   timeZoneKey?: KeyOf<Row>

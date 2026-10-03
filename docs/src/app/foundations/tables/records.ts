@@ -174,10 +174,15 @@ export const OZTIX_RECORDS: readonly OztixRecord[] = [
     what: 'A payment to a client for one settlement period, covering one or more events.',
     columns: [
       {
+        label: 'Reference',
+        type: 'text',
+        shows: 'Monospace reference, searchable',
+        pin: true
+      },
+      {
         label: 'Period',
         type: 'date',
-        shows: 'Date range (Sun 1 to Sun 15 Nov 2026)',
-        pin: true
+        shows: 'Date range (Sun 1 to Sun 15 Nov 2026)'
       },
       { label: 'Status', type: 'option', shows: 'Badge' },
       {
@@ -192,12 +197,7 @@ export const OZTIX_RECORDS: readonly OztixRecord[] = [
         format: 'currency'
       },
       { label: 'Fees', type: 'money', shows: 'Currency', format: 'currency' },
-      { label: 'Net', type: 'money', shows: 'Currency', format: 'currency' },
-      {
-        label: 'Reference',
-        type: 'text',
-        shows: 'Monospace reference, searchable'
-      }
+      { label: 'Net', type: 'money', shows: 'Currency', format: 'currency' }
     ],
     pane: 'Newest period first. Search by reference.',
     dashboard:

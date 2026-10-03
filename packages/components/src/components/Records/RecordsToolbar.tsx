@@ -23,7 +23,7 @@ export function RecordsToolbar({
   searchPlaceholder,
   className
 }: RecordsToolbarProps) {
-  const { setToolbar } = useRecordsContext()
+  const { toolbar, setToolbar } = useRecordsContext()
   const ref = useRef<HTMLDivElement>(null)
   const top = useStickyTop(ref, null)
   useSurface(ref)
@@ -50,6 +50,12 @@ export function RecordsToolbar({
       setToolbar((held) => (held?.element === element ? null : held))
     }
   }, [setToolbar])
+  // Takes the place another toolbar left, which this one's own effect won't notice.
+  useLayoutEffect(() => {
+    const element = ref.current
+    if (toolbar === null && element)
+      setToolbar((held) => held ?? { element, height: element.offsetHeight })
+  }, [toolbar, setToolbar])
 
   return (
     <div

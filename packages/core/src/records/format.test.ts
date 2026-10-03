@@ -55,6 +55,23 @@ describe('formatRecordValue', () => {
     expect(formatRecordValue(row, field(key), options)).toBe(expected)
   })
 
+  it('reads a list of dates as each date', () => {
+    const sessions: RecordField = {
+      key: 'sessions',
+      label: 'Sessions',
+      type: 'date',
+      moment: 'date',
+      multiple: true
+    }
+    expect(
+      formatRecordValue(
+        { sessions: ['2026-10-03', '2026-10-04'] },
+        sessions,
+        options
+      )
+    ).toBe('Sat 3 Oct 2026, Sun 4 Oct 2026')
+  })
+
   it('formats with the field format', () => {
     const sold: RecordField = {
       key: 'sold',

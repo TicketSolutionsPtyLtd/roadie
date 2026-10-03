@@ -41,6 +41,20 @@ export function RecordValue({
   const text = formatRecordValue(row, field, { timeZone: zone })
   if (text === null)
     return <span className={cn('text-subtle', className)}>{NOT_AVAILABLE}</span>
+  if (field.status && Array.isArray(raw) && raw.length > 0)
+    return (
+      <span className={cn('flex min-w-0 gap-1', className)}>
+        {raw.map((item, index) => (
+          <RecordValue
+            key={index}
+            field={field}
+            row={{ [field.key]: item }}
+            timeZone={zone}
+            className='shrink-0'
+          />
+        ))}
+      </span>
+    )
   if (field.status && (typeof raw === 'string' || typeof raw === 'number')) {
     const key = String(raw)
     const status = Object.hasOwn(field.status, key)

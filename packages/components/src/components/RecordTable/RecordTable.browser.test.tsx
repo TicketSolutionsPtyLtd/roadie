@@ -312,6 +312,26 @@ describe('RecordTable surface', () => {
     await expect.poll(() => bg(container, 'record-table-head')).toBe(card)
   })
 
+  it('follows a surface that changes behind it', async () => {
+    const { container } = render(
+      <div data-testid='card' className='bg-sunken'>
+        <RecordTable
+          data={testShows(5)}
+          fields={showFields}
+          columns={showColumns}
+        />
+      </div>
+    )
+    const card = container.querySelector<HTMLElement>('[data-testid="card"]')!
+    await expect
+      .poll(() => bg(container, 'record-table-head'))
+      .toBe(getComputedStyle(card).backgroundColor)
+    card.className = 'bg-raised'
+    await expect
+      .poll(() => bg(container, 'record-table-head'))
+      .toBe(getComputedStyle(card).backgroundColor)
+  })
+
   it('follows the theme when it switches', async () => {
     const { container } = render(
       <div data-testid='card' className='bg-sunken'>

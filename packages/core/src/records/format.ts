@@ -97,7 +97,19 @@ export function formatRecordValue(
   if (isEmptyValue(value)) return null
   switch (field.type) {
     case 'date':
-      return date(row, field, options)
+      return Array.isArray(value)
+        ? value
+            .map(
+              (item) =>
+                date(
+                  { ...row, [field.key]: item },
+                  { ...field, end: undefined },
+                  options
+                ) ?? ''
+            )
+            .filter(Boolean)
+            .join(', ') || null
+        : date(row, field, options)
     case 'number':
     case 'money':
       if (typeof value !== 'number') return String(value)

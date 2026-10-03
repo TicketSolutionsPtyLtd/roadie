@@ -148,7 +148,7 @@ export function RecordTableContent({
 
   // Error, then skeleton, then empty: what replaces the rows.
   const state = records.error ? (
-    <StateRow>
+    <StateRow columns={columns.length}>
       <RecordsError records={records} />
     </StateRow>
   ) : awaitingRows ? (
@@ -158,7 +158,7 @@ export function RecordTableContent({
       size={records.position.pageSize}
     />
   ) : rows.length === 0 ? (
-    <StateRow>
+    <StateRow columns={columns.length}>
       <RecordsEmpty records={records} />
     </StateRow>
   ) : null

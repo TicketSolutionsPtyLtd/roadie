@@ -493,7 +493,13 @@ describe('RecordTable fill', () => {
 describe('Records spread across a pane by a Provider', () => {
   const layouts = [tableLayout(wideColumns)]
 
-  function ProviderPane({ second = false }: { second?: boolean }) {
+  function ProviderPane({
+    first = true,
+    second
+  }: {
+    first?: boolean
+    second?: 'hidden' | 'shown'
+  }) {
     const records = useRecords({
       data: testShows(100),
       fields: showFields,
@@ -506,8 +512,13 @@ describe('Records spread across a pane by a Provider', () => {
             <Pane.Title>Shows</Pane.Title>
           </Pane.Header>
           <Pane.Body>
-            <Records.Toolbar />
-            {second && <Records.Toolbar className='hidden' />}
+            {first && <Records.Toolbar />}
+            {second && (
+              <Records.Toolbar
+                className={second === 'hidden' ? 'hidden' : undefined}
+                searchPlaceholder='Search again'
+              />
+            )}
             <Records.Content />
           </Pane.Body>
           <Pane.Footer>
@@ -540,10 +551,31 @@ describe('Records spread across a pane by a Provider', () => {
     ).toBe(getComputedStyle(slot(container, 'pane')).backgroundColor)
   })
 
+  it('sticks under the toolbar left when the first unmounts', async () => {
+    const pane = (first: boolean) => (
+      <div style={{ height: 600, width: WIDE_PANE, display: 'grid' }}>
+        <ProviderPane first={first} second='shown' />
+      </div>
+    )
+    const { container, rerender } = render(pane(true))
+    await frame()
+    rerender(pane(false))
+    const viewport = slot(container, 'pane-viewport')
+    await expect
+      .poll(() => {
+        viewport.scrollTop = 1500
+        return Math.abs(
+          rect(slot(container, 'record-table-head')).top -
+            rect(slot(container, 'records-toolbar')).bottom
+        )
+      })
+      .toBeLessThanOrEqual(1)
+  })
+
   it('sticks under the first toolbar when a second one mounts', async () => {
     const { container } = render(
       <div style={{ height: 600, width: WIDE_PANE, display: 'grid' }}>
-        <ProviderPane second />
+        <ProviderPane second='hidden' />
       </div>
     )
     const pane = slot(container, 'pane-viewport')

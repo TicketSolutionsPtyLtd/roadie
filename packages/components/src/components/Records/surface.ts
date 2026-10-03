@@ -37,14 +37,16 @@ function settle(part: HTMLElement) {
   part.style.setProperty('--records-surface', paintedBehind(part))
 }
 
-/** Settles now and again whenever the theme switches. */
+/** Settles now and again whenever the theme or a surface behind it changes. */
 function watchSurface(part: HTMLElement) {
   settle(part)
   const observer = new MutationObserver(() => settle(part))
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['class', 'data-theme', 'style']
-  })
+  // Only the chain above the part, so changes elsewhere on the page cost nothing.
+  for (let node = part.parentElement; node; node = node.parentElement)
+    observer.observe(node, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme', 'style']
+    })
   return () => observer.disconnect()
 }
 

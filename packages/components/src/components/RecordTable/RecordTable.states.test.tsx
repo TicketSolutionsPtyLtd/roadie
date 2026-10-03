@@ -288,6 +288,44 @@ describe('RecordTable status column', () => {
     expect(badges[1]).toHaveClass('intent-danger')
   })
 
+  it('shows each status in a list as its own badge', () => {
+    const fields = showFields.map((field) =>
+      field.key === 'status' ? { ...field, multiple: true } : field
+    )
+    const column = tableColumns<TestShow>(fields)
+    function Listed() {
+      const records = useRecords({
+        data: [
+          { ...SHOWS[0]!, status: ['on_sale', 'sold_out'] as unknown as string }
+        ],
+        fields
+      })
+      return (
+        <Records
+          records={records}
+          layouts={[tableLayout([column.field('status')])]}
+        >
+          <Records.Content />
+        </Records>
+      )
+    }
+    render(<Listed />)
+    const badges = dataRows()[0]!.querySelectorAll('[data-slot="badge"]')
+    expect([...badges].map((badge) => badge.textContent)).toEqual([
+      'On sale',
+      'Sold out'
+    ])
+    expect(badges[1]).toHaveClass('intent-danger')
+  })
+
+  it('spans every column with a state', () => {
+    render(<Table rows={0} />)
+    const cell = document
+      .querySelector('[data-slot="records-empty"]')!
+      .closest('[role="cell"]')
+    expect(cell).toHaveAttribute('aria-colspan', '3')
+  })
+
   it('shows a status held as a number as its badge', () => {
     const fields = showFields.map((field) =>
       field.key === 'status'
