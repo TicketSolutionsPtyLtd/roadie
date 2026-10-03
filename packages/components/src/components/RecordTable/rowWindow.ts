@@ -5,7 +5,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual'
 
 import { findScrollParent } from '../Records/scrollParent'
-import { ROW_HEIGHT } from './RecordTableRow'
+import { ROW_HEIGHT, ROW_REM } from './RecordTableRow'
 import { type Watched, firstClearRow } from './rowPosition'
 
 const OVERSCAN = 10
@@ -44,6 +44,8 @@ export function useRowWindow({
   })
   const [margin, setMargin] = useState(0)
   const [inset, setInset] = useState(0)
+  // Rows are sized in rem, so a larger root font makes them taller.
+  const [rowHeight, setRowHeight] = useState(ROW_HEIGHT)
 
   useLayoutEffect(() => {
     const body = bodyRef.current
@@ -54,6 +56,10 @@ export function useRowWindow({
     const measure = () => {
       const current = bodyRef.current
       if (current) setMargin(marginOf(current, element))
+      const root = parseFloat(
+        getComputedStyle(document.documentElement).fontSize
+      )
+      if (root > 0) setRowHeight(ROW_REM * root)
     }
     measure()
     const observer = new ResizeObserver(measure)
@@ -70,7 +76,7 @@ export function useRowWindow({
   const elementVirtualizer = useVirtualizer({
     count,
     getScrollElement: () => scroller.element,
-    estimateSize: () => ROW_HEIGHT,
+    estimateSize: () => rowHeight,
     overscan: OVERSCAN,
     scrollMargin: margin,
     initialRect: INITIAL_RECT,
@@ -82,7 +88,7 @@ export function useRowWindow({
   })
   const windowVirtualizer = useWindowVirtualizer({
     count,
-    estimateSize: () => ROW_HEIGHT,
+    estimateSize: () => rowHeight,
     overscan: OVERSCAN,
     scrollMargin: margin,
     initialRect: INITIAL_RECT,
@@ -92,6 +98,10 @@ export function useRowWindow({
     enabled: usesWindow
   })
   const virtualizer = usesWindow ? windowVirtualizer : elementVirtualizer
+
+  useLayoutEffect(() => {
+    virtualizer.measure()
+  }, [virtualizer, rowHeight])
 
   const { isScrolling } = virtualizer
   // Again once settled: a pane header or sticky top lands a render after mount, with no resize.

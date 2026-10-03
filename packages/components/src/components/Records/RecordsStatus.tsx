@@ -33,7 +33,7 @@ export function RecordsStatus() {
       ? `${count.format(total)} ${total === 1 ? 'result' : 'results'}`
       : '',
     // A server's count is the last search's until the new one loads.
-    records.loading
+    records.loading || Boolean(range?.loading)
   )
   const selection =
     selected || isSelecting(records, selectMode)

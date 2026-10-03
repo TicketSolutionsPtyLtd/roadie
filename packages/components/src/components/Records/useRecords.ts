@@ -263,48 +263,6 @@ export function useRecords<Row extends object>({
     useMemo(() => ({ ...view, query: appliedQuery }), [view, appliedQuery])
   )
 
-  const warned = useRef(new Set<string>())
-  const unidentified =
-    count !== undefined && !ranged && selectable && getRowId === indexId
-  const rangeUnidentified = ranged && getRowId === indexId
-  const rangePaged =
-    ranged && heldPosition.page !== undefined && heldPosition.page > 0
-  const rangeCapped = ranged && count !== undefined && count > MAX_RANGE_ROWS
-  useEffect(() => {
-    if (!isDev()) return
-    const warn = (message: string) => {
-      if (warned.current.has(message)) return
-      warned.current.add(message)
-      console.warn(message)
-    }
-    if (applied.skipped.length > 0)
-      warn(
-        `[Roadie] Records skipped part of the view:\n${applied.skipped.join('\n')}`
-      )
-    if (unidentified)
-      warn(
-        '[Roadie] Records in server mode need getRowId to select: index ids repeat on every page.'
-      )
-    if (rangeUnidentified)
-      warn(
-        '[Roadie] Records with loadRange need getRowId, so a selection survives refetching.'
-      )
-    if (rangePaged)
-      warn(
-        '[Roadie] Records with loadRange ignore the page: the list scrolls, and position.row keeps the place.'
-      )
-    if (rangeCapped)
-      warn(
-        '[Roadie] Records with loadRange stop at 300,000 rows. Filter the list or use paged server mode.'
-      )
-  }, [
-    applied.skipped,
-    unidentified,
-    rangeUnidentified,
-    rangePaged,
-    rangeCapped
-  ])
-
   // The records held, gaps left out, each with its index in `data`.
   const loaded = useMemo(() => {
     const rows: Row[] = []
@@ -344,7 +302,7 @@ export function useRecords<Row extends object>({
     )
   }, [server, loaded, resolvedQuery, fields, zone])
 
-  const key = rangeKey(appliedQuery, zone)
+  const key = rangeKey(appliedQuery, zone, resolvedQuery.filters)
   const range = useRangeLoading({
     loadRange,
     key,
@@ -353,6 +311,51 @@ export function useRecords<Row extends object>({
     data,
     held: loaded.rows.length
   })
+
+  const rangeCapped = range.capped
+
+  const warned = useRef(new Set<string>())
+  const unidentified =
+    count !== undefined && !ranged && selectable && getRowId === indexId
+  const rangeUnidentified = ranged && getRowId === indexId
+  const rangePaged =
+    ranged && heldPosition.page !== undefined && heldPosition.page > 0
+  const countCapped = ranged && count !== undefined && count > MAX_RANGE_ROWS
+  useEffect(() => {
+    if (!isDev()) return
+    const warn = (message: string) => {
+      if (warned.current.has(message)) return
+      warned.current.add(message)
+      console.warn(message)
+    }
+    if (applied.skipped.length > 0)
+      warn(
+        `[Roadie] Records skipped part of the view:\n${applied.skipped.join('\n')}`
+      )
+    if (unidentified)
+      warn(
+        '[Roadie] Records in server mode need getRowId to select: index ids repeat on every page.'
+      )
+    if (rangeUnidentified)
+      warn(
+        '[Roadie] Records with loadRange need getRowId, so a selection survives refetching.'
+      )
+    if (rangePaged)
+      warn(
+        '[Roadie] Records with loadRange ignore the page: the list scrolls, and position.row keeps the place.'
+      )
+    if (countCapped || rangeCapped)
+      warn(
+        '[Roadie] Records with loadRange stop at 300,000 rows. Filter the list or use paged server mode.'
+      )
+  }, [
+    applied.skipped,
+    unidentified,
+    rangeUnidentified,
+    rangePaged,
+    countCapped,
+    rangeCapped
+  ])
 
   const resultCount = ranged
     ? (range.total ?? loaded.rows.length)

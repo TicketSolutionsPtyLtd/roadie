@@ -18,7 +18,10 @@ import type { ColumnLayout } from './layout'
 import { useKeepFocusInTable } from './tableFocus'
 import type { RecordTableColumn } from './types'
 
-export const ROW_HEIGHT = 48
+/** `h-12`, in rem. */
+export const ROW_REM = 3
+/** At the default 16px root. */
+export const ROW_HEIGHT = ROW_REM * 16
 
 // WebKit builds without overflow-clip-margin drop the clip instead of the
 // ring. Decided in CSS, so the server and browser render the same classes.

@@ -63,18 +63,20 @@ export function useRangeLoading({
   // A parent keeps the last count until a new query's first range returns,
   // and a stale 0 would show an empty list that never asks for one.
   const known = rowCount === 0 && !book.counted ? undefined : rowCount
+  const capped = loadedLength >= MAX_RANGE_ROWS
   const ended =
     known === undefined &&
-    book.pending === 0 &&
-    book.settledEnd > 0 &&
-    loadedLength < book.settledEnd
+    (capped ||
+      (book.pending === 0 &&
+        book.settledEnd > 0 &&
+        loadedLength < book.settledEnd))
   const count =
     known === undefined
       ? ended
-        ? loadedLength
+        ? Math.min(loadedLength, MAX_RANGE_ROWS)
         : loadedLength + size
       : Math.min(known, MAX_RANGE_ROWS)
-  const total = known ?? (ended ? loadedLength : undefined)
+  const total = known ?? (ended && !capped ? loadedLength : undefined)
 
   // Requests dedupe synchronously; state only drives what renders.
   const requested = useRef({
@@ -201,6 +203,7 @@ export function useRangeLoading({
   }, [book.attempt, book.token, book.refill, view])
 
   return {
+    capped,
     count,
     total,
     loading: book.pending > 0,

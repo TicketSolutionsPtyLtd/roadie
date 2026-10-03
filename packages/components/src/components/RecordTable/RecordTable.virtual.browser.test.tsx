@@ -23,16 +23,20 @@ afterEach(() => {
 })
 
 // Linux WebKit runs no frames while a test sits idle, so each poll wakes them.
+// CI's runners take seconds to scroll through a few ranges, so polls wait longer.
 const framed = <T,>(read: () => T) =>
-  expect.poll(async () => {
-    await nudgeFrames()
-    return read()
-  })
+  expect.poll(
+    async () => {
+      await nudgeFrames()
+      return read()
+    },
+    { timeout: 8000 }
+  )
 
 const rows = (container: HTMLElement) =>
   container.querySelectorAll<HTMLElement>('[data-slot="record-table-row"]')
 
-describe('RecordTable virtualised rows', () => {
+describe('RecordTable virtualised rows', { timeout: 30_000 }, () => {
   it('renders only the rows near the screen of a 10,000 row page in a pane', async () => {
     const { container } = render(
       <div style={{ height: 600, display: 'grid' }}>
@@ -97,6 +101,41 @@ describe('RecordTable virtualised rows', () => {
     expect(rows(container).length).toBeLessThan(80)
   })
 
+  it('sizes the window to rows at a larger root font size', async () => {
+    const root = document.documentElement
+    root.style.fontSize = '20px'
+    try {
+      const { container } = render(
+        <div data-testid='box' style={{ height: 600, overflowY: 'auto' }}>
+          <RecordTable
+            caption='Shows'
+            data={testShows(1000)}
+            fields={showFields}
+            columns={showColumns}
+            defaultPosition={{ pageSize: 1000 }}
+          />
+        </div>
+      )
+      const box = container.querySelector<HTMLElement>('[data-testid="box"]')!
+      const body = container.querySelector<HTMLElement>(
+        '[data-slot="record-table-body"]'
+      )!
+      await framed(() => body.getBoundingClientRect().height).toBe(1000 * 60)
+      await framed(() => {
+        box.scrollTop = body.offsetTop + 500 * 60
+        const row = container.querySelector(
+          '[data-slot="record-table-row"][aria-rowindex="502"]'
+        )
+        if (!row) return null
+        return Math.round(
+          row.getBoundingClientRect().top - body.getBoundingClientRect().top
+        )
+      }).toBe(500 * 60)
+    } finally {
+      root.style.fontSize = ''
+    }
+  })
+
   it('keeps every row of a page of 100 in the table', () => {
     const { container } = render(
       <RecordTable
@@ -114,7 +153,7 @@ describe('RecordTable virtualised rows', () => {
   })
 })
 
-describe('RecordTable focus in a window of rows', () => {
+describe('RecordTable focus in a window of rows', { timeout: 30_000 }, () => {
   it.each([
     ['scrolling with the page', undefined, 'record-table-scroller'],
     ['in its own box', '24rem', 'record-table-viewport']

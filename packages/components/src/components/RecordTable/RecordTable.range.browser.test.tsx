@@ -106,7 +106,7 @@ const dataRows = (container: HTMLElement) =>
 const placeholders = (container: HTMLElement) =>
   container.querySelectorAll('[data-slot="record-table-placeholder-row"]')
 
-describe('RecordTable range mode in a browser', () => {
+describe('RecordTable range mode in a browser', { timeout: 30_000 }, () => {
   it('jumps deep into 100,000 rows and loads only that range', async () => {
     const spans: Span[] = []
     const { container } = render(
@@ -257,13 +257,17 @@ const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
 const wait = (ms: number) =>
   withFrames(() => new Promise((resolve) => setTimeout(resolve, ms)))
 // Linux WebKit runs no frames while a test sits idle, so each poll wakes them.
-const framed = <T,>(read: () => T, options?: { timeout?: number }) =>
-  expect.poll(async () => {
-    await nudgeFrames()
-    return read()
-  }, options)
+// CI's runners take seconds to scroll through a few ranges, so polls wait longer.
+const framed = <T,>(read: () => T, { timeout = 8000 } = {}) =>
+  expect.poll(
+    async () => {
+      await nudgeFrames()
+      return read()
+    },
+    { timeout }
+  )
 
-describe('RecordTable range failure in a browser', () => {
+describe('RecordTable range failure in a browser', { timeout: 30_000 }, () => {
   const inlineError = (container: HTMLElement) =>
     container.querySelector<HTMLElement>(
       '[data-slot="record-table-range-error"]'
@@ -371,7 +375,7 @@ describe('RecordTable range failure in a browser', () => {
   })
 })
 
-describe('RecordTable range position in a browser', () => {
+describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
   it('leaves the page where it is when it opens at the first row', async () => {
     const { container } = render(
       <InBox>
@@ -474,7 +478,7 @@ describe('RecordTable range position in a browser', () => {
     await framed(() => underHeader(container, 480)).toBeLessThanOrEqual(1)
     // A drag on the scrollbar fires no wheel, touch or key event.
     scroller.scrollTop = 200 * ROW_HEIGHT
-    await framed(() => rows.at(-1), { timeout: 2000 }).toBeDefined()
+    await framed(() => rows.at(-1)).toBeDefined()
     expect(Math.abs(rows.at(-1)! - 200)).toBeLessThanOrEqual(2)
     expect(rows.at(-1)).toBe(firstVisible(container))
   })
@@ -497,7 +501,7 @@ describe('RecordTable range position in a browser', () => {
     const scroller = box(container)
     await framed(() => underHeader(container, 480)).toBeLessThanOrEqual(1)
     scroller.scrollTop = 200 * ROW_HEIGHT
-    await framed(() => rows.at(-1), { timeout: 2000 }).toBeDefined()
+    await framed(() => rows.at(-1)).toBeDefined()
     expect(Math.abs(rows.at(-1)! - 200)).toBeLessThanOrEqual(2)
     expect(rows.at(-1)).toBe(firstVisible(container))
   })
@@ -524,7 +528,7 @@ describe('RecordTable range position in a browser', () => {
     rerender(table('visible'))
     await wait(700)
     box(container).scrollTop = 200 * ROW_HEIGHT
-    await framed(() => rows.at(-1), { timeout: 2000 }).toBeDefined()
+    await framed(() => rows.at(-1)).toBeDefined()
     expect(Math.abs(rows.at(-1)! - 200)).toBeLessThanOrEqual(2)
   })
 

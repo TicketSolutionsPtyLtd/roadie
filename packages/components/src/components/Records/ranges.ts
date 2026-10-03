@@ -1,4 +1,7 @@
-import type { RecordQuery } from '@oztix/roadie-core/records'
+import type {
+  RecordQuery,
+  ResolvedRecordFilter
+} from '@oztix/roadie-core/records'
 
 import { matchKey } from './selection'
 
@@ -35,7 +38,7 @@ export function rangesToLoad(plan: RangePlan): RecordsRange[] {
     if (plan.ended || plan.pending > 0 || plan.failed.size > 0) return []
     const want = Math.max(plan.last + screen, plan.target ?? 0)
     const start = Math.floor(plan.nextStart / size) * size
-    if (start > want) return []
+    if (start > want || start >= MAX_RANGE_ROWS) return []
     return [{ start, end: start + size }]
   }
   const rowCount = Math.min(plan.rowCount, MAX_RANGE_ROWS)
@@ -51,8 +54,15 @@ export function rangesToLoad(plan: RangePlan): RecordsRange[] {
   return ranges
 }
 
-/** What loaded rows belong to: a new search, filter, sort or zone starts over. */
+/** What loaded rows belong to: a new search, filter, sort or zone starts over, as do new dates for a relative date filter. */
 export const rangeKey = (
   query: Pick<RecordQuery, 'search' | 'filters' | 'sort'>,
-  timeZone: string
-) => JSON.stringify([matchKey(query), query.sort, timeZone])
+  timeZone: string,
+  resolved: readonly ResolvedRecordFilter[] = []
+) =>
+  JSON.stringify([
+    matchKey(query),
+    query.sort,
+    timeZone,
+    resolved.filter((filter) => filter.operator === 'overlaps')
+  ])

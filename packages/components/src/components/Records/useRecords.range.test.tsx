@@ -393,6 +393,36 @@ describe('useRecords range mode', () => {
     expect(requests(result)).toEqual([])
   })
 
+  it('starts over when a relative date filter resolves to new dates', () => {
+    const past: RecordFilter = {
+      field: 'starts',
+      operator: 'within',
+      value: 'past'
+    }
+    const setup = (filters: RecordFilter[]) =>
+      renderHook(
+        ({ now }: { now: Date }) =>
+          useRangeHarness({
+            total: 100,
+            rowCount: 100,
+            now,
+            timeZone: 'Australia/Sydney',
+            defaultView: { query: { filters } }
+          }),
+        { initialProps: { now: new Date('2026-10-04T10:00:00Z') } }
+      )
+    const tomorrow = { now: new Date('2026-10-05T10:00:00Z') }
+    const relative = setup([past])
+    const before = relative.result.current.records.range!.key
+    relative.rerender(tomorrow)
+    expect(relative.result.current.records.range!.key).not.toBe(before)
+
+    const fixed = setup([perth])
+    const kept = fixed.result.current.records.range!.key
+    fixed.rerender(tomorrow)
+    expect(fixed.result.current.records.range!.key).toBe(kept)
+  })
+
   it('never requests rows already held, with rowCount', async () => {
     const { result } = renderHook(() =>
       useRangeHarness({
@@ -666,6 +696,26 @@ describe('useRecords range mode', () => {
       )
       rerender()
       expect(result.current.records.range!.count).toBe(MAX_RANGE_ROWS)
+      expect(warn.mock.calls).toEqual([
+        [
+          '[Roadie] Records with loadRange stop at 300,000 rows. Filter the list or use paged server mode.'
+        ]
+      ])
+    })
+
+    it('warns once and stops at the row limit without rowCount', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const data = placeRange<TestShow>([], MAX_RANGE_ROWS - 1, testShows(1))
+      const { result, rerender } = renderHook(() =>
+        useRecords({
+          data,
+          fields: showFields,
+          getRowId: (row) => row.id,
+          loadRange: () => {}
+        })
+      )
+      rerender()
+      expect(result.current.range!.count).toBe(MAX_RANGE_ROWS)
       expect(warn.mock.calls).toEqual([
         [
           '[Roadie] Records with loadRange stop at 300,000 rows. Filter the list or use paged server mode.'

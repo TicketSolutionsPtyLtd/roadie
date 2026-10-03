@@ -113,6 +113,12 @@ describe('rangesToLoad without rowCount', () => {
     ).toEqual([{ start: 50, end: 100 }])
   })
 
+  it('stops at the row limit', () => {
+    expect(
+      rangesToLoad(plan({ first: 299_990, last: 299_999, nextStart: 300_000 }))
+    ).toEqual([])
+  })
+
   it('stops once ended or after a failure', () => {
     expect(rangesToLoad(plan({ ended: true }))).toEqual([])
     expect(rangesToLoad(plan({ failed: new Set([0]) }))).toEqual([])
