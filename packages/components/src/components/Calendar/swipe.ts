@@ -171,7 +171,8 @@ export function useSwipeToTurn(
         engaged: false,
         size: 0,
         along: 0,
-        samples: []
+        // The touch-down counts, so a flick coalesced into one move has speed.
+        samples: [{ along: 0, time: event.timeStamp }]
       }
     }
 

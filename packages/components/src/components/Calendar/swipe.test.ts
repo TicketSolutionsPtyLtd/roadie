@@ -26,6 +26,14 @@ describe('swipeTurns', () => {
     ['a slow short drag', -40, 300, moves([-10, 0], [-40, 900]), 900, false],
     ['a quick short flick', -40, 300, moves([-10, 0], [-40, 50]), 60, true],
     [
+      'a flick coalesced into one move after the touch-down',
+      -40,
+      300,
+      moves([0, 0], [-40, 16]),
+      20,
+      true
+    ],
+    [
       'a flick too short to count',
       -20,
       300,
