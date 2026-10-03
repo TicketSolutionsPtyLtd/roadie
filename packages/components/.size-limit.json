@@ -238,7 +238,7 @@
     "name": "DateField",
     "path": "dist/components/DateField/index.js",
     "import": "*",
-    "limit": "10.7 kB",
+    "limit": "11.6 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -252,7 +252,7 @@
     "name": "DatePicker",
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
-    "limit": "25.8 kB",
+    "limit": "26.7 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -266,14 +266,14 @@
     "name": "DateRangePicker",
     "path": "dist/components/DateRangePicker/index.js",
     "import": "*",
-    "limit": "30 kB",
+    "limit": "31 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "QueryField",
     "path": "dist/components/QueryField/index.js",
     "import": "*",
-    "limit": "9.4 kB",
+    "limit": "11.2 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {

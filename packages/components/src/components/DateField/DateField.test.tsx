@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { DateField } from '.'
 import { formatDate, readDate } from '../../pickers/readDate'
+import { suggestDates } from '../../pickers/suggestDates'
 import { Field } from '../Field'
 
 // Wed 7 Oct 2026.
@@ -481,6 +482,26 @@ describe('DateField', () => {
         expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
       )
     })
+
+    // "s" gives Sat, Next Sat, Sun, Next Sun; ranking by closeness would
+    // pull Sun ahead of Next Sat.
+    it.each(['next', 's'])(
+      "keeps suggestDates' order for %j rather than ranking by closeness",
+      async (text) => {
+        render(<DateField aria-label='Show date' today={TODAY} />)
+        await userEvent.type(screen.getByRole('combobox'), text)
+        await screen.findByRole('listbox')
+        const expected = suggestDates(text, { today: TODAY }).map(
+          (suggestion) => suggestion.label
+        )
+        expect(expected.length).toBeGreaterThan(1)
+        expect(
+          options().map((option) =>
+            expected.find((label) => option?.startsWith(label))
+          )
+        ).toEqual(expected)
+      }
+    )
 
     it('takes a suggestion that is pressed', async () => {
       const onValueChange = vi.fn()
