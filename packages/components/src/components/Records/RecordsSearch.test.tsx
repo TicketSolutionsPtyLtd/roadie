@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { renderToString } from 'react-dom/server'
 
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -604,5 +605,16 @@ describe('Records.Search', () => {
     expect(onViewChange.mock.lastCall![0].query.filters).toEqual([
       { field: 'sold', operator: 'eq', value: 100 }
     ])
+  })
+
+  it('renders on a server, which has no DOMRect', () => {
+    const original = globalThis.DOMRect
+    // @ts-expect-error the server's global scope
+    delete globalThis.DOMRect
+    try {
+      expect(() => renderToString(<Shows />)).not.toThrow()
+    } finally {
+      globalThis.DOMRect = original
+    }
   })
 })

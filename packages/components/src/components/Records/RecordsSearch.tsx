@@ -127,7 +127,17 @@ export function RecordsSearch({
   // holding the filter now, by id.
   const anchorId = useRef<string | null>(null)
   const [anchor] = useState(() => {
-    let last = new DOMRect()
+    // Plain, as the server has no DOMRect.
+    let last = {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0
+    }
     const current = () => {
       const held = anchorRef.current
       if (held?.isConnected || !anchorId.current) return held
@@ -140,7 +150,8 @@ export function RecordsSearch({
     return {
       getBoundingClientRect: () => {
         const element = current()
-        if (element?.isConnected) last = element.getBoundingClientRect()
+        if (element?.isConnected)
+          last = element.getBoundingClientRect().toJSON()
         return last
       },
       get contextElement() {
