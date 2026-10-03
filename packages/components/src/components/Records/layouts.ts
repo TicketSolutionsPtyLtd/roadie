@@ -21,6 +21,8 @@ export type RecordLayoutDefinition<Config = unknown> = {
   icon: ReactNode
   config: Config
   Content: (props: RecordsContentProps & { config: Config }) => ReactNode
+  /** Where `Records.BulkActions` shows: in the layout's header row, which its Content provides, or floating at the foot of the screen. @default 'floating' */
+  bulkActions?: 'header' | 'floating'
 }
 
 /** A layout of any config, as `Records` takes them. */

@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { Records } from '../Records'
+import { Records, type RecordsAction, type RecordsBulkAction } from '../Records'
 import { type UseRecordsOptions, useRecords } from '../Records/useRecords'
 import { tableLayout } from './tableLayout'
 import type { RecordTableColumn } from './types'
@@ -13,10 +13,16 @@ export type RecordTableProps<Row extends object> = UseRecordsOptions<Row> & {
   columns: readonly RecordTableColumn<Row>[]
   /** Accessible name for the table. */
   caption?: string
-  /** Names the search field too. @default 'Search' */
+  /** Names the search field too, unless `searchLabel` is given. @default 'Search' */
   searchPlaceholder?: string
+  /** Names the search field when its placeholder doesn't. */
+  searchLabel?: string
   /** @default [25, 50, 100] */
   pageSizes?: number[]
+  /** Turns on selection and shows the bulk actions once something is selected. */
+  bulkActions?: readonly RecordsBulkAction[]
+  /** Act on everything the search and filters match, with nothing selected, such as an export. Shown at the end of the toolbar. */
+  tableActions?: readonly RecordsAction<Row>[]
   /** Scrolls the rows in their own box this tall, any CSS length. */
   maxHeight?: string
   /** Fills its parent's height and scrolls both ways inside, like `maxHeight`. The parent needs a definite height, such as `Pane.Body`. */
@@ -29,13 +35,20 @@ export function RecordTable<Row extends object>({
   columns,
   caption,
   searchPlaceholder,
+  searchLabel,
   pageSizes,
+  bulkActions,
+  tableActions,
   maxHeight,
   fill,
   className,
   ...options
 }: RecordTableProps<Row>) {
-  const records = useRecords(options)
+  const hasBulkActions = bulkActions !== undefined && bulkActions.length > 0
+  const records = useRecords({
+    ...options,
+    selectable: options.selectable ?? hasBulkActions
+  })
   const layouts = useMemo(() => [tableLayout(columns)], [columns])
   return (
     <Records.Root
@@ -46,10 +59,15 @@ export function RecordTable<Row extends object>({
       data-pane-fill={fill || undefined}
       className={cn(fill && 'flex h-full min-h-0 flex-col', className)}
     >
-      <Records.Toolbar searchPlaceholder={searchPlaceholder} />
+      <Records.Toolbar
+        searchPlaceholder={searchPlaceholder}
+        searchLabel={searchLabel}
+        actions={tableActions}
+      />
       <Records.Content maxHeight={maxHeight} fill={fill} />
       <Records.Pagination pageSizes={pageSizes} />
       <Records.Status />
+      {hasBulkActions && <Records.BulkActions actions={bulkActions} />}
     </Records.Root>
   )
 }

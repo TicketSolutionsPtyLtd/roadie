@@ -45,3 +45,8 @@ access dates under their local date keys, and a range's end on every record;
 
 `parseDatePhrase` no longer reads inherited object names such as
 `constructor` as a date alias, unit or month.
+
+`recordsToCsv(rows, fields, { timeZone })` writes records as CSV, each
+value as its field reads in a table, with `values: 'raw'` for plain numbers
+and formula-like text neutralised. `RecordSelection` types the records an
+action takes.

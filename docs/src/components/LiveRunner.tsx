@@ -87,7 +87,11 @@ import {
   resolveComparison,
   viewerTimeZone
 } from '@oztix/roadie-core/datetime'
-import { recordFields, toSearchParams } from '@oztix/roadie-core/records'
+import {
+  recordFields,
+  recordsToCsv,
+  toSearchParams
+} from '@oztix/roadie-core/records'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
@@ -169,6 +173,7 @@ const scope = {
   resolveComparison,
   viewerTimeZone,
   recordFields,
+  recordsToCsv,
   toSearchParams,
   ...SpotIllustrations,
   ...PhosphorIcons,

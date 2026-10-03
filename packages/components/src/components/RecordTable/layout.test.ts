@@ -42,6 +42,19 @@ describe('columnLayout', () => {
     expect(layout.pinnedStart).toEqual([0, 12, undefined])
   })
 
+  it('puts a pinned select track first and an actions track last', () => {
+    const columns = [fixed('a', 12, 2, true), fixed('b', 6, 1)]
+    const layout = columnLayout(columns, columnWidths(columns, [], UTC), {
+      select: true,
+      actions: true
+    })
+    expect(layout.template).toBe(
+      '2.5rem minmax(12rem, 2fr) minmax(6rem, 1fr) 3rem'
+    )
+    expect(layout.minWidth).toBe(23.5)
+    expect(layout.pinnedStart).toEqual([2.5, undefined])
+  })
+
   it('lets a lone pinned column grow like any other', () => {
     const columns = [fixed('a', 10, 2, true), fixed('b', 10, 2)]
     const layout = columnLayout(columns, columnWidths(columns, [], UTC))

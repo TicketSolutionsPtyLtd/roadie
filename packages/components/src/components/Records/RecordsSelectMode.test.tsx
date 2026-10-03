@@ -1,0 +1,177 @@
+import { useLayoutEffect } from 'react'
+
+import { render, screen, waitFor, within } from '@testing-library/react'
+import { userEvent } from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+
+import { Records, type RecordsBulkAction } from '.'
+import { useRecordsContext } from './context'
+import type { RecordLayoutDefinition } from './layouts'
+import { type TestShow, showFields, testShows } from './testUtils'
+import { useRecords } from './useRecords'
+
+// A layout like narrow rows or a grid: no checkboxes and no header row, so
+// it selects through Select mode and the bulk actions float.
+function TapList() {
+  const { records, setSelectMode } = useRecordsContext()
+  useLayoutEffect(() => {
+    setSelectMode(true)
+    return () => setSelectMode(false)
+  }, [setSelectMode])
+  return (
+    <ul aria-label='Shows'>
+      {records.rows.map(({ id, row }) => (
+        <li key={id}>
+          <button
+            type='button'
+            aria-pressed={
+              records.selecting ? records.isSelected(id) : undefined
+            }
+            onClick={() => records.selecting && records.toggleRow(id)}
+          >
+            {(row as TestShow).show}
+          </button>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+const tapLayout: RecordLayoutDefinition<null> = {
+  type: 'grid',
+  label: 'Tap list',
+  icon: null,
+  config: null,
+  Content: TapList
+}
+const layouts = [tapLayout]
+
+function Shows({
+  actions = [{ label: 'Export', onAction: vi.fn() }]
+}: {
+  actions?: RecordsBulkAction[]
+}) {
+  const records = useRecords({
+    data: testShows(12),
+    fields: showFields,
+    getRowId: (row) => row.id,
+    selectable: true,
+    defaultView: { layout: { type: 'grid' } }
+  })
+  return (
+    <Records.Root records={records} layouts={layouts}>
+      <Records.Toolbar />
+      <Records.Content />
+      <Records.BulkActions actions={actions} />
+      <Records.Status />
+    </Records.Root>
+  )
+}
+
+const toggle = () => screen.getByRole('button', { name: /^(Select|Done)$/ })
+const floating = () => screen.queryByRole('group', { name: 'Bulk actions' })
+
+describe('Records Select mode', () => {
+  it('offers Select in the toolbar for a layout without checkboxes', async () => {
+    const user = userEvent.setup()
+    render(<Shows />)
+    expect(toggle()).toHaveTextContent('Select')
+    await user.click(toggle())
+    expect(screen.getByRole('group', { name: 'Select mode' })).toBeVisible()
+    expect(toggle()).toHaveTextContent('Done')
+    expect(toggle()).toHaveFocus()
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Select mode, 0 selected'
+    )
+  })
+
+  it('selects by tap, offers Select all and Deselect all', async () => {
+    const user = userEvent.setup()
+    render(<Shows />)
+    await user.click(toggle())
+    await user.click(screen.getByRole('button', { name: 'Ocean Alley 1' }))
+    expect(floating()).toHaveTextContent('1 selected')
+    await user.click(screen.getByRole('button', { name: 'Select all' }))
+    expect(floating()).toHaveTextContent('12 selected')
+    await user.click(screen.getByRole('button', { name: 'Deselect all' }))
+    expect(floating()).toBeNull()
+    expect(toggle()).toHaveTextContent('Done')
+  })
+
+  it('leaves with Done or Escape and clears, keeping focus on the toggle', async () => {
+    const user = userEvent.setup()
+    render(<Shows />)
+    await user.click(toggle())
+    await user.click(screen.getByRole('button', { name: 'Ocean Alley 1' }))
+    await user.keyboard('{Escape}')
+    expect(toggle()).toHaveTextContent('Select')
+    expect(floating()).toBeNull()
+    await user.click(toggle())
+    await user.click(screen.getByRole('button', { name: 'Ball Park Music 1' }))
+    await user.click(toggle())
+    expect(toggle()).toHaveTextContent('Select')
+    expect(toggle()).toHaveFocus()
+    expect(floating()).toBeNull()
+  })
+
+  it('floats the bulk actions without a second way to clear in Select mode', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<Shows />)
+    await user.click(toggle())
+    await user.click(screen.getByRole('button', { name: 'Ocean Alley 1' }))
+    expect(
+      container.querySelector('[data-slot="records-bulk-dock"]')
+    ).toContainElement(floating())
+    expect(screen.queryByRole('toolbar', { name: 'Bulk actions' })).toBeNull()
+    expect(
+      within(floating()!).queryByRole('button', { name: 'Clear selection' })
+    ).toBeNull()
+  })
+
+  it('leaves Select mode once an action succeeds', async () => {
+    const user = userEvent.setup()
+    const onAction = vi.fn()
+    render(<Shows actions={[{ label: 'Export', onAction }]} />)
+    await user.click(toggle())
+    await user.click(screen.getByRole('button', { name: 'Ocean Alley 1' }))
+    await user.click(
+      within(floating()!).getByRole('button', { name: 'Export' })
+    )
+    expect(onAction).toHaveBeenCalledWith(
+      { ids: ['show-0'] },
+      expect.objectContaining({ search: '' })
+    )
+    await waitFor(() => expect(toggle()).toHaveTextContent('Select'))
+    expect(floating()).toBeNull()
+  })
+
+  it('leaves Select mode with Escape from the floating bar', async () => {
+    const user = userEvent.setup()
+    render(<Shows />)
+    await user.click(toggle())
+    await user.click(screen.getByRole('button', { name: 'Ocean Alley 1' }))
+    within(floating()!).getByRole('button', { name: 'Export' }).focus()
+    await user.keyboard('{Escape}')
+    expect(toggle()).toHaveTextContent('Select')
+    expect(floating()).toBeNull()
+  })
+
+  it('keeps the selection when Escape cancels a confirm from the floating bar', async () => {
+    const user = userEvent.setup()
+    render(
+      <Shows
+        actions={[{ label: 'Cancel', intent: 'danger', onAction: vi.fn() }]}
+      />
+    )
+    await user.click(toggle())
+    await user.click(screen.getByRole('button', { name: 'Ocean Alley 1' }))
+    await user.click(
+      within(floating()!).getByRole('button', { name: 'Cancel' })
+    )
+    await screen.findByRole('alertdialog')
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
+    expect(floating()).toHaveTextContent('1 selected')
+    expect(toggle()).toHaveTextContent('Done')
+  })
+})

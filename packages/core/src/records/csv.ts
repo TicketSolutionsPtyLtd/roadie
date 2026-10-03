@@ -1,0 +1,58 @@
+import { type FormatRecordValueOptions, formatRecordValue } from './format'
+import { read } from './match'
+import type { RecordField } from './types'
+
+export type RecordsToCsvOptions = FormatRecordValueOptions & {
+  /** `raw` writes numbers and money unformatted, for sums in a spreadsheet. @default 'formatted' */
+  values?: 'formatted' | 'raw'
+}
+
+const quote = (text: string) =>
+  /[",\r\n]|^\s|\s$/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
+
+// Spreadsheets run text that opens like a formula; an apostrophe keeps it text.
+const neutralise = (text: string) =>
+  /^[=+\-@\t\r\n]/.test(text) ? `'${text}` : text
+
+const isFigure = (field: RecordField) =>
+  field.type === 'number' || field.type === 'money'
+
+function cellText(
+  row: object,
+  field: RecordField,
+  options: RecordsToCsvOptions
+) {
+  const value = read(row, field.key)
+  if (isFigure(field) && typeof value === 'number') {
+    // A spreadsheet reads no figure better than "Infinity" or "-$0".
+    if (!Number.isFinite(value)) return ''
+    if (Object.is(value, -0))
+      return cellText({ ...row, [field.key]: 0 }, field, options)
+    if (options.values === 'raw') return String(value)
+  }
+  const text = formatRecordValue(row, field, options)
+  if (text === null) return ''
+  // Only a formatted figure, like -$20, or Yes and No can't carry a formula.
+  const figure =
+    (isFigure(field) && typeof value === 'number') ||
+    (field.type === 'boolean' && typeof value === 'boolean')
+  return quote(figure ? text : neutralise(text))
+}
+
+/**
+ * Rows as RFC 4180 CSV, one column per field in the order given, each value
+ * as its field reads in a table. Works anywhere, so a server can export the
+ * same records a browser shows.
+ */
+export function recordsToCsv(
+  rows: readonly object[],
+  fields: readonly RecordField[],
+  options: RecordsToCsvOptions
+): string {
+  const lines = [
+    fields.map((field) => quote(neutralise(field.label))).join(',')
+  ]
+  for (const row of rows)
+    lines.push(fields.map((field) => cellText(row, field, options)).join(','))
+  return lines.join('\r\n')
+}

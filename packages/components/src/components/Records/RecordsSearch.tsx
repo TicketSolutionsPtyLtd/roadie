@@ -11,14 +11,17 @@ import { Input } from '../Input'
 import { useRecordsContext } from './context'
 
 export type RecordsSearchProps = {
-  /** Names the field too. @default 'Search' */
+  /** Names the field too, unless `aria-label` is given. @default 'Search' */
   placeholder?: string
+  /** Names the field when the placeholder alone doesn't, such as "Search events by name". */
+  'aria-label'?: string
   className?: string
 }
 
 /** A plain-text search across the fields marked searchable. */
 export function RecordsSearch({
   placeholder = 'Search',
+  'aria-label': label,
   className
 }: RecordsSearchProps) {
   const { records } = useRecordsContext()
@@ -29,7 +32,7 @@ export function RecordsSearch({
       <Input
         ref={fieldRef}
         type='search'
-        aria-label={placeholder}
+        aria-label={label ?? placeholder}
         placeholder={placeholder}
         value={value}
         onChange={(event) => records.setSearch(event.target.value)}

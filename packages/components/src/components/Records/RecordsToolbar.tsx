@@ -4,26 +4,36 @@ import { type ReactNode, useLayoutEffect, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { RecordsActions } from './RecordsActions'
 import { RecordsSearch } from './RecordsSearch'
+import { RecordsSelect } from './RecordsSelect'
 import { useRecordsContext } from './context'
+import { leaveSelectOnEscape } from './selectMode'
 import { useStickyTop } from './stickyTop'
 import { surfaceClass, useSurface } from './surface'
+import type { RecordsAction } from './types'
 
-export type RecordsToolbarProps = {
-  /** Replaces the standard controls, today the search. */
+export type RecordsToolbarProps<Row extends object = object> = {
+  /** Replaces the standard controls: the search and the actions. */
   children?: ReactNode
   /** The standard search's placeholder. @default 'Search' */
   searchPlaceholder?: string
+  /** Names the standard search when its placeholder doesn't. */
+  searchLabel?: string
+  /** The standard controls' actions on every matching record, at the end as `Records.Actions`. */
+  actions?: readonly RecordsAction<Row>[]
   className?: string
 }
 
 /** The records' controls, sticking above the content as it scrolls. */
-export function RecordsToolbar({
+export function RecordsToolbar<Row extends object>({
   children,
   searchPlaceholder,
+  searchLabel,
+  actions,
   className
-}: RecordsToolbarProps) {
-  const { toolbar, setToolbar } = useRecordsContext()
+}: RecordsToolbarProps<Row>) {
+  const { records, toolbar, setToolbar } = useRecordsContext()
   const ref = useRef<HTMLDivElement>(null)
   const top = useStickyTop(ref, null)
   useSurface(ref)
@@ -62,6 +72,7 @@ export function RecordsToolbar({
       ref={ref}
       data-slot='records-toolbar'
       style={{ top }}
+      onKeyDown={leaveSelectOnEscape(records)}
       className={cn(
         // Its padding takes the place of the gap below, so the surface reaches the content while stuck.
         'sticky z-docked mb-[calc(var(--records-gap,0px)*-1)] flex flex-wrap items-center gap-2 pb-3',
@@ -70,10 +81,15 @@ export function RecordsToolbar({
       )}
     >
       {children ?? (
-        <RecordsSearch
-          placeholder={searchPlaceholder}
-          className='min-w-48 grow basis-64'
-        />
+        <>
+          <RecordsSearch
+            placeholder={searchPlaceholder}
+            aria-label={searchLabel}
+            className='min-w-48 grow basis-64'
+          />
+          <RecordsSelect />
+          {actions && <RecordsActions actions={actions} className='ms-auto' />}
+        </>
       )}
     </div>
   )
