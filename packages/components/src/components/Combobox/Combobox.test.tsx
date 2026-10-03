@@ -460,6 +460,37 @@ describe('Combobox closest match', () => {
     expect(optionNames()).toEqual(['Hard rock', 'Rock'])
   })
 
+  it('ranks by the label itemToStringLabel gives', async () => {
+    const genres = [
+      { id: 1, name: 'Hard rock' },
+      { id: 2, name: 'Rock' }
+    ]
+    render(
+      <Combobox
+        items={genres}
+        itemToStringLabel={(genre) => (genre as { name: string }).name}
+      >
+        <Combobox.Input aria-label='Genre' />
+        <Combobox.Portal>
+          <Combobox.Positioner>
+            <Combobox.Popup>
+              <Combobox.List>
+                {(genre: { id: number; name: string }) => (
+                  <Combobox.Item key={genre.id} value={genre}>
+                    {genre.name}
+                  </Combobox.Item>
+                )}
+              </Combobox.List>
+            </Combobox.Popup>
+          </Combobox.Positioner>
+        </Combobox.Portal>
+      </Combobox>
+    )
+    await userEvent.type(genreInput(), 'Rock')
+    await screen.findByRole('option', { name: 'Hard rock' })
+    expect(optionNames()).toEqual(['Rock', 'Hard rock'])
+  })
+
   it('keeps the order a consumer filter gives', async () => {
     render(
       <Genres

@@ -54,20 +54,28 @@ function defaultLabel(item: unknown) {
   }
 }
 
-const wordCharacter = /[\p{L}\p{N}]/u
+const wordCharacter = /^[\p{L}\p{N}\p{M}'’]$/u
 
-function startsWord(label: string, index: number) {
-  return !wordCharacter.test(label.charAt(index - 1))
+function isWordCharacter(character: string | undefined) {
+  return character !== undefined && wordCharacter.test(character)
+}
+
+// The collator ignores spaces and punctuation, so a match can begin on the
+// space before a word; the word starts at the window's first word character.
+function startsWord(label: string, start: number, end: number) {
+  const lead = Array.from(label.slice(start, end)).findIndex(isWordCharacter)
+  if (lead === -1) return false
+  return lead > 0 || !isWordCharacter(Array.from(label.slice(0, start)).at(-1))
 }
 
 function matchTier(label: string, query: string, collator: Intl.Collator) {
   if (collator.compare(label, query) === 0) return EXACT
   let tier = NO_MATCH
   for (let i = 0; i <= label.length - query.length; i += 1) {
-    if (collator.compare(label.slice(i, i + query.length), query) !== 0)
-      continue
+    const end = i + query.length
+    if (collator.compare(label.slice(i, end), query) !== 0) continue
     if (i === 0) return LABEL_START
-    if (startsWord(label, i)) return WORD_START
+    if (startsWord(label, i, end)) return WORD_START
     tier = CONTAINS
   }
   return tier
@@ -123,33 +131,42 @@ export function rankMatches<Items extends readonly unknown[]>(
   return (moved ? groups : items) as Items
 }
 
-/**
- * Ranks `items` by the text typed since the list opened, and holds that
- * order while the list closes, as Base UI holds its filter.
- */
 export function useRankedItems<Items>(
   items: Items,
   {
     enabled,
     query,
-    open,
-    defaultOpen,
     label,
     locale
   }: {
     enabled: boolean
     query: string
-    open: boolean | undefined
-    defaultOpen: boolean | undefined
     label?: ItemLabel
     locale?: Intl.LocalesArgument
   }
+) {
+  return useMemo(
+    () =>
+      enabled && Array.isArray(items)
+        ? rankMatches(items as readonly unknown[], query, label, locale)
+        : items,
+    [enabled, items, query, label, locale]
+  ) as Items
+}
+
+/**
+ * Holds `query` while the list is closed, as Base UI holds its filter query
+ * through the exit animation, so the closing list doesn't reorder.
+ */
+export function useHeldWhileClosed(
+  query: string,
+  open: boolean | undefined,
+  defaultOpen: boolean | undefined
 ) {
   const [openState, setOpenState] = useState(defaultOpen ?? false)
   const isOpen = open ?? openState
   const [heldQuery, setHeldQuery] = useState(query)
   if (isOpen && heldQuery !== query) setHeldQuery(query)
-  const rankBy = isOpen ? query : heldQuery
 
   function handleOpenChange(
     nextOpen: boolean,
@@ -158,13 +175,5 @@ export function useRankedItems<Items>(
     if (!details.isCanceled) setOpenState(nextOpen)
   }
 
-  const ranked = useMemo(
-    () =>
-      enabled && Array.isArray(items)
-        ? rankMatches(items as readonly unknown[], rankBy, label, locale)
-        : items,
-    [enabled, items, rankBy, label, locale]
-  ) as Items
-
-  return { items: ranked, handleOpenChange }
+  return [isOpen ? query : heldQuery, handleOpenChange] as const
 }

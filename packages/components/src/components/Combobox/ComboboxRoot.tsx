@@ -7,7 +7,7 @@ import {
   usePointerHighlight,
   useTypedQuery
 } from '../../utils/optionHighlight'
-import { useRankedItems } from '../../utils/rankMatches'
+import { useHeldWhileClosed, useRankedItems } from '../../utils/rankMatches'
 
 export type ComboboxRootProps<
   Value = unknown,
@@ -46,11 +46,14 @@ export function ComboboxRoot<
   const { typed, query, handleQueryChange, resetTyped } = useTypedQuery(
     props.open
   )
-  const ranked = useRankedItems(items, {
-    enabled: props.filter === undefined && props.filteredItems === undefined,
+  const [rankQuery, handleRankOpenChange] = useHeldWhileClosed(
     query,
-    open: props.open,
-    defaultOpen: props.defaultOpen,
+    props.open,
+    props.defaultOpen
+  )
+  const rankedItems = useRankedItems(items, {
+    enabled: props.filter === undefined && props.filteredItems === undefined,
+    query: rankQuery,
     label: props.itemToStringLabel,
     locale: props.locale
   })
@@ -61,7 +64,7 @@ export function ComboboxRoot<
       <ComboboxPrimitive.Root
         onItemHighlighted={handleItemHighlighted}
         autoHighlight={mode}
-        items={ranked.items}
+        items={rankedItems}
         onInputValueChange={(next, details) => {
           onInputValueChange?.(next, details)
           handleQueryChange(next, details)
@@ -69,7 +72,7 @@ export function ComboboxRoot<
         onOpenChange={(open, details) => {
           onOpenChange?.(open, details)
           if (!open) resetTyped(details)
-          ranked.handleOpenChange(open, details)
+          handleRankOpenChange(open, details)
         }}
         onValueChange={(next, details) => {
           onValueChange?.(next, details)

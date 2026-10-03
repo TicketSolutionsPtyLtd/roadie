@@ -48,9 +48,27 @@ describe('rankMatches', () => {
     },
     {
       name: 'treats punctuation as a word break',
-      items: ['Nightjar', 'Mid-night'],
+      items: ['Midnight', 'Mid-night'],
       query: 'night',
-      expected: ['Nightjar', 'Mid-night']
+      expected: ['Mid-night', 'Midnight']
+    },
+    {
+      name: 'finds a word start after an ignored space',
+      items: ['Bedrock band', 'Hard rock'],
+      query: 'rock!',
+      expected: ['Hard rock', 'Bedrock band']
+    },
+    {
+      name: 'keeps an apostrophe inside a word',
+      items: ["Don't", 'Hot tea'],
+      query: 't',
+      expected: ['Hot tea', "Don't"]
+    },
+    {
+      name: 'reads a letter outside the basic plane as part of a word',
+      items: ['𝐀rock', 'Hard rock'],
+      query: 'rock',
+      expected: ['Hard rock', '𝐀rock']
     },
     {
       name: 'trims the query',
@@ -84,6 +102,9 @@ describe('rankMatches', () => {
     const bare = { value: 'Rock' }
     expect(rankMatches([hard, bare], 'rock')).toEqual([bare, hard])
     expect(rankMatches([hard, rock], 'rock')).toEqual([rock, hard])
+    const labelled = { value: 'x', label: 'Rock' }
+    const valued = { value: 'Rock', label: 'Hard rock' }
+    expect(rankMatches([valued, labelled], 'rock')).toEqual([labelled, valued])
   })
 
   it('reads labels with the given function', () => {
