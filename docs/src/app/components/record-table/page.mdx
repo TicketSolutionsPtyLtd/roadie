@@ -374,7 +374,7 @@ const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
 const names = ['Ocean Alley', 'Ball Park Music', 'Julia Jacklin', 'Angie McMahon', 'Alex Lahey', 'Middle Kids']
 const shows = Array.from({ length: 40 }, (_, index) => ({
   id: `show-${index}`,
-  show: `${names[index % names.length]} at The Lantern Room`,
+  show: `${names[index % names.length]} at Kazoo Hollow Room`,
   city: cities[index % cities.length],
   sold: (index * 37) % 2400,
   gross: (index * 7919) % 250000
