@@ -556,6 +556,14 @@ export function Calendar(props: CalendarProps) {
     if (next === view) return
     setPendingFocus(null)
     setToggledView(next)
+    // A day picked in a later month shown is the one the week should hold.
+    const chosen = [focusedDate, firstSelectedOf(mode, selection)].find(
+      (date): date is string => !!date && isVisible(date)
+    )
+    if (next === 'week' && chosen && monthOf(chosen) !== firstMonth) {
+      setNavigatedWeek(startOfWeek(chosen, weekStart))
+      changeMonth(chosen)
+    }
     if (viewProp === undefined) setUncontrolledView(next)
     onViewChange?.(next)
   }

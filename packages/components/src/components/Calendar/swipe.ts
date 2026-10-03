@@ -25,6 +25,34 @@ const CLICK_AFTER_SWIPE_MS = 500
 
 const GRIDS = '[data-slot="calendar-grid"]'
 
+type SwipeSample = { along: number; time: number }
+
+/**
+ * Whether a lifted swipe turns the page: dragged a quarter of the days (at
+ * most 80px), or flicked. The lift counts as a sample, so a drag held still
+ * before lifting has no speed left.
+ */
+export function swipeTurns({
+  along,
+  size,
+  samples,
+  releasedAt
+}: {
+  along: number
+  size: number
+  samples: readonly SwipeSample[]
+  releasedAt: number
+}) {
+  if (Math.abs(along) > Math.min(size / 4, 80)) return true
+  const first = samples[0]
+  const last = samples[samples.length - 1]
+  if (!first || !last || Math.abs(along) <= FLICK_MIN) return false
+  const elapsed = releasedAt - first.time
+  if (elapsed <= 0) return false
+  const speed = (last.along - first.along) / elapsed
+  return Math.abs(speed) > FLICK && Math.sign(speed) === Math.sign(along)
+}
+
 function prefersReducedMotion() {
   return (
     typeof matchMedia === 'function' &&
@@ -174,19 +202,10 @@ export function useSwipeToTurn(
       }
       gesture = null
       suppressClickUntil = performance.now() + CLICK_AFTER_SWIPE_MS
-      const first = samples[0]
-      const last = samples[samples.length - 1]
-      const speed =
-        first && last && last.time > first.time
-          ? (last.along - first.along) / (last.time - first.time)
-          : 0
       const step = stepOf(along)
-      const far = Math.abs(along) > Math.min(size / 4, 80)
-      const flicked =
-        Math.abs(along) > FLICK_MIN &&
-        Math.abs(speed) > FLICK &&
-        Math.sign(speed) === Math.sign(along)
-      const turns = (far || flicked) && latest.current.canTurn(step)
+      const turns =
+        swipeTurns({ along, size, samples, releasedAt: event.timeStamp }) &&
+        latest.current.canTurn(step)
       void settle(along, size, turns ? step : null)
     }
 

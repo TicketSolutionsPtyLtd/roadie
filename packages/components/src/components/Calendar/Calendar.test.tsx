@@ -700,22 +700,24 @@ describe('Calendar', () => {
     })
 
     it('speaks once a deferred parent applies the change', async () => {
+      let apply = () => {}
       function Deferred() {
         const [date, setDate] = useState<string | null>(null)
         return (
           <Calendar
             today={TODAY}
             selected={date}
-            onSelect={(next) => setTimeout(() => setDate(next), 10)}
+            onSelect={(next) => {
+              apply = () => setDate(next)
+            }}
           />
         )
       }
       render(<Deferred />)
       await userEvent.click(day('2027-03-14'))
-      expect(live()).toHaveTextContent('')
-      await waitFor(() =>
-        expect(live()).toHaveTextContent('Selected Sunday, 14 March 2027')
-      )
+      expect(live()).toBeEmptyDOMElement()
+      act(() => apply())
+      expect(live()).toHaveTextContent('Selected Sunday, 14 March 2027')
     })
 
     it('speaks changes the parent makes on its own', async () => {
@@ -1185,6 +1187,15 @@ describe('Calendar week view', () => {
     expect(toggle).toHaveFocus()
     await userEvent.keyboard(' ')
     expect(shownDays()[0]).toBe('2027-04-05')
+  })
+
+  it('opens week view on a day chosen in a later month shown', async () => {
+    render(
+      <Calendar today={TODAY} numberOfMonths={2} views={['week', 'month']} />
+    )
+    await userEvent.click(day('2027-04-20'))
+    await userEvent.click(screen.getByRole('button', { name: 'Month view' }))
+    expect(shownDays()).toContain('2027-04-20')
   })
 
   it('stays quiet when only the layout changes', () => {
