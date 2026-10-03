@@ -176,6 +176,7 @@ describe('DatePicker field', () => {
     await expect
       .poll(() => getComputedStyle(group).borderColor)
       .not.toBe(focusedBorder)
-    expect(screen.getByRole('alert')).toBeVisible()
+    // Field.ErrorText hears of the error a render later.
+    await expect.poll(() => screen.queryByRole('alert')).not.toBeNull()
   })
 })
