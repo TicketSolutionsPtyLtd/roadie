@@ -269,13 +269,20 @@ const [open, setOpen] = useState(false)
 
 ## Page layout
 
-The docked drawer writes its height to `--cart-drawer-height` on `<html>`. Pad
-the bottom of your page by that much so the drawer never covers content, or use
-`onHeightChange` to get the height in pixels.
+The docked drawer writes its height to `--cart-drawer-height` on `<html>`, and
+`onHeightChange` reports the same height in pixels. The drawer also floats
+above the bottom edge (`bottom-3`, or `bottom-4` from `sm`), so pad the bottom
+of your page by both or the last of your content sits under the drawer.
 
 ```css
 main {
-  padding-bottom: var(--cart-drawer-height, 0px);
+  padding-bottom: calc(var(--cart-drawer-height, 0px) + 0.75rem);
+}
+
+@media (width >= 40rem) {
+  main {
+    padding-bottom: calc(var(--cart-drawer-height, 0px) + 1rem);
+  }
 }
 ```
 
