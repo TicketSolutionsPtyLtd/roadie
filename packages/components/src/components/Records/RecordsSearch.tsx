@@ -84,6 +84,8 @@ const focusTarget = (popup: HTMLElement) => {
   return target ?? popup.querySelector<HTMLElement>(FOCUSABLE)
 }
 
+const focusPanel = (popup: HTMLElement) => popup
+
 /**
  * Search and filter in one field. Typing searches the records' searchable
  * fields and suggests filters, such as a city or "this weekend", that become
@@ -232,7 +234,9 @@ export function RecordsSearch({
           aria-labelledby={labelId}
           labelSource={labelId}
           action='Edit filter'
-          initialFocus={focusTarget}
+          // A new filter takes its value at once; an existing one opens on
+          // the panel, so no control looks active and Tab reaches the first.
+          initialFocus={editing.index === null ? focusTarget : focusPanel}
           finalFocus={() => {
             const index = editingIndex.current
             if (index === null) return inputRef.current

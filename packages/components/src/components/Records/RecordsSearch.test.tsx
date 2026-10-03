@@ -173,6 +173,7 @@ describe('Records.Search', () => {
     )
     const dialog = await editor()
     expect(dialog).toHaveAccessibleName('City')
+    await waitFor(() => expect(dialog).toHaveFocus())
     await user.click(within(dialog).getByRole('checkbox', { name: 'Hobart' }))
     expect(chipLabels()).toEqual(['City is Perth or Hobart'])
     await user.click(
