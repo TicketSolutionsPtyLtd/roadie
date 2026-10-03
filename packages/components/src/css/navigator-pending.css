@@ -41,10 +41,16 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    /* 1.5 > sqrt(2), so the square covers the frame at every angle. */
-    width: 150cqmax;
-    height: 150cqmax;
+    /* As wide as the frame's diagonal, so it covers the frame at every angle.
+       Drawn at an eighth and scaled up: WebKit can drop tiles of a large
+       spinning layer under load and show the frame's corners. 19cqmax × 8 is
+       over sqrt(2) times the long side, for engines without hypot(). */
+    width: 19cqmax;
+    height: 19cqmax;
+    width: calc(hypot(100cqw, 100cqh) / 8 + 2px);
+    height: calc(hypot(100cqw, 100cqh) / 8 + 2px);
     translate: -50% -50%;
+    scale: 8;
     background: conic-gradient(
       from 0deg,
       var(--pending-1),
