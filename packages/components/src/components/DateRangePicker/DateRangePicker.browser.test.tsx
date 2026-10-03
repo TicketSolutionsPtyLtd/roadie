@@ -316,7 +316,7 @@ describe('DateRangePicker suggestions in a drawer', TIMEOUT, () => {
     await userEvent.click(option)
     await expect.poll(() => start).toHaveValue('8 Oct 2026')
     expect(screen.getByRole('dialog')).toBe(drawer)
-    expect(screen.queryByRole('listbox')).toBeNull()
+    await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
   })
 
   it('closes only the suggestions on Escape', async () => {
