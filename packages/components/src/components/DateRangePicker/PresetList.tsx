@@ -27,7 +27,7 @@ export function PresetList({
 }: PresetListProps) {
   const id = useId()
   const buttons = (list: DateRangePreset[]) => (
-    <div className={'flex flex-wrap gap-1 sm:grid sm:gap-0.5'}>
+    <div className='flex flex-wrap gap-1 sm:grid sm:gap-0.5'>
       {list.map((preset) => (
         <Toggle
           key={presets.indexOf(preset)}

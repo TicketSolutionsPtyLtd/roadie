@@ -556,8 +556,11 @@ describe('DateRangePicker suggestions in a drawer', TIMEOUT, () => {
     await userEvent.click(tab('Calendar'))
     const start = within(drawer).getByRole('combobox', { name: 'Start' })
     await userEvent.click(start)
-    await userEvent.type(start, 'next week')
-    await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    await userEvent.type(start, 'next we')
+    await screen.findByRole('option', { name: /^Next Wed/ })
+    await userEvent.type(start, 'ek')
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    expect(screen.queryByRole('option', { name: /^Next week/ })).toBeNull()
   })
 
   it('suggests no end before the start', async () => {
@@ -568,7 +571,8 @@ describe('DateRangePicker suggestions in a drawer', TIMEOUT, () => {
     await userEvent.click(end)
     await userEvent.clear(end)
     await userEvent.type(end, '8 oct')
-    await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    expect(screen.queryByRole('option', { name: /8 Oct/ })).toBeNull()
     await userEvent.clear(end)
     await userEvent.type(end, '10 oct')
     await screen.findByRole('option', { name: /^10 Oct 2026/ })

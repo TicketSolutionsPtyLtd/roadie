@@ -63,6 +63,14 @@ describe('DashboardPeriod layout', TIMEOUT, () => {
     const own = screen.getByRole('button', { name: 'Similar venues' })
     expect(middle(box(own))).toBeCloseTo(middle(box(picker())), 0)
     expect(box(picker()).width).toBeLessThan(box(group).width)
+    // One line, so it keeps its size's height beside the app's controls.
+    const suffix = picker().querySelector(
+      '[data-slot="date-range-picker-suffix"]'
+    )!
+    expect(box(suffix).top).toBeLessThan(
+      box(suffix.previousElementSibling!).bottom
+    )
+    expect(box(picker()).height).toBe(40)
   })
 })
 

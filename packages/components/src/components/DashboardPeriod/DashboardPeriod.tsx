@@ -14,7 +14,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { usePickerZone } from '../../pickers/PickerShell'
 import { useToday } from '../Calendar/today'
-import { ExtendedDateRangePicker } from '../DateRangePicker/DateRangePicker'
+import { ExtendedDateRangePicker } from '../DateRangePicker/ExtendedDateRangePicker'
 import { type DateRangePreset, sameRange } from '../DateRangePicker/range'
 import { Switch } from '../Switch'
 import { ToggleGroup } from '../ToggleGroup'
@@ -195,8 +195,8 @@ export function DashboardPeriod({
     onValueChange?.(next)
   }
 
-  const periodOf = (range: DateRangeValue, with_?: Comparison) =>
-    with_ ? { range, compare: with_ } : { range }
+  const periodOf = (range: DateRangeValue, compareWith?: Comparison) =>
+    compareWith ? { range, compare: compareWith } : { range }
 
   function editCompare(next?: Comparison) {
     if (next) setLastChoice(next)
@@ -284,12 +284,15 @@ export function DashboardPeriod({
         readOnly={readOnly}
         disabled={disabled}
         commit='apply'
-        required
+        clearable={false}
         className='w-full @sm:w-fit'
         aria-label='Period'
         presets={presets}
         value={value.range}
-        onOpenChange={() => setEdit(null)}
+        onOpenChange={() => {
+          setEdit(null)
+          setLastChoice(value.compare ?? 'previous-period')
+        }}
         valueSuffix={suffix}
         extra={compareRow}
         onApply={(range) => {

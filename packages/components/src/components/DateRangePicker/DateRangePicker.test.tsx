@@ -1086,6 +1086,117 @@ describe('DateRangePicker on a phone', () => {
   })
 })
 
+describe('DateRangePicker aiming a tap on a phone', () => {
+  const summary = (dialog: HTMLElement) =>
+    dialog.querySelector('[data-slot="date-range-picker-summary"]')!
+
+  it('moves only the start once Start is tapped, with no end yet', async () => {
+    onPhone()
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        commit='apply'
+        defaultValue={null}
+      />
+    )
+    const dialog = await open()
+    await userEvent.click(day('2026-10-10'))
+    await userEvent.click(
+      within(dialog).getByRole('combobox', { name: 'Start' })
+    )
+    await userEvent.click(day('2026-10-15'))
+    expect(summary(dialog)).toHaveTextContent('From 15 Oct 2026')
+  })
+
+  it('keeps the range when the aimed end would break max', async () => {
+    onPhone()
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        commit='apply'
+        max={7}
+        defaultValue={{ start: '2026-10-05', end: '2026-10-09' }}
+      />
+    )
+    const dialog = await open()
+    await userEvent.click(within(dialog).getByRole('combobox', { name: 'End' }))
+    await userEvent.click(day('2026-10-20'))
+    expect(summary(dialog)).toHaveTextContent('5 to 9 Oct 2026 · 5 days')
+  })
+
+  it('says when the end comes before the start', async () => {
+    onPhone()
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        commit='apply'
+        defaultValue={{ start: '2026-10-10', end: '2026-10-12' }}
+      />
+    )
+    const dialog = await open()
+    const end = within(dialog).getByRole('combobox', { name: 'End' })
+    await userEvent.clear(end)
+    await userEvent.type(end, '5 oct 2026{Enter}')
+    expect(summary(dialog)).toHaveTextContent('Ends before it starts')
+  })
+
+  it('lets Clear drop text that names no date', async () => {
+    onPhone()
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        commit='apply'
+        defaultValue={null}
+      />
+    )
+    const dialog = await open()
+    const start = within(dialog).getByRole('combobox', { name: 'Start' })
+    await userEvent.type(start, 'zzz{Enter}')
+    expect(within(dialog).getByRole('button', { name: 'Clear' })).toBeEnabled()
+  })
+
+  it('changes nothing when read-only and opened anyway', async () => {
+    onPhone()
+    const onValueChange = vi.fn()
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        readOnly
+        open
+        defaultValue='today'
+        onValueChange={onValueChange}
+      />
+    )
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Yesterday/ })
+    )
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
+  it('keeps Clear and Apply off when disabled and opened anyway', async () => {
+    onPhone()
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        commit='apply'
+        disabled
+        open
+        defaultValue='today'
+      />
+    )
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByRole('button', { name: 'Clear' })).toBeDisabled()
+    expect(within(dialog).getByRole('button', { name: 'Apply' })).toBeDisabled()
+  })
+})
+
 describe('DateRangePicker across the phone breakpoint', () => {
   it('keeps its button, and focus, as the screen narrows', () => {
     const screenSize = onPhone(false)

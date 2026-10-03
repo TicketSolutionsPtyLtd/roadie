@@ -137,7 +137,7 @@ render(
 
 ### With scrolling months
 
-`layout='scroll'` stacks the months in a list that scrolls, as on a phone, under one row of weekdays that stays pinned. There are no arrows: it opens on the selection, `month` or today, and adds months as it nears either end or the keyboard moves past them. Put it in a box that scrolls. Pickers use it in their phone drawer.
+`layout='scroll'` stacks the months in a list that scrolls, as on a phone, under one row of weekdays that stays pinned. There are no arrows: it opens on `month`, the selection or today, and adds months as it nears either end or the keyboard moves past them. A new `month` scrolls the list to it, and `onMonthChange` doesn't fire. Put it in a box that scrolls. Pickers use it in their phone drawer.
 
 ```tsx-live
 <div className='h-96 overflow-y-auto rounded-xl emphasis-raised px-4'>

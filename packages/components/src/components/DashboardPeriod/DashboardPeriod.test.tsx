@@ -6,6 +6,7 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DashboardPeriod, type DashboardPeriodValue } from '.'
+import { onPhone } from '../../pickers/testUtils'
 
 // Wed 7 Oct 2026.
 const TODAY = '2026-10-07'
@@ -228,6 +229,32 @@ describe('DashboardPeriod', () => {
     expect(picker()).toHaveAttribute('aria-disabled', 'true')
     await userEvent.click(picker())
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('keeps its period without calling itself required', async () => {
+    onPhone()
+    render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
+    expect(picker()).not.toHaveAccessibleDescription(/Required/)
+    const dialog = await openPicker()
+    expect(within(dialog).queryByRole('button', { name: 'Clear' })).toBeNull()
+  })
+
+  it('remembers no comparison from a cancelled edit', async () => {
+    render(<Controlled initial={{ range: 'this-month' }} />)
+    let dialog = await openPicker()
+    await userEvent.click(compareSwitch(dialog))
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Previous year' })
+    )
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Cancel' })
+    )
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    dialog = await openPicker()
+    await userEvent.click(compareSwitch(dialog))
+    expect(
+      within(dialog).getByRole('button', { name: 'Previous period' })
+    ).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('needs a period before Apply', async () => {

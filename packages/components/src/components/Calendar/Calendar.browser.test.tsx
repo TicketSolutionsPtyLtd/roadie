@@ -460,10 +460,39 @@ describe('Calendar scrolling months', () => {
     )
       .toISOString()
       .slice(0, 10)
+    const weekOn = new Date(Date.parse(`${lastDay}T12:00:00Z`) + 7 * 86400000)
+      .toISOString()
+      .slice(0, 10)
     day(lastDay).focus()
     await userEvent.keyboard('{ArrowDown}')
-    await expect.poll(focused).not.toBe(lastDay)
-    expect(monthsShown().at(-1)).not.toBe(last)
+    await expect.poll(focused).toBe(weekOn)
+  })
+
+  it('keeps a focused day clear of the pinned weekday row', async () => {
+    render(<Scrolling defaultSelected='2027-06-02' />)
+    const june = document.querySelector('[data-month="2027-06-01"]')!
+    await expect
+      .poll(() => Math.round(june.getBoundingClientRect().top))
+      .toBe(Math.round(weekdays().getBoundingClientRect().bottom))
+    day('2027-06-02').focus()
+    await userEvent.keyboard('{ArrowUp}')
+    await expect.poll(focused).toBe('2027-05-26')
+    await expect
+      .poll(() => day('2027-05-26').getBoundingClientRect().top)
+      .toBeGreaterThanOrEqual(weekdays().getBoundingClientRect().bottom - 1)
+  })
+
+  it('stops growing in a box that only scrolls sideways', async () => {
+    render(
+      <div className='w-97.5 overflow-x-auto'>
+        <Calendar today={TODAY} layout='scroll' />
+      </div>
+    )
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    const settled = monthsShown().length
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(monthsShown().length).toBe(settled)
+    expect(settled).toBeLessThan(40)
   })
 })
 

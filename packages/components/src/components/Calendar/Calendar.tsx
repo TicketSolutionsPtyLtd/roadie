@@ -70,7 +70,7 @@ type CalendarBaseProps = Omit<
   modifiers?: Record<string, CalendarMatchers>
   /**
    * Months shown at once, side by side where they fit and stacked where
-   * they don't.
+   * they don't. Paged only.
    *
    * @default 1
    */
@@ -78,7 +78,8 @@ type CalendarBaseProps = Omit<
   /**
    * `paged` turns the months with arrows. `scroll` stacks them in a list
    * that scrolls, under one pinned row of weekdays, adding months as it
-   * nears either end. It opens on `month`, the selection or today.
+   * nears either end. It opens on `month`, the selection or today, and
+   * scrolls to `month` when it changes; `onMonthChange` doesn't fire.
    *
    * @default 'paged'
    */
@@ -170,10 +171,10 @@ type AnyCalendarProps = CalendarBaseProps & {
   max?: number
 }
 
+export type CalendarLayout = 'paged' | 'scroll'
+
 const emptyRange = (): CalendarDateRange => ({ start: null, end: null })
 
-// The column fills its share of the month; the day stays a circle no wider
-// than 48px, centred in it.
 const dayVariants = cva(
   'relative mx-auto grid aspect-square w-full max-w-12 place-content-center rounded-full border text-sm tabular-nums is-interactive',
   {
@@ -214,10 +215,11 @@ function between(date: string, start: string, end: string) {
 }
 
 /** Months either side of the opening month a scrolling calendar starts with. */
-const SCROLL_BEFORE = 2
+const SCROLL_BEFORE = 3
 const SCROLL_AFTER = 6
 /** Months a scrolling calendar adds as it nears an end. */
-const SCROLL_STEP = 6
+// Many at a time, so adding above, which moves the scroll, is rare.
+const SCROLL_STEP = 12
 
 function monthsBetween(from: string, to: string): number {
   return (
@@ -225,9 +227,14 @@ function monthsBetween(from: string, to: string): number {
   )
 }
 
+/** The box the months scroll in. Sideways scrolling alone makes `overflow-y` auto too, so it must also be taller inside than out. */
 function scrollingAncestor(node: HTMLElement): HTMLElement | null {
   for (let el = node.parentElement; el; el = el.parentElement) {
-    if (/auto|scroll/.test(getComputedStyle(el).overflowY)) return el
+    if (
+      /auto|scroll/.test(getComputedStyle(el).overflowY) &&
+      el.scrollHeight > el.clientHeight
+    )
+      return el
   }
   return null
 }
@@ -580,7 +587,8 @@ export function Calendar(props: CalendarProps) {
     const root = rootRef.current
     const month = root?.querySelector(`[data-month="${firstMonth}"]`)
     const scroller = root && scrollingAncestor(root)
-    if (!month || !scroller) return
+    // Hidden or not laid out yet, so try again on a later render.
+    if (!month || !scroller || scroller.clientHeight === 0) return
     scrolledTo.current = firstMonth
     const weekdays = weekdaysRef.current?.getBoundingClientRect()
     const stuckAt =
@@ -632,6 +640,7 @@ export function Calendar(props: CalendarProps) {
       extendRun(clampMonth(addMonths(months[months.length - 1]!, SCROLL_STEP)))
     }
   }
+  const grownAt = useRef<number | null>(null)
   const growRunRef = useRef(growRun)
   useIsomorphicLayoutEffect(() => {
     growRunRef.current = growRun
@@ -640,12 +649,15 @@ export function Calendar(props: CalendarProps) {
     if (!scrolling || waitingForToday) return
     if (typeof IntersectionObserver === 'undefined') return
     const root = rootRef.current && scrollingAncestor(rootRef.current)
+    const scrolled = () => (root ? root.scrollTop : window.scrollY)
     const observer = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue
-          growRunRef.current(entry.target === earlierRef.current)
-        }
+        const near = entries.find((entry) => entry.isIntersecting)
+        // Only after a scroll: a new observer reports an end still in reach,
+        // and growing for that alone would never stop.
+        if (!near || grownAt.current === scrolled()) return
+        grownAt.current = scrolled()
+        growRunRef.current(near.target === earlierRef.current)
       },
       { root, rootMargin: '400px 0px' }
     )
@@ -810,7 +822,9 @@ export function Calendar(props: CalendarProps) {
           tabIndex={isFocusTarget ? 0 : -1}
           className={cn(
             dayVariants({ look, outside }),
-            outOfRange && 'opacity-50'
+            outOfRange && 'opacity-50',
+            // Scrolled into view below the pinned weekdays, not under them.
+            scrolling && 'scroll-mt-10'
           )}
           onClick={() => {
             if (isDisabled) return
@@ -965,7 +979,6 @@ export function Calendar(props: CalendarProps) {
               className='w-full table-fixed border-separate border-spacing-x-0 border-spacing-y-0.5'
               onPointerLeave={() => setHoverDate(null)}
             >
-              {/* A scrolling list shows its weekdays once, pinned above it. */}
               <thead className={scrolling ? 'sr-only' : undefined}>
                 <tr role='row'>
                   {labels.weekdays.map((weekday) => (
