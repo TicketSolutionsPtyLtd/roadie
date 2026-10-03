@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { renderToString } from 'react-dom/server'
 
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { renderToString } from 'react-dom/server'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import {

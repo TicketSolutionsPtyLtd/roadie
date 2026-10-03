@@ -150,8 +150,11 @@ export function RecordsSearch({
     return {
       getBoundingClientRect: () => {
         const element = current()
-        if (element?.isConnected)
-          last = element.getBoundingClientRect().toJSON()
+        if (element?.isConnected) {
+          const { x, y, width, height, top, right, bottom, left } =
+            element.getBoundingClientRect()
+          last = { x, y, width, height, top, right, bottom, left }
+        }
         return last
       },
       get contextElement() {
