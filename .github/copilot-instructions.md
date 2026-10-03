@@ -61,3 +61,6 @@ ESLint already enforce.
   for a plan document.
 - `pnpm-workspace.yaml` `audit.ignore` entries carry their reason inline;
   only flag one whose reason no longer holds.
+- `resolveComparison`'s previous period follows the calendar for calendar
+  periods (this month against last month, month to date against last month
+  to the same day), not the same number of days before (INNO-1039).

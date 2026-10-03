@@ -1,16 +1,27 @@
 import type { ReactNode } from 'react'
 
 import { Dashboard } from '@oztix/roadie-components/dashboard'
+import {
+  DashboardPeriod,
+  type DashboardPeriodProps,
+  type DashboardPeriodValue
+} from '@oztix/roadie-components/dashboard-period'
 import { DataCard } from '@oztix/roadie-components/data-card'
 import { DataTable } from '@oztix/roadie-components/data-table'
 import { StatTile } from '@oztix/roadie-components/stat-tile'
 import type {
   CardSize,
   DashboardCard,
+  DashboardPeriodSpec,
   DashboardSpec,
   TableCard,
   TableRow
 } from '@oztix/roadie-core/dashboard'
+import {
+  type Comparison,
+  type DescribeComparisonOptions,
+  describeComparison
+} from '@oztix/roadie-core/datetime'
 
 import { Chart } from '../Chart'
 import { ChartLegend } from '../ChartLegend'
@@ -32,7 +43,64 @@ export type DashboardViewProps = {
    * view. Like actions, links come from the app rather than the spec.
    */
   getRowHref?: (card: TableCard, row: TableRow) => string | undefined
+  /**
+   * Called with the period and comparison chosen in the toolbar, without
+   * `history`: resolve them, fetch, and pass back a spec with the new
+   * `period`. Without it the period shows read-only, as when the page sets it.
+   */
+  onPeriodChange?: (period: DashboardPeriodValue) => void
+  /**
+   * The period toolbar's other props: `presets`, `timeZone`, `today`,
+   * `locale`, `weekStart`, `fiscalYearStart`, `dataStart`, `dataEnd`,
+   * `alignWeekday`, `disabled` while refetching, and `children` for the
+   * app's own controls, such as a benchmark.
+   */
+  periodProps?: DashboardViewPeriodProps
   className?: string
+}
+
+export type DashboardViewPeriodProps = Omit<
+  DashboardPeriodProps,
+  'value' | 'defaultValue' | 'onValueChange' | 'readOnly'
+>
+
+const HISTORY_MESSAGE = {
+  partial: 'Not enough history',
+  unavailable: 'Nothing to compare'
+} as const
+
+function comparisonLine(
+  compare: Comparison,
+  where: DescribeComparisonOptions
+): string {
+  try {
+    return describeComparison(compare, where)
+  } catch {
+    // validateDashboard rejects custom date-times; an unchecked spec still renders.
+    return 'vs custom dates'
+  }
+}
+
+/**
+ * A delta marked `comparison` follows the dashboard's: hidden with no
+ * comparison, replaced by a message when the data can't cover it, and
+ * otherwise named on the context line, over any context the card gives.
+ */
+function headline(
+  card: Exclude<DashboardCard, { kind: 'note' }>,
+  period: DashboardPeriodSpec | undefined,
+  where: Pick<DescribeComparisonOptions, 'timeZone' | 'locale'>
+) {
+  if (!card.delta) return { delta: undefined, context: card.context }
+  const { comparison, ...delta } = card.delta
+  if (!comparison) return { delta, context: card.context }
+  if (!period?.compare) return { delta: undefined, context: card.context }
+  if (period.history)
+    return { delta: undefined, context: HISTORY_MESSAGE[period.history] }
+  return {
+    delta,
+    context: comparisonLine(period.compare, where)
+  }
 }
 
 const cardProps = (card: DashboardCard, actions: ReactNode) => ({
@@ -51,17 +119,36 @@ type CardProps = {
   size: CardSize
   actions: ReactNode
   getRowHref?: DashboardViewProps['getRowHref']
+  period?: DashboardPeriodSpec
+  timeZone?: string
+  locale?: string
 }
 
-function Card({ card, size, actions, getRowHref }: CardProps) {
+function Card({
+  card,
+  size,
+  actions,
+  getRowHref,
+  period,
+  timeZone,
+  locale
+}: CardProps) {
+  if (card.kind === 'note')
+    return (
+      <DataCard {...cardProps(card, actions)} size={size}>
+        <p className='text-sm text-normal'>{card.body}</p>
+      </DataCard>
+    )
+  const { delta, context } = headline(card, period, { timeZone, locale })
+  const common = { ...cardProps(card, actions), context }
   switch (card.kind) {
     case 'stat':
       return (
         <StatTile
-          {...cardProps(card, actions)}
+          {...common}
           value={card.value}
           format={card.format}
-          delta={card.delta}
+          delta={delta}
           trend={card.trend}
           reference={card.reference}
         />
@@ -69,11 +156,11 @@ function Card({ card, size, actions, getRowHref }: CardProps) {
     case 'table':
       return (
         <DataCard
-          {...cardProps(card, actions)}
+          {...common}
           size={size}
           value={card.value}
           format={card.format}
-          delta={card.delta}
+          delta={delta}
           takeaway={card.takeaway}
         >
           <DataTable
@@ -88,12 +175,12 @@ function Card({ card, size, actions, getRowHref }: CardProps) {
     case 'chart':
       return (
         <Chart
-          {...cardProps(card, actions)}
+          {...common}
           source={card.source}
           size={size}
           value={card.value}
           format={card.format}
-          delta={card.delta}
+          delta={delta}
           takeaway={card.takeaway}
           view={card.view}
           table={cardTable(card)}
@@ -109,12 +196,6 @@ function Card({ card, size, actions, getRowHref }: CardProps) {
           />
         </Chart>
       )
-    case 'note':
-      return (
-        <DataCard {...cardProps(card, actions)} size={size}>
-          <p className='text-sm text-normal'>{card.body}</p>
-        </DataCard>
-      )
   }
 }
 
@@ -122,10 +203,21 @@ export function DashboardView({
   spec,
   cardActions,
   getRowHref,
+  onPeriodChange,
+  periodProps,
   className
 }: DashboardViewProps) {
+  const { period } = spec
   return (
     <Dashboard className={className}>
+      {period && (
+        <DashboardPeriod
+          {...periodProps}
+          value={{ range: period.range, compare: period.compare }}
+          onValueChange={onPeriodChange}
+          readOnly={!onPeriodChange}
+        />
+      )}
       {spec.sections.map((section, index) => (
         <Dashboard.Section
           key={`${index}-${section.title}`}
@@ -139,6 +231,9 @@ export function DashboardView({
               size={card.size}
               actions={cardActions?.(card)}
               getRowHref={getRowHref}
+              period={period}
+              timeZone={periodProps?.timeZone}
+              locale={periodProps?.locale}
             />
           ))}
         </Dashboard.Section>

@@ -39,6 +39,12 @@ import {
   DASHBOARD_WIDTHS,
   type DashboardWidth
 } from '@oztix/roadie-core/dashboard-layout'
+import {
+  type Comparison,
+  type DateRangeValue,
+  describeDateRange,
+  resolveComparison
+} from '@oztix/roadie-core/datetime'
 
 import { PACE_EXAMPLE } from '../pace-example'
 import { TICKETING_REFERENCE } from '../ticketing-reference'
@@ -596,6 +602,96 @@ import { cardTable } from '@oztix/roadie-charts/tables'
     <CardMenu label={card.label} table={cardTable(card)} />
   )}
 />`
+
+// Wed 7 Oct 2026 in Melbourne, with sales data to that day.
+const PERIOD_EXAMPLE = {
+  now: new Date('2026-10-07T02:00:00Z'),
+  timeZone: 'Australia/Melbourne',
+  dataEnd: '2026-10-07'
+}
+
+const PERIODS: DateRangeValue[] = [
+  'last-month',
+  { period: 'month', offset: 0, toDate: true },
+  'this-month',
+  { direction: 'past', amount: 30, unit: 'day' },
+  { period: 'year', offset: 0, fiscal: true }
+]
+
+const coveredBy = (range: DateRangeValue, compare: Comparison) => {
+  const resolved = resolveComparison(range, compare, PERIOD_EXAMPLE).range
+  return resolved?.kind === 'dates'
+    ? describeDateRange(resolved, PERIOD_EXAMPLE).detail
+    : ''
+}
+
+const PERIOD_ROWS = PERIODS.map((range) => {
+  const { label, detail } = describeDateRange(range, PERIOD_EXAMPLE)
+  return [
+    `${label}, ${detail}`,
+    coveredBy(range, 'previous-period'),
+    coveredBy(range, 'previous-year')
+  ]
+})
+
+const PERIOD_JSON = `{
+  "version": 1,
+  "title": "Sales",
+  "period": {
+    "range": { "period": "month", "offset": 0, "toDate": true },
+    "compare": "previous-period"
+  },
+  "sections": [
+    {
+      "title": "At a glance",
+      "cards": [
+        {
+          "id": "sold",
+          "kind": "stat",
+          "size": "stat",
+          "label": "Tickets sold",
+          "value": 2531,
+          "delta": { "value": 0.04, "format": "percent", "comparison": true }
+        }
+      ]
+    }
+  ]
+}`
+
+const PERIOD_FLOW_CODE = `'use client'
+
+function SalesDashboard({ spec }: { spec: DashboardSpec }) {
+  const [period, setPeriod] = useState<DashboardPeriodValue>({
+    range: 'last-month',
+    compare: 'previous-period'
+  })
+  const options = {
+    now: new Date(),
+    timeZone: venue.timeZone,
+    dataStart: sales.firstDay,
+    dataEnd: sales.lastDay
+  }
+  const range = resolveDateRange(period.range, options)
+  const compared = period.compare
+    ? resolveComparison(period.range, period.compare, options)
+    : null
+  const cards = useSalesCards(range, compared?.range)
+  const history =
+    compared && compared.status !== 'available' ? compared.status : undefined
+
+  return (
+    <DashboardView
+      spec={{ ...spec, period: { ...period, history }, sections: cards }}
+      onPeriodChange={setPeriod}
+      periodProps={{
+        presets: dateRangePresets,
+        timeZone: venue.timeZone,
+        dataStart: sales.firstDay,
+        dataEnd: sales.lastDay
+      }}
+    />
+  )
+}`
 
 const ROW_LINKS_CODE = `<DashboardView
   spec={spec}
@@ -1228,6 +1324,79 @@ export default function DashboardsPage() {
 
       <section className='grid gap-6'>
         <h2 className='text-display-prose-3 text-strong'>
+          Periods and comparisons
+        </h2>
+        <p className='max-w-prose text-subtle'>
+          A dashboard can carry a <Code>period</Code>: the dates its numbers
+          cover, and the dates they compare with. <Code>DashboardView</Code>{' '}
+          shows it above the sections as a{' '}
+          <Link href='/charts/dashboard-period' className='underline'>
+            dashboard period
+          </Link>
+          , with the period picker and a comparison of the previous period, the
+          previous year, custom dates or none. Comparisons are dates only. A
+          benchmark such as similar venues is the app’s own control, passed as{' '}
+          <Code>periodProps.children</Code>.
+        </p>
+        <CodePreview language='json'>{PERIOD_JSON}</CodePreview>
+        <List
+          items={[
+            <>
+              A delta with <Code>comparison: true</Code> follows the period’s
+              comparison. Its context line names it, such as “vs previous
+              period”, in place of any card context. With no comparison it
+              hides. Other deltas, such as against a target, stay as they are.
+            </>,
+            <>
+              The previous period follows the calendar. This month compares with
+              last month, not the 31 days before it, and month to date with last
+              month to the same day. Rolling and custom ranges compare with the
+              same number of days, ending the day before.
+            </>,
+            <>
+              For data recorded as it happens, such as sales, pass{' '}
+              <Code>dataEnd</Code>, the last day the data holds, so a period
+              still in progress compares like with like: 1 to 7 Oct with 1 to 7
+              Sept, not all of September. Leave it out for dates known ahead,
+              such as shows coming up.
+            </>,
+            <>
+              Pass <Code>dataStart</Code>, the first day the data holds.{' '}
+              <Code>resolveComparison</Code> returns <Code>partial</Code> when
+              the comparison starts before it and <Code>unavailable</Code> when
+              it ends before it. Set the period’s <Code>history</Code> to that
+              status, and comparison deltas give way to “Not enough history” or
+              “Nothing to compare”.
+            </>,
+            <>
+              To open a card’s records for the same dates, read{' '}
+              <Code>spec.period</Code> in <Code>getRowHref</Code>. A relative
+              period becomes a records <Code>within</Code> filter, and custom
+              dates a <Code>between</Code> filter.
+            </>,
+            <>
+              No chart draws a comparison series yet. Show the comparison as a
+              delta, and say what it compares with.
+            </>
+          ]}
+        />
+        <Table
+          label='Comparisons on Wed 7 Oct 2026'
+          head={['Period', 'Previous period', 'Previous year']}
+          rows={PERIOD_ROWS}
+        />
+        <p className='max-w-prose text-subtle'>
+          The app owns the data. <Code>onPeriodChange</Code> gets the new period
+          and comparison: resolve them, fetch, and pass back the description
+          with the new <Code>period</Code> and its <Code>history</Code>. Without{' '}
+          <Code>onPeriodChange</Code>, the period shows read-only, as when the
+          page sets it. Render it from a client component to change it.
+        </p>
+        <CodePreview>{PERIOD_FLOW_CODE}</CodePreview>
+      </section>
+
+      <section className='grid gap-6'>
+        <h2 className='text-display-prose-3 text-strong'>
           Describe it as data
         </h2>
         <p className='max-w-prose text-subtle'>
@@ -1257,7 +1426,8 @@ export default function DashboardsPage() {
         <p className='max-w-prose text-subtle'>
           It also checks sizes per card kind, unique ids, visual columns, a
           source on every chart and table card, copy lengths, dashes and
-          sentence case.
+          sentence case, and that a period’s dates are real and a comparison
+          delta has a period to follow.
         </p>
         <p className='max-w-prose text-subtle'>
           <Code>CARD_SPANS</Code> and <Code>COPY_LIMITS</Code> hold the sizes

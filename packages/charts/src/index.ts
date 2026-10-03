@@ -20,7 +20,11 @@ export {
   ChartPatterns,
   chartTextureId
 } from './ChartPatterns'
-export { DashboardView, type DashboardViewProps } from './DashboardView'
+export {
+  DashboardView,
+  type DashboardViewPeriodProps,
+  type DashboardViewProps
+} from './DashboardView'
 export { BarChart, type BarChartInterval, type BarChartProps } from './BarChart'
 export { Funnel, type FunnelProps, type FunnelStep } from './Funnel'
 export { Heatmap, type HeatmapProps, type HeatmapScale } from './Heatmap'

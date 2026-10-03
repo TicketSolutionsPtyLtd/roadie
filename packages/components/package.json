@@ -92,6 +92,10 @@
       "types": "./dist/components/Dashboard/index.d.ts",
       "import": "./dist/components/Dashboard/index.js"
     },
+    "./dashboard-period": {
+      "types": "./dist/components/DashboardPeriod/index.d.ts",
+      "import": "./dist/components/DashboardPeriod/index.js"
+    },
     "./data-card": {
       "types": "./dist/components/DataCard/index.d.ts",
       "import": "./dist/components/DataCard/index.js"

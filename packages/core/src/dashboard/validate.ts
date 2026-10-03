@@ -1,6 +1,13 @@
 import type { core } from 'zod'
 
 import { isWallTime, parseWallTime } from '../dataviz/wallTime'
+import { compareDates, isPlainDate } from '../datetime/plainDate'
+import {
+  type Comparison,
+  type DateRangeValue,
+  isAbsoluteRange,
+  isRollingRange
+} from '../datetime/ranges'
 import {
   CHART_LABEL_LIMITS,
   COPY_LIMITS,
@@ -16,6 +23,7 @@ import {
 } from './plots'
 import {
   type DashboardCard,
+  type DashboardPeriodSpec,
   type DashboardSpec,
   type TableData,
   dashboardSchema
@@ -407,8 +415,83 @@ function statusProblems(table: TableData, path: string) {
   })
 }
 
-function cardProblems(card: DashboardCard, path: string) {
-  const problems: DashboardProblem[] = []
+const OPEN_ENDED: readonly DateRangeValue[] = ['upcoming', 'past', 'ongoing']
+const DATE_TIME_START = /^\d{4}-\d{2}-\d{2}T/
+
+function absoluteProblems(path: string, value: DateRangeValue | Comparison) {
+  if (!isAbsoluteRange(value)) return []
+  const { start, end } = value
+  const ends = [start, end]
+  if (ends.some((date) => DATE_TIME_START.test(date)))
+    return [
+      error(
+        path,
+        'Use plain dates, such as 2026-10-01. A dashboard period covers whole days'
+      )
+    ]
+  if (!ends.every(isPlainDate))
+    return [error(path, 'Use ISO dates, such as 2026-10-01')]
+  if (compareDates(start, end) > 0)
+    return [error(path, `Starts after it ends: ${start} to ${end}`)]
+  return []
+}
+
+function periodProblems(period: DashboardPeriodSpec | undefined) {
+  if (!period) return []
+  const { range, compare, history } = period
+  const problems = absoluteProblems('period.range', range)
+  if (isRollingRange(range) && range.unit === 'hour')
+    problems.push(
+      error(
+        'period.range',
+        'Use days, weeks or months. A dashboard period covers whole days'
+      )
+    )
+  if (compare) {
+    problems.push(...absoluteProblems('period.compare', compare))
+    if (OPEN_ENDED.includes(range))
+      problems.push(
+        warning(
+          'period.compare',
+          `"${String(range)}" has no fixed length, so nothing compares with it`
+        )
+      )
+  } else if (history)
+    problems.push(
+      warning('period.history', 'History applies only with a compare')
+    )
+  return problems
+}
+
+function deltaProblems(
+  card: DashboardCard,
+  path: string,
+  period: DashboardPeriodSpec | undefined
+) {
+  if (card.kind === 'note' || !card.delta?.comparison) return []
+  if (!period)
+    return [
+      error(
+        `${path}.delta.comparison`,
+        'Add a period to the dashboard, so this delta has something to compare with'
+      )
+    ]
+  return card.context && period.compare
+    ? [
+        warning(
+          `${path}.context`,
+          'The context line names the comparison, so this context never shows. Leave it out'
+        )
+      ]
+    : []
+}
+
+function cardProblems(
+  card: DashboardCard,
+  path: string,
+  period: DashboardPeriodSpec | undefined
+) {
+  const problems: DashboardProblem[] = deltaProblems(card, path, period)
   if (!ALLOWED_SIZES[card.kind].includes(card.size))
     problems.push(
       error(
@@ -499,7 +582,7 @@ export function validateDashboard(input: unknown): DashboardValidation {
     return { ok: false, problems: schemaProblems(parsed.error.issues) }
 
   const dashboard = parsed.data
-  const problems: DashboardProblem[] = []
+  const problems: DashboardProblem[] = periodProblems(dashboard.period)
   const seen = new Set<string>()
 
   dashboard.sections.forEach((section, s) => {
@@ -510,7 +593,7 @@ export function validateDashboard(input: unknown): DashboardValidation {
       if (seen.has(card.id))
         problems.push(error(`${path}.id`, `Duplicate id "${card.id}"`))
       seen.add(card.id)
-      problems.push(...cardProblems(card, path))
+      problems.push(...cardProblems(card, path, dashboard.period))
     })
     for (const gap of findRowGaps(section.cards))
       problems.push(

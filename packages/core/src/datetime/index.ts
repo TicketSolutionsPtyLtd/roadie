@@ -61,6 +61,7 @@ export type {
   DateRangeValue,
   PeriodRange,
   RelativeRange,
+  ResolvedComparison,
   ResolvedDateRange,
   RollingRange
 } from './ranges'
