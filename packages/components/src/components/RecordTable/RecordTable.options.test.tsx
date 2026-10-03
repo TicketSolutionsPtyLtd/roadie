@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { type RecordView, recordFields } from '@oztix/roadie-core/records'
 
@@ -25,9 +25,16 @@ async function openOptions(user = userEvent.setup()) {
   await user.click(screen.getByRole('button', { name: 'Configure table' }))
   const panel = await screen.findByRole('dialog', { name: 'Configure table' })
   // The table's columns load on first open.
-  await within(panel).findByRole('region', { name: 'Columns' })
+  await within(panel).findByRole(
+    'region',
+    { name: 'Columns' },
+    { timeout: 5000 }
+  )
   return { user, panel }
 }
+
+// The lazy settings module compiles on first import, slowly on a cold runner.
+beforeAll(() => import('./RecordTableSettings'))
 
 describe('Records.Options', () => {
   it('is a normal icon button at the field size, named for the layout', () => {
@@ -532,7 +539,7 @@ describe('Records.Options', () => {
     ).toHaveFocus()
   })
 
-  it('preloads a lazy layout setting as the button is reached', async () => {
+  it('preloads a lazy layout setting once the page is idle', async () => {
     const preload = vi.fn()
     const table = tableLayout(showColumns)
     const Settings = Object.assign(() => null, { preload })
@@ -545,12 +552,8 @@ describe('Records.Options', () => {
       )
     }
     render(<Preloading />)
-    const user = userEvent.setup()
-    await user.hover(screen.getByRole('button', { name: 'Configure table' }))
-    expect(preload).toHaveBeenCalled()
-    preload.mockClear()
-    screen.getByRole('button', { name: 'Configure table' }).focus()
-    expect(preload).toHaveBeenCalled()
+    expect(preload).not.toHaveBeenCalled()
+    await waitFor(() => expect(preload).toHaveBeenCalledTimes(1))
   })
 
   it("says why the last shown column can't hide", async () => {

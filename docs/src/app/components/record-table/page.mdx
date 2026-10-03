@@ -366,7 +366,7 @@ render(<Controlled />)
 `Records.Options` is the Configure button in the toolbar, after the search and before any table actions, so their More actions menu stays last. It opens a popover below the button, lined up with its end, or a bottom drawer on a phone, and every change applies at once.
 
 - **Sort** lists each level the view sorts by: a field, then its direction in the field's own terms, such as A to Z, Low to high or Earliest first. Add sort starts with the first sortable field, its natural way, and Add another sort breaks ties with a field not sorted yet. A header click still sorts by that column alone. A level on a field that doesn't sort isn't listed, and changes here leave it in the view. A level that repeats a field sorts nothing, so changes here drop it.
-- **Columns** lists the table's columns in their order. Drag a handle to move a column, or click it, or press Enter on it, for a Move menu. The eye beside each column shows or hides it, and a hidden column stays in the list, dimmed, in its place. Pinned columns always come first and always show, so the list names them rather than offering them. The last shown column can't be hidden. The table loads this list once a pointer or focus reaches the button, so a table nobody configures never loads drag and drop.
+- **Columns** lists the table's columns in their order. Drag a handle to move a column, or click it, or press Enter on it, for a Move menu. The eye beside each column shows or hides it, and a hidden column stays in the list, dimmed, in its place. Pinned columns always come first and always show, so the list names them rather than offering them. The last shown column can't be hidden. The table loads this list once the page is idle, so drag and drop stays out of the table's first load and the first open doesn't wait for it.
 
 The options write the view, like the headers do: the sort to `query.sort`, and the columns to `layout.columns`, with the whole `order` once a column moves and the `hidden` keys. Put back the way the columns are defined, the layout leaves both out, so `equalViews` reads it as unchanged. A view's keys for columns this table doesn't have, such as one only some people see, are kept. The button shows only when a field sorts or a column can move.
 
@@ -422,7 +422,7 @@ function Configured() {
 render(<Configured />)
 ```
 
-`label` renames the button, its tooltip and the panel, which are "Configure table" for the table. In your own toolbar, put `Records.Options` after the search and before `Records.Actions`. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which the button calls as a pointer or focus reaches it.
+`label` renames the button, its tooltip and the panel, which are "Configure table" for the table. In your own toolbar, put `Records.Options` after the search and before `Records.Actions`. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which `Records.Options` calls once the page is idle.
 
 ### Selection and actions
 

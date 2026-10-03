@@ -81,7 +81,11 @@ const centre = (element: Element) => {
 async function open() {
   await userEvent.click(configure())
   const panel = await screen.findByRole('dialog', { name: 'Configure table' })
-  await within(panel).findByRole('region', { name: 'Columns' })
+  await within(panel).findByRole(
+    'region',
+    { name: 'Columns' },
+    { timeout: 5000 }
+  )
   await frame()
   await frame()
   return panel
@@ -221,7 +225,11 @@ describe('Records.Options', TIMEOUT, () => {
     expect(
       within(drawer).getByRole('heading', { name: 'Configure table' })
     ).toBeVisible()
-    await within(drawer).findByRole('region', { name: 'Columns' })
+    await within(drawer).findByRole(
+      'region',
+      { name: 'Columns' },
+      { timeout: 5000 }
+    )
     await new Promise((resolve) => setTimeout(resolve, 600))
     expect(
       Math.abs(rect(drawer).bottom - window.innerHeight)

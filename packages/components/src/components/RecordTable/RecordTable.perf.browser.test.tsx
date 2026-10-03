@@ -95,11 +95,18 @@ async function styleCost(run: () => Promise<void> | void) {
 
 async function until(check: () => boolean) {
   const start = performance.now()
-  while (!check() && performance.now() - start < 5000)
+  while (!check()) {
+    if (performance.now() - start > 5000)
+      throw new Error('Timed out waiting for the panel')
     await new Promise((resolve) => setTimeout(resolve, 0))
+  }
 }
 
 const panel = () => document.querySelector('[data-slot="records-options"]')
+// The columns load on first open, so the panel is ready once they show.
+const columnsShown = () =>
+  document.querySelector('[data-slot="records-options"] [data-slot="list"]') !==
+  null
 
 async function clickToPaint(click: () => void, opened: () => boolean) {
   const start = performance.now()
@@ -127,14 +134,15 @@ describe('RecordTable performance', () => {
     const button = container.querySelector<HTMLButtonElement>(
       'button[aria-label="Configure table"]'
     )!
+    // As a page a moment after it loads: Options has preloaded the columns.
+    await new Promise((resolve) => requestIdleCallback(resolve))
+    await import('./RecordTableSettings')
+    await frame()
     let renders: Record<string, number> = {}
     let latency = 0
     const opening = await styleCost(async () => {
       renders = await countRenders(async () => {
-        latency = await clickToPaint(
-          () => button.click(),
-          () => panel() !== null
-        )
+        latency = await clickToPaint(() => button.click(), columnsShown)
       })
     })
     const closing = await styleCost(async () => {

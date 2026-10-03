@@ -40,8 +40,31 @@ const headers = () =>
 const handle = (name: string) =>
   screen.getByRole('button', { name: `Reorder ${name}` })
 
+const sameBox = (a: DOMRect, b: DOMRect) =>
+  a.top === b.top && a.left === b.left && a.height === b.height
+
+/** Waits for animations to end and the element to hold still, as a slow runner may still be moving it. */
+async function still(element: Element) {
+  await Promise.all(
+    document
+      .getAnimations()
+      .filter(
+        (animation) =>
+          animation.effect?.getComputedTiming().endTime !== Infinity
+      )
+      .map((animation) => animation.finished.catch(() => {}))
+  )
+  let last = element.getBoundingClientRect()
+  for (let tries = 0; tries < 40; tries++) {
+    await settle(50)
+    const now = element.getBoundingClientRect()
+    if (sameBox(last, now)) return
+    last = now
+  }
+}
+
 async function tapOn(element: Element) {
-  await settle()
+  await still(element)
   const { x, y } = centre(element)
   await commands.tap(x, y)
   await settle(200)
@@ -58,8 +81,12 @@ async function openDrawer() {
   )
   await tapOn(screen.getByRole('button', { name: 'Configure table' }))
   const drawer = await screen.findByRole('dialog', { name: 'Configure table' })
-  await within(drawer).findByRole('region', { name: 'Columns' })
-  await settle(600)
+  await within(drawer).findByRole(
+    'region',
+    { name: 'Columns' },
+    { timeout: 5000 }
+  )
+  await still(drawer)
   return drawer
 }
 
@@ -68,7 +95,11 @@ describe('Records.Options tapped on a phone', TIMEOUT, () => {
     await openDrawer()
     await tapOn(handle('Starts'))
     await tapOn(
-      await screen.findByRole('menuitem', { name: 'Move Starts to top' })
+      await screen.findByRole(
+        'menuitem',
+        { name: 'Move Starts to top' },
+        { timeout: 5000 }
+      )
     )
     expect(headers()).toEqual([
       'Show',

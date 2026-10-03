@@ -2,15 +2,26 @@
 
 import { lazy } from 'react'
 
-const load = () => import('./RecordTableSettings')
+import type { TableLayoutConfig } from './tableLayout'
 
-/** Loads on first open, or on `preload`, so a table nobody configures skips drag and drop. */
-export const RecordTableSettingsLazy = Object.assign(
-  lazy(() =>
-    load().then((module) => ({ default: module.RecordTableSettings }))
-  ),
-  {
-    // A failed load shows when the options open, through lazy itself.
-    preload: () => void load().catch(() => {})
-  }
+type SettingsModule = typeof import('./RecordTableSettings')
+
+let loaded: SettingsModule | undefined
+const load = () =>
+  import('./RecordTableSettings').then((module) => (loaded = module))
+
+const Suspending = lazy(() =>
+  load().then((module) => ({ default: module.RecordTableSettings }))
 )
+
+/**
+ * The table's settings, loaded on `preload` or first open, so drag and drop
+ * stays out of the table's first load. Once loaded they render at once:
+ * suspending again would cost a second commit on a large page.
+ */
+export function RecordTableSettingsLazy(props: { config: TableLayoutConfig }) {
+  const Loaded = loaded?.RecordTableSettings
+  return Loaded ? <Loaded {...props} /> : <Suspending {...props} />
+}
+// A failed load shows when the options open, through lazy itself.
+RecordTableSettingsLazy.preload = () => void load().catch(() => {})

@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useId, useRef, useState } from 'react'
+import { Suspense, useEffect, useId, useRef, useState } from 'react'
 
 import { SlidersHorizontalIcon } from '@phosphor-icons/react'
 
@@ -30,6 +30,16 @@ const inSentence = (label: string) =>
 // The panel itself, so no field looks active on open; Tab reaches the first control.
 const focusPanel = (popup: HTMLElement) => popup
 
+/** Runs once the page is idle, or soon where the browser can't say when. */
+function whenIdle(run: () => void) {
+  if (typeof requestIdleCallback === 'function') {
+    const id = requestIdleCallback(() => run())
+    return () => cancelIdleCallback(id)
+  }
+  const id = setTimeout(run, 200)
+  return () => clearTimeout(id)
+}
+
 /**
  * A button that opens the view's options: the sort, and the shown layout's
  * own settings, such as the table's columns. A popover, or a bottom drawer on
@@ -44,6 +54,10 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
 
   const layout = activeLayout(layouts, records.view)
   const Settings = layout?.Settings
+  // A lazy layout's settings load while the page is idle, so the first open
+  // doesn't wait for them and the page's first load doesn't carry them.
+  const preload = Settings?.preload
+  useEffect(() => (preload ? whenIdle(preload) : undefined), [preload])
   const sorts = sortableFields(records.fields).length > 0
   if (!sorts && !Settings) return null
   const name =
@@ -77,8 +91,6 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
                       aria-label={name}
                       emphasis='normal'
                       className={className}
-                      onPointerEnter={Settings?.preload}
-                      onFocus={Settings?.preload}
                     >
                       <SlidersHorizontalIcon
                         weight='bold'
