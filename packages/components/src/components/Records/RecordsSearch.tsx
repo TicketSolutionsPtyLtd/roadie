@@ -13,8 +13,7 @@ import { whenIdle } from './idle'
 import {
   type SearchContext,
   type SearchValue,
-  chipIndex,
-  filterChipId,
+  filterChipIds,
   hasValueStep,
   mergeFilter,
   sameFilter,
@@ -111,7 +110,7 @@ export function RecordsSearch({
   const sessions = useRef(0)
   const emptied = useRef(false)
   // Where focus returns as the editor closes: its chip, or the field.
-  const returnTo = useRef<number | null>(null)
+  const returnTo = useRef<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const anchorRef = useRef<HTMLElement | null>(null)
   const labelId = useId()
@@ -128,6 +127,7 @@ export function RecordsSearch({
     fields,
     filters: [...records.scope, ...filters]
   }
+  const chipIds = filterChipIds(filters)
   const chips = searchChips(
     { scope: records.scope, filters, skipped: records.skippedFilters },
     { ...options, fields }
@@ -141,6 +141,7 @@ export function RecordsSearch({
     anchor: HTMLElement | null
   ) {
     anchorRef.current = anchor
+    returnTo.current = null
     const sent = next.index === null ? null : (filters[next.index] ?? null)
     emptied.current = false
     const session = ++sessions.current
@@ -189,18 +190,21 @@ export function RecordsSearch({
   /** Where the edited filter is now, or null for one not written yet. */
   function editingAt(): number | null {
     if (!editing || editing.index === null) return null
-    const { sent } = editing
-    const found = sent
-      ? filters.findIndex((filter) => sameFilter(filter, sent))
-      : -1
-    if (found >= 0) return found
-    return editing.index < filters.length ? editing.index : null
+    const { sent, index } = editing
+    if (!sent) return index < filters.length ? index : null
+    const held = filters[index]
+    if (held && sameFilter(held, sent)) return index
+    const found = filters.findIndex((filter) => sameFilter(filter, sent))
+    return found >= 0 ? found : null
   }
   const at = editingAt()
+  // The filter went, such as with the view replaced, so its editor goes too.
+  if (editing?.open && editing.sent && at === null)
+    setEditing({ ...editing, open: false })
 
   function closeEditor() {
     dropOpening()
-    returnTo.current = at
+    returnTo.current = at === null ? null : (chipIds[at] ?? null)
     // A filter emptied of its values is gone, as it now asks for nothing.
     if (emptied.current && at !== null) {
       records.removeFilter(at)
@@ -246,12 +250,12 @@ export function RecordsSearch({
         inputRef={inputRef}
         chips={chips}
         onRemoveChip={(id) => {
-          const index = chipIndex(id)
+          const index = chipIds.indexOf(id)
           if (index >= 0) records.removeFilter(index)
         }}
         onClear={records.clearQuery}
         onEditChip={(id, anchor) => {
-          const index = chipIndex(id)
+          const index = chipIds.indexOf(id)
           const filter = filters[index]
           if (filter && byKey.has(filter.field))
             openEditor({ field: filter.field, index }, anchor)
@@ -293,13 +297,13 @@ export function RecordsSearch({
           // the panel, so no control looks active and Tab reaches the first.
           initialFocus={editing.index === null ? focusTarget : focusPanel}
           finalFocus={() => {
-            const index = returnTo.current
-            if (index === null) return inputRef.current
-            return (
+            const id = returnTo.current
+            const chip =
+              id &&
               group()?.querySelector<HTMLElement>(
-                `[data-slot=combobox-chip][data-chip-id="${filterChipId(index)}"]`
-              ) ?? inputRef.current
-            )
+                `[data-slot=combobox-chip][data-chip-id="${CSS.escape(id)}"]`
+              )
+            return chip || inputRef.current
           }}
           className='w-80'
         >

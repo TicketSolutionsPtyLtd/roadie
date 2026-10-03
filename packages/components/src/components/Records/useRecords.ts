@@ -25,6 +25,7 @@ import {
 } from '@oztix/roadie-core/records'
 
 import { isDev } from '../../utils/isDev'
+import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { applyQuery, isFiltered, toView } from './query'
 import {
   EMPTY_SELECTION,
@@ -393,18 +394,22 @@ export function useRecords<Row extends object>({
   const countSelection = (next: RecordSelection) =>
     countSelected(next, matchingIds)
 
-  // Writes in one event build on each other, as a parent's state won't have
-  // rendered between them; the next event starts again from the view shown.
-  const written = useRef<RecordView | null>(null)
-  const latestView = () => written.current ?? view
+  // Writes build on each other until the parent renders, as its state may
+  // commit late (a transition, a URL); a render showing another view, or the
+  // same one again, starts over from it.
+  const written = useRef<{ base: RecordView; next: RecordView } | null>(null)
+  useIsomorphicLayoutEffect(() => {
+    written.current = null
+  })
+  const latestView = () =>
+    written.current && written.current.base === view
+      ? written.current.next
+      : view
   const setView = (
     next: RecordView,
     nextPosition: Required<RecordPosition> = position
   ) => {
-    written.current = next
-    queueMicrotask(() => {
-      if (written.current === next) written.current = null
-    })
+    written.current = { base: view, next }
     if (!controlledView) setOwnView(next)
     onViewChange?.(next, nextPosition)
   }

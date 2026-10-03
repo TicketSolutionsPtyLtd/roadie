@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -432,5 +432,66 @@ describe('Records.Search', () => {
     await user.keyboard('ocean cit')
     await user.click(await option('City'))
     expect(lastView().query.search).toBe('ocean')
+  })
+
+  it('keeps a filter whose condition was only tried, once its editor closes', async () => {
+    const { user } = setup({
+      defaultView: {
+        query: { filters: [{ field: 'sold', operator: 'gt', value: 100 }] }
+      }
+    })
+    chip('Sold').focus()
+    await user.keyboard('{Enter}')
+    const dialog = await editor()
+    await user.click(
+      within(dialog).getByRole('combobox', { name: 'Sold condition' })
+    )
+    await user.click(await screen.findByRole('option', { name: 'Is between' }))
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(chipLabels()).toEqual(['Sold is more than 100'])
+  })
+
+  it('closes an editor whose filter the view no longer holds', async () => {
+    const onViewChange = vi.fn()
+    const replacer: { current: (view: RecordView) => void } = {
+      current: () => {}
+    }
+    function Replaced() {
+      const [view, setView] = useState<RecordView>({
+        query: {
+          search: '',
+          filters: [{ field: 'sold', operator: 'gt', value: 100 }],
+          sort: []
+        },
+        layout: { type: 'table' }
+      })
+      useEffect(() => {
+        replacer.current = setView
+      })
+      const records = useRecords({ data: shows, fields, view, onViewChange })
+      return (
+        <Records.Root records={records} layouts={layouts}>
+          <Records.Search />
+        </Records.Root>
+      )
+    }
+    const user = userEvent.setup()
+    render(<Replaced />)
+    chip('Sold').focus()
+    await user.keyboard('{Enter}')
+    await editor()
+    await act(() =>
+      replacer.current({
+        query: {
+          search: '',
+          filters: [{ field: 'city', operator: 'is', values: ['Perth'] }],
+          sort: []
+        },
+        layout: { type: 'table' }
+      })
+    )
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(onViewChange).not.toHaveBeenCalled()
   })
 })

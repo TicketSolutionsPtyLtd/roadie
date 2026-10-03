@@ -25,6 +25,7 @@ import {
   type EditorOperator,
   type FilterDraft,
   draftOf,
+  editorOperatorOf,
   editorOperators,
   filterOf,
   isEmptyDraft
@@ -80,7 +81,12 @@ export function RecordsFilterEditor({
   const update = (patch: Partial<FilterDraft>) => {
     const next = { ...draft, ...patch }
     setDraft(next)
-    onEmptyChange?.(isEmptyDraft(field, next))
+    // Emptied only by clearing the value it holds, not by trying another condition.
+    onEmptyChange?.(
+      !!filter &&
+        next.operator === editorOperatorOf(filter, field) &&
+        isEmptyDraft(field, next)
+    )
     const made = filterOf(field, next)
     const key = made && filterKey(made)
     if (!made || key === sent.current) return
@@ -245,9 +251,10 @@ function OptionValues({
       .map((value) => ({ value, label: value }))
   )
   const listed = [...options, ...held]
-  if (listed.length === 0)
+  if (options.length === 0)
     return (
       <Input
+        data-filter-value=''
         aria-label={`${field.label} value`}
         value={draft.text}
         onChange={(event) =>

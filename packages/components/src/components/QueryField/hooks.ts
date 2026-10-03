@@ -8,6 +8,8 @@ import {
   useSyncExternalStore
 } from 'react'
 
+import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
+
 const NOT_TYPEABLE =
   ':not([type=checkbox], [type=radio], [type=button], [type=submit], [type=reset], [type=range], [type=color], [type=file])'
 
@@ -37,7 +39,8 @@ export function useShortcut(
   inputRef: RefObject<HTMLInputElement | null>
 ) {
   const id = useId()
-  useEffect(() => {
+  // Before paint, so the owner shows its hint from its first frame.
+  useIsomorphicLayoutEffect(() => {
     if (!key) return
     claims.set(key, [...(claims.get(key) ?? []), id])
     notify()

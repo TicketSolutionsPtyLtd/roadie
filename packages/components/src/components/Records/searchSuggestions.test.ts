@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { type RecordFilter, recordFields } from '@oztix/roadie-core/records'
 
 import {
+  filterChipIds,
   filterKey,
   mergeFilter,
   searchChips,
@@ -201,6 +202,25 @@ describe('filterKey', () => {
   })
 })
 
+describe('filterChipIds', () => {
+  it('names chips by their filter, counting repeats', () => {
+    const perth: RecordFilter = {
+      field: 'city',
+      operator: 'is',
+      values: ['perth']
+    }
+    const [a, b, c] = filterChipIds([
+      perth,
+      { field: 'sold', operator: 'gt', value: 1 },
+      perth
+    ])
+    expect(a).not.toBe(c)
+    expect(
+      filterChipIds([{ field: 'sold', operator: 'gt', value: 1 }, perth])
+    ).toEqual([b, a])
+  })
+})
+
 describe('mergeFilter', () => {
   const sydney: RecordFilter = {
     field: 'city',
@@ -255,12 +275,12 @@ describe('searchChips', () => {
     expect(chips).toEqual([
       { id: 'scope:0', label: 'City is Perth', locked: true },
       {
-        id: 'filter:0',
+        id: expect.stringMatching(/^filter:.*#0$/),
         label: 'Starts: This weekend',
         description: '3 to 4 Oct 2026'
       },
       {
-        id: 'filter:1',
+        id: expect.stringMatching(/^filter:.*#0$/),
         label: 'promoter is x',
         intent: 'warning',
         description: 'Not applied: these records can’t be filtered this way'

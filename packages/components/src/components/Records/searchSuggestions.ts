@@ -283,9 +283,20 @@ export type ChipOptions = {
 }
 
 export const scopeChipId = (index: number) => `scope:${index}`
-export const filterChipId = (index: number) => `filter:${index}`
-export const chipIndex = (id: string) =>
-  id.startsWith('filter:') ? Number(id.slice('filter:'.length)) : -1
+
+/**
+ * Each filter's chip id, by what it filters rather than where it sits, so a
+ * click on a chip that has just moved never reaches its neighbour.
+ */
+export function filterChipIds(filters: readonly RecordFilter[]): string[] {
+  const seen = new Map<string, number>()
+  return filters.map((filter) => {
+    const key = filterKey(filter)
+    const count = seen.get(key) ?? 0
+    seen.set(key, count + 1)
+    return `filter:${key}#${count}`
+  })
+}
 
 /** Scope chips, locked, then the view's filters in order. */
 export function searchChips(
@@ -294,6 +305,7 @@ export function searchChips(
 ): QueryFieldChip[] {
   const describe = (filter: RecordFilter) =>
     describeRecordFilter(filter, context.fields, context)
+  const ids = filterChipIds(filters)
   return [
     ...scope.map((filter, index) => {
       const { label, detail } = describe(filter)
@@ -311,7 +323,7 @@ export function searchChips(
         ? 'Not applied: these records can’t be filtered this way'
         : detail
       return {
-        id: filterChipId(index),
+        id: ids[index]!,
         label,
         ...(unusable && { intent: 'warning' as const }),
         ...(description && { description })
