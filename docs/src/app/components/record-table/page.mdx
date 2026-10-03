@@ -1,0 +1,528 @@
+export const metadata = {
+  title: 'RecordTable',
+  description: 'A table of records to search, sort and page through',
+  status: 'alpha',
+  category: 'Collections'
+}
+
+import { Guideline } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A table of records to search, sort and page through.
+
+## Import
+
+```tsx
+import { RecordTable, tableColumns, tableLayout } from '@oztix/roadie-components/record-table'
+import { Records, useRecords } from '@oztix/roadie-components/records'
+import { recordFields } from '@oztix/roadie-core/records'
+```
+
+Fields with a `match`, columns with a `cell`, `getRowId` and the `useRecords` instance all hold functions, so they can't pass from a Server Component. Build them and render the table in a client component, a file that starts with `'use client'`.
+
+## Examples
+
+### Default
+
+Describe the records once as fields, pick the fields to show as columns, and pass both with the data. Search, sorting from the headers and paging come built in.
+
+Search matches every word, in any order, in the text fields and the option labels of fields marked `searchable`. Text fields are searchable by default; other types aren't.
+
+```tsx-live-noinline
+const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
+const names = ['Ocean Alley', 'Ball Park Music', 'Julia Jacklin', 'Angie McMahon', 'Alex Lahey', 'Middle Kids']
+const shows = Array.from({ length: 240 }, (_, index) => ({
+  id: `show-${index}`,
+  show: `${names[index % names.length]} at The Lantern Room`,
+  city: cities[index % cities.length],
+  sold: (index * 37) % 2400,
+  gross: (index * 7919) % 250000
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('show', { label: 'Show' }),
+  field.text('city', { label: 'City' }),
+  field.number('sold', { label: 'Sold' }),
+  field.money('gross', { label: 'Gross', format: 'compactCurrency' })
+]
+
+const column = tableColumns(fields)
+const columns = [
+  column.field('show', { pin: true }),
+  column.field('city'),
+  column.field('sold'),
+  column.field('gross')
+]
+
+render(
+  <RecordTable
+    caption='Upcoming shows'
+    data={shows}
+    fields={fields}
+    columns={columns}
+    getRowId={(row) => row.id}
+  />
+)
+```
+
+In TypeScript, give the builders your row type so every key is checked: `recordFields<Show>()` and `tableColumns<Show>(fields)`.
+
+### Composition
+
+`RecordTable` is `useRecords` and the `Records` parts put together. Build it from the parts to put controls where the screen needs them. `Records.Content` shows the view's layout, here the table from `tableLayout(columns)`.
+
+```tsx
+const layouts = [tableLayout(columns)]
+
+function Shows() {
+  const records = useRecords({ data, fields, getRowId: (row) => row.id })
+  return (
+    <Records records={records} layouts={layouts} caption='Upcoming shows'>
+      <Records.Toolbar searchPlaceholder='Search shows' />
+      <Records.Content />
+      <Records.Pagination pageSizes={[20, 40]} />
+      <Records.Status />
+    </Records>
+  )
+}
+```
+
+`Records.Toolbar` holds the standard controls, today the search. Pass children to replace them, such as a `Records.Search` with your own placeholder beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
+
+### In a Pane
+
+Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Records.Provider`, which shares the records without adding an element, and spread the parts across it:
+
+- `Records.Toolbar` in `Pane.Body`, above the table. It sticks under the pane's header while the body scrolls, so the search stays in reach. `Pane.Header` keeps the `Pane.Title`.
+- `Records.Content` in `Pane.Body`, below the toolbar. Its column headers stick under the toolbar.
+- `Records.Status` anywhere inside the Provider. It renders nothing visible.
+- `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
+
+On a phone the table keeps its columns and scrolls sideways, with the pinned column held at the start. The second frame shows it at 390px.
+
+```tsx-live-noinline-expand id=in-a-pane
+const venues = [
+  { value: 'lantern-room', label: 'The Lantern Room', timeZone: 'Australia/Brisbane' },
+  { value: 'copper-hall', label: 'Copper Hall', timeZone: 'Australia/Melbourne' },
+  { value: 'saltbush-theatre', label: 'Saltbush Theatre', timeZone: 'Australia/Perth' },
+  { value: 'harbourside-shed', label: 'Harbourside Shed', timeZone: 'Australia/Sydney' }
+]
+const names = ['Paper Lanterns', 'Saltwater Social', 'The Velvet Hours', 'Northbound Choir', 'Glasshouse Disco', 'Kite Season']
+const statuses = ['on_sale', 'on_sale', 'selling_fast', 'sold_out', 'cancelled']
+const events = Array.from({ length: 60 }, (_, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
+  venue: venues[index % venues.length].value,
+  timeZone: venues[index % venues.length].timeZone,
+  startsAt: new Date(Date.UTC(2026, 10, 6 + index, 9, 30)).toISOString(),
+  status: statuses[index % statuses.length],
+  sold: (index * 37) % 2400,
+  gross: (index * 7919) % 250000
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  field.option('venue', { label: 'Venue', options: venues, searchable: true }),
+  field.date('startsAt', { label: 'Starts', moment: 'event', timeZoneKey: 'timeZone' }),
+  field.option('status', {
+    label: 'Status',
+    status: {
+      on_sale: { intent: 'success', order: 1 },
+      selling_fast: { intent: 'warning', order: 2 },
+      sold_out: { intent: 'neutral', order: 3 },
+      cancelled: { intent: 'danger', order: 4 }
+    }
+  }),
+  field.number('sold', { label: 'Sold' }),
+  field.money('gross', { label: 'Gross', format: 'compactCurrency' })
+]
+
+const column = tableColumns(fields)
+const layouts = [
+  tableLayout([
+    column.field('name', { pin: true }),
+    column.field('startsAt'),
+    column.field('venue'),
+    column.field('status'),
+    column.field('sold'),
+    column.field('gross')
+  ])
+]
+
+function EventsPane() {
+  const records = useRecords({
+    data: events,
+    fields,
+    getRowId: (row) => row.id,
+    recordName: { one: 'event', other: 'events' },
+    defaultView: { query: { sort: [{ field: 'startsAt', direction: 'ascending' }] } }
+  })
+  return (
+    <Records.Provider records={records} layouts={layouts} caption='Events'>
+      <Pane className='h-full'>
+        <Pane.Header>
+          <Pane.Title>Events</Pane.Title>
+        </Pane.Header>
+        <Pane.Body>
+          <Records.Toolbar searchPlaceholder='Search events' />
+          <Records.Content />
+          <Records.Status />
+        </Pane.Body>
+        <Pane.Footer>
+          <Records.Pagination />
+        </Pane.Footer>
+      </Pane>
+    </Records.Provider>
+  )
+}
+
+render(
+  <div className='grid grid-cols-1 gap-4'>
+    <div className='h-[36rem] rounded-2xl bg-sunken p-3'>
+      <EventsPane />
+    </div>
+    <div className='mx-auto h-[44rem] w-[390px] max-w-full rounded-4xl bg-sunken p-3'>
+      <EventsPane />
+    </div>
+  </div>
+)
+```
+
+### Fields and columns
+
+A field describes one fact about a record, and its type decides how the value reads everywhere it shows:
+
+| Field type | Reads as |
+| --- | --- |
+| `text` | The text. A list joins with commas. |
+| `option` | Each value's label from `options`. With a `status` map, a small Badge in the key's intent. |
+| `number` | Its `format`, `number` by default. Figures end-align and sort largest first. |
+| `money` | Its `format`, `currency` by default. `currency` or `currencyKey` names a currency that isn't dollars. |
+| `date` | House formats: event and access dates in the venue's zone from `timeZoneKey`, timestamps in the reader's zone, a range when the field has an `end`. |
+| `boolean` | Yes or No. |
+
+A record that holds nothing for a field shows "Not available". Text a number or date field can't read, like "On sale soon", shows as given in a quieter colour.
+
+A column presents one field. `tableColumns(fields).field(key, options)` takes:
+
+- `pin` to hold the column at the start while the table scrolls sideways. The first pinned text column is the row's title, in strong text.
+- `width` as `{ min, grow }` in rem, when the content's own width doesn't suit. Without it, each column sizes from a sample of its values.
+- `cell` to render the value yourself, such as an order number in `font-mono`.
+
+The view's `layout.columns` orders and hides columns: `order` lists keys to bring forward and `hidden` lists keys to leave out. Pinned columns stay first and shown whatever the view says.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [
+  field.text('number', { label: 'Order' }),
+  field.text('customer', { label: 'Customer' }),
+  field.option('status', {
+    label: 'Status',
+    status: { paid: { intent: 'success' }, pending: { intent: 'warning' }, refunded: { intent: 'neutral', label: 'Refunded in full' } }
+  }),
+  field.date('placedAt', { label: 'Placed', moment: 'timestamp' }),
+  field.boolean('gift', { label: 'Gift' }),
+  field.money('total', { label: 'Total', format: 'currency' })
+]
+const column = tableColumns(fields)
+const columns = [
+  column.field('number', {
+    pin: true,
+    cell: ({ value }) => <span className='font-mono font-semibold text-strong'>{value}</span>
+  }),
+  column.field('customer'),
+  column.field('status'),
+  column.field('placedAt'),
+  column.field('gift'),
+  column.field('total')
+]
+const orders = [
+  { id: 'a', number: 'OZ-48210', customer: 'Mia Tran', status: 'paid', placedAt: '2026-10-01T09:15:00Z', gift: false, total: 149 },
+  { id: 'b', number: 'OZ-48217', customer: 'Jack Ellis', status: 'pending', placedAt: '2026-10-01T22:40:00Z', gift: true, total: 79.9 },
+  { id: 'c', number: 'OZ-48224', customer: 'Ava Nguyen', status: 'refunded', placedAt: '2026-10-02T03:05:00Z', gift: false, total: null }
+]
+
+render(
+  <RecordTable
+    caption='Orders'
+    data={orders}
+    fields={fields}
+    columns={columns}
+    getRowId={(row) => row.id}
+    defaultView={{ layout: { type: 'table', columns: { order: ['total'], hidden: ['gift'] } } }}
+  />
+)
+```
+
+### Views
+
+A view holds the search, filters, sort and layout; a position holds the page and page size. Both work uncontrolled, with `defaultView` and `defaultPosition`, or controlled, with `view` and `onViewChange`, and `position` and `onPositionChange`. A change to the search, filters or sort returns to the first page.
+
+Keep the view in the URL with `toSearchParams` and `fromSearchParams`, as [Records model](/foundations/records) shows. A view can name a filter on a field these records don't have, or one its field can't read, such as a date range that ends before it starts. The records skip it, show the rest, and warn in development.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [
+  field.text('show', { label: 'Show' }),
+  field.text('city', { label: 'City' }),
+  field.number('sold', { label: 'Sold' })
+]
+const column = tableColumns(fields)
+const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold')]
+const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
+const shows = Array.from({ length: 40 }, (_, index) => ({
+  id: `show-${index}`,
+  show: `Middle Kids ${index + 1}`,
+  city: cities[index % cities.length],
+  sold: (index * 37) % 2400
+}))
+
+function Controlled() {
+  const [view, setView] = useState({
+    query: { search: 'Perth', filters: [], sort: [{ field: 'sold', direction: 'descending' }] },
+    layout: { type: 'table' }
+  })
+  return (
+    <div className='grid gap-3'>
+      <p className='text-sm text-subtle'>URL: ?{toSearchParams(view).toString()}</p>
+      <RecordTable
+        caption='Shows'
+        data={shows}
+        fields={fields}
+        columns={columns}
+        getRowId={(row) => row.id}
+        view={view}
+        onViewChange={setView}
+      />
+    </div>
+  )
+}
+
+render(<Controlled />)
+```
+
+### Long lists
+
+By default the page, or the pane, scrolls the rows down, and the table scrolls sideways on its own with a Roadie scrollbar that sticks to the bottom of whatever scrolls the page. Give `Records.Content` (or `RecordTable`) a `maxHeight` to scroll the rows both ways in a box of their own, with the header and the pinned column held in place. `fill` does the same at its parent's height, such as a `Pane.Body`.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [
+  field.text('show', { label: 'Show' }),
+  field.text('venue', { label: 'Venue' }),
+  field.text('city', { label: 'City' }),
+  field.number('sold', { label: 'Sold' }),
+  field.number('capacity', { label: 'Capacity' }),
+  field.money('gross', { label: 'Gross', format: 'compactCurrency' })
+]
+const column = tableColumns(fields)
+const columns = [
+  column.field('show', { pin: true, width: { min: 14 } }),
+  column.field('venue', { width: { min: 14 } }),
+  column.field('city', { width: { min: 10 } }),
+  column.field('sold', { width: { min: 8 } }),
+  column.field('capacity', { width: { min: 8 } }),
+  column.field('gross', { width: { min: 8 } })
+]
+const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
+const shows = Array.from({ length: 100 }, (_, index) => ({
+  id: `show-${index}`,
+  show: `Julia Jacklin ${index + 1}`,
+  venue: 'Copper Hall',
+  city: cities[index % cities.length],
+  sold: (index * 37) % 2400,
+  capacity: 2400,
+  gross: (index * 7919) % 250000
+}))
+
+render(
+  <RecordTable
+    caption='Shows'
+    data={shows}
+    fields={fields}
+    columns={columns}
+    getRowId={(row) => row.id}
+    defaultPosition={{ pageSize: 100 }}
+    maxHeight='24rem'
+  />
+)
+```
+
+### States
+
+Pass `loading` while records load and `error` when the load fails. With no records yet, `loading` shows still placeholder rows; with records, it dims them and runs a bar under the header. An error replaces the rows, and `onRetry` adds a Retry button. With no records, the empty state says whether none exist yet or none match, and offers to clear the search and filters.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [field.text('show', { label: 'Show' }), field.text('city', { label: 'City' }), field.number('sold', { label: 'Sold' })]
+const column = tableColumns(fields)
+const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold')]
+const shows = [
+  { id: 'a', show: 'Ocean Alley', city: 'Brisbane', sold: 1840 },
+  { id: 'b', show: 'Alex Lahey', city: 'Melbourne', sold: 920 }
+]
+const props = {
+  fields,
+  columns,
+  getRowId: (row) => row.id,
+  recordName: { one: 'show', other: 'shows' }
+}
+
+render(
+  <div className='grid gap-8'>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>Loading, no records yet</p>
+      <RecordTable {...props} caption='Loading shows' data={[]} loading defaultPosition={{ pageSize: 3 }} />
+    </div>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>Loading, with records</p>
+      <RecordTable {...props} caption='Refreshing shows' data={shows} loading />
+    </div>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>Empty</p>
+      <RecordTable {...props} caption='No shows' data={[]} />
+    </div>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>No match</p>
+      <RecordTable {...props} caption='Unmatched shows' data={shows} defaultView={{ query: { search: 'Darwin' } }} />
+    </div>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>Error</p>
+      <RecordTable {...props} caption='Failed shows' data={[]} error onRetry={() => {}} />
+    </div>
+  </div>
+)
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title="Keep the search in the table's toolbar">
+  <Guideline.Do
+    code={`<Pane.Body>
+  <Records.Toolbar searchPlaceholder='Search events' />
+  <Records.Content />
+</Pane.Body>`}
+  >
+    Put the search in the toolbar above the rows, where it sticks while the
+    body scrolls and clearly searches this table.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`<Pane.Header>
+  <Pane.Title>Events</Pane.Title>
+  <Pane.Search value={search} onValueChange={setSearch} />
+</Pane.Header>`}
+  >
+    Don't move a table's search into `Pane.Search`. It reads as a search of
+    the whole pane.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Describe fields once, at module scope'>
+  <Guideline.Do
+    code={`const field = recordFields<Event>()
+export const eventFields = [field.text('name', { label: 'Event' })]
+const column = tableColumns<Event>(eventFields)
+const columns = [column.field('name', { pin: true })]`}
+  >
+    Build fields and columns once, outside the component, and share the
+    fields with the server, filters and URLs. Stable arrays keep rows from
+    rendering again.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`function Events() {
+  const fields = [{ key: 'name', label: 'Event', type: 'text' }]
+  return <RecordTable fields={fields} columns={...} data={events} />
+}`}
+  >
+    Don't rebuild fields or columns on every render. The table resizes its
+    columns and renders every row again each time.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Pin one title column'>
+  <Guideline.Do code={`column.field('name', { pin: true })`}>
+    Pin the column that names the record. It stays in view as the table
+    scrolls sideways and reads in strong text.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`column.field('name', { pin: true }),
+column.field('venue', { pin: true }),
+column.field('city', { pin: true })`}
+  >
+    Don't pin several columns. Each one takes width from the columns that
+    scroll.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Let the table show its own states'>
+  <Guideline.Do code={`<RecordTable loading={isLoading} error={failed} onRetry={refetch} {...props} />`}>
+    Pass `loading`, `error` and `onRetry`. The table shows the matching
+    EmptyState, placeholders and announcements.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`{failed ? <p>Something went wrong</p> : <RecordTable {...props} />}`}
+  >
+    Don't swap the table for your own message. The toolbar and pager
+    disappear, and screen readers hear nothing.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- `caption` names the table. Every part reads as a table, with column headers and cells.
+- A sortable column's header is a button. The sorted column carries `aria-sort`.
+- When the table scrolls sideways, its frame is a region named "Shows, scrolls sideways" for a caption of Shows, and the scroller is its one tab stop, so keyboard users can scroll it with the arrow keys. In its own box (`maxHeight` or `fill`), the box is the region, named "Shows, scrolls".
+- `Records.Status` is a live region. It announces Loading, the error, and the result count while a search or filter narrows the list.
+- State titles are paragraphs, not headings, since the table can't know the page's outline. Their icon tiles are hidden from screen readers.
+- Escape clears the search. The clear button keeps focus in the search field.
+
+## Hooks
+
+### useRecords
+
+```tsx
+function useRecords<Row extends object>(options: UseRecordsOptions<Row>): RecordsInstance<Row>
+```
+
+Holds the view and position, and searches, filters, sorts and pages the records in the browser. Takes `data`, `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `position`, `defaultPosition`, `onPositionChange`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is) and `now` (when relative dates resolve, by default when the list mounted). Pass the result to `Records` or `Records.Provider`.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `mode` | `'browser'` | Where the records are searched and paged. |
+| `data` | `readonly Row[]` | Every record held, before search, filters and paging. |
+| `fields` | `readonly RecordField[]` | What each record holds. |
+| `view` | `RecordView` | The search, filters, sort and layout. |
+| `appliedView` | `RecordView` | The view the rows show. Its search lags typing while a long list filters. |
+| `resolvedQuery` | `ResolvedRecordQuery` | The applied query, with relative dates fixed and unusable filters skipped. |
+| `rows` | `readonly { id: string; record: Row }[]` | The current page. |
+| `resultCount` | `number` | Records the search and filters match. |
+| `filtered` | `boolean` | Whether a search or filter narrows the records. |
+| `position` | `{ page: number; pageSize: number; row: number }` | The page, zero-based, and its size. |
+| `pageCount` | `number` | Pages at this size, at least one. |
+| `setView` | `(view: RecordView) => void` | Replaces the view. |
+| `setSearch` | `(search: string) => void` | Sets the search and returns to the first page. |
+| `addFilter` | `(filter: RecordFilter) => void` | Adds a filter. |
+| `updateFilter` | `(index: number, filter: RecordFilter) => void` | Replaces the filter at an index. |
+| `removeFilter` | `(index: number) => void` | Removes the filter at an index. |
+| `clearQuery` | `() => void` | Clears the search and filters, keeping the sort and layout. |
+| `setSort` | `(sort: RecordSort[]) => void` | Sets the sort and returns to the first page. |
+| `setLayout` | `(layout: RecordLayout) => void` | Sets the layout, such as the table's column order. |
+| `setPage` | `(page: number) => void` | Goes to a page, within the pages there are. |
+| `setPageSize` | `(pageSize: number) => void` | Sets the page size and returns to the first page. |
+| `recordName` | `{ one: string; other: string }` | What the records are called in messages. |
+| `loading` | `boolean` | Whether a load is under way. |
+| `error` | `boolean \| string` | Whether the load failed, or its message. |
+| `onRetry` | `(() => void) \| undefined` | Loads again. |
+| `timeZone` | `string` | The reader's zone in use. |
+
+<PropsDefinitions componentPath='packages/components/src/components/RecordTable/RecordTablePreset.tsx' />
+
+<PropsDefinitions componentPath='packages/components/src/components/Records' />
+
+<PropsDefinitions componentPath='packages/components/src/components/Records/RecordValue.tsx' />

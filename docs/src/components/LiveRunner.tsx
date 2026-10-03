@@ -83,6 +83,7 @@ import { lineChartTable } from '@oztix/roadie-charts/tables'
 import * as RoadieComponents from '@oztix/roadie-components'
 import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 import { plainDateOf, viewerTimeZone } from '@oztix/roadie-core/datetime'
+import { recordFields, toSearchParams } from '@oztix/roadie-core/records'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
@@ -162,6 +163,8 @@ const scope = {
   lineChartTable,
   plainDateOf,
   viewerTimeZone,
+  recordFields,
+  toSearchParams,
   ...SpotIllustrations,
   ...PhosphorIcons,
   ...PhosphorIconsSuffixed,

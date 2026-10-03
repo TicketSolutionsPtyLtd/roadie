@@ -247,6 +247,7 @@ the brand radius stays consistent across components.
 ### Data visualisation
 
 Read `docs/src/app/charts/data-visualisation/page.tsx` before building a chart.
+Before showing records (events, orders, attendees and so on) in a table, read `docs/src/app/foundations/tables/page.tsx`: it picks `RecordTable`, `DataTable`, `List` or `StatTile` by job and gives each Oztix record's fields and columns.
 For dashboards, read `docs/src/app/charts/dashboards/page.tsx` and use `Dashboard`, `StatTile`, `DataTable` and `Chart`; describe dashboards with `@oztix/roadie-core/dashboard` and check them with `validateDashboard`.
 For a chart, use the chart types from `@oztix/roadie-charts`: `LineChart`, `BarChart`, `RankedBars`, `StackedBars`, `Histogram`, `Funnel`, `Heatmap`, `Scatter` and `SmallMultiples`, each on its own subpath (`/line-chart`, `/bar-chart`, …) and each read from `docs/src/app/charts/<chart>/page.mdx`. Put a chart inside a `Chart` card with no `table`: the chart supplies its table and summary. In a dashboard description, a chart card's `plot` is `{ kind: 'line' | 'bar' | 'ranked-bars' | 'stacked-bars' | 'histogram' | 'funnel' | 'heatmap' | 'scatter' | 'small-multiples', ...props }`. For reports, PDFs and slides, render SVG in Node with `renderChartSvg(chart, props, { mode, width, height })` from `@oztix/roadie-charts/static`, which also exports the chart definitions. On a server, build a chart's table rows with the functions in `@oztix/roadie-charts/tables`, and a dashboard card's with `cardTable(card)`; the chart subpaths are `'use client'` and export only components. Card actions come from the app, never the JSON: `Chart actions` or `DashboardView cardActions={(card) => …}`, with the More menu last: a `Menu` whose `Menu.Trigger` renders `DataCard.MoreButton` (see Card actions on the Dashboard design page). Row links also come from the app: `DataTable getRowHref` or `DashboardView getRowHref={(card, row) => …}`. Charts take no colour props; use `highlight` and `palette`. `@tanstack/*` is imported only inside `packages/charts/src/plot/`, `static/` and each chart's `definition.ts`.
 
@@ -266,6 +267,11 @@ are keys, never functions), save views as `RecordView` JSON, and use
 `matchesRecordQuery` in the browser or `toMeilisearch` from
 `@oztix/roadie-core/records/meilisearch` on a server. URLs use
 `toSearchParams` / `fromSearchParams` (format `v=1`).
+Build fields with `recordFields<Row>()`. Show a list with `useRecords` and
+`Records` from `@oztix/roadie-components/records`, and the table layout from
+`@oztix/roadie-components/record-table` (`tableColumns`, `tableLayout`, or the
+`RecordTable` preset); keep a table's search in `Records.Toolbar`, never
+`Pane.Search`. See `docs/src/app/components/record-table/page.mdx`.
 
 ### Typography
 

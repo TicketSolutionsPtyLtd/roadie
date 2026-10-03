@@ -634,6 +634,34 @@ export function ComponentSkeleton({ name }: { name: string }) {
           ))}
         </div>
       )
+    case 'record-table':
+      return (
+        <div className='grid w-40 gap-1.5 rounded-xl bg-normal p-2'>
+          <div className='flex h-5 items-center gap-1.5 rounded-lg emphasis-field px-1.5'>
+            <Skel className='size-2 shrink-0 rounded-full' />
+            <Skel className='h-1.5 w-10 opacity-50' />
+          </div>
+          <div className='grid'>
+            <div className='grid h-4 grid-cols-[1fr_auto_auto] items-center gap-2 border-b border-normal'>
+              <Skel className='h-1 w-8 opacity-60' />
+              <Skel className='h-1 w-6 opacity-60' />
+              <Skel className='h-1 w-5 justify-self-end opacity-60' />
+            </div>
+            {['w-14', 'w-10', 'w-12'].map((width, index) => (
+              <div
+                key={width}
+                className='grid h-5 grid-cols-[1fr_auto_auto] items-center gap-2 border-b border-subtler last:border-b-0'
+              >
+                <div className={`h-1.5 rounded-sm bg-strong/40 ${width}`} />
+                <div
+                  className={`h-2.5 w-6 emphasis-normal rounded-full ${index === 1 ? 'intent-danger' : 'intent-success'}`}
+                />
+                <Skel className='h-1.5 w-5 justify-self-end' />
+              </div>
+            ))}
+          </div>
+        </div>
+      )
     case 'sortable':
       return (
         <div className='relative grid w-44 rounded-xl bg-normal px-3 py-1'>
