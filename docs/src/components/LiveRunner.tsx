@@ -87,6 +87,7 @@ import {
   resolveComparison,
   viewerTimeZone
 } from '@oztix/roadie-core/datetime'
+import { recordFields, toSearchParams } from '@oztix/roadie-core/records'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
@@ -167,6 +168,8 @@ const scope = {
   plainDateOf,
   resolveComparison,
   viewerTimeZone,
+  recordFields,
+  toSearchParams,
   ...SpotIllustrations,
   ...PhosphorIcons,
   ...PhosphorIconsSuffixed,
