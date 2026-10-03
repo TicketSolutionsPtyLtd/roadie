@@ -1,10 +1,7 @@
 'use client'
 
 import {
-  Children,
-  type ReactElement,
   type ReactNode,
-  isValidElement,
   use,
   useCallback,
   useEffect,
@@ -37,10 +34,6 @@ import {
   isActiveValue
 } from './NavigatorContext'
 import {
-  NavigatorPrimary,
-  type NavigatorPrimaryProps
-} from './NavigatorPrimary'
-import {
   findActiveSecondary,
   findItem,
   findMenuItem,
@@ -49,6 +42,7 @@ import {
 import { collectSlots } from './collectSlots'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { primarySignature } from './primarySignature'
+import { splitPrimary } from './splitPrimary'
 import { useExpandMotion } from './useExpandMotion'
 import { useFramePending } from './useFramePending'
 import { navigatorRootClass } from './variants'
@@ -204,13 +198,7 @@ export function NavigatorRoot({
   }
 
   // A walk, not child registration, which raced Primary's "no host" warning on first commit.
-  const { primary, rest } = useMemo(() => {
-    const elements = Children.toArray(children).filter(isValidElement)
-    const primary = elements.find(
-      (child) => child.type === NavigatorPrimary
-    ) as ReactElement<NavigatorPrimaryProps> | undefined
-    return { primary, rest: elements.filter((child) => child !== primary) }
-  }, [children])
+  const { primary, rest } = useMemo(() => splitPrimary(children), [children])
   const primaryDerived = primary !== undefined
 
   // Stable across equivalent re-renders; object and function identities still replace.
@@ -328,9 +316,7 @@ export function NavigatorRoot({
                   <div aria-hidden data-slot='navigator-pending' />
                 )}
                 {primary}
-                <NavigatorContent>
-                  {rest.length > 0 ? rest : undefined}
-                </NavigatorContent>
+                <NavigatorContent>{rest}</NavigatorContent>
               </div>
             </NavigatorBarContext>
           </NavigatorExpansionContext>

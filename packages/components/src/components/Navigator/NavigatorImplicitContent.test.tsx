@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, type ReactElement, type ReactNode } from 'react'
 
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
@@ -89,6 +89,29 @@ describe('Navigator content', () => {
     ).toBeTruthy()
   })
 
+  it('lifts Primary out of an iterable of children', async () => {
+    render(
+      <Navigator value='/a'>
+        {
+          new Set([
+            <Pane key='pane'>Detail</Pane>,
+            <Navigator.Primary key='primary' aria-label='Main'>
+              {testBrand}
+              <Navigator.Item value='/a' href='/a'>
+                A
+              </Navigator.Item>
+            </Navigator.Primary>
+          ])
+        }
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+
+    const content = document.querySelector('[data-slot="navigator-content"]')
+    expect(screen.getByText('Detail')).toBeInTheDocument()
+    expect(content?.querySelector('[data-slot="navigator-primary"]')).toBeNull()
+  })
+
   it('renders empty content even with no other children, so More always has a host', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
@@ -111,4 +134,38 @@ describe('Navigator content', () => {
     expect(warn).not.toHaveBeenCalled()
     warn.mockRestore()
   })
+
+  it.each([
+    ['streamed', streamed],
+    ['plain', (element: ReactElement) => element]
+  ])('renders a %s route child without a key warning', async (_, arrive) => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/a' href='/a'>
+            A
+          </Navigator.Item>
+        </Navigator.Primary>
+        {arrive(<Pane>Detail</Pane>)}
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+
+    expect(screen.getByText('Detail')).toBeInTheDocument()
+    expect(
+      error.mock.calls.filter((call) => /unique "key"/.test(String(call[0])))
+    ).toEqual([])
+    error.mockRestore()
+  })
 })
+
+// A streamed route child can arrive as a resolved promise React unwraps, which
+// skips the key check JSX gives its static children.
+function streamed(element: ReactElement) {
+  return Object.assign(Promise.resolve(element), {
+    status: 'fulfilled',
+    value: element
+  }) as unknown as ReactNode
+}
