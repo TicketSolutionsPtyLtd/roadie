@@ -962,14 +962,15 @@ describe('DateRangePicker', () => {
       expect(day('2026-12-05')).toHaveAttribute('data-selected')
     })
 
-    it('is required when its Field is', () => {
+    // ARIA doesn't allow aria-required on a button, so axe fails a required picker.
+    it('keeps aria-required off its button when its Field is required', () => {
       render(
         <Field required>
           <Field.Label>Period</Field.Label>
           <DateRangePicker today={TODAY} />
         </Field>
       )
-      expect(trigger()).toHaveAttribute('aria-required', 'true')
+      expect(trigger()).not.toHaveAttribute('aria-required')
     })
   })
 

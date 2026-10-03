@@ -433,7 +433,6 @@ export function DateRangePicker({
             aria-labelledby={labels.triggerLabelledBy}
             aria-describedby={describedBy}
             aria-invalid={isInvalid || undefined}
-            aria-required={isRequired || undefined}
             aria-disabled={readOnly || undefined}
             data-readonly={readOnly || undefined}
             data-slot='date-range-picker-trigger'
