@@ -6,7 +6,8 @@ import {
   beforeEach,
   describe,
   expect,
-  it
+  it,
+  onTestFinished
 } from 'vitest'
 import { commands, page } from 'vitest/browser'
 
@@ -117,30 +118,39 @@ describe('Toast.Progress', () => {
     expect(width()).toBeCloseTo(held, 0)
 
     await hover(false)
-    await expect.poll(width, { timeout: 10_000 }).toBeLessThan(held - 1)
+    await expect.poll(width, { timeout: 1000 }).toBeLessThan(held - 1)
   })
 
   it('runs out as the toast leaves, pause included', async () => {
     await show(2000)
     const animation = bar().getAnimations()[0]!
+    const done = animation.finished.then(
+      () => performance.now(),
+      () => null
+    )
+    const element = toast()
+    let leaving: number | null = null
+    const ending = new MutationObserver(() => {
+      if (element.hasAttribute('data-ending-style'))
+        leaving ??= performance.now()
+    })
+    ending.observe(element, { attributeFilter: ['data-ending-style'] })
+    onTestFinished(() => ending.disconnect())
     await pause(500)
     await hover(true)
     await pause(700)
     await hover(false)
 
-    const settle = { timeout: 10_000, interval: 10 }
-    const [done, leaving] = await Promise.all([
-      waitFor(() => {
-        expect(animation.playState).toBe('finished')
-        return performance.now()
-      }, settle),
-      waitFor(() => {
-        expect(toast()?.hasAttribute('data-ending-style') ?? true).toBe(true)
-        return performance.now()
-      }, settle)
-    ])
-
-    expect(Math.abs(leaving - done)).toBeLessThan(400)
+    const left = await waitFor(
+      () => {
+        expect(leaving).not.toBeNull()
+        return leaving!
+      },
+      { timeout: 10_000 }
+    )
+    const ranOut = await done
+    expect(ranOut, 'the bar was cut off before it ran out').not.toBeNull()
+    expect(Math.abs(left - ranOut!)).toBeLessThan(400)
   })
 
   it('hides under reduced motion rather than snapping empty', async () => {

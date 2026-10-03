@@ -1,3 +1,4 @@
+import { onTestFinished } from 'vitest'
 import { commands } from 'vitest/browser'
 
 const HOVER = '(hover: hover)'
@@ -33,20 +34,26 @@ export function setHoverCapable(capable: boolean) {
 type Point = { x: number; y: number }
 
 // Headless WebKit on Linux runs no frames while a page sits idle, so
-// requestAnimationFrame, ResizeObserver and CSS animations stall until an
-// input event arrives (docs/solutions/test-failures/
+// requestAnimationFrame, ResizeObserver and CSS animations stall until the
+// pointer moves (docs/solutions/test-failures/
 // linux-webkit-no-frames-while-idle.md). Wiggles the pointer a pixel at `at()`
-// until the returned function stops it.
+// about once a frame until stopped, or until the test finishes.
 export function keepFramesRunning(at: () => Point) {
   let running = true
   const wiggling = (async () => {
     for (let step = 0; running; step++) {
       const { x, y } = at()
-      await commands.pointer([{ type: 'move', x: x + (step % 2), y }])
+      await commands.pointer([
+        { type: 'move', x: x + (step % 2), y },
+        { type: 'wait', ms: 16 }
+      ])
     }
   })()
-  return async () => {
+  wiggling.catch(() => {})
+  const stop = async () => {
     running = false
     await wiggling
   }
+  onTestFinished(stop)
+  return stop
 }

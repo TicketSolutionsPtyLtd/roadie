@@ -6,7 +6,6 @@ import { Funnel } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import {
   CARD_HEIGHTS,
-  afterResize,
   expectFillsPlot,
   expectMinFontSize,
   expectTableKeepsHeight,
@@ -73,7 +72,7 @@ describe('Funnel in a card', () => {
         { timeout: 10_000 }
       )
       .not.toContain('of previous')
-    await afterResize()
+    await nudgeFrames()
     const card = container
       .querySelector('[data-slot=data-card]')!
       .getBoundingClientRect()

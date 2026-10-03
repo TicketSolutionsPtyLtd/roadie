@@ -287,23 +287,19 @@ describe('Sortable Move menu', () => {
     await userEvent.click(handle('SKU'))
     await screen.findByRole('menu')
     const at = centre(handle('SKU'))
-    await commands.pointer([
-      { type: 'move', ...at },
-      { type: 'down' },
-      { type: 'wait', ms: 80 },
-      { type: 'up' }
-    ])
-    const stopFrames = keepFramesRunning(() => at)
+    await commands.pointer([{ type: 'move', ...at }, { type: 'down' }])
+    const stopPressFrames = keepFramesRunning(() => at)
     try {
       await waitFor(() => expect(screen.queryByRole('menu')).toBeNull(), {
         timeout: 5000
       })
-      await new Promise(requestAnimationFrame)
-      await new Promise(requestAnimationFrame)
-      expect(screen.queryByRole('menu')).toBeNull()
     } finally {
-      await stopFrames()
+      await stopPressFrames()
+      await commands.pointer([{ type: 'up' }])
     }
+    keepFramesRunning(() => at)
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    expect(screen.queryByRole('menu')).toBeNull()
   })
 
   it('moves by keyboard and keeps focus on the handle', async () => {

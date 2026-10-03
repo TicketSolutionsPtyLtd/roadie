@@ -33,7 +33,10 @@ in 300ms of idle, 18 frames after one `userEvent.hover`.
 The stall can also start mid-test, straight after an input, and last for
 seconds. A CI trace of the Sortable Move menu test caught it: frames ran
 through the first click, stopped around the second `mousedown` and came
-back 5.7s later, while input events kept arriving. Anything that waits on a
+back 5.7s later. The press's `mouseup` and `click` arrived during the stall
+and didn't restart them; nothing moved the pointer until the test ended. The
+fixes below rely on pointer moves waking frames, as the hover measurement
+above shows, and keep the moves coming. Anything that waits on a
 frame stalls with it: Base UI's menu closes in a `requestAnimationFrame`, a
 chart's width band comes from a `ResizeObserver`, and a CSS animation's
 clock only advances when a frame runs, so a toast's JS timer can run out
@@ -58,16 +61,19 @@ async function nudgeFrames() {
 To check that an observer (not its first report) did the work, nudge once
 before the change as well, so the initial report has already been delivered.
 
-When a poll waits on a frame, nudge on every check, as the chart helper
-`nudgeFrames` in `packages/charts/src/plot/browserTesting.tsx` does in the
-Funnel test.
+When a poll waits on a frame, nudge on every check. The charts package
+exports this helper as `nudgeFrames` from
+`packages/charts/src/plot/browserTesting.tsx`, alternating between hovering
+`html` and `body` so each call really moves the pointer; the Funnel test
+calls it inside its poll.
 
 When the pointer has to stay put (on a menu trigger, or on or off a toast),
 use `keepFramesRunning(() => point)` from
 `packages/components/src/css/testUtils.ts`. It wiggles the pointer a pixel at
-that point until stopped, so frames keep coming without changing what is
-hovered. Point it somewhere else to hover something else, rather than mixing
-it with `userEvent.hover`.
+that point about once a frame until stopped or the test finishes, so frames
+keep coming without changing what is hovered. A pixel is under every engine's
+drag threshold, so it is safe with a button held. Point it somewhere else to
+hover something else, rather than mixing it with `userEvent.hover`.
 
 ## Reproduce locally
 
