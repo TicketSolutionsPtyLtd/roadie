@@ -627,7 +627,12 @@ export function Calendar(props: CalendarProps) {
     // panel on its way out, so it stays aligned until the reader takes over.
     settling.current?.()
     if (typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(align)
+    // Next frame, as scrolling inside the observer's callback loops it.
+    let frame = 0
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(align)
+    })
     observer.observe(scroller.firstElementChild ?? root)
     // A scroll that isn't its own is the reader's, or the page's.
     const onScroll = () => {
@@ -635,6 +640,7 @@ export function Calendar(props: CalendarProps) {
     }
     const stop = () => {
       observer.disconnect()
+      cancelAnimationFrame(frame)
       clearTimeout(timer)
       for (const type of TAKE_OVER) scroller.removeEventListener(type, stop)
       scroller.removeEventListener('scroll', onScroll)

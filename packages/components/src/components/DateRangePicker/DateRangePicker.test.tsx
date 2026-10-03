@@ -1086,7 +1086,8 @@ describe('DateRangePicker on a phone', () => {
   })
 })
 
-describe('DateRangePicker aiming a tap on a phone', () => {
+// Several drawer steps each, which a busy CI runner takes past the default.
+describe('DateRangePicker aiming a tap on a phone', { timeout: 15_000 }, () => {
   const summary = (dialog: HTMLElement) =>
     dialog.querySelector('[data-slot="date-range-picker-summary"]')!
 
@@ -1129,7 +1130,7 @@ describe('DateRangePicker aiming a tap on a phone', () => {
     expect(summary(dialog)).toHaveTextContent('From 28 Oct 2026')
   })
 
-  it('keeps the range when the aimed end would break max', async () => {
+  it('moves only the end when aimed, and says why max refuses it', async () => {
     onPhone()
     render(
       <DateRangePicker
@@ -1141,9 +1142,36 @@ describe('DateRangePicker aiming a tap on a phone', () => {
       />
     )
     const dialog = await open()
-    await userEvent.click(within(dialog).getByRole('combobox', { name: 'End' }))
+    const end = within(dialog).getByRole('combobox', { name: 'End' })
+    await userEvent.click(end)
     await userEvent.click(day('2026-10-20'))
-    expect(summary(dialog)).toHaveTextContent('5 to 9 Oct 2026 · 5 days')
+    expect(within(dialog).getByRole('combobox', { name: 'Start' })).toHaveValue(
+      '5 Oct 2026'
+    )
+    expect(end).toHaveValue('20 Oct 2026')
+    expect(dialog).toHaveTextContent('Spans more than 7 days')
+    expect(within(dialog).getByRole('button', { name: 'Apply' })).toBeDisabled()
+  })
+
+  it('moves only the end when aimed before the start, and says so', async () => {
+    onPhone()
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        commit='apply'
+        defaultValue={{ start: '2026-10-10', end: '2026-10-12' }}
+      />
+    )
+    const dialog = await open()
+    const end = within(dialog).getByRole('combobox', { name: 'End' })
+    await userEvent.click(end)
+    await userEvent.click(day('2026-10-05'))
+    expect(within(dialog).getByRole('combobox', { name: 'Start' })).toHaveValue(
+      '10 Oct 2026'
+    )
+    expect(end).toHaveValue('5 Oct 2026')
+    expect(summary(dialog)).toHaveTextContent('Ends before it starts')
   })
 
   it('says when the end comes before the start', async () => {

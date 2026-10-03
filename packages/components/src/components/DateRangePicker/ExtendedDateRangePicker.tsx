@@ -351,8 +351,9 @@ export function ExtendedDateRangePicker({
         : pressed
     // A tap on the end being picked moves only that end. One the range's
     // length refuses changes nothing, rather than starting over there.
-    if (day && picking === 'end' && start && compareDates(day, start) >= 0) {
-      if (!withinLength(start, day, length)) return
+    // A refused end is still set, so its field says why: before the start,
+    // or past min or max.
+    if (day && picking === 'end' && start) {
       range = { start, end: day }
     } else if (day && picking === 'start') {
       range =

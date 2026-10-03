@@ -24,7 +24,7 @@ import { useStylesheet } from '../components/Pane/testUtils'
 import { Select } from '../components/Select'
 
 const TIMEOUT = { timeout: 20_000 }
-const VENUES = ['Kazoo Hollow Room', 'Lantern Yard', 'Velvet Ferry']
+const VENUES = ['Kazoo Hollow Room', 'Lighthouse Fig Lawn', 'Opal Harpoon Room']
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -88,12 +88,12 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
       await settle()
       const input = screen.getByRole('combobox', { name: 'Venue' })
       await tapOn(input)
-      await userEvent.type(input, 'lan')
+      await userEvent.type(input, 'lig')
       await tapOn(
-        await screen.findByRole('option', { name: 'Lantern Yard' }),
+        await screen.findByRole('option', { name: 'Lighthouse Fig Lawn' }),
         spot
       )
-      expect(input).toHaveValue('Lantern Yard')
+      expect(input).toHaveValue('Lighthouse Fig Lawn')
     })
 
     it('is chosen from a Combobox', async () => {
@@ -128,12 +128,14 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
       await settle()
       const input = screen.getByRole('combobox', { name: 'Venue' })
       await tapOn(input)
-      await userEvent.type(input, 'vel')
+      await userEvent.type(input, 'opa')
       await tapOn(
-        await screen.findByRole('option', { name: 'Velvet Ferry' }),
+        await screen.findByRole('option', { name: 'Opal Harpoon Room' }),
         spot
       )
-      expect(document.querySelector('output')).toHaveTextContent('Velvet Ferry')
+      expect(document.querySelector('output')).toHaveTextContent(
+        'Opal Harpoon Room'
+      )
     })
 
     it('is chosen once from a multiple Combobox', async () => {
@@ -173,12 +175,14 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
       await settle()
       const input = screen.getByRole('combobox', { name: 'Venues' })
       await tapOn(input)
-      await userEvent.type(input, 'vel')
+      await userEvent.type(input, 'opa')
       await tapOn(
-        await screen.findByRole('option', { name: 'Velvet Ferry' }),
+        await screen.findByRole('option', { name: 'Opal Harpoon Room' }),
         spot
       )
-      expect(document.querySelector('output')).toHaveTextContent('Velvet Ferry')
+      expect(document.querySelector('output')).toHaveTextContent(
+        'Opal Harpoon Room'
+      )
     })
 
     it('is chosen from a Select', async () => {
@@ -208,10 +212,12 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
       await tapOn(screen.getByRole('combobox', { name: 'Venue' }))
       await settle()
       await tapOn(
-        await screen.findByRole('option', { name: 'Lantern Yard' }),
+        await screen.findByRole('option', { name: 'Lighthouse Fig Lawn' }),
         spot
       )
-      expect(document.querySelector('output')).toHaveTextContent('Lantern Yard')
+      expect(document.querySelector('output')).toHaveTextContent(
+        'Lighthouse Fig Lawn'
+      )
     })
 
     it('runs from a Menu', async () => {
@@ -284,14 +290,16 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     await settle()
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await tapOn(input)
-    await userEvent.type(input, 'la')
-    const option = await screen.findByRole('option', { name: 'Lantern Yard' })
+    await userEvent.type(input, 'li')
+    const option = await screen.findByRole('option', {
+      name: 'Lighthouse Fig Lawn'
+    })
     await settle(300)
     const { left, top, height } = option.getBoundingClientRect()
     const y = top + height / 2
     await commands.swipe({ x: left + 20, y }, { x: left + 20, y: y + 60 })
     await settle()
-    expect(input).toHaveValue('la')
+    expect(input).toHaveValue('li')
   })
 
   it('chooses a lone touch that says it is not the primary pointer', async () => {
@@ -299,8 +307,10 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     await settle()
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await tapOn(input)
-    await userEvent.type(input, 'la')
-    const option = await screen.findByRole('option', { name: 'Lantern Yard' })
+    await userEvent.type(input, 'li')
+    const option = await screen.findByRole('option', {
+      name: 'Lighthouse Fig Lawn'
+    })
     await settle(300)
     const { left, top, height } = option.getBoundingClientRect()
     const pointer = {
@@ -318,7 +328,7 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     expect(down.defaultPrevented).toBe(false)
     option.dispatchEvent(new PointerEvent('pointerup', pointer))
     await settle()
-    expect(input).toHaveValue('Lantern Yard')
+    expect(input).toHaveValue('Lighthouse Fig Lawn')
   })
 
   const touchAt = (option: Element, pointerId: number, dy = 0) => {
@@ -360,8 +370,10 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     await settle()
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await tapOn(input)
-    await userEvent.type(input, 'la')
-    const option = await screen.findByRole('option', { name: 'Lantern Yard' })
+    await userEvent.type(input, 'li')
+    const option = await screen.findByRole('option', {
+      name: 'Lighthouse Fig Lawn'
+    })
     await settle(300)
     onValueChange.mockClear()
     option.dispatchEvent(new PointerEvent('pointerdown', touchAt(option, 11)))
@@ -390,8 +402,10 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     await settle()
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await tapOn(input)
-    await userEvent.type(input, 'la')
-    const option = await screen.findByRole('option', { name: 'Lantern Yard' })
+    await userEvent.type(input, 'li')
+    const option = await screen.findByRole('option', {
+      name: 'Lighthouse Fig Lawn'
+    })
     await settle(300)
     option.dispatchEvent(new PointerEvent('pointerdown', touchAt(option, 12)))
     await userEvent.keyboard('{Escape}')
@@ -399,7 +413,7 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     expect(screen.queryByRole('listbox')).not.toBeNull()
     option.dispatchEvent(new PointerEvent('pointercancel', touchAt(option, 12)))
     await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
-    expect(input).toHaveValue('la')
+    expect(input).toHaveValue('li')
   })
 
   it('chooses on lifting even when the input blurs and the page resizes first', async () => {
@@ -407,8 +421,10 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     await settle()
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await tapOn(input)
-    await userEvent.type(input, 'la')
-    const option = await screen.findByRole('option', { name: 'Lantern Yard' })
+    await userEvent.type(input, 'li')
+    const option = await screen.findByRole('option', {
+      name: 'Lighthouse Fig Lawn'
+    })
     await settle(300)
     const { left, top, height } = option.getBoundingClientRect()
     const at = { clientX: left + 20, clientY: top + height / 2 }
@@ -427,10 +443,10 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     window.visualViewport?.dispatchEvent(new Event('resize'))
     window.dispatchEvent(new Event('resize'))
     await settle(150)
-    const lifted = screen.getByRole('option', { name: 'Lantern Yard' })
+    const lifted = screen.getByRole('option', { name: 'Lighthouse Fig Lawn' })
     lifted.dispatchEvent(new PointerEvent('pointerup', pointer))
     await settle()
-    expect(input).toHaveValue('Lantern Yard')
+    expect(input).toHaveValue('Lighthouse Fig Lawn')
   })
 })
 

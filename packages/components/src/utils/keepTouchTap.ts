@@ -147,7 +147,9 @@ type OpenChange<D> = (open: boolean, details: D) => void
  * keyboard going can blur the input or move the page first. A close asked for
  * meanwhile happens once the finger lifts, unless the lift already closed it.
  */
-export function useHeldOpen<D extends { cancel: () => void }>(
+export function useHeldOpen<
+  D extends { cancel: () => void; isCanceled: boolean }
+>(
   open: boolean | undefined,
   defaultOpen: boolean | undefined,
   onOpenChange: OpenChange<D>
@@ -165,8 +167,9 @@ export function useHeldOpen<D extends { cancel: () => void }>(
   const change: OpenChange<D> = (next, details) => {
     if (!next && pressed) {
       details.cancel()
+      // Replayed as an accepted close, so the list's own close cleanup runs.
       heldCloses.push(() => {
-        if (shownRef.current) apply(false, details)
+        if (shownRef.current) apply(false, { ...details, isCanceled: false })
       })
       return
     }
