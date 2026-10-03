@@ -180,6 +180,12 @@ export function DashboardPeriod({
   const value = valueProp ?? uncontrolled
   // The comparison as edited in the open picker; dropped as it opens or closes.
   const [edit, setEdit] = useState<{ compare?: Comparison } | null>(null)
+  // A comparison from outside replaces an open edit, as the range does.
+  const [seenCompare, setSeenCompare] = useState(value.compare)
+  if (!sameComparison(seenCompare, value.compare)) {
+    setSeenCompare(value.compare)
+    setEdit(null)
+  }
   const compare = edit ? edit.compare : value.compare
   const [lastChoice, setLastChoice] = useState<Comparison>(
     value.compare ?? 'previous-period'

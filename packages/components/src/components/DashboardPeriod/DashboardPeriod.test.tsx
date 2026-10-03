@@ -257,6 +257,31 @@ describe('DashboardPeriod', () => {
     ).toHaveAttribute('aria-pressed', 'true')
   })
 
+  it('follows a comparison the parent changes while the picker is open', async () => {
+    const onValueChange = vi.fn()
+    const { rerender } = render(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        onValueChange={onValueChange}
+      />
+    )
+    const dialog = await openPicker()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Previous year' })
+    )
+    rerender(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'last-month' }}
+        onValueChange={onValueChange}
+      />
+    )
+    expect(compareSwitch(dialog)).not.toBeChecked()
+    await apply(dialog)
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
   it('needs a period before Apply', async () => {
     render(<Controlled />)
     const dialog = await openPicker()

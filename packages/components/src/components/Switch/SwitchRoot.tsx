@@ -36,6 +36,7 @@ export function SwitchRoot({
   disabled,
   id,
   children,
+  render,
   ...props
 }: SwitchRootProps) {
   const field = useFieldContext()
@@ -62,8 +63,8 @@ export function SwitchRoot({
     <SwitchPrimitive.Root
       // A native button, so a drawer's swipe leaves its press alone and its
       // label's `for` reaches it.
-      nativeButton
-      render={<button type='button' />}
+      nativeButton={render === undefined}
+      render={render ?? <button type='button' />}
       data-slot='switch'
       id={inputId}
       required={resolvedRequired}
