@@ -104,16 +104,24 @@ export function useSwipeToTurn(
       const rtl = !vertical && getComputedStyle(root).direction === 'rtl'
       return along < 0 !== rtl ? 1 : -1
     }
+    const sizeOf = (grid: HTMLElement) => {
+      const box = grid.getBoundingClientRect()
+      return vertical ? box.height : box.width
+    }
+    // Ends as multiples of each grid's own size, as months differ in height.
     const slide = (
-      from: number,
-      to: number,
+      from: number | ((size: number) => number),
+      to: number | ((size: number) => number),
       duration: number,
       easing: string
     ) =>
       Promise.all(
         grids().map((grid) => {
+          const size = sizeOf(grid)
+          const at = (end: typeof from) =>
+            offset(typeof end === 'number' ? end : end(size))
           const animation = grid.animate(
-            [{ transform: offset(from) }, { transform: offset(to) }],
+            [{ transform: at(from) }, { transform: at(to) }],
             { duration, easing, fill: 'forwards' }
           )
           running.push(animation)
@@ -130,18 +138,18 @@ export function useSwipeToTurn(
       settling = false
     }
 
-    async function settle(along: number, size: number, step: SwipeStep | null) {
+    async function settle(along: number, step: SwipeStep | null) {
       settling = true
       const still = prefersReducedMotion()
       if (step) {
-        const out = Math.sign(along) * size
-        if (!still) await slide(along, out, OUT_MS, 'ease-in')
+        const sign = Math.sign(along)
+        if (!still) await slide(along, (size) => sign * size, OUT_MS, 'ease-in')
         // Torn down mid-slide, such as by the calendar being disabled.
         if (disposed || !root!.isConnected) return
         flushSync(() => latest.current.turn(step))
         place(0)
         stopAnimations()
-        if (!still) await slide(-out, 0, IN_MS, 'ease-out')
+        if (!still) await slide((size) => -sign * size, 0, IN_MS, 'ease-out')
         if (disposed) return
       } else if (!still && along) {
         place(0)
@@ -206,12 +214,12 @@ export function useSwipeToTurn(
       const turns =
         swipeTurns({ along, size, samples, releasedAt: event.timeStamp }) &&
         latest.current.canTurn(step)
-      void settle(along, size, turns ? step : null)
+      void settle(along, turns ? step : null)
     }
 
     const onPointerCancel = (event: PointerEvent) => {
       if (!gesture || event.pointerId !== gesture.id) return
-      if (gesture.engaged) void settle(gesture.along, gesture.size, null)
+      if (gesture.engaged) void settle(gesture.along, null)
       gesture = null
     }
 

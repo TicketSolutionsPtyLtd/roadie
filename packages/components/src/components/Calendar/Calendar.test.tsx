@@ -1018,6 +1018,23 @@ describe('Calendar week view', () => {
     expect(screen.getByRole('button', { name: 'Next week' })).toBeEnabled()
   })
 
+  it('turns back to a week that starts before startMonth but holds its days', async () => {
+    render(
+      <Calendar
+        view='week'
+        weekStart={7}
+        today='2027-03-07'
+        startMonth='2027-03-01'
+      />
+    )
+    expect(shownDays()[0]).toBe('2027-03-07')
+    const previous = screen.getByRole('button', { name: 'Previous week' })
+    expect(previous).toBeEnabled()
+    await userEvent.click(previous)
+    expect(shownDays()[0]).toBe('2027-02-28')
+    expect(previous).toBeDisabled()
+  })
+
   it('opens on the first week of a controlled month it moves to', () => {
     const { rerender } = render(
       <Calendar view='week' today={TODAY} month='2027-03-01' />

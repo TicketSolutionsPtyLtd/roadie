@@ -146,6 +146,37 @@ describe('Calendar swiped on a phone', TIMEOUT, () => {
     expect(caption()).toContain('March 2027')
   })
 
+  it('slides each of several months by its own height when vertical', async ({
+    skip
+  }) => {
+    if (!navigator.userAgent.includes('Chrome')) skip()
+    render(
+      <Paged
+        direction='vertical'
+        numberOfMonths={2}
+        defaultMonth='2027-02-01'
+      />
+    )
+    const grids = [
+      ...document.querySelectorAll<HTMLElement>('[data-slot="calendar-grid"]')
+    ]
+    const heights = grids.map((grid) => grid.getBoundingClientRect().height)
+    expect(heights[0]).not.toBe(heights[1])
+    const box = grids[0]!.getBoundingClientRect()
+    const x = box.left + box.width / 2
+    const y = box.top + box.height / 2
+    await commands.swipe({ x, y }, { x, y: y - 120 })
+    const ends = grids.map((grid) => {
+      const frames = grid.getAnimations()[0]?.effect
+      return (frames as KeyframeEffect | undefined)?.getKeyframes().at(-1)
+        ?.transform
+    })
+    expect(ends).toEqual(
+      heights.map((height) => `translate3d(0px, ${-height}px, 0px)`)
+    )
+    await settle()
+  })
+
   it('turns straight away when motion is reduced', async ({ skip }) => {
     if (!navigator.userAgent.includes('Chrome')) skip()
     await commands.reduceMotion(true)
