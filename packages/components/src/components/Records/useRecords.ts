@@ -302,7 +302,7 @@ export function useRecords<Row extends object>({
     )
   }, [server, loaded, resolvedQuery, fields, zone])
 
-  const key = rangeKey(appliedQuery, zone, resolvedQuery.filters)
+  const key = rangeKey(appliedQuery, zone)
   const range = useRangeLoading({
     loadRange,
     key,
@@ -312,7 +312,7 @@ export function useRecords<Row extends object>({
     held: loaded.rows.length
   })
 
-  const rangeCapped = range.capped
+  const rangeCapped = ranged && range.capped
 
   const warned = useRef(new Set<string>())
   const unidentified =
