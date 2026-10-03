@@ -47,11 +47,14 @@ export type RangeContext = {
   zone: string
 }
 
+/** One end of the range. `unreadable` marks typed text that names nothing. */
+export type RangeEnd = DateTimeParts & { unreadable?: boolean }
+
 export type RangeDraft = {
   /** The value as chosen, until its dates are edited. */
   chosen: DateRangeValue | null
-  start: DateTimeParts
-  end: DateTimeParts
+  start: RangeEnd
+  end: RangeEnd
 }
 
 export type DraftResult =
@@ -106,6 +109,22 @@ export function draftFrom(
   }
 }
 
+/**
+ * An end as its value reads back, so a time a daylight saving jump skips
+ * shows where it lands.
+ */
+export function readBack(
+  end: RangeEnd,
+  granularity: 'day' | 'minute',
+  zone: string
+): RangeEnd {
+  if (granularity === 'day' || end.unreadable || !end.date || !end.time) {
+    return end
+  }
+  const joined = joinValue(end, 'minute', zone)
+  return joined ? splitValue(joined, zone) : end
+}
+
 function joinEnd(
   parts: DateTimeParts,
   granularity: 'day' | 'minute',
@@ -122,6 +141,9 @@ export function draftValue(
   zone: string
 ): DraftResult {
   if (draft.chosen !== null) return { kind: 'value', value: draft.chosen }
+  if (draft.start.unreadable || draft.end.unreadable) {
+    return { kind: 'incomplete' }
+  }
   const start = joinEnd(draft.start, granularity, zone)
   const end = joinEnd(draft.end, granularity, zone)
   if (start === null && end === null) return { kind: 'value', value: null }

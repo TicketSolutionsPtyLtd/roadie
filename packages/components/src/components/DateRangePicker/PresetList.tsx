@@ -2,10 +2,10 @@
 
 import { useId } from 'react'
 
+import { Toggle } from '../Toggle'
 import { type DateRangePreset, groupPresets, presetLabel } from './range'
 
-const presetClass =
-  'is-interactive flex h-8 shrink-0 items-center rounded-full border px-3 text-start text-sm whitespace-nowrap not-aria-pressed:emphasis-subtler not-aria-pressed:border-transparent not-aria-pressed:text-subtle aria-pressed:emphasis-subtle aria-pressed:is-selected'
+const presetClass = 'justify-start whitespace-nowrap'
 
 export type PresetListProps = {
   presets: readonly DateRangePreset[]
@@ -29,17 +29,18 @@ export function PresetList({
   const buttons = (list: DateRangePreset[]) => (
     <div className='flex flex-wrap gap-1 sm:grid sm:gap-0.5'>
       {list.map((preset) => (
-        <button
+        <Toggle
           key={presets.indexOf(preset)}
-          type='button'
           data-slot='date-range-picker-preset'
-          aria-pressed={pressed === preset}
+          emphasis='subtler'
+          size='sm'
+          pressed={pressed === preset}
+          onPressedChange={() => onChoose(preset)}
           disabled={disabled}
           className={presetClass}
-          onClick={() => onChoose(preset)}
         >
           {presetLabel(preset, locale)}
-        </button>
+        </Toggle>
       ))}
     </div>
   )
@@ -72,17 +73,18 @@ export function PresetList({
         )
       )}
       <div className='flex sm:grid'>
-        <button
-          type='button'
+        <Toggle
           data-slot='date-range-picker-preset'
           data-custom=''
-          aria-pressed={pressed === 'custom'}
+          emphasis='subtler'
+          size='sm'
+          pressed={pressed === 'custom'}
+          onPressedChange={onCustom}
           disabled={disabled}
           className={presetClass}
-          onClick={onCustom}
         >
           Custom range
-        </button>
+        </Toggle>
       </div>
     </div>
   )

@@ -310,7 +310,7 @@ export function DatePicker({
         onOpenChange={setOpen}
         anchor={groupRef}
         aria-labelledby={pickerLabels.popupLabelledBy}
-        field={
+        trigger={
           <div
             ref={groupRef}
             data-slot='date-picker-group'

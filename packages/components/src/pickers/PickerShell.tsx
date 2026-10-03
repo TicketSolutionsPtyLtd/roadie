@@ -75,8 +75,7 @@ export function usePickerLabels({
   const ownLabelId = `${id}-label`
   const valueId = `${id}-value`
   const labelSource =
-    ariaLabelledBy ??
-    (ariaLabel ? ownLabelId : field.labelId ? field.labelId : undefined)
+    ariaLabelledBy ?? (ariaLabel ? ownLabelId : field.labelId || undefined)
   const join = (...ids: (string | false | undefined)[]) =>
     ids.filter(Boolean).join(' ')
 
@@ -107,8 +106,8 @@ export function usePickerLabels({
 export type PickerPopoverProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** The field the popup lines up with. It holds the `Popover.Trigger`. */
-  field: ReactNode
+  /** What the popup lines up with. It holds the `Popover.Trigger`. */
+  trigger: ReactNode
   anchor: RefObject<HTMLElement | null>
   'aria-labelledby': string
   /** Where focus goes on open. Defaults to the calendar's focusable day. */
@@ -126,7 +125,7 @@ const calendarTabStop = (popup: HTMLElement) =>
 export function PickerPopover({
   open,
   onOpenChange,
-  field,
+  trigger,
   anchor,
   'aria-labelledby': ariaLabelledBy,
   initialFocus = calendarTabStop,
@@ -136,7 +135,7 @@ export function PickerPopover({
   const popupRef = useRef<HTMLDivElement>(null)
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      {field}
+      {trigger}
       <Popover.Content
         ref={popupRef}
         aria-labelledby={ariaLabelledBy}

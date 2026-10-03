@@ -113,7 +113,7 @@ export function useTypedValue<T = string>({
 
   return {
     value,
-    text: draft ?? (value ? format(value) : ''),
+    text: draft ?? (value !== null ? format(value) : ''),
     editing: draft !== null,
     error,
     setText: setDraft,

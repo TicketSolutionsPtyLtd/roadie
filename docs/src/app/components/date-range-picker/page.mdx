@@ -127,7 +127,7 @@ render(<Presale />)
 
 #### With Field
 
-Wrap it in [Field](/components/field). The label names the button, and the helper or error text describes it. Typed start and end dates explain their own errors inside the popup.
+Wrap it in [Field](/components/field). The label names the button, the helper or error text describes it, and `required` marks it. Typed start and end dates explain their own errors inside the popup. The value is an object, so the picker holds it as state and submits nothing with a form; send it from your own handler.
 
 ```tsx-live
 <Field className='max-w-80'>
@@ -167,7 +167,7 @@ render(<Toolbar />)
 
 ### With presets
 
-`presets` replaces the list, and `group` sets presets under a heading. Spread `dateRangePresets` to add to the defaults instead. A preset's `label` defaults to its value in words. Here Spring Tide Festival adds its on-sale week, and a dashboard keeps the periods it reports on.
+`presets` replaces the list, and `group` sets presets under a heading. Presets with no group come first, then each group in the order it first appears. Spread `dateRangePresets` to add to the defaults instead. A preset's `label` defaults to its value in words. Here Spring Tide Festival adds its on-sale week, and a dashboard keeps the periods it reports on.
 
 ```tsx-live
 <div className='grid max-w-80 gap-4'>
@@ -194,7 +194,7 @@ render(<Toolbar />)
 
 ### With disabled days
 
-`disabled` takes the same matchers as [Calendar](/components/calendar). Matched days are disabled in the calendar and refused when typed. Here sales data starts on 1 July 2026.
+`disabled` takes the same matchers as [Calendar](/components/calendar). Matched days are disabled in the calendar and refused when typed. Presets aren't checked against them, so leave out presets that reach matched days. Here sales data starts on 1 July 2026.
 
 ```tsx-live
 <DateRangePicker
@@ -233,7 +233,7 @@ render(<Toolbar />)
 
 - The button is named after the picker and its range, such as "Choose dates, Sales period (Last 30 days, 8 Sept to 7 Oct 2026)", so pickers side by side stay apart. The popup is named "Choose dates, Sales period".
 - Opening moves focus to the chosen preset, or to the calendar's first chosen day. `Escape` closes without a change and puts focus back on the button.
-- Presets are buttons with `aria-pressed`, in groups named by their headings. Custom range is pressed when the dates match no preset, and moves focus to the start date.
+- Presets are [Toggle](/components/toggle) buttons with `aria-pressed`, in groups named by their headings. Custom range is pressed when the value is no preset, and moves focus to the start date.
 - Start and End are text inputs with their own labels and errors. While text is being edited, `Enter` commits it, and `Escape` puts back the last date. An end before the start says "Ends before it starts".
 - The calendar works as in [Calendar](/components/calendar): arrow keys, `Page Up`, `Page Down`, `Home` and `End` move, and `Enter` or `Space` chooses.
 - On a phone, the presets come first and one month follows, and the popup scrolls when it is taller than the screen.

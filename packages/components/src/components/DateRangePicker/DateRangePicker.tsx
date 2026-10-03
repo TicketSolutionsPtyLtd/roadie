@@ -13,7 +13,7 @@ import {
   LockSimpleIcon
 } from '@phosphor-icons/react'
 
-import type { DateRangeValue } from '@oztix/roadie-core/datetime'
+import { type DateRangeValue, addMonths } from '@oztix/roadie-core/datetime'
 import { cn } from '@oztix/roadie-core/utils'
 
 import {
@@ -40,6 +40,7 @@ import {
   describeRange,
   draftFrom,
   draftValue,
+  readBack,
   sameRange
 } from './range'
 
@@ -115,6 +116,8 @@ export type DateRangePickerProps = Omit<
   invalid?: boolean
   /** Shows the range with a lock, without letting it change. */
   readOnly?: boolean
+  /** Inherits from `Field` when omitted. */
+  required?: boolean
   /** @default 'md' */
   size?: 'sm' | 'md' | 'lg'
   /** @default 'normal' */
@@ -125,6 +128,10 @@ export type DateRangePickerProps = Omit<
    * Months side by side. Defaults to two on wide screens and one on narrow.
    */
   numberOfMonths?: number
+  /** The fewest days the range can span, both ends counted. */
+  min?: number
+  /** The most days the range can span, both ends counted. */
+  max?: number
   /**
    * `dropdown` swaps the calendar's month name for month and year selects.
    *
@@ -163,6 +170,14 @@ function subscribeWide(onChange: () => void) {
 }
 const isWide = () => window.matchMedia(WIDE).matches
 
+type Edit = {
+  draft: RangeDraft | null
+  custom: boolean
+  /** The calendar's first month, once a preset or typed date has moved it. */
+  month: string | null
+}
+const NO_EDIT: Edit = { draft: null, custom: false, month: null }
+
 function noonOf(date: string): Date {
   return new Date(`${date}T12:00:00Z`)
 }
@@ -183,10 +198,13 @@ export function DateRangePicker({
   disabled,
   invalid,
   readOnly,
+  required,
   size = 'md',
   emphasis,
   placeholder = 'Choose dates',
   numberOfMonths,
+  min,
+  max,
   captionLayout,
   startMonth,
   endMonth,
@@ -230,27 +248,45 @@ export function DateRangePicker({
     defaultOpen,
     onOpenChange
   })
-  const [edit, setEdit] = useState<{
-    draft: RangeDraft | null
-    custom: boolean
-  }>({ draft: null, custom: false })
+  const [edit, setEdit] = useState<Edit>(NO_EDIT)
   const draft = edit.draft ?? draftFrom(value, context)
   const result = draftValue(draft, granularity, zone)
+  const wideScreen = useSyncExternalStore(subscribeWide, isWide, () => false)
+  const months = numberOfMonths ?? (wideScreen ? 2 : 1)
 
+  // Each opening starts from the value, so an edit left by a click outside
+  // never comes back.
   function changeOpen(next: boolean) {
     if (next && (isDisabled || readOnly)) return
-    if (!next) setEdit({ draft: null, custom: false })
+    setEdit(NO_EDIT)
     setOpen(next)
   }
 
-  function change(next: RangeDraft, { close = false } = {}) {
-    setEdit({ draft: next, custom: edit.custom && next.chosen === null })
+  function change(
+    next: RangeDraft,
+    { close = false, month }: { close?: boolean; month?: string | null } = {}
+  ) {
+    // A typed field blurred by the click that closed the popup commits late.
+    if (!open) return
+    setEdit({
+      draft: {
+        ...next,
+        start: readBack(next.start, granularity, zone),
+        end: readBack(next.end, granularity, zone)
+      },
+      custom: edit.custom && next.chosen === null,
+      month: month ?? edit.month
+    })
     if (commit === 'apply') return
     const nextResult = draftValue(next, granularity, zone)
     if (nextResult.kind !== 'value') return
     emit(nextResult.value)
     if (close) changeOpen(false)
   }
+
+  /** The first month shown, so `date` is in view. */
+  const monthShowing = (date: string | null, last = false) =>
+    date ? addMonths(date.slice(0, 8) + '01', last ? 1 - months : 0) : null
 
   const description =
     value === null ? null : describeRange(value, context, locale)
@@ -270,9 +306,6 @@ export function DateRangePicker({
         ? null
         : (presets.find((preset) => sameRange(preset.value, result.value)) ??
           'custom')
-
-  const wideScreen = useSyncExternalStore(subscribeWide, isWide, () => false)
-  const months = numberOfMonths ?? (wideScreen ? 2 : 1)
 
   const anchorRef = useRef<HTMLButtonElement>(null)
   const startRef = useRef<HTMLInputElement>(null)
@@ -311,7 +344,7 @@ export function DateRangePicker({
             '[data-slot="calendar"] button[data-date][tabindex="0"]'
           )
         }
-        field={
+        trigger={
           <Popover.Trigger
             ref={anchorRef}
             id={field.fieldId || undefined}
@@ -319,6 +352,7 @@ export function DateRangePicker({
             aria-labelledby={labels.triggerLabelledBy}
             aria-describedby={describedBy}
             aria-invalid={isInvalid || undefined}
+            aria-required={(required ?? field.required) || undefined}
             aria-disabled={readOnly || undefined}
             data-readonly={readOnly || undefined}
             data-slot='date-range-picker-trigger'
@@ -373,10 +407,18 @@ export function DateRangePicker({
               locale={locale}
               disabled={locked}
               onChoose={(preset) => {
-                change(draftFrom(preset.value, context), { close: true })
+                const next = draftFrom(preset.value, context)
+                change(next, {
+                  close: true,
+                  month: monthShowing(next.start.date)
+                })
               }}
               onCustom={() => {
-                setEdit({ draft: { ...draft, chosen: null }, custom: true })
+                setEdit({
+                  ...edit,
+                  draft: { ...draft, chosen: null },
+                  custom: true
+                })
                 startRef.current?.focus()
               }}
             />
@@ -391,7 +433,12 @@ export function DateRangePicker({
               <RangeEndField
                 label='Start'
                 parts={draft.start}
-                onChange={(start) => change({ ...draft, chosen: null, start })}
+                onChange={(start) =>
+                  change(
+                    { ...draft, chosen: null, start },
+                    { month: monthShowing(start.date) }
+                  )
+                }
                 withTime={withTime}
                 read={readOptions}
                 hourCycle={hourCycle}
@@ -403,7 +450,12 @@ export function DateRangePicker({
               <RangeEndField
                 label='End'
                 parts={draft.end}
-                onChange={(end) => change({ ...draft, chosen: null, end })}
+                onChange={(end) =>
+                  change(
+                    { ...draft, chosen: null, end },
+                    { month: monthShowing(end.date, true) }
+                  )
+                }
                 error={endError}
                 withTime={withTime}
                 read={readOptions}
@@ -415,19 +467,32 @@ export function DateRangePicker({
             </div>
             <Calendar
               mode='range'
-              selected={{ start: draft.start.date, end: draft.end.date }}
+              // With only an end typed, the next day pressed extends from it.
+              selected={
+                draft.start.date === null && draft.end.date !== null
+                  ? { start: draft.end.date, end: null }
+                  : { start: draft.start.date, end: draft.end.date }
+              }
               onSelect={(range) =>
                 change(
                   {
                     chosen: null,
-                    start: { ...draft.start, date: range.start },
-                    end: { ...draft.end, date: range.end }
+                    start: {
+                      ...draft.start,
+                      date: range.start,
+                      unreadable: false
+                    },
+                    end: { ...draft.end, date: range.end, unreadable: false }
                   },
                   { close: !withTime && range.end !== null }
                 )
               }
               disabled={locked || disabledDays}
+              month={edit.month ?? undefined}
+              onMonthChange={(month) => setEdit({ ...edit, month })}
               numberOfMonths={months}
+              min={min}
+              max={max}
               today={todayProp}
               timeZone={zone}
               weekStart={weekStart}
@@ -438,9 +503,9 @@ export function DateRangePicker({
             />
           </div>
           {commit === 'apply' && (
-            <div
+            <Popover.Footer
               className={cn(
-                'flex justify-end gap-2',
+                'justify-end',
                 presets.length > 0 && 'sm:col-span-2'
               )}
             >
@@ -460,7 +525,7 @@ export function DateRangePicker({
               >
                 Apply
               </Button>
-            </div>
+            </Popover.Footer>
           )}
         </div>
       </PickerPopover>

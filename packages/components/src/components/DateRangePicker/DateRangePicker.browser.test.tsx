@@ -125,6 +125,47 @@ describe('DateRangePicker on a wide screen', TIMEOUT, () => {
   })
 })
 
+describe('DateRangePicker closed by a click outside', TIMEOUT, () => {
+  it('drops a half-typed date rather than keeping it for later', async () => {
+    function Outside() {
+      const [value, setValue] = useState<DateRangeValue | null>({
+        start: '2026-10-10',
+        end: '2026-10-12'
+      })
+      return (
+        <div className='grid gap-2 p-4'>
+          <DateRangePicker
+            aria-label='Period'
+            commit='apply'
+            today={TODAY}
+            value={value}
+            onValueChange={setValue}
+            className='w-fit'
+          />
+          <button type='button' onClick={() => setValue('yesterday')}>
+            Outside
+          </button>
+        </div>
+      )
+    }
+    render(<Outside />)
+    await userEvent.click(trigger())
+    let popup = await screen.findByRole('dialog')
+    const start = within(popup).getByRole('textbox', { name: 'Start' })
+    await userEvent.clear(start)
+    await userEvent.type(start, '1 oct')
+    await userEvent.click(screen.getByRole('button', { name: 'Outside' }))
+    await expect
+      .poll(() => trigger().getAttribute('aria-expanded'))
+      .toBe('false')
+    await userEvent.click(trigger())
+    popup = await screen.findByRole('dialog')
+    expect(
+      within(popup).getByRole('button', { name: 'Yesterday' })
+    ).toHaveAttribute('aria-pressed', 'true')
+  })
+})
+
 describe('DateRangePicker on a phone', TIMEOUT, () => {
   beforeAll(() => page.viewport(390, 844))
   afterAll(() => page.viewport(1920, 1080))

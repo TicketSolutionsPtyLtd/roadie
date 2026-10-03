@@ -1,6 +1,6 @@
 'use client'
 
-import type { Ref } from 'react'
+import { type Ref, useEffect } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -13,15 +13,15 @@ import {
 import type { HourCycle } from '../../pickers/readTime'
 import { useTimeInput } from '../../pickers/useTimeInput'
 import { useTypedValue } from '../../pickers/useTypedValue'
-import type { DateTimeParts } from '../../pickers/value'
 import { Field, useFieldContext } from '../Field'
 import { useFieldControlError } from '../Field/FieldContext'
 import { inputVariants } from '../Input'
+import type { RangeEnd } from './range'
 
 export type RangeEndFieldProps = {
   label: 'Start' | 'End'
-  parts: DateTimeParts
-  onChange: (parts: DateTimeParts) => void
+  parts: RangeEnd
+  onChange: (parts: RangeEnd) => void
   /** Why the range as a whole can't be used, shown on this end. */
   error?: string | null
   withTime: boolean
@@ -30,7 +30,6 @@ export type RangeEndFieldProps = {
   minuteStep?: number
   locale?: string
   disabled?: boolean
-  readOnly?: boolean
   inputRef?: Ref<HTMLInputElement>
 }
 
@@ -58,14 +57,22 @@ function RangeEndInputs({
   hourCycle,
   minuteStep,
   locale,
-  readOnly,
   inputRef
 }: Omit<RangeEndFieldProps, 'error' | 'disabled'>) {
   const field = useFieldContext()
   const date = useTypedValue({
     value: parts.date,
     defaultValue: undefined,
-    onValueChange: (next) => onChange({ ...parts, date: next }),
+    // Text that names nothing commits null; the range waits for a fix rather
+    // than reading it as an empty end.
+    onValueChange: (next) =>
+      onChange({
+        ...parts,
+        date: next,
+        unreadable:
+          (next === null && !!date.text.trim()) ||
+          (withTime && !!time.typed.error)
+      }),
     format: (day) => formatDate(day, { dateStyle: read.dateStyle, locale }),
     read: (text) => readDate(text, { ...read, locale })
   })
@@ -73,13 +80,23 @@ function RangeEndInputs({
   const time = useTimeInput({
     value: parts.time,
     defaultValue: undefined,
-    onValueChange: (next) => onChange({ ...parts, time: next }),
+    onValueChange: (next) =>
+      onChange({
+        ...parts,
+        time: next,
+        unreadable: (next === null && !!time.typed.text.trim()) || !!date.error
+      }),
     hourCycle,
     minuteStep,
-    locale,
-    readOnly
+    locale
   })
-  useFieldControlError(withTime ? time.typed.error : null)
+  const timeError = withTime ? time.typed.error : null
+  useFieldControlError(timeError)
+  // Escape can put back an empty end without a change to report.
+  const unreadable = !!date.error || !!timeError
+  useEffect(() => {
+    if (unreadable !== !!parts.unreadable) onChange({ ...parts, unreadable })
+  })
 
   return (
     <div
@@ -91,7 +108,6 @@ function RangeEndInputs({
       <TypedInput
         data-slot='date-range-picker-input'
         typed={date}
-        readOnly={readOnly}
         ref={inputRef}
         className={inputVariants({ size: 'sm' })}
       />
@@ -102,7 +118,6 @@ function RangeEndInputs({
           id={field.fieldId ? `${field.fieldId}-time` : undefined}
           aria-label={`${label} time`}
           placeholder='Any time'
-          readOnly={readOnly}
           className={inputVariants({ size: 'sm' })}
           onKeyDown={time.onKeyDown}
         />

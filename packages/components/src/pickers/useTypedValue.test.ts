@@ -72,4 +72,17 @@ describe('useTypedValue', () => {
     rerender({ value: { from: 1, to: 3 } })
     expect(result.current.text).toBe('4-')
   })
+
+  it('shows a falsy value', () => {
+    const { result } = renderHook(() =>
+      useTypedValue<number>({
+        value: 0,
+        defaultValue: undefined,
+        onValueChange: undefined,
+        format: (n) => `#${n}`,
+        read: () => ({ value: 0 })
+      })
+    )
+    expect(result.current.text).toBe('#0')
+  })
 })

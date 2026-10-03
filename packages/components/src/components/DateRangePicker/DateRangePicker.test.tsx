@@ -490,6 +490,11 @@ describe('DateRangePicker', () => {
       )
       const dialog = await open()
       expect(day('2026-10-01')).not.toHaveAttribute('data-disabled')
+      expect(day('2026-09-30') ?? null).toBeNull()
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Previous month' })
+      )
+      expect(day('2026-09-30')).toHaveAttribute('data-disabled')
       await userEvent.type(
         within(dialog).getByRole('textbox', { name: 'Start' }),
         '30 sep{Enter}'
@@ -497,6 +502,158 @@ describe('DateRangePicker', () => {
       expect(
         within(dialog).getByRole('textbox', { name: 'Start' })
       ).toHaveAccessibleDescription('30 Sept 2026 isn’t available')
+    })
+  })
+
+  describe('review fixes', () => {
+    it('drops an edit when it closes by a click outside', async () => {
+      function Outside() {
+        const [value, setValue] = useState<DateRangeValue | null>({
+          start: '2026-10-10',
+          end: '2026-10-12'
+        })
+        return (
+          <>
+            <DateRangePicker
+              aria-label='Period'
+              commit='apply'
+              today={TODAY}
+              value={value}
+              onValueChange={setValue}
+            />
+            <button type='button' onClick={() => setValue('yesterday')}>
+              Outside
+            </button>
+          </>
+        )
+      }
+      render(<Outside />)
+      let dialog = await open()
+      const start = within(dialog).getByRole('textbox', { name: 'Start' })
+      await userEvent.clear(start)
+      await userEvent.type(start, '1 oct')
+      await userEvent.click(screen.getByRole('button', { name: 'Outside' }))
+      await vi.waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      )
+      dialog = await open()
+      expect(
+        within(dialog).getByRole('button', { name: 'Yesterday' })
+      ).toHaveAttribute('aria-pressed', 'true')
+    })
+
+    it('emits nothing while typed text names no date', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          defaultValue={{ start: '2026-10-10', end: '2026-10-12' }}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      const start = within(dialog).getByRole('textbox', { name: 'Start' })
+      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      await userEvent.clear(start)
+      await userEvent.type(start, 'zzz{Enter}')
+      await userEvent.clear(end)
+      await userEvent.type(end, 'qqq{Enter}')
+      expect(onValueChange).not.toHaveBeenCalled()
+      expect(trigger()).toHaveTextContent('10 to 12 Oct 2026')
+    })
+
+    it('turns Apply off while a time names nothing', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Presale'
+          commit='apply'
+          granularity='minute'
+          timeZone='Australia/Sydney'
+          today={TODAY}
+          presets={[]}
+          defaultValue={{
+            start: '2026-11-02T09:00:00+11:00',
+            end: '2026-11-04T17:00:00+11:00'
+          }}
+        />
+      )
+      const dialog = await open()
+      const endTime = within(dialog).getByRole('textbox', { name: 'End time' })
+      await userEvent.clear(endTime)
+      await userEvent.type(endTime, '99xx{Enter}')
+      expect(
+        within(dialog).getByRole('button', { name: 'Apply' })
+      ).toBeDisabled()
+    })
+
+    it('turns the calendar to a preset or typed date', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          commit='apply'
+          today={TODAY}
+          numberOfMonths={1}
+          defaultValue='yesterday'
+        />
+      )
+      const dialog = await open()
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Last quarter' })
+      )
+      expect(day('2026-07-01')).toHaveAttribute('data-range-start')
+      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      await userEvent.clear(end)
+      await userEvent.type(end, '5 jan 2027{Enter}')
+      expect(day('2027-01-05')).toHaveAttribute('data-range-end')
+    })
+
+    it('keeps a typed end when the start is pressed in the calendar', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('textbox', { name: 'End' }),
+        '20 oct{Enter}'
+      )
+      await userEvent.click(day('2026-10-12'))
+      expect(onValueChange).toHaveBeenCalledWith({
+        start: '2026-10-12',
+        end: '2026-10-20'
+      })
+    })
+
+    it('shows where a time skipped by daylight saving lands', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Presale'
+          granularity='minute'
+          timeZone='Australia/Sydney'
+          today={TODAY}
+          presets={[]}
+          defaultValue={{ start: '2026-10-04', end: '2026-10-05' }}
+        />
+      )
+      const dialog = await open()
+      const time = within(dialog).getByRole('textbox', { name: 'Start time' })
+      await userEvent.type(time, '2:30am{Enter}')
+      expect(time).toHaveValue('3:30am')
+    })
+
+    it('is required when its Field is', () => {
+      render(
+        <Field required>
+          <Field.Label>Period</Field.Label>
+          <DateRangePicker today={TODAY} />
+        </Field>
+      )
+      expect(trigger()).toHaveAttribute('aria-required', 'true')
     })
   })
 

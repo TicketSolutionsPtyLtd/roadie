@@ -166,6 +166,15 @@ Wrap it in [Field](/components/field). The label points at the date input, and `
 
 <div className='grid gap-8'>
 
+<Guideline title='Use DateRangePicker for a range'>
+  <Guideline.Do>
+    Choose a start and an end with [DateRangePicker](/components/date-range-picker), which keeps them in order and offers presets.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put two DatePickers side by side for a range. Nothing stops the end coming before the start.
+  </Guideline.Dont>
+</Guideline>
+
 <Guideline title='Pass the zone the moment belongs to'>
   <Guideline.Do code={`<DatePicker\n  granularity='minute'\n  timeZone={venue.timeZone}\n/>`}>
     Event times are read on the venue's clock. Say so in the label, such as "Doors, Melbourne time".
