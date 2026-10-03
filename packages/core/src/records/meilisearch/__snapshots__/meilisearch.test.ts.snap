@@ -1,0 +1,17 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`toMeilisearch > pins a full view 1`] = `
+{
+  "filter": [
+    "city IN ["melbourne", "sydney"]",
+    "(startsLocal <= "2026-10-04" AND endsLocal >= "2026-10-03")",
+    "status != "sold_out"",
+    "(capacity EXISTS AND capacity IS NOT NULL AND capacity IS NOT EMPTY)",
+    "gross 1000 TO 50000",
+  ],
+  "q": "jazz",
+  "sort": [
+    "starts:asc",
+  ],
+}
+`;

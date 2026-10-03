@@ -148,6 +148,24 @@ export function FoundationPreview({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'records':
+      return (
+        <div className='grid w-44 gap-2'>
+          <div className='flex flex-wrap gap-1'>
+            <span className='rounded-full emphasis-subtle px-2 py-0.5 text-xs intent-accent'>
+              Melbourne
+            </span>
+            <span className='rounded-full emphasis-subtle px-2 py-0.5 text-xs intent-accent'>
+              This weekend
+            </span>
+          </div>
+          <div className='grid gap-1.5 rounded-md border border-subtle bg-normal p-2'>
+            <Skel className='h-2 w-full' />
+            <Skel className='h-2 w-28' />
+            <Skel className='h-2 w-32' />
+          </div>
+        </div>
+      )
     case 'interactions':
       return (
         <div className='relative flex gap-2'>

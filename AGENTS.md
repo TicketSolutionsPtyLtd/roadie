@@ -257,6 +257,16 @@ For a chart, use the chart types from `@oztix/roadie-charts`: `LineChart`, `BarC
 - **Never hardcode chart colours.** `palette.ts` generates `dataviz.css`; change the palette, then run `pnpm --filter @oztix/roadie-core test -u`. CI rejects palettes that fail the colour-blind validator.
 - **Copy:** headline titles that state the takeaway, no dashes, Australian spelling, house date and number formats.
 
+### Records
+
+Before building a list screen, saved views, filters or a search across
+records, read `docs/src/app/foundations/records/page.tsx`. Describe each
+entity once as `RecordField[]` from `@oztix/roadie-core/records` (per-row facts
+are keys, never functions), save views as `RecordView` JSON, and use
+`matchesRecordQuery` in the browser or `toMeilisearch` from
+`@oztix/roadie-core/records/meilisearch` on a server. URLs use
+`toSearchParams` / `fromSearchParams` (format `v=1`).
+
 ### Typography
 
 Two font families: **Intermission** (sans-serif, `font-sans`) and **IBM Plex Mono** (`font-mono`).

@@ -56,6 +56,14 @@
     "./dashboard-layout": {
       "types": "./dist/dashboard-layout/index.d.ts",
       "import": "./dist/dashboard-layout/index.js"
+    },
+    "./records": {
+      "types": "./dist/records/index.d.ts",
+      "import": "./dist/records/index.js"
+    },
+    "./records/meilisearch": {
+      "types": "./dist/records/meilisearch/index.d.ts",
+      "import": "./dist/records/meilisearch/index.js"
     }
   },
   "sideEffects": [
@@ -116,6 +124,22 @@
       "name": "datetime",
       "path": "dist/datetime/index.js",
       "limit": "7.7 KB"
+    },
+    {
+      "name": "records",
+      "path": "dist/records/index.js",
+      "limit": "36.6 KB"
+    },
+    {
+      "name": "records without validation",
+      "path": "dist/records/index.js",
+      "import": "{ matchesRecordQuery, resolveRecordQuery, parseQuery, toSearchParams, equalViews }",
+      "limit": "10.5 KB"
+    },
+    {
+      "name": "records/meilisearch",
+      "path": "dist/records/meilisearch/index.js",
+      "limit": "4.9 KB"
     }
   ]
 }
