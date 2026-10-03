@@ -241,7 +241,7 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
         spot
       )
       expect(start).toHaveValue('8 Oct 2026')
-      expect(screen.queryByRole('listbox')).toBeNull()
+      await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
     })
   })
 

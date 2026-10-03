@@ -182,10 +182,15 @@ export default defineConfig({
           browser: {
             ...browserTest,
             provider: playwright({ contextOptions: { hasTouch: true } }),
-            // Firefox has no touch emulation.
+            // Firefox has no touch emulation, and Linux WebKit in CI doesn't
+            // deliver these emulated taps reliably, so WebKit runs them locally.
             // Copies: Vitest names each instance in place, after its project.
             instances: browserInstances
-              .filter(({ browser }) => browser !== 'firefox')
+              .filter(
+                ({ browser }) =>
+                  browser !== 'firefox' &&
+                  !(process.env.CI && browser === 'webkit')
+              )
               .map((instance) => ({ ...instance }))
           }
         }

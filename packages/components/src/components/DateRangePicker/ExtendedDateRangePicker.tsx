@@ -30,7 +30,7 @@ import {
 import { formatDate } from '../../pickers/readDate'
 import { Button } from '../Button'
 import { Calendar } from '../Calendar'
-import { type CalendarDateRange, withinLength } from '../Calendar/selection'
+import type { CalendarDateRange } from '../Calendar/selection'
 import { useToday } from '../Calendar/today'
 import { Drawer } from '../Drawer'
 import { useFieldContext } from '../Field'
@@ -351,15 +351,12 @@ export function ExtendedDateRangePicker({
         : pressed
     // A tap on the end being picked moves only that end. One the range's
     // length refuses changes nothing, rather than starting over there.
-    // A refused end is still set, so its field says why: before the start,
-    // or past min or max.
+    // An aimed end moves alone, even where it's refused, so the End field
+    // says why: before the start, or past min or max.
     if (day && picking === 'end' && start) {
       range = { start, end: day }
     } else if (day && picking === 'start') {
-      range =
-        end && compareDates(day, end) <= 0 && withinLength(day, end, length)
-          ? { start: day, end }
-          : { start: day, end: null }
+      range = { start: day, end }
     }
     setPicking(null)
     change(

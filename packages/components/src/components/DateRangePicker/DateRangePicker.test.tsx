@@ -1153,6 +1153,27 @@ describe('DateRangePicker aiming a tap on a phone', { timeout: 15_000 }, () => {
     expect(within(dialog).getByRole('button', { name: 'Apply' })).toBeDisabled()
   })
 
+  it('moves only the start when aimed after the end, and says so', async () => {
+    onPhone()
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        commit='apply'
+        defaultValue={{ start: '2026-10-10', end: '2026-10-12' }}
+      />
+    )
+    const dialog = await open()
+    const start = within(dialog).getByRole('combobox', { name: 'Start' })
+    await userEvent.click(start)
+    await userEvent.click(day('2026-10-20'))
+    expect(start).toHaveValue('20 Oct 2026')
+    expect(within(dialog).getByRole('combobox', { name: 'End' })).toHaveValue(
+      '12 Oct 2026'
+    )
+    expect(summary(dialog)).toHaveTextContent('Ends before it starts')
+  })
+
   it('moves only the end when aimed before the start, and says so', async () => {
     onPhone()
     render(

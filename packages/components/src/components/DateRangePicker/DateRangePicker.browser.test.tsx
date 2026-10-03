@@ -323,7 +323,10 @@ for (const [width, height] of [
       const drawer = await screen.findByRole('dialog')
       await userEvent.click(tab('Calendar'))
       expect(tab('Calendar')).toHaveAttribute('aria-selected', 'true')
-      expect(within(drawer).queryByRole('list', { name: 'Periods' })).toBeNull()
+      // The outgoing panel leaves once its transition ends.
+      await expect
+        .poll(() => within(drawer).queryByRole('list', { name: 'Periods' }))
+        .toBeNull()
       expect(
         within(drawer).getByRole('combobox', { name: 'Start' })
       ).toBeVisible()
@@ -331,9 +334,9 @@ for (const [width, height] of [
       expect(
         within(drawer).getByRole('list', { name: 'Periods' })
       ).toBeVisible()
-      expect(
-        within(drawer).queryByRole('combobox', { name: 'Start' })
-      ).toBeNull()
+      await expect
+        .poll(() => within(drawer).queryByRole('combobox', { name: 'Start' }))
+        .toBeNull()
     })
 
     it('scrolls months under a pinned weekday row', async () => {
