@@ -8,6 +8,7 @@ import {
   type NavigationItem
 } from '@/components/Navigation'
 import { Providers } from '@/components/Providers'
+import { TapDebug } from '@/components/TapDebug'
 import { CHANGELOG_URL } from '@/lib/changelog'
 import {
   CHARTS,
@@ -141,6 +142,7 @@ export default async function RootLayout({
           >
             {children}
           </DocsNavigator>
+          <TapDebug />
         </Providers>
       </body>
     </html>
