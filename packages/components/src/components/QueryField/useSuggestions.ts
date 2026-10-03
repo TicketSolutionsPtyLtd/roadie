@@ -18,7 +18,12 @@ type Suggestions<Value> = {
   pendingId: string | undefined
 }
 
+function requestKey(inputValue: string, pendingId: string | undefined) {
+  return `${pendingId ?? ''}\u0000${inputValue}`
+}
+
 const NONE: readonly never[] = []
+const NONE_YET: readonly never[] = []
 
 function isThenable<T>(value: T | PromiseLike<T>): value is PromiseLike<T> {
   return value != null && typeof (value as PromiseLike<T>).then === 'function'
@@ -37,10 +42,11 @@ export function useSuggestions<Value>(
     suggestRef.current = suggest
   })
   const [suggestions, setSuggestions] = useState<Suggestions<Value>>({
-    groups: NONE,
+    groups: NONE_YET,
     inputValue: '',
     pendingId: undefined
   })
+  const [requested, setRequested] = useState<string>()
 
   useIsomorphicLayoutEffect(() => {
     if (!open) return
@@ -48,8 +54,10 @@ export function useSuggestions<Value>(
     const result = suggestRef.current(inputValue)
     if (!isThenable(result)) {
       setSuggestions({ groups: result, inputValue, pendingId })
+      setRequested(undefined)
       return
     }
+    setRequested(requestKey(inputValue, pendingId))
     result.then(
       (groups) => {
         if (current) setSuggestions({ groups, inputValue, pendingId })
@@ -63,8 +71,12 @@ export function useSuggestions<Value>(
     }
   }, [inputValue, open, pendingId])
 
+  const waiting =
+    requested !== undefined &&
+    (suggestions.groups === NONE_YET ||
+      requested !== requestKey(suggestions.inputValue, suggestions.pendingId))
   // Another step's suggestions never show while this step's load.
   return suggestions.pendingId === pendingId
-    ? { ...suggestions, loading: false }
+    ? { ...suggestions, loading: waiting }
     : { ...suggestions, groups: NONE, loading: true }
 }

@@ -697,6 +697,16 @@ describe('QueryField', () => {
     expect(document.activeElement).toBe(input())
   })
 
+  it('says it is loading while the first suggestions are on their way', async () => {
+    const first = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
+    render(<Harness suggest={() => first.promise} />)
+    await userEvent.click(input())
+    expect(await screen.findByText('Loading suggestions')).toBeInTheDocument()
+    await act(async () => first.resolve(suggestFor('')))
+    expect(optionNames()).toEqual(['Venue'])
+    expect(screen.queryByText('Loading suggestions')).not.toBeInTheDocument()
+  })
+
   it('tells assistive technology Enter edits a chip', () => {
     render(<Harness initialChips={[scope, status]} onEditChip={() => {}} />)
     expect(chipElement('status')).toHaveAttribute('aria-keyshortcuts', 'Enter')
