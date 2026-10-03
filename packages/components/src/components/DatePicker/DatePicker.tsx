@@ -323,11 +323,10 @@ export function DatePicker({
           <Calendar
             selected={parts.date}
             onSelect={(day) => {
-              if (!day) return
-              date.setValue(day)
+              // Pressing the chosen day again unselects it; keep it and close.
+              if (day) date.setValue(day)
               setOpen(false)
             }}
-            required
             disabled={disabledDays}
             today={today}
             timeZone={zone}

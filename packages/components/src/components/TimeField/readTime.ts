@@ -16,9 +16,8 @@ function minutesOf(time: string): number {
 }
 
 function timeOf(minutes: number): string {
-  const wrapped = ((minutes % MINUTES_IN_DAY) + MINUTES_IN_DAY) % MINUTES_IN_DAY
   const pad = (n: number) => String(n).padStart(2, '0')
-  return `${pad(Math.floor(wrapped / 60))}:${pad(wrapped % 60)}`
+  return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`
 }
 
 export function formatTime(
@@ -77,5 +76,8 @@ export function stepTime(
     direction > 0
       ? Math.floor(minutes / step) * step + step
       : Math.ceil(minutes / step) * step - step
+  // Past either end of the day, land on the step grid's last or first time.
+  if (onStep >= MINUTES_IN_DAY) return timeOf(0)
+  if (onStep < 0) return timeOf(Math.floor((MINUTES_IN_DAY - 1) / step) * step)
   return timeOf(onStep)
 }

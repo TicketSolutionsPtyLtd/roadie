@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { DateField } from '.'
 import { Field } from '../Field'
+import { formatDate, readDate } from './readDate'
 
 // Wed 7 Oct 2026.
 const TODAY = '2026-10-07'
@@ -151,6 +152,42 @@ describe('DateField', () => {
     expect(input).toHaveValue('someday')
     expect(input).toHaveAttribute('aria-invalid', 'true')
     expect(onValueChange).toHaveBeenLastCalledWith(null)
+  })
+
+  it('fails native validation while its text names no date', async () => {
+    render(<DateField aria-label='Show date' today={TODAY} required />)
+    const input = screen.getByRole<HTMLInputElement>('textbox')
+    await userEvent.type(input, 'someday{Enter}')
+    expect(input.validity.valid).toBe(false)
+    expect(input.validationMessage).toBe(
+      'Enter a date, like 14 Mar or next Fri'
+    )
+    await userEvent.clear(input)
+    await userEvent.type(input, '14 mar{Enter}')
+    expect(input.validity.valid).toBe(true)
+  })
+
+  it('names its months in the Gregorian calendar whatever the locale', () => {
+    render(
+      <DateField
+        aria-label='Show date'
+        locale='fa-IR'
+        dateStyle='medium'
+        defaultValue='2026-03-27'
+      />
+    )
+    expect(screen.getByRole('textbox')).toHaveValue(
+      formatDate('2026-03-27', { dateStyle: 'medium', locale: 'fa-IR' })
+    )
+    expect(
+      readDate(
+        formatDate('2026-03-27', { dateStyle: 'medium', locale: 'fa-IR' }),
+        {
+          today: TODAY,
+          locale: 'fa-IR'
+        }
+      )
+    ).toEqual({ value: '2026-03-27' })
   })
 
   it('goes back to the value on Escape', async () => {

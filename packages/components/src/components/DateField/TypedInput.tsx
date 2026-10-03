@@ -1,7 +1,8 @@
 'use client'
 
-import type { ComponentProps } from 'react'
+import { type ComponentProps, useEffect, useRef } from 'react'
 
+import { mergeRefs } from '../../utils/mergeRefs'
 import { useFieldContext } from '../Field'
 import type { useTypedValue } from './useTypedValue'
 
@@ -20,6 +21,7 @@ export function TypedInput({
   disabled,
   invalid,
   name,
+  ref,
   form,
   'aria-describedby': ariaDescribedBy,
   id,
@@ -29,6 +31,12 @@ export function TypedInput({
   ...props
 }: TypedInputProps) {
   const field = useFieldContext()
+  const inputRef = useRef<HTMLInputElement>(null)
+  // The text box holds unreadable text, so required alone would let a form
+  // submit; the parse error blocks it as native validation.
+  useEffect(() => {
+    inputRef.current?.setCustomValidity(typed.error ?? '')
+  }, [typed.error])
   const isInvalid = !!typed.error || (invalid ?? field.invalid)
   const describedBy =
     [isInvalid ? field.errorTextId : field.helperTextId, ariaDescribedBy]
@@ -52,6 +60,7 @@ export function TypedInput({
         aria-describedby={describedBy}
         data-editing={typed.editing || undefined}
         {...props}
+        ref={mergeRefs(inputRef, ref)}
         value={typed.text}
         onChange={(event) => typed.setText(event.target.value)}
         onBlur={(event) => {

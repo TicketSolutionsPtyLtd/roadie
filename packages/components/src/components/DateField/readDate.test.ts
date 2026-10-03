@@ -73,6 +73,21 @@ describe('formatDate', () => {
     }
   )
 
+  it.each([
+    ['ja-JP', '2026-01-10'],
+    ['bg-BG', '2026-11-10'],
+    ['st', '2026-06-01'],
+    ['teo', '2026-05-01']
+  ])('never reads %s back as another date', (locale, date) => {
+    for (const dateStyle of ['full', 'long', 'medium'] as const) {
+      const result = readDate(formatDate(date, { dateStyle, locale }), {
+        today: TODAY,
+        locale
+      })
+      if ('value' in result) expect(result.value).toBe(date)
+    }
+  })
+
   it('still reads English typed in another locale', () => {
     for (const locale of ['fr-FR', 'es-ES', 'it-IT']) {
       expect(readDate('27 mar', { today: TODAY, locale })).toEqual({

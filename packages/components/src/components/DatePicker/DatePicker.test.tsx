@@ -67,6 +67,26 @@ describe('DatePicker', () => {
     )
   })
 
+  it('closes when the chosen day is pressed again, keeping it', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DatePicker
+        aria-label='Show date'
+        today={TODAY}
+        defaultValue='2026-10-23'
+        onValueChange={onValueChange}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Choose date' }))
+    await screen.findByRole('dialog')
+    await userEvent.click(day('2026-10-23'))
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    expect(onValueChange).not.toHaveBeenCalled()
+    expect(screen.getByRole('textbox')).toHaveValue('Fri 23 Oct 2026')
+  })
+
   it('opens the calendar on the typed date', async () => {
     render(<DatePicker aria-label='Show date' today={TODAY} />)
     await userEvent.type(screen.getByRole('textbox'), '14 mar{Enter}')

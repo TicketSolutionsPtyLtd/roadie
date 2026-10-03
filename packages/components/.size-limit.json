@@ -238,21 +238,21 @@
     "name": "DateField",
     "path": "dist/components/DateField/index.js",
     "import": "*",
-    "limit": "3.5 kB",
+    "limit": "4.1 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "TimeField",
     "path": "dist/components/TimeField/index.js",
     "import": "*",
-    "limit": "3.3 kB",
+    "limit": "3.6 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DatePicker",
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
-    "limit": "13.75 kB",
+    "limit": "14.75 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]

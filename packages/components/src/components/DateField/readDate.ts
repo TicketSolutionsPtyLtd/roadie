@@ -38,9 +38,23 @@ export function formatDate(
   { dateStyle = 'long', locale }: { dateStyle?: DateStyle; locale?: string }
 ): string {
   return (
-    formatDateTime(instantOf(date), { timeZone: 'UTC', dateStyle, locale }) ??
-    date
+    formatDateTime(instantOf(date), {
+      timeZone: 'UTC',
+      dateStyle,
+      locale: gregorian(locale)
+    }) ?? date
   )
+}
+
+// The day and year shown are Gregorian, so the month and weekday names must
+// be too, whatever calendar the locale prefers.
+function gregorian(locale: string | undefined): string | undefined {
+  if (!locale) return locale
+  try {
+    return new Intl.Locale(locale, { calendar: 'gregory' }).toString()
+  } catch {
+    return locale
+  }
 }
 
 function singleDate(
@@ -103,7 +117,8 @@ function localNames(locale: string): LocalNames | null {
           date,
           'month'
         )
-        if (name)
+        // A numeric month would be read as the day beside it.
+        if (name && !/^\p{Nd}+$/u.test(name))
           months.set(name, namePart('en', { month: 'long' }, date, 'month'))
       }
       // 2 Mar 2026 was a Monday.
@@ -130,6 +145,8 @@ function localNames(locale: string): LocalNames | null {
   } catch {
     names = null
   }
+  // Locales come from callers, so the oldest is dropped rather than grow.
+  if (nameCache.size >= 16) nameCache.delete(nameCache.keys().next().value!)
   nameCache.set(locale, names)
   return names
 }
@@ -173,7 +190,10 @@ export function readDate(text: string, options: ReadDateOptions): ReadResult {
       .map(({ value }) => singleDate(value, phraseOptions))
       .find((found): found is string => found !== null)
   const local = options.locale ? inEnglish(text, options.locale) : null
-  const date = dateIn(text) ?? (local ? dateIn(local) : undefined)
+  // The local reading first: some local abbreviations are English months
+  // ("Jan" is June in Sesotho). English typing has no local month, so falls
+  // through to the raw text.
+  const date = (local ? dateIn(local) : undefined) ?? dateIn(text)
   if (!date) return { error: TYPE_A_DATE }
   if (matchesDate(date, options.disabled)) {
     return {
