@@ -6,7 +6,7 @@ import { commands, page, userEvent } from 'vitest/browser'
 
 import { DatePicker } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { setHoverCapable } from '../../css/testUtils'
+import { setHoverCapable, withFrames } from '../../css/testUtils'
 import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -150,7 +150,9 @@ describe('DatePicker on a phone', TIMEOUT, () => {
     await userEvent.click(trigger())
     await screen.findByRole('dialog')
     await userEvent.click(day('2026-10-29'))
-    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
     expect(shown()).toHaveTextContent('2026-10-29')
     // Focus on the text field would raise the on-screen keyboard.
     await expect.poll(() => document.activeElement).toBe(trigger())
@@ -163,7 +165,9 @@ describe('DatePicker on a phone', TIMEOUT, () => {
     await screen.findByRole('dialog')
     await expect.poll(focusedDate).toBe('2026-10-23')
     await userEvent.keyboard('{ArrowRight}{Escape}')
-    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
     expect(shown()).toHaveTextContent('2026-10-23')
     await expect.poll(() => document.activeElement).toBe(trigger())
   })

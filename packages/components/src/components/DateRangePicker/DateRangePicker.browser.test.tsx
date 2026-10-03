@@ -8,7 +8,7 @@ import type { DateRangeValue } from '@oztix/roadie-core/datetime'
 
 import { DateRangePicker } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { nudgeFrames, setHoverCapable } from '../../css/testUtils'
+import { nudgeFrames, setHoverCapable, withFrames } from '../../css/testUtils'
 import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -126,7 +126,9 @@ describe('DateRangePicker on a wide screen', TIMEOUT, () => {
     await userEvent.type(start, 'tom')
     await screen.findByRole('listbox')
     await userEvent.keyboard('{Escape}')
-    await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    )
     expect(screen.getByRole('dialog')).toBe(popup)
     expect(start).toHaveValue('tom')
   })
@@ -324,9 +326,11 @@ for (const [width, height] of [
       await userEvent.click(tab('Calendar'))
       expect(tab('Calendar')).toHaveAttribute('aria-selected', 'true')
       // The outgoing panel leaves once its transition ends.
-      await expect
-        .poll(() => within(drawer).queryByRole('list', { name: 'Periods' }))
-        .toBeNull()
+      await withFrames(() =>
+        expect
+          .poll(() => within(drawer).queryByRole('list', { name: 'Periods' }))
+          .toBeNull()
+      )
       expect(
         within(drawer).getByRole('combobox', { name: 'Start' })
       ).toBeVisible()
@@ -334,9 +338,11 @@ for (const [width, height] of [
       expect(
         within(drawer).getByRole('list', { name: 'Periods' })
       ).toBeVisible()
-      await expect
-        .poll(() => within(drawer).queryByRole('combobox', { name: 'Start' }))
-        .toBeNull()
+      await withFrames(() =>
+        expect
+          .poll(() => within(drawer).queryByRole('combobox', { name: 'Start' }))
+          .toBeNull()
+      )
     })
 
     it('scrolls months under a pinned weekday row', async () => {
@@ -515,7 +521,9 @@ describe('DateRangePicker on a phone', TIMEOUT, () => {
     expect(textOf(summary(drawer))).toMatch(/^8 Sept? to 7 Oct 2026 · 30 days$/)
     expect(screen.getByRole('dialog')).toBe(drawer)
     await userEvent.click(within(drawer).getByRole('button', { name: 'Apply' }))
-    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
     expect(trigger().textContent).toContain('Last 30 days')
   })
 
@@ -527,7 +535,9 @@ describe('DateRangePicker on a phone', TIMEOUT, () => {
     await userEvent.click(
       within(drawer).getByRole('button', { name: /^Last 30 days/ })
     )
-    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
     expect(trigger().textContent).toContain('Last 30 days')
   })
 
@@ -543,7 +553,9 @@ describe('DateRangePicker on a phone', TIMEOUT, () => {
     await userEvent.click(day('2026-10-15'))
     expect(summary(drawer)).toHaveTextContent('12 to 15 Oct 2026 · 4 days')
     await userEvent.click(within(drawer).getByRole('button', { name: 'Apply' }))
-    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
     expect(document.querySelector('output')).toHaveTextContent(
       '{"start":"2026-10-12","end":"2026-10-15"}'
     )
@@ -660,7 +672,9 @@ describe('DateRangePicker suggestions in a drawer', TIMEOUT, () => {
     await userEvent.click(option)
     await expect.poll(() => start).toHaveValue('8 Oct 2026')
     expect(screen.getByRole('dialog')).toBe(drawer)
-    await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    )
   })
 
   it('closes only the suggestions on Escape', async () => {
@@ -672,7 +686,9 @@ describe('DateRangePicker suggestions in a drawer', TIMEOUT, () => {
     await userEvent.type(start, 'fr')
     await screen.findByRole('listbox')
     await userEvent.keyboard('{Escape}')
-    await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    )
     expect(screen.getByRole('dialog')).toBe(drawer)
     expect(start).toHaveValue('fr')
   })

@@ -58,36 +58,37 @@ export function keepFramesRunning(at: () => Point) {
   return stop
 }
 
-let nudges = 0
-
 // Wakes rendering with a pointer move, then waits two frames, so scroll events
-// the page has queued and the frame callbacks they request have run.
-export async function nudgeFrames(at: Point = { x: 0, y: 0 }) {
-  await commands.pointer([{ type: 'move', x: at.x + (nudges++ % 2), y: at.y }])
+// the page has queued and the frame callbacks they request have run. Two
+// points, so the pointer really moves wherever it was.
+export async function nudgeFrames() {
+  await commands.pointer([
+    { type: 'move', x: 1, y: 0 },
+    { type: 'move', x: 0, y: 0 }
+  ])
   await new Promise(requestAnimationFrame)
   await new Promise(requestAnimationFrame)
 }
 
 // Runs a wait that only frames can end, such as a transition settling or an
-// exit animation unmounting a popup, with frames kept running from `at`.
-export async function withFrames<T>(
-  wait: () => Promise<T>,
-  at: () => Point = () => ({ x: 0, y: 0 })
-) {
-  const stop = keepFramesRunning(at)
+// exit animation unmounting a popup, with frames kept running from the corner.
+export async function withFrames<T>(wait: () => Promise<T>) {
+  const stop = keepFramesRunning(() => ({ x: 0, y: 0 }))
   try {
     return await wait()
   } finally {
-    await stop()
+    // A pointer error here mustn't hide why the wait failed.
+    await stop().catch(() => {})
   }
 }
 
 // A native drag leaves Linux WebKit counting the mouse as pressed for the whole
-// page, so the next test file's first press fires no pointerdown. A press and
-// release in the corner clears it.
-export const releaseDragPointer = () =>
-  commands.pointer([
+// page, so the next press, even in a later test file, fires no pointerdown. A
+// press and release in the corner clears it.
+export async function releaseDragPointer() {
+  await commands.pointer([
     { type: 'move', x: 0, y: 0 },
     { type: 'down' },
     { type: 'up' }
   ])
+}
