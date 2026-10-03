@@ -77,7 +77,7 @@ describe('DatePicker hydrated in the viewer’s zone', () => {
         defaultValue='2026-11-27T20:00:00Z'
       />
     )
-    expect(screen.getByRole('textbox')).toHaveValue('Sat 28 Nov 2026')
+    expect(screen.getByRole('combobox')).toHaveValue('Sat 28 Nov 2026')
     expect(form.get('showDate')).toBe('2026-11-28')
   })
 
@@ -173,7 +173,7 @@ describe('DatePicker uncontrolled, switching granularity', () => {
   it('keeps a date waiting for its time when the time goes away', async () => {
     const { container, rerender } = render(picker('minute'))
     await userEvent.type(
-      screen.getByRole('textbox', { name: 'Date' }),
+      screen.getByRole('combobox', { name: 'Date' }),
       '27 nov{Enter}'
     )
     rerender(picker('day'))
@@ -183,7 +183,7 @@ describe('DatePicker uncontrolled, switching granularity', () => {
   it('keeps the time through minute, day and back', async () => {
     const { container, rerender } = render(picker('minute'))
     await userEvent.type(
-      screen.getByRole('textbox', { name: 'Date' }),
+      screen.getByRole('combobox', { name: 'Date' }),
       '27 nov{Enter}'
     )
     await userEvent.type(

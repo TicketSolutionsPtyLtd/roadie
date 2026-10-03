@@ -151,10 +151,13 @@ describe('DateRangePicker closed by a click outside', TIMEOUT, () => {
     render(<Outside />)
     await userEvent.click(trigger())
     let popup = await screen.findByRole('dialog')
-    const start = within(popup).getByRole('textbox', { name: 'Start' })
+    const start = within(popup).getByRole('combobox', { name: 'Start' })
     await userEvent.clear(start)
     await userEvent.type(start, '1 oct')
-    await userEvent.click(screen.getByRole('button', { name: 'Outside' }))
+    // The open suggestions hide the rest of the page from the tree.
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Outside', hidden: true })
+    )
     await expect
       .poll(() => trigger().getAttribute('aria-expanded'))
       .toBe('false')
@@ -171,7 +174,7 @@ describe('DateRangePicker closed with text half typed', TIMEOUT, () => {
     render(<Period initial={{ start: '2026-10-10', end: '2026-10-12' }} />)
     await userEvent.click(trigger())
     const popup = await screen.findByRole('dialog')
-    const start = within(popup).getByRole('textbox', { name: 'Start' })
+    const start = within(popup).getByRole('combobox', { name: 'Start' })
     await userEvent.clear(start)
     await userEvent.type(start, '1 oct')
     await userEvent.click(document.querySelector('output')!)
@@ -207,8 +210,8 @@ describe('DateRangePicker on a phone', TIMEOUT, () => {
     )
     const body = drawer.querySelector('[data-slot="drawer-body"]')!
     expect(body.scrollWidth).toBeLessThanOrEqual(body.clientWidth)
-    const start = within(drawer).getByRole('textbox', { name: 'Start' })
-    const end = within(drawer).getByRole('textbox', { name: 'End' })
+    const start = within(drawer).getByRole('combobox', { name: 'Start' })
+    const end = within(drawer).getByRole('combobox', { name: 'End' })
     expect(box(start).top).toBe(box(end).top)
   })
 
@@ -269,6 +272,66 @@ describe('DateRangePicker on a phone', TIMEOUT, () => {
       '{"start":"2026-10-12","end":"2026-10-15"}'
     )
     await expect.poll(() => document.activeElement).toBe(trigger())
+  })
+})
+
+describe('DateRangePicker suggestions in a drawer', TIMEOUT, () => {
+  beforeAll(() => page.viewport(390, 844))
+  afterAll(() => page.viewport(1920, 1080))
+
+  const topmostIn = (element: Element) => {
+    const { left, top, width, height } = box(element)
+    const hit = document.elementFromPoint(left + width / 2, top + height / 2)
+    return !!hit && element.contains(hit)
+  }
+
+  it('shows suggestions over the drawer, on screen, and takes a tapped one', async () => {
+    setHoverCapable(false)
+    render(<Period initial={null} />)
+    await userEvent.click(trigger())
+    const drawer = await screen.findByRole('dialog')
+    const start = within(drawer).getByRole('combobox', { name: 'Start' })
+    await userEvent.click(start)
+    await userEvent.type(start, 'tom')
+    const option = await screen.findByRole('option', { name: /^Tomorrow/ })
+    const list = screen.getByRole('listbox')
+    expect(box(list).left).toBeGreaterThanOrEqual(0)
+    expect(box(list).right).toBeLessThanOrEqual(window.innerWidth)
+    expect(box(list).bottom).toBeLessThanOrEqual(window.innerHeight)
+    expect(topmostIn(option)).toBe(true)
+    await userEvent.click(option)
+    await expect.poll(() => start).toHaveValue('8 Oct 2026')
+    expect(screen.getByRole('dialog')).toBe(drawer)
+    expect(screen.queryByRole('listbox')).toBeNull()
+  })
+
+  it('closes only the suggestions on Escape', async () => {
+    render(<Period initial={null} />)
+    await userEvent.click(trigger())
+    const drawer = await screen.findByRole('dialog')
+    const start = within(drawer).getByRole('combobox', { name: 'Start' })
+    await userEvent.click(start)
+    await userEvent.type(start, 'fr')
+    await screen.findByRole('listbox')
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    expect(screen.getByRole('dialog')).toBe(drawer)
+    expect(start).toHaveValue('fr')
+  })
+
+  it('fills both ends from a suggested range', async () => {
+    render(<Period initial={null} />)
+    await userEvent.click(trigger())
+    const drawer = await screen.findByRole('dialog')
+    const start = within(drawer).getByRole('combobox', { name: 'Start' })
+    await userEvent.click(start)
+    await userEvent.type(start, 'next week')
+    await screen.findByRole('option', { name: /^Next week/ })
+    await userEvent.keyboard('{Enter}')
+    await expect.poll(() => start).toHaveValue('12 Oct 2026')
+    expect(within(drawer).getByRole('combobox', { name: 'End' })).toHaveValue(
+      '18 Oct 2026'
+    )
   })
 })
 

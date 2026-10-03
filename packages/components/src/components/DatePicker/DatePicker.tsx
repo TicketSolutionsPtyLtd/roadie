@@ -17,6 +17,7 @@ import {
 import { TypedInput } from '../../pickers/TypedInput'
 import { type DateStyle, formatDate, readDate } from '../../pickers/readDate'
 import type { HourCycle } from '../../pickers/readTime'
+import { suggestDates } from '../../pickers/suggestDates'
 import { useTimeInput } from '../../pickers/useTimeInput'
 import { useTypedValue } from '../../pickers/useTypedValue'
 import { type DateTimeParts, joinValue, splitValue } from '../../pickers/value'
@@ -239,20 +240,20 @@ export function DatePicker({
     if (changed) onValueChange?.(joined)
   }
 
+  const readOptions = {
+    today,
+    timeZone: zone,
+    weekStart,
+    locale,
+    dateStyle,
+    disabled: disabledDays
+  }
   const date = useTypedValue({
     value: parts.date,
     defaultValue: undefined,
     onValueChange: (next) => update({ date: next }),
     format: (day) => formatDate(day, { dateStyle, locale }),
-    read: (text) =>
-      readDate(text, {
-        today,
-        timeZone: zone,
-        weekStart,
-        locale,
-        dateStyle,
-        disabled: disabledDays
-      })
+    read: (text) => readDate(text, readOptions)
   })
   useFieldControlError(date.error)
   const time = useTimeInput({
@@ -326,6 +327,11 @@ export function DatePicker({
             <TypedInput
               data-slot='date-picker-input'
               typed={date}
+              suggestions={{
+                suggest: (text) => suggestDates(text, readOptions),
+                onChoose: (suggestion) => date.setValue(suggestion.start),
+                anchor: groupRef
+              }}
               form={form}
               disabled={isDisabled}
               invalid={invalid}

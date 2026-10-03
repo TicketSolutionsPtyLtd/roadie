@@ -57,7 +57,8 @@ describe('Component exports', () => {
         <DatePicker aria-label='Show date' />
       </>
     )
-    expect(getAllByRole('textbox')).toHaveLength(3)
+    expect(getAllByRole('combobox')).toHaveLength(2)
+    expect(getAllByRole('textbox')).toHaveLength(1)
   })
 
   it('exports DateRangePicker and its presets', () => {

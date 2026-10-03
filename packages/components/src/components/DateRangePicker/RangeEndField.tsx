@@ -11,6 +11,7 @@ import {
   readDate
 } from '../../pickers/readDate'
 import type { HourCycle } from '../../pickers/readTime'
+import { suggestDates } from '../../pickers/suggestDates'
 import { useTimeInput } from '../../pickers/useTimeInput'
 import { useTypedValue } from '../../pickers/useTypedValue'
 import { Field, useFieldContext } from '../Field'
@@ -31,6 +32,10 @@ export type RangeEndFieldProps = {
   locale?: string
   disabled?: boolean
   inputRef?: Ref<HTMLInputElement>
+  /** The fewest and most days a suggested range may span. */
+  span?: { min?: number; max?: number }
+  /** A suggested range was taken: both ends change. */
+  onRange: (range: { start: string; end: string }) => void
 }
 
 /** One end of a range: a typed date and, at minute granularity, a time. */
@@ -57,7 +62,9 @@ function RangeEndInputs({
   hourCycle,
   minuteStep,
   locale,
-  inputRef
+  inputRef,
+  span,
+  onRange
 }: Omit<RangeEndFieldProps, 'error' | 'disabled'>) {
   const field = useFieldContext()
   const date = useTypedValue({
@@ -108,6 +115,18 @@ function RangeEndInputs({
       <TypedInput
         data-slot='date-range-picker-input'
         typed={date}
+        suggestions={{
+          suggest: (text) =>
+            suggestDates(text, {
+              ...read,
+              locale,
+              ranges: true,
+              minDays: span?.min,
+              maxDays: span?.max
+            }),
+          onChoose: ({ start, end }) =>
+            start === end ? date.setValue(start) : onRange({ start, end })
+        }}
         ref={inputRef}
         className={inputVariants({ size: 'sm' })}
       />

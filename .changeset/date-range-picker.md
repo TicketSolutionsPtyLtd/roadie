@@ -11,9 +11,11 @@ subpath and the package root.
 The value is a `DateRangeValue` from `@oztix/roadie-core/datetime`. A preset
 is emitted as given, so "Last 30 days" stays relative when saved; typed or
 pressed dates become an absolute `{ start, end }`, and null when both are
-cleared. Nothing is emitted while typed text names no date. The button shows
-the range in words with the dates a relative range stands for, and is named
-"Choose dates, <label> (<range>)".
+cleared. Nothing is emitted while typed text names no date. The typed Start
+and End are comboboxes that suggest dates as `DateField` does, and ranges too:
+choosing "Next week" from either fills both ends, and ranges that `min` or
+`max` refuse aren't offered. The button shows the range in words with the dates
+a relative range stands for, and is named "Choose dates, <label> (<range>)".
 
 `presets` replaces the default list (today, yesterday, recent periods and
 periods to date, with the financial year from `fiscalYearStart`), and `group`
