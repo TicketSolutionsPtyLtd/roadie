@@ -11,7 +11,7 @@ export function splitPrimary(children: ReactNode) {
   let primary: ReactElement<NavigatorPrimaryProps> | undefined
   let hasRest = false
   const walk = (node: ReactNode): ReactNode => {
-    if (Array.isArray(node)) return node.map(walk)
+    if (isIterable(node)) return Array.from(node, walk)
     if (
       primary === undefined &&
       isValidElement<NavigatorPrimaryProps>(node) &&
@@ -27,3 +27,6 @@ export function splitPrimary(children: ReactNode) {
   const rest = walk(children)
   return { primary, rest: hasRest ? rest : undefined }
 }
+
+const isIterable = (node: ReactNode): node is Iterable<ReactNode> =>
+  typeof node === 'object' && node !== null && Symbol.iterator in node

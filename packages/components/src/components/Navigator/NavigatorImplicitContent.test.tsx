@@ -89,6 +89,29 @@ describe('Navigator content', () => {
     ).toBeTruthy()
   })
 
+  it('lifts Primary out of an iterable of children', async () => {
+    render(
+      <Navigator value='/a'>
+        {
+          new Set([
+            <Pane key='pane'>Detail</Pane>,
+            <Navigator.Primary key='primary' aria-label='Main'>
+              {testBrand}
+              <Navigator.Item value='/a' href='/a'>
+                A
+              </Navigator.Item>
+            </Navigator.Primary>
+          ])
+        }
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+
+    const content = document.querySelector('[data-slot="navigator-content"]')
+    expect(screen.getByText('Detail')).toBeInTheDocument()
+    expect(content?.querySelector('[data-slot="navigator-primary"]')).toBeNull()
+  })
+
   it('renders empty content even with no other children, so More always has a host', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
