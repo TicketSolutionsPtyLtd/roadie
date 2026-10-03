@@ -5,6 +5,7 @@ import { getAccentChromaSync, getOklchHueSync } from '@oztix/roadie-core/colors'
 
 import roadieCss from '../../vitest.browser.css?inline'
 import { useStylesheet } from '../components/Pane/testUtils'
+import { flatten, apcaLc as sharedApcaLc } from './contrastTestUtils'
 import { setHoverCapable } from './testUtils'
 
 // Core's colour tokens live in its sheets, but only this package runs browser
@@ -76,36 +77,8 @@ function mount(markup: string) {
   return host.querySelector<HTMLElement>('[data-target]')!
 }
 
-// The canvas resolves any CSS colour (oklch, color-mix) to the sRGB pixel
-// that is actually painted.
-const canvas = document.createElement('canvas').getContext('2d', {
-  willReadFrequently: true
-})!
-function toRgb(color: string) {
-  canvas.clearRect(0, 0, 1, 1)
-  canvas.fillStyle = color
-  canvas.fillRect(0, 0, 1, 1)
-  return Array.from(canvas.getImageData(0, 0, 1, 1).data.slice(0, 3)).map(
-    (channel) => channel / 255
-  ) as [number, number, number]
-}
-
-// APCA-W3 0.0.98G, constants as published in Myndex/apca-w3
-// (src/apca-w3.js, SA98G). Returns Lc; negative is light text on dark.
 function apcaLc(text: string, background: string) {
-  const screenY = ([r, g, b]: [number, number, number]) => {
-    const y = 0.2126729 * r ** 2.4 + 0.7151522 * g ** 2.4 + 0.072175 * b ** 2.4
-    return y < 0.022 ? y + (0.022 - y) ** 1.414 : y
-  }
-  const textY = screenY(toRgb(text))
-  const backgroundY = screenY(toRgb(background))
-  if (Math.abs(backgroundY - textY) < 0.0005) return 0
-  if (backgroundY > textY) {
-    const sapc = (backgroundY ** 0.56 - textY ** 0.57) * 1.14
-    return sapc < 0.1 ? 0 : (sapc - 0.027) * 100
-  }
-  const sapc = (backgroundY ** 0.65 - textY ** 0.62) * 1.14
-  return sapc > -0.1 ? 0 : (sapc + 0.027) * 100
+  return sharedApcaLc(flatten(text), flatten(background))
 }
 
 function contrast(element: HTMLElement) {
@@ -186,7 +159,7 @@ describe.each(MODES)('%s mode', (mode) => {
           `<div data-target class="intent-${intent} ${overlay}">Sold out</div>`
         )
         await frame()
-        expect(toRgb(getComputedStyle(target).color)).toEqual([1, 1, 1])
+        expect(flatten(getComputedStyle(target).color)).toEqual([255, 255, 255])
       }
     )
 

@@ -24,4 +24,7 @@ export const sortableDropIndicatorVariants = cva(
   }
 )
 
-export const sortableHandleVariants = cva('cursor-grab active:cursor-grabbing')
+// Follows its row's align-items, which btn's place-self: start would override.
+export const sortableHandleVariants = cva(
+  'cursor-grab self-auto active:cursor-grabbing'
+)

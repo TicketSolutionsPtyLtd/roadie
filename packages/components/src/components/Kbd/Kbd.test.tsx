@@ -5,6 +5,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Kbd } from '.'
 
+const SUBTLE_FILL = 'bg-[color-mix(in_oklch,currentColor_10%,transparent)]'
+
 function onPlatform(platform: string) {
   vi.spyOn(navigator, 'platform', 'get').mockReturnValue(platform)
 }
@@ -12,13 +14,20 @@ function onPlatform(platform: string) {
 afterEach(() => vi.restoreAllMocks())
 
 describe('Kbd', () => {
-  it('renders a keycap hidden from assistive tech', () => {
+  it('renders a subtle keycap hidden from assistive tech', () => {
     const { container } = render(<Kbd>/</Kbd>)
     const kbd = container.querySelector('kbd')!
     expect(kbd).toHaveAttribute('data-slot', 'kbd')
     expect(kbd).toHaveAttribute('aria-hidden', 'true')
-    expect(kbd).toHaveClass('rounded-md', 'bg-current/10', 'text-xs', 'h-6')
+    expect(kbd).toHaveClass('rounded-md', SUBTLE_FILL, 'text-xs', 'h-6')
     expect(kbd).toHaveTextContent('/')
+  })
+
+  it('builds normal on emphasis-normal', () => {
+    const { container } = render(<Kbd emphasis='normal'>/</Kbd>)
+    const kbd = container.querySelector('kbd')!
+    expect(kbd).toHaveClass('rounded-md', 'emphasis-normal', 'h-6')
+    expect(kbd).not.toHaveClass(SUBTLE_FILL)
   })
 
   it('hides itself on screens without hover', () => {
@@ -58,7 +67,7 @@ describe('Kbd', () => {
     for (const cap of caps) {
       expect(cap.tagName).toBe('KBD')
       expect(cap).not.toHaveAttribute('aria-hidden')
-      expect(cap).toHaveClass('bg-current/10')
+      expect(cap).toHaveClass(SUBTLE_FILL)
     }
   })
 
@@ -71,7 +80,9 @@ describe('Kbd', () => {
   it('renders plain text when emphasis is subtler', () => {
     const { container } = render(<Kbd emphasis='subtler'>/</Kbd>)
     const kbd = container.querySelector('kbd')!
-    expect(kbd).not.toHaveClass('bg-current/10')
+    expect(kbd).toHaveClass('tracking-wide')
+    expect(kbd).not.toHaveClass(SUBTLE_FILL)
+    expect(kbd).not.toHaveClass('emphasis-subtler')
     expect(kbd).not.toHaveClass('h-6')
   })
 
@@ -91,7 +102,7 @@ describe('Kbd', () => {
       <Kbd keys={['shift', 'k']} emphasis='subtler' />
     )
     for (const cap of container.querySelectorAll('[data-slot="kbd"]'))
-      expect(cap).not.toHaveClass('bg-current/10')
+      expect(cap).not.toHaveClass(SUBTLE_FILL)
   })
 
   it('joins plain keys with a hidden plus off Apple platforms', () => {
@@ -100,7 +111,9 @@ describe('Kbd', () => {
       <Kbd keys={['mod', 'shift', 'd']} emphasis='subtler' />
     )
     expect(container.firstElementChild).toHaveTextContent('Ctrl+Shift+D')
-    for (const plus of container.querySelectorAll('[data-slot="kbd-plus"]'))
+    for (const plus of container.querySelectorAll(
+      '[data-slot="kbd-separator"]'
+    ))
       expect(plus).toHaveAttribute('aria-hidden', 'true')
   })
 
@@ -108,12 +121,12 @@ describe('Kbd', () => {
     const html = renderToString(<Kbd keys={['mod', 'd']} emphasis='subtler' />)
     const holder = document.createElement('div')
     holder.innerHTML = html
-    const plus = holder.querySelector('[data-slot="kbd-plus"]')!
+    const plus = holder.querySelector('[data-slot="kbd-separator"]')!
     expect(plus).toHaveClass('invisible', 'text-xs')
 
     onPlatform('Win32')
     const { container } = render(<Kbd keys={['mod', 'd']} emphasis='subtler' />)
-    const shown = container.querySelector('[data-slot="kbd-plus"]')!
+    const shown = container.querySelector('[data-slot="kbd-separator"]')!
     expect(shown).toHaveClass('text-xs')
     expect(shown).not.toHaveClass('invisible')
   })
@@ -121,7 +134,7 @@ describe('Kbd', () => {
   it('runs plain keys together on Apple platforms', () => {
     onPlatform('MacIntel')
     const { container } = render(<Kbd keys={['mod', 'd']} emphasis='subtler' />)
-    expect(container.querySelector('[data-slot="kbd-plus"]')).toBeNull()
+    expect(container.querySelector('[data-slot="kbd-separator"]')).toBeNull()
   })
 
   it('keeps announced keys on touch screens, where they are content', () => {
@@ -147,6 +160,142 @@ describe('Kbd', () => {
     }
   })
 
+  it('combines keys in one keycap', () => {
+    onPlatform('Win32')
+    const { container } = render(<Kbd keys={['mod', 'k']} combined />)
+    const cap = container.firstElementChild!
+    expect(cap.tagName).toBe('KBD')
+    expect(cap).toHaveAttribute('data-slot', 'kbd')
+    expect(cap).toHaveAttribute('aria-hidden', 'true')
+    expect(cap).toHaveClass(
+      SUBTLE_FILL,
+      'h-6',
+      '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
+    )
+    expect(cap.querySelectorAll('[data-slot="kbd"]')).toHaveLength(0)
+    const keys = cap.querySelectorAll('[data-slot="kbd-key"]')
+    expect(Array.from(keys, (key) => key.tagName)).toEqual(['KBD', 'KBD'])
+    expect(cap).toHaveTextContent('Ctrl+K')
+  })
+
+  it('runs combined keys together on Apple platforms', () => {
+    onPlatform('MacIntel')
+    const { container } = render(
+      <Kbd keys={['mod', 'k']} combined emphasis='normal' size='sm' />
+    )
+    const cap = container.firstElementChild!
+    expect(cap).toHaveClass('emphasis-normal', 'h-5')
+    expect(cap.querySelector('[data-slot="kbd-separator"]')).toBeNull()
+    expect(cap.querySelector('svg')).toBeInTheDocument()
+    expect(cap.textContent).toBe('K')
+  })
+
+  it('announces combined keys by name', () => {
+    onPlatform('MacIntel')
+    render(<Kbd keys={['mod', 'k']} combined announce />)
+    expect(screen.getByText('Command')).toHaveClass('sr-only')
+    expect(screen.getByText('Command').closest('[aria-hidden]')).toBeNull()
+  })
+
+  it('keeps subtler keys plain when combined', () => {
+    onPlatform('Win32')
+    const { container } = render(
+      <Kbd keys={['mod', 'k']} combined emphasis='subtler' />
+    )
+    const group = container.firstElementChild!
+    expect(group).toHaveAttribute('data-slot', 'kbd-group')
+    expect(group).toHaveTextContent('Ctrl+K')
+  })
+
+  describe('separator', () => {
+    const separators = (root: Element) =>
+      Array.from(root.querySelectorAll('[data-slot="kbd-separator"]'))
+
+    it('puts nothing between separate keycaps by default, on any platform', () => {
+      for (const platform of ['MacIntel', 'Win32']) {
+        onPlatform(platform)
+        const { container, unmount } = render(<Kbd keys={['mod', 'k']} />)
+        expect(separators(container)).toHaveLength(0)
+        expect(container.querySelectorAll('[data-slot="kbd"]')).toHaveLength(2)
+        unmount()
+      }
+    })
+
+    it('puts a given separator between separate keycaps, on any platform', () => {
+      for (const platform of ['MacIntel', 'Win32']) {
+        onPlatform(platform)
+        const { container, unmount } = render(
+          <Kbd keys={['mod', 'k']} separator='+' />
+        )
+        const [plus] = separators(container)
+        expect(separators(container)).toHaveLength(1)
+        expect(plus).toHaveTextContent('+')
+        expect(plus).toHaveAttribute('aria-hidden', 'true')
+        expect(plus).not.toHaveClass('invisible')
+        expect(plus!.previousElementSibling).toHaveAttribute('data-slot', 'kbd')
+        unmount()
+      }
+    })
+
+    it('shows a given separator before the platform is known', () => {
+      const html = renderToString(<Kbd keys={['g', 'i']} separator='then' />)
+      const holder = document.createElement('div')
+      holder.innerHTML = html
+      const [then] = separators(holder)
+      expect(then).toHaveTextContent('then')
+      expect(then).not.toHaveClass('invisible')
+    })
+
+    it('uses a given separator inside a combined keycap', () => {
+      onPlatform('MacIntel')
+      const { container } = render(
+        <Kbd keys={['mod', 'k']} combined separator='+' />
+      )
+      expect(container.firstElementChild).toHaveAttribute('data-slot', 'kbd')
+      expect(separators(container)).toHaveLength(1)
+    })
+
+    it('uses a given separator in subtler keys, even on Apple', () => {
+      onPlatform('MacIntel')
+      const { container } = render(
+        <Kbd keys={['g', 'i']} emphasis='subtler' separator='then' />
+      )
+      expect(container.firstElementChild).toHaveTextContent('GthenI')
+    })
+
+    it.each([null, false, ''])(
+      'drops the default plus when the separator is %j',
+      (separator) => {
+        onPlatform('Win32')
+        const { container } = render(
+          <Kbd keys={['mod', 'k']} combined separator={separator} />
+        )
+        expect(separators(container)).toHaveLength(0)
+        expect(container.firstElementChild).toHaveTextContent('CtrlK')
+      }
+    )
+
+    it('reads a word separator aloud when keys are announced', () => {
+      onPlatform('Win32')
+      const { container } = render(
+        <Kbd keys={['g', 'i']} separator='then' announce />
+      )
+      const [then] = separators(container)
+      expect(then).not.toHaveAttribute('aria-hidden')
+      expect(then!.closest('[aria-hidden="true"]')).toBeNull()
+      // Spaced, so a screen reader doesn't run it into the key names.
+      expect(then!.textContent).toBe(' then ')
+    })
+
+    it('keeps a symbol separator silent when keys are announced', () => {
+      onPlatform('Win32')
+      const { container } = render(
+        <Kbd keys={['mod', 'k']} separator='+' announce />
+      )
+      expect(separators(container)[0]).toHaveAttribute('aria-hidden', 'true')
+    })
+  })
+
   it('forwards props to the root', () => {
     const { container } = render(
       <Kbd keys={['k']} className='custom' data-testid='root' />
@@ -157,6 +306,15 @@ describe('Kbd', () => {
 })
 
 describe('Kbd platform keys across hydration', () => {
+  it('hides a combined plus until the platform is known', () => {
+    const html = renderToString(<Kbd keys={['mod', 'd']} combined />)
+    const holder = document.createElement('div')
+    holder.innerHTML = html
+    expect(holder.querySelector('[data-slot="kbd-separator"]')).toHaveClass(
+      'invisible'
+    )
+  })
+
   async function hydrate(platform: string) {
     const element = <Kbd keys={['mod', 'k']} announce />
     const serverHtml = renderToString(element)

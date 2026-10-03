@@ -51,3 +51,24 @@ export function shownFill(element: Element): Rgb {
 export function over(base: Rgb, colour: string): Rgb {
   return flatten(`rgb(${base.join(' ')})`, colour)
 }
+
+// APCA-W3 0.0.98G, constants as published in Myndex/apca-w3
+// (src/apca-w3.js, SA98G). Returns Lc; negative is light text on dark.
+export function apcaLc(text: Rgb, background: Rgb) {
+  const screenY = ([r, g, b]: Rgb) => {
+    const y =
+      0.2126729 * (r / 255) ** 2.4 +
+      0.7151522 * (g / 255) ** 2.4 +
+      0.072175 * (b / 255) ** 2.4
+    return y < 0.022 ? y + (0.022 - y) ** 1.414 : y
+  }
+  const textY = screenY(text)
+  const backgroundY = screenY(background)
+  if (Math.abs(backgroundY - textY) < 0.0005) return 0
+  if (backgroundY > textY) {
+    const sapc = (backgroundY ** 0.56 - textY ** 0.57) * 1.14
+    return sapc < 0.1 ? 0 : (sapc - 0.027) * 100
+  }
+  const sapc = (backgroundY ** 0.65 - textY ** 0.62) * 1.14
+  return sapc > -0.1 ? 0 : (sapc + 0.027) * 100
+}
