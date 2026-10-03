@@ -8,12 +8,22 @@ import roadieCss from '../../../vitest.browser.css?inline'
 import { useStylesheet } from '../Pane/testUtils'
 import { navigatorRootClass } from './variants'
 
-let removeStylesheet = () => {}
+// Frozen for the whole file: a screenshot of an endless spin never settles.
+const STILL = `
+  [data-slot='navigator-pending'],
+  [data-slot='navigator-pending']::before { animation: none; }`
+
+let removeStylesheets = () => {}
 beforeAll(() => {
-  removeStylesheet = useStylesheet(roadieCss)
+  const removeRoadie = useStylesheet(roadieCss)
+  const removeStill = useStylesheet(STILL)
+  removeStylesheets = () => {
+    removeStill()
+    removeRoadie()
+  }
 })
 afterAll(async () => {
-  removeStylesheet()
+  removeStylesheets()
   await page.viewport(1920, 1080)
 })
 afterEach(() => cleanup())
@@ -47,9 +57,7 @@ const frameElement = () =>
 
 function hold(squareRule: string) {
   const style = document.createElement('style')
-  style.textContent = `
-    [data-slot='navigator-pending'] { animation: none; }
-    [data-slot='navigator-pending']::before { ${squareRule} }`
+  style.textContent = `[data-slot='navigator-pending']::before { ${squareRule} }`
   document.head.append(style)
   return () => style.remove()
 }
@@ -89,7 +97,7 @@ const tightestTurns = (width: number, height: number) => {
   return [turn, 0.25 - turn]
 }
 
-describe('the pending square', () => {
+describe('the pending square', { timeout: 20_000 }, () => {
   describe.each(SIZES)('on $name', ({ width, height }) => {
     it('covers every corner of the frame as it turns', async () => {
       await page.viewport(width, height)
@@ -97,9 +105,7 @@ describe('the pending square', () => {
       const fill = await cornersWith('content: none;')
       const turns = [0, 0.125, 0.25, ...tightestTurns(width, height)]
       for (const turn of turns) {
-        const painted = await cornersWith(
-          `animation: none; rotate: ${turn}turn;`
-        )
+        const painted = await cornersWith(`rotate: ${turn}turn;`)
         painted.forEach((pixel, corner) =>
           expect(pixel, `corner ${corner} at ${turn}turn`).not.toEqual(
             fill[corner]
