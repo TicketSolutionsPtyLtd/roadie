@@ -16,7 +16,6 @@ import { Button, IconButton } from '../Button'
 import { Dialog } from '../Dialog'
 import { Drawer } from '../Drawer'
 import { Field } from '../Field'
-import { reportActionError } from './RecordsConfirm'
 
 export type ViewDialog = 'save-as' | 'rename' | 'delete'
 
@@ -58,7 +57,7 @@ function useRun(failed: string, onDone: () => void) {
       await action()
       onDone()
     } catch (caught) {
-      reportActionError(caught)
+      // Shown in the dialog, which is where the person is looking.
       setError(messageOf(caught, failed))
     } finally {
       running.current = false
@@ -204,7 +203,7 @@ export function RecordsViewName({
       body={
         <form id={formId} noValidate onSubmit={submit}>
           <Field invalid={message !== null} required>
-            <Field.Label>Name</Field.Label>
+            <Field.Label showIndicator>Name</Field.Label>
             <Field.Input
               ref={inputRef}
               value={name}

@@ -295,6 +295,34 @@ describe('Records.ViewActions', { timeout: 15_000 }, () => {
     expect(onSaveAs).toHaveBeenCalledTimes(2)
   })
 
+  it('keeps a failure it shows to the dialog, not the console', async () => {
+    const report = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const onSaveAs = vi.fn().mockRejectedValue(new Error('Name taken'))
+    render(<Harness baseline={upcoming} onSaveAs={onSaveAs} />)
+    const { user, menu } = await openMenu()
+    await user.click(
+      within(menu).getByRole('menuitem', { name: 'Save as new view' })
+    )
+    const dialog = await screen.findByRole('dialog')
+    await user.type(within(dialog).getByRole('textbox'), 'Perth{Enter}')
+    expect(await within(dialog).findByText('Name taken')).toBeInTheDocument()
+    expect(report).not.toHaveBeenCalled()
+    report.mockRestore()
+  })
+
+  it('marks the name as required', async () => {
+    render(<Harness baseline={upcoming} {...handlers()} />)
+    const { user, menu } = await openMenu()
+    await user.click(
+      within(menu).getByRole('menuitem', { name: 'Save as new view' })
+    )
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByRole('textbox', { name: 'Name' })).toBeRequired()
+    expect(
+      dialog.querySelector('[data-slot="required-indicator"]')
+    ).not.toBeNull()
+  })
+
   it('shows a plain message for a failure that has none', async () => {
     const onSaveAs = vi.fn().mockRejectedValue('nope')
     render(<Harness baseline={upcoming} onSaveAs={onSaveAs} />)
