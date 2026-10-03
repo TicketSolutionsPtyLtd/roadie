@@ -8,3 +8,8 @@ then drops the tap's click, so a tapped suggestion closed the list without
 choosing. A touch now keeps its click, and its `mouseup` no longer chooses a
 second time. This also fixes date suggestions in `DateField`, `DatePicker` and
 `DateRangePicker`.
+
+The date suggestions' Enter hint now shows only for a highlight made by typing
+or the keys. iOS reads a row that grows content under the finger as a hover
+and drops the tap's click, so a tap on a suggestion's empty right side, where
+the hint appeared, didn't choose it.

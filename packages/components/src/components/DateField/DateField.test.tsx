@@ -483,6 +483,24 @@ describe('DateField', () => {
       )
     })
 
+    it('shows the Enter hint for typing and keys, not for a pointer', async () => {
+      render(<DateField aria-label='Show date' today={TODAY} />)
+      const input = screen.getByRole('combobox')
+      await userEvent.type(input, 'fr')
+      const second = await screen.findByRole('option', { name: /^Next Fri/ })
+      await userEvent.hover(second)
+      await waitFor(() => expect(second).toHaveAttribute('data-highlighted'))
+      expect(options()).toEqual([
+        'FriFri 9 Oct 2026',
+        'Next FriFri 16 Oct 2026'
+      ])
+      await userEvent.keyboard('{ArrowUp}')
+      expect(options()).toEqual([
+        'FriFri 9 Oct 2026Enter',
+        'Next FriFri 16 Oct 2026'
+      ])
+    })
+
     // "s" gives Sat, Next Sat, Sun, Next Sun; ranking by closeness would
     // pull Sun ahead of Next Sat.
     it.each(['next', 's'])(
