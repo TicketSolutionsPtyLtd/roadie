@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 
+import { plainDateOf } from '@oztix/roadie-core/datetime'
 import type { RecordField, RecordFilter } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -109,7 +110,7 @@ export function RecordsSearch({
   shortcut = '/',
   className
 }: RecordsSearchProps) {
-  const { records } = useRecordsContext()
+  const { records, latestRecords } = useRecordsContext()
   const fields = useListedFields(records)
   const filters = records.view.query.filters
   const [pending, setPending] = useState<string | null>(null)
@@ -181,7 +182,12 @@ export function RecordsSearch({
     const session = ++sessions.current
     // Opens with its controls, so focus has somewhere to land.
     void RecordsFilterEditorLazy.preload().then((ready) => {
-      if (ready && session === sessions.current)
+      const now = latestRecords.current.view.query.filters
+      // The chip may have gone while the editor loaded, as with Clear.
+      const gone =
+        next.index !== null &&
+        !(opened && now[next.index] && sameFilter(now[next.index]!, opened))
+      if (ready && !gone && session === sessions.current)
         setEditing({
           ...next,
           written: opened ? [opened] : [],
@@ -303,7 +309,10 @@ export function RecordsSearch({
           const index = chipIds.indexOf(id)
           if (index >= 0) records.removeFilter(index)
         }}
-        onClear={records.clearQuery}
+        onClear={() => {
+          dropOpening()
+          records.clearQuery()
+        }}
         onEditChip={(id, anchor) => {
           const index = chipIds.indexOf(id)
           const filter = filters[index]
@@ -365,6 +374,7 @@ export function RecordsSearch({
             field={editingField}
             filter={editingFilter ?? null}
             timeZone={records.timeZone}
+            today={plainDateOf(records.now, records.timeZone)}
             onEmptyChange={(empty) => {
               emptied.current = empty
             }}

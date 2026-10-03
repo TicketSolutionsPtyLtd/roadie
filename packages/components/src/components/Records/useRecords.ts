@@ -403,8 +403,11 @@ export function useRecords<Row extends object>({
     if (writes.current === writesSeen.current) written.current = null
     writesSeen.current = writes.current
   })
+  // By content, as a parent rendering for another reason may rebuild the view.
   const latestView = () =>
-    written.current && written.current.base === view
+    written.current &&
+    (written.current.base === view ||
+      JSON.stringify(written.current.base) === JSON.stringify(view))
       ? written.current.next
       : view
   const setView = (

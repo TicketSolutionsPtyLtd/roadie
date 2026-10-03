@@ -284,6 +284,18 @@ export type ChipOptions = {
 
 export const scopeChipId = (index: number) => `scope:${index}`
 
+const NOT_APPLIED = 'Not applied: these records can’t be filtered this way'
+
+/** Whether these fields can apply a filter, as the records decide. */
+function fits(filter: RecordFilter, fields: readonly RecordField[]) {
+  const field = fields.find(({ key }) => key === filter.field)
+  return (
+    !!field &&
+    field.filterable !== false &&
+    recordFilterOperators(field).includes(filter.operator)
+  )
+}
+
 /**
  * Each filter's chip id, by what it filters rather than where it sits, so a
  * click on a chip that has just moved never reaches its neighbour.
@@ -309,19 +321,20 @@ export function searchChips(
   return [
     ...scope.map((filter, index) => {
       const { label, detail } = describe(filter)
+      const unusable = !fits(filter, context.fields)
+      const description = unusable ? NOT_APPLIED : detail
       return {
         id: scopeChipId(index),
         label,
         locked: true,
-        ...(detail && { description: detail })
+        ...(unusable && { intent: 'warning' as const }),
+        ...(description && { description })
       }
     }),
     ...filters.map((filter, index) => {
       const { label, detail } = describe(filter)
       const unusable = skipped.includes(index)
-      const description = unusable
-        ? 'Not applied: these records can’t be filtered this way'
-        : detail
+      const description = unusable ? NOT_APPLIED : detail
       return {
         id: ids[index]!,
         label,

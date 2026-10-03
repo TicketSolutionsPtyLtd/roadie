@@ -260,6 +260,18 @@ describe('mergeFilter', () => {
 })
 
 describe('searchChips', () => {
+  it('marks a scope filter these fields can’t apply', () => {
+    const [chip] = searchChips(
+      {
+        scope: [{ field: 'venue', operator: 'is', values: ['x'] }],
+        filters: [],
+        skipped: []
+      },
+      context()
+    )
+    expect(chip).toMatchObject({ locked: true, intent: 'warning' })
+  })
+
   it('puts locked scope chips first, and marks a filter that can’t apply', () => {
     const chips = searchChips(
       {

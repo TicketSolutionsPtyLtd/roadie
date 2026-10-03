@@ -69,6 +69,8 @@ export type RecordsFilterEditorProps = {
   /** Whether the value has been cleared, so the filter asks for nothing. */
   onEmptyChange?: (empty: boolean) => void
   timeZone: string
+  /** Today in `timeZone`, as the records read it. */
+  today?: string
 }
 
 /** One filter's operator and value, written as they change. */
@@ -78,7 +80,8 @@ export function RecordsFilterEditor({
   onChange,
   onRemove,
   onEmptyChange,
-  timeZone
+  timeZone,
+  today
 }: RecordsFilterEditorProps) {
   const [draft, setDraft] = useState(() => draftOf(field, filter))
   // The last filter written, which a parent may not have shown yet.
@@ -147,6 +150,7 @@ export function RecordsFilterEditor({
           draft={draft}
           update={update}
           timeZone={timeZone}
+          today={today}
         />
       )}
       {onRemove && (
@@ -170,9 +174,16 @@ type ValueEditorProps = {
   draft: FilterDraft
   update: (patch: Partial<FilterDraft>) => void
   timeZone: string
+  today?: string
 }
 
-function ValueEditor({ field, draft, update, timeZone }: ValueEditorProps) {
+function ValueEditor({
+  field,
+  draft,
+  update,
+  timeZone,
+  today
+}: ValueEditorProps) {
   const name = field.label
   switch (field.type) {
     case 'option':
@@ -221,6 +232,7 @@ function ValueEditor({ field, draft, update, timeZone }: ValueEditorProps) {
             .filter((value) => value !== 'upcoming' && value !== 'past')
             .map((value) => ({ value }))}
           timeZone={timeZone}
+          today={today}
           granularity={granularity(field)}
         />
       ) : (
@@ -231,6 +243,7 @@ function ValueEditor({ field, draft, update, timeZone }: ValueEditorProps) {
           value={draft.date}
           onValueChange={(date) => update({ date })}
           timeZone={timeZone}
+          today={today}
         />
       )
     default:
@@ -242,7 +255,7 @@ function OptionValues({
   field,
   draft,
   update
-}: Omit<ValueEditorProps, 'timeZone'>) {
+}: Omit<ValueEditorProps, 'timeZone' | 'today'>) {
   const [query, setQuery] = useState('')
   const options = useMemo(() => {
     const paths = recordOptionPaths(field)

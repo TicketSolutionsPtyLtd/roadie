@@ -470,6 +470,20 @@ describe('useRecords writes in one event', () => {
     })
   })
 
+  it('keeps building when a parent rebuilds the same view before showing a write', async () => {
+    const onViewChange = vi.fn()
+    const { result, rerender } = setup({ view: view(), onViewChange })
+    await act(() =>
+      result.current.addFilter({ field: 'sold', operator: 'gt', value: 1 })
+    )
+    rerender({ view: view() })
+    await act(() => result.current.setSearch('ocean'))
+    expect(onViewChange.mock.lastCall![0].query).toMatchObject({
+      search: 'ocean',
+      filters: [{ field: 'sold', operator: 'gt', value: 1 }]
+    })
+  })
+
   it('starts afresh once a parent renders twice without showing a write', async () => {
     const onViewChange = vi.fn()
     const shown = view()
@@ -487,7 +501,8 @@ describe('useRecords writes in one event', () => {
     const onViewChange = vi.fn()
     const { result, rerender } = setup({ view: view(), onViewChange })
     await act(() => result.current.setSearch('ocean'))
-    // The parent turned the change down and rendered the same view.
+    // The parent turned the change down and rendered the same view, twice.
+    rerender({ view: view() })
     rerender({ view: view() })
     await act(() => result.current.setSort([]))
     expect(onViewChange.mock.lastCall![0].query.search).toBe('')
