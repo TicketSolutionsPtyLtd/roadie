@@ -193,9 +193,9 @@ describe('DashboardPeriod', () => {
     await userEvent.click(picker())
     const dialog = await screen.findByRole('dialog')
     await userEvent.clear(
-      within(dialog).getByRole('textbox', { name: 'Start' })
+      within(dialog).getByRole('combobox', { name: 'Start' })
     )
-    await userEvent.clear(within(dialog).getByRole('textbox', { name: 'End' }))
+    await userEvent.clear(within(dialog).getByRole('combobox', { name: 'End' }))
     await userEvent.tab()
     expect(within(dialog).getByRole('button', { name: 'Apply' })).toBeDisabled()
   })

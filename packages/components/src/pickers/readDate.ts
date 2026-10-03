@@ -4,6 +4,7 @@ import {
   formatDateTime,
   isAbsoluteRange,
   parseDatePhrase,
+  plainDateOf,
   resolveDateRange,
   viewerTimeZone
 } from '@oztix/roadie-core/datetime'
@@ -59,22 +60,22 @@ function gregorian(locale: string | undefined): string | undefined {
   }
 }
 
-function singleDate(
+/** The days a phrase's value covers, or null when it covers no whole days. */
+function daysOf(
   value: DatePhraseValue,
   options: { now: Instantish; timeZone: string; weekStart?: number }
-): string | null {
-  if (typeof value === 'object' && 'on' in value) return value.on
+): { start: string; end: string } | null {
+  if (typeof value === 'object' && 'on' in value)
+    return { start: value.on, end: value.on }
   if (
     typeof value === 'object' &&
     ('time' in value || 'before' in value || 'after' in value)
   )
     return null
-  if (isAbsoluteRange(value)) {
-    return value.start === value.end ? value.start : null
-  }
+  if (isAbsoluteRange(value)) return value
   const range = resolveDateRange(value, options)
-  return range.kind === 'dates' && range.start === range.end
-    ? range.start
+  return range.kind === 'dates' && range.start !== null && range.end !== null
+    ? { start: range.start, end: range.end }
     : null
 }
 
@@ -173,29 +174,61 @@ function inEnglish(text: string, locale: string): string | null {
   return null
 }
 
-/** The one date typed text names, or why it names none. */
-export function readDate(text: string, options: ReadDateOptions): ReadResult {
-  if (!text.trim()) return { value: null }
+export type DateReading = {
+  /** The parser's name for it, such as "This week" or "Fri 9 Oct 2026". */
+  label: string
+  /** Whether it is a word for a date, like "tomorrow", not the date itself. */
+  relative: boolean
+  start: string
+  end: string
+}
+
+export function todayOf(options: ReadDateOptions): string {
+  return (
+    options.today ?? plainDateOf(options.now ?? new Date(), zoneOf(options))
+  )
+}
+
+function zoneOf(options: ReadDateOptions): string {
+  return options.timeZone ?? viewerTimeZone()
+}
+
+/** Every reading of typed text that covers whole days, best first. */
+export function readDays(
+  text: string,
+  options: ReadDateOptions
+): DateReading[] {
+  if (!text.trim()) return []
   const context = options.today
     ? { now: instantOf(options.today), timeZone: 'UTC' }
-    : {
-        now: options.now ?? new Date(),
-        timeZone: options.timeZone ?? viewerTimeZone()
-      }
+    : { now: options.now ?? new Date(), timeZone: zoneOf(options) }
   const phraseOptions = {
     ...context,
     weekStart: options.weekStart,
     locale: options.locale
   }
-  const dateIn = (phrase: string) =>
-    parseDatePhrase(phrase, phraseOptions)
-      .map(({ value }) => singleDate(value, phraseOptions))
-      .find((found): found is string => found !== null)
+  const readingsOf = (phrase: string) =>
+    parseDatePhrase(phrase, phraseOptions).flatMap(({ label, value }) => {
+      const days = daysOf(value, phraseOptions)
+      const relative = !(
+        typeof value === 'object' &&
+        ('on' in value || 'start' in value)
+      )
+      return days ? [{ label, relative, ...days }] : []
+    })
   const local = options.locale ? inEnglish(text, options.locale) : null
   // The local reading first: some local abbreviations are English months
   // ("Jan" is June in Sesotho). English typing has no local month, so falls
   // through to the raw text.
-  const date = (local ? dateIn(local) : undefined) ?? dateIn(text)
+  return [...(local ? readingsOf(local) : []), ...readingsOf(text)]
+}
+
+/** The one date typed text names, or why it names none. */
+export function readDate(text: string, options: ReadDateOptions): ReadResult {
+  if (!text.trim()) return { value: null }
+  const date = readDays(text, options).find(
+    (reading) => reading.start === reading.end
+  )?.start
   if (!date) return { error: TYPE_A_DATE }
   if (matchesDate(date, options.disabled)) {
     return {

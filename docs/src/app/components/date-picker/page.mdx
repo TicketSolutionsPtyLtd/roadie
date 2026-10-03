@@ -20,7 +20,7 @@ import { DatePicker } from '@oztix/roadie-components/date-picker'
 
 ### Default
 
-Type a date, as in [DateField](/components/date-field), or press the calendar button and choose a day. The calendar opens on the chosen day, or on today, with focus on it. Choosing a day closes it and puts focus back on the button. The value is a plain ISO date such as `'2026-11-27'`, or null.
+Type a date, as in [DateField](/components/date-field), or press the calendar button and choose a day. Focus the empty field for hints at what can be typed, such as Tomorrow or In 2 weeks, and as you type, the first suggestion is highlighted so `Enter` takes it. The calendar opens on the chosen day, or on today, with focus on it. Choosing a day closes it and puts focus back on the button. The value is a plain ISO date such as `'2026-11-27'`, or null.
 
 ```tsx-live-noinline
 function Default() {
@@ -197,11 +197,12 @@ Wrap it in [Field](/components/field). The label points at the date input, and `
 
 ## Accessibility
 
-- The date is a text input, labelled by `Field.Label` or `aria-label`. The calendar button is named after the picker and its date, such as "Choose date, Doors (Fri 27 Nov 2026)", and the popup "Choose date, Doors", so pickers side by side stay apart.
+- The date is a combobox, a text input with suggestions, labelled by `Field.Label` or `aria-label`. The calendar button is named after the picker and its date, such as "Choose date, Doors (Fri 27 Nov 2026)", and the popup "Choose date, Doors", so pickers side by side stay apart.
 - On a screen narrower than 48rem, the calendar opens in a bottom [Drawer](/components/drawer) instead of a popover. Screen readers announce a dialog with the same name. Its title is the picker's label, days grow to fill the width up to 48px, and Close, `Escape`, a tap outside or a swipe down closes it.
 - At `minute` granularity the date and the time are a `group` named by the label, with inputs named "Date" and "Time".
 - Opening the calendar moves focus to the chosen day, or to today. Arrow keys, `Page Up`, `Page Down`, `Home` and `End` move as in [Calendar](/components/calendar). `Enter` or `Space` chooses the focused day and closes it. `Escape` closes it without a change. Either way focus goes back to the button, so on a phone the keyboard doesn't open.
-- While text is being edited, `Enter` commits it instead of submitting the form, and `Escape` puts back the last date.
+- Focusing the empty date opens hints with nothing highlighted, so `Enter` still submits the form. Once you type, the first suggestion is highlighted and `Enter` takes it. The arrow keys move through the list, and `Escape` closes it and keeps the text. On a phone the list opens under the field, above the page.
+- With no suggestion highlighted, `Enter` commits typed text instead of submitting the form, and `Escape` puts back the last date.
 - With a `name`, a hidden input submits the value, so a form never receives the formatted text. A disabled picker submits nothing.
 
 <PropsDefinitions componentPath='packages/components/src/components/DatePicker/DatePicker.tsx' />

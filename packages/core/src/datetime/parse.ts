@@ -13,9 +13,11 @@ import { formatResolved, plainDateInstant, relativeLabel } from './describe'
 import { formatDateTime, formatTimeOfDay } from './format'
 import {
   addDays,
+  addMonths,
   compareDates,
   dayNumber,
   dayOfWeek,
+  daysInMonth,
   isPlainDate,
   plainDateOf,
   plainDateParts,
@@ -292,6 +294,43 @@ function weekdayDates(
     : [inNextWeek, comingAfterToday]
 }
 
+const MONTHS_IN: Record<string, number> = { month: 1, mth: 1, year: 12, yr: 12 }
+const DAYS_IN: Record<string, number> = { day: 1, week: 7, wk: 7 }
+
+/** "in 2 weeks": the day that far from today, or null past year 9999. */
+function dateAhead(today: string, count: string, unit: string): string | null {
+  const amount = count === 'a' || count === 'an' ? 1 : Number(count)
+  if (amount < 1) return null
+  try {
+    if (Object.hasOwn(DAYS_IN, unit))
+      return addDays(today, amount * DAYS_IN[unit]!)
+    if (Object.hasOwn(MONTHS_IN, unit))
+      return addMonths(today, amount * MONTHS_IN[unit]!)
+  } catch {
+    return null
+  }
+  return null
+}
+
+/** The last day of this week, month or year, or null past year 9999. */
+function endOf(
+  period: string,
+  today: string,
+  weekStart: number
+): string | null {
+  if (period === 'week') {
+    const start = startOfWeek(today, weekStart)
+    try {
+      return addDays(start, 6)
+    } catch {
+      return null
+    }
+  }
+  const { year, month } = plainDateParts(today)
+  if (period === 'year') return toPlainDate(year, 12, 31)
+  return toPlainDate(year, month, daysInMonth(year, month))
+}
+
 function rolling(
   direction: string,
   amount: number,
@@ -366,6 +405,17 @@ export function parseDatePhrase(
     const amount = Number(m[2])
     if (amount < 1) return []
     return UNIT_ORDER.map((unit) => describe(rolling(m![1]!, amount, unit)))
+  }
+
+  m = /^in (a|an|\d{1,4}) ([a-z]+?)s?$/.exec(input)
+  if (m) {
+    const date = dateAhead(today, m[1]!, m[2]!)
+    return date ? [on(date)] : []
+  }
+  m = /^end of (?:the )?(week|month|year)$/.exec(input)
+  if (m) {
+    const date = endOf(m[1]!, today, weekStart)
+    return date ? [on(date)] : []
   }
 
   m = /^(?:(this|next|last) )?([a-z]+)$/.exec(input)

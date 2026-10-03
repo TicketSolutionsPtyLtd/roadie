@@ -301,6 +301,17 @@ export function DateRangePicker({
     if (close) changeOpen(false)
   }
 
+  function takeRange({ start, end }: { start: string; end: string }) {
+    change(
+      {
+        chosen: null,
+        start: { ...draft.start, date: start, unreadable: false },
+        end: { ...draft.end, date: end, unreadable: false }
+      },
+      { month: monthShowing(start) }
+    )
+  }
+
   const firstOf = (date: string) => `${date.slice(0, 8)}01`
   const opening = draftFrom(value, context)
   const openingDate = opening.start.date ?? opening.end.date ?? today
@@ -517,6 +528,8 @@ export function DateRangePicker({
                 locale={locale}
                 disabled={locked}
                 inputRef={startRef}
+                span={length}
+                onRange={takeRange}
               />
               <RangeEndField
                 label='End'
@@ -534,6 +547,8 @@ export function DateRangePicker({
                 minuteStep={minuteStep}
                 locale={locale}
                 disabled={locked}
+                span={length}
+                onRange={takeRange}
               />
             </div>
             <Calendar

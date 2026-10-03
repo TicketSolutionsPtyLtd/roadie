@@ -162,6 +162,53 @@ describe('parseDatePhrase: weekdays', () => {
   })
 })
 
+describe('parseDatePhrase: in and end of', () => {
+  it.each<[string, string]>([
+    ['in 3 days', '2026-10-05'],
+    ['in 1 day', '2026-10-03'],
+    ['in a week', '2026-10-09'],
+    ['in 2 weeks', '2026-10-16'],
+    ['in 2 wks', '2026-10-16'],
+    ['in 2 months', '2026-12-02'],
+    ['in an hour', ''],
+    ['in 1 year', '2027-10-02'],
+    ['end of week', '2026-10-04'],
+    ['end of the month', '2026-10-31'],
+    ['end of month', '2026-10-31'],
+    ['end of year', '2026-12-31']
+  ])('%s', (text, on) => {
+    const values = parseDatePhrase(text, SYDNEY).map((s) => s.value)
+    expect(values).toEqual(on ? [{ on }] : [])
+  })
+
+  it('labels the date it lands on', () => {
+    expect(parseDatePhrase('in 2 weeks', SYDNEY)).toEqual(
+      one('Fri 16 Oct 2026', { on: '2026-10-16' })
+    )
+  })
+
+  it('clamps a month ahead to the end of a shorter month', () => {
+    const january = { ...SYDNEY, now: new Date('2026-01-31T00:00:00Z') }
+    expect(parseDatePhrase('in 1 month', january)[0]?.value).toEqual({
+      on: '2026-02-28'
+    })
+  })
+
+  it('offers no end of week past year 9999', () => {
+    const last = { now: new Date('9999-12-31T12:00:00Z'), timeZone: 'UTC' }
+    expect(parseDatePhrase('end of week', last)).toEqual([])
+    expect(parseDatePhrase('end of month', last)[0]?.value).toEqual({
+      on: '9999-12-31'
+    })
+  })
+
+  it('ends the week on the day before weekStart', () => {
+    expect(
+      parseDatePhrase('end of week', { ...SYDNEY, weekStart: 7 })[0]?.value
+    ).toEqual({ on: '2026-10-03' })
+  })
+})
+
 describe('parseDatePhrase: dates', () => {
   it.each<[string, DatePhraseSuggestion[]]>([
     ['14 mar', one('Sun 14 Mar 2027', { on: '2027-03-14' })],
@@ -270,6 +317,10 @@ describe('parseDatePhrase: nothing to offer', () => {
     '25:00',
     '13pm',
     'between 14 and 1 mar 2027',
+    'in 0 days',
+    'in 9999 years',
+    'in 2 fortnights',
+    'end of days',
     'x'
   ])('%j', (text) => {
     expect(parseDatePhrase(text, SYDNEY)).toEqual([])

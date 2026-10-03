@@ -84,6 +84,13 @@ export function useTypedValue<T = string>({
     return 'error' in result ? undefined : result.value
   }
 
+  /** Drops the draft and its error without changing the value. */
+  function discard() {
+    setDraft(null)
+    setError(null)
+    setBeforeError(undefined)
+  }
+
   function revert() {
     if (beforeError !== undefined) setValue(beforeError)
     else {
@@ -119,6 +126,7 @@ export function useTypedValue<T = string>({
     setText: setDraft,
     setValue,
     commit,
+    discard,
     draftValue,
     onKeyDown
   }

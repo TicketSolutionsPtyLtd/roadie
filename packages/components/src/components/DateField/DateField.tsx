@@ -4,8 +4,9 @@ import type { ComponentProps } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { TypedInput } from '../../pickers/TypedInput'
+import { SuggestingInput } from '../../pickers/SuggestingInput'
 import { type DateStyle, formatDate, readDate } from '../../pickers/readDate'
+import { suggestDates } from '../../pickers/suggestDates'
 import { useTypedValue } from '../../pickers/useTypedValue'
 import { type CalendarMatchers } from '../Calendar/matchers'
 import { useFieldControlError } from '../Field/FieldContext'
@@ -55,7 +56,10 @@ export type DateFieldProps = Omit<
   locale?: string
 }
 
-/** A text field that reads a typed date, such as "14 mar" or "next fri". */
+/**
+ * A text field that reads a typed date, such as "14 mar" or "next fri", and
+ * suggests dates as you type.
+ */
 export function DateField({
   value,
   defaultValue,
@@ -72,27 +76,29 @@ export function DateField({
   className,
   ...props
 }: DateFieldProps) {
+  const readOptions = {
+    today,
+    timeZone,
+    weekStart,
+    locale,
+    dateStyle,
+    disabled: typeof disabled === 'boolean' ? undefined : disabled
+  }
   const typed = useTypedValue({
     value,
     defaultValue,
     onValueChange,
     format: (date) => formatDate(date, { dateStyle, locale }),
-    read: (text) =>
-      readDate(text, {
-        today,
-        timeZone,
-        weekStart,
-        locale,
-        dateStyle,
-        disabled: typeof disabled === 'boolean' ? undefined : disabled
-      })
+    read: (text) => readDate(text, readOptions)
   })
   useFieldControlError(typed.error)
 
   return (
-    <TypedInput
+    <SuggestingInput
       data-slot='date-field'
       typed={typed}
+      suggest={(text) => suggestDates(text, readOptions)}
+      onChoose={(suggestion) => typed.setValue(suggestion.start)}
       disabled={disabled === true}
       invalid={invalid}
       className={cn(inputVariants({ size, emphasis }), className)}

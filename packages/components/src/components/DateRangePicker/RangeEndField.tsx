@@ -4,6 +4,7 @@ import { type Ref, useEffect } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { SuggestingInput } from '../../pickers/SuggestingInput'
 import { TypedInput } from '../../pickers/TypedInput'
 import {
   type ReadDateOptions,
@@ -11,6 +12,7 @@ import {
   readDate
 } from '../../pickers/readDate'
 import type { HourCycle } from '../../pickers/readTime'
+import { suggestDates } from '../../pickers/suggestDates'
 import { useTimeInput } from '../../pickers/useTimeInput'
 import { useTypedValue } from '../../pickers/useTypedValue'
 import { Field, useFieldContext } from '../Field'
@@ -31,6 +33,10 @@ export type RangeEndFieldProps = {
   locale?: string
   disabled?: boolean
   inputRef?: Ref<HTMLInputElement>
+  /** The fewest and most days a suggested range may span. */
+  span?: { min?: number; max?: number }
+  /** A suggested range was taken: both ends change. */
+  onRange: (range: { start: string; end: string }) => void
 }
 
 /** One end of a range: a typed date and, at minute granularity, a time. */
@@ -57,7 +63,9 @@ function RangeEndInputs({
   hourCycle,
   minuteStep,
   locale,
-  inputRef
+  inputRef,
+  span,
+  onRange
 }: Omit<RangeEndFieldProps, 'error' | 'disabled'>) {
   const field = useFieldContext()
   const date = useTypedValue({
@@ -105,9 +113,25 @@ function RangeEndInputs({
         withTime && 'grid-cols-[minmax(0,1fr)_minmax(0,6.5rem)]'
       )}
     >
-      <TypedInput
+      <SuggestingInput
         data-slot='date-range-picker-input'
         typed={date}
+        suggest={(text) =>
+          suggestDates(text, {
+            ...read,
+            locale,
+            ranges: true,
+            minDays: span?.min,
+            maxDays: span?.max
+          })
+        }
+        onChoose={({ start, end }) => {
+          if (start === end) return date.setValue(start)
+          // The range may leave this end's date as it was, so the typed
+          // text would stay; it has been taken, so it goes.
+          date.discard()
+          onRange({ start, end })
+        }}
         ref={inputRef}
         className={inputVariants({ size: 'sm' })}
       />
