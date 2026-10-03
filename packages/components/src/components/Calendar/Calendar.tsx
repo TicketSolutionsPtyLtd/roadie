@@ -27,7 +27,9 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { mergeRefs } from '../../utils/mergeRefs'
+import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { IconButton } from '../Button/IconButton'
+import { surfaceClass, useSurface } from '../Records/surface'
 import { dateForKey } from './keys'
 import {
   dayLabel,
@@ -46,6 +48,7 @@ import {
   type CalendarMode,
   type CalendarSelection,
   isSelected,
+  lengthRule,
   previewRange,
   selectDate,
   withinLength
@@ -68,13 +71,23 @@ type CalendarBaseProps = Omit<
   modifiers?: Record<string, CalendarMatchers>
   /**
    * Months shown at once, side by side where they fit and stacked where
-   * they don't.
+   * they don't. Paged only.
    *
    * @default 1
    */
   numberOfMonths?: number
   /**
-   * `dropdown` swaps the month name for month and year selects.
+   * `paged` turns the months with arrows. `scroll` stacks them in a list
+   * that scrolls, under one pinned row of weekdays, adding months as it
+   * nears either end. It opens on `month`, the selection or today, scrolls
+   * to `month` when it changes, and in a box that scrolls calls
+   * `onMonthChange` with the month at the top as it scrolls.
+   *
+   * @default 'paged'
+   */
+  layout?: 'paged' | 'scroll'
+  /**
+   * `dropdown` swaps the month name for month and year selects. Paged only.
    *
    * @default 'label'
    */
@@ -160,10 +173,12 @@ type AnyCalendarProps = CalendarBaseProps & {
   max?: number
 }
 
+export type CalendarLayout = 'paged' | 'scroll'
+
 const emptyRange = (): CalendarDateRange => ({ start: null, end: null })
 
 const dayVariants = cva(
-  'relative grid size-(--calendar-day-size) place-content-center rounded-full border text-sm tabular-nums is-interactive',
+  'relative mx-auto grid aspect-square w-full max-w-12 place-content-center rounded-full border text-sm tabular-nums is-interactive',
   {
     variants: {
       look: {
@@ -171,8 +186,9 @@ const dayVariants = cva(
         // Forced colours drop the fills, so a Highlight edge carries the state.
         chosen:
           'intent-accent emphasis-strong font-semibold forced-colors:border-[Highlight]',
+        // The band is the cell's, so it runs edge to edge past the circle.
         middle:
-          'intent-accent emphasis-subtle rounded-none border-transparent shadow-none active:transform-none forced-colors:border-[Highlight]'
+          'intent-accent emphasis-subtler border-transparent forced-colors:border-[Highlight]'
       },
       outside: { true: '', false: '' }
     },
@@ -200,6 +216,33 @@ function between(date: string, start: string, end: string) {
   return compareDates(date, start) >= 0 && compareDates(date, end) <= 0
 }
 
+/** Months either side of the opening month a scrolling calendar starts with. */
+const SCROLL_BEFORE = 3
+const SCROLL_AFTER = 6
+/** What tells a scrolling calendar the reader has taken over its scroll. */
+const TAKE_OVER = ['pointerdown', 'wheel', 'touchstart', 'keydown'] as const
+/** Months a scrolling calendar adds as it nears an end. */
+// Many at a time, so adding above, which moves the scroll, is rare.
+const SCROLL_STEP = 12
+
+function monthsBetween(from: string, to: string): number {
+  return (
+    (yearOf(to) - yearOf(from)) * 12 + monthNumberOf(to) - monthNumberOf(from)
+  )
+}
+
+/** The box the months scroll in. Sideways scrolling alone makes `overflow-y` auto too, so it must also be taller inside than out. */
+function scrollingAncestor(node: HTMLElement): HTMLElement | null {
+  for (let el = node.parentElement; el; el = el.parentElement) {
+    if (
+      /auto|scroll/.test(getComputedStyle(el).overflowY) &&
+      el.scrollHeight > el.clientHeight
+    )
+      return el
+  }
+  return null
+}
+
 function firstSelectedOf(mode: CalendarMode, selection: CalendarSelection) {
   if (mode === 'single') return selection as string | null
   if (mode === 'multiple') return (selection as readonly string[])[0] ?? null
@@ -218,7 +261,8 @@ export function Calendar(props: CalendarProps) {
     disabled,
     modifiers,
     numberOfMonths: numberOfMonthsProp = 1,
-    captionLayout = 'label',
+    layout = 'paged',
+    captionLayout: captionLayoutProp = 'label',
     fixedWeeks = false,
     showOutsideDays = false,
     weekStart = 1,
@@ -238,6 +282,10 @@ export function Calendar(props: CalendarProps) {
 
   const id = useId()
   const rootRef = useRef<HTMLDivElement>(null)
+  const weekdaysRef = useRef<HTMLDivElement>(null)
+  useSurface(weekdaysRef, layout)
+  const scrolling = layout === 'scroll'
+  const captionLayout = scrolling ? 'label' : captionLayoutProp
   const boundedSpan =
     startMonth && endMonth
       ? (yearOf(endMonth) - yearOf(startMonth)) * 12 +
@@ -245,10 +293,9 @@ export function Calendar(props: CalendarProps) {
         monthNumberOf(startMonth) +
         1
       : Infinity
-  const numberOfMonths = Math.max(
-    1,
-    Math.min(Math.floor(numberOfMonthsProp), boundedSpan)
-  )
+  const numberOfMonths = scrolling
+    ? 1
+    : Math.max(1, Math.min(Math.floor(numberOfMonthsProp), boundedSpan))
   const today = useToday(todayProp, timeZone)
   // The grid is Gregorian, so its labels must be too, whatever the locale prefers.
   const locale = new Intl.Locale(localeProp, { calendar: 'gregory' }).toString()
@@ -291,11 +338,29 @@ export function Calendar(props: CalendarProps) {
   // With nothing to place it, the month waits for the client to know today.
   const waitingForToday = shownMonth === null
   const firstMonth = clampMonth(shownMonth ?? '2000-01-01')
-  const months = Array.from({ length: numberOfMonths }, (_, i) =>
-    addMonths(firstMonth, i)
-  )
+
+  // A scrolling calendar shows a run of months around the first one, which
+  // grows at either end as it is scrolled or the keyboard leaves it.
+  const [run, setRun] = useState<{ start: string; count: number } | null>(null)
+  const runAround = (month: string) => {
+    const start = clampMonth(addMonths(month, -SCROLL_BEFORE))
+    const last = clampMonth(addMonths(month, SCROLL_AFTER))
+    return { start, count: monthsBetween(start, last) + 1 }
+  }
+  // A first month already in the run, such as one scrolled to, keeps it.
+  const inRun = (month: string, of: NonNullable<typeof run>) =>
+    compareDates(month, of.start) >= 0 &&
+    compareDates(month, addMonths(of.start, of.count - 1)) <= 0
+  const currentRun = run && inRun(firstMonth, run) ? run : runAround(firstMonth)
+  const months = scrolling
+    ? Array.from({ length: currentRun.count }, (_, i) =>
+        addMonths(currentRun.start, i)
+      )
+    : Array.from({ length: numberOfMonths }, (_, i) => addMonths(firstMonth, i))
+  const visibleStart = months[0]!
   const lastVisibleDay = lastDayOf(months[months.length - 1]!)
-  const isVisible = (date: string) => between(date, firstMonth, lastVisibleDay)
+  const isVisible = (date: string) =>
+    between(date, visibleStart, lastVisibleDay)
 
   const [focusedDate, setFocusedDate] = useState<string | null>(null)
   const [hasFocus, setHasFocus] = useState(false)
@@ -417,7 +482,9 @@ export function Calendar(props: CalendarProps) {
     heard.month !== shownMonthKey
   ) {
     const messages = []
+    // A scrolled list is read as it scrolls; its months aren't announced.
     if (
+      !scrolling &&
       chosenMonth &&
       heard.month &&
       shownMonthKey &&
@@ -435,6 +502,12 @@ export function Calendar(props: CalendarProps) {
 
   function select(date: string) {
     if (isDayDisabled(date)) return
+    if (isOutOfRange(date)) {
+      const rule = lengthRule({ min, max })
+      // Changed text, so a second refusal is heard again.
+      setAnnouncement((said) => (said === rule ? `${rule}\u00a0` : rule))
+      return
+    }
     const next = selectDate(mode, selection, date, { required, min, max })
     if (next === selection) return
     commit(next)
@@ -442,9 +515,25 @@ export function Calendar(props: CalendarProps) {
 
   // The day's own onFocus records it, so the tab stop never moves to a day
   // that a controlled parent hasn't shown yet.
+  function extendRun(to: string) {
+    const month = monthOf(to)
+    const start =
+      compareDates(month, currentRun.start) < 0 ? month : currentRun.start
+    const last = months[months.length - 1]!
+    const end = compareDates(month, last) > 0 ? month : last
+    setRun({
+      start,
+      count: monthsBetween(start, end) + 1
+    })
+  }
+
   function moveFocus(date: string) {
     setHoverDate(null)
     setPendingFocus({ date })
+    if (scrolling) {
+      if (!isVisible(date)) extendRun(date)
+      return
+    }
     if (compareDates(date, firstMonth) < 0) changeMonth(date)
     else if (compareDates(date, lastVisibleDay) > 0)
       changeMonth(addMonths(monthOf(date), 1 - numberOfMonths))
@@ -488,7 +577,7 @@ export function Calendar(props: CalendarProps) {
     if (!button) return
     servedFocus.current = pendingFocus
     button.focus()
-  }, [pendingFocus, firstMonth])
+  }, [pendingFocus, firstMonth, visibleStart, lastVisibleDay])
 
   const todayKnown = today !== null
   useEffect(() => {
@@ -498,6 +587,198 @@ export function Calendar(props: CalendarProps) {
     // Once, as on an input, but only after hydration knows today.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todayKnown])
+
+  // Brings the first month to the top of the list, under the weekdays, when
+  // it opens and whenever the first month changes.
+  // Scrolls only for a new first month, never back to one the parent
+  // keeps, and not for the one the list reported as it scrolled.
+  const scrolledTo = useRef<string | null>(null)
+  const reported = useRef<string | null>(null)
+  const settling = useRef<(() => void) | null>(null)
+  useIsomorphicLayoutEffect(() => {
+    if (!scrolling || waitingForToday || scrolledTo.current === firstMonth)
+      return
+    if (reported.current === firstMonth) {
+      scrolledTo.current = firstMonth
+      return
+    }
+    const root = rootRef.current
+    const month = root?.querySelector(`[data-month="${firstMonth}"]`)
+    const scroller = root && scrollingAncestor(root)
+    // Hidden or not laid out yet, so try again on a later render.
+    if (!month || !scroller || scroller.clientHeight === 0) return
+    scrolledTo.current = firstMonth
+    const target = firstMonth
+    const align = () => {
+      const weekdays = weekdaysRef.current
+      const month = rootRef.current?.querySelector(`[data-month="${target}"]`)
+      if (!weekdays || !month) return
+      const stuckAt =
+        scroller.getBoundingClientRect().top +
+        weekdays.getBoundingClientRect().height +
+        (parseFloat(getComputedStyle(weekdays).top) || 0)
+      const by = month.getBoundingClientRect().top - stuckAt
+      if (Math.abs(by) >= 1) scroller.scrollBy({ top: by, behavior: 'instant' })
+      aligned = scroller.scrollTop
+    }
+    let aligned = scroller.scrollTop
+    align()
+    // Content around the list can still move as it opens, such as a tab
+    // panel on its way out, so it stays aligned until the reader takes over.
+    settling.current?.()
+    if (typeof ResizeObserver === 'undefined') return
+    // Next frame, as scrolling inside the observer's callback loops it.
+    let frame = 0
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(align)
+    })
+    observer.observe(scroller.firstElementChild ?? root)
+    // A scroll that isn't its own is the reader's, or the page's.
+    const onScroll = () => {
+      if (Math.abs(scroller.scrollTop - aligned) > 1) stop()
+    }
+    const stop = () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+      clearTimeout(timer)
+      for (const type of TAKE_OVER) scroller.removeEventListener(type, stop)
+      scroller.removeEventListener('scroll', onScroll)
+      settling.current = null
+    }
+    const timer = setTimeout(stop, 1000)
+    for (const type of TAKE_OVER)
+      scroller.addEventListener(type, stop, { passive: true })
+    scroller.addEventListener('scroll', onScroll, { passive: true })
+    settling.current = stop
+  })
+  // Only once it has really gone: a development remount keeps the same DOM.
+  useEffect(
+    () => () =>
+      queueMicrotask(() => {
+        if (!rootRef.current?.isConnected) settling.current?.()
+      }),
+    []
+  )
+
+  // Months added above would push what is in view down; the scroll moves
+  // with them. Engines that anchor scrolling themselves leave nothing to do.
+  const keptInView = useRef<{ month: string; top: number } | null>(null)
+  useIsomorphicLayoutEffect(() => {
+    const kept = keptInView.current
+    if (!kept) return
+    keptInView.current = null
+    const root = rootRef.current
+    const month = root?.querySelector(`[data-month="${kept.month}"]`)
+    const scroller = root && scrollingAncestor(root)
+    if (!month || !scroller) return
+    scroller.scrollBy({
+      top: month.getBoundingClientRect().top - kept.top,
+      behavior: 'instant'
+    })
+  })
+
+  // The month at the top of a scrolled list is the first month, so a parent
+  // that moves `month` somewhere already in view still scrolls to it.
+  const followTop = () => {
+    // Its own aligning isn't the reader scrolling.
+    if (settling.current) return
+    const root = rootRef.current
+    const scroller = root && scrollingAncestor(root)
+    const weekdays = weekdaysRef.current
+    if (!root || !scroller || !weekdays) return
+    const below = weekdays.getBoundingClientRect().bottom
+    const top = Array.from(
+      root.querySelectorAll<HTMLElement>('[data-slot="calendar-month"]')
+    ).find((month) => month.getBoundingClientRect().bottom > below + 1)
+    const month = top?.dataset.month
+    if (!month || month === firstMonth) return
+    reported.current = month
+    // Held, so the run doesn't recentre on the month scrolled to.
+    if (run !== currentRun) setRun(currentRun)
+    changeMonth(month)
+  }
+  const followTopRef = useRef(followTop)
+  useIsomorphicLayoutEffect(() => {
+    followTopRef.current = followTop
+  })
+  useEffect(() => {
+    if (!scrolling || waitingForToday) return
+    const scroller = rootRef.current && scrollingAncestor(rootRef.current)
+    if (!scroller) return
+    let frame = 0
+    const onScroll = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => followTopRef.current())
+    }
+    scroller.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      cancelAnimationFrame(frame)
+      scroller.removeEventListener('scroll', onScroll)
+    }
+  }, [scrolling, waitingForToday, months.length])
+
+  const earlierRef = useRef<HTMLDivElement>(null)
+  const laterRef = useRef<HTMLDivElement>(null)
+  const canAddEarlier =
+    !firstAllowedMonth || compareDates(visibleStart, firstAllowedMonth) > 0
+  const canAddLater =
+    !lastAllowedMonth ||
+    compareDates(months[months.length - 1]!, lastAllowedMonth) < 0
+  const growRun = (earlier: boolean) => {
+    if (earlier) {
+      const month = rootRef.current?.querySelector(
+        `[data-month="${visibleStart}"]`
+      )
+      if (month)
+        keptInView.current = {
+          month: visibleStart,
+          top: month.getBoundingClientRect().top
+        }
+      extendRun(clampMonth(addMonths(visibleStart, -SCROLL_STEP)))
+    } else {
+      extendRun(clampMonth(addMonths(months[months.length - 1]!, SCROLL_STEP)))
+    }
+  }
+  const grownAt = useRef<number | null>(null)
+  const growRunRef = useRef(growRun)
+  useIsomorphicLayoutEffect(() => {
+    growRunRef.current = growRun
+  })
+  useEffect(() => {
+    if (!scrolling || waitingForToday) return
+    if (typeof IntersectionObserver === 'undefined') return
+    const root = rootRef.current && scrollingAncestor(rootRef.current)
+    const scrolled = () => (root ? root.scrollTop : window.scrollY)
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // With no box of its own to scroll, months added above would push
+        // the page down, so the list only grows below.
+        const near = entries.find(
+          (entry) =>
+            entry.isIntersecting &&
+            (root || entry.target !== earlierRef.current)
+        )
+        // Only after a scroll: a new observer reports an end still in reach,
+        // and growing for that alone would never stop.
+        if (!near || grownAt.current === scrolled()) return
+        grownAt.current = scrolled()
+        growRunRef.current(near.target === earlierRef.current)
+      },
+      { root, rootMargin: '400px 0px' }
+    )
+    if (canAddEarlier && earlierRef.current)
+      observer.observe(earlierRef.current)
+    if (canAddLater && laterRef.current) observer.observe(laterRef.current)
+    return () => observer.disconnect()
+  }, [
+    scrolling,
+    waitingForToday,
+    canAddEarlier,
+    canAddLater,
+    visibleStart,
+    months.length
+  ])
 
   const navDisabled = disabled === true
   const todayYear = yearOf(today ?? firstMonth)
@@ -515,7 +796,10 @@ export function Calendar(props: CalendarProps) {
       return (
         <div
           id={captionId}
-          className='text-center text-sm font-semibold text-strong'
+          className={cn(
+            'text-sm font-semibold text-strong',
+            scrolling ? 'text-start' : 'text-center'
+          )}
         >
           {label}
         </div>
@@ -608,6 +892,9 @@ export function Calendar(props: CalendarProps) {
         aria-selected={selected}
         className={cn(
           'relative p-0',
+          rangeMiddle && 'bg-subtle intent-accent',
+          rangeMiddle && firstVisible && 'rounded-s-full',
+          rangeMiddle && lastVisible && 'rounded-e-full',
           multiDay &&
             ((rangeStart && !lastVisible) || (rangeEnd && !firstVisible)) &&
             "intent-accent before:absolute before:inset-y-0 before:w-1/2 before:bg-subtle before:content-['']",
@@ -641,9 +928,9 @@ export function Calendar(props: CalendarProps) {
           tabIndex={isFocusTarget ? 0 : -1}
           className={cn(
             dayVariants({ look, outside }),
-            look === 'middle' && firstVisible && 'rounded-s-full',
-            look === 'middle' && lastVisible && 'rounded-e-full',
-            outOfRange && 'opacity-50'
+            outOfRange && 'opacity-50',
+            // Scrolled into view below the pinned weekdays, not under them.
+            scrolling && 'scroll-mt-10'
           )}
           onClick={() => {
             if (isDisabled) return
@@ -672,13 +959,18 @@ export function Calendar(props: CalendarProps) {
     )
   }
 
+  const weekdayCells = labels.weekdays.map((weekday) => (
+    <span key={weekday.long}>{weekday.short}</span>
+  ))
+
   return (
     <div
       ref={mergeRefs(rootRef, ref)}
       data-slot='calendar'
+      data-layout={layout}
       className={cn(
-        // A picker's drawer sets --calendar-day so days fill a phone's width.
-        'flex w-fit max-w-full flex-wrap gap-x-6 gap-y-4 [--calendar-day-size:var(--calendar-day,--spacing(10))]',
+        'relative w-full',
+        scrolling ? 'grid gap-6' : 'flex flex-wrap gap-x-6 gap-y-4',
         className
       )}
       {...rest}
@@ -696,73 +988,104 @@ export function Calendar(props: CalendarProps) {
       <div role='status' className='sr-only'>
         {announcement}
       </div>
+      {scrolling && (
+        <div
+          ref={weekdaysRef}
+          aria-hidden='true'
+          data-slot='calendar-weekdays'
+          className={cn(
+            'sticky top-0 z-1 grid h-8 grid-cols-7 items-center text-center text-xs font-medium text-subtle',
+            surfaceClass
+          )}
+        >
+          {weekdayCells}
+        </div>
+      )}
+      {scrolling && canAddEarlier && (
+        <div
+          ref={earlierRef}
+          aria-hidden='true'
+          className='pointer-events-none absolute inset-x-0 top-0 h-px'
+        />
+      )}
       {waitingForToday &&
-        months.map((month) => (
+        months.slice(0, scrolling ? 1 : undefined).map((month) => (
           <div
             key={month}
             aria-hidden='true'
-            className='h-[calc(var(--calendar-day-size)*6+--spacing(22))] w-[calc(var(--calendar-day-size)*7)]'
-          />
+            className='@container min-w-70 flex-[1_1_--spacing(70)]'
+          >
+            {/* Six weeks of days as wide as the month allows, with its caption and weekdays. */}
+            <div className='h-[calc(min(100cqi/7,--spacing(12))*6+--spacing(22))]' />
+          </div>
         ))}
       {!waitingForToday &&
         months.map((month, index) => (
           <div
             // By position, so the arrows and selects keep focus as months turn.
-            key={index}
+            key={scrolling ? month : index}
             data-slot='calendar-month'
-            className='grid w-[calc(var(--calendar-day-size)*7)] content-start gap-2'
+            data-month={month}
+            // Contained, so a month asks for 280px and takes whatever more it is given.
+            className='grid min-w-70 flex-[1_1_--spacing(70)] content-start gap-2 [contain:inline-size]'
           >
-            <div className='grid h-8 grid-cols-[2rem_1fr_2rem] items-center gap-1'>
-              {index === 0 ? (
-                <IconButton
-                  emphasis='subtler'
-                  size='sm'
-                  aria-label='Previous month'
-                  disabled={
-                    navDisabled ||
-                    (!!firstAllowedMonth &&
-                      compareDates(firstMonth, firstAllowedMonth) <= 0)
-                  }
-                  onClick={() => turnMonth(addMonths(firstMonth, -1))}
-                >
-                  <CaretLeftIcon
-                    weight='bold'
-                    className='size-4 rtl:-scale-x-100'
-                  />
-                </IconButton>
-              ) : (
-                <span />
-              )}
-              {renderCaption(month, index)}
-              {index === numberOfMonths - 1 ? (
-                <IconButton
-                  emphasis='subtler'
-                  size='sm'
-                  aria-label='Next month'
-                  disabled={
-                    navDisabled ||
-                    (!!lastAllowedMonth &&
-                      compareDates(firstMonth, lastAllowedMonth) >= 0)
-                  }
-                  onClick={() => turnMonth(addMonths(firstMonth, 1))}
-                >
-                  <CaretRightIcon
-                    weight='bold'
-                    className='size-4 rtl:-scale-x-100'
-                  />
-                </IconButton>
-              ) : (
-                <span />
-              )}
-            </div>
+            {scrolling ? (
+              <div className='grid h-8 items-center'>
+                {renderCaption(month, index)}
+              </div>
+            ) : (
+              <div className='grid h-8 grid-cols-[2rem_1fr_2rem] items-center gap-1'>
+                {index === 0 ? (
+                  <IconButton
+                    emphasis='subtler'
+                    size='sm'
+                    aria-label='Previous month'
+                    disabled={
+                      navDisabled ||
+                      (!!firstAllowedMonth &&
+                        compareDates(firstMonth, firstAllowedMonth) <= 0)
+                    }
+                    onClick={() => turnMonth(addMonths(firstMonth, -1))}
+                  >
+                    <CaretLeftIcon
+                      weight='bold'
+                      className='size-4 rtl:-scale-x-100'
+                    />
+                  </IconButton>
+                ) : (
+                  <span />
+                )}
+                {renderCaption(month, index)}
+                {index === numberOfMonths - 1 ? (
+                  <IconButton
+                    emphasis='subtler'
+                    size='sm'
+                    aria-label='Next month'
+                    disabled={
+                      navDisabled ||
+                      (!!lastAllowedMonth &&
+                        compareDates(firstMonth, lastAllowedMonth) >= 0)
+                    }
+                    onClick={() => turnMonth(addMonths(firstMonth, 1))}
+                  >
+                    <CaretRightIcon
+                      weight='bold'
+                      className='size-4 rtl:-scale-x-100'
+                    />
+                  </IconButton>
+                ) : (
+                  <span />
+                )}
+              </div>
+            )}
             <table
               role='grid'
               aria-multiselectable={mode !== 'single' || undefined}
               aria-labelledby={`${id}-caption-${index}`}
-              className='border-separate border-spacing-x-0 border-spacing-y-0.5'
+              className='w-full table-fixed border-separate border-spacing-x-0 border-spacing-y-0.5'
               onPointerLeave={() => setHoverDate(null)}
             >
-              <thead>
+              <thead className={scrolling ? 'sr-only' : undefined}>
                 <tr role='row'>
                   {labels.weekdays.map((weekday) => (
                     <th
@@ -790,6 +1113,13 @@ export function Calendar(props: CalendarProps) {
             </table>
           </div>
         ))}
+      {scrolling && canAddLater && (
+        <div
+          ref={laterRef}
+          aria-hidden='true'
+          className='pointer-events-none absolute inset-x-0 bottom-0 h-px'
+        />
+      )}
     </div>
   )
 }

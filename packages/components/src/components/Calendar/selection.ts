@@ -56,13 +56,27 @@ export function selectDate(
   const range = current as CalendarDateRange
   const extending = range.start !== null && range.end === null
   if (!extending) return { start: date, end: null }
+  // A day the length refuses keeps the start, rather than starting over
+  // somewhere the reader didn't mean to.
   if (!withinLength(range.start!, date, options)) {
-    return date === range.start
-      ? { start: null, end: null }
-      : { start: date, end: null }
+    return date === range.start ? { start: null, end: null } : current
   }
   const [start, end] = ordered(range.start!, date)
   return { start, end }
+}
+
+/** Why a range's length refuses a day, such as "Ranges can be up to 14 days". */
+export function lengthRule({
+  min,
+  max
+}: Pick<SelectOptions, 'min' | 'max'>): string {
+  const days = (count: number) => `${count} ${count === 1 ? 'day' : 'days'}`
+  if (min !== undefined && max !== undefined)
+    return min === max
+      ? `Ranges must be ${days(min)}`
+      : `Ranges can be ${min} to ${days(max)}`
+  if (max !== undefined) return `Ranges can be up to ${days(max)}`
+  return `Ranges must be at least ${days(min ?? 1)}`
 }
 
 export function isSelected(

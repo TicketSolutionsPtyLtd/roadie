@@ -1337,8 +1337,8 @@ export default function DashboardsPage() {
           <Link href='/charts/dashboard-period' className='underline'>
             dashboard period
           </Link>
-          , with the period picker and a comparison of the previous period, the
-          previous year, custom dates or none. Comparisons are dates only. A
+          : one button for the period, with a Compare switch inside for the
+          previous period or the previous year. Comparisons are dates only. A
           benchmark such as similar venues is the app’s own control, passed as{' '}
           <Code>periodProps.children</Code>.
         </p>

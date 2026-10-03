@@ -6,6 +6,7 @@ import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomple
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { keepTouchTap } from '../../utils/keepTouchTap'
 import {
   PointerHighlightContext,
   optionHighlightClass
@@ -16,6 +17,12 @@ export type AutocompleteItemProps = AutocompletePrimitive.Item.Props &
 
 export function AutocompleteItem({
   className,
+  onPointerDownCapture,
+  onPointerMove,
+  onPointerUp,
+  onPointerCancel,
+  onMouseUp,
+  onClickCapture,
   ...props
 }: AutocompleteItemProps) {
   const byPointer = use(PointerHighlightContext)
@@ -27,6 +34,14 @@ export function AutocompleteItem({
         optionHighlightClass(byPointer),
         className
       )}
+      {...keepTouchTap({
+        onPointerDownCapture,
+        onPointerMove,
+        onPointerUp,
+        onPointerCancel,
+        onMouseUp,
+        onClickCapture
+      })}
       {...props}
     />
   )

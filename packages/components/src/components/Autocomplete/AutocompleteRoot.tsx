@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomplete'
 
+import { useHeldOpen } from '../../utils/keepTouchTap'
 import {
   PointerHighlightContext,
   usePointerHighlight,
@@ -55,6 +56,14 @@ export function AutocompleteRoot({
   })
   const highlightsFirst =
     autoHighlight === 'always' || ((autoHighlight ?? !fillsInput) && typed)
+  const [open, handleOpenChange] = useHeldOpen(
+    props.open,
+    props.defaultOpen,
+    (open: boolean, details: AutocompletePrimitive.Root.ChangeEventDetails) => {
+      onOpenChange?.(open, details)
+      if (!open) resetTyped(details)
+    }
+  )
   return (
     <PointerHighlightContext value={byPointer}>
       <AutocompletePrimitive.Root
@@ -69,11 +78,10 @@ export function AutocompleteRoot({
             handleQueryChange(next, details)
           else resetTyped(details)
         }}
-        onOpenChange={(open, details) => {
-          onOpenChange?.(open, details)
-          if (!open) resetTyped(details)
-        }}
         {...props}
+        // After the rest, so an explicit open={undefined} can't undo it.
+        open={open}
+        onOpenChange={handleOpenChange}
       />
     </PointerHighlightContext>
   )

@@ -1,4 +1,4 @@
-import { formatDateRange } from '@oztix/roadie-core/datetime'
+import { compareDates } from '@oztix/roadie-core/datetime'
 
 import { matchesDate } from '../components/Calendar/matchers'
 import { type ReadDateOptions, formatDate, readDays, todayOf } from './readDate'
@@ -7,20 +7,16 @@ export type DateSuggestion = {
   key: string
   /** What to type for it, such as "Next Fri", or the date it names. */
   label: string
-  /** The dates a word stands for. */
+  /** The date a word stands for. */
   description?: string
   start: string
-  /** The same as `start` for a single date. */
+  /** The same as `start`: a suggestion is always one date. */
   end: string
 }
 
 export type SuggestDatesOptions = ReadDateOptions & {
-  /** Offer ranges too, for the ends of a date range. */
-  ranges?: boolean
-  /** The fewest days a range may span. */
-  minDays?: number
-  /** The most days a range may span. */
-  maxDays?: number
+  /** The earliest date to offer, such as a range's start for its end. */
+  from?: string | null
   /** @default 6 */
   limit?: number
 }
@@ -153,12 +149,6 @@ function completions(text: string, today: string): Candidate[] {
   return found
 }
 
-const DAY = 24 * 60 * 60 * 1000
-
-function spanDays(start: string, end: string): number {
-  return (Date.parse(end) - Date.parse(start)) / DAY + 1
-}
-
 /**
  * Dates to offer for typed text: what it names first, then phrases it starts,
  * or with no text, hints at what can be typed. Each is resolved as the field
@@ -166,13 +156,7 @@ function spanDays(start: string, end: string): number {
  */
 export function suggestDates(
   text: string,
-  {
-    ranges = false,
-    minDays,
-    maxDays,
-    limit = 6,
-    ...options
-  }: SuggestDatesOptions
+  { from, limit = 6, ...options }: SuggestDatesOptions
 ): DateSuggestion[] {
   const typed = text
     .toLowerCase()
@@ -197,18 +181,6 @@ export function suggestDates(
     : hints(today)
   const suggestions: DateSuggestion[] = []
   const seen = new Set<string>()
-  const describe = (start: string, end: string) =>
-    start === end
-      ? formatDate(start, options)
-      : (formatDateRange(
-          new Date(`${start}T12:00:00Z`),
-          new Date(`${end}T12:00:00Z`),
-          {
-            timeZone: 'UTC',
-            dateStyle: options.dateStyle ?? 'medium',
-            locale: options.locale
-          }
-        ) ?? `${start} to ${end}`)
 
   for (const candidate of candidates) {
     // Our phrases are English, so a locale's own names mustn't read them.
@@ -223,28 +195,20 @@ export function suggestDates(
       ? readings.filter((reading) => reading.start === reading.end).slice(0, 1)
       : readings
     for (const reading of meant) {
-      const { start, end } = reading
-      const single = start === end
-      const key = single ? start : `${start}/${end}`
-      if (seen.has(key)) continue
-      if (!single) {
-        const span = spanDays(start, end)
-        if (!ranges) continue
-        if (minDays !== undefined && span < minDays) continue
-        if (maxDays !== undefined && span > maxDays) continue
-      }
-      if (
-        matchesDate(start, options.disabled) ||
-        matchesDate(end, options.disabled)
-      )
-        continue
-      seen.add(key)
-      const dates = describe(start, end)
+      // A range belongs to a range's presets, not to one of its ends.
+      if (reading.start !== reading.end) continue
+      const date = reading.start
+      if (seen.has(date)) continue
+      if (from && compareDates(date, from) < 0) continue
+      if (matchesDate(date, options.disabled)) continue
+      seen.add(date)
+      const shown = formatDate(date, options)
       const named = candidate.label ?? (reading.relative ? reading.label : null)
+      const suggestion = { key: date, start: date, end: date }
       suggestions.push(
         named
-          ? { key, label: named, description: dates, start, end }
-          : { key, label: dates, start, end }
+          ? { ...suggestion, label: named, description: shown }
+          : { ...suggestion, label: shown }
       )
       if (suggestions.length === limit) return suggestions
     }

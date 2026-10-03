@@ -11,6 +11,7 @@ import { browserInstances } from '../../vitest.browsers.config.ts'
 import { reactCompilerPreset } from './react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
+const TOUCH_TESTS = 'src/**/*.touch.browser.test.{ts,tsx}'
 
 const SRC = new URL('./src/', import.meta.url)
 const JSDOM_ONLY = /(?<!\.browser)\.test\.tsx?$/
@@ -70,6 +71,68 @@ const pointer: BrowserCommand<[steps: PointerStep[]]> = async (
   }
 }
 
+// A real touch tap, which the engine turns into pointer, touch and mouse
+// events as a phone does. Needs a context with touch.
+const tap: BrowserCommand<[x: number, y: number]> = async (
+  { page, frame },
+  x,
+  y
+) => {
+  const testFrame = await frame()
+  const box = await (await testFrame.frameElement()).boundingBox()
+  if (!box) throw new Error('The test frame has no box')
+  const width = await testFrame.evaluate(() => window.innerWidth)
+  const scale = box.width / width
+  await page.touchscreen.tap(box.x + x * scale, box.y + y * scale)
+}
+
+// A finger drag from one point to another, for touch scrolling. Chromium
+// only, through the DevTools protocol: a test skips it in other engines.
+const swipe: BrowserCommand<
+  [from: { x: number; y: number }, to: { x: number; y: number }]
+> = async ({ page, frame }, from, to) => {
+  const testFrame = await frame()
+  const box = await (await testFrame.frameElement()).boundingBox()
+  if (!box) throw new Error('The test frame has no box')
+  const width = await testFrame.evaluate(() => window.innerWidth)
+  const scale = box.width / width
+  const point = ({ x, y }: { x: number; y: number }) => ({
+    x: box.x + x * scale,
+    y: box.y + y * scale
+  })
+  const session = await page.context().newCDPSession(page)
+  const send = (type: string, points: { x: number; y: number }[]) =>
+    session.send('Input.dispatchTouchEvent', { type, touchPoints: points })
+  await send('touchStart', [point(from)])
+  for (let step = 1; step <= 10; step++)
+    await send('touchMove', [
+      point({
+        x: from.x + ((to.x - from.x) * step) / 10,
+        y: from.y + ((to.y - from.y) * step) / 10
+      })
+    ])
+  await send('touchEnd', [])
+  await session.detach()
+}
+
+const browserTest = {
+  enabled: true,
+  headless: true,
+  viewport: { width: 1920, height: 1080 },
+  commands: { reduceMotion, forcedColors, parkPointer, pointer, tap, swipe }
+}
+
+const optimizeDeps = {
+  include: [
+    ...importedPackages(),
+    // Imported by the JSX transforms and test libraries, not the source.
+    'react/compiler-runtime',
+    'react/jsx-dev-runtime',
+    'react/jsx-runtime',
+    'react-dom'
+  ]
+}
+
 export default defineConfig({
   plugins: [react(), babel({ presets: [reactCompilerPreset] })],
   resolve: {
@@ -97,26 +160,38 @@ export default defineConfig({
       {
         extends: true,
         plugins: [tailwindcss()],
-        optimizeDeps: {
-          include: [
-            ...importedPackages(),
-            // Imported by the JSX transforms and test libraries, not the source.
-            'react/compiler-runtime',
-            'react/jsx-dev-runtime',
-            'react/jsx-runtime',
-            'react-dom'
-          ]
-        },
+        optimizeDeps,
         test: {
           name: 'browser',
           include: [BROWSER_TESTS],
+          exclude: [...configDefaults.exclude, TOUCH_TESTS],
           browser: {
-            enabled: true,
-            headless: true,
+            ...browserTest,
             provider: playwright(),
-            viewport: { width: 1920, height: 1080 },
-            commands: { reduceMotion, forcedColors, parkPointer, pointer },
+            instances: browserInstances.map((instance) => ({ ...instance }))
+          }
+        }
+      },
+      {
+        extends: true,
+        plugins: [tailwindcss()],
+        optimizeDeps,
+        test: {
+          name: 'browser touch',
+          include: [TOUCH_TESTS],
+          browser: {
+            ...browserTest,
+            provider: playwright({ contextOptions: { hasTouch: true } }),
+            // Firefox has no touch emulation, and Linux WebKit in CI doesn't
+            // deliver these emulated taps reliably, so WebKit runs them locally.
+            // Copies: Vitest names each instance in place, after its project.
             instances: browserInstances
+              .filter(
+                ({ browser }) =>
+                  browser !== 'firefox' &&
+                  !(process.env.CI && browser === 'webkit')
+              )
+              .map((instance) => ({ ...instance }))
           }
         }
       }

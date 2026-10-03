@@ -19,7 +19,7 @@ import { viewerTimeZone } from '@oztix/roadie-core/datetime'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { IconButton } from '../components/Button/IconButton'
-import { Drawer } from '../components/Drawer'
+import { Drawer, type DrawerSize } from '../components/Drawer'
 import { useFieldContext } from '../components/Field'
 import { Popover, type PopoverTriggerProps } from '../components/Popover'
 import { mergeRefs } from '../utils/mergeRefs'
@@ -240,7 +240,42 @@ export type PickerOverlayProps = {
   className?: string
   /** Actions after the content, kept in view at the foot of a drawer. */
   footer?: ReactNode
+  /**
+   * The drawer's own header, body and footer, in place of `children` and
+   * `footer`. Start it with a `PickerDrawerHeader`.
+   */
+  drawerContent?: ReactNode
+  drawerSize?: DrawerSize
   children: ReactNode
+}
+
+export type PickerDrawerHeaderProps = {
+  labelSource: string | undefined
+  action: string
+  /** Below the title, such as a summary of the choice. */
+  children?: ReactNode
+}
+
+/** Close and the picker's label as title, then anything given. */
+export function PickerDrawerHeader({
+  labelSource,
+  action,
+  children
+}: PickerDrawerHeaderProps) {
+  return (
+    // Above sticky rows pinned under it, so its shadow falls over them.
+    <Drawer.Header className='z-2'>
+      <Drawer.Close
+        render={
+          <IconButton aria-label='Close' emphasis='normal'>
+            <XIcon weight='bold' className='size-5' />
+          </IconButton>
+        }
+      />
+      <PickerTitle labelSource={labelSource} action={action} />
+      {children}
+    </Drawer.Header>
+  )
 }
 
 const calendarTabStop = (popup: HTMLElement) =>
@@ -264,6 +299,8 @@ export function PickerOverlay({
   initialFocus = calendarTabStop,
   className,
   footer,
+  drawerContent,
+  drawerSize,
   children
 }: PickerOverlayProps) {
   const popupRef = useRef<HTMLDivElement>(null)
@@ -300,27 +337,23 @@ export function PickerOverlay({
             aria-labelledby={ariaLabelledBy}
             initialFocus={focusOnOpen}
             finalFocus={triggerRef}
+            size={drawerSize}
           >
-            <Drawer.Header>
-              <Drawer.Close
-                render={
-                  <IconButton aria-label='Close' emphasis='normal'>
-                    <XIcon weight='bold' className='size-5' />
-                  </IconButton>
-                }
-              />
-              <PickerTitle labelSource={labelSource} action={action} />
-            </Drawer.Header>
-            <Drawer.Body
-              className={cn(
-                '@container [--calendar-day:min(--spacing(12),100cqi/7)]',
-                // With no footer to clear it, the body clears the home indicator.
-                !footer && 'pb-[max(--spacing(6),env(safe-area-inset-bottom))]'
-              )}
-            >
-              {children}
-            </Drawer.Body>
-            {footer && <Drawer.Footer>{footer}</Drawer.Footer>}
+            {drawerContent ?? (
+              <>
+                <PickerDrawerHeader labelSource={labelSource} action={action} />
+                <Drawer.Body
+                  className={cn(
+                    // With no footer to clear it, the body clears the home indicator.
+                    !footer &&
+                      'pb-[max(--spacing(6),env(safe-area-inset-bottom))]'
+                  )}
+                >
+                  {children}
+                </Drawer.Body>
+                {footer && <Drawer.Footer>{footer}</Drawer.Footer>}
+              </>
+            )}
           </Drawer.Content>
         </Drawer>
       </Popover>

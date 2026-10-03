@@ -107,19 +107,17 @@ export function ChartPreview({ name }: { name: string }) {
     case 'dashboard-period':
       return (
         <div className='grid w-48 gap-1.5'>
-          <div className='flex gap-1.5'>
-            <div className='flex emphasis-raised items-center gap-1 rounded-lg px-1.5 py-1'>
-              <CalendarBlankIcon weight='bold' className='size-3 text-subtle' />
+          <div className='flex emphasis-normal items-center gap-1.5 rounded-lg px-1.5 py-1'>
+            <CalendarBlankIcon weight='bold' className='size-3 text-subtle' />
+            <span className='grid min-w-0 flex-1 leading-tight'>
               <span className='text-xs whitespace-nowrap text-normal'>
                 This month
               </span>
-            </div>
-            <div className='flex emphasis-raised items-center gap-1 rounded-lg px-1.5 py-1'>
-              <span className='text-xs whitespace-nowrap text-subtle'>
-                vs previous
+              <span className='text-[0.625rem] whitespace-nowrap text-subtle'>
+                vs Sept
               </span>
-              <CaretDownIcon weight='bold' className='size-3 text-subtle' />
-            </div>
+            </span>
+            <CaretDownIcon weight='bold' className='size-3 text-subtle' />
           </div>
           <div className='grid grid-cols-2 gap-1.5'>
             {['w-10', 'w-8'].map((width) => (

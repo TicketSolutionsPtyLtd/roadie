@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import { cleanup, render, screen } from '@testing-library/react'
 import {
   afterAll,
@@ -10,7 +12,7 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
-import { Calendar } from '.'
+import { Calendar, type CalendarDateRange, type CalendarSingleProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
@@ -190,28 +192,32 @@ describe('Calendar pointer', () => {
 
   it('draws a range as one band from end to end', async () => {
     render(
-      <Calendar
-        today={TODAY}
-        mode='range'
-        defaultSelected={{ start: '2027-03-03', end: '2027-03-05' }}
-      />
+      <div className='w-97.5'>
+        <Calendar
+          today={TODAY}
+          mode='range'
+          defaultSelected={{ start: '2027-03-03', end: '2027-03-05' }}
+        />
+      </div>
     )
     const start = day('2027-03-03')
     const middle = day('2027-03-04')
     const end = day('2027-03-05')
     const fill = (element: Element) => getComputedStyle(element).backgroundColor
-    expect(getComputedStyle(middle).borderRadius).toBe('0px')
-    expect(getComputedStyle(start).borderRadius).not.toBe('0px')
-    expect(fill(start)).not.toBe(fill(middle))
-    expect(fill(middle)).not.toBe('rgba(0, 0, 0, 0)')
-    const band = (cell: Element) => getComputedStyle(cell, '::before')
-    expect(band(start.closest('td')!).backgroundColor).toBe(fill(middle))
-    expect(band(end.closest('td')!).backgroundColor).toBe(fill(middle))
+    const cell = (button: Element) => button.closest('td')!
+    expect(fill(cell(middle))).not.toBe('rgba(0, 0, 0, 0)')
+    expect(getComputedStyle(cell(middle)).borderRadius).toBe('0px')
+    expect(fill(start)).not.toBe(fill(cell(middle)))
+    const band = (td: Element) => getComputedStyle(td, '::before')
+    expect(band(cell(start)).backgroundColor).toBe(fill(cell(middle)))
+    expect(band(cell(end)).backgroundColor).toBe(fill(cell(middle)))
     const [a, b, c] = [start, middle, end].map((el) =>
-      el.closest('td')!.getBoundingClientRect()
+      cell(el).getBoundingClientRect()
     )
     expect(b!.left).toBe(a!.right)
     expect(c!.left).toBe(b!.right)
+    // The band runs past the day's circle to the cell's edges.
+    expect(b!.width).toBeGreaterThan(middle.getBoundingClientRect().width)
   })
 
   it('keeps an unchosen day clear on a touch screen', async () => {
@@ -239,13 +245,96 @@ describe('Calendar pointer', () => {
   })
 })
 
+const cellsOf = (grid: Element) =>
+  Array.from(grid.querySelectorAll('tbody tr:nth-child(2) td'), (td) =>
+    td.getBoundingClientRect()
+  )
+
 describe('Calendar layout', () => {
-  it('draws 40px days in a 280px month', () => {
-    render(<Calendar today={TODAY} />)
+  it('fills its container, its days centred in their columns', () => {
+    render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} />
+      </div>
+    )
+    const grid = screen.getByRole('grid')
+    const month = document.querySelector('[data-slot="calendar-month"]')!
+    expect(month.getBoundingClientRect().width).toBe(390)
+    const cells = cellsOf(grid)
+    const total = cells.reduce((sum, cell) => sum + cell.width, 0)
+    expect(total).toBeCloseTo(grid.getBoundingClientRect().width, 0)
+    expect(grid.getBoundingClientRect().width).toBe(390)
+    const rect = day(TODAY).getBoundingClientRect()
+    expect(rect.width).toBe(48)
+    expect(rect.height).toBe(48)
+    const column = day(TODAY).closest('td')!.getBoundingClientRect()
+    expect(rect.left - column.left).toBeCloseTo(column.right - rect.right, 0)
+  })
+
+  it('spans its container with the month arrows', () => {
+    render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} />
+      </div>
+    )
+    const month = document
+      .querySelector('[data-slot="calendar-month"]')!
+      .getBoundingClientRect()
+    const previous = screen
+      .getByRole('button', { name: 'Previous month' })
+      .getBoundingClientRect()
+    const next = screen
+      .getByRole('button', { name: 'Next month' })
+      .getBoundingClientRect()
+    expect(previous.left).toBe(month.left)
+    expect(next.right).toBe(month.right)
+  })
+
+  it('keeps 40px days in a 280px month where it sizes to its content', () => {
+    render(
+      <div className='w-fit'>
+        <Calendar today={TODAY} />
+      </div>
+    )
     const rect = day(TODAY).getBoundingClientRect()
     expect([rect.width, rect.height]).toEqual([40, 40])
     const month = document.querySelector('[data-slot="calendar-month"]')!
     expect(month.getBoundingClientRect().width).toBe(280)
+  })
+
+  it('keeps two 280px months side by side where it sizes to its content', () => {
+    render(
+      <div className='w-fit'>
+        <Calendar today={TODAY} numberOfMonths={2} />
+      </div>
+    )
+    const [first, second] = Array.from(
+      document.querySelectorAll('[data-slot="calendar-month"]'),
+      (month) => month.getBoundingClientRect()
+    )
+    expect(first!.width).toBe(280)
+    expect(second!.width).toBe(280)
+    expect(second!.top).toBe(first!.top)
+  })
+
+  it('holds the frame of the month it will show while today is unknown', () => {
+    const { rerender } = render(
+      <div className='w-97.5'>
+        <Calendar fixedWeeks />
+      </div>
+    )
+    const frame = document
+      .querySelector('[data-slot="calendar"]')!
+      .getBoundingClientRect().height
+    rerender(
+      <div className='w-97.5'>
+        <Calendar fixedWeeks today={TODAY} />
+      </div>
+    )
+    expect(
+      document.querySelector('[data-slot="calendar"]')!.getBoundingClientRect()
+        .height
+    ).toBe(frame)
   })
 
   it('puts months side by side where they fit', () => {
@@ -260,6 +349,7 @@ describe('Calendar layout', () => {
     )
     expect(second!.top).toBe(first!.top)
     expect(second!.left).toBeGreaterThan(first!.right)
+    expect(second!.right).toBe(800)
   })
 
   it('stacks months where they do not', () => {
@@ -278,6 +368,263 @@ describe('Calendar layout', () => {
       document.querySelector('[data-slot="calendar"]')!.getBoundingClientRect()
         .width
     ).toBeLessThanOrEqual(390)
+  })
+})
+
+describe('Calendar scrolling months', () => {
+  const scroller = () =>
+    document.querySelector<HTMLElement>('[data-testid="scroller"]')!
+  const weekdays = () =>
+    document.querySelector<HTMLElement>('[data-slot="calendar-weekdays"]')!
+  const monthsShown = () =>
+    Array.from(
+      document.querySelectorAll<HTMLElement>('[data-slot="calendar-month"]'),
+      (month) => month.dataset.month
+    )
+
+  function Scrolling(props: Omit<CalendarSingleProps, 'today' | 'layout'>) {
+    return (
+      <div
+        data-testid='scroller'
+        className='h-100 w-97.5 overflow-y-auto bg-raised'
+      >
+        <Calendar today={TODAY} layout='scroll' {...props} />
+      </div>
+    )
+  }
+
+  it('stacks months with no arrows and one weekday row', () => {
+    render(<Scrolling />)
+    expect(screen.queryByRole('button', { name: 'Next month' })).toBeNull()
+    expect(monthsShown().length).toBeGreaterThan(3)
+    expect(monthsShown()).toContain('2027-03-01')
+    const grids = screen.getAllByRole('grid')
+    expect(grids[1]!.getBoundingClientRect().top).toBeGreaterThan(
+      grids[0]!.getBoundingClientRect().bottom
+    )
+    // Each grid keeps its column headers for assistive tech.
+    for (const grid of grids)
+      expect(grid.querySelectorAll('[role="columnheader"]')).toHaveLength(7)
+    expect(weekdays()).toHaveAttribute('aria-hidden', 'true')
+    const cells = cellsOf(grids[0]!)
+    const total = cells.reduce((sum, cell) => sum + cell.width, 0)
+    expect(total).toBeCloseTo(grids[0]!.getBoundingClientRect().width, 0)
+  })
+
+  it('opens on the selected month, under the weekday row', async () => {
+    render(<Scrolling defaultSelected='2027-06-12' />)
+    const june = document.querySelector('[data-month="2027-06-01"]')!
+    await expect
+      .poll(() => june.getBoundingClientRect().top)
+      .toBeCloseTo(weekdays().getBoundingClientRect().bottom, 0)
+  })
+
+  it('pins the weekday row, painted over the days, as the months scroll', async () => {
+    render(<Scrolling />)
+    const top = scroller().getBoundingClientRect().top
+    scroller().scrollTop += 300
+    await expect
+      .poll(() => weekdays().getBoundingClientRect().top)
+      .toBeCloseTo(top, 0)
+    expect(getComputedStyle(weekdays()).backgroundColor).toBe(
+      getComputedStyle(scroller()).backgroundColor
+    )
+  })
+
+  it('adds months as the list is scrolled to its end', async () => {
+    render(<Scrolling />)
+    const before = monthsShown().length
+    scroller().scrollTop = scroller().scrollHeight
+    await expect.poll(() => monthsShown().length).toBeGreaterThan(before)
+  })
+
+  it('adds earlier months above without moving what is in view', async () => {
+    render(<Scrolling />)
+    const first = monthsShown()[0]!
+    const march = document.querySelector('[data-month="2027-03-01"]')!
+    await expect.poll(() => scroller().scrollTop).toBeGreaterThan(0)
+    scroller().scrollTop = 0
+    const firstMonth = document.querySelector(`[data-month="${first}"]`)!
+    const top = firstMonth.getBoundingClientRect().top
+    await expect.poll(() => monthsShown()[0]).not.toBe(first)
+    await expect
+      .poll(() => firstMonth.getBoundingClientRect().top)
+      .toBeCloseTo(top, 0)
+    expect(scroller().scrollTop).toBeGreaterThan(0)
+    expect(march.isConnected).toBe(true)
+  })
+
+  it('moves the keyboard past the last month shown', async () => {
+    render(<Scrolling endMonth='2027-12-31' />)
+    const last = monthsShown().at(-1)!
+    const lastDay = new Date(
+      Date.UTC(Number(last.slice(0, 4)), Number(last.slice(5, 7)), 0)
+    )
+      .toISOString()
+      .slice(0, 10)
+    const weekOn = new Date(Date.parse(`${lastDay}T12:00:00Z`) + 7 * 86400000)
+      .toISOString()
+      .slice(0, 10)
+    day(lastDay).focus()
+    await userEvent.keyboard('{ArrowDown}')
+    await expect.poll(focused).toBe(weekOn)
+  })
+
+  it('keeps a focused day clear of the pinned weekday row', async () => {
+    render(<Scrolling defaultSelected='2027-06-02' />)
+    const june = document.querySelector('[data-month="2027-06-01"]')!
+    await expect
+      .poll(() => Math.round(june.getBoundingClientRect().top))
+      .toBe(Math.round(weekdays().getBoundingClientRect().bottom))
+    day('2027-06-02').focus()
+    await userEvent.keyboard('{ArrowUp}')
+    await expect.poll(focused).toBe('2027-05-26')
+    await expect
+      .poll(() => day('2027-05-26').getBoundingClientRect().top)
+      .toBeGreaterThanOrEqual(weekdays().getBoundingClientRect().bottom - 1)
+  })
+
+  it('reports the month at the top as it scrolls', async () => {
+    const months: string[] = []
+    render(<Scrolling onMonthChange={(month) => months.push(month)} />)
+    await expect.poll(() => scroller().scrollTop).toBeGreaterThan(0)
+    scroller().scrollTop += 700
+    await expect.poll(() => months.at(-1)).toMatch(/^2027-0[4-9]-01$/)
+  })
+
+  it('stays where it is scrolled when the parent keeps month', async () => {
+    function Fixed() {
+      const [, setHovered] = useState(0)
+      return (
+        <div
+          data-testid='scroller'
+          className='h-100 w-97.5 overflow-y-auto bg-raised'
+          onPointerOver={() => setHovered((n) => n + 1)}
+        >
+          <Calendar today={TODAY} layout='scroll' month='2027-03-01' />
+        </div>
+      )
+    }
+    render(<Fixed />)
+    await expect.poll(() => scroller().scrollTop).toBeGreaterThan(0)
+    const opened = scroller().scrollTop
+    scroller().scrollTop = opened + 700
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    await userEvent.hover(day('2027-05-12'))
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(scroller().scrollTop).toBeGreaterThan(opened + 300)
+  })
+
+  it('keeps its months in place as it scrolls after a far jump', async () => {
+    function Jumping() {
+      const [month, setMonth] = useState('2027-03-01')
+      return (
+        <>
+          <button type='button' onClick={() => setMonth('2029-03-01')}>
+            Jump
+          </button>
+          <div
+            data-testid='scroller'
+            className='h-100 w-97.5 overflow-y-auto bg-raised'
+          >
+            <Calendar
+              today={TODAY}
+              layout='scroll'
+              month={month}
+              onMonthChange={setMonth}
+            />
+          </div>
+        </>
+      )
+    }
+    render(<Jumping />)
+    await expect.poll(() => scroller().scrollTop).toBeGreaterThan(0)
+    await userEvent.click(screen.getByRole('button', { name: 'Jump' }))
+    await expect.poll(() => monthsShown()).toContain('2029-03-01')
+    const first = monthsShown()[0]
+    scroller().scrollTop += 500
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    scroller().scrollTop += 500
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    expect(monthsShown()[0]).toBe(first)
+  })
+
+  it('ends a range in a month scrolled to while the parent controls month', async () => {
+    function Controlled() {
+      const [month, setMonth] = useState('2027-03-01')
+      const [range, setRange] = useState<CalendarDateRange>({
+        start: null,
+        end: null
+      })
+      return (
+        <div
+          data-testid='scroller'
+          className='h-100 w-97.5 overflow-y-auto bg-raised'
+        >
+          <Calendar
+            today={TODAY}
+            layout='scroll'
+            mode='range'
+            month={month}
+            onMonthChange={setMonth}
+            selected={range}
+            onSelect={setRange}
+          />
+        </div>
+      )
+    }
+    render(<Controlled />)
+    await expect.poll(() => scroller().scrollTop).toBeGreaterThan(0)
+    await userEvent.click(day('2027-03-03'))
+    const april = document.querySelector('[data-month="2027-04-01"]')!
+    scroller().scrollTop +=
+      april.getBoundingClientRect().top -
+      weekdays().getBoundingClientRect().bottom
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    await userEvent.click(day('2027-04-05'))
+    expect(day('2027-03-03')).toHaveAttribute('data-range-start')
+    expect(day('2027-04-05')).toHaveAttribute('data-range-end')
+  })
+
+  it('runs its pinned row to the box edges when pulled out of the padding', () => {
+    render(
+      <div
+        data-testid='scroller'
+        className='h-100 w-97.5 overflow-y-auto bg-raised'
+      >
+        <Calendar
+          today={TODAY}
+          layout='scroll'
+          className='px-4 **:data-[slot=calendar-weekdays]:-mx-4 **:data-[slot=calendar-weekdays]:px-4'
+        />
+      </div>
+    )
+    const row = weekdays().getBoundingClientRect()
+    const box = scroller().getBoundingClientRect()
+    expect([row.left, row.right]).toEqual([box.left, box.left + 390])
+    const labels = Array.from(weekdays().children, (label) =>
+      label.getBoundingClientRect()
+    )
+    const cells = cellsOf(screen.getAllByRole('grid')[0]!)
+    labels.forEach((label, i) =>
+      expect(label.left + label.width / 2).toBeCloseTo(
+        cells[i]!.left + cells[i]!.width / 2,
+        0
+      )
+    )
+  })
+
+  it('stops growing in a box that only scrolls sideways', async () => {
+    render(
+      <div className='w-97.5 overflow-x-auto'>
+        <Calendar today={TODAY} layout='scroll' />
+      </div>
+    )
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    const settled = monthsShown().length
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(monthsShown().length).toBe(settled)
+    expect(settled).toBeLessThan(40)
   })
 })
 

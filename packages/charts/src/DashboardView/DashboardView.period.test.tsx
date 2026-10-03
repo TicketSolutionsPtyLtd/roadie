@@ -90,16 +90,14 @@ describe('DashboardView periods', () => {
         onPeriodChange={onPeriodChange}
       />
     )
-    const trigger = screen.getByRole('combobox', { name: 'Compare with' })
-    fireEvent.pointerDown(trigger, { pointerType: 'mouse' })
-    fireEvent.mouseDown(trigger)
-    fireEvent.click(trigger)
-    const option = await screen.findByRole('option', { name: /^Previous year/ })
-    fireEvent.pointerDown(option, { pointerType: 'mouse' })
-    fireEvent.mouseDown(option)
-    fireEvent.pointerUp(option, { pointerType: 'mouse' })
-    fireEvent.mouseUp(option)
-    fireEvent.click(option)
+    fireEvent.click(
+      screen.getByRole('button', { name: /^Choose dates, Period/ })
+    )
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: 'Previous year' })
+    )
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Apply' }))
     expect(onPeriodChange).toHaveBeenCalledWith({
       range: 'this-month',
       compare: 'previous-year'

@@ -1,5 +1,6 @@
 export {
   Calendar,
+  type CalendarLayout,
   type CalendarMultipleProps,
   type CalendarProps,
   type CalendarRangeProps,

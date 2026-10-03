@@ -17,6 +17,25 @@ describe('Switch', () => {
     expect(control.querySelector('[data-slot="switch-thumb"]')).toBeTruthy()
   })
 
+  it('is a native button, so a drawer swipe leaves its press alone', () => {
+    render(<Switch label='Compare' />)
+    const control = screen.getByRole('switch', { name: 'Compare' })
+    expect(control.tagName).toBe('BUTTON')
+    expect(control).toHaveAttribute('type', 'button')
+  })
+
+  it("doesn't call a custom render a native button", () => {
+    const warn = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const warned = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<Switch label='Compare' render={<span />} />)
+    expect([...warn.mock.calls, ...warned.mock.calls]).toEqual([])
+    warn.mockRestore()
+    warned.mockRestore()
+    const control = screen.getByRole('switch', { name: 'Compare' })
+    expect(control.tagName).toBe('SPAN')
+    expect(control).toHaveAttribute('tabindex', '0')
+  })
+
   it('toggles on click and reports the new state', async () => {
     const onCheckedChange = vi.fn()
     render(<Switch aria-label='Dark mode' onCheckedChange={onCheckedChange} />)

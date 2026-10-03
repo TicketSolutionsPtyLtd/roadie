@@ -343,7 +343,7 @@
     "clean": "rm -rf node_modules dist",
     "dev": "tsdown --watch --log-level warn",
     "test": "vitest run --project jsdom",
-    "test:browser": "vitest run --project 'browser (*)'",
+    "test:browser": "vitest run --project 'browser*'",
     "test:watch": "vitest --project jsdom",
     "test:coverage": "vitest run --project jsdom --coverage",
     "test:ui": "vitest --ui --project jsdom",

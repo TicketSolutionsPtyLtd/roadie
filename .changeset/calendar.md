@@ -7,14 +7,19 @@ choosing a date, several dates or a range, built on the plain-date math in
 `@oztix/roadie-core/datetime`. Every value is an ISO date string, never a
 `Date`. `mode` is `single`, `multiple` or `range`, with `selected`,
 `defaultSelected` and `onSelect`; a range's `min` and `max` limit its length
-in days, and days that would break them dim and start a new range when
-pressed. `disabled` and `modifiers` take matchers: a date, a list,
+in days. Days that would break them dim, and pressing one keeps the start and
+announces the rule, such as "Ranges can be up to 14 days". `disabled` and `modifiers` take matchers: a date, a list,
 `{ start, end }`, `{ before }`, `{ after }`, `{ dayOfWeek }` or a function.
 Each modifier renders as a data attribute on its days, such as
 `data-has-session`.
 
-It shows `numberOfMonths` side by side where they fit and stacked where they
-don't, with month and year selects under `captionLayout='dropdown'`,
+It fills its container: seven columns share the width, each day stays a
+circle up to 48px across in the middle of its column, and a range's band runs
+edge to edge. In a popover it takes 280px a month. It shows `numberOfMonths`
+side by side where they fit and stacked where they don't, or with
+`layout='scroll'` stacks months in a list that scrolls under one pinned row of
+weekdays, adding months as it nears either end. It takes month and year
+selects under `captionLayout='dropdown'`,
 `fixedWeeks`, `showOutsideDays`, `weekStart`, `startMonth` and `endMonth`,
 and a controlled `month`. Focus moves separately from selection with a roving
 tab stop: arrows, Page Up and Down (with Shift for a year), Home and End.

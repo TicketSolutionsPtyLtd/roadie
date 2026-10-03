@@ -73,6 +73,9 @@ export function SuggestingInput<
   )
   const [open, setOpen] = useState(false)
   const [highlighted, setHighlighted] = useState<S>()
+  // A phone reads a row that grows content under the finger as a hover and
+  // drops the tap's click, so a pointer's highlight shows no Enter hint.
+  const [hinted, setHinted] = useState(true)
   const items = open ? suggestSafely(suggest, typed.text) : []
   const shown = open && items.length > 0
   // Base UI reports no close for a list it never showed, so a wish to open
@@ -105,7 +108,10 @@ export function SuggestingInput<
         }}
         open={shown}
         onOpenChange={(next) => setOpen(next && !readOnly)}
-        onItemHighlighted={(item) => setHighlighted(item as S | undefined)}
+        onItemHighlighted={(item, { reason }) => {
+          setHighlighted(item as S | undefined)
+          setHinted(reason !== 'pointer')
+        }}
         itemToStringValue={(item) => (item as S).label}
         disabled={disabled}
         readOnly={readOnly}
@@ -137,7 +143,7 @@ export function SuggestingInput<
                         </span>
                       )}
                     </span>
-                    {shown && highlighted?.key === item.key && (
+                    {shown && hinted && highlighted?.key === item.key && (
                       <Kbd size='sm' aria-hidden className='text-subtle'>
                         Enter
                       </Kbd>

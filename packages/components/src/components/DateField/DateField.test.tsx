@@ -483,6 +483,51 @@ describe('DateField', () => {
       )
     })
 
+    it.each(['click', 'Enter'])(
+      'shows the date again when the same one is chosen twice, by %s',
+      async (how) => {
+        function Controlled() {
+          const [date, setDate] = useState<string | null>(null)
+          return (
+            <DateField
+              aria-label='Show date'
+              today={TODAY}
+              value={date}
+              onValueChange={setDate}
+            />
+          )
+        }
+        render(<Controlled />)
+        const input = screen.getByRole('combobox')
+        for (let round = 0; round < 2; round++) {
+          await userEvent.clear(input)
+          await userEvent.type(input, 'wed')
+          const option = await screen.findByRole('option', { name: /^Wed/ })
+          if (how === 'click') await userEvent.click(option)
+          else await userEvent.keyboard('{Enter}')
+          await waitFor(() => expect(input).toHaveValue('Wed 7 Oct 2026'))
+        }
+      }
+    )
+
+    it('shows the Enter hint for typing and keys, not for a pointer', async () => {
+      render(<DateField aria-label='Show date' today={TODAY} />)
+      const input = screen.getByRole('combobox')
+      await userEvent.type(input, 'fr')
+      const second = await screen.findByRole('option', { name: /^Next Fri/ })
+      await userEvent.hover(second)
+      await waitFor(() => expect(second).toHaveAttribute('data-highlighted'))
+      expect(options()).toEqual([
+        'FriFri 9 Oct 2026',
+        'Next FriFri 16 Oct 2026'
+      ])
+      await userEvent.keyboard('{ArrowUp}')
+      expect(options()).toEqual([
+        'FriFri 9 Oct 2026Enter',
+        'Next FriFri 16 Oct 2026'
+      ])
+    })
+
     // "s" gives Sat, Next Sat, Sun, Next Sun; ranking by closeness would
     // pull Sun ahead of Next Sat.
     it.each(['next', 's'])(

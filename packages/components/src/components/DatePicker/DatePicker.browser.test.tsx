@@ -180,7 +180,8 @@ describe('DatePicker from the phone breakpoint up', TIMEOUT, () => {
     expect(popup).toHaveAttribute('data-slot', 'popover-popup')
     const field = document.querySelector('[data-slot="date-picker-group"]')!
     expect(rect(popup).top).toBeGreaterThan(rect(field).bottom)
-    expect(rect(day('2026-10-23')).width).toBe(40)
+    // Measured once the popover has finished scaling in.
+    await expect.poll(() => rect(day('2026-10-23')).width).toBe(40)
   })
 })
 

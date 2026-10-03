@@ -2,6 +2,7 @@
 
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 
+import { useHeldOpen } from '../../utils/keepTouchTap'
 import {
   PointerHighlightContext,
   usePointerHighlight,
@@ -59,6 +60,15 @@ export function ComboboxRoot<
   })
   // Base UI types 'always' for Autocomplete only; its Combobox handles it.
   const mode = (autoHighlight && typed ? 'always' : false) as AutoHighlightMode
+  const [open, handleOpenChange] = useHeldOpen(
+    props.open,
+    props.defaultOpen,
+    (open: boolean, details: ComboboxPrimitive.Root.ChangeEventDetails) => {
+      onOpenChange?.(open, details)
+      if (!open) resetTyped(details)
+      handleRankOpenChange(open, details)
+    }
+  )
   return (
     <PointerHighlightContext value={byPointer}>
       <ComboboxPrimitive.Root
@@ -69,16 +79,14 @@ export function ComboboxRoot<
           onInputValueChange?.(next, details)
           handleQueryChange(next, details)
         }}
-        onOpenChange={(open, details) => {
-          onOpenChange?.(open, details)
-          if (!open) resetTyped(details)
-          handleRankOpenChange(open, details)
-        }}
         onValueChange={(next, details) => {
           onValueChange?.(next, details)
           resetTyped(details)
         }}
         {...props}
+        // After the rest, so an explicit open={undefined} can't undo it.
+        open={open}
+        onOpenChange={handleOpenChange}
       />
     </PointerHighlightContext>
   )

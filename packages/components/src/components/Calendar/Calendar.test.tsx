@@ -219,7 +219,7 @@ describe('Calendar', () => {
       expect(cellOf('2027-03-04')).toHaveAttribute('aria-selected', 'false')
     })
 
-    it('marks days that break min or max, and restarts the range there', async () => {
+    it('marks days that break min or max, and keeps the start when one is pressed', async () => {
       const onSelect = vi.fn()
       render(
         <Calendar
@@ -243,16 +243,30 @@ describe('Calendar', () => {
       expect(day('2027-03-15')).not.toHaveAttribute('aria-disabled')
       fireEvent.pointerEnter(day('2027-03-20'), { pointerType: 'mouse' })
       expect(day('2027-03-12')).not.toHaveAttribute('data-range-preview')
+      onSelect.mockClear()
       await userEvent.click(day('2027-03-20'))
+      expect(onSelect).not.toHaveBeenCalled()
+      expect(day('2027-03-10')).toHaveAttribute('data-range-start')
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Ranges can be 3 to 5 days'
+      )
+      await userEvent.click(day('2027-03-13'))
       expect(onSelect).toHaveBeenLastCalledWith({
-        start: '2027-03-20',
-        end: null
+        start: '2027-03-10',
+        end: '2027-03-13'
       })
-      await userEvent.click(day('2027-03-16'))
-      expect(onSelect).toHaveBeenLastCalledWith({
-        start: '2027-03-16',
-        end: '2027-03-20'
-      })
+    })
+
+    it.each([
+      [{ max: 14 }, '2027-03-30', 'Ranges can be up to 14 days'],
+      [{ min: 3 }, '2027-03-11', 'Ranges must be at least 3 days'],
+      [{ min: 2, max: 2 }, '2027-03-20', 'Ranges must be 2 days']
+    ])('says why a press is refused with %o', async (limits, date, message) => {
+      render(<Calendar today={TODAY} mode='range' {...limits} />)
+      await userEvent.click(day('2027-03-10'))
+      await userEvent.click(day(date))
+      expect(screen.getByRole('status')).toHaveTextContent(message)
+      expect(day('2027-03-10')).toHaveAttribute('data-range-start')
     })
 
     it('lets Escape drop a started range', async () => {

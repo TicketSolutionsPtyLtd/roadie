@@ -256,69 +256,33 @@ describe('suggestDates: as you type', () => {
   })
 })
 
-describe('suggestDates: ranges', () => {
-  const RANGES = { ...SATURDAY, ranges: true }
-
-  it('leaves ranges out of a single date', () => {
+describe('suggestDates: single dates only', () => {
+  it('offers nothing for a range phrase', () => {
     expect(suggestDates('this wee', SATURDAY)).toEqual([])
+    expect(suggestDates('next week', SATURDAY)).toEqual([])
+    expect(suggestDates('1 to 14 mar 2027', SATURDAY)).toEqual([])
   })
+})
 
-  it('offers a range with the dates it covers', () => {
-    expect(suggestDates('this wee', RANGES)).toEqual([
-      {
-        key: '2026-09-28/2026-10-04',
-        label: 'This week',
-        description: '28 Sept to 4 Oct 2026',
-        start: '2026-09-28',
-        end: '2026-10-04'
-      },
-      {
-        key: '2026-10-03/2026-10-04',
-        label: 'This weekend',
-        description: '3 to 4 Oct 2026',
-        start: '2026-10-03',
-        end: '2026-10-04'
-      }
+describe('suggestDates: from a date', () => {
+  const FROM = { ...SATURDAY, from: '2026-10-05' }
+
+  it('leaves out hints before it', () => {
+    expect(dates('', FROM).map(([label]) => label)).toEqual([
+      'Next Fri',
+      'In 2 weeks',
+      'End of month',
+      '1 Nov'
     ])
   })
 
-  it('describes a range in the date style', () => {
-    expect(
-      suggestDates('this weeke', { ...RANGES, dateStyle: 'long' })[0]
-        ?.description
-    ).toBe('Sat 3 to Sun 4 Oct 2026')
+  it('leaves out typed dates before it', () => {
+    expect(dates('tom', FROM)).toEqual([])
+    expect(dates('1 oct', FROM)).toEqual([])
+    expect(dates('9 oct', FROM)).toEqual([['Fri 9 Oct 2026', '2026-10-09']])
   })
 
-  it('names a typed range by its dates', () => {
-    expect(suggestDates('1 to 14 mar 2027', RANGES)).toEqual([
-      {
-        key: '2027-03-01/2027-03-14',
-        label: '1 to 14 Mar 2027',
-        start: '2027-03-01',
-        end: '2027-03-14'
-      }
-    ])
-  })
-
-  it('leaves out ranges shorter or longer than allowed', () => {
-    expect(
-      dates('this wee', { ...RANGES, minDays: 3 }).map(([label]) => label)
-    ).toEqual(['This week'])
-    expect(
-      dates('this wee', { ...RANGES, maxDays: 3 }).map(([label]) => label)
-    ).toEqual(['This weekend'])
-  })
-
-  it('leaves out a range with a disabled end', () => {
-    expect(
-      dates('this wee', { ...RANGES, disabled: { before: '2026-10-01' } }).map(
-        ([label]) => label
-      )
-    ).toEqual(['This weekend'])
-  })
-
-  it('leaves out open ranges and hour windows', () => {
-    expect(suggestDates('upcoming', RANGES)).toEqual([])
-    expect(suggestDates('next 3 hours', RANGES)).toEqual([])
+  it('keeps the day itself', () => {
+    expect(dates('5 oct', FROM)).toEqual([['Mon 5 Oct 2026', '2026-10-05']])
   })
 })

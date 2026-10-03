@@ -66,13 +66,14 @@ render(<Default />)
 
 ### With a range
 
-`mode='range'` takes `{ start, end }`. The first press sets `start` and leaves `end` null, and the days between preview as the pointer or focus moves. `min` and `max` limit the length in days, both ends counted. Days that would break them dim, and pressing one starts a new range there. For a range in a form or a toolbar, with presets and typed dates, use [DateRangePicker](/components/date-range-picker).
+`mode='range'` takes `{ start, end }`. The first press sets `start` and leaves `end` null, and the days between preview as the pointer or focus moves. `min` and `max` limit the length in days, both ends counted. Days that would break them dim. Pressing one keeps the start and announces the rule, such as "Ranges can be up to 14 days", so say the rule in visible text near the calendar too. Pressing the start again makes a one-day range, or drops the start when `min` is more than 1, and `Escape` drops it. For a range in a form or a toolbar, with presets and typed dates, use [DateRangePicker](/components/date-range-picker).
 
 ```tsx-live-noinline
 function Range() {
   const [range, setRange] = useState({ start: null, end: null })
   return (
     <div className='grid gap-4'>
+      <p className='text-sm text-subtle'>Choose up to 14 days.</p>
       <Calendar mode='range' max={14} selected={range} onSelect={setRange} />
       <p className='text-sm text-subtle'>
         {range.start ?? '…'} to {range.end ?? '…'}
@@ -135,7 +136,24 @@ render(
 <Calendar mode='range' numberOfMonths={2} />
 ```
 
+### With scrolling months
+
+`layout='scroll'` stacks the months in a list that scrolls, as on a phone, under one row of weekdays that stays pinned. There are no arrows: it opens on `month`, the selection or today, and adds months as it nears either end or the keyboard moves past them. A new `month` scrolls the list to it, and in a box that scrolls `onMonthChange` reports the month at the top as it scrolls. Put it in a box that scrolls. To run the pinned row to the box's edges, pad the calendar and pull its `calendar-weekdays` slot out by the same amount, as here. Pickers use it in their phone drawer.
+
+```tsx-live
+<div className='h-96 overflow-y-auto rounded-xl emphasis-raised'>
+  <Calendar
+    layout='scroll'
+    mode='range'
+    defaultSelected={{ start: '2026-11-06', end: '2026-11-12' }}
+    className='px-4 **:data-[slot=calendar-weekdays]:-mx-4 **:data-[slot=calendar-weekdays]:px-4'
+  />
+</div>
+```
+
 ## Guidelines
+
+- **It fills its container.** The seven columns share the width, each day stays a circle up to 48px across in the middle of its column, and a range's band runs from edge to edge. In a popover, it takes 280px a month. Set the width on the container, not the calendar.
 
 <div className='grid gap-8'>
 
@@ -177,5 +195,6 @@ render(
 - Disabled days are focusable with `aria-disabled`, so they can be read and passed, but not selected.
 - A polite live region announces the month when it changes and the selection when it changes, such as "Selected Wednesday, 3 to Sunday, 7 March 2027".
 - The month arrows are labelled "Previous month" and "Next month". In the dropdown layout the selects are labelled "Month" and "Year".
+- With `layout='scroll'`, each month keeps its own column headers for screen readers, and the pinned weekday row is hidden from them.
 
 <PropsDefinitions componentPath='packages/components/src/components/Calendar/Calendar.tsx' />
