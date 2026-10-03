@@ -1,4 +1,12 @@
-import type { DashboardSpec } from '@oztix/roadie-core/dashboard'
+import type {
+  DashboardPeriodSpec,
+  DashboardSpec
+} from '@oztix/roadie-core/dashboard'
+import {
+  type ResolvedDateRange,
+  resolveComparison,
+  resolveDateRange
+} from '@oztix/roadie-core/datetime'
 
 import { portfolioExample } from '../Scatter/examples'
 import { DAILY_TICKETS } from './showDashboard'
@@ -144,21 +152,129 @@ const shows = [
   }
 ]
 
-const WINDOW_DAYS = 30
-const soldEachDay = Array.from({ length: WINDOW_DAYS }, (_, i) =>
-  sum(shows.map((row) => row.daily.at(i - WINDOW_DAYS) ?? 0))
-)
-const soldInWindow = sum(soldEachDay)
-// Within the 3,846 these shows had sold before the window.
-const SOLD_PREVIOUS_WINDOW = 2434
+/** The dates the portfolio's sales cover, for the period toolbar too. */
+export const portfolioDates = {
+  today: '2026-10-15',
+  timeZone: 'Australia/Melbourne',
+  dataStart: '2026-07-20',
+  dataEnd: '2026-10-15'
+}
 
-export function createPortfolioDashboard(): DashboardSpec {
+const NOW = new Date('2026-10-15T02:00:00Z')
+const WINDOW_DAYS = 30
+// From the first on-sale, 20 Jul, to 15 Sept: the 3,846 sold before the
+// shows' 30-day sparklines start.
+const SOLD_BEFORE_WINDOW = [
+  267, 139, 56, 19, 27, 24, 18, 24, 29, 27, 25, 32, 32, 24, 29, 34, 35, 32, 37,
+  37, 31, 35, 37, 42, 40, 42, 41, 197, 153, 78, 88, 91, 86, 74, 73, 87, 70, 76,
+  88, 87, 66, 121, 88, 70, 67, 84, 90, 63, 59, 88, 73, 62, 78, 93, 65, 54, 85,
+  77
+]
+const SOLD_DAILY = [
+  ...SOLD_BEFORE_WINDOW,
+  ...Array.from({ length: WINDOW_DAYS }, (_, i) =>
+    sum(shows.map((row) => row.daily.at(i - WINDOW_DAYS) ?? 0))
+  )
+]
+const LAST_DAY = SOLD_DAILY.length - 1
+// Early birds sell first, so the average ticket price climbs over the run.
+const priceOn = (day: number) => 74.6 - (10 * (LAST_DAY - day)) / LAST_DAY
+const refundRateOn = (day: number) =>
+  0.0105 + (0.0075 * (LAST_DAY - day)) / LAST_DAY + 0.0015 * Math.sin(day / 4)
+
+const DEFAULT_PERIOD: PortfolioPeriod = {
+  range: { direction: 'past', amount: 30, unit: 'day' },
+  compare: 'previous-period'
+}
+
+export type PortfolioPeriod = Pick<DashboardPeriodSpec, 'range' | 'compare'>
+
+const dayOf = (iso: string) =>
+  Math.round((Date.parse(iso) - Date.parse(portfolioDates.dataStart)) / DAY)
+const isoIn = (ms: number) =>
+  new Intl.DateTimeFormat('en-CA', {
+    timeZone: portfolioDates.timeZone
+  }).format(ms)
+
+const dayAt = (edge: string | number | null, open: number) =>
+  edge === null ? open : dayOf(typeof edge === 'string' ? edge : isoIn(edge))
+
+function daysIn(range: ResolvedDateRange | null): number[] {
+  if (!range) return []
+  const first = Math.max(0, dayAt(range.start, 0))
+  const last = Math.min(LAST_DAY, dayAt(range.end, LAST_DAY))
+  return Array.from(
+    { length: Math.max(0, last - first + 1) },
+    (_, i) => first + i
+  )
+}
+
+function totals(days: readonly number[]) {
+  const sold = sum(days.map((day) => SOLD_DAILY[day]!))
+  const gross = sum(days.map((day) => SOLD_DAILY[day]! * priceOn(day)))
+  const refunds = sum(days.map((day) => SOLD_DAILY[day]! * refundRateOn(day)))
+  return { sold, gross, refundRate: sold ? refunds / sold : 0 }
+}
+
+/** Daily up to a month, then whole weeks back from the period's end. */
+function buckets(days: readonly number[]): number[][] {
+  const size = days.length <= 31 ? 1 : 7
+  const out: number[][] = []
+  for (let end = days.length; end >= size; end -= size)
+    out.unshift(days.slice(end - size, end))
+  return out
+}
+
+const change = (now: number, before: number) =>
+  before ? Math.round((now / before - 1) * 100) / 100 : 0
+
+function periodStats({ range, compare }: PortfolioPeriod) {
+  const options = { now: NOW, ...portfolioDates }
+  const days = daysIn(resolveDateRange(range, options))
+  const compared = compare
+    ? resolveComparison(range, compare, options)
+    : undefined
+  const now = totals(days)
+  const before = totals(daysIn(compared?.range ?? null))
+  const trend = buckets(days).map(totals)
+  return {
+    history:
+      compared && compared.status !== 'available' ? compared.status : undefined,
+    sold: {
+      value: now.sold,
+      delta: change(now.sold, before.sold),
+      trend: trend.map((t) => t.sold)
+    },
+    gross: {
+      value: Math.round(now.gross),
+      delta: change(now.gross, before.gross),
+      trend: trend.map((t) => Math.round(t.gross))
+    },
+    refunds: {
+      value: Math.round(now.refundRate * 1000) / 1000,
+      delta: before.sold
+        ? Math.round((now.refundRate - before.refundRate) * 1000) / 10
+        : 0,
+      trend: trend.map((t) => Math.round(t.refundRate * 10000) / 10000)
+    }
+  }
+}
+
+/**
+ * Pass a period to get its numbers, as an app would fetch them. The cards
+ * after the first section describe the shows now, whatever the period.
+ */
+export function createPortfolioDashboard(
+  period: PortfolioPeriod = DEFAULT_PERIOD
+): DashboardSpec {
+  const { history, sold, gross, refunds } = periodStats(period)
   return {
     version: 1,
     title: 'Ostrich Bonnet Touring',
+    period: history ? { ...period, history } : period,
     sections: [
       {
-        title: 'This month',
+        title: 'At a glance',
         cards: [
           {
             id: 'next',
@@ -171,29 +287,20 @@ export function createPortfolioDashboard(): DashboardSpec {
             id: 'tickets',
             kind: 'stat',
             size: 'stat',
-            label: 'Sold, last 30 days',
-            value: soldInWindow,
-            delta: {
-              value:
-                Math.round((soldInWindow / SOLD_PREVIOUS_WINDOW - 1) * 100) /
-                100,
-              format: 'percent'
-            },
-            context: 'On previous 30 days',
-            trend: soldEachDay
+            label: 'Tickets sold',
+            value: sold.value,
+            delta: { value: sold.delta, format: 'percent', comparison: true },
+            trend: sold.trend
           },
           {
             id: 'gross',
             kind: 'stat',
             size: 'stat',
             label: 'Gross revenue',
-            value: 447700,
+            value: gross.value,
             format: 'compactCurrency',
-            delta: { value: 0.05, format: 'percent' },
-            context: 'On last month',
-            trend: [
-              310000, 330000, 350000, 372000, 391000, 410000, 426000, 447700
-            ]
+            delta: { value: gross.delta, format: 'percent', comparison: true },
+            trend: gross.trend
           },
           {
             id: 'behind',
@@ -210,11 +317,15 @@ export function createPortfolioDashboard(): DashboardSpec {
             kind: 'stat',
             size: 'stat',
             label: 'Refund rate',
-            value: 0.012,
+            value: refunds.value,
             format: 'percent',
-            delta: { value: -0.3, format: 'points', goodWhen: 'down' },
-            context: 'On last month',
-            trend: [0.02, 0.018, 0.017, 0.016, 0.015, 0.014, 0.013, 0.012]
+            delta: {
+              value: refunds.delta,
+              format: 'points',
+              goodWhen: 'down',
+              comparison: true
+            },
+            trend: refunds.trend
           }
         ]
       },

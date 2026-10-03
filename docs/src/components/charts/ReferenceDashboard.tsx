@@ -9,21 +9,34 @@ export function ReferenceDashboard({
   spec,
   jsx,
   cardActions,
-  cardActionsCode
+  cardActionsCode,
+  view,
+  period
 }: {
   spec: DashboardSpec
   jsx: string
   cardActions?: (card: DashboardCard) => ReactNode
   cardActionsCode?: string
+  /** Replaces the static view, such as with one whose period changes. */
+  view?: ReactNode
+  /** How the page changes the period: a sentence and the code. */
+  period?: { note: string; code: string }
 }) {
   return (
     <div className='grid gap-8'>
-      <DashboardView spec={spec} cardActions={cardActions} />
+      {view ?? <DashboardView spec={spec} cardActions={cardActions} />}
       <div className='mx-auto grid w-full max-w-[50rem] gap-6'>
         <h2 className='text-display-ui-4 text-strong'>As data</h2>
         <CodePreview language='json'>
           {JSON.stringify(spec, null, 2)}
         </CodePreview>
+        {period && (
+          <>
+            <h2 className='text-display-ui-4 text-strong'>With a period</h2>
+            <p className='text-subtle'>{period.note}</p>
+            <CodePreview language='tsx'>{period.code}</CodePreview>
+          </>
+        )}
         {cardActionsCode && (
           <>
             <h2 className='text-display-ui-4 text-strong'>With card actions</h2>
