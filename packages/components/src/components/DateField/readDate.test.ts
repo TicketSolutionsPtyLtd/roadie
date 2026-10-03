@@ -58,6 +58,17 @@ describe('formatDate', () => {
     expect(formatDate('2026-11-27', { dateStyle })).toBe(text)
   })
 
+  it('reads back what it shows in another locale', () => {
+    for (const locale of ['de-DE', 'fr-FR', 'en-US']) {
+      for (const dateStyle of ['full', 'long', 'medium'] as const) {
+        const text = formatDate('2026-03-27', { dateStyle, locale })
+        expect(readDate(text, { today: TODAY, locale })).toEqual({
+          value: '2026-03-27'
+        })
+      }
+    }
+  })
+
   it('reads back what it shows', () => {
     for (const dateStyle of ['full', 'long', 'medium'] as const) {
       expect(

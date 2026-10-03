@@ -69,7 +69,7 @@ export function TypedInput({
           name={name}
           form={form}
           disabled={isDisabled}
-          value={typed.value ?? ''}
+          value={typed.error ? '' : (typed.value ?? '')}
         />
       )}
     </>

@@ -5,10 +5,10 @@ import type { ComponentProps } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { TypedInput } from '../DateField/TypedInput'
-import { useTypedValue } from '../DateField/useTypedValue'
 import { useFieldControlError } from '../Field/FieldContext'
 import { inputVariants } from '../Input'
-import { type HourCycle, formatTime, readTime, stepTime } from './readTime'
+import type { HourCycle } from './readTime'
+import { useTimeInput } from './useTimeInput'
 
 export type TimeFieldProps = Omit<
   ComponentProps<'input'>,
@@ -55,18 +55,20 @@ export function TimeField({
   size,
   emphasis,
   hourCycle,
-  minuteStep = 1,
+  minuteStep,
   locale,
   className,
   onKeyDown,
   ...props
 }: TimeFieldProps) {
-  const typed = useTypedValue({
+  const { typed, onKeyDown: onStepKeyDown } = useTimeInput({
     value,
     defaultValue,
     onValueChange,
-    format: (time) => formatTime(time, { hourCycle, locale }),
-    read: (text) => readTime(text, { hourCycle, minuteStep })
+    hourCycle,
+    minuteStep,
+    locale,
+    readOnly: props.readOnly
   })
   useFieldControlError(typed.error)
 
@@ -78,16 +80,7 @@ export function TimeField({
       className={cn(inputVariants({ size, emphasis }), className)}
       onKeyDown={(event) => {
         onKeyDown?.(event)
-        if (event.defaultPrevented || props.readOnly) return
-        if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return
-        event.preventDefault()
-        const base = typed.draftValue()
-        if (base === undefined) typed.commit()
-        else if (base) {
-          typed.setValue(
-            stepTime(base, event.key === 'ArrowUp' ? 1 : -1, minuteStep)
-          )
-        }
+        onStepKeyDown(event)
       }}
       {...props}
     />

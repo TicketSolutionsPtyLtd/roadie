@@ -15,9 +15,10 @@ import { type DateStyle, formatDate, readDate } from '../DateField/readDate'
 import { useTypedValue } from '../DateField/useTypedValue'
 import { useFieldContext } from '../Field'
 import { useFieldControlError } from '../Field/FieldContext'
+import { inputVariants } from '../Input'
 import { Popover } from '../Popover'
-import { TimeField } from '../TimeField'
 import type { HourCycle } from '../TimeField/readTime'
+import { useTimeInput } from '../TimeField/useTimeInput'
 import { type DateTimeParts, joinValue, splitValue } from './value'
 import { datePickerGroupVariants, triggerSizes } from './variants'
 
@@ -223,6 +224,19 @@ export function DatePicker({
       })
   })
   useFieldControlError(date.error)
+  const time = useTimeInput({
+    value: parts.time,
+    defaultValue: undefined,
+    onValueChange: (next) => update({ time: next }),
+    hourCycle,
+    minuteStep,
+    locale,
+    readOnly
+  })
+  useFieldControlError(time.typed.error)
+  // Unreadable text has made the value null, but a controlled parent may
+  // still hold the old one; the form gets nothing it can't see.
+  const unreadable = !!date.error || !!time.typed.error
 
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen)
   const open = openProp ?? uncontrolledOpen
@@ -266,6 +280,7 @@ export function DatePicker({
           <TypedInput
             data-slot='date-picker-input'
             typed={date}
+            form={form}
             disabled={isDisabled}
             invalid={invalid}
             required={required}
@@ -324,20 +339,18 @@ export function DatePicker({
         </Popover.Content>
       </Popover>
       {withTime && (
-        <TimeField
+        <TypedInput
+          data-slot='date-picker-time'
+          typed={time.typed}
           id={field.fieldId ? `${field.fieldId}-time` : undefined}
           aria-label='Time'
-          value={parts.time}
-          onValueChange={(time) => update({ time })}
+          form={form}
           disabled={isDisabled}
           invalid={invalid}
           required={required}
           readOnly={readOnly}
-          size={size}
-          emphasis={emphasis}
-          hourCycle={hourCycle}
-          minuteStep={minuteStep}
-          locale={locale}
+          className={inputVariants({ size, emphasis })}
+          onKeyDown={time.onKeyDown}
         />
       )}
       {name && (
@@ -346,7 +359,7 @@ export function DatePicker({
           name={name}
           form={form}
           disabled={isDisabled || undefined}
-          value={value ?? ''}
+          value={unreadable ? '' : (value ?? '')}
         />
       )}
     </div>

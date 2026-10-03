@@ -85,6 +85,26 @@ describe('DateField', () => {
     expect(screen.getByRole('textbox')).not.toHaveAttribute('name')
   })
 
+  it('submits nothing while its text names no date', async () => {
+    const { container } = render(
+      <form>
+        <DateField
+          aria-label='Show date'
+          name='showDate'
+          today={TODAY}
+          value='2026-11-27'
+          onValueChange={() => {}}
+        />
+      </form>
+    )
+    const input = screen.getByRole('textbox')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'someday{Enter}')
+    expect(new FormData(container.querySelector('form')!).get('showDate')).toBe(
+      ''
+    )
+  })
+
   it('leaves a disabled value out of the form', () => {
     const { container } = render(
       <form>

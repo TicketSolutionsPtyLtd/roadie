@@ -162,6 +162,45 @@ describe('DatePicker', () => {
     )
   })
 
+  it('puts both inputs in a form it sits outside', () => {
+    render(
+      <DatePicker
+        aria-label='Doors'
+        granularity='minute'
+        timeZone={MELBOURNE}
+        form='booking'
+      />
+    )
+    for (const name of ['Date', 'Time'])
+      expect(screen.getByRole('textbox', { name })).toHaveAttribute(
+        'form',
+        'booking'
+      )
+  })
+
+  it.each([
+    ['Date', 'someday'],
+    ['Time', 'soon']
+  ])('submits nothing while its %s text names nothing', async (name, text) => {
+    const { container } = render(
+      <form>
+        <DatePicker
+          aria-label='Doors'
+          granularity='minute'
+          timeZone={MELBOURNE}
+          today={TODAY}
+          name='doors'
+          value='2026-11-27T19:30:00+11:00'
+          onValueChange={() => {}}
+        />
+      </form>
+    )
+    const input = screen.getByRole('textbox', { name })
+    await userEvent.clear(input)
+    await userEvent.type(input, `${text}{Enter}`)
+    expect(new FormData(container.querySelector('form')!).get('doors')).toBe('')
+  })
+
   it('empties when a controlled parent clears a full value', async () => {
     function Reset() {
       const [value, setValue] = useState<string | null>('2026-11-27')
