@@ -27,7 +27,7 @@ function ids(
 
 describe('matchesRecordQuery', () => {
   it('matches everything with no search or filters', () => {
-    expect(ids([])).toEqual(['velvet', 'swan', 'festival', 'tba'])
+    expect(ids([])).toEqual(['walrus', 'drongo', 'festival', 'tba'])
   })
 
   it.each<[string, RecordFilter[], string[]]>([
@@ -37,35 +37,35 @@ describe('matchesRecordQuery', () => {
         {
           field: 'venue',
           operator: 'is',
-          values: ['velvet-room', 'swan-lane-social']
+          values: ['quilted-walrus-room', 'drongo-bell-social-club']
         }
       ],
-      ['velvet', 'swan']
+      ['walrus', 'drongo']
     ],
     [
       'is: ignores case like Meilisearch',
-      [{ field: 'venue', operator: 'is', values: ['VELVET-ROOM'] }],
-      ['velvet']
+      [{ field: 'venue', operator: 'is', values: ['QUILTED-WALRUS-ROOM'] }],
+      ['walrus']
     ],
     [
       'is-not: keeps empty rows',
-      [{ field: 'venue', operator: 'is-not', values: ['velvet-room'] }],
-      ['swan', 'festival', 'tba']
+      [{ field: 'venue', operator: 'is-not', values: ['quilted-walrus-room'] }],
+      ['drongo', 'festival', 'tba']
     ],
     [
       'multiple is: has any of',
       [{ field: 'genres', operator: 'is', values: ['folk', 'comedy'] }],
-      ['velvet', 'swan']
+      ['walrus', 'drongo']
     ],
     [
       'multiple is-not: has none of',
       [{ field: 'genres', operator: 'is-not', values: ['jazz'] }],
-      ['swan', 'festival', 'tba']
+      ['drongo', 'festival', 'tba']
     ],
     [
       'multiple has-all',
       [{ field: 'genres', operator: 'has-all', values: ['jazz', 'folk'] }],
-      ['velvet']
+      ['walrus']
     ],
     [
       'chips AND',
@@ -73,47 +73,47 @@ describe('matchesRecordQuery', () => {
         { field: 'city', operator: 'is', values: ['sydney'] },
         { field: 'status', operator: 'is-not', values: ['sold_out'] }
       ],
-      ['velvet']
+      ['walrus']
     ],
     [
       'contains: any case',
-      [{ field: 'name', operator: 'contains', value: 'LAUGH' }],
-      ['swan']
+      [{ field: 'name', operator: 'contains', value: 'POSSUM' }],
+      ['drongo']
     ],
     [
       'not-contains',
-      [{ field: 'name', operator: 'not-contains', value: 'nights' }],
-      ['swan', 'festival', 'tba']
+      [{ field: 'name', operator: 'not-contains', value: 'disco' }],
+      ['drongo', 'festival', 'tba']
     ],
     [
       'text is: exact',
-      [{ field: 'name', operator: 'is', values: ['neon nights'] }],
-      ['velvet']
+      [{ field: 'name', operator: 'is', values: ['lampshade disco'] }],
+      ['walrus']
     ],
-    ['eq', [{ field: 'capacity', operator: 'eq', value: 400 }], ['velvet']],
+    ['eq', [{ field: 'capacity', operator: 'eq', value: 400 }], ['walrus']],
     [
       'neq: keeps empty rows',
       [{ field: 'capacity', operator: 'neq', value: 400 }],
-      ['swan', 'festival', 'tba']
+      ['drongo', 'festival', 'tba']
     ],
-    ['lt', [{ field: 'capacity', operator: 'lt', value: 5000 }], ['velvet']],
+    ['lt', [{ field: 'capacity', operator: 'lt', value: 5000 }], ['walrus']],
     ['gt', [{ field: 'capacity', operator: 'gt', value: 400 }], ['festival']],
     [
       'between: inclusive',
       [{ field: 'capacity', operator: 'between', value: [400, 5000] }],
-      ['velvet', 'festival']
+      ['walrus', 'festival']
     ],
     [
       'money eq 0 is set',
       [{ field: 'gross', operator: 'eq', value: 0 }],
-      ['swan']
+      ['drongo']
     ],
-    ['is-true', [{ field: 'featured', operator: 'is-true' }], ['velvet']],
-    ['is-false', [{ field: 'featured', operator: 'is-false' }], ['swan']],
+    ['is-true', [{ field: 'featured', operator: 'is-true' }], ['walrus']],
+    ['is-false', [{ field: 'featured', operator: 'is-false' }], ['drongo']],
     [
       'is-set: zero counts',
       [{ field: 'gross', operator: 'is-set' }],
-      ['velvet', 'swan']
+      ['walrus', 'drongo']
     ],
     [
       'is-not-set: null, undefined, empty text and lists',
@@ -128,7 +128,7 @@ describe('matchesRecordQuery', () => {
     [
       'is-set on a range reads its start',
       [{ field: 'starts', operator: 'is-set' }],
-      ['velvet', 'swan', 'festival']
+      ['walrus', 'drongo', 'festival']
     ]
   ])('%s', (_, filters, expected) => {
     expect(ids(filters)).toEqual(expected)
@@ -371,11 +371,11 @@ describe('matchesRecordQuery', () => {
 
   describe('event dates compare the venue-local date', () => {
     it.each<[string, RecordFilter, string[]]>([
-      // Swan starts at 1:30am Sunday Sydney time, but it is a Saturday gig in Perth.
+      // Drongo starts at 1:30am Sunday Sydney time, but it is a Saturday gig in Perth.
       [
         'on',
         { field: 'starts', operator: 'on', value: '2026-10-03' },
-        ['velvet', 'swan', 'festival']
+        ['walrus', 'drongo', 'festival']
       ],
       [
         'on a festival day only',
@@ -400,12 +400,12 @@ describe('matchesRecordQuery', () => {
       [
         'today',
         { field: 'starts', operator: 'within', value: 'today' },
-        ['velvet', 'swan', 'festival']
+        ['walrus', 'drongo', 'festival']
       ],
       [
         'this weekend',
         { field: 'starts', operator: 'within', value: 'this-weekend' },
-        ['velvet', 'swan', 'festival']
+        ['walrus', 'drongo', 'festival']
       ],
       [
         'next week',
@@ -454,7 +454,7 @@ describe('matchesRecordQuery', () => {
       )
       expect(
         matchesRecordQuery(
-          { ...rows.velvet, startsLocal: '2026-10-04' },
+          { ...rows.walrus, startsLocal: '2026-10-04' },
           resolved,
           eventFields
         )
@@ -484,7 +484,7 @@ describe('matchesRecordQuery', () => {
 
   describe('hour windows and open ranges compare instants', () => {
     it.each<[string, string, RecordFilter, string[]]>([
-      // 6pm Saturday in Sydney: the Velvet Room show starts in 90 minutes.
+      // 6pm Saturday in Sydney: the Quilted Walrus Room show starts in 90 minutes.
       [
         'next 2 hours',
         '2026-10-03T08:00:00Z',
@@ -493,13 +493,13 @@ describe('matchesRecordQuery', () => {
           operator: 'within',
           value: { direction: 'next', amount: 2, unit: 'hour' }
         },
-        ['velvet', 'festival']
+        ['walrus', 'festival']
       ],
       [
         'upcoming keeps what has not finished',
         '2026-10-03T08:00:00Z',
         { field: 'starts', operator: 'within', value: 'upcoming' },
-        ['velvet', 'swan', 'festival']
+        ['walrus', 'drongo', 'festival']
       ],
       [
         'past keeps what has started',
@@ -521,11 +521,11 @@ describe('matchesRecordQuery', () => {
   it('compares timestamps across the viewer day, in any stored form', () => {
     expect(
       ids([{ field: 'created', operator: 'on', value: '2026-09-01' }])
-    ).toEqual(['velvet'])
+    ).toEqual(['walrus'])
     // 1_788_000_000_000 is 29 August 2026, 10:40am UTC.
     expect(
       ids([{ field: 'created', operator: 'on', value: '2026-08-29' }])
-    ).toEqual(['swan'])
+    ).toEqual(['drongo'])
     expect(
       ids([{ field: 'created', operator: 'before', value: '2026-08-16' }])
     ).toEqual(['festival'])
@@ -539,12 +539,12 @@ describe('matchesRecordQuery', () => {
 
   describe('search', () => {
     it.each<[string, string[]]>([
-      ['neon', ['velvet']],
-      ['  LATE   laughs ', ['swan']],
-      ['harbour festival', ['festival']],
-      ['nights laughs', []],
+      ['lampshade', ['walrus']],
+      ['  TUXEDO   possum ', ['drongo']],
+      ['ochre weekender', ['festival']],
+      ['disco possum', []],
       // Venue is an option field: not searched unless marked searchable.
-      ['velvet', []]
+      ['quilted', []]
     ])('"%s"', (search, expected) => {
       expect(ids([], { search })).toEqual(expected)
     })
@@ -554,13 +554,13 @@ describe('matchesRecordQuery', () => {
         f.key === 'venue' || f.key === 'genres' ? { ...f, searchable: true } : f
       )
       const resolved = resolveRecordQuery(
-        { search: 'velvet room jazz', filters: [], sort: [] },
+        { search: 'quilted room jazz', filters: [], sort: [] },
         fields,
         { now: new Date(), timeZone: SYDNEY }
       )
       expect(
         all.filter((r) => matchesRecordQuery(r, resolved, fields))
-      ).toEqual([rows.velvet])
+      ).toEqual([rows.walrus])
     })
   })
 })

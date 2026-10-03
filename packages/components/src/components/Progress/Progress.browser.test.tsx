@@ -14,7 +14,7 @@ afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
 const LONG_LABEL =
-  'Uploading the headline poster for Harbourside Lights at the Riverside Hall'
+  'Uploading the headline poster for Pumice Rodeo Tour at Antler Kettle Hall'
 
 const CASES = [
   { width: 460, label: 'Uploaded', value: 100 },

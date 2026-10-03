@@ -18,9 +18,9 @@ function resolveOne(filter: RecordFilter, now: string, timeZone: string) {
 describe('resolveRecordQuery', () => {
   it('keeps search, sort, the viewer zone and non-date filters as they are', () => {
     const query = {
-      search: ' neon ',
+      search: ' lampshade ',
       filters: [
-        { field: 'venue', operator: 'is', values: ['velvet-room'] },
+        { field: 'venue', operator: 'is', values: ['quilted-walrus-room'] },
         { field: 'capacity', operator: 'between', value: [1, 9] }
       ] satisfies RecordFilter[],
       sort: [{ field: 'starts', direction: 'descending' as const }]

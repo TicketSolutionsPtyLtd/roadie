@@ -24,7 +24,7 @@ const REVENUE = DAILY_SOLD.map((tickets) => Math.round(tickets * 0.81) * 100)
 export function createShowDashboard(): DashboardSpec {
   return {
     version: 1,
-    title: 'Ball Park Music at The Lantern Room',
+    title: 'Ball Park Music at Kazoo Hollow Room',
     sections: [
       {
         title: 'At a glance',

@@ -434,7 +434,7 @@ describe('Card ticket, split auto with a header', () => {
       <div style={{ padding: 24, width: 640 }}>
         <Card variant='ticket' emphasis='raised' direction='auto'>
           <Card.Header>
-            <Card.Title>Paperbark Sessions</Card.Title>
+            <Card.Title>Corduroy Lagoon Sessions</Card.Title>
           </Card.Header>
           <Card.Content style={{ height: 120 }}>
             <p>General admission</p>
@@ -525,7 +525,7 @@ describe('Card direction on a plain card', () => {
             <p>Two adult passes</p>
           </Card.Content>
           <Card.Footer>
-            <p>Cliffline Pavilion</p>
+            <p>Foxglove Tin Pavilion</p>
           </Card.Footer>
         </Card>
       </div>
@@ -553,7 +553,7 @@ describe('Card ticket, horizontal with a header', () => {
       >
         <Card variant='ticket' emphasis='raised' direction='horizontal'>
           <Card.Header>
-            <Card.Title>Paperbark Sessions</Card.Title>
+            <Card.Title>Corduroy Lagoon Sessions</Card.Title>
           </Card.Header>
           <Card.Content style={{ height: 120 }}>
             <p>General admission</p>

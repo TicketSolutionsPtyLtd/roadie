@@ -538,8 +538,8 @@ describe('validateDashboard checks every chart plot kind', () => {
 
   it('small-multiples: valid passes, invalid names the missing field', () => {
     const venueRows = [
-      { venue: 'The Lantern Room', day: '2026-10-01', sold: 120 },
-      { venue: 'Harbourside Hall', day: '2026-10-02', sold: 90 }
+      { venue: 'Kazoo Hollow Room', day: '2026-10-01', sold: 120 },
+      { venue: 'Antler Kettle Hall', day: '2026-10-02', sold: 90 }
     ]
     expect(
       validateDashboard(

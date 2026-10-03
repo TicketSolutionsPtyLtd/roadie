@@ -9,11 +9,11 @@ const venue = {
   kind: 'field',
   value: 'venue'
 } as const
-const longacre = {
-  id: 'venue:longacre',
-  label: 'Venue is The Longacre',
+const iguana = {
+  id: 'venue:iguana',
+  label: 'Venue is Iguana Teapot Hall',
   kind: 'filter',
-  value: 'longacre'
+  value: 'iguana'
 } as const
 const order = {
   id: 'order:1042',
@@ -31,16 +31,16 @@ const fields: QueryFieldSuggestionGroup = {
 const filters: QueryFieldSuggestionGroup = {
   id: 'filters',
   label: 'Filters',
-  items: [longacre]
+  items: [iguana]
 }
 
 describe('searchSuggestion', () => {
   it('quotes the trimmed text', () => {
-    expect(searchSuggestion('  neon nights ')).toEqual({
+    expect(searchSuggestion('  lampshade disco ')).toEqual({
       id: 'search',
       kind: 'search',
-      label: 'Search for “neon nights”',
-      value: 'neon nights'
+      label: 'Search for “lampshade disco”',
+      value: 'lampshade disco'
     })
   })
 })
@@ -59,12 +59,12 @@ describe('listGroups', () => {
     },
     {
       name: 'puts recent items first on empty text',
-      input: { groups: [fields], inputValue: '', recent: [longacre] },
+      input: { groups: [fields], inputValue: '', recent: [iguana] },
       ids: ['recent', 'fields']
     },
     {
       name: 'hides recent items once there is text',
-      input: { groups: [fields], inputValue: 'v', recent: [longacre] },
+      input: { groups: [fields], inputValue: 'v', recent: [iguana] },
       ids: ['fields', 'search']
     },
     {
@@ -77,7 +77,7 @@ describe('listGroups', () => {
       input: {
         groups: [fields],
         inputValue: '',
-        recent: [longacre],
+        recent: [iguana],
         pending: true
       },
       ids: ['fields']

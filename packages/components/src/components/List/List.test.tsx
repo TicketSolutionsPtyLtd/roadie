@@ -27,7 +27,7 @@ describe('List', () => {
     render(
       <List>
         <List.Item
-          title='Valley Live'
+          title='Opal Harpoon Room'
           description='3 organisations'
           leading={<span data-testid='leading' />}
           trailing={<span data-testid='trailing' />}
@@ -37,7 +37,7 @@ describe('List', () => {
     expect(screen.getByText('3 organisations')).toBeInTheDocument()
     expect(screen.getByTestId('leading')).toBeInTheDocument()
     expect(screen.getByTestId('trailing')).toBeInTheDocument()
-    expect(item('Valley Live')).toBeTruthy()
+    expect(item('Opal Harpoon Room')).toBeTruthy()
   })
 
   it('names the leading and trailing slots', () => {
@@ -432,10 +432,10 @@ describe('List', () => {
   it('applies a distinct highlight and aria-current when current', () => {
     render(
       <List>
-        <List.Item title='Valley Live' current />
+        <List.Item title='Opal Harpoon Room' current />
       </List>
     )
-    const row = item('Valley Live')
+    const row = item('Opal Harpoon Room')
     expect(row).toHaveAttribute('aria-current', 'true')
     expect(row).toHaveClass('intent-accent', 'emphasis-subtle')
     // The more specific group emphasis would override the accent fill.

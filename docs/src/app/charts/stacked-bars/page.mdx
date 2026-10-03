@@ -39,7 +39,7 @@ import { StackedBars } from '@oztix/roadie-charts/stacked-bars'
 <div className='w-140 max-w-full'>
   <Chart label='Presale and general' source='Oztix sales.' size='md'>
     <StackedBars
-      data={[['The Lantern Room', 'Presale', 820], ['The Lantern Room', 'General', 644], ['Harbourside Hall', 'Presale', 310], ['Harbourside Hall', 'General', 1190]].map(([show, phase, sold]) => ({ show, phase, sold }))}
+      data={[['Kazoo Hollow Room', 'Presale', 820], ['Kazoo Hollow Room', 'General', 644], ['Antler Kettle Hall', 'Presale', 310], ['Antler Kettle Hall', 'General', 1190]].map(([show, phase, sold]) => ({ show, phase, sold }))}
       x='show'
       y='sold'
       series='phase'

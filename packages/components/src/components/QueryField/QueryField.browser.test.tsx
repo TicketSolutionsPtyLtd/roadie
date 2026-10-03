@@ -32,10 +32,10 @@ const suggest = (text: string): QueryFieldSuggestionGroup[] =>
           label: 'Filters',
           items: [
             {
-              id: 'venue:longacre',
-              label: 'Venue is The Longacre',
+              id: 'venue:iguana',
+              label: 'Venue is Iguana Teapot Hall',
               kind: 'filter',
-              value: 'longacre'
+              value: 'iguana'
             }
           ]
         }
@@ -44,7 +44,7 @@ const suggest = (text: string): QueryFieldSuggestionGroup[] =>
 
 const scope: QueryFieldChip = {
   id: 'event',
-  label: 'Event is Neon Nights',
+  label: 'Event is Lampshade Disco',
   locked: true
 }
 const chips: QueryFieldChip[] = [
@@ -52,7 +52,7 @@ const chips: QueryFieldChip[] = [
   { id: 'status', label: 'Status is On sale' },
   { id: 'city', label: 'City is Perth' },
   { id: 'tier', label: 'Ticket type is General admission' },
-  { id: 'venue', label: 'Venue is The Longacre' }
+  { id: 'venue', label: 'Venue is Iguana Teapot Hall' }
 ]
 
 function Harness({
@@ -125,7 +125,7 @@ describe('QueryField', () => {
     const search = await screen.findByRole('option', { name: /Search for/ })
     expect(shown(search.querySelector('kbd'))).toBe(true)
     await userEvent.keyboard('{ArrowDown}')
-    const filter = screen.getByRole('option', { name: /The Longacre/ })
+    const filter = screen.getByRole('option', { name: /Iguana Teapot Hall/ })
     await expect.poll(() => shown(filter.querySelector('kbd'))).toBe(true)
     expect(search.querySelector('kbd')).toBeNull()
   })
@@ -137,7 +137,9 @@ describe('QueryField', () => {
     )
     await userEvent.click(input())
     await userEvent.keyboard('long')
-    const filter = await screen.findByRole('option', { name: /The Longacre/ })
+    const filter = await screen.findByRole('option', {
+      name: /Iguana Teapot Hall/
+    })
     await userEvent.hover(filter)
     expect(filter.querySelector('kbd')).toBeNull()
     await userEvent.keyboard('{Enter}')
@@ -179,7 +181,7 @@ describe('QueryField', () => {
     render(<ValueStep />)
     await userEvent.click(input())
     await userEvent.click(await screen.findByRole('option', { name: 'Venue' }))
-    await screen.findByRole('option', { name: /The Longacre/ })
+    await screen.findByRole('option', { name: /Iguana Teapot Hall/ })
     await userEvent.keyboard('{Enter}')
     expect(accepted).toEqual(['field'])
   })

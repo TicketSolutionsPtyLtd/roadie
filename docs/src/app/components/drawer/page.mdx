@@ -33,9 +33,9 @@ A bottom sheet. `Drawer.Content` collapses the underlying `Portal`, `Backdrop`, 
     <Drawer.Body>
       <List emphasis='subtler'>
         {[
-          { name: 'Paperbark Presents', members: 12, current: true },
-          { name: 'The Corner Room', members: 4 },
-          { name: 'Saltwater Sessions', members: 1 }
+          { name: 'Thimble Orbit Presents', members: 12, current: true },
+          { name: 'Opal Harpoon Room', members: 4 },
+          { name: 'Bunyip Teaspoon Sessions', members: 1 }
         ].map((org) => (
           <List.Item
             key={org.name}
@@ -74,7 +74,7 @@ const sides = {
   bottom: {
     label: 'Add ons',
     title: 'Add ons',
-    description: 'Paperbark Sessions · Sat 14 Nov',
+    description: 'Corduroy Lagoon Sessions · Sat 14 Nov',
     body: (
       <List emphasis='subtler'>
         {addOns.map((addOn) => (
@@ -118,8 +118,8 @@ const sides = {
           <Field.Input type='search' placeholder='Artists, venues and events' />
         </Field>
         <List emphasis='subtler'>
-          <List.Item title='Paperbark Sessions' description='Recent search' />
-          <List.Item title='The Corner Room' description='Recent search' />
+          <List.Item title='Corduroy Lagoon Sessions' description='Recent search' />
+          <List.Item title='Opal Harpoon Room' description='Recent search' />
         </List>
       </div>
     )
@@ -158,7 +158,7 @@ render(
       <Drawer.Content size='sm'>
         <Drawer.Header>
           <Drawer.Title>Add ons</Drawer.Title>
-          <Drawer.Description>Paperbark Sessions · Sat 14 Nov</Drawer.Description>
+          <Drawer.Description>Corduroy Lagoon Sessions · Sat 14 Nov</Drawer.Description>
         </Drawer.Header>
         <Drawer.Body>
           <List emphasis='subtler'>

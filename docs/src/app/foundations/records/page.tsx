@@ -34,8 +34,8 @@ const FIELDS: RecordField[] = [
     label: 'Venue',
     type: 'option',
     options: [
-      { value: 'velvet-room', label: 'The Velvet Room' },
-      { value: 'harbourside-hall', label: 'Harbourside Hall' }
+      { value: 'quilted-walrus-room', label: 'The Quilted Walrus Room' },
+      { value: 'antler-kettle-hall', label: 'Antler Kettle Hall' }
     ]
   },
   {
@@ -81,8 +81,8 @@ export const eventFields: RecordField[] = [
     label: 'Venue',
     type: 'option',
     options: [
-      { value: 'velvet-room', label: 'The Velvet Room' },
-      { value: 'harbourside-hall', label: 'Harbourside Hall' }
+      { value: 'quilted-walrus-room', label: 'The Quilted Walrus Room' },
+      { value: 'antler-kettle-hall', label: 'Antler Kettle Hall' }
     ]
   },
   {
@@ -124,7 +124,7 @@ const VIEW: RecordView = {
   name: 'Melbourne this weekend',
   entity: 'events',
   query: {
-    search: 'neon',
+    search: 'lampshade',
     filters: [
       { field: 'city', operator: 'is', values: ['melbourne'] },
       { field: 'starts', operator: 'within', value: 'this-weekend' },
@@ -307,10 +307,11 @@ export default function RecordsPage() {
       <Section title='Scope'>
         <p className='max-w-prose text-subtle'>
           Scope is the part of a query the page sets, such as &quot;products
-          offered on Neon Nights, any of its days, or its collection&quot;. It
-          is a filter list your app resolves, because it can span levels a flat
-          record cannot express. Scope is never saved in a view and Clear never
-          removes it. Apply it next to the view&apos;s own query when you fetch.
+          offered on Lampshade Disco, any of its days, or its collection&quot;.
+          It is a filter list your app resolves, because it can span levels a
+          flat record cannot express. Scope is never saved in a view and Clear
+          never removes it. Apply it next to the view&apos;s own query when you
+          fetch.
         </p>
       </Section>
 

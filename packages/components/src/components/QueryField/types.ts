@@ -5,7 +5,7 @@ export type QueryFieldIntent =
 
 export type QueryFieldChip = {
   id: string
-  /** The whole condition as read aloud, such as "Venue is The Longacre". */
+  /** The whole condition as read aloud, such as "Venue is Iguana Teapot Hall". */
   label: string
   /** Set by the page, such as a scope: shown first, with no remove button. */
   locked?: boolean

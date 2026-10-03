@@ -18,7 +18,7 @@ const rows: DataTableRow[] = [
   {
     id: 'show-1',
     show: 'Ball Park Music',
-    venue: 'The Lantern Room',
+    venue: 'Kazoo Hollow Room',
     city: 'Brisbane',
     gross: 118400
   },

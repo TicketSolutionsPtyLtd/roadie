@@ -45,7 +45,7 @@ const columns: DataTableColumn[] = [
 const rows = [
   {
     show: 'Ball Park Music',
-    venue: 'The Lantern Room, Fortitude Valley',
+    venue: 'Kazoo Hollow Room, Fortitude Valley',
     daily: [1, 2, 3, 4, 5],
     sellThrough: 0.77,
     pace: 112,
@@ -53,7 +53,7 @@ const rows = [
   },
   {
     show: 'Angie McMahon',
-    venue: 'The Paper Moth, Brunswick',
+    venue: 'Wobbly Teacup Room, Brunswick',
     daily: [95, 85],
     sellThrough: 0.18,
     pace: 'On sale 2 days',
@@ -68,7 +68,7 @@ describe('DataTable', () => {
       screen.getByRole('table', { name: 'Upcoming shows' })
     ).toBeInTheDocument()
     expect(
-      screen.getByText('The Lantern Room, Fortitude Valley')
+      screen.getByText('Kazoo Hollow Room, Fortitude Valley')
     ).toBeInTheDocument()
     expect(screen.getAllByRole('meter')).toHaveLength(2)
     expect(screen.getByText('$118.4k')).toBeInTheDocument()

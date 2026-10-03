@@ -43,8 +43,11 @@ ESLint already enforce.
 - Dev-only warnings check `process.env.NODE_ENV` with a
   `typeof process !== 'undefined'` guard, not `import.meta.env`.
 - Comments explain why, never what.
-- Docs: sentence case, Australian spelling, no em dashes, invented venues
-  and events; `.mdx` is edited by hand.
+- Docs: sentence case, Australian spelling, no em dashes; `.mdx` is edited
+  by hand.
+- Example data: only Australian cities and bands are real. Flag any venue,
+  event, festival, tour or promoter name not listed in
+  `docs/contributing/EXAMPLE_DATA.md`.
 - New public subpaths are wired into `package.json` exports, the build
   config and the package's Size Limit budget.
 

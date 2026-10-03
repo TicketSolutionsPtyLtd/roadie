@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Collapsible } from '.'
 
 const DETAILS =
-  'Entry to the Paper Lantern Hall in Fitzroy for one person, standing only. Doors open at 7pm and the support act starts at 8pm.'
+  'Entry to Iguana Teapot Hall in Fitzroy for one person, standing only. Doors open at 7pm and the support act starts at 8pm.'
 
 const content = () =>
   document.querySelector<HTMLElement>('[data-slot="collapsible-text-content"]')!

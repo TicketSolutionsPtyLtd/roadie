@@ -217,7 +217,7 @@ keeps one height throughout.
     <Pane.Header />
     <div className='grid gap-3 pb-4'>
       <Pane.BodyTitle>Midnight Frequency</Pane.BodyTitle>
-      <p className='text-subtle'>Sat 14 Feb · The Longacre · 60 remaining</p>
+      <p className='text-subtle'>Sat 14 Feb · Iguana Teapot Hall · 60 remaining</p>
     </div>
   </Pane>
 </div>
@@ -278,9 +278,9 @@ function Stacking() {
   const [selected, setSelected] = useState(null)
   const events = [
     { id: 'midnight', title: 'Midnight Frequency', description: '1,240 sold · 60 remaining' },
-    { id: 'sunset', title: 'Sunset Sounds', description: '820 sold · 180 remaining' },
-    { id: 'neon', title: 'Neon Dusk', description: '540 sold · 460 remaining' },
-    { id: 'harbour', title: 'Harbour Lights', description: '2,010 sold · sold out' }
+    { id: 'quokka', title: 'Quokka Thunder Weekender', description: '820 sold · 180 remaining' },
+    { id: 'sapphire', title: 'Sapphire Cassowary Night', description: '540 sold · 460 remaining' },
+    { id: 'raffia', title: 'Raffia Spaceship', description: '2,010 sold · sold out' }
   ]
   const event = events.find((e) => e.id === selected)
   return (
@@ -381,9 +381,9 @@ function Columns() {
           </Pane.Header>
           <List>
             <List.Item title='Midnight Frequency' description='60 remaining' current onClick={() => setShowDetail(true)} />
-            <List.Item title='Sunset Sounds' description='180 remaining' />
-            <List.Item title='Neon Dusk' description='460 remaining' />
-            <List.Item title='Harbour Lights' description='sold out' />
+            <List.Item title='Quokka Thunder Weekender' description='180 remaining' />
+            <List.Item title='Sapphire Cassowary Night' description='460 remaining' />
+            <List.Item title='Raffia Spaceship' description='sold out' />
           </List>
         </Pane>
         <Pane aria-label='Midnight Frequency' reached={showDetail}>
@@ -406,7 +406,7 @@ function Columns() {
             <Pane.Title>Details</Pane.Title>
           </Pane.Header>
           <List emphasis='subtler'>
-            <List.Item title='Venue' description='The Longacre' />
+            <List.Item title='Venue' description='Iguana Teapot Hall' />
             <List.Item title='Doors' description='7:00 pm' />
             <List.Item title='Capacity' description='1,300' />
           </List>

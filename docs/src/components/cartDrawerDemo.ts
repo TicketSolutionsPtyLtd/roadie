@@ -27,9 +27,9 @@ const img = (_seed: string) => {
 const DEMO_EVENTS: CartEvent[] = [
   {
     eventId: 'e1',
-    eventName: 'Sunset Sessions Opening Night',
-    venueName: 'Riverlight Garden Stage, Bulimba',
-    imageUrl: img('sunset-sessions'),
+    eventName: 'Feathered Anchor Sessions Opening Night',
+    venueName: 'Lighthouse Fig Lawn, Bulimba',
+    imageUrl: img('feathered-anchor-sessions'),
     eventStartAtUtc: '2026-09-18T09:00:00Z',
     eventEndAtUtc: '2026-09-18T13:00:00Z',
     eventDateKey: '2026-09-18',
@@ -40,9 +40,9 @@ const DEMO_EVENTS: CartEvent[] = [
   },
   {
     eventId: 'e3',
-    eventName: 'Riverside Late Show',
-    venueName: 'Foundry Row Warehouse, West End',
-    imageUrl: img('riverside-late'),
+    eventName: 'Lampshade Disco',
+    venueName: 'Gooseberry Signal Warehouse, West End',
+    imageUrl: img('lampshade-disco'),
     eventStartAtUtc: '2026-09-18T11:00:00Z',
     eventEndAtUtc: '2026-09-18T13:30:00Z',
     eventDateKey: '2026-09-18',
@@ -53,8 +53,8 @@ const DEMO_EVENTS: CartEvent[] = [
   },
   {
     eventId: 'e2',
-    eventName: 'Twilight River Weekender',
-    venueName: 'Lookout Point Lawn, Kangaroo Point',
+    eventName: 'Quokka Thunder Weekender',
+    venueName: 'Jumbuck Orchard Park, Kangaroo Point',
     imageUrl: img('weekender-lawn'),
     eventStartAtUtc: '2026-10-03T08:30:00Z',
     eventEndAtUtc: '2026-10-04T11:00:00Z',
@@ -100,9 +100,9 @@ type EventTemplate = {
 // truncation; later entries cover finish times, multi-day runs, and seating.
 const EXTRA_EVENTS: EventTemplate[] = [
   {
-    eventName: 'Midnight Carnival: A Wildly Long Night Under the Big Top',
-    venueName: 'Starlight Pier Marquee (Wynnum, QLD)',
-    seed: 'circus-the-show',
+    eventName: 'Kelpie Moon Festival of Bonfires and Strange Machines',
+    venueName: 'Foxglove Tin Pavilion (Wynnum, QLD)',
+    seed: 'kelpie-moon',
     eventStartAtUtc: '2026-06-25T09:00:00Z',
     eventEndAtUtc: '2026-06-25T13:30:00Z',
     eventDateKey: '2026-06-25',
@@ -112,9 +112,9 @@ const EXTRA_EVENTS: EventTemplate[] = [
     ]
   },
   {
-    eventName: 'Moonlight Carnival',
-    venueName: 'Thornfield Showfield, Brookfield',
-    seed: 'carnival-lights',
+    eventName: 'Ember Galah Ball',
+    venueName: 'Barnacle Bowl Amphitheatre, Brookfield',
+    seed: 'ember-galah',
     eventStartAtUtc: '2026-11-20T08:00:00Z',
     eventEndAtUtc: '2026-11-22T12:00:00Z',
     eventDateKey: '2026-11-20',
@@ -122,9 +122,9 @@ const EXTRA_EVENTS: EventTemplate[] = [
     tickets: [{ name: 'Carnival Pass', quantity: 2, priceEach: 74 }]
   },
   {
-    eventName: 'Harbourside Jazz',
-    venueName: 'Wharfside Pavilion, Hamilton',
-    seed: 'harbourside-jazz',
+    eventName: 'Tuxedo Possum Cabaret',
+    venueName: 'Saltbush Trumpet Ballroom, Hamilton',
+    seed: 'tuxedo-possum',
     eventStartAtUtc: '2026-12-05T09:30:00Z',
     eventEndAtUtc: '2026-12-06T13:00:00Z',
     eventDateKey: '2026-12-05',
@@ -148,17 +148,17 @@ const EXTRA_EVENTS: EventTemplate[] = [
     ]
   },
   {
-    eventName: 'Sunset Cinema',
-    venueName: 'Foxglove Riverwalk Lawn, New Farm',
-    seed: 'sunset-cinema',
+    eventName: 'Haystack Moonbeam Night Market',
+    venueName: 'Kazoo Hollow Room, New Farm',
+    seed: 'haystack-moonbeam',
     eventStartAtUtc: '2026-12-19T09:00:00Z',
     eventDateKey: '2026-12-19',
     tickets: [{ name: 'Beanbag Ticket', quantity: 2, priceEach: 39.5 }]
   },
   {
-    eventName: 'Festival of Lights',
-    venueName: 'Lanternwick Green, South Bank',
-    seed: 'festival-of-lights',
+    eventName: 'Velvet Dingo Fest',
+    venueName: 'Iguana Teapot Hall, South Bank',
+    seed: 'velvet-dingo-fest',
     eventStartAtUtc: '2027-01-07T09:00:00Z',
     eventEndAtUtc: '2027-01-09T12:30:00Z',
     eventDateKey: '2027-01-07',

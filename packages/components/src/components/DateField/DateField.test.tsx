@@ -387,11 +387,11 @@ describe('DateField', () => {
           <Field.Label>Show date</Field.Label>
           <DateField aria-describedby='venue-note' />
           <Field.HelperText>Type a date</Field.HelperText>
-          <p id='venue-note'>The Tin Shed is closed Mondays</p>
+          <p id='venue-note'>Wobbly Teacup Room is closed Mondays</p>
         </Field>
       )
       expect(screen.getByLabelText('Show date')).toHaveAccessibleDescription(
-        'Type a date The Tin Shed is closed Mondays'
+        'Type a date Wobbly Teacup Room is closed Mondays'
       )
     })
 

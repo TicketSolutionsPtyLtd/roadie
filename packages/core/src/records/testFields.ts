@@ -14,9 +14,9 @@ export const eventFields: RecordField[] = [
     label: 'Venue',
     type: 'option',
     options: [
-      { value: 'velvet-room', label: 'The Velvet Room' },
-      { value: 'harbourside-hall', label: 'Harbourside Hall' },
-      { value: 'swan-lane-social', label: 'Swan Lane Social' }
+      { value: 'quilted-walrus-room', label: 'The Quilted Walrus Room' },
+      { value: 'antler-kettle-hall', label: 'Antler Kettle Hall' },
+      { value: 'drongo-bell-social-club', label: 'Drongo Bell Social Club' }
     ]
   },
   {
@@ -81,10 +81,10 @@ const PERTH = 'Australia/Perth'
 
 export const eventRows = {
   // 7:30pm Saturday in Sydney.
-  velvet: {
-    id: 'velvet',
-    name: 'Neon Nights',
-    venue: 'velvet-room',
+  walrus: {
+    id: 'walrus',
+    name: 'Lampshade Disco',
+    venue: 'quilted-walrus-room',
     city: 'sydney',
     genres: ['jazz', 'folk'],
     status: 'selling_fast',
@@ -96,10 +96,10 @@ export const eventRows = {
     featured: true
   },
   // 11:30pm Saturday in Perth, already Sunday in Sydney.
-  swan: {
-    id: 'swan',
-    name: 'Late Laughs',
-    venue: 'swan-lane-social',
+  drongo: {
+    id: 'drongo',
+    name: 'Tuxedo Possum Cabaret',
+    venue: 'drongo-bell-social-club',
     city: 'perth',
     genres: ['comedy'],
     status: 'on_sale',
@@ -113,8 +113,8 @@ export const eventRows = {
   // A festival running Thursday to Monday, across Sydney's DST change.
   festival: {
     id: 'festival',
-    name: 'Harbour Sounds Festival',
-    venue: 'harbourside-hall',
+    name: 'Ochre Kite Weekender',
+    venue: 'antler-kettle-hall',
     city: 'sydney',
     genres: [],
     status: 'sold_out',
@@ -127,7 +127,7 @@ export const eventRows = {
   // No venue yet, no capacity, no start.
   tba: {
     id: 'tba',
-    name: 'Mystery Matinee',
+    name: 'Marzipan Thunderclap',
     venue: '',
     genres: null,
     status: 'on_sale',

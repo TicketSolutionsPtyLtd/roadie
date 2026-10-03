@@ -94,7 +94,7 @@ describe('DataTable never clips', () => {
   const venueRows = [
     {
       show: 'Ball Park Music',
-      venue: 'The Lantern Room, Fortitude Valley · Sat 14 Nov',
+      venue: 'Kazoo Hollow Room, Fortitude Valley · Sat 14 Nov',
       daily: [1, 2, 3, 4, 5],
       sellThrough: 0.77,
       pace: 112,

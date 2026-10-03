@@ -8,12 +8,12 @@ const base: RecordView = {
   name: 'Upcoming',
   entity: 'events',
   query: {
-    search: 'neon nights',
+    search: 'lampshade disco',
     filters: [
       {
         field: 'venue',
         operator: 'is',
-        values: ['velvet-room', 'harbourside-hall']
+        values: ['quilted-walrus-room', 'antler-kettle-hall']
       },
       {
         field: 'starts',
@@ -41,7 +41,7 @@ describe('equalViews', () => {
   it.each<[string, RecordView]>([
     ['itself', base],
     ['a renamed copy', { ...base, id: 'copy', name: 'Copy' }],
-    ['search spacing', withQuery({ search: '  neon   nights ' })],
+    ['search spacing', withQuery({ search: '  lampshade   disco ' })],
     [
       'chips in another order',
       withQuery({ filters: [...base.query.filters].reverse() })
@@ -53,7 +53,7 @@ describe('equalViews', () => {
           {
             field: 'venue',
             operator: 'is',
-            values: ['harbourside-hall', 'velvet-room']
+            values: ['antler-kettle-hall', 'quilted-walrus-room']
           },
           base.query.filters[1]!
         ]
@@ -121,7 +121,7 @@ describe('equalViews', () => {
   })
 
   it.each<[string, RecordView]>([
-    ['a different search', withQuery({ search: 'neon' })],
+    ['a different search', withQuery({ search: 'lampshade' })],
     ['a chip removed', withQuery({ filters: base.query.filters.slice(1) })],
     [
       'the operator flipped',

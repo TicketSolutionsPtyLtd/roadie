@@ -19,7 +19,7 @@ export const channelExample: RankedBarsProps = {
   takeaway: 'Email brings in a third of orders'
 }
 
-// The audience dashboard's 612 buyers. Wattle Street Social is in West End.
+// The audience dashboard's 612 buyers. Saltbush Trumpet Ballroom is in West End.
 export const suburbExample: RankedBarsProps = {
   data: [
     { suburb: 'West End', buyers: 161 },

@@ -29,11 +29,11 @@ describe('parseQuery', () => {
   })
 
   it('finds an identifier among other words', () => {
-    const [first] = parse('oz-12345 velvet')
+    const [first] = parse('oz-12345 quilted')
     expect(first).not.toHaveProperty('exact')
     expect(first).toMatchObject({
       kind: 'filter',
-      remainder: 'velvet',
+      remainder: 'quilted',
       value: { field: 'orderNumber', operator: 'is', values: ['oz-12345'] }
     })
   })
@@ -62,9 +62,9 @@ describe('parseQuery', () => {
       { field: 'city', operator: 'is', values: ['melbourne'] }
     ],
     [
-      'velvet',
-      'Venue is The Velvet Room',
-      { field: 'venue', operator: 'is', values: ['velvet-room'] }
+      'walrus',
+      'Venue is The Quilted Walrus Room',
+      { field: 'venue', operator: 'is', values: ['quilted-walrus-room'] }
     ],
     [
       'selling',
@@ -173,9 +173,9 @@ describe('parseQuery', () => {
   describe('field:value', () => {
     it.each([
       [
-        'venue:velvet',
-        'Venue is The Velvet Room',
-        { field: 'venue', operator: 'is', values: ['velvet-room'] }
+        'venue:quilted',
+        'Venue is The Quilted Walrus Room',
+        { field: 'venue', operator: 'is', values: ['quilted-walrus-room'] }
       ],
       [
         'City: syd',
@@ -183,9 +183,9 @@ describe('parseQuery', () => {
         { field: 'city', operator: 'is', values: ['sydney'] }
       ],
       [
-        'name:neon',
-        'Name contains "neon"',
-        { field: 'name', operator: 'contains', value: 'neon' }
+        'name:lampshade',
+        'Name contains "lampshade"',
+        { field: 'name', operator: 'contains', value: 'lampshade' }
       ],
       [
         'capacity:>100',
@@ -245,7 +245,7 @@ describe('parseQuery', () => {
     })
 
     it('reads an unknown prefix as ordinary text', () => {
-      expect(parse('nope:velvet')).toEqual([])
+      expect(parse('nope:quilted')).toEqual([])
     })
   })
 

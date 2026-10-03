@@ -131,7 +131,7 @@ describe('Toast', () => {
           type='button'
           onClick={() =>
             toast.promise(task, {
-              loading: 'Publishing Harbourlight Sessions',
+              loading: 'Publishing Feathered Anchor Sessions',
               success: (name) => `${name} is live`,
               error: 'Could not publish'
             })
@@ -149,14 +149,14 @@ describe('Toast', () => {
       </Toast.Provider>
     )
     await user.click(screen.getByRole('button', { name: 'Publish' }))
-    await screen.findByText('Publishing Harbourlight Sessions')
+    await screen.findByText('Publishing Feathered Anchor Sessions')
     expect(document.querySelector('[data-slot="toast-icon"] svg')).toHaveClass(
       'animate-spin'
     )
 
-    await act(async () => resolve('Harbourlight Sessions'))
+    await act(async () => resolve('Feathered Anchor Sessions'))
     expect(
-      await screen.findByText('Harbourlight Sessions is live')
+      await screen.findByText('Feathered Anchor Sessions is live')
     ).toBeInTheDocument()
     expect(toastEl()).toHaveClass('intent-success')
   })

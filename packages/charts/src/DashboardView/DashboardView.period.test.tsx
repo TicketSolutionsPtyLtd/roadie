@@ -39,7 +39,7 @@ const shows: DashboardCard = {
   value: 12,
   delta: { value: 2, comparison: true },
   columns: [{ key: 'name', header: 'Show', kind: 'text' }],
-  rows: [{ name: 'Neon Harbour' }],
+  rows: [{ name: 'Lampshade Disco' }],
   source: 'Oztix sales'
 }
 

@@ -355,7 +355,7 @@ const PORTFOLIO_COLUMNS: DataTableColumn[] = [
 const PORTFOLIO_ROWS = [
   {
     show: 'Ball Park Music',
-    venue: 'The Lantern Room, Fortitude Valley',
+    venue: 'Kazoo Hollow Room, Fortitude Valley',
     daily: [22, 30, 41, 52, 61, 72, 81, 96, 112, 131, 152, 160],
     sellThrough: 0.61,
     pace: 112,
@@ -363,7 +363,7 @@ const PORTFOLIO_ROWS = [
   },
   {
     show: 'Ocean Alley',
-    venue: 'Parkside Amphitheatre, Geelong',
+    venue: 'Barnacle Bowl Amphitheatre, Geelong',
     daily: [90, 95, 102, 94, 108, 97, 104, 110, 101, 106, 110, 112],
     sellThrough: 0.51,
     pace: 101,
@@ -371,7 +371,7 @@ const PORTFOLIO_ROWS = [
   },
   {
     show: 'Julia Jacklin',
-    venue: 'The Gasworks Room, Hobart',
+    venue: 'Opal Harpoon Room, Hobart',
     daily: [18, 16, 15, 14, 12, 11, 10, 9, 8, 7, 6, 6],
     sellThrough: 0.4,
     pace: 78,
