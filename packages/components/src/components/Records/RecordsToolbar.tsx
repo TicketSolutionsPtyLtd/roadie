@@ -17,10 +17,12 @@ import type { RecordsAction } from './types'
 export type RecordsToolbarProps<Row extends object = object> = {
   /** Replaces the standard controls: the search, the options and the actions. */
   children?: ReactNode
-  /** The standard search's placeholder. @default 'Search' */
+  /** The standard search's placeholder. @default 'Search and filter' */
   searchPlaceholder?: string
   /** Names the standard search when its placeholder doesn't. */
   searchLabel?: string
+  /** The key that focuses the standard search, or `false` for none. @default '/' */
+  searchShortcut?: string | false
   /** The standard controls' actions on every matching record, at the end as `Records.Actions`. */
   actions?: readonly RecordsAction<Row>[]
   className?: string
@@ -31,6 +33,7 @@ export function RecordsToolbar<Row extends object>({
   children,
   searchPlaceholder,
   searchLabel,
+  searchShortcut,
   actions,
   className
 }: RecordsToolbarProps<Row>) {
@@ -86,6 +89,7 @@ export function RecordsToolbar<Row extends object>({
           <RecordsSearch
             placeholder={searchPlaceholder}
             aria-label={searchLabel}
+            shortcut={searchShortcut}
             className='min-w-48 grow basis-64'
           />
           <RecordsSelect />

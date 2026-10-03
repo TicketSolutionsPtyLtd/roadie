@@ -119,10 +119,15 @@ export function filterOf(
         ? null
         : { field: key, operator, value: draft.low }
     case 'between':
-      return draft.low !== null &&
-        draft.high !== null &&
-        draft.low <= draft.high
-        ? { field: key, operator, value: [draft.low, draft.high] }
+      return draft.low !== null && draft.high !== null
+        ? {
+            field: key,
+            operator,
+            value: [
+              Math.min(draft.low, draft.high),
+              Math.max(draft.low, draft.high)
+            ]
+          }
         : null
     case 'on':
     case 'before':
@@ -142,5 +147,35 @@ export function filterOf(
     case 'is-set':
     case 'is-not-set':
       return { field: key, operator }
+  }
+}
+
+/** Whether the draft holds no value at all for its operator, as when every value is cleared. */
+export function isEmptyDraft(field: RecordField, draft: FilterDraft): boolean {
+  switch (draft.operator) {
+    case 'is':
+    case 'is-not':
+    case 'has-all':
+      return field.type === 'text'
+        ? !draft.text.trim()
+        : draft.values.length === 0
+    case 'contains':
+    case 'not-contains':
+      return !draft.text.trim()
+    case 'eq':
+    case 'neq':
+    case 'lt':
+    case 'gt':
+      return draft.low === null
+    case 'between':
+      return draft.low === null && draft.high === null
+    case 'on':
+    case 'before':
+    case 'after':
+      return !draft.date
+    case 'range':
+      return !draft.range
+    default:
+      return false
   }
 }

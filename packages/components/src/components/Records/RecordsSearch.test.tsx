@@ -1,4 +1,6 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { useState } from 'react'
+
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -270,7 +272,20 @@ describe('Records.Search', () => {
     expect(chip('venue is x')).toHaveTextContent('Not applied')
   })
 
-  it('focuses on /, unless something else takes typing', async () => {
+  it('takes the shortcut from the toolbar', () => {
+    function Toolbar() {
+      const records = useRecords({ data: shows, fields })
+      return (
+        <Records.Root records={records} layouts={layouts}>
+          <Records.Toolbar searchShortcut={false} />
+        </Records.Root>
+      )
+    }
+    render(<Toolbar />)
+    expect(input()).not.toHaveAttribute('aria-keyshortcuts')
+  })
+
+  it('focuses on /', async () => {
     const { user } = setup()
     await user.keyboard('/')
     expect(input()).toHaveFocus()
@@ -302,9 +317,120 @@ describe('Records.Search', () => {
     })
     await user.click(input())
     await user.keyboard('melb')
-    await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+    await option(/Search for/)
     expect(
       screen.queryByRole('option', { name: /City is Melbourne/ })
     ).toBeNull()
+  })
+
+  it('removes a filter its editor emptied, once it closes', async () => {
+    const { user, lastView } = setup({
+      defaultView: {
+        query: {
+          filters: [{ field: 'city', operator: 'is', values: ['Perth'] }]
+        }
+      }
+    })
+    await user.click(
+      within(chip('City is Perth')).getByRole('button', {
+        name: 'City is Perth'
+      })
+    )
+    const dialog = await editor()
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Perth' }))
+    expect(chipLabels()).toEqual(['City is Perth'])
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(chipLabels()).toEqual([]))
+    expect(lastView().query.filters).toEqual([])
+    await waitFor(() => expect(input()).toHaveFocus())
+  })
+
+  it('lists a chosen value the records don’t hold, so it can be unticked', async () => {
+    const { user, lastView } = setup({
+      defaultView: {
+        query: {
+          filters: [
+            { field: 'city', operator: 'is', values: ['Perth', 'Darwin'] }
+          ]
+        }
+      }
+    })
+    await user.click(
+      within(chip('City is')).getByRole('button', { name: /^City is/ })
+    )
+    const dialog = await editor()
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Darwin' }))
+    expect(lastView().query.filters).toEqual([
+      { field: 'city', operator: 'is', values: ['Perth'] }
+    ])
+  })
+
+  it('edits the same filter after a parent reorders them', async () => {
+    const onViewChange = vi.fn()
+    function Sorted() {
+      const [view, setView] = useState<RecordView>({
+        query: {
+          search: '',
+          filters: [
+            { field: 'sold', operator: 'gt', value: 100 },
+            { field: 'city', operator: 'is', values: ['Perth'] }
+          ],
+          sort: []
+        },
+        layout: { type: 'table' }
+      })
+      const records = useRecords({
+        data: shows,
+        fields,
+        view,
+        onViewChange: (next) => {
+          onViewChange(next)
+          // The parent keeps filters in field order.
+          setView({
+            ...next,
+            query: {
+              ...next.query,
+              filters: [...next.query.filters].sort((a, b) =>
+                a.field.localeCompare(b.field)
+              )
+            }
+          })
+        }
+      })
+      return (
+        <Records.Root records={records} layouts={layouts}>
+          <Records.Search />
+        </Records.Root>
+      )
+    }
+    const user = userEvent.setup()
+    render(<Sorted />)
+    await user.click(
+      within(chip('Sold')).getByRole('button', { name: /^Sold/ })
+    )
+    const dialog = await editor()
+    const value = within(dialog).getByRole('textbox', { name: 'Sold value' })
+    await user.clear(value)
+    await user.type(value, '250')
+    const filters = onViewChange.mock.lastCall![0].query.filters
+    expect(filters).toContainEqual({
+      field: 'city',
+      operator: 'is',
+      values: ['Perth']
+    })
+    expect(filters).toContainEqual({
+      field: 'sold',
+      operator: 'gt',
+      value: 250
+    })
+    expect(filters).toHaveLength(2)
+  })
+
+  it('keeps searching the words a picked field didn’t read', async () => {
+    const { user, lastView } = setup()
+    await user.click(input())
+    await user.keyboard('ocean cit')
+    await user.click(await option('City'))
+    expect(lastView().query.search).toBe('ocean')
   })
 })

@@ -6,7 +6,7 @@ import {
   recordFields
 } from '@oztix/roadie-core/records'
 
-import { draftOf, editorOperators, filterOf } from './filterDraft'
+import { draftOf, editorOperators, filterOf, isEmptyDraft } from './filterDraft'
 
 type Gig = { name: string; city: string; starts: string; sold: number }
 const field = recordFields<Gig>()
@@ -61,9 +61,29 @@ describe('filter drafts', () => {
     expect(filterOf(sold, { ...draft, operator: 'between' })).toBeNull()
     expect(
       filterOf(sold, { ...draft, operator: 'between', low: 9, high: 3 })
-    ).toBeNull()
+    ).toEqual({ field: 'sold', operator: 'between', value: [3, 9] })
     expect(filterOf(name, { ...draftOf(name, null), text: '  ' })).toBeNull()
     expect(filterOf(city, draftOf(city, null))).toBeNull()
+  })
+
+  it('knows a draft emptied of its value from one half made', () => {
+    expect(
+      isEmptyDraft(city, {
+        ...draftOf(city, { field: 'city', operator: 'is', values: ['perth'] }),
+        values: []
+      })
+    ).toBe(true)
+    expect(isEmptyDraft(name, { ...draftOf(name, null), text: ' ' })).toBe(true)
+    expect(
+      isEmptyDraft(sold, {
+        ...draftOf(sold, null),
+        operator: 'between',
+        low: 1
+      })
+    ).toBe(false)
+    expect(
+      isEmptyDraft(starts, { ...draftOf(starts, null), operator: 'is-set' })
+    ).toBe(false)
   })
 
   it('starts a new filter with the field’s first operator', () => {

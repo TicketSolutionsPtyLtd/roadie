@@ -1,12 +1,11 @@
 'use client'
 
-import { Suspense, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 
 import type { RecordField, RecordFilter } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { PickerOverlay, usePickerSurface } from '../../pickers/PickerShell'
-import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { QueryField, type QueryFieldAccepted } from '../QueryField'
 import { RecordsFilterEditorLazy } from './RecordsFilterEditorLazy'
 import { useRecordsContext } from './context'
@@ -18,6 +17,7 @@ import {
   filterChipId,
   hasValueStep,
   mergeFilter,
+  sameFilter,
   searchChips,
   topSuggestions,
   valueSuggestions
@@ -40,11 +40,13 @@ type Editing = {
   index: number | null
   /** Kept through the close, so the editor stays as it leaves. */
   open: boolean
+  /** The filter as last written, to find it again if the list moves under it. */
+  sent: RecordFilter | null
   /** Each opening edits afresh. */
   session: number
 }
 
-const MAX_LISTED_VALUES = 200
+const MAX_LISTED_VALUES = 1000
 
 // An option field with no `options` lists the values the records hold.
 function useListedFields(records: RecordsInstance): readonly RecordField[] {
@@ -56,8 +58,13 @@ function useListedFields(records: RecordsInstance): readonly RecordField[] {
       const values = new Set<string>()
       for (const row of data) {
         const value = (row as Record<string, unknown>)[field.key]
-        for (const item of Array.isArray(value) ? value : [value])
-          if (typeof item === 'string' && item.trim()) values.add(item)
+        for (const item of Array.isArray(value) ? value : [value]) {
+          const text =
+            typeof item === 'number' || typeof item === 'boolean'
+              ? String(item)
+              : item
+          if (typeof text === 'string' && text.trim()) values.add(text)
+        }
         if (values.size > MAX_LISTED_VALUES) return field
       }
       const options = [...values]
@@ -70,9 +77,6 @@ function useListedFields(records: RecordsInstance): readonly RecordField[] {
 
 const pendingLabel = (field: RecordField) =>
   field.type === 'date' ? field.label : `${field.label} is`
-
-const sameFilter = (a: RecordFilter, b: RecordFilter) =>
-  JSON.stringify(a) === JSON.stringify(b)
 
 const FOCUSABLE = 'input:not([type=hidden]), button:not([tabindex="-1"])'
 
@@ -105,6 +109,9 @@ export function RecordsSearch({
   const [stepText, setStepText] = useState('')
   const [editing, setEditing] = useState<Editing | null>(null)
   const sessions = useRef(0)
+  const emptied = useRef(false)
+  // Where focus returns as the editor closes: its chip, or the field.
+  const returnTo = useRef<number | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const anchorRef = useRef<HTMLElement | null>(null)
   const labelId = useId()
@@ -134,22 +141,30 @@ export function RecordsSearch({
     anchor: HTMLElement | null
   ) {
     anchorRef.current = anchor
+    const sent = next.index === null ? null : (filters[next.index] ?? null)
+    emptied.current = false
     const session = ++sessions.current
     // Opens with its controls, so focus has somewhere to land.
-    void RecordsFilterEditorLazy.preload().then(() => {
-      if (session === sessions.current)
-        setEditing({ ...next, open: true, session })
+    void RecordsFilterEditorLazy.preload().then((ready) => {
+      if (ready && session === sessions.current)
+        setEditing({ ...next, sent, open: true, session })
     })
   }
 
   function add(filter: RecordFilter) {
     const merged = mergeFilter(filters, filter, fields)
-    if (merged) records.updateFilter(merged.index, merged.filter)
-    else if (!filters.some((other) => sameFilter(other, filter)))
+    if (merged) {
+      if (!sameFilter(merged.filter, filters[merged.index]!))
+        records.updateFilter(merged.index, merged.filter)
+    } else if (!filters.some((other) => sameFilter(other, filter)))
       records.addFilter(filter)
   }
 
+  // An editor waiting for its code gives way to whatever happens next.
+  const dropOpening = () => ++sessions.current
+
   function accept(suggestion: QueryFieldAccepted<SearchValue>) {
+    dropOpening()
     if (suggestion.kind === 'search') {
       records.setSearch(suggestion.value)
       return
@@ -171,16 +186,55 @@ export function RecordsSearch({
     else add(value.filter)
   }
 
-  const closeEditor = () =>
-    setEditing((current) => current && { ...current, open: false })
-  // Read at close, after a new filter got its place.
-  const editingIndex = useRef<number | null>(null)
-  useIsomorphicLayoutEffect(() => {
-    editingIndex.current = editing?.index ?? null
-  })
+  /** Where the edited filter is now, or null for one not written yet. */
+  function editingAt(): number | null {
+    if (!editing || editing.index === null) return null
+    const { sent } = editing
+    const found = sent
+      ? filters.findIndex((filter) => sameFilter(filter, sent))
+      : -1
+    if (found >= 0) return found
+    return editing.index < filters.length ? editing.index : null
+  }
+  const at = editingAt()
 
-  const editingFilter =
-    editing && editing.index !== null ? filters[editing.index] : undefined
+  function closeEditor() {
+    dropOpening()
+    returnTo.current = at
+    // A filter emptied of its values is gone, as it now asks for nothing.
+    if (emptied.current && at !== null) {
+      records.removeFilter(at)
+      returnTo.current = null
+    }
+    emptied.current = false
+    setEditing((current) => current && { ...current, open: false })
+  }
+
+  const editingFilter = at === null ? undefined : filters[at]
+
+  function write(filter: RecordFilter) {
+    if (!editing) return
+    if (at !== null) {
+      setEditing({ ...editing, index: at, sent: filter })
+      records.updateFilter(at, filter)
+      return
+    }
+    const same = filters.findIndex((other) => sameFilter(other, filter))
+    setEditing({
+      ...editing,
+      index: same >= 0 ? same : filters.length,
+      sent: filter
+    })
+    if (same < 0) records.addFilter(filter)
+  }
+
+  function removeEdited() {
+    if (!editing || at === null) return
+    records.removeFilter(at)
+    returnTo.current = null
+    emptied.current = false
+    setEditing({ ...editing, index: null, sent: null, open: false })
+  }
 
   return (
     <>
@@ -208,6 +262,7 @@ export function RecordsSearch({
             : undefined
         }
         onPendingChipCancel={() => {
+          dropOpening()
           setPending(null)
           setStepText('')
         }}
@@ -238,7 +293,7 @@ export function RecordsSearch({
           // the panel, so no control looks active and Tab reaches the first.
           initialFocus={editing.index === null ? focusTarget : focusPanel}
           finalFocus={() => {
-            const index = editingIndex.current
+            const index = returnTo.current
             if (index === null) return inputRef.current
             return (
               group()?.querySelector<HTMLElement>(
@@ -251,29 +306,17 @@ export function RecordsSearch({
           <span id={labelId} hidden>
             {editingField.label}
           </span>
-          <Suspense fallback={null}>
-            <RecordsFilterEditorLazy
-              key={editing.session}
-              field={editingField}
-              filter={editingFilter ?? null}
-              timeZone={records.timeZone}
-              onChange={(filter) => {
-                if (editing.index === null) {
-                  setEditing({ ...editing, index: filters.length })
-                  records.addFilter(filter)
-                } else records.updateFilter(editing.index, filter)
-              }}
-              onRemove={
-                editing.index === null
-                  ? undefined
-                  : () => {
-                      records.removeFilter(editing.index!)
-                      editingIndex.current = null
-                      setEditing({ ...editing, index: null, open: false })
-                    }
-              }
-            />
-          </Suspense>
+          <RecordsFilterEditorLazy
+            key={editing.session}
+            field={editingField}
+            filter={editingFilter ?? null}
+            timeZone={records.timeZone}
+            onEmptyChange={(empty) => {
+              emptied.current = empty
+            }}
+            onChange={write}
+            onRemove={at === null ? undefined : removeEdited}
+          />
         </PickerOverlay>
       )}
     </>

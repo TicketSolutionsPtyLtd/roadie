@@ -70,7 +70,8 @@ export type QueryFieldProps<Value = unknown> = {
   /**
    * A single key, such as `/`, that focuses the field from anywhere on the
    * page. Ignored while typing in another field. Unlike `Menu.Item`'s
-   * display-only `shortcut`, this binds the key.
+   * display-only `shortcut`, this binds the key. When several fields on a
+   * page ask for the same key, the first one mounted takes it.
    */
   shortcut?: string
   /** The input, for focusing it after an editor closes. Pass a stable ref. */
@@ -182,7 +183,7 @@ export function QueryField<Value = unknown>({
   const isDisabled = disabled ?? field.disabled
   const isInvalid = invalid ?? field.invalid
   const isRequired = required ?? field.required
-  useShortcut(isDisabled ? undefined : shortcut, inputRef)
+  const ownsShortcut = useShortcut(isDisabled ? undefined : shortcut, inputRef)
 
   const ordered = useMemo(
     () => [
@@ -231,6 +232,7 @@ export function QueryField<Value = unknown>({
 
   function clear() {
     setText('')
+    if (pendingChip) onPendingChipCancel?.()
     if (onClear) onClear()
     else unlocked.forEach((chip) => onRemoveChip?.(chip.id))
     inputRef.current?.focus()
@@ -275,15 +277,24 @@ export function QueryField<Value = unknown>({
       if (target) accept(target)
       return
     }
+    if (event.key === 'Escape' && isComposing(event)) {
+      event.preventBaseUIHandler()
+      return
+    }
+    // An Escape used here is kept from the page, such as a toolbar's.
     if (event.key === 'Escape' && pendingChip) {
       event.preventBaseUIHandler()
+      event.preventDefault()
       onPendingChipCancel?.()
       return
     }
     if (event.key === 'Escape' && !open) {
       // Base UI clears every value here, scope chips included.
       event.preventBaseUIHandler()
-      if (text && !isComposing(event)) setText('')
+      if (text) {
+        event.preventDefault()
+        setText('')
+      }
       return
     }
     if (event.key === 'Backspace' && event.currentTarget.value === '') {
@@ -322,7 +333,7 @@ export function QueryField<Value = unknown>({
   }
 
   const showShortcut =
-    !!shortcut && !isDisabled && !text && ordered.length === 0 && !pendingChip
+    ownsShortcut && !text && ordered.length === 0 && !pendingChip
 
   return (
     <Combobox
@@ -480,7 +491,7 @@ export function QueryField<Value = unknown>({
             aria-label={ariaLabel}
             aria-invalid={isInvalid || undefined}
             aria-required={isRequired || undefined}
-            aria-keyshortcuts={shortcut}
+            aria-keyshortcuts={ownsShortcut ? shortcut : undefined}
             {...(describedBy && { 'aria-describedby': describedBy })}
             placeholder={ordered.length > 0 || pendingChip ? '' : placeholder}
             onKeyDown={handleInputKeyDown}

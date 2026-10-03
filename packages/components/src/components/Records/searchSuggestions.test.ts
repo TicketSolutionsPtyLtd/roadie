@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { type RecordFilter, recordFields } from '@oztix/roadie-core/records'
 
 import {
+  filterKey,
   mergeFilter,
   searchChips,
   topSuggestions,
@@ -88,6 +89,23 @@ describe('topSuggestions', () => {
     )
   })
 
+  it('never suggests a value its field’s chip already holds', () => {
+    const [filters] = topSuggestions(
+      'melb',
+      context([
+        { field: 'city', operator: 'is', values: ['perth', 'melbourne'] }
+      ])
+    )
+    expect(filters!.items.map((item) => item.label)).not.toContain(
+      'City is Melbourne'
+    )
+  })
+
+  it('keeps the words a field didn’t read', () => {
+    const [, found] = topSuggestions('ocean cit', context())
+    expect(found!.items[0]).toMatchObject({ label: 'City', remainder: 'ocean' })
+  })
+
   it('names fields the text starts', () => {
     const [, found] = topSuggestions('cit', context())
     expect(found!.items).toMatchObject([
@@ -103,6 +121,22 @@ describe('valueSuggestions', () => {
     ])
     expect(labels(valueSuggestions(byKey('city'), 'syd', context()))).toEqual([
       ['Sydney']
+    ])
+  })
+
+  it('takes typed text for an option field with no values to list', () => {
+    const promoter = field.option('city', { label: 'Promoter' })
+    expect(valueSuggestions(promoter, '', context())[0]!.items).toEqual([])
+    expect(
+      valueSuggestions(promoter, 'Thimble', context())[0]!.items
+    ).toMatchObject([
+      {
+        label: 'Thimble',
+        value: {
+          type: 'filter',
+          filter: { field: 'city', operator: 'is', values: ['Thimble'] }
+        }
+      }
     ])
   })
 
@@ -137,6 +171,33 @@ describe('valueSuggestions', () => {
         filter: { field: 'starts', operator: 'after', value: '2026-12-01' }
       }
     })
+  })
+})
+
+describe('filterKey', () => {
+  it('reads filters alike whatever their key or value order', () => {
+    expect(
+      filterKey({ field: 'city', operator: 'is', values: ['b', 'a'] })
+    ).toBe(
+      filterKey({
+        values: ['a', 'b'],
+        operator: 'is',
+        field: 'city'
+      } as RecordFilter)
+    )
+    expect(
+      filterKey({
+        field: 'starts',
+        operator: 'within',
+        value: { direction: 'next', amount: 7, unit: 'day' }
+      })
+    ).toBe(
+      filterKey({
+        field: 'starts',
+        operator: 'within',
+        value: { unit: 'day', amount: 7, direction: 'next' }
+      })
+    )
   })
 })
 

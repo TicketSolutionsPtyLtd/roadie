@@ -55,7 +55,8 @@ action takes.
 its chip reads ("Venue is Kazoo Hollow Room", "Gross is more than $100",
 "Starts: This weekend"), with the dates a relative range stands for in
 `detail`. `recordOperatorLabel` names an operator ("is more than") and
-`recordOptionPaths` gives each option's label with its parents' ("Fringe 2027
-› Comedy Gala"). `parseQuery` labels its filters the same way, names a field
-whose label holds a colon in `field:value`, and reads `$` and thousands
-commas in a number's value.
+`recordOptionPaths` gives each option's label with its parents' ("Ochre Kite
+Weekender 2027 › Opening Night"). A chip listing more than two values names
+them all in `detail`. `parseQuery` labels its filters the same way, names a
+field whose label holds a colon in `field:value`, and reads `$` and
+thousands commas in a number's value.

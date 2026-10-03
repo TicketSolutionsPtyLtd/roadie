@@ -457,6 +457,16 @@ describe('useRecords writes in one event', () => {
     })
   })
 
+  it('starts from the view shown in the next event, though the parent never renders', async () => {
+    const onViewChange = vi.fn()
+    const { result } = setup({ view: view(), onViewChange })
+    await act(() =>
+      result.current.addFilter({ field: 'sold', operator: 'gt', value: 1 })
+    )
+    await act(() => result.current.setSearch('ocean'))
+    expect(onViewChange.mock.lastCall![0].query.filters).toEqual([])
+  })
+
   it('starts from the view shown once it renders', async () => {
     const onViewChange = vi.fn()
     const { result, rerender } = setup({ view: view(), onViewChange })

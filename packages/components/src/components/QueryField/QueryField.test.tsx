@@ -984,4 +984,50 @@ describe('QueryField', () => {
     rerender(<Harness inputRef={(node) => inputRef(node)} />)
     expect(inputRef.mock.calls).toEqual([[input()]])
   })
+
+  it('gives a shared shortcut to the first field only', async () => {
+    render(
+      <>
+        <QueryField aria-label='First' shortcut='/' suggest={() => []} />
+        <QueryField aria-label='Second' shortcut='/' suggest={() => []} />
+      </>
+    )
+    const first = screen.getByRole('combobox', { name: 'First' })
+    const second = screen.getByRole('combobox', { name: 'Second' })
+    expect(first).toHaveAttribute('aria-keyshortcuts', '/')
+    expect(second).not.toHaveAttribute('aria-keyshortcuts')
+    expect(
+      document.querySelectorAll('[data-slot=query-field-shortcut]')
+    ).toHaveLength(1)
+    await userEvent.keyboard('/')
+    expect(first).toHaveFocus()
+  })
+
+  it('keeps the Escapes it uses from the page', async () => {
+    const outside = vi.fn()
+    render(
+      <div onKeyDown={(event) => outside(event.defaultPrevented)}>
+        <Harness />
+      </div>
+    )
+    await typeInto('igua')
+    await userEvent.keyboard('{Escape}{Escape}')
+    expect(input()).toHaveValue('')
+    expect(outside).toHaveBeenLastCalledWith(true)
+  })
+
+  it('leaves the value step alone while composing, and ends it on Clear', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(
+      <Harness
+        initialChips={[status]}
+        pendingChip={{ id: 'venue', label: 'Venue is' }}
+        onPendingChipCancel={onPendingChipCancel}
+      />
+    )
+    fireEvent.keyDown(input(), { key: 'Escape', isComposing: true })
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'Clear' }))
+    expect(onPendingChipCancel).toHaveBeenCalledOnce()
+  })
 })

@@ -26,9 +26,10 @@ import {
   type FilterDraft,
   draftOf,
   editorOperators,
-  filterOf
+  filterOf,
+  isEmptyDraft
 } from './filterDraft'
-import { datePresets } from './searchSuggestions'
+import { datePresets, filterKey } from './searchSuggestions'
 
 const SEARCHABLE_OPTIONS = 8
 
@@ -60,6 +61,8 @@ export type RecordsFilterEditorProps = {
   onChange: (filter: RecordFilter) => void
   /** Shown for a filter that exists. */
   onRemove?: () => void
+  /** Whether the value has been cleared, so the filter asks for nothing. */
+  onEmptyChange?: (empty: boolean) => void
   timeZone: string
 }
 
@@ -69,15 +72,17 @@ export function RecordsFilterEditor({
   filter,
   onChange,
   onRemove,
+  onEmptyChange,
   timeZone
 }: RecordsFilterEditorProps) {
   const [draft, setDraft] = useState(() => draftOf(field, filter))
-  const sent = useRef(filter && JSON.stringify(filter))
+  const sent = useRef(filter && filterKey(filter))
   const update = (patch: Partial<FilterDraft>) => {
     const next = { ...draft, ...patch }
     setDraft(next)
+    onEmptyChange?.(isEmptyDraft(field, next))
     const made = filterOf(field, next)
-    const key = made && JSON.stringify(made)
+    const key = made && filterKey(made)
     if (!made || key === sent.current) return
     sent.current = key
     onChange(made)
@@ -233,21 +238,39 @@ function OptionValues({
       label: paths.get(option.value) ?? option.label
     }))
   }, [field])
+  // A chosen value the list lacks, such as one from a link, can still be unticked.
+  const [held] = useState(() =>
+    draft.values
+      .filter((value) => !options.some((option) => option.value === value))
+      .map((value) => ({ value, label: value }))
+  )
+  const listed = [...options, ...held]
+  if (listed.length === 0)
+    return (
+      <Input
+        aria-label={`${field.label} value`}
+        value={draft.text}
+        onChange={(event) =>
+          update({
+            text: event.target.value,
+            values: [event.target.value.trim()].filter(Boolean)
+          })
+        }
+      />
+    )
   const text = query.trim().toLowerCase()
   const shown = text
-    ? options.filter(
+    ? listed.filter(
         (option) =>
           option.label.toLowerCase().includes(text) ||
           draft.values.includes(option.value)
       )
-    : options
+    : listed
   return (
     <div className='grid gap-2'>
-      {options.length > SEARCHABLE_OPTIONS && (
+      {listed.length > SEARCHABLE_OPTIONS && (
         <div className='relative grid'>
           <Input
-            data-filter-value=''
-            type='search'
             size='sm'
             aria-label={`Find a ${field.label.toLowerCase()}`}
             placeholder='Find'
@@ -268,19 +291,15 @@ function OptionValues({
         onValueChange={(values) => update({ values })}
         className='max-h-64 overflow-y-auto'
       >
-        {shown.map((option, index) => (
+        {shown.map((option) => (
           <CheckboxGroup.Item
             key={option.value}
             value={option.value}
             label={option.label}
-            {...(index === 0 &&
-              options.length <= SEARCHABLE_OPTIONS && {
-                'data-filter-value': ''
-              })}
           />
         ))}
       </CheckboxGroup>
-      {shown.length === 0 && (
+      {shown.length === 0 && text && (
         <EmptyState size='sm'>
           <EmptyState.Title render={<p />}>
             No {field.label.toLowerCase()} matches “{query.trim()}”

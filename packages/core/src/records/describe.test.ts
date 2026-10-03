@@ -146,6 +146,19 @@ describe('describeRecordFilter', () => {
     ).toMatchObject({ label: 'Starts: Next 7 days' })
   })
 
+  it('names every value in detail once some are left out', () => {
+    expect(
+      describeFilter({
+        field: 'city',
+        operator: 'is',
+        values: ['melbourne', 'sydney', 'perth']
+      }).detail
+    ).toBe('Melbourne, Sydney or Perth')
+    expect(
+      describeFilter({ field: 'city', operator: 'is', values: ['perth'] })
+    ).not.toHaveProperty('detail')
+  })
+
   it('names an unknown field by its key and shows values as given', () => {
     expect(
       describeFilter({ field: 'promoter', operator: 'is', values: ['ab-1'] })
@@ -159,17 +172,28 @@ describe('describeRecordFilter', () => {
         label: 'Session',
         type: 'option',
         options: [
-          { value: 'fringe', label: 'Fringe 2027' },
-          { value: 'gala', label: 'Comedy Gala', parent: 'fringe' }
+          { value: 'ochre-kite', label: 'Ochre Kite Weekender 2027' },
+          { value: 'opening', label: 'Opening Night', parent: 'ochre-kite' }
         ]
       }
     ]
     expect(
       describeFilter(
-        { field: 'session', operator: 'is', values: ['gala'] },
+        { field: 'session', operator: 'is', values: ['opening'] },
         fields
       ).label
-    ).toBe('Session is Fringe 2027 › Comedy Gala')
+    ).toBe('Session is Ochre Kite Weekender 2027 › Opening Night')
+  })
+
+  it('judges a plain date’s year by the viewer’s today', () => {
+    expect(
+      describeRecordFilter(
+        { field: 'starts', operator: 'on', value: '2027-01-05' },
+        eventFields,
+        // 1 January 2027 in Sydney, still 2026 in UTC.
+        { now: new Date('2026-12-31T14:00:00Z'), timeZone: 'Australia/Sydney' }
+      ).value
+    ).toBe('5 Jan')
   })
 
   it('stays readable for a value its field cannot read', () => {

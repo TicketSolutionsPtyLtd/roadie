@@ -88,6 +88,7 @@ export function RecordsEmpty({ records }: { records: RecordsInstance }) {
         </EmptyState.Description>
       </EmptyState>
     )
+  const parts = unmatched(records)
   return (
     <EmptyState size='sm' data-slot='records-empty'>
       <EmptyState.IconTile aria-hidden>
@@ -95,7 +96,7 @@ export function RecordsEmpty({ records }: { records: RecordsInstance }) {
       </EmptyState.IconTile>
       <EmptyState.Title render={stateTitle}>No {other} match</EmptyState.Title>
       <EmptyState.Description>
-        Nothing matches {unmatched(records)}. Try a different search or clear
+        {parts && `Nothing matches ${parts}. `}Try a different search or clear
         the filters.
       </EmptyState.Description>
       <EmptyState.Actions>

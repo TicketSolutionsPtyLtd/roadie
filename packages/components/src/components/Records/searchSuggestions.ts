@@ -70,12 +70,31 @@ export function hasValueStep(field: RecordField): boolean {
   )
 }
 
-const sameFilter = (a: RecordFilter, b: RecordFilter) =>
-  JSON.stringify(a) === JSON.stringify(b)
+function canonical(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonical)
+  if (value && typeof value === 'object')
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, item]) => item !== undefined)
+        .sort(([a], [b]) => (a < b ? -1 : 1))
+        .map(([key, item]) => [key, canonical(item)])
+    )
+  return value
+}
+
+/** The same whatever its key order, and for a list of values, their order. */
+export function filterKey(filter: RecordFilter): string {
+  const values =
+    'values' in filter ? { values: [...new Set(filter.values)].sort() } : {}
+  return JSON.stringify(canonical({ ...filter, ...values }))
+}
+
+export const sameFilter = (a: RecordFilter, b: RecordFilter) =>
+  filterKey(a) === filterKey(b)
 
 function filterSuggestion(filter: RecordFilter): SearchSuggestion {
   return {
-    id: `filter:${JSON.stringify(filter)}`,
+    id: `filter:${filterKey(filter)}`,
     kind: 'filter',
     label: '',
     value: { type: 'filter', filter }
@@ -88,7 +107,8 @@ function fromParsed(suggestion: RecordSuggestion): SearchSuggestion {
       id: suggestion.id,
       kind: 'field',
       label: suggestion.label,
-      value: { type: 'field', field: suggestion.value.field }
+      value: { type: 'field', field: suggestion.value.field },
+      remainder: suggestion.remainder
     }
   return {
     id: suggestion.id,
@@ -105,11 +125,18 @@ function unused(
   items: readonly SearchSuggestion[],
   context: SearchContext
 ): SearchSuggestion[] {
-  return items.filter(
-    ({ value }) =>
-      value.type !== 'filter' ||
-      !context.filters.some((filter) => sameFilter(filter, value.filter))
-  )
+  return items.filter(({ value }) => {
+    if (value.type !== 'filter') return true
+    const { filter } = value
+    return !context.filters.some(
+      (other) =>
+        sameFilter(other, filter) ||
+        (filter.operator === 'is' &&
+          other.operator === 'is' &&
+          other.field === filter.field &&
+          filter.values.every((item) => other.values.includes(item)))
+    )
+  })
 }
 
 /** Suggestions while nothing is pending: filters the text reads, then fields it names. */
@@ -170,11 +197,11 @@ function presetItems(field: RecordField): SearchSuggestion[] {
   }
 }
 
-function editItem(field: RecordField): SearchSuggestion {
+function customDates(field: RecordField): SearchSuggestion {
   return {
     id: `edit:${field.key}`,
     kind: 'filter',
-    label: field.type === 'date' ? 'Custom dates' : `Choose a value`,
+    label: 'Custom dates',
     value: { type: 'edit', field: field.key }
   }
 }
@@ -186,11 +213,21 @@ export function valueSuggestions(
   context: SearchContext
 ): SearchGroup[] {
   const typed = text.trim()
-  const items = typed
-    ? parseQuery(`${field.key}:${typed}`, { ...context, fields: [field] })
-        .filter((suggestion) => suggestion.kind === 'filter')
-        .map((suggestion) => fromParsed(suggestion))
-    : presetItems(field)
+  const unlisted =
+    field.type === 'option' && recordFieldOptions(field).length === 0
+  const items = !typed
+    ? presetItems(field)
+    : unlisted
+      ? [
+          filterSuggestion({
+            field: field.key,
+            operator: 'is',
+            values: [typed]
+          })
+        ]
+      : parseQuery(`${field.key}:${typed}`, { ...context, fields: [field] })
+          .filter((suggestion) => suggestion.kind === 'filter')
+          .map((suggestion) => fromParsed(suggestion))
   const values = unused(items, context).map((item) => {
     if (item.value.type !== 'filter') return item
     const { value, detail } = describeRecordFilter(
@@ -212,7 +249,7 @@ export function valueSuggestions(
     {
       id: 'values',
       label: field.label,
-      items: editable ? [...values, editItem(field)] : values
+      items: editable ? [...values, customDates(field)] : values
     }
   ]
 }

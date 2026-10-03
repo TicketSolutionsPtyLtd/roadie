@@ -70,9 +70,11 @@ its editor. Option values added to a field join its chip. Each chip opens an
 editor for its condition and value as they change (a list of values, a date
 range picker with relative presets, a date picker, a number, text, or Yes and
 No), in a popover under the chip or a bottom drawer on a phone, with Remove
-filter; it loads while the page is idle. A relative date chip shows its dates
+filter; a filter whose values are cleared is removed as its editor closes,
+and the editor loads while the page is idle. A relative date chip shows its dates
 in a tooltip, and a filter the fields can't apply shows in warning colours.
-`/` focuses the search unless `shortcut` says otherwise, and Clear and Escape
+`/` focuses the search unless `shortcut` (or `searchShortcut` on
+`Records.Toolbar` and `RecordTable`) says otherwise, and Clear and Escape
 clear it. The toolbar keeps its buttons at the top as chips wrap.
 
 `useRecords` takes a `scope`: filters the page sets, such as the event a list
