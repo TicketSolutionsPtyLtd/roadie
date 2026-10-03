@@ -178,6 +178,29 @@ describe('sortRecords', () => {
     expect(by('states')).toEqual(['arcadia', 'velvet'])
   })
 
+  it('sorts a list of dates by its earliest', () => {
+    const sessions: RecordField[] = [
+      {
+        key: 'on',
+        label: 'Sessions',
+        type: 'date',
+        moment: 'date',
+        multiple: true
+      }
+    ]
+    expect(
+      sortRecords(
+        [
+          { id: 'later', on: ['2026-10-04'] },
+          { id: 'earlier', on: ['2026-10-05', '2026-10-03'] }
+        ],
+        [{ field: 'on', direction: 'ascending' }],
+        sessions,
+        { timeZone: 'UTC' }
+      ).map((row) => row.id)
+    ).toEqual(['earlier', 'later'])
+  })
+
   it('sorts dates by instant across zones and stored forms', () => {
     const shows: Show[] = [
       // 9pm in Perth is 11pm in Sydney.

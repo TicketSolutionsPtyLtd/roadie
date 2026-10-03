@@ -38,7 +38,12 @@ function keyReader(
       return (row) => {
         const value = read(row, field.key)
         if (isEmptyValue(value)) return undefined
-        return epochSpan(value, rowZone(row, field, timeZone))?.[0]
+        const zone = rowZone(row, field, timeZone)
+        // A list of dates sorts by its earliest.
+        const instants = (Array.isArray(value) ? value : [value]).flatMap(
+          (item) => epochSpan(item, zone)?.[0] ?? []
+        )
+        return instants.length ? Math.min(...instants) : undefined
       }
     case 'option': {
       const values = (row: object) => {
