@@ -58,3 +58,21 @@ columns as defined and keeping keys for columns the table doesn't have.
 layout definition adds its own settings with `Settings`, which can carry a
 `preload` that runs once the page is idle or the button is reached; the
 table's columns list loads that way, out of the table's first load.
+
+Give `useRecords` a `rowCount` and it runs in server mode (`mode: 'server'`):
+`data` is the page the server returned, shown in its order, and `rowCount`
+counts every match for pagination and selection. The search waits for a
+250ms pause in typing before `onViewChange` hears it (clearing is
+immediate), and `searchText` holds what the field shows meanwhile. Records
+picked on different pages stay selected, Select all counts `rowCount` less
+its `except` ids, and bulk actions get the selection as picked, since the
+server decides what matches. A new search or filter clears the selection,
+and an action that settles after one leaves the new selection alone. Once
+given, `rowCount` keeps server mode on, and an `undefined` count keeps the
+last one. Selecting without `getRowId` in server mode warns in development,
+as index ids repeat on every page. `appliedView` now leaves out the filters
+and sorts the fields can't apply, and its `query` keeps its identity while
+its content holds; key a fetch on it, the position and `timeZone`. Selection treats a chip's values in any order as the
+same filter, and ignores filters the fields can't apply. `Records.Status`
+holds a count while `loading` and announces it once loaded, and
+`Records.Pagination` reads a page past the end as the last page.

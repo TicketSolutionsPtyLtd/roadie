@@ -385,6 +385,16 @@ export default function RecordsPage() {
           <Code>searchable</Code>. Scope facet value search to the user&apos;s
           permissions on the server.
         </p>
+        <p className='max-w-prose text-subtle'>
+          Add <Code>position</Code> to page through the results: it adds{' '}
+          <Code>page</Code> (one-based) and <Code>hitsPerPage</Code>, so the
+          response&apos;s <Code>totalHits</Code> counts the matches, up to the
+          index&apos;s <Code>pagination.maxTotalHits</Code>. A{' '}
+          <Link href='/components/record-table' className='underline'>
+            RecordTable
+          </Link>{' '}
+          takes that count as <Code>rowCount</Code> and the page as its data.
+        </p>
       </Section>
 
       <Section title='Typed text'>

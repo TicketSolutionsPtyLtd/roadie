@@ -88,10 +88,14 @@ import {
   viewerTimeZone
 } from '@oztix/roadie-core/datetime'
 import {
+  compileRecordQuery,
   recordFields,
   recordsToCsv,
+  resolveRecordQuery,
+  sortRecords,
   toSearchParams
 } from '@oztix/roadie-core/records'
+import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
@@ -175,6 +179,10 @@ const scope = {
   recordFields,
   recordsToCsv,
   toSearchParams,
+  compileRecordQuery,
+  resolveRecordQuery,
+  sortRecords,
+  toMeilisearch,
   ...SpotIllustrations,
   ...PhosphorIcons,
   ...PhosphorIconsSuffixed,

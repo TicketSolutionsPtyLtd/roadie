@@ -264,4 +264,49 @@ describe('fromSearchParams', () => {
       position
     )
   })
+
+  it('reads the first of a repeated key', () => {
+    const result = fromSearchParams(
+      'v=1&q=Perth&q=Hobart&page=5&page=9',
+      eventFields
+    )
+    expect(result.view.query.search).toBe('Perth')
+    expect(result.position).toEqual({ page: 4 })
+  })
+
+  it.each([
+    'v=1&f=__proto__:is:x&f=constructor:is:y',
+    'v=1&f=%25&sort=%&q=%E0%A4%A',
+    'v=1&page=%25&size=abc&row=',
+    'v=1&sort=__proto__,-constructor&columns=__proto__&hidden=toString',
+    'v=1&layout=__proto__'
+  ])(
+    'never throws or touches Object.prototype on hostile input: %s',
+    (text) => {
+      const before = Object.getOwnPropertyNames(Object.prototype)
+      expect(() => fromSearchParams(text, eventFields)).not.toThrow()
+      expect(Object.getOwnPropertyNames(Object.prototype)).toEqual(before)
+    }
+  )
+
+  it('rejects filters on inherited names rather than reading them as fields', () => {
+    const result = fromSearchParams('v=1&f=constructor:is:y', eventFields, {
+      fallback: { ...empty, id: 'all' }
+    })
+    expect(result.source).toBe('fallback')
+    expect(result.problems[0]?.message).toContain('Unknown field')
+  })
+
+  it('round-trips values holding literal escapes', () => {
+    const literal: RecordView = {
+      ...empty,
+      query: {
+        search: '%2D %2C%25',
+        filters: [{ field: 'name', operator: 'contains', value: 'a%2Cb:%25' }],
+        sort: []
+      }
+    }
+    const text = toSearchParams(literal).toString()
+    expect(fromSearchParams(text, eventFields).view).toEqual(literal)
+  })
 })

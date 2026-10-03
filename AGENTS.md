@@ -271,7 +271,9 @@ Build fields with `recordFields<Row>()`. Show a list with `useRecords` and
 `Records` from `@oztix/roadie-components/records`, and the table layout from
 `@oztix/roadie-components/record-table` (`tableColumns`, `tableLayout`, or the
 `RecordTable` preset); keep a table's search in `Records.Toolbar`, never
-`Pane.Search`. See `docs/src/app/components/record-table/page.mdx`.
+`Pane.Search`. For records a server pages, pass `rowCount` and one page as
+`data`, and search with `toMeilisearch(view, fields, { now, timeZone,
+position })`. See `docs/src/app/components/record-table/page.mdx`.
 
 ### Typography
 
