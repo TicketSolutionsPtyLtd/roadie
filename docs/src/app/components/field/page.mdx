@@ -107,6 +107,8 @@ border and focus ring automatically switch to danger colours, and
 </Field>
 ```
 
+Controls that read typed text, such as [DateField](/components/date-field), also show their own error in `Field.ErrorText` when the text names nothing, such as "Enter a date, like 14 Mar or next Fri". It shows even when `invalid` isn't set, and wins over the error text's children until the text is fixed.
+
 #### With textarea
 
 ```tsx-live
@@ -121,7 +123,7 @@ border and focus ring automatically switch to danger colours, and
 
 - **Auto-wired IDs**: Field auto-generates matching IDs for the label, input, helper text, and error text. You don't need to set `htmlFor` or `id` manually.
 - **Context-driven aria**: The `invalid`, `required`, and `disabled` props on Field automatically set `aria-invalid`, `aria-required`, and `disabled` on child inputs via context.
-- **Error announcements**: `Field.ErrorText` renders with `role="alert"` and only appears when `invalid` is true, so screen readers announce errors immediately.
+- **Error announcements**: `Field.ErrorText` renders with `role="alert"` and only appears when `invalid` is true or a control reports its own error, so screen readers announce errors immediately.
 - **Description linking**: `aria-describedby` is automatically wired to the helper text (or error text when invalid).
 
 ## Hooks

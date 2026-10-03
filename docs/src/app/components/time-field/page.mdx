@@ -1,0 +1,141 @@
+export const metadata = {
+  title: 'Time field',
+  description: 'A text field that reads a typed time, such as "7:30pm" or "19:30"',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A text field that reads a typed time, such as "7:30pm" or "19:30".
+
+## Import
+
+```tsx
+import { TimeField } from '@oztix/roadie-components/time-field'
+```
+
+## Examples
+
+### Default
+
+Type a time the way you would say it: "7:30pm", "7pm", "19:30" or "noon". A time with no "am" or "pm" reads on a 24-hour clock, so "7:30" is morning. The text is read when the field loses focus or on `Enter`. The value is `'HH:MM'` on a 24-hour clock, such as `'19:30'`, or null. A time has no date and no zone, so pair it with a date where it matters, or use [DatePicker](/components/date-picker) with `granularity='minute'`.
+
+```tsx-live-noinline
+function Default() {
+  const [time, setTime] = useState(null)
+  return (
+    <div className='grid max-w-40 gap-4'>
+      <TimeField aria-label='Doors' value={time} onValueChange={setTime} />
+      <p className='text-sm text-subtle'>Value: {time ?? 'none'}</p>
+    </div>
+  )
+}
+
+render(<Default />)
+```
+
+### Variants
+
+`hourCycle` sets how the time reads. `12` reads "7:30pm", the house style for anything a buyer sees, and `24` reads "19:30" for dense staff screens. Either clock can be typed into either field.
+
+```tsx-live
+<div className='grid max-w-40 gap-4'>
+  <TimeField aria-label='12-hour' defaultValue='19:30' />
+  <TimeField aria-label='24-hour' defaultValue='19:30' hourCycle={24} />
+</div>
+```
+
+### Emphasis
+
+```tsx-live
+<div className='grid max-w-40 gap-4'>
+  <TimeField aria-label='Normal' defaultValue='19:30' />
+  <TimeField aria-label='Subtle' emphasis='subtle' defaultValue='19:30' />
+</div>
+```
+
+### Sizes
+
+```tsx-live
+<div className='grid max-w-40 gap-4'>
+  <TimeField aria-label='Small' size='sm' defaultValue='19:30' />
+  <TimeField aria-label='Medium' size='md' defaultValue='19:30' />
+  <TimeField aria-label='Large' size='lg' defaultValue='19:30' />
+</div>
+```
+
+### States
+
+```tsx-live
+<div className='grid max-w-40 gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <TimeField aria-label='Default' defaultValue='19:30' />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Invalid</p>
+    <TimeField aria-label='Invalid' defaultValue='19:30' invalid />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Read only</p>
+    <TimeField aria-label='Read only' defaultValue='19:30' readOnly />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <TimeField aria-label='Disabled' defaultValue='19:30' disabled />
+  </div>
+</div>
+```
+
+### Composition
+
+#### With Field
+
+Wrap it in [Field](/components/field) for the label and helper text. It takes `invalid`, `required` and `disabled` from the field, and `Field.ErrorText` says why typed text isn't a time.
+
+```tsx-live
+<Field className='max-w-40'>
+  <Field.Label>Doors</Field.Label>
+  <TimeField />
+  <Field.HelperText>Like 7:30pm</Field.HelperText>
+  <Field.ErrorText />
+</Field>
+```
+
+### With a minute step
+
+`minuteStep` sets how far `ArrowUp` and `ArrowDown` move the time. A typed time off the step shows an error, such as "Choose a time in 15-minute steps". Set times at The Tin Shed run on the quarter hour.
+
+```tsx-live
+<Field className='max-w-40'>
+  <Field.Label>Set time</Field.Label>
+  <TimeField minuteStep={15} defaultValue='21:15' />
+  <Field.ErrorText />
+</Field>
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Keep the time with its date and zone'>
+  <Guideline.Do code={`<DatePicker granularity='minute' timeZone={venue.timeZone} />`}>
+    When the time belongs to a moment, such as doors on a show night, pick the date and time together in the venue's zone.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't store a time on its own and join it to a date later in the browser's zone. Near midnight and across daylight saving that lands on the wrong moment.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- It's a text input. `ArrowUp` and `ArrowDown` step the time by `minuteStep`, wrapping at midnight.
+- The text is read on blur or `Enter`. While text is being edited, `Enter` commits it instead of submitting the form, and `Escape` puts back the last time.
+- Unreadable text sets `aria-invalid`, and inside a `Field` points `aria-describedby` at `Field.ErrorText`.
+- On its own the field only marks itself invalid. Put it in a `Field` with `Field.ErrorText` so the reason is shown and read out.
+
+<PropsDefinitions componentPath='packages/components/src/components/TimeField/TimeField.tsx' />

@@ -177,6 +177,10 @@ describe('parseDatePhrase: dates', () => {
     ['1/12/27', one('Wed 1 Dec 2027', { on: '2027-12-01' })],
     ['2026-12-01', one('Tue 1 Dec 2026', { on: '2026-12-01' })],
     ['2 oct', one('Fri 2 Oct 2026', { on: '2026-10-02' })],
+    ['Fri 27 Nov 2026', one('Fri 27 Nov 2026', { on: '2026-11-27' })],
+    ['Friday, 27 November 2026', one('Fri 27 Nov 2026', { on: '2026-11-27' })],
+    ['sun 14 mar', one('Sun 14 Mar 2027', { on: '2027-03-14' })],
+    ['Thu 27 Nov 2026', one('Fri 27 Nov 2026', { on: '2026-11-27' })],
     ['after 1 dec', one('After Tue 1 Dec 2026', { after: '2026-12-01' })],
     ['before 14 mar', one('Before Sun 14 Mar 2027', { before: '2027-03-14' })],
     [

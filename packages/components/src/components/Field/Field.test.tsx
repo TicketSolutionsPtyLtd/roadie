@@ -6,6 +6,7 @@ import { Autocomplete } from '../Autocomplete'
 import { Combobox } from '../Combobox'
 import { RadioGroup } from '../RadioGroup'
 import { Select } from '../Select'
+import { useFieldControlError } from './FieldContext'
 
 describe('Field', () => {
   it('Field and Field.Root are the same component reference', () => {
@@ -434,5 +435,109 @@ describe('Field + Autocomplete integration', () => {
     const input = container.querySelector('input')!
     expect(input).toHaveAttribute('aria-invalid', 'true')
     expect(input).toHaveAttribute('aria-required', 'true')
+  })
+})
+
+describe('Field.ErrorText and a control’s own error', () => {
+  function Control({ error }: { error: string | null }) {
+    useFieldControlError(error)
+    return null
+  }
+
+  it('shows a control’s error while the field is not invalid', () => {
+    const { getByRole, rerender } = render(
+      <Field>
+        <Control error='Enter a date' />
+        <Field.ErrorText>Choose a date</Field.ErrorText>
+      </Field>
+    )
+    expect(getByRole('alert')).toHaveTextContent('Enter a date')
+    rerender(
+      <Field>
+        <Control error={null} />
+        <Field.ErrorText>Choose a date</Field.ErrorText>
+      </Field>
+    )
+    expect(document.querySelector('[role="alert"]')).toBeNull()
+  })
+
+  it('puts a control’s error ahead of its own children', () => {
+    const { getByRole } = render(
+      <Field invalid>
+        <Control error='Enter a date' />
+        <Field.ErrorText>Choose a date</Field.ErrorText>
+      </Field>
+    )
+    expect(getByRole('alert')).toHaveTextContent('Enter a date')
+  })
+
+  it('keeps one control’s error when another clears its own', () => {
+    const { getByRole, rerender } = render(
+      <Field>
+        <Control error='Enter a date' />
+        <Control error='Enter a time' />
+        <Field.ErrorText />
+      </Field>
+    )
+    rerender(
+      <Field>
+        <Control error={null} />
+        <Control error='Enter a time' />
+        <Field.ErrorText />
+      </Field>
+    )
+    expect(getByRole('alert')).toHaveTextContent('Enter a time')
+  })
+})
+
+describe('Field.ErrorText with two controls’ errors', () => {
+  function Control({ error }: { error: string | null }) {
+    useFieldControlError(error)
+    return null
+  }
+
+  it('keeps showing the first while it changes its message', () => {
+    const { getByRole, rerender } = render(
+      <Field>
+        <Control error='Enter a date' />
+        <Control error='Enter a time' />
+        <Field.ErrorText />
+      </Field>
+    )
+    rerender(
+      <Field>
+        <Control error='Thu 1 Oct 2026 isn’t available' />
+        <Control error='Enter a time' />
+        <Field.ErrorText />
+      </Field>
+    )
+    expect(getByRole('alert')).toHaveTextContent(
+      'Thu 1 Oct 2026 isn’t available'
+    )
+  })
+})
+
+describe('Field.ErrorText ordering', () => {
+  function Control({ error }: { error: string | null }) {
+    useFieldControlError(error)
+    return null
+  }
+
+  it('shows the first control’s error, whichever failed first', () => {
+    const { getByRole, rerender } = render(
+      <Field>
+        <Control error={null} />
+        <Control error='Enter a time' />
+        <Field.ErrorText />
+      </Field>
+    )
+    rerender(
+      <Field>
+        <Control error='Enter a date' />
+        <Control error='Enter a time' />
+        <Field.ErrorText />
+      </Field>
+    )
+    expect(getByRole('alert')).toHaveTextContent('Enter a date')
   })
 })

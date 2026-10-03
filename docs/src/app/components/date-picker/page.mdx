@@ -1,0 +1,197 @@
+export const metadata = {
+  title: 'Date picker',
+  description: 'A typed date field with a calendar to choose from, and a time when needed',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A typed date field with a calendar to choose from, and a time when needed.
+
+## Import
+
+```tsx
+import { DatePicker } from '@oztix/roadie-components/date-picker'
+```
+
+## Examples
+
+### Default
+
+Type a date, as in [DateField](/components/date-field), or press the calendar button and choose a day. The calendar opens on the chosen day, or on today, with focus on it. Choosing a day closes it and puts focus back on the button. The value is a plain ISO date such as `'2026-11-27'`, or null.
+
+```tsx-live-noinline
+function Default() {
+  const [date, setDate] = useState(null)
+  return (
+    <div className='grid max-w-64 gap-4'>
+      <DatePicker aria-label='Show date' value={date} onValueChange={setDate} />
+      <p className='text-sm text-subtle'>Value: {date ?? 'none'}</p>
+    </div>
+  )
+}
+
+render(<Default />)
+```
+
+### Variants
+
+`granularity='minute'` adds a [TimeField](/components/time-field) beside the date. The value is then the instant the date and time name in `timeZone`, with its offset, such as `'2026-11-27T19:30:00+11:00'`, and it stays null until both are filled in. Pass the venue's zone, so a Perth organiser setting doors for a Melbourne show sets them on Melbourne's clock. A time that daylight saving skips, such as 2:30am on the morning the clocks go forward, moves to where it lands, 3:30am, and the field shows it.
+
+```tsx-live-noinline
+function Doors() {
+  const [doors, setDoors] = useState('2026-11-27T19:30:00+11:00')
+  return (
+    <div className='grid max-w-80 gap-4'>
+      <Field>
+        <Field.Label>Doors, Melbourne time</Field.Label>
+        <DatePicker
+          granularity='minute'
+          timeZone='Australia/Melbourne'
+          minuteStep={15}
+          value={doors}
+          onValueChange={setDoors}
+        />
+        <Field.ErrorText />
+      </Field>
+      <p className='text-sm text-subtle'>Value: {doors ?? 'none'}</p>
+    </div>
+  )
+}
+
+render(<Doors />)
+```
+
+### Emphasis
+
+```tsx-live
+<div className='grid max-w-64 gap-4'>
+  <DatePicker aria-label='Normal' defaultValue='2026-11-27' />
+  <DatePicker aria-label='Subtle' emphasis='subtle' defaultValue='2026-11-27' />
+</div>
+```
+
+### Sizes
+
+The calendar button shrinks with the field, so it always sits inside it.
+
+```tsx-live
+<div className='grid max-w-64 gap-4'>
+  <DatePicker aria-label='Small' size='sm' defaultValue='2026-11-27' />
+  <DatePicker aria-label='Medium' size='md' defaultValue='2026-11-27' />
+  <DatePicker aria-label='Large' size='lg' defaultValue='2026-11-27' />
+</div>
+```
+
+### States
+
+`readOnly` shows the date and turns off the calendar button. `disabled` turns off both.
+
+```tsx-live
+<div className='grid max-w-64 gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <DatePicker aria-label='Default' defaultValue='2026-11-27' />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Invalid</p>
+    <DatePicker aria-label='Invalid' defaultValue='2026-11-27' invalid />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Read only</p>
+    <DatePicker aria-label='Read only' defaultValue='2026-11-27' readOnly />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <DatePicker aria-label='Disabled' defaultValue='2026-11-27' disabled />
+  </div>
+</div>
+```
+
+### Composition
+
+#### With Field
+
+Wrap it in [Field](/components/field). The label points at the date input, and `Field.ErrorText` says why typed text isn't a date or a time. At `minute` granularity the date and time sit in a group named by the label.
+
+```tsx-live
+<Field required className='max-w-64'>
+  <Field.Label showIndicator>Show date</Field.Label>
+  <DatePicker placeholder='14 Mar or next Fri' />
+  <Field.HelperText>Type a date or choose one</Field.HelperText>
+  <Field.ErrorText />
+</Field>
+```
+
+### With disabled days
+
+`disabled` takes the same matchers as [Calendar](/components/calendar). Matched days are disabled in the calendar and refused when typed. Here Harbour Lights runs on Fridays and Saturdays in November.
+
+```tsx-live
+<Field className='max-w-64'>
+  <Field.Label>Harbour Lights night</Field.Label>
+  <DatePicker
+    disabled={[
+      { before: '2026-11-01' },
+      { after: '2026-11-30' },
+      { dayOfWeek: [1, 2, 3, 4, 7] }
+    ]}
+    startMonth='2026-11-01'
+    endMonth='2026-11-30'
+  />
+  <Field.ErrorText />
+</Field>
+```
+
+### With a date of birth
+
+`captionLayout='dropdown'` swaps the month name for month and year selects, for dates far from today. Most people will type a date of birth, but the selects help those who don't.
+
+```tsx-live
+<Field className='max-w-64'>
+  <Field.Label>Date of birth</Field.Label>
+  <DatePicker
+    captionLayout='dropdown'
+    startMonth='1920-01-01'
+    endMonth='2012-12-31'
+    disabled={{ after: '2012-12-31' }}
+  />
+  <Field.ErrorText />
+</Field>
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Pass the zone the moment belongs to'>
+  <Guideline.Do code={`<DatePicker\n  granularity='minute'\n  timeZone={venue.timeZone}\n/>`}>
+    Event times are read on the venue's clock. Say so in the label, such as "Doors, Melbourne time".
+  </Guideline.Do>
+  <Guideline.Dont code={`<DatePicker granularity='minute' />`}>
+    Don't lean on the browser's zone for an event time. An organiser in another state sets the wrong moment.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Disable days, rather than hide them'>
+  <Guideline.Do>
+    Disable days that can't be chosen. They stay in the grid for keyboard users and are refused when typed.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't check the date only after the form is sent. Say what's wrong as soon as it's chosen.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- The date is a text input, labelled by `Field.Label` or `aria-label`. The calendar button and the calendar popup are labelled "Choose date".
+- At `minute` granularity the date and the time are a `group` named by the label, with inputs named "Date" and "Time".
+- Opening the calendar moves focus to the chosen day, or to today. Arrow keys, `Page Up`, `Page Down`, `Home` and `End` move as in [Calendar](/components/calendar). `Enter` or `Space` chooses the focused day and closes it. `Escape` closes it without a change. Either way focus goes back to the button, so on a phone the keyboard doesn't open.
+- While text is being edited, `Enter` commits it instead of submitting the form, and `Escape` puts back the last date.
+- With a `name`, a hidden input submits the value, so a form never receives the formatted text. A disabled picker submits nothing.
+
+<PropsDefinitions componentPath='packages/components/src/components/DatePicker/DatePicker.tsx' />

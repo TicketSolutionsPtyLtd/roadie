@@ -6,11 +6,14 @@ import {
   Button,
   Calendar,
   Code,
+  DateField,
+  DatePicker,
   Highlight,
   Kbd,
   Mark,
   type NumberFieldStepperEmphasis,
-  QueryField
+  QueryField,
+  TimeField
 } from './index'
 
 describe('Component exports', () => {
@@ -40,6 +43,17 @@ describe('Component exports', () => {
   it('exports Kbd component', () => {
     const { container } = render(<Kbd>Enter</Kbd>)
     expect(container.querySelector('kbd')).toHaveTextContent('Enter')
+  })
+
+  it('exports the date and time fields', () => {
+    const { getAllByRole } = render(
+      <>
+        <DateField aria-label='Date' />
+        <TimeField aria-label='Time' />
+        <DatePicker aria-label='Show date' />
+      </>
+    )
+    expect(getAllByRole('textbox')).toHaveLength(3)
   })
 
   it('exports QueryField component', () => {

@@ -1,0 +1,182 @@
+export const metadata = {
+  title: 'Date field',
+  description: 'A text field that reads a typed date, such as "14 mar" or "next fri"',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A text field that reads a typed date, such as "14 mar" or "next fri".
+
+## Import
+
+```tsx
+import { DateField } from '@oztix/roadie-components/date-field'
+```
+
+## Examples
+
+### Default
+
+Type a date the way you would say it: "14 mar", "next fri", "tomorrow" or "1/12", which reads day first. The text is read when the field loses focus or on `Enter`, and the field then shows the date in the house style, such as "Fri 27 Nov 2026". The value is a plain ISO date string, `'2026-11-27'`, or null.
+
+```tsx-live-noinline
+function Default() {
+  const [date, setDate] = useState(null)
+  return (
+    <div className='grid max-w-64 gap-4'>
+      <DateField aria-label='Show date' value={date} onValueChange={setDate} />
+      <p className='text-sm text-subtle'>Value: {date ?? 'none'}</p>
+    </div>
+  )
+}
+
+render(<Default />)
+```
+
+### Variants
+
+`dateStyle` sets how the date reads when the field isn't being edited, using the [date and time](/foundations/date-and-time) styles. `long` is the default. With another `locale`, the field shows and reads back that locale's month and weekday names, and English types in too. Where a local name matches an English one, the local meaning wins, so in Sesotho "27 Jan" is in June. Where a locale shows the month as a number, type the date as `1/12` or in English.
+
+```tsx-live
+<div className='grid max-w-64 gap-4'>
+  <DateField aria-label='Full' dateStyle='full' defaultValue='2026-11-27' />
+  <DateField aria-label='Long' dateStyle='long' defaultValue='2026-11-27' />
+  <DateField aria-label='Medium' dateStyle='medium' defaultValue='2026-11-27' />
+</div>
+```
+
+### Emphasis
+
+`normal` is the sunken field surface that `Input` uses. `subtle` swaps the border for a tinted fill.
+
+```tsx-live
+<div className='grid max-w-64 gap-4'>
+  <DateField aria-label='Normal' defaultValue='2026-11-27' />
+  <DateField aria-label='Subtle' emphasis='subtle' defaultValue='2026-11-27' />
+</div>
+```
+
+### Sizes
+
+```tsx-live
+<div className='grid max-w-64 gap-4'>
+  <DateField aria-label='Small' size='sm' defaultValue='2026-11-27' />
+  <DateField aria-label='Medium' size='md' defaultValue='2026-11-27' />
+  <DateField aria-label='Large' size='lg' defaultValue='2026-11-27' />
+</div>
+```
+
+### States
+
+Text that names no date stays in the field so it can be fixed, the field turns danger, and the value becomes null, so nothing stale is submitted. `Escape` puts back the last date. On its own the field only marks itself invalid; put it in a `Field` with `Field.ErrorText` to say why.
+
+```tsx-live
+<div className='grid max-w-64 gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <DateField aria-label='Default' defaultValue='2026-11-27' />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Invalid</p>
+    <DateField aria-label='Invalid' defaultValue='2026-11-27' invalid />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Read only</p>
+    <DateField aria-label='Read only' defaultValue='2026-11-27' readOnly />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <DateField aria-label='Disabled' defaultValue='2026-11-27' disabled />
+  </div>
+</div>
+```
+
+### Composition
+
+#### With Field
+
+Wrap it in [Field](/components/field) for the label, helper text and spacing. It takes `invalid`, `required` and `disabled` from the field.
+
+```tsx-live
+<Field required className='max-w-64'>
+  <Field.Label showIndicator>Show date</Field.Label>
+  <DateField />
+  <Field.HelperText>Type a date or a day, like 14 Mar or next Fri</Field.HelperText>
+  <Field.ErrorText />
+</Field>
+```
+
+#### With Field and error
+
+When typed text names no date, `Field.ErrorText` shows why, such as "Enter a date, like 14 Mar or next Fri", even when the `Field` isn't marked invalid. That message wins over the error text's own children until the text is fixed. Try typing "someday".
+
+```tsx-live
+<Field className='max-w-64'>
+  <Field.Label>Show date</Field.Label>
+  <DateField />
+  <Field.ErrorText>Choose a show date</Field.ErrorText>
+</Field>
+```
+
+### With disabled dates
+
+`disabled` takes the same matchers as [Calendar](/components/calendar). A matched date typed in shows an error, such as "Thu 1 Oct 2026 isn't available". Here The Tin Shed only books shows from today on.
+
+```tsx-live-noinline
+const today = plainDateOf(new Date(), viewerTimeZone())
+
+render(
+  <Field className='max-w-64'>
+    <Field.Label>Show date</Field.Label>
+    <DateField disabled={{ before: today }} />
+    <Field.ErrorText />
+  </Field>
+)
+```
+
+### With the venue's today
+
+Words like "today" and "next fri" are read on the calendar of `timeZone`, the viewer's by default. Pass the venue's zone when the date belongs to the venue. Just after midnight in Sydney, as Saturday starts, it's still Friday in Perth.
+
+```tsx-live
+<Field className='max-w-64'>
+  <Field.Label>Show date in Perth</Field.Label>
+  <DateField timeZone='Australia/Perth' />
+</Field>
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Say what can be typed'>
+  <Guideline.Do code={`<Field.HelperText>\n  Type a date or a day, like 14 Mar or next Fri\n</Field.HelperText>`}>
+    Give an example in the helper text, so people know they can type words as well as dates.
+  </Guideline.Do>
+  <Guideline.Dont code={`<DateField placeholder='DD/MM/YYYY' />`}>
+    Don't ask for a fixed format. The field reads many, and a placeholder disappears as soon as someone types.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Choose the picker when the calendar helps'>
+  <Guideline.Do>
+    Use DateField alone when people know the date, such as a date of birth or a date on a document.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't make people type a date they would pick by weekday or week. Use [DatePicker](/components/date-picker), which adds a calendar.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- It's a text input, so screen readers and every keyboard work as they do in any text field.
+- The text is read on blur or `Enter`. While text is being edited, `Enter` commits it instead of submitting the form, and `Escape` puts back the last date instead of closing a surrounding popover or dialog.
+- Unreadable text sets `aria-invalid`. Inside a `Field`, `aria-describedby` points at `Field.ErrorText`, which says what to type and is announced as an alert.
+- With a `name`, a hidden input submits the ISO date, so a form never receives the formatted text. A disabled field submits nothing.
+
+<PropsDefinitions componentPath='packages/components/src/components/DateField/DateField.tsx' />
