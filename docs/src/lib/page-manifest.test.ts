@@ -124,3 +124,23 @@ describe('Chart types group', () => {
     ])
   })
 })
+
+describe('Component groups', () => {
+  it('renders only the declared groups, in order', async () => {
+    const components = await getCatalogue(COMPONENTS)
+    expect(components.map(({ name }) => name)).toEqual(COMPONENTS.categories)
+  })
+
+  it('lists dashboard period with the other date components', async () => {
+    const dates = entriesIn(await getCatalogue(COMPONENTS), 'Date and time')
+    expect(dates).toContainEqual(
+      expect.objectContaining({
+        href: '/charts/dashboard-period',
+        crossListedFrom: '/charts'
+      })
+    )
+    expect(dates).toContainEqual(
+      expect.objectContaining({ href: '/components/date-range-picker' })
+    )
+  })
+})
