@@ -8,6 +8,7 @@ import roadieCss from '../../vitest.browser.css?inline'
 import { Autocomplete } from '../components/Autocomplete'
 import { Button } from '../components/Button'
 import { Combobox } from '../components/Combobox'
+import { DateField } from '../components/DateField'
 import { DateRangePicker } from '../components/DateRangePicker'
 import { Drawer } from '../components/Drawer'
 import { Menu } from '../components/Menu'
@@ -285,6 +286,33 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     expect(input).toHaveValue('la')
   })
 
+  it('chooses a lone touch that says it is not the primary pointer', async () => {
+    render(<Venue />)
+    await settle()
+    const input = screen.getByRole('combobox', { name: 'Venue' })
+    await tapOn(input)
+    await userEvent.type(input, 'la')
+    const option = await screen.findByRole('option', { name: 'Lantern Yard' })
+    await settle(300)
+    const { left, top, height } = option.getBoundingClientRect()
+    const pointer = {
+      clientX: left + 20,
+      clientY: top + height / 2,
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      pointerId: 9,
+      pointerType: 'touch',
+      isPrimary: false
+    }
+    const down = new PointerEvent('pointerdown', pointer)
+    option.dispatchEvent(down)
+    expect(down.defaultPrevented).toBe(false)
+    option.dispatchEvent(new PointerEvent('pointerup', pointer))
+    await settle()
+    expect(input).toHaveValue('Lantern Yard')
+  })
+
   it('chooses on lifting even when the input blurs and the page resizes first', async () => {
     render(<Venue />)
     await settle()
@@ -314,5 +342,36 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     lifted.dispatchEvent(new PointerEvent('pointerup', pointer))
     await settle()
     expect(input).toHaveValue('Lantern Yard')
+  })
+})
+
+describe('A date suggestion tapped twice', TIMEOUT, () => {
+  it('shows the date again when the same one is chosen', async () => {
+    function Controlled() {
+      const [date, setDate] = useState<string | null>(null)
+      return (
+        <>
+          <DateField
+            aria-label='Show date'
+            today='2026-10-07'
+            value={date}
+            onValueChange={setDate}
+          />
+          <output>{date}</output>
+        </>
+      )
+    }
+    render(<Controlled />)
+    const input = screen.getByRole('combobox', { name: 'Show date' })
+    for (let round = 0; round < 3; round++) {
+      await tapOn(input)
+      await userEvent.clear(input)
+      await userEvent.type(input, 'wed')
+      await tapOn(await screen.findByRole('option', { name: /^Wed/ }))
+      await expect
+        .poll(() => (input as HTMLInputElement).value)
+        .toBe('Wed 7 Oct 2026')
+      expect(document.querySelector('output')).toHaveTextContent('2026-10-07')
+    }
   })
 })

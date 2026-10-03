@@ -483,6 +483,33 @@ describe('DateField', () => {
       )
     })
 
+    it.each(['click', 'Enter'])(
+      'shows the date again when the same one is chosen twice, by %s',
+      async (how) => {
+        function Controlled() {
+          const [date, setDate] = useState<string | null>(null)
+          return (
+            <DateField
+              aria-label='Show date'
+              today={TODAY}
+              value={date}
+              onValueChange={setDate}
+            />
+          )
+        }
+        render(<Controlled />)
+        const input = screen.getByRole('combobox')
+        for (let round = 0; round < 2; round++) {
+          await userEvent.clear(input)
+          await userEvent.type(input, 'wed')
+          const option = await screen.findByRole('option', { name: /^Wed/ })
+          if (how === 'click') await userEvent.click(option)
+          else await userEvent.keyboard('{Enter}')
+          await waitFor(() => expect(input).toHaveValue('Wed 7 Oct 2026'))
+        }
+      }
+    )
+
     it('shows the Enter hint for typing and keys, not for a pointer', async () => {
       render(<DateField aria-label='Show date' today={TODAY} />)
       const input = screen.getByRole('combobox')

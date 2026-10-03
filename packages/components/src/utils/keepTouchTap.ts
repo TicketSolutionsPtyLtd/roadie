@@ -53,7 +53,8 @@ export function keepTouchTap<T extends Element>({
   return {
     onPointerDownCapture(event: BaseUIEvent<PointerEvent<T>>) {
       onPointerDownCapture?.(event)
-      if (!event.isPrimary) return
+      // Not gated on isPrimary: a lone tap on an iPhone can arrive without it,
+      // and Base UI's cancel would then drop its click.
       if (event.pointerType === 'mouse') {
         pressed = null
         return
