@@ -31,13 +31,14 @@ export function listGroups<Value>({
   const text = inputValue.trim()
   const list: QueryFieldListGroup<Value>[] = []
   if (!text && !pending && recent?.length)
-    list.push({ id: 'recent', label: 'Recent', items: recent })
+    list.push({ id: 'recent', label: 'Recent', items: recent, builtIn: true })
   list.push(...groups.filter((group) => group.items.length > 0))
   if (text && !pending)
     list.push({
       id: 'search',
       label: 'Search',
-      items: [searchSuggestion(text)]
+      items: [searchSuggestion(text)],
+      builtIn: true
     })
   return list
 }

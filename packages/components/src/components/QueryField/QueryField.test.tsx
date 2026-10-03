@@ -623,7 +623,9 @@ describe('QueryField', () => {
     render(<Harness onAccept={onAccept} />)
     await typeInto('long')
     await waitFor(() => expect(optionNames()).toHaveLength(3))
-    await userEvent.keyboard('{ArrowDown}{End}')
+    await userEvent.keyboard('{ArrowDown}')
+    await waitFor(() => expect(hinted()).toEqual(['Venue is The Longacre']))
+    await userEvent.keyboard('{End}')
     expect(hinted()).toEqual(['Search for “long”'])
     await userEvent.keyboard('{Enter}')
     expect(onAccept).toHaveBeenLastCalledWith(
@@ -638,8 +640,10 @@ describe('QueryField', () => {
       kind: 'field',
       value: 'venue'
     }
+    const onAccept = vi.fn()
     render(
       <Harness
+        onAccept={onAccept}
         suggest={() => [{ id: 'search', label: 'Fields', items: [clash] }]}
       />
     )
@@ -648,6 +652,10 @@ describe('QueryField', () => {
       expect(optionNames()).toEqual(['Search venues', 'Search for “long”'])
     )
     expect(hinted()).toEqual(['Search for “long”'])
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: 'search', value: 'long' })
+    )
   })
 
   it("shows no earlier step's suggestions while the value step loads", async () => {
@@ -662,6 +670,8 @@ describe('QueryField', () => {
       />
     )
     await waitFor(() => expect(optionNames()).toEqual([]))
+    expect(screen.getByText('Loading suggestions')).toBeInTheDocument()
+    expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
     await act(async () =>
       values.resolve([{ id: 'values', label: 'Venue is', items: [longacre] }])
     )

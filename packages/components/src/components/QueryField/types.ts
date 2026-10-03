@@ -44,4 +44,5 @@ export type QueryFieldListGroup<Value = unknown> = {
   id: string
   label: string
   items: readonly QueryFieldAccepted<Value>[]
+  builtIn?: boolean
 }

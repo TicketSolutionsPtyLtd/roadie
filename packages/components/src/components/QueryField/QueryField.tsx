@@ -91,11 +91,15 @@ export type QueryFieldProps<Value = unknown> = {
 const DEFAULT_PLACEHOLDER = 'Search and filter'
 const NO_CHIPS: readonly QueryFieldChip[] = []
 
-const CARET_KEYS = new Set(['Home', 'End', 'PageUp', 'PageDown'])
+const CARET_KEYS = new Set(['Home', 'End'])
 
 // Kind and id together, so a suggestion reusing a built-in row's id stays apart.
 function itemKey(item: { kind: string; id: string }) {
   return `${item.kind}:${item.id}`
+}
+
+function groupKey(group: { id: string; builtIn?: boolean }) {
+  return `${group.builtIn ? 'built-in' : 'suggested'}:${group.id}`
 }
 
 function isComposing(event: KeyboardEvent) {
@@ -448,11 +452,8 @@ export function QueryField<Value = unknown>({
         <Combobox.Positioner>
           <Combobox.Popup>
             <Combobox.List>
-              {list.map((group, index) => (
-                <Combobox.Group
-                  key={`${index}:${group.id}`}
-                  items={group.items}
-                >
+              {list.map((group) => (
+                <Combobox.Group key={groupKey(group)} items={group.items}>
                   <Combobox.GroupLabel>{group.label}</Combobox.GroupLabel>
                   <Combobox.Collection>
                     {(item: QueryFieldAccepted<Value>) => (
@@ -481,7 +482,9 @@ export function QueryField<Value = unknown>({
                 </Combobox.Group>
               ))}
             </Combobox.List>
-            <Combobox.Empty>No suggestions</Combobox.Empty>
+            <Combobox.Empty>
+              {suggestions.loading ? 'Loading suggestions' : 'No suggestions'}
+            </Combobox.Empty>
           </Combobox.Popup>
         </Combobox.Positioner>
       </Combobox.Portal>

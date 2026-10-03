@@ -65,6 +65,6 @@ export function useSuggestions<Value>(
 
   // Another step's suggestions never show while this step's load.
   return suggestions.pendingId === pendingId
-    ? suggestions
-    : { ...suggestions, groups: NONE }
+    ? { ...suggestions, loading: false }
+    : { ...suggestions, groups: NONE, loading: true }
 }
