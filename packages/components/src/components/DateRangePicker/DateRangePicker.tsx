@@ -182,6 +182,9 @@ type Edit = {
 }
 const NO_EDIT: Edit = { draft: null, custom: false, month: null }
 
+const days = (count: number | undefined) =>
+  `${count} ${count === 1 ? 'day' : 'days'}`
+
 function noonOf(date: string): Date {
   return new Date(`${date}T12:00:00Z`)
 }
@@ -282,7 +285,7 @@ export function DateRangePicker({
         end: readBack(next.end, granularity, zone)
       },
       custom: edit.custom && next.chosen === null,
-      month: month ?? edit.month
+      month: month ?? edit.month ?? shownMonth ?? null
     })
     if (commit === 'apply') return
     const nextResult = draftValue(next, granularity, zone, length)
@@ -346,9 +349,9 @@ export function DateRangePicker({
     result.kind === 'reversed'
       ? 'Ends before it starts'
       : result.kind === 'too-long'
-        ? `Spans more than ${max} days`
+        ? `Spans more than ${days(max)}`
         : result.kind === 'too-short'
-          ? `Spans fewer than ${min} days`
+          ? `Spans fewer than ${days(min)}`
           : null
   const locked = isDisabled || readOnly
 
@@ -496,8 +499,16 @@ export function DateRangePicker({
             </div>
             <Calendar
               mode='range'
-              selected={{ start: draft.start.date, end: draft.end.date }}
+              selected={{
+                start: draft.start.date ?? draft.end.date,
+                end: draft.end.date
+              }}
               onSelect={(pressed) => {
+                // Escape mid-range clears the calendar; drop the edit instead.
+                if (pressed.start === null) {
+                  setEdit({ ...edit, draft: null })
+                  return
+                }
                 // With only an end typed, a day up to it becomes the start.
                 const typedEnd = draft.start.date === null && draft.end.date
                 const range =

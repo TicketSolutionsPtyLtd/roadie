@@ -235,7 +235,7 @@ render(<Toolbar />)
 - Opening moves focus to the chosen preset, or to the calendar's first chosen day. `Escape` closes without a change and puts focus back on the button.
 - Presets are [Toggle](/components/toggle) buttons with `aria-pressed`, in groups named by their headings. Custom range is pressed when the value is no preset, and moves focus to the start date.
 - Start and End are text inputs with their own labels and errors. While text is being edited, `Enter` commits it, and `Escape` puts back the last date. An end before the start says "Ends before it starts".
-- The calendar works as in [Calendar](/components/calendar): arrow keys, `Page Up`, `Page Down`, `Home` and `End` move, and `Enter` or `Space` chooses.
+- The calendar works as in [Calendar](/components/calendar): arrow keys, `Page Up`, `Page Down`, `Home` and `End` move, and `Enter` or `Space` chooses. `Escape` after the first day of a range drops it and keeps the dates you had.
 - On a phone, the presets come first and one month follows, and the popup scrolls when it is taller than the screen.
 
 <PropsDefinitions componentPath='packages/components/src/components/DateRangePicker/DateRangePicker.tsx' />

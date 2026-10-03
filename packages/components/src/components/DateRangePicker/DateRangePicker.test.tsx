@@ -767,6 +767,63 @@ describe('DateRangePicker', () => {
       expect(day('2026-10-20')).toHaveAttribute('data-range-end')
     })
 
+    it('keeps the calendar still after a range is pressed with times', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Presale'
+          granularity='minute'
+          numberOfMonths={2}
+          today={TODAY}
+          presets={[]}
+        />
+      )
+      await open()
+      await userEvent.click(day('2026-11-03'))
+      await userEvent.click(day('2026-11-08'))
+      expect(day('2026-10-07')).not.toBeNull()
+    })
+
+    it('marks a typed end with no start in the calendar', async () => {
+      render(
+        <DateRangePicker aria-label='Period' today={TODAY} numberOfMonths={1} />
+      )
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('textbox', { name: 'End' }),
+        '20 oct{Enter}'
+      )
+      expect(day('2026-10-20')).toHaveAttribute('data-selected')
+    })
+
+    it('keeps the value when Escape drops a half-pressed range', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          numberOfMonths={1}
+          defaultValue={{ start: '2026-10-10', end: '2026-10-12' }}
+          onValueChange={onValueChange}
+        />
+      )
+      await open()
+      await userEvent.click(day('2026-10-15'))
+      await userEvent.keyboard('{Escape}')
+      expect(onValueChange).not.toHaveBeenCalled()
+    })
+
+    it('says day for a limit of one', async () => {
+      render(<DateRangePicker aria-label='Period' today={TODAY} max={1} />)
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('textbox', { name: 'Start' }),
+        '1 oct{Enter}'
+      )
+      const end = within(dialog).getByRole('textbox', { name: 'End' })
+      await userEvent.type(end, '3 oct{Enter}')
+      expect(end).toHaveAccessibleDescription('Spans more than 1 day')
+    })
+
     it('is required when its Field is', () => {
       render(
         <Field required>
