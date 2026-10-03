@@ -184,4 +184,20 @@ describe('recordsToCsv', () => {
       ])
     }
   )
+
+  it('neutralises an option label held under a number', () => {
+    const csv = recordsToCsv(
+      [{ tier: 1 }],
+      [
+        {
+          key: 'tier',
+          label: 'Tier',
+          type: 'option',
+          options: [{ value: '1', label: '=HYPERLINK("x")' }]
+        }
+      ],
+      ZONE
+    )
+    expect(lines(csv)[1]).toBe('"\'=HYPERLINK(""x"")"')
+  })
 })

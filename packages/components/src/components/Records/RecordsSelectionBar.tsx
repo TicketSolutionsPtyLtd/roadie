@@ -73,7 +73,9 @@ export function RecordsSelectionBar({
       const part = (slot: string) =>
         measure.querySelectorAll(`[data-slot="${slot}"]`)
       const next = fittingActions({
-        available: width(bar),
+        available:
+          width(bar) -
+          (parseFloat(getComputedStyle(bar).paddingInlineEnd) || 0),
         count: width(part('records-bulk-count')[0]),
         actions: [...part('records-bulk-action')].map(width),
         more: width(part('records-bulk-more')[0]),

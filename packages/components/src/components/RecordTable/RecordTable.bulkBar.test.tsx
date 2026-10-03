@@ -203,6 +203,50 @@ describe('RecordTable selection bar', () => {
     expect(screen.getByRole('columnheader', { name: 'City' })).toBeVisible()
   })
 
+  it('counts its own padding when fitting actions', async () => {
+    const widths: Record<string, number> = {
+      'records-bulk-actions': 308,
+      'records-bulk-count': 100,
+      'records-bulk-action': 96,
+      'records-bulk-more': 32
+    }
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
+        const width = widths[this.dataset.slot ?? ''] ?? 0
+        return { width, height: 0, top: 0, left: 0 } as DOMRect
+      }
+    )
+    const computed = window.getComputedStyle
+    vi.spyOn(window, 'getComputedStyle').mockImplementation(
+      (element, pseudo) => {
+        const style = computed(element, pseudo)
+        if ((element as HTMLElement).dataset.slot === 'records-bulk-actions') {
+          Object.defineProperty(style, 'columnGap', { value: '8px' })
+          Object.defineProperty(style, 'paddingInlineEnd', { value: '8px' })
+        }
+        return style
+      }
+    )
+    render(
+      <Bulk
+        actions={[
+          { label: 'Tag', onAction: vi.fn() },
+          { label: 'Archive', onAction: vi.fn() }
+        ]}
+      />
+    )
+    await pick('Ocean Alley 1')
+    await act(async () => {})
+    // 100 + 8 + 96 + 8 + 96 = 308 fills the bar, but not once its 8px padding is out.
+    const toolbar = bar()!
+    expect(
+      within(toolbar).getByRole('button', { name: 'More actions' })
+    ).toBeVisible()
+    expect(
+      within(toolbar).queryByRole('button', { name: 'Archive' })
+    ).toBeNull()
+  })
+
   it('moves actions that do not fit into More actions', async () => {
     const widths: Record<string, number> = {
       'records-bulk-actions': 300,

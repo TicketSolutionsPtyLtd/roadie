@@ -68,7 +68,9 @@ const titleText = (record: object, title: RecordTableColumn | undefined) => {
   const value = title
     ? (record as Record<string, unknown>)[title.key]
     : undefined
-  return typeof value === 'string' && value.trim() ? value : undefined
+  const text =
+    typeof value === 'string' || typeof value === 'number' ? String(value) : ''
+  return text.trim() ? text : undefined
 }
 
 // Full literals: Tailwind's scanner misses class names assembled in JS.

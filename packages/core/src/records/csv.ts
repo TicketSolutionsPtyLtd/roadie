@@ -32,12 +32,11 @@ function cellText(
   }
   const text = formatRecordValue(row, field, options)
   if (text === null) return ''
-  // Only text from the data can carry a formula; a formatted figure like -$20 can't.
-  return quote(
-    typeof value === 'number' || typeof value === 'boolean'
-      ? text
-      : neutralise(text)
-  )
+  // Only a formatted figure, like -$20, or Yes and No can't carry a formula.
+  const figure =
+    (isFigure(field) && typeof value === 'number') ||
+    (field.type === 'boolean' && typeof value === 'boolean')
+  return quote(figure ? text : neutralise(text))
 }
 
 /**

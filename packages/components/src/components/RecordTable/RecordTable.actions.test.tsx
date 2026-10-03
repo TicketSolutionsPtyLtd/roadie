@@ -647,6 +647,36 @@ describe('RecordTable row links: rows with no title', () => {
   })
 })
 
+describe('RecordTable row titles', () => {
+  it('names and links a row by a title held as a number', () => {
+    type Order = { id: string; number: number }
+    const fields = [{ key: 'number', label: 'Order', type: 'text' as const }]
+    const orders = [tableLayout([tableColumns<Order>(fields).field('number')])]
+    function Orders() {
+      const records = useRecords<Order>({
+        data: [{ id: 'a', number: 48210 }],
+        fields,
+        getRowId: (row) => row.id,
+        selectable: true,
+        getRowHref: (row) => `/orders/${row.id}`
+      })
+      return (
+        <Records.Root records={records} layouts={orders}>
+          <Records.Content />
+        </Records.Root>
+      )
+    }
+    render(<Orders />)
+    expect(
+      screen.getByRole('checkbox', { name: 'Select 48210' })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '48210' })).toHaveAttribute(
+      'href',
+      '/orders/a'
+    )
+  })
+})
+
 describe('Records.Search', () => {
   it('takes its own accessible name', () => {
     function Named() {
