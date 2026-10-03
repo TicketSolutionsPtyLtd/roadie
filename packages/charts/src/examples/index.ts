@@ -1,3 +1,7 @@
 export { createAudienceDashboard } from './audienceDashboard'
-export { createPortfolioDashboard } from './portfolioDashboard'
+export {
+  createPortfolioDashboard,
+  portfolioDates,
+  type PortfolioPeriod
+} from './portfolioDashboard'
 export { createShowDashboard } from './showDashboard'

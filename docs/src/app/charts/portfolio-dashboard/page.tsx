@@ -1,3 +1,4 @@
+import { PortfolioDashboardView } from '@/components/charts/PortfolioDashboardView'
 import { ReferenceDashboard } from '@/components/charts/ReferenceDashboard'
 
 import { createPortfolioDashboard } from '@oztix/roadie-charts/examples'
@@ -11,14 +12,15 @@ export const metadata = {
 }
 
 const JSX = `<Dashboard>
-  <Dashboard.Section title='This month'>
+  <DashboardPeriod value={period} onValueChange={setPeriod} presets={dateRangePresets} today='2026-10-15' timeZone='Australia/Melbourne' dataStart='2026-07-20' dataEnd='2026-10-15' />
+  <Dashboard.Section title='At a glance'>
     <DataCard size='full' label='What to do next'>
       <p>Julia Jacklin and Genesis Owusu are furthest behind similar shows. Julia Jacklin plays first, so start there.</p>
     </DataCard>
-    <StatTile label='Sold, last 30 days' value={2531} delta={{ value: 0.04, format: 'percent' }} context='On previous 30 days' trend={soldEachDay} />
-    <StatTile label='Gross revenue' value={447700} format='compactCurrency' delta={{ value: 0.05, format: 'percent' }} context='On last month' trend={grossTrend} />
+    <StatTile label='Tickets sold' value={2531} delta={{ value: 0.04, format: 'percent' }} context='vs previous period' trend={soldEachDay} />
+    <StatTile label='Gross revenue' value={185248} format='compactCurrency' delta={{ value: 0.1, format: 'percent' }} context='vs previous period' trend={grossEachDay} />
     <StatTile label='Shows behind' value={3} delta={{ value: 1, goodWhen: 'down' }} context='Of 7 on sale' trend={behindTrend} />
-    <StatTile label='Refund rate' value={0.012} format='percent' delta={{ value: -0.3, format: 'points', goodWhen: 'down' }} context='On last month' trend={refundsTrend} />
+    <StatTile label='Refund rate' value={0.012} format='percent' delta={{ value: -0.3, format: 'points', goodWhen: 'down' }} context='vs previous period' trend={refundsEachDay} />
   </Dashboard.Section>
   <Dashboard.Section title='On sale'>
     <DataCard size='full' label='Upcoming shows' takeaway='Three shows are behind similar shows' source='Oztix sales. Pace against 38 similar shows.'>
@@ -35,6 +37,29 @@ const JSX = `<Dashboard>
   </Dashboard.Section>
 </Dashboard>`
 
+const PERIOD = {
+  note: 'Each period’s numbers come from daily sales, as an app would fetch them. Sales start on 20 July, when the first show went on sale, so a year back there is nothing to compare. The As data section shows the default period.',
+  code: `'use client'
+
+function PortfolioDashboard() {
+  const [period, setPeriod] = useState<PortfolioPeriod>()
+  return (
+    <DashboardView
+      spec={createPortfolioDashboard(period)}
+      onPeriodChange={setPeriod}
+      periodProps={{ ...portfolioDates, presets: dateRangePresets }}
+    />
+  )
+}`
+}
+
 export default function PortfolioDashboardPage() {
-  return <ReferenceDashboard spec={createPortfolioDashboard()} jsx={JSX} />
+  return (
+    <ReferenceDashboard
+      spec={createPortfolioDashboard()}
+      jsx={JSX}
+      view={<PortfolioDashboardView />}
+      period={PERIOD}
+    />
+  )
 }
