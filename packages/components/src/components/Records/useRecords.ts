@@ -357,7 +357,8 @@ export function useRecords<Row extends object>({
     )
   }, [server, loaded, resolvedQuery, fields, zone])
 
-  const key = rangeKey(scopedQuery, zone)
+  // A new page size starts over, as pages asked for at the old one would block it.
+  const key = `${rangeKey(scopedQuery, zone)}@${position.pageSize}`
   const range = useRangeLoading({
     loadRange,
     key,

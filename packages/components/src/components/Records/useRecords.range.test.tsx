@@ -444,6 +444,17 @@ describe('useRecords range mode', () => {
     ])
   })
 
+  it('asks for larger pages after the page size grows', async () => {
+    const { result } = renderHook(() =>
+      useRangeHarness({ total: 1000, rowCount: 1000, respond: 'manual' })
+    )
+    await view(result, 0, 15)
+    await act(async () => result.current.calls.current[0]!.resolve())
+    await act(async () => result.current.records.setPageSize(100))
+    await view(result, 40, 70)
+    expect(requests(result).slice(1)).toContainEqual({ start: 0, end: 100 })
+  })
+
   it('ignores a reply for a query that changed and came back', async () => {
     const { result } = renderHook(() =>
       useRangeHarness({ total: 70, respond: 'manual' })
