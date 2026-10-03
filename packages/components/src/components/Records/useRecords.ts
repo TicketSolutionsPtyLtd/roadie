@@ -289,7 +289,15 @@ export function useRecords<Row extends object>({
   )
   const heldSelection = controlledSelection ?? ownSelection
   const anchor = useRef<string | undefined>(undefined)
+  // A pick made here acts on the rows on screen, so it belongs to the applied
+  // query, even while a newer search waits to apply.
+  const appliedKey = matchKey({ search, filters })
+  const [picked, setPicked] = useState<{
+    selection: RecordSelection
+    key: string
+  } | null>(null)
   const setSelection = (next: RecordSelection) => {
+    setPicked({ selection: next, key: appliedKey })
     if (!controlledSelection) setOwnSelection(next)
     onSelectionChange?.(next)
   }
@@ -300,8 +308,8 @@ export function useRecords<Row extends object>({
   const [selectingState, setSelectingState] = useState(false)
   const selecting = selectable && selectingState
 
-  // Keyed on the query as set, so a change from the URL or the parent counts
-  // too. A selection set with its query keys to it before the search applies.
+  // A selection from outside, like the URL or the parent, keys to the query as
+  // set, so one set with a new search keeps it before the search applies.
   const queryKey = matchKey({ search: view.query.search, filters })
   // A search's matches exist only once it renders, so pruning waits for it.
   const searchApplied = search === view.query.search
@@ -312,9 +320,15 @@ export function useRecords<Row extends object>({
   })
   let selection = heldSelection
   // A selection set with its query, like one restored from the URL, keeps it.
-  if (!sameSelection(taken.held, heldSelection))
-    setTaken({ held: heldSelection, key: queryKey, selection })
-  else if (searchApplied && taken.key !== queryKey) {
+  if (!sameSelection(taken.held, heldSelection)) {
+    const own =
+      picked !== null && sameSelection(picked.selection, heldSelection)
+    setTaken({
+      held: heldSelection,
+      key: own ? picked.key : queryKey,
+      selection
+    })
+  } else if (searchApplied && taken.key !== queryKey) {
     // Derived in render, so no paint pairs the old selection with the new query.
     const empty = 'ids' in heldSelection && heldSelection.ids.length === 0
     selection = empty
