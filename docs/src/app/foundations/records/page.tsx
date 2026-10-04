@@ -488,6 +488,21 @@ export default function RecordsPage() {
           view name. It ignores id, name, spacing in the search and the order of
           chips and their values. Sort and column order still count.
         </p>
+        <p className='max-w-prose text-subtle'>
+          Pass that saved view to <Code>useRecords</Code> as{' '}
+          <Code>baseline</Code> and it gives <Code>modified</Code> and{' '}
+          <Code>resetView</Code>. <Code>Records.ViewActions</Code> shows the
+          name and the mark, with a menu to save, save as, rename, reset or
+          delete the view. Your app keeps the presets and the views people save,
+          and lists them, as{' '}
+          <Link
+            href='/components/record-table#saved-views'
+            className='underline'
+          >
+            RecordTable
+          </Link>{' '}
+          shows.
+        </p>
       </Section>
 
       <Section title='Guidelines'>

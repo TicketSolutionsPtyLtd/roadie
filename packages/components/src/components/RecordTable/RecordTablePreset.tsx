@@ -4,7 +4,12 @@ import { useMemo } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { Records, type RecordsAction, type RecordsBulkAction } from '../Records'
+import {
+  Records,
+  type RecordsAction,
+  type RecordsBulkAction,
+  type RecordsViewActionsProps
+} from '../Records'
 import { type UseRecordsOptions, useRecords } from '../Records/useRecords'
 import type { RecordTableNarrowLayout } from './narrow'
 import { tableLayout } from './tableLayout'
@@ -26,6 +31,8 @@ export type RecordTableProps<Row extends object> = UseRecordsOptions<Row> & {
   bulkActions?: readonly RecordsBulkAction[]
   /** Act on everything the search and filters match, with nothing selected, such as an export. Shown at the end of the toolbar. */
   tableActions?: readonly RecordsAction<Row>[]
+  /** Shows the open view's name, marked once it differs from `baseline`, with a menu to save, save as, rename, reset or delete it. The app keeps the views. */
+  viewActions?: RecordsViewActionsProps
   /** How the table shows its records under 40rem. Defaults to cards when a column is a `detail`, else list rows. */
   narrow?: RecordTableNarrowLayout
   /** Scrolls the rows in their own box this tall, any CSS length. */
@@ -45,6 +52,7 @@ export function RecordTable<Row extends object>({
   pageSizes,
   bulkActions,
   tableActions,
+  viewActions,
   narrow,
   maxHeight,
   fill,
@@ -74,6 +82,7 @@ export function RecordTable<Row extends object>({
         searchLabel={searchLabel}
         searchShortcut={searchShortcut}
         actions={tableActions}
+        viewActions={viewActions}
       />
       <Records.Content maxHeight={maxHeight} fill={fill} />
       <Records.Pagination pageSizes={pageSizes} />

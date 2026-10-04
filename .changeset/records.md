@@ -168,3 +168,18 @@ never an image. `record-table` exports the `RecordTableNarrow`,
 `RecordTableNarrowLayout` and `TableLayoutOptions` types. `Records.Root`
 and the table's frame now fill their container's width. Focus lands back
 with the records when the floating bar goes, under `Records.Provider` too.
+
+Saved views: `useRecords` takes a `baseline`, the saved or preset view the
+screen opened, and gives `modified` (the view differs from it by
+`equalViews`) and `resetView`, which goes back to it from the first page.
+`Records.ViewActions` (or `viewActions`, an object of its props, on
+`Records.Toolbar` and `RecordTable`) shows the view's name after the search,
+with a dot once it's modified, and a menu of Save view, Reset view, Save as
+new view, Rename view and Delete view. The app keeps the views: each action
+calls its handler (`onSave`, `onSaveAs`, `onRename`, `onDelete`, typed
+`RecordsViewHandler`) with a `RecordView`, and each action but Reset shows
+only when its handler is given, so a preset takes `onSaveAs` alone. Names are
+asked for in a dialog, or a bottom drawer on a phone, and Delete view asks in
+an alert dialog. A handler can return a promise: its control stays busy and
+its dialog open until it settles, and a rejection's message shows in the
+dialog. `RecordsViewActionsProps` is exported too.

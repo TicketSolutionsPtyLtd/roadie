@@ -274,8 +274,10 @@ Build fields with `recordFields<Row>()`. Show a list with `useRecords` and
 `Pane.Search`. For records a server pages, pass `rowCount` and one page as
 `data`, and search with `toMeilisearch(view, fields, { now, timeZone,
 position })`. For a long list people scroll, pass `loadRange` and place each
-range in `data` with `placeRange`. See
-`docs/src/app/components/record-table/page.mdx`.
+range in `data` with `placeRange`. For saved views, pass the open one as
+`baseline` and the app's `onSave`, `onSaveAs`, `onRename` and `onDelete` as
+`viewActions`; the app stores and lists views, and presets take `onSaveAs`
+alone. See `docs/src/app/components/record-table/page.mdx`.
 
 ### Typography
 

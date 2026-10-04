@@ -12,6 +12,7 @@ import { RecordsSearch } from './RecordsSearch'
 import { RecordsSelect } from './RecordsSelect'
 import { RecordsStatus } from './RecordsStatus'
 import { RecordsToolbar } from './RecordsToolbar'
+import { RecordsViewActions } from './RecordsViewActions'
 
 const Records = RecordsRoot as typeof RecordsRoot & {
   Root: typeof RecordsRoot
@@ -25,6 +26,7 @@ const Records = RecordsRoot as typeof RecordsRoot & {
   Actions: typeof RecordsActions
   Options: typeof RecordsOptions
   BulkActions: typeof RecordsBulkActions
+  ViewActions: typeof RecordsViewActions
 }
 
 Records.Root = RecordsRoot
@@ -38,6 +40,7 @@ Records.Status = RecordsStatus
 Records.Actions = RecordsActions
 Records.Options = RecordsOptions
 Records.BulkActions = RecordsBulkActions
+Records.ViewActions = RecordsViewActions
 
 export { Records, RecordValue }
 export { useRecords } from './useRecords'
@@ -68,4 +71,8 @@ export type { RecordsProviderProps, RecordsRootProps } from './RecordsRoot'
 export type { RecordsSearchProps } from './RecordsSearch'
 export type { RecordsSelectProps } from './RecordsSelect'
 export type { RecordsToolbarProps } from './RecordsToolbar'
+export type {
+  RecordsViewActionsProps,
+  RecordsViewHandler
+} from './RecordsViewActions'
 export type { RecordsRootProps as RecordsProps } from './RecordsRoot'
