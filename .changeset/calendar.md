@@ -32,8 +32,8 @@ month lands as the slide passes its middle, about 120ms in, so a test that
 clicks Next and then picks a day waits for that. A press during a slide lands
 the turn under way first. A month picked from the selects shows at once and
 slides in. Arrow keys across a month edge, a view switch and a parent's
-`month` turn straight away, and nothing slides under reduced motion. Every
-turn runs the other way in a right-to-left page.
+`month` turn straight away, and nothing slides under reduced motion. Sideways
+turns run the other way in a right-to-left page.
 `direction='vertical'` turns the months up and down instead: the arrows
 point up and down and a finger swipes up for the next month.
 `view='week'` (with `defaultView` and `onViewChange`) shows one week as a

@@ -877,6 +877,28 @@ describe('Calendar dragged with a mouse', () => {
     expect(caption()).toEqual(['March 2027'])
   })
 
+  it('keeps focus in the calendar after a drag turns the page', async () => {
+    await commands.parkPointer()
+    render(<Calendar today={TODAY} />)
+    const { x, y } = centre('2027-03-17')
+    await commands.pointer([
+      { type: 'move', x, y },
+      { type: 'down' },
+      { type: 'move', x: x - 120, y, steps: 6 },
+      { type: 'up' }
+    ])
+    await turned()
+    expect(caption()).toEqual(['April 2027'])
+    expect(
+      document
+        .querySelector('[data-slot="calendar"]')!
+        .contains(document.activeElement)
+    ).toBe(true)
+    const before = focused()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(focused()).not.toBe(before)
+  })
+
   it('chooses the day on a press that barely moves', async () => {
     await commands.parkPointer()
     const onSelect = vi.fn()

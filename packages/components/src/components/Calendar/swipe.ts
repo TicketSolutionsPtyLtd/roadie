@@ -173,6 +173,17 @@ export function useSwipeToTurn(
       return (step === 1) !== rtl ? -1 : 1
     }
 
+    // Applies a turn, keeping focus in the calendar when the day that held
+    // it leaves with the old page, as a dragged day does.
+    const applyTurn = (apply: () => void) => {
+      const hadFocus = root.contains(document.activeElement)
+      flushSync(apply)
+      if (hadFocus && !root.contains(document.activeElement))
+        root
+          .querySelector<HTMLElement>(`${DAYS} button[tabindex="0"]`)
+          ?.focus({ preventScroll: true })
+    }
+
     const cutShort = () => {
       if (!settling) return
       // The turn under way stops where it is; its waiting apply runs here.
@@ -180,7 +191,7 @@ export function useSwipeToTurn(
       stopAnimations()
       const waiting = pending
       pending = null
-      if (waiting) flushSync(waiting)
+      if (waiting) applyTurn(waiting)
       finish()
     }
 
@@ -210,7 +221,7 @@ export function useSwipeToTurn(
       const still =
         prefersReducedMotion() || typeof root!.animate !== 'function'
       if (step && immediate) {
-        flushSync(apply)
+        applyTurn(apply)
         if (!still)
           await slide((size) => -signOf(step) * size, 0, IN_MS, 'ease-out')
       } else if (step) {
@@ -221,7 +232,7 @@ export function useSwipeToTurn(
         // cut short by a later turn, which has applied this one.
         if (disposed || mine !== run || !root!.isConnected) return
         pending = null
-        flushSync(apply)
+        applyTurn(apply)
         place(0)
         stopAnimations()
         if (!still) await slide((size) => -sign * size, 0, IN_MS, 'ease-out')
