@@ -14,7 +14,7 @@ import { RecordValue } from '../Records/RecordValue'
 import { RecordsRowActions } from '../Records/RecordsRowActions'
 import { handleRowClick, onRowControl } from '../Records/rowLink'
 import { RecordTableRowCheckbox } from './RecordTableSelectCell'
-import type { ColumnLayout } from './layout'
+import { type ColumnLayout, priorityProps } from './layout'
 import { useKeepFocusInTable } from './tableFocus'
 import type { RecordTableColumn } from './types'
 
@@ -65,10 +65,15 @@ export const pinStyle = (start: number | undefined) =>
     ? undefined
     : ({ '--record-table-pin-start': `${start}rem` } as CSSProperties)
 
-/** The column whose value names the row: the first pinned text column, else the first text one. */
-export const titleColumn = (columns: readonly RecordTableColumn[]) =>
-  columns.find((column) => column.pin && column.field.type === 'text') ??
-  columns.find((column) => column.field.type === 'text')
+/** The column whose value names the row: the narrow title, else the first pinned text column, else the first text one. Never an image. */
+export function titleColumn(columns: readonly RecordTableColumn[]) {
+  const named = columns.filter((column) => column.kind !== 'image')
+  return (
+    named.find((column) => column.narrow === 'title') ??
+    named.find((column) => column.pin && column.field.type === 'text') ??
+    named.find((column) => column.field.type === 'text')
+  )
+}
 
 // The title column is text, which reads the same in any zone.
 const titleText = (record: object, title: RecordTableColumn | undefined) => {
@@ -191,6 +196,7 @@ export const RecordTableRow = memo(function RecordTableRow({
             key={column.key}
             role='cell'
             data-pin={column.pin || undefined}
+            {...priorityProps(column, layout, index)}
             className={cn(
               cellClass(column),
               cellOverflowClass,

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import type { RecordLayout } from '@oztix/roadie-core/records'
 
@@ -27,6 +27,29 @@ describe('tableColumns', () => {
     const show = column.field('show', { pin: true })
     expect(show.pin).toBe(true)
     expect(column.field('city').pin).toBeUndefined()
+  })
+
+  it('gives an image column a thumbnail width and the leading slot', () => {
+    const image = tableColumns<TestShow & { image: string }>([
+      ...showFields,
+      { key: 'image', label: 'Image', type: 'text' }
+    ]).field('image', { kind: 'image' })
+    expect(image).toMatchObject({
+      kind: 'image',
+      width: { min: 3.5 },
+      narrow: 'leading'
+    })
+  })
+
+  it('drops the priority of a pinned column, once warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    expect(column.field('show', { pin: true, priority: 2 }).priority).toBe(
+      undefined
+    )
+    column.field('city', { pin: true, priority: 3 })
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(column.field('city', { priority: 3 }).priority).toBe(3)
+    warn.mockRestore()
   })
 
   it('throws for a key with no field', () => {

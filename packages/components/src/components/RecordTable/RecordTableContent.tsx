@@ -42,7 +42,7 @@ import { RecordTableRows, VIRTUALISE_AFTER } from './RecordTableRows'
 import { RecordTablePageCheckbox } from './RecordTableSelectCell'
 import { RecordTableSkeletonRows, StateRow } from './RecordTableStates'
 import { shownColumns } from './columns'
-import { SELECT_WIDTH, columnLayout } from './layout'
+import { SELECT_WIDTH, columnLayout, priorityProps, tierStyle } from './layout'
 import type { TableLayoutConfig } from './tableLayout'
 import { useColumnWidths } from './useColumnWidths'
 
@@ -180,10 +180,7 @@ export function RecordTableContent({
       }),
     [columns, widths, selectable, hasRowActions]
   )
-  const style = {
-    '--record-table-columns': layout.template,
-    '--record-table-min-width': `${layout.minWidth}rem`
-  } as CSSProperties
+  const style = tierStyle(layout) as CSSProperties
 
   const { rows, range } = records
   const busy = records.loading && !records.error
@@ -362,6 +359,7 @@ export function RecordTableContent({
                     role='columnheader'
                     aria-sort={direction}
                     data-pin={column.pin || undefined}
+                    {...priorityProps(column, layout, index)}
                     className={
                       // Still read under the bar, so cells keep their headers.
                       barShown

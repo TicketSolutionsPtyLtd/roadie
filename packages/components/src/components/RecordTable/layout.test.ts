@@ -24,11 +24,40 @@ const UTC = 'UTC'
 describe('columnLayout', () => {
   it('builds one grid template shared by header and rows', () => {
     const columns = [fixed('a', 10, 2), fixed('b', 6)]
-    expect(columnLayout(columns, columnWidths(columns, [], UTC))).toEqual({
-      template: 'minmax(10rem, 2fr) 6rem',
-      minWidth: 16,
-      pinnedStart: [undefined, undefined]
+    const layout = columnLayout(columns, columnWidths(columns, [], UTC))
+    expect(layout.template).toBe('minmax(10rem, 2fr) 6rem')
+    expect(layout.minWidth).toBe(16)
+    expect(layout.pinnedStart).toEqual([undefined, undefined])
+  })
+
+  it('drops priority columns tier by tier, 3 first', () => {
+    const columns = [
+      fixed('a', 10, 2, true),
+      column('b', { width: { min: 6 }, priority: 1 }),
+      column('c', { width: { min: 5 }, priority: 3 }),
+      column('d', { width: { min: 4 }, priority: 2 })
+    ]
+    const layout = columnLayout(columns, columnWidths(columns, [], UTC), {
+      actions: true
     })
+    expect(layout.tiers).toEqual([
+      { template: 'minmax(10rem, 2fr) 6rem 5rem 4rem 3rem', minWidth: 28 },
+      { template: 'minmax(10rem, 2fr) 3rem', minWidth: 13 },
+      { template: 'minmax(10rem, 2fr) 6rem 3rem', minWidth: 19 },
+      { template: 'minmax(10rem, 2fr) 6rem 4rem 3rem', minWidth: 23 }
+    ])
+    expect(layout.template).toBe(layout.tiers[0]!.template)
+  })
+
+  it('marks the last shown cell at each tier, so it drops its end padding', () => {
+    const columns = [
+      column('a'),
+      column('b', { priority: 2 }),
+      column('c', { priority: 3 })
+    ]
+    expect(
+      columnLayout(columns, columnWidths(columns, [], UTC)).lastAt
+    ).toEqual([[1, 2], [3], undefined])
   })
 
   it('fixes pinned columns that another pinned column follows', () => {

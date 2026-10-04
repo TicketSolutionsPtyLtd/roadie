@@ -3,12 +3,31 @@ import { type RecordField, formatRecordValue } from '@oztix/roadie-core/records'
 import { NOT_AVAILABLE } from '../Records/RecordValue'
 import type { RecordColumnWidth, RecordTableColumn } from './types'
 
-export type ColumnLayout = {
+export type ColumnTier = {
   template: string
   /** In rem. */
   minWidth: number
+}
+
+export type ColumnLayout = ColumnTier & {
+  /** Tier 0 shows every column; tier n hides priority n and above. */
+  tiers: ColumnTier[]
   /** Each pinned column's sticky offset, in rem, after any select track. */
   pinnedStart: (number | undefined)[]
+  /** The tiers at which each column is the last cell shown, so it drops its end padding. */
+  lastAt: (number[] | undefined)[]
+}
+
+/** Where each priority tier starts, in rem of the table's width. */
+export const PRIORITY_HIDES_BELOW = { 3: 64, 2: 56, 1: 48 } as const
+const TIERS = [1, 2, 3] as const
+
+const priorityOf = (column: RecordTableColumn) =>
+  column.pin ? undefined : column.priority
+
+const shownAt = (column: RecordTableColumn, tier: number) => {
+  const priority = priorityOf(column)
+  return tier === 0 || priority === undefined || priority < tier
 }
 
 const SAMPLE_ROWS = 200
@@ -76,6 +95,24 @@ export const SELECT_WIDTH = 2.5
 /** The row actions track, pinned last. In rem. */
 export const ACTIONS_WIDTH = 3
 
+function columnTier(
+  columns: readonly RecordTableColumn[],
+  widths: readonly RecordColumnWidth[],
+  { select, actions }: { select: boolean; actions: boolean }
+): ColumnTier {
+  let minWidth = (select ? SELECT_WIDTH : 0) + (actions ? ACTIONS_WIDTH : 0)
+  const tracks = columns.map((column, index) => {
+    const width = widths[index]!
+    minWidth += width.min
+    // A pinned column another pinned column follows can't grow, so the next offset is known.
+    const offsetsNext = column.pin && columns[index + 1]?.pin === true
+    return offsetsNext ? `${width.min}rem` : track(width)
+  })
+  if (select) tracks.unshift(`${SELECT_WIDTH}rem`)
+  if (actions) tracks.push(`${ACTIONS_WIDTH}rem`)
+  return { template: tracks.join(' '), minWidth }
+}
+
 export function columnLayout(
   columns: readonly RecordTableColumn[],
   widths: readonly RecordColumnWidth[],
@@ -84,19 +121,49 @@ export function columnLayout(
     actions = false
   }: { select?: boolean; actions?: boolean } = {}
 ): ColumnLayout {
-  let minWidth = (select ? SELECT_WIDTH : 0) + (actions ? ACTIONS_WIDTH : 0)
   let pinnedOffset = select ? SELECT_WIDTH : 0
-  const pinnedStart: (number | undefined)[] = []
-  const tracks = columns.map((column, index) => {
-    const width = widths[index]!
-    minWidth += width.min
-    pinnedStart.push(column.pin ? pinnedOffset : undefined)
-    if (column.pin) pinnedOffset += width.min
-    // A pinned column another pinned column follows can't grow, so the next offset is known.
-    const offsetsNext = column.pin && columns[index + 1]?.pin === true
-    return offsetsNext ? `${width.min}rem` : track(width)
+  const pinnedStart = columns.map((column, index) => {
+    if (!column.pin) return undefined
+    const start = pinnedOffset
+    pinnedOffset += widths[index]!.min
+    return start
   })
-  if (select) tracks.unshift(`${SELECT_WIDTH}rem`)
-  if (actions) tracks.push(`${ACTIONS_WIDTH}rem`)
-  return { template: tracks.join(' '), minWidth, pinnedStart }
+  const tiers = [0, ...TIERS].map((tier) => {
+    const shown = columns.flatMap((column, index) =>
+      shownAt(column, tier) ? [index] : []
+    )
+    return columnTier(
+      shown.map((index) => columns[index]!),
+      shown.map((index) => widths[index]!),
+      { select, actions }
+    )
+  })
+  const lastAt: (number[] | undefined)[] = columns.map(() => undefined)
+  // The actions cell ends every row, so no column needs to.
+  if (!actions)
+    for (const tier of TIERS) {
+      const last = columns.findLastIndex((column) => shownAt(column, tier))
+      if (last === -1 || last === columns.length - 1) continue
+      lastAt[last] = [...(lastAt[last] ?? []), tier]
+    }
+  return { ...tiers[0]!, tiers, pinnedStart, lastAt }
 }
+
+/** A cell's priority attributes, which record-table.css hides and trims by. */
+export const priorityProps = (
+  column: RecordTableColumn,
+  layout: ColumnLayout,
+  index: number
+) => ({
+  'data-priority': priorityOf(column),
+  'data-priority-end': layout.lastAt[index]?.join(' ')
+})
+
+/** Each tier's template and minimum width, never `--record-table-columns` itself: an inline value would beat the container queries. */
+export const tierStyle = (layout: ColumnLayout) =>
+  Object.fromEntries(
+    layout.tiers.flatMap(({ template, minWidth }, tier) => [
+      [`--record-table-columns-${tier}`, template],
+      [`--record-table-min-width-${tier}`, `${minWidth}rem`]
+    ])
+  )
