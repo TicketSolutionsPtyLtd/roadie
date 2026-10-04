@@ -85,6 +85,7 @@ export function useSwipeToTurn(
     if (!enabled || !root) return
 
     type Gesture = {
+      kind: 'touch' | 'pointer'
       id: number
       x: number
       y: number
@@ -202,83 +203,159 @@ export function useSwipeToTurn(
       void animateTurn(0, step, apply)
     }
 
-    // Touch events, not pointer events: iOS Safari cancels the pointer once
-    // its pan recogniser starts on a vertical drag, even where touch-action
-    // stops the scroll, but the touch carries on to touchend.
-    const touchOf = (event: TouchEvent) =>
-      gesture &&
-      Array.from(event.changedTouches).find(
-        (touch) => touch.identifier === gesture!.id
-      )
-
-    const onTouchStart = (event: TouchEvent) => {
-      suppressClickUntil = -Infinity
-      if (event.touches.length !== 1 || settling) {
-        if (gesture?.engaged) void settle(gesture.along, null)
-        gesture = null
-        return
-      }
-      const touch = event.changedTouches[0]!
+    // One gesture at a time, from a finger, a mouse or a pen.
+    const begin = (
+      kind: 'touch' | 'pointer',
+      id: number,
+      x: number,
+      y: number,
+      time: number,
+      target: EventTarget | null
+    ) => {
       // Headers, selects and toggles keep their own gestures.
-      if (!(event.target as Element).closest(GRIDS)) return
+      if (settling || !(target as Element | null)?.closest(GRIDS)) return
       gesture = {
-        id: touch.identifier,
-        x: touch.clientX,
-        y: touch.clientY,
+        kind,
+        id,
+        x,
+        y,
         engaged: false,
         size: 0,
         along: 0,
-        // The touch-down counts, so a flick coalesced into one move has speed.
-        samples: [{ along: 0, time: event.timeStamp }]
+        // The start counts, so a flick coalesced into one move has speed.
+        samples: [{ along: 0, time }]
       }
     }
 
-    const onTouchMove = (event: TouchEvent) => {
-      const touch = touchOf(event)
-      if (!touch || !gesture) return
-      const dx = touch.clientX - gesture.x
-      const dy = touch.clientY - gesture.y
+    // Whether the gesture is a swipe now, and so owns the move.
+    const move = (x: number, y: number, time: number) => {
+      if (!gesture) return false
+      const dx = x - gesture.x
+      const dy = y - gesture.y
       const along = vertical ? dy : dx
       const across = vertical ? dx : dy
       if (!gesture.engaged) {
         if (Math.abs(across) > SLOP && Math.abs(across) > Math.abs(along)) {
           gesture = null
-          return
+          return false
         }
-        if (Math.abs(along) < SLOP) return
+        if (Math.abs(along) < SLOP) return false
         const box = root.querySelector(DAYS)?.getBoundingClientRect()
-        if (!box) return
+        if (!box) return false
         gesture.engaged = true
         gesture.size = vertical ? box.height : box.width
         root.dataset.swiping = ''
+        // A mouse drag would otherwise select the day numbers.
+        getSelection()?.removeAllRanges()
       }
-      // The swipe owns the drag, wherever touch-action falls short.
-      if (event.cancelable) event.preventDefault()
       const allowed = latest.current.canTurn(stepOf(along))
       gesture.along = allowed ? along : along / 3
-      gesture.samples.push({ along, time: event.timeStamp })
+      gesture.samples.push({ along, time })
       if (gesture.samples.length > 5) gesture.samples.shift()
       if (!prefersReducedMotion()) place(gesture.along)
+      return true
     }
 
-    const onTouchEnd = (event: TouchEvent) => {
-      if (!touchOf(event) || !gesture) return
-      const { engaged, samples, size } = gesture
-      const along = gesture.along
+    const end = (time: number) => {
+      if (!gesture) return
+      const { engaged, samples, size, along } = gesture
       gesture = null
       if (!engaged) return
       suppressClickUntil = performance.now() + CLICK_AFTER_SWIPE_MS
       const step = stepOf(along)
       const turns =
-        swipeTurns({ along, size, samples, releasedAt: event.timeStamp }) &&
+        swipeTurns({ along, size, samples, releasedAt: time }) &&
         latest.current.canTurn(step)
       void settle(along, turns ? step : null)
     }
 
-    const onTouchCancel = (event: TouchEvent) => {
-      if (!touchOf(event) || !gesture) return
-      if (gesture.engaged) void settle(gesture.along, null)
+    const cancel = () => {
+      if (gesture?.engaged) void settle(gesture.along, null)
       gesture = null
+    }
+
+    // Touch events, not pointer events: iOS Safari cancels the pointer once
+    // its pan recogniser starts on a vertical drag, even where touch-action
+    // stops the scroll, but the touch carries on to touchend.
+    const touchOf = (event: TouchEvent) =>
+      gesture?.kind === 'touch'
+        ? Array.from(event.changedTouches).find(
+            (touch) => touch.identifier === gesture!.id
+          )
+        : undefined
+
+    const onTouchStart = (event: TouchEvent) => {
+      suppressClickUntil = -Infinity
+      // A pen that already started through pointer events keeps its gesture.
+      if (gesture?.kind === 'pointer') return
+      if (event.touches.length !== 1) return cancel()
+      const touch = event.changedTouches[0]!
+      begin(
+        'touch',
+        touch.identifier,
+        touch.clientX,
+        touch.clientY,
+        event.timeStamp,
+        event.target
+      )
+    }
+
+    const onTouchMove = (event: TouchEvent) => {
+      const touch = touchOf(event)
+      if (!touch) return
+      // The swipe owns the drag, wherever touch-action falls short.
+      if (
+        move(touch.clientX, touch.clientY, event.timeStamp) &&
+        event.cancelable
+      )
+        event.preventDefault()
+    }
+
+    const onTouchEnd = (event: TouchEvent) => {
+      if (touchOf(event)) end(event.timeStamp)
+    }
+
+    const onTouchCancel = (event: TouchEvent) => {
+      if (touchOf(event)) cancel()
+    }
+
+    // A mouse or pen drags the days as a finger does, as in Carousel.
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType === 'touch' || !event.isPrimary) return
+      suppressClickUntil = -Infinity
+      if (event.button !== 0 || gesture) return
+      begin(
+        'pointer',
+        event.pointerId,
+        event.clientX,
+        event.clientY,
+        event.timeStamp,
+        event.target
+      )
+    }
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (gesture?.kind !== 'pointer' || event.pointerId !== gesture.id) return
+      const wasEngaged = gesture.engaged
+      if (!move(event.clientX, event.clientY, event.timeStamp)) return
+      // Held, so the drag carries on outside the calendar.
+      if (!wasEngaged && !root.hasPointerCapture(event.pointerId))
+        root.setPointerCapture(event.pointerId)
+    }
+
+    const onPointerUp = (event: PointerEvent) => {
+      if (gesture?.kind === 'pointer' && event.pointerId === gesture.id)
+        end(event.timeStamp)
+    }
+
+    const onPointerCancel = (event: PointerEvent) => {
+      if (gesture?.kind === 'pointer' && event.pointerId === gesture.id)
+        cancel()
+    }
+
+    // A dragged link or image would start the browser's own drag instead.
+    const onDragStart = (event: DragEvent) => {
+      if (gesture) event.preventDefault()
     }
 
     // Only the click the lifted finger fires; a keyboard click has no detail.
@@ -293,6 +370,11 @@ export function useSwipeToTurn(
     root.addEventListener('touchmove', onTouchMove, { passive: false })
     root.addEventListener('touchend', onTouchEnd)
     root.addEventListener('touchcancel', onTouchCancel)
+    root.addEventListener('pointerdown', onPointerDown)
+    root.addEventListener('pointermove', onPointerMove)
+    root.addEventListener('pointerup', onPointerUp)
+    root.addEventListener('pointercancel', onPointerCancel)
+    root.addEventListener('dragstart', onDragStart)
     root.addEventListener('click', onClick, true)
     return () => {
       disposed = true
@@ -304,6 +386,11 @@ export function useSwipeToTurn(
       root.removeEventListener('touchmove', onTouchMove)
       root.removeEventListener('touchend', onTouchEnd)
       root.removeEventListener('touchcancel', onTouchCancel)
+      root.removeEventListener('pointerdown', onPointerDown)
+      root.removeEventListener('pointermove', onPointerMove)
+      root.removeEventListener('pointerup', onPointerUp)
+      root.removeEventListener('pointercancel', onPointerCancel)
+      root.removeEventListener('dragstart', onDragStart)
       root.removeEventListener('click', onClick, true)
       stopAnimations()
       place(0)

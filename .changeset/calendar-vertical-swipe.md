@@ -18,3 +18,8 @@ right-to-left page. A press during a slide lands the turn in progress at once
 and slides on from there, so quick presses reach the right month and keep
 focus. Arrow keys across a month edge, a view switch and a parent's `month`
 still turn straight away, as does every turn under reduced motion.
+
+A mouse or pen drags the days to turn the page as a finger does, as in
+Carousel: a press that moves less than 8px is still a click that chooses the
+day, the click after a drag is swallowed, and text isn't selected while
+dragging.

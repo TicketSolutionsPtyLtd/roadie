@@ -9,7 +9,8 @@ import {
   describe,
   expect,
   it,
-  onTestFinished
+  onTestFinished,
+  vi
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
@@ -668,6 +669,73 @@ describe('Calendar page turns', () => {
     rerender(<Calendar today={TODAY} month='2027-04-01' />)
     expect(document.querySelector('[data-swiping]')).toBeNull()
     expect(caption()).toEqual(['April 2027'])
+  })
+})
+
+describe('Calendar dragged with a mouse', () => {
+  const centre = (date: string) => {
+    const box = day(date).getBoundingClientRect()
+    return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+  }
+
+  it.each([
+    ['horizontal', -120, 0],
+    ['vertical', 0, -120]
+  ] as const)(
+    'turns the page on a %s drag and chooses nothing',
+    async (direction, dx, dy) => {
+      await commands.parkPointer()
+      const onSelect = vi.fn()
+      render(
+        <Calendar today={TODAY} direction={direction} onSelect={onSelect} />
+      )
+      const { x, y } = centre('2027-03-17')
+      await commands.pointer([
+        { type: 'move', x, y },
+        { type: 'down' },
+        { type: 'move', x: x + dx / 4, y: y + dy / 4, steps: 3 },
+        { type: 'move', x: x + dx, y: y + dy, steps: 6 }
+      ])
+      expect(document.querySelector('[data-swiping]')).not.toBeNull()
+      expect(
+        getComputedStyle(document.querySelector('[data-slot="calendar"]')!)
+          .userSelect
+      ).toBe('none')
+      await commands.pointer([{ type: 'up' }])
+      await turned()
+      expect(caption()).toEqual(['April 2027'])
+      expect(onSelect).not.toHaveBeenCalled()
+      expect(getSelection()?.toString()).toBe('')
+    }
+  )
+
+  it('chooses the day on a press that barely moves', async () => {
+    await commands.parkPointer()
+    const onSelect = vi.fn()
+    render(<Calendar today={TODAY} onSelect={onSelect} />)
+    const { x, y } = centre('2027-03-17')
+    await commands.pointer([
+      { type: 'move', x, y },
+      { type: 'down' },
+      { type: 'move', x: x - 4, y, steps: 2 },
+      { type: 'up' }
+    ])
+    expect(onSelect).toHaveBeenLastCalledWith('2027-03-17')
+    expect(caption()).toEqual(['March 2027'])
+    expect(document.querySelector('[data-swiping]')).toBeNull()
+  })
+
+  it('still chooses a range by clicks, with its preview', async () => {
+    const onSelect = vi.fn()
+    render(<Calendar mode='range' today={TODAY} onSelect={onSelect} />)
+    await userEvent.click(day('2027-03-10'))
+    await userEvent.hover(day('2027-03-13'))
+    expect(day('2027-03-12')).toHaveAttribute('data-range-preview')
+    await userEvent.click(day('2027-03-13'))
+    expect(onSelect).toHaveBeenLastCalledWith({
+      start: '2027-03-10',
+      end: '2027-03-13'
+    })
   })
 })
 

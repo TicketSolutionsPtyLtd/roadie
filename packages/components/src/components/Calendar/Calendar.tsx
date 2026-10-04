@@ -1400,7 +1400,7 @@ export function Calendar(props: CalendarProps) {
       data-view={weekView ? 'week' : 'month'}
       data-tiles={tiles ? '' : undefined}
       className={cn(
-        'relative grid w-full',
+        'relative grid w-full data-swiping:select-none',
         scrolling ? 'gap-6' : 'gap-2',
         className
       )}
