@@ -106,3 +106,36 @@ its content holds; key a fetch on `scopedQuery`, the position and
 filter, and ignores filters the fields can't apply. `Records.Status`
 holds a count while `loading` and announces it once loaded, and
 `Records.Pagination` reads a page past the end as the last page.
+
+Give `useRecords` a `loadRange` and it runs in range mode (`mode: 'range'`):
+one long list, searched, filtered and sorted on the server, that loads the
+records on screen plus a screen either side as people scroll. Each range is
+one page of `pageSize` records, `{ start, end }` with `end` exclusive, and
+`data` holds the records loaded so far at their index (`placeRange` puts a
+range there). With `rowCount` the list is that long from the start; without
+it, ranges load one after another until one comes back short. Rows not yet
+loaded show as placeholders. A failed range shows an error row with Retry in
+its place, keeping the records already loaded, or the error state when none
+have. The list reports the first row on screen as `position.row` (through
+`setRow` and `onPositionChange`) and scrolls back to a row set from outside,
+such as from the URL, loading its range first; a row it reported itself
+never scrolls it back. `records.range` (`RecordsRangeState`) holds the
+loading state for a layout, and `RecordsRange` types a range. A count of 0
+counts only once a range of the query confirms it, so a list whose count
+starts at 0 still asks for its first range. `Records.Pagination` shows the
+count instead of pages, and `Records.Status` announces a count only once the
+total is known. Bulk actions get the selection as picked, as in server mode,
+`loading` neither dims rows nor shows skeleton rows (placeholders show what
+loads), `records.error` is set when a range fails before any record loads,
+and `onRetry` is always given. The header checkbox is named "Select loaded
+rows", and range mode stops at 300,000 rows. In every mode `data` may hold
+undefined gaps, which are left out, and `records.data` is the records held
+without them.
+
+The table renders only the rows near the screen past 100 rows, so find in
+page and printing see only those, and focus in a row that scrolls away
+moves to the table. When it holds only some of its rows (a page of several,
+a long page, or a list loaded by range) it carries `aria-rowcount` and each
+row its `aria-rowindex`. In server and range mode, column widths come from
+the first records a search or filter brings and hold as people page or
+scroll.

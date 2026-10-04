@@ -8,8 +8,7 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
-  useRef,
-  useState
+  useRef
 } from 'react'
 
 import {
@@ -32,7 +31,6 @@ import { surfaceClass, useSurface } from '../Records/surface'
 import { SURVIVOR } from '../Records/useBulkActions'
 import { ScrollArea } from '../ScrollArea'
 import {
-  RecordTableRow,
   actionsCellClass,
   cellClass,
   pinStyle,
@@ -40,11 +38,13 @@ import {
   selectCellClass,
   titleColumn
 } from './RecordTableRow'
+import { RecordTableRows, VIRTUALISE_AFTER } from './RecordTableRows'
 import { RecordTablePageCheckbox } from './RecordTableSelectCell'
 import { RecordTableSkeletonRows, StateRow } from './RecordTableStates'
 import { shownColumns } from './columns'
-import { SELECT_WIDTH, columnLayout, columnWidths, sameWidths } from './layout'
+import { SELECT_WIDTH, columnLayout } from './layout'
 import type { TableLayoutConfig } from './tableLayout'
+import { useColumnWidths } from './useColumnWidths'
 
 /**
  * In a box, sizes the table to its rows inside Base UI's measured content, so
@@ -166,14 +166,12 @@ export function RecordTableContent({
     )
   }, [missingLinkColumn])
 
-  const sampled = useMemo(
-    () => columnWidths(columns, records.data, records.timeZone),
-    [columns, records.data, records.timeZone]
-  )
-  // Kept while equal, so new data with the same widths leaves the layout alone.
-  const [kept, keep] = useState(sampled)
-  const widths = sameWidths(kept, sampled) ? kept : sampled
-  if (widths !== kept) keep(widths)
+  const widths = useColumnWidths(columns, {
+    mode: records.mode,
+    data: records.data,
+    query: records.scopedQuery,
+    timeZone: records.timeZone
+  })
   const layout = useMemo(
     () =>
       columnLayout(columns, widths, {
@@ -187,10 +185,28 @@ export function RecordTableContent({
     '--record-table-min-width': `${layout.minWidth}rem`
   } as CSSProperties
 
-  const { rows } = records
+  const { rows, range } = records
   const busy = records.loading && !records.error
-  const dimmed = busy && rows.length > 0
-  const awaitingRows = busy && rows.length === 0
+  // Range mode keeps its rows bright: placeholders already show what loads.
+  const dimmed = busy && !range && rows.length > 0
+  const awaitingRows = busy && !range && rows.length === 0
+  const shownPage = Math.min(records.position.page, records.pageCount - 1)
+  // A page, a window or a range holds only some rows, so each carries its
+  // place and the table counts them all, the header row too.
+  const partial =
+    range !== undefined ||
+    rows.length > VIRTUALISE_AFTER ||
+    records.pageCount > 1
+  const rowCount = !partial
+    ? undefined
+    : range
+      ? range.total === undefined
+        ? -1
+        : range.count + 1
+      : records.resultCount + 1
+  const firstIndex = partial
+    ? shownPage * records.position.pageSize + 2
+    : undefined
   // What the rows show: a sort the fields can't apply marks nothing.
   const sort = records.resolvedQuery.sort
   const pageIds = rows.map((row) => row.id)
@@ -217,9 +233,11 @@ export function RecordTableContent({
   const columnCount =
     columns.length + (selectable ? 1 : 0) + (hasRowActions ? 1 : 0)
 
+  const empty = range ? range.count === 0 : rows.length === 0
   // Error, then skeleton, then empty: what replaces the rows.
+  // Keyed, so one state replacing another hands its button's focus on.
   const state = records.error ? (
-    <StateRow columns={columnCount}>
+    <StateRow key='error' columns={columnCount}>
       <RecordsError records={records} />
     </StateRow>
   ) : awaitingRows ? (
@@ -230,29 +248,28 @@ export function RecordTableContent({
       select={selectable}
       actions={hasRowActions}
     />
-  ) : rows.length === 0 ? (
-    <StateRow columns={columnCount}>
+  ) : empty ? (
+    <StateRow key='empty' columns={columnCount}>
       <RecordsEmpty records={records} />
     </StateRow>
   ) : null
   const body = state ?? (
-    <div role='rowgroup' data-slot='record-table-body'>
-      {rows.map((row) => (
-        <RecordTableRow
-          key={row.id}
-          id={row.id}
-          record={row.row}
-          columns={columns}
-          layout={layout}
-          title={title}
-          timeZone={records.timeZone}
-          selected={selectable ? records.isSelected(row.id) : undefined}
-          onToggle={toggleRow}
-          rowActions={hasRowActions ? rowActions : undefined}
-          href={getRowHref?.(row.row)}
-        />
-      ))}
-    </div>
+    <RecordTableRows
+      rows={rows}
+      firstIndex={firstIndex}
+      range={range}
+      row={records.position.row}
+      onRow={records.setRow}
+      columns={columns}
+      layout={layout}
+      title={title}
+      timeZone={records.timeZone}
+      isSelected={selectable ? records.isSelected : undefined}
+      onToggle={toggleRow}
+      rowActions={hasRowActions ? rowActions : undefined}
+      getRowHref={getRowHref}
+      columnCount={columnCount}
+    />
   )
 
   const content = (
@@ -269,7 +286,9 @@ export function RecordTableContent({
           ref={contentRef}
           role='table'
           aria-label={caption}
-          aria-busy={busy || undefined}
+          // A state in place of the rows is no row of the count.
+          aria-rowcount={state ? undefined : rowCount}
+          aria-busy={busy || range?.loading || undefined}
           data-slot='record-table-content'
           className='text-sm tabular-nums'
           style={style}
@@ -294,6 +313,7 @@ export function RecordTableContent({
           >
             <div
               role='row'
+              aria-rowindex={partial ? 1 : undefined}
               data-slot='record-table-head-row'
               onFocus={(event) => {
                 sortFocused.current = event.target.hasAttribute('data-sort')
@@ -326,6 +346,7 @@ export function RecordTableContent({
                   style={barShown ? { width: `${SELECT_WIDTH}rem` } : undefined}
                 >
                   <RecordTablePageCheckbox
+                    label={range ? 'Select loaded rows' : undefined}
                     state={pageState(records.selection, pageIds)}
                     onChange={records.selectPage}
                     disabled={rows.length === 0 || Boolean(records.error)}

@@ -63,3 +63,4 @@ export type {
   RecordSearchParamsResult
 } from './searchParams'
 export { equalViews } from './equal'
+export { placeRange } from './ranges'

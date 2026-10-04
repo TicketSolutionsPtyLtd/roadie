@@ -528,3 +528,46 @@ describe('Records composition', () => {
     expect(container.querySelector('[role="table"]')).toBeNull()
   })
 })
+
+describe('RecordTable row count', () => {
+  const table = () => screen.getByRole('table')
+  const rowIndexes = () =>
+    screen.getAllByRole('row').map((row) => row.getAttribute('aria-rowindex'))
+
+  it('leaves the count out when every row is in the table', () => {
+    render(<Table count={12} />)
+    expect(table()).not.toHaveAttribute('aria-rowcount')
+    expect(rowIndexes().every((index) => index === null)).toBe(true)
+  })
+
+  it('counts every match and places each row on a later page', async () => {
+    const user = userEvent.setup()
+    render(
+      <RecordTable
+        data={testShows(120)}
+        fields={showFields}
+        columns={showColumns}
+        defaultPosition={{ pageSize: 25 }}
+      />
+    )
+    expect(table()).toHaveAttribute('aria-rowcount', '121')
+    expect(rowIndexes().slice(0, 3)).toEqual(['1', '2', '3'])
+    await user.click(screen.getByRole('button', { name: 'Next page' }))
+    expect(rowIndexes().slice(0, 3)).toEqual(['1', '27', '28'])
+    expect(rowIndexes().at(-1)).toBe('51')
+  })
+
+  it('counts a server page against rowCount', () => {
+    render(
+      <RecordTable
+        data={testShows(10)}
+        fields={showFields}
+        columns={showColumns}
+        rowCount={95}
+        defaultPosition={{ page: 9, pageSize: 10 }}
+      />
+    )
+    expect(table()).toHaveAttribute('aria-rowcount', '96')
+    expect(rowIndexes().slice(0, 2)).toEqual(['1', '92'])
+  })
+})

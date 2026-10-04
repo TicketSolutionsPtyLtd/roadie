@@ -42,6 +42,8 @@ export function useBulkActions({
   const noun = (n: number) => (n === 1 ? recordName.one : recordName.other)
   const pageIds = records.rows.map((row) => row.id)
   const offerAll =
+    // Until a range list knows its total, every match is no known number.
+    (records.range === undefined || records.range.total !== undefined) &&
     !('allMatching' in records.selection) &&
     pageState(records.selection, pageIds) === true &&
     records.resultCount > selected
@@ -80,7 +82,7 @@ export function useBulkActions({
   const run = async (index: number) => {
     const action = actions[index]
     if (!action) return
-    const server = records.mode === 'server'
+    const server = records.mode !== 'browser'
     const matchingIds = records.matchingRows.map((row) => row.id)
     // The server decides what matches; in the browser a hidden record is never acted on.
     const submitted = server

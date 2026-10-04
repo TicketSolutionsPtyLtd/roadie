@@ -164,3 +164,44 @@ describe('Records.Pagination', () => {
     vi.restoreAllMocks()
   })
 })
+
+describe('Records.Status in range mode', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  function Ranged() {
+    const records = useRecords({
+      data: testShows(50),
+      fields: showFields,
+      getRowId: (row) => row.id,
+      rowCount: 500,
+      loadRange: () => new Promise<void>(() => {})
+    })
+    useEffect(() => {
+      holder.records = records
+    })
+    return (
+      <Records.Root records={records} layouts={[]}>
+        <Records.Status />
+      </Records.Root>
+    )
+  }
+
+  it("holds the last query's count while the new query's range loads", () => {
+    vi.useFakeTimers()
+    render(<Ranged />)
+    act(() =>
+      holder.records!.addFilter({
+        field: 'city',
+        operator: 'is',
+        values: ['Perth']
+      })
+    )
+    act(() => holder.records!.range!.show(100, 115))
+    expect(holder.records!.range!.loading).toBe(true)
+    act(() => vi.advanceTimersByTime(600))
+    expect(status()).toHaveTextContent('')
+  })
+})

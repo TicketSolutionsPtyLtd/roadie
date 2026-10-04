@@ -672,7 +672,7 @@ tableActions={[
 
 Pass `rowCount` and the records stop searching, filtering, sorting and paging in the browser. `data` is one page, in the order the server returned it, and `rowCount` counts every record that matches. Hold the view and position yourself, usually in the URL, and fetch whenever either changes, or the viewer's zone does: relative dates such as "today" resolve in it, and a server render reads UTC until the page hydrates. The search waits for a 250ms pause in typing before `onViewChange` hears it, so a request doesn't leave on every keystroke. Clearing it is immediate.
 
-Set `loading` from whether the rows for the current view and position have arrived, so it is already true in the render where either changes. While `loading` or `error` is set, the records keep a page past the old count, so a linked page waits for the new count before it moves, and `Records.Status` waits for the new count before it announces it. Once given, `rowCount` keeps server mode on: left `undefined` while a page loads, it keeps the last count. Pass 0 until the first count arrives. Take each change `onViewChange` reports: a parent that ignores a search leaves the field showing it.
+Set `loading` from whether the rows for the current view and position have arrived, so it is already true in the render where either changes. While `loading` or `error` is set, the records keep a page past the old count, so a linked page waits for the new count before it moves, and `Records.Status` waits for the new count before it announces it. Once given, `rowCount` keeps server mode on: left `undefined` while a page loads, it keeps the last count. Pass 0 until the first count arrives. Take each change `onViewChange` reports: a parent that ignores a search leaves the field showing it. Column widths come from the first page a search or filter brings, and hold as people page, so the columns don't shift.
 
 Selection works against the total. Records ticked on different pages stay selected, and Select all picks `{ allMatching: true, except }`, counted from `rowCount`. A bulk action gets that selection and the query it was taken against, so the server acts on the same records. A new search or filter clears the selection, since only the server knows what still matches; a new sort or page keeps it. Selecting needs `getRowId`, as index ids repeat on every page. `matchingRows` holds only the page, so export on the server, as Table actions shows.
 
@@ -789,9 +789,108 @@ const page = { rows: response.hits, rowCount: response.totalHits }
 
 The example fetches `view`, which only the table changes. A view from a URL read with `fromSearchParams`, or checked with `validateRecordView`, is safe to fetch too. Built from `useRecords`, fetch `records.scopedQuery` instead: it leaves out the filters and sorts the fields can't apply, as the table does, and puts the page's `scope` first. A view never holds the scope, so a `RecordTable` given `scope` adds those filters to what it fetches too.
 
+### Range loading
+
+Pass `loadRange` for one long list with no pages that loads the records on screen as people scroll. The list asks for the rows on screen plus a screen either side, a page per request, as `{ start, end }` with `end` exclusive. Each range is one whole page, page `start / pageSize`, so fetch `pageSize` records from `start`; the last one can run past the end of the list. Fetch it, put the records in `data` at their index with `placeRange` from `@oztix/roadie-core/records`, then resolve. Rows that haven't arrived show as grey placeholders. Pass `rowCount` as the total that matches, so the scrollbar is the right length from the first frame. A count that grows, as when a record is added at the end, loads the rows it adds. A record added anywhere else moves the rows after it, so clear `data` then.
+
+The server searches, filters and sorts, as in server mode, and the search waits for a pause in typing. Clear `data` when the query or the zone changes, or when you pass a new `now` and a relative date filter (such as Upcoming) would match other records, or the old records count as loaded and are never fetched again. This example keeps the records with the query they belong to, drops a response for an older one, and keeps the last total until the new query's first response, so the scrollbar holds its length. Every request waits 400ms.
+
+If `loadRange` rejects, the range shows an error row in place of its records, with Retry, and the records already loaded stay. When nothing has loaded yet, the table shows its error state instead. Range mode stops at 300,000 rows. With range loading, `Records.Pagination` shows the count instead of pages, such as "1,284 shows", or "50+ shows" while the total is unknown, with no page buttons and no rows per page: the list scrolls. Paging stays for paged tables.
+
+Use range loading for long lists people scroll, open a record and come back to. Use pages when people jump to a known page, or the list is short.
+
+```tsx-live-noinline
+const names = ['Ochre Kite Weekender', 'Lampshade Disco', 'Raffia Spaceship', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Marzipan Thunderclap']
+const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
+const everyShow = Array.from({ length: 5000 }, (_, index) => ({
+  id: `show-${index}`,
+  show: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
+  city: cities[index % cities.length],
+  sold: (index * 37) % 2400
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('show', { label: 'Show' }),
+  field.text('city', { label: 'City' }),
+  field.number('sold', { label: 'Sold' })
+]
+const column = tableColumns(fields)
+const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold')]
+const timeZone = 'Australia/Sydney'
+const pageSize = 50
+
+function pretendServer(view, { start, end }) {
+  const now = new Date()
+  const query = resolveRecordQuery(view.query, fields, { now, timeZone })
+  const matching = sortRecords(everyShow.filter(compileRecordQuery(query, fields)), query.sort, fields, { timeZone })
+  const position = { page: start / pageSize, pageSize }
+  return new Promise((resolve) =>
+    setTimeout(
+      () =>
+        resolve({
+          rows: matching.slice(start, end),
+          rowCount: matching.length,
+          search: toMeilisearch(view, fields, { now, timeZone, position })
+        }),
+      400
+    )
+  )
+}
+
+const firstView = { query: { search: '', filters: [], sort: [] }, layout: { type: 'table' } }
+
+function RangeShows() {
+  const [view, setView] = useState(firstView)
+  const key = JSON.stringify(view.query)
+  const [result, setResult] = useState({ key, data: [], rowCount: undefined, search: null })
+  if (result.key !== key) setResult({ ...result, key, data: [] })
+
+  return (
+    <div className='grid gap-3'>
+      <RecordTable
+        caption='Shows'
+        data={result.data}
+        rowCount={result.rowCount}
+        fields={fields}
+        columns={columns}
+        getRowId={(row) => row.id}
+        recordName={{ one: 'show', other: 'shows' }}
+        view={view}
+        onViewChange={setView}
+        defaultPosition={{ pageSize }}
+        timeZone={timeZone}
+        loadRange={async (range) => {
+          const next = await pretendServer(view, range)
+          setResult((current) =>
+            current.key === key
+              ? { ...next, key, data: placeRange(current.data, range.start, next.rows) }
+              : current
+          )
+        }}
+        maxHeight='30rem'
+      />
+      {result.search && (
+        <pre className='rounded-md bg-sunken p-3 font-mono text-xs break-all whitespace-pre-wrap text-subtle'>
+          {JSON.stringify(result.search)}
+        </pre>
+      )}
+    </div>
+  )
+}
+
+render(<RangeShows />)
+```
+
+With Meilisearch, fetch each range as a page: `toMeilisearch(view, fields, { now, timeZone, position: { page: start / pageSize, pageSize } })`, and pass `totalHits` as `rowCount`. Raise the index's `pagination.maxTotalHits` to the longest list a screen can show.
+
+Some APIs page with a cursor and never say how many records match. Leave out `rowCount` and the list asks for one range at a time, from the end of what it holds, and stops once a range comes back short or resolves without placing any records. The scrollbar grows as records arrive. Keep each range's cursor by where it starts, and set the page size to the API's.
+
+The list reports the first row on screen as `position.row`, through `onPositionChange`, a few times a second while people scroll. Keep it with the view, such as in the URL, and coming back to the list lands on the same row, loading its range first. A row the list reported itself never scrolls it back, so a slow router replaying an older row can't jump the list. Scrolling changes `row` often, so write it to the URL without adding history.
+
 ### Long lists
 
-By default the page, or the pane, scrolls the rows down, and the table scrolls sideways on its own with a Roadie scrollbar that sticks to the bottom of whatever scrolls the page. Give `Records.Content` (or `RecordTable`) a `maxHeight` to scroll the rows both ways in a box of their own, with the header and the pinned column held in place. `fill` does the same at its parent's height, such as a `Pane.Body`.
+By default the page, or the pane, scrolls the rows down, and the table scrolls sideways on its own with a Roadie scrollbar that sticks to the bottom of whatever scrolls the page. Past 100 rows, only the rows near the screen render, so a long page scrolls smoothly. Find in page and printing then see only those rows, so keep pages to 100 where people search the page or print it. If the focused row scrolls away, focus moves to the table, keeping the reader's place. Give `Records.Content` (or `RecordTable`) a `maxHeight` to scroll the rows both ways in a box of their own, with the header and the pinned column held in place. `fill` does the same at its parent's height, such as a `Pane.Body`.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -984,6 +1083,20 @@ column.field('city', { pin: true })`}
   </Guideline.Dont>
 </Guideline>
 
+<Guideline title='Load by range when people scroll and come back'>
+  <Guideline.Do code={`<RecordTable rowCount={total} loadRange={loadRange} {...props} />`}>
+    Load by range when the list is long and people scroll it, open a record
+    and come back. Return a total with each range, so the scrollbar is honest
+    from the start and a restored row lands on the first frame.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`<RecordTable data={everyRecord} defaultPosition={{ pageSize: 100000 }} {...props} />`}
+  >
+    Don't load every record up front to avoid paging. Use pages when people
+    jump to a known page or the list is short.
+  </Guideline.Dont>
+</Guideline>
+
 </div>
 
 ## Accessibility
@@ -992,6 +1105,8 @@ column.field('city', { pin: true })`}
 - A sortable column's header is a button. The sorted column carries `aria-sort`.
 - When the table scrolls sideways, its frame is a region named "Shows, scrolls sideways" for a caption of Shows, and the scroller is its one tab stop, so keyboard users can scroll it with the arrow keys. In its own box (`maxHeight` or `fill`), the box is the region, named "Shows, scrolls".
 - `Records.Status` is a live region. It announces Loading, the error, and the result count while a search or filter narrows the list.
+- When the table holds only some of its rows (a page of several, more than 100 rows, or a list loaded by range), it carries `aria-rowcount`, counting every match (up to 300,000 loading by range) and the header row, and each row its `aria-rowindex`, so screen readers announce "row 52 of 121". Loading by range, the count is `-1` until the total is known.
+- Loading by range, the table is `aria-busy` while a range loads, placeholders are hidden from screen readers, and a failed range is announced, such as "Couldn't load more shows". The result count is announced only once the total is known. The header checkbox is named "Select loaded rows".
 - State titles are paragraphs, not headings, since the table can't know the page's outline. Their icon tiles are hidden from screen readers.
 - The search is a combobox named "Search and filter", or by its `aria-label`. Suggestions open as you type, on a click or with the arrows, not on Tab, and while they're open the rest of the page is hidden from screen readers, as for any combobox. Enter searches the text unless you moved to a suggestion with the arrows. Escape closes the suggestions, and a second Escape clears the text. Clear keeps focus in the field and keeps the page's scope. `/` focuses the field from anywhere, except while typing in another one.
 - Chips are a toolbar named "Filters": Left and Right move between them, Backspace on the empty field selects the last one and a second removes it, and Enter or a click opens its editor, a dialog named after the field. Focus returns to the chip when the editor closes, or to the field once the filter is removed. Each chip's remove button is named "Remove" and the chip. A locked scope chip says it is set by the page, and a chip's dates or a note that it can't apply are read after its label.
@@ -1010,21 +1125,21 @@ column.field('city', { pin: true })`}
 function useRecords<Row extends object>(options: UseRecordsOptions<Row>): RecordsInstance<Row>
 ```
 
-Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data`, `rowCount`, `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is) and `now` (when relative dates resolve, by default when the list mounted). Pass the result to `Records` or `Records.Provider`.
+Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data`, `rowCount`, `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is), `now` (when relative dates resolve, by default when the list mounted) and `loadRange` (which loads the list by range as people scroll). Pass the result to `Records` or `Records.Provider`.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `mode` | `'browser' \| 'server'` | Where the records are searched and paged: `server` once `rowCount` is given. |
-| `data` | `readonly Row[]` | Every record held, before search, filters and paging. In server mode, the page. |
+| `mode` | `'browser' \| 'server' \| 'range'` | Where the records are searched and paged: `server` once `rowCount` is given, `range` once `loadRange` is. |
+| `data` | `readonly Row[]` | Every record held, before search, filters and paging. In server mode, the page; in range mode, the records loaded, in order. |
 | `fields` | `readonly RecordField[]` | What each record holds. |
 | `view` | `RecordView` | The search, filters, sort and layout. |
 | `appliedView` | `RecordView` | The view the rows show, without the filters and sorts the fields can't apply, and without the page's scope. In the browser its search lags typing while a long list filters. Its `query` keeps its identity while its content holds. |
 | `searchText` | `string` | What the search field shows. In server mode it runs ahead of the view's search until typing pauses. |
 | `resolvedQuery` | `ResolvedRecordQuery` | The applied query, with relative dates fixed and unusable filters skipped. |
-| `rows` | `readonly { id: string; row: Row }[]` | The current page. |
+| `rows` | `readonly { id: string; row: Row }[]` | The current page. In range mode, every record loaded. |
 | `resultCount` | `number` | Records the search and filters match: `rowCount` in server mode. |
 | `filtered` | `boolean` | Whether a search or filter narrows the records. |
-| `position` | `{ page: number; pageSize: number; row: number }` | The page, zero-based, and its size. |
+| `position` | `{ page: number; pageSize: number; row: number }` | The page, zero-based, and its size. In range mode, `row` is the first row on screen and each range is one page. |
 | `pageCount` | `number` | Pages at this size, at least one. |
 | `setView` | `(view: RecordView) => void` | Replaces the view. |
 | `skippedFilters` | `readonly number[]` | Filters in the view, by index, that these fields can't apply. |
@@ -1039,6 +1154,8 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `setLayout` | `(layout: RecordLayout) => void` | Sets the layout, such as the table's column order. |
 | `setPage` | `(page: number) => void` | Goes to a page, within the pages there are. |
 | `setPageSize` | `(pageSize: number) => void` | Sets the page size and returns to the first page. |
+| `setRow` | `(row: number) => void` | Range mode: reports the first row on screen as `position.row`, when it changed and a parent listens or holds the position. |
+| `range` | `RecordsRangeState \| undefined` | Range mode's loading state, for a layout that renders records at their index: `count`, `total`, `loading`, `failed`, `retry`, `rowAt(index)` and `show(first, last)`. |
 | `matchingRows` | `readonly { id: string; row: Row }[]` | Every record the search and filters match, sorted, across pages. In server mode, only the page. |
 | `selectable` | `boolean` | Whether records can be selected. |
 | `selection` | `RecordSelection` | `{ ids }`, or `{ allMatching: true, except }`. |

@@ -1,15 +1,17 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 
 import { type Root, createRoot } from 'react-dom/client'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
+
+import { placeRange } from '@oztix/roadie-core/records'
 
 import { RecordTable } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Navigator } from '../Navigator'
 import { Pane } from '../Pane'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
-import { showFields, testShows } from '../Records/testUtils'
+import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import { RecordTableSettingsLazy } from './RecordTableSettingsLazy'
 import { countRenders } from './renderCounter'
 import { showColumns } from './testUtils'
@@ -51,6 +53,62 @@ async function mount(node: ReactNode) {
   await frame()
   await frame()
   return activeContainer
+}
+
+const FRAME_BUDGET = 1000 / 60 + 0.5
+
+/** Frame times while `step` runs each frame, and the longest task meanwhile. */
+async function measureFrames(step: () => void, frames = 120) {
+  const longTasks: number[] = []
+  const observer = new PerformanceObserver((list) => {
+    for (const entry of list.getEntries()) longTasks.push(entry.duration)
+  })
+  observer.observe({ type: 'longtask', buffered: false })
+  const times: number[] = []
+  await new Promise<void>((resolve) => {
+    let index = 0
+    let last = performance.now()
+    const tick = (now: number) => {
+      times.push(now - last)
+      last = now
+      step()
+      index += 1
+      if (index < frames) requestAnimationFrame(tick)
+      else resolve()
+    }
+    requestAnimationFrame(tick)
+  })
+  observer.disconnect()
+  const sorted = times.slice(5).sort((a, b) => a - b)
+  return {
+    p95: sorted[Math.floor(sorted.length * 0.95)]!,
+    longest: Math.max(0, ...longTasks)
+  }
+}
+
+const SCROLL_BOX = { height: 800, overflowY: 'auto' } as const
+const RANGE_SHOWS = testShows(100_000)
+
+function RangeScrolling() {
+  const [data, setData] = useState<(TestShow | undefined)[]>([])
+  return (
+    <div style={SCROLL_BOX} data-testid='scroller'>
+      <RecordTable
+        data={data}
+        fields={showFields}
+        columns={showColumns}
+        rowCount={RANGE_SHOWS.length}
+        getRowId={(row) => row.id}
+        bulkActions={[{ label: 'Export', onAction: () => {} }]}
+        defaultSelection={{ ids: ['show-0'] }}
+        loadRange={({ start, end }) =>
+          setData((current) =>
+            placeRange(current, start, RANGE_SHOWS.slice(start, end))
+          )
+        }
+      />
+    </div>
+  )
 }
 
 /** An app screen about 30,000 elements large, with the table in a Pane. */
@@ -157,5 +215,42 @@ describe('RecordTable performance', () => {
     // Options rendering proves the counter is wired, so zero rows means zero.
     expect(renders['Records.Options']).toBeGreaterThan(0)
     expect(renders.RecordTableRow ?? 0).toBe(0)
+  })
+})
+
+describe('RecordTable scrolling, CPU 4x', () => {
+  const scroller = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>('[data-testid="scroller"]')!
+
+  it('scrolls a page of 10,000 rows at 60fps', async () => {
+    const container = await mount(
+      <div style={SCROLL_BOX} data-testid='scroller'>
+        <RecordTable
+          data={testShows(10_000)}
+          fields={showFields}
+          columns={showColumns}
+          defaultPosition={{ pageSize: 10_000 }}
+        />
+      </div>
+    )
+    const box = scroller(container)
+    const result = await measureFrames(() => {
+      box.scrollTop += 60
+    })
+    expect(result.p95).toBeLessThanOrEqual(FRAME_BUDGET)
+    expect(result.longest).toBeLessThanOrEqual(50)
+  })
+
+  it('scrolls 100,000 rows loaded by range at 60fps', async () => {
+    const container = await mount(<RangeScrolling />)
+    const box = scroller(container)
+    const result = await measureFrames(() => {
+      box.scrollTop += 60
+    })
+    expect(
+      container.querySelectorAll('[data-slot="record-table-row"]').length
+    ).toBeGreaterThan(0)
+    expect(result.p95).toBeLessThanOrEqual(FRAME_BUDGET)
+    expect(result.longest).toBeLessThanOrEqual(50)
   })
 })

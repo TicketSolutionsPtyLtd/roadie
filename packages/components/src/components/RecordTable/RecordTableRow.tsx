@@ -2,7 +2,8 @@ import {
   type CSSProperties,
   type MouseEvent,
   type ReactNode,
-  memo
+  memo,
+  useRef
 } from 'react'
 
 import { formatRecordValue } from '@oztix/roadie-core/records'
@@ -14,9 +15,13 @@ import { RecordsRowActions } from '../Records/RecordsRowActions'
 import { handleRowClick, onRowControl } from '../Records/rowLink'
 import { RecordTableRowCheckbox } from './RecordTableSelectCell'
 import type { ColumnLayout } from './layout'
+import { useKeepFocusInTable } from './tableFocus'
 import type { RecordTableColumn } from './types'
 
-export const ROW_HEIGHT = 48
+/** `h-12`, in rem. */
+export const ROW_REM = 3
+/** At the default 16px root. */
+export const ROW_HEIGHT = ROW_REM * 16
 
 // WebKit builds without overflow-clip-margin drop the clip instead of the
 // ring. Decided in CSS, so the server and browser render the same classes.
@@ -96,6 +101,8 @@ type RecordTableRowProps = {
   onToggle: (id: string, range: boolean) => void
   rowActions?: (row: object) => ReactNode
   href?: string
+  /** One-based, counting the header row, when the table holds only some of its rows. */
+  rowIndex?: number
 }
 
 // Memoised so rows a change doesn't touch skip re-rendering.
@@ -109,8 +116,11 @@ export const RecordTableRow = memo(function RecordTableRow({
   selected,
   onToggle,
   rowActions,
-  href
+  href,
+  rowIndex
 }: RecordTableRowProps) {
+  const rowRef = useRef<HTMLDivElement>(null)
+  useKeepFocusInTable(rowRef)
   const name = titleText(record, title)
   const linked = href !== undefined && name !== undefined
   const selectable = selected !== undefined
@@ -123,7 +133,9 @@ export const RecordTableRow = memo(function RecordTableRow({
     )
   return (
     <div
+      ref={rowRef}
       role='row'
+      aria-rowindex={rowIndex}
       data-slot='record-table-row'
       data-row-id={id}
       data-selected={selected || undefined}
