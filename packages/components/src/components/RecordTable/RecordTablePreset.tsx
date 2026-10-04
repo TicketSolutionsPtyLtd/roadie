@@ -6,6 +6,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { Records, type RecordsAction, type RecordsBulkAction } from '../Records'
 import { type UseRecordsOptions, useRecords } from '../Records/useRecords'
+import type { RecordTableNarrowLayout } from './narrow'
 import { tableLayout } from './tableLayout'
 import type { RecordTableColumn } from './types'
 
@@ -25,6 +26,8 @@ export type RecordTableProps<Row extends object> = UseRecordsOptions<Row> & {
   bulkActions?: readonly RecordsBulkAction[]
   /** Act on everything the search and filters match, with nothing selected, such as an export. Shown at the end of the toolbar. */
   tableActions?: readonly RecordsAction<Row>[]
+  /** How the table shows its records under 40rem. Defaults to cards when a column is a `detail`, else list rows. */
+  narrow?: RecordTableNarrowLayout
   /** Scrolls the rows in their own box this tall, any CSS length. */
   maxHeight?: string
   /** Fills its parent's height and scrolls both ways inside, like `maxHeight`. The parent needs a definite height, such as `Pane.Body`. */
@@ -42,6 +45,7 @@ export function RecordTable<Row extends object>({
   pageSizes,
   bulkActions,
   tableActions,
+  narrow,
   maxHeight,
   fill,
   className,
@@ -52,7 +56,10 @@ export function RecordTable<Row extends object>({
     ...options,
     selectable: options.selectable ?? hasBulkActions
   })
-  const layouts = useMemo(() => [tableLayout(columns)], [columns])
+  const layouts = useMemo(
+    () => [tableLayout(columns, { narrow })],
+    [columns, narrow]
+  )
   return (
     <Records.Root
       records={records}

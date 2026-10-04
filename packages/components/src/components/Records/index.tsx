@@ -9,6 +9,7 @@ import { RecordsOptions } from './RecordsOptions'
 import { RecordsPagination } from './RecordsPagination'
 import { RecordsProvider, RecordsRoot } from './RecordsRoot'
 import { RecordsSearch } from './RecordsSearch'
+import { RecordsSelect } from './RecordsSelect'
 import { RecordsStatus } from './RecordsStatus'
 import { RecordsToolbar } from './RecordsToolbar'
 
@@ -17,6 +18,7 @@ const Records = RecordsRoot as typeof RecordsRoot & {
   Provider: typeof RecordsProvider
   Toolbar: typeof RecordsToolbar
   Search: typeof RecordsSearch
+  Select: typeof RecordsSelect
   Content: typeof RecordsContent
   Pagination: typeof RecordsPagination
   Status: typeof RecordsStatus
@@ -29,6 +31,7 @@ Records.Root = RecordsRoot
 Records.Provider = RecordsProvider
 Records.Toolbar = RecordsToolbar
 Records.Search = RecordsSearch
+Records.Select = RecordsSelect
 Records.Content = RecordsContent
 Records.Pagination = RecordsPagination
 Records.Status = RecordsStatus
@@ -63,5 +66,6 @@ export type { RecordValueProps } from './RecordValue'
 export type { RecordsPaginationProps } from './RecordsPagination'
 export type { RecordsProviderProps, RecordsRootProps } from './RecordsRoot'
 export type { RecordsSearchProps } from './RecordsSearch'
+export type { RecordsSelectProps } from './RecordsSelect'
 export type { RecordsToolbarProps } from './RecordsToolbar'
 export type { RecordsRootProps as RecordsProps } from './RecordsRoot'

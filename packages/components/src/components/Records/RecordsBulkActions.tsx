@@ -38,8 +38,14 @@ export function RecordsBulkActions({
   recordName,
   className
 }: RecordsBulkActionsProps) {
-  const { records, layouts, bulkSlot, setBulkMounted, selectControls } =
-    useRecordsContext()
+  const {
+    records,
+    layouts,
+    bulkSlot,
+    setBulkMounted,
+    selectControls,
+    selectMode
+  } = useRecordsContext()
   const layout = activeLayout(layouts, records.view)
   const { selectable } = records
   useEffect(() => {
@@ -54,8 +60,9 @@ export function RecordsBulkActions({
     return () => setBulkMounted(false)
   }, [setBulkMounted])
   if (!selectable || records.selectedCount === 0) return null
-  // Decided by the layout up front, so a first render never floats a bar the header takes.
-  if (layout?.bulkActions === 'header')
+  // Decided by the layout up front, so a first render never floats a bar the
+  // header takes; a layout showing narrow rows has no header, and floats it.
+  if (layout?.bulkActions === 'header' && !selectMode)
     return bulkSlot
       ? createPortal(
           <RecordsSelectionBar actions={actions} recordName={recordName} />,

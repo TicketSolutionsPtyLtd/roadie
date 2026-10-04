@@ -10,10 +10,10 @@ import { formatRecordValue } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
-import { RecordValue } from '../Records/RecordValue'
+import { RecordPartValue } from '../Records/RecordPartValue'
 import { RecordsRowActions } from '../Records/RecordsRowActions'
+import { RecordsRowCheckbox } from '../Records/RecordsRowCheckbox'
 import { handleRowClick, onRowControl } from '../Records/rowLink'
-import { RecordTableRowCheckbox } from './RecordTableSelectCell'
 import { type ColumnLayout, priorityProps } from './layout'
 import { useKeepFocusInTable } from './tableFocus'
 import type { RecordTableColumn } from './types'
@@ -168,7 +168,7 @@ export const RecordTableRow = memo(function RecordTableRow({
     >
       {selectable && (
         <div role='cell' className={cn(selectCellClass, cellOverflowClass)}>
-          <RecordTableRowCheckbox
+          <RecordsRowCheckbox
             id={id}
             title={name ?? id}
             selected={selected}
@@ -177,15 +177,9 @@ export const RecordTableRow = memo(function RecordTableRow({
         </div>
       )}
       {columns.map((column, index) => {
-        const content = column.cell ? (
-          column.cell({
-            value: (record as Record<string, unknown>)[column.key],
-            row: record,
-            field: column.field
-          })
-        ) : (
-          <RecordValue
-            field={column.field}
+        const content = (
+          <RecordPartValue
+            part={column}
             row={record}
             timeZone={timeZone}
             className='min-w-0 truncate'

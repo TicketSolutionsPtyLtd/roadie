@@ -5,7 +5,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual'
 
 import { findScrollParent } from '../Records/scrollParent'
-import { ROW_HEIGHT, ROW_REM } from './RecordTableRow'
+import { ROW_REM } from './RecordTableRow'
 import { type Watched, firstClearRow } from './rowPosition'
 
 const OVERSCAN = 10
@@ -21,6 +21,13 @@ function marginOf(body: HTMLElement, element: HTMLElement | null) {
     : top + window.scrollY
 }
 
+// TanStack rounds each measured row; over a hundred cards the rounding adds up to px off a restored row.
+const exactHeight = (
+  element: Element,
+  entry: ResizeObserverEntry | undefined
+) =>
+  entry?.borderBoxSize?.[0]?.blockSize ?? element.getBoundingClientRect().height
+
 type Scroller = { element: HTMLElement | null; ready: boolean }
 
 export type RowWindowOptions = {
@@ -29,15 +36,24 @@ export type RowWindowOptions = {
   onChange?: (virtualizer: Watched) => void
   /** Measures the px a scrolled-to row keeps clear at the top, as for a stuck header. */
   measureInset?: (body: HTMLElement) => number
+  /** Each row's height in rem, or its estimate when measured. */
+  estimateRem?: number
+  /** Measures each rendered row through `measureElement`, for rows that size to their content. */
+  measure?: boolean
+  /** Rem between rows. */
+  gapRem?: number
 }
 
-export function useRowWindow({
+export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
   count,
   getItemKey,
   onChange,
-  measureInset
+  measureInset,
+  estimateRem = ROW_REM,
+  measure: measureRows = false,
+  gapRem = 0
 }: RowWindowOptions) {
-  const bodyRef = useRef<HTMLDivElement>(null)
+  const bodyRef = useRef<Body>(null)
   const [scroller, setScroller] = useState<Scroller>({
     element: null,
     ready: false
@@ -45,7 +61,9 @@ export function useRowWindow({
   const [margin, setMargin] = useState(0)
   const [inset, setInset] = useState(0)
   // Rows are sized in rem, so a larger root font makes them taller.
-  const [rowHeight, setRowHeight] = useState(ROW_HEIGHT)
+  const [rootFont, setRootFont] = useState(16)
+  const rowHeight = estimateRem * rootFont
+  const gap = gapRem * rootFont
 
   useLayoutEffect(() => {
     const body = bodyRef.current
@@ -59,7 +77,7 @@ export function useRowWindow({
       const root = parseFloat(
         getComputedStyle(document.documentElement).fontSize
       )
-      if (root > 0) setRowHeight(ROW_REM * root)
+      if (root > 0) setRootFont(root)
     }
     measure()
     const observer = new ResizeObserver(measure)
@@ -83,6 +101,8 @@ export function useRowWindow({
     getItemKey,
     onChange,
     scrollPaddingStart: inset,
+    gap,
+    measureElement: exactHeight,
     // Enabled before the scroll element is known so INITIAL_RECT paints a first window.
     enabled: !usesWindow
   })
@@ -95,13 +115,15 @@ export function useRowWindow({
     getItemKey,
     onChange,
     scrollPaddingStart: inset,
+    gap,
+    measureElement: exactHeight,
     enabled: usesWindow
   })
   const virtualizer = usesWindow ? windowVirtualizer : elementVirtualizer
 
   useLayoutEffect(() => {
     virtualizer.measure()
-  }, [virtualizer, rowHeight])
+  }, [virtualizer, rowHeight, gap])
 
   const { isScrolling } = virtualizer
   // Again once settled: a pane header or sticky top lands a render after mount, with no resize.
@@ -129,6 +151,8 @@ export function useRowWindow({
     margin,
     inset,
     scrollElement: scroller.element,
+    /** A ref for each rendered row, which needs `data-index`; undefined unless measuring. */
+    measureElement: measureRows ? virtualizer.measureElement : undefined,
     // The margin and inset are measured in the same layout effect that finds the scroller.
     measured: scroller.ready
   }

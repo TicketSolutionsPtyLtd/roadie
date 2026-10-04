@@ -4,7 +4,10 @@ import { useRef } from 'react'
 
 import { WarningIcon } from '@phosphor-icons/react'
 
+import { cn } from '@oztix/roadie-core/utils'
+
 import { Button } from '../Button'
+import { listItemContentClass } from '../List/variants'
 import { rangeErrorMessage } from '../Records/RecordsStates'
 import { useRecordsContext } from '../Records/context'
 import type { RecordsRangeState } from '../Records/types'
@@ -39,6 +42,36 @@ export function failedRowAt(
 
 export const rangeErrorKey = (start: number) => `range-error-${start}`
 
+/** What a failed range shows: the error and Retry. */
+function RangeErrorMessage() {
+  const { records } = useRecordsContext()
+  return (
+    <>
+      <WarningIcon
+        weight='bold'
+        aria-hidden
+        className='size-4 shrink-0 text-strong intent-danger'
+      />
+      <span className='min-w-0 flex-1 truncate'>
+        {rangeErrorMessage(records)}
+      </span>
+      <Button
+        size='sm'
+        onClick={(event) => {
+          // Retry unmounts this button; the table keeps focus, and its place.
+          tableFocusTarget(event.currentTarget)?.focus({
+            preventScroll: true
+          })
+          // The app's own recovery runs too, as from the error state.
+          records.onRetry?.()
+        }}
+      >
+        Retry
+      </Button>
+    </>
+  )
+}
+
 export function RecordTableRangeError({
   rowIndex,
   columns
@@ -46,7 +79,6 @@ export function RecordTableRangeError({
   rowIndex: number
   columns: number
 }) {
-  const { records } = useRecordsContext()
   const rowRef = useRef<HTMLDivElement>(null)
   useKeepFocusInTable(rowRef)
   return (
@@ -63,28 +95,47 @@ export function RecordTableRangeError({
         aria-colspan={columns}
         className='sticky start-0 flex items-center gap-2'
       >
-        <WarningIcon
-          weight='bold'
-          aria-hidden
-          className='size-4 shrink-0 text-strong intent-danger'
-        />
-        <span className='min-w-0 flex-1 truncate'>
-          {rangeErrorMessage(records)}
-        </span>
-        <Button
-          size='sm'
-          onClick={(event) => {
-            // Retry unmounts this button; the table keeps focus, and its place.
-            tableFocusTarget(event.currentTarget)?.focus({
-              preventScroll: true
-            })
-            // The app's own recovery runs too, as from the error state.
-            records.onRetry?.()
-          }}
-        >
-          Retry
-        </Button>
+        <RangeErrorMessage />
       </div>
     </div>
+  )
+}
+
+/** A failed range in narrow rows, at a list row's or a card's size. */
+export function RecordTableNarrowRangeError({
+  heightClass,
+  card,
+  index,
+  measureElement
+}: {
+  /** The list row's height, matching its placeholders. */
+  heightClass: string
+  card: boolean
+  index?: number
+  measureElement?: (node: HTMLLIElement | null) => void
+}) {
+  const ref = useRef<HTMLLIElement>(null)
+  useKeepFocusInTable(ref)
+  return (
+    <li
+      ref={(node) => {
+        ref.current = node
+        measureElement?.(node)
+      }}
+      data-index={index}
+      data-slot='record-table-range-error'
+    >
+      {card ? (
+        <div className='flex h-40 items-center gap-2 rounded-xl border border-subtle p-4'>
+          <RangeErrorMessage />
+        </div>
+      ) : (
+        <div className={cn('flex', heightClass)}>
+          <span className={cn(listItemContentClass, 'gap-2 py-0')}>
+            <RangeErrorMessage />
+          </span>
+        </div>
+      )}
+    </li>
   )
 }

@@ -22,14 +22,17 @@ import { isDev } from '../../utils/isDev'
 import { SortIcon } from '../DataTable/SortIcon'
 import { Progress } from '../Progress'
 import { RecordsEmpty, RecordsError } from '../Records/RecordsStates'
-import { useRecordsContext } from '../Records/context'
+import { isSelecting, useRecordsContext } from '../Records/context'
 import type { RecordsContentProps } from '../Records/layouts'
+import { useNarrow } from '../Records/narrow'
+import { leaveSelectOnEscape } from '../Records/selectMode'
 import { pageState } from '../Records/selection'
 import { firstDirection } from '../Records/sortOptions'
 import { useStickyTop } from '../Records/stickyTop'
 import { surfaceClass, useSurface } from '../Records/surface'
 import { SURVIVOR } from '../Records/useBulkActions'
 import { ScrollArea } from '../ScrollArea'
+import { NarrowSkeleton, RecordTableNarrowRows } from './RecordTableNarrowRows'
 import {
   actionsCellClass,
   cellClass,
@@ -43,6 +46,9 @@ import { RecordTablePageCheckbox } from './RecordTableSelectCell'
 import { RecordTableSkeletonRows, StateRow } from './RecordTableStates'
 import { shownColumns } from './columns'
 import { SELECT_WIDTH, columnLayout, priorityProps, tierStyle } from './layout'
+import { useLayoutFocus } from './layoutFocus'
+import { narrowLayout, narrowParts } from './narrow'
+import { useKeepFocusInTable } from './tableFocus'
 import type { TableLayoutConfig } from './tableLayout'
 import { useColumnWidths } from './useColumnWidths'
 
@@ -117,8 +123,10 @@ export function RecordTableContent({
     toolbar,
     setContentFill,
     bulkMounted,
-    setBulkSlot
+    setBulkSlot,
+    setSelectMode
   } = useRecordsContext()
+  const frameRef = useRef<HTMLDivElement>(null)
   const headRef = useRef<HTMLDivElement>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
   // In its own box, one viewport scrolls both ways; otherwise only the rows scroll sideways.
@@ -138,6 +146,24 @@ export function RecordTableContent({
     setContentFill(fill)
     return () => setContentFill(false)
   }, [fill, setContentFill])
+
+  const isNarrow = useNarrow(frameRef)
+  const parts = useMemo(() => narrowParts(columns), [columns])
+  const narrow = isNarrow ? (config.narrow ?? narrowLayout(columns)) : undefined
+  const frameTop = useStickyTop(frameRef, toolbar, boxed)
+  useLayoutFocus(frameRef, narrow ?? 'wide')
+  // Narrow rows select only through Select mode; wide rows have checkboxes and keep it.
+  const selecting = isSelecting(records, narrow !== undefined)
+  const { selecting: committed, setSelecting } = records
+  const commitSelecting = narrow !== undefined && selecting
+  useLayoutEffect(() => {
+    if (commitSelecting !== committed)
+      setSelecting(commitSelecting, { keep: true })
+  }, [commitSelecting, committed, setSelecting])
+  useLayoutEffect(() => {
+    setSelectMode(narrow !== undefined)
+  }, [narrow, setSelectMode])
+  useLayoutEffect(() => () => setSelectMode(false), [setSelectMode])
 
   const { selectable, getRowHref } = records
   // Presence, not identity: an inline rowActions is new every render.
@@ -208,7 +234,7 @@ export function RecordTableContent({
   const sort = records.resolvedQuery.sort
   const pageIds = rows.map((row) => row.id)
 
-  const hasBulkSlot = bulkMounted && selectable
+  const hasBulkSlot = bulkMounted && selectable && narrow === undefined
   // The bulk actions take the header's place, so the rows never move.
   const barShown = hasBulkSlot && records.selectedCount > 0
   // A sort button under the bar unmounts; its focus lands on Select page.
@@ -231,8 +257,23 @@ export function RecordTableContent({
     columns.length + (selectable ? 1 : 0) + (hasRowActions ? 1 : 0)
 
   const empty = range ? range.count === 0 : rows.length === 0
-  // Error, then skeleton, then empty: what replaces the rows.
   // Keyed, so one state replacing another hands its button's focus on.
+  const narrowState = records.error ? (
+    <NarrowState key='error'>
+      <RecordsError records={records} />
+    </NarrowState>
+  ) : awaitingRows ? (
+    <NarrowSkeleton
+      parts={parts}
+      layout={narrow ?? 'list'}
+      size={records.position.pageSize}
+    />
+  ) : empty ? (
+    <NarrowState key='empty'>
+      <RecordsEmpty records={records} />
+    </NarrowState>
+  ) : null
+  // Error, then skeleton, then empty: what replaces the rows.
   const state = records.error ? (
     <StateRow key='error' columns={columnCount}>
       <RecordsError records={records} />
@@ -269,207 +310,273 @@ export function RecordTableContent({
     />
   )
 
+  const progress = dimmed && (
+    <Progress value={null}>
+      <Progress.Track className='h-0.5 rounded-none bg-transparent'>
+        <Progress.Indicator />
+      </Progress.Track>
+    </Progress>
+  )
+  const narrowBody = narrow !== undefined && (
+    <>
+      {progress && (
+        // Zero height, so the rows don't move; sticks where the wide header would.
+        <div
+          aria-hidden
+          data-slot='record-table-progress'
+          style={{ top: frameTop }}
+          className='pointer-events-none sticky z-docked h-0'
+        >
+          <div className='absolute inset-x-0 top-0'>{progress}</div>
+        </div>
+      )}
+      <div
+        ref={scrollerRef}
+        data-slot='record-table-scroller'
+        {...{ [SURVIVOR]: 'rows' }}
+        tabIndex={-1}
+        className={cn('isolate outline-none', dimmed && 'opacity-60')}
+      >
+        {narrowState ?? (
+          <RecordTableNarrowRows
+            rows={rows}
+            parts={parts}
+            layout={narrow}
+            timeZone={records.timeZone}
+            caption={caption}
+            busy={busy}
+            firstIndex={
+              partial ? shownPage * records.position.pageSize + 1 : undefined
+            }
+            setSize={partial && !range ? records.resultCount : undefined}
+            selecting={selecting}
+            isSelected={selectable ? records.isSelected : undefined}
+            onToggle={toggleRow}
+            rowActions={hasRowActions ? rowActions : undefined}
+            getRowHref={getRowHref}
+            range={range}
+            row={records.position.row}
+            onRow={records.setRow}
+          />
+        )}
+      </div>
+    </>
+  )
+
+  // One element for both layouts, so the width it measures stays observed.
   const content = (
     <div
+      ref={frameRef}
       data-slot='record-table-frame'
       data-records-content=''
+      onKeyDown={leaveSelectOnEscape(records)}
       // In a box, the viewport is the region: it holds the focus.
-      role={boxed ? undefined : 'region'}
-      aria-label={boxed ? undefined : `${caption ?? 'Table'}, scrolls sideways`}
-      className={boxed ? undefined : className}
+      role={boxed || narrow ? undefined : 'region'}
+      aria-label={
+        boxed || narrow ? undefined : `${caption ?? 'Table'}, scrolls sideways`
+      }
+      // In its own box, narrow rows' bleed is clipped here, so the box never scrolls sideways.
+      className={boxed ? (narrow ? 'overflow-x-clip' : undefined) : className}
     >
-      <MeasuredWidth measured={boxed}>
-        <div
-          ref={contentRef}
-          role='table'
-          aria-label={caption}
-          // A state in place of the rows is no row of the count.
-          aria-rowcount={state ? undefined : rowCount}
-          aria-busy={busy || range?.loading || undefined}
-          data-slot='record-table-content'
-          className='text-sm tabular-nums'
-          style={style}
-        >
+      {narrowBody || (
+        <MeasuredWidth measured={boxed}>
           <div
-            ref={headRef}
-            role='rowgroup'
-            data-slot='record-table-head'
-            style={{ top: headTop }}
-            // Focus can scroll the clipped head to an off-screen sort button.
-            onScroll={
-              boxed
-                ? undefined
-                : (event) => syncScroll(event.currentTarget, scrollerRef)
-            }
-            className={cn(
-              'sticky z-docked',
-              surfaceClass,
-              // The bar fits the frame, so nothing to clip but its focus rings.
-              !boxed && !barShown && 'overflow-hidden'
-            )}
+            ref={contentRef}
+            role='table'
+            aria-label={caption}
+            // A state in place of the rows is no row of the count.
+            aria-rowcount={state ? undefined : rowCount}
+            aria-busy={busy || range?.loading || undefined}
+            data-slot='record-table-content'
+            className='text-sm tabular-nums'
+            style={style}
           >
             <div
-              role='row'
-              aria-rowindex={partial ? 1 : undefined}
-              data-slot='record-table-head-row'
-              onFocus={(event) => {
-                sortFocused.current = event.target.hasAttribute('data-sort')
-              }}
-              onBlur={(event) => {
-                // A removed button may blur on its way out; that one still counts.
-                if (event.relatedTarget || event.target.isConnected)
-                  sortFocused.current = false
-              }}
+              ref={headRef}
+              role='rowgroup'
+              data-slot='record-table-head'
+              style={{ top: headTop }}
+              // Focus can scroll the clipped head to an off-screen sort button.
+              onScroll={
+                boxed
+                  ? undefined
+                  : (event) => syncScroll(event.currentTarget, scrollerRef)
+              }
               className={cn(
-                'h-9 border-b border-normal',
-                // Frame wide and stuck at its start, so it never scrolls sideways with the columns.
-                barShown
-                  ? cn(
-                      'sticky start-0 flex items-center',
-                      // In a box the head spans every column; the box's width is what shows.
-                      boxed ? 'w-[100cqi]' : 'w-full'
-                    )
-                  : rowClass
+                'sticky z-docked',
+                surfaceClass,
+                // The bar fits the frame, so nothing to clip but its focus rings.
+                !boxed && !barShown && 'overflow-hidden'
               )}
             >
-              {selectable && (
-                <div
-                  role='columnheader'
-                  className={cn(
-                    selectCellClass,
-                    headerTextClass,
-                    barShown && 'h-full shrink-0'
-                  )}
-                  style={barShown ? { width: `${SELECT_WIDTH}rem` } : undefined}
-                >
-                  <RecordTablePageCheckbox
-                    label={range ? 'Select loaded rows' : undefined}
-                    state={pageState(records.selection, pageIds)}
-                    onChange={records.selectPage}
-                    disabled={rows.length === 0 || Boolean(records.error)}
-                  />
-                </div>
-              )}
-              {columns.map((column, index) => {
-                const direction =
-                  sort[0]?.field === column.key ? sort[0].direction : undefined
-                return (
+              <div
+                role='row'
+                aria-rowindex={partial ? 1 : undefined}
+                data-slot='record-table-head-row'
+                onFocus={(event) => {
+                  sortFocused.current = event.target.hasAttribute('data-sort')
+                }}
+                onBlur={(event) => {
+                  // A removed button may blur on its way out; that one still counts.
+                  if (event.relatedTarget || event.target.isConnected)
+                    sortFocused.current = false
+                }}
+                className={cn(
+                  'h-9 border-b border-normal',
+                  // Frame wide and stuck at its start, so it never scrolls sideways with the columns.
+                  barShown
+                    ? cn(
+                        'sticky start-0 flex items-center',
+                        // In a box the head spans every column; the box's width is what shows.
+                        boxed ? 'w-[100cqi]' : 'w-full'
+                      )
+                    : rowClass
+                )}
+              >
+                {selectable && (
                   <div
-                    key={column.key}
                     role='columnheader'
-                    aria-sort={direction}
-                    data-pin={column.pin || undefined}
-                    {...priorityProps(column, layout, index)}
+                    className={cn(
+                      selectCellClass,
+                      headerTextClass,
+                      barShown && 'h-full shrink-0'
+                    )}
+                    style={
+                      barShown ? { width: `${SELECT_WIDTH}rem` } : undefined
+                    }
+                  >
+                    <RecordTablePageCheckbox
+                      label={range ? 'Select loaded rows' : undefined}
+                      state={pageState(records.selection, pageIds)}
+                      onChange={records.selectPage}
+                      disabled={rows.length === 0 || Boolean(records.error)}
+                    />
+                  </div>
+                )}
+                {columns.map((column, index) => {
+                  const direction =
+                    sort[0]?.field === column.key
+                      ? sort[0].direction
+                      : undefined
+                  return (
+                    <div
+                      key={column.key}
+                      role='columnheader'
+                      aria-sort={direction}
+                      data-pin={column.pin || undefined}
+                      {...priorityProps(column, layout, index)}
+                      className={
+                        // Still read under the bar, so cells keep their headers.
+                        barShown
+                          ? 'sr-only'
+                          : cn(cellClass(column), headerTextClass)
+                      }
+                      style={pinStyle(layout.pinnedStart[index])}
+                    >
+                      {column.kind === 'image' ? (
+                        // The thumbnails speak for themselves; a sort by URL means nothing.
+                        <span className='sr-only'>{column.field.label}</span>
+                      ) : barShown || column.field.sortable === false ? (
+                        column.field.label
+                      ) : (
+                        <button
+                          type='button'
+                          data-sort=''
+                          onClick={() =>
+                            records.setSort(nextSort(column.field, sort))
+                          }
+                          className={cn(
+                            'group is-interactive inline-flex items-center gap-1 rounded-sm font-semibold active:scale-100',
+                            (column.field.type === 'number' ||
+                              column.field.type === 'money') &&
+                              'flex-row-reverse',
+                            direction && 'text-strong'
+                          )}
+                        >
+                          {column.field.label}
+                          <SortIcon direction={direction} />
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+                {hasRowActions && (
+                  <div
+                    role='columnheader'
                     className={
-                      // Still read under the bar, so cells keep their headers.
                       barShown
                         ? 'sr-only'
-                        : cn(cellClass(column), headerTextClass)
+                        : cn(actionsCellClass, headerTextClass)
                     }
-                    style={pinStyle(layout.pinnedStart[index])}
                   >
-                    {barShown || column.field.sortable === false ? (
-                      column.field.label
-                    ) : (
-                      <button
-                        type='button'
-                        data-sort=''
-                        onClick={() =>
-                          records.setSort(nextSort(column.field, sort))
-                        }
-                        className={cn(
-                          'group is-interactive inline-flex items-center gap-1 rounded-sm font-semibold active:scale-100',
-                          (column.field.type === 'number' ||
-                            column.field.type === 'money') &&
-                            'flex-row-reverse',
-                          direction && 'text-strong'
-                        )}
-                      >
-                        {column.field.label}
-                        <SortIcon direction={direction} />
-                      </button>
-                    )}
+                    <span className='sr-only'>Actions</span>
                   </div>
-                )
-              })}
-              {hasRowActions && (
+                )}
+                {hasBulkSlot && (
+                  <div
+                    ref={setBulkSlot}
+                    // Last, with no cells under it, so every column keeps its own header.
+                    role='columnheader'
+                    data-slot='record-table-bulk-slot'
+                    hidden={!barShown}
+                    className='flex h-full min-w-0 flex-1'
+                  />
+                )}
+              </div>
+              {progress && (
                 <div
-                  role='columnheader'
-                  className={
-                    barShown ? 'sr-only' : cn(actionsCellClass, headerTextClass)
-                  }
+                  aria-hidden
+                  data-slot='record-table-progress'
+                  className='pointer-events-none absolute inset-x-0 bottom-0'
                 >
-                  <span className='sr-only'>Actions</span>
+                  {progress}
                 </div>
               )}
-              {hasBulkSlot && (
-                <div
-                  ref={setBulkSlot}
-                  // Last, with no cells under it, so every column keeps its own header.
-                  role='columnheader'
-                  data-slot='record-table-bulk-slot'
-                  hidden={!barShown}
-                  className='flex h-full min-w-0 flex-1'
-                />
-              )}
             </div>
-            {dimmed && (
+            {boxed ? (
               <div
-                aria-hidden
-                data-slot='record-table-progress'
-                className='pointer-events-none absolute inset-x-0 bottom-0'
-              >
-                <Progress value={null}>
-                  <Progress.Track className='h-0.5 rounded-none bg-transparent'>
-                    <Progress.Indicator />
-                  </Progress.Track>
-                </Progress>
-              </div>
-            )}
-          </div>
-          {boxed ? (
-            <div
-              ref={scrollerRef}
-              data-slot='record-table-scroller'
-              {...{ [SURVIVOR]: 'rows' }}
-              tabIndex={-1}
-              className={cn('isolate', dimmed && 'opacity-60')}
-            >
-              {body}
-            </div>
-          ) : (
-            <ScrollArea
-              data-slot='record-table-sideways'
-              // Not a scroll container, so the scrollbar sticks to the one that scrolls the page.
-              className='overflow-visible'
-            >
-              <ScrollArea.Viewport
                 ref={scrollerRef}
                 data-slot='record-table-scroller'
                 {...{ [SURVIVOR]: 'rows' }}
-                // Focusable, so not Base UI's presentation role; the frame names the region.
-                role={undefined}
-                tabIndex={0}
+                tabIndex={-1}
                 className={cn('isolate', dimmed && 'opacity-60')}
-                style={SIDEWAYS_ONLY}
-                onScroll={(event) => syncScroll(event.currentTarget, headRef)}
               >
-                <ScrollArea.Content>{body}</ScrollArea.Content>
-              </ScrollArea.Viewport>
-              {/* In flow and sticky, so it rides the bottom of whatever scrolls the page. */}
-              <ScrollArea.Scrollbar
-                orientation='horizontal'
-                data-slot='record-table-scrollbar-x'
-                className='-mt-3'
-                // Above a pane's footer, by the gap its margin leaves elsewhere.
-                style={STICKY_BAR}
+                {body}
+              </div>
+            ) : (
+              <ScrollArea
+                data-slot='record-table-sideways'
+                // Not a scroll container, so the scrollbar sticks to the one that scrolls the page.
+                className='overflow-visible'
               >
-                <ScrollArea.Thumb />
-              </ScrollArea.Scrollbar>
-            </ScrollArea>
-          )}
-        </div>
-      </MeasuredWidth>
+                <ScrollArea.Viewport
+                  ref={scrollerRef}
+                  data-slot='record-table-scroller'
+                  {...{ [SURVIVOR]: 'rows' }}
+                  // Focusable, so not Base UI's presentation role; the frame names the region.
+                  role={undefined}
+                  tabIndex={0}
+                  className={cn('isolate', dimmed && 'opacity-60')}
+                  style={SIDEWAYS_ONLY}
+                  onScroll={(event) => syncScroll(event.currentTarget, headRef)}
+                >
+                  <ScrollArea.Content>{body}</ScrollArea.Content>
+                </ScrollArea.Viewport>
+                {/* In flow and sticky, so it rides the bottom of whatever scrolls the page. */}
+                <ScrollArea.Scrollbar
+                  orientation='horizontal'
+                  data-slot='record-table-scrollbar-x'
+                  className='-mt-3'
+                  // Above a pane's footer, by the gap its margin leaves elsewhere.
+                  style={STICKY_BAR}
+                >
+                  <ScrollArea.Thumb />
+                </ScrollArea.Scrollbar>
+              </ScrollArea>
+            )}
+          </div>
+        </MeasuredWidth>
+      )}
     </div>
   )
   if (!boxed) return content
@@ -497,17 +604,26 @@ export function RecordTableContent({
       <ScrollArea.Scrollbar
         keepMounted
         data-slot='record-table-scrollbar'
-        className='mt-9'
+        className={narrow ? undefined : 'mt-9'}
       >
         <ScrollArea.Thumb />
       </ScrollArea.Scrollbar>
-      <ScrollArea.Scrollbar
-        orientation='horizontal'
-        data-slot='record-table-scrollbar-x'
-      >
-        <ScrollArea.Thumb />
-      </ScrollArea.Scrollbar>
+      {!narrow && (
+        <ScrollArea.Scrollbar
+          orientation='horizontal'
+          data-slot='record-table-scrollbar-x'
+        >
+          <ScrollArea.Thumb />
+        </ScrollArea.Scrollbar>
+      )}
     </ScrollArea>
   )
 }
 RecordTableContent.displayName = 'RecordTableContent'
+
+/** A state in place of narrow rows, keeping focus in the table when its button goes. */
+function NarrowState({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useKeepFocusInTable(ref)
+  return <div ref={ref}>{children}</div>
+}
