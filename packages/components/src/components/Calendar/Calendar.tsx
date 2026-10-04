@@ -59,7 +59,7 @@ import {
   selectDate,
   withinLength
 } from './selection'
-import { type SwipeStep, useSwipeToTurn } from './swipe'
+import { type Peek, type SwipeStep, useSwipeToTurn } from './swipe'
 import { useToday } from './today'
 
 type CalendarBaseProps = Omit<
@@ -587,12 +587,34 @@ export function Calendar(props: CalendarProps) {
   }, [weekView])
 
   const swipeable = !scrolling && !waitingForToday && disabled !== true
+  // The page a turn or a drag brings in, shown beside the days only then.
+  const [peek, setPeek] = useState<Peek | null>(null)
   const { pageTurn, landTurn, dropTurn } = useSwipeToTurn(rootRef, {
     enabled: swipeable,
     vertical,
     canTurn,
-    turn
+    turn,
+    onPeek: setPeek
   })
+  // Months on rows of their own each bring in their own next month, so
+  // every row turns as a strip; months on one row share one incoming month.
+  const [stacked, setStacked] = useState(false)
+  // An incoming month beside several is as wide as each of them.
+  useIsomorphicLayoutEffect(() => {
+    const months = monthsRef.current
+    if (!peek || !months) return
+    const shown = Array.from(
+      months.querySelectorAll<HTMLElement>(
+        '[data-slot="calendar-month"]:not([data-peek] *)'
+      )
+    )
+    if (!shown[0]) return
+    months.style.setProperty(
+      '--calendar-month-size',
+      `${shown[0].getBoundingClientRect().width}px`
+    )
+    setStacked(shown.some((month) => month.offsetTop !== shown[0]!.offsetTop))
+  }, [peek])
 
   function commit(next: CalendarSelection) {
     if (selectedProp === undefined) setUncontrolled({ mode, selection: next })
@@ -1085,7 +1107,12 @@ export function Calendar(props: CalendarProps) {
     )
   }
 
-  function renderDay(date: string, month: string, column: number) {
+  function renderDay(
+    date: string,
+    month: string,
+    column: number,
+    idSuffix = ''
+  ) {
     const outside = monthOf(date) !== month
     if (outside && !showOutsideDays) {
       return <td key={date} role='gridcell' className='p-0' />
@@ -1106,7 +1133,9 @@ export function Calendar(props: CalendarProps) {
       column === 6 || (!showOutsideDays && date === lastDayOf(month))
     const content = getDayContent?.(date)
     const hasContent = content != null && content !== false && content !== ''
-    const contentId = hasContent ? `${id}-content-${month}-${date}` : undefined
+    const contentId = hasContent
+      ? `${id}-content-${month}-${date}${idSuffix}`
+      : undefined
     const look =
       rangeStart || rangeEnd || (mode !== 'range' && selected)
         ? 'chosen'
@@ -1308,6 +1337,103 @@ export function Calendar(props: CalendarProps) {
 
   const swipeAxis = vertical ? 'touch-pan-x' : 'touch-pan-y'
 
+  function renderRows(start: string, idSuffix = '') {
+    if (weekView)
+      return (
+        <tr role='row'>
+          {Array.from({ length: 7 }, (_, column) => {
+            const date = addDays(start, column)
+            return renderDay(date, monthOf(date), column, idSuffix)
+          })}
+        </tr>
+      )
+    return monthGrid(yearOf(start), monthNumberOf(start), {
+      weekStart,
+      fixedWeeks
+    }).map((week) => (
+      <tr key={week[0]} role='row'>
+        {week.map((date, column) => renderDay(date, start, column, idSuffix))}
+      </tr>
+    ))
+  }
+
+  // The page a turn brings in, beside the days. Its titles and weekday row
+  // hold space but stay hidden, as the shown ones hold still; on a vertical
+  // single page its title comes in with its days.
+  function renderPeek({ step, side }: Peek) {
+    const start = weekView
+      ? addDays(shownWeek, step * 7)
+      : addMonths(firstMonth, step === 1 ? numberOfMonths : -1)
+    const several = numberOfMonths > 1
+    const sides: Record<Peek['side'], string> = {
+      right: several
+        ? 'top-0 left-[calc(100%+--spacing(6))]'
+        : 'top-0 left-full',
+      left: several
+        ? 'top-0 right-[calc(100%+--spacing(6))]'
+        : 'top-0 right-full',
+      bottom: 'start-0 top-full',
+      top: 'start-0 bottom-full'
+    }
+    return renderPeekPage(
+      start,
+      cn(sides[side], several ? 'w-(--calendar-month-size)' : 'w-full')
+    )
+  }
+
+  function renderPeekPage(start: string, placement: string) {
+    const several = numberOfMonths > 1
+    const title = vertical && !several
+    return (
+      <div
+        key={start}
+        data-peek=''
+        data-swipe-part=''
+        aria-hidden='true'
+        inert
+        className={cn('absolute grid content-start gap-2', placement)}
+      >
+        {(title || (several && monthCaptions)) && (
+          <div
+            className={cn(
+              'grid h-8 items-center truncate text-sm font-semibold text-strong',
+              !title && 'invisible'
+            )}
+          >
+            {weekView
+              ? weekCaption(start, addDays(start, 6), locale)
+              : monthLabel(start, locale)}
+          </div>
+        )}
+        <table
+          className={cn(
+            'w-full table-fixed border-separate',
+            tiles
+              ? 'border-spacing-1'
+              : 'border-spacing-x-0 border-spacing-y-0.5'
+          )}
+        >
+          <thead className={title ? 'hidden' : 'invisible'}>
+            <tr>
+              {labels.weekdays.map((weekday) => (
+                <th key={weekday.long} className='h-8 p-0 text-xs'>
+                  {weekday.short}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody data-slot='calendar-days'>{renderRows(start, '-peek')}</tbody>
+        </table>
+      </div>
+    )
+  }
+
+  // Sideways with months on rows of their own, each month brings its own.
+  const rowPeek =
+    peek && stacked && numberOfMonths > 1 && !vertical && !weekView
+      ? peek
+      : null
+
   const monthsShown = waitingForToday
     ? months.slice(0, scrolling ? 1 : undefined).map((month) => (
         <div
@@ -1334,8 +1460,15 @@ export function Calendar(props: CalendarProps) {
           data-slot='calendar-month'
           data-month={month}
           // Contained, so a month asks for 280px and takes whatever more it is given.
-          className='grid min-w-70 flex-[1_1_--spacing(70)] content-start gap-2 [contain:inline-size]'
+          className='relative grid min-w-70 flex-[1_1_--spacing(70)] content-start gap-2 [contain:inline-size]'
         >
+          {rowPeek &&
+            renderPeekPage(
+              addMonths(month, rowPeek.step),
+              rowPeek.side === 'right'
+                ? 'top-0 left-[calc(100%+--spacing(6))] w-full'
+                : 'top-0 right-[calc(100%+--spacing(6))] w-full'
+            )}
           {monthCaptions && (
             <div
               className={cn(
@@ -1347,7 +1480,7 @@ export function Calendar(props: CalendarProps) {
               {renderCaption(month, index)}
             </div>
           )}
-          <div className='grid in-data-swiping:overflow-clip'>
+          <div className='grid'>
             <table
               role='grid'
               data-slot='calendar-grid'
@@ -1388,26 +1521,8 @@ export function Calendar(props: CalendarProps) {
                   ))}
                 </tr>
               </thead>
-              <tbody data-slot='calendar-days'>
-                {weekView ? (
-                  <tr role='row'>
-                    {Array.from({ length: 7 }, (_, column) => {
-                      const date = addDays(shownWeek, column)
-                      return renderDay(date, monthOf(date), column)
-                    })}
-                  </tr>
-                ) : (
-                  monthGrid(yearOf(month), monthNumberOf(month), {
-                    weekStart,
-                    fixedWeeks
-                  }).map((week) => (
-                    <tr key={week[0]} role='row'>
-                      {week.map((date, column) =>
-                        renderDay(date, month, column)
-                      )}
-                    </tr>
-                  ))
-                )}
+              <tbody data-slot='calendar-days' data-swipe-part=''>
+                {renderRows(weekView ? shownWeek : month)}
               </tbody>
             </table>
           </div>
@@ -1474,10 +1589,12 @@ export function Calendar(props: CalendarProps) {
           <div
             ref={monthsRef}
             data-slot='calendar-months'
-            className='relative flex flex-wrap gap-x-6 gap-y-4'
+            // Clipped as one, so the days run on from one month into the next.
+            className='relative flex flex-wrap gap-x-6 gap-y-4 in-data-swiping:overflow-clip'
           >
             {!inlineNav && !waitingForToday && nav}
             {monthsShown}
+            {peek && !rowPeek && !waitingForToday && renderPeek(peek)}
           </div>
         </>
       )}

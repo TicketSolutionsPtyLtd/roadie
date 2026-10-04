@@ -64,6 +64,175 @@ function Paged(props: Partial<CalendarSingleProps>) {
   )
 }
 
+// A finger held down mid-drag, so a test can look before it lifts.
+function holdDrag(target: Element, dx: number, dy: number) {
+  const box = target.getBoundingClientRect()
+  const x = box.left + box.width / 2
+  const y = box.top + box.height / 2
+  const touchAt = (along: number) =>
+    new Touch({
+      identifier: 1,
+      target,
+      clientX: x + dx * along,
+      clientY: y + dy * along
+    })
+  const fire = (type: string, along: number) =>
+    target.dispatchEvent(
+      new TouchEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        touches: type === 'touchend' ? [] : [touchAt(along)],
+        changedTouches: [touchAt(along)]
+      })
+    )
+  fire('touchstart', 0)
+  fire('touchmove', 0.25)
+  fire('touchmove', 1)
+  return () => fire('touchend', 1)
+}
+
+const peek = () => document.querySelector<HTMLElement>('[data-peek]')
+
+describe('Calendar shows the page it turns to', TIMEOUT, () => {
+  it('shows the next month beside the days as they follow a finger', async ({
+    skip
+  }) => {
+    if (!navigator.userAgent.includes('Chrome')) skip()
+    render(<Paged />)
+    const days = document.querySelector('[data-slot="calendar-days"]')!
+    const lift = holdDrag(day('2027-03-17'), -60, 0)
+    const incoming = peek()!
+    expect(incoming).toHaveAttribute('aria-hidden', 'true')
+    expect(incoming.querySelector('[data-date="2027-04-01"]')).not.toBeNull()
+    const current = days.getBoundingClientRect()
+    const next = incoming
+      .querySelector('[data-slot="calendar-days"]')!
+      .getBoundingClientRect()
+    expect(next.left).toBeCloseTo(current.right, 0)
+    expect(next.top).toBeCloseTo(current.top, 0)
+    const clip = days.closest('table')!.parentElement!.getBoundingClientRect()
+    expect(next.left).toBeLessThan(clip.right)
+    lift()
+    await settle()
+    expect(caption()).toContain('April 2027')
+    expect(peek()).toBeNull()
+  })
+
+  it('shows the next month below the days on a vertical drag', async ({
+    skip
+  }) => {
+    if (!navigator.userAgent.includes('Chrome')) skip()
+    render(<Paged direction='vertical' />)
+    const days = document.querySelector('[data-slot="calendar-days"]')!
+    const lift = holdDrag(day('2027-03-17'), 0, -60)
+    const incoming = peek()!
+    expect(incoming.textContent).toContain('April 2027')
+    const current = days.getBoundingClientRect()
+    expect(
+      Math.abs(incoming.getBoundingClientRect().top - current.bottom)
+    ).toBeLessThanOrEqual(4)
+    const clip = days.closest('table')!.parentElement!.getBoundingClientRect()
+    expect(incoming.getBoundingClientRect().top).toBeLessThan(clip.bottom)
+    lift()
+    await settle()
+    expect(caption()).toContain('April 2027')
+  })
+
+  it('moves the days of several months and the incoming ones as one strip', async ({
+    skip
+  }) => {
+    if (!navigator.userAgent.includes('Chrome')) skip()
+    await page.viewport(900, 844)
+    onTestFinished(() => page.viewport(390, 844))
+    render(
+      <div className='w-200'>
+        <Calendar today={TODAY} numberOfMonths={2} />
+      </div>
+    )
+    const days = [
+      ...document.querySelectorAll<HTMLElement>('[data-slot="calendar-days"]')
+    ]
+    const still = [
+      ...document.querySelectorAll('[data-slot="calendar-month"] thead'),
+      screen.getByText('March 2027'),
+      screen.getByText('April 2027')
+    ]
+    const before = still.map((element) =>
+      element.getBoundingClientRect().toJSON()
+    )
+    const lift = holdDrag(day('2027-03-17'), -60, 0)
+    const incoming = peek()!
+    expect(incoming.querySelector('[data-date="2027-05-01"]')).not.toBeNull()
+    const moves = [...days, incoming].map((part) => part.style.transform)
+    expect(new Set(moves).size).toBe(1)
+    expect(moves[0]).toMatch(/^translate3d\(-60px/)
+    expect(
+      still.map((element) => element.getBoundingClientRect().toJSON())
+    ).toEqual(before)
+    const last = days[1]!.getBoundingClientRect()
+    const next = incoming
+      .querySelector('[data-slot="calendar-days"]')!
+      .getBoundingClientRect()
+    expect(next.left - last.right).toBeCloseTo(24, 0)
+    expect(next.top).toBeCloseTo(last.top, 0)
+    lift()
+    await settle()
+    expect(
+      [...document.querySelectorAll('[data-slot="calendar-month"]')].map(
+        (month) => month.getAttribute('data-month')
+      )
+    ).toEqual(['2027-04-01', '2027-05-01'])
+  })
+
+  it('turns stacked months as strips of their own', async ({ skip }) => {
+    if (!navigator.userAgent.includes('Chrome')) skip()
+    render(<Paged numberOfMonths={2} />)
+    const days = [
+      ...document.querySelectorAll<HTMLElement>('[data-slot="calendar-days"]')
+    ]
+    expect(days[1]!.getBoundingClientRect().top).toBeGreaterThan(
+      days[0]!.getBoundingClientRect().bottom
+    )
+    const lift = holdDrag(day('2027-03-17'), -60, 0)
+    const incoming = [...document.querySelectorAll<HTMLElement>('[data-peek]')]
+    expect(incoming).toHaveLength(2)
+    expect(
+      incoming[0]!.querySelector('[data-date="2027-04-01"]')
+    ).not.toBeNull()
+    expect(
+      incoming[1]!.querySelector('[data-date="2027-05-01"]')
+    ).not.toBeNull()
+    days.forEach((row, i) => {
+      const next = incoming[i]!.querySelector(
+        '[data-slot="calendar-days"]'
+      )!.getBoundingClientRect()
+      expect(next.left - row.getBoundingClientRect().right).toBeCloseTo(24, 0)
+      expect(next.top).toBeCloseTo(row.getBoundingClientRect().top, 0)
+    })
+    lift()
+    await settle()
+    expect(
+      [...document.querySelectorAll('[data-slot="calendar-month"]')].map(
+        (month) => month.getAttribute('data-month')
+      )
+    ).toEqual(['2027-04-01', '2027-05-01'])
+  })
+
+  it('shows no other page when motion is reduced, or at rest', async ({
+    skip
+  }) => {
+    if (!navigator.userAgent.includes('Chrome')) skip()
+    render(<Paged />)
+    expect(peek()).toBeNull()
+    await commands.reduceMotion(true)
+    onTestFinished(() => commands.reduceMotion(false))
+    const lift = holdDrag(day('2027-03-17'), -60, 0)
+    expect(peek()).toBeNull()
+    lift()
+    expect(caption()).toContain('April 2027')
+  })
+})
+
 describe('Calendar swiped on a phone', TIMEOUT, () => {
   it('turns to the next month with a swipe to the left', async ({ skip }) => {
     if (!navigator.userAgent.includes('Chrome')) skip()
@@ -146,40 +315,6 @@ describe('Calendar swiped on a phone', TIMEOUT, () => {
     expect(caption()).toContain('March 2027')
   })
 
-  it('slides each of several months by its own height when vertical', async ({
-    skip
-  }) => {
-    if (!navigator.userAgent.includes('Chrome')) skip()
-    render(
-      <Paged
-        direction='vertical'
-        numberOfMonths={2}
-        defaultMonth='2027-02-01'
-      />
-    )
-    const grids = [
-      ...document.querySelectorAll<HTMLElement>('[data-slot="calendar-days"]')
-    ]
-    const heights = grids.map((grid) => grid.getBoundingClientRect().height)
-    expect(heights[0]).not.toBe(heights[1])
-    const box = grids[0]!.getBoundingClientRect()
-    const x = box.left + box.width / 2
-    const y = box.top + box.height / 2
-    await commands.swipe({ x, y }, { x, y: y - 120 })
-    const ends = grids.map((grid) => {
-      const frames = grid.getAnimations()[0]?.effect
-      return (frames as KeyframeEffect | undefined)?.getKeyframes().at(-1)
-        ?.transform
-    })
-    expect(ends).toEqual(
-      heights.map((height) => `translate3d(0px, ${-height}px, 0px)`)
-    )
-    await settle()
-  })
-
-  // iOS Safari cancels the pointer once its pan recogniser starts on a
-  // vertical drag, even with touch-action stopping the scroll, while the
-  // touch carries on to touchend.
   it('turns on a vertical swipe whose pointer iOS cancels', async ({
     skip
   }) => {

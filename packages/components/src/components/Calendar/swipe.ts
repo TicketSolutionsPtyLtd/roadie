@@ -8,11 +8,17 @@ import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect
 
 export type SwipeStep = 1 | -1
 
+/** Where the page a step turns to sits beside the one shown. */
+export type PeekSide = 'left' | 'right' | 'top' | 'bottom'
+export type Peek = { step: SwipeStep; side: PeekSide }
+
 type SwipeOptions = {
   enabled: boolean
   vertical: boolean
   canTurn: (step: SwipeStep) => boolean
   turn: (step: SwipeStep) => void
+  /** Shows the page a step turns to beside the one shown, or none. */
+  onPeek: (peek: Peek | null) => void
 }
 
 const SLOP = 8
@@ -24,8 +30,11 @@ const IN_MS = 220
 const CLICK_AFTER_SWIPE_MS = 500
 
 const GRIDS = '[data-slot="calendar-grid"]'
-// Only the days move; the weekday row above them holds still.
 const DAYS = '[data-slot="calendar-days"]'
+// What moves: the days of one page, or whole months when several show, and
+// the page beside them. The weekday row of one page holds still.
+const PARTS = '[data-swipe-part]'
+const PEEK = '[data-peek]'
 
 type SwipeSample = { along: number; time: number }
 
@@ -122,11 +131,11 @@ export function useSwipeToTurn(
     let suppressClickUntil = -Infinity
     const running: Animation[] = []
 
-    const grids = () => Array.from(root.querySelectorAll<HTMLElement>(DAYS))
+    const parts = () => Array.from(root.querySelectorAll<HTMLElement>(PARTS))
     const offset = (by: number) =>
       vertical ? `translate3d(0, ${by}px, 0)` : `translate3d(${by}px, 0, 0)`
     const place = (by: number) => {
-      for (const grid of grids()) grid.style.transform = by ? offset(by) : ''
+      for (const part of parts()) part.style.transform = by ? offset(by) : ''
     }
     // The finger moves physically; RTL puts the next month on the left.
     const stepOf = (along: number): SwipeStep => {
@@ -137,7 +146,8 @@ export function useSwipeToTurn(
       const box = grid.getBoundingClientRect()
       return vertical ? box.height : box.width
     }
-    // Ends as multiples of each grid's own size, as months differ in height.
+    // A function end is a multiple of each part's own size, for a page
+    // slid in with nothing beside it.
     const slide = (
       from: number | ((size: number) => number),
       to: number | ((size: number) => number),
@@ -145,11 +155,11 @@ export function useSwipeToTurn(
       easing: string
     ) =>
       Promise.all(
-        grids().map((grid) => {
-          const size = sizeOf(grid)
+        parts().map((part) => {
+          const size = sizeOf(part)
           const at = (end: typeof from) =>
             offset(typeof end === 'number' ? end : end(size))
-          const animation = grid.animate(
+          const animation = part.animate(
             [{ transform: at(from) }, { transform: at(to) }],
             { duration, easing, fill: 'forwards' }
           )
@@ -160,17 +170,52 @@ export function useSwipeToTurn(
     const stopAnimations = () => {
       for (const animation of running.splice(0)) animation.cancel()
     }
-    const finish = () => {
-      stopAnimations()
-      place(0)
-      delete root.dataset.swiping
-      settling = false
-    }
 
     // Which way the days move on screen for a step, as a finger would drag.
     const signOf = (step: SwipeStep) => {
       const rtl = !vertical && getComputedStyle(root).direction === 'rtl'
       return (step === 1) !== rtl ? -1 : 1
+    }
+
+    let shownPeek: SwipeStep | null = null
+    const peekOf = (step: SwipeStep): Peek => {
+      const before = signOf(step) > 0
+      return {
+        step,
+        side: vertical ? (before ? 'top' : 'bottom') : before ? 'left' : 'right'
+      }
+    }
+    // Rendered now, so it can be measured and moved with the days.
+    const showPeek = (step: SwipeStep | null) => {
+      if (step === shownPeek) return
+      shownPeek = step
+      flushSync(() => latest.current.onPeek(step && peekOf(step)))
+    }
+    const hidePeek = () => {
+      if (shownPeek === null) return
+      shownPeek = null
+      if (root.isConnected) latest.current.onPeek(null)
+    }
+    // How far the strip moves to bring the page beside into place: from the
+    // days next to it to its own days.
+    const distanceOf = (step: SwipeStep) => {
+      const peekDays = root.querySelector(`${PEEK} ${DAYS}`)
+      const days = Array.from(root.querySelectorAll(DAYS)).filter(
+        (element) => !element.closest(PEEK)
+      )
+      const beside = signOf(step) > 0 ? days[0] : days[days.length - 1]
+      if (!peekDays || !beside) return 0
+      const a = peekDays.getBoundingClientRect()
+      const b = beside.getBoundingClientRect()
+      return Math.abs(vertical ? a.top - b.top : a.left - b.left)
+    }
+
+    const finish = () => {
+      stopAnimations()
+      place(0)
+      hidePeek()
+      delete root.dataset.swiping
+      settling = false
     }
 
     // Applies a turn, keeping focus in the calendar when the day that held
@@ -227,15 +272,38 @@ export function useSwipeToTurn(
       } else if (step) {
         const sign = signOf(step)
         pending = apply
-        if (!still) await slide(from, (size) => sign * size, OUT_MS, 'ease-in')
+        let distance = 0
+        if (!still) {
+          showPeek(step)
+          place(from)
+          distance = distanceOf(step) || sizeOf(root!.querySelector(DAYS)!)
+        }
+        // The turn lands halfway, where the strip has gone half a page.
+        const halfway = (sign * distance) / 2
+        let at = from
+        if (!still && Math.abs(from) < distance / 2) {
+          await slide(from, halfway, OUT_MS, 'ease-in')
+          at = halfway
+        }
         // Torn down mid-slide, such as by the calendar being disabled, or
         // cut short by a later turn, which has applied this one.
         if (disposed || mine !== run || !root!.isConnected) return
         pending = null
-        applyTurn(apply)
-        place(0)
+        // The page left behind now sits on the other side, so the strip goes
+        // on from where it is without a jump.
+        applyTurn(() => {
+          apply()
+          if (!still) {
+            shownPeek = -step as SwipeStep
+            latest.current.onPeek(peekOf(-step as SwipeStep))
+          }
+        })
         stopAnimations()
-        if (!still) await slide((size) => -sign * size, 0, IN_MS, 'ease-out')
+        if (!still) {
+          const resume = at - sign * distance
+          place(resume)
+          await slide(resume, 0, IN_MS, 'ease-out')
+        }
       } else if (!still && from) {
         place(0)
         await slide(from, 0, IN_MS, 'ease-out')
@@ -307,11 +375,16 @@ export function useSwipeToTurn(
         // A mouse drag would otherwise select the day numbers.
         if (gesture.kind === 'pointer') getSelection()?.removeAllRanges()
       }
-      const allowed = latest.current.canTurn(stepOf(along))
+      const step = stepOf(along)
+      const allowed = latest.current.canTurn(step)
       gesture.along = allowed ? along : along / 3
       gesture.samples.push({ along, time })
       if (gesture.samples.length > 5) gesture.samples.shift()
-      if (!prefersReducedMotion()) place(gesture.along)
+      if (!prefersReducedMotion()) {
+        // The page the finger is pulling in, or none at a bound.
+        showPeek(allowed && along ? step : null)
+        place(gesture.along)
+      }
       return true
     }
 
