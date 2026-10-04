@@ -42,7 +42,7 @@ export function RecordsProvider<Row extends object>({
   const types = layouts.map(({ type }) => type)
   useDevWarning(
     new Set(types).size < types.length &&
-      `[Roadie] Records has two layouts of one type (${types.join(', ')}). Content and Configure show only the first of each.`
+      `[Roadie] Records has two layouts of one type (${types.join(', ')}). Records shows and offers only the first of each.`
   )
   const [contentFill, setContentFill] = useState(false)
   const [toolbar, setToolbar] = useState<RecordsToolbarBox | null>(null)

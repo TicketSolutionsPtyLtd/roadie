@@ -68,14 +68,16 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
   })
   useEffect(() => whenIdle(() => preload.current()), [])
   const preloadNow = () => preload.current()
-  // Each layout's settings as last shown in this baseline's view, so
-  // switching back keeps them; another saved view starts afresh.
+  // Each layout's settings as last shown in the open view, so switching
+  // back keeps them; another view starts afresh.
   const shownLayouts = useRef({
     baseline: '',
     layouts: new Map<string, RecordLayout>()
   })
   const { layout: viewLayout } = records.view
-  const baselineKey = records.baseline ? JSON.stringify(records.baseline) : ''
+  // By id, so saving or renaming the open view keeps them.
+  const { baseline: opened } = records
+  const baselineKey = opened ? (opened.id ?? JSON.stringify(opened)) : ''
   useLayoutEffect(() => {
     const memory = shownLayouts.current
     if (memory.baseline !== baselineKey)

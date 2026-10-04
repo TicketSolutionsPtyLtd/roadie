@@ -78,7 +78,7 @@ type GridShared = {
   getRowHref?: (row: object) => string | undefined
 }
 
-/** A windowed card's grid row. Every card carries it, as a card can stop leading its row while still observed; only the first takes the window's ref. */
+/** A windowed card's grid row. Every card carries it, as a card can stop leading its row while still observed; only the first takes the window's ref. Any card measures its row, as each stretches to the row's height. */
 type Measure = {
   index: number
   ref?: (node: HTMLLIElement | null) => void

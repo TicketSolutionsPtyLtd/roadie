@@ -256,6 +256,38 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
     ).toEqual(['Sold'])
   })
 
+  it('keeps the layout settings as the open view is saved', async () => {
+    const user = userEvent.setup()
+    function Saving() {
+      const [open, setOpen] = useState(onGrid)
+      const [view, setView] = useState(onGrid)
+      const records = useRecords({
+        data: shows,
+        fields: showFields,
+        view,
+        onViewChange: setView,
+        baseline: open
+      })
+      return (
+        <Records records={records} layouts={layouts} caption='Shows'>
+          <button onClick={() => setOpen({ ...view, name: 'Cards, renamed' })}>
+            Save it
+          </button>
+          <Records.Toolbar />
+          <Records.Content />
+        </Records>
+      )
+    }
+    render(<Saving />)
+    await switchTo('Table', user)
+    await user.click(screen.getByRole('button', { name: 'Save it' }))
+    await switchTo('Grid', user)
+    const first = document.querySelector('[data-slot="record-grid-card"]')!
+    expect(
+      [...first.querySelectorAll('dt')].map((dt) => dt.textContent)
+    ).toEqual(['Gross', 'Sold'])
+  })
+
   it('round-trips the layout through the URL', async () => {
     const user = userEvent.setup()
     const onViewChange = vi.fn()

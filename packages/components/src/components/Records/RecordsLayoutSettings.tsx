@@ -34,12 +34,18 @@ export function RecordsLayoutSettings({
         }}
         className='justify-self-start'
       >
-        {layouts.map((layout) => (
-          <ToggleGroup.Item key={layout.type} value={layout.type}>
-            {layout.icon}
-            {layout.label}
-          </ToggleGroup.Item>
-        ))}
+        {layouts
+          // Only the first of a type shows, as Content shows only that one.
+          .filter(
+            (layout, index) =>
+              layouts.findIndex(({ type }) => type === layout.type) === index
+          )
+          .map((layout) => (
+            <ToggleGroup.Item key={layout.type} value={layout.type}>
+              {layout.icon}
+              {layout.label}
+            </ToggleGroup.Item>
+          ))}
       </ToggleGroup>
     </section>
   )
