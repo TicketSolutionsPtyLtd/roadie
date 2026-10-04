@@ -11,15 +11,17 @@ import { CardRoot } from '../Card/CardRoot'
 import { RecordImage } from './RecordImage'
 import { RecordPartValue } from './RecordPartValue'
 import { RecordsRowActions } from './RecordsRowActions'
-import { RecordsRowCheckbox } from './RecordsRowCheckbox'
+import { RecordsSelectModeCheckbox } from './RecordsRowCheckbox'
 import type { RecordCardParts, RecordPart } from './types'
 
 /** The text that names a record, from its title part, else its id. */
-export function recordTitle(row: object, id: string, title?: RecordPart) {
-  // A title is text, which reads the same in any zone.
-  const text = title
-    ? formatRecordValue(row, title.field, { timeZone: 'UTC' })
-    : null
+export function recordTitle(
+  row: object,
+  id: string,
+  title?: RecordPart,
+  timeZone = 'UTC'
+) {
+  const text = title ? formatRecordValue(row, title.field, { timeZone }) : null
   return text?.trim() ? text : id
 }
 
@@ -64,7 +66,7 @@ export const RecordCard = memo(function RecordCard({
   className
 }: RecordCardProps) {
   const href = selecting ? undefined : linkHref
-  const name = recordTitle(row, id, parts.title)
+  const name = recordTitle(row, id, parts.title, timeZone)
   const value = (part: RecordPart | undefined) =>
     part && <RecordPartValue part={part} row={row} timeZone={timeZone} />
   const banner = parts.image
@@ -108,20 +110,13 @@ export const RecordCard = memo(function RecordCard({
       >
         {selecting ? (
           // Takes the leading slot's place, at its size, so titles don't shift.
-          <div
-            className={cn(
-              'grid shrink-0 place-items-center',
-              parts.leading?.kind === 'image' && 'size-10'
-            )}
-          >
-            <RecordsRowCheckbox
-              id={id}
-              title={name}
-              selected={selected ?? false}
-              onToggle={(toggled, range) => onToggle?.(toggled, range)}
-              rowTarget
-            />
-          </div>
+          <RecordsSelectModeCheckbox
+            id={id}
+            title={name}
+            selected={selected ?? false}
+            onToggle={(toggled, range) => onToggle?.(toggled, range)}
+            thumbnail={parts.leading?.kind === 'image'}
+          />
         ) : (
           leading && <div className='shrink-0'>{leading}</div>
         )}

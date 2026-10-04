@@ -1,4 +1,4 @@
-import { type ReactNode, memo } from 'react'
+import { type ReactNode, memo, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -8,8 +8,9 @@ import { listItemVariants } from '../List/variants'
 import { recordTitle } from '../Records/RecordCard'
 import { RecordPartValue } from '../Records/RecordPartValue'
 import { RecordsRowActions } from '../Records/RecordsRowActions'
-import { RecordsRowCheckbox } from '../Records/RecordsRowCheckbox'
+import { RecordsSelectModeCheckbox } from '../Records/RecordsRowCheckbox'
 import type { RecordCardParts, RecordPart } from '../Records/types'
+import { useKeepFocusInTable } from './tableFocus'
 
 /** `h-16`, or `h-12` without a description, in rem. */
 export const listRowRem = (parts: RecordCardParts) =>
@@ -60,8 +61,10 @@ export const RecordTableListRow = memo(function RecordTableListRow({
   bleed
 }: RecordTableListRowProps) {
   // In Select mode the checkbox is the row's target, so the link steps aside.
+  const itemRef = useRef<HTMLLIElement>(null)
+  useKeepFocusInTable(itemRef)
   const href = selecting ? undefined : linkHref
-  const name = recordTitle(row, id, parts.title)
+  const name = recordTitle(row, id, parts.title, timeZone)
   const value = (part: RecordPart | undefined) =>
     part && (
       <RecordPartValue
@@ -75,6 +78,7 @@ export const RecordTableListRow = memo(function RecordTableListRow({
   const leading = value(parts.leading)
   return (
     <li
+      ref={itemRef}
       data-slot='record-table-list-row'
       data-row-id={id}
       data-selected={selected || undefined}
@@ -114,20 +118,13 @@ export const RecordTableListRow = memo(function RecordTableListRow({
           leading={
             selecting ? (
               // Takes the leading slot's place, at its size, so titles don't shift.
-              <span
-                className={cn(
-                  'grid place-items-center',
-                  parts.leading?.kind === 'image' && 'size-10'
-                )}
-              >
-                <RecordsRowCheckbox
-                  id={id}
-                  title={name}
-                  selected={selected ?? false}
-                  onToggle={(toggled, range) => onToggle?.(toggled, range)}
-                  rowTarget
-                />
-              </span>
+              <RecordsSelectModeCheckbox
+                id={id}
+                title={name}
+                selected={selected ?? false}
+                onToggle={(toggled, range) => onToggle?.(toggled, range)}
+                thumbnail={parts.leading?.kind === 'image'}
+              />
             ) : (
               leading
             )

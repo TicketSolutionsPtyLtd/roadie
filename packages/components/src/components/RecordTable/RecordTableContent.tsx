@@ -148,26 +148,36 @@ export function RecordTableContent({
     return () => setContentFill(false)
   }, [fill, setContentFill])
 
-  const isNarrow = useNarrow(frameRef)
+  const isNarrow = useNarrow(frameRef, { placement: boxed })
   const narrow = isNarrow ? (config.narrow ?? narrowLayout(columns)) : undefined
   const parts = useMemo(() => {
     const roles = narrowParts(columns)
     return narrow === 'cards' ? cardParts(roles) : roles
   }, [columns, narrow])
   const frameTop = useStickyTop(frameRef, toolbar, boxed)
-  useLayoutFocus(frameRef, narrow ?? 'wide')
+  useLayoutFocus(frameRef, narrow ?? 'wide', boxed)
   // Narrow rows select only through Select mode; wide rows have checkboxes and keep it.
   const selecting = isSelecting(records, narrow !== undefined)
   const { selecting: committed, setSelecting } = records
-  const commitSelecting = narrow !== undefined && selecting
+  const isNarrowShown = narrow !== undefined
+  // Narrow rows enter Select mode, and only a switch to wide leaves it, so a
+  // second Content of another width under the same records never fights it.
+  const wasNarrow = useRef(false)
   useLayoutEffect(() => {
-    if (commitSelecting !== committed)
-      setSelecting(commitSelecting, { keep: true })
-  }, [commitSelecting, committed, setSelecting])
-  useLayoutEffect(() => {
-    setSelectMode(narrow !== undefined)
-  }, [narrow, setSelectMode])
-  useLayoutEffect(() => () => setSelectMode(false), [setSelectMode])
+    const left = wasNarrow.current && !isNarrowShown
+    wasNarrow.current = isNarrowShown
+    if (isNarrowShown && selecting && !committed)
+      setSelecting(true, { keep: true })
+    else if (left && committed) setSelecting(false, { keep: true })
+    if (isNarrowShown) setSelectMode(true)
+    else if (left) setSelectMode(false)
+  }, [isNarrowShown, selecting, committed, setSelecting, setSelectMode])
+  useLayoutEffect(
+    () => () => {
+      if (wasNarrow.current) setSelectMode(false)
+    },
+    [setSelectMode]
+  )
 
   const { selectable, getRowHref } = records
   // Presence, not identity: an inline rowActions is new every render.

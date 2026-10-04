@@ -17,9 +17,9 @@ export type RecordTableNarrow =
 export type RecordTableColumn<Row extends object = object> = RecordPart<Row> & {
   /** Sticks to the start while the table scrolls sideways. Pinned columns stay first and can't be hidden. */
   pin?: boolean
-  /** Defaults to the column's content, or 3.75 for an image. */
+  /** Defaults to the column's content, or 3.75 for an image built with `tableColumns`. */
   width?: RecordColumnWidth
-  /** Where the column shows on narrow rows. @default 'hidden', or 'leading' for an image */
+  /** Where the column shows on narrow rows. @default 'hidden', or 'leading' for an image built with `tableColumns` */
   narrow?: RecordTableNarrow
   /** Hides the column as the table narrows: 3 below 64rem, then 2 below 56rem, then 1 below 48rem. Ignored on a pinned column. */
   priority?: 1 | 2 | 3

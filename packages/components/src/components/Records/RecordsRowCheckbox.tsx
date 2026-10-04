@@ -2,7 +2,10 @@
 
 import { type KeyboardEvent, type MouseEvent, useRef } from 'react'
 
+import { cn } from '@oztix/roadie-core/utils'
+
 import { Checkbox } from '../Checkbox'
+import { useKeepFocusOnLeave } from './useBulkActions'
 
 /** A record's own checkbox, named by its title. */
 export function RecordsRowCheckbox({
@@ -43,5 +46,23 @@ export function RecordsRowCheckbox({
         onToggle(id, event.shiftKey || shiftHeld.current)
       }}
     />
+  )
+}
+
+/** Select mode's checkbox in a record's leading slot, at a thumbnail's size when one leads, so titles don't shift. */
+export function RecordsSelectModeCheckbox({
+  thumbnail,
+  ...props
+}: Parameters<typeof RecordsRowCheckbox>[0] & { thumbnail: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  // Leaving Select mode unmounts it; focus goes to Select, or the records.
+  useKeepFocusOnLeave(ref)
+  return (
+    <span
+      ref={ref}
+      className={cn('grid shrink-0 place-items-center', thumbnail && 'size-10')}
+    >
+      <RecordsRowCheckbox {...props} rowTarget />
+    </span>
   )
 }

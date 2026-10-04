@@ -5,7 +5,8 @@ import {
   type RefObject,
   memo,
   useCallback,
-  useLayoutEffect
+  useLayoutEffect,
+  useRef
 } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
@@ -40,6 +41,7 @@ import {
 } from './RecordTableRows'
 import type { RecordTableNarrowLayout } from './narrow'
 import { useRowWindow } from './rowWindow'
+import { useKeepFocusInTable } from './tableFocus'
 
 /** A card's height before it's measured, in rem, and what a 16:9 banner adds on a phone. */
 export const CARD_REM = 10
@@ -168,16 +170,52 @@ function NarrowRow({
       />
     )
   return (
+    <CardItem
+      id={record.id}
+      selected={props.selected}
+      measureElement={measureElement}
+      index={measureElement ? index : undefined}
+      posInSet={posInSet}
+      setSize={setSize}
+    >
+      <RecordCard {...props} row={record.row} />
+    </CardItem>
+  )
+}
+
+function CardItem({
+  id,
+  selected,
+  measureElement,
+  index,
+  posInSet,
+  setSize,
+  children
+}: {
+  id: string
+  selected?: boolean
+  measureElement?: MeasureElement
+  index?: number
+  posInSet?: number
+  setSize?: number
+  children: ReactNode
+}) {
+  const itemRef = useRef<HTMLLIElement>(null)
+  useKeepFocusInTable(itemRef)
+  return (
     <li
-      ref={measureElement}
+      ref={(node) => {
+        itemRef.current = node
+        measureElement?.(node)
+      }}
       data-slot='record-table-card'
-      data-row-id={record.id}
-      data-selected={props.selected || undefined}
-      data-index={measureElement ? index : undefined}
+      data-row-id={id}
+      data-selected={selected || undefined}
+      data-index={index}
       aria-posinset={posInSet}
       aria-setsize={setSize}
     >
-      <RecordCard {...props} row={record.row} />
+      {children}
     </li>
   )
 }

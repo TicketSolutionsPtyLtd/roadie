@@ -663,7 +663,9 @@ describe('RecordTable Select mode', () => {
     render(<NoSelect />)
     await user.click(screen.getByRole('button', { name: 'Export' }))
     expect(within(listOf()).queryAllByRole('checkbox')).toHaveLength(0)
-    expect(document.activeElement).not.toBe(document.body)
+    expect(document.activeElement).toBe(
+      document.querySelector('[data-slot="record-table-scroller"]')
+    )
   })
 })
 
@@ -729,4 +731,68 @@ describe('RecordTable narrow range failure', () => {
       ).toBeNull()
     }
   )
+})
+
+describe('RecordTable narrow focus and composition', () => {
+  beforeEach(() => {
+    width = 360
+  })
+
+  function Composed({ contents = 1 }: { contents?: number }) {
+    const records = useRecords({
+      ...base,
+      selectable: true,
+      defaultSelection: { ids: ['show-0'] }
+    })
+    return (
+      <Records.Root
+        records={records}
+        layouts={[tableLayout(listColumns)]}
+        caption='Shows'
+      >
+        {Array.from({ length: contents }, (_, index) => (
+          <Records.Content key={index} />
+        ))}
+      </Records.Root>
+    )
+  }
+
+  it('keeps focus in the records when Escape leaves Select mode from a checkbox', async () => {
+    const user = userEvent.setup()
+    render(<Composed />)
+    within(listOf())
+      .getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+      .focus()
+    await user.keyboard('{Escape}')
+    expect(within(listOf()).queryAllByRole('checkbox')).toHaveLength(0)
+    expect(document.activeElement).toBe(
+      document.querySelector('[data-slot="record-table-scroller"]')
+    )
+  })
+
+  it('settles with one narrow and one wide Content under one Root', () => {
+    // The second Content measures wide.
+    const sizes = [360, 900]
+    let call = 0
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
+        const frames = [
+          ...document.querySelectorAll('[data-slot="record-table-frame"]')
+        ]
+        const index = frames.indexOf(this)
+        const w = index === -1 ? sizes[call++ % 2]! : sizes[index]!
+        return {
+          width: w,
+          height: 0,
+          top: 0,
+          left: 0,
+          right: w,
+          bottom: 0
+        } as DOMRect
+      }
+    )
+    render(<Composed contents={2} />)
+    expect(screen.getByRole('list', { name: 'Shows' })).toBeInTheDocument()
+    expect(screen.getByRole('table', { name: 'Shows' })).toBeInTheDocument()
+  })
 })

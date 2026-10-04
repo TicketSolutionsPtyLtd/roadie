@@ -269,6 +269,32 @@ describe('RecordTable narrow list rows in a browser', () => {
     expect(getComputedStyle(surface).borderTopLeftRadius).not.toBe('0px')
   })
 
+  it('still switches after its own scroll box comes and goes', async () => {
+    function Toggled() {
+      const [boxed, setBoxed] = useState(true)
+      return (
+        <Boxed width={800}>
+          <button type='button' onClick={() => setBoxed((was) => !was)}>
+            Toggle box
+          </button>
+          <RecordTable
+            {...base}
+            data={testShows(10)}
+            maxHeight={boxed ? '400px' : undefined}
+          />
+        </Boxed>
+      )
+    }
+    const { container } = render(<Toggled />)
+    await screen.findByRole('table', { name: 'Shows' })
+    screen.getByRole('button', { name: 'Toggle box' }).click()
+    await frame()
+    await resize(container, 360)
+    await expect
+      .poll(() => screen.queryByRole('list', { name: 'Shows' }))
+      .not.toBeNull()
+  })
+
   it('joins selected neighbours into one block', async () => {
     const { container } = render(
       <Boxed width={360}>

@@ -156,12 +156,13 @@ the wide rows do, with placeholders and range errors at their size.
 `tableLayout`'s `narrow` (or `RecordTable`'s) picks `'list'` or `'cards'`.
 `Records.Select` is now public, for compositions. A column with `priority`
 3, 2 or 1 hides as the table narrows below 64, 56 and 48rem, header and rows
-together; pinned columns and the title never hide, and a priority on one
-warns in development. A column with `kind: 'image'` shows its value, an
+together; pinned columns and the title never hide, and a priority on a
+pinned or `narrow: 'title'` column warns in development. A column with `kind: 'image'` shows its value, an
 image URL, as a 40px thumbnail with `alt` from the row, a list row's leading
 image and a card's 16:9 banner, and a neutral tile without one or when it
-fails to load. It defaults to 3.75rem wide and `narrow: 'leading'`, and its
-header is read to screen readers but not shown and never sorts. The title
+fails to load. Built with `tableColumns`, it defaults to 3.75rem wide and
+`narrow: 'leading'`; its header is read to screen readers but not shown,
+with no sort button (give its field `sortable: false` too). The title
 column is the one with `narrow: 'title'` before the pinned text column, and
 never an image. `record-table` exports the `RecordTableNarrow`,
 `RecordTableNarrowLayout` and `TableLayoutOptions` types. `Records.Root`

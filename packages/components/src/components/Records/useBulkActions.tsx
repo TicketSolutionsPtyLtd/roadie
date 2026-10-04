@@ -23,6 +23,27 @@ export function useSurvivor(kind: 'selection' | 'rows') {
   return { [SURVIVOR]: kind, [SCOPE]: scope }
 }
 
+const findSurvivor = (scope: string, kind: string) =>
+  document.querySelector<HTMLElement>(
+    `[${SCOPE}="${scope}"][${SURVIVOR}="${kind}"]`
+  )
+
+/** Hands focus to Select, else the rows, when an element holding it unmounts, such as a record's checkbox leaving Select mode. */
+export function useKeepFocusOnLeave(ref: RefObject<HTMLElement | null>) {
+  const { scope } = useRecordsContext()
+  useLayoutEffect(() => {
+    const element = ref.current
+    return () => {
+      if (!element?.contains(document.activeElement)) return
+      ;(findSurvivor(scope, 'selection') ?? findSurvivor(scope, 'rows'))?.focus(
+        {
+          preventScroll: true
+        }
+      )
+    }
+  }, [ref, scope])
+}
+
 /** What the floating bar and the header bar share: running, confirming, and where focus goes once the bar unmounts. */
 export function useBulkActions({
   actions,
@@ -58,12 +79,8 @@ export function useBulkActions({
   // The bar unmounts once the selection clears, taking any focus it held
   // with it. Land focus on something that survives, so it doesn't fall to <body>.
   // By scope, not by ancestor: under a Provider the parts sit apart.
-  const survivor = (kind: string) =>
-    barRef.current?.ownerDocument.querySelector<HTMLElement>(
-      `[${SCOPE}="${scope}"][${SURVIVOR}="${kind}"]`
-    )
   const focusSurvivor = () =>
-    (survivor('selection') ?? survivor('rows'))?.focus()
+    (findSurvivor(scope, 'selection') ?? findSurvivor(scope, 'rows'))?.focus()
   // A bar the selection clears in render, such as a new search, unmounts with
   // focus inside; this runs before its nodes leave.
   const latestFocus = useRef(focusSurvivor)

@@ -15,7 +15,9 @@ type Held = { inside: boolean; rowId?: string }
  */
 export function useLayoutFocus(
   ref: RefObject<HTMLElement | null>,
-  layout: string
+  layout: string,
+  /** Changes when the element may have been replaced, to listen on the new one. */
+  placement?: unknown
 ) {
   const held = useRef<Held>({ inside: false })
   const shown = useRef(layout)
@@ -50,7 +52,7 @@ export function useLayoutFocus(
       element.removeEventListener('focusin', onFocusIn)
       element.removeEventListener('focusout', onFocusOut)
     }
-  }, [ref])
+  }, [ref, placement])
 
   useLayoutEffect(() => {
     if (shown.current === layout) return
