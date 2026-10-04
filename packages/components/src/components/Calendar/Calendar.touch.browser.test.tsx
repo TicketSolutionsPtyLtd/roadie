@@ -177,6 +177,58 @@ describe('Calendar swiped on a phone', TIMEOUT, () => {
     await settle()
   })
 
+  // iOS Safari cancels the pointer once its pan recogniser starts on a
+  // vertical drag, even with touch-action stopping the scroll, while the
+  // touch carries on to touchend.
+  it('turns on a vertical swipe whose pointer iOS cancels', async ({
+    skip
+  }) => {
+    if (!navigator.userAgent.includes('Chrome')) skip()
+    render(<Paged direction='vertical' />)
+    const target = day('2027-03-17')
+    const box = target.getBoundingClientRect()
+    const x = box.left + box.width / 2
+    let y = box.top + box.height / 2
+    const touchAt = (clientY: number) =>
+      new Touch({ identifier: 1, target, clientX: x, clientY })
+    const fire = (type: string, clientY: number) =>
+      target.dispatchEvent(
+        new TouchEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          touches: type === 'touchend' ? [] : [touchAt(clientY)],
+          changedTouches: [touchAt(clientY)]
+        })
+      )
+    const pointer = (type: string, clientY: number) =>
+      target.dispatchEvent(
+        new PointerEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          pointerId: 7,
+          pointerType: 'touch',
+          isPrimary: true,
+          clientX: x,
+          clientY
+        })
+      )
+    pointer('pointerdown', y)
+    fire('touchstart', y)
+    for (let step = 0; step < 4; step++) {
+      y -= 10
+      pointer('pointermove', y)
+      fire('touchmove', y)
+    }
+    pointer('pointercancel', y)
+    for (let step = 0; step < 8; step++) {
+      y -= 10
+      fire('touchmove', y)
+    }
+    fire('touchend', y)
+    await settle()
+    expect(caption()).toContain('April 2027')
+  })
+
   it('turns straight away when motion is reduced', async ({ skip }) => {
     if (!navigator.userAgent.includes('Chrome')) skip()
     await commands.reduceMotion(true)

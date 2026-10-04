@@ -576,6 +576,36 @@ describe('Calendar day tiles', () => {
   })
 })
 
+describe('Calendar touch-action', () => {
+  it.each([
+    ['horizontal', /pan-y/],
+    ['vertical', /pan-x/]
+  ] as const)(
+    'lets the page pan only across a %s swipe over the days',
+    (direction, pan) => {
+      render(<Calendar today={TODAY} direction={direction} />)
+      const grid = document.querySelector('[data-slot="calendar-grid"]')!
+      const action = getComputedStyle(grid).touchAction
+      expect(action).toMatch(pan)
+      expect(action).toMatch(/pinch-zoom/)
+      expect(action).not.toMatch(direction === 'vertical' ? /pan-y/ : /pan-x/)
+      expect(
+        getComputedStyle(
+          document.querySelector('[data-slot="calendar-header"]')!
+        ).touchAction
+      ).toBe('auto')
+    }
+  )
+
+  it('leaves a scrolling list to the page', () => {
+    render(<Calendar today={TODAY} layout='scroll' direction='vertical' />)
+    expect(
+      getComputedStyle(document.querySelector('[data-slot="calendar-grid"]')!)
+        .touchAction
+    ).toBe('auto')
+  })
+})
+
 describe('Calendar scrolling months', () => {
   const scroller = () =>
     document.querySelector<HTMLElement>('[data-testid="scroller"]')!

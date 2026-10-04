@@ -159,15 +159,29 @@ export function useSwipeToTurn(
       finish()
     }
 
-    const onPointerDown = (event: PointerEvent) => {
+    // Touch events, not pointer events: iOS Safari cancels the pointer once
+    // its pan recogniser starts on a vertical drag, even where touch-action
+    // stops the scroll, but the touch carries on to touchend.
+    const touchOf = (event: TouchEvent) =>
+      gesture &&
+      Array.from(event.changedTouches).find(
+        (touch) => touch.identifier === gesture!.id
+      )
+
+    const onTouchStart = (event: TouchEvent) => {
       suppressClickUntil = -Infinity
-      if (event.pointerType === 'mouse' || !event.isPrimary || settling) return
+      if (event.touches.length !== 1 || settling) {
+        if (gesture?.engaged) void settle(gesture.along, null)
+        gesture = null
+        return
+      }
+      const touch = event.changedTouches[0]!
       // Headers, selects and toggles keep their own gestures.
       if (!(event.target as Element).closest(GRIDS)) return
       gesture = {
-        id: event.pointerId,
-        x: event.clientX,
-        y: event.clientY,
+        id: touch.identifier,
+        x: touch.clientX,
+        y: touch.clientY,
         engaged: false,
         size: 0,
         along: 0,
@@ -176,10 +190,11 @@ export function useSwipeToTurn(
       }
     }
 
-    const onPointerMove = (event: PointerEvent) => {
-      if (!gesture || event.pointerId !== gesture.id) return
-      const dx = event.clientX - gesture.x
-      const dy = event.clientY - gesture.y
+    const onTouchMove = (event: TouchEvent) => {
+      const touch = touchOf(event)
+      if (!touch || !gesture) return
+      const dx = touch.clientX - gesture.x
+      const dy = touch.clientY - gesture.y
       const along = vertical ? dy : dx
       const across = vertical ? dx : dy
       if (!gesture.engaged) {
@@ -194,6 +209,8 @@ export function useSwipeToTurn(
         gesture.size = vertical ? box.height : box.width
         root.dataset.swiping = ''
       }
+      // The swipe owns the drag, wherever touch-action falls short.
+      if (event.cancelable) event.preventDefault()
       const allowed = latest.current.canTurn(stepOf(along))
       gesture.along = allowed ? along : along / 3
       gesture.samples.push({ along, time: event.timeStamp })
@@ -201,15 +218,12 @@ export function useSwipeToTurn(
       if (!prefersReducedMotion()) place(gesture.along)
     }
 
-    const onPointerUp = (event: PointerEvent) => {
-      if (!gesture || event.pointerId !== gesture.id) return
+    const onTouchEnd = (event: TouchEvent) => {
+      if (!touchOf(event) || !gesture) return
       const { engaged, samples, size } = gesture
       const along = gesture.along
-      if (!engaged) {
-        gesture = null
-        return
-      }
       gesture = null
+      if (!engaged) return
       suppressClickUntil = performance.now() + CLICK_AFTER_SWIPE_MS
       const step = stepOf(along)
       const turns =
@@ -218,8 +232,8 @@ export function useSwipeToTurn(
       void settle(along, turns ? step : null)
     }
 
-    const onPointerCancel = (event: PointerEvent) => {
-      if (!gesture || event.pointerId !== gesture.id) return
+    const onTouchCancel = (event: TouchEvent) => {
+      if (!touchOf(event) || !gesture) return
       if (gesture.engaged) void settle(gesture.along, null)
       gesture = null
     }
@@ -232,17 +246,17 @@ export function useSwipeToTurn(
       event.stopPropagation()
     }
 
-    root.addEventListener('pointerdown', onPointerDown)
-    root.addEventListener('pointermove', onPointerMove)
-    root.addEventListener('pointerup', onPointerUp)
-    root.addEventListener('pointercancel', onPointerCancel)
+    root.addEventListener('touchstart', onTouchStart, { passive: true })
+    root.addEventListener('touchmove', onTouchMove, { passive: false })
+    root.addEventListener('touchend', onTouchEnd)
+    root.addEventListener('touchcancel', onTouchCancel)
     root.addEventListener('click', onClick, true)
     return () => {
       disposed = true
-      root.removeEventListener('pointerdown', onPointerDown)
-      root.removeEventListener('pointermove', onPointerMove)
-      root.removeEventListener('pointerup', onPointerUp)
-      root.removeEventListener('pointercancel', onPointerCancel)
+      root.removeEventListener('touchstart', onTouchStart)
+      root.removeEventListener('touchmove', onTouchMove)
+      root.removeEventListener('touchend', onTouchEnd)
+      root.removeEventListener('touchcancel', onTouchCancel)
       root.removeEventListener('click', onClick, true)
       stopAnimations()
       place(0)
