@@ -134,7 +134,7 @@ function Shows() {
 }
 ```
 
-`Records.Toolbar` holds the standard controls: the search and filter field, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions` after the search, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
+`Records.Toolbar` holds the standard controls: the search and filter field, `Records.Select` for Select mode on narrow rows, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions`, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
 
 `Records.BulkActions` can sit anywhere inside the Provider: the table's `Records.Content` shows it in its header row.
 
