@@ -48,7 +48,7 @@ import { shownColumns } from './columns'
 import { SELECT_WIDTH, columnLayout, priorityProps, tierStyle } from './layout'
 import { useLayoutFocus } from './layoutFocus'
 import { cardParts, narrowLayout, narrowParts } from './narrow'
-import { useKeepFocusInTable } from './tableFocus'
+import { tableFocusTarget, useKeepFocusInTable } from './tableFocus'
 import type { TableLayoutConfig } from './tableLayout'
 import { useColumnWidths } from './useColumnWidths'
 
@@ -155,6 +155,7 @@ export function RecordTableContent({
     return narrow === 'cards' ? cardParts(roles) : roles
   }, [columns, narrow])
   const frameTop = useStickyTop(frameRef, toolbar, boxed)
+  useKeepFocusShown(frameRef, boxed)
   useLayoutFocus(frameRef, narrow ?? 'wide', boxed)
   // Narrow rows select only through Select mode; wide rows have checkboxes and keep it.
   const selecting = isSelecting(records, narrow !== undefined)
@@ -638,6 +639,29 @@ export function RecordTableContent({
   )
 }
 RecordTableContent.displayName = 'RecordTableContent'
+
+/** Moves focus to the table when a priority tier hides the column holding it, which CSS does without unmounting it. */
+function useKeepFocusShown(
+  frameRef: RefObject<HTMLElement | null>,
+  placement: unknown
+) {
+  useLayoutEffect(() => {
+    const frame = frameRef.current
+    if (!frame) return
+    const observer = new ResizeObserver(() => {
+      const active = document.activeElement
+      if (!active || !frame.contains(active)) return
+      const cell = active.closest('[data-priority]')
+      if (!cell || getComputedStyle(cell).display !== 'none') return
+      ;(
+        tableFocusTarget(active) ??
+        frame.querySelector<HTMLElement>('[data-slot="record-table-scroller"]')
+      )?.focus({ preventScroll: true })
+    })
+    observer.observe(frame)
+    return () => observer.disconnect()
+  }, [frameRef, placement])
+}
 
 /** A state in place of narrow rows, keeping focus in the table when its button goes. */
 function NarrowState({ children }: { children: ReactNode }) {

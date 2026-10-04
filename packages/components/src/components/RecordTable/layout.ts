@@ -1,5 +1,6 @@
 import { type RecordField, formatRecordValue } from '@oztix/roadie-core/records'
 
+import { isDev } from '../../utils/isDev'
 import { NOT_AVAILABLE } from '../Records/RecordValue'
 import { titleColumn } from './RecordTableRow'
 import type { RecordColumnWidth, RecordTableColumn } from './types'
@@ -24,6 +25,17 @@ export type ColumnLayout = ColumnTier & {
 /** Where each priority tier starts, in rem of the table's width. */
 export const PRIORITY_HIDES_BELOW = { 3: 64, 2: 56, 1: 48 } as const
 const TIERS = [1, 2, 3] as const
+
+let warnedPinnedPriority = false
+
+/** Warns once that a pinned column's priority is ignored. */
+export function warnPinnedPriority(key: string) {
+  if (warnedPinnedPriority || !isDev()) return
+  warnedPinnedPriority = true
+  console.warn(
+    `[Roadie] RecordTable column "${key}" is pinned, so its priority is ignored. Pinned columns never hide.`
+  )
+}
 
 const shownAt = (priority: number | undefined, tier: number) =>
   tier === 0 || priority === undefined || priority < tier
@@ -127,9 +139,11 @@ export function columnLayout(
     return start
   })
   const title = titleColumn(columns)
-  const priority = columns.map((column) =>
-    column.pin || column === title ? undefined : column.priority
-  )
+  const priority = columns.map((column) => {
+    if (column.pin && column.priority !== undefined)
+      warnPinnedPriority(column.key)
+    return column.pin || column === title ? undefined : column.priority
+  })
   const tiers = [0, ...TIERS].map((tier) => {
     const shown = columns.flatMap((column, index) =>
       shownAt(priority[index], tier) ? [index] : []

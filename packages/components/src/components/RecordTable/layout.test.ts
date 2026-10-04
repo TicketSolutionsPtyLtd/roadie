@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import type { RecordField } from '@oztix/roadie-core/records'
 
@@ -61,6 +61,18 @@ describe('columnLayout', () => {
     const layout = columnLayout(columns, columnWidths(columns, [], UTC))
     expect(layout.priority).toEqual([undefined, undefined, 1])
     expect(layout.tiers[1]!.template).toBe('5rem 5rem')
+  })
+
+  it('warns once about a priority on a pinned column built by hand', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const columns = [
+      column('name', { pin: true, priority: 2 }),
+      column('city', { pin: true, priority: 1 })
+    ]
+    columnLayout(columns, columnWidths(columns, [], UTC))
+    columnLayout(columns, columnWidths(columns, [], UTC))
+    expect(warn).toHaveBeenCalledTimes(1)
+    warn.mockRestore()
   })
 
   it('marks the last shown cell at each tier, so it drops its end padding', () => {
