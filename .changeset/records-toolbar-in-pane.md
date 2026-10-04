@@ -8,3 +8,8 @@ column headers stick under the taller toolbar. The search shrinks before the
 toolbar's buttons wrap below it, so `Records.Options` stays on the search's row
 on a phone. In `QueryField`, a long chip truncates to leave the input room
 beside it, so one chip no longer adds an empty second row.
+
+A `RecordTable` too wide for its `Pane` now reaches the pane's edges, so its
+rows, dividers and sideways scrollbar run across while the first column still
+lines up with the content above. A table that fits, or one inside a card or a
+pane `measure`, is unchanged.

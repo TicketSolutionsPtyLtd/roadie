@@ -43,6 +43,7 @@ import { RecordTablePageCheckbox } from './RecordTableSelectCell'
 import { RecordTableSkeletonRows, StateRow } from './RecordTableStates'
 import { shownColumns } from './columns'
 import { SELECT_WIDTH, columnLayout } from './layout'
+import { usePaneBleed } from './paneBleed'
 import type { TableLayoutConfig } from './tableLayout'
 import { useColumnWidths } from './useColumnWidths'
 
@@ -124,6 +125,7 @@ export function RecordTableContent({
   // In its own box, one viewport scrolls both ways; otherwise only the rows scroll sideways.
   const boxed = fill || Boolean(maxHeight)
   const contentRef = useRef<HTMLDivElement>(null)
+  const frameRef = useRef<HTMLDivElement>(null)
   const { top: headTop } = useStickyTop(headRef, toolbar, boxed)
   // On the table, so the head and pinned cells inherit it.
   useSurface(contentRef, boxed)
@@ -180,6 +182,7 @@ export function RecordTableContent({
       }),
     [columns, widths, selectable, hasRowActions]
   )
+  const bleeds = usePaneBleed(frameRef, layout.minWidth, !boxed)
   const style = {
     '--record-table-columns': layout.template,
     '--record-table-min-width': `${layout.minWidth}rem`
@@ -274,12 +277,21 @@ export function RecordTableContent({
 
   const content = (
     <div
+      ref={frameRef}
       data-slot='record-table-frame'
       data-records-content=''
+      data-pane-bleed={bleeds || undefined}
       // In a box, the viewport is the region: it holds the focus.
       role={boxed ? undefined : 'region'}
       aria-label={boxed ? undefined : `${caption ?? 'Table'}, scrolls sideways`}
-      className={boxed ? undefined : className}
+      className={
+        boxed
+          ? undefined
+          : cn(
+              'data-pane-bleed:-mx-(--content-inset) data-pane-bleed:[--record-table-gutter:var(--content-inset)]',
+              className
+            )
+      }
     >
       <MeasuredWidth measured={boxed}>
         <div
@@ -328,7 +340,7 @@ export function RecordTableContent({
                 // Frame wide and stuck at its start, so it never scrolls sideways with the columns.
                 barShown
                   ? cn(
-                      'sticky start-0 flex items-center',
+                      'sticky start-0 flex items-center px-(--record-table-gutter,0px)',
                       // In a box the head spans every column; the box's width is what shows.
                       boxed ? 'w-[100cqi]' : 'w-full'
                     )

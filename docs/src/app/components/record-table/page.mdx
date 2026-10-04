@@ -148,7 +148,7 @@ Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Recor
 - `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
 - `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected.
 
-On a phone the table keeps its columns and scrolls sideways, with the pinned column held at the start. The second frame shows it at 390px.
+On a phone the table keeps its columns and scrolls sideways, with the pinned column held at the start. Too wide for the pane, it reaches the pane's edges so rows and the scrollbar run across, while the first column still lines up with the search. The pane scrolls it down; the table only scrolls sideways. The second frame shows it at 390px.
 
 ```tsx-live-noinline-expand id=in-a-pane
 const venues = [

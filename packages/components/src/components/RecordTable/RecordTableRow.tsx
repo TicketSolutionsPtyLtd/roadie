@@ -28,8 +28,13 @@ export const ROW_HEIGHT = ROW_REM * 16
 const cellOverflowClass =
   'overflow-visible supports-[overflow-clip-margin:0.25rem]:overflow-clip supports-[overflow-clip-margin:0.25rem]:[overflow-clip-margin:--spacing(1)]'
 
-export const rowClass =
-  'grid min-w-(--record-table-min-width) grid-cols-(--record-table-columns)'
+// The gutter is a pane's inset when the table reaches the pane's edges, so the
+// first column still lines up with the content above and dividers run across.
+export const rowClass = cn(
+  'grid grid-cols-(--record-table-columns) px-(--record-table-gutter,0px)',
+  'min-w-[calc(var(--record-table-min-width)+2*var(--record-table-gutter,0px))]',
+  'bg-(--record-table-row-surface,transparent)'
+)
 
 const isFigure = (column: RecordTableColumn) =>
   column.field.type === 'number' || column.field.type === 'money'
