@@ -123,6 +123,14 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
     expect(within(panel).queryByRole('group', { name: 'Layout' })).toBeNull()
   })
 
+  it('shows only with more than one layout type', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<Harness shownLayouts={[layouts[0]!, layouts[0]!]} />)
+    const { panel } = await openOptions()
+    expect(within(panel).queryByRole('group', { name: 'Layout' })).toBeNull()
+    vi.restoreAllMocks()
+  })
+
   it('sits above the sort, with the shown layout pressed', async () => {
     render(<Harness />)
     const { panel } = await openOptions()

@@ -93,7 +93,7 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
           : ({ type } as RecordLayout))
     )
   }
-  const switches = layouts.length > 1
+  const switches = new Set(layouts.map(({ type }) => type)).size > 1
   const sorts = sortableFields(records.fields).length > 0
   if (!sorts && !Settings && !switches) return null
   const name =

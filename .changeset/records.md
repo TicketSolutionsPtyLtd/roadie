@@ -163,7 +163,8 @@ together; pinned columns and the title never hide, and a priority on a
 pinned column warns in development. A column with `kind: 'image'` shows its value, an
 image URL, as a 40px thumbnail with `alt` from the row, a list row's leading
 image and a card's 16:9 banner, and a neutral tile with an image icon
-without one or when it fails to load. Built with `tableColumns`, it defaults to 3.75rem wide and
+without one or when it fails to load. A card lists its details as labels
+with every value at the card's end, text and figures alike. Built with `tableColumns`, it defaults to 3.75rem wide and
 `narrow: 'leading'`; its header is read to screen readers but not shown,
 with no sort button (give its field `sortable: false` too). The title
 column is the one with `narrow: 'title'` before the pinned text column, and

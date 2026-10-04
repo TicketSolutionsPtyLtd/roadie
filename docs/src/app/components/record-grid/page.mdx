@@ -107,7 +107,7 @@ render(
     getRowId={(row) => row.id}
     recordName={{ one: 'venue', other: 'venues' }}
     card={{
-      leading: { key: 'name', cell: ({ value }) => <Avatar size='sm' name={value} /> },
+      leading: { key: 'name', cell: ({ row }) => <Avatar size='sm' name={row.name} /> },
       title: 'name',
       description: 'city',
       details: ['capacity', 'events']
