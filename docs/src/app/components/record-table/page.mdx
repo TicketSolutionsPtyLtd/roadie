@@ -268,7 +268,7 @@ A column presents one field. `tableColumns(fields).field(key, options)` takes:
 - `pin` to hold the column at the start while the table scrolls sideways. The column with `narrow: 'title'`, or else the first pinned text column, or else the first text column, is the row's title, in strong text. A custom `cell` there inherits it.
 - `width` as `{ min, grow }` in rem, when the content's own width doesn't suit. Without it, each column sizes from a sample of its values.
 - `cell` to render the value yourself, such as an order number in `font-mono`.
-- `kind: 'image'` to show the value, an image URL, as a 40px thumbnail, with `alt` to describe it from the row. Its header is read to screen readers but not shown, and it never sorts from there; give its field `searchable: false` and `sortable: false`. A record without an image shows a neutral tile.
+- `kind: 'image'` to show the value, an image URL, as a 40px thumbnail, with `alt` to describe it from the row. Its header is read to screen readers but not shown, and it never sorts from there; give its field `searchable: false` and `sortable: false`. A record without an image shows a neutral tile with an image icon.
 - `priority` to hide the column as the table narrows. See [Column priority](#column-priority).
 - `narrow` to place the column when the table turns into list rows or cards. See [Narrow layouts](#narrow-layouts).
 
@@ -523,6 +523,10 @@ render(<Configured />)
 ```
 
 `label` renames the button, its tooltip and the panel, which are "Configure table" for the table. In your own toolbar, put `Records.Options` after the search and any `Records.ViewActions`, and before `Records.Actions`. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which `Records.Options` calls once the page is idle or its button is reached.
+
+#### Layouts
+
+Give `Records` more than one layout, such as the table and a grid of cards, and Configure shows a Layout switcher above the sort that writes the view's `layout`. The button and panel follow the layout: "Configure grid" lists the card's fields. See [Layouts on RecordGrid](/components/record-grid#layouts) for an example.
 
 ### Saved views
 
@@ -1530,7 +1534,7 @@ column.field('city', { pin: true })`}
 - While records are selected, the bulk actions are a toolbar named "Bulk actions" in the header row, beside "Select page", which keeps focus as the bar replaces the column headers. The headers stay in the table for screen readers, and the toolbar sits in a last header with no cells under it. Arrow keys move between its controls. Escape clears the selection and returns focus to "Select page".
 - Each row's actions menu is named "More actions for" the record's title. Table actions past the first sit behind a button named "More actions". A running action's control stays focusable but disabled, with `aria-busy`. A confirmation is an alert dialog.
 - The view button is named "View:" and the view's name, with ", unsaved changes" once the view has changed, as its tooltip shows, and opens a menu. Save view and Reset view sit in a group named "Unsaved changes". Save as new view and Rename view open a dialog of that name with focus in its Name field, the whole name selected to rename, and an empty name says "Enter a name". Delete view asks in an alert dialog. Focus returns to the view button as each closes. While a handler runs, its control stays focusable but disabled, with `aria-busy`.
-- The Configure button is named "Configure table", as is the dialog it opens. Its sort controls are named "Sort by", then "Then by, level 2" and so on, and for each level the field's order, such as "Sold order". Adding a level moves focus to its field, and removing one moves focus to the Remove of the level that takes its place, or of the one before it, or to Add sort. Each column's handle is named "Reorder" and the column, its eye is a toggle button named "Show" and the column, pressed while the column shows (the last shown column's is disabled and says why), and each move is announced, such as "Gross moved to position 1 of 4 columns".
+- The Configure button is named "Configure table", as is the dialog it opens. Given more than one layout, its Layout switcher is a group named "Layout" of toggle buttons, with the shown layout pressed. Its sort controls are named "Sort by", then "Then by, level 2" and so on, and for each level the field's order, such as "Sold order". Adding a level moves focus to its field, and removing one moves focus to the Remove of the level that takes its place, or of the one before it, or to Add sort. Each column's handle is named "Reorder" and the column, its eye is a toggle button named "Show" and the column, pressed while the column shows (the last shown column's is disabled and says why), and each move is announced, such as "Gross moved to position 1 of 4 columns".
 - In Select mode, each record's checkbox covers the record, so a tap anywhere on it toggles, and the link steps aside. "Select" and "Done" are one button, which keeps focus as it switches. Select mode's controls are a group named "Select mode", and the floating bulk actions a group named "Bulk actions", where Escape leaves Select mode. When the bar goes, focus lands on Select, or on the records.
 - Focus follows the record across a switch between the table and the list, onto the same record's link or first control.
 - A row with `getRowHref` holds a real link: it opens in a new tab with Cmd or Ctrl, and works with every other link convention, not just a click handler.

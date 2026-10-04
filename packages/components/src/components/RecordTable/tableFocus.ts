@@ -2,13 +2,18 @@
 
 import { type RefObject, useLayoutEffect } from 'react'
 
-/** The table's named region: its box when it scrolls in one, else its sideways scroller. */
+/** The records' named region: their box when they scroll in one, else their scroller, in a table or a grid. */
 export function tableFocusTarget(from: Element) {
   return (
-    from.closest<HTMLElement>('[data-slot="record-table-viewport"]') ??
-    from.closest<HTMLElement>('[data-slot="record-table-scroller"]')
+    from.closest<HTMLElement>(
+      '[data-slot="record-table-viewport"], [data-slot="record-grid-viewport"]'
+    ) ?? from.closest<HTMLElement>(RECORDS_SCROLLER)
   )
 }
+
+/** Where a layout's records scroll from, a table's or a grid's. */
+export const RECORDS_SCROLLER =
+  '[data-slot="record-table-scroller"], [data-slot="record-grid-scroller"]'
 
 /** Table targets taking focus from a row that is leaving, while they take it. */
 export const handedOver = new WeakSet<Element>()

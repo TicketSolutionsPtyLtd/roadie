@@ -240,6 +240,10 @@
       "types": "./dist/components/RadioGroup/index.d.ts",
       "import": "./dist/components/RadioGroup/index.js"
     },
+    "./record-grid": {
+      "types": "./dist/components/RecordGrid/index.d.ts",
+      "import": "./dist/components/RecordGrid/index.js"
+    },
     "./record-table": {
       "types": "./dist/components/RecordTable/index.d.ts",
       "import": "./dist/components/RecordTable/index.js"

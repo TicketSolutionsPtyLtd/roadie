@@ -22,7 +22,7 @@ import { isDev } from '../../utils/isDev'
 import { SortIcon } from '../DataTable/SortIcon'
 import { Progress } from '../Progress'
 import { RecordsEmpty, RecordsError } from '../Records/RecordsStates'
-import { isSelecting, useRecordsContext } from '../Records/context'
+import { useRecordsContext } from '../Records/context'
 import type { RecordsContentProps } from '../Records/layouts'
 import { useNarrow } from '../Records/narrow'
 import { leaveSelectOnEscape } from '../Records/selectMode'
@@ -31,6 +31,7 @@ import { firstDirection } from '../Records/sortOptions'
 import { useStickyTop } from '../Records/stickyTop'
 import { surfaceClass, useSurface } from '../Records/surface'
 import { useSurvivor } from '../Records/useBulkActions'
+import { useSelectModeLayout } from '../Records/useSelectModeLayout'
 import { ScrollArea } from '../ScrollArea'
 import { NarrowSkeleton, RecordTableNarrowRows } from './RecordTableNarrowRows'
 import {
@@ -123,8 +124,7 @@ export function RecordTableContent({
     toolbar,
     setContentFill,
     bulkMounted,
-    setBulkSlot,
-    setSelectMode
+    setBulkSlot
   } = useRecordsContext()
   const rowsSurvivor = useSurvivor('rows')
   const frameRef = useRef<HTMLDivElement>(null)
@@ -158,33 +158,11 @@ export function RecordTableContent({
   useKeepFocusShown(frameRef, boxed)
   useLayoutFocus(frameRef, narrow ?? 'wide', boxed)
   // Narrow rows select only through Select mode; wide rows have checkboxes and keep it.
-  const selecting = isSelecting(records, narrow !== undefined)
-  const { selecting: committed, setSelecting } = records
+  const selecting = useSelectModeLayout(narrow !== undefined)
   const latest = useRef(records)
   useLayoutEffect(() => {
     latest.current = records
   })
-  const isNarrowShown = narrow !== undefined
-  // Narrow rows enter Select mode, and only a switch to wide leaves it, so a
-  // second Content of another width under the same records never fights it.
-  const wasNarrow = useRef(false)
-  useLayoutEffect(() => {
-    const left = wasNarrow.current && !isNarrowShown
-    wasNarrow.current = isNarrowShown
-    if (isNarrowShown && selecting && !committed)
-      setSelecting(true, { keep: true })
-    else if (left && committed) setSelecting(false, { keep: true })
-    if (isNarrowShown) setSelectMode(true)
-    else if (left) setSelectMode(false)
-  }, [isNarrowShown, selecting, committed, setSelecting, setSelectMode])
-  useLayoutEffect(
-    () => () => {
-      if (!wasNarrow.current) return
-      setSelectMode(false)
-      latest.current.setSelecting(false, { keep: true })
-    },
-    [setSelectMode]
-  )
 
   const { selectable, getRowHref } = records
   // Presence, not identity: an inline rowActions is new every render.

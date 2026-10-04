@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 
+import { ImageIcon } from '@phosphor-icons/react'
+
 import { cn } from '@oztix/roadie-core/utils'
 
 import { Image } from '../Image'
@@ -32,8 +34,17 @@ export function RecordImage({
     return (
       <span
         data-slot='record-image-placeholder'
-        className={cn('block bg-subtle', shapeClass(banner))}
-      />
+        className={cn(
+          'grid place-items-center bg-subtle text-subtle',
+          shapeClass(banner)
+        )}
+      >
+        <ImageIcon
+          weight='bold'
+          aria-hidden
+          className={banner ? 'size-6' : 'size-4'}
+        />
+      </span>
     )
   return (
     <Image

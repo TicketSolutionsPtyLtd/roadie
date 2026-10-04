@@ -60,7 +60,10 @@ columns as defined and keeping keys for columns the table doesn't have.
 `label` renames the button, which is "Configure table" for the table. A
 layout definition adds its own settings with `Settings`, which can carry a
 `preload` that runs once the page is idle or the button is reached; the
-table's columns list loads that way, out of the table's first load.
+table's columns list loads that way, out of the table's first load. Given
+more than one layout, Options shows a Layout switcher above the sort that
+writes `view.layout`; each layout comes back with its settings as last
+shown, or the `baseline`'s, so switching back reads as unchanged.
 
 `Records.Search` searches and filters in one `QueryField`, named "Search and
 filter". Typing searches the searchable fields as before and suggests filters
@@ -159,8 +162,9 @@ the wide rows do, with placeholders and range errors at their size.
 together; pinned columns and the title never hide, and a priority on a
 pinned column warns in development. A column with `kind: 'image'` shows its value, an
 image URL, as a 40px thumbnail with `alt` from the row, a list row's leading
-image and a card's 16:9 banner, and a neutral tile without one or when it
-fails to load. Built with `tableColumns`, it defaults to 3.75rem wide and
+image and a card's 16:9 banner, and a neutral tile with an image icon
+without one or when it fails to load. A card lists its details as labels
+with every value at the card's end, text and figures alike. Built with `tableColumns`, it defaults to 3.75rem wide and
 `narrow: 'leading'`; its header is read to screen readers but not shown,
 with no sort button (give its field `sortable: false` too). The title
 column is the one with `narrow: 'title'` before the pinned text column, and

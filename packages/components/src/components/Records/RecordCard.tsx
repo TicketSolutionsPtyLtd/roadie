@@ -25,9 +25,6 @@ export function recordTitle(
   return text?.trim() ? text : id
 }
 
-const isFigure = (part: RecordPart) =>
-  part.field.type === 'number' || part.field.type === 'money'
-
 export type RecordCardProps = {
   id: string
   row: object
@@ -155,9 +152,8 @@ export const RecordCard = memo(function RecordCard({
             {parts.details.map((part) => (
               <Fragment key={part.key}>
                 <dt className='text-subtle'>{part.field.label}</dt>
-                <dd className={cn('min-w-0', isFigure(part) && 'text-end')}>
-                  {value(part)}
-                </dd>
+                {/* Every value at the end, so details read as one aligned list. */}
+                <dd className='min-w-0 text-end'>{value(part)}</dd>
               </Fragment>
             ))}
           </dl>

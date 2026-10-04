@@ -320,7 +320,7 @@ function VirtualList({
  * swapped rows before inserting their replacements, and WebKit clamps the
  * scroll to the shorter body in between; fixed rows hold their total instead.
  */
-function useHeldHeight(
+export function useHeldHeight(
   bodyRef: RefObject<HTMLElement | null>,
   enabled: boolean
 ) {
@@ -411,7 +411,7 @@ function RangeList({
 }
 
 /** A record still loading, at its row's or card's size; static, as a shimmer would repaint each scroll frame. */
-const NarrowPlaceholder = memo(function NarrowPlaceholder({
+export const NarrowPlaceholder = memo(function NarrowPlaceholder({
   parts,
   card,
   index,

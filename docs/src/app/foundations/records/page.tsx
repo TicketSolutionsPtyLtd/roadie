@@ -279,8 +279,8 @@ export default function RecordsPage() {
           A view is a search, filters, sort and layout, saved under a name. Each
           filter is a chip. Chips are ANDed and the values inside one chip are
           ORed. Query and layout are independent, so the same search reads as a
-          table or a grid. Page, scroll row and selection are session state,
-          never part of a view.
+          table or a grid of cards, and Configure switches between them. Page,
+          scroll row and selection are session state, never part of a view.
         </p>
         <CodePreview>{JSON.stringify(VIEW, null, 2)}</CodePreview>
         <Table
