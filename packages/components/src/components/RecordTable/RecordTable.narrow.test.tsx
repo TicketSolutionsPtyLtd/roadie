@@ -403,7 +403,14 @@ describe('RecordTable Select mode', () => {
 
   it('floats the bulk actions, with each Select mode control once', async () => {
     const user = userEvent.setup()
-    render(<RecordTable {...selectBase} data={testShows(60)} />)
+    render(
+      // A short page, so it renders quickly and still offers every match.
+      <RecordTable
+        {...selectBase}
+        data={testShows(20)}
+        defaultPosition={{ pageSize: 10 }}
+      />
+    )
     await enterSelect(user)
     await user.click(screen.getByRole('button', { name: 'Select all' }))
     const floating = screen.getByRole('group', { name: 'Bulk actions' })
@@ -414,7 +421,7 @@ describe('RecordTable Select mode', () => {
       screen.getAllByRole('button', { name: 'Deselect all' })
     ).toHaveLength(1)
     expect(
-      within(floating).getByRole('button', { name: /^Select all 60/ })
+      within(floating).getByRole('button', { name: /^Select all 20/ })
     ).toBeInTheDocument()
   })
 
