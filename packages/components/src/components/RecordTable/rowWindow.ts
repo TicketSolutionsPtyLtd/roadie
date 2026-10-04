@@ -7,11 +7,11 @@ import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual'
 import { findScrollParent } from '../Records/scrollParent'
 import { ROW_REM } from './RecordTableRow'
 import { type Watched, firstClearRow } from './rowPosition'
+import { RECORDS_SCROLLER } from './tableFocus'
 
 const OVERSCAN = 10
 // A first paint before the scroll element is known, on the server or in jsdom.
 const INITIAL_RECT = { width: 1024, height: 900 }
-const SCROLLER_SELECTOR = '[data-slot="record-table-scroller"]'
 
 /** The body's offset within its scroll element, as the virtualiser's `scrollMargin`. */
 function marginOf(body: HTMLElement, element: HTMLElement | null) {
@@ -68,7 +68,7 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
   useLayoutEffect(() => {
     const body = bodyRef.current
     if (!body) return
-    const tableScroller = body.closest<HTMLElement>(SCROLLER_SELECTOR)
+    const tableScroller = body.closest<HTMLElement>(RECORDS_SCROLLER)
     const element = findScrollParent(tableScroller)
     setScroller({ element, ready: true })
     const measure = () => {

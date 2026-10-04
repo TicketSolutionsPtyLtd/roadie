@@ -60,7 +60,10 @@ columns as defined and keeping keys for columns the table doesn't have.
 `label` renames the button, which is "Configure table" for the table. A
 layout definition adds its own settings with `Settings`, which can carry a
 `preload` that runs once the page is idle or the button is reached; the
-table's columns list loads that way, out of the table's first load.
+table's columns list loads that way, out of the table's first load. Given
+more than one layout, Options shows a Layout switcher above the sort that
+writes `view.layout`; each layout comes back with its settings as last
+shown, or the `baseline`'s, so switching back reads as unchanged.
 
 `Records.Search` searches and filters in one `QueryField`, named "Search and
 filter". Typing searches the searchable fields as before and suggests filters

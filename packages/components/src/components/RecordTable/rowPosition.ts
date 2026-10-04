@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { findStickyContainer } from '../Records/scrollParent'
+import { RECORDS_SCROLLER } from './tableFocus'
 
 const REPORT_EVERY_MS = 300
 // Long enough for a pane header to compact after the jump on a slow device.
@@ -74,9 +75,7 @@ export function stuckInset(body: HTMLElement): number {
     .closest('[data-slot="records"]')
     ?.querySelector<HTMLElement>('[data-slot="records-toolbar"]')
   // From above the scroller, which is a sticky container itself; the toolbar covers the rows only when both stick in one box.
-  const scroller = body.closest<HTMLElement>(
-    '[data-slot="record-table-scroller"]'
-  )
+  const scroller = body.closest<HTMLElement>(RECORDS_SCROLLER)
   return toolbar &&
     findStickyContainer(toolbar) === findStickyContainer(scroller)
     ? stuckBottom(toolbar)

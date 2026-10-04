@@ -1,8 +1,17 @@
 'use client'
 
-import { Suspense, useEffect, useId, useRef, useState } from 'react'
+import {
+  Suspense,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState
+} from 'react'
 
 import { SlidersHorizontalIcon } from '@phosphor-icons/react'
+
+import type { RecordLayout } from '@oztix/roadie-core/records'
 
 import {
   PickerOverlay,
@@ -11,6 +20,7 @@ import {
 } from '../../pickers/PickerShell'
 import { IconButton } from '../Button'
 import { Tooltip } from '../Tooltip'
+import { RecordsLayoutSettings } from './RecordsLayoutSettings'
 import { RecordsSortSettings } from './RecordsSortSettings'
 import { activeLayout, useRecordsContext } from './context'
 import { whenIdle } from './idle'
@@ -32,9 +42,9 @@ const inSentence = (label: string) =>
 const focusPanel = (popup: HTMLElement) => popup
 
 /**
- * A button that opens the view's options: the sort, and the shown layout's
- * own settings, such as the table's columns. A popover, or a bottom drawer on
- * a phone. Renders nothing when there is nothing to set.
+ * A button that opens the view's options: the layout, the sort, and the shown
+ * layout's own settings, such as the table's columns. A popover, or a bottom
+ * drawer on a phone. Renders nothing when there is nothing to set.
  */
 export function RecordsOptions({ label, className }: RecordsOptionsProps) {
   const { records, layouts } = useRecordsContext()
@@ -45,18 +55,37 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
 
   const layout = activeLayout(layouts, records.view)
   const Settings = layout?.Settings
-  // A lazy layout's settings load once the page is idle, or as the button is
+  // Lazy layouts' settings load once the page is idle, or as the button is
   // reached, so the first open doesn't wait for them and the page's first
-  // load doesn't carry them. Once per mount: a layout built in render makes a
-  // new `preload` each time.
-  const preload = useRef(Settings?.preload)
+  // load doesn't carry them. Every layout's, so a switch shows its settings
+  // at once. Once per mount: a layout built in render makes a new `preload`
+  // each time.
+  const preload = useRef(() => {})
   useEffect(() => {
-    preload.current = Settings?.preload
+    preload.current = () => {
+      for (const each of layouts) each.Settings?.preload?.()
+    }
   })
-  useEffect(() => whenIdle(() => preload.current?.()), [])
-  const preloadNow = () => preload.current?.()
+  useEffect(() => whenIdle(() => preload.current()), [])
+  const preloadNow = () => preload.current()
+  // Each layout's settings as last shown, so switching back keeps them.
+  const shownLayouts = useRef(new Map<string, RecordLayout>())
+  const { layout: viewLayout } = records.view
+  useLayoutEffect(() => {
+    shownLayouts.current.set(viewLayout.type, viewLayout)
+  }, [viewLayout])
+  const switchLayout = (type: RecordLayout['type']) => {
+    const { baseline } = records
+    records.setLayout(
+      shownLayouts.current.get(type) ??
+        (baseline?.layout.type === type
+          ? baseline.layout
+          : ({ type } as RecordLayout))
+    )
+  }
+  const switches = layouts.length > 1
   const sorts = sortableFields(records.fields).length > 0
-  if (!sorts && !Settings) return null
+  if (!sorts && !Settings && !switches) return null
   const name =
     label ?? (layout ? `Configure ${inSentence(layout.label)}` : 'Configure')
 
@@ -107,6 +136,9 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
       }
     >
       <div data-slot='records-options' className='grid gap-6'>
+        {switches && layout && (
+          <RecordsLayoutSettings shown={layout} onChange={switchLayout} />
+        )}
         {sorts && <RecordsSortSettings />}
         {Settings && layout && (
           // A layout may load its settings on first open, as the table does.
