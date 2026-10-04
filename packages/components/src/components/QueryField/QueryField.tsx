@@ -102,6 +102,11 @@ const CARET_KEYS = new Set(['Home', 'End'])
 // Centred on the first line of 24px chips, so wrapped rows grow below it.
 const FIRST_ROW = 'self-start mt-[calc(var(--combobox-chips-py)+--spacing(1))]'
 
+// A chip leaves the input a few characters and the gap beside it, so the input
+// wraps to a row of its own only after a chip that doesn't truncate.
+const INPUT_WIDTH = '*:data-[slot=combobox-input]:min-w-8'
+const CHIP_WIDTH = 'max-w-[calc(100%-var(--spacing)*9)]'
+
 // Kind and id together, so a suggestion reusing a built-in row's id stays apart.
 function itemKey(item: { kind: string; id: string }) {
   return `${item.kind}:${item.id}`
@@ -405,7 +410,10 @@ export function QueryField<Value = unknown>({
           weight='bold'
           className={cn('size-4 shrink-0 text-subtle', FIRST_ROW)}
         />
-        <Combobox.Chips aria-label={ordered.length > 0 ? 'Filters' : undefined}>
+        <Combobox.Chips
+          aria-label={ordered.length > 0 ? 'Filters' : undefined}
+          className={INPUT_WIDTH}
+        >
           {ordered.map((chip) => {
             const tooltip = chip.locked ? (
               <span className='grid'>
@@ -459,6 +467,7 @@ export function QueryField<Value = unknown>({
                 aria-keyshortcuts={editable ? 'Enter' : undefined}
                 className={cn(
                   props.className,
+                  CHIP_WIDTH,
                   chip.locked && 'gap-1 ps-2 pe-2.5',
                   chip.intent && intentVariants[chip.intent]
                 )}
@@ -490,7 +499,10 @@ export function QueryField<Value = unknown>({
             <span
               id={pendingId}
               data-slot='query-field-pending-chip'
-              className='inline-flex h-6 max-w-full min-w-0 items-center rounded-full border border-dashed border-normal px-2.5 text-sm font-medium text-subtle'
+              className={cn(
+                'inline-flex h-6 min-w-0 items-center rounded-full border border-dashed border-normal px-2.5 text-sm font-medium text-subtle',
+                CHIP_WIDTH
+              )}
             >
               <span className='min-w-0 truncate'>{pendingChip.label}</span>
             </span>

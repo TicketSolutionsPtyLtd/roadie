@@ -17,6 +17,7 @@ const sum = (parts: string[]) =>
 /**
  * The `top` for a sticky part: under a pane's header only when the pane
  * scrolls it, and under the toolbar only when both stick in the same box.
+ * `inPane` says whether the pane scrolls it.
  */
 export function useStickyTop(
   ref: RefObject<HTMLElement | null>,
@@ -25,15 +26,18 @@ export function useStickyTop(
   placement?: unknown
 ) {
   const [top, setTop] = useState(PANE_HEADER)
+  const [inPane, setInPane] = useState(false)
   useLayoutEffect(() => {
     const element = ref.current
     if (!element) return
     const container = findStickyContainer(element)
     const parts: string[] = []
-    if (container?.dataset.slot === 'pane-viewport') parts.push(PANE_HEADER)
+    const scrolledByPane = container?.dataset.slot === 'pane-viewport'
+    if (scrolledByPane) parts.push(PANE_HEADER)
     if (toolbar && findStickyContainer(toolbar.element) === container)
       parts.push(`${toolbar.height}px`)
     setTop(sum(parts))
+    setInPane(scrolledByPane)
   }, [ref, toolbar, placement])
-  return top
+  return { top, inPane }
 }

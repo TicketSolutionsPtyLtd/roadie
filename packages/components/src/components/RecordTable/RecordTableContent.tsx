@@ -124,7 +124,7 @@ export function RecordTableContent({
   // In its own box, one viewport scrolls both ways; otherwise only the rows scroll sideways.
   const boxed = fill || Boolean(maxHeight)
   const contentRef = useRef<HTMLDivElement>(null)
-  const headTop = useStickyTop(headRef, toolbar, boxed)
+  const { top: headTop } = useStickyTop(headRef, toolbar, boxed)
   // On the table, so the head and pinned cells inherit it.
   useSurface(contentRef, boxed)
   const allColumns = config.columns
