@@ -548,6 +548,8 @@ export function Calendar(props: CalendarProps) {
   }
 
   function turn(step: SwipeStep) {
+    // Applied after a slide, so the bounds are checked as they are then.
+    if (!canTurn(step)) return
     if (!weekView) return turnMonth(addMonths(firstMonth, step))
     setPendingFocus(null)
     const start = addDays(shownWeek, step * 7)
@@ -583,7 +585,12 @@ export function Calendar(props: CalendarProps) {
   }, [weekView])
 
   const swipeable = !scrolling && !waitingForToday && disabled !== true
-  useSwipeToTurn(rootRef, { enabled: swipeable, vertical, canTurn, turn })
+  const pageTurn = useSwipeToTurn(rootRef, {
+    enabled: swipeable,
+    vertical,
+    canTurn,
+    turn
+  })
 
   function commit(next: CalendarSelection) {
     if (selectedProp === undefined) setUncontrolled({ mode, selection: next })
@@ -712,6 +719,18 @@ export function Calendar(props: CalendarProps) {
       changeMonth(addMonths(monthOf(date), 1 - numberOfMonths))
   }
 
+  // A turn applies after its slide out, so it reads the calendar as it is
+  // then, and a second quick press builds on the first.
+  const latestRef = useRef<{
+    turn: typeof turn
+    moveFocus: (date: string) => void
+  } | null>(null)
+  useIsomorphicLayoutEffect(() => {
+    latestRef.current = { turn, moveFocus }
+  })
+  // Where a queued key turn will put focus, so a second press goes on from it.
+  const queuedFocus = useRef<string | null>(null)
+
   function clampDate(date: string) {
     if (minDate && compareDates(date, minDate) < 0) return minDate
     if (maxDate && compareDates(date, maxDate) > 0) return maxDate
@@ -734,6 +753,26 @@ export function Calendar(props: CalendarProps) {
     if (!next) return
     event.preventDefault()
     if (disabled === true && !isVisible(next)) return
+    // Page keys turn with the slide; arrow keys stay instant, so focus is
+    // never on a day that is sliding away.
+    if (event.key.startsWith('Page') && !scrolling) {
+      const from = queuedFocus.current ?? date
+      const target = clampDate(
+        dateForKey(event.key, from, {
+          shiftKey: event.shiftKey,
+          weekStart,
+          rtl
+        })!
+      )
+      if (target === from) return
+      if (isVisible(target) && !queuedFocus.current) return moveFocus(target)
+      queuedFocus.current = target
+      pageTurn(compareDates(target, from) > 0 ? 1 : -1, () => {
+        queuedFocus.current = null
+        latestRef.current!.moveFocus(target)
+      })
+      return
+    }
     moveFocus(clampDate(next))
   }
 
@@ -975,7 +1014,12 @@ export function Calendar(props: CalendarProps) {
         </div>
       )
     }
-    const shift = (next: string) => turnMonth(addMonths(next, -index))
+    const shift = (next: string) => {
+      const first = addMonths(next, -index)
+      const step = compareDates(monthOf(first), firstMonth)
+      if (!step) return
+      pageTurn(step, () => turnMonth(first))
+    }
     const monthNumber = monthNumberOf(month)
     const year = yearOf(month)
     // The page turn clamps to the nearest allowed month, so a year is open
@@ -1207,7 +1251,7 @@ export function Calendar(props: CalendarProps) {
         size='sm'
         aria-label={`Previous ${unit}`}
         disabled={!canTurn(-1)}
-        onClick={() => turn(-1)}
+        onClick={() => pageTurn(-1, () => latestRef.current!.turn(-1))}
       >
         <PreviousIcon weight='bold' className={arrowClass} />
       </IconButton>
@@ -1216,7 +1260,7 @@ export function Calendar(props: CalendarProps) {
         size='sm'
         aria-label={`Next ${unit}`}
         disabled={!canTurn(1)}
-        onClick={() => turn(1)}
+        onClick={() => pageTurn(1, () => latestRef.current!.turn(1))}
       >
         <NextIcon weight='bold' className={arrowClass} />
       </IconButton>

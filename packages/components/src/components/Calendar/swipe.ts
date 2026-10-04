@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useEffect, useRef } from 'react'
+import { type RefObject, useCallback, useEffect, useRef } from 'react'
 
 import { flushSync } from 'react-dom'
 
@@ -62,14 +62,18 @@ function prefersReducedMotion() {
   )
 }
 
+export type PageTurn = (step: SwipeStep, apply: () => void) => void
+
 /**
  * Turns the page when a finger swipes the days, which follow it unless
- * motion is reduced.
+ * motion is reduced. Returns a page turn for the controls that plays the
+ * same slide around `apply`, or applies it straight away when it can't.
  */
 export function useSwipeToTurn(
   rootRef: RefObject<HTMLElement | null>,
   options: SwipeOptions
-) {
+): PageTurn {
+  const pageTurn = useRef<PageTurn | null>(null)
   const latest = useRef(options)
   useIsomorphicLayoutEffect(() => {
     latest.current = options
@@ -92,6 +96,10 @@ export function useSwipeToTurn(
     let gesture: Gesture | null = null
     let settling = false
     let disposed = false
+    // Each turn takes a number, so one cut short stops where it is.
+    let run = 0
+    // A turn waiting for its slide out, applied at once if cut short.
+    let pending: (() => void) | null = null
     let suppressClickUntil = -Infinity
     const running: Animation[] = []
 
@@ -140,25 +148,58 @@ export function useSwipeToTurn(
       settling = false
     }
 
-    async function settle(along: number, step: SwipeStep | null) {
+    // Which way the days move on screen for a step, as a finger would drag.
+    const signOf = (step: SwipeStep) => {
+      const rtl = !vertical && getComputedStyle(root).direction === 'rtl'
+      return (step === 1) !== rtl ? -1 : 1
+    }
+
+    const cutShort = () => {
+      if (!settling) return
+      stopAnimations()
+      const waiting = pending
+      pending = null
+      if (waiting) flushSync(waiting)
+      finish()
+    }
+
+    // `from` is where the days sit now: under the finger, or at rest.
+    async function animateTurn(
+      from: number,
+      step: SwipeStep | null,
+      apply: () => void
+    ) {
+      cutShort()
+      const mine = ++run
       settling = true
+      root!.dataset.swiping = ''
       const still = prefersReducedMotion()
       if (step) {
-        const sign = Math.sign(along)
-        if (!still) await slide(along, (size) => sign * size, OUT_MS, 'ease-in')
-        // Torn down mid-slide, such as by the calendar being disabled.
-        if (disposed || !root!.isConnected) return
-        flushSync(() => latest.current.turn(step))
+        const sign = signOf(step)
+        pending = apply
+        if (!still) await slide(from, (size) => sign * size, OUT_MS, 'ease-in')
+        // Torn down mid-slide, such as by the calendar being disabled, or
+        // cut short by a later turn, which has applied this one.
+        if (disposed || mine !== run || !root!.isConnected) return
+        pending = null
+        flushSync(apply)
         place(0)
         stopAnimations()
         if (!still) await slide((size) => -sign * size, 0, IN_MS, 'ease-out')
-        if (disposed) return
-      } else if (!still && along) {
+      } else if (!still && from) {
         place(0)
-        await slide(along, 0, IN_MS, 'ease-out')
-        if (disposed) return
+        await slide(from, 0, IN_MS, 'ease-out')
       }
+      if (disposed || mine !== run) return
       finish()
+    }
+
+    const settle = (along: number, step: SwipeStep | null) =>
+      animateTurn(along, step, () => step && latest.current.turn(step))
+
+    pageTurn.current = (step, apply) => {
+      if (typeof root.animate !== 'function') return apply()
+      void animateTurn(0, step, apply)
     }
 
     // Touch events, not pointer events: iOS Safari cancels the pointer once
@@ -255,6 +296,10 @@ export function useSwipeToTurn(
     root.addEventListener('click', onClick, true)
     return () => {
       disposed = true
+      pageTurn.current = null
+      const waiting = pending
+      pending = null
+      waiting?.()
       root.removeEventListener('touchstart', onTouchStart)
       root.removeEventListener('touchmove', onTouchMove)
       root.removeEventListener('touchend', onTouchEnd)
@@ -265,4 +310,10 @@ export function useSwipeToTurn(
       delete root.dataset.swiping
     }
   }, [rootRef, enabled, vertical])
+
+  return useCallback<PageTurn>(
+    (step, apply) =>
+      pageTurn.current ? pageTurn.current(step, apply) : apply(),
+    []
+  )
 }

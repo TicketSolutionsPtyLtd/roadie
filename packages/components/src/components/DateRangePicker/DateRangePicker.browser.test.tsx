@@ -630,6 +630,8 @@ describe('DateRangePicker finishing a range in another month', TIMEOUT, () => {
     await userEvent.click(
       within(popup).getByRole('button', { name: 'Next month' })
     )
+    // The page turns after its slide out.
+    await expect.poll(() => popup.querySelector('[data-swiping]')).toBeNull()
     await userEvent.click(day('2026-11-05'))
     expect(within(popup).getByRole('combobox', { name: 'Start' })).toHaveValue(
       '1 Oct 2026'

@@ -54,6 +54,12 @@ const caption = () =>
           .textContent
     )
 
+// A page turn lands after its slide out.
+const turned = () =>
+  expect
+    .poll(() => document.querySelector('[data-swiping]'), { timeout: 2000 })
+    .toBeNull()
+
 async function tabIntoGrid() {
   while (!focused()) await userEvent.tab()
 }
@@ -82,6 +88,7 @@ describe('Calendar keyboard', () => {
     render(<Calendar today={TODAY} />)
     await tabIntoGrid()
     await userEvent.keyboard(keys)
+    await turned()
     expect(focused()).toBe(expected)
     expect(document.activeElement).toHaveAttribute('data-focused')
     expect(document.activeElement).toHaveAttribute('tabindex', '0')
@@ -107,6 +114,7 @@ describe('Calendar keyboard', () => {
     expect(focused()).toBe('2027-04-04')
     expect(document.activeElement).not.toHaveAttribute('data-outside')
     await userEvent.keyboard('{PageDown}')
+    await turned()
     expect(caption()).toEqual(['April 2027', 'May 2027'])
     expect(focused()).toBe('2027-05-04')
   })
@@ -146,10 +154,12 @@ describe('Calendar focus', () => {
     await userEvent.tab()
     expect(document.activeElement).toHaveAccessibleName('Previous month')
     await userEvent.keyboard('{Enter}')
+    await turned()
     expect(document.activeElement).toHaveAccessibleName('Previous month')
     await userEvent.tab()
     expect(document.activeElement).toHaveAccessibleName('Next month')
     await userEvent.keyboard('{Enter}{Enter}')
+    await turned()
     expect(caption()).toEqual(['April 2027'])
     expect(document.activeElement).toHaveAccessibleName('Next month')
   })
@@ -158,6 +168,7 @@ describe('Calendar focus', () => {
     render(<Calendar today={TODAY} captionLayout='dropdown' />)
     const month = screen.getByRole('combobox', { name: 'Month' })
     await userEvent.selectOptions(month, 'July')
+    await turned()
     expect(caption()).toEqual(['July 2027'])
     expect(screen.getByRole('combobox', { name: 'Month' })).toBe(month)
   })
@@ -573,6 +584,90 @@ describe('Calendar day tiles', () => {
     expect(toggle.right).toBeLessThan(previous.left)
     expect(next.right).toBe(header.right)
     expect(header.height).toBe(32)
+  })
+})
+
+describe('Calendar page turns', () => {
+  const days = () =>
+    document.querySelector<HTMLElement>('[data-slot="calendar-days"]')!
+  const weekdays = () =>
+    document.querySelector('[data-slot="calendar-grid"] thead')!
+  const lastFrame = () =>
+    (days().getAnimations()[0]?.effect as KeyframeEffect | undefined)
+      ?.getKeyframes()
+      .at(-1)?.transform
+
+  it('slides the days, not the weekday row, as the arrows turn the page', async () => {
+    render(<Calendar today={TODAY} />)
+    const row = weekdays().getBoundingClientRect().toJSON()
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    expect(document.querySelector('[data-swiping]')).not.toBeNull()
+    expect(lastFrame()).toMatch(/^translate3d\(-\d/)
+    expect(weekdays().getBoundingClientRect().toJSON()).toEqual(row)
+    await turned()
+    expect(caption()).toEqual(['April 2027'])
+    expect(days().style.transform).toBe('')
+  })
+
+  it('ends on the right month when clicked again mid-slide, keeping focus', async () => {
+    render(<Calendar today={TODAY} />)
+    const next = screen.getByRole('button', { name: 'Next month' })
+    await userEvent.click(next)
+    await userEvent.click(next)
+    await userEvent.click(next)
+    await turned()
+    expect(caption()).toEqual(['June 2027'])
+    expect(next).toHaveFocus()
+    expect(days().getAnimations()).toHaveLength(0)
+  })
+
+  it.each([
+    ['vertical', 'ltr', /^translate3d\(0px, -\d/],
+    ['horizontal', 'rtl', /^translate3d\(\d/]
+  ] as const)(
+    'slides the way a %s %s swipe would',
+    async (direction, dir, frame) => {
+      render(
+        <div dir={dir}>
+          <Calendar today={TODAY} direction={direction} />
+        </div>
+      )
+      await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+      expect(lastFrame()).toMatch(frame)
+      await turned()
+    }
+  )
+
+  it('turns straight away when motion is reduced', async () => {
+    await commands.reduceMotion(true)
+    onTestFinished(() => commands.reduceMotion(false))
+    render(<Calendar today={TODAY} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    expect(caption()).toEqual(['April 2027'])
+    expect(days().getAnimations()).toHaveLength(0)
+    expect(getComputedStyle(days()).transform).toBe('none')
+  })
+
+  it('slides for Page Down but not for an arrow across the month', async () => {
+    render(<Calendar today='2027-03-31' />)
+    await tabIntoGrid()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(document.querySelector('[data-swiping]')).toBeNull()
+    expect(caption()).toEqual(['April 2027'])
+    await userEvent.keyboard('{PageDown}')
+    expect(document.querySelector('[data-swiping]')).not.toBeNull()
+    await turned()
+    expect(focused()).toBe('2027-05-01')
+    await userEvent.keyboard('{PageDown}{PageDown}')
+    await turned()
+    expect(focused()).toBe('2027-07-01')
+  })
+
+  it('turns straight away when a parent moves the month', () => {
+    const { rerender } = render(<Calendar today={TODAY} month='2027-03-01' />)
+    rerender(<Calendar today={TODAY} month='2027-04-01' />)
+    expect(document.querySelector('[data-swiping]')).toBeNull()
+    expect(caption()).toEqual(['April 2027'])
   })
 })
 
