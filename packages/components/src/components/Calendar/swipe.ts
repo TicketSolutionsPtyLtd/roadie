@@ -24,6 +24,8 @@ const IN_MS = 220
 const CLICK_AFTER_SWIPE_MS = 500
 
 const GRIDS = '[data-slot="calendar-grid"]'
+// Only the days move; the weekday row above them holds still.
+const DAYS = '[data-slot="calendar-days"]'
 
 type SwipeSample = { along: number; time: number }
 
@@ -93,7 +95,7 @@ export function useSwipeToTurn(
     let suppressClickUntil = -Infinity
     const running: Animation[] = []
 
-    const grids = () => Array.from(root.querySelectorAll<HTMLElement>(GRIDS))
+    const grids = () => Array.from(root.querySelectorAll<HTMLElement>(DAYS))
     const offset = (by: number) =>
       vertical ? `translate3d(0, ${by}px, 0)` : `translate3d(${by}px, 0, 0)`
     const place = (by: number) => {
@@ -203,7 +205,7 @@ export function useSwipeToTurn(
           return
         }
         if (Math.abs(along) < SLOP) return
-        const box = root.querySelector(GRIDS)?.getBoundingClientRect()
+        const box = root.querySelector(DAYS)?.getBoundingClientRect()
         if (!box) return
         gesture.engaged = true
         gesture.size = vertical ? box.height : box.width

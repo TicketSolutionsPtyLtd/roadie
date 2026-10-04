@@ -351,7 +351,9 @@ export function Calendar(props: CalendarProps) {
   const id = useId()
   const rootRef = useRef<HTMLDivElement>(null)
   const weekdaysRef = useRef<HTMLDivElement>(null)
+  const monthsRef = useRef<HTMLDivElement>(null)
   useSurface(weekdaysRef, layout)
+  useSurface(monthsRef, layout)
   const scrolling = layout === 'scroll'
   const captionLayout = scrolling ? 'label' : captionLayoutProp
   const [uncontrolledView, setUncontrolledView] = useState(() => {
@@ -1307,14 +1309,19 @@ export function Calendar(props: CalendarProps) {
                       role='columnheader'
                       scope='col'
                       aria-label={weekday.long}
-                      className='h-8 p-0 text-xs font-medium text-subtle'
+                      className={cn(
+                        'h-8 p-0 text-xs font-medium text-subtle',
+                        // Only the days slide, under a weekday row that holds still.
+                        !scrolling &&
+                          'in-data-swiping:relative in-data-swiping:z-1 in-data-swiping:bg-(--records-surface,var(--pane-surface,var(--intent-bg-normal))) in-data-swiping:shadow-[0_0_0_4px_var(--records-surface,var(--pane-surface,var(--intent-bg-normal)))]'
+                      )}
                     >
                       {weekday.short}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody data-slot='calendar-days'>
                 {weekView ? (
                   <tr role='row'>
                     {Array.from({ length: 7 }, (_, column) => {
@@ -1398,6 +1405,7 @@ export function Calendar(props: CalendarProps) {
               : // Each month's placeholder holds its own caption, but not this row.
                 monthCaptions && <div aria-hidden='true' className='h-8' />)}
           <div
+            ref={monthsRef}
             data-slot='calendar-months'
             className='relative flex flex-wrap gap-x-6 gap-y-4'
           >

@@ -78,7 +78,7 @@ describe('Calendar swiped on a phone', TIMEOUT, () => {
     await swipe('right')
     expect(caption()).toContain('February 2027')
     const grids = document.querySelectorAll<HTMLElement>(
-      '[data-slot="calendar-grid"]'
+      '[data-slot="calendar-days"]'
     )
     expect([...grids].every((table) => table.style.transform === '')).toBe(true)
     expect(document.querySelector('[data-swiping]')).toBeNull()
@@ -158,7 +158,7 @@ describe('Calendar swiped on a phone', TIMEOUT, () => {
       />
     )
     const grids = [
-      ...document.querySelectorAll<HTMLElement>('[data-slot="calendar-grid"]')
+      ...document.querySelectorAll<HTMLElement>('[data-slot="calendar-days"]')
     ]
     const heights = grids.map((grid) => grid.getBoundingClientRect().height)
     expect(heights[0]).not.toBe(heights[1])
@@ -228,6 +228,56 @@ describe('Calendar swiped on a phone', TIMEOUT, () => {
     await settle()
     expect(caption()).toContain('April 2027')
   })
+
+  it.for(['horizontal', 'vertical'] as const)(
+    'keeps the weekday row still while the days follow a %s swipe',
+    async (direction, { skip }) => {
+      if (!navigator.userAgent.includes('Chrome')) skip()
+      render(<Paged direction={direction} />)
+      const target = day('2027-03-17')
+      const start = target.getBoundingClientRect()
+      const x = start.left + start.width / 2
+      const y = start.top + start.height / 2
+      const touchAt = (dx: number, dy: number) =>
+        new Touch({ identifier: 1, target, clientX: x + dx, clientY: y + dy })
+      const fire = (type: string, dx: number, dy: number) =>
+        target.dispatchEvent(
+          new TouchEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            touches: type === 'touchend' ? [] : [touchAt(dx, dy)],
+            changedTouches: [touchAt(dx, dy)]
+          })
+        )
+      const weekdays = document.querySelector(
+        '[data-slot="calendar-grid"] thead'
+      )!
+      const header = document.querySelector('[data-slot="calendar-header"]')!
+      const before = [weekdays, header].map((el) =>
+        el.getBoundingClientRect().toJSON()
+      )
+      const [dx, dy] = direction === 'vertical' ? [0, -40] : [-40, 0]
+      fire('touchstart', 0, 0)
+      fire('touchmove', dx / 4, dy / 4)
+      fire('touchmove', dx, dy)
+      const moved = target.getBoundingClientRect()
+      expect(moved.left - start.left).toBe(dx)
+      expect(moved.top - start.top).toBe(dy)
+      expect(
+        [weekdays, header].map((el) => el.getBoundingClientRect().toJSON())
+      ).toEqual(before)
+      if (direction === 'vertical') {
+        const cell = weekdays.querySelector('th')!.getBoundingClientRect()
+        const covering = document.elementFromPoint(
+          cell.left + cell.width / 2,
+          cell.bottom - 2
+        )
+        expect(weekdays.contains(covering)).toBe(true)
+      }
+      fire('touchend', dx, dy)
+      await settle()
+    }
+  )
 
   it('turns straight away when motion is reduced', async ({ skip }) => {
     if (!navigator.userAgent.includes('Chrome')) skip()

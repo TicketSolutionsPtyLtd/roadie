@@ -576,6 +576,36 @@ describe('Calendar day tiles', () => {
   })
 })
 
+describe('Calendar weekday row', () => {
+  it.each(['w-97.5', 'w-320'])(
+    'lines its weekdays up with the day columns at %s',
+    (width) => {
+      render(
+        <div className={width}>
+          <Calendar today={TODAY} />
+        </div>
+      )
+      const headers = [
+        ...document.querySelectorAll('[data-slot="calendar-grid"] thead th')
+      ]
+      const days = [
+        '2027-03-08',
+        '2027-03-09',
+        '2027-03-10',
+        '2027-03-11',
+        '2027-03-12',
+        '2027-03-13',
+        '2027-03-14'
+      ].map(day)
+      headers.forEach((header, i) => {
+        const a = header.getBoundingClientRect()
+        const b = days[i]!.getBoundingClientRect()
+        expect(a.left + a.width / 2).toBeCloseTo(b.left + b.width / 2, 0)
+      })
+    }
+  )
+})
+
 describe('Calendar touch-action', () => {
   it.each([
     ['horizontal', /pan-y/],
