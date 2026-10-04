@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-import { errorMessage } from './RecordsStates'
+import { errorMessage, rangeErrorMessage } from './RecordsStates'
 import { isSelecting, useRecordsContext } from './context'
 
 const count = new Intl.NumberFormat('en-AU')
@@ -25,12 +25,15 @@ export function RecordsStatus() {
   const { records, selectMode } = useRecordsContext()
   const total = records.resultCount
   const selected = records.selectedCount
+  const { range } = records
+  // Until a range list knows its total, a count would announce on every load.
+  const unknown = range !== undefined && range.total === undefined
   const results = useSettled(
-    records.filtered
+    records.filtered && !unknown
       ? `${count.format(total)} ${total === 1 ? 'result' : 'results'}`
       : '',
     // A server's count is the last search's until the new one loads.
-    records.loading
+    records.loading || Boolean(range?.loading)
   )
   const selection =
     selected || isSelecting(records, selectMode)
@@ -48,9 +51,13 @@ export function RecordsStatus() {
     ? records.loading
       ? ''
       : errorMessage(records)
-    : records.loading && records.rows.length === 0
-      ? 'Loading'
-      : selection
+    : range?.failed.length
+      ? range.loading
+        ? ''
+        : rangeErrorMessage(records)
+      : (records.loading || range?.loading) && records.rows.length === 0
+        ? 'Loading'
+        : selection
   return (
     <p role='status' data-slot='records-status' className='sr-only'>
       {message}

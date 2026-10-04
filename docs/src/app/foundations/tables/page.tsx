@@ -12,7 +12,7 @@ import { OZTIX_RECORDS, type OztixRecord } from './records'
 export const metadata = {
   title: 'Tables',
   description:
-    'Which table fits the job, and how common Oztix records look in a pane, in a dashboard, on a detail page and in a PDF.',
+    'Which table fits the job, and how common Oztix records look in a pane, on a phone, in a dashboard, on a detail page and in a PDF.',
   category: 'Building apps',
   alsoIn: [{ route: '/charts', category: 'Guidelines' }]
 }
@@ -22,7 +22,7 @@ const CHOICES: ReactNode[][] = [
     <Link key='record' href='/components/record-table' className='underline'>
       RecordTable
     </Link>,
-    'A working list people search, sort and page through.',
+    'A working list people search, sort, select and page through. Turns into list rows or cards when narrow.',
     'A Pane, most of the time',
     'Any number'
   ],
@@ -126,6 +126,25 @@ const COLUMN_RULES: ReactNode[] = [
     <span className='text-strong'>Ids in monospace.</span> Order numbers,
     references and promo codes, through <Code>font-mono</Code> in the
     column&apos;s <Code>cell</Code>.
+  </>,
+  <>
+    <span className='text-strong'>Give each column its place on a phone.</span>{' '}
+    Under 40rem the table lists its records. The title column takes{' '}
+    <Code>narrow: &apos;title&apos;</Code>, one line under it{' '}
+    <Code>&apos;description&apos;</Code>, a status{' '}
+    <Code>&apos;trailing&apos;</Code>. Any <Code>&apos;detail&apos;</Code>{' '}
+    column turns rows into cards; keep it to three or four details. The rest
+    stay in the wide table.
+  </>,
+  <>
+    <span className='text-strong'>Let the extras go first.</span> Give columns
+    people can do without a <Code>priority</Code> so they hide as the table
+    narrows, 3 first, before it turns into list rows.
+  </>,
+  <>
+    <span className='text-strong'>Images lead.</span> An image column, with{' '}
+    <Code>kind: &apos;image&apos;</Code>, shows a thumbnail, leads a list row
+    and becomes a card&apos;s banner.
   </>,
   <>
     <span className='text-strong'>Hide the rest.</span> A view&apos;s{' '}
@@ -309,6 +328,7 @@ function RecordBlock({ record }: { record: OztixRecord }) {
         )}
       </>
     ],
+    ['On a phone', record.phone],
     ['Dashboard', record.dashboard],
     ['Detail page', record.detail],
     ['PDF or report', record.print]
@@ -321,12 +341,14 @@ function RecordBlock({ record }: { record: OztixRecord }) {
       </div>
       <RefTable
         label={`${record.name} columns`}
-        head={['Column', 'Field type', 'Shows as']}
-        minWidth='min-w-lg'
+        head={['Column', 'Field type', 'Shows as', 'narrow', 'priority']}
+        minWidth='min-w-2xl'
         rows={record.columns.map((column) => [
           column.pin ? `${column.label} (pinned)` : column.label,
           <Code key='type'>{column.type}</Code>,
-          column.shows
+          column.shows,
+          column.narrow ? <Code key='narrow'>{column.narrow}</Code> : '',
+          column.priority ?? ''
         ])}
       />
       <dl className='grid max-w-prose gap-x-6 gap-y-3 text-sm sm:grid-cols-[8rem_1fr]'>
@@ -439,8 +461,9 @@ export default function TablesPage() {
         </h2>
         <p className='max-w-prose text-subtle'>
           Each record lists its RecordTable columns with the type of the field
-          behind each one and how it reads, then how the record appears
-          everywhere else.
+          behind each one, how it reads, where it goes on a phone and which hide
+          first as the table narrows, then how the record appears everywhere
+          else.
         </p>
         <div className='grid gap-10'>
           {OZTIX_RECORDS.map((record) => (

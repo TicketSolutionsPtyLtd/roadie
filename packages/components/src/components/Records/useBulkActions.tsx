@@ -14,7 +14,37 @@ import type { RecordName, RecordsBulkAction } from './types'
 const count = new Intl.NumberFormat('en-AU')
 
 /** Where focus lands once a bar that held it unmounts: the selection control, else the rows. */
-export const SURVIVOR = 'data-records-survivor'
+const SURVIVOR = 'data-records-survivor'
+const SCOPE = 'data-records-scope'
+
+/** Marks an element focus can land on once the bulk actions bar goes. */
+export function useSurvivor(kind: 'selection' | 'rows') {
+  const { scope } = useRecordsContext()
+  return { [SURVIVOR]: kind, [SCOPE]: scope }
+}
+
+const findSurvivor = (scope: string, kind: string, from: Document = document) =>
+  from.querySelector<HTMLElement>(
+    `[${SCOPE}="${scope}"][${SURVIVOR}="${kind}"]`
+  )
+
+/** Hands focus to Select, else the rows, when an element holding it unmounts, such as a record's checkbox leaving Select mode. */
+export function useKeepFocusOnLeave(ref: RefObject<HTMLElement | null>) {
+  const { scope } = useRecordsContext()
+  useLayoutEffect(() => {
+    const element = ref.current
+    return () => {
+      if (!element?.contains(document.activeElement)) return
+      const from = element.ownerDocument
+      ;(
+        findSurvivor(scope, 'selection', from) ??
+        findSurvivor(scope, 'rows', from)
+      )?.focus({
+        preventScroll: true
+      })
+    }
+  }, [ref, scope])
+}
 
 /** What the floating bar and the header bar share: running, confirming, and where focus goes once the bar unmounts. */
 export function useBulkActions({
@@ -29,7 +59,7 @@ export function useBulkActions({
   // Indexes, as a new actions array each render holds new objects.
   const {
     records,
-    bulkSlot,
+    scope,
     bulkRunning: running,
     setBulkRunning: setRunning,
     bulkConfirming: confirming,
@@ -42,23 +72,17 @@ export function useBulkActions({
   const noun = (n: number) => (n === 1 ? recordName.one : recordName.other)
   const pageIds = records.rows.map((row) => row.id)
   const offerAll =
+    // Until a range list knows its total, every match is no known number.
+    (records.range === undefined || records.range.total !== undefined) &&
     !('allMatching' in records.selection) &&
     pageState(records.selection, pageIds) === true &&
     records.resultCount > selected
 
   // The bar unmounts once the selection clears, taking any focus it held
   // with it. Land focus on something that survives, so it doesn't fall to <body>.
-  const survivor = () => {
-    const bar = barRef.current
-    const root =
-      bar?.closest<HTMLElement>('[data-slot="records"]') ??
-      bulkSlot?.closest<HTMLElement>('[data-records-content]')
-    return (
-      root?.querySelector<HTMLElement>(`[${SURVIVOR}="selection"]`) ??
-      root?.querySelector<HTMLElement>(`[${SURVIVOR}="rows"]`)
-    )
-  }
-  const focusSurvivor = () => survivor()?.focus()
+  // By scope, not by ancestor: under a Provider the parts sit apart.
+  const focusSurvivor = () =>
+    (findSurvivor(scope, 'selection') ?? findSurvivor(scope, 'rows'))?.focus()
   // A bar the selection clears in render, such as a new search, unmounts with
   // focus inside; this runs before its nodes leave.
   const latestFocus = useRef(focusSurvivor)
@@ -80,7 +104,7 @@ export function useBulkActions({
   const run = async (index: number) => {
     const action = actions[index]
     if (!action) return
-    const server = records.mode === 'server'
+    const server = records.mode !== 'browser'
     const matchingIds = records.matchingRows.map((row) => row.id)
     // The server decides what matches; in the browser a hidden record is never acted on.
     const submitted = server

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import type {
+  RecordField,
   RecordQuery,
   RecordSelection,
   RecordView
@@ -46,4 +47,55 @@ export type RecordsAction<Row extends object = object> = {
     query: RecordQuery,
     records: RecordsInstance<Row>
   ) => void | Promise<void>
+}
+
+/** Range mode's loading state, which a layout reads to render records at their index. */
+export type RecordsRangeState<Row = object> = {
+  /** What the loaded records belong to: the search, filters, sort and zone. */
+  key: string
+  /** Rows the list is sized for, loaded or not. */
+  count: number
+  /** Every match, once known: `rowCount`, or the records loaded after a short last range. */
+  total?: number
+  /** A range is loading. */
+  loading: boolean
+  /** Ranges whose load failed, shown as an error in place of their rows. */
+  failed: readonly { start: number; end: number }[]
+  /** Loads the failed ranges again. */
+  retry: () => void
+  /** The record loaded at an index, or undefined for a gap. */
+  rowAt: (index: number) => RecordsRow<Row> | undefined
+  /** Reports the rows on screen, inclusive, and a row to reach, so missing ranges load. */
+  show: (first: number, last: number, target?: number) => void
+}
+
+export type RecordCellContext<Row extends object = object> = {
+  value: unknown
+  row: Row
+  field: RecordField
+}
+
+/** How a layout shows one field: a table's column, or one part of a card. */
+export type RecordPart<Row extends object = object> = {
+  key: string
+  field: RecordField
+  /** `image` shows the value, an image URL, as a thumbnail, or as a card's banner. */
+  kind?: 'image'
+  /** An image's alt text. Empty by default, as the record's title names it. */
+  alt?: (row: Row) => string
+  /** Replaces the field's own rendering. */
+  cell?: (context: RecordCellContext<Row>) => ReactNode
+}
+
+/** The parts of a record a card or list row shows, each a field. */
+export type RecordCardParts<Row extends object = object> = {
+  /** A 16:9 banner across the card's top. */
+  image?: RecordPart<Row>
+  title?: RecordPart<Row>
+  description?: RecordPart<Row>
+  /** Beside the title, such as a thumbnail or an avatar. */
+  leading?: RecordPart<Row>
+  trailing?: RecordPart<Row>
+  /** Label and value pairs under a card's title, in order. */
+  details: readonly RecordPart<Row>[]
 }

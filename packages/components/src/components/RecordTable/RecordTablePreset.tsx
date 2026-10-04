@@ -11,6 +11,7 @@ import {
   type RecordsViewActionsProps
 } from '../Records'
 import { type UseRecordsOptions, useRecords } from '../Records/useRecords'
+import type { RecordTableNarrowLayout } from './narrow'
 import { tableLayout } from './tableLayout'
 import type { RecordTableColumn } from './types'
 
@@ -32,6 +33,8 @@ export type RecordTableProps<Row extends object> = UseRecordsOptions<Row> & {
   tableActions?: readonly RecordsAction<Row>[]
   /** Shows the open view's name, marked once it differs from `baseline`, with a menu to save, save as, rename, reset or delete it. The app keeps the views. */
   viewActions?: RecordsViewActionsProps
+  /** How the table shows its records under 40rem. Defaults to cards when a column is a `detail`, else list rows. */
+  narrow?: RecordTableNarrowLayout
   /** Scrolls the rows in their own box this tall, any CSS length. */
   maxHeight?: string
   /** Fills its parent's height and scrolls both ways inside, like `maxHeight`. The parent needs a definite height, such as `Pane.Body`. */
@@ -50,6 +53,7 @@ export function RecordTable<Row extends object>({
   bulkActions,
   tableActions,
   viewActions,
+  narrow,
   maxHeight,
   fill,
   className,
@@ -60,7 +64,10 @@ export function RecordTable<Row extends object>({
     ...options,
     selectable: options.selectable ?? hasBulkActions
   })
-  const layouts = useMemo(() => [tableLayout(columns)], [columns])
+  const layouts = useMemo(
+    () => [tableLayout(columns, { narrow })],
+    [columns, narrow]
+  )
   return (
     <Records.Root
       records={records}

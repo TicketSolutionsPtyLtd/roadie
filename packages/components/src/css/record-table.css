@@ -1,0 +1,60 @@
+/* RecordTable columns with a priority hide as the table narrows. Content
+   sets each tier's template inline; these rules pick one, so the header and
+   rows agree. Tiers mirror PRIORITY_HIDES_BELOW in RecordTable/layout.ts. */
+
+[data-slot='record-table-frame'] {
+  container: record-table-frame / inline-size;
+}
+
+[data-slot='record-table-content'] {
+  --record-table-columns: var(--record-table-columns-0);
+  --record-table-min-width: var(--record-table-min-width-0);
+}
+
+@container record-table-frame (width < 64rem) {
+  [data-slot='record-table-content'] {
+    --record-table-columns: var(--record-table-columns-3);
+    --record-table-min-width: var(--record-table-min-width-3);
+  }
+
+  [data-slot='record-table-content'] [data-priority='3'] {
+    display: none;
+  }
+
+  /* Cells drop end padding with `last:`, which a hidden last column defeats,
+     so each row marks its last shown cell. A `:has(~ …)` here would have
+     Chromium re-check every element's siblings on any change. */
+  [data-slot='record-table-content'] [data-priority-end~='3'] {
+    padding-inline-end: 0;
+  }
+}
+
+@container record-table-frame (width < 56rem) {
+  [data-slot='record-table-content'] {
+    --record-table-columns: var(--record-table-columns-2);
+    --record-table-min-width: var(--record-table-min-width-2);
+  }
+
+  [data-slot='record-table-content'] [data-priority='2'] {
+    display: none;
+  }
+
+  [data-slot='record-table-content'] [data-priority-end~='2'] {
+    padding-inline-end: 0;
+  }
+}
+
+@container record-table-frame (width < 48rem) {
+  [data-slot='record-table-content'] {
+    --record-table-columns: var(--record-table-columns-1);
+    --record-table-min-width: var(--record-table-min-width-1);
+  }
+
+  [data-slot='record-table-content'] [data-priority='1'] {
+    display: none;
+  }
+
+  [data-slot='record-table-content'] [data-priority-end~='1'] {
+    padding-inline-end: 0;
+  }
+}
