@@ -119,4 +119,23 @@ describe('RecordTable column priority in a browser', () => {
       expectAligned()
     }
   })
+
+  it('fills a parent that sizes to its content', async () => {
+    render(
+      <div data-testid='box' style={{ width: 900, display: 'flex' }}>
+        <RecordTable
+          caption='Shows'
+          data={testShows(8)}
+          fields={showFields}
+          columns={columns}
+        />
+      </div>
+    )
+    await frame()
+    const frameBox = document
+      .querySelector('[data-slot="record-table-frame"]')!
+      .getBoundingClientRect()
+    expect(frameBox.width).toBe(900)
+    await expect.poll(headers).toEqual(['Show', 'City', 'Sold'])
+  })
 })

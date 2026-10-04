@@ -191,19 +191,21 @@ function FloatingBulkBar({
       const part = (slot: string) =>
         measure.querySelectorAll(`[data-slot="${slot}"]`)
       const style = getComputedStyle(bar)
+      const gap = parseFloat(style.columnGap) || 0
       const next = fittingActions({
         available:
           width(list) -
           2 * BAR_INSET -
           (parseFloat(style.paddingInlineStart) || 0) -
           (parseFloat(style.paddingInlineEnd) || 0),
+        // The count, Select all and Clear, with the gaps between them.
         count: [...part('records-bulk-fixed')].reduce(
-          (sum, element) => sum + width(element),
+          (sum, element, index) => sum + (index > 0 ? gap : 0) + width(element),
           0
         ),
         actions: [...part('records-bulk-action')].map(width),
         more: width(part('records-bulk-more')[0]),
-        gap: parseFloat(style.columnGap) || 0
+        gap
       })
       const shownNext = Math.max(
         next,
@@ -223,6 +225,8 @@ function FloatingBulkBar({
       if (bar.hasAttribute('data-floating')) place()
     })
     resize.observe(list)
+    // A web font swap changes the parts' widths without resizing the records.
+    if (measureRef.current) resize.observe(measureRef.current)
     // Any scroll can move the dock past the footer or the footer itself.
     const follow = () => settle()
     addEventListener('scroll', follow, { capture: true, passive: true })

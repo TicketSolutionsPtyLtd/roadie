@@ -125,7 +125,8 @@ function RecordsRootElement({
       data-pane-fill={contentFill || undefined}
       className={cn(
         // The toolbar's padding stands in for this gap while it sticks.
-        'grid grid-cols-1 gap-(--records-gap) [--records-gap:--spacing(3)]',
+        // Full width, as the table's frame is a size container that takes no width from its rows.
+        'grid w-full grid-cols-1 gap-(--records-gap) [--records-gap:--spacing(3)]',
         contentFill && 'flex h-full min-h-0 flex-col',
         className
       )}

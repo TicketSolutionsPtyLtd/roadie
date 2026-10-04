@@ -47,7 +47,7 @@ import { RecordTableSkeletonRows, StateRow } from './RecordTableStates'
 import { shownColumns } from './columns'
 import { SELECT_WIDTH, columnLayout, priorityProps, tierStyle } from './layout'
 import { useLayoutFocus } from './layoutFocus'
-import { narrowLayout, narrowParts } from './narrow'
+import { cardParts, narrowLayout, narrowParts } from './narrow'
 import { useKeepFocusInTable } from './tableFocus'
 import type { TableLayoutConfig } from './tableLayout'
 import { useColumnWidths } from './useColumnWidths'
@@ -149,8 +149,11 @@ export function RecordTableContent({
   }, [fill, setContentFill])
 
   const isNarrow = useNarrow(frameRef)
-  const parts = useMemo(() => narrowParts(columns), [columns])
   const narrow = isNarrow ? (config.narrow ?? narrowLayout(columns)) : undefined
+  const parts = useMemo(() => {
+    const roles = narrowParts(columns)
+    return narrow === 'cards' ? cardParts(roles) : roles
+  }, [columns, narrow])
   const frameTop = useStickyTop(frameRef, toolbar, boxed)
   useLayoutFocus(frameRef, narrow ?? 'wide')
   // Narrow rows select only through Select mode; wide rows have checkboxes and keep it.
@@ -377,8 +380,9 @@ export function RecordTableContent({
       aria-label={
         boxed || narrow ? undefined : `${caption ?? 'Table'}, scrolls sideways`
       }
-      // In its own box, narrow rows' bleed is clipped here, so the box never scrolls sideways.
-      className={boxed ? (narrow ? 'overflow-x-clip' : undefined) : className}
+      // Full width: a size container takes no width from its rows. Clipped
+      // in a box, so narrow rows never scroll it sideways.
+      className={cn('w-full', boxed ? narrow && 'overflow-x-clip' : className)}
     >
       {narrowBody || (
         <MeasuredWidth measured={boxed}>

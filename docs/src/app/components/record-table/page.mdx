@@ -146,9 +146,9 @@ Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Recor
 - `Records.Content` in `Pane.Body`, below the toolbar. Its column headers stick under the toolbar.
 - `Records.Status` anywhere inside the Provider. It renders nothing visible.
 - `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
-- `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected.
+- `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, and floats it over narrow rows.
 
-On a phone the table keeps its columns and scrolls sideways, with the pinned column held at the start. The second frame shows it at 390px.
+On a phone the table turns into cards: the event, its venue and status, with the start, sold and gross as details. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
 
 ```tsx-live-noinline-expand id=in-a-pane
 const venues = [
@@ -191,12 +191,12 @@ const fields = [
 const column = tableColumns(fields)
 const layouts = [
   tableLayout([
-    column.field('name', { pin: true }),
-    column.field('startsAt'),
-    column.field('venue'),
-    column.field('status'),
-    column.field('sold'),
-    column.field('gross')
+    column.field('name', { pin: true, narrow: 'title' }),
+    column.field('startsAt', { narrow: 'detail' }),
+    column.field('venue', { narrow: 'description' }),
+    column.field('status', { narrow: 'trailing' }),
+    column.field('sold', { narrow: 'detail' }),
+    column.field('gross', { narrow: 'detail' })
   ])
 ]
 
@@ -940,7 +940,7 @@ render(
 
 ### Column priority
 
-Give columns people can do without a `priority`, so they hide as a wide table narrows, before it turns into list rows. Priority 3 hides below 64rem of the table's own width, 2 below 56rem and 1 below 48rem, and the header and rows hide together. Pinned columns never hide, so `pin` wins over `priority`. A column hidden by priority still shows in Configure, and search and exports still include it.
+Give columns people can do without a `priority`, so they hide as a wide table narrows, before it turns into list rows. Priority 3 hides below 64rem of the table's own width, 2 below 56rem and 1 below 48rem, and the header and rows hide together. Pinned columns and the title never hide, so `pin` and `narrow: 'title'` win over `priority`. A column hidden by priority still shows in Configure, and search and exports still include it.
 
 ```tsx
 const columns = [
@@ -1038,7 +1038,7 @@ render(<NarrowEvents />)
 
 #### Cards
 
-Give columns `narrow: 'detail'` and each record becomes a card, with the details listed under its title as labels and values. An image column becomes the card's 16:9 banner, with the trailing value on its top end. Cards grow to fit their content and measure once, when they first render.
+Give columns `narrow: 'detail'` and each record becomes a card, with the details listed under its title as labels and values. An image column becomes the card's 16:9 banner, with the trailing value on its top end. Cards grow to fit their content, and past 100 records the list measures each as it renders.
 
 To choose for yourself, pass `narrow: 'list'` or `narrow: 'cards'` to `tableLayout`, or `narrow` to `RecordTable`. List rows leave out detail columns, and cards without details show just the title, description and trailing.
 

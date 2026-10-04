@@ -154,11 +154,16 @@ enters Select mode as the table narrows, and focus follows the record across
 the switch. Narrow rows page, window past 100 records and load by range as
 the wide rows do, with placeholders and range errors at their size.
 `tableLayout`'s `narrow` (or `RecordTable`'s) picks `'list'` or `'cards'`.
-A column with `priority` 3, 2 or 1 hides as the table narrows below 64, 56
-and 48rem, header and rows together; pinned columns never hide. A column
-with `kind: 'image'` shows its value, an image URL, as a 40px thumbnail with
-`alt` from the row, a list row's leading image and a card's 16:9 banner, and
-a neutral tile without one. The title column is the one with
-`narrow: 'title'` before the pinned text column, and never an image. Focus
-lands back with the records when the floating bar goes, under
-`Records.Provider` too.
+`Records.Select` is now public, for compositions. A column with `priority`
+3, 2 or 1 hides as the table narrows below 64, 56 and 48rem, header and rows
+together; pinned columns and the title never hide, and a priority on one
+warns in development. A column with `kind: 'image'` shows its value, an
+image URL, as a 40px thumbnail with `alt` from the row, a list row's leading
+image and a card's 16:9 banner, and a neutral tile without one or when it
+fails to load. It defaults to 3.75rem wide and `narrow: 'leading'`, and its
+header is read to screen readers but not shown and never sorts. The title
+column is the one with `narrow: 'title'` before the pinned text column, and
+never an image. `record-table` exports the `RecordTableNarrow`,
+`RecordTableNarrowLayout` and `TableLayoutOptions` types. `Records.Root`
+and the table's frame now fill their container's width. Focus lands back
+with the records when the floating bar goes, under `Records.Provider` too.

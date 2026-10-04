@@ -14,7 +14,7 @@ import type { RecordName, RecordsBulkAction } from './types'
 const count = new Intl.NumberFormat('en-AU')
 
 /** Where focus lands once a bar that held it unmounts: the selection control, else the rows. */
-export const SURVIVOR = 'data-records-survivor'
+const SURVIVOR = 'data-records-survivor'
 const SCOPE = 'data-records-scope'
 
 /** Marks an element focus can land on once the bulk actions bar goes. */

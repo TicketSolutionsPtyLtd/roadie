@@ -19,12 +19,17 @@ export function tableColumns<Row extends object = Record<string, unknown>>(
     ): RecordTableColumn<Row> {
       const field = fields.find((candidate) => candidate.key === key)
       if (!field) throw new Error(`tableColumns: no field "${key}"`)
-      const { priority, ...rest } = options
-      if (rest.pin && priority !== undefined && !warnedPinnedPriority) {
+      const { priority, ...given } = options
+      // An option given as undefined keeps its default.
+      const rest = Object.fromEntries(
+        Object.entries(given).filter(([, value]) => value !== undefined)
+      ) as typeof given
+      const steady = rest.pin || rest.narrow === 'title'
+      if (steady && priority !== undefined && !warnedPinnedPriority) {
         warnedPinnedPriority = true
         if (isDev())
           console.warn(
-            `[Roadie] tableColumns: column "${key}" is pinned, so its priority is ignored. Pinned columns never hide.`
+            `[Roadie] tableColumns: column "${key}" is pinned or the title, so its priority is ignored. Neither ever hides.`
           )
       }
       return {
@@ -35,7 +40,7 @@ export function tableColumns<Row extends object = Record<string, unknown>>(
           narrow: 'leading' as const
         }),
         ...rest,
-        ...(!rest.pin && priority !== undefined && { priority })
+        ...(!steady && priority !== undefined && { priority })
       }
     }
   }

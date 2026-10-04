@@ -10,6 +10,14 @@ export const narrowLayout = (
 ): RecordTableNarrowLayout =>
   columns.some((column) => column.narrow === 'detail') ? 'cards' : 'list'
 
+/** A card's parts: an image leading a list row becomes the card's banner. */
+export const cardParts = <Row extends object>(
+  parts: RecordCardParts<Row>
+): RecordCardParts<Row> =>
+  parts.leading?.kind === 'image'
+    ? { ...parts, image: parts.leading, leading: undefined }
+    : parts
+
 /** Each narrow role's column; the title is never repeated in another role. */
 export function narrowParts<Row extends object>(
   columns: readonly RecordTableColumn<Row>[]

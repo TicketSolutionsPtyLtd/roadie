@@ -10,8 +10,12 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { listItemContentClass, listSectionClass } from '../List/variants'
-import { RecordCard, hasBanner } from '../Records/RecordCard'
+import {
+  listItemContentClass,
+  listItemLeadingClass,
+  listSectionClass
+} from '../List/variants'
+import { RecordCard } from '../Records/RecordCard'
 import type {
   RecordCardParts,
   RecordsRangeState,
@@ -43,11 +47,11 @@ const BANNER_REM = 12.5
 export const CARD_GAP_REM = 0.75
 
 export const cardRem = (parts: RecordCardParts<never>) =>
-  CARD_REM + (hasBanner(parts) ? BANNER_REM : 0)
+  CARD_REM + (parts.image ? BANNER_REM : 0)
 
 type MeasureElement = (node: HTMLLIElement | null) => void
 
-export type NarrowShared = {
+type NarrowShared = {
   parts: RecordCardParts
   layout: RecordTableNarrowLayout
   timeZone: string
@@ -61,7 +65,7 @@ export type NarrowShared = {
   bleed: boolean
 }
 
-export type RecordTableNarrowRowsProps = NarrowShared & {
+type RecordTableNarrowRowsProps = NarrowShared & {
   rows: readonly RecordsRow<object>[]
   caption?: string
   busy?: boolean
@@ -113,7 +117,7 @@ export function RecordTableNarrowRows({
       />
     )
   return (
-    <List {...listProps}>
+    <NarrowList {...listProps}>
       {rows.map((record, index) => (
         <NarrowRow
           key={record.id}
@@ -123,7 +127,7 @@ export function RecordTableNarrowRows({
           setSize={setSize}
         />
       ))}
-    </List>
+    </NarrowList>
   )
 }
 
@@ -157,7 +161,7 @@ function NarrowRow({
     return (
       <RecordTableListRow
         {...props}
-        record={record.row}
+        row={record.row}
         bleed={shared.bleed}
         posInSet={posInSet}
         setSize={setSize}
@@ -197,7 +201,14 @@ type ListProps = {
   children: ReactNode
 }
 
-function List({ caption, busy, cards, bodyRef, padding, children }: ListProps) {
+function NarrowList({
+  caption,
+  busy,
+  cards,
+  bodyRef,
+  padding,
+  children
+}: ListProps) {
   return (
     <ul
       ref={bodyRef}
@@ -241,7 +252,7 @@ function VirtualList({
     })
   useHeldHeight(bodyRef, measureElement !== undefined)
   return (
-    <List
+    <NarrowList
       {...listProps}
       bodyRef={bodyRef}
       padding={windowPadding(items, total, margin, !measureElement)}
@@ -257,7 +268,7 @@ function VirtualList({
           index={item.index}
         />
       ))}
-    </List>
+    </NarrowList>
   )
 }
 
@@ -305,7 +316,7 @@ function RangeList({
   const size = range.total ?? -1
   const heightClass = listRowHeightClass(shared.parts)
   return (
-    <List
+    <NarrowList
       {...listProps}
       busy={listProps.busy || range.loading}
       bodyRef={bodyRef}
@@ -349,12 +360,12 @@ function RangeList({
           />
         )
       })}
-    </List>
+    </NarrowList>
   )
 }
 
 /** A record still loading, at its row's or card's size; static, as a shimmer would repaint each scroll frame. */
-export const NarrowPlaceholder = memo(function NarrowPlaceholder({
+const NarrowPlaceholder = memo(function NarrowPlaceholder({
   parts,
   card,
   index,
@@ -370,7 +381,7 @@ export const NarrowPlaceholder = memo(function NarrowPlaceholder({
 }) {
   const description = parts.description !== undefined
   if (card) {
-    const banner = hasBanner(parts)
+    const banner = parts.image !== undefined
     return (
       <li
         ref={measureElement}
@@ -404,6 +415,11 @@ export const NarrowPlaceholder = memo(function NarrowPlaceholder({
   return (
     <li aria-hidden data-slot='record-table-placeholder-row'>
       <div className={cn('flex', listRowHeightClass(parts))}>
+        {parts.leading && (
+          <span className={cn(listItemLeadingClass, 'py-0')}>
+            <span className={cn('size-10 rounded-md', !blank && 'bg-subtle')} />
+          </span>
+        )}
         {/* The list's own hairline, so placeholders divide like rows. */}
         <span
           data-slot='list-item-content'

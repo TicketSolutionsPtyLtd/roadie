@@ -49,6 +49,20 @@ describe('columnLayout', () => {
     expect(layout.template).toBe(layout.tiers[0]!.template)
   })
 
+  it('never hides the title column, which carries the row link', () => {
+    const columns = [
+      column('sold', {
+        field: { key: 'sold', label: 'Sold', type: 'number' },
+        width: { min: 5 }
+      }),
+      column('name', { narrow: 'title', priority: 1, width: { min: 5 } }),
+      column('city', { priority: 1, width: { min: 5 } })
+    ]
+    const layout = columnLayout(columns, columnWidths(columns, [], UTC))
+    expect(layout.priority).toEqual([undefined, undefined, 1])
+    expect(layout.tiers[1]!.template).toBe('5rem 5rem')
+  })
+
   it('marks the last shown cell at each tier, so it drops its end padding', () => {
     const columns = [
       column('a'),

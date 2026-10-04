@@ -41,6 +41,14 @@ describe('tableColumns', () => {
     })
   })
 
+  it('keeps image defaults when an option is given as undefined', () => {
+    const image = tableColumns<TestShow & { image: string }>([
+      ...showFields,
+      { key: 'image', label: 'Image', type: 'text' }
+    ]).field('image', { kind: 'image', width: undefined, narrow: undefined })
+    expect(image).toMatchObject({ width: { min: 3.75 }, narrow: 'leading' })
+  })
+
   it('drops the priority of a pinned column, once warning', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     expect(column.field('show', { pin: true, priority: 2 }).priority).toBe(
@@ -49,6 +57,14 @@ describe('tableColumns', () => {
     column.field('city', { pin: true, priority: 3 })
     expect(warn).toHaveBeenCalledTimes(1)
     expect(column.field('city', { priority: 3 }).priority).toBe(3)
+    warn.mockRestore()
+  })
+
+  it('drops the priority of the narrow title', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    expect(
+      column.field('show', { narrow: 'title', priority: 2 }).priority
+    ).toBeUndefined()
     warn.mockRestore()
   })
 

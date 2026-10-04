@@ -261,4 +261,59 @@ describe('Records floating bulk actions', () => {
       screen.getByRole('list', { name: 'Shows' })
     )
   })
+
+  it('counts the gaps between the count and its buttons when fitting', async () => {
+    const rect = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const width = this.matches('[data-testid="records"]')
+          ? 360
+          : this.matches('[data-slot="records-bulk-action"]')
+            ? 54
+            : this.matches('[data-slot="records-bulk-more"]')
+              ? 50
+              : 100
+        return {
+          width,
+          height: 40,
+          top: 0,
+          left: 0,
+          right: width,
+          bottom: 40
+        } as DOMRect
+      })
+    const computed = window.getComputedStyle
+    const style = vi
+      .spyOn(window, 'getComputedStyle')
+      .mockImplementation((element, pseudo) => {
+        const value = computed(element, pseudo)
+        if ((element as HTMLElement).dataset?.slot === 'records-bulk-actions')
+          Object.defineProperty(value, 'columnGap', { value: '8px' })
+        return value
+      })
+    function Provided() {
+      const records = useRecords({
+        data: testShows(12),
+        fields: showFields,
+        getRowId: (row) => row.id,
+        selectable: true,
+        defaultSelection: { ids: ['show-0'] },
+        defaultView: { layout: { type: 'grid' } }
+      })
+      return (
+        <Records.Provider records={records} layouts={layouts}>
+          <div data-testid='records'>
+            <Records.Content />
+            <Records.BulkActions actions={many.slice(0, 2)} />
+          </div>
+        </Records.Provider>
+      )
+    }
+    render(<Provided />)
+    expect(
+      within(floating()!).getByRole('button', { name: 'More actions' })
+    ).toBeInTheDocument()
+    rect.mockRestore()
+    style.mockRestore()
+  })
 })

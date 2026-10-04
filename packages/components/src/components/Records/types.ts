@@ -89,9 +89,11 @@ export type RecordPart<Row extends object = object> = {
 
 /** The parts of a record a card or list row shows, each a field. */
 export type RecordCardParts<Row extends object = object> = {
+  /** A 16:9 banner across the card's top. */
+  image?: RecordPart<Row>
   title?: RecordPart<Row>
   description?: RecordPart<Row>
-  /** Beside the title; an image here becomes a card's banner. */
+  /** Beside the title, such as a thumbnail or an avatar. */
   leading?: RecordPart<Row>
   trailing?: RecordPart<Row>
   /** Label and value pairs under a card's title, in order. */

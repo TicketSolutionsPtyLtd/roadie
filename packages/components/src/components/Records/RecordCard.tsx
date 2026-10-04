@@ -23,9 +23,6 @@ export function recordTitle(row: object, id: string, title?: RecordPart) {
   return text?.trim() ? text : id
 }
 
-export const hasBanner = (parts: RecordCardParts<never>) =>
-  parts.leading?.kind === 'image'
-
 const isFigure = (part: RecordPart) =>
   part.field.type === 'number' || part.field.type === 'money'
 
@@ -43,6 +40,9 @@ export type RecordCardProps = {
   selecting?: boolean
   onToggle?: (id: string, range: boolean) => void
   rowActions?: (row: object) => ReactNode
+  /** The banner image's `sizes`, for a card narrower than the screen, such as in a grid. */
+  imageSizes?: string
+  className?: string
 }
 
 /**
@@ -59,14 +59,16 @@ export const RecordCard = memo(function RecordCard({
   selected,
   selecting = false,
   onToggle,
-  rowActions
+  rowActions,
+  imageSizes,
+  className
 }: RecordCardProps) {
   const href = selecting ? undefined : linkHref
   const name = recordTitle(row, id, parts.title)
   const value = (part: RecordPart | undefined) =>
     part && <RecordPartValue part={part} row={row} timeZone={timeZone} />
-  const banner = hasBanner(parts) ? parts.leading : undefined
-  const leading = banner ? undefined : value(parts.leading)
+  const banner = parts.image
+  const leading = value(parts.leading)
   const trailing = value(parts.trailing)
   const hasDetails = parts.details.length > 0
   const title = parts.title ? value(parts.title) : id
@@ -75,14 +77,18 @@ export const RecordCard = memo(function RecordCard({
       data-slot='record-card'
       intent={selected ? 'accent' : undefined}
       emphasis={selected ? 'subtle' : 'normal'}
-      className={cn('grid-cols-1 tabular-nums', banner && 'overflow-hidden')}
+      className={cn(
+        'grid-cols-1 tabular-nums',
+        banner && 'overflow-hidden',
+        className
+      )}
     >
       {banner && (
         <div data-slot='record-card-media' className='relative'>
           {banner.cell ? (
             value(banner)
           ) : (
-            <RecordImage part={banner} row={row} banner />
+            <RecordImage part={banner} row={row} banner sizes={imageSizes} />
           )}
           {trailing && (
             <div
@@ -105,7 +111,7 @@ export const RecordCard = memo(function RecordCard({
           <div
             className={cn(
               'grid shrink-0 place-items-center',
-              leading && 'size-10'
+              parts.leading?.kind === 'image' && 'size-10'
             )}
           >
             <RecordsRowCheckbox

@@ -1,9 +1,10 @@
 import { type RecordField, formatRecordValue } from '@oztix/roadie-core/records'
 
 import { NOT_AVAILABLE } from '../Records/RecordValue'
+import { titleColumn } from './RecordTableRow'
 import type { RecordColumnWidth, RecordTableColumn } from './types'
 
-export type ColumnTier = {
+type ColumnTier = {
   template: string
   /** In rem. */
   minWidth: number
@@ -14,6 +15,8 @@ export type ColumnLayout = ColumnTier & {
   tiers: ColumnTier[]
   /** Each pinned column's sticky offset, in rem, after any select track. */
   pinnedStart: (number | undefined)[]
+  /** Each column's priority in effect: none for a pinned column or the title, which carries the row link. */
+  priority: (1 | 2 | 3 | undefined)[]
   /** The tiers at which each column is the last cell shown, so it drops its end padding. */
   lastAt: (number[] | undefined)[]
 }
@@ -22,13 +25,8 @@ export type ColumnLayout = ColumnTier & {
 export const PRIORITY_HIDES_BELOW = { 3: 64, 2: 56, 1: 48 } as const
 const TIERS = [1, 2, 3] as const
 
-const priorityOf = (column: RecordTableColumn) =>
-  column.pin ? undefined : column.priority
-
-const shownAt = (column: RecordTableColumn, tier: number) => {
-  const priority = priorityOf(column)
-  return tier === 0 || priority === undefined || priority < tier
-}
+const shownAt = (priority: number | undefined, tier: number) =>
+  tier === 0 || priority === undefined || priority < tier
 
 const SAMPLE_ROWS = 200
 const REM_PER_CHARACTER = 0.55
@@ -128,9 +126,13 @@ export function columnLayout(
     pinnedOffset += widths[index]!.min
     return start
   })
+  const title = titleColumn(columns)
+  const priority = columns.map((column) =>
+    column.pin || column === title ? undefined : column.priority
+  )
   const tiers = [0, ...TIERS].map((tier) => {
     const shown = columns.flatMap((column, index) =>
-      shownAt(column, tier) ? [index] : []
+      shownAt(priority[index], tier) ? [index] : []
     )
     return columnTier(
       shown.map((index) => columns[index]!),
@@ -142,11 +144,11 @@ export function columnLayout(
   // The actions cell ends every row, so no column needs to.
   if (!actions)
     for (const tier of TIERS) {
-      const last = columns.findLastIndex((column) => shownAt(column, tier))
+      const last = priority.findLastIndex((level) => shownAt(level, tier))
       if (last === -1 || last === columns.length - 1) continue
       lastAt[last] = [...(lastAt[last] ?? []), tier]
     }
-  return { ...tiers[0]!, tiers, pinnedStart, lastAt }
+  return { ...tiers[0]!, tiers, pinnedStart, priority, lastAt }
 }
 
 /** A cell's priority attributes, which record-table.css hides and trims by. */
@@ -155,7 +157,7 @@ export const priorityProps = (
   layout: ColumnLayout,
   index: number
 ) => ({
-  'data-priority': priorityOf(column),
+  'data-priority': layout.priority[index],
   'data-priority-end': layout.lastAt[index]?.join(' ')
 })
 

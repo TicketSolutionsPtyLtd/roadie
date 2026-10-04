@@ -6,7 +6,7 @@ import { recordFields } from '@oztix/roadie-core/records'
 
 import { RecordTable, tableColumns } from '.'
 import { CARD_REM, cardRem } from './RecordTableNarrowRows'
-import { narrowParts } from './narrow'
+import { cardParts, narrowParts } from './narrow'
 
 type Show = {
   id: string
@@ -96,6 +96,16 @@ describe('RecordTable image columns', () => {
   it('shows a neutral tile, not an img, when the URL is missing', () => {
     render(<RecordTable {...base} columns={listColumns} />)
     const row = rowOf('Nectarine Hoedown')
+    expect(row.querySelector('img')).toBeNull()
+    expect(
+      row.querySelector('[data-slot="record-image-placeholder"]')
+    ).not.toBeNull()
+  })
+
+  it('shows the neutral tile once an image fails to load', () => {
+    render(<RecordTable {...base} columns={listColumns} />)
+    const row = rowOf('Ember Galah Ball')
+    fireEvent.error(row.querySelector('img')!)
     expect(row.querySelector('img')).toBeNull()
     expect(
       row.querySelector('[data-slot="record-image-placeholder"]')
@@ -230,8 +240,10 @@ describe('RecordTable image columns, narrow', () => {
   })
 
   it('estimates a bannered card taller', () => {
-    expect(cardRem(narrowParts<Show>(cardColumns.slice(1)))).toBe(CARD_REM)
-    expect(cardRem(narrowParts<Show>(cardColumns))).toBeGreaterThan(
+    expect(cardRem(cardParts(narrowParts<Show>(cardColumns.slice(1))))).toBe(
+      CARD_REM
+    )
+    expect(cardRem(cardParts(narrowParts<Show>(cardColumns)))).toBeGreaterThan(
       CARD_REM + 9
     )
   })
