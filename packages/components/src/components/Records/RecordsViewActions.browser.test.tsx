@@ -38,7 +38,7 @@ const upcoming: RecordView = {
   layout: { type: 'table' }
 }
 
-function Shows() {
+function Shows({ selectable = false }: { selectable?: boolean }) {
   const [baseline, setBaseline] = useState(upcoming)
   const [view, setView] = useState<RecordView>({
     ...upcoming,
@@ -54,6 +54,9 @@ function Shows() {
         view={view}
         onViewChange={setView}
         baseline={baseline}
+        bulkActions={
+          selectable ? [{ label: 'Export', onAction: () => {} }] : undefined
+        }
         viewActions={{
           onSave: setBaseline,
           onSaveAs: (saved) => {
@@ -198,5 +201,50 @@ describe('Records.ViewActions in a browser', TIMEOUT, () => {
     )
     await expect.poll(() => document.activeElement).toBe(trigger())
     expect(trigger()).toHaveAccessibleName('View: Upcoming shows in every city')
+  })
+
+  it('fits beside the search and Select on a phone, in and out of Select mode', async () => {
+    await page.viewport(390, 844)
+    const { container } = render(
+      <div style={{ paddingInline: 16 }}>
+        <Shows selectable />
+      </div>
+    )
+    const toolbar = container.querySelector<HTMLElement>(
+      '[data-slot="records-toolbar"]'
+    )!
+    await expect
+      .poll(() => container.querySelector('[data-slot="record-table-body"]'))
+      .not.toBeNull()
+    const fits = () => {
+      const bounds = toolbar.getBoundingClientRect()
+      return [...toolbar.querySelectorAll('button, input:not([aria-hidden])')]
+        .filter((control) => {
+          const box = control.getBoundingClientRect()
+          return box.left < bounds.left - 0.5 || box.right > bounds.right + 0.5
+        })
+        .map(
+          (control) => control.getAttribute('aria-label') ?? control.textContent
+        )
+    }
+    const height = screen
+      .getByRole('button', { name: 'Select' })
+      .getBoundingClientRect().height
+    expect(trigger().getBoundingClientRect().height).toBe(height)
+    expect(fits()).toEqual([])
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(390)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Select' }))
+    await expect
+      .poll(() => screen.queryByRole('button', { name: 'Done' }))
+      .not.toBeNull()
+    expect(fits()).toEqual([])
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(390)
+    await userEvent.click(trigger())
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Reset view' })
+    )
+    expect(trigger()).toHaveAccessibleName('View: Upcoming shows in every city')
+    await expect.poll(() => document.activeElement).toBe(trigger())
   })
 })
