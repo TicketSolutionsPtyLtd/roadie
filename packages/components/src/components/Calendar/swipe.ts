@@ -189,10 +189,18 @@ export function useSwipeToTurn(
       immediate = false
     ) {
       cutShort()
-      // A control turning the page ends any drag under way.
-      if (!from) gesture = null
-      // Landing the turn before it reached a bound leaves nothing to slide to.
-      if (step && !from && !immediate && !latest.current.canTurn(step)) return
+      // A control turning the page ends any drag under way, from where the
+      // days sit under it.
+      if (!from && gesture) {
+        if (gesture.engaged) from = gesture.along
+        gesture = null
+      }
+      // Landing the turn before it reached a bound leaves nothing to slide
+      // to; the apply still runs, so a key's focus moves.
+      if (step && from === 0 && !immediate && !latest.current.canTurn(step)) {
+        finish()
+        return apply()
+      }
       const mine = ++run
       settling = true
       root!.dataset.swiping = ''
@@ -318,7 +326,7 @@ export function useSwipeToTurn(
       // A mouse drag keeps its gesture. A pen hands over to its touch, which
       // iOS doesn't cancel on a vertical drag as it does the pointer.
       if (gesture?.kind === 'pointer') {
-        if (!gesture.pen || gesture.engaged) return
+        if (gesture.engaged) return
         gesture = null
       }
       if (event.touches.length !== 1) return cancel()
@@ -357,7 +365,8 @@ export function useSwipeToTurn(
     const onPointerDown = (event: PointerEvent) => {
       if (event.pointerType === 'touch' || !event.isPrimary) return
       suppressClickUntil = -Infinity
-      if (event.button !== 0 || gesture?.kind === 'touch') return
+      if (event.button !== 0 || gesture?.engaged || gesture?.kind === 'touch')
+        return
       begin(
         'pointer',
         event.pointerType === 'pen',
@@ -371,11 +380,8 @@ export function useSwipeToTurn(
 
     const onPointerMove = (event: PointerEvent) => {
       if (gesture?.kind !== 'pointer' || event.pointerId !== gesture.id) return
-      // Released outside the calendar before the drag began.
-      if (!event.buttons) {
-        gesture = null
-        return
-      }
+      // Released outside the calendar, or where it never heard.
+      if (!event.buttons) return cancel()
       const wasEngaged = gesture.engaged
       if (!move(event.clientX, event.clientY, event.timeStamp)) return
       // Held, so the drag carries on outside the calendar.

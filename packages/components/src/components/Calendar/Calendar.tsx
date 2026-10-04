@@ -726,12 +726,23 @@ export function Calendar(props: CalendarProps) {
   const latestRef = useRef<{
     turn: typeof turn
     moveFocus: (date: string) => void
+    turnMonth: (next: string) => void
+    firstMonth: string
   } | null>(null)
   useIsomorphicLayoutEffect(() => {
-    latestRef.current = { turn, moveFocus }
+    latestRef.current = { turn, moveFocus, turnMonth, firstMonth }
   })
   // Where a queued key turn will put focus, so a second press goes on from it.
   const queuedFocus = useRef<string | null>(null)
+
+  function pickMonth(first: string) {
+    // From the month a waiting turn lands on, so the slide runs the right way.
+    landTurn()
+    const latest = latestRef.current!
+    const step = compareDates(monthOf(first), latest.firstMonth)
+    if (!step) return
+    pageTurn(step, () => latest.turnMonth(first), { immediate: true })
+  }
 
   function clampDate(date: string) {
     if (minDate && compareDates(date, minDate) < 0) return minDate
@@ -1012,12 +1023,6 @@ export function Calendar(props: CalendarProps) {
         </div>
       )
     }
-    const shift = (next: string) => {
-      const first = addMonths(next, -index)
-      const step = compareDates(monthOf(first), firstMonth)
-      if (!step) return
-      pageTurn(step, () => turnMonth(first), { immediate: true })
-    }
     const monthNumber = monthNumberOf(month)
     const year = yearOf(month)
     // The page turn clamps to the nearest allowed month, so a year is open
@@ -1043,7 +1048,11 @@ export function Calendar(props: CalendarProps) {
           aria-label='Month'
           value={monthNumber}
           disabled={navDisabled}
-          onChange={(value) => shift(addMonths(month, value - monthNumber))}
+          onChange={(value) => {
+            // Only on a change event, never in render.
+            // eslint-disable-next-line react-hooks/refs
+            pickMonth(addMonths(month, value - monthNumber - index))
+          }}
           options={labels.months.map((name, i) => ({
             value: i + 1,
             label: name,
@@ -1054,7 +1063,9 @@ export function Calendar(props: CalendarProps) {
           aria-label='Year'
           value={year}
           disabled={navDisabled}
-          onChange={(value) => shift(addMonths(month, (value - year) * 12))}
+          onChange={(value) =>
+            pickMonth(addMonths(month, (value - year) * 12 - index))
+          }
           options={Array.from({ length: lastYear - firstYear + 1 }, (_, i) => ({
             value: firstYear + i,
             label: String(firstYear + i),
@@ -1360,7 +1371,7 @@ export function Calendar(props: CalendarProps) {
                         !scrolling &&
                           (tiles
                             ? 'in-data-swiping:shadow-[0_0_0_4px_var(--records-surface,var(--pane-surface,var(--intent-bg-normal)))]'
-                            : 'in-data-swiping:shadow-[0_2px_0_0_var(--records-surface,var(--pane-surface,var(--intent-bg-normal)))]')
+                            : 'in-data-swiping:shadow-[0_2px_0_0_var(--records-surface,var(--pane-surface,var(--intent-bg-normal))),0_-2px_0_0_var(--records-surface,var(--pane-surface,var(--intent-bg-normal)))]')
                       )}
                     >
                       {weekday.short}

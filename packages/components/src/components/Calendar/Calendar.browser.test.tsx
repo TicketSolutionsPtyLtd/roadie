@@ -700,6 +700,22 @@ describe('Calendar page turns', () => {
     expect(caption()).toEqual(['June 2027'])
   })
 
+  it('reaches the last month with quick Page Downs and moves on from there', async () => {
+    const slides = holdSlides()
+    render(<Calendar today={TODAY} numberOfMonths={2} endMonth='2027-05-01' />)
+    await tabIntoGrid()
+    await userEvent.keyboard('{PageDown}')
+    expect(focused()).toBe('2027-04-10')
+    await userEvent.keyboard('{PageDown}{PageDown}')
+    await slides.land()
+    expect(focused()).toBe('2027-05-31')
+    await userEvent.keyboard('{ArrowLeft}')
+    expect(focused()).toBe('2027-05-30')
+    await userEvent.keyboard('{PageUp}')
+    await slides.land()
+    expect(focused()).toBe('2027-04-30')
+  })
+
   it('lands a Page Down turn before an arrow moves on from it', async () => {
     holdSlides()
     render(<Calendar today={TODAY} />)
