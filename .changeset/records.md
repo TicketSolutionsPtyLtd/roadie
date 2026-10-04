@@ -17,9 +17,10 @@ empty state that says whether nothing exists yet or nothing matches.
 `RecordValue` shows one value as its field reads.
 
 New `@oztix/roadie-components/record-table` adds the table layout:
-`tableColumns(fields).field(key, { pin, width, cell })` presents a field as
-a column, `tableLayout(columns)` gives it to `Records.Root`, and the view's
-`layout.columns` orders and hides them. The table sorts from its headers,
+`tableColumns(fields).field(key, options)` presents a field as a column,
+taking `pin`, `width`, `cell`, `kind`, `alt`, `narrow` and `priority`;
+`tableLayout(columns, { narrow })` gives it to `Records.Root`, and the
+view's `layout.columns` orders and hides them. The table sorts from its headers,
 pins columns, and scrolls sideways with a Roadie scrollbar that sticks to
 the bottom of whatever scrolls the page, or both ways in its own box with
 `maxHeight` or `fill`. `RecordTable` puts the toolbar, table, pagination
@@ -36,7 +37,9 @@ Shift extends the range, and Cmd, Ctrl or middle click opens the record in
 a new tab. `Records.BulkActions` acts on the selection: in the header row
 of a layout whose definition says `bulkActions: 'header'`, as the table's
 does, with a count menu to select all or clear and a More actions menu for
-actions that don't fit, otherwise floating at the foot of the screen.
+actions that don't fit, otherwise floating at the foot of the screen, where
+the first action shows and those that don't fit go in a More actions menu,
+last.
 `Records.Actions` (or the toolbar's `actions`) acts on every match. Danger
 actions ask first unless `confirm` is `false`, and any action given
 `confirm` asks. `downloadCsv` saves CSV text as a file. `RecordTable` takes
@@ -139,3 +142,23 @@ a long page, or a list loaded by range) it carries `aria-rowcount` and each
 row its `aria-rowindex`. In server and range mode, column widths come from
 the first records a search or filter brings and hold as people page or
 scroll.
+
+Under 40rem of its own width the table lists its records, as list rows or,
+once any column is a `detail`, as cards. Each column takes a `narrow` place:
+`title`, `description`, `leading`, `trailing`, `detail` or `hidden` (the
+default). The title carries the record's link, the bulk actions float, and
+a selectable table offers Select mode: `Records.Select` (in the standard
+toolbar) shows Select, Select all and Done, each record shows a checkbox a
+tap anywhere on it toggles, and Escape or Done leaves. A selection made wide
+enters Select mode as the table narrows, and focus follows the record across
+the switch. Narrow rows page, window past 100 records and load by range as
+the wide rows do, with placeholders and range errors at their size.
+`tableLayout`'s `narrow` (or `RecordTable`'s) picks `'list'` or `'cards'`.
+A column with `priority` 3, 2 or 1 hides as the table narrows below 64, 56
+and 48rem, header and rows together; pinned columns never hide. A column
+with `kind: 'image'` shows its value, an image URL, as a 40px thumbnail with
+`alt` from the row, a list row's leading image and a card's 16:9 banner, and
+a neutral tile without one. The title column is the one with
+`narrow: 'title'` before the pinned text column, and never an image. Focus
+lands back with the records when the floating bar goes, under
+`Records.Provider` too.

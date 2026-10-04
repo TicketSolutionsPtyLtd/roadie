@@ -49,7 +49,7 @@ const cardColumns = [
     narrow: 'description',
     cell: ({ row }) => (
       <span className='truncate'>
-        Fri 27 Nov 2026, 7:30pm at The Lantern Room, {row.city}
+        Fri 27 Nov 2026, 7:30pm at Kazoo Hollow Room, {row.city}
       </span>
     )
   }),

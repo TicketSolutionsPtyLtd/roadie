@@ -49,7 +49,7 @@ const cardColumns = [
       row.tall ? (
         <span className='grid'>
           <span>Doors at 7pm</span>
-          <span>Support from Saltwater Social</span>
+          <span>Support from Ember Galah Ball</span>
           <span>All ages, licensed</span>
         </span>
       ) : (

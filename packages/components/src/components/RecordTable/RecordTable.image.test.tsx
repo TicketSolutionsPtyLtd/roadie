@@ -19,12 +19,12 @@ type Show = {
 const SHOWS: Show[] = [
   {
     id: 'a',
-    show: 'Saltwater Social',
+    show: 'Ember Galah Ball',
     city: 'Brisbane',
     sold: 120,
     image: '/a.svg'
   },
-  { id: 'b', show: 'Paper Lanterns', city: 'Hobart', sold: 80 }
+  { id: 'b', show: 'Nectarine Hoedown', city: 'Hobart', sold: 80 }
 ]
 
 const field = recordFields<Show>()
@@ -70,7 +70,7 @@ const itemsOf = () =>
 describe('RecordTable image columns', () => {
   it('renders a lazy thumbnail with an empty alt by default', () => {
     render(<RecordTable {...base} columns={listColumns} />)
-    const img = rowOf('Saltwater Social').querySelector('img')!
+    const img = rowOf('Ember Galah Ball').querySelector('img')!
     expect(img).toHaveAttribute('src', '/a.svg')
     expect(img).toHaveAttribute('alt', '')
     expect(img).toHaveAttribute('loading', 'lazy')
@@ -89,13 +89,13 @@ describe('RecordTable image columns', () => {
     ]
     render(<RecordTable {...base} columns={columns} />)
     expect(
-      screen.getByRole('img', { name: 'Poster for Saltwater Social' })
+      screen.getByRole('img', { name: 'Poster for Ember Galah Ball' })
     ).toBeInTheDocument()
   })
 
   it('shows a neutral tile, not an img, when the URL is missing', () => {
     render(<RecordTable {...base} columns={listColumns} />)
-    const row = rowOf('Paper Lanterns')
+    const row = rowOf('Nectarine Hoedown')
     expect(row.querySelector('img')).toBeNull()
     expect(
       row.querySelector('[data-slot="record-image-placeholder"]')
@@ -122,7 +122,7 @@ describe('RecordTable image columns', () => {
       />
     )
     expect(
-      screen.getByRole('link', { name: 'Saltwater Social' })
+      screen.getByRole('link', { name: 'Ember Galah Ball' })
     ).toHaveAttribute('href', '/shows/a')
   })
 })
