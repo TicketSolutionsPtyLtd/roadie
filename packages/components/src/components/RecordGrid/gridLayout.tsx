@@ -9,7 +9,7 @@ export type GridLayoutDefinition = RecordLayoutDefinition<GridLayoutConfig>
 
 /** The grid layout for `Records`: a card per record, showing these fields. */
 export function gridLayout<Row extends object>(
-  config: GridLayoutConfig<Row> = {}
+  config: GridLayoutConfig<Row>
 ): GridLayoutDefinition {
   return {
     type: 'grid',

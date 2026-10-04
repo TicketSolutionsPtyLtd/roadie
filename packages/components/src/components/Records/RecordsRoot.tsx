@@ -11,6 +11,7 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { useDevWarning } from '../../utils/useDevWarning'
 import {
   RecordsContext,
   type RecordsToolbarBox,
@@ -38,6 +39,11 @@ export function RecordsProvider<Row extends object>({
   children
 }: RecordsProviderProps<Row>) {
   const scope = useId()
+  const types = layouts.map(({ type }) => type)
+  useDevWarning(
+    new Set(types).size < types.length &&
+      `[Roadie] Records has two layouts of one type (${types.join(', ')}). Content and Configure show only the first of each.`
+  )
   const [contentFill, setContentFill] = useState(false)
   const [toolbar, setToolbar] = useState<RecordsToolbarBox | null>(null)
   const [selectMode, setSelectMode] = useState(false)

@@ -16,7 +16,7 @@ export type GridPartOption<Row extends object = Record<string, unknown>> =
 /** Which field each part of a card shows. */
 export type GridLayoutConfig<Row extends object = Record<string, unknown>> = {
   /** Names the record and carries its link. */
-  title?: GridPartOption<Row>
+  title: GridPartOption<Row>
   /** Under the title. */
   description?: GridPartOption<Row>
   /** A 16:9 banner across the card's top, from an image URL. */

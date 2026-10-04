@@ -44,7 +44,7 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
         caption='Upcoming shows'
         data={testShows(3)}
         fields={showFields}
-        {...grid}
+        card={grid}
       />
     )
     const list = screen.getByRole('list', { name: 'Upcoming shows' })
@@ -64,7 +64,7 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
         data={testShows(2)}
         fields={showFields}
         getRowHref={(row) => `/shows/${row.id}`}
-        {...grid}
+        card={grid}
       />
     )
     expect(screen.getByRole('link', { name: 'Ocean Alley 1' })).toHaveAttribute(
@@ -79,7 +79,7 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
         data={testShows(2)}
         fields={showFields}
         defaultView={{ layout: { type: 'grid', fields: ['status', 'sold'] } }}
-        {...grid}
+        card={grid}
       />
     )
     expect(detailLabels(cards()[0]!)).toEqual(['Status', 'Sold'])
@@ -91,7 +91,7 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
         data={testShows(30)}
         fields={showFields}
         defaultPosition={{ page: 1, pageSize: 10 }}
-        {...grid}
+        card={grid}
       />
     )
     expect(cards()[0]).toHaveAttribute('aria-posinset', '11')
@@ -104,7 +104,7 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
         data={testShows(500)}
         fields={showFields}
         defaultPosition={{ pageSize: 500 }}
-        {...grid}
+        card={grid}
       />
     )
     expect(cards().length).toBeGreaterThan(0)
@@ -119,7 +119,7 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
           data={testShows(3)}
           fields={showFields}
           defaultView={{ query: { search: 'nothing like this' } }}
-          {...grid}
+          card={grid}
         />
       )
       expect(screen.getByText('No records match')).toBeInTheDocument()
@@ -137,7 +137,7 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
           fields={showFields}
           error
           onRetry={onRetry}
-          {...grid}
+          card={grid}
         />
       )
       expect(
@@ -148,7 +148,7 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
     })
 
     it('holds placeholders while the first records load', () => {
-      render(<RecordGrid data={[]} fields={showFields} loading {...grid} />)
+      render(<RecordGrid data={[]} fields={showFields} loading card={grid} />)
       expect(
         document.querySelector('[data-slot="record-grid-skeleton"]')
       ).not.toBeNull()
@@ -157,7 +157,12 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
 
     it('dims the cards while more load', () => {
       render(
-        <RecordGrid data={testShows(3)} fields={showFields} loading {...grid} />
+        <RecordGrid
+          data={testShows(3)}
+          fields={showFields}
+          loading
+          card={grid}
+        />
       )
       expect(
         document.querySelector('[data-slot="record-grid-scroller"]')
@@ -177,7 +182,7 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
           fields={showFields}
           bulkActions={bulkActions}
           getRowHref={(row) => `/shows/${row.id}`}
-          {...grid}
+          card={grid}
         />
       )
       expect(screen.queryByRole('checkbox')).toBeNull()
@@ -212,7 +217,7 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
 
 describe('Grid settings', { timeout: 15_000 }, () => {
   it('names the button for the grid, and lists the shown and hidden fields', async () => {
-    render(<RecordGrid data={testShows(3)} fields={showFields} {...grid} />)
+    render(<RecordGrid data={testShows(3)} fields={showFields} card={grid} />)
     const { panel } = await openOptions()
     const fields = within(panel).getByRole('region', { name: 'Card fields' })
     expect(
@@ -234,7 +239,7 @@ describe('Grid settings', { timeout: 15_000 }, () => {
         data={testShows(3)}
         fields={showFields}
         onViewChange={onViewChange}
-        {...grid}
+        card={grid}
       />
     )
     const { user, panel } = await openOptions()
@@ -261,19 +266,48 @@ describe('Grid settings', { timeout: 15_000 }, () => {
     expect(onViewChange.mock.lastCall![0].layout).toEqual({ type: 'grid' })
   })
 
+  it("doesn't pull focus back for a change the parent never applies", async () => {
+    const view = {
+      query: { search: '', filters: [], sort: [] },
+      layout: { type: 'grid' as const }
+    }
+    const { rerender } = render(
+      <RecordGrid
+        data={testShows(3)}
+        fields={showFields}
+        view={view}
+        onViewChange={() => {}}
+        card={grid}
+      />
+    )
+    const { user, panel } = await openOptions()
+    await user.click(within(panel).getByRole('button', { name: 'Show Sold' }))
+    const add = within(panel).getByRole('button', { name: 'Add sort' })
+    add.focus()
+    rerender(
+      <RecordGrid
+        data={testShows(4)}
+        fields={showFields}
+        view={view}
+        onViewChange={() => {}}
+        card={grid}
+      />
+    )
+    expect(add).toHaveFocus()
+  })
+
   it('keeps the last field shown when the grid defines some, and says why', async () => {
     render(
       <RecordGrid
         data={testShows(3)}
         fields={showFields}
-        {...grid}
-        details={['sold']}
+        card={{ ...grid, details: ['sold'] }}
       />
     )
     const { panel } = await openOptions()
     const sold = within(panel).getByRole('button', { name: 'Show Sold' })
     expect(sold).toBeDisabled()
-    expect(sold).toHaveAccessibleDescription('A card shows at least one field')
+    expect(sold).toHaveAccessibleDescription('A card shows at least one detail')
   })
 
   it('hides every field the grid shows none of by default', async () => {
@@ -281,8 +315,7 @@ describe('Grid settings', { timeout: 15_000 }, () => {
       <RecordGrid
         data={testShows(3)}
         fields={showFields}
-        title='show'
-        description='city'
+        card={{ title: 'show', description: 'city' }}
       />
     )
     const { user, panel } = await openOptions()
@@ -300,7 +333,7 @@ describe('Grid settings', { timeout: 15_000 }, () => {
         fields={showFields}
         defaultView={{ layout: { type: 'grid', fields: ['fees', 'sold'] } }}
         onViewChange={onViewChange}
-        {...grid}
+        card={grid}
       />
     )
     const { user, panel } = await openOptions()

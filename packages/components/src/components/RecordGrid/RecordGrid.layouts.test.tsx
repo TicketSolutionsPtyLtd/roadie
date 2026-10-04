@@ -108,6 +108,15 @@ beforeAll(() =>
 )
 
 describe('Layout switcher', { timeout: 15_000 }, () => {
+  it('warns in development about two layouts of one type', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<Harness shownLayouts={[layouts[0]!, layouts[1]!, layouts[1]!]} />)
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('two layouts of one type')
+    )
+    warn.mockRestore()
+  })
+
   it('shows only with more than one layout', async () => {
     render(<Harness shownLayouts={[layouts[0]!]} />)
     const { panel } = await openOptions()
@@ -203,6 +212,48 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
     expect(
       [...first.querySelectorAll('dt')].map((dt) => dt.textContent)
     ).toEqual(['Gross', 'Sold'])
+  })
+
+  it("forgets the last view's layout settings once another view opens", async () => {
+    const user = userEvent.setup()
+    const onTable: RecordView = {
+      id: 'table',
+      name: 'Rows',
+      query: { search: '', filters: [], sort: [] },
+      layout: { type: 'table' }
+    }
+    function Opening() {
+      const [open, setOpen] = useState(onGrid)
+      const [view, setView] = useState(onGrid)
+      const records = useRecords({
+        data: shows,
+        fields: showFields,
+        view,
+        onViewChange: setView,
+        baseline: open
+      })
+      return (
+        <Records records={records} layouts={layouts} caption='Shows'>
+          <button
+            onClick={() => {
+              setOpen(onTable)
+              setView(onTable)
+            }}
+          >
+            Open rows
+          </button>
+          <Records.Toolbar />
+          <Records.Content />
+        </Records>
+      )
+    }
+    render(<Opening />)
+    await user.click(screen.getByRole('button', { name: 'Open rows' }))
+    await switchTo('Grid', user)
+    const first = document.querySelector('[data-slot="record-grid-card"]')!
+    expect(
+      [...first.querySelectorAll('dt')].map((dt) => dt.textContent)
+    ).toEqual(['Sold'])
   })
 
   it('round-trips the layout through the URL', async () => {

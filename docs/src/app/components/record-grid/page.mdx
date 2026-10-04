@@ -24,7 +24,7 @@ Card parts can hold functions (`alt` and `cell`), as can fields with a `match`, 
 
 ### Default
 
-Describe the records once as fields, then name the field each part of a card shows. Search, the sort in Configure, and paging come built in. Cards are at least 16rem wide, as many columns fit as the width allows, and a phone shows one.
+Describe the records once as fields, then name in `card` the field each part of a card shows. Search, the sort in Configure, and paging come built in. Cards are at least 16rem wide, as many columns fit as the width allows, and a phone shows one.
 
 ```tsx-live-noinline-expand
 const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre', 'Foxglove Tin Pavilion']
@@ -69,11 +69,13 @@ render(
     getRowHref={(row) => `#${row.id}`}
     recordName={{ one: 'event', other: 'events' }}
     defaultPosition={{ pageSize: 12 }}
-    image={{ key: 'image', alt: (row) => row.name }}
-    title='name'
-    description='venue'
-    trailing='status'
-    details={['startsAt', 'city', 'sold']}
+    card={{
+      image: { key: 'image', alt: (row) => row.name },
+      title: 'name',
+      description: 'venue',
+      trailing: 'status',
+      details: ['startsAt', 'city', 'sold']
+    }}
   />
 )
 ```
@@ -104,13 +106,12 @@ render(
     fields={fields}
     getRowId={(row) => row.id}
     recordName={{ one: 'venue', other: 'venues' }}
-    leading={{
-      key: 'name',
-      cell: ({ value }) => <Avatar size='sm' name={value} />
+    card={{
+      leading: { key: 'name', cell: ({ value }) => <Avatar size='sm' name={value} /> },
+      title: 'name',
+      description: 'city',
+      details: ['capacity', 'events']
     }}
-    title='name'
-    description='city'
-    details={['capacity', 'events']}
   />
 )
 ```
@@ -130,9 +131,7 @@ const props = {
   fields,
   getRowId: (row) => row.id,
   recordName: { one: 'event', other: 'events' },
-  title: 'name',
-  description: 'city',
-  details: ['sold']
+  card: { title: 'name', description: 'city', details: ['sold'] }
 }
 
 render(
@@ -225,7 +224,7 @@ render(<Events />)
 
 ### Card fields
 
-Configure lists the fields a card shows as details. Drag a handle to reorder them, or click it, or press Enter on it, for a Move menu. The eye beside each one hides it, and the hidden fields are listed apart, in the fields' own order, with an eye to show each one again at the end. The fields the card places as its title, description, image, leading or trailing aren't listed. When the grid defines details, the last one stays shown. The list loads once the page is idle, or as a pointer or focus reaches the button, so drag and drop stays out of the grid's first load.
+Configure lists the fields a card shows as details. Drag a handle to reorder them, or click it or press Enter for a Move menu. The eye beside each one hides it. Hidden fields are listed apart, in the fields' own order, and showing one again adds it to the end. The fields the card places as its title, description, image, leading or trailing aren't listed. When the grid defines details, the last one stays shown. The list loads once the page is idle, or as a pointer or focus reaches the button, so drag and drop stays out of the grid's first load.
 
 The fields write the view's `layout.fields`, the shown keys in order, left out once back to the grid's `details`, so `equalViews` reads the view as unchanged. A view's keys for fields this grid doesn't have, such as one only some people see, are kept in their places.
 
@@ -264,9 +263,7 @@ function Configured() {
         getRowId={(row) => row.id}
         view={view}
         onViewChange={setView}
-        title='name'
-        description='city'
-        details={['startsAt', 'sold']}
+        card={{ title: 'name', description: 'city', details: ['startsAt', 'sold'] }}
       />
     </div>
   )
@@ -299,9 +296,7 @@ render(
     getRowId={(row) => row.id}
     getRowHref={(row) => `#${row.id}`}
     recordName={{ one: 'event', other: 'events' }}
-    title='name'
-    description='city'
-    details={['sold']}
+    card={{ title: 'name', description: 'city', details: ['sold'] }}
     bulkActions={[
       { label: 'Share', icon: <ShareNetworkIcon weight='bold' className='size-4' />, onAction: () => {} },
       { label: 'Delete', icon: <TrashIcon weight='bold' className='size-4' />, intent: 'danger', onAction: () => {} }
@@ -337,9 +332,7 @@ render(
     defaultPosition={{ pageSize: 1000 }}
     pageSizes={[100, 1000]}
     maxHeight='32rem'
-    title='name'
-    description='city'
-    details={['sold']}
+    card={{ title: 'name', description: 'city', details: ['sold'] }}
   />
 )
 ```
@@ -359,7 +352,7 @@ render(
     an image or a status at a glance helps people find the record.
   </Guideline.Do>
   <Guideline.Dont
-    code={`<RecordGrid fields={orderFields} title='orderNumber' details={['total', 'placedAt', 'email', 'status', 'tickets']} />`}
+    code={`<RecordGrid fields={orderFields} card={{ title: 'orderNumber', details: ['total', 'placedAt', 'email', 'status', 'tickets'] }} />`}
   >
     Don't use a grid for records people compare by their values, such as
     orders. A table lines the values up in columns.
@@ -385,7 +378,7 @@ render(
 - A card's title is a paragraph, not a heading, since the grid can't know the page's outline. With `getRowHref` it is a link, and the whole card takes its hover and press; it opens in a new tab with Cmd or Ctrl, like any link.
 - Tab moves through the cards in reading order, row by row. In its own box (`maxHeight` or `fill`), the box is a region named "Events, scrolls" for a caption of Events.
 - In Select mode, each card's checkbox is named "Select" and the card's title, and covers the card, so a tap anywhere on it toggles, and the link steps aside. "Select" and "Done" are one button, which keeps focus as it switches. The floating bulk actions are a group named "Bulk actions". Escape leaves Select mode, and focus lands on Select.
-- The Configure button is named "Configure grid", as is the dialog it opens. The Layout switcher is a group named "Layout" of toggle buttons, Table and Grid, with the shown one pressed; arrow keys move between them, and focus stays on the one used as the layout switches. Each shown field's handle is named "Reorder" and the field, and its eye is a toggle button named "Show" and the field, pressed while the field shows. Showing or hiding a field moves it between the lists, and focus follows its eye. The last shown field's eye is disabled when the grid defines details, and says why.
+- The Configure button is named "Configure grid", as is the dialog it opens. The Layout switcher is a group named "Layout" of toggle buttons, Table and Grid, with the shown one pressed; arrow keys move between them, and focus stays on the one used as the layout switches. Each shown field's handle is named "Reorder" and the field, and its eye is a toggle button named "Show" and the field, pressed while the field shows. Showing or hiding a field moves it between the lists, and focus follows its eye. The last shown detail's eye is disabled when the grid defines details, and says why.
 - Loading by range, the list is `aria-busy` while a range loads, placeholder cards are hidden from screen readers, and a failed range is announced. `Records.Status` announces Loading, the error, the result count and the selection.
 - Focus in a card that scrolls away, or whose record leaves, moves to the cards, so keyboard users keep their place.
 

@@ -5,11 +5,9 @@ import { useId, useLayoutEffect, useRef } from 'react'
 import { EyeIcon, EyeSlashIcon } from '@phosphor-icons/react'
 
 import type { RecordField } from '@oztix/roadie-core/records'
-import { cn } from '@oztix/roadie-core/utils'
 
 import { List } from '../List'
-import { ListItemContent } from '../List/ListItemContent'
-import { listItemVariants } from '../List/variants'
+import { ListItemStatic } from '../List/ListItemStatic'
 import { useRecordsContext } from '../Records/context'
 import { Sortable } from '../Sortable'
 import { Toggle } from '../Toggle'
@@ -33,20 +31,21 @@ export function RecordGridSettings({ config }: { config: GridLayoutConfig }) {
   const lastShownId = useId()
   const sectionRef = useRef<HTMLElement>(null)
   // The toggle used moves between the lists; focus follows its field there.
-  const focusField = useRef<string | null>(null)
+  const focusField = useRef<{ key: string; shown: boolean } | null>(null)
   const { fields, view } = records
   const candidates = detailCandidates(config, fields)
   const shown = shownDetails(config, fields, view.layout)
 
   useLayoutEffect(() => {
-    const key = focusField.current
-    if (key === null) return
+    const pending = focusField.current
+    if (pending === null) return
+    // Until the view shows the change, the toggle used is still where it was.
     const toggle = sectionRef.current?.querySelector<HTMLElement>(
-      `[data-card-field="${CSS.escape(key)}"]`
+      `[data-card-field="${CSS.escape(pending.key)}"][aria-pressed="${pending.shown}"]`
     )
-    if (!toggle || toggle === document.activeElement) return
+    if (!toggle) return
     focusField.current = null
-    toggle.focus()
+    if (toggle !== document.activeElement) toggle.focus()
   })
 
   if (candidates.length === 0) return null
@@ -58,7 +57,10 @@ export function RecordGridSettings({ config }: { config: GridLayoutConfig }) {
   // details defined the last one stays.
   const lastLocked =
     shown.length === 1 && definedDetails(config, fields).length > 0
-  const write = (next: readonly string[], focus?: string) => {
+  const write = (
+    next: readonly string[],
+    focus?: { key: string; shown: boolean }
+  ) => {
     focusField.current = focus ?? null
     records.setLayout(gridDetailsLayout(config, fields, next, view.layout))
   }
@@ -78,7 +80,7 @@ export function RecordGridSettings({ config }: { config: GridLayoutConfig }) {
             pressed
               ? [...shown, field.key]
               : shown.filter((key) => key !== field.key),
-            field.key
+            { key: field.key, shown: pressed }
           )
         }
       >
@@ -133,26 +135,19 @@ export function RecordGridSettings({ config }: { config: GridLayoutConfig }) {
             {hidden.map((field) => (
               // A static row: List.Item would be a button around the toggle.
               <li key={field.key}>
-                <div
-                  data-slot='list-item'
-                  className={cn(
-                    listItemVariants({ interactive: false }),
-                    'group-data-[contained=subtler]/list:bg-transparent group-data-[emphasis=subtler]/list:bg-transparent'
-                  )}
-                >
-                  <ListItemContent
-                    title={field.label}
-                    trailing={toggle(field, false)}
-                    chevron={false}
-                  />
-                </div>
+                <ListItemStatic
+                  // The width of a shown row's handle, so titles line up.
+                  leading={<span aria-hidden className='size-6' />}
+                  title={field.label}
+                  trailing={toggle(field, false)}
+                />
               </li>
             ))}
           </List>
         </div>
       )}
       <span id={lastShownId} hidden>
-        A card shows at least one field
+        A card shows at least one detail
       </span>
     </section>
   )

@@ -33,7 +33,7 @@ import { useRowWindow } from '../RecordTable/rowWindow'
 import { useKeepFocusInTable } from '../RecordTable/tableFocus'
 import { RecordCard } from '../Records/RecordCard'
 import { RecordsEmpty, RecordsError } from '../Records/RecordsStates'
-import { isSelecting, useRecordsContext } from '../Records/context'
+import { useRecordsContext } from '../Records/context'
 import type { RecordsContentProps } from '../Records/layouts'
 import { leaveSelectOnEscape } from '../Records/selectMode'
 import { useStickyTop } from '../Records/stickyTop'
@@ -43,16 +43,17 @@ import type {
   RecordsRow
 } from '../Records/types'
 import { useSurvivor } from '../Records/useBulkActions'
+import { useSelectModeLayout } from '../Records/useSelectModeLayout'
 import { ScrollArea } from '../ScrollArea'
 import { gridParts } from './parts'
 import type { GridLayoutConfig } from './types'
 
 /** Rem between cards, both ways. */
-export const GRID_GAP_REM = 1
+// Keep in step with columnsClass's gap-4.
+const GRID_GAP_REM = 1
 /** A card's height before it's measured, in rem, and what its banner adds at the narrowest. */
 const CARD_REM = 10
 const BANNER_REM = 9
-// The narrowest card; as many columns as fit, and one on a phone.
 const columnsClass =
   'grid grid-cols-[repeat(auto-fill,minmax(min(16rem,100%),1fr))] gap-4'
 // A card is at most just under two of its narrowest, or a phone's width.
@@ -77,7 +78,11 @@ type GridShared = {
   getRowHref?: (row: object) => string | undefined
 }
 
-type Measure = { index: number; ref: (node: HTMLLIElement | null) => void }
+/** A windowed card's grid row. Every card carries it, as a card can stop leading its row while still observed; only the first takes the window's ref. */
+type Measure = {
+  index: number
+  ref?: (node: HTMLLIElement | null) => void
+}
 
 export function RecordGridContent({
   className,
@@ -85,8 +90,7 @@ export function RecordGridContent({
   fill = false,
   config
 }: RecordGridContentProps) {
-  const { records, caption, toolbar, setContentFill, setSelectMode } =
-    useRecordsContext()
+  const { records, caption, toolbar, setContentFill } = useRecordsContext()
   const rowsSurvivor = useSurvivor('rows')
   const frameRef = useRef<HTMLDivElement>(null)
   const boxed = fill || Boolean(maxHeight)
@@ -102,24 +106,11 @@ export function RecordGridContent({
   }, [fill, setContentFill])
 
   // Cards have no checkboxes, so the grid selects only through Select mode.
-  const selecting = isSelecting(records, true)
-  const { selecting: committed, setSelecting } = records
+  const selecting = useSelectModeLayout(true)
   const latest = useRef(records)
   useLayoutEffect(() => {
     latest.current = records
   })
-  useLayoutEffect(() => {
-    if (selecting && !committed) setSelecting(true, { keep: true })
-    setSelectMode(true)
-  }, [selecting, committed, setSelecting, setSelectMode])
-  // Another layout may give each record a checkbox, so leaving keeps the selection.
-  useLayoutEffect(
-    () => () => {
-      setSelectMode(false)
-      latest.current.setSelecting(false, { keep: true })
-    },
-    [setSelectMode]
-  )
 
   // Stable, so a selection change or an inline rowActions leaves other cards alone.
   const toggleRow = useCallback(
@@ -317,7 +308,7 @@ function GridCard({
   record: RecordsRow<object>
   posInSet?: number
   setSize?: number
-  /** The first card of a windowed row, which the window measures. */
+  /** Its windowed row. */
   measure?: Measure
 }) {
   const itemRef = useRef<HTMLLIElement>(null)
@@ -369,8 +360,9 @@ function useColumnCount(bodyRef: RefObject<HTMLElement | null>) {
     if (!body) return
     const read = () => {
       const tracks = getComputedStyle(body)
+        // Resolved px tracks only: a box not laid out reports the declared repeat().
         .gridTemplateColumns.split(' ')
-        .filter((track) => track && track !== 'none').length
+        .filter((track) => track.endsWith('px')).length
       setColumns(Math.max(1, tracks))
     }
     read()
@@ -416,7 +408,8 @@ function VirtualGrid({
   const columnsRef = useRef<HTMLUListElement>(null)
   const columns = useColumnCount(columnsRef)
   const getItemKey = useCallback(
-    (row: number) => rows[row * columns]!.id,
+    // With the count too, so heights measured at another width start over.
+    (row: number) => `${columns}:${rows[row * columns]!.id}`,
     [rows, columns]
   )
   const { bodyRef, items, total, margin, measureElement } =
@@ -442,11 +435,7 @@ function VirtualGrid({
           record={rows[index]!}
           posInSet={firstIndex + index}
           setSize={setSize}
-          measure={
-            first && measureElement
-              ? { index: row, ref: measureElement }
-              : undefined
-          }
+          measure={{ index: row, ref: first ? measureElement : undefined }}
         />
       ))}
     </GridList>
@@ -502,10 +491,10 @@ function RangeGrid({
         ({ row: gridRow, index, first: isFirst }) => {
           // With the query too, so a new search's card starts fresh.
           const key = `${range.key}${indexKey(index)}`
-          const measure =
-            isFirst && measureElement
-              ? { index: gridRow, ref: measureElement }
-              : undefined
+          const measure = {
+            index: gridRow,
+            ref: isFirst ? measureElement : undefined
+          }
           const held = range.rowAt(index)
           const failed = held
             ? undefined
@@ -514,13 +503,12 @@ function RangeGrid({
             return (
               <RecordTableNarrowRangeError
                 key={rangeErrorKey(failed.start)}
-                heightClass=''
                 card
                 banner={shared.parts.image !== undefined}
                 posInSet={index + 1}
                 setSize={size}
-                index={measure?.index}
-                measureElement={measure?.ref}
+                index={measure.index}
+                measureElement={measure.ref}
               />
             )
           return held ? (
@@ -538,8 +526,8 @@ function RangeGrid({
               key={key}
               parts={shared.parts}
               card
-              index={measure?.index}
-              measureElement={measure?.ref}
+              index={measure.index}
+              measureElement={measure.ref}
               blank={failed !== undefined}
             />
           )
@@ -578,8 +566,17 @@ function useGridRange(
   const total =
     range.total === undefined ? undefined : Math.ceil(range.total / columns)
   return useMemo(
-    () => ({ ...range, count, total, rowAt, show }),
-    [range, count, total, rowAt, show]
+    // Keyed by the count too, so a new width forgets the rows reported and
+    // measured at the old one and scrolls the position's record back in.
+    () => ({
+      ...range,
+      key: `${range.key}:${columns}`,
+      count,
+      total,
+      rowAt,
+      show
+    }),
+    [range, columns, count, total, rowAt, show]
   )
 }
 

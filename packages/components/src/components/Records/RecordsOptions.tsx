@@ -68,16 +68,24 @@ export function RecordsOptions({ label, className }: RecordsOptionsProps) {
   })
   useEffect(() => whenIdle(() => preload.current()), [])
   const preloadNow = () => preload.current()
-  // Each layout's settings as last shown, so switching back keeps them.
-  const shownLayouts = useRef(new Map<string, RecordLayout>())
+  // Each layout's settings as last shown in this baseline's view, so
+  // switching back keeps them; another saved view starts afresh.
+  const shownLayouts = useRef({
+    baseline: '',
+    layouts: new Map<string, RecordLayout>()
+  })
   const { layout: viewLayout } = records.view
+  const baselineKey = records.baseline ? JSON.stringify(records.baseline) : ''
   useLayoutEffect(() => {
-    shownLayouts.current.set(viewLayout.type, viewLayout)
-  }, [viewLayout])
+    const memory = shownLayouts.current
+    if (memory.baseline !== baselineKey)
+      shownLayouts.current = { baseline: baselineKey, layouts: new Map() }
+    shownLayouts.current.layouts.set(viewLayout.type, viewLayout)
+  }, [viewLayout, baselineKey])
   const switchLayout = (type: RecordLayout['type']) => {
     const { baseline } = records
     records.setLayout(
-      shownLayouts.current.get(type) ??
+      shownLayouts.current.layouts.get(type) ??
         (baseline?.layout.type === type
           ? baseline.layout
           : ({ type } as RecordLayout))

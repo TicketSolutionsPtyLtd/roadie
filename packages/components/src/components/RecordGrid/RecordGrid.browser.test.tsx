@@ -1,8 +1,16 @@
 import { useMemo, useState } from 'react'
 
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, render, screen, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 
 import { type RecordPosition, placeRange } from '@oztix/roadie-core/records'
 
@@ -66,7 +74,7 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
             index === 1 ? { ...show, city: 'Melbourne' } : show
           )}
           fields={showFields}
-          {...grid}
+          card={grid}
         />
       </div>
     )
@@ -99,7 +107,7 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
     )
     const { container } = render(
       <div style={{ width: 600 }}>
-        <RecordGrid data={tall} fields={showFields} {...grid} />
+        <RecordGrid data={tall} fields={showFields} card={grid} />
       </div>
     )
     const [long, short] = cards(container)
@@ -120,7 +128,7 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
           fields={showFields}
           defaultPosition={{ pageSize: 600 }}
           maxHeight='600px'
-          {...grid}
+          card={grid}
         />
       </div>
     )
@@ -141,8 +149,10 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
     expect(rect(last).bottom).toBeLessThanOrEqual(rect(viewport).bottom + 1)
   })
 
-  it('loads ranges by rows of cards, and opens at a row', async () => {
+  it('loads ranges by rows of cards, opens at a row, and keeps it across a resize', async () => {
     const spans: { start: number; end: number }[] = []
+    const warn = vi.spyOn(console, 'warn')
+    let resize = (_: number) => {}
     function Ranged() {
       const show = useMemo(() => {
         const sample = testShows(1)[0]!
@@ -153,9 +163,11 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
         })
       }, [])
       const [data, setData] = useState<(TestShow | undefined)[]>([])
-      const [position, setPosition] = useState<RecordPosition>({ row: 90 })
+      const [position, setPosition] = useState<RecordPosition>({ row: 91 })
+      const [width, setWidth] = useState(900)
+      resize = setWidth
       return (
-        <div style={{ width: 900 }}>
+        <div style={{ width }}>
           <RecordGrid
             caption='Shows'
             maxHeight='600px'
@@ -177,7 +189,7 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
                 )
               )
             }}
-            {...grid}
+            card={grid}
           />
         </div>
       )
@@ -186,16 +198,59 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
     const viewport = container.querySelector<HTMLElement>(
       '[data-slot="record-grid-viewport"]'
     )!
-    // Three columns at 900px: row 90 is the first card of grid row 30.
-    await framed(() => {
-      const card = cards(container).find(
-        (item) => item.dataset.rowId === 'show-90'
+    const inTopRow = (id: string) => {
+      const card = cards(container).find((item) => item.dataset.rowId === id)
+      return (
+        card !== undefined && Math.abs(rect(card).top - rect(viewport).top) < 24
       )
-      return card && Math.abs(rect(card).top - rect(viewport).top) < 24
-    }).toBe(true)
-    expect(spans.some(({ start, end }) => start <= 90 && end > 90)).toBe(true)
+    }
+    // Three columns at 900px: record 91 sits in grid row 30, with 90 and 92.
+    await framed(() => inTopRow('show-91')).toBe(true)
+    expect(spans.some(({ start, end }) => start <= 91 && end > 91)).toBe(true)
     expect(spans.some(({ start }) => start >= 1000)).toBe(false)
     expect(cards(container).length).toBeLessThan(200)
+    // Two columns at 600px: record 91 sits in grid row 45.
+    await act(async () => resize(600))
+    await framed(() => inTopRow('show-91')).toBe(true)
+    expect(
+      warn.mock.calls.some(([message]) =>
+        String(message).includes('data-index')
+      )
+    ).toBe(false)
+    warn.mockRestore()
+  })
+
+  it('keeps a windowed grid whole as its columns change', async () => {
+    const warn = vi.spyOn(console, 'warn')
+    let resize = (_: number) => {}
+    function Long() {
+      const [width, setWidth] = useState(900)
+      resize = setWidth
+      return (
+        <div style={{ width }}>
+          <RecordGrid
+            data={testShows(600)}
+            fields={showFields}
+            defaultPosition={{ pageSize: 600 }}
+            maxHeight='600px'
+            card={grid}
+          />
+        </div>
+      )
+    }
+    const { container } = render(<Long />)
+    await framed(() => cards(container).length).toBeGreaterThan(0)
+    await act(async () => resize(600))
+    await framed(() => tops(cards(container).slice(0, 4)).length).toBe(2)
+    const rows = tops(cards(container))
+    for (let index = 1; index < rows.length; index++)
+      expect(rows[index]! - rows[index - 1]!).toBeGreaterThan(100)
+    expect(
+      warn.mock.calls.some(([message]) =>
+        String(message).includes('data-index')
+      )
+    ).toBe(false)
+    warn.mockRestore()
   })
 
   it('tabs through cards in reading order, and selects with Space in Select mode', async () => {
@@ -207,7 +262,7 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
           fields={showFields}
           getRowHref={(row) => `/shows/${row.id}`}
           bulkActions={[{ label: 'Archive', onAction: () => {} }]}
-          {...grid}
+          card={grid}
         />
       </div>
     )

@@ -112,7 +112,7 @@ export function RecordTableNarrowRangeError({
   measureElement
 }: {
   /** The list row's height, matching its placeholders. */
-  heightClass: string
+  heightClass?: string
   card: boolean
   /** A card's banner above the message, matching its placeholder. */
   banner?: boolean

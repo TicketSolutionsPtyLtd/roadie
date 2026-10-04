@@ -2,12 +2,10 @@
 
 import { type ReactElement, use } from 'react'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import { useDevWarning } from '../../utils/useDevWarning'
 import { SortableRootContext } from '../Sortable/SortableContext'
-import { ListItemContent, type ListItemContentProps } from './ListItemContent'
-import { listItemVariants } from './variants'
+import type { ListItemContentProps } from './ListItemContent'
+import { ListItemStatic } from './ListItemStatic'
 
 export type ListItemSortableProps = Omit<
   ListItemContentProps,
@@ -47,32 +45,22 @@ export function ListItemSortable({
       label={typeof title === 'string' ? title : undefined}
       render={<li />}
     >
-      <div
-        data-slot='list-item'
-        className={cn(
-          listItemVariants({ interactive: false }),
-          // A static subtler row would keep its tint, where a plain row paints nothing at rest.
-          'group-data-[contained=subtler]/list:bg-transparent group-data-[emphasis=subtler]/list:bg-transparent',
-          className
-        )}
-      >
-        <ListItemContent
-          title={title}
-          description={description}
-          leading={
-            leading == null ? (
-              handle
-            ) : (
-              <span className='flex items-center gap-3'>
-                {handle}
-                {leading}
-              </span>
-            )
-          }
-          trailing={trailing}
-          chevron={false}
-        />
-      </div>
+      <ListItemStatic
+        className={className}
+        title={title}
+        description={description}
+        leading={
+          leading == null ? (
+            handle
+          ) : (
+            <span className='flex items-center gap-3'>
+              {handle}
+              {leading}
+            </span>
+          )
+        }
+        trailing={trailing}
+      />
     </Item>
   )
 }

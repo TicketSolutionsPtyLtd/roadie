@@ -14,7 +14,6 @@ A table of records to search, filter, sort and page through.
 
 ```tsx
 import { RecordTable, shownColumns, tableColumns, tableLayout } from '@oztix/roadie-components/record-table'
-import { gridLayout } from '@oztix/roadie-components/record-grid'
 import { Records, downloadCsv, useRecords } from '@oztix/roadie-components/records'
 import { recordFields, recordsToCsv } from '@oztix/roadie-core/records'
 ```
@@ -527,47 +526,7 @@ render(<Configured />)
 
 #### Layouts
 
-Give `Records` more than one layout, such as the table and a [RecordGrid](/components/record-grid) of cards, and Configure shows a Layout switcher above the sort. It writes the view's `layout`, so the URL and a saved view keep it, and the search, filters and sort stay as they are. Each layout comes back with its settings as last shown, or the saved view's, so a table's hidden columns survive a look at the cards. The button and panel follow the layout: "Configure grid" lists the card's fields.
-
-```tsx-live-noinline
-const field = recordFields()
-const fields = [
-  field.text('name', { label: 'Event' }),
-  field.text('city', { label: 'City' }),
-  field.number('sold', { label: 'Sold' }),
-  field.money('gross', { label: 'Gross', format: 'compactCurrency' })
-]
-const column = tableColumns(fields)
-const layouts = [
-  tableLayout([column.field('name', { pin: true }), column.field('city'), column.field('sold'), column.field('gross')]),
-  gridLayout({ title: 'name', description: 'city', details: ['sold', 'gross'] })
-]
-const names = ['Nectarine Hoedown', 'Lampshade Disco', 'Ember Galah Ball', 'Raffia Spaceship']
-const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
-const events = Array.from({ length: 8 }, (_, index) => ({
-  id: `event-${index}`,
-  name: `${names[index % names.length]} ${index + 1}`,
-  city: cities[index % cities.length],
-  sold: (index * 37) % 2400,
-  gross: (index * 7919) % 250000
-}))
-
-function Switching() {
-  const [view, setView] = useState({ query: { search: '', filters: [], sort: [] }, layout: { type: 'table' } })
-  const records = useRecords({ data: events, fields, getRowId: (row) => row.id, view, onViewChange: setView })
-  return (
-    <div className='grid gap-3'>
-      <p className='text-sm text-subtle'>URL: ?{toSearchParams(view).toString()}</p>
-      <Records records={records} layouts={layouts} caption='Events'>
-        <Records.Toolbar />
-        <Records.Content />
-      </Records>
-    </div>
-  )
-}
-
-render(<Switching />)
-```
+Give `Records` more than one layout, such as the table and a grid of cards, and Configure shows a Layout switcher above the sort that writes the view's `layout`. The button and panel follow the layout: "Configure grid" lists the card's fields. See [Layouts on RecordGrid](/components/record-grid#layouts) for an example.
 
 ### Saved views
 
