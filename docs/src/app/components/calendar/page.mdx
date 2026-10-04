@@ -22,7 +22,7 @@ import { Calendar } from '@oztix/roadie-components/calendar'
 
 Calendar opens on the selected month, or on today's. Every value is a plain ISO date string such as `'2026-11-27'`, never a `Date`. Today moves on at midnight in `timeZone`. Server HTML may be read on a later day, so the server leaves today unmarked, and a calendar with nothing else to place its month renders an empty six-week frame until the browser fills it in. Pass `today`, `month`, `defaultMonth` or a selection to render it in full on the server.
 
-The month's name sits at the start of the header and both arrows sit at the end. On a touch screen, swipe the days sideways to turn the month. The days follow the finger and the weekday row stays still, and the swipe runs the other way in a right-to-left page. The arrows, the month and year selects, and `Page Up` and `Page Down` slide the days the same way. Arrow keys that cross into the next month turn it straight away, so focus never sits on a day that is sliding. When the reader prefers reduced motion, every turn is instant.
+The month's name sits at the start of the header and both arrows sit at the end. On a touch screen, swipe the days sideways to turn the month, or drag them with a mouse or pen; a press that barely moves still chooses the day. The days follow the finger and the weekday row stays still, and the swipe runs the other way in a right-to-left page. The arrows and `Page Up` and `Page Down` slide the days the same way, and the month lands as the slide passes its middle. A month picked from the selects shows at once and slides in. Arrow keys that cross into the next month turn it straight away, so focus never sits on a day that is sliding. When the reader prefers reduced motion, every turn is instant.
 
 ```tsx-live-noinline
 function Default() {
@@ -302,7 +302,7 @@ render(<Sessions />)
 - Disabled days are focusable with `aria-disabled`, so they can be read and passed, but not selected.
 - A polite live region announces the month when it changes and the selection when it changes, such as "Selected Wednesday, 3 to Sunday, 7 March 2027".
 - The month arrows are labelled "Previous month" and "Next month", and in week view "Previous week" and "Next week". In the dropdown layout the selects are labelled "Month" and "Year". The view toggle is a button labelled "Month view", pressed in month view.
-- Swiping turns the page on a touch screen, and the arrows and `Page Up` and `Page Down` do the same for everyone else, with the same slide. Arrow keys across a month edge turn it without a slide, so focus stays on a still day. With reduced motion nothing slides.
+- Swiping or dragging the days turns the page, and the arrows and `Page Up` and `Page Down` do the same for everyone else, with the same slide. Arrow keys across a month edge turn it without a slide, so focus stays on a still day. With reduced motion nothing slides.
 - In week view the grid is named by its dates, such as "Monday, 26 October to Sunday, 1 November 2026", and turning a week announces them.
 - `getDayContent` describes its day: a day with a price is read as its date, then the price.
 - With `layout='scroll'`, each month keeps its own column headers for screen readers, and the pinned weekday row is hidden from them.

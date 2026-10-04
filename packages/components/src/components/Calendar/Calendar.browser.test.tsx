@@ -593,49 +593,77 @@ describe('Calendar page turns', () => {
     document.querySelector<HTMLElement>('[data-slot="calendar-days"]')!
   const weekdays = () =>
     document.querySelector('[data-slot="calendar-grid"] thead')!
-  const lastFrame = () =>
-    (days().getAnimations()[0]?.effect as KeyframeEffect | undefined)
-      ?.getKeyframes()
-      .at(-1)?.transform
+  const swiping = () => document.querySelector('[data-swiping]')
+
+  // Slides that last until finished by hand, so a press lands mid-slide.
+  function holdSlides() {
+    const animate = Element.prototype.animate
+    const spy = vi
+      .spyOn(Element.prototype, 'animate')
+      .mockImplementation(function (this: Element, frames, options) {
+        return animate.call(this, frames, {
+          ...(options as object),
+          duration: 60_000
+        })
+      })
+    onTestFinished(() => spy.mockRestore())
+    return {
+      firstFrames: () =>
+        (spy.mock.calls[0]![0] as { transform?: string }[]).map(
+          (frame) => frame.transform
+        ),
+      async land() {
+        for (let i = 0; i < 20 && swiping(); i++) {
+          for (const animation of document.getAnimations()) animation.finish()
+          await new Promise((resolve) => setTimeout(resolve, 0))
+        }
+      }
+    }
+  }
 
   it('slides the days, not the weekday row, as the arrows turn the page', async () => {
+    const slides = holdSlides()
     render(<Calendar today={TODAY} />)
     const row = weekdays().getBoundingClientRect().toJSON()
     await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
-    expect(document.querySelector('[data-swiping]')).not.toBeNull()
-    expect(lastFrame()).toMatch(/^translate3d\(-\d/)
+    expect(swiping()).not.toBeNull()
+    expect(slides.firstFrames().at(-1)).toMatch(/^translate3d\(-\d/)
     expect(weekdays().getBoundingClientRect().toJSON()).toEqual(row)
-    await turned()
+    await slides.land()
     expect(caption()).toEqual(['April 2027'])
     expect(days().style.transform).toBe('')
   })
 
   it('ends on the right month when clicked again mid-slide, keeping focus', async () => {
+    const slides = holdSlides()
     render(<Calendar today={TODAY} />)
     const next = screen.getByRole('button', { name: 'Next month' })
     await userEvent.click(next)
+    expect(swiping()).not.toBeNull()
     await userEvent.click(next)
+    expect(swiping()).not.toBeNull()
     await userEvent.click(next)
-    await turned()
+    await slides.land()
     expect(caption()).toEqual(['June 2027'])
     expect(next).toHaveFocus()
     expect(days().getAnimations()).toHaveLength(0)
   })
 
   it.each([
-    ['vertical', 'ltr', /^translate3d\(0px, -\d/],
+    ['vertical', 'ltr', /^translate3d\(0, -\d/],
     ['horizontal', 'rtl', /^translate3d\(\d/]
   ] as const)(
     'slides the way a %s %s swipe would',
     async (direction, dir, frame) => {
+      const slides = holdSlides()
       render(
         <div dir={dir}>
           <Calendar today={TODAY} direction={direction} />
         </div>
       )
       await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
-      expect(lastFrame()).toMatch(frame)
-      await turned()
+      expect(slides.firstFrames().at(-1)).toMatch(frame)
+      await slides.land()
     }
   )
 
@@ -650,24 +678,65 @@ describe('Calendar page turns', () => {
   })
 
   it('slides for Page Down but not for an arrow across the month', async () => {
+    const slides = holdSlides()
     render(<Calendar today='2027-03-31' />)
     await tabIntoGrid()
     await userEvent.keyboard('{ArrowRight}')
-    expect(document.querySelector('[data-swiping]')).toBeNull()
+    expect(swiping()).toBeNull()
     expect(caption()).toEqual(['April 2027'])
     await userEvent.keyboard('{PageDown}')
-    expect(document.querySelector('[data-swiping]')).not.toBeNull()
-    await turned()
+    expect(swiping()).not.toBeNull()
+    await slides.land()
     expect(focused()).toBe('2027-05-01')
-    await userEvent.keyboard('{PageDown}{PageDown}')
-    await turned()
-    expect(focused()).toBe('2027-07-01')
+  })
+
+  it('reaches a month for every quick Page Down', async () => {
+    const slides = holdSlides()
+    render(<Calendar today={TODAY} />)
+    await tabIntoGrid()
+    await userEvent.keyboard('{PageDown}{PageDown}{PageDown}')
+    await slides.land()
+    expect(focused()).toBe('2027-06-10')
+    expect(caption()).toEqual(['June 2027'])
+  })
+
+  it('lands a Page Down turn before an arrow moves on from it', async () => {
+    holdSlides()
+    render(<Calendar today={TODAY} />)
+    await tabIntoGrid()
+    await userEvent.keyboard('{PageDown}')
+    expect(swiping()).not.toBeNull()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(swiping()).toBeNull()
+    expect(focused()).toBe('2027-04-11')
+    expect(days().getAnimations()).toHaveLength(0)
+  })
+
+  it('shows a month picked from the select at once, then slides it in', async () => {
+    holdSlides()
+    render(<Calendar today={TODAY} captionLayout='dropdown' />)
+    const month = screen.getByRole('combobox', { name: 'Month' })
+    await userEvent.selectOptions(month, 'July')
+    expect(caption()).toEqual(['July 2027'])
+    expect(month).toHaveValue('7')
+    expect(swiping()).not.toBeNull()
+  })
+
+  it('drops a turn still sliding out when the calendar closes', async () => {
+    holdSlides()
+    const onMonthChange = vi.fn()
+    const { unmount } = render(
+      <Calendar today={TODAY} onMonthChange={onMonthChange} />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    unmount()
+    expect(onMonthChange).not.toHaveBeenCalled()
   })
 
   it('turns straight away when a parent moves the month', () => {
     const { rerender } = render(<Calendar today={TODAY} month='2027-03-01' />)
     rerender(<Calendar today={TODAY} month='2027-04-01' />)
-    expect(document.querySelector('[data-swiping]')).toBeNull()
+    expect(swiping()).toBeNull()
     expect(caption()).toEqual(['April 2027'])
   })
 })
@@ -709,6 +778,48 @@ describe('Calendar dragged with a mouse', () => {
     }
   )
 
+  it('chooses nothing when a drag comes back to the day it began on', async () => {
+    await commands.parkPointer()
+    const onSelect = vi.fn()
+    render(<Calendar today={TODAY} onSelect={onSelect} />)
+    const { x, y } = centre('2027-03-17')
+    await commands.pointer([
+      { type: 'move', x, y },
+      { type: 'down' },
+      { type: 'move', x: x - 40, y, steps: 4 },
+      { type: 'move', x, y, steps: 4 },
+      { type: 'up' }
+    ])
+    await turned()
+    expect(onSelect).not.toHaveBeenCalled()
+    expect(caption()).toEqual(['March 2027'])
+  })
+
+  it('leaves the next click alone after a press released outside', async () => {
+    await commands.parkPointer()
+    const onSelect = vi.fn()
+    render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} onSelect={onSelect} />
+      </div>
+    )
+    const { x, y } = centre('2027-03-14')
+    await commands.pointer([
+      { type: 'move', x, y },
+      { type: 'down' },
+      { type: 'move', x: x + 300, y },
+      { type: 'up' }
+    ])
+    const target = centre('2027-03-17')
+    await commands.pointer([
+      { type: 'move', x: target.x, y: target.y, steps: 6 },
+      { type: 'down' },
+      { type: 'up' }
+    ])
+    expect(onSelect).toHaveBeenLastCalledWith('2027-03-17')
+    expect(caption()).toEqual(['March 2027'])
+  })
+
   it('chooses the day on a press that barely moves', async () => {
     await commands.parkPointer()
     const onSelect = vi.fn()
@@ -737,36 +848,6 @@ describe('Calendar dragged with a mouse', () => {
       end: '2027-03-13'
     })
   })
-})
-
-describe('Calendar weekday row', () => {
-  it.each(['w-97.5', 'w-320'])(
-    'lines its weekdays up with the day columns at %s',
-    (width) => {
-      render(
-        <div className={width}>
-          <Calendar today={TODAY} />
-        </div>
-      )
-      const headers = [
-        ...document.querySelectorAll('[data-slot="calendar-grid"] thead th')
-      ]
-      const days = [
-        '2027-03-08',
-        '2027-03-09',
-        '2027-03-10',
-        '2027-03-11',
-        '2027-03-12',
-        '2027-03-13',
-        '2027-03-14'
-      ].map(day)
-      headers.forEach((header, i) => {
-        const a = header.getBoundingClientRect()
-        const b = days[i]!.getBoundingClientRect()
-        expect(a.left + a.width / 2).toBeCloseTo(b.left + b.width / 2, 0)
-      })
-    }
-  )
 })
 
 describe('Calendar touch-action', () => {

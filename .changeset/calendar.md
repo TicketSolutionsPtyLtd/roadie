@@ -24,8 +24,16 @@ selects under `captionLayout='dropdown'`,
 and a controlled `month`. The month's name sits at the start of the header
 and both arrows at the end, together even with several months.
 
-On a touch screen a swipe turns the page, the days following the finger
-unless motion is reduced, and the other way in a right-to-left page.
+On a touch screen a swipe turns the page, and a mouse or pen drags the days
+the same way; a press that moves less than 8px is still a click that chooses
+the day. Only the days move: the weekday row, the month's name and the arrows
+hold still. The arrows and Page Up and Page Down play the same slide, and the
+month lands as the slide passes its middle, about 120ms in, so a test that
+clicks Next and then picks a day waits for that. A press during a slide lands
+the turn under way first. A month picked from the selects shows at once and
+slides in. Arrow keys across a month edge, a view switch and a parent's
+`month` turn straight away, and nothing slides under reduced motion. Every
+turn runs the other way in a right-to-left page.
 `direction='vertical'` turns the months up and down instead: the arrows
 point up and down and a finger swipes up for the next month.
 `view='week'` (with `defaultView` and `onViewChange`) shows one week as a
@@ -40,7 +48,8 @@ without `getDayContent` keeps compact circles. Week view turns `onMonthChange`
 as its weeks leave a month, and ignores `numberOfMonths`, `fixedWeeks` and
 `showOutsideDays`. The root carries `data-view`, `data-direction` and
 `data-tiles`, and the parts carry `calendar-header`, `calendar-nav`,
-`calendar-grid`, `calendar-day-number` and `calendar-day-content` slots.
+`calendar-grid`, `calendar-days`, `calendar-day-number` and
+`calendar-day-content` slots.
 
 Focus moves separately from selection with a roving tab stop: arrows, Page
 Up and Down (with Shift for a year), Home and End. Disabled days stay

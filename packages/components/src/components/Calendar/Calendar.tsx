@@ -558,6 +558,8 @@ export function Calendar(props: CalendarProps) {
 
   function changeView(next: CalendarView) {
     if (next === view) return
+    // A turn waiting to land does so in the view it was pressed in.
+    landTurn()
     setPendingFocus(null)
     setToggledView(next)
     if (viewProp === undefined) setUncontrolledView(next)
@@ -585,7 +587,7 @@ export function Calendar(props: CalendarProps) {
   }, [weekView])
 
   const swipeable = !scrolling && !waitingForToday && disabled !== true
-  const pageTurn = useSwipeToTurn(rootRef, {
+  const { pageTurn, landTurn } = useSwipeToTurn(rootRef, {
     enabled: swipeable,
     vertical,
     canTurn,
@@ -745,7 +747,9 @@ export function Calendar(props: CalendarProps) {
       return
     }
     const rtl = getComputedStyle(event.currentTarget).direction === 'rtl'
-    const next = dateForKey(event.key, date, {
+    // A queued Page key turn goes on from where it will land.
+    const from = queuedFocus.current ?? date
+    const next = dateForKey(event.key, from, {
       shiftKey: event.shiftKey,
       weekStart,
       rtl
@@ -756,24 +760,18 @@ export function Calendar(props: CalendarProps) {
     // Page keys turn with the slide; arrow keys stay instant, so focus is
     // never on a day that is sliding away.
     if (event.key.startsWith('Page') && !scrolling) {
-      const from = queuedFocus.current ?? date
-      const target = clampDate(
-        dateForKey(event.key, from, {
-          shiftKey: event.shiftKey,
-          weekStart,
-          rtl
-        })!
-      )
+      const target = clampDate(next)
       if (target === from) return
       if (isVisible(target) && !queuedFocus.current) return moveFocus(target)
       queuedFocus.current = target
       pageTurn(compareDates(target, from) > 0 ? 1 : -1, () => {
-        queuedFocus.current = null
+        if (queuedFocus.current === target) queuedFocus.current = null
         latestRef.current!.moveFocus(target)
       })
       return
     }
-    moveFocus(clampDate(next))
+    landTurn()
+    latestRef.current!.moveFocus(clampDate(next))
   }
 
   const findDay = (date: string) =>
@@ -1018,7 +1016,7 @@ export function Calendar(props: CalendarProps) {
       const first = addMonths(next, -index)
       const step = compareDates(monthOf(first), firstMonth)
       if (!step) return
-      pageTurn(step, () => turnMonth(first))
+      pageTurn(step, () => turnMonth(first), { immediate: true })
     }
     const monthNumber = monthNumberOf(month)
     const year = yearOf(month)
@@ -1357,7 +1355,12 @@ export function Calendar(props: CalendarProps) {
                         'h-8 p-0 text-xs font-medium text-subtle',
                         // Only the days slide, under a weekday row that holds still.
                         !scrolling &&
-                          'in-data-swiping:relative in-data-swiping:z-1 in-data-swiping:bg-(--records-surface,var(--pane-surface,var(--intent-bg-normal))) in-data-swiping:shadow-[0_0_0_4px_var(--records-surface,var(--pane-surface,var(--intent-bg-normal)))]'
+                          'in-data-swiping:relative in-data-swiping:z-1 in-data-swiping:bg-(--records-surface,var(--pane-surface,var(--intent-bg-normal)))',
+                        // Covers the border spacing, and no more.
+                        !scrolling &&
+                          (tiles
+                            ? 'in-data-swiping:shadow-[0_0_0_4px_var(--records-surface,var(--pane-surface,var(--intent-bg-normal)))]'
+                            : 'in-data-swiping:shadow-[0_2px_0_0_var(--records-surface,var(--pane-surface,var(--intent-bg-normal)))]')
                       )}
                     >
                       {weekday.short}

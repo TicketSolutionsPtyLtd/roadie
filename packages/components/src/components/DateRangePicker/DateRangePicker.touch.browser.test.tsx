@@ -77,6 +77,8 @@ describe('DateRangePicker tapped on a phone', TIMEOUT, () => {
     const popup = await screen.findByRole('dialog')
     await tapOn(day('2026-10-01'))
     await tapOn(within(popup).getByRole('button', { name: 'Next month' }))
+    // The page turns after its slide out.
+    await expect.poll(() => popup.querySelector('[data-swiping]')).toBeNull()
     await tapOn(day('2026-11-05'))
     expect(within(popup).getByRole('combobox', { name: 'End' })).toHaveValue(
       '5 Nov 2026'

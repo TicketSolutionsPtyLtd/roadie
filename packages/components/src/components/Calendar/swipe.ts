@@ -62,7 +62,20 @@ function prefersReducedMotion() {
   )
 }
 
-export type PageTurn = (step: SwipeStep, apply: () => void) => void
+export type PageTurn = (
+  step: SwipeStep,
+  apply: () => void,
+  options?: {
+    /** Apply now and only slide the new page in, as a select's value must change at once. */
+    immediate?: boolean
+  }
+) => void
+
+type PageTurns = {
+  pageTurn: PageTurn
+  /** Lands a turn under way at once, so a key can go on from it. */
+  landTurn: () => void
+}
 
 /**
  * Turns the page when a finger swipes the days, which follow it unless
@@ -72,8 +85,9 @@ export type PageTurn = (step: SwipeStep, apply: () => void) => void
 export function useSwipeToTurn(
   rootRef: RefObject<HTMLElement | null>,
   options: SwipeOptions
-): PageTurn {
+): PageTurns {
   const pageTurn = useRef<PageTurn | null>(null)
+  const landTurn = useRef<(() => void) | null>(null)
   const latest = useRef(options)
   useIsomorphicLayoutEffect(() => {
     latest.current = options
@@ -86,6 +100,7 @@ export function useSwipeToTurn(
 
     type Gesture = {
       kind: 'touch' | 'pointer'
+      pen: boolean
       id: number
       x: number
       y: number
@@ -157,6 +172,8 @@ export function useSwipeToTurn(
 
     const cutShort = () => {
       if (!settling) return
+      // The turn under way stops where it is; its waiting apply runs here.
+      run++
       stopAnimations()
       const waiting = pending
       pending = null
@@ -168,14 +185,24 @@ export function useSwipeToTurn(
     async function animateTurn(
       from: number,
       step: SwipeStep | null,
-      apply: () => void
+      apply: () => void,
+      immediate = false
     ) {
       cutShort()
+      // A control turning the page ends any drag under way.
+      if (!from) gesture = null
+      // Landing the turn before it reached a bound leaves nothing to slide to.
+      if (step && !from && !immediate && !latest.current.canTurn(step)) return
       const mine = ++run
       settling = true
       root!.dataset.swiping = ''
-      const still = prefersReducedMotion()
-      if (step) {
+      const still =
+        prefersReducedMotion() || typeof root!.animate !== 'function'
+      if (step && immediate) {
+        flushSync(apply)
+        if (!still)
+          await slide((size) => -signOf(step) * size, 0, IN_MS, 'ease-out')
+      } else if (step) {
         const sign = signOf(step)
         pending = apply
         if (!still) await slide(from, (size) => sign * size, OUT_MS, 'ease-in')
@@ -198,14 +225,15 @@ export function useSwipeToTurn(
     const settle = (along: number, step: SwipeStep | null) =>
       animateTurn(along, step, () => step && latest.current.turn(step))
 
-    pageTurn.current = (step, apply) => {
+    pageTurn.current = (step, apply, turnOptions) => {
       if (typeof root.animate !== 'function') return apply()
-      void animateTurn(0, step, apply)
+      void animateTurn(0, step, apply, turnOptions?.immediate)
     }
+    landTurn.current = cutShort
 
-    // One gesture at a time, from a finger, a mouse or a pen.
     const begin = (
       kind: 'touch' | 'pointer',
+      pen: boolean,
       id: number,
       x: number,
       y: number,
@@ -216,6 +244,7 @@ export function useSwipeToTurn(
       if (settling || !(target as Element | null)?.closest(GRIDS)) return
       gesture = {
         kind,
+        pen,
         id,
         x,
         y,
@@ -246,7 +275,7 @@ export function useSwipeToTurn(
         gesture.size = vertical ? box.height : box.width
         root.dataset.swiping = ''
         // A mouse drag would otherwise select the day numbers.
-        getSelection()?.removeAllRanges()
+        if (gesture.kind === 'pointer') getSelection()?.removeAllRanges()
       }
       const allowed = latest.current.canTurn(stepOf(along))
       gesture.along = allowed ? along : along / 3
@@ -286,12 +315,17 @@ export function useSwipeToTurn(
 
     const onTouchStart = (event: TouchEvent) => {
       suppressClickUntil = -Infinity
-      // A pen that already started through pointer events keeps its gesture.
-      if (gesture?.kind === 'pointer') return
+      // A mouse drag keeps its gesture. A pen hands over to its touch, which
+      // iOS doesn't cancel on a vertical drag as it does the pointer.
+      if (gesture?.kind === 'pointer') {
+        if (!gesture.pen || gesture.engaged) return
+        gesture = null
+      }
       if (event.touches.length !== 1) return cancel()
       const touch = event.changedTouches[0]!
       begin(
         'touch',
+        false,
         touch.identifier,
         touch.clientX,
         touch.clientY,
@@ -319,13 +353,14 @@ export function useSwipeToTurn(
       if (touchOf(event)) cancel()
     }
 
-    // A mouse or pen drags the days as a finger does, as in Carousel.
+    // As in Carousel, a mouse drags the days too.
     const onPointerDown = (event: PointerEvent) => {
       if (event.pointerType === 'touch' || !event.isPrimary) return
       suppressClickUntil = -Infinity
-      if (event.button !== 0 || gesture) return
+      if (event.button !== 0 || gesture?.kind === 'touch') return
       begin(
         'pointer',
+        event.pointerType === 'pen',
         event.pointerId,
         event.clientX,
         event.clientY,
@@ -336,6 +371,11 @@ export function useSwipeToTurn(
 
     const onPointerMove = (event: PointerEvent) => {
       if (gesture?.kind !== 'pointer' || event.pointerId !== gesture.id) return
+      // Released outside the calendar before the drag began.
+      if (!event.buttons) {
+        gesture = null
+        return
+      }
       const wasEngaged = gesture.engaged
       if (!move(event.clientX, event.clientY, event.timeStamp)) return
       // Held, so the drag carries on outside the calendar.
@@ -379,9 +419,12 @@ export function useSwipeToTurn(
     return () => {
       disposed = true
       pageTurn.current = null
+      landTurn.current = null
       const waiting = pending
       pending = null
-      waiting?.()
+      // Still shown, as when the calendar is disabled mid-slide; a turn for a
+      // calendar that has closed is dropped.
+      if (root.isConnected) waiting?.()
       root.removeEventListener('touchstart', onTouchStart)
       root.removeEventListener('touchmove', onTouchMove)
       root.removeEventListener('touchend', onTouchEnd)
@@ -398,9 +441,11 @@ export function useSwipeToTurn(
     }
   }, [rootRef, enabled, vertical])
 
-  return useCallback<PageTurn>(
-    (step, apply) =>
-      pageTurn.current ? pageTurn.current(step, apply) : apply(),
+  const turnPage = useCallback<PageTurn>(
+    (step, apply, turnOptions) =>
+      pageTurn.current ? pageTurn.current(step, apply, turnOptions) : apply(),
     []
   )
+  const land = useCallback(() => landTurn.current?.(), [])
+  return { pageTurn: turnPage, landTurn: land }
 }
