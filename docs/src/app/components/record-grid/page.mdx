@@ -82,7 +82,7 @@ render(
 
 ### Card parts
 
-Each part names a field: `title` names the record and carries its `getRowHref` link, `description` sits under it, `leading` beside it, and `trailing` at its end, or over the banner when there is one. `image` is a 16:9 banner from an image URL, with a neutral tile for a record without one. `details` are label and value pairs under the title, in order. A part is a field's key, or `{ key, alt, cell }` to give an image its alt text or replace how the value shows. Values read as their field does, so a status field shows a `Badge`.
+Each part names a field: `title` names the record and carries its `getRowHref` link, `description` sits under it, `leading` beside it, and `trailing` at its end, or over the banner when there is one. `image` is a 16:9 banner from an image URL, with a neutral tile and an image icon for a record without one. `details` are label and value pairs under the title, in order, each value at the card's end. A part is a field's key, or `{ key, alt, cell }` to give an image its alt text or replace how the value shows. Values read as their field does, so a status field shows a `Badge`.
 
 ```tsx-live-noinline
 const field = recordFields()

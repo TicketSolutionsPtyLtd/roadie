@@ -268,7 +268,7 @@ A column presents one field. `tableColumns(fields).field(key, options)` takes:
 - `pin` to hold the column at the start while the table scrolls sideways. The column with `narrow: 'title'`, or else the first pinned text column, or else the first text column, is the row's title, in strong text. A custom `cell` there inherits it.
 - `width` as `{ min, grow }` in rem, when the content's own width doesn't suit. Without it, each column sizes from a sample of its values.
 - `cell` to render the value yourself, such as an order number in `font-mono`.
-- `kind: 'image'` to show the value, an image URL, as a 40px thumbnail, with `alt` to describe it from the row. Its header is read to screen readers but not shown, and it never sorts from there; give its field `searchable: false` and `sortable: false`. A record without an image shows a neutral tile.
+- `kind: 'image'` to show the value, an image URL, as a 40px thumbnail, with `alt` to describe it from the row. Its header is read to screen readers but not shown, and it never sorts from there; give its field `searchable: false` and `sortable: false`. A record without an image shows a neutral tile with an image icon.
 - `priority` to hide the column as the table narrows. See [Column priority](#column-priority).
 - `narrow` to place the column when the table turns into list rows or cards. See [Narrow layouts](#narrow-layouts).
 

@@ -96,6 +96,29 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
     )
   })
 
+  it('ends every detail value at the card’s edge, text and figures alike', async () => {
+    const { container } = render(
+      <div style={{ width: 600 }}>
+        <RecordGrid
+          data={testShows(2)}
+          fields={showFields}
+          card={{
+            title: 'show',
+            details: ['city', 'starts', 'sold', 'status']
+          }}
+        />
+      </div>
+    )
+    const card = cards(container)[0]!
+    const ends = [...card.querySelectorAll('dd')].map((value) => {
+      const range = document.createRange()
+      range.selectNodeContents(value)
+      return Math.round(range.getBoundingClientRect().right)
+    })
+    expect(ends).toHaveLength(4)
+    expect(new Set(ends).size).toBe(1)
+  })
+
   it('fills each card with its row, with the details from the top', async () => {
     const tall = testShows(2).map((show, index) =>
       index === 0
