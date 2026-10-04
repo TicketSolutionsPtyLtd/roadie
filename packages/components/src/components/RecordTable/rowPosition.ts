@@ -2,6 +2,8 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
+import { findStickyContainer } from '../Records/scrollParent'
+
 const REPORT_EVERY_MS = 300
 // Long enough for a pane header to compact after the jump on a slow device.
 const SETTLE_MS = 1000
@@ -59,13 +61,26 @@ export function rowPosition() {
 
 export type RowPosition = ReturnType<typeof rowPosition>
 
-/** Px from the scroll element's top edge to the bottom of the stuck header. */
+const stuckBottom = (element: HTMLElement) =>
+  (parseFloat(getComputedStyle(element).top) || 0) + element.offsetHeight
+
+/** Px from the scroll element's top edge to the bottom of the stuck header, or of the toolbar over narrow rows. */
 export function stuckInset(body: HTMLElement): number {
   const head = body
     .closest('[data-slot="record-table-content"]')
     ?.querySelector<HTMLElement>('[data-slot="record-table-head"]')
-  if (!head) return 0
-  return (parseFloat(getComputedStyle(head).top) || 0) + head.offsetHeight
+  if (head) return stuckBottom(head)
+  const toolbar = body
+    .closest('[data-slot="records"]')
+    ?.querySelector<HTMLElement>('[data-slot="records-toolbar"]')
+  // From above the scroller, which is a sticky container itself; the toolbar covers the rows only when both stick in one box.
+  const scroller = body.closest<HTMLElement>(
+    '[data-slot="record-table-scroller"]'
+  )
+  return toolbar &&
+    findStickyContainer(toolbar) === findStickyContainer(scroller)
+    ? stuckBottom(toolbar)
+    : 0
 }
 
 /** The first row not hidden under the header; `end` includes the scroll margin. */

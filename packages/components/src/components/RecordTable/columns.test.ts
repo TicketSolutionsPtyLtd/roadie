@@ -36,7 +36,7 @@ describe('tableColumns', () => {
     ]).field('image', { kind: 'image' })
     expect(image).toMatchObject({
       kind: 'image',
-      width: { min: 3.5 },
+      width: { min: 3.75 },
       narrow: 'leading'
     })
   })

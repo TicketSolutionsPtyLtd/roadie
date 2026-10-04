@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
@@ -126,5 +126,119 @@ describe('RecordTable selection in a browser', () => {
     expect(rect(slot(container, 'record-table-frame')).width).toBeGreaterThan(
       300
     )
+  })
+})
+
+const narrowColumns = [
+  ...wideColumns.slice(0, 1).map((column) => ({
+    ...column,
+    narrow: 'title' as const
+  })),
+  { ...wideColumns[1]!, narrow: 'description' as const },
+  ...wideColumns.slice(2)
+]
+const listRows = (container: HTMLElement) => [
+  ...container.querySelectorAll<HTMLElement>(
+    '[data-slot="record-table-list-row"]'
+  )
+]
+const hitAt = (element: HTMLElement) => {
+  const { left, top, width, height } = element.getBoundingClientRect()
+  return document.elementFromPoint(left + width / 2, top + height / 2)
+}
+
+describe('RecordTable Select mode on narrow rows in a browser', () => {
+  it('selects rows by click and ends after a bulk action', async () => {
+    const actions: unknown[] = []
+    const hash = location.hash
+    const { container } = render(
+      <div style={{ width: 360 }}>
+        <RecordTable
+          caption='Shows'
+          data={testShows(8)}
+          fields={showFields}
+          columns={narrowColumns}
+          getRowId={(row) => row.id}
+          getRowHref={(row) => `#${row.id}`}
+          rowActions={() => null}
+          bulkActions={[
+            {
+              label: 'Export',
+              onAction: (selection) => void actions.push(selection)
+            }
+          ]}
+        />
+      </div>
+    )
+    await expect.poll(() => listRows(container).length).toBe(8)
+    await userEvent.click(screen.getByRole('button', { name: 'Select' }))
+    const first = listRows(container)[0]!
+    expect(hitAt(within(first).getByText('Brisbane'))).toBe(
+      within(first).getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    for (const row of listRows(container).slice(0, 3))
+      await userEvent.click(row)
+    const bar = screen.getByRole('group', { name: 'Bulk actions' })
+    expect(within(bar).getByText('3 selected')).toBeInTheDocument()
+    expect(location.hash).toBe(hash)
+    await userEvent.click(within(bar).getByRole('button', { name: 'Export' }))
+    expect(actions).toEqual([{ ids: ['show-0', 'show-1', 'show-2'] }])
+    await expect
+      .poll(() => screen.queryByRole('button', { name: 'Select' }))
+      .not.toBeNull()
+    expect(container.querySelectorAll('[role="checkbox"]')).toHaveLength(0)
+  })
+
+  it('tints the row, not the checkbox, while the row is hovered', async () => {
+    const { container } = render(
+      <div style={{ width: 360 }}>
+        <RecordTable
+          caption='Shows'
+          data={testShows(3)}
+          fields={showFields}
+          columns={narrowColumns}
+          bulkActions={[{ label: 'Export', onAction: () => {} }]}
+        />
+      </div>
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Select' }))
+    const first = listRows(container)[0]!
+    const surface = first.firstElementChild!
+    const rest = background(surface)
+    await userEvent.hover(first)
+    await frame()
+    await frame()
+    expect(background(surface)).not.toBe(rest)
+    expect(background(first.querySelector('[data-slot="checkbox"]')!)).toBe(
+      'rgba(0, 0, 0, 0)'
+    )
+    await userEvent.unhover(document.body)
+  })
+
+  it('keeps the toolbar controls at the search field height', async () => {
+    render(
+      <div style={{ width: 360 }}>
+        <RecordTable
+          caption='Shows'
+          data={testShows(8)}
+          fields={showFields}
+          columns={narrowColumns}
+          bulkActions={[{ label: 'Export', onAction: () => {} }]}
+          tableActions={[
+            { label: 'Export CSV', onAction: () => {} },
+            { label: 'Print door list', onAction: () => {} }
+          ]}
+        />
+      </div>
+    )
+    await frame()
+    const search = screen.getByRole('combobox', { name: 'Search and filter' })
+    const field =
+      search.closest<HTMLElement>('[data-slot="query-field"]') ?? search
+    const height = field.getBoundingClientRect().height
+    for (const name of ['Select', 'Configure table', 'More actions'])
+      expect(
+        screen.getByRole('button', { name }).getBoundingClientRect().height
+      ).toBe(height)
   })
 })

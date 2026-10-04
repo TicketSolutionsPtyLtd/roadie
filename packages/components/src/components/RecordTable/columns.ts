@@ -4,7 +4,7 @@ import { isDev } from '../../utils/isDev'
 import type { RecordTableColumn, RecordTableColumnOptions } from './types'
 
 // A 40px thumbnail inside the cell's padding.
-const IMAGE_WIDTH = { min: 3.5 }
+const IMAGE_WIDTH = { min: 3.75 }
 
 let warnedPinnedPriority = false
 
