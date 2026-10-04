@@ -246,6 +246,29 @@ describe('RecordTable narrow list rows in a browser', () => {
     expect(viewport.scrollWidth).toBe(viewport.clientWidth)
   })
 
+  it('keeps rows whole inside their own scroll box', async () => {
+    const { container } = render(
+      <Boxed width={360}>
+        <RecordTable
+          {...base}
+          data={testShows(10)}
+          selectable
+          defaultSelection={{ ids: ['show-0'] }}
+          maxHeight='400px'
+        />
+      </Boxed>
+    )
+    await expect.poll(() => listRows(container).length).toBe(10)
+    const viewport = container
+      .querySelector<HTMLElement>('[data-slot="record-table-viewport"]')!
+      .getBoundingClientRect()
+    const surface = listRows(container)[0]!.firstElementChild!
+    const box = surface.getBoundingClientRect()
+    expect(box.left).toBeGreaterThanOrEqual(viewport.left)
+    expect(box.right).toBeLessThanOrEqual(viewport.right)
+    expect(getComputedStyle(surface).borderTopLeftRadius).not.toBe('0px')
+  })
+
   it('joins selected neighbours into one block', async () => {
     const { container } = render(
       <Boxed width={360}>

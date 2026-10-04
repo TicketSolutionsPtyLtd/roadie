@@ -964,7 +964,7 @@ Under 40rem of its own width, 640px at the default text size, the table drops it
 | `'detail'` | A label and value on a card. Any detail column turns the rows into cards. |
 | `'hidden'` | Left out of the narrow layout. The default for every column but images. |
 
-The server can't know the table's width, so the table renders wide there and on its first render, then switches before the browser paints. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the toolbar: give the table at least that much inline padding, as a page or `Pane` does. The examples below sit in a 360px box with that padding.
+The server can't know the table's width, so the table renders wide there and on its first render, then switches before the browser paints. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the toolbar: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, rows stay inside the box. The examples below sit in a 360px box.
 
 Narrow rows load by range and render only near the screen past 100 records, as wide rows do. The bulk actions float at the foot of the screen, keeping the first action and putting the rest in a More actions menu when they don't fit.
 

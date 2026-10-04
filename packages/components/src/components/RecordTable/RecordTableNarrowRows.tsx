@@ -57,6 +57,8 @@ export type NarrowShared = {
   onToggle: (id: string, range: boolean) => void
   rowActions?: (row: object) => ReactNode
   getRowHref?: (row: object) => string | undefined
+  /** List rows reach into the space beside the list; not in a box of their own. */
+  bleed: boolean
 }
 
 export type RecordTableNarrowRowsProps = NarrowShared & {
@@ -156,6 +158,7 @@ function NarrowRow({
       <RecordTableListRow
         {...props}
         record={record.row}
+        bleed={shared.bleed}
         posInSet={posInSet}
         setSize={setSize}
       />

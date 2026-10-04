@@ -343,6 +343,7 @@ export function RecordTableContent({
             rows={rows}
             parts={parts}
             layout={narrow}
+            bleed={!boxed}
             timeZone={records.timeZone}
             caption={caption}
             busy={busy}

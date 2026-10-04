@@ -41,6 +41,8 @@ export type RecordTableListRowProps = {
   onToggle: (id: string, range: boolean) => void
   rowActions?: (row: object) => ReactNode
   href?: string
+  /** Reaches into the space beside the list, as a subtler List does, so text lines up with the toolbar. Off in a box of its own, which would clip it. */
+  bleed: boolean
 }
 
 /** A record as one line of a list: leading, title and description, trailing. */
@@ -55,7 +57,8 @@ export const RecordTableListRow = memo(function RecordTableListRow({
   selecting,
   onToggle,
   rowActions,
-  href: linkHref
+  href: linkHref,
+  bleed
 }: RecordTableListRowProps) {
   // In Select mode the checkbox is the row's target, so the link steps aside.
   const href = selecting ? undefined : linkHref
@@ -82,8 +85,7 @@ export const RecordTableListRow = memo(function RecordTableListRow({
       <div
         className={cn(
           listItemVariants({ interactive: false, selected: selected ?? false }),
-          // Bleeds into the row's padding, as a subtler List does, so text lines up with the toolbar.
-          '-mx-3',
+          bleed ? '-mx-3' : 'mx-0',
           // Always on: adding it later animates the outline in from its dark default.
           'is-interactive-within',
           // The list zeroes it to join a selected next row.
