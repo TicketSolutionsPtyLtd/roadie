@@ -773,6 +773,8 @@ describe('RecordTable narrow range failure', () => {
         '[data-slot="record-table-range-error"]'
       )!
       expect(error.tagName).toBe('LI')
+      expect(error).toHaveAttribute('aria-posinset', '11')
+      expect(error).toHaveAttribute('aria-setsize')
       expect(error).toHaveTextContent("Couldn't load more shows")
       expect(within(listOf()).getByText('Ocean Alley 1')).toBeInTheDocument()
       await user.click(within(error).getByRole('button', { name: 'Retry' }))

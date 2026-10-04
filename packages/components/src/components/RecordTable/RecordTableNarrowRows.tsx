@@ -378,6 +378,8 @@ function RangeList({
               heightClass={heightClass}
               card={listProps.cards}
               banner={shared.parts.image !== undefined}
+              posInSet={item.index + 1}
+              setSize={size}
               index={measured}
               measureElement={measureElement}
             />

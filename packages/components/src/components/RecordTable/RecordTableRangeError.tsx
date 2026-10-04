@@ -106,6 +106,8 @@ export function RecordTableNarrowRangeError({
   heightClass,
   card,
   banner = false,
+  posInSet,
+  setSize,
   index,
   measureElement
 }: {
@@ -114,6 +116,9 @@ export function RecordTableNarrowRangeError({
   card: boolean
   /** A card's banner above the message, matching its placeholder. */
   banner?: boolean
+  /** One-based place in the whole list, and the list's length or -1 while unknown. */
+  posInSet: number
+  setSize: number
   index?: number
   measureElement?: (node: HTMLLIElement | null) => void
 }) {
@@ -128,7 +133,13 @@ export function RecordTableNarrowRangeError({
     [measureElement]
   )
   return (
-    <li ref={mergedRef} data-index={index} data-slot='record-table-range-error'>
+    <li
+      ref={mergedRef}
+      data-index={index}
+      data-slot='record-table-range-error'
+      aria-posinset={posInSet}
+      aria-setsize={setSize}
+    >
       {card ? (
         // The placeholder's structure, banner too, so the measured list doesn't jump.
         <div className='grid overflow-hidden rounded-xl border border-subtle'>
