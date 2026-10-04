@@ -3,7 +3,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 const REPORT_EVERY_MS = 300
-const SETTLE_MS = 500
+// Long enough for a pane header to compact after the jump on a slow device.
+const SETTLE_MS = 1000
 const GIVES_UP_ON = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const
 
 type Item = { index: number; end: number }

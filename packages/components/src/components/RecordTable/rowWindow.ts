@@ -44,7 +44,6 @@ export function useRowWindow({
   })
   const [margin, setMargin] = useState(0)
   const [inset, setInset] = useState(0)
-  const [paneMoved, setPaneMoved] = useState(0)
   // Rows are sized in rem, so a larger root font makes them taller.
   const [rowHeight, setRowHeight] = useState(ROW_HEIGHT)
 
@@ -67,14 +66,7 @@ export function useRowWindow({
     observer.observe(element ?? document.documentElement)
     if (body.parentElement?.parentElement)
       observer.observe(body.parentElement.parentElement)
-    // The pane publishes its header's height as a style property.
-    const pane = body.closest('[data-slot="pane"]')
-    const paneStyle = new MutationObserver(() => setPaneMoved((n) => n + 1))
-    if (pane) paneStyle.observe(pane, { attributeFilter: ['style'] })
-    return () => {
-      observer.disconnect()
-      paneStyle.disconnect()
-    }
+    return () => observer.disconnect()
   }, [])
 
   const usesWindow = scroller.ready && scroller.element === null
@@ -112,8 +104,7 @@ export function useRowWindow({
   }, [virtualizer, rowHeight])
 
   const { isScrolling } = virtualizer
-  // Again once settled, and when a pane's header height moves the stuck head:
-  // that lands after mount, with no resize here.
+  // Again once settled: a pane header or sticky top lands a render after mount, with no resize.
   useLayoutEffect(() => {
     const body = bodyRef.current
     if (!body || !scroller.ready || isScrolling) return
@@ -122,7 +113,7 @@ export function useRowWindow({
     if (Math.abs(nextMargin - margin) > 0.5) setMargin(nextMargin)
     const nextInset = measureInset?.(body) ?? 0
     if (Math.abs(nextInset - inset) > 0.5) setInset(nextInset)
-  }, [scroller, isScrolling, count, margin, inset, measureInset, paneMoved])
+  }, [scroller, isScrolling, count, margin, inset, measureInset])
   // Read here, not by callers: the compiler would cache them on the one mutable instance.
   const items = virtualizer.getVirtualItems()
 
