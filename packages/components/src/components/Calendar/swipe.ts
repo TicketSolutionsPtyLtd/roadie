@@ -527,6 +527,7 @@ export function useSwipeToTurn(
       // Still shown, as when the calendar is disabled mid-slide; a turn for a
       // calendar that has closed is dropped.
       if (root.isConnected) waiting?.()
+      hidePeek()
       root.removeEventListener('touchstart', onTouchStart)
       root.removeEventListener('touchmove', onTouchMove)
       root.removeEventListener('touchend', onTouchEnd)

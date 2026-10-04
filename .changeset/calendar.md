@@ -31,7 +31,8 @@ as they go, and months in a row move as one strip: the weekday row, the
 month's name and the arrows hold still. The arrows and Page Up and Page Down
 play the same slide, and the month lands as the slide passes its middle,
 about 120ms in, so a test that clicks Next and then picks a day waits for
-that. A press during a slide lands
+that. With Shift, or in week view, Page Up and Page Down skip past the page
+beside and turn at once. A press during a slide lands
 the turn under way first. A month picked from the selects shows at once and
 slides in. Arrow keys across a month edge, a view switch and a parent's
 `month` turn straight away, and nothing slides under reduced motion. Sideways

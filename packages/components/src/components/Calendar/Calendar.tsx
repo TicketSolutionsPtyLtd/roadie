@@ -801,7 +801,14 @@ export function Calendar(props: CalendarProps) {
     if (disabled === true && !isVisible(next)) return
     // Page keys turn with the slide; arrow keys stay instant, so focus is
     // never on a day that is sliding away.
-    if (event.key.startsWith('Page') && !scrolling) {
+    // Only a Page key that reaches the page beside slides; Shift's year and
+    // a week view's month skip past it, so they turn at once.
+    if (
+      event.key.startsWith('Page') &&
+      !scrolling &&
+      !event.shiftKey &&
+      !weekView
+    ) {
       const target = clampDate(next)
       if (target === from) return
       if (isVisible(target) && !queuedFocus.current) return moveFocus(target)

@@ -28,7 +28,13 @@ beforeAll(async () => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
-const settle = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms))
+// A turn lands, then its slide finishes; a slow runner takes longer.
+const settle = async (ms = 300) => {
+  await new Promise((resolve) => setTimeout(resolve, ms))
+  await expect
+    .poll(() => document.querySelector('[data-swiping]'), { timeout: 3000 })
+    .toBeNull()
+}
 const caption = () =>
   document.querySelector('[data-slot="calendar-header"]')!.textContent
 const day = (date: string) =>
@@ -193,7 +199,7 @@ describe('Calendar shows the page it turns to', TIMEOUT, () => {
     expect(days[1]!.getBoundingClientRect().top).toBeGreaterThan(
       days[0]!.getBoundingClientRect().bottom
     )
-    const lift = holdDrag(day('2027-03-17'), -60, 0)
+    const lift = holdDrag(day('2027-03-17'), -100, 0)
     const incoming = [...document.querySelectorAll<HTMLElement>('[data-peek]')]
     expect(incoming).toHaveLength(2)
     expect(

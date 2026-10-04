@@ -790,6 +790,41 @@ describe('Calendar page turns', () => {
     expect(onMonthChange).not.toHaveBeenCalled()
   })
 
+  it.each([
+    [
+      'Shift and Page Down in month view',
+      {},
+      '{Shift>}{PageDown}{/Shift}',
+      '2028-03-10'
+    ],
+    [
+      'Page Down in week view',
+      { view: 'week' as const },
+      '{PageDown}',
+      '2027-04-10'
+    ]
+  ])(
+    'turns at once for %s, which skips past the page beside',
+    async (_, props, keys, expected) => {
+      holdSlides()
+      render(<Calendar today={TODAY} {...props} />)
+      await tabIntoGrid()
+      await userEvent.keyboard(keys)
+      expect(swiping()).toBeNull()
+      expect(document.querySelector('[data-peek]')).toBeNull()
+      expect(focused()).toBe(expected)
+    }
+  )
+
+  it('takes the incoming page away when the calendar is disabled mid-slide', async () => {
+    holdSlides()
+    const { rerender } = render(<Calendar today={TODAY} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    expect(document.querySelector('[data-peek]')).not.toBeNull()
+    rerender(<Calendar today={TODAY} disabled />)
+    expect(document.querySelector('[data-peek]')).toBeNull()
+  })
+
   it('turns straight away when a parent moves the month', () => {
     const { rerender } = render(<Calendar today={TODAY} month='2027-03-01' />)
     rerender(<Calendar today={TODAY} month='2027-04-01' />)
