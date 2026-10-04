@@ -75,6 +75,8 @@ type PageTurns = {
   pageTurn: PageTurn
   /** Lands a turn under way at once, so a key can go on from it. */
   landTurn: () => void
+  /** Drops a turn under way unapplied, as when a parent moves the month. */
+  dropTurn: () => void
 }
 
 /**
@@ -88,6 +90,7 @@ export function useSwipeToTurn(
 ): PageTurns {
   const pageTurn = useRef<PageTurn | null>(null)
   const landTurn = useRef<(() => void) | null>(null)
+  const dropTurn = useRef<(() => void) | null>(null)
   const latest = useRef(options)
   useIsomorphicLayoutEffect(() => {
     latest.current = options
@@ -238,6 +241,12 @@ export function useSwipeToTurn(
       void animateTurn(0, step, apply, turnOptions?.immediate)
     }
     landTurn.current = cutShort
+    dropTurn.current = () => {
+      if (!settling) return
+      run++
+      pending = null
+      finish()
+    }
 
     const begin = (
       kind: 'touch' | 'pointer',
@@ -326,7 +335,7 @@ export function useSwipeToTurn(
       // A mouse drag keeps its gesture. A pen hands over to its touch, which
       // iOS doesn't cancel on a vertical drag as it does the pointer.
       if (gesture?.kind === 'pointer') {
-        if (gesture.engaged) return
+        if (gesture.engaged || !gesture.pen) return
         gesture = null
       }
       if (event.touches.length !== 1) return cancel()
@@ -426,6 +435,7 @@ export function useSwipeToTurn(
       disposed = true
       pageTurn.current = null
       landTurn.current = null
+      dropTurn.current = null
       const waiting = pending
       pending = null
       // Still shown, as when the calendar is disabled mid-slide; a turn for a
@@ -453,5 +463,6 @@ export function useSwipeToTurn(
     []
   )
   const land = useCallback(() => landTurn.current?.(), [])
-  return { pageTurn: turnPage, landTurn: land }
+  const drop = useCallback(() => dropTurn.current?.(), [])
+  return { pageTurn: turnPage, landTurn: land, dropTurn: drop }
 }

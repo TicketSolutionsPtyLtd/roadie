@@ -749,6 +749,30 @@ describe('Calendar page turns', () => {
     expect(onMonthChange).not.toHaveBeenCalled()
   })
 
+  it('drops a waiting turn when the parent moves the month mid-slide', async () => {
+    const slides = holdSlides()
+    const onMonthChange = vi.fn()
+    const { rerender } = render(
+      <Calendar
+        today={TODAY}
+        month='2027-03-01'
+        onMonthChange={onMonthChange}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    expect(swiping()).not.toBeNull()
+    rerender(
+      <Calendar
+        today={TODAY}
+        month='2027-01-01'
+        onMonthChange={onMonthChange}
+      />
+    )
+    await slides.land()
+    expect(caption()).toEqual(['January 2027'])
+    expect(onMonthChange).not.toHaveBeenCalled()
+  })
+
   it('turns straight away when a parent moves the month', () => {
     const { rerender } = render(<Calendar today={TODAY} month='2027-03-01' />)
     rerender(<Calendar today={TODAY} month='2027-04-01' />)

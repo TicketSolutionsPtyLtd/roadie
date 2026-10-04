@@ -587,7 +587,7 @@ export function Calendar(props: CalendarProps) {
   }, [weekView])
 
   const swipeable = !scrolling && !waitingForToday && disabled !== true
-  const { pageTurn, landTurn } = useSwipeToTurn(rootRef, {
+  const { pageTurn, landTurn, dropTurn } = useSwipeToTurn(rootRef, {
     enabled: swipeable,
     vertical,
     canTurn,
@@ -734,6 +734,15 @@ export function Calendar(props: CalendarProps) {
   })
   // Where a queued key turn will put focus, so a second press goes on from it.
   const queuedFocus = useRef<string | null>(null)
+
+  // A parent's new month wins over a turn still sliding out from the old one.
+  const heldMonth = useRef(monthProp)
+  useIsomorphicLayoutEffect(() => {
+    if (heldMonth.current === monthProp) return
+    heldMonth.current = monthProp
+    queuedFocus.current = null
+    dropTurn()
+  }, [monthProp, dropTurn])
 
   function pickMonth(first: string) {
     // From the month a waiting turn lands on, so the slide runs the right way.
