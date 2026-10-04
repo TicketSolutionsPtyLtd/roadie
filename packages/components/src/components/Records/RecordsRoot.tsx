@@ -3,6 +3,7 @@
 import {
   type ComponentProps,
   type ReactNode,
+  useId,
   useLayoutEffect,
   useRef,
   useState
@@ -36,6 +37,7 @@ export function RecordsProvider<Row extends object>({
   caption,
   children
 }: RecordsProviderProps<Row>) {
+  const scope = useId()
   const [contentFill, setContentFill] = useState(false)
   const [toolbar, setToolbar] = useState<RecordsToolbarBox | null>(null)
   const [selectMode, setSelectMode] = useState(false)
@@ -63,6 +65,7 @@ export function RecordsProvider<Row extends object>({
     <RecordsContext
       value={{
         records: shared,
+        scope,
         layouts,
         caption,
         toolbar,

@@ -30,7 +30,7 @@ import { pageState } from '../Records/selection'
 import { firstDirection } from '../Records/sortOptions'
 import { useStickyTop } from '../Records/stickyTop'
 import { surfaceClass, useSurface } from '../Records/surface'
-import { SURVIVOR } from '../Records/useBulkActions'
+import { useSurvivor } from '../Records/useBulkActions'
 import { ScrollArea } from '../ScrollArea'
 import { NarrowSkeleton, RecordTableNarrowRows } from './RecordTableNarrowRows'
 import {
@@ -126,6 +126,7 @@ export function RecordTableContent({
     setBulkSlot,
     setSelectMode
   } = useRecordsContext()
+  const rowsSurvivor = useSurvivor('rows')
   const frameRef = useRef<HTMLDivElement>(null)
   const headRef = useRef<HTMLDivElement>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
@@ -333,7 +334,7 @@ export function RecordTableContent({
       <div
         ref={scrollerRef}
         data-slot='record-table-scroller'
-        {...{ [SURVIVOR]: 'rows' }}
+        {...rowsSurvivor}
         tabIndex={-1}
         className={cn('isolate outline-none', dimmed && 'opacity-60')}
       >
@@ -537,7 +538,7 @@ export function RecordTableContent({
               <div
                 ref={scrollerRef}
                 data-slot='record-table-scroller'
-                {...{ [SURVIVOR]: 'rows' }}
+                {...rowsSurvivor}
                 tabIndex={-1}
                 className={cn('isolate', dimmed && 'opacity-60')}
               >
@@ -552,7 +553,7 @@ export function RecordTableContent({
                 <ScrollArea.Viewport
                   ref={scrollerRef}
                   data-slot='record-table-scroller'
-                  {...{ [SURVIVOR]: 'rows' }}
+                  {...rowsSurvivor}
                   // Focusable, so not Base UI's presentation role; the frame names the region.
                   role={undefined}
                   tabIndex={0}

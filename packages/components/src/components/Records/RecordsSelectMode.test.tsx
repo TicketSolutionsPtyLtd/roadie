@@ -8,18 +8,20 @@ import { Records, type RecordsBulkAction } from '.'
 import { useRecordsContext } from './context'
 import type { RecordLayoutDefinition } from './layouts'
 import { type TestShow, showFields, testShows } from './testUtils'
+import { useSurvivor } from './useBulkActions'
 import { useRecords } from './useRecords'
 
 // A layout like narrow rows or a grid: no checkboxes and no header row, so
 // it selects through Select mode and the bulk actions float.
 function TapList() {
   const { records, setSelectMode } = useRecordsContext()
+  const survivor = useSurvivor('rows')
   useLayoutEffect(() => {
     setSelectMode(true)
     return () => setSelectMode(false)
   }, [setSelectMode])
   return (
-    <ul aria-label='Shows'>
+    <ul aria-label='Shows' tabIndex={-1} {...survivor}>
       {records.rows.map(({ id, row }) => (
         <li key={id}>
           <button
@@ -177,5 +179,86 @@ describe('Records Select mode', () => {
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
     expect(floating()).toHaveTextContent('1 selected')
     expect(toggle()).toHaveTextContent('Done')
+  })
+})
+
+describe('Records floating bulk actions', () => {
+  // Each part of the bar measures 100px, in records 360px wide.
+  function measured() {
+    return vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const width = this.matches(
+          '[data-slot="records"], [data-slot="records-dock-scope"]'
+        )
+          ? 360
+          : 100
+        return {
+          width,
+          height: 40,
+          top: 0,
+          left: 0,
+          right: width,
+          bottom: 40
+        } as DOMRect
+      })
+  }
+
+  const many: RecordsBulkAction[] = ['Export', 'Archive', 'Print', 'Email'].map(
+    (label) => ({ label, onAction: vi.fn() })
+  )
+
+  it('keeps the first action out and puts those that do not fit in More actions, last', async () => {
+    const spy = measured()
+    const user = userEvent.setup()
+    render(<Shows actions={many} />)
+    await user.click(toggle())
+    await user.click(screen.getByRole('button', { name: 'Ocean Alley 1' }))
+    const bar = floating()!
+    const buttons = within(bar).getAllByRole('button')
+    expect(
+      buttons.map(
+        (button) => button.textContent || button.getAttribute('aria-label')
+      )
+    ).toEqual(['Export', 'More actions'])
+    await user.click(within(bar).getByRole('button', { name: 'More actions' }))
+    expect(
+      (await screen.findAllByRole('menuitem')).map((item) => item.textContent)
+    ).toEqual(['Archive', 'Print', 'Email'])
+    await user.click(screen.getByRole('menuitem', { name: 'Print' }))
+    expect(many[2]!.onAction).toHaveBeenCalledOnce()
+    spy.mockRestore()
+  })
+
+  it('keeps focus with the records after clearing under a Provider', async () => {
+    const user = userEvent.setup()
+    function Provided() {
+      const records = useRecords({
+        data: testShows(12),
+        fields: showFields,
+        getRowId: (row) => row.id,
+        selectable: true,
+        defaultSelection: { ids: ['show-0'] },
+        defaultView: { layout: { type: 'grid' } }
+      })
+      return (
+        <Records.Provider records={records} layouts={layouts}>
+          <div>
+            <Records.Content />
+          </div>
+          <div>
+            <Records.BulkActions actions={many.slice(0, 1)} />
+          </div>
+        </Records.Provider>
+      )
+    }
+    render(<Provided />)
+    await user.click(
+      within(floating()!).getByRole('button', { name: 'Clear selection' })
+    )
+    expect(floating()).toBeNull()
+    expect(document.activeElement).toBe(
+      screen.getByRole('list', { name: 'Shows' })
+    )
   })
 })

@@ -179,7 +179,7 @@ describe('RecordTable Select mode on narrow rows in a browser', () => {
     for (const row of listRows(container).slice(0, 3))
       await userEvent.click(row)
     const bar = screen.getByRole('group', { name: 'Bulk actions' })
-    expect(within(bar).getByText('3 selected')).toBeInTheDocument()
+    expect(bar.textContent).toContain('3 selected')
     expect(location.hash).toBe(hash)
     await userEvent.click(within(bar).getByRole('button', { name: 'Export' }))
     expect(actions).toEqual([{ ids: ['show-0', 'show-1', 'show-2'] }])
@@ -240,5 +240,37 @@ describe('RecordTable Select mode on narrow rows in a browser', () => {
       expect(
         screen.getByRole('button', { name }).getBoundingClientRect().height
       ).toBe(height)
+  })
+
+  it('fits the floating bar to the records, with the rest in More actions', async () => {
+    const { container } = render(
+      <div style={{ width: 360 }}>
+        <RecordTable
+          caption='Shows'
+          data={testShows(8)}
+          fields={showFields}
+          columns={narrowColumns}
+          getRowId={(row) => row.id}
+          defaultSelection={{ ids: ['show-0'] }}
+          bulkActions={[
+            'Export orders',
+            'Archive shows',
+            'Print door list',
+            'Email ticket holders'
+          ].map((label) => ({ label, onAction: () => {} }))}
+        />
+      </div>
+    )
+    const bar = await screen.findByRole('group', { name: 'Bulk actions' })
+    await frame()
+    await frame()
+    const records = rect(slot(container, 'records'))
+    expect(rect(bar).width).toBeLessThanOrEqual(records.width)
+    expect(bar.scrollWidth).toBeLessThanOrEqual(bar.clientWidth)
+    const buttons = within(bar).getAllByRole('button')
+    expect(buttons.at(-1)).toHaveAccessibleName('More actions')
+    expect(
+      within(bar).getByRole('button', { name: 'Export orders' })
+    ).toBeVisible()
   })
 })

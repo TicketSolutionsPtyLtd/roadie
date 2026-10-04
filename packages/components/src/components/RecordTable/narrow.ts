@@ -6,14 +6,14 @@ import type { RecordTableColumn, RecordTableNarrow } from './types'
 export type RecordTableNarrowLayout = 'list' | 'cards'
 
 export const narrowLayout = (
-  columns: readonly RecordTableColumn[]
+  columns: readonly RecordTableColumn<never>[]
 ): RecordTableNarrowLayout =>
   columns.some((column) => column.narrow === 'detail') ? 'cards' : 'list'
 
 /** Each narrow role's column; the title is never repeated in another role. */
-export function narrowParts(
-  columns: readonly RecordTableColumn[]
-): RecordCardParts {
+export function narrowParts<Row extends object>(
+  columns: readonly RecordTableColumn<Row>[]
+): RecordCardParts<Row> {
   const title = titleColumn(columns)
   const rest = columns.filter((column) => column !== title)
   const first = (role: RecordTableNarrow) =>

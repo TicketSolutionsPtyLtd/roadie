@@ -1,7 +1,7 @@
 'use client'
 
 import { Checkbox } from '../Checkbox'
-import { SURVIVOR } from '../Records/useBulkActions'
+import { useSurvivor } from '../Records/useBulkActions'
 
 export function RecordTablePageCheckbox({
   label = 'Select page',
@@ -18,7 +18,7 @@ export function RecordTablePageCheckbox({
     <Checkbox
       aria-label={label}
       data-slot='record-table-page-checkbox'
-      {...{ [SURVIVOR]: 'selection' }}
+      {...useSurvivor('selection')}
       disabled={disabled}
       checked={state === true}
       indeterminate={state === 'mixed'}

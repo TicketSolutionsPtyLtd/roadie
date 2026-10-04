@@ -230,7 +230,9 @@ describe('RecordTable image columns, narrow', () => {
   })
 
   it('estimates a bannered card taller', () => {
-    expect(cardRem(narrowParts(cardColumns.slice(1)))).toBe(CARD_REM)
-    expect(cardRem(narrowParts(cardColumns))).toBeGreaterThan(CARD_REM + 9)
+    expect(cardRem(narrowParts<Show>(cardColumns.slice(1)))).toBe(CARD_REM)
+    expect(cardRem(narrowParts<Show>(cardColumns))).toBeGreaterThan(
+      CARD_REM + 9
+    )
   })
 })

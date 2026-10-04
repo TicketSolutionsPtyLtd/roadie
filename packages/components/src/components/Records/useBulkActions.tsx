@@ -15,6 +15,13 @@ const count = new Intl.NumberFormat('en-AU')
 
 /** Where focus lands once a bar that held it unmounts: the selection control, else the rows. */
 export const SURVIVOR = 'data-records-survivor'
+const SCOPE = 'data-records-scope'
+
+/** Marks an element focus can land on once the bulk actions bar goes. */
+export function useSurvivor(kind: 'selection' | 'rows') {
+  const { scope } = useRecordsContext()
+  return { [SURVIVOR]: kind, [SCOPE]: scope }
+}
 
 /** What the floating bar and the header bar share: running, confirming, and where focus goes once the bar unmounts. */
 export function useBulkActions({
@@ -29,7 +36,7 @@ export function useBulkActions({
   // Indexes, as a new actions array each render holds new objects.
   const {
     records,
-    bulkSlot,
+    scope,
     bulkRunning: running,
     setBulkRunning: setRunning,
     bulkConfirming: confirming,
@@ -50,17 +57,13 @@ export function useBulkActions({
 
   // The bar unmounts once the selection clears, taking any focus it held
   // with it. Land focus on something that survives, so it doesn't fall to <body>.
-  const survivor = () => {
-    const bar = barRef.current
-    const root =
-      bar?.closest<HTMLElement>('[data-slot="records"]') ??
-      bulkSlot?.closest<HTMLElement>('[data-records-content]')
-    return (
-      root?.querySelector<HTMLElement>(`[${SURVIVOR}="selection"]`) ??
-      root?.querySelector<HTMLElement>(`[${SURVIVOR}="rows"]`)
+  // By scope, not by ancestor: under a Provider the parts sit apart.
+  const survivor = (kind: string) =>
+    barRef.current?.ownerDocument.querySelector<HTMLElement>(
+      `[${SCOPE}="${scope}"][${SURVIVOR}="${kind}"]`
     )
-  }
-  const focusSurvivor = () => survivor()?.focus()
+  const focusSurvivor = () =>
+    (survivor('selection') ?? survivor('rows'))?.focus()
   // A bar the selection clears in render, such as a new search, unmounts with
   // focus inside; this runs before its nodes leave.
   const latestFocus = useRef(focusSurvivor)

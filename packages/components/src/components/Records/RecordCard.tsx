@@ -23,7 +23,7 @@ export function recordTitle(row: object, id: string, title?: RecordPart) {
   return text?.trim() ? text : id
 }
 
-export const hasBanner = (parts: RecordCardParts) =>
+export const hasBanner = (parts: RecordCardParts<never>) =>
   parts.leading?.kind === 'image'
 
 const isFigure = (part: RecordPart) =>

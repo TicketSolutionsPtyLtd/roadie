@@ -42,7 +42,7 @@ export const CARD_REM = 10
 const BANNER_REM = 12.5
 export const CARD_GAP_REM = 0.75
 
-export const cardRem = (parts: RecordCardParts) =>
+export const cardRem = (parts: RecordCardParts<never>) =>
   CARD_REM + (hasBanner(parts) ? BANNER_REM : 0)
 
 type MeasureElement = (node: HTMLLIElement | null) => void

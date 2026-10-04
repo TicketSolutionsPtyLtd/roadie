@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  Fragment,
   type KeyboardEvent,
   useEffect,
   useLayoutEffect,
@@ -8,14 +9,15 @@ import {
   useState
 } from 'react'
 
-import { XIcon } from '@phosphor-icons/react'
+import { DotsThreeIcon, XIcon } from '@phosphor-icons/react'
 import { createPortal, flushSync } from 'react-dom'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
 import { Button, IconButton } from '../Button'
-import { RecordsSelectionBar } from './RecordsSelectionBar'
+import { Menu } from '../Menu'
+import { RecordsSelectionBar, fittingActions } from './RecordsSelectionBar'
 import { activeLayout, useRecordsContext } from './context'
 import { findScrollParent } from './scrollParent'
 import type { RecordName, RecordsBulkAction } from './types'
@@ -25,6 +27,12 @@ let warnedUnselectable = false
 
 // Tailwind's md container, in rem: below it actions show their icons only.
 const COMPACT_BELOW = 28
+const MORE = 'More actions'
+// The bar's inset from the records' edges, each side, in px.
+const BAR_INSET = 16
+
+const width = (element: Element | null | undefined) =>
+  element?.getBoundingClientRect().width ?? 0
 
 export type RecordsBulkActionsProps = {
   actions: readonly RecordsBulkAction[]
@@ -100,7 +108,10 @@ function FloatingBulkBar({
     allNoun
   } = useBulkActions({ actions, recordName, barRef })
   const dockRef = useRef<HTMLDivElement>(null)
+  const measureRef = useRef<HTMLDivElement>(null)
   const placeRef = useRef<() => void>(undefined)
+  const fitRef = useRef<() => void>(undefined)
+  const [shown, setShown] = useState(actions.length)
   const [floating, setFloating] = useState(false)
   // Measured, not a container query: a container frames the fixed bar, and a Provider has no Root to query.
   const [compact, setCompact] = useState(false)
@@ -173,11 +184,42 @@ function FloatingBulkBar({
         parseFloat(getComputedStyle(document.documentElement).fontSize)
     let compactNow = isCompact()
     setCompact(compactNow)
+    // Actions that don't fit the records' width go in More; the first always shows.
+    const fit = (sync: boolean) => {
+      const measure = measureRef.current
+      if (!measure) return
+      const part = (slot: string) =>
+        measure.querySelectorAll(`[data-slot="${slot}"]`)
+      const style = getComputedStyle(bar)
+      const next = fittingActions({
+        available:
+          width(list) -
+          2 * BAR_INSET -
+          (parseFloat(style.paddingInlineStart) || 0) -
+          (parseFloat(style.paddingInlineEnd) || 0),
+        count: [...part('records-bulk-fixed')].reduce(
+          (sum, element) => sum + width(element),
+          0
+        ),
+        actions: [...part('records-bulk-action')].map(width),
+        more: width(part('records-bulk-more')[0]),
+        gap: parseFloat(style.columnGap) || 0
+      })
+      const shownNext = Math.max(
+        next,
+        Math.min(1, part('records-bulk-action').length)
+      )
+      if (sync) flushSync(() => setShown(shownNext))
+      else setShown(shownNext)
+    }
+    fitRef.current = () => fit(false)
+    fit(false)
     const resize = new ResizeObserver(() => {
       const next = isCompact()
       // Synchronously, so a resize never paints a frame of full labels.
       if (next !== compactNow) flushSync(() => setCompact(next))
       compactNow = next
+      fit(true)
       if (bar.hasAttribute('data-floating')) place()
     })
     resize.observe(list)
@@ -190,6 +232,45 @@ function FloatingBulkBar({
       removeEventListener('scroll', follow, { capture: true })
     }
   }, [])
+
+  const labels = actions.map((action) => action.label).join('\n')
+  // A layout effect's own update lands before paint.
+  useLayoutEffect(() => {
+    fitRef.current?.()
+  }, [labels, compact, offerAll, clearable, selectedLabel])
+
+  const actionButton = (
+    action: RecordsBulkAction,
+    index: number,
+    measuring = false
+  ) => (
+    <Button
+      size='sm'
+      intent={action.intent}
+      {...(measuring
+        ? { tabIndex: -1 }
+        : {
+            disabled: running !== null,
+            // Focusable while busy, so focus stays on the action that started it.
+            focusableWhenDisabled: true,
+            'aria-busy': running === index || undefined,
+            onClick: () => start(index)
+          })}
+      // Icon-only on narrow records, sized like an IconButton.
+      className={action.icon && compact ? 'size-8 min-w-8 px-0' : undefined}
+    >
+      {action.icon}
+      {action.icon ? (
+        <span className={compact ? 'sr-only' : undefined}>{action.label}</span>
+      ) : (
+        action.label
+      )}
+    </Button>
+  )
+  const moreIcon = (
+    <DotsThreeIcon weight='bold' className='size-4' aria-hidden />
+  )
+  const overflow = actions.slice(shown)
 
   return (
     <div
@@ -212,7 +293,7 @@ function FloatingBulkBar({
           else clearSelection()
         }}
         className={cn(
-          'z-docked flex flex-nowrap items-center gap-2 rounded-full emphasis-floating is-translucent px-3 py-2',
+          'relative z-docked flex flex-nowrap items-center gap-2 rounded-full emphasis-floating is-translucent px-3 py-2',
           'data-floating:fixed data-floating:bottom-[calc(1rem+env(safe-area-inset-bottom))] data-floating:-translate-x-1/2',
           // A Navigator's phone tab bar sits at the foot of the screen.
           'max-md:in-[[data-stack]]:data-floating:bottom-[calc(6rem+env(safe-area-inset-bottom))]',
@@ -233,30 +314,10 @@ function FloatingBulkBar({
             <span className={compact ? 'hidden' : undefined}>{allNoun}</span>
           </Button>
         )}
-        {actions.map((action, index) => (
-          <Button
-            key={`${action.label}-${index}`}
-            size='sm'
-            intent={action.intent}
-            disabled={running !== null}
-            // Focusable while busy, so focus stays on the action that started it.
-            focusableWhenDisabled
-            aria-busy={running === index || undefined}
-            onClick={() => start(index)}
-            // Icon-only on narrow records, sized like an IconButton.
-            className={
-              action.icon && compact ? 'size-8 min-w-8 px-0' : undefined
-            }
-          >
-            {action.icon}
-            {action.icon ? (
-              <span className={compact ? 'sr-only' : undefined}>
-                {action.label}
-              </span>
-            ) : (
-              action.label
-            )}
-          </Button>
+        {actions.slice(0, shown).map((action, index) => (
+          <Fragment key={`${action.label}-${index}`}>
+            {actionButton(action, index)}
+          </Fragment>
         ))}
         {clearable && (
           <IconButton
@@ -268,6 +329,94 @@ function FloatingBulkBar({
             <XIcon weight='bold' className='size-4' aria-hidden />
           </IconButton>
         )}
+        {overflow.length > 0 && (
+          <Menu>
+            <Menu.Trigger
+              render={
+                <IconButton
+                  size='sm'
+                  emphasis='subtler'
+                  aria-label={MORE}
+                  disabled={running !== null}
+                  focusableWhenDisabled
+                  aria-busy={
+                    (running !== null && running >= shown) || undefined
+                  }
+                >
+                  {moreIcon}
+                </IconButton>
+              }
+            />
+            <Menu.Content align='end' side='top'>
+              {overflow.map((action, offset) => (
+                <Menu.Item
+                  key={`${action.label}-${shown + offset}`}
+                  icon={action.icon}
+                  intent={action.intent}
+                  onClick={() => start(shown + offset)}
+                >
+                  {action.label}
+                </Menu.Item>
+              ))}
+            </Menu.Content>
+          </Menu>
+        )}
+        {/* Every part at its natural width, to decide what fits; clipped, so it adds no scrollable overflow. */}
+        <div
+          aria-hidden
+          inert
+          className='invisible absolute inset-0 overflow-hidden'
+        >
+          <div ref={measureRef} className='flex w-max gap-2'>
+            <span
+              data-slot='records-bulk-fixed'
+              className='px-2 text-sm font-semibold whitespace-nowrap'
+            >
+              {selectedLabel}
+            </span>
+            {offerAll && (
+              <span data-slot='records-bulk-fixed' className='flex'>
+                <Button size='sm' emphasis='subtler' tabIndex={-1}>
+                  Select all
+                  <span className={compact ? 'hidden' : undefined}>
+                    {allNoun}
+                  </span>
+                </Button>
+              </span>
+            )}
+            {clearable && (
+              <span data-slot='records-bulk-fixed' className='flex'>
+                <IconButton
+                  aria-label='Clear selection'
+                  size='sm'
+                  emphasis='subtler'
+                  tabIndex={-1}
+                >
+                  <XIcon weight='bold' className='size-4' aria-hidden />
+                </IconButton>
+              </span>
+            )}
+            {actions.map((action, index) => (
+              <span
+                key={`${action.label}-${index}`}
+                data-slot='records-bulk-action'
+                className='flex'
+              >
+                {actionButton(action, index, true)}
+              </span>
+            ))}
+            <span data-slot='records-bulk-more' className='flex'>
+              <IconButton
+                size='sm'
+                emphasis='subtler'
+                aria-label={MORE}
+                tabIndex={-1}
+              >
+                {moreIcon}
+              </IconButton>
+            </span>
+          </div>
+        </div>
         {confirm}
       </div>
     </div>
