@@ -202,12 +202,17 @@ function CardItem({
 }) {
   const itemRef = useRef<HTMLLIElement>(null)
   useKeepFocusInTable(itemRef)
+  // Stable, so a render never re-measures the card.
+  const mergedRef = useCallback(
+    (node: HTMLLIElement | null) => {
+      itemRef.current = node
+      measureElement?.(node)
+    },
+    [measureElement]
+  )
   return (
     <li
-      ref={(node) => {
-        itemRef.current = node
-        measureElement?.(node)
-      }}
+      ref={mergedRef}
       data-slot='record-table-card'
       data-row-id={id}
       data-selected={selected || undefined}

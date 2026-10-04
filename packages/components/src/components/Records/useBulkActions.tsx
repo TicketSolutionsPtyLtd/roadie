@@ -23,8 +23,8 @@ export function useSurvivor(kind: 'selection' | 'rows') {
   return { [SURVIVOR]: kind, [SCOPE]: scope }
 }
 
-const findSurvivor = (scope: string, kind: string) =>
-  document.querySelector<HTMLElement>(
+const findSurvivor = (scope: string, kind: string, from: Document = document) =>
+  from.querySelector<HTMLElement>(
     `[${SCOPE}="${scope}"][${SURVIVOR}="${kind}"]`
   )
 
@@ -35,11 +35,13 @@ export function useKeepFocusOnLeave(ref: RefObject<HTMLElement | null>) {
     const element = ref.current
     return () => {
       if (!element?.contains(document.activeElement)) return
-      ;(findSurvivor(scope, 'selection') ?? findSurvivor(scope, 'rows'))?.focus(
-        {
-          preventScroll: true
-        }
-      )
+      const from = element.ownerDocument
+      ;(
+        findSurvivor(scope, 'selection', from) ??
+        findSurvivor(scope, 'rows', from)
+      )?.focus({
+        preventScroll: true
+      })
     }
   }, [ref, scope])
 }

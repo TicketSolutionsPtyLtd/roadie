@@ -77,10 +77,13 @@ export function titleColumn<Column extends RecordTableColumn<never>>(
   )
 }
 
-// The title column is text, which reads the same in any zone.
-const titleText = (record: object, title: RecordTableColumn | undefined) => {
+const titleText = (
+  record: object,
+  title: RecordTableColumn | undefined,
+  timeZone: string
+) => {
   const text = title
-    ? formatRecordValue(record, title.field, { timeZone: 'UTC' })
+    ? formatRecordValue(record, title.field, { timeZone })
     : null
   return text?.trim() ? text : undefined
 }
@@ -128,7 +131,7 @@ export const RecordTableRow = memo(function RecordTableRow({
 }: RecordTableRowProps) {
   const rowRef = useRef<HTMLDivElement>(null)
   useKeepFocusInTable(rowRef)
-  const name = titleText(record, title)
+  const name = titleText(record, title, timeZone)
   const linked = href !== undefined && name !== undefined
   const selectable = selected !== undefined
   const clickable = linked || selectable

@@ -159,6 +159,10 @@ export function RecordTableContent({
   // Narrow rows select only through Select mode; wide rows have checkboxes and keep it.
   const selecting = isSelecting(records, narrow !== undefined)
   const { selecting: committed, setSelecting } = records
+  const latest = useRef(records)
+  useLayoutEffect(() => {
+    latest.current = records
+  })
   const isNarrowShown = narrow !== undefined
   // Narrow rows enter Select mode, and only a switch to wide leaves it, so a
   // second Content of another width under the same records never fights it.
@@ -174,7 +178,9 @@ export function RecordTableContent({
   }, [isNarrowShown, selecting, committed, setSelecting, setSelectMode])
   useLayoutEffect(
     () => () => {
-      if (wasNarrow.current) setSelectMode(false)
+      if (!wasNarrow.current) return
+      setSelectMode(false)
+      latest.current.setSelecting(false, { keep: true })
     },
     [setSelectMode]
   )
@@ -183,10 +189,6 @@ export function RecordTableContent({
   // Presence, not identity: an inline rowActions is new every render.
   const hasRowActions = Boolean(records.rowActions)
   // Stable, so a selection change or an inline rowActions leaves other rows alone.
-  const latest = useRef(records)
-  useLayoutEffect(() => {
-    latest.current = records
-  })
   const toggleRow = useCallback(
     (id: string, range: boolean) => latest.current.toggleRow(id, { range }),
     []

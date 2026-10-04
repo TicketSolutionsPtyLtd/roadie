@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useCallback, useRef } from 'react'
 
 import { WarningIcon } from '@phosphor-icons/react'
 
@@ -116,15 +116,16 @@ export function RecordTableNarrowRangeError({
 }) {
   const ref = useRef<HTMLLIElement>(null)
   useKeepFocusInTable(ref)
+  // Stable, so a render never re-measures the card.
+  const mergedRef = useCallback(
+    (node: HTMLLIElement | null) => {
+      ref.current = node
+      measureElement?.(node)
+    },
+    [measureElement]
+  )
   return (
-    <li
-      ref={(node) => {
-        ref.current = node
-        measureElement?.(node)
-      }}
-      data-index={index}
-      data-slot='record-table-range-error'
-    >
+    <li ref={mergedRef} data-index={index} data-slot='record-table-range-error'>
       {card ? (
         <div className='flex h-40 items-center gap-2 rounded-xl border border-subtle p-4'>
           <RangeErrorMessage />

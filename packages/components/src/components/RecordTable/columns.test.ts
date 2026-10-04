@@ -60,14 +60,6 @@ describe('tableColumns', () => {
     warn.mockRestore()
   })
 
-  it('drops the priority of the narrow title', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    expect(
-      column.field('show', { narrow: 'title', priority: 2 }).priority
-    ).toBeUndefined()
-    warn.mockRestore()
-  })
-
   it('throws for a key with no field', () => {
     const loose = tableColumns<TestShow & { venue: string }>(showFields)
     expect(() => loose.field('venue')).toThrow(/no field "venue"/)

@@ -24,12 +24,12 @@ export function tableColumns<Row extends object = Record<string, unknown>>(
       const rest = Object.fromEntries(
         Object.entries(given).filter(([, value]) => value !== undefined)
       ) as typeof given
-      const steady = rest.pin || rest.narrow === 'title'
+      const steady = rest.pin
       if (steady && priority !== undefined && !warnedPinnedPriority) {
         warnedPinnedPriority = true
         if (isDev())
           console.warn(
-            `[Roadie] tableColumns: column "${key}" is pinned or the title, so its priority is ignored. Neither ever hides.`
+            `[Roadie] tableColumns: column "${key}" is pinned, so its priority is ignored. Pinned columns never hide.`
           )
       }
       return {
