@@ -749,6 +749,23 @@ describe('Calendar page turns', () => {
     expect(onMonthChange).not.toHaveBeenCalled()
   })
 
+  it('keeps sliding in when a controlled parent follows the turn', async () => {
+    const slides = holdSlides()
+    function Controlled() {
+      const [month, setMonth] = useState('2027-03-01')
+      return <Calendar today={TODAY} month={month} onMonthChange={setMonth} />
+    }
+    render(<Controlled />)
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    for (const animation of document.getAnimations()) animation.finish()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(caption()).toEqual(['April 2027'])
+    expect(swiping()).not.toBeNull()
+    expect(days().getAnimations()).toHaveLength(1)
+    await slides.land()
+    expect(swiping()).toBeNull()
+  })
+
   it('drops a waiting turn when the parent moves the month mid-slide', async () => {
     const slides = holdSlides()
     const onMonthChange = vi.fn()

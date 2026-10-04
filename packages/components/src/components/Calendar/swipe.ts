@@ -241,8 +241,10 @@ export function useSwipeToTurn(
       void animateTurn(0, step, apply, turnOptions?.immediate)
     }
     landTurn.current = cutShort
+    // Only a turn not yet applied: a parent following a turn's own month
+    // arrives while it applies, and the slide in goes on.
     dropTurn.current = () => {
-      if (!settling) return
+      if (!settling || !pending) return
       run++
       pending = null
       finish()
