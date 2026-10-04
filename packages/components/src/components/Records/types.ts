@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import type {
+  RecordField,
   RecordQuery,
   RecordSelection,
   RecordView
@@ -66,4 +67,35 @@ export type RecordsRangeState<Row = object> = {
   rowAt: (index: number) => RecordsRow<Row> | undefined
   /** Reports the rows on screen, inclusive, and a row to reach, so missing ranges load. */
   show: (first: number, last: number, target?: number) => void
+}
+
+export type RecordCellContext<Row extends object = object> = {
+  value: unknown
+  row: Row
+  field: RecordField
+}
+
+/** How a layout shows one field: a table's column, or one part of a card. */
+export type RecordPart<Row extends object = object> = {
+  key: string
+  field: RecordField
+  /** `image` shows the value, an image URL, as a thumbnail, or as a card's banner. */
+  kind?: 'image'
+  /** An image's alt text. Empty by default, as the record's title names it. */
+  alt?: (row: Row) => string
+  /** Replaces the field's own rendering. */
+  cell?: (context: RecordCellContext<Row>) => ReactNode
+}
+
+/** The parts of a record a card or list row shows, each a field. */
+export type RecordCardParts<Row extends object = object> = {
+  /** A 16:9 banner across the card's top. */
+  image?: RecordPart<Row>
+  title?: RecordPart<Row>
+  description?: RecordPart<Row>
+  /** Beside the title, such as a thumbnail or an avatar. */
+  leading?: RecordPart<Row>
+  trailing?: RecordPart<Row>
+  /** Label and value pairs under a card's title, in order. */
+  details: readonly RecordPart<Row>[]
 }

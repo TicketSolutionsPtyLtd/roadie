@@ -10,6 +10,9 @@ export function tableFocusTarget(from: Element) {
   )
 }
 
+/** Table targets taking focus from a row that is leaving, while they take it. */
+export const handedOver = new WeakSet<Element>()
+
 /**
  * Hands focus to the table when an element holding it unmounts, such as a
  * row scrolled out of the window, so keyboard users keep their place
@@ -20,7 +23,11 @@ export function useKeepFocusInTable(ref: RefObject<HTMLElement | null>) {
     const element = ref.current
     return () => {
       if (!element?.contains(document.activeElement)) return
-      tableFocusTarget(element)?.focus({ preventScroll: true })
+      const target = tableFocusTarget(element)
+      if (!target) return
+      handedOver.add(target)
+      target.focus({ preventScroll: true })
+      handedOver.delete(target)
     }
   }, [ref])
 }

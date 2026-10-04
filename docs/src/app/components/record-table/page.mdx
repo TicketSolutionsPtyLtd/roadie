@@ -146,9 +146,9 @@ Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Recor
 - `Records.Content` in `Pane.Body`, below the toolbar. Its column headers stick under the toolbar.
 - `Records.Status` anywhere inside the Provider. It renders nothing visible.
 - `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
-- `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected.
+- `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, and floats it over narrow rows.
 
-On a phone the table keeps its columns and scrolls sideways, with the pinned column held at the start. The second frame shows it at 390px.
+On a phone the table turns into cards: the event, its venue and status, with the start, sold and gross as details. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
 
 ```tsx-live-noinline-expand id=in-a-pane
 const venues = [
@@ -191,12 +191,12 @@ const fields = [
 const column = tableColumns(fields)
 const layouts = [
   tableLayout([
-    column.field('name', { pin: true }),
-    column.field('startsAt'),
-    column.field('venue'),
-    column.field('status'),
-    column.field('sold'),
-    column.field('gross')
+    column.field('name', { pin: true, narrow: 'title' }),
+    column.field('startsAt', { narrow: 'detail' }),
+    column.field('venue', { narrow: 'description' }),
+    column.field('status', { narrow: 'trailing' }),
+    column.field('sold', { narrow: 'detail' }),
+    column.field('gross', { narrow: 'detail' })
   ])
 ]
 
@@ -265,9 +265,12 @@ A header sorts by its field alone: words A to Z first, figures and dates largest
 
 A column presents one field. `tableColumns(fields).field(key, options)` takes:
 
-- `pin` to hold the column at the start while the table scrolls sideways. The first pinned text column, or else the first text column, is the row's title, in strong text. A custom `cell` there inherits it.
+- `pin` to hold the column at the start while the table scrolls sideways. The column with `narrow: 'title'`, or else the first pinned text column, or else the first text column, is the row's title, in strong text. A custom `cell` there inherits it.
 - `width` as `{ min, grow }` in rem, when the content's own width doesn't suit. Without it, each column sizes from a sample of its values.
 - `cell` to render the value yourself, such as an order number in `font-mono`.
+- `kind: 'image'` to show the value, an image URL, as a 40px thumbnail, with `alt` to describe it from the row. Its header is read to screen readers but not shown, and it never sorts from there; give its field `searchable: false` and `sortable: false`. A record without an image shows a neutral tile.
+- `priority` to hide the column as the table narrows. See [Column priority](#column-priority).
+- `narrow` to place the column when the table turns into list rows or cards. See [Narrow layouts](#narrow-layouts).
 
 The view's `layout.columns` orders and hides columns: `order` lists keys to bring forward and `hidden` lists keys to leave out. Pinned columns stay first and shown whatever the view says.
 
@@ -935,6 +938,201 @@ render(
 )
 ```
 
+### Column priority
+
+Give columns people can do without a `priority`, so they hide as a wide table narrows, before it turns into list rows. Priority 3 hides below 64rem of the table's own width, 2 below 56rem and 1 below 48rem, and the header and rows hide together. Pinned columns and the title never hide, so `pin` and `narrow: 'title'` win over `priority`. A column hidden by priority still shows in Configure, and search and exports still include it.
+
+```tsx
+const columns = [
+  column.field('name', { pin: true, narrow: 'title' }),
+  column.field('venue', { priority: 1 }),
+  column.field('capacity', { priority: 2 }),
+  column.field('updated', { priority: 3 })
+]
+```
+
+### Narrow layouts
+
+Under 40rem of its own width, 640px at the default text size, the table drops its columns and lists its records. It measures the table, not the screen, so a table in a side panel turns into a list on a wide monitor too. Each column picks its place with `narrow`:
+
+| `narrow` | Where the column goes |
+| --- | --- |
+| `'title'` | The record's title, in strong text. It carries the record's link. Without one, the pinned text column, then the first text column, is the title. |
+| `'description'` | One line under the title, in subtle text. |
+| `'leading'` | Before the title. An image column goes here unless you say otherwise. |
+| `'trailing'` | At the end of the row, such as a status badge. |
+| `'detail'` | A label and value on a card. Any detail column turns the rows into cards. |
+| `'hidden'` | Left out of the narrow layout. The default for every column but images. |
+
+The server can't know the table's width, so the table renders wide there and on its first render. A phone shows the wide table until the page hydrates, then the list before the next paint. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the toolbar: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, rows stay inside the box. The examples below sit in a 360px box.
+
+Narrow rows load by range and render only near the screen past 100 records, as wide rows do. The bulk actions float at the foot of the screen, keeping the first action and putting the rest in a More actions menu when they don't fit.
+
+#### List rows
+
+With no detail columns, each record is a list row of a fixed height: leading, title, description and trailing. An image column becomes the leading thumbnail. Switch to Wide to see the same table turn back into columns.
+
+```tsx-live-noinline-expand
+const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre', 'Foxglove Tin Pavilion']
+const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Lampshade Disco']
+const statuses = ['on-sale', 'selling-fast', 'sold-out']
+const events = Array.from({ length: 40 }, (_, index) => ({
+  id: `event-${index}`,
+  image: index % 4 === 3 ? undefined : getAssetPath('/cart-demo-event.svg'),
+  name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
+  venue: venues[index % venues.length],
+  status: statuses[index % statuses.length],
+  sold: (index * 37) % 2400
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('image', { label: 'Image', searchable: false, sortable: false }),
+  field.text('name', { label: 'Event' }),
+  field.text('venue', { label: 'Venue' }),
+  field.option('status', {
+    label: 'Status',
+    status: {
+      'on-sale': { intent: 'success', label: 'On sale' },
+      'selling-fast': { intent: 'warning', label: 'Selling fast' },
+      'sold-out': { intent: 'neutral', label: 'Sold out' }
+    }
+  }),
+  field.number('sold', { label: 'Sold' })
+]
+const column = tableColumns(fields)
+const columns = [
+  column.field('image', { kind: 'image' }),
+  column.field('name', { pin: true, narrow: 'title' }),
+  column.field('venue', { narrow: 'description' }),
+  column.field('status', { narrow: 'trailing' }),
+  column.field('sold', { priority: 1 })
+]
+
+function NarrowEvents() {
+  const [narrow, setNarrow] = useState(true)
+  return (
+    <div className='grid gap-3'>
+      <ToggleGroup aria-label='Width' value={[narrow ? 'narrow' : 'wide']} onValueChange={([value]) => value && setNarrow(value === 'narrow')}>
+        <ToggleGroup.Item value='narrow'>360px</ToggleGroup.Item>
+        <ToggleGroup.Item value='wide'>Wide</ToggleGroup.Item>
+      </ToggleGroup>
+      <div className={narrow ? 'w-full max-w-[360px] px-3' : undefined}>
+        <RecordTable
+          caption='Events'
+          data={events}
+          fields={fields}
+          columns={columns}
+          getRowId={(row) => row.id}
+          getRowHref={(row) => `#${row.id}`}
+          recordName={{ one: 'event', other: 'events' }}
+          maxHeight='28rem'
+        />
+      </div>
+    </div>
+  )
+}
+
+render(<NarrowEvents />)
+```
+
+#### Cards
+
+Give columns `narrow: 'detail'` and each record becomes a card, with the details listed under its title as labels and values. An image column becomes the card's 16:9 banner, with the trailing value on its top end. Cards grow to fit their content, and past 100 records the list measures each as it renders.
+
+To choose for yourself, pass `narrow: 'list'` or `narrow: 'cards'` to `tableLayout`, or `narrow` to `RecordTable`. List rows leave out detail columns, and cards without details show just the title, description and trailing.
+
+```tsx-live-noinline
+const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre', 'Foxglove Tin Pavilion']
+const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Lampshade Disco']
+const events = Array.from({ length: 30 }, (_, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
+  venue: venues[index % venues.length],
+  sold: (index * 37) % 2400,
+  capacity: 2400,
+  gross: (index * 7919) % 250000
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  field.text('venue', { label: 'Venue' }),
+  field.number('sold', { label: 'Sold' }),
+  field.number('capacity', { label: 'Capacity' }),
+  field.money('gross', { label: 'Gross', format: 'compactCurrency' })
+]
+const column = tableColumns(fields)
+const columns = [
+  column.field('name', { pin: true, narrow: 'title' }),
+  column.field('venue', { narrow: 'description' }),
+  column.field('sold', { narrow: 'detail' }),
+  column.field('capacity', { narrow: 'detail' }),
+  column.field('gross', { narrow: 'detail' })
+]
+
+render(
+  <div className='w-full max-w-[360px] px-3'>
+    <RecordTable
+      caption='Events'
+      data={events}
+      fields={fields}
+      columns={columns}
+      getRowId={(row) => row.id}
+      recordName={{ one: 'event', other: 'events' }}
+      maxHeight='32rem'
+    />
+  </div>
+)
+```
+
+#### Select mode
+
+A phone has no hover and no room for a checkbox column, so narrow rows that can be selected show a Select button in the toolbar instead. Tap it to enter Select mode: each record shows a checkbox, a tap selects the record rather than opening it, and the toolbar offers Select all, or Deselect all once the page is selected, and Done. Done, or Escape, leaves the mode and clears the selection. Going wide leaves the mode too but keeps the selection, and selecting from the wide table and then narrowing it enters Select mode on its own. Once records are selected, the floating bar shows the count, the offer to select every matching record and the bulk actions, with labels collapsed to icons.
+
+`RecordTable` places the Select button for you. When you compose the parts, put `Records.Select` beside the search; it shows only while the layout selects through Select mode.
+
+```tsx-live-noinline
+const customers = ['Mia Tran', 'Jack Ellis', 'Ava Nguyen', 'Noah Smith', 'Isla Brown', 'Leo Wilson']
+const orders = Array.from({ length: 30 }, (_, index) => ({
+  id: `order-${index}`,
+  number: `OZ-${48210 + index * 7}`,
+  customer: customers[index % customers.length],
+  total: [79.9, 149, 59, 238.5][index % 4]
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('number', { label: 'Order' }),
+  field.text('customer', { label: 'Customer' }),
+  field.money('total', { label: 'Total', format: 'currency' })
+]
+const column = tableColumns(fields)
+const columns = [
+  column.field('number', { pin: true, narrow: 'title' }),
+  column.field('customer', { narrow: 'description' }),
+  column.field('total', { narrow: 'trailing' })
+]
+
+render(
+  <div className='w-full max-w-[360px] px-3'>
+    <RecordTable
+      caption='Orders'
+      data={orders}
+      fields={fields}
+      columns={columns}
+      getRowId={(row) => row.id}
+      recordName={{ one: 'order', other: 'orders' }}
+      bulkActions={[
+        { label: 'Export', icon: <ExportIcon weight='bold' />, onAction: (selection) => console.log('export', selection) },
+        { label: 'Resend tickets', icon: <EnvelopeIcon weight='bold' />, onAction: (selection) => console.log('resend', selection) }
+      ]}
+      maxHeight='28rem'
+    />
+  </div>
+)
+```
+
 ## Guidelines
 
 <div className='grid gap-8'>
@@ -1101,7 +1299,7 @@ column.field('city', { pin: true })`}
 
 ## Accessibility
 
-- `caption` names the table. Every part reads as a table, with column headers and cells.
+- `caption` names the table. Wide, every part reads as a table, with column headers and cells. Narrow, the records are a list named by the caption, each an item with its place in the whole list (`aria-posinset` and `aria-setsize`) when the list holds only some of them.
 - A sortable column's header is a button. The sorted column carries `aria-sort`.
 - When the table scrolls sideways, its frame is a region named "Shows, scrolls sideways" for a caption of Shows, and the scroller is its one tab stop, so keyboard users can scroll it with the arrow keys. In its own box (`maxHeight` or `fill`), the box is the region, named "Shows, scrolls".
 - `Records.Status` is a live region. It announces Loading, the error, and the result count while a search or filter narrows the list.
@@ -1115,6 +1313,8 @@ column.field('city', { pin: true })`}
 - While records are selected, the bulk actions are a toolbar named "Bulk actions" in the header row, beside "Select page", which keeps focus as the bar replaces the column headers. The headers stay in the table for screen readers, and the toolbar sits in a last header with no cells under it. Arrow keys move between its controls. Escape clears the selection and returns focus to "Select page".
 - Each row's actions menu is named "More actions for" the record's title. Table actions past the first sit behind a button named "More actions". A running action's control stays focusable but disabled, with `aria-busy`. A confirmation is an alert dialog.
 - The Configure button is named "Configure table", as is the dialog it opens. Its sort controls are named "Sort by", then "Then by, level 2" and so on, and for each level the field's order, such as "Sold order". Adding a level moves focus to its field, and removing one moves focus to the Remove of the level that takes its place, or of the one before it, or to Add sort. Each column's handle is named "Reorder" and the column, its eye is a toggle button named "Show" and the column, pressed while the column shows (the last shown column's is disabled and says why), and each move is announced, such as "Gross moved to position 1 of 4 columns".
+- In Select mode, each record's checkbox covers the record, so a tap anywhere on it toggles, and the link steps aside. "Select" and "Done" are one button, which keeps focus as it switches. Select mode's controls are a group named "Select mode", and the floating bulk actions a group named "Bulk actions", where Escape leaves Select mode. When the bar goes, focus lands on Select, or on the records.
+- Focus follows the record across a switch between the table and the list, onto the same record's link or first control.
 - A row with `getRowHref` holds a real link: it opens in a new tab with Cmd or Ctrl, and works with every other link convention, not just a click handler.
 
 ## Hooks

@@ -10,7 +10,7 @@ import {
   rowClass,
   selectCellClass
 } from './RecordTableRow'
-import type { ColumnLayout } from './layout'
+import { type ColumnLayout, priorityProps } from './layout'
 import { useKeepFocusInTable } from './tableFocus'
 import type { RecordTableColumn } from './types'
 
@@ -74,6 +74,7 @@ export const RecordTableSkeletonRow = memo(function RecordTableSkeletonRow({
           key={column.key}
           role='cell'
           className={cellClass(column)}
+          {...priorityProps(column, layout, index)}
           style={pinStyle(layout.pinnedStart[index])}
         >
           {!blank && <Skeleton shape='text' className='animate-none' />}

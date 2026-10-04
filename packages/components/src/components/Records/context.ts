@@ -15,6 +15,8 @@ import type { RecordsInstance } from './useRecords'
 
 export type RecordsContextValue = {
   records: RecordsInstance
+  /** Ties the parts of one set of records together wherever they render, such as where focus lands once a bar goes. */
+  scope: string
   layouts: readonly AnyRecordLayout[]
   /** Accessible name for the records, such as the table's. */
   caption?: string
