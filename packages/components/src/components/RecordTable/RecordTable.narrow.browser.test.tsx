@@ -295,6 +295,31 @@ describe('RecordTable narrow list rows in a browser', () => {
       .not.toBeNull()
   })
 
+  it("keeps focus on a record's checkbox as Select mode goes wide", async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      <Boxed width={360}>
+        <RecordTable
+          {...base}
+          data={testShows(6)}
+          bulkActions={[{ label: 'Export', onAction: () => {} }]}
+        />
+      </Boxed>
+    )
+    await user.click(await screen.findByRole('button', { name: 'Select' }))
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Select Julia Jacklin 1' })
+    )
+    screen.getByRole('checkbox', { name: 'Select Julia Jacklin 1' }).focus()
+    await resize(container, 800)
+    const table = await screen.findByRole('table', { name: 'Shows' })
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(
+        within(table).getByRole('checkbox', { name: 'Select Julia Jacklin 1' })
+      )
+  })
+
   it('joins selected neighbours into one block', async () => {
     const { container } = render(
       <Boxed width={360}>

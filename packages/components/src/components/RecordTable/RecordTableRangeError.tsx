@@ -105,12 +105,15 @@ export function RecordTableRangeError({
 export function RecordTableNarrowRangeError({
   heightClass,
   card,
+  banner = false,
   index,
   measureElement
 }: {
   /** The list row's height, matching its placeholders. */
   heightClass: string
   card: boolean
+  /** A card's banner above the message, matching its placeholder. */
+  banner?: boolean
   index?: number
   measureElement?: (node: HTMLLIElement | null) => void
 }) {
@@ -127,8 +130,17 @@ export function RecordTableNarrowRangeError({
   return (
     <li ref={mergedRef} data-index={index} data-slot='record-table-range-error'>
       {card ? (
-        <div className='flex h-40 items-center gap-2 rounded-xl border border-subtle p-4'>
-          <RangeErrorMessage />
+        // The placeholder's structure, banner too, so the measured list doesn't jump.
+        <div className='grid overflow-hidden rounded-xl border border-subtle'>
+          {banner && (
+            <span
+              data-slot='record-table-placeholder-media'
+              className='aspect-video'
+            />
+          )}
+          <div className='flex h-40 items-center gap-2 p-4'>
+            <RangeErrorMessage />
+          </div>
         </div>
       ) : (
         <div className={cn('flex', heightClass)}>

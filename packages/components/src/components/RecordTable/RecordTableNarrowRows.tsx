@@ -377,6 +377,7 @@ function RangeList({
               key={rangeErrorKey(failed.start)}
               heightClass={heightClass}
               card={listProps.cards}
+              banner={shared.parts.image !== undefined}
               index={measured}
               measureElement={measureElement}
             />

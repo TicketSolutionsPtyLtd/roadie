@@ -601,6 +601,22 @@ describe('RecordTable Select mode', () => {
     )
   })
 
+  it('keeps focus on the record when Select mode goes wide from its checkbox', async () => {
+    const user = userEvent.setup()
+    render(<RecordTable {...selectBase} />)
+    await enterSelect(user)
+    within(listOf())
+      .getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+      .focus()
+    report(800)
+    expect(document.activeElement).toBe(
+      within(screen.getByRole('table', { name: 'Shows' })).getByRole(
+        'checkbox',
+        { name: 'Select Ocean Alley 1' }
+      )
+    )
+  })
+
   it('keeps the selection when Select mode goes wide', async () => {
     const user = userEvent.setup()
     render(<RecordTable {...selectBase} />)
@@ -700,6 +716,38 @@ function NarrowRanged({
     />
   )
 }
+
+describe('RecordTable narrow range failure with banners', () => {
+  beforeEach(() => {
+    width = 360
+  })
+
+  it('keeps a banner in the failed range’s card, as its placeholder has', async () => {
+    const fields = [
+      ...showFields,
+      { key: 'image', label: 'Image', type: 'text' as const }
+    ]
+    const imageColumn = tableColumns<TestShow & { image?: string }>(fields)
+    render(
+      <NarrowRanged
+        layout='cards'
+        spans={[]}
+        fields={fields}
+        columns={[
+          imageColumn.field('image', { kind: 'image' }),
+          ...detailColumns
+        ]}
+      />
+    )
+    await act(async () => {})
+    const error = listOf().querySelector<HTMLElement>(
+      '[data-slot="record-table-range-error"]'
+    )!
+    expect(
+      error.querySelector('[data-slot="record-table-placeholder-media"]')
+    ).not.toBeNull()
+  })
+})
 
 describe('RecordTable narrow range failure', () => {
   beforeEach(() => {
