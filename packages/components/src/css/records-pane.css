@@ -1,0 +1,36 @@
+/* Records in a pane's body reach the pane's edges, so nothing scrolls past
+   in its margins: the toolbar paints them, and a wide table's rows, dividers
+   and scrollbar run across, its first and last cells taking the pane's inset
+   so their content still lines up with the content above. Narrow rows and a
+   measured pane keep the inset. */
+
+:is(
+    [data-slot='pane'][data-measure='full']
+      > [data-slot='pane-viewport']
+      > [data-slot='scroll-area-content'],
+    [data-slot='pane'][data-measure='full']
+      > [data-slot='pane-viewport']
+      > [data-slot='scroll-area-content']
+      > [data-slot='pane-body'],
+    [data-slot='pane'][data-measure='full']
+      > [data-slot='pane-viewport']
+      > [data-slot='scroll-area-content']
+      > [data-slot='records'],
+    [data-slot='pane'][data-measure='full']
+      > [data-slot='pane-viewport']
+      > [data-slot='scroll-area-content']
+      > [data-slot='pane-body']
+      > [data-slot='records']
+  )
+  > :is(
+    [data-slot='records-toolbar'],
+    [data-slot='record-table-frame']:not([data-narrow])
+  ) {
+  --content-inset: inherit;
+  width: auto;
+  margin-inline: calc(var(--content-inset) * -1);
+
+  &[data-slot='records-toolbar'] {
+    padding-inline: var(--content-inset);
+  }
+}

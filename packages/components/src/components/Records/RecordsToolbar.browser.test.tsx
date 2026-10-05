@@ -119,7 +119,8 @@ describe.each([390, 360, 280, 1280])(
       expect(gapUnderHeader()).toBeGreaterThanOrEqual(8)
     })
 
-    it(
+    // Narrow rows have no column headers.
+    it.skipIf(width < 640)(
       'sticks the column headers under the whole toolbar',
       TIMEOUT,
       async () => {

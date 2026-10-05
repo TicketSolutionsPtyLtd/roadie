@@ -97,8 +97,13 @@ export const sameWidths = (
       width.min === b[index]!.min && width.grow === b[index]!.grow
   )
 
-const track = ({ min, grow }: RecordColumnWidth) =>
-  grow ? `minmax(${min}rem, ${grow}fr)` : `${min}rem`
+// The first and last cells carry the frame's inset, so their tracks widen by it.
+function track({ min, grow }: RecordColumnWidth, insets: number) {
+  const least = insets
+    ? `calc(${min}rem + ${insets} * var(--content-inset))`
+    : `${min}rem`
+  return grow ? `minmax(${least}, ${grow}fr)` : least
+}
 
 /** The checkbox track, pinned first. In rem. */
 export const SELECT_WIDTH = 2.5
@@ -111,15 +116,19 @@ function columnTier(
   { select, actions }: { select: boolean; actions: boolean }
 ): ColumnTier {
   let minWidth = (select ? SELECT_WIDTH : 0) + (actions ? ACTIONS_WIDTH : 0)
-  const tracks = columns.map((column, index) => {
+  const shown: RecordColumnWidth[] = columns.map((column, index) => {
     const width = widths[index]!
     minWidth += width.min
     // A pinned column another pinned column follows can't grow, so the next offset is known.
     const offsetsNext = column.pin && columns[index + 1]?.pin === true
-    return offsetsNext ? `${width.min}rem` : track(width)
+    return offsetsNext ? { min: width.min } : width
   })
-  if (select) tracks.unshift(`${SELECT_WIDTH}rem`)
-  if (actions) tracks.push(`${ACTIONS_WIDTH}rem`)
+  if (select) shown.unshift({ min: SELECT_WIDTH })
+  if (actions) shown.push({ min: ACTIONS_WIDTH })
+  const last = shown.length - 1
+  const tracks = shown.map((width, index) =>
+    track(width, Number(index === 0) + Number(index === last))
+  )
   return { template: tracks.join(' '), minWidth }
 }
 
@@ -180,6 +189,9 @@ export const tierStyle = (layout: ColumnLayout) =>
   Object.fromEntries(
     layout.tiers.flatMap(({ template, minWidth }, tier) => [
       [`--record-table-columns-${tier}`, template],
-      [`--record-table-min-width-${tier}`, `${minWidth}rem`]
+      [
+        `--record-table-min-width-${tier}`,
+        `calc(${minWidth}rem + 2 * var(--content-inset))`
+      ]
     ])
   )

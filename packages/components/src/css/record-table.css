@@ -4,6 +4,9 @@
 
 [data-slot='record-table-frame'] {
   container: record-table-frame / inline-size;
+  /* The first and last cells carry this inset. Only a table that reaches a
+     pane's edges takes the pane's; see records-pane.css. */
+  --content-inset: 0px;
 }
 
 [data-slot='record-table-content'] {
@@ -25,7 +28,7 @@
      so each row marks its last shown cell. A `:has(~ …)` here would have
      Chromium re-check every element's siblings on any change. */
   [data-slot='record-table-content'] [data-priority-end~='3'] {
-    padding-inline-end: 0;
+    padding-inline-end: var(--content-inset);
   }
 }
 
@@ -40,7 +43,7 @@
   }
 
   [data-slot='record-table-content'] [data-priority-end~='2'] {
-    padding-inline-end: 0;
+    padding-inline-end: var(--content-inset);
   }
 }
 
@@ -55,6 +58,6 @@
   }
 
   [data-slot='record-table-content'] [data-priority-end~='1'] {
-    padding-inline-end: 0;
+    padding-inline-end: var(--content-inset);
   }
 }

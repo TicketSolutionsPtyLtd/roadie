@@ -142,8 +142,8 @@ function Shows() {
 
 Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Records.Provider`, which shares the records without adding an element, and spread the parts across it:
 
-- `Records.Toolbar` in `Pane.Body`, above the table. It sticks under the pane's header while the body scrolls, so the search stays in reach. `Pane.Header` keeps the `Pane.Title`.
-- `Records.Content` in `Pane.Body`, below the toolbar. Its column headers stick under the toolbar.
+- `Records.Toolbar` in `Pane.Body`, above the table. It sticks under the pane's header while the body scrolls, so the search stays in reach, and paints the pane's margins beside it so rows never show there. `Pane.Header` keeps the `Pane.Title`.
+- `Records.Content` in `Pane.Body`, below the toolbar. Its column headers stick under the toolbar. The table runs to the pane's edges, with the pane's inset inside its first and last cells, so the first column lines up with the search and columns scrolled sideways pass under it.
 - `Records.Status` anywhere inside the Provider. It renders nothing visible.
 - `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
 - `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, and floats it over narrow rows.
