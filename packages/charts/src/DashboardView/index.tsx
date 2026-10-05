@@ -20,7 +20,8 @@ import type {
 import {
   type Comparison,
   type DescribeComparisonOptions,
-  describeComparison
+  describeComparison,
+  isBuiltInComparison
 } from '@oztix/roadie-core/datetime'
 
 import { Chart } from '../Chart'
@@ -48,19 +49,19 @@ export type DashboardViewProps = {
    * `history`: resolve them, fetch, and pass back a spec with the new
    * `period`. Without it the period shows read-only, as when the page sets it.
    */
-  onPeriodChange?: (period: DashboardPeriodValue) => void
+  onPeriodChange?: (period: DashboardPeriodValue<string>) => void
   /**
    * The period toolbar's other props: `presets`, `timeZone`, `today`,
    * `locale`, `weekStart`, `fiscalYearStart`, `dataStart`, `dataEnd`,
-   * `alignWeekday`, `disabled` while refetching, and `children` for the
-   * app's own controls, such as a benchmark.
+   * `alignWeekday`, `compareOptions`, `disabled` while refetching, and
+   * `children` for the app's own controls.
    */
   periodProps?: DashboardViewPeriodProps
   className?: string
 }
 
 export type DashboardViewPeriodProps = Omit<
-  DashboardPeriodProps,
+  DashboardPeriodProps<string>,
   'value' | 'defaultValue' | 'onValueChange' | 'readOnly'
 >
 
@@ -83,8 +84,9 @@ function comparisonLine(
 
 /**
  * A delta marked `comparison` follows the dashboard's: hidden with no
- * comparison, replaced by a message when the data can't cover it, and
- * otherwise named on the context line, over any context the card gives.
+ * comparison of Roadie's, replaced by a message when the data can't cover
+ * it, and otherwise named on the context line, over any context the card
+ * gives.
  */
 function headline(
   card: Exclude<DashboardCard, { kind: 'note' }>,
@@ -94,7 +96,8 @@ function headline(
   if (!card.delta) return { delta: undefined, context: card.context }
   const { comparison, ...delta } = card.delta
   if (!comparison) return { delta, context: card.context }
-  if (!period?.compare) return { delta: undefined, context: card.context }
+  if (!period?.compare || !isBuiltInComparison(period.compare))
+    return { delta: undefined, context: card.context }
   if (period.history)
     return { delta: undefined, context: HISTORY_MESSAGE[period.history] }
   return {

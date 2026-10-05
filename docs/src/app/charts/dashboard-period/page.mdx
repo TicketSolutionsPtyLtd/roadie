@@ -23,7 +23,7 @@ import { DashboardPeriod } from '@oztix/roadie-components/dashboard-period'
 
 ### Default
 
-One button shows the period and, when there is one, the dates it compares with: “This month 1 to 31 Oct 2026 vs 1 to 30 Sept 2026”. It opens a [DateRangePicker](/components/date-range-picker) that waits for Apply, because each change refetches every card. Its presets look ahead 30 and 90 days, back 30 days and 12 months, and over this financial year. Under the range, the Compare switch turns the comparison on, and Previous period or Previous year picks it, with the dates it covers below. Apply sends the period and its comparison together. The value is `{ range, compare }`, and no comparison leaves `compare` out.
+One button shows the period and, when there is one, the dates it compares with: “This month 1 to 31 Oct 2026 vs 1 to 30 Sept 2026”. It opens a [DateRangePicker](/components/date-range-picker) that waits for Apply, because each change refetches every card. Its presets look ahead 30 and 90 days, back 30 days and 12 months, and over this financial year. Under the range, the Compare switch turns the comparison on, and Previous period or Previous year picks it, with the dates it covers below. Apply sends the period and its comparison together. The value is `{ range, compare }`, and no comparison leaves `compare` out. `compareOptions` changes the choices: see below.
 
 ```tsx-live-noinline
 function Default() {
@@ -62,7 +62,7 @@ render(<Default />)
 
 ### With custom dates
 
-A comparison can be custom dates, `{ start, end }`, set by the app. The button shows them, and the picker lists Custom dates beside Previous period and Previous year, so switching away and back keeps them. The picker doesn’t edit them.
+Add `'custom'` to `compareOptions`, and Custom dates opens a range of its own, starting from the previous period’s dates. The comparison is then `{ start, end }`. Leave it out, as by default, and custom dates the app sets still show as Custom dates, read only, so switching away and back keeps them.
 
 ```tsx-live-noinline
 function Custom() {
@@ -72,13 +72,46 @@ function Custom() {
   })
   return (
     <div className='grid gap-4'>
-      <DashboardPeriod value={period} onValueChange={setPeriod} />
+      <DashboardPeriod
+        today='2026-10-07'
+        value={period}
+        onValueChange={setPeriod}
+        compareOptions={['none', 'previous-period', 'previous-year', 'custom']}
+      />
       <p className='text-sm text-subtle'>Value: {JSON.stringify(period)}</p>
     </div>
   )
 }
 
 render(<Custom />)
+```
+
+### With your own comparisons
+
+`compareOptions` lists the choices in order. Roadie’s are `'previous-period'`, `'previous-year'` and `'custom'`. The app’s own are `{ value, label, description? }`, such as similar venues. Choosing one sets `compare` to its `value`, which comes back as it is: Roadie works out no dates for it, shows its `description` where the dates go, and the button reads “vs similar venues”. `'none'` adds the Compare switch. Leave it out, as here, and there is always a comparison. The default is `['none', 'previous-period', 'previous-year']`.
+
+```tsx-live-noinline
+function Benchmark() {
+  const [period, setPeriod] = useState({ range: 'last-month', compare: 'similar' })
+  return (
+    <div className='grid gap-4'>
+      <DashboardPeriod
+        today='2026-10-07'
+        value={period}
+        onValueChange={setPeriod}
+        compareOptions={[
+          'previous-period',
+          'previous-year',
+          'custom',
+          { value: 'similar', label: 'Similar venues', description: 'Venues of a like size in Melbourne' }
+        ]}
+      />
+      <p className='text-sm text-subtle'>Value: {JSON.stringify(period)}</p>
+    </div>
+  )
+}
+
+render(<Benchmark />)
 ```
 
 ### With presets
@@ -90,6 +123,35 @@ render(<Custom />)
   defaultValue={{ range: { period: 'month', offset: 0, toDate: true }, compare: 'previous-period' }}
   presets={dateRangePresets}
 />
+```
+
+### With fixed presets
+
+A preset can be fixed dates, such as a last 30 days that ends yesterday, worked out by the app. When the period is one of them, the button shows its label with its dates, as it does for relative presets, and the phone’s list shows its dates beside it.
+
+```tsx-live-noinline
+// Wed 7 Oct 2026. The app's data ends yesterday.
+const PRESETS = [
+  { value: { direction: 'next', amount: 30, unit: 'day' } },
+  { value: { start: '2026-09-07', end: '2026-10-06' }, label: 'Last 30 days' },
+  { value: { start: '2025-10-07', end: '2026-10-06' }, label: 'Last 12 months' },
+  { value: { start: '2026-07-01', end: '2027-06-30' }, label: 'This financial year' }
+]
+
+function Fixed() {
+  const [period, setPeriod] = useState({
+    range: { start: '2026-09-07', end: '2026-10-06' },
+    compare: 'previous-period'
+  })
+  return (
+    <div className='grid gap-4'>
+      <DashboardPeriod today='2026-10-07' presets={PRESETS} value={period} onValueChange={setPeriod} />
+      <p className='text-sm text-subtle'>Value: {JSON.stringify(period)}</p>
+    </div>
+  )
+}
+
+render(<Fixed />)
 ```
 
 ### With the data’s dates
@@ -107,18 +169,19 @@ Pass the same `dataStart`, `dataEnd` and `alignWeekday` you give `resolveCompari
 
 ### With your own controls
 
-The comparison is dates only. A benchmark that isn’t a date, such as similar venues, is the app’s own control: pass it as `children` and it sits after the period.
+Pass the app’s other controls, such as a channel filter, as `children`, and they sit after the period. On a narrow container they stack.
 
 ```tsx-live
 <DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-period' }}>
-  <Select defaultValue='similar-venues'>
-    <Select.Trigger size='lg' aria-label='Benchmark' className='w-full @sm:w-fit gap-2'>
+  <Select defaultValue='all'>
+    <Select.Trigger size='lg' aria-label='Channel' className='w-full @sm:w-fit gap-2'>
       <Select.Value />
       <Select.Icon />
     </Select.Trigger>
     <Select.Content>
-      <Select.Item value='similar-venues'>Similar venues</Select.Item>
-      <Select.Item value='similar-shows'>Similar shows</Select.Item>
+      <Select.Item value='all'>All channels</Select.Item>
+      <Select.Item value='online'>Online</Select.Item>
+      <Select.Item value='box-office'>Box office</Select.Item>
     </Select.Content>
   </Select>
 </DashboardPeriod>
@@ -183,7 +246,9 @@ render(<Sales />)
 
 ## Guidelines
 
-- **Previous period follows the calendar.** This month compares with last month, this quarter with last quarter, and month to date with last month to the same day. Rolling and custom ranges compare with the same number of days, ending the day before.
+- **Previous period follows the calendar.** This month compares with last month, this quarter with last quarter, and month to date with last month to the same day. Rolling ranges, fixed dates and custom comparisons compare with the same number of days, ending the day before.
+- **A period to date compares with the same days a period back.** On 7 Oct 2026, this financial year to date, or this financial year with `dataEnd` set to today, compares with 1 Jul to 7 Oct 2025, last financial year to the same day. The same year as fixed dates, `{ start: '2026-07-01', end: '2027-06-30' }` with `dataEnd` set to yesterday, compares with the same number of days just before it instead: 25 Mar to 30 Jun 2026. Pick the form that matches how your data is compared.
+- **Give your own comparisons values of their own.** Not `'none'`, `'custom'`, `'previous-period'` or `'previous-year'`. Roadie treats any other `compare` as no comparison of its own: `resolveComparison` refuses it, `DashboardView` hides deltas marked `comparison: true`, and `validateDashboard` warns about them.
 - **Say when there’s nothing to compare.** Pass `dataStart` to `resolveComparison` and to this toolbar. When the comparison starts before the data, the cards say “Not enough history”; when it ends before, “Nothing to compare”. Neither shows a delta.
 - **One size, paired with large controls.** The button is a large control: 48px tall, with the comparison's dates on a second line. On the same row, use `size='lg'` Buttons, IconButtons and Selects.
 - **Keep the period in the description.** The toolbar shows the description’s `period`, so cards and controls never disagree.
@@ -208,12 +273,12 @@ render(<Sales />)
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Dates only'>
-  <Guideline.Do>
-    Put a benchmark such as similar venues in its own control, beside the period.
+<Guideline title='Benchmarks are comparisons'>
+  <Guideline.Do code={`compareOptions={['previous-period', 'previous-year', { value: 'similar', label: 'Similar venues' }]}`}>
+    Add a benchmark such as similar venues to `compareOptions`, so it sits with the other comparisons and the button names it.
   </Guideline.Do>
   <Guideline.Dont>
-    Don’t add benchmarks to the comparison choices. A comparison is always another date range.
+    Don’t put a benchmark in its own toggle beside the period. Two controls then both say what the numbers compare with, and can disagree.
   </Guideline.Dont>
 </Guideline>
 
@@ -223,7 +288,8 @@ render(<Sales />)
 
 - The toolbar is a group named “Dashboard period”, or by your `aria-label`.
 - The button is named after its period and comparison, such as “Choose dates, Period (This month, 1 to 31 Oct 2026, vs 1 to 30 Sept 2026)”. It works as [DateRangePicker](/components/date-range-picker) does with `commit='apply'`: Cancel, `Escape` or the drawer’s Close drops changes to both the period and the comparison.
-- After the range comes the Compare [Switch](/components/switch), then a [ToggleGroup](/components/toggle-group) named “Compare with”, then the comparison’s dates, which are announced as they change. On a phone the Compare row sits above Clear and Apply at the drawer’s foot, so it stays in view on both tabs.
+- After the range comes the Compare [Switch](/components/switch), when `compareOptions` has `'none'`, then a [ToggleGroup](/components/toggle-group) named “Compare with”, then the comparison’s dates or your option’s description, which are announced as they change. On a phone the Compare row sits above Apply at the drawer’s foot, so it stays in view on both tabs, and the choices wrap onto a second row when they don’t fit.
+- With Custom dates, a [DateRangePicker](/components/date-range-picker) named “Comparison dates” sits under the choices. It opens over the picker, a drawer over the drawer on a phone, and its dates wait for Apply with the rest.
 - Read only, the button shows a lock and doesn’t open.
 
 <PropsDefinitions componentPath='packages/components/src/components/DashboardPeriod/DashboardPeriod.tsx' />

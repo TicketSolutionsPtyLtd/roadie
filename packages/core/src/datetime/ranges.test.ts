@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   type Comparison,
   type DateRangeValue,
+  isBuiltInComparison,
   resolveComparison,
   resolveDateRange
 } from './ranges'
@@ -441,6 +442,12 @@ describe('resolveComparison', () => {
     ).toThrow(RangeError)
   })
 
+  it('refuses an app’s own comparison rather than guess its dates', () => {
+    expect(() =>
+      resolveComparison('this-month', 'similar' as Comparison, SYDNEY)
+    ).toThrow(RangeError)
+  })
+
   it('takes a custom comparison as given', () => {
     expect(
       resolveComparison(
@@ -666,5 +673,17 @@ describe('resolveComparison: a period in progress', () => {
       start: Date.parse('2026-09-30T14:00:00Z'),
       end: Date.parse('2026-10-01T14:00:00Z') - 1
     })
+  })
+})
+
+describe('isBuiltInComparison', () => {
+  it.each<[Comparison<string>, boolean]>([
+    ['previous-period', true],
+    ['previous-year', true],
+    [{ start: '2026-09-01', end: '2026-09-30' }, true],
+    ['similar', false],
+    ['', false]
+  ])('%j is built in: %s', (comparison, expected) => {
+    expect(isBuiltInComparison(comparison)).toBe(expected)
   })
 })

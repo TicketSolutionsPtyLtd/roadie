@@ -165,7 +165,8 @@ const ranges = dateRangeSchemas()
 
 const period = z.strictObject({
   range: ranges.dateRangeValue,
-  compare: ranges.comparison.optional(),
+  /** Roadie's comparisons, or an app's own, such as `'similar'`. */
+  compare: z.union([ranges.comparison, z.string().min(1)]).optional(),
   /** How much of the comparison the data covers, from `resolveComparison`. */
   history: z.enum(['partial', 'unavailable']).optional()
 })

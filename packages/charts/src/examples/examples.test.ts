@@ -125,6 +125,15 @@ describe('the portfolio dashboard period', () => {
     ).toEqual([])
   })
 
+  it('compares nothing for an app’s own comparison', () => {
+    const spec = createPortfolioDashboard({
+      range: 'last-month',
+      compare: 'similar'
+    })
+    expect(spec.period).toEqual({ range: 'last-month', compare: 'similar' })
+    expect(tile(spec, 'tickets').delta?.value).toBe(0)
+  })
+
   it('counts only the days in the period', () => {
     const lastMonth = tile(
       createPortfolioDashboard({

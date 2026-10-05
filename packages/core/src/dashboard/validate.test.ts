@@ -1024,7 +1024,8 @@ describe('validateDashboard periods', () => {
   it.each([
     [{ range: 'this-fortnight' }, 'period.range'],
     [{ range: { period: 'month', offset: 0.5 } }, 'period.range'],
-    [{ range: 'this-month', compare: 'previous-decade' }, 'period.compare'],
+    [{ range: 'this-month', compare: 42 }, 'period.compare'],
+    [{ range: 'this-month', compare: '' }, 'period.compare'],
     [{ range: 'this-month', history: 'none' }, 'period.history'],
     [{ range: 'this-month', locked: true }, 'period']
   ])('rejects the shape of %j', (period, path) => {
@@ -1067,6 +1068,46 @@ describe('validateDashboard periods', () => {
     expect(
       problems(withPeriod({ range: 'upcoming', compare: 'previous-period' }))
     ).toEqual([{ path: 'period.compare', severity: 'warning' }])
+  })
+
+  it('accepts an app’s own comparison, which Roadie shows no dates for', () => {
+    expect(
+      problems(withPeriod({ range: 'this-month', compare: 'similar' }))
+    ).toEqual([])
+    expect(
+      problems(withPeriod({ range: 'upcoming', compare: 'similar' }))
+    ).toEqual([])
+  })
+
+  it('warns that a comparison delta hides with an app’s own comparison', () => {
+    const result = validateDashboard(
+      withPeriod({ range: 'this-month', compare: 'similar' }, [
+        compared('a'),
+        stat('b'),
+        stat('c'),
+        stat('d')
+      ])
+    )
+    expect(result.ok).toBe(true)
+    expect(result.problems).toEqual([
+      expect.objectContaining({
+        path: 'sections[0].cards[0].delta.comparison',
+        severity: 'warning',
+        message: expect.stringContaining('"similar"')
+      })
+    ])
+  })
+
+  it('warns about history with an app’s own comparison', () => {
+    expect(
+      problems(
+        withPeriod({
+          range: 'this-month',
+          compare: 'similar',
+          history: 'partial'
+        })
+      )
+    ).toEqual([{ path: 'period.history', severity: 'warning' }])
   })
 
   it('warns about history with no comparison', () => {
