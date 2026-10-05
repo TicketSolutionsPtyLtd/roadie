@@ -168,12 +168,13 @@ render(<Toolbar />)
 
 ### With presets
 
-`presets` replaces the list, and `group` sets presets under a heading. Presets with no group come first, then each group in the order it first appears. Spread `dateRangePresets` to add to the defaults instead. A preset's `label` defaults to its value in words. Here Xylophone Tide Festival adds its on-sale week, and a dashboard keeps the periods it reports on.
+`presets` replaces the list, and `group` sets presets under a heading. Presets with no group come first, then each group in the order it first appears. Spread `dateRangePresets` to add to the defaults instead. A preset's `label` defaults to its value in words. When the value is a preset, fixed dates or relative, the button shows the preset's label with its dates, and so does the list on a phone. Here Xylophone Tide Festival adds its on-sale week, and a dashboard keeps the periods it reports on.
 
 ```tsx-live
 <div className='grid max-w-80 gap-4'>
   <DateRangePicker
     aria-label='Festival period'
+    defaultValue={{ start: '2026-11-02', end: '2026-11-08' }}
     presets={[
       ...dateRangePresets,
       { label: 'On-sale week', value: { start: '2026-11-02', end: '2026-11-08' }, group: 'Xylophone Tide Festival' }

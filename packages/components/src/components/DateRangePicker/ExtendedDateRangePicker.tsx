@@ -273,7 +273,7 @@ export function ExtendedDateRangePicker({
   }
 
   const description =
-    value === null ? null : describeRange(value, context, locale)
+    value === null ? null : describeRange(value, context, locale, presets)
   const labels = usePickerLabels({
     action: 'Choose dates',
     'aria-label': ariaLabel,

@@ -9,6 +9,7 @@ import type { DateRangeValue } from '@oztix/roadie-core/datetime'
 import { DateRangePicker } from '.'
 import { onPhone } from '../../pickers/testUtils'
 import { Field } from '../Field'
+import type { DateRangePreset } from './range'
 
 // Wed 7 Oct 2026.
 const TODAY = '2026-10-07'
@@ -19,6 +20,16 @@ const day = (date: string) =>
   )!
 
 const trigger = () => screen.getByRole('button', { name: /^Choose dates/ })
+
+// An app's own presets with fixed dates, ending yesterday.
+const FIXED_PRESETS = [
+  { value: { start: '2026-09-06', end: '2026-10-05' }, label: 'Last 30 days' },
+  {
+    value: { start: '2025-07-01', end: '2026-06-30' },
+    label: 'Last financial year'
+  },
+  { value: { direction: 'next', amount: 30, unit: 'day' } }
+] satisfies DateRangePreset[]
 
 async function open() {
   await userEvent.click(trigger())
@@ -57,6 +68,54 @@ describe('DateRangePicker', () => {
     expect(trigger()).toHaveTextContent('1 to 7 Oct 2026')
     expect(trigger()).toHaveAccessibleName(
       'Choose dates, Period (Last 7 days, 1 to 7 Oct 2026)'
+    )
+  })
+
+  it('names fixed dates after the preset they match', () => {
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        presets={FIXED_PRESETS}
+        defaultValue={{ start: '2026-09-06', end: '2026-10-05' }}
+      />
+    )
+    expect(trigger()).toHaveTextContent('Last 30 days 6 Sept to 5 Oct 2026')
+    expect(trigger()).toHaveAccessibleName(
+      'Choose dates, Period (Last 30 days, 6 Sept to 5 Oct 2026)'
+    )
+  })
+
+  it('shows only the dates of fixed dates no preset matches', () => {
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        presets={FIXED_PRESETS}
+        defaultValue={{ start: '2026-09-06', end: '2026-10-04' }}
+      />
+    )
+    expect(trigger()).toHaveAccessibleName(
+      'Choose dates, Period (6 Sept to 4 Oct 2026)'
+    )
+  })
+
+  it('names a relative range after its preset’s own label', () => {
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        presets={[
+          {
+            value: { direction: 'past', amount: 7, unit: 'day' },
+            label: 'This past week'
+          }
+        ]}
+        defaultValue={{ direction: 'past', amount: 7, unit: 'day' }}
+      />
+    )
+    expect(trigger()).toHaveAccessibleName(
+      'Choose dates, Period (This past week, 1 to 7 Oct 2026)'
     )
   })
 
@@ -1030,6 +1089,27 @@ describe('DateRangePicker on a phone', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     )
     expect(trigger()).toHaveFocus()
+  })
+
+  it('lists a fixed preset’s dates and marks it current', async () => {
+    onPhone()
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        commit='apply'
+        presets={FIXED_PRESETS}
+        defaultValue={{ start: '2026-09-06', end: '2026-10-05' }}
+      />
+    )
+    const dialog = await open()
+    const list = within(dialog).getByRole('list', { name: 'Periods' })
+    const row = within(list).getByRole('button', { name: /^Last 30 days/ })
+    expect(row).toHaveTextContent('6 Sept to 5 Oct 2026')
+    expect(row).toHaveAttribute('aria-current', 'true')
+    expect(
+      within(list).getByRole('button', { name: /^Last financial year/ })
+    ).toHaveTextContent('1 Jul 2025 to 30 Jun 2026')
   })
 
   it('clears the dates, and Apply sends null', async () => {
