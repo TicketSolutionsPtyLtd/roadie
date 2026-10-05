@@ -14,3 +14,8 @@ whole. Names now draw at the full label colour rather than the axis's muted
 one, and RankedBars and Funnel bars use the height the axis used to reserve.
 `renderSmallMultiplesSvg` cuts a caption that would run into the next panel
 the same way.
+
+Field names now split a one-letter word out of a capital run, so `ticketsADay`
+heads tooltips and tables as "Tickets a day" rather than "Tickets aday".
+Acronyms of two or more capitals keep their case, plural or not: `grossAUD`
+reads "Gross AUD" and `topURLs` reads "Top URLs".
