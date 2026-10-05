@@ -305,10 +305,13 @@ export function DashboardPeriod<App extends string = never>({
   }
   const warnings = problems.join('\n')
   useEffect(() => {
-    // Once each, so StrictMode's second mount doesn't repeat it.
-    if (!warnings || warned.has(warnings) || !isDev()) return
-    warned.add(warnings)
-    console.warn(`[Roadie] DashboardPeriod: ${warnings}`)
+    if (!warnings || !isDev()) return
+    // Once each, so StrictMode's second mount doesn't repeat them.
+    for (const problem of warnings.split('\n')) {
+      if (warned.has(problem)) continue
+      warned.add(problem)
+      console.warn(`[Roadie] DashboardPeriod: ${problem}`)
+    }
   }, [warnings])
   const appChoice = (comparison: Comparison<App>) =>
     isBuiltInComparison(comparison)

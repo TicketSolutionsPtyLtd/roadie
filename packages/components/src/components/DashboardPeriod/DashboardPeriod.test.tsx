@@ -776,4 +776,28 @@ describe('DashboardPeriod compare options', () => {
     expect(warn).toHaveBeenCalledTimes(1)
     warn.mockRestore()
   })
+
+  it('warns once for each problem, whatever else changes', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const twice = { value: 'twice', label: 'Twice' }
+    const reserved = { value: 'previous-year', label: 'Last year' } as const
+    const { rerender } = render(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        compareOptions={[twice, twice, reserved]}
+      />
+    )
+    rerender(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        compareOptions={[twice, twice]}
+      />
+    )
+    expect(
+      warn.mock.calls.filter(([message]) => String(message).includes('"twice"'))
+    ).toHaveLength(1)
+    warn.mockRestore()
+  })
 })
