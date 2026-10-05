@@ -55,7 +55,7 @@ const chips: QueryFieldChip[] = [
   { id: 'venue', label: 'Venue is Iguana Teapot Hall' }
 ]
 
-const LONG_LABEL = 'Venue is The Midnight Paddock Collective Long Name Hall'
+const LONG_LABEL = 'Venue is Gooseberry Signal Warehouse, Fortitude Valley'
 
 function Harness({
   initialChips = [],
@@ -112,7 +112,7 @@ describe('QueryField', () => {
   it('wraps chips and grows, truncating a long one inside the field', () => {
     const long: QueryFieldChip = {
       id: 'long',
-      label: 'Venue is The Midnight Paddock Collective Long Name Hall'
+      label: LONG_LABEL
     }
     render(<Harness initialChips={[...chips, long]} />)
     const field = box(group())
