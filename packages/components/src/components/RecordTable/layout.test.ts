@@ -97,7 +97,7 @@ describe('columnLayout', () => {
     const columns = [
       column('a', { priority: 3 }),
       column('b', { priority: 2 }),
-      column('c')
+      column('c', { narrow: 'title' })
     ]
     expect(
       columnLayout(columns, columnWidths(columns, [], UTC)).firstAt

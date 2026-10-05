@@ -169,6 +169,26 @@ describe.each([
 const contentRight = (element: Element) =>
   rect(element).right - parseFloat(getComputedStyle(element).paddingRight)
 
+const hidesFirst = [
+  tableLayout([
+    column.field('city', { priority: 1 }),
+    column.field('show', { narrow: 'title' }),
+    column.field('sold'),
+    column.field('gross')
+  ])
+]
+
+describe('A table in a pane whose first column hides', () => {
+  it('gives the inset to the first column it shows', async () => {
+    const container = await renderAt(748, hidesFirst, { selectable: false })
+    const shown = [...slot(container, 'record-table-row').children].find(
+      (cell) => getComputedStyle(cell).display !== 'none'
+    )!
+    expect(shown.textContent).toMatch(/\d$/)
+    expect(contentLeft(shown)).toBeCloseTo(searchLeft(container), 0)
+  })
+})
+
 describe('A table in a pane measures the room its columns get', () => {
   it('keeps its frame inside the pane’s inset', async () => {
     const container = await renderAt(1280, wide)
