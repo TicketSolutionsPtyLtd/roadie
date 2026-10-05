@@ -21,11 +21,17 @@ const fixed = (key: string, min: number, grow?: number, pin = false) =>
 
 const UTC = 'UTC'
 
+// The first and last tracks carry the frame's inset.
+const inset = (rem: string, edges = 1) =>
+  `calc(${rem} + ${edges} * var(--content-inset))`
+
 describe('columnLayout', () => {
   it('builds one grid template shared by header and rows', () => {
     const columns = [fixed('a', 10, 2), fixed('b', 6)]
     const layout = columnLayout(columns, columnWidths(columns, [], UTC))
-    expect(layout.template).toBe('minmax(10rem, 2fr) 6rem')
+    expect(layout.template).toBe(
+      `minmax(${inset('10rem')}, 2fr) ${inset('6rem')}`
+    )
     expect(layout.minWidth).toBe(16)
     expect(layout.pinnedStart).toEqual([undefined, undefined])
   })
@@ -41,10 +47,22 @@ describe('columnLayout', () => {
       actions: true
     })
     expect(layout.tiers).toEqual([
-      { template: 'minmax(10rem, 2fr) 6rem 5rem 4rem 3rem', minWidth: 28 },
-      { template: 'minmax(10rem, 2fr) 3rem', minWidth: 13 },
-      { template: 'minmax(10rem, 2fr) 6rem 3rem', minWidth: 19 },
-      { template: 'minmax(10rem, 2fr) 6rem 4rem 3rem', minWidth: 23 }
+      {
+        template: `minmax(${inset('10rem')}, 2fr) 6rem 5rem 4rem ${inset('3rem')}`,
+        minWidth: 28
+      },
+      {
+        template: `minmax(${inset('10rem')}, 2fr) ${inset('3rem')}`,
+        minWidth: 13
+      },
+      {
+        template: `minmax(${inset('10rem')}, 2fr) 6rem ${inset('3rem')}`,
+        minWidth: 19
+      },
+      {
+        template: `minmax(${inset('10rem')}, 2fr) 6rem 4rem ${inset('3rem')}`,
+        minWidth: 23
+      }
     ])
     expect(layout.template).toBe(layout.tiers[0]!.template)
   })
@@ -60,7 +78,7 @@ describe('columnLayout', () => {
     ]
     const layout = columnLayout(columns, columnWidths(columns, [], UTC))
     expect(layout.priority).toEqual([undefined, undefined, 1])
-    expect(layout.tiers[1]!.template).toBe('5rem 5rem')
+    expect(layout.tiers[1]!.template).toBe(`${inset('5rem')} ${inset('5rem')}`)
   })
 
   it('warns once about a priority on a pinned column built by hand', () => {
@@ -75,7 +93,22 @@ describe('columnLayout', () => {
     warn.mockRestore()
   })
 
-  it('marks the last shown cell at each tier, so it drops its end padding', () => {
+  it('marks the first shown cell at each tier, so it takes the start inset', () => {
+    const columns = [
+      column('a', { priority: 3 }),
+      column('b', { priority: 2 }),
+      column('c', { narrow: 'title' })
+    ]
+    expect(
+      columnLayout(columns, columnWidths(columns, [], UTC)).firstAt
+    ).toEqual([undefined, [3], [1, 2]])
+    expect(
+      columnLayout(columns, columnWidths(columns, [], UTC), { select: true })
+        .firstAt
+    ).toEqual([undefined, undefined, undefined])
+  })
+
+  it('marks the last shown cell at each tier, so it takes the end inset', () => {
     const columns = [
       column('a'),
       column('b', { priority: 2 }),
@@ -93,7 +126,9 @@ describe('columnLayout', () => {
       fixed('c', 6, 1)
     ]
     const layout = columnLayout(columns, columnWidths(columns, [], UTC))
-    expect(layout.template).toBe('12rem minmax(8rem, 1fr) minmax(6rem, 1fr)')
+    expect(layout.template).toBe(
+      `${inset('12rem')} minmax(8rem, 1fr) minmax(${inset('6rem')}, 1fr)`
+    )
     expect(layout.pinnedStart).toEqual([0, 12, undefined])
   })
 
@@ -104,16 +139,24 @@ describe('columnLayout', () => {
       actions: true
     })
     expect(layout.template).toBe(
-      '2.5rem minmax(12rem, 2fr) minmax(6rem, 1fr) 3rem'
+      `${inset('2.5rem')} minmax(12rem, 2fr) minmax(6rem, 1fr) ${inset('3rem')}`
     )
     expect(layout.minWidth).toBe(23.5)
     expect(layout.pinnedStart).toEqual([2.5, undefined])
   })
 
+  it('gives a lone track both edges’ inset', () => {
+    const columns = [fixed('a', 10, 2)]
+    const layout = columnLayout(columns, columnWidths(columns, [], UTC))
+    expect(layout.template).toBe(`minmax(${inset('10rem', 2)}, 2fr)`)
+  })
+
   it('lets a lone pinned column grow like any other', () => {
     const columns = [fixed('a', 10, 2, true), fixed('b', 10, 2)]
     const layout = columnLayout(columns, columnWidths(columns, [], UTC))
-    expect(layout.template).toBe('minmax(10rem, 2fr) minmax(10rem, 2fr)')
+    expect(layout.template).toBe(
+      `minmax(${inset('10rem')}, 2fr) minmax(${inset('10rem')}, 2fr)`
+    )
     expect(layout.pinnedStart).toEqual([0, undefined])
   })
 })

@@ -55,6 +55,8 @@ const chips: QueryFieldChip[] = [
   { id: 'venue', label: 'Venue is Iguana Teapot Hall' }
 ]
 
+const LONG_LABEL = 'Venue is Gooseberry Signal Warehouse, Fortitude Valley'
+
 function Harness({
   initialChips = [],
   ...props
@@ -96,10 +98,21 @@ describe('QueryField', () => {
     }
   )
 
+  it.each([
+    ['chip', {}],
+    ['pending chip', { pendingChip: { id: 'venue', label: LONG_LABEL } }]
+  ] as const)('keeps the input on a long %s’s row', (_, props) => {
+    const initialChips =
+      'pendingChip' in props ? [] : [{ id: 'venue', label: LONG_LABEL }]
+    render(<Harness initialChips={initialChips} {...props} />)
+    expect(box(group()).height).toBe(40)
+    expect(box(input()).width).toBeGreaterThanOrEqual(32)
+  })
+
   it('wraps chips and grows, truncating a long one inside the field', () => {
     const long: QueryFieldChip = {
       id: 'long',
-      label: 'Venue is The Midnight Paddock Collective Long Name Hall'
+      label: LONG_LABEL
     }
     render(<Harness initialChips={[...chips, long]} />)
     const field = box(group())

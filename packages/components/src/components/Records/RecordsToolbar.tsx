@@ -65,7 +65,7 @@ export function RecordsToolbar<Row extends object>({
     }
     measure()
     const observer = new ResizeObserver(measure)
-    observer.observe(element)
+    observer.observe(element, { box: 'border-box' })
     return () => {
       observer.disconnect()
       setToolbar((held) => (held?.element === element ? null : held))
@@ -97,7 +97,7 @@ export function RecordsToolbar<Row extends object>({
             placeholder={searchPlaceholder}
             aria-label={searchLabel}
             shortcut={searchShortcut}
-            className='min-w-48 grow basis-64'
+            className='min-w-40 grow basis-0'
           />
           <RecordsSelect />
           {viewActions && <RecordsViewActions {...viewActions} />}

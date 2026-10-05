@@ -41,7 +41,7 @@ const pinnedSurface =
 
 export const cellClass = (column: RecordTableColumn) =>
   cn(
-    'flex min-w-0 items-center px-2.5 first:ps-0 last:pe-0',
+    'flex min-w-0 items-center px-2.5 first:ps-(--content-inset) last:pe-(--content-inset)',
     isFigure(column) ? 'justify-end text-end' : 'justify-start',
     column.pin
       ? cn('sticky start-(--record-table-pin-start) z-docked', pinnedSurface)
@@ -50,20 +50,24 @@ export const cellClass = (column: RecordTableColumn) =>
 
 /** The checkbox cell, pinned first and centred, so a focus ring has room on both sides. */
 export const selectCellClass = cn(
-  'sticky start-0 z-docked flex min-w-0 items-center justify-center',
+  'sticky start-0 z-docked flex min-w-0 items-center justify-center ps-(--content-inset)',
   pinnedSurface
 )
 
 /** The row actions cell, pinned to the end. */
 export const actionsCellClass = cn(
-  'sticky end-0 z-docked flex min-w-0 items-center justify-center',
+  'sticky end-0 z-docked flex min-w-0 items-center justify-center pe-(--content-inset)',
   pinnedSurface
 )
 
+// After the first track, which carries the inset.
 export const pinStyle = (start: number | undefined) =>
   start === undefined
     ? undefined
-    : ({ '--record-table-pin-start': `${start}rem` } as CSSProperties)
+    : ({
+        '--record-table-pin-start':
+          start === 0 ? '0rem' : `calc(${start}rem + var(--content-inset))`
+      } as CSSProperties)
 
 /** The column whose value names the row: the narrow title, else the first pinned text column, else the first text one. Never an image. */
 export function titleColumn<Column extends RecordTableColumn<never>>(

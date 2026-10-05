@@ -18,7 +18,9 @@ export type ColumnLayout = ColumnTier & {
   pinnedStart: (number | undefined)[]
   /** Each column's priority in effect: none for a pinned column or the title, which carries the row link. */
   priority: (1 | 2 | 3 | undefined)[]
-  /** The tiers at which each column is the last cell shown, so it drops its end padding. */
+  /** The tiers at which each column is the first cell shown, so it takes the start inset. */
+  firstAt: (number[] | undefined)[]
+  /** The tiers at which each column is the last cell shown, so it takes the end inset. */
   lastAt: (number[] | undefined)[]
 }
 
@@ -97,8 +99,13 @@ export const sameWidths = (
       width.min === b[index]!.min && width.grow === b[index]!.grow
   )
 
-const track = ({ min, grow }: RecordColumnWidth) =>
-  grow ? `minmax(${min}rem, ${grow}fr)` : `${min}rem`
+// The first and last cells carry the frame's inset, so their tracks widen by it.
+function track({ min, grow }: RecordColumnWidth, insets: number) {
+  const least = insets
+    ? `calc(${min}rem + ${insets} * var(--content-inset))`
+    : `${min}rem`
+  return grow ? `minmax(${least}, ${grow}fr)` : least
+}
 
 /** The checkbox track, pinned first. In rem. */
 export const SELECT_WIDTH = 2.5
@@ -111,15 +118,19 @@ function columnTier(
   { select, actions }: { select: boolean; actions: boolean }
 ): ColumnTier {
   let minWidth = (select ? SELECT_WIDTH : 0) + (actions ? ACTIONS_WIDTH : 0)
-  const tracks = columns.map((column, index) => {
+  const shown: RecordColumnWidth[] = columns.map((column, index) => {
     const width = widths[index]!
     minWidth += width.min
     // A pinned column another pinned column follows can't grow, so the next offset is known.
     const offsetsNext = column.pin && columns[index + 1]?.pin === true
-    return offsetsNext ? `${width.min}rem` : track(width)
+    return offsetsNext ? { min: width.min } : width
   })
-  if (select) tracks.unshift(`${SELECT_WIDTH}rem`)
-  if (actions) tracks.push(`${ACTIONS_WIDTH}rem`)
+  if (select) shown.unshift({ min: SELECT_WIDTH })
+  if (actions) shown.push({ min: ACTIONS_WIDTH })
+  const last = shown.length - 1
+  const tracks = shown.map((width, index) =>
+    track(width, Number(index === 0) + Number(index === last))
+  )
   return { template: tracks.join(' '), minWidth }
 }
 
@@ -154,6 +165,14 @@ export function columnLayout(
       { select, actions }
     )
   })
+  const firstAt: (number[] | undefined)[] = columns.map(() => undefined)
+  // The select cell starts every row, so no column needs to.
+  if (!select)
+    for (const tier of TIERS) {
+      const first = priority.findIndex((level) => shownAt(level, tier))
+      if (first <= 0) continue
+      firstAt[first] = [...(firstAt[first] ?? []), tier]
+    }
   const lastAt: (number[] | undefined)[] = columns.map(() => undefined)
   // The actions cell ends every row, so no column needs to.
   if (!actions)
@@ -162,7 +181,7 @@ export function columnLayout(
       if (last === -1 || last === columns.length - 1) continue
       lastAt[last] = [...(lastAt[last] ?? []), tier]
     }
-  return { ...tiers[0]!, tiers, pinnedStart, priority, lastAt }
+  return { ...tiers[0]!, tiers, pinnedStart, priority, firstAt, lastAt }
 }
 
 /** A cell's priority attributes, which record-table.css hides and trims by. */
@@ -172,6 +191,7 @@ export const priorityProps = (
   index: number
 ) => ({
   'data-priority': layout.priority[index],
+  'data-priority-start': layout.firstAt[index]?.join(' '),
   'data-priority-end': layout.lastAt[index]?.join(' ')
 })
 
@@ -180,6 +200,9 @@ export const tierStyle = (layout: ColumnLayout) =>
   Object.fromEntries(
     layout.tiers.flatMap(({ template, minWidth }, tier) => [
       [`--record-table-columns-${tier}`, template],
-      [`--record-table-min-width-${tier}`, `${minWidth}rem`]
+      [
+        `--record-table-min-width-${tier}`,
+        `calc(${minWidth}rem + 2 * var(--content-inset))`
+      ]
     ])
   )

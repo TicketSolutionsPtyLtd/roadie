@@ -365,6 +365,7 @@ export function RecordTableContent({
       ref={frameRef}
       data-slot='record-table-frame'
       data-records-content=''
+      data-narrow={narrow ? '' : undefined}
       onKeyDown={leaveSelectOnEscape(records)}
       // In a box, the viewport is the region: it holds the focus.
       role={boxed || narrow ? undefined : 'region'}
@@ -423,7 +424,7 @@ export function RecordTableContent({
                   // Frame wide and stuck at its start, so it never scrolls sideways with the columns.
                   barShown
                     ? cn(
-                        'sticky start-0 flex items-center',
+                        'sticky start-0 flex items-center pe-(--content-inset)',
                         // In a box the head spans every column; the box's width is what shows.
                         boxed ? 'w-[100cqi]' : 'w-full'
                       )
@@ -439,7 +440,11 @@ export function RecordTableContent({
                       barShown && 'h-full shrink-0'
                     )}
                     style={
-                      barShown ? { width: `${SELECT_WIDTH}rem` } : undefined
+                      barShown
+                        ? {
+                            width: `calc(${SELECT_WIDTH}rem + var(--content-inset))`
+                          }
+                        : undefined
                     }
                   >
                     <RecordTablePageCheckbox
@@ -466,7 +471,15 @@ export function RecordTableContent({
                         // Still read under the bar, so cells keep their headers.
                         barShown
                           ? 'sr-only'
-                          : cn(cellClass(column), headerTextClass)
+                          : cn(
+                              cellClass(column),
+                              headerTextClass,
+                              // The bulk slot after it is the row's last child.
+                              hasBulkSlot &&
+                                !hasRowActions &&
+                                index === columns.length - 1 &&
+                                'pe-(--content-inset)'
+                            )
                       }
                       style={pinStyle(layout.pinnedStart[index])}
                     >

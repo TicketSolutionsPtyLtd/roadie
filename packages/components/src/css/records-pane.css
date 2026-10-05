@@ -1,0 +1,44 @@
+/* Records in a pane's body. The toolbar clears the pane header's shadow and
+   paints the pane's margins beside it, so rows scrolling up never show there.
+   A wide table runs edge to edge, its first and last cells taking the pane's
+   inset so their content lines up with the content above; its frame keeps the
+   inset, so narrow rows and column tiers measure the room the columns get.
+   Narrow rows and a measured pane keep the inset. */
+
+/* A toolbar at any depth in a pane clears its header. In a layer, so a
+   consumer's padding class still wins. */
+@layer components {
+  [data-slot='pane-viewport'] [data-slot='records-toolbar'] {
+    padding-top: calc(var(--spacing) * 3);
+  }
+}
+
+:is(
+    [data-slot='pane'][data-measure='full']
+      > [data-slot='pane-viewport']
+      > [data-slot='scroll-area-content'],
+    [data-slot='pane'][data-measure='full']
+      > [data-slot='pane-viewport']
+      > [data-slot='scroll-area-content']
+      > :is([data-slot='pane-body'], [data-slot='records']),
+    [data-slot='pane'][data-measure='full']
+      > [data-slot='pane-viewport']
+      > [data-slot='scroll-area-content']
+      > [data-slot='pane-body']
+      > [data-slot='records']
+  )
+  > :is(
+    [data-slot='records-toolbar'],
+    [data-slot='record-table-frame']:not([data-narrow])
+  ) {
+  --content-inset: inherit;
+
+  &[data-slot='records-toolbar'] {
+    margin-inline: calc(var(--content-inset) * -1);
+    padding-inline: var(--content-inset);
+  }
+
+  & > [data-slot='record-table-content'] {
+    margin-inline: calc(var(--content-inset) * -1);
+  }
+}
