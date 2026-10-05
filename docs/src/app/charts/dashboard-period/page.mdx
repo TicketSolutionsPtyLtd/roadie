@@ -62,7 +62,7 @@ render(<Default />)
 
 ### With custom dates
 
-Add `'custom'` to `compareOptions`, and Custom dates opens a range of its own, starting from the previous period’s dates. The comparison is then `{ start, end }`. Leave it out, as by default, and custom dates the app sets still show as Custom dates, read only, so switching away and back keeps them.
+Add `'custom'` to `compareOptions`, and Custom dates opens a range of its own, starting from the previous period’s dates. The comparison is then `{ start, end }`. Leave it out, as by default, and custom dates the app sets still show as Custom dates, without a picker, so switching away and back keeps them.
 
 ```tsx-live-noinline
 function Custom() {
@@ -88,7 +88,7 @@ render(<Custom />)
 
 ### With your own comparisons
 
-`compareOptions` lists the choices in order. Roadie’s are `'previous-period'`, `'previous-year'` and `'custom'`. The app’s own are `{ value, label, description? }`, such as similar venues. Choosing one sets `compare` to its `value`, which comes back as it is: Roadie works out no dates for it, shows its `description` where the dates go, and the button reads “vs similar venues”. `'none'` adds the Compare switch. Leave it out, as here, and there is always a comparison. The default is `['none', 'previous-period', 'previous-year']`.
+`compareOptions` lists the choices in order. Roadie’s are `'previous-period'`, `'previous-year'` and `'custom'`. The app’s own are `{ value, label, description? }`, such as similar venues. Choosing one sets `compare` to its `value`, which comes back as it is: Roadie works out no dates for it, shows its `description` where the dates go, and the button reads “vs similar venues”. `'none'` adds the Compare switch. Leave it out, as here, and nothing turns the comparison off once one is chosen. The default is `['none', 'previous-period', 'previous-year']`. A comparison the value holds that the list leaves out still shows among the choices. If you hoist the list, add `as const`, so TypeScript keeps your values.
 
 ```tsx-live-noinline
 function Benchmark() {
@@ -248,7 +248,7 @@ render(<Sales />)
 
 - **Previous period follows the calendar.** This month compares with last month, this quarter with last quarter, and month to date with last month to the same day. Rolling ranges, fixed dates and custom comparisons compare with the same number of days, ending the day before.
 - **A period to date compares with the same days a period back.** On 7 Oct 2026, this financial year to date, or this financial year with `dataEnd` set to today, compares with 1 Jul to 7 Oct 2025, last financial year to the same day. The same year as fixed dates, `{ start: '2026-07-01', end: '2027-06-30' }` with `dataEnd` set to yesterday, compares with the same number of days just before it instead: 25 Mar to 30 Jun 2026. Pick the form that matches how your data is compared.
-- **Give your own comparisons values of their own.** Not `'none'`, `'custom'`, `'previous-period'` or `'previous-year'`. Roadie treats any other `compare` as no comparison of its own: `resolveComparison` refuses it, `DashboardView` hides deltas marked `comparison: true`, and `validateDashboard` warns about them.
+- **Give your own comparisons values of their own.** Not `'none'`, `'custom'`, `'previous-period'` or `'previous-year'`: an option with one of those values is left out, with a warning in development. Roadie treats any other `compare` as no comparison of its own: `resolveComparison` refuses it, `DashboardView` hides deltas marked `comparison: true`, and `validateDashboard` warns about them, and about one that reads like Roadie’s, such as `'previous_period'`.
 - **Say when there’s nothing to compare.** Pass `dataStart` to `resolveComparison` and to this toolbar. When the comparison starts before the data, the cards say “Not enough history”; when it ends before, “Nothing to compare”. Neither shows a delta.
 - **One size, paired with large controls.** The button is a large control: 48px tall, with the comparison's dates on a second line. On the same row, use `size='lg'` Buttons, IconButtons and Selects.
 - **Keep the period in the description.** The toolbar shows the description’s `period`, so cards and controls never disagree.

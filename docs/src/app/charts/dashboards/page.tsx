@@ -661,7 +661,8 @@ const PERIOD_JSON = `{
 const PERIOD_FLOW_CODE = `'use client'
 
 function SalesDashboard({ spec }: { spec: DashboardSpec }) {
-  const [period, setPeriod] = useState<DashboardPeriodValue>({
+  // <string>: the period can hold the app's own comparisons too.
+  const [period, setPeriod] = useState<DashboardPeriodValue<string>>({
     range: 'last-month',
     compare: 'previous-period'
   })
@@ -672,9 +673,10 @@ function SalesDashboard({ spec }: { spec: DashboardSpec }) {
     dataEnd: sales.lastDay
   }
   const range = resolveDateRange(period.range, options)
-  const compared = period.compare
-    ? resolveComparison(period.range, period.compare, options)
-    : null
+  const compared =
+    period.compare && isBuiltInComparison(period.compare)
+      ? resolveComparison(period.range, period.compare, options)
+      : null
   const cards = useSalesCards(range, compared?.range)
   const history =
     compared && compared.status !== 'available' ? compared.status : undefined

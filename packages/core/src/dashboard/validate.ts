@@ -429,6 +429,7 @@ function statusProblems(table: TableData, path: string) {
   })
 }
 
+const BUILT_IN_COMPARISONS = ['previous-period', 'previous-year'] as const
 const OPEN_ENDED: readonly DateRangeValue[] = ['upcoming', 'past', 'ongoing']
 const DATE_TIME_START = /^\d{4}-\d{2}-\d{2}T/
 
@@ -467,6 +468,16 @@ function periodProblems(period: DashboardPeriodSpec | undefined) {
         warning('period.history', 'History applies only with a compare')
       )
   } else if (!isBuiltInComparison(compare)) {
+    const lookalike = BUILT_IN_COMPARISONS.find(
+      (name) => name === compare.toLowerCase().replace(/[^a-z]+/g, '-')
+    )
+    if (lookalike)
+      problems.push(
+        warning(
+          'period.compare',
+          `"${compare}" is an app's own comparison, with no dates. Did you mean "${lookalike}"?`
+        )
+      )
     if (history)
       problems.push(
         warning(

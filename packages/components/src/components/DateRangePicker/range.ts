@@ -200,7 +200,9 @@ export function describeRange(
 ): { label: string; detail: string | null } | null {
   const described = describeValue(value, context, locale)
   const preset = presets.find((choice) => sameRange(choice.value, value))
-  if (!described || !preset) return described
+  // Unlabelled, fixed dates are their own label.
+  if (!described || !preset || (isAbsoluteRange(value) && !preset.label))
+    return described
   return {
     label: presetLabel(preset, locale),
     detail: isAbsoluteRange(value) ? described.label : described.detail

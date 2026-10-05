@@ -86,6 +86,20 @@ describe('DateRangePicker', () => {
     )
   })
 
+  it('shows an unlabelled fixed preset’s dates once', () => {
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        presets={[{ value: { start: '2026-09-01', end: '2026-09-30' } }]}
+        defaultValue={{ start: '2026-09-01', end: '2026-09-30' }}
+      />
+    )
+    expect(trigger()).toHaveAccessibleName(
+      'Choose dates, Period (1 to 30 Sept 2026)'
+    )
+  })
+
   it('shows only the dates of fixed dates no preset matches', () => {
     render(
       <DateRangePicker

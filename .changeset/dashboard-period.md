@@ -16,7 +16,9 @@ whole days), warns about a comparison with an open-ended range, `history` with
 no comparison, and a comparison delta that sets its own `context`, which never
 shows, and rejects a comparison delta on a dashboard with no period. An app's own
 comparison has no dates, so it counts as no comparison: `validateDashboard`
-warns about a comparison delta or `history` with one. The field's
+warns about a comparison delta or `history` with one, and about one that
+reads like Roadie's, such as `'previous_period'`. `'none'` and `'custom'` are
+rejected. The field's
 type is `DashboardPeriodSpec`.
 
 `@oztix/roadie-components`: add `DashboardPeriod`
@@ -25,7 +27,7 @@ with `commit='apply'` that shows the period and the dates it compares with.
 Under the range, a Compare switch turns the comparison on and a toggle group
 picks previous period or previous year, with the dates it covers, or "Not
 enough history" or "Nothing to compare". A custom comparison set by the app
-shows as Custom dates, read only. Apply sends both together; Cancel drops both. Its value
+shows as Custom dates, without a picker. Apply sends both together; Cancel drops both. Its value
 is `DashboardPeriodValue`, `{ range, compare? }`. Its presets default to
 `dashboardPeriodPresets`: next 30 and 90 days, last 30 days, last 12 months
 and this financial year. `dataStart`, `dataEnd` and `alignWeekday` match the
@@ -42,18 +44,22 @@ so pair it with large Buttons and Selects on the same row.
 period's, and the app's own as `{ value, label, description? }`
 (`DashboardPeriodCompareOption`). An app's own sets `compare` to its `value`
 and passes it through: it shows its `description` where dates go, and the
-button reads "vs similar venues". `'none'` adds the Compare switch; without it
-there is always a comparison. The default, `['none', 'previous-period',
-'previous-year']`, keeps the choices above. A comparison of Roadie's that the
-value holds and the list leaves out still shows, read only. The choices wrap
-onto a second row when they don't fit. `DashboardPeriodValue<App>` and
+button reads "vs similar venues". `'none'` adds the Compare switch; without
+it nothing turns the comparison off. The default, `['none',
+'previous-period', 'previous-year']`, keeps the choices above. A comparison
+the value holds that the list leaves out still shows, by its value if it is
+the app's own. App options valued like Roadie's, and repeats, are left out
+with a development warning. Uncontrolled, the first choice other than
+`'custom'` starts on. The choices wrap onto a second row when they don't
+fit. `DashboardPeriodValue<App>` and
 `DashboardPeriodProps<App>` take the app's values, inferred from
 `compareOptions`. A period that is one of `presets`, fixed dates or relative,
 shows that preset's label with its dates.
 
 `@oztix/roadie-charts`: `DashboardView` shows a description's `period` above its
 sections. `onPeriodChange` receives the new `{ range, compare? }`
-(`DashboardPeriodValue<string>`); without it
+(`DashboardPeriodValue<string>`, so state handed to it is typed
+`DashboardPeriodValue<string>` too); without it
 the period shows read-only. `periodProps` (`DashboardViewPeriodProps`) passes
 the toolbar's other props. A delta marked `comparison: true` is named on its
 context line ("vs previous period", over any `context` the card gives), hides

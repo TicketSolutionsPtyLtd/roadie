@@ -1026,6 +1026,8 @@ describe('validateDashboard periods', () => {
     [{ range: { period: 'month', offset: 0.5 } }, 'period.range'],
     [{ range: 'this-month', compare: 42 }, 'period.compare'],
     [{ range: 'this-month', compare: '' }, 'period.compare'],
+    [{ range: 'this-month', compare: 'none' }, 'period.compare'],
+    [{ range: 'this-month', compare: 'custom' }, 'period.compare'],
     [{ range: 'this-month', history: 'none' }, 'period.history'],
     [{ range: 'this-month', locked: true }, 'period']
   ])('rejects the shape of %j', (period, path) => {
@@ -1078,6 +1080,15 @@ describe('validateDashboard periods', () => {
       problems(withPeriod({ range: 'upcoming', compare: 'similar' }))
     ).toEqual([])
   })
+
+  it.each(['previous_period', 'Previous year', 'PREVIOUS-PERIOD'])(
+    'warns that %s reads like one of Roadie’s comparisons',
+    (compare) => {
+      expect(problems(withPeriod({ range: 'this-month', compare }))).toEqual([
+        { path: 'period.compare', severity: 'warning' }
+      ])
+    }
+  )
 
   it('warns that a comparison delta hides with an app’s own comparison', () => {
     const result = validateDashboard(

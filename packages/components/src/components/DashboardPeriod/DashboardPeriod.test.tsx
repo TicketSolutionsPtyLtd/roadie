@@ -651,11 +651,10 @@ describe('DashboardPeriod compare options', () => {
     )
     const dialog = await openPicker()
     expect(
-      within(dialog)
+      within(within(dialog).getByRole('group', { name: 'Compare with' }))
         .getAllByRole('button')
         .filter((button) => button.getAttribute('aria-pressed') === 'true')
-        .map((button) => button.textContent)
-    ).not.toContain('Previous period')
+    ).toEqual([])
     await userEvent.click(
       within(dialog).getByRole('button', { name: /^Last 30 days/ })
     )
@@ -663,5 +662,91 @@ describe('DashboardPeriod compare options', () => {
     expect(onValueChange).toHaveBeenCalledWith({
       range: { direction: 'past', amount: 30, unit: 'day' }
     })
+  })
+
+  it('turns Compare on with the first choice that has dates', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming' }}
+        compareOptions={['none', 'custom', 'previous-year']}
+      />
+    )
+    const dialog = await openPicker()
+    await userEvent.click(compareSwitch(dialog))
+    expect(compareSwitch(dialog)).toBeChecked()
+    expect(choice(dialog, 'Previous year')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    expect(choice(dialog, 'Custom dates')).toBeDisabled()
+  })
+
+  it('leaves out app values that are Roadie’s, and repeats, with a warning', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        compareOptions={[
+          'previous-period',
+          'previous-period',
+          { value: 'custom', label: 'Custom benchmark' },
+          SIMILAR,
+          { ...SIMILAR, label: 'Similar again' }
+        ]}
+      />
+    )
+    const dialog = await openPicker()
+    expect(choiceNames(dialog)).toEqual(['Previous period', 'Similar venues'])
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"custom"'))
+    warn.mockRestore()
+  })
+
+  it('shows an app comparison the list doesn’t name, by its value', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'this-month', compare: 'similar' }}
+      />
+    )
+    expect(picker()).toHaveAccessibleName(/vs similar\)$/)
+    const dialog = await openPicker()
+    expect(choice(dialog, 'similar')).toHaveAttribute('aria-pressed', 'true')
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"similar"'))
+    warn.mockRestore()
+  })
+
+  it('starts uncontrolled from the first listed comparison', () => {
+    render(<DashboardPeriod today={TODAY} compareOptions={[SIMILAR]} />)
+    expect(picker()).toHaveAccessibleName(/vs similar venues\)$/)
+  })
+
+  it('follows custom dates the parent changes while the picker is open', async () => {
+    const at = (start: string, end: string) => ({
+      range: 'this-month' as const,
+      compare: { start, end }
+    })
+    const { rerender } = render(
+      <DashboardPeriod
+        today={TODAY}
+        value={at('2026-09-01', '2026-09-07')}
+        compareOptions={WITH_SIMILAR}
+      />
+    )
+    const dialog = await openPicker()
+    rerender(
+      <DashboardPeriod
+        today={TODAY}
+        value={at('2026-09-14', '2026-09-20')}
+        compareOptions={WITH_SIMILAR}
+      />
+    )
+    await userEvent.click(choice(dialog, 'Previous year'))
+    await userEvent.click(choice(dialog, 'Custom dates'))
+    expect(comparisonPicker(dialog)).toHaveAccessibleName(
+      'Choose dates, Comparison dates (14 to 20 Sept 2026)'
+    )
   })
 })

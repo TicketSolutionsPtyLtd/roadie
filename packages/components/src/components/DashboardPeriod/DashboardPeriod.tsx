@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, type ReactNode, useState } from 'react'
+import { type ComponentProps, type ReactNode, useEffect, useState } from 'react'
 
 import {
   type AbsoluteRange,
@@ -15,6 +15,7 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { usePickerZone } from '../../pickers/PickerShell'
+import { isDev } from '../../utils/isDev'
 import { useToday } from '../Calendar/today'
 import { DateRangePicker } from '../DateRangePicker'
 import { ExtendedDateRangePicker } from '../DateRangePicker/ExtendedDateRangePicker'
@@ -66,10 +67,12 @@ export type DashboardPeriodProps<App extends string = never> = Omit<
   /**
    * The Compare choices, in order. `'previous-period'` and `'previous-year'`
    * are Roadie's; `'custom'` picks dates; `{ value, label, description? }` is
-   * the app's own, passed through as `compare: value` with no dates.
-   * `'none'` adds the Compare switch, so the comparison can be turned off.
-   * A comparison of Roadie's that the value holds and the list leaves out
-   * still shows, read only.
+   * the app's own, passed through as `compare: value` with no dates, and
+   * read on the button as "vs " and the label with its first letter
+   * lowercased. `'none'` adds the Compare switch; without it nothing turns
+   * the comparison off. A comparison the value holds that the list leaves
+   * out still shows. Uncontrolled, the first choice other than `'custom'`
+   * starts on. Hoist the list with `as const` so the app's values are kept.
    *
    * @default ['none', 'previous-period', 'previous-year']
    */
@@ -132,10 +135,13 @@ const HISTORY = {
   unavailable: 'Nothing to compare'
 } as const
 
-const DEFAULT_VALUE: DashboardPeriodValue = {
-  range: { direction: 'past', amount: 30, unit: 'day' },
-  compare: 'previous-period'
+const DEFAULT_RANGE: DateRangeValue = {
+  direction: 'past',
+  amount: 30,
+  unit: 'day'
 }
+
+const RESERVED: readonly string[] = ['none', 'custom', ...Object.keys(BUILT_IN)]
 
 function choiceOf(compare: Comparison<string>): string {
   return typeof compare === 'object' ? 'custom' : compare
@@ -190,7 +196,7 @@ function compared(
 /** A dashboard's period, with what it compares with, in one picker. */
 export function DashboardPeriod<App extends string = never>({
   value: valueProp,
-  defaultValue = DEFAULT_VALUE,
+  defaultValue,
   onValueChange,
   presets = dashboardPeriodPresets,
   compareOptions = DEFAULT_COMPARE_OPTIONS,
@@ -226,42 +232,81 @@ export function DashboardPeriod<App extends string = never>({
       }
     : null
 
-  const [uncontrolled, setUncontrolled] = useState(defaultValue)
+  const problems: string[] = []
+  const choices: Choice[] = []
+  for (const option of compareOptions) {
+    if (option === 'none') continue
+    const choice =
+      typeof option === 'string'
+        ? { value: option, label: BUILT_IN[option] }
+        : option
+    if (typeof option === 'object' && RESERVED.includes(option.value))
+      problems.push(
+        `"${option.value}" is one of Roadie's own compare options, so the app's option "${option.label}" is left out. Give it a value of its own.`
+      )
+    else if (choices.some((listed) => listed.value === choice.value)) {
+      if (typeof option === 'object')
+        problems.push(`"${option.value}" is listed twice in compareOptions.`)
+    } else choices.push(choice)
+  }
+  // Uncontrolled, it starts with the first comparison that needs no dates.
+  const firstChoice = choices.find((choice) => choice.value !== 'custom')
+  const [uncontrolled, setUncontrolled] = useState<DashboardPeriodValue<App>>(
+    () =>
+      defaultValue ??
+      (firstChoice
+        ? {
+            range: DEFAULT_RANGE,
+            compare: firstChoice.value as Comparison<App>
+          }
+        : { range: DEFAULT_RANGE })
+  )
   const value = valueProp ?? uncontrolled
   // The comparison as edited in the open picker; dropped as it opens or closes.
   const [edit, setEdit] = useState<{ compare?: Comparison<App> } | null>(null)
+  const customOf = (comparison?: Comparison<App>) =>
+    comparison && typeof comparison === 'object' ? comparison : null
+  // The value's comparison as last seen; what the switch turns back on; and
+  // the custom dates Custom returns to. One state, so they change together.
+  const remembered = (comparison?: Comparison<App>) => ({
+    seen: comparison,
+    lastChoice: comparison ?? null,
+    lastCustom: customOf(comparison)
+  })
+  const [memory, setMemory] = useState(() => remembered(value.compare))
+  const { lastChoice, lastCustom } = memory
   // A comparison from outside replaces an open edit, as the range does.
-  const [seenCompare, setSeenCompare] = useState(value.compare)
-  if (!sameComparison(seenCompare, value.compare)) {
-    setSeenCompare(value.compare)
+  if (!sameComparison(memory.seen, value.compare)) {
+    setMemory(remembered(value.compare))
     setEdit(null)
   }
   const compare = edit ? edit.compare : value.compare
-  const customOf = (comparison?: Comparison<App>) =>
-    comparison && typeof comparison === 'object' ? comparison : null
-  // What the switch turns back on, and the custom dates Custom returns to.
-  const [lastChoice, setLastChoice] = useState(value.compare ?? null)
-  const [lastCustom, setLastCustom] = useState(customOf(value.compare))
 
   const switchShown = compareOptions.includes('none')
   const customEditable = compareOptions.includes('custom')
-  const choices = compareOptions.flatMap<Choice>((option) =>
-    option === 'none'
-      ? []
-      : typeof option === 'string'
-        ? [{ value: option, label: BUILT_IN[option] }]
-        : [option]
-  )
-  // A comparison of Roadie's that the list leaves out still shows, so the
-  // choices never hide what the value holds.
+  // A comparison the list leaves out still shows, so the choices never hide
+  // what the value holds.
   for (const held of [value.compare, compare]) {
-    const choice = held && isBuiltInComparison(held) ? choiceOf(held) : null
-    if (choice && !choices.some((listed) => listed.value === choice))
+    if (!held) continue
+    const choice = choiceOf(held)
+    if (choices.some((listed) => listed.value === choice)) continue
+    if (isBuiltInComparison(held))
       choices.push({
         value: choice,
         label: BUILT_IN[choice as keyof typeof BUILT_IN]
       })
+    else {
+      problems.push(
+        `compare is "${choice}", which compareOptions doesn't list, so it shows by its value. Add { value: '${choice}', label } to compareOptions.`
+      )
+      choices.push({ value: choice, label: choice })
+    }
   }
+  const warnings = problems.join('\n')
+  useEffect(() => {
+    if (warnings && isDev())
+      console.warn(`[Roadie] DashboardPeriod: ${warnings}`)
+  }, [warnings])
   const appChoice = (comparison: Comparison<App>) =>
     isBuiltInComparison(comparison)
       ? undefined
@@ -278,9 +323,12 @@ export function DashboardPeriod<App extends string = never>({
     compareWith ? { range, compare: compareWith } : { range }
 
   function editCompare(next?: Comparison<App>) {
-    if (next) setLastChoice(next)
-    const custom = customOf(next)
-    if (custom) setLastCustom(custom)
+    if (next)
+      setMemory({
+        ...memory,
+        lastChoice: next,
+        lastCustom: customOf(next) ?? memory.lastCustom
+      })
     setEdit({ compare: next })
   }
 
@@ -328,7 +376,10 @@ export function DashboardPeriod<App extends string = never>({
             onCheckedChange={(on) =>
               editCompare(
                 on
-                  ? (lastChoice ?? comparisonFor(choices[0]!.value, range))
+                  ? (lastChoice ??
+                      choices
+                        .map((option) => comparisonFor(option.value, range))
+                        .find(Boolean))
                   : undefined
               )
             }
@@ -350,7 +401,13 @@ export function DashboardPeriod<App extends string = never>({
               className='flex w-full flex-wrap rounded-2xl *:flex-1'
             >
               {choices.map((option) => (
-                <ToggleGroup.Item key={option.value} value={option.value}>
+                <ToggleGroup.Item
+                  key={option.value}
+                  value={option.value}
+                  // Custom dates start from the previous period; with none to
+                  // start from there are no dates to pick.
+                  disabled={!comparisonFor(option.value, range)}
+                >
                   {option.label}
                 </ToggleGroup.Item>
               ))}
@@ -414,8 +471,7 @@ export function DashboardPeriod<App extends string = never>({
         value={value.range}
         onOpenChange={() => {
           setEdit(null)
-          setLastChoice(value.compare ?? null)
-          setLastCustom(customOf(value.compare))
+          setMemory(remembered(value.compare))
         }}
         valueSuffix={suffix}
         extra={choices.length > 0 ? compareRow : undefined}
