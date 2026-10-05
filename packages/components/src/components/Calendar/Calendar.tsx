@@ -1291,7 +1291,10 @@ export function Calendar(props: CalendarProps) {
 
   // The toggle stays in the header in both views, so it keeps focus as the
   // view changes how many months show.
-  const inlineNav = !scrolling && (numberOfMonths === 1 || showViewToggle)
+  // In a header row of its own when months move up and down as a column, so
+  // they slide beneath the arrows rather than over them.
+  const inlineNav =
+    !scrolling && (numberOfMonths === 1 || showViewToggle || wholeMonths)
   const monthCaptions = scrolling || numberOfMonths > 1
   const unit = weekView ? 'week' : 'month'
   const PreviousIcon = vertical ? CaretUpIcon : CaretLeftIcon
@@ -1535,6 +1538,10 @@ export function Calendar(props: CalendarProps) {
                         // Only the days slide, under a weekday row that holds still.
                         !scrolling &&
                           'in-data-swiping:relative in-data-swiping:z-1 in-data-swiping:bg-(--records-surface,var(--pane-surface,var(--intent-bg-normal)))',
+                        vertical &&
+                          !wholeMonths &&
+                          !scrolling &&
+                          "in-data-swiping:after:absolute in-data-swiping:after:inset-x-0 in-data-swiping:after:top-full in-data-swiping:after:h-4 in-data-swiping:after:bg-linear-to-b in-data-swiping:after:from-(--records-surface,var(--pane-surface,var(--intent-bg-normal))) in-data-swiping:after:content-['']",
                         // Covers the border spacing, and no more.
                         !scrolling &&
                           (tiles
@@ -1626,7 +1633,15 @@ export function Calendar(props: CalendarProps) {
             ref={monthsRef}
             data-slot='calendar-months'
             // Clipped as one, so the days run on from one month into the next.
-            className='relative flex flex-wrap gap-x-6 gap-y-4 in-data-swiping:overflow-clip'
+            className={cn(
+              'relative flex flex-wrap gap-x-6 gap-y-4 in-data-swiping:overflow-clip',
+              // Rows fade at the edges they slide past, rather than show half
+              // their digits; a single page's top edge is its weekday row.
+              vertical &&
+                (wholeMonths
+                  ? 'in-data-swiping:[mask-image:linear-gradient(to_bottom,transparent,black_16px,black_calc(100%-16px),transparent)]'
+                  : 'in-data-swiping:[mask-image:linear-gradient(to_bottom,black_calc(100%-16px),transparent)]')
+            )}
           >
             {!inlineNav && !waitingForToday && nav}
             {monthsShown}

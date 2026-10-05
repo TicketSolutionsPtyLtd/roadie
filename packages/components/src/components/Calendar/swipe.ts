@@ -586,6 +586,7 @@ export function useSwipeToTurn(
       stopAnimations()
       place(0)
       delete root.dataset.swiping
+      delete root.dataset.dragging
     }
   }, [rootRef, enabled, vertical])
 

@@ -353,7 +353,7 @@ describe('Calendar layout', () => {
     expect(caption.scrollWidth).toBeLessThanOrEqual(caption.clientWidth)
   })
 
-  it('keeps the arrows at the top end when months stack', () => {
+  it('puts the arrows in a row above stacked months, at the end', () => {
     render(
       <div className='w-97.5'>
         <Calendar today={TODAY} numberOfMonths={2} />
@@ -365,7 +365,7 @@ describe('Calendar layout', () => {
     const next = screen
       .getByRole('button', { name: 'Next month' })
       .getBoundingClientRect()
-    expect(next.top).toBe(first.top)
+    expect(next.bottom).toBeLessThanOrEqual(first.top)
     expect(next.right).toBe(first.right)
   })
 
@@ -1000,6 +1000,61 @@ describe('Calendar page turns', () => {
     await slides.land()
     expect(onMonthChange).toHaveBeenLastCalledWith('2027-04-01')
   })
+
+  it('keeps stacked months sliding clear of the arrows', async () => {
+    holdSlides()
+    render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} numberOfMonths={2} />
+      </div>
+    )
+    await expect
+      .poll(() =>
+        document
+          .querySelector('[data-slot="calendar"]')!
+          .getAttribute('data-paging')
+      )
+      .toBe('vertical')
+    const next = screen.getByRole('button', { name: 'Next month' })
+    await userEvent.click(next)
+    for (const animation of document.getAnimations()) animation.finish()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    for (const animation of document.getAnimations())
+      animation.currentTime = 100
+    const box = next.getBoundingClientRect()
+    const months = document
+      .querySelector('[data-slot="calendar-months"]')!
+      .getBoundingClientRect()
+    expect(box.bottom).toBeLessThanOrEqual(months.top)
+    expect(
+      next.contains(
+        document.elementFromPoint(
+          box.left + box.width / 2,
+          box.top + box.height / 2
+        )
+      )
+    ).toBe(true)
+  })
+
+  it.each([
+    ['one vertical month', { direction: 'vertical' as const }, true],
+    ['one sideways month', {}, false]
+  ])(
+    'fades the days at the edges they slide past for %s',
+    async (_, props, fades) => {
+      holdSlides()
+      render(<Calendar today={TODAY} {...props} />)
+      await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+      const months = document.querySelector('[data-slot="calendar-months"]')!
+      const th = document.querySelector('[data-slot="calendar-grid"] th')!
+      expect(getComputedStyle(months).maskImage.includes('gradient')).toBe(
+        fades
+      )
+      expect(
+        getComputedStyle(th, '::after').backgroundImage.includes('gradient')
+      ).toBe(fades)
+    }
+  )
 
   it('turns straight away when a parent moves the month', () => {
     const { rerender } = render(<Calendar today={TODAY} month='2027-03-01' />)
