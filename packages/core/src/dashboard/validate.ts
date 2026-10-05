@@ -469,7 +469,13 @@ function periodProblems(period: DashboardPeriodSpec | undefined) {
       )
   } else if (!isBuiltInComparison(compare)) {
     const lookalike = BUILT_IN_COMPARISONS.find(
-      (name) => name === compare.toLowerCase().replace(/[^a-z]+/g, '-')
+      (name) =>
+        name ===
+        compare
+          .replace(/([a-z])([A-Z])/g, '$1-$2')
+          .toLowerCase()
+          .replace(/[^a-z]+/g, '-')
+          .replace(/^-|-$/g, '')
     )
     if (lookalike)
       problems.push(

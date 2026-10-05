@@ -48,9 +48,8 @@ export type DashboardPeriodProps<App extends string = never> = Omit<
   /** The period and its comparison. Pair with `onValueChange`. */
   value?: DashboardPeriodValue<App>
   /**
-   * The period to start from when uncontrolled.
-   *
-   * @default { range: { direction: 'past', amount: 30, unit: 'day' }, compare: 'previous-period' }
+   * The period to start from when uncontrolled. Defaults to the past 30
+   * days, compared with the first of `compareOptions` other than `'custom'`.
    */
   defaultValue?: DashboardPeriodValue<App>
   /**
@@ -140,6 +139,8 @@ const DEFAULT_RANGE: DateRangeValue = {
   amount: 30,
   unit: 'day'
 }
+
+const warned = new Set<string>()
 
 const RESERVED: readonly string[] = ['none', 'custom', ...Object.keys(BUILT_IN)]
 
@@ -304,8 +305,10 @@ export function DashboardPeriod<App extends string = never>({
   }
   const warnings = problems.join('\n')
   useEffect(() => {
-    if (warnings && isDev())
-      console.warn(`[Roadie] DashboardPeriod: ${warnings}`)
+    // Once each, so StrictMode's second mount doesn't repeat it.
+    if (!warnings || warned.has(warnings) || !isDev()) return
+    warned.add(warnings)
+    console.warn(`[Roadie] DashboardPeriod: ${warnings}`)
   }, [warnings])
   const appChoice = (comparison: Comparison<App>) =>
     isBuiltInComparison(comparison)
@@ -373,6 +376,10 @@ export function DashboardPeriod<App extends string = never>({
           <Switch
             label='Compare'
             checked={!!compare}
+            disabled={
+              !compare &&
+              !choices.some((option) => comparisonFor(option.value, range))
+            }
             onCheckedChange={(on) =>
               editCompare(
                 on

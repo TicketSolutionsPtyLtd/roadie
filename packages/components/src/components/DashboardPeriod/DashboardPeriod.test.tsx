@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { StrictMode, useState } from 'react'
 
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -748,5 +748,32 @@ describe('DashboardPeriod compare options', () => {
     expect(comparisonPicker(dialog)).toHaveAccessibleName(
       'Choose dates, Comparison dates (14 to 20 Sept 2026)'
     )
+  })
+
+  it('turns the switch off when no choice has dates', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming' }}
+        compareOptions={['none', 'custom']}
+      />
+    )
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).toBeDisabled()
+  })
+
+  it('warns once under StrictMode', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <StrictMode>
+        <DashboardPeriod
+          today={TODAY}
+          value={THIS_MONTH}
+          compareOptions={[{ value: 'none', label: 'Nothing at all' }]}
+        />
+      </StrictMode>
+    )
+    expect(warn).toHaveBeenCalledTimes(1)
+    warn.mockRestore()
   })
 })

@@ -1081,14 +1081,17 @@ describe('validateDashboard periods', () => {
     ).toEqual([])
   })
 
-  it.each(['previous_period', 'Previous year', 'PREVIOUS-PERIOD'])(
-    'warns that %s reads like one of Roadie’s comparisons',
-    (compare) => {
-      expect(problems(withPeriod({ range: 'this-month', compare }))).toEqual([
-        { path: 'period.compare', severity: 'warning' }
-      ])
-    }
-  )
+  it.each([
+    'previous_period',
+    'Previous year',
+    'PREVIOUS-PERIOD',
+    'previousPeriod',
+    ' previous period '
+  ])('warns that %s reads like one of Roadie’s comparisons', (compare) => {
+    expect(problems(withPeriod({ range: 'this-month', compare }))).toEqual([
+      { path: 'period.compare', severity: 'warning' }
+    ])
+  })
 
   it('warns that a comparison delta hides with an app’s own comparison', () => {
     const result = validateDashboard(
