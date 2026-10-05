@@ -28,7 +28,9 @@ On a touch screen a swipe turns the page, and a mouse or pen drags the days
 the same way; a press that moves less than 8px is still a click that chooses
 the day. Only the days move, with the next page's days coming in beside them
 as they go, and months in a row move as one strip: the weekday row, the
-month's name and the arrows hold still. The arrows and Page Up and Page Down
+month's name and the arrows hold still. Several months that don't fit side by
+side turn up and down as one column instead, as with `direction='vertical'`,
+until they fit again; the root's `data-paging` says which way it turns. The arrows and Page Up and Page Down
 play the same slide, and the month lands as the slide passes its middle,
 about 120ms in, so a test that clicks Next and then picks a day waits for
 that. With Shift, or in week view, Page Up and Page Down skip past the page

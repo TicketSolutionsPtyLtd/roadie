@@ -131,17 +131,22 @@ export function useSwipeToTurn(
     let suppressClickUntil = -Infinity
     const running: Animation[] = []
 
-    const parts = () => Array.from(root.querySelectorAll<HTMLElement>(PARTS))
+    // Read once a drag or turn, not on every move: the parts change only as a
+    // page comes or goes, and reading style after a write forces a recalc.
+    let partsSeen: HTMLElement[] | null = null
+    const parts = () =>
+      (partsSeen ??= Array.from(root.querySelectorAll<HTMLElement>(PARTS)))
+    let rtlSeen: boolean | null = null
+    const isRtl = () =>
+      (rtlSeen ??= !vertical && getComputedStyle(root).direction === 'rtl')
     const offset = (by: number) =>
       vertical ? `translate3d(0, ${by}px, 0)` : `translate3d(${by}px, 0, 0)`
     const place = (by: number) => {
       for (const part of parts()) part.style.transform = by ? offset(by) : ''
     }
     // The finger moves physically; RTL puts the next month on the left.
-    const stepOf = (along: number): SwipeStep => {
-      const rtl = !vertical && getComputedStyle(root).direction === 'rtl'
-      return along < 0 !== rtl ? 1 : -1
-    }
+    const stepOf = (along: number): SwipeStep =>
+      along < 0 !== isRtl() ? 1 : -1
     const sizeOf = (grid: HTMLElement) => {
       const box = grid.getBoundingClientRect()
       return vertical ? box.height : box.width
@@ -172,10 +177,7 @@ export function useSwipeToTurn(
     }
 
     // Which way the days move on screen for a step, as a finger would drag.
-    const signOf = (step: SwipeStep) => {
-      const rtl = !vertical && getComputedStyle(root).direction === 'rtl'
-      return (step === 1) !== rtl ? -1 : 1
-    }
+    const signOf = (step: SwipeStep) => ((step === 1) !== isRtl() ? -1 : 1)
 
     let shownPeek: SwipeStep | null = null
     const peekOf = (step: SwipeStep): Peek => {
@@ -190,6 +192,7 @@ export function useSwipeToTurn(
       if (step === shownPeek) return
       shownPeek = step
       flushSync(() => latest.current.onPeek(step && peekOf(step)))
+      partsSeen = null
     }
     const hidePeek = () => {
       if (shownPeek === null) return
@@ -214,7 +217,10 @@ export function useSwipeToTurn(
       stopAnimations()
       place(0)
       hidePeek()
+      partsSeen = null
+      rtlSeen = null
       delete root.dataset.swiping
+      delete root.dataset.dragging
       settling = false
     }
 
@@ -223,6 +229,7 @@ export function useSwipeToTurn(
     const applyTurn = (apply: () => void) => {
       const hadFocus = root.contains(document.activeElement)
       flushSync(apply)
+      partsSeen = null
       if (hadFocus && !root.contains(document.activeElement))
         Array.from(
           root.querySelectorAll<HTMLElement>(`${DAYS} button[tabindex="0"]`)
@@ -377,6 +384,7 @@ export function useSwipeToTurn(
         gesture.engaged = true
         gesture.size = vertical ? box.height : box.width
         root.dataset.swiping = ''
+        root.dataset.dragging = ''
         // A mouse drag would otherwise select the day numbers.
         if (gesture.kind === 'pointer') getSelection()?.removeAllRanges()
       }
@@ -397,6 +405,7 @@ export function useSwipeToTurn(
       if (!gesture) return
       const { engaged, samples, size, along } = gesture
       gesture = null
+      delete root.dataset.dragging
       if (!engaged) return
       suppressClickUntil = performance.now() + CLICK_AFTER_SWIPE_MS
       const step = stepOf(along)
@@ -407,6 +416,7 @@ export function useSwipeToTurn(
     }
 
     const cancel = () => {
+      delete root.dataset.dragging
       if (gesture?.engaged) void settle(gesture.along, null)
       gesture = null
     }

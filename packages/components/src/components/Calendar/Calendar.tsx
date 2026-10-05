@@ -367,7 +367,6 @@ export function Calendar(props: CalendarProps) {
   const showViewToggle =
     !scrolling && !!views?.includes('week') && views.includes('month')
   const tiles = weekView || !!getDayContent
-  const vertical = direction === 'vertical'
   const boundedSpan =
     startMonth && endMonth
       ? (yearOf(endMonth) - yearOf(startMonth)) * 12 +
@@ -379,6 +378,12 @@ export function Calendar(props: CalendarProps) {
     scrolling || weekView
       ? 1
       : Math.max(1, Math.min(Math.floor(numberOfMonthsProp), boundedSpan))
+  // Several months that can't sit side by side page up and down, as one
+  // column, whatever `direction` asks for.
+  const [stacked, setStacked] = useState(false)
+  const vertical = direction === 'vertical' || (stacked && numberOfMonths > 1)
+  // Several months in a column move whole, titles and weekdays with them.
+  const wholeMonths = vertical && numberOfMonths > 1
   const today = useToday(todayProp, timeZone)
   // The grid is Gregorian, so its labels must be too, whatever the locale prefers.
   const locale = new Intl.Locale(localeProp, { calendar: 'gregory' }).toString()
@@ -596,25 +601,36 @@ export function Calendar(props: CalendarProps) {
     turn,
     onPeek: setPeek
   })
-  // Months on rows of their own each bring in their own next month, so
-  // every row turns as a strip; months on one row share one incoming month.
-  const [stacked, setStacked] = useState(false)
   // An incoming month beside several is as wide as each of them.
   useIsomorphicLayoutEffect(() => {
-    const months = monthsRef.current
-    if (!peek || !months) return
-    const shown = Array.from(
-      months.querySelectorAll<HTMLElement>(
-        '[data-slot="calendar-month"]:not([data-peek] *)'
+    const first = monthsRef.current?.querySelector(
+      '[data-slot="calendar-month"]'
+    )
+    if (peek && first)
+      monthsRef.current!.style.setProperty(
+        '--calendar-month-size',
+        `${first.getBoundingClientRect().width}px`
       )
-    )
-    if (!shown[0]) return
-    months.style.setProperty(
-      '--calendar-month-size',
-      `${shown[0].getBoundingClientRect().width}px`
-    )
-    setStacked(shown.some((month) => month.offsetTop !== shown[0]!.offsetTop))
   }, [peek])
+  // Watched, as the container decides whether several months fit in a row.
+  const paged = !scrolling && !waitingForToday
+  useIsomorphicLayoutEffect(() => {
+    const months = monthsRef.current
+    if (!paged || numberOfMonths < 2 || !months) return setStacked(false)
+    const measure = () => {
+      const shown = Array.from(
+        months.querySelectorAll<HTMLElement>(
+          '[data-slot="calendar-month"]:not([data-peek] *)'
+        )
+      )
+      setStacked(shown.some((month) => month.offsetTop !== shown[0]!.offsetTop))
+    }
+    measure()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(measure)
+    observer.observe(months)
+    return () => observer.disconnect()
+  }, [paged, numberOfMonths])
 
   function commit(next: CalendarSelection) {
     if (selectedProp === undefined) setUncontrolled({ mode, selection: next })
@@ -1392,7 +1408,8 @@ export function Calendar(props: CalendarProps) {
 
   function renderPeekPage(start: string, placement: string) {
     const several = numberOfMonths > 1
-    const title = vertical && !several
+    // Its title shows where titles travel: a vertical page, or whole months.
+    const title = vertical
     return (
       <div
         key={start}
@@ -1400,7 +1417,10 @@ export function Calendar(props: CalendarProps) {
         data-swipe-part=''
         aria-hidden='true'
         inert
-        className={cn('absolute grid content-start gap-2', placement)}
+        className={cn(
+          'absolute grid content-start gap-2 in-data-dragging:will-change-transform',
+          placement
+        )}
       >
         {(title || (several && monthCaptions)) && (
           <div
@@ -1422,10 +1442,15 @@ export function Calendar(props: CalendarProps) {
               : 'border-spacing-x-0 border-spacing-y-0.5'
           )}
         >
-          <thead className={title ? 'hidden' : 'invisible'}>
+          <thead
+            className={wholeMonths ? undefined : title ? 'hidden' : 'invisible'}
+          >
             <tr>
               {labels.weekdays.map((weekday) => (
-                <th key={weekday.long} className='h-8 p-0 text-xs'>
+                <th
+                  key={weekday.long}
+                  className='h-8 p-0 text-xs font-medium text-subtle'
+                >
                   {weekday.short}
                 </th>
               ))}
@@ -1436,12 +1461,6 @@ export function Calendar(props: CalendarProps) {
       </div>
     )
   }
-
-  // Sideways with months on rows of their own, each month brings its own.
-  const rowPeek =
-    peek && stacked && numberOfMonths > 1 && !vertical && !weekView
-      ? peek
-      : null
 
   const monthsShown = waitingForToday
     ? months.slice(0, scrolling ? 1 : undefined).map((month) => (
@@ -1469,15 +1488,12 @@ export function Calendar(props: CalendarProps) {
           data-slot='calendar-month'
           data-month={month}
           // Contained, so a month asks for 280px and takes whatever more it is given.
-          className='relative grid min-w-70 flex-[1_1_--spacing(70)] content-start gap-2 [contain:inline-size]'
+          data-swipe-part={wholeMonths && !scrolling ? '' : undefined}
+          className={cn(
+            'grid min-w-70 flex-[1_1_--spacing(70)] content-start gap-2 [contain:inline-size]',
+            wholeMonths && 'in-data-dragging:will-change-transform'
+          )}
         >
-          {rowPeek &&
-            renderPeekPage(
-              addMonths(month, rowPeek.step),
-              rowPeek.side === 'right'
-                ? 'top-0 left-[calc(100%+--spacing(6))] w-full'
-                : 'top-0 right-[calc(100%+--spacing(6))] w-full'
-            )}
           {monthCaptions && (
             <div
               className={cn(
@@ -1530,7 +1546,16 @@ export function Calendar(props: CalendarProps) {
                   ))}
                 </tr>
               </thead>
-              <tbody data-slot='calendar-days' data-swipe-part=''>
+              <tbody
+                data-slot='calendar-days'
+                data-swipe-part={wholeMonths ? undefined : ''}
+                // Its own layer only while a finger holds it.
+                className={
+                  wholeMonths
+                    ? undefined
+                    : 'in-data-dragging:will-change-transform'
+                }
+              >
                 {renderRows(weekView ? shownWeek : month)}
               </tbody>
             </table>
@@ -1544,6 +1569,7 @@ export function Calendar(props: CalendarProps) {
       data-slot='calendar'
       data-layout={layout}
       data-direction={direction}
+      data-paging={vertical ? 'vertical' : 'horizontal'}
       data-view={weekView ? 'week' : 'month'}
       data-tiles={tiles ? '' : undefined}
       className={cn(
@@ -1603,7 +1629,7 @@ export function Calendar(props: CalendarProps) {
           >
             {!inlineNav && !waitingForToday && nav}
             {monthsShown}
-            {peek && !rowPeek && !waitingForToday && renderPeek(peek)}
+            {peek && !waitingForToday && renderPeek(peek)}
           </div>
         </>
       )}

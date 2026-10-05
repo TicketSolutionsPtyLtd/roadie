@@ -609,6 +609,44 @@ describe('Calendar arrows with several months', () => {
   )
 })
 
+describe('Calendar pages up and down once several months stack', () => {
+  const root = () => document.querySelector('[data-slot="calendar"]')!
+  const grid = () => document.querySelector('[data-slot="calendar-grid"]')!
+
+  it('turns vertically while stacked and back when they fit side by side', async () => {
+    const { rerender } = render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} numberOfMonths={2} />
+      </div>
+    )
+    await expect.poll(() => root().getAttribute('data-paging')).toBe('vertical')
+    expect(getComputedStyle(grid()).touchAction).toMatch(/pan-x/)
+    expect(root()).toHaveAttribute('data-direction', 'horizontal')
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    await turned()
+    expect(caption()).toEqual(['April 2027', 'May 2027'])
+    rerender(
+      <div className='w-320'>
+        <Calendar today={TODAY} numberOfMonths={2} />
+      </div>
+    )
+    await expect
+      .poll(() => root().getAttribute('data-paging'))
+      .toBe('horizontal')
+    expect(getComputedStyle(grid()).touchAction).toMatch(/pan-y/)
+  })
+
+  it('keeps one month horizontal however narrow', async () => {
+    render(
+      <div className='w-75'>
+        <Calendar today={TODAY} />
+      </div>
+    )
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(root()).toHaveAttribute('data-paging', 'horizontal')
+  })
+})
+
 describe('Calendar page turns', () => {
   const days = () =>
     document.querySelector<HTMLElement>('[data-slot="calendar-days"]')!

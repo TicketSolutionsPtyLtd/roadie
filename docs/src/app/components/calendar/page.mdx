@@ -132,7 +132,7 @@ render(
 
 ### With two months
 
-`numberOfMonths` shows months side by side where they fit and stacks them where they don't. Both arrows sit together at the top end, and each moves the set one month.
+`numberOfMonths` shows months side by side where they fit and stacks them where they don't. Both arrows sit together at the top end, and each moves the set one month. Side by side, the months turn sideways and their days move as one strip. Stacked, they turn up and down as one column, as with `direction='vertical'`: the arrows point up and down, a finger swipes up for the next month, and each month's name and weekdays move with its days. The calendar switches back as soon as the months fit side by side again.
 
 ```tsx-live
 <Calendar mode='range' numberOfMonths={2} />

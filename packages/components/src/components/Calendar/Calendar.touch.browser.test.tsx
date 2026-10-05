@@ -190,38 +190,39 @@ describe('Calendar shows the page it turns to', TIMEOUT, () => {
     ).toEqual(['2027-04-01', '2027-05-01'])
   })
 
-  it('turns stacked months as strips of their own', async ({ skip }) => {
+  it('turns stacked months with a vertical swipe, not a sideways one', async ({
+    skip
+  }) => {
     if (!navigator.userAgent.includes('Chrome')) skip()
     render(<Paged numberOfMonths={2} />)
-    const days = [
-      ...document.querySelectorAll<HTMLElement>('[data-slot="calendar-days"]')
-    ]
-    expect(days[1]!.getBoundingClientRect().top).toBeGreaterThan(
-      days[0]!.getBoundingClientRect().bottom
-    )
-    const lift = holdDrag(day('2027-03-17'), -100, 0)
-    const incoming = [...document.querySelectorAll<HTMLElement>('[data-peek]')]
-    expect(incoming).toHaveLength(2)
-    expect(
-      incoming[0]!.querySelector('[data-date="2027-04-01"]')
-    ).not.toBeNull()
-    expect(
-      incoming[1]!.querySelector('[data-date="2027-05-01"]')
-    ).not.toBeNull()
-    days.forEach((row, i) => {
-      const next = incoming[i]!.querySelector(
-        '[data-slot="calendar-days"]'
-      )!.getBoundingClientRect()
-      expect(next.left - row.getBoundingClientRect().right).toBeCloseTo(24, 0)
-      expect(next.top).toBeCloseTo(row.getBoundingClientRect().top, 0)
-    })
-    lift()
-    await settle()
-    expect(
+    await expect
+      .poll(() =>
+        document
+          .querySelector('[data-slot="calendar"]')!
+          .getAttribute('data-paging')
+      )
+      .toBe('vertical')
+    const months = () =>
       [...document.querySelectorAll('[data-slot="calendar-month"]')].map(
         (month) => month.getAttribute('data-month')
       )
-    ).toEqual(['2027-04-01', '2027-05-01'])
+    holdDrag(day('2027-03-17'), -100, 0)()
+    await settle()
+    expect(months()).toEqual(['2027-03-01', '2027-04-01'])
+    const lift = holdDrag(day('2027-03-17'), 0, -100)
+    const incoming = peek()!
+    expect(incoming.textContent).toContain('May 2027')
+    const shown = [
+      ...document.querySelectorAll<HTMLElement>(
+        '[data-slot="calendar-month"]:not([data-peek] *)'
+      )
+    ]
+    expect(
+      new Set([...shown, incoming].map((part) => part.style.transform)).size
+    ).toBe(1)
+    lift()
+    await settle()
+    expect(months()).toEqual(['2027-04-01', '2027-05-01'])
   })
 
   it('keeps focus on a shown day after stacked months turn back', async ({
@@ -230,7 +231,7 @@ describe('Calendar shows the page it turns to', TIMEOUT, () => {
     if (!navigator.userAgent.includes('Chrome')) skip()
     render(<Paged numberOfMonths={2} />)
     day('2027-03-10').focus()
-    const lift = holdDrag(day('2027-03-17'), 100, 0)
+    const lift = holdDrag(day('2027-03-17'), 0, 100)
     lift()
     await settle()
     const focusedDay = document.activeElement as HTMLElement
