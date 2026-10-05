@@ -88,7 +88,7 @@ render(<Custom />)
 
 ### With your own comparisons
 
-`compareOptions` lists the choices in order. Roadie’s are `'previous-period'`, `'previous-year'` and `'custom'`. The app’s own are `{ value, label, description? }`, such as similar venues. Choosing one sets `compare` to its `value`, which comes back as it is: Roadie works out no dates for it, shows its `description` where the dates go, and the button reads “vs similar venues”. `'none'` adds the Compare switch. Leave it out, as here, and nothing turns the comparison off once one is chosen. The default is `['none', 'previous-period', 'previous-year']`. A comparison the value holds that the list leaves out still shows among the choices. If you hoist the list, add `as const`, so TypeScript keeps your values.
+`compareOptions` lists the choices in order. Roadie’s are `'previous-period'`, `'previous-year'` and `'custom'`. The app’s own are `{ value, label, description? }`, such as similar venues. Choosing one sets `compare` to its `value`, which comes back as it is: Roadie works out no dates for it, shows its `description` where the dates go, and the button reads “vs similar venues”. `'none'` adds the Compare switch. Leave it out, as here, and nothing turns the comparison off once one is chosen. The default is `['none', 'previous-period', 'previous-year']`. An empty list, or `['none']` alone, leaves the comparison out of the picker. A comparison the value holds that the list leaves out still shows among the choices. If you hoist the list, add `as const`, so TypeScript keeps your values.
 
 ```tsx-live-noinline
 function Benchmark() {

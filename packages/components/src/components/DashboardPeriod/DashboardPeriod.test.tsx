@@ -800,4 +800,19 @@ describe('DashboardPeriod compare options', () => {
     ).toHaveLength(1)
     warn.mockRestore()
   })
+
+  it('leaves out an app option with no value, with a warning', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        compareOptions={['previous-period', { value: '', label: 'Benchmark' }]}
+      />
+    )
+    const dialog = await openPicker()
+    expect(choiceNames(dialog)).toEqual(['Previous period'])
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"Benchmark"'))
+    warn.mockRestore()
+  })
 })

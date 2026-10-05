@@ -71,7 +71,8 @@ export type DashboardPeriodProps<App extends string = never> = Omit<
    * lowercased. `'none'` adds the Compare switch; without it nothing turns
    * the comparison off. A comparison the value holds that the list leaves
    * out still shows. Uncontrolled, the first choice other than `'custom'`
-   * starts on. Hoist the list with `as const` so the app's values are kept.
+   * starts on. With nothing listed but `'none'`, there is no Compare row.
+   * Hoist the list with `as const` so the app's values are kept.
    *
    * @default ['none', 'previous-period', 'previous-year']
    */
@@ -241,7 +242,11 @@ export function DashboardPeriod<App extends string = never>({
       typeof option === 'string'
         ? { value: option, label: BUILT_IN[option] }
         : option
-    if (typeof option === 'object' && RESERVED.includes(option.value))
+    if (typeof option === 'object' && !option.value)
+      problems.push(
+        `The app's option "${option.label}" has no value, so it is left out.`
+      )
+    else if (typeof option === 'object' && RESERVED.includes(option.value))
       problems.push(
         `"${option.value}" is one of Roadie's own compare options, so the app's option "${option.label}" is left out. Give it a value of its own.`
       )
