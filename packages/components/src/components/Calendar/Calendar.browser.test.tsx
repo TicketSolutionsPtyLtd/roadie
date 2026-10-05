@@ -588,6 +588,27 @@ describe('Calendar day tiles', () => {
   })
 })
 
+describe('Calendar arrows with several months', () => {
+  it.each(['w-97.5', 'w-320'])(
+    'turn the page when clicked at %s',
+    async (width) => {
+      render(
+        <div className={width}>
+          <Calendar today={TODAY} numberOfMonths={2} />
+        </div>
+      )
+      await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+      await turned()
+      expect(caption()).toEqual(['April 2027', 'May 2027'])
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Previous month' })
+      )
+      await turned()
+      expect(caption()).toEqual(['March 2027', 'April 2027'])
+    }
+  )
+})
+
 describe('Calendar page turns', () => {
   const days = () =>
     document.querySelector<HTMLElement>('[data-slot="calendar-days"]')!

@@ -1297,7 +1297,8 @@ export function Calendar(props: CalendarProps) {
       data-slot='calendar-nav'
       className={cn(
         'flex gap-1',
-        inlineNav ? 'ms-auto' : 'absolute end-0 top-0'
+        // Above the months, which are positioned for the pages that come in.
+        inlineNav ? 'ms-auto' : 'absolute end-0 top-0 z-1'
       )}
     >
       <IconButton

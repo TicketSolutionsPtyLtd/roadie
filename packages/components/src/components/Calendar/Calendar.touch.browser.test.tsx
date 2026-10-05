@@ -239,6 +239,27 @@ describe('Calendar shows the page it turns to', TIMEOUT, () => {
   })
 })
 
+describe('Calendar arrows tapped with several months', TIMEOUT, () => {
+  it.each([390, 1280])('turn the page when tapped at %ipx', async (width) => {
+    await page.viewport(width, 844)
+    onTestFinished(() => page.viewport(390, 844))
+    render(<Calendar today={TODAY} numberOfMonths={2} />)
+    const months = () =>
+      [...document.querySelectorAll('[data-slot="calendar-month"]')].map(
+        (month) => month.getAttribute('data-month')
+      )
+    await tapOn(screen.getByRole('button', { name: 'Next month' }), 'centre')
+    await settle()
+    expect(months()).toEqual(['2027-04-01', '2027-05-01'])
+    await tapOn(
+      screen.getByRole('button', { name: 'Previous month' }),
+      'centre'
+    )
+    await settle()
+    expect(months()).toEqual(['2027-03-01', '2027-04-01'])
+  })
+})
+
 describe('Calendar swiped on a phone', TIMEOUT, () => {
   it('turns to the next month with a swipe to the left', async ({ skip }) => {
     if (!navigator.userAgent.includes('Chrome')) skip()
