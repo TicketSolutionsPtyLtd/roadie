@@ -5,6 +5,11 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 import { formatValue } from '@oztix/roadie-core/dataviz'
 
+import {
+  categoryLabelMark,
+  categoryLines,
+  categoryRoom
+} from '../plot/categoryLabels'
 import { textRoom } from '../plot/endLabels'
 import { asList, emphasisColor, seriesMarkId } from '../plot/series'
 import { fieldLabel } from '../plot/table'
@@ -16,8 +21,6 @@ import { rankedBarsTable } from './table'
 import type { RankedBarsProps } from './types'
 
 const EMPTY = 'Nothing to rank yet'
-const MAX_NAME_ROOM = 180
-const NAME_PADDING = 8
 const VALUE_PADDING = 12
 const VALUE_GAP = 6
 const STORY_SLOT = 1
@@ -89,14 +92,8 @@ function build(props: RankedBarsProps, paint: ChartPaint, frame: PlotFrame) {
     shown.flatMap((b) => [b.y, b.tick]),
     { zero: true, nice: false }
   )
-  const nameRoom = Math.min(
-    MAX_NAME_ROOM,
-    textRoom(
-      shown.map((b) => b.name),
-      frame,
-      NAME_PADDING
-    )
-  )
+  const names = shown.map((b) => b.name)
+  const nameRoom = categoryRoom(names, frame)
   const valueRoom = textRoom(
     shown.map((b) => b.label),
     frame,
@@ -131,6 +128,13 @@ function build(props: RankedBarsProps, paint: ChartPaint, frame: PlotFrame) {
             )
           ]
         : []),
+      categoryLabelMark(names, {
+        x: domain[0],
+        room: nameRoom,
+        lines: categoryLines(frame, names.length),
+        frame,
+        paint
+      }),
       decorative(
         text(shown, {
           id: 'label-values',
@@ -152,11 +156,7 @@ function build(props: RankedBarsProps, paint: ChartPaint, frame: PlotFrame) {
         scale: scaleBand<string>()
           .domain(shown.map((b) => b.name))
           .padding(0.25),
-        axis: {
-          line: false,
-          ticks: { size: 0 },
-          tickLabels: { fontSize: frame.fontSize }
-        }
+        axis: false
       }
     },
     margin: { left: nameRoom, right: valueRoom },

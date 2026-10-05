@@ -50,6 +50,23 @@ import { StackedBars } from '@oztix/roadie-charts/stacked-bars'
 </div>
 ```
 
+### Long names
+
+On horizontal bars, a long name wraps to two lines within 40% of the width, then ends in an ellipsis.
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Presale and general' source='Oztix sales.' size='md'>
+    <StackedBars
+      data={[['Kelpie Moon Festival of Bonfires and Strange Machines', 'Presale', 820], ['Kelpie Moon Festival of Bonfires and Strange Machines', 'General', 644], ['Driftwood Robot Goes Wandering National Tour', 'Presale', 310], ['Driftwood Robot Goes Wandering National Tour', 'General', 1190]].map(([show, phase, sold]) => ({ show, phase, sold }))}
+      x='show'
+      y='sold'
+      series='phase'
+    />
+  </Chart>
+</div>
+```
+
 ### Vertical
 
 ```tsx-live
@@ -72,6 +89,7 @@ import { StackedBars } from '@oztix/roadie-charts/stacked-bars'
 - Two or three segments use the pair and trio sets, so ticket types keep the same colours everywhere.
 - Segments stack and take colours in the order they first appear in the data. Put the segment that matters most first.
 - Past 6 segments, the smallest roll into Other, which always stacks last. The table keeps a column for every segment.
+- A cut bar name keeps its full text in the table and in the label's tooltip.
 
 ## Accessibility
 

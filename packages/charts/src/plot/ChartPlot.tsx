@@ -11,7 +11,8 @@ import {
   useState
 } from 'react'
 
-import type { ChartRenderContext } from '@tanstack/charts'
+import type { ChartRenderContext, ChartSvgRenderer } from '@tanstack/charts'
+import { renderChartSvg } from '@tanstack/charts/svg'
 import { type ChartPoint, Chart as EngineChart } from '@tanstack/react-charts'
 
 import { cn } from '@oztix/roadie-core/utils'
@@ -21,6 +22,7 @@ import { ChartLegend } from '../ChartLegend'
 import { useChartPatterns } from '../ChartPatterns'
 import { ChartTooltip } from '../ChartTooltip'
 import { ChartState } from './ChartState'
+import { withCategoryTitles } from './categoryLabels'
 import { DRAW_ERROR, draw } from './draw'
 import {
   DEFAULT_PLOT_HEIGHT,
@@ -69,6 +71,9 @@ const ARROW_STEPS: Record<CategoryAxis, Partial<Record<string, Step>>> = {
     ArrowRight: (points, current) => stepWithin(points, current, 1)
   }
 }
+
+const renderSvg: ChartSvgRenderer = (scene, options) =>
+  withCategoryTitles(renderChartSvg(scene, options))
 
 const datumsOf = (points: readonly ChartPoint[]) =>
   points.map((p) => p.datum).filter(isPlotDatum)
@@ -230,6 +235,7 @@ export function ChartPlot<P>({
             !measured && 'opacity-0'
           )}
           definition={drawing.definition}
+          renderSvg={renderSvg}
           height={fillsCard ? undefined : frame.height}
           style={fillsCard ? { height: '100%' } : undefined}
           initialWidth={INITIAL_WIDTH}

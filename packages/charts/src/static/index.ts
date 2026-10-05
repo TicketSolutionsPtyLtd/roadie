@@ -3,6 +3,7 @@ import { renderChartSvg as renderSceneSvg } from '@tanstack/charts/svg'
 import { DEFAULT_ACCENT_HUE, type Mode } from '@oztix/roadie-core/dataviz'
 
 import type { ChartLegendItem } from '../ChartLegend'
+import { withCategoryTitles } from '../plot/categoryLabels'
 import { DRAW_ERROR, draw } from '../plot/draw'
 import { textRoom } from '../plot/endLabels'
 import { LEGEND_ROOM, plotFrame, widthBand } from '../plot/frame'
@@ -171,10 +172,12 @@ export function renderChartSvg<P>(
   const frame = plotFrame(height - legendRoom, band, undefined, width)
   const drawing = draw(chart, props, paint, frame)
   if (!drawing) return emptySvg(DRAW_ERROR, options, fullFrame, paint)
-  const svg = renderSceneSvg(drawing.scene, {
-    ariaLabel: chart.summary(props),
-    idPrefix
-  })
+  const svg = withCategoryTitles(
+    renderSceneSvg(drawing.scene, {
+      ariaLabel: chart.summary(props),
+      idPrefix
+    })
+  )
   const legend = items.length ? legendRow(items, paint, legendRoom) : ''
   return standalone(svg, options, frame, paint, legend, legendRoom)
 }
