@@ -17,7 +17,11 @@ ending the day before. It returns `{ status, range }`: given the data's
 `partial`, and one it misses, or one with an open-ended range, is
 `unavailable`, as its `ResolvedComparison` type says. A period that runs
 past `dataEnd` compares only as far as the data goes, and one that starts
-after it is `unavailable`. `describeDateRange` returns the words to show and the dates they
+after it is `unavailable`. A `Comparison` is `'previous-period'`,
+`'previous-year'` or custom dates; `Comparison<App>` adds an app's own, such
+as `'similar'`, which `isBuiltInComparison` tells apart and
+`resolveComparison` refuses with a `RangeError`, since it has no dates.
+`describeDateRange` returns the words to show and the dates they
 stand for, and `describeComparison` the context line under a delta.
 
 `parseDatePhrase` turns typed text such as "this weekend", "next 7 days",

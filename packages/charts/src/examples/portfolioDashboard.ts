@@ -4,6 +4,7 @@ import type {
 } from '@oztix/roadie-core/dashboard'
 import {
   type ResolvedDateRange,
+  isBuiltInComparison,
   plainDateOf,
   resolveComparison,
   resolveDateRange
@@ -242,9 +243,10 @@ const change = (
 function periodStats({ range, compare }: PortfolioPeriod) {
   const options = { now: NOW, ...portfolioDates }
   const days = daysIn(resolveDateRange(range, options))
-  const compared = compare
-    ? resolveComparison(range, compare, options)
-    : undefined
+  const compared =
+    compare && isBuiltInComparison(compare)
+      ? resolveComparison(range, compare, options)
+      : undefined
   const beforeDays = daysIn(compared?.range ?? null)
   const now = totals(days)
   const before = totals(beforeDays)

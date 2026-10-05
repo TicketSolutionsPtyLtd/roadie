@@ -661,7 +661,8 @@ const PERIOD_JSON = `{
 const PERIOD_FLOW_CODE = `'use client'
 
 function SalesDashboard({ spec }: { spec: DashboardSpec }) {
-  const [period, setPeriod] = useState<DashboardPeriodValue>({
+  // <string>: the period can hold the app's own comparisons too.
+  const [period, setPeriod] = useState<DashboardPeriodValue<string>>({
     range: 'last-month',
     compare: 'previous-period'
   })
@@ -672,9 +673,10 @@ function SalesDashboard({ spec }: { spec: DashboardSpec }) {
     dataEnd: sales.lastDay
   }
   const range = resolveDateRange(period.range, options)
-  const compared = period.compare
-    ? resolveComparison(period.range, period.compare, options)
-    : null
+  const compared =
+    period.compare && isBuiltInComparison(period.compare)
+      ? resolveComparison(period.range, period.compare, options)
+      : null
   const cards = useSalesCards(range, compared?.range)
   const history =
     compared && compared.status !== 'available' ? compared.status : undefined
@@ -1338,9 +1340,9 @@ export default function DashboardsPage() {
             dashboard period
           </Link>
           : one button for the period, with a Compare switch inside for the
-          previous period or the previous year. Comparisons are dates only. A
-          benchmark such as similar venues is the app’s own control, passed as{' '}
-          <Code>periodProps.children</Code>.
+          previous period or the previous year. The app can list its own
+          comparisons, such as similar venues, in{' '}
+          <Code>periodProps.compareOptions</Code>.
         </p>
         <CodePreview language='json'>{PERIOD_JSON}</CodePreview>
         <List
@@ -1354,8 +1356,8 @@ export default function DashboardsPage() {
             <>
               The previous period follows the calendar. This month compares with
               last month, not the 31 days before it, and month to date with last
-              month to the same day. Rolling and custom ranges compare with the
-              same number of days, ending the day before.
+              month to the same day. Rolling ranges and fixed dates compare with
+              the same number of days, ending the day before.
             </>,
             <>
               For data recorded as it happens, such as sales, pass{' '}
@@ -1371,6 +1373,14 @@ export default function DashboardsPage() {
               it ends before it. Set the period’s <Code>history</Code> to that
               status, and comparison deltas give way to “Not enough history” or
               “Nothing to compare”.
+            </>,
+            <>
+              An app’s own comparison, such as <Code>{"'similar'"}</Code>,
+              passes through <Code>compare</Code> as it is. Roadie works out no
+              dates for it, so it counts as no comparison: deltas marked{' '}
+              <Code>comparison: true</Code> hide and <Code>history</Code> is
+              ignored. Give those cards a delta of their own, with a context
+              line that names the benchmark.
             </>,
             <>
               To open a card’s records for the same dates, read{' '}

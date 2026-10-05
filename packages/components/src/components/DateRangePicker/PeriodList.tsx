@@ -34,7 +34,7 @@ export function PeriodList({
   const row = (preset: DateRangePreset) => {
     const current = chosen === preset
     const label = presetLabel(preset, locale)
-    const dates = describeRange(preset.value, context, locale)?.detail
+    const dates = describeRange(preset.value, context, locale, [preset])?.detail
     return (
       <List.Item
         key={presets.indexOf(preset)}

@@ -6,6 +6,7 @@ import {
   type Comparison,
   type DateRangeValue,
   isAbsoluteRange,
+  isBuiltInComparison,
   isRollingRange
 } from '../datetime/ranges'
 import {
@@ -428,6 +429,7 @@ function statusProblems(table: TableData, path: string) {
   })
 }
 
+const BUILT_IN_COMPARISONS = ['previous-period', 'previous-year'] as const
 const OPEN_ENDED: readonly DateRangeValue[] = ['upcoming', 'past', 'ongoing']
 const DATE_TIME_START = /^\d{4}-\d{2}-\d{2}T/
 
@@ -460,7 +462,36 @@ function periodProblems(period: DashboardPeriodSpec | undefined) {
         'Use days, weeks or months. A dashboard period covers whole days'
       )
     )
-  if (compare) {
+  if (!compare) {
+    if (history)
+      problems.push(
+        warning('period.history', 'History applies only with a compare')
+      )
+  } else if (!isBuiltInComparison(compare)) {
+    const lookalike = BUILT_IN_COMPARISONS.find(
+      (name) =>
+        name ===
+        compare
+          .replace(/([a-z])([A-Z])/g, '$1-$2')
+          .toLowerCase()
+          .replace(/[^a-z]+/g, '-')
+          .replace(/^-|-$/g, '')
+    )
+    if (lookalike)
+      problems.push(
+        warning(
+          'period.compare',
+          `"${compare}" is an app's own comparison, with no dates. Did you mean "${lookalike}"?`
+        )
+      )
+    if (history)
+      problems.push(
+        warning(
+          'period.history',
+          `History applies only to Roadie's comparisons, not "${compare}"`
+        )
+      )
+  } else {
     problems.push(...absoluteProblems('period.compare', compare))
     if (OPEN_ENDED.includes(range))
       problems.push(
@@ -469,10 +500,7 @@ function periodProblems(period: DashboardPeriodSpec | undefined) {
           `"${String(range)}" has no fixed length, so nothing compares with it`
         )
       )
-  } else if (history)
-    problems.push(
-      warning('period.history', 'History applies only with a compare')
-    )
+  }
   return problems
 }
 
@@ -487,6 +515,13 @@ function deltaProblems(
       error(
         `${path}.delta.comparison`,
         'Add a period to the dashboard, so this delta has something to compare with'
+      )
+    ]
+  if (period.compare && !isBuiltInComparison(period.compare))
+    return [
+      warning(
+        `${path}.delta.comparison`,
+        `"${period.compare}" is the app's own comparison, so this delta hides. Leave out comparison and give the card its own context`
       )
     ]
   return card.context && period.compare
