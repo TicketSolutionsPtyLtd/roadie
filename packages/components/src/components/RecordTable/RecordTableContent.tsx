@@ -133,7 +133,7 @@ export function RecordTableContent({
   // In its own box, one viewport scrolls both ways; otherwise only the rows scroll sideways.
   const boxed = fill || Boolean(maxHeight)
   const contentRef = useRef<HTMLDivElement>(null)
-  const { top: headTop } = useStickyTop(headRef, toolbar, boxed)
+  const headTop = useStickyTop(headRef, toolbar, boxed)
   // On the table, so the head and pinned cells inherit it.
   useSurface(contentRef, boxed)
   const allColumns = config.columns
@@ -154,7 +154,7 @@ export function RecordTableContent({
     const roles = narrowParts(columns)
     return narrow === 'cards' ? cardParts(roles) : roles
   }, [columns, narrow])
-  const { top: frameTop } = useStickyTop(frameRef, toolbar, boxed)
+  const frameTop = useStickyTop(frameRef, toolbar, boxed)
   useKeepFocusShown(frameRef, boxed)
   useLayoutFocus(frameRef, narrow ?? 'wide', boxed)
   // Narrow rows select only through Select mode; wide rows have checkboxes and keep it.
@@ -471,7 +471,15 @@ export function RecordTableContent({
                         // Still read under the bar, so cells keep their headers.
                         barShown
                           ? 'sr-only'
-                          : cn(cellClass(column), headerTextClass)
+                          : cn(
+                              cellClass(column),
+                              headerTextClass,
+                              // The bulk slot after it is the row's last child.
+                              hasBulkSlot &&
+                                !hasRowActions &&
+                                index === columns.length - 1 &&
+                                'pe-(--content-inset)'
+                            )
                       }
                       style={pinStyle(layout.pinnedStart[index])}
                     >

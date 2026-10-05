@@ -18,7 +18,9 @@ export type ColumnLayout = ColumnTier & {
   pinnedStart: (number | undefined)[]
   /** Each column's priority in effect: none for a pinned column or the title, which carries the row link. */
   priority: (1 | 2 | 3 | undefined)[]
-  /** The tiers at which each column is the last cell shown, so it drops its end padding. */
+  /** The tiers at which each column is the first cell shown, so it takes the start inset. */
+  firstAt: (number[] | undefined)[]
+  /** The tiers at which each column is the last cell shown, so it takes the end inset. */
   lastAt: (number[] | undefined)[]
 }
 
@@ -163,6 +165,14 @@ export function columnLayout(
       { select, actions }
     )
   })
+  const firstAt: (number[] | undefined)[] = columns.map(() => undefined)
+  // The select cell starts every row, so no column needs to.
+  if (!select)
+    for (const tier of TIERS) {
+      const first = priority.findIndex((level) => shownAt(level, tier))
+      if (first <= 0) continue
+      firstAt[first] = [...(firstAt[first] ?? []), tier]
+    }
   const lastAt: (number[] | undefined)[] = columns.map(() => undefined)
   // The actions cell ends every row, so no column needs to.
   if (!actions)
@@ -171,7 +181,7 @@ export function columnLayout(
       if (last === -1 || last === columns.length - 1) continue
       lastAt[last] = [...(lastAt[last] ?? []), tier]
     }
-  return { ...tiers[0]!, tiers, pinnedStart, priority, lastAt }
+  return { ...tiers[0]!, tiers, pinnedStart, priority, firstAt, lastAt }
 }
 
 /** A cell's priority attributes, which record-table.css hides and trims by. */
@@ -181,6 +191,7 @@ export const priorityProps = (
   index: number
 ) => ({
   'data-priority': layout.priority[index],
+  'data-priority-start': layout.firstAt[index]?.join(' '),
   'data-priority-end': layout.lastAt[index]?.join(' ')
 })
 

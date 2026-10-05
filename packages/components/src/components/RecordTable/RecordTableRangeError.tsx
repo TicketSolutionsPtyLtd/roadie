@@ -93,7 +93,7 @@ export function RecordTableRangeError({
       <div
         role='cell'
         aria-colspan={columns}
-        className='sticky start-0 flex items-center gap-2'
+        className='sticky start-0 flex items-center gap-2 ps-(--content-inset)'
       >
         <RangeErrorMessage />
       </div>

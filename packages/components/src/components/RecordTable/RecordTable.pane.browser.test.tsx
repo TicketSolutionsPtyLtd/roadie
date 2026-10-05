@@ -38,12 +38,18 @@ const fits = [
   ])
 ]
 
-function ShowsPane({ layouts }: { layouts: typeof wide }) {
+type Options = { slot?: string; bulk?: boolean; selectable?: boolean }
+
+function ShowsPane({
+  layouts,
+  bulk = false,
+  selectable = true
+}: Options & { layouts: typeof wide }) {
   const records = useRecords({
     data: testShows(80),
     fields: showFields,
     getRowId: (row) => row.id,
-    selectable: true
+    selectable
   })
   return (
     <Records.Provider records={records} layouts={layouts} caption='Shows'>
@@ -54,6 +60,11 @@ function ShowsPane({ layouts }: { layouts: typeof wide }) {
         <Pane.Body>
           <Records.Toolbar />
           <Records.Content />
+          {bulk && (
+            <Records.BulkActions
+              actions={[{ label: 'Archive', onAction: () => {} }]}
+            />
+          )}
         </Pane.Body>
       </Pane>
     </Records.Provider>
@@ -63,12 +74,12 @@ function ShowsPane({ layouts }: { layouts: typeof wide }) {
 async function renderAt(
   width: number,
   layouts: typeof wide,
-  slotName = 'record-table-row'
+  { slot: slotName = 'record-table-row', ...options }: Options = {}
 ) {
   await page.viewport(width, 800)
   const { container } = render(
     <div style={{ height: 640, width, display: 'grid' }}>
-      <ShowsPane layouts={layouts} />
+      <ShowsPane layouts={layouts} {...options} />
     </div>
   )
   await expect.poll(() => slot(container, slotName)).not.toBeNull()
@@ -155,37 +166,85 @@ describe.each([
   })
 })
 
-describe('An overflowing table in a pane, scrolled sideways', () => {
-  it('keeps the first column lined up with the search, over the columns that pass under it', async () => {
+const contentRight = (element: Element) =>
+  rect(element).right - parseFloat(getComputedStyle(element).paddingRight)
+
+describe('A table in a pane measures the room its columns get', () => {
+  it('keeps its frame inside the pane’s inset', async () => {
     const container = await renderAt(1280, wide)
-    await scrollTable(container, 400, 1500)
-    const row = [
-      ...container.querySelectorAll('[data-slot=record-table-row]')
-    ].find(
-      (element) =>
-        rect(element).top > rect(slot(container, 'record-table-head')).bottom
-    )!
-    const cell = row.firstElementChild!
-    expect(contentLeft(cell)).toBeCloseTo(searchLeft(container), 0)
-    const gutter = innerEdges(container).left + 4
-    expect(hit(gutter, middle(row))?.closest('[role=cell]')).toBe(cell)
-    expect(
-      hit(gutter, middle(slot(container, 'record-table-head-row')))?.closest(
-        '[role=columnheader]'
-      )
-    ).toBe(firstHeader(container))
+    const frame = rect(slot(container, 'record-table-frame'))
+    expect(frame.left).toBeCloseTo(searchLeft(container), 0)
+    expect(frame.right).toBeCloseTo(
+      contentRight(slot(container, 'records-toolbar')),
+      0
+    )
+  })
+
+  it('turns narrow under 40rem of room, not of the pane', async () => {
+    await renderAt(668, wide, { slot: 'record-table-list-row' })
+  })
+
+  it('ends the last header with its cells while bulk actions wait', async () => {
+    const container = await renderAt(1280, fits, { bulk: true })
+    const header = slot(container, 'record-table-head-row').querySelectorAll(
+      '[role=columnheader]:not([data-slot=record-table-bulk-slot])'
+    )
+    const cells = slot(container, 'record-table-row').children
+    expect(contentRight(header[header.length - 1]!)).toBeCloseTo(
+      contentRight(cells[cells.length - 1]!),
+      0
+    )
   })
 })
+
+describe.each([true, false])(
+  'An overflowing table in a pane, selectable %s, scrolled sideways',
+  (selectable) => {
+    async function scrolled() {
+      const container = await renderAt(1280, wide, { selectable })
+      await scrollTable(container, 400, 1500)
+      const head = rect(slot(container, 'record-table-head'))
+      const row = [
+        ...container.querySelectorAll('[data-slot=record-table-row]')
+      ].find((element) => rect(element).top > head.bottom)!
+      return { container, row }
+    }
+
+    it('keeps the first column lined up with the search', async () => {
+      const { container, row } = await scrolled()
+      expect(contentLeft(row.firstElementChild!)).toBeCloseTo(
+        searchLeft(container),
+        0
+      )
+    })
+
+    it('passes the scrolled columns under the pinned ones', async () => {
+      const { container, row } = await scrolled()
+      const cells = [...row.children]
+      const pinned = cells[selectable ? 1 : 0]!
+      const gutter = innerEdges(container).left + 4
+      expect(hit(gutter, middle(row))?.closest('[role=cell]')).toBe(cells[0])
+      expect(
+        hit(gutter, middle(slot(container, 'record-table-head-row')))?.closest(
+          '[role=columnheader]'
+        )
+      ).toBe(firstHeader(container))
+      if (selectable)
+        expect(rect(pinned).left).toBeCloseTo(rect(cells[0]!).right, 0)
+      expect(
+        hit(rect(pinned).left + 2, middle(row))?.closest('[role=cell]')
+      ).toBe(pinned)
+    })
+  }
+)
 
 describe.each([390, 360, 1280])(
   'A stuck toolbar in a pane at %ipx',
   (width) => {
     it('paints the pane’s margins beside it and down to the rows', async () => {
-      const container = await renderAt(
-        width,
-        wide,
-        width < 640 ? 'record-table-list-row' : 'record-table-row'
-      )
+      const container = await renderAt(width, wide, {
+        slot: width < 640 ? 'record-table-list-row' : 'record-table-row'
+      })
       slot(container, 'pane-viewport').scrollTop = 1500
       await nudgeFrames()
       const toolbar = slot(container, 'records-toolbar')
@@ -213,7 +272,9 @@ describe.each([390, 360, 1280])(
 
 describe.each([390, 360])('Narrow rows in a pane at %ipx', (width) => {
   it('keep the pane’s inset', async () => {
-    const container = await renderAt(width, wide, 'record-table-list-row')
+    const container = await renderAt(width, wide, {
+      slot: 'record-table-list-row'
+    })
     expect(rect(slot(container, 'record-table-frame')).left).toBeCloseTo(
       searchLeft(container),
       0

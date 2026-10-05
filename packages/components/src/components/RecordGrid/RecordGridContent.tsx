@@ -94,7 +94,7 @@ export function RecordGridContent({
   const rowsSurvivor = useSurvivor('rows')
   const frameRef = useRef<HTMLDivElement>(null)
   const boxed = fill || Boolean(maxHeight)
-  const { top: progressTop } = useStickyTop(frameRef, toolbar, boxed)
+  const progressTop = useStickyTop(frameRef, toolbar, boxed)
   const { fields, view } = records
   const parts = useMemo(
     () => gridParts(config, fields, view.layout),

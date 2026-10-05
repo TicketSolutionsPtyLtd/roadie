@@ -93,7 +93,22 @@ describe('columnLayout', () => {
     warn.mockRestore()
   })
 
-  it('marks the last shown cell at each tier, so it drops its end padding', () => {
+  it('marks the first shown cell at each tier, so it takes the start inset', () => {
+    const columns = [
+      column('a', { priority: 3 }),
+      column('b', { priority: 2 }),
+      column('c')
+    ]
+    expect(
+      columnLayout(columns, columnWidths(columns, [], UTC)).firstAt
+    ).toEqual([undefined, [3], [1, 2]])
+    expect(
+      columnLayout(columns, columnWidths(columns, [], UTC), { select: true })
+        .firstAt
+    ).toEqual([undefined, undefined, undefined])
+  })
+
+  it('marks the last shown cell at each tier, so it takes the end inset', () => {
     const columns = [
       column('a'),
       column('b', { priority: 2 }),

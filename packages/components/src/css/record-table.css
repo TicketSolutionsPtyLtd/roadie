@@ -24,9 +24,14 @@
     display: none;
   }
 
-  /* Cells drop end padding with `last:`, which a hidden last column defeats,
-     so each row marks its last shown cell. A `:has(~ …)` here would have
-     Chromium re-check every element's siblings on any change. */
+  /* Cells take the inset with `first:` and `last:`, which a hidden first or
+     last column defeats, so each row marks its first and last shown cells. A
+     `:has(~ …)` here would have Chromium re-check every element's siblings on
+     any change. */
+  [data-slot='record-table-content'] [data-priority-start~='3'] {
+    padding-inline-start: var(--content-inset);
+  }
+
   [data-slot='record-table-content'] [data-priority-end~='3'] {
     padding-inline-end: var(--content-inset);
   }
@@ -42,6 +47,10 @@
     display: none;
   }
 
+  [data-slot='record-table-content'] [data-priority-start~='2'] {
+    padding-inline-start: var(--content-inset);
+  }
+
   [data-slot='record-table-content'] [data-priority-end~='2'] {
     padding-inline-end: var(--content-inset);
   }
@@ -55,6 +64,10 @@
 
   [data-slot='record-table-content'] [data-priority='1'] {
     display: none;
+  }
+
+  [data-slot='record-table-content'] [data-priority-start~='1'] {
+    padding-inline-start: var(--content-inset);
   }
 
   [data-slot='record-table-content'] [data-priority-end~='1'] {

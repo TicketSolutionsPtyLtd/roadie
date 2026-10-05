@@ -46,7 +46,7 @@ export function RecordsToolbar<Row extends object>({
 }: RecordsToolbarProps<Row>) {
   const { records, toolbar, setToolbar } = useRecordsContext()
   const ref = useRef<HTMLDivElement>(null)
-  const { top, inPane } = useStickyTop(ref, null)
+  const top = useStickyTop(ref, null)
   useSurface(ref)
 
   // The content's header stacks under this height while both are stuck.
@@ -70,8 +70,7 @@ export function RecordsToolbar<Row extends object>({
       observer.disconnect()
       setToolbar((held) => (held?.element === element ? null : held))
     }
-    // inPane: the pane's padding lands a render later, before the observer would see it.
-  }, [setToolbar, inPane])
+  }, [setToolbar])
   // Takes the place another toolbar left, which this one's own effect won't notice.
   useLayoutEffect(() => {
     const element = ref.current
@@ -83,14 +82,11 @@ export function RecordsToolbar<Row extends object>({
     <div
       ref={ref}
       data-slot='records-toolbar'
-      data-in-pane={inPane || undefined}
       style={{ top }}
       onKeyDown={leaveSelectOnEscape(records)}
       className={cn(
         // Its padding takes the place of the gap below, so the surface reaches the content while stuck.
         'sticky z-docked mb-[calc(var(--records-gap,0px)*-1)] flex flex-wrap items-start gap-2 pb-3',
-        // Clears the pane header's shadow, at rest and while stuck.
-        'data-in-pane:pt-3',
         surfaceClass,
         className
       )}
