@@ -4,14 +4,15 @@ import { type RefObject, useLayoutEffect, useState } from 'react'
 
 export const NARROW_BELOW = 40
 
-// The room inside, so a toolbar that paints a pane's margins measures its
-// controls' room. clientWidth leaves out a scrollbar and ignores transforms.
+// The room inside, so a toolbar that paints a pane's margins measures its controls' room.
 function contentWidth(element: HTMLElement) {
   const style = getComputedStyle(element)
   return (
-    element.clientWidth -
+    element.getBoundingClientRect().width -
     parseFloat(style.paddingLeft) -
-    parseFloat(style.paddingRight)
+    parseFloat(style.paddingRight) -
+    parseFloat(style.borderLeftWidth) -
+    parseFloat(style.borderRightWidth)
   )
 }
 
