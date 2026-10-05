@@ -168,12 +168,10 @@ describe('Category labels on tight rows', () => {
       <RankedBars data={data} x='show' y='perDay' />,
       320
     )
-    const card = container
-      .querySelector('[data-slot=data-card]')!
-      .getBoundingClientRect()
+    const svg = container.querySelector('svg.ts-chart')!.getBoundingClientRect()
     for (const label of container.querySelectorAll(LABELS))
       expect(label.getBoundingClientRect().left).toBeGreaterThanOrEqual(
-        card.left
+        svg.left - 0.5
       )
   })
 

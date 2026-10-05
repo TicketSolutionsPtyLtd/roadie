@@ -132,6 +132,7 @@ function build(props: RankedBarsProps, paint: ChartPaint, frame: PlotFrame) {
         x: domain[0],
         room: nameRoom,
         ...categoryFit(frame, names.length),
+        keep: asList(props.highlight),
         frame,
         paint
       }),

@@ -9,6 +9,7 @@ import {
   categoryRoom,
   fitLines,
   labelWidth,
+  thinNames,
   withCategoryTitles
 } from './categoryLabels'
 import { plotFrame } from './frame'
@@ -89,9 +90,11 @@ describe('labelWidth', () => {
   })
 
   it('counts capitals wider', () => {
-    expect(labelWidth('PRESALE', frame)).toBeGreaterThan(
-      labelWidth('presale', frame)
-    )
+    expect(labelWidth('PRESALE', frame)).toBe(Math.ceil(7 * 12 * 0.72))
+  })
+
+  it('counts CJK punctuation and emoji a full em', () => {
+    expect(labelWidth('ー「」、。🎸', frame)).toBe(72)
   })
 
   it('counts CJK characters a full em', () => {
@@ -114,11 +117,44 @@ describe('categoryFit', () => {
     })
   })
 
+  it('draws one name when the axis leaves the rows no height', () => {
+    expect(categoryFit(plotFrame(28, 'default'), 5, 28)).toEqual({
+      lines: 1,
+      every: 5
+    })
+  })
+
   it('draws every nth name when rows are too tight for one line', () => {
     expect(categoryFit(plotFrame(220, 'default'), 24, 28)).toEqual({
       lines: 1,
       every: 2
     })
+  })
+})
+
+describe('thinNames', () => {
+  const names = Array.from({ length: 10 }, (_, i) => `Show ${i + 1}`)
+  const gaps = (shown: string[]) =>
+    shown
+      .map((name) => names.indexOf(name))
+      .slice(1)
+      .map((at, i) => at - names.indexOf(shown[i]!))
+
+  it('keeps every name when every is 1', () => {
+    expect(thinNames(names, 1, [])).toEqual(names)
+  })
+
+  it('keeps the first and last rows, never closer than every', () => {
+    const shown = thinNames(names, 3, [])
+    expect(shown[0]).toBe('Show 1')
+    expect(shown.at(-1)).toBe('Show 10')
+    for (const gap of gaps(shown)) expect(gap).toBeGreaterThanOrEqual(3)
+  })
+
+  it('keeps a highlighted name', () => {
+    const shown = thinNames(names, 3, ['Show 6'])
+    expect(shown).toContain('Show 6')
+    for (const gap of gaps(shown)) expect(gap).toBeGreaterThanOrEqual(3)
   })
 })
 
@@ -220,4 +256,30 @@ describe('category labels in a static file', () => {
       expect(long[1]!.line).toMatch(/…$/)
     }
   )
+})
+
+describe('thinned category labels in a chart', () => {
+  it('keep the highlighted bar and Other named', () => {
+    const data = Array.from({ length: 24 }, (_, i) => ({
+      show: `Lampshade Disco ${i + 1}`,
+      perDay: 100 - i
+    }))
+    const svg = renderChartSvg(
+      rankedBars,
+      {
+        data,
+        x: 'show',
+        y: 'perDay',
+        limit: 20,
+        highlight: 'Lampshade Disco 12'
+      },
+      { mode: 'light', width: 600, height: 180 }
+    )
+    const titles = [...svg.matchAll(/<title>([^<]*)<\/title>/g)].map(
+      (m) => m[1]
+    )
+    expect(titles.length).toBeLessThan(20)
+    expect(titles).toContain('Lampshade Disco 12')
+    expect(titles).toContain('Other')
+  })
 })

@@ -22,7 +22,7 @@ const ELLIPSIS = '…'
 const MARK_ID = 'label-category'
 
 const WIDE =
-  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\uFF00-\uFFEF]/u
+  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Extended_Pictographic}\u3000-\u303F\u30A0-\u30FF\u3200-\u33FF\uFE30-\uFE4F\uFF00-\uFFEF]/u
 const CAPITAL = /\p{Lu}/u
 const EM = { wide: 1, capital: 0.72, other: 0.62 }
 
@@ -65,9 +65,33 @@ export function categoryFit(
 ): CategoryFit {
   const step = (frame.height - reserved) / Math.max(rows, 1)
   const lineHeight = frame.fontSize * LINE_HEIGHT
+  if (!(step > 0)) return { lines: 1, every: Math.max(rows, 1) }
   if (step >= MAX_LINES * lineHeight + LINE_GAP)
     return { lines: MAX_LINES, every: 1 }
   return { lines: 1, every: Math.max(1, Math.ceil(lineHeight / step)) }
+}
+
+/**
+ * The names to draw when only every nth row has room: the kept names first,
+ * such as a highlight, then the last and first rows, then every nth between,
+ * never two closer than `every` rows.
+ */
+export function thinNames(
+  names: readonly string[],
+  every: number,
+  keep: readonly string[]
+) {
+  if (every <= 1) return [...names]
+  const last = names.length - 1
+  const wanted = [
+    ...names.flatMap((name, i) => (keep.includes(name) ? [i] : [])),
+    last,
+    ...names.map((_, i) => i)
+  ]
+  const chosen: number[] = []
+  for (const i of wanted)
+    if (chosen.every((at) => Math.abs(at - i) >= every)) chosen.push(i)
+  return chosen.sort((a, b) => a - b).map((i) => names[i]!)
 }
 
 // By code point, so a cut never splits an emoji into invalid text.
@@ -122,6 +146,8 @@ type CategoryLabelOptions = CategoryFit & {
   room: number
   frame: PlotFrame
   paint: ChartPaint
+  /** Names that survive thinning, such as a highlight. */
+  keep?: readonly string[]
 }
 
 /**
@@ -131,10 +157,10 @@ type CategoryLabelOptions = CategoryFit & {
  */
 export function categoryLabelMark(
   names: readonly string[],
-  { x, room, lines, every, frame, paint }: CategoryLabelOptions
+  { x, room, lines, every, frame, paint, keep = [] }: CategoryLabelOptions
 ): ChartMark {
   const lineHeight = frame.fontSize * LINE_HEIGHT
-  const shown = names.filter((_, i) => i % every === 0)
+  const shown = thinNames(names, every, keep)
   const data = shown.flatMap((name) => {
     const fitted = fitLines(name, room - PADDING, frame, lines)
     const top = (-(fitted.length - 1) * lineHeight) / 2
