@@ -161,6 +161,58 @@ describe('DataTable never clips', () => {
   })
 })
 
+describe('DataTable status with a secondary line', () => {
+  const statusColumns: DataTableColumn[] = [
+    { key: 'show', header: 'Show', kind: 'text', pin: true },
+    {
+      key: 'status',
+      header: 'Status',
+      kind: 'status',
+      status: { ahead: { intent: 'success' } },
+      secondaryKey: 'forecast'
+    }
+  ]
+  const statusRows = [
+    {
+      show: 'Ball Park Music',
+      status: 'ahead',
+      forecast: 'forecast 640 of 600, well past the target for this show'
+    }
+  ]
+
+  it('keeps the badge its own width, with the line under it', () => {
+    const { container } = render(
+      <div style={{ width: 800 }}>
+        <DataTable columns={statusColumns} rows={statusRows} />
+      </div>
+    )
+    const badge = container.querySelector('[data-slot=badge]')!
+    const line = badge.nextElementSibling!
+    const badgeBox = badge.getBoundingClientRect()
+    const lineBox = line.getBoundingClientRect()
+    expect(badgeBox.width).toBeLessThan(lineBox.width / 2)
+    expect(badgeBox.left).toBeCloseTo(lineBox.left, 0)
+    expect(lineBox.top).toBeGreaterThanOrEqual(badgeBox.bottom - 0.5)
+  })
+
+  it('wraps a long line to fit a 326px card', () => {
+    const { container } = render(
+      <div style={{ width: 326 }}>
+        <DataTable columns={statusColumns} rows={statusRows} />
+      </div>
+    )
+    const scroller = container.querySelector<HTMLElement>(
+      '[data-slot=data-table-scroller]'
+    )!
+    const line =
+      container.querySelector('[data-slot=badge]')!.nextElementSibling!
+    expect(line.getBoundingClientRect().height).toBeGreaterThan(
+      parseFloat(getComputedStyle(line).lineHeight) * 1.5
+    )
+    expect(scroller.scrollWidth).toBeLessThanOrEqual(scroller.clientWidth)
+  })
+})
+
 describe('DataTable row links', () => {
   const linkColumns: DataTableColumn[] = [
     { key: 'show', header: 'Show', kind: 'text', pin: true },

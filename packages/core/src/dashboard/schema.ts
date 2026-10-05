@@ -34,6 +34,7 @@ const column = z.strictObject({
   total: z.boolean().optional(),
   priority: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
   pin: z.boolean().optional(),
+  /** A text or status column's second line, read from this key. */
   secondaryKey: z.string().optional(),
   emptyText: z.string().optional(),
   /** A status column's keys, each with its intent and label. */

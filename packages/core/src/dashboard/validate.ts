@@ -379,6 +379,19 @@ function plotProblems(plot: ChartPlot, path: string) {
   return problems
 }
 
+function secondaryProblems(table: TableData, path: string) {
+  return table.columns.flatMap((column, i) =>
+    column.secondaryKey && column.kind !== 'text' && column.kind !== 'status'
+      ? [
+          warning(
+            `${path}[${i}].secondaryKey`,
+            'Only a text or status column shows a second line'
+          )
+        ]
+      : []
+  )
+}
+
 function statusProblems(table: TableData, path: string) {
   return table.columns.flatMap((column, i) => {
     const at = `${path}[${i}].status`
@@ -550,9 +563,15 @@ function cardProblems(
     )
 
   if (card.kind === 'table')
-    problems.push(...statusProblems(card, `${path}.columns`))
+    problems.push(
+      ...statusProblems(card, `${path}.columns`),
+      ...secondaryProblems(card, `${path}.columns`)
+    )
   if (card.kind === 'chart' && card.table)
-    problems.push(...statusProblems(card.table, `${path}.table.columns`))
+    problems.push(
+      ...statusProblems(card.table, `${path}.table.columns`),
+      ...secondaryProblems(card.table, `${path}.table.columns`)
+    )
 
   problems.push(...copyProblems(path, 'label', card.label))
   problems.push(...copyProblems(path, 'context', card.context))
