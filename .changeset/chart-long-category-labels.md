@@ -4,8 +4,13 @@
 
 Keep long category names inside the card on `RankedBars`, horizontal
 `StackedBars` and `Funnel`. The name column takes what the longest name needs,
-up to 40% of the plot (at least 72px, at most 240px). A longer name wraps to
-two lines, or one when rows are too tight for two, then ends in an ellipsis.
-Each label carries its full name in a `<title>`, live and in `renderChartSvg`,
-and the table and summary keep it whole. `renderSmallMultiplesSvg` cuts a
-caption that would run into the next panel the same way.
+up to 40% of the chart's width (never capped below 72px or above 240px, which
+replaces RankedBars' old 180px cap). A longer name wraps to two lines, or one
+when rows are too tight for two, then ends in an ellipsis. On rows too tight
+for one line, names are thinned so none overlap, as the old axis did. Widths are
+estimated wider for capitals and CJK. Each label carries its full name in a
+`<title>`, live and in `renderChartSvg`, and the table and summary keep it
+whole. Names now draw at the full label colour rather than the axis's muted
+one, and RankedBars and Funnel bars use the height the axis used to reserve.
+`renderSmallMultiplesSvg` cuts a caption that would run into the next panel
+the same way.

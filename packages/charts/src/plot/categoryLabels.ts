@@ -2,7 +2,6 @@ import { text } from '@tanstack/charts'
 import type { ChartMark } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
 
-import { textRoom, textWidth } from './endLabels'
 import { escapeXml } from './svg'
 import type { ChartPaint, PlotFrame } from './types'
 
@@ -12,27 +11,63 @@ const ROOM_SHARE = 0.4
 const MIN_ROOM = 72
 // About 32 characters at 12px: most names fit on one line before bars shrink.
 const MAX_ROOM = 240
-const LABEL_GAP = 8
+const LABEL_GAP = 4
+// Width estimates can run a pixel or two short of the painted glyphs.
+const EDGE_SLACK = 4
+const PADDING = LABEL_GAP + EDGE_SLACK
 const LINE_HEIGHT = 1.2
 const LINE_GAP = 2
 const MAX_LINES = 2
 const ELLIPSIS = '…'
 const MARK_ID = 'label-category'
 
-/** The label column's width, gap included: the longest name, within a cap. */
+const WIDE =
+  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\uFF00-\uFFEF]/u
+const CAPITAL = /\p{Lu}/u
+const EM = { wide: 1, capital: 0.72, other: 0.62 }
+
+/**
+ * The shared 0.62em estimate, widened for capitals and CJK, since a label
+ * that runs wide leaves the card rather than overlapping a neighbour.
+ */
+export function labelWidth(text: string, frame: PlotFrame) {
+  let ems = 0
+  for (const char of text)
+    ems += WIDE.test(char)
+      ? EM.wide
+      : CAPITAL.test(char)
+        ? EM.capital
+        : EM.other
+  return Math.ceil(ems * frame.fontSize)
+}
+
 export function categoryRoom(names: readonly string[], frame: PlotFrame) {
   const cap = Math.min(MAX_ROOM, Math.max(MIN_ROOM, frame.width * ROOM_SHARE))
-  return Math.min(textRoom(names, frame, LABEL_GAP), cap)
+  const longest = Math.max(0, ...names.map((name) => labelWidth(name, frame)))
+  return Math.min(longest + PADDING, cap)
+}
+
+export type CategoryFit = {
+  /** Lines a name may wrap to. */
+  lines: number
+  /** Draws every nth name, when rows are too tight for one line each. */
+  every: number
 }
 
 /**
- * Two lines a row when each row's band has room for them, else one.
- * `reserved` is the plot height an axis takes from the bands.
+ * Two lines a row when each row's band has room for them, else one, else
+ * every nth name. `reserved` is the plot height an axis takes from the bands.
  */
-export function categoryLines(frame: PlotFrame, rows: number, reserved = 0) {
+export function categoryFit(
+  frame: PlotFrame,
+  rows: number,
+  reserved = 0
+): CategoryFit {
   const step = (frame.height - reserved) / Math.max(rows, 1)
-  const twoLines = MAX_LINES * frame.fontSize * LINE_HEIGHT + LINE_GAP
-  return step >= twoLines ? MAX_LINES : 1
+  const lineHeight = frame.fontSize * LINE_HEIGHT
+  if (step >= MAX_LINES * lineHeight + LINE_GAP)
+    return { lines: MAX_LINES, every: 1 }
+  return { lines: 1, every: Math.max(1, Math.ceil(lineHeight / step)) }
 }
 
 // By code point, so a cut never splits an emoji into invalid text.
@@ -42,7 +77,7 @@ const prefix = (chars: readonly string[], end: number) =>
 function cut(text: string, width: number, frame: PlotFrame) {
   const chars = Array.from(text)
   let end = chars.length
-  while (end > 1 && textWidth(prefix(chars, end) + ELLIPSIS, frame) > width)
+  while (end > 1 && labelWidth(prefix(chars, end) + ELLIPSIS, frame) > width)
     end--
   return prefix(chars, end).trimEnd() + ELLIPSIS
 }
@@ -52,20 +87,19 @@ function longestPrefix(text: string, width: number, frame: PlotFrame) {
   let end = 1
   while (
     end < chars.length &&
-    textWidth(prefix(chars, end + 1), frame) <= width
+    labelWidth(prefix(chars, end + 1), frame) <= width
   )
     end++
   return prefix(chars, end)
 }
 
-/** Wraps a name at words into `maxLines`, then ends it with an ellipsis. */
 export function fitLines(
   label: string,
   width: number,
   frame: PlotFrame,
   maxLines: number
 ): string[] {
-  const fits = (line: string) => textWidth(line, frame) <= width
+  const fits = (line: string) => labelWidth(line, frame) <= width
   const lines: string[] = []
   let rest = label.trim().replace(/\s+/g, ' ')
   while (lines.length < maxLines - 1 && !fits(rest)) {
@@ -82,11 +116,10 @@ export function fitLines(
   return [...lines, fits(rest) ? rest : cut(rest, width, frame)]
 }
 
-type CategoryLabelOptions = {
+type CategoryLabelOptions = CategoryFit & {
   /** The value at the plot's left edge. */
   x: number
   room: number
-  lines: number
   frame: PlotFrame
   paint: ChartPaint
 }
@@ -98,11 +131,12 @@ type CategoryLabelOptions = {
  */
 export function categoryLabelMark(
   names: readonly string[],
-  { x, room, lines, frame, paint }: CategoryLabelOptions
+  { x, room, lines, every, frame, paint }: CategoryLabelOptions
 ): ChartMark {
   const lineHeight = frame.fontSize * LINE_HEIGHT
-  const data = names.flatMap((name) => {
-    const fitted = fitLines(name, room - LABEL_GAP, frame, lines)
+  const shown = names.filter((_, i) => i % every === 0)
+  const data = shown.flatMap((name) => {
+    const fitted = fitLines(name, room - PADDING, frame, lines)
     const top = (-(fitted.length - 1) * lineHeight) / 2
     return fitted.map((line, i) => ({
       name,
@@ -139,18 +173,22 @@ const ENTITIES: Record<string, string> = {
 const unescapeXml = (text: string) =>
   text.replace(/&(amp|lt|gt|quot|#39);/g, (entity) => ENTITIES[entity]!)
 
+// The characters the engine's own escaping swaps for U+FFFD, which XML forbids.
+// eslint-disable-next-line no-control-regex
+const UNSAFE = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]|\p{Cs}/gu
+
 // The engine writes a key as `<mark>:<z>:string:<length>:<key>`, key last.
 const CATEGORY_TEXT = new RegExp(
   `<text data-ts-key="${MARK_ID}:[^"]*?:string:\\d+:([^"]*)"[^>]*>`,
   'g'
 )
 
-/** Puts each category label's full name in a `<title>`, for a cut name. */
+/** Puts each category label's full name in a `<title>`. */
 export function withCategoryTitles(svg: string) {
   return svg.replace(CATEGORY_TEXT, (tag, encoded: string) => {
     try {
       const [name] = JSON.parse(unescapeXml(encoded)) as [string]
-      return `${tag}<title>${escapeXml(name)}</title>`
+      return `${tag}<title>${escapeXml(name.replace(UNSAFE, '\uFFFD'))}</title>`
     } catch {
       return tag
     }

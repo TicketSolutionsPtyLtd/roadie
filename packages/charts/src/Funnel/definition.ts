@@ -6,8 +6,8 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { formatValue } from '@oztix/roadie-core/dataviz'
 
 import {
+  categoryFit,
   categoryLabelMark,
-  categoryLines,
   categoryRoom
 } from '../plot/categoryLabels'
 import { textRoom } from '../plot/endLabels'
@@ -77,7 +77,7 @@ function build(props: FunnelProps, paint: ChartPaint, frame: PlotFrame) {
       categoryLabelMark(labels, {
         x: domain[0],
         room: stepRoom,
-        lines: categoryLines(frame, labels.length),
+        ...categoryFit(frame, labels.length),
         frame,
         paint
       }),

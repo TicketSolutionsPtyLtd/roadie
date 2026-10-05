@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { textWidth } from '../plot/endLabels'
+import { labelWidth } from '../plot/categoryLabels'
 import { plotFrame } from '../plot/frame'
 import { gatesExample } from './examples'
 import { renderSmallMultiplesSvg } from './static'
@@ -54,7 +54,7 @@ describe('renderSmallMultiplesSvg captions', () => {
     expect(caption?.[2]).toMatch(/^Kelpie Moon.*…$/)
     const panelWidth = (640 - 16) / 2
     expect(
-      textWidth(caption![2]!, plotFrame(160, 'default'))
+      labelWidth(caption![2]!, plotFrame(160, 'default'))
     ).toBeLessThanOrEqual(panelWidth)
   })
 })

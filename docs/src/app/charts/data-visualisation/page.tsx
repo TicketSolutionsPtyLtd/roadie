@@ -596,7 +596,7 @@ export default function DataVisualisationPage() {
             'Charts use Intermission with tabular figures, so columns and ticks line up.',
             'Every chart has a title, a subtitle for scope and a source line.',
             'Label up to 4 series directly. Two or more series also get a legend. A single series needs neither.',
-            'Bar names take up to 40% of the plot. A longer name wraps to two lines, then ends in an ellipsis, and keeps its full text in the table.',
+            'Bar names take up to 40% of the chart’s width. A longer name wraps to two lines, then ends in an ellipsis, and keeps its full text in the table.',
             <>
               Format dates and times with the{' '}
               <Link href='/foundations/date-and-time' className='underline'>

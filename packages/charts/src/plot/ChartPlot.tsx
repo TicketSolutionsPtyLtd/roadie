@@ -72,7 +72,8 @@ const ARROW_STEPS: Record<CategoryAxis, Partial<Record<string, Step>>> = {
   }
 }
 
-const renderSvg: ChartSvgRenderer = (scene, options) =>
+// Only charts with category labels pay for the engine's custom-renderer path.
+const renderWithTitles: ChartSvgRenderer = (scene, options) =>
   withCategoryTitles(renderChartSvg(scene, options))
 
 const datumsOf = (points: readonly ChartPoint[]) =>
@@ -235,7 +236,7 @@ export function ChartPlot<P>({
             !measured && 'opacity-0'
           )}
           definition={drawing.definition}
-          renderSvg={renderSvg}
+          renderSvg={axis === 'y' ? renderWithTitles : undefined}
           height={fillsCard ? undefined : frame.height}
           style={fillsCard ? { height: '100%' } : undefined}
           initialWidth={INITIAL_WIDTH}

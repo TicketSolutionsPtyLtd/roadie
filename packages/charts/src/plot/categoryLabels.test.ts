@@ -5,12 +5,12 @@ import { rankedBars } from '../RankedBars/definition'
 import { stackedBars } from '../StackedBars/definition'
 import { renderChartSvg } from '../static'
 import {
-  categoryLines,
+  categoryFit,
   categoryRoom,
   fitLines,
+  labelWidth,
   withCategoryTitles
 } from './categoryLabels'
-import { textWidth } from './endLabels'
 import { plotFrame } from './frame'
 
 const LONG = 'Kelpie Moon Festival of Bonfires and Strange Machines, 31 Oct'
@@ -20,7 +20,7 @@ describe('categoryRoom', () => {
 
   it('takes what the longest name needs when it is short', () => {
     expect(categoryRoom(['Email', 'Direct'], at(600))).toBe(
-      textWidth('Direct', at(600)) + 8
+      labelWidth('Direct', at(600)) + 8
     )
   })
 
@@ -39,7 +39,7 @@ describe('categoryRoom', () => {
 
 describe('fitLines', () => {
   const frame = plotFrame(220, 'narrow', undefined, 320)
-  const fits = (line: string, width: number) => textWidth(line, frame) <= width
+  const fits = (line: string, width: number) => labelWidth(line, frame) <= width
 
   it('keeps a name that fits on one line', () => {
     expect(fitLines('Email', 100, frame, 2)).toEqual(['Email'])
@@ -65,10 +65,10 @@ describe('fitLines', () => {
   })
 
   it('breaks a word too long for a line', () => {
-    const lines = fitLines('Woolloongabbaloongabba Hall', 60, frame, 2)
+    const lines = fitLines('Gooseberrysignalwarehouse Hall', 60, frame, 2)
     expect(lines).toHaveLength(2)
     for (const line of lines) expect(fits(line, 60)).toBe(true)
-    expect(lines.join('').replace('…', '')).toMatch(/^Woolloongabba/)
+    expect(lines.join('').replace('…', '')).toMatch(/^Gooseberry/)
   })
 
   it('never splits an emoji', () => {
@@ -77,17 +77,48 @@ describe('fitLines', () => {
   })
 
   it('always keeps at least one character', () => {
-    expect(fitLines('Woolloongabba', 1, frame, 1)).toEqual(['W…'])
+    expect(fitLines('Gooseberry', 1, frame, 1)).toEqual(['G…'])
   })
 })
 
-describe('categoryLines', () => {
+describe('labelWidth', () => {
+  const frame = plotFrame(220, 'default')
+
+  it('keeps the shared estimate for lower case', () => {
+    expect(labelWidth('presale', frame)).toBe(Math.ceil(7 * 12 * 0.62))
+  })
+
+  it('counts capitals wider', () => {
+    expect(labelWidth('PRESALE', frame)).toBeGreaterThan(
+      labelWidth('presale', frame)
+    )
+  })
+
+  it('counts CJK characters a full em', () => {
+    expect(labelWidth('東京公演', frame)).toBe(48)
+  })
+})
+
+describe('categoryFit', () => {
   it('allows two lines when each row has room for them', () => {
-    expect(categoryLines(plotFrame(220, 'default'), 4, 8)).toBe(2)
+    expect(categoryFit(plotFrame(220, 'default'), 4, 8)).toEqual({
+      lines: 2,
+      every: 1
+    })
   })
 
   it('drops to one line when rows are too tight for two', () => {
-    expect(categoryLines(plotFrame(220, 'default'), 8, 8)).toBe(1)
+    expect(categoryFit(plotFrame(220, 'default'), 8, 8)).toEqual({
+      lines: 1,
+      every: 1
+    })
+  })
+
+  it('draws every nth name when rows are too tight for one line', () => {
+    expect(categoryFit(plotFrame(220, 'default'), 24, 28)).toEqual({
+      lines: 1,
+      every: 2
+    })
   })
 })
 
@@ -98,6 +129,12 @@ describe('withCategoryTitles', () => {
     expect(withCategoryTitles(svg)).toContain(
       '<title>A &amp; B &lt;C&gt;</title>A &amp; B…</text>'
     )
+  })
+
+  it('swaps characters XML forbids, as the engine does', () => {
+    const key = `label-category:object:null:string:9:${JSON.stringify(['A \u0001 \ud83c', 0, 'A'])}`
+    const svg = `<text data-ts-key="${key.replace(/"/g, '&quot;')}">A</text>`
+    expect(withCategoryTitles(svg)).toContain('<title>A \uFFFD \uFFFD</title>')
   })
 
   it('leaves other text alone', () => {
@@ -170,7 +207,7 @@ describe('category labels in a static file', () => {
     for (const label of labels) {
       expect(label.size).toBe(11)
       expect(
-        label.x - textWidth(label.line, label.frame)
+        label.x - labelWidth(label.line, label.frame)
       ).toBeGreaterThanOrEqual(0)
     }
   })

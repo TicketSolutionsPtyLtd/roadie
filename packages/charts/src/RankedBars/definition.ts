@@ -6,8 +6,8 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { formatValue } from '@oztix/roadie-core/dataviz'
 
 import {
+  categoryFit,
   categoryLabelMark,
-  categoryLines,
   categoryRoom
 } from '../plot/categoryLabels'
 import { textRoom } from '../plot/endLabels'
@@ -131,7 +131,7 @@ function build(props: RankedBarsProps, paint: ChartPaint, frame: PlotFrame) {
       categoryLabelMark(names, {
         x: domain[0],
         room: nameRoom,
-        lines: categoryLines(frame, names.length),
+        ...categoryFit(frame, names.length),
         frame,
         paint
       }),

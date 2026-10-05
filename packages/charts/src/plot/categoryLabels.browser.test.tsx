@@ -9,7 +9,12 @@ import { Funnel } from '../Funnel'
 import { RankedBars } from '../RankedBars'
 import { StackedBars } from '../StackedBars'
 import { loadBrandFont, useStylesheet } from '../testUtils'
-import { afterResize, nudgeFrames, renderInCard } from './browserTesting'
+import {
+  afterResize,
+  expectNoOverlap,
+  nudgeFrames,
+  renderInCard
+} from './browserTesting'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -152,5 +157,42 @@ describe('Category labels on tight rows', () => {
     )
     expect(linesOf(container, LONG)).toHaveLength(1)
     expect(shown(linesOf(container, LONG)[0]!)).toMatch(/…$/)
+  })
+
+  it('keep all-capital names inside a 320px card', async () => {
+    const data = NAMES.map((show, i) => ({
+      show: show.toUpperCase(),
+      perDay: 40 - i * 7
+    }))
+    const { container } = await settle(
+      <RankedBars data={data} x='show' y='perDay' />,
+      320
+    )
+    const card = container
+      .querySelector('[data-slot=data-card]')!
+      .getBoundingClientRect()
+    for (const label of container.querySelectorAll(LABELS))
+      expect(label.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+        card.left
+      )
+  })
+
+  it('skip names rather than overlap on very tight rows', async () => {
+    const data = Array.from({ length: 24 }, (_, i) => [
+      {
+        show: `Lampshade Disco night ${i + 1}`,
+        phase: 'Presale',
+        sold: 50 + i
+      },
+      { show: `Lampshade Disco night ${i + 1}`, phase: 'General', sold: 80 }
+    ]).flat()
+    const { container } = await settle(
+      <StackedBars data={data} x='show' y='sold' series='phase' />,
+      390
+    )
+    const count = container.querySelectorAll(LABELS).length
+    expect(count).toBeGreaterThan(1)
+    expect(count).toBeLessThan(24)
+    expectNoOverlap(container, LABELS)
   })
 })
