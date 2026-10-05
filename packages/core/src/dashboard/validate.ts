@@ -381,9 +381,7 @@ function plotProblems(plot: ChartPlot, path: string) {
 
 function secondaryProblems(table: TableData, path: string) {
   return table.columns.flatMap((column, i) =>
-    column.secondaryKey !== undefined &&
-    column.kind !== 'text' &&
-    column.kind !== 'status'
+    column.secondaryKey && column.kind !== 'text' && column.kind !== 'status'
       ? [
           warning(
             `${path}[${i}].secondaryKey`,

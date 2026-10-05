@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { CHART_LABEL_LIMITS, COPY_LIMITS } from './layout'
+import { CHART_LABEL_LIMITS, COLUMN_KINDS, COPY_LIMITS } from './layout'
 import { validateDashboard } from './validate'
 
 const stat = (id: string, extra: Record<string, unknown> = {}) => ({
@@ -922,7 +922,7 @@ describe('validateDashboard status columns', () => {
     expect(result).toMatchObject({ ok: true, problems: [] })
   })
 
-  it.each(['number', 'delta', 'meter', 'sparkline'])(
+  it.each(COLUMN_KINDS.filter((kind) => kind !== 'text' && kind !== 'status'))(
     'warns when a %s column has a second line it never shows',
     (kind) => {
       const result = validateDashboard(
@@ -937,6 +937,42 @@ describe('validateDashboard status columns', () => {
       ])
     }
   )
+
+  it('warns about a second line it never shows in a chart card table', () => {
+    const result = validateDashboard(
+      spec([
+        chartCard(
+          { kind: 'line', data: rows, x: 'day', y: 'sold' },
+          {
+            table: {
+              columns: [
+                { key: 'day', header: 'Day', kind: 'text' },
+                {
+                  key: 'sold',
+                  header: 'Sold',
+                  kind: 'number',
+                  secondaryKey: 'channel'
+                }
+              ],
+              rows
+            }
+          }
+        )
+      ])
+    )
+    expect(result.problems).toContainEqual({
+      path: 'sections[0].cards[0].table.columns[1].secondaryKey',
+      message: 'Only a text or status column shows a second line',
+      severity: 'warning'
+    })
+  })
+
+  it('reads an empty secondaryKey as none, as a table does', () => {
+    const result = validateDashboard(
+      ordersTable({ kind: 'number', secondaryKey: '' }, [])
+    )
+    expect(result.problems).toEqual([])
+  })
 
   it('warns when a non-status column has a status map', () => {
     const result = validateDashboard(
