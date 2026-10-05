@@ -922,6 +922,22 @@ describe('validateDashboard status columns', () => {
     expect(result).toMatchObject({ ok: true, problems: [] })
   })
 
+  it.each(['number', 'delta', 'meter', 'sparkline'])(
+    'warns when a %s column has a second line it never shows',
+    (kind) => {
+      const result = validateDashboard(
+        ordersTable({ kind, secondaryKey: 'paidOn' }, [])
+      )
+      expect(result.problems).toEqual([
+        {
+          path: 'sections[0].cards[0].columns[1].secondaryKey',
+          message: 'Only a text or status column shows a second line',
+          severity: 'warning'
+        }
+      ])
+    }
+  )
+
   it('warns when a non-status column has a status map', () => {
     const result = validateDashboard(
       ordersTable({ kind: 'text', status: { paid: { intent: 'success' } } }, [])

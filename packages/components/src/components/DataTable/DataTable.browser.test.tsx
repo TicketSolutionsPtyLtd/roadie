@@ -204,6 +204,11 @@ describe('DataTable status with a secondary line', () => {
     const scroller = container.querySelector<HTMLElement>(
       '[data-slot=data-table-scroller]'
     )!
+    const line =
+      container.querySelector('[data-slot=badge]')!.nextElementSibling!
+    expect(line.getBoundingClientRect().height).toBeGreaterThan(
+      parseFloat(getComputedStyle(line).lineHeight) * 1.5
+    )
     expect(scroller.scrollWidth).toBeLessThanOrEqual(scroller.clientWidth)
   })
 })

@@ -43,7 +43,7 @@ import { DataTable } from '@oztix/roadie-components/data-table'
 
 ### Status
 
-A `status` column shows each value, a status key, as a small Badge. Its `status` map gives each key an intent and an optional label, which defaults to the key in sentence case. A key the map lacks shows as a neutral badge in its raw text. It sorts by label, or by `order` when the map gives one. Give it a `secondaryKey`, as on a text column, for a line of context under the badge.
+A `status` column shows each value, a status key, as a small Badge. Its `status` map gives each key an intent and an optional label, which defaults to the key in sentence case. A key the map lacks shows as a neutral badge in its raw text. It sorts by label, or by `order` when the map gives one. Give it a `secondaryKey`, as on a text column, for a line of context under the badge, or under the label in a `plain` table.
 
 ```tsx-live
 <DataTable
@@ -66,7 +66,7 @@ A `status` column shows each value, a status key, as a small Badge. Its `status`
     { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency' }
   ]}
   rows={[
-    { show: 'Ball Park Music', status: 'selling_fast', forecast: 'Forecast 1,900 of 1,800', gross: 118400 },
+    { show: 'Ball Park Music', status: 'selling_fast', forecast: 'Forecast 1,700 of 1,800', gross: 118400 },
     { show: 'Ocean Alley', status: 'sold_out', gross: 183000 },
     { show: 'Julia Jacklin', status: 'on_sale', forecast: 'Forecast 420 of 600', gross: 22900 },
     { show: 'Angie McMahon', status: 'cancelled', gross: null }

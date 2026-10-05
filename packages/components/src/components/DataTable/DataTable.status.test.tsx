@@ -146,16 +146,19 @@ describe('DataTable status columns', () => {
       kind: 'text',
       secondaryKey: 'venue'
     }
-    const forecastRows = [
+    const forecastRows: DataTableRow[] = [
       {
         show: 'Ball Park Music',
         venue: 'Kazoo Hollow Room, Fortitude Valley',
         status: 'on_sale',
         forecast: 'forecast 640 of 600'
       },
-      { show: 'Ocean Alley', status: 'sold_out', forecast: 12 },
-      { show: 'Julia Jacklin', status: '', forecast: 'forecast 90 of 400' }
+      { show: 'Ocean Alley', venue: 12, status: 'sold_out', forecast: 12 },
+      { show: 'Julia Jacklin', status: '', forecast: 'forecast 90 of 400' },
+      { show: 'Alex Lahey', venue: '', status: 'on_sale', forecast: '' }
     ]
+    const cellsOf = (show: string) =>
+      screen.getByText(show).closest('tr')!.querySelectorAll('td')
 
     it('shows it under the badge, styled like a text column', () => {
       render(<DataTable columns={[textColumn, forecast]} rows={forecastRows} />)
@@ -176,19 +179,29 @@ describe('DataTable status columns', () => {
       render(
         <DataTable plain columns={[textColumn, forecast]} rows={forecastRows} />
       )
-      const line = screen.getByText('forecast 640 of 600')
-      expect(line.parentElement).toBe(screen.getByText('On sale').parentElement)
+      const lines = cellsOf('Ball Park Music')[1]!.firstElementChild!.children
+      expect([...lines].map((line) => line.textContent)).toEqual([
+        'On sale',
+        'forecast 640 of 600'
+      ])
     })
 
     it('leaves out a secondary value that is not text, as a text column does', () => {
       render(<DataTable columns={[textColumn, forecast]} rows={forecastRows} />)
-      const row = screen.getByText('Ocean Alley').closest('tr')!
-      expect(row.querySelectorAll('td')[1]!.textContent).toBe('Sold out')
+      const [text, badge] = cellsOf('Ocean Alley')
+      expect(text!.textContent).toBe('Ocean Alley')
+      expect(badge!.textContent).toBe('Sold out')
+    })
+
+    it('adds no line for an empty secondary value, in either kind', () => {
+      render(<DataTable columns={[textColumn, forecast]} rows={forecastRows} />)
+      for (const cell of cellsOf('Alex Lahey'))
+        expect(cell.firstElementChild!.children).toHaveLength(1)
     })
 
     it('shows only the empty text for an empty status', () => {
       render(<DataTable columns={[textColumn, forecast]} rows={forecastRows} />)
-      expect(screen.queryByText('forecast 90 of 400')).toBeNull()
+      expect(cellsOf('Julia Jacklin')[1]!.textContent).toBe('Not available')
     })
   })
 

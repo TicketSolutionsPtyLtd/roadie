@@ -27,7 +27,7 @@ function WithSecondary({
   return (
     <span className='grid'>
       {children}
-      {typeof secondary === 'string' && (
+      {typeof secondary === 'string' && secondary !== '' && (
         <span className='text-xs whitespace-normal text-subtle'>
           {secondary}
         </span>
