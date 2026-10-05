@@ -279,8 +279,8 @@ export default function RecordsPage() {
           A view is a search, filters, sort and layout, saved under a name. Each
           filter is a chip. Chips are ANDed and the values inside one chip are
           ORed. Query and layout are independent, so the same search reads as a
-          table or a grid. Page, scroll row and selection are session state,
-          never part of a view.
+          table or a grid of cards, and Configure switches between them. Page,
+          scroll row and selection are session state, never part of a view.
         </p>
         <CodePreview>{JSON.stringify(VIEW, null, 2)}</CodePreview>
         <Table
@@ -487,6 +487,21 @@ export default function RecordsPage() {
           matches the one it was opened from, for the modified mark beside a
           view name. It ignores id, name, spacing in the search and the order of
           chips and their values. Sort and column order still count.
+        </p>
+        <p className='max-w-prose text-subtle'>
+          Pass that saved view to <Code>useRecords</Code> as{' '}
+          <Code>baseline</Code> and it gives <Code>modified</Code> and{' '}
+          <Code>resetView</Code>. <Code>Records.ViewActions</Code> shows the
+          name and the mark, with a menu to save, save as, rename, reset or
+          delete the view. Your app keeps the presets and the views people save,
+          and lists them, as{' '}
+          <Link
+            href='/components/record-table#saved-views'
+            className='underline'
+          >
+            RecordTable
+          </Link>{' '}
+          shows.
         </p>
       </Section>
 

@@ -8,7 +8,7 @@ import { Button } from '../Button'
 import { isSelecting, useRecordsContext } from './context'
 import { leaveSelectOnEscape } from './selectMode'
 import { pageState } from './selection'
-import { SURVIVOR } from './useBulkActions'
+import { useSurvivor } from './useBulkActions'
 
 export type RecordsSelectProps = {
   className?: string
@@ -21,6 +21,7 @@ export type RecordsSelectProps = {
 export function RecordsSelect({ className }: RecordsSelectProps) {
   const { records, selectMode, setSelectControls } = useRecordsContext()
   const toggleRef = useRef<HTMLButtonElement>(null)
+  const survivor = useSurvivor('selection')
   const shown = selectMode && records.selectable
   const selecting = shown && isSelecting(records, selectMode)
 
@@ -64,7 +65,7 @@ export function RecordsSelect({ className }: RecordsSelectProps) {
       {/* One element for Select and Done, so focus stays on it across the switch. */}
       <Button
         ref={toggleRef}
-        {...{ [SURVIVOR]: 'selection' }}
+        {...survivor}
         emphasis={selecting ? 'strong' : 'normal'}
         // The switch to Done is instant; a colour fade flashes grey.
         className='transition-[scale]!'

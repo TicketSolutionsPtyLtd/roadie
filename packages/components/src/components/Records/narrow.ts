@@ -7,7 +7,14 @@ export const NARROW_BELOW = 40
 /** Whether the element, or its parent with `parent`, is under 40rem wide. */
 export function useNarrow(
   ref: RefObject<HTMLElement | null>,
-  { parent = false }: { parent?: boolean } = {}
+  {
+    parent = false,
+    placement
+  }: {
+    parent?: boolean
+    /** Changes when the element may have been replaced, to observe the new one. */
+    placement?: unknown
+  } = {}
 ) {
   const [narrow, setNarrow] = useState(false)
   useLayoutEffect(() => {
@@ -26,6 +33,6 @@ export function useNarrow(
     )
     observer.observe(element)
     return () => observer.disconnect()
-  }, [ref, parent])
+  }, [ref, parent, placement])
   return narrow
 }

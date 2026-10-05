@@ -138,19 +138,33 @@ function VirtualRows({
 }
 
 // Range rows key by index: ids would change the key function on every load.
-const indexKey = (index: number) => `@${index}`
+export const indexKey = (index: number) => `@${index}`
+
+/** How a window sizes its rows: fixed, or measured from an estimate. */
+export type RowSizing = {
+  estimateRem?: number
+  measure?: boolean
+  gapRem?: number
+}
 
 /** Range mode's window: reports the first row on screen, restores `row`, and asks for the ranges in view. */
-function useRangeWindow({
+export function useRangeWindow<Body extends HTMLElement = HTMLDivElement>({
   range,
   row,
-  onRow
-}: {
+  onRow,
+  ...sizing
+}: RowSizing & {
   range: RecordsRangeState
   row: number
   onRow?: (row: number) => void
 }) {
   const { rowAt, show, count, total: rowTotal, loading } = range
+  // Measured rows key by query too, so a new query's rows start from the
+  // estimate instead of the last query's heights at the same index.
+  const queryKey = useCallback(
+    (index: number) => `${range.key}${indexKey(index)}`,
+    [range.key]
+  )
   const loaded = useCallback(
     (index: number) => rowAt(index) !== undefined,
     [rowAt]
@@ -170,12 +184,14 @@ function useRangeWindow({
     margin,
     inset,
     scrollElement,
-    measured
-  } = useRowWindow({
+    measured,
+    measureElement
+  } = useRowWindow<Body>({
     count,
-    getItemKey: indexKey,
+    getItemKey: sizing.measure ? queryKey : indexKey,
     onChange,
-    measureInset: stuckInset
+    measureInset: stuckInset,
+    ...sizing
   })
   const first = visible?.startIndex
   const last = visible?.endIndex
@@ -198,7 +214,14 @@ function useRangeWindow({
   useEffect(() => {
     if (measured && first !== undefined && last !== undefined) plan(first, last)
   }, [measured, first, last, count, loading, row, range.key, plan])
-  return { bodyRef, items, total, margin, first: firstClear ?? first }
+  return {
+    bodyRef,
+    items,
+    total,
+    margin,
+    measureElement,
+    first: firstClear ?? first
+  }
 }
 
 function RangeRows({
@@ -259,14 +282,16 @@ type WindowItem = { index: number; start: number; end: number }
 export function windowPadding(
   items: readonly WindowItem[],
   total: number,
-  margin: number
+  margin: number,
+  /** Rows of a known height, so the body can hold their total. */
+  fixed = true
 ) {
   return {
     paddingBlockStart: items.length ? items[0]!.start - margin : 0,
     paddingBlockEnd: items.length ? total - (items.at(-1)!.end - margin) : 0,
     // React removes swapped rows before inserting their replacements, and
     // WebKit clamps the scroll to the shorter body in between.
-    minBlockSize: total
+    minBlockSize: fixed ? total : undefined
   }
 }
 

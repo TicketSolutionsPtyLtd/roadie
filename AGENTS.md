@@ -271,11 +271,17 @@ Build fields with `recordFields<Row>()`. Show a list with `useRecords` and
 `Records` from `@oztix/roadie-components/records`, and the table layout from
 `@oztix/roadie-components/record-table` (`tableColumns`, `tableLayout`, or the
 `RecordTable` preset); keep a table's search in `Records.Toolbar`, never
-`Pane.Search`. For records a server pages, pass `rowCount` and one page as
-`data`, and search with `toMeilisearch(view, fields, { now, timeZone,
-position })`. For a long list people scroll, pass `loadRange` and place each
-range in `data` with `placeRange`. See
-`docs/src/app/components/record-table/page.mdx`.
+`Pane.Search`. For cards, add `gridLayout` from
+`@oztix/roadie-components/record-grid` (or use the `RecordGrid` preset);
+given both layouts, Configure switches between them. For records a server
+pages, pass `rowCount` and one page as `data`, and search with
+`toMeilisearch(view, fields, { now, timeZone, position })`. For a long list
+people scroll, pass `loadRange` and place each range in `data` with
+`placeRange`. For saved views, pass the open one as `baseline` and the app's
+`onSave`, `onSaveAs`, `onRename` and `onDelete` as `viewActions`; the app
+stores and lists views, and presets take `onSaveAs` alone. See
+`docs/src/app/components/record-table/page.mdx` and
+`docs/src/app/components/record-grid/page.mdx`.
 
 ### Typography
 

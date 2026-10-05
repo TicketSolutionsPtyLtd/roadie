@@ -41,7 +41,7 @@ function DemoLink({ href, onClick, ...props }: RoadieLinkProps) {
 type DemoRouterProps = {
   initialPath: string
   onNavigate?: (path: string) => void
-  children: (path: string) => ReactNode
+  children: (path: string, navigate: (path: string) => void) => ReactNode
 }
 
 export function DemoRouter({
@@ -56,7 +56,9 @@ export function DemoRouter({
   }
   return (
     <RoadieLinkProvider Link={DemoLink}>
-      <NavigateContext value={navigate}>{children(path)}</NavigateContext>
+      <NavigateContext value={navigate}>
+        {children(path, navigate)}
+      </NavigateContext>
     </RoadieLinkProvider>
   )
 }

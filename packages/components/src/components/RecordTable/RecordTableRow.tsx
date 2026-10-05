@@ -10,11 +10,11 @@ import { formatRecordValue } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
-import { RecordValue } from '../Records/RecordValue'
+import { RecordPartValue } from '../Records/RecordPartValue'
 import { RecordsRowActions } from '../Records/RecordsRowActions'
+import { RecordsRowCheckbox } from '../Records/RecordsRowCheckbox'
 import { handleRowClick, onRowControl } from '../Records/rowLink'
-import { RecordTableRowCheckbox } from './RecordTableSelectCell'
-import type { ColumnLayout } from './layout'
+import { type ColumnLayout, priorityProps } from './layout'
 import { useKeepFocusInTable } from './tableFocus'
 import type { RecordTableColumn } from './types'
 
@@ -28,13 +28,8 @@ export const ROW_HEIGHT = ROW_REM * 16
 const cellOverflowClass =
   'overflow-visible supports-[overflow-clip-margin:0.25rem]:overflow-clip supports-[overflow-clip-margin:0.25rem]:[overflow-clip-margin:--spacing(1)]'
 
-// The gutter is a pane's inset when the table reaches the pane's edges, so the
-// first column still lines up with the content above and dividers run across.
-export const rowClass = cn(
-  'grid grid-cols-(--record-table-columns) px-(--record-table-gutter,0px)',
-  'min-w-[calc(var(--record-table-min-width)+2*var(--record-table-gutter,0px))]',
-  'bg-(--record-table-row-surface,transparent)'
-)
+export const rowClass =
+  'grid min-w-(--record-table-min-width) grid-cols-(--record-table-columns)'
 
 const isFigure = (column: RecordTableColumn) =>
   column.field.type === 'number' || column.field.type === 'money'
@@ -70,15 +65,25 @@ export const pinStyle = (start: number | undefined) =>
     ? undefined
     : ({ '--record-table-pin-start': `${start}rem` } as CSSProperties)
 
-/** The column whose value names the row: the first pinned text column, else the first text one. */
-export const titleColumn = (columns: readonly RecordTableColumn[]) =>
-  columns.find((column) => column.pin && column.field.type === 'text') ??
-  columns.find((column) => column.field.type === 'text')
+/** The column whose value names the row: the narrow title, else the first pinned text column, else the first text one. Never an image. */
+export function titleColumn<Column extends RecordTableColumn<never>>(
+  columns: readonly Column[]
+) {
+  const named = columns.filter((column) => column.kind !== 'image')
+  return (
+    named.find((column) => column.narrow === 'title') ??
+    named.find((column) => column.pin && column.field.type === 'text') ??
+    named.find((column) => column.field.type === 'text')
+  )
+}
 
-// The title column is text, which reads the same in any zone.
-const titleText = (record: object, title: RecordTableColumn | undefined) => {
+const titleText = (
+  record: object,
+  title: RecordTableColumn | undefined,
+  timeZone: string
+) => {
   const text = title
-    ? formatRecordValue(record, title.field, { timeZone: 'UTC' })
+    ? formatRecordValue(record, title.field, { timeZone })
     : null
   return text?.trim() ? text : undefined
 }
@@ -126,7 +131,7 @@ export const RecordTableRow = memo(function RecordTableRow({
 }: RecordTableRowProps) {
   const rowRef = useRef<HTMLDivElement>(null)
   useKeepFocusInTable(rowRef)
-  const name = titleText(record, title)
+  const name = titleText(record, title, timeZone)
   const linked = href !== undefined && name !== undefined
   const selectable = selected !== undefined
   const clickable = linked || selectable
@@ -168,7 +173,7 @@ export const RecordTableRow = memo(function RecordTableRow({
     >
       {selectable && (
         <div role='cell' className={cn(selectCellClass, cellOverflowClass)}>
-          <RecordTableRowCheckbox
+          <RecordsRowCheckbox
             id={id}
             title={name ?? id}
             selected={selected}
@@ -177,15 +182,9 @@ export const RecordTableRow = memo(function RecordTableRow({
         </div>
       )}
       {columns.map((column, index) => {
-        const content = column.cell ? (
-          column.cell({
-            value: (record as Record<string, unknown>)[column.key],
-            row: record,
-            field: column.field
-          })
-        ) : (
-          <RecordValue
-            field={column.field}
+        const content = (
+          <RecordPartValue
+            part={column}
             row={record}
             timeZone={timeZone}
             className='min-w-0 truncate'
@@ -196,6 +195,7 @@ export const RecordTableRow = memo(function RecordTableRow({
             key={column.key}
             role='cell'
             data-pin={column.pin || undefined}
+            {...priorityProps(column, layout, index)}
             className={cn(
               cellClass(column),
               cellOverflowClass,
