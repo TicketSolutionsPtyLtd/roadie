@@ -5,22 +5,12 @@
    inset, so narrow rows and column tiers measure the room the columns get.
    Narrow rows and a measured pane keep the inset. */
 
-:is(
-    [data-slot='pane']
-      > [data-slot='pane-viewport']
-      > [data-slot='scroll-area-content'],
-    [data-slot='pane']
-      > [data-slot='pane-viewport']
-      > [data-slot='scroll-area-content']
-      > :is([data-slot='pane-body'], [data-slot='records']),
-    [data-slot='pane']
-      > [data-slot='pane-viewport']
-      > [data-slot='scroll-area-content']
-      > [data-slot='pane-body']
-      > [data-slot='records']
-  )
-  > [data-slot='records-toolbar'] {
-  padding-top: calc(var(--spacing) * 3);
+/* A toolbar at any depth in a pane clears its header. In a layer, so a
+   consumer's padding class still wins. */
+@layer components {
+  [data-slot='pane-viewport'] [data-slot='records-toolbar'] {
+    padding-top: calc(var(--spacing) * 3);
+  }
 }
 
 :is(

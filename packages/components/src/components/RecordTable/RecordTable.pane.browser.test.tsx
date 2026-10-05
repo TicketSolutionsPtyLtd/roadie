@@ -38,12 +38,20 @@ const fits = [
   ])
 ]
 
-type Options = { slot?: string; bulk?: boolean; selectable?: boolean }
+type Options = {
+  slot?: string
+  bulk?: boolean
+  selectable?: boolean
+  actions?: boolean
+  nested?: boolean
+}
 
 function ShowsPane({
   layouts,
   bulk = false,
-  selectable = true
+  selectable = true,
+  actions = false,
+  nested = false
 }: Options & { layouts: typeof wide }) {
   const records = useRecords({
     data: testShows(80),
@@ -51,6 +59,11 @@ function ShowsPane({
     getRowId: (row) => row.id,
     selectable
   })
+  const toolbar = (
+    <Records.Toolbar
+      actions={actions ? [{ label: 'Export', onAction: () => {} }] : undefined}
+    />
+  )
   return (
     <Records.Provider records={records} layouts={layouts} caption='Shows'>
       <Pane className='h-full'>
@@ -58,7 +71,7 @@ function ShowsPane({
           <Pane.Title>Shows</Pane.Title>
         </Pane.Header>
         <Pane.Body>
-          <Records.Toolbar />
+          {nested ? <div className='grid gap-4'>{toolbar}</div> : toolbar}
           <Records.Content />
           {bulk && (
             <Records.BulkActions
@@ -177,6 +190,32 @@ const hidesFirst = [
     column.field('gross')
   ])
 ]
+
+describe('A toolbar in a pane', () => {
+  it('clears the header when nested deeper in the body', async () => {
+    const container = await renderAt(1280, wide, { nested: true })
+    const search = rect(slot(container, 'query-field'))
+    expect(
+      search.top - rect(slot(container, 'pane-header')).bottom
+    ).toBeGreaterThanOrEqual(8)
+  })
+
+  it('folds its actions into the menu under 40rem of room inside it', async () => {
+    const container = await renderAt(660, wide, {
+      slot: 'record-table-list-row',
+      actions: true
+    })
+    const toolbar = slot(container, 'records-toolbar')
+    await expect
+      .poll(() => toolbar.querySelector('[aria-label="More actions"]'))
+      .not.toBeNull()
+    expect(
+      [...toolbar.querySelectorAll('button')].some(
+        (button) => button.textContent === 'Export'
+      )
+    ).toBe(false)
+  })
+})
 
 describe('A table in a pane whose first column hides', () => {
   it('gives the inset to the first column it shows', async () => {

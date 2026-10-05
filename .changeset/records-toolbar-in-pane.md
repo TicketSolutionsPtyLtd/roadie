@@ -13,7 +13,5 @@ empty second row.
 A wide `RecordTable` placed straight in a pane's body runs edge to edge: its
 rows, dividers and sideways scrollbar span the pane, and its first and last
 cells take the pane's inset, so its first column lines up with the content
-above and columns scrolled sideways pass under the pinned ones. Narrow rows, a
-boxed table and a measured pane keep the inset. A table and `Records.Actions`
-now switch to their narrow forms by the room inside them, so a toolbar's
-padding no longer counts.
+above and columns scrolled sideways pass under any pinned ones. Narrow rows, a
+boxed table and a measured pane keep the inset.
