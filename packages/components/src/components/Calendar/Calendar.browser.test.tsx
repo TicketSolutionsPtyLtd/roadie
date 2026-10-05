@@ -941,6 +941,26 @@ describe('Calendar page turns', () => {
     expect(day('2027-03-01').getBoundingClientRect().top).toBeCloseTo(before, 0)
   })
 
+  it('slides half a month to the halfway point in a right-to-left row', async () => {
+    const slides = holdSlides()
+    render(
+      <div dir='rtl' className='w-200'>
+        <Calendar today={TODAY} numberOfMonths={2} />
+      </div>
+    )
+    const months = Array.from(
+      document.querySelectorAll('[data-slot="calendar-month"]'),
+      (month) => month.getBoundingClientRect()
+    )
+    const step = Math.abs(months[0]!.left - months[1]!.left)
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    const halfway = Number(
+      /translate3d\((-?[\d.]+)px/.exec(slides.firstFrames().at(-1)!)![1]
+    )
+    expect(halfway).toBeCloseTo(step / 2, 0)
+    await slides.land()
+  })
+
   it('keeps a month that stays shown still in a right-to-left row', async () => {
     holdSlides()
     render(

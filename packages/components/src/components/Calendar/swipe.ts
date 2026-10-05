@@ -206,7 +206,8 @@ export function useSwipeToTurn(
       const days = Array.from(root.querySelectorAll(DAYS)).filter(
         (element) => !element.closest(PEEK)
       )
-      const beside = signOf(step) > 0 ? days[0] : days[days.length - 1]
+      // By order, not side: a right-to-left row lays the same months out reversed.
+      const beside = step === 1 ? days[days.length - 1] : days[0]
       if (!peekDays || !beside) return 0
       const a = peekDays.getBoundingClientRect()
       const b = beside.getBoundingClientRect()
