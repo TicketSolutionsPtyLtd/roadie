@@ -224,8 +224,11 @@ export function useSwipeToTurn(
       const hadFocus = root.contains(document.activeElement)
       flushSync(apply)
       if (hadFocus && !root.contains(document.activeElement))
-        root
-          .querySelector<HTMLElement>(`${DAYS} button[tabindex="0"]`)
+        Array.from(
+          root.querySelectorAll<HTMLElement>(`${DAYS} button[tabindex="0"]`)
+        )
+          // A page coming in is inert, so its buttons can't take focus.
+          .find((button) => !button.closest(PEEK))
           ?.focus({ preventScroll: true })
     }
 
@@ -276,7 +279,9 @@ export function useSwipeToTurn(
         if (!still) {
           showPeek(step)
           place(from)
-          distance = distanceOf(step) || sizeOf(root!.querySelector(DAYS)!)
+          distance =
+            distanceOf(step) ||
+            sizeOf(root!.querySelector(`${DAYS}:not(${PEEK} *)`)!)
         }
         // The turn lands halfway, where the strip has gone half a page.
         const halfway = (sign * distance) / 2

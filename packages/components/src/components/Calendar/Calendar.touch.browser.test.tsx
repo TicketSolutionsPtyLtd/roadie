@@ -224,6 +224,21 @@ describe('Calendar shows the page it turns to', TIMEOUT, () => {
     ).toEqual(['2027-04-01', '2027-05-01'])
   })
 
+  it('keeps focus on a shown day after stacked months turn back', async ({
+    skip
+  }) => {
+    if (!navigator.userAgent.includes('Chrome')) skip()
+    render(<Paged numberOfMonths={2} />)
+    day('2027-03-10').focus()
+    const lift = holdDrag(day('2027-03-17'), 100, 0)
+    lift()
+    await settle()
+    const focusedDay = document.activeElement as HTMLElement
+    expect(focusedDay.closest('[data-slot="calendar"]')).not.toBeNull()
+    expect(focusedDay.closest('[inert]')).toBeNull()
+    expect(focusedDay.dataset.date).toBeTruthy()
+  })
+
   it('shows no other page when motion is reduced, or at rest', async ({
     skip
   }) => {

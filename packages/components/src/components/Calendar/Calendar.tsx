@@ -823,9 +823,10 @@ export function Calendar(props: CalendarProps) {
     latestRef.current!.moveFocus(clampDate(next))
   }
 
+  // Not on a page coming in, which can show the same dates and is inert.
   const findDay = (date: string) =>
     rootRef.current?.querySelector<HTMLButtonElement>(
-      `button[data-date="${date}"]:not([data-outside])`
+      `button[data-date="${date}"]:not([data-outside]):not([data-peek] *)`
     )
   const focusDay = (date: string) => findDay(date)?.focus()
 
