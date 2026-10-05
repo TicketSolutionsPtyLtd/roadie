@@ -617,14 +617,12 @@ export function Calendar(props: CalendarProps) {
   useIsomorphicLayoutEffect(() => {
     const months = monthsRef.current
     if (!paged || numberOfMonths < 2 || !months) return setStacked(false)
-    const measure = () => {
-      const shown = Array.from(
-        months.querySelectorAll<HTMLElement>(
-          '[data-slot="calendar-month"]:not([data-peek] *)'
-        )
+    // From the width, not where the months sit, as a column is forced once
+    // they stack: each month asks for 280px with 24px between.
+    const measure = () =>
+      setStacked(
+        months.clientWidth < numberOfMonths * 280 + (numberOfMonths - 1) * 24
       )
-      setStacked(shown.some((month) => month.offsetTop !== shown[0]!.offsetTop))
-    }
     measure()
     if (typeof ResizeObserver === 'undefined') return
     const observer = new ResizeObserver(measure)
@@ -774,13 +772,14 @@ export function Calendar(props: CalendarProps) {
   const queuedFocus = useRef<string | null>(null)
 
   // A parent's new month wins over a turn still sliding out from the old one.
-  const heldMonth = useRef(monthProp)
+  const parentMonth = monthProp && monthOf(monthProp)
+  const heldMonth = useRef(parentMonth)
   useIsomorphicLayoutEffect(() => {
-    if (heldMonth.current === monthProp) return
-    heldMonth.current = monthProp
+    if (heldMonth.current === parentMonth) return
+    heldMonth.current = parentMonth
     queuedFocus.current = null
     dropTurn()
-  }, [monthProp, dropTurn])
+  }, [parentMonth, dropTurn])
 
   function pickMonth(first: string) {
     // From the month a waiting turn lands on, so the slide runs the right way.
@@ -1493,10 +1492,7 @@ export function Calendar(props: CalendarProps) {
             'grid min-w-70 flex-[1_1_--spacing(70)] content-start gap-2 [contain:inline-size]',
             wholeMonths && 'in-data-dragging:will-change-transform',
             // Turning up and down, several months make one column.
-            direction === 'vertical' &&
-              numberOfMonths > 1 &&
-              !scrolling &&
-              'basis-full'
+            wholeMonths && !scrolling && 'basis-full'
           )}
         >
           {monthCaptions && (

@@ -649,6 +649,28 @@ describe('Calendar pages up and down once several months stack', () => {
     expect(second!.top).toBeGreaterThan(first!.bottom)
   })
 
+  it('puts wrapping months in one column as they turn up and down', async () => {
+    render(
+      <div className='w-200'>
+        <Calendar today={TODAY} numberOfMonths={4} />
+      </div>
+    )
+    await expect
+      .poll(() =>
+        document
+          .querySelector('[data-slot="calendar"]')!
+          .getAttribute('data-paging')
+      )
+      .toBe('vertical')
+    const boxes = Array.from(
+      document.querySelectorAll('[data-slot="calendar-month"]'),
+      (month) => month.getBoundingClientRect()
+    )
+    boxes.slice(1).forEach((box, i) => {
+      expect(box.top).toBeGreaterThan(boxes[i]!.bottom)
+    })
+  })
+
   it('keeps one month horizontal however narrow', async () => {
     render(
       <div className='w-75'>
@@ -935,6 +957,28 @@ describe('Calendar page turns', () => {
       before,
       0
     )
+  })
+
+  it('keeps a waiting turn when the parent names another day of the same month', async () => {
+    const slides = holdSlides()
+    const onMonthChange = vi.fn()
+    const { rerender } = render(
+      <Calendar
+        today={TODAY}
+        month='2027-03-01'
+        onMonthChange={onMonthChange}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    rerender(
+      <Calendar
+        today={TODAY}
+        month='2027-03-15'
+        onMonthChange={onMonthChange}
+      />
+    )
+    await slides.land()
+    expect(onMonthChange).toHaveBeenLastCalledWith('2027-04-01')
   })
 
   it('turns straight away when a parent moves the month', () => {
