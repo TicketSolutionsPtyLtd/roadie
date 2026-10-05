@@ -213,6 +213,28 @@ export function useSwipeToTurn(
       return Math.abs(vertical ? a.top - b.top : a.left - b.left)
     }
 
+    const positionOf = (element: Element) => {
+      const box = element.getBoundingClientRect()
+      return vertical ? box.top : box.left
+    }
+    const dayAt = (date: string) =>
+      root.querySelector(
+        `${DAYS}:not(${PEEK} *) button[data-date="${date}"]:not([data-outside])`
+      )
+    const anchorOf = (step: SwipeStep) => {
+      const shown = Array.from(root.querySelectorAll(DAYS)).filter(
+        (days) => !days.closest(PEEK)
+      )
+      const page =
+        step === 1 && shown[1]
+          ? shown[1]
+          : root.querySelector(`${PEEK} ${DAYS}`)
+      const day = page?.querySelector<HTMLElement>(
+        'button[data-date]:not([data-outside])'
+      )
+      return day ? { date: day.dataset.date!, position: positionOf(day) } : null
+    }
+
     const finish = () => {
       stopAnimations()
       place(0)
@@ -301,6 +323,9 @@ export function useSwipeToTurn(
         // cut short by a later turn, which has applied this one.
         if (disposed || mine !== run || !root!.isConnected) return
         pending = null
+        // The page that becomes the first shown, held still across the swap:
+        // pages differ in height and order, so one distance can't place it.
+        const anchor = still ? null : anchorOf(step)
         // The page left behind now sits on the other side, so the strip goes
         // on from where it is without a jump.
         applyTurn(() => {
@@ -312,7 +337,11 @@ export function useSwipeToTurn(
         })
         stopAnimations()
         if (!still) {
-          const resume = at - sign * distance
+          place(at)
+          const landed = anchor && dayAt(anchor.date)
+          const resume = landed
+            ? at + anchor.position - positionOf(landed)
+            : at - sign * distance
           place(resume)
           await slide(resume, 0, IN_MS, 'ease-out')
         }

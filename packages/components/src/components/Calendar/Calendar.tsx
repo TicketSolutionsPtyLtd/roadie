@@ -1491,7 +1491,12 @@ export function Calendar(props: CalendarProps) {
           data-swipe-part={wholeMonths && !scrolling ? '' : undefined}
           className={cn(
             'grid min-w-70 flex-[1_1_--spacing(70)] content-start gap-2 [contain:inline-size]',
-            wholeMonths && 'in-data-dragging:will-change-transform'
+            wholeMonths && 'in-data-dragging:will-change-transform',
+            // Turning up and down, several months make one column.
+            direction === 'vertical' &&
+              numberOfMonths > 1 &&
+              !scrolling &&
+              'basis-full'
           )}
         >
           {monthCaptions && (

@@ -636,6 +636,19 @@ describe('Calendar pages up and down once several months stack', () => {
     expect(getComputedStyle(grid()).touchAction).toMatch(/pan-y/)
   })
 
+  it('puts several vertical months in one column however wide', () => {
+    render(
+      <div className='w-320'>
+        <Calendar today={TODAY} numberOfMonths={2} direction='vertical' />
+      </div>
+    )
+    const [first, second] = Array.from(
+      document.querySelectorAll('[data-slot="calendar-month"]'),
+      (month) => month.getBoundingClientRect()
+    )
+    expect(second!.top).toBeGreaterThan(first!.bottom)
+  })
+
   it('keeps one month horizontal however narrow', async () => {
     render(
       <div className='w-75'>
@@ -882,6 +895,46 @@ describe('Calendar page turns', () => {
     expect(document.querySelector('[data-peek]')).not.toBeNull()
     rerender(<Calendar today={TODAY} disabled />)
     expect(document.querySelector('[data-peek]')).toBeNull()
+  })
+
+  it('keeps a month that stays shown still as stacked months of different heights turn', async () => {
+    holdSlides()
+    render(
+      <div className='w-97.5'>
+        <Calendar today='2027-02-10' numberOfMonths={2} />
+      </div>
+    )
+    await expect
+      .poll(() =>
+        document
+          .querySelector('[data-slot="calendar"]')!
+          .getAttribute('data-paging')
+      )
+      .toBe('vertical')
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    for (const animation of document.getAnimations()) animation.finish()
+    const before = day('2027-03-01').getBoundingClientRect().top
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(caption()).toEqual(['March 2027', 'April 2027'])
+    expect(day('2027-03-01').getBoundingClientRect().top).toBeCloseTo(before, 0)
+  })
+
+  it('keeps a month that stays shown still in a right-to-left row', async () => {
+    holdSlides()
+    render(
+      <div dir='rtl' className='w-200'>
+        <Calendar today={TODAY} numberOfMonths={2} />
+      </div>
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    for (const animation of document.getAnimations()) animation.finish()
+    const before = day('2027-04-01').getBoundingClientRect().left
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(caption()).toEqual(['April 2027', 'May 2027'])
+    expect(day('2027-04-01').getBoundingClientRect().left).toBeCloseTo(
+      before,
+      0
+    )
   })
 
   it('turns straight away when a parent moves the month', () => {
