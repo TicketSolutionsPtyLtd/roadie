@@ -138,6 +138,60 @@ describe('DataTable status columns', () => {
     ).toEqual(['cancelled', 'on_sale', 'sold_out', 'postponed'])
   })
 
+  describe('with a secondary line', () => {
+    const forecast: DataTableColumn = { ...status, secondaryKey: 'forecast' }
+    const textColumn: DataTableColumn = {
+      key: 'show',
+      header: 'Show',
+      kind: 'text',
+      secondaryKey: 'venue'
+    }
+    const forecastRows = [
+      {
+        show: 'Ball Park Music',
+        venue: 'Kazoo Hollow Room, Fortitude Valley',
+        status: 'on_sale',
+        forecast: 'forecast 640 of 600'
+      },
+      { show: 'Ocean Alley', status: 'sold_out', forecast: 12 },
+      { show: 'Julia Jacklin', status: '', forecast: 'forecast 90 of 400' }
+    ]
+
+    it('shows it under the badge, styled like a text column', () => {
+      render(<DataTable columns={[textColumn, forecast]} rows={forecastRows} />)
+      const line = screen.getByText('forecast 640 of 600')
+      const badge = badgeIn('Ball Park Music')
+      expect(line.parentElement).toBe(badge.parentElement)
+      expect(badge.compareDocumentPosition(line)).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING
+      )
+      expect(line.className).toBe(
+        screen.getByText('Kazoo Hollow Room, Fortitude Valley').className
+      )
+      expect(line.parentElement).toHaveClass('grid')
+      expect(badge).toHaveClass('justify-self-start')
+    })
+
+    it('shows it under the label in a plain table', () => {
+      render(
+        <DataTable plain columns={[textColumn, forecast]} rows={forecastRows} />
+      )
+      const line = screen.getByText('forecast 640 of 600')
+      expect(line.parentElement).toBe(screen.getByText('On sale').parentElement)
+    })
+
+    it('leaves out a secondary value that is not text, as a text column does', () => {
+      render(<DataTable columns={[textColumn, forecast]} rows={forecastRows} />)
+      const row = screen.getByText('Ocean Alley').closest('tr')!
+      expect(row.querySelectorAll('td')[1]!.textContent).toBe('Sold out')
+    })
+
+    it('shows only the empty text for an empty status', () => {
+      render(<DataTable columns={[textColumn, forecast]} rows={forecastRows} />)
+      expect(screen.queryByText('forecast 90 of 400')).toBeNull()
+    })
+  })
+
   it('reads a numeric key the same as its string', () => {
     render(
       <DataTable

@@ -11,7 +11,8 @@ shows as neutral, in its raw text.
 `DataTable` shows it as a small `Badge` in normal emphasis, or as the label in
 a `plain` table. It sorts by label, or by each key's `order` when the map gives
 one, with keys that have no order last. An empty status shows the column's
-`emptyText` and sorts last.
+`emptyText` and sorts last. A `secondaryKey` adds a line under the badge,
+styled and wrapped as it is on a text column.
 
 In core, `TableColumn` takes `kind: 'status'` and `status`, and
 `validateDashboard` rejects an unknown intent and warns about keys a map lacks.

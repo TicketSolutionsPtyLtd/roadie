@@ -912,6 +912,16 @@ describe('validateDashboard status columns', () => {
     expect(result.problems).toEqual([])
   })
 
+  it('accepts a secondary line under a status', () => {
+    const result = validateDashboard(
+      ordersTable(
+        { status: { paid: { intent: 'success' } }, secondaryKey: 'paidOn' },
+        [{ order: 'OZ-1001', status: 'paid', paidOn: 'Paid Fri 27 Nov' }]
+      )
+    )
+    expect(result).toMatchObject({ ok: true, problems: [] })
+  })
+
   it('warns when a non-status column has a status map', () => {
     const result = validateDashboard(
       ordersTable({ kind: 'text', status: { paid: { intent: 'success' } } }, [])

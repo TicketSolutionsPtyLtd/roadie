@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import type { TableCell, TableColumn } from '@oztix/roadie-core/dashboard'
 import { columnStatus } from '@oztix/roadie-core/dashboard-layout'
 import { formatValue } from '@oztix/roadie-core/dataviz'
@@ -14,6 +16,25 @@ const NOT_AVAILABLE = 'Not available'
 const Muted = ({ children }: { children: string }) => (
   <span className='text-subtle'>{children}</span>
 )
+
+function WithSecondary({
+  children,
+  secondary
+}: {
+  children: ReactNode
+  secondary?: TableCell
+}) {
+  return (
+    <span className='grid'>
+      {children}
+      {typeof secondary === 'string' && (
+        <span className='text-xs whitespace-normal text-subtle'>
+          {secondary}
+        </span>
+      )}
+    </span>
+  )
+}
 
 export function DataTableCellContent({
   column,
@@ -37,12 +58,17 @@ export function DataTableCellContent({
     return <Muted>{column.emptyText ?? NOT_AVAILABLE}</Muted>
   if (column.kind === 'status') {
     const { intent, label } = columnStatus(column, String(value))
-    if (plain) return <span>{label}</span>
-    // Normal, not subtle: its opaque fill reads on a row's hover tint and on a card's image banner alike.
     return (
-      <Badge size='sm' intent={intent}>
-        {label}
-      </Badge>
+      <WithSecondary secondary={secondary}>
+        {plain ? (
+          <span>{label}</span>
+        ) : (
+          // Normal, not subtle: its opaque fill reads on a row's hover tint and on a card's image banner alike.
+          <Badge size='sm' intent={intent} className='justify-self-start'>
+            {label}
+          </Badge>
+        )}
+      </WithSecondary>
     )
   }
   if (typeof value === 'string' && column.kind !== 'text')
@@ -51,7 +77,7 @@ export function DataTableCellContent({
   if (column.kind === 'text') {
     const primaryClass = 'font-semibold text-strong'
     return (
-      <span className='grid'>
+      <WithSecondary secondary={secondary}>
         {href ? (
           <RoadieRoutedLink
             href={href}
@@ -66,12 +92,7 @@ export function DataTableCellContent({
         ) : (
           <span className={primaryClass}>{String(value)}</span>
         )}
-        {typeof secondary === 'string' && (
-          <span className='text-xs whitespace-normal text-subtle'>
-            {secondary}
-          </span>
-        )}
-      </span>
+      </WithSecondary>
     )
   }
 
