@@ -88,11 +88,33 @@ Past `limit` bars, the smallest roll into Other, which always sits last.
 </div>
 ```
 
+### Long names
+
+Names share the plot with the bars. The label column takes up to 40% of the chart's width, so a long name wraps to two lines and then ends in an ellipsis.
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Behind or at risk' context='Tickets a day to catch up' source='Oztix sales.' size='md'>
+    <RankedBars
+      data={[
+        { show: 'Kelpie Moon Festival of Bonfires and Strange Machines, 31 Oct', perDay: 42 },
+        { show: 'Uncle Meteor and the Midnight Spoon Orchestra Live, 2 Nov', perDay: 31 },
+        { show: 'Giggling Lantern Comedy Gala for Very Serious People, 7 Nov', perDay: 18 },
+        { show: 'Ember Galah Ball, 8 Nov', perDay: 9 }
+      ]}
+      x='show'
+      y='perDay'
+    />
+  </Chart>
+</div>
+```
+
 ## Guidelines
 
 - Use ranked bars for shares, not a pie. Bars compare more accurately.
 - Report shares, not counts, when totals differ between the things you compare.
 - The table lists every row, including the ones rolled into Other.
+- Keep names short enough to read at a glance. A cut name keeps its full text in the table, and shows it on hover.
 
 ## Accessibility
 

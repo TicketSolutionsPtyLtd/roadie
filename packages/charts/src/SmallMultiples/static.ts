@@ -1,5 +1,7 @@
 import { barChart } from '../BarChart/definition'
 import { lineChart } from '../LineChart/definition'
+import { EDGE_SLACK, fitLines } from '../plot/categoryLabels'
+import { plotFrame } from '../plot/frame'
 import { hexPaint } from '../plot/paint'
 import { FONT_FAMILY, SVG_NS, escapeXml } from '../plot/svg'
 import { type StaticRenderOptions, renderChartSvg } from '../static'
@@ -30,6 +32,7 @@ export function renderSmallMultiplesSvg(
   const rows = Math.ceil(panels.length / columns)
   const height = rows * (PANEL_HEIGHT + CAPTION) + GAP * (rows - 1)
   const domain = sharedDomain(props)
+  const captionFrame = plotFrame(PANEL_HEIGHT, 'default')
   const { chart } = props
   const inner = panels.map((panel, i) => {
     const x = (i % columns) * (panelWidth + GAP)
@@ -61,7 +64,13 @@ export function renderSmallMultiplesSvg(
             { ...chart, data: panel.rows },
             options
           )
-    return `<text x="${x}" y="${y + 14}" font-size="12" font-weight="600" fill="${label}">${escapeXml(panel.key)}</text><g transform="translate(${x} ${y + CAPTION})">${svg}</g>`
+    const [caption] = fitLines(
+      panel.key,
+      panelWidth - EDGE_SLACK,
+      captionFrame,
+      1
+    )
+    return `<text x="${x}" y="${y + 14}" font-size="12" font-weight="600" fill="${label}"><title>${escapeXml(panel.key)}</title>${escapeXml(caption!)}</text><g transform="translate(${x} ${y + CAPTION})">${svg}</g>`
   })
   return `<svg xmlns="${SVG_NS}" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeXml(smallMultiplesSummary(props))}" style="font-family:${FONT_FAMILY}"><rect width="${width}" height="${height}" fill="${surface}"/>${inner.join('')}</svg>`
 }
