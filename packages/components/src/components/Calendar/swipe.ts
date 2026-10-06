@@ -307,8 +307,12 @@ export function useSwipeToTurn(
         prefersReducedMotion() || typeof root!.animate !== 'function'
       if (step && immediate) {
         applyTurn(apply)
-        if (!still)
-          await slide((size) => -signOf(step) * size, 0, IN_MS, 'ease-out')
+        if (!still) {
+          // One offset for every part, so a column of months moves as one.
+          const first = parts()[0]
+          const size = first ? sizeOf(first) : 0
+          await slide(-signOf(step) * size, 0, IN_MS, 'ease-out')
+        }
       } else if (step) {
         const sign = signOf(step)
         pending = apply

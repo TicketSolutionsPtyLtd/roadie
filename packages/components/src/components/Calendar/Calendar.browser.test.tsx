@@ -1155,6 +1155,36 @@ describe('Calendar page turns', () => {
     ).toBe(true)
   })
 
+  it('slides a column of months in as one when a month is picked', async () => {
+    const animate = Element.prototype.animate
+    const spy = vi
+      .spyOn(Element.prototype, 'animate')
+      .mockImplementation(function (this: Element, frames, options) {
+        return animate.call(this, frames, {
+          ...(options as object),
+          duration: 60_000
+        })
+      })
+    onTestFinished(() => spy.mockRestore())
+    render(
+      <Calendar
+        today={TODAY}
+        direction='vertical'
+        numberOfMonths={2}
+        captionLayout='dropdown'
+      />
+    )
+    await userEvent.selectOptions(
+      screen.getAllByRole('combobox', { name: 'Month' })[0]!,
+      'May'
+    )
+    const starts = spy.mock.calls.map(
+      ([frames]) => (frames as { transform?: string }[])[0]!.transform
+    )
+    expect(starts.length).toBeGreaterThan(1)
+    expect(new Set(starts).size).toBe(1)
+  })
+
   it('turns straight away when a parent moves the month', () => {
     const { rerender } = render(<Calendar today={TODAY} month='2027-03-01' />)
     rerender(<Calendar today={TODAY} month='2027-04-01' />)

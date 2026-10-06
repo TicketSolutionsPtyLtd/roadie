@@ -121,7 +121,8 @@ describe('Calendar shows the page it turns to', TIMEOUT, () => {
     lift()
     await settle()
     expect(caption()).toContain('April 2027')
-    expect(peek()).toBeNull()
+    // The page beside goes in the render after the slide ends.
+    await expect.poll(peek).toBeNull()
   })
 
   it('shows the next month below the days on a vertical drag', async ({
