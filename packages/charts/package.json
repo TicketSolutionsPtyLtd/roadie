@@ -119,7 +119,7 @@
   "dependencies": {
     "@oztix/roadie-core": "workspace:*",
     "@tanstack/charts": "0.18.0",
-    "@tanstack/react-charts": "0.18.0"
+    "@tanstack/react-charts": "1.0.0"
   },
   "peerDependencies": {
     "@oztix/roadie-components": "workspace:^",
