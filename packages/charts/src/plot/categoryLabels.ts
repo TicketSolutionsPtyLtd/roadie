@@ -23,21 +23,24 @@ const MARK_ID = 'label-category'
 
 const WIDE =
   /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Extended_Pictographic}\u3000-\u303F\u30A0-\u30FF\u3200-\u33FF\uFE30-\uFE4F\uFF00-\uFFEF]/u
+const BROAD_CAPITAL = /[MW]/
+const BROAD_LOWER = /[mw]/
 const CAPITAL = /\p{Lu}/u
-const EM = { wide: 1, capital: 0.72, other: 0.62 }
+const EM = { wide: 1, broadLower: 0.9, capital: 0.72, other: 0.62 }
+
+function emsOf(char: string) {
+  if (WIDE.test(char) || BROAD_CAPITAL.test(char)) return EM.wide
+  if (BROAD_LOWER.test(char)) return EM.broadLower
+  return CAPITAL.test(char) ? EM.capital : EM.other
+}
 
 /**
- * The shared 0.62em estimate, widened for capitals and CJK, since a label
+ * The shared 0.62em estimate, widened for capitals, M, W and CJK, since a label
  * that runs wide leaves the card rather than overlapping a neighbour.
  */
 export function labelWidth(text: string, frame: PlotFrame) {
   let ems = 0
-  for (const char of text)
-    ems += WIDE.test(char)
-      ? EM.wide
-      : CAPITAL.test(char)
-        ? EM.capital
-        : EM.other
+  for (const char of text) ems += emsOf(char)
   return Math.ceil(ems * frame.fontSize)
 }
 

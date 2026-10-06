@@ -160,10 +160,11 @@ describe('Category labels on tight rows', () => {
   })
 
   it('keep all-capital names inside a 320px card', async () => {
-    const data = NAMES.map((show, i) => ({
-      show: show.toUpperCase(),
-      perDay: 40 - i * 7
-    }))
+    const data = [
+      ...NAMES.map((show, i) => ({ show: show.toUpperCase(), perDay: 40 - i })),
+      { show: 'W'.repeat(40), perDay: 10 },
+      { show: 'MWMW '.repeat(8), perDay: 5 }
+    ]
     const { container } = await settle(
       <RankedBars data={data} x='show' y='perDay' />,
       320

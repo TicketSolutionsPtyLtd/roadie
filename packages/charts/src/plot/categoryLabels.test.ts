@@ -93,6 +93,11 @@ describe('labelWidth', () => {
     expect(labelWidth('PRESALE', frame)).toBe(Math.ceil(7 * 12 * 0.72))
   })
 
+  it('counts the widest Latin letters at their own width', () => {
+    expect(labelWidth('WM', frame)).toBe(24)
+    expect(labelWidth('wm', frame)).toBe(Math.ceil(2 * 12 * 0.9))
+  })
+
   it('counts CJK punctuation and emoji a full em', () => {
     expect(labelWidth('ー「」、。🎸', frame)).toBe(72)
   })
