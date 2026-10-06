@@ -568,10 +568,12 @@ export function Calendar(props: CalendarProps) {
     if (next === view) return
     // A turn waiting to land does so in the view it was pressed in.
     landTurn()
-    setPendingFocus(null)
-    setToggledView(next)
-    if (viewProp === undefined) setUncontrolledView(next)
-    onViewChange?.(next)
+    reshape(() => {
+      setPendingFocus(null)
+      setToggledView(next)
+      if (viewProp === undefined) setUncontrolledView(next)
+      onViewChange?.(next)
+    })
   }
 
   // Entering week view, by the toggle or a parent, a day picked in a later
@@ -597,7 +599,7 @@ export function Calendar(props: CalendarProps) {
   const swipeable = !scrolling && !waitingForToday && disabled !== true
   // The page a turn or a drag brings in, shown beside the days only then.
   const [peek, setPeek] = useState<Peek | null>(null)
-  const { pageTurn, landTurn, dropTurn } = useSwipeToTurn(rootRef, {
+  const { pageTurn, landTurn, dropTurn, reshape } = useSwipeToTurn(rootRef, {
     enabled: swipeable,
     vertical,
     canTurn,

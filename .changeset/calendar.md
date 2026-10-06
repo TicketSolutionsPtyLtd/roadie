@@ -50,7 +50,9 @@ point up and down and a finger swipes up for the next month.
 row of larger days that turns a week at a time, and `views={['week',
 'month']}` adds a "Week" and "Month" toggle group beside the title, or above
 several months. Where the calendar is narrow it shows only its icons, and a
-week's title shortens its month names. `getDayContent` puts
+week's title shortens its month names. Switching eases between the views in
+320ms: the week's days glide, the other weeks grow out of it or fold into it
+as they fade, and the height follows, at once under reduced motion. `getDayContent` puts
 content such as a price or a status mark under each day's number in either
 view. Every day then becomes a tile, up to 64px wide (80px in a week), that
 grows to fit; days with content are filled, the content describes the day to

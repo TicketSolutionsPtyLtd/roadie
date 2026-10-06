@@ -36,6 +36,11 @@ const DAYS = '[data-slot="calendar-days"]'
 // the page beside them. The weekday row of one page holds still.
 const PARTS = '[data-swipe-part]'
 const PEEK = '[data-peek]'
+const MONTHS = '[data-slot="calendar-months"]'
+// How much of the way to the days kept a row grows from or folds into: all of
+// it piles the rows up on one line.
+const GROW = 0.5
+const DAY = 'button[data-date]:not([data-outside])'
 
 type SwipeSample = { along: number; time: number }
 
@@ -83,6 +88,12 @@ export type PageTurn = (
 
 type PageTurns = {
   pageTurn: PageTurn
+  /**
+   * Applies a change of view, then eases the days from where they were: the
+   * days in both views glide, the rows coming in grow out of them and fade
+   * in, the rows leaving fold into them and fade out, and the height follows.
+   */
+  reshape: (apply: () => void) => void
   /** Lands a turn under way at once, so a key can go on from it. */
   landTurn: () => void
   /** Drops a turn under way unapplied, as when a parent moves the month. */
@@ -101,6 +112,7 @@ export function useSwipeToTurn(
   const pageTurn = useRef<PageTurn | null>(null)
   const landTurn = useRef<(() => void) | null>(null)
   const dropTurn = useRef<(() => void) | null>(null)
+  const reshapeView = useRef<((apply: () => void) => void) | null>(null)
   const latest = useRef(options)
   useIsomorphicLayoutEffect(() => {
     latest.current = options
@@ -237,8 +249,13 @@ export function useSwipeToTurn(
       return positionOf(comes) - positionOf(shown[0])
     }
 
+    // What a reshape leaves to clear: the rows leaving, drawn over the days.
+    let unshape: (() => void) | null = null
+
     const finish = (sync = true) => {
       stopAnimations()
+      unshape?.()
+      unshape = null
       place(0)
       hidePeek(sync)
       partsSeen = null
@@ -350,6 +367,153 @@ export function useSwipeToTurn(
       void animateTurn(0, step, apply, turnOptions?.immediate)
     }
     landTurn.current = cutShort
+    reshapeView.current = (apply) => {
+      cutShort()
+      const viewport = root.querySelector<HTMLElement>(MONTHS)
+      if (
+        !viewport ||
+        prefersReducedMotion() ||
+        typeof root.animate !== 'function'
+      )
+        return apply()
+      const centres = (within: Element) => {
+        const at = new Map<string, DOMRect>()
+        for (const day of within.querySelectorAll<HTMLElement>(DAY))
+          if (!day.closest(PEEK))
+            at.set(day.dataset.date!, day.getBoundingClientRect())
+        return at
+      }
+      const before = centres(viewport)
+      const from = viewport.getBoundingClientRect()
+      const leaving = viewport.cloneNode(true) as HTMLElement
+      applyTurn(apply)
+      const to = viewport.getBoundingClientRect()
+      const after = new Map<HTMLElement, DOMRect>()
+      for (const day of viewport.querySelectorAll<HTMLElement>(DAY))
+        after.set(day, day.getBoundingClientRect())
+      const mine = ++run
+      settling = true
+      root.dataset.swiping = ''
+      const middle = (box: DOMRect) => box.top + box.height / 2
+      const kept = [...after.keys()].flatMap((day) => {
+        const was = before.get(day.dataset.date!)
+        return was ? [was] : []
+      })
+      // Where the days in both views sat, which the rest grow from or fold into.
+      const anchor = kept.length
+        ? kept.reduce((sum, box) => sum + middle(box), 0) / kept.length
+        : null
+      const animate = (
+        element: Element,
+        frames: Parameters<Element['animate']>[0],
+        easing = 'ease-in-out'
+      ) => {
+        const animation = element.animate(frames, {
+          duration: TURN_MS,
+          easing,
+          fill: 'forwards'
+        })
+        running.push(animation)
+        return animation.finished.catch(() => undefined)
+      }
+      const moves: Promise<unknown>[] = [
+        animate(viewport, [
+          { height: `${from.height}px` },
+          { height: `${to.height}px` }
+        ])
+      ]
+      for (const [day, box] of after) {
+        const was = before.get(day.dataset.date!)
+        if (was) {
+          const dx = was.left + was.width / 2 - (box.left + box.width / 2)
+          const dy = middle(was) - middle(box)
+          moves.push(
+            animate(day, [
+              {
+                transform: `translate(${dx}px, ${dy}px) scale(${was.width / box.width}, ${was.height / box.height})`
+              },
+              { transform: 'none' }
+            ])
+          )
+        } else {
+          const dy = anchor === null ? 0 : (anchor - middle(box)) * GROW
+          moves.push(
+            animate(day, [
+              { transform: `translateY(${dy}px)`, opacity: 0 },
+              { opacity: 0, offset: 0.25 },
+              { transform: 'none', opacity: 1 }
+            ])
+          )
+        }
+      }
+      // The old days, inert and unnamed, over the new ones until they fold
+      // away. Only their rows that hold no day shown now are seen.
+      leaving.dataset.leaving = ''
+      leaving.inert = true
+      leaving.setAttribute('aria-hidden', 'true')
+      Object.assign(leaving.style, {
+        position: 'absolute',
+        insetInlineStart: '0',
+        top: '0',
+        width: `${from.width}px`,
+        height: `${from.height}px`,
+        visibility: 'hidden',
+        pointerEvents: 'none'
+      })
+      viewport.append(leaving)
+      unshape = () => leaving.remove()
+      const stays = new Set(
+        Array.from(after.keys(), (day) => day.dataset.date!)
+      )
+      for (const row of leaving.querySelectorAll<HTMLElement>('tbody tr')) {
+        const days = Array.from(row.querySelectorAll<HTMLElement>(DAY))
+        if (!days.length) continue
+        // A row that stays loses only the days the new view leaves out.
+        if (days.some((day) => stays.has(day.dataset.date!))) {
+          for (const day of days) {
+            if (stays.has(day.dataset.date!)) continue
+            day.style.visibility = 'visible'
+            moves.push(
+              animate(day, [
+                { opacity: 1 },
+                { opacity: 0, offset: 0.5 },
+                { opacity: 0 }
+              ])
+            )
+          }
+          continue
+        }
+        row.style.visibility = 'visible'
+        const dy =
+          anchor === null
+            ? 0
+            : (anchor - middle(row.getBoundingClientRect())) * GROW
+        moves.push(
+          animate(row, [
+            { transform: 'none', opacity: 1 },
+            { opacity: 0, offset: 0.75 },
+            { transform: `translateY(${dy}px)`, opacity: 0 }
+          ])
+        )
+      }
+      leaving.removeAttribute('data-slot')
+      for (const element of leaving.querySelectorAll('[id]'))
+        element.removeAttribute('id')
+      for (const element of leaving.querySelectorAll(
+        '[data-date], [data-slot^="calendar-"], [data-swipe-part], [data-month]'
+      ))
+        for (const name of [
+          'data-date',
+          'data-slot',
+          'data-swipe-part',
+          'data-month'
+        ])
+          element.removeAttribute(name)
+      void Promise.all(moves).then(() => {
+        if (disposed || mine !== run) return
+        finish()
+      })
+    }
     // Only a turn not yet applied: a parent following a turn's own month
     // arrives while it applies, and the slide in goes on.
     dropTurn.current = () => {
@@ -556,6 +720,7 @@ export function useSwipeToTurn(
       pageTurn.current = null
       landTurn.current = null
       dropTurn.current = null
+      reshapeView.current = null
       const waiting = pending
       pending = null
       // Still shown, as when the calendar is disabled mid-slide; a turn for a
@@ -586,5 +751,10 @@ export function useSwipeToTurn(
   )
   const land = useCallback(() => landTurn.current?.(), [])
   const drop = useCallback(() => dropTurn.current?.(), [])
-  return { pageTurn: turnPage, landTurn: land, dropTurn: drop }
+  const reshape = useCallback(
+    (apply: () => void) =>
+      reshapeView.current ? reshapeView.current(apply) : apply(),
+    []
+  )
+  return { pageTurn: turnPage, landTurn: land, dropTurn: drop, reshape }
 }

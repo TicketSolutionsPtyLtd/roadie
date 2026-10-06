@@ -5,7 +5,12 @@ import { commands, userEvent } from 'vitest/browser'
 import { Calendar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { useStylesheet } from '../Pane/testUtils'
-import { expectOneContinuousMotion, recordFrames } from './testUtils'
+import {
+  expectOneContinuousMotion,
+  expectOneReshape,
+  recordFrames,
+  recordShapes
+} from './testUtils'
 
 const TODAY = '2027-03-10'
 
@@ -74,4 +79,35 @@ describe.each([
     expect(frames.at(-1)!.title).toBe('February 2027')
     expectOneContinuousMotion(frames, next === -1 ? 1 : -1, 320)
   })
+})
+
+describe('Calendar frames, switching views', () => {
+  it.each([
+    { width: 390, months: 1 },
+    { width: 800, months: 2 }
+  ])(
+    'reshapes between month and week at $width px in one motion',
+    async ({ width, months }) => {
+      render(
+        <div style={{ width }}>
+          <Calendar
+            today={TODAY}
+            numberOfMonths={months}
+            views={['week', 'month']}
+          />
+        </div>
+      )
+      const toWeek = await recordShapes(() =>
+        userEvent.click(screen.getByRole('button', { name: 'Week' }))
+      )
+      expect(toWeek.at(-1)!.days.size).toBe(7)
+      expect(toWeek.some((frame) => frame.leaving.length > 0)).toBe(true)
+      expectOneReshape(toWeek, 320)
+      const toMonth = await recordShapes(() =>
+        userEvent.click(screen.getByRole('button', { name: 'Month' }))
+      )
+      expect(toMonth.at(-1)!.days.size).toBeGreaterThan(27)
+      expectOneReshape(toMonth, 320)
+    }
+  )
 })

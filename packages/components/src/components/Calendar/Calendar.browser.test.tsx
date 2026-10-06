@@ -956,6 +956,28 @@ describe('Calendar page turns', () => {
     expect(getComputedStyle(days()).transform).toBe('none')
   })
 
+  it('switches view straight away when motion is reduced', async () => {
+    await commands.reduceMotion(true)
+    onTestFinished(() => commands.reduceMotion(false))
+    render(<Calendar today={TODAY} views={['week', 'month']} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Week' }))
+    expect(swiping()).toBeNull()
+    expect(document.getAnimations()).toHaveLength(0)
+    expect(document.querySelector('[data-leaving]')).toBeNull()
+  })
+
+  it('keeps focus on the views and leaves nothing behind as they switch', async () => {
+    render(<Calendar today={TODAY} views={['week', 'month']} />)
+    const week = screen.getByRole('button', { name: 'Week' })
+    await userEvent.click(week)
+    expect(week).toHaveFocus()
+    expect(swiping()).not.toBeNull()
+    await expect.poll(swiping).toBeNull()
+    expect(document.querySelector('[data-leaving]')).toBeNull()
+    expect(document.getAnimations()).toHaveLength(0)
+    expect(screen.getAllByRole('gridcell').length).toBe(7)
+  })
+
   it('slides for Page Down but not for an arrow across the month', async () => {
     const slides = holdSlides()
     render(<Calendar today='2027-03-31' />)
@@ -1732,4 +1754,98 @@ describe('Calendar under forced colours', () => {
       expect(edge(date)).not.toBe(edge('2027-03-20'))
     }
   })
+})
+
+describe('Calendar titles between stacked months', () => {
+  const boxes = (selector: string) =>
+    Array.from(document.querySelectorAll(selector), (element) =>
+      element.getBoundingClientRect()
+    )
+  const meets = (a: DOMRect, b: DOMRect) =>
+    a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
+
+  // Every title shown in the column sits clear of the days, the same room
+  // above and below it whatever the rows of the month before.
+  function titlesSitInTheirGaps() {
+    const titles = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        '[data-slot="calendar-months"] [data-slot="calendar-month"] > .absolute, [data-peek] > .absolute'
+      )
+    ).filter((title) => getComputedStyle(title).visibility === 'visible')
+    const cells = boxes('[data-slot="calendar-days"] td')
+    const rows = boxes('[data-slot="calendar-days"] tr')
+    const gaps = titles.map((title) => {
+      const box = title.getBoundingClientRect()
+      for (const cell of cells) expect(meets(box, cell)).toBe(false)
+      const above = Math.max(
+        ...rows.filter((row) => row.bottom <= box.top).map((row) => row.bottom)
+      )
+      const below = Math.min(
+        ...rows.filter((row) => row.top >= box.bottom).map((row) => row.top)
+      )
+      return { above: box.top - above, below: below - box.bottom }
+    })
+    const between = gaps.filter((gap) => isFinite(gap.above))
+    for (const gap of between) {
+      expect(gap.above).toBeCloseTo(between[0]!.above, 0)
+      expect(gap.above).toBeGreaterThan(gap.below)
+    }
+    for (const gap of gaps) expect(gap.below).toBeCloseTo(gaps[0]!.below, 0)
+    return titles.length
+  }
+
+  it.each([
+    { label: 'stacked', props: { numberOfMonths: 2 } },
+    {
+      label: 'vertical, two months',
+      props: { numberOfMonths: 2, direction: 'vertical' as const }
+    },
+    { label: 'vertical, one month', props: { direction: 'vertical' as const } }
+  ])(
+    'keeps titles clear of the days at rest and mid-turn, $label',
+    async ({ props }) => {
+      // A four-row February, a five-row January and a six-row May.
+      for (const month of ['2027-01-01', '2027-02-01', '2027-05-01']) {
+        const animate = Element.prototype.animate
+        const spy = vi
+          .spyOn(Element.prototype, 'animate')
+          .mockImplementation(function (this: Element, frames, options) {
+            return animate.call(this, frames, {
+              ...(options as object),
+              duration: 60_000
+            })
+          })
+        render(
+          <div className='w-97.5'>
+            <Calendar today={TODAY} defaultMonth={month} {...props} />
+          </div>
+        )
+        await expect
+          .poll(() =>
+            document
+              .querySelector('[data-slot="calendar"]')!
+              .getAttribute('data-paging')
+          )
+          .toBe('vertical')
+        titlesSitInTheirGaps()
+        for (const name of ['Next month', 'Previous month']) {
+          await userEvent.click(screen.getByRole('button', { name }))
+          for (const animation of document.getAnimations())
+            animation.currentTime = 30_000
+          expect(titlesSitInTheirGaps()).toBeGreaterThan(0)
+          for (const animation of document.getAnimations()) animation.finish()
+          await expect
+            .poll(() =>
+              document
+                .querySelector('[data-slot="calendar"]')!
+                .hasAttribute('data-swiping')
+            )
+            .toBe(false)
+          titlesSitInTheirGaps()
+        }
+        spy.mockRestore()
+        cleanup()
+      }
+    }
+  )
 })

@@ -154,6 +154,38 @@ describe('Calendar turns at 60fps on a 4x slower CPU', () => {
     }
   )
 
+  it.each([
+    ['one month', 390, 1],
+    ['two months', 1440, 2]
+  ] as const)(
+    'switches %s between month and week',
+    async (name, width, numberOfMonths) => {
+      await page.viewport(width, 900)
+      const root = await mount(
+        <div className={width > 600 ? 'w-200' : 'w-97.5'}>
+          <Calendar
+            today={TODAY}
+            numberOfMonths={numberOfMonths}
+            views={['week', 'month']}
+          />
+        </div>
+      )
+      for (let i = 0; i < 3; i++) await frame()
+      for (const view of ['Week', 'Month']) {
+        const item = root.querySelector<HTMLElement>(
+          `button[aria-label="${view}"]`
+        )!
+        const frames = summarise(
+          await sample(30, (i) => i === 0 && item.click())
+        )
+        results[`${name}, to ${view}`] = frames
+        console.log(`FRAMES ${name}, to ${view} ${JSON.stringify(frames)}`)
+        expect(frames.p95).toBeLessThan(P95_BUDGET_MS)
+        expect(frames.dropped).toBeLessThanOrEqual(1)
+      }
+    }
+  )
+
   it('scrolls months in the DateRangePicker phone drawer', async () => {
     await page.viewport(390, 844)
     const root = await mount(
