@@ -58,7 +58,12 @@ export type AbsoluteRange = { start: string; end: string }
 
 export type DateRangeValue = AbsoluteRange | RelativeRange
 
-export type Comparison = 'previous-period' | 'previous-year' | AbsoluteRange
+/**
+ * Roadie's comparisons, plus `App`, an app's own, such as similar venues.
+ * Roadie works out dates only for its own; see `isBuiltInComparison`.
+ */
+export type Comparison<App extends string = never> =
+  'previous-period' | 'previous-year' | AbsoluteRange | App
 
 export type DateRangeOptions = {
   now: Instantish
@@ -90,6 +95,17 @@ export function isAbsoluteRange(
   value: DateRangeValue | Comparison
 ): value is AbsoluteRange {
   return typeof value === 'object' && 'start' in value
+}
+
+/** Whether Roadie can work out a comparison's dates, as against an app's own. */
+export function isBuiltInComparison(
+  comparison: Comparison<string>
+): comparison is Comparison {
+  return (
+    comparison === 'previous-period' ||
+    comparison === 'previous-year' ||
+    (typeof comparison === 'object' && comparison !== null)
+  )
 }
 
 /** Tells apart values already known to be valid; it does not validate. */
@@ -537,6 +553,8 @@ export function resolveComparison(
   options: ComparisonOptions
 ): ResolvedComparison {
   assertDataDates(options)
+  if (!isBuiltInComparison(comparison))
+    throw new RangeError(`Not one of Roadie's comparisons: '${comparison}'`)
   const resolved = resolveDateRange(range, options)
   if (
     resolved.kind === 'instants' &&

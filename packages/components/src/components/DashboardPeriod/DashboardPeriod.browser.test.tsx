@@ -7,6 +7,7 @@ import { page, userEvent } from 'vitest/browser'
 import { DashboardPeriod, type DashboardPeriodValue } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { withFrames } from '../../css/testUtils'
+import type { DateRangePreset } from '../DateRangePicker/range'
 import { useStylesheet } from '../Pane/testUtils'
 
 // The drawer and popover open and close with no slide, so a wait needs a
@@ -233,5 +234,211 @@ describe('DashboardPeriod on a wide screen', TIMEOUT, () => {
     expect(document.querySelector('output')).toHaveTextContent(
       '{"range":"this-month","compare":"previous-period"}'
     )
+  })
+})
+
+// An app's own presets with fixed dates, ending yesterday.
+const FIXED_PRESETS = [
+  { value: { direction: 'next', amount: 30, unit: 'day' } },
+  { value: { start: '2026-09-07', end: '2026-10-06' }, label: 'Last 30 days' },
+  {
+    value: { start: '2026-07-01', end: '2027-06-30' },
+    label: 'This financial year'
+  }
+] satisfies DateRangePreset[]
+
+function WithOptions() {
+  const [value, setValue] = useState<DashboardPeriodValue<'similar'>>({
+    range: { start: '2026-09-07', end: '2026-10-06' },
+    compare: 'previous-period'
+  })
+  return (
+    <div className='grid gap-2 p-4'>
+      <DashboardPeriod
+        today={TODAY}
+        value={value}
+        onValueChange={setValue}
+        presets={FIXED_PRESETS}
+        compareOptions={[
+          'previous-period',
+          'previous-year',
+          'custom',
+          {
+            value: 'similar',
+            label: 'Similar venues',
+            description: 'Venues of a like size in Melbourne'
+          }
+        ]}
+      />
+      <output>{JSON.stringify(value)}</output>
+    </div>
+  )
+}
+
+const choicesIn = (within_: HTMLElement) =>
+  within(within_).getByRole('group', { name: 'Compare with' })
+const comparisonPicker = (within_: HTMLElement) =>
+  within(within_).getByRole('button', {
+    name: /^Choose dates, Comparison dates/
+  })
+const dayIn = (container: Element, date: string) =>
+  container.querySelector<HTMLElement>(
+    `[data-slot="calendar"] button[data-date="${date}"]:not([data-outside])`
+  )!
+
+function expectInside(group: HTMLElement) {
+  expect(group.scrollWidth).toBeLessThanOrEqual(group.clientWidth)
+  const outer = box(group)
+  for (const item of within(group).getAllByRole('button')) {
+    expect(box(item).left).toBeGreaterThanOrEqual(outer.left)
+    expect(box(item).right).toBeLessThanOrEqual(outer.right)
+  }
+}
+
+for (const [width, height] of [
+  [390, 844],
+  [360, 740]
+] as const) {
+  describe(
+    `DashboardPeriod's own choices on a ${width}px phone`,
+    TIMEOUT,
+    () => {
+      beforeAll(() => page.viewport(width, height))
+      afterAll(() => page.viewport(1920, 1080))
+
+      it('wraps the choices and picks custom dates in a drawer over the drawer', async () => {
+        render(<WithOptions />)
+        await userEvent.click(picker())
+        const drawer = await screen.findByRole('dialog')
+        await withFrames(() =>
+          expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+        )
+        const footer = drawer.querySelector<HTMLElement>(
+          '[data-slot="drawer-footer"]'
+        )!
+        expect(within(footer).queryByRole('switch')).toBeNull()
+        const group = choicesIn(footer)
+        expectInside(group)
+        await userEvent.click(
+          within(group).getByRole('button', { name: 'Custom dates' })
+        )
+        const apply = within(footer).getByRole('button', { name: 'Apply' })
+        expect(box(apply).bottom).toBeLessThanOrEqual(window.innerHeight)
+        expect(comparisonPicker(footer)).toHaveAccessibleName(
+          /^Choose dates, Comparison dates \(8 Aug to 6 Sept? 2026\)$/
+        )
+        await userEvent.click(comparisonPicker(footer))
+        await withFrames(() =>
+          expect.poll(() => screen.getAllByRole('dialog')).toHaveLength(2)
+        )
+        const nested = screen.getAllByRole('dialog').at(-1)!
+        await userEvent.click(dayIn(nested, '2026-08-10'))
+        await userEvent.click(dayIn(nested, '2026-09-08'))
+        await withFrames(() =>
+          expect.poll(() => screen.getAllByRole('dialog')).toHaveLength(1)
+        )
+        expect(comparisonPicker(footer)).toHaveAccessibleName(
+          /^Choose dates, Comparison dates \(10 Aug to 8 Sept? 2026\)$/
+        )
+        await userEvent.click(apply)
+        await withFrames(() =>
+          expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+        )
+        expect(document.querySelector('output')).toHaveTextContent(
+          '{"range":{"start":"2026-09-07","end":"2026-10-06"},"compare":{"start":"2026-08-10","end":"2026-09-08"}}'
+        )
+      })
+
+      it('passes the app’s own comparison through with its description', async () => {
+        render(<WithOptions />)
+        await userEvent.click(picker())
+        const drawer = await screen.findByRole('dialog')
+        await withFrames(() =>
+          expect.poll(() => box(drawer).bottom).toBe(window.innerHeight)
+        )
+        const footer = drawer.querySelector<HTMLElement>(
+          '[data-slot="drawer-footer"]'
+        )!
+        await userEvent.click(
+          within(choicesIn(footer)).getByRole('button', {
+            name: 'Similar venues'
+          })
+        )
+        expect(
+          footer.querySelector('[data-slot="dashboard-period-compare-dates"]')
+        ).toHaveTextContent('Venues of a like size in Melbourne')
+        await userEvent.click(
+          within(footer).getByRole('button', { name: 'Apply' })
+        )
+        await withFrames(() =>
+          expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+        )
+        expect(document.querySelector('output')).toHaveTextContent(
+          '{"range":{"start":"2026-09-07","end":"2026-10-06"},"compare":"similar"}'
+        )
+        expect(picker()).toHaveAccessibleName(/vs similar venues\)$/)
+      })
+
+      it('lists the fixed presets with their dates', async () => {
+        render(<WithOptions />)
+        await userEvent.click(picker())
+        const drawer = await screen.findByRole('dialog')
+        const row = within(drawer).getByRole('button', {
+          name: /^Last 30 days/
+        })
+        expect(row).toHaveAttribute('aria-current', 'true')
+        expect(row.textContent).toMatch(/7 Sept? to 6 Oct 2026$/)
+        const body = drawer.querySelector('[data-slot="drawer-body"]')!
+        expect(body.scrollWidth).toBeLessThanOrEqual(body.clientWidth)
+      })
+    }
+  )
+}
+
+describe('DashboardPeriod’s own choices on a wide screen', TIMEOUT, () => {
+  beforeAll(() => page.viewport(1280, 900))
+  afterAll(() => page.viewport(1920, 1080))
+
+  it('names a fixed preset on the button', () => {
+    render(<WithOptions />)
+    const second = picker().querySelector<HTMLElement>(
+      '[data-slot="date-range-picker-suffix"]'
+    )!
+    const first = second.previousElementSibling as HTMLElement
+    expect(first.textContent).toMatch(/^Last 30 days\s+7 Sept? to 6 Oct 2026$/)
+    expect(second.textContent).toMatch(/^vs 8 Aug to 6 Sept? 2026$/)
+  })
+
+  it('keeps the choices on one row and picks custom dates in a popover over it', async () => {
+    render(<WithOptions />)
+    await userEvent.click(picker())
+    const popup = await screen.findByRole('dialog')
+    const group = choicesIn(popup)
+    expectInside(group)
+    const tops = within(group)
+      .getAllByRole('button')
+      .map((item) => Math.round(box(item).top))
+    expect(new Set(tops).size).toBe(1)
+    await userEvent.click(
+      within(group).getByRole('button', { name: 'Custom dates' })
+    )
+    await userEvent.click(comparisonPicker(popup))
+    await withFrames(() =>
+      expect.poll(() => screen.getAllByRole('dialog')).toHaveLength(2)
+    )
+    const nested = screen.getAllByRole('dialog').at(-1)!
+    await userEvent.click(dayIn(nested, '2026-08-10'))
+    await userEvent.click(dayIn(nested, '2026-09-08'))
+    await withFrames(() =>
+      expect.poll(() => screen.getAllByRole('dialog')).toHaveLength(1)
+    )
+    await userEvent.click(within(popup).getByRole('button', { name: 'Apply' }))
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
+    expect(document.querySelector('output')).toHaveTextContent(
+      '{"range":{"start":"2026-09-07","end":"2026-10-06"},"compare":{"start":"2026-08-10","end":"2026-09-08"}}'
+    )
+    expect(picker()).toHaveAccessibleName(/vs 10 Aug to 8 Sept? 2026\)$/)
   })
 })

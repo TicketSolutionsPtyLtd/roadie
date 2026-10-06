@@ -1,0 +1,385 @@
+export const metadata = {
+  title: 'RecordGrid',
+  description: 'A grid of record cards to search, filter, sort and page through',
+  status: 'alpha',
+  category: 'Collections'
+}
+
+import { Guideline } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A grid of record cards to search, filter, sort and page through.
+
+## Import
+
+```tsx
+import { RecordGrid, gridLayout } from '@oztix/roadie-components/record-grid'
+import { Records, useRecords } from '@oztix/roadie-components/records'
+import { recordFields } from '@oztix/roadie-core/records'
+```
+
+Card parts can hold functions (`alt` and `cell`), as can fields with a `match`, `getRowId` and the `useRecords` instance, so render the grid in a client component, a file that starts with `'use client'`.
+
+## Examples
+
+### Default
+
+Describe the records once as fields, then name in `card` the field each part of a card shows. Search, the sort in Configure, and paging come built in. Cards are at least 16rem wide, as many columns fit as the width allows, and a phone shows one.
+
+```tsx-live-noinline-expand
+const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre', 'Foxglove Tin Pavilion']
+const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth']
+const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Lampshade Disco']
+const statuses = ['on-sale', 'selling-fast', 'sold-out']
+const events = Array.from({ length: 24 }, (_, index) => ({
+  id: `event-${index}`,
+  image: index % 5 === 4 ? undefined : getAssetPath('/cart-demo-event.svg'),
+  name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
+  venue: venues[index % venues.length],
+  city: cities[index % cities.length],
+  status: statuses[index % statuses.length],
+  startsAt: `2026-11-${String((index % 28) + 1).padStart(2, '0')}`,
+  sold: (index * 37) % 2400
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('image', { label: 'Image', searchable: false, sortable: false }),
+  field.text('name', { label: 'Event' }),
+  field.text('venue', { label: 'Venue' }),
+  field.text('city', { label: 'City' }),
+  field.option('status', {
+    label: 'Status',
+    status: {
+      'on-sale': { intent: 'success', label: 'On sale' },
+      'selling-fast': { intent: 'warning', label: 'Selling fast' },
+      'sold-out': { intent: 'neutral', label: 'Sold out' }
+    }
+  }),
+  field.date('startsAt', { label: 'Starts', moment: 'date' }),
+  field.number('sold', { label: 'Sold' })
+]
+
+render(
+  <RecordGrid
+    caption='Events'
+    data={events}
+    fields={fields}
+    getRowId={(row) => row.id}
+    getRowHref={(row) => `#${row.id}`}
+    recordName={{ one: 'event', other: 'events' }}
+    defaultPosition={{ pageSize: 12 }}
+    card={{
+      image: { key: 'image', alt: (row) => row.name },
+      title: 'name',
+      description: 'venue',
+      trailing: 'status',
+      details: ['startsAt', 'city', 'sold']
+    }}
+  />
+)
+```
+
+### Card parts
+
+Each part names a field: `title` names the record and carries its `getRowHref` link, `description` sits under it, `leading` beside it, and `trailing` at its end, or over the banner when there is one. `image` is a 16:9 banner from an image URL, with a neutral tile and an image icon for a record without one. `details` are label and value pairs under the title, in order, each value at the card's end. A part is a field's key, or `{ key, alt, cell }` to give an image its alt text or replace how the value shows. Values read as their field does, so a status field shows a `Badge`.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Venue' }),
+  field.text('city', { label: 'City' }),
+  field.number('capacity', { label: 'Capacity' }),
+  field.number('events', { label: 'Events this year' })
+]
+const venues = [
+  { id: 'kazoo', name: 'Kazoo Hollow Room', city: 'Brisbane', capacity: 450, events: 82 },
+  { id: 'antler', name: 'Antler Kettle Hall', city: 'Melbourne', capacity: 1200, events: 64 },
+  { id: 'echidna', name: 'Echidna Gaslight Theatre', city: 'Sydney', capacity: 900, events: 71 },
+  { id: 'foxglove', name: 'Foxglove Tin Pavilion', city: 'Perth', capacity: 2400, events: 38 }
+]
+
+render(
+  <RecordGrid
+    caption='Venues'
+    data={venues}
+    fields={fields}
+    getRowId={(row) => row.id}
+    recordName={{ one: 'venue', other: 'venues' }}
+    card={{
+      leading: { key: 'name', cell: ({ row }) => <Avatar size='sm' name={row.name} /> },
+      title: 'name',
+      description: 'city',
+      details: ['capacity', 'events']
+    }}
+  />
+)
+```
+
+### States
+
+Pass `loading` while records load and `error` when the load fails. With no records yet, `loading` shows still placeholder cards; with records, it dims them and runs a bar under the toolbar. An error replaces the cards, and `onRetry` adds a Retry button. With no records, the empty state says whether none exist yet or none match, and offers to clear the search and filters.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [field.text('name', { label: 'Event' }), field.text('city', { label: 'City' }), field.number('sold', { label: 'Sold' })]
+const events = [
+  { id: 'a', name: 'Nectarine Hoedown', city: 'Brisbane', sold: 1840 },
+  { id: 'b', name: 'Raffia Spaceship', city: 'Melbourne', sold: 920 }
+]
+const props = {
+  fields,
+  getRowId: (row) => row.id,
+  recordName: { one: 'event', other: 'events' },
+  card: { title: 'name', description: 'city', details: ['sold'] }
+}
+
+render(
+  <div className='grid gap-8'>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>Loading, no records yet</p>
+      <RecordGrid {...props} caption='Loading events' data={[]} loading defaultPosition={{ pageSize: 3 }} />
+    </div>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>Loading, with records</p>
+      <RecordGrid {...props} caption='Refreshing events' data={events} loading />
+    </div>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>No match</p>
+      <RecordGrid {...props} caption='Unmatched events' data={events} defaultView={{ query: { search: 'Darwin' } }} />
+    </div>
+    <div className='grid gap-2'>
+      <p className='text-sm text-subtle'>Error</p>
+      <RecordGrid {...props} caption='Failed events' data={[]} error onRetry={() => {}} />
+    </div>
+  </div>
+)
+```
+
+### Layouts
+
+Give `Records` both a table and a grid, and Configure shows a Layout switcher above the sort. The view's `layout` changes with it, so the URL and a saved view keep the layout, and the search, filters and sort stay as they are. Each layout comes back with its settings as last shown, such as the table's hidden columns, or the saved view's when it was saved in that layout, so switching back reads as unchanged. Content shows the layout the view names, or the first one given.
+
+```tsx-live-noinline-expand
+const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre', 'Foxglove Tin Pavilion']
+const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Lampshade Disco']
+const events = Array.from({ length: 18 }, (_, index) => ({
+  id: `event-${index}`,
+  image: getAssetPath('/cart-demo-event.svg'),
+  name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
+  venue: venues[index % venues.length],
+  sold: (index * 37) % 2400,
+  gross: (index * 7919) % 250000
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('image', { label: 'Image', searchable: false, sortable: false }),
+  field.text('name', { label: 'Event' }),
+  field.text('venue', { label: 'Venue' }),
+  field.number('sold', { label: 'Sold' }),
+  field.money('gross', { label: 'Gross', format: 'compactCurrency' })
+]
+const column = tableColumns(fields)
+const layouts = [
+  tableLayout([
+    column.field('image', { kind: 'image' }),
+    column.field('name', { pin: true, narrow: 'title' }),
+    column.field('venue', { narrow: 'description' }),
+    column.field('sold'),
+    column.field('gross')
+  ]),
+  gridLayout({ image: 'image', title: 'name', description: 'venue', details: ['sold', 'gross'] })
+]
+
+function Events() {
+  const [view, setView] = useState({
+    query: { search: '', filters: [], sort: [] },
+    layout: { type: 'grid' }
+  })
+  const records = useRecords({
+    data: events,
+    fields,
+    getRowId: (row) => row.id,
+    getRowHref: (row) => `#${row.id}`,
+    recordName: { one: 'event', other: 'events' },
+    view,
+    onViewChange: setView
+  })
+  return (
+    <div className='grid gap-3'>
+      <p className='text-sm text-subtle'>URL: ?{toSearchParams(view).toString()}</p>
+      <Records records={records} layouts={layouts} caption='Events'>
+        <Records.Toolbar />
+        <Records.Content />
+        <Records.Pagination />
+        <Records.Status />
+      </Records>
+    </div>
+  )
+}
+
+render(<Events />)
+```
+
+### Card fields
+
+Configure lists the fields a card shows as details. Drag a handle to reorder them, or click it or press Enter for a Move menu. The eye beside each one hides it. Hidden fields are listed apart, in the fields' own order, and showing one again adds it to the end. The fields the card places as its title, description, image, leading or trailing aren't listed. When the grid defines details, the last one stays shown. The list loads once the page is idle, or as a pointer or focus reaches the button, so drag and drop stays out of the grid's first load.
+
+The fields write the view's `layout.fields`, the shown keys in order, left out once back to the grid's `details`, so `equalViews` reads the view as unchanged. A view's keys for fields this grid doesn't have, such as one only some people see, are kept in their places.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  field.text('city', { label: 'City' }),
+  field.date('startsAt', { label: 'Starts', moment: 'date' }),
+  field.number('sold', { label: 'Sold' }),
+  field.money('gross', { label: 'Gross', format: 'compactCurrency' })
+]
+const names = ['Nectarine Hoedown', 'Lampshade Disco', 'Ember Galah Ball', 'Raffia Spaceship']
+const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
+const events = Array.from({ length: 6 }, (_, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${index + 1}`,
+  city: cities[index % cities.length],
+  startsAt: `2026-11-${String(index + 2).padStart(2, '0')}`,
+  sold: (index * 37) % 2400,
+  gross: (index * 7919) % 250000
+}))
+
+function Configured() {
+  const [view, setView] = useState({
+    query: { search: '', filters: [], sort: [] },
+    layout: { type: 'grid', fields: ['gross', 'startsAt'] }
+  })
+  return (
+    <div className='grid gap-3'>
+      <p className='text-sm text-subtle'>URL: ?{toSearchParams(view).toString()}</p>
+      <RecordGrid
+        caption='Events'
+        data={events}
+        fields={fields}
+        getRowId={(row) => row.id}
+        view={view}
+        onViewChange={setView}
+        card={{ title: 'name', description: 'city', details: ['startsAt', 'sold'] }}
+      />
+    </div>
+  )
+}
+
+render(<Configured />)
+```
+
+### Selection and actions
+
+Cards have no checkboxes, so a selectable grid offers Select mode, as a narrow table does. Select in the toolbar shows a checkbox on each card, a tap anywhere on a card selects it rather than opening it, and the toolbar offers Select all and Done. Escape or Done leaves the mode and clears the selection. The bulk actions float at the foot of the screen with the count. Switching to a table keeps the selection, with a checkbox on each row.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [field.text('name', { label: 'Event' }), field.text('city', { label: 'City' }), field.number('sold', { label: 'Sold' })]
+const names = ['Nectarine Hoedown', 'Lampshade Disco', 'Ember Galah Ball', 'Raffia Spaceship']
+const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth']
+const events = Array.from({ length: 8 }, (_, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${index + 1}`,
+  city: cities[index % cities.length],
+  sold: (index * 37) % 2400
+}))
+
+render(
+  <RecordGrid
+    caption='Events'
+    data={events}
+    fields={fields}
+    getRowId={(row) => row.id}
+    getRowHref={(row) => `#${row.id}`}
+    recordName={{ one: 'event', other: 'events' }}
+    card={{ title: 'name', description: 'city', details: ['sold'] }}
+    bulkActions={[
+      { label: 'Share', icon: <ShareNetworkIcon weight='bold' className='size-4' />, onAction: () => {} },
+      { label: 'Delete', icon: <TrashIcon weight='bold' className='size-4' />, intent: 'danger', onAction: () => {} }
+    ]}
+    gridActions={[{ label: 'Export CSV', onAction: () => {} }]}
+  />
+)
+```
+
+### Long lists
+
+Past 100 records on a page, the grid renders only the rows of cards near the screen, measuring each row as it renders, so find in page and printing see only those. `maxHeight` or `fill` scrolls the cards in their own box. Give `useRecords` a `loadRange` and the grid loads records by range as people scroll, with placeholder cards for records still loading, a failed range's error and Retry in its place, and the first record on screen reported as `position.row`. A row set from outside, such as from the URL, scrolls into view at the row of cards that holds it. See [Range loading](/components/record-table#range-loading) for the loading side, which is the same for every layout.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [field.text('name', { label: 'Event' }), field.text('city', { label: 'City' }), field.number('sold', { label: 'Sold' })]
+const names = ['Nectarine Hoedown', 'Lampshade Disco', 'Ember Galah Ball', 'Raffia Spaceship', 'Quokka Thunder Weekender']
+const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart', 'Adelaide']
+const events = Array.from({ length: 1000 }, (_, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${index + 1}`,
+  city: cities[index % cities.length],
+  sold: (index * 37) % 2400
+}))
+
+render(
+  <RecordGrid
+    caption='Events'
+    data={events}
+    fields={fields}
+    getRowId={(row) => row.id}
+    recordName={{ one: 'event', other: 'events' }}
+    defaultPosition={{ pageSize: 1000 }}
+    pageSizes={[100, 1000]}
+    maxHeight='32rem'
+    card={{ title: 'name', description: 'city', details: ['sold'] }}
+  />
+)
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Offer a grid where people recognise records by sight'>
+  <Guideline.Do
+    code={`layouts={[
+  tableLayout(columns),
+  gridLayout({ image: 'image', title: 'name', description: 'venue' })
+]}`}
+  >
+    Offer the grid beside the table for events, venues and products, where
+    an image or a status at a glance helps people find the record.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`<RecordGrid fields={orderFields} card={{ title: 'orderNumber', details: ['total', 'placedAt', 'email', 'status', 'tickets'] }} />`}
+  >
+    Don't use a grid for records people compare by their values, such as
+    orders. A table lines the values up in columns.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep details to a few'>
+  <Guideline.Do code={`gridLayout({ title: 'name', description: 'venue', details: ['startsAt', 'sold'] })`}>
+    Show two or three details. People add more from Configure when they need
+    them.
+  </Guideline.Do>
+  <Guideline.Dont code={`gridLayout({ title: 'name', details: ['venue', 'city', 'startsAt', 'endsAt', 'sold', 'capacity', 'gross'] })`}>
+    Don't list every field. Tall cards fit few to a screen and bury the
+    title.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- `caption` names the cards: they are a list named by the caption, each card an item with its place in the whole list (`aria-posinset` and `aria-setsize`) when the list holds only some of them, such as a page of several or more than 100 cards. Loading by range, the size is `-1` until the total is known.
+- A card's title is a paragraph, not a heading, since the grid can't know the page's outline. With `getRowHref` it is a link, and the whole card takes its hover and press; it opens in a new tab with Cmd or Ctrl, like any link.
+- Tab moves through the cards in reading order, row by row. In its own box (`maxHeight` or `fill`), the box is a region named "Events, scrolls" for a caption of Events.
+- In Select mode, each card's checkbox is named "Select" and the card's title, and covers the card, so a tap anywhere on it toggles, and the link steps aside. "Select" and "Done" are one button, which keeps focus as it switches. The floating bulk actions are a group named "Bulk actions". Escape leaves Select mode, and focus lands on Select.
+- The Configure button is named "Configure grid", as is the dialog it opens. The Layout switcher is a group named "Layout" of toggle buttons, Table and Grid, with the shown one pressed; arrow keys move between them, and focus stays on the one used as the layout switches. Each shown field's handle is named "Reorder" and the field, and its eye is a toggle button named "Show" and the field, pressed while the field shows. Showing or hiding a field moves it between the lists, and focus follows its eye. The last shown detail's eye is disabled when the grid defines details, and says why.
+- Loading by range, the list is `aria-busy` while a range loads, placeholder cards are hidden from screen readers, and a failed range is announced. `Records.Status` announces Loading, the error, the result count and the selection.
+- Focus in a card that scrolls away, or whose record leaves, moves to the cards, so keyboard users keep their place.
+
+<PropsDefinitions componentPath='packages/components/src/components/RecordGrid/RecordGridPreset.tsx' />

@@ -2,21 +2,26 @@ import {
   type CSSProperties,
   type MouseEvent,
   type ReactNode,
-  memo
+  memo,
+  useRef
 } from 'react'
 
 import { formatRecordValue } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
-import { RecordValue } from '../Records/RecordValue'
+import { RecordPartValue } from '../Records/RecordPartValue'
 import { RecordsRowActions } from '../Records/RecordsRowActions'
+import { RecordsRowCheckbox } from '../Records/RecordsRowCheckbox'
 import { handleRowClick, onRowControl } from '../Records/rowLink'
-import { RecordTableRowCheckbox } from './RecordTableSelectCell'
-import type { ColumnLayout } from './layout'
+import { type ColumnLayout, priorityProps } from './layout'
+import { useKeepFocusInTable } from './tableFocus'
 import type { RecordTableColumn } from './types'
 
-export const ROW_HEIGHT = 48
+/** `h-12`, in rem. */
+export const ROW_REM = 3
+/** At the default 16px root. */
+export const ROW_HEIGHT = ROW_REM * 16
 
 // WebKit builds without overflow-clip-margin drop the clip instead of the
 // ring. Decided in CSS, so the server and browser render the same classes.
@@ -36,7 +41,7 @@ const pinnedSurface =
 
 export const cellClass = (column: RecordTableColumn) =>
   cn(
-    'flex min-w-0 items-center px-2.5 first:ps-0 last:pe-0',
+    'flex min-w-0 items-center px-2.5 first:ps-(--content-inset) last:pe-(--content-inset)',
     isFigure(column) ? 'justify-end text-end' : 'justify-start',
     column.pin
       ? cn('sticky start-(--record-table-pin-start) z-docked', pinnedSurface)
@@ -45,30 +50,44 @@ export const cellClass = (column: RecordTableColumn) =>
 
 /** The checkbox cell, pinned first and centred, so a focus ring has room on both sides. */
 export const selectCellClass = cn(
-  'sticky start-0 z-docked flex min-w-0 items-center justify-center',
+  'sticky start-0 z-docked flex min-w-0 items-center justify-center ps-(--content-inset)',
   pinnedSurface
 )
 
 /** The row actions cell, pinned to the end. */
 export const actionsCellClass = cn(
-  'sticky end-0 z-docked flex min-w-0 items-center justify-center',
+  'sticky end-0 z-docked flex min-w-0 items-center justify-center pe-(--content-inset)',
   pinnedSurface
 )
 
+// After the first track, which carries the inset.
 export const pinStyle = (start: number | undefined) =>
   start === undefined
     ? undefined
-    : ({ '--record-table-pin-start': `${start}rem` } as CSSProperties)
+    : ({
+        '--record-table-pin-start':
+          start === 0 ? '0rem' : `calc(${start}rem + var(--content-inset))`
+      } as CSSProperties)
 
-/** The column whose value names the row: the first pinned text column, else the first text one. */
-export const titleColumn = (columns: readonly RecordTableColumn[]) =>
-  columns.find((column) => column.pin && column.field.type === 'text') ??
-  columns.find((column) => column.field.type === 'text')
+/** The column whose value names the row: the narrow title, else the first pinned text column, else the first text one. Never an image. */
+export function titleColumn<Column extends RecordTableColumn<never>>(
+  columns: readonly Column[]
+) {
+  const named = columns.filter((column) => column.kind !== 'image')
+  return (
+    named.find((column) => column.narrow === 'title') ??
+    named.find((column) => column.pin && column.field.type === 'text') ??
+    named.find((column) => column.field.type === 'text')
+  )
+}
 
-// The title column is text, which reads the same in any zone.
-const titleText = (record: object, title: RecordTableColumn | undefined) => {
+const titleText = (
+  record: object,
+  title: RecordTableColumn | undefined,
+  timeZone: string
+) => {
   const text = title
-    ? formatRecordValue(record, title.field, { timeZone: 'UTC' })
+    ? formatRecordValue(record, title.field, { timeZone })
     : null
   return text?.trim() ? text : undefined
 }
@@ -96,6 +115,8 @@ type RecordTableRowProps = {
   onToggle: (id: string, range: boolean) => void
   rowActions?: (row: object) => ReactNode
   href?: string
+  /** One-based, counting the header row, when the table holds only some of its rows. */
+  rowIndex?: number
 }
 
 // Memoised so rows a change doesn't touch skip re-rendering.
@@ -109,9 +130,12 @@ export const RecordTableRow = memo(function RecordTableRow({
   selected,
   onToggle,
   rowActions,
-  href
+  href,
+  rowIndex
 }: RecordTableRowProps) {
-  const name = titleText(record, title)
+  const rowRef = useRef<HTMLDivElement>(null)
+  useKeepFocusInTable(rowRef)
+  const name = titleText(record, title, timeZone)
   const linked = href !== undefined && name !== undefined
   const selectable = selected !== undefined
   const clickable = linked || selectable
@@ -123,7 +147,9 @@ export const RecordTableRow = memo(function RecordTableRow({
     )
   return (
     <div
+      ref={rowRef}
       role='row'
+      aria-rowindex={rowIndex}
       data-slot='record-table-row'
       data-row-id={id}
       data-selected={selected || undefined}
@@ -151,7 +177,7 @@ export const RecordTableRow = memo(function RecordTableRow({
     >
       {selectable && (
         <div role='cell' className={cn(selectCellClass, cellOverflowClass)}>
-          <RecordTableRowCheckbox
+          <RecordsRowCheckbox
             id={id}
             title={name ?? id}
             selected={selected}
@@ -160,15 +186,9 @@ export const RecordTableRow = memo(function RecordTableRow({
         </div>
       )}
       {columns.map((column, index) => {
-        const content = column.cell ? (
-          column.cell({
-            value: (record as Record<string, unknown>)[column.key],
-            row: record,
-            field: column.field
-          })
-        ) : (
-          <RecordValue
-            field={column.field}
+        const content = (
+          <RecordPartValue
+            part={column}
             row={record}
             timeZone={timeZone}
             className='min-w-0 truncate'
@@ -179,6 +199,7 @@ export const RecordTableRow = memo(function RecordTableRow({
             key={column.key}
             role='cell'
             data-pin={column.pin || undefined}
+            {...priorityProps(column, layout, index)}
             className={cn(
               cellClass(column),
               cellOverflowClass,

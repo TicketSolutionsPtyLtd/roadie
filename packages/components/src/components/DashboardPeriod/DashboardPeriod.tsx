@@ -1,54 +1,88 @@
 'use client'
 
-import { type ComponentProps, type ReactNode, useState } from 'react'
+import { type ComponentProps, type ReactNode, useEffect, useState } from 'react'
 
 import {
+  type AbsoluteRange,
   type Comparison,
   type ComparisonOptions,
   type DateRangeValue,
   describeDateRange,
   isAbsoluteRange,
+  isBuiltInComparison,
   resolveComparison
 } from '@oztix/roadie-core/datetime'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { usePickerZone } from '../../pickers/PickerShell'
+import { isDev } from '../../utils/isDev'
 import { useToday } from '../Calendar/today'
+import { DateRangePicker } from '../DateRangePicker'
 import { ExtendedDateRangePicker } from '../DateRangePicker/ExtendedDateRangePicker'
 import { type DateRangePreset, sameRange } from '../DateRangePicker/range'
 import { Switch } from '../Switch'
 import { ToggleGroup } from '../ToggleGroup'
 import { dashboardPeriodPresets } from './presets'
 
-/** A dashboard's period and what it compares with. No `compare`, no comparison. */
-export type DashboardPeriodValue = {
+/**
+ * A dashboard's period and what it compares with. No `compare`, no
+ * comparison. `App` is the app's own comparisons, from `compareOptions`.
+ */
+export type DashboardPeriodValue<App extends string = never> = {
   range: DateRangeValue
-  compare?: Comparison
+  compare?: Comparison<App>
 }
 
-export type DashboardPeriodProps = Omit<
+/** One of the app's own comparisons, which `compare` carries as `value`. */
+export type DashboardPeriodCompareOption<App extends string = string> = {
+  value: App
+  label: string
+  /** Shown where Roadie's comparisons show their dates. */
+  description?: string
+}
+
+export type DashboardPeriodProps<App extends string = never> = Omit<
   ComponentProps<'div'>,
   'defaultValue' | 'onChange'
 > & {
   /** The period and its comparison. Pair with `onValueChange`. */
-  value?: DashboardPeriodValue
+  value?: DashboardPeriodValue<App>
   /**
-   * The period to start from when uncontrolled.
-   *
-   * @default { range: { direction: 'past', amount: 30, unit: 'day' }, compare: 'previous-period' }
+   * The period to start from when uncontrolled. Defaults to the past 30
+   * days, compared with the first of `compareOptions` other than `'custom'`.
    */
-  defaultValue?: DashboardPeriodValue
+  defaultValue?: DashboardPeriodValue<App>
   /**
    * Called when Apply is pressed with the period and its comparison. Each
    * change refetches the dashboard, so both wait for Apply.
    */
-  onValueChange?: (value: DashboardPeriodValue) => void
+  onValueChange?: (value: DashboardPeriodValue<App>) => void
   /**
    * The period's presets, as on `DateRangePicker`.
    *
    * @default dashboardPeriodPresets
    */
   presets?: readonly DateRangePreset[]
+  /**
+   * The Compare choices, in order. `'previous-period'` and `'previous-year'`
+   * are Roadie's; `'custom'` picks dates; `{ value, label, description? }` is
+   * the app's own, passed through as `compare: value` with no dates, and
+   * read on the button as "vs " and the label with its first letter
+   * lowercased. `'none'` adds the Compare switch; without it nothing turns
+   * the comparison off. A comparison the value holds that the list leaves
+   * out still shows. Uncontrolled, the first choice other than `'custom'`
+   * starts on. With nothing listed but `'none'`, there is no Compare row.
+   * Hoist the list with `as const` so the app's values are kept.
+   *
+   * @default ['none', 'previous-period', 'previous-year']
+   */
+  compareOptions?: readonly (
+    | 'none'
+    | 'previous-period'
+    | 'previous-year'
+    | 'custom'
+    | DashboardPeriodCompareOption<App>
+  )[]
   /**
    * The first day the data holds, as given to `resolveComparison`, so each
    * comparison lists the dates the app will fetch.
@@ -78,47 +112,69 @@ export type DashboardPeriodProps = Omit<
   fiscalYearStart?: number
   /** @default 'en-AU' */
   locale?: string
-  /** The app's own controls, such as a benchmark, placed after the period. */
+  /** The app's own controls, placed after the period. */
   children?: ReactNode
 }
 
-type Choice = 'previous-period' | 'previous-year' | 'custom'
+type Choice = { value: string; label: string; description?: string }
 
-const CHOICES: { value: Choice; label: string }[] = [
-  { value: 'previous-period', label: 'Previous period' },
-  { value: 'previous-year', label: 'Previous year' },
-  { value: 'custom', label: 'Custom dates' }
-]
+const BUILT_IN = {
+  'previous-period': 'Previous period',
+  'previous-year': 'Previous year',
+  custom: 'Custom dates'
+} as const
+
+const DEFAULT_COMPARE_OPTIONS = [
+  'none',
+  'previous-period',
+  'previous-year'
+] as const
 
 const HISTORY = {
   partial: 'Not enough history',
   unavailable: 'Nothing to compare'
 } as const
 
-const DEFAULT_VALUE: DashboardPeriodValue = {
-  range: { direction: 'past', amount: 30, unit: 'day' },
-  compare: 'previous-period'
+const DEFAULT_RANGE: DateRangeValue = {
+  direction: 'past',
+  amount: 30,
+  unit: 'day'
 }
 
-function choiceOf(compare: Comparison): Choice {
-  return isAbsoluteRange(compare) ? 'custom' : compare
+const warned = new Set<string>()
+
+const RESERVED: readonly string[] = ['none', 'custom', ...Object.keys(BUILT_IN)]
+
+function choiceOf(compare: Comparison<string>): string {
+  return typeof compare === 'object' ? 'custom' : compare
 }
 
 function noonOf(date: string): Date {
   return new Date(`${date}T12:00:00Z`)
 }
 
-const sameComparison = (a?: Comparison, b?: Comparison) =>
+const sameComparison = (a?: Comparison<string>, b?: Comparison<string>) =>
   typeof a !== 'object' || typeof b !== 'object' ? a === b : sameRange(a, b)
+
+// "Similar venues" reads "vs similar venues", but "GA venues" keeps its caps.
+const inSentence = (label: string, locale: string | undefined) =>
+  label.replace(/^\p{Lu}(?=\p{Ll})/u, (first) =>
+    first.toLocaleLowerCase(locale)
+  )
 
 /** The dates a comparison covers, or why there are none to show. */
 function compared(
   range: DateRangeValue | null,
-  compare: Comparison,
+  compare: Comparison<string>,
   options: ComparisonOptions | null,
   locale: string | undefined
-): { dates: string | null; note: string | null } {
-  if (!options || !range) return { dates: null, note: null }
+): {
+  dates: string | null
+  note: string | null
+  covered: AbsoluteRange | null
+} {
+  const none = { dates: null, note: null, covered: null }
+  if (!options || !range || !isBuiltInComparison(compare)) return none
   try {
     const { status, range: covered } = resolveComparison(
       range,
@@ -127,23 +183,25 @@ function compared(
     )
     const dates =
       covered?.kind === 'dates'
-        ? describeDateRange(
-            { start: covered.start, end: covered.end },
-            { ...options, locale }
-          ).detail
+        ? { start: covered.start, end: covered.end }
         : null
-    return { dates, note: status === 'available' ? null : HISTORY[status] }
+    return {
+      dates: dates && describeDateRange(dates, { ...options, locale }).detail,
+      note: status === 'available' ? null : HISTORY[status],
+      covered: dates
+    }
   } catch {
-    return { dates: null, note: null }
+    return none
   }
 }
 
 /** A dashboard's period, with what it compares with, in one picker. */
-export function DashboardPeriod({
+export function DashboardPeriod<App extends string = never>({
   value: valueProp,
-  defaultValue = DEFAULT_VALUE,
+  defaultValue,
   onValueChange,
   presets = dashboardPeriodPresets,
+  compareOptions = DEFAULT_COMPARE_OPTIONS,
   dataStart,
   dataEnd,
   alignWeekday,
@@ -159,7 +217,7 @@ export function DashboardPeriod({
   className,
   'aria-label': ariaLabel = 'Dashboard period',
   ...props
-}: DashboardPeriodProps) {
+}: DashboardPeriodProps<App>) {
   const zone = usePickerZone(timeZone)
   const today = useToday(todayProp, zone)
   // Read against noon of today in UTC, as DateRangePicker does, so both
@@ -176,88 +234,222 @@ export function DashboardPeriod({
       }
     : null
 
-  const [uncontrolled, setUncontrolled] = useState(defaultValue)
+  const problems: string[] = []
+  const choices: Choice[] = []
+  for (const option of compareOptions) {
+    if (option === 'none') continue
+    const choice =
+      typeof option === 'string'
+        ? { value: option, label: BUILT_IN[option] }
+        : option
+    if (typeof option === 'object' && !option.value)
+      problems.push(
+        `The app's option "${option.label}" has no value, so it is left out.`
+      )
+    else if (typeof option === 'object' && RESERVED.includes(option.value))
+      problems.push(
+        `"${option.value}" is one of Roadie's own compare options, so the app's option "${option.label}" is left out. Give it a value of its own.`
+      )
+    else if (choices.some((listed) => listed.value === choice.value)) {
+      if (typeof option === 'object')
+        problems.push(`"${option.value}" is listed twice in compareOptions.`)
+    } else choices.push(choice)
+  }
+  // Uncontrolled, it starts with the first comparison that needs no dates.
+  const firstChoice = choices.find((choice) => choice.value !== 'custom')
+  const [uncontrolled, setUncontrolled] = useState<DashboardPeriodValue<App>>(
+    () =>
+      defaultValue ??
+      (firstChoice
+        ? {
+            range: DEFAULT_RANGE,
+            compare: firstChoice.value as Comparison<App>
+          }
+        : { range: DEFAULT_RANGE })
+  )
   const value = valueProp ?? uncontrolled
   // The comparison as edited in the open picker; dropped as it opens or closes.
-  const [edit, setEdit] = useState<{ compare?: Comparison } | null>(null)
+  const [edit, setEdit] = useState<{ compare?: Comparison<App> } | null>(null)
+  const customOf = (comparison?: Comparison<App>) =>
+    comparison && typeof comparison === 'object' ? comparison : null
+  // The value's comparison as last seen; what the switch turns back on; and
+  // the custom dates Custom returns to. One state, so they change together.
+  const remembered = (comparison?: Comparison<App>) => ({
+    seen: comparison,
+    lastChoice: comparison ?? null,
+    lastCustom: customOf(comparison)
+  })
+  const [memory, setMemory] = useState(() => remembered(value.compare))
+  const { lastChoice, lastCustom } = memory
   // A comparison from outside replaces an open edit, as the range does.
-  const [seenCompare, setSeenCompare] = useState(value.compare)
-  if (!sameComparison(seenCompare, value.compare)) {
-    setSeenCompare(value.compare)
+  if (!sameComparison(memory.seen, value.compare)) {
+    setMemory(remembered(value.compare))
     setEdit(null)
   }
   const compare = edit ? edit.compare : value.compare
-  const [lastChoice, setLastChoice] = useState<Comparison>(
-    value.compare ?? 'previous-period'
-  )
 
-  function emit(next: DashboardPeriodValue) {
+  const switchShown = compareOptions.includes('none')
+  const customEditable = compareOptions.includes('custom')
+  // A comparison the list leaves out still shows, so the choices never hide
+  // what the value holds.
+  for (const held of [value.compare, compare]) {
+    if (!held) continue
+    const choice = choiceOf(held)
+    if (choices.some((listed) => listed.value === choice)) continue
+    if (isBuiltInComparison(held))
+      choices.push({
+        value: choice,
+        label: BUILT_IN[choice as keyof typeof BUILT_IN]
+      })
+    else {
+      problems.push(
+        `compare is "${choice}", which compareOptions doesn't list, so it shows by its value. Add { value: '${choice}', label } to compareOptions.`
+      )
+      choices.push({ value: choice, label: choice })
+    }
+  }
+  const warnings = problems.join('\n')
+  useEffect(() => {
+    if (!warnings || !isDev()) return
+    // Once each, so StrictMode's second mount doesn't repeat them.
+    for (const problem of warnings.split('\n')) {
+      if (warned.has(problem)) continue
+      warned.add(problem)
+      console.warn(`[Roadie] DashboardPeriod: ${problem}`)
+    }
+  }, [warnings])
+  const appChoice = (comparison: Comparison<App>) =>
+    isBuiltInComparison(comparison)
+      ? undefined
+      : choices.find((choice) => choice.value === comparison)
+
+  function emit(next: DashboardPeriodValue<App>) {
     // A picker left open keeps its Apply after the toolbar locks.
     if (readOnly || disabled) return
     if (valueProp === undefined) setUncontrolled(next)
     onValueChange?.(next)
   }
 
-  const periodOf = (range: DateRangeValue, compareWith?: Comparison) =>
+  const periodOf = (range: DateRangeValue, compareWith?: Comparison<App>) =>
     compareWith ? { range, compare: compareWith } : { range }
 
-  function editCompare(next?: Comparison) {
-    if (next) setLastChoice(next)
+  function editCompare(next?: Comparison<App>) {
+    if (next)
+      setMemory({
+        ...memory,
+        lastChoice: next,
+        lastCustom: customOf(next) ?? memory.lastCustom
+      })
     setEdit({ compare: next })
+  }
+
+  /** The comparison a choice stands for: custom dates start from the previous period. */
+  function comparisonFor(
+    choice: string,
+    range: DateRangeValue | null
+  ): Comparison<App> | undefined {
+    if (choice !== 'custom') return choice as Comparison<App>
+    return (
+      lastCustom ??
+      compared(range, 'previous-period', options, locale).covered ??
+      undefined
+    )
   }
 
   const shown = value.compare
     ? compared(value.range, value.compare, options, locale)
     : null
-  const suffix = value.compare
-    ? `vs ${shown?.dates ?? CHOICES.find((c) => c.value === choiceOf(value.compare!))!.label.toLowerCase()}`
-    : null
-
-  const choices = CHOICES.filter(
-    (choice) =>
-      choice.value !== 'custom' ||
-      (compare && choiceOf(compare) === 'custom') ||
-      (value.compare && choiceOf(value.compare) === 'custom')
-  )
-  const customCompare =
-    value.compare && isAbsoluteRange(value.compare) ? value.compare : null
+  const named = value.compare
+    ? isBuiltInComparison(value.compare)
+      ? (shown?.dates ??
+        BUILT_IN[choiceOf(value.compare) as keyof typeof BUILT_IN])
+      : appChoice(value.compare)?.label
+    : undefined
+  const suffix = named ? `vs ${inSentence(named, locale)}` : null
 
   const compareRow = (range: DateRangeValue | null) => {
     const current = compare ? compared(range, compare, options, locale) : null
+    const choice = compare ? choiceOf(compare) : null
+    const customDates =
+      customEditable && choice === 'custom' ? customOf(compare) : null
+    const line = compare
+      ? isBuiltInComparison(compare)
+        ? (current?.note ?? (customDates ? null : current?.dates))
+        : appChoice(compare)?.description
+      : null
+    const groupShown = !!compare || !switchShown
     return (
       <div data-slot='dashboard-period-compare' className='grid gap-3'>
-        <Switch
-          label='Compare'
-          checked={!!compare}
-          onCheckedChange={(on) => editCompare(on ? lastChoice : undefined)}
-        />
-        {compare && (
+        {switchShown && (
+          <Switch
+            label='Compare'
+            checked={!!compare}
+            disabled={
+              !compare &&
+              !choices.some((option) => comparisonFor(option.value, range))
+            }
+            onCheckedChange={(on) =>
+              editCompare(
+                on
+                  ? (lastChoice ??
+                      choices
+                        .map((option) => comparisonFor(option.value, range))
+                        .find(Boolean))
+                  : undefined
+              )
+            }
+          />
+        )}
+        {groupShown && (
           <div className='grid gap-2'>
-            <ToggleGroup<Choice>
+            <ToggleGroup
               aria-label='Compare with'
               size='sm'
-              value={[choiceOf(compare)]}
+              value={choice ? [choice] : []}
               onValueChange={(next) => {
-                const choice = next[0]
-                if (!choice) return
-                editCompare(
-                  choice === 'custom' ? (customCompare ?? lastChoice) : choice
-                )
+                const picked = next[0]
+                const comparison = picked && comparisonFor(picked, range)
+                if (comparison) editCompare(comparison)
               }}
-              className='w-full *:flex-1'
+              // Wraps when the choices outgrow the row; the radius is a
+              // pill's on one row.
+              className='flex w-full flex-wrap rounded-2xl *:flex-1'
             >
-              {choices.map((choice) => (
-                <ToggleGroup.Item key={choice.value} value={choice.value}>
-                  {choice.label}
+              {choices.map((option) => (
+                <ToggleGroup.Item
+                  key={option.value}
+                  value={option.value}
+                  // Custom dates start from the previous period; with none to
+                  // start from there are no dates to pick.
+                  disabled={!comparisonFor(option.value, range)}
+                >
+                  {option.label}
                 </ToggleGroup.Item>
               ))}
             </ToggleGroup>
+            {customDates && (
+              <DateRangePicker
+                aria-label='Comparison dates'
+                size='sm'
+                presets={[]}
+                value={customDates}
+                onValueChange={(next) => {
+                  if (next && isAbsoluteRange(next)) editCompare(next)
+                }}
+                disabled={readOnly || disabled}
+                timeZone={timeZone}
+                today={todayProp}
+                weekStart={weekStart}
+                fiscalYearStart={fiscalYearStart}
+                locale={locale}
+              />
+            )}
             <p
               data-slot='dashboard-period-compare-dates'
               aria-live='polite'
               className='text-sm text-subtle'
             >
-              {current?.note ?? current?.dates}
+              {line}
             </p>
           </div>
         )}
@@ -294,10 +486,10 @@ export function DashboardPeriod({
         value={value.range}
         onOpenChange={() => {
           setEdit(null)
-          setLastChoice(value.compare ?? 'previous-period')
+          setMemory(remembered(value.compare))
         }}
         valueSuffix={suffix}
-        extra={compareRow}
+        extra={choices.length > 0 ? compareRow : undefined}
         onApply={(range) => {
           const next = periodOf(range ?? value.range, compare)
           if (

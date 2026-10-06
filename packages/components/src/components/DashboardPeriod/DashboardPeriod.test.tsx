@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { StrictMode, useState } from 'react'
 
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { DashboardPeriod, type DashboardPeriodValue } from '.'
 import { onPhone } from '../../pickers/testUtils'
+import type { DateRangePreset } from '../DateRangePicker/range'
 
 // Wed 7 Oct 2026.
 const TODAY = '2026-10-07'
@@ -359,5 +360,459 @@ describe('DashboardPeriod', () => {
   it('renders on the server before today is known', () => {
     const html = renderToString(<DashboardPeriod value={THIS_MONTH} />)
     expect(html).toContain('vs previous period')
+  })
+})
+
+// An app's own presets with fixed dates, ending yesterday.
+const FIXED_PRESETS = [
+  { value: { direction: 'next', amount: 30, unit: 'day' } },
+  { value: { start: '2026-09-07', end: '2026-10-06' }, label: 'Last 30 days' },
+  {
+    value: { start: '2026-07-01', end: '2027-06-30' },
+    label: 'This financial year'
+  }
+] satisfies DateRangePreset[]
+
+const SIMILAR = {
+  value: 'similar',
+  label: 'Similar venues',
+  description: 'Venues of a like size in Melbourne'
+} as const
+const WITH_SIMILAR = [
+  'previous-period',
+  'previous-year',
+  'custom',
+  SIMILAR
+] as const
+
+const choiceNames = (dialog: HTMLElement) =>
+  within(within(dialog).getByRole('group', { name: 'Compare with' }))
+    .getAllByRole('button')
+    .map((button) => button.textContent)
+const choice = (dialog: HTMLElement, name: string) =>
+  within(within(dialog).getByRole('group', { name: 'Compare with' })).getByRole(
+    'button',
+    { name }
+  )
+const comparisonPicker = (dialog: HTMLElement) =>
+  within(dialog).queryByRole('button', {
+    name: /^Choose dates, Comparison dates/
+  })
+
+describe('DashboardPeriod with fixed presets', () => {
+  it('names fixed dates after the preset they match', () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        presets={FIXED_PRESETS}
+        value={{
+          range: { start: '2026-09-07', end: '2026-10-06' },
+          compare: 'previous-period'
+        }}
+      />
+    )
+    expect(picker()).toHaveAccessibleName(
+      'Choose dates, Period (Last 30 days, 7 Sept to 6 Oct 2026, vs 8 Aug to 6 Sept 2026)'
+    )
+  })
+
+  it('lists a fixed preset’s dates on a phone', async () => {
+    onPhone()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        presets={FIXED_PRESETS}
+        value={{ range: { start: '2026-07-01', end: '2027-06-30' } }}
+      />
+    )
+    const dialog = await openPicker()
+    const row = within(dialog).getByRole('button', {
+      name: /^This financial year/
+    })
+    expect(row).toHaveTextContent('1 Jul 2026 to 30 Jun 2027')
+    expect(row).toHaveAttribute('aria-current', 'true')
+  })
+})
+
+describe('DashboardPeriod compare options', () => {
+  it('keeps today’s choices by default', async () => {
+    render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).toBeChecked()
+    expect(choiceNames(dialog)).toEqual(['Previous period', 'Previous year'])
+  })
+
+  it('shows the app’s choices in order, with no switch without none', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        compareOptions={WITH_SIMILAR}
+      />
+    )
+    const dialog = await openPicker()
+    expect(within(dialog).queryByRole('switch')).toBeNull()
+    expect(choiceNames(dialog)).toEqual([
+      'Previous period',
+      'Previous year',
+      'Custom dates',
+      'Similar venues'
+    ])
+  })
+
+  it('shows a switch when the list has none', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'this-month' }}
+        compareOptions={['none', SIMILAR, 'previous-period']}
+      />
+    )
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).not.toBeChecked()
+    await userEvent.click(compareSwitch(dialog))
+    expect(choice(dialog, 'Similar venues')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+  })
+
+  it('shows no comparison at all with an empty list', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'this-month' }}
+        compareOptions={[]}
+      />
+    )
+    const dialog = await openPicker()
+    expect(within(dialog).queryByRole('switch')).toBeNull()
+    expect(
+      within(dialog).queryByRole('group', { name: 'Compare with' })
+    ).toBeNull()
+  })
+
+  it('passes an app’s own comparison through, with its description', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        onValueChange={onValueChange}
+        compareOptions={WITH_SIMILAR}
+      />
+    )
+    const dialog = await openPicker()
+    await userEvent.click(choice(dialog, 'Similar venues'))
+    expect(compareDates(dialog)).toHaveTextContent(
+      'Venues of a like size in Melbourne'
+    )
+    await apply(dialog)
+    expect(onValueChange).toHaveBeenCalledWith({
+      range: 'this-month',
+      compare: 'similar'
+    })
+  })
+
+  it('names an app’s own comparison on the button, without dates', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'this-month', compare: 'similar' }}
+        compareOptions={WITH_SIMILAR}
+      />
+    )
+    expect(picker()).toHaveAccessibleName(
+      'Choose dates, Period (This month, 1 to 31 Oct 2026, vs similar venues)'
+    )
+    const dialog = await openPicker()
+    expect(choice(dialog, 'Similar venues')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+  })
+
+  it('shows nothing under an app’s own comparison with no description', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'this-month', compare: 'similar' }}
+        compareOptions={[{ value: 'similar', label: 'Similar venues' }]}
+      />
+    )
+    const dialog = await openPicker()
+    expect(compareDates(dialog)).toBeEmptyDOMElement()
+  })
+
+  it('keeps an acronym’s capitals on the button', () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'this-month', compare: 'ga' }}
+        compareOptions={[{ value: 'ga', label: 'GA venues' }]}
+      />
+    )
+    expect(picker()).toHaveAccessibleName(/vs GA venues\)$/)
+  })
+
+  it('starts custom dates from the previous period and lets them change', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        onValueChange={onValueChange}
+        compareOptions={WITH_SIMILAR}
+      />
+    )
+    const dialog = await openPicker()
+    expect(comparisonPicker(dialog)).toBeNull()
+    await userEvent.click(choice(dialog, 'Custom dates'))
+    expect(comparisonPicker(dialog)).toHaveAccessibleName(
+      'Choose dates, Comparison dates (1 to 30 Sept 2026)'
+    )
+    await userEvent.click(comparisonPicker(dialog)!)
+    const dialogs = await screen.findAllByRole('dialog')
+    const nested = dialogs.at(-1)!
+    await userEvent.click(
+      nested.querySelector<HTMLElement>(
+        '[data-slot="calendar"] button[data-date="2026-09-14"]:not([data-outside])'
+      )!
+    )
+    await userEvent.click(
+      nested.querySelector<HTMLElement>(
+        '[data-slot="calendar"] button[data-date="2026-09-20"]:not([data-outside])'
+      )!
+    )
+    await waitFor(() =>
+      expect(comparisonPicker(dialog)).toHaveAccessibleName(
+        'Choose dates, Comparison dates (14 to 20 Sept 2026)'
+      )
+    )
+    expect(onValueChange).not.toHaveBeenCalled()
+    await apply(dialog)
+    expect(onValueChange).toHaveBeenCalledWith({
+      range: 'this-month',
+      compare: { start: '2026-09-14', end: '2026-09-20' }
+    })
+  })
+
+  it('keeps custom dates when switching away and back', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{
+          range: 'this-month',
+          compare: { start: '2026-09-14', end: '2026-09-20' }
+        }}
+        compareOptions={WITH_SIMILAR}
+      />
+    )
+    const dialog = await openPicker()
+    expect(comparisonPicker(dialog)).toHaveAccessibleName(
+      'Choose dates, Comparison dates (14 to 20 Sept 2026)'
+    )
+    await userEvent.click(choice(dialog, 'Previous year'))
+    expect(comparisonPicker(dialog)).toBeNull()
+    await userEvent.click(choice(dialog, 'Custom dates'))
+    expect(comparisonPicker(dialog)).toHaveAccessibleName(
+      'Choose dates, Comparison dates (14 to 20 Sept 2026)'
+    )
+  })
+
+  it('keeps unlisted custom dates read only, as by default', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{
+          range: 'this-month',
+          compare: { start: '2026-09-01', end: '2026-09-07' }
+        }}
+      />
+    )
+    const dialog = await openPicker()
+    expect(choice(dialog, 'Custom dates')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    expect(comparisonPicker(dialog)).toBeNull()
+    expect(compareDates(dialog)).toHaveTextContent('1 to 7 Sept 2026')
+  })
+
+  it('applies no comparison when the list has no none and nothing is chosen', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'this-month' }}
+        onValueChange={onValueChange}
+        compareOptions={WITH_SIMILAR}
+      />
+    )
+    const dialog = await openPicker()
+    expect(
+      within(within(dialog).getByRole('group', { name: 'Compare with' }))
+        .getAllByRole('button')
+        .filter((button) => button.getAttribute('aria-pressed') === 'true')
+    ).toEqual([])
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Last 30 days/ })
+    )
+    await apply(dialog)
+    expect(onValueChange).toHaveBeenCalledWith({
+      range: { direction: 'past', amount: 30, unit: 'day' }
+    })
+  })
+
+  it('turns Compare on with the first choice that has dates', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming' }}
+        compareOptions={['none', 'custom', 'previous-year']}
+      />
+    )
+    const dialog = await openPicker()
+    await userEvent.click(compareSwitch(dialog))
+    expect(compareSwitch(dialog)).toBeChecked()
+    expect(choice(dialog, 'Previous year')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    expect(choice(dialog, 'Custom dates')).toBeDisabled()
+  })
+
+  it('leaves out app values that are Roadie’s, and repeats, with a warning', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        compareOptions={[
+          'previous-period',
+          'previous-period',
+          { value: 'custom', label: 'Custom benchmark' },
+          SIMILAR,
+          { ...SIMILAR, label: 'Similar again' }
+        ]}
+      />
+    )
+    const dialog = await openPicker()
+    expect(choiceNames(dialog)).toEqual(['Previous period', 'Similar venues'])
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"custom"'))
+    warn.mockRestore()
+  })
+
+  it('shows an app comparison the list doesn’t name, by its value', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'this-month', compare: 'similar' }}
+      />
+    )
+    expect(picker()).toHaveAccessibleName(/vs similar\)$/)
+    const dialog = await openPicker()
+    expect(choice(dialog, 'similar')).toHaveAttribute('aria-pressed', 'true')
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"similar"'))
+    warn.mockRestore()
+  })
+
+  it('starts uncontrolled from the first listed comparison', () => {
+    render(<DashboardPeriod today={TODAY} compareOptions={[SIMILAR]} />)
+    expect(picker()).toHaveAccessibleName(/vs similar venues\)$/)
+  })
+
+  it('follows custom dates the parent changes while the picker is open', async () => {
+    const at = (start: string, end: string) => ({
+      range: 'this-month' as const,
+      compare: { start, end }
+    })
+    const { rerender } = render(
+      <DashboardPeriod
+        today={TODAY}
+        value={at('2026-09-01', '2026-09-07')}
+        compareOptions={WITH_SIMILAR}
+      />
+    )
+    const dialog = await openPicker()
+    rerender(
+      <DashboardPeriod
+        today={TODAY}
+        value={at('2026-09-14', '2026-09-20')}
+        compareOptions={WITH_SIMILAR}
+      />
+    )
+    await userEvent.click(choice(dialog, 'Previous year'))
+    await userEvent.click(choice(dialog, 'Custom dates'))
+    expect(comparisonPicker(dialog)).toHaveAccessibleName(
+      'Choose dates, Comparison dates (14 to 20 Sept 2026)'
+    )
+  })
+
+  it('turns the switch off when no choice has dates', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming' }}
+        compareOptions={['none', 'custom']}
+      />
+    )
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).toBeDisabled()
+  })
+
+  it('warns once under StrictMode', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <StrictMode>
+        <DashboardPeriod
+          today={TODAY}
+          value={THIS_MONTH}
+          compareOptions={[{ value: 'none', label: 'Nothing at all' }]}
+        />
+      </StrictMode>
+    )
+    expect(warn).toHaveBeenCalledTimes(1)
+    warn.mockRestore()
+  })
+
+  it('warns once for each problem, whatever else changes', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const twice = { value: 'twice', label: 'Twice' }
+    const reserved = { value: 'previous-year', label: 'Last year' } as const
+    const { rerender } = render(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        compareOptions={[twice, twice, reserved]}
+      />
+    )
+    rerender(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        compareOptions={[twice, twice]}
+      />
+    )
+    expect(
+      warn.mock.calls.filter(([message]) => String(message).includes('"twice"'))
+    ).toHaveLength(1)
+    warn.mockRestore()
+  })
+
+  it('leaves out an app option with no value, with a warning', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={THIS_MONTH}
+        compareOptions={['previous-period', { value: '', label: 'Benchmark' }]}
+      />
+    )
+    const dialog = await openPicker()
+    expect(choiceNames(dialog)).toEqual(['Previous period'])
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"Benchmark"'))
+    warn.mockRestore()
   })
 })

@@ -32,6 +32,11 @@ audit:
     # eslint-config-next) on patterns we write, never in a published package.
     # Remove once braces ships a fix.
     - GHSA-vfj7-8cjw-p6xm
+    # postcss-selector-parser <7.1.6 quadratic selector parsing. Only
+    # @tailwindcss/language-service pins 6.0.2, reached through the Prettier
+    # Tailwind plugin on our own class strings; the fix is a major away.
+    # Remove once language-service moves to 7.
+    - GHSA-rj75-hqrm-r3gf
 
 # Dependency postinstall/build scripts — left disabled (pnpm 10 ignored these
 # too; the build + tests pass without them). Flip to true only if one is needed.

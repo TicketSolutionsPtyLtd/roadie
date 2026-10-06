@@ -34,6 +34,7 @@ const column = z.strictObject({
   total: z.boolean().optional(),
   priority: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
   pin: z.boolean().optional(),
+  /** A text or status column's second line, read from this key. */
   secondaryKey: z.string().optional(),
   emptyText: z.string().optional(),
   /** A status column's keys, each with its intent and label. */
@@ -164,7 +165,20 @@ const ranges = dateRangeSchemas()
 
 const period = z.strictObject({
   range: ranges.dateRangeValue,
-  compare: ranges.comparison.optional(),
+  compare: z
+    .union([
+      ranges.comparison,
+      z
+        .string()
+        .min(1)
+        .refine((value) => value !== 'none' && value !== 'custom', {
+          message: 'Leave out compare for no comparison, or give custom dates'
+        })
+        .describe(
+          "An app's own comparison, such as 'similar'. Roadie works out no dates for it"
+        )
+    ])
+    .optional(),
   /** How much of the comparison the data covers, from `resolveComparison`. */
   history: z.enum(['partial', 'unavailable']).optional()
 })
