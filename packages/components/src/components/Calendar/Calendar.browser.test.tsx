@@ -346,7 +346,9 @@ describe('Calendar layout', () => {
     const toggle = screen
       .getByRole('button', { name: 'Month view' })
       .getBoundingClientRect()
-    const caption = await screen.findByText('September 2027')
+    const caption = await screen.findByText('September 2027', {
+      ignore: '[aria-hidden="true"]'
+    })
     await expect
       .poll(() => caption.closest('[data-slot="calendar-header"]'))
       .not.toBeNull()
@@ -629,10 +631,8 @@ describe('Calendar turning up and down', () => {
       })
     onTestFinished(() => spy.mockRestore())
     await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
-    for (const animation of document.getAnimations()) animation.finish()
-    await new Promise((resolve) => setTimeout(resolve, 0))
     for (const animation of document.getAnimations())
-      animation.currentTime = 20_000
+      animation.currentTime = 30_000
     expect(swiping()).not.toBeNull()
   }
 
@@ -975,8 +975,8 @@ describe('Calendar page turns', () => {
     expect(onMonthChange).not.toHaveBeenCalled()
   })
 
-  it('keeps sliding in when a controlled parent follows the turn', async () => {
-    const slides = holdSlides()
+  it('lands the turn when a controlled parent follows it', async () => {
+    holdSlides()
     function Controlled() {
       const [month, setMonth] = useState('2027-03-01')
       return <Calendar today={TODAY} month={month} onMonthChange={setMonth} />
@@ -986,10 +986,8 @@ describe('Calendar page turns', () => {
     for (const animation of document.getAnimations()) animation.finish()
     await new Promise((resolve) => setTimeout(resolve, 0))
     expect(caption()).toEqual(['April 2027'])
-    expect(swiping()).not.toBeNull()
-    expect(days().getAnimations()).toHaveLength(1)
-    await slides.land()
     expect(swiping()).toBeNull()
+    expect(days().getAnimations()).toHaveLength(0)
   })
 
   it('drops a waiting turn when the parent moves the month mid-slide', async () => {
@@ -1101,7 +1099,7 @@ describe('Calendar page turns', () => {
     expect(day('2027-03-01').getBoundingClientRect().top).toBeCloseTo(before, 0)
   })
 
-  it('slides half a month to the halfway point in a right-to-left row', async () => {
+  it('slides a whole month along in a right-to-left row', async () => {
     const slides = holdSlides()
     render(
       <div dir='rtl' className='w-200'>
@@ -1114,10 +1112,10 @@ describe('Calendar page turns', () => {
     )
     const step = Math.abs(months[0]!.left - months[1]!.left)
     await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
-    const halfway = Number(
+    const landing = Number(
       /translate3d\((-?[\d.]+)px/.exec(slides.firstFrames().at(-1)!)![1]
     )
-    expect(halfway).toBeCloseTo(step / 2, 0)
+    expect(landing).toBeCloseTo(step, 0)
     await slides.land()
   })
 

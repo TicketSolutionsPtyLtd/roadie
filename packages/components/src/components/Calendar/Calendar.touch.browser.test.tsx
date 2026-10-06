@@ -15,6 +15,7 @@ import { Calendar, type CalendarSingleProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { tapOn } from '../../utils/touchTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
+import { expectOneContinuousMotion, recordFrames } from './testUtils'
 
 const TIMEOUT = { timeout: 20_000 }
 // 1 March 2027 is a Monday.
@@ -130,19 +131,49 @@ describe('Calendar shows the page it turns to', TIMEOUT, () => {
   }) => {
     if (!navigator.userAgent.includes('Chrome')) skip()
     render(<Paged direction='vertical' />)
-    const days = document.querySelector('[data-slot="calendar-days"]')!
     const lift = holdDrag(day('2027-03-17'), 0, -60)
     const incoming = peek()!
     expect(incoming.textContent).toContain('April 2027')
-    const current = days.getBoundingClientRect()
-    expect(
-      Math.abs(incoming.getBoundingClientRect().top - current.bottom)
-    ).toBeLessThanOrEqual(4)
-    const clip = days.closest('table')!.parentElement!.getBoundingClientRect()
-    expect(incoming.getBoundingClientRect().top).toBeLessThan(clip.bottom)
+    const current = document
+      .querySelector('[data-slot="calendar-month"]')!
+      .getBoundingClientRect()
+    // A column gap below, with its title in it, as stacked months sit.
+    const gap = parseFloat(
+      getComputedStyle(document.querySelector('[data-slot="calendar-months"]')!)
+        .rowGap
+    )
+    expect(gap).toBeGreaterThan(0)
+    expect(incoming.getBoundingClientRect().top - current.bottom).toBeCloseTo(
+      gap,
+      0
+    )
     lift()
     await settle()
     expect(caption()).toContain('April 2027')
+  })
+
+  it('carries a lifted drag on to the next month in one motion', async ({
+    skip
+  }) => {
+    if (!navigator.userAgent.includes('Chrome')) skip()
+    for (const props of [
+      { direction: 'vertical' },
+      { numberOfMonths: 2 }
+    ] as const) {
+      render(<Paged {...props} />)
+      await expect
+        .poll(() =>
+          document
+            .querySelector('[data-slot="calendar"]')!
+            .getAttribute('data-paging')
+        )
+        .toBe('vertical')
+      const lift = holdDrag(day('2027-03-17'), 0, -100)
+      const frames = await recordFrames(true, lift)
+      expect(frames.at(-1)!.title).toBe('April 2027')
+      expectOneContinuousMotion(frames, -1, 220)
+      cleanup()
+    }
   })
 
   it('moves the days of several months and the incoming ones as one strip', async ({

@@ -34,9 +34,11 @@ until they fit again; the root's `data-paging` says which way it turns. Turning
 up and down, the first month's title shares a line with the arrows, one
 still weekday row sits under it, and the days move in a clipped viewport of
 their own below, so nothing slides under the title, arrows or weekdays. The arrows and Page Up and Page Down
-play the same slide, and the month lands as the slide passes its middle,
-about 120ms in, so a test that clicks Next and then picks a day waits for
-that. With Shift, or in week view, Page Up and Page Down skip past the page
+play the same slide. The shown and incoming pages move as one strip in one
+motion, and the month and its title land as it ends, about 320ms in (220ms
+after a lifted swipe), so a test that clicks Next and then picks a day waits
+for that. Turning up and down, each incoming month's name rides in the gap
+above its days. With Shift, or in week view, Page Up and Page Down skip past the page
 beside and turn at once. A press during a slide lands
 the turn under way first. A month picked from the selects shows at once and
 slides in. Arrow keys across a month edge, a view switch and a parent's

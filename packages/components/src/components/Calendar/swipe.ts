@@ -24,7 +24,8 @@ type SwipeOptions = {
 const SLOP = 8
 const FLICK = 0.4
 const FLICK_MIN = 32
-const OUT_MS = 120
+// A control's turn eases in and out; a lifted finger's carries on and eases out.
+const TURN_MS = 320
 const IN_MS = 220
 // A swiped finger lifts over a day; the click that can follow isn't a press.
 const CLICK_AFTER_SWIPE_MS = 500
@@ -126,8 +127,10 @@ export function useSwipeToTurn(
     let disposed = false
     // Each turn takes a number, so one cut short stops where it is.
     let run = 0
-    // A turn waiting for its slide out, applied at once if cut short.
+    // A turn waiting for its slide to end, applied at once if cut short, and
+    // where its slide stops.
     let pending: (() => void) | null = null
+    let landing = 0
     let suppressClickUntil = -Infinity
     const running: Animation[] = []
 
@@ -159,27 +162,32 @@ export function useSwipeToTurn(
       const box = grid.getBoundingClientRect()
       return vertical ? box.height : box.width
     }
-    // A function end is a multiple of each part's own size, for a page
-    // slid in with nothing beside it.
     const slide = (
-      from: number | ((size: number, part: HTMLElement) => number),
-      to: number | ((size: number, part: HTMLElement) => number),
+      from: number,
+      to: number,
       duration: number,
       easing: string
     ) =>
       Promise.all(
         parts().map((part) => {
-          const size = sizeOf(part)
-          const at = (end: typeof from) =>
-            offset(typeof end === 'number' ? end : end(size, part), false)
           const animation = part.animate(
-            [{ transform: at(from) }, { transform: at(to) }],
+            [
+              { transform: offset(from, false) },
+              { transform: offset(to, false) }
+            ],
             { duration, easing, fill: 'forwards' }
           )
           running.push(animation)
           return animation.finished.catch(() => undefined)
         })
       )
+    // Where the strip sits now, partway through a slide.
+    const shift = () => {
+      const first = parts()[0]
+      if (!first) return 0
+      const matrix = new DOMMatrixReadOnly(getComputedStyle(first).transform)
+      return vertical ? matrix.m42 : matrix.m41
+    }
     const stopAnimations = () => {
       for (const animation of running.splice(0)) animation.cancel()
     }
@@ -202,47 +210,37 @@ export function useSwipeToTurn(
       flushSync(() => latest.current.onPeek(step && peekOf(step)))
       partsSeen = null
     }
-    const hidePeek = () => {
+    // In step with the frame that resets the strip, unless React is
+    // mid-commit, so a page beside is never left out past the edges.
+    const hidePeek = (sync: boolean) => {
       if (shownPeek === null) return
       shownPeek = null
-      if (root.isConnected) latest.current.onPeek(null)
-    }
-    // How far the strip moves to bring the page beside into place: from the
-    // days next to it to its own days.
-    const distanceOf = (step: SwipeStep) => {
-      const peekDays = root.querySelector(`${PEEK} ${DAYS}`)
-      const days = Array.from(root.querySelectorAll(DAYS)).filter(
-        (element) => !element.closest(PEEK)
-      )
-      // By order, not side: a right-to-left row lays the same months out reversed.
-      const beside = step === 1 ? days[days.length - 1] : days[0]
-      if (!peekDays || !beside) return 0
-      const a = peekDays.getBoundingClientRect()
-      const b = beside.getBoundingClientRect()
-      return Math.abs(vertical ? a.top - b.top : a.left - b.left)
+      partsSeen = null
+      if (!root.isConnected) return
+      if (sync) flushSync(() => latest.current.onPeek(null))
+      else latest.current.onPeek(null)
     }
 
     const positionOf = (element: Element) => {
       const box = element.getBoundingClientRect()
       return vertical ? box.top : box.left
     }
-    // Where each page's first day sits, the incoming one included, so a page
-    // holds still across the swap however the pages around it change size.
-    const firstDayOf = (part: Element) =>
-      part.querySelector<HTMLElement>('button[data-date]:not([data-outside])')
-    const firstDays = () => {
-      const at = new Map<string, number>()
-      for (const part of parts()) {
-        const day = firstDayOf(part)
-        if (day) at.set(day.dataset.date!, positionOf(day))
-      }
-      return at
+    // How far the strip moves for a step: the page that comes first, to where
+    // the first shown page sits. Signed, so a right-to-left row reads the
+    // same; the pages sit a gap apart whatever their size, so every one lands
+    // where its successor will be.
+    const travelOf = (step: SwipeStep) => {
+      const shown = parts().filter((part) => !part.closest(PEEK))
+      const beside = root.querySelector(PEEK)
+      const comes = step === 1 ? (shown[1] ?? beside) : beside
+      if (!comes || !shown[0]) return signOf(step) * -sizeOf(root)
+      return positionOf(comes) - positionOf(shown[0])
     }
 
-    const finish = () => {
+    const finish = (sync = true) => {
       stopAnimations()
       place(0)
-      hidePeek()
+      hidePeek(sync)
       partsSeen = null
       rtlSeen = null
       delete root.dataset.swiping
@@ -265,15 +263,18 @@ export function useSwipeToTurn(
           ?.focus({ preventScroll: true })
     }
 
+    // Lands the turn under way at once, and says where the strip sits after
+    // it, so the next one goes on from there.
     const cutShort = () => {
-      if (!settling) return
-      // The turn under way stops where it is; its waiting apply runs here.
+      if (!settling) return 0
       run++
+      const at = shift()
       stopAnimations()
       const waiting = pending
       pending = null
       if (waiting) applyTurn(waiting)
       finish()
+      return waiting ? at - landing : at
     }
 
     // `from` is where the days sit now: under the finger, or at rest.
@@ -283,18 +284,20 @@ export function useSwipeToTurn(
       apply: () => void,
       immediate = false
     ) {
-      cutShort()
+      const carried = cutShort()
       // A control turning the page ends any drag under way, from where the
       // days sit under it.
       if (!from && gesture) {
         if (gesture.engaged) from = gesture.along
         gesture = null
       }
+      if (!from) from = carried
       // Landing the turn before it reached a bound leaves nothing to slide
-      // to; the apply still runs, so a key's focus moves.
-      if (step && from === 0 && !immediate && !latest.current.canTurn(step)) {
-        finish()
-        return apply()
+      // to, so the strip settles back; the apply still runs, so a key's
+      // focus moves.
+      if (step && !immediate && !latest.current.canTurn(step)) {
+        apply()
+        step = null
       }
       const mine = ++run
       settling = true
@@ -310,53 +313,27 @@ export function useSwipeToTurn(
           await slide(-signOf(step) * size, 0, IN_MS, 'ease-out')
         }
       } else if (step) {
-        const sign = signOf(step)
         pending = apply
-        let distance = 0
         if (!still) {
+          // The incoming pages sit beside the shown ones as one strip, which
+          // moves once, from where it is to where the first comes to rest.
           showPeek(step)
           place(from)
-          distance =
-            distanceOf(step) ||
-            sizeOf(root!.querySelector(`${DAYS}:not(${PEEK} *)`)!)
-        }
-        // The turn lands halfway, where the strip has gone half a page.
-        const halfway = (sign * distance) / 2
-        let at = from
-        if (!still && Math.abs(from) < distance / 2) {
-          await slide(from, halfway, OUT_MS, 'ease-in')
-          at = halfway
+          landing = -travelOf(step)
+          await slide(
+            from,
+            landing,
+            from ? IN_MS : TURN_MS,
+            from ? 'ease-out' : 'ease-in-out'
+          )
         }
         // Torn down mid-slide, such as by the calendar being disabled, or
         // cut short by a later turn, which has applied this one.
         if (disposed || mine !== run || !root!.isConnected) return
         pending = null
-        const held = still ? null : firstDays()
-        // The page left behind now sits on the other side, so the strip goes
-        // on from where it is without a jump.
-        applyTurn(() => {
-          apply()
-          if (!still) {
-            shownPeek = -step as SwipeStep
-            latest.current.onPeek(peekOf(-step as SwipeStep))
-          }
-        })
-        stopAnimations()
-        if (held) {
-          place(0)
-          const resumes = new Map<HTMLElement, number>()
-          for (const part of parts()) {
-            const day = firstDayOf(part)
-            const was = day ? held.get(day.dataset.date!) : undefined
-            const by =
-              was === undefined ? at - sign * distance : was - positionOf(day!)
-            resumes.set(part, by)
-          }
-          // Written after every read, so the layout is read once.
-          for (const [part, by] of resumes)
-            part.style.transform = offset(by, false)
-          await slide((_, part) => resumes.get(part)!, 0, IN_MS, 'ease-out')
-        }
+        // Each page now sits where the turn lays it out, so applying the turn
+        // and resetting the strip before the next frame moves nothing.
+        applyTurn(apply)
       } else if (!still && from) {
         place(0)
         await slide(from, 0, IN_MS, 'ease-out')
@@ -379,7 +356,8 @@ export function useSwipeToTurn(
       if (!settling || !pending) return
       run++
       pending = null
-      finish()
+      // A parent's month arrives mid-commit, so the page beside goes with it.
+      finish(false)
     }
 
     const begin = (
@@ -583,7 +561,7 @@ export function useSwipeToTurn(
       // Still shown, as when the calendar is disabled mid-slide; a turn for a
       // calendar that has closed is dropped.
       if (root.isConnected) waiting?.()
-      hidePeek()
+      hidePeek(false)
       root.removeEventListener('touchstart', onTouchStart)
       root.removeEventListener('touchmove', onTouchMove)
       root.removeEventListener('touchend', onTouchEnd)

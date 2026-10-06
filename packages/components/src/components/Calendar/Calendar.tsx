@@ -383,8 +383,8 @@ export function Calendar(props: CalendarProps) {
   // column, whatever `direction` asks for.
   const [stacked, setStacked] = useState(false)
   const vertical = direction === 'vertical' || (stacked && numberOfMonths > 1)
-  // Several months in a column move whole, titles and weekdays with them.
-  const wholeMonths = vertical && numberOfMonths > 1
+  // Turning up and down, months move whole, each title in the gap above it.
+  const wholeMonths = vertical
   const today = useToday(todayProp, timeZone)
   // The grid is Gregorian, so its labels must be too, whatever the locale prefers.
   const locale = new Intl.Locale(localeProp, { calendar: 'gregory' }).toString()
@@ -1364,6 +1364,10 @@ export function Calendar(props: CalendarProps) {
   // Turning up and down, one still weekday row sits under the header, and the
   // days move in a viewport of their own below it.
   const pinnedWeekdays = vertical && !scrolling
+  // Out of the flow, in the gap above its days, so every month in a column
+  // takes the same room before its days and the column moves as one strip.
+  const stripTitleClass =
+    'absolute inset-x-0 bottom-full mb-2 grid h-8 items-center'
   const header = (
     <div data-slot='calendar-header' className='flex h-8 items-center gap-2'>
       {/* A column of months shows its first month's title here, by the arrows. */}
@@ -1412,12 +1416,8 @@ export function Calendar(props: CalendarProps) {
       left: several
         ? 'top-0 right-[calc(100%+--spacing(6))]'
         : 'top-0 right-full',
-      bottom: several
-        ? 'start-0 top-[calc(100%+--spacing(4))]'
-        : 'start-0 top-full',
-      top: several
-        ? 'start-0 bottom-[calc(100%+--spacing(4))]'
-        : 'start-0 bottom-full'
+      bottom: 'start-0 top-[calc(100%+--spacing(14))]',
+      top: 'start-0 bottom-[calc(100%+--spacing(14))]'
     }
     return renderPeekPage(
       start,
@@ -1445,7 +1445,7 @@ export function Calendar(props: CalendarProps) {
           <div
             className={cn(
               'grid h-8 items-center truncate text-sm font-semibold text-strong',
-              !title && 'invisible'
+              title ? stripTitleClass : 'invisible'
             )}
           >
             {weekView
@@ -1461,7 +1461,8 @@ export function Calendar(props: CalendarProps) {
               : 'border-spacing-x-0 border-spacing-y-0.5'
           )}
         >
-          <thead className={pinnedWeekdays || title ? 'hidden' : 'invisible'}>
+          {/* As the shown months' own, so the pages take the same height. */}
+          <thead className={pinnedWeekdays ? 'sr-only' : 'invisible'}>
             <tr>
               {labels.weekdays.map((weekday) => (
                 <th
@@ -1508,15 +1509,31 @@ export function Calendar(props: CalendarProps) {
           data-swipe-part={wholeMonths && !scrolling ? '' : undefined}
           className={cn(
             'grid min-w-70 flex-[1_1_--spacing(70)] content-start gap-2 [contain:inline-size]',
-            wholeMonths && 'in-data-dragging:will-change-transform',
+            wholeMonths && 'relative in-data-dragging:will-change-transform',
             // Turning up and down, several months make one column.
             wholeMonths && !scrolling && 'basis-full'
           )}
         >
+          {wholeMonths && index === 0 && (
+            // The header names the first month, so this copy shows only as it
+            // slides away above the days.
+            <div
+              aria-hidden='true'
+              className={cn(
+                'invisible truncate text-sm font-semibold text-strong in-data-swiping:visible',
+                stripTitleClass
+              )}
+            >
+              {weekView
+                ? weekCaption(shownWeek, addDays(shownWeek, 6), locale)
+                : monthLabel(month, locale)}
+            </div>
+          )}
           {monthCaptions && !(wholeMonths && index === 0) && (
             <div
               className={cn(
                 'grid h-8 items-center',
+                wholeMonths && stripTitleClass,
                 // Clear of the arrows, which sit over whichever month is top right.
                 !inlineNav && !scrolling && 'pe-17'
               )}
@@ -1663,7 +1680,10 @@ export function Calendar(props: CalendarProps) {
               data-slot='calendar-months'
               // The viewport the days move in, clipped as one so they run on from
               // one month into the next, and painted apart from what holds still.
-              className='relative flex flex-wrap gap-x-6 gap-y-4 in-data-swiping:isolate in-data-swiping:overflow-clip in-data-swiping:contain-paint'
+              className={cn(
+                'relative flex flex-wrap gap-x-6 in-data-swiping:isolate in-data-swiping:overflow-clip in-data-swiping:contain-paint',
+                wholeMonths ? 'gap-y-14' : 'gap-y-4'
+              )}
             >
               {!inlineNav && !waitingForToday && nav}
               {monthsShown}
