@@ -48,8 +48,9 @@ turns run the other way in a right-to-left page.
 point up and down and a finger swipes up for the next month.
 `view='week'` (with `defaultView` and `onViewChange`) shows one week as a
 row of larger days that turns a week at a time, and `views={['week',
-'month']}` adds a "Month view" toggle beside the title, or above several
-months. `getDayContent` puts
+'month']}` adds a "Week" and "Month" toggle group beside the title, or above
+several months. Where the calendar is narrow it shows only its icons, and a
+week's title shortens its month names. `getDayContent` puts
 content such as a price or a status mark under each day's number in either
 view. Every day then becomes a tile, up to 64px wide (80px in a week), that
 grows to fit; days with content are filled, the content describes the day to

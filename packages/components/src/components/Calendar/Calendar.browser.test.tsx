@@ -344,7 +344,7 @@ describe('Calendar layout', () => {
       </div>
     )
     const toggle = screen
-      .getByRole('button', { name: 'Month view' })
+      .getByRole('group', { name: 'View' })
       .getBoundingClientRect()
     const caption = await screen.findByText('September 2027', {
       ignore: '[aria-hidden="true"]'
@@ -561,11 +561,11 @@ describe('Calendar day tiles', () => {
 
   it('fits the view toggle beside a long title in a phone-sized month', () => {
     render(
-      <div className='w-80'>
+      <div className='w-75'>
         <Calendar
           today={TODAY}
           view='week'
-          defaultMonth='2027-09-01'
+          defaultMonth='2026-11-01'
           views={['week', 'month']}
         />
       </div>
@@ -580,9 +580,10 @@ describe('Calendar day tiles', () => {
       .getByRole('button', { name: 'Previous week' })
       .getBoundingClientRect()
     const toggle = screen
-      .getByRole('button', { name: 'Month view' })
+      .getByRole('group', { name: 'View' })
       .getBoundingClientRect()
-    const title = screen.getByText('August to September 2027')
+    // Short month names, where the full ones would be cut off.
+    const title = screen.getByText('Oct to Nov 2026')
     expect(title.scrollWidth).toBeLessThanOrEqual(title.clientWidth)
     expect(title.getBoundingClientRect().left).toBe(header.left)
     expect(toggle.left).toBeGreaterThanOrEqual(
@@ -592,6 +593,58 @@ describe('Calendar day tiles', () => {
     expect(next.right).toBe(header.right)
     expect(header.height).toBe(32)
   })
+})
+
+describe('Calendar views', () => {
+  it.each([
+    { width: 1280, labelled: true },
+    { width: 390, labelled: false },
+    { width: 320, labelled: false }
+  ])(
+    'switches view on one header row at $width px, labelled: $labelled',
+    async ({ width, labelled }) => {
+      render(
+        <div style={{ width }}>
+          <Calendar
+            today={TODAY}
+            defaultView='week'
+            views={['week', 'month']}
+          />
+        </div>
+      )
+      const header = document
+        .querySelector('[data-slot="calendar-header"]')!
+        .getBoundingClientRect()
+      expect(header.height).toBe(32)
+      for (const button of within(
+        document.querySelector<HTMLElement>('[data-slot="calendar-header"]')!
+      ).getAllByRole('button')) {
+        const box = button.getBoundingClientRect()
+        expect(box.top).toBeGreaterThanOrEqual(header.top)
+        expect(box.bottom).toBeLessThanOrEqual(header.bottom)
+      }
+      for (const name of ['Week', 'Month']) {
+        const item = within(
+          screen.getByRole('group', { name: 'View' })
+        ).getByRole('button', { name })
+        const label = within(item).getByText(name)
+        const box = item.getBoundingClientRect()
+        if (labelled) {
+          expect(label).toBeVisible()
+          expect(box.width).toBeGreaterThan(box.height)
+        } else {
+          expect(label).not.toBeVisible()
+          expect(box.width).toBeCloseTo(box.height, 0)
+        }
+      }
+      await userEvent.click(screen.getByRole('button', { name: 'Month' }))
+      expect(screen.getByRole('grid')).toHaveAccessibleName('March 2027')
+      expect(screen.getByRole('button', { name: 'Month' })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+    }
+  )
 })
 
 describe('Calendar arrows with several months', () => {

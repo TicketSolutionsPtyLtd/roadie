@@ -73,12 +73,15 @@ export function weekdayNames(weekStart: number, locale: string) {
 export function weekCaption(
   start: string,
   end: string,
-  locale: string
+  locale: string,
+  month: 'long' | 'short' = 'long'
 ): string {
-  if (start.slice(0, 7) === end.slice(0, 7)) return monthLabel(start, locale)
+  const label = (date: string) =>
+    format(date, locale, { month, year: 'numeric' })
+  if (start.slice(0, 7) === end.slice(0, 7)) return label(start)
   const from =
     start.slice(0, 4) === end.slice(0, 4)
-      ? format(start, locale, { month: 'long' })
-      : monthLabel(start, locale)
-  return `${from} to ${monthLabel(end, locale)}`
+      ? format(start, locale, { month })
+      : label(start)
+  return `${from} to ${label(end)}`
 }

@@ -17,7 +17,8 @@ import {
   CaretDownIcon,
   CaretLeftIcon,
   CaretRightIcon,
-  CaretUpIcon
+  CaretUpIcon,
+  RowsIcon
 } from '@phosphor-icons/react'
 import { cva } from 'class-variance-authority'
 
@@ -34,7 +35,7 @@ import { mergeRefs } from '../../utils/mergeRefs'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { IconButton } from '../Button/IconButton'
 import { surfaceClass, useSurface } from '../Records/surface'
-import { Toggle } from '../Toggle'
+import { ToggleGroup } from '../ToggleGroup'
 import { dateForKey } from './keys'
 import {
   dayLabel,
@@ -119,8 +120,9 @@ type CalendarBaseProps = Omit<
   /** Called with the new view when the reader switches it. */
   onViewChange?: (view: 'month' | 'week') => void
   /**
-   * The views the reader can switch between. With both, a "Month view"
-   * toggle sits beside the title, or above several months. A `defaultView`
+   * The views the reader can switch between. With both, a "Week" and
+   * "Month" toggle group sits beside the title, or above several months,
+   * showing only its icons where the calendar is narrow. A `defaultView`
    * outside the list gives way to its first view. Paged only.
    */
   views?: readonly ('month' | 'week')[]
@@ -1307,16 +1309,31 @@ export function Calendar(props: CalendarProps) {
   const PreviousIcon = vertical ? CaretUpIcon : CaretLeftIcon
   const NextIcon = vertical ? CaretDownIcon : CaretRightIcon
   const arrowClass = cn('size-4', !vertical && 'rtl:-scale-x-100')
+  // Icons alone in a narrow calendar, read from the header's own width.
+  const viewItems = [
+    { value: 'week', label: 'Week', Icon: RowsIcon },
+    { value: 'month', label: 'Month', Icon: CalendarDotsIcon }
+  ] as const
   const viewToggle = showViewToggle && (
-    <Toggle
+    <ToggleGroup<CalendarView>
+      aria-label='View'
       size='sm'
-      emphasis='subtler'
-      aria-label='Month view'
-      pressed={view === 'month'}
-      onPressedChange={(pressed) => changeView(pressed ? 'month' : 'week')}
+      value={[view]}
+      onValueChange={([next]) => next && changeView(next)}
+      className='shrink-0'
     >
-      <CalendarDotsIcon weight='bold' className='size-4' />
-    </Toggle>
+      {viewItems.map(({ value, label, Icon }) => (
+        <ToggleGroup.Item
+          key={value}
+          value={value}
+          aria-label={label}
+          className='@max-md/calendar-header:aspect-square @max-md/calendar-header:px-0'
+        >
+          <Icon weight='bold' aria-hidden='true' />
+          <span className='hidden @md/calendar-header:inline'>{label}</span>
+        </ToggleGroup.Item>
+      ))}
+    </ToggleGroup>
   )
   const nav = (
     <div
@@ -1353,8 +1370,14 @@ export function Calendar(props: CalendarProps) {
     captionLayout === 'dropdown' ? (
       renderCaption(firstMonth, 0)
     ) : (
-      <div className='truncate text-sm font-semibold text-strong'>
-        {weekCaption(shownWeek, addDays(shownWeek, 6), locale)}
+      // Short month names where the full ones would be cut off.
+      <div className='text-sm font-semibold text-strong'>
+        <span className='block truncate @max-md/calendar-header:hidden'>
+          {weekCaption(shownWeek, addDays(shownWeek, 6), locale)}
+        </span>
+        <span className='hidden truncate @max-md/calendar-header:block'>
+          {weekCaption(shownWeek, addDays(shownWeek, 6), locale, 'short')}
+        </span>
       </div>
     )
   ) : (
@@ -1369,10 +1392,15 @@ export function Calendar(props: CalendarProps) {
   const stripTitleClass =
     'absolute inset-x-0 bottom-full mb-2 grid h-8 items-center'
   const header = (
-    <div data-slot='calendar-header' className='flex h-8 items-center gap-2'>
+    <div
+      data-slot='calendar-header'
+      // The views and arrows sit close as one set, leaving a phone's long
+      // week title its room.
+      className='@container/calendar-header flex h-8 items-center gap-1'
+    >
       {/* A column of months shows its first month's title here, by the arrows. */}
       {(!monthCaptions || wholeMonths) && (
-        <div className='min-w-0'>{headerCaption}</div>
+        <div className='me-1 min-w-0'>{headerCaption}</div>
       )}
       {viewToggle}
       {nav}

@@ -163,7 +163,7 @@ render(
 
 ### With a week view
 
-`view='week'` shows one week as a row of larger days, and the arrows and a swipe turn a week at a time. It suits choosing a session in the coming days. `views` lists the views the reader can switch between. With both, a "Month view" toggle sits beside the title, or above the months when there are several. Use `defaultView` to open on one, or `view` and `onViewChange` to control it.
+`view='week'` shows one week as a row of larger days, and the arrows and a swipe turn a week at a time. It suits choosing a session in the coming days. `views` lists the views the reader can switch between. With both, a toggle group of "Week" and "Month" sits beside the title, or above the months when there are several. Where the calendar is narrow, as on a phone, it shows only their icons and the week's title shortens its month names, such as "Oct to Nov 2026". Use `defaultView` to open on one, or `view` and `onViewChange` to control it.
 
 ```tsx-live-noinline
 function Week() {
@@ -301,7 +301,7 @@ render(<Sessions />)
 - `Enter` and `Space` select the focused day. While a range is half chosen, `Escape` drops its start.
 - Disabled days are focusable with `aria-disabled`, so they can be read and passed, but not selected.
 - A polite live region announces the month when it changes and the selection when it changes, such as "Selected Wednesday, 3 to Sunday, 7 March 2027".
-- The month arrows are labelled "Previous month" and "Next month", and in week view "Previous week" and "Next week". In the dropdown layout the selects are labelled "Month" and "Year". The view toggle is a button labelled "Month view", pressed in month view.
+- The month arrows are labelled "Previous month" and "Next month", and in week view "Previous week" and "Next week". In the dropdown layout the selects are labelled "Month" and "Year". The views are a toggle group labelled "View", with "Week" and "Month" buttons that keep their names when they show only icons. The arrow keys move between them and Space or Enter switches.
 - Swiping or dragging the days turns the page, and the arrows and `Page Up` and `Page Down` do the same for everyone else, with the same slide. Arrow keys across a month edge turn it without a slide, so focus stays on a still day. With reduced motion nothing slides.
 - In week view the grid is named by its dates, such as "Monday, 26 October to Sunday, 1 November 2026", and turning a week announces them.
 - `getDayContent` describes its day: a day with a price is read as its date, then the price.
