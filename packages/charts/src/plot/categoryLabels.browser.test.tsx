@@ -163,7 +163,8 @@ describe('Category labels on tight rows', () => {
     const data = [
       ...NAMES.map((show, i) => ({ show: show.toUpperCase(), perDay: 40 - i })),
       { show: 'W'.repeat(40), perDay: 10 },
-      { show: 'MWMW '.repeat(8), perDay: 5 }
+      { show: 'MWMW '.repeat(8), perDay: 5 },
+      { show: '\u2014'.repeat(20), perDay: 3 }
     ]
     const { container } = await settle(
       <RankedBars data={data} x='show' y='perDay' />,

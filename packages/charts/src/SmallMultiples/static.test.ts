@@ -59,6 +59,22 @@ describe('renderSmallMultiplesSvg captions', () => {
   })
 })
 
+describe('renderSmallMultiplesSvg caption slack', () => {
+  it('cuts a caption that only just fills its panel', () => {
+    const key = 'C'.repeat(36)
+    const svg = renderSmallMultiplesSvg(
+      {
+        ...gatesExample,
+        data: gatesExample.data.map((row) =>
+          row.gate === 'North gate' ? { ...row, gate: key } : row
+        )
+      },
+      { mode: 'light', width: 640 }
+    )
+    expect(svg).toMatch(new RegExp(`<title>${key}</title>C+…</text>`))
+  })
+})
+
 describe('renderSmallMultiplesSvg with nothing to split', () => {
   it('says so instead of drawing an empty grid', () => {
     const svg = renderSmallMultiplesSvg(

@@ -13,7 +13,7 @@ const MIN_ROOM = 72
 const MAX_ROOM = 240
 const LABEL_GAP = 4
 // Width estimates can run a pixel or two short of the painted glyphs.
-const EDGE_SLACK = 4
+export const EDGE_SLACK = 4
 const PADDING = LABEL_GAP + EDGE_SLACK
 const LINE_HEIGHT = 1.2
 const LINE_GAP = 2
@@ -23,19 +23,20 @@ const MARK_ID = 'label-category'
 
 const WIDE =
   /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Extended_Pictographic}\u3000-\u303F\u30A0-\u30FF\u3200-\u33FF\uFE30-\uFE4F\uFF00-\uFFEF]/u
-const BROAD_CAPITAL = /[MW]/
+// Glyphs near a full em in Intermission, which the averages undercount.
+const BROAD = /[MW%@\u2014\u2026]/
 const BROAD_LOWER = /[mw]/
 const CAPITAL = /\p{Lu}/u
 const EM = { wide: 1, broadLower: 0.9, capital: 0.72, other: 0.62 }
 
 function emsOf(char: string) {
-  if (WIDE.test(char) || BROAD_CAPITAL.test(char)) return EM.wide
+  if (WIDE.test(char) || BROAD.test(char)) return EM.wide
   if (BROAD_LOWER.test(char)) return EM.broadLower
   return CAPITAL.test(char) ? EM.capital : EM.other
 }
 
 /**
- * The shared 0.62em estimate, widened for capitals, M, W and CJK, since a label
+ * The shared 0.62em estimate, widened for capitals, broad glyphs and CJK, since a label
  * that runs wide leaves the card rather than overlapping a neighbour.
  */
 export function labelWidth(text: string, frame: PlotFrame) {

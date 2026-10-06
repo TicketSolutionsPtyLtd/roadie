@@ -95,6 +95,7 @@ describe('labelWidth', () => {
 
   it('counts the widest Latin letters at their own width', () => {
     expect(labelWidth('WM', frame)).toBe(24)
+    expect(labelWidth('\u2014\u2026%@', frame)).toBe(48)
     expect(labelWidth('wm', frame)).toBe(Math.ceil(2 * 12 * 0.9))
   })
 
