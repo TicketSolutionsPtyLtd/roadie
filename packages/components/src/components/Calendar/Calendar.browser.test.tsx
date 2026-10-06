@@ -1069,6 +1069,8 @@ describe('Calendar page turns', () => {
     for (const animation of document.getAnimations()) animation.finish()
     const before = day('2027-03-01').getBoundingClientRect().top
     await new Promise((resolve) => setTimeout(resolve, 0))
+    // Where the slide in starts, however long the swap took to land.
+    for (const animation of document.getAnimations()) animation.currentTime = 0
     expect(caption()).toEqual(['March 2027', 'April 2027'])
     expect(day('2027-03-01').getBoundingClientRect().top).toBeCloseTo(before, 0)
   })
@@ -1093,6 +1095,8 @@ describe('Calendar page turns', () => {
     for (const animation of document.getAnimations()) animation.finish()
     const before = day('2027-03-01').getBoundingClientRect().top
     await new Promise((resolve) => setTimeout(resolve, 0))
+    // Where the slide in starts, however long the swap took to land.
+    for (const animation of document.getAnimations()) animation.currentTime = 0
     expect(caption()).toEqual(['February 2027', 'March 2027'])
     expect(day('2027-03-01').getBoundingClientRect().top).toBeCloseTo(before, 0)
   })
@@ -1128,6 +1132,8 @@ describe('Calendar page turns', () => {
     for (const animation of document.getAnimations()) animation.finish()
     const before = day('2027-04-01').getBoundingClientRect().left
     await new Promise((resolve) => setTimeout(resolve, 0))
+    // Where the slide in starts, however long the swap took to land.
+    for (const animation of document.getAnimations()) animation.currentTime = 0
     expect(caption()).toEqual(['April 2027', 'May 2027'])
     expect(day('2027-04-01').getBoundingClientRect().left).toBeCloseTo(
       before,
