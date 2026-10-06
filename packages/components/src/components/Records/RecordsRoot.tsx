@@ -3,6 +3,7 @@
 import {
   type ComponentProps,
   type ReactNode,
+  useId,
   useLayoutEffect,
   useRef,
   useState
@@ -10,6 +11,7 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { useDevWarning } from '../../utils/useDevWarning'
 import {
   RecordsContext,
   type RecordsToolbarBox,
@@ -36,6 +38,12 @@ export function RecordsProvider<Row extends object>({
   caption,
   children
 }: RecordsProviderProps<Row>) {
+  const scope = useId()
+  const types = layouts.map(({ type }) => type)
+  useDevWarning(
+    new Set(types).size < types.length &&
+      `[Roadie] Records has two layouts of one type (${types.join(', ')}). Records shows and offers only the first of each.`
+  )
   const [contentFill, setContentFill] = useState(false)
   const [toolbar, setToolbar] = useState<RecordsToolbarBox | null>(null)
   const [selectMode, setSelectMode] = useState(false)
@@ -63,6 +71,7 @@ export function RecordsProvider<Row extends object>({
     <RecordsContext
       value={{
         records: shared,
+        scope,
         layouts,
         caption,
         toolbar,
@@ -122,7 +131,8 @@ function RecordsRootElement({
       data-pane-fill={contentFill || undefined}
       className={cn(
         // The toolbar's padding stands in for this gap while it sticks.
-        'grid grid-cols-1 gap-(--records-gap) [--records-gap:--spacing(3)]',
+        // Full width, as the table's frame is a size container that takes no width from its rows.
+        'grid w-full grid-cols-1 gap-(--records-gap) [--records-gap:--spacing(3)]',
         contentFill && 'flex h-full min-h-0 flex-col',
         className
       )}

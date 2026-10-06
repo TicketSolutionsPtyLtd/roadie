@@ -528,6 +528,14 @@ export {
   type UseRecordsOptions
 } from './components/Records'
 export {
+  RecordGrid,
+  gridLayout,
+  type GridLayoutConfig,
+  type GridLayoutDefinition,
+  type GridPartOption,
+  type RecordGridProps
+} from './components/RecordGrid'
+export {
   RecordTable,
   shownColumns,
   tableColumns,

@@ -49,10 +49,29 @@ import { Funnel } from '@oztix/roadie-charts/funnel'
 </div>
 ```
 
+### Long step names
+
+A long step name wraps to two lines within 40% of the chart's width, then ends in an ellipsis.
+
+```tsx-live
+<div className='w-140 max-w-full'>
+  <Chart label='Presale reminder' source='Oztix email and checkout events.' size='md'>
+    <Funnel
+      steps={[
+        { label: 'Opened the presale reminder email', value: 8200 },
+        { label: 'Clicked through to the Ochre Kite Weekender event page', value: 3100 },
+        { label: 'Bought', value: 940 }
+      ]}
+    />
+  </Chart>
+</div>
+```
+
 ## Guidelines
 
 - Each bar shows its count and its conversion from the step before. On a phone, bars after the first show only the conversion. The Table tab adds the share of the first step and how many dropped.
 - Name steps by what people did, in the past tense: "Chose tickets", not "Ticket selection".
+- Keep step names short. A cut name keeps its full text in the table, and shows it on hover.
 
 ## Accessibility
 

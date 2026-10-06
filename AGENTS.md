@@ -249,7 +249,7 @@ the brand radius stays consistent across components.
 Read `docs/src/app/charts/data-visualisation/page.tsx` before building a chart.
 Before showing records (events, orders, attendees and so on) in a table, read `docs/src/app/foundations/tables/page.tsx`: it picks `RecordTable`, `DataTable`, `List` or `StatTile` by job and gives each Oztix record's fields and columns.
 For dashboards, read `docs/src/app/charts/dashboards/page.tsx` and use `Dashboard`, `StatTile`, `DataTable` and `Chart`; describe dashboards with `@oztix/roadie-core/dashboard` and check them with `validateDashboard`. A dashboard's dates go in its `period` (`{ range, compare, history }`), shown by `DashboardView` in a `DashboardPeriod` toolbar; mark a delta `comparison: true` to follow it, and set `history` from `resolveComparison`'s status. Comparisons are dates only.
-For a chart, use the chart types from `@oztix/roadie-charts`: `LineChart`, `BarChart`, `RankedBars`, `StackedBars`, `Histogram`, `Funnel`, `Heatmap`, `Scatter` and `SmallMultiples`, each on its own subpath (`/line-chart`, `/bar-chart`, …) and each read from `docs/src/app/charts/<chart>/page.mdx`. Put a chart inside a `Chart` card with no `table`: the chart supplies its table and summary. In a dashboard description, a chart card's `plot` is `{ kind: 'line' | 'bar' | 'ranked-bars' | 'stacked-bars' | 'histogram' | 'funnel' | 'heatmap' | 'scatter' | 'small-multiples', ...props }`. For reports, PDFs and slides, render SVG in Node with `renderChartSvg(chart, props, { mode, width, height })` from `@oztix/roadie-charts/static`, which also exports the chart definitions. On a server, build a chart's table rows with the functions in `@oztix/roadie-charts/tables`, and a dashboard card's with `cardTable(card)`; the chart subpaths are `'use client'` and export only components. Card actions come from the app, never the JSON: `Chart actions` or `DashboardView cardActions={(card) => …}`, with the More menu last: a `Menu` whose `Menu.Trigger` renders `DataCard.MoreButton` (see Card actions on the Dashboard design page). Row links also come from the app: `DataTable getRowHref` or `DashboardView getRowHref={(card, row) => …}`. Charts take no colour props; use `highlight` and `palette`. `@tanstack/*` is imported only inside `packages/charts/src/plot/`, `static/` and each chart's `definition.ts`.
+For a chart, use the chart types from `@oztix/roadie-charts`: `LineChart`, `BarChart`, `RankedBars`, `StackedBars`, `Histogram`, `Funnel`, `Heatmap`, `Scatter` and `SmallMultiples`, each on its own subpath (`/line-chart`, `/bar-chart`, …) and each read from `docs/src/app/charts/<chart>/page.mdx`. Put a chart inside a `Chart` card with no `table`: the chart supplies its table and summary. In a dashboard description, a chart card's `plot` is `{ kind: 'line' | 'bar' | 'ranked-bars' | 'stacked-bars' | 'histogram' | 'funnel' | 'heatmap' | 'scatter' | 'small-multiples', ...props }`. For reports, PDFs and slides, render SVG in Node with `renderChartSvg(chart, props, { mode, width, height })` from `@oztix/roadie-charts/static`, which also exports the chart definitions. On a server, build a chart's table rows with the functions in `@oztix/roadie-charts/tables`, and a dashboard card's with `cardTable(card)`; the chart subpaths are `'use client'` and export only components. Card actions come from the app, never the JSON: `Chart actions` or `DashboardView cardActions={(card) => …}`, with the More menu last: a `Menu` whose `Menu.Trigger` renders `DataCard.MoreButton` (see Card actions on the Dashboard design page). Row links also come from the app: `DataTable getRowHref` or `DashboardView getRowHref={(card, row) => …}`. Charts take no colour props; use `highlight` and `palette`. In charts, `@tanstack/*` is imported only inside `packages/charts/src/plot/`, `static/` and each chart's `definition.ts`; in components, `@tanstack/react-virtual` only in `RecordTable/rowWindow.ts`.
 
 - **Colour by job:** categorical `--chart-1` to `--chart-8` (fixed order, max 6 then "Other"; `--chart-pair-*` / `--chart-trio-*` for 2 or 3 series), sequential `--chart-heat-0` to `-8`, diverging `--chart-diverge-neg-4` to `-pos-4` (cool is ahead), status `--chart-status-good|warning|serious|critical` (meaning only).
 - **Emphasis:** story series in `--chart-highlight` (follows `--accent-hue`), context in `--chart-context`.
@@ -271,9 +271,17 @@ Build fields with `recordFields<Row>()`. Show a list with `useRecords` and
 `Records` from `@oztix/roadie-components/records`, and the table layout from
 `@oztix/roadie-components/record-table` (`tableColumns`, `tableLayout`, or the
 `RecordTable` preset); keep a table's search in `Records.Toolbar`, never
-`Pane.Search`. For records a server pages, pass `rowCount` and one page as
-`data`, and search with `toMeilisearch(view, fields, { now, timeZone,
-position })`. See `docs/src/app/components/record-table/page.mdx`.
+`Pane.Search`. For cards, add `gridLayout` from
+`@oztix/roadie-components/record-grid` (or use the `RecordGrid` preset);
+given both layouts, Configure switches between them. For records a server
+pages, pass `rowCount` and one page as `data`, and search with
+`toMeilisearch(view, fields, { now, timeZone, position })`. For a long list
+people scroll, pass `loadRange` and place each range in `data` with
+`placeRange`. For saved views, pass the open one as `baseline` and the app's
+`onSave`, `onSaveAs`, `onRename` and `onDelete` as `viewActions`; the app
+stores and lists views, and presets take `onSaveAs` alone. See
+`docs/src/app/components/record-table/page.mdx` and
+`docs/src/app/components/record-grid/page.mdx`.
 
 ### Typography
 

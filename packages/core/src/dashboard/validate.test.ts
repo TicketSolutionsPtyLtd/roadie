@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { CHART_LABEL_LIMITS, COPY_LIMITS } from './layout'
+import { CHART_LABEL_LIMITS, COLUMN_KINDS, COPY_LIMITS } from './layout'
 import { validateDashboard } from './validate'
 
 const stat = (id: string, extra: Record<string, unknown> = {}) => ({
@@ -912,6 +912,68 @@ describe('validateDashboard status columns', () => {
     expect(result.problems).toEqual([])
   })
 
+  it('accepts a secondary line under a status', () => {
+    const result = validateDashboard(
+      ordersTable(
+        { status: { paid: { intent: 'success' } }, secondaryKey: 'paidOn' },
+        [{ order: 'OZ-1001', status: 'paid', paidOn: 'Paid Fri 27 Nov' }]
+      )
+    )
+    expect(result).toMatchObject({ ok: true, problems: [] })
+  })
+
+  it.each(COLUMN_KINDS.filter((kind) => kind !== 'text' && kind !== 'status'))(
+    'warns when a %s column has a second line it never shows',
+    (kind) => {
+      const result = validateDashboard(
+        ordersTable({ kind, secondaryKey: 'paidOn' }, [])
+      )
+      expect(result.problems).toEqual([
+        {
+          path: 'sections[0].cards[0].columns[1].secondaryKey',
+          message: 'Only a text or status column shows a second line',
+          severity: 'warning'
+        }
+      ])
+    }
+  )
+
+  it('warns about a second line it never shows in a chart card table', () => {
+    const result = validateDashboard(
+      spec([
+        chartCard(
+          { kind: 'line', data: rows, x: 'day', y: 'sold' },
+          {
+            table: {
+              columns: [
+                { key: 'day', header: 'Day', kind: 'text' },
+                {
+                  key: 'sold',
+                  header: 'Sold',
+                  kind: 'number',
+                  secondaryKey: 'channel'
+                }
+              ],
+              rows
+            }
+          }
+        )
+      ])
+    )
+    expect(result.problems).toContainEqual({
+      path: 'sections[0].cards[0].table.columns[1].secondaryKey',
+      message: 'Only a text or status column shows a second line',
+      severity: 'warning'
+    })
+  })
+
+  it('reads an empty secondaryKey as none, as a table does', () => {
+    const result = validateDashboard(
+      ordersTable({ kind: 'number', secondaryKey: '' }, [])
+    )
+    expect(result.problems).toEqual([])
+  })
+
   it('warns when a non-status column has a status map', () => {
     const result = validateDashboard(
       ordersTable({ kind: 'text', status: { paid: { intent: 'success' } } }, [])
@@ -962,7 +1024,10 @@ describe('validateDashboard periods', () => {
   it.each([
     [{ range: 'this-fortnight' }, 'period.range'],
     [{ range: { period: 'month', offset: 0.5 } }, 'period.range'],
-    [{ range: 'this-month', compare: 'previous-decade' }, 'period.compare'],
+    [{ range: 'this-month', compare: 42 }, 'period.compare'],
+    [{ range: 'this-month', compare: '' }, 'period.compare'],
+    [{ range: 'this-month', compare: 'none' }, 'period.compare'],
+    [{ range: 'this-month', compare: 'custom' }, 'period.compare'],
     [{ range: 'this-month', history: 'none' }, 'period.history'],
     [{ range: 'this-month', locked: true }, 'period']
   ])('rejects the shape of %j', (period, path) => {
@@ -1005,6 +1070,58 @@ describe('validateDashboard periods', () => {
     expect(
       problems(withPeriod({ range: 'upcoming', compare: 'previous-period' }))
     ).toEqual([{ path: 'period.compare', severity: 'warning' }])
+  })
+
+  it('accepts an app’s own comparison, which Roadie shows no dates for', () => {
+    expect(
+      problems(withPeriod({ range: 'this-month', compare: 'similar' }))
+    ).toEqual([])
+    expect(
+      problems(withPeriod({ range: 'upcoming', compare: 'similar' }))
+    ).toEqual([])
+  })
+
+  it.each([
+    'previous_period',
+    'Previous year',
+    'PREVIOUS-PERIOD',
+    'previousPeriod',
+    ' previous period '
+  ])('warns that %s reads like one of Roadie’s comparisons', (compare) => {
+    expect(problems(withPeriod({ range: 'this-month', compare }))).toEqual([
+      { path: 'period.compare', severity: 'warning' }
+    ])
+  })
+
+  it('warns that a comparison delta hides with an app’s own comparison', () => {
+    const result = validateDashboard(
+      withPeriod({ range: 'this-month', compare: 'similar' }, [
+        compared('a'),
+        stat('b'),
+        stat('c'),
+        stat('d')
+      ])
+    )
+    expect(result.ok).toBe(true)
+    expect(result.problems).toEqual([
+      expect.objectContaining({
+        path: 'sections[0].cards[0].delta.comparison',
+        severity: 'warning',
+        message: expect.stringContaining('"similar"')
+      })
+    ])
+  })
+
+  it('warns about history with an app’s own comparison', () => {
+    expect(
+      problems(
+        withPeriod({
+          range: 'this-month',
+          compare: 'similar',
+          history: 'partial'
+        })
+      )
+    ).toEqual([{ path: 'period.history', severity: 'warning' }])
   })
 
   it('warns about history with no comparison', () => {

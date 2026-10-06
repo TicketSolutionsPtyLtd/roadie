@@ -5,6 +5,11 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 import { formatValue } from '@oztix/roadie-core/dataviz'
 
+import {
+  categoryFit,
+  categoryLabelMark,
+  categoryRoom
+} from '../plot/categoryLabels'
 import { textRoom } from '../plot/endLabels'
 import { seriesMarkId, seriesStyles } from '../plot/series'
 import type {
@@ -20,7 +25,6 @@ import type { FunnelProps } from './types'
 
 const EMPTY = 'No one has started this yet'
 const SERIES = 'Steps'
-const STEP_PADDING = 8
 const VALUE_PADDING = 12
 
 const pct = (v: number) => formatValue(v, 'percent')
@@ -52,11 +56,8 @@ function build(props: FunnelProps, paint: ChartPaint, frame: PlotFrame) {
     rows.map((r) => r.value),
     { zero: true }
   )
-  const stepRoom = textRoom(
-    rows.map((r) => r.label),
-    frame,
-    STEP_PADDING
-  )
+  const labels = rows.map((r) => r.label)
+  const stepRoom = categoryRoom(labels, frame)
   const valueRoom = textRoom(
     rows.map((r) => r.text),
     frame,
@@ -72,6 +73,13 @@ function build(props: FunnelProps, paint: ChartPaint, frame: PlotFrame) {
         fill: style.color,
         inset: 2,
         maxThickness: 32
+      }),
+      categoryLabelMark(labels, {
+        x: domain[0],
+        room: stepRoom,
+        ...categoryFit(frame, labels.length),
+        frame,
+        paint
       }),
       decorative(
         text(rows, {
@@ -93,11 +101,7 @@ function build(props: FunnelProps, paint: ChartPaint, frame: PlotFrame) {
         scale: scaleBand<string>()
           .domain(rows.map((r) => r.label))
           .padding(0.25),
-        axis: {
-          line: false,
-          ticks: { size: 0 },
-          tickLabels: { fontSize: frame.fontSize }
-        }
+        axis: false
       }
     },
     margin: { left: stepRoom, right: valueRoom },

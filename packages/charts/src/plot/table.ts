@@ -4,12 +4,19 @@ import type { ValueFormat } from '@oztix/roadie-core/dataviz'
 import { formatTimeTitle, hasTimeOfDay, parseX } from './time'
 import { fullFormat } from './values'
 
+// Two or more capitals, with an optional plural s: AUD, URLs.
+const ACRONYM = /^[A-Z]{2,}s?$/
+
 export function fieldLabel(field: string) {
   const words = field
     .replace(/[_-]+/g, ' ')
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    // A capital run ends before Upper+lower (ticketsADay), except a plural s.
+    .replace(/([A-Z])(?=[A-Z](?!s(?:[^a-z]|$))[a-z])/g, '$1 ')
     .trim()
-    .toLowerCase()
+    .split(/\s+/)
+    .map((word) => (ACRONYM.test(word) ? word : word.toLowerCase()))
+    .join(' ')
   return words.charAt(0).toUpperCase() + words.slice(1)
 }
 

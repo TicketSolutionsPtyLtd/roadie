@@ -189,9 +189,27 @@ export function groupPresets(presets: readonly DateRangePreset[]) {
 
 /**
  * The value in words, with the dates a relative range stands for as `detail`.
- * Null when the value can't be read.
+ * A value matching one of `presets` takes its label, with its dates as
+ * `detail`, fixed or relative. Null when the value can't be read.
  */
 export function describeRange(
+  value: DateRangeValue,
+  context: RangeContext,
+  locale: string | undefined,
+  presets: readonly DateRangePreset[] = []
+): { label: string; detail: string | null } | null {
+  const described = describeValue(value, context, locale)
+  const preset = presets.find((choice) => sameRange(choice.value, value))
+  // Unlabelled, fixed dates are their own label.
+  if (!described || !preset || (isAbsoluteRange(value) && !preset.label))
+    return described
+  return {
+    label: presetLabel(preset, locale),
+    detail: isAbsoluteRange(value) ? described.label : described.detail
+  }
+}
+
+function describeValue(
   value: DateRangeValue,
   { options, zone }: RangeContext,
   locale: string | undefined

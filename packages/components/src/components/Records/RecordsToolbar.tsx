@@ -8,6 +8,10 @@ import { RecordsActions } from './RecordsActions'
 import { RecordsOptions } from './RecordsOptions'
 import { RecordsSearch } from './RecordsSearch'
 import { RecordsSelect } from './RecordsSelect'
+import {
+  RecordsViewActions,
+  type RecordsViewActionsProps
+} from './RecordsViewActions'
 import { useRecordsContext } from './context'
 import { leaveSelectOnEscape } from './selectMode'
 import { useStickyTop } from './stickyTop'
@@ -15,7 +19,7 @@ import { surfaceClass, useSurface } from './surface'
 import type { RecordsAction } from './types'
 
 export type RecordsToolbarProps<Row extends object = object> = {
-  /** Replaces the standard controls: the search, the options and the actions. */
+  /** Replaces the standard controls: the search, the view actions, the options and the actions. */
   children?: ReactNode
   /** The standard search's placeholder. @default 'Search and filter' */
   searchPlaceholder?: string
@@ -25,6 +29,8 @@ export type RecordsToolbarProps<Row extends object = object> = {
   searchShortcut?: string | false
   /** The standard controls' actions on every matching record, at the end as `Records.Actions`. */
   actions?: readonly RecordsAction<Row>[]
+  /** The standard controls' view actions, after the search as `Records.ViewActions`. */
+  viewActions?: RecordsViewActionsProps
   className?: string
 }
 
@@ -35,6 +41,7 @@ export function RecordsToolbar<Row extends object>({
   searchLabel,
   searchShortcut,
   actions,
+  viewActions,
   className
 }: RecordsToolbarProps<Row>) {
   const { records, toolbar, setToolbar } = useRecordsContext()
@@ -58,7 +65,7 @@ export function RecordsToolbar<Row extends object>({
     }
     measure()
     const observer = new ResizeObserver(measure)
-    observer.observe(element)
+    observer.observe(element, { box: 'border-box' })
     return () => {
       observer.disconnect()
       setToolbar((held) => (held?.element === element ? null : held))
@@ -90,9 +97,10 @@ export function RecordsToolbar<Row extends object>({
             placeholder={searchPlaceholder}
             aria-label={searchLabel}
             shortcut={searchShortcut}
-            className='min-w-48 grow basis-64'
+            className='min-w-40 grow basis-0'
           />
           <RecordsSelect />
+          {viewActions && <RecordsViewActions {...viewActions} />}
           <RecordsOptions />
           {actions && <RecordsActions actions={actions} className='ms-auto' />}
         </>

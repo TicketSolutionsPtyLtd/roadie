@@ -65,3 +65,6 @@ thousands commas in a number's value.
 and `hitsPerPage`, so the response's `totalHits` counts the matches (up to
 the index's `pagination.maxTotalHits`). A page below 0 or a page size below
 1 throws a RangeError.
+
+`placeRange(data, start, rows)` returns a copy of `data` with `rows` placed
+from `start` and any gaps left undefined, for lists loaded by range.

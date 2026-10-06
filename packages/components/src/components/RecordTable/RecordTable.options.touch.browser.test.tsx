@@ -21,11 +21,12 @@ afterEach(() => cleanup())
 const column = tableColumns(showFields)
 const columns = [
   column.field('show', { pin: true }),
-  column.field('city'),
-  column.field('sold'),
-  column.field('gross'),
-  column.field('status'),
-  column.field('starts')
+  // Details, so a phone's cards show their order and visibility too.
+  column.field('city', { narrow: 'detail' }),
+  column.field('sold', { narrow: 'detail' }),
+  column.field('gross', { narrow: 'detail' }),
+  column.field('status', { narrow: 'detail' }),
+  column.field('starts', { narrow: 'detail' })
 ]
 
 const settle = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -33,10 +34,19 @@ const centre = (element: Element) => {
   const box = element.getBoundingClientRect()
   return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
 }
-const headers = () =>
-  screen
+/** The columns shown, in order: the headers, or on a phone the first card's title and details. */
+function headers() {
+  const card = document.querySelector('[data-slot="record-card"]')
+  if (card)
+    return [
+      'Show',
+      ...[...card.querySelectorAll('dt')].map((term) => term.textContent)
+    ]
+  // A modal drawer hides the page from assistive tech, not from sight.
+  return screen
     .getAllByRole('columnheader', { hidden: true })
     .map((header) => header.textContent)
+}
 const handle = (name: string) =>
   screen.getByRole('button', { name: `Reorder ${name}` })
 

@@ -21,6 +21,7 @@ export function RecordsPagination({
   className
 }: RecordsPaginationProps) {
   const { records } = useRecordsContext()
+  if (records.range) return <RangeCount className={className} />
   const { page, pageSize } = records.position
   // A page past the end, such as a deep link waiting for its count, reads and
   // steps as the last page.
@@ -97,3 +98,22 @@ export function RecordsPagination({
   )
 }
 RecordsPagination.displayName = 'Records.Pagination'
+
+/** A range list scrolls instead of paging, so its footer is the count. */
+function RangeCount({ className }: { className?: string }) {
+  const { records } = useRecordsContext()
+  const known = records.range?.total
+  const shown = known ?? records.resultCount
+  const { one, other } = records.recordName
+  if (known === undefined && shown === 0) return null
+  return (
+    <p
+      data-slot='records-pagination'
+      className={cn('text-sm text-subtle', className)}
+    >
+      {known === undefined
+        ? `${count.format(shown)}+ ${other}`
+        : `${count.format(shown)} ${shown === 1 ? one : other}`}
+    </p>
+  )
+}

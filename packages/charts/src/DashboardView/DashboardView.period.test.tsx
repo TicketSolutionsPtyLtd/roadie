@@ -189,6 +189,60 @@ describe('DashboardView periods', () => {
     expect(contextIn('Sell-through')).toBe('Week target is 85%')
   })
 
+  it('treats an app’s own comparison as no Roadie comparison', () => {
+    render(
+      <DashboardView
+        spec={dashboard({
+          range: 'this-month',
+          compare: 'similar',
+          history: 'partial'
+        })}
+        periodProps={{
+          ...periodProps,
+          compareOptions: [
+            'previous-period',
+            { value: 'similar', label: 'Similar venues' }
+          ]
+        }}
+      />
+    )
+    expect(deltaIn('Tickets sold')).toBeNull()
+    expect(contextIn('Tickets sold')).toBeUndefined()
+    expect(deltaIn('Sell-through')).toHaveTextContent('9 pts')
+    expect(
+      screen.getByRole('button', { name: /^Choose dates, Period/ })
+    ).toHaveAccessibleName(/vs similar venues\)$/)
+  })
+
+  it('hands an app’s own comparison to the app', async () => {
+    const onPeriodChange = vi.fn()
+    render(
+      <DashboardView
+        spec={dashboard({ range: 'this-month', compare: 'previous-period' })}
+        periodProps={{
+          ...periodProps,
+          compareOptions: [
+            'previous-period',
+            { value: 'similar', label: 'Similar venues' }
+          ]
+        }}
+        onPeriodChange={onPeriodChange}
+      />
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: /^Choose dates, Period/ })
+    )
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: 'Similar venues' })
+    )
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Apply' }))
+    expect(onPeriodChange).toHaveBeenCalledWith({
+      range: 'this-month',
+      compare: 'similar'
+    })
+  })
+
   it('names custom dates in the toolbar’s locale', () => {
     render(
       <DashboardView

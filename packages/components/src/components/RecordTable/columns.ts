@@ -1,6 +1,10 @@
 import type { RecordField, RecordLayout } from '@oztix/roadie-core/records'
 
+import { warnPinnedPriority } from './layout'
 import type { RecordTableColumn, RecordTableColumnOptions } from './types'
+
+// A 40px thumbnail inside the cell's padding.
+const IMAGE_WIDTH = { min: 3.75 }
 
 /** Builds table columns from an entity's fields: each column presents one field. */
 export function tableColumns<Row extends object = Record<string, unknown>>(
@@ -13,7 +17,23 @@ export function tableColumns<Row extends object = Record<string, unknown>>(
     ): RecordTableColumn<Row> {
       const field = fields.find((candidate) => candidate.key === key)
       if (!field) throw new Error(`tableColumns: no field "${key}"`)
-      return { key, field, ...options }
+      const { priority, ...given } = options
+      // An option given as undefined keeps its default.
+      const rest = Object.fromEntries(
+        Object.entries(given).filter(([, value]) => value !== undefined)
+      ) as typeof given
+      const steady = rest.pin
+      if (steady && priority !== undefined) warnPinnedPriority(key)
+      return {
+        key,
+        field,
+        ...(rest.kind === 'image' && {
+          width: IMAGE_WIDTH,
+          narrow: 'leading' as const
+        }),
+        ...rest,
+        ...(!steady && priority !== undefined && { priority })
+      }
     }
   }
 }

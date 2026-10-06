@@ -25,6 +25,29 @@ describe('Oztix records reference', () => {
     }
   })
 
+  it('titles each record by its pinned column on a phone, one role each', () => {
+    for (const record of OZTIX_RECORDS) {
+      const titles = record.columns.filter((c) => c.narrow === 'title')
+      expect(titles, record.name).toEqual([record.columns[0]])
+      for (const role of ['description', 'leading', 'trailing'] as const)
+        expect(
+          record.columns.filter((c) => c.narrow === role).length,
+          `${record.name} ${role}`
+        ).toBeLessThanOrEqual(1)
+      const cards = record.columns.some((c) => c.narrow === 'detail')
+      expect(
+        record.phone.startsWith(cards ? 'Cards' : 'List rows'),
+        record.name
+      ).toBe(true)
+    }
+  })
+
+  it('never gives a pinned column a priority', () => {
+    for (const record of OZTIX_RECORDS)
+      for (const column of record.columns)
+        if (column.pin) expect(column.priority, record.name).toBeUndefined()
+  })
+
   it('has unique column labels within each record', () => {
     for (const record of OZTIX_RECORDS) {
       const labels = record.columns.map((c) => c.label)

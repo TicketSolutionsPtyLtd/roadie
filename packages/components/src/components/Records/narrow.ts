@@ -4,10 +4,29 @@ import { type RefObject, useLayoutEffect, useState } from 'react'
 
 export const NARROW_BELOW = 40
 
-/** Whether the element, or its parent with `parent`, is under 40rem wide. */
+// The room inside, so a toolbar that paints a pane's margins measures its controls' room.
+function contentWidth(element: HTMLElement) {
+  const style = getComputedStyle(element)
+  return (
+    element.getBoundingClientRect().width -
+    parseFloat(style.paddingLeft) -
+    parseFloat(style.paddingRight) -
+    parseFloat(style.borderLeftWidth) -
+    parseFloat(style.borderRightWidth)
+  )
+}
+
+/** Whether the element, or its parent with `parent`, has under 40rem of room inside. */
 export function useNarrow(
   ref: RefObject<HTMLElement | null>,
-  { parent = false }: { parent?: boolean } = {}
+  {
+    parent = false,
+    placement
+  }: {
+    parent?: boolean
+    /** Changes when the element may have been replaced, to observe the new one. */
+    placement?: unknown
+  } = {}
 ) {
   const [narrow, setNarrow] = useState(false)
   useLayoutEffect(() => {
@@ -20,12 +39,10 @@ export function useNarrow(
     const apply = (width: number) => {
       if (width > 0) setNarrow(width < limit())
     }
-    apply(element.getBoundingClientRect().width)
-    const observer = new ResizeObserver(() =>
-      apply(element.getBoundingClientRect().width)
-    )
+    apply(contentWidth(element))
+    const observer = new ResizeObserver(() => apply(contentWidth(element)))
     observer.observe(element)
     return () => observer.disconnect()
-  }, [ref, parent])
+  }, [ref, parent, placement])
   return narrow
 }

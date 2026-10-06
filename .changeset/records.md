@@ -17,9 +17,10 @@ empty state that says whether nothing exists yet or nothing matches.
 `RecordValue` shows one value as its field reads.
 
 New `@oztix/roadie-components/record-table` adds the table layout:
-`tableColumns(fields).field(key, { pin, width, cell })` presents a field as
-a column, `tableLayout(columns)` gives it to `Records.Root`, and the view's
-`layout.columns` orders and hides them. The table sorts from its headers,
+`tableColumns(fields).field(key, options)` presents a field as a column,
+taking `pin`, `width`, `cell`, `kind`, `alt`, `narrow` and `priority`;
+`tableLayout(columns, { narrow })` gives it to `Records.Root`, and the
+view's `layout.columns` orders and hides them. The table sorts from its headers,
 pins columns, and scrolls sideways with a Roadie scrollbar that sticks to
 the bottom of whatever scrolls the page, or both ways in its own box with
 `maxHeight` or `fill`. `RecordTable` puts the toolbar, table, pagination
@@ -36,7 +37,9 @@ Shift extends the range, and Cmd, Ctrl or middle click opens the record in
 a new tab. `Records.BulkActions` acts on the selection: in the header row
 of a layout whose definition says `bulkActions: 'header'`, as the table's
 does, with a count menu to select all or clear and a More actions menu for
-actions that don't fit, otherwise floating at the foot of the screen.
+actions that don't fit, otherwise floating at the foot of the screen, where
+the first action shows and those that don't fit go in a More actions menu,
+last.
 `Records.Actions` (or the toolbar's `actions`) acts on every match. Danger
 actions ask first unless `confirm` is `false`, and any action given
 `confirm` asks. `downloadCsv` saves CSV text as a file. `RecordTable` takes
@@ -57,7 +60,10 @@ columns as defined and keeping keys for columns the table doesn't have.
 `label` renames the button, which is "Configure table" for the table. A
 layout definition adds its own settings with `Settings`, which can carry a
 `preload` that runs once the page is idle or the button is reached; the
-table's columns list loads that way, out of the table's first load.
+table's columns list loads that way, out of the table's first load. Given
+more than one layout, Options shows a Layout switcher above the sort that
+writes `view.layout`; each layout comes back with its settings as last
+shown, or the `baseline`'s, so switching back reads as unchanged.
 
 `Records.Search` searches and filters in one `QueryField`, named "Search and
 filter". Typing searches the searchable fields as before and suggests filters
@@ -106,3 +112,78 @@ its content holds; key a fetch on `scopedQuery`, the position and
 filter, and ignores filters the fields can't apply. `Records.Status`
 holds a count while `loading` and announces it once loaded, and
 `Records.Pagination` reads a page past the end as the last page.
+
+Give `useRecords` a `loadRange` and it runs in range mode (`mode: 'range'`):
+one long list, searched, filtered and sorted on the server, that loads the
+records on screen plus a screen either side as people scroll. Each range is
+one page of `pageSize` records, `{ start, end }` with `end` exclusive, and
+`data` holds the records loaded so far at their index (`placeRange` puts a
+range there). With `rowCount` the list is that long from the start; without
+it, ranges load one after another until one comes back short. Rows not yet
+loaded show as placeholders. A failed range shows an error row with Retry in
+its place, keeping the records already loaded, or the error state when none
+have. The list reports the first row on screen as `position.row` (through
+`setRow` and `onPositionChange`) and scrolls back to a row set from outside,
+such as from the URL, loading its range first; a row it reported itself
+never scrolls it back. `records.range` (`RecordsRangeState`) holds the
+loading state for a layout, and `RecordsRange` types a range. A count of 0
+counts only once a range of the query confirms it, so a list whose count
+starts at 0 still asks for its first range. `Records.Pagination` shows the
+count instead of pages, and `Records.Status` announces a count only once the
+total is known. Bulk actions get the selection as picked, as in server mode,
+`loading` neither dims rows nor shows skeleton rows (placeholders show what
+loads), `records.error` is set when a range fails before any record loads,
+and `onRetry` is always given. The header checkbox is named "Select loaded
+rows", and range mode stops at 300,000 rows. In every mode `data` may hold
+undefined gaps, which are left out, and `records.data` is the records held
+without them.
+
+The table renders only the rows near the screen past 100 rows, so find in
+page and printing see only those, and focus in a row that scrolls away
+moves to the table. When it holds only some of its rows (a page of several,
+a long page, or a list loaded by range) it carries `aria-rowcount` and each
+row its `aria-rowindex`. In server and range mode, column widths come from
+the first records a search or filter brings and hold as people page or
+scroll.
+
+Under 40rem of its own width the table lists its records, as list rows or,
+once any column is a `detail`, as cards. Each column takes a `narrow` place:
+`title`, `description`, `leading`, `trailing`, `detail` or `hidden` (the
+default). The title carries the record's link, the bulk actions float, and
+a selectable table offers Select mode: `Records.Select` (in the standard
+toolbar) shows Select, Select all and Done, each record shows a checkbox a
+tap anywhere on it toggles, and Escape or Done leaves. A selection made wide
+enters Select mode as the table narrows, and focus follows the record across
+the switch. Narrow rows page, window past 100 records and load by range as
+the wide rows do, with placeholders and range errors at their size.
+`tableLayout`'s `narrow` (or `RecordTable`'s) picks `'list'` or `'cards'`.
+`Records.Select` is now public, for compositions. A column with `priority`
+3, 2 or 1 hides as the table narrows below 64, 56 and 48rem, header and rows
+together; pinned columns and the title never hide, and a priority on a
+pinned column warns in development. A column with `kind: 'image'` shows its value, an
+image URL, as a 40px thumbnail with `alt` from the row, a list row's leading
+image and a card's 16:9 banner, and a neutral tile with an image icon
+without one or when it fails to load. A card lists its details as labels
+with every value at the card's end, text and figures alike. Built with `tableColumns`, it defaults to 3.75rem wide and
+`narrow: 'leading'`; its header is read to screen readers but not shown,
+with no sort button (give its field `sortable: false` too). The title
+column is the one with `narrow: 'title'` before the pinned text column, and
+never an image. `record-table` exports the `RecordTableNarrow`,
+`RecordTableNarrowLayout` and `TableLayoutOptions` types. `Records.Root`
+and the table's frame now fill their container's width. Focus lands back
+with the records when the floating bar goes, under `Records.Provider` too.
+
+Saved views: `useRecords` takes a `baseline`, the saved or preset view the
+screen opened, and gives `modified` (the view differs from it by
+`equalViews`) and `resetView`, which goes back to it from the first page.
+`Records.ViewActions` (or `viewActions`, an object of its props, on
+`Records.Toolbar` and `RecordTable`) shows the view's name after the search,
+with a dot once it's modified, and a menu of Save view, Reset view, Save as
+new view, Rename view and Delete view. The app keeps the views: each action
+calls its handler (`onSave`, `onSaveAs`, `onRename`, `onDelete`, typed
+`RecordsViewHandler`) with a `RecordView`, and each action but Reset shows
+only when its handler is given, so a preset takes `onSaveAs` alone. Names are
+asked for in a dialog, or a bottom drawer on a phone, and Delete view asks in
+an alert dialog. A handler can return a promise: its control stays busy and
+its dialog open until it settles, and a rejection's message shows in the
+dialog. `RecordsViewActionsProps` is exported too.

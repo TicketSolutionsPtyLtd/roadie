@@ -4,6 +4,11 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 import { formatValue } from '@oztix/roadie-core/dataviz'
 
+import {
+  categoryFit,
+  categoryLabelMark,
+  categoryRoom
+} from '../plot/categoryLabels'
 import { OTHER, seriesMarkId, seriesStyles } from '../plot/series'
 import { fieldLabel } from '../plot/table'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
@@ -15,6 +20,8 @@ import type { StackedBarsProps } from './types'
 
 const EMPTY = 'Nothing to show yet'
 const BAR_THICKNESS = 36
+// The value axis under horizontal bars, and the engine's top margin.
+const VALUE_AXIS_ROOM = 28
 
 const styles = (props: StackedBarsProps, paint: ChartPaint) =>
   seriesStyles(
@@ -62,8 +69,9 @@ function build(props: StackedBarsProps, paint: ChartPaint, frame: PlotFrame) {
     line: false,
     ticks: { values: gridTicks(domain), size: 0, format }
   }
+  const categoryScale = scaleBand<string>().domain(categories).padding(0.3)
   const categoryAxis = {
-    scale: scaleBand<string>().domain(categories).padding(0.3),
+    scale: categoryScale,
     axis: {
       line: false,
       ticks: { size: 0 },
@@ -92,10 +100,20 @@ function build(props: StackedBarsProps, paint: ChartPaint, frame: PlotFrame) {
       focus: 'group-x'
     })
 
+  const room = categoryRoom(categories, frame)
   return defineChart({
-    marks: layers.map(({ own, options }) =>
-      barX(own, { ...options, y: 'category', x1: 'start', x2: 'end' })
-    ),
+    marks: [
+      ...layers.map(({ own, options }) =>
+        barX(own, { ...options, y: 'category', x1: 'start', x2: 'end' })
+      ),
+      categoryLabelMark(categories, {
+        x: domain[0],
+        room,
+        ...categoryFit(frame, categories.length, VALUE_AXIS_ROOM),
+        frame,
+        paint
+      })
+    ],
     scales: {
       x: {
         ...valueAxis,
@@ -113,8 +131,9 @@ function build(props: StackedBarsProps, paint: ChartPaint, frame: PlotFrame) {
           }
         }
       },
-      y: categoryAxis
+      y: { scale: categoryScale, axis: false }
     },
+    margin: { left: room },
     theme,
     focus: 'group-y'
   })
