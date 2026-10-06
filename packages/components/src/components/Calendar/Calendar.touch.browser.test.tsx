@@ -427,8 +427,11 @@ describe('Calendar swiped on a phone', TIMEOUT, () => {
             changedTouches: [touchAt(dx, dy)]
           })
         )
+      // Turning up and down, the still row sits outside the grid.
       const weekdays = document.querySelector(
-        '[data-slot="calendar-grid"] thead'
+        direction === 'vertical'
+          ? '[data-slot="calendar-weekdays"]'
+          : '[data-slot="calendar-grid"] thead'
       )!
       const header = document.querySelector('[data-slot="calendar-header"]')!
       const before = [weekdays, header].map((el) =>
@@ -445,7 +448,7 @@ describe('Calendar swiped on a phone', TIMEOUT, () => {
         [weekdays, header].map((el) => el.getBoundingClientRect().toJSON())
       ).toEqual(before)
       if (direction === 'vertical') {
-        const cell = weekdays.querySelector('th')!.getBoundingClientRect()
+        const cell = weekdays.firstElementChild!.getBoundingClientRect()
         const covering = document.elementFromPoint(
           cell.left + cell.width / 2,
           cell.bottom - 2

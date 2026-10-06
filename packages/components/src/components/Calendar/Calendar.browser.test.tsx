@@ -1,6 +1,6 @@
 import { type ReactElement, useState } from 'react'
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import {
   afterAll,
@@ -332,7 +332,7 @@ describe('Calendar layout', () => {
     expect(caption.right).toBeLessThanOrEqual(previous.left)
   })
 
-  it('keeps a stacked first caption clear of the toggle and arrows', () => {
+  it('puts a stacked first title before the toggle and arrows on one line', async () => {
     render(
       <div className='w-75'>
         <Calendar
@@ -346,10 +346,14 @@ describe('Calendar layout', () => {
     const toggle = screen
       .getByRole('button', { name: 'Month view' })
       .getBoundingClientRect()
-    const caption = screen.getByText('September 2027')
-    expect(caption.getBoundingClientRect().top).toBeGreaterThanOrEqual(
-      toggle.bottom
+    const caption = await screen.findByText('September 2027')
+    await expect
+      .poll(() => caption.closest('[data-slot="calendar-header"]'))
+      .not.toBeNull()
+    expect(caption.getBoundingClientRect().right).toBeLessThanOrEqual(
+      toggle.left
     )
+    expect(caption.getBoundingClientRect().top).toBeLessThan(toggle.bottom)
     expect(caption.scrollWidth).toBeLessThanOrEqual(caption.clientWidth)
   })
 
@@ -421,8 +425,8 @@ describe('Calendar layout', () => {
       4
     ],
     [
-      'several months with a toggle',
-      'w-97.5',
+      'several months side by side with a toggle',
+      'w-320',
       {
         fixedWeeks: true,
         showOutsideDays: true,
@@ -607,6 +611,121 @@ describe('Calendar arrows with several months', () => {
       expect(caption()).toEqual(['March 2027', 'April 2027'])
     }
   )
+})
+
+describe('Calendar turning up and down', () => {
+  const swiping = () => document.querySelector('[data-swiping]')
+
+  // Long slides, held partway through the slide in after the midpoint swap.
+  async function holdMidTurn() {
+    const animate = Element.prototype.animate
+    const spy = vi
+      .spyOn(Element.prototype, 'animate')
+      .mockImplementation(function (this: Element, frames, options) {
+        return animate.call(this, frames, {
+          ...(options as object),
+          duration: 60_000
+        })
+      })
+    onTestFinished(() => spy.mockRestore())
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    for (const animation of document.getAnimations()) animation.finish()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    for (const animation of document.getAnimations())
+      animation.currentTime = 20_000
+    expect(swiping()).not.toBeNull()
+  }
+
+  // Every point across the title, arrows and weekday row, a few pixels apart.
+  function nothingButStillParts() {
+    const header = document
+      .querySelector('[data-slot="calendar-header"]')!
+      .getBoundingClientRect()
+    const weekdays = document
+      .querySelector('[data-slot="calendar-weekdays"]')!
+      .getBoundingClientRect()
+    const viewport = document
+      .querySelector('[data-slot="calendar-months"]')!
+      .getBoundingClientRect()
+    expect(weekdays.top).toBeGreaterThanOrEqual(header.bottom)
+    expect(viewport.top).toBeGreaterThanOrEqual(weekdays.bottom - 0.5)
+    for (const box of [header, weekdays])
+      for (let x = box.left + 2; x < box.right; x += 6)
+        for (let y = box.top + 1; y < box.bottom; y += 4) {
+          const hit = document.elementFromPoint(x, y)
+          expect(hit?.closest('td, [data-date]') ?? null).toBeNull()
+        }
+    for (const cell of document.querySelectorAll('[data-slot="calendar"] td')) {
+      const box = cell.getBoundingClientRect()
+      const x = box.left + box.width / 2
+      const y = box.top + box.height / 2
+      const hit = document.elementFromPoint(x, y)
+      if (hit && cell.contains(hit)) {
+        expect(y).toBeGreaterThanOrEqual(viewport.top)
+        expect(y).toBeLessThanOrEqual(viewport.bottom)
+      }
+    }
+  }
+
+  it('keeps every day below the header and weekday row mid-turn on one page', async () => {
+    render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} direction='vertical' />
+      </div>
+    )
+    await holdMidTurn()
+    nothingButStillParts()
+  })
+
+  it('keeps every day below the header and weekday row mid-turn for stacked months', async () => {
+    render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} numberOfMonths={2} />
+      </div>
+    )
+    await expect
+      .poll(() =>
+        document
+          .querySelector('[data-slot="calendar"]')!
+          .getAttribute('data-paging')
+      )
+      .toBe('vertical')
+    await holdMidTurn()
+    nothingButStillParts()
+  })
+
+  it("puts the first stacked month's title on the arrows' line", async () => {
+    render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} numberOfMonths={2} />
+      </div>
+    )
+    await expect
+      .poll(() =>
+        document
+          .querySelector('[data-slot="calendar"]')!
+          .getAttribute('data-paging')
+      )
+      .toBe('vertical')
+    const header = document.querySelector<HTMLElement>(
+      '[data-slot="calendar-header"]'
+    )!
+    expect(header).toHaveTextContent('March 2027')
+    const title = within(header).getByText('March 2027').getBoundingClientRect()
+    const next = screen
+      .getByRole('button', { name: 'Next month' })
+      .getBoundingClientRect()
+    expect(title.top + title.height / 2).toBeCloseTo(
+      next.top + next.height / 2,
+      0
+    )
+    expect(screen.getAllByText('April 2027')).toHaveLength(1)
+    expect(screen.getAllByRole('grid')[0]).toHaveAccessibleName('March 2027')
+    expect(screen.getAllByRole('grid')[1]).toHaveAccessibleName('April 2027')
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    await turned()
+    expect(header).toHaveTextContent('April 2027')
+  })
 })
 
 describe('Calendar pages up and down once several months stack', () => {
@@ -1035,26 +1154,6 @@ describe('Calendar page turns', () => {
       )
     ).toBe(true)
   })
-
-  it.each([
-    ['one vertical month', { direction: 'vertical' as const }, true],
-    ['one sideways month', {}, false]
-  ])(
-    'fades the days at the edges they slide past for %s',
-    async (_, props, fades) => {
-      holdSlides()
-      render(<Calendar today={TODAY} {...props} />)
-      await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
-      const months = document.querySelector('[data-slot="calendar-months"]')!
-      const th = document.querySelector('[data-slot="calendar-grid"] th')!
-      expect(getComputedStyle(months).maskImage.includes('gradient')).toBe(
-        fades
-      )
-      expect(
-        getComputedStyle(th, '::after').backgroundImage.includes('gradient')
-      ).toBe(fades)
-    }
-  )
 
   it('turns straight away when a parent moves the month', () => {
     const { rerender } = render(<Calendar today={TODAY} month='2027-03-01' />)

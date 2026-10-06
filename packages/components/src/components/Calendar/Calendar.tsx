@@ -280,8 +280,9 @@ const SCROLL_AFTER = 6
 /** What tells a scrolling calendar the reader has taken over its scroll. */
 const TAKE_OVER = ['pointerdown', 'wheel', 'touchstart', 'keydown'] as const
 /** Months a scrolling calendar adds as it nears an end. */
-// Many at a time, so adding above, which moves the scroll, is rare.
-const SCROLL_STEP = 12
+// A few at a time: a dozen at once lays out ~500 days in one frame and drops
+// frames on a phone, and the scroll is kept steady when months join above.
+const SCROLL_STEP = 4
 
 function monthsBetween(from: string, to: string): number {
   return (
@@ -1354,9 +1355,15 @@ export function Calendar(props: CalendarProps) {
     renderCaption(firstMonth, 0)
   )
 
+  // Turning up and down, one still weekday row sits under the header, and the
+  // days move in a viewport of their own below it.
+  const pinnedWeekdays = vertical && !scrolling
   const header = (
     <div data-slot='calendar-header' className='flex h-8 items-center gap-2'>
-      {!monthCaptions && <div className='min-w-0'>{headerCaption}</div>}
+      {/* A column of months shows its first month's title here, by the arrows. */}
+      {(!monthCaptions || wholeMonths) && (
+        <div className='min-w-0'>{headerCaption}</div>
+      )}
       {viewToggle}
       {nav}
     </div>
@@ -1444,9 +1451,7 @@ export function Calendar(props: CalendarProps) {
               : 'border-spacing-x-0 border-spacing-y-0.5'
           )}
         >
-          <thead
-            className={wholeMonths ? undefined : title ? 'hidden' : 'invisible'}
-          >
+          <thead className={pinnedWeekdays || title ? 'hidden' : 'invisible'}>
             <tr>
               {labels.weekdays.map((weekday) => (
                 <th
@@ -1498,7 +1503,7 @@ export function Calendar(props: CalendarProps) {
             wholeMonths && !scrolling && 'basis-full'
           )}
         >
-          {monthCaptions && (
+          {monthCaptions && !(wholeMonths && index === 0) && (
             <div
               className={cn(
                 'grid h-8 items-center',
@@ -1525,7 +1530,9 @@ export function Calendar(props: CalendarProps) {
               )}
               onPointerLeave={() => setHoverDate(null)}
             >
-              <thead className={scrolling ? 'sr-only' : undefined}>
+              <thead
+                className={scrolling || pinnedWeekdays ? 'sr-only' : undefined}
+              >
                 <tr role='row'>
                   {labels.weekdays.map((weekday) => (
                     <th
@@ -1535,15 +1542,13 @@ export function Calendar(props: CalendarProps) {
                       aria-label={weekday.long}
                       className={cn(
                         'h-8 p-0 text-xs font-medium text-subtle',
-                        // Only the days slide, under a weekday row that holds still.
+                        // Only the days slide sideways, under a weekday row that holds still.
                         !scrolling &&
+                          !vertical &&
                           'in-data-swiping:relative in-data-swiping:z-1 in-data-swiping:bg-(--records-surface,var(--pane-surface,var(--intent-bg-normal)))',
-                        vertical &&
-                          !wholeMonths &&
-                          !scrolling &&
-                          "in-data-swiping:after:absolute in-data-swiping:after:inset-x-0 in-data-swiping:after:top-full in-data-swiping:after:h-4 in-data-swiping:after:bg-linear-to-b in-data-swiping:after:from-(--records-surface,var(--pane-surface,var(--intent-bg-normal))) in-data-swiping:after:content-['']",
                         // Covers the border spacing, and no more.
                         !scrolling &&
+                          !vertical &&
                           (tiles
                             ? 'in-data-swiping:shadow-[0_0_0_4px_var(--records-surface,var(--pane-surface,var(--intent-bg-normal)))]'
                             : 'in-data-swiping:shadow-[0_2px_0_0_var(--records-surface,var(--pane-surface,var(--intent-bg-normal))),0_-2px_0_0_var(--records-surface,var(--pane-surface,var(--intent-bg-normal)))]')
@@ -1629,23 +1634,31 @@ export function Calendar(props: CalendarProps) {
               ? header
               : // Each month's placeholder holds its own caption, but not this row.
                 monthCaptions && <div aria-hidden='true' className='h-8' />)}
-          <div
-            ref={monthsRef}
-            data-slot='calendar-months'
-            // Clipped as one, so the days run on from one month into the next.
-            className={cn(
-              'relative flex flex-wrap gap-x-6 gap-y-4 in-data-swiping:overflow-clip',
-              // Rows fade at the edges they slide past, rather than show half
-              // their digits; a single page's top edge is its weekday row.
-              vertical &&
-                (wholeMonths
-                  ? 'in-data-swiping:[mask-image:linear-gradient(to_bottom,transparent,black_16px,black_calc(100%-16px),transparent)]'
-                  : 'in-data-swiping:[mask-image:linear-gradient(to_bottom,black_calc(100%-16px),transparent)]')
+          <div className={pinnedWeekdays ? 'grid' : 'contents'}>
+            {pinnedWeekdays && !waitingForToday && (
+              <div
+                aria-hidden='true'
+                data-slot='calendar-weekdays'
+                className={cn(
+                  'grid h-8 grid-cols-7 items-center text-center text-xs font-medium text-subtle',
+                  // Matches the tiles' border spacing, so the columns line up.
+                  tiles && 'gap-x-1 px-1'
+                )}
+              >
+                {weekdayCells}
+              </div>
             )}
-          >
-            {!inlineNav && !waitingForToday && nav}
-            {monthsShown}
-            {peek && !waitingForToday && renderPeek(peek)}
+            <div
+              ref={monthsRef}
+              data-slot='calendar-months'
+              // The viewport the days move in, clipped as one so they run on from
+              // one month into the next, and painted apart from what holds still.
+              className='relative flex flex-wrap gap-x-6 gap-y-4 in-data-swiping:isolate in-data-swiping:overflow-clip in-data-swiping:contain-paint'
+            >
+              {!inlineNav && !waitingForToday && nav}
+              {monthsShown}
+              {peek && !waitingForToday && renderPeek(peek)}
+            </div>
           </div>
         </>
       )}

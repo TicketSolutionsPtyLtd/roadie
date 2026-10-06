@@ -30,9 +30,10 @@ the day. Only the days move, with the next page's days coming in beside them
 as they go, and months in a row move as one strip: the weekday row, the
 month's name and the arrows hold still. Several months that don't fit side by
 side turn up and down as one column instead, as with `direction='vertical'`,
-until they fit again; the root's `data-paging` says which way it turns. Then
-the arrows sit in a row above the months, which slide beneath them, and
-sliding rows fade at the edges they pass. The arrows and Page Up and Page Down
+until they fit again; the root's `data-paging` says which way it turns. Turning
+up and down, the first month's title shares a line with the arrows, one
+still weekday row sits under it, and the days move in a clipped viewport of
+their own below, so nothing slides under the title, arrows or weekdays. The arrows and Page Up and Page Down
 play the same slide, and the month lands as the slide passes its middle,
 about 120ms in, so a test that clicks Next and then picks a day waits for
 that. With Shift, or in week view, Page Up and Page Down skip past the page

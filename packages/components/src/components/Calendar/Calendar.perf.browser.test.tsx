@@ -8,6 +8,7 @@ import { Calendar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { DateRangePicker } from '../DateRangePicker'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
+import { countRenders } from '../RecordTable/renderCounter'
 
 declare module 'vitest/browser' {
   interface BrowserCommands {
@@ -168,17 +169,20 @@ describe('Calendar turns at 60fps on a 4x slower CPU', () => {
         element.scrollHeight > element.clientHeight
     )!
     expect(scroller).toBeTruthy()
-    const frames = summarise(
-      await sample(60, () => {
+    let deltas: number[] = []
+    const renders = await countRenders(async () => {
+      deltas = await sample(60, () => {
         scroller.scrollTop += 24
       })
-    )
+    })
+    // Scrolling past months is the list's own business, not the picker's.
+    expect(renders.ExtendedDateRangePicker ?? 0).toBe(0)
+    const frames = summarise(deltas)
     results['DateRangePicker drawer, scroll'] = frames
     console.log(
       `FRAMES DateRangePicker drawer, scroll ${JSON.stringify(frames)}`
     )
     expect(frames.p95).toBeLessThan(P95_BUDGET_MS)
-    // A few, as the months the list holds change while it scrolls.
-    expect(frames.dropped).toBeLessThanOrEqual(5)
+    expect(frames.dropped).toBeLessThanOrEqual(1)
   })
 })

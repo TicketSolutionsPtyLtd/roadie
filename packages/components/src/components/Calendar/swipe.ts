@@ -139,8 +139,15 @@ export function useSwipeToTurn(
     let rtlSeen: boolean | null = null
     const isRtl = () =>
       (rtlSeen ??= !vertical && getComputedStyle(root).direction === 'rtl')
-    const offset = (by: number) =>
-      vertical ? `translate3d(0, ${by}px, 0)` : `translate3d(${by}px, 0, 0)`
+    // On whole device pixels: a fractional move makes WebKit resample the
+    // days, which shimmer at the edges.
+    const offset = (by: number) => {
+      const scale = window.devicePixelRatio || 1
+      const at = Math.round(by * scale) / scale
+      return vertical
+        ? `translate3d(0, ${at}px, 0)`
+        : `translate3d(${at}px, 0, 0)`
+    }
     const place = (by: number) => {
       for (const part of parts()) part.style.transform = by ? offset(by) : ''
     }
