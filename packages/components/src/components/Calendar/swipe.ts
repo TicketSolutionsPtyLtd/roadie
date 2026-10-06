@@ -141,9 +141,10 @@ export function useSwipeToTurn(
       (rtlSeen ??= !vertical && getComputedStyle(root).direction === 'rtl')
     // On whole device pixels: a fractional move makes WebKit resample the
     // days, which shimmer at the edges.
-    const offset = (by: number) => {
+    // A slide's end stays exact, so a page lands where its neighbour sits.
+    const offset = (by: number, snap = true) => {
       const scale = window.devicePixelRatio || 1
-      const at = Math.round(by * scale) / scale
+      const at = snap ? Math.round(by * scale) / scale : by
       return vertical
         ? `translate3d(0, ${at}px, 0)`
         : `translate3d(${at}px, 0, 0)`
@@ -169,10 +170,10 @@ export function useSwipeToTurn(
       Promise.all(
         parts().map((part) => {
           const size = sizeOf(part)
-          const at = (end: typeof from) =>
-            offset(typeof end === 'number' ? end : end(size))
+          const at = (end: typeof from, snap?: boolean) =>
+            offset(typeof end === 'number' ? end : end(size), snap)
           const animation = part.animate(
-            [{ transform: at(from) }, { transform: at(to) }],
+            [{ transform: at(from) }, { transform: at(to, false) }],
             { duration, easing, fill: 'forwards' }
           )
           running.push(animation)

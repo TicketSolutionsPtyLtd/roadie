@@ -884,6 +884,8 @@ export function Calendar(props: CalendarProps) {
     // Hidden or not laid out yet, so try again on a later render.
     if (!month || !scroller || scroller.clientHeight === 0) return
     scrolledTo.current = firstMonth
+    // A month reported before this one is no longer where the list rests.
+    reported.current = null
     const target = firstMonth
     const align = () => {
       const weekdays = weekdaysRef.current
@@ -1406,8 +1408,12 @@ export function Calendar(props: CalendarProps) {
       left: several
         ? 'top-0 right-[calc(100%+--spacing(6))]'
         : 'top-0 right-full',
-      bottom: 'start-0 top-full',
-      top: 'start-0 bottom-full'
+      bottom: several
+        ? 'start-0 top-[calc(100%+--spacing(4))]'
+        : 'start-0 top-full',
+      top: several
+        ? 'start-0 bottom-[calc(100%+--spacing(4))]'
+        : 'start-0 bottom-full'
     }
     return renderPeekPage(
       start,

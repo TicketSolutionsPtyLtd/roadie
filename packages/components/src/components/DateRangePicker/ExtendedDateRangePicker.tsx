@@ -257,6 +257,9 @@ export function ExtendedDateRangePicker({
       custom: edit.custom && next.chosen === null,
       month: month ?? scrolled ?? edit.month ?? shownMonth ?? null
     })
+    // A month asked for is where the list now rests, not where it last
+    // came to rest scrolling.
+    if (month) scrolledTo.current = null
     if (commit === 'apply') return
     const nextResult = draftValue(next, granularity, zone, length)
     if (nextResult.kind !== 'value') return

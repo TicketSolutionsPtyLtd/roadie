@@ -226,6 +226,41 @@ describe('Calendar shows the page it turns to', TIMEOUT, () => {
     expect(months()).toEqual(['2027-04-01', '2027-05-01'])
   })
 
+  it('keeps the column gap above and below an incoming stacked month', async ({
+    skip
+  }) => {
+    if (!navigator.userAgent.includes('Chrome')) skip()
+    render(<Paged numberOfMonths={2} />)
+    await expect
+      .poll(() =>
+        document
+          .querySelector('[data-slot="calendar"]')!
+          .getAttribute('data-paging')
+      )
+      .toBe('vertical')
+    const shown = () =>
+      [
+        ...document.querySelectorAll<HTMLElement>(
+          '[data-slot="calendar-month"]:not([data-peek] *)'
+        )
+      ].map((month) => month.getBoundingClientRect())
+    const [first, second] = shown()
+    const gap = second!.top - first!.bottom
+    expect(gap).toBeGreaterThan(0)
+    const lift = holdDrag(day('2027-03-17'), 0, -100)
+    expect(
+      peek()!.getBoundingClientRect().top - shown()[1]!.bottom
+    ).toBeCloseTo(gap, 0)
+    lift()
+    await settle()
+    const back = holdDrag(day('2027-04-14'), 0, 100)
+    expect(
+      shown()[0]!.top - peek()!.getBoundingClientRect().bottom
+    ).toBeCloseTo(gap, 0)
+    back()
+    await settle()
+  })
+
   it('keeps focus on a shown day after stacked months turn back', async ({
     skip
   }) => {
