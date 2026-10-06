@@ -139,9 +139,9 @@ export function useSwipeToTurn(
     let rtlSeen: boolean | null = null
     const isRtl = () =>
       (rtlSeen ??= !vertical && getComputedStyle(root).direction === 'rtl')
-    // On whole device pixels: a fractional move makes WebKit resample the
-    // days, which shimmer at the edges.
-    // A slide's end stays exact, so a page lands where its neighbour sits.
+    // A drag holds on whole device pixels: a fractional rest makes WebKit
+    // resample the days, which shimmer at the edges. A slide stays exact, so
+    // a page lands where its neighbour sat; it passes through fractions anyway.
     const offset = (by: number, snap = true) => {
       const scale = window.devicePixelRatio || 1
       const at = snap ? Math.round(by * scale) / scale : by
@@ -162,18 +162,18 @@ export function useSwipeToTurn(
     // A function end is a multiple of each part's own size, for a page
     // slid in with nothing beside it.
     const slide = (
-      from: number | ((size: number) => number),
-      to: number | ((size: number) => number),
+      from: number | ((size: number, part: HTMLElement) => number),
+      to: number | ((size: number, part: HTMLElement) => number),
       duration: number,
       easing: string
     ) =>
       Promise.all(
         parts().map((part) => {
           const size = sizeOf(part)
-          const at = (end: typeof from, snap?: boolean) =>
-            offset(typeof end === 'number' ? end : end(size), snap)
+          const at = (end: typeof from) =>
+            offset(typeof end === 'number' ? end : end(size, part), false)
           const animation = part.animate(
-            [{ transform: at(from) }, { transform: at(to, false) }],
+            [{ transform: at(from) }, { transform: at(to) }],
             { duration, easing, fill: 'forwards' }
           )
           running.push(animation)
@@ -226,22 +226,17 @@ export function useSwipeToTurn(
       const box = element.getBoundingClientRect()
       return vertical ? box.top : box.left
     }
-    const dayAt = (date: string) =>
-      root.querySelector(
-        `${DAYS}:not(${PEEK} *) button[data-date="${date}"]:not([data-outside])`
-      )
-    const anchorOf = (step: SwipeStep) => {
-      const shown = Array.from(root.querySelectorAll(DAYS)).filter(
-        (days) => !days.closest(PEEK)
-      )
-      const page =
-        step === 1 && shown[1]
-          ? shown[1]
-          : root.querySelector(`${PEEK} ${DAYS}`)
-      const day = page?.querySelector<HTMLElement>(
-        'button[data-date]:not([data-outside])'
-      )
-      return day ? { date: day.dataset.date!, position: positionOf(day) } : null
+    // Where each page's first day sits, the incoming one included, so a page
+    // holds still across the swap however the pages around it change size.
+    const firstDayOf = (part: Element) =>
+      part.querySelector<HTMLElement>('button[data-date]:not([data-outside])')
+    const firstDays = () => {
+      const at = new Map<string, number>()
+      for (const part of parts()) {
+        const day = firstDayOf(part)
+        if (day) at.set(day.dataset.date!, positionOf(day))
+      }
+      return at
     }
 
     const finish = () => {
@@ -336,9 +331,7 @@ export function useSwipeToTurn(
         // cut short by a later turn, which has applied this one.
         if (disposed || mine !== run || !root!.isConnected) return
         pending = null
-        // The page that becomes the first shown, held still across the swap:
-        // pages differ in height and order, so one distance can't place it.
-        const anchor = still ? null : anchorOf(step)
+        const held = still ? null : firstDays()
         // The page left behind now sits on the other side, so the strip goes
         // on from where it is without a jump.
         applyTurn(() => {
@@ -349,14 +342,20 @@ export function useSwipeToTurn(
           }
         })
         stopAnimations()
-        if (!still) {
-          place(at)
-          const landed = anchor && dayAt(anchor.date)
-          const resume = landed
-            ? at + anchor.position - positionOf(landed)
-            : at - sign * distance
-          place(resume)
-          await slide(resume, 0, IN_MS, 'ease-out')
+        if (held) {
+          place(0)
+          const resumes = new Map<HTMLElement, number>()
+          for (const part of parts()) {
+            const day = firstDayOf(part)
+            const was = day ? held.get(day.dataset.date!) : undefined
+            const by =
+              was === undefined ? at - sign * distance : was - positionOf(day!)
+            resumes.set(part, by)
+          }
+          // Written after every read, so the layout is read once.
+          for (const [part, by] of resumes)
+            part.style.transform = offset(by, false)
+          await slide((_, part) => resumes.get(part)!, 0, IN_MS, 'ease-out')
         }
       } else if (!still && from) {
         place(0)

@@ -755,6 +755,19 @@ describe('Calendar pages up and down once several months stack', () => {
     expect(getComputedStyle(grid()).touchAction).toMatch(/pan-y/)
   })
 
+  it('stacks by the months it holds at a larger root text size', async () => {
+    document.documentElement.style.fontSize = '20px'
+    onTestFinished(() => {
+      document.documentElement.style.fontSize = ''
+    })
+    render(
+      <div style={{ width: 650 }}>
+        <Calendar today={TODAY} numberOfMonths={2} />
+      </div>
+    )
+    await expect.poll(() => root().getAttribute('data-paging')).toBe('vertical')
+  })
+
   it('puts several vertical months in one column however wide', () => {
     render(
       <div className='w-320'>
@@ -1057,6 +1070,30 @@ describe('Calendar page turns', () => {
     const before = day('2027-03-01').getBoundingClientRect().top
     await new Promise((resolve) => setTimeout(resolve, 0))
     expect(caption()).toEqual(['March 2027', 'April 2027'])
+    expect(day('2027-03-01').getBoundingClientRect().top).toBeCloseTo(before, 0)
+  })
+
+  it('keeps a month that stays shown still as stacked months turn back', async () => {
+    holdSlides()
+    render(
+      <div className='w-97.5'>
+        <Calendar today='2027-03-10' numberOfMonths={2} />
+      </div>
+    )
+    await expect
+      .poll(() =>
+        document
+          .querySelector('[data-slot="calendar"]')!
+          .getAttribute('data-paging')
+      )
+      .toBe('vertical')
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Previous month' })
+    )
+    for (const animation of document.getAnimations()) animation.finish()
+    const before = day('2027-03-01').getBoundingClientRect().top
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(caption()).toEqual(['February 2027', 'March 2027'])
     expect(day('2027-03-01').getBoundingClientRect().top).toBeCloseTo(before, 0)
   })
 

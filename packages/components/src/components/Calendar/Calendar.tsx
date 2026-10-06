@@ -619,11 +619,15 @@ export function Calendar(props: CalendarProps) {
     const months = monthsRef.current
     if (!paged || numberOfMonths < 2 || !months) return setStacked(false)
     // From the width, not where the months sit, as a column is forced once
-    // they stack: each month asks for 280px with 24px between.
-    const measure = () =>
+    // they stack. Read, not assumed: both scale with the root text size.
+    const measure = () => {
+      const month = months.querySelector('[data-slot="calendar-month"]')
+      const least = month ? parseFloat(getComputedStyle(month).minWidth) : 0
+      const gap = parseFloat(getComputedStyle(months).columnGap) || 0
       setStacked(
-        months.clientWidth < numberOfMonths * 280 + (numberOfMonths - 1) * 24
+        months.clientWidth < numberOfMonths * least + (numberOfMonths - 1) * gap
       )
+    }
     measure()
     if (typeof ResizeObserver === 'undefined') return
     const observer = new ResizeObserver(measure)
