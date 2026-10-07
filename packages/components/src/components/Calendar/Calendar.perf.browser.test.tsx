@@ -19,7 +19,12 @@ declare module 'vitest/browser' {
 const TODAY = '2027-03-10'
 // A 60Hz frame, with room for the timer's own jitter.
 const FRAME_MS = 1000 / 60
-const P95_BUDGET_MS = 17.5
+// The budgets are for Chromium at 4x. WebKit, run on request, can't be slowed
+// and its frame clock counts whole milliseconds, so its frames read 16 to 18
+// and a switch of two months can miss one.
+const chromium = navigator.userAgent.includes('Chrome')
+const P95_BUDGET_MS = chromium ? 17.5 : 20
+const SWITCH_DROPS = chromium ? 0 : 1
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -173,8 +178,8 @@ describe('Calendar turns at 60fps on a 4x slower CPU', () => {
           </div>
           {Array.from({ length: 300 }, (_, i) => (
             <p key={i} className='text-sm'>
-              Doors open at seven at the Corner Hotel, with support from two
-              local acts before the headline set.
+              Doors open at seven at the Kazoo Hollow Room, with support from
+              two local acts before the headline set.
             </p>
           ))}
         </div>
@@ -196,7 +201,7 @@ describe('Calendar turns at 60fps on a 4x slower CPU', () => {
       // only allows for the frame clock's jitter about 16.7ms.
       for (const frames of switches) {
         expect(frames.p95).toBeLessThan(P95_BUDGET_MS)
-        expect(frames.dropped).toBe(0)
+        expect(frames.dropped).toBeLessThanOrEqual(SWITCH_DROPS)
       }
     }
   )

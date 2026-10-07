@@ -1802,7 +1802,7 @@ function ViewToggle({
           aria-label={label}
           className='@max-md/calendar-header:aspect-square @max-md/calendar-header:px-0'
         >
-          <Icon weight='bold' aria-hidden='true' />
+          <Icon weight='bold' aria-hidden='true' className='size-3.5' />
           <span className='hidden @md/calendar-header:inline'>{label}</span>
         </ToggleGroup.Item>
       ))}

@@ -1862,7 +1862,7 @@ describe('Calendar titles between stacked months', () => {
 })
 
 describe('Calendar switching views from stacked months', () => {
-  it('leaves nothing over the week when the months stop stacking', async () => {
+  it('eases to the week and leaves nothing over it when the months stop stacking', async () => {
     render(
       <div className='w-97.5'>
         <Calendar today={TODAY} numberOfMonths={2} views={['week', 'month']} />
@@ -1876,6 +1876,10 @@ describe('Calendar switching views from stacked months', () => {
       )
       .toBe('vertical')
     await userEvent.click(screen.getByRole('button', { name: 'Week' }))
+    // It eases in, though the switch sets the calendar up anew.
+    await expect
+      .poll(() => document.querySelector('[data-leaving]'))
+      .not.toBeNull()
     await new Promise((resolve) => setTimeout(resolve, 500))
     expect(document.querySelector('[data-leaving]')).toBeNull()
     expect(
