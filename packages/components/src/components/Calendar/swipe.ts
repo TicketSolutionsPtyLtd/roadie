@@ -467,9 +467,14 @@ export function useSwipeToTurn(
           if (!was) continue
           const dx = was.left + was.width / 2 - (box.left + box.width / 2)
           const dy = middle(was) - middle(box)
+          // One scale for both axes, so the number keeps its shape as a
+          // circle's day grows into a taller tile's.
+          const scale = Math.sqrt(
+            (was.width / box.width) * (was.height / box.height)
+          )
           animate(day, [
             {
-              transform: `translate(${dx}px, ${dy}px) scale(${was.width / box.width}, ${was.height / box.height})`
+              transform: `translate(${dx}px, ${dy}px) scale(${scale})`
             },
             { transform: 'none' }
           ])
