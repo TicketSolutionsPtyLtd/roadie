@@ -110,4 +110,24 @@ describe('Calendar frames, switching views', () => {
       expectOneReshape(toMonth, 320)
     }
   )
+
+  it('anchors on the selected week inside the month it opens', async () => {
+    render(
+      <div style={{ width: 390 }}>
+        <Calendar
+          today={TODAY}
+          defaultView='week'
+          views={['week', 'month']}
+          defaultMonth='2026-11-01'
+          defaultSelected='2026-10-28'
+        />
+      </div>
+    )
+    const frames = await recordShapes(() =>
+      userEvent.click(screen.getByRole('button', { name: 'Month' }))
+    )
+    expect(screen.getByRole('grid')).toHaveAccessibleName('October 2026')
+    expect(frames.at(-1)!.days.has('2026-10-28')).toBe(true)
+    expectOneReshape(frames, 320)
+  })
 })

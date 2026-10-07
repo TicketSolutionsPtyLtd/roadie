@@ -1849,3 +1849,68 @@ describe('Calendar titles between stacked months', () => {
     }
   )
 })
+
+describe('Calendar switching views opens the right page', () => {
+  const opens = async (
+    props: Partial<CalendarSingleProps>,
+    view: 'Month' | 'Week',
+    focus?: string
+  ) => {
+    render(
+      <Calendar
+        today={TODAY}
+        views={['week', 'month']}
+        defaultView={view === 'Month' ? 'week' : 'month'}
+        {...props}
+      />
+    )
+    if (focus)
+      (
+        document.querySelector(
+          `button[data-date="${focus}"]:not([data-outside])`
+        ) as HTMLElement
+      ).focus()
+    await userEvent.click(screen.getByRole('button', { name: view }))
+    await expect
+      .poll(() =>
+        document
+          .querySelector('[data-slot="calendar"]')!
+          .hasAttribute('data-swiping')
+      )
+      .toBe(false)
+  }
+
+  it('opens the month of the day selected in the week', async () => {
+    await opens(
+      { defaultMonth: '2026-11-01', defaultSelected: '2026-10-28' },
+      'Month'
+    )
+    expect(screen.getByRole('grid')).toHaveAccessibleName('October 2026')
+  })
+
+  it('opens the month of the day focused in the week', async () => {
+    await opens({ defaultMonth: '2026-11-01' }, 'Month', '2026-11-01')
+    expect(screen.getByRole('grid')).toHaveAccessibleName('November 2026')
+  })
+
+  it('opens the month holding most of the week', async () => {
+    await opens({ defaultMonth: '2027-01-01' }, 'Month')
+    expect(screen.getByRole('grid')).toHaveAccessibleName('December 2026')
+  })
+
+  it.each([
+    [{ defaultSelected: '2026-10-28' }, undefined, '2026-10-26'],
+    [{}, '2026-10-14', '2026-10-12'],
+    [{}, undefined, '2026-09-28']
+  ] as const)(
+    'opens the week of a selected, then focused, then first day, %#',
+    async (props, focus, first) => {
+      await opens({ defaultMonth: '2026-10-01', ...props }, 'Week', focus)
+      expect(
+        within(screen.getByRole('grid'))
+          .getAllByRole('button')
+          .map((button) => button.dataset.date)[0]
+      ).toBe(first)
+    }
+  )
+})

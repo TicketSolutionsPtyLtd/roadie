@@ -1319,8 +1319,13 @@ describe('Calendar week view', () => {
     )
     for (let i = 0; i < 3; i++)
       await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    // The week of 29 March holds more of April, so April opens.
     await userEvent.click(screen.getByRole('button', { name: 'Month' }))
+    expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
     await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Previous month' })
+    )
     await userEvent.click(day('2027-04-20'))
     await userEvent.click(screen.getByRole('button', { name: 'Week' }))
     expect(shownDays()).toContain('2027-04-20')
@@ -1357,6 +1362,118 @@ describe('Calendar week view', () => {
       screen.getAllByRole('grid')[0]!.getAttribute('aria-labelledby')
     ).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Next week' })).toBeNull()
+  })
+})
+
+describe('Calendar switching views', () => {
+  const caption = (name: string) => screen.getByRole('grid', { name })
+  const shownDays = () =>
+    within(screen.getByRole('grid'))
+      .getAllByRole('button')
+      .map((button) => button.dataset.date)
+  const toMonth = () =>
+    userEvent.click(screen.getByRole('button', { name: 'Month' }))
+  const toWeek = () =>
+    userEvent.click(screen.getByRole('button', { name: 'Week' }))
+
+  it('opens the month of a selected day in the week', async () => {
+    render(
+      <Calendar
+        today={TODAY}
+        defaultView='week'
+        views={['week', 'month']}
+        defaultMonth='2026-11-01'
+        defaultSelected='2026-10-28'
+      />
+    )
+    expect(shownDays()[0]).toBe('2026-10-26')
+    await toMonth()
+    expect(caption('October 2026')).toBeInTheDocument()
+  })
+
+  it('opens the month of a range start in the week', async () => {
+    render(
+      <Calendar
+        mode='range'
+        today={TODAY}
+        defaultView='week'
+        views={['week', 'month']}
+        defaultMonth='2026-11-01'
+        defaultSelected={{ start: '2026-10-30', end: '2026-11-03' }}
+      />
+    )
+    await toMonth()
+    expect(caption('October 2026')).toBeInTheDocument()
+  })
+
+  it('opens the month of a focused day in the week, with nothing selected', async () => {
+    render(
+      <Calendar
+        today={TODAY}
+        defaultView='week'
+        views={['week', 'month']}
+        defaultMonth='2026-10-01'
+      />
+    )
+    for (let i = 0; i < 4; i++)
+      await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    expect(shownDays()[0]).toBe('2026-10-26')
+    act(() => day('2026-11-01').focus())
+    await toMonth()
+    expect(caption('November 2026')).toBeInTheDocument()
+  })
+
+  it('opens the month holding most of the week, with nothing chosen', async () => {
+    render(
+      <Calendar
+        today={TODAY}
+        defaultView='week'
+        views={['week', 'month']}
+        defaultMonth='2027-01-01'
+      />
+    )
+    expect(shownDays()[0]).toBe('2026-12-28')
+    await toMonth()
+    expect(caption('December 2026')).toBeInTheDocument()
+  })
+
+  it('opens the week of a selected day, then a focused one, then the first', async () => {
+    const { unmount } = render(
+      <Calendar
+        today={TODAY}
+        views={['week', 'month']}
+        defaultMonth='2026-10-01'
+        defaultSelected='2026-10-28'
+      />
+    )
+    await toWeek()
+    expect(shownDays()[0]).toBe('2026-10-26')
+    expect(screen.getByText('October to November 2026')).toBeInTheDocument()
+    unmount()
+
+    const focused = render(
+      <Calendar
+        today={TODAY}
+        views={['week', 'month']}
+        defaultMonth='2026-10-01'
+      />
+    )
+    act(() => day('2026-10-14').focus())
+    await toWeek()
+    expect(shownDays()[0]).toBe('2026-10-12')
+    expect(screen.getByText('October 2026')).toBeInTheDocument()
+    focused.unmount()
+
+    render(
+      <Calendar
+        today={TODAY}
+        views={['week', 'month']}
+        defaultMonth='2026-10-01'
+      />
+    )
+    await toWeek()
+    expect(shownDays()[0]).toBe('2026-09-28')
+    expect(screen.getByText('September to October 2026')).toBeInTheDocument()
   })
 })
 

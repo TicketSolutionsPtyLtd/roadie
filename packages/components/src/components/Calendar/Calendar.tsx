@@ -564,11 +564,25 @@ export function Calendar(props: CalendarProps) {
     showWeek(start, monthOf(step === 1 ? start : addDays(start, 6)))
   }
 
+  // The month a week opens on: a chosen day's in it, then the focused day's,
+  // then the month holding most of it, which its fourth day is always in.
+  function monthOfWeek(start: string) {
+    const end = addDays(start, 6)
+    const chosen = [
+      ...(mode === 'multiple'
+        ? (selection as readonly string[])
+        : [firstSelectedOf(mode, selection)]),
+      focusedDate
+    ].find((date): date is string => !!date && between(date, start, end))
+    return monthOf(chosen ?? addDays(start, 3))
+  }
+
   function changeView(next: CalendarView) {
     if (next === view) return
     // A turn waiting to land does so in the view it was pressed in.
     landTurn()
     reshape(() => {
+      if (weekView) changeMonth(monthOfWeek(shownWeek))
       setPendingFocus(null)
       setToggledView(next)
       if (viewProp === undefined) setUncontrolledView(next)
