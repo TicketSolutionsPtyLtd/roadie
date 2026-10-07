@@ -582,13 +582,25 @@ export function Calendar(props: CalendarProps) {
     // A turn waiting to land does so in the view it was pressed in.
     landTurn()
     reshape(() => {
-      if (weekView) changeMonth(monthOfWeek(shownWeek))
       setPendingFocus(null)
       setToggledView(next)
       if (viewProp === undefined) setUncontrolledView(next)
       onViewChange?.(next)
     })
   }
+
+  // Leaving week view, by the toggle or a parent, the month opens on the week
+  // it showed, once the view has really changed.
+  const weekLeft = useRef<string | null>(null)
+  useIsomorphicLayoutEffect(() => {
+    if (weekView) {
+      weekLeft.current = shownWeek
+      return
+    }
+    const week = weekLeft.current
+    weekLeft.current = null
+    if (week) changeMonth(monthOfWeek(week))
+  })
 
   // Entering week view, by the toggle or a parent, a day picked in a later
   // month shown is the one the week should hold.
@@ -640,7 +652,9 @@ export function Calendar(props: CalendarProps) {
     // they stack. Read, not assumed: both scale with the root text size.
     const measure = () => {
       const month = months.querySelector('[data-slot="calendar-month"]')
-      const least = month ? parseFloat(getComputedStyle(month).minWidth) : 0
+      const least =
+        (month && parseFloat(getComputedStyle(month).minWidth)) ||
+        (month?.getBoundingClientRect().width ?? 0)
       const gap = parseFloat(getComputedStyle(months).columnGap) || 0
       setStacked(
         months.clientWidth < numberOfMonths * least + (numberOfMonths - 1) * gap
@@ -992,11 +1006,16 @@ export function Calendar(props: CalendarProps) {
       root.querySelectorAll<HTMLElement>('[data-slot="calendar-month"]')
     ).find((month) => month.getBoundingClientRect().bottom > below + 1)
     const month = top?.dataset.month
-    if (!month || month === firstMonth) return
+    // Back at the month a parent still holds, after reporting another it
+    // hasn't taken up yet.
+    const back =
+      month === firstMonth && !!reported.current && reported.current !== month
+    if (!month || (month === firstMonth && !back)) return
     reported.current = month
     // Held, so the run doesn't recentre on the month scrolled to.
     if (run !== currentRun) setRun(currentRun)
-    changeMonth(month)
+    if (back) onMonthChange?.(month)
+    else changeMonth(month)
   }
   const followTopRef = useRef(followTop)
   useIsomorphicLayoutEffect(() => {

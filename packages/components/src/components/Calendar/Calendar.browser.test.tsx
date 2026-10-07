@@ -1850,6 +1850,32 @@ describe('Calendar titles between stacked months', () => {
   )
 })
 
+describe('Calendar switching views from stacked months', () => {
+  it('leaves nothing over the week when the months stop stacking', async () => {
+    render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} numberOfMonths={2} views={['week', 'month']} />
+      </div>
+    )
+    await expect
+      .poll(() =>
+        document
+          .querySelector('[data-slot="calendar"]')!
+          .getAttribute('data-paging')
+      )
+      .toBe('vertical')
+    await userEvent.click(screen.getByRole('button', { name: 'Week' }))
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    expect(document.querySelector('[data-leaving]')).toBeNull()
+    expect(
+      document
+        .querySelector('[data-slot="calendar"]')!
+        .hasAttribute('data-swiping')
+    ).toBe(false)
+    expect(screen.getAllByRole('grid')).toHaveLength(1)
+  })
+})
+
 describe('Calendar switching views opens the right page', () => {
   const opens = async (
     props: Partial<CalendarSingleProps>,

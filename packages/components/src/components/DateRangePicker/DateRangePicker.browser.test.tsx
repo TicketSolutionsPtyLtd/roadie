@@ -439,6 +439,35 @@ for (const [width, height] of [
         .toBeLessThan(2)
     })
 
+    it('reads a quick scroll back as the month at rest', async () => {
+      render(
+        <Period
+          commit='apply'
+          initial={{ start: '2026-10-05', end: '2026-10-09' }}
+        />
+      )
+      await userEvent.click(trigger())
+      const drawer = await screen.findByRole('dialog')
+      const body = bodyOf(drawer)
+      const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')!
+      const month = (first: string) =>
+        drawer.querySelector(`[data-month="${first}"]`)!
+      const atTop = (first: string) =>
+        Math.abs(box(month(first)).top - box(weekdays).bottom)
+      await expect.poll(() => atTop('2026-10-01')).toBeLessThan(2)
+      const height = box(month('2026-10-01')).height
+      body.scrollTop += height + 40
+      await nudgeFrames()
+      body.scrollTop -= height + 40
+      await nudgeFrames()
+      await expect.poll(() => atTop('2026-10-01')).toBeLessThan(2)
+      await new Promise((resolve) => setTimeout(resolve, 300))
+      const start = within(drawer).getByRole('combobox', { name: 'Start' })
+      await userEvent.clear(start)
+      await userEvent.type(start, '3 nov 2026{Enter}')
+      await expect.poll(() => atTop('2026-11-01')).toBeLessThan(2)
+    })
+
     it('pins a weekday row as wide as the drawer, over the day columns', async () => {
       render(<Period initial={{ start: '2026-10-05', end: '2026-10-09' }} />)
       await userEvent.click(trigger())

@@ -290,7 +290,10 @@ export function ExtendedDateRangePicker({
   }
   useEffect(() => {
     scrolledTo.current = null
-    return () => clearTimeout(settleScroll.current)
+    return () => {
+      clearTimeout(settleScroll.current)
+      settleScroll.current = undefined
+    }
   }, [open])
 
   /** The first month to show so `date` is in view, moving only if it isn't. */

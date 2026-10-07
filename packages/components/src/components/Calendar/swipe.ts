@@ -387,6 +387,8 @@ export function useSwipeToTurn(
       const from = viewport.getBoundingClientRect()
       const leaving = viewport.cloneNode(true) as HTMLElement
       applyTurn(apply)
+      // The view can change how the calendar pages, which sets this up anew.
+      if (disposed || !viewport.isConnected) return
       const to = viewport.getBoundingClientRect()
       const after = new Map<HTMLElement, DOMRect>()
       for (const day of viewport.querySelectorAll<HTMLElement>(DAY))
@@ -727,6 +729,7 @@ export function useSwipeToTurn(
       // calendar that has closed is dropped.
       if (root.isConnected) waiting?.()
       hidePeek(false)
+      unshape?.()
       root.removeEventListener('touchstart', onTouchStart)
       root.removeEventListener('touchmove', onTouchMove)
       root.removeEventListener('touchend', onTouchEnd)

@@ -1183,6 +1183,10 @@ describe('Calendar week view', () => {
     for (let i = 0; i < 3; i++)
       await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
     await userEvent.click(screen.getByRole('button', { name: 'Switch' }))
+    // The week of 29 March holds more of April, so April opens.
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Previous month' })
+    )
     await userEvent.click(day('2027-03-10'))
     await userEvent.click(screen.getByRole('button', { name: 'Switch' }))
     expect(shownDays()).toContain('2027-03-10')
@@ -1435,6 +1439,43 @@ describe('Calendar switching views', () => {
     expect(shownDays()[0]).toBe('2026-12-28')
     await toMonth()
     expect(caption('December 2026')).toBeInTheDocument()
+  })
+
+  it('keeps the week when a controlled view stays week', async () => {
+    const onViewChange = vi.fn()
+    render(
+      <Calendar
+        today='2027-01-01'
+        view='week'
+        views={['week', 'month']}
+        defaultMonth='2027-01-01'
+        onViewChange={onViewChange}
+      />
+    )
+    expect(shownDays()[0]).toBe('2026-12-28')
+    await toMonth()
+    expect(onViewChange).toHaveBeenLastCalledWith('month')
+    expect(shownDays()[0]).toBe('2026-12-28')
+  })
+
+  it('opens the month of the week when a parent switches the view', () => {
+    const { rerender } = render(
+      <Calendar
+        today={TODAY}
+        view='week'
+        defaultMonth='2026-11-01'
+        defaultSelected='2026-10-28'
+      />
+    )
+    rerender(
+      <Calendar
+        today={TODAY}
+        view='month'
+        defaultMonth='2026-11-01'
+        defaultSelected='2026-10-28'
+      />
+    )
+    expect(caption('October 2026')).toBeInTheDocument()
   })
 
   it('opens the week of a selected day, then a focused one, then the first', async () => {
