@@ -1954,6 +1954,40 @@ describe('Calendar switching views from stacked months', () => {
   })
 })
 
+describe('Calendar turning during a stacked view switch', () => {
+  it('lands the switch and keeps the turn its clip', async () => {
+    const animate = Element.prototype.animate
+    const spy = vi
+      .spyOn(Element.prototype, 'animate')
+      .mockImplementation(function (this: Element, frames, options) {
+        const first = (frames as { transform?: string }[])[0]
+        // The turn's slide is held; the switch runs long enough to turn in.
+        const turn = String(first?.transform ?? '').startsWith('translate3d')
+        return animate.call(this, frames, {
+          ...(options as object),
+          duration: turn ? 60_000 : 1_000
+        })
+      })
+    onTestFinished(() => spy.mockRestore())
+    render(
+      <div className='w-97.5'>
+        <Calendar today={TODAY} numberOfMonths={2} views={['week', 'month']} />
+      </div>
+    )
+    const root = () => document.querySelector('[data-slot="calendar"]')!
+    await expect.poll(() => root().getAttribute('data-paging')).toBe('vertical')
+    await userEvent.click(screen.getByRole('button', { name: 'Week' }))
+    await expect
+      .poll(() => document.querySelector('[data-leaving]'))
+      .not.toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    expect(document.querySelector('[data-leaving]')).toBeNull()
+    // Past where the switch would have ended, the turn still has its clip.
+    await new Promise((resolve) => setTimeout(resolve, 1_200))
+    expect(root().hasAttribute('data-swiping')).toBe(true)
+  })
+})
+
 describe('Calendar switching views opens the right page', () => {
   const opens = async (
     props: Partial<CalendarSingleProps>,

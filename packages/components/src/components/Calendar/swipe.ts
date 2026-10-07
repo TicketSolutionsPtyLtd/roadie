@@ -137,6 +137,9 @@ export function useSwipeToTurn(
   // as the switch can set the effect up anew before it lands.
   const pendingShape = useRef<Shape | null>(null)
   const landShape = useRef<(() => void) | null>(null)
+  // Which operation last marked the calendar as moving, so one that outlives
+  // its effect clears the mark only if nothing has taken it since.
+  const marked = useRef(0)
   const latest = useRef(options)
   useIsomorphicLayoutEffect(() => {
     latest.current = options
@@ -348,7 +351,7 @@ export function useSwipeToTurn(
       }
       const mine = ++run
       settling = true
-      root!.dataset.swiping = ''
+      root!.dataset.swiping = String(++marked.current)
       const still =
         prefersReducedMotion() || typeof root!.animate !== 'function'
       if (step && immediate) {
@@ -451,7 +454,8 @@ export function useSwipeToTurn(
 
       const mine = ++run
       settling = true
-      root.dataset.swiping = ''
+      const mark = String(++marked.current)
+      root.dataset.swiping = mark
       const middle = (box: DOMRect) => box.top + box.height / 2
       const stays = new Set(
         Array.from(after.keys(), (day) => day.dataset.date!)
@@ -587,7 +591,7 @@ export function useSwipeToTurn(
         // pages: the switch plays out and clears up after itself.
         if (disposed) {
           endShape()
-          delete root.dataset.swiping
+          if (root.dataset.swiping === mark) delete root.dataset.swiping
           return
         }
         if (mine !== run) return
@@ -647,7 +651,7 @@ export function useSwipeToTurn(
         if (!box) return false
         gesture.engaged = true
         gesture.size = vertical ? box.height : box.width
-        root.dataset.swiping = ''
+        root.dataset.swiping = String(++marked.current)
         root.dataset.dragging = ''
         // A mouse drag would otherwise select the day numbers.
         if (gesture.kind === 'pointer') getSelection()?.removeAllRanges()
