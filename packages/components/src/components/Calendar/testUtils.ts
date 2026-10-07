@@ -121,7 +121,7 @@ export async function recordShapes(start: () => unknown) {
     ))
       days.set(button.dataset.date!, shapeOf(button))
     const leaving = Array.from(
-      root().querySelectorAll('[data-leaving] tr'),
+      root().querySelectorAll('[data-leaving] > div'),
       shapeOf
     )
     const height = root()
@@ -161,7 +161,12 @@ const monotonic = (values: number[], label: string) => {
  * easing allows; days coming in only fade in and move one way; rows leaving
  * only fade out and move one way; the height moves one way.
  */
-export function expectOneReshape(frames: ShapeFrame[], durationMs: number) {
+export function expectOneReshape(
+  frames: ShapeFrame[],
+  durationMs: number,
+  // The view switch decelerates, steepest at its start.
+  steepest = 4.1
+) {
   const first = frames[0]!
   const last = frames.at(-1)!
   const kept = [...last.days.keys()].filter((date) => first.days.has(date))
@@ -177,7 +182,7 @@ export function expectOneReshape(frames: ShapeFrame[], durationMs: number) {
           Math.abs(path[i]![axis] - path[i - 1]![axis]),
           `${date} ${axis} at frame ${i}`
         ).toBeLessThanOrEqual(
-          (STEEPEST * distance * (elapsed + LATE_MS)) / durationMs + 1
+          (steepest * distance * (elapsed + LATE_MS)) / durationMs + 1
         )
       }
       monotonic(

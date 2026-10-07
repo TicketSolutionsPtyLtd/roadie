@@ -5,9 +5,11 @@ import {
   type KeyboardEvent,
   type PointerEvent,
   type ReactNode,
+  startTransition,
   useEffect,
   useId,
   useMemo,
+  useOptimistic,
   useRef,
   useState
 } from 'react'
@@ -585,7 +587,11 @@ export function Calendar(props: CalendarProps) {
     reshape(() => {
       setPendingFocus(null)
       setToggledView(next)
-      if (viewProp === undefined) setUncontrolledView(next)
+      if (viewProp === undefined) {
+        // In the same render, so the switch eases straight to the month.
+        if (weekView) changeMonth(monthOfWeek(shownWeek))
+        setUncontrolledView(next)
+      }
       onViewChange?.(next)
     })
   }
@@ -626,12 +632,22 @@ export function Calendar(props: CalendarProps) {
   const swipeable = !scrolling && !waitingForToday && disabled !== true
   // The page a turn or a drag brings in, shown beside the days only then.
   const [peek, setPeek] = useState<Peek | null>(null)
-  const { pageTurn, landTurn, dropTurn, reshape } = useSwipeToTurn(rootRef, {
-    enabled: swipeable,
-    vertical,
-    canTurn,
-    turn,
-    onPeek: setPeek
+  const { pageTurn, landTurn, dropTurn, reshape, reshaped } = useSwipeToTurn(
+    rootRef,
+    {
+      enabled: swipeable,
+      vertical,
+      canTurn,
+      turn,
+      onPeek: setPeek
+    }
+  )
+  // The switch eases in once the new view and its month have committed.
+  const viewEased = useRef(view)
+  useIsomorphicLayoutEffect(() => {
+    if (viewEased.current === view) return
+    viewEased.current = view
+    reshaped()
   })
   // An incoming month beside several is as wide as each of them.
   useIsomorphicLayoutEffect(() => {
@@ -1345,31 +1361,8 @@ export function Calendar(props: CalendarProps) {
   const PreviousIcon = vertical ? CaretUpIcon : CaretLeftIcon
   const NextIcon = vertical ? CaretDownIcon : CaretRightIcon
   const arrowClass = cn('size-4', !vertical && 'rtl:-scale-x-100')
-  // Icons alone in a narrow calendar, read from the header's own width.
-  const viewItems = [
-    { value: 'week', label: 'Week', Icon: RowsIcon },
-    { value: 'month', label: 'Month', Icon: CalendarDotsIcon }
-  ] as const
   const viewToggle = showViewToggle && (
-    <ToggleGroup<CalendarView>
-      aria-label='View'
-      size='sm'
-      value={[view]}
-      onValueChange={([next]) => next && changeView(next)}
-      className='shrink-0'
-    >
-      {viewItems.map(({ value, label, Icon }) => (
-        <ToggleGroup.Item
-          key={value}
-          value={value}
-          aria-label={label}
-          className='@max-md/calendar-header:aspect-square @max-md/calendar-header:px-0'
-        >
-          <Icon weight='bold' aria-hidden='true' />
-          <span className='hidden @md/calendar-header:inline'>{label}</span>
-        </ToggleGroup.Item>
-      ))}
-    </ToggleGroup>
+    <ViewToggle view={view} onChange={changeView} />
   )
   const nav = (
     <div
@@ -1768,6 +1761,54 @@ export function Calendar(props: CalendarProps) {
 }
 
 Calendar.displayName = 'Calendar'
+
+// Icons alone in a narrow calendar, read from the header's own width.
+const viewItems = [
+  { value: 'week', label: 'Week', Icon: RowsIcon },
+  { value: 'month', label: 'Month', Icon: CalendarDotsIcon }
+] as const
+
+/**
+ * Shows the pressed view at once, ahead of the calendar it switches, which
+ * renders over the frames that follow; it falls back if the view stays.
+ */
+function ViewToggle({
+  view,
+  onChange
+}: {
+  view: CalendarView
+  onChange: (view: CalendarView) => void
+}) {
+  const [shown, show] = useOptimistic(view)
+  return (
+    <ToggleGroup<CalendarView>
+      aria-label='View'
+      size='sm'
+      value={[shown]}
+      onValueChange={([next]) => {
+        if (!next) return
+        // One transition, so the pressed view holds until the switch lands.
+        startTransition(() => {
+          show(next)
+          onChange(next)
+        })
+      }}
+      className='shrink-0'
+    >
+      {viewItems.map(({ value, label, Icon }) => (
+        <ToggleGroup.Item
+          key={value}
+          value={value}
+          aria-label={label}
+          className='@max-md/calendar-header:aspect-square @max-md/calendar-header:px-0'
+        >
+          <Icon weight='bold' aria-hidden='true' />
+          <span className='hidden @md/calendar-header:inline'>{label}</span>
+        </ToggleGroup.Item>
+      ))}
+    </ToggleGroup>
+  )
+}
 
 type CaptionSelectProps = {
   'aria-label': string

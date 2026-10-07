@@ -596,6 +596,13 @@ describe('Calendar day tiles', () => {
   })
 })
 
+// A view switch renders as a transition, then eases in.
+async function viewSettled(view: 'week' | 'month') {
+  const root = () => document.querySelector('[data-slot="calendar"]')!
+  await expect.poll(() => root().getAttribute('data-view')).toBe(view)
+  await expect.poll(() => root().hasAttribute('data-swiping')).toBe(false)
+}
+
 describe('Calendar views', () => {
   it.each([
     { width: 1280, labelled: true },
@@ -639,6 +646,7 @@ describe('Calendar views', () => {
         }
       }
       await userEvent.click(screen.getByRole('button', { name: 'Month' }))
+      await viewSettled('month')
       expect(screen.getByRole('grid')).toHaveAccessibleName('March 2027')
       expect(screen.getByRole('button', { name: 'Month' })).toHaveAttribute(
         'aria-pressed',
@@ -962,6 +970,7 @@ describe('Calendar page turns', () => {
     onTestFinished(() => commands.reduceMotion(false))
     render(<Calendar today={TODAY} views={['week', 'month']} />)
     await userEvent.click(screen.getByRole('button', { name: 'Week' }))
+    await expect.poll(() => screen.getAllByRole('gridcell').length).toBe(7)
     expect(swiping()).toBeNull()
     expect(document.getAnimations()).toHaveLength(0)
     expect(document.querySelector('[data-leaving]')).toBeNull()
@@ -972,8 +981,9 @@ describe('Calendar page turns', () => {
     const week = screen.getByRole('button', { name: 'Week' })
     await userEvent.click(week)
     expect(week).toHaveFocus()
-    expect(swiping()).not.toBeNull()
+    await expect.poll(swiping).not.toBeNull()
     await expect.poll(swiping).toBeNull()
+    expect(week).toHaveFocus()
     expect(document.querySelector('[data-leaving]')).toBeNull()
     expect(document.getAnimations()).toHaveLength(0)
     expect(screen.getAllByRole('gridcell').length).toBe(7)
@@ -1898,13 +1908,7 @@ describe('Calendar switching views opens the right page', () => {
         ) as HTMLElement
       ).focus()
     await userEvent.click(screen.getByRole('button', { name: view }))
-    await expect
-      .poll(() =>
-        document
-          .querySelector('[data-slot="calendar"]')!
-          .hasAttribute('data-swiping')
-      )
-      .toBe(false)
+    await viewSettled(view === 'Month' ? 'month' : 'week')
   }
 
   it('opens the month of the day selected in the week', async () => {

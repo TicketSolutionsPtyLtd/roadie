@@ -161,16 +161,26 @@ describe('Calendar turns at 60fps on a 4x slower CPU', () => {
     'switches %s between month and week',
     async (name, width, numberOfMonths) => {
       await page.viewport(width, 900)
+      // A page below the calendar, so a switch that moves it shows its cost.
       const root = await mount(
-        <div className={width > 600 ? 'w-200' : 'w-97.5'}>
-          <Calendar
-            today={TODAY}
-            numberOfMonths={numberOfMonths}
-            views={['week', 'month']}
-          />
+        <div className='grid gap-4'>
+          <div className={width > 600 ? 'w-200' : 'w-97.5'}>
+            <Calendar
+              today={TODAY}
+              numberOfMonths={numberOfMonths}
+              views={['week', 'month']}
+            />
+          </div>
+          {Array.from({ length: 300 }, (_, i) => (
+            <p key={i} className='text-sm'>
+              Doors open at seven at the Corner Hotel, with support from two
+              local acts before the headline set.
+            </p>
+          ))}
         </div>
       )
       for (let i = 0; i < 3; i++) await frame()
+      const switches: Frames[] = []
       for (const view of ['Week', 'Month']) {
         const item = root.querySelector<HTMLElement>(
           `button[aria-label="${view}"]`
@@ -180,8 +190,13 @@ describe('Calendar turns at 60fps on a 4x slower CPU', () => {
         )
         results[`${name}, to ${view}`] = frames
         console.log(`FRAMES ${name}, to ${view} ${JSON.stringify(frames)}`)
+        switches.push(frames)
+      }
+      // The click's own frame included: a switch drops none. The p95 budget
+      // only allows for the frame clock's jitter about 16.7ms.
+      for (const frames of switches) {
         expect(frames.p95).toBeLessThan(P95_BUDGET_MS)
-        expect(frames.dropped).toBeLessThanOrEqual(1)
+        expect(frames.dropped).toBe(0)
       }
     }
   )

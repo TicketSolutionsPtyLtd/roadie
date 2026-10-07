@@ -102,12 +102,12 @@ describe('Calendar frames, switching views', () => {
       )
       expect(toWeek.at(-1)!.days.size).toBe(7)
       expect(toWeek.some((frame) => frame.leaving.length > 0)).toBe(true)
-      expectOneReshape(toWeek, 320)
+      expectOneReshape(toWeek, 240)
       const toMonth = await recordShapes(() =>
         userEvent.click(screen.getByRole('button', { name: 'Month' }))
       )
       expect(toMonth.at(-1)!.days.size).toBeGreaterThan(27)
-      expectOneReshape(toMonth, 320)
+      expectOneReshape(toMonth, 240)
     }
   )
 
@@ -128,6 +128,6 @@ describe('Calendar frames, switching views', () => {
     )
     expect(screen.getByRole('grid')).toHaveAccessibleName('October 2026')
     expect(frames.at(-1)!.days.has('2026-10-28')).toBe(true)
-    expectOneReshape(frames, 320)
+    expectOneReshape(frames, 240)
   })
 })

@@ -1,6 +1,12 @@
 'use client'
 
-import { type RefObject, useCallback, useEffect, useRef } from 'react'
+import {
+  type RefObject,
+  startTransition,
+  useCallback,
+  useEffect,
+  useRef
+} from 'react'
 
 import { flushSync } from 'react-dom'
 
@@ -40,6 +46,10 @@ const MONTHS = '[data-slot="calendar-months"]'
 // How much of the way to the days kept a row grows from or folds into: all of
 // it piles the rows up on one line.
 const GROW = 0.5
+// A view switch answers at once and settles, as a decelerating curve does.
+const RESHAPE_MS = 240
+const SETTLE = 'cubic-bezier(0.2, 0, 0, 1)'
+type Keyframes = Parameters<Element['animate']>[0]
 const DAY = 'button[data-date]:not([data-outside])'
 
 type SwipeSample = { along: number; time: number }
@@ -89,11 +99,14 @@ export type PageTurn = (
 type PageTurns = {
   pageTurn: PageTurn
   /**
-   * Applies a change of view, then eases the days from where they were: the
-   * days in both views glide, the rows coming in grow out of them and fade
-   * in, the rows leaving fold into them and fade out, and the height follows.
+   * Applies a change of view as a transition, so its render is spread over
+   * frames, then eases the days from where they were once `reshaped` says it
+   * has landed: the days in both views glide, the rows coming in grow out of
+   * them and fade in, and the rows leaving fold into them and fade out.
    */
   reshape: (apply: () => void) => void
+  /** Called as the new view commits, to start easing into it. */
+  reshaped: () => void
   /** Lands a turn under way at once, so a key can go on from it. */
   landTurn: () => void
   /** Drops a turn under way unapplied, as when a parent moves the month. */
@@ -113,6 +126,7 @@ export function useSwipeToTurn(
   const landTurn = useRef<(() => void) | null>(null)
   const dropTurn = useRef<(() => void) | null>(null)
   const reshapeView = useRef<((apply: () => void) => void) | null>(null)
+  const reshapeLanded = useRef<(() => void) | null>(null)
   const latest = useRef(options)
   useIsomorphicLayoutEffect(() => {
     latest.current = options
@@ -251,6 +265,8 @@ export function useSwipeToTurn(
 
     // What a reshape leaves to clear: the rows leaving, drawn over the days.
     let unshape: (() => void) | null = null
+    // A reshape waiting for its view to commit, measured before it began.
+    let landShape: (() => void) | null = null
 
     const finish = (sync = true) => {
       stopAnimations()
@@ -283,6 +299,7 @@ export function useSwipeToTurn(
     // Lands the turn under way at once, and says where the strip sits after
     // it, so the next one goes on from there.
     const cutShort = () => {
+      landShape = null
       if (!settling) return 0
       run++
       const at = shift()
@@ -376,145 +393,170 @@ export function useSwipeToTurn(
         typeof root.animate !== 'function'
       )
         return apply()
-      const centres = (within: Element) => {
-        const at = new Map<string, DOMRect>()
-        for (const day of within.querySelectorAll<HTMLElement>(DAY))
-          if (!day.closest(PEEK))
-            at.set(day.dataset.date!, day.getBoundingClientRect())
-        return at
-      }
-      const before = centres(viewport)
-      const from = viewport.getBoundingClientRect()
-      const leaving = viewport.cloneNode(true) as HTMLElement
-      applyTurn(apply)
-      // The view can change how the calendar pages, which sets this up anew.
-      if (disposed || !viewport.isConnected) return
-      const to = viewport.getBoundingClientRect()
-      const after = new Map<HTMLElement, DOMRect>()
+      // Every read before the commit, every read after it, then only writes,
+      // so the switch lays the page out once.
+      const before = new Map<string, DOMRect>()
       for (const day of viewport.querySelectorAll<HTMLElement>(DAY))
-        after.set(day, day.getBoundingClientRect())
-      const mine = ++run
-      settling = true
-      root.dataset.swiping = ''
-      const middle = (box: DOMRect) => box.top + box.height / 2
-      const kept = [...after.keys()].flatMap((day) => {
-        const was = before.get(day.dataset.date!)
-        return was ? [was] : []
-      })
-      // Where the days in both views sat, which the rest grow from or fold into.
-      const anchor = kept.length
-        ? kept.reduce((sum, box) => sum + middle(box), 0) / kept.length
-        : null
-      const animate = (
-        element: Element,
-        frames: Parameters<Element['animate']>[0],
-        easing = 'ease-in-out'
-      ) => {
-        const animation = element.animate(frames, {
-          duration: TURN_MS,
-          easing,
-          fill: 'forwards'
-        })
-        running.push(animation)
-        return animation.finished.catch(() => undefined)
-      }
-      const moves: Promise<unknown>[] = [
-        animate(viewport, [
-          { height: `${from.height}px` },
-          { height: `${to.height}px` }
-        ])
-      ]
-      for (const [day, box] of after) {
-        const was = before.get(day.dataset.date!)
-        if (was) {
+        if (!day.closest(PEEK))
+          before.set(day.dataset.date!, day.getBoundingClientRect())
+      const from = viewport.getBoundingClientRect()
+      // The leaving days are drawn as plain numbers in the days' own type:
+      // they fade within a few frames, and copying the calendar costs one.
+      const sample = viewport.querySelector(DAY)
+      const type = sample && getComputedStyle(sample)
+      landShape = () => {
+        landShape = null
+        // The view can change how the calendar pages, which sets this up anew.
+        if (disposed || !viewport.isConnected) return
+        const to = viewport.getBoundingClientRect()
+        const after = new Map<HTMLElement, DOMRect>()
+        for (const day of viewport.querySelectorAll<HTMLElement>(DAY))
+          after.set(day, day.getBoundingClientRect())
+        const rowsAfter = Array.from(
+          viewport.querySelectorAll<HTMLElement>('tbody tr'),
+          (row) => [row, row.getBoundingClientRect()] as const
+        )
+
+        const mine = ++run
+        settling = true
+        root.dataset.swiping = ''
+        const middle = (box: DOMRect) => box.top + box.height / 2
+        const stays = new Set(
+          Array.from(after.keys(), (day) => day.dataset.date!)
+        )
+        const kept = [...stays].flatMap((date) => before.get(date) ?? [])
+        // Where the days in both views sat, which the rest grow from or fold into.
+        const anchor = kept.length
+          ? kept.reduce((sum, box) => sum + middle(box), 0) / kept.length
+          : null
+        const toward = (box: DOMRect) =>
+          anchor === null ? 0 : (anchor - middle(box)) * GROW
+        const moves: Promise<unknown>[] = []
+        const animate = (element: Element, frames: Keyframes) => {
+          const animation = element.animate(frames, {
+            duration: RESHAPE_MS,
+            easing: SETTLE,
+            fill: 'forwards'
+          })
+          running.push(animation)
+          moves.push(animation.finished.catch(() => undefined))
+        }
+
+        // The height changes once: at once as the days grow, so the page
+        // below moves a single time, or at the end as they shrink. The clip
+        // shows the days between, without laying the page out each frame.
+        const grows = to.height >= from.height
+        const hidden = Math.abs(to.height - from.height)
+        if (!grows) viewport.style.height = `${from.height}px`
+        animate(
+          viewport,
+          grows
+            ? [
+                { clipPath: `inset(0 0 ${hidden}px 0)` },
+                { clipPath: 'inset(0 0 0px 0)' }
+              ]
+            : [
+                { clipPath: 'inset(0 0 0px 0)' },
+                { clipPath: `inset(0 0 ${hidden}px 0)` }
+              ]
+        )
+        const clearHeight = () => viewport.style.removeProperty('height')
+
+        for (const [day, box] of after) {
+          const was = before.get(day.dataset.date!)
+          if (!was) continue
           const dx = was.left + was.width / 2 - (box.left + box.width / 2)
           const dy = middle(was) - middle(box)
-          moves.push(
-            animate(day, [
-              {
-                transform: `translate(${dx}px, ${dy}px) scale(${was.width / box.width}, ${was.height / box.height})`
-              },
-              { transform: 'none' }
-            ])
-          )
-        } else {
-          const dy = anchor === null ? 0 : (anchor - middle(box)) * GROW
-          moves.push(
-            animate(day, [
-              { transform: `translateY(${dy}px)`, opacity: 0 },
-              { opacity: 0, offset: 0.25 },
-              { transform: 'none', opacity: 1 }
-            ])
-          )
-        }
-      }
-      // The old days, inert and unnamed, over the new ones until they fold
-      // away. Only their rows that hold no day shown now are seen.
-      leaving.dataset.leaving = ''
-      leaving.inert = true
-      leaving.setAttribute('aria-hidden', 'true')
-      Object.assign(leaving.style, {
-        position: 'absolute',
-        insetInlineStart: '0',
-        top: '0',
-        width: `${from.width}px`,
-        height: `${from.height}px`,
-        visibility: 'hidden',
-        pointerEvents: 'none'
-      })
-      viewport.append(leaving)
-      unshape = () => leaving.remove()
-      const stays = new Set(
-        Array.from(after.keys(), (day) => day.dataset.date!)
-      )
-      for (const row of leaving.querySelectorAll<HTMLElement>('tbody tr')) {
-        const days = Array.from(row.querySelectorAll<HTMLElement>(DAY))
-        if (!days.length) continue
-        // A row that stays loses only the days the new view leaves out.
-        if (days.some((day) => stays.has(day.dataset.date!))) {
-          for (const day of days) {
-            if (stays.has(day.dataset.date!)) continue
-            day.style.visibility = 'visible'
-            moves.push(
-              animate(day, [
-                { opacity: 1 },
-                { opacity: 0, offset: 0.5 },
-                { opacity: 0 }
-              ])
-            )
-          }
-          continue
-        }
-        row.style.visibility = 'visible'
-        const dy =
-          anchor === null
-            ? 0
-            : (anchor - middle(row.getBoundingClientRect())) * GROW
-        moves.push(
-          animate(row, [
-            { transform: 'none', opacity: 1 },
-            { opacity: 0, offset: 0.75 },
-            { transform: `translateY(${dy}px)`, opacity: 0 }
+          animate(day, [
+            {
+              transform: `translate(${dx}px, ${dy}px) scale(${was.width / box.width}, ${was.height / box.height})`
+            },
+            { transform: 'none' }
           ])
-        )
+        }
+        // Rows coming in move whole, one layer each.
+        for (const [row, box] of rowsAfter) {
+          const days = Array.from(row.querySelectorAll<HTMLElement>(DAY))
+          if (!days.length || days.some((day) => before.has(day.dataset.date!)))
+            continue
+          animate(row, [
+            { transform: `translateY(${toward(box)}px)`, opacity: 0 },
+            { opacity: 0, offset: 0.15 },
+            { transform: 'none', opacity: 1 }
+          ])
+        }
+
+        // The old days that leave, inert and unnamed, over the new ones
+        // until they fold away, a row at a time.
+        const leaving = document.createElement('div')
+        leaving.dataset.leaving = ''
+        leaving.inert = true
+        leaving.setAttribute('aria-hidden', 'true')
+        Object.assign(leaving.style, {
+          position: 'absolute',
+          inset: '0',
+          pointerEvents: 'none',
+          contain: 'strict',
+          font: type?.font ?? '',
+          color: type?.color ?? ''
+        })
+        const rows = new Map<number, [string, DOMRect][]>()
+        for (const [date, box] of before) {
+          if (stays.has(date)) continue
+          const row = rows.get(box.top) ?? []
+          row.push([date, box])
+          rows.set(box.top, row)
+        }
+        const keptTops = new Set(kept.map((box) => box.top))
+        for (const [top, days] of rows) {
+          const row = document.createElement('div')
+          for (const [date, box] of days) {
+            const day = document.createElement('span')
+            day.textContent = String(Number(date.slice(8)))
+            Object.assign(day.style, {
+              position: 'absolute',
+              display: 'grid',
+              placeItems: 'center',
+              left: `${box.left - from.left}px`,
+              top: `${box.top - from.top}px`,
+              width: `${box.width}px`,
+              height: `${box.height}px`
+            })
+            row.append(day)
+          }
+          leaving.append(row)
+          // A row that stays loses only the days the new view leaves out.
+          animate(
+            row,
+            keptTops.has(top)
+              ? [{ opacity: 1 }, { opacity: 0, offset: 0.6 }, { opacity: 0 }]
+              : [
+                  { transform: 'none', opacity: 1 },
+                  { opacity: 0, offset: 0.6 },
+                  {
+                    transform: `translateY(${toward(days[0]![1])}px)`,
+                    opacity: 0
+                  }
+                ]
+          )
+        }
+        viewport.append(leaving)
+        unshape = () => {
+          leaving.remove()
+          clearHeight()
+        }
+        void Promise.all(moves).then(() => {
+          if (disposed || mine !== run) return
+          finish()
+        })
       }
-      leaving.removeAttribute('data-slot')
-      for (const element of leaving.querySelectorAll('[id]'))
-        element.removeAttribute('id')
-      for (const element of leaving.querySelectorAll(
-        '[data-date], [data-slot^="calendar-"], [data-swipe-part], [data-month]'
-      ))
-        for (const name of [
-          'data-date',
-          'data-slot',
-          'data-swipe-part',
-          'data-month'
-        ])
-          element.removeAttribute(name)
-      void Promise.all(moves).then(() => {
-        if (disposed || mine !== run) return
-        finish()
-      })
+      // A transition, so rendering the new view yields to frames as it goes.
+      startTransition(apply)
+    }
+    // After the commit and the updates its effects make, which React works
+    // through before the task ends, and before any frame shows it.
+    reshapeLanded.current = () => {
+      if (landShape) queueMicrotask(() => landShape?.())
     }
     // Only a turn not yet applied: a parent following a turn's own month
     // arrives while it applies, and the slide in goes on.
@@ -723,6 +765,7 @@ export function useSwipeToTurn(
       landTurn.current = null
       dropTurn.current = null
       reshapeView.current = null
+      reshapeLanded.current = null
       const waiting = pending
       pending = null
       // Still shown, as when the calendar is disabled mid-slide; a turn for a
@@ -759,5 +802,12 @@ export function useSwipeToTurn(
       reshapeView.current ? reshapeView.current(apply) : apply(),
     []
   )
-  return { pageTurn: turnPage, landTurn: land, dropTurn: drop, reshape }
+  const reshaped = useCallback(() => reshapeLanded.current?.(), [])
+  return {
+    pageTurn: turnPage,
+    landTurn: land,
+    dropTurn: drop,
+    reshape,
+    reshaped
+  }
 }
