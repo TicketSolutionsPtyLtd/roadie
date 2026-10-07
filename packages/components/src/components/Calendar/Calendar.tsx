@@ -89,7 +89,8 @@ type CalendarBaseProps = Omit<
    * that scrolls, under one pinned row of weekdays, adding months as it
    * nears either end. It opens on `month`, the selection or today, scrolls
    * to `month` when it changes, and in a box that scrolls calls
-   * `onMonthChange` with the month at the top as it scrolls.
+   * `onMonthChange` with the month at the top as it scrolls. Put it in a
+   * `ScrollArea`, or a `Drawer` or `Pane` body, which already scroll.
    *
    * @default 'paged'
    */

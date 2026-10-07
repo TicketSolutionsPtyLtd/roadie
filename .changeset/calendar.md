@@ -18,7 +18,8 @@ circle up to 48px across (or a tile, below) in the middle of its column, and a r
 edge to edge. In a popover it takes 280px a month. It shows `numberOfMonths`
 side by side where they fit and stacked where they don't, or with
 `layout='scroll'` stacks months in a list that scrolls under one pinned row of
-weekdays, adding months as it nears either end. It takes month and year
+weekdays, adding months as it nears either end. Put it in a `ScrollArea`, or a
+`Drawer` or `Pane` body. It takes month and year
 selects under `captionLayout='dropdown'`,
 `fixedWeeks`, `showOutsideDays`, `weekStart`, `startMonth` and `endMonth`,
 and a controlled `month`. The month's name sits at the start of the header

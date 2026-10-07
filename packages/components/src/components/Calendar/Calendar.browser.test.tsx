@@ -18,6 +18,7 @@ import { Calendar, type CalendarDateRange, type CalendarSingleProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
+import { ScrollArea } from '../ScrollArea'
 
 const STILL = '*, *::before, *::after { transition: none !important }'
 // 1 March 2027 is a Monday.
@@ -1939,4 +1940,45 @@ describe('Calendar switching views opens the right page', () => {
       ).toBe(first)
     }
   )
+})
+
+describe('Calendar scrolling inside a ScrollArea', () => {
+  it('scrolls to its month, pins its weekdays and reports the month on top', async () => {
+    const onMonthChange = vi.fn()
+    render(
+      <ScrollArea className='h-96'>
+        <ScrollArea.Viewport>
+          <Calendar
+            today={TODAY}
+            layout='scroll'
+            mode='range'
+            defaultSelected={{ start: '2026-11-06', end: '2026-11-12' }}
+            onMonthChange={onMonthChange}
+          />
+        </ScrollArea.Viewport>
+        <ScrollArea.Scrollbar>
+          <ScrollArea.Thumb />
+        </ScrollArea.Scrollbar>
+      </ScrollArea>
+    )
+    const viewport = document.querySelector<HTMLElement>(
+      '[data-slot="scroll-area-viewport"]'
+    )!
+    const weekdays = document.querySelector('[data-slot="calendar-weekdays"]')!
+    const month = (first: string) =>
+      document.querySelector(`[data-month="${first}"]`)!
+    const atTop = (first: string) =>
+      Math.abs(
+        month(first).getBoundingClientRect().top -
+          weekdays.getBoundingClientRect().bottom
+      )
+    await expect.poll(() => atTop('2026-11-01')).toBeLessThan(2)
+    viewport.scrollTop +=
+      month('2026-11-01').getBoundingClientRect().height + 60
+    await expect.poll(() => onMonthChange.mock.lastCall?.[0]).toBe('2026-12-01')
+    expect(weekdays.getBoundingClientRect().top).toBeCloseTo(
+      viewport.getBoundingClientRect().top,
+      0
+    )
+  })
 })
