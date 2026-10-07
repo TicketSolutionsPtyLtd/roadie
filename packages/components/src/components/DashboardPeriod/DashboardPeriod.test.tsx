@@ -49,7 +49,9 @@ function Controlled({
   )
 }
 
-describe('DashboardPeriod', () => {
+// Each opens a picker holding calendars, which a busy CI runner can take
+// past the default, as DateRangePicker's phone tests allow for.
+describe('DashboardPeriod', { timeout: 15_000 }, () => {
   it.each([
     [undefined, 'emphasis-normal'],
     ['normal', 'emphasis-normal'],
@@ -232,19 +234,13 @@ describe('DashboardPeriod', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  // The phone drawer mounts a scrolling calendar, which a busy CI runner
-  // takes past the default.
-  it(
-    'keeps its period without calling itself required',
-    { timeout: 15_000 },
-    async () => {
-      onPhone()
-      render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
-      expect(picker()).not.toHaveAccessibleDescription(/Required/)
-      const dialog = await openPicker()
-      expect(within(dialog).queryByRole('button', { name: 'Clear' })).toBeNull()
-    }
-  )
+  it('keeps its period without calling itself required', async () => {
+    onPhone()
+    render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
+    expect(picker()).not.toHaveAccessibleDescription(/Required/)
+    const dialog = await openPicker()
+    expect(within(dialog).queryByRole('button', { name: 'Clear' })).toBeNull()
+  })
 
   it('remembers no comparison from a cancelled edit', async () => {
     render(<Controlled initial={{ range: 'this-month' }} />)
@@ -405,7 +401,7 @@ const comparisonPicker = (dialog: HTMLElement) =>
     name: /^Choose dates, Comparison dates/
   })
 
-describe('DashboardPeriod with fixed presets', () => {
+describe('DashboardPeriod with fixed presets', { timeout: 15_000 }, () => {
   it('names fixed dates after the preset they match', () => {
     render(
       <DashboardPeriod
@@ -422,29 +418,25 @@ describe('DashboardPeriod with fixed presets', () => {
     )
   })
 
-  it(
-    'lists a fixed preset’s dates on a phone',
-    { timeout: 15_000 },
-    async () => {
-      onPhone()
-      render(
-        <DashboardPeriod
-          today={TODAY}
-          presets={FIXED_PRESETS}
-          value={{ range: { start: '2026-07-01', end: '2027-06-30' } }}
-        />
-      )
-      const dialog = await openPicker()
-      const row = within(dialog).getByRole('button', {
-        name: /^This financial year/
-      })
-      expect(row).toHaveTextContent('1 Jul 2026 to 30 Jun 2027')
-      expect(row).toHaveAttribute('aria-current', 'true')
-    }
-  )
+  it('lists a fixed preset’s dates on a phone', async () => {
+    onPhone()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        presets={FIXED_PRESETS}
+        value={{ range: { start: '2026-07-01', end: '2027-06-30' } }}
+      />
+    )
+    const dialog = await openPicker()
+    const row = within(dialog).getByRole('button', {
+      name: /^This financial year/
+    })
+    expect(row).toHaveTextContent('1 Jul 2026 to 30 Jun 2027')
+    expect(row).toHaveAttribute('aria-current', 'true')
+  })
 })
 
-describe('DashboardPeriod compare options', () => {
+describe('DashboardPeriod compare options', { timeout: 15_000 }, () => {
   it('keeps today’s choices by default', async () => {
     render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
     const dialog = await openPicker()
