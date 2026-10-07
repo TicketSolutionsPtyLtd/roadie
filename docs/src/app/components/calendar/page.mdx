@@ -22,7 +22,7 @@ import { Calendar } from '@oztix/roadie-components/calendar'
 
 Calendar opens on the selected month, or on today's. Every value is a plain ISO date string such as `'2026-11-27'`, never a `Date`. Today moves on at midnight in `timeZone`. Server HTML may be read on a later day, so the server leaves today unmarked, and a calendar with nothing else to place its month renders an empty six-week frame until the browser fills it in. Pass `today`, `month`, `defaultMonth` or a selection to render it in full on the server.
 
-The month's name sits at the start of the header and both arrows sit at the end. On a touch screen, swipe the days sideways to turn the month. The days follow the finger, or turn straight away when the reader prefers reduced motion, and the swipe runs the other way in a right-to-left page.
+The month's name sits at the start of the header and both arrows sit at the end. On a touch screen, swipe the days sideways to turn the month, or drag them with a mouse or pen; a press that barely moves still chooses the day. The days follow the finger with the next month's days coming in beside them, while the weekday row and the month's name stay still, and the swipe runs the other way in a right-to-left page. With several months in a row, their days move as one strip. On a vertical calendar the next month's name comes up with its days, in the gap above them. The arrows and `Page Up` and `Page Down` slide the days the same way. The shown and incoming pages move together in one motion, and the month and its name change as the slide ends. With `Shift`, or in week view, `Page Up` and `Page Down` skip past the page beside, so they turn at once. A month picked from the selects shows at once and slides in. Arrow keys that cross into the next month turn it straight away, so focus never sits on a day that is sliding. When the reader prefers reduced motion, every turn is instant.
 
 ```tsx-live-noinline
 function Default() {
@@ -132,7 +132,7 @@ render(
 
 ### With two months
 
-`numberOfMonths` shows months side by side where they fit and stacks them where they don't. Both arrows sit together at the top end, and each moves the set one month.
+`numberOfMonths` shows months side by side where they fit and stacks them where they don't. Both arrows sit together at the top end, and each moves the set one month. Side by side, the months turn sideways and their days move as one strip. Stacked, they turn up and down as one column, as with `direction='vertical'`: the arrows point up and down, and a finger swipes up for the next month. The first month's name sits by the arrows, one weekday row holds still beneath them, and the months below it slide with their names. The calendar switches back as soon as the months fit side by side again.
 
 ```tsx-live
 <Calendar mode='range' numberOfMonths={2} />
@@ -140,17 +140,22 @@ render(
 
 ### With scrolling months
 
-`layout='scroll'` stacks the months in a list that scrolls, as on a phone, under one row of weekdays that stays pinned. There are no arrows: it opens on `month`, the selection or today, and adds months as it nears either end or the keyboard moves past them. A new `month` scrolls the list to it, and in a box that scrolls `onMonthChange` reports the month at the top as it scrolls. Put it in a box that scrolls. To run the pinned row to the box's edges, pad the calendar and pull its `calendar-weekdays` slot out by the same amount, as here. Pickers use it in their phone drawer.
+`layout='scroll'` stacks the months in a list that scrolls, as on a phone, under one row of weekdays that stays pinned. There are no arrows: it opens on `month`, the selection or today, and adds months as it nears either end or the keyboard moves past them. A new `month` scrolls the list to it, and in a box that scrolls `onMonthChange` reports the month at the top as it scrolls. Put it in a `ScrollArea`, as here, or in a `Drawer` or `Pane` body, which already scroll, rather than a box with its own native scrollbar. To run the pinned row to the edges, pad the calendar and pull its `calendar-weekdays` slot out by the same amount, as here. Pickers use it in their phone drawer.
 
 ```tsx-live
-<div className='h-96 overflow-y-auto rounded-xl emphasis-raised'>
-  <Calendar
-    layout='scroll'
-    mode='range'
-    defaultSelected={{ start: '2026-11-06', end: '2026-11-12' }}
-    className='px-4 **:data-[slot=calendar-weekdays]:-mx-4 **:data-[slot=calendar-weekdays]:px-4'
-  />
-</div>
+<ScrollArea className='h-96 rounded-xl emphasis-raised'>
+  <ScrollArea.Viewport>
+    <Calendar
+      layout='scroll'
+      mode='range'
+      defaultSelected={{ start: '2026-11-06', end: '2026-11-12' }}
+      className='px-4 **:data-[slot=calendar-weekdays]:-mx-4 **:data-[slot=calendar-weekdays]:px-4'
+    />
+  </ScrollArea.Viewport>
+  <ScrollArea.Scrollbar>
+    <ScrollArea.Thumb />
+  </ScrollArea.Scrollbar>
+</ScrollArea>
 ```
 
 ### With vertical paging
@@ -163,7 +168,7 @@ render(
 
 ### With a week view
 
-`view='week'` shows one week as a row of larger days, and the arrows and a swipe turn a week at a time. It suits choosing a session in the coming days. `views` lists the views the reader can switch between. With both, a "Month view" toggle sits beside the title, or above the months when there are several. Use `defaultView` to open on one, or `view` and `onViewChange` to control it.
+`view='week'` shows one week as a row of larger days, and the arrows and a swipe turn a week at a time. It suits choosing a session in the coming days. `views` lists the views the reader can switch between. With both, a toggle group of "Week" and "Month" sits beside the title, or above the months when there are several. Where the calendar is narrow, as on a phone, it shows only their icons and the week's title shortens its month names, such as "Oct to Nov 2026". Switching eases between the two: the week's days glide between their places, the other weeks grow out of it or fold into it as they fade, and the height follows. With reduced motion it switches at once. Month view opens on the month of the selected day (or a range's start) in the week, then the focused day's, then the month holding most of the week. Week view opens on the week of the selected or focused day in the month, today's, or else its first week. Use `defaultView` to open on one, or `view` and `onViewChange` to control it.
 
 ```tsx-live-noinline
 function Week() {
@@ -301,8 +306,8 @@ render(<Sessions />)
 - `Enter` and `Space` select the focused day. While a range is half chosen, `Escape` drops its start.
 - Disabled days are focusable with `aria-disabled`, so they can be read and passed, but not selected.
 - A polite live region announces the month when it changes and the selection when it changes, such as "Selected Wednesday, 3 to Sunday, 7 March 2027".
-- The month arrows are labelled "Previous month" and "Next month", and in week view "Previous week" and "Next week". In the dropdown layout the selects are labelled "Month" and "Year". The view toggle is a button labelled "Month view", pressed in month view.
-- Swiping turns the page on a touch screen, and the arrows do the same for everyone else. With reduced motion the days don't slide.
+- The month arrows are labelled "Previous month" and "Next month", and in week view "Previous week" and "Next week". In the dropdown layout the selects are labelled "Month" and "Year". The views are a toggle group labelled "View", with "Week" and "Month" buttons that keep their names when they show only icons. The arrow keys move between them and Space or Enter switches.
+- Swiping or dragging the days turns the page, and the arrows and `Page Up` and `Page Down` do the same for everyone else, with the same slide. Arrow keys across a month edge turn it without a slide, so focus stays on a still day. With reduced motion nothing slides.
 - In week view the grid is named by its dates, such as "Monday, 26 October to Sunday, 1 November 2026", and turning a week announces them.
 - `getDayContent` describes its day: a day with a price is read as its date, then the price.
 - With `layout='scroll'`, each month keeps its own column headers for screen readers, and the pinned weekday row is hidden from them.

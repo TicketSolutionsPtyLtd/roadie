@@ -1,12 +1,13 @@
 'use client'
 
-import { type ReactNode, useId, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
 
 import {
   CalendarBlankIcon,
   CaretDownIcon,
   LockSimpleIcon
 } from '@phosphor-icons/react'
+import { flushSync } from 'react-dom'
 
 import {
   type DateRangeValue,
@@ -61,6 +62,7 @@ type Edit = {
   month: string | null
 }
 const NO_EDIT: Edit = { draft: null, custom: false, month: null }
+const SCROLL_IDLE_MS = 150
 
 const days = (count: number | undefined) =>
   `${count} ${count === 1 ? 'day' : 'days'}`
@@ -237,6 +239,15 @@ export function ExtendedDateRangePicker({
     next: RangeDraft,
     { close = false, month }: { close?: boolean; month?: string | null } = {}
   ) {
+    // The list's resting month first, so a move back to the month the picker
+    // last asked for still reads as a move.
+    const scrolled = scrolledTo.current
+    if (settleScroll.current !== undefined) {
+      clearTimeout(settleScroll.current)
+      settleScroll.current = undefined
+      if (scrolled && month && month !== scrolled)
+        flushSync(() => setEdit((current) => ({ ...current, month: scrolled })))
+    }
     setEdit({
       draft: {
         ...next,
@@ -244,8 +255,11 @@ export function ExtendedDateRangePicker({
         end: readBack(next.end, granularity, zone)
       },
       custom: edit.custom && next.chosen === null,
-      month: month ?? edit.month ?? shownMonth ?? null
+      month: month ?? scrolled ?? edit.month ?? shownMonth ?? null
     })
+    // A month asked for is where the list now rests, not where it last
+    // came to rest scrolling.
+    if (month) scrolledTo.current = null
     if (commit === 'apply') return
     const nextResult = draftValue(next, granularity, zone, length)
     if (nextResult.kind !== 'value') return
@@ -259,16 +273,40 @@ export function ExtendedDateRangePicker({
   const shownMonth =
     edit.month ?? (openingDate ? firstOf(openingDate) : undefined)
 
+  // The month at the top of the drawer's scrolling list, held until the list
+  // comes to rest: re-rendering the drawer for every month it passes costs
+  // frames.
+  const scrolledTo = useRef<string | null>(null)
+  const settleScroll = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  )
+  function followScroll(month: string) {
+    scrolledTo.current = month
+    clearTimeout(settleScroll.current)
+    settleScroll.current = setTimeout(() => {
+      settleScroll.current = undefined
+      setEdit((current) => ({ ...current, month }))
+    }, SCROLL_IDLE_MS)
+  }
+  useEffect(() => {
+    scrolledTo.current = null
+    return () => {
+      clearTimeout(settleScroll.current)
+      settleScroll.current = undefined
+    }
+  }, [open])
+
   /** The first month to show so `date` is in view, moving only if it isn't. */
   const monthShowing = (date: string | null, last = false) => {
     if (!date) return null
     const month = firstOf(date)
+    const showing = scrolledTo.current ?? shownMonth
     if (
-      shownMonth &&
-      compareDates(month, shownMonth) >= 0 &&
-      compareDates(month, addMonths(shownMonth, months - 1)) <= 0
+      showing &&
+      compareDates(month, showing) >= 0 &&
+      compareDates(month, addMonths(showing, months - 1)) <= 0
     )
-      return shownMonth
+      return showing
     return addMonths(month, last ? 1 - months : 0)
   }
 
@@ -499,6 +537,7 @@ export function ExtendedDateRangePicker({
       // The pinned weekdays run to the drawer's edges, padded back over the days.
       className='**:data-[slot=calendar-weekdays]:-mx-(--content-inset) **:data-[slot=calendar-weekdays]:px-(--content-inset)'
       {...calendarProps}
+      onMonthChange={followScroll}
     />
   )
   const drawerContent: ReactNode = (

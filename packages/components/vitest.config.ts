@@ -123,6 +123,7 @@ const swipe: BrowserCommand<
 }
 
 const throttleCpu: BrowserCommand<[rate: number]> = async ({ page }, rate) => {
+  if (page.context().browser()?.browserType().name() !== 'chromium') return
   const session = await page.context().newCDPSession(page)
   await session.send('Emulation.setCPUThrottlingRate', { rate })
 }
@@ -245,7 +246,12 @@ export default defineConfig({
             provider: playwright(),
             viewport: { width: 1440, height: 900 },
             commands: { throttleCpu, renderMetrics },
-            instances: [{ browser: 'chromium' }]
+            // WebKit can't throttle, but runs the same scenarios on request.
+            instances: (process.env.ROADIE_PERF_BROWSERS ?? 'chromium')
+              .split(',')
+              .map((browser) => ({
+                browser: browser.trim() as 'chromium' | 'webkit' | 'firefox'
+              }))
           }
         }
       }

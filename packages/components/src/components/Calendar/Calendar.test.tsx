@@ -1054,14 +1054,66 @@ describe('Calendar week view', () => {
         onViewChange={onViewChange}
       />
     )
-    const toggle = screen.getByRole('button', { name: 'Month view' })
-    expect(toggle).toHaveAttribute('aria-pressed', 'false')
-    await userEvent.click(toggle)
+    const views = screen.getByRole('group', { name: 'View' })
+    const week = within(views).getByRole('button', { name: 'Week' })
+    const month = within(views).getByRole('button', { name: 'Month' })
+    expect(week).toHaveAttribute('aria-pressed', 'true')
+    expect(month).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(month)
     expect(onViewChange).toHaveBeenLastCalledWith('month')
     expect(grid()).toHaveAccessibleName('March 2027')
-    expect(toggle).toHaveAttribute('aria-pressed', 'true')
-    await userEvent.click(toggle)
+    expect(month).toHaveAttribute('aria-pressed', 'true')
+    expect(week).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(week)
+    expect(onViewChange).toHaveBeenLastCalledWith('week')
     expect(shownDays()[0]).toBe('2027-03-08')
+  })
+
+  it('presses the item for a controlled view, and only asks to change it', async () => {
+    const onViewChange = vi.fn()
+    const { rerender } = render(
+      <Calendar
+        today={TODAY}
+        view='week'
+        views={['week', 'month']}
+        onViewChange={onViewChange}
+      />
+    )
+    const month = screen.getByRole('button', { name: 'Month' })
+    await userEvent.click(month)
+    expect(onViewChange).toHaveBeenLastCalledWith('month')
+    expect(month).toHaveAttribute('aria-pressed', 'false')
+    expect(shownDays()).toHaveLength(7)
+    rerender(
+      <Calendar
+        today={TODAY}
+        view='month'
+        views={['week', 'month']}
+        onViewChange={onViewChange}
+      />
+    )
+    expect(month).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Week' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
+  })
+
+  it('keeps focus in the views as the arrow keys switch them', async () => {
+    render(
+      <Calendar today={TODAY} defaultView='week' views={['week', 'month']} />
+    )
+    const week = screen.getByRole('button', { name: 'Week' })
+    const month = screen.getByRole('button', { name: 'Month' })
+    act(() => week.focus())
+    await userEvent.keyboard('{ArrowRight}')
+    expect(month).toHaveFocus()
+    await userEvent.keyboard(' ')
+    expect(grid()).toHaveAccessibleName('March 2027')
+    expect(month).toHaveFocus()
+    await userEvent.keyboard('{ArrowLeft} ')
+    expect(week).toHaveFocus()
+    expect(shownDays()).toHaveLength(7)
   })
 
   it('puts the view toggle beside the title, before the arrows', () => {
@@ -1073,7 +1125,7 @@ describe('Calendar week view', () => {
       within(header)
         .getAllByRole('button')
         .map((button) => button.ariaLabel)
-    ).toEqual(['Month view', 'Previous month', 'Next month'])
+    ).toEqual(['Week', 'Month', 'Previous month', 'Next month'])
   })
 
   it('names every month and keeps the toggle in place with several months', async () => {
@@ -1085,15 +1137,15 @@ describe('Calendar week view', () => {
         defaultView='week'
       />
     )
-    const toggle = screen.getByRole('button', { name: 'Month view' })
-    act(() => toggle.focus())
-    await userEvent.keyboard(' ')
+    const month = screen.getByRole('button', { name: 'Month' })
+    act(() => screen.getByRole('button', { name: 'Week' }).focus())
+    await userEvent.keyboard('{ArrowRight} ')
     const [march, april] = screen.getAllByRole('grid')
     expect(march).toHaveAccessibleName('March 2027')
     expect(april).toHaveAccessibleName('April 2027')
-    expect(toggle).toHaveFocus()
-    await userEvent.keyboard(' ')
-    expect(toggle).toHaveFocus()
+    expect(month).toHaveFocus()
+    await userEvent.keyboard('{ArrowLeft} ')
+    expect(screen.getByRole('button', { name: 'Week' })).toHaveFocus()
   })
 
   it('keeps the week the reader turned to after a look at the month', async () => {
@@ -1107,9 +1159,8 @@ describe('Calendar week view', () => {
     for (let i = 0; i < 5; i++)
       await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
     expect(shownDays()[0]).toBe('2027-04-05')
-    const toggle = screen.getByRole('button', { name: 'Month view' })
-    await userEvent.click(toggle)
-    await userEvent.click(toggle)
+    await userEvent.click(screen.getByRole('button', { name: 'Month' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Week' }))
     expect(shownDays()[0]).toBe('2027-04-05')
   })
 
@@ -1132,6 +1183,10 @@ describe('Calendar week view', () => {
     for (let i = 0; i < 3; i++)
       await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
     await userEvent.click(screen.getByRole('button', { name: 'Switch' }))
+    // The week of 29 March holds more of April, so April opens.
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Previous month' })
+    )
     await userEvent.click(day('2027-03-10'))
     await userEvent.click(screen.getByRole('button', { name: 'Switch' }))
     expect(shownDays()).toContain('2027-03-10')
@@ -1149,21 +1204,21 @@ describe('Calendar week view', () => {
             onViewChange={setView}
           />
           <button type='button' onClick={() => setView('week')}>
-            Week
+            Parent week
           </button>
           <button type='button' onClick={() => setView('month')}>
-            Month
+            Parent month
           </button>
         </>
       )
     }
     render(<Controlled />)
-    await userEvent.click(screen.getByRole('button', { name: 'Month view' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Month' }))
     expect(live()).toHaveTextContent('March 2027')
-    await userEvent.click(screen.getByRole('button', { name: 'Week' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Parent week' }))
     await userEvent.click(day('2027-03-11'))
     expect(live()).toHaveTextContent('Selected Thursday, 11 March 2027')
-    await userEvent.click(screen.getByRole('button', { name: 'Month' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Parent month' }))
     expect(live()).toHaveTextContent('Selected Thursday, 11 March 2027')
   })
 
@@ -1193,16 +1248,16 @@ describe('Calendar week view', () => {
     )
     for (let i = 0; i < 5; i++)
       await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
-    const toggle = screen.getByRole('button', { name: 'Month view' })
-    await userEvent.click(toggle)
+    const month = screen.getByRole('button', { name: 'Month' })
+    await userEvent.click(month)
     await userEvent.tab()
     await userEvent.tab()
     await userEvent.tab()
     await userEvent.tab({ shift: true })
     await userEvent.tab({ shift: true })
     await userEvent.tab({ shift: true })
-    expect(toggle).toHaveFocus()
-    await userEvent.keyboard(' ')
+    expect(month).toHaveFocus()
+    await userEvent.keyboard('{ArrowLeft} ')
     expect(shownDays()[0]).toBe('2027-04-05')
   })
 
@@ -1211,7 +1266,7 @@ describe('Calendar week view', () => {
       <Calendar today={TODAY} numberOfMonths={2} views={['week', 'month']} />
     )
     await userEvent.click(day('2027-04-20'))
-    await userEvent.click(screen.getByRole('button', { name: 'Month view' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Week' }))
     expect(shownDays()).toContain('2027-04-20')
   })
 
@@ -1266,13 +1321,17 @@ describe('Calendar week view', () => {
     render(
       <Calendar today={TODAY} defaultView='week' views={['week', 'month']} />
     )
-    const toggle = screen.getByRole('button', { name: 'Month view' })
     for (let i = 0; i < 3; i++)
       await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
-    await userEvent.click(toggle)
+    // The week of 29 March holds more of April, so April opens.
+    await userEvent.click(screen.getByRole('button', { name: 'Month' }))
+    expect(screen.getByRole('grid')).toHaveAccessibleName('April 2027')
     await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Previous month' })
+    )
     await userEvent.click(day('2027-04-20'))
-    await userEvent.click(toggle)
+    await userEvent.click(screen.getByRole('button', { name: 'Week' }))
     expect(shownDays()).toContain('2027-04-20')
   })
 
@@ -1284,9 +1343,9 @@ describe('Calendar week view', () => {
         views={['week', 'month']}
       />
     )
-    await userEvent.click(screen.getByRole('button', { name: 'Month view' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Month' }))
     expect(live()).toHaveTextContent('June 2027')
-    await userEvent.click(screen.getByRole('button', { name: 'Month view' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Week' }))
     expect(live()).toHaveTextContent('Monday, 31 May to Sunday, 6 June 2027')
   })
 
@@ -1297,7 +1356,7 @@ describe('Calendar week view', () => {
 
   it('follows a controlled view', async () => {
     render(<Calendar today={TODAY} view='month' views={['week', 'month']} />)
-    await userEvent.click(screen.getByRole('button', { name: 'Month view' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Week' }))
     expect(grid()).toHaveAccessibleName('March 2027')
   })
 
@@ -1307,6 +1366,155 @@ describe('Calendar week view', () => {
       screen.getAllByRole('grid')[0]!.getAttribute('aria-labelledby')
     ).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Next week' })).toBeNull()
+  })
+})
+
+describe('Calendar switching views', () => {
+  const caption = (name: string) => screen.getByRole('grid', { name })
+  const shownDays = () =>
+    within(screen.getByRole('grid'))
+      .getAllByRole('button')
+      .map((button) => button.dataset.date)
+  const toMonth = () =>
+    userEvent.click(screen.getByRole('button', { name: 'Month' }))
+  const toWeek = () =>
+    userEvent.click(screen.getByRole('button', { name: 'Week' }))
+
+  it('opens the month of a selected day in the week', async () => {
+    render(
+      <Calendar
+        today={TODAY}
+        defaultView='week'
+        views={['week', 'month']}
+        defaultMonth='2026-11-01'
+        defaultSelected='2026-10-28'
+      />
+    )
+    expect(shownDays()[0]).toBe('2026-10-26')
+    await toMonth()
+    expect(caption('October 2026')).toBeInTheDocument()
+  })
+
+  it('opens the month of a range start in the week', async () => {
+    render(
+      <Calendar
+        mode='range'
+        today={TODAY}
+        defaultView='week'
+        views={['week', 'month']}
+        defaultMonth='2026-11-01'
+        defaultSelected={{ start: '2026-10-30', end: '2026-11-03' }}
+      />
+    )
+    await toMonth()
+    expect(caption('October 2026')).toBeInTheDocument()
+  })
+
+  it('opens the month of a focused day in the week, with nothing selected', async () => {
+    render(
+      <Calendar
+        today={TODAY}
+        defaultView='week'
+        views={['week', 'month']}
+        defaultMonth='2026-10-01'
+      />
+    )
+    for (let i = 0; i < 4; i++)
+      await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    expect(shownDays()[0]).toBe('2026-10-26')
+    act(() => day('2026-11-01').focus())
+    await toMonth()
+    expect(caption('November 2026')).toBeInTheDocument()
+  })
+
+  it('opens the month holding most of the week, with nothing chosen', async () => {
+    render(
+      <Calendar
+        today={TODAY}
+        defaultView='week'
+        views={['week', 'month']}
+        defaultMonth='2027-01-01'
+      />
+    )
+    expect(shownDays()[0]).toBe('2026-12-28')
+    await toMonth()
+    expect(caption('December 2026')).toBeInTheDocument()
+  })
+
+  it('keeps the week when a controlled view stays week', async () => {
+    const onViewChange = vi.fn()
+    render(
+      <Calendar
+        today='2027-01-01'
+        view='week'
+        views={['week', 'month']}
+        defaultMonth='2027-01-01'
+        onViewChange={onViewChange}
+      />
+    )
+    expect(shownDays()[0]).toBe('2026-12-28')
+    await toMonth()
+    expect(onViewChange).toHaveBeenLastCalledWith('month')
+    expect(shownDays()[0]).toBe('2026-12-28')
+  })
+
+  it('opens the month of the week when a parent switches the view', () => {
+    const { rerender } = render(
+      <Calendar
+        today={TODAY}
+        view='week'
+        defaultMonth='2026-11-01'
+        defaultSelected='2026-10-28'
+      />
+    )
+    rerender(
+      <Calendar
+        today={TODAY}
+        view='month'
+        defaultMonth='2026-11-01'
+        defaultSelected='2026-10-28'
+      />
+    )
+    expect(caption('October 2026')).toBeInTheDocument()
+  })
+
+  it('opens the week of a selected day, then a focused one, then the first', async () => {
+    const { unmount } = render(
+      <Calendar
+        today={TODAY}
+        views={['week', 'month']}
+        defaultMonth='2026-10-01'
+        defaultSelected='2026-10-28'
+      />
+    )
+    await toWeek()
+    expect(shownDays()[0]).toBe('2026-10-26')
+    expect(screen.getByText('October to November 2026')).toBeInTheDocument()
+    unmount()
+
+    const focused = render(
+      <Calendar
+        today={TODAY}
+        views={['week', 'month']}
+        defaultMonth='2026-10-01'
+      />
+    )
+    act(() => day('2026-10-14').focus())
+    await toWeek()
+    expect(shownDays()[0]).toBe('2026-10-12')
+    expect(screen.getByText('October 2026')).toBeInTheDocument()
+    focused.unmount()
+
+    render(
+      <Calendar
+        today={TODAY}
+        views={['week', 'month']}
+        defaultMonth='2026-10-01'
+      />
+    )
+    await toWeek()
+    expect(shownDays()[0]).toBe('2026-09-28')
+    expect(screen.getByText('September to October 2026')).toBeInTheDocument()
   })
 })
 

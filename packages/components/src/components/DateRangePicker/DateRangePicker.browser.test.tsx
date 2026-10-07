@@ -400,6 +400,74 @@ for (const [width, height] of [
         .toBe(Math.round(box(weekdays).bottom))
     })
 
+    it('scrolls to a typed start after a day is picked where the scroll rested', async () => {
+      render(
+        <Period
+          commit='apply'
+          initial={{ start: '2026-10-05', end: '2026-10-09' }}
+        />
+      )
+      await userEvent.click(trigger())
+      const drawer = await screen.findByRole('dialog')
+      const body = bodyOf(drawer)
+      const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')!
+      const october = () => drawer.querySelector('[data-month="2026-10-01"]')!
+      await expect
+        .poll(() => Math.abs(box(october()).top - box(weekdays).bottom))
+        .toBeLessThan(2)
+      body.scrollTop += 1500
+      await nudgeFrames()
+      await new Promise((resolve) => setTimeout(resolve, 300))
+      const start = within(drawer).getByRole('combobox', { name: 'Start' })
+      await userEvent.clear(start)
+      await userEvent.type(start, '6 oct 2026{Enter}')
+      await expect
+        .poll(() => Math.abs(box(october()).top - box(weekdays).bottom))
+        .toBeLessThan(2)
+      await userEvent.click(
+        october().querySelector<HTMLElement>('[data-date="2026-10-20"]')!
+      )
+      await new Promise((resolve) => setTimeout(resolve, 300))
+      expect(Math.abs(box(october()).top - box(weekdays).bottom)).toBeLessThan(
+        2
+      )
+      await userEvent.clear(start)
+      await userEvent.type(start, '3 feb 2027{Enter}')
+      const february = () => drawer.querySelector('[data-month="2027-02-01"]')!
+      await expect
+        .poll(() => Math.abs(box(february()).top - box(weekdays).bottom))
+        .toBeLessThan(2)
+    })
+
+    it('reads a quick scroll back as the month at rest', async () => {
+      render(
+        <Period
+          commit='apply'
+          initial={{ start: '2026-10-05', end: '2026-10-09' }}
+        />
+      )
+      await userEvent.click(trigger())
+      const drawer = await screen.findByRole('dialog')
+      const body = bodyOf(drawer)
+      const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')!
+      const month = (first: string) =>
+        drawer.querySelector(`[data-month="${first}"]`)!
+      const atTop = (first: string) =>
+        Math.abs(box(month(first)).top - box(weekdays).bottom)
+      await expect.poll(() => atTop('2026-10-01')).toBeLessThan(2)
+      const height = box(month('2026-10-01')).height
+      body.scrollTop += height + 40
+      await nudgeFrames()
+      body.scrollTop -= height + 40
+      await nudgeFrames()
+      await expect.poll(() => atTop('2026-10-01')).toBeLessThan(2)
+      await new Promise((resolve) => setTimeout(resolve, 300))
+      const start = within(drawer).getByRole('combobox', { name: 'Start' })
+      await userEvent.clear(start)
+      await userEvent.type(start, '3 nov 2026{Enter}')
+      await expect.poll(() => atTop('2026-11-01')).toBeLessThan(2)
+    })
+
     it('pins a weekday row as wide as the drawer, over the day columns', async () => {
       render(<Period initial={{ start: '2026-10-05', end: '2026-10-09' }} />)
       await userEvent.click(trigger())
@@ -630,6 +698,8 @@ describe('DateRangePicker finishing a range in another month', TIMEOUT, () => {
     await userEvent.click(
       within(popup).getByRole('button', { name: 'Next month' })
     )
+    // The page turns after its slide out.
+    await expect.poll(() => popup.querySelector('[data-swiping]')).toBeNull()
     await userEvent.click(day('2026-11-05'))
     expect(within(popup).getByRole('combobox', { name: 'Start' })).toHaveValue(
       '1 Oct 2026'

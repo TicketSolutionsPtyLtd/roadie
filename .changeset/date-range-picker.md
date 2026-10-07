@@ -34,4 +34,5 @@ chosen ("8 Sept to 7 Oct 2026 · 30 days"), and Periods and Calendar tabs
 switch between a list of presets, each with its dates, and Start and End over
 months that scroll under a pinned weekday row. Tapping End or Start picks
 which end the next day sets. With `commit='apply'`, Clear and Apply stay in
-view at its foot, with the header's Close as Cancel.
+view at its foot, with the header's Close as Cancel. The months scroll without
+re-rendering the picker as they pass, so the drawer holds 60fps.

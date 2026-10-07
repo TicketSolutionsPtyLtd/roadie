@@ -18,20 +18,44 @@ circle up to 48px across (or a tile, below) in the middle of its column, and a r
 edge to edge. In a popover it takes 280px a month. It shows `numberOfMonths`
 side by side where they fit and stacked where they don't, or with
 `layout='scroll'` stacks months in a list that scrolls under one pinned row of
-weekdays, adding months as it nears either end. It takes month and year
+weekdays, adding months as it nears either end. Put it in a `ScrollArea`, or a
+`Drawer` or `Pane` body. It takes month and year
 selects under `captionLayout='dropdown'`,
 `fixedWeeks`, `showOutsideDays`, `weekStart`, `startMonth` and `endMonth`,
 and a controlled `month`. The month's name sits at the start of the header
 and both arrows at the end, together even with several months.
 
-On a touch screen a swipe turns the page, the days following the finger
-unless motion is reduced, and the other way in a right-to-left page.
+On a touch screen a swipe turns the page, and a mouse or pen drags the days
+the same way; a press that moves less than 8px is still a click that chooses
+the day. Only the days move, with the next page's days coming in beside them
+as they go, and months in a row move as one strip: the weekday row, the
+month's name and the arrows hold still. Several months that don't fit side by
+side turn up and down as one column instead, as with `direction='vertical'`,
+until they fit again; the root's `data-paging` says which way it turns. Turning
+up and down, the first month's title shares a line with the arrows, one
+still weekday row sits under it, and the days move in a clipped viewport of
+their own below, so nothing slides under the title, arrows or weekdays. The arrows and Page Up and Page Down
+play the same slide. The shown and incoming pages move as one strip in one
+motion, and the month and its title land as it ends, about 320ms in (220ms
+after a lifted swipe), so a test that clicks Next and then picks a day waits
+for that. Turning up and down, each incoming month's name rides in the gap
+above its days. With Shift, or in week view, Page Up and Page Down skip past the page
+beside and turn at once. A press during a slide lands
+the turn under way first. A month picked from the selects shows at once and
+slides in. Arrow keys across a month edge, a view switch and a parent's
+`month` turn straight away, and nothing slides under reduced motion. Sideways
+turns run the other way in a right-to-left page.
 `direction='vertical'` turns the months up and down instead: the arrows
 point up and down and a finger swipes up for the next month.
 `view='week'` (with `defaultView` and `onViewChange`) shows one week as a
 row of larger days that turns a week at a time, and `views={['week',
-'month']}` adds a "Month view" toggle beside the title, or above several
-months. `getDayContent` puts
+'month']}` adds a "Week" and "Month" toggle group beside the title, or above
+several months. Where the calendar is narrow it shows only its icons, and a
+week's title shortens its month names. Switching eases between the views in
+240ms: the week's days glide, the other weeks grow out of it or fold into it
+as they fade, and the height follows, at once under reduced motion. Month
+view opens on the month of the selected day (or a range's start) in the
+week, then the focused day's, then the month holding most of the week. `getDayContent` puts
 content such as a price or a status mark under each day's number in either
 view. Every day then becomes a tile, up to 64px wide (80px in a week), that
 grows to fit; days with content are filled, the content describes the day to
@@ -40,7 +64,8 @@ without `getDayContent` keeps compact circles. Week view turns `onMonthChange`
 as its weeks leave a month, and ignores `numberOfMonths`, `fixedWeeks` and
 `showOutsideDays`. The root carries `data-view`, `data-direction` and
 `data-tiles`, and the parts carry `calendar-header`, `calendar-nav`,
-`calendar-grid`, `calendar-day-number` and `calendar-day-content` slots.
+`calendar-grid`, `calendar-days`, `calendar-day-number` and
+`calendar-day-content` slots.
 
 Focus moves separately from selection with a roving tab stop: arrows, Page
 Up and Down (with Shift for a year), Home and End. Disabled days stay
