@@ -1312,6 +1312,69 @@ describe('Calendar page turns', () => {
     expect(new Set(starts).size).toBe(1)
   })
 
+  it.each([
+    { label: 'one month up and down', direction: 'vertical', months: 1 },
+    { label: 'two months up and down', direction: 'vertical', months: 2 },
+    { label: 'two months side by side', direction: 'horizontal', months: 2 }
+  ] as const)(
+    'slides a picked month in from a whole stride away, $label',
+    async ({ direction, months }) => {
+      const animate = Element.prototype.animate
+      const spy = vi
+        .spyOn(Element.prototype, 'animate')
+        .mockImplementation(function (this: Element, frames, options) {
+          return animate.call(this, frames, {
+            ...(options as object),
+            duration: 60_000
+          })
+        })
+      onTestFinished(() => spy.mockRestore())
+      render(
+        <div className='w-200'>
+          <Calendar
+            today={TODAY}
+            direction={direction}
+            numberOfMonths={months}
+            captionLayout='dropdown'
+          />
+        </div>
+      )
+      const vertical = direction === 'vertical'
+      const at = (element: Element) => {
+        const box = element.getBoundingClientRect()
+        return vertical ? box.top : box.left
+      }
+      const parts = () => [
+        ...document.querySelectorAll('[data-swipe-part]:not([data-peek])')
+      ]
+      const gap = parseFloat(
+        getComputedStyle(
+          document.querySelector('[data-slot="calendar-months"]')!
+        ).rowGap
+      )
+      await userEvent.selectOptions(
+        screen.getAllByRole('combobox', { name: 'Month' })[0]!,
+        'May'
+      )
+      // The new page comes from where it would sit beside the first: one
+      // part on from it, or a gap past its end. Both move together, so
+      // their places differ as at rest.
+      const first = parts()[0]!
+      const stride =
+        months > 1
+          ? Math.abs(at(parts()[1]!) - at(first))
+          : first.getBoundingClientRect().height + gap
+      const start = (spy.mock.calls[0]![0] as { transform?: string }[])[0]!
+        .transform!
+      const offset = Number(
+        /translate3d\((-?[\d.]+)(?:px)?, (-?[\d.]+)(?:px)?/.exec(start)![
+          vertical ? 2 : 1
+        ]
+      )
+      expect(Math.abs(offset)).toBeCloseTo(stride, 0)
+    }
+  )
+
   it('turns straight away when a parent moves the month', () => {
     const { rerender } = render(<Calendar today={TODAY} month='2027-03-01' />)
     rerender(<Calendar today={TODAY} month='2027-04-01' />)

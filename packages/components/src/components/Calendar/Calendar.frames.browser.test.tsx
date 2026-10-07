@@ -15,8 +15,14 @@ import {
 const TODAY = '2027-03-10'
 
 let removeStylesheet = () => {}
-beforeAll(() => {
+beforeAll(async () => {
   removeStylesheet = useStylesheet(roadieCss)
+  // One turn first, so the engine's first-run costs (compiling, raising
+  // layers) don't land in the frames a test reads as the calendar's own.
+  render(<Calendar today={TODAY} direction='vertical' />)
+  await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+  await new Promise((resolve) => setTimeout(resolve, 600))
+  cleanup()
 })
 afterAll(() => removeStylesheet())
 afterEach(async () => {

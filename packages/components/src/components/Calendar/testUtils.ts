@@ -3,8 +3,9 @@ import { expect } from 'vitest'
 // The steepest the turn's easing gets, as a share of the distance per share
 // of the time.
 const STEEPEST = 1.8
-// A busy engine can paint a frame a little after its timestamp says.
-const LATE_MS = 8
+// An engine's animation clock can run up to a frame ahead of the timestamp
+// its frame reports, WebKit's especially, as it counts whole milliseconds.
+const LATE_MS = 1000 / 60
 
 type Frame = {
   time: number

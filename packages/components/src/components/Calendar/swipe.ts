@@ -354,10 +354,18 @@ export function useSwipeToTurn(
       if (step && immediate) {
         applyTurn(apply)
         if (!still) {
-          // One offset for every part, so a column of months moves as one.
-          const first = parts()[0]
-          const size = first ? sizeOf(first) : 0
-          await slide(-signOf(step) * size, 0, IN_MS, 'ease-out')
+          // One offset for every part, so a column of months moves as one:
+          // a whole stride, from where the new page would sit beside the
+          // first, so a title in the gap enters from beyond the edge too.
+          const [first, second] = parts()
+          const months = root!.querySelector(MONTHS)
+          const stride = second
+            ? Math.abs(positionOf(second) - positionOf(first!))
+            : (first ? sizeOf(first) : 0) +
+              (vertical && months
+                ? parseFloat(getComputedStyle(months).rowGap) || 0
+                : 0)
+          await slide(-signOf(step) * stride, 0, IN_MS, 'ease-out')
         }
       } else if (step) {
         pending = apply
