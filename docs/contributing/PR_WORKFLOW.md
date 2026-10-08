@@ -125,9 +125,9 @@ Every PR is checked against these before review. Fix every real hit.
 - **Demo user-visible changes before pushing.** `pnpm preview` serves the
   docs from your worktree and prints the URLs a phone can open; set
   `ROADIE_PORT_RANGE` to your session's range and extra hosts in
-  `NEXT_DEV_ORIGINS`. Post the link and phone-width screenshots, and work on
-  something else until the maintainer's OK. Tooling, CI, skills, and
-  docs-text PRs skip the demo.
+  `NEXT_DEV_ORIGINS`. Post the link and screenshots at phone and desktop
+  widths in light and dark, and work on something else until the maintainer's
+  OK. Tooling, CI, skills, and docs-text PRs skip the demo.
 - **Check the file list** (`git diff --name-only origin/main...HEAD`): no
   `.vitest/` screenshots, `test-results/`, coverage or images you didn't mean
   to add.
