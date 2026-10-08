@@ -30,6 +30,17 @@ describe('formatType', () => {
       { name: 'enum', value: [{ value: "'sm'" }, { value: "'md'" }] },
       '"sm" | "md"'
     ],
+    [
+      {
+        name: 'enum',
+        value: [{ value: '0' }, { value: '1' }, { value: 'true' }]
+      },
+      '0 | 1 | true'
+    ],
+    [
+      { name: 'enum', value: [{ value: '"sm"' }, { value: 'null' }] },
+      '"sm" | null'
+    ],
     [{ name: 'string | undefined' }, 'string'],
     [{ name: 'boolean' }, 'boolean']
   ])('formats %j', (type, expected) => {

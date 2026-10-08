@@ -66,7 +66,7 @@ export function createDocgenParser(program: ts.Program) {
 export function formatType(type: PropItem['type']) {
   if (type.value && Array.isArray(type.value)) {
     return (type.value as { value: string }[])
-      .map((v) => `"${v.value.replace(/['"]/g, '')}"`)
+      .map((v) => v.value.replace(/^(['"])(.*)\1$/, '"$2"'))
       .join(' | ')
   }
   if (type.name.includes('|')) {
