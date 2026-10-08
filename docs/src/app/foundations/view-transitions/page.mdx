@@ -78,12 +78,12 @@ Default view transitions cross-fade for 250ms. Override with a named
 ```css
 /* Slide the outgoing page up and fade it out */
 ::view-transition-old(root) {
-  animation: roadie-slide-up 200ms ease-in both;
+  animation: roadie-slide-up var(--duration-moderate) var(--ease-exit) both;
 }
 
 /* Fade the incoming page in */
 ::view-transition-new(root) {
-  animation: roadie-fade-in 300ms ease-out both;
+  animation: roadie-fade-in var(--duration-slow) var(--ease-enter) both;
 }
 
 @keyframes roadie-slide-up {
