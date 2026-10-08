@@ -147,6 +147,8 @@ These rules aren't on those pages.
 - Anything CSS decides goes in a `*.browser.test.tsx`, which runs in Chromium,
   WebKit, and Firefox. jsdom can't evaluate `calc()` or container queries, so
   don't assert rule text there.
+- Iterate on one file in one engine (`vitest run <file>`,
+  `ROADIE_BROWSERS=chromium`), then run the package once before pushing.
 - Dev-only warnings check `process.env.NODE_ENV` behind a
   `typeof process !== 'undefined'` guard
   ([why](docs/solutions/build-errors/cross-bundler-dev-env-check.md)).

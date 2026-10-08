@@ -118,6 +118,42 @@ describe('DatePicker', () => {
     expect(day('2027-03-14')).toHaveAttribute('data-selected')
   })
 
+  it('starts the calendar’s week on weekStart', async () => {
+    render(<DatePicker aria-label='Show date' today={TODAY} weekStart={7} />)
+    await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getAllByRole('columnheader')[0]).toHaveAttribute(
+      'aria-label',
+      'Sunday'
+    )
+  })
+
+  it('shows its value in the words of its locale', () => {
+    render(
+      <DatePicker
+        aria-label='Show date'
+        today={TODAY}
+        locale='de'
+        defaultValue='2026-12-03'
+      />
+    )
+    expect(screen.getByRole('combobox')).toHaveValue('Do 3 Dez 2026')
+  })
+
+  it('reads a date typed in the words of its locale', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DatePicker
+        aria-label='Show date'
+        today={TODAY}
+        locale='de'
+        onValueChange={onValueChange}
+      />
+    )
+    await userEvent.type(screen.getByRole('combobox'), '3 Dezember{Enter}')
+    expect(onValueChange).toHaveBeenCalledWith('2026-12-03')
+  })
+
   it('passes disabled matchers to the calendar and the typed field', async () => {
     render(
       <DatePicker
