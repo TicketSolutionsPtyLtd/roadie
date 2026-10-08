@@ -6,8 +6,7 @@
     "pnpm-lock.yaml",
     ".nvmrc",
     "eslint.config.js",
-    "eslint/**",
-    "docs/eslint.config.js"
+    "eslint/**"
   ],
   "tasks": {
     "prepare": {
