@@ -35,6 +35,28 @@ const settle = async () => {
 }
 const CARD_GAP = CARD_GAP_REM * 16
 
+const layout = (container: HTMLElement) =>
+  [
+    box(container).scrollTop,
+    ...cards(container).map((card) => {
+      const { top, height } = card.getBoundingClientRect()
+      return `${card.dataset.rowId} ${top} ${height}`
+    })
+  ].join()
+
+/** Waits until the cards hold still across a frame: loaded, measured, and placed. */
+async function cardsAtRest(container: HTMLElement) {
+  let last = ''
+  await expect
+    .poll(async () => {
+      const before = last
+      await settle()
+      last = layout(container)
+      return last === before
+    })
+    .toBe(true)
+}
+
 type NotedShow = TestShow & { tall: boolean; note: string }
 
 const fields = [
@@ -231,8 +253,7 @@ describe('RecordTable narrow cards in a browser', () => {
     // A jump past the cards above, so each enters from above while scrolling up.
     scroller.scrollTop = 6000
     await expect.poll(() => cards(container).length).toBeGreaterThan(0)
-    await settle()
-    await new Promise((resolve) => setTimeout(resolve, 600))
+    await cardsAtRest(container)
     while (scroller.scrollTop > 0) {
       const before = anchor(container)
       const step = Math.min(150, scroller.scrollTop)
@@ -266,7 +287,7 @@ describe('RecordTable narrow cards in a browser', () => {
         : null
     }
     await expect.poll(offset).toBeLessThanOrEqual(2)
-    await new Promise((resolve) => setTimeout(resolve, 800))
+    await cardsAtRest(container)
     expect(offset()).toBeLessThanOrEqual(2)
   })
 })

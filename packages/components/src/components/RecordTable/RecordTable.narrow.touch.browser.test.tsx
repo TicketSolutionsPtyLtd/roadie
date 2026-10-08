@@ -26,16 +26,15 @@ const columns = [
 ]
 const cardColumns = [...columns, column.field('gross', { narrow: 'detail' })]
 
-const settle = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
 const centre = (element: Element) => {
   const box = element.getBoundingClientRect()
   return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
 }
 
+// Each tap's caller waits for what it does, as its click can come later.
 async function tapOn(element: Element) {
   const { x, y } = centre(element)
   await commands.tap(x, y)
-  await settle(200)
 }
 
 function Shows({ cards = false }: { cards?: boolean }) {
@@ -68,7 +67,7 @@ describe.each([
     render(<Shows cards={cards} />)
     await expect.poll(() => records().length).toBeGreaterThan(0)
     await tapOn(within(records()[1]!).getByText('Melbourne'))
-    expect(location.hash).toBe('#tapped-show-1')
+    await expect.poll(() => location.hash).toBe('#tapped-show-1')
   })
 
   it('selects records by tap in Select mode', TIMEOUT, async () => {
@@ -76,11 +75,13 @@ describe.each([
     render(<Shows cards={cards} />)
     await expect.poll(() => records().length).toBeGreaterThan(0)
     await tapOn(screen.getByRole('button', { name: 'Select' }))
+    await screen.findByRole('button', { name: 'Done' })
     await tapOn(within(records()[0]!).getByText('Brisbane'))
-    await tapOn(within(records()[2]!).getByText('Sydney'))
-    expect(location.hash).toBe('')
     const bar = await screen.findByRole('group', { name: 'Bulk actions' })
+    await expect.poll(() => bar.textContent).toContain('1 selected')
+    await tapOn(within(records()[2]!).getByText('Sydney'))
     await expect.poll(() => bar.textContent).toContain('2 selected')
+    expect(location.hash).toBe('')
     await tapOn(within(records()[0]!).getByText('Brisbane'))
     await expect.poll(() => bar.textContent).toContain('1 selected')
   })
@@ -93,11 +94,12 @@ describe.each([
       render(<Shows cards={cards} />)
       await expect.poll(() => records().length).toBeGreaterThan(0)
       await tapOn(screen.getByRole('button', { name: 'Select' }))
+      await screen.findByRole('button', { name: 'Done' })
       const box = screen.getByTestId('box')
       const from = centre(records()[2]!)
+      // The swipe returns once the browser has handled its lift.
       await commands.swipe(from, { x: from.x, y: from.y - 200 })
-      await settle()
-      expect(box.scrollTop).toBeGreaterThan(0)
+      await expect.poll(() => box.scrollTop).toBeGreaterThan(0)
       expect(screen.queryByRole('group', { name: 'Bulk actions' })).toBeNull()
     }
   )

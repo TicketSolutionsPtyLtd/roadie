@@ -8,7 +8,8 @@ import type { DateRangeValue } from '@oztix/roadie-core/datetime'
 
 import { DateRangePicker } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { tapOn as tapAt } from '../../utils/touchTestUtils'
+import { nudgeFrames } from '../../css/testUtils'
+import { settledBox, tapOn as tapAt } from '../../utils/touchTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 
 const TIMEOUT = { timeout: 20_000 }
@@ -21,7 +22,18 @@ beforeAll(async () => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
-const settle = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
+// A swipe's fling carries on after the finger lifts; waits for it to stop.
+async function scrollRests(scroller: Element) {
+  let last = -1
+  await expect
+    .poll(async () => {
+      const before = last
+      await nudgeFrames()
+      last = scroller.scrollTop
+      return last === before
+    })
+    .toBe(true)
+}
 const box = (element: Element) => element.getBoundingClientRect()
 const day = (date: string) =>
   document.querySelector<HTMLButtonElement>(
@@ -49,8 +61,9 @@ describe('DateRangePicker tapped on a phone', TIMEOUT, () => {
     render(<Period />)
     await tapOn(screen.getByRole('button', { name: /^Choose dates/ }))
     const drawer = await screen.findByRole('dialog')
-    await settle(600)
+    await settledBox(drawer)
     await tapOn(day('2026-10-01'))
+    const body = drawer.querySelector('[data-slot="drawer-body"]')!
     const x = window.innerWidth / 2
     for (
       let swipes = 0;
@@ -59,7 +72,7 @@ describe('DateRangePicker tapped on a phone', TIMEOUT, () => {
     ) {
       const from = window.innerHeight - 200
       await commands.swipe({ x, y: from }, { x, y: from - 120 })
-      await settle(400)
+      await scrollRests(body)
     }
     await tapOn(day('2026-11-05'))
     const summary = drawer.querySelector(
@@ -104,9 +117,8 @@ describe('DateRangePicker tapped on a phone', TIMEOUT, () => {
     )
     await tapOn(screen.getByRole('button', { name: /^Choose dates/ }))
     const drawer = await screen.findByRole('dialog')
-    await settle(600)
+    await settledBox(drawer)
     await tapOn(within(drawer).getByRole('tab', { name: 'Calendar' }))
-    await settle(600)
     await expect
       .poll(() => {
         const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')
@@ -122,13 +134,14 @@ describe('DateRangePicker tapped on a phone', TIMEOUT, () => {
     render(<Period />)
     await tapOn(screen.getByRole('button', { name: /^Choose dates/ }))
     const drawer = await screen.findByRole('dialog')
-    await settle(600)
+    await settledBox(drawer)
     await tapOn(day('2026-10-01'))
     const body = drawer.querySelector<HTMLElement>('[data-slot="drawer-body"]')!
     const weekdays = drawer.querySelector('[data-slot="calendar-weekdays"]')!
     const november = drawer.querySelector('[data-month="2026-11-01"]')!
     body.scrollTop += box(november).top - box(weekdays).bottom
-    await settle()
+    // The calendar follows the scroll a frame after its scroll event.
+    await nudgeFrames()
     await tapOn(day('2026-11-05'))
     const summary = drawer.querySelector(
       '[data-slot="date-range-picker-summary"]'

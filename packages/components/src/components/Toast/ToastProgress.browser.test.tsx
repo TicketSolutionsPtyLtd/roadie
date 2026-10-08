@@ -47,7 +47,24 @@ const pausedWidth = async () => {
   await bar().getAnimations()[0]!.ready
   return width()
 }
-const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+const frames = async (count: number) => {
+  for (let frame = 0; frame < count; frame++)
+    await new Promise(requestAnimationFrame)
+}
+
+// A toast still moving in can slide out from under the pointer.
+const landed = () =>
+  waitFor(
+    () => {
+      expect(toast()).not.toHaveAttribute('data-starting-style')
+      expect(
+        toast()
+          .getAnimations()
+          .filter((animation) => animation.playState === 'running')
+      ).toHaveLength(0)
+    },
+    { timeout: 10_000 }
+  )
 
 async function hover(expanded: boolean) {
   const box = toast().getBoundingClientRect()
@@ -81,17 +98,7 @@ describe('Toast.Progress', () => {
     'runs along the bottom inside edge of a %s toast',
     async (position) => {
       await show(10_000, position)
-      await waitFor(
-        () => {
-          expect(toast()).not.toHaveAttribute('data-starting-style')
-          expect(
-            toast()
-              .getAnimations()
-              .filter((animation) => animation.playState === 'running')
-          ).toHaveLength(0)
-        },
-        { timeout: 10_000 }
-      )
+      await landed()
       const box = toast().getBoundingClientRect()
       const line = bar().getBoundingClientRect()
 
@@ -109,10 +116,12 @@ describe('Toast.Progress', () => {
 
   it('holds still while the toasts are hovered, then carries on', async () => {
     await show(6000)
-    await pause(300)
+    await landed()
     await hover(true)
+    await expect.poll(() => bar().getAnimations()[0]!.playState).toBe('paused')
     const held = await pausedWidth()
-    await pause(600)
+    // A running bar moves more than a pixel in ten frames.
+    await frames(10)
     expect(width()).toBeCloseTo(held, 0)
 
     await hover(false)
@@ -134,9 +143,15 @@ describe('Toast.Progress', () => {
     })
     ending.observe(element, { attributeFilter: ['data-ending-style'] })
     onTestFinished(() => ending.disconnect())
-    await pause(500)
+    await landed()
+    // Read while running, as a paused animation has no start time.
+    const runsOutAt = Number(animation.startTime) + 2000
     await hover(true)
-    await pause(700)
+    // Held past where an unpaused bar would have run out.
+    await expect
+      .poll(() => Number(document.timeline.currentTime), { timeout: 10_000 })
+      .toBeGreaterThan(runsOutAt)
+    expect(animation.playState).toBe('paused')
     await hover(false)
 
     const left = await waitFor(
@@ -146,8 +161,14 @@ describe('Toast.Progress', () => {
       },
       { timeout: 10_000 }
     )
-    const ranOut = await Promise.race([done, pause(2000).then(() => null)])
-    expect(ranOut, 'the bar did not run out with the toast').not.toBeNull()
+    let ranOut: number | null | undefined
+    void done.then((at) => (ranOut = at))
+    await expect
+      .poll(() => ranOut, {
+        timeout: 2000,
+        message: 'the bar did not run out with the toast'
+      })
+      .toBeTypeOf('number')
     expect(Math.abs(left - ranOut!)).toBeLessThan(400)
   })
 
