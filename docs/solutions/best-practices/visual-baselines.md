@@ -23,6 +23,10 @@ and two files that run each one at 390px and 1280px, in light and dark.
 - `a11y.browser.test.tsx` runs axe in every engine and fails on any serious
   or critical violation that isn't in `knownViolations`. Each entry there
   names a Jira ticket and leaves when the ticket is fixed.
+- The same file checks contrast with APCA, not axe's `color-contrast`
+  ([0010](../../decisions/0010-apca-contrast.md)). It reads computed colours
+  for text, icons, and chosen fills, and fails on any pair under its role's
+  minimum that isn't in `knownLowContrast`.
 - `visual.browser.test.tsx` compares each scenario with its baseline in
   `__screenshots__/`, through Vitest's `toMatchScreenshot`. It is the
   `browser visual` project, which runs in Chromium only, and only in CI or
