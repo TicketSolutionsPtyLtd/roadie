@@ -25,7 +25,8 @@ skill (MIT). The host repo's `AGENTS.md` (or `CLAUDE.md`),
 
 Never edit, check out, or build in the main checkout. Make a worktree from the
 latest base, on a branch named the way the host says, with the ticket key and
-your session's prefix (Roadie: `p1/inno-1234-short-slug`):
+your session's branch prefix (Roadie: PR workflow sections 1 and 10, so a
+phase 1 session uses `p1/inno-1234-short-slug`):
 
 ```bash
 git fetch origin
@@ -34,9 +35,10 @@ cd <path> && pnpm install --frozen-lockfile
 ```
 
 Never touch another session's branches or worktrees. Already in a worktree on
-the right branch? Carry on there. A session confined to its own worktree can't
-write to a new one, so it commits, then makes the branch there
-(`git switch -c <branch> origin/<base>`).
+the right branch? Carry on there. A session that can't create another worktree
+(a sandbox confined to its own) works in the one it has: commit anything open
+on the current branch, then `git switch -c <branch> origin/<base>` and install
+again. Never `git stash`; the stash is shared by every worktree.
 
 ## 3. Build at the seams
 
@@ -54,21 +56,16 @@ Check `uptime` before every install, build, test run, preview, and push (pushes
 run the hooks), and wait while the 1-minute load is over the host's limit
 (Roadie: PR workflow section 5). Run tests through the host's gated runner,
 never `vitest` or the whole suite directly. In Roadie, `pnpm test:gated <package>
-<file>` while iterating, then the touched browser files once with
-`--all-browsers` before handing off.
+<file>` while iterating (`<package>` is the folder, such as `components`), then
+the touched browser files once with `--all-browsers` before handing off.
 
 ## 5. Wire what's new
 
-A new public export ships from every place the host's wiring list names. In
-Roadie (`AGENTS.md`, "Wiring something new", and PR workflow section 2):
-
-- the `exports` block in the package's `package.json`;
-- a `tsdown.config.ts` entry unless a wildcard covers it, and a Size Limit
-  budget about 10% above what you measure;
-- a new `@utility` in its package's `src/css/safelist.html`;
-- a utility in a replacing family in its `cn()` group in
-  `packages/core/src/utils/cn.ts`;
-- a docs page and its index tile for a new component.
+A new public export, utility, or component ships from every place the host's
+wiring list names. Read the list each time rather than working from memory. In
+Roadie it's `AGENTS.md` "Wiring something new" (exports, tsdown entries, the
+safelist, and `cn()` groups), PR workflow section 2 (Size Limit budgets), and
+section 4 (a new component's docs page and index tile).
 
 ## 6. Rebuild dist where it's read
 
@@ -80,10 +77,10 @@ an old behaviour in the docs usually means stale `dist`.
 ## 7. Changeset
 
 When a published package's shipped output changes, add a changeset per package
-(`pnpm changeset`, or a file in `.changeset/`): `minor` for a new export,
-`patch` for a fix, written for consumers. Tests, docs, and internal tooling
-need none; say why under the PR's Checks. Follow the host's rule for a held
-release (Roadie: edit the unreleased API's existing changeset).
+(`pnpm changeset`, or a file in `.changeset/`), written for consumers, with the
+bump and held-release rules from the host workflow (Roadie: PR workflow
+section 2). Tests, docs, and internal tooling need none; say why under the
+PR's Checks.
 
 ## 8. Stop at the demo
 
