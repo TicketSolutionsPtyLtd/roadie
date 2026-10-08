@@ -57,12 +57,26 @@ if (vitestArgs.some((arg) => arg.startsWith('--maxWorkers'))) {
 }
 
 const SOURCE = /\.(?:[cm]?[jt]sx?|css)$/
+const SKIPPED_FOLDER = /^(?:\..*|node_modules|dist|coverage)$/
+
+function sourceFilesIn(folder) {
+  return readdirSync(join(cwd, folder), { withFileTypes: true }).flatMap(
+    (entry) => {
+      const path = join(folder, entry.name)
+      if (entry.isDirectory()) {
+        return SKIPPED_FOLDER.test(entry.name) ? [] : sourceFilesIn(path)
+      }
+      return entry.isFile() && SOURCE.test(entry.name) ? [path] : []
+    }
+  )
+}
 
 function withFolderContents(path) {
   if (!statSync(join(cwd, path)).isDirectory()) return [path]
-  return readdirSync(join(cwd, path), { recursive: true })
-    .map((entry) => join(path, entry))
-    .filter((file) => SOURCE.test(file) && !file.includes('node_modules'))
+  const files = sourceFilesIn(path)
+  if (files.length) return files
+  console.error(`No source files in ${pkg}: ${path || '.'}\n\n${usage}`)
+  process.exit(2)
 }
 
 const files = fileArgs.map(packageRelative).flatMap(withFolderContents)
