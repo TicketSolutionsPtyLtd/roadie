@@ -203,8 +203,8 @@ area into follow-up PRs, or closed with a written reason.
 ## 10. What agents may change
 
 - **Shared config.** CI workflows, git hooks, and `.claude/settings.json`
-  change through normal PRs when a roadmap ticket needs it. Deleting a ruleset
-  or changing branch protection needs the maintainer.
+  change through normal PRs when a roadmap ticket needs it. Creating, changing,
+  or deleting a ruleset, or changing branch protection, needs the maintainer.
 - **Skills.** A skill ships v1 once it passes the trial in its ticket's "done
   when", then improves through retros. Skill PRs follow the normal merge rule.
 - **Other repos.** Agents may move the prototype repo onto the Roadie plugin.
