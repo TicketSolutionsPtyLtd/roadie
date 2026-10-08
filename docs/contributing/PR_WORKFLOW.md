@@ -155,6 +155,8 @@ the PR only when the review is clean.
 
 ## 7. Open the PR and see it through
 
+`/roadie:shepherd` carries a draft PR through this section and section 8.
+
 - **The body is the record.** Fill in `.github/pull_request_template.md`:
   why, what changes, evidence that it works, merge danger, decisions a reader
   might question, what's out of scope (with Jira keys), and the checks run.

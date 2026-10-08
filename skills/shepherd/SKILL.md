@@ -1,0 +1,103 @@
+---
+name: shepherd
+description: Use to take an open draft PR to merged in any Oztix repo. Rebases on main, waits for CI without busy polling, marks it ready for the one Copilot pass, triages every Copilot thread (fix, reply, resolve), records Copilot precision, and merges a two-way door or hands a one-way door to the maintainer. Reads the host repo's AGENTS.md and PR workflow. Triggers on "shepherd this PR", "see this PR through", "get this merged", "mark it ready and handle Copilot".
+---
+
+# Roadie shepherd
+
+Carry one draft PR from open to merged under the host repo's PR workflow. It
+calls the other skills rather than repeating them. The host repo's
+`AGENTS.md` (or `CLAUDE.md`), `CODING_STANDARDS.md`, and PR workflow win over
+anything here.
+
+Shepherd starts from an open draft; `/roadie:pr` opens it. Never act on the
+Version Packages PR, or on a branch another session owns (in Roadie, a prefix
+other than your own).
+
+## 1. Gather
+
+- The host rules:
+  `git ls-files | grep -iE 'agents.md|claude.md|coding_standards|pr_workflow'`.
+  Note the ready gate, triage rules, follow-up rule, one-way door list, and
+  merge rule. With no workflow, use Roadie's sections 6 to 9:
+  `https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/docs/contributing/PR_WORKFLOW.md`.
+- The PR: `gh pr view <n> --json isDraft,headRefName,body,files,statusCheckRollup`.
+  Its body's Merge danger says which door it is.
+
+## 2. Stay draft until clean
+
+The local review is clean when a `/roadie:review` report shows
+"Open findings: None" and lists no "Previously missed". With no clean report,
+start `/roadie:review` in one fresh subagent with its guard brief; never
+review your own work. Fix what it leaves open test-first with
+`/roadie:test`.
+
+## 3. Wait without burning the machine
+
+- CI runs remotely, so wait, don't poll hard:
+  `gh pr checks <n> --watch --interval 60 --fail-fast`, or one check a minute
+  or slower. Report only state changes (green, red, ready, reviewed, merged,
+  blocked), never "still waiting".
+- Before anything local (install, build, tests after a rebase), check
+  `uptime` and wait while the 1-minute load is over the host's limit (in
+  Roadie, PR workflow section 5). Use the host's load-gated test runner.
+- A red check goes to `/roadie:debug`. A known flake may be re-run once
+  (`gh run rerun <id> --failed`). Never edit CI config, rulesets, or branch
+  protection to get green.
+
+## 4. Mark ready
+
+When CI is green, the review is clean, and any demo is approved:
+
+```bash
+git fetch origin && git rebase origin/main && git push --force-with-lease
+```
+
+Wait for CI again (step 3), then `gh pr ready <n>`. That triggers the one
+Copilot pass; there is no second. Poll for its review every few minutes, for
+about 30 minutes, then report blocked:
+
+```bash
+gh pr view <n> --json reviews -q '.reviews[] | select(.author.login | test("copilot")) | .state'
+```
+
+## 5. Triage every thread
+
+List unresolved threads with their ids:
+
+```bash
+gh api graphql -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){reviewThreads(first:100){nodes{id isResolved path line comments(first:20){nodes{author{login} body}}}}}}}' -F o=<owner> -F r=<repo> -F n=<n>
+```
+
+For each, by the host's severity rules, do one of these and reply on the
+thread:
+
+- **Real, fix it.** Test-first with `/roadie:test`; reply naming the commit
+  and the test. If the fix is significant (new logic, state, or API), one
+  fresh `/roadie:review` of the fix commits, not another Copilot pass.
+- **Real Minor, defer it.** File it as the host's follow-up rule says (Roadie
+  section 9) and reply with the link.
+- **Stands.** Reply with why, citing the rule or decision.
+
+Reply and resolve with
+`addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId, body})` and
+`resolveReviewThread(input:{threadId})` through `gh api graphql`. Copilot
+comments outside threads get a PR comment.
+
+Add one line to the body's Evidence, updated with `/roadie:pr`:
+"Copilot: N of M findings real", where real is fixed or filed and the rest
+stood. Zero findings is "Copilot: 0 findings".
+
+## 6. Merge or hand off
+
+Rebase on `origin/main` again if `main` moved, and wait for CI. Then check
+the host's merge rule. In Roadie (section 8): CI green, file list clean,
+review clean, every thread resolved, and consumer changes in the changeset.
+
+- **Two-way door, every condition met:**
+  `gh pr merge <n> --squash --delete-branch`. Repos without auto-merge need
+  this run by hand once green, never before. Then remove the local worktree
+  and branch.
+- **One-way door, a failed condition, or no merge rule:** don't merge. Post
+  one PR comment naming what's done and what waits for the maintainer, and
+  report the same line.
