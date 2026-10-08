@@ -119,7 +119,8 @@ Every PR is checked against these before review. Fix every real hit.
   `pnpm test:gated <package>`, never vitest or `pnpm test` directly. It
   waits for the load, runs the changed tests in Chromium on half the cores,
   and stops after 10 minutes. Run `--all-browsers` once before pushing, and
-  let CI run the full matrix. Give browser tests explicit timeouts and never
+  let CI run the full matrix. The pre-push hook also waits for the load before
+  it typechecks and tests, and fails the push after 30 minutes. Give browser tests explicit timeouts and never
   wait on an infinite animation. Stop dev servers you start, and run
   `pnpm cleanup` (`--delete` to delete) when disk runs low.
 - **Demo user-visible changes before pushing.** `pnpm preview` serves the

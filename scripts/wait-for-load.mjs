@@ -1,3 +1,8 @@
 import { waitForLoad } from './lib/machine.mjs'
 
-await waitForLoad()
+try {
+  await waitForLoad()
+} catch (error) {
+  console.error(error.message)
+  process.exit(1)
+}
