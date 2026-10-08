@@ -50,9 +50,10 @@ jobs:
       - name: Check PR size
         if: github.event_name == 'pull_request'
         run: |
-          report=$(node scripts/check-pr-size.mjs --base HEAD^1 2>&1) || true
+          status=0
+          report=$(node scripts/check-pr-size.mjs --base HEAD^1 2>&1) || status=$?
           echo "$report"
-          if [[ $report != "PR size OK:"* ]]; then
+          if ((status != 0)) || [[ $report != "PR size OK:"* || $report == *$'\n'* ]]; then
             report=${report//'%'/%25}
             report=${report//$'\r'/%0D}
             report=${report//$'\n'/%0A}
