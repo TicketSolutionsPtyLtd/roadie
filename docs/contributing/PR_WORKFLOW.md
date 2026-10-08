@@ -120,15 +120,16 @@ Every PR is checked against these before review. Fix every real hit.
   waits for the load, runs the changed tests in Chromium on half the cores,
   and stops after 10 minutes. Run `--all-browsers` once before pushing, and
   let CI run the full matrix. The pre-push hook also waits for the load before
-  it typechecks and tests, and fails the push after 30 minutes. Give browser tests explicit timeouts and never
-  wait on an infinite animation. Stop dev servers you start, and run
+  it typechecks and tests, and fails the push after 30 minutes. Give browser
+  tests explicit timeouts and never wait on an infinite animation. Stop dev servers you start, and run
   `pnpm cleanup` (`--delete` to delete) when disk runs low.
 - **Demo user-visible changes before pushing.** `pnpm preview` serves the
   docs from your worktree and prints the URLs a phone can open; set
   `ROADIE_PORT_RANGE` to your session's range and extra hosts in
-  `NEXT_DEV_ORIGINS`. Post the link and screenshots at phone and desktop
-  widths in light and dark, and work on something else until the maintainer's
-  OK. Tooling, CI, skills, and docs-text PRs skip the demo.
+  `NEXT_DEV_ORIGINS`. Send the link to the maintainer in a session message,
+  never in the PR. Put screenshots at phone and desktop widths in light and
+  dark in the PR (section 7), and work on something else until the
+  maintainer's OK. Tooling, CI, skills, and docs-text PRs skip the demo.
 - **Check the file list** (`git diff --name-only origin/main...HEAD`): no
   `.vitest/` screenshots, `test-results/`, coverage or images you didn't mean
   to add.
@@ -163,6 +164,19 @@ the PR only when the review is clean.
   might question, what's out of scope (with Jira keys), and the checks run.
   `/roadie:pr` writes it. Keep it short and true when merged; the squash
   commit carries it into `git log`.
+- **The repo is public.** Anyone can read PRs, comments, commits, docs, and
+  screenshots. Never put Tailscale hostnames or tailnet names, LAN or private
+  IPs, local paths (`/Users/…`), tokens, internal-only Oztix data, or real
+  customer, venue, or person names in any of them
+  ([`EXAMPLE_DATA.md`](EXAMPLE_DATA.md) applies). Preview links go to the
+  maintainer only in session messages.
+- **Evidence renders inline on GitHub**, because the maintainer reviews on a
+  phone. Take viewport-only screenshots, with no browser chrome, address bar,
+  or local URL. Push them to an orphan branch named
+  `<prefix>/<topic>-screenshots` that holds only the images, and embed them in
+  the body with `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`.
+  Never link local files, gists, or artifacts. For baselines CI renders, link
+  the run and embed a few representative images.
 - **Open it as a draft** (`gh pr create --draft`). Copilot reviews once, when
   the PR is marked ready, and skips drafts. Run `gh pr ready` only after CI is
   green, the local review is clean and any demo is approved.
@@ -195,7 +209,9 @@ the PR only when the review is clean.
 ## 8. Merge
 
 An agent merges a two-way-door PR itself (squash, delete the branch) once all
-of these hold. A one-way door (section 7) waits for the maintainer.
+of these hold. Squashing copies the body into the commit message, so read that
+message for private details (section 7) just before merging, and edit it if a
+privacy fix landed after the PR opened. A one-way door (section 7) waits for the maintainer.
 
 - CI is green.
 - The file list is clean.
