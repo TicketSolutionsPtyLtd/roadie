@@ -7,8 +7,15 @@ const STEEPEST = 1.8
 // its frame reports, WebKit's especially, as it counts whole milliseconds.
 const LATE_MS = 1000 / 60
 
+// WebKit lays out a running animation at the moment it's read, not at the
+// frame's time as Chromium and Firefox do, so a frame read late shows the days
+// further on. A read shows a moment between its frame's time and its end.
+const elapsed = (before: { time: number }, now: { readEnd: number }) =>
+  now.readEnd - before.time
+
 type Frame = {
   time: number
+  readEnd: number
   title: string
   days: Map<string, number>
 }
@@ -30,7 +37,7 @@ export async function recordFrames(vertical: boolean, start: () => unknown) {
     }
     const title =
       root().querySelector('[id$="-caption-0"]')?.textContent?.trim() ?? ''
-    frames.push({ time, title, days })
+    frames.push({ time, readEnd: performance.now(), title, days })
   }
   let turning = false
   let after = 0
@@ -69,8 +76,7 @@ export function expectOneContinuousMotion(
     const before = frames[i - 1]!
     const now = frames[i]!
     const limit =
-      (STEEPEST * distance * (now.time - before.time + LATE_MS)) / durationMs +
-      1
+      (STEEPEST * distance * (elapsed(before, now) + LATE_MS)) / durationMs + 1
     for (const [date, at] of now.days) {
       const was = before.days.get(date)
       if (was === undefined) continue
@@ -97,6 +103,7 @@ export function expectOneContinuousMotion(
 type Shape = { x: number; y: number; opacity: number }
 type ShapeFrame = {
   time: number
+  readEnd: number
   days: Map<string, Shape>
   leaving: Shape[]
   height: number
@@ -128,7 +135,7 @@ export async function recordShapes(start: () => unknown) {
     const height = root()
       .querySelector('[data-slot="calendar-months"]')!
       .getBoundingClientRect().height
-    frames.push({ time, days, leaving, height })
+    frames.push({ time, readEnd: performance.now(), days, leaving, height })
   }
   let moving = false
   let after = 0
@@ -178,13 +185,11 @@ export function expectOneReshape(
     for (const axis of ['x', 'y'] as const) {
       const distance = Math.abs(path.at(-1)![axis] - path[0]![axis])
       for (let i = 1; i < path.length; i++) {
-        const elapsed = frames[i]!.time - frames[i - 1]!.time
+        const time = elapsed(frames[i - 1]!, frames[i]!) + LATE_MS
         expect(
           Math.abs(path[i]![axis] - path[i - 1]![axis]),
           `${date} ${axis} at frame ${i}`
-        ).toBeLessThanOrEqual(
-          (steepest * distance * (elapsed + LATE_MS)) / durationMs + 1
-        )
+        ).toBeLessThanOrEqual((steepest * distance * time) / durationMs + 1)
       }
       monotonic(
         path.map((shape) => shape[axis]),
