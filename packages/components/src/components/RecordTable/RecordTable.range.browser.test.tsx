@@ -649,6 +649,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
 
   it('never jumps back to an echo of a row it reported', async () => {
     const reported: number[] = []
+    const echoed: number[] = []
     function Echoing() {
       const [position, setPosition] = useState<RecordPosition>({})
       const [data, setData] = useState<(TestShow | undefined)[]>([])
@@ -673,7 +674,10 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
             onPositionChange={(next) => {
               reported.push(next.row)
               // An async router applies each URL some time after the push.
-              setTimeout(() => setPosition(next), 400)
+              setTimeout(() => {
+                setPosition(next)
+                echoed.push(next.row)
+              }, 400)
             }}
             loadRange={({ start, end }) =>
               setData((current) =>
@@ -692,7 +696,8 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     // Moves on before the router echoes the first row back.
     scroller.scrollTop = 150 * ROW_HEIGHT
     await framed(() => reported.length).toBe(2)
-    await wait(1000)
+    await framed(() => echoed.length).toBe(2)
+    await nudgeFrames()
     expect(scroller.scrollTop).toBe(150 * ROW_HEIGHT)
     expect(reported).toHaveLength(2)
     expect(reported.at(-1)).toBe(firstVisible(container))

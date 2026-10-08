@@ -652,10 +652,10 @@ describe('RecordTable narrow list rows by role in a browser', () => {
   ])('keeps only the title strong in %s', (_, columns) => {
     inBox(<RecordTable {...six} columns={columns} />)
     const [first] = itemsOf()
-    const strong = (text: string) =>
-      within(first!).getByText(text).closest('.font-semibold, .text-strong')
-    expect(strong('Ocean Alley 1')).not.toBeNull()
-    expect(strong('Brisbane')).toBeNull()
+    const weight = (text: string) =>
+      Number(getComputedStyle(within(first!).getByText(text)).fontWeight)
+    expect(weight('Ocean Alley 1')).toBeGreaterThanOrEqual(600)
+    expect(weight('Brisbane')).toBeLessThan(600)
   })
 })
 
