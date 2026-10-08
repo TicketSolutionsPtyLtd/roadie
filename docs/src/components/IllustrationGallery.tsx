@@ -18,7 +18,7 @@ export function IllustrationGallery() {
     .sort(([a], [b]) => a.localeCompare(b))
 
   return (
-    <div className='mb-8 flex flex-wrap gap-4'>
+    <div data-not-prose className='flex flex-wrap gap-4'>
       {illustrations.map(([name, Component]) => (
         <div key={name} className='grid w-24 justify-items-center gap-1'>
           {createElement(Component as React.ComponentType)}

@@ -342,7 +342,10 @@ export default function LiveRunner({
       language={highlightLanguage}
     >
       {expandable && !isolated && (
-        <div className='flex justify-end border-b border-subtle bg-normal p-2 max-md:hidden'>
+        <div
+          data-not-prose
+          className='flex justify-end border-b border-subtle bg-normal p-2 max-md:hidden'
+        >
           <FullWidthPreview />
         </div>
       )}
@@ -360,7 +363,10 @@ export default function LiveRunner({
               `min-w-0 overflow-x-auto overflow-y-hidden bg-normal font-sans whitespace-normal ${isBleedX ? 'py-4 sm:py-6' : 'px-4 py-4 sm:px-6 sm:py-6'}`
         }
       />
-      <LiveError className='bg-subtler px-4 py-3 text-sm text-subtle intent-danger' />
+      <LiveError
+        data-not-prose
+        className='bg-subtler px-4 py-3 text-sm text-subtle intent-danger'
+      />
       {!isolated && (
         <CodePanel
           code={code}

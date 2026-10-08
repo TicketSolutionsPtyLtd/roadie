@@ -70,7 +70,7 @@ export function CartExpiryDialogsDemo() {
   }
 
   return (
-    <div className='mb-8'>
+    <div data-not-prose>
       <Card emphasis='normal'>
         <Card.Content className='grid gap-4'>
           <Tabs

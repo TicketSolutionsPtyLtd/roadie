@@ -85,7 +85,7 @@ export function CartDrawerParityDemo() {
   }
 
   return (
-    <div className='mb-8'>
+    <div data-not-prose>
       <Card emphasis='normal'>
         <Card.Content className='grid gap-4'>
           {/* Tab + everything it affects live together in the card, so it reads

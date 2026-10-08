@@ -105,7 +105,7 @@ export function CartContentsParityDemo() {
   }
 
   return (
-    <div className='mb-8'>
+    <div data-not-prose>
       <Card emphasis='normal'>
         <Card.Content className='grid gap-4'>
           {/* Tabs + controls + the framed cart all live in the card, so it reads

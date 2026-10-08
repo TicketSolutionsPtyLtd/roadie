@@ -22,7 +22,10 @@ function GuidelineCard({
   return (
     <div className='grid overflow-hidden'>
       {hasVisual && (
-        <div className='grid rounded-t-xl border-x border-t border-subtler'>
+        <div
+          data-not-prose
+          className='grid rounded-t-xl border-x border-t border-subtler'
+        >
           {example && (
             <div className='grid min-h-40 place-content-center p-4'>
               {example}
@@ -41,7 +44,10 @@ function GuidelineCard({
       <div
         className={`${isDo ? 'intent-success' : 'intent-danger'} grid min-h-32 content-start gap-2 rounded-b-xl border-t-3 border-strong bg-subtle p-4`}
       >
-        <p className='flex items-center gap-2 text-display-ui-6 text-strong'>
+        <p
+          data-not-prose
+          className='flex items-center gap-2 text-display-ui-6 text-strong'
+        >
           <Icon weight='fill' className='size-5 text-subtle' />
           {isDo ? 'Do' : 'Don\u2019t'}
         </p>
@@ -97,10 +103,14 @@ export function Guideline({
   children: ReactNode
 }) {
   const Heading = headingLevel === 3 ? 'h3' : 'h4'
+  // Only the chrome escapes `.prose`; the MDX guidance inside the cards stays
+  // in it, so its inline code and links match the rest of the page.
   return (
     <div data-slot='guideline' className='grid gap-2'>
-      <Heading className='text-display-ui-5 text-strong'>{title}</Heading>
-      {description && <p className='text-sm text-subtle'>{description}</p>}
+      <div data-not-prose className='grid gap-2'>
+        <Heading className='text-display-ui-5 text-strong'>{title}</Heading>
+        {description && <p className='text-sm text-subtle'>{description}</p>}
+      </div>
       <div className='grid gap-4 sm:grid-cols-2'>{children}</div>
     </div>
   )

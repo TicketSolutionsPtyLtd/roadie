@@ -24,7 +24,7 @@ import { Prose } from '@oztix/roadie-components/prose'
 
 ### Default
 
-```tsx-live
+```tsx-live-prose
 <Prose>
   <h2>Ochre Kite Weekender 2026</h2>
   <p>
@@ -48,7 +48,7 @@ import { Prose } from '@oztix/roadie-components/prose'
 dense content such as an FAQ or a sidebar. `md` is the default. `lg` sets
 larger body text for editorial pages. Both use the prose heading styles.
 
-```tsx-live
+```tsx-live-prose
 <div className='grid gap-8'>
   <Prose size='sm'>
     <h3>Can I change the name on my ticket?</h3>
@@ -74,7 +74,7 @@ Each size only sets `--prose-*` variables, so a class such as
 Use `render` to draw Prose as a semantic element. The deprecated `as` prop
 still works the same way.
 
-```tsx-live
+```tsx-live-prose
 <Prose render={<article />}>
   <h2>Conditions of entry</h2>
   <p>
@@ -89,7 +89,7 @@ still works the same way.
 Tables shrink to fit their content. Wrap one that might be wider than the
 column in `.prose-scroll`, so it scrolls sideways instead of overflowing.
 
-```tsx-live
+```tsx-live-prose
 <Prose>
   <div className='prose-scroll'>
     <table>
@@ -127,7 +127,7 @@ keeps its place in the rhythm.
 A button or link button that renders an `<a>` inside Prose gets the prose
 underline. Wrap it in `.not-prose` to keep its own styles.
 
-```tsx-live
+```tsx-live-prose
 <Prose>
   <p>Tickets go on sale Friday at 9am.</p>
   <div className='not-prose flex flex-wrap gap-2'>

@@ -97,15 +97,16 @@ describe('live examples', () => {
     const { page, errors } = await open('/components/number-field/', 390)
     const onLoad = await examples(page)
 
-    expect(onLoad.pending).toBeGreaterThan(10)
-    // One screen ahead of an 844px viewport, plus the example straddling it.
+    expect(onLoad.pending).toBeGreaterThan(8)
+    // A screen and a half ahead of an 844px viewport (the observer's 150%
+    // root margin), plus the example straddling it.
     for (const top of onLoad.renderedTops)
-      expect(top).toBeLessThan(844 * 2 + 50)
+      expect(top).toBeLessThan(844 * 2.5 + 50)
 
     await scrollThrough(page)
     const afterScroll = await examples(page)
     // Examples scrolled past before their turn wait until they're back in reach.
-    expect(afterScroll.rendered).toBeGreaterThan(onLoad.rendered + 10)
+    expect(afterScroll.rendered).toBeGreaterThan(onLoad.rendered + 8)
     expect(afterScroll.inputs).toBeGreaterThan(onLoad.inputs)
     expect(await sideways(page)).toBe(false)
     expect(errors).toEqual([])

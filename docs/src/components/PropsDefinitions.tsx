@@ -661,7 +661,7 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
   if (!sortedComponents.length) return null
 
   return (
-    <div className='mt-8 grid gap-8 pt-8'>
+    <div data-not-prose className='mt-8 grid gap-8 pt-8'>
       <h2 className='text-xl font-bold'>API reference</h2>
       {sortedComponents.map((componentInfo) => {
         const grouped = groupPropsBySource(
