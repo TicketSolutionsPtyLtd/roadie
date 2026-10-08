@@ -9,8 +9,10 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   sitting. Split a large change into a sequence that leaves `main` working
   after each step.
 - **Branch from the latest `main`** in its own worktree:
-  `git worktree add ../roadie-<slug> -b <branch> origin/main`, then
-  `pnpm install --frozen-lockfile`.
+  `git worktree add ../roadie-<slug> -b <prefix>/<slug> origin/main`, then
+  `pnpm install --frozen-lockfile`. Never edit, check out, or build in the main
+  checkout; it stays on `main`. Remove the worktree and branch once the PR
+  merges.
 - **Agree the intent before any code** for new components and system-level
   APIs. Don't commit plan or spec files: they bloat the diff and go stale.
   - **One PR:** the PR description is the plan and the record (section 7).
@@ -211,3 +213,8 @@ area into follow-up PRs, or closed with a written reason.
   propose the exact change and wait for their OK.
 - **Sessions.** Run agents as local sessions only, never as cloud sessions
   billed on API tokens.
+- **Parallel sessions.** Each session has a branch prefix and a dev server
+  port range, and never touches another session's branches or worktrees: phase
+  0 uses `p0/` and ports 3100 to 3199, phase 1 `p1/` and 3200 to 3299, and docs
+  typeset `ts/` and 3300 to 3399. Rebase on `origin/main` before marking a PR
+  ready.
