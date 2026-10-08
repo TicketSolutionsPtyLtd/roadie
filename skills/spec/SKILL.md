@@ -102,3 +102,5 @@ scratch file, or the draft PR body. The implementer builds test-first at the
 named seams with `/roadie:test`, runs the demo, and opens the PR with
 `/roadie:pr`. A spec that turns out wrong is updated where it was posted,
 with the change under Decisions, not worked around.
+
+The next step is `/roadie:implement`, which builds from this spec.
