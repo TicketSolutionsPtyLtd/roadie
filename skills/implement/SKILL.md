@@ -34,6 +34,9 @@ git worktree add <path> -b <prefix>/<ticket>-<slug> origin/<base>
 cd <path> && pnpm install --frozen-lockfile
 ```
 
+In an npm repo (a `package-lock.json` and no `pnpm-lock.yaml`), install with
+`npm ci` instead, and read `pnpm` below as `npm`.
+
 Never touch another session's branches or worktrees. Already in a worktree on
 the right branch? Carry on there. A session that can't create another worktree
 (a sandbox confined to its own) works in the one it has: commit anything open
@@ -84,15 +87,19 @@ PR's Checks.
 
 ## 8. Stop at the demo
 
-Before handing off: typecheck and lint the touched packages, check the file
-list (`git diff --name-only origin/<base>...HEAD`) for stray screenshots or
-output, and commit with the ticket key. Don't push yet.
+Before handing off: typecheck and lint the touched packages, check
+`git status --short` for stray screenshots or output before you stage, commit
+with the ticket key, then check the branch's file list
+(`git diff --name-only origin/<base>...HEAD`). Don't push yet.
 
-- A user-visible change goes to `/roadie:demo`, which previews it and waits for
-  the OK before any push.
+Then `/roadie:review` in a fresh subagent, since the host wants a clean review
+before anything is pushed (Roadie: PR workflow section 6).
+
+- A user-visible change then goes to `/roadie:demo`, which previews it and
+  waits for the OK before any push.
 - Anything else ends with the spec's trial or check, and its result goes in
   Evidence.
 
-Then `/roadie:review` in a fresh subagent, `/roadie:pr` for the draft, and
-`/roadie:shepherd` to merge. Report the branch, the tests and what each
+Then `/roadie:pr` for the draft, and `/roadie:shepherd` to merge under the
+host's merge rule. Report the branch, the tests and what each
 proves, the runs you made, and anything you decided under Decisions.
