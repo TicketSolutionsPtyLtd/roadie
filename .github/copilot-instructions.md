@@ -3,8 +3,9 @@
 Roadie is Oztix's design system: a pnpm/Turborepo monorepo with CSS tokens
 and utilities (`packages/core`), React components on Base UI
 (`packages/components`), charts (`packages/charts`) and a Next.js docs site
-(`docs`). `AGENTS.md` is the full rulebook; `docs/contributing/PR_WORKFLOW.md`
-is the process.
+(`docs`). `AGENTS.md` holds the core rules, the docs foundations pages and
+`docs/contributing/CODING_STANDARDS.md` hold the detail, and
+`docs/contributing/PR_WORKFLOW.md` is the process.
 
 ## Review priorities
 
@@ -36,7 +37,7 @@ ESLint already enforce.
   never import `next/link` inside packages.
 - Forms: `Field` wraps every control and owns invalid/required/disabled.
 - CSS after a `:has()` must end on a class, a variable or a rare attribute
-  (styling rule 8); a guard test enforces it.
+  (AGENTS.md, Selectors); a guard test enforces it.
 - Public CVA props are typed as inline literal unions, not
   `VariantProps<…>['x']`. Booleans are bare adjectives (`disabled`,
   `combined`), never `is*`.

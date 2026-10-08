@@ -81,7 +81,9 @@ export default [
     }
   },
   {
-    // Sortable's drag library stays behind one folder, so it can be swapped.
+    // Third-party engines stay behind one file or folder, so they can be
+    // swapped. TanStack uses the typescript-eslint copy of the rule so each
+    // boundary keeps its own exceptions.
     files: ['packages/components/src/**/*.{ts,tsx}'],
     ignores: ['packages/components/src/components/Sortable/dnd/**'],
     rules: {
@@ -92,6 +94,47 @@ export default [
             {
               group: ['@atlaskit/*'],
               message: 'Import the drag library only in Sortable/dnd.'
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    files: ['packages/components/src/**/*.{ts,tsx}'],
+    ignores: ['packages/components/src/components/RecordTable/rowWindow.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@tanstack/*'],
+              message:
+                'Import @tanstack/react-virtual only in RecordTable/rowWindow.ts.'
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    files: ['packages/charts/src/**/*.{ts,tsx}'],
+    ignores: [
+      'packages/charts/src/plot/**',
+      'packages/charts/src/static/**',
+      'packages/charts/src/**/definition.ts',
+      'packages/charts/src/**/definition.test.{ts,tsx}'
+    ],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@tanstack/*'],
+              message:
+                "Import TanStack only in plot/, static/, and each chart's definition.ts."
             }
           ]
         }

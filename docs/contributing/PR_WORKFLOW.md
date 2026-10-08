@@ -44,6 +44,8 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   about 10% above what you measure (`.size-limit.json`, or the `size-limit`
   field in `package.json` for core and widgets). New `@utility` classes also
   go in `src/css/safelist.html`.
+- **Changing Turbo config?** Read the installed turbo's `docs/README.md`
+  first; the installed version may differ from what you know.
 - **Changesets.** `minor` for a new export, `patch` for a fix, per package
   touched. While a release is held, edit the existing changeset of an
   unreleased API rather than adding a "breaking" entry for something nobody
@@ -57,8 +59,8 @@ Every PR is checked against these before review. Fix every real hit.
   interaction utilities, layout (grid first, `gap` not margin), shape tiers,
   iconography (bold Phosphor, `Icon` suffix, Tailwind sizing), typography
   (raw elements with `text-display-*`), linking (`href`, never `next/link`
-  inside `packages/`; the docs app may use it), forms (`Field` wraps every control), styling rule 8 for
-  `:has()`, and the code-quality rules.
+  inside `packages/`; the docs app may use it), forms (`Field` wraps every
+  control), the `:has()` selector rule, and the code rules.
 - **[`CODING_STANDARDS.md`](CODING_STANDARDS.md)**: the reviewer's
   judgement rules.
 - **Foundations pages** in `docs/src/app/foundations/` for the area you

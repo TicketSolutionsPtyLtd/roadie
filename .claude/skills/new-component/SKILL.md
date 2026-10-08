@@ -10,8 +10,9 @@ actual patterns live in reference docs. Read them first, then execute.
 
 ## Required reading (before writing code)
 
-1. [`AGENTS.md`](../../../AGENTS.md) — overall patterns (intent/emphasis, CVA,
-   layout, shape, typography, interaction utilities).
+1. [`AGENTS.md`](../../../AGENTS.md) — the core rules (intent, emphasis, layout,
+   shape, icons, text, interaction utilities). `Badge/index.tsx` is the cva
+   reference.
 2. [`docs/contributing/COMPOUND_PATTERNS.md`](../../../docs/contributing/COMPOUND_PATTERNS.md)
    — **required** for any component with sub-components. Canonical reference
    for the per-file leaf layout, server-safe `index.tsx` property
@@ -43,7 +44,7 @@ actual patterns live in reference docs. Read them first, then execute.
 1. **Create** `packages/components/src/components/{Name}/index.tsx` following the patterns in `AGENTS.md` and one of the reference components above.
    - **`data-slot={name}`** on the rendered root element (kebab-case, same as the subpath). Non-negotiable.
    - If wrapping a Base UI primitive, use the skeleton in `BASE_UI.md` §11.
-2. **Test** `packages/components/src/components/{Name}/{Name}.test.tsx`. Assert CVA class names and behaviour. Default intent should NOT appear on default render.
+2. **Test** `packages/components/src/components/{Name}/{Name}.test.tsx`. Test behaviour, roles, and states through the public props, not class strings (see `CODING_STANDARDS.md`). Don't set a default intent; the component takes its colour from the nearest `intent-*` ancestor.
 3. **Export** from `packages/components/src/index.tsx`:
    ```tsx
    export { Foo, fooVariants, type FooProps } from './components/Foo'
