@@ -116,6 +116,23 @@ describe.each(EMPHASES)('the %s sliding pill', (emphasis) => {
     await expectPillOver('7 days')
     expect(rectOf(indicator()).top).toBeLessThan(before.top)
   })
+
+  it('follows the pressed item onto a wrapped row', async () => {
+    render(
+      <div className='w-40'>
+        <DateRange
+          emphasis={emphasis}
+          className='flex w-full flex-wrap rounded-2xl *:flex-1'
+        />
+      </div>
+    )
+    await expectPillOver('30 days')
+    const before = rectOf(indicator())
+
+    await userEvent.click(screen.getByRole('button', { name: 'Last 90 days' }))
+    await expectPillOver('Last 90 days')
+    expect(rectOf(indicator()).top).toBeGreaterThan(before.top)
+  })
 })
 
 it('keeps the same height at every emphasis', () => {

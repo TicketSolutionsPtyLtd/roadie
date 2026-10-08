@@ -177,6 +177,21 @@ Stretch the track and the segments share the space equally.
 </ToggleGroup>
 ```
 
+#### Wrapping
+
+When the options come from somewhere you don't control, such as an app's comparison periods, let the track wrap onto more rows. `flex flex-wrap` replaces the grid, `*:flex-1` lets each row share its width, and `rounded-2xl` replaces the pill shape, which can't hold two rows. The pill follows the pressed item onto any row. For more than five options, or long labels, use `Select` or `RadioGroup`.
+
+```tsx-live
+<div className='max-w-sm'>
+  <ToggleGroup className='flex w-full flex-wrap rounded-2xl *:flex-1' aria-label='Compare with' defaultValue={['year']}>
+    <ToggleGroup.Item value='none'>No comparison</ToggleGroup.Item>
+    <ToggleGroup.Item value='period'>Previous period</ToggleGroup.Item>
+    <ToggleGroup.Item value='year'>Previous year</ToggleGroup.Item>
+    <ToggleGroup.Item value='tour'>Last tour</ToggleGroup.Item>
+  </ToggleGroup>
+</div>
+```
+
 #### Controlled dashboard range
 
 `value` is always an array. In single mode it holds one item.
