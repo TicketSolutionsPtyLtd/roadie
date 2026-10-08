@@ -36,7 +36,7 @@ review your own work. Fix what it leaves open test-first with
 
 - CI runs remotely, so wait, don't poll hard:
   `gh pr checks <n> --watch --interval 60 --fail-fast`, or one check a minute
-  or slower. Report only state changes (green, red, ready, reviewed, merged,
+  or slower. Green means every check passed or was skipped. Report only state changes (green, red, ready, reviewed, merged,
   blocked), never "still waiting".
 - Before anything local (install, build, tests after a rebase), check
   `uptime` and wait while the 1-minute load is over the host's limit (in
@@ -81,8 +81,18 @@ thread:
 
 Reply and resolve with
 `addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId, body})` and
-`resolveReviewThread(input:{threadId})` through `gh api graphql`. Copilot
-comments outside threads get a PR comment.
+`resolveReviewThread(input:{threadId})` through `gh api graphql`.
+
+Copilot can also leave findings only in its review body, with no inline
+thread, so read the body too:
+
+```bash
+gh pr view <n> --json reviews -q '.reviews[] | select(.author.login | test("copilot")) | .body'
+```
+
+A body finding that links to a `#discussion_r` thread is that thread's
+finding; count it once. Triage the rest the same way and answer them in one
+PR comment.
 
 Add one line to the body's Evidence, updated with `/roadie:pr`:
 "Copilot: N of M findings real", where real is fixed or filed and the rest
@@ -90,14 +100,23 @@ stood. Zero findings is "Copilot: 0 findings".
 
 ## 6. Merge or hand off
 
-Rebase on `origin/main` again if `main` moved, and wait for CI. Then check
-the host's merge rule. In Roadie (section 8): CI green, file list clean,
-review clean, every thread resolved, and consumer changes in the changeset.
+If `main` moved (`git merge-base --is-ancestor origin/main HEAD` fails after
+a fetch), rebase locally as in step 4 and wait for CI. Don't rely on
+`gh pr update-branch --rebase`: it fails on any conflict. Resolve conflicts
+keeping both sides' intent, then rerun the host's checks for those files.
+
+Then check the host's merge rule. In Roadie (section 8): CI green, the branch
+up to date with `main`, the file list clean, the review clean, no unresolved
+thread, and consumer changes in the changeset.
 
 - **Two-way door, every condition met:**
-  `gh pr merge <n> --squash --delete-branch`. Repos without auto-merge need
-  this run by hand once green, never before. Then remove the local worktree
-  and branch.
-- **One-way door, a failed condition, or no merge rule:** don't merge. Post
-  one PR comment naming what's done and what waits for the maintainer, and
-  report the same line.
+  `gh pr merge <n> --squash --delete-branch`, run by hand once every condition
+  holds. Never `--auto`, since GitHub can't check the whole merge rule. Then
+  remove the local worktree and branch.
+- **A failed condition:** fix it and go back to the step it belongs to.
+- **One-way door, a limit on what agents may change, or no merge rule:**
+  don't merge. Post one PR comment naming what's done and what waits for the
+  maintainer, and report the same line.
+
+Any other open call is decided, not handed off: pick the recommended option,
+record it in the body's Decisions, and carry on (Roadie section 1).
