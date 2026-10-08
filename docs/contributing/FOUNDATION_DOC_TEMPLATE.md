@@ -9,8 +9,9 @@ its `/tokens/` page, and every component API is on its component page.
 ## Structure
 
 The skeleton comes from the sections the visual foundations share. Keep the
-order and only the sections that apply. A topic with no slot, such as Dark
-mode on Colors, gets its own `##` section before Guidelines.
+order and only the sections that apply. A topic of the page's own, such as
+Component usage on Shape or Dark mode on Colors, gets a `##` section named
+for it, after the scale or utilities it builds on and before Guidelines.
 
 ````mdx
 export const metadata = {
@@ -33,6 +34,14 @@ What the scale is for, then the docs component that renders it.
 | --------- | ------------ | --------------------------- |
 | Field     | `rounded-lg` | Inputs and select triggers  |
 | Container | `rounded-xl` | Cards, popovers, and panels |
+
+## Component usage
+
+Which components use which step by default, as a guidance table.
+
+| Component | Tier      | Class        |
+| --------- | --------- | ------------ |
+| Card      | Container | `rounded-xl` |
 
 ## Radius utilities
 
@@ -74,6 +83,7 @@ motion users.
 | Lead            | The model, with no heading                               | The `text-lg text-subtle` intro                               |
 | Principles      | The few ideas the rest follows                           | Principles, Design principles, Grid vs Flexbox                |
 | Scale           | The tokens, rendered, and when to use each step          | Radius scale, Shadow scale, Type scale, Spacing scale, Sizing |
+| Page-specific   | A topic of this page's own, such as Component usage      | Component usage (Shape), Dark mode (Colors)                   |
 | Utilities       | The classes or props that apply it, each with an example | Text style utilities, Interaction utilities, Emphasis presets |
 | Patterns        | Recipes that combine them, each with an example          | Patterns, Examples, Visual examples, Component recipes        |
 | Guidelines      | Rules as bullets, then do and don't pairs                | Guidelines, Usage guidelines, Best practices                  |
@@ -89,6 +99,8 @@ motion users.
 3. **Show the scale, don't list it.** Render the tokens with a docs component
    (see [Data-driven parts](DOCS_PAGES.md#data-driven-parts)). Add a markdown
    table only for guidance a person writes, such as which tier to use where.
+   It names each step and its class but not its value, which the docs
+   component shows from the tokens.
 4. **Link the full token list.** Add the page to its family's `guidance` in
    `docs/src/lib/token-families.ts`, and the layout links the tokens under the
    title. Don't add a related links section.
@@ -125,7 +137,8 @@ rule.
 
 - `Guidelines`, `Guideline`, `Guideline.Do`, `Guideline.Dont`, and
   `Guideline.Row` from `@/components/Guideline`. An `example` is rendered
-  JSX with no layout classes; a rule about classes shows them in `code`
-  instead.
+  JSX with no layout classes. The markdown copy for agents prints its source
+  as a `tsx` block, so build it from Roadie components, not styled `div`s. A
+  rule about classes sets them on those components or shows them in `code`.
 - Token renderers such as `DatavizSwatches` (`@/components/dataviz/`) and
   `ScaleGrid`, `IntentMatrix`, and `EmphasisGrid` (`@/components/tokens/`).
