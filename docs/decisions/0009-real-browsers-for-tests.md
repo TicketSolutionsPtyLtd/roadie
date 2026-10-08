@@ -17,5 +17,5 @@ Local cost is cut through the runner defaults instead (INNO-1105).
 
 ## Links
 
-- [`AGENTS.md`, Testing](../../AGENTS.md#testing)
+- [`AGENTS.md`, Tests and code](../../AGENTS.md#tests-and-code)
 - INNO-1160 comments
