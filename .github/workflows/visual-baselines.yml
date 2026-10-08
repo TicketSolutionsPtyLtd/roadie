@@ -72,6 +72,11 @@ jobs:
             -- 'packages/components/src/*__screenshots__/*-linux.png')
           echo "count=${#changed[@]}" >> "$GITHUB_OUTPUT"
           mkdir -p "$RUNNER_TEMP/baselines"
+          if [ "${#changed[@]}" -eq 0 ]; then
+            echo "No baselines changed, so there is no artifact." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Changed baselines in the \`visual-baselines\` artifact:" >> "$GITHUB_STEP_SUMMARY"
+          fi
           for file in "${changed[@]}"; do
             cp --parents "$file" "$RUNNER_TEMP/baselines/"
             echo "- \`$file\`" >> "$GITHUB_STEP_SUMMARY"
