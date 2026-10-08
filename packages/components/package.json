@@ -327,7 +327,8 @@
     "./spot-illustrations": {
       "types": "./dist/components/SpotIllustration/index.d.ts",
       "import": "./dist/components/SpotIllustration/index.js"
-    }
+    },
+    "./roadie.manifest.json": "./dist/roadie.manifest.json"
   },
   "sideEffects": false,
   "files": [
@@ -338,11 +339,12 @@
     "access": "public"
   },
   "scripts": {
-    "build": "pnpm generate:exports && tsdown && pnpm check:dts && pnpm check:exports",
+    "build": "pnpm generate:exports && tsdown && pnpm generate:manifest && pnpm check:dts && pnpm check:exports",
     "build:quiet": "pnpm generate:exports && tsdown --log-level warn",
     "generate:exports": "node scripts/generate-package-exports.mjs",
+    "generate:manifest": "node ../core/scripts/manifest/generate.ts",
     "check:dts": "node scripts/check-dts.mjs",
-    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css",
+    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
     "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",
     "clean": "rm -rf node_modules dist",
     "dev": "tsdown --watch --log-level warn",

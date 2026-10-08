@@ -1,0 +1,8 @@
+{
+  "name": "@fixture/cast",
+  "version": "0.0.1",
+  "homepage": "https://example.com/docs/",
+  "exports": {
+    "./grid": "./dist/components/Grid/index.js"
+  }
+}

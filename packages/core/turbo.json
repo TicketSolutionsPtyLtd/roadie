@@ -1,0 +1,22 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "$TURBO_ROOT$/tsconfig.base.json",
+        "$TURBO_ROOT$/tsconfig.react.json"
+      ]
+    },
+    "lint": {
+      "inputs": ["$TURBO_EXTENDS$", "scripts/**"]
+    },
+    "test": {
+      "inputs": ["$TURBO_EXTENDS$", "scripts/**"]
+    },
+    "typecheck": {
+      "inputs": ["$TURBO_EXTENDS$", "scripts/manifest/*.{ts,json}"]
+    }
+  }
+}

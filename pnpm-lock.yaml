@@ -612,6 +612,9 @@ importers:
       chokidar-cli:
         specifier: 3.0.0
         version: 3.0.0
+      react-docgen-typescript:
+        specifier: 2.4.0
+        version: 2.4.0(typescript@6.0.3)
       size-limit:
         specifier: 14.1.0
         version: 14.1.0
@@ -621,6 +624,9 @@ importers:
       tsdown:
         specifier: 0.23.0
         version: 0.23.0(@arethetypeswrong/core@0.18.5)(@volar/typescript@2.4.28(typescript@6.0.3))(tsx@4.21.0)(typescript@6.0.3)(unrun@0.2.34(@emnapi/core@1.10.0)(@emnapi/runtime@1.11.3)(synckit@0.11.13))(vue-tsc@3.3.11(typescript@6.0.3))
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
       vite:
         specifier: 8.3.2
         version: 8.3.2(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.9.0)

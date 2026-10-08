@@ -207,6 +207,23 @@ All components accept a `className` prop for additional Tailwind classes:
 </p>
 ```
 
+## Package manifests for coding agents
+
+Core, components and charts each ship a `roadie.manifest.json` built from the same source as the release, so it always matches the version you installed. Agents and tools can read it instead of crawling the docs.
+
+```ts
+import core from '@oztix/roadie-core/roadie.manifest.json' with { type: 'json' }
+import components from '@oztix/roadie-components/roadie.manifest.json' with { type: 'json' }
+import charts from '@oztix/roadie-charts/roadie.manifest.json' with { type: 'json' }
+```
+
+All three manifests have the same shape:
+
+- `exports` lists each import path with the values and types it exports.
+- `components` lists each component with its import path, props, and compound parts, plus its docs page and first live example when it has them.
+- `deprecations` lists every deprecated export and prop with what to use instead.
+- `tokens` lists the CSS variables, utilities, and classes, in the core manifest only.
+
 ## Features
 
 The Roadie Design System includes:

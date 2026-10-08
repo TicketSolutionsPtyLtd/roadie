@@ -16,7 +16,7 @@ export const tableCellClass = (align: TableAlign = 'start') =>
 
 export type TableProps = ComponentProps<'table'>
 
-function TableRoot({ className, ...props }: TableProps) {
+export function Table({ className, ...props }: TableProps) {
   return (
     <table
       data-slot='table'
@@ -25,7 +25,6 @@ function TableRoot({ className, ...props }: TableProps) {
     />
   )
 }
-TableRoot.displayName = 'Table'
 
 function TableHead({ className, ...props }: ComponentProps<'thead'>) {
   return <thead data-slot='table-head' className={cn(className)} {...props} />
@@ -104,19 +103,9 @@ function TableCell({ align = 'start', className, ...props }: TableCellProps) {
 }
 TableCell.displayName = 'Table.Cell'
 
-const Table = TableRoot as typeof TableRoot & {
-  Head: typeof TableHead
-  Body: typeof TableBody
-  Foot: typeof TableFoot
-  Row: typeof TableRow
-  HeaderCell: typeof TableHeaderCell
-  Cell: typeof TableCell
-}
 Table.Head = TableHead
 Table.Body = TableBody
 Table.Foot = TableFoot
 Table.Row = TableRow
 Table.HeaderCell = TableHeaderCell
 Table.Cell = TableCell
-
-export { Table }

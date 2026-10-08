@@ -1,0 +1,24 @@
+{
+  "name": "@fixture/ui",
+  "version": "1.2.3",
+  "homepage": "https://example.com/docs/",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./css": {
+      "style": "./src/css/ui.css",
+      "default": "./src/css/ui.css"
+    },
+    "./pill": {
+      "types": "./dist/components/Pill/index.d.ts",
+      "import": "./dist/components/Pill/index.js"
+    },
+    "./theme": {
+      "types": "./dist/theme.d.ts",
+      "import": "./dist/theme.js"
+    },
+    "./roadie.manifest.json": "./dist/roadie.manifest.json"
+  }
+}

@@ -100,13 +100,15 @@
     "./tables": {
       "types": "./dist/tables/index.d.ts",
       "import": "./dist/tables/index.js"
-    }
+    },
+    "./roadie.manifest.json": "./dist/roadie.manifest.json"
   },
   "scripts": {
-    "build": "pnpm generate:exports && tsdown && pnpm check:dts && pnpm check:exports",
+    "build": "pnpm generate:exports && tsdown && pnpm generate:manifest && pnpm check:dts && pnpm check:exports",
     "generate:exports": "node scripts/generate-package-exports.mjs",
+    "generate:manifest": "node ../core/scripts/manifest/generate.ts",
     "check:dts": "node scripts/check-dts.mjs",
-    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css",
+    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
     "dev": "tsdown --watch --log-level warn",
     "test": "vitest run --project jsdom",
     "test:browser": "vitest run --project 'browser (*)'",
