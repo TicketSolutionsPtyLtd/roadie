@@ -26,8 +26,8 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   go into the repo, never agent memory.
 - **Decide and carry on.** When a call is open, pick the recommended option,
   record it under Decisions, and keep going; the maintainer can veto it in
-  review. Stop and ask only for a one-way door (section 7), spending money, or
-  anything outside the team.
+  review. Stop and ask only for a one-way door (section 7), a limit in section
+  10, spending money, or anything outside the team.
 - **Check prior art for a new component API.** See how two other platforms
   solve it and record what you take and what you avoid, with their cons,
   under Decisions.
@@ -155,7 +155,7 @@ the PR only when both passes are clean.
 - **Open it as a draft** (`gh pr create --draft`). Copilot reviews once, when
   the PR is marked ready, and skips drafts. Run `gh pr ready` only after CI is
   green, both local reviews are clean and any demo is approved.
-- **Say in the body if it's a one-way door.** These always get a
+- **Say in the body if it's a one-way door.** These always get the
   maintainer's review: removing or renaming a public export, prop, intent, or
   subpath; changing a token's value or meaning; the shared CSS cascade, layers,
   base styles, or `.prose` output; and release contents.
@@ -187,7 +187,7 @@ of these hold. A one-way door (section 7) waits for the maintainer.
   thread resolved.
 - Behaviour changes for consumers are named in the changeset.
 
-Never merge the Version Packages PR. A maintainer merges releases by hand.
+Never merge the Version Packages PR. The maintainer merges releases by hand.
 
 ## 9. Nothing deferred is dropped
 
