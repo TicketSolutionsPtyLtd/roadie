@@ -361,10 +361,10 @@ Deprecated in v2.6 and removed in v3.0.0. `render` is the escape hatch, as on Ba
 #### E8. `IconButton` legacy `icon-*` size literals [Info]
 
 ```
-size=['"]icon-(xs|sm|md|lg)['"]
+<IconButton[^>]*?\bsize=['"]icon-(xs|sm|md|lg)['"]
 ```
 
-Kept as a deprecated alias. New code uses `'xs' | 'sm' | 'md' | 'lg'`.
+Kept on `IconButton` as a deprecated alias. New code uses `'xs' | 'sm' | 'md' | 'lg'`. Leave `<Button size='icon-*'>` alone: on `Button` those sizes are current and make it square.
 
 **Fix:** `size='icon-sm'` → `size='sm'`, `size='icon-md'` → `size='md'`, and so on.
 
@@ -769,7 +769,7 @@ External hrefs (`http(s)://`, `//`) already get `target='_blank' rel='noopener n
 #### I3. Raw external anchor on a button-shaped surface [Warning]
 
 ```
-<a[^>]*\btarget=['"]_blank['"][^>]*\brel=
+<a[^>]*\btarget=['"]_blank['"][^>]*\brel=|<a[^>]*\brel=[^>]*\btarget=['"]_blank['"]
 ```
 
 **Fix:** `<Button href={…}>` or `<IconButton href={…}>`. Keep raw anchors for inline prose links.
@@ -851,7 +851,7 @@ Roadie's text colours are `text-{normal,subtle,subtler,strong,inverted,on-strong
 | `<div onClick={...}>` | `<button onClick={...}>` | E5 |
 | `<LinkButton href='/x'>` | `<Button href='/x'>` | E6 |
 | `<Card as={Link} href='/x'>` | `<Card href='/x'>` | E7 |
-| `size='icon-md'` | `size='md'` | E8 |
+| `<IconButton size='icon-md'>` | `size='md'` | E8 |
 | `<Button onClick={() => router.push('/x')}>` | `<Button href='/x'>` | I4 |
 | `text-danger` | `intent-danger text-strong` | I5 |
 | `hover:bg-* + focus:ring-*` on button | `is-interactive` | F1 |
@@ -896,7 +896,7 @@ Run independent checks in parallel by issuing multiple Grep calls in a single me
 - E4: `Select\.Portal|Select\.Positioner|Select\.Popup`
 - E6: `\bLinkButton\b|\bLinkIconButton\b`
 - E7: `<(Card|Breadcrumb\.Link|Carousel\.TitleLink)[^>]*\bas=`
-- E8: `size=['"]icon-(xs|sm|md|lg)['"]`
+- E8: `<IconButton[^>]*?\bsize=['"]icon-(xs|sm|md|lg)['"]`
 - F2: `style=\{\{`
 - F3: `emphasis-sunken[^"'\n]*border|border[^"'\n]*emphasis-sunken|is-interactive-field` (then check each field for `emphasis-field`)
 
@@ -926,11 +926,11 @@ and the rule says what to rule out by eye.
 - G1: `@import.*roadie-core`
 - G2: `@import.*roadie-(components|charts|widgets)/css`
 
-**Batch 6** (linking):
+**Batch 6** (linking). Prettier often puts each JSX prop on its own line, so run E6 to E8 and I2 to I4 with multiline on (Grep `multiline: true`, `rg -U`). A `[^>]*` match also stops at an arrow function's `=>`, so check components with inline handlers by eye:
 - I1: `RoadieProvider|RoadieLinkProvider` (in root layouts; flag when absent)
 - I2: `<(Button|IconButton|Card|Breadcrumb\.Link|Carousel\.TitleLink|Tabs\.Tab)[^>]*target=`
-- I3: `<a[^>]*\btarget=['"]_blank['"][^>]*\brel=`
-- I4: `onClick=\{[^}]*(navigate|router\.push|window\.location|history\.push)`
+- I3: `<a[^>]*\btarget=['"]_blank['"][^>]*\brel=|<a[^>]*\brel=[^>]*\btarget=['"]_blank['"]`
+- I4: `<(Button|IconButton)[^>]*onClick=\{[^}]*(navigate|router\.push|window\.location|history\.push)`
 - I5: `\btext-(danger|success|warning|info|brand|accent)([^-\w]|$)`
 
 ## Fixing strategy
