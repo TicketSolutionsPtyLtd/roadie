@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, readdirSync, statSync } from 'node:fs'
 import { availableParallelism, constants } from 'node:os'
 import { isAbsolute, join, relative, resolve } from 'node:path'
 
@@ -11,7 +11,7 @@ import {
 } from './lib/machine.mjs'
 
 const usage = `Usage: pnpm test:gated <core|components|charts|widgets|docs> [files] [--all] [--all-browsers] [vitest args]
-Runs the tests related to the files given, or to the changes since origin/main.
+Runs the tests related to the files or folders given, or to the changes since origin/main.
 --all runs the whole suite, --all-browsers runs WebKit and Firefox too.
 Example: pnpm test:gated components src/components/Badge/index.tsx --project 'browser*'`
 
@@ -56,13 +56,22 @@ if (vitestArgs.some((arg) => arg.startsWith('--maxWorkers'))) {
   process.exit(2)
 }
 
-const files = fileArgs.map(packageRelative)
+const SOURCE = /\.(?:[cm]?[jt]sx?|css)$/
+
+function withFolderContents(path) {
+  if (!statSync(join(cwd, path)).isDirectory()) return [path]
+  return readdirSync(join(cwd, path), { recursive: true })
+    .map((entry) => join(path, entry))
+    .filter((file) => SOURCE.test(file) && !file.includes('node_modules'))
+}
+
+const files = fileArgs.map(packageRelative).flatMap(withFolderContents)
 const maxWorkers = Math.max(1, Math.floor(availableParallelism() / 2))
 
 const selection = all
   ? ['run']
   : files.length
-    ? ['related', '--run', ...files]
+    ? ['related', '--run', '--passWithNoTests=false', ...files]
     : ['run', '--changed', 'origin/main']
 
 warnIfLowDisk()
