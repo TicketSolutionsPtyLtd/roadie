@@ -15,6 +15,9 @@ const INTENTS = [
   'neutral',
   'brand',
   'brand-secondary',
+  'brand-blue',
+  'brand-orange',
+  'brand-purple',
   'accent',
   'danger',
   'success',
@@ -241,53 +244,55 @@ describe('without color-mix', () => {
   afterAll(() => fallback.remove())
 
   it('has a fallback for every intent that mixes its strong fill', () => {
-    expect(fallback.count).toBe(3)
+    expect(fallback.count).toBe(4)
   })
 
   describe.each(MODES)('%s mode', (mode) => {
-    describe.each(['brand-secondary', 'success', 'warning'])(
-      'intent-%s',
-      (intent) => {
-        it('falls back to the unmixed step 9 fill', async () => {
-          setTheme(mode)
-          const target = mount(
-            `<div class="intent-${intent}">${strongButton(intent)}<i data-step style="background: var(--color-${intent}-9)"></i></div>`
-          )
-          await frame()
-          const step = host!.querySelector<HTMLElement>('[data-step]')!
-          expect(getComputedStyle(target).backgroundColor).toBe(
-            getComputedStyle(step).backgroundColor
-          )
-        })
-
-        it('lightens to its fallback step while hovered', async () => {
-          setTheme(mode)
-          setHoverCapable(true)
-          const hoverStep = mode === 'dark' ? 11 : 7
-          const target = mount(
-            `<div class="intent-${intent}">${strongButton(intent)}<i data-step style="background: var(--color-${intent}-${hoverStep})"></i></div>`
-          )
-          await userEvent.hover(target)
-          await frame()
-          const step = host!.querySelector<HTMLElement>('[data-step]')!
-          expect(getComputedStyle(target).backgroundColor).toBe(
-            getComputedStyle(step).backgroundColor
-          )
-          expect(contrast(target)).toBeGreaterThanOrEqual(FALLBACK_LABEL_LC)
-        })
-
-        it.each(['', 'is-active'])(
-          'fills the strong surface %s with a solid colour that reads',
-          async (state) => {
-            setTheme(mode)
-            const target = mount(strongButton(intent, state))
-            await frame()
-            const { backgroundColor } = getComputedStyle(target)
-            expect(backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
-            expect(contrast(target)).toBeGreaterThanOrEqual(FALLBACK_LABEL_LC)
-          }
+    describe.each([
+      ['brand-secondary', 'brand-secondary'],
+      ['brand-orange', 'brand-secondary'],
+      ['success', 'success'],
+      ['warning', 'warning']
+    ])('intent-%s', (intent, scale) => {
+      it('falls back to the unmixed step 9 fill', async () => {
+        setTheme(mode)
+        const target = mount(
+          `<div class="intent-${intent}">${strongButton(intent)}<i data-step style="background: var(--color-${scale}-9)"></i></div>`
         )
-      }
-    )
+        await frame()
+        const step = host!.querySelector<HTMLElement>('[data-step]')!
+        expect(getComputedStyle(target).backgroundColor).toBe(
+          getComputedStyle(step).backgroundColor
+        )
+      })
+
+      it('lightens to its fallback step while hovered', async () => {
+        setTheme(mode)
+        setHoverCapable(true)
+        const hoverStep = mode === 'dark' ? 11 : 7
+        const target = mount(
+          `<div class="intent-${intent}">${strongButton(intent)}<i data-step style="background: var(--color-${scale}-${hoverStep})"></i></div>`
+        )
+        await userEvent.hover(target)
+        await frame()
+        const step = host!.querySelector<HTMLElement>('[data-step]')!
+        expect(getComputedStyle(target).backgroundColor).toBe(
+          getComputedStyle(step).backgroundColor
+        )
+        expect(contrast(target)).toBeGreaterThanOrEqual(FALLBACK_LABEL_LC)
+      })
+
+      it.each(['', 'is-active'])(
+        'fills the strong surface %s with a solid colour that reads',
+        async (state) => {
+          setTheme(mode)
+          const target = mount(strongButton(intent, state))
+          await frame()
+          const { backgroundColor } = getComputedStyle(target)
+          expect(backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
+          expect(contrast(target)).toBeGreaterThanOrEqual(FALLBACK_LABEL_LC)
+        }
+      )
+    })
   })
 })

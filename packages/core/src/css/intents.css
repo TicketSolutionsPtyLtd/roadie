@@ -5,11 +5,13 @@
 
    --intent-text-on-strong is the label colour for strong fills. It takes
    whichever polarity reaches APCA Lc 60 on the fill, the same in both
-   themes. White on brand, accent, info and danger (one step
+   themes. White on brand, accent, info, brand-purple and danger (one step
    deeper to get there), whose hover darkens. Dark on success, warning and
    brand-secondary, whose hover lightens; success and brand-secondary lift
    their fill 10% toward white to get there. WCAG 2 ratios overrate dark text
    on these mid tones, so they don't decide it.
+
+   brand-blue and brand-orange are brand and brand-secondary by hue name.
    ═══════════════════════════════════════════════════════════ */
 
 /* --- Default intent (neutral) on :root --- */
@@ -289,6 +291,20 @@
       --intent-bg-strong-active: var(--color-brand-secondary-12);
     }
   }
+}
+
+/* ═══ Intent: brand-purple ═══ */
+@utility intent-brand-purple {
+  @apply intent-info;
+}
+
+/* ═══ Brand aliases by hue ═══ */
+@utility intent-brand-blue {
+  @apply intent-brand;
+}
+
+@utility intent-brand-orange {
+  @apply intent-brand-secondary;
 }
 
 /* ═══ Intent: accent ═══ */

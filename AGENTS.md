@@ -73,11 +73,12 @@ Each rule has a foundations page with the detail.
   utilities: `bg-{normal,subtler,subtle,strong,inverted,raised,sunken,mark}`,
   `text-{normal,subtle,subtler,strong,inverted,on-strong,mark}`,
   `border-{subtler,subtle,normal,strong,inverted}`, and `divide-subtler`. Colour that must stay the same
-  in dark mode uses `--color-{scale}-light-{0|5|12|13}` (only neutral has step
+  in dark mode uses `--color-{scale}-light-{0|5|9|12|13}` (only neutral has step
   0).
 - **Intent** only sets `--intent-*` variables, and children inherit them:
-  `neutral` (the default, on `:root`), `brand`, `brand-secondary`, `accent`,
-  `danger`, `success`, `warning`, and `info`.
+  `neutral` (the default, on `:root`), `brand`, `brand-secondary`,
+  `brand-purple`, `accent`, `danger`, `success`, `warning`, and `info`.
+  `brand-blue` and `brand-orange` are `brand` and `brand-secondary` by hue.
 - **Emphasis** presets set background, text, border, and states together:
   `strong` (solid fill), `normal` (visible border), `subtle` (tint, no border),
   `subtler` (barely tinted), `raised`, `sunken`, `field` (text fields, with

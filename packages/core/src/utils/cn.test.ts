@@ -35,6 +35,19 @@ describe('cn', () => {
     }
   })
 
+  it('merges every intent in intents.css', () => {
+    const intents = readFileSync(
+      fileURLToPath(new URL('../css/intents.css', import.meta.url)),
+      'utf8'
+    ).match(/(?<=@utility )intent-[\w-]+/g)
+
+    expect(intents).toContain('intent-brand-purple')
+    for (const intent of intents ?? []) {
+      expect(cn(intent, 'intent-neutral')).toBe('intent-neutral')
+      expect(cn('intent-neutral', intent)).toBe(intent)
+    }
+  })
+
   it('keeps interaction utilities alongside an emphasis preset', () => {
     expect(cn('emphasis-field', 'is-interactive-field')).toBe(
       'emphasis-field is-interactive-field'
