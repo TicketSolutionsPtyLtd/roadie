@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A person's photo, with their initials or an icon when there is no photo.
 
@@ -207,7 +207,7 @@ Avatars fit a `List` row's `leading` slot. The row title names the person, so th
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Always pass a name'>
   <Guideline.Do code={`<Avatar src={user.photo} name={user.name} />`}>
@@ -227,7 +227,7 @@ Avatars fit a `List` row's `leading` slot. The row title names the person, so th
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

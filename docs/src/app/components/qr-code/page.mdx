@@ -20,7 +20,7 @@ import { IconTile } from '@oztix/roadie-components/icon-tile'
 import { QRCode } from '@oztix/roadie-components/qr-code'
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A QR code for scanning tickets at the gate.
 
@@ -110,13 +110,13 @@ On the ticket, the code sits at the top at full width, with the ticket type unde
 
 The code's colours, module shape and tile size are fixed on purpose. Every styled option scored worse in scan testing, and the tile is sized in modules so a longer value never grows it into something a scanner mistakes for a finder pattern.
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Show it large'>
-  <Guideline.Do example={<div className='w-40'><QRCode value='A7K2MKWX' /></div>}>
+  <Guideline.Do width={40} example={<QRCode value='A7K2MKWX' />}>
     Show the code as large as the layout allows, at least 160px wide on phones. Module size on screen decides how well it scans through blur and distance.
   </Guideline.Do>
-  <Guideline.Dont example={<div className='flex items-center gap-2'><div className='w-8'><QRCode value='A7K2MKWX' /></div><p className='text-sm'>General admission</p></div>}>
+  <Guideline.Dont example={<Guideline.Row><QRCode value='A7K2MKWX' className='w-8' /><p>General admission</p></Guideline.Row>}>
     Don't shrink it into a list row.
   </Guideline.Dont>
 </Guideline>
@@ -140,7 +140,7 @@ The code's colours, module shape and tile size are fixed on purpose. Every style
 </Guideline>
 
 <Guideline title='Keep a custom mark simple and light'>
-  <Guideline.Do example={<div className='w-40'><QRCode value='A7K2MKWX'><StarIcon weight='fill' size='100%' /></QRCode></div>}>
+  <Guideline.Do width={40} example={<QRCode value='A7K2MKWX'><StarIcon weight='fill' size='100%' /></QRCode>}>
     Use a bold, single-colour mark that inherits the white. The tile is already counted as lost, so the mark never affects scanning.
   </Guideline.Do>
   <Guideline.Dont code={`<QRCode value={ticket.hash}>\n  <img src='/logo.png' className='size-24' />\n</QRCode>`}>
@@ -148,7 +148,7 @@ The code's colours, module shape and tile size are fixed on purpose. Every style
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

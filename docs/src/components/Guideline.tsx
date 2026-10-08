@@ -4,17 +4,28 @@ import { CheckCircleIcon, XCircleIcon } from '@phosphor-icons/react/ssr'
 
 import { CodePreview } from './CodePreview'
 
+const EXAMPLE_WIDTHS = {
+  40: 'w-40',
+  56: 'w-56',
+  64: 'w-64',
+  72: 'w-72'
+} as const
+
+type GuidelineCardProps = {
+  example?: ReactNode
+  /** A spacing-scale width for an example that would otherwise shrink to its content. It never overflows the card. */
+  width?: keyof typeof EXAMPLE_WIDTHS
+  code?: string
+  children: ReactNode
+}
+
 function GuidelineCard({
   type,
   example,
+  width,
   code,
   children
-}: {
-  type: 'do' | 'dont'
-  example?: ReactNode
-  code?: string
-  children: ReactNode
-}) {
+}: GuidelineCardProps & { type: 'do' | 'dont' }) {
   const isDo = type === 'do'
   const Icon = isDo ? CheckCircleIcon : XCircleIcon
   const hasVisual = example || code
@@ -27,8 +38,17 @@ function GuidelineCard({
           className='grid rounded-t-xl border-x border-t border-subtler'
         >
           {example && (
-            <div className='grid min-h-40 place-content-center p-4'>
-              {example}
+            <div
+              data-slot='guideline-example'
+              className='grid min-h-40 min-w-0 grid-cols-1 content-center justify-items-center p-4'
+            >
+              {width ? (
+                <div className={`grid max-w-full ${EXAMPLE_WIDTHS[width]}`}>
+                  {example}
+                </div>
+              ) : (
+                example
+              )}
             </div>
           )}
           {code && (
@@ -49,7 +69,7 @@ function GuidelineCard({
           className='flex items-center gap-2 text-display-ui-6 text-strong'
         >
           <Icon weight='fill' className='size-5 text-subtle' />
-          {isDo ? 'Do' : 'Don\u2019t'}
+          {isDo ? 'Do' : 'Don’t'}
         </p>
         <div className='text-sm [&_p]:mb-0 [&_p]:text-sm [&_p]:leading-normal'>
           {children}
@@ -59,35 +79,29 @@ function GuidelineCard({
   )
 }
 
-function Do({
-  example,
-  code,
-  children
-}: {
-  example?: ReactNode
-  code?: string
-  children: ReactNode
-}) {
+function Do(props: GuidelineCardProps) {
+  return <GuidelineCard type='do' {...props} />
+}
+
+function Dont(props: GuidelineCardProps) {
+  return <GuidelineCard type='dont' {...props} />
+}
+
+/** Sets an example's parts side by side, with any caption at the guidance's size. */
+function Row({ children }: { children: ReactNode }) {
   return (
-    <GuidelineCard type='do' example={example} code={code}>
+    <div className='flex flex-wrap items-center justify-center gap-2 text-sm'>
       {children}
-    </GuidelineCard>
+    </div>
   )
 }
 
-function Dont({
-  example,
-  code,
-  children
-}: {
-  example?: ReactNode
-  code?: string
-  children: ReactNode
-}) {
+/** Spaces the guidelines under a page's `## Guidelines` heading. */
+export function Guidelines({ children }: { children: ReactNode }) {
   return (
-    <GuidelineCard type='dont' example={example} code={code}>
+    <div data-slot='guidelines' className='grid gap-8'>
       {children}
-    </GuidelineCard>
+    </div>
   )
 }
 
@@ -118,3 +132,4 @@ export function Guideline({
 
 Guideline.Do = Do
 Guideline.Dont = Dont
+Guideline.Row = Row

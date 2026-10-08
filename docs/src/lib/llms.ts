@@ -138,7 +138,11 @@ function apiReference(components: ManifestComponent[]): RootContent[] {
 function guideline(node: JsxElement, children: RootContent[]): RootContent[] {
   const title = attribute(node, 'title')
   const description = attribute(node, 'description')
-  const example = attribute(node, 'example')
+  // Guideline.Row only lays out the docs card, so readers get the bare parts.
+  const example = attribute(node, 'example')?.replace(
+    /^\s*<Guideline\.Row>([\s\S]*)<\/Guideline\.Row>\s*$/,
+    '<>$1</>'
+  )
   const code = attribute(node, 'code')
   const label =
     node.name === 'Guideline.Do'
@@ -189,7 +193,11 @@ function transform(
     if (node.name === 'code') {
       return [{ type: 'inlineCode', value: toString(children) }]
     }
-    if (node.name?.startsWith('Guideline')) {
+    if (
+      node.name === 'Guideline' ||
+      node.name === 'Guideline.Do' ||
+      node.name === 'Guideline.Dont'
+    ) {
       return guideline(node, children as RootContent[])
     }
     return children

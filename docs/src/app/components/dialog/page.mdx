@@ -9,7 +9,7 @@ import { Button, IconButton } from '@oztix/roadie-components'
 import { XIcon } from '@phosphor-icons/react/ssr'
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A modal overlay that interrupts the page for a focused task, built on Base UI's dialog primitive.
 
@@ -295,7 +295,7 @@ A `Dialog.Footer` holds a centered actions row. Combine it with `intent='danger'
 
 Use a dialog for tasks that need the user's full attention, such as confirmations, short forms, and destructive actions. Keep content concise, and set `intent` on `Dialog.Content`, not the trigger, since portaled popups do not inherit the trigger's CSS cascade.
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Use alertdialog for blocking or destructive confirmations'>
   <Guideline.Do code={`<Dialog role='alertdialog'>\n  <Dialog.Content intent='danger' size='sm'>\n    <Dialog.Title>Delete event?</Dialog.Title>\n    …\n  </Dialog.Content>\n</Dialog>`}>
@@ -325,10 +325,10 @@ Use a dialog for tasks that need the user's full attention, such as confirmation
 </Guideline>
 
 <Guideline title='Use one prominent action, the rest normal'>
-  <Guideline.Do example={<div className='flex gap-2'><Button>Cancel</Button><Button intent='accent' emphasis='strong'>Save changes</Button></div>}>
+  <Guideline.Do example={<Guideline.Row><Button>Cancel</Button><Button intent='accent' emphasis='strong'>Save changes</Button></Guideline.Row>}>
     Give the dialog one prominent button. Use `emphasis='strong'` with an `accent` intent, or `danger` for a destructive task. Leave the rest as default buttons. The primary path stays obvious at a glance.
   </Guideline.Do>
-  <Guideline.Dont example={<div className='flex gap-2'><Button emphasis='subtle'>Cancel</Button><Button intent='accent' emphasis='strong'>Save</Button><Button intent='accent' emphasis='strong'>Save and close</Button></div>}>
+  <Guideline.Dont example={<Guideline.Row><Button emphasis='subtle'>Cancel</Button><Button intent='accent' emphasis='strong'>Save</Button><Button intent='accent' emphasis='strong'>Save and close</Button></Guideline.Row>}>
     Never use `emphasis='subtle'` for footer actions, and never give a dialog more than one accent or strong button. Competing prominent buttons make the user stop and weigh every option instead of following the intended path.
   </Guideline.Dont>
 </Guideline>
@@ -351,7 +351,7 @@ Use a dialog for tasks that need the user's full attention, such as confirmation
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 
