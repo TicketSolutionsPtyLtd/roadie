@@ -22,6 +22,10 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   pages, behaviour on the component's docs page, learnings in
   `docs/solutions/`, follow-ups in Jira (section 9). Corrections and learnings
   go into the repo, never agent memory.
+- **Decide and carry on.** When a call is open, pick the recommended option,
+  record it under Decisions, and keep going; the maintainer can veto it in
+  review. Stop and ask only for a one-way door (section 7), spending money, or
+  anything outside the team.
 - **Check prior art for a new component API.** See how two other platforms
   solve it and record what you take and what you avoid, with their cons,
   under Decisions.
@@ -113,9 +117,10 @@ Every PR is checked against these before review. Fix every real hit.
   matrix. Never wait on an infinite
   animation; give browser tests explicit timeouts. Kill test processes you
   started that run past 10 minutes. Stop dev servers you start.
-- **Demo visual and interaction changes before pushing.** Serve the docs from
-  your worktree where a phone can reach it (add the host to
-  `NEXT_DEV_ORIGINS`) and get the requester's OK first.
+- **Demo user-visible changes before pushing.** Serve the docs from your
+  worktree where a phone can reach it (add the host to `NEXT_DEV_ORIGINS`),
+  post the link and phone-width screenshots, and work on something else until
+  the maintainer's OK. Tooling, CI, skills, and docs-text PRs skip the demo.
 - **Check the file list** (`git diff --name-only origin/main...HEAD`): no
   `.vitest/` screenshots, `test-results/`, coverage or images you didn't mean
   to add.
@@ -149,9 +154,9 @@ the PR only when both passes are clean.
   the PR is marked ready, and skips drafts. Run `gh pr ready` only after CI is
   green, both local reviews are clean and any demo is approved.
 - **Say in the body if it's a one-way door.** These always get a
-  maintainer's review: removing or renaming a public export, prop or subpath,
-  changing a token's value or meaning, shared CSS cascade, layers or base
-  styles, and release contents.
+  maintainer's review: removing or renaming a public export, prop, intent, or
+  subpath; changing a token's value or meaning; the shared CSS cascade, layers,
+  base styles, or `.prose` output; and release contents.
 - Copilot reads `.github/copilot-instructions.md`; update that file when a
   convention or a deliberate decision changes, and keep it under 4,000
   characters (Copilot reads no further).
@@ -171,15 +176,16 @@ the PR only when both passes are clean.
 
 ## 8. Merge
 
-Merge (squash, delete the branch) only when all of these hold:
+An agent merges a two-way-door PR itself (squash, delete the branch) once all
+of these hold. A one-way door (section 7) waits for the maintainer.
 
 - CI is green.
 - The file list is clean.
-- Both local reviews and Copilot are clean, every thread resolved.
+- Both local reviews are clean, and the one Copilot pass is triaged with every
+  thread resolved.
 - Behaviour changes for consumers are named in the changeset.
 
-The Version Packages PR is merged only by a maintainer, when they decide to
-release.
+Never merge the Version Packages PR. A maintainer merges releases by hand.
 
 ## 9. Nothing deferred is dropped
 
@@ -191,3 +197,17 @@ listing findings as plain bullets (Jira shows `- [ ]` literally). Reply on the
 PR thread with the Jira link before resolving it. When a later PR touches the
 same code, it fixes the item there and closes it. The rest are batched by
 area into follow-up PRs, or closed with a written reason.
+
+## 10. What agents may change
+
+- **Shared config.** CI workflows, git hooks, and `.claude/settings.json`
+  change through normal PRs when a roadmap ticket needs it. Deleting a ruleset
+  or changing branch protection needs the maintainer.
+- **Skills.** A skill ships v1 once it passes the trial in its ticket's "done
+  when", then improves through retros. Skill PRs follow the normal merge rule.
+- **Other repos.** Agents may move the prototype repo onto the Roadie plugin.
+  Other repos wait until the plugin is released.
+- **User settings.** For a change to someone's user-level Claude settings,
+  propose the exact change and wait for their OK.
+- **Sessions.** Run agents as local sessions only, never as cloud sessions
+  billed on API tokens.
