@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { availableParallelism, constants } from 'node:os'
-import { join, relative } from 'node:path'
+import { isAbsolute, join, relative, resolve } from 'node:path'
 
 import {
   killGroup,
@@ -38,11 +38,21 @@ const fileArgs =
 const vitestArgs = firstFlag === -1 ? [] : passThrough.slice(firstFlag)
 
 function packageRelative(arg) {
-  if (existsSync(join(cwd, arg))) return arg
-  const fromRoot = relative(cwd, join(repoRoot, arg))
-  if (!fromRoot.startsWith('..') && existsSync(join(cwd, fromRoot)))
-    return fromRoot
+  const inPackage = [resolve(cwd, arg), resolve(repoRoot, arg)]
+    .map((path) => relative(cwd, path))
+    .find(
+      (path) =>
+        !path.startsWith('..') &&
+        !isAbsolute(path) &&
+        existsSync(join(cwd, path))
+    )
+  if (inPackage !== undefined) return inPackage
   console.error(`No such file in ${pkg}: ${arg}\n\n${usage}`)
+  process.exit(2)
+}
+
+if (vitestArgs.some((arg) => arg.startsWith('--maxWorkers'))) {
+  console.error('test:gated sets --maxWorkers itself, to half the cores.')
   process.exit(2)
 }
 

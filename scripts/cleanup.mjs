@@ -148,6 +148,10 @@ const linked = sessionPrefix
 const cacheOwners = sessionPrefix ? linked : [mainCheckout, ...linked]
 const here = process.cwd()
 const merged = mergedPullRequests()
+const keepReasons = new Map(linked.map((tree) => [tree, keepReason(tree)]))
+const removable = new Set(
+  linked.filter((tree) => !keepReasons.get(tree)).map((tree) => tree.path)
+)
 
 console.log(`Free disk: ${freeDiskGb().toFixed(1)} GB`)
 warnIfLowDisk()
@@ -158,12 +162,13 @@ if (sessionPrefix)
     `Only worktrees on ${sessionPrefix} branches; the main checkout is left alone.`
   )
 for (const { path } of cacheOwners) {
+  if (removable.has(path)) continue
   const cache = join(path, 'docs', '.next')
   if (!existsSync(cache)) continue
   const kb = sizeKb(cache)
-  if (inUse(join(path, 'docs'))) {
+  if (inUse(path)) {
     console.log(
-      `  Kept ${cache} (${formatKb(kb)}), a process is running in docs`
+      `  Kept ${cache} (${formatKb(kb)}), a process is running in its worktree`
     )
     continue
   }
@@ -174,7 +179,7 @@ for (const { path } of cacheOwners) {
 
 console.log('\nWorktrees whose branch is merged and clean')
 for (const tree of linked) {
-  const reason = keepReason(tree)
+  const reason = keepReasons.get(tree)
   if (reason) {
     console.log(`  Kept ${tree.path} (${reason})`)
     continue

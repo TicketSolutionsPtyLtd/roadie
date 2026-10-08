@@ -123,6 +123,7 @@ for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
   process.on(signal, () => {
     receivedSignal = signal
     stopServer(signal)
+    setTimeout(() => stopServer('SIGKILL'), 5_000).unref()
   })
 }
 server.on('exit', (code, signal) => {
@@ -133,7 +134,9 @@ server.on('exit', (code, signal) => {
 
 async function serverIsUp() {
   for (let attempt = 0; attempt < 180; attempt++) {
-    const response = await fetch(`http://127.0.0.1:${port}/`).catch(() => null)
+    const response = await fetch(`http://127.0.0.1:${port}/`, {
+      signal: AbortSignal.timeout(5_000)
+    }).catch(() => null)
     if (response && response.status < 500) return true
     await sleep(1000)
   }
