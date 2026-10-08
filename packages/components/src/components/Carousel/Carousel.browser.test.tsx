@@ -11,7 +11,7 @@ import {
   it,
   vi
 } from 'vitest'
-import { page, userEvent } from 'vitest/browser'
+import { commands, page, userEvent } from 'vitest/browser'
 
 import { Carousel, type CarouselProps, useCarouselUnsafeEmbla } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -205,7 +205,10 @@ describe('Carousel controls', () => {
 })
 
 describe('Carousel autoplay', () => {
-  afterEach(() => vi.useRealTimers())
+  afterEach(async () => {
+    vi.useRealTimers()
+    await commands.reduceMotion(false)
+  })
 
   it('moves to the next slide once the delay given has passed', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
@@ -334,4 +337,16 @@ describe('Carousel autoplay', () => {
       await showing(2)
     }
   )
+
+  it('stays still through a reInit when the user prefers reduced motion', async () => {
+    await commands.reduceMotion(true)
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const { rerender } = render(<Autoplaying />)
+    await dots(3)
+    rerender(<Autoplaying count={4} />)
+    await dots(4)
+    await vi.advanceTimersByTimeAsync(5000)
+    await leave()
+    stillShowingFirst()
+  })
 })
