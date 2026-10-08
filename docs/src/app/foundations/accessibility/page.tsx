@@ -122,17 +122,30 @@ export default function AccessibilityPage() {
         </p>
 
         <Guideline
-          title='Meet WCAG AA contrast ratios'
-          description='4.5:1 for normal text. 3:1 for large text (18px bold / 24px regular) and UI components. Labels on strong fills are the exception: they are checked with APCA.'
+          title='Meet the APCA contrast thresholds'
+          description={
+            <>
+              Roadie measures all contrast with APCA, not WCAG 2 ratios. The
+              thresholds for body text, labels, large text, and non-text UI are
+              in{' '}
+              <Link
+                href='/foundations/colors#contrast'
+                className='underline underline-offset-2'
+              >
+                Colors
+              </Link>
+              .
+            </>
+          }
         >
           <Guideline.Do>
             Use Roadie&apos;s semantic text colours (<Code>text-normal</Code>,{' '}
             <Code>text-subtle</Code>, <Code>text-strong</Code>) which are
-            designed to meet contrast ratios in both light and dark modes.
+            designed to meet those thresholds in both light and dark modes.
           </Guideline.Do>
           <Guideline.Dont>
             Use raw colour values without checking contrast. Light grey text on
-            a white background may look subtle but fails WCAG.
+            a white background may look subtle but fails APCA.
           </Guideline.Dont>
         </Guideline>
 
@@ -350,7 +363,7 @@ export default function AccessibilityPage() {
             </h3>
             <p className='text-sm text-subtle'>
               Semantic colour tokens (<Code>text-normal</Code>,{' '}
-              <Code>text-subtle</Code>) are designed to maintain contrast ratios
+              <Code>text-subtle</Code>) are designed to meet the APCA thresholds
               in both light and dark modes.
             </p>
           </div>
@@ -395,13 +408,10 @@ export default function AccessibilityPage() {
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>Contrast</td>
-                <td className='py-2 pr-4'>
-                  Browser DevTools or contrast checker
-                </td>
+                <td className='py-2 pr-4'>An APCA contrast checker</td>
                 <td className='py-2'>
-                  Text meets WCAG AA and UI components meet 3:1. Labels on
-                  strong fills reach APCA Lc 60 instead; some white labels are
-                  3.2 to 3.5:1 by WCAG 2.
+                  Text, labels, and UI components meet the APCA thresholds in
+                  Colors.
                 </td>
               </tr>
               <tr>

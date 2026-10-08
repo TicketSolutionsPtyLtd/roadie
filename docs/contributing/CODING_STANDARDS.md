@@ -19,6 +19,8 @@ implementer needs to write the code; `PR_WORKFLOW.md` holds the process.
   worded by the Guidelines on its docs page, with `intent='danger'` on the
   root for errors.
 - **Controls beside a search field match its size.**
+- **Contrast is APCA,** never a WCAG 2 ratio, at the thresholds on the
+  [colours page](https://ticketsolutionsptyltd.github.io/roadie/foundations/colors#contrast).
 - **Vue widget skins follow the same rules as React.** Roadie utilities and
   intents only: no scoped `<style>` blocks or hand-written CSS files.
 

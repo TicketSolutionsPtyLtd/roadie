@@ -61,36 +61,39 @@ function ColorScale({ intent }: { intent: string }) {
   )
 }
 
+const contrastThresholds = [
+  { content: 'Body text', lc: 75 },
+  { content: 'Labels on strong fills and large text', lc: 60 },
+  { content: 'Non-text UI and large display text', lc: 45 }
+] as const
+
 const strongText = [
-  { intent: 'neutral', text: 'White', dark: 'Step 0', apca: 107, wcag: 18.7 },
-  { intent: 'brand', text: 'White', dark: 'White', apca: 66, wcag: 3.4 },
+  { intent: 'neutral', text: 'White', dark: 'Step 0', apca: 107 },
+  { intent: 'brand', text: 'White', dark: 'White', apca: 66 },
   {
     intent: 'brand-secondary',
     text: 'Step 13',
     dark: 'Step 0',
-    apca: 61,
-    wcag: 8.6
+    apca: 61
   },
-  { intent: 'brand-blue', text: 'White', dark: 'White', apca: 66, wcag: 3.4 },
+  { intent: 'brand-blue', text: 'White', dark: 'White', apca: 66 },
   {
     intent: 'brand-orange',
     text: 'Step 13',
     dark: 'Step 0',
-    apca: 61,
-    wcag: 8.6
+    apca: 61
   },
   {
     intent: 'brand-purple',
     text: 'White',
     dark: 'White',
-    apca: 68,
-    wcag: 3.5
+    apca: 68
   },
-  { intent: 'accent', text: 'White', dark: 'White', apca: 66, wcag: 3.4 },
-  { intent: 'danger', text: 'White', dark: 'White', apca: 64, wcag: 3.2 },
-  { intent: 'success', text: 'Step 13', dark: 'Step 0', apca: 62, wcag: 8.3 },
-  { intent: 'warning', text: 'Step 13', dark: 'Step 0', apca: 62, wcag: 8.3 },
-  { intent: 'info', text: 'White', dark: 'White', apca: 68, wcag: 3.5 }
+  { intent: 'accent', text: 'White', dark: 'White', apca: 66 },
+  { intent: 'danger', text: 'White', dark: 'White', apca: 64 },
+  { intent: 'success', text: 'Step 13', dark: 'Step 0', apca: 62 },
+  { intent: 'warning', text: 'Step 13', dark: 'Step 0', apca: 62 },
+  { intent: 'info', text: 'White', dark: 'White', apca: 68 }
 ] as const
 
 function StrongTextTable() {
@@ -100,18 +103,15 @@ function StrongTextTable() {
       <p className='text-subtle'>
         <Code>text-on-strong</Code> is the label colour for strong fills, chosen
         per intent: white or dark text, whichever reads better on the fill.{' '}
-        <Code>emphasis-strong</Code> uses it. Roadie checks these labels with
-        APCA, the contrast method in the WCAG 3 draft, and needs Lc 60 or more
-        at rest, on hover and when pressed. <Code>text-inverted</Code> is
-        different: it&apos;s the page&apos;s text colour flipped, and pairs with{' '}
+        <Code>emphasis-strong</Code> uses it. Labels need Lc 60 or more at rest,
+        on hover and when pressed. <Code>text-inverted</Code> is different:
+        it&apos;s the page&apos;s text colour flipped, and pairs with{' '}
         <Code>bg-inverted</Code>.
       </p>
       <p className='text-subtle'>
-        WCAG 2 ratios rate dark text on bright mid tones higher than it reads,
-        so they would pick dark text on blue. White on Spotlight blue is 3.4:1.
-        That passes WCAG 2 for large text and controls (3:1), not for body text
-        (4.5:1). Danger, success and brand-secondary move their fill slightly to
-        reach Lc 60.
+        White on Spotlight blue scores Lc 66, so blue fills keep white labels.
+        Danger, success, and brand-secondary move their fill slightly to reach
+        Lc 60.
       </p>
       <p className='text-subtle'>
         A custom accent keeps white text too. <Code>ThemeProvider</Code> caps
@@ -125,10 +125,7 @@ function StrongTextTable() {
               <th className='py-2 pr-4 text-left font-semibold'>Intent</th>
               <th className='py-2 pr-4 text-left font-semibold'>Light</th>
               <th className='py-2 pr-4 text-left font-semibold'>Dark</th>
-              <th className='py-2 pr-4 text-left font-semibold'>
-                APCA Lc, light
-              </th>
-              <th className='py-2 text-left font-semibold'>WCAG 2, light</th>
+              <th className='py-2 text-left font-semibold'>APCA Lc, light</th>
             </tr>
           </thead>
           <tbody className='divide-y divide-subtler text-subtle'>
@@ -143,8 +140,7 @@ function StrongTextTable() {
                 </td>
                 <td className='py-2 pr-4'>{row.text}</td>
                 <td className='py-2 pr-4'>{row.dark}</td>
-                <td className='py-2 pr-4'>{row.apca}</td>
-                <td className='py-2'>{row.wcag}:1</td>
+                <td className='py-2'>{row.apca}</td>
               </tr>
             ))}
           </tbody>
@@ -400,12 +396,40 @@ export default function ColorsPage() {
             red stay status colours, with no brand intent.
           </p>
         </div>
-        <StrongTextTable />
         <div className='grid gap-6'>
           {intents.map((intent) => (
             <IntentDemo key={intent} intent={intent} />
           ))}
         </div>
+      </section>
+
+      <section id='contrast' className='grid gap-6'>
+        <h2 className='text-display-ui-3 text-strong'>Contrast</h2>
+        <p className='text-subtle'>
+          Roadie measures all contrast with APCA, the contrast method in the
+          WCAG 3 draft, and doesn&apos;t use WCAG 2 ratios. APCA scores a pair
+          as Lc, its lightness contrast, and weighs text size and weight in a
+          way ratios don&apos;t.
+        </p>
+        <div className='overflow-x-auto'>
+          <table className='w-full text-sm'>
+            <thead>
+              <tr className='border-b border-subtle'>
+                <th className='py-2 pr-4 text-left font-semibold'>Content</th>
+                <th className='py-2 text-left font-semibold'>Minimum</th>
+              </tr>
+            </thead>
+            <tbody className='divide-y divide-subtler text-subtle'>
+              {contrastThresholds.map((row) => (
+                <tr key={row.content}>
+                  <td className='py-2 pr-4'>{row.content}</td>
+                  <td className='py-2'>Lc {row.lc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <StrongTextTable />
       </section>
 
       <section className='grid gap-6'>
