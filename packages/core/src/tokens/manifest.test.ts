@@ -108,6 +108,16 @@ describe('values', () => {
     )
   })
 
+  it('gives an intent built with @apply the values of the one it applies', () => {
+    const intentVariables = manifest.tokens.filter((t) => t.byIntent?.info)
+    expect(intentVariables.length).toBeGreaterThan(10)
+    for (const token of intentVariables) {
+      expect(token.byIntent?.['brand-purple'], token.name).toEqual(
+        token.byIntent?.info
+      )
+    }
+  })
+
   it('prefers the oklch value and keeps the hex fallback', () => {
     expect(find('--color-danger-10').value).toEqual({
       light: 'oklch(0.673 0.184 28.364)',

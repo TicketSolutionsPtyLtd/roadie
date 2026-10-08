@@ -211,6 +211,7 @@ function walk(
   visit: {
     declaration: (d: Declaration) => void
     block: (prelude: string, offset: number) => void
+    apply: (utility: string, applied: string[]) => void
   }
 ) {
   const clean = blankComments(css)
@@ -219,9 +220,12 @@ function walk(
 
   const flush = (end: number) => {
     const text = clean.slice(start, end).trim()
+    const preludes = stack.map((b) => b.prelude)
+    const applied = text.match(/^@apply\s+([\s\S]+)$/)?.[1]
+    if (applied && preludes.length === 1 && preludes[0]!.startsWith('@utility'))
+      visit.apply(preludes[0]!.slice(9).trim(), applied.split(/\s+/))
     const match = text.match(/^(--[\w-]+)\s*:\s*([\s\S]*)$/)
     if (!match || match[1]!.endsWith('-')) return
-    const preludes = stack.map((b) => b.prelude)
     visit.declaration({
       name: match[1]!,
       value: squash(match[2]!),
@@ -279,17 +283,26 @@ export function parseTokenManifest(
     css: string
   }[] = []
   const descriptions = new Map<string, string>()
+  const applies: [utility: string, applied: string[]][] = []
 
   for (const [sheet, css] of sheets) {
     walk(sheet, css, {
       declaration: (d) => declarations.push(d),
-      block: (prelude, offset) => blocks.push({ sheet, prelude, offset, css })
+      block: (prelude, offset) => blocks.push({ sheet, prelude, offset, css }),
+      apply: (utility, applied) => applies.push([utility, applied])
     })
     for (const m of css.matchAll(
       /^[ \t]*(--[\w-]+)\s*:[^;]*;[ \t]*\/\*[ \t]*(.*?)[ \t]*\*\/[ \t]*$/gm
     )) {
       if (!descriptions.has(m[1]!)) descriptions.set(m[1]!, m[2]!)
     }
+  }
+
+  for (const [utility, applied] of applies) {
+    const copied = declarations.filter(
+      (d) => d.utility && applied.includes(d.utility)
+    )
+    declarations.push(...copied.map((d) => ({ ...d, utility })))
   }
 
   const publicNames = new Set(
