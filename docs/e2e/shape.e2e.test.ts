@@ -32,6 +32,19 @@ async function open(path: string, width: number) {
   return page
 }
 
+const NAMED_TIERS = [
+  'rounded-sm',
+  'rounded-md',
+  'rounded-lg',
+  'rounded-xl',
+  'rounded-2xl',
+  'rounded-4xl',
+  'rounded-5xl',
+  'rounded-6xl',
+  'rounded-7xl',
+  'rounded-full'
+]
+
 type Token = { name: string; group: string; value?: { light?: string } }
 
 async function radiusTiers() {
@@ -79,10 +92,13 @@ describe('Shape foundation', () => {
       const tiers = await radiusTiers()
       const { tiles, overflow } = await renderedTiles(width)
 
-      expect(tiles.map((tile) => tile.utility)).toEqual([
+      const utilities = tiles.map((tile) => tile.utility)
+      expect(utilities).toEqual([
         ...tiers.map((tier) => tier.utility),
         'rounded-full'
       ])
+      // The page's tier table names these, so a manifest that loses one fails too.
+      expect(utilities).toEqual(expect.arrayContaining(NAMED_TIERS))
       tiers.forEach((tier, index) => {
         expect(tiles[index]!.radius).toBeCloseTo(tier.px, 1)
       })
