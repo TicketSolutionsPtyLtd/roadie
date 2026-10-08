@@ -23,10 +23,12 @@ what is clearly wrong, commits the fixes, and comments only on judgement calls.
 - The diff: `gh pr diff <n>` or `git diff origin/<base>...HEAD`, and the PR body
   or the branch's commit messages for intent.
 - The host repo's rules: `AGENTS.md` (or `CLAUDE.md`), `CODING_STANDARDS.md`,
-  and the PR workflow, wherever the repo keeps them (`git ls-files | grep -iE
-  'agents.md|coding_standards|pr_workflow'`). Follow their links for the areas
-  the diff touches. They win over anything here.
+  and the PR workflow, wherever the repo keeps them:
+  `git ls-files | grep -iE 'agents.md|coding_standards|pr_workflow'`. Follow
+  their links for the areas the diff touches. They win over anything here.
 - Learnings the repo records (`docs/solutions/` or similar) for touched modules.
+- Run the host repo's format and lint on the changed files. Hooks may have been
+  skipped, so don't assume they ran.
 
 ## 2. Review on three axes
 
@@ -36,7 +38,8 @@ input that fails. No input, no finding.
 
 **Conventions.** The added lines against the host repo's `AGENTS.md`,
 `CODING_STANDARDS.md`, and workflow. In a repo that uses Roadie, also run the
-`/roadie:audit` checks on the added lines only (`git diff origin/<base> -U0`).
+`/roadie:audit` checks on the added lines only
+(`git diff origin/<base>...HEAD -U0`).
 
 **Bug hunt.** These are the classes that keep reaching Copilot and phones:
 
@@ -50,7 +53,8 @@ input that fails. No input, no finding.
 - **Edge-case data:** empty, zero, negative, `NaN` from `parseFloat`, arrays
   where one value is expected, prototype keys (`constructor`, `__proto__`) read
   from plain objects, rounding of negative halves, off-by-one, DST, and layout
-  that assumes a 16px root or a fixed row height.
+  that assumes a 16px root or a fixed row height. Check that an `as` or `!`
+  isn't hiding one of these.
 - **Forms:** hidden inputs submitting stale values, a missing `form` or `name`,
   parse errors that never reach native validation, `required` and `disabled`
   not reaching the control, IME composition.
@@ -69,19 +73,24 @@ input that fails. No input, no finding.
   the public interface.
 - **Cannot fail:** mocks the thing under test or stubs a browser API so its
   real failure never happens, awaits nothing, or asserts in jsdom what only a
-  browser decides (layout, `calc()`, container queries).
+  browser decides (layout, `calc()`, container queries), or asserts inside a
+  callback or loop that never runs.
 - **Missing:** a bug-hunt fix or new branch of behaviour with no test that
   fails without it.
 
+To settle a doubtful test, break the line it covers and run it. If it still
+passes, it can't fail.
+
 ## 3. Act
 
-- **Fix** each clear finding on the PR branch, test first: write the failing
-  test, watch it fail, fix, then run the affected tests the way the host repo's
-  workflow says (check machine load first). Commit with a message naming the
-  finding.
+- **Fix** each clear finding on the PR branch. Where behaviour changes, go test
+  first: write the failing test, watch it fail, fix, then run the affected
+  tests the way the host repo's workflow says (check machine load first).
+  Commit with a message naming the finding.
 - **Comment** only on judgement calls (API shape, naming, scope, a trade-off the
   author may have chosen on purpose) and one-way doors, as PR review comments
-  with the rule or failing input and your recommendation.
+  with the rule or failing input and your recommendation. With no PR yet, put
+  them in the report.
 - **Triage** by the host workflow's severity rules. Without them: fix Critical
   and Important always; fix a Minor only if a real user would hit it, and list
   the rest as follow-ups.
@@ -92,4 +101,6 @@ input that fails. No input, no finding.
 
 End with `Findings: None`, or a list grouped by axis: severity, file and line,
 the rule or failing input, and the commit that fixed it or the comment that
-asks. Note anything you couldn't check, such as browser tests you couldn't run.
+asks. On a review of fix commits, list under "Previously missed" anything the
+first pass should have caught. Note anything you couldn't check, such as
+browser tests you couldn't run.

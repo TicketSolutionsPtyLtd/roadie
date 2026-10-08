@@ -131,8 +131,8 @@ Every PR is checked against these before review. Fix every real hit.
 
 ## 6. Review before the PR exists
 
-Two passes by a reviewer with fresh eyes, before anything is pushed. Run
-`/roadie:review` in a fresh subagent, which also checks test quality and
+A reviewer with fresh eyes, before anything is pushed. Run `/roadie:review`
+in a fresh subagent: one pass covers both reviews below and test quality, and
 commits its fixes:
 
 1. **Design and conventions review.** Does the change meet its spec, follow
