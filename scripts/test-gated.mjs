@@ -82,10 +82,19 @@ function withFolderContents(path) {
 const files = fileArgs.map(packageRelative).flatMap(withFolderContents)
 const maxWorkers = Math.max(1, Math.floor(availableParallelism() / 2))
 
+const callerSetsNoTests = vitestArgs.some((arg) =>
+  arg.startsWith('--passWithNoTests')
+)
+
 const selection = all
   ? ['run']
   : files.length
-    ? ['related', '--run', '--passWithNoTests=false', ...files]
+    ? [
+        'related',
+        '--run',
+        ...(callerSetsNoTests ? [] : ['--passWithNoTests=false']),
+        ...files
+      ]
     : ['run', '--changed', 'origin/main']
 
 warnIfLowDisk()
