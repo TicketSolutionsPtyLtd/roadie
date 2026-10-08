@@ -1,6 +1,6 @@
 ---
 name: shepherd
-description: Use to take an open draft PR to merged in any Oztix repo. Rebases on its base branch, waits for CI without busy polling, marks it ready for the one Copilot pass, triages every Copilot thread (fix, reply, resolve), records Copilot precision, and merges a two-way door or hands a one-way door to the maintainer. Reads the host repo's AGENTS.md and PR workflow. Triggers on "shepherd this PR", "see this PR through", "get this merged", "mark it ready and handle Copilot".
+description: Use to take an open draft PR to merged in any Oztix repo. Rebases on its base branch, waits for CI without busy polling, marks it ready for the one Copilot pass, triages every review thread from Copilot and other bots (fix, reply, resolve), records each bot's precision, and merges a two-way door or hands a one-way door to the maintainer. Reads the host repo's AGENTS.md and PR workflow. Triggers on "shepherd this PR", "see this PR through", "get this merged", "mark it ready and handle Copilot".
 ---
 
 # Roadie shepherd
