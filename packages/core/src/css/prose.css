@@ -1,5 +1,4 @@
-/* Registered so `65ch` resolves once, at the prose body size, as in
-   pane-measure.css. */
+/* Registered so `65ch` resolves once, at the prose body size. */
 @property --prose-measure {
   syntax: '<length> | none';
   inherits: true;
@@ -173,7 +172,8 @@
     list-style-type: disc;
   }
   .prose
-    :where(ul ul):not(
+    :where(ul)
+    :where(ul):not(
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
     ) {
     list-style-type: circle;

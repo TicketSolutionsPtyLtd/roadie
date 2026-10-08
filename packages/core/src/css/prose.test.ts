@@ -14,7 +14,7 @@ type Rule = { selector: string; body: string; layers: string[] }
 const compileRoadie = async () => {
   const safelist = await readFile(resolve(cssDir, 'safelist.html'), 'utf8')
   const candidates = [...safelist.matchAll(/class="([^"]*)"/g)].flatMap(
-    ([, classes]) => classes.split(/\s+/).filter(Boolean)
+    ([, classes = '']) => classes.split(/\s+/).filter(Boolean)
   )
   const compiler = await compile(
     await readFile(resolve(cssDir, 'roadie.css'), 'utf8'),
@@ -71,7 +71,24 @@ const parseRules = (css: string) => {
 }
 
 const declaration = (body: string, property: string) =>
-  body.match(new RegExp(`(?:^|;)\\s*${property}\\s*:\\s*([^;]+)`))?.[1].trim()
+  body.match(new RegExp(`(?:^|;)\\s*${property}\\s*:\\s*([^;]+)`))?.[1]?.trim()
+
+const splitSelectorList = (list: string) => {
+  const parts: string[] = []
+  let depth = 0
+  let start = 0
+  for (let i = 0; i < list.length; i++) {
+    if (list[i] === '(') depth++
+    else if (list[i] === ')') depth--
+    else if (list[i] === ',' && depth === 0) {
+      parts.push(list.slice(start, i))
+      start = i + 1
+    }
+  }
+  return [...parts, list.slice(start)].map((part) =>
+    part.replace(/\s+/g, ' ').trim()
+  )
+}
 
 const isProse = (selector: string) =>
   /(^|[\s,(>+~])\.prose(\b|-)/.test(selector) &&
@@ -111,11 +128,18 @@ describe('prose.css', () => {
   })
 
   it('opts out under .not-prose and [data-not-prose]', () => {
-    const escaped = proseRules.filter(({ selector }) =>
-      selector.includes(':not(')
-    )
-    expect(escaped.length).toBeGreaterThan(20)
-    for (const { selector } of escaped) {
+    // Direct children keep the measure and rhythm even when escaped.
+    const unescaped = new Set([
+      '.prose',
+      '.prose > *',
+      '.prose > .prose-bleed',
+      '.prose > :first-child'
+    ])
+    const selectors = proseRules
+      .flatMap(({ selector }) => splitSelectorList(selector))
+      .filter((selector) => !unescaped.has(selector))
+    expect(selectors.length).toBeGreaterThan(20)
+    for (const selector of selectors) {
       expect(selector).toContain('.not-prose')
       expect(selector).toContain('[data-not-prose]')
     }
@@ -123,12 +147,14 @@ describe('prose.css', () => {
 
   it('reads only variables the compiled sheet defines', () => {
     const definitions = new Map<string, string[]>()
-    for (const [, name, value] of css.matchAll(/(--[\w-]+)\s*:\s*([^;{}]+)/g)) {
+    for (const [, name = '', value = ''] of css.matchAll(
+      /(--[\w-]+)\s*:\s*([^;{}]+)/g
+    )) {
       definitions.set(name, [...(definitions.get(name) ?? []), value.trim()])
     }
     const used = new Set(
       proseRules.flatMap(({ body }) =>
-        [...body.matchAll(/var\((--[\w-]+)/g)].map(([, name]) => name)
+        [...body.matchAll(/var\((--[\w-]+)/g)].map(([, name = '']) => name)
       )
     )
 
