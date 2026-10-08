@@ -46,11 +46,17 @@ Every test must be able to fail for a reason a user would notice.
   output contains a literal from its own map, that `X === X.Root`, or what a
   source or `.css` file says. Class assertions are fine only for Roadie's
   public utilities (`intent-*`, `emphasis-*`, `is-interactive*`).
-- **What CSS decides is measured in a browser.** Sizes, `calc()`, container
-  and media queries, transitions, and blur go in `*.browser.test.tsx`, using
-  computed style or geometry. So does anything that needs
-  `getBoundingClientRect`, `ResizeObserver`, or a root font size, rather
-  than faking layout in jsdom.
+- **Choose the cheapest test that can fail.** Pure logic gets a unit test,
+  and behaviour that doesn't depend on layout stays in jsdom. A browser test
+  is only for what CSS decides: computed spacing and size, measure,
+  `calc()`, container and media queries, `:has()`, touch versus hover,
+  transitions, and engine differences.
+- **What CSS decides is measured in a real browser.** Use computed style or
+  geometry in `*.browser.test.tsx`. Anything that needs
+  `getBoundingClientRect`, `ResizeObserver`, or a root font size goes there
+  too, rather than faking layout in jsdom. Never use a browser that doesn't
+  render (Lightpanda and the like), where a layout test passes without
+  checking anything.
 - **Mock only system boundaries:** time (fake timers or a `today` or `now`
   input), randomness, the network, and browser APIs jsdom lacks. Never mock
   Base UI, motion, Roadie, or the repo's own modules; mock the network under

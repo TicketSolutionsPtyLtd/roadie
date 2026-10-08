@@ -24,6 +24,9 @@ and typecheck cover.
 
 ## 2. Pick the boundary and the test type
 
+Choose the cheapest test that can fail ("Tests" in `CODING_STANDARDS.md`). A
+browser test is only for what CSS decides.
+
 | Behaviour                                                            | Boundary                            | Test                                                             |
 | -------------------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------- |
 | A component                                                          | props, roles, keyboard, ARIA states | jsdom, Testing Library, `userEvent`                              |
@@ -49,9 +52,13 @@ Each test sets up its own state and passes alone.
 Testing code that already exists? Still one test at a time: write it, break
 the behaviour (drop the prop's effect), watch it fail, then restore it.
 
-Iterate on one file: `vitest run <file>`, and for Roadie browser tests
-`ROADIE_BROWSERS=chromium`. Check `uptime` first and follow the host repo's
-load rule. Run the whole package once before you push.
+Iterate on the file you're writing, through the repo's load-gated runner,
+never `vitest` or the whole suite directly. In Roadie that's
+`pnpm test:gated <package> <file>`, which waits for load and runs Chromium
+only; add `--project 'browser*'` for a browser test. A repo without a runner
+follows its own load rule and runs `vitest run <file>`. Before pushing,
+follow the host workflow (in Roadie, touched browser files once in all three
+engines), and let the hooks and CI run the rest.
 
 ## 4. Tests that lie
 
