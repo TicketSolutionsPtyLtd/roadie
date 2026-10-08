@@ -116,7 +116,8 @@ the page.
 Add `.not-prose` or `data-not-prose` to an element inside `.prose` to keep the
 sheet away from it and everything inside it. Use it around components,
 previews, and anything else that brings its own styles. An escaped direct
-child still takes its place in the rhythm.
+child still takes its place in the rhythm and is still capped at
+`--prose-measure`. Add `.prose-bleed` as well to let it run wider.
 
 ```tsx-live
 <div className='prose'>
