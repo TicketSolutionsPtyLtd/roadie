@@ -1,3 +1,4 @@
 git diff --quiet origin/main...HEAD -- packages/components docs/src scripts/check-component-docs.mjs || node scripts/check-component-docs.mjs || exit 1
+node scripts/wait-for-load.mjs || exit 1
 TURBO_SCM_BASE=origin/main pnpm turbo run typecheck test --affected
 node scripts/check-pr-size.mjs || true
