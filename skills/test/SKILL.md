@@ -46,8 +46,8 @@ Each test sets up its own state and passes alone.
 4. Repeat for the next behaviour. Never write the tests up front in a batch.
    Leave refactoring to review.
 
-Testing code that already exists? Break it (drop the prop's effect), watch
-the new test fail, then restore it.
+Testing code that already exists? Still one test at a time: write it, break
+the behaviour (drop the prop's effect), watch it fail, then restore it.
 
 Iterate on one file: `vitest run <file>`, and for Roadie browser tests
 `ROADIE_BROWSERS=chromium`. Check `uptime` first and follow the host repo's

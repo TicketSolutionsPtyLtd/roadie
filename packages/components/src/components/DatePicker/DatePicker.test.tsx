@@ -118,7 +118,7 @@ describe('DatePicker', () => {
     expect(day('2027-03-14')).toHaveAttribute('data-selected')
   })
 
-  it('starts the calendar’s week on weekStart', async () => {
+  it('starts the calendar’s week on the day given', async () => {
     render(<DatePicker aria-label='Show date' today={TODAY} weekStart={7} />)
     await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
     const dialog = await screen.findByRole('dialog')
