@@ -37,17 +37,17 @@ three.
 
 <Guidelines>
 
-{/* MDX strips the Guideline.Do indent from code lines, so nested lines carry two extra spaces. */}
-
 <Guideline title='No layout shift (CLS)' description='Stability is quality. Things should not jump around as they load.'>
   <Guideline.Do
-    code={`<!-- Set explicit dimensions on images -->
-<img src="hero.jpg" width={800} height={400} alt="..." />
+    code={`
+      <!-- Set explicit dimensions on images -->
+      <img src="hero.jpg" width={800} height={400} alt="..." />
 
-<!-- Reserve space for async content -->
-<div className='min-h-50'>
-    {content ?? <Skeleton />}
-</div>`}
+      <!-- Reserve space for async content -->
+      <div className='min-h-50'>
+        {content ?? <Skeleton />}
+      </div>
+    `}
   >
     Set explicit dimensions on all images and media. Reserve space for content
     that loads asynchronously.
@@ -60,11 +60,13 @@ three.
 
 <Guideline title='Fast first paint (LCP)' description='Prioritise the viewport. Bandwidth should be spent on what is seen immediately.'>
   <Guideline.Do
-    code={`<!-- Preload above-the-fold images -->
-<link rel="preload" href="/hero.jpg" as="image" />
+    code={`
+      <!-- Preload above-the-fold images -->
+      <link rel="preload" href="/hero.jpg" as="image" />
 
-<!-- Lazy-load everything else -->
-<img src="footer.jpg" loading="lazy" alt="..." />`}
+      <!-- Lazy-load everything else -->
+      <img src="footer.jpg" loading="lazy" alt="..." />
+    `}
   >
     Preload above-the-fold images. Lazy-load everything below the fold.
   </Guideline.Do>
@@ -128,11 +130,13 @@ do.
 
 <Guideline title='Virtualise large lists' description="DOM nodes are heavy. Don't render what the user can't see.">
   <Guideline.Do
-    code={`/* Use virtualisation or CSS containment */
-<VirtualList items={items} />
+    code={`
+      /* Use virtualisation or CSS containment */
+      <VirtualList items={items} />
 
-/* Or use CSS containment for simpler cases */
-.offscreen { content-visibility: auto; }`}
+      /* Or use CSS containment for simpler cases */
+      .offscreen { content-visibility: auto; }
+    `}
   >
     Use virtualisation (such as `virtua`) or `content-visibility: auto` for
     long lists and large tables.
@@ -163,8 +167,10 @@ Latency kills flow. API interactions should feel instantaneous.
 
 <Guideline title='Preconnect to origins' description='Handshakes take time. Establish connections before you need the data.'>
   <Guideline.Do
-    code={`<link rel="preconnect" href="https://cdn.oztix.com.au" />
-<link rel="dns-prefetch" href="https://api.oztix.com.au" />`}
+    code={`
+      <link rel="preconnect" href="https://cdn.oztix.com.au" />
+      <link rel="dns-prefetch" href="https://api.oztix.com.au" />
+    `}
   >
     Use `<link rel="preconnect">` for critical CDNs or API domains.
   </Guideline.Do>
