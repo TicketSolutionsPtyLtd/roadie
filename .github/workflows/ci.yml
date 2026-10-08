@@ -37,8 +37,15 @@ jobs:
       - name: Setup
         uses: ./.github/composite-actions/setup
 
-      - name: Lint, typecheck, and test
-        run: pnpm turbo lint typecheck test --affected --framework-inference=false
+      - name: Lint and typecheck
+        run: pnpm turbo lint typecheck --affected --framework-inference=false
+        env:
+          TURBO_SCM_BASE: origin/main
+
+      # On 4 vCPUs, jsdom suites run 8 to 20 times slower beside lint,
+      # typecheck and other packages' tests, so tests run one package at a time.
+      - name: Test
+        run: pnpm turbo test --affected --framework-inference=false --concurrency=1
         env:
           TURBO_SCM_BASE: origin/main
 
