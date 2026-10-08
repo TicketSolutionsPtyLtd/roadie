@@ -240,6 +240,7 @@ export function NavigatorPrimary({
     >
       <span data-slot='navigator-item-icon'>
         {presentNavIcon(
+          // eslint-disable-next-line roadie/phosphor-icon-weight -- presentNavIcon sets it
           <DotsThreeIcon />,
           cn('size-6', verticalMoreActive && 'animate-pop-tap')
         )}
@@ -545,6 +546,7 @@ export function NavigatorPrimary({
             {hasMore ? (
               <NavigatorTab
                 label={OVERFLOW_LABEL}
+                // eslint-disable-next-line roadie/phosphor-icon-weight -- presentNavIcon sets it
                 icon={<DotsThreeIcon />}
                 active={overflowOpen || (foldedIsActive && !disclosureOpen)}
                 current={overflowOpen || foldedIsActive}

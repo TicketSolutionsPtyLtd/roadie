@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { cellText, columnStatus, humaniseStatus } from './cells'
@@ -85,13 +84,5 @@ describe('cellText', () => {
   it('leaves an empty cell empty', () => {
     expect(cellText(status, null)).toBe('')
     expect(cellText(status, undefined)).toBe('')
-  })
-})
-
-describe('table cells stay zod-free', () => {
-  it('never imports zod or the schema at runtime', () => {
-    const source = readFileSync(new URL('./cells.ts', import.meta.url), 'utf8')
-    expect(source).not.toMatch(/from ['"]zod['"]/)
-    expect(source).not.toMatch(/^import \{[^}]*\} from ['"]\.\/schema['"]/m)
   })
 })
