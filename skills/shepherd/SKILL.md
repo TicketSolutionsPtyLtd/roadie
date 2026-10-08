@@ -1,6 +1,6 @@
 ---
 name: shepherd
-description: Use to take an open draft PR to merged in any Oztix repo. Rebases on its base branch, waits for CI without busy polling, marks it ready for the one Copilot pass, triages every Copilot thread (fix, reply, resolve), records Copilot precision, and merges a two-way door or hands a one-way door to the maintainer. Reads the host repo's AGENTS.md and PR workflow. Triggers on "shepherd this PR", "see this PR through", "get this merged", "mark it ready and handle Copilot".
+description: Use to take an open draft PR to merged in any Oztix repo. Rebases on its base branch, waits for CI without busy polling, marks it ready for the one Copilot pass, triages every review thread from Copilot and other bots (fix, reply, resolve), records each bot's precision, and merges a two-way door or hands a one-way door to the maintainer. Reads the host repo's AGENTS.md and PR workflow. Triggers on "shepherd this PR", "see this PR through", "get this merged", "mark it ready and handle Copilot".
 ---
 
 # Roadie shepherd
@@ -39,9 +39,10 @@ review your own work. Fix what it leaves open test-first with
   `gh pr checks <n> --watch --interval 60 --fail-fast`, or one check a minute
   or slower. Green means every check passed or was skipped. Report only state changes (green, red, ready, reviewed, merged,
   blocked), never "still waiting".
-- Before anything local (install, build, tests after a rebase) and before
-  every push, since pushes run the hooks, check `uptime` and wait while the 1-minute load is over the host's limit (in
-  Roadie, PR workflow section 5). Use the host's load-gated test runner.
+- Before anything local (install, build, tests after a rebase), check
+  `uptime` and wait while the 1-minute load is over the host's limit. Use the
+  host's load-gated test runner. In Roadie the pre-push hook waits for load
+  itself (PR workflow section 5); elsewhere check before every push too.
 - A red check goes to `/roadie:debug`. A known flake may be re-run once
   (`gh run rerun <id> --failed`). A cancelled job may have hit its time
   limit rather than been replaced by a newer run, so check its step times
@@ -101,10 +102,14 @@ A body finding that links to a `#discussion_r` thread is that thread's
 finding; count it once. Triage the rest the same way and answer them in one
 PR comment.
 
+Threads from other bots (such as `aikido-pr-checks`) block the
+merge too. Triage them the same way before merging.
+
 Add one line to the body's Evidence, updated with `/roadie:pr` (or
 `gh pr edit <n> --body-file`): "Copilot: N of M findings real", where real is
-fixed or filed and the rest stood. Zero findings is "Copilot: 0 findings". If
-an older body has no Evidence section, add one.
+fixed or filed and the rest stood. Zero findings is "Copilot: 0 findings". It
+counts Copilot only; give each other bot its own line, such as "Aikido: 1 of
+2 findings real". If an older body has no Evidence section, add one.
 
 ## 6. Merge or hand off
 
@@ -112,6 +117,9 @@ If `<base>` moved (`git merge-base --is-ancestor origin/<base> HEAD` fails
 after a fetch), rebase locally as in step 4 and wait for CI. Don't rely on
 `gh pr update-branch --rebase`: it fails on any conflict. Resolve conflicts
 keeping both sides' intent, then rerun the host's checks for those files.
+When several PRs touch the same shared file (such as a row in
+`skills/README.md`), merge them one at a time, rebasing each the same way
+after the previous one merges.
 
 Then check the host's merge rule. In Roadie (section 8): CI green, the branch
 up to date with `main`, the file list clean, the review clean, no unresolved

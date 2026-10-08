@@ -25,7 +25,8 @@ and PR workflow win over anything here.
 - Start with the smallest failing test: one file, one test (`-t '<name>'`),
   through the repo's load-gated runner, never `vitest` or the whole suite
   directly. In Roadie that's `pnpm test:gated <package> <file> -t '<name>'`,
-  with the file relative to the package or the repo root. A path that doesn't
+  with `<package>` the folder name (such as `components`, not the npm name)
+  and the file relative to the package or the repo root. A path that doesn't
   exist exits 2, one no test covers exits 1, and exit 124 means the run hit
   the runner's time limit, not a test failure. A repo without a gated runner follows its own load rule.
 - Use the right engine. jsdom can't decide layout, `calc()`, or container
