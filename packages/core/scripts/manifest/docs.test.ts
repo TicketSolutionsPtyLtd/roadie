@@ -41,6 +41,22 @@ describe('parseDocsPage', () => {
     expect(parseDocsPage(mdx, '/x/').example).toBe('<Badge>One</Badge>')
   })
 
+  it('reads metadata only from the metadata export and unescapes quotes', () => {
+    const mdx = [
+      'export const metadata = {',
+      "  description: 'It\\'s a label',",
+      '}',
+      '',
+      'export const event = {',
+      "  status: 'sold-out',",
+      '}'
+    ].join('\n')
+    expect(parseDocsPage(mdx, '/x/')).toMatchObject({
+      description: "It's a label",
+      status: undefined
+    })
+  })
+
   it('reads the description and status from the metadata export', () => {
     const mdx =
       "export const metadata = {\n  title: 'Badge',\n  description: \"A compact label\",\n  status: 'beta',\n}\n"
@@ -67,13 +83,17 @@ describe('pageForComponent', () => {
   ]
 
   it.each([
-    ['Button', 'p/Button', '/components/button/'],
-    ['IconButton', 'p/Button', '/components/icon-button/'],
-    ['RecordValue', 'p/Records', '/components/record-table/'],
-    ['Records', 'p/Records', '/components/record-table/'],
-    ['DataCard', 'p/DataCard', '/charts/data-card/'],
-    ['ButtonGroup', 'p/Button', undefined]
-  ])('finds the page for %s', (name, dir, route) => {
-    expect(pageForComponent(pages, name, dir)?.route).toBe(route)
+    ['Button', 'p/Button', '/components/button/', true],
+    ['IconButton', 'p/Button', '/components/icon-button/', true],
+    ['RecordValue', 'p/Records', '/components/record-table/', false],
+    ['Records', 'p/Records', '/components/record-table/', false],
+    ['DataCard', 'p/DataCard', '/charts/data-card/', true],
+    ['ButtonGroup', 'p/Button', undefined, undefined]
+  ])('finds the page for %s', (name, dir, route, own) => {
+    expect(pageForComponent(pages, name, dir)).toEqual(
+      route === undefined
+        ? undefined
+        : { page: expect.objectContaining({ route }), own }
+    )
   })
 })

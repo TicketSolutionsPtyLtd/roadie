@@ -7,7 +7,7 @@ import {
 } from 'react-docgen-typescript'
 import type ts from 'typescript'
 
-import { unwrap } from './text.ts'
+import { byName, unwrap } from './text.ts'
 
 export type ManifestProp = {
   name: string
@@ -176,8 +176,10 @@ export function namedDocs(
     }
   }
 
+  const hasBareRoot = byKey.has(compound.toLowerCase())
   return Array.from(byKey.values()).filter((doc) => {
     const name = doc.displayName
+    if (hasBareRoot && name === `${prefix}Root`) return false
     if (!name.includes('.')) return exportedValues.has(name)
     const [root, ...rest] = name.split('.')
     return (
@@ -200,7 +202,7 @@ export function toPart(doc: ComponentDoc): ManifestPart {
     props: Object.values(doc.props)
       .map((prop) => toProp(prop, doc.displayName))
       .filter((prop): prop is ManifestProp => prop !== null)
-      .sort((a, b) => a.name.localeCompare(b.name))
+      .sort(byName)
   }
 }
 
@@ -211,14 +213,36 @@ export function readComponents(
   exportedValues: Set<string>
 ): ManifestPart[] {
   const compound = path.basename(path.dirname(entryFile))
-  const docs = parser.parseWithProgramProvider(
-    componentFiles(entryFile),
-    () => program
-  )
-  return namedDocs(
-    docs,
+  const publicParts = publicPartsOf(entryFile, compound)
+  const parts = namedDocs(
+    parser.parseWithProgramProvider(componentFiles(entryFile), () => program),
     compound,
     exportedValues,
-    publicPartsOf(entryFile, compound)
+    publicParts
   ).map(toPart)
+
+  const documented = new Set(parts.map((part) => part.name))
+  const missing = [...publicParts].filter(
+    (part) => part !== 'Root' && !documented.has(`${compound}.${part}`)
+  )
+  if (exportedValues.has(compound) && missing.length > 0) {
+    throw new Error(
+      `react-docgen-typescript found no docs for ${missing
+        .map((part) => `${compound}.${part}`)
+        .join(', ')}. Declare ${compound} as a function and assign its parts.`
+    )
+  }
+  return parts
+}
+
+export function readFileComponents(
+  parser: ReturnType<typeof createDocgenParser>,
+  program: ts.Program,
+  files: string[],
+  names: Set<string>
+): ManifestPart[] {
+  return parser
+    .parseWithProgramProvider(files, () => program)
+    .filter((doc) => names.has(doc.displayName))
+    .map(toPart)
 }

@@ -13,11 +13,18 @@ const COMPONENT_PATH = /componentPath=(?:'([^']+)'|"([^"]+)"|\{\[([^\]]*)\]\})/g
 const QUOTED = /'([^']+)'|"([^"]+)"/g
 const LIVE_FENCE = /^```tsx-live[^\n]*\n([\s\S]*?)^```/m
 
+const METADATA = /^export const metadata = \{\n([\s\S]*?)^\}/m
+
 function metadataField(mdx: string, field: string) {
-  const match = mdx.match(
-    new RegExp(`^\\s+${field}:\\s*(?:'([^']*)'|"([^"]*)")`, 'm')
+  const block = mdx.match(METADATA)?.[1] ?? ''
+  const match = block.match(
+    new RegExp(
+      `^\\s+${field}:\\s*(?:'((?:[^'\\\\]|\\\\.)*)'|"((?:[^"\\\\]|\\\\.)*)")`,
+      'm'
+    )
   )
-  return match ? (match[1] ?? match[2]) : undefined
+  const value = match?.[1] ?? match?.[2]
+  return value?.replace(/\\(.)/g, '$1')
 }
 
 export function parseDocsPage(mdx: string, route: string): DocsPage {
@@ -67,27 +74,30 @@ function slugOf(page: DocsPage) {
   return page.route.split('/').filter(Boolean).at(-1)
 }
 
+export type PageMatch = { page: DocsPage; own: boolean }
+
 export function pageForComponent(
   pages: DocsPage[],
   name: string,
   componentDir: string
-): DocsPage | undefined {
+): PageMatch | undefined {
   const referencing = pages.filter((page) =>
     page.componentPaths.some((p) => componentDirOf(p) === componentDir)
   )
   const named = pages.filter((page) => slugOf(page) === toKebab(name))
   const ownFile = `${componentDir}/${name}.tsx`
-  const match =
-    named.find((page) => referencing.includes(page)) ??
-    named[0] ??
-    pages.find((page) => page.componentPaths.includes(ownFile))
-  if (match) return match
-  if (path.posix.basename(componentDir) !== name) return undefined
-  return (
-    referencing.find(
-      (page) =>
-        page.componentPaths[0] !== undefined &&
-        componentDirOf(page.componentPaths[0]) === componentDir
-    ) ?? referencing[0]
+  const own = named.find((page) => referencing.includes(page)) ?? named[0]
+  if (own) return { page: own, own: true }
+  const documenting = pages.find((page) =>
+    page.componentPaths.includes(ownFile)
   )
+  if (documenting) return { page: documenting, own: false }
+  if (path.posix.basename(componentDir) !== name) return undefined
+  const page =
+    referencing.find(
+      (candidate) =>
+        candidate.componentPaths[0] !== undefined &&
+        componentDirOf(candidate.componentPaths[0]) === componentDir
+    ) ?? referencing[0]
+  return page && { page, own: false }
 }

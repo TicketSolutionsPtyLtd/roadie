@@ -6,9 +6,10 @@ import {
   type ManifestPart,
   componentFiles,
   createDocgenParser,
-  readComponents
+  readComponents,
+  readFileComponents
 } from './components.ts'
-import { type DocsPage, pageForComponent, readDocsPages } from './docs.ts'
+import { type PageMatch, pageForComponent, readDocsPages } from './docs.ts'
 import {
   type ExportTarget,
   createProgram,
@@ -17,6 +18,7 @@ import {
 } from './exports.ts'
 
 export const MANIFEST_FILE = 'roadie.manifest.json'
+export const DOCS_URL = 'https://ticketsolutionsptyltd.github.io/roadie/'
 export const SCHEMA_VERSION = 1
 
 export type ManifestExport = {
@@ -64,6 +66,7 @@ type PackageJson = {
 export type BuildOptions = {
   packageDir: string
   workspaceRoot: string
+  docsUrl?: string
   tokens?: TokenEntry[]
 }
 
@@ -74,20 +77,19 @@ function importPath(packageName: string, subpath: string) {
 function withDocs(
   part: ManifestPart,
   parts: ManifestPart[],
-  meta: { import: string; page?: DocsPage; docsUrl: string }
+  meta: { import: string; match?: PageMatch; docsUrl: string }
 ): ManifestComponent {
-  const { page } = meta
+  const page = meta.match?.page
+  const own = meta.match?.own ? page : undefined
   return {
     name: part.name,
     import: meta.import,
-    ...(page && {
-      docs: new URL(page.route.slice(1), meta.docsUrl).href,
-      ...(page.status && { status: page.status }),
-      ...(page.description && { summary: page.description })
-    }),
+    ...(page && { docs: new URL(page.route.slice(1), meta.docsUrl).href }),
+    ...(own?.status && { status: own.status }),
+    ...(own?.description && { summary: own.description }),
     ...(part.description && { description: part.description }),
     ...(part.deprecated !== undefined && { deprecated: part.deprecated }),
-    ...(page?.example && { example: page.example }),
+    ...(own?.example && { example: own.example }),
     props: part.props,
     ...(parts.length > 0 && { parts })
   }
@@ -104,6 +106,7 @@ function groupCompounds(docs: ManifestPart[]) {
 export function buildManifest({
   packageDir,
   workspaceRoot,
+  docsUrl = DOCS_URL,
   tokens
 }: BuildOptions): RoadieManifest {
   const pkg = JSON.parse(
@@ -122,6 +125,35 @@ export function buildManifest({
   const components: ManifestComponent[] = []
   const deprecations: ManifestDeprecation[] = []
   const rootDeprecations: ManifestDeprecation[] = []
+  const onSubpaths = new Set<string>()
+  let rootValues = new Map<string, string>()
+
+  const addComponents = (
+    importName: string,
+    componentDir: string,
+    docs: ManifestPart[]
+  ) => {
+    for (const { root, parts } of groupCompounds(docs)) {
+      components.push(
+        withDocs(root, parts, {
+          import: importName,
+          match: pageForComponent(pages, root.name, componentDir),
+          docsUrl
+        })
+      )
+      for (const part of [root, ...parts]) {
+        for (const prop of part.props) {
+          if (prop.deprecated === undefined) continue
+          deprecations.push({
+            import: importName,
+            export: part.name,
+            prop: prop.name,
+            reason: prop.deprecated
+          })
+        }
+      }
+    }
+  }
 
   for (const entry of entries) {
     const importName = importPath(pkg.name, entry.subpath)
@@ -143,21 +175,19 @@ export function buildManifest({
       types: api.types
     })
     if (entry.subpath === '.') {
+      rootValues = api.sources
       rootDeprecations.push(
         ...api.deprecated.map((d) => ({ import: importName, ...d }))
       )
       continue
     }
+    for (const name of api.values) onSubpaths.add(name)
     for (const { export: name, reason } of api.deprecated) {
       deprecations.push({ import: importName, export: name, reason })
     }
 
     if (!entry.source.endsWith('.tsx')) continue
 
-    const componentDir = path
-      .relative(workspaceRoot, path.dirname(entry.source))
-      .split(path.sep)
-      .join('/')
     const docs = readComponents(
       parser,
       program,
@@ -169,30 +199,29 @@ export function buildManifest({
         `${importName} is a .tsx entry but react-docgen-typescript found no exported components in it`
       )
     }
-
-    for (const { root, parts } of groupCompounds(docs)) {
-      components.push(
-        withDocs(root, parts, {
-          import: importName,
-          page: pageForComponent(pages, root.name, componentDir),
-          docsUrl: pkg.homepage
-        })
-      )
-      for (const part of [root, ...parts]) {
-        for (const prop of part.props) {
-          if (prop.deprecated === undefined) continue
-          deprecations.push({
-            import: importName,
-            export: part.name,
-            prop: prop.name,
-            reason: prop.deprecated
-          })
-        }
-      }
-    }
+    const componentDir = path
+      .relative(workspaceRoot, path.dirname(entry.source))
+      .split(path.sep)
+      .join('/')
+    addComponents(importName, componentDir, docs)
   }
 
-  const onSubpaths = new Set(deprecations.map((d) => d.export))
+  const rootOnly = [...rootValues].filter(
+    ([name, file]) => !onSubpaths.has(name) && file.endsWith('.tsx')
+  )
+  if (rootOnly.length > 0) {
+    addComponents(
+      pkg.name,
+      '',
+      readFileComponents(
+        parser,
+        program,
+        [...new Set(rootOnly.map(([, file]) => file))],
+        new Set(rootOnly.map(([name]) => name))
+      )
+    )
+  }
+
   deprecations.unshift(
     ...rootDeprecations.filter((d) => !onSubpaths.has(d.export))
   )

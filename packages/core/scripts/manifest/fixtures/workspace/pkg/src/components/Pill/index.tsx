@@ -20,6 +20,7 @@ export function Pill(props: PillProps) {
   return props.label
 }
 
+Pill.Root = Pill
 Pill.Icon = PillIcon
 
 /** @deprecated Use `Pill`. */

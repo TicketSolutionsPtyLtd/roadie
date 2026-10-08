@@ -17,6 +17,7 @@ export type Deprecation = { export: string; reason: string }
 
 export type ModuleExports = {
   values: string[]
+  sources: Map<string, string>
   types: string[]
   deprecated: Deprecation[]
 }
@@ -82,21 +83,34 @@ export function moduleExports(
   const moduleSymbol = sourceFile && checker.getSymbolAtLocation(sourceFile)
   if (!moduleSymbol) throw new Error(`Cannot read the exports of ${file}`)
 
-  const result: ModuleExports = { values: [], types: [], deprecated: [] }
+  const result: ModuleExports = {
+    values: [],
+    sources: new Map(),
+    types: [],
+    deprecated: []
+  }
   for (const symbol of checker.getExportsOfModule(moduleSymbol)) {
     const resolved =
       symbol.flags & ts.SymbolFlags.Alias
         ? checker.getAliasedSymbol(symbol)
         : symbol
     const name = symbol.getName()
-    if (resolved.flags & ts.SymbolFlags.Value) result.values.push(name)
-    else result.types.push(name)
+    if (resolved.flags & ts.SymbolFlags.Value) {
+      result.values.push(name)
+      const declaration =
+        resolved.valueDeclaration ?? resolved.declarations?.[0]
+      if (declaration) {
+        result.sources.set(name, declaration.getSourceFile().fileName)
+      }
+    } else result.types.push(name)
     const reason =
       deprecationOf(symbol, checker) ?? deprecationOf(resolved, checker)
     if (reason !== undefined) result.deprecated.push({ export: name, reason })
   }
   result.values.sort()
   result.types.sort()
-  result.deprecated.sort((a, b) => a.export.localeCompare(b.export))
+  result.deprecated.sort((a, b) =>
+    a.export < b.export ? -1 : a.export > b.export ? 1 : 0
+  )
   return result
 }

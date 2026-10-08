@@ -5,10 +5,12 @@ import { buildManifest } from './manifest'
 const workspaceRoot = fileURLToPath(
   new URL('./fixtures/workspace/', import.meta.url)
 )
-const manifest = buildManifest({
+const options = {
   packageDir: `${workspaceRoot}pkg`,
-  workspaceRoot
-})
+  workspaceRoot,
+  docsUrl: 'https://example.com/docs/'
+}
+const manifest = buildManifest(options)
 
 describe('buildManifest', () => {
   it('names the package, version and docs site', () => {
@@ -26,7 +28,7 @@ describe('buildManifest', () => {
         subpath: '.',
         import: '@fixture/ui',
         kind: 'js',
-        values: ['Pill', 'Tag'],
+        values: ['Pill', 'Provider', 'Tag'],
         types: ['PillProps']
       },
       { subpath: './css', import: '@fixture/ui/css', kind: 'css' },
@@ -52,7 +54,7 @@ describe('buildManifest', () => {
       import: '@fixture/ui/pill',
       docs: 'https://example.com/docs/components/pill/',
       status: 'beta',
-      summary: 'A small rounded label',
+      summary: "A small rounded label that's quiet",
       description: 'A small rounded label.',
       example: "<Pill label='New' />",
       props: [
@@ -91,7 +93,21 @@ describe('buildManifest', () => {
       c.name,
       ...(c.parts ?? []).map((part) => part.name)
     ])
-    expect(names).toEqual(['Pill', 'Pill.Icon', 'Tag'])
+    expect(names).toEqual(['Pill', 'Pill.Icon', 'Tag', 'Provider'])
+  })
+
+  it('describes components exported only from the package root', () => {
+    expect(manifest.components.find((c) => c.name === 'Provider')).toEqual({
+      name: 'Provider',
+      import: '@fixture/ui',
+      props: [
+        {
+          name: 'theme',
+          type: '"light" | "dark"',
+          description: 'Theme to start in.'
+        }
+      ]
+    })
   })
 
   it('collects deprecated exports and props once per import path', () => {
@@ -112,6 +128,12 @@ describe('buildManifest', () => {
     ])
   })
 
+  it('fails when a compound part has no docs', () => {
+    expect(() =>
+      buildManifest({ ...options, packageDir: `${workspaceRoot}cast` })
+    ).toThrow('found no docs for Grid.Cell')
+  })
+
   it('adds tokens only when given them', () => {
     expect(manifest).not.toHaveProperty('tokens')
     const tokens = [
@@ -124,12 +146,6 @@ describe('buildManifest', () => {
         source: 'roadie' as const
       }
     ]
-    expect(
-      buildManifest({
-        packageDir: `${workspaceRoot}pkg`,
-        workspaceRoot,
-        tokens
-      }).tokens
-    ).toEqual(tokens)
+    expect(buildManifest({ ...options, tokens }).tokens).toEqual(tokens)
   })
 })
