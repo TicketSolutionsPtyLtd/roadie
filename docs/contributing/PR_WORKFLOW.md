@@ -109,8 +109,8 @@ Every PR is checked against these before review. Fix every real hit.
   in one engine (`ROADIE_BROWSERS=chromium`), cap workers (`--maxWorkers=4`),
   run the three-engine set once before pushing, and let CI run the full
   matrix. Never wait on an infinite
-  animation; give browser tests explicit timeouts. Kill test processes older
-  than 10 minutes. Stop dev servers you start.
+  animation; give browser tests explicit timeouts. Kill test processes you
+  started that run past 10 minutes. Stop dev servers you start.
 - **Demo visual and interaction changes before pushing.** Serve the docs from
   your worktree where a phone can reach it (add the host to
   `NEXT_DEV_ORIGINS`) and get the requester's OK first.

@@ -31,12 +31,24 @@ moves in step. The Vue skin set the value instantly and relied on a CSS
 
 ## Fix
 
-- Import the framework-agnostic API from `motion` (`animate`, `spring`,
-  `motionValue`) and animate the value:
-  `animate(current, target, { ...spring, onUpdate: (v) => (height.value = v) })`.
-  Cancel the running animation on drag start, a new snap and unmount. Skip it
-  under reduced motion. Keep `progress` computed from that ref. `motion` is a
-  peer dependency, so list it in the skin's install docs.
+- Import `animate` from `motion`, which works outside React, and spring the
+  ref with the React skin's settings:
+
+  ```ts
+  animate(height.value, target, {
+    type: 'spring',
+    damping: 30,
+    stiffness: 300,
+    onUpdate: (v) => {
+      height.value = v
+    }
+  })
+  ```
+
+  Stop the running animation on drag start, a new snap and unmount. Set the
+  value directly under reduced motion. Keep `progress` computed from that ref.
+  `motion` is a peer dependency, so list it in the skin's install docs. See
+  `packages/widgets/src/cart-drawer/vue/useCartDrawerDrag.ts`.
 - Remove the animated property from any CSS `transition` so it doesn't fight
   the spring. Transitions on radius, inset and opacity can stay.
 - A collapsing flex column needs `flex-1 min-h-0` on a wrapper with no
