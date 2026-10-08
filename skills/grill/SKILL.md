@@ -22,8 +22,9 @@ Answer facts yourself. Never ask the user what the code or docs say.
 - The decision register (`docs/decisions/` or wherever `AGENTS.md` points):
   its "how we decide" rules and every entry the idea touches. Cite an entry
   instead of re-arguing it.
-- Recorded learnings (`docs/solutions/` or similar), by frontmatter:
-  `grep -rlE '^(module|tags):.*<Name>' docs/solutions`.
+- Recorded learnings (`docs/solutions/` or similar). Tags are lowercase and
+  modules are packages, so search loosely, then read the frontmatter:
+  `grep -rliE '<name>|<area>' docs/solutions`.
 - The foundations pages for the area (layout, colour, interactions, shape,
   records, and so on) and the component's own docs page, Guidelines first. In
   Roadie they're `docs/src/app/`; elsewhere, the
@@ -35,27 +36,31 @@ Answer facts yourself. Never ask the user what the code or docs say.
 - For a new component API, how two other design systems solve it, with
   their cons.
 
+Skip any source the repo doesn't have, and say so in the record.
+
 ## 2. Prove what exists can't do it
 
 Walk the ladder, cheapest first. Each rung gets a verdict and its evidence:
 a file and section, or a concrete case it fails. A rung that does the job
 ends the grill: the answer is no new API, and the record says how.
 
-1. No change: a better default, or `className` with CSS vocabulary (`1fr`,
+1. No new API: a better default, or `className` with CSS vocabulary (`1fr`,
    `minmax()`, `flex-wrap`), as `CODING_STANDARDS.md` prefers.
 2. The cascade: intent, emphasis, the `is-*` interaction utilities, a data
    attribute, or a container query.
 3. An existing utility, token, or variable.
 4. An existing component, compound part, or composition of them, including
-   the one a Guidelines section points to instead.
+   the one a Guidelines section or `AGENTS.md` routes the job to (such as
+   `Sortable` for drag and `Field` for form controls).
 5. A sibling's existing prop. Reuse its name and shape rather than invent one.
 6. The wrapped primitive's own prop, passed through.
 
-In an app repo, ask one more: is this a gap every app has? If so, it belongs
+In an app repo, also ask whether every app has this gap. If so, it belongs
 in Roadie, answered for every app, not patched in the app.
 
 Only past every rung is the answer a new prop, variant, or component. Judge
-its door against the host workflow's one-way door list.
+its door against the host workflow's one-way door list or, with none, the
+one in section 7 of Roadie's `PR_WORKFLOW.md`.
 
 ## 3. Ask what's left
 
@@ -63,8 +68,9 @@ its door against the host workflow's one-way door list.
   then wait for the answer before the next.
 - Ask about intent, scope, and edge behaviour. Ask about naming only when
   the sibling vocabulary doesn't decide it.
-- Stop once `/roadie:spec` could be written. Most ideas need one to five.
-- No one to ask (an autonomous run): don't block. Record each question with
+- Stop once `/roadie:spec` could be written. Most ideas need one to five
+  questions.
+- With no one to ask, as in an autonomous run, don't block. Record each question with
   its recommended answer, marked assumed, and carry on as the host workflow
   allows. One-way doors and new components wait for the maintainer.
 
@@ -90,5 +96,7 @@ Open questions
 Recommendation: <no new API | reuse X | extend X with … | new Y>. <door>.
 ```
 
-`/roadie:spec` starts from it: the ruled-out rows become its prior art and
-Decisions, and the open questions stay open until someone answers them.
+`/roadie:spec` reads it with the ticket's comments. The ruled-out rows
+become its prior art and Decisions. An unanswered question goes under its
+Decisions with the recommended answer, which the maintainer can veto, unless
+it's a one-way door or a new component, which waits for them.
