@@ -87,6 +87,7 @@
       "env": ["ROADIE_BROWSERS"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css}",
+        "src/**/*.html",
         "*.config.{js,mjs,cjs,ts}",
         "$TURBO_ROOT$/vitest.browsers.config.ts",
         "*.css",
