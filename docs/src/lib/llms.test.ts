@@ -139,6 +139,23 @@ describe('pageToMarkdown', () => {
     )
   })
 
+  it('treats only Guideline and its parts as guidelines, not other names that start with it', () => {
+    const md = page(
+      [
+        "<Guidelines title='Section'>",
+        '',
+        "<GuidelineIndex title='Index'>",
+        '',
+        'Body.',
+        '',
+        '</GuidelineIndex>',
+        '',
+        '</Guidelines>'
+      ].join('\n')
+    )
+    expect(md).toBe('# Badge\n\nBody.\n')
+  })
+
   it('drops a Guideline.Row written across lines', () => {
     const md = page(
       [

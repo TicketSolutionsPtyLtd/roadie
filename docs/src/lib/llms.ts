@@ -193,7 +193,11 @@ function transform(
     if (node.name === 'code') {
       return [{ type: 'inlineCode', value: toString(children) }]
     }
-    if (node.name?.startsWith('Guideline')) {
+    if (
+      node.name === 'Guideline' ||
+      node.name === 'Guideline.Do' ||
+      node.name === 'Guideline.Dont'
+    ) {
       return guideline(node, children as RootContent[])
     }
     return children
