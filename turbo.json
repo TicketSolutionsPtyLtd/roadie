@@ -42,9 +42,9 @@
     "typecheck": {
       "dependsOn": ["^build"],
       "inputs": [
-        "src/**/*.{ts,tsx}",
-        "tsconfig.json",
-        "!**/*.test.{ts,tsx}",
+        "**/*.{ts,tsx,mts,cts}",
+        "src/**/*.json",
+        "tsconfig*.json",
         "!**/roadie-core/**",
         "!**/styled-system/**"
       ],

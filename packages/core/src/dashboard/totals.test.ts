@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-import type { TableColumn } from './schema'
+import type { TableColumn, TableRow } from './schema'
 import { isSummable, resolveTableTotals } from './totals'
 import { validateDashboard } from './validate'
 
@@ -13,7 +13,7 @@ const columns: TableColumn[] = [
   { key: 'pace', header: 'Pace', kind: 'delta' },
   { key: 'capacity', header: 'Capacity', kind: 'number', total: false }
 ]
-const rows = [
+const rows: TableRow[] = [
   { show: 'Ocean Alley', sold: 10, gross: 0.1, share: 0.4, capacity: 900 },
   { show: 'Ball Park Music', sold: 'Soon', gross: null, share: 0.6 },
   { show: 'Julia Jacklin', sold: 5, gross: 0.2, share: 0, capacity: 400 }
