@@ -1,6 +1,6 @@
 ---
 name: demo
-description: Use before pushing any user-visible change (a component, page, style, or layout), in any Oztix repo. Starts a long-lived preview from the worktree, screenshots the changed pages at phone and desktop widths in light and dark, posts the Tailscale link and screenshots, and waits for the approver's OK (the one the host workflow names) before the push. Reads the host repo's AGENTS.md and PR workflow. Triggers on "demo this", "show me", "preview the change", "screenshot it", "can I see it on my phone".
+description: Use before pushing any user-visible change (a component, page, style, or layout), in any Oztix repo. Starts a long-lived preview from the worktree, screenshots the changed pages at phone and desktop widths in light and dark, sends the preview link to the approver in the session, posts the screenshots, and waits for the approver's OK (the one the host workflow names) before the push. Reads the host repo's AGENTS.md and PR workflow. Triggers on "demo this", "show me", "preview the change", "screenshot it", "can I see it on my phone".
 ---
 
 # Roadie demo
@@ -40,8 +40,8 @@ over the host's limit (in Roadie, PR workflow section 5). Then, from the worktre
   `pnpm exec vite --host --port <port> --strictPort` (`npx` in an npm repo). Allow the Tailscale name as a dev origin if
   the framework blocks unknown hosts, and build the URL from
   `tailscale status --json` (`Self.DNSName`).
-- With no Tailscale, post the LAN URL and say the link only works on the same
-  network.
+- With no Tailscale, send the LAN URL and say the link only works on the same
+  network. Preview links stay in the session (Roadie: PR workflow section 7).
 
 Wait for the ready line (Roadie's starts `Preview ready` and names the pid),
 check its URL's port is in your range (stop and restart if not), then open the changed page once with `curl -sf` to
@@ -100,16 +100,17 @@ run it again per section if one screen doesn't show the change, with a
 separate output folder each time so the files don't overwrite each other.
 
 Without Playwright, use a browser tool your session has (Chrome DevTools or
-Playwright MCP: resize, emulate the colour scheme, screenshot). With none, post
-the link and ask the user for the screenshots.
+Playwright MCP: resize, emulate the colour scheme, screenshot). With none, send
+the link in the session and ask the user for the screenshots.
 
 Look at every shot before posting. A blank page, an error overlay, or a wrong
-theme means fix and retake, not post.
+theme means fix and retake, not post. So does anything the host's privacy rule
+keeps out of a public screenshot (Roadie: PR workflow section 7).
 
 ## 4. Post and wait
 
-- In the chat, post the Tailscale link to the changed page, the four shots, and
-  one line on what to look at.
+- In the session, send the approver the preview link to the changed page, the
+  four shots, and one line on what to look at.
 - Wait for the approver's OK before pushing UI changes, and work on something
   else meanwhile. Feedback means fix, retake, and post again. A standing
   approval (one the approver gave, such as for overnight work, or one the host
@@ -117,18 +118,14 @@ theme means fix and retake, not post.
   section 1) lets you push before the OK only on its terms. Push as a draft
   and mark the body "awaiting demo approval", and don't mark it ready until
   the OK.
-- Once the PR exists, put the same link and shots under Evidence, at phone
-  and desktop widths, light and dark (`/roadie:pr` writes the body). `gh`
-  can't upload images. When the shots show only public content (docs, demo
-  fixtures, no customer, account, or admin data) and the repo is public, push
-  them to a secret gist
-  (`gh gist create` a placeholder, `gh gist clone` it, add the PNGs with a
-  page or section prefix, push) and embed
-  `https://gist.githubusercontent.com/<user>/<id>/raw/<file>.png`. Otherwise
-  a gist would make private data or UI public to anyone with the link, so give
-  the local paths and ask the user to drag them in. Never commit
-  screenshots to the repo. If the preview is stopped before the OK, say so
-  and give the command that restarts it.
+- Once the PR exists, put the shots under Evidence as the host workflow says
+  (Roadie: PR workflow section 7); `/roadie:pr` writes the body. `gh` can't
+  upload images, so commit them alone to an orphan
+  `<prefix>/<topic>-screenshots` branch, push it with `--no-verify` (the hooks
+  can't run on an images-only branch), and embed each one with
+  `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`. If the
+  preview is stopped before the OK, say so and give the command that restarts
+  it.
 
 ## 5. Stop
 

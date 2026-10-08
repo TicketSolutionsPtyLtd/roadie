@@ -35,8 +35,9 @@ to a long paragraph.
 
 - Each command you ran and its result (`pnpm --filter <pkg> test`: 412
   passed), with the engines for browser tests, or a CI run link.
-- For UI, the preview link and screenshots at phone and desktop widths, in
-  light and dark, from the demo the host workflow asks for.
+- For UI, screenshots at phone and desktop widths, in light and dark, from
+  the demo the host workflow asks for, embedded from its screenshot branch
+  (`/roadie:demo` step 4). The preview link stays in the session.
 - For a fix or behaviour change, before and after: the test failing without
   the change, then passing, or two screenshots.
 - What you didn't verify, and why. "Tests pass" with no command isn't
@@ -65,6 +66,19 @@ Write to the host repo's content rules, keep it short, and keep it true once
 merged, because the squash commit carries it into `git log`.
 
 ## 3. Create or update
+
+Before posting the body, a comment, or a commit message, run this privacy
+check on its file. Roadie's PR workflow section 7 lists what a public repo
+keeps out.
+
+```bash
+grep -nEi 'ts\.net|tailnet|tailscale|\b(10|127)\.[0-9]+\.[0-9]+\.[0-9]+|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|\b100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.|169\.254\.|\[::1?\]|\[f[cde][0-9a-f]*:|localhost:|/Users/|/home/|/private/|/tmp/|[A-Z]:\\Users|gh[oprsu]_|github_pat_|token=|gist\.github' <file>
+```
+
+Fix every hit that is a real value; one that only names a pattern can stay.
+The grep can't catch every form (internal-only Oztix data, real names, or an
+address, path, or token it has no pattern for), so read the file once more
+against the whole section 7 list.
 
 - New PR: open it as the host workflow says, usually as a draft with the
   ticket key in the title (`gh pr create --draft --body-file <file>`). Don't
