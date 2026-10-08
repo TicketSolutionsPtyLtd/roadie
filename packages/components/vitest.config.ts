@@ -19,6 +19,14 @@ import { reactCompilerPreset } from './react-compiler.config.ts'
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
 const TOUCH_TESTS = 'src/**/*.touch.browser.test.{ts,tsx}'
 const PERF_TESTS = 'src/**/*.perf.browser.test.{ts,tsx}'
+const VISUAL_TESTS = 'src/**/visual.browser.test.{ts,tsx}'
+
+// Pixels differ between machines, so screenshots are compared only in CI and
+// in the same Playwright image, in Chromium alone to keep the run cheap
+// (docs/solutions/best-practices/visual-baselines.md).
+const visualRun =
+  Boolean(process.env.CI || process.env.ROADIE_VISUAL) &&
+  browserInstances.some(({ browser }) => browser === 'chromium')
 
 const PACKAGE_DIR = fileURLToPath(new URL('./', import.meta.url))
 const SRC = new URL('./src/', import.meta.url)
@@ -30,7 +38,11 @@ const JSDOM_ONLY = /(?<!\.browser)\.test\.tsx?$/
 // imported package goes in it and a new import rebuilds the cache up front.
 function importedPackages() {
   const packages = new Set<string>()
-  for (const file of globSync('**/*.{ts,tsx}', { cwd: fileURLToPath(SRC) })) {
+  // Screenshot folders are named after their test file, `.tsx` and all.
+  for (const file of globSync('**/*.{ts,tsx}', {
+    cwd: fileURLToPath(SRC),
+    exclude: ['**/__screenshots__/**']
+  })) {
     if (JSDOM_ONLY.test(file)) continue
     const source = readFileSync(new URL(file, SRC), 'utf8')
     for (const [, specifier] of source.matchAll(
@@ -209,7 +221,12 @@ export default defineConfig({
           name: 'browser',
           include: quarantineInclude(PACKAGE_DIR, [BROWSER_TESTS]),
           retry: browserRetry,
-          exclude: [...configDefaults.exclude, TOUCH_TESTS, PERF_TESTS],
+          exclude: [
+            ...configDefaults.exclude,
+            TOUCH_TESTS,
+            PERF_TESTS,
+            VISUAL_TESTS
+          ],
           browser: {
             ...browserTest,
             provider: playwright(),
@@ -241,6 +258,25 @@ export default defineConfig({
           }
         }
       },
+      ...(visualRun
+        ? [
+            {
+              extends: true,
+              plugins: [tailwindcss()],
+              optimizeDeps,
+              test: {
+                name: 'browser visual',
+                include: quarantineInclude(PACKAGE_DIR, [VISUAL_TESTS]),
+                retry: browserRetry,
+                browser: {
+                  ...browserTest,
+                  provider: playwright(),
+                  instances: [{ browser: 'chromium' as const }]
+                }
+              }
+            }
+          ]
+        : []),
       {
         extends: true,
         plugins: [tailwindcss()],
