@@ -4,6 +4,7 @@ import { commands, userEvent } from 'vitest/browser'
 
 import { Calendar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { nudgeFrames } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import {
   expectOneContinuousMotion,
@@ -21,7 +22,12 @@ beforeAll(async () => {
   // layers) don't land in the frames a test reads as the calendar's own.
   render(<Calendar today={TODAY} direction='vertical' />)
   await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
-  await new Promise((resolve) => setTimeout(resolve, 600))
+  // expect.poll only runs inside a test; the hook's timeout bounds this.
+  const landed = () =>
+    document.querySelector(
+      '[data-slot="calendar"]:not([data-swiping]) [data-month="2027-04-01"]'
+    )
+  while (!landed()) await nudgeFrames()
   cleanup()
 })
 afterAll(() => removeStylesheet())

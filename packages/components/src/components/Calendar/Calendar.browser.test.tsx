@@ -16,7 +16,7 @@ import { commands, userEvent } from 'vitest/browser'
 
 import { Calendar, type CalendarDateRange, type CalendarSingleProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { setHoverCapable } from '../../css/testUtils'
+import { nudgeFrames, setHoverCapable, withFrames } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { ScrollArea } from '../ScrollArea'
 
@@ -1667,10 +1667,11 @@ describe('Calendar scrolling months', () => {
 
   it('stays where it is scrolled when the parent keeps month', async () => {
     function Fixed() {
-      const [, setHovered] = useState(0)
+      const [hovered, setHovered] = useState(0)
       return (
         <div
           data-testid='scroller'
+          data-hovered={hovered}
           className='h-100 w-97.5 overflow-y-auto bg-raised'
           onPointerOver={() => setHovered((n) => n + 1)}
         >
@@ -1678,13 +1679,16 @@ describe('Calendar scrolling months', () => {
         </div>
       )
     }
+    const parentRenders = () => Number(scroller().dataset.hovered)
     render(<Fixed />)
     await expect.poll(() => scroller().scrollTop).toBeGreaterThan(0)
     const opened = scroller().scrollTop
     scroller().scrollTop = opened + 700
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    await nudgeFrames()
+    const before = parentRenders()
     await userEvent.hover(day('2027-05-12'))
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    await expect.poll(parentRenders).toBeGreaterThan(before)
+    await nudgeFrames()
     expect(scroller().scrollTop).toBeGreaterThan(opened + 300)
   })
 
@@ -1696,6 +1700,7 @@ describe('Calendar scrolling months', () => {
           <button type='button' onClick={() => setMonth('2029-03-01')}>
             Jump
           </button>
+          <output data-testid='month'>{month}</output>
           <div
             data-testid='scroller'
             className='h-100 w-97.5 overflow-y-auto bg-raised'
@@ -1715,10 +1720,16 @@ describe('Calendar scrolling months', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Jump' }))
     await expect.poll(() => monthsShown()).toContain('2029-03-01')
     const first = monthsShown()[0]
-    scroller().scrollTop += 500
-    await new Promise((resolve) => setTimeout(resolve, 200))
-    scroller().scrollTop += 500
-    await new Promise((resolve) => setTimeout(resolve, 200))
+    const month = () => screen.getByTestId('month').textContent
+    // Each scroll lands once the parent has taken up the month it reports.
+    for (const scroll of [1, 2]) {
+      const before = month()
+      scroller().scrollTop += 500
+      await withFrames(() =>
+        expect.poll(month, { message: `scroll ${scroll}` }).not.toBe(before)
+      )
+    }
+    await nudgeFrames()
     expect(monthsShown()[0]).toBe(first)
   })
 
@@ -1732,6 +1743,7 @@ describe('Calendar scrolling months', () => {
       return (
         <div
           data-testid='scroller'
+          data-month={month}
           className='h-100 w-97.5 overflow-y-auto bg-raised'
         >
           <Calendar
@@ -1753,7 +1765,9 @@ describe('Calendar scrolling months', () => {
     scroller().scrollTop +=
       april.getBoundingClientRect().top -
       weekdays().getBoundingClientRect().bottom
-    await new Promise((resolve) => setTimeout(resolve, 300))
+    await withFrames(() =>
+      expect.poll(() => scroller().dataset.month).toBe('2027-04-01')
+    )
     await userEvent.click(day('2027-04-05'))
     expect(day('2027-03-03')).toHaveAttribute('data-range-start')
     expect(day('2027-04-05')).toHaveAttribute('data-range-end')
@@ -1793,11 +1807,18 @@ describe('Calendar scrolling months', () => {
         <Calendar today={TODAY} layout='scroll' />
       </div>
     )
-    await new Promise((resolve) => setTimeout(resolve, 300))
-    const settled = monthsShown().length
-    await new Promise((resolve) => setTimeout(resolve, 300))
-    expect(monthsShown().length).toBe(settled)
-    expect(settled).toBeLessThan(40)
+    // Growing reports in a frame and renders after it, so a count that holds
+    // across two frames has stopped.
+    let counted = -1
+    await expect
+      .poll(async () => {
+        const before = counted
+        await nudgeFrames()
+        counted = monthsShown().length
+        return counted === before
+      })
+      .toBe(true)
+    expect(counted).toBeLessThan(40)
   })
 })
 
@@ -1943,8 +1964,11 @@ describe('Calendar switching views from stacked months', () => {
     await expect
       .poll(() => document.querySelector('[data-leaving]'))
       .not.toBeNull()
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    expect(document.querySelector('[data-leaving]')).toBeNull()
+    await withFrames(() =>
+      expect
+        .poll(() => document.querySelector('[data-leaving]'), { timeout: 2000 })
+        .toBeNull()
+    )
     expect(
       document
         .querySelector('[data-slot="calendar"]')!
@@ -1957,16 +1981,20 @@ describe('Calendar switching views from stacked months', () => {
 describe('Calendar turning during a stacked view switch', () => {
   it('lands the switch and keeps the turn its clip', async () => {
     const animate = Element.prototype.animate
+    // Taken as each starts, as a cancel swaps in a new `finished`.
+    const switchEnds: Promise<unknown>[] = []
     const spy = vi
       .spyOn(Element.prototype, 'animate')
       .mockImplementation(function (this: Element, frames, options) {
         const first = (frames as { transform?: string }[])[0]
         // The turn's slide is held; the switch runs long enough to turn in.
         const turn = String(first?.transform ?? '').startsWith('translate3d')
-        return animate.call(this, frames, {
+        const animation = animate.call(this, frames, {
           ...(options as object),
           duration: turn ? 60_000 : 1_000
         })
+        if (!turn) switchEnds.push(animation.finished.catch(() => {}))
+        return animation
       })
     onTestFinished(() => spy.mockRestore())
     render(
@@ -1982,8 +2010,10 @@ describe('Calendar turning during a stacked view switch', () => {
       .not.toBeNull()
     await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
     expect(document.querySelector('[data-leaving]')).toBeNull()
-    // Past where the switch would have ended, the turn still has its clip.
-    await new Promise((resolve) => setTimeout(resolve, 1_200))
+    // Once the switch has ended, cut short or not, the turn still has its clip.
+    expect(switchEnds.length).toBeGreaterThan(0)
+    await withFrames(() => Promise.all(switchEnds))
+    await nudgeFrames()
     expect(root().hasAttribute('data-swiping')).toBe(true)
   })
 })

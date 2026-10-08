@@ -29,13 +29,12 @@ beforeAll(async () => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
-// A turn lands, then its slide finishes; a slow runner takes longer.
-const settle = async (ms = 300) => {
-  await new Promise((resolve) => setTimeout(resolve, ms))
-  await expect
+// A drag marks the calendar as it engages, before the finger lifts, and the
+// mark stays until the turn or the settle back has landed.
+const settle = () =>
+  expect
     .poll(() => document.querySelector('[data-swiping]'), { timeout: 3000 })
     .toBeNull()
-}
 const caption = () =>
   document.querySelector('[data-slot="calendar-header"]')!.textContent
 const day = (date: string) =>
@@ -331,15 +330,16 @@ describe('Calendar arrows tapped with several months', TIMEOUT, () => {
       [...document.querySelectorAll('[data-slot="calendar-month"]')].map(
         (month) => month.getAttribute('data-month')
       )
+    // A tap's click can arrive after the tap returns, so wait for the turn.
     await tapOn(screen.getByRole('button', { name: 'Next month' }), 'centre')
+    await expect.poll(months).toEqual(['2027-04-01', '2027-05-01'])
     await settle()
-    expect(months()).toEqual(['2027-04-01', '2027-05-01'])
     await tapOn(
       screen.getByRole('button', { name: 'Previous month' }),
       'centre'
     )
+    await expect.poll(months).toEqual(['2027-03-01', '2027-04-01'])
     await settle()
-    expect(months()).toEqual(['2027-03-01', '2027-04-01'])
   })
 })
 
