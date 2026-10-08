@@ -1,7 +1,6 @@
 ---
 name: new-component
-description: Create a new Roadie component end-to-end (files, tests, exports, doc page). Triggers on "add component", "new Roadie component", "scaffold a component".
-user_invocable: true
+description: Create a new Roadie component end-to-end (files, tests, exports, doc page, index tile). Triggers on "add component", "new Roadie component", "scaffold a component".
 ---
 
 # New Component
@@ -11,29 +10,28 @@ actual patterns live in reference docs. Read them first, then execute.
 
 ## Required reading (before writing code)
 
-1. [`AGENTS.md`](../../AGENTS.md) — overall patterns (intent/emphasis, CVA,
+1. [`AGENTS.md`](../../../AGENTS.md) — overall patterns (intent/emphasis, CVA,
    layout, shape, typography, interaction utilities).
-2. [`docs/contributing/COMPOUND_PATTERNS.md`](../../docs/contributing/COMPOUND_PATTERNS.md)
+2. [`docs/contributing/COMPOUND_PATTERNS.md`](../../../docs/contributing/COMPOUND_PATTERNS.md)
    — **required** for any component with sub-components. Canonical reference
    for the per-file leaf layout, server-safe `index.tsx` property
    assignment, `data-slot` rules, and the `'use client'`-only-where-needed
    discipline that keeps compounds RSC-safe. A new compound that skips any
    of these falls out of sync with the rest of the codebase.
-3. [`docs/contributing/BASE_UI.md`](../../docs/contributing/BASE_UI.md) —
+3. [`docs/contributing/BASE_UI.md`](../../../docs/contributing/BASE_UI.md) —
    **required** if wrapping a Base UI primitive. Canonical reference for
    imports, types, `render` prop policy, data-attribute styling, and
    `'use client'` rules. Violating anything here will break
    `check:dts` or `check:exports`.
-4. [`docs/contributing/COMPONENT_DOC_TEMPLATE.md`](../../docs/contributing/COMPONENT_DOC_TEMPLATE.md)
+4. [`docs/contributing/COMPONENT_DOC_TEMPLATE.md`](../../../docs/contributing/COMPONENT_DOC_TEMPLATE.md)
    — doc page structure, section order, applicability table.
-5. [`docs/solutions/rsc-patterns/compound-export-namespace.md`](../../docs/solutions/rsc-patterns/compound-export-namespace.md)
+5. [`docs/solutions/rsc-patterns/compound-export-namespace.md`](../../../docs/solutions/rsc-patterns/compound-export-namespace.md)
    — why compounds ship the way they do. Read if anything about the
    authoring pattern feels arbitrary.
 6. A similar existing component for a live reference:
    - **Single component**: `packages/components/src/components/Badge/index.tsx`
    - **Form control**: `packages/components/src/components/Input/index.tsx`
-   - **Compound (per-file, post-Phase-3)**: `packages/components/src/components/Fieldset/`
-   - **Compound (monolithic, pre-Phase-3 — migrating)**: `packages/components/src/components/Select/index.tsx`
+   - **Compound**: `packages/components/src/components/Fieldset/`
 
 ## Decision: is this a compound?
 
@@ -54,8 +52,9 @@ actual patterns live in reference docs. Read them first, then execute.
    ```bash
    pnpm --filter @oztix/roadie-components generate:exports
    ```
-5. **Document** at `docs/src/app/components/{name}/page.mdx` per `COMPONENT_DOC_TEMPLATE.md`. Default example first. Skip Intents section for form controls.
-6. **Verify** (section D below).
+5. **Document** at `docs/src/app/components/{name}/page.mdx`, starting from `docs/src/app/components/fieldset/page.mdx` and checked against `COMPONENT_DOC_TEMPLATE.md`. Default example first. Skip Intents section for form controls.
+6. **Index tile**: add a `case '{name}'` to `docs/src/components/ComponentSkeleton.tsx` that sketches the component as it ships. Check it in light and dark; `CataloguePreview.test.tsx` fails without it.
+7. **Verify** (section D below).
 
 ## B. Compound component workflow (per-file)
 
@@ -99,6 +98,8 @@ The only shape that is RSC-safe with zero consumer migration. Every compound in 
     - Use bare `<{Compound}>` (not `<{Compound}.Root>`) in code examples — bare is canonical.
     - `<PropsDefinitions componentPath='packages/components/src/components/{Compound}' />` — point at the **folder**, not a single file. The parser enumerates every non-test `.tsx` file.
 
+11. **Index tile**: add a `case '{kebab-compound}'` to `docs/src/components/ComponentSkeleton.tsx` that sketches the component as it ships. Check it in light and dark; `CataloguePreview.test.tsx` fails without it.
+
 ## C. Consumer surface (what you're building toward)
 
 Both forms work in server and client components:
@@ -117,13 +118,15 @@ import { Fieldset } from '@oztix/roadie-components/fieldset'
 ## D. Verify
 
 ```bash
-pnpm --filter @oztix/roadie-components build   # catches dts + attw + use-client issues
+pnpm --filter @oztix/roadie-components build   # tsdown, then check:dts and attw
 pnpm --filter @oztix/roadie-components test    # all tests, including the new Compound.test.tsx
 pnpm --filter @oztix/roadie-components typecheck
 pnpm --filter @oztix/roadie-components lint
 pnpm --filter docs build                       # prerenders the RSC canary; fails if anything regresses
-pnpm --filter docs dev                         # visual check at /components/{name}
+pnpm --filter docs dev                         # visual check at /components/{name} and the /components tile
 ```
+
+Then follow `docs/contributing/PR_WORKFLOW.md` from section 3: changeset, size budget, reviews and a draft PR.
 
 If `pnpm typecheck` errors on something you didn't touch:
 
