@@ -95,7 +95,12 @@ const cases = {
         filename: 'page.mdx',
         errors: 2
       },
-      { code: "<span className='md:max-w-56' />", filename: 'page.mdx' }
+      { code: "<span className='md:max-w-56' />", filename: 'page.mdx' },
+      {
+        code: "<div className={cn(`shrink-0 ${open && 'basis-1/2'}`)} />",
+        filename: 'page.mdx',
+        errors: 2
+      }
     ]
   },
   'no-import-meta-env': {
@@ -249,49 +254,88 @@ describe('import boundaries in eslint.config.js', () => {
 describe('no-mdx-layout-class in docs/eslint.config.js', () => {
   const docs = new URL('../docs/', import.meta.url)
   const { createRemarkProcessor } = createRequire(docs)('eslint-plugin-mdx')
-  const eslint = new ESLint({
-    cwd: fileURLToPath(docs),
-    // eslint-plugin-mdx's flat processor drops mdx/code-blocks, so docs lint
-    // skips fences today. Lint them here, so a rule that reaches them fails.
-    overrideConfig: {
-      files: ['**/*.mdx'],
-      processor: createRemarkProcessor({
-        lintCodeBlocks: true,
-        languageMapper: { 'tsx-live': 'tsx', 'tsx-live-prose': 'tsx' }
-      })
+  // eslint-plugin-mdx's flat processor drops mdx/code-blocks, so docs lint
+  // skips fences today. Lint them here, so a rule that reaches them fails.
+  const lintingFences = {
+    files: ['**/*.mdx'],
+    processor: createRemarkProcessor({
+      lintCodeBlocks: true,
+      languageMapper: { 'tsx-live': 'tsx', 'tsx-live-prose': 'tsx' }
+    })
+  }
+  const docsLinter = (...overrides) =>
+    new ESLint({
+      cwd: fileURLToPath(docs),
+      overrideConfig: [lintingFences, ...overrides]
+    })
+  const eslint = docsLinter()
+  // Reaches fences past the config's glob, leaving only the rule's own guard.
+  // The docs config loads its own copy of the plugin, so this one needs
+  // another name.
+  const guardOnly = docsLinter({
+    files: ['**/*.mdx/**'],
+    plugins: { guarded: roadie },
+    rules: {
+      'guarded/no-mdx-layout-class': 'error',
+      'guarded/no-dark-variant': 'error'
     }
   })
 
   beforeAll(
-    () => eslint.lintText('', { filePath: 'src/app/sample/page.mdx' }),
+    () =>
+      Promise.all(
+        [eslint, guardOnly].map((linter) =>
+          linter.lintText('', { filePath: 'src/app/sample/page.mdx' })
+        )
+      ),
     60_000
   )
 
-  const lint = async (body) => {
-    const [result] = await eslint.lintText(
+  const mdxHits = async (body, ruleId, linter = eslint) => {
+    const [result] = await linter.lintText(
       `import { Guideline } from '@/components/Guideline'\n\n${body}\n`,
       { filePath: 'src/app/sample/page.mdx' }
     )
-    return result.messages
+    return result.messages.filter((message) => message.ruleId === ruleId)
   }
 
-  const layoutHits = async (body) =>
-    (await lint(body)).filter(
-      (message) => message.ruleId === 'roadie/no-mdx-layout-class'
-    )
+  const layoutHits = (body) => mdxHits(body, 'roadie/no-mdx-layout-class')
 
   const fence = (lang) =>
-    `\`\`\`${lang}\n<div className='grid gap-4'>\n  <Button>Buy tickets</Button>\n</div>\n\`\`\``
+    `\`\`\`${lang}\n<div className='grid gap-4 dark:bg-normal'>\n  <Button>Buy tickets</Button>\n</div>\n\`\`\``
+
+  const fenceLangs = ['tsx-live', 'tsx-live-prose', 'mdx']
 
   it.each(['tsx-live', 'tsx-live-prose'])('lints %s fences', async (lang) => {
-    const ruleIds = (await lint(fence(lang))).map((message) => message.ruleId)
-    expect(ruleIds).toContain('react/jsx-no-undef')
+    expect(await mdxHits(fence(lang), 'react/jsx-no-undef')).not.toEqual([])
+  })
+
+  it.each(['0.tsx', '0.mdx'])(
+    'leaves the rule off for fence page.mdx/%s in the config',
+    async (block) => {
+      const { rules } = await eslint.calculateConfigForFile(
+        `src/app/sample/page.mdx/${block}`
+      )
+      const pageConfig = await eslint.calculateConfigForFile(
+        'src/app/sample/page.mdx'
+      )
+      expect(pageConfig.rules).toHaveProperty('roadie/no-mdx-layout-class')
+      expect(rules).not.toHaveProperty('roadie/no-mdx-layout-class')
+    }
+  )
+
+  it.each(fenceLangs)('skips %s fences in the rule itself', async (lang) => {
+    expect(
+      await mdxHits(fence(lang), 'guarded/no-dark-variant', guardOnly)
+    ).toHaveLength(1)
+    expect(
+      await mdxHits(fence(lang), 'guarded/no-mdx-layout-class', guardOnly)
+    ).toEqual([])
   })
 
   it.each([
     "<p className='text-display-ui-6 text-subtle'>Doors open at 7pm</p>",
-    fence('tsx-live'),
-    fence('tsx-live-prose'),
+    ...fenceLangs.map(fence),
     "<Guideline.Do code={`<div className='grid gap-4'>…</div>`}>\n  Stack the tiers.\n</Guideline.Do>",
     '<Guideline title="Show the price">\n  Show the total.\n</Guideline>'
   ])('allows %s', async (body) => {

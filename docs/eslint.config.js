@@ -27,15 +27,23 @@ const config = [
   mdxFlat,
   flatCodeBlocks,
 
-  // MDX settings and rules. **/*.mdx skips fences, which lint as page.mdx/0.tsx.
+  // Fences lint as virtual files such as page.mdx/0.tsx, or page.mdx/0.mdx.
   {
     files: ['**/*.mdx'],
+    ignores: ['**/*.mdx/**'],
     plugins: { roadie },
+    rules: {
+      'roadie/no-mdx-layout-class': 'error'
+    }
+  },
+
+  // MDX settings and rules
+  {
+    files: ['**/*.mdx'],
     settings: {
       'mdx/code-blocks': true
     },
     rules: {
-      'roadie/no-mdx-layout-class': 'error',
       // MDX files import components that are used in the content
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'off'

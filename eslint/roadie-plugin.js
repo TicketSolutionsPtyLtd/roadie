@@ -8,7 +8,7 @@ const CLASS_ATTRIBUTE = /^className$|ClassName$/
 const CLASS_FUNCTIONS = new Set(['cn', 'clsx', 'cva', 'cx', 'twMerge'])
 
 const LAYOUT_CLASS =
-  /(^|:|!)-?(grid|flex|inline-flex|inline-grid|block|inline-block|hidden|absolute|relative|fixed|sticky|(gap|space|[mp][trblxyse]?|w|h|min|max-[wh]|grid-(cols|rows|flow)|col|row|flex|items|justify|place|self|inset|top|right|bottom|left|start|end)-.+)$/
+  /(^|:|!)-?(grid|flex|inline|inline-flex|inline-grid|block|inline-block|flow-root|contents|hidden|container|grow|shrink|absolute|relative|fixed|sticky|(gap|space|[mp][trblxyse]?|w|h|min|max-[wh]|grid-(cols|rows|flow)|col|row|flex|basis|grow|shrink|order|columns|items|justify|place|self|inset|top|right|bottom|left|start|end)-.+)$/
 
 function selectorRule(description, selector, message) {
   return {
@@ -70,13 +70,16 @@ function classRule(description, pattern, message) {
   }
 }
 
-// flatCodeBlocks lints fences as virtual files named page.mdx/0.tsx, and
-// those are copyable consumer code, not page layout.
+// flatCodeBlocks lints fences as virtual files such as page.mdx/0.tsx, or
+// page.mdx/0.mdx for an mdx fence, and those are copyable code, not layout.
 function mdxContentRule(rule) {
   return {
     ...rule,
     create: (context) =>
-      context.filename.endsWith('.mdx') ? rule.create(context) : {}
+      context.filename.endsWith('.mdx') &&
+      context.filename === context.physicalFilename
+        ? rule.create(context)
+        : {}
   }
 }
 
