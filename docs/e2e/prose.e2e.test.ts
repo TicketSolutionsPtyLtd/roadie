@@ -67,17 +67,21 @@ describe('Docs MDX in .prose', () => {
 
   it('sets the docs body size and spans the column', async () => {
     const page = await open('/foundations/prose/', 1280)
-    const { size, width, column } = await page.evaluate(() => {
+    const { size, width, column, measure } = await page.evaluate(() => {
       const prose = document.querySelector('#docs-content > .prose')!
       const paragraph = prose.querySelector(':scope > p')!
       return {
         size: parseFloat(getComputedStyle(paragraph).fontSize),
         width: paragraph.getBoundingClientRect().width,
-        column: prose.getBoundingClientRect().width
+        column: prose.getBoundingClientRect().width,
+        measure: getComputedStyle(paragraph).maxInlineSize
       }
     })
     expect(size).toBe(DOCS_BODY_SIZE)
     expect(width).toBeCloseTo(column, 0)
+    // 65ch at the docs size is wider than the 50rem column, so width alone
+    // can't catch a lost `none`; MDX on a wide page would stop at 65ch.
+    expect(measure).toBe('none')
   }, 60_000)
 
   it('spaces an example one flow below the paragraph above it, and the next paragraph one flow below it', async () => {
