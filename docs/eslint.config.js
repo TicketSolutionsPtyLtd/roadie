@@ -5,6 +5,7 @@ import {
   flat as mdxFlat
 } from 'eslint-plugin-mdx'
 import reactHooks from 'eslint-plugin-react-hooks'
+import { readFileSync } from 'fs'
 import { createRequire } from 'module'
 
 import roadie from '../eslint/roadie-plugin.js'
@@ -27,6 +28,23 @@ function fenceName(filename) {
     return `${filename.slice(0, dot)}.${lang.slice(0, 3)}`
   }
   return /^[jt]sx?$/.test(lang) ? `${filename}-snippet` : filename
+}
+
+// Live examples get LiveRunner's imported icons, and the bare names it maps
+// them to, from scope, so the phosphor rules have no import to find them by.
+function liveScopeIcons() {
+  const runner = readFileSync(
+    new URL('./src/components/LiveRunner.tsx', import.meta.url),
+    'utf8'
+  )
+  const [, imported] = runner.match(
+    /import \{([^}]*)\} from '@phosphor-icons\/react'/
+  )
+  const bare = [...runner.matchAll(/^ {2}(\w+): \w+Icon,?$/gm)]
+  return [
+    ...imported.split(',').map((name) => name.trim()),
+    ...bare.map(([, name]) => name)
+  ].filter(Boolean)
 }
 
 const liveFenceProcessor = {
@@ -70,6 +88,7 @@ const config = [
   {
     files: ['**/*.mdx/*.{tsx,jsx}'],
     plugins: { roadie },
+    settings: { roadie: { phosphorIcons: liveScopeIcons() } },
     rules: {
       'roadie/phosphor-icon-suffix': 'error',
       'roadie/phosphor-icon-size-prop': 'error',

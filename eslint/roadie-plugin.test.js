@@ -31,6 +31,7 @@ const cases = {
   'phosphor-icon-size-prop': {
     valid: [
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon className='size-4' />",
+      "import { StarIcon } from '@phosphor-icons/react'; <svg><StarIcon size='100%' /></svg>",
       '<Avatar size="sm" />'
     ],
     invalid: [
@@ -43,7 +44,8 @@ const cases = {
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='fill' />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={selected ? 'fill' : 'bold'} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={iconWeight} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon {...iconProps} />"
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon {...iconProps} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={<HeartIcon />} />"
     ],
     invalid: [
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='regular' />",
@@ -51,7 +53,8 @@ const cases = {
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={`thin`} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={selected ? 'fill' : 'regular'} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={iconWeight ?? 'thin'} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon />"
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.MenuItem icon={<HeartIcon />} />"
     ]
   },
   'no-dark-variant': {
@@ -312,6 +315,23 @@ describe('docs/eslint.config.js on MDX', () => {
     expect(await mdxHits(hexFence, 'roadie/no-hex-colour-class')).toHaveLength(
       1
     )
+  })
+
+  it.each([
+    ['<HeartIcon size={16} />', 'roadie/phosphor-icon-size-prop'],
+    ['<Heart />', 'roadie/phosphor-icon-weight']
+  ])(
+    'fails %s in a tsx-live fence, with icons from scope',
+    async (icon, ruleId) => {
+      expect(
+        await mdxHits(`\`\`\`tsx-live\n${icon}\n\`\`\``, ruleId)
+      ).toHaveLength(1)
+    }
+  )
+
+  it('leaves bare Image as the Roadie component in a tsx-live fence', async () => {
+    const imageFence = "```tsx-live\n<Image src='/a.png' alt='' />\n```"
+    expect(await mdxHits(imageFence, 'roadie/phosphor-icon-weight')).toEqual([])
   })
 
   it('leaves plain tsx fragments unlinted', async () => {
