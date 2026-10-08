@@ -43,7 +43,7 @@ The skeleton contains:
 - Examples on `.tsx` pages (`<CodePreview language='tsx-live'>`) load lazily too, but have no page of their own.
 - Live examples can use every component, every chart, and the SpotIllustrations without importing them.
 - Markdown tables scroll sideways on narrow screens by themselves, so don't wrap them.
-- Do and don't pairs use `<Guideline>` with `<Guideline.Do>` and `<Guideline.Dont>`, each given an `example` (rendered JSX) or a `code` string.
+- Do and don't pairs use `<Guideline>` with `<Guideline.Do>` and `<Guideline.Dont>`. Each takes text, and optionally an `example` (rendered JSX) or a `code` string.
 
 ## `<PropsDefinitions>` usage
 

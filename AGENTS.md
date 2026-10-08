@@ -29,8 +29,10 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 | `packages/widgets/`    | `@oztix/roadie-widgets`: the cart drawer, React and Vue skins    |
 | `docs/`                | The docs site                                                    |
 
+Root scripts: `pnpm dev`, `build`, `test`, `test:browser`, `typecheck`, `lint`,
+and `format`. Scope one with `--filter`:
+
 ```bash
-pnpm dev | build | test | test:browser | typecheck | lint | format
 pnpm --filter @oztix/roadie-components test
 pnpm --filter docs dev
 ```
