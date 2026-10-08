@@ -73,7 +73,8 @@
     "test": {
       "dependsOn": ["^build"],
       "inputs": [
-        "src/**/*.{js,jsx,mjs,ts,tsx,mts}",
+        "src/**/*.{js,jsx,mjs,ts,tsx,mts,css}",
+        "src/**/*.html",
         "**/*.test.{js,jsx,ts,tsx}",
         "jest.config.*",
         "*.config.{js,mjs,cjs,ts}",
@@ -86,6 +87,7 @@
       "env": ["ROADIE_BROWSERS"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css}",
+        "src/**/*.html",
         "*.config.{js,mjs,cjs,ts}",
         "$TURBO_ROOT$/vitest.browsers.config.ts",
         "*.css",
