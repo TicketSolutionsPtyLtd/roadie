@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
-import { existsSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, lstatSync, readdirSync } from 'node:fs'
 import { availableParallelism, constants } from 'node:os'
-import { isAbsolute, join, relative, resolve } from 'node:path'
+import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 
 import {
   killGroup,
@@ -72,8 +72,12 @@ function sourceFilesIn(folder) {
 }
 
 function withFolderContents(path) {
-  if (!statSync(join(cwd, path)).isDirectory()) return [path]
-  const files = sourceFilesIn(path)
+  const stats = lstatSync(join(cwd, path))
+  if (!stats.isDirectory() && !stats.isSymbolicLink()) return [path]
+  const skipped =
+    stats.isSymbolicLink() ||
+    path.split(sep).some((name) => SKIPPED_FOLDER.test(name))
+  const files = skipped ? [] : sourceFilesIn(path)
   if (files.length) return files
   console.error(`No source files in ${pkg}: ${path || '.'}\n\n${usage}`)
   process.exit(2)
