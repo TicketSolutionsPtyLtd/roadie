@@ -159,7 +159,6 @@ These rules aren't on those pages.
 
 ## Docs pages
 
-Component pages follow
-[`COMPONENT_DOC_TEMPLATE.md`](docs/contributing/COMPONENT_DOC_TEMPLATE.md), and
-writing follows the content rules in
-[`PR_WORKFLOW.md`](docs/contributing/PR_WORKFLOW.md) section 3.
+Every page follows [`DOCS_PAGES.md`](docs/contributing/DOCS_PAGES.md): MDX by
+default, no className layout in top-level MDX, a template per page type, and
+the writing rules.
