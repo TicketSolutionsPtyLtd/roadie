@@ -96,8 +96,8 @@ const componentMapping = [
   { component: 'Mark / Highlight', tier: 'Inline', className: 'rounded-sm' },
   {
     component: 'Prose (code blocks, images)',
-    tier: 'Small / Field',
-    className: 'rounded-md / rounded-lg'
+    tier: 'Small',
+    className: 'rounded-md'
   }
 ]
 
