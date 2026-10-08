@@ -39,22 +39,23 @@ browser test is only for what CSS decides.
 ## 3. The loop
 
 1. Write **one** test for one behaviour, named for what a user can do. Start
-   with one path end to end.
+   with one path end to end. Several `it.each` rows for one behaviour count
+   as one test.
 2. Run that file and watch it fail on the assertion, not on an import or a
    typo.
 3. Write just enough code to pass it.
 4. Repeat for the next behaviour. Never write the tests up front in a batch.
-   Leave refactoring to review.
+   Leave refactoring to `/roadie:review`.
 
 Testing code that already exists? Still one test at a time: write it, break
 the behaviour, watch it fail, then restore it. A prop can act in more than
 one place (a picker's `weekStart` sets the calendar and reads "end of week"),
-so break each one.
+and a rule can have several conditions, so break each one.
 
 Iterate on the file you're writing, through the repo's load-gated runner,
 never `vitest` or the whole suite directly. In Roadie that's
-`pnpm test:gated <package> <file>`, with the file path relative to the
-package. It waits for load and runs Chromium only. A repo without a runner
+`pnpm test:gated <package> <file>`, with a package or repo path; a missing
+path exits 2. It waits for load and runs Chromium only. A repo without a runner
 follows its own load rule and runs `vitest run <file>`. Before pushing,
 follow the host workflow (in Roadie, touched browser files once with
 `--all-browsers`), and let the hooks and CI run the rest.
@@ -82,6 +83,9 @@ For each new test, answer yes to all three, or rewrite it:
 - Would it fail if the behaviour were deleted?
 - Would it still pass if an internal were renamed?
 - Does its name say what a user can do?
+
+Format with the repo's own formatter config. Where it has none, don't run
+Prettier with defaults; match the file's existing style.
 
 Then report the files, what each test proves, and the run you made.
 `/roadie:review` checks the same rules.
