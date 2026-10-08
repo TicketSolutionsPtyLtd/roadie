@@ -98,9 +98,9 @@ import { Guideline, Guidelines } from '@/components/Guideline'
 | ------------- | ---------- | ------ | ------- | ------ | ------- | ------------- | ----------- | -------- | ------ | ------------- | ----- |
 | Default       | yes        | yes    | yes     | yes    | yes     | yes           | yes         | yes      | yes    | yes           | yes   |
 | Variants      | maybe      | maybe  | maybe   | maybe  | maybe   | maybe         | maybe       | maybe    | maybe  | maybe         | maybe |
-| Emphasis      | no         | no     | yes     | yes    | yes     | yes           | yes         | no       | yes    | no            | yes   |
-| Sizes         | no         | no     | yes     | yes    | yes     | yes           | yes         | no       | yes    | no            | yes   |
-| Intents       | no         | no     | yes     | no     | no      | no            | yes         | no       | yes    | no            | yes   |
-| States        | yes        | no     | yes     | yes    | yes     | yes           | yes         | yes      | yes    | no            | no    |
+| Emphasis      | no         | no     | yes     | yes    | yes     | yes           | yes         | maybe    | yes    | no            | yes   |
+| Sizes         | no         | no     | yes     | yes    | yes     | yes           | yes         | maybe    | yes    | no            | yes   |
+| Intents       | no         | no     | yes     | no     | no      | no            | yes         | maybe    | yes    | no            | yes   |
+| States        | yes        | no     | yes     | yes    | yes     | yes           | yes         | maybe    | yes    | no            | no    |
 | Composition   | yes        | no     | no      | yes    | yes     | yes           | yes         | yes      | yes    | no            | no    |
 | Accessibility | yes        | no     | yes     | yes    | yes     | yes           | no          | yes      | no     | no            | no    |

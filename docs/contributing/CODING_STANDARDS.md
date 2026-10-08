@@ -76,8 +76,8 @@ Every test must be able to fail for a reason a user would notice.
 ## Docs
 
 - **Pages follow their template.** [DOCS_PAGES.md](DOCS_PAGES.md) names the
-  template for each page type; layout comes from docs components, not
-  className.
+  template for each page type. Layout in top-level MDX comes from docs
+  components, not `className`.
 - **Pages are easy to scan.** Put the model first and each example before its
   explanation. Keep sections short, and use lists and tables only for content
   that is a list.
