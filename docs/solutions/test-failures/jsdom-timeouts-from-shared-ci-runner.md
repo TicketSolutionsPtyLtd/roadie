@@ -18,7 +18,7 @@ timeout to 15s stopped the failures but not the slowness: the file still took
 
 ## Cause
 
-The check job ran `turbo lint typecheck test` in one step, so eslint, tsc and
+The check job ran `turbo lint typecheck test` in one step, so eslint, tsc, and
 every package's Vitest pool ran at once on a 4 vCPU runner. Each heavy jsdom
 file ran 8 to 20 times slower than alone (DashboardPeriod 66s against 3.3s,
 DateRangePicker 72s against 6.7s). A test that clicks through a popover about
@@ -30,10 +30,11 @@ over 90ms, a dialog of 159 nodes, and no gain from
 
 ## Fix
 
-Run `test` in its own turbo step with `--concurrency=1`, after lint and
-typecheck, as the browser job already does. Throughput is the same, since the
-work is CPU bound either way, but each test gets the runner's cores and its
-time is close to its local time.
+PR #304 split the check job: lint and typecheck run first, then `test` runs in
+its own turbo step with `--concurrency=1`, one package at a time, as the
+browser job does. Each package's Vitest still uses its own workers.
+Throughput is the same, since the work is CPU bound either way, but each test
+gets the runner's cores and its time is close to its local time.
 
 Don't raise a timeout for a test that is fast alone. Compare the CI file time
 in the log (`gh run view <id> --log-failed`) with a local run of the same file
