@@ -17,5 +17,6 @@ enforce them.
 
 ## Links
 
+- [Docs pages](../contributing/DOCS_PAGES.md) for the conventions and templates
 - [PR workflow, section 4](../contributing/PR_WORKFLOW.md#4-docs-blocking-for-new-components)
 - INNO-1158 and INNO-1159
