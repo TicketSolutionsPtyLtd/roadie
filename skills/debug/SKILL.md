@@ -22,8 +22,10 @@ and PR workflow win over anything here.
 
 ## 2. Reproduce
 
-- **Smallest failing test first:** one file, one test (`-t '<name>'`), run
-  the way the repo's workflow says, after checking machine load.
+- **Smallest failing test first:** one file, one test (`-t '<name>'`),
+  through the repo's load-gated runner, never `vitest` or the whole suite
+  directly. In Roadie that's `pnpm test:gated <package> <file> -t '<name>'`;
+  a repo without one follows its own load rule.
 - **The right engine:** jsdom can't decide layout, `calc()`, or container
   queries. A browser bug needs the browser test, in the engine that failed. A
   CI-only failure may need CI's OS (a Linux container) or CI's load.
@@ -31,8 +33,8 @@ and PR workflow win over anything here.
   CI-only timeout, compare CI's time for the file (in the log) with a local
   run of the same file. If every heavy file is many times slower, the runner
   is the cause, not the test.
-- A flake that won't reproduce can often be forced: repeat it, load the
-  machine, or shrink the timeout. With no reproduction, say so, and don't
+- A flake that won't reproduce can often be forced: repeat it or shrink the
+  timeout. Never load a shared machine to force it. With no reproduction, say so, and don't
   ship a fix you can't show failing without it.
 
 ## 3. One hypothesis at a time
@@ -40,8 +42,10 @@ and PR workflow win over anything here.
 - Write it in one sentence, with the result that would prove it wrong.
   Change one thing, rerun, and keep or drop it.
 - Revert what didn't help before the next idea.
-- Fix the cause: no retries, raised timeouts, sleeps, or `!important` to
-  make it pass.
+- Fix the cause: no retries, raised timeouts, sleeps, `!important`, or
+  skipped hooks (`--no-verify`) to make it pass.
+- If the cause is in CI config or a file another session or team owns, don't
+  edit it. Hand the diff and evidence to its owner, or file it.
 
 ## 4. Timebox
 
@@ -59,10 +63,13 @@ stop chasing and change approach.
 
 ## 5. Leave something behind
 
-- A test that fails without the fix, at the public interface. To prove a
-  test can fail, break the behaviour it guards and run it.
+- Keep the reproducing test: watch it fail with the bug present, then pass
+  with the fix. It tests the public interface and waits for a state, not a
+  time (`/roadie:test` has the rules). When the fix is to the tests
+  themselves, break the behaviour each one guards and run it.
 - The cheapest guard that stops it returning: a lint rule, a shared test
-  helper, or a CI check. If it would widen the PR, file it as a follow-up.
+  helper, or a CI check. If it would widen the PR or touch files you don't
+  own, file it as a follow-up.
 - If no check can catch it, add or update a `docs/solutions/` entry in the
   repo's format (copy a sibling's frontmatter) with Symptom, Cause, and Fix.
 - Put the root cause, what you ruled out, and the evidence in the PR body.
