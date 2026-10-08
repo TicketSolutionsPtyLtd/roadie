@@ -33,8 +33,7 @@ with its skeleton and the rules on top of these.
 - `export const metadata = { title, description, category }` opens the file.
   The layout renders `title` as the page's `h1`, so the body has no `#`
   heading.
-- `description` is one sentence. Catalogue cards and the markdown copy show
-  it.
+- `description` is one sentence, shown on catalogue cards.
 - `category` is one of its catalogue's categories in
   `docs/src/lib/page-manifest.ts`. `order`, `hidden`, `alsoIn`, and `wide`
   are optional, and component pages add `status`.
@@ -53,6 +52,8 @@ with its skeleton and the rules on top of these.
   fences escape by themselves; inside a `tsx-live-prose` example it's what the
   demo teaches.
 - A plain `tsx` fence is for code that doesn't run, such as imports and setup.
+- Fences get every component without imports. Top-level JSX, such as a
+  `Guideline` example, imports what it uses from a per-component subpath.
 - Fence options (`id=`, `eager`, `-noinline`, and `-expand`) are in
   [`COMPONENT_DOC_TEMPLATE.md`](COMPONENT_DOC_TEMPLATE.md#live-examples).
 
@@ -76,8 +77,7 @@ with its skeleton and the rules on top of these.
   themselves, never a hand-typed table that drifts. Examples are
   `dataviz/DatavizSwatches` and the grids in `tokens/FamilyVisuals`. Put a
   new one in a folder for its area in `docs/src/components/`.
-- Guidance a person writes, such as which tier to use where, is a markdown
-  table.
+- Guidance a person writes, such as which tier to use where, is a table.
 - A docs component with no children drops out of the markdown copy, so the
   sentence before it says what it shows.
 - Every value of a family is on its `/tokens/` page. A foundation page links
@@ -89,8 +89,8 @@ with its skeleton and the rules on top of these.
 - Edit `.mdx` by hand and never run Prettier on it. It rewrites the code in
   fences, so `.prettierignore` skips `docs/**/*.mdx`. Formatting `.md` is fine.
 - `pnpm --filter docs lint` checks MDX, including the code in fences.
-- Skeletons in these templates sit in a four-backtick ` ````mdx ` fence, which
-  keeps their nested fences intact when the `.md` is formatted.
+- A skeleton here with nested fences sits in a four-backtick ` ````mdx `
+  fence, which keeps them intact when the `.md` is formatted.
 
 ## Writing
 

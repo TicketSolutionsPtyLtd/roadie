@@ -18,6 +18,8 @@ export const metadata = {
 
 import { Guideline, Guidelines } from '@/components/Guideline'
 
+import { Button } from '@oztix/roadie-components/button'
+
 Two or three sentences on why these rules exist and who they're for.
 
 ## Rule name

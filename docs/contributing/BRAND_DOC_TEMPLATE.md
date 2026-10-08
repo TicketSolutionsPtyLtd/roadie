@@ -77,8 +77,7 @@ links to their pages.
    site's base path that a bare markdown image misses. INNO-1149 decides
    whether `Image` becomes the MDX `img` mapping, and how downloads get the
    base path.
-3. **Every image has alt text** that says what the image shows, not its file
-   name.
+3. **Every image has alt text** that says what it shows.
 4. **Check each page before it's published.** Nothing internal or sensitive,
    such as client names, contract terms, or staff contacts.
 5. **Link, don't repeat.** Colour values belong to `/tokens/`, and component
