@@ -1,7 +1,7 @@
 import typescriptParser from '@typescript-eslint/parser'
 import { ESLint, RuleTester } from 'eslint'
 import { fileURLToPath } from 'node:url'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 
 import roadie from './roadie-plugin.js'
 
@@ -147,6 +147,12 @@ describe('import boundaries in eslint.config.js', () => {
   const eslint = new ESLint({
     cwd: fileURLToPath(new URL('..', import.meta.url))
   })
+
+  // The first lint loads the config and parsers, which can take over 5s.
+  beforeAll(
+    () => eslint.lintText('', { filePath: 'packages/core/src/index.ts' }),
+    60_000
+  )
 
   const ruleHits = async (code, filePath) => {
     const [result] = await eslint.lintText(code, { filePath })
