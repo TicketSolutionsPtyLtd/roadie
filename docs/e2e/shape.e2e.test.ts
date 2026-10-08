@@ -111,4 +111,13 @@ describe('Shape foundation', () => {
       expect(overflow).toBe(0)
     }, 60_000)
   }
+
+  it('describes the scale in its markdown copy without pointing at the tiles it drops', async () => {
+    const markdown = await readFile(
+      join(import.meta.dirname, '../out/foundations/shape.md'),
+      'utf-8'
+    )
+    const radiusScale = markdown.split('## Radius scale')[1]!.split('\n## ')[0]!
+    expect(radiusScale).not.toMatch(/\b(below|above)\b/i)
+  })
 })

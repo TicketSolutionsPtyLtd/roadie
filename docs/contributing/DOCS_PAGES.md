@@ -78,7 +78,7 @@ with its skeleton and the rules on top of these.
   new one in a folder for its area in `docs/src/components/`.
 - Guidance a person writes, such as which tier to use where, is a table.
 - A docs component with no children drops out of the markdown copy, so the
-  sentence before it says what it shows.
+  sentence before it says what it shows without pointing "below" at it.
 - Every value of a family is on its `/tokens/` page. A foundation page links
   there through `guidance` in `docs/src/lib/token-families.ts`, and the
   layout shows the link under the title.

@@ -33,7 +33,6 @@ function Tile({
   )
 }
 
-/** Every radius tier in the token manifest, on a tile of its own, then rounded-full. */
 export async function RadiusScale() {
   const radii = (await getFamilyTokens('shape')).filter(
     (token) => token.group === 'Radius' && token.name !== BELOW_TIERS
