@@ -18,9 +18,12 @@ export function exportedFolders(exports) {
     .filter(Boolean)
 }
 
-/** Slugs a preview file draws, one per `case '<slug>':`. */
+/** Slugs a preview file draws, one per `case '<slug>':` that isn't commented out. */
 export function caseSlugs(source) {
-  return [...source.matchAll(/case '([\w-]+)':/g)].map(([, slug]) => slug)
+  const withoutBlockComments = source.replace(/\/\*[\s\S]*?\*\//g, '')
+  return [...withoutBlockComments.matchAll(/^\s*case '([\w-]+)':/gm)].map(
+    ([, slug]) => slug
+  )
 }
 
 /**

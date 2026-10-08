@@ -48,6 +48,20 @@ describe('caseSlugs', () => {
   }`)
     ).toEqual(['button', 'label', 'date-range-picker'])
   })
+
+  it('skips commented-out labels', () => {
+    expect(
+      caseSlugs(`switch (name) {
+    case 'button':
+    // case 'gauge':
+    /* case 'meter': */
+    /*
+    case 'dial':
+    */
+      return null
+  }`)
+    ).toEqual(['button'])
+  })
 })
 
 describe('findMissingDocs', () => {
