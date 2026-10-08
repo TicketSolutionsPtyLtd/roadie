@@ -8,7 +8,7 @@ export const metadata = {
 import { Button } from '@oztix/roadie-components'
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 An anchored panel that floats beside its trigger, built on Base UI's popover primitive.
 
@@ -243,7 +243,7 @@ A `Popover.Footer` holds a centered actions row. It suits a lightweight confirm-
 
 Use a popover for contextual content anchored to a control, such as menus, quick forms, and confirmations. It has no `size` prop and sizes to its content and anchor. Set `intent` on `Popover.Content`, not the trigger, since portaled popups do not inherit the trigger's CSS cascade.
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Name buttons by their action'>
   <Guideline.Do example={<Button intent='accent' emphasis='strong' size='sm'>Save changes</Button>}>
@@ -264,10 +264,10 @@ Use a popover for contextual content anchored to a control, such as menus, quick
 </Guideline>
 
 <Guideline title='Use one prominent action, the rest normal'>
-  <Guideline.Do example={<div className='flex gap-2'><Button size='sm'>Cancel</Button><Button intent='accent' emphasis='strong' size='sm'>Save</Button></div>}>
+  <Guideline.Do example={<Guideline.Row><Button size='sm'>Cancel</Button><Button intent='accent' emphasis='strong' size='sm'>Save</Button></Guideline.Row>}>
     Keep popover actions `size='sm'`, with one prominent `emphasis='strong'` accent button (or `danger` for a destructive confirm) and the rest normal or default. In a compact, anchored panel the primary path needs to read instantly.
   </Guideline.Do>
-  <Guideline.Dont example={<div className='flex gap-2'><Button emphasis='subtle' size='sm'>Cancel</Button><Button intent='accent' emphasis='strong' size='sm'>Save</Button></div>}>
+  <Guideline.Dont example={<Guideline.Row><Button emphasis='subtle' size='sm'>Cancel</Button><Button intent='accent' emphasis='strong' size='sm'>Save</Button></Guideline.Row>}>
     Never use `emphasis='subtle'` for footer actions. A barely-there button reads as disabled in a tight panel, and the prominent path loses its contrast.
   </Guideline.Dont>
 </Guideline>
@@ -299,7 +299,7 @@ Use a popover for contextual content anchored to a control, such as menus, quick
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

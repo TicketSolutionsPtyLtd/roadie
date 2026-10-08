@@ -138,7 +138,11 @@ function apiReference(components: ManifestComponent[]): RootContent[] {
 function guideline(node: JsxElement, children: RootContent[]): RootContent[] {
   const title = attribute(node, 'title')
   const description = attribute(node, 'description')
-  const example = attribute(node, 'example')
+  // Guideline.Row only lays out the docs card, so readers get the bare parts.
+  const example = attribute(node, 'example')?.replace(
+    /^<Guideline\.Row>([\s\S]*)<\/Guideline\.Row>$/,
+    '<>$1</>'
+  )
   const code = attribute(node, 'code')
   const label =
     node.name === 'Guideline.Do'

@@ -7,7 +7,7 @@ export const metadata = {
 
 import { Callout } from '@oztix/roadie-components'
 
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 An inline message that sits in the flow of the page, next to the content it's about.
@@ -156,27 +156,25 @@ Pass `icon` to the short form, or children to `Callout.Icon`. Pass `icon={null}`
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Callout or Toast'>
   <Guideline.Do
+    width={56}
     example={
-      <div className='w-56'>
-        <Callout intent='warning' title='Only 20 tickets left at this price'>
-          The next release is $10 more.
-        </Callout>
-      </div>
+      <Callout intent='warning' title='Only 20 tickets left at this price'>
+        The next release is $10 more.
+      </Callout>
     }
   >
     Use a callout for something that stays true while the page is open, next to the content it's about.
   </Guideline.Do>
   <Guideline.Dont
+    width={56}
     example={
-      <div className='w-56'>
-        <Callout intent='success' title='Saved'>
-          Your changes were saved.
-        </Callout>
-      </div>
+      <Callout intent='success' title='Saved'>
+        Your changes were saved.
+      </Callout>
     }
   >
     Don't use a callout to confirm an action that just happened. Use a Toast, which comes and goes on its own.
@@ -185,23 +183,21 @@ Pass `icon` to the short form, or children to `Callout.Icon`. Pass `icon={null}`
 
 <Guideline title='Say what to do next'>
   <Guideline.Do
+    width={56}
     example={
-      <div className='w-56'>
-        <Callout intent='danger' title='Payment failed'>
-          Update your card to keep your booking.
-        </Callout>
-      </div>
+      <Callout intent='danger' title='Payment failed'>
+        Update your card to keep your booking.
+      </Callout>
     }
   >
     Lead with what happened and follow with what to do. Keep it to a sentence or two.
   </Guideline.Do>
   <Guideline.Dont
+    width={56}
     example={
-      <div className='w-56'>
-        <Callout intent='danger' title='Error'>
-          Something went wrong.
-        </Callout>
-      </div>
+      <Callout intent='danger' title='Error'>
+        Something went wrong.
+      </Callout>
     }
   >
     Don't write a vague title. It tells people something is wrong without telling them what.
@@ -217,7 +213,7 @@ Pass `icon` to the short form, or children to `Callout.Icon`. Pass `icon={null}`
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

@@ -15,7 +15,7 @@ import {
 } from '@phosphor-icons/react/ssr'
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A tile that frames a single icon.
 
@@ -128,10 +128,10 @@ Use `weight='bold'` up to 48px (the `lg` size), then switch to `weight='duotone'
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Tile the item, not the action'>
-  <Guideline.Do example={<div className='w-64'><List contained emphasis='subtle'><List.Item title='Account' description='Profile, security, sign-in' leading={<IconTile intent='accent'><GearIcon weight='bold' /></IconTile>} /></List></div>}>
+  <Guideline.Do width={64} example={<List contained emphasis='subtle'><List.Item title='Account' description='Profile, security, sign-in' leading={<IconTile intent='accent'><GearIcon weight='bold' /></IconTile>} /></List>}>
     Frame an icon that stands for the thing it sits beside, like a list row, a settings row, a feature block or an <code>EmptyState</code>.
   </Guideline.Do>
   <Guideline.Dont code={`<Menu.Item\n  icon={\n    <IconTile>\n      <GearIcon weight='bold' />\n    </IconTile>\n  }\n>\n  Settings\n</Menu.Item>`}>
@@ -149,7 +149,7 @@ Use `weight='bold'` up to 48px (the `lg` size), then switch to `weight='duotone'
 </Guideline>
 
 <Guideline title='Bold up to 48px, duotone above'>
-  <Guideline.Do example={<div className='flex items-center gap-3'><IconTile intent='accent' size='lg'><HeartIcon weight='bold' /></IconTile><IconTile intent='accent' size='3xl'><HeartIcon weight='duotone' /></IconTile></div>}>
+  <Guideline.Do example={<Guideline.Row><IconTile intent='accent' size='lg'><HeartIcon weight='bold' /></IconTile><IconTile intent='accent' size='3xl'><HeartIcon weight='duotone' /></IconTile></Guideline.Row>}>
     Use <code>weight='bold'</code> up to 48px (the <code>lg</code> size); switch to <code>weight='duotone'</code> above it. Never go lighter than bold.
   </Guideline.Do>
   <Guideline.Dont example={<IconTile intent='accent' size='3xl'><HeartIcon weight='bold' /></IconTile>}>
@@ -167,7 +167,7 @@ Use `weight='bold'` up to 48px (the `lg` size), then switch to `weight='duotone'
 </Guideline>
 
 <Guideline title='Pair a meaningful tile with a label'>
-  <Guideline.Do example={<div className='flex items-center gap-3'><IconTile intent='success'><CheckCircleIcon weight='bold' /></IconTile><p className='text-sm'>Payment complete</p></div>}>
+  <Guideline.Do example={<Guideline.Row><IconTile intent='success'><CheckCircleIcon weight='bold' /></IconTile><p>Payment complete</p></Guideline.Row>}>
     Add accompanying text or an <code>aria-label</code> when the icon carries meaning.
   </Guideline.Do>
   <Guideline.Dont example={<IconTile intent='success'><CheckCircleIcon weight='bold' /></IconTile>}>
@@ -175,6 +175,6 @@ Use `weight='bold'` up to 48px (the `lg` size), then switch to `weight='duotone'
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 <PropsDefinitions componentPath='packages/components/src/components/IconTile/index.tsx' />

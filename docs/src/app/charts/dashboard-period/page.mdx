@@ -9,7 +9,7 @@ export const metadata = {
 import { Button } from '@oztix/roadie-components/button'
 import { DashboardPeriod } from '@oztix/roadie-components/dashboard-period'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A dashboard’s period and what it compares with, in one picker.
 
@@ -253,7 +253,7 @@ render(<Sales />)
 - **One size, paired with large controls.** The button is a large control: 48px tall, with the comparison's dates on a second line. On the same row, use `size='lg'` Buttons, IconButtons and Selects.
 - **Keep the period in the description.** The toolbar shows the description’s `period`, so cards and controls never disagree.
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Compare like with like'>
   <Guideline.Do code={`resolveComparison(range, compare, { now, timeZone, dataEnd: today })`}>
@@ -265,10 +265,10 @@ render(<Sales />)
 </Guideline>
 
 <Guideline title='Pair it with large controls'>
-  <Guideline.Do example={<div className='grid w-72'><DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }}><Button size='lg'>Export</Button></DashboardPeriod></div>} code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='lg'>Export</Button>\n</DashboardPeriod>`}>
+  <Guideline.Do width={72} example={<DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }}><Button size='lg'>Export</Button></DashboardPeriod>} code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='lg'>Export</Button>\n</DashboardPeriod>`}>
     Put large Buttons, IconButtons and Selects beside it, so the row shares one height.
   </Guideline.Do>
-  <Guideline.Dont example={<div className='grid w-72'><DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }}><Button size='sm'>Export</Button></DashboardPeriod></div>} code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='sm'>Export</Button>\n</DashboardPeriod>`}>
+  <Guideline.Dont width={72} example={<DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }}><Button size='sm'>Export</Button></DashboardPeriod>} code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='sm'>Export</Button>\n</DashboardPeriod>`}>
     Don't set small or medium controls beside it. They sit short of its edge.
   </Guideline.Dont>
 </Guideline>
@@ -282,7 +282,7 @@ render(<Sales />)
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

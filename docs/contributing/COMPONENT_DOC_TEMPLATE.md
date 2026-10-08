@@ -14,7 +14,7 @@ The skeleton contains:
 - `## Import` with a subpath import (never the barrel)
 - `## Examples` starting with a `### Default` `tsx-live` block
 - Optional `### Variants` / `### Emphasis` / `### Sizes` / `### Intents` / `### States` / `### Composition` sections
-- `## Guidelines` and `## Accessibility` for interactive components
+- `## Guidelines` and `## Accessibility` for interactive components. The guidelines sit in one `<Guidelines>`, as in the Guidelines section below
 - `## Hooks`, only when the component exports a hook: one `### useX` subsection per hook, each a signature and a return table
 - A trailing `<PropsDefinitions componentPath='…' />` pointing at the folder (per-file compound) or the `index.tsx` (pre-Phase-3 monolithic compound)
 
@@ -45,6 +45,45 @@ The skeleton contains:
 - Live examples can use every component, every chart, and the SpotIllustrations without importing them.
 - Markdown tables scroll sideways on narrow screens by themselves, so don't wrap them.
 - Do and don't pairs use `<Guideline>` with `<Guideline.Do>` and `<Guideline.Dont>`. Each takes text, and optionally an `example` (rendered JSX) or a `code` string.
+
+## Guidelines section
+
+Layout in top-level MDX comes from the `Guideline` components, never `className`:
+
+```mdx
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Pair a meaningful tile with a label'>
+  <Guideline.Do
+    example={
+      <Guideline.Row>
+        <IconTile intent='success'>
+          <CheckCircleIcon weight='bold' />
+        </IconTile>
+        <p>Payment complete</p>
+      </Guideline.Row>
+    }
+  >
+    Add text beside a tile that carries meaning.
+  </Guideline.Do>
+  <Guideline.Dont
+    width={56}
+    example={<Callout title='Error'>Something went wrong.</Callout>}
+  >
+    Don't write a vague title.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+```
+
+- `<Guidelines>` spaces the guidelines under the heading, and under any `###` group heading inside the section.
+- `width` sets an example's width, from the spacing scale (`40`, `56`, `64`, or `72`), for one that would otherwise shrink to its content. It never overflows the card.
+- `<Guideline.Row>` sets an example's parts side by side and centred, with any `<p>` caption at the guidance's size. The page's markdown for agents drops it and keeps the parts.
 
 ## `<PropsDefinitions>` usage
 

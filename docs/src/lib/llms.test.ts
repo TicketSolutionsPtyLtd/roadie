@@ -114,6 +114,31 @@ describe('pageToMarkdown', () => {
     )
   })
 
+  it('writes guidelines in a Guidelines section without the docs layout around their examples', () => {
+    const md = page(
+      [
+        '<Guidelines>',
+        '',
+        "<Guideline title='Pair a tile with a label'>",
+        '  <Guideline.Do width={64} example={<Guideline.Row><IconTile /><p>Paid</p></Guideline.Row>}>',
+        '    Name what the icon means.',
+        '  </Guideline.Do>',
+        '</Guideline>',
+        '',
+        '</Guidelines>'
+      ].join('\n')
+    )
+    expect(md).toBe(
+      [
+        '# Badge',
+        '**Pair a tile with a label**',
+        '**Do**',
+        '```tsx\n<><IconTile /><p>Paid</p></>\n```',
+        'Name what the icon means.\n'
+      ].join('\n\n')
+    )
+  })
+
   it('writes a guideline’s template literal code as the code it evaluates to', () => {
     const md = page(
       [
