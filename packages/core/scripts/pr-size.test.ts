@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { matchesGlob } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
@@ -113,5 +115,26 @@ describe('formatReport', () => {
     )
     expect(report.oversized).toBe(true)
     expect(report.message).toMatch(/^PR size warning: 401 changed lines/)
+  })
+
+  it('names every excluded line neutrally, since changesets and changelogs are neither generated nor lock files', () => {
+    const report = formatReport(
+      { total: 10, excludedLines: 5, files: 1 },
+      'origin/main'
+    )
+    expect(report.message).toContain('(5 excluded lines not counted;')
+  })
+})
+
+describe('turbo test inputs', () => {
+  it('rerun the core tests when this script changes', () => {
+    const turbo = JSON.parse(
+      readFileSync(new URL('../../../turbo.json', import.meta.url), 'utf8')
+    ) as { tasks: { test: { inputs: string[] } } }
+    expect(
+      turbo.tasks.test.inputs.some((glob) =>
+        matchesGlob('scripts/pr-size.mjs', glob)
+      )
+    ).toBe(true)
   })
 })

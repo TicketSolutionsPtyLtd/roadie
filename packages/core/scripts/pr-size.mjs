@@ -49,7 +49,7 @@ export function formatReport(
   base,
   threshold = THRESHOLD
 ) {
-  const summary = `${total} changed lines in ${files} files against ${base} (${excludedLines} generated or lock lines not counted; threshold ${threshold}).`
+  const summary = `${total} changed lines in ${files} files against ${base} (${excludedLines} excluded lines not counted; threshold ${threshold}).`
   if (total <= threshold)
     return { oversized: false, message: `PR size OK: ${summary}` }
   return {
