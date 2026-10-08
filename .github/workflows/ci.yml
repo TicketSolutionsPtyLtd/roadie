@@ -39,6 +39,20 @@ jobs:
       - name: Setup
         uses: ./.github/composite-actions/setup
 
+      - name: Check component docs
+        run: node scripts/check-component-docs.mjs
+
+      # Warning only. On a pull_request the checkout is a merge commit whose
+      # first parent is the base, so HEAD^1 diffs just this PR without a full
+      # clone, even if main moves after the merge ref is built.
+      - name: Check PR size
+        if: github.event_name == 'pull_request'
+        run: |
+          if ! report=$(node scripts/check-pr-size.mjs --base HEAD^1 --strict 2>&1); then
+            echo "::warning title=PR size::$report"
+          fi
+          echo "$report"
+
       - name: Lint and typecheck
         run: pnpm turbo lint typecheck --affected --framework-inference=false
         env:
