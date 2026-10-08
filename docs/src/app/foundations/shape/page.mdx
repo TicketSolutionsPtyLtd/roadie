@@ -1,0 +1,199 @@
+export const metadata = {
+  title: 'Shape',
+  description:
+    'Border-radius scale for consistent, soft corners across all components.',
+  category: 'Visual'
+}
+
+import { Badge } from '@oztix/roadie-components/badge'
+import { Button } from '@oztix/roadie-components/button'
+import { Card } from '@oztix/roadie-components/card'
+import { Code } from '@oztix/roadie-components/code'
+import { Field } from '@oztix/roadie-components/field'
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { RadiusScale } from '@/components/shape/RadiusScale'
+
+Roadie uses Tailwind's built-in border-radius scale to create a consistent,
+rounded visual language that progresses from inline elements to full
+containers. Soft corners signal approachability.
+
+## Radius scale
+
+The scale runs from inline marks to edge-to-edge hero surfaces. Roadie uses
+Tailwind's built-in radius utilities up to `rounded-4xl` and adds three
+extended tiers (`rounded-5xl`, `rounded-6xl`, and `rounded-7xl`) for large
+promotional layouts. Never use arbitrary values like `rounded-[2.5rem]`. Stick
+to the named utilities so the scale stays consistent.
+
+On the docs site, each step of the scale is a tile with its class and value.
+
+<RadiusScale />
+
+| Tier      | Class          | Use for                                         |
+| --------- | -------------- | ----------------------------------------------- |
+| Inline    | `rounded-sm`   | Marks, highlights                               |
+| Small     | `rounded-md`   | Inline code, code blocks, prose images          |
+| Field     | `rounded-lg`   | Inputs, textareas, select triggers, radio items |
+| Container | `rounded-xl`   | Cards, select popups, radio cards, popovers     |
+| Large     | `rounded-2xl`  | Modals, dialogs, Navigator panes                |
+| Sheet     | `rounded-4xl`  | Drawers, from any side                          |
+| Hero      | `rounded-5xl`  | Hero cards, collection headers                  |
+| Feature   | `rounded-6xl`  | Feature banners, spotlight surfaces             |
+| Oversize  | `rounded-7xl`  | Edge-to-edge promotional layouts                |
+| Full      | `rounded-full` | Buttons, badges, avatars, pills                 |
+
+## Component usage
+
+Which components use which tier. These are the defaults. Override with
+`className` when a specific context requires it.
+
+| Component                   | Tier      | Class          |
+| --------------------------- | --------- | -------------- |
+| Button                      | Full      | `rounded-full` |
+| Badge                       | Full      | `rounded-full` |
+| Card                        | Container | `rounded-xl`   |
+| Dialog                      | Large     | `rounded-2xl`  |
+| Drawer                      | Sheet     | `rounded-4xl`  |
+| Select trigger              | Field     | `rounded-lg`   |
+| Select popup                | Container | `rounded-xl`   |
+| Input                       | Field     | `rounded-lg`   |
+| Textarea                    | Field     | `rounded-lg`   |
+| RadioGroup (default)        | Field     | `rounded-lg`   |
+| RadioGroup (card)           | Container | `rounded-xl`   |
+| Code                        | Small     | `rounded-md`   |
+| Mark and Highlight          | Inline    | `rounded-sm`   |
+| Prose (code blocks, images) | Small     | `rounded-md`   |
+
+## Guidelines
+
+- Prefer the standard tier for each element type. Override it with
+  `className` only when a specific context demands it.
+- When in doubt, round up to the next tier for a softer feel. The brand leans
+  soft.
+- Keep `rounded-2xl` for top-layer UI, such as modals and dialogs, and the
+  Navigator's panes. Don't use it on inline components.
+- Never mix custom pixel values with the Tailwind scale. Stick to the utility
+  classes.
+- Focus rings follow the radius by themselves. Roadie's `is-interactive` and
+  `is-interactive-field` utilities handle focus ring radius, so no separate
+  token is needed.
+
+<Guidelines>
+
+<Guideline title='Match radius to hierarchy' description='Larger radii for higher-level containers, smaller radii for inline or nested elements. This creates a natural visual hierarchy.'>
+  <Guideline.Do
+    width={64}
+    example={
+      <Card>
+        <Card.Header>
+          <Card.Description>
+            Card uses <Code>rounded-xl</Code>
+          </Card.Description>
+        </Card.Header>
+        <Card.Content>
+          <Field>
+            <Field.Label>Input uses rounded-lg</Field.Label>
+            <Field.Input />
+          </Field>
+        </Card.Content>
+      </Card>
+    }
+  >
+    Use larger radii for containers (cards and dialogs) and smaller radii for
+    inline elements (code and marks).
+  </Guideline.Do>
+  <Guideline.Dont
+    width={64}
+    example={
+      <Card className='rounded-md'>
+        <Card.Header>
+          <Card.Description>
+            Card uses <Code>rounded-md</Code>
+          </Card.Description>
+        </Card.Header>
+        <Card.Content>
+          <Field>
+            <Field.Label>Input uses rounded-md</Field.Label>
+            <Field.Input className='rounded-md' />
+          </Field>
+        </Card.Content>
+      </Card>
+    }
+  >
+    Don't apply the same radius everywhere. A card and an inline code span
+    shouldn't share the same corner treatment.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep pills for actions' description='Reserve rounded-full for interactive pill shapes and circular elements.'>
+  <Guideline.Do
+    example={
+      <Guideline.Row>
+        <Button emphasis='strong'>Buy tickets</Button>
+        <Button>Share</Button>
+        <Badge>Badge</Badge>
+        <Badge emphasis='subtler'>Tag</Badge>
+      </Guideline.Row>
+    }
+  >
+    Use `rounded-full` for buttons, badges, tags, and avatars.
+  </Guideline.Do>
+  <Guideline.Dont
+    width={64}
+    example={
+      <Card className='rounded-full'>
+        <Card.Content>
+          <p className='text-sm text-subtle'>
+            A card with <Code>rounded-full</Code>
+          </p>
+        </Card.Content>
+      </Card>
+    }
+  >
+    Don't use `rounded-full` on cards or containers. Full rounding distorts
+    rectangular layouts.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Nest with decreasing radius' description='When elements are nested, the inner element should use an equal or smaller radius than the outer. This avoids visual tension at corners.'>
+  <Guideline.Do
+    width={64}
+    example={
+      <Card>
+        <Card.Content>
+          <Card emphasis='subtle' className='rounded-lg'>
+            <Card.Content>
+              <p className='text-sm text-subtle'>
+                Parent <Code>rounded-xl</Code>, child <Code>rounded-lg</Code>
+              </p>
+            </Card.Content>
+          </Card>
+        </Card.Content>
+      </Card>
+    }
+  >
+    Inner elements use an equal or smaller radius than their parent.
+  </Guideline.Do>
+  <Guideline.Dont
+    width={64}
+    example={
+      <Card className='rounded-lg'>
+        <Card.Content>
+          <Card emphasis='subtle' className='rounded-2xl'>
+            <Card.Content>
+              <p className='text-sm text-subtle'>
+                Parent <Code>rounded-lg</Code>, child <Code>rounded-2xl</Code>
+              </p>
+            </Card.Content>
+          </Card>
+        </Card.Content>
+      </Card>
+    }
+  >
+    Don't use a larger radius on a child than its parent. The child's corners
+    clip awkwardly against the parent's straighter edges.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
