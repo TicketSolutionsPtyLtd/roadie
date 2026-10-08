@@ -20,10 +20,6 @@ import { Guideline, Guidelines } from '@/components/Guideline'
 
 Two or three sentences on why these rules exist and who they're for.
 
-## Principles
-
-- One idea per bullet, three to five of them.
-
 ## Rule name
 
 One or two sentences on the rule.

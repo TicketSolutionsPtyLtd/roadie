@@ -10,8 +10,7 @@ its `/tokens/` page, and every component API is on its component page.
 
 The skeleton comes from the sections the `page.tsx` foundations share, surveyed
 on Layout, Shape, Elevation, Iconography, Typography, Interactions, Linking,
-Motion, and Colors. Keep
-the order and only the sections that apply.
+Motion, and Colors. Keep the order and only the sections that apply.
 
 ````mdx
 export const metadata = {
@@ -23,10 +22,6 @@ export const metadata = {
 import { Guideline, Guidelines } from '@/components/Guideline'
 
 Two or three sentences that give the model and the one rule to remember.
-
-## Principles
-
-- One idea per bullet, three to five of them.
 
 ## Radius scale
 
@@ -48,12 +43,6 @@ One sentence on when to use it.
 ```tsx-live
 <Card className='rounded-xl'>Ochre Kite Weekender 2026</Card>
 ```
-
-## Radius patterns
-
-### Pattern name
-
-One sentence on the problem it solves, then its `tsx-live` example.
 
 ## Guidelines
 
@@ -121,8 +110,7 @@ For INNO-1159. Keep the URL and the content, except where it breaks a current
 rule.
 
 - `<section>` and `<h2 className='text-display-ui-3 …'>` become `##`
-  headings, and `<h3>` becomes `###`.
-- The intro paragraph becomes the lead, with no heading.
+  headings, `<h3>` becomes `###`, and the intro becomes the lead.
 - `<Code>` becomes backticks, and `&apos;` and `{' '}` go.
 - A hand-built `<table>` of token values becomes a docs component that renders
   the tokens. A table of guidance becomes a markdown table.
@@ -141,4 +129,3 @@ rule.
   instead.
 - Token renderers such as `DatavizSwatches` (`@/components/dataviz/`) and
   `ScaleGrid`, `IntentMatrix`, and `EmphasisGrid` (`@/components/tokens/`).
-- `PropsDefinitions` is for component pages, not foundations.

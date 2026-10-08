@@ -74,9 +74,8 @@ with its skeleton and the rules on top of these.
 - Values that live in `@oztix/roadie-core`, such as scales, swatches, and
   shadows, come from a small docs component that renders the tokens
   themselves, never a hand-typed table that drifts. Examples are
-  `dataviz/DatavizSwatches` and the grids in `tokens/FamilyVisuals`.
-- Put a new one in `docs/src/components/`, in a folder for its area like
-  `tokens/` and `dataviz/`.
+  `dataviz/DatavizSwatches` and the grids in `tokens/FamilyVisuals`. Put a
+  new one in a folder for its area in `docs/src/components/`.
 - Guidance a person writes, such as which tier to use where, is a markdown
   table.
 - A docs component with no children drops out of the markdown copy, so the
