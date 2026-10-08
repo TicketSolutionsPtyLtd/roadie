@@ -5,7 +5,7 @@ export const metadata = {
   category: 'Layout',
 }
 
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 A scroll container with a consistent custom scrollbar across platforms.
@@ -186,7 +186,7 @@ the bar's travel. Prefer the composition above.
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline
   title='Constrain the height'
@@ -257,7 +257,7 @@ the bar's travel. Prefer the composition above.
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 - **Scrollbars sit inset by default.** The bar is pinned to the root's edges,
   so the inset is what keeps its ends clear of a rounded corner. On a square,

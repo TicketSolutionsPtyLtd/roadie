@@ -5,7 +5,7 @@ export const metadata = {
   category: 'Collections'
 }
 
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 A table of records to search, filter, sort and page through.
@@ -1333,7 +1333,7 @@ render(
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title="Keep the search in the table's toolbar">
   <Guideline.Do
@@ -1516,7 +1516,7 @@ column.field('city', { pin: true })`}
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

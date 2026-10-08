@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A one-time code input with one slot per character.
 
@@ -170,7 +170,7 @@ render(<LoginCode />)
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Let the browser fill the code'>
   <Guideline.Do code={`<OTPField length={6} onValueComplete={verify} />`}>
@@ -190,7 +190,7 @@ render(<LoginCode />)
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A size-aware `<img>` that routes Oztix-CDN assets through the resize/transcode proxy.
 
@@ -281,7 +281,7 @@ A hero is above the fold, so it loads eagerly with `fetchpriority='high'`. A cac
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Pass width to optimise Oztix images'>
   <Guideline.Do code={`<Image src={oztixUrl} alt='…' width={600} />`}>
@@ -328,7 +328,7 @@ A hero is above the fold, so it loads eagerly with `fetchpriority='high'`. A cac
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

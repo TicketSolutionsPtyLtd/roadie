@@ -7,7 +7,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A scrolling column in an app frame, with a sticky header and footer and a place
 in the stack when panes share a screen.
@@ -569,7 +569,7 @@ render(<Loading />)
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Panes are siblings'>
   <Guideline.Do code={`<>\n  <Pane column='list'>…</Pane>\n  <Pane>…</Pane>\n</>`}>
@@ -603,7 +603,7 @@ render(<Loading />)
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 - A pane registers with its `Navigator` from wherever it renders, such as a
   route layout or your own component. With no `Pane` at all, Navigator warns in

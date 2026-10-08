@@ -5,7 +5,7 @@ export const metadata = {
   category: 'Collections'
 }
 
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 A grid of record cards to search, filter, sort and page through.
@@ -339,7 +339,7 @@ render(
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Offer a grid where people recognise records by sight'>
   <Guideline.Do
@@ -370,7 +370,7 @@ render(
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

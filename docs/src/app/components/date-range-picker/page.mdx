@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A button showing a date range, opening presets, typed dates and a calendar.
 
@@ -209,7 +209,7 @@ render(<Toolbar />)
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Keep relative ranges relative'>
   <Guideline.Do code={`saveView({ period: range })`}>
@@ -238,7 +238,7 @@ render(<Toolbar />)
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

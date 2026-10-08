@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A number input with buttons to step the value down and up.
 
@@ -295,7 +295,7 @@ The digits roll to each new value with [NumberFlow](https://number-flow.barvian.
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Use it for small counts'>
   <Guideline.Do code={`<NumberField min={0} max={10} />`}>
@@ -315,7 +315,7 @@ The digits roll to each new value with [NumberFlow](https://number-flow.barvian.
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 
