@@ -11,6 +11,7 @@ import type {
   MdxJsxFlowElement,
   MdxJsxTextElement
 } from 'mdast-util-mdx-jsx'
+import { toString } from 'mdast-util-to-string'
 import remarkGfm from 'remark-gfm'
 import remarkMdx from 'remark-mdx'
 import remarkParse from 'remark-parse'
@@ -52,7 +53,7 @@ export type MarkdownPage = {
 type JsxElement = MdxJsxFlowElement | MdxJsxTextElement
 type Node = Root | RootContent
 
-const LIVE_FENCE = /^(tsx|jsx)-live$/
+const LIVE_FENCE = /^(tsx|jsx)-live/
 
 const text = (value: string): PhrasingContent => ({ type: 'text', value })
 const strong = (value: string): PhrasingContent => ({
@@ -70,7 +71,20 @@ function attribute(node: JsxElement, name: string) {
     (a): a is MdxJsxAttribute => a.type === 'mdxJsxAttribute' && a.name === name
   )
   if (!attr || attr.value === null || attr.value === undefined) return undefined
-  return typeof attr.value === 'string' ? attr.value : attr.value.value
+  if (typeof attr.value === 'string') return attr.value
+  const [statement] = attr.value.data?.estree?.body ?? []
+  const expression =
+    statement?.type === 'ExpressionStatement' ? statement.expression : undefined
+  if (
+    expression?.type === 'TemplateLiteral' &&
+    !expression.expressions.length
+  ) {
+    return expression.quasis[0]?.value.cooked ?? attr.value.value
+  }
+  if (expression?.type === 'Literal' && typeof expression.value === 'string') {
+    return expression.value
+  }
+  return attr.value.value
 }
 
 function dedent(source: string) {
@@ -123,6 +137,7 @@ function apiReference(components: ManifestComponent[]): RootContent[] {
 
 function guideline(node: JsxElement, children: RootContent[]): RootContent[] {
   const title = attribute(node, 'title')
+  const description = attribute(node, 'description')
   const example = attribute(node, 'example')
   const code = attribute(node, 'code')
   const label =
@@ -133,6 +148,7 @@ function guideline(node: JsxElement, children: RootContent[]): RootContent[] {
         : title
   return [
     ...(label ? [paragraph(strong(label))] : []),
+    ...(description ? [paragraph(text(description))] : []),
     ...(example ? [tsx(dedent(example))] : []),
     ...(code ? [tsx(dedent(code))] : []),
     ...children
@@ -150,7 +166,7 @@ function transform(
       return []
     case 'code':
       return LIVE_FENCE.test(node.lang ?? '')
-        ? [{ ...node, lang: node.lang!.replace(/-live$/, ''), meta: null }]
+        ? [{ ...node, lang: node.lang!.replace(/-.*/, ''), meta: null }]
         : [node]
     case 'link':
       if (page.resolveLink && node.url.startsWith('/')) {
@@ -170,6 +186,9 @@ function transform(
       page.components = []
       return reference.flatMap((child) => transform(child, page))
     }
+    if (node.name === 'code') {
+      return [{ type: 'inlineCode', value: toString(children) }]
+    }
     if (node.name?.startsWith('Guideline')) {
       return guideline(node, children as RootContent[])
     }
@@ -186,7 +205,11 @@ export function pageToMarkdown(page: MarkdownPage): string {
     .use(remarkGfm)
     .use(remarkStringify, { bullet: '-', fences: true, rule: '-' })
   const tree = processor.parse(page.mdx)
-  const [body] = transform(tree, { components: [], ...page }) as [Root]
+  const state = { components: [], ...page }
+  const [body] = transform(tree, state) as [Root]
+  const trailingReference = apiReference(state.components).flatMap((child) =>
+    transform(child, state)
+  )
   const head: BlockContent[] = [
     { type: 'heading', depth: 1, children: [text(page.title)] },
     ...(page.description
@@ -200,7 +223,11 @@ export function pageToMarkdown(page: MarkdownPage): string {
   ]
   return processor.stringify({
     type: 'root',
-    children: [...head, ...body.children]
+    children: [
+      ...head,
+      ...body.children,
+      ...(trailingReference as RootContent[])
+    ]
   })
 }
 

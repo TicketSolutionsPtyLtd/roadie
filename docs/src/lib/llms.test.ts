@@ -36,6 +36,23 @@ describe('pageToMarkdown', () => {
     expect(md).toContain('## Default\n\n```tsx\n<Badge>New</Badge>\n```')
   })
 
+  it('keeps live examples with fence options as plain tsx fences', () => {
+    const md = page(
+      [
+        '```tsx-live-noinline-expand',
+        'render(<A />)',
+        '```',
+        '',
+        '```tsx-live-bleed-x',
+        '<B />',
+        '```'
+      ].join('\n')
+    )
+    expect(md).toBe(
+      '# Badge\n\n```tsx\nrender(<A />)\n```\n\n```tsx\n<B />\n```\n'
+    )
+  })
+
   it('keeps ordinary code fences, lists, and tables', () => {
     const mdx = [
       '```bash',
@@ -91,6 +108,50 @@ describe('pageToMarkdown', () => {
         'A sentence.\n'
       ].join('\n\n')
     )
+  })
+
+  it('writes a guideline’s template literal code as the code it evaluates to', () => {
+    const md = page(
+      [
+        "<Guideline title='Keep the view in the URL'>",
+        '  <Guideline.Do code={`router.replace(\\`?view=\\${id}\\`)`}>',
+        '    Replace, don’t push.',
+        '  </Guideline.Do>',
+        '</Guideline>'
+      ].join('\n')
+    )
+    expect(md).toContain('```tsx\nrouter.replace(`?view=${id}`)\n```')
+  })
+
+  it('keeps a guideline’s description under its title', () => {
+    const md = page(
+      [
+        '<Guideline',
+        "  title='Constrain the height'",
+        '  description="ScrollArea never sizes itself."',
+        '>',
+        '  <Guideline.Do>',
+        '    Set a max height.',
+        '  </Guideline.Do>',
+        '</Guideline>'
+      ].join('\n')
+    )
+    expect(md).toBe(
+      [
+        '# Badge',
+        '**Constrain the height**',
+        'ScrollArea never sizes itself.',
+        '**Do**',
+        'Set a max height.\n'
+      ].join('\n\n')
+    )
+  })
+
+  it('writes inline <code> elements as inline code', () => {
+    const md = page(
+      '<Guideline.Do>\n  Use <code>subtler</code> in toolbars.\n</Guideline.Do>'
+    )
+    expect(md).toContain('Use `subtler` in toolbars.')
   })
 
   it('rewrites root-relative links and leaves external ones', () => {
@@ -184,6 +245,24 @@ describe('pageToMarkdown', () => {
     expect(md.match(/## API reference/g)).toHaveLength(1)
     expect(md).toContain('### Checkbox\n')
     expect(md).toContain('### CheckboxGroup\n')
+  })
+
+  it('ends the page with the API reference when it places no PropsDefinitions', () => {
+    const md = pageToMarkdown({
+      title: 'Chart patterns',
+      mdx: 'Intro.',
+      components: [{ name: 'ChartPatterns', import: 'x/chart', props: [] }]
+    })
+    expect(md).toBe(
+      [
+        '# Chart patterns',
+        'Intro.',
+        '## API reference',
+        '### ChartPatterns',
+        "```tsx\nimport { ChartPatterns } from 'x/chart'\n```",
+        'No props beyond the standard HTML attributes.\n'
+      ].join('\n\n')
+    )
   })
 
   it('drops PropsDefinitions when the manifest has nothing for the page', () => {
