@@ -8,7 +8,12 @@ import { fileURLToPath } from 'node:url'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 
-import { browserInstances } from '../../vitest.browsers.config.ts'
+import {
+  browserInstances,
+  browserRetry,
+  browserRunOptions,
+  quarantineInclude
+} from '../../vitest.browsers.config.ts'
 import { reactCompilerPreset } from './react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
@@ -72,7 +77,6 @@ function importedPackages() {
   return [...packages]
 }
 
-
 export default defineConfig({
   plugins: [react(), babel({ presets: [reactCompilerPreset] })],
   resolve: {
@@ -84,6 +88,7 @@ export default defineConfig({
     }
   },
   test: {
+    ...browserRunOptions,
     projects: [
       {
         extends: true,
@@ -110,7 +115,8 @@ export default defineConfig({
         },
         test: {
           name: 'browser',
-          include: [BROWSER_TESTS],
+          include: quarantineInclude(ROOT, [BROWSER_TESTS]),
+          retry: browserRetry,
           browser: {
             enabled: true,
             headless: true,

@@ -84,7 +84,8 @@
     },
     "test:browser": {
       "dependsOn": ["^build"],
-      "env": ["ROADIE_BROWSERS"],
+      "env": ["ROADIE_BROWSERS", "ROADIE_QUARANTINE"],
+      "passThroughEnv": ["PLAYWRIGHT_*"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css}",
         "src/**/*.html",

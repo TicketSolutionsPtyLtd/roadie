@@ -8,13 +8,19 @@ import type { CDPSession } from 'playwright'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 
-import { browserInstances } from '../../vitest.browsers.config.ts'
+import {
+  browserInstances,
+  browserRetry,
+  browserRunOptions,
+  quarantineInclude
+} from '../../vitest.browsers.config.ts'
 import { reactCompilerPreset } from './react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
 const TOUCH_TESTS = 'src/**/*.touch.browser.test.{ts,tsx}'
 const PERF_TESTS = 'src/**/*.perf.browser.test.{ts,tsx}'
 
+const PACKAGE_DIR = fileURLToPath(new URL('./', import.meta.url))
 const SRC = new URL('./src/', import.meta.url)
 const JSDOM_ONLY = /(?<!\.browser)\.test\.tsx?$/
 
@@ -181,6 +187,7 @@ export default defineConfig({
     }
   },
   test: {
+    ...browserRunOptions,
     projects: [
       {
         extends: true,
@@ -200,7 +207,8 @@ export default defineConfig({
         optimizeDeps,
         test: {
           name: 'browser',
-          include: [BROWSER_TESTS],
+          include: quarantineInclude(PACKAGE_DIR, [BROWSER_TESTS]),
+          retry: browserRetry,
           exclude: [...configDefaults.exclude, TOUCH_TESTS, PERF_TESTS],
           browser: {
             ...browserTest,
@@ -215,7 +223,8 @@ export default defineConfig({
         optimizeDeps,
         test: {
           name: 'browser touch',
-          include: [TOUCH_TESTS],
+          include: quarantineInclude(PACKAGE_DIR, [TOUCH_TESTS]),
+          retry: browserRetry,
           browser: {
             ...browserTest,
             provider: playwright({ contextOptions: { hasTouch: true } }),

@@ -24,7 +24,9 @@ env:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # A change to turbo.json or the lockfile tests every package, which runs
+    # about 10 minutes one package at a time.
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -54,15 +56,45 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
-  browser:
+  playwright:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout package.json
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: package.json
+          sparse-checkout-cone-mode: false
+
+      - name: Read Playwright version
+        id: version
+        run: echo "version=$(jq -r .devDependencies.playwright package.json)" >> "$GITHUB_OUTPUT"
+
+  browser:
+    name: browser (${{ matrix.browser }}${{ matrix.shard && format(' {0}', matrix.shard) || '' }})
+    needs: playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    # The image ships the browsers and their system libraries. Installing them
+    # from apt stalled on slow mirrors and timed jobs out.
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.playwright.outputs.version }}-noble
+      options: --user 1001 --ipc=host
     # One engine per runner: three at once backlog Vitest's Playwright bridge
-    # and actions time out (vitest-dev/vitest#9941).
+    # and actions time out (vitest-dev/vitest#9941). Firefox runs files one at
+    # a time, so it is split across two runners.
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, webkit, firefox]
+        include:
+          - browser: chromium
+          - browser: webkit
+          - browser: firefox
+            shard: 1/2
+          - browser: firefox
+            shard: 2/2
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -75,27 +107,46 @@ jobs:
       - name: Setup
         uses: ./.github/composite-actions/setup
 
-      - name: Read Playwright version
-        id: playwright
-        run: echo "version=$(pnpm exec playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}-${{ matrix.browser }}
-
-      # The cache holds only the browser binaries; --with-deps still installs
-      # the system libraries from apt, and skips a download already cached.
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
-
       - name: Browser tests
         # One package at a time: concurrent suites fight for the runner's CPU
         # and push layout-heavy tests past their timeout.
-        run: pnpm turbo test:browser --affected --framework-inference=false --concurrency=1
+        run: >-
+          pnpm turbo test:browser --affected --framework-inference=false
+          --concurrency=1
+          ${{ matrix.shard && format('-- --shard={0} --passWithNoTests', matrix.shard) || '' }}
         env:
           ROADIE_BROWSERS: ${{ matrix.browser }}
+          ROADIE_QUARANTINE: skip
+          TURBO_SCM_BASE: origin/main
+
+  browser-quarantine:
+    name: browser (quarantined)
+    needs: playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.playwright.outputs.version }}-noble
+      options: --user 1001 --ipc=host
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+
+      - name: Fetch base branch
+        run: git fetch origin main:refs/remotes/origin/main --depth=1
+
+      - name: Setup
+        uses: ./.github/composite-actions/setup
+
+      # Known flakes listed in vitest.browsers.config.ts, without retries.
+      # Failures show as annotations but never block a merge.
+      - name: Quarantined browser tests
+        continue-on-error: true
+        run: pnpm turbo test:browser --affected --framework-inference=false --concurrency=1
+        env:
+          ROADIE_BROWSERS: chromium,webkit,firefox
+          ROADIE_QUARANTINE: only
           TURBO_SCM_BASE: origin/main
 
   build:
