@@ -73,7 +73,8 @@
     "test": {
       "dependsOn": ["^build"],
       "inputs": [
-        "src/**/*.{js,jsx,mjs,ts,tsx,mts}",
+        "src/**/*.{js,jsx,mjs,ts,tsx,mts,css}",
+        "src/**/*.html",
         "**/*.test.{js,jsx,ts,tsx}",
         "jest.config.*",
         "*.config.{js,mjs,cjs,ts}",
