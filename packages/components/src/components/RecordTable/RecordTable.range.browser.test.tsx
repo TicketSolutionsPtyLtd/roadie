@@ -695,10 +695,14 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     await framed(() => reported.length).toBe(1)
     // Moves on before the router echoes the first row back.
     scroller.scrollTop = 150 * ROW_HEIGHT
+    // Every position after the move, so a stale echo's brief jump shows even once a later echo restores it.
+    const tops: number[] = []
+    scroller.addEventListener('scroll', () => tops.push(scroller.scrollTop))
     await framed(() => reported.length).toBe(2)
     await framed(() => echoed.length).toBe(2)
     await nudgeFrames()
     expect(scroller.scrollTop).toBe(150 * ROW_HEIGHT)
+    expect(tops.filter((top) => top !== 150 * ROW_HEIGHT)).toEqual([])
     expect(reported).toHaveLength(2)
     expect(reported.at(-1)).toBe(firstVisible(container))
     screen.getByRole('button', { name: 'Go to row 3000' }).click()
