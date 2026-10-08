@@ -1,5 +1,6 @@
 import typescriptParser from '@typescript-eslint/parser'
 import { ESLint, RuleTester } from 'eslint'
+import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
 
@@ -83,6 +84,20 @@ const cases = {
       "cn({ 'rounded-tl-[4px]': open })"
     ]
   },
+  'no-mdx-layout-class': {
+    valid: [
+      { code: "<div className='grid gap-8' />", filename: 'page.mdx/0.tsx' },
+      { code: "<p className='text-display-ui-4' />", filename: 'page.mdx' }
+    ],
+    invalid: [
+      {
+        code: "<div className='grid gap-8' />",
+        filename: 'page.mdx',
+        errors: 2
+      },
+      { code: "<span className='md:max-w-56' />", filename: 'page.mdx' }
+    ]
+  },
   'no-import-meta-env': {
     valid: ["const dev = process.env.NODE_ENV !== 'production'"],
     invalid: ['const dev = import.meta.env.DEV']
@@ -142,7 +157,10 @@ const cases = {
 for (const [name, { valid, invalid }] of Object.entries(cases)) {
   tester.run(name, roadie.rules[name], {
     valid,
-    invalid: invalid.map((code) => ({ code, errors: 1 }))
+    invalid: invalid.map((code) => ({
+      errors: 1,
+      ...(typeof code === 'string' ? { code } : code)
+    }))
   })
 }
 
@@ -225,5 +243,71 @@ describe('import boundaries in eslint.config.js', () => {
     ]
   ])('allows %s in %s', async (code, filePath) => {
     expect(await ruleHits(code, filePath)).toEqual([])
+  })
+})
+
+describe('no-mdx-layout-class in docs/eslint.config.js', () => {
+  const docs = new URL('../docs/', import.meta.url)
+  const { createRemarkProcessor } = createRequire(docs)('eslint-plugin-mdx')
+  const eslint = new ESLint({
+    cwd: fileURLToPath(docs),
+    // eslint-plugin-mdx's flat processor drops mdx/code-blocks, so docs lint
+    // skips fences today. Lint them here, so a rule that reaches them fails.
+    overrideConfig: {
+      files: ['**/*.mdx'],
+      processor: createRemarkProcessor({
+        lintCodeBlocks: true,
+        languageMapper: { 'tsx-live': 'tsx', 'tsx-live-prose': 'tsx' }
+      })
+    }
+  })
+
+  beforeAll(
+    () => eslint.lintText('', { filePath: 'src/app/sample/page.mdx' }),
+    60_000
+  )
+
+  const lint = async (body) => {
+    const [result] = await eslint.lintText(
+      `import { Guideline } from '@/components/Guideline'\n\n${body}\n`,
+      { filePath: 'src/app/sample/page.mdx' }
+    )
+    return result.messages
+  }
+
+  const layoutHits = async (body) =>
+    (await lint(body)).filter(
+      (message) => message.ruleId === 'roadie/no-mdx-layout-class'
+    )
+
+  const fence = (lang) =>
+    `\`\`\`${lang}\n<div className='grid gap-4'>\n  <Button>Buy tickets</Button>\n</div>\n\`\`\``
+
+  it.each(['tsx-live', 'tsx-live-prose'])('lints %s fences', async (lang) => {
+    const ruleIds = (await lint(fence(lang))).map((message) => message.ruleId)
+    expect(ruleIds).toContain('react/jsx-no-undef')
+  })
+
+  it.each([
+    "<p className='text-display-ui-6 text-subtle'>Doors open at 7pm</p>",
+    fence('tsx-live'),
+    fence('tsx-live-prose'),
+    "<Guideline.Do code={`<div className='grid gap-4'>…</div>`}>\n  Stack the tiers.\n</Guideline.Do>",
+    '<Guideline title="Show the price">\n  Show the total.\n</Guideline>'
+  ])('allows %s', async (body) => {
+    expect(await layoutHits(body)).toEqual([])
+  })
+
+  it.each([
+    ["<div className='grid gap-8'>\n\nText\n\n</div>", ['grid', 'gap-8']],
+    [
+      "<Guideline.Do example={<span className='w-56'>Ochre Kite</span>}>\n  Keep it short.\n</Guideline.Do>",
+      ['w-56']
+    ]
+  ])('flags %s', async (body, tokens) => {
+    const hits = await layoutHits(body)
+    expect(hits.map((hit) => hit.message.match(/not (\S+)\./)[1])).toEqual(
+      tokens
+    )
   })
 })

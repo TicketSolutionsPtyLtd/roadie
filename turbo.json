@@ -6,7 +6,8 @@
     "pnpm-lock.yaml",
     ".nvmrc",
     "eslint.config.js",
-    "eslint/**"
+    "eslint/**",
+    "docs/eslint.config.js"
   ],
   "tasks": {
     "prepare": {
@@ -59,7 +60,7 @@
     "lint": {
       "dependsOn": ["^build"],
       "inputs": [
-        "src/**/*.{js,jsx,ts,tsx}",
+        "src/**/*.{js,jsx,ts,tsx,mdx}",
         "eslint.config.js",
         "$TURBO_ROOT$/eslint.config.js",
         "package.json"
@@ -69,7 +70,7 @@
     "lint:fix": {
       "dependsOn": ["^build"],
       "inputs": [
-        "src/**/*.{js,jsx,ts,tsx}",
+        "src/**/*.{js,jsx,ts,tsx,mdx}",
         "eslint.config.js",
         "$TURBO_ROOT$/eslint.config.js",
         "package.json"

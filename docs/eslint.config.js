@@ -3,6 +3,8 @@ import { flatCodeBlocks, flat as mdxFlat } from 'eslint-plugin-mdx'
 import reactHooks from 'eslint-plugin-react-hooks'
 import { createRequire } from 'module'
 
+import roadie from '../eslint/roadie-plugin.js'
+
 const require = createRequire(import.meta.url)
 const nextConfig = require('eslint-config-next/core-web-vitals')
 
@@ -25,13 +27,15 @@ const config = [
   mdxFlat,
   flatCodeBlocks,
 
-  // MDX settings and rules
+  // MDX settings and rules. **/*.mdx skips fences, which lint as page.mdx/0.tsx.
   {
     files: ['**/*.mdx'],
+    plugins: { roadie },
     settings: {
       'mdx/code-blocks': true
     },
     rules: {
+      'roadie/no-mdx-layout-class': 'error',
       // MDX files import components that are used in the content
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'off'

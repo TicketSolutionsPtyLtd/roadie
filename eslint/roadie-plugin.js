@@ -7,6 +7,9 @@ const ICON_WEIGHTS = new Set(['bold', 'fill', 'duotone'])
 const CLASS_ATTRIBUTE = /^className$|ClassName$/
 const CLASS_FUNCTIONS = new Set(['cn', 'clsx', 'cva', 'cx', 'twMerge'])
 
+const LAYOUT_CLASS =
+  /(^|:|!)-?(grid|flex|inline-flex|inline-grid|block|inline-block|hidden|absolute|relative|fixed|sticky|(gap|space|[mp][trblxyse]?|w|h|min|max-[wh]|grid-(cols|rows|flow)|col|row|flex|items|justify|place|self|inset|top|right|bottom|left|start|end)-.+)$/
+
 function selectorRule(description, selector, message) {
   return {
     meta: { type: 'problem', docs: { description }, schema: [] },
@@ -64,6 +67,16 @@ function classRule(description, pattern, message) {
         }
       }
     }
+  }
+}
+
+// flatCodeBlocks lints fences as virtual files named page.mdx/0.tsx, and
+// those are copyable consumer code, not page layout.
+function mdxContentRule(rule) {
+  return {
+    ...rule,
+    create: (context) =>
+      context.filename.endsWith('.mdx') ? rule.create(context) : {}
   }
 }
 
@@ -221,6 +234,13 @@ const rules = {
     'No arbitrary radius classes.',
     /(^|:|!)rounded(-[a-z]{1,2})?-\[(?!inherit\])/,
     `Replace {{token}} with a named radius tier. See ${DOCS}/foundations/shape.`
+  ),
+  'no-mdx-layout-class': mdxContentRule(
+    classRule(
+      'No className layout in docs MDX.',
+      LAYOUT_CLASS,
+      'Lay out MDX with the docs components (Guidelines, Guideline width, Guideline.Row), not {{token}}. See docs/contributing/DOCS_PAGES.md.'
+    )
   ),
   'no-import-meta-env': selectorRule(
     'Dev-only checks read process.env.NODE_ENV.',
