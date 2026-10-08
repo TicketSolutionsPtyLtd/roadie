@@ -1,6 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-import { THRESHOLD, countChangedLines, formatReport } from './check-pr-size.mjs'
+import {
+  THRESHOLD,
+  countChangedLines,
+  formatReport,
+  parseArgs,
+  readNumstat
+} from './pr-size.mjs'
 
 describe('countChangedLines', () => {
   it('sums added and deleted lines across files', () => {
@@ -18,6 +24,7 @@ describe('countChangedLines', () => {
   it('leaves out lock files, snapshots, generated CSS, changesets, and changelogs', () => {
     const numstat = [
       '900\t800\tpnpm-lock.yaml',
+      '10\t0\tskills-lock.json',
       '120\t0\tpackages/charts/src/BarChart/__snapshots__/scan-rate-dark.svg',
       '40\t40\tpackages/components/src/Foo/Foo.test.tsx.snap',
       '300\t300\tpackages/core/src/css/dataviz.css',
@@ -27,7 +34,7 @@ describe('countChangedLines', () => {
     ].join('\n')
     expect(countChangedLines(numstat)).toEqual({
       total: 9,
-      excludedLines: 2517,
+      excludedLines: 2527,
       files: 1
     })
   })
@@ -52,13 +59,40 @@ describe('countChangedLines', () => {
     const numstat = [
       '0\t0\tpackages/core/src/{old.ts => new.ts}',
       '6\t6\tpackages/charts/{src => old}/__snapshots__/a.svg',
-      '1\t1\tsnapshots.md => pnpm-lock.yaml'
+      '1\t1\tsnapshots.md => pnpm-lock.yaml',
+      '2\t2\tpackages/core/src/css/{palette.css => dataviz.css}',
+      '3\t3\tpackages/core/src/css/{generated => }/dataviz.css'
     ].join('\n')
     expect(countChangedLines(numstat)).toEqual({
       total: 0,
-      excludedLines: 14,
+      excludedLines: 24,
       files: 1
     })
+  })
+})
+
+describe('parseArgs', () => {
+  it.each([
+    [[], { base: 'origin/main', strict: false }],
+    [['--base'], { base: 'origin/main', strict: false }],
+    [
+      ['--base', 'origin/next', '--strict'],
+      { base: 'origin/next', strict: true }
+    ]
+  ])('reads %j', (argv, expected) => {
+    expect(parseArgs(argv)).toEqual(expected)
+  })
+})
+
+describe('readNumstat', () => {
+  it('skips in one line when the base is missing', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    expect(readNumstat('origin/no-such-branch')).toBeNull()
+    expect(warn).toHaveBeenCalledOnce()
+    expect(warn.mock.calls[0][0]).toMatch(
+      /^PR size check skipped, no diff against origin\/no-such-branch: [^\n]+$/
+    )
+    warn.mockRestore()
   })
 })
 
