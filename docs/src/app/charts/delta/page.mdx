@@ -65,7 +65,7 @@ import { Delta } from '@oztix/roadie-components/delta'
 
 ## Guidelines
 
-- Use `Delta` beside a value, in a table cell, or in a sentence. In a tile, pass `delta` to [StatTile](/charts/stat-tile) instead, which renders one for you.
+- Use `Delta` beside a value or in a sentence. In a tile, pass `delta` to [StatTile](/charts/stat-tile) or [DataCard](/charts/data-card), and in a [DataTable](/charts/data-table), give the column `kind: 'delta'`. Both render one for you.
 - `value` is the change itself, and the arrow shows its sign. Pass `baseline` when the number to show is a level, such as a pace index of 112 against 100.
 - Set `goodWhen='down'` for numbers where falling is good, such as refunds, and `goodWhen='neither'` when a change has no better direction. Neither colours it grey.
 - Say what the change compares against in `context` or nearby text. The delta stays short.
@@ -74,6 +74,6 @@ import { Delta } from '@oztix/roadie-components/delta'
 
 - The change reads as a sentence, such as "up 214, better", so colour is never the only cue. `context` is added to the end, such as "down 4%, worse, on last week".
 - The arrow and the shown text are hidden from screen readers, because the sentence already says them.
-- A missing or non-finite value reads as "Not available" rather than a number.
+- A non-finite value, such as `NaN`, shows and reads as "Not available" rather than a number.
 
 <PropsDefinitions componentPath='packages/components/src/components/Delta/index.tsx' />
