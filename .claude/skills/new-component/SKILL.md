@@ -126,7 +126,7 @@ pnpm --filter docs build                       # prerenders the RSC canary; fail
 pnpm --filter docs dev                         # visual check at /components/{name} and the /components tile
 ```
 
-Then follow `docs/contributing/PR_WORKFLOW.md` from section 3: changeset, size budget, reviews and a draft PR.
+Then follow `docs/contributing/PR_WORKFLOW.md` from section 2: changeset, size budget, conventions, reviews and a draft PR.
 
 If `pnpm typecheck` errors on something you didn't touch:
 
