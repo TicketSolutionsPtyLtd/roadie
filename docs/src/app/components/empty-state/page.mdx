@@ -9,7 +9,7 @@ export const metadata = {
 import { Button, EmptyState } from '@oztix/roadie-components'
 import { MagnifyingGlassIcon, TicketIcon } from '@phosphor-icons/react/ssr'
 
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 Communicates that a section or page has no content. A single `size` token
@@ -186,7 +186,7 @@ Title and description only.
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Match the size to its context'>
   <Guideline.Do
@@ -289,7 +289,7 @@ Title and description only.
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

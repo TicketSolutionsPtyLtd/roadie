@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A track with a thumb to drag for a number or a range.
 
@@ -227,7 +227,7 @@ render(<PriceFilter />)
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Slider for a rough value, a field for an exact one'>
   <Guideline.Do code={`<Slider label='Price' defaultValue={[40, 150]} max={250} />`}>
@@ -256,7 +256,7 @@ render(<PriceFilter />)
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

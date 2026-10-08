@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A surface that slides in from an edge and swipes away, built on Base UI's drawer primitive.
 
@@ -295,7 +295,7 @@ The collapsed `Drawer.Content` covers the common case. Compose the parts directl
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Name every drawer'>
   <Guideline.Do code={`<Drawer.Header>\n  <Drawer.Title>Organisations</Drawer.Title>\n  <Drawer.Description>Switch the organisation you're working in.</Drawer.Description>\n</Drawer.Header>`}>
@@ -398,7 +398,7 @@ The collapsed `Drawer.Content` covers the common case. Compose the parts directl
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

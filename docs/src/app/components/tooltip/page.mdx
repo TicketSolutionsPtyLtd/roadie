@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A short label that appears beside a control on hover or keyboard focus, built on Base UI's tooltip primitive.
 
@@ -118,7 +118,7 @@ Wrap related controls in `Tooltip.Provider`. The first tooltip waits for the del
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Keep a tooltip to a label'>
   <Guideline.Do code={`<Tooltip.Trigger render={<IconButton aria-label='Edit'>…</IconButton>} />`}>
@@ -134,11 +134,11 @@ Wrap related controls in `Tooltip.Provider`. The first tooltip waits for the del
     Keep it to a few words. A tooltip names or briefly clarifies. Sentence case, no full stop.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't rely on it on touch screens. Touch has no hover, so a tap won't show it. Where a tooltip must never appear on touch, add <code>className='pointer-coarse:hidden'</code> to <code>Tooltip.Content</code>.
+    Don't rely on it on touch screens. Touch has no hover, so a tap won't show it. Where a tooltip must never appear on touch, add `className='pointer-coarse:hidden'` to `Tooltip.Content`.
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

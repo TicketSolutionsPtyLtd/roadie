@@ -7,7 +7,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A full-height app frame with one set of destinations, drawn as a vertical
 navigation on large screens and a floating tab bar on phones.
@@ -891,7 +891,7 @@ turn and the phone pull-back.
 - The top pane's `tabBar` decides what the phone tab bar does while that pane
   is on top. See [`Pane`](/components/pane).
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Menus'>
   <Guideline.Do code={`<Navigator.Item value='account' icon={<UserIcon />} placement='pinned'>\n  Account\n  <Navigator.Menu>\n    <Navigator.MenuItem href='/profile'>Profile</Navigator.MenuItem>\n    <Navigator.MenuItem onSelect={signOut}>Sign out</Navigator.MenuItem>\n  </Navigator.Menu>\n</Navigator.Item>`}>
@@ -914,7 +914,7 @@ turn and the phone pull-back.
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

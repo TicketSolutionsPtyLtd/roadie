@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A typed date field with a calendar to choose from, and a time when needed.
 
@@ -164,7 +164,7 @@ Wrap it in [Field](/components/field). The label points at the date input, and `
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Use DateRangePicker for a range'>
   <Guideline.Do>
@@ -193,7 +193,7 @@ Wrap it in [Field](/components/field). The label points at the date input, and `
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

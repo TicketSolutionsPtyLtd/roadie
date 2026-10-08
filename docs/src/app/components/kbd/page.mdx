@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A keyboard key or shortcut, drawn as a keycap.
 
@@ -155,7 +155,7 @@ In instructions, the keys are the content. `announce` reads each key aloud by it
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Hint where people use a keyboard'>
   <Guideline.Do code={`<Kbd keys={['mod', 'k']} />`}>
@@ -202,7 +202,7 @@ In instructions, the keys are the content. `announce` reads each key aloud by it
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

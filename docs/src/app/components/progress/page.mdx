@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A bar that shows how far a task has got while it runs.
 
@@ -197,7 +197,7 @@ Compose the parts for a custom layout. `Progress.Value` shows the root's `valueT
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Use it for a task, not a measure'>
   <Guideline.Do code={`<Progress value={120} max={400} label='Importing attendees' valueText='120 of 400' />`}>
@@ -235,7 +235,7 @@ Compose the parts for a custom layout. `Progress.Value` shows the root's `valueT
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

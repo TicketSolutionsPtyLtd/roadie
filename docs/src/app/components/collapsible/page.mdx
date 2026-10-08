@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A single panel that a trigger shows and hides.
 
@@ -186,7 +186,7 @@ Put `Collapsible.Text` inside a `Collapsible` to clamp a paragraph to a few line
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Collapsible or Accordion'>
   <Guideline.Do code={`<Collapsible>\n  <Collapsible.Trigger>Show all 12 ticket types</Collapsible.Trigger>\n  <Collapsible.Panel>…</Collapsible.Panel>\n</Collapsible>`}>
@@ -215,7 +215,7 @@ Put `Collapsible.Text` inside a `Collapsible` to clamp a paragraph to a few line
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

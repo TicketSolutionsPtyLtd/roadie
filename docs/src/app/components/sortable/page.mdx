@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A drag-to-reorder wrapper for lists and rows, with a Move menu on each handle
 for keyboard and screen reader users.
@@ -197,7 +197,7 @@ render(<ColumnSettings />)
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Wrap the list, keyed by value'>
   <Guideline.Do code={`<Sortable items={order} onReorder={setOrder} label='columns'>\n  <List>\n    {order.map((value) => (\n      <List.Item key={value} value={value} title={names[value]} />\n    ))}\n  </List>\n</Sortable>`}>
@@ -226,7 +226,7 @@ render(<ColumnSettings />)
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

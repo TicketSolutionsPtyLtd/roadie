@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A text field that reads a typed date, such as "14 mar" or "next fri", and suggests dates as you type.
 
@@ -152,7 +152,7 @@ Words like "today" and "next fri" are read on the calendar of `timeZone`, the vi
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Say what can be typed'>
   <Guideline.Do code={`<Field.HelperText>\n  Type a date or a day, like 14 Mar or next Fri\n</Field.HelperText>`}>
@@ -172,7 +172,7 @@ Words like "today" and "next fri" are read on the calendar of `timeZone`, the vi
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

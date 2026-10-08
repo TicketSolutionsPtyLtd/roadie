@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A text field that reads a typed time, such as "7:30pm" or "19:30".
 
@@ -118,7 +118,7 @@ Wrap it in [Field](/components/field) for the label and helper text. It takes `i
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Keep the time with its date and zone'>
   <Guideline.Do code={`<DatePicker granularity='minute' timeZone={venue.timeZone} />`}>
@@ -129,7 +129,7 @@ Wrap it in [Field](/components/field) for the label and helper text. It takes `i
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

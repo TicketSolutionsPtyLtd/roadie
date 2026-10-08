@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A brief message that confirms an action or reports its result, then gets out of the way.
 
@@ -325,7 +325,7 @@ function Toasts() {
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Only for news that is safe to miss'>
   <Guideline.Do>
@@ -363,7 +363,7 @@ function Toasts() {
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

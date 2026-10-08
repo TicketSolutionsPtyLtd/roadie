@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A month or week grid for choosing a date, several dates or a range.
 
@@ -258,7 +258,7 @@ render(<Sessions />)
 
 - **It fills its container.** The seven columns share the width, each day stays a circle up to 48px across, or a tile up to 64px with `getDayContent`, in the middle of its column, and a range's band runs from edge to edge. In a popover, it takes 280px a month. Set the width on the container, not the calendar.
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Pass plain dates'>
   <Guideline.Do code={`<Calendar selected='2026-11-27' />`}>
@@ -296,7 +296,7 @@ render(<Sessions />)
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

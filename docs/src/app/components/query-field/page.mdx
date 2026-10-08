@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A search field that turns what you type into filter chips.
 
@@ -409,7 +409,7 @@ function QueryFieldShortcut() {
 
 ## Guidelines
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Order suggestions by what Enter does'>
   <Guideline.Do>
@@ -442,7 +442,7 @@ function QueryFieldShortcut() {
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 

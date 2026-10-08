@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A dropdown for choosing from a list of options.
 
@@ -288,7 +288,7 @@ picks from a closed set. They don't need to search or type a custom value.
 
 ### Choosing an emphasis
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Save subtler for in-context controls'>
   <Guideline.Do code={`<Select.Trigger emphasis='subtler' size='sm' />`}>
@@ -299,7 +299,7 @@ picks from a closed set. They don't need to search or type a custom value.
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ### When to use Combobox instead
 

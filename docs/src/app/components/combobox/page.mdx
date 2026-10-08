@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline } from '@/components/Guideline'
+import { Guideline, Guidelines } from '@/components/Guideline'
 
 A searchable dropdown for filtering and selecting from a list of options.
 
@@ -438,7 +438,7 @@ For server-side search, update the `items` prop as results arrive, and pass
 
 ### Chips
 
-<div className='grid gap-8'>
+<Guidelines>
 
 <Guideline title='Name every chip and its remove button'>
   <Guideline.Do code={`<Combobox.Chip aria-label={genre}>
@@ -464,7 +464,7 @@ For server-side search, update the `items` prop as results arrive, and pass
   </Guideline.Dont>
 </Guideline>
 
-</div>
+</Guidelines>
 
 ## Accessibility
 
