@@ -54,10 +54,11 @@ and a rule can have several conditions, so break each one.
 
 Iterate on the file you're writing, through the repo's load-gated runner,
 never `vitest` or the whole suite directly. In Roadie that's
-`pnpm test:gated <package> <file>`, with a package or repo path to a file or
-folder; a missing path exits 2, and one no test covers exits 1. It waits for
-load and runs Chromium only. A repo without a runner follows its own load
-rule and runs `vitest run <file>`. Before pushing, follow the host workflow
+`pnpm test:gated <package> <file>`, where `<package>` is the folder name (such
+as `components`, not the npm name) and the path, relative to the package or
+the repo, is a file or folder; a missing path exits 2, and one no test covers
+exits 1. It waits for load and runs Chromium only. A repo without a runner
+follows its own load rule and runs `vitest run <file>`. Before pushing, follow the host workflow
 (in Roadie, touched browser files once with `--all-browsers`), and let the
 hooks and CI run the rest.
 

@@ -55,12 +55,14 @@ again. Never `git stash`; the stash is shared by every worktree.
 
 ## 4. Keep the machine cool
 
-Check `uptime` before every install, build, test run, preview, and push (pushes
-run the hooks), and wait while the 1-minute load is over the host's limit
-(Roadie: PR workflow section 5). Run tests through the host's gated runner,
-never `vitest` or the whole suite directly. In Roadie, `pnpm test:gated <package>
-<file>` while iterating (`<package>` is the folder, such as `components`), then
-the touched browser files once with `--all-browsers` before handing off.
+Check `uptime` before every install, build, test run, and preview, and wait
+while the 1-minute load is over the host's limit (Roadie: PR workflow section
+5). Roadie's pre-push hook waits for load itself; elsewhere check before every
+push too. Run tests through the host's gated runner, never `vitest` or the
+whole suite directly. In Roadie, `pnpm test:gated <package> <file or folder>`
+while iterating (`<package>` is the folder name, such as `components`, not the
+npm name; a path no test covers exits 1), then the touched browser files once
+with `--all-browsers` before handing off.
 
 ## 5. Wire what's new
 

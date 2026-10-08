@@ -88,8 +88,11 @@ would cause harm, and broken links.
   fails without it.
 
 Mutation-check every place a new prop or branch acts, not just one: break it
-and run the tests. If they still pass, that place is untested. A gap that
-existed before the diff gets a follow-up ticket, not a fix in this PR.
+and run the tests. If they still pass, that place is untested. A test that
+passes under every mutation you try is a cannot-fail finding: find why (such
+as an interaction started during a settle that's always ignored), then fix or
+delete it. A gap that existed before the diff gets a follow-up ticket, not a
+fix in this PR.
 
 ## 3. Act
 
