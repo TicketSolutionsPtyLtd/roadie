@@ -67,17 +67,17 @@ merged, because the squash commit carries it into `git log`.
 
 ## 3. Create or update
 
-Run the privacy check on the body file before posting it, and on any comment
-or commit message. Roadie is public, so nothing below may appear (PR
-workflow section 7).
+Before posting the body, a comment, or a commit message, run this privacy
+check on its file. Roadie's PR workflow section 7 lists what a public repo
+keeps out.
 
 ```bash
 grep -nEi 'ts\.net|tailnet|tailscale|\b(10|127)\.[0-9]+\.[0-9]+\.[0-9]+|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|\b100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.|localhost:|/Users/|/home/|/private/|/tmp/|gh[opsu]_|github_pat_|token=|gist\.github' <file>
 ```
 
-Any hit is fixed before posting, then the body is read once more for
-internal-only Oztix data and real customer, venue, or person names, which no
-grep finds. A hit that names a pattern rather than a real value can stay.
+Fix every hit that is a real value; one that only names a pattern can stay.
+No grep finds internal-only Oztix data or real names, so read the file once
+more for those.
 
 - New PR: open it as the host workflow says, usually as a draft with the
   ticket key in the title (`gh pr create --draft --body-file <file>`). Don't

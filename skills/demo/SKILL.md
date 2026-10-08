@@ -41,9 +41,7 @@ over the host's limit (in Roadie, PR workflow section 5). Then, from the worktre
   the framework blocks unknown hosts, and build the URL from
   `tailscale status --json` (`Self.DNSName`).
 - With no Tailscale, send the LAN URL and say the link only works on the same
-  network. Preview URLs go to the approver in the session only, never into a
-  PR, comment, commit, or doc (Roadie: PR workflow section 7; the check is
-  in `/roadie:pr`).
+  network. Preview links stay in the session (Roadie: PR workflow section 7).
 
 Wait for the ready line (Roadie's starts `Preview ready` and names the pid),
 check its URL's port is in your range (stop and restart if not), then open the changed page once with `curl -sf` to
@@ -102,12 +100,12 @@ run it again per section if one screen doesn't show the change, with a
 separate output folder each time so the files don't overwrite each other.
 
 Without Playwright, use a browser tool your session has (Chrome DevTools or
-Playwright MCP: resize, emulate the colour scheme, screenshot). With none, post
-the link and ask the user for the screenshots.
+Playwright MCP: resize, emulate the colour scheme, screenshot). With none, send
+the link in the session and ask the user for the screenshots.
 
 Look at every shot before posting. A blank page, an error overlay, or a wrong
-theme means fix and retake, not post. So does an address bar, a local URL, or
-real customer, venue, or person data in the frame.
+theme means fix and retake, not post. So does anything the host's privacy rule
+keeps out of a public screenshot (Roadie: PR workflow section 7).
 
 ## 4. Post and wait
 
@@ -120,16 +118,14 @@ real customer, venue, or person data in the frame.
   section 1) lets you push before the OK only on its terms. Push as a draft
   and mark the body "awaiting demo approval", and don't mark it ready until
   the OK.
-- Once the PR exists, put the shots (never the preview link) under Evidence,
-  at phone and desktop widths, light and dark (`/roadie:pr` writes the body).
-  `gh` can't upload images, so push them to an orphan
-  `<prefix>/<topic>-screenshots` branch holding only the images (with
-  `--no-verify`, the one sanctioned skip, as the hooks can't run there) and
-  embed `https://github.com/<owner>/<repo>/blob/<branch>/<file>.png?raw=true`
-  (Roadie: PR workflow section 7). Run the privacy check first; shots it
-  fails stay local, so give the paths and ask the user to drag them in. No
-  gists or artifacts, and no screenshots on the PR branch. If the preview is stopped before the OK, say so and give the
-  command that restarts it.
+- Once the PR exists, put the shots under Evidence as the host workflow says
+  (Roadie: PR workflow section 7); `/roadie:pr` writes the body. `gh` can't
+  upload images, so commit them alone to an orphan
+  `<prefix>/<topic>-screenshots` branch, push it with `--no-verify` (the hooks
+  can't run on an images-only branch), and embed each one with
+  `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`. If the
+  preview is stopped before the OK, say so and give the command that restarts
+  it.
 
 ## 5. Stop
 
