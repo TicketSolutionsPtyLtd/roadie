@@ -287,6 +287,91 @@ describe('DateRangePicker', () => {
         within(dialog).getByRole('combobox', { name: 'Start' })
       ).toHaveFocus()
     })
+
+    it('turns a preset into its fixed dates with custom range', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          commit='apply'
+          defaultValue='yesterday'
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      const custom = within(dialog).getByRole('button', {
+        name: 'Custom range'
+      })
+      await userEvent.click(custom)
+      expect(custom).toHaveAttribute('aria-pressed', 'true')
+      expect(
+        within(dialog).getByRole('button', { name: 'Yesterday' })
+      ).toHaveAttribute('aria-pressed', 'false')
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Apply' })
+      )
+      expect(onValueChange).toHaveBeenCalledWith({
+        start: '2026-10-06',
+        end: '2026-10-06'
+      })
+    })
+
+    it('keeps custom range chosen over a fixed preset with the same dates', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          presets={FIXED_PRESETS}
+          defaultValue={{ start: '2026-09-06', end: '2026-10-05' }}
+        />
+      )
+      const dialog = await open()
+      const custom = within(dialog).getByRole('button', {
+        name: 'Custom range'
+      })
+      await userEvent.click(custom)
+      expect(custom).toHaveAttribute('aria-pressed', 'true')
+      expect(
+        within(dialog).getByRole('button', { name: 'Last 30 days' })
+      ).toHaveAttribute('aria-pressed', 'false')
+    })
+
+    it('starts the financial year in the month given', () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          fiscalYearStart={1}
+          defaultValue={{ period: 'year', offset: 0, fiscal: true }}
+        />
+      )
+      expect(trigger()).toHaveAccessibleName(
+        'Choose dates, Period (This financial year, 1 Jan to 31 Dec 2026)'
+      )
+    })
+
+    it('shows its dates in the words of its locale', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          locale='de'
+          defaultValue={{ start: '2026-12-03', end: '2026-12-05' }}
+        />
+      )
+      expect(trigger()).toHaveAccessibleName(
+        'Choose dates, Period (3 to 5 Dez 2026)'
+      )
+      const dialog = await open()
+      expect(
+        within(dialog).getByRole('combobox', { name: 'Start' })
+      ).toHaveValue('3 Dez 2026')
+      expect(within(dialog).getAllByRole('columnheader')[0]).toHaveAttribute(
+        'aria-label',
+        'Montag'
+      )
+    })
   })
 
   describe('calendar', () => {
@@ -333,6 +418,25 @@ describe('DateRangePicker', () => {
       )
       expect(trigger()).toHaveTextContent('12 to 16 Oct 2026')
     })
+  })
+
+  it('goes no later than the month given', async () => {
+    render(
+      <DateRangePicker
+        aria-label='Period'
+        today={TODAY}
+        presets={[]}
+        numberOfMonths={1}
+        endMonth='2026-10-31'
+      />
+    )
+    const dialog = await open()
+    expect(
+      within(dialog).getByRole('button', { name: 'Next month' })
+    ).toBeDisabled()
+    expect(
+      within(dialog).getByRole('button', { name: 'Previous month' })
+    ).toBeEnabled()
   })
 
   describe('typed dates', () => {
@@ -593,6 +697,58 @@ describe('DateRangePicker', () => {
       expect(
         within(dialog).getByRole('textbox', { name: 'Start time' })
       ).toHaveValue('6:00am')
+    })
+
+    it('shows times on a 24-hour clock', async () => {
+      render(
+        <DateRangePicker
+          aria-label='Presale'
+          granularity='minute'
+          timeZone='Australia/Sydney'
+          today={TODAY}
+          presets={[]}
+          hourCycle={24}
+          defaultValue={{
+            start: '2026-11-02T19:00:00+11:00',
+            end: '2026-11-04T22:30:00+11:00'
+          }}
+        />
+      )
+      const dialog = await open()
+      expect(
+        within(dialog).getByRole('textbox', { name: 'Start time' })
+      ).toHaveValue('19:00')
+      expect(
+        within(dialog).getByRole('textbox', { name: 'End time' })
+      ).toHaveValue('22:30')
+    })
+
+    it('steps a time by the minutes given', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Presale'
+          granularity='minute'
+          timeZone='Australia/Sydney'
+          today={TODAY}
+          presets={[]}
+          minuteStep={15}
+          defaultValue={{
+            start: '2026-11-02T19:00:00+11:00',
+            end: '2026-11-04'
+          }}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      await userEvent.type(
+        within(dialog).getByRole('textbox', { name: 'Start time' }),
+        '{ArrowUp}'
+      )
+      expect(onValueChange).toHaveBeenLastCalledWith({
+        start: '2026-11-02T19:15:00+11:00',
+        end: '2026-11-04'
+      })
     })
   })
 

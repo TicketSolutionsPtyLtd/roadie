@@ -3,7 +3,7 @@ import { StrictMode, useState } from 'react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { DashboardPeriod, type DashboardPeriodValue } from '.'
 import { onPhone } from '../../pickers/testUtils'
@@ -814,5 +814,64 @@ describe('DashboardPeriod compare options', () => {
     expect(choiceNames(dialog)).toEqual(['Previous period'])
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('"Benchmark"'))
     warn.mockRestore()
+  })
+})
+
+describe('DashboardPeriod’s calendar', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it.each([
+    [
+      'Australia/Melbourne',
+      'This month, 1 to 31 Oct 2026, vs 1 to 30 Sept 2026'
+    ],
+    [
+      'America/Los_Angeles',
+      'This month, 1 to 30 Sept 2026, vs 1 to 31 Aug 2026'
+    ]
+  ])('reads today on the calendar of %s', (timeZone, period) => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    // 12:30am on 1 Oct in Melbourne, still 7:30am on 30 Sept in Los Angeles.
+    vi.setSystemTime(new Date('2026-09-30T14:30:00Z'))
+    render(<DashboardPeriod timeZone={timeZone} value={THIS_MONTH} />)
+    expect(picker()).toHaveAccessibleName(`Choose dates, Period (${period})`)
+  })
+
+  it('starts the financial year in the month given', () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        fiscalYearStart={1}
+        value={{
+          range: { period: 'year', offset: 0, fiscal: true },
+          compare: 'previous-period'
+        }}
+      />
+    )
+    expect(picker()).toHaveAccessibleName(
+      'Choose dates, Period (This financial year, 1 Jan to 31 Dec 2026, vs 1 Jan to 31 Dec 2025)'
+    )
+  })
+
+  it('shows its dates in the words of its locale', async () => {
+    render(<DashboardPeriod today={TODAY} locale='de' value={THIS_MONTH} />)
+    expect(picker()).toHaveAccessibleName(
+      'Choose dates, Period (This month, 1 to 31 Okt 2026, vs 1 to 30 Sep 2026)'
+    )
+    const dialog = await openPicker()
+    expect(compareDates(dialog)).toHaveTextContent('1 to 30 Sep 2026')
+  })
+
+  it('starts the week on the day given', () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        weekStart={7}
+        value={{ range: 'this-week', compare: 'previous-period' }}
+      />
+    )
+    expect(picker()).toHaveAccessibleName(
+      'Choose dates, Period (This week, 4 to 10 Oct 2026, vs 27 Sept to 3 Oct 2026)'
+    )
   })
 })
