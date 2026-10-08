@@ -48,10 +48,12 @@ it up in a line and point at it rather than repeat it.
 **Merge danger.** Start with "One-way door" or "Two-way door", then why,
 then the blast radius.
 
-- Judge the door against the host workflow's one-way door list and name the
-  item it hits. Don't copy the list into the body. With no list, a one-way
-  door is anything a revert can't undo: a published release, a removed or
-  renamed public API, data or config others already depend on.
+- Judge the door against the host workflow's one-way door list, and don't
+  copy the list into the body. With no list, a one-way door is anything a
+  revert can't undo: a published release, a removed or renamed public API,
+  data or config others already depend on.
+- A one-way door names the item it hits. A two-way door hits none, so say
+  why a revert undoes it instead.
 - Blast radius: which packages, consumers, repos, or pages change if this is
   wrong, how someone would notice, and how it's undone.
 - A one-way door waits for the maintainer under the host's merge rule. Say so.

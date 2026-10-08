@@ -163,10 +163,12 @@ the PR only when the review is clean.
 - **Open it as a draft** (`gh pr create --draft`). Copilot reviews once, when
   the PR is marked ready, and skips drafts. Run `gh pr ready` only after CI is
   green, the local review is clean and any demo is approved.
-- **One-way doors** always get the maintainer's review, and the body's Merge
-  danger names any it hits: removing or renaming a public export, prop,
-  intent, or subpath; changing a token's value or meaning; the shared CSS
-  cascade, layers, base styles, or `.prose` output; and release contents.
+- **One-way doors** always get the maintainer's review: removing or renaming
+  a public export, prop, intent, or subpath; changing a token's value or
+  meaning; the shared CSS cascade, layers, base styles, or `.prose` output;
+  and release contents. Merge danger opens with the door. A one-way door
+  names the item it hits; anything else is a two-way door, which says why a
+  revert undoes it.
 - Copilot reads `.github/copilot-instructions.md`; update that file when a
   convention or a deliberate decision changes, and keep it under 4,000
   characters (Copilot reads no further).

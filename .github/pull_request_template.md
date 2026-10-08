@@ -12,7 +12,7 @@
 
 ## Merge danger
 
-<!-- One-way or two-way door, naming the item it hits on PR_WORKFLOW.md section 7's list. Then the blast radius: what breaks if this is wrong, and how it's undone. -->
+<!-- One-way or two-way door, and why, as PR_WORKFLOW.md section 7 says. Then the blast radius: what breaks if this is wrong, and how it's undone. -->
 
 ## Decisions
 
