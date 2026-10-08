@@ -41,7 +41,9 @@ const routes = (await readdir(appDir, { recursive: true }))
 const markdownRoutes = new Set(routes)
 
 const pageUrl = (route: string) =>
-  markdownRoutes.has(route) ? `${site}${route}.md` : `${site}${route}/`
+  markdownRoutes.has(route)
+    ? `${site}${route}.md`
+    : `${site}${route.replace(/\/$/, '')}/`
 
 function resolveLink(href: string) {
   const [route = '', hash] = href.split('#')
