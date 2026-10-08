@@ -116,6 +116,14 @@ motion users.
    Building apps, and the page needs a `case` in
    `docs/src/components/FoundationPreview.tsx`.
 
+## All-guidelines pages
+
+A page that is all guidance, such as Performance, has no Guidelines section.
+Each topic is a `##` section named for it, with a lead and then its own
+`<Guidelines>`. Rule 6 holds within each topic: plain bullets first, then
+`Guideline` pairs. Sections that aren't rules, such as a quick reference, come
+after the topics.
+
 ## Converting a `page.tsx` page
 
 For INNO-1159. Keep the URL and the content, except where it breaks a current
@@ -131,6 +139,10 @@ rule.
   component when it's chrome rather than code to copy.
 - `<Guideline>` keeps its props, including `headingLevel`, and a run of them
   goes inside one `<Guidelines>`.
+- A multi-line `code` prop opens with a line break after `` code={` ``, and
+  every line sits indented under the prop. MDX strips up to two spaces from
+  each line, and `Guideline` drops the indent the lines share, so nesting
+  survives.
 - Metadata moves across as is, and the page is checked against this template.
 
 ## Docs components
