@@ -3,6 +3,8 @@ import { flatCodeBlocks, flat as mdxFlat } from 'eslint-plugin-mdx'
 import reactHooks from 'eslint-plugin-react-hooks'
 import { createRequire } from 'module'
 
+import roadie from '../eslint/roadie-plugin.js'
+
 const require = createRequire(import.meta.url)
 const nextConfig = require('eslint-config-next/core-web-vitals')
 
@@ -24,6 +26,16 @@ const config = [
   // MDX plugin config
   mdxFlat,
   flatCodeBlocks,
+
+  // Fences lint as virtual files such as page.mdx/0.tsx, or page.mdx/0.mdx.
+  {
+    files: ['**/*.mdx'],
+    ignores: ['**/*.mdx/**'],
+    plugins: { roadie },
+    rules: {
+      'roadie/no-mdx-layout-class': 'error'
+    }
+  },
 
   // MDX settings and rules
   {

@@ -13,7 +13,11 @@
       "inputs": ["$TURBO_EXTENDS$", "scripts/**"]
     },
     "test": {
-      "inputs": ["$TURBO_EXTENDS$", "scripts/**"]
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "scripts/**",
+        "$TURBO_ROOT$/docs/eslint.config.js"
+      ]
     },
     "typecheck": {
       "inputs": ["$TURBO_EXTENDS$", "scripts/manifest/*.{ts,json}"]

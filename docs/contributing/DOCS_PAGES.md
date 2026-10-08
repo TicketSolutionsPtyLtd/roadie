@@ -64,8 +64,8 @@ with its skeleton and the rules on top of these.
   becomes a new docs component in `docs/src/components/`, not a `div`.
 - Text style classes such as `text-display-ui-*` and `text-subtle` are fine,
   though markdown usually says it better.
-- A lint rule will reject `className` layout on top-level JSX in `.mdx`
-  (INNO-1158, part 3). Until it lands, review checks it.
+- `roadie/no-mdx-layout-class` rejects `className` layout on top-level JSX
+  in `.mdx`.
 - Code inside a fence is what readers copy, so it stays plain Roadie and
   Tailwind. Its layout follows rules 12 and 13 of the component template.
 
