@@ -41,7 +41,9 @@ jobs:
         with:
           publish-script: pnpm release
           pr-title: 'chore: version packages'
-          commit-message: 'chore: version packages'
+          # Bot-pushed runs wait for approval; main still runs CI on merge,
+          # since the squash commit takes the PR title and body.
+          commit-message: 'chore: version packages [skip ci]'
         env:
           # No NODE_AUTH_TOKEN: publishing authenticates through OIDC, so the
           # secret is dead weight. Provenance is automatic under trusted
