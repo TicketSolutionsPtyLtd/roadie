@@ -14,15 +14,16 @@ their phone and says OK, and only then does the branch get pushed.
   `git ls-files | grep -iE 'agents.md|claude.md|pr_workflow'`. Roadie's is
   section 5 of `docs/contributing/PR_WORKFLOW.md`. It says which PRs skip the
   demo (in Roadie: tooling, CI, skills, and docs-text PRs) and who approves.
-- Your session's port range and branch prefix, from the host workflow or your
-  brief. Never serve outside that range.
+- Your session's port range, from the host workflow or your brief. Never
+  serve outside it. Roadie's preview falls back to 3000 to 3099 when
+  `ROADIE_PORT_RANGE` is unset, so always set it.
 - The pages that show the change: the docs page, story, or app route, plus the
   index or catalogue tile if one changed.
 
 ## 2. Start the preview
 
 Check the machine load first (`uptime`) and wait while the 1-minute load is
-above the core count. Then, from the worktree, in the background:
+over the host's limit (in Roadie, PR workflow section 5). Then, from the worktree, in the background:
 
 - With a `preview` script in `package.json`, run it with the port range set, for
   example `ROADIE_PORT_RANGE=3200-3299 pnpm preview`. Roadie's waits for load,
@@ -37,7 +38,8 @@ above the core count. Then, from the worktree, in the background:
 - With no Tailscale, post the LAN URL and say the link only works on the same
   network.
 
-Wait for the ready line, then open the changed page once with `curl -sf` to
+Wait for the ready line (Roadie's starts `Preview ready` and names the pid),
+then open the changed page once with `curl -sf` to
 compile it before screenshots.
 
 ## 3. Screenshot
@@ -85,7 +87,8 @@ await browser.close()
 The shots are one screen each, not full page: apps that scroll an inner
 container (Roadie's docs do) capture only the first screen with `fullPage`.
 Pass a heading id (`'#states'`) or the changed element as the selector, and
-run it again per section if one screen doesn't show the change.
+run it again per section if one screen doesn't show the change, with a
+separate output folder each time so the files don't overwrite each other.
 
 Without Playwright, use a browser tool your session has (Chrome DevTools or
 Playwright MCP: resize, emulate the colour scheme, screenshot). With none, post
@@ -98,17 +101,23 @@ theme means fix and retake, not post.
 
 - In the chat, post the Tailscale link to the changed page, the four shots, and
   one line on what to look at.
-- In the PR body, once it exists, put the same link and shots under Evidence,
-  at phone and desktop widths, light and dark. `gh` can't upload images. On a
-  public repo, push them to a secret gist (`gh gist create` a placeholder,
-  clone it, add the PNGs, push) and link the raw URLs; otherwise, give the
-  local paths and ask the user to drag them in. Never commit screenshots to
-  the repo. If the preview is stopped before the OK, say so and give the
-  command that restarts it.
 - Wait for the user's OK before pushing UI changes, and work on something
-  else meanwhile. Feedback means fix, retake, and post again. If the host
-  workflow lets demo-gated work go ahead while the maintainer is away, push
-  only as a draft and mark the body "awaiting demo approval".
+  else meanwhile. Feedback means fix, retake, and post again. A standing
+  approval (one the user gave, such as for overnight work, or one the host
+  workflow grants; Roadie's rules on when to stop and ask are in PR workflow
+  section 1) lets you push before the OK only on its terms. Push as a draft
+  and mark the body "awaiting demo approval", and don't mark it ready until
+  the OK.
+- Once the PR exists, put the same link and shots under Evidence, at phone
+  and desktop widths, light and dark (`/roadie:pr` writes the body). `gh`
+  can't upload images. On a public repo, push them to a secret gist
+  (`gh gist create` a placeholder, `gh gist clone` it, add the PNGs with a
+  page or section prefix, push) and embed
+  `https://gist.githubusercontent.com/<user>/<id>/raw/<file>.png`. On a
+  private repo, a gist would make private UI public to anyone with the link,
+  so give the local paths and ask the user to drag them in. Never commit
+  screenshots to the repo. If the preview is stopped before the OK, say so
+  and give the command that restarts it.
 
 ## 5. Stop
 
