@@ -53,11 +53,7 @@ One sentence on when to use it.
 
 ### Pattern name
 
-One sentence on the problem it solves.
-
-```tsx-live
-<Card className='rounded-xl'>Ochre Kite Weekender 2026</Card>
-```
+One sentence on the problem it solves, then its `tsx-live` example.
 
 ## Guidelines
 
@@ -80,12 +76,6 @@ One sentence on the problem it solves.
 
 What this part of the system means for keyboard, screen reader, contrast, or
 motion users.
-
-## Quick reference
-
-| Need          | Use          |
-| ------------- | ------------ |
-| A card corner | `rounded-xl` |
 ````
 
 ## Sections

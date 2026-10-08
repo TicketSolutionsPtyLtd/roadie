@@ -58,18 +58,7 @@ When and where to use it, with an image of each case.
   >
     Keep the clear space free of text and images.
   </Guideline.Do>
-  <Guideline.Dont
-    example={
-      <Image
-        src='/brand/logo/crowded.png'
-        width={320}
-        height={160}
-        alt='The logo crowded by text'
-      />
-    }
-  >
-    Don't place text inside the clear space.
-  </Guideline.Dont>
+  <Guideline.Dont>Don't place text inside the clear space.</Guideline.Dont>
 </Guideline>
 
 </Guidelines>
@@ -85,7 +74,9 @@ links to their pages.
 1. **Images and downloads are local.** They live in `docs/public/brand/`,
    never on Confluence or a third-party host.
 2. **Images go through `Image`** from `@/components/Image`, which adds the
-   site's base path. A bare markdown image misses it on the published site.
+   site's base path that a bare markdown image misses. INNO-1149 decides
+   whether `Image` becomes the MDX `img` mapping, and how downloads get the
+   base path.
 3. **Every image has alt text** that says what the image shows, not its file
    name.
 4. **Check each page before it's published.** Nothing internal or sensitive,
@@ -94,9 +85,3 @@ links to their pages.
    usage to the component page. The brand page says why and links there.
 6. **Category** waits on the Brand catalogue in
    `docs/src/lib/page-manifest.ts`, which INNO-1149 adds.
-
-## Open for INNO-1149
-
-- Whether downloads link through the MDX `a` mapping or need a docs component
-  so the base path applies.
-- Whether `Image` becomes the MDX `img` mapping, so markdown images work.
