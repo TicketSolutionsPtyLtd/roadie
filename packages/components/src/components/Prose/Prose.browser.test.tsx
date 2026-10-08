@@ -254,22 +254,45 @@ describe('Prose', () => {
     expect(scroll.scrollLeft).toBe(100)
   })
 
-  it('restores full-width text and tables with the classes the release notes give', () => {
+  it('restores full-width text with the class the release notes give', () => {
     const container = renderWide(
-      <Prose className='[--prose-measure:none] [&_table]:w-full'>
+      <Prose className='[--prose-measure:none]'>
         <p id='text'>{LONG}</p>
-        <table id='table'>
-          <tbody>
-            <tr>
-              <td>Main</td>
-            </tr>
-          </tbody>
-        </table>
       </Prose>
     )
     const width = box(get(container, '[data-slot="prose"]')).width
     expect(box(get(container, '#text')).width).toBe(width)
+  })
+
+  it('restores full-width tables with the recipe the release notes give', () => {
+    const row = (
+      <tbody>
+        <tr>
+          <td>Main</td>
+        </tr>
+      </tbody>
+    )
+    const container = renderWide(
+      <Prose className='[&_table]:w-full'>
+        <p id='text'>{LONG}</p>
+        <table id='table' className='prose-bleed'>
+          {row}
+        </table>
+        <div className='prose-scroll prose-bleed'>
+          <table id='scrolled'>{row}</table>
+        </div>
+        <table id='capped'>{row}</table>
+      </Prose>
+    )
+    const prose = get(container, '[data-slot="prose"]')
+    const width = box(prose).width
     expect(box(get(container, '#table')).width).toBe(width)
+    expect(box(get(container, '#scrolled')).width).toBe(width)
+    expect(box(get(container, '#capped')).width).toBeCloseTo(
+      measureOf(prose),
+      0
+    )
+    expect(box(get(container, '#text')).width).toBeLessThan(width)
   })
 
   it('marks lists with a disc, then a circle when nested', () => {

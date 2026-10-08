@@ -49,7 +49,8 @@ New escapes:
 To restore old behaviour where a page needs it, add a class to `Prose`:
 
 - Full-width text: `className='[--prose-measure:none]'`.
-- Full-width tables: `className='[&_table]:w-full'`.
+- Full-width tables: `className='[&_table]:w-full'`, plus `.prose-bleed` on
+  each table, or on its `.prose-scroll` wrapper, so it passes the 65ch measure.
 - The old `md` gap of 1rem: `className='[--prose-flow:1em]'`.
 
 `proseVariants` now returns `prose` and the size variables only.
