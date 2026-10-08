@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 // Fails when an exported component has no docs page or no catalogue tile.
-// Run: node scripts/check-component-docs.mjs
+// Usage: node scripts/check-component-docs.mjs
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { findMissingDocs } from '../packages/components/scripts/component-docs.mjs'
+import {
+  caseSlugs,
+  exportedFolders,
+  findMissingDocs
+} from '../packages/components/scripts/component-docs.mjs'
 
 const root = join(import.meta.dirname, '..')
 
@@ -25,11 +29,7 @@ function exportedComponents() {
   const { exports } = JSON.parse(
     readFileSync(join(root, 'packages/components/package.json'), 'utf8')
   )
-  return Object.values(exports)
-    .map(
-      ({ import: entry }) => entry?.match(/^\.\/dist\/components\/(\w+)\//)?.[1]
-    )
-    .filter(Boolean)
+  return exportedFolders(exports)
 }
 
 function pageSlugs() {
@@ -48,9 +48,7 @@ function pageSlugs() {
 
 function tileSlugs() {
   return TILE_FILES.flatMap((file) =>
-    [
-      ...readFileSync(join(root, file), 'utf8').matchAll(/case '([\w-]+)':/g)
-    ].map(([, slug]) => slug)
+    caseSlugs(readFileSync(join(root, file), 'utf8'))
   )
 }
 

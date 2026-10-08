@@ -1,9 +1,26 @@
+// Finds exported components with no docs page or index tile, for
+// scripts/check-component-docs.mjs.
+
 /** The kebab-case slug a component folder's docs page and index tile use. */
 export function componentSlug(folder) {
   return folder
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
     .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
     .toLowerCase()
+}
+
+/** Component folders named by a package.json `exports` block. */
+export function exportedFolders(exports) {
+  return Object.values(exports)
+    .map(
+      ({ import: entry }) => entry?.match(/^\.\/dist\/components\/(\w+)\//)?.[1]
+    )
+    .filter(Boolean)
+}
+
+/** Slugs a preview file draws, one per `case '<slug>':`. */
+export function caseSlugs(source) {
+  return [...source.matchAll(/case '([\w-]+)':/g)].map(([, slug]) => slug)
 }
 
 /**

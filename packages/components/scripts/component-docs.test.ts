@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { componentSlug, findMissingDocs } from './component-docs.mjs'
+import {
+  caseSlugs,
+  componentSlug,
+  exportedFolders,
+  findMissingDocs
+} from './component-docs.mjs'
 
 describe('componentSlug', () => {
   it.each([
@@ -10,6 +15,38 @@ describe('componentSlug', () => {
     ['QRCode', 'qr-code']
   ])('turns %s into %s', (folder, slug) => {
     expect(componentSlug(folder)).toBe(slug)
+  })
+})
+
+describe('exportedFolders', () => {
+  it('reads component folders from export paths, not subpath names', () => {
+    expect(
+      exportedFolders({
+        '.': { import: './dist/index.js' },
+        './css': { default: './src/css/components.css' },
+        './qr-code': { import: './dist/components/QRCode/index.js' },
+        './spot-illustrations': {
+          import: './dist/components/SpotIllustration/index.js'
+        },
+        './hooks': { import: './dist/hooks/index.js' }
+      })
+    ).toEqual(['QRCode', 'SpotIllustration'])
+  })
+})
+
+describe('caseSlugs', () => {
+  it('reads every case label, stacked or not', () => {
+    expect(
+      caseSlugs(`switch (name) {
+    case 'button':
+      return null
+    case 'label':
+    case 'date-range-picker':
+      return null
+    default:
+      return null
+  }`)
+    ).toEqual(['button', 'label', 'date-range-picker'])
   })
 })
 
@@ -53,6 +90,16 @@ describe('findMissingDocs', () => {
         pages: ['button'],
         tiles: ['button'],
         allowList: { Records: 'Documented on foundations/records.' }
+      })
+    ).toEqual({ missing: [], staleAllowList: [] })
+  })
+
+  it('keeps an allow-list entry that has only a page', () => {
+    expect(
+      findMissingDocs({
+        ...documented,
+        tiles: ['button'],
+        allowList: { StatTile: 'Tile pending.' }
       })
     ).toEqual({ missing: [], staleAllowList: [] })
   })
