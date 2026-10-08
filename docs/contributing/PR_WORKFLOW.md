@@ -173,7 +173,8 @@ the PR only when the review is clean.
 - **Evidence renders inline on GitHub**, because the maintainer reviews on a
   phone. Take viewport-only screenshots, with no browser chrome, address bar,
   or local URL. Push them to an orphan branch named
-  `<prefix>/<topic>-screenshots` that holds only the images, and embed them in
+  `<prefix>/<topic>-screenshots` that holds only the images (push it with
+  `--no-verify`, since the code hooks can't run there), and embed them in
   the body with `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`.
   Never link local files, gists, or artifacts. For baselines CI renders, link
   the run and embed a few representative images.
