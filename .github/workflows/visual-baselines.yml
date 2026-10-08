@@ -1,0 +1,86 @@
+name: Visual baselines
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: Update only tests whose name matches this pattern (Vitest -t). Empty updates all.
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+env:
+  NEXT_TELEMETRY_DISABLED: 1
+  NODE_OPTIONS: --max-old-space-size=4096
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout package.json
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: package.json
+          sparse-checkout-cone-mode: false
+
+      - name: Read Playwright version
+        id: version
+        run: echo "version=$(jq -r .devDependencies.playwright package.json)" >> "$GITHUB_OUTPUT"
+
+  update:
+    needs: playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.playwright.outputs.version }}-noble
+      options: --user 1001 --ipc=host
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup
+        uses: ./.github/composite-actions/setup
+
+      - name: Build dependencies
+        run: pnpm turbo build --filter '@oztix/roadie-components^...'
+
+      # test:visual:update wraps this in docker run, which the container
+      # can't do, so the job runs its inner command directly.
+      - name: Update baselines
+        working-directory: packages/components
+        run: |
+          args=()
+          if [ -n "$SCENARIO" ]; then args=(-t "$SCENARIO"); fi
+          pnpm exec vitest run --project 'browser visual' --update "${args[@]}"
+        shell: bash
+        env:
+          CI: true
+          ROADIE_VISUAL: 1
+          ROADIE_BROWSERS: chromium
+          SCENARIO: ${{ inputs.scenario }}
+
+      - name: Collect new and changed baselines
+        id: collect
+        shell: bash
+        run: |
+          mapfile -t changed < <(git ls-files --modified --others --exclude-standard \
+            -- 'packages/components/src/*__screenshots__/*-linux.png')
+          echo "count=${#changed[@]}" >> "$GITHUB_OUTPUT"
+          mkdir -p "$RUNNER_TEMP/baselines"
+          for file in "${changed[@]}"; do
+            cp --parents "$file" "$RUNNER_TEMP/baselines/"
+            echo "- \`$file\`" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Upload baselines
+        if: steps.collect.outputs.count != '0'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: visual-baselines
+          path: ${{ runner.temp }}/baselines/
+          retention-days: 7
