@@ -8,7 +8,7 @@ const CLASS_ATTRIBUTE = /^className$|ClassName$/
 const CLASS_FUNCTIONS = new Set(['cn', 'clsx', 'cva', 'cx', 'twMerge'])
 
 const LAYOUT_CLASS =
-  /(^|:|!)-?(grid|flex|inline|inline-flex|inline-grid|block|inline-block|flow-root|contents|hidden|container|grow|shrink|absolute|relative|fixed|sticky|(gap|space|[mp][trblxyse]?|w|h|min|max-[wh]|grid-(cols|rows|flow)|col|row|flex|basis|grow|shrink|order|columns|items|justify|place|self|inset|top|right|bottom|left|start|end)-.+)$/
+  /(^|:|!)-?(grid|flex|inline|inline-flex|inline-grid|block|inline-block|flow-root|contents|hidden|container|grow|shrink|absolute|relative|fixed|sticky|(gap|space|[mp][trblxyse]?|w|h|min|max-[wh]|grid-(cols|rows|flow)|col|row|flex|basis|grow|shrink|order|columns|items|justify|place|self|inset|top|right|bottom|left|start|end)-.+)!?$/
 
 function selectorRule(description, selector, message) {
   return {

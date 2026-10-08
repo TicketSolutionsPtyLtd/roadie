@@ -97,6 +97,11 @@ const cases = {
       },
       { code: "<span className='md:max-w-56' />", filename: 'page.mdx' },
       {
+        code: "<div className='md:grid! relative!' />",
+        filename: 'page.mdx',
+        errors: 2
+      },
+      {
         code: "<div className={cn(`shrink-0 ${open && 'basis-1/2'}`)} />",
         filename: 'page.mdx',
         errors: 2
