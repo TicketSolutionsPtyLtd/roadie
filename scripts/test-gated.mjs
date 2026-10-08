@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, lstatSync, readdirSync } from 'node:fs'
 import { availableParallelism, constants } from 'node:os'
-import { isAbsolute, join, relative, resolve } from 'node:path'
+import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 
 import {
   killGroup,
@@ -11,7 +11,7 @@ import {
 } from './lib/machine.mjs'
 
 const usage = `Usage: pnpm test:gated <core|components|charts|widgets|docs> [files] [--all] [--all-browsers] [vitest args]
-Runs the tests related to the files given, or to the changes since origin/main.
+Runs the tests related to the files or folders given, or to the changes since origin/main.
 --all runs the whole suite, --all-browsers runs WebKit and Firefox too.
 Example: pnpm test:gated components src/components/Badge/index.tsx --project 'browser*'`
 
@@ -56,13 +56,49 @@ if (vitestArgs.some((arg) => arg.startsWith('--maxWorkers'))) {
   process.exit(2)
 }
 
-const files = fileArgs.map(packageRelative)
+const SOURCE = /\.(?:[cm]?[jt]sx?|css)$/
+const SKIPPED_FOLDER = /^(?:\..*|node_modules|dist|coverage)$/
+
+function sourceFilesIn(folder) {
+  return readdirSync(join(cwd, folder), { withFileTypes: true }).flatMap(
+    (entry) => {
+      const path = join(folder, entry.name)
+      if (entry.isDirectory()) {
+        return SKIPPED_FOLDER.test(entry.name) ? [] : sourceFilesIn(path)
+      }
+      return entry.isFile() && SOURCE.test(entry.name) ? [path] : []
+    }
+  )
+}
+
+function withFolderContents(path) {
+  const stats = lstatSync(join(cwd, path))
+  if (!stats.isDirectory() && !stats.isSymbolicLink()) return [path]
+  const skipped =
+    stats.isSymbolicLink() ||
+    path.split(sep).some((name) => SKIPPED_FOLDER.test(name))
+  const files = skipped ? [] : sourceFilesIn(path)
+  if (files.length) return files
+  console.error(`No source files in ${pkg}: ${path || '.'}\n\n${usage}`)
+  process.exit(2)
+}
+
+const files = fileArgs.map(packageRelative).flatMap(withFolderContents)
 const maxWorkers = Math.max(1, Math.floor(availableParallelism() / 2))
+
+const callerSetsNoTests = vitestArgs.some((arg) =>
+  arg.startsWith('--passWithNoTests')
+)
 
 const selection = all
   ? ['run']
   : files.length
-    ? ['related', '--run', ...files]
+    ? [
+        'related',
+        '--run',
+        ...(callerSetsNoTests ? [] : ['--passWithNoTests=false']),
+        ...files
+      ]
     : ['run', '--changed', 'origin/main']
 
 warnIfLowDisk()
