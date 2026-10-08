@@ -911,9 +911,9 @@ const column = tableColumns(fields)
 const columns = fields.map((field, index) => column.field(field.key, { pin: index === 0 }))
 const timeZone = 'Australia/Sydney'
 
-function pretendServer(view, position) {
+function pretendServer(viewQuery, position) {
   const now = new Date()
-  const query = resolveRecordQuery(view.query, fields, { now, timeZone })
+  const query = resolveRecordQuery(viewQuery, fields, { now, timeZone })
   const matching = sortRecords(everyShow.filter(compileRecordQuery(query, fields)), query.sort, fields, { timeZone })
   const start = position.page * position.pageSize
   return new Promise((resolve) =>
@@ -922,7 +922,7 @@ function pretendServer(view, position) {
         resolve({
           rows: matching.slice(start, start + position.pageSize),
           rowCount: matching.length,
-          search: toMeilisearch(view, fields, { now, timeZone, position })
+          search: toMeilisearch({ query: viewQuery }, fields, { now, timeZone, position })
         }),
       500
     )
@@ -935,17 +935,19 @@ function ServerShows() {
   const [view, setView] = useState(firstView)
   const [position, setPosition] = useState({ page: 0, pageSize: 25, row: 0 })
   const [result, setResult] = useState({ rows: [], rowCount: 0, key: null })
-  const key = JSON.stringify([view.query, position.page, position.pageSize])
+  const { query } = view
+  const { page, pageSize } = position
+  const key = JSON.stringify([query, page, pageSize])
 
   useEffect(() => {
     let current = true
-    pretendServer(view, position).then((next) => {
+    pretendServer(query, { page, pageSize }).then((next) => {
       if (current) setResult({ ...next, key })
     })
     return () => {
       current = false
     }
-  }, [key])
+  }, [key, query, page, pageSize])
 
   return (
     <div className='grid gap-3'>

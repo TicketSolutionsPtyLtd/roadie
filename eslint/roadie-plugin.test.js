@@ -1,6 +1,5 @@
 import typescriptParser from '@typescript-eslint/parser'
 import { ESLint, RuleTester } from 'eslint'
-import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
 
@@ -256,23 +255,10 @@ describe('import boundaries in eslint.config.js', () => {
   })
 })
 
-describe('no-mdx-layout-class in docs/eslint.config.js', () => {
-  const docs = new URL('../docs/', import.meta.url)
-  const { createRemarkProcessor } = createRequire(docs)('eslint-plugin-mdx')
-  // eslint-plugin-mdx's flat processor drops mdx/code-blocks, so docs lint
-  // skips fences today. Lint them here, so a rule that reaches them fails.
-  const lintingFences = {
-    files: ['**/*.mdx'],
-    processor: createRemarkProcessor({
-      lintCodeBlocks: true,
-      languageMapper: { 'tsx-live': 'tsx', 'tsx-live-prose': 'tsx' }
-    })
-  }
+describe('docs/eslint.config.js on MDX', () => {
+  const docs = fileURLToPath(new URL('../docs/', import.meta.url))
   const docsLinter = (...overrides) =>
-    new ESLint({
-      cwd: fileURLToPath(docs),
-      overrideConfig: [lintingFences, ...overrides]
-    })
+    new ESLint({ cwd: docs, overrideConfig: overrides })
   const eslint = docsLinter()
   // Reaches fences past the config's glob, leaving only the rule's own guard.
   // The docs config loads its own copy of the plugin, so this one needs
@@ -311,8 +297,25 @@ describe('no-mdx-layout-class in docs/eslint.config.js', () => {
 
   const fenceLangs = ['tsx-live', 'tsx-live-prose', 'mdx']
 
-  it.each(['tsx-live', 'tsx-live-prose'])('lints %s fences', async (lang) => {
-    expect(await mdxHits(fence(lang), 'react/jsx-no-undef')).not.toEqual([])
+  it.each([
+    'tsx-live',
+    'tsx-live-prose',
+    'tsx-live-noinline-expand',
+    'jsx-live'
+  ])('fails a dark: variant in a %s fence', async (lang) => {
+    expect(await mdxHits(fence(lang), 'roadie/no-dark-variant')).toHaveLength(1)
+  })
+
+  it('fails a raw hex colour in a tsx-live fence', async () => {
+    const hexFence =
+      "```tsx-live\n<Badge className='bg-[#ff0000]'>New</Badge>\n```"
+    expect(await mdxHits(hexFence, 'roadie/no-hex-colour-class')).toHaveLength(
+      1
+    )
+  })
+
+  it('leaves plain tsx fragments unlinted', async () => {
+    expect(await mdxHits(fence('tsx'), 'roadie/no-dark-variant')).toEqual([])
   })
 
   it.each(['0.tsx', '0.mdx'])(
