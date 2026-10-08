@@ -43,8 +43,7 @@
       "dependsOn": ["^build"],
       "inputs": [
         "src/**/*.{ts,tsx}",
-        "tsconfig.json",
-        "!**/*.test.{ts,tsx}",
+        "tsconfig*.json",
         "!**/roadie-core/**",
         "!**/styled-system/**"
       ],
