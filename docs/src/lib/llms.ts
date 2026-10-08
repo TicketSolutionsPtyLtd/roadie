@@ -197,6 +197,11 @@ function transform(
   return [{ ...node, children } as Node]
 }
 
+function withoutLeadingTitle(children: RootContent[]) {
+  const [first, ...rest] = children
+  return first?.type === 'heading' && first.depth === 1 ? rest : children
+}
+
 /** A docs page's MDX as plain markdown: JSX gone, prose and code kept, live fences as plain fences, and the API reference from the manifest. */
 export function pageToMarkdown(page: MarkdownPage): string {
   const processor = unified()
@@ -225,7 +230,7 @@ export function pageToMarkdown(page: MarkdownPage): string {
     type: 'root',
     children: [
       ...head,
-      ...body.children,
+      ...withoutLeadingTitle(body.children),
       ...(trailingReference as RootContent[])
     ]
   })

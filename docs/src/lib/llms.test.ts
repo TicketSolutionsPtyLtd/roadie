@@ -14,6 +14,10 @@ describe('pageToMarkdown', () => {
     expect(md).toBe('# Badge\n\n> A compact label\n\nBody.\n')
   })
 
+  it('writes the title once when the page opens with its own H1', () => {
+    expect(page('# Badge\n\nBody.')).toBe('# Badge\n\nBody.\n')
+  })
+
   it('drops the metadata export, imports, and comments', () => {
     const md = page(
       [
