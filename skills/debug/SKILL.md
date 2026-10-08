@@ -34,11 +34,14 @@ and PR workflow win over anything here.
   OS (a Linux container) or CI's load.
 - Measure, don't guess: time it, count frames, log the value. For a CI-only
   timeout, compare CI's time for the file (in the log) with a local run of the
-  same file. If every heavy file is many times slower, the runner is the
-  cause, not the test.
-- A flake that won't reproduce can often be forced: repeat it or shrink the
-  timeout. Never load a shared machine to force it. With no reproduction, say
-  so, and don't ship a fix you can't show failing without it.
+  same file. If every heavy file is many times slower, suspect the runner,
+  then confirm it: run the same workload with the competing jobs removed
+  before you rule out the tests.
+- A flake that won't reproduce can often be forced by repeating it under the
+  original conditions. A shorter timeout is an experiment, not a
+  reproduction, since a healthy test fails under one too. Never load a shared
+  machine to force it. With no reproduction, say so, and don't ship a fix you
+  can't show failing without it.
 
 ## 3. One hypothesis at a time
 
@@ -68,8 +71,9 @@ stop chasing and change approach.
 
 - Keep the reproducing test: watch it fail with the bug present, then pass
   with the fix. It tests the public interface and waits for a state, not a
-  time (`/roadie:test` has the rules). When the fix is to the tests
-  themselves, break the behaviour each one guards and run it.
+  time (`/roadie:test` has the rules if it's installed, or else the repo's
+  own test rules). When the fix is to the tests themselves, break the
+  behaviour each one guards and run it.
 - The cheapest guard that stops it returning: a lint rule, a shared test
   helper, or a CI check. If it would widen the PR or touch files you don't
   own, file it as a follow-up.
