@@ -1,4 +1,9 @@
-import { CalendarBlankIcon, CaretDownIcon } from '@phosphor-icons/react/ssr'
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CalendarBlankIcon,
+  CaretDownIcon
+} from '@phosphor-icons/react/ssr'
 
 import { ChartPatterns } from '@oztix/roadie-charts/chart-patterns'
 
@@ -170,6 +175,19 @@ export function ChartPreview({ name }: { name: string }) {
             <p className='text-xs font-semibold text-strong'>60%</p>
           </div>
           <MeterBar className='h-2' />
+        </div>
+      )
+    case 'delta':
+      return (
+        <div className='grid gap-2 text-lg/none font-semibold tabular-nums'>
+          <span className='flex items-center gap-0.5 text-chart-status-good'>
+            <ArrowUpIcon weight='bold' className='size-4' aria-hidden />
+            214
+          </span>
+          <span className='flex items-center gap-0.5 text-chart-status-critical'>
+            <ArrowDownIcon weight='bold' className='size-4' aria-hidden />
+            4%
+          </span>
         </div>
       )
     case 'sparkline':

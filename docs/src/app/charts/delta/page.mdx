@@ -1,0 +1,79 @@
+export const metadata = {
+  title: 'Delta',
+  description: 'A change with an arrow, coloured by whether it is good or bad',
+  status: 'beta',
+  category: 'Data pieces',
+  order: 5,
+  alsoIn: [{ route: '/components', category: 'Status' }]
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A change with an arrow, coloured by whether it is good or bad.
+
+## Import
+
+```tsx
+import { Delta } from '@oztix/roadie-components/delta'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Delta value={214} />
+```
+
+### Formats
+
+```tsx-live
+<div className='flex flex-wrap gap-4'>
+  <Delta value={0.04} format='percent' />
+  <Delta value={-9} format='points' />
+  <Delta value={1250} format='currency' />
+  <Delta value={48200} format='compact' />
+</div>
+```
+
+### When lower is better
+
+```tsx-live
+<div className='flex flex-wrap gap-4'>
+  <Delta value={-0.003} format='percent' goodWhen='down' />
+  <Delta value={12} goodWhen='down' />
+  <Delta value={6} goodWhen='neither' />
+</div>
+```
+
+### Against a baseline
+
+```tsx-live
+<Delta value={112} format='index' baseline={100} context='pace against the average show' />
+```
+
+### States
+
+```tsx-live
+<div className='grid gap-2'>
+  <p className='text-sm text-subtle'>No change</p>
+  <Delta value={0} format='percent' />
+  <p className='text-sm text-subtle'>Not available</p>
+  <Delta value={Number.NaN} format='points' />
+</div>
+```
+
+## Guidelines
+
+- Use `Delta` beside a value, in a table cell, or in a sentence. In a tile, pass `delta` to [StatTile](/charts/stat-tile) instead, which renders one for you.
+- `value` is the change itself, and the arrow shows its sign. Pass `baseline` when the number to show is a level, such as a pace index of 112 against 100.
+- Set `goodWhen='down'` for numbers where falling is good, such as refunds, and `goodWhen='neither'` when a change has no better direction. Neither colours it grey.
+- Say what the change compares against in `context` or nearby text. The delta stays short.
+
+## Accessibility
+
+- The change reads as a sentence, such as "up 214, better", so colour is never the only cue. `context` is added to the end, such as "down 4%, worse, on last week".
+- The arrow and the shown text are hidden from screen readers, because the sentence already says them.
+- A missing or non-finite value reads as "Not available" rather than a number.
+
+<PropsDefinitions componentPath='packages/components/src/components/Delta/index.tsx' />
