@@ -166,8 +166,9 @@ the PR only when the review is clean.
 - Copilot reads `.github/copilot-instructions.md`; update that file when a
   convention or a deliberate decision changes, and keep it under 4,000
   characters (Copilot reads no further).
-- A review is clean when it shows "Findings: None"
-  **and** its body lists no "Previously missed" items.
+- A review is clean when it shows "Open findings: None"
+  **and** its body lists no "Previously missed" items. Fixes listed under
+  "Fixed" don't count against it.
 - For each finding: fix it test-first and reply naming the commit and test,
   or reply with why it stands. Resolve every thread.
 - **Copilot is a last resort.** Fix its real findings yourself; each one is a
