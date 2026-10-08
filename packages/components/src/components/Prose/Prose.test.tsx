@@ -21,17 +21,6 @@ describe('Prose', () => {
     expect(container.firstElementChild).toHaveClass('prose')
   })
 
-  it('lets a consumer variable override a size variable', () => {
-    const { container } = render(
-      <Prose size='lg' className='[--prose-size:2rem]'>
-        Content
-      </Prose>
-    )
-    const el = container.firstElementChild as HTMLElement
-    expect(el).toHaveClass('[--prose-size:2rem]')
-    expect(el).not.toHaveClass('[--prose-size:var(--text-lg)]')
-  })
-
   it('applies custom className', () => {
     const { container } = render(
       <Prose className='custom-class'>Content</Prose>

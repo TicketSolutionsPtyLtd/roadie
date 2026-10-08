@@ -20,6 +20,23 @@ afterEach(() => {
 const LONG =
   'Gates open at 11am on Saturday at Jumbuck Orchard Park. Bring a printed or mobile ticket, photo ID for the bar, sunscreen, and a refillable bottle, and check the set times before you travel.'
 
+const DISPLAY_UI = [
+  'text-display-ui-1',
+  'text-display-ui-2',
+  'text-display-ui-3',
+  'text-display-ui-4',
+  'text-display-ui-5',
+  'text-display-ui-6'
+] as const
+const DISPLAY_PROSE = [
+  'text-display-prose-1',
+  'text-display-prose-2',
+  'text-display-prose-3',
+  'text-display-prose-4',
+  'text-display-prose-5',
+  'text-display-prose-6'
+] as const
+
 const style = (element: Element) => getComputedStyle(element)
 const box = (element: Element) => element.getBoundingClientRect()
 const px = (value: string) => Number.parseFloat(value)
@@ -95,22 +112,46 @@ describe('Prose', () => {
     }
   )
 
-  it('uses UI heading sizes at sm and prose heading sizes at md', () => {
+  it.each([
+    ['sm', 'ui', DISPLAY_UI],
+    ['md', 'prose', DISPLAY_PROSE],
+    ['lg', 'prose', DISPLAY_PROSE]
+  ] as const)(
+    'sets %s headings to the display-%s scale',
+    (size, _, display) => {
+      const container = renderWide(
+        <>
+          <Prose size={size}>
+            <h1>Set times</h1>
+            <h2>Set times</h2>
+            <h3>Set times</h3>
+            <h4>Set times</h4>
+            <h5>Set times</h5>
+            <h6>Set times</h6>
+          </Prose>
+          {display.map((className) => (
+            <p key={className} className={className}>
+              Set times
+            </p>
+          ))}
+        </>
+      )
+      display.forEach((className, index) => {
+        const heading = style(get(container, `h${index + 1}`))
+        const reference = style(get(container, `.${className}`))
+        expect(heading.fontSize, className).toBe(reference.fontSize)
+        expect(heading.fontWeight, className).toBe(reference.fontWeight)
+      })
+    }
+  )
+
+  it('lets a variable on Prose override its size', () => {
     const container = renderWide(
-      <>
-        <Prose size='sm'>
-          <h1 id='sm'>Title</h1>
-        </Prose>
-        <Prose>
-          <h1 id='md'>Title</h1>
-        </Prose>
-      </>
+      <Prose size='lg' className='[--prose-size:2rem]'>
+        <p id='body'>Doors 7pm.</p>
+      </Prose>
     )
-    expect(style(get(container, '#sm')).fontWeight).toBe('700')
-    expect(style(get(container, '#md')).fontWeight).toBe('900')
-    expect(px(style(get(container, '#sm')).fontSize)).toBeLessThan(
-      px(style(get(container, '#md')).fontSize)
-    )
+    expect(style(get(container, '#body')).fontSize).toBe('32px')
   })
 
   it('caps a child at 65ch, and a bleed child runs past it', () => {
