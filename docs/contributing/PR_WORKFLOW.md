@@ -114,17 +114,20 @@ Every PR is checked against these before review. Fix every real hit.
   touched package that has one (`pnpm --filter <package> size`; `docs`
   has none).
 - Rebuild before browser tests; stale `dist` misleads the `:has()` guard.
-- **Keep the machine cool.** Check `uptime` before starting an agent or a
-  test run, and wait while the 1-minute load is above the core count. Iterate
-  in one engine (`ROADIE_BROWSERS=chromium`), cap workers (`--maxWorkers=4`),
-  run the three-engine set once before pushing, and let CI run the full
-  matrix. Never wait on an infinite
-  animation; give browser tests explicit timeouts. Kill test processes you
-  started that run past 10 minutes. Stop dev servers you start.
-- **Demo user-visible changes before pushing.** Serve the docs from your
-  worktree where a phone can reach it (add the host to `NEXT_DEV_ORIGINS`),
-  post the link and phone-width screenshots, and work on something else until
-  the maintainer's OK. Tooling, CI, skills, and docs-text PRs skip the demo.
+- **Keep the machine cool.** Check `uptime` before starting an agent, and
+  wait while the 1-minute load is above the core count. Run tests with
+  `pnpm test:gated <package>`, never vitest or `pnpm test` directly. It
+  waits for the load, runs the changed tests in Chromium on half the cores,
+  and stops after 10 minutes. Run `--all-browsers` once before pushing, and
+  let CI run the full matrix. Give browser tests explicit timeouts and never
+  wait on an infinite animation. Stop dev servers you start, and run
+  `pnpm cleanup` (`--delete` to delete) when disk runs low.
+- **Demo user-visible changes before pushing.** `pnpm preview` serves the
+  docs from your worktree and prints the URLs a phone can open; set
+  `ROADIE_PORT_RANGE` to your session's range and extra hosts in
+  `NEXT_DEV_ORIGINS`. Post the link and phone-width screenshots, and work on
+  something else until the maintainer's OK. Tooling, CI, skills, and
+  docs-text PRs skip the demo.
 - **Check the file list** (`git diff --name-only origin/main...HEAD`): no
   `.vitest/` screenshots, `test-results/`, coverage or images you didn't mean
   to add.
