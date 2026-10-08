@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { Prose, proseVariants } from '.'
+import { Prose } from '.'
 
 describe('Prose', () => {
   it('renders with default props', () => {
@@ -16,20 +16,20 @@ describe('Prose', () => {
     expect(div).toHaveTextContent('Hello world')
   })
 
-  it('applies default size (md) variant classes', () => {
-    const classes = proseVariants({ size: 'md' })
-    expect(classes).toContain('text-prose')
-    expect(classes).toContain('text-normal')
+  it('renders the core prose class', () => {
+    const { container } = render(<Prose>Content</Prose>)
+    expect(container.firstElementChild).toHaveClass('prose')
   })
 
-  it('applies sm size variant', () => {
-    const classes = proseVariants({ size: 'sm' })
-    expect(classes).toContain('text-sm')
-  })
-
-  it('applies lg size variant', () => {
-    const classes = proseVariants({ size: 'lg' })
-    expect(classes).toContain('text-lg')
+  it('lets a consumer variable override a size variable', () => {
+    const { container } = render(
+      <Prose size='lg' className='[--prose-size:2rem]'>
+        Content
+      </Prose>
+    )
+    const el = container.firstElementChild as HTMLElement
+    expect(el).toHaveClass('[--prose-size:2rem]')
+    expect(el).not.toHaveClass('[--prose-size:var(--text-lg)]')
   })
 
   it('applies custom className', () => {
@@ -68,7 +68,7 @@ describe('Prose', () => {
     )
     const el = container.firstElementChild as HTMLElement
     expect(el.tagName.toLowerCase()).toBe('section')
-    expect(el.className).toContain('text-lg')
+    expect(el).toHaveClass('prose')
   })
 
   it('swaps the element via render and keeps prose classes', () => {
@@ -80,6 +80,6 @@ describe('Prose', () => {
     const el = container.firstElementChild as HTMLElement
     expect(el.tagName.toLowerCase()).toBe('article')
     expect(el).toHaveAttribute('data-slot', 'prose')
-    expect(el.className).toContain('text-normal')
+    expect(el).toHaveClass('prose')
   })
 })

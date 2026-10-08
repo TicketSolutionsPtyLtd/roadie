@@ -75,6 +75,7 @@ function KitchenSink() {
         <code>{`curl https://example.com/tickets/ochre-kite`}</code>
       </pre>
       <figure>
+        {/* eslint-disable-next-line @next/next/no-img-element -- CMS HTML arrives as a bare img */}
         <img src={ARTWORK} alt='Show artwork' width={360} />
         <figcaption>The 2026 poster.</figcaption>
       </figure>
