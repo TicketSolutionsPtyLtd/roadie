@@ -92,6 +92,8 @@ function buildExports(folders) {
     import: './dist/components/SpotIllustration/index.js'
   }
 
+  exports['./roadie.manifest.json'] = './dist/roadie.manifest.json'
+
   return exports
 }
 

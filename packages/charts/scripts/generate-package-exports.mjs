@@ -60,6 +60,8 @@ function buildExports(folders) {
     }
   }
 
+  exports['./roadie.manifest.json'] = './dist/roadie.manifest.json'
+
   return exports
 }
 

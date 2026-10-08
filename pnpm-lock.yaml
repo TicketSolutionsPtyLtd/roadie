@@ -612,6 +612,9 @@ importers:
       chokidar-cli:
         specifier: 3.0.0
         version: 3.0.0
+      react-docgen-typescript:
+        specifier: 2.4.0
+        version: 2.4.0(typescript@6.0.3)
       size-limit:
         specifier: 14.1.0
         version: 14.1.0
