@@ -119,6 +119,18 @@ jobs:
           ROADIE_QUARANTINE: skip
           TURBO_SCM_BASE: origin/main
 
+      # Only Chromium takes screenshots. The log names the -actual and -diff
+      # images, but they live on the runner.
+      - name: Upload screenshot diffs
+        if: failure() && matrix.browser == 'chromium'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: screenshot-diffs
+          path: packages/components/.vitest/attachments
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
+
   browser-quarantine:
     name: browser (quarantined)
     needs: playwright
