@@ -104,7 +104,7 @@ function StrongTextTable() {
         <Code>text-on-strong</Code> is the label colour for strong fills, chosen
         per intent: white or dark text, whichever reads better on the fill.{' '}
         <Code>emphasis-strong</Code> uses it. Labels need Lc 60 or more at rest,
-        on hover and when pressed. <Code>text-inverted</Code> is different:
+        on hover, and when pressed. <Code>text-inverted</Code> is different:
         it&apos;s the page&apos;s text colour flipped, and pairs with{' '}
         <Code>bg-inverted</Code>.
       </p>
