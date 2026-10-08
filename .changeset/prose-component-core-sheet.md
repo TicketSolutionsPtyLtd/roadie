@@ -10,24 +10,32 @@ check legal pages, FAQs, and content sections after upgrading.
 What changes on the page:
 
 - Space now goes above each block only, in `em`, from one `--prose-flow`
-  variable: 1em at `sm`, and 1.25em at `md` and `lg`. Paragraphs at `md` sit
-  20px apart, up from 16px. Headings get more space above than below, and the
-  first child sits flush with the top.
+  variable: 1em at `sm`, and 1.25em at `md` and `lg`. Paragraphs sit 14px
+  apart at `sm`, up from 8px, 20px at `md`, up from 16px, and 23 to 25px at
+  `lg`, close to the old 24px. The first child sits flush with the top.
+- Space above a heading is a multiple of the flow at the heading's own size,
+  so it grows with the heading: an `h2` at `md` now has 48 to 72px above it,
+  up from 32px. The block after a heading sits half a flow below it, 10px at
+  `md`, down from 16px.
+- List items sit 0.4 of a flow apart (8px at `md`, up from 4px), and a rule
+  has two flows above it and one below.
 - Each direct child stops at a 65ch measure, so long lines no longer run the
   full width of the container.
 - Body text is 14px at `sm`, 16px at `md`, and the fluid `text-lg` at `lg`,
-  all at the prose leading of 1.5.
+  all at the prose leading of 1.5. Before, `sm` and `lg` took the tighter line
+  height of the page around them.
 - Headings at `sm` use the UI display styles, with `h1` to `h6` matching
-  `text-display-ui-1` to `-6`, one step larger than before. `md` and `lg` keep
-  the prose display styles.
+  `text-display-ui-1` to `-6`. `h1` to `h5` are one step larger than before,
+  and `h6` is unchanged. `md` and `lg` keep the prose display styles.
 - Links keep the surrounding text colour with an accent underline that turns
   to the text colour on hover.
-- List indent is 1.5em, so it scales with the size, and a nested bulleted list
-  uses circles.
+- List indent is 1.5em, so it scales with the size (24px at `md`, as before),
+  and a nested bulleted list uses circles.
 - Tables shrink to fit their content instead of filling the width. Wrap a wide
   table in `<div class="prose-scroll">` so it scrolls sideways on a phone.
 - Code blocks and images use `rounded-md`, down from `rounded-lg`.
-- Inline code uses the subtle fill at 0.875em.
+- Inline code uses the subtle fill, up from subtler, at 0.875em, down from
+  0.9em.
 
 New escapes:
 
