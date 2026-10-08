@@ -45,14 +45,16 @@ Every test must be able to fail for a reason a user would notice.
   the spec, never recomputed with the code under test or the palette's own
   formula.
 - **Don't restate the implementation.** Never assert that a CVA function's
-  output contains a literal from its own map, that `X === X.Root`, or what a
-  source or `.css` file says. Class assertions are fine only for Roadie's
-  public utilities (`intent-*`, `emphasis-*`, `is-interactive*`).
+  output contains a literal from its own map, or what a source or `.css` file
+  says. Class assertions are fine only for Roadie's public utilities
+  (`intent-*`, `emphasis-*`, `is-interactive*`). `Compound === Compound.Root`
+  stays: `COMPOUND_PATTERNS.md` promises the same reference.
 - **Choose the cheapest test that can fail.** Pure logic gets a unit test,
   and behaviour that doesn't depend on layout stays in jsdom. A browser test
-  is only for what CSS decides: computed spacing and size, measure,
-  `calc()`, container and media queries, `:has()`, touch versus hover,
-  transitions, and engine differences.
+  is only for what CSS or the browser itself decides: computed spacing and
+  size, measure, `calc()`, container and media queries, `:has()`, touch
+  versus hover, transitions, engine differences, and real pointer input such
+  as drag and drop.
 - **What CSS decides is measured in a real browser.** Use computed style or
   geometry in `*.browser.test.tsx`. Anything that needs
   `getBoundingClientRect`, `ResizeObserver`, or a root font size goes there

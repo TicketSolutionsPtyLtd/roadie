@@ -25,13 +25,13 @@ and typecheck cover.
 ## 2. Pick the boundary and the test type
 
 Choose the cheapest test that can fail ("Tests" in `CODING_STANDARDS.md`). A
-browser test is only for what CSS decides.
+browser test is only for what CSS or the browser itself decides.
 
 | Behaviour                                                            | Boundary                            | Test                                                             |
 | -------------------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------- |
 | A component                                                          | props, roles, keyboard, ARIA states | jsdom, Testing Library, `userEvent`                              |
 | Pure logic (records queries, `validateDashboard`, chart definitions) | inputs and outputs                  | table-driven unit test (`it.each`)                               |
-| Anything CSS decides                                                 | computed style or geometry          | `*.browser.test.tsx` in Chromium, WebKit, and Firefox            |
+| Anything CSS decides, or real pointer input such as drag and drop    | computed style or geometry          | `*.browser.test.tsx` in Chromium, WebKit, and Firefox            |
 | Touch                                                                | the same, with hover off            | browser test with `setHoverCapable(false)`                       |
 | Appearance                                                           | pixels                              | the visual and accessibility checks (INNO-1132), not a unit test |
 | A journey across pages                                               | the running app                     | the repo's e2e suite, for critical paths only                    |
@@ -69,7 +69,6 @@ Real Roadie examples from the INNO-1130 audit (October 2026):
 | CVA class strings standing in for behaviour        | `Switch.test.tsx:127`: `expect(switchVariants({ size: 'sm' })).toContain('h-5')`     | Render it; measure the height in a browser test if size matters    |
 | A `calc()` asserted as text in jsdom               | `Pane.test.tsx:926`: `toHaveClass('min-h-[calc(--spacing(4)_+_…)]')`                 | Measure the header's height in a browser                           |
 | Reading CSS or source text                         | `navigatorPending.test.ts:3`: imports the sheet `?raw` and asserts `animation: none` | Emulate reduced motion in a browser and read computed style        |
-| An alias that can't fail                           | `Card.test.tsx:20`: `expect(Card).toBe(Card.Root)`                                   | Delete it; a render of `<Card.Root>` covers it                     |
 | Recomputing the expected value                     | calling the palette's own formula to get the expected token                          | A literal from the spec                                            |
 | Mocking Base UI, motion, or the repo's own modules | `NumberField.test.tsx:11`: `vi.mock('@number-flow/react', …)`                        | Render the real thing; test in a browser if jsdom can't            |
 | Faked layout in jsdom                              | `RecordTable.narrow.test.tsx:51`: stubs `getBoundingClientRect` and a 16px root      | A browser test at a real width                                     |
