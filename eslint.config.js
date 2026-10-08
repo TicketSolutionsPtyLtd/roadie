@@ -122,7 +122,7 @@ export default [
             {
               group: ['@tanstack/*'],
               message:
-                "Import TanStack only in plot/, static/ and each chart's definition.ts."
+                "Import TanStack only in plot/, static/, and each chart's definition.ts."
             }
           ]
         }

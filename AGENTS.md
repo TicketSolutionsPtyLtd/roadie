@@ -40,8 +40,8 @@ pnpm --filter docs dev
 - Each package's public API is the `exports` block in its `package.json`.
   Docs and consumers import per-component subpaths, never the root barrel.
 - A JS subpath needs a `tsdown.config.ts` entry unless a wildcard covers it.
-- A CSS `@utility` must be named in `src/css/safelist.html`, or Tailwind purges
-  it and the compiled sheet comes out empty.
+- A CSS `@utility` must be named in its package's `src/css/safelist.html` (core
+  and charts), or Tailwind purges it and the compiled sheet comes out empty.
 - A utility in a family where one class replaces another (intent, emphasis,
   semantic colour, z-index, duration, easing, and text style) also goes in its
   group in `packages/core/src/utils/cn.ts`, or `cn()` keeps both classes and a
@@ -70,7 +70,7 @@ Each rule has a foundations page with the detail.
   swaps the scales, so there are no `dark:` variants. Use the semantic
   utilities: `bg-{normal,subtler,subtle,strong,inverted,raised,sunken,mark}`,
   `text-{normal,subtle,subtler,strong,inverted,on-strong,mark}`,
-  `border-{subtle,normal}`, and `divide-subtler`. Colour that must stay the same
+  `border-{subtler,subtle,normal,strong,inverted}`, and `divide-subtler`. Colour that must stay the same
   in dark mode uses `--color-{scale}-light-{0|5|12|13}` (only neutral has step
   0).
 - **Intent** only sets `--intent-*` variables, and children inherit them:
@@ -81,8 +81,8 @@ Each rule has a foundations page with the detail.
   `subtler` (barely tinted), `raised`, `sunken`, `field` (text fields, with
   `is-interactive-field`), `floating`, `inverted`, `overlay`, and
   `overlay-subtle`. Add `is-selected` to `emphasis-subtle` for the chosen item
-  of a quiet, trackless control, and `is-translucent` to raised or floating
-  surfaces.
+  of a quiet, trackless control (its fill is under 3:1, so pair it with an
+  icon), and `is-translucent` to raised or floating surfaces.
 - **Interaction.** `is-interactive` on anything clickable;
   `is-interactive-field` and `is-interactive-field-group` on form controls;
   `is-interactive-within` on a surface whose main link sits inside it, marked
