@@ -37,17 +37,24 @@ Baselines are rendered only in CI's Playwright image
 never on a Mac, whose fonts and antialiasing differ. `.gitignore` drops
 `-darwin` and `-win32` renders.
 
-1. Start Docker, then run
-   `pnpm --filter @oztix/roadie-components test:visual:update`. It copies the
-   working tree into the image, installs, and runs the visual project with
-   `--update`, then copies new and changed `-chromium-linux.png` files back.
-   Pass `-t '<scenario>'` to update some of them.
-2. Look at every changed PNG in the diff, and delete the baseline of a
+1. Push the branch, then run the Visual baselines workflow on it:
+   `gh workflow run visual-baselines.yml --ref <branch>`. Add
+   `-f scenario='<test name>'` to update only the tests whose name matches
+   (Vitest's `-t`). It renders the `browser visual` project with `--update`
+   and uploads the new and changed `-chromium-linux.png` files as the
+   `visual-baselines` artifact. The run summary lists them.
+2. Download the artifact into the repo root, where its paths start:
+   `gh run download <run id> -n visual-baselines -D .`.
+3. Look at every changed PNG in the diff, and delete the baseline of a
    scenario you removed.
-3. Commit the PNGs with the change that caused them, and say in the PR's
+4. Commit the PNGs with the change that caused them, and say in the PR's
    Evidence which images changed and why. The reviewer approves the images
    along with the code.
 
-When CI fails, the job prints the `-actual` and `-diff` paths under
-`.vitest/attachments/`. A missing baseline also fails CI, so a new scenario
-lands with its baseline.
+`pnpm --filter @oztix/roadie-components test:visual:update` does the same
+locally in Docker, if Docker is running.
+
+When the Chromium browser job fails, it uploads `.vitest/attachments/` as the
+`screenshot-diffs` artifact, with each `-actual` and `-diff` image. A missing
+baseline also fails CI, because Vitest doesn't write references when `CI` is
+set, so a new scenario lands with its baseline.
