@@ -94,13 +94,13 @@ import { Guideline, Guidelines } from '@/components/Guideline'
 
 ## Section applicability by category
 
-| Section       | Actions | Forms | Data Display | Typography | Layout | Navigation | Media |
-| ------------- | ------- | ----- | ------------ | ---------- | ------ | ---------- | ----- |
-| Default       | yes     | yes   | yes          | yes        | yes    | yes        | yes   |
-| Variants      | maybe   | maybe | maybe        | maybe      | maybe  | maybe      | maybe |
-| Emphasis      | yes     | yes   | yes          | yes        | no     | no         | no    |
-| Sizes         | yes     | yes   | yes          | yes        | no     | no         | no    |
-| Intents       | yes     | no    | yes          | yes        | no     | no         | no    |
-| States        | yes     | yes   | yes          | no         | no     | yes        | no    |
-| Composition   | no      | yes   | yes          | no         | no     | yes        | no    |
-| Accessibility | yes     | yes   | no           | no         | no     | yes        | no    |
+| Section       | Navigation | Layout | Actions | Fields | Choices | Date and time | Collections | Overlays | Status | Media & brand | Text  |
+| ------------- | ---------- | ------ | ------- | ------ | ------- | ------------- | ----------- | -------- | ------ | ------------- | ----- |
+| Default       | yes        | yes    | yes     | yes    | yes     | yes           | yes         | yes      | yes    | yes           | yes   |
+| Variants      | maybe      | maybe  | maybe   | maybe  | maybe   | maybe         | maybe       | maybe    | maybe  | maybe         | maybe |
+| Emphasis      | no         | no     | yes     | yes    | yes     | yes           | yes         | maybe    | yes    | no            | yes   |
+| Sizes         | no         | no     | yes     | yes    | yes     | yes           | yes         | maybe    | yes    | no            | yes   |
+| Intents       | no         | no     | yes     | no     | no      | no            | yes         | maybe    | yes    | no            | yes   |
+| States        | yes        | no     | yes     | yes    | yes     | yes           | yes         | maybe    | yes    | no            | no    |
+| Composition   | yes        | no     | no      | yes    | yes     | yes           | yes         | yes      | yes    | no            | no    |
+| Accessibility | yes        | no     | yes     | yes    | yes     | yes           | no          | yes      | no     | no            | no    |
