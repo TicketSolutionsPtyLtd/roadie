@@ -1,17 +1,29 @@
 name: Audit
 
-# Scheduled as well as per-PR: advisories are published upstream, so they land
-# with no matching diff. Threshold lives in pnpm-workspace.yaml under `audit:`.
+# Advisories land upstream with no matching diff, so a daily run on main
+# catches them and PRs only run when they change dependencies. A failed
+# scheduled run emails whoever last changed the cron line. Threshold lives in
+# pnpm-workspace.yaml under `audit:`.
 on:
   push:
     branches:
       - main
+    paths:
+      - '**/package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/audit.yml'
   pull_request:
     branches:
       - main
+    paths:
+      - '**/package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/audit.yml'
   schedule:
-    # Monday 06:00 Brisbane
-    - cron: '0 20 * * 0'
+    # Daily 06:00 Brisbane
+    - cron: '0 20 * * *'
   workflow_dispatch:
 
 permissions:
@@ -43,4 +55,15 @@ jobs:
       # needs no node_modules, so installing would cost a minute and run
       # dependency lifecycle scripts inside the job that checks them.
       - name: Audit dependencies
-        run: pnpm audit
+        shell: bash
+        run: |
+          status=0
+          pnpm audit > audit.txt 2>&1 || status=$?
+          cat audit.txt
+          {
+            echo '## pnpm audit'
+            echo '```'
+            cat audit.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
