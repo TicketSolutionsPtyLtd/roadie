@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { availableParallelism, constants } from 'node:os'
-import { join } from 'node:path'
+import { join, relative } from 'node:path'
 
 import {
   killGroup,
@@ -32,8 +32,21 @@ const allBrowsers = rest.includes('--all-browsers')
 const passThrough = rest.filter(
   (arg) => arg !== '--all' && arg !== '--all-browsers'
 )
-const files = passThrough.filter((arg) => existsSync(join(cwd, arg)))
-const vitestArgs = passThrough.filter((arg) => !files.includes(arg))
+const firstFlag = passThrough.findIndex((arg) => arg.startsWith('-'))
+const fileArgs =
+  firstFlag === -1 ? passThrough : passThrough.slice(0, firstFlag)
+const vitestArgs = firstFlag === -1 ? [] : passThrough.slice(firstFlag)
+
+function packageRelative(arg) {
+  if (existsSync(join(cwd, arg))) return arg
+  const fromRoot = relative(cwd, join(repoRoot, arg))
+  if (!fromRoot.startsWith('..') && existsSync(join(cwd, fromRoot)))
+    return fromRoot
+  console.error(`No such file in ${pkg}: ${arg}\n\n${usage}`)
+  process.exit(2)
+}
+
+const files = fileArgs.map(packageRelative)
 const maxWorkers = Math.max(1, Math.floor(availableParallelism() / 2))
 
 const selection = all
