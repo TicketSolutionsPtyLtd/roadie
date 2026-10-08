@@ -1,6 +1,6 @@
 import { matchesGlob, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { Reporter, TestCase } from 'vitest/node'
+import type { Reporter, TestCase, Vitest } from 'vitest/node'
 
 type Browser = 'chromium' | 'webkit' | 'firefox'
 
@@ -93,9 +93,41 @@ class FlakyReporter implements Reporter {
   }
 }
 
+// passWithNoTests keeps the quarantine job green, so flag an entry whose test
+// was renamed or deleted and now matches nothing.
+class UnmatchedQuarantineReporter implements Reporter {
+  private root = ''
+  private ran = new Set<string>()
+
+  onInit(vitest: Vitest) {
+    this.root = `${relative(REPO_ROOT, vitest.config.root)}/`
+  }
+
+  onTestCaseResult(testCase: TestCase) {
+    if (testCase.result().state === 'skipped') return
+    const file = relative(REPO_ROOT, testCase.module.moduleId)
+    this.ran.add(`${file}\0${testCase.fullName}`)
+  }
+
+  onTestRunEnd() {
+    for (const { file, test } of active) {
+      if (!file.startsWith(this.root) || this.ran.has(`${file}\0${test}`))
+        continue
+      console.log(
+        `::warning file=${file},title=Quarantined test not found::No test named "${test}" ran; update or remove its quarantine entry`
+      )
+    }
+  }
+}
+
 export const browserRunOptions = {
   ...quarantineFilter,
   ...(process.env.CI && {
-    reporters: ['default', 'github-actions', new FlakyReporter()]
+    reporters: [
+      'default',
+      'github-actions',
+      new FlakyReporter(),
+      ...(quarantineMode === 'only' ? [new UnmatchedQuarantineReporter()] : [])
+    ]
   })
 }

@@ -183,7 +183,9 @@ the PR only when the review is clean.
   fixed, however rare the case. A Minor one is fixed only if a real user
   would hit it in normal use; the rest become Jira follow-ups (section 9).
 - **Flaky tests**: a known flake may be re-run once. A flake seen on two
-  unrelated PRs gets fixed at its root in its own PR.
+  unrelated PRs gets fixed at its root in its own PR. Until then it can go on
+  the quarantine list in `vitest.browsers.config.ts`, with its ticket. CI
+  retries browser tests twice and flags any that pass on a retry.
 - If `main` moves under you, update the branch and wait for CI again,
   especially after changes to shared CSS or the lockfile.
 
