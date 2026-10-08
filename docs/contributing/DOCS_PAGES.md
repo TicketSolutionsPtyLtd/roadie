@@ -3,13 +3,13 @@
 Conventions for every page in `docs/src/app/`. Each page type has a template
 with its skeleton and the rules on top of these.
 
-| Page type                                | Template                                                   |
-| ---------------------------------------- | ---------------------------------------------------------- |
-| Component and chart                      | [`COMPONENT_DOC_TEMPLATE.md`](COMPONENT_DOC_TEMPLATE.md)   |
-| Foundation                               | [`FOUNDATION_DOC_TEMPLATE.md`](FOUNDATION_DOC_TEMPLATE.md) |
-| Brand                                    | [`BRAND_DOC_TEMPLATE.md`](BRAND_DOC_TEMPLATE.md)           |
-| Content (voice, tone, and grammar)       | [`CONTENT_DOC_TEMPLATE.md`](CONTENT_DOC_TEMPLATE.md)       |
-| Overview guides, such as Getting started | None, just these conventions                               |
+| Page type                          | Template                                                   |
+| ---------------------------------- | ---------------------------------------------------------- |
+| Component and chart                | [`COMPONENT_DOC_TEMPLATE.md`](COMPONENT_DOC_TEMPLATE.md)   |
+| Foundation                         | [`FOUNDATION_DOC_TEMPLATE.md`](FOUNDATION_DOC_TEMPLATE.md) |
+| Brand                              | [`BRAND_DOC_TEMPLATE.md`](BRAND_DOC_TEMPLATE.md)           |
+| Content (voice, tone, and grammar) | [`CONTENT_DOC_TEMPLATE.md`](CONTENT_DOC_TEMPLATE.md)       |
+| Overview guides and widgets        | None, just these conventions                               |
 
 ## MDX by default
 
@@ -30,13 +30,12 @@ with its skeleton and the rules on top of these.
 
 ## Metadata
 
-- `export const metadata = { title, description, category }` opens the file.
-  The layout renders `title` as the page's `h1`, so the body has no `#`
-  heading.
+- `export const metadata = { title, description }` opens the file. The layout
+  renders `title` as the page's `h1`, so the body has no `#` heading.
 - `description` is one sentence, shown on catalogue cards.
-- `category` is one of its catalogue's categories in
+- A catalogue page adds `category`, one of its catalogue's categories in
   `docs/src/lib/page-manifest.ts`. `order`, `hidden`, `alsoIn`, and `wide`
-  are optional, and component pages add `status`.
+  are optional, and component and widget pages add `status`.
 
 ## Prose and live examples
 
@@ -88,7 +87,8 @@ with its skeleton and the rules on top of these.
 
 - Edit `.mdx` by hand and never run Prettier on it. It rewrites the code in
   fences, so `.prettierignore` skips `docs/**/*.mdx`. Formatting `.md` is fine.
-- `pnpm --filter docs lint` checks MDX, including the code in fences.
+- `pnpm --filter docs lint` checks the MDX itself. Code in fences isn't linted
+  yet; a follow-up tracks it.
 - A skeleton here with nested fences sits in a four-backtick ` ````mdx `
   fence, which keeps them intact when the `.md` is formatted.
 
