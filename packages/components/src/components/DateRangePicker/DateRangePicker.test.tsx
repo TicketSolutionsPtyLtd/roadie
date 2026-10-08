@@ -339,11 +339,11 @@ describe('DateRangePicker', () => {
     it('suggests no ranges in the Start field', async () => {
       render(<DateRangePicker aria-label='Period' today={TODAY} />)
       const dialog = await open()
-      await userEvent.type(
-        within(dialog).getByRole('combobox', { name: 'Start' }),
-        'next week'
-      )
-      await new Promise((resolve) => setTimeout(resolve, 50))
+      const start = within(dialog).getByRole('combobox', { name: 'Start' })
+      await userEvent.type(start, 'next we')
+      const nextWed = await screen.findByRole('option', { name: /^Next Wed/ })
+      await userEvent.type(start, 'ek')
+      await vi.waitFor(() => expect(nextWed).not.toBeInTheDocument())
       expect(screen.queryByRole('option', { name: /^Next week/ })).toBeNull()
     })
 
@@ -358,8 +358,10 @@ describe('DateRangePicker', () => {
       const dialog = await open()
       const end = within(dialog).getByRole('combobox', { name: 'End' })
       await userEvent.clear(end)
-      await userEvent.type(end, 'tom')
-      await new Promise((resolve) => setTimeout(resolve, 50))
+      await userEvent.type(end, 't')
+      const tuesday = await screen.findByRole('option', { name: /^Tue/ })
+      await userEvent.type(end, 'om')
+      await vi.waitFor(() => expect(tuesday).not.toBeInTheDocument())
       expect(screen.queryByRole('option', { name: /^Tomorrow/ })).toBeNull()
       await userEvent.clear(end)
       await userEvent.type(end, 'next tue')
