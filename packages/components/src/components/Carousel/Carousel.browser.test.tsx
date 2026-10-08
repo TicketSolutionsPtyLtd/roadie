@@ -234,15 +234,17 @@ describe('Carousel autoplay', () => {
   function Autoplaying({
     width = 400,
     count = 3,
+    delay = 5000,
     onReInit = () => {}
   }: {
     width?: number
     count?: number
+    delay?: number
     onReInit?: () => void
   }) {
     return (
       <div style={{ width, margin: 32, display: 'grid', gap: 64 }}>
-        <Carousel aria-label='Shows' autoPlay={5000}>
+        <Carousel aria-label='Shows' autoPlay={delay}>
           <Carousel.Content overflow='hidden'>
             {Array.from({ length: count }, (_, index) => (
               <Carousel.Item key={index}>Show {index + 1}</Carousel.Item>
@@ -312,7 +314,7 @@ describe('Carousel autoplay', () => {
     await showing(2)
   })
 
-  it.each([
+  const holds: [string, () => unknown][] = [
     [
       'hovered',
       () => userEvent.hover(screen.getByText('Show 1'), { force: true })
@@ -321,7 +323,9 @@ describe('Carousel autoplay', () => {
       'focused',
       () => screen.getByRole('button', { name: 'Go to slide 1' }).focus()
     ]
-  ])(
+  ]
+
+  it.each(holds)(
     'holds through a reInit while %s, then moves on once left',
     async (_, hold) => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
@@ -334,6 +338,22 @@ describe('Carousel autoplay', () => {
       await leave()
       stillShowingFirst()
       await vi.advanceTimersByTimeAsync(5000)
+      await showing(2)
+    }
+  )
+
+  it.each(holds)(
+    'holds through a new delay while %s, then moves on once left',
+    async (_, hold) => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      const { rerender } = render(<Autoplaying />)
+      await dots(3)
+      await hold()
+      rerender(<Autoplaying delay={4000} />)
+      await vi.advanceTimersByTimeAsync(5000)
+      await leave()
+      stillShowingFirst()
+      await vi.advanceTimersByTimeAsync(4000)
       await showing(2)
     }
   )

@@ -247,31 +247,28 @@ export function CarouselRoot({
     }
   }, [api])
 
-  useEffect(() => {
-    if (!api) return
-    const plugin = api.plugins().autoplay
-    if (!plugin) return
-    if (userPausedRef.current) return
+  const playUnlessHeld = useCallback((emblaApi: EmblaCarouselType) => {
+    const plugin = emblaApi.plugins().autoplay
+    if (!plugin || userPausedRef.current) return
+    const region = emblaApi.rootNode().closest('[data-slot="carousel"]')
+    const held =
+      region?.matches(':hover') || region?.contains(document.activeElement)
+    if (held) return
     safePluginCall(plugin.play)
-  }, [api, plugins])
+  }, [])
+
+  useEffect(() => {
+    if (api) playUnlessHeld(api)
+  }, [api, plugins, playUnlessHeld])
 
   // Every reInit (slide count, resize, slide changes) destroys the plugin and stops its timer.
   useEffect(() => {
     if (!api) return
-    const resume = (emblaApi: EmblaCarouselType) => {
-      const plugin = emblaApi.plugins().autoplay
-      if (!plugin || userPausedRef.current) return
-      const region = emblaApi.rootNode().closest('[data-slot="carousel"]')
-      const held =
-        region?.matches(':hover') || region?.contains(document.activeElement)
-      if (held) return
-      safePluginCall(plugin.play)
-    }
-    api.on('reinit', resume)
+    api.on('reinit', playUnlessHeld)
     return () => {
-      api.off('reinit', resume)
+      api.off('reinit', playUnlessHeld)
     }
-  }, [api])
+  }, [api, playUnlessHeld])
 
   // Autoplay turning on or off resets play state, adjusted during render.
   const canAutoPlay = hasAutoPlay && !prefersReducedMotion
