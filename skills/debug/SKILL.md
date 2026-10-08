@@ -26,8 +26,8 @@ and PR workflow win over anything here.
   through the repo's load-gated runner, never `vitest` or the whole suite
   directly. In Roadie that's `pnpm test:gated <package> <file> -t '<name>'`,
   with the file relative to the package or the repo root. A path that doesn't
-  exist exits 2, and exit 124 means the run hit the runner's time limit, not
-  a test failure. A repo without a gated runner follows its own load rule.
+  exist exits 2, one no test covers exits 1, and exit 124 means the run hit
+  the runner's time limit, not a test failure. A repo without a gated runner follows its own load rule.
 - Use the right engine. jsdom can't decide layout, `calc()`, or container
   queries, so a browser bug needs the browser test, in the engine that failed
   (`--all-browsers` adds WebKit and Firefox). A CI-only failure may need CI's
