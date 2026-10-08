@@ -1,0 +1,22 @@
+# 0002 Copilot is a last resort and PRs stay draft until clean
+
+## Context
+
+PRs averaged about four Copilot rounds, and one took 27. Copilot kept finding
+what a local review could have found first.
+
+## Decision
+
+Our own two reviews run before the PR exists. PRs open as drafts, which
+Copilot skips, and are marked ready only when clean, so Copilot gets one
+pass. Each real Copilot finding is a gap in the local reviews.
+
+## Consequences
+
+PRs need fewer review rounds and commits. A Claude Code hook blocks PRs opened
+without the draft flag.
+
+## Links
+
+- [PR workflow, sections 6 and 7](../contributing/PR_WORKFLOW.md#6-review-before-the-pr-exists)
+- [`.claude/hooks/require-draft-pr.mjs`](../../.claude/hooks/require-draft-pr.mjs)
