@@ -331,6 +331,43 @@ Select\.Portal|Select\.Positioner|Select\.Popup
 
 **Fix:** Use `<button>` or Base UI `<Button>`.
 
+#### E6. Deprecated `LinkButton` / `LinkIconButton` imports [Warning]
+
+```
+\bLinkButton\b|\bLinkIconButton\b
+```
+
+Deprecated in v2.6 and removed in v3.0.0. See [Group I: Linking](#group-i-linking).
+
+**Fix:**
+- `<LinkButton href='/x'>` → `<Button href='/x'>`
+- `<LinkIconButton aria-label='Cart' href='/cart'>` → `<IconButton aria-label='Cart' href='/cart'>`
+- `<LinkButton as={Link} href='/x'>` → `<Button href='/x'>` with the router's Link passed to `RoadieProvider` once (I1)
+
+#### E7. Deprecated `as` prop on Card / Breadcrumb.Link / Carousel.TitleLink [Warning]
+
+```
+<Card[^>]*\bas=|<Breadcrumb\.Link[^>]*\bas=|<Carousel\.TitleLink[^>]*\bas=
+```
+
+Deprecated in v2.6 and removed in v3.0.0. `render` is the escape hatch, as on Base UI components.
+
+**Fix:**
+- `<Card as='button' onClick={…}>` → `<Card render={<button type='button' onClick={…} />}>`
+- `<Card as={MyLink} href='/x'>` → `<Card href='/x'>` (the provider routes it) or `<Card render={<MyLink href='/x' />}>`
+- `<Breadcrumb.Link as={CustomLink}>` → `<Breadcrumb.Link render={<CustomLink />}>`
+- `<Carousel.TitleLink as={Link} href='/x'>` → `<Carousel.TitleLink href='/x'>`
+
+#### E8. `IconButton` legacy `icon-*` size literals [Info]
+
+```
+size=['"]icon-(xs|sm|md|lg)['"]
+```
+
+Kept as a deprecated alias. New code uses `'xs' | 'sm' | 'md' | 'lg'`.
+
+**Fix:** `size='icon-sm'` → `size='sm'`, `size='icon-md'` → `size='md'`, and so on.
+
 ---
 
 ### Group F: Interactions
@@ -397,17 +434,17 @@ Check the main CSS entry point (usually `globals.css`, `app.css`, or `index.css`
 @import ['"]@oztix/roadie-core/css
 ```
 
-#### G2. Missing @source directive [Critical]
+#### G2. Missing package CSS imports [Critical]
 
-Same CSS file should contain a `@source` directive pointing to the Roadie components dist:
+Each Roadie package registers its own classes with Tailwind through its CSS entry, so the same file needs one import per package the app uses:
 
 ```
-@source.*roadie-components
+@import ['"]@oztix/roadie-(components|charts|widgets)/css
 ```
 
-The exact path depends on project structure, typically: `@source "../../node_modules/@oztix/roadie-components/dist";`
+Without it, Tailwind never sees the components' class strings and they render unstyled.
 
-**Fix:** Add after the Roadie CSS import. Adjust the relative path to point to `node_modules/@oztix/roadie-components/dist`.
+**Fix:** Add `@import '@oztix/roadie-components/css';` after the core import, plus `/charts/css` and `/widgets/css` if used. An old `@source "…/node_modules/@oztix/roadie-components/dist"` line is no longer needed.
 
 ---
 
@@ -694,6 +731,72 @@ the `iso` style, which has no offset and uses a space rather than a `T`.
 
 ---
 
+### Group I: Linking
+
+Every link-bearing component takes `href`, and `RoadieProvider` at the app root routes internal hrefs through the app's router. These checks flag the old patterns and wiring gaps.
+
+#### I1. Missing `RoadieProvider` at the app root [Critical]
+
+Check the root layouts (`app/layout.tsx`, `app/providers.tsx`, `pages/_app.tsx`) for:
+
+```
+RoadieProvider|RoadieLinkProvider
+```
+
+Without it, every internal `<Button href='/x'>` renders a plain `<a>`: a full page load with no client routing or prefetch.
+
+**Fix:** mount it once in a `'use client'` providers file around the root layout's children:
+
+```tsx
+import NextLink from 'next/link'
+import { RoadieProvider } from '@oztix/roadie-components'
+
+<RoadieProvider link={NextLink}>{children}</RoadieProvider>
+```
+
+Skip this for apps with no client router.
+
+#### I2. Manual `target` / `rel` on Roadie components [Warning]
+
+```
+<(Button|IconButton|Card|Breadcrumb\.Link|Carousel\.TitleLink|Tabs\.Tab)[^>]*target=
+```
+
+External hrefs (`http(s)://`, `//`) already get `target='_blank' rel='noopener noreferrer'`.
+
+**Fix:** drop the props. Keep them only to override, such as `target='_self'` or a `nofollow` rel.
+
+#### I3. Raw external anchor on a button-shaped surface [Warning]
+
+```
+<a[^>]*\btarget=['"]_blank['"][^>]*\brel=
+```
+
+**Fix:** `<Button href={…}>` or `<IconButton href={…}>`. Keep raw anchors for inline prose links.
+
+#### I4. `<Button onClick>` doing only navigation [Info]
+
+```
+<Button[^>]*onClick=\{[^}]*(navigate|router\.push|window\.location|history\.push)
+<IconButton[^>]*onClick=\{[^}]*(navigate|router\.push|window\.location|history\.push)
+```
+
+A link shows its destination on hover, opens in a new tab on cmd-click and routes through the provider.
+
+**Fix:** `<Button onClick={() => router.push('/x')}>` → `<Button href='/x'>`. Keep `onClick` for real side effects.
+
+#### I5. Text colour classes that don't exist [Critical]
+
+```
+\btext-(danger|success|warning|info|brand|accent)([^-\w]|$)
+```
+
+Roadie's text colours are `text-{normal,subtle,subtler,strong,inverted,on-strong,mark}`. These classes do nothing, so an error message silently looks like body copy.
+
+**Fix:** set the intent and use a Roadie text colour: `<p className='text-danger'>` → `<p className='intent-danger text-strong'>`, or `intent-danger` on a parent.
+
+---
+
 ## Reporting format
 
 ```
@@ -746,6 +849,11 @@ the `iso` style, which has no offset and uses a space rather than a `T`.
 | `style={{ flexShrink: 0 }}` | `shrink-0` | F2 |
 | `style={{ flexGrow: 1 }}` | `grow` | F2 |
 | `<div onClick={...}>` | `<button onClick={...}>` | E5 |
+| `<LinkButton href='/x'>` | `<Button href='/x'>` | E6 |
+| `<Card as={Link} href='/x'>` | `<Card href='/x'>` | E7 |
+| `size='icon-md'` | `size='md'` | E8 |
+| `<Button onClick={() => router.push('/x')}>` | `<Button href='/x'>` | I4 |
+| `text-danger` | `intent-danger text-strong` | I5 |
 | `hover:bg-* + focus:ring-*` on button | `is-interactive` | F1 |
 | `emphasis-sunken border border-subtle` on a field | `emphasis-field` | F3 |
 | `toLocaleDateString()` in JSX | `<DateTime at={d} timeZone={tz} />` | H1 |
@@ -786,6 +894,9 @@ Run independent checks in parallel by issuing multiple Grep calls in a single me
 - D1: `<h[1-6]` (then check for `text-display-` in results)
 - E2: `colorPalette=`
 - E4: `Select\.Portal|Select\.Positioner|Select\.Popup`
+- E6: `\bLinkButton\b|\bLinkIconButton\b`
+- E7: `<(Card|Breadcrumb\.Link|Carousel\.TitleLink)[^>]*\bas=`
+- E8: `size=['"]icon-(xs|sm|md|lg)['"]`
 - F2: `style=\{\{`
 - F3: `emphasis-sunken[^"'\n]*border|border[^"'\n]*emphasis-sunken|is-interactive-field` (then check each field for `emphasis-field`)
 
@@ -813,7 +924,14 @@ and the rule says what to rule out by eye.
 
 **Batch 5** (setup — check CSS files only):
 - G1: `@import.*roadie-core`
-- G2: `@source.*roadie-components`
+- G2: `@import.*roadie-(components|charts|widgets)/css`
+
+**Batch 6** (linking):
+- I1: `RoadieProvider|RoadieLinkProvider` (in root layouts; flag when absent)
+- I2: `<(Button|IconButton|Card|Breadcrumb\.Link|Carousel\.TitleLink|Tabs\.Tab)[^>]*target=`
+- I3: `<a[^>]*\btarget=['"]_blank['"][^>]*\brel=`
+- I4: `onClick=\{[^}]*(navigate|router\.push|window\.location|history\.push)`
+- I5: `\btext-(danger|success|warning|info|brand|accent)([^-\w]|$)`
 
 ## Fixing strategy
 
@@ -824,3 +942,4 @@ and the rule says what to rule out by eye.
 - When fixing raw scale references (A2), identify the intent context first. If inside an `intent-*` ancestor, only the emphasis/bg/text class is needed
 - When removing `colorPalette` (E2), also check if the component still uses other v1 patterns — flag for broader migration if so
 - For headings (D1), choose `text-display-ui-*` for UI headings and `text-display-prose-*` for content headings
+- When migrating links (E6, E7, I1 to I4), mount the provider (I1) first. Without it every `<Button href='/x'>` renders a plain `<a>`
