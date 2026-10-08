@@ -58,7 +58,8 @@
     "docs"
   ],
   "lint-staged": {
-    "*.{ts,tsx,js,jsx,mjs,cjs}": "eslint --fix --no-warn-ignored --flag v10_config_lookup_from_file",
+    "*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}": "eslint --fix --no-warn-ignored --flag v10_config_lookup_from_file",
+    "*.mdx": "eslint --no-warn-ignored --flag v10_config_lookup_from_file",
     "*": "prettier --write --ignore-unknown"
   }
 }
