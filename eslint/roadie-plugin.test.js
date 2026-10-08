@@ -42,12 +42,15 @@ const cases = {
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='bold' />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='fill' />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={selected ? 'fill' : 'bold'} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={iconWeight} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon {...iconProps} />"
     ],
     invalid: [
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='regular' />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={'regular'} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={`thin`} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={selected ? 'fill' : 'regular'} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={iconWeight ?? 'thin'} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon />"
     ]
   },

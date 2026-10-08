@@ -99,6 +99,25 @@ function staticString(node) {
   return undefined
 }
 
+// A selected state picks its weight at runtime, so only the literal
+// branches of a ternary or fallback can be checked.
+function staticBranches(node) {
+  if (node?.type === 'JSXExpressionContainer') {
+    return staticBranches(node.expression)
+  }
+  if (node?.type === 'ConditionalExpression') {
+    return [
+      ...staticBranches(node.consequent),
+      ...staticBranches(node.alternate)
+    ]
+  }
+  if (node?.type === 'LogicalExpression') {
+    return [...staticBranches(node.left), ...staticBranches(node.right)]
+  }
+  const value = staticString(node)
+  return value === undefined ? [] : [value]
+}
+
 function iconAttribute(icons, attributeName, report) {
   return {
     JSXAttribute(node) {
@@ -173,8 +192,8 @@ const rules = {
           })
           return
         }
-        const value = staticString(weight.value)
-        if (value !== undefined && !ICON_WEIGHTS.has(value)) {
+        for (const value of staticBranches(weight.value)) {
+          if (ICON_WEIGHTS.has(value)) continue
           context.report({
             node: weight,
             message: `Use weight bold, or fill or duotone where those apply, not ${value}. See ${DOCS}/foundations/iconography.`
