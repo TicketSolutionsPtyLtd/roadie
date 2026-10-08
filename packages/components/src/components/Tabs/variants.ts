@@ -49,7 +49,7 @@ export const tabsListVariants = cva(
   }
 )
 
-// `relative z-[1]` keeps the tab text and any focus ring above the
+// `relative z-1` keeps the tab text and any focus ring above the
 // indicator pill that sits behind it. The active text colour shifts
 // per emphasis: `text-strong` for raised/tinted/underline pills,
 // `text-on-strong` for the `emphasis-strong` pill so the label
@@ -64,7 +64,7 @@ export const tabsListVariants = cva(
 // shrink, so a crowded list scrolls instead of squashing it.
 export const tabsTabVariants = cva(
   [
-    'is-interactive relative z-[1]',
+    'is-interactive relative z-1',
     'inline-flex items-center gap-1.5',
     'justify-center data-[orientation=vertical]:justify-start',
     'font-semibold whitespace-nowrap',

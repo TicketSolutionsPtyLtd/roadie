@@ -164,7 +164,7 @@ export const navigatorPrimaryPillVariants = cva(
 // `translate` has no logical form, so `rtl:` mirrors every horizontal travel.
 export const navigatorTabVariants = cva(
   [
-    'is-interactive relative z-[1] min-w-0 overflow-hidden rounded-full',
+    'is-interactive relative z-1 min-w-0 overflow-hidden rounded-full',
     // Every presentation carries the same border so the row never changes height.
     'border border-transparent',
     'grid justify-items-center text-subtle',
@@ -279,7 +279,7 @@ export const navigatorItemTrailingClass =
 // Margins, not `gap`, so the zero-width label column can't squeeze the icon.
 export const navigatorItemVariants = cva(
   [
-    'is-interactive relative z-[1] grid h-12 w-full grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center rounded-full px-3 text-start text-subtle',
+    'is-interactive relative z-1 grid h-12 w-full grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center rounded-full px-3 text-start text-subtle',
     'navigator-expanded:text-sm navigator-expanded:font-semibold'
   ],
   {

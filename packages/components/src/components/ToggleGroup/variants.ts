@@ -22,7 +22,7 @@ export const toggleGroupVariants = cva(
 
 export const toggleGroupItemVariants = cva(
   [
-    'is-interactive relative z-[1]',
+    'is-interactive relative z-1',
     'inline-flex items-center justify-center gap-1.5',
     'rounded-full font-semibold whitespace-nowrap select-none',
     'text-subtle hover:text-normal',

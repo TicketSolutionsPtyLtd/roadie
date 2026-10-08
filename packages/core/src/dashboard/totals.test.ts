@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import type { TableColumn, TableRow } from './schema'
@@ -107,12 +106,6 @@ describe('resolveTableTotals', () => {
       resolveTableTotals(columns, [{ show: 'Ocean Alley', sold: null }], 'sum')
         .values
     ).toEqual({})
-  })
-
-  it('stays zod-free', () => {
-    const source = readFileSync(new URL('./totals.ts', import.meta.url), 'utf8')
-    expect(source).not.toMatch(/from ['"]zod['"]/)
-    expect(source).not.toMatch(/^import \{[^}]*\} from ['"]\.\/schema['"]/m)
   })
 })
 

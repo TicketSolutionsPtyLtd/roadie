@@ -116,9 +116,8 @@ Each rule has a foundations page with the detail.
 - Every link-bearing component takes `href`. Internal hrefs route through the
   Link given to `RoadieProvider`, external ones open in a new tab, and no `href`
   on a button-shaped component renders a `<button>`.
-- Never import `next/link` inside `packages/`. `render` is the escape hatch and
-  wins over `href`. `List.Item`, `Menu.Item`, and the Navigator items are
-  `href`-only.
+- `render` is the escape hatch and wins over `href`. `List.Item`, `Menu.Item`,
+  and the Navigator items are `href`-only.
 - `Field` wraps every form control and owns `invalid`, `required`, and
   `disabled`. Use `Field.Label showIndicator`, `Field.ErrorText`,
   `Field.HelperText`, and `Select.Content`.
