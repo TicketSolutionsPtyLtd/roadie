@@ -38,6 +38,9 @@ type CodePreviewProps = {
   eager?: boolean
 }
 
+// MDX's `.prose` sets the rhythm there; the docs' own pages need the gap.
+const BLOCK_SPACING = 'mb-8 in-[.prose]:mb-0'
+
 /** What a live example shows until it renders: a reserved preview and its static code. */
 function LivePlaceholder({
   code,
@@ -61,7 +64,10 @@ function LivePlaceholder({
   return (
     <>
       {expandable && (
-        <div className='flex justify-end border-b border-subtle bg-normal p-2 max-md:hidden'>
+        <div
+          data-not-prose
+          className='flex justify-end border-b border-subtle bg-normal p-2 max-md:hidden'
+        >
           <Button size='sm' emphasis='subtler' disabled>
             <ArrowsOutIcon weight='bold' className='size-4' />
             Full width
@@ -101,13 +107,15 @@ function LiveExample({
   language,
   expandable,
   exampleHref,
-  eager
+  eager,
+  typesets
 }: {
   code: string
   language: string
   expandable: boolean
   exampleHref?: string
   eager: boolean
+  typesets: boolean
 }) {
   const [ref, near, onMounted] = useNearViewport<HTMLDivElement>(
     eager,
@@ -133,7 +141,10 @@ function LiveExample({
   return (
     <div
       ref={ref}
-      className='relative mb-8 min-w-0 overflow-hidden rounded-xl border border-subtle'
+      // A `.prose` inside an escape stays unstyled, so a typesetting demo
+      // escapes only its chrome, inside LiveRunner and CodePanel.
+      data-not-prose={!typesets || undefined}
+      className={`relative ${BLOCK_SPACING} min-w-0 overflow-hidden rounded-xl border border-subtle`}
     >
       {near ? (
         <Suspense fallback={placeholder}>
@@ -176,14 +187,17 @@ export function CodePreview({
         expandable={expandable || /-expand\b/.test(language)}
         exampleHref={exampleHref}
         eager={eager}
+        typesets={/-prose\b/.test(language)}
       />
     )
   }
 
   return (
     <div
+      data-not-prose
       className={
-        className ?? 'relative mb-8 min-w-0 rounded-lg emphasis-sunken'
+        className ??
+        `relative ${BLOCK_SPACING} min-w-0 rounded-lg emphasis-sunken`
       }
     >
       <CodePanel

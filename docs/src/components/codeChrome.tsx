@@ -198,7 +198,7 @@ export function CodePanel({
   const collapsible = canCollapse(code)
   const collapsed = collapsible && !expanded
   return (
-    <>
+    <div data-not-prose>
       <div className='relative min-w-0' style={collapseStyle(collapsed)}>
         {showActions && <CodeActions code={code} exampleHref={exampleHref} />}
         {children}
@@ -212,6 +212,6 @@ export function CodePanel({
       {collapsible && expanded && (
         <ViewCodeShade expanded onToggle={() => onExpandedChange(false)} />
       )}
-    </>
+    </div>
   )
 }
