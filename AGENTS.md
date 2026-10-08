@@ -147,6 +147,9 @@ These rules aren't on those pages.
 - Anything CSS decides goes in a `*.browser.test.tsx`, which runs in Chromium,
   WebKit, and Firefox. jsdom can't evaluate `calc()` or container queries, so
   don't assert rule text there.
+- Iterate on one file with `pnpm test:gated <package> <file>` (a package or
+  repo path; load-gated, Chromium only), never `vitest` or the whole suite
+  directly.
 - Dev-only warnings check `process.env.NODE_ENV` behind a
   `typeof process !== 'undefined'` guard
   ([why](docs/solutions/build-errors/cross-bundler-dev-env-check.md)).

@@ -24,15 +24,54 @@ implementer needs to write the code; `PR_WORKFLOW.md` holds the process.
 
 ## Code
 
-- **Test at the public interface.** Assert behaviour, roles, and states, not
-  class strings or internals. A test that asserts a CVA class name breaks on a
-  refactor that changes nothing a user sees.
 - **Public CVA props are inline literal unions**, never
   `VariantProps<…>['key']`, or the prop drops out of the docs' props table
   ([why](../solutions/build-errors/react-docgen-cva-literal-props.md)). Prefer
   `type X = Base & { … }` to `interface extends` for subcomponent props.
 - **An unneeded comment is an Important finding.** Comment only what the code
   can't say, in one terse line.
+
+## Tests
+
+Every test must be able to fail for a reason a user would notice.
+
+- **Test at the public interface.** A component's props, roles, keyboard
+  paths, and ARIA states; a pure function's inputs and outputs; a CSS
+  utility's computed style. Query by role, then label, then text, and by
+  test id only as a last resort. Renaming an internal never breaks a test.
+- **Each test sets up its own state and passes alone.**
+- **Name the capability, and take expected values from the spec.** A test
+  name says what someone can do. Expected values are literals or come from
+  the spec, never recomputed with the code under test or the palette's own
+  formula.
+- **Don't restate the implementation.** Never assert that a CVA function's
+  output contains a literal from its own map, or what a source or `.css` file
+  says. Class assertions are fine only for Roadie's public utilities
+  (`intent-*`, `emphasis-*`, `is-interactive*`). `Compound === Compound.Root`
+  stays: `COMPOUND_PATTERNS.md` promises the same reference.
+- **Choose the cheapest test that can fail.** Pure logic gets a unit test,
+  and behaviour that doesn't depend on layout stays in jsdom. A browser test
+  is only for what CSS or the browser itself decides: computed spacing and
+  size, measure, `calc()`, container and media queries, `:has()`, touch
+  versus hover, transitions, engine differences, and real pointer input such
+  as drag and drop.
+- **What CSS decides is measured in a real browser.** Use computed style or
+  geometry in `*.browser.test.tsx`. Anything that needs
+  `getBoundingClientRect`, `ResizeObserver`, or a root font size goes there
+  too, rather than faking layout in jsdom. Never use a browser that doesn't
+  render (Lightpanda and the like), where a layout test passes without
+  checking anything.
+- **Mock only system boundaries:** time (fake timers or a `today` or `now`
+  input), randomness, the network, and browser APIs jsdom lacks. Never mock
+  Base UI, motion, Roadie, or the repo's own modules; mock the network under
+  them instead.
+- **Wait for a state, not a time.** Use `waitFor`, `expect.poll`, or an
+  animation's `finished`. To prove something didn't happen, wait for a
+  positive signal first or advance fake timers past the exact debounce,
+  never a fixed sleep.
+- **Every public prop that changes behaviour has a test** through rendered
+  output, including `locale`, `timeZone`, `weekStart`, and callbacks.
+- **No unread snapshots.** Assert the part that matters instead.
 
 ## Docs
 

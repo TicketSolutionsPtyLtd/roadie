@@ -11,6 +11,7 @@ These skills ship as a Claude Code plugin. Installing the plugin makes them avai
 | `audit`  | `/roadie:audit`  | Scan a codebase for Roadie compliance (hardcoded colours, wrong layout, icon misuse, deprecated props, and missing setup), and optionally fix.                                                      |
 | `pr`     | `/roadie:pr`     | Write or update a PR description from the host repo's template, with Evidence and Merge danger (one-way or two-way door, plus blast radius). Keeps existing content.                                |
 | `review` | `/roadie:review` | Review a branch or PR in a fresh subagent for conventions, bugs, and test quality, using the host repo's `AGENTS.md` and `CODING_STANDARDS.md`. Commits fixes and comments only on judgement calls. |
+| `test`   | `/roadie:test`   | Write tests first, one at a time, at the public interface, using the host repo's `AGENTS.md` and `CODING_STANDARDS.md`. Avoids tests that can't fail.                                               |
 
 More skills coming (e.g. a `build`/`ui` skill for scaffolding new UI with Roadie primitives).
 
