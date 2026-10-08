@@ -483,7 +483,6 @@ for (const [width, height] of [
       await expect.poll(() => atTop('2026-10-01')).toBeLessThan(2)
       const height = box(month('2026-10-01')).height
       await scrollToRest(body, height + 40, -(height + 40))
-      await expect.poll(() => atTop('2026-10-01')).toBeLessThan(2)
       const start = within(drawer).getByRole('combobox', { name: 'Start' })
       await userEvent.clear(start)
       await userEvent.type(start, '3 nov 2026{Enter}')

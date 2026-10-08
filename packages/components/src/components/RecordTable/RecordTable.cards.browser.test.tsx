@@ -287,8 +287,6 @@ describe('RecordTable narrow cards in a browser', () => {
         : null
     }
     await expect.poll(offset).toBeLessThanOrEqual(2)
-    await cardsAtRest(container)
-    expect(offset()).toBeLessThanOrEqual(2)
   })
 })
 

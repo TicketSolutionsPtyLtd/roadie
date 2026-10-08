@@ -295,10 +295,11 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     await settled()
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await tapOn(input)
-    await userEvent.type(input, 'li')
+    await userEvent.type(input, 'o')
     const option = await screen.findByRole('option', {
       name: 'Lighthouse Fig Lawn'
     })
+    const other = screen.getByRole('option', { name: 'Opal Harpoon Room' })
     await settled()
     onValueChange.mockClear()
     option.dispatchEvent(new PointerEvent('pointerdown', touchAt(option, 10)))
@@ -306,8 +307,16 @@ describe('A touch on a suggestion', TIMEOUT, () => {
       new PointerEvent('pointermove', touchAt(option, 10, 60))
     )
     option.dispatchEvent(new PointerEvent('pointerup', touchAt(option, 10, 60)))
-    // A lift chooses while it's handled; only the field's text follows later.
-    expect(onValueChange).not.toHaveBeenCalled()
+    // A still tap after it chooses, so the list was still open to choose.
+    other.dispatchEvent(new PointerEvent('pointerdown', touchAt(other, 13)))
+    other.dispatchEvent(new PointerEvent('pointerup', touchAt(other, 13)))
+    await expect
+      .poll(() =>
+        onValueChange.mock.calls
+          .filter(([, details]) => details.reason === 'item-press')
+          .map(([value]) => value)
+      )
+      .toEqual(['Opal Harpoon Room'])
   })
 
   it('chooses a lone touch that says it is not the primary pointer', async () => {

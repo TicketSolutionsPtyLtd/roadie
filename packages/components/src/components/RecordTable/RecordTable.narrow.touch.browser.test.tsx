@@ -100,6 +100,7 @@ describe.each([
       // The swipe returns once the browser has handled its lift.
       await commands.swipe(from, { x: from.x, y: from.y - 200 })
       await expect.poll(() => box.scrollTop).toBeGreaterThan(0)
+      // Fails if a record selects on press rather than on its click.
       expect(screen.queryByRole('group', { name: 'Bulk actions' })).toBeNull()
     }
   )

@@ -144,13 +144,13 @@ describe('Toast.Progress', () => {
     ending.observe(element, { attributeFilter: ['data-ending-style'] })
     onTestFinished(() => ending.disconnect())
     await landed()
-    // Read while running, as a paused animation has no start time.
-    const runsOutAt = Number(animation.startTime) + 2000
+    // A twin that never pauses, started with the bar while it still has a
+    // start time, finishes where an unpaused bar would have run out.
+    const unpaused = document.body.animate(null, { duration: 2000 })
+    unpaused.startTime = animation.startTime
+    onTestFinished(() => unpaused.cancel())
     await hover(true)
-    // Held past where an unpaused bar would have run out.
-    await expect
-      .poll(() => Number(document.timeline.currentTime), { timeout: 10_000 })
-      .toBeGreaterThan(runsOutAt)
+    await unpaused.finished
     expect(animation.playState).toBe('paused')
     await hover(false)
 
@@ -161,14 +161,8 @@ describe('Toast.Progress', () => {
       },
       { timeout: 10_000 }
     )
-    let ranOut: number | null | undefined
-    void done.then((at) => (ranOut = at))
-    await expect
-      .poll(() => ranOut, {
-        timeout: 2000,
-        message: 'the bar did not run out with the toast'
-      })
-      .toBeTypeOf('number')
+    const ranOut = await done
+    expect(ranOut, 'the bar did not run out with the toast').not.toBeNull()
     expect(Math.abs(left - ranOut!)).toBeLessThan(400)
   })
 
