@@ -1,0 +1,157 @@
+export const metadata = {
+  title: 'Prose styles',
+  description:
+    'The .prose class: typeset raw HTML from a CMS, Markdown, or MDX with Roadie type, rhythm, and a readable measure.',
+  category: 'Content'
+}
+
+Rich text from a CMS, Markdown, or MDX arrives as bare HTML elements with no
+classes. Add `.prose` to the element that holds it, and the headings,
+paragraphs, lists, tables, code, quotes, rules, figures, and keys inside are
+styled from Roadie tokens. The class ships in `@oztix/roadie-core/css`, so it
+needs no import of its own.
+
+```tsx-live
+<article className='prose'>
+  <h2>Ochre Kite Weekender 2026</h2>
+  <p>
+    Gates open at <strong>11am</strong> on Saturday. Bring a printed or{' '}
+    <a href='#'>mobile ticket</a>, and press <kbd>Ctrl</kbd> + <kbd>P</kbd> to
+    print yours.
+  </p>
+  <h3>What to bring</h3>
+  <ul>
+    <li>
+      Photo ID for the bar
+      <ul>
+        <li>A licence or passport</li>
+        <li>A proof of age card</li>
+      </ul>
+    </li>
+    <li>Sunscreen and a refillable bottle</li>
+  </ul>
+  <blockquote>
+    <p>Re-entry closes at 9pm.</p>
+  </blockquote>
+  <p>
+    Set <code>data-ticket</code> on the scanner link to open the right wallet.
+  </p>
+  <pre>
+    <code>{`curl https://example.com/tickets/ochre-kite`}</code>
+  </pre>
+  <hr />
+  <p>Questions go to the festival help desk.</p>
+</article>
+```
+
+Element rules sit inside `:where()` in the components layer. A utility on a
+child, such as `text-subtle` on a paragraph, always wins over the sheet.
+
+## Rhythm
+
+Space only goes above an element, never below, so a block's first child sits
+flush with the top of its container. Every gap is in `em` and derives from
+`--prose-flow`, which is `1.25em` by default. Headings get more space above
+than below, so each one reads as part of the section it opens.
+
+## Measure
+
+Each direct child of `.prose` is capped at `--prose-measure`, which is `65ch`
+by default. The property is registered, so `ch` resolves once, at the prose
+body size, rather than at each heading's size. Set it to another length to
+change the cap, or to `none` to remove it.
+
+Add `.prose-bleed` to a direct child that should span the full width, such as
+a wide image or a table.
+
+```tsx-live
+<div className='prose [--prose-measure:32ch]'>
+  <p>
+    This paragraph stops at the measure, which this example sets to 32ch so the
+    cap shows in a narrow preview.
+  </p>
+  <p className='prose-bleed'>
+    This paragraph has the bleed class, so it runs the full width of its
+    container.
+  </p>
+</div>
+```
+
+## Tables
+
+Tables shrink to fit their content. Wrap a table that might be wider than its
+container in `.prose-scroll`, which scrolls sideways instead of overflowing
+the page.
+
+```tsx-live
+<div className='prose'>
+  <div className='prose-scroll'>
+    <table>
+      <thead>
+        <tr>
+          <th>Session</th>
+          <th>Stage</th>
+          <th>Doors</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Feathered Anchor Sessions</td>
+          <td>Main</td>
+          <td>7:30pm</td>
+        </tr>
+        <tr>
+          <td>Lampshade Disco</td>
+          <td>Tent</td>
+          <td>10:00pm</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+```
+
+## Opting out
+
+Add `.not-prose` or `data-not-prose` to an element inside `.prose` to keep the
+sheet away from it and everything inside it. Use it around components,
+previews, and anything else that brings its own styles. An escaped direct
+child still takes its place in the rhythm.
+
+```tsx-live
+<div className='prose'>
+  <p>This paragraph is typeset.</p>
+  <div className='not-prose grid gap-1 rounded-xl emphasis-raised p-4'>
+    <p className='text-display-ui-6 text-strong'>A card keeps its own styles</p>
+    <ul>
+      <li>No bullets or indent here</li>
+    </ul>
+  </div>
+</div>
+```
+
+A `.prose` inside an escaped element stays unstyled, so put the escape around
+the parts that need it, not around a whole region that also holds prose.
+
+## Variables
+
+Set these on the `.prose` element, or on any element inside it, to adjust the
+type without new classes.
+
+| Variable | Default | Sets |
+|----------|---------|------|
+| `--prose-size` | `var(--text-base)` | Body font size |
+| `--prose-leading` | `var(--leading-prose)` | Body line height |
+| `--prose-flow` | `1.25em` | The gap every other gap derives from |
+| `--prose-measure` | `65ch` | Maximum width of each direct child |
+| `--prose-h1-size` to `--prose-h6-size` | The `text-display-prose-1` to `-6` sizes | Heading font sizes |
+| `--prose-h1-weight` to `--prose-h6-weight` | The `text-display-prose-1` to `-6` weights | Heading font weights |
+
+## Colour and dark mode
+
+Colours come from the intent tokens, so `.prose` follows the intent and the
+light or dark scheme it sits in, with no rules of its own for dark mode. Links
+inherit the text colour with an accent underline. Under forced colours, inline
+code and code blocks get a border.
+
+The sheet borrows its approach from typeset.css by shadcn, under the MIT licence.

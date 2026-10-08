@@ -50,8 +50,11 @@ export const TOKEN_FAMILY_PAGES: Record<TokenFamily, TokenFamilyPage> = {
   typography: {
     title: 'Typography',
     href: '/tokens/typography',
-    aliases: 'font size heading display body leading tracking',
-    guidance: [foundation('Typography', 'typography')]
+    aliases: 'font size heading display body leading tracking prose',
+    guidance: [
+      foundation('Typography', 'typography'),
+      foundation('Prose styles', 'prose')
+    ]
   },
   elevation: {
     title: 'Elevation and layering',
@@ -131,6 +134,8 @@ export const GROUP_NOTES: Record<string, string> = {
   'Display styles':
     'Size, weight, leading and tracking for headings, in UI and prose flavours.',
   'Body styles': 'Composed body text for interfaces, prose and code.',
+  Prose:
+    'The .prose class, and the variables that set its size, rhythm, measure, and headings.',
   Shadows: 'Tinted by the surrounding intent. Inset shadows recess a surface.',
   'Rim light': 'A top-edge highlight that lifts a raised or strong surface.',
   Sheen: 'The shade and highlight a loading placeholder sweeps between.',

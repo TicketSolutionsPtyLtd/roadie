@@ -129,6 +129,22 @@ export function FoundationPreview({ name }: { name: string }) {
           <Skel className='h-2 w-24' />
         </div>
       )
+    case 'prose':
+      return (
+        <div className='grid w-40 gap-1.5'>
+          <p className='text-sm/none font-bold text-strong'>Heading</p>
+          <Skel className='h-1.5 w-full' />
+          <Skel className='h-1.5 w-32' />
+          <div className='grid gap-1.5 ps-2'>
+            {['w-24', 'w-28'].map((width) => (
+              <div key={width} className='flex items-center gap-1.5'>
+                <div className='size-1 shrink-0 rounded-full bg-strong/40' />
+                <Skel className={`h-1.5 ${width}`} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )
     case 'layout':
       return (
         <div className='grid w-40 grid-cols-3 gap-1.5'>
