@@ -22,5 +22,5 @@
     "**/*.mdx",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "out", ".next", "dist", "roadie-core"]
+  "exclude": ["node_modules", "out", ".next", "dist", "roadie-core", "scripts"]
 }

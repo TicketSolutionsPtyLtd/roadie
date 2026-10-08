@@ -1,0 +1,233 @@
+import type {
+  BlockContent,
+  Code,
+  Paragraph,
+  PhrasingContent,
+  Root,
+  RootContent
+} from 'mdast'
+import type {
+  MdxJsxAttribute,
+  MdxJsxFlowElement,
+  MdxJsxTextElement
+} from 'mdast-util-mdx-jsx'
+import remarkGfm from 'remark-gfm'
+import remarkMdx from 'remark-mdx'
+import remarkParse from 'remark-parse'
+import remarkStringify from 'remark-stringify'
+import { unified } from 'unified'
+
+/** The subset of a `roadie.manifest.json` component that a page's API reference needs. */
+export type ManifestProp = {
+  name: string
+  type: string
+  required?: true
+  default?: string
+  description?: string
+  deprecated?: string
+}
+
+export type ManifestPart = {
+  name: string
+  description?: string
+  props: ManifestProp[]
+}
+
+export type ManifestComponent = ManifestPart & {
+  import: string
+  docs?: string
+  parts?: ManifestPart[]
+}
+
+export type MarkdownPage = {
+  title: string
+  description?: string
+  mdx: string
+  /** Components whose `docs` URL is this page, rendered once, where the page first places `PropsDefinitions`. */
+  components?: ManifestComponent[]
+  /** Rewrites a root-relative docs link, such as `/components/field#states`. */
+  resolveLink?: (href: string) => string
+}
+
+type JsxElement = MdxJsxFlowElement | MdxJsxTextElement
+type Node = Root | RootContent
+
+const LIVE_FENCE = /^(tsx|jsx)-live$/
+
+const text = (value: string): PhrasingContent => ({ type: 'text', value })
+const strong = (value: string): PhrasingContent => ({
+  type: 'strong',
+  children: [text(value)]
+})
+const paragraph = (...children: PhrasingContent[]): Paragraph => ({
+  type: 'paragraph',
+  children
+})
+const tsx = (value: string): Code => ({ type: 'code', lang: 'tsx', value })
+
+function attribute(node: JsxElement, name: string) {
+  const attr = node.attributes.find(
+    (a): a is MdxJsxAttribute => a.type === 'mdxJsxAttribute' && a.name === name
+  )
+  if (!attr || attr.value === null || attr.value === undefined) return undefined
+  return typeof attr.value === 'string' ? attr.value : attr.value.value
+}
+
+function dedent(source: string) {
+  const lines = source.replace(/^\s*\n|\s+$/g, '').split('\n')
+  const indent = Math.min(
+    ...lines
+      .filter((line) => line.trim())
+      .map((line) => line.match(/^ */)![0].length)
+  )
+  return lines.map((line) => line.slice(indent)).join('\n')
+}
+
+const oneLine = (markdown: string) => markdown.replace(/\s+/g, ' ').trim()
+
+function propLine(prop: ManifestProp) {
+  return [
+    `- \`${prop.name}\`: \`${prop.type}\`.`,
+    prop.required && 'Required.',
+    prop.default !== undefined && `Defaults to \`${prop.default}\`.`,
+    prop.description && oneLine(prop.description),
+    prop.deprecated && `Deprecated: ${oneLine(prop.deprecated)}`
+  ]
+    .filter(Boolean)
+    .join(' ')
+}
+
+function partSection(part: ManifestPart, importName?: string) {
+  return [
+    `### ${part.name}`,
+    part.description,
+    importName &&
+      `\`\`\`tsx\nimport { ${part.name} } from '${importName}'\n\`\`\``,
+    part.props.length > 0
+      ? part.props.map(propLine).join('\n')
+      : 'No props beyond the standard HTML attributes.'
+  ].filter(Boolean)
+}
+
+function apiReference(components: ManifestComponent[]): RootContent[] {
+  if (components.length === 0) return []
+  const markdown = [
+    '## API reference',
+    ...components.flatMap((component) => [
+      ...partSection(component, component.import),
+      ...(component.parts ?? []).flatMap((part) => partSection(part))
+    ])
+  ].join('\n\n')
+  return unified().use(remarkParse).use(remarkGfm).parse(markdown).children
+}
+
+function guideline(node: JsxElement, children: RootContent[]): RootContent[] {
+  const title = attribute(node, 'title')
+  const example = attribute(node, 'example')
+  const code = attribute(node, 'code')
+  const label =
+    node.name === 'Guideline.Do'
+      ? 'Do'
+      : node.name === 'Guideline.Dont'
+        ? 'Don’t'
+        : title
+  return [
+    ...(label ? [paragraph(strong(label))] : []),
+    ...(example ? [tsx(dedent(example))] : []),
+    ...(code ? [tsx(dedent(code))] : []),
+    ...children
+  ]
+}
+
+function transform(
+  node: Node,
+  page: Required<Pick<MarkdownPage, 'components'>> & MarkdownPage
+): Node[] {
+  switch (node.type) {
+    case 'mdxjsEsm':
+    case 'mdxFlowExpression':
+    case 'mdxTextExpression':
+      return []
+    case 'code':
+      return LIVE_FENCE.test(node.lang ?? '')
+        ? [{ ...node, lang: node.lang!.replace(/-live$/, ''), meta: null }]
+        : [node]
+    case 'link':
+      if (page.resolveLink && node.url.startsWith('/')) {
+        node = { ...node, url: page.resolveLink(node.url) }
+      }
+      break
+  }
+
+  if (!('children' in node)) return [node]
+  const children = (node.children as Node[]).flatMap((child) =>
+    transform(child, page)
+  )
+
+  if (node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') {
+    if (node.name === 'PropsDefinitions') {
+      const reference = apiReference(page.components)
+      page.components = []
+      return reference.flatMap((child) => transform(child, page))
+    }
+    if (node.name?.startsWith('Guideline')) {
+      return guideline(node, children as RootContent[])
+    }
+    return children
+  }
+  return [{ ...node, children } as Node]
+}
+
+/** A docs page's MDX as plain markdown: JSX gone, prose and code kept, live fences as plain fences, and the API reference from the manifest. */
+export function pageToMarkdown(page: MarkdownPage): string {
+  const processor = unified()
+    .use(remarkParse)
+    .use(remarkMdx)
+    .use(remarkGfm)
+    .use(remarkStringify, { bullet: '-', fences: true, rule: '-' })
+  const tree = processor.parse(page.mdx)
+  const [body] = transform(tree, { components: [], ...page }) as [Root]
+  const head: BlockContent[] = [
+    { type: 'heading', depth: 1, children: [text(page.title)] },
+    ...(page.description
+      ? [
+          {
+            type: 'blockquote',
+            children: [paragraph(text(page.description))]
+          } as BlockContent
+        ]
+      : [])
+  ]
+  return processor.stringify({
+    type: 'root',
+    children: [...head, ...body.children]
+  })
+}
+
+export type LlmsLink = { title: string; url: string; description?: string }
+export type LlmsSection = { name: string; links: LlmsLink[] }
+
+export type LlmsIndex = {
+  title: string
+  summary: string
+  details?: string
+  sections: LlmsSection[]
+}
+
+/** An `llms.txt` index in the llmstxt.org shape: H1, blockquote summary, details, then H2 sections of links. */
+export function llmsIndex({ title, summary, details, sections }: LlmsIndex) {
+  const link = ({ title, url, description }: LlmsLink) =>
+    `- [${title}](${url})${description ? `: ${description}` : ''}`
+  return [
+    `# ${title}`,
+    `> ${summary}`,
+    ...(details ? [details] : []),
+    ...sections
+      .filter((section) => section.links.length > 0)
+      .map((section) =>
+        [`## ${section.name}`, ...section.links.map(link)].join('\n')
+      )
+  ]
+    .join('\n\n')
+    .concat('\n')
+}
