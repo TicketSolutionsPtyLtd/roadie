@@ -6,9 +6,10 @@ These skills ship as a Claude Code plugin. Installing the plugin makes them avai
 
 ## Available skills
 
-| Skill | Command | What it does |
-|---|---|---|
-| `audit` | `/roadie:audit` | Scan a codebase for Roadie compliance — hardcoded colors, wrong layout, icon misuse, deprecated props, missing setup — and optionally fix. |
+| Skill    | Command          | What it does                                                                                                                                                                                        |
+| -------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `audit`  | `/roadie:audit`  | Scan a codebase for Roadie compliance (hardcoded colours, wrong layout, icon misuse, deprecated props, and missing setup), and optionally fix.                                                      |
+| `review` | `/roadie:review` | Review a branch or PR in a fresh subagent for conventions, bugs, and test quality, using the host repo's `AGENTS.md` and `CODING_STANDARDS.md`. Commits fixes and comments only on judgement calls. |
 
 More skills coming (e.g. a `build`/`ui` skill for scaffolding new UI with Roadie primitives).
 

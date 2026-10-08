@@ -77,9 +77,9 @@ Every PR is checked against these before review. Fix every real hit.
 - **Component patterns**: `docs/contributing/BASE_UI.md` for Base UI
   wrappers, `docs/contributing/COMPOUND_PATTERNS.md` for compounds, and
   `Badge/index.tsx` as the cva reference.
-- **Roadie audit** of the added lines (`git diff origin/main -U0`): hardcoded
-  colours, `dark:` variants, `flex flex-col` stacks, margin for sibling
-  spacing, icon `size` props or wrong weights, headings without display
+- **Roadie audit** of the added lines (`git diff origin/main...HEAD -U0`):
+  hardcoded colours, `dark:` variants, `flex flex-col` stacks, margin for
+  sibling spacing, icon `size` props or wrong weights, headings without display
   classes, inline styles with a utility equivalent, `div` with `onClick`,
   deprecated APIs, non-existent text colours, manual hover instead of
   `is-interactive`.
@@ -131,7 +131,9 @@ Every PR is checked against these before review. Fix every real hit.
 
 ## 6. Review before the PR exists
 
-Two separate reviewers, each with fresh eyes, before anything is pushed:
+A reviewer with fresh eyes, before anything is pushed. Run `/roadie:review`
+in a fresh subagent: one pass covers both reviews below and test quality, and
+commits its fixes:
 
 1. **Design and conventions review.** Does the change meet its spec, follow
    section 3, keep public APIs consistent, and document behaviour changes in
@@ -146,7 +148,7 @@ Two separate reviewers, each with fresh eyes, before anything is pushed:
 
 Fix Critical and Important findings test-first. If a fix is significant (new
 logic, state or API, not a one-liner), review the fix commits again. Open
-the PR only when both passes are clean.
+the PR only when the review is clean.
 
 ## 7. Open the PR and see it through
 
@@ -156,7 +158,7 @@ the PR only when both passes are clean.
   the squash commit carries it into `git log`.
 - **Open it as a draft** (`gh pr create --draft`). Copilot reviews once, when
   the PR is marked ready, and skips drafts. Run `gh pr ready` only after CI is
-  green, both local reviews are clean and any demo is approved.
+  green, the local review is clean and any demo is approved.
 - **Say in the body if it's a one-way door.** These always get the
   maintainer's review: removing or renaming a public export, prop, intent, or
   subpath; changing a token's value or meaning; the shared CSS cascade, layers,
@@ -164,12 +166,13 @@ the PR only when both passes are clean.
 - Copilot reads `.github/copilot-instructions.md`; update that file when a
   convention or a deliberate decision changes, and keep it under 4,000
   characters (Copilot reads no further).
-- A review is clean when it shows "Findings: None"
-  **and** its body lists no "Previously missed" items.
+- A review is clean when it shows "Open findings: None"
+  **and** its body lists no "Previously missed" items. Fixes listed under
+  "Fixed" don't count against it.
 - For each finding: fix it test-first and reply naming the commit and test,
   or reply with why it stands. Resolve every thread.
 - **Copilot is a last resort.** Fix its real findings yourself; each one is a
-  gap in the local reviews.
+  gap in the local review.
 - **Triage instead of looping.** Critical and Important findings are always
   fixed, however rare the case. A Minor one is fixed only if a real user
   would hit it in normal use; the rest become Jira follow-ups (section 9).
@@ -185,7 +188,7 @@ of these hold. A one-way door (section 7) waits for the maintainer.
 
 - CI is green.
 - The file list is clean.
-- Both local reviews are clean, and the one Copilot pass is triaged with every
+- The local review is clean, and the one Copilot pass is triaged with every
   thread resolved.
 - Behaviour changes for consumers are named in the changeset.
 
