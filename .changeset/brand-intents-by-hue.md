@@ -7,4 +7,4 @@ Add brand intents named by hue. `intent-brand-purple` is a new brand intent on t
 
 Add a fixed `--color-{scale}-light-9` token for every scale. Like the light 0, 5, 12, and 13 steps, `.dark` doesn't override it, so brand artwork keeps its step 9 colour in dark mode.
 
-`text-display-prose-2` is now weight 900 (Black), up from 800, to match the brand's display hierarchy.
+`text-display-prose-2` is now weight 700 (Bold), down from 800.
