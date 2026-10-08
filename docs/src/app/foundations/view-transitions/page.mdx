@@ -1,0 +1,163 @@
+export const metadata = {
+  title: 'View transitions',
+  description:
+    'Patterns for using the CSS View Transitions API with Roadie layouts. Covers z-index layering, named groups, keyframes, and search-param navigation.',
+  category: 'Behaviour'
+}
+
+The CSS
+[View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API)
+lets you morph, slide, and fade content across navigation boundaries without
+touching a JavaScript animation library. Roadie components compose cleanly
+with it. Sticky headers, hero images, and search-param-only navigation each
+have gotchas, covered below.
+
+## How view transitions work
+
+When the browser sees a new document during a view transition, it captures a
+snapshot of the old DOM and a snapshot of the new DOM, then interpolates
+between them. Each snapshot lives inside a pseudo-element tree:
+
+- `::view-transition-group(name)` is the box that holds the old and new
+  snapshots for a named element.
+- `::view-transition-image-pair(name)` is the cross-fade pair.
+- `::view-transition-old(name)` and `::view-transition-new(name)` are the two
+  snapshots that the browser animates between.
+
+Anything without an explicit `view-transition-name` lives under the implicit
+`root` group. The root group paints first, which is why sticky headers
+sometimes end up *underneath* a hero image during a transition. The hero gets
+its own group, and the root group has no `z-index`.
+
+## Layering sticky headers above content
+
+Give the sticky header its own named group and set a `z-index` on its
+`::view-transition-group`. Without this, content sliding in from below the
+fold will visually pass through or over the header mid-transition.
+
+```css
+/* 1. Name the header's group */
+header[data-sticky] {
+  view-transition-name: site-header;
+}
+
+/* 2. Float it above everything else during a transition */
+::view-transition-group(site-header) {
+  z-index: 100;
+}
+```
+
+Pick any integer above the default 0. 100 is enough for most apps. Do the same
+for floating buttons, bottom sheets, and any other UI that should stay fixed
+while the page underneath animates.
+
+## Naming elements
+
+When you name an element with `view-transition-name`, it gets its own
+animation group and morphs from its old position and size to its new position
+and size. Unnamed elements cross-fade together under the root group.
+
+As a rule of thumb, **when in doubt, name it**. Unused names are free. They
+don't run an animation unless the element actually moves. Naming the hero
+image, the title, and the header separately is much cheaper than debugging a
+root-group cross-fade that clobbers half your UI.
+
+Common named groups:
+
+- `site-header` for the sticky top nav
+- `collection-hero` for the above-the-fold hero image
+- `collection-title` for the title that persists across routes
+- `collection-header` for the elevated surface that wraps the hero on
+  per-collection routes
+
+## Recommended keyframes
+
+Default view transitions cross-fade for 250ms. Override with a named
+`@keyframes` rule and attach it to either the old or new snapshot.
+
+```css
+/* Slide the outgoing page up and fade it out */
+::view-transition-old(root) {
+  animation: roadie-slide-up 200ms ease-in both;
+}
+
+/* Fade the incoming page in */
+::view-transition-new(root) {
+  animation: roadie-fade-in 300ms ease-out both;
+}
+
+@keyframes roadie-slide-up {
+  to { opacity: 0; transform: translateY(-16px); }
+}
+@keyframes roadie-fade-in {
+  from { opacity: 0; }
+}
+```
+
+Keep durations short. Stay under 400ms for navigation-level transitions.
+Respect [motion tokens](/foundations/motion) and `prefers-reduced-motion`.
+Wrap your `::view-transition-*` rules in
+`@media (prefers-reduced-motion: no-preference)` so motion-sensitive users get
+an instant swap.
+
+## Triggering on search-param-only navigation
+
+Next.js App Router doesn't trigger a hard navigation when only a search
+parameter changes, so browser-native view transitions don't fire
+automatically. Wrap the update in `document.startViewTransition` inside your
+navigation handler.
+
+```tsx
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { startTransition } from 'react'
+
+import { Button } from '@oztix/roadie-components/button'
+
+function FilterButton({ href }: { href: string }) {
+  const router = useRouter()
+
+  function handleClick() {
+    // Not all browsers implement view transitions yet
+    if (typeof document.startViewTransition === 'function') {
+      document.startViewTransition(() => {
+        startTransition(() => router.push(href))
+      })
+    } else {
+      router.push(href)
+    }
+  }
+
+  return <Button onClick={handleClick}>Filter</Button>
+}
+```
+
+The `startTransition` wrapper keeps React from thrashing state updates during
+the browser's snapshot capture. Without it you can get flickers when the new
+page renders faster than the old page's snapshot.
+
+Inside a [Navigator shell](/foundations/navigation), Navigator animates
+pane-to-pane route changes itself. Don't wrap a `router.push` that changes the
+active pane in `document.startViewTransition`. Keep this pattern for
+query-string updates within a pane's content, or for pages outside a
+`<Navigator>`.
+
+## Guidelines
+
+- Always feature-detect. `document.startViewTransition` is still gaining
+  adoption. Wrap every call in a `typeof` check and fall back to the standard
+  navigation.
+- Reserve view transitions for spatial continuity. Use them when the user
+  would benefit from seeing an element move (hero → detail page, list →
+  filtered list). Skip them for navigation that isn't spatially related.
+- Stay under 400ms. Longer transitions feel sluggish, especially on
+  search-param navigation where the user expects instant filter feedback.
+- Test on mobile Safari. iOS has stricter rules about when
+  `startViewTransition` can run. If you trigger it from an async callback, the
+  captured snapshot may be stale.
+- Don't animate intent. Changing `--accent-hue` or `--accent-chroma` during a
+  transition produces noticeably ugly interpolation. Set the new accent
+  *before* the transition starts, or *after* it completes.
+- Skip this inside a Navigator shell. Navigator owns its own pane-to-pane
+  transitions.
