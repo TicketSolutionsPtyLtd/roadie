@@ -14,9 +14,9 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
 - **Agree the intent before any code** for new components and system-level
   APIs. Don't commit plan or spec files: they bloat the diff and go stale.
   - **One PR:** the PR description is the plan and the record (section 7).
-  - **A series of PRs:** keep a working spec in the gitignored
-    `docs/superpowers/`. As each PR lands, move its lasting decisions into the
-    maintained docs below and drop them from the spec.
+  - **A series of PRs:** keep a working spec in the gitignored `.scratch/`.
+    As each PR lands, move its lasting decisions into the maintained docs
+    below and drop them from the spec.
 - **Lasting knowledge goes where it's maintained:** consumer changes in the
   changeset, rules in `AGENTS.md`, `CODING_STANDARDS.md` and the foundations
   pages, behaviour on the component's docs page, learnings in
