@@ -1,16 +1,39 @@
-import { type ReactNode, useState } from 'react'
+import {
+  type CSSProperties,
+  type ReactNode,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { userEvent as browserUserEvent } from 'vitest/browser'
 
 import { type RecordPosition, placeRange } from '@oztix/roadie-core/records'
 
-import { RecordTable, tableColumns } from '.'
+import {
+  RecordTable,
+  type RecordTableProps,
+  tableColumns,
+  tableLayout
+} from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Menu } from '../Menu'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
+import { Records, useRecords } from '../Records'
+import { useNarrow } from '../Records/narrow'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import type { RecordTableNarrowLayout } from './narrow'
 import { frame } from './testUtils'
 
 let removeStylesheet = () => {}
@@ -422,4 +445,601 @@ describe('RecordTable narrow list rows in a browser', () => {
       })
       .toBeLessThanOrEqual(1)
   })
+})
+
+function Probe({ style }: { style?: CSSProperties }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const narrow = useNarrow(ref)
+  return (
+    <div ref={ref} data-testid='probe' style={style}>
+      {narrow ? 'narrow' : 'wide'}
+    </div>
+  )
+}
+
+const probe = () => screen.getByTestId('probe')
+
+describe('useNarrow in a browser', () => {
+  afterEach(() => {
+    document.documentElement.style.fontSize = ''
+  })
+
+  it('is narrow after the first commit, then follows the element', async () => {
+    render(<Probe style={{ width: 600 }} />)
+    expect(probe()).toHaveTextContent('narrow')
+    probe().style.width = '700px'
+    await expect.poll(() => probe().textContent).toBe('wide')
+    probe().style.width = '600px'
+    await expect.poll(() => probe().textContent).toBe('narrow')
+  })
+
+  it.each([
+    ['16px', 640, 'wide'],
+    ['16px', 639, 'narrow'],
+    ['20px', 800, 'wide'],
+    ['20px', 799, 'narrow']
+  ])('with a %s root font, %ipx is %s', (size, px, expected) => {
+    document.documentElement.style.fontSize = size
+    render(<Probe style={{ width: px }} />)
+    expect(probe()).toHaveTextContent(expected)
+  })
+
+  it('keeps its layout while the element has no width', async () => {
+    render(<Probe style={{ width: 600, display: 'none' }} />)
+    expect(probe()).toHaveTextContent('wide')
+    probe().style.display = 'block'
+    await expect.poll(() => probe().textContent).toBe('narrow')
+    probe().style.display = 'none'
+    await frame()
+    await frame()
+    expect(probe()).toHaveTextContent('narrow')
+  })
+})
+
+const statusColumns = [
+  column.field('show', { pin: true, narrow: 'title' }),
+  column.field('city', { narrow: 'description' }),
+  column.field('sold', { narrow: 'trailing' }),
+  column.field('status')
+]
+const detailColumns = [
+  ...statusColumns,
+  column.field('gross', { narrow: 'detail' })
+]
+const cardColumns = [
+  ...statusColumns.slice(0, 3),
+  column.field('gross', { narrow: 'detail' }),
+  column.field('status', { narrow: 'detail' })
+]
+const six = { ...base, data: testShows(6), columns: statusColumns }
+const selectSix = {
+  ...six,
+  bulkActions: [{ label: 'Export', onAction: () => {} }]
+}
+
+const listOf = () => screen.getByRole('list', { name: 'Shows' })
+const itemsOf = () => within(listOf()).getAllByRole('listitem')
+const inBox = (ui: ReactNode, width = 360) =>
+  render(<Boxed width={width}>{ui}</Boxed>)
+const enterSelect = (user: ReturnType<typeof userEvent.setup>) =>
+  user.click(screen.getByRole('button', { name: 'Select' }))
+const statusText = () =>
+  document.querySelector('[data-slot="records-status"]')!.textContent
+const scroller = () =>
+  document.querySelector('[data-slot="record-table-scroller"]')
+
+function Composed({
+  columns,
+  narrow,
+  select = false
+}: {
+  columns: typeof statusColumns
+  narrow?: RecordTableNarrowLayout
+  select?: boolean
+}) {
+  const records = useRecords({ ...six, selectable: select })
+  return (
+    <Records.Root
+      records={records}
+      layouts={[tableLayout(columns, { narrow })]}
+      caption='Shows'
+    >
+      {select && <Records.Select />}
+      <Records.Content />
+    </Records.Root>
+  )
+}
+
+function Selected({ bulkActions = false }: { bulkActions?: boolean }) {
+  const records = useRecords({
+    ...six,
+    selectable: true,
+    defaultSelection: { ids: ['show-0'] }
+  })
+  return (
+    <Records.Root
+      records={records}
+      layouts={[tableLayout(statusColumns)]}
+      caption='Shows'
+    >
+      <Records.Content />
+      {bulkActions && (
+        <Records.BulkActions
+          actions={[{ label: 'Export', onAction: () => {} }]}
+        />
+      )}
+    </Records.Root>
+  )
+}
+
+describe('RecordTable narrow list rows by role in a browser', () => {
+  it('renders a list named by the caption, not a table', () => {
+    inBox(<RecordTable {...six} />)
+    // Explicit, since WebKit drops the role from a list with no markers.
+    expect(listOf()).toHaveAttribute('role', 'list')
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    const items = itemsOf()
+    expect(items).toHaveLength(6)
+    expect(items[0]!.textContent).toContain('Ocean Alley 1')
+    expect(items[0]!.textContent).toContain('Brisbane')
+    expect(within(items[1]!).getByText('37')).toBeInTheDocument()
+  })
+
+  it('links the row by its title', () => {
+    inBox(<RecordTable {...six} getRowHref={(row) => `/shows/${row.id}`} />)
+    expect(
+      within(listOf()).getByRole('link', { name: 'Ball Park Music 1' })
+    ).toHaveAttribute('href', '/shows/show-1')
+  })
+
+  it('opens row actions from a list row', async () => {
+    const user = userEvent.setup()
+    inBox(
+      <RecordTable {...six} rowActions={() => <Menu.Item>Edit</Menu.Item>} />
+    )
+    await user.click(
+      within(listOf()).getByRole('button', {
+        name: 'More actions for Ocean Alley 1'
+      })
+    )
+    expect(
+      await screen.findByRole('menuitem', { name: 'Edit' })
+    ).toBeInTheDocument()
+  })
+
+  it('renders list rows when forced, even with a detail column', () => {
+    inBox(<Composed columns={detailColumns} narrow='list' />)
+    expect(listOf().querySelector('[data-slot="card"]')).toBeNull()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+
+  it('marks the list busy under a progress bar while loading', () => {
+    const { container } = inBox(<RecordTable {...six} loading />)
+    expect(
+      container.querySelector('[data-slot="record-table-progress"]')
+    ).not.toBeNull()
+    expect(listOf()).toHaveAttribute('aria-busy', 'true')
+  })
+
+  it('shows a trailing status column as its badge', () => {
+    inBox(
+      <RecordTable
+        {...six}
+        columns={[
+          statusColumns[0]!,
+          column.field('status', { narrow: 'trailing' })
+        ]}
+      />
+    )
+    const [first, , third] = itemsOf()
+    expect(first!.querySelector('[data-slot=badge]')).toHaveClass(
+      'intent-success'
+    )
+    expect(third!.querySelector('[data-slot=badge]')).toHaveClass(
+      'intent-neutral'
+    )
+  })
+
+  it('shows the empty state in place of the rows', () => {
+    inBox(<RecordTable {...six} data={[]} />)
+    expect(screen.queryByRole('list', { name: 'Shows' })).toBeNull()
+    expect(document.querySelector('[data-slot="records-empty"]')).not.toBeNull()
+  })
+
+  it.each([
+    ['cards', cardColumns],
+    ['list rows', statusColumns]
+  ])('keeps only the title strong in %s', (_, columns) => {
+    inBox(<RecordTable {...six} columns={columns} />)
+    const [first] = itemsOf()
+    const strong = (text: string) =>
+      within(first!).getByText(text).closest('.font-semibold, .text-strong')
+    expect(strong('Ocean Alley 1')).not.toBeNull()
+    expect(strong('Brisbane')).toBeNull()
+  })
+})
+
+describe('RecordTable Select mode in a browser', () => {
+  it('offers Select only when narrow and selectable', () => {
+    const { unmount } = inBox(<RecordTable {...selectSix} />)
+    expect(screen.getByRole('button', { name: 'Select' })).toBeInTheDocument()
+    unmount()
+    inBox(<RecordTable {...six} />)
+    expect(screen.queryByRole('button', { name: 'Select' })).toBeNull()
+  })
+
+  it('shows checkboxes, Select all and Done once entered', async () => {
+    const user = userEvent.setup()
+    inBox(<RecordTable {...selectSix} />)
+    expect(within(listOf()).queryAllByRole('checkbox')).toHaveLength(0)
+    await enterSelect(user)
+    expect(within(listOf()).getAllByRole('checkbox')).toHaveLength(6)
+    const bar = screen.getByRole('group', { name: 'Select mode' })
+    expect(
+      within(bar).getByRole('button', { name: 'Select all' })
+    ).toBeInTheDocument()
+    expect(
+      within(bar).getByRole('button', { name: 'Done' })
+    ).toBeInTheDocument()
+  })
+
+  it('floats the bulk actions, with each Select mode control once', async () => {
+    const user = userEvent.setup()
+    inBox(
+      // A short page, so it renders quickly and still offers every match.
+      <RecordTable
+        {...selectSix}
+        data={testShows(20)}
+        defaultPosition={{ pageSize: 10 }}
+      />
+    )
+    await enterSelect(user)
+    await user.click(screen.getByRole('button', { name: 'Select all' }))
+    const floating = screen.getByRole('group', { name: 'Bulk actions' })
+    expect(floating).toHaveAttribute('data-slot', 'records-bulk-actions')
+    expect(screen.queryByRole('toolbar', { name: 'Bulk actions' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Clear selection' })).toBeNull()
+    expect(
+      screen.getAllByRole('button', { name: 'Deselect all' })
+    ).toHaveLength(1)
+    expect(
+      within(floating).getByRole('button', { name: /^Select all 20/ })
+    ).toBeInTheDocument()
+  })
+
+  it('makes the checkbox the row target instead of the link', async () => {
+    const user = userEvent.setup()
+    inBox(
+      <RecordTable {...selectSix} getRowHref={(row) => `/shows/${row.id}`} />
+    )
+    expect(within(listOf()).getAllByRole('link')).toHaveLength(6)
+    await enterSelect(user)
+    expect(within(listOf()).queryAllByRole('link')).toHaveLength(0)
+    const box = within(listOf()).getByRole('checkbox', {
+      name: 'Select Ocean Alley 1'
+    })
+    expect(box).toHaveAttribute('data-interactive-target')
+    await user.click(box)
+    expect(box).toHaveAttribute('aria-checked', 'true')
+    expect(box.closest('[data-slot="record-table-list-row"]')).toHaveAttribute(
+      'data-selected'
+    )
+  })
+
+  it('selects cards by their checkbox too', async () => {
+    const user = userEvent.setup()
+    inBox(
+      <RecordTable
+        {...selectSix}
+        columns={cardColumns}
+        getRowHref={(row) => `/shows/${row.id}`}
+      />
+    )
+    await enterSelect(user)
+    expect(within(listOf()).queryAllByRole('link')).toHaveLength(0)
+    const box = within(listOf()).getByRole('checkbox', {
+      name: 'Select Ocean Alley 1'
+    })
+    expect(box).toHaveAttribute('data-interactive-target')
+    await user.click(box)
+    expect(box.closest('[data-slot="record-table-card"]')).toHaveAttribute(
+      'data-selected'
+    )
+  })
+
+  it('keeps row actions working in Select mode', async () => {
+    const user = userEvent.setup()
+    inBox(
+      <RecordTable
+        {...selectSix}
+        rowActions={() => <Menu.Item>Edit</Menu.Item>}
+      />
+    )
+    await enterSelect(user)
+    await user.click(
+      within(listOf()).getByRole('button', {
+        name: 'More actions for Ocean Alley 1'
+      })
+    )
+    expect(
+      await screen.findByRole('menuitem', { name: 'Edit' })
+    ).toBeInTheDocument()
+  })
+
+  it.each([
+    [
+      'Done',
+      (user: ReturnType<typeof userEvent.setup>) =>
+        user.click(screen.getByRole('button', { name: 'Done' }))
+    ],
+    [
+      'Escape',
+      (user: ReturnType<typeof userEvent.setup>) => user.keyboard('{Escape}')
+    ]
+  ])('leaves and clears the selection with %s', async (_, leave) => {
+    const user = userEvent.setup()
+    inBox(<RecordTable {...selectSix} />)
+    await enterSelect(user)
+    await user.click(
+      within(listOf()).getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    expect(statusText()).toContain('1 selected')
+    await leave(user)
+    expect(within(listOf()).queryAllByRole('checkbox')).toHaveLength(0)
+    expect(statusText()).not.toContain('selected')
+    expect(screen.getByRole('button', { name: 'Select' })).toHaveFocus()
+  })
+
+  it('offers Select outside the toolbar when composed', async () => {
+    const user = userEvent.setup()
+    inBox(<Composed columns={statusColumns} select />)
+    await enterSelect(user)
+    expect(within(listOf()).getAllByRole('checkbox')).toHaveLength(6)
+  })
+
+  it('enters Select mode when a selection crosses to narrow', async () => {
+    const user = userEvent.setup()
+    const { container } = inBox(<RecordTable {...selectSix} />, 800)
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    await resize(container, 360)
+    await expect
+      .poll(() => screen.queryByRole('button', { name: 'Done' }))
+      .not.toBeNull()
+    expect(within(listOf()).getAllByRole('checkbox')).toHaveLength(6)
+    expect(
+      within(listOf()).getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    ).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('group', { name: 'Bulk actions' })).toHaveAttribute(
+      'data-slot',
+      'records-bulk-actions'
+    )
+  })
+
+  it('keeps a running bulk action busy, and settles it, across a switch to narrow', async () => {
+    let finish = () => {}
+    const onAction = vi.fn(() => new Promise<void>((done) => (finish = done)))
+    const user = userEvent.setup()
+    const { container } = inBox(
+      <RecordTable {...six} bulkActions={[{ label: 'Export', onAction }]} />,
+      800
+    )
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    await user.click(
+      within(screen.getByRole('toolbar', { name: 'Bulk actions' })).getByRole(
+        'button',
+        { name: 'Export' }
+      )
+    )
+    await resize(container, 360)
+    const floating = await screen.findByRole('group', { name: 'Bulk actions' })
+    expect(
+      within(floating).getByRole('button', { name: 'Export' })
+    ).toHaveAttribute('aria-busy', 'true')
+    await user.click(
+      within(listOf()).getByRole('checkbox', {
+        name: 'Select Ball Park Music 1'
+      })
+    )
+    finish()
+    await expect
+      .poll(() =>
+        within(listOf())
+          .getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+          .getAttribute('aria-checked')
+      )
+      .toBe('false')
+    expect(onAction).toHaveBeenCalledOnce()
+    expect(
+      within(listOf()).getByRole('checkbox', {
+        name: 'Select Ball Park Music 1'
+      })
+    ).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it("moves focus from a row's link to its checkbox when a selection narrows", async () => {
+    const user = userEvent.setup()
+    const { container } = inBox(
+      <RecordTable {...selectSix} getRowHref={(row) => `/shows/${row.id}`} />,
+      800
+    )
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Select Alex Lahey 1' })
+    )
+    screen.getByRole('link', { name: 'Ocean Alley 1' }).focus()
+    await resize(container, 360)
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(
+        within(listOf()).getByRole('checkbox', {
+          name: 'Select Ocean Alley 1'
+        })
+      )
+  })
+
+  it('keeps the selection when Select mode goes wide', async () => {
+    const user = userEvent.setup()
+    const { container } = inBox(<RecordTable {...selectSix} />)
+    await enterSelect(user)
+    await user.click(
+      within(listOf()).getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    await resize(container, 800)
+    await screen.findByRole('table', { name: 'Shows' })
+    expect(statusText()).toContain('1 selected')
+    screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' }).focus()
+    await user.keyboard('{Escape}')
+    expect(statusText()).toContain('1 selected')
+  })
+
+  it('starts narrow in Select mode with a default selection', () => {
+    inBox(<Selected />)
+    expect(
+      within(listOf()).getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    ).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('keeps focus in the records after a bulk action with no Select part', async () => {
+    const user = userEvent.setup()
+    inBox(<Selected bulkActions />)
+    await user.click(screen.getByRole('button', { name: 'Export' }))
+    expect(within(listOf()).queryAllByRole('checkbox')).toHaveLength(0)
+    expect(document.activeElement).toBe(scroller())
+  })
+
+  it('keeps focus in the records when Escape leaves Select mode from a checkbox', async () => {
+    const user = userEvent.setup()
+    inBox(<Selected />)
+    within(listOf())
+      .getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+      .focus()
+    await user.keyboard('{Escape}')
+    expect(within(listOf()).queryAllByRole('checkbox')).toHaveLength(0)
+    expect(document.activeElement).toBe(scroller())
+  })
+
+  it('settles with one narrow and one wide Content under one Root', () => {
+    function Twice() {
+      const records = useRecords({
+        ...six,
+        selectable: true,
+        defaultSelection: { ids: ['show-0'] }
+      })
+      return (
+        <Records.Root
+          records={records}
+          layouts={[tableLayout(statusColumns)]}
+          caption='Shows'
+        >
+          <div style={{ width: 360 }}>
+            <Records.Content />
+          </div>
+          <div style={{ width: 900 }}>
+            <Records.Content />
+          </div>
+        </Records.Root>
+      )
+    }
+    render(<Twice />)
+    expect(screen.getByRole('list', { name: 'Shows' })).toBeInTheDocument()
+    expect(screen.getByRole('table', { name: 'Shows' })).toBeInTheDocument()
+  })
+})
+
+function NarrowRanged({
+  layout,
+  spans,
+  ...props
+}: {
+  layout: RecordTableNarrowLayout
+  spans: number[]
+} & Partial<RecordTableProps<TestShow>>) {
+  const all = useMemo(() => testShows(100), [])
+  const [data, setData] = useState<(TestShow | undefined)[]>([])
+  const failed = useRef(false)
+  return (
+    <Boxed width={360}>
+      <RecordTable
+        {...six}
+        columns={detailColumns}
+        data={data}
+        narrow={layout}
+        recordName={{ one: 'show', other: 'shows' }}
+        defaultPosition={{ pageSize: 10 }}
+        loadRange={({ start, end }) => {
+          spans.push(start)
+          if (start === 10 && !failed.current) {
+            failed.current = true
+            return Promise.reject(new Error('Offline'))
+          }
+          setData((current) =>
+            placeRange(current, start, all.slice(start, end))
+          )
+        }}
+        {...props}
+      />
+    </Boxed>
+  )
+}
+
+const rangeError = () =>
+  listOf().querySelector<HTMLElement>('[data-slot="record-table-range-error"]')
+const scrollToFailure = () =>
+  expect
+    .poll(() => {
+      const scroller = box(document.body)
+      scroller.scrollTop = scroller.scrollHeight
+      return rangeError()
+    })
+    .not.toBeNull()
+
+describe('RecordTable narrow range failure in a browser', () => {
+  it('keeps a banner in the failed range’s card, as its placeholder has', async () => {
+    const fields = [
+      ...showFields,
+      { key: 'image', label: 'Image', type: 'text' as const }
+    ]
+    const imageColumn = tableColumns<TestShow & { image?: string }>(fields)
+    render(
+      <NarrowRanged
+        layout='cards'
+        spans={[]}
+        fields={fields}
+        columns={[
+          imageColumn.field('image', { kind: 'image' }),
+          ...detailColumns
+        ]}
+      />
+    )
+    await scrollToFailure()
+    expect(
+      rangeError()!.querySelector(
+        '[data-slot="record-table-placeholder-media"]'
+      )
+    ).not.toBeNull()
+  })
+
+  it.each(['list', 'cards'] as const)(
+    'keeps the loaded %s and lists the error in place of the failed range',
+    async (layout) => {
+      const user = userEvent.setup()
+      const spans: number[] = []
+      render(<NarrowRanged layout={layout} spans={spans} />)
+      await scrollToFailure()
+      expect(document.querySelector('[data-slot="records-error"]')).toBeNull()
+      const error = rangeError()!
+      expect(error.tagName).toBe('LI')
+      expect(error).toHaveAttribute('aria-posinset', '11')
+      expect(error).toHaveAttribute('aria-setsize')
+      expect(error.textContent).toContain("Couldn't load more shows")
+      expect(within(listOf()).getByText('Ocean Alley 1')).toBeInTheDocument()
+      await user.click(within(error).getByRole('button', { name: 'Retry' }))
+      expect(document.activeElement).toBe(scroller())
+      await expect.poll(rangeError).toBeNull()
+      expect(spans.filter((start) => start === 10)).toHaveLength(2)
+    }
+  )
 })

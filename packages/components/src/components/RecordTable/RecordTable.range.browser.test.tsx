@@ -646,4 +646,57 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     expect(rows.at(-1)).toBe(firstVisible(container))
     expect(rows.length).toBeLessThanOrEqual(5)
   })
+
+  it('never jumps back to an echo of a row it reported', async () => {
+    const reported: number[] = []
+    function Echoing() {
+      const [position, setPosition] = useState<RecordPosition>({})
+      const [data, setData] = useState<(TestShow | undefined)[]>([])
+      return (
+        <InBox>
+          <button
+            type='button'
+            onClick={() =>
+              setPosition((current) => ({ ...current, row: 3000 }))
+            }
+          >
+            Go to row 3000
+          </button>
+          <RecordTable
+            caption='Shows'
+            data={data}
+            fields={showFields}
+            columns={showColumns}
+            getRowId={(item) => item.id}
+            rowCount={5000}
+            position={position}
+            onPositionChange={(next) => {
+              reported.push(next.row)
+              // An async router applies each URL some time after the push.
+              setTimeout(() => setPosition(next), 400)
+            }}
+            loadRange={({ start, end }) =>
+              setData((current) =>
+                placeRange(current, start, testShowsFrom(start, end))
+              )
+            }
+          />
+        </InBox>
+      )
+    }
+    const { container } = render(<Echoing />)
+    const scroller = box(container)
+    await framed(() => rowAt(container, 0)).not.toBeNull()
+    scroller.scrollTop = 120 * ROW_HEIGHT
+    await framed(() => reported.length).toBe(1)
+    // Moves on before the router echoes the first row back.
+    scroller.scrollTop = 150 * ROW_HEIGHT
+    await framed(() => reported.length).toBe(2)
+    await wait(1000)
+    expect(scroller.scrollTop).toBe(150 * ROW_HEIGHT)
+    expect(reported).toHaveLength(2)
+    expect(reported.at(-1)).toBe(firstVisible(container))
+    screen.getByRole('button', { name: 'Go to row 3000' }).click()
+    await framed(() => underHeader(container, 3000)).toBeLessThanOrEqual(1)
+  })
 })

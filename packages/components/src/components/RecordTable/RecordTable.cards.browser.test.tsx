@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
@@ -11,11 +11,14 @@ import {
   recordFields
 } from '@oztix/roadie-core/records'
 
-import { RecordTable, tableColumns } from '.'
+import { RecordTable, tableColumns, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Menu } from '../Menu'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
+import { Records, useRecords } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import { CARD_GAP_REM } from './RecordTableNarrowRows'
+import type { RecordTableNarrowLayout } from './narrow'
 import { frame } from './testUtils'
 
 let removeStylesheet = () => {}
@@ -265,5 +268,130 @@ describe('RecordTable narrow cards in a browser', () => {
     await expect.poll(offset).toBeLessThanOrEqual(2)
     await new Promise((resolve) => setTimeout(resolve, 800))
     expect(offset()).toBeLessThanOrEqual(2)
+  })
+})
+
+const showColumn = tableColumns<TestShow>(showFields)
+const listColumns = [
+  showColumn.field('show', { pin: true, narrow: 'title' }),
+  showColumn.field('city', { narrow: 'description' }),
+  showColumn.field('sold', { narrow: 'trailing' }),
+  showColumn.field('status')
+]
+const detailColumns = [
+  ...listColumns.slice(0, 3),
+  showColumn.field('gross', { narrow: 'detail' }),
+  showColumn.field('status', { narrow: 'detail' })
+]
+const six = {
+  caption: 'Shows',
+  data: testShows(6),
+  fields: showFields,
+  columns: detailColumns,
+  getRowId: (row: TestShow) => row.id
+}
+
+const inBox = (ui: ReactNode) =>
+  render(<div style={{ width: 360, height: 600, overflowY: 'auto' }}>{ui}</div>)
+const listOf = () => screen.getByRole('list', { name: 'Shows' })
+const itemsOf = () => within(listOf()).getAllByRole('listitem')
+const detailTerms = (item: HTMLElement) =>
+  [...item.querySelectorAll('dt')].map((term) => term.textContent)
+
+function Composed({
+  columns,
+  narrow,
+  hidden
+}: {
+  columns: typeof listColumns
+  narrow?: RecordTableNarrowLayout
+  hidden?: string[]
+}) {
+  const records = useRecords({
+    ...six,
+    defaultView: hidden && { layout: { type: 'table', columns: { hidden } } }
+  })
+  return (
+    <Records.Root
+      records={records}
+      layouts={[tableLayout(columns, { narrow })]}
+      caption='Shows'
+    >
+      <Records.Content />
+    </Records.Root>
+  )
+}
+
+describe('RecordTable narrow cards by role in a browser', () => {
+  it('renders each record as a card with its detail columns in order', () => {
+    inBox(<RecordTable {...six} />)
+    expect(listOf()).toHaveAttribute('role', 'list')
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    const items = itemsOf()
+    expect(items).toHaveLength(6)
+    for (const item of items) {
+      expect(item.querySelector('[data-slot="record-card"]')).not.toBeNull()
+      expect(detailTerms(item)).toEqual(['Gross', 'Status'])
+    }
+    expect(items[0]!.textContent).toContain('Ocean Alley 1')
+    expect(items[0]!.textContent).toContain('Brisbane')
+    expect(items[0]!.querySelector('dd [data-slot=badge]')).not.toBeNull()
+  })
+
+  it('drops a hidden detail column from the cards', () => {
+    inBox(<Composed columns={detailColumns} hidden={['gross']} />)
+    expect(detailTerms(itemsOf()[0]!)).toEqual(['Status'])
+  })
+
+  it('renders cards when forced, without detail columns', () => {
+    inBox(<Composed columns={listColumns} narrow='cards' />)
+    const [first] = itemsOf()
+    expect(first!.querySelector('[data-slot="record-card"]')).not.toBeNull()
+    expect(first!.querySelector('dl')).toBeNull()
+  })
+
+  it('links the card by its title and keeps row actions above it', async () => {
+    const user = userEvent.setup()
+    inBox(
+      <RecordTable
+        {...six}
+        getRowHref={(row) => `/shows/${row.id}`}
+        rowActions={() => <Menu.Item>Edit</Menu.Item>}
+      />
+    )
+    const link = within(listOf()).getByRole('link', {
+      name: 'Ball Park Music 1'
+    })
+    expect(link).toHaveAttribute('href', '/shows/show-1')
+    expect(link).toHaveAttribute('data-interactive-target')
+    await user.click(
+      within(listOf()).getByRole('button', {
+        name: 'More actions for Ocean Alley 1'
+      })
+    )
+    expect(
+      await screen.findByRole('menuitem', { name: 'Edit' })
+    ).toBeInTheDocument()
+  })
+
+  it('renders no headings in the cards', () => {
+    inBox(<RecordTable {...six} />)
+    expect(within(listOf()).queryAllByRole('heading')).toHaveLength(0)
+    expect(listOf().querySelector('[data-slot="card-title"]')?.tagName).toBe(
+      'P'
+    )
+  })
+
+  it('shows card placeholders while a cards table loads', () => {
+    const { container } = inBox(<RecordTable {...six} data={[]} loading />)
+    const skeleton = container.querySelector(
+      '[data-slot="record-table-skeleton"]'
+    )!
+    expect(skeleton.querySelector('[data-card]')).not.toBeNull()
+  })
+
+  it('takes narrow on the preset', () => {
+    inBox(<RecordTable {...six} columns={listColumns} narrow='cards' />)
+    expect(listOf().querySelector('[data-slot="record-card"]')).not.toBeNull()
   })
 })
