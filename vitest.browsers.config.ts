@@ -52,9 +52,16 @@ const quarantineMode = process.env.ROADIE_QUARANTINE as
 
 const active = quarantined.filter(({ browser }) => browsers.includes(browser))
 
-const anyQuarantinedName = active
-  .map(({ test }) => test.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-  .join('|')
+// testNamePattern applies to every engine in the run, so skip only the entries
+// that cover all of them; the single-engine CI jobs skip their own.
+const skipped = quarantined.filter(({ browser }) =>
+  browsers.every((name) => name === browser)
+)
+
+const namePattern = (entries: Quarantined[]) =>
+  entries
+    .map(({ test }) => test.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|')
 
 // Retries in CI hide one-off flakes; the quarantine run keeps them visible.
 export const browserRetry = process.env.CI && quarantineMode !== 'only' ? 2 : 0
@@ -71,13 +78,13 @@ export function quarantineInclude(packageDir: string, include: string[]) {
 const quarantineFilter =
   quarantineMode === 'only'
     ? {
-        testNamePattern: new RegExp(`(?:^|> )(?:${anyQuarantinedName})$`),
+        testNamePattern: new RegExp(`(?:^|> )(?:${namePattern(active)})$`),
         passWithNoTests: true
       }
-    : quarantineMode === 'skip' && active.length > 0
+    : quarantineMode === 'skip' && skipped.length > 0
       ? {
           testNamePattern: new RegExp(
-            `^(?!(?:.*> )?(?:${anyQuarantinedName})$)`
+            `^(?!(?:.*> )?(?:${namePattern(skipped)})$)`
           )
         }
       : {}
