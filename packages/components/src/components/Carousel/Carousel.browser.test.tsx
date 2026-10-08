@@ -150,8 +150,16 @@ describe('Carousel snapping', () => {
       )
       .toBe(3)
     const start = offset('Show 1', 'left')
-    await userEvent.click(screen.getByRole('button', { name: 'Next slide' }))
+    const next = screen.getByRole('button', { name: 'Next slide' })
+    await userEvent.click(next)
     await settlesAt('Show 3', 'left', start)
+    await userEvent.click(next)
+    await expect
+      .poll(() =>
+        Math.abs(box('Show 5').right - content().getBoundingClientRect().right)
+      )
+      .toBeLessThan(1)
+    await expect.element(next).toHaveAttribute('aria-disabled', 'true')
   })
 })
 
