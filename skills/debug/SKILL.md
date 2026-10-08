@@ -22,20 +22,23 @@ and PR workflow win over anything here.
 
 ## 2. Reproduce
 
-- **Smallest failing test first:** one file, one test (`-t '<name>'`),
+- Start with the smallest failing test: one file, one test (`-t '<name>'`),
   through the repo's load-gated runner, never `vitest` or the whole suite
-  directly. In Roadie that's `pnpm test:gated <package> <file> -t '<name>'`;
-  a repo without one follows its own load rule.
-- **The right engine:** jsdom can't decide layout, `calc()`, or container
-  queries. A browser bug needs the browser test, in the engine that failed. A
-  CI-only failure may need CI's OS (a Linux container) or CI's load.
-- **Measure, don't guess:** time it, count frames, log the value. For a
-  CI-only timeout, compare CI's time for the file (in the log) with a local
-  run of the same file. If every heavy file is many times slower, the runner
-  is the cause, not the test.
+  directly. In Roadie that's `pnpm test:gated <package> <file> -t '<name>'`,
+  with the file relative to the package or the repo root. A path that doesn't
+  exist exits 2, and exit 124 means the run hit the runner's time limit, not
+  a test failure. A repo without a gated runner follows its own load rule.
+- Use the right engine. jsdom can't decide layout, `calc()`, or container
+  queries, so a browser bug needs the browser test, in the engine that failed
+  (`--all-browsers` adds WebKit and Firefox). A CI-only failure may need CI's
+  OS (a Linux container) or CI's load.
+- Measure, don't guess: time it, count frames, log the value. For a CI-only
+  timeout, compare CI's time for the file (in the log) with a local run of the
+  same file. If every heavy file is many times slower, the runner is the
+  cause, not the test.
 - A flake that won't reproduce can often be forced: repeat it or shrink the
-  timeout. Never load a shared machine to force it. With no reproduction, say so, and don't
-  ship a fix you can't show failing without it.
+  timeout. Never load a shared machine to force it. With no reproduction, say
+  so, and don't ship a fix you can't show failing without it.
 
 ## 3. One hypothesis at a time
 
@@ -52,14 +55,14 @@ and PR workflow win over anything here.
 Set a budget first: about 30 minutes or three hypotheses. When it runs out,
 stop chasing and change approach.
 
-- **Timing:** remove the timing assumption rather than chase the race. Wait
-  for a positive signal, use fake timers past the exact delay, turn
+- For a timing problem, remove the timing assumption rather than chase the
+  race. Wait for a positive signal, use fake timers past the exact delay, turn
   animations off, or give the work the resources it assumed. A test that
   sleeps and then asserts that nothing happened passes whether or not the
   work ran.
-- **Otherwise:** bisect (`git bisect`, or delete half the test or
-  component), read the library's source for its contract, or ask, listing
-  what you've ruled out.
+- Otherwise, bisect (`git bisect`, or delete half the test or component),
+  read the library's source for its contract, or ask, listing what you've
+  ruled out.
 
 ## 5. Leave something behind
 
@@ -72,4 +75,6 @@ stop chasing and change approach.
   own, file it as a follow-up.
 - If no check can catch it, add or update a `docs/solutions/` entry in the
   repo's format (copy a sibling's frontmatter) with Symptom, Cause, and Fix.
+  A cross-cutting call that outlasts the fix also goes in the repo's decision
+  register (`docs/decisions/` in Roadie), and the entry links to it.
 - Put the root cause, what you ruled out, and the evidence in the PR body.
