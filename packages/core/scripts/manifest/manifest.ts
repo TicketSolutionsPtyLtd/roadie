@@ -126,7 +126,7 @@ export function buildManifest({
   const deprecations: ManifestDeprecation[] = []
   const rootDeprecations: ManifestDeprecation[] = []
   const onSubpaths = new Set<string>()
-  let rootValues = new Map<string, string>()
+  let rootComponents = new Map<string, string>()
 
   const addComponents = (
     importName: string,
@@ -175,7 +175,7 @@ export function buildManifest({
       types: api.types
     })
     if (entry.subpath === '.') {
-      rootValues = api.sources
+      rootComponents = api.components
       rootDeprecations.push(
         ...api.deprecated.map((d) => ({ import: importName, ...d }))
       )
@@ -206,7 +206,7 @@ export function buildManifest({
     addComponents(importName, componentDir, docs)
   }
 
-  const rootOnly = [...rootValues].filter(
+  const rootOnly = [...rootComponents].filter(
     ([name, file]) => !onSubpaths.has(name) && file.endsWith('.tsx')
   )
   if (rootOnly.length > 0) {

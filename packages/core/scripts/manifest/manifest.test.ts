@@ -28,7 +28,14 @@ describe('buildManifest', () => {
         subpath: '.',
         import: '@fixture/ui',
         kind: 'js',
-        values: ['Pill', 'Provider', 'Tag'],
+        values: [
+          'DEFAULT_THEME',
+          'Pill',
+          'Provider',
+          'Tag',
+          'ThemeError',
+          'useTheme'
+        ],
         types: ['PillProps']
       },
       { subpath: './css', import: '@fixture/ui/css', kind: 'css' },
@@ -88,7 +95,7 @@ describe('buildManifest', () => {
     })
   })
 
-  it('leaves out components the entry does not export', () => {
+  it('lists only exported components', () => {
     const names = manifest.components.flatMap((c) => [
       c.name,
       ...(c.parts ?? []).map((part) => part.name)

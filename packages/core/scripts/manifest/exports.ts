@@ -17,7 +17,7 @@ export type Deprecation = { export: string; reason: string }
 
 export type ModuleExports = {
   values: string[]
-  sources: Map<string, string>
+  components: Map<string, string>
   types: string[]
   deprecated: Deprecation[]
 }
@@ -74,6 +74,17 @@ function deprecationOf(symbol: ts.Symbol, checker: ts.TypeChecker) {
   return tag ? unwrap(ts.displayPartsToString(tag.text)) : undefined
 }
 
+function isComponent(
+  name: string,
+  declaration: ts.Declaration,
+  checker: ts.TypeChecker
+) {
+  return (
+    /^[A-Z]/.test(name) &&
+    checker.getTypeAtLocation(declaration).getCallSignatures().length > 0
+  )
+}
+
 export function moduleExports(
   program: ts.Program,
   file: string
@@ -85,7 +96,7 @@ export function moduleExports(
 
   const result: ModuleExports = {
     values: [],
-    sources: new Map(),
+    components: new Map(),
     types: [],
     deprecated: []
   }
@@ -99,8 +110,8 @@ export function moduleExports(
       result.values.push(name)
       const declaration =
         resolved.valueDeclaration ?? resolved.declarations?.[0]
-      if (declaration) {
-        result.sources.set(name, declaration.getSourceFile().fileName)
+      if (declaration && isComponent(name, declaration, checker)) {
+        result.components.set(name, declaration.getSourceFile().fileName)
       }
     } else result.types.push(name)
     const reason =
