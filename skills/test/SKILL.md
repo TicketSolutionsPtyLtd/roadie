@@ -56,9 +56,10 @@ Iterate on the file you're writing, through the repo's load-gated runner,
 never `vitest` or the whole suite directly. In Roadie that's
 `pnpm test:gated <package> <file>`, with a package or repo path to a file or
 folder; a missing path exits 2, and one no test covers exits 1. It waits for
-load and runs Chromium only. A repo without a runner follows its own load rule and runs `vitest run <file>`. Before pushing,
-follow the host workflow (in Roadie, touched browser files once with
-`--all-browsers`), and let the hooks and CI run the rest.
+load and runs Chromium only. A repo without a runner follows its own load
+rule and runs `vitest run <file>`. Before pushing, follow the host workflow
+(in Roadie, touched browser files once with `--all-browsers`), and let the
+hooks and CI run the rest.
 
 ## 4. Tests that lie
 
