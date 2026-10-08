@@ -29,16 +29,17 @@ and PR template win over anything here.
 ## 2. One PR or a series
 
 - **One PR** when a teammate can review it in one sitting. The spec is the PR
-  body. Save it to a gitignored file (`.scratch/<ticket>.md` in Roadie), or
-  post it on the ticket if the repo ignores no scratch path, until there's a
-  commit to open the draft PR with; `/roadie:pr` keeps it and fills in the
-  results.
+  body. Save it to a gitignored file (`.scratch/<ticket>.md` in Roadie) until
+  there's a commit to open the draft PR with; `/roadie:pr` keeps it and fills
+  in the results.
 - **A series** otherwise. Write a working spec in the gitignored scratch
   directory (`.scratch/<slug>/spec.md`): the goal, shared decisions, and
   PR-sized slices in merge order, each leaving `main` working and each with
   the sections below. As a slice lands, its lasting decisions move to the
   maintained docs or the register, and leave the spec.
-- Never commit a spec or plan file. Check with `git check-ignore <path>`.
+- Never commit a spec or plan file. Check with `git check-ignore <path>`. If
+  the repo ignores no scratch path, post either kind of spec on the ticket (a
+  series spec on its parent or epic) and update it there.
 
 ## 3. Write it
 
