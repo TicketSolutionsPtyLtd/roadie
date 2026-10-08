@@ -36,7 +36,7 @@ ESLint already enforce.
   never import `next/link` inside packages.
 - Forms: `Field` wraps every control and owns invalid/required/disabled.
 - CSS after a `:has()` must end on a class, a variable or a rare attribute
-  (styling rule 8); a guard test enforces it.
+  (AGENTS.md, Selectors); a guard test enforces it.
 - Public CVA props are typed as inline literal unions, not
   `VariantProps<…>['x']`. Booleans are bare adjectives (`disabled`,
   `combined`), never `is*`.

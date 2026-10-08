@@ -43,7 +43,7 @@ actual patterns live in reference docs. Read them first, then execute.
 1. **Create** `packages/components/src/components/{Name}/index.tsx` following the patterns in `AGENTS.md` and one of the reference components above.
    - **`data-slot={name}`** on the rendered root element (kebab-case, same as the subpath). Non-negotiable.
    - If wrapping a Base UI primitive, use the skeleton in `BASE_UI.md` §11.
-2. **Test** `packages/components/src/components/{Name}/{Name}.test.tsx`. Assert CVA class names and behaviour. Default intent should NOT appear on default render.
+2. **Test** `packages/components/src/components/{Name}/{Name}.test.tsx`. Test behaviour, roles and states through the public props, not class strings (see `CODING_STANDARDS.md`). Default intent should NOT appear on default render.
 3. **Export** from `packages/components/src/index.tsx`:
    ```tsx
    export { Foo, fooVariants, type FooProps } from './components/Foo'

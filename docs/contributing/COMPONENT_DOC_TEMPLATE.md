@@ -25,7 +25,7 @@ The skeleton contains:
 3. **Use bare `<Compound>` in code examples**: not `<Compound.Root>`. `<Fieldset>` is the canonical form; `<Fieldset.Root>` is a supported alias but docs should always show the bare form.
 4. **Default first**: every Examples section starts with simplest usage.
 5. **Only include sections that apply**: no empty Intents on components that don't use it.
-6. **Intents**: only when intent visibly changes appearance at rest (Badge, Button, Card). Omit for form controls (Input, Textarea, Select, Field, RadioGroup).
+6. **Intents**: only when intent visibly changes appearance at rest (Badge, Button, Card). Omit for form controls (Input, Textarea, Select, Field, RadioGroup), whose state colours come from `is-interactive-field`.
 7. **States**: for any interactive component. Single live example with labelled states.
 8. **Composition**: for compound components (Field, Card, Accordion, Breadcrumb, Select).
 9. **Guidelines**: brief, only non-obvious things. Oztix context goes here.
@@ -41,6 +41,9 @@ The skeleton contains:
 - Each example on an MDX page also gets its own page at `/examples/<page>/<id>/`, opened from the button beside Copy. The id is the nearest heading's slug, with `-2`, `-3` for later examples under the same heading.
 - Fence meta after the language sets options: `id=orders` pins the id (lowercase kebab-case, unique on the page), so a link survives a heading rename; `eager` renders the example on load, for the rare one that must.
 - Examples on `.tsx` pages (`<CodePreview language='tsx-live'>`) load lazily too, but have no page of their own.
+- Live examples can use every component, every chart, and the SpotIllustrations without importing them.
+- Markdown tables scroll sideways on narrow screens by themselves, so don't wrap them.
+- Do and don't pairs use `<Guideline>` with `<Guideline.Do>` and `<Guideline.Dont>`, each given an `example` (rendered JSX) or a `code` string.
 
 ## `<PropsDefinitions>` usage
 

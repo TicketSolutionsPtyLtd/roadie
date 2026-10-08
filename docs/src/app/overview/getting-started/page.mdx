@@ -43,7 +43,7 @@ Tailwind v4 ignores `node_modules` by default, so it won't see the class strings
 @import '@oztix/roadie-components/css';
 ```
 
-Using widgets or charts too? Add `@oztix/roadie-widgets/css` or `@oztix/roadie-charts/css` as well. Each package's CSS registers only its own classes, so include every package you use:
+Using widgets or charts too? Add `@oztix/roadie-widgets/css` or `@oztix/roadie-charts/css` as well. Each package's CSS registers only its own classes, so include every package you use. The React widget skins render Roadie components, so they need the components CSS too:
 
 ```css
 @import '@oztix/roadie-core/css';

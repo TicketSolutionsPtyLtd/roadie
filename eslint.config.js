@@ -81,9 +81,12 @@ export default [
     }
   },
   {
-    // Sortable's drag library stays behind one folder, so it can be swapped.
+    // Third-party engines stay behind one file or folder, so they can be swapped.
     files: ['packages/components/src/**/*.{ts,tsx}'],
-    ignores: ['packages/components/src/components/Sortable/dnd/**'],
+    ignores: [
+      'packages/components/src/components/Sortable/dnd/**',
+      'packages/components/src/components/RecordTable/rowWindow.ts'
+    ],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -92,6 +95,34 @@ export default [
             {
               group: ['@atlaskit/*'],
               message: 'Import the drag library only in Sortable/dnd.'
+            },
+            {
+              group: ['@tanstack/*'],
+              message:
+                'Import @tanstack/react-virtual only in RecordTable/rowWindow.ts.'
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    files: ['packages/charts/src/**/*.{ts,tsx}'],
+    ignores: [
+      'packages/charts/src/plot/**',
+      'packages/charts/src/static/**',
+      'packages/charts/src/**/definition.ts',
+      'packages/charts/src/**/*.test.{ts,tsx}'
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@tanstack/*'],
+              message:
+                "Import TanStack only in plot/, static/ and each chart's definition.ts."
             }
           ]
         }

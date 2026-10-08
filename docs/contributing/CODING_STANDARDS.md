@@ -24,6 +24,13 @@ implementer needs to write the code; `PR_WORKFLOW.md` holds the process.
 
 ## Code
 
+- **Test at the public interface.** Assert behaviour, roles, and states, not
+  class strings or internals. A test that asserts a CVA class name breaks on a
+  refactor that changes nothing a user sees.
+- **Public CVA props are inline literal unions**, never
+  `VariantProps<…>['key']`, or the prop drops out of the docs' props table
+  ([why](../solutions/build-errors/react-docgen-cva-literal-props.md)). Prefer
+  `type X = Base & { … }` to `interface extends` for subcomponent props.
 - **An unneeded comment is an Important finding.** Comment only what the code
   can't say, in one terse line.
 
