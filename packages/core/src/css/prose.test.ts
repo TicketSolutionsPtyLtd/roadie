@@ -193,6 +193,23 @@ describe('prose.css', () => {
     }
   )
 
+  it('spaces the element after an hr, heading or not, by one flow', () => {
+    const index = (prefix: string) =>
+      proseRules.findIndex(({ selector }) =>
+        selector.replace(/\s+/g, ' ').startsWith(prefix)
+      )
+    const afterRule = index('.prose :where(hr + *):not(')
+    const after = proseRules[afterRule]?.body ?? ''
+
+    expect(declaration(after, 'margin-block-start')).toBe('var(--prose-flow)')
+    for (const level of [1, 2, 3, 4, 5, 6]) {
+      expect(afterRule).toBeGreaterThan(index(`.prose :where(h${level}):not(`))
+    }
+    expect(afterRule).toBeGreaterThan(
+      index('.prose :where(h1, h2, h3, h4, h5, h6) + :where(*)')
+    )
+  })
+
   it('lets tables shrink to fit and scroll in .prose-scroll', () => {
     const table = proseRules.find(({ selector }) =>
       selector.replace(/\s+/g, ' ').startsWith('.prose :where(table):not(')

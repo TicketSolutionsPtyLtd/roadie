@@ -230,19 +230,16 @@
   .prose
     :where(hr):not(
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
-    ),
+    ) {
+    margin-block: calc(var(--prose-flow) * 2) 0;
+    border: 0;
+    border-block-start: 1px solid var(--intent-border-subtle);
+  }
   .prose
     :where(hr + *):not(
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
     ) {
-    margin-block-start: calc(var(--prose-flow) * 2);
-  }
-  .prose
-    :where(hr):not(
-      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
-    ) {
-    border: 0;
-    border-block-start: 1px solid var(--intent-border-subtle);
+    margin-block-start: var(--prose-flow);
   }
 
   .prose
