@@ -168,6 +168,45 @@ describe('DatePicker', () => {
     expect(onValueChange).toHaveBeenCalledWith('2026-12-03')
   })
 
+  it('keeps the calendar between the months given', async () => {
+    render(
+      <DatePicker
+        aria-label='Show date'
+        today={TODAY}
+        startMonth='2026-10-01'
+        endMonth='2026-10-31'
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
+    const dialog = await screen.findByRole('dialog')
+    expect(
+      within(dialog).getByRole('button', { name: 'Previous month' })
+    ).toBeDisabled()
+    expect(
+      within(dialog).getByRole('button', { name: 'Next month' })
+    ).toBeDisabled()
+  })
+
+  it('tells the app when the calendar opens and closes', async () => {
+    const onOpenChange = vi.fn()
+    render(
+      <DatePicker
+        aria-label='Show date'
+        today={TODAY}
+        onOpenChange={onOpenChange}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: /^Choose date/ }))
+    await screen.findByRole('dialog')
+    expect(onOpenChange).toHaveBeenLastCalledWith(true)
+    await userEvent.keyboard('{Escape}')
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    expect(onOpenChange).toHaveBeenLastCalledWith(false)
+    expect(onOpenChange).toHaveBeenCalledTimes(2)
+  })
+
   it('passes disabled matchers to the calendar and the typed field', async () => {
     render(
       <DatePicker
@@ -661,6 +700,57 @@ describe('DatePicker', () => {
       const date = screen.getByRole('combobox', { name: 'Date' })
       await userEvent.type(date, '27 nov{Enter}')
       expect(date).toHaveValue('Fri 27 Nov 2026')
+    })
+
+    it('shows and asks for times on a 24-hour clock', async () => {
+      render(
+        <Field>
+          <Field.Label>Doors</Field.Label>
+          <DatePicker
+            granularity='minute'
+            timeZone={MELBOURNE}
+            today={TODAY}
+            hourCycle={24}
+            defaultValue='2026-11-27T08:30:00Z'
+          />
+          <Field.ErrorText />
+        </Field>
+      )
+      const time = screen.getByRole('textbox', { name: 'Time' })
+      expect(time).toHaveValue('19:30')
+      await userEvent.clear(time)
+      await userEvent.type(time, 'soon{Enter}')
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Enter a time, like 19:30'
+      )
+    })
+
+    it('steps the time by the minutes given and refuses one off the step', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <Field>
+          <Field.Label>Doors</Field.Label>
+          <DatePicker
+            granularity='minute'
+            timeZone={MELBOURNE}
+            today={TODAY}
+            minuteStep={15}
+            defaultValue='2026-11-27T19:30:00+11:00'
+            onValueChange={onValueChange}
+          />
+          <Field.ErrorText />
+        </Field>
+      )
+      const time = screen.getByRole('textbox', { name: 'Time' })
+      await userEvent.type(time, '{ArrowUp}')
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        '2026-11-27T19:45:00+11:00'
+      )
+      await userEvent.clear(time)
+      await userEvent.type(time, '7:50pm{Enter}')
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Choose a time in 15-minute steps'
+      )
     })
   })
 
