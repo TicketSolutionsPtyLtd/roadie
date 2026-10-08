@@ -93,7 +93,7 @@ The only shape that is RSC-safe with zero consumer migration. Every compound in 
 
 9. **RSC canary** `docs/src/app/debug/rsc-smoke/page.tsx` — add a section rendering `<{Compound}>` (bare root) + at least one sub-component via `import { {Compound} } from '@oztix/roadie-components/{kebab-compound}'`. This is the CI surface that fails the docs build if the compound regresses from RSC-safe.
 
-10. **Doc page** `docs/src/app/components/{kebab-compound}/page.mdx`:
+10. **Doc page** `docs/src/app/components/{kebab-compound}/page.mdx`, starting from `docs/src/app/components/fieldset/page.mdx` and checked against `COMPONENT_DOC_TEMPLATE.md`:
     - Import section: `import { {Compound} } from '@oztix/roadie-components/{kebab-compound}'`
     - Use bare `<{Compound}>` (not `<{Compound}.Root>`) in code examples — bare is canonical.
     - `<PropsDefinitions componentPath='packages/components/src/components/{Compound}' />` — point at the **folder**, not a single file. The parser enumerates every non-test `.tsx` file.
