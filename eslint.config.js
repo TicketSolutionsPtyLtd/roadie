@@ -132,6 +132,7 @@ export default [
   {
     files: ['packages/widgets/src/cart-drawer/react/**/*.{ts,tsx}'],
     rules: {
+      'roadie/no-dynamic-next-import': 'error',
       'no-restricted-imports': [
         'error',
         {

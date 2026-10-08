@@ -3,7 +3,7 @@ import { ESLint, RuleTester } from 'eslint'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-import roadie from '../../../../eslint/roadie-plugin.js'
+import roadie from './roadie-plugin.js'
 
 RuleTester.describe = describe
 RuleTester.it = it
@@ -16,7 +16,7 @@ const tester = new RuleTester({
   }
 })
 
-const cases: Record<string, { valid: string[]; invalid: string[] }> = {
+const cases = {
   'phosphor-icon-suffix': {
     valid: [
       "import { HeartIcon, IconContext } from '@phosphor-icons/react'",
@@ -50,7 +50,8 @@ const cases: Record<string, { valid: string[]; invalid: string[] }> = {
     valid: ["<div className='dark bg-normal' />"],
     invalid: [
       "<div className='bg-normal dark:bg-strong' />",
-      "cn('p-2', isOpen && 'hover:dark:text-strong')"
+      "cn('p-2', isOpen && 'hover:dark:text-strong')",
+      "<div className={cn('dark:bg-strong')} />"
     ]
   },
   'no-hex-colour-class': {
@@ -77,6 +78,10 @@ const cases: Record<string, { valid: string[]; invalid: string[] }> = {
   'no-import-meta-env': {
     valid: ["const dev = process.env.NODE_ENV !== 'production'"],
     invalid: ['const dev = import.meta.env.DEV']
+  },
+  'no-dynamic-next-import': {
+    valid: ["import('./lazy')", "import('next-intl')"],
+    invalid: ["import('next/navigation')", "import('next')"]
   },
   'no-fixed-sleep': {
     valid: [
@@ -124,14 +129,16 @@ for (const [name, { valid, invalid }] of Object.entries(cases)) {
 
 describe('import boundaries in eslint.config.js', () => {
   const eslint = new ESLint({
-    cwd: fileURLToPath(new URL('../../../..', import.meta.url))
+    cwd: fileURLToPath(new URL('..', import.meta.url))
   })
 
-  const ruleHits = async (code: string, filePath: string) => {
+  const ruleHits = async (code, filePath) => {
     const [result] = await eslint.lintText(code, { filePath })
     return result.messages
       .map((message) => message.ruleId)
-      .filter((ruleId) => ruleId?.endsWith('no-restricted-imports'))
+      .filter((ruleId) =>
+        /no-restricted-imports|no-dynamic-next-import/.test(ruleId ?? '')
+      )
   }
 
   it.each([
@@ -145,6 +152,10 @@ describe('import boundaries in eslint.config.js', () => {
     ],
     [
       "import { useRouter } from 'next/navigation'\n",
+      'packages/widgets/src/cart-drawer/react/CartDrawer.tsx'
+    ],
+    [
+      "export const load = () => import('next/navigation')\n",
       'packages/widgets/src/cart-drawer/react/CartDrawer.tsx'
     ],
     ["import { z } from 'zod'\n", 'packages/core/src/dashboard/layout.ts'],

@@ -40,8 +40,12 @@ function classRule(description, pattern, message) {
     meta: { type: 'problem', docs: { description }, schema: [] },
     create(context) {
       const { visitorKeys } = context.sourceCode
+      // className={cn('…')} reaches each string through both visitors.
+      const checked = new WeakSet()
       const check = (root) => {
         for (const { node, text } of stringParts(root, visitorKeys)) {
+          if (checked.has(node)) continue
+          checked.add(node)
           for (const token of text.split(/\s+/)) {
             if (pattern.test(token)) {
               context.report({ node, message, data: { token } })
@@ -172,6 +176,12 @@ const rules = {
     'Dev-only checks read process.env.NODE_ENV.',
     "MemberExpression[object.type='MetaProperty'][property.name='env']",
     "Use process.env.NODE_ENV behind a typeof process !== 'undefined' guard. See docs/solutions/build-errors/cross-bundler-dev-env-check.md."
+  ),
+  'no-dynamic-next-import': selectorRule(
+    'No dynamic next or next/* imports.',
+    // esquery regexes cannot contain a slash.
+    'ImportExpression[source.value=/^next(\\x2F|$)/]',
+    'The React skin routes through onNavigate, not next/*.'
   ),
   'no-fixed-sleep': selectorRule(
     'Tests wait on a condition, not a fixed time.',
