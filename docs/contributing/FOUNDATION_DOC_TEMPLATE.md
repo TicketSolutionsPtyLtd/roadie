@@ -8,9 +8,9 @@ its `/tokens/` page, and every component API is on its component page.
 
 ## Structure
 
-The skeleton comes from the sections the `page.tsx` foundations share, surveyed
-on Layout, Shape, Elevation, Iconography, Typography, Interactions, Linking,
-Motion, and Colors. Keep the order and only the sections that apply.
+The skeleton comes from the sections the visual foundations share. Keep the
+order and only the sections that apply. A topic with no slot, such as Dark
+mode on Colors, gets its own `##` section before Guidelines.
 
 ````mdx
 export const metadata = {
