@@ -87,6 +87,18 @@ function phosphorRule(description, create) {
   }
 }
 
+function staticString(node) {
+  if (node?.type === 'JSXExpressionContainer')
+    return staticString(node.expression)
+  if (node?.type === 'Literal' && typeof node.value === 'string') {
+    return node.value
+  }
+  if (node?.type === 'TemplateLiteral' && node.expressions.length === 0) {
+    return node.quasis[0].value.cooked
+  }
+  return undefined
+}
+
 function iconAttribute(icons, attributeName, report) {
   return {
     JSXAttribute(node) {
@@ -141,16 +153,35 @@ const rules = {
   ),
   'phosphor-icon-weight': phosphorRule(
     'Phosphor icons are bold, or fill or duotone where those apply.',
-    (context, icons) =>
-      iconAttribute(icons, 'weight', (node) => {
-        const value = node.value
-        if (value?.type === 'Literal' && !ICON_WEIGHTS.has(value.value)) {
+    (context, icons) => ({
+      JSXOpeningElement(node) {
+        if (node.name.type !== 'JSXIdentifier' || !icons.has(node.name.name)) {
+          return
+        }
+        const weight = node.attributes.find(
+          (attribute) =>
+            attribute.type === 'JSXAttribute' &&
+            attribute.name.name === 'weight'
+        )
+        if (!weight) {
+          if (node.attributes.some((a) => a.type === 'JSXSpreadAttribute')) {
+            return
+          }
           context.report({
             node,
-            message: `Use weight bold, or fill or duotone where those apply, not ${value.value}. See ${DOCS}/foundations/iconography.`
+            message: `Set weight='bold', since Phosphor defaults to regular. See ${DOCS}/foundations/iconography.`
+          })
+          return
+        }
+        const value = staticString(weight.value)
+        if (value !== undefined && !ICON_WEIGHTS.has(value)) {
+          context.report({
+            node: weight,
+            message: `Use weight bold, or fill or duotone where those apply, not ${value}. See ${DOCS}/foundations/iconography.`
           })
         }
-      })
+      }
+    })
   ),
   'no-dark-variant': classRule(
     'No dark: variants.',
@@ -183,6 +214,16 @@ const rules = {
     'ImportExpression[source.value=/^next(\\x2F|$)/]',
     'The React skin routes through onNavigate, not next/*.'
   ),
+  'no-dynamic-next-link': selectorRule(
+    'No dynamic next/link imports.',
+    'ImportExpression[source.value=/^next\\x2Flink$/]',
+    'Pass href and let the Link given to RoadieProvider route it. See AGENTS.md, Links and forms.'
+  ),
+  'no-dynamic-zod-import': selectorRule(
+    'Zod-free modules do not import zod or ./schema dynamically.',
+    'ImportExpression[source.value=/^(zod|\\.\\x2Fschema)$/]',
+    'Keep this module zod-free; import only types from ./schema.'
+  ),
   'no-fixed-sleep': selectorRule(
     'Tests wait on a condition, not a fixed time.',
     [
@@ -203,7 +244,7 @@ const rules = {
   ),
   'no-css-class-in-jsdom': selectorRule(
     'jsdom tests do not assert classes that only CSS can evaluate.',
-    "CallExpression[callee.property.name='toHaveClass'] Literal[value=/calc\\(|@container|(^|\\s|:)(max-)?lg:/]",
+    "CallExpression[callee.property.name='toHaveClass'] Literal[value=/calc\\(|@container|(^|\\s|:)(max-)?(sm|md|lg|xl|2xl):/]",
     'jsdom cannot evaluate calc(), container queries, or breakpoints. Assert this in a *.browser.test.tsx. See AGENTS.md, Tests and code.'
   ),
   'no-compound-root-identity': selectorRule(

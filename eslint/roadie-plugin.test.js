@@ -40,10 +40,15 @@ const cases = {
   'phosphor-icon-weight': {
     valid: [
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='bold' />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='fill' />"
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='fill' />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={selected ? 'fill' : 'bold'} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon {...iconProps} />"
     ],
     invalid: [
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='regular' />"
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='regular' />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={'regular'} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={`thin`} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon />"
     ]
   },
   'no-dark-variant': {
@@ -83,6 +88,14 @@ const cases = {
     valid: ["import('./lazy')", "import('next-intl')"],
     invalid: ["import('next/navigation')", "import('next')"]
   },
+  'no-dynamic-next-link': {
+    valid: ["import('next/navigation')", "import('./link')"],
+    invalid: ["import('next/link')"]
+  },
+  'no-dynamic-zod-import': {
+    valid: ["import('./schema-types')", "import('zod-to-json')"],
+    invalid: ["import('zod')", "import('./schema')"]
+  },
   'no-fixed-sleep': {
     valid: [
       'await new Promise((resolve) => setTimeout(resolve, 0))',
@@ -105,7 +118,10 @@ const cases = {
     valid: ["expect(el).toHaveClass('emphasis-strong')"],
     invalid: [
       "expect(el).toHaveClass('w-[calc(100%-1rem)]')",
-      "expect(el).toHaveClass('max-lg:hidden')"
+      "expect(el).toHaveClass('max-lg:hidden')",
+      "expect(el).toHaveClass('sm:end-6')",
+      "expect(el).toHaveClass('hidden', 'md:inline-block')",
+      "expect(el).toHaveClass('max-2xl:absolute')"
     ]
   },
   'no-compound-root-identity': {
@@ -137,7 +153,7 @@ describe('import boundaries in eslint.config.js', () => {
     return result.messages
       .map((message) => message.ruleId)
       .filter((ruleId) =>
-        /no-restricted-imports|no-dynamic-next-import/.test(ruleId ?? '')
+        /no-restricted-imports|no-dynamic-/.test(ruleId ?? '')
       )
   }
 
@@ -158,7 +174,23 @@ describe('import boundaries in eslint.config.js', () => {
       "export const load = () => import('next/navigation')\n",
       'packages/widgets/src/cart-drawer/react/CartDrawer.tsx'
     ],
+    [
+      "export const load = () => import('next/link')\n",
+      'packages/components/src/components/Button/index.tsx'
+    ],
+    [
+      "export const load = () => import('next/link')\n",
+      'packages/core/src/dashboard/layout.ts'
+    ],
     ["import { z } from 'zod'\n", 'packages/core/src/dashboard/layout.ts'],
+    [
+      "export const load = () => import('zod')\n",
+      'packages/core/src/dashboard/cells.ts'
+    ],
+    [
+      "export const load = () => import('./schema')\n",
+      'packages/core/src/dashboard/totals.ts'
+    ],
     [
       "import { tableColumnSchema } from './schema'\n",
       'packages/core/src/dashboard/totals.ts'
@@ -177,7 +209,11 @@ describe('import boundaries in eslint.config.js', () => {
       "import type { TableColumn } from './schema'\n",
       'packages/core/src/dashboard/cells.ts'
     ],
-    ["import { z } from 'zod'\n", 'packages/core/src/dashboard/validate.ts']
+    ["import { z } from 'zod'\n", 'packages/core/src/dashboard/validate.ts'],
+    [
+      "export const load = () => import('zod')\n",
+      'packages/core/src/dashboard/validate.ts'
+    ]
   ])('allows %s in %s', async (code, filePath) => {
     expect(await ruleHits(code, filePath)).toEqual([])
   })

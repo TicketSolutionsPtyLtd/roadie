@@ -100,6 +100,7 @@ export default [
       'roadie/no-hex-colour-class': 'error',
       'roadie/no-arbitrary-z-index': 'error',
       'roadie/no-arbitrary-radius': 'warn',
+      'roadie/no-dynamic-next-link': 'error',
       'no-restricted-imports': ['error', { paths: [nextLink] }]
     }
   },
@@ -154,6 +155,7 @@ export default [
       'packages/core/src/dashboard/layout.ts'
     ],
     rules: {
+      'roadie/no-dynamic-zod-import': 'error',
       '@typescript-eslint/no-restricted-imports': [
         'error',
         {
