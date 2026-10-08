@@ -367,6 +367,9 @@ describe('DateRangePicker', () => {
       expect(
         within(dialog).getByRole('combobox', { name: 'Start' })
       ).toHaveValue('3 Dez 2026')
+      expect(within(dialog).getByRole('combobox', { name: 'End' })).toHaveValue(
+        '5 Dez 2026'
+      )
       expect(within(dialog).getAllByRole('columnheader')[0]).toHaveAttribute(
         'aria-label',
         'Montag'
@@ -735,7 +738,7 @@ describe('DateRangePicker', () => {
           minuteStep={15}
           defaultValue={{
             start: '2026-11-02T19:00:00+11:00',
-            end: '2026-11-04'
+            end: '2026-11-04T22:00:00+11:00'
           }}
           onValueChange={onValueChange}
         />
@@ -747,7 +750,15 @@ describe('DateRangePicker', () => {
       )
       expect(onValueChange).toHaveBeenLastCalledWith({
         start: '2026-11-02T19:15:00+11:00',
-        end: '2026-11-04'
+        end: '2026-11-04T22:00:00+11:00'
+      })
+      await userEvent.type(
+        within(dialog).getByRole('textbox', { name: 'End time' }),
+        '{ArrowUp}'
+      )
+      expect(onValueChange).toHaveBeenLastCalledWith({
+        start: '2026-11-02T19:15:00+11:00',
+        end: '2026-11-04T22:15:00+11:00'
       })
     })
   })
