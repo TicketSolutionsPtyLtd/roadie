@@ -9,7 +9,8 @@
 
    Intra-component stacking (e.g. a tab's text above its own
    pseudo-element, a carousel's edge-fade gradients) stays local
-   with small `z-[n]` values — it does not participate in this
+   with small plain values such as `z-1`, never the arbitrary
+   `z-[n]` form. It does not participate in this
    cross-component scale.
    ═══════════════════════════════════════════════════════════ */
 @theme {

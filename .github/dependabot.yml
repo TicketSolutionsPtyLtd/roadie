@@ -28,6 +28,11 @@ updates:
     ignore:
       - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
+      # babel-plugin-react-compiler (1.0.0) targets Babel 7: under Babel 8 the
+      # components tests hit "Maximum update depth exceeded" (#166). Lift this
+      # once a compiler release supports Babel 8.
+      - dependency-name: '@babel/core'
+        update-types: ['version-update:semver-major']
     groups:
       dev-minor-patch:
         dependency-type: development
