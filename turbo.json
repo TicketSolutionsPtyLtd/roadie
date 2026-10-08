@@ -75,6 +75,7 @@
       "inputs": [
         "src/**/*.{js,jsx,mjs,ts,tsx,mts,css}",
         "src/**/*.html",
+        "scripts/**/*.{js,mjs,cjs}",
         "**/*.test.{js,jsx,ts,tsx}",
         "jest.config.*",
         "*.config.{js,mjs,cjs,ts}",
