@@ -6,15 +6,16 @@ These skills ship as a Claude Code plugin. Installing the plugin makes them avai
 
 ## Available skills
 
-| Skill    | Command          | What it does                                                                                                                                                                                        |
-| -------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `audit`  | `/roadie:audit`  | Scan a codebase for Roadie compliance (hardcoded colours, wrong layout, icon misuse, deprecated props, and missing setup), and optionally fix.                                                      |
-| `debug`  | `/roadie:debug`  | Debug a failing, flaky, or slow test or a bug: reproduce first, check the host repo's `docs/solutions`, test one hypothesis at a time, timebox, and end with a solution entry or a check.           |
-| `demo`   | `/roadie:demo`   | Before pushing a UI change, start a long-lived preview, screenshot it at phone and desktop widths in light and dark, post the Tailscale link and shots, and wait for the approver's OK.             |
-| `pr`     | `/roadie:pr`     | Write or update a PR description from the host repo's template, with Evidence and Merge danger (one-way or two-way door, plus blast radius). Keeps existing content.                                |
-| `review` | `/roadie:review` | Review a branch or PR in a fresh subagent for conventions, bugs, and test quality, using the host repo's `AGENTS.md` and `CODING_STANDARDS.md`. Commits fixes and comments only on judgement calls. |
-| `spec`   | `/roadie:spec`   | Write the PR body, or a gitignored series spec, before code: test seams, demo, Evidence, and Merge danger, checked against the host repo's decision register.                                       |
-| `test`   | `/roadie:test`   | Write tests first, one at a time, at the public interface, using the host repo's `AGENTS.md` and `CODING_STANDARDS.md`. Avoids tests that can't fail.                                               |
+| Skill      | Command            | What it does                                                                                                                                                                                                       |
+| ---------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `audit`    | `/roadie:audit`    | Scan a codebase for Roadie compliance (hardcoded colours, wrong layout, icon misuse, deprecated props, and missing setup), and optionally fix.                                                                     |
+| `debug`    | `/roadie:debug`    | Debug a failing, flaky, or slow test or a bug: reproduce first, check the host repo's `docs/solutions`, test one hypothesis at a time, timebox, and end with a solution entry or a check.                          |
+| `demo`     | `/roadie:demo`     | Before pushing a UI change, start a long-lived preview, screenshot it at phone and desktop widths in light and dark, post the Tailscale link and shots, and wait for the approver's OK.                            |
+| `pr`       | `/roadie:pr`       | Write or update a PR description from the host repo's template, with Evidence and Merge danger (one-way or two-way door, plus blast radius). Keeps existing content.                                               |
+| `review`   | `/roadie:review`   | Review a branch or PR in a fresh subagent for conventions, bugs, and test quality, using the host repo's `AGENTS.md` and `CODING_STANDARDS.md`. Commits fixes and comments only on judgement calls.                |
+| `shepherd` | `/roadie:shepherd` | Take a draft PR to merged: rebase, wait for CI, mark ready for the one Copilot pass, triage and resolve every thread, record Copilot precision, and merge a two-way door or hand a one-way door to the maintainer. |
+| `spec`     | `/roadie:spec`     | Write the PR body, or a gitignored series spec, before code: test seams, demo, Evidence, and Merge danger, checked against the host repo's decision register.                                                      |
+| `test`     | `/roadie:test`     | Write tests first, one at a time, at the public interface, using the host repo's `AGENTS.md` and `CODING_STANDARDS.md`. Avoids tests that can't fail.                                                              |
 
 More skills coming (e.g. a `build`/`ui` skill for scaffolding new UI with Roadie primitives).
 

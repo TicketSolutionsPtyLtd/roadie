@@ -15,6 +15,8 @@ pass. Each real Copilot finding is a gap in the local reviews.
 
 PRs need fewer review rounds and commits. A Claude Code hook blocks PRs opened
 without the draft flag.
+Each PR records its Copilot precision in the body's Evidence ("Copilot: N of
+M findings real"), so we can tell whether the one pass still finds anything.
 
 ## Links
 
