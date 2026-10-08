@@ -1,1 +1,1 @@
-pnpm typecheck && pnpm test
+TURBO_SCM_BASE=origin/main pnpm turbo run typecheck test --affected

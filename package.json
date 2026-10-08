@@ -44,6 +44,7 @@
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "17.13.0",
     "husky": "9.1.7",
+    "lint-staged": "17.6.0",
     "playwright": "1.63.0",
     "prettier": "3.9.9",
     "prettier-plugin-tailwindcss": "0.8.1",
@@ -55,5 +56,9 @@
   "workspaces": [
     "packages/*",
     "docs"
-  ]
+  ],
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": "eslint --fix --no-warn-ignored --flag v10_config_lookup_from_file",
+    "*": "prettier --write --ignore-unknown"
+  }
 }
