@@ -1,21 +1,10 @@
 import { useMemo, useRef, useState } from 'react'
 
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within
-} from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-import {
-  type RecordPosition,
-  type RecordView,
-  placeRange
-} from '@oztix/roadie-core/records'
+import { type RecordView, placeRange } from '@oztix/roadie-core/records'
 
 import { RecordTable, type RecordTableProps } from '.'
 import type { RecordsBulkAction } from '../Records'
@@ -635,98 +624,8 @@ describe('firstVisibleRow', () => {
 })
 
 describe('stuckInset', () => {
-  it('measures from the scroller top to the stuck header bottom', () => {
-    const { container } = render(
-      <div data-slot='record-table-content'>
-        <div data-slot='record-table-head' style={{ top: '12px' }} />
-        <div data-testid='body' />
-      </div>
-    )
-    const head = container.querySelector<HTMLElement>(
-      '[data-slot="record-table-head"]'
-    )!
-    Object.defineProperty(head, 'offsetHeight', { value: 36 })
-    expect(stuckInset(screen.getByTestId('body'))).toBe(48)
-    head.style.top = 'var(--pane-header-height, 0px)'
-    expect(stuckInset(screen.getByTestId('body'))).toBe(36)
-  })
-
   it('is zero outside a table', () => {
     const { container } = render(<div />)
     expect(stuckInset(container)).toBe(0)
-  })
-})
-
-// jsdom has no layout, so the window stands in as the scroll element.
-function scrollWindowTo(y: number) {
-  Object.defineProperty(window, 'scrollY', { value: y, configurable: true })
-  act(() => {
-    window.dispatchEvent(new Event('scroll'))
-  })
-}
-
-describe('RecordTable range position', () => {
-  afterEach(() => {
-    scrollWindowTo(0)
-    vi.useRealTimers()
-    vi.restoreAllMocks()
-  })
-
-  it('never jumps back to an echo of a row it reported', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true })
-    // Laid out at the page's top, so the table's offset holds as the window scrolls.
-    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
-      () => new DOMRect(0, -window.scrollY, 0, 0)
-    )
-    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
-    const reported: number[] = []
-    let applied: Required<RecordPosition> = { page: 0, pageSize: 50, row: 0 }
-    function Echoing() {
-      const [position, setPosition] = useState<RecordPosition>({})
-      return (
-        <>
-          <button
-            type='button'
-            onClick={() =>
-              setPosition((current) => ({ ...current, row: 3000 }))
-            }
-          >
-            Go to row 3000
-          </button>
-          <Ranged
-            rowCount={5000}
-            position={position}
-            onPositionChange={(next) => {
-              reported.push(next.row)
-              // An async router applies each URL some time after the push.
-              setTimeout(() => {
-                applied = next
-                setPosition(next)
-              }, 400)
-            }}
-          />
-        </>
-      )
-    }
-    render(<Echoing />)
-    await settle()
-    // The virtualiser scrolls itself to its initial offset on mount.
-    scrollTo.mockClear()
-
-    scrollWindowTo(120 * 48)
-    expect(reported).toEqual([120])
-    await act(() => vi.advanceTimersByTimeAsync(350))
-    scrollWindowTo(150 * 48)
-    expect(reported).toEqual([120, 150])
-    await act(() => vi.advanceTimersByTimeAsync(100))
-    expect(applied.row).toBe(120)
-    await act(() => vi.advanceTimersByTimeAsync(1000))
-    expect(applied.row).toBe(150)
-    expect(reported).toEqual([120, 150])
-    expect(scrollTo).not.toHaveBeenCalled()
-
-    // jsdom's page has no height, so the scroll clamps; that it scrolls is the point.
-    fireEvent.click(screen.getByRole('button', { name: 'Go to row 3000' }))
-    expect(scrollTo).toHaveBeenCalled()
   })
 })

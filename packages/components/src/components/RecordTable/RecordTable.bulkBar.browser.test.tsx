@@ -1,7 +1,15 @@
 import { useEffect } from 'react'
 
 import { act, cleanup, render, screen, within } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { RecordTable, tableLayout } from '.'
@@ -150,14 +158,18 @@ describe('RecordTable selection bar', () => {
     expect(near(rect(header).left, rect(cell).left)).toBe(true)
   })
 
-  it('moves the actions that do not fit into More actions', async () => {
+  it('moves the actions that do not fit into More actions, still confirming from there', async () => {
+    const onRefund = vi.fn()
     const many = [
-      'Send reminder',
-      'Move to another date',
-      'Change ticket type',
-      'Export as spreadsheet',
-      'Archive shows'
-    ].map((label) => ({ label, onAction: () => {} }))
+      ...[
+        'Send reminder',
+        'Move to another date',
+        'Change ticket type',
+        'Export as spreadsheet',
+        'Archive shows'
+      ].map((label) => ({ label, onAction: () => {} })),
+      { label: 'Refund', intent: 'danger' as const, onAction: onRefund }
+    ]
     const { container } = render(
       <Shows mode='pane' width={1400} bulkActions={many} />
     )
@@ -181,6 +193,61 @@ describe('RecordTable selection bar', () => {
     expect(
       within(toolbar()).queryByRole('button', { name: 'Archive shows' })
     ).toBeNull()
+    await userEvent.click(
+      within(toolbar()).getByRole('button', { name: 'More actions' })
+    )
+    expect(
+      await screen.findByRole('menuitem', { name: 'Archive shows' })
+    ).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Refund' }))
+    const dialog = await screen.findByRole('alertdialog')
+    expect(onRefund).not.toHaveBeenCalled()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Refund' })
+    )
+    expect(onRefund).toHaveBeenCalledWith(
+      { ids: ['0'] },
+      expect.objectContaining({ search: '' })
+    )
+  })
+
+  it('counts its own padding when fitting actions', async () => {
+    const { container } = render(
+      <Shows mode='pane' width={1400} bulkActions={many} />
+    )
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    await expect.poll(() => toolbar().isConnected).toBe(true)
+    await frame()
+    const bar = toolbar()
+    const style = getComputedStyle(bar)
+    const gap = parseFloat(style.columnGap)
+    const padding = parseFloat(style.paddingInlineEnd)
+    expect(padding).toBeGreaterThan(1)
+    const natural = (part: string) =>
+      [...bar.querySelectorAll(`[data-slot="${part}"]`)].map(
+        (element) => rect(element).width
+      )
+    const needed = natural('records-bulk-action').reduce(
+      (sum, action) => sum + gap + action,
+      natural('records-bulk-count')[0]!
+    )
+    // Every action fits the bar's box, but not once its end padding is out.
+    const target = needed + padding / 2
+    const sizer = container.querySelector<HTMLElement>('[data-testid="width"]')!
+    for (let pass = 0; pass < 3; pass++) {
+      const width = parseFloat(sizer.style.width)
+      sizer.style.width = `${width + target - rect(bar).width}px`
+      await frame()
+      await frame()
+    }
+    expect(Math.abs(rect(bar).width - target)).toBeLessThan(padding / 4)
+    await expect
+      .poll(() =>
+        within(toolbar()).queryByRole('button', { name: 'More actions' })
+      )
+      .not.toBeNull()
   })
 
   const many = [
