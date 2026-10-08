@@ -15,6 +15,10 @@
       "types": "./dist/components/Pill/index.d.ts",
       "import": "./dist/components/Pill/index.js"
     },
+    "./theme": {
+      "types": "./dist/theme.d.ts",
+      "import": "./dist/theme.js"
+    },
     "./roadie.manifest.json": "./dist/roadie.manifest.json"
   }
 }

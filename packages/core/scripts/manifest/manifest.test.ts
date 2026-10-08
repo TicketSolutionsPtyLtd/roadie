@@ -47,6 +47,12 @@ describe('buildManifest', () => {
         types: ['PillProps']
       },
       {
+        subpath: './theme',
+        import: '@fixture/ui/theme',
+        kind: 'js',
+        values: ['DEFAULT_THEME', 'useTheme']
+      },
+      {
         subpath: './roadie.manifest.json',
         import: '@fixture/ui/roadie.manifest.json',
         kind: 'json'

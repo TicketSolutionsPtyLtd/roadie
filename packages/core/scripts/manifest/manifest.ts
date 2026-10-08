@@ -171,8 +171,8 @@ export function buildManifest({
       subpath: entry.subpath,
       import: importName,
       kind: entry.kind,
-      values: api.values,
-      types: api.types
+      ...(api.values.length > 0 && { values: api.values }),
+      ...(api.types.length > 0 && { types: api.types })
     })
     if (entry.subpath === '.') {
       rootComponents = api.components
