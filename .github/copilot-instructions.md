@@ -46,6 +46,8 @@ ESLint already enforce.
 - Comments explain why, never what.
 - Docs: sentence case, Australian spelling, no em dashes; `.mdx` is edited
   by hand.
+- Docs pages are MDX with no `className` layout in top-level JSX, per
+  `docs/contributing/DOCS_PAGES.md`.
 - Example data: only Australian cities and bands are real. Flag any venue,
   event, festival, tour or promoter name not listed in
   `docs/contributing/EXAMPLE_DATA.md`.

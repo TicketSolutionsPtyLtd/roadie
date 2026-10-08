@@ -1,16 +1,16 @@
 # Component Documentation Template
 
-Reference for writing and reviewing Roadie component docs.
+Reference for writing and reviewing Roadie component and chart docs. Follow [`DOCS_PAGES.md`](DOCS_PAGES.md) too, which holds the conventions for every docs page.
 
 ## Structure
 
-The literal MDX skeleton lives in `docs/src/app/components/fieldset/page.mdx`. Copy it as a starting point for new component docs. Prettier's markdown formatter eats nested `tsx-live` fences inside this file, so the skeleton can't be embedded here inline.
+The literal MDX skeleton lives in `docs/src/app/components/fieldset/page.mdx`. Copy it as a starting point for new component docs.
 
 The skeleton contains:
 
 - Frontmatter `export const metadata = { title, description, status, category }`
 - `import { PropsDefinitions } from '@/components/PropsDefinitions'`
-- `# {Component}` heading + one-line description
+- A one-line description, with no `#` heading, because the layout renders `metadata.title` as the page's `h1`
 - `## Import` with a subpath import (never the barrel)
 - `## Examples` starting with a `### Default` `tsx-live` block
 - Optional `### Variants` / `### Emphasis` / `### Sizes` / `### Intents` / `### States` / `### Composition` sections
@@ -38,7 +38,7 @@ The skeleton contains:
 ## Live examples
 
 - A `tsx-live` fence renders when it comes within a screen of view, and shows a placeholder and its code until then. Add `-noinline` when the code calls `render()`, and `-expand` for a Full width button.
-- MDX pages render inside `.prose`, and each live example opts out with `.not-prose`. A `.prose` inside that escape stays unstyled, so an example that demos `.prose` or `Prose` adds `-prose`, which escapes only its toolbar and code.
+- MDX pages render inside `.prose`, and each live example opts out with `data-not-prose`. A `.prose` inside that escape stays unstyled, so an example that demos `.prose` or `Prose` uses a `tsx-live-prose` fence, which escapes only its toolbar and code.
 - Each example on an MDX page also gets its own page at `/examples/<page>/<id>/`, opened from the button beside Copy. The id is the nearest heading's slug, with `-2`, `-3` for later examples under the same heading.
 - Fence meta after the language sets options: `id=orders` pins the id (lowercase kebab-case, unique on the page), so a link survives a heading rename; `eager` renders the example on load, for the rare one that must.
 - Examples on `.tsx` pages (`<CodePreview language='tsx-live'>`) load lazily too, but have no page of their own.
