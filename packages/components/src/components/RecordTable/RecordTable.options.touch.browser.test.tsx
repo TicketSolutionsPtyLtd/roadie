@@ -4,6 +4,7 @@ import { commands, page } from 'vitest/browser'
 
 import { RecordTable } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { settledBox } from '../../utils/touchTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { showFields, testShows } from '../Records/testUtils'
 import { tableColumns } from './columns'
@@ -29,7 +30,6 @@ const columns = [
   column.field('starts', { narrow: 'detail' })
 ]
 
-const settle = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
 const centre = (element: Element) => {
   const box = element.getBoundingClientRect()
   return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
@@ -50,12 +50,6 @@ function headers() {
 const handle = (name: string) =>
   screen.getByRole('button', { name: `Reorder ${name}` })
 
-const sameBox = (a: DOMRect, b: DOMRect) =>
-  a.top === b.top &&
-  a.left === b.left &&
-  a.width === b.width &&
-  a.height === b.height
-
 /** Waits for animations to end and the element to hold still, as a slow runner may still be moving it. */
 async function still(element: Element) {
   await Promise.all(
@@ -68,25 +62,14 @@ async function still(element: Element) {
       )
       .map((animation) => animation.finished.catch(() => {}))
   )
-  let last = element.getBoundingClientRect()
-  for (let tries = 0; tries < 40; tries++) {
-    await settle(50)
-    const now = element.getBoundingClientRect()
-    if (sameBox(last, now)) {
-      if (!element.isConnected || now.width === 0)
-        throw new Error('Nothing to tap')
-      return
-    }
-    last = now
-  }
-  throw new Error('The element kept moving')
+  await settledBox(element)
 }
 
+// Each tap's caller waits for what it does, as its click can come later.
 async function tapOn(element: Element) {
   await still(element)
   const { x, y } = centre(element)
   await commands.tap(x, y)
-  await settle(200)
 }
 
 async function openDrawer() {
@@ -120,14 +103,9 @@ describe('Records.Options tapped on a phone', TIMEOUT, () => {
         { timeout: 5000 }
       )
     )
-    expect(headers()).toEqual([
-      'Show',
-      'Starts',
-      'City',
-      'Sold',
-      'Gross',
-      'Status'
-    ])
+    await expect
+      .poll(headers)
+      .toEqual(['Show', 'Starts', 'City', 'Sold', 'Gross', 'Status'])
     expect(
       screen.getByRole('dialog', { name: 'Configure table' })
     ).toBeVisible()
@@ -136,15 +114,15 @@ describe('Records.Options tapped on a phone', TIMEOUT, () => {
   it('hides a column with its eye', async () => {
     const drawer = await openDrawer()
     await tapOn(within(drawer).getByRole('button', { name: 'Show City' }))
-    expect(headers()).toEqual(['Show', 'Sold', 'Gross', 'Status', 'Starts'])
+    await expect
+      .poll(headers)
+      .toEqual(['Show', 'Sold', 'Gross', 'Status', 'Starts'])
     expect(
       within(drawer).getByRole('button', { name: 'Show City' })
     ).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('scrolls the drawer with a swipe across the rows, moving nothing', async ({
-    skip
-  }) => {
+  it('scrolls the drawer with a swipe across the rows', async ({ skip }) => {
     if (!navigator.userAgent.includes('Chrome')) skip()
     await page.viewport(390, 560)
     try {
@@ -154,17 +132,9 @@ describe('Records.Options tapped on a phone', TIMEOUT, () => {
       )!
       expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
       const from = centre(within(drawer).getByText('Gross'))
+      // The swipe returns once the browser has handled its lift.
       await commands.swipe(from, { x: from.x, y: from.y - 160 })
-      await settle()
-      expect(body.scrollTop).toBeGreaterThan(0)
-      expect(headers()).toEqual([
-        'Show',
-        'City',
-        'Sold',
-        'Gross',
-        'Status',
-        'Starts'
-      ])
+      await expect.poll(() => body.scrollTop).toBeGreaterThan(0)
       expect(
         screen.getByRole('dialog', { name: 'Configure table' })
       ).toBeVisible()

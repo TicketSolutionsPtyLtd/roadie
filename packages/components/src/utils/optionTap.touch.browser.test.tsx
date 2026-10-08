@@ -10,7 +10,7 @@ import {
   it,
   vi
 } from 'vitest'
-import { commands, page, userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import roadieCss from '../../vitest.browser.css?inline'
 import { Autocomplete } from '../components/Autocomplete'
@@ -22,6 +22,7 @@ import { Drawer } from '../components/Drawer'
 import { Menu } from '../components/Menu'
 import { useStylesheet } from '../components/Pane/testUtils'
 import { Select } from '../components/Select'
+import { withFrames } from '../css/testUtils'
 import { tapOn } from './touchTestUtils'
 
 const TIMEOUT = { timeout: 20_000 }
@@ -35,8 +36,19 @@ beforeAll(async () => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
-const settle = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
-
+// Nothing on the page is moving, such as a drawer sliding up or a list
+// scaling in.
+const settled = () =>
+  withFrames(() =>
+    expect
+      .poll(
+        () =>
+          document
+            .getAnimations()
+            .filter((animation) => animation.playState === 'running').length
+      )
+      .toBe(0)
+  )
 function InDrawer({ children }: { children: React.ReactNode }) {
   return (
     <Drawer defaultOpen>
@@ -70,7 +82,7 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
           </Autocomplete>
         </InDrawer>
       )
-      await settle()
+      await settled()
       const input = screen.getByRole('combobox', { name: 'Venue' })
       await tapOn(input)
       await userEvent.type(input, 'lig')
@@ -110,7 +122,7 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
         )
       }
       render(<Venue />)
-      await settle()
+      await settled()
       const input = screen.getByRole('combobox', { name: 'Venue' })
       await tapOn(input)
       await userEvent.type(input, 'opa')
@@ -157,7 +169,7 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
         )
       }
       render(<Venues />)
-      await settle()
+      await settled()
       const input = screen.getByRole('combobox', { name: 'Venues' })
       await tapOn(input)
       await userEvent.type(input, 'opa')
@@ -193,9 +205,9 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
         )
       }
       render(<Venue />)
-      await settle()
+      await settled()
       await tapOn(screen.getByRole('combobox', { name: 'Venue' }))
-      await settle()
+      await settled()
       await tapOn(
         await screen.findByRole('option', { name: 'Lighthouse Fig Lawn' }),
         spot
@@ -219,7 +231,7 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
           </Menu>
         </InDrawer>
       )
-      await settle()
+      await settled()
       await tapOn(screen.getByRole('button', { name: 'Actions' }))
       await tapOn(
         await screen.findByRole('menuitem', { name: 'Duplicate' }),
@@ -232,7 +244,7 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
       render(<DateRangePicker aria-label='Sales period' today='2026-10-07' />)
       await tapOn(screen.getByRole('button', { name: /^Choose dates/ }))
       const drawer = await screen.findByRole('dialog')
-      await settle(800)
+      await settled()
       const start = within(drawer).getByRole('combobox', { name: 'Start' })
       await tapOn(start)
       await userEvent.type(start, 'tom')
@@ -246,10 +258,16 @@ for (const spot of ['text', 'far right', 'top padding'] as const)
   })
 
 describe('A touch on a suggestion', TIMEOUT, () => {
-  function Venue({ open }: { open?: boolean }) {
+  function Venue({
+    open,
+    onValueChange
+  }: {
+    open?: boolean
+    onValueChange?: (value: string) => void
+  }) {
     return (
       <InDrawer>
-        <Autocomplete items={VENUES} open={open}>
+        <Autocomplete items={VENUES} open={open} onValueChange={onValueChange}>
           <Autocomplete.Input aria-label='Venue' />
           <Autocomplete.Portal>
             <Autocomplete.Positioner>
@@ -269,34 +287,48 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     )
   }
 
-  it('that moves away before it lifts chooses nothing', async ({ skip }) => {
-    if (!navigator.userAgent.includes('Chrome')) skip()
-    render(<Venue />)
-    await settle()
+  // Sent by hand: a real swipe here always ends in pointercancel, which no
+  // code could turn into a choice, so it couldn't fail.
+  it('that moves away before it lifts chooses nothing', async () => {
+    const onValueChange = vi.fn()
+    render(<Venue onValueChange={onValueChange} />)
+    await settled()
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await tapOn(input)
-    await userEvent.type(input, 'li')
+    await userEvent.type(input, 'o')
     const option = await screen.findByRole('option', {
       name: 'Lighthouse Fig Lawn'
     })
-    await settle(300)
-    const { left, top, height } = option.getBoundingClientRect()
-    const y = top + height / 2
-    await commands.swipe({ x: left + 20, y }, { x: left + 20, y: y + 60 })
-    await settle()
-    expect(input).toHaveValue('li')
+    const other = screen.getByRole('option', { name: 'Opal Harpoon Room' })
+    await settled()
+    onValueChange.mockClear()
+    option.dispatchEvent(new PointerEvent('pointerdown', touchAt(option, 10)))
+    option.dispatchEvent(
+      new PointerEvent('pointermove', touchAt(option, 10, 60))
+    )
+    option.dispatchEvent(new PointerEvent('pointerup', touchAt(option, 10, 60)))
+    // A still tap after it chooses, so the list was still open to choose.
+    other.dispatchEvent(new PointerEvent('pointerdown', touchAt(other, 13)))
+    other.dispatchEvent(new PointerEvent('pointerup', touchAt(other, 13)))
+    await expect
+      .poll(() =>
+        onValueChange.mock.calls
+          .filter(([, details]) => details.reason === 'item-press')
+          .map(([value]) => value)
+      )
+      .toEqual(['Opal Harpoon Room'])
   })
 
   it('chooses a lone touch that says it is not the primary pointer', async () => {
     render(<Venue />)
-    await settle()
+    await settled()
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await tapOn(input)
     await userEvent.type(input, 'li')
     const option = await screen.findByRole('option', {
       name: 'Lighthouse Fig Lawn'
     })
-    await settle(300)
+    await settled()
     const { left, top, height } = option.getBoundingClientRect()
     const pointer = {
       clientX: left + 20,
@@ -312,8 +344,9 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     option.dispatchEvent(down)
     expect(down.defaultPrevented).toBe(false)
     option.dispatchEvent(new PointerEvent('pointerup', pointer))
-    await settle()
-    expect(input).toHaveValue('Lighthouse Fig Lawn')
+    await expect
+      .poll(() => (input as HTMLInputElement).value)
+      .toBe('Lighthouse Fig Lawn')
   })
 
   const touchAt = (option: Element, pointerId: number, dy = 0) => {
@@ -352,14 +385,14 @@ describe('A touch on a suggestion', TIMEOUT, () => {
         </Autocomplete>
       </InDrawer>
     )
-    await settle()
+    await settled()
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await tapOn(input)
     await userEvent.type(input, 'li')
     const option = await screen.findByRole('option', {
       name: 'Lighthouse Fig Lawn'
     })
-    await settle(300)
+    await settled()
     onValueChange.mockClear()
     option.dispatchEvent(new PointerEvent('pointerdown', touchAt(option, 11)))
     option.dispatchEvent(
@@ -374,28 +407,31 @@ describe('A touch on a suggestion', TIMEOUT, () => {
       new MouseEvent('mouseup', { bubbles: true, button: 0 })
     )
     option.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0 }))
-    await settle()
-    expect(
+    const presses = () =>
       onValueChange.mock.calls.filter(
         ([, details]) => details.reason === 'item-press'
       )
-    ).toHaveLength(1)
+    await expect.poll(() => presses().length).toBeGreaterThan(0)
+    // Every event was sent above, so a second choice would have come with them.
+    expect(presses()).toHaveLength(1)
   })
 
   it('closes, once a held finger scrolls away, when asked to while it was down', async () => {
     render(<Venue />)
-    await settle()
+    await settled()
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await tapOn(input)
     await userEvent.type(input, 'li')
     const option = await screen.findByRole('option', {
       name: 'Lighthouse Fig Lawn'
     })
-    await settle(300)
+    await settled()
     option.dispatchEvent(new PointerEvent('pointerdown', touchAt(option, 12)))
     await userEvent.keyboard('{Escape}')
-    await settle(100)
-    expect(screen.queryByRole('listbox')).not.toBeNull()
+    // An Escape closes at once, so a list not held would already be leaving.
+    expect(
+      screen.getByRole('listbox').closest('[data-ending-style]')
+    ).toBeNull()
     option.dispatchEvent(new PointerEvent('pointercancel', touchAt(option, 12)))
     await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
     expect(input).toHaveValue('li')
@@ -403,18 +439,20 @@ describe('A touch on a suggestion', TIMEOUT, () => {
 
   it('closes, once a held finger scrolls away, when asked to while it was down, with open passed as undefined', async () => {
     render(<Venue open={undefined} />)
-    await settle()
+    await settled()
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await tapOn(input)
     await userEvent.type(input, 'li')
     const option = await screen.findByRole('option', {
       name: 'Lighthouse Fig Lawn'
     })
-    await settle(300)
+    await settled()
     option.dispatchEvent(new PointerEvent('pointerdown', touchAt(option, 12)))
     await userEvent.keyboard('{Escape}')
-    await settle(100)
-    expect(screen.queryByRole('listbox')).not.toBeNull()
+    // An Escape closes at once, so a list not held would already be leaving.
+    expect(
+      screen.getByRole('listbox').closest('[data-ending-style]')
+    ).toBeNull()
     option.dispatchEvent(new PointerEvent('pointercancel', touchAt(option, 12)))
     await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
     expect(input).toHaveValue('li')
@@ -422,14 +460,14 @@ describe('A touch on a suggestion', TIMEOUT, () => {
 
   it('chooses on lifting even when the input blurs and the page resizes first', async () => {
     render(<Venue />)
-    await settle()
+    await settled()
     const input = screen.getByRole('combobox', { name: 'Venue' })
     await tapOn(input)
     await userEvent.type(input, 'li')
     const option = await screen.findByRole('option', {
       name: 'Lighthouse Fig Lawn'
     })
-    await settle(300)
+    await settled()
     const { left, top, height } = option.getBoundingClientRect()
     const at = { clientX: left + 20, clientY: top + height / 2 }
     const pointer = {
@@ -446,11 +484,12 @@ describe('A touch on a suggestion', TIMEOUT, () => {
     input.blur()
     window.visualViewport?.dispatchEvent(new Event('resize'))
     window.dispatchEvent(new Event('resize'))
-    await settle(150)
+    await settled()
     const lifted = screen.getByRole('option', { name: 'Lighthouse Fig Lawn' })
     lifted.dispatchEvent(new PointerEvent('pointerup', pointer))
-    await settle()
-    expect(input).toHaveValue('Lighthouse Fig Lawn')
+    await expect
+      .poll(() => (input as HTMLInputElement).value)
+      .toBe('Lighthouse Fig Lawn')
   })
 })
 

@@ -246,10 +246,9 @@ describe('Records.Options', TIMEOUT, () => {
       { name: 'Columns' },
       { timeout: 5000 }
     )
-    await new Promise((resolve) => setTimeout(resolve, 600))
-    expect(
-      Math.abs(rect(drawer).bottom - window.innerHeight)
-    ).toBeLessThanOrEqual(1)
+    await expect
+      .poll(() => Math.abs(rect(drawer).bottom - window.innerHeight))
+      .toBeLessThanOrEqual(1)
     await drag('Gross', 'City', 'top')
     expect(headers()).toEqual([
       'Show',

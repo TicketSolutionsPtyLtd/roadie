@@ -1,7 +1,15 @@
 import { StrictMode, useState } from 'react'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
 
 import type { DateRangeValue } from '@oztix/roadie-core/datetime'
@@ -41,6 +49,22 @@ const day = (date: string) =>
 const months = () =>
   document.querySelectorAll('[data-slot="calendar-month"]').length
 const box = (element: Element) => element.getBoundingClientRect()
+
+// The drawer takes up the month scrolled to once its list rests, after an idle
+// timer; fake timers run that wait out rather than sleep through it.
+async function scrollToRest(body: HTMLElement, ...moves: number[]) {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+  try {
+    for (const move of moves) {
+      body.scrollTop += move
+      await nudgeFrames()
+    }
+    expect(vi.getTimerCount()).toBeGreaterThan(0)
+    vi.runOnlyPendingTimers()
+  } finally {
+    vi.useRealTimers()
+  }
+}
 
 function Period({
   initial = 'last-week' as DateRangeValue | null,
@@ -415,9 +439,7 @@ for (const [width, height] of [
       await expect
         .poll(() => Math.abs(box(october()).top - box(weekdays).bottom))
         .toBeLessThan(2)
-      body.scrollTop += 1500
-      await nudgeFrames()
-      await new Promise((resolve) => setTimeout(resolve, 300))
+      await scrollToRest(body, 1500)
       const start = within(drawer).getByRole('combobox', { name: 'Start' })
       await userEvent.clear(start)
       await userEvent.type(start, '6 oct 2026{Enter}')
@@ -427,7 +449,11 @@ for (const [width, height] of [
       await userEvent.click(
         october().querySelector<HTMLElement>('[data-date="2026-10-20"]')!
       )
-      await new Promise((resolve) => setTimeout(resolve, 300))
+      // The field picked for, the start, takes the day.
+      await expect
+        .poll(() => (start as HTMLInputElement).value)
+        .toBe('20 Oct 2026')
+      await nudgeFrames()
       expect(Math.abs(box(october()).top - box(weekdays).bottom)).toBeLessThan(
         2
       )
@@ -456,12 +482,7 @@ for (const [width, height] of [
         Math.abs(box(month(first)).top - box(weekdays).bottom)
       await expect.poll(() => atTop('2026-10-01')).toBeLessThan(2)
       const height = box(month('2026-10-01')).height
-      body.scrollTop += height + 40
-      await nudgeFrames()
-      body.scrollTop -= height + 40
-      await nudgeFrames()
-      await expect.poll(() => atTop('2026-10-01')).toBeLessThan(2)
-      await new Promise((resolve) => setTimeout(resolve, 300))
+      await scrollToRest(body, height + 40, -(height + 40))
       const start = within(drawer).getByRole('combobox', { name: 'Start' })
       await userEvent.clear(start)
       await userEvent.type(start, '3 nov 2026{Enter}')
@@ -787,8 +808,10 @@ describe('DateRangePicker suggestions in a drawer', TIMEOUT, () => {
     await userEvent.type(start, 'next we')
     await screen.findByRole('option', { name: /^Next Wed/ })
     await userEvent.type(start, 'ek')
-    await new Promise((resolve) => setTimeout(resolve, 200))
-    expect(screen.queryByRole('option', { name: /^Next week/ })).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    )
+    expect(start).toHaveValue('next week')
   })
 
   it('suggests no end before the start', async () => {
@@ -799,8 +822,9 @@ describe('DateRangePicker suggestions in a drawer', TIMEOUT, () => {
     await userEvent.click(end)
     await userEvent.clear(end)
     await userEvent.type(end, '8 oct')
-    await new Promise((resolve) => setTimeout(resolve, 200))
-    expect(screen.queryByRole('option', { name: /8 Oct/ })).toBeNull()
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    )
     await userEvent.clear(end)
     await userEvent.type(end, '10 oct')
     await screen.findByRole('option', { name: /^10 Oct 2026/ })
