@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+
 import { cleanup, render, screen } from '@testing-library/react'
 import {
   afterAll,
@@ -11,7 +13,7 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
-import { Carousel, type CarouselProps } from '.'
+import { Carousel, type CarouselProps, useCarouselUnsafeEmbla } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { useStylesheet } from '../Pane/testUtils'
 import type { CarouselContentOverflow } from './variants'
@@ -205,17 +207,131 @@ describe('Carousel controls', () => {
 describe('Carousel autoplay', () => {
   afterEach(() => vi.useRealTimers())
 
-  // INNO-1188: reInit stops the plugin and nothing plays it again.
-  it.fails(
-    'moves to the next slide once the delay given has passed',
-    async () => {
+  it('moves to the next slide once the delay given has passed', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    render(<Shows autoPlay={5000} />)
+    const start = offset('Show 1', 'left')
+    await vi.advanceTimersByTimeAsync(4999)
+    expect(offset('Show 1', 'left')).toBe(start)
+    await vi.advanceTimersByTimeAsync(1)
+    await settlesAt('Show 2', 'left', start)
+  })
+
+  function OnReInit({ run }: { run: () => void }) {
+    const api = useCarouselUnsafeEmbla()
+    useEffect(() => {
+      api?.on('reinit', run)
+      return () => {
+        api?.off('reinit', run)
+      }
+    }, [api, run])
+    return null
+  }
+
+  function Autoplaying({
+    width = 400,
+    count = 3,
+    onReInit = () => {}
+  }: {
+    width?: number
+    count?: number
+    onReInit?: () => void
+  }) {
+    return (
+      <div style={{ width, margin: 32, display: 'grid', gap: 64 }}>
+        <Carousel aria-label='Shows' autoPlay={5000}>
+          <Carousel.Content overflow='hidden'>
+            {Array.from({ length: count }, (_, index) => (
+              <Carousel.Item key={index}>Show {index + 1}</Carousel.Item>
+            ))}
+          </Carousel.Content>
+          <Carousel.Dots />
+          <Carousel.PlayPause />
+          <OnReInit run={onReInit} />
+        </Carousel>
+        <button type='button'>Elsewhere</button>
+      </div>
+    )
+  }
+
+  const showing = (slide: number) =>
+    expect
+      .element(page.getByRole('button', { name: `Go to slide ${slide}` }))
+      .toHaveAttribute('aria-current', 'true')
+  const dots = (count: number) =>
+    expect
+      .poll(
+        () => screen.getAllByRole('button', { name: /^Go to slide/ }).length
+      )
+      .toBe(count)
+  // Read once, after a real interaction has let React render a pending move.
+  const stillShowingFirst = () =>
+    expect(
+      screen.getByRole('button', { name: 'Go to slide 1' })
+    ).toHaveAttribute('aria-current', 'true')
+  const leave = () =>
+    userEvent.click(screen.getByRole('button', { name: 'Elsewhere' }), {
+      force: true
+    })
+
+  it('keeps moving after the carousel is resized', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    let reInits = 0
+    const onReInit = () => reInits++
+    const { rerender } = render(<Autoplaying onReInit={onReInit} />)
+    await dots(3)
+    const before = reInits
+    rerender(<Autoplaying onReInit={onReInit} width={360} />)
+    await expect.poll(() => reInits).toBeGreaterThan(before)
+    await vi.advanceTimersByTimeAsync(5000)
+    await showing(2)
+  })
+
+  it('stays paused through a reInit until the user plays again', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const { rerender } = render(<Autoplaying />)
+    await dots(3)
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Pause carousel' }),
+      { force: true }
+    )
+    await leave()
+    rerender(<Autoplaying count={4} />)
+    await dots(4)
+    await vi.advanceTimersByTimeAsync(5000)
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Play carousel' }),
+      { force: true }
+    )
+    stillShowingFirst()
+    await leave()
+    await vi.advanceTimersByTimeAsync(5000)
+    await showing(2)
+  })
+
+  it.each([
+    [
+      'hovered',
+      () => userEvent.hover(screen.getByText('Show 1'), { force: true })
+    ],
+    [
+      'focused',
+      () => screen.getByRole('button', { name: 'Go to slide 1' }).focus()
+    ]
+  ])(
+    'holds through a reInit while %s, then moves on once left',
+    async (_, hold) => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-      render(<Shows autoPlay={5000} />)
-      const start = offset('Show 1', 'left')
-      await vi.advanceTimersByTimeAsync(4999)
-      expect(offset('Show 1', 'left')).toBe(start)
-      await vi.advanceTimersByTimeAsync(1)
-      await settlesAt('Show 2', 'left', start)
+      const { rerender } = render(<Autoplaying />)
+      await dots(3)
+      await hold()
+      rerender(<Autoplaying count={4} />)
+      await dots(4)
+      await vi.advanceTimersByTimeAsync(5000)
+      await leave()
+      stillShowingFirst()
+      await vi.advanceTimersByTimeAsync(5000)
+      await showing(2)
     }
   )
 })

@@ -255,6 +255,24 @@ export function CarouselRoot({
     safePluginCall(plugin.play)
   }, [api, plugins])
 
+  // Every reInit (slide count, resize, slide changes) destroys the plugin and stops its timer.
+  useEffect(() => {
+    if (!api) return
+    const resume = (emblaApi: EmblaCarouselType) => {
+      const plugin = emblaApi.plugins().autoplay
+      if (!plugin || userPausedRef.current) return
+      const region = emblaApi.rootNode().closest('[data-slot="carousel"]')
+      const held =
+        region?.matches(':hover') || region?.contains(document.activeElement)
+      if (held) return
+      safePluginCall(plugin.play)
+    }
+    api.on('reinit', resume)
+    return () => {
+      api.off('reinit', resume)
+    }
+  }, [api])
+
   // Autoplay turning on or off resets play state, adjusted during render.
   const canAutoPlay = hasAutoPlay && !prefersReducedMotion
   const [autoPlayWas, setAutoPlayWas] = useState(canAutoPlay)
