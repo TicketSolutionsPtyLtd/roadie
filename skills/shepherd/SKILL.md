@@ -87,8 +87,9 @@ thread:
 Reply and resolve with
 `addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId, body})` and
 `resolveReviewThread(input:{threadId})` through `gh api graphql`. Write each
-reply to a file and pass it with `-F body=@file`, so quotes and backticks
-survive. A rebase changes every sha, so reply after the final push, or name
+reply to a file, run the privacy check from `/roadie:pr` on it, and pass it
+with `-F body=@file`, so quotes and backticks survive. The same goes for every
+PR comment and the summary you report. A rebase changes every sha, so reply after the final push, or name
 the commit by its subject rather than its sha.
 
 Copilot can also leave findings only in its review body, with no inline
@@ -127,7 +128,10 @@ thread, and consumer changes in the changeset.
 
 - **Two-way door, every condition met:**
   `gh pr merge <n> --squash --delete-branch`, run by hand once every condition
-  holds. Never `--auto`, even where the repo allows it: auto-merge waits only
+  holds. The squash message copies the body, so run the privacy check on
+  `gh pr view <n> --json title,body` first, and if a privacy fix landed after
+  the PR opened, pass a clean message with `--subject` and `--body` (Roadie:
+  PR workflow section 8). Never `--auto`, even where the repo allows it: auto-merge waits only
   for required checks, not the review, threads, or file list. Then
   remove the local worktree and branch.
 - **A failed condition:** fix it and go back to the step it belongs to.
