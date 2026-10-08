@@ -166,8 +166,8 @@ the PR only when the review is clean.
   commit carries it into `git log`.
 - **The repo is public.** Anyone can read PRs, comments, commits, docs, and
   screenshots. Never put Tailscale hostnames or tailnet names, LAN or private
-  IPs, local paths (`/Users/…`), secrets or access tokens, internal-only Oztix data, or real
-  customer, venue, or person names in any of them
+  IPs, local paths (`/Users/…`), secrets or access tokens, internal-only Oztix
+  data, or real customer, venue, or person names in any of them
   ([`EXAMPLE_DATA.md`](EXAMPLE_DATA.md) applies). Preview links go to the
   maintainer only in session messages.
 - **Evidence renders inline on GitHub**, because the maintainer reviews on a
