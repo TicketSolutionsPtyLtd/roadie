@@ -60,7 +60,8 @@ in Roadie, answered for every app, not patched in the app.
 
 Only past every rung is the answer a new prop, variant, or component. Judge
 its door against the host workflow's one-way door list or, with none, the
-one in section 7 of Roadie's `PR_WORKFLOW.md`.
+one in section 7 of Roadie's
+`https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/docs/contributing/PR_WORKFLOW.md`.
 
 ## 3. Ask what's left
 
@@ -83,7 +84,10 @@ Post it where the work is tracked (the ticket comment, headed
 Idea: <one line, with the ticket key>
 
 Ruled out
-| Option | Verdict | Evidence |
+
+| Option                  | Verdict         | Evidence                    |
+| ----------------------- | --------------- | --------------------------- |
+| <rung, such as cascade> | <does or fails> | <file and section, or case> |
 
 Answered by the docs
 

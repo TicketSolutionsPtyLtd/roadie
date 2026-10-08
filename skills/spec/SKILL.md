@@ -19,6 +19,10 @@ and PR template win over anything here.
   Note where specs live, the one-way door list, the merge rule, the demo
   rule, and the writing rules. With no workflow, use Roadie's section 1:
   `https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/docs/contributing/PR_WORKFLOW.md`.
+- A `/roadie:grill` record, if there is one (a ticket comment headed "Grill
+  (with /roadie:grill)", or the session). Its ruled-out rows become prior art
+  and Decisions, and each open question goes under Decisions with its
+  recommended answer, unless it's a one-way door or a new component.
 - The decision register (`docs/decisions/` or wherever `AGENTS.md` points):
   its "how we decide" rules and every entry the work touches. Cite an entry
   instead of re-arguing it.
