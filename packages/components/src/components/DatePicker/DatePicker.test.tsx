@@ -128,6 +128,20 @@ describe('DatePicker', () => {
     )
   })
 
+  it('reads “end of week” from the week start given', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DatePicker
+        aria-label='Show date'
+        today={TODAY}
+        weekStart={7}
+        onValueChange={onValueChange}
+      />
+    )
+    await userEvent.type(screen.getByRole('combobox'), 'end of week{Enter}')
+    expect(onValueChange).toHaveBeenCalledWith('2026-10-10')
+  })
+
   it('shows its value in the words of its locale', () => {
     render(
       <DatePicker
