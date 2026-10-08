@@ -139,6 +139,27 @@ describe('pageToMarkdown', () => {
     )
   })
 
+  it('drops a Guideline.Row written across lines', () => {
+    const md = page(
+      [
+        "<Guideline title='Pair a tile with a label'>",
+        '  <Guideline.Do',
+        '    example={',
+        '      <Guideline.Row>',
+        '        <IconTile />',
+        '        <p>Paid</p>',
+        '      </Guideline.Row>',
+        '    }',
+        '  >',
+        '    Name what the icon means.',
+        '  </Guideline.Do>',
+        '</Guideline>'
+      ].join('\n')
+    )
+    expect(md).not.toContain('Guideline.Row')
+    expect(md).toContain('<IconTile />')
+  })
+
   it('writes a guideline’s template literal code as the code it evaluates to', () => {
     const md = page(
       [

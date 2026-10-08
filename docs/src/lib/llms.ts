@@ -140,7 +140,7 @@ function guideline(node: JsxElement, children: RootContent[]): RootContent[] {
   const description = attribute(node, 'description')
   // Guideline.Row only lays out the docs card, so readers get the bare parts.
   const example = attribute(node, 'example')?.replace(
-    /^<Guideline\.Row>([\s\S]*)<\/Guideline\.Row>$/,
+    /^\s*<Guideline\.Row>([\s\S]*)<\/Guideline\.Row>\s*$/,
     '<>$1</>'
   )
   const code = attribute(node, 'code')
