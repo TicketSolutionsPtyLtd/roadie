@@ -41,6 +41,7 @@ implementer needs to write the code; `PR_WORKFLOW.md` holds the process.
   that is a list.
 - **Sentences are plain.** One idea each, mechanisms and numbers rather than
   feelings. Use colons only before lists, and no bold-label-colon bullets.
+  Skills follow the same rules.
 - **Guidance stays generic.** The docs are public, so a rule never cites an
   internal app or its stack (Razor, C#) as its reason. Product names in Logo
   examples are fine.
