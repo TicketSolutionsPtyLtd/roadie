@@ -7,6 +7,7 @@ type Browser = 'chromium' | 'webkit' | 'firefox'
 type Quarantined = {
   browser: Browser
   file: string
+  /** The full name as Vitest reports it, describe blocks joined by ' > '. */
   test: string
   why: string
   ticket: string
@@ -19,14 +20,14 @@ export const quarantined: Quarantined[] = [
   {
     browser: 'webkit',
     file: 'packages/components/src/components/Calendar/Calendar.browser.test.tsx',
-    test: 'still chooses a range by clicks, with its preview',
+    test: 'Calendar dragged with a mouse > still chooses a range by clicks, with its preview',
     why: 'No data-range-preview right after the hover, on #283 and #290',
     ticket: 'https://oztix.atlassian.net/browse/INNO-1043'
   },
   {
     browser: 'webkit',
     file: 'packages/components/src/components/Select/Select.browser.test.tsx',
-    test: 'still highlight the option a keyboard moves to',
+    test: 'Select options on a touch screen > still highlight the option a keyboard moves to',
     why: 'Focus stays on the trigger after ArrowDown, on #262 and #275',
     ticket: 'https://oztix.atlassian.net/browse/INNO-1043'
   }
@@ -70,11 +71,15 @@ export function quarantineInclude(packageDir: string, include: string[]) {
 const quarantineFilter =
   quarantineMode === 'only'
     ? {
-        testNamePattern: new RegExp(`(?:${anyQuarantinedName})$`),
+        testNamePattern: new RegExp(`(?:^|> )(?:${anyQuarantinedName})$`),
         passWithNoTests: true
       }
     : quarantineMode === 'skip' && active.length > 0
-      ? { testNamePattern: new RegExp(`^(?!.*(?:${anyQuarantinedName})$)`) }
+      ? {
+          testNamePattern: new RegExp(
+            `^(?!(?:.*> )?(?:${anyQuarantinedName})$)`
+          )
+        }
       : {}
 
 class FlakyReporter implements Reporter {
