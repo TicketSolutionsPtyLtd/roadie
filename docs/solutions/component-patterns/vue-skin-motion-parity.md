@@ -49,6 +49,7 @@ moves in step. The Vue skin set the value instantly and relied on a CSS
   value directly under reduced motion. Keep `progress` computed from that ref.
   `motion` is a peer dependency, so list it in the skin's install docs. See
   `packages/widgets/src/cart-drawer/vue/useCartDrawerDrag.ts`.
+
 - Remove the animated property from any CSS `transition` so it doesn't fight
   the spring. Transitions on radius, inset and opacity can stay.
 - A collapsing flex column needs `flex-1 min-h-0` on a wrapper with no
