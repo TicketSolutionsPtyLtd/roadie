@@ -11,10 +11,23 @@ export const metadata = {
   category: 'Visual'
 }
 
+const scales = [
+  'neutral',
+  'brand',
+  'brand-secondary',
+  'accent',
+  'danger',
+  'success',
+  'warning',
+  'info'
+] as const
 const intents = [
   'neutral',
   'brand',
   'brand-secondary',
+  'brand-blue',
+  'brand-orange',
+  'brand-purple',
   'accent',
   'danger',
   'success',
@@ -57,6 +70,21 @@ const strongText = [
     dark: 'Step 0',
     apca: 61,
     wcag: 8.6
+  },
+  { intent: 'brand-blue', text: 'White', dark: 'White', apca: 66, wcag: 3.4 },
+  {
+    intent: 'brand-orange',
+    text: 'Step 13',
+    dark: 'Step 0',
+    apca: 61,
+    wcag: 8.6
+  },
+  {
+    intent: 'brand-purple',
+    text: 'White',
+    dark: 'White',
+    apca: 68,
+    wcag: 3.5
   },
   { intent: 'accent', text: 'White', dark: 'White', apca: 66, wcag: 3.4 },
   { intent: 'danger', text: 'White', dark: 'White', apca: 64, wcag: 3.2 },
@@ -167,8 +195,8 @@ export default function ColorsPage() {
           same.
         </p>
         <div className='grid gap-6'>
-          {intents.map((intent) => (
-            <ColorScale key={intent} intent={intent} />
+          {scales.map((scale) => (
+            <ColorScale key={scale} intent={scale} />
           ))}
         </div>
       </section>
@@ -362,6 +390,16 @@ export default function ColorsPage() {
           Use <Code>emphasis-*</Code> shortcuts for combined bg + text +
           interactive states, or individual utilities for composability.
         </p>
+        <div className='grid gap-4'>
+          <h3 className='text-display-ui-4 text-strong'>Brand intents</h3>
+          <p className='text-subtle'>
+            Brand intents are named by hue. <Code>brand-blue</Code> is the same
+            as <Code>brand</Code>, and <Code>brand-orange</Code> is the same as{' '}
+            <Code>brand-secondary</Code>. <Code>brand-purple</Code> uses the
+            purple scale that <Code>info</Code> also uses. Green, yellow, and
+            red stay status colours, with no brand intent.
+          </p>
+        </div>
         <StrongTextTable />
         <div className='grid gap-6'>
           {intents.map((intent) => (
@@ -421,6 +459,17 @@ export default function ColorsPage() {
             <Code>:root</Code> and <Code>color-scheme: dark</Code> on{' '}
             <Code>.dark</Code>, so native browser UI (scrollbars, form controls)
             matches your theme.
+          </p>
+        </div>
+
+        <div className='grid gap-4'>
+          <h3 className='text-display-ui-4 text-strong'>Fixed light colours</h3>
+          <p className='text-sm text-subtle'>
+            Brand artwork such as patterns, illustrations, and print keeps its
+            light colours in dark mode. Use{' '}
+            <Code>{'--color-{scale}-light-{0|5|9|12|13}'}</Code> for these.{' '}
+            <Code>.dark</Code> doesn&apos;t override them, and only neutral has
+            step 0.
           </p>
         </div>
 

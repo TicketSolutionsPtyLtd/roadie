@@ -15,6 +15,7 @@ const INTENTS = [
   'neutral',
   'brand',
   'brand-secondary',
+  'brand-purple',
   'accent',
   'danger',
   'success',

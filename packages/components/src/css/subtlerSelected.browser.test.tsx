@@ -214,6 +214,9 @@ describe.each([
 const INTENTS: RoadieIntent[] = [
   'brand',
   'brand-secondary',
+  'brand-blue',
+  'brand-orange',
+  'brand-purple',
   'accent',
   'danger',
   'success',

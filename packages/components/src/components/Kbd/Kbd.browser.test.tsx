@@ -300,7 +300,8 @@ const COLOURED_FILLS = {
       'brand-secondary',
       'success',
       'danger',
-      'info'
+      'info',
+      'brand-purple'
     ].map((intent) => [
       `strong ${intent}`,
       (kbd: ReactNode) => (

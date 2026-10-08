@@ -34,6 +34,7 @@ const INTENT_OPTIONS: Intent[] = [
   'neutral',
   'brand',
   'brand-secondary',
+  'brand-purple',
   'accent',
   'danger',
   'success',

@@ -109,11 +109,19 @@ describe('values', () => {
   })
 
   it('prefers the oklch value and keeps the hex fallback', () => {
-    expect(find('--color-danger-9').value).toEqual({
+    expect(find('--color-danger-10').value).toEqual({
+      light: 'oklch(0.673 0.184 28.364)',
+      dark: 'oklch(0.673 0.184 28.364)',
+      fallback: '#f25f51'
+    })
+  })
+
+  it('pins the light step 9 that dark mode leaves alone', () => {
+    expect(find('--color-danger-light-9').value).toEqual({
       light: 'oklch(0.709 0.184 28.37)',
-      dark: 'oklch(0.709 0.184 28.37)',
       fallback: '#ff6b5c'
     })
+    expect(find('--color-danger-light-9').group).toBe('Pinned light steps')
   })
 
   it('derives the classes a theme namespace generates', () => {
