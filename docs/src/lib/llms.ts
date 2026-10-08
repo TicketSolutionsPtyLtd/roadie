@@ -44,7 +44,7 @@ export type MarkdownPage = {
   title: string
   description?: string
   mdx: string
-  /** Components whose `docs` URL is this page, rendered once, where the page first places `PropsDefinitions`. */
+  /** Components whose `docs` URL is this page, rendered once, where the page first places `PropsDefinitions`, or at the end. */
   components?: ManifestComponent[]
   /** Rewrites a root-relative docs link, such as `/components/field#states`. */
   resolveLink?: (href: string) => string
