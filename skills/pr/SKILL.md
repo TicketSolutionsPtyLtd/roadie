@@ -42,6 +42,9 @@ to a long paragraph.
 - What you didn't verify, and why. "Tests pass" with no command isn't
   evidence.
 
+If the body already holds the proof, such as a Trial or Checks section, sum
+it up in a line and point at it rather than repeat it.
+
 **Merge danger.** Start with "One-way door" or "Two-way door", then why,
 then the blast radius.
 
