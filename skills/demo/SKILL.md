@@ -1,11 +1,11 @@
 ---
 name: demo
-description: Use before pushing any user-visible change (a component, page, style, or layout), in any Oztix repo. Starts a long-lived preview from the worktree, screenshots the changed pages at phone and desktop widths in light and dark, posts the Tailscale link and screenshots, and waits for the user's OK before the push. Reads the host repo's AGENTS.md and PR workflow. Triggers on "demo this", "show me", "preview the change", "screenshot it", "can I see it on my phone".
+description: Use before pushing any user-visible change (a component, page, style, or layout), in any Oztix repo. Starts a long-lived preview from the worktree, screenshots the changed pages at phone and desktop widths in light and dark, posts the Tailscale link and screenshots, and waits for the approver's OK (the one the host workflow names) before the push. Reads the host repo's AGENTS.md and PR workflow. Triggers on "demo this", "show me", "preview the change", "screenshot it", "can I see it on my phone".
 ---
 
 # Roadie demo
 
-Show a UI change running before CI or a reviewer sees it. The user opens it on
+Show a UI change running before CI or a reviewer sees it. The approver opens it on
 their phone and says OK, and only then does the branch get pushed.
 
 ## 1. Gather
@@ -13,7 +13,9 @@ their phone and says OK, and only then does the branch get pushed.
 - The host repo's demo rule:
   `git ls-files | grep -iE 'agents.md|claude.md|pr_workflow'`. Roadie's is
   section 5 of `docs/contributing/PR_WORKFLOW.md`. It says which PRs skip the
-  demo (in Roadie: tooling, CI, skills, and docs-text PRs) and who approves.
+  demo (in Roadie: tooling, CI, skills, and docs-text PRs) and who approves
+  (in Roadie, the maintainer). Only that person's OK opens the push; a
+  requester's or author's doesn't.
 - Your session's port range, from the host workflow or your brief. Never
   serve outside it. Roadie's preview falls back to 3000 to 3099 when
   `ROADIE_PORT_RANGE` is unset, so always set it.
@@ -25,21 +27,24 @@ their phone and says OK, and only then does the branch get pushed.
 Check the machine load first (`uptime`) and wait while the 1-minute load is
 over the host's limit (in Roadie, PR workflow section 5). Then, from the worktree, in the background:
 
-- With a `preview` script in `package.json`, run it with the port range set, for
-  example `ROADIE_PORT_RANGE=3200-3299 pnpm preview`. Roadie's waits for load,
+- With a `preview` script in `package.json`, read it first and pass a port in
+  your range the way it accepts one. Roadie's reads `ROADIE_PORT_RANGE`
+  (`ROADIE_PORT_RANGE=3200-3299 pnpm preview`); a plain `vite preview` ignores
+  that and takes `--port <port> --strictPort`. Roadie's waits for load,
   builds what the docs read, serves on the first free port, and prints a
   `localhost`, a Tailscale (`http://<machine>.<tailnet>.ts.net:<port>/`), and
   LAN URLs. Add hosts with `NEXT_DEV_ORIGINS`.
 - With no preview script, run the repo's dev script bound to `0.0.0.0` on a
-  free port in your range, such as `next dev --hostname 0.0.0.0 --port <port>`
-  or `vite --host --port <port>`. Allow the Tailscale name as a dev origin if
+  free port in your range, through the package manager so the local binary
+  resolves: `pnpm exec next dev --hostname 0.0.0.0 --port <port>` or
+  `pnpm exec vite --host --port <port> --strictPort` (`npx` in an npm repo). Allow the Tailscale name as a dev origin if
   the framework blocks unknown hosts, and build the URL from
   `tailscale status --json` (`Self.DNSName`).
 - With no Tailscale, post the LAN URL and say the link only works on the same
   network.
 
 Wait for the ready line (Roadie's starts `Preview ready` and names the pid),
-then open the changed page once with `curl -sf` to
+check its URL's port is in your range (stop and restart if not), then open the changed page once with `curl -sf` to
 compile it before screenshots.
 
 ## 3. Screenshot
@@ -56,6 +61,9 @@ outside the repo:
 import { chromium } from 'playwright'
 
 const [url, out, section] = process.argv.slice(2)
+// Polling or streaming pages never go idle, so cap the wait instead of failing.
+const settle = (page) =>
+  page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {})
 const sizes = { phone: [390, 844], desktop: [1440, 900] }
 const browser = await chromium.launch()
 for (const [size, [width, height]] of Object.entries(sizes)) {
@@ -68,14 +76,15 @@ for (const [size, [width, height]] of Object.entries(sizes)) {
     // Roadie's theme script reads a stored choice before the system setting.
     await context.addInitScript((m) => localStorage.setItem('theme', m), mode)
     const page = await context.newPage()
-    await page.goto(url, { waitUntil: 'networkidle' })
+    await page.goto(url)
+    await settle(page)
     if (section) {
       // Works inside scroll containers, and wakes lazy content near it.
       await page
         .locator(section)
         .first()
         .evaluate((el) => el.scrollIntoView({ block: 'center' }))
-      await page.waitForLoadState('networkidle')
+      await settle(page)
     }
     await page.screenshot({ path: `${out}/${size}-${mode}.png` })
     await context.close()
@@ -101,27 +110,29 @@ theme means fix and retake, not post.
 
 - In the chat, post the Tailscale link to the changed page, the four shots, and
   one line on what to look at.
-- Wait for the user's OK before pushing UI changes, and work on something
+- Wait for the approver's OK before pushing UI changes, and work on something
   else meanwhile. Feedback means fix, retake, and post again. A standing
-  approval (one the user gave, such as for overnight work, or one the host
+  approval (one the approver gave, such as for overnight work, or one the host
   workflow grants; Roadie's rules on when to stop and ask are in PR workflow
   section 1) lets you push before the OK only on its terms. Push as a draft
   and mark the body "awaiting demo approval", and don't mark it ready until
   the OK.
 - Once the PR exists, put the same link and shots under Evidence, at phone
   and desktop widths, light and dark (`/roadie:pr` writes the body). `gh`
-  can't upload images. On a public repo, push them to a secret gist
+  can't upload images. When the shots show only public content (docs, demo
+  fixtures, no customer, account, or admin data) and the repo is public, push
+  them to a secret gist
   (`gh gist create` a placeholder, `gh gist clone` it, add the PNGs with a
   page or section prefix, push) and embed
-  `https://gist.githubusercontent.com/<user>/<id>/raw/<file>.png`. On a
-  private repo, a gist would make private UI public to anyone with the link,
-  so give the local paths and ask the user to drag them in. Never commit
+  `https://gist.githubusercontent.com/<user>/<id>/raw/<file>.png`. Otherwise
+  a gist would make private data or UI public to anyone with the link, so give
+  the local paths and ask the user to drag them in. Never commit
   screenshots to the repo. If the preview is stopped before the OK, say so
   and give the command that restarts it.
 
 ## 5. Stop
 
-Stop the preview once the user approves or you finish the session: kill the
+Stop the preview once the approver says OK or you finish the session: kill the
 pid the preview printed (`kill <pid>`; Roadie's stops its whole process
 group), or the dev server you started. Check the port is free
 (`lsof -i :<port>`). If disk is low, `pnpm cleanup` lists stale `.next` caches
