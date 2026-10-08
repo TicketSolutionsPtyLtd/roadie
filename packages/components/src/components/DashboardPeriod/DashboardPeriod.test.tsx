@@ -49,9 +49,7 @@ function Controlled({
   )
 }
 
-// Each opens a picker holding calendars, which a busy CI runner can take
-// past the default, as DateRangePicker's phone tests allow for.
-describe('DashboardPeriod', { timeout: 15_000 }, () => {
+describe('DashboardPeriod', () => {
   it.each([
     [undefined, 'emphasis-normal'],
     ['normal', 'emphasis-normal'],
@@ -401,7 +399,7 @@ const comparisonPicker = (dialog: HTMLElement) =>
     name: /^Choose dates, Comparison dates/
   })
 
-describe('DashboardPeriod with fixed presets', { timeout: 15_000 }, () => {
+describe('DashboardPeriod with fixed presets', () => {
   it('names fixed dates after the preset they match', () => {
     render(
       <DashboardPeriod
@@ -436,7 +434,7 @@ describe('DashboardPeriod with fixed presets', { timeout: 15_000 }, () => {
   })
 })
 
-describe('DashboardPeriod compare options', { timeout: 15_000 }, () => {
+describe('DashboardPeriod compare options', () => {
   it('keeps today’s choices by default', async () => {
     render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
     const dialog = await openPicker()

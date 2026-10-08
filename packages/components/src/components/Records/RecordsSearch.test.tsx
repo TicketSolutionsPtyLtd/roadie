@@ -535,6 +535,7 @@ describe('Records.Search', () => {
   })
 
   it('drops a new filter cleared before a late parent shows it', async () => {
+    const writes = { sent: 0, shown: 0 }
     function Late() {
       const [view, setView] = useState<RecordView>({
         query: { search: '', filters: [], sort: [] },
@@ -544,7 +545,13 @@ describe('Records.Search', () => {
         data: shows,
         fields,
         view,
-        onViewChange: (next) => setTimeout(() => setView(next), 50)
+        onViewChange: (next) => {
+          writes.sent++
+          setTimeout(() => {
+            setView(next)
+            writes.shown++
+          }, 50)
+        }
       })
       return (
         <Records.Root records={records} layouts={layouts}>
@@ -562,7 +569,8 @@ describe('Records.Search', () => {
     await user.keyboard('5')
     await user.clear(value)
     await user.keyboard('{Escape}')
-    await new Promise((resolve) => setTimeout(resolve, 150))
+    expect(writes.sent).toBeGreaterThan(0)
+    await waitFor(() => expect(writes.shown).toBe(writes.sent))
     expect(chipLabels()).toEqual([])
   })
 
