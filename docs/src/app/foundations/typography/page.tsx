@@ -40,7 +40,7 @@ const displayProseStyles = [
   {
     utility: 'text-display-prose-2',
     size: '4xl',
-    weight: 'Black (900)'
+    weight: 'Bold (700)'
   },
   { utility: 'text-display-prose-3', size: '3xl', weight: 'Bold (700)' },
   { utility: 'text-display-prose-4', size: '2xl', weight: 'Bold (700)' },
