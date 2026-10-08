@@ -29,14 +29,15 @@ The test read each day's `getBoundingClientRect()` in a
 `requestAnimationFrame` callback and bounded its move by the frame
 timestamps. Chromium and Firefox lay out a running Web Animations transform
 at the frame's time, however late the callback runs. WebKit lays it out at
-the moment of the read, while the frame timestamp, `document.timeline` and
+the moment of the read, while the frame timestamp, `document.timeline`, and
 the animation's `currentTime` all still say the frame's time. A callback that
 runs late, because the page or the machine is busy, sees the days further on
 than its timestamp allows.
 
 Measured by stalling one frame's callback for 60ms before its read: WebKit
 read a day at 69px with `currentTime` at 132ms, the position the next frame
-showed at 193ms. Chromium and Firefox read the position for 183ms at 183ms.
+showed at 193ms. Chromium and Firefox, with `currentTime` at 183ms, read the
+position for 183ms.
 
 ## Fix
 

@@ -9,7 +9,7 @@ const LATE_MS = 1000 / 60
 
 // WebKit lays out a running animation at the moment it's read, not at the
 // frame's time as Chromium and Firefox do, so a frame read late shows the days
-// further on. A read shows a moment between its frame's time and its end.
+// further on, as far as the moment its read ends.
 const elapsed = (before: { time: number }, now: { readEnd: number }) =>
   now.readEnd - before.time
 
