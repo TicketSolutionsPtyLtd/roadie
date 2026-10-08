@@ -60,7 +60,7 @@ docs/**/*.mdx
 # file, and the formatter collapses nested MDX fences in them.
 docs/plans/
 docs/brainstorms/
-docs/superpowers/
+.scratch/
 
 # Misc
 .DS_Store

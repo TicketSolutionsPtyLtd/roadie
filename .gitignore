@@ -42,7 +42,6 @@ scripts/venv/
 docs/plans/
 docs/brainstorms/
 
-# Local agent scratch — task lists, lessons, and superpowers plans/specs
+# Local scratch: working specs for a series of PRs, handoffs, tooling
 tasks/
-docs/superpowers/
-.superpowers/
+.scratch/

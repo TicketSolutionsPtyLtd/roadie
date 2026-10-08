@@ -38,7 +38,14 @@ roadie/
         └── SKILL.md       ← skill frontmatter + body, auto-discovered
 ```
 
-**Rules for new skills shipped in this plugin:**
+**Every Roadie skill**, in this plugin or in `.claude/skills/`:
+
+- **One folder per skill** with a `SKILL.md` inside. A flat `.md` file is never loaded.
+- **Short, and pointing at the docs.** Link `docs/contributing/` or the foundations pages instead of copying their rules, so the skill can't drift.
+- **User-invoked when it starts a workflow** (plan, build, review, release): set `disable-model-invocation: true` so it runs only when someone asks for it. Reference skills such as `audit` stay model-invoked.
+- **Plain `SKILL.md`** with `name` and `description` frontmatter, so other agents can read it.
+
+**Also for skills shipped in this plugin:**
 
 1. **Must be self-contained.** A consumer repo won't have the Roadie source checked out, so don't reference `packages/components/...` or `AGENTS.md`-relative paths. Inline the rules or fetch from `https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/...` via WebFetch.
 2. **Frontmatter `name` matches directory name** — e.g. `skills/audit/SKILL.md` has `name: audit`. The plugin namespace (`roadie:`) is added automatically at install time.
