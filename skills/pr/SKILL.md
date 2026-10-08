@@ -13,7 +13,7 @@ template win over anything here.
 ## 1. Gather
 
 - The host repo's rules and template:
-  `git ls-files | grep -iE 'agents.md|coding_standards|pr_workflow|pull_request_template'`.
+  `git ls-files | grep -iE 'agents.md|claude.md|coding_standards|pr_workflow|pull_request_template'`.
   Note its one-way door list, merge rule, and writing rules.
 - The diff (`git diff origin/<base>...HEAD`, or `gh pr diff <n>`), the file
   list, the commit messages, and the ticket or spec.
@@ -35,8 +35,8 @@ to a long paragraph.
 
 - Each command you ran and its result (`pnpm --filter <pkg> test`: 412
   passed), with the engines for browser tests, or a CI run link.
-- For UI, the preview link and screenshots at phone width, light and dark,
-  from the demo the host workflow asks for.
+- For UI, the preview link and screenshots at phone and desktop widths, in
+  light and dark, from the demo the host workflow asks for.
 - For a fix or behaviour change, before and after: the test failing without
   the change, then passing, or two screenshots.
 - What you didn't verify, and why. "Tests pass" with no command isn't
@@ -65,9 +65,12 @@ merged, because the squash commit carries it into `git log`.
 ## 3. Create or update
 
 - New PR: open it as the host workflow says, usually as a draft with the
-  ticket key in the title (`gh pr create --draft --body-file <file>`).
+  ticket key in the title (`gh pr create --draft --body-file <file>`). Don't
+  mark it ready here; the host workflow decides when.
 - Existing PR: never drop content. Keep every section, line, link, and
   trailer, add the missing sections in template order, and correct only what
   the diff now contradicts. Then `gh pr edit <n> --body-file <file>`.
-- Check the result: `gh pr view <n> --json body -q .body | diff <old> -`
-  shows only the lines you meant to add or change.
+- Check the result:
+  `gh pr view <n> --json body -q .body | diff --strip-trailing-cr <old> -`
+  shows only the lines you meant to add or change. Bodies edited on GitHub
+  can carry CRLF line ends, which a plain `diff` reports on every line.

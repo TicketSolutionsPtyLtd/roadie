@@ -8,7 +8,7 @@
 
 ## Evidence
 
-<!-- Proof it works: each command run and its result, CI links, and for UI the preview link and phone-width screenshots in light and dark. Before and after for a fix. Say what you didn't verify. -->
+<!-- Proof it works: each command run and its result, CI links, and for UI the preview link and screenshots at phone and desktop widths in light and dark. Before and after for a fix or visual change. Say what you didn't verify. -->
 
 ## Merge danger
 
