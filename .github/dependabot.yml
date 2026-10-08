@@ -28,6 +28,9 @@ updates:
     ignore:
       - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
+      # Babel 8 is held on purpose (#166).
+      - dependency-name: '@babel/core'
+        update-types: ['version-update:semver-major']
     groups:
       dev-minor-patch:
         dependency-type: development

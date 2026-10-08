@@ -18,9 +18,13 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
     `docs/superpowers/`. As each PR lands, move its lasting decisions into the
     maintained docs below and drop them from the spec.
 - **Lasting knowledge goes where it's maintained:** consumer changes in the
-  changeset, rules in `AGENTS.md` and the foundations pages, behaviour on the
-  component's docs page, learnings in `docs/solutions/`, follow-ups in Jira
-  (section 9).
+  changeset, rules in `AGENTS.md`, `CODING_STANDARDS.md` and the foundations
+  pages, behaviour on the component's docs page, learnings in
+  `docs/solutions/`, follow-ups in Jira (section 9). Corrections and learnings
+  go into the repo, never agent memory.
+- **Check prior art for a new component API.** See how two other platforms
+  solve it and record what you take and what you avoid, with their cons,
+  under Decisions.
 - **Look for what already exists.** Before adding a token, utility, prop or
   mechanism, show that the cascade, intent, emphasis, data attributes or an
   existing component can't already do it. A second way to say the same thing
@@ -55,6 +59,8 @@ Every PR is checked against these before review. Fix every real hit.
   (raw elements with `text-display-*`), linking (`href`, never `next/link`
   inside `packages/`; the docs app may use it), forms (`Field` wraps every control), styling rule 8 for
   `:has()`, and the code-quality rules.
+- **[`CODING_STANDARDS.md`](CODING_STANDARDS.md)**: the reviewer's
+  judgement rules.
 - **Foundations pages** in `docs/src/app/foundations/` for the area you
   touch: layout, typography, shape, interactions, colours, elevation,
   iconography, date and time, linking.
@@ -68,7 +74,8 @@ Every PR is checked against these before review. Fix every real hit.
   deprecated APIs, non-existent text colours, manual hover instead of
   `is-interactive`.
 - **Prop vocabulary** for new components: compare every prop name and value
-  set with existing components that share the concept. Booleans are bare
+  set with existing components that share the concept, and across every
+  component in a batch built in parallel. Booleans are bare
   adjectives (`disabled`, `contained`, `combined`), never `is*`.
 - **Contrast**: labels on strong fills reach APCA Lc 60. Any accepted
   exception is written down in the test and the docs.
@@ -97,10 +104,16 @@ Every PR is checked against these before review. Fix every real hit.
   touched package that has one (`pnpm --filter <package> size`; `docs`
   has none).
 - Rebuild before browser tests; stale `dist` misleads the `:has()` guard.
-- **Keep the machine cool.** Iterate in one engine (`ROADIE_BROWSERS=chromium`),
-  cap workers (`--maxWorkers=4`), run the three-engine set once before
-  pushing, and let CI run the full matrix. Never wait on an infinite
-  animation; give browser tests explicit timeouts. Stop dev servers you start.
+- **Keep the machine cool.** Check `uptime` before starting an agent or a
+  test run, and wait while the 1-minute load is above the core count. Iterate
+  in one engine (`ROADIE_BROWSERS=chromium`), cap workers (`--maxWorkers=4`),
+  run the three-engine set once before pushing, and let CI run the full
+  matrix. Never wait on an infinite
+  animation; give browser tests explicit timeouts. Kill test processes older
+  than 10 minutes. Stop dev servers you start.
+- **Demo visual and interaction changes before pushing.** Serve the docs from
+  your worktree where a phone can reach it (add the host to
+  `NEXT_DEV_ORIGINS`) and get the requester's OK first.
 - **Check the file list** (`git diff --name-only origin/main...HEAD`): no
   `.vitest/` screenshots, `test-results/`, coverage or images you didn't mean
   to add.
@@ -130,17 +143,25 @@ the PR only when both passes are clean.
   why, what changes, decisions a reader might question, what's out of scope
   (with Jira keys), and the checks run. Keep it short and true when merged;
   the squash commit carries it into `git log`.
-- Request Copilot's review. It reads `.github/copilot-instructions.md`;
-  update that file when a convention or a deliberate decision changes, and
-  keep it under 4,000 characters (Copilot reads no further).
+- **Open it as a draft** (`gh pr create --draft`). Copilot reviews once, when
+  the PR is marked ready, and skips drafts. Run `gh pr ready` only after CI is
+  green, both local reviews are clean and any demo is approved.
+- **Say in the body if it's a one-way door.** These always get a
+  maintainer's review: removing or renaming a public export, prop or subpath,
+  changing a token's value or meaning, shared CSS cascade, layers or base
+  styles, and release contents.
+- Copilot reads `.github/copilot-instructions.md`; update that file when a
+  convention or a deliberate decision changes, and keep it under 4,000
+  characters (Copilot reads no further).
 - A review is clean when it shows "Findings: None"
   **and** its body lists no "Previously missed" items.
 - For each finding: fix it test-first and reply naming the commit and test,
   or reply with why it stands. Resolve every thread.
-- **After three Copilot rounds, triage instead of looping.** Critical and
-  Important findings are always fixed, however rare the case. A Minor one is
-  fixed only if a real user would hit it in normal use; the rest become Jira
-  follow-ups (section 9).
+- **Copilot is a last resort.** Fix its real findings yourself; each one is a
+  gap in the local reviews.
+- **Triage instead of looping.** Critical and Important findings are always
+  fixed, however rare the case. A Minor one is fixed only if a real user
+  would hit it in normal use; the rest become Jira follow-ups (section 9).
 - **Flaky tests**: a known flake may be re-run once. A flake seen on two
   unrelated PRs gets fixed at its root in its own PR.
 - If `main` moves under you, update the branch and wait for CI again,
@@ -163,7 +184,8 @@ release.
 Every Minor finding not fixed in its own PR becomes a Jira work item in the
 **INNO** project with the **Roadie** component and the `follow-up` label,
 holding the file and line, the finding, and a link to the PR thread it came
-from. Group related findings in one item with a checklist. Reply on the PR
-thread with the Jira link before resolving it. When a later PR touches the
+from. Add to the open `Roadie follow-ups: <area>` item before creating one,
+listing findings as plain bullets (Jira shows `- [ ]` literally). Reply on the
+PR thread with the Jira link before resolving it. When a later PR touches the
 same code, it fixes the item there and closes it. The rest are batched by
 area into follow-up PRs, or closed with a written reason.
