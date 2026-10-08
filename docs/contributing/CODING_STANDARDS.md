@@ -37,7 +37,9 @@ Every test must be able to fail for a reason a user would notice.
 
 - **Test at the public interface.** A component's props, roles, keyboard
   paths, and ARIA states; a pure function's inputs and outputs; a CSS
-  utility's computed style. Renaming an internal never breaks a test.
+  utility's computed style. Query by role, then label, then text, and by
+  test id only as a last resort. Renaming an internal never breaks a test.
+- **Each test sets up its own state and passes alone.**
 - **Name the capability, and take expected values from the spec.** A test
   name says what someone can do. Expected values are literals or come from
   the spec, never recomputed with the code under test or the palette's own
@@ -62,8 +64,9 @@ Every test must be able to fail for a reason a user would notice.
   Base UI, motion, Roadie, or the repo's own modules; mock the network under
   them instead.
 - **Wait for a state, not a time.** Use `waitFor`, `expect.poll`, or an
-  animation's `finished`. A fixed sleep only proves something didn't happen,
-  after a positive signal or with fake timers past the exact debounce.
+  animation's `finished`. To prove something didn't happen, wait for a
+  positive signal first or advance fake timers past the exact debounce,
+  never a fixed sleep.
 - **Every public prop that changes behaviour has a test** through rendered
   output, including `locale`, `timeZone`, `weekStart`, and callbacks.
 - **No unread snapshots.** Assert the part that matters instead.

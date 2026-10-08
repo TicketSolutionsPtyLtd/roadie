@@ -36,9 +36,6 @@ browser test is only for what CSS decides.
 | Appearance                                                           | pixels                              | the visual and accessibility checks (INNO-1132), not a unit test |
 | A journey across pages                                               | the running app                     | the repo's e2e suite, for critical paths only                    |
 
-Query by role, then label, then text, and by test id only as a last resort.
-Each test sets up its own state and passes alone.
-
 ## 3. The loop
 
 1. Write **one** test for one behaviour, named for what a user can do. Start
@@ -50,15 +47,17 @@ Each test sets up its own state and passes alone.
    Leave refactoring to review.
 
 Testing code that already exists? Still one test at a time: write it, break
-the behaviour (drop the prop's effect), watch it fail, then restore it.
+the behaviour, watch it fail, then restore it. A prop can act in more than
+one place (a picker's `weekStart` sets the calendar and reads "end of week"),
+so break each one.
 
 Iterate on the file you're writing, through the repo's load-gated runner,
 never `vitest` or the whole suite directly. In Roadie that's
-`pnpm test:gated <package> <file>`, which waits for load and runs Chromium
-only; add `--project 'browser*'` for a browser test. A repo without a runner
+`pnpm test:gated <package> <file>`, with the file path relative to the
+package. It waits for load and runs Chromium only. A repo without a runner
 follows its own load rule and runs `vitest run <file>`. Before pushing,
-follow the host workflow (in Roadie, touched browser files once in all three
-engines), and let the hooks and CI run the rest.
+follow the host workflow (in Roadie, touched browser files once with
+`--all-browsers`), and let the hooks and CI run the rest.
 
 ## 4. Tests that lie
 
@@ -75,9 +74,6 @@ Real Roadie examples from the INNO-1130 audit (October 2026):
 | Faked layout in jsdom                              | `RecordTable.narrow.test.tsx:51`: stubs `getBoundingClientRect` and a 16px root      | A browser test at a real width                                     |
 | A fixed sleep                                      | `RecordsSearch.test.tsx:565`: sleeps 150ms, then asserts no chips                    | Fake timers past the debounce, or wait for a positive signal first |
 | An unread snapshot                                 | `toMatchSnapshot()` on a whole tree                                                  | Assert the part that matters                                       |
-
-Mock only time (fake timers or a `today` or `now` input), randomness, the
-network, and browser APIs jsdom lacks.
 
 ## 5. Before you hand off
 
