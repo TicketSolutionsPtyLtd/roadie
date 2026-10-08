@@ -41,7 +41,7 @@ roadie/
 **Every Roadie skill**, in this plugin or in `.claude/skills/`:
 
 - **One folder per skill** with a `SKILL.md` inside. A flat `.md` file is never loaded.
-- **User-invoked when it starts a workflow** (plan, build, review, release): set `disable-model-invocation: true` so it runs only when someone asks for it. Reference skills such as `audit` stay model-invoked.
+- **Used automatically.** Don't set `disable-model-invocation`. The `description` says when the skill applies (the task, the files, the phrases someone would use), so an agent loads it without being asked.
 - **Plain `SKILL.md`** with `name` and `description` frontmatter, so other agents can read it.
 
 **Repo skills in `.claude/skills/`** stay short and link `docs/contributing/` or the foundations pages instead of copying their rules, so they can't drift.
