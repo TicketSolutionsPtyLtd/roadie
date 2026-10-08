@@ -394,13 +394,16 @@ describe('Calendar swiped on a phone', TIMEOUT, () => {
       .querySelector('[data-slot="calendar-header"]')!
       .getBoundingClientRect()
     const y = header.top + header.height / 2
-    await commands.swipe({ x: header.left + 40, y }, { x: header.left + 10, y })
+    // One swipe: a second would start while the first settles back, which
+    // ignores it whatever its origin.
     await commands.swipe(
-      { x: header.left + 200, y },
-      { x: header.left + 40, y }
+      { x: header.left + 40, y },
+      { x: header.left + 200, y }
     )
     await settle()
     expect(caption()).toContain('March 2027')
+    await swipe('right')
+    expect(caption()).toContain('February 2027')
   })
 
   it('swipes the other way in a right-to-left page', async ({ skip }) => {
