@@ -295,62 +295,7 @@
 
 /* ═══ Intent: brand-purple ═══ */
 @utility intent-brand-purple {
-  --intent-hue: 303;
-  --intent-bg-normal: var(--color-info-1);
-  --intent-bg-strong: var(--color-info-9);
-  --intent-bg-strong-hover: var(--color-info-11);
-  --intent-bg-strong-active: var(--color-info-12);
-  --intent-bg-inverted: var(--color-info-12);
-  --intent-bg-raised: var(--color-info-1);
-  --intent-bg-sunken: var(--color-info-2);
-
-  --intent-border-subtler: var(--color-info-5);
-  --intent-border-subtle: var(--color-info-6);
-  --intent-border-normal: var(--color-info-7);
-  --intent-border-strong: var(--color-info-9);
-  --intent-border-inverted: var(--color-info-12);
-
-  --intent-text-subtler: var(--color-info-10);
-  --intent-text-subtle: var(--color-info-11);
-  --intent-text-normal: var(--color-info-12);
-  --intent-text-strong: var(--color-info-13);
-  --intent-text-inverted: var(--color-info-0);
-  --intent-text-on-strong: var(--color-neutral-light-0);
-
-  /* Raw scale steps */
-  --intent-0: var(--color-info-0);
-  --intent-1: var(--color-info-1);
-  --intent-2: var(--color-info-2);
-  --intent-3: var(--color-info-3);
-  --intent-4: var(--color-info-4);
-  --intent-5: var(--color-info-5);
-  --intent-6: var(--color-info-6);
-  --intent-7: var(--color-info-7);
-  --intent-8: var(--color-info-8);
-  --intent-9: var(--color-info-9);
-  --intent-10: var(--color-info-10);
-  --intent-11: var(--color-info-11);
-  --intent-12: var(--color-info-12);
-  --intent-13: var(--color-info-13);
-
-  --intent-2a: color-mix(in oklch, var(--color-info-9) 6%, transparent);
-  --intent-3a: color-mix(in oklch, var(--color-info-9) 11%, transparent);
-  --intent-4a: color-mix(in oklch, var(--color-info-9) 17%, transparent);
-  --intent-5a: color-mix(in oklch, var(--color-info-9) 23%, transparent);
-
-  --intent-bg-subtler: var(--intent-2a);
-  --intent-bg-subtle: var(--intent-3a);
-
-  --intent-mark-bg: var(--color-info-light-5);
-  --intent-mark-text: var(--color-info-light-13);
-
-  .dark & {
-    --intent-bg-normal: var(--color-info-2);
-    --intent-bg-raised: var(--color-info-2);
-    --intent-bg-sunken: var(--color-info-0);
-    --intent-bg-strong-hover: var(--color-info-8);
-    --intent-bg-strong-active: var(--color-info-7);
-  }
+  @apply intent-info;
 }
 
 /* ═══ Brand aliases by hue ═══ */
