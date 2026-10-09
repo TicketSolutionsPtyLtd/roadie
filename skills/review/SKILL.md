@@ -131,7 +131,7 @@ itself, its own `AGENTS.md` covers this, so skip the section.
   for (const p of ["core", "components", "charts", "widgets"]) {
     let m
     try { m = require(`@oztix/roadie-${p}/roadie.manifest.json`) }
-    catch { console.log(`no manifest: @oztix/roadie-${p}`); continue }
+    catch (e) { console.log(`no manifest: @oztix/roadie-${p} (${e.code})`); continue }
     console.log(m.package, m.version, m.components.map((c) => c.name).join(", "))
     for (const d of m.deprecations)
       console.log("deprecated:", d.import, d.export, d.prop ?? "", d.reason)
@@ -139,10 +139,15 @@ itself, its own `AGENTS.md` covers this, so skip the section.
   ```
 
   Each component entry has its import, props, and `docs` link. Without
-  `node_modules`, install first (check machine load). A package with no
-  manifest predates it: read its `exports` and `.d.ts` files, and the docs
-  index at `https://ticketsolutionsptyltd.github.io/roadie/llms.txt`, whose
-  `.md` links give each component's props.
+  `node_modules`, install first (check machine load). `MODULE_NOT_FOUND`
+  means the app doesn't use that package. `ERR_PACKAGE_PATH_NOT_EXPORTED`
+  means the version predates the manifest: read the package's `exports`, its
+  `dist` types and defaults, and
+  `grep -rn "@deprecated" node_modules/@oztix/roadie-*/dist --include='*.d.ts'`,
+  plus the docs index at
+  `https://ticketsolutionsptyltd.github.io/roadie/llms.txt`, whose `.md`
+  links give each component's props. Docs describe the latest release, so
+  check a prop against the installed types before citing it.
 
 - **Review the added lines against `/roadie:build`.** Read that skill; it
   holds the rules, so don't restate them. Check, by its section: a component
@@ -152,9 +157,10 @@ itself, its own `AGENTS.md` covers this, so skip the section.
   without `href` (8), empty and error states without `EmptyState` (9), and
   copy (13). Charts and dashboards go to `/roadie:charts`, and setup gaps
   to `/roadie:setup`.
-- **Run the `/roadie:audit` checks** on the changed files, and keep only hits
-  on added lines (`git diff origin/<base>...HEAD -U0`). Its fixes follow
-  section 3 here, not its own loop.
+- **Run the `/roadie:audit` checks** on the changed files. Keep only hits on
+  added lines (`git diff origin/<base>...HEAD -U0`), as with lint and format:
+  a hit on an untouched line was there before the PR. Fixes follow section 3
+  here, not the audit's own loop.
 - **Hand deprecations to `/roadie:migrate`.** A use of a manifest
   `deprecations` entry is a finding. Fix it with that skill's codemod or its
   hand steps; on a PR you can't push to, name the codemod in the comment.
