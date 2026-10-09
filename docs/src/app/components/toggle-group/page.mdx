@@ -177,6 +177,21 @@ Stretch the track and the segments share the space equally.
 </ToggleGroup>
 ```
 
+#### When space runs out
+
+A horizontal group never wraps or squashes its labels. When the items don't fit, the track scrolls sideways, and it scrolls the pressed item into view. The arrow keys scroll to each item as they focus it.
+
+```tsx-live
+<div className='max-w-64'>
+  <ToggleGroup className='w-full' aria-label='Compare with' defaultValue={['tour']}>
+    <ToggleGroup.Item value='none'>No comparison</ToggleGroup.Item>
+    <ToggleGroup.Item value='period'>Previous period</ToggleGroup.Item>
+    <ToggleGroup.Item value='year'>Previous year</ToggleGroup.Item>
+    <ToggleGroup.Item value='tour'>Last tour</ToggleGroup.Item>
+  </ToggleGroup>
+</div>
+```
+
 #### Controlled dashboard range
 
 `value` is always an array. In single mode it holds one item.
@@ -208,7 +223,7 @@ render(<SalesRange />)
 - **Tabs switch panels; a toggle group sets a value.** Use `Tabs` when each choice shows its own content below. Use a toggle group when the choice changes how the same content is filtered or shown, such as a date range or a list or grid view.
 - **It is as tall as a `Button` of the same size**, so it lines up beside buttons in a toolbar or a dashboard header.
 - **Use `subtler` in a dense toolbar.** It has no track, so it sits quietly beside other controls.
-- **Keep it to two to five short options.** For more, or for long labels, use `Select` or `RadioGroup`.
+- **Keep it to two to five short options.** For more, or for long labels, use `Select` or `RadioGroup`. A group that has to scroll on a phone is a sign it holds too many.
 - **A single-choice group can't be emptied.** Clicking the pressed item leaves it pressed, so a chart always has a range. Set `defaultValue` so something is chosen from the start.
 - **Use `multiple` for independent switches** such as text styles. For a single on and off switch, use `Toggle`.
 - **Label the group.** Give the root an `aria-label`, or point `aria-labelledby` at a visible heading.

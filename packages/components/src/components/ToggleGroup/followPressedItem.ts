@@ -1,7 +1,25 @@
 export const PRESSED_ITEM = '[data-slot="toggle-group-item"][data-pressed]'
 
 /**
- * Keeps an indicator over the group's pressed item via CSS variables.
+ * Scrolls a group sideways just far enough to show the item and the track's
+ * padding beside it, which holds the item's focus ring.
+ */
+export function revealItem(group: HTMLElement, item: HTMLElement) {
+  const { paddingLeft, paddingRight } = getComputedStyle(group)
+  const start = item.offsetLeft - parseFloat(paddingLeft) - group.scrollLeft
+  const end =
+    item.offsetLeft +
+    item.offsetWidth +
+    parseFloat(paddingRight) -
+    group.scrollLeft -
+    group.clientWidth
+  if (start < 0) group.scrollLeft += start
+  else if (end > 0) group.scrollLeft += end
+}
+
+/**
+ * Keeps an indicator over the group's pressed item via CSS variables, and the
+ * item in view when the group scrolls.
  * Offsets, not bounding rects, so a mid-press scale doesn't skew them.
  */
 export function followPressedItem(
@@ -24,6 +42,7 @@ export function followPressedItem(
         '--pressed-item-height',
         `${item.offsetHeight}px`
       )
+      revealItem(group, item)
     }
     onReadyChange(item !== null)
   }

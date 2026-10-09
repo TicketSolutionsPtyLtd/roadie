@@ -22,6 +22,12 @@ export const surfaceTitleClass = 'text-display-ui-4 text-strong'
 export const disclosureCaretClass =
   'size-4 shrink-0 transition-transform duration-moderate ease-enter'
 
+// A literal, not a joined array: a module-level call isn't tree-shaken, so
+// every component importing this file would carry it.
+/** A horizontal track that scrolls sideways, scrollbar hidden, when it outgrows its container. */
+export const horizontalScrollClass =
+  'data-[orientation=horizontal]:max-w-full data-[orientation=horizontal]:overflow-x-auto data-[orientation=horizontal]:overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+
 /** A literal union, because `react-docgen-typescript` can't read CVA types. */
 export type RoadieIntent = keyof typeof intentVariants
 
