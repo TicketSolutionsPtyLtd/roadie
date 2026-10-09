@@ -22,17 +22,22 @@ prefix). Then collect every correction in it, with its source.
   learnings (`docs/solutions/` or similar), and the skills in use.
 - The PRs:
   `gh pr list --state merged --search "merged:>=<date>" --limit 100 --json number,title,headRefName,body`
-  (or `head:<prefix>` for a branch prefix). Bodies hold the review's "Fixed"
-  and "Previously missed" lists and each bot's precision line, such as
-  "Copilot: N of M findings real".
+  (or `head:<prefix>` for a branch prefix). If it returns as many PRs as the
+  limit, split the date range until each query returns fewer. Bodies hold the
+  review's "Fixed" and "Previously missed" lists and each bot's precision
+  line, such as "Copilot: N of M findings real".
 - Bot and reviewer threads for each PR, with the replies that say whether a
   finding was real: the paginated `reviewThreads` query in
   `/roadie:shepherd` step 5, plus each review's body for findings with no
-  thread.
-- CI: `gh run list --branch <branch> --json conclusion,attempt,databaseId`
-  per PR. Failures (`gh run view <id> --log-failed`), reruns (`attempt` over
-  1), flakes (passed on retry, or on the quarantine list), and cancelled runs
-  from extra pushes.
+  thread. That query reads 20 comments a thread; raise it for a thread with
+  more, so the reply that settles a finding isn't cut off.
+- CI:
+  `gh run list --branch <branch> --limit 200 --json conclusion,attempt,databaseId`
+  per PR, raising the limit if it fills. Failures
+  (`gh run view <id> --log-failed`), reruns (`attempt` over 1, whose earlier
+  failures need `--attempt <n> --log-failed`, since a rerun that passed
+  shows none), flakes (passed on retry, or on the quarantine list), and
+  cancelled runs from extra pushes.
 - Rule slips: a person correcting the agent, lint warnings added, a hook
   skipped, a step done out of order, and, for a session, commands that failed
   or ran far more often than needed.
@@ -59,17 +64,18 @@ would have stopped it:
 1. **Delete.** A rule, doc, skill step, or config that is unused, duplicated
    elsewhere, or contradicts another. Two copies of a list will drift; keep
    one and point at it.
-2. **Automate.** A lint rule (Roadie: `eslint/roadie-plugin.js`, with a test
-   for each form it must catch), a guard test, a CI check, or a script. A
-   check beats prose every time it can catch the thing.
+2. **Automate.** A rule in the host's lint plugin (with a test for each form
+   it must catch), a guard test, a CI check, or a script. A check beats prose
+   every time it can catch the thing.
 3. **Skill edit.** A step, or a class in `/roadie:review`'s bug hunt, in the
    skill that ran when it slipped. What bots still catch belongs in the
    bug hunt.
 4. **Standard or workflow line.** A reviewer's judgement call goes in
    `CODING_STANDARDS.md`; process goes in the PR workflow. Replace or cut a
    line when you add one.
-5. **Pointer.** One line in `AGENTS.md` naming the doc an implementer
-   needed and didn't find. Never copy the rule itself.
+5. **Pointer.** One line in `AGENTS.md` (or `CLAUDE.md`, whichever the host
+   has) naming the doc an implementer needed and didn't find. Never copy the
+   rule itself.
 6. **Learning.** A `docs/solutions/` entry (symptom, cause, and fix, with a
    sibling's frontmatter) when no check can catch it.
 7. **Decision.** A register entry when the same call keeps being re-argued.
