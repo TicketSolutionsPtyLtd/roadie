@@ -50,6 +50,7 @@ function Strip({
         {tokens.map((token, index) => (
           <div
             key={token}
+            data-slot='dataviz-swatch'
             className='h-10 flex-1 rounded-sm first:rounded-l-md last:rounded-r-md'
             style={{ backgroundColor: hexAt(kind, mode, index, label(token)) }}
             title={`--${token}`}
@@ -79,6 +80,7 @@ function ThemePanel({
   const { surface, label: labelColor } = chartHex(mode).chrome
   return (
     <div
+      data-mode={mode}
       className='grid gap-2 rounded-xl p-3'
       style={{ backgroundColor: surface, color: labelColor }}
     >
@@ -92,7 +94,12 @@ function ThemePanel({
 export function DatavizSwatches({ kind }: { kind: Kind }) {
   const tokens = STRIPS[kind]
   return (
-    <div className='grid gap-3 @xl:grid-cols-2'>
+    <div
+      data-not-prose
+      data-slot='dataviz-swatches'
+      data-kind={kind}
+      className='grid gap-3 @xl:grid-cols-2'
+    >
       <ThemePanel kind={kind} mode='light' tokens={tokens} />
       <ThemePanel kind={kind} mode='dark' tokens={tokens} />
     </div>
