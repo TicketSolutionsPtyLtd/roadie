@@ -12,12 +12,14 @@ export async function AccentScales() {
   return (
     <div data-not-prose data-slot='accent-scales' className='grid gap-6'>
       <dl className='grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm'>
-        <dt>
-          <code className='font-mono text-strong'>DEFAULT_ACCENT_COLOR</code>
-        </dt>
-        <dd data-slot='default-accent' className='text-subtle'>
-          {DEFAULT_ACCENT_COLOR}
-        </dd>
+        <div className='contents'>
+          <dt>
+            <code className='font-mono text-strong'>DEFAULT_ACCENT_COLOR</code>
+          </dt>
+          <dd data-slot='default-accent' className='text-subtle'>
+            {DEFAULT_ACCENT_COLOR}
+          </dd>
+        </div>
         {parameters.map(({ name, value }) => (
           <div key={name} className='contents'>
             <dt>

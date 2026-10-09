@@ -128,8 +128,12 @@ describe('Theming foundation', () => {
 
   it("lists ThemeProvider's props", async () => {
     const page = await open(1280)
-    const reference = page.locator('#docs-content', {
-      has: page.getByRole('heading', { name: 'API reference' })
+    const reference = page.locator('section', {
+      has: page.getByRole('heading', {
+        level: 3,
+        name: 'ThemeProvider',
+        exact: true
+      })
     })
     for (const prop of THEME_PROPS)
       expect(
