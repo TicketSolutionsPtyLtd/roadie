@@ -1,0 +1,384 @@
+export const metadata = {
+  title: 'Tables',
+  description:
+    'Which table fits the job, and how common Oztix records look in a pane, on a phone, in a dashboard, on a detail page, and in a PDF.',
+  category: 'Building apps',
+  alsoIn: [{ route: '/charts', category: 'Guidelines' }]
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+Roadie has one table for working through records and one for reading a
+summary. Pick by what people do with the rows, then shape the columns so the
+same record reads the same way in a pane, in a dashboard, and on paper.
+
+## Choose by job
+
+| Component                               | Use it for                                                                                               | Where it lives                                     | Rows              |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ----------------- |
+| [RecordTable](/components/record-table) | A working list people search, sort, select, and page through. Turns into list rows or cards when narrow. | A Pane, most of the time                           | Any number        |
+| [DataTable](/charts/data-table)         | A read-only summary. Renders on the server, so it also prints in reports, PDFs, and slides.              | A DataCard on a dashboard, a detail page, or a PDF | About 25 or fewer |
+| [List](/components/list)                | A few records to open, or settings. No columns to compare.                                               | A detail page, a menu pane, or settings            | About 10 or fewer |
+| [Card grid](/components/card)           | Browsing where an image leads, like event tiles. No sorting.                                             | A home or discovery page                           | A screen or two   |
+| [StatTile](/charts/stat-tile)           | One number that matters, with its change.                                                                | A dashboard row or the top of a detail page        | One value         |
+
+### Signs you picked the wrong one
+
+- A DataTable gains a search box or a pager. It has become a working list. Use
+  a RecordTable.
+- A RecordTable holds five rows nobody searches. Use a DataTable, or a List
+  when each row opens something.
+- A card grid gets sort controls. People are comparing, not browsing. Use a
+  RecordTable.
+- A dashboard card lists people or orders. Show the count in a StatTile and
+  link to the pane that lists them.
+- A table has one row. Show the values as a StatTile or a description list.
+
+<Guidelines>
+
+<Guideline headingLevel={3} title='Work in a RecordTable, read in a DataTable'>
+  <Guideline.Do
+    code={`
+      <RecordTable
+        caption='Orders'
+        data={orders}
+        fields={fields}
+        columns={columns}
+      />
+    `}
+  >
+    Give people a RecordTable when they search, sort, or page through the
+    rows.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      <DataTable
+        caption='Orders'
+        columns={columns}
+        rows={allOrders} // 4,812 rows
+      />
+    `}
+  >
+    Don't put a long list people need to search into a DataTable. It renders
+    every row and has no search or paging.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Records live in a Pane
+
+Most RecordTables fill a [Pane](/components/pane): the title in the header,
+the toolbar with its search above the rows in the body, and the pager in the
+footer. Keep the search in the table's toolbar, not in `Pane.Search`. The
+RecordTable page has a [complete pane](/components/record-table#in-a-pane) to
+copy.
+
+## Columns
+
+- Describe the record once. Build its fields with `recordFields`, then build
+  columns from them with `tableColumns`. A field's type decides how its values
+  read, everywhere it shows. See [Records model](/foundations/records).
+- One title column. Pin it with `pin: true`. A column with
+  `narrow: 'title'`, or else the first pinned text column, or else the first
+  text column, reads as the row's title, in strong text.
+- Numbers end-aligned. Number and money fields do this, and sort largest
+  first.
+- Money. `currency` where cents matter, an order total or a payout.
+  `compactCurrency` for gross across events, where $118k reads faster than
+  $118,400. A field with `currencyKey` names any currency that isn't dollars.
+- Dates. Event and access dates read in the venue's zone through
+  `timeZoneKey`, long with the weekday. Timestamps read in the reader's zone,
+  medium with the time. See [Date and time](/foundations/date-and-time).
+- Status as a Badge. Give an option field a `status` map of each key to its
+  intent, chosen by meaning. It shows a small Badge in normal emphasis and
+  sorts by each key's `order`.
+- Ids in monospace. Order numbers, references, and promo codes, through
+  `font-mono` in the column's `cell`.
+- Give each column its place on a phone. Under 40rem the table lists its
+  records. The title column takes `narrow: 'title'`, one line under it
+  `'description'`, and a status `'trailing'`. Any `'detail'` column turns rows
+  into cards; keep it to three or four details. The rest stay in the wide
+  table.
+- Let the extras go first. Give columns people can do without a `priority` so
+  they hide as the table narrows, 3 first, before it turns into list rows.
+- Images lead. An image column, with `kind: 'image'`, shows a thumbnail, leads
+  a list row, and becomes a card's banner.
+- Hide the rest. A view's `layout.columns.hidden` hides columns, and its
+  `order` reorders them. Pinned columns stay first and shown.
+
+## Table examples
+
+### Orders
+
+A working list in its own box, newest first. The order number is the pinned
+title, in monospace through its cell, and the status reads as a Badge. Under
+40rem each row shows the customer under the order number and the status on
+the end.
+
+```tsx-live-noinline-expand
+const customers = ['Mia Tran', 'Jack Ellis', 'Ava Nguyen', 'Noah Smith', 'Isla Brown', 'Leo Wilson']
+const eventNames = ['Ochre Kite Weekender', 'Marzipan Thunderclap', 'Corduroy Lagoon Sessions', 'Velvet Dingo Fest']
+const statuses = ['paid', 'paid', 'paid', 'pending', 'refunded']
+const orders = Array.from({ length: 60 }, (_, index) => ({
+  id: `order-${index}`,
+  number: `OZ-${48210 + index * 7}`,
+  customer: customers[index % customers.length],
+  event: eventNames[index % eventNames.length],
+  status: statuses[index % statuses.length],
+  placedAt: new Date(Date.UTC(2026, 9, 1, 0, 15) + index * 5 * 3600000).toISOString(),
+  total: [79.9, 149, 59, 238.5][index % 4]
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('number', { label: 'Order' }),
+  field.text('customer', { label: 'Customer' }),
+  field.text('event', { label: 'Event' }),
+  field.option('status', {
+    label: 'Status',
+    status: { paid: { intent: 'success' }, pending: { intent: 'warning' }, refunded: { intent: 'neutral' } }
+  }),
+  field.date('placedAt', { label: 'Placed', moment: 'timestamp' }),
+  field.money('total', { label: 'Total', format: 'currency' })
+]
+
+const column = tableColumns(fields)
+const columns = [
+  column.field('number', {
+    pin: true,
+    width: { min: 7 },
+    cell: ({ row }) => <span className='font-mono font-semibold text-strong'>{row.number}</span>
+  }),
+  column.field('customer', { narrow: 'description' }),
+  column.field('event'),
+  column.field('status', { narrow: 'trailing' }),
+  column.field('placedAt'),
+  column.field('total')
+]
+
+render(
+  <RecordTable
+    caption='Orders'
+    data={orders}
+    fields={fields}
+    columns={columns}
+    getRowId={(row) => row.id}
+    recordName={{ one: 'order', other: 'orders' }}
+    defaultView={{ query: { sort: [{ field: 'placedAt', direction: 'descending' }] } }}
+    maxHeight='28rem'
+  />
+)
+```
+
+### Top events in a dashboard
+
+A DataTable in a DataCard. Five rows, sorted by gross, with the venue as
+secondary text and sell-through as a meter.
+
+```tsx-live
+<div className='w-full max-w-md'>
+  <DataCard
+    label='Top events'
+    takeaway='Ochre Kite Weekender leads gross this month'
+    source='Oztix sales. Gross before fees.'
+  >
+    <DataTable
+      caption='Top events by gross'
+      columns={[
+        { key: 'event', header: 'Event', kind: 'text', pin: true, secondaryKey: 'venue' },
+        { key: 'sellThrough', header: 'Sell-through', kind: 'meter', target: 0.85 },
+        { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency' }
+      ]}
+      rows={[
+        { event: 'Ochre Kite Weekender', venue: 'Kazoo Hollow Room, Brisbane', sellThrough: 0.94, gross: 212400 },
+        { event: 'Marzipan Thunderclap', venue: 'The Quilted Walrus Room, Melbourne', sellThrough: 0.81, gross: 168900 },
+        { event: 'Corduroy Lagoon Sessions', venue: 'Drongo Bell Social Club, Adelaide', sellThrough: 0.66, gross: 97300 },
+        { event: 'Velvet Dingo Fest', venue: 'Antler Kettle Hall, Hobart', sellThrough: 0.58, gross: 61200 },
+        { event: 'Sapphire Cassowary Night', venue: 'Kazoo Hollow Room, Brisbane', sellThrough: 0.37, gross: 28800 }
+      ]}
+    />
+  </DataCard>
+</div>
+```
+
+## Oztix records by context
+
+Each record lists its RecordTable columns with the type of the field behind
+each one, how it reads, where it goes on a phone (`narrow`), and which hide
+first as the table narrows (`priority`), then how the record appears
+everywhere else.
+
+### Event
+
+A show or session at a venue. The record most panes start from.
+
+| Column         | Field type | Shows as                                                         | Narrow      | Priority |
+| -------------- | ---------- | ---------------------------------------------------------------- | ----------- | -------- |
+| Event (pinned) | text       | Strong text                                                      | title       |          |
+| Venue          | option     | Option label                                                     | description |          |
+| Status         | option     | Badge                                                            | trailing    |          |
+| Starts         | date       | Long date and time in the venue's zone (Fri 27 Nov 2026, 7:30pm) | detail      |          |
+| Sold           | number     | Number                                                           | detail      |          |
+| Capacity       | number     | Number                                                           |             | 2        |
+| Gross          | money      | Compact currency                                                 | detail      |          |
+
+| Context       | How it shows                                                                                                                          |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| In a Pane     | Search by event or venue. Sort by start date, soonest first. See the [Events pane](/components/record-table#in-a-pane) example.       |
+| On a phone    | Cards: the event, the venue under it, and the status on the end, with starts, sold, and gross as details.                             |
+| Dashboard     | Top events: Event with the venue as secondary text, a sell-through meter, and Gross. Sort by gross, largest first. Five rows.         |
+| Detail page   | The event page leads with image, date, and venue, then stat tiles for sold, gross, and sell-through. Ticket types sit in a DataTable. |
+| PDF or report | An event report: the ticket type DataTable, plain, and charts drawn with `renderChartSvg`.                                            |
+
+### Order
+
+One purchase by one customer, holding one or more tickets.
+
+| Column         | Field type | Shows as                                             | Narrow      | Priority |
+| -------------- | ---------- | ---------------------------------------------------- | ----------- | -------- |
+| Order (pinned) | text       | Monospace order number                               | title       |          |
+| Customer       | text       | Text                                                 | description |          |
+| Event          | option     | Option label                                         |             | 2        |
+| Status         | option     | Badge                                                | trailing    |          |
+| Placed         | date       | Timestamp in the reader's zone (27 Nov 2026, 2:14pm) |             | 3        |
+| Total          | money      | Currency                                             |             |          |
+
+| Context       | How it shows                                                                                                                  |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| In a Pane     | Search by order number or customer. Newest first.                                                                             |
+| On a phone    | List rows: the order number, the customer under it, and the status on the end.                                                |
+| Dashboard     | Not as a list. Show the order count in a StatTile and link to the Orders pane.                                                |
+| Detail page   | Order number and status, the customer, the event, then line items in a DataTable: ticket type, quantity, price, and subtotal. |
+| PDF or report | A tax invoice: the line items DataTable, plain, with totals in currency.                                                      |
+
+### Attendee
+
+One ticket and the person holding it. One order can hold several.
+
+| Column        | Field type | Shows as                       | Narrow      | Priority |
+| ------------- | ---------- | ------------------------------ | ----------- | -------- |
+| Name (pinned) | text       | Strong text                    | title       |          |
+| Email         | text       | Text                           |             | 2        |
+| Check-in      | option     | Badge                          | trailing    |          |
+| Ticket type   | option     | Option label                   | description |          |
+| Order         | text       | Monospace order number         |             | 3        |
+| Checked in at | date       | Timestamp in the reader's zone |             | 3        |
+
+| Context       | How it shows                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------------- |
+| In a Pane     | Search by name or email. Sort by name.                                                                  |
+| On a phone    | List rows at the door: the name, the ticket type under it, and check-in on the end.                     |
+| Dashboard     | Entry by gate: Gate, Checked in, and Inside as a meter of the share now in the venue. One row per gate. |
+| Detail page   | The ticket: holder, ticket type, barcode, and scan history, with transfer and resend actions.           |
+| PDF or report | A door list PDF: a plain DataTable per ticket type, sorted by surname. Render it on the server.         |
+
+### Customer
+
+A person who has bought from a client, with their contact details and
+history.
+
+| Column        | Field type | Shows as                                                 | Narrow      | Priority |
+| ------------- | ---------- | -------------------------------------------------------- | ----------- | -------- |
+| Name (pinned) | text       | Strong text                                              | title       |          |
+| Email         | text       | Text                                                     | description |          |
+| Suburb        | text       | Text, searchable                                         |             | 3        |
+| State         | option     | Option label                                             |             | 2        |
+| Orders        | number     | Number                                                   |             |          |
+| Spend         | money      | Currency                                                 | trailing    |          |
+| Last order    | date       | Date and time in the reader's zone (27 Nov 2026, 2:14pm) |             | 3        |
+| Marketing     | boolean    | Yes or No                                                |             |          |
+
+| Context       | How it shows                                                                                                             |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| In a Pane     | Search by name, email, or suburb.                                                                                        |
+| On a phone    | List rows: the name, the email under it, and spend on the end.                                                           |
+| Dashboard     | Aggregate, never list people. Where buyers are from: Suburb and share, five rows. New and returning buyers as StatTiles. |
+| Detail page   | Contact details and marketing consent, then their orders.                                                                |
+| PDF or report | Leave personal details out of reports.                                                                                   |
+
+### Ticket type
+
+A price and allocation on sale for one event, like General admission or VIP.
+
+| Column               | Field type | Shows as         | Narrow      | Priority |
+| -------------------- | ---------- | ---------------- | ----------- | -------- |
+| Ticket type (pinned) | text       | Strong text      | title       |          |
+| Price                | money      | Currency         | description |          |
+| Status               | option     | Badge            | trailing    |          |
+| Sold                 | number     | Number           |             |          |
+| Allocation           | number     | Number           |             | 3        |
+| Gross                | money      | Compact currency |             |          |
+
+| Context       | How it shows                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| In a Pane     | Inside the event. Most events have fewer than ten, so a DataTable often does the job.             |
+| On a phone    | List rows: the ticket type, the price under it, and the status on the end.                        |
+| Dashboard     | Ticket type mix: Ticket type, Sold, a sell-through meter, and Gross. Sort by sold, largest first. |
+| Detail page   | The event page shows them in a DataTable: Ticket type, Price, Sold, and Gross.                    |
+| PDF or report | The settlement report lists them in a plain DataTable: Ticket type, Price, Sold, and Gross.       |
+
+### Payout
+
+A payment to a client for one settlement period, covering one or more events.
+
+| Column             | Field type | Shows as                                                 | Narrow      | Priority |
+| ------------------ | ---------- | -------------------------------------------------------- | ----------- | -------- |
+| Reference (pinned) | text       | Monospace reference, searchable                          | title       |          |
+| Period             | date       | Date range (Sun 1 to Sun 15 Nov 2026)                    | description |          |
+| Status             | option     | Badge                                                    | trailing    |          |
+| Paid               | date       | Date and time in the reader's zone (27 Nov 2026, 2:14pm) |             | 2        |
+| Gross              | money      | Currency                                                 |             |          |
+| Fees               | money      | Currency                                                 |             | 3        |
+| Net                | money      | Currency                                                 |             |          |
+
+| Context       | How it shows                                                                                                           |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| In a Pane     | Newest period first. Search by reference.                                                                              |
+| On a phone    | List rows: the reference, the period under it, and the status on the end.                                              |
+| Dashboard     | The next payout as a StatTile, with its period and date as context. Recent payouts: Period, Paid, and Net, three rows. |
+| Detail page   | A statement headed by its period: gross, booking fees, refunds, card fees, and net as a plain DataTable.               |
+| PDF or report | The settlement statement PDF uses the same DataTable.                                                                  |
+
+### Refund
+
+Money returned against an order, whole or in part.
+
+| Column         | Field type | Shows as                       | Narrow      | Priority |
+| -------------- | ---------- | ------------------------------ | ----------- | -------- |
+| Order (pinned) | text       | Monospace order number         | title       |          |
+| Customer       | text       | Text                           | description |          |
+| Amount         | money      | Currency                       |             |          |
+| Status         | option     | Badge                          | trailing    |          |
+| Reason         | option     | Option label                   |             | 3        |
+| Requested      | date       | Timestamp in the reader's zone |             | 2        |
+
+| Context       | How it shows                                                                            |
+| ------------- | --------------------------------------------------------------------------------------- |
+| In a Pane     | A queue, oldest first. Search by order number or customer.                              |
+| On a phone    | List rows: the order number, the customer under it, and the status on the end.          |
+| Dashboard     | Pending refunds as a StatTile. Refunds by reason: Reason, Count, and Amount, five rows. |
+| Detail page   | Shown on the order it belongs to, as a line in its history with the amount and reason.  |
+| PDF or report | Finance reconciles refunds from their lines in the settlement statement.                |
+
+### Promo code
+
+A code that discounts tickets, with a usage limit and a date range.
+
+| Column        | Field type | Shows as                    | Narrow      | Priority |
+| ------------- | ---------- | --------------------------- | ----------- | -------- |
+| Code (pinned) | text       | Monospace code              | title       |          |
+| Discount      | text       | Text (20% or $10)           | description |          |
+| Status        | option     | Badge                       | trailing    |          |
+| Uses          | number     | Number                      |             |          |
+| Limit         | number     | Number                      |             | 3        |
+| Revenue       | money      | Compact currency            |             |          |
+| Ends          | date       | Long date (Fri 27 Nov 2026) |             | 2        |
+
+| Context       | How it shows                                                                         |
+| ------------- | ------------------------------------------------------------------------------------ |
+| In a Pane     | Search by code.                                                                      |
+| On a phone    | List rows: the code, the discount under it, and the status on the end.               |
+| Dashboard     | Top promo codes: Code, Uses, and Revenue. Sort by revenue, largest first. Five rows. |
+| Detail page   | The code settings as a form, then the orders that used it.                           |
+| PDF or report | In a marketing report, the same three columns as a plain DataTable.                  |
