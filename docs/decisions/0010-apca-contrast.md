@@ -12,15 +12,20 @@ same pair.
 
 Roadie measures all contrast with APCA, including body text. The minimums:
 
-| Role                                   | Minimum |
-| -------------------------------------- | ------- |
-| Body text                              | Lc 75   |
-| Labels on strong fills, and large text | Lc 60   |
-| Non-text UI, and large display text    | Lc 45   |
+| Role                                                      | Minimum |
+| --------------------------------------------------------- | ------- |
+| Body text                                                 | Lc 75   |
+| Short labels: a few words of 14px or larger semibold text | Lc 60   |
+| Labels on strong fills, and large text                    | Lc 60   |
+| Non-text UI, and large display text                       | Lc 45   |
 
 APCA models perceived lightness contrast better than WCAG 2's ratio, which
 overstates contrast on dark backgrounds and understates it on saturated
 fills. One measure keeps the palette, the docs, and the checks in agreement.
+
+A short label is UI text that isn't read as prose, such as Delta values,
+badges, and chart labels. The maintainer added the short label row on 10
+October 2026 for INNO-1224. Body text stays at Lc 75.
 
 ## Consequences
 
@@ -49,7 +54,7 @@ output: mid-tones such as the accent strong fill (`#0191eb`) now return
 white instead of black. It shipped as a minor while the release was held,
 before any consumer had installed the rest of the APCA work.
 
-Delta text on a data card is held to Lc 60 (INNO-1224). It renders as one
+Delta text on a data card is a short label, so it's held to Lc 60 (INNO-1224). It renders as one
 short figure at 14px semibold, with an arrow and a spoken description, so it
 reads as a label rather than body text. The card's neutral label, context,
 and value text still meet body text's Lc 75. In dark mode, success step 9
