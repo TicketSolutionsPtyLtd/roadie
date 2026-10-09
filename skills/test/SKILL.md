@@ -20,7 +20,9 @@ and typecheck cover.
 - No test rules there? Use Roadie's "Tests" section:
   `https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/docs/contributing/CODING_STANDARDS.md`.
 - The spec, ticket, or PR body: which behaviours, and at which boundary. If
-  no boundary is agreed, propose one before writing a test.
+  no boundary is agreed, propose one before writing a test. If a behaviour
+  can't be reached through the public interface, stop and run
+  `/roadie:codebase-design` rather than test an internal.
 
 ## 2. Pick the boundary and the test type
 
