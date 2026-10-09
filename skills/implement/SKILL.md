@@ -60,7 +60,8 @@ while the 1-minute load is over the host's limit (Roadie: PR workflow section
 5). Roadie's pre-push hook waits for load itself; elsewhere check before every
 push too. Run tests through the host's gated runner as `/roadie:test` says
 (in Roadie, `pnpm test:gated`), never `vitest` or the whole suite directly.
-The ready run in CI covers every browser (Roadie: PR workflow section 5).
+The ready run in CI runs Chromium, plus WebKit and Firefox with the
+`full-browsers` label (Roadie: PR workflow sections 5 and 7).
 
 ## 5. Wire what's new
 

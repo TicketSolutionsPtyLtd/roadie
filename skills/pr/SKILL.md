@@ -41,7 +41,8 @@ to a long paragraph.
 - For a fix or behaviour change, before and after: the test failing without
   the change, then passing, or two screenshots.
 - What you didn't verify, and why. "Tests pass" with no command isn't
-  evidence.
+  evidence. In Roadie, say whether the PR carries the `full-browsers` label
+  and why; without it, CI runs Chromium only (PR workflow section 7).
 
 If the body already holds the proof, such as a Trial or Checks section, sum
 it up in a line and point at it rather than repeat it.
