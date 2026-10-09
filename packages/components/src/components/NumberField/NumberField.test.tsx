@@ -507,20 +507,6 @@ describe('NumberField', () => {
       expect(readOnlyIncrease).toHaveAttribute('aria-disabled', 'true')
       expect(screen.getByRole('textbox', { name: 'Fixed' })).toHaveValue('4')
     })
-
-    it('keeps a tap target when editable and hugs the number when not', () => {
-      const { container, rerender } = render(
-        <NumberField aria-label='Tickets' emphasis='subtler' editable={false} />
-      )
-      const cell = () =>
-        container.querySelector('[data-slot="number-field-value"]')
-      expect(cell()).toHaveClass(
-        'min-w-[calc(var(--number-field-chars)*1ch+1rem)]'
-      )
-      rerender(<NumberField aria-label='Tickets' emphasis='subtler' />)
-      expect(cell()?.className).toContain('2.75rem')
-      expect(cell()?.className).toContain('pointer-coarse:')
-    })
   })
 
   describe('value width', () => {

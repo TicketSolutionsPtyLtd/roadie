@@ -13,7 +13,7 @@ describe('Callout', () => {
     const root = slot(container, 'callout')
     expect(root).toBeInTheDocument()
     expect(root).not.toHaveAttribute('role')
-    expect(root).toHaveClass('rounded-xl', 'emphasis-subtle', '@container')
+    expect(root).toHaveClass('rounded-xl', 'emphasis-subtle')
   })
 
   it('passes role through for dynamically inserted callouts', () => {

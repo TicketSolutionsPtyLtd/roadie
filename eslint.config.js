@@ -120,7 +120,7 @@ export default [
   {
     files: ['packages/**/*.test.{ts,tsx}'],
     ignores: ['**/*.browser.test.{ts,tsx}'],
-    rules: { 'roadie/no-css-class-in-jsdom': 'warn' }
+    rules: { 'roadie/no-css-class-in-jsdom': 'error' }
   },
   {
     files: ['packages/**/*.test.{ts,tsx}'],

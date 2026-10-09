@@ -1372,25 +1372,6 @@ describe('default brand', () => {
     expect(link.querySelector('[data-slot="logo-mark"]')).not.toBeNull()
   })
 
-  it('shows only the mark collapsed and opens the wordmark expanded, without display: none', async () => {
-    const { rerender } = render(<BrandNav />)
-    await flushViewportMeasurement()
-    const wordmark = () =>
-      brandLink().querySelector<HTMLElement>('[data-slot="logo-wordmark"]')!
-    expect(brandLink()).toHaveClass(
-      '[&>[data-slot=logo]]:mx-[calc((3rem-1em)/2)]',
-      '[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:grid-cols-[0fr]',
-      '[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:opacity-0',
-      'navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:grid-cols-[1fr]',
-      'navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:opacity-100'
-    )
-    expect(wordmark().matches(scope)).toBe(false)
-    rerender(<BrandNav expanded />)
-    expect(wordmark().matches(scope)).toBe(true)
-    expect(brandLink().className).not.toMatch(/logo[^\s]*:hidden/)
-    expect(wordmark().className).not.toMatch(/(^|\s)hidden/)
-  })
-
   it('keeps a wordmark-only Logo visible collapsed, shrunk to the mark’s column', async () => {
     const markless = '[data-slot=logo]>[data-slot=logo-wordmark]:first-child'
     const { rerender } = render(
@@ -1493,27 +1474,6 @@ describe('default brand', () => {
 
 describe('right to left', () => {
   const physicalInset = /(^|[\s:])-?(left|right|pl|pr|ml|mr)-/
-
-  it('anchors the toggle to the brand’s inline end with logical insets', async () => {
-    render(
-      <div dir='rtl'>
-        <Expandable />
-      </div>
-    )
-    await flushViewportMeasurement()
-    const anchor = region('brand').querySelector<HTMLElement>(
-      '[data-slot="navigator-expand-toggle-anchor"]'
-    )!
-    expect(anchor).toHaveClass(
-      'start-1/2',
-      'navigator-expanded:start-[calc(100%-1rem)]',
-      'rtl:translate-x-1/2',
-      'rtl:navigator-expanded:translate-x-full'
-    )
-    expect(anchor.className).toContain('[transition:inset-inline-start_')
-    expect(anchor.className).not.toMatch(physicalInset)
-    expect(region('brand')).toHaveClass('navigator-expanded:pe-15')
-  })
 
   it('drops the content gutter on the navigation’s side, not the left', async () => {
     render(

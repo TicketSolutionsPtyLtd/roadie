@@ -33,31 +33,6 @@ describe('Logo', () => {
   })
 
   describe('collapsible part', () => {
-    it.each([
-      ['logo-wordmark', <Logo key='normal' />],
-      ['logo-product', <Logo key='product' product='Studio' />]
-    ])(
-      'gives %s its own leading gap and a clipped 1fr column',
-      (slot, logo) => {
-        render(logo)
-        const root = screen.getByRole('img')
-        const part = root.querySelector(`[data-slot=${slot}]`)!
-
-        expect(root).not.toHaveClass('gap-[calc(1em/6)]')
-        expect(part.parentElement).toBe(root)
-        expect(part).toHaveClass(
-          'grid',
-          'grid-cols-[1fr]',
-          'min-w-0',
-          'overflow-hidden'
-        )
-        expect(part.firstElementChild).toHaveClass(
-          'min-w-0',
-          'before:w-[calc(1em/6)]'
-        )
-      }
-    )
-
     it('keeps the mark outside the collapsible part', () => {
       render(<Logo />)
       const root = screen.getByRole('img')
