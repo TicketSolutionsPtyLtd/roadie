@@ -25,7 +25,7 @@
 ## Checks
 
 - [ ] `pnpm build && pnpm typecheck && pnpm lint && pnpm test`
-- [ ] Browser tests for touched files, in Chromium, WebKit and Firefox
+- [ ] Browser tests for touched files (`full-browsers` label for CSS, layout, or iOS-sensitive changes)
 - [ ] `size` for touched packages that have one
 - [ ] Roadie conventions audit and both pre-PR reviews clean
 - [ ] Changeset, or why none

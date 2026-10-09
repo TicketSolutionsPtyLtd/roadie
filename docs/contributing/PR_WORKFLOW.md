@@ -120,7 +120,8 @@ Every PR is checked against these before review. Fix every real hit.
   `pnpm test:gated <package>`, never vitest or `pnpm test` directly. It
   waits for the load, runs the changed tests in Chromium on half the cores,
   and stops after 10 minutes. A draft PR runs no browser tests in CI, and
-  marking it ready runs the full matrix once. The pre-push hook also waits for
+  marking it ready runs them once, in Chromium only. WebKit and Firefox run
+  on `main` and nightly, or on the PR with the `full-browsers` label. The pre-push hook also waits for
   the load before it typechecks and tests, and fails the push after 30
   minutes. Give browser tests explicit timeouts and never wait on an infinite
   animation. Stop dev servers you start, and run `pnpm cleanup` (`--delete` to
@@ -187,6 +188,10 @@ the PR only when the review is clean.
   packages, lint, typecheck, and the docs build if docs changed, with the
   local review clean and any demo approved. `gh pr ready` runs the full CI
   once, and Copilot reviews once then; it skips drafts.
+- **Add the `full-browsers` label** before `gh pr ready` for CSS, layout,
+  or anything iOS-sensitive, so the PR also runs WebKit and Firefox. CI reads
+  the label when it runs, so a label added later takes effect on the next
+  push or `gh run rerun <id>` (not `--failed`).
 - **Push once per round of fixes**, not per commit. Every push reruns CI.
 - **If CI fails after ready**, fix it without re-requesting Copilot, unless
   the fix is significant (new logic, state or API).
