@@ -144,6 +144,13 @@ rule.
   breakpoints, and containers did. A value that isn't a variable, such as
   `container-*` padding or a browser default, stays a markdown table, with an
   e2e test that checks it against the compiled CSS.
+- Tailwind emits only the theme variables a build uses, so the docs CSS may
+  lack one, such as `--text-6xl` or `--container-3xs`. A docs component uses
+  a literal class Tailwind can find in its file, a class core's
+  `safelist.html` compiles, or the variable with the manifest value as its
+  fallback (`var(--text-6xl, <value>)`). Its e2e test checks those values
+  with `compiledTheme` (`docs/e2e/compiledTheme.ts`), which compiles Roadie's
+  CSS for the variables it names, not with the page's own CSS.
 - A `CodePreview` with `tsx-live` becomes a fenced example. A demo that holds
   state stays in the fence as a function component, or becomes a docs
   component when it's chrome rather than code to copy.
