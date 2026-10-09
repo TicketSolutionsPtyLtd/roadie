@@ -175,3 +175,42 @@ describe('the subtler underline', () => {
       .toBe(highlight)
   })
 })
+
+describe('a list too narrow for its tabs', () => {
+  function EventTabs({ value, width }: { value: string; width: number }) {
+    return (
+      <div style={{ width }}>
+        <Tabs value={value}>
+          <Tabs.List aria-label='Event'>
+            <Tabs.Tab value='overview'>Overview</Tabs.Tab>
+            <Tabs.Tab value='tickets'>Tickets</Tabs.Tab>
+            <Tabs.Tab value='history'>History</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      </div>
+    )
+  }
+
+  // WebKit scrolls by whole pixels, so a tab can sit a fraction past the edge.
+  const inView = (name: string) => {
+    const list = screen.getByRole('tablist').getBoundingClientRect()
+    const tab = rectOf(name)
+    return tab.left >= list.left - 1 && tab.right <= list.right + 1
+  }
+
+  it('scrolls sideways to show a newly active tab', async () => {
+    const { rerender } = render(<EventTabs value='overview' width={160} />)
+    expect(inView('History')).toBe(false)
+
+    rerender(<EventTabs value='history' width={160} />)
+    await expect.poll(() => inView('History')).toBe(true)
+  })
+
+  it('keeps the active tab in view as the list narrows', async () => {
+    const { rerender } = render(<EventTabs value='history' width={600} />)
+    expect(inView('History')).toBe(true)
+
+    rerender(<EventTabs value='history' width={160} />)
+    await expect.poll(() => inView('History')).toBe(true)
+  })
+})

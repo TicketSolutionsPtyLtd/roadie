@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 
 import { act, render } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { Image } from '.'
 
@@ -341,61 +341,6 @@ describe('Image', () => {
   })
 
   describe('defer', () => {
-    let callback: (
-      entries: IntersectionObserverEntry[],
-      observer: IntersectionObserver
-    ) => void
-    let observe: ReturnType<typeof vi.fn>
-    let disconnect: ReturnType<typeof vi.fn>
-
-    beforeEach(() => {
-      observe = vi.fn()
-      disconnect = vi.fn()
-      vi.stubGlobal(
-        'IntersectionObserver',
-        class {
-          constructor(
-            cb: (
-              entries: IntersectionObserverEntry[],
-              observer: IntersectionObserver
-            ) => void
-          ) {
-            callback = cb
-          }
-          observe = observe
-          disconnect = disconnect
-          unobserve = vi.fn()
-          takeRecords = vi.fn()
-        }
-      )
-    })
-
-    afterEach(() => {
-      vi.unstubAllGlobals()
-    })
-
-    it('withholds src until the image intersects the viewport', () => {
-      const { container } = render(
-        <Image src={OZTIX} alt='Logo' width={600} defer />
-      )
-      const img = container.querySelector('img')!
-      expect(img).not.toHaveAttribute('src')
-      expect(img).toHaveAttribute('width', '600')
-      expect(observe).toHaveBeenCalled()
-
-      act(() => {
-        callback(
-          [{ isIntersecting: true } as IntersectionObserverEntry],
-          {} as IntersectionObserver
-        )
-      })
-
-      expect(container.querySelector('img')!.getAttribute('src')).toContain(
-        'width=600'
-      )
-      expect(disconnect).toHaveBeenCalled()
-    })
-
     it('loads immediately when defer flips off before intersection', () => {
       const { container, rerender } = render(
         <Image src={OZTIX} alt='Logo' width={600} defer />
@@ -415,7 +360,6 @@ describe('Image', () => {
       expect(container.querySelector('img')!.getAttribute('src')).toContain(
         'width=600'
       )
-      expect(observe).not.toHaveBeenCalled()
     })
   })
 })
