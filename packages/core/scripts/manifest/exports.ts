@@ -74,6 +74,40 @@ function deprecationOf(symbol: ts.Symbol, checker: ts.TypeChecker) {
   return tag ? unwrap(ts.displayPartsToString(tag.text)) : undefined
 }
 
+function deprecationOfNode(node: ts.Node) {
+  const tag = ts
+    .getJSDocTags(node)
+    .find((candidate) => candidate.tagName.text === 'deprecated')
+  return tag && unwrap(ts.getTextOfJSDocComment(tag.comment) ?? '')
+}
+
+function reExportDeprecation(symbol: ts.Symbol) {
+  const specifier = symbol.declarations?.find(ts.isExportSpecifier)
+  return specifier && deprecationOfNode(specifier.parent.parent)
+}
+
+function starExportDeprecations(
+  sourceFile: ts.SourceFile,
+  checker: ts.TypeChecker
+) {
+  const reasons = new Map<string, string>()
+  for (const statement of sourceFile.statements) {
+    if (
+      !ts.isExportDeclaration(statement) ||
+      statement.exportClause ||
+      !statement.moduleSpecifier
+    )
+      continue
+    const reason = deprecationOfNode(statement)
+    const target = checker.getSymbolAtLocation(statement.moduleSpecifier)
+    if (reason === undefined || !target) continue
+    for (const symbol of checker.getExportsOfModule(target)) {
+      reasons.set(symbol.getName(), reason)
+    }
+  }
+  return reasons
+}
+
 function isComponent(
   name: string,
   declaration: ts.Declaration,
@@ -100,6 +134,7 @@ export function moduleExports(
     types: [],
     deprecated: []
   }
+  const starDeprecations = starExportDeprecations(sourceFile, checker)
   for (const symbol of checker.getExportsOfModule(moduleSymbol)) {
     const resolved =
       symbol.flags & ts.SymbolFlags.Alias
@@ -115,7 +150,10 @@ export function moduleExports(
       }
     } else result.types.push(name)
     const reason =
-      deprecationOf(symbol, checker) ?? deprecationOf(resolved, checker)
+      deprecationOf(symbol, checker) ??
+      reExportDeprecation(symbol) ??
+      starDeprecations.get(name) ??
+      deprecationOf(resolved, checker)
     if (reason !== undefined) result.deprecated.push({ export: name, reason })
   }
   result.values.sort()

@@ -209,18 +209,19 @@ All components accept a `className` prop for additional Tailwind classes:
 
 ## Package manifests for coding agents
 
-Core, components and charts each ship a `roadie.manifest.json` built from the same source as the release, so it always matches the version you installed. Agents and tools can read it instead of crawling the docs.
+Core, components, charts and widgets each ship a `roadie.manifest.json` built from the same source as the release, so it always matches the version you installed. Agents and tools can read it instead of crawling the docs.
 
 ```ts
 import core from '@oztix/roadie-core/roadie.manifest.json' with { type: 'json' }
 import components from '@oztix/roadie-components/roadie.manifest.json' with { type: 'json' }
 import charts from '@oztix/roadie-charts/roadie.manifest.json' with { type: 'json' }
+import widgets from '@oztix/roadie-widgets/roadie.manifest.json' with { type: 'json' }
 ```
 
-All three manifests have the same shape:
+All four manifests have the same shape:
 
 - `exports` lists each import path with the values and types it exports.
-- `components` lists each component with its import path, props, and compound parts, plus its docs page and first live example when it has them.
+- `components` lists each React component with its import path, props, compound parts, and docs page, plus its first live example when its page has one. Vue skins appear in `exports` only.
 - `deprecations` lists every deprecated export and prop with what to use instead.
 - `tokens` lists the CSS variables, utilities, and classes, in the core manifest only.
 
