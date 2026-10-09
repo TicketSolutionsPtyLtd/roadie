@@ -138,7 +138,7 @@
   --chart-trio-3: var(--chart-3);
 }
 
-:root, .dark, [class*='intent-'] {
+:root, .dark, [class*='intent-'], [data-accent-scope] {
   --chart-grid: var(--intent-border-subtler);
   --chart-axis: var(--intent-border-normal);
   --chart-label: var(--intent-text-subtle);

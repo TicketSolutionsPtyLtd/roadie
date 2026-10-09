@@ -2,10 +2,13 @@
 
 import { Popover as PopoverPrimitive } from '@base-ui/react/popover'
 
+import { useAccentScopeProps } from '../../providers/AccentScopeContext'
+
 export type PopoverPortalProps = PopoverPrimitive.Portal.Props
 
 export function PopoverPortal(props: PopoverPortalProps) {
-  return <PopoverPrimitive.Portal {...props} />
+  const scope = useAccentScopeProps(props.style)
+  return <PopoverPrimitive.Portal {...props} {...scope} />
 }
 
 PopoverPortal.displayName = 'Popover.Portal'
