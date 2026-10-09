@@ -155,6 +155,25 @@ describe('values', () => {
     })
   })
 
+  it("lists Tailwind's spacing unit, breakpoints, and container widths", () => {
+    expect(find('--spacing')).toMatchObject({
+      family: 'shape',
+      group: 'Spacing',
+      source: 'tailwind'
+    })
+    expect(find('--breakpoint-md')).toMatchObject({
+      family: 'shape',
+      group: 'Breakpoints',
+      source: 'tailwind'
+    })
+    expect(find('--container-sm')).toMatchObject({
+      group: 'Containers',
+      source: 'tailwind',
+      classes: ['container-sm', 'max-w-sm']
+    })
+    expect(find('--container-8xl').source).toBe('roadie')
+  })
+
   it('carries the comment written beside a token', () => {
     expect(find('--z-index-toast').description).toBe('transient notifications')
   })
