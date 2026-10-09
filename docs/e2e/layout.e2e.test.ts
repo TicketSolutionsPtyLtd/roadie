@@ -1,6 +1,8 @@
 import { readFile } from 'fs/promises'
-import { join } from 'path'
+import { createRequire } from 'module'
+import { dirname, join, resolve } from 'path'
 import { type Browser, chromium, firefox, webkit } from 'playwright'
+import { compile } from 'tailwindcss'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
@@ -31,27 +33,59 @@ async function open(width: number) {
 }
 
 const STEPS = [0, 0.5, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24]
-const BREAKPOINTS = ['sm:', 'md:', 'lg:', 'xl:', '2xl:']
-// The docs build compiles only the variants it uses.
-const COMPILED_BREAKPOINTS = ['sm:', 'md:', 'lg:']
+const BREAKPOINTS = ['sm', 'md', 'lg', 'xl', '2xl']
 const CONTAINERS = [
-  'container-3xs',
-  'container-2xs',
-  'container-xs',
-  'container-sm',
-  'container-md',
-  'container-lg',
-  'container-xl',
-  'container-2xl',
-  'container-3xl',
-  'container-4xl',
-  'container-5xl',
-  'container-6xl',
-  'container-7xl',
-  'container-8xl'
+  '3xs',
+  '2xs',
+  'xs',
+  'sm',
+  'md',
+  'lg',
+  'xl',
+  '2xl',
+  '3xl',
+  '4xl',
+  '5xl',
+  '6xl',
+  '7xl',
+  '8xl'
 ]
-// Pane measure and the page's own examples use these, so the build emits them.
-const EMITTED_CONTAINERS = ['container-sm', 'container-4xl', 'container-8xl']
+
+/**
+ * What Tailwind compiles each theme variable to with Roadie's CSS. The docs
+ * build only emits the variables it uses, so the page's own CSS can't say.
+ */
+async function compiledTheme(variables: string[]) {
+  const loadStylesheet = async (id: string, base: string) => {
+    const path = id.startsWith('.')
+      ? resolve(base, id)
+      : createRequire(join(base, 'noop.js')).resolve(
+          id === 'tailwindcss' ? 'tailwindcss/index.css' : id
+        )
+    return { path, base: dirname(path), content: await readFile(path, 'utf8') }
+  }
+  const { build } = await compile(`@import '@oztix/roadie-core/css';`, {
+    base: join(import.meta.dirname, '..'),
+    loadStylesheet
+  })
+  const css = build(variables.map((name) => `w-(${name})`))
+  return (name: string) =>
+    css.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1] ?? 'not compiled'
+}
+
+const remAndPx = (rem: string) => `${rem} (${parseFloat(rem) * 16}px)`
+
+async function sizeRows(width: number, slot: string) {
+  const page = await open(width)
+  return page
+    .locator(`[data-slot=${slot}] [data-slot=size-row]`)
+    .evaluateAll((rows) =>
+      rows.map((row) => ({
+        name: row.querySelector('code')!.textContent!,
+        size: row.querySelector('code + span')!.textContent!
+      }))
+    )
+}
 
 describe('Layout foundation', () => {
   for (const width of [375, 1280]) {
@@ -89,73 +123,31 @@ describe('Layout foundation', () => {
     }, 60_000)
   }
 
-  it('lists every breakpoint at the width its compiled variant switches at', async () => {
-    const page = await open(1280)
-    const { rows, compiled } = await page.evaluate(() => {
-      const rows = [
-        ...document.querySelectorAll(
-          '[data-slot=breakpoint-scale] [data-slot=size-row]'
-        )
-      ].map((row) => ({
-        name: row.querySelector('code')!.textContent!,
-        px: row.querySelector('[data-slot=size-px]')!.textContent!
-      }))
-      // Each variant's rules sit in a media query, nested either way round.
-      const compiled: Record<string, string> = {}
-      const rootPx = parseFloat(
-        getComputedStyle(document.documentElement).fontSize
-      )
-      const visit = (rules: CSSRuleList, selector = '', media = '') => {
-        for (const rule of rules) {
-          const ownSelector =
-            rule instanceof CSSStyleRule ? rule.selectorText : selector
-          const ownMedia =
-            rule instanceof CSSMediaRule ? rule.conditionText : media
-          const prefix = ownSelector.match(/^\.(sm|md|lg|xl|2xl)\\:/)?.[1]
-          const min = ownMedia.match(
-            /(?:min-width:\s*|width\s*>=\s*)([\d.]+)rem/
-          )
-          if (prefix && min)
-            compiled[`${prefix}:`] = `(${parseFloat(min[1]!) * rootPx}px)`
-          if ('cssRules' in rule)
-            visit((rule as CSSGroupingRule).cssRules, ownSelector, ownMedia)
-        }
-      }
-      for (const sheet of document.styleSheets) visit(sheet.cssRules)
-      return { rows, compiled }
-    })
-    expect(rows.map(({ name }) => name)).toEqual(BREAKPOINTS)
-    for (const name of COMPILED_BREAKPOINTS) {
-      expect(compiled[name], name).toBeDefined()
-      expect(rows.find((row) => row.name === name)!.px, name).toBe(
-        compiled[name]
+  it('lists every breakpoint at the width Tailwind compiles', async () => {
+    const rows = await sizeRows(1280, 'breakpoint-scale')
+    const theme = await compiledTheme(
+      BREAKPOINTS.map((name) => `--breakpoint-${name}`)
+    )
+    expect(rows.map(({ name }) => name)).toEqual(
+      BREAKPOINTS.map((name) => `${name}:`)
+    )
+    for (const { name, size } of rows) {
+      expect(size, name).toBe(
+        remAndPx(theme(`--breakpoint-${name.slice(0, -1)}`))
       )
     }
   }, 60_000)
 
-  it('lists every container width as its token resolves', async () => {
-    const page = await open(1280)
-    const rows = await page
-      .locator('[data-slot=container-scale] [data-slot=size-row]')
-      .evaluateAll((items) =>
-        items.map((item) => {
-          const name = item.querySelector('code')!.textContent!
-          const probe = document.createElement('div')
-          probe.style.width = `var(--${name})`
-          item.append(probe)
-          const resolved = getComputedStyle(probe).width
-          probe.remove()
-          return {
-            name,
-            px: item.querySelector('[data-slot=size-px]')!.textContent!,
-            resolved: `(${resolved})`
-          }
-        })
-      )
-    expect(rows.map(({ name }) => name)).toEqual(CONTAINERS)
-    for (const name of EMITTED_CONTAINERS) {
-      const row = rows.find((candidate) => candidate.name === name)!
-      expect(row.px, name).toBe(row.resolved)
+  it('lists every container width Tailwind compiles', async () => {
+    const rows = await sizeRows(1280, 'container-scale')
+    const theme = await compiledTheme(
+      CONTAINERS.map((name) => `--container-${name}`)
+    )
+    expect(rows.map(({ name }) => name)).toEqual(
+      CONTAINERS.map((name) => `container-${name}`)
+    )
+    for (const { name, size } of rows) {
+      expect(size, name).toBe(remAndPx(theme(`--${name}`)))
     }
   }, 60_000)
 
