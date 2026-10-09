@@ -179,11 +179,6 @@ type KnownViolation = {
 // ticket is fixed; anything not listed fails the check.
 const knownViolations: KnownViolation[] = [
   {
-    rule: 'label-title-only',
-    selector: '[data-slot="autocomplete-input"][aria-expanded="true"]',
-    ticket: 'https://oztix.atlassian.net/browse/INNO-1183'
-  },
-  {
     rule: 'aria-command-name',
     selector: '[data-base-ui-focus-guard]',
     browser: 'webkit',

@@ -27,6 +27,8 @@ export function AutocompleteInput({
       )}
       {...(inField && {
         id: fieldContext.fieldId,
+        // Opening the list aria-hides Field.Label; aria-labelledby still reads it.
+        'aria-labelledby': fieldContext.labelId,
         'aria-invalid': fieldContext.invalid || undefined,
         'aria-required': fieldContext.required || undefined,
         'aria-describedby': fieldContext.invalid
