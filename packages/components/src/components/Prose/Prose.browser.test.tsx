@@ -301,11 +301,11 @@ describe('Prose', () => {
   })
 
   it('keeps inline code whole in a narrow scrolling table, and fits a bare one', () => {
-    const cells = (id: string) => (
+    const cells = (code: string) => (
       <tbody>
         <tr>
           <td>
-            <code id={id}>rounded-full</code>
+            <code>{code}</code>
           </td>
           <td>{LONG}</td>
           <td>{LONG}</td>
@@ -315,13 +315,15 @@ describe('Prose', () => {
     const container = renderWide(
       <Prose>
         <div className='prose-scroll'>
-          <table>{cells('scrolled')}</table>
+          <table id='scrolled'>{cells('rounded-full')}</table>
         </div>
-        <table id='bare'>{cells('bare-code')}</table>
+        <table id='bare'>
+          {cells('--prose-h2-size-on-the-legal-pages-at-every-breakpoint')}
+        </table>
       </Prose>,
       320
     )
-    expect(get(container, '#scrolled').getClientRects()).toHaveLength(1)
+    expect(get(container, '#scrolled code').getClientRects()).toHaveLength(1)
     expect(box(get(container, '#bare')).right).toBeLessThanOrEqual(
       box(get(container, '[data-slot="prose"]')).right
     )
