@@ -4,7 +4,15 @@ import { act } from 'react'
 import { cleanup, render } from '@testing-library/react'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 
 import { getOklchHue } from '@oztix/roadie-core/colors'
 
@@ -137,6 +145,7 @@ describe('hydrating over server-rendered accents', () => {
     expectHues('inside', ROOT_HUE)
 
     const recovered: unknown[] = []
+    const consoleError = vi.spyOn(console, 'error')
     const root = await act(async () =>
       hydrateRoot(container, tree, {
         onRecoverableError: (error) => recovered.push(error)
@@ -145,6 +154,8 @@ describe('hydrating over server-rendered accents', () => {
     await settle()
 
     expect(recovered).toEqual([])
+    expect(consoleError).not.toHaveBeenCalled()
+    consoleError.mockRestore()
 
     mutations.push(...observer.takeRecords())
     observer.disconnect()
