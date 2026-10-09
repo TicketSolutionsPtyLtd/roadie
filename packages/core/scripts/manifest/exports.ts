@@ -67,6 +67,18 @@ export function createProgram(files: string[], tsconfigPath: string) {
   return ts.createProgram(files, { ...options, noEmit: true })
 }
 
+// Each component gets its own checker over the shared parsed files, so a
+// literal union keeps the order its own file declares, not the order an
+// earlier component's file first created those literals in.
+export function programFor(shared: ts.Program, files: string[]) {
+  const options = shared.getCompilerOptions()
+  const host = ts.createCompilerHost(options)
+  const readSourceFile = host.getSourceFile.bind(host)
+  host.getSourceFile = (fileName, ...rest) =>
+    shared.getSourceFile(fileName) ?? readSourceFile(fileName, ...rest)
+  return ts.createProgram(files, options, host)
+}
+
 function deprecationOf(symbol: ts.Symbol, checker: ts.TypeChecker) {
   const tag = symbol
     .getJsDocTags(checker)

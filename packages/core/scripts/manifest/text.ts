@@ -4,7 +4,3 @@ export function unwrap(text: string) {
     .replace(/\n{3,}/g, '\n\n')
     .trim()
 }
-
-export function byName<T extends { name: string }>(a: T, b: T) {
-  return a.name < b.name ? -1 : a.name > b.name ? 1 : 0
-}

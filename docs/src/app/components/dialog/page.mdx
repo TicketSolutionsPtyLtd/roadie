@@ -361,4 +361,4 @@ Use a dialog for tasks that need the user's full attention, such as confirmation
 - **ARIA**: The popup is exposed with `role="dialog"` and `aria-modal`, with `Dialog.Title`/`Dialog.Description` providing the accessible name and description. Set `role='alertdialog'` for a blocking message that needs a response. This also raises the dialog to the `z-alert` tier so it stacks above an open dialog or drawer.
 - **Icon-only close**: When the dismiss control shows only an icon, give it an explicit label so screen readers announce its purpose. For example, `<Dialog.Close render={<IconButton aria-label='Close'><XIcon weight='bold' /></IconButton>} />`.
 
-<PropsDefinitions componentPath='packages/components/src/components/Dialog' />
+<PropsDefinitions component='Dialog' />

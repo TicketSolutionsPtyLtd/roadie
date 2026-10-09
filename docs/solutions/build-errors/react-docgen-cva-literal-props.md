@@ -161,7 +161,7 @@ This is a purely structural change. The public type surface is identical; TypeSc
 
 ## Related files
 
-- `docs/src/components/PropsDefinitions.tsx` — the `parseComponentProps` / `groupPropsBySource` / `formatTypeValues` pipeline and the `interfaceName` fallback logic on line ~235.
+- `packages/core/scripts/manifest/components.ts` — the docgen options, prop filter and `formatType`, which feed each package's manifest; `docs/src/components/PropsDefinitions.tsx` renders the manifest's props.
 - `packages/components/src/components/Carousel/index.tsx` — `CarouselContentOverflow` alias, `CarouselContentProps` type alias, and the inline literal union on the `overflow` prop.
 - `docs/contributing/COMPOUND_PATTERNS.md` — Roadie's compound component conventions (now including the type-alias-for-Props rule).
 

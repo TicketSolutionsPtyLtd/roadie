@@ -65,7 +65,7 @@ describe('buildManifest', () => {
     ])
   })
 
-  it('describes a component with its docs page, first live example and props', () => {
+  it('describes a component with its docs page, first live example, and props and literals in declaration order', () => {
     const pill = manifest.components.find((c) => c.name === 'Pill')
     expect(pill).toEqual({
       name: 'Pill',
@@ -76,19 +76,19 @@ describe('buildManifest', () => {
       description: 'A small rounded label.',
       example: "<Pill label='New' />",
       props: [
-        { name: 'label', type: 'string', required: true },
+        {
+          name: 'tone',
+          type: '"neutral" | "danger"',
+          default: "'neutral'",
+          description: 'Colour of the pill.'
+        },
         {
           name: 'scale',
           type: 'number',
           description: 'Scales the pill.',
           deprecated: 'Use `size` instead, which follows the shape tiers.'
         },
-        {
-          name: 'tone',
-          type: '"neutral" | "danger"',
-          default: "'neutral'",
-          description: 'Colour of the pill.'
-        }
+        { name: 'label', type: 'string', required: true }
       ],
       parts: [
         {
@@ -99,6 +99,11 @@ describe('buildManifest', () => {
               type: 'string',
               required: true,
               description: 'Phosphor icon name.'
+            },
+            {
+              name: 'theme',
+              type: '"dark" | "light"',
+              description: 'Swatch the icon is drawn for.'
             }
           ]
         }

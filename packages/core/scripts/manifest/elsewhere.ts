@@ -10,9 +10,6 @@ export const DOCUMENTED_ELSEWHERE: DocumentedElsewhere = {
   },
   '@oztix/roadie-components/spot-illustrations':
     '/components/spot-illustration/#available-illustrations',
-  '@oztix/roadie-charts/chart-legend': {
-    LegendKey: '/charts/chart-legend/'
-  },
   '@oztix/roadie-charts/dashboard-view': {
     DashboardView: '/charts/dashboards/'
   }

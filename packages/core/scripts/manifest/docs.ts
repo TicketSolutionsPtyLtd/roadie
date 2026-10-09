@@ -3,13 +3,14 @@ import path from 'node:path'
 
 export type DocsPage = {
   route: string
-  componentPaths: string[]
+  components: string[]
   description?: string
   status?: string
   example?: string
 }
 
-const COMPONENT_PATH = /componentPath=(?:'([^']+)'|"([^"]+)"|\{\[([^\]]*)\]\})/g
+const COMPONENT =
+  /<PropsDefinitions\b[^>]*?\bcomponent=(?:'([^']+)'|"([^"]+)"|\{\[([^\]]*)\]\})/g
 const QUOTED = /'([^']+)'|"([^"]+)"/g
 const LIVE_FENCE = /^```tsx-live[^\n]*\n([\s\S]*?)^```/m
 
@@ -28,7 +29,7 @@ function metadataField(mdx: string, field: string) {
 }
 
 export function parseDocsPage(mdx: string, route: string): DocsPage {
-  const componentPaths = Array.from(mdx.matchAll(COMPONENT_PATH)).flatMap(
+  const components = Array.from(mdx.matchAll(COMPONENT)).flatMap(
     ([, single, double, list]) =>
       list === undefined
         ? [(single ?? double)!]
@@ -37,7 +38,7 @@ export function parseDocsPage(mdx: string, route: string): DocsPage {
   const example = mdx.match(LIVE_FENCE)?.[1]?.trimEnd()
   return {
     route,
-    componentPaths,
+    components,
     description: metadataField(mdx, 'description'),
     status: metadataField(mdx, 'status'),
     example
@@ -57,12 +58,6 @@ export function readDocsPages(appDir: string): DocsPage[] {
     )
 }
 
-export function componentDirOf(componentPath: string) {
-  return /\.[cm]?[jt]sx?$/.test(componentPath)
-    ? path.posix.dirname(componentPath)
-    : componentPath.replace(/\/$/, '')
-}
-
 export function toKebab(pascal: string) {
   return pascal
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
@@ -78,26 +73,11 @@ export type PageMatch = { page: DocsPage; own: boolean }
 
 export function pageForComponent(
   pages: DocsPage[],
-  name: string,
-  componentDir: string
+  name: string
 ): PageMatch | undefined {
-  const referencing = pages.filter((page) =>
-    page.componentPaths.some((p) => componentDirOf(p) === componentDir)
-  )
+  const listing = pages.filter((page) => page.components.includes(name))
   const named = pages.filter((page) => slugOf(page) === toKebab(name))
-  const ownFile = `${componentDir}/${name}.tsx`
-  const own = named.find((page) => referencing.includes(page)) ?? named[0]
+  const own = named.find((page) => listing.includes(page)) ?? named[0]
   if (own) return { page: own, own: true }
-  const documenting = pages.find((page) =>
-    page.componentPaths.includes(ownFile)
-  )
-  if (documenting) return { page: documenting, own: false }
-  if (path.posix.basename(componentDir) !== name) return undefined
-  const page =
-    referencing.find(
-      (candidate) =>
-        candidate.componentPaths[0] !== undefined &&
-        componentDirOf(candidate.componentPaths[0]) === componentDir
-    ) ?? referencing[0]
-  return page && { page, own: false }
+  return listing[0] && { page: listing[0], own: false }
 }

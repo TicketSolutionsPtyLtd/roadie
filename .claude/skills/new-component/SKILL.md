@@ -82,12 +82,15 @@ The only shape that is RSC-safe with zero consumer migration. Every compound in 
 6. **Tests** `{Compound}.test.tsx` — exercise **both** `<{Compound}>` (canonical bare root) and `<{Compound}.Root>` (alias) forms. Assert `{Compound} === {Compound}.Root` — they must be the same reference.
 
 7. **Package barrel** `packages/components/src/index.tsx`:
+
    ```tsx
    export { Foo } from './components/Foo'
    ```
+
    Bare re-export — the root's attached properties carry through.
 
 8. **Regenerate subpath exports**:
+
    ```bash
    pnpm --filter @oztix/roadie-components generate:exports
    ```
@@ -97,7 +100,7 @@ The only shape that is RSC-safe with zero consumer migration. Every compound in 
 10. **Doc page** `docs/src/app/components/{kebab-compound}/page.mdx`, starting from `docs/src/app/components/fieldset/page.mdx` and checked against `COMPONENT_DOC_TEMPLATE.md`:
     - Import section: `import { {Compound} } from '@oztix/roadie-components/{kebab-compound}'`
     - Use bare `<{Compound}>` (not `<{Compound}.Root>`) in code examples — bare is canonical.
-    - `<PropsDefinitions componentPath='packages/components/src/components/{Compound}' />` — point at the **folder**, not a single file. The parser enumerates every non-test `.tsx` file.
+    - `<PropsDefinitions component='{Compound}' />` — lists the root and every part from the package manifest.
 
 11. **Index tile**: add a `case '{kebab-compound}'` to `docs/src/components/ComponentSkeleton.tsx` that sketches the component as it ships. Check it in light and dark; `CataloguePreview.test.tsx` fails without it.
 
@@ -108,7 +111,8 @@ Both forms work in server and client components:
 ```tsx
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 
-<Fieldset>                              // bare root — canonical
+// Bare root, the canonical form
+;<Fieldset>
   <Fieldset.Legend>...</Fieldset.Legend>
   <Fieldset.HelperText>...</Fieldset.HelperText>
 </Fieldset>

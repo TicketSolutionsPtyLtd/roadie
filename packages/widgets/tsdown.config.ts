@@ -24,6 +24,8 @@ export default defineConfig(({ watch }) => ({
   },
   sourcemap: true,
   clean: !watch,
+  // The docs' API reference reads the manifest, so props stay live in dev.
+  onSuccess: watch ? 'pnpm generate:manifest' : undefined,
   target: 'es2022',
   minify: true,
   shims: true,

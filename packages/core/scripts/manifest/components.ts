@@ -7,7 +7,8 @@ import {
 } from 'react-docgen-typescript'
 import type ts from 'typescript'
 
-import { byName, unwrap } from './text.ts'
+import { programFor } from './exports.ts'
+import { unwrap } from './text.ts'
 
 export type ManifestProp = {
   name: string
@@ -79,12 +80,15 @@ export function formatType(type: PropItem['type']) {
   return type.name
 }
 
+// A block tag opens its line; `@deprecated` mid-sentence is prose.
+const DEPRECATED_TAG = /^[ \t]*@deprecated\b/m
+
 export function splitDeprecation(
   description: string,
   tags: Record<string, string> | undefined
 ): { description: string; deprecated?: string } {
-  const index = description.indexOf('@deprecated')
-  if (index === -1) {
+  const tag = DEPRECATED_TAG.exec(description)
+  if (!tag) {
     return tags && 'deprecated' in tags
       ? {
           description: unwrap(description),
@@ -92,12 +96,12 @@ export function splitDeprecation(
         }
       : { description: unwrap(description) }
   }
-  const after = description.slice(index + '@deprecated'.length)
+  const after = description.slice(tag.index + tag[0].length)
   const end = after.indexOf('\n\n')
   return {
     deprecated: unwrap(end === -1 ? after : after.slice(0, end)),
     description: unwrap(
-      description.slice(0, index) + (end === -1 ? '' : after.slice(end))
+      description.slice(0, tag.index) + (end === -1 ? '' : after.slice(end))
     )
   }
 }
@@ -202,7 +206,6 @@ export function toPart(doc: ComponentDoc): ManifestPart {
     props: Object.values(doc.props)
       .map((prop) => toProp(prop, doc.displayName))
       .filter((prop): prop is ManifestProp => prop !== null)
-      .sort(byName)
   }
 }
 
@@ -215,7 +218,9 @@ export function readComponents(
   const compound = path.basename(path.dirname(entryFile))
   const publicParts = publicPartsOf(entryFile, compound)
   const parts = namedDocs(
-    parser.parseWithProgramProvider(componentFiles(entryFile), () => program),
+    parser.parseWithProgramProvider(componentFiles(entryFile), () =>
+      programFor(program, componentFiles(entryFile))
+    ),
     compound,
     exportedValues,
     publicParts
@@ -242,7 +247,7 @@ export function readFileComponents(
   names: Set<string>
 ): ManifestPart[] {
   return parser
-    .parseWithProgramProvider(files, () => program)
+    .parseWithProgramProvider(files, () => programFor(program, files))
     .filter((doc) => names.has(doc.displayName))
     .map(toPart)
 }

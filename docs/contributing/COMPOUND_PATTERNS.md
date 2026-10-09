@@ -512,7 +512,7 @@ Use this as the end-to-end flow when creating a new compound (or migrating an ol
 8. [ ] Add `export { <Compound> } from './components/<Compound>'` to the root package barrel `packages/components/src/index.tsx`. Bare re-export — the root's attached properties carry through.
 9. [ ] Run `pnpm --filter @oztix/roadie-components generate:exports` to register the subpath in `package.json`.
 10. [ ] Add a `<section>` to `docs/src/app/debug/rsc-smoke/page.tsx` rendering `<Compound>` (bare root) and at least one sub-component via `import { <Compound> } from '@oztix/roadie-components/<kebab-compound>'`. Optionally add a second section verifying the `<Compound.Root>` alias. This is the CI canary — it fails the docs build if the compound regresses from RSC-safe.
-11. [ ] Write the docs page `docs/src/app/components/<kebab-compound>/page.mdx`. Use `<Compound>` (bare root) in the code examples — it's the canonical consumer form. Point `<PropsDefinitions componentPath='packages/components/src/components/<Compound>' />` at the **folder path**, not a single file. The parser enumerates every non-test `.tsx` file in the folder.
+11. [ ] Write the docs page `docs/src/app/components/<kebab-compound>/page.mdx`. Use `<Compound>` (bare root) in the code examples — it's the canonical consumer form. End it with `<PropsDefinitions component='<Compound>' />`, which lists the root and every part from the package manifest.
 12. [ ] Run `pnpm build && pnpm test && pnpm typecheck && pnpm lint` and verify the docs site builds with the RSC canary page rendering.
 
 ### Don'ts

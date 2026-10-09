@@ -1,27 +1,23 @@
 import { type DocsPage, pageForComponent, parseDocsPage } from './docs'
 
-const page = (route: string, componentPaths: string[]): DocsPage => ({
+const page = (route: string, components: string[]): DocsPage => ({
   route,
-  componentPaths
+  components
 })
 
 describe('parseDocsPage', () => {
   it.each([
+    ["<PropsDefinitions component='Badge' />", ['Badge']],
+    ['<PropsDefinitions component="Badge" />', ['Badge']],
     [
-      "<PropsDefinitions componentPath='packages/a/src/Badge' />",
-      ['packages/a/src/Badge']
+      "<PropsDefinitions\n  component={[\n    'One',\n    'Two'\n  ]}\n/>",
+      ['One', 'Two']
     ],
-    [
-      '<PropsDefinitions componentPath="packages/a/src/Badge/index.tsx" />',
-      ['packages/a/src/Badge/index.tsx']
-    ],
-    [
-      "<PropsDefinitions\n  componentPath={[\n    'a/One.tsx',\n    'a/Two.tsx'\n  ]}\n/>",
-      ['a/One.tsx', 'a/Two.tsx']
-    ],
+    ["<Demo subcomponent='Badge' />", []],
+    ["<Slot component='Badge' />", []],
     ['No props here.', []]
-  ])('reads component paths from %j', (mdx, expected) => {
-    expect(parseDocsPage(mdx, '/x/').componentPaths).toEqual(expected)
+  ])('reads component names from %j', (mdx, expected) => {
+    expect(parseDocsPage(mdx, '/x/').components).toEqual(expected)
   })
 
   it('takes the first tsx-live fence, skipping plain tsx fences', () => {
@@ -62,7 +58,7 @@ describe('parseDocsPage', () => {
       "export const metadata = {\n  title: 'Badge',\n  description: \"A compact label\",\n  status: 'beta',\n}\n"
     expect(parseDocsPage(mdx, '/components/badge/')).toEqual({
       route: '/components/badge/',
-      componentPaths: [],
+      components: [],
       description: 'A compact label',
       status: 'beta',
       example: undefined
@@ -72,25 +68,31 @@ describe('parseDocsPage', () => {
 
 describe('pageForComponent', () => {
   const pages = [
-    page('/components/button/', ['p/Button/index.tsx']),
-    page('/components/icon-button/', ['p/Button/IconButton.tsx']),
+    page('/components/button/', ['Button', 'IconButton']),
+    page('/components/icon-button/', ['IconButton']),
     page('/components/record-table/', [
-      'p/RecordTable',
-      'p/Records',
-      'p/Records/RecordValue.tsx'
+      'RecordTable',
+      'Records',
+      'RecordValue'
     ]),
-    page('/charts/data-card/', ['p/DataCard'])
+    page('/charts/data-card/', ['DataCard']),
+    page('/charts/forms/', ['Select']),
+    page('/components/badge/', []),
+    page('/patterns/select/', []),
+    page('/components/select/', ['Select'])
   ]
 
   it.each([
-    ['Button', 'p/Button', '/components/button/', true],
-    ['IconButton', 'p/Button', '/components/icon-button/', true],
-    ['RecordValue', 'p/Records', '/components/record-table/', false],
-    ['Records', 'p/Records', '/components/record-table/', false],
-    ['DataCard', 'p/DataCard', '/charts/data-card/', true],
-    ['ButtonGroup', 'p/Button', undefined, undefined]
-  ])('finds the page for %s', (name, dir, route, own) => {
-    expect(pageForComponent(pages, name, dir)).toEqual(
+    ['Button', '/components/button/', true],
+    ['IconButton', '/components/icon-button/', true],
+    ['RecordValue', '/components/record-table/', false],
+    ['Records', '/components/record-table/', false],
+    ['DataCard', '/charts/data-card/', true],
+    ['Select', '/components/select/', true],
+    ['Badge', '/components/badge/', true],
+    ['ButtonGroup', undefined, undefined]
+  ])('finds the page for %s', (name, route, own) => {
+    expect(pageForComponent(pages, name)).toEqual(
       route === undefined
         ? undefined
         : { page: expect.objectContaining({ route }), own }
