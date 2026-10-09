@@ -314,6 +314,8 @@ Pass `direction='vertical'` to render a column of left-aligned tabs. With `empha
 
 #### When space runs out
 
+A horizontal list never wraps. When the tabs don't fit, the list scrolls sideways, and it scrolls the active tab into view.
+
 ```tsx-live
 <Tabs defaultValue='history' className='max-w-64'>
   <Tabs.List>
@@ -325,8 +327,6 @@ Pass `direction='vertical'` to render a column of left-aligned tabs. With `empha
   </Tabs.List>
 </Tabs>
 ```
-
-A horizontal list never wraps. When the tabs don't fit, the list scrolls sideways, and it scrolls the active tab into view.
 
 #### Persistent panels
 

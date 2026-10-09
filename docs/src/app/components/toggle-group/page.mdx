@@ -179,6 +179,8 @@ Stretch the track and the segments share the space equally.
 
 #### When space runs out
 
+A horizontal group never wraps or squashes its labels. When the items don't fit, the track scrolls sideways, and it scrolls the pressed item into view. The arrow keys scroll to each item as they focus it.
+
 ```tsx-live
 <div className='max-w-64'>
   <ToggleGroup className='w-full' aria-label='Compare with' defaultValue={['tour']}>
@@ -189,8 +191,6 @@ Stretch the track and the segments share the space equally.
   </ToggleGroup>
 </div>
 ```
-
-A horizontal group never wraps or squashes its labels. When the items don't fit, the track scrolls sideways, and it scrolls the pressed item into view. The arrow keys scroll to each item as they focus it.
 
 #### Controlled dashboard range
 
