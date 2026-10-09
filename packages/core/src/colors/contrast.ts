@@ -11,7 +11,7 @@ const BLACK: Oklch = [0, 0, 0]
  */
 export function getContrastColor(backgroundHex: string): 'white' | 'black' {
   const [l, c, h] = new Color(backgroundHex).to('oklch').coords
-  // Achromatic colours have no hue, which colorjs reports as NaN.
+  // Achromatic colours have no hue, which colorjs reports as null.
   const background: Oklch = [Number(l) || 0, Number(c) || 0, Number(h) || 0]
 
   return Math.abs(apcaLc(WHITE, background)) >=
