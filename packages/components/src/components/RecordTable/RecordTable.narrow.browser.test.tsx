@@ -361,7 +361,18 @@ describe('RecordTable narrow list rows in a browser', () => {
           `[data-slot="record-table-list-row"][data-row-id="${id}"] > div`
         )!
       )
-    expect(surface('show-1').borderBottomLeftRadius).toBe('0px')
+    const bottomCorners = (id: string) => [
+      surface(id).borderBottomLeftRadius,
+      surface(id).borderBottomRightRadius
+    ]
+    expect(['show-0', 'show-1', 'show-2', 'show-4'].map(bottomCorners)).toEqual(
+      [
+        ['12px', '12px'],
+        ['0px', '0px'],
+        ['12px', '12px'],
+        ['12px', '12px']
+      ]
+    )
     expect(surface('show-2').borderTopLeftRadius).toBe('0px')
     expect(surface('show-2').borderBottomLeftRadius).not.toBe('0px')
     expect(surface('show-2').borderBottomLeftRadius).toBe(

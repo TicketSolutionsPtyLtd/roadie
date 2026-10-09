@@ -211,7 +211,7 @@ function CardItem({
 // :has() restyles every row on the page whenever anything changes.
 const joinSelected = [
   '[&>li[data-selected]+li[data-selected]>div]:rounded-t-none',
-  '[&>li[data-selected]:has(+li[data-selected])]:[--record-table-row-join:0px]',
+  '[&>li[data-selected]:has(+li[data-selected])]:[--record-table-row-end-radius:0px]',
   '[&>li[data-selected]>*>[data-slot=list-item-content]]:after:bg-transparent',
   '[&>li:has(+li[data-selected])]:[--list-divider:transparent]'
 ].join(' ')

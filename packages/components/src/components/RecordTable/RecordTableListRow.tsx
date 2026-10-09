@@ -73,6 +73,7 @@ export const RecordTableListRow = memo(function RecordTableListRow({
     <li
       ref={itemRef}
       data-slot='record-table-list-row'
+      className='[--record-table-row-end-radius:var(--radius-xl)]'
       data-row-id={id}
       data-selected={selected || undefined}
       aria-posinset={posInSet}
@@ -85,7 +86,7 @@ export const RecordTableListRow = memo(function RecordTableListRow({
           // Always on: adding it later animates the outline in from its dark default.
           'is-interactive-within',
           // The list zeroes it to join a selected next row.
-          'rounded-b-[var(--record-table-row-join,var(--radius-xl))]',
+          'rounded-b-(--record-table-row-end-radius)',
           // Subtler paints a tint at rest unless a target makes it interactive.
           href === undefined && !selecting && !selected && 'bg-transparent',
           listRowSize(parts).heightClass,
