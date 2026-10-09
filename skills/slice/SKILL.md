@@ -25,7 +25,7 @@ workflow win over anything here.
   Note the PR size threshold, the changeset rule, the docs rule for a new
   component, the browser test rule, the wiring list, the one-way door list,
   and the Jira rules (project, component, labels). With no workflow, use
-  Roadie's sections 1, 2, 4, 7, and 9:
+  Roadie's sections 1, 2, 4, 5, 7, and 9:
   `https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/docs/contributing/PR_WORKFLOW.md`.
 - The threshold, from the size check if there is one
   (`git ls-files | grep -i pr-size`). Roadie's is 400 changed lines; tests
