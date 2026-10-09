@@ -23,7 +23,7 @@
     "clean:cache": "rm -rf .turbo/cache && pnpm store prune",
     "prune:cache": "find .turbo/cache -type f -mtime +14 -delete 2>/dev/null; true",
     "changeset": "changeset",
-    "changeset:version": "changeset version",
+    "changeset:version": "changeset version && node scripts/sync-plugin-version.mjs",
     "changeset:publish": "changeset publish",
     "prepare": "node scripts/prepare.mjs",
     "postinstall": "husky",

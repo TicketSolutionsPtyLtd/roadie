@@ -1,0 +1,15 @@
+{
+  "name": "roadie",
+  "description": "The Roadie design system's Claude Code plugin.",
+  "owner": {
+    "name": "Oztix",
+    "url": "https://github.com/TicketSolutionsPtyLtd/roadie"
+  },
+  "plugins": [
+    {
+      "name": "roadie",
+      "source": "./",
+      "description": "Roadie design system skills for building with Roadie and taking a change from spec to merged PR."
+    }
+  ]
+}

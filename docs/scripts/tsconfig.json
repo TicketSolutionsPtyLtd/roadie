@@ -2,7 +2,10 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "allowImportingTsExtensions": true,
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "@roadie-core/tokens": ["../../packages/core/src/tokens/manifest.ts"]
+    }
   },
   "include": ["*.ts"]
 }

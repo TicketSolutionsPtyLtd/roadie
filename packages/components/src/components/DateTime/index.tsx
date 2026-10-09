@@ -108,12 +108,20 @@ export function DateTime({
   render,
   ...props
 }: DateTimeProps) {
+  // A standalone date's year depends on today, which a server can't know, so
+  // the server keeps the year and the client drops it after mount.
+  const knowsToday = useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => context !== 'standalone'
+  )
   const opts: FormatOptions = {
     timeZone,
     dateStyle,
     timeStyle,
     locale,
-    context
+    context,
+    ...(!knowsToday && { showYear: true })
   }
 
   const absolute = formatDateTime(at, opts)

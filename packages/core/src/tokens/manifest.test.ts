@@ -145,6 +145,18 @@ describe('values', () => {
     )
   })
 
+  it('gives a selector list that names both :root and .dark a value in each mode', () => {
+    expect(find('--chart-grid').value).toEqual({
+      light: 'var(--intent-border-subtler)',
+      dark: 'var(--intent-border-subtler)'
+    })
+    expect(find('--chart-highlight').value).toEqual({
+      light: 'oklch(var(--chart-highlight-lc) var(--accent-hue))',
+      dark: 'oklch(var(--chart-highlight-lc) var(--accent-hue))',
+      fallback: '#0086da'
+    })
+  })
+
   it('prefers the oklch value and keeps the hex fallback', () => {
     expect(find('--color-danger-10').value).toEqual({
       light: 'oklch(0.673 0.184 28.364)',

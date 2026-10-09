@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { llmsIndex, pageToMarkdown } from './llms'
+import { llmsIndex, pageToMarkdown, tokenFamilyToMarkdown } from './llms'
 
 const page = (mdx: string) => pageToMarkdown({ title: 'Badge', mdx })
 
@@ -372,6 +372,72 @@ describe('llmsIndex', () => {
           '## Components',
           '- [Badge](https://example.com/roadie/components/badge.md): A compact label',
           '- [Card](https://example.com/roadie/components/card.md)'
+        ].join('\n')
+      ].join('\n\n') + '\n'
+    )
+  })
+})
+
+describe('tokenFamilyToMarkdown', () => {
+  const page = {
+    title: 'Intents',
+    description: 'The intent classes.',
+    intro: 'An `intent-*` class sets every role.',
+    guidance: [
+      { title: 'Colors', url: 'https://docs.test/foundations/colors.md' }
+    ],
+    tokens: [
+      { name: 'intent-brand', group: 'Intent utilities' },
+      {
+        name: '--intent-bg-normal',
+        group: 'Backgrounds',
+        value: { light: 'var(--n-1)', dark: 'var(--n-2)' },
+        byIntent: { brand: { light: 'var(--b-1)', dark: 'var(--b-2)' } }
+      },
+      {
+        name: '--intent-bg-strong',
+        group: 'Backgrounds',
+        value: { light: 'var(--n-13)', dark: 'var(--n-13)' },
+        byIntent: { brand: { light: 'var(--b-9)', dark: 'var(--b-9)' } },
+        description: 'The | solid <fill>.'
+      },
+      {
+        name: '--radius-lg',
+        group: 'Radius',
+        value: { light: '0.5rem' },
+        classes: ['rounded-lg']
+      }
+    ]
+  }
+
+  it('writes the intro, the guidance, and a table per group with only the columns it uses', () => {
+    expect(tokenFamilyToMarkdown(page)).toBe(
+      [
+        '# Intents',
+        '> The intent classes.',
+        'An `intent-*` class sets every role.',
+        'When to use these: [Colors](https://docs.test/foundations/colors.md).',
+        '## Intent utilities',
+        '| Token |\n| --- |\n| `intent-brand` |',
+        '## Backgrounds',
+        [
+          '| Token | Light | Dark, if different | Description |',
+          '| --- | --- | --- | --- |',
+          '| `--intent-bg-normal` | `var(--n-1)` | `var(--n-2)` |  |',
+          '| `--intent-bg-strong` | `var(--n-13)` |  | The \\| solid &lt;fill>. |'
+        ].join('\n'),
+        'Where an intent sets its own value, light / dark:',
+        [
+          '| Token | brand |',
+          '| --- | --- |',
+          '| `--intent-bg-normal` | `var(--b-1)` / `var(--b-2)` |',
+          '| `--intent-bg-strong` | `var(--b-9)` |'
+        ].join('\n'),
+        '## Radius',
+        [
+          '| Token | Value | Classes |',
+          '| --- | --- | --- |',
+          '| `--radius-lg` | `0.5rem` | `rounded-lg` |'
         ].join('\n')
       ].join('\n\n') + '\n'
     )

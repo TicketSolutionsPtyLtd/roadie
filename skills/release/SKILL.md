@@ -27,8 +27,10 @@ maintainer's call, so don't suggest a date or a cadence.
   it's unset. Below, `main` means that branch.
 - `git fetch origin`, then read everything from `origin/main`, never a local
   branch.
-- The published packages: each `packages/*/package.json` that isn't
-  `private`, less the `ignore` list in `.changeset/config.json`.
+- The released packages: each `packages/*/package.json` that isn't
+  `private`, plus every private workspace package when
+  `privatePackages.version` is true (Roadie's `roadie-skills`), less the
+  `ignore` list in `.changeset/config.json`.
 - The Version Packages PR:
   `gh pr list --head changeset-release/main --json number,headRefOid,url`,
   then `git diff --name-status origin/main...origin/changeset-release/main`

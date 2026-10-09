@@ -1,0 +1,7 @@
+{
+  "name": "roadie-skills",
+  "version": "0.4.0",
+  "private": true,
+  "description": "The Roadie Claude Code plugin's skills. Versioned with Changesets; never published to npm.",
+  "license": "MIT"
+}

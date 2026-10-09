@@ -62,6 +62,18 @@ describe('LineChart in a card', () => {
     expectNoOverlap(container, '[data-ts-key^="label-end"] text')
   })
 
+  it('haloes its end labels so lines behind them stay legible', async () => {
+    const { container } = renderInCard(<LineChart {...paceExample} />)
+    await afterResize()
+    const labels = container.querySelectorAll('[data-ts-key^="label-end"] text')
+    expect(labels.length).toBeGreaterThan(0)
+    for (const label of labels) {
+      const style = getComputedStyle(label)
+      expect(style.paintOrder).toMatch(/^stroke\b/)
+      expect(style.strokeWidth).toBe('3px')
+    }
+  })
+
   it('keeps today clear of the end labels when today is the last point', async () => {
     const { container } = renderInCard(<LineChart {...todayAtEnd} />)
     await afterResize()

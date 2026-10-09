@@ -213,6 +213,17 @@ function commentBefore(css: string, offset: number) {
   return text && !SECTION_RULE.test(text) ? text : undefined
 }
 
+const DARK_SELECTOR = /(^|\s)\.dark\b/
+
+/** Which modes a block's selector list reaches: a list such as `:root, .dark` reaches both. */
+function modeOf(prelude: string): 'light' | 'dark' | 'both' {
+  if (prelude.startsWith('@')) return 'light'
+  const selectors = prelude.split(/,(?![^(]*\))/)
+  const dark = selectors.filter((selector) => DARK_SELECTOR.test(selector))
+  if (dark.length === 0) return 'light'
+  return dark.length === selectors.length ? 'dark' : 'both'
+}
+
 function walk(
   sheet: string,
   css: string,
@@ -234,11 +245,13 @@ function walk(
       visit.apply(preludes[0]!.slice(9).trim(), applied.split(/\s+/))
     const match = text.match(/^(--[\w-]+)\s*:\s*([\s\S]*)$/)
     if (!match || match[1]!.endsWith('-')) return
-    visit.declaration({
+    const modes = preludes.map(modeOf)
+    const dark = modes.includes('dark') || modes.includes('both')
+    const light = !modes.includes('dark')
+    const declaration = {
       name: match[1]!,
       value: squash(match[2]!),
       sheet,
-      dark: preludes.some((p) => /(^|\s)\.dark\b/.test(p)),
       modern: preludes.some((p) => p.startsWith('@supports (color: oklch')),
       unsupported: preludes.some((p) => p.startsWith('@supports not')),
       theme: preludes.some((p) => p.startsWith('@theme')),
@@ -246,7 +259,9 @@ function walk(
         .find((p) => p.startsWith('@utility'))
         ?.slice(9)
         .trim()
-    })
+    }
+    if (light) visit.declaration({ ...declaration, dark: false })
+    if (dark) visit.declaration({ ...declaration, dark: true })
   }
 
   for (let i = 0; i < clean.length; i++) {

@@ -1,3 +1,4 @@
+import type { TokenFamily } from '@roadie-core/tokens'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
@@ -7,8 +8,10 @@ import {
   type LlmsLink,
   type LlmsSection,
   type ManifestComponent,
+  type TokenFamilyMarkdown,
   llmsIndex,
-  pageToMarkdown
+  pageToMarkdown,
+  tokenFamilyToMarkdown
 } from '../src/lib/llms.ts'
 import {
   CHARTS,
@@ -21,6 +24,7 @@ import {
   getMarkdownRoutes,
   readPageMetadata
 } from '../src/lib/page-manifest.ts'
+import { TOKEN_FAMILY_PAGES } from '../src/lib/token-families.ts'
 
 const require = createRequire(import.meta.url)
 const appDir = path.resolve('src/app')
@@ -51,12 +55,39 @@ function resolveLink(href: string) {
 }
 
 const metadataOf = async (route: string) =>
-  readPageMetadata(path.join(appDir, route, 'page.mdx'))
+  (await readPageMetadata(path.join(appDir, route, 'page.mdx'))) ??
+  readPageMetadata(path.join(appDir, route, 'page.tsx'))
 
-for (const route of routes) {
+const { tokens } = JSON.parse(
+  await readFile(
+    require.resolve('../../packages/core/src/tokens/tokens.json'),
+    'utf8'
+  )
+) as {
+  tokens: (TokenFamilyMarkdown['tokens'][number] & { family: string })[]
+}
+
+async function markdownFor(route: string) {
   const metadata = await metadataOf(route)
-  const md = pageToMarkdown({
-    title: metadata?.title ?? route,
+  const title = metadata?.title ?? route
+  const family = metadata?.tokenFamily
+  if (typeof family === 'string') {
+    if (!(family in TOKEN_FAMILY_PAGES))
+      throw new Error(`${route} names an unknown tokenFamily: ${family}`)
+    const { intro, guidance } = TOKEN_FAMILY_PAGES[family as TokenFamily]
+    return tokenFamilyToMarkdown({
+      title,
+      description: metadata?.description,
+      intro,
+      guidance: guidance.map(({ title, href }) => ({
+        title,
+        url: resolveLink(href)
+      })),
+      tokens: tokens.filter((token) => token.family === family)
+    })
+  }
+  return pageToMarkdown({
+    title,
     description: metadata?.description,
     mdx: await readFile(path.join(appDir, route, 'page.mdx'), 'utf8'),
     components: components.filter((component) =>
@@ -64,6 +95,10 @@ for (const route of routes) {
     ),
     resolveLink
   })
+}
+
+for (const route of routes) {
+  const md = await markdownFor(route)
   await mkdir(path.dirname(path.join(outDir, route)), { recursive: true })
   await writeFile(path.join(outDir, `${route}.md`), md)
 }

@@ -758,6 +758,8 @@ importers:
         specifier: 3.3.12
         version: 3.3.12(typescript@6.0.3)
 
+  skills: {}
+
 packages:
 
   '@adobe/css-tools@4.5.0':

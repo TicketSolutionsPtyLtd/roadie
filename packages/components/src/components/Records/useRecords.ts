@@ -84,7 +84,7 @@ export type UseRecordsOptions<Row extends object> = {
   onRetry?: () => void
   /** The viewer's IANA zone: it decides what "today" is and how timestamps read. Defaults to the browser's. */
   timeZone?: string
-  /** The moment relative dates resolve against. Defaults to when the list mounted. */
+  /** The moment relative dates resolve against. Defaults to when the list mounted in the browser: a server reads no clock, so a relative date filter shows the loading state until then. */
   now?: Instantish
   /**
    * Filters the page sets, such as the event a list of tickets belongs to.
@@ -181,7 +181,7 @@ export type RecordsInstance<Row extends object = object> = {
   error: boolean | string
   onRetry?: () => void
   timeZone: string
-  /** The moment relative dates resolve against. */
+  /** The moment relative dates resolve against. The Unix epoch on the server and while hydrating, when no `now` is given, as the browser's clock isn't read until then. */
   now: Date
 }
 
@@ -206,6 +206,7 @@ function useEqualValue<T>(value: T): T {
   return value
 }
 const serverZone = () => 'UTC'
+const noClock = () => null
 const NO_SCOPE: readonly RecordFilter[] = []
 
 export function useRecords<Row extends object>({
@@ -252,9 +253,20 @@ export function useRecords<Row extends object>({
     serverZone
   )
   const zone = timeZone ?? viewerZone
-  const [mounted] = useState(() => new Date())
-  const at = now ?? mounted
-  const atTime = at instanceof Date ? at.getTime() : at.epochMilliseconds
+  // Nor can it read the clock, as a prerender would freeze it, so the clock
+  // is read in the browser, once, unless `now` is given.
+  const [readClock] = useState(() => {
+    let mounted: Date | undefined
+    return () => (mounted ??= new Date())
+  })
+  const clock = useSyncExternalStore(
+    noSubscription,
+    now === undefined ? readClock : noClock,
+    noClock
+  )
+  const at = now ?? clock
+  const atTime =
+    at === null ? 0 : at instanceof Date ? at.getTime() : at.epochMilliseconds
   const resolvedAt = useMemo(() => new Date(atTime), [atTime])
 
   // A page that loads without a count keeps the last one, so the records
@@ -272,6 +284,12 @@ export function useRecords<Row extends object>({
   const filters = useEqualValue(view.query.filters)
   const sort = useEqualValue(view.query.sort)
   const scope = useEqualValue(scopeOption)
+  // A relative date filter's rows wait for the browser's clock.
+  const awaitingClock =
+    at === null &&
+    !server &&
+    [...filters, ...scope].some((filter) => filter.operator === 'within')
+  const busy = loading || awaitingClock
   const applied = useMemo(
     () =>
       applyQuery({ search, filters, sort }, fields, {
@@ -360,6 +378,7 @@ export function useRecords<Row extends object>({
   }, [loaded])
   const matching = useMemo(() => {
     if (server) return loaded.rows
+    if (awaitingClock) return []
     const matches = compileRecordQuery(resolvedQuery, fields)
     return sortRecords(
       loaded.rows.filter(matches),
@@ -369,7 +388,7 @@ export function useRecords<Row extends object>({
         timeZone: zone
       }
     )
-  }, [server, loaded, resolvedQuery, fields, zone])
+  }, [server, awaitingClock, loaded, resolvedQuery, fields, zone])
 
   // A new page size starts over, as pages asked for at the old one would block it.
   const key = `${rangeKey(scopedQuery, zone)}@${position.pageSize}`
@@ -436,7 +455,7 @@ export function useRecords<Row extends object>({
     : Math.max(1, Math.ceil(resultCount / position.pageSize))
   const lastPage = pageCount - 1
   // A count from a pending or failed fetch would wipe a deep-linked page.
-  const outOfRange = !ranged && !loading && !error && position.page > lastPage
+  const outOfRange = !ranged && !busy && !error && position.page > lastPage
   // Clamped during render, not in an effect, so the stale page never paints.
   if (!controlledPosition && outOfRange)
     setOwnPosition({ ...position, page: lastPage })
@@ -776,7 +795,7 @@ export function useRecords<Row extends object>({
     rowActions,
     getRowHref,
     recordName,
-    loading,
+    loading: busy,
     // Once records have loaded, a failed range shows in place of its rows.
     error:
       error || (ranged && range.failed.length > 0 && loaded.rows.length === 0),
