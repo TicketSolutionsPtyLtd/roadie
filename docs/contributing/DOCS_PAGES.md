@@ -26,9 +26,9 @@ with its skeleton and the rules on top of these.
   `/charts/show-dashboard`), `/examples/`, `/debug/`, and redirects.
 - The foundations pages other than Accessibility, Colors, Elevation, Forms,
   Iconography, Layout, Linking, Navigation, Performance, Prose, Records,
-  Shape, Tables, Theming, and View transitions, `/charts/dashboards`, and
-  `/charts/data-visualisation` are content pages still in `page.tsx`. They
-  move to MDX (INNO-1159); never add another.
+  Shape, Tables, Theming, Typography, and View transitions,
+  `/charts/dashboards`, and `/charts/data-visualisation` are content pages
+  still in `page.tsx`. They move to MDX (INNO-1159); never add another.
 
 ## Metadata
 
