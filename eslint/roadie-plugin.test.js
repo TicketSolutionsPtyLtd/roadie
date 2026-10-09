@@ -179,6 +179,7 @@ const cases = {
       // Timers that aren't awaited as a sleep.
       'const timer = setTimeout(() => setTall(true), delay)',
       'const echo = () => setTimeout(() => setPosition(next), 400)',
+      'const debounce = (fn, ms) => {\n  let timer\n  return (value) => {\n    clearTimeout(timer)\n    timer = setTimeout(() => fn(value), ms)\n  }\n}\nvi.useFakeTimers()\ndebounce(onSearch, 300)("a")\nvi.advanceTimersByTime(300)',
       'vi.advanceTimersByTime(ms)'
     ],
     invalid: [
