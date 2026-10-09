@@ -13,7 +13,7 @@ import { Code } from '@oztix/roadie-components/code'
 import { TokenBrowser } from './TokenBrowser'
 
 /** Text with `inline code` in backticks, as the family intros are written. */
-function InlineCode({ text }: { text: string }) {
+function TextWithCode({ text }: { text: string }) {
   return text
     .split('`')
     .map((part, index) => (
@@ -40,7 +40,7 @@ export async function TokenFamilyPage({
     <div className='@container grid gap-8'>
       <div className='grid gap-2'>
         <p className='text-lg text-subtle [&_code]:whitespace-nowrap'>
-          <InlineCode text={intro} />
+          <TextWithCode text={intro} />
         </p>
         <Link
           href={`/tokens/reference?family=${family}`}

@@ -275,12 +275,24 @@ export type TokenFamilyMarkdown = {
   tokens: TokenRow[]
 }
 
-const cell = (value: string | undefined) =>
-  value ? `\`${value.replace(/\|/g, '\\|')}\`` : ''
+/** Inline code fenced past any backtick run in the value; table pipes escaped. */
+function cell(value: string | undefined) {
+  if (!value) return ''
+  const fence = '`'.repeat(
+    Math.max(0, ...(value.match(/`+/g) ?? []).map((run) => run.length)) + 1
+  )
+  const padded =
+    value.startsWith('`') || value.endsWith('`') ? ` ${value} ` : value
+  return `${fence}${padded.replace(/\|/g, '\\|')}${fence}`
+}
 const prose = (value: string | undefined) =>
-  value ? oneLine(value).replace(/\|/g, '\\|') : ''
-const both = ({ light, dark }: TokenValue) =>
-  dark && dark !== light ? `${cell(light)} / ${cell(dark)}` : cell(light)
+  value ? oneLine(value).replace(/\|/g, '\\|').replace(/</g, '&lt;') : ''
+const darkIfDifferent = ({ light, dark }: TokenValue = {}) =>
+  light !== undefined && dark !== light ? dark : undefined
+const lightAndDark = ({ light, dark }: TokenValue) =>
+  light && dark && dark !== light
+    ? `${cell(light)} / ${cell(dark)}`
+    : cell(light ?? dark)
 
 function table(header: string[], rows: string[][]) {
   return [
@@ -290,27 +302,29 @@ function table(header: string[], rows: string[][]) {
   ].join('\n')
 }
 
+type Column = [name: string, value: (token: TokenRow) => string]
+
 function tokenGroup(group: string, tokens: TokenRow[]) {
-  const columns = (
-    [
-      ['Token', (token) => cell(token.name), true],
-      ['Light', (token) => cell(token.value?.light), false],
+  const used = (column: Column) =>
+    tokens.some((token) => column[1](token) !== '')
+  const dark: Column = [
+    'Dark, if different',
+    (token) => cell(darkIfDifferent(token.value))
+  ]
+  const columns: Column[] = [
+    ['Token', (token) => cell(token.name)],
+    ...(
       [
-        'Dark, if different',
-        (token) =>
-          cell(
-            token.value?.dark !== token.value?.light
-              ? token.value?.dark
-              : undefined
-          ),
-        false
-      ],
-      ['Classes', (token) => (token.classes ?? []).map(cell).join(' '), false],
-      ['Description', (token) => prose(token.description), false]
-    ] satisfies [string, (token: TokenRow) => string, boolean][]
-  ).filter(
-    ([, value, always]) => always || tokens.some((token) => value(token))
-  )
+        [
+          used(dark) ? 'Light' : 'Value',
+          (token) => cell(token.value?.light ?? token.value?.dark)
+        ],
+        dark,
+        ['Classes', (token) => (token.classes ?? []).map(cell).join(' ')],
+        ['Description', (token) => prose(token.description)]
+      ] satisfies Column[]
+    ).filter(used)
+  ]
   const sections = [
     `## ${group}`,
     table(
@@ -323,7 +337,7 @@ function tokenGroup(group: string, tokens: TokenRow[]) {
   ]
   if (intents.length > 0) {
     sections.push(
-      `Where an intent sets its own value, light / dark:`,
+      'Where an intent sets its own value, light / dark:',
       table(
         ['Token', ...intents],
         tokens
@@ -332,7 +346,7 @@ function tokenGroup(group: string, tokens: TokenRow[]) {
             cell(token.name),
             ...intents.map((intent) => {
               const value = token.byIntent?.[intent]
-              return value ? both(value) : ''
+              return value ? lightAndDark(value) : ''
             })
           ])
       )
@@ -341,7 +355,6 @@ function tokenGroup(group: string, tokens: TokenRow[]) {
   return sections
 }
 
-/** A token family page as markdown: its intro and guidance, then each group of tokens as a table. */
 export function tokenFamilyToMarkdown(page: TokenFamilyMarkdown): string {
   const groups = Map.groupBy(page.tokens, (token) => token.group)
   return [

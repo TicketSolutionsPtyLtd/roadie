@@ -1,7 +1,7 @@
 import { join } from 'path'
 import { describe, expect, it } from 'vitest'
 
-import { readPageMetadata } from './page-manifest'
+import { getMarkdownRoutes, readPageMetadata } from './page-manifest'
 import { TOKEN_FAMILY_PAGES } from './token-families'
 
 describe('TOKEN_FAMILY_PAGES', () => {
@@ -13,5 +13,13 @@ describe('TOKEN_FAMILY_PAGES', () => {
       )
       expect(metadata?.tokenFamily).toBe(family)
     }
+  )
+})
+
+it('gives every token family page a markdown twin', async () => {
+  expect(await getMarkdownRoutes()).toEqual(
+    expect.arrayContaining(
+      Object.values(TOKEN_FAMILY_PAGES).map(({ href }) => href)
+    )
   )
 })

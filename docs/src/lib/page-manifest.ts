@@ -315,6 +315,9 @@ export async function getMarkdownRoutes(): Promise<string[]> {
     })
   )
   return routes
-    .filter((route) => route && !/^\/(debug|examples)\//.test(route))
-    .sort() as string[]
+    .filter(
+      (route): route is string =>
+        route !== undefined && !/^\/(debug|examples)\//.test(route)
+    )
+    .sort()
 }

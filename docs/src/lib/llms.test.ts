@@ -398,8 +398,14 @@ describe('tokenFamilyToMarkdown', () => {
         name: '--intent-bg-strong',
         group: 'Backgrounds',
         value: { light: 'var(--n-13)', dark: 'var(--n-13)' },
-        byIntent: { brand: { light: 'var(--b-9)' } },
-        description: 'The | solid fill.'
+        byIntent: { brand: { light: 'var(--b-9)', dark: 'var(--b-9)' } },
+        description: 'The | solid <fill>.'
+      },
+      {
+        name: '--radius-lg',
+        group: 'Radius',
+        value: { light: '0.5rem' },
+        classes: ['rounded-lg']
       }
     ]
   }
@@ -418,7 +424,7 @@ describe('tokenFamilyToMarkdown', () => {
           '| Token | Light | Dark, if different | Description |',
           '| --- | --- | --- | --- |',
           '| `--intent-bg-normal` | `var(--n-1)` | `var(--n-2)` |  |',
-          '| `--intent-bg-strong` | `var(--n-13)` |  | The \\| solid fill. |'
+          '| `--intent-bg-strong` | `var(--n-13)` |  | The \\| solid &lt;fill>. |'
         ].join('\n'),
         'Where an intent sets its own value, light / dark:',
         [
@@ -426,6 +432,12 @@ describe('tokenFamilyToMarkdown', () => {
           '| --- | --- |',
           '| `--intent-bg-normal` | `var(--b-1)` / `var(--b-2)` |',
           '| `--intent-bg-strong` | `var(--b-9)` |'
+        ].join('\n'),
+        '## Radius',
+        [
+          '| Token | Value | Classes |',
+          '| --- | --- | --- |',
+          '| `--radius-lg` | `0.5rem` | `rounded-lg` |'
         ].join('\n')
       ].join('\n\n') + '\n'
     )

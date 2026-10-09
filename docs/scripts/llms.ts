@@ -70,9 +70,11 @@ const { tokens } = JSON.parse(
 async function markdownFor(route: string) {
   const metadata = await metadataOf(route)
   const title = metadata?.title ?? route
-  const family = metadata?.tokenFamily as TokenFamily | undefined
-  if (family) {
-    const { intro, guidance } = TOKEN_FAMILY_PAGES[family]
+  const family = metadata?.tokenFamily
+  if (typeof family === 'string') {
+    if (!(family in TOKEN_FAMILY_PAGES))
+      throw new Error(`${route} names an unknown tokenFamily: ${family}`)
+    const { intro, guidance } = TOKEN_FAMILY_PAGES[family as TokenFamily]
     return tokenFamilyToMarkdown({
       title,
       description: metadata?.description,
