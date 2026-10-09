@@ -63,7 +63,7 @@ ticket. With no host rule, use Roadie's.
 
 | Carries                         | When                                              | Roadie rule                                        |
 | ------------------------------- | ------------------------------------------------- | -------------------------------------------------- |
-| A changeset per package         | a published package's shipped output changes      | PR workflow section 2                              |
+| A changeset per package         | a released package's shipped output changes       | PR workflow section 2                              |
 | A docs page and index tile      | it adds a component                               | section 4, which the component docs check enforces |
 | An example on the existing page | it adds a prop or behaviour                       | the page's template                                |
 | Browser tests                   | CSS or the browser decides the behaviour          | `/roadie:test` boundary table                      |

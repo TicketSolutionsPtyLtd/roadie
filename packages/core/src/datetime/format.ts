@@ -222,10 +222,12 @@ function resolve(opts: FormatOptions) {
     locale: opts.locale ?? DEFAULT_LOCALE,
     dateStyle: opts.dateStyle ?? DEFAULT_DATE_STYLE,
     timeStyle: opts.timeStyle,
-    now: opts.now ?? new Date(),
     context: opts.context ?? 'list'
   }
 }
+
+// Read only when the words depend on it, as a prerender rejects a clock read.
+const nowOf = (opts: FormatOptions): Instantish => opts.now ?? new Date()
 
 function pad(n: number): string {
   return String(n).padStart(2, '0')
@@ -240,12 +242,12 @@ function pad(n: number): string {
  * the style, so context does not apply to them.
  */
 function wantsYear(parts: Parts, opts: FormatOptions): boolean {
-  const { dateStyle, timeZone, locale, now, context } = resolve(opts)
+  const { dateStyle, timeZone, locale, context } = resolve(opts)
   if (dateStyle === 'short') return false
   if (dateStyle === 'iso') return true
   if (opts.showYear !== undefined) return opts.showYear
   if (context !== 'standalone') return true
-  const nowParts = zoneParts(now, timeZone, locale)
+  const nowParts = zoneParts(nowOf(opts), timeZone, locale)
   if (!nowParts) return true
   return parts.year !== nowParts.year
 }
@@ -646,7 +648,8 @@ export function formatRelative(
   date: Instantish,
   opts: RelativeOptions
 ): string | null {
-  const { locale, now } = resolve(opts)
+  const { locale } = resolve(opts)
+  const now = nowOf(opts)
   const then = toDate(date).getTime()
   if (Number.isNaN(then)) return null
   const cutoff = opts.cutoffMs ?? 7 * DAY

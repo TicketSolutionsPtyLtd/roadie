@@ -30,6 +30,8 @@ export type MarkdownPage = {
   components?: ManifestComponent[]
   /** Rewrites a root-relative docs link, such as `/components/field#states`. */
   resolveLink?: (href: string) => string
+  /** Markdown for each docs component the page renders data with, keyed by its JSX name; bare props arrive as `true`. */
+  renderers?: Record<string, (props: Record<string, string | true>) => string>
 }
 
 type JsxElement = MdxJsxFlowElement | MdxJsxTextElement
@@ -49,10 +51,9 @@ const paragraph = (...children: PhrasingContent[]): Paragraph => ({
 const tsx = (value: string): Code => ({ type: 'code', lang: 'tsx', value })
 
 function attributeValue(node: JsxElement, name: string) {
-  const attr = node.attributes.find(
+  return node.attributes.find(
     (a): a is MdxJsxAttribute => a.type === 'mdxJsxAttribute' && a.name === name
-  )
-  return attr?.value ?? undefined
+  )?.value
 }
 
 function expressionOf(value: MdxJsxAttribute['value']) {
@@ -63,21 +64,51 @@ function expressionOf(value: MdxJsxAttribute['value']) {
     : undefined
 }
 
-function attribute(node: JsxElement, name: string) {
-  const value = attributeValue(node, name)
-  if (value === undefined) return undefined
-  if (typeof value === 'string') return value
-  const expression = expressionOf(value)
+/** A string attribute's text, or undefined for a bare or computed attribute. */
+function literal(attr: MdxJsxAttribute) {
+  if (attr.value === null || attr.value === undefined) return undefined
+  if (typeof attr.value === 'string') return attr.value
+  const expression = expressionOf(attr.value)
   if (
     expression?.type === 'TemplateLiteral' &&
     !expression.expressions.length
   ) {
-    return expression.quasis[0]?.value.cooked ?? value.value
+    return expression.quasis[0]?.value.cooked ?? attr.value.value
   }
   if (expression?.type === 'Literal' && typeof expression.value === 'string') {
     return expression.value
   }
-  return value.value
+  return undefined
+}
+
+function attribute(node: JsxElement, name: string) {
+  const attr = node.attributes.find(
+    (a): a is MdxJsxAttribute => a.type === 'mdxJsxAttribute' && a.name === name
+  )
+  if (!attr) return undefined
+  return (
+    literal(attr) ??
+    (typeof attr.value === 'object' ? attr.value?.value : undefined)
+  )
+}
+
+/** A rendered component's props: strings, and `true` for a bare attribute. Anything computed can't reach the markdown, so it throws. */
+function rendererProps(node: JsxElement) {
+  const props: Record<string, string | true> = {}
+  for (const attr of node.attributes) {
+    const value =
+      attr.type === 'mdxJsxAttribute'
+        ? attr.value === null
+          ? true
+          : literal(attr)
+        : undefined
+    if (attr.type !== 'mdxJsxAttribute' || value === undefined)
+      throw new Error(
+        `<${node.name}> needs string or bare props for its markdown renderer`
+      )
+    props[attr.name] = value
+  }
+  return props
 }
 
 // A copy of `dedent.ts`: scripts run under plain Node, which can't resolve the
@@ -270,6 +301,21 @@ function transform(node: Node, page: Page): Node[] {
   )
 
   if (node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') {
+    const render =
+      node.name && page.renderers && Object.hasOwn(page.renderers, node.name)
+        ? page.renderers[node.name]
+        : undefined
+    if (render) {
+      if (node.type === 'mdxJsxTextElement')
+        throw new Error(
+          `<${node.name}> renders blocks, so it can't sit inside a paragraph`
+        )
+      return unified()
+        .use(remarkParse)
+        .use(remarkGfm)
+        .parse(render(rendererProps(node)))
+        .children.flatMap((child) => transform(child, page))
+    }
     if (node.name === 'PropsDefinitions') {
       const reference = apiReference(page.components)
       page.components = []
@@ -308,9 +354,14 @@ export function pageToMarkdown(page: MarkdownPage): string {
   const trailingReference = apiReference(state.components).flatMap((child) =>
     transform(child, state)
   )
+  const children = withoutLeadingTitle(body.children)
+  const [first] = children
+  const repeated =
+    first?.type === 'paragraph' &&
+    oneLine(toString(first)) === oneLine(page.description ?? '')
   const head: BlockContent[] = [
     { type: 'heading', depth: 1, children: [text(page.title)] },
-    ...(page.description
+    ...(page.description && !repeated
       ? [
           {
             type: 'blockquote',
@@ -321,15 +372,15 @@ export function pageToMarkdown(page: MarkdownPage): string {
   ]
   return processor.stringify({
     type: 'root',
-    children: [
-      ...head,
-      ...withoutLeadingTitle(body.children),
-      ...(trailingReference as RootContent[])
-    ]
+    children: [...head, ...children, ...(trailingReference as RootContent[])]
   })
 }
 
 export type LlmsLink = { title: string; url: string; description?: string }
+
+export const linkLine = ({ title, url, description }: LlmsLink) =>
+  `- [${title}](${url})${description ? `: ${description}` : ''}`
+
 export type LlmsSection = { name: string; links: LlmsLink[] }
 
 export type LlmsIndex = {
@@ -341,8 +392,6 @@ export type LlmsIndex = {
 
 /** An `llms.txt` index in the llmstxt.org shape: H1, blockquote summary, details, then H2 sections of links. */
 export function llmsIndex({ title, summary, details, sections }: LlmsIndex) {
-  const link = ({ title, url, description }: LlmsLink) =>
-    `- [${title}](${url})${description ? `: ${description}` : ''}`
   return [
     `# ${title}`,
     `> ${summary}`,
@@ -350,8 +399,126 @@ export function llmsIndex({ title, summary, details, sections }: LlmsIndex) {
     ...sections
       .filter((section) => section.links.length > 0)
       .map((section) =>
-        [`## ${section.name}`, ...section.links.map(link)].join('\n')
+        [`## ${section.name}`, ...section.links.map(linkLine)].join('\n')
       )
+  ]
+    .join('\n\n')
+    .concat('\n')
+}
+
+type TokenValue = { light?: string; dark?: string }
+type TokenRow = {
+  name: string
+  group: string
+  value?: TokenValue
+  byIntent?: Partial<Record<string, TokenValue>>
+  classes?: string[]
+  description?: string
+}
+
+export type TokenFamilyMarkdown = {
+  title: string
+  description?: string
+  intro: string
+  /** Pages that say when to use the family. */
+  guidance: LlmsLink[]
+  tokens: TokenRow[]
+}
+
+/** Inline code fenced past any backtick run in the value; table pipes escaped. */
+function cell(value: string | undefined) {
+  if (!value) return ''
+  const fence = '`'.repeat(
+    Math.max(0, ...(value.match(/`+/g) ?? []).map((run) => run.length)) + 1
+  )
+  const padded =
+    value.startsWith('`') || value.endsWith('`') ? ` ${value} ` : value
+  return `${fence}${padded.replace(/\|/g, '\\|')}${fence}`
+}
+const prose = (value: string | undefined) =>
+  value ? oneLine(value).replace(/\|/g, '\\|').replace(/</g, '&lt;') : ''
+const darkIfDifferent = ({ light, dark }: TokenValue = {}) =>
+  light !== undefined && dark !== light ? dark : undefined
+const lightAndDark = ({ light, dark }: TokenValue) =>
+  light && dark && dark !== light
+    ? `${cell(light)} / ${cell(dark)}`
+    : cell(light ?? dark)
+
+function table(header: string[], rows: string[][]) {
+  return [
+    `| ${header.join(' | ')} |`,
+    `| ${header.map(() => '---').join(' | ')} |`,
+    ...rows.map((row) => `| ${row.join(' | ')} |`)
+  ].join('\n')
+}
+
+type Column = [name: string, value: (token: TokenRow) => string]
+
+function tokenGroup(group: string, tokens: TokenRow[]) {
+  const used = (column: Column) =>
+    tokens.some((token) => column[1](token) !== '')
+  const dark: Column = [
+    'Dark, if different',
+    (token) => cell(darkIfDifferent(token.value))
+  ]
+  const columns: Column[] = [
+    ['Token', (token) => cell(token.name)],
+    ...(
+      [
+        [
+          used(dark) ? 'Light' : 'Value',
+          (token) => cell(token.value?.light ?? token.value?.dark)
+        ],
+        dark,
+        ['Classes', (token) => (token.classes ?? []).map(cell).join(' ')],
+        ['Description', (token) => prose(token.description)]
+      ] satisfies Column[]
+    ).filter(used)
+  ]
+  const sections = [
+    `## ${group}`,
+    table(
+      columns.map(([name]) => name),
+      tokens.map((token) => columns.map(([, value]) => value(token)))
+    )
+  ]
+  const intents = [
+    ...new Set(tokens.flatMap((token) => Object.keys(token.byIntent ?? {})))
+  ]
+  if (intents.length > 0) {
+    sections.push(
+      'Where an intent sets its own value, light / dark:',
+      table(
+        ['Token', ...intents],
+        tokens
+          .filter((token) => token.byIntent)
+          .map((token) => [
+            cell(token.name),
+            ...intents.map((intent) => {
+              const value = token.byIntent?.[intent]
+              return value ? lightAndDark(value) : ''
+            })
+          ])
+      )
+    )
+  }
+  return sections
+}
+
+export function tokenFamilyToMarkdown(page: TokenFamilyMarkdown): string {
+  const groups = Map.groupBy(page.tokens, (token) => token.group)
+  return [
+    `# ${page.title}`,
+    ...(page.description ? [`> ${page.description}`] : []),
+    page.intro,
+    ...(page.guidance.length > 0
+      ? [
+          `When to use these: ${page.guidance
+            .map(({ title, url }) => `[${title}](${url})`)
+            .join(', ')}.`
+        ]
+      : []),
+    ...[...groups].flatMap(([group, tokens]) => tokenGroup(group, tokens))
   ]
     .join('\n\n')
     .concat('\n')

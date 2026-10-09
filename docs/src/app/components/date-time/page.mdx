@@ -286,4 +286,6 @@ Writing that value by hand is easy to get wrong, and wrong silently. A local tim
 
 Relative text renders on the server as the absolute date and swaps after mount. That avoids a hydration mismatch without hiding real ones.
 
+DateTime never reads the clock on the server, so a prerendered page, including one under Next's `cacheComponents`, renders it without a `Suspense` boundary. A standalone date in the current year renders its year on the server, then drops it after mount, because the server can't know which year the reader is in.
+
 <PropsDefinitions component='DateTime' />

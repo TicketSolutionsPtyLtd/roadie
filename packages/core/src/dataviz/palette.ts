@@ -167,10 +167,11 @@ export const palette: Palette = {
   divergeMidStep,
   sets: { pair: [1, 2], trio: [1, 2, 3] },
   status: {
+    // Step 11 in both modes: dark step 9 measures under Lc 60 as delta text.
     good: {
       intent: 'success',
-      step: { light: 11, dark: 9 },
-      value: { light: [0.44, 0.078, 183.645], dark: [0.732, 0.129, 185.089] }
+      step: { light: 11, dark: 11 },
+      value: { light: [0.44, 0.078, 183.645], dark: [0.861, 0.129, 184.826] }
     },
     warning: {
       intent: 'warning',
@@ -185,9 +186,11 @@ export const palette: Palette = {
     critical: {
       intent: 'danger',
       // Fixed in light mode: danger step 11 is darker for subtle text, and
-      // would sit within ΔE 7 of categorical slot 7.
-      step: { light: null, dark: 9 },
-      value: { light: [0.569, 0.181, 28.264], dark: [0.709, 0.184, 28.37] }
+      // would sit within ΔE 7 of categorical slot 7. Fixed in dark mode: step 9
+      // measures Lc 47.5 as delta text, and a red bright enough for Lc 60 sits
+      // within ΔE 12 of slots 4 and 7 unless its hue leans toward pink.
+      step: { light: null, dark: null },
+      value: { light: [0.569, 0.181, 28.264], dark: [0.798, 0.116, 20] }
     }
   },
   greys: {

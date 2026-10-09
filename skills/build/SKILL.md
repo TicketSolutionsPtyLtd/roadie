@@ -282,10 +282,9 @@ page.
   the intent once on the root.
 - EmptyState has no surface. Put it in a `Card` when it needs one.
 - Await data inside `<Suspense>`, not at the top of the page, with a
-  `Skeleton` fallback shaped like the content. Under Next's
-  `cacheComponents`, `DateTime` and `RecordTable` read the clock during
-  render, so either one outside Suspense, or in a fallback, fails the
-  prerender.
+  `Skeleton` fallback shaped like the content. Roadie reads no clock on the
+  server, so `DateTime` and `RecordTable` prerender under Next's
+  `cacheComponents` outside Suspense and inside a fallback alike.
 - A failed fetch on the server is the route's `error.tsx`, with an
   `EmptyState intent='danger'` and a Retry that calls `reset`.
 - A `RecordTable` handles all of this itself (section 2).

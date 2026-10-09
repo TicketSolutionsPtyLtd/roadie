@@ -70,6 +70,13 @@ export const WIDGETS: Catalogue = { route: '/roadie-widgets', categories: [] }
 
 const CATALOGUES = [COMPONENTS, FOUNDATIONS, TOKENS, CHARTS, WIDGETS]
 
+/** The catalogues an index page renders with `<Catalogue name>`. */
+export const CATALOGUE_PAGES = {
+  foundations: FOUNDATIONS,
+  components: COMPONENTS,
+  charts: CHARTS
+}
+
 const APP_DIR = join(process.cwd(), 'src/app')
 
 // Matches both `metadata = {` and `metadata: Metadata = {`, closing on the
@@ -89,6 +96,8 @@ type PageMetadata = Record<string, unknown> & {
   alsoIn?: Placement[]
   /** Widens the content column past the standard reading width. */
   wide?: boolean
+  /** The token family a page lists; its markdown twin is built from the token manifest. */
+  tokenFamily?: string
 }
 
 /** A page's `metadata`: undefined when the file is missing, null when it has none. */
@@ -299,11 +308,23 @@ export async function getPageWide(): Promise<Record<string, boolean>> {
   return wide
 }
 
-/** Routes whose `page.mdx` becomes a markdown twin at `{route}.md`. */
+/** Routes with a markdown twin at `{route}.md`: every `page.mdx`, and each `page.tsx` whose metadata names a `tokenFamily`. */
 export async function getMarkdownRoutes(): Promise<string[]> {
-  return (await readdir(APP_DIR, { recursive: true }))
-    .filter((file) => basename(file) === 'page.mdx')
-    .map((file) => `/${dirname(file).split(sep).join('/')}`)
-    .filter((route) => !/^\/(debug|examples)\//.test(route))
+  const files = await readdir(APP_DIR, { recursive: true })
+  const routes = await Promise.all(
+    files.map(async (file) => {
+      const name = basename(file)
+      const twin =
+        name === 'page.mdx' ||
+        (name === 'page.tsx' &&
+          (await readPageMetadata(join(APP_DIR, file)))?.tokenFamily)
+      return twin ? `/${dirname(file).split(sep).join('/')}` : undefined
+    })
+  )
+  return routes
+    .filter(
+      (route): route is string =>
+        route !== undefined && !/^\/(debug|examples)\//.test(route)
+    )
     .sort()
 }

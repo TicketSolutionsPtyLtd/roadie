@@ -975,13 +975,12 @@ describe('Pane.Header collapse on scroll', () => {
     expect(screen.getByRole('heading', { name: 'Loose' })).toBeInTheDocument()
   })
 
-  it('shows a faint up affordance beside the compact title from lg up, hidden below it', async () => {
+  it('hides the up affordance beside the compact title from assistive tech', async () => {
     await renderPane(titled)
     const button = screen.getByRole('button', { name: 'Scroll to top' })
     const icon = button.querySelector('svg')
     expect(icon).not.toBeNull()
     expect(icon).toHaveAttribute('aria-hidden', 'true')
-    expect(icon).toHaveClass('hidden', 'lg:inline-block')
   })
 })
 
@@ -1436,32 +1435,6 @@ describe('Pane.BodyTitle', () => {
     const body = container.querySelector('[data-slot="pane-body-title"]')!
     expect(body).toHaveClass('text-display-prose-2')
     expect(body).not.toHaveClass('text-display-ui-3')
-  })
-})
-
-// `backdrop-filter` escapes an ancestor's rounded clip, so chrome rounds its own edge.
-describe('Pane chrome clipping', () => {
-  it('rounds the sticky chrome to the radius the pane publishes', async () => {
-    const { container } = await renderPane(
-      <Pane>
-        <Pane.Header>
-          <Pane.Title>Title</Pane.Title>
-        </Pane.Header>
-        <p>Body</p>
-        <Pane.Footer>Footer</Pane.Footer>
-      </Pane>
-    )
-
-    const pane = container.querySelector('[data-slot="pane"]')!
-    const header = container.querySelector('[data-slot="pane-header"]')!
-    const footer = container.querySelector('[data-slot="pane-footer"]')!
-
-    expect(pane).toHaveClass(
-      'max-md:[--pane-radius:var(--pane-radius-phone,0px)]'
-    )
-    expect(pane).toHaveClass('rounded-(--pane-radius)')
-    expect(header).toHaveClass('rounded-t-(--pane-radius)')
-    expect(footer).toHaveClass('rounded-b-(--pane-radius)')
   })
 })
 

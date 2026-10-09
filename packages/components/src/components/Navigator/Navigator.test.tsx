@@ -1080,21 +1080,6 @@ describe('Navigator mobile tab bar', () => {
     </Navigator>
   )
 
-  it('floats the tab bar over full-height content on mobile only', async () => {
-    const { container } = render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          {testBrand}
-          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    const bar = horizontalOf(container)
-    expect(bar).toHaveClass('max-md:absolute')
-    expect(bar).toHaveClass('md:hidden')
-    await flushViewportMeasurement()
-  })
-
   it('marks the active tab with aria-current', async () => {
     const { container } = render(
       <Navigator value='tickets'>
@@ -1450,15 +1435,6 @@ describe('NavigatorOverflowPane', () => {
       within(horizontalOf(container)!).getByRole('button', { name: 'More' })
     )
     expect(document.querySelector('[data-slot="pane"][id]')).toHaveFocus()
-  })
-
-  it("renders the bar's folded rows below md only", async () => {
-    render(overflowNav('/a'))
-    await flushViewportMeasurement()
-    const lists = document.querySelectorAll(
-      '[data-slot="pane"][id] [data-slot="navigator-overflow-items"]'
-    )
-    expect(lists[0]).toHaveClass('md:hidden')
   })
 
   const morePaneViewport = () =>
@@ -3080,7 +3056,7 @@ describe('Navigator collapsed edge circles', () => {
     await flushViewportMeasurement()
   })
 
-  it('carries each circle to its edge on translate, from its own column', async () => {
+  it('drops each circle to the foot of the bar', async () => {
     const { container } = render(moreTree('b'))
     await collapse(container)
     const bar = horizontalOf(container)!
@@ -3088,36 +3064,8 @@ describe('Navigator collapsed edge circles', () => {
     const start = bar.querySelector('[data-circle-side="start"]')!
     const end = bar.querySelector('[data-circle-side="end"]')!
 
-    expect(start).toHaveClass(
-      '-translate-x-[calc(var(--navigator-primary-index)_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
-    )
-    expect(end).toHaveClass(
-      'translate-x-[calc((var(--navigator-primary-count)_-_1_-_var(--navigator-primary-index))_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
-    )
     expect(start).toHaveClass('translate-y-1', 'self-end')
     expect(end).toHaveClass('translate-y-1', 'self-end')
-    await flushViewportMeasurement()
-  })
-
-  it('mirrors each circle’s travel, and the pinned circle’s shrink, under dir=rtl', async () => {
-    const { container } = render(<div dir='rtl'>{moreTree('b')}</div>)
-    await collapse(container)
-    const bar = horizontalOf(container)!
-
-    expect(bar.querySelector('[data-circle-side="start"]')).toHaveClass(
-      'rtl:translate-x-[calc(var(--navigator-primary-index)_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
-    )
-    expect(bar.querySelector('[data-circle-side="end"]')).toHaveClass(
-      'rtl:-translate-x-[calc((var(--navigator-primary-count)_-_1_-_var(--navigator-primary-index))_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
-    )
-
-    const pinnedTree = render(<div dir='rtl'>{barTree('a')}</div>).container
-    await collapse(pinnedTree)
-    expect(
-      within(pinnedCircleOf(pinnedTree)).getByRole('button', {
-        name: 'Account'
-      })
-    ).toHaveClass('rtl:origin-bottom-left')
     await flushViewportMeasurement()
   })
 

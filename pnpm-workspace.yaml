@@ -1,6 +1,7 @@
 packages:
   - 'packages/*'
   - 'docs'
+  - 'skills'
 
 # pnpm settings (migrated from .npmrc — pnpm 11's home for these is here).
 nodeLinker: isolated

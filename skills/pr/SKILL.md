@@ -87,7 +87,8 @@ against the whole section 7 list.
 
 - New PR: open it as the host workflow says, usually as a draft with the
   ticket key in the title (`gh pr create --draft --body-file <file>`). Don't
-  mark it ready here; the host workflow decides when.
+  mark it ready here; the host workflow decides when. Move the ticket to In
+  Progress if this is its first PR (Roadie: PR workflow section 7).
 - Existing PR: never drop content. Keep every section, line, link, and
   trailer, add the missing sections in template order, and correct only what
   the diff now contradicts. Then `gh pr edit <n> --body-file <file>`.

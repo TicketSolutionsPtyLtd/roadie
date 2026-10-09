@@ -6,8 +6,11 @@ import { renderToString } from 'react-dom/server'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import type { CardSize } from '@oztix/roadie-core/dashboard-layout'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Chart } from '../Chart'
+import { PLOT_HEIGHTS } from '../Chart/context'
 import { useStylesheet } from '../testUtils'
 import { ChartPlot } from './ChartPlot'
 import { afterResize } from './browserTesting'
@@ -22,11 +25,8 @@ beforeAll(() => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
-const sizes = [
-  ['sm', 160],
-  ['md', 220],
-  ['lg', 260]
-] as const
+// ChartPlot spaces end labels from PLOT_HEIGHTS before it measures the box.
+const sizes = Object.entries(PLOT_HEIGHTS) as [CardSize, number][]
 
 async function focusPlot(container: HTMLElement) {
   container.querySelector<SVGElement>('svg.ts-chart')!.focus()
@@ -36,7 +36,7 @@ async function focusPlot(container: HTMLElement) {
 }
 
 function renderInCard(
-  size: 'sm' | 'md' | 'lg' | 'full' = 'md',
+  size: CardSize = 'md',
   width = 560,
   chart: ChartDefinition<TestProps> = testChart
 ) {
@@ -96,15 +96,18 @@ const areaChart: ChartDefinition<TestProps> = {
 }
 
 describe('ChartPlot in a card', () => {
-  it.each(sizes)('fills the %s plot area', (size, height) => {
-    const { container } = renderInCard(size)
-    const plot = container.querySelector('[data-slot=chart-plot]')!
-    const svg = container.querySelector('svg.ts-chart')!
-    expect(Math.round(svg.getBoundingClientRect().height)).toBe(height)
-    expect(Math.round(svg.getBoundingClientRect().width)).toBe(
-      Math.round(plot.getBoundingClientRect().width)
-    )
-  })
+  it.each(sizes)(
+    'starts the %s plot at the height ChartPlot assumes',
+    (size, height) => {
+      const { container } = renderInCard(size)
+      const plot = container.querySelector('[data-slot=chart-plot]')!
+      const svg = container.querySelector('svg.ts-chart')!
+      expect(Math.round(svg.getBoundingClientRect().height)).toBe(height)
+      expect(Math.round(svg.getBoundingClientRect().width)).toBe(
+        Math.round(plot.getBoundingClientRect().width)
+      )
+    }
+  )
 
   it.each([
     ['full', 1800, 400, 420],
@@ -564,6 +567,53 @@ describe('ChartPlot under forced colours', () => {
       expect(getComputedStyle(series).fill).toMatch(/texture-1/)
     } finally {
       await commands.forcedColors(false)
+    }
+  })
+})
+
+const slots = [1, 2, 3, 4, 5, 6, 7, 8]
+const slotRows = slots.map((slot) => ({
+  x: `Slot ${slot}`,
+  series: String(slot),
+  y: slot,
+  index: slot - 1
+}))
+
+const eightSeriesChart: ChartDefinition<TestProps> = {
+  ...horizontalRanks,
+  build: (_, paint) =>
+    defineChart({
+      marks: slotRows.map((row, i) =>
+        barX([row], {
+          id: seriesMarkId(i + 1),
+          y: 'x',
+          x: 'y',
+          fill: paint.categorical[i % paint.categorical.length]!
+        })
+      ),
+      scales: {
+        x: { scale: scaleLinear().domain([0, 8]) },
+        y: { scale: scaleBand<string>().domain(slotRows.map((r) => r.x)) }
+      }
+    })
+}
+
+describe('ChartPlot in print', () => {
+  it('textures every series slot with its own pattern', async () => {
+    const { container } = renderInCard('md', 560, eightSeriesChart)
+    const bar = (slot: number) =>
+      container.querySelector(
+        `[data-ts-key^='${seriesMarkId(slot)}:'] rect, rect[data-ts-key^='${seriesMarkId(slot)}:']`
+      )!
+    await commands.printMedia(true)
+    try {
+      expect(matchMedia('print').matches).toBe(true)
+      for (const slot of slots)
+        expect(getComputedStyle(bar(slot)).fill).toMatch(
+          new RegExp(`texture-${slot}\\b`)
+        )
+    } finally {
+      await commands.printMedia(false)
     }
   })
 })

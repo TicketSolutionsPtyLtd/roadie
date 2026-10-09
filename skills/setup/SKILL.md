@@ -136,6 +136,9 @@ Import components from their own subpath (`@oztix/roadie-components/button`).
   own wrapper component hides them.
 - Other compounds, such as `Card`, `Field`, and `Pane`, render fine from
   server components with dot notation (`<Card.Content>`).
+- **Prerendering.** Roadie reads no clock on the server, so its components
+  need no `Suspense` boundary under Next's `cacheComponents`. Your own
+  `new Date()` or `Date.now()` in render still does.
 
 ## 6. Dev origins
 
