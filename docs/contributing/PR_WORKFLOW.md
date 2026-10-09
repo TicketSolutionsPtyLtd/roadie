@@ -146,13 +146,10 @@ commits its fixes:
 1. **Design and conventions review.** Does the change meet its spec, follow
    section 3, keep public APIs consistent, and document behaviour changes in
    the changeset?
-2. **Line-by-line bug hunt.** An adversarial pass like a code-review bot:
-   controlled versus uncontrolled props and defaults (including `null`),
-   stale closures and effects, async races and unmounts, focus and keyboard,
-   IME composition, locale and time zones, SSR and hydration, accessible
-   names and states, empty, zero and negative inputs, off-by-one, type holes,
-   docs that claim something the code doesn't do, and tests that pass
-   vacuously. Every finding needs a concrete failing input.
+2. **Line-by-line bug hunt.** An adversarial pass like a code-review bot,
+   through the classes listed in
+   [`/roadie:review`](../../skills/review/SKILL.md). Every finding needs a
+   concrete failing input.
 
 Fix Critical and Important findings test-first. If a fix is significant (new
 logic, state or API, not a one-liner), review the fix commits again. Open
