@@ -9,7 +9,7 @@ import { RecordTable, tableColumns } from '../RecordTable'
 import { type TestShow, showFields, testShows } from './testUtils'
 import type { RecordViewDefaults } from './types'
 
-const TIMEOUT = { timeout: 20_000 }
+const TIMEOUT = { timeout: 20_000, retry: 0, repeats: 5 }
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
