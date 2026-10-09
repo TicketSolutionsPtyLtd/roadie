@@ -1,6 +1,6 @@
 ---
 name: docs-page
-description: Use when writing, converting, or checking a Roadie docs page (a `page.mdx` under `docs/src/app/` for a component, chart, foundation, brand, or content page), and whenever a new component needs its page. Points at the page's template, runs the docs checks, reviews what no check catches, reads the markdown copy agents get, and screenshots the page at phone and desktop widths in light and dark. Works only in the Roadie repo. Triggers on "write the docs page", "document this component", "check the docs page", "does this page follow the template", "convert this page to MDX".
+description: Use when writing, converting, or checking a Roadie docs page (a `page.mdx` under `docs/src/app/` for a component, chart, foundation, brand, or content page), and whenever a new component needs its page. Points at the page's template, runs the docs checks, reviews what no check catches, reads the markdown copy agents get, and screenshots the page at phone and desktop widths in light and dark. Triggers on "write the docs page", "document this component", "check the docs page", "does this page follow the template", "convert this page to MDX".
 ---
 
 # Roadie docs page
@@ -8,9 +8,6 @@ description: Use when writing, converting, or checking a Roadie docs page (a `pa
 Write a docs page, or check one, against its template. The templates hold the
 rules and change often, so read them each time rather than from memory. They,
 `AGENTS.md`, and `CODING_STANDARDS.md` win over anything here.
-
-Every step reads Roadie's own docs files and scripts. In a repo without
-`docs/contributing/DOCS_PAGES.md`, stop and say the skill only runs in Roadie.
 
 ## 1. Read
 
