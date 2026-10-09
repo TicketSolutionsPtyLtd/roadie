@@ -1,0 +1,7 @@
+line 3: export { LinkButton } re-exports a deprecated name, and renaming it changes this module's own API. Migrate it by hand.
+line 4: export { LinkIconButton } re-exports a deprecated name, and renaming it changes this module's own API. Migrate it by hand.
+line 5: export { LinkButtonProps } re-exports a deprecated name, and renaming it changes this module's own API. Migrate it by hand.
+line 6: '@oztix/roadie-components/link-button' is re-exported whole, and renaming its deprecated names changes this module's own API. Migrate it by hand.
+line 7: '@oztix/roadie-components/link-button' is re-exported whole, and renaming its deprecated names changes this module's own API. Migrate it by hand.
+line 8: Re-exporting '@oztix/roadie-components' also re-exports the deprecated LinkButton, LinkButtonProps, LinkIconButton, LinkIconButtonProps, which leave this module's API when Roadie removes them. Check its importers.
+line 9: Re-exporting '@oztix/roadie-components' also re-exports the deprecated LinkButton, LinkButtonProps, LinkIconButton, LinkIconButtonProps, which leave this module's API when Roadie removes them. Check its importers.

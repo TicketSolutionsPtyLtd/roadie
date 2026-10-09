@@ -33,7 +33,7 @@ export default function transform(file, api, options = {}) {
 
   root
     .find(j.JSXOpeningElement)
-    .filter((path) => matches(path.node.name))
+    .filter(matches)
     .forEach((path) => {
       const opening = path.node
       const as = attribute(opening, 'as')
@@ -64,5 +64,6 @@ export default function transform(file, api, options = {}) {
       changed = true
     })
 
+  report.flush()
   return changed ? print(root, file.source) : file.source
 }

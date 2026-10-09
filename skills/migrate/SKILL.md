@@ -145,7 +145,23 @@ What they change:
   and `CartExpiryModalsProps` to `CartExpiryDialogs` and
   `CartExpiryDialogsProps` with every reference in the file. If the new
   name is taken in the file, it keeps the old local name as an alias. A
-  re-export or shorthand object key keeps its old public name.
+  re-export or shorthand object key keeps its old public name, and a kept
+  re-export is reported. An `export … from` the old path moves to the new
+  one.
+
+Each codemod also follows a namespace import, such as
+`import * as Roadie from '@oztix/roadie-components'`. It migrates
+`<Roadie.Card as='section'>`, `Drawer.CartExpiryModals`, and the rest as it
+would a named import, and `<Roadie.LinkButton href>` becomes
+`<Button href>` with `Button` imported from
+`@oztix/roadie-components/button`. `link-button` reports a deprecated name
+read off a namespace outside JSX, such as `Roadie.LinkButtonProps`, where
+`widgets-renames` renames it. Both report a namespace used whole, such as
+`{ ...Roadie }`.
+
+Both report every `export … from` that re-exports a deprecated name, and
+every `export *` from a module that exports one, because renaming them
+changes the app's own exports.
 
 ## 5. Migrate the rest by hand
 
