@@ -384,6 +384,29 @@ describe('Prose', () => {
     )
   })
 
+  it('fits a wide text table in .prose-scroll when it has 28em of room', () => {
+    const container = renderWide(
+      <Prose>
+        <div id='roomy' className='prose-scroll'>
+          <table>
+            <tbody>
+              <tr>
+                <td>Doors</td>
+                <td>{LONG}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Prose>,
+      640
+    )
+    const roomy = get(container, '#roomy') as HTMLElement
+    expect(roomy.scrollWidth).toBe(roomy.clientWidth)
+    expect(box(get(container, '#roomy table')).width).toBeLessThanOrEqual(
+      box(roomy).width
+    )
+  })
+
   it('restores full-width text with the class the release notes give', () => {
     const container = renderWide(
       <Prose className='[--prose-measure:none]'>

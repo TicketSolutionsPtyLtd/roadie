@@ -371,9 +371,7 @@
     ) {
     overflow-x: auto;
   }
-  /* With less than 28em of room, a table keeps up to 28em and scrolls, rather
-     than squeezing every text column to its longest word. With more room it
-     shrinks to fit, like a bare table. */
+  /* Under 28em of room, scroll at up to 28em rather than crush text columns. */
   .prose
     :where(.prose-scroll > table):not(
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
