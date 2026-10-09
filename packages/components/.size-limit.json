@@ -70,7 +70,7 @@
     "name": "ToggleGroup",
     "path": "dist/components/ToggleGroup/index.js",
     "import": "*",
-    "limit": "2.6 kB",
+    "limit": "2.9 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -231,7 +231,7 @@
     "name": "Calendar",
     "path": "dist/components/Calendar/index.js",
     "import": "*",
-    "limit": "16 kB",
+    "limit": "16.2 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -252,7 +252,7 @@
     "name": "DatePicker",
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
-    "limit": "34 kB",
+    "limit": "34.3 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -266,7 +266,7 @@
     "name": "DateRangePicker",
     "path": "dist/components/DateRangePicker/index.js",
     "import": "*",
-    "limit": "40.7 kB",
+    "limit": "40.8 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -280,7 +280,7 @@
     "name": "Records",
     "path": "dist/components/Records/index.js",
     "import": "*",
-    "limit": "94.6 kB",
+    "limit": "94.9 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {

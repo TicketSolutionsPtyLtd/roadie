@@ -19,6 +19,86 @@ function whiteTextLc(backgroundHex: string) {
   return -((y ** 0.65 - 1) * 1.14 + 0.027) * 100
 }
 
+// The hex fallbacks in tokens.css when INNO-1230 landed. fgOnStrong was
+// recorded from the colorjs.io APCA path it replaced.
+// prettier-ignore
+const SHIPPED_SCALES = {
+  light: {
+    neutral: [
+      '#ffffff', '#fafcff', '#f5fafe', '#eaf1f7', '#e1e9f1', '#d7e2ed', '#cfdce8',
+      '#c1d1e1', '#a9bfd3', '#7b90a5', '#718598', '#475766', '#16202a', '#0d1318'
+    ],
+    brand: [
+      '#ffffff', '#f8fafc', '#f1f6fb', '#e4f0fb', '#d4e9fd', '#c2dffb', '#add2f5',
+      '#92c1ee', '#68aae6', '#0191eb', '#0084d9', '#01538a', '#04365b', '#00172d'
+    ],
+    'brand-secondary': [
+      '#ffffff', '#fcf9f8', '#fef2ee', '#ffe6db', '#ffd3bd', '#ffc3a8', '#ffb290',
+      '#ff9e78', '#f78255', '#ff8a5c', '#f37f51', '#953601', '#5f270f', '#2b0a00'
+    ],
+    accent: [
+      '#ffffff', '#f8fafc', '#f1f6fb', '#e4f0fb', '#d4e9fd', '#c2dffb', '#add2f5',
+      '#92c1ee', '#68aae6', '#0191eb', '#0084d9', '#01538a', '#04365b', '#00172d'
+    ],
+    danger: [
+      '#ffffff', '#fbf9f8', '#fdf2f1', '#ffe6e2', '#ffd2c9', '#ffc2b7', '#ffb4a9',
+      '#f5a296', '#ea897c', '#ff6b5c', '#f25f51', '#a00207', '#592b25', '#2c120e'
+    ],
+    success: [
+      '#ffffff', '#f5fbfa', '#edf9f7', '#d4f6f1', '#bbf2ea', '#a1eae0', '#86ded3',
+      '#61cec1', '#01baab', '#00c2b3', '#00b6a8', '#006057', '#02453f', '#00201d'
+    ],
+    warning: [
+      '#ffffff', '#fefdf9', '#fffae6', '#fff4ba', '#ffeb9e', '#ffe077', '#ffd04f',
+      '#f0c250', '#deaa00', '#e0ac00', '#d5a101', '#735302', '#483a1a', '#221906'
+    ],
+    info: [
+      '#ffffff', '#faf9fc', '#f7f4fc', '#f1e9fd', '#eadefd', '#e1d1fb', '#d6c1f7',
+      '#c8acf0', '#b691e8', '#a96af1', '#9d5de3', '#6d2fa9', '#431e69', '#1e0833'
+    ]
+  },
+  dark: {
+    neutral: [
+      '#05080b', '#0d1216', '#161a1e', '#1c232a', '#232b32', '#28323c', '#2f3b46',
+      '#3a4957', '#4d6377', '#5c7185', '#697d91', '#c6d6e6', '#eaeff3', '#fafcff'
+    ],
+    brand: [
+      '#020202', '#09121b', '#0f1a24', '#0a2942', '#00345b', '#01416d', '#114f7e',
+      '#1f6094', '#2674b3', '#0191eb', '#0084dd', '#b2daff', '#e2f1ff', '#fbfdff'
+    ],
+    'brand-secondary': [
+      '#020202', '#15100d', '#1e1512', '#361a10', '#4a1b07', '#59230c', '#693019',
+      '#814027', '#a65332', '#ff8a5c', '#f37f51', '#ffccb8', '#ffe9e1', '#fffbf9'
+    ],
+    accent: [
+      '#020202', '#09121b', '#0f1a24', '#0a2942', '#00345b', '#01416d', '#114f7e',
+      '#1f6094', '#2674b3', '#0191eb', '#0084dd', '#b2daff', '#e2f1ff', '#fbfdff'
+    ],
+    danger: [
+      '#020202', '#160f0e', '#1f1412', '#3a1410', '#50110d', '#611913', '#71261f',
+      '#8a362e', '#b3473d', '#ff6b5c', '#f25f51', '#ffcac1', '#fee9e6', '#fefbfa'
+    ],
+    success: [
+      '#020202', '#0b1312', '#101c1a', '#0b2d2a', '#003b36', '#024842', '#0e5750',
+      '#146a61', '#127f75', '#00c2b3', '#00b6a8', '#55eddc', '#b8fff4', '#fbfffe'
+    ],
+    warning: [
+      '#020202', '#13110b', '#1c180f', '#2c2208', '#3c2900', '#493300', '#564106',
+      '#69531a', '#856923', '#fcc101', '#f1b700', '#ffd35b', '#fee7b5', '#fef4df'
+    ],
+    info: [
+      '#020202', '#130e1a', '#1c1426', '#2c1b40', '#392156', '#442864', '#503373',
+      '#63428b', '#8155b5', '#a96af1', '#9d5de3', '#e4ccff', '#f2eafe', '#fcfbff'
+    ]
+  }
+}
+
+const SHIPPED_STEPS = Object.entries(SHIPPED_SCALES).flatMap(([mode, scales]) =>
+  Object.entries(scales).flatMap(([scale, hexes]) =>
+    hexes.map((hex, step) => [mode, scale, step, hex] as const)
+  )
+)
+
 function getOklch(hex: string) {
   const c = new Color(hex).to('oklch')
   return {
@@ -104,6 +184,14 @@ describe('generateAccentScale', () => {
     const result = await generateAccentScale(oztixBlue)
     expect(result.fgOnStrong).toBe('white')
   })
+
+  it.each(SHIPPED_STEPS)(
+    'puts white text on the strong fill generated from %s %s step %i',
+    async (_mode, _scale, _step, hex) => {
+      const result = await generateAccentScale(hex)
+      expect(result.fgOnStrong).toBe('white')
+    }
+  )
 
   it('keeps a grey accent grey in the fallback scale', async () => {
     const { light } = await generateAccentScale('#808080')

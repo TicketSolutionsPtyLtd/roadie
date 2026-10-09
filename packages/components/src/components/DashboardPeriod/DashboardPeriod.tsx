@@ -411,9 +411,7 @@ export function DashboardPeriod<App extends string = never>({
                 const comparison = picked && comparisonFor(picked, range)
                 if (comparison) editCompare(comparison)
               }}
-              // Wraps when the choices outgrow the row; the radius is a
-              // pill's on one row.
-              className='flex w-full flex-wrap rounded-2xl *:flex-1'
+              className='w-full'
             >
               {choices.map((option) => (
                 <ToggleGroup.Item

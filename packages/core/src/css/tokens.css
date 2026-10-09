@@ -531,7 +531,13 @@
     /* ═══ Accent parameters — set these to theme everything ═══ */
     --accent-hue: 247;
     --accent-chroma: 0.168;
+  }
 
+  /* A custom property resolves var(--accent-hue) where it is declared, so a
+     nested ThemeProvider's wrapper declares the neutral and accent scales
+     again for its own accent. The fixed scales stay on :root. */
+  :root,
+  [data-accent-scope] {
     /* Neutral scale — driven by --accent-hue */
     --color-neutral-light-0: oklch(1 0 0);
     --color-neutral-0: var(--color-neutral-light-0);
@@ -552,7 +558,9 @@
     --color-neutral-12: var(--color-neutral-light-12);
     --color-neutral-light-13: oklch(0.182 0.015 var(--accent-hue));
     --color-neutral-13: var(--color-neutral-light-13);
+  }
 
+  :root {
     /* Brand (fixed — always Oztix Blue) */
     --color-brand-0: oklch(1 0 0);
     --color-brand-1: oklch(0.984 0.003 247);
@@ -592,7 +600,10 @@
     --color-brand-secondary-12: var(--color-brand-secondary-light-12);
     --color-brand-secondary-light-13: oklch(0.2 0.06 42);
     --color-brand-secondary-13: var(--color-brand-secondary-light-13);
+  }
 
+  :root,
+  [data-accent-scope] {
     /* Accent scale — driven by --accent-hue and --accent-chroma */
     --color-accent-0: oklch(1 0 0);
     --color-accent-1: oklch(
@@ -636,7 +647,9 @@
       0.2 calc(0.327 * var(--accent-chroma)) var(--accent-hue)
     );
     --color-accent-13: var(--color-accent-light-13);
+  }
 
+  :root {
     --color-danger-0: oklch(1 0 0);
     --color-danger-1: oklch(0.983 0.003 48.719);
     --color-danger-2: oklch(0.969 0.012 23.703);
@@ -714,7 +727,8 @@
     --color-info-13: var(--color-info-light-13);
   }
 
-  .dark {
+  .dark,
+  .dark [data-accent-scope] {
     --color-neutral-0: oklch(0.13 0.011 var(--accent-hue));
     --color-neutral-1: oklch(0.178 0.011 var(--accent-hue));
     --color-neutral-2: oklch(0.214 0.01 var(--accent-hue));
@@ -729,7 +743,9 @@
     --color-neutral-11: oklch(0.87 0.028 var(--accent-hue));
     --color-neutral-12: oklch(0.949 0.007 var(--accent-hue));
     --color-neutral-13: oklch(0.991 0.004 var(--accent-hue));
+  }
 
+  .dark {
     /* Brand (Dark — fixed) */
     --color-brand-0: oklch(0.08 0 0);
     --color-brand-1: oklch(0.178 0.023 247);
@@ -761,7 +777,10 @@
     --color-brand-secondary-11: oklch(0.884 0.064 42);
     --color-brand-secondary-12: oklch(0.95 0.026 42);
     --color-brand-secondary-13: oklch(0.99 0.005 42);
+  }
 
+  .dark,
+  .dark [data-accent-scope] {
     /* Accent (Dark — driven by --accent-hue and --accent-chroma) */
     --color-accent-0: oklch(0.08 0 0);
     --color-accent-1: oklch(
@@ -801,7 +820,9 @@
     --color-accent-13: oklch(
       0.993 calc(0.018 * var(--accent-chroma)) var(--accent-hue)
     );
+  }
 
+  .dark {
     --color-danger-0: oklch(0.08 0 0);
     --color-danger-1: oklch(0.177 0.012 27.739);
     --color-danger-2: oklch(0.205 0.019 30.4);

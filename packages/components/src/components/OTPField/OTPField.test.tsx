@@ -180,26 +180,14 @@ describe('OTPField', () => {
     )
   })
 
-  it('applies size and emphasis to every slot', () => {
+  it('applies emphasis to every slot', () => {
     const { container } = render(
-      <OTPField length={2} aria-label='Code' size='lg' emphasis='subtle' />
+      <OTPField length={2} aria-label='Code' emphasis='subtle' />
     )
     for (const input of slots(container)) {
-      expect(input).toHaveClass('max-w-12', 'bg-subtle')
+      expect(input).toHaveClass('bg-subtle')
       expect(input).not.toHaveClass('emphasis-field')
     }
-  })
-
-  it('lets one slot override the root size', () => {
-    const { container } = render(
-      <OTPField length={2} aria-label='Code'>
-        <OTPField.Input size='lg' />
-        <OTPField.Input />
-      </OTPField>
-    )
-    const [first, second] = slots(container)
-    expect(first).toHaveClass('max-w-12')
-    expect(second).toHaveClass('max-w-10')
   })
 
   it('marks every slot invalid', () => {

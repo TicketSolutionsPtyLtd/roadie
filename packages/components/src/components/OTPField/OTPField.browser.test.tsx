@@ -29,4 +29,19 @@ describe('OTPField slots', () => {
       expect(height).toBe(edge)
     }
   })
+
+  it('lets one slot override the root size', () => {
+    render(
+      <div style={{ width: 600 }}>
+        <OTPField length={2} aria-label='Code'>
+          <OTPField.Input size='lg' />
+          <OTPField.Input />
+        </OTPField>
+      </div>
+    )
+    const widths = screen
+      .getAllByRole('textbox')
+      .map((slot) => slot.getBoundingClientRect().width)
+    expect(widths).toEqual([48, 40])
+  })
 })

@@ -146,3 +146,21 @@ describe('contained List', () => {
     expect(dividers(['Payouts', 'Refunds'])).toEqual([true, false])
   })
 })
+
+describe('List touch target', () => {
+  it('keeps a row with one short line at least 44px tall', () => {
+    expect(getComputedStyle(document.documentElement).fontSize).toBe('16px')
+    render(
+      <List>
+        <li>
+          <a href='/shows' data-slot='list-item' className={listItemVariants()}>
+            Shows
+          </a>
+        </li>
+      </List>
+    )
+    expect(row('Shows').getBoundingClientRect().height).toBeGreaterThanOrEqual(
+      44
+    )
+  })
+})

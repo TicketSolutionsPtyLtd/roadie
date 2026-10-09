@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { List } from '.'
-import { listItemVariants } from './variants'
+import { Sortable } from '../Sortable'
 
 const item = (title: string) =>
   screen.getByText(title).closest('[data-slot="list-item"]')
@@ -598,14 +598,26 @@ describe('List', () => {
   })
 })
 
-describe('listItemVariants', () => {
-  it('makes a row interactive by default', () => {
-    expect(listItemVariants().split(' ')).toContain('is-interactive')
+describe('List.Item interaction', () => {
+  it('gives an actionable row the interactive states', () => {
+    render(
+      <List>
+        <List.Item title='Account' onClick={() => {}} />
+      </List>
+    )
+    expect(screen.getByRole('button', { name: 'Account' })).toHaveClass(
+      'is-interactive'
+    )
   })
 
-  it('leaves is-interactive off when interactive is false', () => {
-    const classes = listItemVariants({ interactive: false }).split(' ')
-    expect(classes).not.toContain('is-interactive')
-    expect(classes).toContain('min-h-11')
+  it('leaves the interactive states off a reorderable row', () => {
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title='SKU' />
+        </List>
+      </Sortable>
+    )
+    expect(item('SKU')).not.toHaveClass('is-interactive')
   })
 })

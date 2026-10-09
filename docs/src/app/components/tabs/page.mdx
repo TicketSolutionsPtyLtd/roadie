@@ -312,6 +312,22 @@ Pass `direction='vertical'` to render a column of left-aligned tabs. With `empha
 </Tabs>
 ```
 
+#### When space runs out
+
+A horizontal list never wraps. When the tabs don't fit, the list scrolls sideways, and it scrolls the active tab into view.
+
+```tsx-live
+<Tabs defaultValue='history' className='max-w-64'>
+  <Tabs.List>
+    <Tabs.Tab value='overview'>Overview</Tabs.Tab>
+    <Tabs.Tab value='sales'>Sales</Tabs.Tab>
+    <Tabs.Tab value='attendees'>Attendees</Tabs.Tab>
+    <Tabs.Tab value='history'>History</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+```
+
 #### Persistent panels
 
 By default, panels mount only when active. Pass `keepMounted` on `Tabs.Panel` to preserve in-flight state (forms, scroll position, video playback) when switching tabs.

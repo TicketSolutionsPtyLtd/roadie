@@ -18,7 +18,11 @@ import {
   ToggleGroupContext,
   type ToggleGroupContextValue
 } from './ToggleGroupContext'
-import { PRESSED_ITEM, followPressedItem } from './followPressedItem'
+import {
+  PRESSED_ITEM,
+  followPressedItem,
+  revealItem
+} from './followPressedItem'
 import {
   type ToggleGroupDirection,
   type ToggleGroupSize,
@@ -111,7 +115,11 @@ export function ToggleGroupRoot<Value extends string = string>({
     if (multiple || byPointer || returning) return
     if (group.contains(event.relatedTarget as Node | null)) return
     const pressed = group.querySelector<HTMLElement>(PRESSED_ITEM)
-    if (pressed && pressed !== event.target) pressed.focus()
+    if (pressed && pressed !== event.target) {
+      pressed.focus()
+      // Focus moving within a focus event doesn't scroll the track to it.
+      revealItem(group, pressed)
+    }
   }
   const handleBlur: typeof onBlur = (event) => {
     onBlur?.(event)

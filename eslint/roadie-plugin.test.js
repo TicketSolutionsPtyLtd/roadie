@@ -230,9 +230,35 @@ const cases = {
     ]
   },
   'no-cva-output-assertion': {
-    valid: ["expect(screen.getByRole('button')).toHaveClass('intent-accent')"],
+    valid: [
+      "expect(screen.getByRole('button')).toHaveClass('intent-accent')",
+      "render(<div className={paneVariants()} />)\nexpect(screen.getByRole('region')).toHaveClass('emphasis-raised')",
+      'const html = `<section class="${paneVariants()}"></section>`\ncontainer.innerHTML = html\nexpect(container.firstChild).toBeVisible()',
+      'const html = `<section class="${paneVariants()}"></section>`\nconst host = mount(html)\nexpect(getComputedStyle(host).position).toBe(\'relative\')',
+      'const classes = buttonVariants()\nrender(<button className={classes} />)',
+      "const variants = buttonVariants\nexpect(variants).toBeTypeOf('function')",
+      "render(<div className={buttonVariants().split(' ')[0]} />)\nexpect(screen.getByRole('button')).toHaveClass('is-interactive')",
+      "render(<div className={cn(buttonVariants(), 'p-1')} />)",
+      "const classes = [navVariants(), 'p-1'].join(' ')\nrender(<nav className={classes} />)",
+      'for (const track of [trackVariants()]) {\n  render(<div className={track} />)\n}',
+      "const { container } = render(<div className={buttonVariants()} />)\nexpect(container.firstChild).toHaveClass('emphasis-strong')",
+      'expect(Button).toBe(Button.Root)'
+    ],
     invalid: [
-      "expect(buttonVariants({ intent: 'accent' })).toContain('intent-accent')"
+      "expect(buttonVariants({ intent: 'accent' })).toContain('intent-accent')",
+      "expect(buttonVariants().split(' ')).toContain('is-interactive')",
+      "expect(classesOf(buttonVariants())).toContain('h-12')",
+      "expect.soft(buttonVariants()).toContain('h-12')",
+      'expect(row).toHaveClass(listItemVariants())',
+      'expect(row.className).toBe(listItemVariants({ selected: false }))',
+      "const classes = buttonVariants({ size: 'sm' })\nexpect(classes).toContain('h-8')",
+      "const classes = buttonVariants().split(' ')\nexpect(classes).not.toContain('is-interactive')",
+      "const classes = [navVariants(), 'p-1'].join(' ')\nexpect(classes).toContain('p-1')",
+      "for (const track of [trackVariants(), 'relative']) {\n  expect(track).toContain('relative')\n}",
+      {
+        code: "const classes = buttonVariants()\nexpect(classes).toContain('gap-2')\nexpect(classes).toContain('emphasis-subtler')",
+        errors: 2
+      }
     ]
   }
 }

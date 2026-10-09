@@ -31,7 +31,9 @@ describe('dataviz.css', () => {
     expect(fallbackLight).toMatch(/--chart-highlight: #[0-9a-f]{6};/)
     expect(fallbackLight).toMatch(/--chart-band: #[0-9a-f]{8};/)
 
-    const inkFallback = block(":root, .dark, [class*='intent-'] {")
+    const inkFallback = block(
+      ":root, .dark, [class*='intent-'], [data-accent-scope] {"
+    )
     for (const name of inkNames) {
       expect(inkFallback).toContain(`--${name}:`)
     }
@@ -67,7 +69,9 @@ describe('dataviz.css', () => {
 
   it('re-declares chart ink wherever intent tokens can change', () => {
     const css = renderDatavizCss()
-    const block = css.match(/:root, \.dark, \[class\*='intent-'\] \{([^}]*)\}/)
+    const block = css.match(
+      /:root, \.dark, \[class\*='intent-'\], \[data-accent-scope\] \{([^}]*)\}/
+    )
     expect(block).not.toBeNull()
     for (const name of ['grid', 'axis', 'label', 'value', 'gap'])
       expect(block![1]).toContain(`--chart-${name}: var(--intent-`)

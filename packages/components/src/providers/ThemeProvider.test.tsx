@@ -1,7 +1,9 @@
 import '@testing-library/jest-dom/vitest'
-import { act, render, renderHook } from '@testing-library/react'
+import { act, render, renderHook, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { getOklchHue } from '@oztix/roadie-core/colors'
 
 import {
   DEFAULT_ACCENT_COLOR,
@@ -243,6 +245,109 @@ describe('ThemeProvider - accent color', () => {
     })
     act(() => result.current.setAccentColor('#FF0000'))
     expect(result.current.accentColor).toBe('#FF0000')
+  })
+})
+
+describe('ThemeProvider - accent scope', () => {
+  const ROOT = '#0091EB'
+  const ROUTE = '#7C3AED'
+
+  const accentStyle = () => document.getElementById('roadie-accent-theme')
+  const documentHue = () =>
+    accentStyle()?.textContent?.match(/--accent-hue:\s*(-?\d+)/)?.[1]
+  const scopeHue = (container: HTMLElement) =>
+    container
+      .querySelector<HTMLElement>('[data-accent-scope]')
+      ?.style.getPropertyValue('--accent-hue')
+
+  // Settles an accent effect that awaits the async hue before it writes.
+  const settle = () => act(async () => void (await getOklchHue(ROUTE)))
+
+  beforeEach(() => accentStyle()?.remove())
+
+  it('scopes a nested accent to its subtree when both mount together', async () => {
+    const { container } = render(
+      <ThemeProvider accentColor={ROOT}>
+        <ThemeProvider accentColor={ROUTE}>
+          <p>Route</p>
+        </ThemeProvider>
+      </ThemeProvider>
+    )
+    await settle()
+    expect(documentHue()).toBe('247')
+    expect(scopeHue(container)).toBe('293')
+  })
+
+  it('keeps the document accent when a nested provider mounts later', async () => {
+    const tree = (route: boolean) => (
+      <ThemeProvider accentColor={ROOT}>
+        {route && <ThemeProvider accentColor={ROUTE}>Route</ThemeProvider>}
+      </ThemeProvider>
+    )
+    const { rerender, container } = render(tree(false))
+    await settle()
+    rerender(tree(true))
+    await settle()
+    expect(documentHue()).toBe('247')
+    expect(scopeHue(container)).toBe('293')
+  })
+
+  it('leaves the outer accent in place when a nested provider unmounts', async () => {
+    const tree = (route: boolean) => (
+      <ThemeProvider accentColor={ROOT}>
+        {route && <ThemeProvider accentColor={ROUTE}>Route</ThemeProvider>}
+      </ThemeProvider>
+    )
+    const { rerender, container } = render(tree(false))
+    await settle()
+    rerender(tree(true))
+    await settle()
+    rerender(tree(false))
+    await settle()
+    expect(container.querySelector('[data-accent-scope]')).toBeNull()
+    await waitFor(() => expect(documentHue()).toBe('247'))
+  })
+
+  it.each([
+    ['getAccentStyleSync', () => getAccentStyleSync(ROUTE)],
+    [
+      'getAccentStyleTagSync',
+      () =>
+        getAccentStyleTagSync(ROUTE).replace(/^<style[^>]*>|<\/style>$/g, '')
+    ]
+  ])(
+    'keeps a server-injected %s style with the same accent',
+    async (_, css) => {
+      const style = document.createElement('style')
+      style.id = 'roadie-accent-theme'
+      style.textContent = css()
+      document.head.append(style)
+      const written = vi.fn()
+      new MutationObserver(written).observe(style, {
+        childList: true,
+        characterData: true,
+        subtree: true
+      })
+
+      render(<ThemeProvider accentColor={ROUTE}>Page</ThemeProvider>)
+      await settle()
+
+      expect(accentStyle()).toBe(style)
+      expect(style.textContent).toBe(css())
+      expect(written).not.toHaveBeenCalled()
+    }
+  )
+
+  it('rewrites a server-injected style with a different accent', async () => {
+    const style = document.createElement('style')
+    style.id = 'roadie-accent-theme'
+    style.textContent = getAccentStyleSync(ROOT)
+    document.head.append(style)
+
+    render(<ThemeProvider accentColor={ROUTE}>Page</ThemeProvider>)
+    await settle()
+
+    await waitFor(() => expect(documentHue()).toBe('293'))
   })
 })
 

@@ -1,3 +1,4 @@
+import { type Oklch, apcaLc } from '../dataviz/color-math'
 import { getAccentChromaSync } from './srgb-to-oklch'
 
 // --- Types ---
@@ -163,10 +164,11 @@ export async function generateAccentScale(
   const light = curveToHex(Color, ACCENT_LIGHT_CURVE, hue, chroma)
   const dark = curveToHex(Color, ACCENT_DARK_CURVE, hue, chroma)
 
-  const strong = new Color(light[9] ?? '#000000')
+  const [l, c, h] = new Color(light[9] ?? '#000000').to('oklch').coords
+  // Achromatic colours have no hue, which colorjs reports as null.
+  const strong: Oklch = [Number(l) || 0, Number(c) || 0, Number(h) || 0]
   const fgOnStrong =
-    Math.abs(strong.contrast(new Color('white'), 'APCA')) >=
-    Math.abs(strong.contrast(new Color('black'), 'APCA'))
+    Math.abs(apcaLc([1, 0, 0], strong)) >= Math.abs(apcaLc([0, 0, 0], strong))
       ? 'white'
       : 'black'
 
