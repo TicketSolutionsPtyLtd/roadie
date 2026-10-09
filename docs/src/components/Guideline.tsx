@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 
 import { CheckCircleIcon, XCircleIcon } from '@phosphor-icons/react/ssr'
 
+import { dedent } from '@/lib/dedent'
+
 import { CodePreview } from './CodePreview'
 
 const EXAMPLE_WIDTHS = {
@@ -15,6 +17,7 @@ type GuidelineCardProps = {
   example?: ReactNode
   /** A spacing-scale width for an example that would otherwise shrink to its content. It never overflows the card. */
   width?: keyof typeof EXAMPLE_WIDTHS
+  /** Source to show, every line indented under the prop. MDX strips up to two spaces from each line, so the shared indent is dropped here. */
   code?: string
   children: ReactNode
 }
@@ -56,7 +59,7 @@ function GuidelineCard({
               showCopy={isDo}
               className={`${example ? 'border-t border-subtler' : 'rounded-t-xl'} relative min-w-0 emphasis-sunken`}
             >
-              {code}
+              {dedent(code)}
             </CodePreview>
           )}
         </div>

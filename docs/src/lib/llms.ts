@@ -87,6 +87,8 @@ function attribute(node: JsxElement, name: string) {
   return attr.value.value
 }
 
+// A copy of `dedent.ts`: scripts run under plain Node, which can't resolve the
+// extensionless import the app's tsconfig requires.
 function dedent(source: string) {
   const lines = source.replace(/^\s*\n|\s+$/g, '').split('\n')
   const indent = Math.min(

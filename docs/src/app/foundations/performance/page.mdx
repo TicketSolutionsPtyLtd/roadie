@@ -1,0 +1,241 @@
+export const metadata = {
+  title: 'Performance',
+  description:
+    'Frontend performance principles for building fast, responsive Oztix applications.',
+  category: 'Building apps'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+Speed is a feature. Performance is the foundation of user trust. Latency kills
+flow.
+
+## Measure reliably
+
+You can't fix what you can't measure. Guesswork leads to optimisation of the
+wrong things.
+
+<Guidelines>
+
+<Guideline title='Test on real conditions' description='Development machines lie. A fast laptop on fibre hides the problems your users face.'>
+  <Guideline.Do>
+    Disable extensions. Use CPU and network throttling to simulate real
+    devices. Profile in an incognito window.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't profile on a high-end machine with a fibre connection and assume
+    it's fine.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Core Web Vitals
+
+Three metrics that define real-world user experience. Target green on all
+three.
+
+<Guidelines>
+
+<Guideline title='No layout shift (CLS)' description='Stability is quality. Things should not jump around as they load.'>
+  <Guideline.Do
+    code={`
+      <!-- Set explicit dimensions on images -->
+      <img src="hero.jpg" width={800} height={400} alt="..." />
+
+      <!-- Reserve space for async content -->
+      <div className='min-h-50'>
+        {content ?? <Skeleton />}
+      </div>
+    `}
+  >
+    Set explicit dimensions on all images and media. Reserve space for content
+    that loads asynchronously.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't let an image push text down the page when it finally loads, or
+    inject content above the viewport without reserving space.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Fast first paint (LCP)' description='Prioritise the viewport. Bandwidth should be spent on what is seen immediately.'>
+  <Guideline.Do
+    code={`
+      <!-- Preload above-the-fold images -->
+      <link rel="preload" href="/hero.jpg" as="image" />
+
+      <!-- Lazy-load everything else -->
+      <img src="footer.jpg" loading="lazy" alt="..." />
+    `}
+  >
+    Preload above-the-fold images. Lazy-load everything below the fold.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't lazy-load the Largest Contentful Paint image, causing a visible
+    delay on the most important element.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+For Oztix-hosted imagery the [`Image` component](/components/image) handles
+all of this: explicit dimensions to prevent CLS, a right-sized WebP `srcSet` to
+cut bytes, lazy-by-default loading with `priority` for the LCP image, and
+`defer` for off-screen carousel slides.
+
+<Guidelines>
+
+<Guideline title='Responsive to input (INP)' description='The main thread is for UI. Heavy logic belongs elsewhere.'>
+  <Guideline.Do>
+    Move expensive calculations or data processing to Web Workers. Break long
+    tasks into smaller chunks with `requestIdleCallback` or
+    `scheduler.yield()`.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't freeze the UI while parsing a large JSON file or running an
+    expensive sort on the main thread.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Rendering
+
+Reactivity has a cost. The DOM is slow. Minimise the work the browser has to
+do.
+
+<Guidelines>
+
+<Guideline title='Track re-renders' description='Unnecessary renders burn battery and block interaction.'>
+  <Guideline.Do>
+    Use React DevTools or React Scan to identify and minimise re-renders.
+    Colocate state near where it's used.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't assume functional components are cheap enough to re-render
+    constantly. A parent re-rendering cascades to every child.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Minimise layout work' description='Reading and writing layout properties triggers expensive reflows.'>
+  <Guideline.Do>
+    Batch DOM reads and writes. Animate with `transform` and `opacity`
+    (compositor-only properties) instead of `width`, `height`, or `top`.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't read a width, set a width, then read it again in a loop (layout
+    thrashing).
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Virtualise large lists' description="DOM nodes are heavy. Don't render what the user can't see.">
+  <Guideline.Do
+    code={`
+      /* Use virtualisation or CSS containment */
+      <VirtualList items={items} />
+
+      /* Or use CSS containment for simpler cases */
+      .offscreen { content-visibility: auto; }
+    `}
+  >
+    Use virtualisation (such as `virtua`) or `content-visibility: auto` for
+    long lists and large tables.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't render 10,000 rows in a table just because the API returned them.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Network
+
+Latency kills flow. API interactions should feel instantaneous.
+
+<Guidelines>
+
+<Guideline title='Network budgets' description='Set expectations for how fast things should be.'>
+  <Guideline.Do>
+    Ensure POST, PATCH, and DELETE requests complete in under 500ms. Use
+    optimistic UI for fast, reversible actions so the interface moves at the
+    speed of thought.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't block the UI for 2 seconds while waiting for a database write.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Preconnect to origins' description='Handshakes take time. Establish connections before you need the data.'>
+  <Guideline.Do
+    code={`
+      <link rel="preconnect" href="https://cdn.oztix.com.au" />
+      <link rel="dns-prefetch" href="https://api.oztix.com.au" />
+    `}
+  >
+    Use `<link rel="preconnect">` for critical CDNs or API domains.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't wait until JavaScript requests a font before opening the connection
+    to the font server.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Fonts
+
+Typography should not block reading. Text must appear fast. See
+[Typography](/foundations/typography) for the full type system.
+
+<Guidelines>
+
+<Guideline title='Optimise font loading' description='Custom fonts are a luxury the user pays for with load time.'>
+  <Guideline.Do>
+    Preload critical fonts. Subset fonts to only include used characters (such
+    as with `unicode-range`). Use `font-display: swap` so text is visible
+    immediately.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't load a 5MB font file containing every language in the world for an
+    English site.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## What Roadie handles
+
+The design system already takes care of several performance concerns. You get
+these for free.
+
+### Fluid typography
+
+Sizes `text-lg` and above use `clamp()` for fluid scaling. No manual
+breakpoint overrides needed.
+
+### CSS-only utilities
+
+Intent, emphasis, and interaction utilities are pure CSS. No JavaScript
+runtime cost for styling.
+
+### Tree-shakeable components
+
+Components are built with `tsdown` in unbundle mode. Every leaf compiles to
+its own dist file, so subpath imports only drag in what you use.
+
+### Reduced motion
+
+A global `prefers-reduced-motion` reset neutralises all transitions and
+animations automatically.
+
+## Quick reference
+
+How performance rules map to existing foundation pages.
+
+| Rule                  | Foundation                                | What it covers                                       |
+| --------------------- | ----------------------------------------- | ---------------------------------------------------- |
+| No CLS                | [Layout](/foundations/layout)             | Grid defaults, explicit sizing, and gap over margin  |
+| Font optimisation     | [Typography](/foundations/typography)     | Fluid scaling, font families, and preloading         |
+| Compositor animations | [Motion](/foundations/motion)             | Transform and opacity transitions, and motion tokens |
+| Reduced motion        | [Motion](/foundations/motion)             | Global `prefers-reduced-motion` reset                |
+| Optimistic UI         | [Interactions](/foundations/interactions) | Loading states and feedback patterns                 |
