@@ -329,6 +329,61 @@ describe('Prose', () => {
     )
   })
 
+  it('scrolls a wide table at a readable width on a phone, and fits a narrow one', () => {
+    const container = renderWide(
+      <Prose size='lg'>
+        <div id='wide' className='prose-scroll'>
+          <table>
+            <thead>
+              <tr>
+                <th>Piece</th>
+                <th>Must be</th>
+                <th id='why'>Why</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  The shell layout, <code>Navigator</code>,{' '}
+                  <code>Navigator.Primary</code>, and everything inside it
+                </td>
+                <td>Client</td>
+                <td>
+                  Navigator finds its parts by element reference. A server
+                  component replaces those references, so items, groups, and
+                  menus silently disappear.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div id='narrow' className='prose-scroll'>
+          <table>
+            <tbody>
+              <tr>
+                <td>Doors</td>
+                <td>Gates open at 11am</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Prose>,
+      327
+    )
+    const wide = get(container, '#wide') as HTMLElement
+    const why = get(container, '#why')
+    const em = px(style(why).fontSize)
+    expect(box(wide).right).toBeLessThanOrEqual(box(container).right)
+    expect(box(why).width).toBeGreaterThanOrEqual(10 * em)
+    expect(wide.scrollWidth).toBeGreaterThan(wide.clientWidth)
+
+    const narrow = get(container, '#narrow') as HTMLElement
+    expect(narrow.scrollWidth).toBe(narrow.clientWidth)
+    expect(box(get(container, '#narrow table')).width).toBeLessThan(
+      box(narrow).width
+    )
+  })
+
   it('restores full-width text with the class the release notes give', () => {
     const container = renderWide(
       <Prose className='[--prose-measure:none]'>

@@ -40,6 +40,9 @@ What changes on the page:
   and a nested bulleted list uses circles.
 - Tables shrink to fit their content instead of filling the width. Wrap a wide
   table in `<div class="prose-scroll">` so it scrolls sideways on a phone.
+  With less than 28em of room, a table in `.prose-scroll` keeps its natural
+  width up to 28em and scrolls, rather than squeezing its text columns to one
+  word per line. A table narrower than the room still fits without scrolling.
   Inline code in a table inside `.prose-scroll` stays on one line, so a name
   such as `rounded-sm` never splits; the table scrolls instead. Outside
   `.prose-scroll`, inline code still breaks where it must so the table fits.

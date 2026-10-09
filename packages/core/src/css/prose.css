@@ -371,6 +371,16 @@
     ) {
     overflow-x: auto;
   }
+  /* With less than 28em of room, a table keeps up to 28em and scrolls, rather
+     than squeezing every text column to its longest word. With more room it
+     shrinks to fit, like a bare table. */
+  .prose
+    :where(.prose-scroll > table):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    width: max-content;
+    max-inline-size: max(100%, 28em);
+  }
   /* The scroller takes the overflow, so a token such as `rounded-sm` never
      splits. A bare table keeps the reset's `overflow-wrap: anywhere` so it
      still fits its column. */

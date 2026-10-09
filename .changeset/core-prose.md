@@ -10,8 +10,9 @@ is a registered length that resolves once, at the body size, so the space
 around a heading follows the body text rather than the heading's size. Add
 `.prose-bleed` to a child to lift the measure, wrap a wide table in
 `.prose-scroll` to scroll it, and use `.not-prose` or `data-not-prose` to opt a
-subtree out. The `--prose-*` variables adjust size, leading, rhythm, measure,
-and heading sizes and weights.
+subtree out. With less than 28em of room, a table in `.prose-scroll` keeps up
+to 28em and scrolls rather than squeezing its text columns. The `--prose-*`
+variables adjust size, leading, rhythm, measure, and heading sizes and weights.
 
 The `Prose` component in `@oztix/roadie-components` moves onto it in this
 release; its release note lists what changes on the page.
