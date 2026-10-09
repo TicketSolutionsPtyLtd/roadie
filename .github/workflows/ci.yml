@@ -18,9 +18,10 @@ permissions:
   contents: read
 
 # The nightly run gets its own group so a push to main can't replace it while
-# it waits.
+# it waits. Drafts get their own too, so a late draft event can't cancel the
+# full run ready_for_review started.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'schedule' && 'nightly' || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'schedule' && 'nightly' || github.ref }}${{ github.event.pull_request.draft && '-draft' || '' }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
