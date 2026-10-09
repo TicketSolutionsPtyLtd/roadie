@@ -79,11 +79,26 @@ const cases = {
   'no-arbitrary-radius': {
     valid: [
       "<div className='rounded-xl' />",
-      "<div className='rounded-[inherit]' />"
+      "<div className='rounded-[inherit]' />",
+      "<li className='[--record-table-row-end-radius:var(--radius-xl)]'><div className={cn('rounded-b-(--record-table-row-end-radius)')} /></li>",
+      "<ul className='[&>li:has(+li)]:[--record-table-row-end-radius:0px]' />",
+      "cva(['[--pane-radius:var(--radius-2xl)] max-md:[--pane-radius:var(--pane-radius-phone,0px)]', 'rounded-(--pane-radius)'])",
+      "<div className='[--x:0] rounded-(--x)' />",
+      "<div className='[--gap:7px] rounded-(--x) gap-(--gap)' />",
+      "<div className='rounded-(--x)' style={{ '--x': 'var(--radius-lg)' }} />",
+      "<div className='rounded-sm' style={{ '--x': '7px' }} />"
     ],
     invalid: [
       "<div className='rounded-[10px]' />",
-      "cn({ 'rounded-tl-[4px]': open })"
+      "cn({ 'rounded-tl-[4px]': open })",
+      "<div className='[--x:7px] rounded-(--x)' />",
+      "cn('md:[--x:0.5rem]', open && 'rounded-t-(length:--x)')",
+      "cva(['[--x:var(--y,50%)]', 'rounded-(--x)'])",
+      "<div className='rounded-(--x)' style={{ '--x': '7px' }} />",
+      {
+        code: "<div className='[--x:1em] rounded-(--x) rounded-[3px]' />",
+        errors: 2
+      }
     ]
   },
   'no-mdx-layout-class': {

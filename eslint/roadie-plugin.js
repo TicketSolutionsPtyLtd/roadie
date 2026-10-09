@@ -10,6 +10,22 @@ const CLASS_FUNCTIONS = new Set(['cn', 'clsx', 'cva', 'cx', 'twMerge'])
 const LAYOUT_CLASS =
   /(^|:|!)-?(grid|flex|inline|inline-flex|inline-grid|block|inline-block|flow-root|contents|hidden|container|grow|shrink|absolute|relative|fixed|sticky|(gap|space|[mp][trblxyse]?|w|h|min|max-[wh]|grid-(cols|rows|flow)|col|row|flex|basis|grow|shrink|order|columns|items|justify|place|self|inset|top|right|bottom|left|start|end)-.+)!?$/
 
+const ARBITRARY_RADIUS = /(^|:|!)rounded(-[a-z]{1,2})?-\[(?!inherit\])/
+const RADIUS_VARIABLE =
+  /(?:^|:|!)rounded(?:-[a-z]{1,2})?-\((?:length:)?(--[\w-]+)\)/
+const VARIABLE_ASSIGNMENT = /(?:^|:|!)\[(--[\w-]+):(.+)\]!?$/
+const RAW_LENGTH = /(?<![\w.-])(\d*\.?\d+)(?:px|rem|em|%)/g
+
+const radiusVariables = (tokens) =>
+  new Set(
+    tokens.map((token) => RADIUS_VARIABLE.exec(token)?.[1]).filter(Boolean)
+  )
+
+// Zero is allowed, so a var() fallback of 0px passes.
+const hasRawLength = (value) =>
+  typeof value === 'string' &&
+  [...value.matchAll(RAW_LENGTH)].some(([, number]) => Number(number) !== 0)
+
 function selectorRule(description, selector, message) {
   return {
     meta: { type: 'problem', docs: { description }, schema: [] },
@@ -38,35 +54,45 @@ function stringParts(root, visitorKeys) {
   return parts
 }
 
-function classRule(description, pattern, message) {
-  return {
-    meta: { type: 'problem', docs: { description }, schema: [] },
-    create(context) {
-      const { visitorKeys } = context.sourceCode
-      // className={cn('…')} reaches each string through both visitors.
-      const checked = new WeakSet()
-      const check = (root) => {
-        for (const { node, text } of stringParts(root, visitorKeys)) {
-          if (checked.has(node)) continue
+function classStrings(context, checkParts) {
+  const { visitorKeys } = context.sourceCode
+  // className={cn('…')} reaches each string through both visitors.
+  const checked = new WeakSet()
+  const check = (roots) =>
+    checkParts(
+      roots
+        .flatMap((root) => stringParts(root, visitorKeys))
+        .filter(({ node }) => {
+          if (checked.has(node)) return false
           checked.add(node)
-          for (const token of text.split(/\s+/)) {
-            if (pattern.test(token)) {
-              context.report({ node, message, data: { token } })
-            }
-          }
-        }
-      }
-      return {
-        JSXAttribute(node) {
-          if (CLASS_ATTRIBUTE.test(node.name.name)) check(node.value)
-        },
-        CallExpression(node) {
-          if (CLASS_FUNCTIONS.has(node.callee.name)) {
-            node.arguments.forEach(check)
-          }
+          return true
+        })
+    )
+  return {
+    JSXAttribute(node) {
+      if (CLASS_ATTRIBUTE.test(node.name.name)) check([node.value])
+    },
+    CallExpression(node) {
+      if (CLASS_FUNCTIONS.has(node.callee.name)) check(node.arguments)
+    }
+  }
+}
+
+const classPattern = (context, pattern, message) =>
+  classStrings(context, (parts) => {
+    for (const { node, text } of parts) {
+      for (const token of text.split(/\s+/)) {
+        if (pattern.test(token)) {
+          context.report({ node, message, data: { token } })
         }
       }
     }
+  })
+
+function classRule(description, pattern, message) {
+  return {
+    meta: { type: 'problem', docs: { description }, schema: [] },
+    create: (context) => classPattern(context, pattern, message)
   }
 }
 
@@ -353,11 +379,69 @@ const rules = {
     /(^|:|!)-?z-\[/,
     `Replace {{token}} with a named z tier or a plain z-1 style value. See ${DOCS}/foundations/elevation.`
   ),
-  'no-arbitrary-radius': classRule(
-    'No arbitrary radius classes.',
-    /(^|:|!)rounded(-[a-z]{1,2})?-\[(?!inherit\])/,
-    `Replace {{token}} with a named radius tier. See ${DOCS}/foundations/shape.`
-  ),
+  'no-arbitrary-radius': {
+    meta: {
+      type: 'problem',
+      docs: { description: 'No arbitrary radius classes or variables.' },
+      schema: []
+    },
+    create(context) {
+      const reportRawRadius = (node, name, value) =>
+        context.report({
+          node,
+          message: `Set ${name} to a named radius tier such as var(--radius-xl), or 0, not ${value}. See ${DOCS}/foundations/shape.`
+        })
+      const classes = classPattern(
+        context,
+        ARBITRARY_RADIUS,
+        `Replace {{token}} with a named radius tier. See ${DOCS}/foundations/shape.`
+      )
+      const variables = classStrings(context, (parts) => {
+        const tokens = parts.flatMap(({ node, text }) =>
+          text.split(/\s+/).map((token) => ({ node, token }))
+        )
+        const read = radiusVariables(tokens.map(({ token }) => token))
+        for (const { node, token } of tokens) {
+          const [, name, value] = VARIABLE_ASSIGNMENT.exec(token) ?? []
+          if (read.has(name) && hasRawLength(value)) {
+            reportRawRadius(node, name, value)
+          }
+        }
+      })
+      return {
+        JSXAttribute(node) {
+          classes.JSXAttribute(node)
+          variables.JSXAttribute(node)
+        },
+        CallExpression(node) {
+          classes.CallExpression(node)
+          variables.CallExpression(node)
+        },
+        // style={{ '--x': '7px' }} beside className='rounded-(--x)'.
+        JSXOpeningElement(node) {
+          const attribute = (name) =>
+            node.attributes.find(
+              (a) => a.type === 'JSXAttribute' && a.name.name === name
+            )
+          const style = attribute('style')?.value?.expression
+          const className = attribute('className')?.value
+          if (style?.type !== 'ObjectExpression' || !className) return
+          const read = radiusVariables(
+            stringParts(className, context.sourceCode.visitorKeys).flatMap(
+              ({ text }) => text.split(/\s+/)
+            )
+          )
+          for (const property of style.properties) {
+            const name = property.key?.value
+            const value = staticString(property.value)
+            if (read.has(name) && hasRawLength(value)) {
+              reportRawRadius(property, name, value)
+            }
+          }
+        }
+      }
+    }
+  },
   'no-mdx-layout-class': mdxContentRule(
     classRule(
       'No className layout in docs MDX.',
