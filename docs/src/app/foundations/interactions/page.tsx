@@ -613,7 +613,8 @@ export default function InteractionsPage() {
             intent applies, so a component never sets it itself. Apply each one
             only in its own state, as in{' '}
             <Code>
-              not-data-[pressed]:is-selectable data-[pressed]:is-selected
+              not-data-[pressed]:is-selectable data-[pressed]:emphasis-subtle
+              data-[pressed]:is-selected
             </Code>
             , so the resting and chosen utilities never meet.
           </p>

@@ -53,10 +53,9 @@ export const tabsListVariants = cva(
 // indicator pill that sits behind it. The indicator draws the active
 // fill, so the active tab takes only its label: `is-selected-label`,
 // or `is-selected-label-on-strong` over the `emphasis-strong` pill.
-// `is-interactive` wires the
-// focus ring, cursor, color transition, and disabled state. In
-// vertical direction the tabs left-align their content so labels
-// don't float in the middle of the column.
+// `is-interactive` wires the focus ring, cursor, color transition, and
+// disabled state. In vertical direction the tabs left-align their
+// content so labels don't float in the middle of the column.
 //
 // An icon-only tab (`data-icon-only`, set by Tabs.Tab) is a circle at
 // every size and emphasis, so the pill indicator reads as a circle too.
