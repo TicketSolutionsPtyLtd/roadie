@@ -138,6 +138,12 @@ rule.
 - `<Code>` becomes backticks, and `&apos;` and `{' '}` go.
 - A hand-built `<table>` of token values becomes a docs component that renders
   the tokens. A table of guidance becomes a markdown table.
+- A scale missing from the token manifest depends on where its values live.
+  A Tailwind or core theme variable goes into the manifest first
+  (`packages/core/src/tokens/manifest.ts`, with a test), as Layout's spacing,
+  breakpoints, and containers did. A value that isn't a variable, such as
+  `container-*` padding or a browser default, stays a markdown table, with an
+  e2e test that checks it against the compiled CSS.
 - A `CodePreview` with `tsx-live` becomes a fenced example. A demo that holds
   state stays in the fence as a function component, or becomes a docs
   component when it's chrome rather than code to copy.

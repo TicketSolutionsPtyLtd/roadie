@@ -63,17 +63,13 @@
     will-change: rotate;
   }
 
-  /* Reduced motion keeps the colour and drops the movement: the spin, and the
-     phone pull-back, which the global reset would otherwise snap rather than
-     animate. The tap still has its answer. */
+  /* Reduced motion keeps the colour and drops the movement: the spin here, and
+     the phone pull-back below, which the global reset would otherwise snap
+     rather than animate. The tap still has its answer. */
   @media (prefers-reduced-motion: reduce) {
     [data-slot='navigator-pending']::before {
       rotate: 0.125turn;
       animation: none;
-    }
-
-    [data-slot='navigator-panes'][data-level='0'] {
-      scale: none;
     }
   }
 
@@ -97,9 +93,11 @@
       transition: scale var(--duration-moderate) var(--ease-standard);
     }
 
-    [data-slot='navigator'][data-pending='visible']
-      [data-slot='navigator-panes'][data-level='0'] {
-      scale: 0.96;
+    @media (prefers-reduced-motion: no-preference) {
+      [data-slot='navigator'][data-pending='visible']
+        [data-slot='navigator-panes'][data-level='0'] {
+        scale: 0.96;
+      }
     }
   }
 }
