@@ -72,14 +72,14 @@ jobs:
       - name: Lint and typecheck
         run: pnpm turbo lint typecheck --affected --framework-inference=false
         env:
-          TURBO_SCM_BASE: origin/main
+          TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
 
       # On 4 vCPUs, jsdom suites run 8 to 20 times slower beside lint,
       # typecheck and other packages' tests, so tests run one package at a time.
       - name: Test
         run: pnpm turbo test --affected --framework-inference=false --concurrency=1
         env:
-          TURBO_SCM_BASE: origin/main
+          TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
 
       # eslint's prettier rule only covers files it lints, so md/json drift
       # silently without this.
@@ -150,7 +150,7 @@ jobs:
         env:
           ROADIE_BROWSERS: ${{ matrix.browser }}
           ROADIE_QUARANTINE: skip
-          TURBO_SCM_BASE: origin/main
+          TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
 
       # Only Chromium takes screenshots. The log names the -actual and -diff
       # images, but they live on the runner.
@@ -211,7 +211,7 @@ jobs:
         run: pnpm turbo build --affected --framework-inference=false
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
-          TURBO_SCM_BASE: origin/main
+          TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
 
       # -r so widgets is covered too; it had been over budget unnoticed.
       - name: Check bundle size
