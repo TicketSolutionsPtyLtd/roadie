@@ -271,6 +271,8 @@ describe('the brand row', () => {
     )
     expect(wordmark.getBoundingClientRect().width).toBe(0)
     expect(getComputedStyle(wordmark).opacity).toBe('0')
+    // A folded column can animate open; display: none can't.
+    expect(getComputedStyle(wordmark).display).not.toBe('none')
   })
 
   it('opens the wordmark beside the mark when expanded', async () => {

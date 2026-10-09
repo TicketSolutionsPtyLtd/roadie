@@ -55,5 +55,7 @@ describe.each([
 
     expect(box(slot).width).toBe(0)
     expect(root.width).toBeCloseTo(box('logo-mark').width, 1)
+    const part = document.querySelector(`[data-slot=${slot}]`)!
+    expect(getComputedStyle(part).overflowX).not.toBe('visible')
   })
 })
