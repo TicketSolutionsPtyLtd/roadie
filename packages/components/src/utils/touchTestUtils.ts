@@ -44,7 +44,10 @@ function tapEnded() {
   return async () => {
     try {
       await expect
-        .poll(() => clicked || cancelled || !!touchEnd?.defaultPrevented)
+        .poll(() => clicked || cancelled || !!touchEnd?.defaultPrevented, {
+          message:
+            'The tap never ended in a click, pointercancel, or cancelled touchend'
+        })
         .toBe(true)
     } finally {
       for (const [type, listener] of Object.entries(listeners))
@@ -74,7 +77,8 @@ export async function tapOn(element: Element, spot: TapSpot = 'text') {
     .poll(
       () => lands(element, pointAt(element.getBoundingClientRect(), spot)),
       {
-        timeout: 5000
+        timeout: 5000,
+        message: `The ${spot} spot is off screen or covered, so a tap misses the element`
       }
     )
     .toBe(true)
