@@ -350,16 +350,6 @@ export function measureContrast() {
   )
 }
 
-// What the subtle text colour resolves to where this element sits.
-function subtleText(element: Element) {
-  const probe = document.createElement('span')
-  probe.className = 'text-subtle'
-  ;(element.parentElement ?? element).append(probe)
-  const { color } = getComputedStyle(probe)
-  probe.remove()
-  return color
-}
-
 type KnownLowContrast = {
   role: Role
   matches: (pair: Pair) => boolean
@@ -374,12 +364,6 @@ type KnownLowContrast = {
 // Pairs under their minimum that already shipped. Each leaves once its
 // ticket is fixed, unless it's permanent; anything not listed fails the check.
 const knownLowContrast: KnownLowContrast[] = [
-  {
-    role: 'body text',
-    matches: ({ element, colour }) => colour === subtleText(element),
-    floor: 55,
-    ticket: 'https://oztix.atlassian.net/browse/INNO-1197'
-  },
   {
     role: 'non-text UI',
     matches: ({ element }) =>

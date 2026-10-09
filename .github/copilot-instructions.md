@@ -60,7 +60,7 @@ ESLint already enforce.
   purpose, across the package.
 - Contrast exceptions are allowed only where a test comment and the docs
   record them (for example Kbd `subtle` keycaps at Lc 50 on strong success,
-  warning, danger and brand-secondary fills, and Lc 55 in muted text).
+  warning, danger and brand-secondary fills, and Lc 70 in muted text).
 - Unreleased APIs change by editing their existing changeset, not by adding
   a "breaking" one.
 - Plans and specs live in the PR description, not committed files; don't ask
