@@ -1,0 +1,274 @@
+export const metadata = {
+  title: 'Accessibility',
+  description:
+    'Accessibility principles and testing guidance for building inclusive Oztix applications.',
+  category: 'Behaviour'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+Accessibility is not a feature. It's a quality bar. HTML is the accessible
+baseline, and browsers provide accessibility for free if you use semantic
+elements.
+
+## Semantic HTML first
+
+If you use a `<div>` for a button, you have to rebuild 20 years of browser
+engineering yourself. Use the right element and get keyboard, focus, and
+screen reader support for free.
+
+<Guidelines>
+
+<Guideline title='Use native elements' description='Native elements carry semantics, keyboard behaviour, and ARIA roles automatically.'>
+  <Guideline.Do
+    code={`
+      <button onClick={handleSave}>Save</button>
+      <a href="/settings">Settings</a>
+      <nav aria-label="Main">…</nav>
+      <main>…</main>
+    `}
+  >
+    Use `<button>` for actions, `<a>` for navigation, and `<nav>`, `<main>`,
+    and `<article>` for landmarks.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      <div onClick={handleSave} className="btn">Save</div>
+      <span onClick={() => navigate('/settings')}>Settings</span>
+    `}
+  >
+    Use `<div>` or `<span>` with click handlers to create custom buttons or
+    links. You lose keyboard support, focus management, and screen reader
+    announcements.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Meaningful document structure' description='Heading hierarchy is the table of contents for screen reader users.'>
+  <Guideline.Do>
+    Use headings in order, `<h1>`, then `<h2>`, then `<h3>`. Don't skip
+    levels. Every page should have exactly one `<h1>`.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Choose heading levels based on visual size. Use `<h4>` after `<h2>`
+    because it looks right. Use the `text-display-*` classes for visual sizing
+    instead.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## ARIA as a last resort
+
+The first rule of ARIA is don't use ARIA. If a native HTML element with the
+semantics you need exists, use it. ARIA supplements HTML, and it doesn't
+replace it.
+
+<Guidelines>
+
+<Guideline title='Prefer native over ARIA' description='ARIA overrides native semantics. Used incorrectly, it makes things worse, not better.'>
+  <Guideline.Do
+    code={`
+      <!-- Native checkbox gets keyboard, focus and state for free -->
+      <input type="checkbox" id="terms" />
+      <label htmlFor="terms">I agree to the terms</label>
+    `}
+  >
+    Reach for ARIA only when there is no native element for the pattern, such
+    as tabs, tree views, and comboboxes. Roadie's Base UI components handle
+    ARIA attributes automatically for these cases.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      <!-- Reinventing a checkbox from scratch -->
+      <div role="checkbox" aria-checked="false"
+        tabIndex={0} onClick={toggle}
+        onKeyDown={handleKeyDown}>
+        I agree to the terms
+      </div>
+    `}
+  >
+    Build custom ARIA widgets when a native element exists. Every attribute
+    you add manually is an attribute you must maintain.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Colour and contrast
+
+Sufficient contrast is non-negotiable. Never convey meaning through colour
+alone. See [Colors](/foundations/colors) for the full colour system.
+
+<Guidelines>
+
+<Guideline title='Meet the APCA contrast thresholds' description='Roadie measures all contrast with APCA, not WCAG 2 ratios. The thresholds for body text, labels, large text, and non-text UI are in Colors.'>
+  <Guideline.Do>
+    Use Roadie's semantic text colours (`text-normal`, `text-subtle`,
+    `text-strong`), and check the one you pick against
+    [the threshold](/foundations/colors#contrast) for its role and surface.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Use raw colour values without checking contrast. Light grey text on a
+    white background may look subtle but fails APCA.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Colour is not the only signal' description="Many colour-blind users can't tell red from green. Always pair colour with another indicator.">
+  <Guideline.Do>
+    Pair colour with icons, text labels, or patterns. An error state uses
+    `intent-danger` (red) plus an error icon plus error text.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Indicate success or failure only through green or red colouring with no
+    supporting text or icon.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Keyboard and focus
+
+Keyboard accessibility is covered in depth in the
+[Interactions](/foundations/interactions) foundation. It covers keyboard
+operability, visible focus indicators, focus management, and hit targets.
+
+## Reduced motion
+
+Motion can cause nausea and disorientation. Roadie includes a global
+`prefers-reduced-motion` reset. See [Motion](/foundations/motion) for full
+details on duration tokens, easing, and how to test.
+
+## Screen readers
+
+Screen readers interpret the DOM, not the pixels. What you see is not what
+they hear.
+
+<Guidelines>
+
+<Guideline title='Meaningful alt text' description='Images without alt text are invisible to screen readers. Decorative images need empty alt.'>
+  <Guideline.Do
+    code={`
+      <!-- Informative image -->
+      <img src="seating-map.png" alt="Venue seating map showing sections A through F" />
+
+      <!-- Decorative image -->
+      <img src="divider.svg" alt="" />
+    `}
+  >
+    Write alt text that describes the content or function of the image, not
+    its appearance. Use empty `alt=""` for purely decorative images.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Omit the `alt` attribute entirely, so screen readers read the filename, or
+    write "image" as alt text.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Announce dynamic content' description="Screen readers don't automatically notice DOM changes. Tell them what changed.">
+  <Guideline.Do
+    code={`
+      <!-- Announce status updates -->
+      <div role="status" aria-live="polite">
+        3 items added to cart
+      </div>
+
+      <!-- Announce urgent errors -->
+      <div role="alert">
+        Payment failed. Please try again.
+      </div>
+    `}
+  >
+    Use `aria-live="polite"` for non-urgent updates, such as status messages
+    and search results. Use `role="alert"` for urgent notifications, such as
+    errors and warnings.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Update content silently. A toast notification that isn't announced leaves
+    screen reader users unaware of what happened.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Forms
+
+Form interaction patterns, such as labels, placeholders, validation, and
+submit behaviour, are covered in [Interactions](/foundations/interactions)
+and [Forms](/foundations/forms). This section covers the attributes that make
+forms accessible to assistive technology, which `Field` and `Fieldset` set for
+you.
+
+<Guidelines>
+
+<Guideline title='Associate errors with fields' description='Screen readers need a programmatic link between an input and its error message.'>
+  <Guideline.Do
+    code={`
+      <Field invalid={hasError}>
+        <Field.Label>Email</Field.Label>
+        <Field.Input type='email' />
+        <Field.ErrorText>Enter a valid email address</Field.ErrorText>
+      </Field>
+    `}
+  >
+    Wrap the control in `Field` and set `invalid`. Field marks the control
+    `aria-invalid`, links `Field.ErrorText` to it with `aria-describedby`, and
+    announces the error.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Show a red border and error text next to a field without any programmatic
+    association. Sighted users see it. Screen reader users don't.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Group related fields' description='Field groups need a shared label so screen readers announce the context.'>
+  <Guideline.Do
+    code={`
+      <Fieldset>
+        <Fieldset.Legend>Billing address</Fieldset.Legend>
+        <Field>
+          <Field.Label>Street</Field.Label>
+          <Field.Input />
+        </Field>
+        <Field>
+          <Field.Label>City</Field.Label>
+          <Field.Input />
+        </Field>
+      </Fieldset>
+    `}
+  >
+    Use `Fieldset` and `Fieldset.Legend`, which render `<fieldset>` and
+    `<legend>`, to group related fields. Screen readers announce the legend
+    before each field in the group.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Group fields under a visual heading with no programmatic relationship.
+    Screen reader users won't know the fields are related.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## What Roadie handles
+
+The design system provides accessible primitives. You get these for free when
+you use Roadie components.
+
+| Primitive            | What you get                                                                                                                              |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Base UI primitives   | Components built on Base UI provide correct ARIA attributes, focus management, and keyboard navigation out of the box.                    |
+| Focus rings          | `is-interactive` provides visible `:focus-visible` rings coloured by the nearest intent.                                                  |
+| Field state styling  | `is-interactive-field` provides visual state transitions for focus and `aria-invalid` automatically.                                      |
+| Contrast-safe tokens | Semantic colour tokens (`text-normal`, `text-subtle`) adapt to light and dark modes. Check each against the APCA threshold for its role and surface. |
+
+## Testing checklist
+
+Run through this checklist before shipping. Automated tools catch about 30% of
+issues, and the rest need manual testing.
+
+| Test           | How                                                         | What to check                                                                                           |
+| -------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Keyboard       | Tab through the page                                        | Every interactive element is reachable and operable. Focus order is logical. There are no keyboard traps. |
+| Screen reader  | VoiceOver (macOS) or NVDA (Windows)                         | Content is announced meaningfully. Dynamic updates are heard. Form errors are associated.               |
+| Contrast       | An APCA contrast checker                                    | Text, labels, and UI components meet the APCA thresholds in [Colors](/foundations/colors#contrast).     |
+| Reduced motion | In DevTools, open Rendering and emulate `prefers-reduced-motion` | No animations play. No functionality is lost.                                                      |
+| Zoom           | Browser zoom to 200%                                        | No content is clipped or overlapping. Layout reflows gracefully.                                        |
