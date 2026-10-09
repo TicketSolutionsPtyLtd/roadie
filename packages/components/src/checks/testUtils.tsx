@@ -216,28 +216,30 @@ export async function showScenario(
   await scenario.reach?.()
 }
 
-type KnownViolation = {
+type AllowedViolation = {
   rule: string
   /** Matches the offending element. */
   selector: string
   /** Set when only this engine reports it. */
   browser?: string
-  ticket: string
 }
 
 // Serious and critical violations that already shipped. Each leaves once its
 // ticket is fixed; anything not listed fails the check.
-const knownViolations: KnownViolation[] = [
+const knownViolations: (AllowedViolation & { ticket: string })[] = []
+
+// Violations we keep on purpose, each with the decision that explains why.
+const acceptedViolations: (AllowedViolation & { decision: string })[] = [
   {
     rule: 'aria-command-name',
-    selector: '[data-base-ui-focus-guard]',
+    selector: '[data-base-ui-focus-guard][role="button"]',
     browser: 'webkit',
-    ticket: 'https://oztix.atlassian.net/browse/INNO-1184'
+    decision: 'docs/decisions/0012-base-ui-focus-guards.md'
   }
 ]
 
 const isKnown = (rule: string, { target }: NodeResult) =>
-  knownViolations.some(
+  [...knownViolations, ...acceptedViolations].some(
     (known) =>
       known.rule === rule &&
       (known.browser ?? server.browser) === server.browser &&
