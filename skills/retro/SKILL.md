@@ -91,4 +91,5 @@ owner.
 ## 5. Report
 
 The scope, the tally table, each action with its rung and PR link, and what
-you left alone and why. A retro is done when at least one action has merged.
+you left alone and why. A retro that finds no pattern says so; otherwise it
+is done when its first action has merged.
