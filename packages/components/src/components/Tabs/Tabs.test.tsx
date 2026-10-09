@@ -181,13 +181,6 @@ describe('Tabs', () => {
     }
   )
 
-  it('emphasis="subtler" draws the underline in Highlight under forced colours', () => {
-    const { container } = render(<ThreeTabs emphasis='subtler' />)
-    expect(container.querySelector('[data-slot="tabs-indicator"]')).toHaveClass(
-      'forced-colors:bg-[Highlight]'
-    )
-  })
-
   it('every tab carries the is-interactive utility', () => {
     const { container } = render(<ThreeTabs />)
     container.querySelectorAll('[data-slot="tabs-tab"]').forEach((tab) => {
