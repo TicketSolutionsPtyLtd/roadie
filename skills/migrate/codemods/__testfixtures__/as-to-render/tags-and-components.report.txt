@@ -1,0 +1,2 @@
+line 17: <Breadcrumb.Link as={…}> is not a tag name. With href, drop as and let RoadieProvider's Link route it; otherwise pass render={<Component …props />}.
+line 21: <Carousel.TitleLink as={…}> is not a tag name. With href, drop as and let RoadieProvider's Link route it; otherwise pass render={<Component …props />}.

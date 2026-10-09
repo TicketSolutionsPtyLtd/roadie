@@ -1,0 +1,2 @@
+line 7: <Popover.Content positionerProps={…}> is not an object literal; move side, align, sideOffset, and alignOffset to Popover.Content by hand.
+line 8: <Popover.Content positionerProps={…}> is not an object literal; move side, align, sideOffset, and alignOffset to Popover.Content by hand.

@@ -20,6 +20,9 @@ node_modules
 **/node_modules/**
 pnpm-lock.yaml
 
+# Codemod fixtures: the expected output is what the codemod prints.
+**/__testfixtures__/**
+
 # Generated files
 packages/core/src/css/dataviz.css
 **/roadie-core/**

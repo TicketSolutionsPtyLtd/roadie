@@ -1,0 +1,3 @@
+line 6: <Card as={…}> is not a tag name. With href, drop as and let RoadieProvider's Link route it; otherwise pass render={<Component …props />}.
+line 7: <Mark> has both as and render; remove as by hand.
+line 10: <Mark as={…}> is not a tag name. With href, drop as and let RoadieProvider's Link route it; otherwise pass render={<Component …props />}.
