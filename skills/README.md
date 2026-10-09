@@ -28,15 +28,53 @@ These skills ship as a Claude Code plugin. Installing the plugin makes them avai
 
 ## Install
 
-From any repo that uses `@oztix/roadie-core` and `@oztix/roadie-components`:
+The Roadie repo is also a plugin marketplace named `roadie`, so the plugin's
+id is `roadie@roadie`.
+
+**For everyone in a repo**, commit this to the repo's `.claude/settings.json`.
+Claude Code adds the marketplace and installs the plugin once someone trusts
+the folder:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "roadie": {
+      "source": { "source": "github", "repo": "TicketSolutionsPtyLtd/roadie" }
+    }
+  },
+  "enabledPlugins": {
+    "roadie@roadie": true
+  }
+}
+```
+
+**For yourself**, in any repo:
 
 ```
-/plugin install TicketSolutionsPtyLtd/roadie
+/plugin install roadie --marketplace TicketSolutionsPtyLtd/roadie
 ```
 
-Claude Code pulls the plugin from the default branch. Update later with `/plugin update roadie`.
+On Claude Code before 2.1.275, run `/plugin marketplace add
+TicketSolutionsPtyLtd/roadie` and then `/plugin install roadie@roadie`.
 
-After install, the skills are auto-discovered and available as `/roadie:<skill>`.
+The skills are then available as `/roadie:<skill>`.
+
+### Versions and updates
+
+The plugin's version is `version` in
+[`.claude-plugin/plugin.json`](../.claude-plugin/plugin.json), and
+[`CHANGELOG.md`](CHANGELOG.md) says what each version changed. Claude Code
+caches the plugin by version, so a repo only gets new skills when the version
+goes up.
+
+- `claude plugin list` in a shell, or `/plugin` in a session, shows the
+  version you have.
+- `/plugin marketplace update roadie` in a session, or
+  `claude plugin update roadie@roadie` in a shell, updates it. Start a new
+  session to load the new skills.
+- To update in the background, open **Marketplaces** in `/plugin`, select
+  `roadie`, and turn on auto-update. It's off by default for marketplaces
+  outside Anthropic's.
 
 ## Authoring (internal)
 
@@ -45,8 +83,10 @@ Plugin layout (at the Roadie repo root):
 ```
 roadie/
 ├── .claude-plugin/
+│   ├── marketplace.json   ← lists the plugin, so the repo is its own marketplace
 │   └── plugin.json        ← plugin manifest (name, version, description)
 └── skills/
+    ├── CHANGELOG.md       ← one entry per plugin version
     ├── README.md          ← this file
     └── <name>/
         └── SKILL.md       ← skill frontmatter + body, auto-discovered
@@ -59,6 +99,13 @@ roadie/
 - **Plain `SKILL.md`** with `name` and `description` frontmatter, so other agents can read it.
 
 **Repo skills in `.claude/skills/`** stay short and link `docs/contributing/` or the foundations pages instead of copying their rules, so they can't drift.
+
+**Releasing a change.** Any change under `skills/` (other than the changelog)
+bumps `version` in `.claude-plugin/plugin.json` and adds a `## <version>`
+entry to `CHANGELOG.md`: minor for a new skill or a change in what a skill
+does, patch for wording and fixes. CI's `Check plugin release` step fails the
+PR otherwise, and `node scripts/check-plugin-release.mjs` runs it locally. The
+plugin isn't an npm package, so it takes no changeset.
 
 **Skills shipped in this plugin:**
 

@@ -138,6 +138,11 @@ jobs:
             echo "::warning title=PR size::$report"
           fi
 
+      # HEAD^1 is the base for the same reason as the size check.
+      - name: Check plugin release
+        if: github.event_name == 'pull_request'
+        run: node scripts/check-plugin-release.mjs --base HEAD^1
+
       - name: Lint and typecheck
         run: pnpm turbo lint typecheck --affected --framework-inference=false
         env:

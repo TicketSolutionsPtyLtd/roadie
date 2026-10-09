@@ -1,7 +1,7 @@
 {
   "name": "roadie",
-  "description": "Roadie design system skills: audit a codebase against Roadie conventions, review a PR for conventions, bugs, and test quality, and write tests test-first.",
-  "version": "0.3.0",
+  "description": "Roadie design system skills: set up and build with Roadie, chart data, and carry a change from spec to merged PR with review, tests, and demos.",
+  "version": "0.4.0",
   "author": {
     "name": "Oztix",
     "url": "https://github.com/TicketSolutionsPtyLtd/roadie"
