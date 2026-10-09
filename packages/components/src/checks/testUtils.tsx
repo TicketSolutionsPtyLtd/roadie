@@ -100,34 +100,35 @@ const INTENTS = [
 
 // Subtle text in each intent over the surfaces it meets: neutral ones, and the
 // intent's own. Compact enough that every cell sits inside a phone viewport,
-// since cells off screen aren't measured.
+// and block-level so a label that wraps is still hit at its centre: cells
+// that aren't are skipped, not failed.
 function IntentSubtleText() {
   return (
     <div className='grid gap-2 text-xs'>
       {INTENTS.map((intent) => {
         const subtle = (
-          <span className={`intent-${intent} text-subtle`}>{intent}</span>
+          <p className={`intent-${intent} text-subtle`}>{intent}</p>
         )
         return (
           <div key={intent} className='grid grid-cols-4 gap-1 md:grid-cols-8'>
-            <p className='p-1'>{subtle}</p>
-            <p className='emphasis-raised p-1'>{subtle}</p>
-            <p className='emphasis-sunken p-1'>{subtle}</p>
+            <div className='p-1'>{subtle}</div>
+            <div className='emphasis-raised p-1'>{subtle}</div>
+            <div className='emphasis-sunken p-1'>{subtle}</div>
             {[
               'bg-normal',
               'emphasis-sunken',
               'emphasis-subtle',
               'emphasis-subtler'
             ].map((surface) => (
-              <p key={surface} className={`intent-${intent} ${surface} p-1`}>
-                <span className='text-subtle'>{intent}</span>
-              </p>
+              <div key={surface} className={`intent-${intent} ${surface} p-1`}>
+                <p className='text-subtle'>{intent}</p>
+              </div>
             ))}
-            <p className='emphasis-raised p-1'>
-              <span className={`intent-${intent} emphasis-subtle`}>
-                <span className='text-subtle'>{intent}</span>
-              </span>
-            </p>
+            <div className='emphasis-raised p-1'>
+              <div className={`intent-${intent} emphasis-subtle`}>
+                <p className='text-subtle'>{intent}</p>
+              </div>
+            </div>
           </div>
         )
       })}
@@ -413,6 +414,31 @@ type KnownLowContrast = {
 // Pairs under their minimum that already shipped. Each leaves once its
 // ticket is fixed, unless it's permanent; anything not listed fails the check.
 const knownLowContrast: KnownLowContrast[] = [
+  {
+    role: 'body text',
+    // Lc 54.7 at the lowest, danger over a subtle fill on a raised card.
+    // Reaching 75 brings step 11 within Lc 4 to 8 of step 12, normal text.
+    matches: ({ element }) =>
+      element.matches('.text-subtle') &&
+      element.closest(
+        '.intent-brand, .intent-brand-secondary, .intent-accent, .intent-danger, .intent-success, .intent-info'
+      ) !== null,
+    floor: 54,
+    theme: 'dark',
+    ticket: 'https://oztix.atlassian.net/browse/INNO-1200'
+  },
+  {
+    role: 'body text',
+    // Lc 63.5 at the lowest, over a subtle fill. Danger step 11 is also the
+    // chart's critical status, and reaching 75 brings it within ΔE 7 of
+    // categorical slot 7, under the validator's 12.
+    matches: ({ element }) =>
+      element.matches('.text-subtle') &&
+      element.closest('.intent-danger') !== null,
+    floor: 63,
+    theme: 'light',
+    ticket: 'https://oztix.atlassian.net/browse/INNO-1200'
+  },
   {
     role: 'non-text UI',
     matches: ({ element }) =>
