@@ -84,18 +84,21 @@ function statusAlias(
 const fixedInAMode = (p: Palette, s: StatusName) =>
   MODES.some((mode) => p.status[s].step[mode] === null)
 
-function grey(p: Palette, mode: Mode, name: GreyName, modern: boolean) {
+function grey(p: Palette, mode: Mode, name: GreyName, mixable: boolean) {
   const { step, mix } = p.greys[name][mode]
   if (!mix) return `var(--color-neutral-${step})`
-  return modern
+  return mixable
     ? `color-mix(in oklch, var(--color-neutral-${step}), var(--color-neutral-${mix.step}) ${mix.percent}%)`
     : toHex(greyColor(p, mode, name))
 }
 
-// Like a fixed status, a grey mixed in one mode is declared in both modern
-// blocks, or the later :root block would override .dark.
-const mixedInAMode = (p: Palette, g: GreyName) =>
-  MODES.some((mode) => p.greys[g][mode].mix)
+// Like a fixed status, a grey mixed in one mode is declared in both blocks,
+// or the later :root block would override .dark.
+function mixedGreys(p: Palette, mode: Mode) {
+  return LINE_GREYS.filter((g) => MODES.some((m) => p.greys[g][m].mix)).map(
+    (g) => decl(`chart-${g}`, grey(p, mode, g, true))
+  )
+}
 
 function aliases(p: Palette, mode: Mode): [string, string][] {
   return [
@@ -142,10 +145,7 @@ function modeBlock(p: Palette, mode: Mode, modern: boolean) {
     lines.push(
       ...STATUS.filter((s) => fixedInAMode(p, s))
         .flatMap((s) => statusAlias(p, mode, s))
-        .map(([n, v]) => decl(n, v)),
-      ...LINE_GREYS.filter((g) => mixedInAMode(p, g)).map((g) =>
-        decl(`chart-${g}`, grey(p, mode, g, true))
-      )
+        .map(([n, v]) => decl(n, v))
     )
   return lines
 }
@@ -164,6 +164,22 @@ export function renderDatavizCss(p: Palette = defaultPalette): string {
     decl(`color-${name}`, `var(--${name})`)
   )
   const indent = (lines: string[]) => lines.map((line) => `  ${line}`)
+  const [mixedLight, mixedDark] = MODES.map((mode) => mixedGreys(p, mode))
+  // Safari 15.4 to 16.1 draw oklch but not color-mix, so they keep the hex.
+  const mixBlock = mixedDark!.length
+    ? [
+        '',
+        '@supports (color: color-mix(in oklch, red, red)) {',
+        '  :root {',
+        ...indent(mixedLight!),
+        '  }',
+        '',
+        '  .dark {',
+        ...indent(mixedDark!),
+        '  }',
+        '}'
+      ]
+    : []
 
   return [
     '/* Generated from src/dataviz/palette.ts by src/dataviz/css.test.ts.',
@@ -196,6 +212,7 @@ export function renderDatavizCss(p: Palette = defaultPalette): string {
     '    --chart-highlight: oklch(var(--chart-highlight-lc) var(--accent-hue));',
     '  }',
     '}',
+    ...mixBlock,
     ''
   ].join('\n')
 }
