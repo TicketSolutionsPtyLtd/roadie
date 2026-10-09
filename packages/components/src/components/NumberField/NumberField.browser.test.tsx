@@ -95,4 +95,12 @@ describe('NumberField group', () => {
       .closest('[data-slot="number-field-group"]')!
     expect(group.getBoundingClientRect().height).toBe(height)
   })
+
+  it('stands md by default', () => {
+    render(<NumberField aria-label='Tickets' />)
+    const group = screen
+      .getByRole('textbox', { name: 'Tickets' })
+      .closest('[data-slot="number-field-group"]')!
+    expect(group.getBoundingClientRect().height).toBe(40)
+  })
 })

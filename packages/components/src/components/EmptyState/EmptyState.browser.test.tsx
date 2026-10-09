@@ -16,7 +16,7 @@ afterAll(async () => {
 })
 afterEach(() => cleanup())
 
-function renderEmpty(size: EmptyStateSize) {
+function renderEmpty(size?: EmptyStateSize) {
   render(
     <EmptyState size={size}>
       <EmptyState.Title>No events yet</EmptyState.Title>
@@ -41,6 +41,10 @@ describe.each([
     ['lg', largePadding]
   ] as const)('pads a %s empty state by %ipx', (size, padding) => {
     expect(renderEmpty(size).padding).toBe(padding)
+  })
+
+  it('pads by 48px by default', () => {
+    expect(renderEmpty().padding).toBe(48)
   })
 })
 
