@@ -3,9 +3,8 @@
 ## Context
 
 PRs averaged about four Copilot rounds, and one took 27. Copilot kept finding
-what a local review could have found first. Each review was also billed to
-the PR author, so Roadie is now excluded from the org's automatic Copilot
-review (INNO-1203).
+what a local review could have found first. Copilot review is now off for
+Roadie, and our own review replaces it (INNO-1203).
 
 ## Decision
 
@@ -20,7 +19,7 @@ ready PR once.
 
 ## Consequences
 
-PRs need fewer review rounds and commits, and no Copilot spend unless the
+PRs need fewer review rounds and commits, and Copilot reviews only when the
 maintainer chooses it. A Claude Code hook blocks PRs opened without the
 draft flag. With no outside reviewer, a gap in the local review reaches
 `main`, so the retro feeds what slips into the review checklist.
