@@ -16,7 +16,7 @@ classes. For a security-sensitive change or a high-risk one-way door, Merge
 danger may recommend a Copilot review, and the maintainer decides.
 
 This supersedes the earlier one-pass rule, where Copilot reviewed every
-ready PR once, and the selective rule proposed in its place.
+ready PR once.
 
 ## Consequences
 

@@ -190,7 +190,9 @@ the PR only when the review is clean.
   ([decision 0002](../decisions/0002-copilot-last-resort.md)). For a
   security-sensitive change (secrets, auth, workflow permissions, or tokens)
   or a high-risk one-way door, Merge danger may say "Copilot review
-  recommended" with one line on why, and the maintainer decides.
+  recommended" with one line on why, and the maintainer decides. A
+  personal auto-review setting may still post a Copilot review; triage its
+  threads like any other, but never wait for one.
 - **Add the `full-browsers` label** before `gh pr ready` for CSS, layout,
   or anything iOS-sensitive, so the PR also runs WebKit and Firefox. CI reads
   the label when it runs, so a label added later takes effect on the next
