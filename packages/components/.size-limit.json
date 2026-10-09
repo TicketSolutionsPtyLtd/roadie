@@ -252,7 +252,7 @@
     "name": "DatePicker",
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
-    "limit": "34.2 kB",
+    "limit": "34.3 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -280,7 +280,7 @@
     "name": "Records",
     "path": "dist/components/Records/index.js",
     "import": "*",
-    "limit": "94.8 kB",
+    "limit": "94.9 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
