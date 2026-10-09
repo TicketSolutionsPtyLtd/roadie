@@ -95,13 +95,13 @@
 }
 
 .dark {
-  --chart-1: #afcbff;
-  --chart-2: #f373c7;
-  --chart-3: #1e8b82;
+  --chart-1: #abc8fc;
+  --chart-2: #e36ebb;
+  --chart-3: #91fbee;
   --chart-4: #e0ae53;
-  --chart-5: #8655d3;
-  --chart-6: #87fbac;
-  --chart-7: #bf4470;
+  --chart-5: #ae81fe;
+  --chart-6: #82f4a7;
+  --chart-7: #c18998;
   --chart-8: #69bceb;
   --chart-heat-0: #222137;
   --chart-heat-1: #362368;
@@ -120,16 +120,16 @@
   --chart-diverge-neg-2: #d0663d;
   --chart-diverge-neg-3: #f28a33;
   --chart-diverge-neg-4: #ffb84d;
-  --chart-highlight: #a1d0fc;
+  --chart-highlight: #9dcdf9;
   --chart-band: #c6d6e617;
   --chart-diverge-0: var(--color-neutral-6);
   --chart-status-good: var(--color-success-9);
   --chart-status-warning: var(--color-warning-9);
   --chart-status-serious: var(--color-brand-secondary-9);
   --chart-status-critical: var(--color-danger-9);
-  --chart-context: var(--color-neutral-9);
+  --chart-context: #899cae;
   --chart-median: var(--color-neutral-8);
-  --chart-other: var(--color-neutral-10);
+  --chart-other: #92a4b6;
   --chart-missing: var(--color-neutral-5);
   --chart-pair-1: var(--chart-1);
   --chart-pair-2: var(--chart-2);
@@ -179,13 +179,13 @@
   }
 
   .dark {
-    --chart-1: oklch(0.84 0.079 262);
-    --chart-2: oklch(0.731 0.184 342.3);
-    --chart-3: oklch(0.577 0.094 186);
+    --chart-1: oklch(0.83 0.08 262);
+    --chart-2: oklch(0.7 0.17 342.3);
+    --chart-3: oklch(0.92 0.1 186);
     --chart-4: oklch(0.779 0.123 80);
-    --chart-5: oklch(0.566 0.187 298.2);
-    --chart-6: oklch(0.9 0.153 152.7);
-    --chart-7: oklch(0.567 0.162 1.5);
+    --chart-5: oklch(0.7 0.18 298.2);
+    --chart-6: oklch(0.88 0.15 152.7);
+    --chart-7: oklch(0.69 0.07 1.5);
     --chart-8: oklch(0.761 0.106 235.4);
     --chart-heat-0: oklch(0.26 0.04 285);
     --chart-heat-1: oklch(0.323 0.115 291.3);
@@ -204,12 +204,24 @@
     --chart-diverge-neg-2: oklch(0.63 0.145 41);
     --chart-diverge-neg-3: oklch(0.732 0.158 56);
     --chart-diverge-neg-4: oklch(0.83 0.145 74);
-    --chart-highlight-lc: 0.84 0.079;
+    --chart-highlight-lc: 0.83 0.08;
     --chart-band: color-mix(in oklch, var(--color-neutral-11) 9%, transparent);
     --chart-status-critical: var(--color-danger-9);
   }
 
   :root, .dark, [class*='intent-'], [style*='--accent-hue'] {
     --chart-highlight: oklch(var(--chart-highlight-lc) var(--accent-hue));
+  }
+}
+
+@supports (color: color-mix(in oklch, red, red)) {
+  :root {
+    --chart-context: var(--color-neutral-8);
+    --chart-other: var(--color-neutral-9);
+  }
+
+  .dark {
+    --chart-context: color-mix(in oklch, var(--color-neutral-10), var(--color-neutral-11) 35%);
+    --chart-other: color-mix(in oklch, var(--color-neutral-10), var(--color-neutral-11) 45%);
   }
 }

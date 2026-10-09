@@ -35,9 +35,17 @@ page. Its white semibold label carries the selected state. No colour in the
 sRGB gamut reaches Lc 45 against those surfaces while keeping a white label at
 Lc 60; the closest is about 44.8 and 59.8 (INNO-1198).
 
+Dark chart marks and greys are non-text UI, so the dataviz validator measures
+them with APCA at Lc 45 against the dark page (INNO-1223). Every dark
+categorical slot and the context and other greys meet it. To get there, slot 3
+went pale, slot 7 lost chroma to stay clear of the critical red, and the two
+greys mix toward neutral step 11, because no dark neutral step sits between
+Lc 31 and 79.
+
 ## Links
 
 - INNO-1182, white on the accent strong fill
 - INNO-1148, decision 5 as updated on 9 October 2026
 - INNO-1132, the accessibility check
 - INNO-1198, the chosen day's fill in dark mode
+- INNO-1223, dark chart marks and greys

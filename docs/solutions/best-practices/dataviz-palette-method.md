@@ -55,6 +55,16 @@ colour-blind score at 8 or above.
 Slot 7 is crimson-rose at hue 6 in light mode. At the softer level it drifted
 to ΔE 8.5 from the danger status colour. The validator now requires 12.
 
+## Dark marks clear Lc 45, which squeezes lightness
+
+Every dark slot must reach APCA Lc 45 on the page, so all eight sit between
+L 0.69 and 0.92. With so little lightness to spend, teal at L 0.67 collides
+with pink for colour-blind readers, and the trio needs 10. Slot 3 sits at
+L 0.92 instead, and slot 6 dropped to L 0.88 to stay apart from it. Slot 7
+muted to chroma 0.07, since any vivid red that bright sits within ΔE 12 of
+the critical status. The context and other greys mix toward neutral step 11
+with `color-mix`, because the dark neutral scale jumps from Lc 31 to 79.
+
 ## Changing a value
 
 Edit `palette.ts`, run `pnpm --filter @oztix/roadie-core test -u` to regenerate
