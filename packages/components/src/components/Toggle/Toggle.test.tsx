@@ -50,7 +50,7 @@ describe('Toggle', () => {
     const toggle = screen.getByRole('button', { name: 'Bold' })
     expect(toggle).toHaveClass(
       'not-data-[pressed]:emphasis-subtler',
-      'not-data-[pressed]:is-selectable',
+      'not-data-[pressed]:is-unselected',
       'data-[pressed]:emphasis-subtle',
       'data-[pressed]:is-selected'
     )

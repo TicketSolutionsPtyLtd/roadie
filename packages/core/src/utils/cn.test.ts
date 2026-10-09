@@ -52,11 +52,11 @@ describe('cn', () => {
     const states = readFileSync(
       fileURLToPath(new URL('../css/emphasis.css', import.meta.url)),
       'utf8'
-    ).match(/(?<=@utility )is-select[\w-]+/g)
+    ).match(/(?<=@utility )is-(?:un)?select[\w-]+/g)
 
     expect(states).toHaveLength(4)
     for (const state of states ?? []) {
-      expect(cn(state, 'is-selectable')).toBe('is-selectable')
+      expect(cn(state, 'is-unselected')).toBe('is-unselected')
       expect(cn('emphasis-subtle', state)).toBe(`emphasis-subtle ${state}`)
     }
   })

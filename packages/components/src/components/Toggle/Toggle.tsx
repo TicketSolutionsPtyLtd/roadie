@@ -25,7 +25,7 @@ export const toggleVariants = cva('btn is-interactive', {
       subtle:
         'not-data-[pressed]:emphasis-subtle data-[pressed]:emphasis-strong',
       subtler:
-        'not-data-[pressed]:emphasis-subtler not-data-[pressed]:is-selectable data-[pressed]:emphasis-subtle data-[pressed]:is-selected'
+        'not-data-[pressed]:emphasis-subtler not-data-[pressed]:is-unselected data-[pressed]:emphasis-subtle data-[pressed]:is-selected'
     },
     size: {
       xs: 'btn-xs data-[icon-only]:btn-icon-xs',

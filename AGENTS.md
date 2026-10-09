@@ -92,9 +92,8 @@ Each rule has a foundations page with the detail.
   `is-interactive-field` and `is-interactive-field-group` on form controls;
   `is-interactive-within` on a surface whose main link sits inside it, marked
   `data-interactive-target`. Never hand-roll hover or focus states.
-  Choices: `is-selectable` at rest, `emphasis-subtle is-selected` when
-  chosen (quiet controls only, as the fill is faint), or
-  `is-selected-label(-on-strong)` over an indicator.
+  Choices: `is-unselected`; chosen, `emphasis-subtle is-selected` (quiet
+  controls only) or `is-selected-label(-on-strong)` on indicators.
 - **Layout.** `grid gap-*` by default, where the parent sizes its children;
   `flex` when children size themselves. Use `gap`, not margin, and set
   constraints, not fixed sizes.

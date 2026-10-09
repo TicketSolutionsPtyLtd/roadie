@@ -137,7 +137,7 @@ describe('ToggleGroup', () => {
         `data-[pressed]:${label}`
       )
       expect(screen.getByRole('button', { name: '7 days' })).toHaveClass(
-        'not-data-[pressed]:is-selectable'
+        'not-data-[pressed]:is-unselected'
       )
       render(
         <ToggleGroup multiple emphasis={emphasis} aria-label='Text style'>

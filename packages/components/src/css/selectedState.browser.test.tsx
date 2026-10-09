@@ -99,7 +99,7 @@ function renderSet({
       <div className={`${controlIntent} flex gap-2`}>
         <button
           data-rest
-          className='is-interactive emphasis-subtler is-selectable'
+          className='is-interactive emphasis-subtler is-unselected'
         >
           Chart
         </button>

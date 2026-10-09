@@ -343,7 +343,7 @@ function utilityPreview({ name, family, group, kind }: TokenEntry) {
             <span className='size-8 emphasis-raised rounded-md is-translucent' />
           </span>
         )
-      if (name.startsWith('is-selec') && name !== 'is-selected')
+      if (/^is-(un)?selec/.test(name) && name !== 'is-selected')
         return (
           <span
             className={cn(

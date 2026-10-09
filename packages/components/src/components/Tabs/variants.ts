@@ -67,7 +67,7 @@ export const tabsTabVariants = cva(
     'inline-flex items-center gap-1.5',
     'justify-center data-[orientation=vertical]:justify-start',
     'font-semibold whitespace-nowrap',
-    'not-data-[active]:is-selectable',
+    'not-data-[active]:is-unselected',
     'data-[icon-only]:aspect-square data-[icon-only]:shrink-0 data-[icon-only]:rounded-full data-[icon-only]:px-0',
     'data-[icon-only]:data-[orientation=vertical]:justify-center'
   ].join(' '),

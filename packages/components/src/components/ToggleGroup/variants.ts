@@ -25,7 +25,7 @@ export const toggleGroupItemVariants = cva(
     'is-interactive relative z-1',
     'inline-flex items-center justify-center gap-1.5',
     'rounded-full font-semibold whitespace-nowrap select-none',
-    'not-data-[pressed]:is-selectable',
+    'not-data-[pressed]:is-unselected',
     'data-[icon-only]:aspect-square data-[icon-only]:px-0',
     'group-data-[orientation=vertical]/toggle-group:justify-start group-data-[orientation=vertical]/toggle-group:rounded-lg',
     '[&_svg]:shrink-0'

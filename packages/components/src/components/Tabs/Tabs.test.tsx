@@ -174,7 +174,7 @@ describe('Tabs', () => {
       const { container } = render(<ThreeTabs emphasis={emphasis} />)
       container.querySelectorAll('[data-slot="tabs-tab"]').forEach((tab) => {
         expect(tab).toHaveClass(
-          'not-data-[active]:is-selectable',
+          'not-data-[active]:is-unselected',
           'data-[active]:is-selected-label'
         )
       })

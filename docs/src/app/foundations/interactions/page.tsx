@@ -605,7 +605,7 @@ export default function InteractionsPage() {
         {/* selection */}
         <div id='selection' className='grid gap-4'>
           <h3 className='text-display-ui-5 text-strong'>
-            <Code>is-selectable</Code> and <Code>is-selected</Code>
+            <Code>is-unselected</Code> and <Code>is-selected</Code>
           </h3>
           <p className='text-subtle'>
             For a set of choices, such as a toggle, a toggle group or tabs.
@@ -613,7 +613,7 @@ export default function InteractionsPage() {
             intent applies, so a component never sets it itself. Apply each one
             only in its own state, as in{' '}
             <Code>
-              not-data-[pressed]:is-selectable data-[pressed]:emphasis-subtle
+              not-data-[pressed]:is-unselected data-[pressed]:emphasis-subtle
               data-[pressed]:is-selected
             </Code>
             , so the resting and chosen utilities never meet.
@@ -628,7 +628,7 @@ export default function InteractionsPage() {
                 <button
                   type='button'
                   aria-pressed='false'
-                  className='is-interactive rounded-full emphasis-subtler px-3 py-1.5 text-sm font-semibold is-selectable'
+                  className='is-interactive rounded-full emphasis-subtler px-3 py-1.5 text-sm font-semibold is-unselected'
                 >
                   Day
                 </button>
@@ -642,7 +642,7 @@ export default function InteractionsPage() {
                 <button
                   type='button'
                   aria-pressed='false'
-                  className='is-interactive rounded-full emphasis-subtler px-3 py-1.5 text-sm font-semibold is-selectable'
+                  className='is-interactive rounded-full emphasis-subtler px-3 py-1.5 text-sm font-semibold is-unselected'
                 >
                   Month
                 </button>
@@ -661,7 +661,7 @@ export default function InteractionsPage() {
               </thead>
               <tbody className='divide-y divide-subtler text-subtle'>
                 <tr>
-                  <td className='py-2 pr-4 font-mono text-xs'>is-selectable</td>
+                  <td className='py-2 pr-4 font-mono text-xs'>is-unselected</td>
                   <td className='py-2 pr-4 text-strong'>Rest</td>
                   <td className='py-2'>
                     Subtle text, a step up to normal text on hover

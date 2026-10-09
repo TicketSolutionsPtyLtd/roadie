@@ -207,7 +207,7 @@
    under the chosen strong one, so the label tells them apart as well as the
    fill. Doubled to outrank an emphasis's text. Apply it only at rest, so it
    never meets the chosen state's utility. */
-@utility is-selectable {
+@utility is-unselected {
   &:is(&) {
     color: var(--intent-text-subtle);
   }

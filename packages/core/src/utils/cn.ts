@@ -113,7 +113,7 @@ const twMerge = extendTailwindMerge<
         'emphasis-overlay-subtle'
       ],
       selection: [
-        'is-selectable',
+        'is-unselected',
         'is-selected',
         'is-selected-label',
         'is-selected-label-on-strong'
