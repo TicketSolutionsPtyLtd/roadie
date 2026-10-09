@@ -1,0 +1,1 @@
+line 9: <Popover.Content {...}> spreads props, so a placement prop it may set is unknown; move side, align, sideOffset, and alignOffset to Popover.Content by hand.

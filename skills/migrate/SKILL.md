@@ -77,7 +77,7 @@ Keep the list. It's what step 5 checks off.
 | `LinkButton`, `LinkIconButton` (`/link-button`)                                                                                                        | `link-button`       | Uses the codemod reports, and the `LinkButton*` types |
 | `as` on `Card`, `Breadcrumb.Link`, `Carousel.Title`, `Carousel.TitleLink`, `Mark`, `Highlight`, `Prose`, or any `as` whose reason says to use `render` | `as-to-render`      | Uses the codemod reports, and type errors after it    |
 | `'icon-*'` sizes on `IconButton` (a deprecated type, so not in the manifest)                                                                           | `icon-button-size`  | None                                                  |
-| `side`, `align`, `sideOffset`, `alignOffset` in `Popover.Content`'s `positionerProps` (nested, so not in the manifest)                                 | `popover-placement` | Non-literal `positionerProps` the codemod reports     |
+| `side`, `align`, `sideOffset`, `alignOffset` in `Popover.Content`'s `positionerProps` (nested, so not in the manifest)                                 | `popover-placement` | Uses the codemod reports                              |
 | `@oztix/roadie-widgets/cart-drawer/core`, `CartExpiryModals`, `CartExpiryModalsProps`                                                                  | `widgets-renames`   | `.vue` files                                          |
 | `intent` on `Input`, `Textarea`, `Select.Trigger`, `Field.Input`, `Field.Textarea`                                                                     | None                | Always, see step 5                                    |
 | `motion-fade-in`, `motion-scale-in`, `motion-pop-in`, `motion-fade-out`, `motion-scale-out`                                                            | None                | Always, see step 5                                    |
@@ -130,12 +130,15 @@ What they change:
 - **`popover-placement`.** Moves the four placement keys out of an object
   literal `positionerProps` onto `Popover.Content`, and removes
   `positionerProps` once it's empty. A key already set on `Popover.Content`
-  won, so it's dropped from `positionerProps`.
+  wins when it's defined, so a literal one drops its `positionerProps` twin
+  and any other becomes `side={side ?? 'top'}`. It leaves a
+  `Popover.Content` that spreads props.
 - **`widgets-renames`.** Moves `@oztix/roadie-widgets/cart-drawer/core`
   imports to `@oztix/roadie-widgets/cart`, and renames `CartExpiryModals`
   and `CartExpiryModalsProps` to `CartExpiryDialogs` and
   `CartExpiryDialogsProps` with every reference in the file. If the new
-  name is taken in the file, it keeps the old local name as an alias.
+  name is taken in the file, it keeps the old local name as an alias. A
+  re-export or shorthand object key keeps its old public name.
 
 ## 5. Migrate the rest by hand
 
