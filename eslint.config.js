@@ -100,7 +100,7 @@ export default [
       'roadie/no-dark-variant': 'error',
       'roadie/no-hex-colour-class': 'error',
       'roadie/no-arbitrary-z-index': 'error',
-      'roadie/no-arbitrary-radius': 'warn',
+      'roadie/no-arbitrary-radius': 'error',
       'roadie/no-dynamic-next-link': 'error',
       'no-restricted-imports': ['error', { paths: [nextLink] }]
     }
