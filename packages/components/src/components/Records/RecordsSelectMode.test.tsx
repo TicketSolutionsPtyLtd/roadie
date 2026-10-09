@@ -183,10 +183,6 @@ describe('Records Select mode', () => {
 })
 
 describe('Records floating bulk actions', () => {
-  const many: RecordsBulkAction[] = ['Export', 'Archive', 'Print', 'Email'].map(
-    (label) => ({ label, onAction: vi.fn() })
-  )
-
   it('keeps focus with the records after clearing under a Provider', async () => {
     const user = userEvent.setup()
     function Provided() {
@@ -204,7 +200,9 @@ describe('Records floating bulk actions', () => {
             <Records.Content />
           </div>
           <div>
-            <Records.BulkActions actions={many.slice(0, 1)} />
+            <Records.BulkActions
+              actions={[{ label: 'Export', onAction: vi.fn() }]}
+            />
           </div>
         </Records.Provider>
       )
