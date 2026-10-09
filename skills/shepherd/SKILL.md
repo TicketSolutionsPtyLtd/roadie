@@ -65,6 +65,11 @@ is clean, and any demo is approved, rebase and push once:
 git fetch origin && git rebase origin/<base> && git push --force-with-lease
 ```
 
+In Roadie, when the diff touches CSS, layout, or anything iOS-sensitive, run
+`gh pr edit <n> --add-label full-browsers` first, so the run adds WebKit and
+Firefox. A label added after ready applies on the next push or a full
+`gh run rerun <id>`, not `--failed` (PR workflow section 7).
+
 Then `gh pr ready <n>` without waiting for the draft's CI. That starts the
 full run and the one Copilot pass; there is no second. Poll for its review every few minutes, for
 about 30 minutes, then report blocked:
