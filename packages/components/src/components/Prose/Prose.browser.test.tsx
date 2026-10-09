@@ -112,6 +112,52 @@ describe('Prose', () => {
     }
   )
 
+  it('spaces a heading by the same multiple of the body flow at every size', () => {
+    const ratios = (['sm', 'md', 'lg'] as const).map((size) => {
+      const container = renderWide(
+        <Prose size={size}>
+          <p id='a'>Doors 7pm.</p>
+          <p id='b'>General admission, standing.</p>
+          <h2 id='heading'>What to bring</h2>
+        </Prose>
+      )
+      const flow =
+        box(get(container, '#b')).top - box(get(container, '#a')).bottom
+      const above =
+        box(get(container, '#heading')).top - box(get(container, '#b')).bottom
+      cleanup()
+      return above / flow
+    })
+    expect(ratios[0]).toBeGreaterThan(1)
+    expect(ratios[1]).toBeCloseTo(ratios[0]!, 2)
+    expect(ratios[2]).toBeCloseTo(ratios[0]!, 2)
+  })
+
+  it('keeps the space around a heading when its size changes', () => {
+    const space = (className?: string) => {
+      const container = renderWide(
+        <Prose className={className}>
+          <p id='before'>Doors 7pm.</p>
+          <h2 id='heading'>What to bring</h2>
+          <p id='after'>Pack light.</p>
+        </Prose>
+      )
+      const heading = box(get(container, '#heading'))
+      const result = {
+        size: px(style(get(container, '#heading')).fontSize),
+        above: heading.top - box(get(container, '#before')).bottom,
+        below: box(get(container, '#after')).top - heading.bottom
+      }
+      cleanup()
+      return result
+    }
+    const normal = space()
+    const large = space('[--prose-h2-size:5rem]')
+    expect(large.size).toBeGreaterThan(normal.size)
+    expect(large.above).toBeCloseTo(normal.above, 1)
+    expect(large.below).toBeCloseTo(normal.below, 1)
+  })
+
   it.each([
     ['sm', 'ui', DISPLAY_UI],
     ['md', 'prose', DISPLAY_PROSE],
@@ -252,6 +298,35 @@ describe('Prose', () => {
     expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth)
     scroll.scrollLeft = 100
     expect(scroll.scrollLeft).toBe(100)
+  })
+
+  it('keeps inline code whole in a narrow scrolling table, and fits a bare one', () => {
+    const cells = (code: string) => (
+      <tbody>
+        <tr>
+          <td>
+            <code>{code}</code>
+          </td>
+          <td>{LONG}</td>
+          <td>{LONG}</td>
+        </tr>
+      </tbody>
+    )
+    const container = renderWide(
+      <Prose>
+        <div className='prose-scroll'>
+          <table id='scrolled'>{cells('rounded-full')}</table>
+        </div>
+        <table id='bare'>
+          {cells('--prose-h2-size-on-the-legal-pages-at-every-breakpoint')}
+        </table>
+      </Prose>,
+      320
+    )
+    expect(get(container, '#scrolled code').getClientRects()).toHaveLength(1)
+    expect(box(get(container, '#bare')).right).toBeLessThanOrEqual(
+      box(get(container, '[data-slot="prose"]')).right
+    )
   })
 
   it('restores full-width text with the class the release notes give', () => {

@@ -210,6 +210,47 @@ describe('prose.css', () => {
     )
   })
 
+  it('resolves the flow once, at the body size', () => {
+    expect(css).toMatch(/@property --prose-flow\s*{[^}]*syntax: '<length>'/)
+    expect(declaration(ruleFor('.prose'), '--prose-flow')).toBe('1.25em')
+  })
+
+  it('spaces every heading in flows, more above than below', () => {
+    const rule = (prefix: string) =>
+      proseRules.find(({ selector }) =>
+        selector.replace(/\s+/g, ' ').startsWith(prefix)
+      )?.body
+    const flows = (body = '') =>
+      Number(
+        declaration(body, 'margin-block-start')?.match(
+          /^calc\(var\(--prose-flow\) \* ([\d.]+)\)$/
+        )?.[1]
+      )
+    const below = flows(
+      rule('.prose :where(h1, h2, h3, h4, h5, h6) + :where(*)')
+    )
+
+    expect(below).toBeGreaterThan(0)
+    for (const level of [1, 2, 3, 4, 5, 6]) {
+      expect(
+        flows(rule(`.prose :where(h${level}):not(`)),
+        `h${level}`
+      ).toBeGreaterThan(below)
+    }
+  })
+
+  it('keeps inline code in a .prose-scroll table on one line', () => {
+    const code = proseRules.find(({ selector }) =>
+      selector
+        .replace(/\s+/g, ' ')
+        .startsWith(
+          '.prose :where(.prose-scroll) :where(th, td) :where(code, kbd, samp)'
+        )
+    )
+
+    expect(declaration(code?.body ?? '', 'white-space')).toBe('nowrap')
+  })
+
   it('lets tables shrink to fit and scroll in .prose-scroll', () => {
     const table = proseRules.find(({ selector }) =>
       selector.replace(/\s+/g, ' ').startsWith('.prose :where(table):not(')

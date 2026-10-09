@@ -52,9 +52,12 @@ child, such as `text-subtle` on a paragraph, always wins over the sheet.
 ## Rhythm
 
 Space only goes above an element, never below, so a block's first child sits
-flush with the top of its container. Every gap is in `em` and derives from
-`--prose-flow`, which is `1.25em` by default. Headings get more space above
-than below, so each one reads as part of the section it opens.
+flush with the top of its container. Every gap is a multiple of
+`--prose-flow`, which is `1.25em` by default. The property is registered, so
+the `em` resolves once, at the prose body size, and a larger heading doesn't
+bring a larger gap. Space above a heading runs from 1.2 flows for `h5` and `h6`
+to 3 flows for `h1`, and the block after it sits half a flow below, so each
+heading reads as part of the section it opens.
 
 ## Measure
 
@@ -83,7 +86,9 @@ a wide image or a table.
 
 Tables shrink to fit their content. Wrap a table that might be wider than its
 container in `.prose-scroll`, which scrolls sideways instead of overflowing
-the page.
+the page. Inline code in a scrolling table stays on one line, so a token such
+as `rounded-sm` never splits. Outside `.prose-scroll`, inline code still breaks
+where it must, so the table fits its column.
 
 ```tsx-live-prose
 <div className='prose'>
