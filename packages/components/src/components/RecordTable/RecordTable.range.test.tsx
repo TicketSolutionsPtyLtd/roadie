@@ -9,8 +9,6 @@ import { type RecordView, placeRange } from '@oztix/roadie-core/records'
 import { RecordTable, type RecordTableProps } from '.'
 import type { RecordsBulkAction } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
-import { failedRowAt } from './RecordTableRangeError'
-import { firstVisibleRow, stuckInset } from './rowPosition'
 import { bulkBar, countMenuItems, showColumns } from './testUtils'
 
 const EMPTY_VIEW: RecordView = {
@@ -578,54 +576,5 @@ describe('RecordTable range footer', () => {
     render(<Ranged respond='never' />)
     await settle()
     expect(footer()).toBeNull()
-  })
-})
-
-describe('failedRowAt', () => {
-  const range = (loaded: number, count = 10) => ({
-    failed: [{ start: 0, end: 50 }],
-    count,
-    rowAt: (index: number) =>
-      index < loaded ? { id: String(index), row: {} } : undefined
-  })
-
-  it('shows the error at the first row on screen', () => {
-    expect(failedRowAt(range(0), 3, 3)).toEqual({ start: 0, error: true })
-    expect(failedRowAt(range(0), 4, 3)).toEqual({ start: 0, error: false })
-  })
-
-  it('shows the error at the first row not loaded when part of the page is', () => {
-    expect(failedRowAt(range(5), 5, 0)).toEqual({ start: 0, error: true })
-    expect(failedRowAt(range(5), 6, 0)).toEqual({ start: 0, error: false })
-  })
-
-  it('keeps the error within the count', () => {
-    expect(failedRowAt(range(5), 5, 30)).toEqual({ start: 0, error: true })
-    expect(failedRowAt(range(5), 30, 30)).toEqual({ start: 0, error: false })
-  })
-})
-
-describe('firstVisibleRow', () => {
-  const items = [0, 1, 2, 3].map((index) => ({
-    index,
-    end: 100 + (index + 1) * 48
-  }))
-
-  it('finds the first row ending below the stuck header', () => {
-    expect(firstVisibleRow(items, 100, 36)).toBe(0)
-    expect(firstVisibleRow(items, 112, 36)).toBe(1)
-    expect(firstVisibleRow(items, 160, 36)).toBe(2)
-  })
-
-  it('finds nothing past the window', () => {
-    expect(firstVisibleRow(items, 400, 0)).toBeUndefined()
-    expect(firstVisibleRow([], 0, 0)).toBeUndefined()
-  })
-})
-
-describe('stuckInset', () => {
-  it('is zero outside a table', () => {
-    const { container } = render(<div />)
-    expect(stuckInset(container)).toBe(0)
   })
 })

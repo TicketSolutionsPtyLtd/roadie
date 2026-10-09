@@ -33,3 +33,14 @@ export const cardSize = (banner: boolean): RowSize => ({
   measure: true,
   ...cardGap
 })
+
+/** Between grid cards, both ways. */
+export const gridGap = { gapRem: 1, gapClass: 'gap-4' }
+
+/** A grid row of cards; a banner adds less than on a phone, as grid cards are narrower. */
+export const gridRowSize = (banner: boolean): RowSize => ({
+  estimateRem: 10 + (banner ? 9 : 0),
+  heightClass: cardSize(banner).heightClass,
+  measure: true,
+  ...gridGap
+})

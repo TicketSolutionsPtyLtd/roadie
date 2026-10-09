@@ -1,13 +1,27 @@
 'use client'
 
-import { useLayoutEffect, useRef, useState } from 'react'
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState
+} from 'react'
 
 import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual'
 
-import { findScrollParent } from '../Records/scrollParent'
-import { type Watched, firstClearRow } from './rowPosition'
+import type { WindowView } from './recordsWindow'
+import {
+  type Watched,
+  rowPosition,
+  useRowReport,
+  useRowRestore
+} from './rowPosition'
 import { tableRowSize } from './rowSizing'
+import { findScrollParent, findStickyContainer } from './scrollParent'
 import { RECORDS_SCROLLER } from './tableFocus'
+import type { RecordsRangeState } from './types'
 
 const OVERSCAN = 10
 // A first paint before the scroll element is known, on the server or in jsdom.
@@ -28,20 +42,44 @@ const exactHeight = (
 ) =>
   entry?.borderBoxSize?.[0]?.blockSize ?? element.getBoundingClientRect().height
 
+const stuckBottom = (element: HTMLElement) =>
+  (parseFloat(getComputedStyle(element).top) || 0) + element.offsetHeight
+
+/** Px from the scroll element's top edge to the bottom of the stuck header, or of the toolbar over narrow rows. */
+function stuckInset(body: HTMLElement): number {
+  const head = body
+    .closest('[data-slot="record-table-content"]')
+    ?.querySelector<HTMLElement>('[data-slot="record-table-head"]')
+  if (head) return stuckBottom(head)
+  const toolbar = body
+    .closest('[data-slot="records"]')
+    ?.querySelector<HTMLElement>('[data-slot="records-toolbar"]')
+  // From above the scroller, which is a sticky container itself; the toolbar covers the rows only when both stick in one box.
+  const scroller = body.closest<HTMLElement>(RECORDS_SCROLLER)
+  return toolbar &&
+    findStickyContainer(toolbar) === findStickyContainer(scroller)
+    ? stuckBottom(toolbar)
+    : 0
+}
+
 type Scroller = { element: HTMLElement | null; ready: boolean }
 
-export type RowWindowOptions = {
-  count: number
-  getItemKey: (index: number) => string
-  onChange?: (virtualizer: Watched) => void
-  /** Measures the px a scrolled-to row keeps clear at the top, as for a stuck header. */
-  measureInset?: (body: HTMLElement) => number
+/** How a window sizes its rows: fixed, or measured from an estimate. */
+export type RowSizing = {
   /** Each row's height in rem, or its estimate when measured. */
   estimateRem?: number
   /** Measures each rendered row through `measureElement`, for rows that size to their content. */
   measure?: boolean
   /** Rem between rows. */
   gapRem?: number
+}
+
+export type RowWindowOptions = RowSizing & {
+  count: number
+  getItemKey: (index: number) => string
+  onChange?: (virtualizer: Watched) => void
+  /** Measures the px a scrolled-to row keeps clear at the top, as for a stuck header. */
+  measureInset?: (body: HTMLElement) => number
 }
 
 export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
@@ -138,16 +176,23 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
   }, [scroller, isScrolling, count, margin, inset, measureInset])
   // Read here, not by callers: the compiler would cache them on the one mutable instance.
   const items = virtualizer.getVirtualItems()
+  // Set by getVirtualItems: the rows on screen, without overscan.
+  const visible = virtualizer.range
+  const view: WindowView = {
+    items,
+    total: virtualizer.getTotalSize(),
+    margin,
+    offset: virtualizer.scrollOffset ?? 0,
+    inset,
+    visibleStart: visible?.startIndex,
+    fixed: !measureRows
+  }
 
   return {
     bodyRef,
     virtualizer,
-    items,
-    total: virtualizer.getTotalSize(),
-    /** The rows on screen, without overscan; set by getVirtualItems. */
-    visible: virtualizer.range,
-    /** The first row wholly below the stuck header. */
-    firstClear: firstClearRow(items, virtualizer.scrollOffset ?? 0, inset),
+    view,
+    visible,
     margin,
     inset,
     scrollElement: scroller.element,
@@ -156,4 +201,93 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
     // The margin and inset are measured in the same layout effect that finds the scroller.
     measured: scroller.ready
   }
+}
+
+// Range rows key by index: ids would change the key function on every load.
+const indexKey = (index: number) => `@${index}`
+
+/** Range mode's window: reports the first row on screen, restores `row`, and asks for the ranges in view. */
+export function useRangeWindow<Body extends HTMLElement = HTMLDivElement>({
+  range,
+  row,
+  onRow,
+  ...sizing
+}: RowSizing & {
+  range: RecordsRangeState
+  row: number
+  onRow?: (row: number) => void
+}) {
+  const { rowAt, show, count, total: rowTotal, loading } = range
+  // Measured rows key by query too, so a new query's rows start from the
+  // estimate instead of the last query's heights at the same index.
+  const queryKey = useCallback(
+    (index: number) => `${range.key}${indexKey(index)}`,
+    [range.key]
+  )
+  const loaded = useCallback(
+    (index: number) => rowAt(index) !== undefined,
+    [rowAt]
+  )
+  const [position] = useState(rowPosition)
+  const onChange = useRowReport({
+    position,
+    onRow: (next) => onRow?.(next)
+  })
+  const {
+    bodyRef,
+    virtualizer,
+    view,
+    visible,
+    margin,
+    inset,
+    scrollElement,
+    measured,
+    measureElement
+  } = useRowWindow<Body>({
+    count,
+    getItemKey: sizing.measure ? queryKey : indexKey,
+    onChange,
+    measureInset: stuckInset,
+    ...sizing
+  })
+  const first = visible?.startIndex
+  const last = visible?.endIndex
+  // A layout effect, before the plan below, so a first plan knows its target.
+  const plan = useRowRestore({
+    virtualizer,
+    measured,
+    scrollElement,
+    query: range.key,
+    row,
+    total: rowTotal,
+    loaded,
+    inset,
+    margin,
+    position,
+    view: show
+  })
+  // Loading is a dep so a settled range plans again; row, so a new target
+  // does; the key, so a new query plans even when the window hasn't moved.
+  useEffect(() => {
+    if (measured && first !== undefined && last !== undefined) plan(first, last)
+  }, [measured, first, last, count, loading, row, range.key, plan])
+  return { bodyRef, measureElement, view }
+}
+
+/**
+ * Holds measured rows' body at its last committed height. React removes
+ * swapped rows before inserting their replacements, and WebKit clamps the
+ * scroll to the shorter body in between; fixed rows hold their total instead.
+ */
+export function useHeldHeight(
+  bodyRef: RefObject<HTMLElement | null>,
+  enabled: boolean
+) {
+  useLayoutEffect(() => {
+    const body = bodyRef.current
+    if (!body || !enabled) return
+    body.style.minBlockSize = ''
+    // Floored, so the hold never outgrows the rows.
+    body.style.minBlockSize = `${Math.floor(body.getBoundingClientRect().height)}px`
+  })
 }

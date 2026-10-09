@@ -1,48 +1,39 @@
 'use client'
 
-import {
-  type ReactNode,
-  type RefObject,
-  memo,
-  useCallback,
-  useLayoutEffect,
-  useRef
-} from 'react'
+import { type ReactNode, type RefObject, useCallback, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import {
-  listItemContentClass,
-  listItemLeadingClass,
-  listSectionClass
-} from '../List/variants'
+import { listSectionClass } from '../List/variants'
 import { RecordCard } from '../Records/RecordCard'
+import {
+  RecordPlaceholder,
+  RecordRangeError
+} from '../Records/RecordPlaceholder'
+import {
+  VIRTUALISE_AFTER,
+  type WindowPadding,
+  recordsWindow
+} from '../Records/recordsWindow'
+import {
+  type RowSize,
+  cardGap,
+  cardSize,
+  listRowSize
+} from '../Records/rowSizing'
+import {
+  useHeldHeight,
+  useRangeWindow,
+  useRowWindow
+} from '../Records/rowWindow'
+import { useKeepFocusInTable } from '../Records/tableFocus'
 import type {
   RecordCardParts,
   RecordsRangeState,
   RecordsRow
 } from '../Records/types'
 import { RecordTableListRow } from './RecordTableListRow'
-import {
-  RecordTableNarrowRangeError,
-  failedRowAt,
-  rangeErrorKey
-} from './RecordTableRangeError'
-import {
-  VIRTUALISE_AFTER,
-  indexKey,
-  useRangeWindow,
-  windowPadding
-} from './RecordTableRows'
 import type { RecordTableNarrowLayout } from './narrow'
-import { type RowSize, cardGap, cardSize, listRowSize } from './rowSizing'
-import { useRowWindow } from './rowWindow'
-import { useKeepFocusInTable } from './tableFocus'
-
-// Read by RecordTable.image.test.tsx, which INNO-1186 is reworking.
-export const cardRem = (parts: RecordCardParts<never>) =>
-  cardSize(parts.image !== undefined).estimateRem
-export const CARD_REM = cardSize(false).estimateRem
 
 type MeasureElement = (node: HTMLLIElement | null) => void
 
@@ -230,7 +221,7 @@ type ListProps = {
   busy?: boolean
   cards: boolean
   bodyRef?: RefObject<HTMLUListElement | null>
-  padding?: ReturnType<typeof windowPadding>
+  padding?: WindowPadding
   children: ReactNode
 }
 
@@ -277,50 +268,28 @@ function VirtualList({
   cards: boolean
 }) {
   const getItemKey = useCallback((index: number) => rows[index]!.id, [rows])
-  const { bodyRef, items, total, margin, measureElement } =
-    useRowWindow<HTMLUListElement>({
-      count: rows.length,
-      getItemKey,
-      ...sizing(shared)
-    })
+  const { bodyRef, view, measureElement } = useRowWindow<HTMLUListElement>({
+    count: rows.length,
+    getItemKey,
+    ...sizing(shared)
+  })
   useHeldHeight(bodyRef, measureElement !== undefined)
+  const { cells, padding } = recordsWindow(view, { rows })
   return (
-    <NarrowList
-      {...listProps}
-      bodyRef={bodyRef}
-      padding={windowPadding(items, total, margin, !measureElement)}
-    >
-      {items.map((item) => (
+    <NarrowList {...listProps} bodyRef={bodyRef} padding={padding}>
+      {cells.map(({ key, index, record }) => (
         <NarrowRow
-          key={rows[item.index]!.id}
+          key={key}
           shared={shared}
-          record={rows[item.index]!}
-          posInSet={firstIndex + item.index}
+          record={record!}
+          posInSet={firstIndex + index}
           setSize={setSize ?? rows.length}
           measureElement={measureElement}
-          index={item.index}
+          index={index}
         />
       ))}
     </NarrowList>
   )
-}
-
-/**
- * Holds measured rows' body at its last committed height. React removes
- * swapped rows before inserting their replacements, and WebKit clamps the
- * scroll to the shorter body in between; fixed rows hold their total instead.
- */
-export function useHeldHeight(
-  bodyRef: RefObject<HTMLElement | null>,
-  enabled: boolean
-) {
-  useLayoutEffect(() => {
-    const body = bodyRef.current
-    if (!body || !enabled) return
-    body.style.minBlockSize = ''
-    // Floored, so the hold never outgrows the rows.
-    body.style.minBlockSize = `${Math.floor(body.getBoundingClientRect().height)}px`
-  })
 }
 
 function RangeList({
@@ -338,141 +307,62 @@ function RangeList({
   busy?: boolean
   cards: boolean
 }) {
-  const { bodyRef, items, total, margin, measureElement, first } =
-    useRangeWindow<HTMLUListElement>({
-      range,
-      row,
-      onRow,
-      ...sizing(shared)
-    })
+  const { bodyRef, view, measureElement } = useRangeWindow<HTMLUListElement>({
+    range,
+    row,
+    onRow,
+    ...sizing(shared)
+  })
   useHeldHeight(bodyRef, measureElement !== undefined)
   const size = range.total ?? -1
   const { heightClass } = sizing(shared)
+  const { cells, padding } = recordsWindow(view, { range })
   return (
     <NarrowList
       {...listProps}
       busy={listProps.busy || range.loading}
       bodyRef={bodyRef}
-      padding={windowPadding(items, total, margin, !measureElement)}
+      padding={padding}
     >
-      {items.map((item) => {
-        // With the query too, so a new search's row starts fresh.
-        const key = `${range.key}${indexKey(item.index)}`
-        const held = range.rowAt(item.index)
-        const failed = held ? undefined : failedRowAt(range, item.index, first)
-        const measured = measureElement ? item.index : undefined
-        if (failed?.error)
+      {cells.map(({ key, index, record, failed }) => {
+        const measured = measureElement ? index : undefined
+        if (failed === 'error')
           return (
-            <RecordTableNarrowRangeError
-              key={rangeErrorKey(failed.start)}
+            <RecordRangeError
+              key={key}
               heightClass={heightClass}
               card={listProps.cards}
               banner={shared.parts.image !== undefined}
-              posInSet={item.index + 1}
+              posInSet={index + 1}
               setSize={size}
               index={measured}
               measureElement={measureElement}
             />
           )
-        return held ? (
-          // By index: a shifting offset API can return one id twice.
+        return record ? (
           <NarrowRow
             key={key}
             shared={shared}
-            record={held}
-            posInSet={item.index + 1}
+            record={record}
+            posInSet={index + 1}
             setSize={size}
             measureElement={measureElement}
-            index={item.index}
+            index={index}
           />
         ) : (
-          <NarrowPlaceholder
+          <RecordPlaceholder
             key={key}
             parts={shared.parts}
             card={listProps.cards}
             index={measured}
             measureElement={measureElement}
-            blank={failed !== undefined}
+            blank={failed === 'blank'}
           />
         )
       })}
     </NarrowList>
   )
 }
-
-/** A record still loading, at its row's or card's size; static, as a shimmer would repaint each scroll frame. */
-export const NarrowPlaceholder = memo(function NarrowPlaceholder({
-  parts,
-  card,
-  index,
-  measureElement,
-  blank = false
-}: {
-  parts: RecordCardParts
-  card: boolean
-  index?: number
-  measureElement?: MeasureElement
-  /** No bars: a record of a failed range, which isn't loading. */
-  blank?: boolean
-}) {
-  const description = parts.description !== undefined
-  if (card) {
-    const banner = parts.image !== undefined
-    const bodyClass = cardSize(banner).heightClass
-    return (
-      <li
-        ref={measureElement}
-        aria-hidden
-        data-index={index}
-        data-slot='record-table-placeholder-row'
-        data-card=''
-      >
-        <div
-          className={cn(
-            'grid content-start overflow-hidden rounded-xl border border-subtle',
-            !banner && bodyClass
-          )}
-        >
-          {banner && (
-            <span
-              data-slot='record-table-placeholder-media'
-              className={cn('aspect-video', !blank && 'bg-subtle')}
-            />
-          )}
-          <div
-            className={cn('grid content-start gap-2 p-4', banner && bodyClass)}
-          >
-            {!blank && <span className='h-3.5 w-3/5 rounded-sm bg-subtle' />}
-            {!blank && description && (
-              <span className='h-2.5 w-2/5 rounded-sm bg-subtle' />
-            )}
-          </div>
-        </div>
-      </li>
-    )
-  }
-  return (
-    <li aria-hidden data-slot='record-table-placeholder-row'>
-      <div className={cn('flex', listRowSize(parts).heightClass)}>
-        {parts.leading && (
-          <span className={cn(listItemLeadingClass, 'py-0')}>
-            <span className={cn('size-10 rounded-md', !blank && 'bg-subtle')} />
-          </span>
-        )}
-        {/* The list's own hairline, so placeholders divide like rows. */}
-        <span
-          data-slot='list-item-content'
-          className={cn(listItemContentClass, 'grid content-center gap-2 py-0')}
-        >
-          {!blank && <span className='h-3 w-3/5 rounded-sm bg-subtle' />}
-          {!blank && description && (
-            <span className='h-2.5 w-2/5 rounded-sm bg-subtle' />
-          )}
-        </span>
-      </div>
-    </li>
-  )
-})
 
 const SKELETON_ROWS = 8
 
@@ -497,7 +387,7 @@ export function NarrowSkeleton({
       )}
     >
       {Array.from({ length: Math.min(size, SKELETON_ROWS) }, (_, index) => (
-        <NarrowPlaceholder key={index} parts={parts} card={cards} />
+        <RecordPlaceholder key={index} parts={parts} card={cards} />
       ))}
     </ul>
   )

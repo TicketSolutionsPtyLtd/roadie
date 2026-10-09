@@ -195,7 +195,7 @@ export default [
   },
   {
     files: ['packages/components/src/**/*.{ts,tsx}'],
-    ignores: ['packages/components/src/components/RecordTable/rowWindow.ts'],
+    ignores: ['packages/components/src/components/Records/rowWindow.ts'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'error',
@@ -204,7 +204,7 @@ export default [
             {
               group: ['@tanstack/*'],
               message:
-                'Import @tanstack/react-virtual only in RecordTable/rowWindow.ts.'
+                'Import @tanstack/react-virtual only in Records/rowWindow.ts.'
             }
           ]
         }

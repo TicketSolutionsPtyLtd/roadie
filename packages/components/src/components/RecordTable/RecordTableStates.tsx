@@ -2,6 +2,8 @@ import { type ReactNode, memo, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { tableRowSize } from '../Records/rowSizing'
+import { useKeepFocusInTable } from '../Records/tableFocus'
 import { Skeleton } from '../Skeleton'
 import {
   actionsCellClass,
@@ -11,8 +13,6 @@ import {
   selectCellClass
 } from './RecordTableRow'
 import { type ColumnLayout, priorityProps } from './layout'
-import { tableRowSize } from './rowSizing'
-import { useKeepFocusInTable } from './tableFocus'
 import type { RecordTableColumn } from './types'
 
 const SKELETON_ROWS = 8

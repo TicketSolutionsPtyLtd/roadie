@@ -14,29 +14,28 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { Progress } from '../Progress'
-import {
-  NarrowPlaceholder,
-  useHeldHeight
-} from '../RecordTable/RecordTableNarrowRows'
-import {
-  RecordTableNarrowRangeError,
-  failedRowAt,
-  rangeErrorKey
-} from '../RecordTable/RecordTableRangeError'
-import {
-  VIRTUALISE_AFTER,
-  indexKey,
-  useRangeWindow,
-  windowPadding
-} from '../RecordTable/RecordTableRows'
-import { useRowWindow } from '../RecordTable/rowWindow'
-import { useKeepFocusInTable } from '../RecordTable/tableFocus'
 import { RecordCard } from '../Records/RecordCard'
+import {
+  RecordPlaceholder,
+  RecordRangeError
+} from '../Records/RecordPlaceholder'
 import { RecordsEmpty, RecordsError } from '../Records/RecordsStates'
 import { useRecordsContext } from '../Records/context'
 import type { RecordsContentProps } from '../Records/layouts'
+import {
+  VIRTUALISE_AFTER,
+  type WindowPadding,
+  recordsWindow
+} from '../Records/recordsWindow'
+import { gridGap, gridRowSize } from '../Records/rowSizing'
+import {
+  useHeldHeight,
+  useRangeWindow,
+  useRowWindow
+} from '../Records/rowWindow'
 import { leaveSelectOnEscape } from '../Records/selectMode'
 import { useStickyTop } from '../Records/stickyTop'
+import { useKeepFocusInTable } from '../Records/tableFocus'
 import type {
   RecordCardParts,
   RecordsRangeState,
@@ -48,20 +47,13 @@ import { ScrollArea } from '../ScrollArea'
 import { gridParts } from './parts'
 import type { GridLayoutConfig } from './types'
 
-/** Rem between cards, both ways. */
-// Keep in step with columnsClass's gap-4.
-const GRID_GAP_REM = 1
-/** A card's height before it's measured, in rem, and what its banner adds at the narrowest. */
-const CARD_REM = 10
-const BANNER_REM = 9
-const columnsClass =
-  'grid grid-cols-[repeat(auto-fill,minmax(min(16rem,100%),1fr))] gap-4'
+const columnsClass = cn(
+  'grid grid-cols-[repeat(auto-fill,minmax(min(16rem,100%),1fr))]',
+  gridGap.gapClass
+)
 // A card is at most just under two of its narrowest, or a phone's width.
 const IMAGE_SIZES = '(max-width: 40rem) 100vw, 32rem'
 const SKELETON_CARDS = 8
-
-const estimateRem = (parts: RecordCardParts) =>
-  CARD_REM + (parts.image ? BANNER_REM : 0)
 
 export type RecordGridContentProps = RecordsContentProps & {
   config: GridLayoutConfig
@@ -266,7 +258,7 @@ function GridSkeleton({
       className={cn(columnsClass, 'text-sm')}
     >
       {Array.from({ length: Math.min(size, SKELETON_CARDS) }, (_, index) => (
-        <NarrowPlaceholder key={index} parts={parts} card />
+        <RecordPlaceholder key={index} parts={parts} card />
       ))}
     </ul>
   )
@@ -276,7 +268,7 @@ type ListProps = {
   caption?: string
   busy?: boolean
   bodyRef?: Ref<HTMLUListElement>
-  padding?: ReturnType<typeof windowPadding>
+  padding?: WindowPadding
   children: ReactNode
 }
 
@@ -373,24 +365,6 @@ function useColumnCount(bodyRef: RefObject<HTMLElement | null>) {
   return columns
 }
 
-/** The windowed rows' cards, in order: each row's first one is measured. */
-function rowSpans(
-  items: readonly { index: number }[],
-  columns: number,
-  count: number
-) {
-  return items.flatMap(({ index: row }) =>
-    Array.from(
-      { length: Math.max(0, Math.min(columns, count - row * columns)) },
-      (_, offset) => ({
-        row,
-        index: row * columns + offset,
-        first: offset === 0
-      })
-    )
-  )
-}
-
 function VirtualGrid({
   rows,
   firstIndex,
@@ -412,30 +386,24 @@ function VirtualGrid({
     (row: number) => `${columns}:${rows[row * columns]!.id}`,
     [rows, columns]
   )
-  const { bodyRef, items, total, margin, measureElement } =
-    useRowWindow<HTMLUListElement>({
-      count: Math.ceil(rows.length / columns),
-      getItemKey,
-      measure: true,
-      gapRem: GRID_GAP_REM,
-      estimateRem: estimateRem(shared.parts)
-    })
+  const { bodyRef, view, measureElement } = useRowWindow<HTMLUListElement>({
+    count: Math.ceil(rows.length / columns),
+    getItemKey,
+    ...gridRowSize(shared.parts.image !== undefined)
+  })
   useHeldHeight(bodyRef, true)
   const setRefs = useBodyRef(bodyRef, columnsRef)
+  const { cells, padding } = recordsWindow(view, { rows, columns })
   return (
-    <GridList
-      {...listProps}
-      bodyRef={setRefs}
-      padding={windowPadding(items, total, margin, false)}
-    >
-      {rowSpans(items, columns, rows.length).map(({ row, index, first }) => (
+    <GridList {...listProps} bodyRef={setRefs} padding={padding}>
+      {cells.map(({ key, index, row, leads, record }) => (
         <GridCard
-          key={rows[index]!.id}
+          key={key}
           shared={shared}
-          record={rows[index]!}
+          record={record!}
           posInSet={firstIndex + index}
           setSize={setSize}
-          measure={{ index: row, ref: first ? measureElement : undefined }}
+          measure={{ index: row, ref: leads ? measureElement : undefined }}
         />
       ))}
     </GridList>
@@ -467,72 +435,60 @@ function RangeGrid({
     (gridRow: number) => onRow?.(gridRow * columns),
     [onRow, columns]
   )
-  const { bodyRef, items, total, margin, measureElement, first } =
-    useRangeWindow<HTMLUListElement>({
-      range: byRow,
-      row: Math.floor(row / columns),
-      onRow: reportRow,
-      measure: true,
-      gapRem: GRID_GAP_REM,
-      estimateRem: estimateRem(shared.parts)
-    })
+  const { bodyRef, view, measureElement } = useRangeWindow<HTMLUListElement>({
+    range: byRow,
+    row: Math.floor(row / columns),
+    onRow: reportRow,
+    ...gridRowSize(shared.parts.image !== undefined)
+  })
   useHeldHeight(bodyRef, true)
   const setRefs = useBodyRef(bodyRef, columnsRef)
   const size = range.total ?? -1
-  const firstShown = (first ?? 0) * columns
+  const { cells, padding } = recordsWindow(view, { range, columns })
   return (
     <GridList
       {...listProps}
       busy={listProps.busy || range.loading}
       bodyRef={setRefs}
-      padding={windowPadding(items, total, margin, false)}
+      padding={padding}
     >
-      {rowSpans(items, columns, range.count).map(
-        ({ row: gridRow, index, first: isFirst }) => {
-          // With the query too, so a new search's card starts fresh.
-          const key = `${range.key}${indexKey(index)}`
-          const measure = {
-            index: gridRow,
-            ref: isFirst ? measureElement : undefined
-          }
-          const held = range.rowAt(index)
-          const failed = held
-            ? undefined
-            : failedRowAt(range, index, firstShown)
-          if (failed?.error)
-            return (
-              <RecordTableNarrowRangeError
-                key={rangeErrorKey(failed.start)}
-                card
-                banner={shared.parts.image !== undefined}
-                posInSet={index + 1}
-                setSize={size}
-                index={measure.index}
-                measureElement={measure.ref}
-              />
-            )
-          return held ? (
-            // By index: a shifting offset API can return one id twice.
-            <GridCard
+      {cells.map(({ key, index, row: gridRow, leads, record, failed }) => {
+        const measure = {
+          index: gridRow,
+          ref: leads ? measureElement : undefined
+        }
+        if (failed === 'error')
+          return (
+            <RecordRangeError
               key={key}
-              shared={shared}
-              record={held}
+              card
+              banner={shared.parts.image !== undefined}
               posInSet={index + 1}
               setSize={size}
-              measure={measure}
-            />
-          ) : (
-            <NarrowPlaceholder
-              key={key}
-              parts={shared.parts}
-              card
               index={measure.index}
               measureElement={measure.ref}
-              blank={failed !== undefined}
             />
           )
-        }
-      )}
+        return record ? (
+          <GridCard
+            key={key}
+            shared={shared}
+            record={record}
+            posInSet={index + 1}
+            setSize={size}
+            measure={measure}
+          />
+        ) : (
+          <RecordPlaceholder
+            key={key}
+            parts={shared.parts}
+            card
+            index={measure.index}
+            measureElement={measure.ref}
+            blank={failed === 'blank'}
+          />
+        )
+      })}
     </GridList>
   )
 }
