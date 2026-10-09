@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use before a PR is pushed or marked ready, to review a branch or PR in a fresh subagent on four axes (conventions, bug hunt, docs claims, and test quality) and commit the fixes. Works in any Oztix repo by reading that repo's AGENTS.md and CODING_STANDARDS.md. Triggers on "review this PR", "review my branch", "run the Roadie review", "pre-PR review".
+description: Use before a PR is pushed or marked ready, to review a branch or PR in a fresh subagent on four axes (conventions, bug hunt, docs claims, and test quality) and commit the fixes. Works in any Oztix repo by reading that repo's AGENTS.md and CODING_STANDARDS.md; in an app on Roadie, it also reviews against the installed Roadie manifest, /roadie:build, and /roadie:audit. Triggers on "review this PR", "review my branch", "run the Roadie review", "pre-PR review".
 ---
 
 # Roadie review
@@ -33,7 +33,9 @@ what is clearly wrong, commits the fixes, and comments only on judgement calls.
   skipped, so don't assume they ran. In a fresh worktree the first run installs
   every dependency, so check machine load first. Files no package lints, such
   as `skills/` and root `.md` and `.json` files, get Prettier, plus lint where a
-  config covers them.
+  config covers them. Report only hits on added lines
+  (`git diff origin/<base>...HEAD -U0`); a hit on an untouched line predates
+  the diff.
 
 ## 2. Review on four axes
 
@@ -42,9 +44,8 @@ already enforces. Each finding names its rule (file and section) or a concrete
 input that fails. With neither, it isn't a finding.
 
 **Conventions.** The added lines against the host repo's `AGENTS.md`,
-`CODING_STANDARDS.md`, and workflow. In a repo that uses Roadie, also run the
-`/roadie:audit` checks on the added lines only
-(`git diff origin/<base>...HEAD -U0`).
+`CODING_STANDARDS.md`, and workflow. In an app that uses Roadie, also review
+it against Roadie, as the next section says.
 
 **Bug hunt.** These are the classes that keep slipping past review to bots
 and phones.
@@ -116,6 +117,66 @@ passes under every mutation you try is a cannot-fail finding: find why (such
 as an interaction started during a settle that's always ignored), then fix or
 delete it. A gap that existed before the diff gets a follow-up ticket, not a
 fix in this PR.
+
+## In an app that uses Roadie
+
+The repo is an app on Roadie when a `package.json` in it (the root or a
+workspace app's) depends on an `@oztix/roadie-*` package and no workspace
+package has that name. In Roadie
+itself, its own `AGENTS.md` covers this, so skip the section.
+
+- **Read the installed manifests.** From the app's folder, list what each
+  installed package ships, so every claim matches the app's version, not the
+  latest:
+
+  ```bash
+  node -e '
+  for (const p of ["core", "components", "charts", "widgets"]) {
+    let m
+    try { m = require(`@oztix/roadie-${p}/roadie.manifest.json`) }
+    catch (e) { console.log(`no manifest: @oztix/roadie-${p} (${e.code})`); continue }
+    console.log(m.package, m.version, m.components.map((c) => c.name).join(", "))
+    for (const d of m.deprecations)
+      console.log("deprecated:", d.import, d.export, d.prop ?? "", d.reason)
+  }'
+  ```
+
+  Each component entry has its import, props, and, where a page exists, a
+  `docs` link. Without `node_modules`, install first (check machine load).
+  `MODULE_NOT_FOUND` means Node can't resolve the package from this folder:
+  if `package.json` doesn't list it, the app doesn't use it; if it does, the
+  version is too old to have `exports`. Either that or
+  `ERR_PACKAGE_PATH_NOT_EXPORTED` means the version predates the manifest:
+  read the package's `exports`, its
+  `dist` types and defaults, and
+  `grep -rn "@deprecated" node_modules/@oztix/roadie-*/dist --include='*.d.ts'`,
+  plus the docs index at
+  `https://ticketsolutionsptyltd.github.io/roadie/llms.txt`, whose `.md`
+  links give each component's props. Docs describe the latest release, so
+  check a prop against the installed types before citing it.
+
+- **Review the added lines against `/roadie:build`.** Read that skill; it
+  holds the rules, so don't restate them. Check every section from 1 to 13,
+  above all: a component the manifest has rebuilt from `div`s and classes
+  (1), records outside `RecordTable` or `RecordGrid` (2), layout (3), intent
+  and emphasis (4), headings and text (5), icons (6), controls outside
+  `Field` (7), links without `href` (8), empty and error states without
+  `EmptyState` (9), and copy (13). Shape and elevation (10) has no audit
+  check, so read for it. Charts and dashboards go to `/roadie:charts`, and setup gaps
+  to `/roadie:setup`.
+- **Run the `/roadie:audit` checks** on the changed files. Keep only hits on
+  added lines, as with lint and format. Fixes follow section 3 here, not the
+  audit's own loop, with audit Critical as Critical, Warning as Important,
+  and Info as Minor.
+- **Hand deprecations to `/roadie:migrate`.** A use of a manifest
+  `deprecations` entry, or of a row in that skill's step 3 table (some
+  deprecations aren't in the manifest), is a finding. Fix it with that skill's codemod or its
+  hand steps; on a PR you can't push to, name the codemod in the comment.
+- **Cite the source.** Each finding names the rule it breaks, so the author
+  can check it: a `/roadie:build` section, an audit check ID, a manifest
+  entry (package, version, and `import`, plus the prop or deprecation
+  `reason`), or a docs page. The app's own `AGENTS.md` still wins where it
+  differs.
 
 ## 3. Act
 
