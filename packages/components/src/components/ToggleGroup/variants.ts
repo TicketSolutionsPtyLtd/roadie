@@ -1,14 +1,14 @@
 import { cva } from 'class-variance-authority'
 
+import { horizontalScrollClass } from '../../variants'
+
 // Subtler has no track but keeps a transparent border, so every emphasis
-// stays the height of a Button. A horizontal group that outgrows its
-// container scrolls sideways with the scrollbar hidden, as Tabs does, rather
-// than squashing its labels.
+// stays the height of a Button. Items never shrink below their label; a
+// horizontal group that outgrows its container scrolls instead, as Tabs does.
 export const toggleGroupVariants = cva(
   [
     'group/toggle-group relative inline-grid auto-cols-[minmax(max-content,1fr)] grid-flow-col gap-1 p-0.75',
-    'data-[orientation=horizontal]:max-w-full data-[orientation=horizontal]:overflow-x-auto data-[orientation=horizontal]:overscroll-x-contain',
-    '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+    horizontalScrollClass,
     'rounded-full',
     'data-[orientation=vertical]:grid-flow-row data-[orientation=vertical]:rounded-xl'
   ].join(' '),
