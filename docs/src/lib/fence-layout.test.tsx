@@ -144,6 +144,36 @@ describe('withBasePath', () => {
     ])
   })
 
+  it.each([
+    ["<Link href='/components/button' />", 'an internal route'],
+    ["<Link href='/components/button/' />", 'a route with a trailing slash'],
+    ["href='/users/jane.doe'", 'a route with a dot'],
+    ["href='/events/v1.10'", 'a versioned route'],
+    ["fetch('/api/export.csv')", 'an API path'],
+    ["const label = '/ 2 tickets.png'", 'a string with a space'],
+    ["const path = '/'", 'the root'],
+    ['`/template.png`', 'a template literal'],
+    ['\'/a.png"', 'mismatched quotes'],
+    ["src='/roadie/logo.png'", 'a URL that already has the base path']
+  ])('leaves %s alone (%s)', (code) => {
+    expect(withBasePath(code, '/roadie')).toBe(code)
+  })
+
+  it('keeps a query or hash on a file URL', () => {
+    expect(withBasePath("src='/icons.svg#star'", '/roadie')).toBe(
+      "src='/roadie/icons.svg#star'"
+    )
+    expect(withBasePath('src="/logo.PNG?v=2"', '/roadie')).toBe(
+      'src="/roadie/logo.PNG?v=2"'
+    )
+  })
+
+  it('prefixes a file whose name starts like the base path', () => {
+    expect(withBasePath("'/roadie-logo.png'", '/roadie')).toBe(
+      "'/roadie/roadie-logo.png'"
+    )
+  })
+
   it('leaves code alone without a base path', () => {
     expect(withBasePath("'/x.svg'", '')).toBe("'/x.svg'")
   })

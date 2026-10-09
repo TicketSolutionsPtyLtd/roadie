@@ -31,7 +31,7 @@ The skeleton contains:
 9. **Guidelines**: brief, only non-obvious things. Oztix context goes here.
 10. **Accessibility**: for interactive components. Keyboard patterns, ARIA, screen reader notes.
 11. **No duplicates**: if disabled is in States, don't add separate Disabled section.
-12. **Minimal examples**: show only the feature. The fence holds only the component, as a reader would copy it, and the preview lays it out from fence options: `layout=row` for a wrapping row, `layout=stack` for a stack, `gap=` to change the gap, and `width=` for a width frame. Never wrap an example in a layout `div`.
+12. **Minimal examples**: show only the feature. The fence holds only the component, as a reader would copy it, and the preview lays it out from fence options: `layout=row` for a wrapping row, `layout=stack` for a stack, `gap=` to change the gap, and `width=` for a width frame. A layout `div` stays only for layout the options can't give, such as `justify-items-start`.
 13. **State labels**: a caption comment, `{/* Disabled */}`, on its own line at column 0 above each state, in a fence with `layout=`.
 14. **Hooks**: every public hook gets a `## Hooks` section, after Accessibility and before `<PropsDefinitions>`, on the page of the component it belongs to: a `tsx` signature, then a return-value table. Foundations pages link to it and never re-document the signature or return shape.
 
@@ -61,7 +61,7 @@ The skeleton contains:
   ```
   ````
 
-- Asset URLs in fences are the plain URLs a consumer writes, such as `'/cart-demo-event.svg'`. The preview adds the docs' base path to a quoted root-relative URL that ends in a file extension.
+- Asset URLs in fences are the plain URLs a consumer writes, such as `'/cart-demo-event.svg'`. The preview adds the docs' base path to a quoted root-relative URL that ends in a static file extension, such as `.svg`, `.png`, or `.pdf`. Routes, paths under `/api/`, and URLs that already have the base path stay as written.
 - Examples on `.tsx` pages (`<CodePreview language='tsx-live'>`) load lazily too, but have no page of their own.
 - Live examples can use every component, every chart, and the SpotIllustrations without importing them.
 - Markdown tables scroll sideways on narrow screens by themselves, so don't wrap them.

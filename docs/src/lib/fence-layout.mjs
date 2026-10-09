@@ -87,14 +87,18 @@ export function toPreviewCode(code) {
   return `<>${lines.join('\n')}${open ? '</PreviewCell>' : ''}</>`
 }
 
-// A quoted root-relative path that ends in a file extension. Routes have none.
-const ASSET_URL = /(['"])(\/(?!\/)[\w./-]*\.[a-z0-9]{2,5})\1/gi
+// A quoted root-relative path to a static file, by extension, so a route such
+// as '/users/jane.doe' or a path under /api/ stays as written. A query or hash
+// may follow.
+const ASSET_URL =
+  /(['"])(\/(?!\/|api\/)[\w./-]*\.(?:avif|csv|gif|ico|jpe?g|mp3|mp4|pdf|png|svg|txt|webm|webp|woff2?)(?:[?#][^'"\s]*)?)\1/gi
 
 /** Prefixes the docs' base path to asset URLs, so fences use the plain URL a consumer would. */
 export const withBasePath = (code, basePath) =>
   basePath
-    ? code.replace(
-        ASSET_URL,
-        (_, quote, path) => `${quote}${basePath}${path}${quote}`
+    ? code.replace(ASSET_URL, (match, quote, path) =>
+        path.startsWith(`${basePath}/`)
+          ? match
+          : `${quote}${basePath}${path}${quote}`
       )
     : code
