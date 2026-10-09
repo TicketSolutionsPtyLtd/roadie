@@ -448,23 +448,42 @@ describe('pageToMarkdown renderers', () => {
   it('replaces a registered docs component with its markdown, given its string props', () => {
     const md = pageToMarkdown({
       title: 'Charts',
-      mdx: "Intro.\n\n<Catalogue name='charts' searchable />\n\n## Setup\n\nAfter.",
+      mdx: "Intro.\n\n<CatalogueIndex name='charts' searchable />\n\n## Setup\n\nAfter.",
       resolveLink: (href) => `https://docs.test${href}.md`,
       renderers: {
-        Catalogue: ({ name, searchable }) =>
-          `## Layout (${name}, ${searchable ?? 'no value'})\n\n- [Chart](/charts/chart)`
+        CatalogueIndex: ({ name, searchable }) =>
+          `## Layout (${name}, ${searchable})\n\n- [Chart](/charts/chart)`
       }
     })
     expect(md).toBe(
       [
         '# Charts',
         'Intro.',
-        '## Layout (charts, no value)',
+        '## Layout (charts, true)',
         '- [Chart](https://docs.test/charts/chart.md)',
         '## Setup',
         'After.'
       ].join('\n\n') + '\n'
     )
+  })
+})
+
+describe('pageToMarkdown renderer guards', () => {
+  const renderers = { X: () => 'Rendered.' }
+  it.each([
+    ["Text <X name='inline' /> more.", /inside a paragraph/],
+    ['<X name={other} />', /string or bare props/],
+    ['<X {...rest} />', /string or bare props/]
+  ])('throws for %s', (mdx, message) => {
+    expect(() => pageToMarkdown({ title: 'T', mdx, renderers })).toThrow(
+      message
+    )
+  })
+
+  it('ignores a JSX name that is only an inherited object key', () => {
+    expect(
+      pageToMarkdown({ title: 'T', mdx: 'Hi <constructor />.', renderers })
+    ).toBe('# T\n\nHi .\n')
   })
 })
 

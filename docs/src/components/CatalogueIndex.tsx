@@ -4,13 +4,15 @@ import { PreviewCard, PreviewSection } from '@/components/PreviewGrid'
 import { CATALOGUE_PAGES, getCatalogue } from '@/lib/page-manifest'
 
 /** A catalogue's pages as preview cards by category, or as a searchable list. The markdown twin lists the same links. */
-export async function Catalogue({
+export async function CatalogueIndex({
   name,
   searchable
 }: {
   name: keyof typeof CATALOGUE_PAGES
   searchable?: boolean
 }) {
+  if (!Object.hasOwn(CATALOGUE_PAGES, name))
+    throw new Error(`<CatalogueIndex name="${name}"> names no catalogue`)
   const catalogue = CATALOGUE_PAGES[name]
   const categories = await getCatalogue(catalogue)
 

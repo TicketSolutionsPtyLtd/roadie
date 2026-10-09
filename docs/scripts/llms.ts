@@ -94,11 +94,10 @@ const catalogueMarkdown: Record<string, string> = Object.fromEntries(
 )
 
 const renderers = {
-  Catalogue: ({ name }: Record<string, string | undefined>) => {
-    const markdown = name && catalogueMarkdown[name]
-    if (!markdown)
-      throw new Error(`<Catalogue name="${name}"> has no catalogue`)
-    return markdown
+  CatalogueIndex: ({ name }: Record<string, string | true>) => {
+    if (typeof name !== 'string' || !Object.hasOwn(catalogueMarkdown, name))
+      throw new Error(`<CatalogueIndex name="${name}"> names no catalogue`)
+    return catalogueMarkdown[name]!
   }
 }
 
