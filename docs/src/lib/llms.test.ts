@@ -174,7 +174,39 @@ describe('pageToMarkdown', () => {
       ].join('\n')
     )
     expect(md).not.toContain('Guideline.Row')
-    expect(md).toContain('<IconTile />')
+    expect(md).toContain('```tsx\n<>\n  <IconTile />\n  <p>Paid</p>\n</>\n```')
+  })
+
+  it('writes a JSX description as markdown, not as its source', () => {
+    const md = page(
+      [
+        '<Guideline',
+        "  title='Name the tier'",
+        '  description={',
+        '    <>',
+        "      Use <Code>rounded-3xl</Code>, not <em>[3xl]</em>, for a{' '}",
+        "      <Link href='/foundations/shape' className='underline'>",
+        '        Panel',
+        '      </Link>',
+        '      .',
+        '    </>',
+        '  }',
+        '>',
+        '  <Guideline.Do>',
+        '    Say Panel.',
+        '  </Guideline.Do>',
+        '</Guideline>'
+      ].join('\n')
+    )
+    expect(md).toBe(
+      [
+        '# Badge',
+        '**Name the tier**',
+        'Use `rounded-3xl`, not *\\[3xl]*, for a [Panel](/foundations/shape).',
+        '**Do**',
+        'Say Panel.\n'
+      ].join('\n\n')
+    )
   })
 
   it('writes a guideline’s template literal code as the code it evaluates to', () => {
