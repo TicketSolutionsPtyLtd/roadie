@@ -46,10 +46,11 @@ input that fails. With neither, it isn't a finding.
 `/roadie:audit` checks on the added lines only
 (`git diff origin/<base>...HEAD -U0`).
 
-**Bug hunt.** These are the classes that keep reaching Copilot and phones. For
-a diff that touches only docs, skills, or config, hunt instead for
-contradictions with other docs or skills, wrong commands, instructions that
-would cause harm, and broken links.
+**Bug hunt.** These are the classes that keep reaching Copilot and phones.
+Copilot only reviews some PRs, so for the rest this is the last pass. For a
+diff that touches only docs, skills, or config, hunt the last three classes
+(checks, one setup, and docs that disagree), plus instructions that would
+cause harm and broken links.
 
 - Controlled vs uncontrolled state and races: a controlled value changing
   mid-animation or mid-drag, `defaultValue` re-read on every render, `null`
@@ -71,6 +72,19 @@ would cause harm, and broken links.
 - Mechanical slips: stray `console.log`, a fixed sleep in a test, a real
   venue or person in a fixture, a size budget far above measured, and docs,
   changeset, or PR body claiming something the diff doesn't do.
+- Checks that miss what they claim: a lint rule, guard script, grep, or
+  allow-list that skips a form (dynamic `import()`, an expression or
+  template value, one of several breakpoints, a commented-out line), an
+  exemption wider than the cases it names, or a build or test cache whose
+  inputs miss a file the task reads. Feed each one an input it should catch.
+- Works in one setup only, in a shipped skill or script: a hardcoded `main`,
+  package manager, or port; a binary not on `PATH`; an API list read without
+  pagination; a `git diff` that misses untracked files; a wait with no bound
+  (`networkidle`); or a fallback to a file a consumer repo won't have.
+- Docs and skills that disagree: with another doc, skill, or the workflow
+  (step order, who approves, which door), or with what the code or a
+  measurement shows; a case the steps don't cover; a copyable example that
+  doesn't type-check; and a Markdown table with no delimiter row.
 
 **Test quality.** Every test must be able to fail for a real defect.
 
@@ -83,11 +97,13 @@ would cause harm, and broken links.
 - Cannot fail: mocks the thing under test or stubs a browser API so its
   real failure never happens, awaits nothing, or asserts in jsdom what only a
   browser decides (layout, `calc()`, container queries), or asserts inside a
-  callback or loop that never runs.
+  callback or loop that never runs, or checks only the final state, so a
+  brief jump or flash on the way passes.
 - Missing: a bug-hunt fix or new branch of behaviour with no test that
   fails without it.
 
-Mutation-check every place a new prop or branch acts, not just one: break it
+Mutation-check every place a new prop or branch acts, not just one (both
+Start and End, every click of a pager): break it
 and run the tests. If they still pass, that place is untested. A test that
 passes under every mutation you try is a cannot-fail finding: find why (such
 as an interaction started during a settle that's always ignored), then fix or
