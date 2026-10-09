@@ -1,22 +1,21 @@
 import Color from 'colorjs.io'
 
+import { type Oklch, apcaLc } from '../dataviz/color-math'
+
+const WHITE: Oklch = [1, 0, 0]
+const BLACK: Oklch = [0, 0, 0]
+
 /**
- * Determine whether white or black text provides better WCAG contrast
- * against the given background color.
+ * Pick white or black text, whichever has the higher APCA contrast (|Lc|)
+ * against the given background colour. Ties go to white.
  */
 export function getContrastColor(backgroundHex: string): 'white' | 'black' {
-  const bg = new Color(backgroundHex).to('srgb')
-  const r = Number(bg.coords[0]) || 0
-  const g = Number(bg.coords[1]) || 0
-  const b = Number(bg.coords[2]) || 0
+  const [l, c, h] = new Color(backgroundHex).to('oklch').coords
+  // Achromatic colours have no hue, which colorjs reports as NaN.
+  const background: Oklch = [Number(l) || 0, Number(c) || 0, Number(h) || 0]
 
-  const toLinear = (c: number) =>
-    c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-  const luminance =
-    0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b)
-
-  const contrastWithWhite = (1 + 0.05) / (luminance + 0.05)
-  const contrastWithBlack = (luminance + 0.05) / (0 + 0.05)
-
-  return contrastWithWhite >= contrastWithBlack ? 'white' : 'black'
+  return Math.abs(apcaLc(WHITE, background)) >=
+    Math.abs(apcaLc(BLACK, background))
+    ? 'white'
+    : 'black'
 }

@@ -42,6 +42,13 @@ went pale, slot 7 lost chroma to stay clear of the critical red, and the two
 greys mix toward neutral step 11, because no dark neutral step sits between
 Lc 31 and 79.
 
+`getContrastColor` in `@oztix/roadie-core/colors` picks white or black text
+by the higher APCA |Lc|, through the same `apcaLc` helper as the dataviz
+checks. It used WCAG 2 until INNO-1225, and the switch changed its public
+output: mid-tones such as the accent strong fill (`#0191eb`) now return
+white instead of black. It shipped as a minor while the release was held,
+before any consumer had installed the rest of the APCA work.
+
 ## Links
 
 - INNO-1182, white on the accent strong fill
@@ -49,3 +56,4 @@ Lc 31 and 79.
 - INNO-1132, the accessibility check
 - INNO-1198, the chosen day's fill in dark mode
 - INNO-1223, dark chart marks and greys
+- INNO-1225, `getContrastColor` switched to APCA
