@@ -158,6 +158,7 @@ jobs:
   # Drafts run only check; marking one ready runs the rest. Only packages
   # have browser tests, and the nightly quarantine run isn't a PR.
   playwright:
+    name: playwright version
     needs: changes
     if: >-
       github.event.pull_request.draft != true &&
@@ -266,6 +267,7 @@ jobs:
           ROADIE_QUARANTINE: only
 
   build:
+    name: build and docs e2e
     needs: changes
     if: >-
       github.event_name != 'schedule' &&
