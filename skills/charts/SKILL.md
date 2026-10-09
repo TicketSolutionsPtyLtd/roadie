@@ -40,6 +40,7 @@ Chart.js, D3, Plotly) beside Roadie's.
 
 - Import each component from its own subpath, never the root barrel:
   `@oztix/roadie-charts/line-chart`, `@oztix/roadie-components/stat-tile`.
+  `RoadieProvider`, mounted once at the app root, is the one root import.
 
 ## 1. Pick the form from the job
 
@@ -135,20 +136,26 @@ chart inside it, so **don't pass `table`**.
 import { Chart } from '@oztix/roadie-charts/chart'
 import { RankedBars } from '@oztix/roadie-charts/ranked-bars'
 
+const channels = [
+  { channel: 'Email', orders: 612 },
+  { channel: 'Instagram', orders: 388 },
+  { channel: 'Direct', orders: 301 }
+]
+
 export function BuyerChannels() {
   return (
     <Chart
       size='md'
       label='Buyer channels'
       takeaway='Email brings in nearly half of orders'
-      source='Oztix sales, 1 to 30 Sept.'
+      source='Oztix sales, 1 to 30 Sept, pulled Thu 1 Oct.'
     >
       <RankedBars
         data={channels}
         x='channel'
         y='orders'
         highlight='Email'
-        takeaway='Email brought in 612 of 1,301 orders, more than Instagram and direct together'
+        takeaway='Email brought in 612 of 1,301 orders, 224 more than Instagram'
       />
     </Chart>
   )
@@ -159,7 +166,7 @@ export function BuyerChannels() {
 - The headline is a `value` with a `delta`, or a `takeaway` sentence. Never
   both.
 - The plot's own `takeaway` is the summary a screen reader hears, so give it
-  the numbers.
+  the numbers, and check them against the data.
 - Pass `table` only when the Table view renders on the server or without
   JavaScript (build it with `@oztix/roadie-charts/tables`), when it should show
   different numbers from the plot, or for a static image plot, which needs one.
@@ -214,7 +221,8 @@ const spec: DashboardSpec = {
             y: 'sold',
             format: 'percent'
           },
-          source: 'Oztix sales. 38 similar shows, last 3 years.'
+          source:
+            'Oztix sales, pulled Thu 15 Oct. 38 similar shows, last 3 years.'
         }
       ]
     }
@@ -226,7 +234,8 @@ if (!result.ok)
   throw new Error(
     result.problems.map((p) => `${p.path}: ${p.message}`).join('\n')
   )
-// Fix result.problems warnings too: they are gaps in rows and copy that truncates.
+// Warnings are gaps in rows, copy that truncates, dashes, and title case.
+// Fix them, or fail on them in a test, rather than shipping them.
 ```
 
 - Card `kind` is `stat`, `table`, `chart`, or `note`. A chart card's `plot` is
@@ -264,16 +273,20 @@ custom dates.
   Roadie, so comparison deltas hide, as they do with no `compare`. Leave out
   `comparison` there and give the card its own `context`.
 - Resolve dates with `resolveDateRange` and `resolveComparison` from
-  `@oztix/roadie-core/datetime`, passing the venue's `timeZone`, `dataStart`,
-  and, for sales, `dataEnd`, so month to date compares with last month to the
-  same day.
+  `@oztix/roadie-core/datetime`, passing `now`, the venue's `timeZone`,
+  `dataStart` (the first day the data holds), and, for sales, `dataEnd`, so
+  month to date compares with last month to the same day. Read `now` on the
+  server or after mount, not during a render that hydrates.
 - When `resolveComparison` returns `partial` or `unavailable`, set
   `period.history` to that status, and comparison deltas say "Not enough
   history" or "Nothing to compare".
 - To let people change the period, render `DashboardView` from a client
   component with `onPeriodChange`, hold the value as a `DashboardPeriodValue`
-  (`@oztix/roadie-components/dashboard-period`), fetch for the new period, and
-  pass back the spec. No chart draws a comparison series; show it as a delta.
+  (`@oztix/roadie-components/dashboard-period`), and refetch the cards' numbers
+  for the new range and comparison. A period picker over fixed numbers is a
+  bug. No chart draws a comparison series; show it as a delta.
+- Validate the spec where it's built (on the server, or in a test of the
+  builder), not on every client render, which also ships zod to the browser.
 - Periods, `onPeriodChange`, and `getRowHref` arrived after
   `@oztix/roadie-charts` 0.1.0. If the manifest doesn't list them, upgrade
   rather than building your own period picker or row links.
@@ -288,19 +301,28 @@ Handlers and hrefs never go in the JSON.
 ```tsx
 <DashboardView
   spec={spec}
-  cardActions={(card) => (
-    <CardMenu label={card.label} table={cardTable(card)} />
-  )}
+  cardActions={(card) =>
+    card.kind === 'chart' || card.kind === 'table' ? (
+      <CardMenu label={card.label} table={cardTable(card)} />
+    ) : undefined
+  }
   getRowHref={(card, row) =>
     card.id === 'shows' ? `/events/${row.id}` : undefined
   }
 />
 ```
 
-- `CardMenu` is a `'use client'` component that owns its handlers. Pass
-  `DataCard.MoreButton` to `Menu.Trigger`'s `render`, open with
-  `align='end'`, and group items as Chart, Display, Export, then Dashboard,
-  with "Remove from dashboard" last in `intent='danger'`.
+- `CardMenu` is a `'use client'` component that owns its handlers. Start from
+  the reference `CardMenu` in
+  [card actions](https://ticketsolutionsptyltd.github.io/roadie/charts/dashboards/#card-actions),
+  whose CSV export handles totals, status labels, and quoting.
+- Pass `DataCard.MoreButton` to `Menu.Trigger`'s `render` and open with
+  `align='end'`. Group items as Chart, Display, Export, then Dashboard, with
+  "Remove from dashboard" last in `intent='danger'`, and confirm before it
+  removes.
+- Leave out every item the app can't do yet, and every group that ends up
+  empty. `cardTable` returns `undefined` for stat and note cards, so they get
+  no Download CSV.
 - At most one visible action, then More, always visible, never hover only.
 - Download CSV from `cardTable(card)` (`@oztix/roadie-charts/tables`). Copy as
   image with `renderChartSvg`.
