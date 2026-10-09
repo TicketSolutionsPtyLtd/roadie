@@ -117,13 +117,41 @@ const cases = {
       // Fence options can't reproduce these classes, so the wrapper stays.
       "<div className='grid justify-items-start gap-4'><Button /></div>",
       "<div className='grid gap-4 rounded-2xl bg-subtle p-4'><Button /></div>",
+      "<div className='flex flex-col gap-4'><Button /></div>",
+      "<div className='grid gap-4 sm:grid-cols-2'><Button /></div>",
+      "<div className='grid gap-[6px]'><Button /></div>",
+      "<div className={cn('grid gap-4')}><Button /></div>",
+      "<section className='grid gap-4'><Button /></section>",
+      // A non-root wrapper
       "<Card><div className='grid gap-2'><Button /></div></Card>",
-      "render(<div className='grid gap-4'><Button /></div>)"
+      "render(<div className='grid gap-4'><Button /></div>)",
+      // A wrapper with other props
+      "<div className='grid gap-4' role='group'><Button /></div>",
+      "<div className='grid gap-4' style={{ minHeight: 200 }}><Button /></div>",
+      "<div className='grid gap-4' {...props}><Button /></div>"
     ],
     invalid: [
+      // layout=stack, and with gap=
+      "<div className='grid gap-4'><Button /><Button /></div>",
+      "<div className='grid gap-8'><Button /><Button /></div>",
+      // layout=row, and with gap=
       "<div className='flex flex-row flex-wrap gap-2'><Badge /></div>",
+      "<div className='flex flex-wrap items-center gap-3'><Badge /></div>",
+      // width=
       "<div className='w-140 max-w-full'><Chart /></div>",
-      "<>\n<div className='grid gap-1'><p className='text-sm text-subtle'>Normal</p><Accordion /></div>\n</>"
+      "<div className='w-72'><StatTile /></div>",
+      "<div className='grid max-w-48 gap-4'><NumberField /></div>",
+      // A root sibling in a laid-out fence, which lints inside a fragment
+      "<>\n<div className='grid gap-2'><Button /></div>\n<Button />\n</>",
+      // Captions, directly or one cell down
+      {
+        code: "<>\n<div className='grid gap-1'><p className='text-sm text-subtle'>Normal</p><Accordion /></div>\n</>",
+        errors: [{ message: /state label/ }]
+      },
+      {
+        code: "<div className='grid gap-4'><div className='grid gap-1'><p className='text-sm text-subtle'>Separate</p><Kbd /></div></div>",
+        errors: [{ message: /state label/ }]
+      }
     ]
   },
   'no-import-meta-env': {

@@ -179,8 +179,10 @@ const classTokens = (element) => {
 const isElement = (node, name) =>
   node?.type === 'JSXElement' && node.openingElement.name.name === name
 
+// Any prop besides className, such as role or style, is more than layout.
 const isLayoutDiv = (node) =>
   isElement(node, 'div') &&
+  node.openingElement.attributes.length === 1 &&
   classTokens(node)?.every((token) => FENCE_LAYOUT_CLASS.test(token))
 
 const isCaption = (node) => {
@@ -302,7 +304,10 @@ const rules = {
     create(context) {
       const checkRoot = (node) => {
         if (!isLayoutDiv(node)) return
-        const kind = node.children.some(isCaption)
+        const captioned = (child) =>
+          isCaption(child) ||
+          (isLayoutDiv(child) && child.children.some(isCaption))
+        const kind = node.children.some(captioned)
           ? 'state label'
           : 'layout wrapper'
         context.report({
