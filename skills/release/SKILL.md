@@ -11,7 +11,7 @@ the session and nothing else. The host repo's `AGENTS.md` (or `CLAUDE.md`),
 here.
 
 **Read-only.** Never merge, approve, review, comment on, edit, rebase, or
-push to the Version Packages PR or its `changeset-release/main` branch, and
+push to the Version Packages PR or its `changeset-release/<base>` branch, and
 never run `changeset version` or `changeset publish`. Don't add or edit a
 changeset here either; a gap becomes its own PR. Release timing is the
 maintainer's call, so don't suggest a date or a cadence.
@@ -23,13 +23,16 @@ maintainer's call, so don't suggest a date or a cadence.
   Note the changeset rules, the one-way door list, and the release decision.
   With no list, use Roadie's PR workflow section 7:
   `https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/docs/contributing/PR_WORKFLOW.md`.
+- The base branch: `baseBranch` in `.changeset/config.json`, or `main` when
+  it's unset. Below, `main` means that branch.
 - `git fetch origin`, then read everything from `origin/main`, never a local
   branch.
 - The published packages: each `packages/*/package.json` that isn't
   `private`, less the `ignore` list in `.changeset/config.json`.
 - The Version Packages PR:
   `gh pr list --head changeset-release/main --json number,headRefOid,url`,
-  then `gh pr view <n> --json files,commits` and `gh pr diff <n>`.
+  then `git diff --name-status origin/main...origin/changeset-release/main`
+  for its files, since `gh pr view --json files` stops at 100.
 - The pending changesets: every `.changeset/*.md` but `README.md`, with the
   bump per package from its frontmatter. Find the PR that added each one
   from `git log --diff-filter=A --format=%s -1 origin/main -- <file>` (the
@@ -47,10 +50,8 @@ Then call out:
 
 - **Majors**, each with what breaks and the PR.
 - **Minors**, as the new public API they add.
-- **One-way doors**: changes to existing public API, a token's value or
-  meaning, the shared CSS cascade, layers, base styles, or `.prose` output,
-  and behaviour consumers will notice. Take the door from the PR's Merge
-  danger. Older PRs may have none, so judge the changeset text against the
+- **One-way doors**, by the door list from step 1. Take the door from the
+  PR's Merge danger. Older PRs may have none, so judge the changeset text against the
   door list and mark those "unmarked, judged one-way".
 
 ## 3. Readiness check
@@ -59,14 +60,14 @@ Report each line as **pass**, **fail**, or **attention**, with the evidence.
 Fail blocks the merge; attention needs the maintainer to look.
 
 1. **Main CI.** The latest CI run on main's head commit
-   (`gh run list --branch main --workflow <ci> --limit 1`). Pass when it
-   succeeded, attention while it runs, fail when it failed.
+   (`gh run list --workflow <ci> --commit <sha>`). Pass when it succeeded,
+   attention while it runs or before it starts, fail when it failed.
 2. **Version Packages is current.** Compare the PR's parent with
    `origin/main`. Pass when main hasn't moved. When it has, pass if no newer
    commit adds, edits, or removes a changeset and the changesets the PR
-   deletes match the pending set exactly; otherwise fail. Say how far behind
-   it is, and whether a Release run on main is still pending, since that run
-   rebuilds the PR. The PR's own CI is skipped by design; main's CI runs on
+   deletes match the pending set exactly. Otherwise it's attention while a
+   Release run on main is still pending, since that run rebuilds the PR, and
+   fail once none is. Say how far behind it is. The PR's own CI is skipped by design; main's CI runs on
    merge.
 3. **No changeset missing.** For each commit on main since the last release
    that touched `packages/` with no changeset, keep only what ships:
@@ -77,7 +78,8 @@ Fail blocks the merge; attention needs the maintainer to look.
    package is bumped anyway but the change isn't named, such as a Dependabot
    major of a runtime dependency.
 4. **No open one-way door it depends on.** List open PRs that add or edit a
-   `.changeset/` file (`gh pr list --state open`, then each PR's files).
+   `.changeset/` file
+   (`gh pr list --state open --limit 200 --json number,title,files`).
    Fail when one edits or deletes a pending changeset, or a pending changeset
    waits on it. Attention for any other open one-way door with a changeset,
    since it joins this release if it merges first.
