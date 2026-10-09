@@ -1,4 +1,4 @@
-import type { RecordCardParts } from '../Records/types'
+import type { RecordCardParts } from './types'
 
 /**
  * A layout's row height, in one place: the rem a window counts by and the
