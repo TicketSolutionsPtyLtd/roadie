@@ -328,7 +328,7 @@ export function parseTokenManifest(
   const pick = (list: Declaration[]) =>
     (list.findLast((d) => d.modern) ?? list.at(-1))?.value
 
-  /** A `@supports not` block only serves browsers that lack a feature, so it loses to any other declaration in either mode. */
+  // Only browsers lacking a feature read a `@supports not` block, so any other declaration wins.
   const supported = (list: Declaration[]) => {
     const kept = list.filter((d) => !d.unsupported)
     return kept.length > 0 ? kept : list

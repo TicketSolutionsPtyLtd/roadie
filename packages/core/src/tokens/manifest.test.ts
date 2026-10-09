@@ -130,6 +130,21 @@ describe('values', () => {
     })
   })
 
+  it('keeps a token declared only in an @supports not block', () => {
+    const { tokens } = parseTokenManifest([
+      ['test.css', ':root { @supports not (x: y) { --only-fallback: red; } }']
+    ])
+    expect(tokens.find((t) => t.name === '--only-fallback')?.value).toEqual({
+      light: 'red'
+    })
+  })
+
+  it('drops the line-wrap spaces inside a multi-line value', () => {
+    expect(find('--color-accent-1').value?.light).toBe(
+      'oklch(0.984 calc(0.018 * var(--accent-chroma)) var(--accent-hue))'
+    )
+  })
+
   it('prefers the oklch value and keeps the hex fallback', () => {
     expect(find('--color-danger-10').value).toEqual({
       light: 'oklch(0.673 0.184 28.364)',
