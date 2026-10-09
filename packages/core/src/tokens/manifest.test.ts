@@ -118,6 +118,33 @@ describe('values', () => {
     }
   })
 
+  it('keeps the color-mix fill over the @supports not fallback in both modes', () => {
+    for (const intent of ['brand-secondary', 'success'] as const) {
+      expect(find('--intent-bg-strong').byIntent?.[intent]).toEqual({
+        light: `color-mix(in oklab, var(--color-${intent}-9) 90%, var(--color-neutral-light-0))`
+      })
+    }
+    expect(find('--intent-bg-strong-hover').byIntent?.warning).toEqual({
+      light:
+        'color-mix(in oklab, var(--color-warning-9) 85%, var(--color-neutral-light-0))'
+    })
+  })
+
+  it('keeps a token declared only in an @supports not block', () => {
+    const { tokens } = parseTokenManifest([
+      ['test.css', ':root { @supports not (x: y) { --only-fallback: red; } }']
+    ])
+    expect(tokens.find((t) => t.name === '--only-fallback')?.value).toEqual({
+      light: 'red'
+    })
+  })
+
+  it('drops the line-wrap spaces inside a multi-line value', () => {
+    expect(find('--color-accent-1').value?.light).toBe(
+      'oklch(0.984 calc(0.018 * var(--accent-chroma)) var(--accent-hue))'
+    )
+  })
+
   it('prefers the oklch value and keeps the hex fallback', () => {
     expect(find('--color-danger-10').value).toEqual({
       light: 'oklch(0.673 0.184 28.364)',
