@@ -210,7 +210,7 @@ describe('the selected utilities', () => {
     }
   })
 
-  it('keep a resting label still under a tap on a touch screen', async () => {
+  it('keeps a resting label still under a tap on a touch screen', async () => {
     setHoverCapable(false)
     const { get } = renderSet()
     await userEvent.hover(get('rest'))

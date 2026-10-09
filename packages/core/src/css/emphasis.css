@@ -219,8 +219,8 @@
   }
 }
 
-/* is-selected's label without its fill, for a chosen item whose fill an
-   indicator behind it draws. */
+/* is-selected's label without its fill, for a chosen item whose fill is
+   drawn by an indicator behind it. */
 @utility is-selected-label {
   &:is(&) {
     color: var(--intent-text-strong);
