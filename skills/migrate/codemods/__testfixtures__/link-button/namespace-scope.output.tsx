@@ -23,3 +23,13 @@ export const links = (
     <Button href='/a'>A</Button>
   </>
 )
+
+import type * as Other from './other'
+
+enum Keys {
+  Roadie = 1
+}
+type Theirs = Other.Roadie
+export const computed = { [Roadie]: 1 }
+export { Roadie as Theirs } from './theirs'
+export { Button as OtherButton } from './buttons'

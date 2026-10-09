@@ -154,9 +154,9 @@ Each codemod also follows a namespace import, such as
 `<Roadie.Card as='section'>`, `Drawer.CartExpiryModals`, and the rest as it
 would a named import, and `<Roadie.LinkButton href>` becomes
 `<Button href>` with `Button` imported from
-`@oztix/roadie-components/button`. `link-button` and `widgets-renames` also
-report a deprecated name read off a namespace outside JSX, such as
-`Roadie.LinkButtonProps`, and a namespace used whole, such as
+`@oztix/roadie-components/button`. `link-button` reports a deprecated name
+read off a namespace outside JSX, such as `Roadie.LinkButtonProps`, where
+`widgets-renames` renames it. Both report a namespace used whole, such as
 `{ ...Roadie }`.
 
 Both report every `export … from` that re-exports a deprecated name, and

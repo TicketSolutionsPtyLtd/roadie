@@ -1,3 +1,4 @@
 line 1: export { CartExpiryModals } re-exports a deprecated name, and renaming it changes this module's own API. Migrate it by hand.
 line 2: export { CartExpiryModalsProps } re-exports a deprecated name, and renaming it changes this module's own API. Migrate it by hand.
-line 5: export * from '@oztix/roadie-widgets/cart-drawer/react' re-exports the deprecated CartExpiryModals, CartExpiryModalsProps, which leave this module's API when Roadie removes them. Check its importers.
+line 5: Re-exporting '@oztix/roadie-widgets/cart-drawer/react' also re-exports the deprecated CartExpiryModals, CartExpiryModalsProps, which leave this module's API when Roadie removes them. Check its importers.
+line 6: Re-exporting '@oztix/roadie-widgets/cart-drawer/react' also re-exports the deprecated CartExpiryModals, CartExpiryModalsProps, which leave this module's API when Roadie removes them. Check its importers.

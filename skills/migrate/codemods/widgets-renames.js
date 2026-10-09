@@ -55,7 +55,7 @@ function keepPublicName(j, path, from, to, report) {
     path.parent.replace(
       j.exportSpecifier.from({
         local: j.identifier(to),
-        exported: j.identifier(from)
+        exported: j.identifier(parent.exported.name)
       })
     )
     return true

@@ -9,3 +9,12 @@ export const info = (
     <Other.Popover.Content positionerProps={{ side: 'top' }} />
   </Roadie.Popover>
 )
+
+export function Shadowed(Roadie: any) {
+  return (
+    <Roadie.Popover.Content positionerProps={{ side: 'top' }}>
+      <Roadie.IconButton aria-label='Close' size='icon-sm' />
+      <Roadie.Card as='section'>Card</Roadie.Card>
+    </Roadie.Popover.Content>
+  )
+}

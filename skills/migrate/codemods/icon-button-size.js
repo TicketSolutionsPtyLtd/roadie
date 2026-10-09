@@ -18,7 +18,7 @@ export default function transform(file, api) {
 
   root
     .find(j.JSXOpeningElement)
-    .filter((path) => matches(path.node.name))
+    .filter(matches)
     .forEach((path) => {
       const size = attribute(path.node, 'size')
       const legacy = LEGACY_SIZE.exec(stringValue(size) ?? '')

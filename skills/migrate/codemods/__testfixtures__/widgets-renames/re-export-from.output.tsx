@@ -3,3 +3,4 @@ export type { CartExpiryModalsProps as ExpiryProps } from '@oztix/roadie-widgets
 export * from '@oztix/roadie-widgets/cart'
 export { createCartClient } from '@oztix/roadie-widgets/cart'
 export * from '@oztix/roadie-widgets/cart-drawer/react'
+export * as Drawer from '@oztix/roadie-widgets/cart-drawer/react'

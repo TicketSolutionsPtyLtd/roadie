@@ -53,6 +53,8 @@ export function isLabel(parent, node) {
       return parent.property === node
     case 'TSQualifiedName':
       return parent.right === node
+    case 'TSEnumMember':
+      return parent.id === node
     case 'ExportSpecifier':
       return parent.exported === node && parent.local !== node
     default:
@@ -111,7 +113,8 @@ function jsxSegments(name) {
 }
 
 // A target is `Name` or `Name.Part`; `Name` also matches its `Name.Root` alias.
-// Each matches through a namespace import too, as `Roadie.Name.Part`.
+// Each matches through a namespace import too, as `Roadie.Name.Part`. The
+// matcher takes a JSXOpeningElement path, so a shadowed namespace is skipped.
 export function jsxNameMatcher(j, root, targets) {
   const namespaces = namespaceLocals(j, root)
   const wanted = targets.map((target) => {
@@ -122,11 +125,13 @@ export function jsxNameMatcher(j, root, targets) {
     part
       ? rest.length === 1 && rest[0] === part
       : rest.length === 0 || (rest.length === 1 && rest[0] === 'Root')
-  return (node) => {
-    const [first, ...rest] = jsxSegments(node)
+  return (path) => {
+    const [first, ...rest] = jsxSegments(path.node.name)
     return wanted.some(({ name, locals, part }) =>
       namespaces.has(first)
-        ? rest[0] === name && partMatches(rest.slice(1), part)
+        ? rest[0] === name &&
+          partMatches(rest.slice(1), part) &&
+          readsImport(path, first)
         : locals.has(first) && partMatches(rest, part)
     )
   }
@@ -200,10 +205,10 @@ export function reportReExports(
         node,
         `'${source}' is re-exported whole, and renaming its deprecated names changes this module's own API. Migrate it by hand.`
       )
-    } else if (deprecated.length > 0 && node.type === 'ExportAllDeclaration') {
+    } else if (deprecated.length > 0) {
       report(
         node,
-        `export * from '${source}' re-exports the deprecated ${deprecated.join(', ')}, which leave this module's API when Roadie removes them. Check its importers.`
+        `Re-exporting '${source}' also re-exports the deprecated ${deprecated.join(', ')}, which leave this module's API when Roadie removes them. Check its importers.`
       )
     }
   }

@@ -56,7 +56,7 @@ export default function transform(file, api) {
 
   root
     .find(j.JSXOpeningElement)
-    .filter((path) => matches(path.node.name))
+    .filter(matches)
     .forEach((path) => {
       const opening = path.node
       const positionerProps = attribute(opening, 'positionerProps')
