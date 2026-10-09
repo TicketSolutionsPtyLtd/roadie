@@ -91,11 +91,12 @@
     },
     "test:browser": {
       "dependsOn": ["^build"],
-      "env": ["ROADIE_BROWSERS", "ROADIE_QUARANTINE"],
+      "env": ["ROADIE_BROWSERS", "ROADIE_QUARANTINE", "ROADIE_VISUAL"],
       "passThroughEnv": ["PLAYWRIGHT_*"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css}",
         "src/**/*.html",
+        "src/**/__screenshots__/**/*.png",
         "*.config.{js,mjs,cjs,ts}",
         "$TURBO_ROOT$/vitest.browsers.config.ts",
         "*.css",

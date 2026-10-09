@@ -20,6 +20,10 @@ coverage
 **/.vitest
 .nyc_output
 
+# Visual baselines come only from CI's Linux image (visual-baselines.yml)
+**/__screenshots__/**/*-darwin.png
+**/__screenshots__/**/*-win32.png
+
 .pnpm-store/
 .pnpm-debug.log
 
