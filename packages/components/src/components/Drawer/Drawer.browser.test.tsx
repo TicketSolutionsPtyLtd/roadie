@@ -386,3 +386,50 @@ describe('a drawer header', () => {
     }
   )
 })
+
+// A colour with no alpha component is opaque.
+const alpha = (colour: string) =>
+  Number(/\/\s*([\d.]+)\s*\)$/.exec(colour)?.[1] ?? 1)
+
+describe('the page behind a drawer', () => {
+  afterEach(() => commands.reduceTransparency(false))
+
+  async function backdrop(emphasis: 'normal' | 'subtle') {
+    render(
+      <Drawer defaultOpen side='right' emphasis={emphasis}>
+        <Drawer.Content>
+          <Drawer.Title>Your tickets</Drawer.Title>
+        </Drawer.Content>
+      </Drawer>
+    )
+    await screen.findByRole('dialog')
+    return getComputedStyle(
+      document.querySelector('[data-slot="drawer-backdrop"]')!
+    )
+  }
+
+  it('dims and blurs behind a normal drawer', async () => {
+    const style = await backdrop('normal')
+
+    expect(style.backdropFilter).toBe('blur(8px)')
+    expect(alpha(style.backgroundColor)).toBeCloseTo(0.55, 2)
+  })
+
+  it('dims lightly and stays sharp behind a subtle drawer', async () => {
+    const style = await backdrop('subtle')
+
+    expect(style.backdropFilter).toBe('none')
+    expect(alpha(style.backgroundColor)).toBeCloseTo(0.25, 2)
+  })
+
+  it('dims without blurring for someone who reduces transparency', async ({
+    skip
+  }) => {
+    if (!(await commands.reduceTransparency(true)))
+      skip('Only Chromium can emulate reduced transparency')
+    const style = await backdrop('normal')
+
+    expect(style.backdropFilter).toBe('none')
+    expect(alpha(style.backgroundColor)).toBeCloseTo(0.55, 2)
+  })
+})

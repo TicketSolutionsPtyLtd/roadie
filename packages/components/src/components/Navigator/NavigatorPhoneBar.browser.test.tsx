@@ -1,6 +1,6 @@
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { commands, page } from 'vitest/browser'
 
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -105,5 +105,36 @@ describe('phone bar with a pinned item', () => {
       .querySelector('[data-circle-side="start"]')!
       .getBoundingClientRect()
     expect(active.left - edge).toBeCloseTo(16, 0)
+  })
+})
+
+// A colour with no alpha component is opaque.
+const alpha = (colour: string) =>
+  Number(/\/\s*([\d.]+)\s*\)$/.exec(colour)?.[1] ?? 1)
+
+describe('the phone bar pill', () => {
+  afterEach(() => commands.reduceTransparency(false))
+
+  const pill = () => {
+    const { bar } = renderBar()
+    return getComputedStyle(
+      bar.querySelector('[data-slot="navigator-primary-pill"]')!
+    )
+  }
+
+  it('blurs the page scrolling behind it through a translucent fill', async () => {
+    const style = pill()
+
+    expect(style.backdropFilter).toBe('blur(12px)')
+    expect(alpha(style.backgroundColor)).toBeCloseTo(0.85, 2)
+  })
+
+  it('goes solid for someone who reduces transparency', async ({ skip }) => {
+    if (!(await commands.reduceTransparency(true)))
+      skip('Only Chromium can emulate reduced transparency')
+    const style = pill()
+
+    expect(style.backdropFilter).toBe('none')
+    expect(alpha(style.backgroundColor)).toBe(1)
   })
 })
