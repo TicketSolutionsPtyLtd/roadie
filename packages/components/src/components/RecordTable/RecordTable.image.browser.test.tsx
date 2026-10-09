@@ -1,5 +1,8 @@
-import { cleanup, render } from '@testing-library/react'
+import type { ReactNode } from 'react'
+
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 
 import { recordFields } from '@oztix/roadie-core/records'
 
@@ -152,5 +155,106 @@ describe('RecordTable image columns in a browser', () => {
       // A nowrap description clips at the trailing slot rather than running under it.
       expect(getComputedStyle(description).overflowX).toBe('hidden')
     }
+  })
+})
+
+const narrow = (ui: ReactNode) => render(<div style={{ width: 360 }}>{ui}</div>)
+const base = {
+  caption: 'Shows',
+  data: shows,
+  fields,
+  getRowId: (row: PictureShow) => row.id
+}
+const itemsOf = () =>
+  within(screen.getByRole('list', { name: 'Shows' })).getAllByRole('listitem')
+const PLACEHOLDER = '[data-slot="record-image-placeholder"]'
+
+describe('RecordTable narrow image columns by role in a browser', () => {
+  it('puts the thumbnail in a list row’s leading slot', () => {
+    narrow(<RecordTable {...base} columns={columns} />)
+    const [missing, pictured] = itemsOf()
+    const leading = '[data-slot="list-item-leading"]'
+    expect(pictured!.querySelector(`${leading} img`)).toHaveAttribute(
+      'src',
+      PICTURE
+    )
+    expect(missing!.querySelector(`${leading} ${PLACEHOLDER}`)).not.toBeNull()
+  })
+
+  it('shows the image as a banner at the top of a card', () => {
+    narrow(<RecordTable {...base} columns={cardColumns} />)
+    const [missing, pictured] = itemsOf()
+    const card = pictured!.querySelector('[data-slot="record-card"]')!
+    const banner = card.firstElementChild!
+    expect(banner).toHaveAttribute('data-slot', 'record-card-media')
+    expect(banner.querySelector('img')).toHaveAttribute('src', PICTURE)
+    expect(card.querySelectorAll('[data-slot="card-header"] img')).toHaveLength(
+      0
+    )
+    expect(
+      missing!.querySelector(`[data-slot="record-card-media"] ${PLACEHOLDER}`)
+    ).not.toBeNull()
+  })
+
+  it('puts a bannered card’s trailing value in the banner, not the header', () => {
+    narrow(<RecordTable {...base} columns={cardColumns} />)
+    const [, pictured] = itemsOf()
+    const sold = String(shows[1]!.sold)
+    expect(
+      pictured!.querySelector(
+        '[data-slot="record-card-media"] [data-slot="record-card-trailing"]'
+      )!.textContent
+    ).toContain(sold)
+    expect(
+      pictured!.querySelector('[data-slot="card-header"]')!.textContent
+    ).not.toContain(sold)
+  })
+
+  it('swaps the thumbnail for the checkbox in Select mode', async () => {
+    narrow(
+      <RecordTable
+        {...base}
+        columns={columns}
+        bulkActions={[{ label: 'Export', onAction: () => {} }]}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Select' }))
+    const [, pictured] = itemsOf()
+    const leading = pictured!.querySelector<HTMLElement>(
+      '[data-slot="list-item-leading"]'
+    )!
+    expect(within(leading).getByRole('checkbox')).toBeInTheDocument()
+    expect(leading.querySelector('img')).toBeNull()
+  })
+
+  it('renders a custom cell in the banner', () => {
+    narrow(
+      <RecordTable
+        {...base}
+        columns={[
+          column.field('image', {
+            kind: 'image',
+            cell: ({ row }) => <span data-testid='poster'>{row.show}</span>
+          }),
+          ...cardColumns.slice(1)
+        ]}
+      />
+    )
+    expect(
+      screen
+        .getAllByTestId('poster')[0]!
+        .closest('[data-slot="record-card-media"]')
+    ).not.toBeNull()
+  })
+
+  it('draws a banner block in card placeholders while loading', () => {
+    const { container } = narrow(
+      <RecordTable {...base} data={[]} columns={cardColumns} loading />
+    )
+    expect(
+      container.querySelector(
+        '[data-slot="record-table-skeleton"] [data-slot="record-table-placeholder-media"]'
+      )
+    ).not.toBeNull()
   })
 })

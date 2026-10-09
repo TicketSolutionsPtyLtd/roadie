@@ -1,29 +1,24 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { RecordTable, tableColumns } from '.'
+import { type TestShow, showFields, testShows } from '../Records/testUtils'
+
 const cellRenders = vi.fn()
-vi.mock('../Records/RecordValue', async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import('../Records/RecordValue')>()
-  return {
-    ...original,
-    RecordValue: (props: Parameters<typeof original.RecordValue>[0]) => {
-      cellRenders(props.field.key)
-      return original.RecordValue(props)
+const column = tableColumns<TestShow>(showFields)
+const counted = (key: 'show' | 'city' | 'sold' | 'gross', pin = false) =>
+  column.field(key, {
+    pin,
+    cell: ({ value }) => {
+      cellRenders(key)
+      return String(value)
     }
-  }
-})
-
-const { RecordTable, tableColumns } = await import('.')
-const { showFields, testShows } = await import('../Records/testUtils')
-
-type Show = ReturnType<typeof testShows>[number]
-const column = tableColumns<Show>(showFields)
+  })
 const columns = [
-  column.field('show', { pin: true }),
-  column.field('city'),
-  column.field('sold'),
-  column.field('gross')
+  counted('show', true),
+  counted('city'),
+  counted('sold'),
+  counted('gross')
 ]
 const shows = testShows(50)
 

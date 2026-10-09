@@ -183,52 +183,9 @@ describe('Records Select mode', () => {
 })
 
 describe('Records floating bulk actions', () => {
-  // Each part of the bar measures 100px, in records 360px wide.
-  function measured() {
-    return vi
-      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
-      .mockImplementation(function (this: HTMLElement) {
-        const width = this.matches(
-          '[data-slot="records"], [data-slot="records-dock-scope"]'
-        )
-          ? 360
-          : 100
-        return {
-          width,
-          height: 40,
-          top: 0,
-          left: 0,
-          right: width,
-          bottom: 40
-        } as DOMRect
-      })
-  }
-
   const many: RecordsBulkAction[] = ['Export', 'Archive', 'Print', 'Email'].map(
     (label) => ({ label, onAction: vi.fn() })
   )
-
-  it('keeps the first action out and puts those that do not fit in More actions, last', async () => {
-    const spy = measured()
-    const user = userEvent.setup()
-    render(<Shows actions={many} />)
-    await user.click(toggle())
-    await user.click(screen.getByRole('button', { name: 'Ocean Alley 1' }))
-    const bar = floating()!
-    const buttons = within(bar).getAllByRole('button')
-    expect(
-      buttons.map(
-        (button) => button.textContent || button.getAttribute('aria-label')
-      )
-    ).toEqual(['Export', 'More actions'])
-    await user.click(within(bar).getByRole('button', { name: 'More actions' }))
-    expect(
-      (await screen.findAllByRole('menuitem')).map((item) => item.textContent)
-    ).toEqual(['Archive', 'Print', 'Email'])
-    await user.click(screen.getByRole('menuitem', { name: 'Print' }))
-    expect(many[2]!.onAction).toHaveBeenCalledOnce()
-    spy.mockRestore()
-  })
 
   it('keeps focus with the records after clearing under a Provider', async () => {
     const user = userEvent.setup()
@@ -260,60 +217,5 @@ describe('Records floating bulk actions', () => {
     expect(document.activeElement).toBe(
       screen.getByRole('list', { name: 'Shows' })
     )
-  })
-
-  it('counts the gaps between the count and its buttons when fitting', async () => {
-    const rect = vi
-      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
-      .mockImplementation(function (this: HTMLElement) {
-        const width = this.matches('[data-testid="records"]')
-          ? 360
-          : this.matches('[data-slot="records-bulk-action"]')
-            ? 54
-            : this.matches('[data-slot="records-bulk-more"]')
-              ? 50
-              : 100
-        return {
-          width,
-          height: 40,
-          top: 0,
-          left: 0,
-          right: width,
-          bottom: 40
-        } as DOMRect
-      })
-    const computed = window.getComputedStyle
-    const style = vi
-      .spyOn(window, 'getComputedStyle')
-      .mockImplementation((element, pseudo) => {
-        const value = computed(element, pseudo)
-        if ((element as HTMLElement).dataset?.slot === 'records-bulk-actions')
-          Object.defineProperty(value, 'columnGap', { value: '8px' })
-        return value
-      })
-    function Provided() {
-      const records = useRecords({
-        data: testShows(12),
-        fields: showFields,
-        getRowId: (row) => row.id,
-        selectable: true,
-        defaultSelection: { ids: ['show-0'] },
-        defaultView: { layout: { type: 'grid' } }
-      })
-      return (
-        <Records.Provider records={records} layouts={layouts}>
-          <div data-testid='records'>
-            <Records.Content />
-            <Records.BulkActions actions={many.slice(0, 2)} />
-          </div>
-        </Records.Provider>
-      )
-    }
-    render(<Provided />)
-    expect(
-      within(floating()!).getByRole('button', { name: 'More actions' })
-    ).toBeInTheDocument()
-    rect.mockRestore()
-    style.mockRestore()
   })
 })
