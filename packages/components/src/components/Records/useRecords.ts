@@ -181,7 +181,7 @@ export type RecordsInstance<Row extends object = object> = {
   error: boolean | string
   onRetry?: () => void
   timeZone: string
-  /** The moment relative dates resolve against. */
+  /** The moment relative dates resolve against. The Unix epoch on the server and while hydrating, when no `now` is given, as the browser's clock isn't read until then. */
   now: Date
 }
 
@@ -284,7 +284,7 @@ export function useRecords<Row extends object>({
   const filters = useEqualValue(view.query.filters)
   const sort = useEqualValue(view.query.sort)
   const scope = useEqualValue(scopeOption)
-  // Rows a relative date filters wait for the browser's clock.
+  // A relative date filter's rows wait for the browser's clock.
   const awaitingClock =
     at === null &&
     !server &&

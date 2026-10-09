@@ -365,6 +365,18 @@ describe('DateTime on a prerendering server', () => {
     expect(container.textContent).toBe('Fri 27 to Sun 29 Nov')
   })
 
+  it('keeps the year of a standalone date in another year', async () => {
+    const { container, onRecoverableError } = await hydrateWithoutClock(
+      <DateTime
+        at={new Date('2025-11-27T09:30:00Z')}
+        timeZone={BNE}
+        context='standalone'
+      />
+    )
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(container.textContent).toBe('Thu 27 Nov 2025')
+  })
+
   it('renders a standalone date on the client without the year at once', () => {
     render(<DateTime at={at} timeZone={BNE} context='standalone' />)
     expect(screen.getByText('Fri 27 Nov')).toBeInTheDocument()

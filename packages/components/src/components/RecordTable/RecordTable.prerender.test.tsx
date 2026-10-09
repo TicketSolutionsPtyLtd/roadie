@@ -13,7 +13,6 @@ import { tableColumns } from './columns'
 
 const column = tableColumns<TestShow>(showFields)
 const columns = [column.field('show', { pin: true }), column.field('starts')]
-// Starts on the 1st of each month in 2026.
 const SHOWS = testShows(12).map((show, index) => ({
   ...show,
   starts: `2026-${String(index + 1).padStart(2, '0')}-01`
@@ -96,8 +95,20 @@ describe('RecordTable on a prerendering server', () => {
       table({ defaultView: UPCOMING })
     )
     expect(serverHtml).toContain('aria-busy="true"')
+    expect(firstShow(serverHtml)).toBe(false)
     expect(onRecoverableError).not.toHaveBeenCalled()
     expect(screen.getByRole('table')).not.toHaveAttribute('aria-busy')
     expect(shownShows()).toHaveLength(2)
+  })
+
+  it('keeps a later page while it waits for the browser’s clock', async () => {
+    const { onRecoverableError } = await hydrateWithoutClock(
+      table({
+        defaultView: UPCOMING,
+        defaultPosition: { page: 1, pageSize: 1 }
+      })
+    )
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(shownShows()).toEqual([expect.stringContaining(SHOWS[11]!.show)])
   })
 })
