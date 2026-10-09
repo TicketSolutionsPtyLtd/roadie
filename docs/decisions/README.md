@@ -39,3 +39,4 @@ the rule and keep only the why here.
 | [0009](0009-real-browsers-for-tests.md)   | Browser tests use real browsers                         |
 | [0010](0010-apca-contrast.md)             | Contrast is measured with APCA                          |
 | [0011](0011-fence-layout-options.md)      | Live examples take preview layout from fence options    |
+| [0012](0012-base-ui-focus-guards.md)      | Base UI focus guards stay nameless buttons in WebKit    |

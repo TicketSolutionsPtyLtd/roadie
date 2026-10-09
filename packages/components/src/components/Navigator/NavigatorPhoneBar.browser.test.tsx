@@ -1,10 +1,19 @@
 import { cleanup, render } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { commands, page } from 'vitest/browser'
 
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Pane } from '../Pane'
+import { forgetPaneScroll } from '../Pane/paneScroll'
 import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
@@ -16,7 +25,10 @@ afterAll(async () => {
   removeStylesheet()
   await page.viewport(1920, 1080)
 })
-afterEach(() => cleanup())
+afterEach(() => {
+  cleanup()
+  forgetPaneScroll()
+})
 
 const frames = (count = 4) =>
   new Promise<void>((settle) => {
@@ -105,6 +117,60 @@ describe('phone bar with a pinned item', () => {
       .querySelector('[data-circle-side="start"]')!
       .getBoundingClientRect()
     expect(active.left - edge).toBeCloseTo(16, 0)
+  })
+})
+
+describe('the pinned circle', () => {
+  afterEach(() => commands.reduceMotion(false))
+
+  const pinnedParts = (bar: HTMLElement) => {
+    const circle = bar.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary-circle"] button'
+    )!
+    const mark = circle.querySelector(
+      '[data-slot="navigator-tab-icon-frame"] > *'
+    )!
+    return { circle, mark }
+  }
+
+  it('shrinks to the 3.5rem edge circle when collapsed, anchored to its corner, keeping its icon size', async () => {
+    const { bar, scroller } = renderBar()
+    await settle()
+    const { circle, mark } = pinnedParts(bar)
+    const before = circle.getBoundingClientRect()
+    const icon = mark.getBoundingClientRect()
+
+    scroller.scrollTop = 400
+    scroller.dispatchEvent(new Event('scroll'))
+    await settle()
+
+    const after = circle.getBoundingClientRect()
+    expect(before.width).toBeCloseTo(66, 0)
+    expect(after.width).toBeCloseTo(56, 0)
+    expect(after.height).toBeCloseTo(56, 0)
+    expect(after.right).toBeCloseTo(before.right, 0)
+    expect(after.bottom).toBeCloseTo(before.bottom, 0)
+    expect(mark.getBoundingClientRect().width).toBeCloseTo(icon.width, 0)
+    expect(mark.getBoundingClientRect().height).toBeCloseTo(icon.height, 0)
+  })
+
+  it('snaps to the edge circle for someone who reduces motion', async () => {
+    await commands.reduceMotion(true)
+    // Lifts core's global reset, so the snap must come from the Navigator's own guard.
+    const restoreReset = useStylesheet(
+      '@media (prefers-reduced-motion: reduce) { * { transition-duration: revert-layer !important } }'
+    )
+    onTestFinished(restoreReset)
+    const { bar, scroller } = renderBar()
+    await settle()
+    const { circle, mark } = pinnedParts(bar)
+
+    scroller.scrollTop = 400
+    scroller.dispatchEvent(new Event('scroll'))
+    await frames(2)
+
+    expect(circle.getBoundingClientRect().width).toBeCloseTo(56, 0)
+    expect(mark.getBoundingClientRect().width).toBeCloseTo(28, 0)
   })
 })
 

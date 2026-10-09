@@ -1,0 +1,1172 @@
+export const metadata = {
+  title: 'Date and time',
+  description:
+    'One scale, seven rules, and one implementation for every date and time we show.',
+  category: 'Content'
+}
+
+import { ComparisonTable } from '@/components/date-and-time/ComparisonTable'
+import { ComponentReads } from '@/components/date-and-time/ComponentReads'
+import { DataFormatReads } from '@/components/date-and-time/DataFormatReads'
+import { DateStyleScale } from '@/components/date-and-time/DateStyleScale'
+import { MachineValueReads } from '@/components/date-and-time/MachineValueReads'
+import { MomentReads } from '@/components/date-and-time/MomentReads'
+import { PhraseTable } from '@/components/date-and-time/PhraseTable'
+import { RangeTable } from '@/components/date-and-time/RangeTable'
+import { RelativeLadder } from '@/components/date-and-time/RelativeLadder'
+import { TimeStyleScale } from '@/components/date-and-time/TimeStyleScale'
+import { ZoneTable } from '@/components/date-and-time/ZoneTable'
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+Someone can meet the same event half a dozen times. An event page, a checkout
+summary, a listing card, a report. They should see the date and time spelled
+the same way every time.
+
+## Choosing a component
+
+In React, always a component. The styles on this page are how you configure
+one, not things you call yourself.
+
+| What you're showing        | Component                                       | Configured with                         | Without React                       |
+| -------------------------- | ----------------------------------------------- | --------------------------------------- | ----------------------------------- |
+| A moment                   | [`<DateTime>`](/components/date-time)           | `dateStyle`, `timeStyle`                | `formatLong`                        |
+| A moment, as elapsed time  | [`<DateTime relative>`](/components/date-time)  | `cutoffMs`                              | `formatRelative`                    |
+| A span between two moments | [`<DateTime to>`](/components/date-time)        | `showDuration`, `sameNight`             | `formatDateRange`                   |
+| A length of time           | [`<Duration>`](/components/duration)            | `durationStyle`                         | `formatDuration`                    |
+| Time remaining, ticking    | [`<Countdown>`](/components/countdown)          | `seconds`, `display`                    | `formatDuration`, `formatCountdown` |
+| A calendar tile            | [`<CalendarTile>`](/components/calendar-tile)   | `month`, `day`, `weekday`               | `formatGlyph`                       |
+| A chart axis tick          | [`<DateTime render>`](/components/date-time)    | `dateStyle` `short`, `timeStyle` `numeric` | `formatDateTime`                 |
+
+On the docs site, a table gives what each component reads for a show at
+7:30pm on Friday 27 November 2026 in Sydney, worked out by the formatter
+behind it.
+
+<ComponentReads />
+
+A component renders a
+[`time`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time)
+element and sets its machine-readable value for you. That attribute is easy to
+get wrong, and wrong silently.
+
+Every component is a thin call into a formatter, and the formatters are
+exported. The test: if it renders, use the component; if it's a string going
+into an attribute, a file, or another system, use the formatter. Each
+component page lists its own under Without React.
+
+Two cases look like exceptions and aren't. A chart tooltip is ordinary HTML,
+so `DateTime` works there; only the axis is SVG, and `render` covers it. A
+range has no element of its own, which argues against a single `time`, not
+against a component: `<DateTime to>` renders one per end.
+
+## Date scale
+
+One scale, from spelled out to machine readable. Each step drops exactly one
+thing. Picking a style is a question about the reader. Do they need the
+weekday? Do they need the year? On the docs site, the same show renders in
+each `dateStyle`.
+
+<DateStyleScale />
+
+| Style    | Reach for it when                                                         |
+| -------- | ------------------------------------------------------------------------- |
+| `full`   | A single date with room around it. The date is the point of the page.    |
+| `long`   | The everyday default. Lists, cards, table rows, and summaries.            |
+| `medium` | The day of week doesn't help the reader. Order dates, settlement dates.   |
+| `short`  | Context already supplies the year. Chart ticks, group headings.           |
+| `iso`    | Exports, filenames, anything sorted or parsed. Never shown to a customer. |
+
+The names are
+[`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat)'s.
+The output departs from it twice, on purpose. `long` keeps a weekday where Intl
+drops it. `iso` replaces Intl's numeric `short`, which renders `27/11/26` and
+is ambiguous outside Australia.
+
+### Time is a separate axis
+
+Time is a separate option. It isn't a property of the date style. Any date
+style can carry a time. A date style on its own never does. The step names are
+the same words, so `medium` means the same kind of thing on both axes: the
+everyday form, one step down from the fullest. On the docs site, the show's
+time renders in each `timeStyle`, with doors at 7pm beside it for `short`.
+
+<TimeStyleScale />
+
+| Style     | Reach for it when                                                                                                         |
+| --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `long`    | The reader may be elsewhere and has to act on it. On-sale times, national tours, anything someone sets an alarm for.       |
+| `medium`  | The default. The reader is in the venue's zone, or the zone is already established nearby.                                |
+| `short`   | A dense row where the time is one fact among several. A ticket tag, a chip, a chart tooltip.                              |
+| `numeric` | Charts and dense tables. Fixed width, sorts as it reads. A buyer should never meet it.                                    |
+| Omitted   | The date alone is the answer. A festival's date range, a settlement date.                                                 |
+
+A date and a time are joined with a comma, as the platform joins its `medium`
+and `short` styles. `numeric` joins them with a space instead, because a data
+column isn't a sentence. The meridiem closes up against the digits at every
+style, which is where the house style departs from the platform. Under `iso`
+the time switches to 24 hour, joins with a space, and carries no zone name,
+because a spreadsheet cell is read as local wall-clock. It carries no offset
+either, which is why `formatMachine` exists for markup.
+
+The choice is about the reader, not about space. `long` and `medium` differ by
+whether the reader can be trusted to know the zone. `short` is the one place
+minutes are dropped, so reach for it only where the time is incidental.
+
+`long` means different things on the two axes, exactly as it does in Intl.
+`dateStyle: 'long'` is `Fri 27 Nov 2026`; `timeStyle: 'long'` adds the zone.
+They're independent, so `{ dateStyle: 'medium', timeStyle: 'long' }` is an
+ordinary pairing.
+
+<Guidelines>
+
+<Guideline
+  title='Name the zone when someone has to act across one'
+  description='A sale opening is the clearest case. Somebody in Perth needs to know whether to set an alarm for 9am or 6am.'
+>
+  <Guideline.Do
+    code={`
+      On sale Fri 27 Nov, 9:00am AEDT
+      Doors 7:30pm
+      Sold 7:30pm · Sec A Row 12
+    `}
+  >
+    The zone where it changes a decision. Left off where the reader is
+    standing at the venue. Dropped entirely where the time is one fact in a
+    row.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      On sale Fri 27 Nov, 9:00am
+      Doors 7:30pm AEDT AEDT
+      Doors 7pm
+    `}
+  >
+    A national on-sale with no zone. A zone repeated because the surrounding
+    copy already said it. And a door time missing its minutes, which only
+    `short` may do.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## The seven rules
+
+### 1. The reader picks the style
+
+Pick by what the reader needs, not by which screen you're on. What isn't
+allowed is two spellings of the same thing in different places.
+
+<Guidelines>
+
+<Guideline
+  headingLevel={3}
+  title='2. Weekday abbreviation follows the month'
+  description='Abbreviated with abbreviated, full with full. A date never mixes registers with itself. The scale guarantees this, including the months the locale spells with four letters, such as Sept. You only break it by hand rolling.'
+>
+  <Guideline.Do
+    code={`
+      Fri 27 Nov
+      Friday, 27 November
+    `}
+  >
+    Both halves agree, because the style decides both.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      Fri, 27 November
+      Friday, 27 Nov
+    `}
+  >
+    A short weekday against a long month. This shipped inside Roadie itself
+    for months. It's the reason this page exists.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+### 3. The year is a disambiguator
+
+Show it unless something already on screen establishes it. Measured in the
+**venue's** time zone. Two people in different states then agree about a New
+Year's Eve event.
+
+| Where                                         | Year                                   |
+| --------------------------------------------- | -------------------------------------- |
+| `full`, `long`, `medium`, standing alone      | Dropped when it's the current year     |
+| `full`, `long`, `medium`, in a list or table  | Always shown. Siblings may span years  |
+| `short`                                       | Never. That's what the style means     |
+| `iso`                                         | Always                                 |
+| Range, both ends in the same year             | On the later end only                  |
+| Range straddling a year                       | Both ends                              |
+
+`context` defaults to `'list'`. A forgotten context yields a slightly verbose
+date. Never an ambiguous one.
+
+<Guidelines>
+
+<Guideline
+  headingLevel={3}
+  title='4. One clock, set once'
+  description='Lowercase, minutes always, and no space before the meridiem. That last part is a deliberate departure, since the platform’s own short time spaces it.'
+>
+  <Guideline.Do
+    code={`
+      7:30pm
+      7:30pm AEDT
+      7pm   (short only)
+    `}
+  >
+    Minutes are always present, so a column of times aligns. `short` is the
+    single documented exception, for rows where the time is incidental. Call
+    sites never need a defensive `toLowerCase()`.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      7:30 pm
+      7:30 PM
+      7.30pm
+      7:30:00pm
+    `}
+  >
+    Four spellings of one time. The spaced meridiem is the near miss to watch
+    for. Seconds are never display information, and 24 hour belongs only to
+    `numeric` and `iso`.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title='5. One separator per meaning'
+  description='A comma joins a date to its time. The word “to” joins the two ends of a range. A middot (·) separates a date from an adjacent fact. Never a dash of any kind.'
+>
+  <Guideline.Do
+    code={`
+      Fri 27 Nov 2026, 7:30pm
+      Fri 27 to Sun 29 Nov 2026
+      Fri 27 Nov 2026 · 3 days
+    `}
+  >
+    The separator tells you what the next token is. And it survives being read
+    aloud.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      12:00pm - 10:00pm · Sun 29 Nov
+      Fri 27 – Sun 29 Nov 2026
+    `}
+  >
+    A hyphen joining a range, with a middot introducing an end date so it
+    reads as part of it. And an en dash, which a screen reader may skip
+    entirely.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title='6. Show a time only when it changes something'
+  description='A time earns its place when the reader can act on it, or when it changes a decision. Otherwise the date is the unit of meaning and the time is noise.'
+>
+  <Guideline.Do
+    code={`
+      Doors 7:30pm
+      On sale Fri 27 Nov, 9:00am AEDT
+      Edited 27 Nov 2026, 2:14pm
+    `}
+  >
+    Someone turns up, sets an alarm, or checks which edit was latest.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      Fri 27 to Sun 29 Nov 2026, 12:00am
+      Settled 27 Nov 2026, 12:00am
+      Report period: 1 Nov 2026, 12:00am
+    `}
+  >
+    A midnight that means nothing. The date alone was the answer.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title='7. Format in the zone the moment belongs to'
+  description='An event time belongs to its venue. A timestamp belongs to whoever is reading it. The time zone is required so this is always a decision. There is no fallback to the browser.'
+>
+  <Guideline.Do
+    code={`
+      formatLong(startsAt, {
+        timeZone: venue.timeZone
+      })
+
+      formatMedium(placedAt, {
+        timeZone: viewerTimeZone(),
+        timeStyle: 'medium'
+      })
+    `}
+  >
+    `timeZone` is required. An 11pm show reads `Fri 27 Nov` from every state.
+    An order reads in the hours the reader actually worked.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      new Date(startsAt).toLocaleDateString()
+      format(startsAt, 'dd MMM yyyy')
+    `}
+  >
+    Both render in the browser's zone by accident. A late evening event then
+    shows the wrong day for half the country.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Which clock
+
+A moment belongs to a place, and which place depends on what kind of moment it
+is. Rule 7 turns on the distinction, so it's worth being explicit.
+
+| Kind        | Means                                                                                                | Time zone                     |
+| ----------- | ---------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Event time  | When something happens at a place. Doors, set times, the show.                                       | The venue's. Never converted. |
+| Access time | When the reader must do something from wherever they are. On sale, presale, registration opening.    | The venue's, always labelled. |
+| Timestamp   | When something was recorded. An order, an edit, a note.                                              | The reader's.                 |
+
+On the docs site, a table gives how each kind usually reads: the show, its
+on-sale at 9am in Sydney, and an order placed at 2:14pm.
+
+<MomentReads />
+
+A timestamp usually wants `medium`. The weekday of an audit entry tells the
+reader nothing. An event time usually wants `long` or `full`, because the
+weekday is often the whole reason someone is looking.
+
+### Why an event time is never converted
+
+The usual advice is to convert everything into the reader's local zone. That's
+right for a meeting, where each attendee joins from wherever they're sitting.
+It's wrong here.
+
+A buyer will be standing at the venue when the doors open. Converting an 8pm
+Perth show into 11pm for a reader in Sydney doesn't save them arithmetic. It
+tells them the wrong time. The venue's clock isn't a formatting preference.
+It's the answer.
+
+<Guidelines>
+
+<Guideline
+  title='Convert what the reader acts on, not what they attend'
+  description='The test is where the reader will be when the moment arrives.'
+>
+  <Guideline.Do
+    code={`
+      Doors 8:00pm
+      On sale Fri 27 Nov, 9:00am AEDT
+      Order placed 2:14pm
+    `}
+  >
+    The show in venue time, because that's where they'll be. The on sale
+    labelled, because they act from home. The order in their own time, because
+    that's when it happened to them.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      Doors 11:00pm   (a Perth show, read from Sydney)
+      On sale 9:00am
+      Order placed 2:14pm AWST
+    `}
+  >
+    A show time nobody can use. An on sale that's three hours out for half the
+    country. And a timestamp dressed in a zone the reader has never been in.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+### An access time may need both
+
+A national on sale is the one case where a second clock earns its place. The
+reader is at their own computer, competing for tickets. Lead with the venue's
+zone, because that's what the promoter announced, and offer theirs after it.
+
+```text
+On sale Fri 27 Nov, 9:00am AEDT
+6:00am your time
+```
+
+### Say when the day moves
+
+The most common silent failure in any time zone code is a conversion that
+lands on a different calendar day. Whenever a second clock is shown and it
+falls on another date, say so. Never show a bare time that's quietly a day
+out.
+
+<Guidelines>
+
+<Guideline
+  title='Show the date when a conversion crosses midnight'
+  description='A reader who sees only a time assumes it is the same day. Half the time it is not.'
+>
+  <Guideline.Do
+    code={`
+      10:00pm AEDT
+      7:00pm your time
+
+      12:30am AEDT
+      9:30pm your time, Thu 26 Nov
+    `}
+  >
+    The second reads without a date only while the day is unchanged. When it
+    moves, the date comes with it.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      12:30am AEDT
+      9:30pm your time
+    `}
+  >
+    The reader sets an alarm for the wrong night.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+### All day means every zone
+
+A date with no time doesn't belong to a zone and must never be shifted by one.
+A public holiday, a birthday, an on-sale date with no announced hour: the same
+date everywhere. Converting it is how a date silently becomes the day before.
+
+### Why we don't print the offset
+
+A common recommendation is to pair the abbreviation with its offset,
+`9:00am AEST (UTC+10)`, because abbreviations collide internationally: `CST`
+is Central US, China, and Cuba.
+
+Australian abbreviations don't collide with each other, and the audience reads
+them fluently. People don't think in offsets, so an offset is noise for almost
+every reader. Add one only where the audience is genuinely international, and
+never in place of the abbreviation.
+
+### The abbreviation needs a place beside it
+
+`AEST` and `AEDT` differ by one character and one hour. For half the year
+Queensland and New South Wales sit on opposite sides of it. A reader in
+Brisbane has to catch a single letter to know the time isn't their own.
+
+Usually the place is already on the page. An event page names its venue; a
+listing names a city. Where a time appears without one beside it, name the
+place too.
+
+<Guidelines>
+
+<Guideline
+  title='Let the layout carry the place, or say it'
+  description='The abbreviation is a confirmation, not an introduction.'
+>
+  <Guideline.Do
+    code={`
+      Opal Harpoon Room, Richmond VIC
+      Doors 8:00pm AEDT
+
+      On sale 9:00am AEDT, Sydney
+      8:00am your time
+    `}
+  >
+    The venue answers where, so the abbreviation only has to confirm it. The
+    notification has no venue on it, so the place comes with the time.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      On sale 9:00am AEDT
+      On sale 9:00am Australia/Sydney
+      On sale 9:00am AET
+    `}
+  >
+    A bare abbreviation with no place. A database identifier in copy. And a
+    generic form that hides daylight saving, which is the one thing the reader
+    needed to know.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+Don't reach for `Intl`'s generic zone names to solve this. `shortGeneric`
+renders Sydney as `AET` and Brisbane as `AEST`, so it removes the daylight
+saving distinction from one and not the other, making the two states harder
+to tell apart rather than easier.
+
+### Tools where the venue can't be assumed
+
+A buyer is usually local to the event they're looking at. Someone running
+events often is too, and just as often isn't: the same desk handles venues in
+several states. They also set the on-sale times thousands of buyers act on, so
+a zone read wrong here is an incident rather than an inconvenience.
+
+Two rules bind harder here. The zone is never optional, because you can't tell
+from the screen whether the reader is in it. And a second clock stops being a
+nicety: where the reader's zone differs from the venue's, show both, venue
+first.
+
+```tsx
+import { useSyncExternalStore } from 'react'
+
+import { viewerTimeZone } from '@oztix/roadie-core/datetime'
+
+const noSubscription = () => () => {}
+
+// The server can't know the viewer's zone, so it renders no second clock
+// and hydration adds one, rather than the server and client disagreeing.
+const viewer = useSyncExternalStore(noSubscription, viewerTimeZone, () => null)
+
+<DateTime at={startsAt} timeZone={venue.timeZone} timeStyle='long' />
+{viewer && viewer !== venue.timeZone && (
+  <span className='text-subtle'>
+    <DateTime at={startsAt} timeZone={viewer} dateStyle='medium' timeStyle='medium' />
+    {' your time'}
+  </span>
+)}
+```
+
+<Guidelines>
+
+<Guideline
+  title='Name the zone, never the record'
+  description='An operator tool that prints an identifier or a raw offset is printing a database value, not copy.'
+>
+  <Guideline.Do
+    code={`
+      Fri 27 Nov 2026, 7:30pm AWST
+      27 Nov 2026, 9:30pm your time
+    `}
+  >
+    The venue's clock first, because that's when the doors open. The reader's
+    underneath, so nobody does the arithmetic.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      27 Nov 2026 07:30 PM Australia/Perth
+      27 Nov 2026, 07:30 PM (GMT+8)
+      27 Nov 2026 07:30 PM
+    `}
+  >
+    A database identifier. A raw offset. And a time with no zone at all, which
+    is how an operator in one state sets an on sale for another and doesn't
+    notice.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+One thing must never happen here: an event time rendered in the reader's zone
+as the primary value. That's the wrong answer wearing the right label, and the
+most common way a scheduling mistake reaches a buyer.
+
+### The Australian zones
+
+Mainland Australia has three standard zones, and only some states observe
+daylight saving, so summer has five. For half the year a show in Brisbane and
+a show in Sydney are an hour apart. For the other half they aren't. That's why `timeZone` is required, and why it
+takes an [IANA identifier](https://www.iana.org/time-zones) rather than an
+abbreviation. On the docs site, a table gives the abbreviations `long` prints
+in winter and in summer for NSW, Victoria, Tasmania, and the ACT, then
+Queensland, SA, the NT, WA, and Lord Howe Island, and whether each observes
+daylight saving.
+
+<ZoneTable />
+
+Show the zone when the reader might not be in it. An event page for a national
+tour, an on-sale time, anything someone in another state acts on. Leave it off
+when the reader is obviously local, because it's noise.
+
+<Guidelines>
+
+<Guideline
+  title='Name the zone, don’t offset it'
+  description='An abbreviation is what people recognise. A UTC offset is not.'
+>
+  <Guideline.Do code={`On sale Fri 27 Nov, 9:00am AEDT`}>
+    Someone in Perth knows to set an alarm for 6am.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      On sale Fri 27 Nov, 9:00am GMT+11
+      On sale Fri 27 Nov, 9:00am Australia/Sydney
+    `}
+  >
+    An offset nobody converts in their head. Or a raw IANA identifier, which is
+    a database key, not copy.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+### Midnight, and the small hours
+
+A late show is the normal case in this business, not an edge case. Two rules
+follow from that.
+
+First, a set that ends at or before 6am belongs to the night before. A show
+running 10pm to 3am is one night out, not two. `formatDurationDays` applies
+this, so a festival doesn't gain a day on one screen and not another.
+
+Second, `12:00am` is ambiguous to a lot of readers. In prose, prefer the word.
+In a table or a row of times, keep the digits so the column aligns.
+
+<Guidelines>
+
+<Guideline
+  title='Say midnight when it’s prose'
+  description='The formatter emits digits, which is right for a table. A sentence is different.'
+>
+  <Guideline.Do
+    code={`
+      Doors 8:00pm, close midnight
+      Sat 28 Nov, 12:00am
+    `}
+  >
+    The word in a sentence. The digits in a row, where alignment is worth more.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      Doors 8:00pm, close 12:00am
+      Closes 12 pm
+    `}
+  >
+    An ambiguous midnight in prose. And a `12 pm` that half of readers will
+    take for midnight.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Which register
+
+`formatRelative` renders a timestamp as elapsed time. It falls back to the
+absolute date once the moment is further away than the cutoff, which defaults
+to seven days.
+
+```tsx
+formatRelative(note.addedAt, { timeZone: viewerTimeZone() })
+// → 'just now' · '3 minutes ago' · '5 hours ago'
+// → 'yesterday' · '3 days ago'
+// → 'Tue 17 Nov 2026' once it's past the cutoff
+```
+
+<Guidelines>
+
+<Guideline
+  title='Always keep the absolute reachable'
+  description='A relative time cannot be checked against a calendar or quoted to anyone. Put the absolute in a title or tooltip.'
+>
+  <Guideline.Do
+    code={`<DateTime at={note.addedAt} timeZone={viewerTimeZone()} relative />`}
+  >
+    Scannable at a glance, precise on hover. The component puts the absolute
+    in `title`, sets the machine value, and swaps the text in after mount so it
+    neither goes stale nor mismatches the server.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      <span>{formatRelative(at, o)}</span>
+      <time dateTime={iso}>{formatRelative(at, o)}</time>
+    `}
+  >
+    The exact moment is unreachable, and hand-rolled relative text is frozen
+    at whatever the server rendered.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+It reads the future too, so `in 20 minutes` works for a door opening. Not for
+the event itself: "in 3 days" is a worse answer than `Fri 27 Nov` for
+something a person has to turn up to.
+
+### The ladder runs both ways
+
+Past and future aren't mirror images. For something that already happened,
+closer means relative is better. For something that hasn't happened yet,
+closer means relative is _worse_.
+
+"3 minutes ago" beats a timestamp on an audit row. But "in 4 hours" is a bad
+answer for a sale opening today, because you can't set an alarm from it. As a
+future moment gets nearer, hand back the actual time.
+
+### Past: relative near, absolute far
+
+This is what `formatRelative` does. The cutoff defaults to seven days. On the
+docs site, a table gives what it returns at each distance before 5am on Friday
+27 November 2026 in Sydney.
+
+<RelativeLadder direction='past' />
+
+### Future: absolute near, relative far
+
+The inverse, and the formatter doesn't do it for you. Build it from the
+distance, the way an on-sale label does. On the docs site, a table gives each
+step for an on sale ahead of the same moment, from `formatLong`,
+`formatRelative`, and `formatTimeOfDay`.
+
+<RelativeLadder direction='future' />
+
+- Over a week, show a date. Nobody counts down from nine days.
+- Under a week, a relative day count is close enough to feel soon.
+- At one day, the word beats the number.
+- Today, show the time with its zone. You can't set an alarm from "in 4
+  hours".
+
+### Picking a cutoff
+
+The default suits a note or an audit row. Shorten it where staleness matters,
+and don't reach for it at all where someone is making plans.
+
+| Surface                       | Cutoff         | Why                               |
+| ----------------------------- | -------------- | --------------------------------- |
+| Notification, activity feed   | 1 hour         | Anything older wants a real time. |
+| Audit row, note, comment      | 7 days         | The default.                      |
+| "Last updated" on a report    | 7 days         | Recency is the whole signal.      |
+| Anything a person turns up to | Don't use it   | A countdown isn't a plan.         |
+
+<Guidelines>
+
+<Guideline
+  title='Match the register to the decision'
+  description='Ask what the reader does next. If the answer involves a calendar or an alarm, give them a date and a time.'
+>
+  <Guideline.Do
+    code={`
+      Edited 3 minutes ago
+      On sale in 5 days
+      On sale tomorrow
+      On sale at 9:00am AEDT
+    `}
+  >
+    The first is a recency check. The rest walk down to the exact time as the
+    moment gets close enough to act on.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      Edited 27 Nov 2026, 2:14:03pm
+      On sale in 4 hours
+      Starts in 3 days
+      On sale in 63 days
+    `}
+  >
+    A timestamp where recency was the question. A countdown where a time was
+    needed. A countdown to the event itself. And a number nobody converts back
+    into a date.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Dates in data
+
+Charts and dense tables are scanned and compared, not read. In prose a date is
+a fact in a sentence. In a column it's a value to line up against the ones
+above and below it.
+
+So the rules bend in one specific direction: fixed width, no decoration, and
+nothing that repeats what the surrounding structure already says.
+
+| Where                                  | Use                                        | Why                                                                              |
+| -------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------- |
+| Axis tick                              | `dateStyle` `short`, `timeStyle` `numeric` | Dozens on screen at once. No weekday, no year, no meridiem.                      |
+| Tooltip                                | `dateStyle` `long`, `timeStyle` `medium`   | Restores everything the tick dropped. That's what makes the tick safe.           |
+| Table column, date identifies the row  | `dateStyle` `medium`                       | An order or settlement date. The weekday isn't what the reader is comparing.     |
+| Table column, weekday is a variable    | `dateStyle` `long`                         | An events list. The weekday is a dimension the reader analyses down the column.  |
+| Table column, with time                | Add `timeStyle` `numeric`                  | Two fixed-width fields. The column aligns and sorts.                             |
+| Export cell                            | `dateStyle` `iso`, `timeStyle` `numeric`   | Sorts lexicographically. Unambiguous in any locale.                              |
+| Sort or group key                      | Not a display format                       | Key on the instant. A formatted string isn't a key.                              |
+
+On the docs site, a table gives how the show reads in each display context.
+
+<DataFormatReads />
+
+### When the weekday is a dimension
+
+A date in a column is usually a label: it says which row this is, and the
+reader is comparing the numbers beside it. There, the weekday is repetition
+and `medium` is right.
+
+Sometimes the weekday is the thing being compared. A promoter reading their
+events list wants to know whether Wednesdays sell worse than Fridays, and the
+only way to see that is to scan the weekday down the column against the
+figures. There it's an **axis of the analysis**. Dropping it removes the pattern.
+
+<Guidelines>
+
+<Guideline
+  title='Ask whether the reader is comparing the weekday'
+  description='The test is not how wide the column is. It is whether the answer to their question is in that token.'
+>
+  <Guideline.Do
+    code={`
+      Events list      Fri 27 Nov 2026
+      Orders table     27 Nov 2026
+      Settlements      27 Nov 2026
+    `}
+  >
+    The events list keeps the weekday because day of week drives attendance.
+    The others don't, because nobody asks which weekday an order was placed.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      Events list      27 Nov 2026
+      Orders table     Fri 27 Nov 2026
+    `}
+  >
+    The pattern removed from the one place it matters, and repetition added to
+    a column where it says nothing.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+When it's a dimension, keep it leading and abbreviated. Three characters in a
+fixed position is what lets the eye run down the column and catch the
+repetition. A weekday buried mid-string, or spelled out at varying widths,
+can't be scanned that way.
+
+### The axis and its tooltip are one design
+
+An axis tick drops the weekday, the year, and the meridiem because the axis
+range establishes all three and because dozens of ticks share the width of
+one chart. That's only safe because hovering restores them. Design the pair
+together or neither works.
+
+<Guidelines>
+
+<Guideline
+  title='Let the tooltip carry what the tick cannot'
+  description='A reader aims at a date, never at a two-pixel line. The tick orients; the tooltip answers.'
+>
+  <Guideline.Do
+    code={`
+      tick:    27 Nov 19:30
+      tooltip: Fri 27 Nov 2026, 7:30pm
+    `}
+  >
+    The tick stays legible at density. The tooltip is the only place the full
+    date needs to exist.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      tick:    Fri 27 Nov 2026, 7:30pm
+      tooltip: 27 Nov 19:30
+    `}
+  >
+    A tick nobody can fit and a tooltip that answers less than the axis.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+### 24 hour, and only here
+
+`numeric` is where rule 4 gives way for a reader, the way `iso` does for a
+file. A meridiem costs three characters on every tick, and worse, it changes
+width across midday, so `11:45am` and `12:00pm` crowd differently and a chart
+library starts dropping ticks unevenly.
+
+It also matches the source. Operators read a scan chart against a run sheet,
+and run sheets are 24 hour. A buyer should never meet this style.
+
+### Never key on a formatted date
+
+Grouping, sorting, bucketing, and caching key on the instant, never on the
+string that gets displayed. A formatted date is an output. The moment one is
+used as a key, changing how a date looks changes which rows group together,
+and that failure is silent.
+
+## Writing dates here
+
+The scale is day first, never month first. `27 Nov 2026`, not `Nov 27, 2026`.
+This isn't a preference. A month first date is read wrongly by most people
+here.
+
+<Guidelines>
+
+<Guideline
+  title='Write dates the way people here read them'
+  description='These follow from the scale. You only break them by hand rolling a date.'
+>
+  <Guideline.Do
+    code={`
+      Fri 27 Nov 2026
+      7:30pm
+      Anzac Day, Boxing Day
+    `}
+  >
+    Day first. No leading zero on the hour. Named days and public holidays are
+    proper nouns, so they take capitals.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      Nov 27, 2026
+      Fri 27th Nov
+      07:30pm
+    `}
+  >
+    Month first. Ordinals, which add nothing and are read aloud awkwardly. A
+    padded hour, which belongs only to the two 24 hour styles, `numeric` and
+    `iso`.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+### Recurring events
+
+Residencies, weekly nights, and seasons all need plain words. Several common
+ones mean two different things to two different readers.
+
+<Guidelines>
+
+<Guideline
+  title='Say the interval, not a word that hides it'
+  description='If a word has two readings, a promoter and a buyer will pick different ones.'
+>
+  <Guideline.Do
+    code={`
+      Every 2 weeks
+      Twice a month
+      Thursdays, 5 Nov to 17 Dec
+    `}
+  >
+    One reading only. The last one also bounds the run, which a recurring
+    label on its own never does.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      Fortnightly
+      Bimonthly
+      Biannual
+    `}
+  >
+    Each of these has two accepted meanings. None of them survive a refund
+    conversation.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Date ranges
+
+A date filter, a [DateRangePicker](/components/date-range-picker), and a
+[DashboardPeriod](/charts/dashboard-period)'s `range` all hold the same
+value, a `DateRangeValue`. It's either two inclusive ends, `{ start, end }`,
+or a relative range. A relative range stays relative when it's saved, so a
+saved "This month" view still means this month next month.
+
+The examples in this section are worked out on Fri 2 Oct 2026, at 10am in
+Sydney.
+
+### Each relative word has one meaning
+
+On the docs site, a table gives each relative value, its label, and the dates
+it covers on that day, from `describeDateRange`.
+
+<RangeTable />
+
+- A week runs Monday to Sunday. Pass `weekStart` to change it.
+- A weekend is Saturday and Sunday. On a Sunday, this weekend is yesterday and
+  today.
+- A rolling window counts today. The next 7 days are today and the six after
+  it.
+- `upcoming` and `past` run from now with no other end. `ongoing` holds
+  whatever contains now.
+- The financial year starts in July. Pass `fiscalYearStart` for another month.
+- `DateRangePicker` and `DashboardPeriod` take `weekStart` and
+  `fiscalYearStart` too, and `Calendar`, `DatePicker`, and `DateField` take
+  `weekStart`.
+
+<Guidelines>
+
+<Guideline
+  title='Show the words, keep the dates reachable'
+  description='describeDateRange returns a label to show and a detail with the dates it stands for. Put the detail in a tooltip or beside the label, so anyone can check it against a calendar.'
+>
+  <Guideline.Do
+    code={`
+      Month to date
+      tooltip: 1 to 2 Oct 2026
+    `}
+  >
+    The words for the choice, the dates for the check.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      MTD
+      This period
+    `}
+  >
+    An abbreviation some readers won't know, and a label that names no dates
+    at all.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+### Resolve in the zone the moment belongs to
+
+`resolveDateRange` turns a value into what it covers today. Calendar ranges
+come back as plain dates, read in the zone you pass. Hour windows, `upcoming`,
+`past`, `ongoing`, and ends with a time come back as instants. Late on a
+Friday night in Sydney it's still Friday evening in Perth, and both are right
+about their own weekend.
+
+`DateRangePicker`, `DashboardPeriod`, and `Calendar` take `timeZone` to decide
+which day is today, and default to the viewer's. Pass the venue's when the
+range filters event times.
+
+<Guidelines>
+
+<Guideline
+  title='Pass the zone, never lean on the browser'
+  description='Rule 7 again. Event times filter on the venue’s calendar, timestamps on the reader’s.'
+>
+  <Guideline.Do
+    code={`
+      resolveDateRange('this-weekend', {
+        now,
+        timeZone: venue.timeZone
+      })
+      // { kind: 'dates', start: '2026-10-03', end: '2026-10-04' }
+    `}
+  >
+    A plain date is the same date for everyone. It's never shifted into
+    another zone.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      const today = new Date()
+      today.setDate(today.getDate() + 7)
+    `}
+  >
+    The browser's zone and clock, by accident. Near midnight this is a day out
+    for half the country.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+### Comparisons
+
+A dashboard compares its period with another. `resolveComparison` works out
+the other range and `describeComparison` gives the context line under a
+delta. The previous period of a calendar period is the one before it, so this
+month compares with last month, and month to date with last month to the same
+day. Any other range compares with one of the same length, ending just before
+it starts. The previous year takes the same dates a year earlier, and 29
+February becomes the 28th. Pass `alignWeekday` to go back 52 weeks instead, so Mondays
+compare with Mondays. On the docs site, a table gives each comparison of month
+to date, with its context line and the dates it covers.
+
+<ComparisonTable />
+
+It also says how much of the comparison the data covers. Pass `dataStart` and
+`dataEnd`, the first and last days the data holds. A comparison that starts
+before the data, or ends after it, is `partial`; one wholly outside it is
+`unavailable`, as is any comparison with an open-ended range or `ongoing`.
+Show "Not enough history" or "Nothing to compare" for those, not a delta. A period that
+runs past `dataEnd` is still in progress, so its comparison stops at the same
+point: this month on 2 Oct compares 1 and 2 Oct with 1 and 2 Sept. One that
+starts after it has no data yet, so its comparison is unavailable. Pass
+`dataEnd` only for data recorded as it happens, such as sales.
+
+### Typed phrases
+
+`parseDatePhrase` turns what someone types into ranked suggestions. Each one
+has a label and an explicit value: a range, `{ on }`, `{ before }`,
+`{ after }`, or `{ time }`. Text that isn't a date returns nothing. On the docs
+site, a table gives the suggestions for a set of typed phrases, best first.
+
+<PhraseTable />
+
+- Numbers are day first. `1/12` is 1 December.
+- A date with no year takes the occurrence closest to today, either way. In
+  October, `14 mar` is next March and `20 sep` is last month.
+- A word with two readings never becomes a label of its own. A fortnight is
+  the next 14 days. Next weekend offers the one after this, by date, then this
+  weekend.
+
+## Outside React
+
+The rules are portable. The implementation isn't. There are two cases and
+they take different answers.
+
+### JavaScript, but no React
+
+Use the formatters. Each component page lists the ones behind it under
+Without React, with the call sites they're for:
+[DateTime](/components/date-time), [Duration](/components/duration),
+[Countdown](/components/countdown), and
+[CalendarTile](/components/calendar-tile). `formatMachine` gives you the
+attribute value, so there's no reason to build one by hand.
+
+### Another language on the server
+
+The application owns its own formatter and follows the same rules, with the
+same style names. Name its methods after the style, never the format string
+they produce, so a call site can't pick the wrong one.
+
+This is the only case that writes the `time` element by hand. The attribute is
+the machine value. Three shapes cover it.
+
+| Showing         | Why                                                  |
+| --------------- | ---------------------------------------------------- |
+| A date          | A calendar date has no zone. Don't invent one.       |
+| A date and time | The offset is what makes it an instant.              |
+| A time only     | Rare. Only where the date is already established.    |
+
+On the docs site, a table gives the `datetime` value for each shape, for a
+7:30pm show on Fri 27 Nov 2026 in Brisbane, from `formatMachine` and
+`formatTimeOfDay`.
+
+<MachineValueReads />
+
+<Guidelines>
+
+<Guideline
+  title='Carry the offset whenever you show a time'
+  description='A local time with no offset is a floating value. It parses to a different instant in every time zone that reads it.'
+>
+  <Guideline.Do
+    code={`
+      datetime="2026-11-27T19:30:00+10:00"
+      datetime="2026-11-27"
+    `}
+  >
+    The first identifies one instant anywhere on earth. The second is a
+    calendar date, which genuinely has no zone.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      datetime="2026-11-27 19:30"
+      datetime="Fri 27 Nov 2026, 7:30pm"
+    `}
+  >
+    A floating local time, read ten hours out in London. And a human string,
+    which isn't a machine value at all.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+Don't reuse the `iso` style here. It has no offset and uses a space rather
+than a `T`, which is right for a spreadsheet cell and wrong for this
+attribute. See [DateTime](/components/date-time#without-react).
+
+Skip relative time on the server. It's stale the moment it's sent, and there's
+nothing to re-render it.
+
+## Accessibility
+
+Ranges need nothing extra. They're joined with the word `to`, so they read
+correctly on screen and out loud. A dash wouldn't. Screen readers announce an
+en dash inconsistently and often skip it, which turns a range into one run-on
+date.
+
+Seat runs are the exception and keep a hyphen. `A1-4` is a compressed list,
+not a range someone reads as a sentence, and `A1 to 4` would suggest four
+separate seats. The brand guide already spells number ranges this way, and
+it's the easier character to type.

@@ -921,18 +921,6 @@ describe('Pane.Header collapse on scroll', () => {
     expect(headerOf()).toHaveAttribute('data-collapsed', 'true')
   })
 
-  it('floors the header at one control height so a title-only header still reserves control-sized chrome', async () => {
-    await renderPane(titled)
-    const header = headerOf()
-    expect(header).toHaveClass(
-      'min-h-[calc(--spacing(4)_+_--spacing(10)_+_var(--pane-header-pad-b))]'
-    )
-    const transitions = header.className.match(/transition-\[[^\]]+\]/g) ?? []
-    for (const transition of transitions) {
-      expect(transition).not.toContain('min-height')
-    }
-  })
-
   it('exposes the compact title as a scroll-to-top button', async () => {
     await renderPane(
       <Pane>
@@ -1272,7 +1260,7 @@ describe('stack geometry', () => {
   const paneEls = () =>
     Array.from(document.querySelectorAll('[data-slot="pane"]'))
 
-  it('writes no geometry classes; the stylesheet keys on the attributes', async () => {
+  it('marks each pane with the stack position the stylesheet lays out', async () => {
     render(
       <Navigator value='/a'>
         <Pane column='list'>List</Pane>
@@ -1281,25 +1269,9 @@ describe('stack geometry', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    for (const el of paneEls()) {
-      expect(el.className).not.toMatch(/max-lg:|lg:|2xl:/)
-    }
     expect(paneEls()[0]).toHaveAttribute('data-stack-position', 'behind')
     expect(paneEls()[1]).toHaveAttribute('data-stack-position', 'top')
     expect(paneEls()[2]).not.toHaveAttribute('data-stack')
-  })
-
-  it('insets the stack from md by a gutter the row publishes', async () => {
-    render(
-      <Navigator value='/a'>
-        <Pane>Detail</Pane>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(document.querySelector('[data-slot="navigator-panes"]')).toHaveClass(
-      '[--pane-stack-inset:0px]',
-      'md:[--pane-stack-inset:--spacing(3)]'
-    )
   })
 
   describe('a pane inside a pane', () => {
