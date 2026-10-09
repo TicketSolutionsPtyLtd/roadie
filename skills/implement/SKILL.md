@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Use when building a specced ticket or slice in any Oztix repo, after /roadie:spec and before /roadie:demo. Works in its own worktree on a correctly named branch, builds test-first at the spec's seams with /roadie:test, runs load-gated tests, wires new exports, rebuilds dist where docs or consumers read it, adds a changeset when a published package changes, and stops at the demo. Reads the host repo's AGENTS.md and CODING_STANDARDS.md. Triggers on "implement this", "build this ticket", "build the spec", "start on INNO-", "make the change".
+description: Use when building a specced ticket or slice in any Oztix repo, after /roadie:spec and before /roadie:demo. Works in its own worktree on a correctly named branch, builds test-first at the spec's seams with /roadie:test, runs load-gated tests, wires new exports, rebuilds dist where docs or consumers read it, adds a changeset when a released package changes, and stops at the demo. Reads the host repo's AGENTS.md and CODING_STANDARDS.md. Triggers on "implement this", "build this ticket", "build the spec", "start on INNO-", "make the change".
 ---
 
 # Roadie implement
@@ -80,11 +80,12 @@ an old behaviour in the docs usually means stale `dist`.
 
 ## 7. Changeset
 
-When a published package's shipped output changes, add a changeset per package
+When a released package's shipped output changes, add a changeset per package
 (`pnpm changeset`, or a file in `.changeset/`), written for consumers, with the
 bump and held-release rules from the host workflow (Roadie: PR workflow
-section 2). Tests, docs, and internal tooling need none; say why under the
-PR's Checks.
+section 2). Released includes a private package Changesets versions, such as
+Roadie's `roadie-skills` for `skills/`. Tests, docs, and internal tooling need
+none; say why under the PR's Checks.
 
 ## 8. Stop at the demo
 
