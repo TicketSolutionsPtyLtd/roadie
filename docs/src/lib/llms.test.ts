@@ -184,7 +184,11 @@ describe('pageToMarkdown', () => {
         "  title='Name the tier'",
         '  description={',
         '    <>',
-        '      Use <code>rounded-3xl</code> for a [Panel](/foundations/shape).',
+        "      Use <Code>rounded-3xl</Code>, not <em>[3xl]</em>, for a{' '}",
+        "      <Link href='/foundations/shape' className='underline'>",
+        '        Panel',
+        '      </Link>',
+        '      .',
         '    </>',
         '  }',
         '>',
@@ -198,7 +202,7 @@ describe('pageToMarkdown', () => {
       [
         '# Badge',
         '**Name the tier**',
-        'Use `rounded-3xl` for a [Panel](/foundations/shape).',
+        'Use `rounded-3xl`, not *\\[3xl]*, for a [Panel](/foundations/shape).',
         '**Do**',
         'Say Panel.\n'
       ].join('\n\n')

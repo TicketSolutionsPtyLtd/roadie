@@ -130,18 +130,91 @@ function apiReference(components: ManifestComponent[]): RootContent[] {
   return unified().use(remarkParse).use(remarkGfm).parse(markdown).children
 }
 
-const mdxParser = unified().use(remarkParse).use(remarkMdx).use(remarkGfm)
+type JsxTree = Extract<
+  NonNullable<ReturnType<typeof expressionOf>>,
+  { type: 'JSXElement' | 'JSXFragment' }
+>
+type JsxChild = JsxTree['children'][number]
 
-/** A prop that holds text or JSX, such as a guideline's description, as markdown blocks. */
-function richAttribute(node: JsxElement, name: string, page: Page): Node[] {
-  const source = attribute(node, name)
-  if (!source) return []
-  const type = expressionOf(attributeValue(node, name))?.type
-  if (type !== 'JSXElement' && type !== 'JSXFragment') {
-    return [paragraph(text(source))]
+// React's rule: each line is trimmed, blank lines go, and the rest join with a space.
+function jsxText(value: string) {
+  const lines = value.replace(/\t/g, ' ').split(/\r?\n/)
+  return lines
+    .map((line, index) => {
+      const start = index > 0 ? line.replace(/^ +/, '') : line
+      return index < lines.length - 1 ? start.replace(/ +$/, '') : start
+    })
+    .filter(Boolean)
+    .join(' ')
+}
+
+function jsxAttribute(
+  element: Extract<JsxTree, { type: 'JSXElement' }>,
+  name: string
+) {
+  const attr = element.openingElement.attributes.find(
+    (a) =>
+      a.type === 'JSXAttribute' &&
+      a.name.type === 'JSXIdentifier' &&
+      a.name.name === name
+  )
+  const value = attr?.type === 'JSXAttribute' ? attr.value : undefined
+  return value?.type === 'Literal' && typeof value.value === 'string'
+    ? value.value
+    : undefined
+}
+
+/** JSX as React renders it, so markdown syntax in its text stays literal. */
+function jsxToPhrasing(
+  node: JsxTree | JsxChild,
+  page: Page
+): PhrasingContent[] {
+  switch (node.type) {
+    case 'JSXText': {
+      const value = jsxText(node.value)
+      return value ? [text(value)] : []
+    }
+    case 'JSXExpressionContainer':
+      return node.expression.type === 'Literal' &&
+        typeof node.expression.value === 'string'
+        ? [text(node.expression.value)]
+        : []
+    case 'JSXSpreadChild':
+      return []
   }
-  const [root] = transform(mdxParser.parse(dedent(source)), page) as [Root]
-  return root.children
+  const children = node.children.flatMap((child) => jsxToPhrasing(child, page))
+  if (node.type === 'JSXFragment') return children
+  const { name } = node.openingElement
+  switch (name.type === 'JSXIdentifier' ? name.name : '') {
+    case 'code':
+    case 'Code':
+      return [{ type: 'inlineCode', value: toString(paragraph(...children)) }]
+    case 'em':
+      return [{ type: 'emphasis', children }]
+    case 'strong':
+      return [{ type: 'strong', children }]
+    case 'a':
+    case 'Link': {
+      const url = jsxAttribute(node, 'href')
+      return url
+        ? (transform(
+            { type: 'link', url, children },
+            page
+          ) as PhrasingContent[])
+        : children
+    }
+  }
+  return children
+}
+
+/** A prop that holds text or JSX, such as a guideline's description, as a paragraph. */
+function richAttribute(node: JsxElement, name: string, page: Page): Node[] {
+  const expression = expressionOf(attributeValue(node, name))
+  const children =
+    expression?.type === 'JSXElement' || expression?.type === 'JSXFragment'
+      ? jsxToPhrasing(expression, page)
+      : [text(attribute(node, name) ?? '')]
+  return toString(paragraph(...children)) ? [paragraph(...children)] : []
 }
 
 function guideline(
