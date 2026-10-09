@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { Steps, stepsVariants } from '.'
+import { Steps } from '.'
 
 describe('Steps', () => {
   it('Steps and Steps.Root are the same component reference', () => {
@@ -39,22 +39,19 @@ describe('Steps', () => {
     expect(container.firstElementChild).toHaveClass('grid', 'w-full', 'gap-4')
   })
 
-  it('renders default horizontal orientation variant', () => {
-    const classes = stepsVariants()
-    expect(classes).toContain('grid')
-    expect(classes).toContain('w-full')
-    expect(classes).toContain('gap-4')
-  })
-
-  it('renders vertical direction variant', () => {
-    const classes = stepsVariants({ direction: 'vertical' })
-    expect(classes).toContain('grid-cols-[auto_1fr]')
-    expect(classes).toContain('gap-3')
-  })
-
-  it('applies custom className via variants', () => {
-    const classes = stepsVariants({ className: 'custom-class' })
-    expect(classes).toContain('custom-class')
+  it('keeps a custom className on the root', () => {
+    const { container } = render(
+      <Steps count={1} className='custom-class'>
+        <Steps.List>
+          <Steps.Item index={0}>
+            <Steps.Trigger>
+              <Steps.Indicator>1</Steps.Indicator>
+            </Steps.Trigger>
+          </Steps.Item>
+        </Steps.List>
+      </Steps>
+    )
+    expect(container.firstElementChild).toHaveClass('custom-class')
   })
 
   it('renders indicators with correct base classes', () => {

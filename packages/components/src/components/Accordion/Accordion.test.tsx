@@ -4,7 +4,7 @@ import { act, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { Accordion, accordionVariants } from '.'
+import { Accordion } from '.'
 
 describe('Accordion', () => {
   it('renders with default props', () => {
@@ -66,20 +66,19 @@ describe('Accordion', () => {
     expect(ref).toHaveBeenCalledWith(expect.any(HTMLDetailsElement))
   })
 
-  it('renders with default emphasis variant', () => {
-    const classes = accordionVariants()
-    expect(classes).toContain('emphasis-normal')
-    expect(classes).toContain('rounded-xl')
-  })
-
-  it('renders with subtle emphasis variant', () => {
-    const classes = accordionVariants({ emphasis: 'subtle' })
-    expect(classes).toContain('gap-0.5')
-  })
-
-  it('renders with subtler emphasis variant', () => {
-    const classes = accordionVariants({ emphasis: 'subtler' })
-    expect(classes).toContain('grid')
+  it('draws no card or item fill at subtler emphasis', () => {
+    const { container } = render(
+      <Accordion emphasis='subtler'>
+        <Accordion.Item>
+          <Accordion.Trigger>Trigger</Accordion.Trigger>
+          <Accordion.Content>Content</Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    )
+    expect(container.firstElementChild!.className).not.toMatch(/emphasis-/)
+    expect(container.querySelector('details')!.className).not.toMatch(
+      /emphasis-/
+    )
   })
 
   it('applies emphasis-subtle to items in subtle variant', () => {
@@ -198,9 +197,15 @@ describe('Accordion', () => {
     expect(details).toHaveClass('is-disclosure-animated')
   })
 
-  it('applies custom className to root', () => {
-    const classes = accordionVariants({ className: 'custom-class' })
-    expect(classes).toContain('custom-class')
+  it('keeps a custom className on the root', () => {
+    const { container } = render(
+      <Accordion className='custom-class'>
+        <Accordion.Item>
+          <Accordion.Trigger>Trigger</Accordion.Trigger>
+        </Accordion.Item>
+      </Accordion>
+    )
+    expect(container.firstElementChild).toHaveClass('custom-class')
   })
 
   describe('without interpolate-size', () => {

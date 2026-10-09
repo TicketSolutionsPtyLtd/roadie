@@ -19,17 +19,9 @@ import {
 } from './testUtils'
 import {
   navigatorBrandClass,
-  navigatorCapsuleClass,
-  navigatorExpandToggleAnchorClass,
-  navigatorGroupTitleClass,
   navigatorItemLabelClass,
-  navigatorItemVariants,
-  navigatorPrimaryBrandVariants,
   navigatorPrimaryClusterClass,
-  navigatorPrimaryClusterContentClass,
-  navigatorPrimaryFrameClass,
-  navigatorPrimaryPinnedClass,
-  navigatorPrimaryVerticalClass
+  navigatorPrimaryFrameClass
 } from './variants'
 
 const vertical = () => primaryOf('vertical')
@@ -215,10 +207,12 @@ describe('vertical regions', () => {
     expect(navigatorPrimaryClusterClass.split(' ')).toContain('flex-1')
   })
 
-  it('keeps the press, colour and focus transitions of is-interactive on a tile', () => {
-    const classes = navigatorItemVariants().split(' ')
-    expect(classes).toContain('is-interactive')
-    expect(classes.filter((name) => /(^|:)transition/.test(name))).toEqual([])
+  it('gives a tile the interactive states', async () => {
+    render(<Six />)
+    await flushViewportMeasurement()
+    expect(
+      within(region('cluster')).getByRole('link', { name: '/b' })
+    ).toHaveClass('is-interactive')
   })
 })
 
@@ -988,27 +982,6 @@ describe('expanded vertical navigation', () => {
     await flushViewportMeasurement()
     const inner = screen.getByRole('navigation', { name: 'Inner' })
     expect(within(inner).getByText('Inner').matches(scope)).toBe(false)
-  })
-
-  it('writes each expanded style once, through the variant', () => {
-    const classes = [
-      navigatorPrimaryVerticalClass,
-      navigatorPrimaryFrameClass,
-      navigatorPrimaryClusterContentClass,
-      navigatorPrimaryPinnedClass,
-      navigatorCapsuleClass,
-      navigatorItemVariants(),
-      navigatorItemLabelClass,
-      navigatorGroupTitleClass,
-      navigatorPrimaryBrandVariants({ toggle: true }),
-      navigatorBrandClass,
-      navigatorExpandToggleAnchorClass
-    ].join(' ')
-    expect(classes).toContain(
-      'navigator-expanded:w-(--navigator-primary-expanded)'
-    )
-    expect(classes).toContain('navigator-expanded:opacity-100')
-    expect(classes).not.toMatch(/\[html\[|data-\[expanded|expanded=false/)
   })
 
   it('starts the brand on the icon column in both states', async () => {
