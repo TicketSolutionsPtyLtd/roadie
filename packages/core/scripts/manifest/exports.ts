@@ -86,6 +86,12 @@ function reExportDeprecation(symbol: ts.Symbol) {
   return specifier && deprecationOfNode(specifier.parent.parent)
 }
 
+function declaredIn(symbol: ts.Symbol, sourceFile: ts.SourceFile) {
+  return symbol.declarations?.some(
+    (declaration) => declaration.getSourceFile() === sourceFile
+  )
+}
+
 function starExportDeprecations(
   sourceFile: ts.SourceFile,
   checker: ts.TypeChecker
@@ -152,7 +158,9 @@ export function moduleExports(
     const reason =
       deprecationOf(symbol, checker) ??
       reExportDeprecation(symbol) ??
-      starDeprecations.get(name) ??
+      (declaredIn(symbol, sourceFile)
+        ? undefined
+        : starDeprecations.get(name)) ??
       deprecationOf(resolved, checker)
     if (reason !== undefined) result.deprecated.push({ export: name, reason })
   }

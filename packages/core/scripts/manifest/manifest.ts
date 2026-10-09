@@ -1,3 +1,4 @@
+import GithubSlugger from 'github-slugger'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
@@ -107,11 +108,16 @@ function withDocs(
   }
 }
 
-function headingSlug(heading: string) {
-  return heading
-    .toLowerCase()
-    .replace(/[^a-z0-9 _-]/g, '')
-    .replace(/ /g, '-')
+const FENCE = /^(`{3,}|~{3,})[^\n]*\n[\s\S]*?^\1[ \t]*$/gm
+const HEADING = /^#{1,6}[ \t]+(.+?)[ \t]*$/gm
+const LINK = /\[([^\]]*)\]\([^)]*\)/g
+
+// rehype-slug's ids: github-slugger over each heading's text, in page order.
+function headingSlugs(mdx: string) {
+  const slugger = new GithubSlugger()
+  return Array.from(mdx.replace(FENCE, '').matchAll(HEADING), ([, heading]) =>
+    slugger.slug(heading!.replace(LINK, '$1'))
+  )
 }
 
 function checkRoute(appDir: string, route: string) {
@@ -122,11 +128,7 @@ function checkRoute(appDir: string, route: string) {
     .find((file) => existsSync(file))
   if (!page) throw new Error(`No docs page at ${pathname}`)
   if (anchor === undefined) return
-  const headings = Array.from(
-    readFileSync(page, 'utf8').matchAll(/^#{2,6} (.+)$/gm),
-    ([, heading]) => headingSlug(heading!)
-  )
-  if (!headings.includes(anchor)) {
+  if (!headingSlugs(readFileSync(page, 'utf8')).includes(anchor)) {
     throw new Error(`No heading #${anchor} on ${pathname}`)
   }
 }

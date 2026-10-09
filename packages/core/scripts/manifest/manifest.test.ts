@@ -194,12 +194,36 @@ describe('buildManifest', () => {
         '@fixture/ui': { Provider: '/overview/setup/#gone' }
       },
       'No heading #gone on /overview/setup/'
+    ],
+    [
+      'a link goes to a heading inside a code block',
+      {
+        ...documentedElsewhere,
+        '@fixture/ui': { Provider: '/overview/setup/#not-a-heading' }
+      },
+      'No heading #not-a-heading on /overview/setup/'
     ]
   ])('fails when %s', (_, links, message) => {
     expect(() =>
       buildManifest({ ...options, documentedElsewhere: links })
     ).toThrow(message)
   })
+
+  it.each(['#providers-1', '#using-hooks'])(
+    'links the %s anchor rehype-slug gives the heading',
+    (anchor) => {
+      const { components } = buildManifest({
+        ...options,
+        documentedElsewhere: {
+          ...documentedElsewhere,
+          '@fixture/ui': { Provider: `/overview/setup/${anchor}` }
+        }
+      })
+      expect(components.find((c) => c.name === 'Provider')?.docs).toBe(
+        `https://example.com/docs/overview/setup/${anchor}`
+      )
+    }
+  )
 
   it('describes components a .ts entry re-exports, and Vue skins as exports only', () => {
     const skins = buildManifest({
@@ -211,7 +235,7 @@ describe('buildManifest', () => {
         subpath: './chip/core',
         import: '@fixture/skins/chip/core',
         kind: 'js',
-        values: ['chipLabel']
+        values: ['chipLabel', 'chipTone']
       },
       {
         subpath: './chip/react',
