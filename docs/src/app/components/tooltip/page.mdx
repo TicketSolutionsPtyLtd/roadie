@@ -102,13 +102,19 @@ Wrap related controls in `Tooltip.Provider`. The first tooltip waits for the del
 <Tooltip.Provider>
   <div className='flex gap-2'>
     {[
-      ['Edit', <PencilSimple weight='bold' className='size-4' />],
-      ['Favourite', <Heart weight='bold' className='size-4' />],
-      ['Settings', <Gear weight='bold' className='size-4' />],
-      ['Delete', <Trash weight='bold' className='size-4' />]
-    ].map(([label, icon]) => (
+      { label: 'Edit', Icon: PencilSimple },
+      { label: 'Favourite', Icon: Heart },
+      { label: 'Settings', Icon: Gear },
+      { label: 'Delete', Icon: Trash }
+    ].map(({ label, Icon }) => (
       <Tooltip key={label}>
-        <Tooltip.Trigger render={<IconButton aria-label={label}>{icon}</IconButton>} />
+        <Tooltip.Trigger
+          render={
+            <IconButton aria-label={label}>
+              <Icon weight='bold' className='size-4' />
+            </IconButton>
+          }
+        />
         <Tooltip.Content>{label}</Tooltip.Content>
       </Tooltip>
     ))}

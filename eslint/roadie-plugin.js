@@ -87,7 +87,9 @@ function phosphorRule(description, create) {
   return {
     meta: { type: 'problem', docs: { description }, schema: [] },
     create(context) {
-      const icons = new Set()
+      // Code with icons in scope but no import, such as docs live examples,
+      // names them in settings.roadie.phosphorIcons.
+      const icons = new Set(context.settings.roadie?.phosphorIcons)
       return {
         ImportDeclaration(node) {
           if (!PHOSPHOR.test(node.source.value)) return
@@ -132,6 +134,19 @@ function staticBranches(node) {
   }
   const value = staticString(node)
   return value === undefined ? [] : [value]
+}
+
+// Navigator.Item renders its icon duotone, so it takes the icon bare.
+function isNavigatorItemIcon(openingElement) {
+  const attribute = openingElement.parent.parent?.parent
+  const element = attribute?.parent?.name
+  return (
+    attribute?.type === 'JSXAttribute' &&
+    attribute.name.name === 'icon' &&
+    element?.type === 'JSXMemberExpression' &&
+    element.object.name === 'Navigator' &&
+    element.property.name === 'Item'
+  )
 }
 
 function iconAttribute(icons, attributeName, report) {
@@ -179,12 +194,14 @@ const rules = {
   'phosphor-icon-size-prop': phosphorRule(
     'Phosphor icons are sized with size-* classes.',
     (context, icons) =>
-      iconAttribute(icons, 'size', (node) =>
+      iconAttribute(icons, 'size', (node) => {
+        // An icon nested in an SVG, such as a QRCode mark, fills its viewport.
+        if (staticString(node.value) === '100%') return
         context.report({
           node,
           message: `Size icons with a size-* class, not the size prop. See ${DOCS}/foundations/iconography.`
         })
-      )
+      })
   ),
   'phosphor-icon-weight': phosphorRule(
     'Phosphor icons are bold, or fill or duotone where those apply.',
@@ -193,6 +210,7 @@ const rules = {
         if (node.name.type !== 'JSXIdentifier' || !icons.has(node.name.name)) {
           return
         }
+        if (isNavigatorItemIcon(node)) return
         const weight = node.attributes.find(
           (attribute) =>
             attribute.type === 'JSXAttribute' &&

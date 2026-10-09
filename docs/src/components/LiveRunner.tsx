@@ -150,7 +150,6 @@ const PhosphorIcons = {
   SlidersHorizontal: SlidersHorizontalIcon,
   Download: DownloadIcon,
   House: HouseIcon,
-  Image: ImageIcon,
   Cube: CubeIcon,
   Export: ExportIcon,
   UserCircle: UserCircleIcon,
@@ -188,6 +187,8 @@ const scope = {
   ...SpotIllustrations,
   ...PhosphorIcons,
   ...PhosphorIconsSuffixed,
+  // Bare Image stays Roadie's component.
+  ImageIcon,
   // Widgets + the helpers their live demos need.
   CartDrawer,
   CartContents,

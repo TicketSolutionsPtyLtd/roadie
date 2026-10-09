@@ -1,6 +1,5 @@
 import typescriptParser from '@typescript-eslint/parser'
 import { ESLint, RuleTester } from 'eslint'
-import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
 
@@ -32,6 +31,7 @@ const cases = {
   'phosphor-icon-size-prop': {
     valid: [
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon className='size-4' />",
+      "import { StarIcon } from '@phosphor-icons/react'; <svg><StarIcon size='100%' /></svg>",
       '<Avatar size="sm" />'
     ],
     invalid: [
@@ -44,7 +44,8 @@ const cases = {
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='fill' />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={selected ? 'fill' : 'bold'} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={iconWeight} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon {...iconProps} />"
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon {...iconProps} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={<HeartIcon />} />"
     ],
     invalid: [
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='regular' />",
@@ -52,7 +53,8 @@ const cases = {
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={`thin`} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={selected ? 'fill' : 'regular'} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={iconWeight ?? 'thin'} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon />"
+      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.MenuItem icon={<HeartIcon />} />"
     ]
   },
   'no-dark-variant': {
@@ -256,23 +258,10 @@ describe('import boundaries in eslint.config.js', () => {
   })
 })
 
-describe('no-mdx-layout-class in docs/eslint.config.js', () => {
-  const docs = new URL('../docs/', import.meta.url)
-  const { createRemarkProcessor } = createRequire(docs)('eslint-plugin-mdx')
-  // eslint-plugin-mdx's flat processor drops mdx/code-blocks, so docs lint
-  // skips fences today. Lint them here, so a rule that reaches them fails.
-  const lintingFences = {
-    files: ['**/*.mdx'],
-    processor: createRemarkProcessor({
-      lintCodeBlocks: true,
-      languageMapper: { 'tsx-live': 'tsx', 'tsx-live-prose': 'tsx' }
-    })
-  }
+describe('docs/eslint.config.js on MDX', () => {
+  const docs = fileURLToPath(new URL('../docs/', import.meta.url))
   const docsLinter = (...overrides) =>
-    new ESLint({
-      cwd: fileURLToPath(docs),
-      overrideConfig: [lintingFences, ...overrides]
-    })
+    new ESLint({ cwd: docs, overrideConfig: overrides })
   const eslint = docsLinter()
   // Reaches fences past the config's glob, leaving only the rule's own guard.
   // The docs config loads its own copy of the plugin, so this one needs
@@ -311,8 +300,42 @@ describe('no-mdx-layout-class in docs/eslint.config.js', () => {
 
   const fenceLangs = ['tsx-live', 'tsx-live-prose', 'mdx']
 
-  it.each(['tsx-live', 'tsx-live-prose'])('lints %s fences', async (lang) => {
-    expect(await mdxHits(fence(lang), 'react/jsx-no-undef')).not.toEqual([])
+  it.each([
+    'tsx-live',
+    'tsx-live-prose',
+    'tsx-live-noinline-expand',
+    'jsx-live'
+  ])('fails a dark: variant in a %s fence', async (lang) => {
+    expect(await mdxHits(fence(lang), 'roadie/no-dark-variant')).toHaveLength(1)
+  })
+
+  it('fails a raw hex colour in a tsx-live fence', async () => {
+    const hexFence =
+      "```tsx-live\n<Badge className='bg-[#ff0000]'>New</Badge>\n```"
+    expect(await mdxHits(hexFence, 'roadie/no-hex-colour-class')).toHaveLength(
+      1
+    )
+  })
+
+  it.each([
+    ['<HeartIcon size={16} />', 'roadie/phosphor-icon-size-prop'],
+    ['<Heart />', 'roadie/phosphor-icon-weight']
+  ])(
+    'fails %s in a tsx-live fence, with icons from scope',
+    async (icon, ruleId) => {
+      expect(
+        await mdxHits(`\`\`\`tsx-live\n${icon}\n\`\`\``, ruleId)
+      ).toHaveLength(1)
+    }
+  )
+
+  it('leaves bare Image as the Roadie component in a tsx-live fence', async () => {
+    const imageFence = "```tsx-live\n<Image src='/a.png' alt='' />\n```"
+    expect(await mdxHits(imageFence, 'roadie/phosphor-icon-weight')).toEqual([])
+  })
+
+  it('leaves plain tsx fragments unlinted', async () => {
+    expect(await mdxHits(fence('tsx'), 'roadie/no-dark-variant')).toEqual([])
   })
 
   it.each(['0.tsx', '0.mdx'])(
