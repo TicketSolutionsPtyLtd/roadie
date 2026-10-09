@@ -12,6 +12,7 @@ import {
   DashboardPeriod,
   type DashboardPeriodValue
 } from '../components/DashboardPeriod'
+import { DataCard } from '../components/DataCard'
 import { DatePicker } from '../components/DatePicker'
 import { Field } from '../components/Field'
 import { loadBrandFont, useStylesheet } from '../components/Pane/testUtils'
@@ -38,6 +39,12 @@ type Scenario = {
   ui: () => ReactElement
   /** Brings the component to this state once rendered. */
   reach?: () => Promise<unknown>
+  /**
+   * Matches the elements whose text is a short label, such as Delta, held to
+   * Lc 60 when it's 14px or larger and semibold (docs/decisions/0010-apca-contrast.md).
+   * Chosen here rather than from size, since body text can be 14px semibold too.
+   */
+  shortLabels?: string
 }
 
 function ShowDate() {
@@ -136,6 +143,31 @@ function IntentSubtleText() {
   )
 }
 
+// A good rise, a bad rise, and a change with no sentiment, on the card the
+// deltas sit on.
+function Deltas() {
+  return (
+    <div className='grid gap-2 md:grid-cols-3'>
+      <DataCard
+        label='Tickets sold'
+        value={1240}
+        delta={{ value: 0.12, format: 'percent' }}
+      />
+      <DataCard
+        label='Refunds'
+        value={38}
+        delta={{ value: 6, goodWhen: 'down' }}
+      />
+      <DataCard
+        label='Scan rate'
+        value={0.94}
+        format='percent'
+        delta={{ value: 0.02, goodWhen: 'neither' }}
+      />
+    </div>
+  )
+}
+
 // Base UI mounts the popup before positioning it. axe counts the guards as
 // part of an open modal only once the dialog is on screen, and otherwise
 // reports them as aria-hidden-focus (seen in Firefox).
@@ -178,7 +210,8 @@ export const scenarios: Scenario[] = [
       await userEvent.keyboard('e')
       await screen.findByRole('option', { name: 'Adelaide' })
     }
-  }
+  },
+  { name: 'delta', ui: () => <Deltas />, shortLabels: '[data-slot="delta"]' }
 ]
 
 export function setUpCheckPage() {
@@ -266,13 +299,21 @@ type Role = keyof typeof minimumLc
 
 // APCA's size bands: large from 24px or 16px bold, display from 36px or 24px
 // bold.
-function textRole(element: Element): Role {
+function textRole(element: Element, shortLabels?: string): Role {
   const { fontSize, fontWeight } = getComputedStyle(element)
   const size = parseFloat(fontSize)
-  const bold = Number(fontWeight) >= 700
+  const weight = Number(fontWeight)
+  const bold = weight >= 700
   if (element.closest('.emphasis-strong')) return 'label on a strong fill'
   if (size >= 36 || (bold && size >= 24)) return 'display text'
   if (size >= 24 || (bold && size >= 16)) return 'large text'
+  if (
+    shortLabels &&
+    element.closest(shortLabels) &&
+    size >= 14 &&
+    weight >= 600
+  )
+    return 'label'
   return 'body text'
 }
 
@@ -340,7 +381,7 @@ function isMeasured({ element }: Pair) {
   )
 }
 
-function textPairs(): Pair[] {
+function textPairs(shortLabels?: string): Pair[] {
   const owners = new Set<Element>()
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
@@ -348,7 +389,7 @@ function textPairs(): Pair[] {
       owners.add(node.parentElement)
   }
   const pairs: Pair[] = [...owners].map((element) => ({
-    role: textRole(element),
+    role: textRole(element, shortLabels),
     element,
     what: `"${element.textContent?.trim().slice(0, 40)}"`,
     colour: getComputedStyle(element).color
@@ -358,7 +399,7 @@ function textPairs(): Pair[] {
     const text = input.value || input.placeholder
     if (!text) continue
     pairs.push({
-      role: textRole(input),
+      role: textRole(input, shortLabels),
       element: input,
       what: isPlaceholder ? `placeholder "${text}"` : `value "${text}"`,
       colour: getComputedStyle(input, isPlaceholder ? '::placeholder' : null)
@@ -390,8 +431,12 @@ function nonTextPairs(): Pair[] {
   return [...icons, ...fills]
 }
 
-export function measureContrast() {
-  const pairs = [...textPairs(), ...nonTextPairs()].filter(isMeasured)
+export function measureContrast({
+  shortLabels
+}: Pick<Scenario, 'shortLabels'> = {}) {
+  const pairs = [...textPairs(shortLabels), ...nonTextPairs()].filter(
+    isMeasured
+  )
   return withPointerEvents(() =>
     pairs.flatMap((pair) => {
       const surface = fillUnder(pair)
@@ -443,8 +488,15 @@ const isKnownLow = (pair: Pair & { lc: number }) =>
 const currentTheme = (): Theme =>
   document.documentElement.classList.contains('dark') ? 'dark' : 'light'
 
-export function expectApcaContrast() {
-  const failures = measureContrast()
+/**
+ * Asserts every measured pair meets its role's minimum in decision 0010. Text
+ * is body text at Lc 75 unless its size, a strong fill, or the scenario's
+ * `shortLabels` place it in another role.
+ */
+export function expectApcaContrast(
+  scenario: Pick<Scenario, 'shortLabels'> = {}
+) {
+  const failures = measureContrast(scenario)
     .filter((pair) => pair.lc < minimumLc[pair.role] && !isKnownLow(pair))
     .map(
       ({ role, element, what, lc }) =>
