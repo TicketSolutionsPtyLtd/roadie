@@ -27,7 +27,8 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
 - **Decide and carry on.** When a call is open, pick the recommended option,
   record it under Decisions, and keep going; the maintainer can veto it in
   review. Stop and ask only for a one-way door (section 7), a limit in section
-  10, spending money, or anything outside the team. Check
+  10, spending money (beyond a Copilot request under section 7), or anything
+  outside the team. Check
   [`docs/decisions/`](../decisions/README.md) first, and add an entry when a
   call will outlast the PR.
 - **Check prior art for a new component API.** See how two other platforms
@@ -184,7 +185,14 @@ the PR only when the review is clean.
 - **Mark it ready once local checks pass**: `pnpm test:gated` on the touched
   packages, lint, typecheck, and the docs build if docs changed, with the
   local review clean and any demo approved. `gh pr ready` runs the full CI
-  once, and Copilot reviews once then; it skips drafts.
+  once.
+- **Request Copilot only where it pays**, since each review is billed to
+  the PR author and it no longer reviews automatically. At ready, request it
+  with `gh pr edit <n> --add-reviewer @copilot` for a one-way door; component
+  state, async, or SSR logic; CI, hooks, or shell scripts; a
+  security-relevant change; or over 400 changed lines. Skip it for docs,
+  skills, wording, small fixes, and Dependabot. Merge danger records the
+  call: "Copilot: requested, because …" or "Copilot: skipped, because …".
 - **Add the `full-browsers` label** before `gh pr ready` for CSS, layout,
   or anything iOS-sensitive, so the PR also runs WebKit and Firefox. CI reads
   the label when it runs, so a label added later takes effect on the next
@@ -229,8 +237,8 @@ the maintainer.
 - CI is green on the full run that `gh pr ready` started: wait for every job
   to finish, not just `check`. A green draft run covers only `check`.
 - The file list is clean.
-- The local review is clean, and the one Copilot pass is triaged with every
-  thread resolved.
+- The local review is clean, and the Copilot pass, if requested, is triaged
+  with every thread resolved.
 - Behaviour changes for consumers are named in the changeset.
 
 Never merge the Version Packages PR. The maintainer merges releases by hand.

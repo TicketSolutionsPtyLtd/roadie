@@ -1,6 +1,6 @@
 ---
 name: shepherd
-description: Use to take an open draft PR to merged in any Oztix repo. Rebases on its base branch, waits for CI without busy polling, marks it ready for the one Copilot pass, triages every review thread from Copilot and other bots (fix, reply, resolve), records each bot's precision, and merges a two-way door or hands a one-way door to the maintainer. Reads the host repo's AGENTS.md and PR workflow. Triggers on "shepherd this PR", "see this PR through", "get this merged", "mark it ready and handle Copilot".
+description: Use to take an open draft PR to merged in any Oztix repo. Rebases on its base branch, waits for CI without busy polling, marks it ready and requests Copilot only where the host's rule calls for it, triages every review thread from Copilot and other bots (fix, reply, resolve), records each bot's precision, and merges a two-way door or hands a one-way door to the maintainer. Reads the host repo's AGENTS.md and PR workflow. Triggers on "shepherd this PR", "see this PR through", "get this merged", "mark it ready and handle Copilot".
 ---
 
 # Roadie shepherd
@@ -71,8 +71,11 @@ Firefox. A label added after ready applies on the next push or a full
 `gh run rerun <id>`, not `--failed` (PR workflow section 7).
 
 Then `gh pr ready <n>` without waiting for the draft's CI. That starts the
-full run and the one Copilot pass; there is no second. Poll for its review every few minutes, for
-about 30 minutes, then report blocked:
+full run. Decide Copilot by the host's rule (Roadie: PR workflow section 7),
+record the call in Merge danger, and request it only if the rule says so:
+`gh pr edit <n> --add-reviewer @copilot`. There is no second pass. If you
+skipped it, don't wait for a review. If you requested it, poll for its review
+every few minutes, for about 30 minutes, then report blocked:
 
 ```bash
 gh pr view <n> --json reviews -q '.reviews[] | select(.author.login | test("copilot")) | .state'
@@ -121,7 +124,8 @@ merge too. Triage them the same way before merging.
 
 Add one line to the body's Evidence, updated with `/roadie:pr` (or
 `gh pr edit <n> --body-file`): "Copilot: N of M findings real", where real is
-fixed or filed and the rest stood. Zero findings is "Copilot: 0 findings". It
+fixed or filed and the rest stood. Zero findings is "Copilot: 0 findings",
+and a skipped review adds no line. It
 counts Copilot only; give each other bot its own line, such as "Aikido: 1 of
 2 findings real". If an older body has no Evidence section, add one.
 

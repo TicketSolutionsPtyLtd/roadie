@@ -17,6 +17,9 @@ PRs need fewer review rounds and commits. A Claude Code hook blocks PRs opened
 without the draft flag.
 Each PR records its Copilot precision in the body's Evidence ("Copilot: N of
 M findings real"), so we can tell whether the one pass still finds anything.
+Copilot no longer reviews automatically, because each review is billed to the
+PR author, so it's requested at ready only for the risky changes PR workflow
+section 7 lists (INNO-1203).
 
 ## Links
 
