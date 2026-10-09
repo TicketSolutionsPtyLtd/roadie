@@ -20,6 +20,9 @@ function isReference(path) {
   if (path.node.type !== 'Identifier') return false
   const parent = path.parent.node
   if (parent.type === 'ImportSpecifier') return false
+  if (parent.type === 'ExportSpecifier' && parent.exported === path.node) {
+    return false
+  }
   if (
     (parent.type === 'MemberExpression' ||
       parent.type === 'TSQualifiedName' ||
@@ -40,12 +43,35 @@ function isReference(path) {
   return true
 }
 
+// A re-export or shorthand key is a public name, so it keeps the old one.
+// Recast prints an edited shorthand node without its alias, so replace it.
+function keepPublicName(j, path, from, to) {
+  const parent = path.parent.node
+  if (parent.type === 'ExportSpecifier' && parent.local === path.node) {
+    path.parent.replace(
+      j.exportSpecifier.from({
+        local: j.identifier(to),
+        exported: j.identifier(from)
+      })
+    )
+    return true
+  }
+  if (
+    (parent.type === 'ObjectProperty' || parent.type === 'Property') &&
+    parent.shorthand
+  ) {
+    path.parent.replace(j.objectProperty(j.identifier(from), j.identifier(to)))
+    return true
+  }
+  return false
+}
+
 function renameReferences(j, root, from, to) {
   root
     .find(j.Identifier, { name: from })
     .filter(isReference)
     .forEach((path) => {
-      path.node.name = to
+      if (!keepPublicName(j, path, from, to)) path.node.name = to
     })
   root.find(j.JSXIdentifier, { name: from }).forEach((path) => {
     const parent = path.parent.node
