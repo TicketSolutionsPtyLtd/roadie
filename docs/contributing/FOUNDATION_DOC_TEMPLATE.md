@@ -111,7 +111,11 @@ motion users.
    `Guideline` pairs for rules that do. No bold-label bullets.
 7. **API stays on the component page.** Link to a component's props or hooks
    rather than re-documenting them, as rule 14 of the
-   [component template](COMPONENT_DOC_TEMPLATE.md#rules) says.
+   [component template](COMPONENT_DOC_TEMPLATE.md#rules) says. A provider
+   with no component page is the exception: when
+   `packages/core/scripts/manifest/elsewhere.ts` points it at a foundation,
+   as it does `RoadieLinkProvider` at Linking, its hooks get a `## Hooks`
+   section there, in rule 14's format.
 8. **New page wiring.** `category` is one of Visual, Content, Behaviour, or
    Building apps, and the page needs a `case` in
    `docs/src/components/FoundationPreview.tsx`.
