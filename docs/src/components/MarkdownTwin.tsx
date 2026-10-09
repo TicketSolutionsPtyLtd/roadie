@@ -1,7 +1,6 @@
 import { getAssetPath } from '@/utils/getAssetPath'
 
-const linkClass =
-  'font-medium text-strong underline-offset-4 hover:underline'
+const linkClass = 'font-medium text-strong underline-offset-4 hover:underline'
 
 /** Points agents at the page's markdown twin, when it has one, and at `llms.txt`. */
 export function MarkdownTwin({

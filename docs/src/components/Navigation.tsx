@@ -31,8 +31,8 @@ import { Navigator, Pane } from '@oztix/roadie-components'
 import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
 
 import { FooterNav } from './FooterNav'
-import { MarkdownTwin } from './MarkdownTwin'
 import { Image } from './Image'
+import { MarkdownTwin } from './MarkdownTwin'
 import {
   NAV_LIST_PARAM,
   NAV_MORE_PARAM,

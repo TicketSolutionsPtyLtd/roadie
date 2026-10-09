@@ -33,10 +33,7 @@ async function open(path: string) {
 }
 
 const fetchText = (page: Page, path: string) =>
-  page.evaluate(
-    async (url) => (await fetch(url)).text(),
-    `${BASE_PATH}${path}`
-  )
+  page.evaluate(async (url) => (await fetch(url)).text(), `${BASE_PATH}${path}`)
 
 const alternateOf = (html: string) =>
   html.match(/<link rel="alternate" type="text\/markdown" href="([^"]+)"/)?.[1]
@@ -96,7 +93,10 @@ describe('Markdown twins', () => {
     const page = await open('/foundations/colors/')
     const alternate = page.locator('head link[type="text/markdown"]')
     await expect.poll(() => alternate.count()).toBe(1)
-    await page.getByRole('link', { name: 'Tokens', exact: true }).first().click()
+    await page
+      .getByRole('link', { name: 'Tokens', exact: true })
+      .first()
+      .click()
     await page.waitForURL(/\/tokens\/?$/)
     await expect.poll(() => alternate.count()).toBe(0)
   }, 60_000)
