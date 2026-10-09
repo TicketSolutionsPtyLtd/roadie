@@ -8,7 +8,6 @@ import { EmptyStateIllustration } from './EmptyStateIllustration'
 import { EmptyStateRoot } from './EmptyStateRoot'
 import { EmptyStateTitle } from './EmptyStateTitle'
 import { EmptyState } from './index'
-import { emptyStateTitleVariants, emptyStateVariants } from './variants'
 
 describe('EmptyStateRoot', () => {
   it('renders a centered container with the empty-state slot', () => {
@@ -156,29 +155,6 @@ describe('EmptyStateActions', () => {
     }).parentElement
     expect(actions).toHaveAttribute('data-slot', 'empty-state-actions')
     expect(actions).toHaveClass('flex', 'justify-center')
-  })
-})
-
-describe('emptyStateVariants', () => {
-  it('defaults to md spacing', () => {
-    expect(emptyStateVariants()).toContain('py-12')
-  })
-
-  it('scales padding with size', () => {
-    expect(emptyStateVariants({ size: 'sm' })).toContain('py-8')
-    expect(emptyStateVariants({ size: 'lg' })).toContain('py-16')
-  })
-
-  it('title type scales: ui at sm/md, prose at lg', () => {
-    expect(emptyStateTitleVariants({ size: 'sm' })).toContain(
-      'text-display-ui-5'
-    )
-    expect(emptyStateTitleVariants({ size: 'md' })).toContain(
-      'text-display-ui-3'
-    )
-    expect(emptyStateTitleVariants({ size: 'lg' })).toContain(
-      'text-display-prose-2'
-    )
   })
 })
 

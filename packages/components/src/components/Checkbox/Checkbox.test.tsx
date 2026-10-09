@@ -2,7 +2,7 @@ import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { Checkbox, checkboxVariants } from '.'
+import { Checkbox } from '.'
 import { Field } from '../Field'
 
 describe('Checkbox', () => {
@@ -85,10 +85,11 @@ describe('Checkbox', () => {
     expect(label).toHaveClass('rounded-xl')
   })
 
-  it('exposes variant classes', () => {
-    expect(checkboxVariants()).toContain('emphasis-subtler')
-    expect(checkboxVariants({ emphasis: 'normal' })).toContain('rounded-xl')
-    expect(checkboxVariants({ className: 'custom' })).toContain('custom')
+  it('keeps a custom className on the label', () => {
+    const { container } = render(<Checkbox label='Agree' className='custom' />)
+    expect(container.querySelector('[data-slot="checkbox"]')).toHaveClass(
+      'custom'
+    )
   })
 
   it('marks itself invalid', () => {

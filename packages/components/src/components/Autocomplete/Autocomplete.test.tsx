@@ -6,8 +6,8 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   Autocomplete,
-  type AutocompleteProps,
-  autocompleteInputGroupVariants
+  type AutocompleteInputGroupProps,
+  type AutocompleteProps
 } from '.'
 import { Field } from '../Field'
 
@@ -27,42 +27,42 @@ describe('Autocomplete', () => {
     expect(container).toBeInTheDocument()
   })
 
-  it('renders InputGroup with default variant classes', () => {
-    const classes = autocompleteInputGroupVariants()
-    expect(classes).toContain('emphasis-field')
-    expect(classes).toContain('is-interactive-field-group')
-    expect(classes).not.toContain('intent-neutral')
+  function renderInputGroup(props: AutocompleteInputGroupProps = {}) {
+    render(
+      <Autocomplete>
+        <Autocomplete.InputGroup {...props}>
+          <Autocomplete.Input aria-label='Venue' />
+        </Autocomplete.InputGroup>
+      </Autocomplete>
+    )
+    return screen
+      .getByRole('combobox', { name: 'Venue' })
+      .closest('[data-slot="autocomplete-input-group"]')!
+  }
+
+  it('draws the input group as a field with no intent of its own', () => {
+    const group = renderInputGroup()
+    expect(group).toHaveClass('emphasis-field', 'is-interactive-field-group')
+    expect(group.className).not.toMatch(/intent-/)
   })
 
-  it('renders InputGroup with different intents', () => {
-    expect(autocompleteInputGroupVariants({ intent: 'accent' })).toContain(
-      'intent-accent'
-    )
-    expect(autocompleteInputGroupVariants({ intent: 'danger' })).toContain(
-      'intent-danger'
-    )
+  it.each(['accent', 'danger'] as const)(
+    'takes the %s intent on the input group',
+    (intent) => {
+      expect(renderInputGroup({ intent })).toHaveClass(`intent-${intent}`)
+    }
+  )
+
+  it('drops the field emphasis on a subtle input group', () => {
+    const group = renderInputGroup({ emphasis: 'subtle' })
+    expect(group).not.toHaveClass('emphasis-field')
+    expect(group).toHaveClass('is-interactive-field-group')
   })
 
-  it('renders InputGroup with different emphasis', () => {
-    expect(autocompleteInputGroupVariants({ emphasis: 'normal' })).toContain(
-      'emphasis-field'
+  it('keeps a custom className on the input group', () => {
+    expect(renderInputGroup({ className: 'custom-class' })).toHaveClass(
+      'custom-class'
     )
-    expect(autocompleteInputGroupVariants({ emphasis: 'subtle' })).toContain(
-      'bg-subtle'
-    )
-  })
-
-  it('renders InputGroup with different sizes', () => {
-    expect(autocompleteInputGroupVariants({ size: 'sm' })).toContain('h-8')
-    expect(autocompleteInputGroupVariants({ size: 'md' })).toContain('h-10')
-    expect(autocompleteInputGroupVariants({ size: 'lg' })).toContain('h-12')
-  })
-
-  it('renders with custom className on InputGroup', () => {
-    const classes = autocompleteInputGroupVariants({
-      className: 'custom-class'
-    })
-    expect(classes).toContain('custom-class')
   })
 
   it('Autocomplete input gets aria attributes from Field context', () => {

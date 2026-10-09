@@ -2,12 +2,13 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
-import { Combobox } from '.'
+import { Combobox, type ComboboxInputGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
 import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
+const TRANSPARENT = /rgba\(0, 0, 0, 0\)|transparent/
 const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
@@ -243,5 +244,32 @@ describe('Combobox in a Field', () => {
     expect(
       screen.getByRole('combobox', { name: 'Search genres' })
     ).toBeInTheDocument()
+  })
+})
+
+describe('Combobox input group', () => {
+  function Venue(props: ComboboxInputGroupProps) {
+    return (
+      <Combobox>
+        <Combobox.InputGroup {...props}>
+          <Combobox.Input aria-label='Venue' />
+        </Combobox.InputGroup>
+      </Combobox>
+    )
+  }
+
+  const group = () =>
+    screen
+      .getByRole('combobox', { name: 'Venue' })
+      .closest('[data-slot="combobox-input-group"]')!
+
+  it('draws a visible edge at normal and a tint with no edge at subtle', () => {
+    render(<Venue />)
+    expect(getComputedStyle(group()).borderTopColor).not.toMatch(TRANSPARENT)
+    cleanup()
+    render(<Venue emphasis='subtle' />)
+    const subtle = getComputedStyle(group())
+    expect(subtle.borderTopColor).toMatch(TRANSPARENT)
+    expect(subtle.backgroundColor).not.toMatch(TRANSPARENT)
   })
 })

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { OTPField, otpFieldInputVariants } from '.'
+import { OTPField } from '.'
 import { Field } from '../Field'
 
 function slots(container: HTMLElement) {
@@ -200,10 +200,6 @@ describe('OTPField', () => {
     const [first, second] = slots(container)
     expect(first).toHaveClass('max-w-12')
     expect(second).toHaveClass('max-w-10')
-  })
-
-  it('exports its slot variants', () => {
-    expect(otpFieldInputVariants({ size: 'sm' })).toContain('max-w-8')
   })
 
   it('marks every slot invalid', () => {

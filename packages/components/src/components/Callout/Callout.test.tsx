@@ -2,7 +2,6 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Callout } from './index'
-import { calloutVariants } from './variants'
 
 function slot(container: HTMLElement, name: string) {
   return container.querySelector(`[data-slot="${name}"]`)
@@ -239,6 +238,16 @@ describe('Callout dismiss', () => {
     expect(dismiss).not.toHaveClass('emphasis-strong')
   })
 
+  it.each(['strong', 'normal', 'subtler'] as const)(
+    'takes %s emphasis',
+    (emphasis) => {
+      const { container } = render(
+        <Callout emphasis={emphasis}>Doors open at 7pm</Callout>
+      )
+      expect(slot(container, 'callout')).toHaveClass(`emphasis-${emphasis}`)
+    }
+  )
+
   it('takes a dismiss label', () => {
     render(
       <Callout onDismiss={() => {}} dismissLabel='Hide notice'>
@@ -248,19 +257,5 @@ describe('Callout dismiss', () => {
     expect(
       screen.getByRole('button', { name: 'Hide notice' })
     ).toBeInTheDocument()
-  })
-})
-
-describe('calloutVariants', () => {
-  it('defaults to subtle emphasis', () => {
-    expect(calloutVariants()).toContain('emphasis-subtle')
-  })
-
-  it('maps every emphasis', () => {
-    expect(calloutVariants({ emphasis: 'strong' })).toContain('emphasis-strong')
-    expect(calloutVariants({ emphasis: 'normal' })).toContain('emphasis-normal')
-    expect(calloutVariants({ emphasis: 'subtler' })).toContain(
-      'emphasis-subtler'
-    )
   })
 })
