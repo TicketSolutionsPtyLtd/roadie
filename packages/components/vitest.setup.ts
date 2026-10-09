@@ -59,6 +59,7 @@ function keepScrollTo() {
 // jsdom has no layout: these observers never fire and every box measures 0.
 // Locking them makes a test that fakes either throw where it stubs, by a
 // setter (assignment) or `Cannot redefine property` (vi.stubGlobal, vi.spyOn).
+// A spy on one element or on a subclass prototype still gets through.
 const NO_LAYOUT =
   'never fires or measures in jsdom. Test it in a *.browser.test.tsx.'
 
@@ -130,7 +131,8 @@ function lockLayout() {
 installObservers(globalThis)
 installObservers(document.defaultView!)
 const testPath = expect.getState().testPath ?? ''
-if (!FAKES_LAYOUT.some((file) => testPath.endsWith(file))) lockLayout()
+if (!FAKES_LAYOUT.some((file) => testPath.endsWith(`/components/${file}`)))
+  lockLayout()
 
 beforeAll(() => {
   keepGetAnimations()
