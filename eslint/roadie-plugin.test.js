@@ -94,6 +94,8 @@ const cases = {
       "<div className='[--x:7px] rounded-(--x)' />",
       "cn('md:[--x:0.5rem]', open && 'rounded-t-(length:--x)')",
       "cva(['[--x:var(--y,50%)]', 'rounded-(--x)'])",
+      "<div className='[--x:calc(var(--radius-xl)_+_2px)] rounded-(--x)' />",
+      "<div className='[--x:2vw] rounded-(--x)' />",
       "<div className='rounded-(--x)' style={{ '--x': '7px' }} />",
       {
         code: "<div className='[--x:1em] rounded-(--x) rounded-[3px]' />",

@@ -14,7 +14,8 @@ const ARBITRARY_RADIUS = /(^|:|!)rounded(-[a-z]{1,2})?-\[(?!inherit\])/
 const RADIUS_VARIABLE =
   /(?:^|:|!)rounded(?:-[a-z]{1,2})?-\((?:length:)?(--[\w-]+)\)/
 const VARIABLE_ASSIGNMENT = /(?:^|:|!)\[(--[\w-]+):(.+)\]!?$/
-const RAW_LENGTH = /(?<![\w.-])(\d*\.?\d+)(?:px|rem|em|%)/g
+// Tailwind writes a space as _, so _2px is a length but radius-2xl is not.
+const RAW_LENGTH = /(?<![a-z\d.-])(\d*\.?\d+)(?:[a-z]+|%)/g
 
 const radiusVariables = (tokens) =>
   new Set(
