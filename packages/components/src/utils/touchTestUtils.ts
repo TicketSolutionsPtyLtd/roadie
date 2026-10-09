@@ -1,8 +1,7 @@
+import { expect } from 'vitest'
 import { commands } from 'vitest/browser'
 
 export type TapSpot = 'text' | 'centre' | 'far right' | 'top padding'
-
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 /**
  * The element's box once it stops moving, as a popup scales in or a drawer
@@ -11,7 +10,9 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 export async function settledBox(element: Element): Promise<DOMRect> {
   let last = element.getBoundingClientRect()
   for (let tries = 0; tries < 80; tries++) {
-    await wait(50)
+    // Polls the box between frames: Linux WebKit runs none while idle.
+    // eslint-disable-next-line roadie/no-fixed-sleep
+    await new Promise((resolve) => setTimeout(resolve, 50))
     const next = element.getBoundingClientRect()
     if (
       element.isConnected &&
@@ -27,6 +28,31 @@ export async function settledBox(element: Element): Promise<DOMRect> {
   return last
 }
 
+// A tap's events end in a click, unless a touch handler cancelled it or the
+// browser took the touch for a scroll.
+function tapEnded() {
+  let clicked = false
+  let cancelled = false
+  let touchEnd: Event | undefined
+  const listeners = {
+    click: () => (clicked = true),
+    pointercancel: () => (cancelled = true),
+    touchend: (event: Event) => (touchEnd = event)
+  }
+  for (const [type, listener] of Object.entries(listeners))
+    window.addEventListener(type, listener, true)
+  return async () => {
+    try {
+      await expect
+        .poll(() => clicked || cancelled || !!touchEnd?.defaultPrevented)
+        .toBe(true)
+    } finally {
+      for (const [type, listener] of Object.entries(listeners))
+        window.removeEventListener(type, listener, true)
+    }
+  }
+}
+
 /** A real touch tap at a spot in the element, once it has settled. */
 export async function tapOn(element: Element, spot: TapSpot = 'text') {
   const { left, top, right, width, height } = await settledBox(element)
@@ -38,6 +64,7 @@ export async function tapOn(element: Element, spot: TapSpot = 'text') {
         : spot === 'centre'
           ? [left + width / 2, top + height / 2]
           : [left + Math.min(20, width / 2), top + height / 2]
+  const ended = tapEnded()
   await commands.tap(x, y)
-  await wait(200)
+  await ended()
 }

@@ -45,6 +45,8 @@ export function keepFramesRunning(at: () => Point) {
       const { x, y } = at()
       await commands.pointer([
         { type: 'move', x: x + (step % 2), y },
+        // Paces the wiggle to a frame: frames can't, as they're what it wakes.
+        // eslint-disable-next-line roadie/no-fixed-sleep
         { type: 'wait', ms: 16 }
       ])
     }

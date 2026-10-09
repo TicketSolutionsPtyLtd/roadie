@@ -176,7 +176,7 @@ const config = [
   },
 
   {
-    files: ['**/*.test.{ts,tsx}'],
+    files: ['**/*.test.{ts,tsx}', 'e2e/**/*.ts'],
     plugins: { roadie },
     rules: { 'roadie/no-fixed-sleep': 'error' }
   },

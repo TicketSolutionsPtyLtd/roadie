@@ -526,6 +526,9 @@ const rules = {
           if (helper) callsTo(helper, sourceCode).forEach(report)
         },
         "CallExpression[callee.property.name='waitForTimeout']": report,
+        // esquery regexes cannot contain a slash.
+        'ImportDeclaration[source.value=/^(node:)?timers\\x2Fpromises$/]':
+          report,
         "Property[key.name='type'][value.value='wait']": report
       }
     }
