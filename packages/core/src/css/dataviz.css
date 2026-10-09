@@ -206,6 +206,7 @@
     --chart-diverge-neg-4: oklch(0.83 0.145 74);
     --chart-highlight-lc: 0.84 0.079;
     --chart-band: color-mix(in oklch, var(--color-neutral-11) 9%, transparent);
+    --chart-status-critical: var(--color-danger-9);
   }
 
   :root, .dark, [class*='intent-'], [style*='--accent-hue'] {

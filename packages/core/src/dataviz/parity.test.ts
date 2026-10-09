@@ -41,6 +41,7 @@ describe('palette mirrors tokens.css', () => {
 
   it('matches the dark status steps', () => {
     for (const status of Object.values(palette.status)) {
+      if (status.step.dark === null) continue
       const [l, c] = status.value.dark
       expect(
         lightnessAndChroma(

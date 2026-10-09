@@ -37,6 +37,18 @@ describe('dataviz.css', () => {
     }
   })
 
+  it('declares the same tokens in light and dark inside @supports', () => {
+    // A token set only in the modern :root outranks the fallback .dark by
+    // source order, so dark mode would show the light value.
+    const modern = css.slice(css.indexOf('@supports'))
+    const names = (selector: string) => {
+      const start = modern.indexOf(selector)
+      const body = modern.slice(start, modern.indexOf('}', start))
+      return [...body.matchAll(/--([\w-]+):/g)].map(([, name]) => name).sort()
+    }
+    expect(names('  .dark {')).toEqual(names('  :root {'))
+  })
+
   it('re-declares chart ink wherever intent tokens can change', () => {
     const css = renderDatavizCss()
     const block = css.match(/:root, \.dark, \[class\*='intent-'\] \{([^}]*)\}/)

@@ -3,6 +3,7 @@ import {
   DEFAULT_ACCENT_HUE,
   DIVERGE_MID,
   type GreyName,
+  MODES,
   type Mode,
   type Palette,
   type StatusName,
@@ -65,17 +66,28 @@ function direct(p: Palette, mode: Mode): Direct[] {
   ]
 }
 
+function statusAlias(
+  p: Palette,
+  mode: Mode,
+  s: StatusName
+): [string, string][] {
+  const step = p.status[s].step[mode]
+  return step === null
+    ? []
+    : [[`chart-status-${s}`, `var(--color-${p.status[s].intent}-${step})`]]
+}
+
+// A status fixed in one mode sits in that mode's modern block, which follows
+// the fallback .dark, so the other mode re-declares its alias there.
+const fixedInAMode = (p: Palette, s: StatusName) =>
+  MODES.some((mode) => p.status[s].step[mode] === null)
+
 function aliases(p: Palette, mode: Mode): [string, string][] {
   const grey = (name: GreyName) =>
     `var(--color-neutral-${p.greys[name][mode].step})`
   return [
     ['chart-diverge-0', `var(--color-neutral-${p.divergeMidStep[mode]})`],
-    ...STATUS.flatMap((s): [string, string][] => {
-      const step = p.status[s].step[mode]
-      return step === null
-        ? []
-        : [[`chart-status-${s}`, `var(--color-${p.status[s].intent}-${step})`]]
-    }),
+    ...STATUS.flatMap((s) => statusAlias(p, mode, s)),
     ...GREYS.filter((g) => g !== 'band').map((g): [string, string] => [
       `chart-${g}`,
       grey(g)
@@ -113,6 +125,12 @@ function modeBlock(p: Palette, mode: Mode, modern: boolean) {
   )
   if (!modern)
     lines.push(...aliases(p, mode).map(([n, v]) => decl(n, v)), ...sets(p))
+  else
+    lines.push(
+      ...STATUS.filter((s) => fixedInAMode(p, s))
+        .flatMap((s) => statusAlias(p, mode, s))
+        .map(([n, v]) => decl(n, v))
+    )
   return lines
 }
 
