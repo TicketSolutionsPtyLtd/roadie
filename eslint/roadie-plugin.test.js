@@ -154,10 +154,6 @@ const cases = {
       "expect(el).toHaveClass('max-2xl:absolute')"
     ]
   },
-  'no-compound-root-identity': {
-    valid: ['expect(screen.getByRole("dialog")).toBeVisible()'],
-    invalid: ['expect(Dialog).toBe(Dialog.Root)']
-  },
   'no-cva-output-assertion': {
     valid: ["expect(screen.getByRole('button')).toHaveClass('intent-accent')"],
     invalid: [

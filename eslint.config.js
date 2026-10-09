@@ -119,7 +119,6 @@ export default [
     ignores: ['**/*.browser.test.{ts,tsx}'],
     rules: {
       'roadie/no-css-class-in-jsdom': 'warn',
-      'roadie/no-compound-root-identity': 'warn',
       'roadie/no-cva-output-assertion': 'warn'
     }
   },
