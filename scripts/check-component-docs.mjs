@@ -15,8 +15,7 @@ const root = join(import.meta.dirname, '..')
 const ALLOW_LIST = {
   CheckboxGroup: 'Documented on the Checkbox page.',
   Records:
-    'The engine behind RecordTable and RecordGrid, documented on foundations/records.',
-  Delta: 'Missing, ticket INNO-1178.'
+    'The engine behind RecordTable and RecordGrid, documented on foundations/records.'
 }
 
 const PAGE_ROUTES = ['docs/src/app/components', 'docs/src/app/charts']
