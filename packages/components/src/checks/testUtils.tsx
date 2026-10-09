@@ -413,6 +413,10 @@ type KnownLowContrast = {
 
 // Pairs under their minimum that already shipped. Each leaves once its
 // ticket is fixed, unless it's permanent; anything not listed fails the check.
+// The intent nearest the element, since a nested intent replaces an outer one.
+const inIntent = (element: Element, intents: string) =>
+  element.closest('[class*="intent-"]')?.matches(intents) ?? false
+
 const knownLowContrast: KnownLowContrast[] = [
   {
     role: 'body text',
@@ -420,9 +424,10 @@ const knownLowContrast: KnownLowContrast[] = [
     // Reaching 75 brings step 11 within Lc 4 to 8 of step 12, normal text.
     matches: ({ element }) =>
       element.matches('.text-subtle') &&
-      element.closest(
+      inIntent(
+        element,
         '.intent-brand, .intent-brand-secondary, .intent-accent, .intent-danger, .intent-success, .intent-info'
-      ) !== null,
+      ),
     floor: 54,
     theme: 'dark',
     ticket: 'https://oztix.atlassian.net/browse/INNO-1200'
@@ -433,8 +438,7 @@ const knownLowContrast: KnownLowContrast[] = [
     // chart's critical status, and reaching 75 brings it within ΔE 7 of
     // categorical slot 7, under the validator's 12.
     matches: ({ element }) =>
-      element.matches('.text-subtle') &&
-      element.closest('.intent-danger') !== null,
+      element.matches('.text-subtle') && inIntent(element, '.intent-danger'),
     floor: 63,
     theme: 'light',
     ticket: 'https://oztix.atlassian.net/browse/INNO-1200'
