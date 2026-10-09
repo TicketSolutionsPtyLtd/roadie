@@ -443,3 +443,41 @@ describe('tokenFamilyToMarkdown', () => {
     )
   })
 })
+
+describe('pageToMarkdown renderers', () => {
+  it('replaces a registered docs component with its markdown, given its string props', () => {
+    const md = pageToMarkdown({
+      title: 'Charts',
+      mdx: "Intro.\n\n<Catalogue name='charts' searchable />\n\n## Setup\n\nAfter.",
+      resolveLink: (href) => `https://docs.test${href}.md`,
+      renderers: {
+        Catalogue: ({ name, searchable }) =>
+          `## Layout (${name}, ${searchable ?? 'no value'})\n\n- [Chart](/charts/chart)`
+      }
+    })
+    expect(md).toBe(
+      [
+        '# Charts',
+        'Intro.',
+        '## Layout (charts, no value)',
+        '- [Chart](https://docs.test/charts/chart.md)',
+        '## Setup',
+        'After.'
+      ].join('\n\n') + '\n'
+    )
+  })
+})
+
+describe('pageToMarkdown description', () => {
+  it('drops the description blockquote when the first paragraph repeats it', () => {
+    expect(
+      pageToMarkdown({
+        title: 'Foundations',
+        description: 'The principles every component builds on.',
+        mdx: 'The principles every\ncomponent builds on.\n\nMore.'
+      })
+    ).toBe(
+      '# Foundations\n\nThe principles every\ncomponent builds on.\n\nMore.\n'
+    )
+  })
+})

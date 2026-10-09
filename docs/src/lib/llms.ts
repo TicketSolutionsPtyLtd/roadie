@@ -30,6 +30,11 @@ export type MarkdownPage = {
   components?: ManifestComponent[]
   /** Rewrites a root-relative docs link, such as `/components/field#states`. */
   resolveLink?: (href: string) => string
+  /** Markdown for each docs component the page renders data with, keyed by its JSX name and given its string props. */
+  renderers?: Record<
+    string,
+    (props: Record<string, string | undefined>) => string
+  >
 }
 
 type JsxElement = MdxJsxFlowElement | MdxJsxTextElement
@@ -169,6 +174,19 @@ function transform(
   )
 
   if (node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') {
+    const render = node.name ? page.renderers?.[node.name] : undefined
+    if (render) {
+      const props = Object.fromEntries(
+        node.attributes
+          .filter((a): a is MdxJsxAttribute => a.type === 'mdxJsxAttribute')
+          .map((a) => [a.name, attribute(node, a.name)])
+      )
+      return unified()
+        .use(remarkParse)
+        .use(remarkGfm)
+        .parse(render(props))
+        .children.flatMap((child) => transform(child, page))
+    }
     if (node.name === 'PropsDefinitions') {
       const reference = apiReference(page.components)
       page.components = []
@@ -207,9 +225,14 @@ export function pageToMarkdown(page: MarkdownPage): string {
   const trailingReference = apiReference(state.components).flatMap((child) =>
     transform(child, state)
   )
+  const children = withoutLeadingTitle(body.children)
+  const [first] = children
+  const repeated =
+    first?.type === 'paragraph' &&
+    oneLine(toString(first)) === oneLine(page.description ?? '')
   const head: BlockContent[] = [
     { type: 'heading', depth: 1, children: [text(page.title)] },
-    ...(page.description
+    ...(page.description && !repeated
       ? [
           {
             type: 'blockquote',
@@ -220,15 +243,15 @@ export function pageToMarkdown(page: MarkdownPage): string {
   ]
   return processor.stringify({
     type: 'root',
-    children: [
-      ...head,
-      ...withoutLeadingTitle(body.children),
-      ...(trailingReference as RootContent[])
-    ]
+    children: [...head, ...children, ...(trailingReference as RootContent[])]
   })
 }
 
 export type LlmsLink = { title: string; url: string; description?: string }
+
+export const linkLine = ({ title, url, description }: LlmsLink) =>
+  `- [${title}](${url})${description ? `: ${description}` : ''}`
+
 export type LlmsSection = { name: string; links: LlmsLink[] }
 
 export type LlmsIndex = {
@@ -240,8 +263,6 @@ export type LlmsIndex = {
 
 /** An `llms.txt` index in the llmstxt.org shape: H1, blockquote summary, details, then H2 sections of links. */
 export function llmsIndex({ title, summary, details, sections }: LlmsIndex) {
-  const link = ({ title, url, description }: LlmsLink) =>
-    `- [${title}](${url})${description ? `: ${description}` : ''}`
   return [
     `# ${title}`,
     `> ${summary}`,
@@ -249,7 +270,7 @@ export function llmsIndex({ title, summary, details, sections }: LlmsIndex) {
     ...sections
       .filter((section) => section.links.length > 0)
       .map((section) =>
-        [`## ${section.name}`, ...section.links.map(link)].join('\n')
+        [`## ${section.name}`, ...section.links.map(linkLine)].join('\n')
       )
   ]
     .join('\n\n')
