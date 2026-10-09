@@ -97,7 +97,9 @@ disagree.
 **Test quality.** Every test must be able to fail for a real defect.
 
 - Tautological: asserts a constant equals itself or recomputes the
-  expected value with the code under test.
+  expected value with the code under test. A compound's
+  `expect(X).toBe(X.Root)` is not one; `COMPOUND_PATTERNS.md` section 3
+  item 7 requires it.
 - Structure-sensitive: reads source text, asserts class strings, CVA
   output, or internal call order instead of behaviour, roles, and states at
   the public interface. Roadie's public vocabulary (`intent-*`, `emphasis-*`,
