@@ -30,6 +30,8 @@ export type MarkdownPage = {
   components?: ManifestComponent[]
   /** Rewrites a root-relative docs link, such as `/components/field#states`. */
   resolveLink?: (href: string) => string
+  /** Markdown for each docs component the page renders data with, keyed by its JSX name; bare props arrive as `true`. */
+  renderers?: Record<string, (props: Record<string, string | true>) => string>
 }
 
 type JsxElement = MdxJsxFlowElement | MdxJsxTextElement
@@ -48,11 +50,9 @@ const paragraph = (...children: PhrasingContent[]): Paragraph => ({
 })
 const tsx = (value: string): Code => ({ type: 'code', lang: 'tsx', value })
 
-function attribute(node: JsxElement, name: string) {
-  const attr = node.attributes.find(
-    (a): a is MdxJsxAttribute => a.type === 'mdxJsxAttribute' && a.name === name
-  )
-  if (!attr || attr.value === null || attr.value === undefined) return undefined
+/** A string attribute's text, or undefined for a bare or computed attribute. */
+function literal(attr: MdxJsxAttribute) {
+  if (attr.value === null || attr.value === undefined) return undefined
   if (typeof attr.value === 'string') return attr.value
   const [statement] = attr.value.data?.estree?.body ?? []
   const expression =
@@ -66,7 +66,37 @@ function attribute(node: JsxElement, name: string) {
   if (expression?.type === 'Literal' && typeof expression.value === 'string') {
     return expression.value
   }
-  return attr.value.value
+  return undefined
+}
+
+function attribute(node: JsxElement, name: string) {
+  const attr = node.attributes.find(
+    (a): a is MdxJsxAttribute => a.type === 'mdxJsxAttribute' && a.name === name
+  )
+  if (!attr) return undefined
+  return (
+    literal(attr) ??
+    (typeof attr.value === 'object' ? attr.value?.value : undefined)
+  )
+}
+
+/** A rendered component's props: strings, and `true` for a bare attribute. Anything computed can't reach the markdown, so it throws. */
+function rendererProps(node: JsxElement) {
+  const props: Record<string, string | true> = {}
+  for (const attr of node.attributes) {
+    const value =
+      attr.type === 'mdxJsxAttribute'
+        ? attr.value === null
+          ? true
+          : literal(attr)
+        : undefined
+    if (attr.type !== 'mdxJsxAttribute' || value === undefined)
+      throw new Error(
+        `<${node.name}> needs string or bare props for its markdown renderer`
+      )
+    props[attr.name] = value
+  }
+  return props
 }
 
 // A copy of `dedent.ts`: scripts run under plain Node, which can't resolve the
@@ -169,6 +199,21 @@ function transform(
   )
 
   if (node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') {
+    const render =
+      node.name && page.renderers && Object.hasOwn(page.renderers, node.name)
+        ? page.renderers[node.name]
+        : undefined
+    if (render) {
+      if (node.type === 'mdxJsxTextElement')
+        throw new Error(
+          `<${node.name}> renders blocks, so it can't sit inside a paragraph`
+        )
+      return unified()
+        .use(remarkParse)
+        .use(remarkGfm)
+        .parse(render(rendererProps(node)))
+        .children.flatMap((child) => transform(child, page))
+    }
     if (node.name === 'PropsDefinitions') {
       const reference = apiReference(page.components)
       page.components = []
@@ -207,9 +252,14 @@ export function pageToMarkdown(page: MarkdownPage): string {
   const trailingReference = apiReference(state.components).flatMap((child) =>
     transform(child, state)
   )
+  const children = withoutLeadingTitle(body.children)
+  const [first] = children
+  const repeated =
+    first?.type === 'paragraph' &&
+    oneLine(toString(first)) === oneLine(page.description ?? '')
   const head: BlockContent[] = [
     { type: 'heading', depth: 1, children: [text(page.title)] },
-    ...(page.description
+    ...(page.description && !repeated
       ? [
           {
             type: 'blockquote',
@@ -220,15 +270,15 @@ export function pageToMarkdown(page: MarkdownPage): string {
   ]
   return processor.stringify({
     type: 'root',
-    children: [
-      ...head,
-      ...withoutLeadingTitle(body.children),
-      ...(trailingReference as RootContent[])
-    ]
+    children: [...head, ...children, ...(trailingReference as RootContent[])]
   })
 }
 
 export type LlmsLink = { title: string; url: string; description?: string }
+
+export const linkLine = ({ title, url, description }: LlmsLink) =>
+  `- [${title}](${url})${description ? `: ${description}` : ''}`
+
 export type LlmsSection = { name: string; links: LlmsLink[] }
 
 export type LlmsIndex = {
@@ -240,8 +290,6 @@ export type LlmsIndex = {
 
 /** An `llms.txt` index in the llmstxt.org shape: H1, blockquote summary, details, then H2 sections of links. */
 export function llmsIndex({ title, summary, details, sections }: LlmsIndex) {
-  const link = ({ title, url, description }: LlmsLink) =>
-    `- [${title}](${url})${description ? `: ${description}` : ''}`
   return [
     `# ${title}`,
     `> ${summary}`,
@@ -249,7 +297,7 @@ export function llmsIndex({ title, summary, details, sections }: LlmsIndex) {
     ...sections
       .filter((section) => section.links.length > 0)
       .map((section) =>
-        [`## ${section.name}`, ...section.links.map(link)].join('\n')
+        [`## ${section.name}`, ...section.links.map(linkLine)].join('\n')
       )
   ]
     .join('\n\n')

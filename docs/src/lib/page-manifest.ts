@@ -70,6 +70,13 @@ export const WIDGETS: Catalogue = { route: '/roadie-widgets', categories: [] }
 
 const CATALOGUES = [COMPONENTS, FOUNDATIONS, TOKENS, CHARTS, WIDGETS]
 
+/** The catalogues an index page renders with `<Catalogue name>`. */
+export const CATALOGUE_PAGES = {
+  foundations: FOUNDATIONS,
+  components: COMPONENTS,
+  charts: CHARTS
+}
+
 const APP_DIR = join(process.cwd(), 'src/app')
 
 // Matches both `metadata = {` and `metadata: Metadata = {`, closing on the
