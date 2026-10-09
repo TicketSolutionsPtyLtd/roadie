@@ -1,0 +1,391 @@
+export const metadata = {
+  title: 'Theming',
+  description:
+    'ThemeProvider, dynamic accent colour, dark mode, and pre-hydration bootstrap: everything you need to theme a Roadie app at runtime or at build time.',
+  category: 'Visual'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { AccentScales } from '@/components/theming/AccentScales'
+
+Roadie's `ThemeProvider` turns one hex accent colour into 14-step OKLCH scales
+at runtime and handles dark mode at the same time. `RoadieProvider` mounts it
+at the root, and its `theme` prop takes the provider's options. Leave the
+accent alone for apps with a single brand colour, control it for apps themed
+from data, or add the pre-hydration bootstrap helpers for static exports that
+need cold loads with no flash. The [Colors](/foundations/colors) page covers
+the surface tokens the accent flows into.
+
+## Theming model
+
+- The accent colour is one hex string that drives two CSS custom properties,
+  `--accent-hue` and `--accent-chroma`, which Roadie's CSS feeds into
+  `oklch()` curves. Changing the accent updates every component that reads the
+  accent or neutral scale through the cascade. There are no component-level
+  theme props.
+- Dark mode is the `.dark` class on `<html>`, which swaps a second set of
+  OKLCH values. `ThemeProvider` handles the toggle, `localStorage`
+  persistence, and optionally following `prefers-color-scheme`. Dark mode and
+  accent colour are independent, and setting one never resets the other.
+- Intent, such as neutral, brand, accent, or danger, is set with `intent-*`
+  utility classes and flows down through CSS custom properties. Child
+  components inherit it, with no context provider per intent.
+- The accent and neutral scales are OKLCH curves computed from the one hue and
+  chroma, with hand-tuned lightness and chroma. The other intents' scales are
+  fixed, and in charts only `--chart-highlight` follows the accent. The math
+  happens when CSS resolves, not in JavaScript, so the scales stay consistent
+  across reflows.
+
+## Accent scales
+
+On the docs site, `DEFAULT_ACCENT_COLOR` and the CSS defaults of the two
+accent properties are listed, followed by every colour scale that reads
+`--accent-hue`, live in the current theme. Pick an accent in the
+[appearance settings](/appearance) and they change with it.
+
+<AccentScales />
+
+## Static theming
+
+For apps with a single brand colour that never changes at runtime, pass
+`defaultAccentColor` in `RoadieProvider`'s `theme`. Children can still call
+`useTheme().setAccentColor(hex)`, such as from an in-app colour picker, and
+the provider's own state tracks the change.
+
+```tsx
+// app/providers.tsx
+'use client'
+
+import type { ReactNode } from 'react'
+
+import NextLink from 'next/link'
+
+import { RoadieProvider } from '@oztix/roadie-components'
+
+export function Providers({ children }: { children: ReactNode }) {
+  return (
+    <RoadieProvider
+      link={NextLink}
+      theme={{ defaultAccentColor: '#7C3AED', followSystem: true }}
+    >
+      {children}
+    </RoadieProvider>
+  )
+}
+```
+
+## Dynamic theming
+
+When the accent colour comes from async data, such as a CMS field, a feature
+flag, or per-tenant config, pass it as `accentColor`. The provider becomes
+controlled: the prop wins on every render, and `setAccentColor` calls do
+nothing but log a dev warning. Pass `null` to stay controlled while falling
+back to `defaultAccentColor`.
+
+```tsx
+// app/providers.tsx
+'use client'
+
+import type { ReactNode } from 'react'
+
+import NextLink from 'next/link'
+
+import { RoadieProvider } from '@oztix/roadie-components'
+
+import { useTenant } from '@/hooks/useTenant'
+
+export function Providers({ children }: { children: ReactNode }) {
+  const { data } = useTenant()
+
+  return (
+    <RoadieProvider
+      link={NextLink}
+      theme={{ accentColor: data?.themeColour ?? null }}
+    >
+      {children}
+    </RoadieProvider>
+  )
+}
+```
+
+The provider follows the prop whenever it changes, with no `useEffect`,
+cleanup, or reset logic. Passing `null` while the query loads falls back to
+`defaultAccentColor`, so the theme never renders in a broken state.
+
+## Validation and error handling
+
+Roadie validates hex input at two points:
+
+- `setAccentColor(hex)` throws an `InvalidColorError` straight away when the
+  argument isn't a valid hex colour. Wrap the call in a try and catch, or
+  validate first with `isValidHexColor`.
+- An invalid `accentColor` prop logs a dev warning, and the provider renders
+  with `defaultAccentColor`, so the app never shows a broken theme.
+
+```tsx
+import {
+  DEFAULT_ACCENT_COLOR,
+  InvalidColorError,
+  ThemeProvider,
+  isValidHexColor
+} from '@oztix/roadie-components'
+
+function CollectionTheme({ collection, children }) {
+  // Guard untrusted input at the fetch boundary
+  const accent = isValidHexColor(collection.themeColour)
+    ? collection.themeColour
+    : DEFAULT_ACCENT_COLOR
+
+  return <ThemeProvider accentColor={accent}>{children}</ThemeProvider>
+}
+
+// Imperative calls throw straight away on invalid input
+try {
+  setAccentColor(userInput)
+} catch (error) {
+  if (error instanceof InvalidColorError) {
+    toast.error('That colour isn\'t a valid hex value.')
+  }
+}
+```
+
+## Pre-hydration bootstrap
+
+React hydrates after the first paint, so an app that only sets the accent
+inside `ThemeProvider` flashes the default blue on a cold load until it
+hydrates. For apps that know the accent colour on the server, such as
+per-tenant branding, promoter-branded pages, or statically generated routes,
+use the synchronous bootstrap helpers to set `--accent-hue` and
+`--accent-chroma` before the first paint.
+
+### React head injection
+
+For React frameworks, such as Next.js or Remix, inject the theme script and
+the accent style as separate head children. `getAccentStyleSync` returns only
+the inner CSS, so you can wrap it in a real `<style>` element. Give the
+provider the same accent, since it rewrites the accent style once it
+hydrates.
+
+```tsx
+// app/layout.tsx
+import { getAccentStyleSync, getThemeScript } from '@oztix/roadie-components'
+
+import { Providers } from './providers'
+
+export default async function RootLayout({ children }) {
+  const tenant = await fetchTenant()
+  const accentHex = tenant?.themeColour ?? null
+
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: getThemeScript({ followSystem: true })
+          }}
+        />
+        {accentHex && (
+          <style
+            id="roadie-accent-theme"
+            dangerouslySetInnerHTML={{
+              __html: getAccentStyleSync(accentHex)
+            }}
+          />
+        )}
+      </head>
+      <body>
+        {/* Providers passes it to RoadieProvider as theme={{ accentColor }} */}
+        <Providers accentColor={accentHex}>{children}</Providers>
+      </body>
+    </html>
+  )
+}
+```
+
+### Framework-agnostic bootstrap
+
+For Astro, Nuxt, or plain HTML, use `getBootstrapScript`. It returns one HTML
+string with both the theme script and the accent style tag, ready to drop
+into `<head>`.
+
+```astro
+---
+// src/pages/[slug].astro
+import { getBootstrapScript } from '@oztix/roadie-core/theme'
+
+const html = getBootstrapScript({
+  followSystem: true,
+  accentColor: Astro.props.collection?.themeColour
+})
+---
+<head>
+  <Fragment set:html={html} />
+</head>
+```
+
+Both paths use the same synchronous sRGB to OKLCH converter, which matches
+`colorjs.io`'s lightness and chroma to four decimal places. Modern browsers
+(Chrome 111+, Safari 15.4+, and Firefox 113+) render the accent scale from
+`oklch()` math directly, so the two custom properties are enough for a cold
+load with no flash. Older browsers fall back to the compiled CSS accent until
+the client-side accent effect runs.
+
+## Resetting to the default
+
+Roadie exports `DEFAULT_ACCENT_COLOR`, so consumers never hardcode the default
+hex. Reset to it three ways:
+
+- In a controlled provider, pass `accentColor={someHex ?? null}`, and Roadie
+  turns `null` back into the default.
+- In an uncontrolled provider, call `setAccentColor(DEFAULT_ACCENT_COLOR)`
+  from a reset button.
+- In `getBootstrapScript`, omit `accentColor` or pass `null`. The default CSS
+  accent applies, and the bootstrap emits no style tag.
+
+## Dark mode
+
+Accent colour and dark mode are independent but share one provider.
+`getThemeScript` prevents a flash of the wrong theme on the first load by
+reading `localStorage` before the first paint, and `getBootstrapScript` adds
+the accent style tag to it for one head injection.
+
+```tsx
+<RoadieProvider
+  link={NextLink}
+  theme={{
+    accentColor: collection?.themeColour ?? null,
+    followSystem: true,
+    defaultDark: false
+  }}
+>
+  {children}
+</RoadieProvider>
+```
+
+- `followSystem` follows `prefers-color-scheme` until the user toggles.
+- `defaultDark` sets the dark state when no preference is stored.
+- `useTheme().setDark(boolean)` persists an explicit choice to
+  `localStorage`.
+- `useTheme().isDark` is the current state, and it updates as it changes.
+
+## Recipes
+
+### Theme from a TanStack Query hook
+
+Fetch the accent, render the provider with `accentColor`, and let loading
+states flow through `null`, with no effects or cleanup. Inside
+`RoadieProvider`, a nested provider like this one has the limits
+[per-route theming](#per-route-theming-with-nextjs-app-router) describes.
+
+```tsx
+function CollectionTheme({ slug, children }) {
+  const { data } = useCollection(slug)
+  return (
+    <ThemeProvider accentColor={data?.themeColour ?? null}>
+      {children}
+    </ThemeProvider>
+  )
+}
+```
+
+### Per-route theming with Next.js App Router
+
+A route's `layout.tsx` can fetch its own data and wrap its children in a
+nested `ThemeProvider`. The accent is still document-wide, because the
+provider writes it to `:root`, so it themes the whole page while the route is
+open. It doesn't hand the root's accent back when the route closes, and when
+the root and the route's provider mount together, as on a cold load, the
+root's accent wins. Where you can, give the route's accent to the root's
+provider instead.
+
+```tsx
+// app/collections/[slug]/layout.tsx
+export default async function CollectionLayout({ params, children }) {
+  const { slug } = await params
+  const collection = await getCollection(slug)
+  return (
+    <ThemeProvider accentColor={collection.themeColour ?? null}>
+      {children}
+    </ThemeProvider>
+  )
+}
+```
+
+### Static export with server-prefetched accent
+
+For `output: 'export'` apps, inject the accent style tag during the server
+pass, so the first paint already uses the themed colours. The provider
+rewrites the accent once it hydrates, so it needs the same accent, or the page
+goes back to the provider's.
+
+```tsx
+// app/collections/[slug]/page.tsx
+import { getAccentStyleSync } from '@oztix/roadie-components'
+
+export async function generateStaticParams() {
+  return (await listCollections()).map((c) => ({ slug: c.slug }))
+}
+
+export default async function CollectionPage({ params }) {
+  const { slug } = await params
+  const collection = await getCollection(slug)
+  const css = collection.themeColour
+    ? getAccentStyleSync(collection.themeColour)
+    : null
+
+  return (
+    <>
+      {css && (
+        <style
+          id="roadie-accent-theme"
+          dangerouslySetInnerHTML={{ __html: css }}
+        />
+      )}
+      <CollectionView collection={collection} />
+    </>
+  )
+}
+```
+
+## Helpers
+
+- `DEFAULT_ACCENT_COLOR` is the Oztix blue default.
+- `isValidHexColor(input)` is a synchronous type guard for validating at the
+  fetch boundary.
+- `InvalidColorError` is thrown by `setAccentColor`, `getAccentStyleSync`,
+  `getAccentStyleTagSync`, and `getAccentStyleTag` on invalid input.
+  `getBootstrapScript` throws a plain `Error`.
+- `getThemeScript(options)` returns the inline script body that prevents a
+  dark mode flash.
+- `getAccentStyleSync(hex)` returns the inner CSS, for React.
+- `getAccentStyleTagSync(hex)` returns a full `<style>` tag, for any
+  framework.
+- `getAccentStyleTag(hex)` is the async variant, with full hex fallbacks for
+  browsers without OKLCH.
+- `getBootstrapScript(options)` combines the theme script and the accent
+  style tag for one head injection.
+
+## Hooks
+
+### useTheme
+
+```tsx
+function useTheme(): {
+  accentColor: string
+  setAccentColor: (color: string) => void
+  isDark: boolean
+  setDark: (dark: boolean) => void
+}
+```
+
+Reads and updates the theme mounted by the nearest `ThemeProvider`, including
+the one `RoadieProvider` mounts. Throws outside one.
+
+| Field            | Type                      | Description                                                         |
+| ---------------- | ------------------------- | ------------------------------------------------------------------- |
+| `accentColor`    | `string`                  | The current accent, as a hex string.                                |
+| `setAccentColor` | `(color: string) => void` | Sets the accent. Throws `InvalidColorError` on a non-hex value.     |
+| `isDark`         | `boolean`                 | Whether dark mode is active.                                        |
+| `setDark`        | `(dark: boolean) => void` | Sets dark mode and persists the choice to `localStorage`.           |
+
+<PropsDefinitions component='ThemeProvider' />

@@ -32,6 +32,7 @@ import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
 
 import { FooterNav } from './FooterNav'
 import { Image } from './Image'
+import { MarkdownTwin } from './MarkdownTwin'
 import {
   NAV_LIST_PARAM,
   NAV_MORE_PARAM,
@@ -64,6 +65,8 @@ type NavigationProps = {
   pageTitles: Record<string, string>
   /** Routes whose content column drops the standard reading-width cap. */
   pageWide: Record<string, boolean>
+  /** Routes with a markdown twin at `{route}.md`. */
+  markdownTwins: Record<string, boolean>
   children: ReactNode
 }
 
@@ -96,6 +99,7 @@ export function DocsNavigator({
   items,
   pageTitles,
   pageWide,
+  markdownTwins,
   children
 }: NavigationProps) {
   const route = useRoute()
@@ -285,6 +289,10 @@ export function DocsNavigator({
             ) : null}
             {children}
             <FooterNav items={items} />
+            <MarkdownTwin
+              route={route}
+              hasTwin={markdownTwins[route] === true}
+            />
           </div>
         </Pane>
 

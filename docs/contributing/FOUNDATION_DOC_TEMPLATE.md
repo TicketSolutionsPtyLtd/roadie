@@ -171,3 +171,8 @@ rule.
   rule about classes sets them on those components or shows them in `code`.
 - Token renderers such as `DatavizSwatches` (`@/components/dataviz/`) and
   `ScaleGrid`, `IntentMatrix`, and `EmphasisGrid` (`@/components/tokens/`).
+- `PropsDefinitions` from `@/components/PropsDefinitions`, for a provider
+  this page documents, such as `ThemeProvider` on Theming. Remove the
+  provider's entry from `packages/core/scripts/manifest/elsewhere.ts` in the
+  same change, or the manifest build fails on an entry that links a component
+  with a page of its own.

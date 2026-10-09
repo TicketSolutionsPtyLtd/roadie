@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
@@ -18,6 +18,7 @@ import {
   TOKENS,
   WIDGETS,
   getCatalogue,
+  getMarkdownRoutes,
   readPageMetadata
 } from '../src/lib/page-manifest.ts'
 
@@ -35,11 +36,7 @@ const manifests = [
 const site = `${new URL(manifests[0]!.docs).origin}${basePath}`
 const components = manifests.flatMap((manifest) => manifest.components)
 
-const routes = (await readdir(appDir, { recursive: true }))
-  .filter((file) => path.basename(file) === 'page.mdx')
-  .map((file) => `/${path.dirname(file).split(path.sep).join('/')}`)
-  .filter((route) => !/^\/(debug|examples)\//.test(route))
-  .sort()
+const routes = await getMarkdownRoutes()
 const markdownRoutes = new Set(routes)
 
 const pageUrl = (route: string) =>
