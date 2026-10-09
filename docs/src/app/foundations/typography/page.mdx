@@ -1,0 +1,401 @@
+export const metadata = {
+  title: 'Typography',
+  description:
+    'Fluid type scale, pre-composed text styles, and semantic text colors.',
+  category: 'Content'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { DisplayStyles } from '@/components/typography/DisplayStyles'
+import { RhythmTable } from '@/components/typography/RhythmTable'
+import { TypeScale } from '@/components/typography/TypeScale'
+
+Use pre-composed text styles. Let fluid type handle responsiveness. Pair
+semantic colours with semantic HTML.
+
+Roadie has two font families: Intermission, a sans-serif set with
+`font-sans`, and IBM Plex Mono, a monospace set with `font-mono`.
+
+## Type scale
+
+Sizes from `text-lg` up use `clamp()` to scale fluidly between viewport
+widths, so they need no breakpoint overrides. On the docs site, each step is
+set in its own size, with its size in pixels or its fluid range.
+
+<TypeScale />
+
+## Text style utilities
+
+Pre-composed utilities combine font size, weight, line height, and letter
+spacing. They come in two contexts: UI for app interfaces, and prose for
+long-form content.
+
+### Display styles
+
+UI display styles are compact headings for dashboards, settings, and
+navigation, with tighter line height and tracking. Prose display styles are
+larger, heavier headings for articles, marketing pages, and rich content,
+designed for reading. On the docs site, each style is set in its own style,
+UI first, then prose.
+
+<DisplayStyles />
+
+| Utility                | Size   | Weight         |
+| ---------------------- | ------ | -------------- |
+| `text-display-ui-1`    | `4xl`  | Bold (700)     |
+| `text-display-ui-2`    | `3xl`  | Bold (700)     |
+| `text-display-ui-3`    | `2xl`  | Bold (700)     |
+| `text-display-ui-4`    | `xl`   | Bold (700)     |
+| `text-display-ui-5`    | `lg`   | Semibold (600) |
+| `text-display-ui-6`    | `base` | Semibold (600) |
+| `text-display-prose-1` | `5xl`  | Black (900)    |
+| `text-display-prose-2` | `4xl`  | Bold (700)     |
+| `text-display-prose-3` | `3xl`  | Bold (700)     |
+| `text-display-prose-4` | `2xl`  | Bold (700)     |
+| `text-display-prose-5` | `xl`   | Bold (700)     |
+| `text-display-prose-6` | `lg`   | Bold (700)     |
+
+### Body text styles
+
+`body` already sets `text-ui`, so standard UI text needs no class. Each style
+takes the line height and letter spacing of its context.
+
+```tsx-live layout=stack
+{/* text-ui */}
+<p className='text-ui'>App interface text with a tighter line height.</p>
+{/* text-prose */}
+<p className='text-prose'>
+  Long-form content with a more generous line height, better for extended
+  reading such as articles and documentation.
+</p>
+{/* text-ui-meta */}
+<p className='text-ui-meta'>Secondary UI text, such as timestamps, counts, and helper text.</p>
+{/* text-code */}
+<p className='text-code'>const roadie = 'monospaced code text'</p>
+```
+
+| Utility        | Use for                                                  | Size   | Context |
+| -------------- | -------------------------------------------------------- | ------ | ------- |
+| `text-ui`      | App interface text, and the default on `body`            | `base` | `ui`    |
+| `text-prose`   | Long-form content, such as articles and documentation    | `base` | `prose` |
+| `text-ui-meta` | Secondary UI text, such as timestamps, counts, and hints | `sm`   | `ui`    |
+| `text-code`    | Monospaced code                                          | `sm`   | `code`  |
+
+## Line height and tracking
+
+Semantic tokens keep rhythm consistent. Text style utilities set them by
+themselves, so use the tokens on their own only for custom compositions. On
+the docs site, each context is listed with its line height and letter
+spacing.
+
+<RhythmTable />
+
+## Semantic text colours
+
+Use semantic colour utilities instead of raw colour values. They adapt to
+intents, themes, and dark mode by themselves.
+
+```tsx-live layout=stack gap=1
+<p className='text-strong'>text-strong for headings, emphasis, and high contrast</p>
+<p className='text-normal'>text-normal for body text, inherited from the body reset</p>
+<p className='text-subtle'>text-subtle for secondary text and descriptions</p>
+<p className='text-subtler'>text-subtler for meta text, timestamps, and hints</p>
+```
+
+## Usage
+
+### Headings
+
+Use raw heading elements with a display style utility and `text-strong`.
+Match the semantic level, `h1` to `h6`, to the document structure, and the
+visual style to the context.
+
+```tsx-live layout=stack gap=2
+<h1 className='text-display-ui-1 text-strong'>Page title</h1>
+<h2 className='text-display-ui-3 text-strong'>Section</h2>
+<h3 className='text-display-ui-5 text-strong'>Subsection</h3>
+```
+
+### Body text
+
+Body inherits `text-ui` from the reset. Use `<p>` elements with semantic
+colour classes.
+
+```tsx-live layout=stack gap=2
+<p>Default body text. No class needed.</p>
+<p className='text-subtle'>Secondary text</p>
+<p className='text-sm text-subtler'>Meta or hint text</p>
+<p className='text-strong'>Emphasised text</p>
+```
+
+### Prose content
+
+Wrap CMS output, markdown, or user-generated content in `<Prose>` for
+automatic typography and spacing. See [Prose styles](/foundations/prose).
+
+```tsx-live-prose
+<Prose>
+  <h2>Article heading</h2>
+  <p>
+    Body paragraph with <strong>bold</strong> and <a href='#'>links</a>.
+    The Prose component handles spacing, list styles, and element
+    typography.
+  </p>
+  <ul>
+    <li>List item one</li>
+    <li>List item two</li>
+  </ul>
+</Prose>
+```
+
+## Numerals
+
+Intermission has two sets of figures. Proportional is the default, and each
+digit takes the width its shape wants. Tabular gives every digit the same
+width, so values line up in a column.
+
+<Guidelines>
+
+<Guideline title='Tabular figures where numbers stack, proportional where they do not' description='Equal-width digits are for columns and ticks. On a large standalone figure they read as gappy, because the 1s carry the same width as the 0s with nothing to line up against.'>
+  <Guideline.Do
+    code={`
+      table column   tabular-nums
+      axis ticks     tabular-nums
+      ticking clock  tabular-nums
+      hero figure    proportional
+    `}
+  >
+    Tabular where values sit above one another, or where a digit changes
+    under the eye. Proportional everywhere else.
+  </Guideline.Do>
+  <Guideline.Dont code='hero figure    tabular-nums'>
+    A large static number with gaps where the narrow digits are.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+A ticking countdown is the exception that proves the rule. Its digits don't
+align with anything, but they change while somebody is watching, so tabular
+figures stop the row shifting on every tick.
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Use text style utilities' description='Text style utilities combine size, weight, line height, and letter spacing into a single class. Raw Tailwind size classes miss the other properties.'>
+  <Guideline.Do
+    width={64}
+    example={
+      <>
+        <h2 className='text-display-ui-3 text-strong'>Section title</h2>
+        <p>Body text inherits defaults</p>
+        <p className='text-sm text-subtle'>Secondary text</p>
+      </>
+    }
+    code={`
+      <h2 className='text-display-ui-3 text-strong'>Section title</h2>
+      <p>Body text inherits defaults</p>
+      <p className='text-sm text-subtle'>Secondary text</p>
+    `}
+  >
+    Use pre-composed utilities. They set all typographic properties at once.
+  </Guideline.Do>
+  <Guideline.Dont
+    width={64}
+    example={
+      <>
+        <h2 className='text-2xl font-bold'>Section title</h2>
+        <p>Body text</p>
+        <p className='text-sm text-subtle'>Secondary text</p>
+      </>
+    }
+    code={`
+      <h2 className='text-2xl font-bold'>Section title</h2>
+      <p>Body text</p>
+      <p className='text-sm text-subtle'>Secondary text</p>
+    `}
+  >
+    Don't use raw size and weight classes. They miss line height and letter
+    spacing.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Use semantic text colours' description='Semantic colours like text-subtle adapt to intents, themes, and dark mode. Raw colour values break when the context changes.'>
+  <Guideline.Do
+    width={64}
+    example={
+      <>
+        <p className='text-strong'>Strong text</p>
+        <p className='text-normal'>Default text</p>
+        <p className='text-subtle'>Subtle text</p>
+        <p className='text-subtler'>Subtler text</p>
+      </>
+    }
+    code={`
+      <p className='text-strong'>Strong text</p>
+      <p className='text-normal'>Default text</p>
+      <p className='text-subtle'>Subtle text</p>
+      <p className='text-subtler'>Subtler text</p>
+    `}
+  >
+    Semantic colours adapt to the current intent and theme by themselves.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      <p className='font-bold text-[#111827]'>Strong text</p>
+      <p className='text-[#374151]'>Default text</p>
+      <p className='text-[#6b7280]'>Subtle text</p>
+      <p className='text-[#9ca3af]'>Subtler text</p>
+    `}
+  >
+    Don't hardcode colour values. They won't respond to intent or dark mode.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Match context to content type' description='UI styles are compact for app interfaces. Prose styles are larger for long-form reading. Mixing them creates visual inconsistency.'>
+  <Guideline.Do
+    width={64}
+    example={
+      <>
+        <p className='text-xs text-subtler'>Dashboard</p>
+        <h3 className='text-display-ui-4 text-strong'>Recent orders</h3>
+        <p className='text-sm text-subtle'>3 orders in the last 24 hours</p>
+      </>
+    }
+    code={`
+      <h3 className='text-display-ui-4 text-strong'>Recent orders</h3>
+      <p className='text-sm text-subtle'>3 orders in the last 24 hours</p>
+    `}
+  >
+    UI headings for dashboards, prose headings for articles.
+  </Guideline.Do>
+  <Guideline.Dont
+    width={64}
+    example={
+      <>
+        <p className='text-xs text-subtler'>Dashboard</p>
+        <h3 className='text-display-prose-4 text-strong'>Recent orders</h3>
+        <p className='text-sm text-subtle'>3 orders in the last 24 hours</p>
+      </>
+    }
+    code={`
+      <h3 className='text-display-prose-4 text-strong'>Recent orders</h3>
+      <p className='text-sm text-subtle'>3 orders in the last 24 hours</p>
+    `}
+  >
+    Don't use prose display styles in app UI. They're too large and heavy.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Use semantic HTML elements' description='Use the right element for the content type. Heading elements establish document structure for accessibility and SEO.'>
+  <Guideline.Do
+    code={`
+      <h2 className='text-display-ui-3 text-strong'>
+        Section title
+      </h2>
+      <p className='text-subtle'>
+        Description text
+      </p>
+    `}
+  >
+    Use headings for headings, paragraphs for text, and spans for inline
+    fragments.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      <div className='text-display-ui-3 text-strong'>
+        Section title
+      </div>
+      <div className='text-subtle'>
+        Description text
+      </div>
+    `}
+  >
+    Don't use divs for text content. Screen readers can't identify the
+    structure.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Let fluid type handle responsiveness' description='Sizes from text-lg up already use clamp() to scale fluidly. Adding breakpoint overrides for font size fights the system.'>
+  <Guideline.Do
+    code={`
+      {/* Automatically fluid */}
+      <h1 className='text-display-ui-1 text-strong'>
+        Dashboard
+      </h1>
+    `}
+  >
+    Fluid type scales smoothly across all viewport widths.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      {/* Fighting the fluid scale */}
+      <h1 className='text-xl md:text-2xl lg:text-4xl'>
+        Dashboard
+      </h1>
+    `}
+  >
+    Don't add manual breakpoints for font size. It creates jarring jumps.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Maintain heading hierarchy' description='Heading levels follow document structure, h1 then h2 then h3. The display utility sets the visual weight, not the heading level.'>
+  <Guideline.Do
+    code={`
+      <h1 className='text-display-ui-1 ...'>Page</h1>
+      <h2 className='text-display-ui-3 ...'>Section</h2>
+      <h3 className='text-display-ui-5 ...'>Sub</h3>
+    `}
+  >
+    Semantic levels follow structure. Visual style is independent.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      <h1 className='text-display-ui-1 ...'>Page</h1>
+      {/* Skipped h2 */}
+      <h4 className='text-display-ui-5 ...'>Sub</h4>
+    `}
+  >
+    Don't skip heading levels for visual effect.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Use Prose for rich content' description='The Prose component styles nested HTML for CMS output, markdown, or user-generated content. It handles spacing, list markers, and element typography.'>
+  <Guideline.Do
+    code={`
+      <Prose>
+        <h2>Title</h2>
+        <p>Paragraph with <a href='#'>link</a></p>
+        <ul><li>Item</li></ul>
+      </Prose>
+    `}
+  >
+    Prose handles all child element styling by itself.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      <div>
+        <h2 className='text-2xl mb-4'>Title</h2>
+        <p className='mb-2 leading-6'>Text</p>
+        <ul className='list-disc pl-4'>...</ul>
+      </div>
+    `}
+  >
+    Don't manually style every element in user content.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Semantic elements
+
+| Element          | When to use                       | Example                         |
+| ---------------- | --------------------------------- | ------------------------------- |
+| `<h1>` to `<h6>` | Section headings                  | `text-display-ui-3 text-strong` |
+| `<p>`            | Body text and descriptions        | `text-subtle`                   |
+| `<span>`         | Inline text fragments             | `text-sm text-subtler`          |
+| `<strong>`       | Important text                    | `text-strong`                   |
+| `<em>`           | Emphasis or stress                | Italic by default               |
+| `<Code>`         | Inline code, tokens, and commands | `<Code>bg-normal</Code>`        |
+| `<Prose>`        | CMS or markdown content           | `<Prose size='md'>...</Prose>`  |
