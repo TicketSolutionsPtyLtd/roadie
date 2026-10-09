@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Oklch } from './color-math'
+import { type Oklch, deltaE } from './color-math'
 import { DIVERGE_MID, type Palette, palette } from './palette'
 import { paletteScores, validatePalette } from './validate'
 
@@ -72,6 +72,34 @@ describe('dataviz palette', () => {
     const [l, c, h] = palette.categorical.light[0]!
     const failures = validatePalette(withLight(1, [l + 0.03, c, h + 8]))
     expect(failures.map((f) => f.check)).toContain('adjacentNormal')
+  })
+
+  it('catches two far-apart slots too close for normal vision', () => {
+    const [l, c, h] = palette.categorical.light[0]!
+    const failure = validatePalette(withLight(7, [l + 0.02, c, h + 4])).find(
+      (f) => f.check === 'allPairsNormal'
+    )
+    expect(failure).toMatchObject({ detail: 'slots 1 and 8', target: 8 })
+  })
+
+  // The closest pairs. Dark 3 and 6, and 2 and 7, were accepted on #414.
+  it.each([
+    ['light', 5, 7, 17.2],
+    ['dark', 1, 8, 8.5],
+    ['dark', 3, 6, 9.5],
+    ['dark', 2, 7, 10.7]
+  ] as const)(
+    'keeps %s slots %i and %i at ΔE %d for normal vision',
+    (mode, a, b, distance) => {
+      const cat = palette.categorical[mode]
+      expect(deltaE(cat[a - 1]!, cat[b - 1]!)).toBeCloseTo(distance, 1)
+    }
+  )
+
+  it('reports the closest pair of any two slots', () => {
+    const scores = paletteScores()
+    expect(scores.light.allPairsNormal).toBe(17.2)
+    expect(scores.dark.allPairsNormal).toBe(8.5)
   })
 
   it('catches a small set whose colours collide', () => {

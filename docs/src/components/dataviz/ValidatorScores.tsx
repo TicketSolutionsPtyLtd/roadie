@@ -3,7 +3,8 @@ import { paletteScores } from '@oztix/roadie-core/dataviz'
 const ROWS = [
   ['Adjacent, colour-blind', 'adjacentCvd', '8 or more'],
   ['Any of the first five, colour-blind', 'firstFiveCvd', '8 or more'],
-  ['Adjacent, normal vision', 'adjacentNormal', '15 or more']
+  ['Adjacent, normal vision', 'adjacentNormal', '15 or more'],
+  ['Any two slots, normal vision', 'allPairsNormal', '8 or more']
 ] as const
 
 export function ValidatorScores() {
