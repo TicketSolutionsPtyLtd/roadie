@@ -7,13 +7,21 @@ on:
   pull_request:
     branches:
       - main
+    # ready_for_review starts the full run a draft skipped.
+    types: [opened, synchronize, reopened, ready_for_review]
+  schedule:
+    # Daily 03:00 Brisbane, clear of audit.yml's 20:00 UTC run
+    - cron: '0 17 * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# The nightly run gets its own group so a push to main can't replace it while
+# it waits. Drafts get their own too, so a late draft event can't cancel the
+# full run ready_for_review started.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'schedule' && 'nightly' || github.ref }}${{ github.event.pull_request.draft && '-draft' || '' }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
@@ -22,7 +30,9 @@ env:
   TURBO_FORCE: false
 
 jobs:
+  # On a schedule --affected compares main with itself and finds nothing.
   check:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     # A change to turbo.json or the lockfile tests every package, which runs
     # about 10 minutes one package at a time.
@@ -33,7 +43,10 @@ jobs:
         with:
           fetch-depth: 2
 
+      # On a push main is HEAD, so a depth-1 fetch would make HEAD shallow and
+      # drop the HEAD^1 that TURBO_SCM_BASE compares with.
       - name: Fetch base branch
+        if: github.event_name != 'push'
         run: git fetch origin main:refs/remotes/origin/main --depth=1
 
       - name: Setup
@@ -63,21 +76,23 @@ jobs:
       - name: Lint and typecheck
         run: pnpm turbo lint typecheck --affected --framework-inference=false
         env:
-          TURBO_SCM_BASE: origin/main
+          TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
 
       # On 4 vCPUs, jsdom suites run 8 to 20 times slower beside lint,
       # typecheck and other packages' tests, so tests run one package at a time.
       - name: Test
         run: pnpm turbo test --affected --framework-inference=false --concurrency=1
         env:
-          TURBO_SCM_BASE: origin/main
+          TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
 
       # eslint's prettier rule only covers files it lints, so md/json drift
       # silently without this.
       - name: Check formatting
         run: pnpm format:check
 
+  # Drafts run only check; marking one ready runs the rest.
   playwright:
+    if: github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -96,6 +111,7 @@ jobs:
   browser:
     name: browser (${{ matrix.browser }}${{ matrix.shard && format(' {0}', matrix.shard) || '' }})
     needs: playwright
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     # The image ships the browsers and their system libraries. Installing them
@@ -122,7 +138,10 @@ jobs:
         with:
           fetch-depth: 2
 
+      # On a push main is HEAD, so a depth-1 fetch would make HEAD shallow and
+      # drop the HEAD^1 that TURBO_SCM_BASE compares with.
       - name: Fetch base branch
+        if: github.event_name != 'push'
         run: git fetch origin main:refs/remotes/origin/main --depth=1
 
       - name: Setup
@@ -138,7 +157,7 @@ jobs:
         env:
           ROADIE_BROWSERS: ${{ matrix.browser }}
           ROADIE_QUARANTINE: skip
-          TURBO_SCM_BASE: origin/main
+          TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
 
       # Only Chromium takes screenshots. The log names the -actual and -diff
       # images, but they live on the runner.
@@ -155,6 +174,9 @@ jobs:
   browser-quarantine:
     name: browser (quarantined)
     needs: playwright
+    # Known flakes need no per-PR run. Without --affected the nightly run
+    # covers every package, since main compared with itself has none.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     container:
@@ -163,11 +185,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 2
-
-      - name: Fetch base branch
-        run: git fetch origin main:refs/remotes/origin/main --depth=1
 
       - name: Setup
         uses: ./.github/composite-actions/setup
@@ -176,13 +193,13 @@ jobs:
       # Failures show as annotations but never block a merge.
       - name: Quarantined browser tests
         continue-on-error: true
-        run: pnpm turbo test:browser --affected --framework-inference=false --concurrency=1
+        run: pnpm turbo test:browser --framework-inference=false --concurrency=1
         env:
           ROADIE_BROWSERS: chromium,webkit,firefox
           ROADIE_QUARANTINE: only
-          TURBO_SCM_BASE: origin/main
 
   build:
+    if: github.event_name != 'schedule' && github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -191,7 +208,10 @@ jobs:
         with:
           fetch-depth: 2
 
+      # On a push main is HEAD, so a depth-1 fetch would make HEAD shallow and
+      # drop the HEAD^1 that TURBO_SCM_BASE compares with.
       - name: Fetch base branch
+        if: github.event_name != 'push'
         run: git fetch origin main:refs/remotes/origin/main --depth=1
 
       - name: Setup
@@ -201,7 +221,7 @@ jobs:
         run: pnpm turbo build --affected --framework-inference=false
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
-          TURBO_SCM_BASE: origin/main
+          TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
 
       # -r so widgets is covered too; it had been over budget unnoticed.
       - name: Check bundle size
