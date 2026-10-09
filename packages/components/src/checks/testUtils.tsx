@@ -396,7 +396,9 @@ const knownLowContrast: KnownLowContrast[] = [
   },
   {
     role: 'non-text UI',
-    matches: ({ element }) => element.matches('.intent-accent'),
+    matches: ({ element }) =>
+      element.matches('.intent-accent') &&
+      element.closest('button[data-date]') !== null,
     floor: 35,
     theme: 'dark',
     ticket: 'https://oztix.atlassian.net/browse/INNO-1198',
