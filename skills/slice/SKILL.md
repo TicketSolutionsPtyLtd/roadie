@@ -87,7 +87,7 @@ ticket. With no host rule, use Roadie's.
   Carries: <changeset, docs, tests, wiring, demo>
   Door: <one-way or two-way, and why>
   Done when: <the merged PR and what it proves>
-  Slice <n> of <m> for <source key>. After <previous key>.
+  Slice <n> of <m> for <source key>. After <every key it needs, or none>.
   ```
 
 - **Linked in merge order.** Each slice blocks the slices that need it (a
@@ -116,6 +116,7 @@ Parallel: <slices that can run at once>
 Decisions: <each call made while cutting, and why>
 ```
 
+After names every slice it needs, or none, so it matches the Jira links.
 When a slice lands or the plan changes, edit that comment rather than add one.
 
 ## 6. Hand off
