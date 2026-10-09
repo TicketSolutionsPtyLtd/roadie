@@ -18,7 +18,12 @@ const segments = [1, 2, 3, 4, 5, 6, 7, 8].map((slot) => ({
   label: `Slot ${slot}`
 }))
 
-describe('Meter under forced colours', () => {
+const media = [
+  ['forced colours', '(forced-colors: active)', commands.forcedColors],
+  ['print', 'print', commands.printMedia]
+] as const
+
+describe.each(media)('Meter in %s', (_, query, emulate) => {
   it('textures every segment with its own pattern', async (context) => {
     const { container } = render(
       <Meter label='Tickets by type' max={8} segments={segments} />
@@ -30,17 +35,17 @@ describe('Meter under forced colours', () => {
       )
     expect(new Set(patterns())).toEqual(new Set(['none']))
 
-    await commands.forcedColors(true)
+    await emulate(true)
     try {
-      if (!matchMedia('(forced-colors: active)').matches) {
+      if (!matchMedia(query).matches) {
         context.skip()
         return
       }
-      const forced = patterns()
-      expect(forced).not.toContain('none')
-      expect(new Set(forced).size).toBe(segments.length)
+      const textured = patterns()
+      expect(textured).not.toContain('none')
+      expect(new Set(textured).size).toBe(segments.length)
     } finally {
-      await commands.forcedColors(false)
+      await emulate(false)
     }
   })
 })
