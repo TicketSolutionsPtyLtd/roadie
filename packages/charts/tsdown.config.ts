@@ -8,7 +8,7 @@ export default defineConfig(({ watch }) => ({
   entry: [
     'src/**/*.{ts,tsx}',
     '!**/*.test.{ts,tsx}',
-    '!**/testUtils.ts',
+    '!**/testUtils.{ts,tsx}',
     '!**/testChart.ts',
     '!**/browserTesting.tsx'
   ],
