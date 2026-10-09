@@ -166,7 +166,7 @@ function iconAttribute(icons, attributeName, report) {
 
 // Classes the fence options reproduce: layout=, gap=, width=, and a caption.
 const FENCE_LAYOUT_CLASS =
-  /^(grid|flex|flex-row|flex-wrap|items-center|gap-[123468]|w-(48|72|140|180)|max-w-(full|48|72|140|180))$/
+  /^(grid|flex|flex-row|flex-wrap|items-center|gap-[123468]|w-(40|48|64|72|80|140|180)|max-w-(full|40|48|64|72|80|140|180))$/
 const CAPTION_CLASS = new Set(['text-sm', 'text-subtle'])
 
 const classTokens = (element) => {

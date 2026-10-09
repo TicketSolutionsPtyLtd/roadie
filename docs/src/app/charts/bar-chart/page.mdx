@@ -21,7 +21,7 @@ import { BarChart } from '@oztix/roadie-charts/bar-chart'
 
 ### Default
 
-```tsx-live width=md
+```tsx-live width=140
 <Chart label='Daily orders' source='Oztix sales.' size='md'>
   <BarChart
     data={[42, 88, 120, 94, 38, 51, 60].map((orders, i) => ({ day: `2026-10-0${i + 1}`, orders }))}
@@ -34,7 +34,7 @@ import { BarChart } from '@oztix/roadie-charts/bar-chart'
 
 ### Annotated on-sale
 
-```tsx-live width=md
+```tsx-live width=140
 <Chart label='On-sale by hour' source='Oztix sales.' size='md'>
   <BarChart
     data={[1840, 920, 410, 260, 210, 190].map((orders, i) => ({ time: `2026-08-03T${String(9 + i).padStart(2, '0')}:00`, orders }))}
@@ -51,7 +51,7 @@ import { BarChart } from '@oztix/roadie-charts/bar-chart'
 
 `line` draws another measure on its own axis. It is labelled at its end, so it needs no second axis.
 
-```tsx-live width=lg
+```tsx-live width=180
 <Chart label='Entry' source='Oztix scans.' size='full'>
   <BarChart
     data={[80, 190, 300, 260, 150, 90].map((scans, i, all) => ({
@@ -70,7 +70,7 @@ import { BarChart } from '@oztix/roadie-charts/bar-chart'
 
 ### States
 
-```tsx-live layout=stack width=md
+```tsx-live layout=stack width=140
 {/* No values yet */}
 <Chart label='Daily orders' source='Oztix sales.' size='sm'>
   <BarChart data={[{ day: '2026-10-01', orders: null }]} x='day' y='orders' />

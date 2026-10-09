@@ -17,8 +17,9 @@ CodePreview lays out the preview from fence meta, and the code panel shows
 the fence as written:
 
 - `layout=stack` or `layout=row`, with `gap=` for another gap
-- `width=xs`, `sm`, `md`, or `lg` for a width frame, named rather than
-  arbitrary so frames stay consistent
+- `width=40`, `48`, `64`, `72`, `80`, `140`, or `180` for a width frame:
+  the Tailwind spacing steps the fences' frames already used, from a fixed
+  set so frames stay consistent
 - a comment on its own line at column 0, `{/* Disabled */}`, captions what
   follows it, up to the next caption, in a fence with `layout=`
 
@@ -35,7 +36,7 @@ and the options are under its
 
 An inline fence with `layout=` may hold sibling elements: react-live runs it
 in a fragment, and the docs lint wraps it the same way. A column-0 comment in
-such a fence is always a caption, and several elements under one caption
+such a fence is always a caption, of four words at most, and several elements under one caption
 wrap in a row. `roadie/no-fence-layout-wrapper` fails a root layout `div` the
 options can replace, on each page once it migrates.
 

@@ -65,7 +65,7 @@ describe('collectLiveExamples', () => {
 
   it('takes the preview layout from the fence meta', () => {
     const source = [
-      '```tsx-live layout=row gap=3 width=md\n<A />\n<B />\n```',
+      '```tsx-live layout=row gap=3 width=140\n<A />\n<B />\n```',
       '```tsx-live\n<C />\n```'
     ].join('\n\n')
 
@@ -92,6 +92,17 @@ describe('collectLiveExamples', () => {
     expect(() =>
       ids(`\`\`\`tsx-live layout=stack\n${caption}\n\`\`\``)
     ).not.toThrow()
+  })
+
+  it('rejects a caption long enough to be an explanation', () => {
+    const fence = (caption: string) =>
+      ids(`\`\`\`tsx-live layout=stack\n{/* ${caption} */}\n<A />\n\`\`\``)
+    expect(() => fence('Single (default) with icon')).not.toThrow()
+    expect(() =>
+      fence('Internal routes through RoadieLinkProvider and prefetch')
+    ).toThrow(
+      /in 4 words or fewer. The fence on line 1 has \{\/\* Internal routes through RoadieLinkProvider and prefetch \*\/\}/
+    )
   })
 
   it('keeps generated ids clear of explicit ones', () => {

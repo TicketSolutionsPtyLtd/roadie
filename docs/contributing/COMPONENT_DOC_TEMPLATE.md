@@ -43,14 +43,14 @@ The skeleton contains:
 - Fence meta after the language sets options: `id=orders` pins the id (lowercase kebab-case, unique on the page), so a link survives a heading rename; `eager` renders the example on load, for the rare one that must.
 - Layout options lay out the preview, while the code panel and Copy keep the fence as written ([decision 0011](../decisions/0011-fence-layout-options.md)). An unknown option or value fails the build.
 
-  | Option              | Preview                                                           |
-  | ------------------- | ----------------------------------------------------------------- |
-  | `layout=stack`      | Top-level elements in a grid, one per row, at `gap-4`             |
-  | `layout=row`        | Top-level elements in a wrapping row, centred, at `gap-2`         |
-  | `gap=1,2,3,4,6,8`   | Another gap, with `layout=`                                       |
-  | `width=xs,sm,md,lg` | At most 12rem, 18rem, 35rem, or 45rem wide, such as a chart frame |
+  | Option                         | Preview                                                                     |
+  | ------------------------------ | --------------------------------------------------------------------------- |
+  | `layout=stack`                 | Top-level elements in a grid, one per row, at `gap-4`                       |
+  | `layout=row`                   | Top-level elements in a wrapping row, centred, at `gap-2`                   |
+  | `gap=1,2,3,4,6,8`              | Another gap, with `layout=`                                                 |
+  | `width=40,48,64,72,80,140,180` | At most that Tailwind spacing step wide (`width=140` is `max-w-140`, 35rem) |
 
-- With `layout=`, a fence can hold sibling elements, and a comment on its own line at column 0 captions what follows it, up to the next caption. Several elements under one caption wrap in a row, so every intent at every emphasis is a stack of captioned rows. Indent a comment that isn't a caption. Captions work only in inline fences; a `-noinline` fence lays out the element it renders.
+- With `layout=`, a fence can hold sibling elements, and a comment on its own line at column 0 captions what follows it, up to the next caption. Several elements under one caption wrap in a row, so every intent at every emphasis is a stack of captioned rows, and a lone element keeps its own width. A caption names a state in four words or fewer, or the build fails; indent a comment that isn't a caption. Captions work only in inline fences; a `-noinline` fence lays out the element it renders.
 
   ````mdx
   ```tsx-live layout=row gap=4

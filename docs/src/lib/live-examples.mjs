@@ -9,6 +9,8 @@ export const LIVE_LANGUAGE = /^(?:tsx|jsx)-live/
 
 const ID = /^[a-z0-9][a-z0-9-]*$/
 const OPTION_KEYS = new Set(['id', 'layout', 'gap', 'width'])
+// A longer column-0 comment is likely an explanation that became a caption.
+const MAX_CAPTION_WORDS = 4
 
 export function parseExampleMeta(meta) {
   const words = (meta ?? '').split(/\s+/).filter(Boolean)
@@ -33,12 +35,22 @@ export function parseExampleMeta(meta) {
 }
 
 function checkCaptions(node) {
-  const [caption] = captionsOf(node.value)
+  const captions = captionsOf(node.value)
+  const [caption] = captions
   if (caption === undefined) return
+  const fence = `The fence on line ${node.position?.start.line}`
   const laidOut = /(?:^|\s)layout=/.test(node.meta ?? '')
   if (!laidOut || node.lang.includes('noinline')) {
     throw new Error(
-      `Caption comments need an inline live fence with layout=stack or layout=row. The fence on line ${node.position?.start.line} has {/* ${caption} */} at column 0; add layout= to the fence, or indent the comment if it isn't a caption.`
+      `Caption comments need an inline live fence with layout=stack or layout=row. ${fence} has {/* ${caption} */} at column 0; add layout= to the fence, or indent the comment if it isn't a caption.`
+    )
+  }
+  const long = captions.find(
+    (label) => label.split(/\s+/).length > MAX_CAPTION_WORDS
+  )
+  if (long !== undefined) {
+    throw new Error(
+      `A caption names a state in ${MAX_CAPTION_WORDS} words or fewer. ${fence} has {/* ${long} */} at column 0; shorten it, or indent the comment if it explains the code rather than captioning it.`
     )
   }
 }

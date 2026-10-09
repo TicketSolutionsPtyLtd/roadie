@@ -16,11 +16,15 @@ const GAPS = {
   8: 'gap-8'
 }
 
+// Tailwind spacing steps, the width frames the docs' fences use most.
 const WIDTHS = {
-  xs: 'max-w-48',
-  sm: 'max-w-72',
-  md: 'max-w-140',
-  lg: 'max-w-180'
+  40: 'max-w-40',
+  48: 'max-w-48',
+  64: 'max-w-64',
+  72: 'max-w-72',
+  80: 'max-w-80',
+  140: 'max-w-140',
+  180: 'max-w-180'
 }
 
 const LAYOUT_KEYS = ['layout', 'gap', 'width']

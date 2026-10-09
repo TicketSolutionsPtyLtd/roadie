@@ -140,6 +140,7 @@ const cases = {
       // width=
       "<div className='w-140 max-w-full'><Chart /></div>",
       "<div className='w-72'><StatTile /></div>",
+      "<div className='max-w-64'><Input /></div>",
       "<div className='grid max-w-48 gap-4'><NumberField /></div>",
       // A root sibling in a laid-out fence, which lints inside a fragment
       "<>\n<div className='grid gap-2'><Button /></div>\n<Button />\n</>",

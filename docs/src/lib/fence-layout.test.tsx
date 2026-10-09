@@ -21,8 +21,8 @@ describe('previewLayoutOf', () => {
   it.each([
     'layout=stack',
     'layout=row gap=1',
-    'layout=stack gap=8 width=xs',
-    'width=lg'
+    'layout=stack gap=8 width=48',
+    'width=180'
   ])('accepts the documented options %s', (words) => {
     expect(meta(words)).toEqual(expect.any(String))
   })
@@ -34,7 +34,7 @@ describe('previewLayoutOf', () => {
   it.each([
     ['layout=column', /layout=column must be one of stack, row/],
     ['layout=row gap=5', /gap=5 must be one of 1, 2, 3, 4, 6, 8/],
-    ['width=140', /width=140 must be one of xs, sm, md, lg/],
+    ['width=md', /width=md must be one of 40, 48, 64, 72, 80, 140, 180/],
     ['gap=4', /gap=4 needs layout=stack or layout=row/]
   ])('rejects %s', (words, message) => {
     expect(() => meta(words)).toThrow(message)
