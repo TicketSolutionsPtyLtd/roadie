@@ -1,3 +1,11 @@
+/* Registered so `1.25em` resolves once, at the prose body size, and every gap,
+   a heading's included, follows the body rhythm rather than its own font. */
+@property --prose-flow {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+
 /* Registered so `65ch` resolves once, at the prose body size. */
 @property --prose-measure {
   syntax: '<length> | none';
@@ -76,6 +84,7 @@
     :where(h1):not(
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
     ) {
+    margin-block-start: calc(var(--prose-flow) * 3);
     font-size: var(--prose-h1-size);
     font-weight: var(--prose-h1-weight);
   }
@@ -83,7 +92,7 @@
     :where(h2):not(
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
     ) {
-    margin-block-start: calc(var(--prose-flow) * 1.2);
+    margin-block-start: calc(var(--prose-flow) * 2.4);
     font-size: var(--prose-h2-size);
     font-weight: var(--prose-h2-weight);
   }
@@ -91,7 +100,7 @@
     :where(h3):not(
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
     ) {
-    margin-block-start: calc(var(--prose-flow) * 1.2);
+    margin-block-start: calc(var(--prose-flow) * 1.8);
     font-size: var(--prose-h3-size);
     font-weight: var(--prose-h3-weight);
   }
@@ -107,7 +116,7 @@
     :where(h5):not(
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
     ) {
-    margin-block-start: calc(var(--prose-flow) * 1.6);
+    margin-block-start: calc(var(--prose-flow) * 1.2);
     font-size: var(--prose-h5-size);
     font-weight: var(--prose-h5-weight);
   }
@@ -115,7 +124,7 @@
     :where(h6):not(
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
     ) {
-    margin-block-start: calc(var(--prose-flow) * 1.6);
+    margin-block-start: calc(var(--prose-flow) * 1.2);
     font-size: var(--prose-h6-size);
     font-weight: var(--prose-h6-weight);
   }
@@ -361,6 +370,17 @@
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
     ) {
     overflow-x: auto;
+  }
+  /* The scroller takes the overflow, so a token such as `rounded-sm` never
+     splits. A bare table keeps the reset's `overflow-wrap: anywhere` so it
+     still fits its column. */
+  .prose
+    :where(.prose-scroll)
+    :where(th, td)
+    :where(code, kbd, samp):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    white-space: nowrap;
   }
 
   .prose
