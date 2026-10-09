@@ -99,13 +99,13 @@ time renders in each `timeStyle`, with doors at 7pm beside it for `short`.
 | `numeric` | Charts and dense tables. Fixed width, sorts as it reads. A buyer should never meet it.                                    |
 | Omitted   | The date alone is the answer. A festival's date range, a settlement date.                                                 |
 
-A date and a time are joined with a comma, which is the platform's own
-separator. `numeric` joins them with a space instead, because a data column
-isn't a sentence. The meridiem closes up against the digits at every style,
-which is where the house style departs from the platform. Under `iso` the time
-switches to 24 hour, joins with a space, and carries no zone name, because a
-spreadsheet cell is read as local wall-clock. It carries no offset either,
-which is why `formatMachine` exists for markup.
+A date and a time are joined with a comma, as the platform joins its `medium`
+and `short` styles. `numeric` joins them with a space instead, because a data
+column isn't a sentence. The meridiem closes up against the digits at every
+style, which is where the house style departs from the platform. Under `iso`
+the time switches to 24 hour, joins with a space, and carries no zone name,
+because a spreadsheet cell is read as local wall-clock. It carries no offset
+either, which is why `formatMachine` exists for markup.
 
 The choice is about the reader, not about space. `long` and `medium` differ by
 whether the reader can be trusted to know the zone. `short` is the one place
@@ -561,9 +561,9 @@ most common way a scheduling mistake reaches a buyer.
 
 ### The Australian zones
 
-Australia has five zones and only some states observe daylight saving. For
-half the year a show in Brisbane and a show in Sydney are an hour apart. For
-the other half they aren't. That's why `timeZone` is required, and why it
+Mainland Australia has three standard zones, and only some states observe
+daylight saving, so summer has five. For half the year a show in Brisbane and
+a show in Sydney are an hour apart. For the other half they aren't. That's why `timeZone` is required, and why it
 takes an [IANA identifier](https://www.iana.org/time-zones) rather than an
 abbreviation. On the docs site, a table gives the abbreviations `long` prints
 in winter and in summer for NSW, Victoria, Tasmania, and the ACT, then
@@ -1055,9 +1055,9 @@ A dashboard compares its period with another. `resolveComparison` works out
 the other range and `describeComparison` gives the context line under a
 delta. The previous period of a calendar period is the one before it, so this
 month compares with last month, and month to date with last month to the same
-day. Any other range compares with the same number of days, ending the day
-before. The previous year takes the same dates a year earlier, and 29 February
-becomes the 28th. Pass `alignWeekday` to go back 52 weeks instead, so Mondays
+day. Any other range compares with one of the same length, ending just before
+it starts. The previous year takes the same dates a year earlier, and 29
+February becomes the 28th. Pass `alignWeekday` to go back 52 weeks instead, so Mondays
 compare with Mondays. On the docs site, a table gives each comparison of month
 to date, with its context line and the dates it covers.
 
@@ -1066,8 +1066,8 @@ to date, with its context line and the dates it covers.
 It also says how much of the comparison the data covers. Pass `dataStart` and
 `dataEnd`, the first and last days the data holds. A comparison that starts
 before the data, or ends after it, is `partial`; one wholly outside it is
-`unavailable`, as is any comparison with an open-ended range. Show "Not
-enough history" or "Nothing to compare" for those, not a delta. A period that
+`unavailable`, as is any comparison with an open-ended range or `ongoing`.
+Show "Not enough history" or "Nothing to compare" for those, not a delta. A period that
 runs past `dataEnd` is still in progress, so its comparison stops at the same
 point: this month on 2 Oct compares 1 and 2 Oct with 1 and 2 Sept. One that
 starts after it has no data yet, so its comparison is unavailable. Pass
