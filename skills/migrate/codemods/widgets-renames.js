@@ -1,4 +1,5 @@
 import {
+  isLabel,
   isReExportName,
   namespaceLocals,
   namespaceUses,
@@ -36,23 +37,7 @@ function isReference(path) {
   if (parent.type === 'ExportSpecifier' && parent.exported === path.node) {
     return false
   }
-  if (
-    (parent.type === 'MemberExpression' ||
-      parent.type === 'TSQualifiedName' ||
-      parent.type === 'OptionalMemberExpression') &&
-    (parent.property === path.node || parent.right === path.node) &&
-    !parent.computed
-  ) {
-    return false
-  }
-  if (
-    (parent.type === 'ObjectProperty' || parent.type === 'Property') &&
-    parent.key === path.node &&
-    !parent.shorthand &&
-    !parent.computed
-  ) {
-    return false
-  }
+  if (isLabel(parent, path.node)) return false
   return true
 }
 
@@ -113,7 +98,7 @@ export default function transform(file, api) {
 
   reportReExports(j, root, report, {
     isDeprecated: (source, name) => Boolean(RENAMED_EXPORTS[source]?.[name]),
-    wholeModule: () => false
+    deprecatedIn: (source) => Object.keys(RENAMED_EXPORTS[source] ?? {})
   })
 
   // Only the path moved, so a re-export of it keeps the same names.

@@ -22,14 +22,12 @@ export function importedLocals(j, root, exportName, source = COMPONENTS) {
   return locals
 }
 
+// Type-only namespaces count too: a deprecated type is read through them.
 export function namespaceLocals(j, root, source = COMPONENTS) {
   const locals = new Set()
   root
     .find(j.ImportDeclaration)
-    .filter(
-      (path) =>
-        source.test(path.node.source.value) && path.node.importKind !== 'type'
-    )
+    .filter((path) => source.test(path.node.source.value))
     .forEach((path) => {
       for (const specifier of path.node.specifiers ?? []) {
         if (specifier.type === 'ImportNamespaceSpecifier') {
@@ -40,52 +38,62 @@ export function namespaceLocals(j, root, source = COMPONENTS) {
   return locals
 }
 
+// A parameter or variable of the same name shadows the import.
+export function readsImport(path, name) {
+  return path.scope?.lookup(name)?.isGlobal ?? true
+}
+
+// A name that labels a member, key, or export rather than reading a binding.
+export function isLabel(parent, node) {
+  if (parent.computed) return false
+  switch (parent.type) {
+    case 'MemberExpression':
+    case 'OptionalMemberExpression':
+    case 'JSXMemberExpression':
+      return parent.property === node
+    case 'TSQualifiedName':
+      return parent.right === node
+    case 'ExportSpecifier':
+      return parent.exported === node && parent.local !== node
+    default:
+      return parent.key === node && parent.value !== node
+  }
+}
+
 // Each read of a namespace import, as the node naming the member read off it,
 // or as `member: undefined` when the namespace is used whole.
 export function namespaceUses(j, root, namespace) {
-  const uses = []
+  const uses = new Map()
   root.find(j.Identifier, { name: namespace }).forEach((path) => {
     const parent = path.parent.node
     if (path.node.type !== 'Identifier') return
     if (parent.type === 'ImportNamespaceSpecifier') return
+    if (isLabel(parent, path.node) || isReExportName(path)) return
+    if (!readsImport(path, namespace)) return
     if (
       (parent.type === 'MemberExpression' ||
         parent.type === 'OptionalMemberExpression') &&
       parent.object === path.node &&
       !parent.computed
     ) {
-      uses.push({ node: parent, member: parent.property })
+      uses.set(parent, parent.property)
     } else if (parent.type === 'TSQualifiedName' && parent.left === path.node) {
-      uses.push({ node: parent, member: parent.right })
-    } else if (!isPropertyName(parent, path.node) && !isReExportName(path)) {
-      uses.push({ node: path.node, member: undefined })
+      uses.set(parent, parent.right)
+    } else {
+      uses.set(path.node, undefined)
     }
   })
   root.find(j.JSXMemberExpression).forEach((path) => {
     const { object, property } = path.node
-    if (object.type === 'JSXIdentifier' && object.name === namespace) {
-      uses.push({ node: path.node, member: property })
+    if (
+      object.type === 'JSXIdentifier' &&
+      object.name === namespace &&
+      readsImport(path, namespace)
+    ) {
+      uses.set(path.node, property)
     }
   })
-  return uses
-}
-
-function isPropertyName(parent, node) {
-  if (
-    (parent.type === 'MemberExpression' ||
-      parent.type === 'OptionalMemberExpression' ||
-      parent.type === 'TSQualifiedName') &&
-    (parent.property === node || parent.right === node) &&
-    !parent.computed
-  ) {
-    return true
-  }
-  return (
-    (parent.type === 'ObjectProperty' || parent.type === 'Property') &&
-    parent.key === node &&
-    !parent.shorthand &&
-    !parent.computed
-  )
+  return [...uses].map(([node, member]) => ({ node, member }))
 }
 
 // `export { X } from '…'` names another module's export, not a local binding.
@@ -177,21 +185,29 @@ export function reExportedName(name) {
 
 // Renaming a re-exported name would change the file's own public API, so
 // each `export … from` of a deprecated name or module is reported, not moved.
+// `deprecatedIn(source)` is 'all', or the deprecated names the source exports.
 export function reportReExports(
   j,
   root,
   report,
-  { isDeprecated, wholeModule }
+  { isDeprecated, deprecatedIn }
 ) {
-  const reportModule = (node) =>
-    report(
-      node,
-      `'${node.source.value}' is re-exported whole, and renaming its deprecated names changes this module's own API. Migrate it by hand.`
-    )
-  root
-    .find(j.ExportAllDeclaration)
-    .filter((path) => wholeModule(path.node.source.value))
-    .forEach((path) => reportModule(path.node))
+  const reportModule = (node) => {
+    const source = node.source.value
+    const deprecated = deprecatedIn(source)
+    if (deprecated === 'all') {
+      report(
+        node,
+        `'${source}' is re-exported whole, and renaming its deprecated names changes this module's own API. Migrate it by hand.`
+      )
+    } else if (deprecated.length > 0 && node.type === 'ExportAllDeclaration') {
+      report(
+        node,
+        `export * from '${source}' re-exports the deprecated ${deprecated.join(', ')}, which leave this module's API when Roadie removes them. Check its importers.`
+      )
+    }
+  }
+  root.find(j.ExportAllDeclaration).forEach((path) => reportModule(path.node))
   root
     .find(j.ExportNamedDeclaration)
     .filter((path) => Boolean(path.node.source))
@@ -199,7 +215,7 @@ export function reportReExports(
       const source = path.node.source.value
       for (const specifier of path.node.specifiers ?? []) {
         if (specifier.type === 'ExportNamespaceSpecifier') {
-          if (wholeModule(source)) reportModule(path.node)
+          reportModule(path.node)
         } else if (isDeprecated(source, specifier.local.name)) {
           report(specifier, reExportedName(specifier.local.name))
         }

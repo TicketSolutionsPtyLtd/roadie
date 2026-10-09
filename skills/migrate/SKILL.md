@@ -152,13 +152,15 @@ What they change:
 Each codemod also follows a namespace import, such as
 `import * as Roadie from '@oztix/roadie-components'`. It migrates
 `<Roadie.Card as='section'>`, `Drawer.CartExpiryModals`, and the rest as it
-would a named import, and
-`<Roadie.LinkButton href>` becomes `<Button href>` with `Button` imported
-from `@oztix/roadie-components/button`. It reports a deprecated name read
-off the namespace outside JSX, such as `Roadie.LinkButtonProps`, and a
-namespace used whole, such as `{ ...Roadie }`. It reports every
-`export … from` that re-exports a deprecated name, and every `export *`
-from a module whose exports are all deprecated, because renaming them
+would a named import, and `<Roadie.LinkButton href>` becomes
+`<Button href>` with `Button` imported from
+`@oztix/roadie-components/button`. `link-button` and `widgets-renames` also
+report a deprecated name read off a namespace outside JSX, such as
+`Roadie.LinkButtonProps`, and a namespace used whole, such as
+`{ ...Roadie }`.
+
+Both report every `export … from` that re-exports a deprecated name, and
+every `export *` from a module that exports one, because renaming them
 changes the app's own exports.
 
 ## 5. Migrate the rest by hand

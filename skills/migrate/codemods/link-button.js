@@ -2,6 +2,7 @@ import {
   COMPONENTS,
   attribute,
   importedLocals,
+  isLabel,
   isReExportName,
   jsxName,
   namespaceLocals,
@@ -9,6 +10,7 @@ import {
   print,
   reExportedName,
   readWhole,
+  readsImport,
   removeAttribute,
   reportReExports,
   reporter,
@@ -21,6 +23,14 @@ const REPLACEMENTS = { LinkButton: 'Button', LinkIconButton: 'IconButton' }
 const BUTTON_SOURCE = '@oztix/roadie-components/button'
 const LINK_BUTTON_SOURCE = '@oztix/roadie-components/link-button'
 const DEPRECATED = /^Link(?:Icon)?Button/
+const BARREL_DEPRECATIONS = [
+  'LinkButton',
+  'LinkButtonProps',
+  'LinkIconButton',
+  'LinkIconButtonProps'
+]
+// Only these namespaces can reach LinkButton.
+const LINK_BUTTON_NAMESPACE = /^@oztix\/roadie-components(?:\/link-button)?$/
 
 function blocker(opening) {
   if (opening.attributes.some((attr) => attr.type === 'JSXSpreadAttribute')) {
@@ -40,7 +50,13 @@ function importButton(j, root, name) {
   const existing = importedLocals(j, root, name)
   if (existing.size > 0) return [...existing][0]
 
-  const taken = root.find(j.Identifier, { name }).size() > 0
+  const taken =
+    root
+      .find(j.Identifier, { name })
+      .filter(
+        (path) => !isLabel(path.parent.node, path.node) && !isReExportName(path)
+      )
+      .size() > 0
   const local = taken ? `Roadie${name}` : name
   const specifier = j.importSpecifier(j.identifier(name), j.identifier(local))
   const buttonImport = root
@@ -111,8 +127,10 @@ function reportLocalReExports(j, root, report, local) {
     .forEach((path) => report(path.node, reExportedName(local)))
 }
 
-function isNamespaceMember(name, namespace, member) {
+function isNamespaceMember(path, namespace, member) {
+  const name = path.node.openingElement.name
   return (
+    readsImport(path, namespace) &&
     name.type === 'JSXMemberExpression' &&
     name.object.type === 'JSXIdentifier' &&
     name.object.name === namespace &&
@@ -150,7 +168,10 @@ export default function transform(file, api) {
   reportReExports(j, root, report, {
     isDeprecated: (source, name) =>
       COMPONENTS.test(source) && DEPRECATED.test(name),
-    wholeModule: (source) => source === LINK_BUTTON_SOURCE
+    deprecatedIn: (source) => {
+      if (source === LINK_BUTTON_SOURCE) return 'all'
+      return source === '@oztix/roadie-components' ? BARREL_DEPRECATIONS : []
+    }
   })
 
   for (const [deprecated, replacement] of Object.entries(REPLACEMENTS)) {
@@ -165,18 +186,12 @@ export default function transform(file, api) {
     }
   }
 
-  for (const namespace of namespaceLocals(j, root)) {
+  for (const namespace of namespaceLocals(j, root, LINK_BUTTON_NAMESPACE)) {
     let migrated = false
     for (const [deprecated, replacement] of Object.entries(REPLACEMENTS)) {
       root
         .find(j.JSXElement)
-        .filter((path) =>
-          isNamespaceMember(
-            path.node.openingElement.name,
-            namespace,
-            deprecated
-          )
-        )
+        .filter((path) => isNamespaceMember(path, namespace, deprecated))
         .forEach((path) => {
           if (!migrate(path, replacement)) migrated = true
         })
