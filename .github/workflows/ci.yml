@@ -84,7 +84,8 @@ jobs:
           files=$(git diff --name-only --no-renames HEAD^1 HEAD)
           turbo="turbo@$(jq -r .devDependencies.turbo package.json)"
           affected=$(npx --yes "$turbo" ls --affected --output=json | jq -c '[.packages.items[].name]')
-          packages=$(jq 'any(. != "docs")' <<< "$affected")
+          # roadie-skills is markdown with no build or tests, so it starts nothing.
+          packages=$(jq 'any(. != "docs" and . != "roadie-skills")' <<< "$affected")
           docs=$(jq 'index("docs") != null' <<< "$affected")
           if grep -q '^packages/' <<< "$files"; then packages=true; fi
           if grep -q '^docs/' <<< "$files"; then docs=true; fi

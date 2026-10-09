@@ -62,7 +62,8 @@ The skills are then available as `/roadie:<skill>`.
 ### Versions and updates
 
 The plugin's version is `version` in
-[`.claude-plugin/plugin.json`](../.claude-plugin/plugin.json), and
+[`.claude-plugin/plugin.json`](../.claude-plugin/plugin.json), kept equal to
+the private `roadie-skills` package in [`package.json`](package.json), and
 [`CHANGELOG.md`](CHANGELOG.md) says what each version changed. Claude Code
 caches the plugin by version, so a repo only gets new skills when the version
 goes up.
@@ -87,7 +88,8 @@ roadie/
 │   ├── marketplace.json   ← lists the plugin, so the repo is its own marketplace
 │   └── plugin.json        ← plugin manifest (name, version, description)
 └── skills/
-    ├── CHANGELOG.md       ← one entry per plugin version
+    ├── CHANGELOG.md       ← one entry per plugin version, written by Changesets
+    ├── package.json       ← private roadie-skills package that carries the version
     ├── README.md          ← this file
     └── <name>/
         └── SKILL.md       ← skill frontmatter + body, auto-discovered
@@ -101,12 +103,15 @@ roadie/
 
 **Repo skills in `.claude/skills/`** stay short and link `docs/contributing/` or the foundations pages instead of copying their rules, so they can't drift.
 
-**Releasing a change.** Any change under `skills/` (other than the changelog)
-bumps `version` in `.claude-plugin/plugin.json` and adds a `## <version>`
-entry to `CHANGELOG.md`: minor for a new skill or a change in what a skill
-does, patch for wording and fixes. CI's `Check plugin release` step fails the
-PR otherwise, and `node scripts/check-plugin-release.mjs` runs it locally. The
-plugin isn't an npm package, so it takes no changeset.
+**Releasing a change.** A PR that changes `skills/` adds a changeset for the
+private `roadie-skills` package (`pnpm changeset`): minor for a new skill or a
+change in what a skill does, patch for wording and fixes. Don't bump versions
+by hand. The version ships when the maintainer merges the Version Packages PR,
+which bumps `skills/package.json`, writes `CHANGELOG.md`, and copies the
+version into `.claude-plugin/plugin.json`. CI's `Check plugin release` step
+fails a skills PR with no `roadie-skills` changeset, and any PR where the two
+versions differ; `node scripts/check-plugin-release.mjs` runs it locally.
+Repo-only skills in `.claude/skills/` need no changeset.
 
 **Skills shipped in this plugin:**
 

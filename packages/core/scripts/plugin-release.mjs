@@ -1,54 +1,73 @@
-// Release rule for the Claude Code plugin, for scripts/check-plugin-release.mjs.
+// Release rules for the Claude Code plugin, for scripts/check-plugin-release.mjs
+// and scripts/sync-plugin-version.mjs.
 import { execFileSync } from 'node:child_process'
 
+export const PACKAGE_NAME = 'roadie-skills'
+export const PACKAGE = 'skills/package.json'
 export const MANIFEST = '.claude-plugin/plugin.json'
-export const CHANGELOG = 'skills/CHANGELOG.md'
 
-const touchesPlugin = (path) => path.startsWith('skills/') && path !== CHANGELOG
+// Changesets owns these, so the Version Packages PR passes without a changeset.
+const RELEASE_FILES = new Set([PACKAGE, 'skills/CHANGELOG.md'])
 
-const parts = (version) => version.split('.').map(Number)
+const touchesPlugin = (path) =>
+  path.startsWith('skills/') && !RELEASE_FILES.has(path)
 
-function isNewer(head, base) {
-  const [h, b] = [parts(head), parts(base)]
-  for (let i = 0; i < Math.max(h.length, b.length); i++) {
-    const diff = (h[i] ?? 0) - (b[i] ?? 0)
-    if (diff !== 0) return diff > 0
-  }
-  return false
+const isChangeset = (path) =>
+  /^\.changeset\/[^/]+\.md$/.test(path) && path !== '.changeset/README.md'
+
+export function namesPackage(changeset, name = PACKAGE_NAME) {
+  const frontmatter = changeset.match(/^---\r?\n([\s\S]*?)\r?\n---/)
+  if (!frontmatter) return false
+  return frontmatter[1].split(/\r?\n/).some(
+    (line) =>
+      line
+        .split(':')[0]
+        .trim()
+        .replace(/^['"]|['"]$/g, '') === name
+  )
 }
-
-const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
-const hasHeading = (changelog, version) =>
-  new RegExp(`^## ${escapeRegExp(version)}(\\s|$)`, 'm').test(changelog)
 
 export function checkPluginRelease({
   changedFiles,
-  baseVersion,
-  headVersion,
-  changelog
+  readChangeset,
+  basePackageVersion,
+  packageVersion,
+  manifestVersion
 }) {
+  if (packageVersion !== manifestVersion)
+    return {
+      ok: false,
+      message: `Plugin release: ${MANIFEST} is ${manifestVersion} but ${PACKAGE} is ${packageVersion}. Run node scripts/sync-plugin-version.mjs.`
+    }
+
   if (!changedFiles.some(touchesPlugin))
     return { ok: true, message: 'Plugin release OK: no changes under skills/.' }
 
-  // Installs only update when the version string changes, so an unbumped skill
-  // edit never reaches anyone.
-  if (baseVersion !== null && !isNewer(headVersion, baseVersion))
+  // The PR that creates the package releases its own first version.
+  if (basePackageVersion === null)
     return {
-      ok: false,
-      message: `Plugin release: skills/ changed but ${MANIFEST} is still ${headVersion} (base ${baseVersion}). Bump its version and add a "## <version>" entry to ${CHANGELOG}.`
+      ok: true,
+      message: `Plugin release OK: first release, ${packageVersion}.`
     }
 
-  if (!hasHeading(changelog, headVersion))
+  const changesets = changedFiles.filter(isChangeset)
+  if (changesets.some((path) => namesPackage(readChangeset(path))))
     return {
-      ok: false,
-      message: `Plugin release: ${CHANGELOG} has no "## ${headVersion}" entry for the new version.`
+      ok: true,
+      message: `Plugin release OK: a changeset names ${PACKAGE_NAME}.`
     }
 
   return {
-    ok: true,
-    message: `Plugin release OK: ${baseVersion ?? 'none'} to ${headVersion}.`
+    ok: false,
+    message: `Plugin release: skills/ changed without a changeset for ${PACKAGE_NAME}. Run pnpm changeset and pick ${PACKAGE_NAME} (patch for wording and fixes, minor for a new skill or a change in what one does).`
   }
+}
+
+// Rewrites only the version, so the manifest's formatting survives.
+export function syncManifest(manifest, version) {
+  const pattern = /("version"\s*:\s*)"[^"]*"/
+  if (!pattern.test(manifest)) throw new Error(`${MANIFEST} has no version`)
+  return manifest.replace(pattern, `$1"${version}"`)
 }
 
 const git = (...args) =>
@@ -62,9 +81,9 @@ export const readChangedFiles = (base) =>
     .split('\n')
     .filter(Boolean)
 
-export function readVersion(ref) {
+export function readVersionAt(ref, path) {
   try {
-    return JSON.parse(git('show', `${ref}:${MANIFEST}`)).version ?? null
+    return JSON.parse(git('show', `${ref}:${path}`)).version ?? null
   } catch {
     return null
   }

@@ -58,10 +58,10 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   touched. While a release is held, edit the existing changeset of an
   unreleased API rather than adding a "breaking" entry for something nobody
   has installed.
-- **Plugin version.** A change under `skills/` takes no changeset. It bumps
-  `version` in `.claude-plugin/plugin.json` and adds an entry to
-  `skills/CHANGELOG.md`, as [`skills/README.md`](../../skills/README.md)
-  says, or CI fails.
+- **Plugin skills.** A change under `skills/` adds a `roadie-skills`
+  changeset, patch or minor, or CI fails. The plugin version ships when the
+  maintainer merges Version Packages, as
+  [`skills/README.md`](../../skills/README.md) says.
 
 ## 3. Roadie conventions and foundations (blocking)
 

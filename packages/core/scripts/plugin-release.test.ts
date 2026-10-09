@@ -1,101 +1,120 @@
 import { describe, expect, it } from 'vitest'
 
-import { checkPluginRelease } from './plugin-release.mjs'
+import {
+  checkPluginRelease,
+  namesPackage,
+  syncManifest
+} from './plugin-release.mjs'
 
-const changelog = ['# Changelog', '', '## 0.4.0', '', '- Adds a skill.'].join(
-  '\n'
-)
+const skillsChangeset = "---\n'roadie-skills': patch\n---\n\nFix a typo."
+const coreChangeset = "---\n'@oztix/roadie-core': minor\n---\n\nAdd a thing."
+
+const pr = (overrides: Partial<Parameters<typeof checkPluginRelease>[0]>) =>
+  checkPluginRelease({
+    changedFiles: [],
+    readChangeset: () => '',
+    basePackageVersion: '0.4.0',
+    packageVersion: '0.4.0',
+    manifestVersion: '0.4.0',
+    ...overrides
+  })
 
 describe('checkPluginRelease', () => {
-  it('passes a change outside skills/ without a bump', () => {
+  it('passes a change outside skills/ without a changeset', () => {
     expect(
-      checkPluginRelease({
-        changedFiles: ['packages/core/src/index.ts', 'AGENTS.md'],
-        baseVersion: '0.3.0',
-        headVersion: '0.3.0',
-        changelog: ''
+      pr({ changedFiles: ['packages/core/src/index.ts', 'AGENTS.md'] }).ok
+    ).toBe(true)
+  })
+
+  it('passes repo-only skills in .claude/skills/ without a changeset', () => {
+    expect(
+      pr({ changedFiles: ['.claude/skills/new-component/SKILL.md'] }).ok
+    ).toBe(true)
+  })
+
+  it('passes the Version Packages change to the changelog and package', () => {
+    expect(
+      pr({
+        changedFiles: ['skills/CHANGELOG.md', 'skills/package.json'],
+        packageVersion: '0.4.1',
+        manifestVersion: '0.4.1'
       }).ok
     ).toBe(true)
   })
 
-  it('passes a changelog-only edit without a bump', () => {
-    expect(
-      checkPluginRelease({
-        changedFiles: ['skills/CHANGELOG.md'],
-        baseVersion: '0.4.0',
-        headVersion: '0.4.0',
-        changelog
-      }).ok
-    ).toBe(true)
-  })
-
-  it('fails a skill change that keeps the base version', () => {
-    const result = checkPluginRelease({
-      changedFiles: ['skills/review/SKILL.md'],
-      baseVersion: '0.4.0',
-      headVersion: '0.4.0',
-      changelog
-    })
+  it('fails a skill change with no changeset', () => {
+    const result = pr({ changedFiles: ['skills/review/SKILL.md'] })
     expect(result.ok).toBe(false)
-    expect(result.message).toContain('0.4.0')
+    expect(result.message).toContain('roadie-skills')
   })
 
+  it('fails a skill change whose changeset names only other packages', () => {
+    expect(
+      pr({
+        changedFiles: ['skills/review/SKILL.md', '.changeset/core-thing.md'],
+        readChangeset: () => coreChangeset
+      }).ok
+    ).toBe(false)
+  })
+
+  it('passes a skill change with a roadie-skills changeset', () => {
+    expect(
+      pr({
+        changedFiles: ['skills/review/SKILL.md', '.changeset/review-typo.md'],
+        readChangeset: (path) =>
+          path === '.changeset/review-typo.md' ? skillsChangeset : ''
+      }).ok
+    ).toBe(true)
+  })
+
+  it('ignores the changesets README', () => {
+    expect(
+      pr({
+        changedFiles: ['skills/review/SKILL.md', '.changeset/README.md'],
+        readChangeset: () => skillsChangeset
+      }).ok
+    ).toBe(false)
+  })
+
+  it('passes the first release, when the base has no package', () => {
+    expect(
+      pr({ changedFiles: ['skills/README.md'], basePackageVersion: null }).ok
+    ).toBe(true)
+  })
+
+  it('fails when the plugin manifest and package versions differ', () => {
+    const result = pr({ packageVersion: '0.5.0', manifestVersion: '0.4.0' })
+    expect(result.ok).toBe(false)
+    expect(result.message).toContain('0.5.0')
+  })
+})
+
+describe('namesPackage', () => {
   it.each([
-    ['0.3.9', '0.3.10'],
-    ['0.3.0', '0.4.0'],
-    ['0.9.0', '1.0.0']
-  ])('compares %s and %s numerically', (baseVersion, headVersion) => {
-    expect(
-      checkPluginRelease({
-        changedFiles: ['skills/test/SKILL.md'],
-        baseVersion,
-        headVersion,
-        changelog: `## ${headVersion}`
-      }).ok
-    ).toBe(true)
+    ["'roadie-skills': minor", true],
+    ['"roadie-skills": patch', true],
+    ['roadie-skills: patch', true],
+    ["'roadie-skills-extra': patch", false],
+    ["'@oztix/roadie-core': patch", false]
+  ])('reads %s as %s', (line, expected) => {
+    expect(namesPackage(`---\n${line}\n---\n\nSummary.`)).toBe(expected)
   })
 
-  it('fails a version that goes down', () => {
-    expect(
-      checkPluginRelease({
-        changedFiles: ['skills/test/SKILL.md'],
-        baseVersion: '0.10.0',
-        headVersion: '0.9.0',
-        changelog: '## 0.9.0'
-      }).ok
-    ).toBe(false)
+  it('ignores the package named in the summary only', () => {
+    expect(namesPackage(`${coreChangeset}\nroadie-skills: patch`)).toBe(false)
+  })
+})
+
+describe('syncManifest', () => {
+  it('sets the version and keeps the rest of the manifest', () => {
+    const manifest =
+      '{\n  "name": "roadie",\n  "version": "0.4.0",\n  "license": "MIT"\n}\n'
+    expect(syncManifest(manifest, '0.5.0')).toBe(
+      '{\n  "name": "roadie",\n  "version": "0.5.0",\n  "license": "MIT"\n}\n'
+    )
   })
 
-  it('fails a bump with no changelog heading for the new version', () => {
-    const result = checkPluginRelease({
-      changedFiles: ['skills/test/SKILL.md'],
-      baseVersion: '0.3.0',
-      headVersion: '0.4.0',
-      changelog: '## 0.3.0\n\nMentions 0.4.0 in passing.'
-    })
-    expect(result.ok).toBe(false)
-    expect(result.message).toContain('## 0.4.0')
-  })
-
-  it('does not take a longer version heading as the new one', () => {
-    expect(
-      checkPluginRelease({
-        changedFiles: ['skills/test/SKILL.md'],
-        baseVersion: '0.3.0',
-        headVersion: '0.4.0',
-        changelog: '## 0.4.01'
-      }).ok
-    ).toBe(false)
-  })
-
-  it('passes the first release, when the base has no plugin', () => {
-    expect(
-      checkPluginRelease({
-        changedFiles: ['skills/audit/SKILL.md'],
-        baseVersion: null,
-        headVersion: '0.1.0',
-        changelog: '## 0.1.0'
-      }).ok
-    ).toBe(true)
+  it('throws on a manifest with no version', () => {
+    expect(() => syncManifest('{ "name": "roadie" }', '0.5.0')).toThrow()
   })
 })
