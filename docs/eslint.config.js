@@ -157,7 +157,7 @@ const config = [
   {
     files: [
       'src/app/{components,charts}/{accordion,badge,bar-chart,button,record-grid}/page.mdx/*.{tsx,jsx}',
-      'src/app/foundations/{iconography,layout,linking}/page.mdx/*.{tsx,jsx}'
+      'src/app/foundations/{iconography,layout,linking,records}/page.mdx/*.{tsx,jsx}'
     ],
     plugins: { roadie },
     rules: {
