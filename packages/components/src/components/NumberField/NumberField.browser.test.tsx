@@ -1,5 +1,13 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { NumberField } from '.'
@@ -102,5 +110,59 @@ describe('NumberField group', () => {
       .getByRole('textbox', { name: 'Tickets' })
       .closest('[data-slot="number-field-group"]')!
     expect(group.getBoundingClientRect().height).toBe(40)
+  })
+})
+
+const COARSE = '(pointer: coarse)'
+
+function coarseGates(rules: CSSRuleList, found: CSSMediaRule[] = []) {
+  for (const rule of Array.from(rules)) {
+    if (rule instanceof CSSMediaRule && rule.conditionText === COARSE)
+      found.push(rule)
+    if ('cssRules' in rule)
+      coarseGates((rule as CSSGroupingRule).cssRules, found)
+  }
+  return found
+}
+
+// Playwright can't emulate a coarse pointer, so each gate is pinned to match.
+function pointAsTouchScreen() {
+  const gates = Array.from(document.styleSheets).flatMap((sheet) =>
+    coarseGates(sheet.cssRules)
+  )
+  for (const rule of gates) rule.media.mediaText = 'all'
+  onTestFinished(() => {
+    for (const rule of gates) rule.media.mediaText = COARSE
+  })
+}
+
+describe('the value cell', () => {
+  function cellWidth(props: { editable?: boolean }) {
+    render(
+      <NumberField aria-label='Tickets' emphasis='subtler' max={9} {...props} />
+    )
+    const cell = screen
+      .getByRole('textbox', { name: 'Tickets' })
+      .closest<HTMLElement>('[data-slot="number-field-value"]')!
+    const ch = document.createElement('span')
+    ch.style.cssText = 'position: absolute; width: 1ch'
+    cell.append(ch)
+    const oneCh = ch.getBoundingClientRect().width
+    ch.remove()
+    return { width: cell.getBoundingClientRect().width, oneCh }
+  }
+
+  it('hugs a one-digit value, with 0.5rem either side, when not editable', () => {
+    const { width, oneCh } = cellWidth({ editable: false })
+    expect(width).toBeCloseTo(oneCh + 16, 0)
+  })
+
+  it('keeps a 2.75rem tap target when editable', () => {
+    expect(cellWidth({}).width).toBeCloseTo(44, 0)
+  })
+
+  it('keeps a 3.5rem tap target on a touch screen', () => {
+    pointAsTouchScreen()
+    expect(cellWidth({}).width).toBeCloseTo(56, 0)
   })
 })
