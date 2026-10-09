@@ -1,6 +1,6 @@
 ---
 name: retro
-description: Use after a session, a PR, or a week of PRs, in any Oztix repo, to turn what went wrong into durable fixes. Gathers review findings, Copilot and other bot threads, CI failures, reruns, flakes, and rule slips, tallies them by category, maps each pattern to the cheapest durable fix (a deletion, a lint rule or check, a skill edit, a standards or workflow line, an AGENTS.md pointer, a docs/solutions entry, or a decision), and lands each as its own small PR. Reads the host repo's AGENTS.md and CODING_STANDARDS.md. Triggers on "run a retro", "retro this PR", "retro the week", "what did Copilot catch", "never write the same correction twice".
+description: Use after a session, a PR, or a week of PRs, in any Oztix repo, to turn what went wrong into durable fixes. Gathers review findings, bot threads (including past Copilot reviews), CI failures, reruns, flakes, and rule slips, tallies them by category, maps each pattern to the cheapest durable fix (a deletion, a lint rule or check, a skill edit, a standards or workflow line, an AGENTS.md pointer, a docs/solutions entry, or a decision), and lands each as its own small PR. Reads the host repo's AGENTS.md and CODING_STANDARDS.md. Triggers on "run a retro", "retro this PR", "retro the week", "never write the same correction twice".
 ---
 
 # Roadie retro
@@ -25,8 +25,10 @@ prefix). Then collect every correction in it, with its source.
   (or `head:<prefix>` for a branch prefix). If it returns as many PRs as the
   limit, split the date range until each query returns fewer. Bodies hold the
   review's "Fixed" and "Previously missed" lists and each bot's precision
-  line, such as "Copilot: N of M findings real".
-- Bot and reviewer threads for each PR, with the replies that say whether a
+  line, such as "Aikido: N of M findings real".
+- Bot and reviewer threads for each PR, including Copilot reviews from
+  before it was turned off, as evidence of what our review misses (expect no
+  new ones), with the replies that say whether a
   finding was real: the paginated `reviewThreads` query in
   `/roadie:shepherd` step 5, plus each review's body for findings with no
   thread. That query reads 20 comments a thread; raise it for a thread with
@@ -80,9 +82,10 @@ would have stopped it:
    sibling's frontmatter) when no check can catch it.
 7. **Decision.** A register entry when the same call keeps being re-argued.
 
-Prefer deletion and automation over prose. A finding whose fix would touch
-CI config, rulesets, or files another team owns becomes a ticket for its
-owner.
+Prefer deletion and automation over prose. A CI change goes through a
+normal PR under the host workflow, coordinated with whoever owns the CI
+config. A fix that would touch rulesets, branch protection, or files another
+team owns becomes a ticket for its owner.
 
 ## 4. Act
 

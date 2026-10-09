@@ -29,7 +29,7 @@ the rule and keep only the why here.
 | No.                                       | Decision                                                |
 | ----------------------------------------- | ------------------------------------------------------- |
 | [0001](0001-own-our-skills.md)            | We own our skills                                       |
-| [0002](0002-copilot-last-resort.md)       | Copilot is a last resort and PRs stay draft until clean |
+| [0002](0002-copilot-last-resort.md)       | Our review replaces Copilot; PRs stay draft until clean |
 | [0003](0003-nothing-in-agent-memory.md)   | Nothing lives in agent memory                           |
 | [0004](0004-brand-colours-are-intents.md) | Brand colours are hue-named intents                     |
 | [0005](0005-roadie-mostly-wins.md)        | Roadie mostly wins over brand                           |
