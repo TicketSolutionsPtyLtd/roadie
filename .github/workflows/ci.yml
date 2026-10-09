@@ -42,7 +42,10 @@ jobs:
         with:
           fetch-depth: 2
 
+      # On a push main is HEAD, so a depth-1 fetch would make HEAD shallow and
+      # drop the HEAD^1 that TURBO_SCM_BASE compares with.
       - name: Fetch base branch
+        if: github.event_name != 'push'
         run: git fetch origin main:refs/remotes/origin/main --depth=1
 
       - name: Setup
@@ -134,7 +137,10 @@ jobs:
         with:
           fetch-depth: 2
 
+      # On a push main is HEAD, so a depth-1 fetch would make HEAD shallow and
+      # drop the HEAD^1 that TURBO_SCM_BASE compares with.
       - name: Fetch base branch
+        if: github.event_name != 'push'
         run: git fetch origin main:refs/remotes/origin/main --depth=1
 
       - name: Setup
@@ -201,7 +207,10 @@ jobs:
         with:
           fetch-depth: 2
 
+      # On a push main is HEAD, so a depth-1 fetch would make HEAD shallow and
+      # drop the HEAD^1 that TURBO_SCM_BASE compares with.
       - name: Fetch base branch
+        if: github.event_name != 'push'
         run: git fetch origin main:refs/remotes/origin/main --depth=1
 
       - name: Setup
