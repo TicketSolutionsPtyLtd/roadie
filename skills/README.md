@@ -9,6 +9,7 @@ These skills ship as a Claude Code plugin. Installing the plugin makes them avai
 | Skill       | Command             | What it does                                                                                                                                                                                                                                          |
 | ----------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `audit`     | `/roadie:audit`     | Scan a codebase for Roadie compliance (hardcoded colours, wrong layout, icon misuse, deprecated props, and missing setup), and optionally fix.                                                                                                        |
+| `build`     | `/roadie:build`     | Build a screen, form, dialog, or list with Roadie: a manifest component first, grid and gap, intent and emphasis, display headings, `Field`, `href`, `RecordTable`, `EmptyState`, and house copy.                                                     |
 | `charts`    | `/roadie:charts`    | Build charts and dashboards with Roadie, not the generic dataviz skill: form and colour by job, specs checked with `validateDashboard`, app-owned actions and links, and house-style copy.                                                            |
 | `debug`     | `/roadie:debug`     | Debug a failing, flaky, or slow test or a bug: reproduce first, check the host repo's `docs/solutions`, test one hypothesis at a time, timebox, and end with a solution entry or a check.                                                             |
 | `demo`      | `/roadie:demo`      | Before pushing a UI change, start a long-lived preview, screenshot it at phone and desktop widths in light and dark, send the approver the link in the session, post the shots, and wait for their OK.                                                |
@@ -22,8 +23,6 @@ These skills ship as a Claude Code plugin. Installing the plugin makes them avai
 | `slice`     | `/roadie:slice`     | After a series spec, cut a feature into PR-sized slices in merge order, each shippable alone with its changeset, docs, tests, and door, then create the Jira tasks and record the plan.                                                               |
 | `spec`      | `/roadie:spec`      | Write the PR body, or a gitignored series spec, before code: test seams, demo, Evidence, and Merge danger, checked against the host repo's decision register.                                                                                         |
 | `test`      | `/roadie:test`      | Write tests first, one at a time, at the public interface, using the host repo's `AGENTS.md` and `CODING_STANDARDS.md`. Avoids tests that can't fail.                                                                                                 |
-
-More skills coming (e.g. a `build`/`ui` skill for scaffolding new UI with Roadie primitives).
 
 ## Install
 
