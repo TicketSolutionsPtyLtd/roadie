@@ -47,10 +47,9 @@ input that fails. With neither, it isn't a finding.
 (`git diff origin/<base>...HEAD -U0`).
 
 **Bug hunt.** These are the classes that keep reaching Copilot and phones.
-Copilot only reviews some PRs, so for the rest this is the last pass. For a
-diff that touches only docs, skills, or config, hunt the last three classes
-(checks, one setup, and docs that disagree), plus instructions that would
-cause harm and broken links.
+For a diff that touches only docs, skills, or config, hunt the last three
+classes (checks, one setup, and docs that disagree), plus instructions that
+would cause harm and broken links.
 
 - Controlled vs uncontrolled state and races: a controlled value changing
   mid-animation or mid-drag, `defaultValue` re-read on every render, `null`
