@@ -37,7 +37,7 @@ Use these words, and only these, for structure.
 | **Depth**     | How much behaviour sits behind how little interface. Shallow means the interface is nearly as big as what it hides.                                                                                                                                                                                              |
 | **Seam**      | A place where behaviour can vary without editing the caller. Real only with two adapters (production and test); one adapter is hypothetical.                                                                                                                                                                     |
 | **Locality**  | How much of one change happens in one place. Low locality means a change edits several files that must agree.                                                                                                                                                                                                    |
-| **Leverage**  | How many callers one module serves. A module used by two layouts through deep imports has leverage but no interface.                                                                                                                                                                                             |
+| **Leverage**  | How many callers one module serves. A module used by two layouts through deep imports has leverage but no public interface.                                                                                                                                                                                      |
 
 ## 3. Principles
 
