@@ -190,6 +190,52 @@ describe.each(EMPHASES)('the %s sliding pill', (emphasis) => {
     expect(top - ring()).toBeGreaterThanOrEqual(clipTop - 0.5)
     expect(bottom + ring()).toBeLessThanOrEqual(clipBottom + 0.5)
   })
+
+  for (const dir of ['ltr', 'rtl'] as const) {
+    it(`keeps a pressed end item and its ring in view when tabbed to (${dir})`, async () => {
+      const removeStill = useStylesheet('* { transition: none !important }')
+      render(
+        <div dir={dir}>
+          <NarrowDateRange emphasis={emphasis} defaultValue={['90d']} />
+        </div>
+      )
+      await expectPillOver('Last 90 days')
+      await userEvent.tab()
+      const item = screen.getByRole('button', { name: 'Last 90 days' })
+      expect(item).toHaveFocus()
+      const group = screen.getByRole('group')
+      const { outlineWidth, outlineOffset } = getComputedStyle(item)
+      const ring = parseFloat(outlineWidth) + parseFloat(outlineOffset)
+      removeStill()
+      expect(ring).toBeGreaterThan(0)
+      // scrollWidth rounds to whole pixels, so the far end can fall short by
+      // a fraction.
+      await expect
+        .poll(
+          () => {
+            const clipLeft =
+              group.getBoundingClientRect().left + group.clientLeft
+            const { left, right } = item.getBoundingClientRect()
+            return (
+              left - ring >= clipLeft - 1 &&
+              right + ring <= clipLeft + group.clientWidth + 1
+            )
+          },
+          { timeout: 2000 }
+        )
+        .toBe(true)
+    })
+  }
+
+  it('reaches an earlier item from the keyboard after scrolling to the end', async () => {
+    render(<NarrowDateRange emphasis={emphasis} defaultValue={['90d']} />)
+    await expectPillOver('Last 90 days')
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{Enter}')
+    expect(screen.getByRole('button', { name: '7 days' })).toHaveFocus()
+    await expectInView('7 days')
+    await expectPillOver('7 days')
+  })
 })
 
 it('keeps the same height at every emphasis', () => {
