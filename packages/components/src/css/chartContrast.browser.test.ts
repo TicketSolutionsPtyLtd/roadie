@@ -25,8 +25,9 @@ afterEach(() => {
   document.documentElement.classList.remove('dark')
 })
 
-// The page surface the dataviz validator measures against.
-function markOnDarkPage(token: string) {
+// Neutral step 2 is both the page surface the dataviz validator measures
+// against and the dark DataCard surface.
+function onDarkSurface(token: string) {
   document.documentElement.classList.add('dark')
   host = document.createElement('div')
   host.style.background = 'var(--color-neutral-2)'
@@ -38,8 +39,17 @@ function markOnDarkPage(token: string) {
 
 describe('dark chart marks', () => {
   it.each(DARK_MARKS)('%s reads at Lc 45 on the dark page', (token) => {
-    expect(markOnDarkPage(token)).toBeGreaterThanOrEqual(
+    expect(onDarkSurface(token)).toBeGreaterThanOrEqual(
       minimumLc['non-text UI']
     )
   })
+})
+
+describe('dark delta text', () => {
+  it.each(['--chart-status-good', '--chart-status-critical'])(
+    '%s reads at Lc 60 on the dark card',
+    (token) => {
+      expect(onDarkSurface(token)).toBeGreaterThanOrEqual(minimumLc.label)
+    }
+  )
 })

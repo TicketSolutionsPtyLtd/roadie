@@ -65,6 +65,15 @@ muted to chroma 0.07, since any vivid red that bright sits within ΔE 12 of
 the critical status. The context and other greys mix toward neutral step 11
 with `color-mix`, because the dark neutral scale jumps from Lc 31 to 79.
 
+## Dark delta text clears Lc 60, which leaves red little room
+
+Good and critical colour delta text, so in dark mode they need Lc 60 on the
+card. A red that bright loses chroma to the sRGB gamut, then sits within
+ΔE 12 of the amber and dusty rose slots, and close to the good teal for
+colour-blind readers. Critical leans to hue 20 at L 0.798 to clear the slots,
+and good moves up to success step 11 so the pair keeps a colour-blind ΔE
+of 8.6. Holding hue 28 would have meant a pale salmon at L 0.85.
+
 ## Changing a value
 
 Edit `palette.ts`, run `pnpm --filter @oztix/roadie-core test -u` to regenerate
