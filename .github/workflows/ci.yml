@@ -35,10 +35,33 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       packages: ${{ steps.classify.outputs.packages }}
       docs: ${{ steps.classify.outputs.docs }}
+      browsers: ${{ steps.browsers.outputs.browsers }}
     steps:
+      # PRs run Chromium alone unless labelled full-browsers. The label is
+      # read live, not from the event payload, because a re-run reuses the
+      # original payload and would miss a label added since.
+      - name: Pick browsers
+        id: browsers
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          browsers='[{"browser":"chromium"},{"browser":"webkit"},{"browser":"firefox","shard":"1/2"},{"browser":"firefox","shard":"2/2"}]'
+          if [[ -n $PR ]]; then
+            labelled=$(gh api "repos/$REPO/pulls/$PR" --jq 'any(.labels[]; .name == "full-browsers")')
+            if [[ $labelled != true ]]; then browsers='[{"browser":"chromium"}]'; fi
+          fi
+          echo "Browsers: $browsers"
+          echo "browsers=$browsers" >> "$GITHUB_OUTPUT"
+
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -157,8 +180,7 @@ jobs:
 
   browser:
     name: browser (${{ matrix.browser }}${{ matrix.shard && format(' {0}', matrix.shard) || '' }})
-    needs: playwright
-    if: github.event_name != 'schedule'
+    needs: [changes, playwright]
     runs-on: ubuntu-latest
     timeout-minutes: 12
     # The image ships the browsers and their system libraries. Installing them
@@ -168,17 +190,12 @@ jobs:
       options: --user 1001 --ipc=host
     # One engine per runner: three at once backlog Vitest's Playwright bridge
     # and actions time out (vitest-dev/vitest#9941). Firefox runs files one at
-    # a time, so it is split across two runners.
+    # a time, so it is split across two runners. The changes job picks the
+    # engines, so the check names stay the same whichever engines run.
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - browser: chromium
-          - browser: webkit
-          - browser: firefox
-            shard: 1/2
-          - browser: firefox
-            shard: 2/2
+        include: ${{ fromJSON(needs.changes.outputs.browsers) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -196,9 +213,12 @@ jobs:
 
       - name: Browser tests
         # One package at a time: concurrent suites fight for the runner's CPU
-        # and push layout-heavy tests past their timeout.
+        # and push layout-heavy tests past their timeout. Nightly and manual
+        # runs test every package, since main compared with itself has none.
         run: >-
-          pnpm turbo test:browser --affected --framework-inference=false
+          pnpm turbo test:browser
+          ${{ (github.event_name != 'schedule' && github.event_name != 'workflow_dispatch') && '--affected' || '' }}
+          --framework-inference=false
           --concurrency=1
           ${{ matrix.shard && format('-- --shard={0} --passWithNoTests', matrix.shard) || '' }}
         env:
