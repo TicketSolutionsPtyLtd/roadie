@@ -9,7 +9,8 @@ export type GreyName = 'context' | 'band' | 'median' | 'other' | 'missing'
 
 type Status = {
   intent: 'success' | 'warning' | 'brand-secondary' | 'danger'
-  step: ByMode<number>
+  /** The intent step it follows; null keeps `value` fixed instead. */
+  step: ByMode<number | null>
   value: ByMode<Oklch>
 }
 
@@ -147,21 +148,23 @@ export const palette: Palette = {
     good: {
       intent: 'success',
       step: { light: 11, dark: 9 },
-      value: { light: [0.508, 0.09, 183.645], dark: [0.732, 0.129, 185.089] }
+      value: { light: [0.44, 0.078, 183.645], dark: [0.732, 0.129, 185.089] }
     },
     warning: {
       intent: 'warning',
       step: { light: 11, dark: 9 },
-      value: { light: [0.576, 0.118, 82.642], dark: [0.841, 0.172, 86.226] }
+      value: { light: [0.465, 0.095, 82.642], dark: [0.841, 0.172, 86.226] }
     },
     serious: {
       intent: 'brand-secondary',
       step: { light: 11, dark: 9 },
-      value: { light: [0.569, 0.155, 42], dark: [0.753, 0.155, 42] }
+      value: { light: [0.463, 0.139, 42], dark: [0.753, 0.155, 42] }
     },
     critical: {
       intent: 'danger',
-      step: { light: 11, dark: 9 },
+      // Fixed in light mode: danger step 11 is darker for subtle text, and
+      // would sit within ΔE 7 of categorical slot 7.
+      step: { light: null, dark: 9 },
       value: { light: [0.569, 0.181, 28.264], dark: [0.709, 0.184, 28.37] }
     }
   },
