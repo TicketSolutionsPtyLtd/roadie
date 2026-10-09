@@ -18,24 +18,23 @@ the surface tokens the accent flows into.
 
 ## Theming model
 
-- **Accent colour.** A single hex string drives two CSS custom properties,
+- The accent colour is one hex string that drives two CSS custom properties,
   `--accent-hue` and `--accent-chroma`, which Roadie's CSS feeds into
   `oklch()` curves. Changing the accent updates every component that reads the
   accent or neutral scale through the cascade. There are no component-level
   theme props.
-- **Dark mode.** The `.dark` class on `<html>` swaps a second set of OKLCH
-  values. `ThemeProvider` handles the toggle, `localStorage` persistence, and
-  optionally following `prefers-color-scheme`. Dark mode and accent colour are
-  independent, and setting one never resets the other.
-- **Intent cascade.** Intent, such as neutral, brand, accent, or danger, is set
-  with `intent-*` utility classes and flows down through CSS custom
-  properties. Child components inherit it, with no context provider per
-  intent.
-- **OKLCH curves.** The accent and neutral scales are computed from the one
-  hue and chroma, with hand-tuned lightness and chroma curves. The other
-  intents' scales are fixed, and in charts only `--chart-highlight` follows
-  the accent. The math happens when CSS resolves, not in JavaScript, so the
-  scales stay consistent across reflows.
+- Dark mode is the `.dark` class on `<html>`, which swaps a second set of
+  OKLCH values. `ThemeProvider` handles the toggle, `localStorage`
+  persistence, and optionally following `prefers-color-scheme`. Dark mode and
+  accent colour are independent, and setting one never resets the other.
+- Intent, such as neutral, brand, accent, or danger, is set with `intent-*`
+  utility classes and flows down through CSS custom properties. Child
+  components inherit it, with no context provider per intent.
+- The accent and neutral scales are OKLCH curves computed from the one hue and
+  chroma, with hand-tuned lightness and chroma. The other intents' scales are
+  fixed, and in charts only `--chart-highlight` follows the accent. The math
+  happens when CSS resolves, not in JavaScript, so the scales stay consistent
+  across reflows.
 
 ## Accent scales
 
