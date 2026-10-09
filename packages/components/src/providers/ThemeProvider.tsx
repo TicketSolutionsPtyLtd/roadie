@@ -9,6 +9,8 @@ import {
   getOklchHueSync
 } from '@oztix/roadie-core/colors'
 
+import { AccentScopeContext } from './AccentScopeContext'
+
 export { getBootstrapScript, getThemeScript } from '@oztix/roadie-core/theme'
 
 /**
@@ -410,23 +412,28 @@ export function ThemeProvider({
     [accentColor, setAccentColor, isDark, setDark]
   )
 
-  if (!nested) {
+  const scope = React.useMemo(() => {
+    if (!nested) return null
+    const { hue, chroma } = accentParams(accentColor)
+    return {
+      '--accent-hue': String(hue),
+      '--accent-chroma': String(chroma)
+    } as React.CSSProperties
+  }, [nested, accentColor])
+
+  if (!scope) {
     return (
       <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
     )
   }
 
-  const { hue, chroma } = accentParams(accentColor)
-  const scope = {
-    '--accent-hue': String(hue),
-    '--accent-chroma': String(chroma)
-  } as React.CSSProperties
-
   return (
     <ThemeContext.Provider value={value}>
-      <div data-accent-scope='' className='contents' style={scope}>
-        {children}
-      </div>
+      <AccentScopeContext.Provider value={scope}>
+        <div data-accent-scope='' className='contents' style={scope}>
+          {children}
+        </div>
+      </AccentScopeContext.Provider>
     </ThemeContext.Provider>
   )
 }
