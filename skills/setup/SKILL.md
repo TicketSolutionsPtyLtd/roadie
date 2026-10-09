@@ -42,8 +42,10 @@ pnpm add @oztix/roadie-core @oztix/roadie-components \
   @base-ui/react @ark-ui/react @phosphor-icons/react class-variance-authority
 ```
 
-Swap `pnpm add` for the detected tool. The last four are peers, so install
-them yourself. Components need `react` and `react-dom` 19.2 or later. Add `@oztix/roadie-charts` for charts, and
+Swap `pnpm add` for the detected tool (`npm install`, `yarn add`, or
+`bun add`). The last four are peers, so install them yourself; the package's
+`peerDependencies` is the source of truth. Components need `react` and
+`react-dom` 19.2 or later. Add `@oztix/roadie-charts` for charts, and
 `@oztix/roadie-widgets` with its framework's peers for widgets (its README
 lists them).
 
@@ -61,10 +63,12 @@ In the global stylesheet (`app/globals.css` in Next), replace any
   `@oztix/roadie-widgets/css` too. Each registers only its own classes, so a
   missing one leaves those components unstyled.
 - Never add `@source` paths into `node_modules`; the package CSS carries them.
-- Remove the scaffold's own colour and font rules (such as `:root`
-  `--background`, `body { background: … }`, and the `next/font` classes on
-  `<html>`). Roadie's tokens set colour and type, and Tailwind's palette is
-  off, so classes such as `bg-zinc-50` on scaffold pages do nothing.
+- In a fresh scaffold, remove the starter's own colour and font rules (such as
+  `:root` `--background`, `body { background: … }`, and the `next/font`
+  classes on `<html>`). Roadie's tokens set colour and type, and Tailwind's
+  palette is off, so classes such as `bg-zinc-50` on scaffold pages do
+  nothing. In an existing app, don't delete its CSS: list the rules that
+  clash with Roadie's tokens and ask before removing any.
 
 Add the font preconnect hints to the root layout's `<head>`:
 
@@ -120,7 +124,8 @@ Import components from their own subpath (`@oztix/roadie-components/button`).
 - **Icons.** Phosphor, `Icon`-suffixed names (`HeartIcon`, not `Heart`). In a
   server component (no `'use client'`), import from
   `@phosphor-icons/react/ssr`. Use `@phosphor-icons/react` only in files with
-  `'use client'`; the plain import causes hydration errors on the server.
+  `'use client'`; the plain import in a server component breaks the build or
+  hydration.
 - **Compounds that walk their children.** Some compounds find their parts by
   element identity or walk their direct children, such as `Navigator` and
   `Carousel`. Author the whole tree (the root and every part inside it) in one
@@ -136,8 +141,8 @@ Import components from their own subpath (`@oztix/roadie-components/button`).
 
 Next.js blocks cross-origin requests to dev-server resources from origins
 not in `allowedDevOrigins`. If the dev server is opened from another device
-(a phone on the same private network, or a tunnel), list those hosts in `allowedDevOrigins`, read from
-`NEXT_DEV_ORIGINS` so no host is committed:
+(a phone on the same private network, or a tunnel), list those hosts in
+`allowedDevOrigins`, read from `NEXT_DEV_ORIGINS` so no host is committed:
 
 ```ts
 // next.config.ts: add the key to the existing config
