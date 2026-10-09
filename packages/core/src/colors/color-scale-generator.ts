@@ -84,7 +84,7 @@ const ACCENT_DARK_CURVE: [number, number][] = [
   [0.601, 0.982],
   [0.871, 0.398],
   [0.95, 0.148],
-  [0.96, 0.119]
+  [0.993, 0.018]
 ]
 
 /** Light mode neutral curve — L + fixed chroma (not ratio-based) */
