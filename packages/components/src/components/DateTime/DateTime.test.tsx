@@ -1,6 +1,8 @@
 import { act, render, screen } from '@testing-library/react'
+import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { hydrateWithoutClock, withoutClock } from '../../utils/testUtils'
 import { _tickerState } from '../../utils/ticker'
 import { DateTime } from './index'
 
@@ -286,5 +288,85 @@ describe('DateTime across midnight', () => {
     )
     // Falls through to the normal range path.
     expect(container.textContent).toContain('29 Nov')
+  })
+})
+
+describe('DateTime on a prerendering server', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-10-09T00:00:00Z'))
+  })
+  afterEach(() => vi.useRealTimers())
+
+  it.each([
+    ['a date', <DateTime key='a' at={at} timeZone={BNE} />],
+    ['a time', <DateTime key='a' at={at} timeZone={BNE} timeStyle='long' />],
+    [
+      'a range',
+      <DateTime
+        key='a'
+        at={at}
+        to={new Date('2026-11-29T09:30:00Z')}
+        timeZone={BNE}
+        showDuration
+      />
+    ],
+    [
+      'one night',
+      <DateTime
+        key='a'
+        at={at}
+        to={new Date('2026-11-27T15:00:00Z')}
+        timeZone={BNE}
+        timeStyle='medium'
+        sameNight
+      />
+    ],
+    ['a relative time', <DateTime key='a' at={at} timeZone={BNE} relative />],
+    [
+      'a standalone date',
+      <DateTime key='a' at={at} timeZone={BNE} context='standalone' />
+    ]
+  ])('renders %s without reading the clock', (_, element) => {
+    expect(() => withoutClock(() => renderToString(element))).not.toThrow()
+  })
+
+  it('hydrates a list date unchanged', async () => {
+    const { container, onRecoverableError } = await hydrateWithoutClock(
+      <DateTime at={at} timeZone={BNE} />
+    )
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(container).toHaveTextContent('Fri 27 Nov 2026')
+  })
+
+  // The server can't know this year, so it keeps the year, never ambiguous.
+  it('hydrates a standalone date with its year, then drops this year', async () => {
+    const { container, serverHtml, onRecoverableError } =
+      await hydrateWithoutClock(
+        <DateTime at={at} timeZone={BNE} context='standalone' />
+      )
+    expect(serverHtml).toContain('Fri 27 Nov 2026')
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(container.textContent).toBe('Fri 27 Nov')
+  })
+
+  it('hydrates a standalone range with its year, then drops this year', async () => {
+    const { container, serverHtml, onRecoverableError } =
+      await hydrateWithoutClock(
+        <DateTime
+          at={at}
+          to={new Date('2026-11-29T09:30:00Z')}
+          timeZone={BNE}
+          context='standalone'
+        />
+      )
+    expect(serverHtml).toContain('2026')
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(container.textContent).toBe('Fri 27 to Sun 29 Nov')
+  })
+
+  it('renders a standalone date on the client without the year at once', () => {
+    render(<DateTime at={at} timeZone={BNE} context='standalone' />)
+    expect(screen.getByText('Fri 27 Nov')).toBeInTheDocument()
   })
 })

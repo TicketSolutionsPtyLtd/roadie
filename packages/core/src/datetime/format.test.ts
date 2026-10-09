@@ -841,3 +841,65 @@ describe('formatter reuse', () => {
     expect(DateTimeFormat.mock.calls.length).toBeGreaterThan(afterZones)
   })
 })
+
+describe('reading the clock', () => {
+  // A prerendering framework, like Next's cacheComponents, rejects a clock
+  // read during render.
+  function withoutClock<T>(read: () => T): T {
+    const RealDate = Date
+    class NoClockDate extends RealDate {
+      constructor(...args: ConstructorParameters<DateConstructor> | []) {
+        if (args.length === 0) throw new Error('Read the clock')
+        super(...(args as ConstructorParameters<DateConstructor>))
+      }
+      static override now(): number {
+        throw new Error('Read the clock')
+      }
+      static [Symbol.hasInstance](value: unknown) {
+        return value instanceof RealDate
+      }
+    }
+    globalThis.Date = NoClockDate as unknown as DateConstructor
+    try {
+      return read()
+    } finally {
+      globalThis.Date = RealDate
+    }
+  }
+
+  it.each([
+    ['a list date', () => formatDateTime(start, { timeZone: BNE })],
+    [
+      'a time',
+      () => formatDateTime(start, { timeZone: BNE, timeStyle: 'long' })
+    ],
+    [
+      'a range',
+      () =>
+        formatDateRange(start, new Date('2026-11-29T09:30:00Z'), {
+          timeZone: BNE
+        })
+    ],
+    [
+      'a short standalone date',
+      () => formatShort(start, { timeZone: BNE, context: 'standalone' })
+    ],
+    [
+      'a standalone date with its year set',
+      () =>
+        formatDateTime(start, {
+          timeZone: BNE,
+          context: 'standalone',
+          showYear: true
+        })
+    ]
+  ])('formats %s without reading the clock', (_, format) => {
+    expect(withoutClock(format)).toBeTruthy()
+  })
+
+  it('formats a list date the same as before', () => {
+    expect(withoutClock(() => formatDateTime(start, { timeZone: BNE }))).toBe(
+      'Fri 27 Nov 2026'
+    )
+  })
+})
