@@ -37,7 +37,11 @@ review your own work. Fix what it leaves open test-first with
 
 - CI runs remotely, so wait, don't poll hard:
   `gh pr checks <n> --watch --interval 60 --fail-fast`, or one check a minute
-  or slower. Green means every check passed or was skipped. Report only state changes (green, red, ready, reviewed, merged,
+  or slower. Green means every check passed or was skipped (Roadie skips the
+  browser jobs when no package changes, and build too when docs don't, as in a
+  skills-only PR). Before merging,
+  wait for the run `gh pr ready` started, not a draft's green: a draft runs
+  only `check`, with no build or browser tests. Report only state changes (green, red, ready, reviewed, merged,
   blocked), never "still waiting".
 - Before anything local (install, build, tests after a rebase), check
   `uptime` and wait while the 1-minute load is over the host's limit. Use the
@@ -48,17 +52,21 @@ review your own work. Fix what it leaves open test-first with
   limit rather than been replaced by a newer run, so check its step times
   (`gh run view <id> --json jobs`) before rerunning. Never edit CI config, rulesets, or branch
   protection to get green.
+- Push once per round of fixes, not per commit; every push reruns CI. A
+  failure after ready is fixed without re-requesting Copilot unless the fix is
+  significant.
 
 ## 4. Mark ready
 
-When CI is green, the review is clean, and any demo is approved:
+When the host's local checks pass (Roadie: PR workflow section 7), the review
+is clean, and any demo is approved, rebase and push once:
 
 ```bash
 git fetch origin && git rebase origin/<base> && git push --force-with-lease
 ```
 
-Wait for CI again (step 3), then `gh pr ready <n>`. That triggers the one
-Copilot pass; there is no second. Poll for its review every few minutes, for
+Then `gh pr ready <n>` without waiting for the draft's CI. That starts the
+full run and the one Copilot pass; there is no second. Poll for its review every few minutes, for
 about 30 minutes, then report blocked:
 
 ```bash
@@ -122,7 +130,8 @@ When several PRs touch the same shared file (such as a row in
 `skills/README.md`), merge them one at a time, rebasing each the same way
 after the previous one merges.
 
-Then check the host's merge rule. In Roadie (section 8): CI green, the branch
+Then check the host's merge rule. In Roadie (section 8): every job in the ready run finished
+and the required `CI result` check passed (`gh pr checks <n>`), the branch
 up to date with `main`, the file list clean, the review clean, no unresolved
 thread, and consumer changes in the changeset.
 
