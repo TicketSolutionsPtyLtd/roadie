@@ -210,6 +210,7 @@ describe('Sortable drag and drop', () => {
     await startDrag('Event')
     await hover(item('Date'), 0.8)
     await hover(item('SKU'), 0.2)
+    await waitFor(() => expect(item('Event')).toHaveAttribute('data-dragging'))
     await drop()
     await waitFor(() =>
       expect(item('Event')).not.toHaveAttribute('data-dragging')

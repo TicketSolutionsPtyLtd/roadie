@@ -243,11 +243,6 @@ describe('drawer scroll shadows', () => {
     )
   const body = () =>
     document.querySelector<HTMLElement>('[data-slot="drawer-body"]')!
-  // Base UI sets these once it has measured the body, whether or not it overflows.
-  const measured = () =>
-    expect
-      .poll(() => body().style.getPropertyValue('--scroll-area-overflow-y-end'))
-      .not.toBe('')
 
   beforeAll(() => commands.reduceMotion(true))
   afterAll(() => commands.reduceMotion(false))
@@ -307,7 +302,10 @@ describe('drawer scroll shadows', () => {
   it('casts none when the content fits', async () => {
     await page.viewport(390, 844)
     await open(2)
-    await measured()
+    // Base UI writes this var a render before the attribute the shadow reads.
+    await expect
+      .poll(() => body().style.getPropertyValue('--scroll-area-overflow-y-end'))
+      .toBe('0px')
 
     expect(shadow().opacity).toBe('0')
   })
