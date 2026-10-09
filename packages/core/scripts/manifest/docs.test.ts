@@ -14,6 +14,7 @@ describe('parseDocsPage', () => {
       ['One', 'Two']
     ],
     ["<Demo subcomponent='Badge' />", []],
+    ["<Slot component='Badge' />", []],
     ['No props here.', []]
   ])('reads component names from %j', (mdx, expected) => {
     expect(parseDocsPage(mdx, '/x/').components).toEqual(expected)
@@ -76,8 +77,9 @@ describe('pageForComponent', () => {
     ]),
     page('/charts/data-card/', ['DataCard']),
     page('/charts/forms/', ['Select']),
-    page('/components/select/', ['Select']),
-    page('/components/badge/', [])
+    page('/components/badge/', []),
+    page('/patterns/select/', []),
+    page('/components/select/', ['Select'])
   ]
 
   it.each([

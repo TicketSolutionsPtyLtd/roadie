@@ -111,9 +111,8 @@ Both forms work in server and client components:
 ```tsx
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 
+// Bare root, the canonical form
 ;<Fieldset>
-  {' '}
-  // bare root — canonical
   <Fieldset.Legend>...</Fieldset.Legend>
   <Fieldset.HelperText>...</Fieldset.HelperText>
 </Fieldset>

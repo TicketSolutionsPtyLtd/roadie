@@ -260,7 +260,7 @@ describe('pageToMarkdown', () => {
   it('replaces PropsDefinitions with an API reference from the manifest', () => {
     const md = pageToMarkdown({
       title: 'Select',
-      mdx: "Intro.\n\n<PropsDefinitions componentPath='packages/components/src/components/Select' />\n\n## After",
+      mdx: "Intro.\n\n<PropsDefinitions component='Select' />\n\n## After",
       components: [
         {
           name: 'Select',
@@ -303,7 +303,7 @@ describe('pageToMarkdown', () => {
   it('writes the API reference once on a page with several PropsDefinitions', () => {
     const md = pageToMarkdown({
       title: 'Checkbox',
-      mdx: "<PropsDefinitions componentPath='a' />\n\n<PropsDefinitions componentPath='b' />",
+      mdx: "<PropsDefinitions component='A' />\n\n<PropsDefinitions component='B' />",
       components: [
         { name: 'Checkbox', import: 'x/checkbox', props: [] },
         { name: 'CheckboxGroup', import: 'x/checkbox-group', props: [] }

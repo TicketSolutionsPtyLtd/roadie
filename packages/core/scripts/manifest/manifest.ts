@@ -65,7 +65,7 @@ type PackageJson = {
 }
 
 /**
- * Docs routes for components no page claims through `componentPath`, keyed by
+ * Docs routes for components no page names in `<PropsDefinitions component>`, keyed by
  * import path: one route for every such component on that import, or a route
  * per component name.
  */

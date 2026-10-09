@@ -9,7 +9,8 @@ export type DocsPage = {
   example?: string
 }
 
-const COMPONENT = /\bcomponent=(?:'([^']+)'|"([^"]+)"|\{\[([^\]]*)\]\})/g
+const COMPONENT =
+  /<PropsDefinitions\b[^>]*?\bcomponent=(?:'([^']+)'|"([^"]+)"|\{\[([^\]]*)\]\})/g
 const QUOTED = /'([^']+)'|"([^"]+)"/g
 const LIVE_FENCE = /^```tsx-live[^\n]*\n([\s\S]*?)^```/m
 
