@@ -41,41 +41,45 @@ function tapEnded() {
   }
   for (const [type, listener] of Object.entries(listeners))
     window.addEventListener(type, listener, true)
-  const seen: Event[] = []
-  const DEBUG = ['touchstart', 'touchend', 'touchcancel', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'pointercancel']
-  const record = (event: Event) => seen.push(event)
-  for (const type of DEBUG) window.addEventListener(type, record, true)
-  return async (x: number, y: number) => {
+  return async () => {
     try {
       await expect
         .poll(() => clicked || cancelled || !!touchEnd?.defaultPrevented)
         .toBe(true)
-    } catch (error) {
-      const describe = (event: Event) => {
-        const target = event.target as Element | null
-        return `${event.type}:${target?.tagName}:${target?.getAttribute?.('data-slot')}:${(target?.textContent ?? '').slice(0, 20)}:${event.defaultPrevented}:${event.isTrusted}`
-      }
-      throw new Error(`TAPDEBUG ${seen.map(describe).join(' | ')} || at point: ${document.elementFromPoint(x, y)?.outerHTML.slice(0, 200)}`)
     } finally {
-      for (const type of DEBUG) window.removeEventListener(type, record, true)
       for (const [type, listener] of Object.entries(listeners))
         window.removeEventListener(type, listener, true)
     }
   }
 }
 
+function pointAt(
+  { left, top, right, width, height }: DOMRect,
+  spot: TapSpot
+): [x: number, y: number] {
+  if (spot === 'far right') return [right - 4, top + height / 2]
+  if (spot === 'top padding') return [left + width / 2, top + 2]
+  if (spot === 'centre') return [left + width / 2, top + height / 2]
+  return [left + Math.min(20, width / 2), top + height / 2]
+}
+
+const lands = (element: Element, [x, y]: [number, number]) =>
+  element.contains(document.elementFromPoint(x, y))
+
 /** A real touch tap at a spot in the element, once it has settled. */
 export async function tapOn(element: Element, spot: TapSpot = 'text') {
-  const { left, top, right, width, height } = await settledBox(element)
-  const [x, y] =
-    spot === 'far right'
-      ? [right - 4, top + height / 2]
-      : spot === 'top padding'
-        ? [left + width / 2, top + 2]
-        : spot === 'centre'
-          ? [left + width / 2, top + height / 2]
-          : [left + Math.min(20, width / 2), top + height / 2]
+  // A drawer can sit still off screen for a frame before it slides in, which
+  // looks settled, so wait for the spot to be on the element first.
+  await expect
+    .poll(
+      () => lands(element, pointAt(element.getBoundingClientRect(), spot)),
+      {
+        timeout: 5000
+      }
+    )
+    .toBe(true)
+  const [x, y] = pointAt(await settledBox(element), spot)
   const ended = tapEnded()
   await commands.tap(x, y)
-  await ended(x, y)
+  await ended()
 }
