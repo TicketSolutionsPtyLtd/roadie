@@ -1,0 +1,203 @@
+export const metadata = {
+  title: 'Elevation',
+  description:
+    'Intent-tinted shadow scale for depth and hierarchy in light and dark modes.',
+  category: 'Visual'
+}
+
+import { LayeringScale } from '@/components/elevation/LayeringScale'
+import { RimLightScale } from '@/components/elevation/RimLightScale'
+import { ShadowScale } from '@/components/elevation/ShadowScale'
+
+Shadows are tinted with the current intent's hue using CSS-native `oklch()`. A
+card inside `intent-danger` gets red-tinted shadows by itself. The utilities
+keep Tailwind's standard shadow names.
+
+## Shadow scale
+
+Each level is a hairline ring for the edge plus a stack of layers whose offset
+and blur double, so a higher level reads as longer and softer rather than
+darker. Apply one with `shadow-sm`, `shadow-lg`, and so on.
+
+On the docs site, each level is a raised tile wearing its shadow, with its
+class.
+
+<ShadowScale />
+
+| Class        | Use for                                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------ |
+| `shadow-xs`  | Micro-separation, such as badges and tags                                                                    |
+| `shadow-sm`  | Buttons and minor cards. Strong and normal buttons lift to it on hover.                                      |
+| `shadow-md`  | Standard raised surfaces: cards, panels, and sticky headers                                                  |
+| `shadow-lg`  | Hover states and featured content: a raised card on hover, and the Select, Combobox, and Autocomplete popups |
+| `shadow-xl`  | Floating UI: popovers, menus, dialogs, and drawers, through `emphasis-floating`                              |
+| `shadow-2xl` | The rare surface that has to sit over floating UI. No Roadie component uses it.                              |
+
+## Inset shadows
+
+For sunken surfaces like text fields and wells. Apply one with
+`inset-shadow-xs` or `inset-shadow-sm`. On the docs site, each is a tile with
+its class.
+
+<ShadowScale inset />
+
+| Class             | Use for                                            |
+| ----------------- | -------------------------------------------------- |
+| `inset-shadow-xs` | Text fields, through `emphasis-field`              |
+| `inset-shadow-sm` | Wells and sunken panels, through `emphasis-sunken` |
+
+## Rim light
+
+A subtle inner highlight that gives a raised surface a polished, glass-like
+edge. There are four levels, and the emphasis presets and the `rim-light`
+utility apply them for you. On the docs site, each level is a raised tile with
+a medium shadow.
+
+<RimLightScale />
+
+| Token                 | Used by                                   |
+| --------------------- | ----------------------------------------- |
+| `--rim-light-subtler` | `emphasis-subtle`                         |
+| `--rim-light-subtle`  | `emphasis-strong`                         |
+| `--rim-light-normal`  | The `rim-light` utility                   |
+| `--rim-light-strong`  | `emphasis-raised` and `emphasis-floating` |
+
+`--rim-light-edge` is the strong level's highlight as a plain colour, for an
+edge that can't take an inset shadow, such as a tooltip's arrow.
+
+## Emphasis presets
+
+The emphasis presets combine background, shadow, rim light, and interactive
+states, and they're the recommended way to apply elevation. The raised card
+lifts on hover and presses in on click.
+
+```tsx-live
+<div className='grid gap-4 sm:grid-cols-2'>
+  <Card emphasis='raised' href='#emphasis-presets'>
+    <Card.Header>
+      <Card.Title>emphasis-raised</Card.Title>
+      <Card.Description>Hover and press me</Card.Description>
+    </Card.Header>
+  </Card>
+  <Card className='emphasis-floating'>
+    <Card.Header>
+      <Card.Title>emphasis-floating</Card.Title>
+      <Card.Description>Popovers, menus, dialogs, and drawers</Card.Description>
+    </Card.Header>
+  </Card>
+  <Card className='emphasis-sunken'>
+    <Card.Header>
+      <Card.Title>emphasis-sunken</Card.Title>
+      <Card.Description>Wells and sunken panels</Card.Description>
+    </Card.Header>
+  </Card>
+  <Field>
+    <Field.Label>emphasis-field</Field.Label>
+    <Field.Input placeholder='Search events' />
+  </Field>
+</div>
+```
+
+- `emphasis-raised` rests on `rim-light-strong` and `shadow-md`. It rises to
+  `shadow-lg` on hover and drops to `shadow-sm` when pressed.
+- `emphasis-floating` uses `rim-light-strong` and `shadow-xl`, and doesn't
+  change on hover or press.
+- `emphasis-sunken` uses `inset-shadow-sm`, and doesn't change on hover or
+  press.
+- `emphasis-field` uses `inset-shadow-xs` and a translucent border.
+  `is-interactive-field` owns its hover, focus, and invalid states.
+- `emphasis-strong` uses `rim-light-subtle`. It adds `shadow-sm` on hover and
+  drops its shadow when pressed in.
+
+The hover and press changes apply with `is-interactive`.
+
+### Translucent surfaces
+
+Add `is-translucent` to `emphasis-raised`, `emphasis-floating`, or `bg-raised`
+when a surface floats over content that scrolls beneath it, like a tab bar.
+
+```tsx-live
+<div className='grid overflow-hidden rounded-xl'>
+  <div className='col-start-1 row-start-1 grid grid-cols-7'>
+    <div className='intent-neutral h-24 bg-strong' />
+    <div className='intent-brand h-24 bg-strong' />
+    <div className='intent-accent h-24 bg-strong' />
+    <div className='intent-danger h-24 bg-strong' />
+    <div className='intent-success h-24 bg-strong' />
+    <div className='intent-warning h-24 bg-strong' />
+    <div className='intent-info h-24 bg-strong' />
+  </div>
+  <Card className='col-start-1 row-start-1 mx-6 self-center rounded-full emphasis-floating is-translucent'>
+    <Card.Content>
+      <p className='text-center font-mono text-sm text-strong'>emphasis-floating is-translucent</p>
+    </Card.Content>
+  </Card>
+</div>
+```
+
+The fill drops to 85% (88% in dark mode) under a 12px backdrop blur, and the
+rim light and shadow stay. Without `backdrop-filter` support, or when the
+viewer asks for reduced transparency, the fill is solid.
+
+## Intent tinting
+
+Shadows tint by the nearest `intent-*` ancestor, with raw shadow utilities and
+emphasis presets alike. Hover a card to see its larger shadow take the hue.
+
+```tsx-live
+<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+  {['neutral', 'brand', 'accent', 'danger', 'success', 'warning', 'info'].map((intent) => (
+    <Card key={intent} intent={intent} emphasis='raised' href='#intent-tinting'>
+      <Card.Header>
+        <Card.Title>intent-{intent}</Card.Title>
+        <Card.Description>emphasis-raised. Hover me.</Card.Description>
+      </Card.Header>
+    </Card>
+  ))}
+</div>
+```
+
+## Layering
+
+Named stacking tiers, so overlay components layer predictably against each
+other. Each tier is a generated Tailwind utility, such as `z-popover`, and a
+higher tier sits closer to the viewer. On the docs site, the tiers are listed
+from the top of the stack down, each with its value.
+
+<LayeringScale />
+
+| Class       | Use for                                                         |
+| ----------- | --------------------------------------------------------------- |
+| `z-alert`   | Critical blocking alert dialogs, such as session or cart expiry |
+| `z-tooltip` | Tooltips, over every overlay but an alert                       |
+| `z-toast`   | Transient notifications                                         |
+| `z-popover` | Popover, Select, Combobox, Autocomplete, and Menu panels        |
+| `z-modal`   | The Dialog or Drawer surface                                    |
+| `z-overlay` | The Dialog or Drawer backdrop scrim                             |
+| `z-sticky`  | Sticky headers and toolbars                                     |
+| `z-docked`  | In-flow accents pinned to a surface                             |
+| `z-base`    | Default in-flow content                                         |
+| `z-hide`    | Pulled out of the stacking flow                                 |
+
+## Guidelines
+
+- Prefer emphasis presets over raw shadow utilities. `emphasis-raised` handles
+  background, shadow, rim light, and hover and active states together.
+- Use one elevation level of separation between stacked surfaces. Don't jump
+  from `shadow-xs` to `shadow-2xl`.
+- Hover states go up one level, such as `shadow-md` at rest and `shadow-lg` on
+  hover.
+- Active and pressed states lower or remove the shadow, so the element feels
+  pushed down.
+- Use `emphasis-floating` for UI that overlaps content, such as popovers and
+  dropdowns. Use `emphasis-raised` for surfaces that sit on the page, such as
+  cards and panels.
+- Intent tinting is automatic. Put the element inside an `intent-*`
+  container.
+- Reference a tier through its utility, such as `z-popover`. Never reach for a
+  raw `z-50`, which drifts out of sync with the scale.
+- Popover sits a tier above modal, so a Select, Combobox, or dropdown opened
+  inside a dialog layers over the dialog surface.
+- Stacking inside one component stays local. A small plain value such as `z-1`,
+  for an element above its own pseudo-element or gradient, isn't part of this
+  scale. Never use the arbitrary `z-[n]` form.

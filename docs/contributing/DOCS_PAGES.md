@@ -24,10 +24,10 @@ with its skeleton and the rules on top of these.
   token explorer pages under `/tokens/`, the reference dashboards
   (`/charts/audience-dashboard`, `/charts/portfolio-dashboard`, and
   `/charts/show-dashboard`), `/examples/`, `/debug/`, and redirects.
-- The foundations pages other than Forms, Performance, Prose, Shape, Tables,
-  and View transitions, `/charts/dashboards`, and `/charts/data-visualisation`
-  are content pages still in `page.tsx`. They move to MDX (INNO-1159); never
-  add another.
+- The foundations pages other than Elevation, Forms, Performance, Prose,
+  Shape, Tables, and View transitions, `/charts/dashboards`, and
+  `/charts/data-visualisation` are content pages still in `page.tsx`. They
+  move to MDX (INNO-1159); never add another.
 
 ## Metadata
 
@@ -88,8 +88,8 @@ with its skeleton and the rules on top of these.
 
 - Edit `.mdx` by hand and never run Prettier on it. It rewrites the code in
   fences, so `.prettierignore` skips `docs/**/*.mdx`. Formatting `.md` is fine.
-- `pnpm --filter docs lint` checks the MDX itself. Code in fences isn't linted
-  yet; a follow-up tracks it.
+- `pnpm --filter docs lint` checks the MDX and its live fences, which get the
+  `roadie/*` package rules. `roadie/no-mdx-layout-class` skips every fence.
 - A skeleton here with nested fences sits in a four-backtick ` ````mdx `
   fence, which keeps them intact when the `.md` is formatted.
 
