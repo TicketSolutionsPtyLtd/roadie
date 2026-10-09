@@ -97,11 +97,7 @@ describe('Navigation foundation', () => {
     await example.scrollIntoViewIfNeeded()
 
     for (const [level, { url, panes }] of rows.entries()) {
-      if (level > 0) {
-        const [, , , event, ticket] = url.split('/')
-        const id = level === 1 ? event : ticket
-        await example.locator(`a[href$='/${id}']`).last().click()
-      }
+      if (level > 0) await example.locator(`a[href$='${url}']`).last().click()
       await expect
         .poll(() => paneTitles(example), { message: url })
         .toEqual(panes)
