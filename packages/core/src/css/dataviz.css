@@ -120,13 +120,13 @@
   --chart-diverge-neg-2: #d0663d;
   --chart-diverge-neg-3: #f28a33;
   --chart-diverge-neg-4: #ffb84d;
+  --chart-status-critical: #ff9e9e;
   --chart-highlight: #9dcdf9;
   --chart-band: #c6d6e617;
   --chart-diverge-0: var(--color-neutral-6);
-  --chart-status-good: var(--color-success-9);
+  --chart-status-good: var(--color-success-11);
   --chart-status-warning: var(--color-warning-9);
   --chart-status-serious: var(--color-brand-secondary-9);
-  --chart-status-critical: var(--color-danger-9);
   --chart-context: #899cae;
   --chart-median: var(--color-neutral-8);
   --chart-other: #92a4b6;
@@ -204,9 +204,9 @@
     --chart-diverge-neg-2: oklch(0.63 0.145 41);
     --chart-diverge-neg-3: oklch(0.732 0.158 56);
     --chart-diverge-neg-4: oklch(0.83 0.145 74);
+    --chart-status-critical: oklch(0.798 0.116 20);
     --chart-highlight-lc: 0.83 0.08;
     --chart-band: color-mix(in oklch, var(--color-neutral-11) 9%, transparent);
-    --chart-status-critical: var(--color-danger-9);
   }
 
   :root, .dark, [class*='intent-'], [style*='--accent-hue'] {

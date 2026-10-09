@@ -77,6 +77,7 @@ export function apcaLc(text: Rgb, background: Rgb) {
 // APCA's minimum Lc for each role (docs/decisions/0010-apca-contrast.md).
 export const minimumLc = {
   'body text': 75,
+  label: 60,
   'label on a strong fill': 60,
   'large text': 60,
   'display text': 45,

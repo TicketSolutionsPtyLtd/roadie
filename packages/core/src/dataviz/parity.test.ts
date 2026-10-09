@@ -1,7 +1,7 @@
-import Color from 'colorjs.io'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
+import { type Oklch, apcaLc } from './color-math'
 import { DEFAULT_ACCENT_HUE, palette } from './palette'
 
 const tokens = readFileSync(
@@ -53,40 +53,41 @@ describe('palette mirrors tokens.css', () => {
   })
 })
 
+// Delta, label, and value text are short labels or large figures, so they meet
+// decision 0010's Lc 60 tier rather than body text's Lc 75.
+const LABEL_LC = 60
+
 describe('text colours on data cards', () => {
   const cardSurface = { light: 1, dark: 2 } as const
   const textSubtle = { light: 11, dark: 11 } as const
   const textStrong = { light: 13, dark: 13 } as const
 
-  const surfaceFor = (mode: 'light' | 'dark') => {
-    const [l, c] = palette.neutral[mode][cardSurface[mode]]!
-    return new Color('oklch', [l!, c!, DEFAULT_ACCENT_HUE])
+  const neutralText = (mode: 'light' | 'dark', step: number): Oklch => {
+    const [l, c] = palette.neutral[mode][step]!
+    return [l!, c!, DEFAULT_ACCENT_HUE]
   }
+  const lcOnCard = (mode: 'light' | 'dark', text: Oklch) =>
+    Math.abs(apcaLc(text, neutralText(mode, cardSurface[mode])))
 
   for (const mode of ['light', 'dark'] as const)
     for (const name of ['good', 'critical'] as const)
-      it(`delta ${name} reaches 4.5:1 in ${mode}`, () => {
-        const text = new Color('oklch', [...palette.status[name].value[mode]])
+      it(`delta ${name} reaches APCA Lc ${LABEL_LC} in ${mode}`, () => {
         expect(
-          surfaceFor(mode).contrast(text, 'WCAG21')
-        ).toBeGreaterThanOrEqual(4.5)
+          lcOnCard(mode, palette.status[name].value[mode])
+        ).toBeGreaterThanOrEqual(LABEL_LC)
       })
 
   for (const mode of ['light', 'dark'] as const)
-    it(`label and context text reach 4.5:1 in ${mode}`, () => {
-      const [l, c] = palette.neutral[mode][textSubtle[mode]]!
-      const text = new Color('oklch', [l!, c!, DEFAULT_ACCENT_HUE])
-      expect(surfaceFor(mode).contrast(text, 'WCAG21')).toBeGreaterThanOrEqual(
-        4.5
-      )
+    it(`label and context text reach APCA Lc ${LABEL_LC} in ${mode}`, () => {
+      expect(
+        lcOnCard(mode, neutralText(mode, textSubtle[mode]))
+      ).toBeGreaterThanOrEqual(LABEL_LC)
     })
 
   for (const mode of ['light', 'dark'] as const)
-    it(`value text reaches 4.5:1 in ${mode}`, () => {
-      const [l, c] = palette.neutral[mode][textStrong[mode]]!
-      const text = new Color('oklch', [l!, c!, DEFAULT_ACCENT_HUE])
-      expect(surfaceFor(mode).contrast(text, 'WCAG21')).toBeGreaterThanOrEqual(
-        4.5
-      )
+    it(`value text reaches APCA Lc ${LABEL_LC} in ${mode}`, () => {
+      expect(
+        lcOnCard(mode, neutralText(mode, textStrong[mode]))
+      ).toBeGreaterThanOrEqual(LABEL_LC)
     })
 })
