@@ -107,5 +107,6 @@ export default function transform(file, api) {
       changed = true
     })
 
+  report.flush()
   return changed ? print(root, file.source) : file.source
 }

@@ -1,4 +1,12 @@
-import { print } from './lib.js'
+import {
+  isReExportName,
+  namespaceLocals,
+  namespaceUses,
+  print,
+  readWhole,
+  reportReExports,
+  reporter
+} from './lib.js'
 
 export const parser = 'tsx'
 
@@ -16,10 +24,15 @@ const RENAMED_EXPORTS = {
   }
 }
 
+function exactly(source) {
+  return { test: (value) => value === source }
+}
+
 function isReference(path) {
   if (path.node.type !== 'Identifier') return false
   const parent = path.parent.node
   if (parent.type === 'ImportSpecifier') return false
+  if (isReExportName(path)) return false
   if (parent.type === 'ExportSpecifier' && parent.exported === path.node) {
     return false
   }
@@ -45,9 +58,15 @@ function isReference(path) {
 
 // A re-export or shorthand key is a public name, so it keeps the old one.
 // Recast prints an edited shorthand node without its alias, so replace it.
-function keepPublicName(j, path, from, to) {
+function keepPublicName(j, path, from, to, report) {
   const parent = path.parent.node
   if (parent.type === 'ExportSpecifier' && parent.local === path.node) {
+    if (parent.exported.name === from) {
+      report(
+        parent,
+        `export { ${from} } keeps the deprecated name as this module's public export. Rename it by hand once its importers move.`
+      )
+    }
     path.parent.replace(
       j.exportSpecifier.from({
         local: j.identifier(to),
@@ -66,12 +85,12 @@ function keepPublicName(j, path, from, to) {
   return false
 }
 
-function renameReferences(j, root, from, to) {
+function renameReferences(j, root, from, to, report) {
   root
     .find(j.Identifier, { name: from })
     .filter(isReference)
     .forEach((path) => {
-      if (!keepPublicName(j, path, from, to)) path.node.name = to
+      if (!keepPublicName(j, path, from, to, report)) path.node.name = to
     })
   root.find(j.JSXIdentifier, { name: from }).forEach((path) => {
     const parent = path.parent.node
@@ -89,7 +108,26 @@ function renameReferences(j, root, from, to) {
 export default function transform(file, api) {
   const j = api.jscodeshift
   const root = j(file.source)
+  const report = reporter(api)
   let changed = false
+
+  reportReExports(j, root, report, {
+    isDeprecated: (source, name) => Boolean(RENAMED_EXPORTS[source]?.[name]),
+    wholeModule: () => false
+  })
+
+  // Only the path moved, so a re-export of it keeps the same names.
+  for (const type of [j.ExportNamedDeclaration, j.ExportAllDeclaration]) {
+    root
+      .find(type)
+      .filter((path) => MOVED_SOURCES[path.node.source?.value])
+      .forEach((path) => {
+        path.node.source = j.stringLiteral(
+          MOVED_SOURCES[path.node.source.value]
+        )
+        changed = true
+      })
+  }
 
   root.find(j.ImportDeclaration).forEach((path) => {
     const source = path.node.source.value
@@ -107,7 +145,7 @@ export default function transform(file, api) {
       const keepLocal =
         local !== specifier.imported.name ||
         root.find(j.Identifier, { name: to }).size() > 0
-      if (!keepLocal) renameReferences(j, root, local, to)
+      if (!keepLocal) renameReferences(j, root, local, to, report)
       // Recast drops the alias when an existing specifier's names are edited.
       const renamed = j.importSpecifier(
         j.identifier(to),
@@ -119,5 +157,19 @@ export default function transform(file, api) {
     })
   })
 
+  for (const [source, renames] of Object.entries(RENAMED_EXPORTS)) {
+    for (const namespace of namespaceLocals(j, root, exactly(source))) {
+      for (const { node, member } of namespaceUses(j, root, namespace)) {
+        if (!member) {
+          report(node, readWhole(namespace))
+        } else if (renames[member.name]) {
+          member.name = renames[member.name]
+          changed = true
+        }
+      }
+    }
+  }
+
+  report.flush()
   return changed ? print(root, file.source) : file.source
 }

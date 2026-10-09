@@ -1,0 +1,2 @@
+line 1: export { CartExpiryModals } re-exports a deprecated name, and renaming it changes this module's own API. Migrate it by hand.
+line 2: export { CartExpiryModalsProps } re-exports a deprecated name, and renaming it changes this module's own API. Migrate it by hand.
