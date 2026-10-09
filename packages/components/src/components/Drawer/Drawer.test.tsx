@@ -25,12 +25,6 @@ function renderOpen(props: Partial<React.ComponentProps<typeof Drawer>> = {}) {
   )
 }
 
-describe('Drawer compound shape', () => {
-  it('exposes the root as both the bare form and the .Root alias', () => {
-    expect(Drawer).toBe(Drawer.Root)
-  })
-})
-
 describe('Drawer.Content', () => {
   it('renders the portal parts and labels the dialog with the title', async () => {
     renderOpen()

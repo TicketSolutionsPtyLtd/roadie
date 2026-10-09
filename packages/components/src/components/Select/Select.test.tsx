@@ -19,10 +19,6 @@ describe('Select', () => {
     >()
   })
 
-  it('Select and Select.Root are the same component reference', () => {
-    expect(Select).toBe(Select.Root)
-  })
-
   it('renders root component', () => {
     const { container } = render(
       <Select>

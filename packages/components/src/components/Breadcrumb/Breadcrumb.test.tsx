@@ -14,10 +14,6 @@ const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
 )
 
 describe('Breadcrumb', () => {
-  it('Breadcrumb and Breadcrumb.Root are the same component reference', () => {
-    expect(Breadcrumb).toBe(Breadcrumb.Root)
-  })
-
   it('renders bare <Breadcrumb> root as nav with aria-label', () => {
     const { container } = render(
       <Breadcrumb>

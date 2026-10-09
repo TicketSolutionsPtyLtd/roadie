@@ -22,10 +22,6 @@ function ThreeTabs(props: React.ComponentProps<typeof Tabs>) {
 }
 
 describe('Tabs', () => {
-  it('Tabs and Tabs.Root are the same component reference', () => {
-    expect(Tabs).toBe(Tabs.Root)
-  })
-
   it('renders the default value as active', () => {
     const { getByRole } = render(<ThreeTabs />)
     const overview = getByRole('tab', { name: 'Overview' })

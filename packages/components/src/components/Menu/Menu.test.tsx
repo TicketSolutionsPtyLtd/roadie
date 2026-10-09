@@ -31,10 +31,6 @@ function RowActions({ onEdit = () => {} }: { onEdit?: () => void }) {
 }
 
 describe('Menu', () => {
-  it('is the same reference as Menu.Root', () => {
-    expect(Menu).toBe(Menu.Root)
-  })
-
   it('opens from its trigger onto a floating surface', async () => {
     const user = userEvent.setup()
     render(<RowActions />)

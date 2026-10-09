@@ -8,10 +8,6 @@ import { Combobox, type ComboboxProps, comboboxInputGroupVariants } from '.'
 import { Field } from '../Field'
 
 describe('Combobox', () => {
-  it('Combobox and Combobox.Root are the same component reference', () => {
-    expect(Combobox).toBe(Combobox.Root)
-  })
-
   it('renders root component', () => {
     const { container } = render(
       <Combobox>

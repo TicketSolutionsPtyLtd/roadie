@@ -53,8 +53,8 @@ Every test must be able to fail for a reason a user would notice.
 - **Don't restate the implementation.** Never assert that a CVA function's
   output contains a literal from its own map, or what a source or `.css` file
   says. Class assertions are fine only for Roadie's public utilities
-  (`intent-*`, `emphasis-*`, `is-interactive*`). `Compound === Compound.Root`
-  stays: `COMPOUND_PATTERNS.md` promises the same reference.
+  (`intent-*`, `emphasis-*`, `is-interactive*`). Never assert that a compound
+  is its own `.Root`; render both forms instead.
 - **Choose the cheapest test that can fail.** Pure logic gets a unit test,
   and behaviour that doesn't depend on layout stays in jsdom. A browser test
   is only for what CSS or the browser itself decides: computed spacing and

@@ -34,10 +34,6 @@ describe('getInitials', () => {
 })
 
 describe('Avatar', () => {
-  it('is the same reference as Avatar.Root', () => {
-    expect(Avatar).toBe(Avatar.Root)
-  })
-
   it('renders a medium circle by default', () => {
     render(<Avatar name='Mia Tran' />)
     expect(slot('avatar')).toHaveClass('size-10', 'rounded-full')

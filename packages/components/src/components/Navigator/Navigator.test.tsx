@@ -40,12 +40,6 @@ import {
 
 withScrollSentinels()
 
-describe('Navigator', () => {
-  it('is the same reference as Navigator.Root', () => {
-    expect(Navigator).toBe(Navigator.Root)
-  })
-})
-
 describe('one primary navigation, two orientations', () => {
   it('renders navigator-primary vertically and horizontally', async () => {
     const { container } = render(

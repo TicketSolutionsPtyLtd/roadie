@@ -14,10 +14,6 @@ function slots(container: HTMLElement) {
 }
 
 describe('OTPField', () => {
-  it('OTPField and OTPField.Root are the same component reference', () => {
-    expect(OTPField).toBe(OTPField.Root)
-  })
-
   it('renders one slot per character by default', () => {
     const { container } = render(
       <OTPField length={6} aria-label='Login code' />

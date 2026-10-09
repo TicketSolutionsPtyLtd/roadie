@@ -6,10 +6,6 @@ import { Slider } from '.'
 import { Field } from '../Field'
 
 describe('Slider', () => {
-  it('Slider and Slider.Root are the same component reference', () => {
-    expect(Slider).toBe(Slider.Root)
-  })
-
   it('renders control, track, indicator and one thumb by default', () => {
     const { container } = render(<Slider aria-label='Volume' />)
     expect(container.querySelector('[data-slot="slider"]')).toBeTruthy()

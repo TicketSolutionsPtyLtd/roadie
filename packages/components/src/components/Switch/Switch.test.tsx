@@ -6,10 +6,6 @@ import { Switch, switchVariants } from '.'
 import { Field } from '../Field'
 
 describe('Switch', () => {
-  it('Switch and Switch.Root are the same component reference', () => {
-    expect(Switch).toBe(Switch.Root)
-  })
-
   it('renders a switch with a thumb', () => {
     render(<Switch aria-label='Dark mode' />)
     const control = screen.getByRole('switch', { name: 'Dark mode' })

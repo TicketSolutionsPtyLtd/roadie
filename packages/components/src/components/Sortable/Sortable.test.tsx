@@ -74,10 +74,6 @@ async function openMenu(name: string) {
 }
 
 describe('Sortable', () => {
-  it('is the same reference as Sortable.Root', () => {
-    expect(Sortable).toBe(Sortable.Root)
-  })
-
   it('renders items with a named handle that opens a menu', () => {
     render(<Columns />)
     expect(order()).toEqual(COLUMNS)

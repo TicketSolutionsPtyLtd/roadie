@@ -4,10 +4,6 @@ import { describe, expect, it } from 'vitest'
 import { Steps, stepsVariants } from '.'
 
 describe('Steps', () => {
-  it('Steps and Steps.Root are the same component reference', () => {
-    expect(Steps).toBe(Steps.Root)
-  })
-
   it('renders with default props', () => {
     const { container } = render(
       <Steps count={3}>

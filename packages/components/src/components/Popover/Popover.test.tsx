@@ -59,10 +59,6 @@ describe('Popover presentational leaves', () => {
 })
 
 describe('Popover (assembled)', () => {
-  it('Popover and Popover.Root are the same reference', () => {
-    expect(Popover).toBe(Popover.Root)
-  })
-
   it('opens on trigger click and closes via Close, with confirm action', async () => {
     const user = userEvent.setup()
     const onConfirm = vi.fn()

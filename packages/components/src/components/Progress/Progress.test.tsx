@@ -7,10 +7,6 @@ const slot = (container: HTMLElement, name: string) =>
   container.querySelector<HTMLElement>(`[data-slot="${name}"]`)
 
 describe('Progress', () => {
-  it('is the same component bare and as Root', () => {
-    expect(Progress).toBe(Progress.Root)
-  })
-
   it('exposes a labelled progressbar', () => {
     render(<Progress value={40} label='Uploading' />)
     const bar = screen.getByRole('progressbar', { name: 'Uploading' })

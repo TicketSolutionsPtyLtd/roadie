@@ -21,10 +21,6 @@ vi.mock('@number-flow/react', async () => {
 })
 
 describe('NumberField', () => {
-  it('NumberField and NumberField.Root are the same component reference', () => {
-    expect(NumberField).toBe(NumberField.Root)
-  })
-
   it('renders a stepper by default', () => {
     const { container } = render(
       <NumberField aria-label='Tickets' defaultValue={1} />

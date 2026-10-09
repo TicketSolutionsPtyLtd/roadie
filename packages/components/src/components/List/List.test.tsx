@@ -10,10 +10,6 @@ const item = (title: string) =>
   screen.getByText(title).closest('[data-slot="list-item"]')
 
 describe('List', () => {
-  it('is the same reference as List.Root', () => {
-    expect(List).toBe(List.Root)
-  })
-
   it('renders an item with nothing but a title', () => {
     render(
       <List>

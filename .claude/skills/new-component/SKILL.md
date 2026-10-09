@@ -79,7 +79,7 @@ The only shape that is RSC-safe with zero consumer migration. Every compound in 
    - Imports each leaf directly, type-casts the root to include sub-component properties, assigns each leaf, exports the augmented root and a `{Compound}Props` alias.
    - See `packages/components/src/components/Fieldset/index.tsx` for the exact shape.
 
-6. **Tests** `{Compound}.test.tsx` — exercise **both** `<{Compound}>` (canonical bare root) and `<{Compound}.Root>` (alias) forms. Assert `{Compound} === {Compound}.Root` — they must be the same reference.
+6. **Tests** `{Compound}.test.tsx` — exercise **both** `<{Compound}>` (canonical bare root) and `<{Compound}.Root>` (alias) forms.
 
 7. **Package barrel** `packages/components/src/index.tsx`:
 

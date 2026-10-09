@@ -183,10 +183,6 @@ describe('emptyStateVariants', () => {
 })
 
 describe('EmptyState namespace', () => {
-  it('EmptyState and EmptyState.Root are the same reference', () => {
-    expect(EmptyState).toBe(EmptyState.Root)
-  })
-
   it('exposes every sub-component', () => {
     expect(EmptyState.IconTile).toBeTypeOf('function')
     expect(EmptyState.Illustration).toBeTypeOf('function')

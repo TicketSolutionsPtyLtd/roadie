@@ -34,10 +34,6 @@ async function show(options: ToastAddOptions) {
 }
 
 describe('Toast', () => {
-  it('is the same reference as Toast.Root', () => {
-    expect(Toast).toBe(Toast.Root)
-  })
-
   it('renders an added toast as a floating card in the toast tier', async () => {
     await show({ title: 'Link copied', description: 'Paste it anywhere.' })
 

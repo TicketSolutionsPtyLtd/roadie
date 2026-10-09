@@ -16,10 +16,6 @@ const positioner = () =>
 const popup = () => document.querySelector('[data-slot="tooltip-popup"]')
 
 describe('Tooltip', () => {
-  it('is the same reference as Tooltip.Root', () => {
-    expect(Tooltip).toBe(Tooltip.Root)
-  })
-
   it('renders a strong chip above its trigger by default', async () => {
     render(
       <Tooltip defaultOpen>

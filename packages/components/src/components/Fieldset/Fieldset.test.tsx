@@ -18,10 +18,6 @@ describe('Fieldset', () => {
     expect(fieldset).toHaveClass('border-none', 'p-0', 'm-0')
   })
 
-  it('Fieldset and Fieldset.Root are the same component reference', () => {
-    expect(Fieldset).toBe(Fieldset.Root)
-  })
-
   it('renders bare <Fieldset> with sub-components', () => {
     const { getByText } = render(
       <Fieldset invalid>

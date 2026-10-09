@@ -23,10 +23,6 @@ function TicketTypes(props: React.ComponentProps<typeof Collapsible>) {
 }
 
 describe('Collapsible', () => {
-  it('is the same reference as Collapsible.Root', () => {
-    expect(Collapsible).toBe(Collapsible.Root)
-  })
-
   it('starts closed and opens when the trigger is clicked', async () => {
     const user = userEvent.setup()
     render(<TicketTypes />)

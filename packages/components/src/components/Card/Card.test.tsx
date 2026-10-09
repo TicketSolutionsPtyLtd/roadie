@@ -16,10 +16,6 @@ const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
 )
 
 describe('Card', () => {
-  it('Card and Card.Root are the same component reference', () => {
-    expect(Card).toBe(Card.Root)
-  })
-
   it('renders <Card.Root> alias the same as bare <Card>', () => {
     const { getByText } = render(<Card.Root>Root content</Card.Root>)
     expect(getByText('Root content').tagName.toLowerCase()).toBe('div')

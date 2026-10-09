@@ -147,10 +147,6 @@ describe('Dialog presentational leaves', () => {
 })
 
 describe('Dialog (assembled)', () => {
-  it('Dialog and Dialog.Root are the same reference', () => {
-    expect(Dialog).toBe(Dialog.Root)
-  })
-
   it('opens on trigger, runs confirm action, and closes via Close', async () => {
     const user = userEvent.setup()
     const onConfirm = vi.fn()

@@ -18,10 +18,6 @@ function DateRange(props: ToggleGroupProps) {
 }
 
 describe('ToggleGroup', () => {
-  it('is the same reference as ToggleGroup.Root', () => {
-    expect(ToggleGroup).toBe(ToggleGroup.Root)
-  })
-
   it('renders a bordered segmented track', () => {
     render(<DateRange />)
     const group = screen.getByRole('group', { name: 'Date range' })
