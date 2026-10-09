@@ -489,7 +489,7 @@
   --color-success-10: #00b6a8;
   --color-success-11: #55eddc;
   --color-success-12: #b8fff4;
-  --color-success-13: #ddf9f4;
+  --color-success-13: #fbfffe;
 
   --color-warning-0: #020202;
   --color-warning-1: #13110b;
@@ -830,7 +830,7 @@
     --color-success-10: oklch(0.698 0.123 185.178);
     --color-success-11: oklch(0.861 0.129 184.826);
     --color-success-12: oklch(0.95 0.072 184.637);
-    --color-success-13: oklch(0.96 0.03 185);
+    --color-success-13: oklch(0.997 0.004 185);
 
     --color-warning-0: oklch(0.08 0 0);
     --color-warning-1: oklch(0.178 0.012 91.807);
