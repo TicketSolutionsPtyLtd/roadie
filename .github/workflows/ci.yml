@@ -302,3 +302,22 @@ jobs:
         run: pnpm --filter docs test:e2e
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
+
+  # The one check main requires. Skipped jobs pass, so docs-only PRs aren't
+  # held; any failed or cancelled job fails it. Drafts skip it, since their
+  # run has no build or browser jobs to vouch for.
+  ci:
+    name: CI result
+    needs: [changes, check, playwright, browser, build]
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Fail if any job failed or was cancelled
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          [[ " $RESULTS " != *" failure "* && " $RESULTS " != *" cancelled "* ]]
