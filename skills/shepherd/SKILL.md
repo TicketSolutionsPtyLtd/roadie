@@ -144,7 +144,9 @@ thread, and consumer changes in the changeset.
   `--subject` and `--body`. Never `--auto`, even where the repo allows it:
   auto-merge waits only for required checks, not the review, threads, or file list. Then
   move the ticket to Done with a comment linking the PR if this was its last
-  PR, and remove the local worktree and branch.
+  PR, and remove the local worktree and branch the way the host says
+  (Roadie: PR workflow section 1, which stops servers first and keeps a
+  branch with unmerged commits).
 - **A failed condition:** fix it and go back to the step it belongs to.
 - **One-way door, a limit on what agents may change, or no merge rule:**
   don't merge. Post one PR comment naming what's done and what waits for the
