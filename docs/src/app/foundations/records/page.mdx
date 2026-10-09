@@ -176,8 +176,10 @@ Scope is the part of a query the page sets, such as "products offered on
 Lampshade Disco, any of its days, or its collection". It's a filter list your
 app resolves, because it can span levels a flat record can't express. Scope is
 never saved in a view, and Clear never removes it. Pass it to `RecordTable`,
-`RecordGrid`, or `useRecords` as `scope`, and in server mode fetch
-`scopedQuery`, which puts it before the view's own filters.
+`RecordGrid`, or `useRecords` as `scope`. In server mode, a list built from
+`useRecords` fetches its `scopedQuery`, which puts the scope before the view's
+own filters. `RecordTable` and `RecordGrid` give your fetch only the view, so
+add the scope's filters to it yourself.
 
 ## Dates
 
@@ -197,9 +199,9 @@ Relative ranges have one fixed meaning: a week is Monday to Sunday, a weekend
 is Saturday and Sunday, rolling windows count today, and the financial year
 starts in July. The core functions also take `weekStart` and
 `fiscalYearStart`, but the Records components always use these defaults, so
-keep them wherever a view also runs in the browser. Hour windows and the open ranges upcoming, past, and ongoing compare
-the instant, except on a plain date, where upcoming starts today and past ends
-yesterday. A range field matches when any part of it overlaps, so a five-night
+keep them wherever a view also runs in the browser. Hour windows and the open
+ranges upcoming, past, and ongoing compare the instant, except on a plain date,
+where upcoming starts today and past ends yesterday. A range field matches when any part of it overlaps, so a five-night
 festival is on this weekend if one night is.
 
 A time written without an offset names one moment, in the record's or the
