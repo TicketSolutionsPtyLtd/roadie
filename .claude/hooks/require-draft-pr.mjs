@@ -8,7 +8,7 @@ try {
 }
 
 const createsPr = /(^|[\s;&|(`$])gh\s[^\n]*?\bpr\s+(create|new)\b/m
-const isDraft = /\s(--draft|-d)(\s|=|$)/
+const isDraft = /\s(--draft|-d)([\s=`'")]|$)/
 
 if (createsPr.test(command) && !isDraft.test(command)) {
   console.error(
