@@ -109,6 +109,8 @@ const VARIABLE_RULES: Rule[] = [
   [/^--prose-/, 'typography', 'Prose'],
   [/^--radius-/, 'shape', 'Radius'],
   [/^--container-/, 'shape', 'Containers'],
+  [/^--spacing$/, 'shape', 'Spacing'],
+  [/^--breakpoint-/, 'shape', 'Breakpoints'],
   [/^--(transition-)?duration-/, 'motion', 'Durations'],
   [/^--ease-/, 'motion', 'Easings'],
   [/^--interactive-transition$/, 'motion', 'Transitions'],
@@ -401,14 +403,15 @@ export function parseTokenManifest(
 
   const tailwind: TokenEntry[] = []
   for (const m of tailwindTheme.matchAll(
-    /^\s*(--radius-[\w-]+)\s*:\s*([^;]+);/gm
+    /^\s*(--(?:radius|container|breakpoint)-[\w-]+|--spacing)\s*:\s*([^;]+);/gm
   )) {
     if (variables.has(m[1]!)) continue
+    const { family, group } = classify(m[1]!, VARIABLE_RULES)
     const entry: TokenEntry = {
       name: m[1]!,
       kind: 'variable',
-      family: 'shape',
-      group: 'Radius',
+      family,
+      group,
       sheet: 'tailwindcss/theme.css',
       source: 'tailwind',
       value: { light: m[2]!.trim() },

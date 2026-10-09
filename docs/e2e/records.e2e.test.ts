@@ -1,6 +1,12 @@
 import { readFile } from 'fs/promises'
 import { join } from 'path'
-import { type Browser, type Locator, chromium, firefox, webkit } from 'playwright'
+import {
+  type Browser,
+  type Locator,
+  chromium,
+  firefox,
+  webkit
+} from 'playwright'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
@@ -67,7 +73,9 @@ describe('Records foundation', () => {
   it('reads typed text into a city chip, with the date phrase left over', async () => {
     const page = await open()
     const suggestions: { kind: string; label: string; remainder: string }[] =
-      commentedResult(await codeIn(page.locator('[data-slot=query-suggestions]')))
+      commentedResult(
+        await codeIn(page.locator('[data-slot=query-suggestions]'))
+      )
     expect(suggestions.length).toBeGreaterThan(1)
     expect(suggestions.length).toBeLessThanOrEqual(4)
     expect(suggestions).toContainEqual({
@@ -75,17 +83,22 @@ describe('Records foundation', () => {
       label: 'City is Melbourne',
       remainder: 'this weekend'
     })
-    for (const { kind } of suggestions) expect(['filter', 'field']).toContain(kind)
+    for (const { kind } of suggestions)
+      expect(['filter', 'field']).toContain(kind)
   }, 60_000)
 
   it('writes the view shown on the page as the URL the key table describes', async () => {
     const page = await open()
     const view = JSON.parse(
       await codeIn(
-        page.locator('#docs-content div:has(> pre)', { hasText: '"query"' }).first()
+        page
+          .locator('#docs-content div:has(> pre)', { hasText: '"query"' })
+          .first()
       )
     )
-    const params = (await codeIn(page.locator('[data-slot=view-search-params]')))
+    const params = (
+      await codeIn(page.locator('[data-slot=view-search-params]'))
+    )
       .trim()
       .split('\n')
       .map((line) => line.split('='))
@@ -104,7 +117,9 @@ describe('Records foundation', () => {
       ['page', '1']
     ])
     const keys = await page
-      .locator('table', { has: page.getByRole('columnheader', { name: 'Holds' }) })
+      .locator('table', {
+        has: page.getByRole('columnheader', { name: 'Holds' })
+      })
       .locator('tbody td:first-child code')
       .allTextContents()
     for (const [key] of params) expect(keys).toContain(key)
