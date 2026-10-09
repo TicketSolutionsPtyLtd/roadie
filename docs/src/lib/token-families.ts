@@ -140,6 +140,8 @@ export const GROUP_NOTES: Record<string, string> = {
   'Rim light': 'A top-edge highlight that lifts a raised or strong surface.',
   Sheen: 'The shade and highlight a loading placeholder sweeps between.',
   Layering: 'Named stacking tiers; use z-popover, never a raw number.',
+  Spacing: 'The unit that gap-*, p-*, m-*, w-*, and h-* multiply.',
+  Breakpoints: 'Viewport widths where the sm: to 2xl: variants switch.',
   Animations:
     'Play once when the class is applied. Press a preview to replay it.',
   'Enter and exit transitions':

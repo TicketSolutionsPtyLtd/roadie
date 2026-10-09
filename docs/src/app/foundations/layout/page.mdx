@@ -1,0 +1,298 @@
+export const metadata = {
+  title: 'Layout',
+  description:
+    'Layout principles, spacing scale, and best practices for building resilient layouts.',
+  category: 'Content'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { BreakpointScale } from '@/components/layout/BreakpointScale'
+import { ContainerScale } from '@/components/layout/ContainerScale'
+import { SpacingScale } from '@/components/layout/SpacingScale'
+
+Default to grid. Use gap, not margin. Set constraints, not fixed dimensions.
+Let the browser do the work.
+
+## Grid or flexbox
+
+The 1D versus 2D framing is a false distinction. The real question is **who
+controls sizing**.
+
+### Grid, where the parent controls sizing
+
+The container defines tracks and places content inside them. Columns are
+consistent regardless of content variation. It's the default for most
+layouts, including vertical stacks.
+
+- `grid gap-4`
+- `grid grid-cols-3 gap-4`
+- `grid place-content-center`
+
+### Flex, where the children control sizing
+
+Items negotiate their own sizes based on content. It's ideal when layout
+should follow content, such as tags, nav items, pill lists, and wrapping rows
+where items should be as wide as they need to be.
+
+- `flex items-center gap-4`
+- `flex flex-wrap gap-2`
+
+## Spacing scale
+
+Based on a 4px unit. Use it with `gap-`, `p-`, `m-`, `w-`, and `h-`. On the
+docs site, each common step is a bar as wide as the step, with its size in
+pixels.
+
+<SpacingScale />
+
+## Breakpoints
+
+Viewport breakpoints are for page-level layout. Prefix a class with one, such
+as `sm:grid-cols-2`, to apply it from that width up. On the docs site, each
+breakpoint is listed with its width.
+
+<BreakpointScale />
+
+## Container utility
+
+The `container-*` utility centres content with responsive horizontal padding
+and a configurable max width. It replaces the v1 `<Container>` component.
+
+```tsx
+<div className='container-8xl'>...</div>
+<div className='container-4xl'>...</div>
+```
+
+Any `--container-*` token works: Tailwind's `3xs` to `7xl` plus Roadie's
+`8xl`. On the docs site, each width is listed with its class.
+
+<ContainerScale />
+
+### Responsive padding
+
+| Breakpoint | Inline padding |
+| ---------- | -------------- |
+| Default    | 1.5rem (24px)  |
+| `md`       | 2rem (32px)    |
+| `lg`       | 3rem (48px)    |
+
+## Sizing
+
+Set constraints, not fixed dimensions. Let content breathe and the layout
+flex.
+
+### Constraints over fixed sizes
+
+Use `min-h-` and `max-w-` instead of `h-` and `w-`. Fixed dimensions clip
+content. Constraints let it grow.
+
+### Trust browser defaults
+
+Block elements default to `width: auto`, which accounts for margins and
+padding. Don't set `w-full` or `w-screen` unless you have a concrete reason.
+
+### Fit content
+
+`w-fit` sizes an element to its content. It's useful for buttons, badges, and
+inline elements that shouldn't stretch in a grid.
+
+```tsx-live layout=stack
+<Button emphasis='strong' className='w-fit'>
+  I'm only as wide as my content
+</Button>
+```
+
+### Fractions and minmax
+
+Use `fr` units in grid templates to distribute available space. Use
+`minmax(0, 1fr)` to stop content from forcing columns wider than intended.
+
+## Container queries
+
+Components should respond to their parent, not the viewport. A card in a
+narrow sidebar needs different styling than the same card in a wide main
+column, though the viewport width is the same in both cases. Use `@container`
+for component-level adaptation.
+
+Tailwind's `@container` class sets `container-type: inline-size`. Then use
+`@sm:`, `@md:`, `@lg:`, and so on as container query variants instead of
+`sm:` and `md:`. They switch at the container widths, so `@sm:` applies once
+the container is `container-sm` wide.
+
+### The same component in different containers
+
+Both cards use the same `@sm:grid-cols-[auto_1fr]` breakpoint. The narrow one,
+capped at `max-w-xs`, stacks because its container is too small. The wider one
+goes side by side once it has room.
+
+```tsx-live layout=stack
+<Card className='@container max-w-xs'>
+  <Card.Content className='grid gap-3 @sm:grid-cols-[auto_1fr]'>
+    <IconTile size='3xl'>
+      <TicketIcon weight='bold' />
+    </IconTile>
+    <div className='grid gap-1'>
+      <p className='text-display-ui-6 text-strong'>Narrow container</p>
+      <p className='text-sm text-subtle'>Stacks, because the container is too narrow.</p>
+    </div>
+  </Card.Content>
+</Card>
+<Card className='@container'>
+  <Card.Content className='grid gap-3 @sm:grid-cols-[auto_1fr]'>
+    <IconTile size='3xl'>
+      <TicketIcon weight='bold' />
+    </IconTile>
+    <div className='grid gap-1'>
+      <p className='text-display-ui-6 text-strong'>Wider container</p>
+      <p className='text-sm text-subtle'>Goes side by side. Same component, more space.</p>
+    </div>
+  </Card.Content>
+</Card>
+```
+
+Use media queries for page-level layout and container queries for
+component-level adaptation. Use both.
+
+## Layout patterns
+
+### Vertical stack
+
+`grid gap-4` is the default vertical layout.
+
+```tsx-live
+<Card>
+  <Card.Content className='grid gap-4'>
+    <Field>
+      <Field.Label>Name</Field.Label>
+      <Field.Input />
+    </Field>
+    <Field>
+      <Field.Label>Email</Field.Label>
+      <Field.Input type='email' />
+    </Field>
+    <Field>
+      <Field.Label>Mobile</Field.Label>
+      <Field.Input type='tel' />
+    </Field>
+  </Card.Content>
+</Card>
+```
+
+### Centred content
+
+`grid place-content-center` centres both axes with one class.
+
+```tsx-live
+<div className='grid min-h-40 place-content-center'>
+  <p className='text-sm text-subtle'>Centred in both axes</p>
+</div>
+```
+
+### Horizontal row
+
+`flex items-center gap-4` gives content-driven sizing.
+
+```tsx-live
+<ul className='flex items-center gap-4'>
+  <li><Badge>Tag</Badge></li>
+  <li><Badge>Another tag</Badge></li>
+  <li><Badge>Longer tag here</Badge></li>
+</ul>
+```
+
+### Equal columns
+
+`grid grid-cols-3 gap-4` lets the parent control column widths.
+
+```tsx-live
+<div className='grid grid-cols-3 gap-4'>
+  <Card><Card.Content>Column 1</Card.Content></Card>
+  <Card><Card.Content>Column 2 with more content</Card.Content></Card>
+  <Card><Card.Content>Column 3</Card.Content></Card>
+</div>
+```
+
+### Responsive grid
+
+`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6` adds columns as the
+viewport grows.
+
+```tsx-live
+<div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
+  {[1, 2, 3, 4, 5, 6].map((n) => (
+    <Card key={n}>
+      <Card.Content>Item {n}</Card.Content>
+    </Card>
+  ))}
+</div>
+```
+
+### Asymmetric layout
+
+`grid grid-cols-[1fr_2fr] gap-6` gives the second column twice the space.
+
+```tsx-live
+<div className='grid grid-cols-[1fr_2fr] gap-6'>
+  <Card><Card.Content>Sidebar (1fr)</Card.Content></Card>
+  <Card><Card.Content>Main content (2fr)</Card.Content></Card>
+</div>
+```
+
+### Wrapping row
+
+`flex flex-wrap gap-2` lets items wrap naturally based on content width. This
+is where flexbox shines: children control their own size.
+
+```tsx-live
+<ul className='flex flex-wrap gap-2'>
+  {['Design', 'Tokens', 'Tailwind', 'CSS', 'Grid', 'Flexbox', 'Layout', 'Spacing', 'Typography', 'Colour', 'Elevation'].map((tag) => (
+    <li key={tag}><Badge>{tag}</Badge></li>
+  ))}
+</ul>
+```
+
+## Guidelines
+
+- Use `gap-4`, not `mb-4` on children. Gap never creates edge spacing.
+- Use `grid gap-4`, not `flex flex-col gap-4`. Grid is simpler for vertical
+  stacks.
+- Use `grid place-content-center`, not `flex items-center justify-center`.
+  One class centres both axes.
+- Use `grid grid-cols-3`, not flex with `calc(33%)`. Grid handles equal
+  columns natively.
+- Use `min-h-[200px]`, not `h-[200px]`. Content can grow beyond a fixed
+  height.
+- Use `max-w-4xl`, not `w-full`. It caps the width and stays responsive.
+- Use `minmax(0, 1fr)`, not fixed `300px` columns. Fixed units cause overflow
+  on small screens.
+
+<Guidelines>
+
+<Guideline title='Prefer container queries' description='Respond to the parent with @container and the @sm: variants, not to the viewport with sm: and md:.'>
+  <Guideline.Do
+    code={`
+      {/* Responds to parent width */}
+      <div className="@container">
+        <div className="grid @sm:grid-cols-[auto_1fr]">
+          <img />
+          <div>Content</div>
+        </div>
+      </div>`}
+  >
+    Respond to parent width so the component adapts regardless of where it is
+    placed.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      {/* Responds to viewport, breaks in narrow columns */}
+      <div className="grid md:grid-cols-[auto_1fr]">
+        <img />
+        <div>Content</div>
+      </div>`}
+  >
+    Respond to the viewport. It breaks when the same component is placed in a
+    narrow column.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
