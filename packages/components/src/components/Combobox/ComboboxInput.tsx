@@ -24,6 +24,10 @@ export function ComboboxInput({ className, ...props }: ComboboxInputProps) {
       )}
       {...(inField && {
         id: fieldContext.fieldId,
+        // Opening the list aria-hides Field.Label; aria-labelledby still reads it.
+        'aria-labelledby': props['aria-label']
+          ? undefined
+          : fieldContext.labelId,
         'aria-invalid': fieldContext.invalid || undefined,
         'aria-required': fieldContext.required || undefined,
         'aria-describedby': fieldContext.invalid

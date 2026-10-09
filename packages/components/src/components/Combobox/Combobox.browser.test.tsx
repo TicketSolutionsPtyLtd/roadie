@@ -192,3 +192,56 @@ describe('Combobox input group on a phone', () => {
       )
   })
 })
+
+describe('Combobox in a Field', () => {
+  it('keeps the field label as its name while the list is open', async () => {
+    render(
+      <Field>
+        <Field.Label>Genre</Field.Label>
+        <Combobox items={['Rock', 'Jazz', 'Hip hop']}>
+          <Combobox.InputGroup>
+            <Combobox.Input />
+            <Combobox.Trigger />
+          </Combobox.InputGroup>
+          <Combobox.Portal>
+            <Combobox.Positioner>
+              <Combobox.Popup>
+                <Combobox.List>
+                  {(genre: string) => (
+                    <Combobox.Item key={genre} value={genre}>
+                      {genre}
+                    </Combobox.Item>
+                  )}
+                </Combobox.List>
+              </Combobox.Popup>
+            </Combobox.Positioner>
+          </Combobox.Portal>
+        </Combobox>
+      </Field>
+    )
+    await userEvent.click(page.getByRole('combobox'))
+    await expect
+      .element(page.getByRole('option', { name: 'Jazz' }))
+      .toBeVisible()
+
+    // Playwright's name query still reads an aria-hidden label; axe doesn't.
+    expect(screen.getByRole('combobox', { name: 'Genre' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    )
+  })
+
+  it("keeps a consumer's aria-label over the field label", () => {
+    render(
+      <Field>
+        <Field.Label>Genre</Field.Label>
+        <Combobox items={['Rock']}>
+          <Combobox.Input aria-label='Search genres' />
+        </Combobox>
+      </Field>
+    )
+    expect(
+      screen.getByRole('combobox', { name: 'Search genres' })
+    ).toBeInTheDocument()
+  })
+})

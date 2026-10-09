@@ -8,11 +8,12 @@ import {
   it,
   vi
 } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { Autocomplete, type AutocompleteProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
+import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
 const STILL = '*, *::before, *::after { transition: none !important }'
@@ -190,5 +191,58 @@ describe('Autocomplete with object items', () => {
     await expect
       .poll(() => (input as HTMLInputElement).value)
       .toBe(eventText(ochre))
+  })
+})
+
+describe('Autocomplete in a Field', () => {
+  it('keeps the field label as its name while the list is open', async () => {
+    render(
+      <Field>
+        <Field.Label>City</Field.Label>
+        <Autocomplete items={['Adelaide', 'Brisbane', 'Melbourne']}>
+          <Autocomplete.InputGroup>
+            <Autocomplete.Input />
+          </Autocomplete.InputGroup>
+          <Autocomplete.Portal>
+            <Autocomplete.Positioner>
+              <Autocomplete.Popup>
+                <Autocomplete.List>
+                  {(city: string) => (
+                    <Autocomplete.Item key={city} value={city}>
+                      {city}
+                    </Autocomplete.Item>
+                  )}
+                </Autocomplete.List>
+              </Autocomplete.Popup>
+            </Autocomplete.Positioner>
+          </Autocomplete.Portal>
+        </Autocomplete>
+      </Field>
+    )
+    await userEvent.click(page.getByRole('combobox'))
+    await userEvent.keyboard('e')
+    await expect
+      .element(page.getByRole('option', { name: 'Adelaide' }))
+      .toBeVisible()
+
+    // Playwright's name query still reads an aria-hidden label; axe doesn't.
+    expect(screen.getByRole('combobox', { name: 'City' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    )
+  })
+
+  it("keeps a consumer's aria-label over the field label", () => {
+    render(
+      <Field>
+        <Field.Label>City</Field.Label>
+        <Autocomplete items={['Adelaide']}>
+          <Autocomplete.Input aria-label='Search cities' />
+        </Autocomplete>
+      </Field>
+    )
+    expect(
+      screen.getByRole('combobox', { name: 'Search cities' })
+    ).toBeInTheDocument()
   })
 })
