@@ -5,10 +5,15 @@ import { buildManifest } from './manifest'
 const workspaceRoot = fileURLToPath(
   new URL('./fixtures/workspace/', import.meta.url)
 )
+const documentedElsewhere = {
+  '@fixture/ui': { Provider: '/overview/setup/#providers' },
+  '@fixture/ui/pill': '/components/pill/'
+}
 const options = {
   packageDir: `${workspaceRoot}pkg`,
   workspaceRoot,
-  docsUrl: 'https://example.com/docs/'
+  docsUrl: 'https://example.com/docs/',
+  documentedElsewhere
 }
 const manifest = buildManifest(options)
 
@@ -113,6 +118,7 @@ describe('buildManifest', () => {
     expect(manifest.components.find((c) => c.name === 'Provider')).toEqual({
       name: 'Provider',
       import: '@fixture/ui',
+      docs: 'https://example.com/docs/overview/setup/#providers',
       props: [
         {
           name: 'theme',
@@ -137,6 +143,141 @@ describe('buildManifest', () => {
         export: 'Tag',
         prop: 'scale',
         reason: 'Use `size` instead, which follows the shape tiers.'
+      }
+    ])
+  })
+
+  it('links a component documented elsewhere, by name or by import path', () => {
+    expect(manifest.components.find((c) => c.name === 'Tag')).toMatchObject({
+      import: '@fixture/ui/pill',
+      docs: 'https://example.com/docs/components/pill/'
+    })
+  })
+
+  it.each([
+    [
+      'a component has no docs page',
+      { '@fixture/ui': { Provider: '/overview/setup/' } },
+      'No docs page for @fixture/ui/pill Tag'
+    ],
+    [
+      'a link names no component',
+      {
+        ...documentedElsewhere,
+        '@fixture/ui': {
+          Provider: '/overview/setup/',
+          Gone: '/overview/setup/'
+        }
+      },
+      '@fixture/ui Gone links no component'
+    ],
+    [
+      'a link names a component with its own page',
+      {
+        ...documentedElsewhere,
+        '@fixture/ui/pill': {
+          Tag: '/components/pill/',
+          Pill: '/overview/setup/'
+        }
+      },
+      '@fixture/ui/pill Pill links no component'
+    ],
+    [
+      'a link goes to a missing page',
+      { ...documentedElsewhere, '@fixture/ui': { Provider: '/gone/' } },
+      'No docs page at /gone/'
+    ],
+    [
+      'a link goes to a missing heading',
+      {
+        ...documentedElsewhere,
+        '@fixture/ui': { Provider: '/overview/setup/#gone' }
+      },
+      'No heading #gone on /overview/setup/'
+    ],
+    [
+      'a link goes to a heading inside a code block',
+      {
+        ...documentedElsewhere,
+        '@fixture/ui': { Provider: '/overview/setup/#not-a-heading' }
+      },
+      'No heading #not-a-heading on /overview/setup/'
+    ]
+  ])('fails when %s', (_, links, message) => {
+    expect(() =>
+      buildManifest({ ...options, documentedElsewhere: links })
+    ).toThrow(message)
+  })
+
+  it.each(['#providers-1', '#using-hooks'])(
+    'links the %s anchor rehype-slug gives the heading',
+    (anchor) => {
+      const { components } = buildManifest({
+        ...options,
+        documentedElsewhere: {
+          ...documentedElsewhere,
+          '@fixture/ui': { Provider: `/overview/setup/${anchor}` }
+        }
+      })
+      expect(components.find((c) => c.name === 'Provider')?.docs).toBe(
+        `https://example.com/docs/overview/setup/${anchor}`
+      )
+    }
+  )
+
+  it('describes components a .ts entry re-exports, and Vue skins as exports only', () => {
+    const skins = buildManifest({
+      ...options,
+      packageDir: `${workspaceRoot}skins`
+    })
+    expect(skins.exports).toEqual([
+      {
+        subpath: './chip/core',
+        import: '@fixture/skins/chip/core',
+        kind: 'js',
+        values: ['chipLabel', 'chipTone']
+      },
+      {
+        subpath: './chip/react',
+        import: '@fixture/skins/chip/react',
+        kind: 'js',
+        values: ['Chip', 'Tile'],
+        types: ['ChipProps']
+      },
+      {
+        subpath: './chip/vue',
+        import: '@fixture/skins/chip/vue',
+        kind: 'js',
+        values: ['Chip']
+      }
+    ])
+    expect(skins.components).toEqual([
+      {
+        name: 'Chip',
+        import: '@fixture/skins/chip/react',
+        docs: 'https://example.com/docs/components/chip/',
+        summary: 'A removable filter chip',
+        description: 'A removable filter chip.',
+        props: [
+          {
+            name: 'label',
+            type: 'string',
+            required: true,
+            description: 'Text on the chip.'
+          }
+        ]
+      }
+    ])
+    expect(skins.deprecations).toEqual([
+      {
+        import: '@fixture/skins/chip/core',
+        export: 'chipLabel',
+        reason: 'Import from `@fixture/skins/chip/shared` instead.'
+      },
+      {
+        import: '@fixture/skins/chip/react',
+        export: 'Tile',
+        reason: 'Renamed to `Chip`.'
       }
     ])
   })

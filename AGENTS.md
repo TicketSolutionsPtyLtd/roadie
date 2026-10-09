@@ -50,10 +50,9 @@ pnpm --filter docs dev
   consumer's class can't override the component's.
 - `packages/core/src/css/roadie.css` imports every sheet in order, and each
   sheet's header says what it owns.
-- Core, components and charts build `dist/roadie.manifest.json` from
-  `exports`, props, `@deprecated` tags, and docs pages
-  (`packages/core/scripts/manifest/`). A `.tsx` entry with no exported
-  component fails the build.
+- Every package builds `dist/roadie.manifest.json` from `exports`, props,
+  `@deprecated` tags, and docs pages (`packages/core/scripts/manifest/`). A
+  component with no docs fails it; link it in `elsewhere.ts`.
 
 ## Components
 
