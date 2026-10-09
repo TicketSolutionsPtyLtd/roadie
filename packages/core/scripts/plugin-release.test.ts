@@ -94,6 +94,7 @@ describe('namesPackage', () => {
     ["'roadie-skills': minor", true],
     ['"roadie-skills": patch', true],
     ['roadie-skills: patch', true],
+    ["'roadie-skills': none", false],
     ["'roadie-skills-extra': patch", false],
     ["'@oztix/roadie-core': patch", false]
   ])('reads %s as %s', (line, expected) => {

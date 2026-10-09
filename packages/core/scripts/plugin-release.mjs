@@ -15,16 +15,16 @@ const touchesPlugin = (path) =>
 const isChangeset = (path) =>
   /^\.changeset\/[^/]+\.md$/.test(path) && path !== '.changeset/README.md'
 
+const unquote = (text) => text.trim().replace(/^['"]|['"]$/g, '')
+
+// A `none` bump names the package but never releases it.
 export function namesPackage(changeset, name = PACKAGE_NAME) {
   const frontmatter = changeset.match(/^---\r?\n([\s\S]*?)\r?\n---/)
   if (!frontmatter) return false
-  return frontmatter[1].split(/\r?\n/).some(
-    (line) =>
-      line
-        .split(':')[0]
-        .trim()
-        .replace(/^['"]|['"]$/g, '') === name
-  )
+  return frontmatter[1].split(/\r?\n/).some((line) => {
+    const [key, bump = ''] = line.split(':')
+    return unquote(key) === name && unquote(bump) !== 'none'
+  })
 }
 
 export function checkPluginRelease({
