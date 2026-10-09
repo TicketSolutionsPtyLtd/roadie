@@ -106,9 +106,15 @@
   --sheen-highlight: color-mix(in oklch, var(--intent-9) 34%, transparent);
 }
 
-/* ─── OKLCH tinted shadows (modern browsers) ─── */
+/* ─── OKLCH tinted shadows (modern browsers) ───
+   A custom property resolves var(--intent-hue) where it is declared, and
+   descendants inherit the result. Declared only on :root, every shadow would
+   keep the root hue, so the tokens are declared again on each element with an
+   intent class, variants included. A non-intent class that contains
+   `intent-` only re-resolves the hue it inherited. */
 @supports (color: oklch(0 0 0)) {
-  :root {
+  :root,
+  :where([class*='intent-']) {
     --shadow-xs:
       0 0 0 1px oklch(0.3 0.05 var(--intent-hue) / 0.04),
       0 1px 1px 0 oklch(0.3 0.05 var(--intent-hue) / 0.07);
@@ -149,7 +155,8 @@
       inset 0 2px 4px -2px oklch(0.3 0.05 var(--intent-hue) / 0.05);
   }
 
-  .dark {
+  .dark,
+  .dark :where([class*='intent-']) {
     --shadow-xs:
       0 0 0 1px oklch(0.05 0.02 var(--intent-hue) / 0.3),
       0 1px 1px 0 oklch(0.05 0.02 var(--intent-hue) / 0.3);
