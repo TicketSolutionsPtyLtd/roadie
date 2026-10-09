@@ -27,6 +27,8 @@ Chart.js, D3, Plotly) beside Roadie's.
 
 ## 0. Check the setup
 
+If any of this is missing, run `/roadie:setup` first.
+
 - `@oztix/roadie-charts`, `@oztix/roadie-components`, and `@oztix/roadie-core`
   are installed.
 - The main CSS file imports each package's CSS, or Tailwind purges the chart
