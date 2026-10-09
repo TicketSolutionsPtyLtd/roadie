@@ -41,7 +41,7 @@ jobs:
         with:
           publish-script: pnpm release
           # Also copies the roadie-skills version into the plugin manifest.
-          version: pnpm changeset:version
+          version-script: pnpm changeset:version
           pr-title: 'chore: version packages'
           # Bot-pushed runs wait for approval; main still runs CI on merge,
           # since the squash commit takes the PR title and body.
