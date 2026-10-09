@@ -106,7 +106,7 @@ function Values({ token, intent }: { token: TokenEntry; intent: Intent }) {
         <div className='flex min-w-0 flex-wrap gap-x-2'>
           <dt className='shrink-0 text-subtler'>Contrast</dt>
           <dd className='min-w-0 break-all'>
-            {apcaContrast(light, '#ffffff')} light,{' '}
+            {apcaContrast(light, chartHex('light').chrome.surface)} light,{' '}
             {apcaContrast(dark, chartHex('dark').chrome.surface)} dark
           </dd>
         </div>

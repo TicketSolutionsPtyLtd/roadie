@@ -140,8 +140,8 @@ export default function AccessibilityPage() {
         >
           <Guideline.Do>
             Use Roadie&apos;s semantic text colours (<Code>text-normal</Code>,{' '}
-            <Code>text-subtle</Code>, <Code>text-strong</Code>) which are
-            designed to meet those thresholds in both light and dark modes.
+            <Code>text-subtle</Code>, <Code>text-strong</Code>), and check the
+            one you pick against the threshold for its role and surface.
           </Guideline.Do>
           <Guideline.Dont>
             Use raw colour values without checking contrast. Light grey text on
@@ -363,8 +363,8 @@ export default function AccessibilityPage() {
             </h3>
             <p className='text-sm text-subtle'>
               Semantic colour tokens (<Code>text-normal</Code>,{' '}
-              <Code>text-subtle</Code>) are designed to meet the APCA thresholds
-              in both light and dark modes.
+              <Code>text-subtle</Code>) adapt to light and dark modes. Check
+              each against the APCA threshold for its role and surface.
             </p>
           </div>
         </div>
@@ -410,8 +410,14 @@ export default function AccessibilityPage() {
                 <td className='py-2 pr-4 text-strong'>Contrast</td>
                 <td className='py-2 pr-4'>An APCA contrast checker</td>
                 <td className='py-2'>
-                  Text, labels, and UI components meet the APCA thresholds in
-                  Colors.
+                  Text, labels, and UI components meet the APCA thresholds in{' '}
+                  <Link
+                    href='/foundations/colors#contrast'
+                    className='underline underline-offset-2'
+                  >
+                    Colors
+                  </Link>
+                  .
                 </td>
               </tr>
               <tr>
