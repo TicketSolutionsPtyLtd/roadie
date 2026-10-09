@@ -33,13 +33,13 @@ export async function TransitionList() {
     <ol
       data-not-prose
       data-slot='transition-list'
-      className='grid divide-y divide-subtler'
+      className='grid grid-cols-[auto_auto_minmax(0,1fr)] divide-y divide-subtler'
     >
       {transitions.map(({ property, duration, easing }) => (
         <li
           key={property}
           data-slot='transition-row'
-          className='grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-4 py-2'
+          className='col-span-full grid grid-cols-subgrid items-baseline gap-4 py-2'
         >
           <code className='font-mono text-sm text-strong'>{property}</code>
           <span
