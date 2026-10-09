@@ -18,6 +18,7 @@ import {
   TOKENS,
   WIDGETS,
   getCatalogue,
+  getMarkdownRoutes,
   getPageTitles,
   getPageWide,
   readPageMetadata
@@ -113,10 +114,11 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [items, pageTitles, pageWide] = await Promise.all([
+  const [items, pageTitles, pageWide, markdownRoutes] = await Promise.all([
     getNavigationItems(),
     getPageTitles(),
-    getPageWide()
+    getPageWide(),
+    getMarkdownRoutes()
   ])
 
   return (
@@ -138,6 +140,7 @@ export default async function RootLayout({
             items={items}
             pageTitles={pageTitles}
             pageWide={pageWide}
+            markdownRoutes={markdownRoutes}
           >
             {children}
           </DocsNavigator>

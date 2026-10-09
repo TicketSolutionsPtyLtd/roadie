@@ -1,5 +1,5 @@
 import { access, readFile, readdir } from 'fs/promises'
-import { join } from 'path'
+import { basename, dirname, join, sep } from 'path'
 
 export type CatalogueEntry = {
   name: string
@@ -297,4 +297,13 @@ export async function getPageWide(): Promise<Record<string, boolean>> {
   const wide: Record<string, boolean> = {}
   await walkPageWide(APP_DIR, '/', wide)
   return wide
+}
+
+/** Routes whose `page.mdx` becomes a markdown twin at `{route}.md`. */
+export async function getMarkdownRoutes(): Promise<string[]> {
+  return (await readdir(APP_DIR, { recursive: true }))
+    .filter((file) => basename(file) === 'page.mdx')
+    .map((file) => `/${dirname(file).split(sep).join('/')}`)
+    .filter((route) => !/^\/(debug|examples)\//.test(route))
+    .sort()
 }
