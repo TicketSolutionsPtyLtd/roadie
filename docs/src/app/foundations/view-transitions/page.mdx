@@ -110,20 +110,31 @@ navigation handler.
 ```tsx
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { startTransition } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useRef } from 'react'
 
 import { Button } from '@oztix/roadie-components/button'
 
 function FilterButton({ href }: { href: string }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const resolveRendered = useRef<(() => void) | null>(null)
+
+  useEffect(() => {
+    resolveRendered.current?.()
+    resolveRendered.current = null
+  }, [searchParams])
 
   function handleClick() {
     // Not all browsers implement view transitions yet
     if (typeof document.startViewTransition === 'function') {
-      document.startViewTransition(() => {
-        startTransition(() => router.push(href))
-      })
+      document.startViewTransition(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveRendered.current = resolve
+            router.push(href)
+          })
+      )
     } else {
       router.push(href)
     }
@@ -133,9 +144,12 @@ function FilterButton({ href }: { href: string }) {
 }
 ```
 
-The `startTransition` wrapper keeps React from thrashing state updates during
-the browser's snapshot capture. Without it you can get flickers when the new
-page renders faster than the old page's snapshot.
+`startViewTransition` waits for the promise its callback returns before it
+captures the new snapshot. `router.push` returns before Next renders the new
+search params, so the callback returns a promise that resolves once they have
+rendered. Without it, the browser captures the old page twice and nothing
+animates. If `href` is already the current URL, push it without a transition,
+since the params never change and the promise never resolves.
 
 Inside a [Navigator shell](/foundations/navigation), Navigator animates
 pane-to-pane route changes itself. Don't wrap a `router.push` that changes the
