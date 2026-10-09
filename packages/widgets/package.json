@@ -79,7 +79,7 @@
   },
   "dependencies": {
     "@oztix/roadie-core": "workspace:*",
-    "focus-trap": "8.2.2"
+    "focus-trap": "8.2.3"
   },
   "peerDependencies": {
     "react": "^19.2.0",
