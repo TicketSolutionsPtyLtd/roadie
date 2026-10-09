@@ -7,6 +7,8 @@ type PointerStep =
 declare module 'vitest/browser' {
   interface BrowserCommands {
     reduceMotion: (reduce: boolean) => Promise<void>
+    /** Resolves false where it can't emulate, which is everywhere but Chromium. */
+    reduceTransparency: (reduce: boolean) => Promise<boolean>
     forcedColors: (active: boolean) => Promise<void>
     parkPointer: () => Promise<void>
     /** Drives a real mouse, in the test frame's CSS pixels. */

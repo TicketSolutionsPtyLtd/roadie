@@ -56,6 +56,31 @@ function importedPackages() {
 const reduceMotion: BrowserCommand<[reduce: boolean]> = ({ page }, reduce) =>
   page.emulateMedia({ reducedMotion: reduce ? 'reduce' : 'no-preference' })
 
+// Playwright can't emulate it, so Chromium sets it over the DevTools protocol,
+// on a session kept open because detaching drops the override. Resolves false
+// in the engines it can't reach, for the test to skip.
+const transparencySessions = new WeakMap<object, Promise<CDPSession>>()
+const reduceTransparency: BrowserCommand<[reduce: boolean]> = async (
+  { page },
+  reduce
+) => {
+  if (page.context().browser()?.browserType().name() !== 'chromium')
+    return false
+  let session = transparencySessions.get(page)
+  if (!session) {
+    session = page.context().newCDPSession(page)
+    transparencySessions.set(page, session)
+  }
+  await (
+    await session
+  ).send('Emulation.setEmulatedMedia', {
+    features: [
+      { name: 'prefers-reduced-transparency', value: reduce ? 'reduce' : '' }
+    ]
+  })
+  return true
+}
+
 const forcedColors: BrowserCommand<[active: boolean]> = ({ page }, active) =>
   page.emulateMedia({ forcedColors: active ? 'active' : 'none' })
 
@@ -174,7 +199,15 @@ const browserTest = {
   enabled: true,
   headless: true,
   viewport: { width: 1920, height: 1080 },
-  commands: { reduceMotion, forcedColors, parkPointer, pointer, tap, swipe }
+  commands: {
+    reduceMotion,
+    reduceTransparency,
+    forcedColors,
+    parkPointer,
+    pointer,
+    tap,
+    swipe
+  }
 }
 
 const optimizeDeps = {
@@ -208,9 +241,7 @@ export default defineConfig({
           environment: 'jsdom',
           setupFiles: ['./vitest.setup.ts'],
           globals: true,
-          exclude: [...configDefaults.exclude, BROWSER_TESTS],
-          // Stubbed CSS would make a `?raw` import of this sheet empty.
-          css: { include: [/navigator-pending\.css/] }
+          exclude: [...configDefaults.exclude, BROWSER_TESTS]
         }
       },
       {

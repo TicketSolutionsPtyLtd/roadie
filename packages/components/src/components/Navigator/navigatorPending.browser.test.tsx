@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, page } from 'vitest/browser'
@@ -6,24 +8,23 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import roadieCss from '../../../vitest.browser.css?inline'
 import { useStylesheet } from '../Pane/testUtils'
-import { navigatorRootClass } from './variants'
+import { paneVariants } from '../Pane/variants'
+import { navigatorPanesClass, navigatorRootClass } from './variants'
 
 // Frozen for the whole file: a screenshot of an endless spin never settles.
 const STILL = `
   [data-slot='navigator-pending'],
   [data-slot='navigator-pending']::before { animation: none; }`
 
-let removeStylesheets = () => {}
+let removeRoadie = () => {}
+let removeStill = () => {}
 beforeAll(() => {
-  const removeRoadie = useStylesheet(roadieCss)
-  const removeStill = useStylesheet(STILL)
-  removeStylesheets = () => {
-    removeStill()
-    removeRoadie()
-  }
+  removeRoadie = useStylesheet(roadieCss)
+  removeStill = useStylesheet(STILL)
 })
 afterAll(async () => {
-  removeStylesheets()
+  removeStill()
+  removeRoadie()
   await page.viewport(1920, 1080)
 })
 afterEach(() => cleanup())
@@ -34,14 +35,37 @@ const SIZES = [
   { name: 'a phone', width: 390, height: 844 }
 ]
 
-function Frame({ className }: { className?: string }) {
+function Frame({
+  className,
+  pending = 'visible',
+  children
+}: {
+  className?: string
+  pending?: 'visible' | 'leaving'
+  children?: ReactNode
+}) {
   return (
     <div
       data-slot='navigator'
-      data-pending='visible'
+      data-pending={pending}
       className={cn(navigatorRootClass, className)}
     >
       <div aria-hidden data-slot='navigator-pending' />
+      {children}
+    </div>
+  )
+}
+
+function Panes({ children }: { children?: ReactNode }) {
+  return (
+    <div
+      data-slot='navigator-panes'
+      data-level='0'
+      className={navigatorPanesClass}
+    >
+      <div data-testid='pane' className={cn(paneVariants(), 'w-full')}>
+        {children}
+      </div>
     </div>
   )
 }
@@ -62,7 +86,17 @@ function hold(squareRule: string) {
   return () => style.remove()
 }
 
-async function cornersWith(squareRule: string) {
+const corners = (right: number, bottom: number): [number, number][] => [
+  [0, 0],
+  [right, 0],
+  [0, bottom],
+  [right, bottom]
+]
+
+async function pixelsWith(
+  squareRule: string,
+  points: (right: number, bottom: number) => [number, number][] = corners
+) {
   const release = hold(squareRule)
   try {
     const base64 = await page.screenshot({
@@ -77,15 +111,9 @@ async function cornersWith(squareRule: string) {
     canvas.height = image.naturalHeight
     const context = canvas.getContext('2d', { willReadFrequently: true })!
     context.drawImage(image, 0, 0)
-    const right = canvas.width - 1
-    const bottom = canvas.height - 1
-    const points: [number, number][] = [
-      [0, 0],
-      [right, 0],
-      [0, bottom],
-      [right, bottom]
-    ]
-    return points.map(([x, y]) => [...context.getImageData(x, y, 1, 1).data])
+    return points(canvas.width - 1, canvas.height - 1).map(([x, y]) => [
+      ...context.getImageData(x, y, 1, 1).data
+    ])
   } finally {
     release()
   }
@@ -102,10 +130,10 @@ describe('the pending square', { timeout: 20_000 }, () => {
     it('covers every corner of the frame as it turns', async () => {
       await page.viewport(width, height)
       render(<Frame />)
-      const fill = await cornersWith('content: none;')
+      const fill = await pixelsWith('content: none;')
       const turns = [0, 0.125, 0.25, ...tightestTurns(width, height)]
       for (const turn of turns) {
-        const painted = await cornersWith(`rotate: ${turn}turn;`)
+        const painted = await pixelsWith(`rotate: ${turn}turn;`)
         painted.forEach((pixel, corner) =>
           expect(pixel, `corner ${corner} at ${turn}turn`).not.toEqual(
             fill[corner]
@@ -119,8 +147,8 @@ describe('the pending square', { timeout: 20_000 }, () => {
       await commands.reduceMotion(true)
       try {
         render(<Frame />)
-        const fill = await cornersWith('content: none;')
-        const painted = await cornersWith('')
+        const fill = await pixelsWith('content: none;')
+        const painted = await pixelsWith('')
         painted.forEach((pixel, corner) =>
           expect(pixel, `corner ${corner}`).not.toEqual(fill[corner])
         )
@@ -152,5 +180,147 @@ describe('the pending square', { timeout: 20_000 }, () => {
     expect(side * Number(pendingSquare().scale)).toBeGreaterThan(
       Math.hypot(width, height)
     )
+  })
+})
+
+const panes = () =>
+  document.querySelector<HTMLElement>('[data-slot="navigator-panes"]')!
+
+const paneRadius = (index = 0) =>
+  getComputedStyle(document.querySelectorAll('[data-testid="pane"]')[index]!)
+    .borderTopLeftRadius
+
+const TURN = { turn: 1, deg: 360, rad: 2 * Math.PI, grad: 400 }
+const turns = (angle: string) => {
+  const [, value, unit] = /^(-?[\d.]+)(turn|deg|rad|grad)$/.exec(angle) ?? []
+  return value ? Number(value) / TURN[unit as keyof typeof TURN] : 0
+}
+
+const gradientStops = (frame: Element) =>
+  getComputedStyle(
+    frame.querySelector('[data-slot="navigator-pending"]')!,
+    '::before'
+  ).backgroundImage.match(/(?:rgb|oklch|oklab|lab|lch|color)a?\([^)]*\)/g) ?? []
+
+describe('the pending frame', { timeout: 20_000 }, () => {
+  it('paints the colour under the panes it holds', async () => {
+    await page.viewport(390, 844)
+    render(
+      <Frame>
+        <Panes />
+      </Frame>
+    )
+    const middle = (right: number, bottom: number): [number, number][] => [
+      [right / 2, bottom / 2]
+    ]
+    const bare = await pixelsWith('content: none;', middle)
+    const painted = await pixelsWith('', middle)
+    expect(painted).toEqual(bare)
+  })
+
+  it('has no scrollport for the pull-back to shift', async () => {
+    await page.viewport(390, 844)
+    render(
+      <Frame>
+        <div className='h-[4000px]' />
+      </Frame>
+    )
+    frameElement().scrollTop = 200
+    expect(frameElement().scrollTop).toBe(0)
+  })
+
+  it('spins colours of its own in dark mode', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <>
+        <Frame className='h-50' />
+        <div className='dark'>
+          <Frame className='h-50' />
+        </div>
+      </>
+    )
+    const [light = [], dark = []] = [
+      ...document.querySelectorAll('[data-slot="navigator"]')
+    ].map(gradientStops)
+    expect(light).toHaveLength(4)
+    expect(dark).toHaveLength(4)
+    expect(dark[1]).not.toBe(light[1])
+    expect(dark[2]).not.toBe(light[2])
+  })
+})
+
+describe('the phone pull-back', () => {
+  it('pulls the panes back and rounds them on a phone', async () => {
+    await page.viewport(390, 844)
+    render(
+      <Frame>
+        <Panes />
+      </Frame>
+    )
+    expect(Number(getComputedStyle(panes()).scale)).toBe(0.96)
+    expect(paneRadius()).toBe('16px')
+  })
+
+  it('holds the panes still on a wider screen', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <Frame>
+        <Panes />
+      </Frame>
+    )
+    expect(getComputedStyle(panes()).scale).toBe('none')
+  })
+
+  it('lets the panes return as the colour leaves', async () => {
+    await page.viewport(390, 844)
+    render(
+      <Frame pending='leaving'>
+        <Panes />
+      </Frame>
+    )
+    expect(getComputedStyle(panes()).scale).toBe('none')
+  })
+
+  it('keeps the panes of a nested navigator square', async () => {
+    await page.viewport(390, 844)
+    render(
+      <Frame>
+        <Panes>
+          <div data-slot='navigator'>
+            <Panes />
+          </div>
+        </Panes>
+      </Frame>
+    )
+    expect(paneRadius(0)).toBe('16px')
+    expect(paneRadius(1)).toBe('0px')
+  })
+})
+
+describe('the pending frame under reduced motion', () => {
+  afterEach(() => commands.reduceMotion(false))
+
+  it('holds the square still at an eighth of a turn', async () => {
+    await page.viewport(390, 844)
+    await commands.reduceMotion(true)
+    removeStill()
+    try {
+      render(<Frame />)
+      expect(pendingSquare().animationName).toBe('none')
+      expect(turns(pendingSquare().rotate)).toBe(0.125)
+    } finally {
+      removeStill = useStylesheet(STILL)
+    }
+  })
+
+  it('leaves the panes in place on a phone', async () => {
+    await page.viewport(390, 844)
+    await commands.reduceMotion(true)
+    render(
+      <Frame>
+        <Panes />
+      </Frame>
+    )
+    expect(getComputedStyle(panes()).scale).toBe('none')
   })
 })
