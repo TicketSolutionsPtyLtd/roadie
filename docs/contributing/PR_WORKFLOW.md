@@ -221,9 +221,11 @@ the PR only when the review is clean.
 An agent merges a two-way-door PR itself (squash, delete the branch) once all
 of these hold. Squashing copies the body into the commit message, so read that
 message for private details (section 7) just before merging, and edit it if a
-privacy fix landed after the PR opened. A one-way door (section 7) waits for the maintainer.
+privacy fix landed after the PR opened. A one-way door (section 7) waits for
+the maintainer.
 
-- CI is green.
+- CI is green on the full run that `gh pr ready` started: wait for every job
+  to finish, not just `check`. A green draft run covers only `check`.
 - The file list is clean.
 - The local review is clean, and the one Copilot pass is triaged with every
   thread resolved.
