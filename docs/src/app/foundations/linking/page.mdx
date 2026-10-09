@@ -1,0 +1,322 @@
+export const metadata = {
+  title: 'Linking',
+  description:
+    'A single href prop, automatic external-link safety, and one-line client routing through next/link via RoadieLinkProvider, across every link-bearing Roadie component.',
+  category: 'Building apps'
+}
+
+Pass `href` and you're done. Roadie picks the right element, applies the
+right `target` and `rel` defaults, and routes through the Link you give
+`RoadieProvider`. Leave `href` off a button-shaped component and you get a
+real `<button>` back. Every link-bearing component, listed under
+[Components](#components), speaks the same vocabulary.
+
+## Quick start
+
+Pass `next/link` to `RoadieProvider` once at your app root, or any wrapper
+that takes `href` and `children`. `RoadieLinkProvider` does the same on its
+own, if you
+[place providers yourself](/overview/getting-started#placing-providers-yourself).
+
+```tsx
+'use client'
+
+import NextLink from 'next/link'
+import { RoadieProvider } from '@oztix/roadie-components'
+
+export function Providers({ children }) {
+  return <RoadieProvider link={NextLink}>{children}</RoadieProvider>
+}
+```
+
+Now every Roadie component that accepts `href` routes through Next's client
+navigation by itself, keeping prefetch, scroll restoration, and view
+transitions. Pass the Link at module scope, as above, because a new Link
+reference on each render logs a dev warning.
+
+The provider also marks each of those clicks as a navigation in flight, which
+is what draws
+[the pending indicator](/components/navigator#waiting-for-a-navigation) on a
+`Navigator` frame that is still waiting. Pass `pendingIndicator={false}` to
+turn it off, and use [`usePendingNavigation`](#usependingnavigation) for a
+navigation Roadie never sees, such as your own `router.push`.
+
+## How href is resolved
+
+The same rules apply to every link-bearing component. The decision is pure
+and SSR-safe, with no hydration mismatches and no client-only checks.
+
+| href shape                                              | Renders as                                                 | Defaults applied                                                                   |
+| ------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| None                                                    | `<button>`, but see [Components](#components)              | None                                                                               |
+| `/events/123`, `./local`, `#section`                    | The configured Link, or `<a>` with no provider             | None                                                                               |
+| `https://…`, `http://…`, `//…`                          | `<a>`                                                      | `target='_blank'` and `rel='noopener noreferrer'`                                  |
+| `mailto:`, `tel:`, `sms:`                               | `<a>`                                                      | None, so no `target` or `rel`                                                      |
+| Any internal href with `download`                       | `<a>`                                                      | None. A file isn't a route, so the provider's Link never prefetches it.            |
+| `javascript:`, `data:`, `vbscript:`, `blob:`, `file:`   | `<a href='#'>`                                             | The href is refused, so the click does nothing, and a dev warning names it.        |
+
+Override per call with `external` (boolean), `target`, or `rel`. Pass
+`external={false}` on an `https://oztix.com.au/x` URL to force internal
+routing through the provider, and pass `external` on an internal redirect
+path to open it in a new tab.
+
+A `download` link skips the provider, so a router's base path isn't added to
+it. If your app has one, include it in the `href` yourself.
+
+## Components
+
+Every component here accepts `href`. The ones with `render` also take
+`external`, `target`, and `rel`, and `render` covers cases where `href` isn't
+enough, such as custom elements or full render control.
+
+| Component                          | Without `href`                   | With `href`  | Escape hatch   |
+| ---------------------------------- | -------------------------------- | ------------ | -------------- |
+| Button and IconButton              | `<button>`                       | Routed `<a>` | `render`       |
+| Card                               | `<div>`                          | Routed `<a>` | `render`       |
+| Card.Link                          | Needs `href`                     | Routed `<a>` | None           |
+| Breadcrumb.Link                    | `<a>`                            | Routed `<a>` | `render`       |
+| Carousel.TitleLink                 | `<a>`                            | Routed `<a>` | `render`       |
+| Tabs.Tab                           | `<button>`                       | Routed `<a>` | `render`       |
+| List.Item                          | `<button>`                       | Routed `<a>` | None, `href` only |
+| Menu.Item                          | Menu item                        | Routed `<a>` | None, `href` only |
+| Navigator items and tabs           | `<button>`                       | Routed `<a>` | None, `href` only |
+
+Row links in `DataTable` and `RecordTable` route the same way.
+
+## Examples
+
+### Internal navigation
+
+```tsx
+<Button href='/events/123'>View event</Button>
+<Card href='/events/123'>{/* whole-card link */}</Card>
+<Breadcrumb.Link href='/events'>Events</Breadcrumb.Link>
+```
+
+A card with other actions inside wraps its title in `Card.Link` instead, as
+[Card](/components/card#with-a-main-link) shows.
+
+### External link
+
+An `https://` href renders an `<a>` with `target='_blank'` and
+`rel='noopener noreferrer'`.
+
+```tsx-live layout=row
+<Button href='https://base-ui.com/react/overview/composition'>Base UI docs</Button>
+```
+
+### Email and phone links
+
+```tsx-live layout=row
+<Button href='mailto:hello@oztix.com.au'>Email us</Button>
+<IconButton aria-label='Call' href='tel:+61400000000'>
+  <PhoneIcon weight='bold' />
+</IconButton>
+```
+
+### Forcing external or internal
+
+```tsx
+{/* A first-party URL that should route inside the app */}
+<Button href='https://oztix.com.au/events' external={false}>
+  Events
+</Button>
+
+{/* An internal redirect that should open in a new tab */}
+<Button href='/redirect/checkout' external>
+  Checkout
+</Button>
+```
+
+## The render escape hatch
+
+The `href` path covers the happy case. For full control over the rendered
+element, these components accept the same `render` prop, in element,
+component, or function form. The contract mirrors
+[Base UI's render prop](https://base-ui.com/react/overview/composition).
+
+### Element form
+
+```tsx
+{/* Card as a clickable button, with no href and a full element swap */}
+<Card render={<button type='button' onClick={handleSelect} />}>
+  …
+</Card>
+
+{/* Button takes download with href, so no render is needed */}
+<Button href='/file.pdf' download='spec.pdf'>
+  Download spec
+</Button>
+
+{/* Breadcrumb.Link with a custom analytics-aware wrapper */}
+<Breadcrumb.Link render={<MyTrackedLink analyticsId='breadcrumb' href='/x' />}>
+  Events
+</Breadcrumb.Link>
+```
+
+### Function form
+
+Receive the default props and return any element. It's useful for
+state-aware rendering or attribute composition.
+
+```tsx
+<Tabs.Tab
+  value='events'
+  render={(props, state) => (
+    <a {...props} data-active={state.active} href='/events' />
+  )}
+>
+  Events
+</Tabs.Tab>
+```
+
+When you pass both `href` and `render`, `render` wins, and Roadie's routing is
+off for that call. Button and IconButton log a one-time dev warning, so the
+conflict can't ship by accident. Pick one.
+
+`Card`, `Breadcrumb.Link`, and `Carousel.TitleLink` also take a legacy `as`
+prop for polymorphism. It still works, but it's `@deprecated` as of v2.6 and
+will be removed in v3.0.0, so migrate to `render`.
+
+## Link tabs
+
+Tabs work as link tabs out of the box. Pass `href` on each `Tabs.Tab` and the
+rendered anchor joins the tab list's roving tabindex group. Arrow keys still
+move focus across mixed button and anchor tabs.
+
+```tsx
+<Tabs value={value} onValueChange={setValue}>
+  <Tabs.List>
+    <Tabs.Tab value='overview' href='/account/overview'>Overview</Tabs.Tab>
+    <Tabs.Tab value='events'   href='/account/events'>Events</Tabs.Tab>
+    <Tabs.Tab value='settings' href='/account/settings'>Settings</Tabs.Tab>
+  </Tabs.List>
+</Tabs>
+```
+
+Pressing Enter on a focused link tab starts the browser's navigation at once.
+If you derive `value` from controlled local state, you can see a brief
+flicker between selection and route change. Derive `value` from the route
+itself, such as with `usePathname()`, so the route is the source of truth.
+Normalise it first, because tab matching is exact, so a trailing slash
+selects nothing.
+
+## Tracking actions
+
+Roadie ships no analytics code. Tracking taxonomy is product-shaped (event
+names, page sections, and vendor choices). The recommended pattern is a small
+wrapper in your app that reads `currentTarget.href` or `aria-label` off the
+rendered element, so a single `<Tracked>` works on top of every Roadie
+action.
+
+```tsx
+// app-level component, lives in your app, not in Roadie
+'use client'
+import { useTracking } from '@/utils/tracking'
+
+export function Tracked({ trackEvent = 'link', pageSection, children }) {
+  const { trackClick } = useTracking()
+  return React.cloneElement(children, {
+    onClick: (e) => {
+      const el = e.currentTarget
+      trackClick(trackEvent, {
+        pageSection,
+        href: el.getAttribute('href') ?? undefined,
+        label: el.getAttribute('aria-label') ?? el.textContent?.trim()
+      })
+      children.props.onClick?.(e)
+    }
+  })
+}
+```
+
+```tsx
+{/* Wrap any Roadie action, with no tracking knowledge inside Roadie. */}
+<Tracked pageSection='cart-checkout'>
+  <Button href={checkoutUrl} intent='accent' emphasis='strong'>
+    Checkout
+  </Button>
+</Tracked>
+```
+
+## Hooks
+
+### useRoadieLink
+
+```tsx
+function useRoadieLink(): RoadieLinkComponent | null
+```
+
+Returns the Link passed to the nearest `RoadieLinkProvider`, or `null` when
+no provider is mounted or its Link is `null`. Roadie's link-bearing
+components build their `href` handling on it. Build your own the same way:
+route through the configured Link when there is one, and render a plain
+`<a>` when there isn't.
+
+```tsx
+import { useRoadieLink, type RoadieLinkProps } from '@oztix/roadie-components'
+
+function TrackedLink({ href, children, ...props }: RoadieLinkProps) {
+  const Link = useRoadieLink()
+  const Anchor = Link ?? 'a'
+  return (
+    <Anchor href={href} {...props}>
+      {children}
+    </Anchor>
+  )
+}
+```
+
+### usePendingNavigation
+
+```tsx
+function usePendingNavigation(): { start: () => void; stop: () => void }
+```
+
+Reports a navigation Roadie can't see, such as your own `router.push`.
+Roadie's own links already call `start` for you, so reach for this only when
+you start the navigation yourself. Call `start` from the event handler that
+kicks it off, because from a layout effect it schedules a render React
+refuses.
+
+| Field   | Type         | Description                                                                                                |
+| ------- | ------------ | ---------------------------------------------------------------------------------------------------------- |
+| `start` | `() => void` | Marks a navigation as pending, which draws the pending indicator on a `Navigator` frame.                   |
+| `stop`  | `() => void` | Ends it early. The route landing calls this for you, so call it yourself only when the navigation never happens. |
+
+Both do nothing when no `RoadieLinkProvider` is mounted, or when it takes
+`pendingIndicator={false}`.
+
+```tsx
+const { start, stop } = usePendingNavigation()
+
+const buy = async () => {
+  start()
+  try {
+    await reserve()
+    router.push('/checkout')
+  } catch {
+    stop()
+  }
+}
+```
+
+## Migration
+
+`LinkButton` and `LinkIconButton` are still exported and still work, but new
+code should use `Button` and `IconButton` with `href`. They're scheduled for
+removal in v3.0.0.
+
+```tsx
+// Before
+<LinkButton href='/events' intent='accent'>Events</LinkButton>
+<LinkIconButton href='/cart' aria-label='Cart' size='icon-md'>
+  <ShoppingCartIcon weight='bold' />
+</LinkIconButton>
+
+// After
+<Button href='/events' intent='accent'>Events</Button>
+<IconButton href='/cart' aria-label='Cart' size='md'>
+  <ShoppingCartIcon weight='bold' />
+</IconButton>
+```
