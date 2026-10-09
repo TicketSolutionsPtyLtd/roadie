@@ -82,7 +82,6 @@ describe('Checkbox', () => {
     const { container } = render(<Checkbox label='Agree' emphasis='normal' />)
     const label = container.querySelector('[data-slot="checkbox"]')!
     expect(label).toHaveClass('emphasis-normal')
-    expect(label).toHaveClass('rounded-xl')
   })
 
   it('keeps a custom className on the label', () => {

@@ -112,15 +112,15 @@ export default [
   },
   {
     files: ['packages/**/*.test.{ts,tsx}'],
-    rules: { 'roadie/no-fixed-sleep': 'error' }
+    rules: {
+      'roadie/no-fixed-sleep': 'error',
+      'roadie/no-cva-output-assertion': 'error'
+    }
   },
   {
     files: ['packages/**/*.test.{ts,tsx}'],
     ignores: ['**/*.browser.test.{ts,tsx}'],
-    rules: {
-      'roadie/no-css-class-in-jsdom': 'warn',
-      'roadie/no-cva-output-assertion': 'error'
-    }
+    rules: { 'roadie/no-css-class-in-jsdom': 'warn' }
   },
   {
     files: ['packages/**/*.test.{ts,tsx}'],

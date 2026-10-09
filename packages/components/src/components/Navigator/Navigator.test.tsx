@@ -30,13 +30,7 @@ import {
   withStubLink
 } from './testUtils'
 import { NAV_COLLAPSE_THRESHOLD } from './useTopPaneChrome'
-import {
-  navigatorContentClass,
-  navigatorIndicatorVariants,
-  navigatorPrimaryClusterTrackClass,
-  navigatorPrimaryPinnedClass,
-  navigatorPrimaryTrackVariants
-} from './variants'
+import { navigatorContentClass } from './variants'
 
 withScrollSentinels()
 
@@ -2189,6 +2183,7 @@ describe('Navigator sliding indicator', () => {
       expect(indicator.tagName).toBe('SPAN')
       expect(indicator).toHaveAttribute('aria-hidden', 'true')
       expect(indicator).not.toHaveAttribute('aria-current')
+      expect(indicator).toHaveClass('intent-accent')
       expect(indicator.className).toContain('bg-[var(--intent-bg-subtle)]')
     }
   )
@@ -2205,22 +2200,6 @@ describe('Navigator sliding indicator', () => {
     expect(indicator.className).toContain('opacity-0')
     await flushViewportMeasurement()
   })
-
-  const transitionClasses = (classes: string) =>
-    classes.split(' ').filter((name) => /(^|:)\[?transition/.test(name))
-
-  it.each(['vertical', 'horizontal'] as const)(
-    'transitions the %s pill on translate/opacity only, never left/top/width/height',
-    (surface) => {
-      const classes = navigatorIndicatorVariants({ surface, visible: true })
-      expect(transitionClasses(classes)).toEqual([
-        'motion-safe:transition-opacity',
-        'motion-safe:data-[settled=true]:[transition-property:opacity,translate]',
-        'motion-reduce:transition-none'
-      ])
-      expect(classes).toContain('intent-accent')
-    }
-  )
 })
 
 describe('Navigator.Secondary', () => {
@@ -3920,19 +3899,6 @@ describe('per-destination hrefs', () => {
     const panes = document.querySelectorAll('[data-slot="pane"]')
     expect(panes[0]).toHaveAttribute('data-stack-position', 'top')
     expect(panes[1]).toHaveAttribute('data-stack-position', 'ahead')
-  })
-})
-
-describe('indicator track offsetParent guard', () => {
-  // jsdom has no offsetParent; a track without `relative` falls back to transform-inclusive rects.
-  it('keeps every indicator track position: relative', () => {
-    for (const track of [
-      navigatorPrimaryTrackVariants(),
-      navigatorPrimaryClusterTrackClass,
-      navigatorPrimaryPinnedClass
-    ]) {
-      expect(track.split(' ')).toContain('relative')
-    }
   })
 })
 

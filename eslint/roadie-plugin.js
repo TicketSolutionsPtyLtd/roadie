@@ -136,6 +136,21 @@ function staticBranches(node) {
   return value === undefined ? [] : [value]
 }
 
+// JSX means the value was rendered, which is what a test should assert on.
+const EXPRESSION_EDGE = /Function|Statement$|Declaration$|^JSX|^Program$/
+
+// expect(…) itself, or a matcher chained on it such as expect(…).not.toBe(…).
+function isAssertion(call) {
+  let node = call
+  while (node.type === 'CallExpression' || node.type === 'MemberExpression') {
+    if (node.type === 'CallExpression' && node.callee.name === 'expect') {
+      return true
+    }
+    node = node.type === 'CallExpression' ? node.callee : node.object
+  }
+  return false
+}
+
 // Navigator.Item renders its icon duotone, so it takes the icon bare.
 function isNavigatorItemIcon(openingElement) {
   const attribute = openingElement.parent.parent?.parent
@@ -443,11 +458,58 @@ const rules = {
     "CallExpression[callee.property.name='toHaveClass'] Literal[value=/calc\\(|@container|(^|\\s|:)(max-)?(sm|md|lg|xl|2xl):/]",
     'jsdom cannot evaluate calc(), container queries, or breakpoints. Assert this in a *.browser.test.tsx. See AGENTS.md, Tests and code.'
   ),
-  'no-cva-output-assertion': selectorRule(
-    'Tests do not assert CVA output.',
-    "CallExpression[callee.name='expect'] > CallExpression.arguments[callee.name=/Variants$/]",
-    'Assert what a user sees, not the class string a variants function returns. See docs/contributing/CODING_STANDARDS.md, Test at the public interface.'
-  )
+  'no-cva-output-assertion': {
+    meta: {
+      type: 'problem',
+      docs: { description: 'Tests do not assert CVA output.' },
+      schema: []
+    },
+    create(context) {
+      const { sourceCode } = context
+      const reported = new WeakSet()
+      const report = (node) => {
+        if (reported.has(node)) return
+        reported.add(node)
+        context.report({
+          node,
+          message:
+            'Assert what a user sees, not the class string a variants function returns. See docs/contributing/CODING_STANDARDS.md, Test at the public interface.'
+        })
+      }
+      // One binding deep: past that, the value is usually markup or an element built from the classes.
+      const followBinding = (declaration) => {
+        for (const variable of sourceCode.getDeclaredVariables(declaration)) {
+          for (const reference of variable.references) {
+            if (reference.isRead()) follow(reference.identifier, false)
+          }
+        }
+      }
+      const follow = (node, mayBind = true) => {
+        let child = node
+        for (let parent = node.parent; parent; parent = parent.parent) {
+          if (
+            parent.type === 'CallExpression' &&
+            parent.arguments.includes(child) &&
+            isAssertion(parent)
+          ) {
+            return report(node)
+          }
+          const bound =
+            (parent.type === 'VariableDeclarator' && parent.init === child) ||
+            (parent.type === 'ForOfStatement' && parent.right === child)
+          if (bound) {
+            if (mayBind) followBinding(parent.left ?? parent)
+            return
+          }
+          if (EXPRESSION_EDGE.test(parent.type)) return
+          child = parent
+        }
+      }
+      return {
+        'CallExpression[callee.name=/Variants$/]': (node) => follow(node)
+      }
+    }
+  }
 }
 
 export default { meta: { name: 'roadie' }, rules }
