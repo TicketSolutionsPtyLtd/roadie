@@ -1,0 +1,437 @@
+export const metadata = {
+  title: 'Iconography',
+  description:
+    'Icon library, weight conventions, sizing scale, and import patterns for Phosphor Bold icons.',
+  category: 'Visual'
+}
+
+import {
+  CheckCircleIcon,
+  GearIcon,
+  HeartIcon,
+  PlusIcon,
+  StarIcon,
+  TrashIcon
+} from '@phosphor-icons/react/ssr'
+
+import { Badge } from '@oztix/roadie-components/badge'
+import { Button, IconButton } from '@oztix/roadie-components/button'
+import { IconTile } from '@oztix/roadie-components/icon-tile'
+import { Toggle } from '@oztix/roadie-components/toggle'
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { IconSizeScale } from '@/components/iconography/IconSizeScale'
+
+Roadie uses [Phosphor Icons](https://phosphoricons.com/) at the Bold weight.
+The thicker strokes pair with the system's rounded, approachable visual
+language and stay legible at small sizes.
+
+## Principles
+
+- Use icons intentionally. Pair them with text labels wherever possible, and
+  avoid decorative-only icons that add clutter without aiding comprehension.
+- Prefer existing icons. Browse [Phosphor's library](https://phosphoricons.com/)
+  before considering custom SVGs. Reusing established metaphors keeps the
+  system consistent.
+- Keep it consistent. Bold by default, Fill only for active or selected
+  states, and Duotone only for large decorative icons above 48px. Never mix
+  Regular, Thin, or Light weights.
+
+## Visual style
+
+Bold weight provides thicker strokes that are more legible at small sizes and
+create a confident, approachable feel. Here are some commonly used icons in
+the system.
+
+```tsx-live layout=row gap=6
+{/* Heart */}
+<HeartIcon weight='bold' className='size-6' />
+{/* Star */}
+<StarIcon weight='bold' className='size-6' />
+{/* Plus */}
+<PlusIcon weight='bold' className='size-6' />
+{/* Trash */}
+<TrashIcon weight='bold' className='size-6' />
+{/* MagnifyingGlass */}
+<MagnifyingGlassIcon weight='bold' className='size-6' />
+{/* Gear */}
+<GearIcon weight='bold' className='size-6' />
+{/* CaretDown */}
+<CaretDownIcon weight='bold' className='size-6' />
+{/* CheckCircle */}
+<CheckCircleIcon weight='bold' className='size-6' />
+```
+
+## Icon sizes
+
+Four fixed tiers map to component contexts. Set an icon's size with a Tailwind
+`size-*` class in `className`, never Phosphor's `size` prop. On the docs site,
+each tier is drawn at its class with its size in pixels.
+
+<IconSizeScale />
+
+| Tier | Class    | Use for                                                       |
+| ---- | -------- | ------------------------------------------------------------- |
+| XS   | `size-3` | Badges, tags, compact elements, and chevrons in small buttons |
+| SM   | `size-4` | Buttons, and inline with body text (the default)              |
+| MD   | `size-5` | Navigation and standalone actions                             |
+| LG   | `size-6` | Page headers, feature cards, and hero sections                |
+
+### Sizing inside components
+
+Badge, Button, IconButton, and IconTile size the icons inside them, so an icon
+there needs no size class. Badge sizes its icon to the text (`1em`). Button
+and IconButton size an icon to the button, 16px by default, unless the icon
+has a `size-*` class of its own. IconTile sizes its icon to the tile.
+
+## Icon weights
+
+Three weights are used in the system. Bold is the default for everything.
+Fill is reserved for active or selected states. Duotone is for large,
+decorative icons above 48px. Use it on feature surfaces and icons inside an
+`IconTile` larger than `lg`, where a bold outline alone looks hollow.
+
+| Weight    | When to use                                                       |
+| --------- | ----------------------------------------------------------------- |
+| `bold`    | The default for all icons                                         |
+| `fill`    | Active or selected states only                                    |
+| `duotone` | Large decorative icons only, above 48px, such as in an `IconTile` |
+
+```tsx-live layout=stack gap=6
+{/* bold */}
+<HeartIcon weight='bold' className='size-5' />
+<StarIcon weight='bold' className='size-5' />
+<CheckCircleIcon weight='bold' className='size-5' />
+{/* fill */}
+<HeartIcon weight='fill' className='size-5' />
+<StarIcon weight='fill' className='size-5' />
+<CheckCircleIcon weight='fill' className='size-5' />
+{/* duotone */}
+<IconTile intent='accent' size='xl'>
+  <HeartIcon weight='duotone' />
+</IconTile>
+<IconTile intent='accent' size='xl'>
+  <StarIcon weight='duotone' />
+</IconTile>
+<IconTile intent='accent' size='xl'>
+  <CheckCircleIcon weight='duotone' />
+</IconTile>
+```
+
+[Navigator](/components/navigator) is the exception. Its destinations render
+duotone at 24px. Navigator applies the weight itself, so pass it a bare icon.
+
+### Bold and fill in navigation
+
+Navigation items use Bold when inactive and Fill when active.
+
+```tsx-live
+<Tabs defaultValue='favourites' emphasis='normal'>
+  <Tabs.List>
+    <Tabs.Tab
+      value='favourites'
+      render={(props, state) => (
+        <button {...props}>
+          <HeartIcon weight={state.active ? 'fill' : 'bold'} />
+          Favourites
+        </button>
+      )}
+    />
+    <Tabs.Tab
+      value='starred'
+      render={(props, state) => (
+        <button {...props}>
+          <StarIcon weight={state.active ? 'fill' : 'bold'} />
+          Starred
+        </button>
+      )}
+    />
+    <Tabs.Tab
+      value='settings'
+      render={(props, state) => (
+        <button {...props}>
+          <GearIcon weight={state.active ? 'fill' : 'bold'} />
+          Settings
+        </button>
+      )}
+    />
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+```
+
+## Icon tiles
+
+Frame an icon in an `IconTile` when it needs to stand on its own, such as
+leading a dialog, a list row, or an empty state. The tile sizes and centres
+the icon for you, so pass a bare icon as children with no size class.
+
+```tsx-live layout=row gap=3
+<IconTile intent='accent' size='lg'>
+  <HeartIcon weight='bold' />
+</IconTile>
+<IconTile intent='success' size='lg'>
+  <CheckCircleIcon weight='bold' />
+</IconTile>
+<IconTile intent='accent' size='lg' emphasis='strong'>
+  <StarIcon weight='bold' />
+</IconTile>
+<IconTile intent='danger' size='lg'>
+  <TrashIcon weight='bold' />
+</IconTile>
+```
+
+Tile the item, not the action. Inside buttons, menu items, tabs, badges, and
+inputs, use a bare bold icon at the size the control sets. See
+[Icon Tile](/components/icon-tile).
+
+Tiles are the one place `weight='duotone'` is welcome. Use `weight='bold'` up
+to a 48px tile (`lg`), then switch to duotone above 48px, where a bold outline
+can look hollow on the larger surface. Keep Fill reserved for active states
+as elsewhere.
+
+## Icon colour
+
+Icons inherit `currentColor` by default. Use `text-*` utilities to set icon
+colour, or let them inherit from a parent. An intent only sets variables, so
+it colours an icon through a `text-*` utility on the icon or its parent, such
+as a Badge.
+
+```tsx-live layout=row gap=6
+{/* text-normal */}
+<HeartIcon weight='bold' className='size-6 text-normal' />
+{/* text-subtle */}
+<HeartIcon weight='bold' className='size-6 text-subtle' />
+{/* text-strong */}
+<HeartIcon weight='bold' className='size-6 text-strong' />
+{/* intent-danger */}
+<HeartIcon weight='bold' className='size-6 text-subtle intent-danger' />
+{/* intent-success */}
+<CheckCircleIcon weight='bold' className='size-6 text-subtle intent-success' />
+```
+
+## Import conventions
+
+<Guidelines>
+
+<Guideline title='Use the Icon suffix export' description='Phosphor exports each icon with an Icon suffix. Always use the suffixed export. The bare name is deprecated.'>
+  <Guideline.Do
+    code={`
+      import {
+        HeartIcon,
+        StarIcon
+      } from '@phosphor-icons/react/ssr'
+    `}
+  >
+    Import the `Icon`-suffixed export directly.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      import {
+        Heart,
+        Star
+      } from '@phosphor-icons/react/ssr'
+    `}
+  >
+    Bare names are deprecated and can collide with component or variable
+    names.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Use the SSR import for server components' description="Phosphor's /ssr entry point doesn't use React context, so it works in server components.">
+  <Guideline.Do
+    code={`
+      // Server component (no 'use client')
+      import {
+        HeartIcon
+      } from '@phosphor-icons/react/ssr'
+    `}
+  >
+    Use `@phosphor-icons/react/ssr` in server components.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      // Server component (no 'use client')
+      import {
+        HeartIcon
+      } from '@phosphor-icons/react'
+    `}
+  >
+    The standard entry reads React context, which server components can't
+    use, so it fails there.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Guidelines
+
+- Always set `weight='bold'` explicitly. Phosphor's default is Regular, not
+  Bold.
+- Use `aria-label` on icon-only buttons. `IconButton` enforces it as a
+  required prop.
+- Browse icons at [phosphoricons.com](https://phosphoricons.com/), and filter
+  by Bold weight to see what's available.
+- Icons inherit `currentColor`. Use `text-*` utilities for colour, not inline
+  styles or Phosphor's `color` prop.
+- Inside Badge, Button, IconButton, and IconTile, icons size themselves, so
+  they need no size class.
+- Use `@phosphor-icons/react/ssr` in server components. Only use
+  `@phosphor-icons/react` in files with `'use client'`.
+
+<Guidelines>
+
+<Guideline title='Pair icons with text labels' description='Icons are most effective when paired with text. Use icon-only buttons only when the action is universally understood, and always provide an aria-label.'>
+  <Guideline.Do
+    example={
+      <Guideline.Row>
+        <Button emphasis='strong'>
+          <PlusIcon weight='bold' />
+          Add item
+        </Button>
+        <IconButton aria-label='Delete item' emphasis='subtle'>
+          <TrashIcon weight='bold' />
+        </IconButton>
+      </Guideline.Row>
+    }
+  >
+    Pair icons with visible text. For icon-only buttons, use `IconButton`,
+    which requires `aria-label`.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <Button emphasis='strong'>
+        <PlusIcon weight='bold' />
+      </Button>
+    }
+  >
+    Don't use a button with only an icon and no label or `aria-label`. Screen
+    readers won't know what the button does.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Use Bold weight consistently' description="All icons use weight='bold'. Don't mix weights, which breaks visual harmony.">
+  <Guideline.Do
+    example={
+      <Guideline.Row>
+        <HeartIcon weight='bold' className='size-5' />
+        <StarIcon weight='bold' className='size-5' />
+        <GearIcon weight='bold' className='size-5' />
+        <TrashIcon weight='bold' className='size-5' />
+      </Guideline.Row>
+    }
+  >
+    All icons at Bold weight for a consistent stroke width.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <Guideline.Row>
+        <HeartIcon weight='bold' className='size-5' />
+        <StarIcon weight='regular' className='size-5' />
+        <GearIcon weight='thin' className='size-5' />
+        <TrashIcon weight='light' className='size-5' />
+      </Guideline.Row>
+    }
+  >
+    Mixing weights creates visual inconsistency. Regular, Thin, and Light look
+    out of place next to Bold.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Reserve Fill for active states' description="Fill weight signals that something is selected or active. Don't use it as the default.">
+  <Guideline.Do
+    example={
+      <Guideline.Row>
+        <Toggle emphasis='subtler' intent='accent' defaultPressed>
+          <HeartIcon weight='fill' />
+          Active
+        </Toggle>
+        <Toggle emphasis='subtler' intent='accent'>
+          <StarIcon weight='bold' />
+          Inactive
+        </Toggle>
+      </Guideline.Row>
+    }
+  >
+    Fill for the active item, Bold for everything else.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <Guideline.Row>
+        <Toggle emphasis='subtler' intent='accent' defaultPressed>
+          <HeartIcon weight='fill' />
+          Active
+        </Toggle>
+        <Toggle emphasis='subtler' intent='accent'>
+          <StarIcon weight='fill' />
+          Inactive
+        </Toggle>
+      </Guideline.Row>
+    }
+  >
+    Fill on inactive items removes the visual distinction for the active
+    state.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Reserve duotone for large, decorative icons' description='Duotone adds depth at large sizes but muddies legibility when small.'>
+  <Guideline.Do
+    example={
+      <IconTile size='2xl' shape='circle' intent='accent'>
+        <HeartIcon weight='duotone' />
+      </IconTile>
+    }
+  >
+    Use `weight='duotone'` above 48px. The two-tone fill reads as intentional
+    depth on feature surfaces and on icons inside an `IconTile`.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <Badge emphasis='subtler'>
+        <HeartIcon weight='duotone' />
+        Favourites
+      </Badge>
+    }
+  >
+    Don't use duotone for small inline or UI icons. The lighter secondary
+    layer turns muddy at small sizes. Use `weight='bold'` instead.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Match icon size to context' description='Use the sizing scale to keep icons proportional to their surroundings.'>
+  <Guideline.Do
+    example={
+      <Guideline.Row>
+        <Badge intent='success'>
+          <CheckCircleIcon weight='bold' />
+          Verified
+        </Badge>
+        <Button size='sm'>
+          <PlusIcon weight='bold' />
+          Add
+        </Button>
+      </Guideline.Row>
+    }
+  >
+    Let components size icons, or use the tier for the context.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <Guideline.Row>
+        <Badge intent='success'>
+          <CheckCircleIcon weight='bold' className='size-6' />
+          Verified
+        </Badge>
+        <Button size='sm'>
+          <PlusIcon weight='bold' className='size-6' />
+          Add
+        </Button>
+      </Guideline.Row>
+    }
+  >
+    Oversized icons next to small text look unbalanced. Match the icon tier to
+    the text size.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
