@@ -25,8 +25,7 @@ import {
 } from '../Pane/paneScroll'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
-import { ROW_HEIGHT } from './RecordTableRow'
-import { showColumns } from './testUtils'
+import { ROW_PX, showColumns } from './testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -120,9 +119,9 @@ describe('RecordTable range mode in a browser', { timeout: 30_000 }, () => {
       <Ranged total={100_000} rowCount={100_000} spans={spans} />
     )
     const scroller = box(container)
-    expect(scroller.scrollHeight).toBeGreaterThanOrEqual(100_000 * ROW_HEIGHT)
+    expect(scroller.scrollHeight).toBeGreaterThanOrEqual(100_000 * ROW_PX)
     await framed(() => {
-      scroller.scrollTop = ROW_HEIGHT * 50_000
+      scroller.scrollTop = ROW_PX * 50_000
       return container.textContent?.includes('show-50000')
     }).toBe(true)
     expect(
@@ -289,9 +288,7 @@ describe('RecordTable range failure in a browser', { timeout: 30_000 }, () => {
   ) => {
     await framed(() => {
       scroller.scrollTop =
-        rowCount === undefined
-          ? scroller.scrollHeight
-          : ROW_HEIGHT * (start - 5)
+        rowCount === undefined ? scroller.scrollHeight : ROW_PX * (start - 5)
       return spans.some((span) => span.start === start)
     }).toBe(true)
     return scroller.scrollTop
@@ -319,7 +316,7 @@ describe('RecordTable range failure in a browser', { timeout: 30_000 }, () => {
       await framed(() => inlineError(container)).not.toBeNull()
       expect(scroller.scrollTop).toBe(top)
       expect(inlineError(container)!.getBoundingClientRect().height).toBe(
-        ROW_HEIGHT
+        ROW_PX
       )
       // A real click: user-event focuses the button with a scroll WebKit applies late.
       await page
@@ -418,7 +415,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     try {
       expect(historyEntryKey()).toBe(key)
       // A standalone detail pane's seat; the offset is from another layout.
-      rememberPaneScroll(key, '0:detail:1', 470 * ROW_HEIGHT)
+      rememberPaneScroll(key, '0:detail:1', 470 * ROW_PX)
       const { container } = render(
         <InPane>
           <Positioned total={5000} rowCount={5000} row={480} spans={[]} />
@@ -431,7 +428,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
       // Past the pane's settle frames and the table's hold.
       await wait(800)
       expect(underHeader(container, 480)).toBeLessThanOrEqual(1)
-      expect(viewport.scrollTop).not.toBe(470 * ROW_HEIGHT)
+      expect(viewport.scrollTop).not.toBe(470 * ROW_PX)
     } finally {
       forgetPaneScroll()
       if (navigation) Object.defineProperty(window, 'navigation', navigation)
@@ -456,7 +453,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     const scroller = box(container)
     await framed(() => rowAt(container, 0)).not.toBeNull()
     await framed(() => {
-      scroller.scrollTop = 300 * ROW_HEIGHT
+      scroller.scrollTop = 300 * ROW_PX
       return rows.some((row) => row > 250)
     }).toBe(true)
     await wait(400)
@@ -487,7 +484,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     const scroller = box(container)
     await framed(() => underHeader(container, 480)).toBeLessThanOrEqual(1)
     // A drag on the scrollbar fires no wheel, touch or key event.
-    scroller.scrollTop = 200 * ROW_HEIGHT
+    scroller.scrollTop = 200 * ROW_PX
     await framed(() => rows.at(-1)).toBeDefined()
     expect(Math.abs(rows.at(-1)! - 200)).toBeLessThanOrEqual(2)
     expect(rows.at(-1)).toBe(firstVisible(container))
@@ -510,7 +507,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     )
     const scroller = box(container)
     await framed(() => underHeader(container, 480)).toBeLessThanOrEqual(1)
-    scroller.scrollTop = 200 * ROW_HEIGHT
+    scroller.scrollTop = 200 * ROW_PX
     await framed(() => rows.at(-1)).toBeDefined()
     expect(Math.abs(rows.at(-1)! - 200)).toBeLessThanOrEqual(2)
     expect(rows.at(-1)).toBe(firstVisible(container))
@@ -537,7 +534,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     rerender(table('hidden'))
     rerender(table('visible'))
     await wait(700)
-    box(container).scrollTop = 200 * ROW_HEIGHT
+    box(container).scrollTop = 200 * ROW_PX
     await framed(() => rows.at(-1)).toBeDefined()
     expect(Math.abs(rows.at(-1)! - 200)).toBeLessThanOrEqual(2)
   })
@@ -636,7 +633,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     const started = performance.now()
     for (;;) {
       const progress = Math.min(1, (performance.now() - started) / 1000)
-      scroller.scrollTop = progress * 100 * ROW_HEIGHT
+      scroller.scrollTop = progress * 100 * ROW_PX
       await frame()
       if (progress === 1) break
     }
@@ -691,18 +688,18 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     const { container } = render(<Echoing />)
     const scroller = box(container)
     await framed(() => rowAt(container, 0)).not.toBeNull()
-    scroller.scrollTop = 120 * ROW_HEIGHT
+    scroller.scrollTop = 120 * ROW_PX
     await framed(() => reported.length).toBe(1)
     // Moves on before the router echoes the first row back.
-    scroller.scrollTop = 150 * ROW_HEIGHT
+    scroller.scrollTop = 150 * ROW_PX
     // Every position after the move, so a stale echo's brief jump shows even once a later echo restores it.
     const tops: number[] = []
     scroller.addEventListener('scroll', () => tops.push(scroller.scrollTop))
     await framed(() => reported.length).toBe(2)
     await framed(() => echoed.length).toBe(2)
     await nudgeFrames()
-    expect(scroller.scrollTop).toBe(150 * ROW_HEIGHT)
-    expect(tops.filter((top) => top !== 150 * ROW_HEIGHT)).toEqual([])
+    expect(scroller.scrollTop).toBe(150 * ROW_PX)
+    expect(tops.filter((top) => top !== 150 * ROW_PX)).toEqual([])
     expect(reported).toHaveLength(2)
     expect(reported.at(-1)).toBe(firstVisible(container))
     screen.getByRole('button', { name: 'Go to row 3000' }).click()

@@ -25,6 +25,8 @@ export const WIDE_BOX = 660
 // A pane insets its content, so it needs more room.
 export const WIDE_PANE = 760
 export const ALL = { pageSize: 100 }
+/** A table row's height at the 16px root, from the spec. */
+export const ROW_PX = 48
 
 export const frame = () =>
   new Promise((resolve) => requestAnimationFrame(resolve))

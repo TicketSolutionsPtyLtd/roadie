@@ -8,8 +8,7 @@ import { Pane } from '../Pane'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { findScrollParent } from '../Records/scrollParent'
 import { showFields, testShows } from '../Records/testUtils'
-import { ROW_HEIGHT } from './RecordTableRow'
-import { showColumns } from './testUtils'
+import { ROW_PX, showColumns } from './testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -95,7 +94,7 @@ describe('RecordTable virtualised rows', { timeout: 30_000 }, () => {
     )!
     await framed(() => {
       const documentTop = content.getBoundingClientRect().top + window.scrollY
-      window.scrollTo(0, documentTop + 199 * ROW_HEIGHT)
+      window.scrollTo(0, documentTop + 199 * ROW_PX)
       return container.textContent?.includes(target)
     }).toBe(true)
     expect(rows(container).length).toBeLessThan(80)
@@ -191,7 +190,7 @@ describe('RecordTable focus in a window of rows', { timeout: 30_000 }, () => {
               '[data-slot="record-table-viewport"]'
             )!
       await framed(() => {
-        scroller.scrollTop = 200 * ROW_HEIGHT
+        scroller.scrollTop = 200 * ROW_PX
         return container.querySelector('[data-row-id="show-4"]')
       }).toBeNull()
       expect(document.activeElement).toBe(

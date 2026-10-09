@@ -17,7 +17,6 @@ import { Menu } from '../Menu'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Records, useRecords } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
-import { CARD_GAP_REM } from './RecordTableNarrowRows'
 import type { RecordTableNarrowLayout } from './narrow'
 import { frame } from './testUtils'
 
@@ -33,7 +32,8 @@ const settle = async () => {
   await frame()
   await frame()
 }
-const CARD_GAP = CARD_GAP_REM * 16
+/** `gap-3` at the 16px root. */
+const CARD_GAP = 12
 
 const layout = (container: HTMLElement) =>
   [

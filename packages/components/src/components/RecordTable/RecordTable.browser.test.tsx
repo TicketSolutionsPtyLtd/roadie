@@ -6,7 +6,6 @@ import roadieCss from '../../../vitest.browser.css?inline'
 import { Pane } from '../Pane'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { showFields, testShows } from '../Records/testUtils'
-import { ROW_HEIGHT } from './RecordTableRow'
 import { tableColumns } from './columns'
 import {
   ALL,
@@ -178,23 +177,39 @@ describe('RecordTable columns', () => {
       expect(getComputedStyle(cell).zIndex).toBe('10')
   })
 
-  it('keeps a long title on one line inside a 48px row', async () => {
-    const shows = testShows(3)
-    shows[0]!.show = 'Ocean Alley and friends '.repeat(8)
-    const { container } = render(
-      <div style={{ width: WIDE_BOX }}>
-        <RecordTable data={shows} fields={showFields} columns={showColumns} />
-      </div>
-    )
-    await frame()
-    const [row, next] = container.querySelectorAll<HTMLElement>(
-      '[data-slot="record-table-row"]'
-    )
-    expect(rect(row!).height).toBe(ROW_HEIGHT)
-    const title = row!.querySelector('[role="cell"] > span')!
-    expect(rect(title).bottom).toBeLessThanOrEqual(rect(next!).top)
-    expect(title.scrollWidth).toBeGreaterThan(title.clientWidth)
-  })
+  it.each([
+    ['16px', 48],
+    ['20px', 60]
+  ])(
+    'keeps a long title on one line inside a row, at a %s root %ipx tall',
+    async (rootSize, height) => {
+      document.documentElement.style.fontSize = rootSize
+      try {
+        const shows = testShows(3)
+        shows[0]!.show = 'Ocean Alley and friends '.repeat(8)
+        const { container } = render(
+          // In rem, so the larger root stays wide.
+          <div style={{ width: `${WIDE_BOX / 16}rem` }}>
+            <RecordTable
+              data={shows}
+              fields={showFields}
+              columns={showColumns}
+            />
+          </div>
+        )
+        await frame()
+        const [row, next] = container.querySelectorAll<HTMLElement>(
+          '[data-slot="record-table-row"]'
+        )
+        expect(rect(row!).height).toBe(height)
+        const title = row!.querySelector('[role="cell"] > span')!
+        expect(rect(title).bottom).toBeLessThanOrEqual(rect(next!).top)
+        expect(title.scrollWidth).toBeGreaterThan(title.clientWidth)
+      } finally {
+        document.documentElement.style.fontSize = ''
+      }
+    }
+  )
 
   it('right-aligns figures under their header', async () => {
     const { container } = render(
@@ -429,7 +444,7 @@ describe('RecordTable loading', () => {
     )
     await frame()
     const rowHeight = () => rect(slot(container, 'record-table-row')).height
-    expect(rowHeight()).toBe(ROW_HEIGHT)
+    expect(rowHeight()).toBe(48)
     rerender(
       <RecordTable
         data={shows}
@@ -439,7 +454,7 @@ describe('RecordTable loading', () => {
       />
     )
     await frame()
-    expect(rowHeight()).toBe(ROW_HEIGHT)
+    expect(rowHeight()).toBe(48)
     const head = rect(slot(container, 'record-table-head'))
     const bar = rect(slot(container, 'record-table-progress'))
     expect(bar.height).toBeGreaterThan(0)

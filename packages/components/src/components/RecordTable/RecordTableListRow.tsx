@@ -10,15 +10,8 @@ import { RecordPartValue } from '../Records/RecordPartValue'
 import { RecordsRowActions } from '../Records/RecordsRowActions'
 import { RecordsSelectModeCheckbox } from '../Records/RecordsRowCheckbox'
 import type { RecordCardParts, RecordPart } from '../Records/types'
+import { listRowSize } from './rowSizing'
 import { useKeepFocusInTable } from './tableFocus'
-
-/** `h-16`, or `h-12` without a description, in rem. */
-export const listRowRem = (parts: RecordCardParts) =>
-  parts.description ? 4 : 3
-
-// Full literals for Tailwind's scanner; they match the constants above.
-export const listRowHeightClass = (parts: RecordCardParts) =>
-  parts.description ? 'h-16' : 'h-12'
 
 // List rows size to their text; a window needs whole, fixed heights, so the content centres in them instead.
 const fixedHeightClass =
@@ -95,7 +88,7 @@ export const RecordTableListRow = memo(function RecordTableListRow({
           'rounded-b-[var(--record-table-row-join,var(--radius-xl))]',
           // Subtler paints a tint at rest unless a target makes it interactive.
           href === undefined && !selecting && !selected && 'bg-transparent',
-          listRowHeightClass(parts),
+          listRowSize(parts).heightClass,
           fixedHeightClass
         )}
       >

@@ -22,34 +22,27 @@ import type {
   RecordsRangeState,
   RecordsRow
 } from '../Records/types'
-import {
-  RecordTableListRow,
-  listRowHeightClass,
-  listRowRem
-} from './RecordTableListRow'
+import { RecordTableListRow } from './RecordTableListRow'
 import {
   RecordTableNarrowRangeError,
   failedRowAt,
   rangeErrorKey
 } from './RecordTableRangeError'
 import {
-  type RowSizing,
   VIRTUALISE_AFTER,
   indexKey,
   useRangeWindow,
   windowPadding
 } from './RecordTableRows'
 import type { RecordTableNarrowLayout } from './narrow'
+import { type RowSize, cardGap, cardSize, listRowSize } from './rowSizing'
 import { useRowWindow } from './rowWindow'
 import { useKeepFocusInTable } from './tableFocus'
 
-/** A card's height before it's measured, in rem, and what a 16:9 banner adds on a phone. */
-export const CARD_REM = 10
-const BANNER_REM = 12.5
-export const CARD_GAP_REM = 0.75
-
+// Read by RecordTable.image.test.tsx, which INNO-1186 is reworking.
 export const cardRem = (parts: RecordCardParts<never>) =>
-  CARD_REM + (parts.image ? BANNER_REM : 0)
+  cardSize(parts.image !== undefined).estimateRem
+export const CARD_REM = cardSize(false).estimateRem
 
 type MeasureElement = (node: HTMLLIElement | null) => void
 
@@ -80,11 +73,8 @@ type RecordTableNarrowRowsProps = NarrowShared & {
   onRow?: (row: number) => void
 }
 
-/** Cards size to their content, so the window measures them. */
-const sizing = ({ layout, parts }: NarrowShared): RowSizing =>
-  layout === 'cards'
-    ? { measure: true, gapRem: CARD_GAP_REM, estimateRem: cardRem(parts) }
-    : { estimateRem: listRowRem(parts) }
+const sizing = ({ layout, parts }: NarrowShared): RowSize =>
+  layout === 'cards' ? cardSize(parts.image !== undefined) : listRowSize(parts)
 
 export function RecordTableNarrowRows({
   rows,
@@ -261,7 +251,7 @@ function NarrowList({
       aria-busy={busy || undefined}
       data-slot='record-table-body'
       className={cn(
-        cards ? 'grid gap-3' : [listSectionClass, joinSelected],
+        cards ? ['grid', cardGap.gapClass] : [listSectionClass, joinSelected],
         'text-sm'
       )}
       style={padding}
@@ -357,7 +347,7 @@ function RangeList({
     })
   useHeldHeight(bodyRef, measureElement !== undefined)
   const size = range.total ?? -1
-  const heightClass = listRowHeightClass(shared.parts)
+  const { heightClass } = sizing(shared)
   return (
     <NarrowList
       {...listProps}
@@ -428,6 +418,7 @@ export const NarrowPlaceholder = memo(function NarrowPlaceholder({
   const description = parts.description !== undefined
   if (card) {
     const banner = parts.image !== undefined
+    const bodyClass = cardSize(banner).heightClass
     return (
       <li
         ref={measureElement}
@@ -439,7 +430,7 @@ export const NarrowPlaceholder = memo(function NarrowPlaceholder({
         <div
           className={cn(
             'grid content-start overflow-hidden rounded-xl border border-subtle',
-            !banner && 'h-40'
+            !banner && bodyClass
           )}
         >
           {banner && (
@@ -448,7 +439,9 @@ export const NarrowPlaceholder = memo(function NarrowPlaceholder({
               className={cn('aspect-video', !blank && 'bg-subtle')}
             />
           )}
-          <div className={cn('grid content-start gap-2 p-4', banner && 'h-40')}>
+          <div
+            className={cn('grid content-start gap-2 p-4', banner && bodyClass)}
+          >
             {!blank && <span className='h-3.5 w-3/5 rounded-sm bg-subtle' />}
             {!blank && description && (
               <span className='h-2.5 w-2/5 rounded-sm bg-subtle' />
@@ -460,7 +453,7 @@ export const NarrowPlaceholder = memo(function NarrowPlaceholder({
   }
   return (
     <li aria-hidden data-slot='record-table-placeholder-row'>
-      <div className={cn('flex', listRowHeightClass(parts))}>
+      <div className={cn('flex', listRowSize(parts).heightClass)}>
         {parts.leading && (
           <span className={cn(listItemLeadingClass, 'py-0')}>
             <span className={cn('size-10 rounded-md', !blank && 'bg-subtle')} />
@@ -498,7 +491,10 @@ export function NarrowSkeleton({
     <ul
       aria-hidden
       data-slot='record-table-skeleton'
-      className={cn('text-sm', cards ? 'grid gap-3' : listSectionClass)}
+      className={cn(
+        'text-sm',
+        cards ? ['grid', cardGap.gapClass] : listSectionClass
+      )}
     >
       {Array.from({ length: Math.min(size, SKELETON_ROWS) }, (_, index) => (
         <NarrowPlaceholder key={index} parts={parts} card={cards} />
