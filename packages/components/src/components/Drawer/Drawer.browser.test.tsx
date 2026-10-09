@@ -391,6 +391,9 @@ describe('a drawer header', () => {
 const alpha = (colour: string) =>
   Number(/\/\s*([\d.]+)\s*\)$/.exec(colour)?.[1] ?? 1)
 
+const lightness = (colour: string) =>
+  Number(/^oklch\(([\d.]+)/.exec(colour)?.[1] ?? NaN)
+
 describe('the page behind a drawer', () => {
   afterEach(() => commands.reduceTransparency(false))
 
@@ -412,6 +415,7 @@ describe('the page behind a drawer', () => {
     const style = await backdrop('normal')
 
     expect(style.backdropFilter).toBe('blur(8px)')
+    expect(lightness(style.backgroundColor)).toBeCloseTo(0.1, 2)
     expect(alpha(style.backgroundColor)).toBeCloseTo(0.55, 2)
   })
 
@@ -419,6 +423,7 @@ describe('the page behind a drawer', () => {
     const style = await backdrop('subtle')
 
     expect(style.backdropFilter).toBe('none')
+    expect(lightness(style.backgroundColor)).toBeCloseTo(0.1, 2)
     expect(alpha(style.backgroundColor)).toBeCloseTo(0.25, 2)
   })
 
