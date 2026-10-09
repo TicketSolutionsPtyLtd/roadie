@@ -37,3 +37,4 @@ the rule and keep only the why here.
 | [0007](0007-mdx-by-default.md)            | Docs pages are MDX by default                           |
 | [0008](0008-version-packages-by-hand.md)  | Version Packages is merged by hand                      |
 | [0009](0009-real-browsers-for-tests.md)   | Browser tests use real browsers                         |
+| [0010](0010-apca-contrast.md)             | Contrast is measured with APCA                          |
