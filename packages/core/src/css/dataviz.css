@@ -97,10 +97,10 @@
 .dark {
   --chart-1: #abc8fc;
   --chart-2: #e36ebb;
-  --chart-3: #8ef7eb;
+  --chart-3: #91fbee;
   --chart-4: #e0ae53;
   --chart-5: #ae81fe;
-  --chart-6: #7ff1a4;
+  --chart-6: #82f4a7;
   --chart-7: #c18998;
   --chart-8: #69bceb;
   --chart-heat-0: #222137;
@@ -183,10 +183,10 @@
   .dark {
     --chart-1: oklch(0.83 0.08 262);
     --chart-2: oklch(0.7 0.17 342.3);
-    --chart-3: oklch(0.91 0.1 186);
+    --chart-3: oklch(0.92 0.1 186);
     --chart-4: oklch(0.779 0.123 80);
     --chart-5: oklch(0.7 0.18 298.2);
-    --chart-6: oklch(0.87 0.15 152.7);
+    --chart-6: oklch(0.88 0.15 152.7);
     --chart-7: oklch(0.69 0.07 1.5);
     --chart-8: oklch(0.761 0.106 235.4);
     --chart-heat-0: oklch(0.26 0.04 285);
