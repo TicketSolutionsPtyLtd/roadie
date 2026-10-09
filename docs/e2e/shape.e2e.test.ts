@@ -38,6 +38,7 @@ const NAMED_TIERS = [
   'rounded-lg',
   'rounded-xl',
   'rounded-2xl',
+  'rounded-3xl',
   'rounded-4xl',
   'rounded-5xl',
   'rounded-6xl',
@@ -111,6 +112,23 @@ describe('Shape foundation', () => {
       expect(overflow).toBe(0)
     }, 60_000)
   }
+
+  it('names a tier for every rendered radius, in order', async () => {
+    const page = await open('/foundations/shape/', 1280)
+    const tiers = await page
+      .locator('#docs-content table')
+      .first()
+      .locator('tbody tr')
+      .evaluateAll((rows) =>
+        rows.map((row) => {
+          const [tier, utility] = row.querySelectorAll('td')
+          return { tier: tier!.textContent, utility: utility!.textContent }
+        })
+      )
+
+    expect(tiers.map((tier) => tier.utility)).toEqual(NAMED_TIERS)
+    expect(tiers).toContainEqual({ tier: 'Panel', utility: 'rounded-3xl' })
+  }, 60_000)
 
   it('describes the scale in its markdown copy without pointing at the tiles it drops', async () => {
     const markdown = await readFile(
