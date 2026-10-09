@@ -45,7 +45,7 @@ function Ranged({
   rowCount,
   spans,
   failAt,
-  slowAt,
+  hold,
   maxHeight
 }: {
   total: number
@@ -53,8 +53,8 @@ function Ranged({
   spans: Span[]
   /** Rejects the first request for the range starting here. */
   failAt?: number
-  /** Settles the range starting here a moment later, so the test sees it pending. */
-  slowAt?: number
+  /** Holds the range starting at `at` until `until` settles, so the test sees it pending. */
+  hold?: { at: number; until: Promise<void> }
   /** Scrolls the table in its own box rather than the outer one. */
   maxHeight?: string
 }) {
@@ -95,14 +95,20 @@ function Ranged({
             )
             setData((current) => placeRange(current, start, rows))
           }
-          if (start !== slowAt) return settle()
-          return new Promise<void>((resolve) => setTimeout(resolve, 300)).then(
-            settle
-          )
+          if (start !== hold?.at) return settle()
+          return hold.until.then(settle)
         }}
       />
     </div>
   )
+}
+
+function gate() {
+  let open = () => {}
+  const until = new Promise<void>((resolve) => {
+    open = resolve
+  })
+  return { until, open }
 }
 
 const box = (container: HTMLElement) =>
@@ -301,18 +307,20 @@ describe('RecordTable range failure in a browser', { timeout: 30_000 }, () => {
     'keeps the scroll position when a range fails and on Retry (%s)',
     async (_, rowCount, failAt) => {
       const spans: Span[] = []
+      const held = gate()
       const { container } = render(
         <Ranged
           total={5000}
           rowCount={rowCount}
           spans={spans}
           failAt={failAt}
-          slowAt={failAt}
+          hold={{ at: failAt, until: held.until }}
         />
       )
       const scroller = box(container)
       const top = await scrollUntilRequested(scroller, spans, failAt, rowCount)
       expect(top).toBeGreaterThan(0)
+      held.open()
       await framed(() => inlineError(container)).not.toBeNull()
       expect(scroller.scrollTop).toBe(top)
       expect(inlineError(container)!.getBoundingClientRect().height).toBe(
@@ -335,13 +343,14 @@ describe('RecordTable range failure in a browser', { timeout: 30_000 }, () => {
 
   it('keeps a failed range and a keyboard Retry inside a table in its own box', async () => {
     const spans: Span[] = []
+    const held = gate()
     const { container } = render(
       <Ranged
         total={5000}
         rowCount={5000}
         spans={spans}
         failAt={1000}
-        slowAt={1000}
+        hold={{ at: 1000, until: held.until }}
         maxHeight='30rem'
       />
     )
@@ -349,6 +358,7 @@ describe('RecordTable range failure in a browser', { timeout: 30_000 }, () => {
       '[data-slot="record-table-viewport"]'
     )!
     const top = await scrollUntilRequested(viewport, spans, 1000, 5000)
+    held.open()
     await framed(() => inlineError(container)).not.toBeNull()
     expect(viewport.scrollTop).toBe(top)
     inlineError(container)!
@@ -367,13 +377,19 @@ describe('RecordTable range failure in a browser', { timeout: 30_000 }, () => {
 
   it('keeps the scroll position when a range lands at the end of the list', async () => {
     const spans: Span[] = []
+    const held = gate()
     const { container } = render(
-      <Ranged total={5000} spans={spans} slowAt={100} />
+      <Ranged
+        total={5000}
+        spans={spans}
+        hold={{ at: 100, until: held.until }}
+      />
     )
     const scroller = box(container)
     const top = await scrollUntilRequested(scroller, spans, 100)
     expect(top).toBeGreaterThan(0)
     expect(placeholders(container).length).toBeGreaterThan(0)
+    held.open()
     await framed(() => placeholders(container).length).toBe(0)
     expect(scroller.scrollTop).toBe(top)
   })

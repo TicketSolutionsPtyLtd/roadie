@@ -28,6 +28,7 @@ import {
   tableLayout
 } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { keepFramesRunning } from '../../css/testUtils'
 import { Menu } from '../Menu'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Records, useRecords } from '../Records'
@@ -161,10 +162,22 @@ describe('RecordTable narrow list rows in a browser', () => {
     await expect.poll(() => listRows(container).length).toBe(3)
     const surface = listRows(container)[0]!.firstElementChild!
     const rest = getComputedStyle(surface).backgroundColor
-    await browserUserEvent.hover(
-      screen.getByRole('button', { name: 'More actions for Ocean Alley 1' })
-    )
-    await new Promise((resolve) => setTimeout(resolve, 300))
+    const more = screen.getByRole('button', {
+      name: 'More actions for Ocean Alley 1'
+    })
+    await browserUserEvent.hover(more)
+    // A tint would run as a transition, so none left running means none came.
+    const box = more.getBoundingClientRect()
+    const stopFrames = keepFramesRunning(() => ({
+      x: box.left + box.width / 2,
+      y: box.top + box.height / 2
+    }))
+    try {
+      await expect.poll(() => surface.getAnimations().length).toBe(0)
+    } finally {
+      await stopFrames()
+    }
+    expect(more.matches(':hover')).toBe(true)
     expect(getComputedStyle(surface).backgroundColor).toBe(rest)
   })
 

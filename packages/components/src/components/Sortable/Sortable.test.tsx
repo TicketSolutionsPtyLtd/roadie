@@ -211,7 +211,10 @@ describe('Sortable', () => {
     await waitFor(() =>
       expect(screen.queryByRole('menu')).not.toBeInTheDocument()
     )
-    await act(() => new Promise((resolve) => setTimeout(resolve, 50)))
+    // The claim lapses in the frame that announces the move.
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('A moved')
+    )
     const reverse = screen.getByRole('button', { name: 'Reverse' })
     await user.click(reverse)
     expect(reverse).toHaveFocus()
@@ -262,10 +265,15 @@ describe('Sortable', () => {
   it('opens the menu on a click, not on the press that may start a drag', async () => {
     render(<Columns />)
     const button = handle('SKU')
-    fireEvent.pointerDown(button, { pointerType: 'mouse' })
-    fireEvent.mouseDown(button)
-    await act(() => new Promise((resolve) => setTimeout(resolve, 50)))
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    vi.useFakeTimers()
+    try {
+      fireEvent.pointerDown(button, { pointerType: 'mouse' })
+      fireEvent.mouseDown(button)
+      act(() => vi.runOnlyPendingTimers())
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
     fireEvent.mouseUp(button)
     fireEvent.click(button)
     expect(await screen.findByRole('menu')).toBeInTheDocument()

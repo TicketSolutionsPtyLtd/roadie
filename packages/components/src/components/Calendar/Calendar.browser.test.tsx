@@ -866,12 +866,14 @@ describe('Calendar pages up and down once several months stack', () => {
   })
 
   it('keeps one month horizontal however narrow', async () => {
-    render(
+    const narrow = (months: number) => (
       <div className='w-75'>
-        <Calendar today={TODAY} />
+        <Calendar today={TODAY} numberOfMonths={months} />
       </div>
     )
-    await new Promise((resolve) => setTimeout(resolve, 50))
+    const { rerender } = render(narrow(2))
+    await expect.poll(() => root().getAttribute('data-paging')).toBe('vertical')
+    rerender(narrow(1))
     expect(root()).toHaveAttribute('data-paging', 'horizontal')
   })
 })

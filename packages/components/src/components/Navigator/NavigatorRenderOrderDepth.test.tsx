@@ -120,7 +120,8 @@ async function mount(html: string) {
   for (const script of host.querySelectorAll('script')) {
     new Function(script.textContent ?? '')()
   }
-  await new Promise((done) => setTimeout(done, 400))
+  // Fizz batches reveals on a timer and removes each hidden segment as it goes.
+  await vi.waitFor(() => expect(host.querySelector('[id^="S:"]')).toBeNull())
   return host
 }
 
@@ -336,10 +337,7 @@ describe('depth from render order', () => {
     const { problems, unmount } = await hydrate(
       host,
       <Late lib={client} on={chunk.promise} />,
-      async () => {
-        await new Promise((done) => setTimeout(done, 50))
-        await act(async () => chunk.resolve())
-      }
+      () => act(async () => chunk.resolve())
     )
     expect(problems).toEqual(clean)
     expect(depths(host).map(([, depth]) => depth)).toEqual(['0', '1', '2'])
@@ -376,7 +374,7 @@ describe('a pane whose body suspends', () => {
     const done = (async () => {
       for await (const chunk of stream) html += decoder.decode(chunk)
     })()
-    await new Promise((wait) => setTimeout(wait, 20))
+    await vi.waitFor(() => expect(html).toContain('data-slot="pane-loading"'))
     const shell = document.createElement('div')
     shell.innerHTML = html
     expect(
@@ -551,7 +549,6 @@ describe('where render order is not document order', () => {
       <Siblings lib={client} first={first.promise} second={second.promise} />,
       async () => {
         await act(async () => second.resolve())
-        await new Promise((done) => setTimeout(done, 50))
         await act(async () => first.resolve())
       }
     )
@@ -598,7 +595,6 @@ describe('where render order is not document order', () => {
       <Siblings lib={client} first={first.promise} second={second.promise} />,
       async () => {
         await act(async () => second.resolve())
-        await new Promise((done) => setTimeout(done, 50))
         await act(async () => first.resolve())
       }
     )
@@ -637,11 +633,13 @@ describe('where render order is not document order', () => {
     const lib = await server()
     const data = later()
     const controller = new AbortController()
+    // React subscribes once it reaches the suspended pane, the last in the tree.
+    const reached = vi.spyOn(data.promise, 'then')
     const pending = prerender(
       <Partial lib={lib} on={data.promise} hint={hint} />,
       { signal: controller.signal, onError: () => {} }
     )
-    await new Promise((done) => setTimeout(done, 20))
+    await vi.waitFor(() => expect(reached).toHaveBeenCalled())
     controller.abort()
     const { prelude, postponed } = await pending
     const shell = await readAll(prelude)

@@ -112,7 +112,7 @@ export default [
   },
   {
     files: ['packages/**/*.test.{ts,tsx}'],
-    rules: { 'roadie/no-fixed-sleep': 'warn' }
+    rules: { 'roadie/no-fixed-sleep': 'error' }
   },
   {
     files: ['packages/**/*.test.{ts,tsx}'],

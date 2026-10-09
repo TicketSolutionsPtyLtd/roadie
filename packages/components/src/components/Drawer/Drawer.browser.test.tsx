@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, page } from 'vitest/browser'
 
@@ -145,18 +145,19 @@ describe('a drawer body', () => {
       await new Promise(requestAnimationFrame)
     }
     at('touchend', top + 20 + distance)
-    await new Promise((settle) => setTimeout(settle, 600))
   }
 
   it.runIf(canTouch)(
     'dismisses on a swipe down from the top of the body',
     async () => {
       await page.viewport(390, 844)
-      await openLong()
+      const popup = await openLong()
 
       await swipeDown(body().querySelector('p')!, 300)
 
-      expect(screen.queryByRole('dialog')).toBeNull()
+      // Base UI decides on touchend, so the verdict is there at once.
+      expect(popup).toHaveAttribute('data-swipe-dismiss')
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     }
   )
 
@@ -164,11 +165,12 @@ describe('a drawer body', () => {
     'stays open when a swipe in a scrolled body is a scroll',
     async () => {
       await page.viewport(390, 844)
-      await openLong()
+      const popup = await openLong()
       body().scrollTop = 400
 
       await swipeDown(body().querySelectorAll('p')[20]!, 300)
 
+      expect(popup).not.toHaveAttribute('data-swipe-dismiss')
       expect(screen.queryByRole('dialog')).not.toBeNull()
     }
   )
@@ -239,7 +241,13 @@ describe('drawer scroll shadows', () => {
       document.querySelector('[data-slot="drawer-footer"]')!,
       '::after'
     )
-  const settle = () => new Promise((done) => setTimeout(done, 100))
+  const body = () =>
+    document.querySelector<HTMLElement>('[data-slot="drawer-body"]')!
+  // Base UI sets these once it has measured the body, whether or not it overflows.
+  const measured = () =>
+    expect
+      .poll(() => body().style.getPropertyValue('--scroll-area-overflow-y-end'))
+      .not.toBe('')
 
   beforeAll(() => commands.reduceMotion(true))
   afterAll(() => commands.reduceMotion(false))
@@ -247,23 +255,19 @@ describe('drawer scroll shadows', () => {
   it('casts a shadow up over rows still to scroll under it', async () => {
     await page.viewport(390, 844)
     await open(60)
-    await settle()
 
-    expect(shadow().opacity).toBe('1')
+    await expect.poll(() => shadow().opacity).toBe('1')
     expect(shadow().scale).toBe('1 -1')
   })
 
   it('drops the shadow once the list reaches its end', async () => {
     await page.viewport(390, 844)
     await open(60)
-    const body = document.querySelector<HTMLElement>(
-      '[data-slot="drawer-body"]'
-    )!
-    body.scrollTop = body.scrollHeight
-    body.dispatchEvent(new Event('scroll'))
-    await settle()
+    await expect.poll(() => shadow().opacity).toBe('1')
+    body().scrollTop = body().scrollHeight
+    body().dispatchEvent(new Event('scroll'))
 
-    expect(shadow().opacity).toBe('0')
+    await expect.poll(() => shadow().opacity).toBe('0')
   })
 
   const headerShadow = () =>
@@ -288,24 +292,22 @@ describe('drawer scroll shadows', () => {
         </Drawer.Content>
       </Drawer>
     )
-    await screen.findByRole('dialog')
-    await settle()
+    const popup = await screen.findByRole('dialog')
+    await expect
+      .poll(() => popup.hasAttribute('data-body-overflow-y-end'))
+      .toBe(true)
     expect(headerShadow().opacity).toBe('0')
 
-    const body = document.querySelector<HTMLElement>(
-      '[data-slot="drawer-body"]'
-    )!
-    body.scrollTop = 200
-    body.dispatchEvent(new Event('scroll'))
-    await settle()
+    body().scrollTop = 200
+    body().dispatchEvent(new Event('scroll'))
 
-    expect(headerShadow().opacity).toBe('1')
+    await expect.poll(() => headerShadow().opacity).toBe('1')
   })
 
   it('casts none when the content fits', async () => {
     await page.viewport(390, 844)
     await open(2)
-    await settle()
+    await measured()
 
     expect(shadow().opacity).toBe('0')
   })
