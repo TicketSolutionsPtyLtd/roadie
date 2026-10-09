@@ -190,9 +190,10 @@ the PR only when the review is clean.
   the PR author and it no longer reviews automatically. At ready, request it
   with `gh pr edit <n> --add-reviewer @copilot` for a one-way door; component
   state, async, or SSR logic; CI, hooks, or shell scripts; a
-  security-relevant change; or over 400 changed lines. Skip it for docs,
-  skills, wording, small fixes, and Dependabot. Merge danger records the
-  call: "Copilot: requested, because …" or "Copilot: skipped, because …".
+  security-relevant change; or over 400 changed lines, even in a docs PR.
+  Otherwise skip it, as for docs, skills, wording, small fixes, and
+  Dependabot. Merge danger records the call: "Copilot: requested,
+  because …" or "Copilot: skipped, because …".
 - **Add the `full-browsers` label** before `gh pr ready` for CSS, layout,
   or anything iOS-sensitive, so the PR also runs WebKit and Firefox. CI reads
   the label when it runs, so a label added later takes effect on the next
