@@ -922,7 +922,7 @@ function pretendServer(viewQuery, position) {
         resolve({
           rows: matching.slice(start, start + position.pageSize),
           rowCount: matching.length,
-          search: toMeilisearch({ query: viewQuery }, fields, { now, timeZone, position })
+          search: toMeilisearch({ query: viewQuery, layout: { type: 'table' } }, fields, { now, timeZone, position })
         }),
       500
     )
