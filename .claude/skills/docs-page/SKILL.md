@@ -62,10 +62,10 @@ run each step and record pass, fail with the line, or not applicable.
 4. **Template, line by line.** Walk every rule in `DOCS_PAGES.md`, the page's
    template, its section table, and the writing rules. Checks don't catch
    these yet: section order and names, rules that depend on the component
-   (Intents, States, Accessibility), state labels, the `PropsDefinitions`
-   path, Guideline `code` indents, "below", example names, sentence case,
-   dashes (`grep -n '[—–]'`), and the Oxford comma in every list of three or
-   more, the description included.
+   (Intents, States, Accessibility), state labels, every component the page
+   documents named in `PropsDefinitions`, Guideline `code` indents, "below",
+   example names, sentence case, dashes (`grep -n '[—–]'`), and the Oxford
+   comma in every list of three or more, the description included.
 5. **Markdown copy.** Build what the docs read
    (`pnpm exec turbo run build --filter=docs^...`, which `pnpm preview` also
    does), run `pnpm --filter docs generate:llms`, and read
