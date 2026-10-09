@@ -81,8 +81,9 @@ each tier is drawn at its class with its size in pixels.
 
 Badge, Button, IconButton, and IconTile size the icons inside them, so an icon
 there needs no size class. Badge sizes its icon to the text (`1em`). Button
-and IconButton size an icon to the button, 16px by default, unless the icon
-has a `size-*` class of its own. IconTile sizes its icon to the tile.
+and IconButton size an icon to the button, unless the icon has a `size-*`
+class of its own: 16px in a Button and 20px in an IconButton by default.
+IconTile sizes its icon to the tile.
 
 ## Icon weights
 
@@ -132,7 +133,7 @@ Navigation items use Bold when inactive and Fill when active.
       value='favourites'
       render={(props, state) => (
         <button {...props}>
-          <HeartIcon weight={state.active ? 'fill' : 'bold'} />
+          <HeartIcon className='size-4' weight={state.active ? 'fill' : 'bold'} />
           Favourites
         </button>
       )}
@@ -141,7 +142,7 @@ Navigation items use Bold when inactive and Fill when active.
       value='starred'
       render={(props, state) => (
         <button {...props}>
-          <StarIcon weight={state.active ? 'fill' : 'bold'} />
+          <StarIcon className='size-4' weight={state.active ? 'fill' : 'bold'} />
           Starred
         </button>
       )}
@@ -150,7 +151,7 @@ Navigation items use Bold when inactive and Fill when active.
       value='settings'
       render={(props, state) => (
         <button {...props}>
-          <GearIcon weight={state.active ? 'fill' : 'bold'} />
+          <GearIcon className='size-4' weight={state.active ? 'fill' : 'bold'} />
           Settings
         </button>
       )}
@@ -182,10 +183,10 @@ the icon for you, so pass a bare icon as children with no size class.
 ```
 
 Tile the item, not the action. Inside buttons, menu items, tabs, badges, and
-inputs, use a bare bold icon at the size the control sets. See
-[Icon Tile](/components/icon-tile).
+inputs, use a bold icon with no tile, at the size the control sets or
+`size-4` where it sets none. See [Icon Tile](/components/icon-tile).
 
-Tiles are the one place `weight='duotone'` is welcome. Use `weight='bold'` up
+Tiles are the main place `weight='duotone'` is welcome. Use `weight='bold'` up
 to a 48px tile (`lg`), then switch to duotone above 48px, where a bold outline
 can look hollow on the larger surface. Keep Fill reserved for active states
 as elsewhere.
@@ -418,10 +419,10 @@ as a Badge.
   <Guideline.Dont
     example={
       <Guideline.Row>
-        <Badge intent='success'>
+        <Button size='xs'>
           <CheckCircleIcon weight='bold' className='size-6' />
-          Verified
-        </Badge>
+          Verify
+        </Button>
         <Button size='sm'>
           <PlusIcon weight='bold' className='size-6' />
           Add
