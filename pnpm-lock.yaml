@@ -288,8 +288,8 @@ importers:
         specifier: 0.7.1
         version: 0.7.1
       focus-trap:
-        specifier: 8.2.2
-        version: 8.2.2
+        specifier: 8.2.3
+        version: 8.2.3
       motion:
         specifier: 14.0.0
         version: 14.0.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -309,8 +309,8 @@ importers:
         specifier: 2.13.7
         version: 2.13.7(@types/react@19.3.0)(react@19.3.0)
       react-live:
-        specifier: 5.0.0
-        version: 5.0.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        specifier: 5.0.1
+        version: 5.0.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       remark-gfm:
         specifier: 4.0.1
         version: 4.0.1(supports-color@9.4.0)
@@ -661,8 +661,8 @@ importers:
         specifier: workspace:*
         version: link:../core
       focus-trap:
-        specifier: 8.2.2
-        version: 8.2.2
+        specifier: 8.2.3
+        version: 8.2.3
     devDependencies:
       '@arethetypeswrong/cli':
         specifier: 0.18.5
@@ -4386,8 +4386,8 @@ packages:
     resolution: {integrity: sha512-Ik/6OCk9RQQ0T5Xw+hKNLWrjSMtv51dD4GRmJjbD5a58TIEpI5a5iXagKVl3Z5UuyslMCA8Xwnu76jQob62Yhg==}
     engines: {node: '>=10'}
 
-  focus-trap@8.2.2:
-    resolution: {integrity: sha512-qV0g8hRYBqgACcFOH3f9wXc4zPKhr/0z9RI2a6ZijZ72EeBi4g8oBy8zAWuUR1TsMpOzwpUMFvjdasrC41Joug==}
+  focus-trap@8.2.3:
+    resolution: {integrity: sha512-LTNHZwcFM7bSdU1cG1ExoaTEzoGmdjw+EzDotolZmLTCbm0ll2k6J3NL+WfqP14nGLxAp+XDJgwlT2DtNhcukA==}
 
   for-each@0.3.5:
     resolution: {integrity: sha512-dKx12eRCVIzqCxFGplyFKJMPvLEWgmNtUrpTiJIR5u97zEhRG8ySrtboPHZXx7daLxQVrl643cTzbab2tkQjxg==}
@@ -5879,8 +5879,8 @@ packages:
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
-  react-live@5.0.0:
-    resolution: {integrity: sha512-7bedhRQx8DmF1tppVijaKAu6El99x+fKDYB2/h5oIwaJK6DBzshuJtq4IHRYEuAVGXg6f+xUOi4vPcNwS0f8HQ==}
+  react-live@5.0.1:
+    resolution: {integrity: sha512-DWx3NEsTLClPbluciIopnaaq+wlcKE5nV3oyIuipSnfYmU4JfGdPDFrhpp75bFCbMMzXzRlKMsbLk0aT7tYJ5Q==}
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
@@ -11137,7 +11137,7 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  focus-trap@8.2.2:
+  focus-trap@8.2.3:
     dependencies:
       tabbable: 6.5.0
 
@@ -12846,7 +12846,7 @@ snapshots:
 
   react-is@17.0.2: {}
 
-  react-live@5.0.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
+  react-live@5.0.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
     dependencies:
       prism-react-renderer: 2.4.1(react@19.3.0)
       react: 19.3.0
