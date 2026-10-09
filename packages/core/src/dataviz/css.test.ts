@@ -51,6 +51,22 @@ describe('dataviz.css', () => {
     expect(names('  .dark {')).toEqual(names('  :root {'))
   })
 
+  // Safari 15.4 to 16.1 draw oklch but not color-mix, so a mixed grey under
+  // the oklch check alone would be invalid there and draw nothing.
+  it('keeps mixed greys behind a color-mix check, with the hex fallback before it', () => {
+    const mixed = css
+      .split('\n')
+      .filter((line) => /--chart-(context|other): color-mix/.test(line))
+    expect(mixed.length).toBeGreaterThan(0)
+    for (const line of mixed) {
+      const before = css.slice(0, css.indexOf(line))
+      expect(before.slice(before.lastIndexOf('@supports'))).toMatch(
+        /^@supports \(color: color-mix\(/
+      )
+    }
+    expect(block('\n.dark {')).toMatch(/--chart-context: #[0-9a-f]{6};/)
+  })
+
   it('re-declares chart ink wherever intent tokens can change', () => {
     const css = renderDatavizCss()
     const block = css.match(

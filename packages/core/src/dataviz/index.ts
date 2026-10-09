@@ -5,6 +5,7 @@ import {
   type GreyName,
   type Mode,
   type StatusName,
+  greyColor,
   palette
 } from './palette'
 
@@ -53,7 +54,10 @@ export function chartHex(mode: Mode, accentHue: number = DEFAULT_ACCENT_HUE) {
     const [nl, nc] = palette.neutral[mode][step]!
     return toHex([nl, nc, accentHue])
   }
-  const grey = (name: GreyName) => neutral(palette.greys[name][mode].step)
+  const grey = (name: GreyName) => {
+    const [gl, gc] = greyColor(palette, mode, name)
+    return toHex([gl, gc, accentHue])
+  }
   const band = palette.greys.band[mode]
   const statuses = Object.keys(palette.status) as StatusName[]
   const greys = (['context', 'median', 'other', 'missing'] as const).map(

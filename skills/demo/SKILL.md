@@ -86,6 +86,10 @@ for (const [size, [width, height]] of Object.entries(sizes)) {
         .evaluate((el) => el.scrollIntoView({ block: 'center' }))
       await settle(page)
     }
+    // A resting pointer or leftover focus shows a hover or focus fill, which
+    // reads as a colour change.
+    await page.mouse.move(0, 0)
+    await page.evaluate(() => document.activeElement?.blur?.())
     await page.screenshot({ path: `${out}/${size}-${mode}.png` })
     await context.close()
   }
@@ -98,6 +102,12 @@ container (Roadie's docs do) capture only the first screen with `fullPage`.
 Pass a heading id (`'#states'`) or the changed element as the selector, and
 run it again per section if one screen doesn't show the change, with a
 separate output folder each time so the files don't overwrite each other.
+
+Before each shot, move the pointer off interactive elements (to a neutral
+corner, as the script does) and blur focus, so a hover or focus fill isn't
+read as a colour change. When a hover, focus, or open state is the point,
+drive it after that reset and name it in the file, for example
+`button-hover-phone-light.png`.
 
 Without Playwright, use a browser tool your session has (Chrome DevTools or
 Playwright MCP: resize, emulate the colour scheme, screenshot). With none, send

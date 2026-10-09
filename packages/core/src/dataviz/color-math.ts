@@ -109,17 +109,6 @@ export function worstCvdDeltaE(a: Oklch, b: Oklch): number {
   )
 }
 
-function luminance(color: Oklch): number {
-  const [r, g, b] = linearRgb(color)
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
-}
-
-export function contrastRatio(a: Oklch, b: Oklch): number {
-  const x = luminance(a)
-  const y = luminance(b)
-  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)
-}
-
 // APCA-W3 0.0.98G, constants as published in Myndex/apca-w3 (SA98G).
 // APCA linearises with a plain 2.4 power, not the sRGB transfer curve.
 function screenY(color: Oklch): number {
