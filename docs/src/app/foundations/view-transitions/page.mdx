@@ -57,10 +57,13 @@ When you name an element with `view-transition-name`, it gets its own
 animation group and morphs from its old position and size to its new position
 and size. Unnamed elements cross-fade together under the root group.
 
-As a rule of thumb, **when in doubt, name it**. Unused names are free. They
-don't run an animation unless the element actually moves. Naming the hero
-image, the title, and the header separately is much cheaper than debugging a
-root-group cross-fade that clobbers half your UI.
+Name only the elements that need their own motion or layering. Names aren't
+free. The browser captures every rendered element with a name as its own group
+and runs that group's default animation, even when the element doesn't move.
+Each name must also be unique on the page, or the browser skips the
+transition. Naming the hero image, the title, and the header separately is
+still cheaper than debugging a root-group cross-fade that clobbers half your
+UI.
 
 Common named groups:
 
