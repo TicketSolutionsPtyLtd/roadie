@@ -230,4 +230,18 @@ describe('Combobox in a Field', () => {
       'true'
     )
   })
+
+  it("keeps a consumer's aria-label over the field label", () => {
+    render(
+      <Field>
+        <Field.Label>Genre</Field.Label>
+        <Combobox items={['Rock']}>
+          <Combobox.Input aria-label='Search genres' />
+        </Combobox>
+      </Field>
+    )
+    expect(
+      screen.getByRole('combobox', { name: 'Search genres' })
+    ).toBeInTheDocument()
+  })
 })

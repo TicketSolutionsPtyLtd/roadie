@@ -231,4 +231,18 @@ describe('Autocomplete in a Field', () => {
       'true'
     )
   })
+
+  it("keeps a consumer's aria-label over the field label", () => {
+    render(
+      <Field>
+        <Field.Label>City</Field.Label>
+        <Autocomplete items={['Adelaide']}>
+          <Autocomplete.Input aria-label='Search cities' />
+        </Autocomplete>
+      </Field>
+    )
+    expect(
+      screen.getByRole('combobox', { name: 'Search cities' })
+    ).toBeInTheDocument()
+  })
 })
