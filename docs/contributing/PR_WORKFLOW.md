@@ -189,6 +189,11 @@ the PR only when the review is clean.
   packages, lint, typecheck, and the docs build if docs changed, with the
   local review clean and any demo approved. `gh pr ready` runs the full CI
   once.
+- **Move the Jira ticket with its PRs.** **In Progress** when its first PR
+  opens as a draft. **Review** when its last PR is marked ready or waits on
+  the maintainer's review. **Done** when that PR merges, with a comment
+  linking the PR. Back to **In Progress** if a review sends it back for real
+  rework. A ticket with more PRs to come stays In Progress.
 - **Agents never request Copilot**: no reviewer request, no `@copilot`
   mention, and no re-review. Our own review replaces it
   ([decision 0002](../decisions/0002-copilot-last-resort.md)). For a

@@ -70,7 +70,9 @@ Firefox. A label added after ready applies on the next push or a full
 
 Then `gh pr ready <n>` without waiting for the draft's CI. That starts the
 full run. Never request Copilot or a re-review (Roadie: PR workflow section
-7); the maintainer decides on any review Merge danger recommends.
+7); the maintainer decides on any review Merge danger recommends. If this is
+the ticket's last PR, move the ticket to Review (Roadie: PR workflow section
+7).
 
 ## 5. Triage every thread
 
@@ -141,7 +143,8 @@ thread, and consumer changes in the changeset.
   a privacy fix landed after the PR opened, pass a clean message with
   `--subject` and `--body`. Never `--auto`, even where the repo allows it:
   auto-merge waits only for required checks, not the review, threads, or file list. Then
-  remove the local worktree and branch.
+  move the ticket to Done with a comment linking the PR if this was its last
+  PR, and remove the local worktree and branch.
 - **A failed condition:** fix it and go back to the step it belongs to.
 - **One-way door, a limit on what agents may change, or no merge rule:**
   don't merge. Post one PR comment naming what's done and what waits for the
