@@ -10,7 +10,11 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
-import { Autocomplete, type AutocompleteProps } from '.'
+import {
+  Autocomplete,
+  type AutocompleteInputGroupProps,
+  type AutocompleteProps
+} from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
 import { Field } from '../Field'
@@ -34,6 +38,7 @@ afterEach(() => {
 })
 
 const fill = (element: Element) => getComputedStyle(element).backgroundColor
+const TRANSPARENT = /rgba\(0, 0, 0, 0\)|transparent/
 
 // Base UI ignores a WebKit mousemove with no movement, which is all
 // Playwright sends there, so move onto the option the way a hand would.
@@ -244,5 +249,41 @@ describe('Autocomplete in a Field', () => {
     expect(
       screen.getByRole('combobox', { name: 'Search cities' })
     ).toBeInTheDocument()
+  })
+})
+
+describe('Autocomplete input group', () => {
+  function Venue(props: AutocompleteInputGroupProps) {
+    return (
+      <Autocomplete>
+        <Autocomplete.InputGroup {...props}>
+          <Autocomplete.Input aria-label='Venue' />
+        </Autocomplete.InputGroup>
+      </Autocomplete>
+    )
+  }
+
+  const group = () =>
+    screen
+      .getByRole('combobox', { name: 'Venue' })
+      .closest('[data-slot="autocomplete-input-group"]')!
+
+  it.each([
+    ['sm', 32],
+    ['md', 40],
+    ['lg', 48]
+  ] as const)('stands %s at %ipx', (size, height) => {
+    render(<Venue size={size} />)
+    expect(group().getBoundingClientRect().height).toBe(height)
+  })
+
+  it('draws a visible edge at normal and a tint with no edge at subtle', () => {
+    render(<Venue />)
+    expect(getComputedStyle(group()).borderTopColor).not.toMatch(TRANSPARENT)
+    cleanup()
+    render(<Venue emphasis='subtle' />)
+    const subtle = getComputedStyle(group())
+    expect(subtle.borderTopColor).toMatch(TRANSPARENT)
+    expect(subtle.backgroundColor).not.toMatch(TRANSPARENT)
   })
 })

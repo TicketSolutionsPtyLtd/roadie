@@ -4,7 +4,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 
-import { Combobox, type ComboboxProps, comboboxInputGroupVariants } from '.'
+import { Combobox, type ComboboxInputGroupProps, type ComboboxProps } from '.'
 import { Field } from '../Field'
 
 describe('Combobox', () => {
@@ -24,41 +24,36 @@ describe('Combobox', () => {
     expect(container).toBeInTheDocument()
   })
 
-  it('renders InputGroup with default variant classes', () => {
-    const classes = comboboxInputGroupVariants()
-    expect(classes).toContain('emphasis-field')
-    expect(classes).toContain('is-interactive-field-group')
-    expect(classes).not.toContain('intent-neutral')
+  function renderInputGroup(props: ComboboxInputGroupProps = {}) {
+    render(
+      <Combobox>
+        <Combobox.InputGroup {...props}>
+          <Combobox.Input aria-label='Venue' />
+        </Combobox.InputGroup>
+      </Combobox>
+    )
+    return screen
+      .getByRole('combobox', { name: 'Venue' })
+      .closest('[data-slot="combobox-input-group"]')!
+  }
+
+  it('draws the input group as a field with no intent of its own', () => {
+    const group = renderInputGroup()
+    expect(group).toHaveClass('emphasis-field', 'is-interactive-field-group')
+    expect(group.className).not.toMatch(/intent-/)
   })
 
-  it('renders InputGroup with different intents', () => {
-    expect(comboboxInputGroupVariants({ intent: 'accent' })).toContain(
-      'intent-accent'
-    )
-    expect(comboboxInputGroupVariants({ intent: 'danger' })).toContain(
-      'intent-danger'
-    )
-  })
-
-  it('renders InputGroup with different emphasis', () => {
-    expect(comboboxInputGroupVariants({ emphasis: 'normal' })).toContain(
-      'emphasis-field'
-    )
-    expect(comboboxInputGroupVariants({ emphasis: 'subtle' })).toContain(
-      'bg-subtle'
-    )
-  })
-
-  it('renders InputGroup with different sizes', () => {
-    for (const [size, height] of [
-      ['sm', 'min-h-8'],
-      ['md', 'min-h-10'],
-      ['lg', 'min-h-12']
-    ] as const) {
-      const classes = comboboxInputGroupVariants({ size })
-      expect(classes.split(' ')).toContain(height)
-      expect(classes).not.toMatch(/(^|\s)h-\d/)
+  it.each(['accent', 'danger'] as const)(
+    'takes the %s intent on the input group',
+    (intent) => {
+      expect(renderInputGroup({ intent })).toHaveClass(`intent-${intent}`)
     }
+  )
+
+  it('drops the field emphasis on a subtle input group', () => {
+    const group = renderInputGroup({ emphasis: 'subtle' })
+    expect(group).not.toHaveClass('emphasis-field')
+    expect(group).toHaveClass('is-interactive-field-group')
   })
 
   it('renders Label sub-component', () => {
@@ -73,9 +68,10 @@ describe('Combobox', () => {
     expect(getByText('Search items')).toBeInTheDocument()
   })
 
-  it('renders with custom className on InputGroup', () => {
-    const classes = comboboxInputGroupVariants({ className: 'custom-class' })
-    expect(classes).toContain('custom-class')
+  it('keeps a custom className on the input group', () => {
+    expect(renderInputGroup({ className: 'custom-class' })).toHaveClass(
+      'custom-class'
+    )
   })
 
   it('Combobox input gets aria attributes from Field context', () => {

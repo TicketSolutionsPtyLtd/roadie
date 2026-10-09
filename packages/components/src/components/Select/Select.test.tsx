@@ -35,45 +35,37 @@ describe('Select', () => {
     expect(container).toBeInTheDocument()
   })
 
-  it('renders Trigger with default variant classes', () => {
-    const classes = selectTriggerVariants()
-    expect(classes).toContain('emphasis-normal')
-    expect(classes).toContain('is-interactive-field')
-    expect(classes).not.toContain('intent-neutral')
+  function renderTrigger(props: SelectTriggerProps = {}) {
+    render(
+      <Select>
+        <Select.Trigger aria-label='Rows' {...props}>
+          <Select.Value />
+        </Select.Trigger>
+      </Select>
+    )
+    return screen.getByRole('combobox', { name: 'Rows' })
+  }
+
+  it('draws the trigger as a field with no intent of its own', () => {
+    const trigger = renderTrigger()
+    expect(trigger).toHaveClass('emphasis-normal', 'is-interactive-field')
+    expect(trigger.className).not.toMatch(/intent-/)
   })
 
-  it('renders Trigger with different intents', () => {
-    expect(selectTriggerVariants({ intent: 'accent' })).toContain(
-      'intent-accent'
-    )
-    expect(selectTriggerVariants({ intent: 'danger' })).toContain(
-      'intent-danger'
-    )
-    expect(selectTriggerVariants({ intent: 'success' })).toContain(
-      'intent-success'
-    )
-  })
-
-  it('renders Trigger with different emphasis', () => {
-    expect(selectTriggerVariants({ emphasis: 'normal' })).toContain(
-      'emphasis-normal'
-    )
-    expect(selectTriggerVariants({ emphasis: 'subtle' })).toContain('bg-subtle')
-    const subtler = selectTriggerVariants({ emphasis: 'subtler' })
-    expect(subtler).toContain('emphasis-subtler')
-    expect(subtler).toContain('is-interactive')
-    expect(subtler).not.toContain('is-interactive-field')
-  })
-
-  it.each(['normal', 'subtle', 'subtler'] as const)(
-    'never raises a %s trigger',
-    (emphasis) => {
-      const classes = selectTriggerVariants({ emphasis })
-      expect(classes).not.toMatch(/emphasis-raised|rim-light|shadow/)
+  it.each(['accent', 'danger', 'success'] as const)(
+    'takes the %s intent on the trigger',
+    (intent) => {
+      expect(renderTrigger({ intent })).toHaveClass(`intent-${intent}`)
     }
   )
 
-  it('passes emphasis to the rendered trigger', () => {
+  it('keeps field states on a subtle trigger', () => {
+    const trigger = renderTrigger({ emphasis: 'subtle' })
+    expect(trigger).not.toHaveClass('emphasis-normal')
+    expect(trigger).toHaveClass('is-interactive-field')
+  })
+
+  it('makes a subtler trigger interactive without field states', () => {
     render(
       <Select>
         <Select.Trigger aria-label='Rows' emphasis='subtler'>
@@ -81,9 +73,9 @@ describe('Select', () => {
         </Select.Trigger>
       </Select>
     )
-    expect(screen.getByRole('combobox', { name: 'Rows' })).toHaveClass(
-      'emphasis-subtler'
-    )
+    const trigger = screen.getByRole('combobox', { name: 'Rows' })
+    expect(trigger).toHaveClass('emphasis-subtler', 'is-interactive')
+    expect(trigger).not.toHaveClass('is-interactive-field')
   })
 
   it('treats a null emphasis as the default', () => {
@@ -96,12 +88,6 @@ describe('Select', () => {
     )
     const trigger = screen.getByRole('combobox', { name: 'Rows' })
     expect(trigger).toHaveClass('emphasis-normal', 'w-full')
-  })
-
-  it('renders Trigger with different sizes', () => {
-    expect(selectTriggerVariants({ size: 'sm' })).toContain('h-8')
-    expect(selectTriggerVariants({ size: 'md' })).toContain('h-10')
-    expect(selectTriggerVariants({ size: 'lg' })).toContain('h-12')
   })
 
   it('renders Label sub-component', () => {
@@ -117,9 +103,10 @@ describe('Select', () => {
     expect(getByText('Choose option')).toBeInTheDocument()
   })
 
-  it('renders with custom className on Trigger', () => {
-    const classes = selectTriggerVariants({ className: 'custom-class' })
-    expect(classes).toContain('custom-class')
+  it('keeps a custom className on the trigger', () => {
+    expect(renderTrigger({ className: 'custom-class' })).toHaveClass(
+      'custom-class'
+    )
   })
 
   it('hides ErrorText when invalid is not set', () => {

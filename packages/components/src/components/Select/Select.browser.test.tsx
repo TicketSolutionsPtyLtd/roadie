@@ -392,6 +392,12 @@ describe('Select trigger emphasis', () => {
     expect(style().borderTopColor).not.toMatch(TRANSPARENT)
   })
 
+  it('tints a subtle trigger with no edge', () => {
+    render(<Genre emphasis='subtle' />)
+    expect(style().backgroundColor).not.toMatch(TRANSPARENT)
+    expect(style().borderTopColor).toMatch(TRANSPARENT)
+  })
+
   it('leaves a subtler trigger without a fill or edge at rest', () => {
     render(<Genre emphasis='subtler' />)
     expect(style().backgroundColor).toMatch(TRANSPARENT)
@@ -430,6 +436,24 @@ describe('Select trigger emphasis', () => {
       expect(style().borderTopColor).not.toBe(valid)
     }
   )
+})
+
+describe('Select trigger size', () => {
+  it.each([
+    ['sm', 32],
+    ['md', 40],
+    ['lg', 48]
+  ] as const)('stands %s at %ipx', (size, height) => {
+    render(
+      <Select>
+        <Select.Trigger aria-label='Genre' size={size}>
+          <Select.Value placeholder='Pick a genre' />
+          <Select.Icon />
+        </Select.Trigger>
+      </Select>
+    )
+    expect(trigger().getBoundingClientRect().height).toBe(height)
+  })
 })
 
 describe('Select trigger width', () => {

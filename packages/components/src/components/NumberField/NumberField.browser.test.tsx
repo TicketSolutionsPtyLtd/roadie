@@ -82,3 +82,25 @@ describe.each(CASES)('$name', ({ props, ringOn }) => {
     expect(ringWidth(ringOn === 'group' ? group : input)).toBeGreaterThan(0)
   })
 })
+
+describe('NumberField group', () => {
+  it.each([
+    ['sm', 32],
+    ['md', 40],
+    ['lg', 48]
+  ] as const)('stands %s at %ipx', (size, height) => {
+    render(<NumberField aria-label='Tickets' size={size} />)
+    const group = screen
+      .getByRole('textbox', { name: 'Tickets' })
+      .closest('[data-slot="number-field-group"]')!
+    expect(group.getBoundingClientRect().height).toBe(height)
+  })
+
+  it('stands md by default', () => {
+    render(<NumberField aria-label='Tickets' />)
+    const group = screen
+      .getByRole('textbox', { name: 'Tickets' })
+      .closest('[data-slot="number-field-group"]')!
+    expect(group.getBoundingClientRect().height).toBe(40)
+  })
+})

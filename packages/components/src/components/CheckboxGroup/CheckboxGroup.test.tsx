@@ -4,7 +4,7 @@ import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { CheckboxGroup, checkboxGroupVariants } from '.'
+import { CheckboxGroup } from '.'
 import { Field } from '../Field'
 
 const genres = ['rock', 'jazz', 'hip-hop']
@@ -70,13 +70,6 @@ describe('CheckboxGroup', () => {
     expect(getByRole('checkbox', { name: 'All genres' })).toHaveAttribute(
       'aria-checked',
       'true'
-    )
-  })
-
-  it('stacks vertically by default and lays out horizontally on request', () => {
-    expect(checkboxGroupVariants()).toContain('flex-col')
-    expect(checkboxGroupVariants({ direction: 'horizontal' })).toContain(
-      'flex-row'
     )
   })
 

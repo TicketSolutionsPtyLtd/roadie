@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { Switch, switchVariants } from '.'
+import { Switch } from '.'
 import { Field } from '../Field'
 
 describe('Switch', () => {
@@ -115,25 +115,6 @@ describe('Switch', () => {
     await userEvent.click(control)
     expect(control).toHaveAttribute('aria-checked', 'false')
     expect(control).toHaveAttribute('data-disabled')
-  })
-
-  it('checked track is accent', () => {
-    expect(switchVariants()).toContain(
-      'data-checked:bg-[var(--color-accent-9)]'
-    )
-  })
-
-  it('defaults to md and accepts sm', () => {
-    expect(switchVariants()).toContain('h-6')
-    expect(switchVariants({ size: 'sm' })).toContain('h-5')
-  })
-
-  it('keeps the checked track accent when invalid, with a danger edge', () => {
-    const classes = switchVariants()
-    expect(classes).not.toMatch(/aria-invalid:data-checked:bg-/)
-    expect(classes).toContain(
-      'aria-invalid:data-checked:border-[var(--color-danger-9)]'
-    )
   })
 
   it('marks the switch invalid', () => {

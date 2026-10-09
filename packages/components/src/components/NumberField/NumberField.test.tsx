@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
-import { NumberField, numberFieldGroupVariants } from '.'
+import { NumberField } from '.'
 import { Field } from '../Field'
 
 // jsdom never upgrades the custom element, so its update hooks don't exist.
@@ -173,19 +173,13 @@ describe('NumberField', () => {
     expect(increase).toHaveClass('data-[readonly]:opacity-50')
   })
 
-  describe('group variants', () => {
-    it('defaults to the field emphasis without an intent', () => {
-      const classes = numberFieldGroupVariants()
-      expect(classes).toContain('emphasis-field')
-      expect(classes).toContain('is-interactive-field-group')
-      expect(classes).toContain('h-10')
-      expect(classes).not.toContain('intent-')
-    })
-
-    it('sizes', () => {
-      expect(numberFieldGroupVariants({ size: 'sm' })).toContain('h-8')
-      expect(numberFieldGroupVariants({ size: 'lg' })).toContain('h-12')
-    })
+  it('draws the group as a field with no intent of its own', () => {
+    render(<NumberField aria-label='Tickets' />)
+    const group = screen
+      .getByRole('textbox', { name: 'Tickets' })
+      .closest('[data-slot="number-field-group"]')!
+    expect(group).toHaveClass('emphasis-field', 'is-interactive-field-group')
+    expect(group.className).not.toMatch(/intent-/)
   })
 
   describe('inside Field', () => {
