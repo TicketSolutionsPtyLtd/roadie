@@ -5,8 +5,8 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual'
 
 import { findScrollParent } from '../Records/scrollParent'
-import { ROW_REM } from './RecordTableRow'
 import { type Watched, firstClearRow } from './rowPosition'
+import { tableRowSize } from './rowSizing'
 import { RECORDS_SCROLLER } from './tableFocus'
 
 const OVERSCAN = 10
@@ -49,7 +49,7 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
   getItemKey,
   onChange,
   measureInset,
-  estimateRem = ROW_REM,
+  estimateRem = tableRowSize.estimateRem,
   measure: measureRows = false,
   gapRem = 0
 }: RowWindowOptions) {

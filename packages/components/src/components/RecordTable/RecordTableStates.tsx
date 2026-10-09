@@ -11,6 +11,7 @@ import {
   selectCellClass
 } from './RecordTableRow'
 import { type ColumnLayout, priorityProps } from './layout'
+import { tableRowSize } from './rowSizing'
 import { useKeepFocusInTable } from './tableFocus'
 import type { RecordTableColumn } from './types'
 
@@ -66,7 +67,11 @@ export const RecordTableSkeletonRow = memo(function RecordTableSkeletonRow({
       aria-hidden
       aria-rowindex={rowIndex}
       data-slot='record-table-placeholder-row'
-      className={cn(rowClass, 'h-12 border-b border-subtler')}
+      className={cn(
+        rowClass,
+        tableRowSize.heightClass,
+        'border-b border-subtler'
+      )}
     >
       {select && <div role='cell' className={selectCellClass} />}
       {columns.map((column, index) => (

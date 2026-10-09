@@ -15,13 +15,9 @@ import { RecordsRowActions } from '../Records/RecordsRowActions'
 import { RecordsRowCheckbox } from '../Records/RecordsRowCheckbox'
 import { handleRowClick, onRowControl } from '../Records/rowLink'
 import { type ColumnLayout, priorityProps } from './layout'
+import { tableRowSize } from './rowSizing'
 import { useKeepFocusInTable } from './tableFocus'
 import type { RecordTableColumn } from './types'
-
-/** `h-12`, in rem. */
-export const ROW_REM = 3
-/** At the default 16px root. */
-export const ROW_HEIGHT = ROW_REM * 16
 
 // WebKit builds without overflow-clip-margin drop the clip instead of the
 // ring. Decided in CSS, so the server and browser render the same classes.
@@ -170,7 +166,8 @@ export const RecordTableRow = memo(function RecordTableRow({
       onAuxClick={linked ? onRowClick : undefined}
       className={cn(
         rowClass,
-        'h-12 border-b border-subtler',
+        tableRowSize.heightClass,
+        'border-b border-subtler',
         clickable && clickableRowClass,
         selectedRowClass
       )}

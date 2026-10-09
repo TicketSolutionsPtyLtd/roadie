@@ -11,6 +11,7 @@ import { listItemContentClass } from '../List/variants'
 import { rangeErrorMessage } from '../Records/RecordsStates'
 import { useRecordsContext } from '../Records/context'
 import type { RecordsRangeState } from '../Records/types'
+import { cardSize, tableRowSize } from './rowSizing'
 import { tableFocusTarget, useKeepFocusInTable } from './tableFocus'
 
 /**
@@ -87,7 +88,10 @@ export function RecordTableRangeError({
       role='row'
       aria-rowindex={rowIndex}
       data-slot='record-table-range-error'
-      className='flex h-12 min-w-(--record-table-min-width) border-b border-subtler'
+      className={cn(
+        'flex min-w-(--record-table-min-width) border-b border-subtler',
+        tableRowSize.heightClass
+      )}
     >
       {/* Sticky, so it stays in view when the table scrolls sideways. */}
       <div
@@ -149,7 +153,12 @@ export function RecordTableNarrowRangeError({
               className='aspect-video'
             />
           )}
-          <div className='flex h-40 items-center gap-2 p-4'>
+          <div
+            className={cn(
+              'flex items-center gap-2 p-4',
+              cardSize(banner).heightClass
+            )}
+          >
             <RangeErrorMessage />
           </div>
         </div>
