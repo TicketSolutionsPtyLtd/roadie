@@ -15,7 +15,9 @@ export function parseExampleMeta(meta) {
   for (const word of words) {
     const key = word.split('=')[0]
     if (word.includes('=') && !OPTION_KEYS.has(key)) {
-      throw new Error(`Unknown live example option "${word}"`)
+      throw new Error(
+        `Unknown live example option "${word}". Options are ${[...OPTION_KEYS].map((option) => `${option}=`).join(', ')}, and eager.`
+      )
     }
   }
   const idWord = words.find((word) => word.startsWith('id='))
@@ -31,11 +33,12 @@ export function parseExampleMeta(meta) {
 }
 
 function checkCaptions(node) {
-  if (captionsOf(node.value).length === 0) return
+  const [caption] = captionsOf(node.value)
+  if (caption === undefined) return
   const laidOut = /(?:^|\s)layout=/.test(node.meta ?? '')
   if (!laidOut || node.lang.includes('noinline')) {
     throw new Error(
-      'Caption comments need an inline live fence with layout=stack or layout=row'
+      `Caption comments need an inline live fence with layout=stack or layout=row. The fence on line ${node.position?.start.line} has {/* ${caption} */} at column 0; add layout= to the fence, or indent the comment if it isn't a caption.`
     )
   }
 }

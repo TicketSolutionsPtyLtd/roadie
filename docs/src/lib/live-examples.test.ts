@@ -77,15 +77,15 @@ describe('collectLiveExamples', () => {
 
   it('rejects an unknown option, so a typo fails the build', () => {
     expect(() => ids('```tsx-live widht=md\n<A />\n```')).toThrow(
-      /Unknown live example option "widht=md"/
+      /Unknown live example option "widht=md". Options are id=, layout=, gap=, width=, and eager/
     )
   })
 
   it('rejects caption comments the preview would not lay out', () => {
     const caption = '{/* Normal */}\n<A />'
-    expect(() => ids(`\`\`\`tsx-live\n${caption}\n\`\`\``)).toThrow(
-      /Caption comments need/
-    )
+    expect(() =>
+      ids(`## Default\n\n\`\`\`tsx-live\n${caption}\n\`\`\``)
+    ).toThrow(/fence on line 3 has \{\/\* Normal \*\/\} at column 0/)
     expect(() =>
       ids(`\`\`\`tsx-live-noinline layout=stack\n${caption}\n\`\`\``)
     ).toThrow(/Caption comments need/)

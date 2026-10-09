@@ -19,8 +19,8 @@ the fence as written:
 - `layout=stack` or `layout=row`, with `gap=` for another gap
 - `width=xs`, `sm`, `md`, or `lg` for a width frame, named rather than
   arbitrary so frames stay consistent
-- a comment on its own line at column 0, `{/* Disabled */}`, captions the
-  element after it in a fence with `layout=`
+- a comment on its own line at column 0, `{/* Disabled */}`, captions what
+  follows it, up to the next caption, in a fence with `layout=`
 
 Captions are comments, so copied code keeps a label that reads naturally and
 renders nothing. Fence code also uses plain asset URLs, and the preview adds
