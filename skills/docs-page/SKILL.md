@@ -34,8 +34,9 @@ that slip most, each detailed in `DOCS_PAGES.md` or a template:
   demos `.prose` or `Prose`. `data-not-prose` goes on a docs component's own
   chrome, never in page MDX.
 - **Copyable code.** Code in a fence is what readers copy, so it stays plain
-  Roadie and Tailwind, with no docs-only components. Its layout follows the
-  component template's example rules.
+  Roadie and Tailwind. Its layout follows the component template's example
+  rules. Note, not yet an enforced check: no docs-only imports or helpers in
+  fences, except getAssetPath for asset URLs, pending INNO-1193.
 - **Guideline `code`.** A multi-line `code` prop opens with a line break after
   `` code={` `` and indents every line under the prop, so `Guideline` can
   dedent it (the foundation template says why).
