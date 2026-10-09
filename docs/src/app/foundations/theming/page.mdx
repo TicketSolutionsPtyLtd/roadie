@@ -295,10 +295,14 @@ A route's `layout.tsx` can fetch its own data and wrap its children in a
 nested `ThemeProvider`. A nested provider sets the accent on a wrapper around
 its children, so the route's accent themes only the route, and the root's
 accent stays on everything outside it. When the route closes, its wrapper goes
-with it. The wrapper uses `display: contents`, so it doesn't change the
-layout. It renders on the server, so the route's first paint already has its
-accent. Like the root, it starts its subtree at the neutral intent. Browsers
-without OKLCH keep the root's accent inside the route.
+with it. Menus, dialogs, and other popups that open from the route carry its
+accent too. The wrapper uses `display: contents`, so it doesn't change the
+layout, but a parent's selectors for its direct children, such as `*:`
+variants, see the wrapper instead of the route's elements. Inside a list or
+table, put the provider inside an item or cell, since the wrapper is a `div`.
+It renders on the server, so the route's first paint already has its accent.
+Like the root, it starts its subtree at the neutral intent. Browsers without
+OKLCH keep the root's accent inside the route.
 
 ```tsx
 // app/collections/[slug]/layout.tsx
@@ -315,8 +319,8 @@ export default async function CollectionLayout({ params, children }) {
 
 ### Static export with server-prefetched accent
 
-For `output: 'export'` apps, wrap the page in a nested `ThemeProvider` with
-the accent you fetch at build time. The wrapper and its accent are in the
+For `output: 'export'` apps, wrap the page in a `ThemeProvider`, nested
+inside the root one, with the accent you fetch at build time. The wrapper and its accent are in the
 exported HTML, so the first paint already uses the themed colours, and
 hydration has nothing to rewrite. For an accent that themes the whole
 document, use the [head injection](#react-head-injection) helpers and give the
