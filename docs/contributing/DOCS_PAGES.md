@@ -54,7 +54,8 @@ with its skeleton and the rules on top of these.
 - A plain `tsx` fence is for code that doesn't run, such as imports and setup.
 - Fences get every component without imports. Top-level JSX, such as a
   `Guideline` example, imports what it uses from a per-component subpath.
-- Fence options (`id=`, `eager`, `-noinline`, and `-expand`) are in
+- Fence options (`id=`, `eager`, `-noinline`, `-expand`, and the layout
+  options `layout=`, `gap=`, and `width=`) are in
   [`COMPONENT_DOC_TEMPLATE.md`](COMPONENT_DOC_TEMPLATE.md#live-examples).
 
 ## Layout
@@ -68,7 +69,13 @@ with its skeleton and the rules on top of these.
 - `roadie/no-mdx-layout-class` rejects `className` layout on top-level JSX
   in `.mdx`.
 - Code inside a fence is what readers copy, so it stays plain Roadie and
-  Tailwind. Its layout follows rules 12 and 13 of the component template.
+  Tailwind, with only the component. Preview scaffolding, such as stacks,
+  wrapping rows, width frames, and state labels, comes from the layout
+  options and caption comments in rules 12 and 13 of the component template
+  ([decision 0011](../decisions/0011-fence-layout-options.md)).
+- Asset URLs in fences are plain, such as `'/roadie-logo.png'`. The preview
+  adds the base path the docs deploy under, so fences never call a docs-only
+  helper.
 
 ## Data-driven parts
 
@@ -90,6 +97,9 @@ with its skeleton and the rules on top of these.
   fences, so `.prettierignore` skips `docs/**/*.mdx`. Formatting `.md` is fine.
 - `pnpm --filter docs lint` checks the MDX and its live fences, which get the
   `roadie/*` package rules. `roadie/no-mdx-layout-class` skips every fence.
+- `roadie/no-fence-layout-wrapper` fails a fence whose root is a layout `div`
+  the layout options can replace. It covers the pages listed in
+  `docs/eslint.config.js`, and each migration batch adds its pages.
 - A skeleton here with nested fences sits in a four-backtick ` ````mdx `
   fence, which keeps them intact when the `.md` is formatted.
 

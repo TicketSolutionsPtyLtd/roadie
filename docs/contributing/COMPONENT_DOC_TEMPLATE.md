@@ -31,8 +31,8 @@ The skeleton contains:
 9. **Guidelines**: brief, only non-obvious things. Oztix context goes here.
 10. **Accessibility**: for interactive components. Keyboard patterns, ARIA, screen reader notes.
 11. **No duplicates**: if disabled is in States, don't add separate Disabled section.
-12. **Minimal examples**: show only the feature. Layout with `grid gap-2` or `flex flex-wrap gap-2`.
-13. **State labels**: `<p className='text-sm text-subtle'>Label</p>` above each state.
+12. **Minimal examples**: show only the feature. The fence holds only the component, as a reader would copy it, and the preview lays it out from fence options: `layout=row` for a wrapping row, `layout=stack` for a stack, `gap=` to change the gap, and `width=` for a width frame. Never wrap an example in a layout `div`.
+13. **State labels**: a caption comment, `{/* Disabled */}`, on its own line at column 0 above each state, in a fence with `layout=`.
 14. **Hooks**: every public hook gets a `## Hooks` section, after Accessibility and before `<PropsDefinitions>`, on the page of the component it belongs to: a `tsx` signature, then a return-value table. Foundations pages link to it and never re-document the signature or return shape.
 
 ## Live examples
@@ -41,6 +41,27 @@ The skeleton contains:
 - MDX pages render inside `.prose`, and each live example opts out with `data-not-prose`. A `.prose` inside that escape stays unstyled, so an example that demos `.prose` or `Prose` uses a `tsx-live-prose` fence, which escapes only its toolbar and code.
 - Each example on an MDX page also gets its own page at `/examples/<page>/<id>/`, opened from the button beside Copy. The id is the nearest heading's slug, with `-2`, `-3` for later examples under the same heading.
 - Fence meta after the language sets options: `id=orders` pins the id (lowercase kebab-case, unique on the page), so a link survives a heading rename; `eager` renders the example on load, for the rare one that must.
+- Layout options lay out the preview, while the code panel and Copy keep the fence as written ([decision 0011](../decisions/0011-fence-layout-options.md)). An unknown option or value fails the build.
+
+  | Option              | Preview                                                           |
+  | ------------------- | ----------------------------------------------------------------- |
+  | `layout=stack`      | Top-level elements in a grid, one per row, at `gap-4`             |
+  | `layout=row`        | Top-level elements in a wrapping row, centred, at `gap-2`         |
+  | `gap=1,2,3,4,6,8`   | Another gap, with `layout=`                                       |
+  | `width=xs,sm,md,lg` | At most 12rem, 18rem, 35rem, or 45rem wide, such as a chart frame |
+
+- With `layout=`, a fence can hold sibling elements, and a comment on its own line at column 0 captions what follows it, up to the next caption. Several elements under one caption wrap in a row, so every intent at every emphasis is a stack of captioned rows. Indent a comment that isn't a caption. Captions work only in inline fences; a `-noinline` fence lays out the element it renders.
+
+  ````mdx
+  ```tsx-live layout=row gap=4
+  {/* Default */}
+  <Button>Buy tickets</Button>
+  {/* Disabled */}
+  <Button disabled>Buy tickets</Button>
+  ```
+  ````
+
+- Asset URLs in fences are the plain URLs a consumer writes, such as `'/cart-demo-event.svg'`. The preview adds the docs' base path to a quoted root-relative URL that ends in a file extension.
 - Examples on `.tsx` pages (`<CodePreview language='tsx-live'>`) load lazily too, but have no page of their own.
 - Live examples can use every component, every chart, and the SpotIllustrations without importing them.
 - Markdown tables scroll sideways on narrow screens by themselves, so don't wrap them.

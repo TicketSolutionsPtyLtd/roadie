@@ -36,6 +36,8 @@ type CodePreviewProps = {
   exampleHref?: string
   /** Renders the live example on load instead of when it nears the viewport. An `eager` fence meta does the same. */
   eager?: boolean
+  /** Classes the preview lays the example out with, from the fence's `layout=`, `gap=`, and `width=`. */
+  previewLayout?: string
 }
 
 // MDX's `.prose` sets the rhythm there; the docs' own pages need the gap.
@@ -108,7 +110,8 @@ function LiveExample({
   expandable,
   exampleHref,
   eager,
-  typesets
+  typesets,
+  previewLayout
 }: {
   code: string
   language: string
@@ -116,6 +119,7 @@ function LiveExample({
   exampleHref?: string
   eager: boolean
   typesets: boolean
+  previewLayout?: string
 }) {
   const [ref, near, onMounted] = useNearViewport<HTMLDivElement>(
     eager,
@@ -152,6 +156,7 @@ function LiveExample({
             {...shared}
             editorOpened={editorOpened}
             onMounted={onMounted}
+            previewLayout={previewLayout}
           />
         </Suspense>
       ) : (
@@ -168,7 +173,8 @@ export function CodePreview({
   className,
   expandable = false,
   exampleHref,
-  eager = false
+  eager = false,
+  previewLayout
 }: CodePreviewProps) {
   const theme = useCodeTheme()
   const [expanded, setExpanded] = useState(false)
@@ -188,6 +194,7 @@ export function CodePreview({
         exampleHref={exampleHref}
         eager={eager}
         typesets={/-prose\b/.test(language)}
+        previewLayout={previewLayout}
       />
     )
   }

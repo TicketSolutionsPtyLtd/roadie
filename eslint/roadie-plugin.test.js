@@ -110,6 +110,22 @@ const cases = {
       }
     ]
   },
+  'no-fence-layout-wrapper': {
+    valid: [
+      '<Badge>New</Badge>',
+      '<>\n<Badge>One</Badge>\n<Badge>Two</Badge>\n</>',
+      // Fence options can't reproduce these classes, so the wrapper stays.
+      "<div className='grid justify-items-start gap-4'><Button /></div>",
+      "<div className='grid gap-4 rounded-2xl bg-subtle p-4'><Button /></div>",
+      "<Card><div className='grid gap-2'><Button /></div></Card>",
+      "render(<div className='grid gap-4'><Button /></div>)"
+    ],
+    invalid: [
+      "<div className='flex flex-row flex-wrap gap-2'><Badge /></div>",
+      "<div className='w-140 max-w-full'><Chart /></div>",
+      "<>\n<div className='grid gap-1'><p className='text-sm text-subtle'>Normal</p><Accordion /></div>\n</>"
+    ]
+  },
   'no-import-meta-env': {
     valid: ["const dev = process.env.NODE_ENV !== 'production'"],
     invalid: ['const dev = import.meta.env.DEV']
@@ -324,6 +340,30 @@ describe('docs/eslint.config.js on MDX', () => {
       ).toHaveLength(1)
     }
   )
+
+  it('lints sibling elements in an inline fence, at their own columns', async () => {
+    const siblings =
+      "```tsx-live layout=row\n<Badge className='dark:bg-normal'>One</Badge>\n<Badge>Two</Badge>\n```"
+    const [result] = await eslint.lintText(siblings, {
+      filePath: 'src/app/sample/page.mdx'
+    })
+    expect(result.messages).toMatchObject([
+      { ruleId: 'roadie/no-dark-variant', line: 2, column: 18 }
+    ])
+  })
+
+  it('fails a layout wrapper in a fence on a migrated page only', async () => {
+    const wrapped =
+      "```tsx-live\n<div className='flex flex-wrap gap-2'>\n  <Badge>New</Badge>\n</div>\n```\n"
+    const hits = async (filePath) => {
+      const [result] = await eslint.lintText(wrapped, { filePath })
+      return result.messages.map(({ ruleId }) => ruleId)
+    }
+    expect(await hits('src/app/components/badge/page.mdx')).toEqual([
+      'roadie/no-fence-layout-wrapper'
+    ])
+    expect(await hits('src/app/sample/page.mdx')).toEqual([])
+  })
 
   it('leaves bare Image as the Roadie component in a tsx-live fence', async () => {
     const imageFence = "```tsx-live\n<Image src='/a.png' alt='' />\n```"

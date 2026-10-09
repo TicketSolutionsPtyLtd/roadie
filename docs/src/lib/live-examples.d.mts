@@ -16,12 +16,15 @@ export type LiveExample = {
   language: string
   code: string
   eager: boolean
+  /** Classes the preview lays the example out with, from `layout=`, `gap=`, and `width=`. */
+  previewLayout: string | undefined
   node: CodeNode
 }
 
 export declare function parseExampleMeta(meta: string | null | undefined): {
   id: string | undefined
   eager: boolean
+  previewLayout: string | undefined
 }
 
 export declare function collectLiveExamples(tree: object): LiveExample[]

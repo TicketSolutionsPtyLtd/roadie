@@ -9,6 +9,7 @@ import { readFileSync } from 'fs'
 import { createRequire } from 'module'
 
 import roadie from '../eslint/roadie-plugin.js'
+import { startsWithJsx } from './src/lib/fence-layout.mjs'
 import { LIVE_LANGUAGE } from './src/lib/live-examples.mjs'
 
 const require = createRequire(import.meta.url)
@@ -47,16 +48,61 @@ function liveScopeIcons() {
   ].filter(Boolean)
 }
 
+// A fence that CodePreview lays out may hold sibling elements, which react-live
+// runs in a fragment. Lint sees the same fragment, and positions shift back.
+const FRAGMENT = '<>'
+const fragmentBlocks = new Map()
+
+const isSiblingFence = ({ filename, text }) =>
+  LIVE_LANGUAGE.test(filename.slice(filename.lastIndexOf('.') + 1)) &&
+  !filename.includes('noinline') &&
+  startsWithJsx(text)
+
+const unwrapFix = (fix) =>
+  fix && fix.range[0] >= FRAGMENT.length
+    ? { ...fix, range: fix.range.map((index) => index - FRAGMENT.length) }
+    : undefined
+
+function unwrapPosition(message) {
+  const shift = (line, column) =>
+    line === 1 ? Math.max(1, column - FRAGMENT.length) : column
+  return {
+    ...message,
+    column: shift(message.line, message.column),
+    ...(message.endLine !== undefined && {
+      endColumn: shift(message.endLine, message.endColumn)
+    }),
+    fix: unwrapFix(message.fix),
+    suggestions: message.suggestions
+      ?.map((suggestion) => ({ ...suggestion, fix: unwrapFix(suggestion.fix) }))
+      .filter((suggestion) => suggestion.fix)
+  }
+}
+
 const liveFenceProcessor = {
   ...remark,
-  preprocess: (text, filename) =>
-    remark
-      .preprocess(text, filename)
-      .map((block) =>
-        typeof block === 'string'
-          ? block
-          : { ...block, filename: fenceName(block.filename) }
-      )
+  preprocess(text, filename) {
+    const wrapped = new Set()
+    const blocks = remark.preprocess(text, filename).map((block, index) => {
+      if (typeof block === 'string') return block
+      const named = { ...block, filename: fenceName(block.filename) }
+      if (!isSiblingFence(block)) return named
+      wrapped.add(index)
+      return { ...named, text: `${FRAGMENT}${block.text}</>` }
+    })
+    fragmentBlocks.set(filename, wrapped)
+    return blocks
+  },
+  postprocess(messages, filename) {
+    const wrapped = fragmentBlocks.get(filename) ?? new Set()
+    fragmentBlocks.delete(filename)
+    return remark.postprocess(
+      messages.map((list, index) =>
+        wrapped.has(index) ? list.map(unwrapPosition) : list
+      ),
+      filename
+    )
+  }
 }
 
 const config = [
@@ -103,6 +149,18 @@ const config = [
       'react/no-unescaped-entities': 'off',
       // Consumers aren't all on Next.js.
       '@next/next/no-img-element': 'off'
+    }
+  },
+
+  // Pages move to fence layout options in batches (INNO-1193); each batch
+  // adds its pages here, until the rule covers every fence.
+  {
+    files: [
+      'src/app/{components,charts}/{accordion,badge,bar-chart,button,record-grid}/page.mdx/*.{tsx,jsx}'
+    ],
+    plugins: { roadie },
+    rules: {
+      'roadie/no-fence-layout-wrapper': 'error'
     }
   },
 

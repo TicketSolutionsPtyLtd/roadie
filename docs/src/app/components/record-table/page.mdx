@@ -1178,7 +1178,7 @@ const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 
 const statuses = ['on-sale', 'selling-fast', 'sold-out']
 const events = Array.from({ length: 40 }, (_, index) => ({
   id: `event-${index}`,
-  image: index % 4 === 3 ? undefined : getAssetPath('/cart-demo-event.svg'),
+  image: index % 4 === 3 ? undefined : '/cart-demo-event.svg',
   name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
   venue: venues[index % venues.length],
   status: statuses[index % statuses.length],

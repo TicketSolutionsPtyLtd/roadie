@@ -1,6 +1,8 @@
 'use client'
 
 import {
+  Children,
+  type ReactNode,
   use,
   useContext,
   useDeferredValue,
@@ -76,7 +78,7 @@ import {
   LiveProvider
 } from 'react-live'
 
-import { getAssetPath } from '@/utils/getAssetPath'
+import { toPreviewCode, withBasePath } from '@/lib/fence-layout.mjs'
 
 import * as RoadieCharts from '@oztix/roadie-charts'
 import { lineChartTable } from '@oztix/roadie-charts/tables'
@@ -169,6 +171,30 @@ const PhosphorIconsSuffixed = Object.fromEntries(
   Object.entries(PhosphorIcons).map(([name, Icon]) => [`${name}Icon`, Icon])
 )
 
+/** A captioned cell, opened by a caption comment in a fence with `layout=`. Several elements under one caption wrap in a row. */
+function PreviewCell({
+  label,
+  children
+}: {
+  label: string
+  children: ReactNode
+}) {
+  return (
+    <div className='grid content-start gap-1 self-start'>
+      <p data-not-prose className='text-sm text-subtle'>
+        {label}
+      </p>
+      {Children.count(children) > 1 ? (
+        <div className='flex flex-wrap items-center gap-2'>{children}</div>
+      ) : (
+        children
+      )}
+    </div>
+  )
+}
+
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
+
 const scope = {
   ...RoadieComponents,
   ...RoadieCharts,
@@ -196,18 +222,18 @@ const scope = {
   QueryClientProvider,
   createDemoCart,
   DemoRouter,
-  getAssetPath,
   Link,
   createPortal,
   use,
   useState,
   useEffect,
-  useId
+  useId,
+  PreviewCell
 }
 
 const { Button, Dialog, IconButton } = RoadieComponents
 
-function FullWidthPreview() {
+function FullWidthPreview({ previewLayout }: { previewLayout?: string }) {
   return (
     <Dialog>
       <Dialog.Trigger
@@ -231,7 +257,9 @@ function FullWidthPreview() {
             }
           />
         </div>
-        <LivePreview className='min-w-0 font-sans whitespace-normal' />
+        <LivePreview
+          className={`min-w-0 font-sans whitespace-normal ${previewLayout ?? ''}`}
+        />
       </Dialog.Content>
     </Dialog>
   )
@@ -245,11 +273,13 @@ function FullWidthPreview() {
 function Preview({
   heightKey,
   className,
+  previewLayout,
   isolated,
   onMounted
 }: {
   heightKey: string
   className?: string
+  previewLayout?: string
   isolated: boolean
   onMounted?: () => void
 }) {
@@ -292,7 +322,7 @@ function Preview({
       }
     >
       <LiveContext.Provider value={{ ...live, element }}>
-        <LivePreview className='min-w-0' />
+        <LivePreview className={`min-w-0 ${previewLayout ?? ''}`} />
       </LiveContext.Provider>
     </div>
   )
@@ -314,6 +344,8 @@ export type LiveRunnerProps = {
   onMounted?: () => void
   /** Only the preview, for the example's own page. */
   isolated?: boolean
+  /** Classes the preview lays the example out with, from the fence's `layout=`, `gap=`, and `width=`. */
+  previewLayout?: string
 }
 
 export default function LiveRunner({
@@ -326,33 +358,43 @@ export default function LiveRunner({
   onExpandedChange = () => {},
   editorOpened = false,
   onMounted,
-  isolated = false
+  isolated = false,
+  previewLayout
 }: LiveRunnerProps) {
   const theme = useCodeTheme()
   const isBleedX = /^(?:tsx|jsx)-live-bleed-x/.test(language)
   const highlightLanguage = highlightLanguageOf(language)
   // A long block stays static until first opened; LiveEditor renders every token.
   const showEditor = editorOpened || !canCollapse(code)
+  const noInline = language.includes('noinline')
+  // The editor and the code panel keep the fence's own code; only what runs changes.
+  const transformCode = (source: string) =>
+    withBasePath(
+      previewLayout && !noInline ? toPreviewCode(source) : source,
+      BASE_PATH
+    )
 
   return (
     <LiveProvider
       code={code}
       scope={scope}
       theme={theme}
-      noInline={language.includes('noinline')}
+      noInline={noInline}
       language={highlightLanguage}
+      transformCode={transformCode}
     >
       {expandable && !isolated && (
         <div
           data-not-prose
           className='flex justify-end border-b border-subtle bg-normal p-2 max-md:hidden'
         >
-          <FullWidthPreview />
+          <FullWidthPreview previewLayout={previewLayout} />
         </div>
       )}
       <Preview
         heightKey={isolated ? `${heightKey}#isolated` : heightKey}
         isolated={isolated}
+        previewLayout={previewLayout}
         onMounted={onMounted}
         className={
           isolated

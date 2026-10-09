@@ -20,6 +20,7 @@ export type ManifestExample = {
   heading: string | undefined
   language: string
   code: string
+  previewLayout: string | undefined
 }
 
 const APP_DIR = join(dirname(fileURLToPath(import.meta.url)), '../app')
@@ -33,7 +34,7 @@ async function readPageExamples(path: string): Promise<ManifestExample[]> {
   ])
   const tree = createProcessor().parse(source)
   return collectLiveExamples(tree).map(
-    ({ id, anchor, heading, language, code }) => ({
+    ({ id, anchor, heading, language, code, previewLayout }) => ({
       page,
       pageTitle: metadata?.title ?? page,
       id,
@@ -41,7 +42,8 @@ async function readPageExamples(path: string): Promise<ManifestExample[]> {
       backHref: `/${page}/${anchor ? `#${anchor}` : ''}`,
       heading,
       language,
-      code
+      code,
+      previewLayout
     })
   )
 }
