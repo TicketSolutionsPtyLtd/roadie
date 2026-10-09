@@ -71,6 +71,10 @@ grep -rnE --exclude-dir={node_modules,.next,dist} "\bLinkButton\b|\bLinkIconButt
 grep -rnE --exclude-dir={node_modules,.next,dist} "\bas=" .
 ```
 
+When every export of one `import` is deprecated with the same reason, such
+as widgets' `/cart-drawer/core`, the path is what moved. Search for the path,
+not each name, which also matches the same names imported from the new path.
+
 Keep the list. It's what step 5 checks off.
 
 ## 3. Pick a codemod or a hand migration
@@ -164,6 +168,12 @@ Work through the reports and the step 2 list.
   opened it in the same tab. Keep the new default, as the linking
   foundations page asks, unless the link must stay in the tab; then pass
   `target='_self'`.
+- **`disabled` on a former `LinkButton`.** `LinkButton` ignored it and
+  stayed a working link. `Button href` with `disabled` sets `aria-disabled`
+  and blocks the click. Remove `disabled` if the link should still work.
+- **`data-slot`.** A former `LinkButton` renders `data-slot='button'`, and a
+  `LinkIconButton` `data-slot='icon-button'`, not `link-button` and
+  `link-icon-button`. Update app CSS and tests that select on the old slot.
 - **A component in `as`.** With an `href`, drop `as` and keep `href`, so
   `<Card as={NextLink} href='/x'>` becomes `<Card href='/x'>` and the
   provider's Link routes it. Without one, pass the component to `render`
