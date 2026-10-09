@@ -87,6 +87,54 @@ function City() {
   )
 }
 
+const INTENTS = [
+  'neutral',
+  'brand',
+  'brand-secondary',
+  'accent',
+  'danger',
+  'success',
+  'warning',
+  'info'
+] as const
+
+// Subtle text in each intent over the surfaces it meets: neutral ones, and the
+// intent's own. Compact enough that every cell sits inside a phone viewport,
+// since cells off screen aren't measured.
+function IntentSubtleText() {
+  return (
+    <div className='grid gap-2 text-xs'>
+      {INTENTS.map((intent) => {
+        const subtle = (
+          <span className={`intent-${intent} text-subtle`}>{intent}</span>
+        )
+        return (
+          <div key={intent} className='grid grid-cols-4 gap-1 md:grid-cols-8'>
+            <p className='p-1'>{subtle}</p>
+            <p className='emphasis-raised p-1'>{subtle}</p>
+            <p className='emphasis-sunken p-1'>{subtle}</p>
+            {[
+              'bg-normal',
+              'emphasis-sunken',
+              'emphasis-subtle',
+              'emphasis-subtler'
+            ].map((surface) => (
+              <p key={surface} className={`intent-${intent} ${surface} p-1`}>
+                <span className='text-subtle'>{intent}</span>
+              </p>
+            ))}
+            <p className='emphasis-raised p-1'>
+              <span className={`intent-${intent} emphasis-subtle`}>
+                <span className='text-subtle'>{intent}</span>
+              </span>
+            </p>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // Base UI mounts the popup before positioning it. axe counts the guards as
 // part of an open modal only once the dialog is on screen, and otherwise
 // reports them as aria-hidden-focus (seen in Firefox).
@@ -96,6 +144,7 @@ const opened = async (trigger: HTMLElement) => {
 }
 
 export const scenarios: Scenario[] = [
+  { name: 'intent-subtle-text', ui: () => <IntentSubtleText /> },
   {
     name: 'calendar-range',
     ui: () => (
