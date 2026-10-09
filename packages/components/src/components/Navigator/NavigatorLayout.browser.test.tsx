@@ -328,6 +328,7 @@ describe('the panes container', () => {
 
   it.each([
     [390, 0],
+    [800, 12],
     [1400, 12]
   ])(
     'at a %ipx viewport, insets the top of a stack %ipx from each side',
