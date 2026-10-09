@@ -63,6 +63,48 @@ describe('collectLiveExamples', () => {
     expect(() => ids('```tsx-live id=Orders\n<A />\n```')).toThrow(/kebab/)
   })
 
+  it('takes the preview layout from the fence meta', () => {
+    const source = [
+      '```tsx-live layout=row gap=3 width=140\n<A />\n<B />\n```',
+      '```tsx-live\n<C />\n```'
+    ].join('\n\n')
+
+    expect(collectLiveExamples(parse(source))).toMatchObject([
+      { previewLayout: expect.any(String) },
+      { previewLayout: undefined }
+    ])
+  })
+
+  it('rejects an unknown option, so a typo fails the build', () => {
+    expect(() => ids('```tsx-live widht=md\n<A />\n```')).toThrow(
+      /Unknown live example option "widht=md". Options are id=, layout=, gap=, width=, and eager/
+    )
+  })
+
+  it('rejects caption comments the preview would not lay out', () => {
+    const caption = '{/* Normal */}\n<A />'
+    expect(() =>
+      ids(`## Default\n\n\`\`\`tsx-live\n${caption}\n\`\`\``)
+    ).toThrow(/fence on line 3 has \{\/\* Normal \*\/\} at column 0/)
+    expect(() =>
+      ids(`\`\`\`tsx-live-noinline layout=stack\n${caption}\n\`\`\``)
+    ).toThrow(/Caption comments need/)
+    expect(() =>
+      ids(`\`\`\`tsx-live layout=stack\n${caption}\n\`\`\``)
+    ).not.toThrow()
+  })
+
+  it('rejects a caption long enough to be an explanation', () => {
+    const fence = (caption: string) =>
+      ids(`\`\`\`tsx-live layout=stack\n{/* ${caption} */}\n<A />\n\`\`\``)
+    expect(() => fence('Single (default) with icon')).not.toThrow()
+    expect(() =>
+      fence('Internal routes through RoadieLinkProvider and prefetch')
+    ).toThrow(
+      /in 4 words or fewer. The fence on line 1 has \{\/\* Internal routes through RoadieLinkProvider and prefetch \*\/\}/
+    )
+  })
+
   it('keeps generated ids clear of explicit ones', () => {
     const source = [
       '## Default',
@@ -101,13 +143,15 @@ describe('remarkLiveExamples', () => {
     const processor = createProcessor({ remarkPlugins: [remarkLiveExamples] })
     const file = {
       path: '/repo/docs/src/app/components/badge/page.mdx',
-      value: '## Default\n\n```tsx-live eager\n<Badge />\n```'
+      value:
+        '## Default\n\n```tsx-live eager\n<Badge />\n```\n\n```tsx-live layout=row\n<Badge />\n```'
     }
     const compiled = String(await processor.process(file))
 
     expect(compiled).toContain('"data-example-id": "default"')
     expect(compiled).toContain('"data-example-page": "components/badge"')
     expect(compiled).toContain('"data-example-eager": ""')
+    expect(compiled).toMatch(/"data-preview-layout": "[^"]+"/)
   })
 })
 

@@ -11,6 +11,7 @@ type FenceProps = ComponentPropsWithoutRef<'code'> & {
   'data-example-id'?: string
   'data-example-page'?: string
   'data-example-eager'?: string
+  'data-preview-layout'?: string
 }
 
 const components = {
@@ -35,7 +36,8 @@ const components = {
     className,
     'data-example-id': id,
     'data-example-page': page,
-    'data-example-eager': eager
+    'data-example-eager': eager,
+    'data-preview-layout': previewLayout
   }: FenceProps) => {
     if (className === undefined) return <code>{children}</code>
 
@@ -44,6 +46,7 @@ const components = {
         language={className.replace('language-', '')}
         exampleHref={id && page ? exampleHref(page, id) : undefined}
         eager={eager !== undefined}
+        previewLayout={previewLayout}
       >
         {children?.toString() ?? ''}
       </CodePreview>

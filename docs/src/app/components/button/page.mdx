@@ -25,24 +25,20 @@ import { Button } from '@oztix/roadie-components'
 
 ### Emphasis
 
-```tsx-live
-<div className='flex flex-row flex-wrap gap-2'>
-  <Button emphasis='strong'>Strong</Button>
-  <Button emphasis='normal'>Normal</Button>
-  <Button emphasis='subtle'>Subtle</Button>
-  <Button emphasis='subtler'>Subtler</Button>
-</div>
+```tsx-live layout=row
+<Button emphasis='strong'>Strong</Button>
+<Button emphasis='normal'>Normal</Button>
+<Button emphasis='subtle'>Subtle</Button>
+<Button emphasis='subtler'>Subtler</Button>
 ```
 
 ### Sizes
 
-```tsx-live
-<div className='flex flex-row flex-wrap items-center gap-2'>
-  <Button size='xs'>Extra small</Button>
-  <Button size='sm'>Small</Button>
-  <Button size='md'>Medium</Button>
-  <Button size='lg'>Large</Button>
-</div>
+```tsx-live layout=row
+<Button size='xs'>Extra small</Button>
+<Button size='sm'>Small</Button>
+<Button size='md'>Medium</Button>
+<Button size='lg'>Large</Button>
 ```
 
 ### Full width
@@ -60,97 +56,81 @@ A button is as wide as its label and takes its parent's alignment. Add `w-full` 
 
 Neutral is the default intent. Each intent communicates a different purpose: accent for primary actions, danger for destructive actions, and so on. Hover and focus states adapt automatically.
 
-```tsx-live
-<div className='grid gap-2'>
-  <div className='flex flex-row flex-wrap gap-2'>
-    <Button emphasis='strong' intent='neutral'>Neutral</Button>
-    <Button emphasis='strong' intent='accent'>Accent</Button>
-    <Button emphasis='strong' intent='brand'>Brand</Button>
-    <Button emphasis='strong' intent='info'>Info</Button>
-    <Button emphasis='strong' intent='success'>Success</Button>
-    <Button emphasis='strong' intent='warning'>Warning</Button>
-    <Button emphasis='strong' intent='danger'>Danger</Button>
-  </div>
-  <div className='flex flex-row flex-wrap gap-2'>
-    <Button emphasis='normal' intent='neutral'>Neutral</Button>
-    <Button emphasis='normal' intent='accent'>Accent</Button>
-    <Button emphasis='normal' intent='brand'>Brand</Button>
-    <Button emphasis='normal' intent='info'>Info</Button>
-    <Button emphasis='normal' intent='success'>Success</Button>
-    <Button emphasis='normal' intent='warning'>Warning</Button>
-    <Button emphasis='normal' intent='danger'>Danger</Button>
-  </div>
-  <div className='flex flex-row flex-wrap gap-2'>
-    <Button emphasis='subtle' intent='neutral'>Neutral</Button>
-    <Button emphasis='subtle' intent='accent'>Accent</Button>
-    <Button emphasis='subtle' intent='brand'>Brand</Button>
-    <Button emphasis='subtle' intent='info'>Info</Button>
-    <Button emphasis='subtle' intent='success'>Success</Button>
-    <Button emphasis='subtle' intent='warning'>Warning</Button>
-    <Button emphasis='subtle' intent='danger'>Danger</Button>
-  </div>
-  <div className='flex flex-row flex-wrap gap-2'>
-    <Button emphasis='subtler' intent='neutral'>Neutral</Button>
-    <Button emphasis='subtler' intent='accent'>Accent</Button>
-    <Button emphasis='subtler' intent='brand'>Brand</Button>
-    <Button emphasis='subtler' intent='info'>Info</Button>
-    <Button emphasis='subtler' intent='success'>Success</Button>
-    <Button emphasis='subtler' intent='warning'>Warning</Button>
-    <Button emphasis='subtler' intent='danger'>Danger</Button>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Strong */}
+<Button emphasis='strong' intent='neutral'>Neutral</Button>
+<Button emphasis='strong' intent='accent'>Accent</Button>
+<Button emphasis='strong' intent='brand'>Brand</Button>
+<Button emphasis='strong' intent='info'>Info</Button>
+<Button emphasis='strong' intent='success'>Success</Button>
+<Button emphasis='strong' intent='warning'>Warning</Button>
+<Button emphasis='strong' intent='danger'>Danger</Button>
+{/* Normal */}
+<Button emphasis='normal' intent='neutral'>Neutral</Button>
+<Button emphasis='normal' intent='accent'>Accent</Button>
+<Button emphasis='normal' intent='brand'>Brand</Button>
+<Button emphasis='normal' intent='info'>Info</Button>
+<Button emphasis='normal' intent='success'>Success</Button>
+<Button emphasis='normal' intent='warning'>Warning</Button>
+<Button emphasis='normal' intent='danger'>Danger</Button>
+{/* Subtle */}
+<Button emphasis='subtle' intent='neutral'>Neutral</Button>
+<Button emphasis='subtle' intent='accent'>Accent</Button>
+<Button emphasis='subtle' intent='brand'>Brand</Button>
+<Button emphasis='subtle' intent='info'>Info</Button>
+<Button emphasis='subtle' intent='success'>Success</Button>
+<Button emphasis='subtle' intent='warning'>Warning</Button>
+<Button emphasis='subtle' intent='danger'>Danger</Button>
+{/* Subtler */}
+<Button emphasis='subtler' intent='neutral'>Neutral</Button>
+<Button emphasis='subtler' intent='accent'>Accent</Button>
+<Button emphasis='subtler' intent='brand'>Brand</Button>
+<Button emphasis='subtler' intent='info'>Info</Button>
+<Button emphasis='subtler' intent='success'>Success</Button>
+<Button emphasis='subtler' intent='warning'>Warning</Button>
+<Button emphasis='subtler' intent='danger'>Danger</Button>
 ```
 
 ### States
 
 Hover and focus states use the intent color scale automatically via `is-interactive`.
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <div><Button>Button</Button></div>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <div><Button disabled>Button</Button></div>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Default */}
+<Button>Button</Button>
+{/* Disabled */}
+<Button disabled>Button</Button>
 ```
 
 ### Href
 
 Pass `href` to render the button as a routed anchor. Roadie picks the right element + safety attributes based on the href shape: internal routes go through your configured [`RoadieLinkProvider`](/foundations/linking); external hrefs (`https://…`, `//…`) auto-render with `target='_blank' rel='noopener noreferrer'`; protocol hrefs (`mailto:` / `tel:` / `sms:`) render plain anchors.
 
-```tsx-live
-<div className='flex flex-row flex-wrap items-center gap-2'>
-  {/* Internal routes through RoadieLinkProvider */}
-  <Button href='/foundations/linking' emphasis='strong' intent='accent'>
-    Read about linking
-  </Button>
-
-  {/* External gets target='_blank' rel='noopener noreferrer' */}
-  <Button href='https://oztix.com.au' emphasis='normal'>
-    Open Oztix
-    <ArrowSquareOut weight='bold' className='size-4' />
-  </Button>
-
-  {/* Protocol renders plain <a>, no target/rel */}
-  <Button href='mailto:hello@oztix.com.au' emphasis='subtle'>
-    <Envelope weight='bold' className='size-4' />
-    Email us
-  </Button>
-</div>
+```tsx-live layout=row gap=4
+{/* Internal */}
+<Button href='/foundations/linking' emphasis='strong' intent='accent'>
+  Read about linking
+</Button>
+{/* External */}
+<Button href='https://oztix.com.au' emphasis='normal'>
+  Open Oztix
+  <ArrowSquareOut weight='bold' className='size-4' />
+</Button>
+{/* Protocol */}
+<Button href='mailto:hello@oztix.com.au' emphasis='subtle'>
+  <Envelope weight='bold' className='size-4' />
+  Email us
+</Button>
 ```
 
 Hover each button. The browser status bar shows the resolved `href` exactly as Roadie rendered it. See [Linking](/foundations/linking) for the full reference: provider setup, the external/internal/protocol decision tree, and the `external`/`target`/`rel` overrides.
 
 ### Download
 
-Add `download` to an `href` button to save the file instead of opening it, optionally under a filename. A file isn't a route, so the button renders a plain `<a>` and skips the provider's Link, which would otherwise prefetch the file as a page. That also means it gets no base path: if your app has one, add it to the `href` yourself. This site does that with `getAssetPath`.
+Add `download` to an `href` button to save the file instead of opening it, optionally under a filename. A file isn't a route, so the button renders a plain `<a>` and skips the provider's Link, which would otherwise prefetch the file as a page. That also means it gets no base path: if your app has one, add it to the `href` yourself.
 
 ```tsx-live
-<Button href={getAssetPath('/roadie-logo.png')} download='roadie-logo.png'>
+<Button href='/roadie-logo.png' download='roadie-logo.png'>
   <DownloadIcon weight='bold' className='size-4' />
   Download logo
 </Button>

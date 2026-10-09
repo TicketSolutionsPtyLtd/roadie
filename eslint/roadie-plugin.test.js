@@ -110,6 +110,51 @@ const cases = {
       }
     ]
   },
+  'no-fence-layout-wrapper': {
+    valid: [
+      '<Badge>New</Badge>',
+      '<>\n<Badge>One</Badge>\n<Badge>Two</Badge>\n</>',
+      // Fence options can't reproduce these classes, so the wrapper stays.
+      "<div className='grid justify-items-start gap-4'><Button /></div>",
+      "<div className='grid gap-4 rounded-2xl bg-subtle p-4'><Button /></div>",
+      "<div className='flex flex-col gap-4'><Button /></div>",
+      "<div className='grid gap-4 sm:grid-cols-2'><Button /></div>",
+      "<div className='grid gap-[6px]'><Button /></div>",
+      "<div className={cn('grid gap-4')}><Button /></div>",
+      "<section className='grid gap-4'><Button /></section>",
+      // A non-root wrapper
+      "<Card><div className='grid gap-2'><Button /></div></Card>",
+      "render(<div className='grid gap-4'><Button /></div>)",
+      // A wrapper with other props
+      "<div className='grid gap-4' role='group'><Button /></div>",
+      "<div className='grid gap-4' style={{ minHeight: 200 }}><Button /></div>",
+      "<div className='grid gap-4' {...props}><Button /></div>"
+    ],
+    invalid: [
+      // layout=stack, and with gap=
+      "<div className='grid gap-4'><Button /><Button /></div>",
+      "<div className='grid gap-8'><Button /><Button /></div>",
+      // layout=row, and with gap=
+      "<div className='flex flex-row flex-wrap gap-2'><Badge /></div>",
+      "<div className='flex flex-wrap items-center gap-3'><Badge /></div>",
+      // width=
+      "<div className='w-140 max-w-full'><Chart /></div>",
+      "<div className='w-72'><StatTile /></div>",
+      "<div className='max-w-64'><Input /></div>",
+      "<div className='grid max-w-48 gap-4'><NumberField /></div>",
+      // A root sibling in a laid-out fence, which lints inside a fragment
+      "<>\n<div className='grid gap-2'><Button /></div>\n<Button />\n</>",
+      // Captions, directly or one cell down
+      {
+        code: "<>\n<div className='grid gap-1'><p className='text-sm text-subtle'>Normal</p><Accordion /></div>\n</>",
+        errors: [{ message: /state label/ }]
+      },
+      {
+        code: "<div className='grid gap-4'><div className='grid gap-1'><p className='text-sm text-subtle'>Separate</p><Kbd /></div></div>",
+        errors: [{ message: /state label/ }]
+      }
+    ]
+  },
   'no-import-meta-env': {
     valid: ["const dev = process.env.NODE_ENV !== 'production'"],
     invalid: ['const dev = import.meta.env.DEV']
@@ -324,6 +369,30 @@ describe('docs/eslint.config.js on MDX', () => {
       ).toHaveLength(1)
     }
   )
+
+  it('lints sibling elements in an inline fence, at their own columns', async () => {
+    const siblings =
+      "```tsx-live layout=row\n<Badge className='dark:bg-normal'>One</Badge>\n<Badge>Two</Badge>\n```"
+    const [result] = await eslint.lintText(siblings, {
+      filePath: 'src/app/sample/page.mdx'
+    })
+    expect(result.messages).toMatchObject([
+      { ruleId: 'roadie/no-dark-variant', line: 2, column: 18 }
+    ])
+  })
+
+  it('fails a layout wrapper in a fence on a migrated page only', async () => {
+    const wrapped =
+      "```tsx-live\n<div className='flex flex-wrap gap-2'>\n  <Badge>New</Badge>\n</div>\n```\n"
+    const hits = async (filePath) => {
+      const [result] = await eslint.lintText(wrapped, { filePath })
+      return result.messages.map(({ ruleId }) => ruleId)
+    }
+    expect(await hits('src/app/components/badge/page.mdx')).toEqual([
+      'roadie/no-fence-layout-wrapper'
+    ])
+    expect(await hits('src/app/sample/page.mdx')).toEqual([])
+  })
 
   it('leaves bare Image as the Roadie component in a tsx-live fence', async () => {
     const imageFence = "```tsx-live\n<Image src='/a.png' alt='' />\n```"

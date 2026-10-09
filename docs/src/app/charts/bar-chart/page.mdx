@@ -21,68 +21,60 @@ import { BarChart } from '@oztix/roadie-charts/bar-chart'
 
 ### Default
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Daily orders' source='Oztix sales.' size='md'>
-    <BarChart
-      data={[42, 88, 120, 94, 38, 51, 60].map((orders, i) => ({ day: `2026-10-0${i + 1}`, orders }))}
-      x='day'
-      y='orders'
-      takeaway='Weekends carry the week'
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Daily orders' source='Oztix sales.' size='md'>
+  <BarChart
+    data={[42, 88, 120, 94, 38, 51, 60].map((orders, i) => ({ day: `2026-10-0${i + 1}`, orders }))}
+    x='day'
+    y='orders'
+    takeaway='Weekends carry the week'
+  />
+</Chart>
 ```
 
 ### Annotated on-sale
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='On-sale by hour' source='Oztix sales.' size='md'>
-    <BarChart
-      data={[1840, 920, 410, 260, 210, 190].map((orders, i) => ({ time: `2026-08-03T${String(9 + i).padStart(2, '0')}:00`, orders }))}
-      x='time'
-      y='orders'
-      interval='hour'
-      annotations={[{ at: '2026-08-03T09:00', label: 'General on-sale' }]}
-      takeaway='Nearly half the orders came in the first hour'
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='On-sale by hour' source='Oztix sales.' size='md'>
+  <BarChart
+    data={[1840, 920, 410, 260, 210, 190].map((orders, i) => ({ time: `2026-08-03T${String(9 + i).padStart(2, '0')}:00`, orders }))}
+    x='time'
+    y='orders'
+    interval='hour'
+    annotations={[{ at: '2026-08-03T09:00', label: 'General on-sale' }]}
+    takeaway='Nearly half the orders came in the first hour'
+  />
+</Chart>
 ```
 
 ### With a second measure
 
 `line` draws another measure on its own axis. It is labelled at its end, so it needs no second axis.
 
-```tsx-live
-<div className='w-180 max-w-full'>
-  <Chart label='Entry' source='Oztix scans.' size='full'>
-    <BarChart
-      data={[80, 190, 300, 260, 150, 90].map((scans, i, all) => ({
-        time: `2026-11-14T${String(17 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`,
-        scans,
-        inside: all.slice(0, i + 1).reduce((a, b) => a + b, 0) / 1200
-      }))}
-      x='time'
-      y='scans'
-      interval='hour'
-      line={{ y: 'inside', label: 'Inside', format: 'percent' }}
-      takeaway='Entry peaked at 6pm'
-    />
-  </Chart>
-</div>
+```tsx-live width=180
+<Chart label='Entry' source='Oztix scans.' size='full'>
+  <BarChart
+    data={[80, 190, 300, 260, 150, 90].map((scans, i, all) => ({
+      time: `2026-11-14T${String(17 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`,
+      scans,
+      inside: all.slice(0, i + 1).reduce((a, b) => a + b, 0) / 1200
+    }))}
+    x='time'
+    y='scans'
+    interval='hour'
+    line={{ y: 'inside', label: 'Inside', format: 'percent' }}
+    takeaway='Entry peaked at 6pm'
+  />
+</Chart>
 ```
 
 ### States
 
-```tsx-live
-<div className='grid w-140 max-w-full gap-4'>
-  <p className='text-sm text-subtle'>No values yet</p>
-  <Chart label='Daily orders' source='Oztix sales.' size='sm'>
-    <BarChart data={[{ day: '2026-10-01', orders: null }]} x='day' y='orders' />
-  </Chart>
-</div>
+```tsx-live layout=stack width=140
+{/* No values yet */}
+<Chart label='Daily orders' source='Oztix sales.' size='sm'>
+  <BarChart data={[{ day: '2026-10-01', orders: null }]} x='day' y='orders' />
+</Chart>
 ```
 
 ## Guidelines

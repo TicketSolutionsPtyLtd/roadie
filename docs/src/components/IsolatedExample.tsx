@@ -17,7 +17,8 @@ export function IsolatedExample({
   href,
   backHref,
   pageTitle,
-  heading
+  heading,
+  previewLayout
 }: ManifestExample) {
   return (
     <div className='grid min-h-dvh grid-rows-[auto_1fr]'>
@@ -36,6 +37,7 @@ export function IsolatedExample({
             code={code.trim()}
             language={language}
             heightKey={href}
+            previewLayout={previewLayout}
             isolated
           />
         </Suspense>

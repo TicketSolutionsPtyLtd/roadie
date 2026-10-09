@@ -164,6 +164,35 @@ function iconAttribute(icons, attributeName, report) {
   }
 }
 
+// Classes the fence options reproduce: layout=, gap=, width=, and a caption.
+const FENCE_LAYOUT_CLASS =
+  /^(grid|flex|flex-row|flex-wrap|items-center|gap-[123468]|w-(40|48|64|72|80|140|180)|max-w-(full|40|48|64|72|80|140|180))$/
+const CAPTION_CLASS = new Set(['text-sm', 'text-subtle'])
+
+const classTokens = (element) => {
+  const attribute = element.openingElement.attributes.find(
+    (node) => node.type === 'JSXAttribute' && node.name.name === 'className'
+  )
+  return staticString(attribute?.value)?.split(/\s+/).filter(Boolean)
+}
+
+const isElement = (node, name) =>
+  node?.type === 'JSXElement' && node.openingElement.name.name === name
+
+// Any prop besides className, such as role or style, is more than layout.
+const isLayoutDiv = (node) =>
+  isElement(node, 'div') &&
+  node.openingElement.attributes.length === 1 &&
+  classTokens(node)?.every((token) => FENCE_LAYOUT_CLASS.test(token))
+
+const isCaption = (node) => {
+  const tokens = isElement(node, 'p') ? classTokens(node) : undefined
+  return (
+    tokens?.length === CAPTION_CLASS.size &&
+    tokens.every((token) => CAPTION_CLASS.has(token))
+  )
+}
+
 const rules = {
   'phosphor-icon-suffix': {
     meta: {
@@ -263,6 +292,35 @@ const rules = {
       'Lay out MDX with the docs components (Guidelines, Guideline width, Guideline.Row), not {{token}}. See docs/contributing/DOCS_PAGES.md.'
     )
   ),
+  'no-fence-layout-wrapper': {
+    meta: {
+      type: 'suggestion',
+      docs: {
+        description:
+          'Inline live fences take preview layout from fence options, not a wrapper.'
+      },
+      schema: []
+    },
+    create(context) {
+      const checkRoot = (node) => {
+        if (!isLayoutDiv(node)) return
+        const captioned = (child) =>
+          isCaption(child) ||
+          (isLayoutDiv(child) && child.children.some(isCaption))
+        const kind = node.children.some(captioned)
+          ? 'state label'
+          : 'layout wrapper'
+        context.report({
+          node: node.openingElement,
+          message: `Replace this ${kind} with fence options (layout=, gap=, width=, or a {/* Label */} caption), so copied code is only the component. See docs/contributing/COMPONENT_DOC_TEMPLATE.md rules 12 and 13.`
+        })
+      }
+      return {
+        'Program > ExpressionStatement > JSXElement': checkRoot,
+        'Program > ExpressionStatement > JSXFragment > JSXElement': checkRoot
+      }
+    }
+  },
   'no-import-meta-env': selectorRule(
     'Dev-only checks read process.env.NODE_ENV.',
     "MemberExpression[object.type='MetaProperty'][property.name='env']",
