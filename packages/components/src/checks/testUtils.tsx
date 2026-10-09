@@ -251,16 +251,24 @@ const isPainted = (colour: string) =>
   flatten('#000', colour).join() !== '0,0,0' ||
   flatten('#fff', colour).join() !== '255,255,255'
 
-// Every element at the centre, in paint order, with pointer events forced
-// on, since indicators and popups often turn them off.
+// Every element at the centre, in paint order. Call it inside
+// withPointerEvents, since indicators and popups often turn them off.
 function stackAt(element: Element) {
   const { left, top, width, height } = element.getBoundingClientRect()
+  return document.elementsFromPoint(left + width / 2, top + height / 2)
+}
+
+// Forced once per measurement: toggling it per element restyles the page each
+// time, which took WebKit past the test timeout.
+function withPointerEvents<T>(measure: () => T) {
   const force = document.createElement('style')
   force.textContent = '* { pointer-events: auto !important }'
   document.head.append(force)
-  const stack = document.elementsFromPoint(left + width / 2, top + height / 2)
-  force.remove()
-  return stack
+  try {
+    return measure()
+  } finally {
+    force.remove()
+  }
 }
 
 // The fill under an element as painted, including siblings such as a toggle
@@ -345,14 +353,15 @@ function nonTextPairs(): Pair[] {
 }
 
 export function measureContrast() {
-  return [...textPairs(), ...nonTextPairs()]
-    .filter(isMeasured)
-    .flatMap((pair) => {
+  const pairs = [...textPairs(), ...nonTextPairs()].filter(isMeasured)
+  return withPointerEvents(() =>
+    pairs.flatMap((pair) => {
       const surface = fillUnder(pair)
       if (!surface) return []
       const lc = Math.abs(apcaLc(over(surface, pair.colour), surface))
       return [{ ...pair, lc }]
     })
+  )
 }
 
 // What the subtle text colour resolves to where this element sits.
