@@ -232,8 +232,8 @@ function textRole(element: Element): Role {
   const { fontSize, fontWeight } = getComputedStyle(element)
   const size = parseFloat(fontSize)
   const bold = Number(fontWeight) >= 700
-  if (size >= 36 || (bold && size >= 24)) return 'display text'
   if (element.closest('.emphasis-strong')) return 'label on a strong fill'
+  if (size >= 36 || (bold && size >= 24)) return 'display text'
   if (size >= 24 || (bold && size >= 16)) return 'large text'
   return 'body text'
 }
@@ -377,6 +377,8 @@ function subtleText(element: Element) {
 type KnownLowContrast = {
   role: Role
   matches: (pair: Pair) => boolean
+  /** Just under the lowest Lc measured when listed, so a worse pair fails. */
+  floor: number
   theme?: Theme
   ticket: string
 }
@@ -387,20 +389,23 @@ const knownLowContrast: KnownLowContrast[] = [
   {
     role: 'body text',
     matches: ({ element, colour }) => colour === subtleText(element),
+    floor: 55,
     ticket: 'https://oztix.atlassian.net/browse/INNO-1197'
   },
   {
     role: 'non-text UI',
     matches: ({ element }) => element.matches('.intent-accent'),
+    floor: 35,
     theme: 'dark',
     ticket: 'https://oztix.atlassian.net/browse/INNO-1198'
   }
 ]
 
-const isKnownLow = (pair: Pair) =>
+const isKnownLow = (pair: Pair & { lc: number }) =>
   knownLowContrast.some(
     (known) =>
       known.role === pair.role &&
+      pair.lc >= known.floor &&
       (known.theme ?? currentTheme()) === currentTheme() &&
       known.matches(pair)
   )
