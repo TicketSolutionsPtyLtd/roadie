@@ -48,25 +48,36 @@ const paragraph = (...children: PhrasingContent[]): Paragraph => ({
 })
 const tsx = (value: string): Code => ({ type: 'code', lang: 'tsx', value })
 
-function attribute(node: JsxElement, name: string) {
+function attributeValue(node: JsxElement, name: string) {
   const attr = node.attributes.find(
     (a): a is MdxJsxAttribute => a.type === 'mdxJsxAttribute' && a.name === name
   )
-  if (!attr || attr.value === null || attr.value === undefined) return undefined
-  if (typeof attr.value === 'string') return attr.value
-  const [statement] = attr.value.data?.estree?.body ?? []
-  const expression =
-    statement?.type === 'ExpressionStatement' ? statement.expression : undefined
+  return attr?.value ?? undefined
+}
+
+function expressionOf(value: MdxJsxAttribute['value']) {
+  if (!value || typeof value === 'string') return undefined
+  const [statement] = value.data?.estree?.body ?? []
+  return statement?.type === 'ExpressionStatement'
+    ? statement.expression
+    : undefined
+}
+
+function attribute(node: JsxElement, name: string) {
+  const value = attributeValue(node, name)
+  if (value === undefined) return undefined
+  if (typeof value === 'string') return value
+  const expression = expressionOf(value)
   if (
     expression?.type === 'TemplateLiteral' &&
     !expression.expressions.length
   ) {
-    return expression.quasis[0]?.value.cooked ?? attr.value.value
+    return expression.quasis[0]?.value.cooked ?? value.value
   }
   if (expression?.type === 'Literal' && typeof expression.value === 'string') {
     return expression.value
   }
-  return attr.value.value
+  return value.value
 }
 
 // A copy of `dedent.ts`: scripts run under plain Node, which can't resolve the
@@ -119,13 +130,31 @@ function apiReference(components: ManifestComponent[]): RootContent[] {
   return unified().use(remarkParse).use(remarkGfm).parse(markdown).children
 }
 
-function guideline(node: JsxElement, children: RootContent[]): RootContent[] {
+const mdxParser = unified().use(remarkParse).use(remarkMdx).use(remarkGfm)
+
+/** A prop that holds text or JSX, such as a guideline's description, as markdown blocks. */
+function richAttribute(node: JsxElement, name: string, page: Page): Node[] {
+  const source = attribute(node, name)
+  if (!source) return []
+  const type = expressionOf(attributeValue(node, name))?.type
+  if (type !== 'JSXElement' && type !== 'JSXFragment') {
+    return [paragraph(text(source))]
+  }
+  const [root] = transform(mdxParser.parse(dedent(source)), page) as [Root]
+  return root.children
+}
+
+function guideline(
+  node: JsxElement,
+  children: RootContent[],
+  page: Page
+): Node[] {
   const title = attribute(node, 'title')
-  const description = attribute(node, 'description')
   // Guideline.Row only lays out the docs card, so readers get the bare parts.
+  // The fragment keeps the Row's indent, so dedent lines it up with them.
   const example = attribute(node, 'example')?.replace(
-    /^\s*<Guideline\.Row>([\s\S]*)<\/Guideline\.Row>\s*$/,
-    '<>$1</>'
+    /^(\s*)<Guideline\.Row>([\s\S]*?)(\s*)<\/Guideline\.Row>\s*$/,
+    '$1<>$2$3</>'
   )
   const code = attribute(node, 'code')
   const label =
@@ -136,17 +165,16 @@ function guideline(node: JsxElement, children: RootContent[]): RootContent[] {
         : title
   return [
     ...(label ? [paragraph(strong(label))] : []),
-    ...(description ? [paragraph(text(description))] : []),
+    ...richAttribute(node, 'description', page),
     ...(example ? [tsx(dedent(example))] : []),
     ...(code ? [tsx(dedent(code))] : []),
     ...children
   ]
 }
 
-function transform(
-  node: Node,
-  page: Required<Pick<MarkdownPage, 'components'>> & MarkdownPage
-): Node[] {
+type Page = Required<Pick<MarkdownPage, 'components'>> & MarkdownPage
+
+function transform(node: Node, page: Page): Node[] {
   switch (node.type) {
     case 'mdxjsEsm':
     case 'mdxFlowExpression':
@@ -182,7 +210,7 @@ function transform(
       node.name === 'Guideline.Do' ||
       node.name === 'Guideline.Dont'
     ) {
-      return guideline(node, children as RootContent[])
+      return guideline(node, children as RootContent[], page)
     }
     return children
   }
