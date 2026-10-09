@@ -60,6 +60,36 @@ async function expectPillOver(name: string) {
     .toBeLessThan(1)
 }
 
+const NARROW = 160
+
+function NarrowDateRange(props: Omit<ToggleGroupProps, 'children'>) {
+  return (
+    <div style={{ width: NARROW }}>
+      <DateRange {...props} />
+    </div>
+  )
+}
+
+function expectWholeLabel(item: HTMLElement) {
+  expect(item.scrollWidth).toBeLessThanOrEqual(item.clientWidth)
+}
+
+async function expectInView(name: string) {
+  const item = screen.getByRole('button', { name })
+  expectWholeLabel(item)
+  const frame = screen.getByRole('group').parentElement!
+  await expect
+    .poll(
+      () => {
+        const shown = frame.getBoundingClientRect()
+        const { left, right } = item.getBoundingClientRect()
+        return left >= shown.left - 0.5 && right <= shown.right + 0.5
+      },
+      { timeout: 5000 }
+    )
+    .toBe(true)
+}
+
 describe.each(EMPHASES)('the %s sliding pill', (emphasis) => {
   it('sits over the pressed item', async () => {
     render(<DateRange emphasis={emphasis} />)
@@ -117,21 +147,48 @@ describe.each(EMPHASES)('the %s sliding pill', (emphasis) => {
     expect(rectOf(indicator()).top).toBeLessThan(before.top)
   })
 
-  it('follows the pressed item onto a wrapped row', async () => {
-    render(
-      <div className='w-40'>
-        <DateRange
-          emphasis={emphasis}
-          className='flex w-full flex-wrap rounded-2xl *:flex-1'
-        />
-      </div>
-    )
-    await expectPillOver('30 days')
-    const before = rectOf(indicator())
+  it('scrolls sideways on one row when space runs out', async () => {
+    render(<NarrowDateRange emphasis={emphasis} />)
+    const group = screen.getByRole('group')
+    const items = screen.getAllByRole('button')
+    expect(new Set(items.map((item) => rectOf(item).top)).size).toBe(1)
+    items.forEach(expectWholeLabel)
+    expect(rectOf(group).width).toBeLessThanOrEqual(NARROW)
+    expect(group.scrollWidth).toBeGreaterThan(group.clientWidth)
+  })
 
-    await userEvent.click(screen.getByRole('button', { name: 'Last 90 days' }))
+  it('scrolls the pressed item into view', async () => {
+    render(<NarrowDateRange emphasis={emphasis} defaultValue={['90d']} />)
+    await expectInView('Last 90 days')
     await expectPillOver('Last 90 days')
-    expect(rectOf(indicator()).top).toBeGreaterThan(before.top)
+  })
+
+  it('reaches the last item from the keyboard', async () => {
+    render(<NarrowDateRange emphasis={emphasis} defaultValue={['7d']} />)
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}{Enter}')
+    expect(screen.getByRole('button', { name: 'Last 90 days' })).toHaveFocus()
+    await expectInView('Last 90 days')
+    await expectPillOver('Last 90 days')
+  })
+
+  it('keeps the focus ring inside the scrolling track', async () => {
+    const removeStill = useStylesheet('* { transition: none !important }')
+    render(<NarrowDateRange emphasis={emphasis} />)
+    await userEvent.tab()
+    const item = screen.getByRole('button', { name: '30 days' })
+    expect(item).toHaveFocus()
+    const group = screen.getByRole('group')
+    const ring = () => {
+      const { outlineWidth, outlineOffset } = getComputedStyle(item)
+      return parseFloat(outlineWidth) + parseFloat(outlineOffset)
+    }
+    removeStill()
+    const clipTop = group.getBoundingClientRect().top + group.clientTop
+    const clipBottom = clipTop + group.clientHeight
+    const { top, bottom } = item.getBoundingClientRect()
+    expect(top - ring()).toBeGreaterThanOrEqual(clipTop - 0.5)
+    expect(bottom + ring()).toBeLessThanOrEqual(clipBottom + 0.5)
   })
 })
 

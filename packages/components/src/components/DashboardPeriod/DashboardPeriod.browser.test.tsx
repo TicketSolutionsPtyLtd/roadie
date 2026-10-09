@@ -295,6 +295,13 @@ function expectInside(group: HTMLElement) {
   }
 }
 
+function expectOneRow(group: HTMLElement) {
+  const tops = within(group)
+    .getAllByRole('button')
+    .map((item) => Math.round(box(item).top))
+  expect(new Set(tops).size).toBe(1)
+}
+
 for (const [width, height] of [
   [390, 844],
   [360, 740]
@@ -306,7 +313,7 @@ for (const [width, height] of [
       beforeAll(() => page.viewport(width, height))
       afterAll(() => page.viewport(1920, 1080))
 
-      it('wraps the choices and picks custom dates in a drawer over the drawer', async () => {
+      it('scrolls the choices along one row and picks custom dates in a drawer over the drawer', async () => {
         render(<WithOptions />)
         await userEvent.click(picker())
         const drawer = await screen.findByRole('dialog')
@@ -318,7 +325,8 @@ for (const [width, height] of [
         )!
         expect(within(footer).queryByRole('switch')).toBeNull()
         const group = choicesIn(footer)
-        expectInside(group)
+        expectOneRow(group)
+        expect(box(group).right).toBeLessThanOrEqual(box(footer).right)
         await userEvent.click(
           within(group).getByRole('button', { name: 'Custom dates' })
         )
@@ -415,10 +423,7 @@ describe('DashboardPeriod’s own choices on a wide screen', TIMEOUT, () => {
     const popup = await screen.findByRole('dialog')
     const group = choicesIn(popup)
     expectInside(group)
-    const tops = within(group)
-      .getAllByRole('button')
-      .map((item) => Math.round(box(item).top))
-    expect(new Set(tops).size).toBe(1)
+    expectOneRow(group)
     await userEvent.click(
       within(group).getByRole('button', { name: 'Custom dates' })
     )

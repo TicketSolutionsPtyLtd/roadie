@@ -1,10 +1,14 @@
 import { cva } from 'class-variance-authority'
 
 // Subtler has no track but keeps a transparent border, so every emphasis
-// stays the height of a Button.
+// stays the height of a Button. A horizontal group that outgrows its
+// container scrolls sideways with the scrollbar hidden, as Tabs does, rather
+// than squashing its labels.
 export const toggleGroupVariants = cva(
   [
-    'group/toggle-group relative inline-grid auto-cols-fr grid-flow-col gap-1 p-0.75',
+    'group/toggle-group relative inline-grid auto-cols-[minmax(max-content,1fr)] grid-flow-col gap-1 p-0.75',
+    'data-[orientation=horizontal]:max-w-full data-[orientation=horizontal]:overflow-x-auto data-[orientation=horizontal]:overscroll-x-contain',
+    '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
     'rounded-full',
     'data-[orientation=vertical]:grid-flow-row data-[orientation=vertical]:rounded-xl'
   ].join(' '),
@@ -25,6 +29,8 @@ export const toggleGroupItemVariants = cva(
     'is-interactive relative z-1',
     'inline-flex items-center justify-center gap-1.5',
     'rounded-full font-semibold whitespace-nowrap select-none',
+    // Pulled in by a pixel so the ring fits the track's padding, which clips it.
+    'focus-visible:-outline-offset-1',
     'not-data-[pressed]:is-unselected',
     'data-[icon-only]:aspect-square data-[icon-only]:px-0',
     'group-data-[orientation=vertical]/toggle-group:justify-start group-data-[orientation=vertical]/toggle-group:rounded-lg',
