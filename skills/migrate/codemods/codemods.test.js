@@ -1,7 +1,7 @@
 import jscodeshift from 'jscodeshift'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -24,7 +24,9 @@ function run(transform, input, options) {
 }
 
 for (const codemod of readdirSync(fixtures)) {
-  const transform = await import(`./${codemod}.js`)
+  const transform = await import(
+    pathToFileURL(path.join(here, `${codemod}.js`)).href
+  )
 
   describe(codemod, () => {
     const folder = path.join(fixtures, codemod)
