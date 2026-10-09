@@ -8,7 +8,7 @@ const ROWS = [
 
 export function ValidatorScores() {
   const scores = paletteScores()
-  const under3 = (slots: number[]) => slots.join(', ') || 'None'
+  const slotList = (slots: number[]) => slots.join(', ') || 'None'
 
   return (
     <div className='overflow-x-auto'>
@@ -31,9 +31,9 @@ export function ValidatorScores() {
             </tr>
           ))}
           <tr>
-            <td className='py-2'>Slots under 3:1 on the page</td>
-            <td className='py-2'>{under3(scores.light.lightSlotsUnder3)}</td>
-            <td className='py-2'>{under3(scores.dark.lightSlotsUnder3)}</td>
+            <td className='py-2'>Slots under APCA Lc 45 on the page</td>
+            <td className='py-2'>{slotList(scores.light.slotsUnderLc45)}</td>
+            <td className='py-2'>{slotList(scores.dark.slotsUnderLc45)}</td>
             <td className='py-2 text-subtle'>Never carry text</td>
           </tr>
         </tbody>

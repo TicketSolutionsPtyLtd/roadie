@@ -119,3 +119,23 @@ export function contrastRatio(a: Oklch, b: Oklch): number {
   const y = luminance(b)
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)
 }
+
+// APCA-W3 0.0.98G, constants as published in Myndex/apca-w3 (SA98G).
+// APCA linearises with a plain 2.4 power, not the sRGB transfer curve.
+function screenY(color: Oklch): number {
+  const [r, g, b] = linearRgb(color).map((v) => encode(v) ** 2.4) as Vec3
+  const y = 0.2126729 * r + 0.7151522 * g + 0.072175 * b
+  return y < 0.022 ? y + (0.022 - y) ** 1.414 : y
+}
+
+export function apcaLc(text: Oklch, background: Oklch): number {
+  const textY = screenY(text)
+  const backgroundY = screenY(background)
+  if (Math.abs(backgroundY - textY) < 0.0005) return 0
+  if (backgroundY > textY) {
+    const sapc = (backgroundY ** 0.56 - textY ** 0.57) * 1.14
+    return sapc < 0.1 ? 0 : (sapc - 0.027) * 100
+  }
+  const sapc = (backgroundY ** 0.65 - textY ** 0.62) * 1.14
+  return sapc > -0.1 ? 0 : (sapc + 0.027) * 100
+}

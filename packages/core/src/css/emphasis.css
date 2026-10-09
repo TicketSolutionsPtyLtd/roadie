@@ -185,9 +185,9 @@
 
 /* The chosen item in a trackless control, over emphasis-subtle: a soft fill
    and a strong icon, which carry the state together. The fill alone is under
-   3:1, so this is for quiet controls. Doubled, and repeated for the
-   interactive states, to outrank the emphasis in either emit order. Forced
-   colours drop the fill, so an edge takes over. */
+   APCA's Lc 45 for UI, so this is for quiet controls. Doubled, and repeated
+   for the interactive states, to outrank the emphasis in either emit order.
+   Forced colours drop the fill, so an edge takes over. */
 @utility is-selected {
   &:is(&),
   &.is-interactive:is(&):is(:hover, :focus-visible, :active) {
