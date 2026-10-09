@@ -12,7 +12,8 @@ else the guards are `aria-hidden`. The buttons have no name, so axe's
 
 Base UI takes no prop that names or hides the guards, and 1.9.0 doesn't
 change them. Its maintainer calls the role intentional and says
-`aria-hidden` would break VoiceOver
+`aria-hidden` would break VoiceOver, though they haven't recently checked
+whether another role would work
 ([mui/base-ui#5237](https://github.com/mui/base-ui/issues/5237)). Patching
 the guards from Roadie would fight Base UI's renders and could break the trap.
 
@@ -33,7 +34,8 @@ each edge of the popup.
 `focusGuards.browser.test.tsx` asserts the guards are nameless buttons in
 WebKit on Apple platforms and hidden elsewhere. When Base UI names or hides
 them, it fails: remove the exception and this record's entry then. Linux
-WebKit in CI gets no role, so the exception only matters on a Mac.
+WebKit in CI gets no role, so the exception only matters on a Mac, and only a
+local WebKit run on a Mac catches a guard that gains a name.
 
 ## Links
 

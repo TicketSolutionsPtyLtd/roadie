@@ -21,8 +21,10 @@ on the same machine image, so baselines need one source and a review.
 and two files that run each one at 390px and 1280px, in light and dark.
 
 - `a11y.browser.test.tsx` runs axe in every engine and fails on any serious
-  or critical violation that isn't in `knownViolations`. Each entry there
-  names a Jira ticket and leaves when the ticket is fixed.
+  or critical violation that isn't in `knownViolations` or
+  `acceptedViolations`. A known entry names a Jira ticket and leaves when the
+  ticket is fixed; an accepted one names the decision that keeps it, such as
+  [0012](../../decisions/0012-base-ui-focus-guards.md).
 - The same file checks contrast with APCA, not axe's `color-contrast`
   ([0010](../../decisions/0010-apca-contrast.md)). It reads computed colours
   for text, icons, and chosen fills, and fails on any pair under its role's
