@@ -4,11 +4,18 @@ import { cleanup, render } from '@testing-library/react'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { page } from 'vitest/browser'
 
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Pane } from '../Pane'
-import { useStylesheet } from '../Pane/testUtils'
+import {
+  type PaneLayout,
+  modelLayoutAt,
+  readRow,
+  rowSpecOf,
+  useStylesheet
+} from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
@@ -282,5 +289,111 @@ describe('items without an icon', () => {
     expect(label('Settings').gridColumnStart).toBe('1')
     expect(['span 2', '3']).toContain(label('Settings').gridColumnEnd)
     expect(label('Settings').marginInlineStart).toBe('0px')
+  })
+})
+
+describe('the panes container', () => {
+  afterAll(() => page.viewport(1920, 1080))
+
+  const ListAndDetail = () => (
+    <Navigator value='/a'>
+      <Pane column='list'>List</Pane>
+      <Pane>Detail</Pane>
+    </Navigator>
+  )
+
+  it.each([390, 1400])(
+    'clips the panes it parks past its edge at a %ipx viewport',
+    async (viewport) => {
+      await page.viewport(viewport, 900)
+      render(<ListAndDetail />, { container: frame(Math.min(viewport, 600)) })
+      await frames(4)
+      const content = document.querySelector<HTMLElement>(
+        '[data-slot="navigator-content"]'
+      )!
+      const [list] = panesOf(document.body)
+      const style = getComputedStyle(content)
+
+      expect(list).toHaveAttribute('data-stack-position', 'behind')
+      expect(list!.getBoundingClientRect().left).toBeLessThan(
+        content.getBoundingClientRect().left
+      )
+      expect([style.overflowX, style.overflowY]).toEqual(['clip', 'clip'])
+      expect([style.containerName, style.containerType]).toEqual([
+        'panes',
+        'inline-size'
+      ])
+    }
+  )
+
+  it.each([
+    [390, 0],
+    [1400, 12]
+  ])(
+    'at a %ipx viewport, insets the top of a stack %ipx from each side',
+    async (viewport, inset) => {
+      await page.viewport(viewport, 900)
+      render(<ListAndDetail />, { container: frame(Math.min(viewport, 600)) })
+      await frames(4)
+      const [, detail] = panesOf(document.body)
+      const pane = detail!.getBoundingClientRect()
+      const row = detail!
+        .closest('[data-slot="navigator-panes"]')!
+        .getBoundingClientRect()
+
+      expect(pane.left - row.left).toBeCloseTo(inset, 0)
+      expect(row.right - pane.right).toBeCloseTo(inset, 0)
+    }
+  )
+})
+
+describe('stack geometry', () => {
+  // Back and Close come from each pane's header, which these panes leave out.
+  const placement = (layouts: PaneLayout[]) =>
+    layouts.map(({ shown, left, width, zIndex, opacity }) =>
+      shown ? { left, width, zIndex, opacity } : 'hidden'
+    )
+
+  const Stack = () => (
+    <Navigator value='/a'>
+      <Pane column='list'>List</Pane>
+      <Pane>Detail</Pane>
+      <Pane column='inspector'>Details</Pane>
+    </Navigator>
+  )
+
+  it.each([600, 1000, 1400])(
+    'lays out the stack its attributes describe at %ipx',
+    async (width) => {
+      render(<Stack />, { container: frame(width) })
+      await frames(4)
+      const content = document.querySelector<HTMLElement>(
+        '[data-slot="navigator-content"]'
+      )!
+      const row = content.querySelector('[data-slot="navigator-panes"]')!
+      const expected = modelLayoutAt(
+        rowSpecOf(row),
+        Math.round(content.getBoundingClientRect().width)
+      )
+
+      expect(placement(readRow(content))).toEqual(placement(expected))
+    }
+  )
+
+  it('lets the list, the detail, and the inspector take pointer events', async () => {
+    render(<Stack />, { container: frame(1400) })
+    await frames(4)
+    const hits = (pane: HTMLElement) => {
+      const box = pane.getBoundingClientRect()
+      return pane.contains(
+        document.elementFromPoint(box.left + box.width / 2, box.top + 40)
+      )
+    }
+
+    expect(panesOf(document.body).map(hits)).toEqual([true, true])
+    const inspector = document.querySelector<HTMLElement>(
+      '[data-slot="pane"][data-column="inspector"]'
+    )!
+    expect(hits(inspector)).toBe(true)
   })
 })

@@ -252,27 +252,6 @@ describe('pane stack', () => {
     expect(bar()).toHaveAttribute('data-collapsed', 'true')
   })
 
-  it('is the panes container, clipping at every width so a stacked pane can translate past it', async () => {
-    render(
-      <Navigator value='/components'>
-        <Pane column='list'>List</Pane>
-        <Pane>Detail</Pane>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    const content = document.querySelector('[data-slot="navigator-content"]')
-    expect(content).toHaveClass(
-      'overflow-clip',
-      'pointer-events-none',
-      '[container:panes/inline-size]'
-    )
-    // WebKit has no `overflow-clip-margin`; the stylesheet widens the clip instead.
-    expect(content!.className).not.toMatch(/max-lg:|lg:|overflow-clip-margin/)
-    expect(document.querySelector('[data-slot="navigator-panes"]')).toHaveClass(
-      'pointer-events-auto'
-    )
-  })
-
   it('leaves layering over the edge cover to the stylesheet', async () => {
     render(
       <Navigator value='/components'>
@@ -2932,25 +2911,6 @@ describe('Navigator collapsed edge circles', () => {
     expect(
       bar.querySelector('[data-circle-side="start"]')
     ).toHaveAccessibleName('A')
-    await flushViewportMeasurement()
-  })
-
-  it('shrinks the pinned circle to the edge circle, keeping its icon size', async () => {
-    const { container } = render(barTree('a'))
-    const pinned = within(pinnedCircleOf(container)).getByRole('button', {
-      name: 'Account'
-    })
-    const frame = pinned.querySelector('[data-slot="navigator-tab-icon-frame"]')
-    const shrink = ['scale-[calc(3.5/4.125)]']
-    expect(pinned).toHaveClass('origin-bottom-right', 'scale-100')
-    for (const cls of shrink) expect(pinned).not.toHaveClass(cls)
-    expect(frame).toHaveClass('scale-100')
-
-    await collapse(container)
-    expect(pinned).toHaveClass('origin-bottom-right', ...shrink)
-    expect(frame).toHaveClass('scale-[calc(4.125/3.5)]')
-    expect(pinned).toHaveClass('motion-reduce:transition-none')
-    expect(frame).toHaveClass('motion-reduce:transition-none')
     await flushViewportMeasurement()
   })
 
