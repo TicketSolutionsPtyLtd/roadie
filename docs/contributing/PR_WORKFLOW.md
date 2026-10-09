@@ -119,11 +119,12 @@ Every PR is checked against these before review. Fix every real hit.
   wait while the 1-minute load is above the core count. Run tests with
   `pnpm test:gated <package>`, never vitest or `pnpm test` directly. It
   waits for the load, runs the changed tests in Chromium on half the cores,
-  and stops after 10 minutes. Run `--all-browsers` once before pushing, and
-  let CI run the full matrix. The pre-push hook also waits for the load before
-  it typechecks and tests, and fails the push after 30 minutes. Give browser
-  tests explicit timeouts and never wait on an infinite animation. Stop dev servers you start, and run
-  `pnpm cleanup` (`--delete` to delete) when disk runs low.
+  and stops after 10 minutes. A draft PR runs no browser tests in CI, and
+  marking it ready runs the full matrix once. The pre-push hook also waits for
+  the load before it typechecks and tests, and fails the push after 30
+  minutes. Give browser tests explicit timeouts and never wait on an infinite
+  animation. Stop dev servers you start, and run `pnpm cleanup` (`--delete` to
+  delete) when disk runs low.
 - **Demo user-visible changes before pushing.** `pnpm preview` serves the
   docs from your worktree and prints the URLs a phone can open; set
   `ROADIE_PORT_RANGE` to your session's range and extra hosts in
@@ -179,9 +180,16 @@ the PR only when the review is clean.
   the body with `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`.
   Never link local files, gists, or artifacts. For baselines CI renders, link
   the run and embed a few representative images.
-- **Open it as a draft** (`gh pr create --draft`). Copilot reviews once, when
-  the PR is marked ready, and skips drafts. Run `gh pr ready` only after CI is
-  green, the local review is clean and any demo is approved.
+- **Open it as a draft** (`gh pr create --draft`). CI on a draft runs only
+  the `check` job: lint, typecheck, formatting, the component docs and PR
+  size checks, and the affected unit tests. No build or browser tests.
+- **Mark it ready once local checks pass**: `pnpm test:gated` on the touched
+  packages, lint, typecheck, and the docs build if docs changed, with the
+  local review clean and any demo approved. `gh pr ready` runs the full CI
+  once, and Copilot reviews once then; it skips drafts.
+- **Push once per round of fixes**, not per commit. Every push reruns CI.
+- **If CI fails after ready**, fix it without re-requesting Copilot, unless
+  the fix is significant (new logic, state or API).
 - **One-way doors** always get the maintainer's review: removing or renaming
   a public export, prop, intent, or subpath; changing a token's value or
   meaning; the shared CSS cascade, layers, base styles, or `.prose` output;
@@ -213,9 +221,11 @@ the PR only when the review is clean.
 An agent merges a two-way-door PR itself (squash, delete the branch) once all
 of these hold. Squashing copies the body into the commit message, so read that
 message for private details (section 7) just before merging, and edit it if a
-privacy fix landed after the PR opened. A one-way door (section 7) waits for the maintainer.
+privacy fix landed after the PR opened. A one-way door (section 7) waits for
+the maintainer.
 
-- CI is green.
+- CI is green on the full run that `gh pr ready` started: wait for every job
+  to finish, not just `check`. A green draft run covers only `check`.
 - The file list is clean.
 - The local review is clean, and the one Copilot pass is triaged with every
   thread resolved.
