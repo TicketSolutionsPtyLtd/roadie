@@ -69,7 +69,8 @@ describe('getCatalogue', () => {
       'StatTile',
       'Meter',
       'Sparkline',
-      'DataTable'
+      'DataTable',
+      'Delta'
     ])
   })
 
