@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'RecordGrid',
-  description: 'A grid of record cards to search, filter, sort and page through',
+  description: 'A grid of record cards to search, filter, sort, and page through',
   status: 'alpha',
   category: 'Collections'
 }
@@ -8,7 +8,7 @@ export const metadata = {
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-A grid of record cards to search, filter, sort and page through.
+A grid of record cards to search, filter, sort, and page through.
 
 ## Import
 
@@ -18,7 +18,7 @@ import { Records, useRecords } from '@oztix/roadie-components/records'
 import { recordFields } from '@oztix/roadie-core/records'
 ```
 
-Card parts can hold functions (`alt` and `cell`), as can fields with a `match`, `getRowId` and the `useRecords` instance, so render the grid in a client component, a file that starts with `'use client'`.
+Card parts can hold functions (`alt` and `cell`), as can fields with a `match`, `getRowId`, and the `useRecords` instance, so render the grid in a client component, a file that starts with `'use client'`.
 
 ## Examples
 
@@ -158,7 +158,7 @@ render(
 
 ### Layouts
 
-Give `Records` both a table and a grid, and Configure shows a Layout switcher above the sort. The view's `layout` changes with it, so the URL and a saved view keep the layout, and the search, filters and sort stay as they are. Each layout comes back with its settings as last shown, such as the table's hidden columns, or the saved view's when it was saved in that layout, so switching back reads as unchanged. Content shows the layout the view names, or the first one given.
+Give `Records` both a table and a grid, and Configure shows a Layout switcher above the sort. The view's `layout` changes with it, so the URL and a saved view keep the layout, and the search, filters, and sort stay as they are. Each layout comes back with its settings as last shown, such as the table's hidden columns, or the saved view's when it was saved in that layout, so switching back reads as unchanged. Content shows the layout the view names, or the first one given.
 
 ```tsx-live-noinline-expand
 const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre', 'Foxglove Tin Pavilion']
@@ -224,7 +224,7 @@ render(<Events />)
 
 ### Card fields
 
-Configure lists the fields a card shows as details. Drag a handle to reorder them, or click it or press Enter for a Move menu. The eye beside each one hides it. Hidden fields are listed apart, in the fields' own order, and showing one again adds it to the end. The fields the card places as its title, description, image, leading or trailing aren't listed. When the grid defines details, the last one stays shown. The list loads once the page is idle, or as a pointer or focus reaches the button, so drag and drop stays out of the grid's first load.
+Configure lists the fields a card shows as details. Drag a handle to reorder them, or click it or press Enter for a Move menu. The eye beside each one hides it. Hidden fields are listed apart, in the fields' own order, and showing one again adds it to the end. The fields the card places as its title, description, image, leading, or trailing aren't listed. When the grid defines details, the last one stays shown. The list loads once the page is idle, or as a pointer or focus reaches the button, so drag and drop stays out of the grid's first load.
 
 The fields write the view's `layout.fields`, the shown keys in order, left out once back to the grid's `details`, so `equalViews` reads the view as unchanged. A view's keys for fields this grid doesn't have, such as one only some people see, are kept in their places.
 
@@ -343,12 +343,14 @@ render(
 
 <Guideline title='Offer a grid where people recognise records by sight'>
   <Guideline.Do
-    code={`layouts={[
-  tableLayout(columns),
-  gridLayout({ image: 'image', title: 'name', description: 'venue' })
-]}`}
+    code={`
+      layouts={[
+        tableLayout(columns),
+        gridLayout({ image: 'image', title: 'name', description: 'venue' })
+      ]}
+    `}
   >
-    Offer the grid beside the table for events, venues and products, where
+    Offer the grid beside the table for events, venues, and products, where
     an image or a status at a glance helps people find the record.
   </Guideline.Do>
   <Guideline.Dont
@@ -379,7 +381,7 @@ render(
 - Tab moves through the cards in reading order, row by row. In its own box (`maxHeight` or `fill`), the box is a region named "Events, scrolls" for a caption of Events.
 - In Select mode, each card's checkbox is named "Select" and the card's title, and covers the card, so a tap anywhere on it toggles, and the link steps aside. "Select" and "Done" are one button, which keeps focus as it switches. The floating bulk actions are a group named "Bulk actions". Escape leaves Select mode, and focus lands on Select.
 - The Configure button is named "Configure grid", as is the dialog it opens. The Layout switcher is a group named "Layout" of toggle buttons, Table and Grid, with the shown one pressed; arrow keys move between them, and focus stays on the one used as the layout switches. Each shown field's handle is named "Reorder" and the field, and its eye is a toggle button named "Show" and the field, pressed while the field shows. Showing or hiding a field moves it between the lists, and focus follows its eye. The last shown detail's eye is disabled when the grid defines details, and says why.
-- Loading by range, the list is `aria-busy` while a range loads, placeholder cards are hidden from screen readers, and a failed range is announced. `Records.Status` announces Loading, the error, the result count and the selection.
+- Loading by range, the list is `aria-busy` while a range loads, placeholder cards are hidden from screen readers, and a failed range is announced. `Records.Status` announces Loading, the error, the result count, and the selection.
 - Focus in a card that scrolls away, or whose record leaves, moves to the cards, so keyboard users keep their place.
 
 <PropsDefinitions component='RecordGrid' />

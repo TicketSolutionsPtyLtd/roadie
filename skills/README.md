@@ -67,4 +67,4 @@ roadie/
 2. **Frontmatter `name` matches directory name** — e.g. `skills/audit/SKILL.md` has `name: audit`. The plugin namespace (`roadie:`) is added automatically at install time.
 3. **Keep the `description` action-oriented** — it's what Claude matches against to decide when to invoke. Include trigger phrases ("audit against Roadie", "check Roadie compliance").
 
-Project-scoped skills that only make sense inside the Roadie repo itself (e.g. `.claude/skills/new-component/`, which references `packages/components/src/...`) stay in `.claude/skills/` and are **not** shipped in the plugin.
+Project-scoped skills that only make sense inside the Roadie repo itself (e.g. `.claude/skills/new-component/`, which references `packages/components/src/...`, and `.claude/skills/docs-page/`, which runs the docs checks) stay in `.claude/skills/` and are **not** shipped in the plugin.
