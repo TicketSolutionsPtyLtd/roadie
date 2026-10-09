@@ -37,8 +37,9 @@ review your own work. Fix what it leaves open test-first with
 
 - CI runs remotely, so wait, don't poll hard:
   `gh pr checks <n> --watch --interval 60 --fail-fast`, or one check a minute
-  or slower. Green means every check passed or was skipped (Roadie skips build
-  and the browser jobs for docs-, skills-, and `.md`-only PRs). Before merging,
+  or slower. Green means every check passed or was skipped (Roadie skips the
+  browser jobs when no package changes, and build too when docs don't, as in a
+  skills-only PR). Before merging,
   wait for the run `gh pr ready` started, not a draft's green: a draft runs
   only `check`, with no build or browser tests. Report only state changes (green, red, ready, reviewed, merged,
   blocked), never "still waiting".
