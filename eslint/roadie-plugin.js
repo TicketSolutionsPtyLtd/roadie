@@ -307,11 +307,6 @@ const rules = {
     "CallExpression[callee.property.name='toHaveClass'] Literal[value=/calc\\(|@container|(^|\\s|:)(max-)?(sm|md|lg|xl|2xl):/]",
     'jsdom cannot evaluate calc(), container queries, or breakpoints. Assert this in a *.browser.test.tsx. See AGENTS.md, Tests and code.'
   ),
-  'no-compound-root-identity': selectorRule(
-    'Tests do not assert a compound equals its Root.',
-    "CallExpression[callee.property.name='toBe'][callee.object.callee.name='expect'][arguments.0.type='MemberExpression'][arguments.0.property.name='Root']",
-    'Render the compound and assert its behaviour, not that it is its Root. See docs/contributing/CODING_STANDARDS.md, Test at the public interface.'
-  ),
   'no-cva-output-assertion': selectorRule(
     'Tests do not assert CVA output.',
     "CallExpression[callee.name='expect'] > CallExpression.arguments[callee.name=/Variants$/]",
