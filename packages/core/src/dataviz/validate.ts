@@ -1,4 +1,10 @@
-import { type Oklch, contrastRatio, deltaE, worstCvdDeltaE } from './color-math'
+import {
+  type Oklch,
+  apcaLc,
+  contrastRatio,
+  deltaE,
+  worstCvdDeltaE
+} from './color-math'
 import {
   type ByMode,
   DIVERGE_MID,
@@ -157,19 +163,26 @@ type Scores = {
   adjacentCvd: number
   firstFiveCvd: number
   adjacentNormal: number
+  slotsUnderLc45: number[]
+  /** @deprecated Use `slotsUnderLc45`; this now reads the same APCA slots. */
   lightSlotsUnder3: number[]
 }
+
+// APCA's minimum for non-text UI (docs/decisions/0010-apca-contrast.md).
+const NON_TEXT_LC = 45
 
 export function paletteScores(p: Palette = defaultPalette): ByMode<Scores> {
   const score = (mode: Mode): Scores => {
     const cat = p.categorical[mode]
+    const slotsUnderLc45 = cat.flatMap((c, i) =>
+      Math.abs(apcaLc(c, p.surface[mode])) < NON_TEXT_LC ? [i + 1] : []
+    )
     return {
       adjacentCvd: round(worst(cat, pairs(cat.length, true), worstCvdDeltaE)),
       firstFiveCvd: round(worst(cat, pairs(5, false), worstCvdDeltaE)),
       adjacentNormal: round(worst(cat, pairs(cat.length, true), deltaE)),
-      lightSlotsUnder3: cat.flatMap((c, i) =>
-        contrastRatio(c, p.surface[mode]) < 3 ? [i + 1] : []
-      )
+      slotsUnderLc45,
+      lightSlotsUnder3: slotsUnderLc45
     }
   }
   return { light: score('light'), dark: score('dark') }

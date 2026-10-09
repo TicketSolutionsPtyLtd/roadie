@@ -35,7 +35,7 @@ status. The chart hues sit between the intent hues instead.
 Amber holds its chroma only at high lightness. Pulled down to L 0.63 for
 contrast on white, it turned mustard (`#b97e00`). Slot 4 sits at L 0.82 in
 light mode and relies on gaps, direct labels and the table view rather than
-3:1 contrast.
+APCA Lc 45 contrast.
 
 ## Diverging arms start from grey
 

@@ -630,7 +630,7 @@ export default function DataVisualisationPage() {
             'Offer a table view of every chart.',
             'Write a text summary that doubles as alt text.',
             <>
-              Light categorical slots never carry text. The{' '}
+              Slots under APCA Lc 45 never carry text. The{' '}
               <Link href='/tokens/dataviz' className='underline'>
                 tokens page
               </Link>{' '}

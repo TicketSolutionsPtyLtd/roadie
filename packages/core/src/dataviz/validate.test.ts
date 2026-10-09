@@ -115,6 +115,17 @@ describe('dataviz palette', () => {
     const scores = paletteScores()
     expect(scores.light.firstFiveCvd).toBeGreaterThanOrEqual(8)
     expect(scores.dark.firstFiveCvd).toBeGreaterThanOrEqual(8)
-    expect(scores.light.lightSlotsUnder3).toEqual([2, 4, 6, 8])
+  })
+
+  it('lists the slots under APCA Lc 45 on the page, which never carry text', () => {
+    const scores = paletteScores()
+    expect(scores.light.slotsUnderLc45).toEqual([4, 8])
+    expect(scores.dark.slotsUnderLc45).toEqual([3, 5, 7])
+  })
+
+  it('keeps the deprecated name reading the APCA slots', () => {
+    const scores = paletteScores()
+    expect(scores.light.lightSlotsUnder3).toEqual([4, 8])
+    expect(scores.dark.lightSlotsUnder3).toEqual([3, 5, 7])
   })
 })

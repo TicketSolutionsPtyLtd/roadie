@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  apcaLc,
   clampChroma,
   contrastRatio,
   deltaE,
@@ -30,6 +31,16 @@ describe('color maths', () => {
   it('measures contrast on the WCAG scale', () => {
     expect(contrastRatio([1, 0, 0], [0, 0, 0])).toBeCloseTo(21, 1)
     expect(contrastRatio([0.5, 0, 0], [0.5, 0, 0])).toBe(1)
+  })
+
+  // Reference values from the APCA-W3 0.0.98G calculator.
+  it('measures contrast as APCA Lc, negative for light on dark', () => {
+    expect(apcaLc([0, 0, 0], [1, 0, 0])).toBeCloseTo(106.04, 1)
+    expect(apcaLc([1, 0, 0], [0, 0, 0])).toBeCloseTo(-107.88, 1)
+    expect(apcaLc([0.6268, 0, 0], [1, 0, 0])).toBeCloseTo(63.06, 0)
+    expect(apcaLc([0, 0, 0], [0.6268, 0, 0])).toBeCloseTo(41.02, 0)
+    expect(apcaLc([1, 0, 0], [0.6268, 0, 0])).toBeCloseTo(-68.54, 0)
+    expect(apcaLc([0.5, 0, 0], [0.5, 0, 0])).toBe(0)
   })
 
   it('scores identical colours as indistinguishable', () => {
