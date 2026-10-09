@@ -67,7 +67,7 @@ Use these words, and only these, for structure.
    - Tests that reach past the interface: imports from non-public files,
      test-only exports, class strings or CVA output, stubbed
      `getBoundingClientRect` or `ResizeObserver`, `vi.mock` of the repo's own
-     modules, expected values read from the code's own constants.
+     modules, and expected values read from the code's own constants.
    - One concept spread across files that must agree (a size in a JS
      constant and a Tailwind class, a comment saying "matches the above").
    - Deep imports from a sibling's internals, which show an unnamed module.

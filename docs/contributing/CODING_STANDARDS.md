@@ -42,7 +42,7 @@ Every test must be able to fail for a reason a user would notice.
   utility's computed style. Query by role, then label, then text, and by
   test id only as a last resort. Renaming an internal never breaks a test.
   A behaviour you can only reach through an internal, a test-only export, or
-  a stub means the module is too shallow. Deepen it
+  a mock of the repo's own code means the module is too shallow. Deepen it
   ([`/roadie:codebase-design`](../../skills/codebase-design/SKILL.md)) rather
   than test past its interface.
 - **Each test sets up its own state and passes alone.**
