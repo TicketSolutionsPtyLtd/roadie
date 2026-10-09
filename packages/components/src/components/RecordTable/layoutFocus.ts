@@ -2,7 +2,7 @@
 
 import { type RefObject, useLayoutEffect, useRef } from 'react'
 
-import { handedOver, tableFocusTarget } from './tableFocus'
+import { handedOver, tableFocusTarget } from '../Records/tableFocus'
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'

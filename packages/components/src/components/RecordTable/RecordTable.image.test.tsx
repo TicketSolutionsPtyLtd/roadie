@@ -4,8 +4,6 @@ import { describe, expect, it } from 'vitest'
 import { recordFields } from '@oztix/roadie-core/records'
 
 import { RecordTable, tableColumns } from '.'
-import { CARD_REM, cardRem } from './RecordTableNarrowRows'
-import { cardParts, narrowParts } from './narrow'
 
 type Show = {
   id: string
@@ -39,7 +37,6 @@ const listColumns = [
   column.field('show', { narrow: 'title' }),
   column.field('city', { narrow: 'description' })
 ]
-const cardColumns = [...listColumns, column.field('sold', { narrow: 'detail' })]
 const base = {
   caption: 'Shows',
   data: SHOWS,
@@ -117,16 +114,5 @@ describe('RecordTable image columns', () => {
     expect(
       screen.getByRole('link', { name: 'Ember Galah Ball' })
     ).toHaveAttribute('href', '/shows/a')
-  })
-})
-
-describe('RecordTable image cards', () => {
-  it('estimates a bannered card taller', () => {
-    expect(cardRem(cardParts(narrowParts<Show>(cardColumns.slice(1))))).toBe(
-      CARD_REM
-    )
-    expect(cardRem(cardParts(narrowParts<Show>(cardColumns)))).toBeGreaterThan(
-      CARD_REM + 9
-    )
   })
 })

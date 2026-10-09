@@ -1,33 +1,19 @@
 'use client'
 
-import {
-  type ReactNode,
-  type RefObject,
-  useCallback,
-  useEffect,
-  useState
-} from 'react'
+import { type ReactNode, type RefObject, useCallback } from 'react'
 
-import type { RecordsRangeState, RecordsRow } from '../Records/types'
 import {
-  RecordTableRangeError,
-  failedRowAt,
-  rangeErrorKey
-} from './RecordTableRangeError'
+  VIRTUALISE_AFTER,
+  type WindowPadding,
+  recordsWindow
+} from '../Records/recordsWindow'
+import { useRangeWindow, useRowWindow } from '../Records/rowWindow'
+import type { RecordsRangeState, RecordsRow } from '../Records/types'
+import { RecordTableRangeError } from './RecordTableRangeError'
 import { RecordTableRow } from './RecordTableRow'
 import { RecordTableSkeletonRow } from './RecordTableStates'
 import type { ColumnLayout } from './layout'
-import {
-  rowPosition,
-  stuckInset,
-  useRowReport,
-  useRowRestore
-} from './rowPosition'
-import { useRowWindow } from './rowWindow'
 import type { RecordTableColumn } from './types'
-
-/** Past this many rows, only those near the screen render. */
-export const VIRTUALISE_AFTER = 100
 
 export type RowsShared = {
   columns: readonly RecordTableColumn[]
@@ -119,109 +105,23 @@ function VirtualRows({
   shared: RowsShared
 }) {
   const getItemKey = useCallback((index: number) => rows[index]!.id, [rows])
-  const { bodyRef, items, total, margin } = useRowWindow({
+  const { bodyRef, view } = useRowWindow({
     count: rows.length,
     getItemKey
   })
+  const { cells, padding } = recordsWindow(view, { rows })
   return (
-    <WindowBody bodyRef={bodyRef} items={items} total={total} margin={margin}>
-      {items.map((item) => (
+    <WindowBody bodyRef={bodyRef} padding={padding}>
+      {cells.map(({ key, index, record }) => (
         <Row
-          key={rows[item.index]!.id}
+          key={key}
           shared={shared}
-          row={rows[item.index]!}
-          rowIndex={firstIndex + item.index}
+          row={record!}
+          rowIndex={firstIndex + index}
         />
       ))}
     </WindowBody>
   )
-}
-
-// Range rows key by index: ids would change the key function on every load.
-export const indexKey = (index: number) => `@${index}`
-
-/** How a window sizes its rows: fixed, or measured from an estimate. */
-export type RowSizing = {
-  estimateRem?: number
-  measure?: boolean
-  gapRem?: number
-}
-
-/** Range mode's window: reports the first row on screen, restores `row`, and asks for the ranges in view. */
-export function useRangeWindow<Body extends HTMLElement = HTMLDivElement>({
-  range,
-  row,
-  onRow,
-  ...sizing
-}: RowSizing & {
-  range: RecordsRangeState
-  row: number
-  onRow?: (row: number) => void
-}) {
-  const { rowAt, show, count, total: rowTotal, loading } = range
-  // Measured rows key by query too, so a new query's rows start from the
-  // estimate instead of the last query's heights at the same index.
-  const queryKey = useCallback(
-    (index: number) => `${range.key}${indexKey(index)}`,
-    [range.key]
-  )
-  const loaded = useCallback(
-    (index: number) => rowAt(index) !== undefined,
-    [rowAt]
-  )
-  const [position] = useState(rowPosition)
-  const onChange = useRowReport({
-    position,
-    onRow: (next) => onRow?.(next)
-  })
-  const {
-    bodyRef,
-    virtualizer,
-    items,
-    total,
-    visible,
-    firstClear,
-    margin,
-    inset,
-    scrollElement,
-    measured,
-    measureElement
-  } = useRowWindow<Body>({
-    count,
-    getItemKey: sizing.measure ? queryKey : indexKey,
-    onChange,
-    measureInset: stuckInset,
-    ...sizing
-  })
-  const first = visible?.startIndex
-  const last = visible?.endIndex
-  // A layout effect, before the plan below, so a first plan knows its target.
-  const plan = useRowRestore({
-    virtualizer,
-    measured,
-    scrollElement,
-    query: range.key,
-    row,
-    total: rowTotal,
-    loaded,
-    inset,
-    margin,
-    position,
-    view: show
-  })
-  // Loading is a dep so a settled range plans again; row, so a new target
-  // does; the key, so a new query plans even when the window hasn't moved.
-  useEffect(() => {
-    if (measured && first !== undefined && last !== undefined) plan(first, last)
-  }, [measured, first, last, count, loading, row, range.key, plan])
-  return {
-    bodyRef,
-    items,
-    total,
-    margin,
-    measureElement,
-    first: firstClear ?? first
-  }
 }
 
 function RangeRows({
@@ -235,31 +135,26 @@ function RangeRows({
   onRow?: (row: number) => void
   shared: RowsShared
 }) {
-  const { bodyRef, items, total, margin, first } = useRangeWindow({
+  const { bodyRef, view } = useRangeWindow({
     range,
     row,
     onRow
   })
+  const { cells, padding } = recordsWindow(view, { range })
   return (
-    <WindowBody bodyRef={bodyRef} items={items} total={total} margin={margin}>
-      {items.map((item) => {
-        const rowIndex = item.index + 2
-        // With the query too, so a new search's row starts fresh, with no
-        // hover or open menu left from the record that sat there.
-        const key = `${range.key}${indexKey(item.index)}`
-        const held = range.rowAt(item.index)
-        const failed = held ? undefined : failedRowAt(range, item.index, first)
-        if (failed?.error)
+    <WindowBody bodyRef={bodyRef} padding={padding}>
+      {cells.map(({ key, index, record, failed }) => {
+        const rowIndex = index + 2
+        if (failed === 'error')
           return (
             <RecordTableRangeError
-              key={rangeErrorKey(failed.start)}
+              key={key}
               rowIndex={rowIndex}
               columns={shared.columnCount}
             />
           )
-        return held ? (
-          // By index: a shifting offset API can return one id twice.
-          <Row key={key} shared={shared} row={held} rowIndex={rowIndex} />
+        return record ? (
+          <Row key={key} shared={shared} row={record} rowIndex={rowIndex} />
         ) : (
           <RecordTableSkeletonRow
             key={key}
@@ -268,7 +163,7 @@ function RangeRows({
             select={shared.isSelected !== undefined}
             actions={shared.rowActions !== undefined}
             rowIndex={rowIndex}
-            blank={failed !== undefined}
+            blank={failed === 'blank'}
           />
         )
       })}
@@ -276,36 +171,13 @@ function RangeRows({
   )
 }
 
-type WindowItem = { index: number; start: number; end: number }
-
-/** The space above and below the rendered rows, standing in for the rest. */
-export function windowPadding(
-  items: readonly WindowItem[],
-  total: number,
-  margin: number,
-  /** Rows of a known height, so the body can hold their total. */
-  fixed = true
-) {
-  return {
-    paddingBlockStart: items.length ? items[0]!.start - margin : 0,
-    paddingBlockEnd: items.length ? total - (items.at(-1)!.end - margin) : 0,
-    // React removes swapped rows before inserting their replacements, and
-    // WebKit clamps the scroll to the shorter body in between.
-    minBlockSize: fixed ? total : undefined
-  }
-}
-
 function WindowBody({
   bodyRef,
-  items,
-  total,
-  margin,
+  padding,
   children
 }: {
   bodyRef: RefObject<HTMLDivElement | null>
-  items: readonly WindowItem[]
-  total: number
-  margin: number
+  padding: WindowPadding
   children: ReactNode
 }) {
   return (
@@ -313,7 +185,7 @@ function WindowBody({
       ref={bodyRef}
       role='rowgroup'
       data-slot='record-table-body'
-      style={windowPadding(items, total, margin)}
+      style={padding}
     >
       {children}
     </div>

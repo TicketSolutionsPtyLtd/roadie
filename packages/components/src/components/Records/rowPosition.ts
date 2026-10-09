@@ -2,26 +2,23 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
-import { findStickyContainer } from '../Records/scrollParent'
-import { RECORDS_SCROLLER } from './tableFocus'
+import { type WindowItem, firstVisibleRow } from './recordsWindow'
 
 const REPORT_EVERY_MS = 300
 // Long enough for a pane header to compact after the jump on a slow device.
 const SETTLE_MS = 1000
 const GIVES_UP_ON = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const
 
-type Item = { index: number; end: number }
-
 export type Watched = {
   isScrolling: boolean
   scrollOffset: number | null
   options: { scrollPaddingStart: number }
-  getVirtualItems: () => readonly Item[]
+  getVirtualItems: () => readonly WindowItem[]
 }
 
 type Restorable = {
   scrollRect: { height: number } | null
-  getVirtualItems: () => readonly Item[]
+  getVirtualItems: () => readonly WindowItem[]
   scrollToIndex: (index: number, options: { align: 'start' }) => void
 }
 
@@ -61,44 +58,6 @@ export function rowPosition() {
 }
 
 export type RowPosition = ReturnType<typeof rowPosition>
-
-const stuckBottom = (element: HTMLElement) =>
-  (parseFloat(getComputedStyle(element).top) || 0) + element.offsetHeight
-
-/** Px from the scroll element's top edge to the bottom of the stuck header, or of the toolbar over narrow rows. */
-export function stuckInset(body: HTMLElement): number {
-  const head = body
-    .closest('[data-slot="record-table-content"]')
-    ?.querySelector<HTMLElement>('[data-slot="record-table-head"]')
-  if (head) return stuckBottom(head)
-  const toolbar = body
-    .closest('[data-slot="records"]')
-    ?.querySelector<HTMLElement>('[data-slot="records-toolbar"]')
-  // From above the scroller, which is a sticky container itself; the toolbar covers the rows only when both stick in one box.
-  const scroller = body.closest<HTMLElement>(RECORDS_SCROLLER)
-  return toolbar &&
-    findStickyContainer(toolbar) === findStickyContainer(scroller)
-    ? stuckBottom(toolbar)
-    : 0
-}
-
-/** The first row not hidden under the header; `end` includes the scroll margin. */
-export function firstVisibleRow(
-  items: readonly Item[],
-  offset: number,
-  inset: number
-): number | undefined {
-  return items.find((item) => item.end > offset + inset)?.index
-}
-
-/** The first row wholly below the header; `start` includes the scroll margin. */
-export function firstClearRow(
-  items: readonly { index: number; start: number }[],
-  offset: number,
-  inset: number
-): number | undefined {
-  return items.find((item) => item.start >= offset + inset)?.index
-}
 
 /** The virtualiser's `onChange`: reports the first visible row at most every 300ms while scrolling, and when it stops. */
 export function useRowReport({

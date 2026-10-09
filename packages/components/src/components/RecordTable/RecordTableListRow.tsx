@@ -9,9 +9,9 @@ import { recordTitle } from '../Records/RecordCard'
 import { RecordPartValue } from '../Records/RecordPartValue'
 import { RecordsRowActions } from '../Records/RecordsRowActions'
 import { RecordsSelectModeCheckbox } from '../Records/RecordsRowCheckbox'
+import { listRowSize } from '../Records/rowSizing'
+import { useKeepFocusInTable } from '../Records/tableFocus'
 import type { RecordCardParts, RecordPart } from '../Records/types'
-import { listRowSize } from './rowSizing'
-import { useKeepFocusInTable } from './tableFocus'
 
 // List rows size to their text; a window needs whole, fixed heights, so the content centres in them instead.
 const fixedHeightClass =

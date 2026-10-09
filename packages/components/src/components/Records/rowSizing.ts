@@ -1,4 +1,4 @@
-import type { RecordCardParts } from '../Records/types'
+import type { RecordCardParts } from './types'
 
 /**
  * A layout's row height, in one place: the rem a window counts by and the
@@ -32,4 +32,15 @@ export const cardSize = (banner: boolean): RowSize => ({
   heightClass: 'h-40',
   measure: true,
   ...cardGap
+})
+
+/** Between grid cards, both ways. */
+export const gridGap = { gapRem: 1, gapClass: 'gap-4' }
+
+/** A grid row of cards; a banner adds less than on a phone, as grid cards are narrower. */
+export const gridRowSize = (banner: boolean): RowSize => ({
+  estimateRem: 10 + (banner ? 9 : 0),
+  heightClass: cardSize(banner).heightClass,
+  measure: true,
+  ...gridGap
 })

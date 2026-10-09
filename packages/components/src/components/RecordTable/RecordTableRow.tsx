@@ -14,9 +14,9 @@ import { RecordPartValue } from '../Records/RecordPartValue'
 import { RecordsRowActions } from '../Records/RecordsRowActions'
 import { RecordsRowCheckbox } from '../Records/RecordsRowCheckbox'
 import { handleRowClick, onRowControl } from '../Records/rowLink'
+import { tableRowSize } from '../Records/rowSizing'
+import { useKeepFocusInTable } from '../Records/tableFocus'
 import { type ColumnLayout, priorityProps } from './layout'
-import { tableRowSize } from './rowSizing'
-import { useKeepFocusInTable } from './tableFocus'
 import type { RecordTableColumn } from './types'
 
 // WebKit builds without overflow-clip-margin drop the clip instead of the
