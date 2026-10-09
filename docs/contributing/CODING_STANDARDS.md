@@ -41,6 +41,10 @@ Every test must be able to fail for a reason a user would notice.
   paths, and ARIA states; a pure function's inputs and outputs; a CSS
   utility's computed style. Query by role, then label, then text, and by
   test id only as a last resort. Renaming an internal never breaks a test.
+  A behaviour you can only reach through an internal, a test-only export, or
+  a stub means the module is too shallow. Deepen it
+  ([`/roadie:codebase-design`](../../skills/codebase-design/SKILL.md)) rather
+  than test past its interface.
 - **Each test sets up its own state and passes alone.**
 - **Name the capability, and take expected values from the spec.** A test
   name says what someone can do. Expected values are literals or come from
