@@ -106,9 +106,9 @@ intents, themes, and dark mode by themselves.
 
 ### Headings
 
-Use raw heading elements with a display style utility and `text-strong`.
-Match the semantic level, `h1` to `h6`, to the document structure, and the
-visual style to the context.
+Roadie has no Text or Heading component. Use raw heading elements with a
+display style utility and `text-strong`. Match the semantic level, `h1` to
+`h6`, to the document structure, and the visual style to the context.
 
 ```tsx-live layout=stack gap=2
 <h1 className='text-display-ui-1 text-strong'>Page title</h1>
@@ -124,7 +124,7 @@ colour classes.
 ```tsx-live layout=stack gap=2
 <p>Default body text. No class needed.</p>
 <p className='text-subtle'>Secondary text</p>
-<p className='text-sm text-subtler'>Meta or hint text</p>
+<p className='text-ui-meta text-subtler'>Meta or hint text</p>
 <p className='text-strong'>Emphasised text</p>
 ```
 
@@ -190,13 +190,13 @@ figures stop the row shifting on every tick.
       <>
         <h2 className='text-display-ui-3 text-strong'>Section title</h2>
         <p>Body text inherits defaults</p>
-        <p className='text-sm text-subtle'>Secondary text</p>
+        <p className='text-ui-meta text-subtle'>Secondary text</p>
       </>
     }
     code={`
       <h2 className='text-display-ui-3 text-strong'>Section title</h2>
       <p>Body text inherits defaults</p>
-      <p className='text-sm text-subtle'>Secondary text</p>
+      <p className='text-ui-meta text-subtle'>Secondary text</p>
     `}
   >
     Use pre-composed utilities. They set all typographic properties at once.
