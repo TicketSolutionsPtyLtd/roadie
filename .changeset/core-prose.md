@@ -13,5 +13,5 @@ around a heading follows the body text rather than the heading's size. Add
 subtree out. The `--prose-*` variables adjust size, leading, rhythm, measure,
 and heading sizes and weights.
 
-Nothing applies `.prose` yet, so existing pages don't change. The `Prose`
-component moves onto it in a later release.
+The `Prose` component in `@oztix/roadie-components` moves onto it in this
+release; its release note lists what changes on the page.
