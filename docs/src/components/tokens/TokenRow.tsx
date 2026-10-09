@@ -48,9 +48,9 @@ function datavizHex(name: string, mode: Mode): string | undefined {
   return undefined
 }
 
-function contrastRatio(hex: string, against: string) {
-  const ratio = new Color(hex).contrast(new Color(against), 'WCAG21')
-  return `${Math.abs(ratio).toFixed(1)}:1`
+function apcaContrast(hex: string, surface: string) {
+  const lc = new Color(surface).contrast(new Color(hex), 'APCA')
+  return `Lc ${Math.abs(lc).toFixed(0)}`
 }
 
 /** Families whose samples render at their real size, wider than the default column. */
@@ -106,8 +106,8 @@ function Values({ token, intent }: { token: TokenEntry; intent: Intent }) {
         <div className='flex min-w-0 flex-wrap gap-x-2'>
           <dt className='shrink-0 text-subtler'>Contrast</dt>
           <dd className='min-w-0 break-all'>
-            {contrastRatio(light, '#ffffff')} light,{' '}
-            {contrastRatio(dark, chartHex('dark').chrome.surface)} dark
+            {apcaContrast(light, chartHex('light').chrome.surface)} light,{' '}
+            {apcaContrast(dark, chartHex('dark').chrome.surface)} dark
           </dd>
         </div>
       ) : null}

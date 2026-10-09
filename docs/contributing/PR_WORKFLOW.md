@@ -87,8 +87,9 @@ Every PR is checked against these before review. Fix every real hit.
   set with existing components that share the concept, and across every
   component in a batch built in parallel. Booleans are bare
   adjectives (`disabled`, `contained`, `combined`), never `is*`.
-- **Contrast**: labels on strong fills reach APCA Lc 60. Any accepted
-  exception is written down in the test and the docs.
+- **Contrast** is measured with APCA, never WCAG 2 ratios, at the
+  thresholds on the [colours page](https://ticketsolutionsptyltd.github.io/roadie/foundations/colors#contrast).
+  Any accepted exception is written down in the test and the docs.
 - **Comments**: only the why, never the what.
 - **Content**: sentence case, Australian spelling, plain active prose with no
   em dashes, and venues, events and promoters from

@@ -88,7 +88,7 @@ Each rule has a foundations page with the detail.
   `subtler` (barely tinted), `raised`, `sunken`, `field` (text fields, with
   `is-interactive-field`), `floating`, `inverted`, `overlay`, and
   `overlay-subtle`. Add `is-selected` to `emphasis-subtle` for the chosen item
-  of a quiet, trackless control (its fill is under 3:1, so pair it with an
+  of a quiet, trackless control (its fill fails APCA, so pair it with an
   icon), and `is-translucent` to raised or floating surfaces.
 - **Interaction.** `is-interactive` on anything clickable;
   `is-interactive-field` and `is-interactive-field-group` on form controls;
