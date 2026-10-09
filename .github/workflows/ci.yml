@@ -30,6 +30,48 @@ env:
   TURBO_FORCE: false
 
 jobs:
+  # Gates the other jobs with if: rather than workflow paths filters, so each
+  # still reports a status when skipped. Outside a PR every output is true.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      packages: ${{ steps.classify.outputs.packages }}
+      docs: ${{ steps.classify.outputs.docs }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+
+      # turbo ls reads the workspace without an install. The --no-renames path
+      # checks count a file moved out of a package whatever turbo's diff does,
+      # and a CI change, which affects no package, still tests itself.
+      - name: Classify changes
+        id: classify
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          TURBO_SCM_BASE: HEAD^1
+        run: |
+          if [[ $EVENT != pull_request ]]; then
+            printf '%s\n' packages=true docs=true >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          files=$(git diff --name-only --no-renames HEAD^1 HEAD)
+          turbo="turbo@$(jq -r .devDependencies.turbo package.json)"
+          affected=$(npx --yes "$turbo" ls --affected --output=json | jq -c '[.packages.items[].name]')
+          packages=$(jq 'any(. != "docs")' <<< "$affected")
+          docs=$(jq 'index("docs") != null' <<< "$affected")
+          if grep -q '^packages/' <<< "$files"; then packages=true; fi
+          if grep -q '^docs/' <<< "$files"; then docs=true; fi
+          if grep -qE '^(\.github/|vitest\.browsers\.config\.ts$)' <<< "$files"; then
+            packages=true
+            docs=true
+          fi
+          echo "Affected packages: $affected. Packages: $packages. Docs: $docs."
+          printf '%s\n' "packages=$packages" "docs=$docs" >> "$GITHUB_OUTPUT"
+
   # On a schedule --affected compares main with itself and finds nothing.
   check:
     if: github.event_name != 'schedule'
@@ -90,9 +132,14 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
-  # Drafts run only check; marking one ready runs the rest.
+  # Drafts run only check; marking one ready runs the rest. Only packages
+  # have browser tests, and the nightly quarantine run isn't a PR.
   playwright:
-    if: github.event.pull_request.draft != true
+    needs: changes
+    if: >-
+      github.event.pull_request.draft != true &&
+      (needs.changes.outputs.packages == 'true' ||
+      github.event_name != 'pull_request')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -199,7 +246,12 @@ jobs:
           ROADIE_QUARANTINE: only
 
   build:
-    if: github.event_name != 'schedule' && github.event.pull_request.draft != true
+    needs: changes
+    if: >-
+      github.event_name != 'schedule' &&
+      github.event.pull_request.draft != true &&
+      (needs.changes.outputs.packages == 'true' ||
+      needs.changes.outputs.docs == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
