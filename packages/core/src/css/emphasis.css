@@ -203,6 +203,37 @@
   }
 }
 
+/* The unchosen items beside an is-selected one. Their subtle label sits well
+   under the chosen strong one, so the label tells them apart as well as the
+   fill. Doubled to outrank an emphasis's text. Apply it only at rest, so it
+   never meets the chosen state's utility. */
+@utility is-unselected {
+  &:is(&) {
+    color: var(--intent-text-subtle);
+  }
+
+  @media (hover: hover) {
+    &:is(&):hover {
+      color: var(--intent-text-normal);
+    }
+  }
+}
+
+/* is-selected's label without its fill, for a chosen item whose fill is
+   drawn by an indicator behind it. */
+@utility is-selected-label {
+  &:is(&) {
+    color: var(--intent-text-strong);
+  }
+}
+
+/* The same over an emphasis-strong indicator. */
+@utility is-selected-label-on-strong {
+  &:is(&) {
+    color: var(--intent-text-on-strong);
+  }
+}
+
 /* Pairs with a raised or floating fill. The doubled selector outranks that fill
    in either emit order; a field's hover, focus and invalid fills still win. */
 @utility is-translucent {

@@ -165,8 +165,21 @@ describe('Tabs', () => {
     const activeTab = container.querySelector(
       '[data-slot="tabs-tab"][data-active]'
     )!
-    expect(activeTab.className).toContain('data-[active]:text-on-strong')
+    expect(activeTab).toHaveClass('data-[active]:is-selected-label-on-strong')
   })
+
+  it.each(['normal', 'subtle', 'subtler'] as const)(
+    'emphasis="%s" gives the active tab the selected label and the rest the selectable state',
+    (emphasis) => {
+      const { container } = render(<ThreeTabs emphasis={emphasis} />)
+      container.querySelectorAll('[data-slot="tabs-tab"]').forEach((tab) => {
+        expect(tab).toHaveClass(
+          'not-data-[active]:is-unselected',
+          'data-[active]:is-selected-label'
+        )
+      })
+    }
+  )
 
   it('every tab carries the is-interactive utility', () => {
     const { container } = render(<ThreeTabs />)

@@ -343,6 +343,19 @@ function utilityPreview({ name, family, group, kind }: TokenEntry) {
             <span className='size-8 emphasis-raised rounded-md is-translucent' />
           </span>
         )
+      if (/^is-(un)?selec/.test(name) && name !== 'is-selected')
+        return (
+          <span
+            className={cn(
+              tile,
+              'grid place-items-center text-sm font-semibold',
+              name.endsWith('on-strong') && 'emphasis-strong',
+              name
+            )}
+          >
+            Aa
+          </span>
+        )
       if (name === 'is-selected')
         return (
           <span className={cn(tile, 'rounded-full emphasis-subtle', name)} />

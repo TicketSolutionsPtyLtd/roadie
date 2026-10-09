@@ -601,6 +601,138 @@ export default function InteractionsPage() {
             for a button-like trigger.
           </p>
         </div>
+
+        {/* selection */}
+        <div id='selection' className='grid gap-4'>
+          <h3 className='text-display-ui-5 text-strong'>
+            <Code>is-unselected</Code> and <Code>is-selected</Code>
+          </h3>
+          <p className='text-subtle'>
+            For a set of choices, such as a toggle, a toggle group or tabs.
+            These utilities set the label colour in every state, with whichever
+            intent applies, so a component never sets it itself. Apply each one
+            only in its own state, as in{' '}
+            <Code>
+              not-data-[pressed]:is-unselected data-[pressed]:emphasis-subtle
+              data-[pressed]:is-selected
+            </Code>
+            , so the resting and chosen utilities never meet.
+          </p>
+
+          <div className='grid emphasis-normal gap-3 rounded-xl p-6'>
+            {intents.map(({ name, className }) => (
+              <div
+                key={name}
+                className={`${className} flex flex-wrap items-center gap-1`}
+              >
+                <button
+                  type='button'
+                  aria-pressed='false'
+                  className='is-interactive rounded-full emphasis-subtler px-3 py-1.5 text-sm font-semibold is-unselected'
+                >
+                  Day
+                </button>
+                <button
+                  type='button'
+                  aria-pressed='true'
+                  className='is-interactive rounded-full emphasis-subtle is-selected px-3 py-1.5 text-sm font-semibold'
+                >
+                  Week
+                </button>
+                <button
+                  type='button'
+                  aria-pressed='false'
+                  className='is-interactive rounded-full emphasis-subtler px-3 py-1.5 text-sm font-semibold is-unselected'
+                >
+                  Month
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className='overflow-x-auto'>
+            <table className='w-full text-sm'>
+              <thead>
+                <tr className='border-b border-subtle text-left'>
+                  <th className='py-2 pr-4 font-semibold'>Utility</th>
+                  <th className='py-2 pr-4 font-semibold'>State</th>
+                  <th className='py-2 font-semibold'>Label and fill</th>
+                </tr>
+              </thead>
+              <tbody className='divide-y divide-subtler text-subtle'>
+                <tr>
+                  <td className='py-2 pr-4 font-mono text-xs'>is-unselected</td>
+                  <td className='py-2 pr-4 text-strong'>Rest</td>
+                  <td className='py-2'>
+                    Subtle text, a step up to normal text on hover
+                  </td>
+                </tr>
+                <tr>
+                  <td className='py-2 pr-4 font-mono text-xs'>
+                    emphasis-subtle is-selected
+                  </td>
+                  <td className='py-2 pr-4 text-strong'>Chosen</td>
+                  <td className='py-2'>
+                    Strong text on a soft fill, with a Highlight edge under
+                    forced colours
+                  </td>
+                </tr>
+                <tr>
+                  <td className='py-2 pr-4 font-mono text-xs'>
+                    is-selected-label
+                  </td>
+                  <td className='py-2 pr-4 text-strong'>
+                    Chosen, over an indicator
+                  </td>
+                  <td className='py-2'>
+                    Strong text, while the indicator behind draws the fill
+                  </td>
+                </tr>
+                <tr>
+                  <td className='py-2 pr-4 font-mono text-xs'>
+                    is-selected-label-on-strong
+                  </td>
+                  <td className='py-2 pr-4 text-strong'>
+                    Chosen, over a strong indicator
+                  </td>
+                  <td className='py-2'>
+                    The label colour of <Code>emphasis-strong</Code>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p className='text-subtle'>
+            A browser test holds the pair in every intent, in light and dark, on
+            the page and on a card:
+          </p>
+          <ul className='grid list-disc gap-1 pl-5 text-subtle'>
+            <li>
+              The chosen label reaches APCA Lc 75 on its fill, the minimum for
+              body text.
+            </li>
+            <li>
+              It beats a resting label on the same surface by at least Lc 15, so
+              the label alone tells them apart.
+            </li>
+            <li>
+              A resting label reaches Lc 45, the minimum for non-text UI such as
+              an icon.
+            </li>
+            <li>
+              The soft fill sits at least 0.075 OKLCH lightness from the
+              surface. APCA reads two soft fills as Lc 0 in dark mode, so
+              lightness measures them instead.
+            </li>
+          </ul>
+          <p className='text-sm text-subtle'>
+            The soft fill alone doesn&apos;t mark the chosen item clearly
+            enough, so it&apos;s for quiet controls whose icon or label carries
+            the state too. Use <Code>emphasis-strong</Code> when the state must
+            stand out.
+          </p>
+        </div>
       </section>
 
       {/* ── Emphasis + interaction layering ── */}

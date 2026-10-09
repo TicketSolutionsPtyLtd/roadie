@@ -1,8 +1,18 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
+import { commands } from 'vitest/browser'
 
 import { Tabs } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { apcaLc, minimumLc, shownFill } from '../../css/contrastTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import type { TabsRootEmphasis, TabsRootSize } from './variants'
 
@@ -11,7 +21,10 @@ beforeAll(() => {
   removeStylesheet = useStylesheet(roadieCss)
 })
 afterAll(() => removeStylesheet())
-afterEach(() => cleanup())
+afterEach(() => {
+  cleanup()
+  document.documentElement.classList.remove('dark')
+})
 
 const SIZES: TabsRootSize[] = ['sm', 'md', 'lg']
 const EMPHASES: TabsRootEmphasis[] = ['strong', 'normal', 'subtle', 'subtler']
@@ -122,4 +135,43 @@ it('centres the icon in a vertical list', () => {
   expect(
     Math.abs(icon.left + icon.width / 2 - (tab.left + tab.width / 2))
   ).toBeLessThanOrEqual(0.5)
+})
+
+describe('the subtler underline', () => {
+  it.each([
+    ['light', false],
+    ['dark', true]
+  ] as const)('stands apart from the page in %s mode', (_mode, dark) => {
+    document.documentElement.classList.toggle('dark', dark)
+    render(
+      <div data-surface className='bg-normal p-4'>
+        <ViewTabs emphasis='subtler' />
+      </div>
+    )
+    const surface = shownFill(document.querySelector('[data-surface]')!)
+    expect(
+      Math.abs(apcaLc(shownFill(indicator()), surface))
+    ).toBeGreaterThanOrEqual(minimumLc['non-text UI'])
+  })
+
+  it('takes the Highlight colour under forced colours', async (context) => {
+    render(
+      <div className='p-4'>
+        <ViewTabs emphasis='subtler' />
+        <span data-probe style={{ background: 'Highlight' }} />
+      </div>
+    )
+    await commands.forcedColors(true)
+    onTestFinished(() => commands.forcedColors(false))
+    if (!matchMedia('(forced-colors: active)').matches) {
+      context.skip()
+      return
+    }
+    const highlight = getComputedStyle(
+      document.querySelector('[data-probe]')!
+    ).backgroundColor
+    await expect
+      .poll(() => getComputedStyle(indicator()).backgroundColor)
+      .toBe(highlight)
+  })
 })

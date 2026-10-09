@@ -15,7 +15,7 @@ import {
 import { DatePicker } from '../components/DatePicker'
 import { Field } from '../components/Field'
 import { loadBrandFont, useStylesheet } from '../components/Pane/testUtils'
-import { apcaLc, flatten, over } from '../css/contrastTestUtils'
+import { apcaLc, flatten, minimumLc, over } from '../css/contrastTestUtils'
 
 // Wed 7 Oct 2026.
 const TODAY = '2026-10-07'
@@ -214,15 +214,6 @@ export async function expectNoSeriousViolations() {
     )
   expect(found).toEqual([])
 }
-
-// APCA's minimum Lc for each role (docs/decisions/0010-apca-contrast.md).
-export const minimumLc = {
-  'body text': 75,
-  'label on a strong fill': 60,
-  'large text': 60,
-  'display text': 45,
-  'non-text UI': 45
-} as const
 
 type Role = keyof typeof minimumLc
 

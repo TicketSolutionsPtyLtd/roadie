@@ -30,13 +30,14 @@ function linear(channel: number) {
   return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
 }
 
-function luminance([r, g, b]: Rgb) {
-  return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b)
-}
-
-export function contrast(a: Rgb, b: Rgb) {
-  const [x, y] = [luminance(a), luminance(b)]
-  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)
+// OKLab's L, which is OKLCH's. APCA can't tell two soft fills apart, so fill
+// distinction is measured as a lightness step instead.
+export function oklchLightness([r, g, b]: Rgb) {
+  const [R, G, B] = [linear(r), linear(g), linear(b)]
+  const l = Math.cbrt(0.4122214708 * R + 0.5363325363 * G + 0.0514459929 * B)
+  const m = Math.cbrt(0.2119034982 * R + 0.6806995451 * G + 0.1073969566 * B)
+  const s = Math.cbrt(0.0883024619 * R + 0.2817188376 * G + 0.6299787005 * B)
+  return 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s
 }
 
 // The colour an element shows: its own fill over every ancestor's.
@@ -72,3 +73,12 @@ export function apcaLc(text: Rgb, background: Rgb) {
   const sapc = (backgroundY ** 0.65 - textY ** 0.62) * 1.14
   return sapc > -0.1 ? 0 : (sapc + 0.027) * 100
 }
+
+// APCA's minimum Lc for each role (docs/decisions/0010-apca-contrast.md).
+export const minimumLc = {
+  'body text': 75,
+  'label on a strong fill': 60,
+  'large text': 60,
+  'display text': 45,
+  'non-text UI': 45
+} as const

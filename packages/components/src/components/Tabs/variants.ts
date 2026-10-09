@@ -50,13 +50,12 @@ export const tabsListVariants = cva(
 )
 
 // `relative z-1` keeps the tab text and any focus ring above the
-// indicator pill that sits behind it. The active text colour shifts
-// per emphasis: `text-strong` for raised/tinted/underline pills,
-// `text-on-strong` for the `emphasis-strong` pill so the label
-// reads against the strong fill. `is-interactive` wires the
-// focus ring, cursor, color transition, and disabled state. In
-// vertical direction the tabs left-align their content so labels
-// don't float in the middle of the column.
+// indicator pill that sits behind it. The indicator draws the active
+// fill, so the active tab takes only its label: `is-selected-label`,
+// or `is-selected-label-on-strong` over the `emphasis-strong` pill.
+// `is-interactive` wires the focus ring, cursor, color transition, and
+// disabled state. In vertical direction the tabs left-align their
+// content so labels don't float in the middle of the column.
 //
 // An icon-only tab (`data-icon-only`, set by Tabs.Tab) is a circle at
 // every size and emphasis, so the pill indicator reads as a circle too.
@@ -68,19 +67,19 @@ export const tabsTabVariants = cva(
     'inline-flex items-center gap-1.5',
     'justify-center data-[orientation=vertical]:justify-start',
     'font-semibold whitespace-nowrap',
-    'text-subtle hover:text-normal',
+    'not-data-[active]:is-unselected',
     'data-[icon-only]:aspect-square data-[icon-only]:shrink-0 data-[icon-only]:rounded-full data-[icon-only]:px-0',
     'data-[icon-only]:data-[orientation=vertical]:justify-center'
   ].join(' '),
   {
     variants: {
       emphasis: {
-        strong: 'rounded-full data-[active]:text-on-strong',
-        normal: 'rounded-full data-[active]:text-strong',
-        subtle: 'rounded-full data-[active]:text-strong',
+        strong: 'rounded-full data-[active]:is-selected-label-on-strong',
+        normal: 'rounded-full data-[active]:is-selected-label',
+        subtle: 'rounded-full data-[active]:is-selected-label',
         // Inset, because the scrolling list clips a ring drawn outside it.
         subtler:
-          'rounded-none data-[active]:text-strong focus-visible:outline-offset-[-4px]'
+          'rounded-none data-[active]:is-selected-label focus-visible:outline-offset-[-4px]'
       },
       size: {
         sm: 'h-8 px-3 text-sm',
