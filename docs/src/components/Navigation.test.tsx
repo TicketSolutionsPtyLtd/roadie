@@ -54,7 +54,7 @@ function renderAt(route: string, pageWide: Record<string, boolean> = {}) {
       items={destinations}
       pageTitles={{ [route]: 'Page' }}
       pageWide={pageWide}
-      markdownRoutes={[]}
+      markdownTwins={{}}
     >
       <p>Body</p>
     </DocsNavigator>

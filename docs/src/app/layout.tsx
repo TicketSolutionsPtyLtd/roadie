@@ -140,7 +140,9 @@ export default async function RootLayout({
             items={items}
             pageTitles={pageTitles}
             pageWide={pageWide}
-            markdownRoutes={markdownRoutes}
+            markdownTwins={Object.fromEntries(
+              markdownRoutes.map((route) => [route, true])
+            )}
           >
             {children}
           </DocsNavigator>

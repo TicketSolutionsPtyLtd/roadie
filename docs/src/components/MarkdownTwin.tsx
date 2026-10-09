@@ -19,7 +19,7 @@ export function MarkdownTwin({
       ) : null}
       <p
         data-slot='markdown-twin'
-        className='mt-6 flex flex-wrap gap-x-2 text-sm text-subtle'
+        className='mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-subtle'
       >
         <span className='font-semibold'>For agents</span>
         {hasTwin ? (

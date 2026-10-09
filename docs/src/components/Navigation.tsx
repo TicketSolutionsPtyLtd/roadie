@@ -66,7 +66,7 @@ type NavigationProps = {
   /** Routes whose content column drops the standard reading-width cap. */
   pageWide: Record<string, boolean>
   /** Routes with a markdown twin at `{route}.md`. */
-  markdownRoutes: string[]
+  markdownTwins: Record<string, boolean>
   children: ReactNode
 }
 
@@ -99,7 +99,7 @@ export function DocsNavigator({
   items,
   pageTitles,
   pageWide,
-  markdownRoutes,
+  markdownTwins,
   children
 }: NavigationProps) {
   const route = useRoute()
@@ -291,7 +291,7 @@ export function DocsNavigator({
             <FooterNav items={items} />
             <MarkdownTwin
               route={route}
-              hasTwin={markdownRoutes.includes(route)}
+              hasTwin={markdownTwins[route] === true}
             />
           </div>
         </Pane>

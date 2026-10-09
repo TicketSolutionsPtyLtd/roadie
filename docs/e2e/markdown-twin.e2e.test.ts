@@ -36,7 +36,10 @@ const fetchText = (page: Page, path: string) =>
   page.evaluate(async (url) => (await fetch(url)).text(), `${BASE_PATH}${path}`)
 
 const alternateOf = (html: string) =>
-  html.match(/<link rel="alternate" type="text\/markdown" href="([^"]+)"/)?.[1]
+  html
+    .split('</head>')[0]!
+    .match(/<link[^>]*type="text\/markdown"[^>]*>/)?.[0]
+    .match(/href="([^"]+)"/)?.[1]
 
 describe('Markdown twins', () => {
   it('points every exported page that has a twin at it, and no other page', async () => {
@@ -89,15 +92,30 @@ describe('Markdown twins', () => {
     expect(await fetchText(page, '/llms.txt')).toMatch(/^# Roadie\n/)
   }, 60_000)
 
-  it('drops the head link after a client navigation to a page with no twin', async () => {
+  it('follows client navigation, updating or dropping the head link', async () => {
     const page = await open('/foundations/colors/')
     const alternate = page.locator('head link[type="text/markdown"]')
-    await expect.poll(() => alternate.count()).toBe(1)
+    await expect
+      .poll(() => alternate.getAttribute('href'))
+      .toBe(`${BASE_PATH}/foundations/colors.md`)
+    // A full reload would clear this, so it proves the router navigated.
+    await page.evaluate(() => Object.assign(window, { clientNavigation: true }))
+
+    await page
+      .getByRole('link', { name: 'Elevation', exact: true })
+      .first()
+      .click()
+    await page.waitForURL(/\/foundations\/elevation\/?$/)
+    await expect
+      .poll(() => alternate.getAttribute('href'))
+      .toBe(`${BASE_PATH}/foundations/elevation.md`)
+
     await page
       .getByRole('link', { name: 'Tokens', exact: true })
       .first()
       .click()
     await page.waitForURL(/\/tokens\/?$/)
     await expect.poll(() => alternate.count()).toBe(0)
+    expect(await page.evaluate(() => 'clientNavigation' in window)).toBe(true)
   }, 60_000)
 })
