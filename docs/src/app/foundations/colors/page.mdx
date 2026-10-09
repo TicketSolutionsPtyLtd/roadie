@@ -1,0 +1,266 @@
+export const metadata = {
+  title: 'Colors',
+  description:
+    'OKLCH color system with intent-based semantic tokens for consistent theming.',
+  category: 'Visual'
+}
+
+import { IntentEmphasis } from '@/components/colors/IntentEmphasis'
+import { ScaleSwatches } from '@/components/colors/ScaleSwatches'
+import { DatavizSwatches } from '@/components/dataviz/DatavizSwatches'
+
+Roadie uses OKLCH colour scales with 14 steps, 0 to 13. Colours are applied
+through three utility types, `bg-*`, `text-*`, and `border-*`, and each is
+scoped to its own CSS property.
+
+## Colour scales
+
+Each scale has 14 OKLCH steps. Step 0 is the lightest extreme and step 13 the
+darkest. Dark mode swaps the values, and the step numbers stay the same.
+
+On the docs site, each scale is a row of swatches in the current theme, with
+each step's number.
+
+<ScaleSwatches />
+
+## Colour utilities
+
+Three utility namespaces apply colour. Each maps a semantic level to a scale
+step of the current intent.
+
+| Level     | `bg-*`                                                                                   | `text-*`                                                                                     | `border-*` |
+| --------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ---------- |
+| subtler   | Step 9 at 6% alpha                                                                       | Step 10                                                                                      | Step 5     |
+| subtle    | Step 9 at 11% alpha                                                                      | Step 11                                                                                      | Step 6     |
+| normal    | Step 1 (dark: 2)                                                                         | Step 12                                                                                      | Step 7     |
+| strong    | Step 9 (neutral: 13, danger: 10; success and brand-secondary mix 10% toward white)       | Step 13                                                                                      | Step 9     |
+| inverted  | Step 12                                                                                  | Step 0, the page's text flipped. It pairs with `bg-inverted`.                                | Step 12    |
+| on-strong | None                                                                                     | White or step 13, chosen per intent. It's the label colour for [strong fills](#text-on-strong-fills). | None       |
+| raised    | Step 1 (dark: 3 for neutral, 2 for the other intents)                                    | None                                                                                         | None       |
+| sunken    | Step 2 (dark: 0)                                                                         | None                                                                                         | None       |
+| mark      | Light step 5, kept in dark mode (neutral: step 13)                                       | Light step 13, kept in dark mode (neutral: step 0)                                           | None       |
+
+For example, `bg-normal`, `bg-subtle`, `bg-raised`, `text-subtle`,
+`text-strong`, `border-subtle`, `border-b-subtler`, and `divide-subtler`.
+
+## Surface tokens
+
+Four depths in one picture. Pick the surface that matches the element's depth
+in the layout: sunken for recessed areas, normal for the page, raised for
+elevated cards, and floating for popovers and modals.
+
+```tsx-live
+<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+  <Card className='emphasis-sunken'>
+    <Card.Header>
+      <Card.Title>Sunken</Card.Title>
+      <Card.Description>bg-sunken</Card.Description>
+    </Card.Header>
+  </Card>
+  <Card>
+    <Card.Header>
+      <Card.Title>Normal</Card.Title>
+      <Card.Description>bg-normal</Card.Description>
+    </Card.Header>
+  </Card>
+  <Card emphasis='raised'>
+    <Card.Header>
+      <Card.Title>Raised</Card.Title>
+      <Card.Description>bg-raised</Card.Description>
+    </Card.Header>
+  </Card>
+  <Card className='emphasis-floating'>
+    <Card.Header>
+      <Card.Title>Floating</Card.Title>
+      <Card.Description>emphasis-floating</Card.Description>
+    </Card.Header>
+  </Card>
+</div>
+```
+
+| Surface  | Use for                                                                                                                                                                                             |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sunken   | `bg-sunken`, for recessed areas, inset panels, and empty-state wells. `emphasis-sunken` adds the inset shadow.                                                                                      |
+| Normal   | `bg-normal`, the default page background and the baseline everything else sits on. Use it when nothing should feel elevated or recessed.                                                           |
+| Raised   | `bg-raised`, for elevated cards, sticky headers, and grouped content that should lift off the page. `emphasis-raised` adds the rim light and `shadow-md`.                                           |
+| Floating | `emphasis-floating`, for popovers, modals, dropdowns, and anything else that floats over the document flow. It uses the raised background, `shadow-xl`, and the strong rim light. Add `is-translucent` to let content show through as it scrolls beneath. |
+
+The four levels go from `sunken` to `normal`, `raised`, and `floating`. Reach
+for the `emphasis-*` shortcut when you need the full background, border, and
+shadow treatment, and use `bg-raised` or `bg-sunken` directly when you only
+need the background colour.
+
+## Intent and emphasis
+
+Set `intent-*` on a container to choose the palette. Use the `emphasis-*`
+shortcuts for background, text, and border together, with hover and press
+states once you add `is-interactive`, or the individual utilities when you
+need to compose them.
+
+On the docs site, each intent shows the `emphasis-strong`, `emphasis-normal`,
+`emphasis-subtle`, and `emphasis-subtler` presets.
+
+<IntentEmphasis />
+
+### Brand intents
+
+Brand intents are named by hue. `brand-blue` is the same as `brand`, and
+`brand-orange` is the same as `brand-secondary`. `brand-purple` uses the
+purple scale that `info` also uses. Green, yellow, and red stay status
+colours, with no brand intent.
+
+## Contrast
+
+Roadie measures all contrast with APCA, the contrast method in the WCAG 3
+draft, and doesn't use WCAG 2 ratios. APCA scores a pair as Lc, its lightness
+contrast, and weighs text size and weight in a way ratios don't.
+
+| Content                               | Minimum |
+| ------------------------------------- | ------- |
+| Body text                             | Lc 75   |
+| Labels on strong fills and large text | Lc 60   |
+| Non-text UI and large display text    | Lc 45   |
+
+### Text on strong fills
+
+`text-on-strong` is the label colour for strong fills, chosen per intent:
+white or dark text, whichever reads better on the fill. `emphasis-strong` uses
+it. Labels need Lc 60 or more at rest, on hover, and when pressed.
+`text-inverted` is different: it's the page's text colour flipped, and pairs
+with `bg-inverted`.
+
+White on Spotlight blue scores Lc 66, so blue fills keep white labels. Danger,
+success, and brand-secondary move their fill slightly to reach Lc 60.
+
+A custom accent keeps white text too. `ThemeProvider` caps its chroma to what
+sRGB can show at step 9, because a browser clips a more saturated fill and the
+clip makes it lighter.
+
+| Intent          | Light   | Dark   | APCA Lc, light |
+| --------------- | ------- | ------ | -------------- |
+| neutral         | White   | Step 0 | 107            |
+| brand           | White   | White  | 66             |
+| brand-secondary | Step 13 | Step 0 | 61             |
+| brand-blue      | White   | White  | 66             |
+| brand-orange    | Step 13 | Step 0 | 61             |
+| brand-purple    | White   | White  | 68             |
+| accent          | White   | White  | 66             |
+| danger          | White   | White  | 64             |
+| success         | Step 13 | Step 0 | 62             |
+| warning         | Step 13 | Step 0 | 62             |
+| info            | White   | White  | 68             |
+
+## Data visualisation colours
+
+Charts use their own palette, checked for colour-blind separation in CI. Each
+set has one job. Read [Data visualisation](/charts/data-visualisation) before
+you pick one. On the docs site, each set shows its swatches on a light and a
+dark chart surface.
+
+### Categorical
+
+For telling series apart.
+
+<DatavizSwatches kind='categorical' />
+
+### Sequential
+
+For how much.
+
+<DatavizSwatches kind='heat' />
+
+### Diverging
+
+For ahead of or behind a benchmark.
+
+<DatavizSwatches kind='diverging' />
+
+### Status
+
+For meaning only.
+
+<DatavizSwatches kind='status' />
+
+## Dark mode
+
+Dark mode is automatic. The `.dark` class on `<html>` swaps every OKLCH value,
+so no `dark:` Tailwind variants are needed. `bg-normal`, `text-subtle`, and
+`border-subtle` all adapt by themselves.
+
+The CSS also sets `color-scheme: light` on `:root` and `color-scheme: dark` on
+`.dark`, so native browser UI, such as scrollbars and form controls, matches
+your theme.
+
+### Fixed light colours
+
+Brand artwork such as patterns, illustrations, and print keeps its light
+colours in dark mode. Use `--color-{scale}-light-{0|5|9|12|13}` for these.
+`.dark` doesn't override them, and only neutral has step 0.
+
+### Setup
+
+Add a blocking script in `<head>` to prevent a flash of the wrong theme. The
+`getThemeScript` helper generates it for you. Import it from
+`@oztix/roadie-core/theme`, which has no React dependency.
+
+```tsx
+import { getThemeScript } from '@oztix/roadie-core/theme'
+
+// In your <head>:
+<meta name="color-scheme" content="light" />
+<script dangerouslySetInnerHTML={{ __html: getThemeScript() }} />
+```
+
+### Following system preference
+
+By default, the theme is light. Pass `followSystem: true` to respect the
+user's OS preference when they haven't explicitly toggled.
+
+```tsx
+getThemeScript({ followSystem: true })
+```
+
+### React ThemeProvider
+
+For React apps, wrap your app in `ThemeProvider` to get the `useTheme()` hook
+with `isDark` and `setDark`.
+
+```tsx
+import { ThemeProvider, useTheme } from '@oztix/roadie-components'
+import { Button } from '@oztix/roadie-components/button'
+
+// In your layout:
+<ThemeProvider followSystem>
+  <App />
+</ThemeProvider>
+
+// In a toggle component:
+function ThemeToggle() {
+  const { isDark, setDark } = useTheme()
+  return (
+    <Button onClick={() => setDark(!isDark)}>{isDark ? 'Light' : 'Dark'}</Button>
+  )
+}
+```
+
+Once a user explicitly toggles, their choice persists in `localStorage` and
+overrides the system preference.
+
+### Vue and vanilla JavaScript
+
+For apps without React, use `getThemeScript()` for the initial load and toggle
+with plain DOM calls.
+
+```js
+function setDark(dark) {
+  document.documentElement.classList.toggle('dark', dark)
+  document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+  localStorage.setItem('theme', dark ? 'dark' : 'light')
+}
+```
+
+## Dynamic accent
+
+The accent scale is CSS-native. `ThemeProvider` sets `--accent-hue` and
+`--accent-chroma`, and CSS `oklch()` computes every accent and neutral colour
+in the browser. Modern browsers need no JavaScript colour generation.
