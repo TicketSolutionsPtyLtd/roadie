@@ -1,0 +1,330 @@
+export const metadata = {
+  title: 'Records model',
+  description:
+    'Fields describe an entity once. Views save a search, filters, sort and layout as JSON. The same view runs in the browser, on a server, in Meilisearch and in a URL.',
+  category: 'Building apps'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { QuerySuggestions } from '@/components/records/QuerySuggestions'
+import { ViewMeilisearch } from '@/components/records/ViewMeilisearch'
+import { ViewSearchParams } from '@/components/records/ViewSearchParams'
+
+Organisers work through lists: events, sessions, orders, attendees, and
+customers. `@oztix/roadie-core/records` describes those lists once, as plain
+TypeScript with no components, so a search typed on a list screen means the
+same thing in the browser, on your server, in Meilisearch, and in a shared
+link. [RecordTable](/components/record-table) and
+[RecordGrid](/components/record-grid) build on it.
+
+## Fields
+
+A field describes one fact about a record: its key, its label, its type, and
+how it may be filtered, sorted, and searched. Keep one field list per entity
+and share it between screens. Every per-row fact is a key, never a function,
+so the same list works in a browser, on a server, and in an adapter. Field
+lists are code, and views are the JSON.
+
+```tsx
+import type { RecordField } from '@oztix/roadie-core/records'
+
+export const eventFields: RecordField[] = [
+  { key: 'name', label: 'Name', type: 'text' },
+  { key: 'orderNumber', label: 'Order number', type: 'text', match: /^OZ-\d{5}$/i },
+  {
+    key: 'venue',
+    label: 'Venue',
+    type: 'option',
+    options: [
+      { value: 'quilted-walrus-room', label: 'The Quilted Walrus Room' },
+      { value: 'antler-kettle-hall', label: 'Antler Kettle Hall' }
+    ]
+  },
+  {
+    key: 'city',
+    label: 'City',
+    type: 'option',
+    options: [
+      { value: 'melbourne', label: 'Melbourne' },
+      { value: 'sydney', label: 'Sydney' }
+    ]
+  },
+  {
+    key: 'offer',
+    label: 'Availability',
+    type: 'option',
+    // The dashboard status map: Badge, sort order, and labels from one place.
+    status: {
+      available: { intent: 'success', order: 1 },
+      selling_fast: { intent: 'warning', order: 2 },
+      sold_out: { intent: 'danger', order: 3 }
+    }
+  },
+  { key: 'gross', label: 'Gross', type: 'money', currencyKey: 'currency' },
+  {
+    key: 'starts',
+    label: 'Starts',
+    type: 'date',
+    moment: 'event',
+    end: 'ends',
+    timeZoneKey: 'venueZone',
+    localDateKey: 'startsLocal',
+    endLocalDateKey: 'endsLocal'
+  },
+  { key: 'created', label: 'Created', type: 'date', moment: 'timestamp' }
+]
+```
+
+| Property                          | Meaning                                                                                                                                         |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                            | text, option, number, money, date, or boolean. It decides which operators fit.                                                                 |
+| `filterable`                      | Defaults to true. Set false to keep a field out of filters and suggestions.                                                                     |
+| `sortable`                        | Defaults to true.                                                                                                                               |
+| `searchable`                      | Free-text search reads it. Defaults to true for text and false otherwise.                                                                       |
+| `multiple`                        | The row holds a list. Is means has any of, and is not means has none of. An option field also gets has all. A list of dates can't be filtered yet. |
+| `end`                             | For a date range, the key holding the end. Date filters then test overlap.                                                                      |
+| `moment`                          | How a date compares: event, access, timestamp (the default), or date. See [Dates](#dates).                                                      |
+| `timeZoneKey`                     | For event and access moments, the row key holding the venue's IANA zone.                                                                        |
+| `localDateKey`, `endLocalDateKey` | The stored venue-local date, for adapters that can't work it out per row.                                                                       |
+| `match`                           | A pattern for identifiers, such as order numbers. Typed text that matches is offered as an exact filter.                                        |
+| `format`                          | How a number or money field's values read. Defaults to number, or currency for money.                                                          |
+| `currency`, `currencyKey`         | A fixed ISO code, or the row key holding it.                                                                                                    |
+| `status`                          | The dashboard status map. An option field with one gets Badge rendering, sorting by order, and labels from one definition.                     |
+| `options`                         | The values to pick from, each with an optional parent for hierarchies.                                                                          |
+
+Derived states, such as Selling fast or Sold out, are worked out once on the
+server and arrive as option values. Roadie never bands a percentage into a
+state.
+
+## Views
+
+A view is a search, filters, sort, and layout, saved under a name. Each filter
+is a chip. Chips are ANDed, and the values inside one chip are ORed. Query and
+layout are independent, so the same search reads as a table or a grid of
+cards, and Configure switches between them. Page, scroll row, and selection
+are session state, never part of a view.
+
+```json
+{
+  "id": "melbourne-weekend",
+  "name": "Melbourne this weekend",
+  "entity": "events",
+  "query": {
+    "search": "lampshade",
+    "filters": [
+      {
+        "field": "city",
+        "operator": "is",
+        "values": [
+          "melbourne"
+        ]
+      },
+      {
+        "field": "starts",
+        "operator": "within",
+        "value": "this-weekend"
+      },
+      {
+        "field": "offer",
+        "operator": "is-not",
+        "values": [
+          "sold_out"
+        ]
+      }
+    ],
+    "sort": [
+      {
+        "field": "starts",
+        "direction": "ascending"
+      }
+    ]
+  },
+  "layout": {
+    "type": "table",
+    "columns": {
+      "order": [
+        "name",
+        "gross",
+        "starts"
+      ],
+      "hidden": [
+        "created"
+      ]
+    }
+  }
+}
+```
+
+| Field type    | Operators                                 |
+| ------------- | ----------------------------------------- |
+| Text          | contains, not-contains, is, is-not        |
+| Option        | is, is-not, and has-all when multiple     |
+| Number, money | eq, neq, lt, gt, between                  |
+| Date          | on, before, after, between, within        |
+| Boolean       | is-true, is-false                         |
+| Any           | is-set, is-not-set                        |
+
+Empty is a real state: null, an empty string, and an empty list are all not
+set. Negative operators (is-not, not-contains, and neq) keep records where the
+field is empty, the way Meilisearch does. Check a view from storage or an API
+with `validateRecordView(view, fields)`. It rejects unknown fields and
+operators that don't fit, and says what would.
+
+## Scope
+
+Scope is the part of a query the page sets, such as "products offered on
+Lampshade Disco, any of its days, or its collection". It's a filter list your
+app resolves, because it can span levels a flat record can't express. Scope is
+never saved in a view, and Clear never removes it. Pass it to `RecordTable`,
+`RecordGrid`, or `useRecords` as `scope`, and in server mode fetch
+`scopedQuery`, which puts it before the view's own filters.
+
+## Dates
+
+Date filters follow the same moment kinds as
+[date and time formatting](/foundations/date-and-time). Calendar words resolve
+in the viewer's zone, so "today" is today's date at every venue. An event at
+11:30pm in Perth is still a Saturday gig when it's already Sunday in Sydney.
+
+| moment    | Example                  | Filters compare                            |
+| --------- | ------------------------ | ------------------------------------------ |
+| event     | Session start, doors     | Venue-local calendar date, never converted |
+| access    | On sale, presale         | Venue-local date                           |
+| timestamp | Order placed             | The viewer's day, as instants              |
+| date      | Birthday, all-day on-sale | A plain date with no zone                 |
+
+Relative ranges have one fixed meaning: a week is Monday to Sunday, a weekend
+is Saturday and Sunday, rolling windows count today, and the financial year
+starts in July. The core functions also take `weekStart` and
+`fiscalYearStart`, but the Records components always use these defaults, so
+keep them wherever a view also runs in the browser. Hour windows and the open ranges upcoming, past, and ongoing compare
+the instant, except on a plain date, where upcoming starts today and past ends
+yesterday. A range field matches when any part of it overlaps, so a five-night
+festival is on this weekend if one night is.
+
+A time written without an offset names one moment, in the record's or the
+viewer's zone. When daylight saving repeats an hour it's the first pass, and
+when it skips one it's the moment the clocks jump. Records and filters read
+times the same way, so a single moment is always before, on, or after a date
+or time, never two of these.
+
+## Browser and server
+
+`resolveRecordQuery(query, fields, { now, timeZone })` fixes relative dates at
+a moment. In the browser, `matchesRecordQuery(row, resolved, fields)` keeps or
+drops each row. On a server, `toMeilisearch(view, fields, { now, timeZone })`
+from `@oztix/roadie-core/records/meilisearch` returns the same meaning as
+Meilisearch parameters. It sits on its own subpath so the model stays
+backend-agnostic. On the docs site, the view from [Views](#views) runs through
+`toMeilisearch` at 11:30pm on a Friday in Melbourne, and its parameters show
+as comments under the call.
+
+<ViewMeilisearch />
+
+It needs Meilisearch 1.15 or later, which compares date strings. The index
+stores instants as epoch seconds (pass `epoch: 'milliseconds'` otherwise),
+event and access dates under `localDateKey`, and a range's end on every
+record. Text `contains` needs Meilisearch's `containsFilter` feature, and the
+index's `searchableAttributes` should list the fields marked `searchable`.
+Scope facet value search to the user's permissions on the server.
+
+Add `position` to page through the results. It adds `page` (one-based) and
+`hitsPerPage`, so the response's `totalHits` counts the matches, up to the
+index's `pagination.maxTotalHits`. A [RecordTable](/components/record-table)
+takes that count as `rowCount` and the page as its data. Loading by range,
+each range is one page: fetch `{ page: start / pageSize, pageSize }`.
+
+## Typed text
+
+`parseQuery(text, { fields, now, timeZone })` reads typed text into ranked
+suggestions, shaped for `QueryField`. It knows nothing about any one entity.
+To search events and orders together, call it once per entity with its
+`entity` and merge the results by `score`. It reads identifiers,
+`field:value`, field names, option and status values, booleans by name, and
+date phrases. Each part of the text gets its best reading first, with the rest
+kept as `remainder`. A phrase always becomes a visible, editable chip, never
+hidden logic. On the docs site, the first four suggestions for "melb this
+weekend" show as comments under the call, with each one's kind, label, and
+remainder.
+
+<QuerySuggestions />
+
+`describeRecordFilter(filter, fields, { now, timeZone })` writes any filter as
+its chip reads, such as "Gross is more than $100", with the dates a relative
+range stands for in `detail`. `parseQuery` labels its filters the same way, so
+a suggestion and the chip it makes read alike. `Records.Search` uses both, and
+shows a page's `scope` as locked chips that are never part of the view.
+
+## URL format
+
+`toSearchParams(view, position)` writes a view as search params, so a list
+screen opens from a link with the view applied. The format is versioned and a
+public contract: the same view always writes the same URL.
+`fromSearchParams(params, fields, { fallback })` reads it back, ignores keys
+it doesn't know, and returns your fallback view with its problems when the URL
+holds something invalid.
+
+| Key                                       | Holds                                                                                                                                                       |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `v`                                       | The format version, 1                                                                                                                                       |
+| `view`, `entity`                          | The saved view it started from, and the entity. A URL view has no name                                                                                      |
+| `q`                                       | The search text                                                                                                                                             |
+| `f`                                       | One per chip, in order, as `field:operator:value`. Lists are comma separated                                                                                |
+| `sort`                                    | Fields in order, descending with a leading dash, such as `-starts,name`                                                                                     |
+| `layout`, `columns`, `hidden`, `fields`   | The layout and its settings                                                                                                                                 |
+| `group`                                   | The view's `group`, which is reserved for grouping and no layout reads yet                                                                                  |
+| `page`, `size`, `row`                     | Where the reader is: the page, or in a list loaded by range, the first row on screen. The URL counts pages from 1, and `position.page` counts from 0        |
+
+On the docs site, the view from [Views](#views) on its first page shows as the
+params `toSearchParams` writes, one a line.
+
+<ViewSearchParams />
+
+## Modified views
+
+`equalViews(view, baseline)` tells whether a view still matches the one it was
+opened from, for the modified mark beside a view name. It ignores id, name,
+spacing in the search, and the order of chips and their values. Sort and
+column order still count.
+
+Pass that saved view to `useRecords` as `baseline` and it gives `modified` and
+`resetView`. `Records.ViewActions` shows the name and the mark, with a menu to
+save, save as, rename, reset, or delete the view. Your app keeps the presets
+and the views people save, and lists them, as
+[RecordTable](/components/record-table#saved-views) shows.
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline
+  title='Describe per-row facts as keys'
+  description='A function cannot travel to a server, a URL, or a search index.'
+>
+  <Guideline.Do
+    code={`{ key: 'starts', type: 'date', moment: 'event', timeZoneKey: 'venueZone' }`}
+  >
+    Name the key that holds the venue's zone.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`{ key: 'starts', type: 'date', zone: (row) => row.venue.zone }`}
+  >
+    Work it out in a callback only the browser can run.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  title='Keep session state out of views'
+  description='A saved view should open the same for everyone, at the top.'
+>
+  <Guideline.Do code={`toSearchParams(view, { page: 2, row: 40 })`}>
+    Pass the page and row as position, next to the view.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`saveView({ ...view, page: 2, selected: ['ord_123'] })`}
+  >
+    Save where one person had scrolled to as part of the view.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
