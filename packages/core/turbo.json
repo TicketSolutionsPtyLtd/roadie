@@ -17,7 +17,8 @@
       "inputs": [
         "$TURBO_EXTENDS$",
         "scripts/**",
-        "$TURBO_ROOT$/docs/eslint.config.js"
+        "$TURBO_ROOT$/docs/eslint.config.js",
+        "$TURBO_ROOT$/skills/*/codemods/**"
       ]
     },
     "typecheck": {

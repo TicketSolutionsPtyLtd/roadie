@@ -1,0 +1,3 @@
+line 13: <LinkButton> sets as; pass the router Link to RoadieProvider and drop as. Migrate it by hand.
+line 16: <LinkButton> spreads props, so its href and as are unknown. Migrate it by hand.
+line 17: <LinkButton> has no href, and Button without href renders a <button>. Migrate it by hand.

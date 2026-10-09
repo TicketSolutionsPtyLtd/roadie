@@ -30,6 +30,7 @@ export default [
       '**/roadie-core/**',
       '**/trace-output/**',
       '**/.tsup/**',
+      '**/__testfixtures__/**',
       '**/*.config.js',
       '**/*.config.ts',
       '**/*.config.mjs',

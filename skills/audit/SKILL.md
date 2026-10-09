@@ -45,11 +45,11 @@ digraph audit {
 
 ## Severity levels
 
-| Level | Meaning | Action |
-|-------|---------|--------|
-| Critical | Breaks styling or Roadie's color system | Must fix |
-| Warning | Deviation from conventions, works but inconsistent | Should fix |
-| Info | Opportunity for improvement, review manually | May fix |
+| Level    | Meaning                                            | Action     |
+| -------- | -------------------------------------------------- | ---------- |
+| Critical | Breaks styling or Roadie's color system            | Must fix   |
+| Warning  | Deviation from conventions, works but inconsistent | Should fix |
+| Info     | Opportunity for improvement, review manually       | May fix    |
 
 **Exception:** Setting theme/accent color via CSS custom properties or ThemeProvider config is intentional — not a violation.
 
@@ -70,6 +70,7 @@ Roadie disables default Tailwind color utilities. All colors must be semantic.
 **Note:** This pattern excludes `neutral` — Roadie has its own `neutral-0` through `neutral-13` scale. Raw Roadie scale references like `border-neutral-0` are covered by check A2 (Info level) instead.
 
 **Fix:** Replace with semantic equivalents:
+
 - `bg-gray-100` → `bg-subtle` or `bg-normal`
 - `bg-gray-900` → `bg-strong` or `emphasis-strong`
 - `text-gray-500` → `text-subtle`
@@ -87,23 +88,23 @@ These use Roadie's own scale names (`brand-4`, `accent-11`) so they ARE semantic
 
 For each match, check whether an emphasis shortcut exists:
 
-| Raw reference | Possible emphasis replacement |
-|---------------|-------------------------------|
-| `bg-brand-2`, `bg-info-3` | `intent-brand bg-subtler` or `intent-info emphasis-subtle` |
-| `bg-brand-9`, `bg-accent-9` | `intent-brand emphasis-strong` |
-| `bg-brand-12` | `intent-brand emphasis-inverted` |
-| `border-brand-7` | `intent-brand border-normal` |
+| Raw reference               | Possible emphasis replacement                              |
+| --------------------------- | ---------------------------------------------------------- |
+| `bg-brand-2`, `bg-info-3`   | `intent-brand bg-subtler` or `intent-info emphasis-subtle` |
+| `bg-brand-9`, `bg-accent-9` | `intent-brand emphasis-strong`                             |
+| `bg-brand-12`               | `intent-brand emphasis-inverted`                           |
+| `border-brand-7`            | `intent-brand border-normal`                               |
 
 The text scale maps one step to one utility, so match the number rather than the
 adjective. `text-strong` is the darkest, not the most saturated.
 
-| Step | Utility |
-|------|---------|
-| 0 | `text-inverted` |
-| 10 | `text-subtler` |
-| 11 | `text-subtle` |
-| 12 | `text-normal` |
-| 13 | `text-strong` |
+| Step | Utility         |
+| ---- | --------------- |
+| 0    | `text-inverted` |
+| 10   | `text-subtler`  |
+| 11   | `text-subtle`   |
+| 12   | `text-normal`   |
+| 13   | `text-strong`   |
 
 **Only flag if** the emphasis equivalent is a clear improvement. If the specific scale step is needed for visual precision (e.g., an overlay at a specific opacity), it's fine to keep.
 
@@ -223,14 +224,14 @@ size=\{?\d
 
 Icons should use Tailwind `className` for sizing, not the Phosphor `size` prop.
 
-| Numeric size prop | Tailwind className | Semantic use |
-|-------------------|--------------------|--------------|
-| `size={12}` | `className='size-3'` | XS (badges, tags) |
-| `size={14}` | `className='size-3.5'` | — |
-| `size={16}` | `className='size-4'` | SM (buttons, inline — default) |
-| `size={20}` | `className='size-5'` | MD (nav, standalone) |
-| `size={24}` | `className='size-6'` | LG (headers, cards) |
-| `size={32}` | `className='size-8'` | — |
+| Numeric size prop | Tailwind className     | Semantic use                   |
+| ----------------- | ---------------------- | ------------------------------ |
+| `size={12}`       | `className='size-3'`   | XS (badges, tags)              |
+| `size={14}`       | `className='size-3.5'` | —                              |
+| `size={16}`       | `className='size-4'`   | SM (buttons, inline — default) |
+| `size={20}`       | `className='size-5'`   | MD (nav, standalone)           |
+| `size={24}`       | `className='size-6'`   | LG (headers, cards)            |
+| `size={32}`       | `className='size-8'`   | —                              |
 
 #### C4. Wrong icon weight [Info]
 
@@ -296,6 +297,7 @@ colorPalette=
 ```
 
 **Fix:** Replace with `intent=` using this mapping:
+
 - `colorPalette='primary'` → `intent='brand'`
 - `colorPalette='accent'` → `intent='accent'`
 - `colorPalette='information'` → `intent='info'`
@@ -340,6 +342,7 @@ Select\.Portal|Select\.Positioner|Select\.Popup
 Deprecated in v2.6 and removed in v3.0.0. See [Group I: Linking](#group-i-linking).
 
 **Fix:**
+
 - `<LinkButton href='/x'>` → `<Button href='/x'>`
 - `<LinkIconButton aria-label='Cart' href='/cart'>` → `<IconButton aria-label='Cart' href='/cart'>`
 - `<LinkButton as={Link} href='/x'>` → `<Button href='/x'>` with the router's Link passed to `RoadieProvider` once (I1)
@@ -353,6 +356,7 @@ Deprecated in v2.6 and removed in v3.0.0. See [Group I: Linking](#group-i-linkin
 Deprecated in v2.6 and removed in v3.0.0. `render` is the escape hatch, as on Base UI components.
 
 **Fix:**
+
 - `<Card as='button' onClick={…}>` → `<Card render={<button type='button' onClick={…} />}>`
 - `<Card as={MyLink} href='/x'>` → `<Card href='/x'>` (the provider routes it) or `<Card render={<MyLink href='/x' />}>`
 - `<Breadcrumb.Link as={CustomLink}>` → `<Breadcrumb.Link render={<CustomLink />}>`
@@ -390,15 +394,15 @@ style=\{\{
 
 For each match, check whether a Tailwind utility exists:
 
-| Inline style | Tailwind equivalent |
-|--------------|---------------------|
-| `style={{ flexShrink: 0 }}` | `shrink-0` |
-| `style={{ flexGrow: 1 }}` | `grow` |
-| `style={{ flex: '1 1 0' }}` | `flex-1` |
-| `style={{ overflow: 'hidden' }}` | `overflow-hidden` |
-| `style={{ minWidth: 0 }}` | `min-w-0` |
-| `style={{ whiteSpace: 'nowrap' }}` | `whitespace-nowrap` |
-| `style={{ textOverflow: 'ellipsis' }}` | `truncate` |
+| Inline style                           | Tailwind equivalent |
+| -------------------------------------- | ------------------- |
+| `style={{ flexShrink: 0 }}`            | `shrink-0`          |
+| `style={{ flexGrow: 1 }}`              | `grow`              |
+| `style={{ flex: '1 1 0' }}`            | `flex-1`            |
+| `style={{ overflow: 'hidden' }}`       | `overflow-hidden`   |
+| `style={{ minWidth: 0 }}`              | `min-w-0`           |
+| `style={{ whiteSpace: 'nowrap' }}`     | `whitespace-nowrap` |
+| `style={{ textOverflow: 'ellipsis' }}` | `truncate`          |
 
 **Note:** Dynamic values from JS (e.g., `style={{ width: calculatedWidth }}`) are legitimate. Only flag styles that have static Tailwind equivalents.
 
@@ -478,17 +482,17 @@ toLocale(Date|Time)?String|Intl\.DateTimeFormat|\.format\(['"]
 Every displayed date and time comes from Roadie. In React that is a component;
 everywhere else it is the matching formatter.
 
-| Hand-rolled | In React | Outside React |
-|-------------|----------|---------------|
-| `d.toLocaleDateString()` | `<DateTime at={d} timeZone={tz} />` | `formatLong(d, { timeZone })` |
-| `d.toLocaleTimeString()` | `<DateTime at={d} timeZone={tz} timeStyle='short' />` | `formatTimeOfDay(d, { timeZone })` |
-| `new Intl.DateTimeFormat(l, o).format(d)` | the style that matches `o` | the style that matches `o` |
-| `format(d, 'dd MMM yyyy')` | `<DateTime at={d} timeZone={tz} dateStyle='medium' />` | `formatMedium(d, { timeZone })` |
-| `format(d, 'EEE d MMM yyyy')` | `<DateTime at={d} timeZone={tz} />` | `formatLong(d, { timeZone })` |
-| `moment(d).format('DD MMM YYYY')` | `<DateTime at={d} timeZone={tz} dateStyle='medium' />` | `formatMedium(d, { timeZone })` |
-| a hand-built `x – y` range | `<DateTime at={a} to={b} timeZone={tz} />` | `formatDateRange(a, b, { timeZone })` |
-| a hand-built `2h 30m` | `<Duration of={ms} />` | `formatDuration(ms)` |
-| a `setInterval` counting down | `<Countdown until={at} />` | `formatCountdown(ms)` |
+| Hand-rolled                               | In React                                               | Outside React                         |
+| ----------------------------------------- | ------------------------------------------------------ | ------------------------------------- |
+| `d.toLocaleDateString()`                  | `<DateTime at={d} timeZone={tz} />`                    | `formatLong(d, { timeZone })`         |
+| `d.toLocaleTimeString()`                  | `<DateTime at={d} timeZone={tz} timeStyle='short' />`  | `formatTimeOfDay(d, { timeZone })`    |
+| `new Intl.DateTimeFormat(l, o).format(d)` | the style that matches `o`                             | the style that matches `o`            |
+| `format(d, 'dd MMM yyyy')`                | `<DateTime at={d} timeZone={tz} dateStyle='medium' />` | `formatMedium(d, { timeZone })`       |
+| `format(d, 'EEE d MMM yyyy')`             | `<DateTime at={d} timeZone={tz} />`                    | `formatLong(d, { timeZone })`         |
+| `moment(d).format('DD MMM YYYY')`         | `<DateTime at={d} timeZone={tz} dateStyle='medium' />` | `formatMedium(d, { timeZone })`       |
+| a hand-built `x – y` range                | `<DateTime at={a} to={b} timeZone={tz} />`             | `formatDateRange(a, b, { timeZone })` |
+| a hand-built `2h 30m`                     | `<Duration of={ms} />`                                 | `formatDuration(ms)`                  |
+| a `setInterval` counting down             | `<Countdown until={at} />`                             | `formatCountdown(ms)`                 |
 
 Ignore matches that are parsing or serialising rather than displaying — an ISO
 string for an API, a query key, a `data-*` attribute.
@@ -499,7 +503,7 @@ string for an API, a query key, a `data-*` attribute.
 \.(getDate|getMonth|getFullYear|getDay|getHours|getMinutes)\(\)
 ```
 
-These read the *browser's* clock. They are usually a date being assembled by
+These read the _browser's_ clock. They are usually a date being assembled by
 hand for display, often several lines below where the `Date` was constructed —
 so match on the accessor, not on `new Date(...)`.
 
@@ -526,10 +530,10 @@ already-shifted date turns a silent bug into a visible wrong answer.
 A three-letter weekday belongs with a three-letter month, and a full weekday
 with a full month. `Fri, 27 November` mixes them.
 
-| Mixed | Use |
-|-------|-----|
-| `Fri, 27 November 2026` | `formatLong` → `Fri 27 Nov 2026` |
-| `Friday, 27 Nov 2026` | `formatFull` → `Friday, 27 November 2026` |
+| Mixed                   | Use                                       |
+| ----------------------- | ----------------------------------------- |
+| `Fri, 27 November 2026` | `formatLong` → `Fri 27 Nov 2026`          |
+| `Friday, 27 Nov 2026`   | `formatFull` → `Friday, 27 November 2026` |
 
 For the `weekday: 'short'` match, check the sibling `month` value — flag only
 when it is `'long'`.
@@ -551,12 +555,12 @@ hand-rolled strings: `timeStyle: 'numeric'` (`19:30`) for a chart axis, a dense
 table column or an export, and `dateStyle: 'iso'`. A buyer should never meet
 either. Anywhere else, 24-hour is a violation.
 
-| Wrong | Use |
-|-------|-----|
-| `19:30` in prose or on a card | `timeStyle: 'medium'` → `7:30pm` |
-| `19:30` on a chart axis or table column | `timeStyle: 'numeric'` |
-| `7:30 PM` | `timeStyle: 'medium'` → `7:30pm` |
-| `7.30pm` | `timeStyle: 'short'` → `7:30pm` |
+| Wrong                                   | Use                              |
+| --------------------------------------- | -------------------------------- |
+| `19:30` in prose or on a card           | `timeStyle: 'medium'` → `7:30pm` |
+| `19:30` on a chart axis or table column | `timeStyle: 'numeric'`           |
+| `7:30 PM`                               | `timeStyle: 'medium'` → `7:30pm` |
+| `7.30pm`                                | `timeStyle: 'short'` → `7:30pm`  |
 
 Ignore matches inside an `iso` or `numeric` format, or a filename. The check is
 about hand-rolled clocks, not the styles that own 24-hour deliberately.
@@ -576,11 +580,11 @@ Prefer `formatDateRange`, `formatTimeRange` or `<DateTime to>`, which apply both
 separators. `separators.range` and `separators.fact` are exported for the cases
 that assemble a string by hand, so the words are never retyped.
 
-| Wrong | Use |
-|-------|-----|
-| `7pm - 11pm` | `formatTimeRange` → `7pm to 11pm` |
-| `Fri 27 – Sun 29 Nov` | `formatDateRange` → `Fri 27 to Sun 29 Nov` |
-| `` `${a} to ${b}` `` | `separators.range`, so one place owns the word |
+| Wrong                 | Use                                            |
+| --------------------- | ---------------------------------------------- |
+| `7pm - 11pm`          | `formatTimeRange` → `7pm to 11pm`              |
+| `Fri 27 – Sun 29 Nov` | `formatDateRange` → `Fri 27 to Sun 29 Nov`     |
+| `` `${a} to ${b}` ``  | `separators.range`, so one place owns the word |
 
 **Exception: a compressed run keeps its dash.** `A1–4` is a list of seats, not a
 range read aloud, and `A1 to 4` would suggest four separate seats. Do not flag a
@@ -607,10 +611,10 @@ A formatter interpolated into JSX returns a bare string, so the markup loses the
 `time` element and its machine-readable value. Use the component and let it set
 the attribute.
 
-| Wrong | Use |
-|-------|-----|
+| Wrong                             | Use                                 |
+| --------------------------------- | ----------------------------------- |
 | `<span>{formatLong(d, o)}</span>` | `<DateTime at={d} timeZone={tz} />` |
-| `<p>{formatDuration(ms)}</p>` | `<Duration of={ms} />` |
+| `<p>{formatDuration(ms)}</p>`     | `<Duration of={ms} />`              |
 
 Not a finding inside an attribute (`title={formatLong(...)}`), inside an SVG
 axis label, or in a string being passed to another system. Those are the escape
@@ -669,7 +673,7 @@ Fix: import `viewerTimeZone` from `@oztix/roadie-core/datetime`.
 ```
 
 Flag when it sits next to a `format*` call or a date string. H5 catches the
-*wrong* separator; this catches the right one written in a second place. The
+_wrong_ separator; this catches the right one written in a second place. The
 range word and the fact middot are exported as `separators.range` and
 `separators.fact` so one module owns them. A local copy does not move when they
 do.
@@ -749,9 +753,10 @@ Without a router link, every internal `<Button href='/x'>` renders a plain `<a>`
 
 ```tsx
 import NextLink from 'next/link'
+
 import { RoadieProvider } from '@oztix/roadie-components'
 
-<RoadieProvider link={NextLink}>{children}</RoadieProvider>
+;<RoadieProvider link={NextLink}>{children}</RoadieProvider>
 ```
 
 Skip this for apps with no client router.
@@ -829,70 +834,73 @@ Roadie's text colours are `text-{normal,subtle,subtler,strong,inverted,on-strong
 
 ## Quick fix reference
 
-| Pattern | Replacement | Check |
-|---------|-------------|-------|
-| `bg-gray-100` | `bg-subtle` | A1 |
-| `bg-gray-900` | `emphasis-strong` or `bg-strong` | A1 |
-| `text-gray-500` | `text-subtle` | A1 |
-| `text-accent-11` | `intent-accent text-subtle` | A2 |
-| `bg-accent-4` | `intent-accent emphasis-subtle` | A2 |
-| a hand-rolled icon circle | `<IconTile shape='circle'>` | E1 |
-| `border-gray-200` | `border-subtle` | A1 |
-| `dark:bg-*` | remove, use semantic utility | A4 |
-| `flex flex-col gap-4` | `grid gap-4` | B1 |
-| `mt-4` between siblings | parent `gap-4` | B2 |
-| `size={16}` on icon | `className='size-4'` | C3 |
-| `size={20}` on icon | `className='size-5'` | C3 |
-| `size={24}` on icon | `className='size-6'` | C3 |
-| `colorPalette='primary'` | `intent='brand'` | E2 |
-| `colorPalette='information'` | `intent='info'` | E2 |
-| `colorPalette='accent'` | `intent='accent'` | E2 |
-| `Select.Portal + Positioner + Popup` | `Select.Content` | E4 |
-| `style={{ flexShrink: 0 }}` | `shrink-0` | F2 |
-| `style={{ flexGrow: 1 }}` | `grow` | F2 |
-| `<div onClick={...}>` | `<button onClick={...}>` | E5 |
-| `<LinkButton href='/x'>` | `<Button href='/x'>` | E6 |
-| `<Card as={Link} href='/x'>` | `<Card href='/x'>` | E7 |
-| `<IconButton size='icon-md'>` | `size='md'` | E8 |
-| `<Button onClick={() => router.push('/x')}>` | `<Button href='/x'>` | I4 |
-| `text-danger` | `intent-danger text-strong` | I5 |
-| `hover:bg-* + focus:ring-*` on button | `is-interactive` | F1 |
-| `emphasis-sunken border border-subtle` on a field | `emphasis-field` | F3 |
-| `toLocaleDateString()` in JSX | `<DateTime at={d} timeZone={tz} />` | H1 |
-| `toLocaleDateString()` outside JSX | `formatLong(d, { timeZone })` | H1 |
-| `{formatLong(d, o)}` in JSX | `<DateTime at={d} timeZone={tz} />` | H7 |
-| `formatLong(d)` with no options | pass `{ timeZone }` | H8 |
-| `viewerTimeZone()` for an event | `event.venue.timeZone` | H9 |
-| `resolvedOptions().timeZone` | `viewerTimeZone()` | H10 |
-| `<time>` with no `dateTime` | let the component set it | H15 |
-| `format(d, 'dd MMM yyyy')` | `formatMedium(d, { timeZone })` | H1 |
-| `d.getDate()` / `d.getFullYear()` for display | `formatGlyph(d, { timeZone })` | H2 |
-| formatter call with no `timeZone` | pass the venue's IANA zone | H2 |
-| `Fri, 27 November 2026` | `formatLong` → `Fri 27 Nov 2026` | H3 |
-| `19:30` in prose | `timeStyle: 'medium'` → `7:30pm` | H4 |
-| `19:30` on an axis or in a table | `timeStyle: 'numeric'` | H4 |
-| `7:30 PM` | `timeStyle: 'medium'` → `7:30pm` | H4 |
-| `27 Nov - 29 Nov` | `formatDateRange` → `27 to 29 Nov` | H5 |
-| `` `${a} to ${b}` `` | `separators.range` | H5 |
-| uppercased month over a day | `CalendarTile` | H6 |
+| Pattern                                           | Replacement                         | Check |
+| ------------------------------------------------- | ----------------------------------- | ----- |
+| `bg-gray-100`                                     | `bg-subtle`                         | A1    |
+| `bg-gray-900`                                     | `emphasis-strong` or `bg-strong`    | A1    |
+| `text-gray-500`                                   | `text-subtle`                       | A1    |
+| `text-accent-11`                                  | `intent-accent text-subtle`         | A2    |
+| `bg-accent-4`                                     | `intent-accent emphasis-subtle`     | A2    |
+| a hand-rolled icon circle                         | `<IconTile shape='circle'>`         | E1    |
+| `border-gray-200`                                 | `border-subtle`                     | A1    |
+| `dark:bg-*`                                       | remove, use semantic utility        | A4    |
+| `flex flex-col gap-4`                             | `grid gap-4`                        | B1    |
+| `mt-4` between siblings                           | parent `gap-4`                      | B2    |
+| `size={16}` on icon                               | `className='size-4'`                | C3    |
+| `size={20}` on icon                               | `className='size-5'`                | C3    |
+| `size={24}` on icon                               | `className='size-6'`                | C3    |
+| `colorPalette='primary'`                          | `intent='brand'`                    | E2    |
+| `colorPalette='information'`                      | `intent='info'`                     | E2    |
+| `colorPalette='accent'`                           | `intent='accent'`                   | E2    |
+| `Select.Portal + Positioner + Popup`              | `Select.Content`                    | E4    |
+| `style={{ flexShrink: 0 }}`                       | `shrink-0`                          | F2    |
+| `style={{ flexGrow: 1 }}`                         | `grow`                              | F2    |
+| `<div onClick={...}>`                             | `<button onClick={...}>`            | E5    |
+| `<LinkButton href='/x'>`                          | `<Button href='/x'>`                | E6    |
+| `<Card as={Link} href='/x'>`                      | `<Card href='/x'>`                  | E7    |
+| `<IconButton size='icon-md'>`                     | `size='md'`                         | E8    |
+| `<Button onClick={() => router.push('/x')}>`      | `<Button href='/x'>`                | I4    |
+| `text-danger`                                     | `intent-danger text-strong`         | I5    |
+| `hover:bg-* + focus:ring-*` on button             | `is-interactive`                    | F1    |
+| `emphasis-sunken border border-subtle` on a field | `emphasis-field`                    | F3    |
+| `toLocaleDateString()` in JSX                     | `<DateTime at={d} timeZone={tz} />` | H1    |
+| `toLocaleDateString()` outside JSX                | `formatLong(d, { timeZone })`       | H1    |
+| `{formatLong(d, o)}` in JSX                       | `<DateTime at={d} timeZone={tz} />` | H7    |
+| `formatLong(d)` with no options                   | pass `{ timeZone }`                 | H8    |
+| `viewerTimeZone()` for an event                   | `event.venue.timeZone`              | H9    |
+| `resolvedOptions().timeZone`                      | `viewerTimeZone()`                  | H10   |
+| `<time>` with no `dateTime`                       | let the component set it            | H15   |
+| `format(d, 'dd MMM yyyy')`                        | `formatMedium(d, { timeZone })`     | H1    |
+| `d.getDate()` / `d.getFullYear()` for display     | `formatGlyph(d, { timeZone })`      | H2    |
+| formatter call with no `timeZone`                 | pass the venue's IANA zone          | H2    |
+| `Fri, 27 November 2026`                           | `formatLong` → `Fri 27 Nov 2026`    | H3    |
+| `19:30` in prose                                  | `timeStyle: 'medium'` → `7:30pm`    | H4    |
+| `19:30` on an axis or in a table                  | `timeStyle: 'numeric'`              | H4    |
+| `7:30 PM`                                         | `timeStyle: 'medium'` → `7:30pm`    | H4    |
+| `27 Nov - 29 Nov`                                 | `formatDateRange` → `27 to 29 Nov`  | H5    |
+| `` `${a} to ${b}` ``                              | `separators.range`                  | H5    |
+| uppercased month over a day                       | `CalendarTile`                      | H6    |
 
 ## Parallelization guide
 
 Run independent checks in parallel by issuing multiple Grep calls in a single message:
 
 **Batch 1** (colors):
+
 - A1: `(bg|text|border|ring|outline|shadow|from|to|via)-(red|blue|green|gray|slate|zinc|stone|orange|amber|yellow|lime|emerald|teal|cyan|sky|indigo|violet|purple|fuchsia|pink|rose|white|black)-\d`
 - A2: `(bg|text|border|ring|outline|from|to|via)-(brand|info|accent|danger|success|warning|neutral)-\d+`
 - A3: `\[#[0-9a-fA-F]{3,8}\]`
 - A4: `dark:`
 
 **Batch 2** (layout + icons):
+
 - B1: `flex flex-col`
 - B2: `space-(x|y)-`
 - C3: `size=\{?\d`
 - C4: `weight=['"]` (then keep `bold`, `fill` and `duotone`)
 
 **Batch 3** (typography + components + interactions):
+
 - D1: `<h[1-6]` (then check for `text-display-` in results)
 - E2: `colorPalette=`
 - E4: `Select\.Portal|Select\.Positioner|Select\.Popup`
@@ -903,6 +911,7 @@ Run independent checks in parallel by issuing multiple Grep calls in a single me
 - F3: `emphasis-sunken[^"'\n]*border|border[^"'\n]*emphasis-sunken|is-interactive-field` (then check each field for `emphasis-field`)
 
 **Batch 4** (dates and times):
+
 - H1: `toLocale(Date|Time)?String|Intl\.DateTimeFormat|\.format\(['"]`
 - H2: `\.(getDate|getMonth|getFullYear|getDay|getHours|getMinutes)\(\)`
 - H3: `\bddd\b[^'"]*MMMM|\bEEE\b[^'"]*MMMM|\b(dddd|EEEE)\b[^'"]*\bMMM\b|weekday: ?['"]short['"]`
@@ -914,6 +923,7 @@ Run independent checks in parallel by issuing multiple Grep calls in a single me
 is ripgrep-compatible: no lookaround, because the Grep tool aborts on it rather
 than falling back. Where a check needs "X without Y", the pattern finds every X
 and the rule says what to rule out by eye.
+
 - H7: `\{\s*format(Full|Long|Medium|Short|Iso|DateTime|TimeOfDay|TimeRange|DateRange|Duration|Relative|Countdown)\(`
 - H8: `format(Full|Long|Medium|Short|Iso|Glyph|TimeOfDay|Machine|Relative)\(\s*[^,()]+\s*\)`
 - H9: `timeZone:\s*viewerTimeZone\(\)`
@@ -925,10 +935,12 @@ and the rule says what to rule out by eye.
 - H15: `<time[ >]` (then check each hit for `dateTime`)
 
 **Batch 5** (setup — check CSS files only):
+
 - G1: `@import.*roadie-core`
 - G2: `@import.*roadie-(components|charts|widgets)/css`
 
 **Batch 6** (linking). Prettier often puts each JSX prop on its own line, so run E6 to E8 and I2 to I4 with multiline on (Grep `multiline: true`, `rg -U`). A `[^>]*` match also stops at an arrow function's `=>`, so check components with inline handlers by eye:
+
 - I1: `<RoadieProvider\s[^>]*?\blink=|<RoadieLinkProvider\s[^>]*?\bLink=` (in root layouts; flag when absent)
 - I2: `<(Button|IconButton|Card|Breadcrumb\.Link|Carousel\.TitleLink|Tabs\.Tab)[^>]*target=`
 - I3: `<a\s[^>]*?\bhref=\{?['"`](https?:)?//`
@@ -945,3 +957,4 @@ and the rule says what to rule out by eye.
 - When removing `colorPalette` (E2), also check if the component still uses other v1 patterns — flag for broader migration if so
 - For headings (D1), choose `text-display-ui-*` for UI headings and `text-display-prose-*` for content headings
 - When migrating links (E6, E7, I1 to I4), mount the provider (I1) first. Without it every `<Button href='/x'>` renders a plain `<a>`
+- For deprecated APIs (E6 to E8 and any other deprecation in the manifest), hand off to `/roadie:migrate`, which runs codemods for the mechanical rewrites
