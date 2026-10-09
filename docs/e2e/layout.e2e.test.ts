@@ -1,10 +1,9 @@
 import { readFile } from 'fs/promises'
-import { createRequire } from 'module'
-import { dirname, join, resolve } from 'path'
+import { join } from 'path'
 import { type Browser, chromium, firefox, webkit } from 'playwright'
-import { compile } from 'tailwindcss'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { compiledTheme } from './compiledTheme'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 let browser: Browser
@@ -50,28 +49,6 @@ const CONTAINERS = [
   '7xl',
   '8xl'
 ]
-
-/**
- * What Tailwind compiles each theme variable to with Roadie's CSS. The docs
- * build only emits the variables it uses, so the page's own CSS can't say.
- */
-async function compiledTheme(variables: string[]) {
-  const loadStylesheet = async (id: string, base: string) => {
-    const path = id.startsWith('.')
-      ? resolve(base, id)
-      : createRequire(join(base, 'noop.js')).resolve(
-          id === 'tailwindcss' ? 'tailwindcss/index.css' : id
-        )
-    return { path, base: dirname(path), content: await readFile(path, 'utf8') }
-  }
-  const { build } = await compile(`@import '@oztix/roadie-core/css';`, {
-    base: join(import.meta.dirname, '..'),
-    loadStylesheet
-  })
-  const css = build(variables.map((name) => `w-(${name})`))
-  return (name: string) =>
-    css.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1] ?? 'not compiled'
-}
 
 const remAndPx = (rem: string) => `${rem} (${parseFloat(rem) * 16}px)`
 

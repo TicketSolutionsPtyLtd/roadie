@@ -3,6 +3,7 @@ import { join } from 'path'
 import { type Browser, type Page, chromium, firefox, webkit } from 'playwright'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { compiledTheme } from './compiledTheme'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 let browser: Browser
@@ -163,6 +164,21 @@ describe('Typography foundation', () => {
       expect(overflow).toBe(0)
     }, 60_000)
   }
+
+  it('compiles every type scale step to the range its label states', async () => {
+    const theme = await compiledTheme(
+      TYPE_SCALE.map(([step]) => `--text-${step}`)
+    )
+    const rem = (px: number) => `${px / 16}rem`.replace('.', '\\.')
+
+    for (const [step, min, max] of TYPE_SCALE) {
+      expect(theme(`--text-${step}`), step).toMatch(
+        min === max
+          ? new RegExp(`^${rem(min)}$`)
+          : new RegExp(`^clamp\\(${rem(min)},.*,\\s*${rem(max)}\\)$`)
+      )
+    }
+  })
 
   it('renders each display style at the weight and size its table states', async () => {
     const page = await open(1280)
