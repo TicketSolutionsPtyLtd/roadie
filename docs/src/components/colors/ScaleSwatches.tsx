@@ -2,17 +2,35 @@ import { getFamilyTokens } from '@/lib/tokens'
 
 const STEP = /^--color-([a-z-]+)-(\d+)$/
 
-type Scale = { label: string; steps: { name: string; step: string }[] }
+type Scale = {
+  label: string
+  followsAccent: boolean
+  steps: { name: string; step: string }[]
+}
 
 /** Every colour scale's steps, each a swatch in the current theme. */
-export async function ScaleSwatches() {
+export async function ScaleSwatches({
+  followingAccent = false
+}: {
+  /** Only the scales `--accent-hue` drives. */
+  followingAccent?: boolean
+}) {
   const scales = new Map<string, Scale>()
-  for (const { name, group } of await getFamilyTokens('color-scales')) {
-    const [, scale, step] = name.match(STEP) ?? []
+  for (const token of await getFamilyTokens('color-scales')) {
+    const [, scale, step] = token.name.match(STEP) ?? []
     if (!scale || !step || scale.endsWith('-light')) continue
-    const entry = scales.get(scale) ?? { label: group, steps: [] }
-    entry.steps.push({ name, step })
+    const entry = scales.get(scale) ?? {
+      label: token.group,
+      followsAccent: false,
+      steps: []
+    }
+    entry.steps.push({ name: token.name, step })
+    entry.followsAccent ||= JSON.stringify(token).includes('var(--accent-hue)')
     scales.set(scale, entry)
+  }
+  if (followingAccent) {
+    for (const [scale, { followsAccent }] of scales)
+      if (!followsAccent) scales.delete(scale)
   }
 
   return (

@@ -4,7 +4,6 @@ export const DOCUMENTED_ELSEWHERE: DocumentedElsewhere = {
   '@oztix/roadie-components': {
     RoadieProvider: '/overview/getting-started/#4-mount-roadieprovider',
     RoadieLinkProvider: '/foundations/linking/',
-    ThemeProvider: '/foundations/theming/',
     RequiredIndicator: '/components/field/#with-indicators',
     OptionalIndicator: '/components/field/#with-indicators'
   },
