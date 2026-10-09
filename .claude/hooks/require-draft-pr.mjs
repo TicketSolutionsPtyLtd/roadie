@@ -12,7 +12,7 @@ const isDraft = /\s(--draft|-d)(\s|=|$)/
 
 if (createsPr.test(command) && !isDraft.test(command)) {
   console.error(
-    'Open PRs as drafts: add --draft. Run gh pr ready once CI is green and the local reviews are clean (docs/contributing/PR_WORKFLOW.md, section 7).'
+    'Open PRs as drafts: add --draft. Run gh pr ready once local checks pass and the local review is clean (docs/contributing/PR_WORKFLOW.md, section 7).'
   )
   process.exit(2)
 }
