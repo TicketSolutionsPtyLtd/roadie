@@ -175,6 +175,12 @@ const config = [
     }
   },
 
+  {
+    files: ['**/*.test.{ts,tsx}'],
+    plugins: { roadie },
+    rules: { 'roadie/no-fixed-sleep': 'error' }
+  },
+
   // MDX settings and rules
   {
     files: ['**/*.mdx'],

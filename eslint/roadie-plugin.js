@@ -193,6 +193,63 @@ const isCaption = (node) => {
   )
 }
 
+// No delay, or 0, only yields to the next task.
+const isDelay = (node) =>
+  node !== undefined &&
+  !(node.type === 'Literal' && typeof node.value === 'number' && node.value < 1)
+
+const isNewPromise = (node) =>
+  node.type === 'NewExpression' && node.callee.name === 'Promise'
+
+const isFunction = (node) =>
+  /^(Arrow)?Function(Expression|Declaration)$/.test(node.type)
+
+/** The declaration of a function that resolves when `promise` does, such as `const wait = (ms) => withFrames(() => new Promise(…))`. */
+function sleepHelper(promise) {
+  let node = promise
+  for (;;) {
+    const { parent } = node
+    if (
+      parent.type === 'AwaitExpression' ||
+      (parent.type === 'CallExpression' && parent.arguments.includes(node)) ||
+      (isFunction(parent) && parent.body === node)
+    ) {
+      node = parent
+    } else if (
+      (parent.type === 'ReturnStatement' ||
+        (parent.type === 'ExpressionStatement' &&
+          node.type === 'AwaitExpression')) &&
+      parent.parent.type === 'BlockStatement' &&
+      parent.parent.body.length === 1 &&
+      isFunction(parent.parent.parent)
+    ) {
+      node = parent.parent.parent
+    } else {
+      return undefined
+    }
+    if (node.type === 'FunctionDeclaration') return node
+    if (
+      isFunction(node) &&
+      node.parent.type === 'VariableDeclarator' &&
+      node.parent.id.type === 'Identifier'
+    )
+      return node.parent
+  }
+}
+
+const callsTo = (declaration, sourceCode) =>
+  sourceCode
+    .getDeclaredVariables(declaration)
+    .filter((variable) => variable.name === declaration.id.name)
+    .flatMap((variable) => variable.references)
+    .map((reference) => reference.identifier)
+    .filter(
+      (identifier) =>
+        identifier.parent.type === 'CallExpression' &&
+        identifier.parent.callee === identifier
+    )
+    .map((identifier) => identifier.parent)
+
 const rules = {
   'phosphor-icon-suffix': {
     meta: {
@@ -342,15 +399,36 @@ const rules = {
     'ImportExpression[source.value=/^(zod|\\.\\x2Fschema)$/]',
     'Keep this module zod-free; import only types from ./schema.'
   ),
-  'no-fixed-sleep': selectorRule(
-    'Tests wait on a condition, not a fixed time.',
-    [
-      "NewExpression[callee.name='Promise'] CallExpression[callee.name='setTimeout'][arguments.1.type='Literal'][arguments.1.value>=1]",
-      "CallExpression[callee.property.name='waitForTimeout']",
-      "Property[key.name='type'][value.value='wait']"
-    ].join(', '),
-    'Wait on a condition with expect.poll or waitFor, not a fixed sleep. See docs/contributing/PR_WORKFLOW.md section 2.'
-  ),
+  'no-fixed-sleep': {
+    meta: {
+      type: 'problem',
+      docs: { description: 'Tests wait on a condition, not a fixed time.' },
+      schema: []
+    },
+    create(context) {
+      const { sourceCode } = context
+      const report = (node) =>
+        context.report({
+          node,
+          message:
+            'Wait on a condition with expect.poll or waitFor, not a fixed sleep. See docs/contributing/PR_WORKFLOW.md section 2.'
+        })
+      return {
+        "CallExpression[callee.name='setTimeout'], CallExpression[callee.property.name='setTimeout']"(
+          node
+        ) {
+          if (!isDelay(node.arguments[1])) return
+          const promise = sourceCode.getAncestors(node).findLast(isNewPromise)
+          if (!promise) return
+          report(node)
+          const helper = sleepHelper(promise)
+          if (helper) callsTo(helper, sourceCode).forEach(report)
+        },
+        "CallExpression[callee.property.name='waitForTimeout']": report,
+        "Property[key.name='type'][value.value='wait']": report
+      }
+    }
+  },
   'no-css-source-in-jsdom': selectorRule(
     'jsdom tests do not read CSS source.',
     [

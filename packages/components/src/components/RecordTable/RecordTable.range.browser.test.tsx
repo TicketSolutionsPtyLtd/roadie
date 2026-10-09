@@ -9,14 +9,22 @@ import {
 
 import { cleanup, render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { userEvent as browserUser, page } from 'vitest/browser'
 
 import { type RecordPosition, placeRange } from '@oztix/roadie-core/records'
 
 import { RecordTable } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { nudgeFrames, withFrames } from '../../css/testUtils'
+import { nudgeFrames } from '../../css/testUtils'
 import { Pane } from '../Pane'
 import {
   forgetPaneScroll,
@@ -34,6 +42,7 @@ beforeAll(async () => {
 })
 afterAll(() => removeStylesheet())
 afterEach(() => {
+  vi.useRealTimers()
   cleanup()
   window.scrollTo(0, 0)
 })
@@ -172,15 +181,15 @@ function Positioned({
   rowCount,
   row,
   spans,
-  delay = 0,
+  until,
   onRow
 }: {
   total: number
   rowCount?: number
   row: number
   spans: Span[]
-  /** Milliseconds each range takes to arrive. */
-  delay?: number
+  /** Holds every range until this settles, so the test sees the restore pending. */
+  until?: Promise<void>
   onRow?: (row: number) => void
 }) {
   const [position, setPosition] = useState<RecordPosition>({ row })
@@ -203,13 +212,8 @@ function Positioned({
         const rows = testShowsFrom(start, Math.min(end, total))
         const place = () =>
           setData((current) => placeRange(current, start, rows))
-        if (delay === 0) return place()
-        return new Promise<void>((resolve) =>
-          setTimeout(() => {
-            place()
-            resolve()
-          }, delay)
-        )
+        if (!until) return place()
+        return until.then(place)
       }}
     />
   )
@@ -266,8 +270,23 @@ function firstVisible(container: HTMLElement) {
 }
 
 const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
-const wait = (ms: number) =>
-  withFrames(() => new Promise((resolve) => setTimeout(resolve, ms)))
+
+// The table holds a restored row, and spaces its reports, on timers. Faked
+// but still advancing with the clock, they can be run out instead of slept
+// through.
+const fakeTimers = () =>
+  vi.useFakeTimers({
+    toFake: ['setTimeout', 'clearTimeout'],
+    shouldAdvanceTime: true
+  })
+
+/** Runs the timers pending once queued scroll events have run: the hold's release and any report still due. */
+async function runTimers() {
+  await nudgeFrames()
+  await vi.runOnlyPendingTimersAsync()
+  await nudgeFrames()
+}
+
 // Linux WebKit runs no frames while a test sits idle, so each poll wakes them.
 // CI's runners take seconds to scroll through a few ranges, so polls wait longer.
 const framed = <T,>(read: () => T, { timeout = 8000 } = {}) =>
@@ -397,6 +416,7 @@ describe('RecordTable range failure in a browser', { timeout: 30_000 }, () => {
 
 describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
   it('leaves the page where it is when it opens at the first row', async () => {
+    fakeTimers()
     const { container } = render(
       <InBox>
         <div style={{ height: 800 }}>Above the table</div>
@@ -404,17 +424,19 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
       </InBox>
     )
     await framed(() => rowAt(container, 0)).not.toBeNull()
-    await wait(700)
+    await runTimers()
     expect(box(container).scrollTop).toBe(0)
   })
 
   it('restores the row under the header against the window', async () => {
+    fakeTimers()
     const spans: Span[] = []
     const { container } = render(
       <Positioned total={5000} rowCount={5000} row={480} spans={spans} />
     )
     await framed(() => underHeader(container, 480)).toBeLessThanOrEqual(1)
-    await wait(300)
+    // The hold's release plans loads for where the row landed.
+    await runTimers()
     // Only the restored window and a screen either side; nothing from the top it left.
     const starts = spans.map(({ start }) => start)
     expect(Math.min(...starts)).toBeGreaterThanOrEqual(400)
@@ -422,6 +444,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
   })
 
   it('wins over the pane restoring its own remembered offset', async () => {
+    fakeTimers()
     const key = 'range-position-entry'
     const navigation = Object.getOwnPropertyDescriptor(window, 'navigation')
     Object.defineProperty(window, 'navigation', {
@@ -441,8 +464,9 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
         '[data-slot="pane-viewport"]'
       )!
       await framed(() => underHeader(container, 480)).toBeLessThanOrEqual(1)
-      // Past the pane's settle frames and the table's hold.
-      await wait(800)
+      // Past the table's hold, and the pane's 10 frames holding its offset.
+      await runTimers()
+      for (let frames = 0; frames < 10; frames += 2) await nudgeFrames()
       expect(underHeader(container, 480)).toBeLessThanOrEqual(1)
       expect(viewport.scrollTop).not.toBe(470 * ROW_PX)
     } finally {
@@ -453,6 +477,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
   })
 
   it('returns to the top for a new search', async () => {
+    fakeTimers()
     const user = userEvent.setup()
     const rows: number[] = []
     const { container } = render(
@@ -472,14 +497,15 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
       scroller.scrollTop = 300 * ROW_PX
       return rows.some((row) => row > 250)
     }).toBe(true)
-    await wait(400)
+    // The report the scroll still owes once it stops.
+    await runTimers()
     const before = rows.length
     await user.type(
       screen.getByRole('combobox', { name: 'Search and filter' }),
       'a'
     )
     await framed(() => scroller.scrollTop).toBe(0)
-    await wait(800)
+    await runTimers()
     expect(rows.slice(before)).toEqual(rows.slice(before).map(() => 0))
     expect(firstVisible(container)).toBe(0)
   })
@@ -549,7 +575,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     // Effects clean up and run again inside the hold, as StrictMode's remount does.
     rerender(table('hidden'))
     rerender(table('visible'))
-    await wait(700)
+    await framed(() => underHeader(container, 480)).toBeLessThanOrEqual(1)
     box(container).scrollTop = 200 * ROW_PX
     await framed(() => rows.at(-1)).toBeDefined()
     expect(Math.abs(rows.at(-1)! - 200)).toBeLessThanOrEqual(2)
@@ -567,7 +593,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
           <Pane>
             <Pane.Header>
               <Pane.Title>Shows</Pane.Title>
-              {tall && <div style={{ height: 40 }} />}
+              {tall && <div data-testid='grown' style={{ height: 40 }} />}
             </Pane.Header>
             <Pane.Body>{children}</Pane.Body>
           </Pane>
@@ -579,8 +605,11 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
         <Positioned total={5000} rowCount={5000} row={480} spans={[]} />
       </GrowingPane>
     )
-    await wait(900)
-    await framed(() => underHeader(container, 480)).toBeLessThanOrEqual(1)
+    await framed(() =>
+      container.querySelector('[data-testid="grown"]')
+        ? underHeader(container, 480)
+        : null
+    ).toBeLessThanOrEqual(1)
   })
 
   it('restores the row under the header in a pane, and again on remount', async () => {
@@ -618,20 +647,23 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
 
   it('gives up a pending restore on a wheel', async () => {
     const spans: Span[] = []
+    const held = gate()
     const { container } = render(
       <InBox>
-        <Positioned total={1000} row={480} spans={spans} delay={200} />
+        <Positioned total={1000} row={480} spans={spans} until={held.until} />
       </InBox>
     )
     const scroller = box(container)
     scroller.dispatchEvent(new WheelEvent('wheel', { bubbles: true }))
+    held.open()
     await framed(() => rowAt(container, 0)).not.toBeNull()
-    await wait(600)
+    await nudgeFrames()
     expect(scroller.scrollTop).toBe(0)
     expect(spans).toEqual([{ start: 0, end: 50 }])
   })
 
   it('reports the first visible row while scrolling, a few times a second', async () => {
+    fakeTimers()
     const rows: number[] = []
     const { container } = render(
       <InBox>
@@ -654,7 +686,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
       if (progress === 1) break
     }
     await framed(() => rows.at(-1) === firstVisible(container)).toBe(true)
-    await wait(400)
+    await runTimers()
     expect(Math.abs(rows.at(-1)! - 100)).toBeLessThanOrEqual(2)
     expect(rows.at(-1)).toBe(firstVisible(container))
     expect(rows.length).toBeLessThanOrEqual(5)
