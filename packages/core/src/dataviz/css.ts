@@ -138,7 +138,7 @@ const HIGHLIGHT_SCOPE =
   ":root, .dark, [class*='intent-'], [style*='--accent-hue']"
 
 const inkBlock = [
-  ":root, .dark, [class*='intent-'] {",
+  ":root, .dark, [class*='intent-'], [data-accent-scope] {",
   ...Object.entries(INK).map(([name, value]) => `  --chart-${name}: ${value};`),
   '}'
 ]

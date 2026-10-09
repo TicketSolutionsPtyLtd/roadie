@@ -9,8 +9,8 @@ const tokens = readFileSync(
   'utf8'
 )
 const modern = tokens.slice(tokens.indexOf('@supports (color: oklch(0 0 0))'))
-const modernDark = modern.slice(modern.indexOf('  .dark {'))
-const modernLight = modern.slice(0, modern.indexOf('  .dark {'))
+const modernDark = modern.slice(modern.indexOf('\n  .dark'))
+const modernLight = modern.slice(0, modern.indexOf('\n  .dark'))
 
 function lightnessAndChroma(css: string, name: string) {
   const match = css.match(

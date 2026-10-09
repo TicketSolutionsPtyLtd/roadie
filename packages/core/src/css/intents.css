@@ -15,7 +15,10 @@
    ═══════════════════════════════════════════════════════════ */
 
 /* --- Default intent (neutral) on :root --- */
-:root {
+/* Declared again on a nested ThemeProvider's wrapper, so the default intent
+   resolves its accent there. */
+:root,
+[data-accent-scope] {
   --intent-hue: var(--accent-hue, 247);
   --intent-bg-normal: var(--color-neutral-1);
   --intent-bg-strong: var(--color-neutral-13);
@@ -69,7 +72,8 @@
 }
 
 /* Dark mode: bump surfaces up for depth separation */
-.dark {
+.dark,
+.dark [data-accent-scope] {
   --intent-bg-normal: var(--color-neutral-2);
   --intent-bg-raised: var(--color-neutral-3);
   --intent-bg-sunken: var(--color-neutral-0);

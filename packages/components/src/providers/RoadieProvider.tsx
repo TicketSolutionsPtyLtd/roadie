@@ -94,7 +94,7 @@ function duplicateWarning(
     return '[Roadie] RoadieProvider is nested inside another RoadieProvider. Mount one at the app root; for a scoped override, use the individual provider.'
   }
   if (mounts.theme && outer.theme) {
-    return '[Roadie] RoadieProvider inside a ThemeProvider mounts a second theme, and both write to the document. Remove the ThemeProvider and pass its options to RoadieProvider as `theme`.'
+    return '[Roadie] RoadieProvider inside a ThemeProvider mounts a second theme, scoped to its own subtree. Remove the ThemeProvider and pass its options to RoadieProvider as `theme`.'
   }
   if (mounts.toast && outer.toast) {
     return "[Roadie] RoadieProvider inside a Toast.Provider hides it: toasts go to RoadieProvider's own. Remove the Toast.Provider and pass its options to RoadieProvider as `toast`."

@@ -531,7 +531,13 @@
     /* ═══ Accent parameters — set these to theme everything ═══ */
     --accent-hue: 247;
     --accent-chroma: 0.168;
+  }
 
+  /* A custom property resolves var(--accent-hue) where it is declared, so a
+     nested ThemeProvider's wrapper declares the scales again for its own
+     accent. */
+  :root,
+  [data-accent-scope] {
     /* Neutral scale — driven by --accent-hue */
     --color-neutral-light-0: oklch(1 0 0);
     --color-neutral-0: var(--color-neutral-light-0);
@@ -714,7 +720,8 @@
     --color-info-13: var(--color-info-light-13);
   }
 
-  .dark {
+  .dark,
+  .dark [data-accent-scope] {
     --color-neutral-0: oklch(0.13 0.011 var(--accent-hue));
     --color-neutral-1: oklch(0.178 0.011 var(--accent-hue));
     --color-neutral-2: oklch(0.214 0.01 var(--accent-hue));

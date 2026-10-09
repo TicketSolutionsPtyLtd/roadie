@@ -162,9 +162,9 @@ use the synchronous bootstrap helpers to set `--accent-hue` and
 
 For React frameworks, such as Next.js or Remix, inject the theme script and
 the accent style as separate head children. `getAccentStyleSync` returns only
-the inner CSS, so you can wrap it in a real `<style>` element. Give the
-provider the same accent, since it rewrites the accent style once it
-hydrates.
+the inner CSS, so you can wrap it in a real `<style>` element. Give the root
+provider the same accent. It keeps a style that already holds its accent, and
+replaces one that holds another accent once it hydrates.
 
 ```tsx
 // app/layout.tsx
@@ -274,8 +274,9 @@ the accent style tag to it for one head injection.
 
 Fetch the accent, render the provider with `accentColor`, and let loading
 states flow through `null`, with no effects or cleanup. Inside
-`RoadieProvider`, a nested provider like this one has the limits
-[per-route theming](#per-route-theming-with-nextjs-app-router) describes.
+`RoadieProvider`, a nested provider like this one themes only its own
+subtree, as [per-route theming](#per-route-theming-with-nextjs-app-router)
+describes.
 
 ```tsx
 function CollectionTheme({ slug, children }) {
@@ -291,12 +292,13 @@ function CollectionTheme({ slug, children }) {
 ### Per-route theming with Next.js App Router
 
 A route's `layout.tsx` can fetch its own data and wrap its children in a
-nested `ThemeProvider`. The accent is still document-wide, because the
-provider writes it to `:root`, so it themes the whole page while the route is
-open. It doesn't hand the root's accent back when the route closes, and when
-the root and the route's provider mount together, as on a cold load, the
-root's accent wins. Where you can, give the route's accent to the root's
-provider instead.
+nested `ThemeProvider`. A nested provider sets the accent on a wrapper around
+its children, so the route's accent themes only the route, and the root's
+accent stays on everything outside it. When the route closes, its wrapper goes
+with it. The wrapper uses `display: contents`, so it doesn't change the
+layout. It renders on the server, so the route's first paint already has its
+accent. Like the root, it starts its subtree at the neutral intent. Browsers
+without OKLCH keep the root's accent inside the route.
 
 ```tsx
 // app/collections/[slug]/layout.tsx
@@ -313,14 +315,16 @@ export default async function CollectionLayout({ params, children }) {
 
 ### Static export with server-prefetched accent
 
-For `output: 'export'` apps, inject the accent style tag during the server
-pass, so the first paint already uses the themed colours. The provider
-rewrites the accent once it hydrates, so it needs the same accent, or the page
-goes back to the provider's.
+For `output: 'export'` apps, wrap the page in a nested `ThemeProvider` with
+the accent you fetch at build time. The wrapper and its accent are in the
+exported HTML, so the first paint already uses the themed colours, and
+hydration has nothing to rewrite. For an accent that themes the whole
+document, use the [head injection](#react-head-injection) helpers and give the
+root provider the same accent instead.
 
 ```tsx
 // app/collections/[slug]/page.tsx
-import { getAccentStyleSync } from '@oztix/roadie-components'
+import { ThemeProvider } from '@oztix/roadie-components'
 
 export async function generateStaticParams() {
   return (await listCollections()).map((c) => ({ slug: c.slug }))
@@ -329,20 +333,11 @@ export async function generateStaticParams() {
 export default async function CollectionPage({ params }) {
   const { slug } = await params
   const collection = await getCollection(slug)
-  const css = collection.themeColour
-    ? getAccentStyleSync(collection.themeColour)
-    : null
 
   return (
-    <>
-      {css && (
-        <style
-          id="roadie-accent-theme"
-          dangerouslySetInnerHTML={{ __html: css }}
-        />
-      )}
+    <ThemeProvider accentColor={collection.themeColour ?? null}>
       <CollectionView collection={collection} />
-    </>
+    </ThemeProvider>
   )
 }
 ```
