@@ -69,9 +69,10 @@ goes up.
 
 - `claude plugin list` in a shell, or `/plugin` in a session, shows the
   version you have.
-- `/plugin marketplace update roadie` in a session, or
-  `claude plugin update roadie@roadie` in a shell, updates it. Start a new
-  session to load the new skills.
+- To update now, open **Marketplaces** in `/plugin`, select `roadie`, and
+  choose **Update marketplace**, or run `claude plugin update roadie@roadie`
+  in a shell. `/plugin marketplace update roadie` only refreshes the listing.
+  Run `/reload-plugins` or start a new session to load the new skills.
 - To update in the background, open **Marketplaces** in `/plugin`, select
   `roadie`, and turn on auto-update. It's off by default for marketplaces
   outside Anthropic's.
