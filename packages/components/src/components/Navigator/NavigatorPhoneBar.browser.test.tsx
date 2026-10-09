@@ -1,5 +1,13 @@
 import { cleanup, render } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { commands, page } from 'vitest/browser'
 
 import { Navigator } from '.'
@@ -148,6 +156,11 @@ describe('the pinned circle', () => {
 
   it('snaps to the edge circle for someone who reduces motion', async () => {
     await commands.reduceMotion(true)
+    // Lifts core's global reset, so the snap must come from the Navigator's own guard.
+    const restoreReset = useStylesheet(
+      '@media (prefers-reduced-motion: reduce) { * { transition-duration: revert-layer !important } }'
+    )
+    onTestFinished(restoreReset)
     const { bar, scroller } = renderBar()
     await settle()
     const { circle, mark } = pinnedParts(bar)
