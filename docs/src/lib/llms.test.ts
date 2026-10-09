@@ -236,7 +236,7 @@ describe('pageToMarkdown', () => {
   it('rewrites root-relative links in prop descriptions', () => {
     const md = pageToMarkdown({
       title: 'Card',
-      mdx: "<PropsDefinitions componentPath='x' />",
+      mdx: "<PropsDefinitions component='x' />",
       components: [
         {
           name: 'Card',
@@ -333,7 +333,7 @@ describe('pageToMarkdown', () => {
   })
 
   it('drops PropsDefinitions when the manifest has nothing for the page', () => {
-    expect(page("<PropsDefinitions componentPath='x' />\n\nEnd.")).toBe(
+    expect(page("<PropsDefinitions component='x' />\n\nEnd.")).toBe(
       '# Badge\n\nEnd.\n'
     )
   })

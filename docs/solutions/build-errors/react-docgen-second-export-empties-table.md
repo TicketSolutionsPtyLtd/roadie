@@ -4,7 +4,7 @@ date: 2026-07-28
 category: build-errors
 problem_type: docs_tooling_extraction
 components:
-  - docs/src/components/PropsDefinitions.tsx
+  - packages/core/scripts/manifest/components.ts
   - packages/components/src/components/Navigator
 keywords:
   - react-docgen-typescript
@@ -117,7 +117,7 @@ component's barrel see the same names. Only the file boundary moved.
 - `packages/components/src/components/Navigator/mobileSlots.ts` — the
   extracted module holding `deriveMobileSlots`, `NavigatorSlotMeta`,
   `MobileSlots`, `NavigatorTabSlots`.
-- `docs/src/components/PropsDefinitions.tsx` — the extraction pipeline this
-  affects.
+- `packages/core/scripts/manifest/components.ts` — the extraction pipeline
+  this affects, which feeds the manifest and the docs props tables.
 - [`react-docgen-cva-literal-props.md`](react-docgen-cva-literal-props.md) —
   the related but distinct per-prop extraction failure.

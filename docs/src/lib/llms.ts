@@ -18,27 +18,9 @@ import remarkParse from 'remark-parse'
 import remarkStringify from 'remark-stringify'
 import { unified } from 'unified'
 
-/** The subset of a `roadie.manifest.json` component that a page's API reference needs. */
-export type ManifestProp = {
-  name: string
-  type: string
-  required?: true
-  default?: string
-  description?: string
-  deprecated?: string
-}
+import type { ManifestComponent, ManifestPart, ManifestProp } from './manifest'
 
-export type ManifestPart = {
-  name: string
-  description?: string
-  props: ManifestProp[]
-}
-
-export type ManifestComponent = ManifestPart & {
-  import: string
-  docs?: string
-  parts?: ManifestPart[]
-}
+export type { ManifestComponent }
 
 export type MarkdownPage = {
   title: string

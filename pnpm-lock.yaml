@@ -369,9 +369,6 @@ importers:
       playwright:
         specifier: 1.63.0
         version: 1.63.0
-      react-docgen-typescript:
-        specifier: 2.4.0
-        version: 2.4.0(typescript@6.0.3)
       rehype-slug:
         specifier: 6.0.0
         version: 6.0.0

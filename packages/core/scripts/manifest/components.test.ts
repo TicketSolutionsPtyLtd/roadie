@@ -18,7 +18,12 @@ describe('splitDeprecation', () => {
       { deprecated: 'Use `render`.' },
       { description: 'Kept.', deprecated: 'Use `render`.' }
     ],
-    ['', { deprecated: '' }, { description: '', deprecated: '' }]
+    ['', { deprecated: '' }, { description: '', deprecated: '' }],
+    [
+      'The legacy `as` prop is\n`@deprecated`. Use `render`.',
+      undefined,
+      { description: 'The legacy `as` prop is `@deprecated`. Use `render`.' }
+    ]
   ])('splits %j', (description, tags, expected) => {
     expect(splitDeprecation(description, tags)).toEqual(expected)
   })

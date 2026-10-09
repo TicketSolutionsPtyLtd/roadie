@@ -16,7 +16,7 @@ The skeleton contains:
 - Optional `### Variants` / `### Emphasis` / `### Sizes` / `### Intents` / `### States` / `### Composition` sections
 - `## Guidelines` and `## Accessibility` for interactive components. The guidelines sit in one `<Guidelines>`, as in the Guidelines section below
 - `## Hooks`, only when the component exports a hook: one `### useX` subsection per hook, each a signature and a return table
-- A trailing `<PropsDefinitions componentPath='…' />` pointing at the folder (per-file compound) or the `index.tsx` (pre-Phase-3 monolithic compound)
+- A trailing `<PropsDefinitions component='…' />` naming the component
 
 ## Rules
 
@@ -87,10 +87,10 @@ import { Guideline, Guidelines } from '@/components/Guideline'
 
 ## `<PropsDefinitions>` usage
 
-- **Single component** → point at the `index.tsx` file: `componentPath='packages/components/src/components/Badge/index.tsx'`.
-- **Per-file compound** (Fieldset, and every compound migrated in Phase 3) → point at the **folder**: `componentPath='packages/components/src/components/Fieldset'`. `PropsDefinitions` enumerates every non-test `.tsx` file in the folder, rewrites the parsed leaf names from `FieldsetLegend` → `Fieldset.Legend` using the folder basename, and renders the Base UI-style API reference (section heading = dot-notation displayName, one stacked card per sub-component).
-- **Pre-Phase-3 compound** (monolithic `index.tsx`: Accordion, Card, Select, etc., while they are still being migrated) → point at the `index.tsx` file. The parser picks up the property-assignment pattern directly.
-- **`className` rows**: `PropsDefinitions` drops a plain, undocumented `className: string` forwarded from `@types/react`, since every part accepts it along with its element's other HTML attributes; that's true everywhere and doesn't need its own row. It keeps a `className` a part documents with a real description, or types as a Base UI state function.
+- **Name the component**: `component='Badge'`, or several in order: `component={['Checkbox', 'CheckboxGroup']}`. A compound lists its parts after its root, one section each (`Fieldset`, `Fieldset.Legend`, …).
+- **Props come from the package's `dist/roadie.manifest.json`**, which the package build generates (`packages/core/scripts/manifest/`). Rebuild the package to see a prop change; `pnpm dev` regenerates it on each rebuild. The docs build fails on a name no manifest lists.
+- **The manifest links each component to the page that names it**, so name every component a page documents.
+- **`className` rows**: the manifest drops a plain, undocumented `className: string` forwarded from `@types/react`, since every part accepts it along with its element's other HTML attributes; that's true everywhere and doesn't need its own row. It keeps a `className` a part documents with a real description, or types as a Base UI state function.
 
 ## Section applicability by category
 

@@ -169,13 +169,9 @@ export function buildManifest({
   const onSubpaths = new Set<string>()
   let rootComponents = new Map<string, string>()
 
-  const addComponents = (
-    importName: string,
-    componentDir: string,
-    docs: ManifestPart[]
-  ) => {
+  const addComponents = (importName: string, docs: ManifestPart[]) => {
     for (const { root, parts } of groupCompounds(docs)) {
-      const match = pageForComponent(pages, root.name, componentDir)
+      const match = pageForComponent(pages, root.name)
       const links = documentedElsewhere[importName]
       const route = match
         ? undefined
@@ -236,10 +232,6 @@ export function buildManifest({
       deprecations.push({ import: importName, export: name, reason })
     }
 
-    const componentDir = path
-      .relative(workspaceRoot, path.dirname(entry.source))
-      .split(path.sep)
-      .join('/')
     if (entry.source.endsWith('.tsx')) {
       const docs = readComponents(
         parser,
@@ -252,7 +244,7 @@ export function buildManifest({
           `${importName} is a .tsx entry but react-docgen-typescript found no exported components in it`
         )
       }
-      addComponents(importName, componentDir, docs)
+      addComponents(importName, docs)
       continue
     }
 
@@ -262,7 +254,6 @@ export function buildManifest({
     if (reExported.length > 0) {
       addComponents(
         importName,
-        componentDir,
         readFileComponents(
           parser,
           program,
@@ -279,7 +270,6 @@ export function buildManifest({
   if (rootOnly.length > 0) {
     addComponents(
       pkg.name,
-      '',
       readFileComponents(
         parser,
         program,

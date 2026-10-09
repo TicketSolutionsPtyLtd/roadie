@@ -1,8 +1,10 @@
 import { ArrowSquareOutIcon } from '@phosphor-icons/react/ssr'
-import { existsSync, readFileSync, readdirSync, statSync } from 'fs'
-import path from 'path'
-import type { PropItem } from 'react-docgen-typescript'
-import { withCustomConfig } from 'react-docgen-typescript'
+
+import {
+  type ManifestPart,
+  type ManifestProp,
+  manifestComponent
+} from '@/lib/manifest'
 
 import { Badge, Code } from '@oztix/roadie-components'
 
@@ -206,127 +208,23 @@ function baseUiHrefFor(displayName: string): string | null {
   return `${base}#${anchor}`
 }
 
-interface ComponentProp {
-  required: boolean
-  type: {
-    name: string
-    value?: Array<{
-      value: string
-      description?: string
-    }>
-    raw?: string
+type PropGroup = { from?: string; props: ManifestProp[] }
+
+function groupBySource(props: ManifestProp[]): PropGroup[] {
+  const groups = new Map<string | undefined, ManifestProp[]>([[undefined, []]])
+  for (const prop of props) {
+    groups.set(prop.from, [...(groups.get(prop.from) ?? []), prop])
   }
-  defaultValue?: { value: string }
-  description?: string
-  parent?: { fileName: string; name: string }
-  declarations?: Array<{ fileName: string }>
-  /** Parsed JSDoc tags (e.g. `@deprecated`, `@default`) keyed by tag name. */
-  tags?: Record<string, string>
-}
-
-interface GroupedProps {
-  ownProps: Record<string, ComponentProp>
-  inheritedProps: Record<
-    string,
-    { props: Record<string, ComponentProp>; from: string }
-  >
-}
-
-interface PropsDefinitionsProps {
-  /** A single source path, or several to list under one "API reference". */
-  componentPath: string | string[]
-}
-
-function formatTypeValues(prop: ComponentProp): string {
-  if (prop.type.value) {
-    return prop.type.value
-      .map((v) => `"${v.value.replace(/['"]/g, '')}"`)
-      .join(' | ')
-  }
-
-  if (prop.type.name.includes('|')) {
-    return prop.type.name
-      .split('|')
-      .map((value) => value.trim())
-      .filter((value) => value !== 'undefined')
-      .join(' | ')
-  }
-
-  return prop.type.name
-}
-
-function groupPropsBySource(
-  props: Record<string, ComponentProp>,
-  componentName: string
-): GroupedProps {
-  const result: GroupedProps = {
-    ownProps: {},
-    inheritedProps: {}
-  }
-
-  Object.entries(props).forEach(([name, prop]) => {
-    // A plain forwarded className carries no signal.
-    const isPlainForwardedClassName =
-      name === 'className' &&
-      prop.parent?.fileName.includes('@types/react') &&
-      prop.type.name === 'string' &&
-      !prop.description
-    if (isPlainForwardedClassName) return
-    if (prop.parent?.name && !prop.parent.name.startsWith(componentName)) {
-      const parentName = prop.parent.name
-      if (!result.inheritedProps[parentName]) {
-        result.inheritedProps[parentName] = {
-          props: {},
-          from: parentName
-        }
-      }
-      result.inheritedProps[parentName]!.props[name] = prop
-      return
-    }
-
-    result.ownProps[name] = prop
-  })
-
-  return result
-}
-
-// react-docgen-typescript (2.x) doesn't split JSDoc block tags into `tags`, so
-// `@deprecated` arrives inline at the top of the description. Pull the reason
-// out (it runs to the first blank line) and return the description with the
-// deprecation notice removed so the body stays clean. Falls back to the `tags`
-// map in case a future parser version populates it.
-function parseDeprecation(prop: ComponentProp): {
-  isDeprecated: boolean
-  reason: string
-  description: string
-} {
-  const description = prop.description ?? ''
-  const tagReason =
-    prop.tags && 'deprecated' in prop.tags ? prop.tags.deprecated : undefined
-  const idx = description.indexOf('@deprecated')
-
-  if (idx === -1) {
-    return {
-      isDeprecated: tagReason !== undefined,
-      reason: tagReason ?? '',
-      description
-    }
-  }
-
-  const after = description.slice(idx + '@deprecated'.length)
-  const sep = after.indexOf('\n\n')
-  const reason = (sep === -1 ? after : after.slice(0, sep)).trim()
-  const rest = (
-    description.slice(0, idx) + (sep === -1 ? '' : after.slice(sep))
-  ).trim()
-  return { isDeprecated: true, reason, description: rest }
+  return Array.from(groups, ([from, props]) => ({ from, props })).filter(
+    (group) => group.props.length > 0
+  )
 }
 
 export function PropsList({
   props,
   title
 }: {
-  props: Record<string, ComponentProp>
+  props: ManifestProp[]
   title?: string
 }) {
   return (
@@ -337,69 +235,63 @@ export function PropsList({
         </div>
       )}
       <dl className='grid divide-y divide-subtler'>
-        {Object.entries(props).map(([name, prop]) => {
-          const { isDeprecated, reason, description } = parseDeprecation(prop)
-          return (
-            <div key={name} className='grid gap-1 px-4 py-3'>
-              <dt className='flex flex-wrap items-center gap-x-2 gap-y-1'>
-                <div className='flex flex-col items-baseline gap-1 md:flex-row md:gap-2'>
-                  <span className='shrink-0 font-mono text-sm font-semibold'>
-                    {name}
-                  </span>
-                  <span className='font-mono text-sm text-info-11'>
-                    {formatTypeValues(prop)}
-                  </span>
-                </div>
-                {prop.required && (
-                  <Badge intent='danger' size='sm'>
-                    Required
-                  </Badge>
+        {props.map((prop) => (
+          <div key={prop.name} className='grid gap-1 px-4 py-3'>
+            <dt className='flex flex-wrap items-center gap-x-2 gap-y-1'>
+              <div className='flex flex-col items-baseline gap-1 md:flex-row md:gap-2'>
+                <span className='shrink-0 font-mono text-sm font-semibold'>
+                  {prop.name}
+                </span>
+                <span className='font-mono text-sm text-info-11'>
+                  {prop.type}
+                </span>
+              </div>
+              {prop.required && (
+                <Badge intent='danger' size='sm'>
+                  Required
+                </Badge>
+              )}
+              {prop.deprecated !== undefined && (
+                <Badge intent='warning' emphasis='subtle' size='sm'>
+                  Deprecated
+                </Badge>
+              )}
+            </dt>
+            <dd>
+              <div className='grid gap-2'>
+                {prop.description && (
+                  <p className='text-subtle'>{prop.description}</p>
                 )}
-                {isDeprecated && (
-                  <Badge intent='warning' emphasis='subtle' size='sm'>
-                    Deprecated
-                  </Badge>
+                {prop.deprecated && (
+                  <p className='text-sm text-subtle intent-warning'>
+                    <span className='font-semibold'>Deprecated:</span>{' '}
+                    {prop.deprecated}
+                  </p>
                 )}
-              </dt>
-              <dd>
-                <div className='grid gap-2'>
-                  {description && <p className='text-subtle'>{description}</p>}
-                  {isDeprecated && reason && (
-                    <p className='text-sm text-subtle intent-warning'>
-                      <span className='font-semibold'>Deprecated:</span>{' '}
-                      {reason}
-                    </p>
-                  )}
-                  {prop.defaultValue && (
-                    <p className='text-sm text-subtle'>
-                      Defaults to <Code>{prop.defaultValue.value}</Code>.
-                    </p>
-                  )}
-                </div>
-              </dd>
-            </div>
-          )
-        })}
+                {prop.default !== undefined && (
+                  <p className='text-sm text-subtle'>
+                    Defaults to <Code>{prop.default}</Code>.
+                  </p>
+                )}
+              </div>
+            </dd>
+          </div>
+        ))}
       </dl>
     </div>
   )
 }
 
-function ComponentPropsBody({ groupedProps }: { groupedProps: GroupedProps }) {
-  const hasOwnProps = Object.keys(groupedProps.ownProps).length > 0
-  const allProps = [
-    ...Object.entries(groupedProps.ownProps),
-    ...Object.values(groupedProps.inheritedProps).flatMap(({ props }) =>
-      Object.entries(props)
-    )
-  ]
-  const onlyForwardedClassName = allProps.every(
-    ([name, prop]) =>
-      name === 'className' &&
-      prop.declarations?.every((d) => d.fileName.includes('node_modules'))
+// Base UI types every part's className as a state function, so a part whose
+// only prop is that className adds nothing to the element it wraps.
+function addsNoProps(props: ManifestProp[]) {
+  return props.every(
+    (prop) => prop.name === 'className' && prop.type !== 'string'
   )
+}
 
-  if (onlyForwardedClassName) {
+function PartProps({ props }: { props: ManifestProp[] }) {
+  if (addsNoProps(props)) {
     return (
       <p className='text-sm text-subtle'>
         No additional props. It forwards all standard HTML attributes to the
@@ -410,35 +302,24 @@ function ComponentPropsBody({ groupedProps }: { groupedProps: GroupedProps }) {
 
   return (
     <div className='overflow-hidden rounded-xl border border-subtler'>
-      {hasOwnProps && <PropsList props={groupedProps.ownProps} />}
-      {Object.entries(groupedProps.inheritedProps).map(
-        ([source, { props }]) => (
-          <PropsList
-            key={source}
-            props={props}
-            title={`Inherited from ${source}`}
-          />
-        )
-      )}
+      {groupBySource(props).map(({ from, props }) => (
+        <PropsList
+          key={from ?? ''}
+          props={props}
+          title={from && `Inherited from ${from}`}
+        />
+      ))}
     </div>
   )
 }
 
-function ComponentSection({
-  componentInfo,
-  groupedProps
-}: {
-  componentInfo: { displayName: string; description?: string }
-  groupedProps: GroupedProps
-}) {
-  const baseUiHref = baseUiHrefFor(componentInfo.displayName)
+function PartSection({ part }: { part: ManifestPart }) {
+  const baseUiHref = baseUiHrefFor(part.name)
   return (
     <section className='grid gap-3'>
       <header className='grid gap-1'>
         <div className='flex flex-wrap items-center gap-3'>
-          <h3 className='font-mono text-lg font-bold'>
-            {componentInfo.displayName}
-          </h3>
+          <h3 className='font-mono text-lg font-bold'>{part.name}</h3>
           {baseUiHref && (
             <a
               href={baseUiHref}
@@ -451,231 +332,31 @@ function ComponentSection({
             </a>
           )}
         </div>
-        {!!componentInfo.description && (
-          <p className='text-subtle'>{componentInfo.description}</p>
-        )}
+        {part.description && <p className='text-subtle'>{part.description}</p>}
       </header>
-      <ComponentPropsBody groupedProps={groupedProps} />
+      <PartProps props={part.props} />
     </section>
   )
 }
 
-type ParseTargets = {
-  files: string[]
-  /** Non-null when componentPath is a per-file compound folder. */
-  compoundName: string | null
-  /** The parts `index.tsx` assigns (`X.Part = …`); null when it assigns none. */
-  publicParts: Set<string> | null
+type PropsDefinitionsProps = {
+  /** Component names from a `roadie.manifest.json`, listed in this order. Each lists its parts after it. */
+  component: string | string[]
 }
 
-function readPublicParts(folder: string, compoundName: string) {
-  const indexPath = path.join(folder, 'index.tsx')
-  if (!existsSync(indexPath)) return null
-  const assignment = new RegExp(`^${compoundName}\\.([A-Z]\\w*)\\s*=`, 'gm')
-  const parts = Array.from(
-    readFileSync(indexPath, 'utf8').matchAll(assignment),
-    (match) => match[1]!
-  )
-  return parts.length > 0 ? new Set(parts) : null
-}
-
-function resolveParseTargets(componentPath: string): ParseTargets {
-  // Pre-Pattern-A compounds still point `componentPath` at a single file
-  // (e.g. `packages/components/src/components/Card/index.tsx`). Post-migration
-  // compounds point at the folder (e.g. `packages/components/src/components/Fieldset`)
-  // because each sub-component is its own file and `index.tsx` is a server-safe
-  // property-assignment layer that react-docgen-typescript can't drill into.
-  //
-  // Accept either form. When the path is a directory, enumerate every non-test
-  // `.tsx` leaf inside. `parseComponentProps` also rewrites the parsed leaf
-  // displayNames using the folder basename as the compound prefix.
-  const workspaceRoot = path.resolve(process.cwd(), '..')
-  const absolutePath = path.join(workspaceRoot, componentPath)
-  const stats = statSync(absolutePath)
-
-  if (stats.isFile()) {
-    return { files: [absolutePath], compoundName: null, publicParts: null }
-  }
-
-  const files = readdirSync(absolutePath)
-    .filter((name) => name.endsWith('.tsx') && !name.endsWith('.test.tsx'))
-    .sort()
-    .map((name) => path.join(absolutePath, name))
-
-  const compoundName = path.basename(absolutePath)
-  return {
-    files,
-    compoundName,
-    publicParts: readPublicParts(absolutePath, compoundName)
-  }
-}
-
-function parseComponentProps(componentPath: string) {
-  const {
-    files: targets,
-    compoundName,
-    publicParts
-  } = resolveParseTargets(componentPath)
-
-  try {
-    const workspaceRoot = path.resolve(process.cwd(), '..')
-    const parser = withCustomConfig(
-      path.resolve(workspaceRoot, 'tsconfig.react.json'),
-      {
-        savePropValueAsString: true,
-        shouldExtractLiteralValuesFromEnum: true,
-        shouldRemoveUndefinedFromOptional: true,
-        propFilter: (prop: PropItem): boolean => {
-          // Always exclude internal React/HTML props that add noise
-          const skipProps = new Set([
-            'ref',
-            'key',
-            'style',
-            'dangerouslySetInnerHTML'
-          ])
-          if (skipProps.has(prop.name)) return false
-          if (prop.name === 'className') return true
-
-          if (!prop.declarations?.length) {
-            return true
-          }
-
-          // Include props declared in our component or widget files
-          const isFromOurComponents = prop.declarations.some(
-            (d) =>
-              (d.fileName.includes('/components/') ||
-                d.fileName.includes('/widgets/') ||
-                d.fileName.includes('/charts/')) &&
-              !d.fileName.includes('node_modules')
-          )
-
-          // Include props whose parent interface is in our code
-          const isFromParentComponent =
-            (prop.parent?.fileName.includes('/components/') ||
-              prop.parent?.fileName.includes('/widgets/') ||
-              prop.parent?.fileName.includes('/charts/')) &&
-            !prop.parent.fileName.includes('node_modules')
-
-          // Include props from Base UI component interfaces
-          // (these are the useful props consumers actually configure)
-          const isFromBaseUI = prop.parent?.fileName.includes('@base-ui/react')
-
-          return Boolean(
-            isFromOurComponents || isFromParentComponent || isFromBaseUI
-          )
-        },
-        skipChildrenPropWithoutDoc: true
-      }
-    )
-
-    const result = parser.parse(targets)
-    if (!result.length) return null
-
-    // Keep every PascalCase entry. CVA factory functions (`cardVariants`,
-    // `carouselContentVariants`, etc.) are camelCase and get skipped here.
-    //
-    // We intentionally don't require props to be present: many compound
-    // parts forward a plain `ComponentProps<'div'>` and would otherwise
-    // silently vanish from the docs once the propFilter strips every
-    // HTML-only prop. A section with a "forwards all HTML attributes"
-    // note is more useful than no section at all.
-    const filtered = result
-      .filter((info) => /^[A-Z]/.test(info.displayName))
-      // Per-file compound layout: rewrite leaf displayNames from
-      // `FieldsetLegend` → `Fieldset.Legend`, drop the `FieldsetRoot`
-      // duplicate of the root (the root is already surfaced by
-      // `index.tsx`'s `export { Fieldset }`). react-docgen-typescript
-      // returns the function name from per-file leaves and never honours
-      // the runtime `Component.displayName = 'Compound.Sub'` assignment,
-      // so `PropsDefinitions` fixes that up here from the folder basename.
-      .flatMap((info) => {
-        if (!compoundName) return [info]
-        if (info.displayName === compoundName) return [info]
-        if (!info.displayName.startsWith(compoundName)) return [info]
-        const suffix = info.displayName.slice(compoundName.length)
-        if (!suffix || !/^[A-Z]/.test(suffix)) return [info]
-        if (suffix === 'Root') return []
-        return [{ ...info, displayName: `${compoundName}.${suffix}` }]
-      })
-
-    // Deduplicate compound components: the parser detects each subcomponent
-    // twice: once via `export function CarouselPrevious()` (yields name
-    // "CarouselPrevious") and once via `Carousel.Previous = CarouselPrevious`
-    // (yields name "Carousel.Previous" via the function's displayName).
-    // Normalise the names (strip dots, lowercase) to merge them, preferring
-    // the dot-notation entry since it carries the intended displayName.
-    const seen = new Map<string, (typeof filtered)[number]>()
-    filtered.forEach((info) => {
-      const key = info.displayName.replace(/\./g, '').toLowerCase()
-      const existing = seen.get(key)
-      if (!existing) {
-        seen.set(key, info)
-        return
-      }
-      const existingHasDot = existing.displayName.includes('.')
-      const currentHasDot = info.displayName.includes('.')
-      if (currentHasDot && !existingHasDot) {
-        seen.set(key, info)
-      }
-    })
-    // An `X.Root` displayName dodges the suffix guard and duplicates bare `X`.
-    const hasBareRoot = compoundName && seen.has(compoundName.toLowerCase())
-    const partPrefix = `${compoundName}.`
-    const isPublic = (displayName: string) =>
-      !publicParts ||
-      displayName === compoundName ||
-      (displayName.startsWith(partPrefix) &&
-        publicParts.has(displayName.slice(partPrefix.length)))
-    const components = Array.from(seen.values()).filter(
-      (info) =>
-        !(hasBareRoot && info.displayName === `${compoundName}.Root`) &&
-        isPublic(info.displayName)
-    )
-
-    if (!components.length) return null
-    return components
-  } catch (error) {
-    console.error('Error parsing component:', error)
-    return null
-  }
-}
-
-export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
-  const paths = Array.isArray(componentPath) ? componentPath : [componentPath]
-
-  // Base UI-style API reference: every entry renders as its own stacked
-  // section with a dot-notation heading (`Fieldset`, `Fieldset.Legend`, …),
-  // an optional short description, and a prop table. No inline-vs-accordion
-  // split. The root entry (whose displayName has no dot) sorts first;
-  // sub-components keep parser order after that. Multiple paths keep their
-  // given order so callers control which component leads.
-  const sortedComponents = paths.flatMap((p) =>
-    [...(parseComponentProps(p) ?? [])].sort((a, b) => {
-      const aHasDot = a.displayName.includes('.')
-      const bHasDot = b.displayName.includes('.')
-      if (aHasDot === bHasDot) return 0
-      return aHasDot ? 1 : -1
-    })
-  )
-
-  if (!sortedComponents.length) return null
+export function PropsDefinitions({ component }: PropsDefinitionsProps) {
+  const names = Array.isArray(component) ? component : [component]
+  const parts = names.flatMap((name) => {
+    const found = manifestComponent(name)
+    return [found, ...(found.parts ?? [])]
+  })
 
   return (
     <div data-not-prose className='mt-8 grid gap-8 pt-8'>
       <h2 className='text-xl font-bold'>API reference</h2>
-      {sortedComponents.map((componentInfo) => {
-        const grouped = groupPropsBySource(
-          componentInfo.props,
-          componentInfo.displayName
-        )
-        return (
-          <ComponentSection
-            key={componentInfo.displayName}
-            componentInfo={componentInfo}
-            groupedProps={grouped}
-          />
-        )
-      })}
+      {parts.map((part) => (
+        <PartSection key={part.name} part={part} />
+      ))}
     </div>
   )
 }
