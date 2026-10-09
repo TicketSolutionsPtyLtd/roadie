@@ -255,3 +255,121 @@ export function llmsIndex({ title, summary, details, sections }: LlmsIndex) {
     .join('\n\n')
     .concat('\n')
 }
+
+type TokenValue = { light?: string; dark?: string }
+type TokenRow = {
+  name: string
+  group: string
+  value?: TokenValue
+  byIntent?: Partial<Record<string, TokenValue>>
+  classes?: string[]
+  description?: string
+}
+
+export type TokenFamilyMarkdown = {
+  title: string
+  description?: string
+  intro: string
+  /** Pages that say when to use the family. */
+  guidance: LlmsLink[]
+  tokens: TokenRow[]
+}
+
+/** Inline code fenced past any backtick run in the value; table pipes escaped. */
+function cell(value: string | undefined) {
+  if (!value) return ''
+  const fence = '`'.repeat(
+    Math.max(0, ...(value.match(/`+/g) ?? []).map((run) => run.length)) + 1
+  )
+  const padded =
+    value.startsWith('`') || value.endsWith('`') ? ` ${value} ` : value
+  return `${fence}${padded.replace(/\|/g, '\\|')}${fence}`
+}
+const prose = (value: string | undefined) =>
+  value ? oneLine(value).replace(/\|/g, '\\|').replace(/</g, '&lt;') : ''
+const darkIfDifferent = ({ light, dark }: TokenValue = {}) =>
+  light !== undefined && dark !== light ? dark : undefined
+const lightAndDark = ({ light, dark }: TokenValue) =>
+  light && dark && dark !== light
+    ? `${cell(light)} / ${cell(dark)}`
+    : cell(light ?? dark)
+
+function table(header: string[], rows: string[][]) {
+  return [
+    `| ${header.join(' | ')} |`,
+    `| ${header.map(() => '---').join(' | ')} |`,
+    ...rows.map((row) => `| ${row.join(' | ')} |`)
+  ].join('\n')
+}
+
+type Column = [name: string, value: (token: TokenRow) => string]
+
+function tokenGroup(group: string, tokens: TokenRow[]) {
+  const used = (column: Column) =>
+    tokens.some((token) => column[1](token) !== '')
+  const dark: Column = [
+    'Dark, if different',
+    (token) => cell(darkIfDifferent(token.value))
+  ]
+  const columns: Column[] = [
+    ['Token', (token) => cell(token.name)],
+    ...(
+      [
+        [
+          used(dark) ? 'Light' : 'Value',
+          (token) => cell(token.value?.light ?? token.value?.dark)
+        ],
+        dark,
+        ['Classes', (token) => (token.classes ?? []).map(cell).join(' ')],
+        ['Description', (token) => prose(token.description)]
+      ] satisfies Column[]
+    ).filter(used)
+  ]
+  const sections = [
+    `## ${group}`,
+    table(
+      columns.map(([name]) => name),
+      tokens.map((token) => columns.map(([, value]) => value(token)))
+    )
+  ]
+  const intents = [
+    ...new Set(tokens.flatMap((token) => Object.keys(token.byIntent ?? {})))
+  ]
+  if (intents.length > 0) {
+    sections.push(
+      'Where an intent sets its own value, light / dark:',
+      table(
+        ['Token', ...intents],
+        tokens
+          .filter((token) => token.byIntent)
+          .map((token) => [
+            cell(token.name),
+            ...intents.map((intent) => {
+              const value = token.byIntent?.[intent]
+              return value ? lightAndDark(value) : ''
+            })
+          ])
+      )
+    )
+  }
+  return sections
+}
+
+export function tokenFamilyToMarkdown(page: TokenFamilyMarkdown): string {
+  const groups = Map.groupBy(page.tokens, (token) => token.group)
+  return [
+    `# ${page.title}`,
+    ...(page.description ? [`> ${page.description}`] : []),
+    page.intro,
+    ...(page.guidance.length > 0
+      ? [
+          `When to use these: ${page.guidance
+            .map(({ title, url }) => `[${title}](${url})`)
+            .join(', ')}.`
+        ]
+      : []),
+    ...[...groups].flatMap(([group, tokens]) => tokenGroup(group, tokens))
+  ]
+    .join('\n\n')
+    .concat('\n')
+}

@@ -1,9 +1,8 @@
 import { TokenFamilyPage } from '@/components/tokens/TokenFamilyPage'
 
-import { Code } from '@oztix/roadie-components/code'
-
 export const metadata = {
   title: 'Typography',
+  tokenFamily: 'typography',
   description:
     'Font families, the fluid size scale, line heights, letter spacing and the composed text styles.',
   category: 'Type, shape and depth',
@@ -11,16 +10,5 @@ export const metadata = {
 }
 
 export default function TypographyTokensPage() {
-  return (
-    <TokenFamilyPage
-      family='typography'
-      intro={
-        <>
-          Sizes from <Code>text-lg</Code> up are fluid. A size class sets no
-          line height, so pair it with <Code>leading-*</Code> or use a composed{' '}
-          <Code>text-display-*</Code> or <Code>text-ui</Code> style.
-        </>
-      }
-    />
-  )
+  return <TokenFamilyPage family='typography' />
 }
