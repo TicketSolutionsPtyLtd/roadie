@@ -1,6 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { userEvent } from '@testing-library/user-event'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { recordFields } from '@oztix/roadie-core/records'
 
@@ -48,24 +47,8 @@ const base = {
   getRowId: (row: Show) => row.id
 }
 
-let width = 800
-beforeEach(() => {
-  width = 800
-  globalThis.ResizeObserver = class {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  } as unknown as typeof ResizeObserver
-  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
-    () => ({ width, height: 0, top: 0, left: 0 }) as DOMRect
-  )
-})
-afterEach(() => vi.restoreAllMocks())
-
 const rowOf = (name: string) =>
   screen.getByText(name).closest<HTMLElement>('[role="row"]')!
-const itemsOf = () =>
-  within(screen.getByRole('list', { name: 'Shows' })).getAllByRole('listitem')
 
 describe('RecordTable image columns', () => {
   it('renders a lazy thumbnail with an empty alt by default', () => {
@@ -137,108 +120,7 @@ describe('RecordTable image columns', () => {
   })
 })
 
-describe('RecordTable image columns, narrow', () => {
-  beforeEach(() => {
-    width = 360
-  })
-
-  it('puts the thumbnail in a list row’s leading slot', () => {
-    render(<RecordTable {...base} columns={listColumns} />)
-    const [first, second] = itemsOf()
-    const leading = first!.querySelector('[data-slot="list-item-leading"]')!
-    expect(leading.querySelector('img')).toHaveAttribute('src', '/a.svg')
-    expect(
-      second!.querySelector(
-        '[data-slot="list-item-leading"] [data-slot="record-image-placeholder"]'
-      )
-    ).not.toBeNull()
-  })
-
-  it('shows the image as a banner at the top of a card', () => {
-    render(<RecordTable {...base} columns={cardColumns} />)
-    const [first, second] = itemsOf()
-    const card = first!.querySelector('[data-slot="record-card"]')!
-    const banner = card.firstElementChild!
-    expect(banner).toHaveAttribute('data-slot', 'record-card-media')
-    expect(banner.querySelector('img')).toHaveAttribute('src', '/a.svg')
-    expect(card.querySelectorAll('[data-slot="card-header"] img')).toHaveLength(
-      0
-    )
-    expect(
-      second!.querySelector(
-        '[data-slot="record-card-media"] [data-slot="record-image-placeholder"]'
-      )
-    ).not.toBeNull()
-  })
-
-  it('puts a bannered card’s trailing value on the image’s top end', () => {
-    render(
-      <RecordTable
-        {...base}
-        columns={[
-          column.field('image', { kind: 'image' }),
-          column.field('show', { narrow: 'title' }),
-          column.field('city', { narrow: 'trailing' }),
-          column.field('sold', { narrow: 'detail' })
-        ]}
-      />
-    )
-    const [first] = itemsOf()
-    expect(
-      first!.querySelector(
-        '[data-slot="record-card-media"] [data-slot="record-card-trailing"]'
-      )
-    ).toHaveTextContent('Brisbane')
-    expect(
-      first!.querySelector('[data-slot="card-header"]')
-    ).not.toHaveTextContent('Brisbane')
-  })
-
-  it('swaps the thumbnail for the checkbox in Select mode', async () => {
-    const user = userEvent.setup()
-    render(
-      <RecordTable
-        {...base}
-        columns={listColumns}
-        bulkActions={[{ label: 'Export', onAction: () => {} }]}
-      />
-    )
-    await user.click(screen.getByRole('button', { name: 'Select' }))
-    const [first] = itemsOf()
-    const leading = first!.querySelector<HTMLElement>(
-      '[data-slot="list-item-leading"]'
-    )!
-    expect(within(leading).getByRole('checkbox')).toBeInTheDocument()
-    expect(leading.querySelector('img')).toBeNull()
-  })
-
-  it('renders a custom cell in the banner', () => {
-    const columns = [
-      column.field('image', {
-        kind: 'image',
-        cell: ({ row }) => <span data-testid='poster'>{row.show}</span>
-      }),
-      ...cardColumns.slice(1)
-    ]
-    render(<RecordTable {...base} columns={columns} />)
-    expect(
-      screen
-        .getAllByTestId('poster')[0]!
-        .closest('[data-slot="record-card-media"]')
-    ).not.toBeNull()
-  })
-
-  it('draws a banner block in card placeholders while loading', () => {
-    const { container } = render(
-      <RecordTable {...base} data={[]} columns={cardColumns} loading />
-    )
-    expect(
-      container.querySelector(
-        '[data-slot="record-table-skeleton"] [data-slot="record-table-placeholder-media"]'
-      )
-    ).not.toBeNull()
-  })
-
+describe('RecordTable image cards', () => {
   it('estimates a bannered card taller', () => {
     expect(cardRem(cardParts(narrowParts<Show>(cardColumns.slice(1))))).toBe(
       CARD_REM

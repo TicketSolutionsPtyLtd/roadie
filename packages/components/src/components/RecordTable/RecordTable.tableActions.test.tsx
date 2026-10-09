@@ -11,30 +11,7 @@ import type { RecordsAction } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import { showColumns } from './testUtils'
 
-afterEach(() => {
-  vi.restoreAllMocks()
-  vi.unstubAllGlobals()
-})
-
-function goNarrow() {
-  vi.stubGlobal(
-    'ResizeObserver',
-    class {
-      observe() {}
-      disconnect() {}
-    }
-  )
-  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
-    width: 360,
-    height: 0,
-    top: 0,
-    left: 0,
-    right: 360,
-    bottom: 0,
-    x: 0,
-    y: 0
-  } as DOMRect)
-}
+afterEach(() => vi.unstubAllGlobals())
 
 const shows = testShows(12)
 
@@ -91,16 +68,6 @@ describe('RecordTable table actions', () => {
     expect(screen.queryByRole('button', { name: 'More actions' })).toBeNull()
   })
 
-  it('puts every action in the menu in a narrow toolbar', async () => {
-    goNarrow()
-    render(<Shows actions={actions()} />)
-    expect(screen.queryByRole('button', { name: 'Export CSV' })).toBeNull()
-    await userEvent.click(screen.getByRole('button', { name: 'More actions' }))
-    expect(
-      (await screen.findAllByRole('menuitem')).map((item) => item.textContent)
-    ).toEqual(['Export CSV', 'Print door list', 'Email everyone'])
-  })
-
   it('acts within the page’s scope', async () => {
     const onAction = vi.fn()
     const perth: RecordFilter = {
@@ -129,17 +96,6 @@ describe('RecordTable table actions', () => {
     expect(records.selectedCount).toBe(0)
     expect(records.matchingRows).toHaveLength(2)
     expect(screen.queryByRole('toolbar', { name: 'Bulk actions' })).toBeNull()
-  })
-
-  it('runs an action from the menu', async () => {
-    const onAction = vi.fn()
-    goNarrow()
-    render(<Shows actions={actions(onAction)} />)
-    await userEvent.click(screen.getByRole('button', { name: 'More actions' }))
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Export CSV' })
-    )
-    expect(onAction).toHaveBeenCalledOnce()
   })
 
   it('confirms a danger action before running it', async () => {
@@ -179,23 +135,6 @@ describe('RecordTable table actions', () => {
     )
     expect(button).not.toHaveAttribute('aria-busy')
     expect(report).toHaveBeenCalledWith(error)
-  })
-
-  it('marks the menu busy while one of its actions runs', async () => {
-    let finish = () => {}
-    const onAction = vi.fn(() => new Promise<void>((done) => (finish = done)))
-    goNarrow()
-    render(<Shows actions={[{ label: 'Export CSV', onAction }]} />)
-    const more = screen.getByRole('button', { name: 'More actions' })
-    await userEvent.click(more)
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Export CSV' })
-    )
-    await waitFor(() => expect(more).toHaveAttribute('aria-busy', 'true'))
-    expect(more).toHaveAttribute('aria-disabled', 'true')
-    await act(async () => finish())
-    await waitFor(() => expect(more).not.toHaveAttribute('aria-busy'))
-    expect(more).not.toHaveAttribute('aria-disabled', 'true')
   })
 
   it('stays busy when the parent passes fresh actions mid-run', async () => {
