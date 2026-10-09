@@ -7,11 +7,13 @@ import {
   type Mode,
   type Palette,
   type StatusName,
-  palette as defaultPalette
+  palette as defaultPalette,
+  greyColor
 } from './palette'
 
 const STATUS: StatusName[] = ['good', 'warning', 'serious', 'critical']
 const GREYS: GreyName[] = ['context', 'band', 'median', 'other', 'missing']
+const LINE_GREYS = GREYS.filter((g) => g !== 'band')
 const INK = {
   grid: 'var(--intent-border-subtler)',
   axis: 'var(--intent-border-normal)',
@@ -82,15 +84,26 @@ function statusAlias(
 const fixedInAMode = (p: Palette, s: StatusName) =>
   MODES.some((mode) => p.status[s].step[mode] === null)
 
+function grey(p: Palette, mode: Mode, name: GreyName, modern: boolean) {
+  const { step, mix } = p.greys[name][mode]
+  if (!mix) return `var(--color-neutral-${step})`
+  return modern
+    ? `color-mix(in oklch, var(--color-neutral-${step}), var(--color-neutral-${mix.step}) ${mix.percent}%)`
+    : toHex(greyColor(p, mode, name))
+}
+
+// Like a fixed status, a grey mixed in one mode is declared in both modern
+// blocks, or the later :root block would override .dark.
+const mixedInAMode = (p: Palette, g: GreyName) =>
+  MODES.some((mode) => p.greys[g][mode].mix)
+
 function aliases(p: Palette, mode: Mode): [string, string][] {
-  const grey = (name: GreyName) =>
-    `var(--color-neutral-${p.greys[name][mode].step})`
   return [
     ['chart-diverge-0', `var(--color-neutral-${p.divergeMidStep[mode]})`],
     ...STATUS.flatMap((s) => statusAlias(p, mode, s)),
-    ...GREYS.filter((g) => g !== 'band').map((g): [string, string] => [
+    ...LINE_GREYS.map((g): [string, string] => [
       `chart-${g}`,
-      grey(g)
+      grey(p, mode, g, false)
     ])
   ]
 }
@@ -129,7 +142,10 @@ function modeBlock(p: Palette, mode: Mode, modern: boolean) {
     lines.push(
       ...STATUS.filter((s) => fixedInAMode(p, s))
         .flatMap((s) => statusAlias(p, mode, s))
-        .map(([n, v]) => decl(n, v))
+        .map(([n, v]) => decl(n, v)),
+      ...LINE_GREYS.filter((g) => mixedInAMode(p, g)).map((g) =>
+        decl(`chart-${g}`, grey(p, mode, g, true))
+      )
     )
   return lines
 }

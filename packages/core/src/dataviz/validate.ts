@@ -1,27 +1,25 @@
-import {
-  type Oklch,
-  apcaLc,
-  contrastRatio,
-  deltaE,
-  worstCvdDeltaE
-} from './color-math'
+import { type Oklch, apcaLc, deltaE, worstCvdDeltaE } from './color-math'
 import {
   type ByMode,
   DIVERGE_MID,
   MODES,
   type Mode,
   type Palette,
-  palette as defaultPalette
+  palette as defaultPalette,
+  greyColor
 } from './palette'
+
+// APCA's minimum for non-text UI (docs/decisions/0010-apca-contrast.md).
+const NON_TEXT_LC = 45
 
 export const TARGETS = {
   adjacentCvd: 8,
   firstFiveCvd: 8,
   adjacentNormal: 15,
   dangerNormal: 12,
-  darkMarkContrast: 3,
+  darkMarkContrast: NON_TEXT_LC,
   setCvd: 10,
-  darkGreyContrast: 3
+  darkGreyContrast: NON_TEXT_LC
 } as const
 
 export type Failure = {
@@ -138,22 +136,21 @@ export function validatePalette(p: Palette = defaultPalette): Failure[] {
   }
 
   const darkSurface = p.surface.dark
+  const lc = (c: Oklch) => Math.abs(apcaLc(c, darkSurface))
   p.categorical.dark.forEach((c, i) => {
-    const ratio = contrastRatio(c, darkSurface)
-    if (ratio < TARGETS.darkMarkContrast)
+    if (lc(c) < TARGETS.darkMarkContrast)
       fail(
         'darkMarkContrast',
         'dark',
         `slot ${i + 1}`,
-        ratio,
+        lc(c),
         TARGETS.darkMarkContrast
       )
   })
   for (const name of ['context', 'other'] as const) {
-    const grey = p.neutral.dark[p.greys[name].dark.step]!
-    const ratio = contrastRatio(grey, darkSurface)
-    if (ratio < TARGETS.darkGreyContrast)
-      fail('darkGreyContrast', 'dark', name, ratio, TARGETS.darkGreyContrast)
+    const grey = greyColor(p, 'dark', name)
+    if (lc(grey) < TARGETS.darkGreyContrast)
+      fail('darkGreyContrast', 'dark', name, lc(grey), TARGETS.darkGreyContrast)
   }
 
   return failures
@@ -167,9 +164,6 @@ type Scores = {
   /** @deprecated Use `slotsUnderLc45`; this now reads the same APCA slots. */
   lightSlotsUnder3: number[]
 }
-
-// APCA's minimum for non-text UI (docs/decisions/0010-apca-contrast.md).
-const NON_TEXT_LC = 45
 
 export function paletteScores(p: Palette = defaultPalette): ByMode<Scores> {
   const score = (mode: Mode): Scores => {

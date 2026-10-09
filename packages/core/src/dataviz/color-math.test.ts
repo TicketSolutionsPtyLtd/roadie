@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import {
   apcaLc,
   clampChroma,
-  contrastRatio,
   deltaE,
   toHex,
   worstCvdDeltaE
@@ -26,11 +25,6 @@ describe('color maths', () => {
     expect(h).toBe(150)
     expect(c).toBeLessThan(0.4)
     expect(c).toBeGreaterThan(0.1)
-  })
-
-  it('measures contrast on the WCAG scale', () => {
-    expect(contrastRatio([1, 0, 0], [0, 0, 0])).toBeCloseTo(21, 1)
-    expect(contrastRatio([0.5, 0, 0], [0.5, 0, 0])).toBe(1)
   })
 
   // Reference values from the APCA-W3 0.0.98G calculator.

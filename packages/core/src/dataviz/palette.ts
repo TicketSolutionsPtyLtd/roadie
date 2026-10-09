@@ -14,7 +14,12 @@ type Status = {
   value: ByMode<Oklch>
 }
 
-type Grey = ByMode<{ step: number; alpha?: number }>
+type Grey = ByMode<{
+  step: number
+  alpha?: number
+  /** Mixes in OKLCH toward another neutral step, as CSS `color-mix` does. */
+  mix?: { step: number; percent: number }
+}>
 
 export type Palette = {
   categorical: ByMode<readonly Oklch[]>
@@ -26,6 +31,20 @@ export type Palette = {
   greys: Readonly<Record<GreyName, Grey>>
   neutral: ByMode<readonly Oklch[]>
   surface: ByMode<Oklch>
+}
+
+export function greyColor(p: Palette, mode: Mode, name: GreyName): Oklch {
+  const { step, mix } = p.greys[name][mode]
+  const from = p.neutral[mode][step]!
+  if (!mix) return from
+  const to = p.neutral[mode][mix.step]!
+  const t = mix.percent / 100
+  // Neutral steps share the accent hue, so only lightness and chroma move.
+  return [
+    from[0] + (to[0] - from[0]) * t,
+    from[1] + (to[1] - from[1]) * t,
+    from[2]
+  ]
 }
 
 export const DIVERGE_MID = 4
@@ -83,14 +102,17 @@ export const palette: Palette = {
       [0.46, 0.16, 6],
       [0.745, 0.117, 226.8]
     ],
+    // Every dark slot clears APCA Lc 45 on the page. Slot 3 sits light because
+    // a mid teal collides with pink for colour-blind readers, slot 6 dims to
+    // stay apart from it, and slot 7 mutes to stay clear of critical red.
     dark: [
-      [0.84, 0.079, 262],
-      [0.731, 0.184, 342.3],
-      [0.577, 0.094, 186],
+      [0.83, 0.08, 262],
+      [0.7, 0.17, 342.3],
+      [0.91, 0.1, 186],
       [0.779, 0.123, 80],
-      [0.566, 0.187, 298.2],
-      [0.9, 0.153, 152.7],
-      [0.567, 0.162, 1.5],
+      [0.7, 0.18, 298.2],
+      [0.87, 0.15, 152.7],
+      [0.69, 0.07, 1.5],
       [0.761, 0.106, 235.4]
     ]
   },
@@ -169,10 +191,18 @@ export const palette: Palette = {
     }
   },
   greys: {
-    context: { light: { step: 8 }, dark: { step: 9 } },
+    // No dark neutral step sits between Lc 31 and 79 on the page, so the
+    // context and other greys mix toward step 11 to clear Lc 45.
+    context: {
+      light: { step: 8 },
+      dark: { step: 10, mix: { step: 11, percent: 35 } }
+    },
     band: { light: { step: 9, alpha: 10 }, dark: { step: 11, alpha: 9 } },
     median: { light: { step: 8 }, dark: { step: 8 } },
-    other: { light: { step: 9 }, dark: { step: 10 } },
+    other: {
+      light: { step: 9 },
+      dark: { step: 10, mix: { step: 11, percent: 45 } }
+    },
     missing: { light: { step: 5 }, dark: { step: 5 } }
   },
   neutral,

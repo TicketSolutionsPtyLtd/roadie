@@ -12,6 +12,14 @@ const withLight = (slot: number, value: Oklch): Palette => ({
   }
 })
 
+const withDark = (slot: number, value: Oklch): Palette => ({
+  ...palette,
+  categorical: {
+    ...palette.categorical,
+    dark: palette.categorical.dark.map((c, i) => (i === slot ? value : c))
+  }
+})
+
 describe('dataviz palette', () => {
   it('passes every target in both modes', () => {
     expect(validatePalette()).toEqual([])
@@ -107,6 +115,29 @@ describe('dataviz palette', () => {
     expect(failures.map((f) => f.check)).toContain('darkGreyContrast')
   })
 
+  // 4.2:1 passes WCAG 2's 3:1 but measures Lc 32 against the dark page.
+  it('measures dark marks with APCA at Lc 45, not a 3:1 ratio', () => {
+    const failure = validatePalette(withDark(2, [0.577, 0.094, 186])).find(
+      (f) => f.check === 'darkMarkContrast'
+    )
+    expect(failure).toMatchObject({ detail: 'slot 3', score: 32.4, target: 45 })
+  })
+
+  it('measures dark context and other greys with APCA at Lc 45', () => {
+    const failures = validatePalette({
+      ...palette,
+      greys: {
+        ...palette.greys,
+        context: { ...palette.greys.context, dark: { step: 9 } },
+        other: { ...palette.greys.other, dark: { step: 10 } }
+      }
+    }).filter((f) => f.check === 'darkGreyContrast')
+    expect(failures).toMatchObject([
+      { detail: 'context', score: 25.4, target: 45 },
+      { detail: 'other', score: 31.2, target: 45 }
+    ])
+  })
+
   it('uses blue and pink for pairs, adding teal for trios', () => {
     expect(palette.sets).toEqual({ pair: [1, 2], trio: [1, 2, 3] })
   })
@@ -120,12 +151,12 @@ describe('dataviz palette', () => {
   it('lists the slots under APCA Lc 45 on the page, which never carry text', () => {
     const scores = paletteScores()
     expect(scores.light.slotsUnderLc45).toEqual([4, 8])
-    expect(scores.dark.slotsUnderLc45).toEqual([3, 5, 7])
+    expect(scores.dark.slotsUnderLc45).toEqual([])
   })
 
   it('keeps the deprecated name reading the APCA slots', () => {
     const scores = paletteScores()
     expect(scores.light.lightSlotsUnder3).toEqual([4, 8])
-    expect(scores.dark.lightSlotsUnder3).toEqual([3, 5, 7])
+    expect(scores.dark.lightSlotsUnder3).toEqual([])
   })
 })
