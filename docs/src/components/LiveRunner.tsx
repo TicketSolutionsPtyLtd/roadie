@@ -171,7 +171,12 @@ const PhosphorIconsSuffixed = Object.fromEntries(
   Object.entries(PhosphorIcons).map(([name, Icon]) => [`${name}Icon`, Icon])
 )
 
-/** A captioned cell, opened by a caption comment in a fence with `layout=`. Several elements under one caption wrap in a row. */
+/**
+ * A captioned cell, opened by a caption comment in a fence with `layout=`.
+ * Several elements under one caption wrap in a row. A lone element sits in a
+ * block, so a block such as Accordion fills the cell and an inline one such as
+ * Button or Kbd keeps its own width.
+ */
 function PreviewCell({
   label,
   children
@@ -187,7 +192,7 @@ function PreviewCell({
       {Children.count(children) > 1 ? (
         <div className='flex flex-wrap items-center gap-2'>{children}</div>
       ) : (
-        children
+        <div>{children}</div>
       )}
     </div>
   )

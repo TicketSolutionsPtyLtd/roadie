@@ -98,7 +98,8 @@ describe('fence layout options', () => {
     })
     const cells = await preview.evaluate((node) =>
       [...node.children].map((cell) => {
-        const [caption, accordion] = [...cell.children] as [Element, Element]
+        const [caption, block] = [...cell.children] as [Element, Element]
+        const accordion = block.firstElementChild!
         return {
           caption: caption.textContent,
           captionSize: getComputedStyle(caption).fontSize,
@@ -175,7 +176,33 @@ describe('fence layout options', () => {
     await page.context().close()
   }, 60_000)
 
-  it('frame a width=md chart at 35rem, with only the chart to copy', async () => {
+  it('keep a lone button under a caption at its own width in a stack', async () => {
+    const { page, errors } = await open('/components/button/')
+    const block = await exampleAfter(page, 'states')
+    const preview = previewOf(block)
+
+    expect(await styleOf(preview)).toMatchObject({
+      display: 'grid',
+      rowGap: '16px',
+      children: 2
+    })
+    const cells = await preview.evaluate((node) =>
+      [...node.children].map((cell) => ({
+        caption: cell.firstElementChild!.textContent,
+        cellWidth: cell.getBoundingClientRect().width,
+        buttonWidth: cell.querySelector('button')!.getBoundingClientRect().width
+      }))
+    )
+
+    expect(cells.map(({ caption }) => caption)).toEqual(['Default', 'Disabled'])
+    for (const { cellWidth, buttonWidth } of cells) {
+      expect(buttonWidth).toBeLessThan(cellWidth / 2)
+    }
+    expect(errors).toEqual([])
+    await page.context().close()
+  }, 60_000)
+
+  it('frame a width=140 chart at 35rem, with only the chart to copy', async () => {
     const { page, errors } = await open('/charts/bar-chart/', 1920)
     const block = await exampleAfter(page, 'default')
     const preview = previewOf(block)
