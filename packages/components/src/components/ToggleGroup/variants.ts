@@ -25,7 +25,7 @@ export const toggleGroupItemVariants = cva(
     'is-interactive relative z-1',
     'inline-flex items-center justify-center gap-1.5',
     'rounded-full font-semibold whitespace-nowrap select-none',
-    'text-subtle hover:text-normal',
+    'not-data-[pressed]:is-selectable',
     'data-[icon-only]:aspect-square data-[icon-only]:px-0',
     'group-data-[orientation=vertical]/toggle-group:justify-start group-data-[orientation=vertical]/toggle-group:rounded-lg',
     '[&_svg]:shrink-0'
@@ -38,9 +38,9 @@ export const toggleGroupItemVariants = cva(
         lg: "h-10 px-4 text-base [&_svg:not([class*='size-'])]:size-5"
       },
       emphasis: {
-        normal: 'data-[pressed]:text-on-strong',
-        subtle: 'data-[pressed]:text-on-strong',
-        subtler: 'data-[pressed]:text-strong'
+        normal: 'data-[pressed]:is-selected-label-on-strong',
+        subtle: 'data-[pressed]:is-selected-label-on-strong',
+        subtler: 'data-[pressed]:is-selected-label'
       },
       raisePressed: { true: '', false: '' }
     },

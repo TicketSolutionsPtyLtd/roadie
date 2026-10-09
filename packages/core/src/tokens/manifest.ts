@@ -117,7 +117,7 @@ const VARIABLE_RULES: Rule[] = [
 
 const UTILITY_RULES: Rule[] = [
   [/^intent-/, 'intents', 'Intent utilities'],
-  [/^(emphasis-|is-translucent$|is-selected$)/, 'emphasis', 'Emphasis presets'],
+  [/^(emphasis-|is-translucent$|is-select)/, 'emphasis', 'Emphasis presets'],
   [/^is-interactive/, 'emphasis', 'Interaction states'],
   [/^(inset-)?shadow-/, 'elevation', 'Shadows'],
   [/^rim-light$/, 'elevation', 'Rim light'],

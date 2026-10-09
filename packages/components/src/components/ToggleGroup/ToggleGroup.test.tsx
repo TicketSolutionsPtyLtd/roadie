@@ -111,12 +111,22 @@ describe('ToggleGroup', () => {
   })
 
   it.each([
-    ['normal', 'emphasis-normal', 'emphasis-strong', 'text-on-strong'],
-    ['subtle', 'emphasis-subtle', 'emphasis-strong', 'text-on-strong'],
-    ['subtler', 'border', 'emphasis-subtle', 'text-strong']
+    [
+      'normal',
+      'emphasis-normal',
+      'emphasis-strong',
+      'is-selected-label-on-strong'
+    ],
+    [
+      'subtle',
+      'emphasis-subtle',
+      'emphasis-strong',
+      'is-selected-label-on-strong'
+    ],
+    ['subtler', 'border', 'emphasis-subtle', 'is-selected-label']
   ] as const)(
-    'gives a %s group a %s track, a %s pill and %s pressed text',
-    (emphasis, track, pill, text) => {
+    'gives a %s group a %s track, a %s pill and an %s pressed item',
+    (emphasis, track, pill, label) => {
       render(<DateRange emphasis={emphasis} />)
       expect(screen.getByRole('group', { name: 'Date range' })).toHaveClass(
         track,
@@ -124,7 +134,10 @@ describe('ToggleGroup', () => {
       )
       expect(indicator()).toHaveClass(pill)
       expect(screen.getByRole('button', { name: '30 days' })).toHaveClass(
-        `data-[pressed]:${text}`
+        `data-[pressed]:${label}`
+      )
+      expect(screen.getByRole('button', { name: '7 days' })).toHaveClass(
+        'not-data-[pressed]:is-selectable'
       )
       render(
         <ToggleGroup multiple emphasis={emphasis} aria-label='Text style'>
@@ -136,6 +149,18 @@ describe('ToggleGroup', () => {
       )
     }
   )
+
+  it('gives a pressed subtler item the selected fill when it fills itself', () => {
+    render(
+      <ToggleGroup multiple emphasis='subtler' aria-label='Text style'>
+        <ToggleGroup.Item value='bold'>Bold</ToggleGroup.Item>
+      </ToggleGroup>
+    )
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveClass(
+      'data-[pressed]:emphasis-subtle',
+      'data-[pressed]:is-selected'
+    )
+  })
 
   it('defaults to normal', () => {
     render(<DateRange />)

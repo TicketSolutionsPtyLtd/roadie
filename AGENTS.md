@@ -87,13 +87,13 @@ Each rule has a foundations page with the detail.
   `strong` (solid fill), `normal` (visible border), `subtle` (tint, no border),
   `subtler` (barely tinted), `raised`, `sunken`, `field` (text fields, with
   `is-interactive-field`), `floating`, `inverted`, `overlay`, and
-  `overlay-subtle`. Add `is-selected` to `emphasis-subtle` for the chosen item
-  of a quiet, trackless control (its fill fails APCA, so pair it with an
-  icon), and `is-translucent` to raised or floating surfaces.
+  `overlay-subtle`. Add `is-translucent` to raised or floating surfaces.
 - **Interaction.** `is-interactive` on anything clickable;
   `is-interactive-field` and `is-interactive-field-group` on form controls;
   `is-interactive-within` on a surface whose main link sits inside it, marked
   `data-interactive-target`. Never hand-roll hover or focus states.
+  Choices: `is-selectable` at rest, `emphasis-subtle is-selected` when
+  chosen, or `is-selected-label(-on-strong)` over an indicator.
 - **Layout.** `grid gap-*` by default, where the parent sizes its children;
   `flex` when children size themselves. Use `gap`, not margin, and set
   constraints, not fixed sizes.

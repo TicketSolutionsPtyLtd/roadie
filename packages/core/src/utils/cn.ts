@@ -7,6 +7,7 @@ const twMerge = extendTailwindMerge<
   | 'semantic-border-color'
   | 'intent'
   | 'emphasis'
+  | 'selection'
 >({
   extend: {
     classGroups: {
@@ -110,6 +111,12 @@ const twMerge = extendTailwindMerge<
         'emphasis-inverted',
         'emphasis-overlay',
         'emphasis-overlay-subtle'
+      ],
+      selection: [
+        'is-selectable',
+        'is-selected',
+        'is-selected-label',
+        'is-selected-label-on-strong'
       ]
     },
     conflictingClassGroups: {

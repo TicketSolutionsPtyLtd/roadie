@@ -48,6 +48,19 @@ describe('cn', () => {
     }
   })
 
+  it('dedupes the selection states, which each set the label colour', () => {
+    const states = readFileSync(
+      fileURLToPath(new URL('../css/emphasis.css', import.meta.url)),
+      'utf8'
+    ).match(/(?<=@utility )is-select[\w-]+/g)
+
+    expect(states).toHaveLength(4)
+    for (const state of states ?? []) {
+      expect(cn(state, 'is-selectable')).toBe('is-selectable')
+      expect(cn('emphasis-subtle', state)).toBe(`emphasis-subtle ${state}`)
+    }
+  })
+
   it('keeps interaction utilities alongside an emphasis preset', () => {
     expect(cn('emphasis-field', 'is-interactive-field')).toBe(
       'emphasis-field is-interactive-field'
