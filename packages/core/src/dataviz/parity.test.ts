@@ -53,9 +53,11 @@ describe('palette mirrors tokens.css', () => {
   })
 })
 
-// Delta, label, and value text are short labels or large figures, so they meet
-// decision 0010's Lc 60 tier rather than body text's Lc 75.
+// Delta text is one short 14px semibold figure, so it meets decision 0010's
+// Lc 60 label tier. The card's neutral text includes 14px regular context
+// lines, so it keeps body text's Lc 75.
 const LABEL_LC = 60
+const BODY_TEXT_LC = 75
 
 describe('text colours on data cards', () => {
   const cardSurface = { light: 1, dark: 2 } as const
@@ -78,16 +80,16 @@ describe('text colours on data cards', () => {
       })
 
   for (const mode of ['light', 'dark'] as const)
-    it(`label and context text reach APCA Lc ${LABEL_LC} in ${mode}`, () => {
+    it(`label and context text reach APCA Lc ${BODY_TEXT_LC} in ${mode}`, () => {
       expect(
         lcOnCard(mode, neutralText(mode, textSubtle[mode]))
-      ).toBeGreaterThanOrEqual(LABEL_LC)
+      ).toBeGreaterThanOrEqual(BODY_TEXT_LC)
     })
 
   for (const mode of ['light', 'dark'] as const)
-    it(`value text reaches APCA Lc ${LABEL_LC} in ${mode}`, () => {
+    it(`value text reaches APCA Lc ${BODY_TEXT_LC} in ${mode}`, () => {
       expect(
         lcOnCard(mode, neutralText(mode, textStrong[mode]))
-      ).toBeGreaterThanOrEqual(LABEL_LC)
+      ).toBeGreaterThanOrEqual(BODY_TEXT_LC)
     })
 })

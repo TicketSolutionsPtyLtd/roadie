@@ -2,8 +2,8 @@
 '@oztix/roadie-core': minor
 ---
 
-Dark mode delta text now meets APCA Lc 60 on a data card, the minimum for
-labels in decision 0010. Two dark status colours change, so `Delta`, and any
+Dark mode delta text now meets APCA Lc 60 on a data card, the tier decision
+0010 sets for delta text. Two dark status colours change, so `Delta`, and any
 chart mark or text that uses them, looks different in dark mode:
 
 - `--chart-status-good` follows `--color-success-11` instead of

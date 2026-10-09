@@ -51,9 +51,9 @@ before any consumer had installed the rest of the APCA work.
 
 Delta text on a data card is held to Lc 60 (INNO-1224). It renders as one
 short figure at 14px semibold, with an arrow and a spoken description, so it
-reads as a label rather than body text. The card's label, context, and value
-text share that tier. In dark mode, success step 9 measured Lc 57.4 and danger
-step 9 measured Lc 47.5 on the card. The good status now follows success
+reads as a label rather than body text. The card's neutral label, context,
+and value text still meet body text's Lc 75. In dark mode, success step 9
+measured Lc 57.4 and danger step 9 measured Lc 47.5 on the card. The good status now follows success
 step 11, as it already does in light mode. The critical status is a fixed
 coral red, `oklch(0.798 0.116 20)`, at Lc 63.3. A brighter red at its old hue
 sits within ΔE 12 of the amber and dusty rose chart slots, so its hue leans 8
