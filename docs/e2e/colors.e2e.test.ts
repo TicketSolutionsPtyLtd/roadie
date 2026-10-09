@@ -4,6 +4,10 @@ import { join } from 'path'
 import { type Browser, chromium, firefox, webkit } from 'playwright'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import {
+  INTENTS as MANIFEST_INTENTS,
+  type TokenManifest
+} from '../../packages/core/src/tokens/manifest'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 let browser: Browser
@@ -210,6 +214,61 @@ describe('Colors foundation', () => {
           expect(alpha(token), name).toBe(1)
           expect(new Color(shown).deltaE(token, '2000'), name).toBeLessThan(1)
         }
+      }
+    }, 60_000)
+  }
+
+  for (const dark of [false, true]) {
+    const mode = dark ? 'dark' : 'light'
+
+    it(`gives each intent the strong fills the token manifest lists, in ${mode} mode`, async () => {
+      const { tokens } = JSON.parse(
+        await readFile(
+          join(
+            import.meta.dirname,
+            '../../packages/core/src/tokens/tokens.json'
+          ),
+          'utf-8'
+        )
+      ) as TokenManifest
+      // Read the way the token pages read it: the intent's own value, else the default.
+      const cases = tokens
+        .filter(({ name }) => name.startsWith('--intent-bg-strong'))
+        .flatMap((token) =>
+          MANIFEST_INTENTS.map((intent) => {
+            const value =
+              (intent !== 'neutral' && token.byIntent?.[intent]) || token.value!
+            return {
+              name: token.name,
+              intent,
+              listed: (dark && value.dark) || value.light!
+            }
+          })
+        )
+      expect(cases.length).toBe(MANIFEST_INTENTS.length * 3)
+
+      const page = await open(1280, dark)
+      const rendered = await page.evaluate((cases) => {
+        const fill = (intent: string, background: string) => {
+          const swatch = document.createElement('div')
+          swatch.className = `intent-${intent}`
+          swatch.style.backgroundColor = background
+          document.body.append(swatch)
+          const color = getComputedStyle(swatch).backgroundColor
+          swatch.remove()
+          return color
+        }
+        return cases.map(({ name, intent, listed }) => ({
+          name,
+          intent,
+          css: fill(intent, `var(${name})`),
+          manifest: fill(intent, listed)
+        }))
+      }, cases)
+
+      for (const { name, intent, css, manifest } of rendered) {
+        expect(alpha(css), `${intent} ${name}`).toBe(1)
+        expect(manifest, `${intent} ${name}`).toBe(css)
       }
     }, 60_000)
   }
