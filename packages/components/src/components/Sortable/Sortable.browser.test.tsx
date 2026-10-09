@@ -9,6 +9,7 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
@@ -192,13 +193,30 @@ describe('Sortable drag and drop', () => {
   })
 
   it('draws no line where the drop would change nothing', async () => {
-    render(<Columns />)
+    const onReorder = vi.fn<Reorder>()
+    render(<Columns onReorder={onReorder} />)
+    const edges: string[] = []
+    const observer = new MutationObserver((records) =>
+      records.forEach(({ target }) => {
+        const edge = (target as Element).getAttribute('data-drop-edge')
+        if (edge) edges.push(edge)
+      })
+    )
+    observer.observe(document.body, {
+      subtree: true,
+      attributeFilter: ['data-drop-edge']
+    })
+    onTestFinished(() => observer.disconnect())
     await startDrag('Event')
     await hover(item('Date'), 0.8)
     await hover(item('SKU'), 0.2)
-    await new Promise((resolve) => setTimeout(resolve, 100))
-    expect(document.querySelector('[data-drop-edge]')).toBeNull()
+    await waitFor(() => expect(item('Event')).toHaveAttribute('data-dragging'))
     await drop()
+    await waitFor(() =>
+      expect(item('Event')).not.toHaveAttribute('data-dragging')
+    )
+    expect(edges).toEqual([])
+    expect(onReorder).not.toHaveBeenCalled()
   })
 
   it('keeps the layout still while dragging', async () => {
@@ -236,8 +254,14 @@ describe('Sortable drag and drop', () => {
     await startDrag('Date')
     await hover(item('SKU'), 0.8)
     await drop()
-    await new Promise((resolve) => setTimeout(resolve, 100))
-    expect(onReorder).not.toHaveBeenCalled()
+    // A drag that follows lands after anything the first could have done.
+    await startDrag('Event')
+    await hover(item('SKU'), 0.8)
+    await drop()
+    await waitFor(() => expect(onReorder).toHaveBeenCalled())
+    expect(onReorder.mock.calls).toEqual([
+      [['Date', 'SKU', 'Event', 'Price'], { value: 'Event', from: 1, to: 2 }]
+    ])
   })
 
   it('does not open the Move menu when a drag starts', async () => {
@@ -245,7 +269,11 @@ describe('Sortable drag and drop', () => {
     await startDrag('Date')
     await hover(item('Event'), 0.8)
     await drop()
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Date moved to position 2 of 4 columns'
+      )
+    )
     expect(screen.queryByRole('menu')).toBeNull()
   })
 
@@ -307,11 +335,11 @@ describe('Sortable Move menu', () => {
     }
     const stopFrames = keepFramesRunning(() => at)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 200))
-      expect(handle('SKU')).toHaveAttribute('aria-expanded', 'false')
+      // The exit runs on past the release's click, so a reopen would stop it.
       await waitFor(() => expect(screen.queryByRole('menu')).toBeNull(), {
         timeout: 5000
       })
+      expect(handle('SKU')).toHaveAttribute('aria-expanded', 'false')
     } finally {
       await stopFrames()
     }
@@ -391,18 +419,17 @@ describe('Sortable in context', () => {
     expect(scroller.scrollTop).toBe(0)
     await startDrag('Column 1')
     const box = scroller.getBoundingClientRect()
-    await commands.pointer([
-      {
-        type: 'move',
-        x: box.left + box.width / 2,
-        y: box.bottom - 4,
-        steps: 8
-      },
-      { type: 'wait', ms: 600 },
-      { type: 'move', x: box.left + box.width / 2, y: box.bottom - 3 },
-      { type: 'wait', ms: 600 }
-    ])
-    await waitFor(() => expect(scroller.scrollTop).toBeGreaterThan(40))
+    const edge = { x: box.left + box.width / 2, y: box.bottom - 4 }
+    await commands.pointer([{ type: 'move', ...edge, steps: 8 }])
+    // Each wiggle is a dragover, which drives the auto-scroll.
+    const stopFrames = keepFramesRunning(() => edge)
+    try {
+      await waitFor(() => expect(scroller.scrollTop).toBeGreaterThan(40), {
+        timeout: 5000
+      })
+    } finally {
+      await stopFrames()
+    }
     await drop()
     await waitFor(() => expect(onReorder).toHaveBeenCalled())
     expect(onReorder.mock.calls[0]![1].to).toBeGreaterThan(3)
