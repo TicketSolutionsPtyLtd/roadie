@@ -34,6 +34,7 @@ describe('dataviz parity', () => {
 
   it('mirrors the status colours in tokens.css', () => {
     for (const status of Object.values(palette.status)) {
+      if (status.step.light === null) continue
       const [l, c, h] = status.value.light
       expect(tokens).toContain(
         `--color-${status.intent}-${status.step.light}: oklch(${l} ${c} ${h})`

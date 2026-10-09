@@ -76,13 +76,13 @@
   --chart-diverge-neg-2: #fa9e5f;
   --chart-diverge-neg-3: #f26f2f;
   --chart-diverge-neg-4: #de3e2d;
+  --chart-status-critical: #cc3d33;
   --chart-highlight: #0086da;
   --chart-band: #7b90a51a;
   --chart-diverge-0: var(--color-neutral-3);
   --chart-status-good: var(--color-success-11);
   --chart-status-warning: var(--color-warning-11);
   --chart-status-serious: var(--color-brand-secondary-11);
-  --chart-status-critical: var(--color-danger-11);
   --chart-context: var(--color-neutral-8);
   --chart-median: var(--color-neutral-8);
   --chart-other: var(--color-neutral-9);
@@ -173,6 +173,7 @@
     --chart-diverge-neg-2: oklch(0.78 0.135 54);
     --chart-diverge-neg-3: oklch(0.69 0.178 43.5);
     --chart-diverge-neg-4: oklch(0.6 0.2 30);
+    --chart-status-critical: oklch(0.569 0.181 28.264);
     --chart-highlight-lc: 0.604 0.178;
     --chart-band: color-mix(in oklch, var(--color-neutral-9) 10%, transparent);
   }

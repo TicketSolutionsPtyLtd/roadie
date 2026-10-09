@@ -56,6 +56,11 @@ function direct(p: Palette, mode: Mode): Direct[] {
     ...p.heat[mode].map((c, i): Direct => [`chart-heat-${i}`, c]),
     ...p.diverging[mode].flatMap((c, i): Direct[] =>
       i === DIVERGE_MID ? [] : [[`chart-diverge-${divergeName(i)}`, c]]
+    ),
+    ...STATUS.flatMap((s): Direct[] =>
+      p.status[s].step[mode] === null
+        ? [[`chart-status-${s}`, p.status[s].value[mode]]]
+        : []
     )
   ]
 }
@@ -65,10 +70,12 @@ function aliases(p: Palette, mode: Mode): [string, string][] {
     `var(--color-neutral-${p.greys[name][mode].step})`
   return [
     ['chart-diverge-0', `var(--color-neutral-${p.divergeMidStep[mode]})`],
-    ...STATUS.map((s): [string, string] => [
-      `chart-status-${s}`,
-      `var(--color-${p.status[s].intent}-${p.status[s].step[mode]})`
-    ]),
+    ...STATUS.flatMap((s): [string, string][] => {
+      const step = p.status[s].step[mode]
+      return step === null
+        ? []
+        : [[`chart-status-${s}`, `var(--color-${p.status[s].intent}-${step})`]]
+    }),
     ...GREYS.filter((g) => g !== 'band').map((g): [string, string] => [
       `chart-${g}`,
       grey(g)
