@@ -254,18 +254,22 @@ if (!result.ok)
 
 A spec can carry `period: { range, compare }`, where `range` is a
 `DateRangeValue` such as `'last-month'` or `{ period: 'month', offset: 0,
-toDate: true }`, and `compare` is `'previous-period'` or `'previous-year'`.
+toDate: true }`, and `compare` is `'previous-period'`, `'previous-year'`, or
+custom dates.
 
-- Mark a delta that follows the period `comparison: true`, and leave out its
-  `context`: the card names the comparison itself. A comparison delta with no
-  period fails validation.
+- Mark a delta that follows the period `comparison: true`, and leave out the
+  card's `context`: the card names the comparison itself. A comparison delta
+  with no period fails validation.
+- An app's own comparison, such as `compare: 'similar'`, gets no dates from
+  Roadie, so comparison deltas hide, as they do with no `compare`. Leave out
+  `comparison` there and give the card its own `context`.
 - Resolve dates with `resolveDateRange` and `resolveComparison` from
   `@oztix/roadie-core/datetime`, passing the venue's `timeZone`, `dataStart`,
   and, for sales, `dataEnd`, so month to date compares with last month to the
   same day.
 - When `resolveComparison` returns `partial` or `unavailable`, set
-  `period.history` to it, and comparison deltas say "Not enough history" or
-  "Nothing to compare".
+  `period.history` to that status, and comparison deltas say "Not enough
+  history" or "Nothing to compare".
 - To let people change the period, render `DashboardView` from a client
   component with `onPeriodChange`, hold the value as a `DashboardPeriodValue`
   (`@oztix/roadie-components/dashboard-period`), fetch for the new period, and
