@@ -139,13 +139,14 @@ function staticBranches(node) {
 // JSX means the value was rendered, which is what a test should assert on.
 const EXPRESSION_EDGE = /Function|Statement$|Declaration$|^JSX|^Program$/
 
-// expect(…) itself, or a matcher chained on it such as expect(…).not.toBe(…).
+const isExpect = (callee) =>
+  callee.name === 'expect' || callee.object?.name === 'expect'
+
+// expect(…) or expect.soft(…), or a matcher chained on it such as expect(…).not.toBe(…).
 function isAssertion(call) {
   let node = call
   while (node.type === 'CallExpression' || node.type === 'MemberExpression') {
-    if (node.type === 'CallExpression' && node.callee.name === 'expect') {
-      return true
-    }
+    if (node.type === 'CallExpression' && isExpect(node.callee)) return true
     node = node.type === 'CallExpression' ? node.callee : node.object
   }
   return false
