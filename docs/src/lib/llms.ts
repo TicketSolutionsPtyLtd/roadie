@@ -255,3 +255,108 @@ export function llmsIndex({ title, summary, details, sections }: LlmsIndex) {
     .join('\n\n')
     .concat('\n')
 }
+
+type TokenValue = { light?: string; dark?: string }
+type TokenRow = {
+  name: string
+  group: string
+  value?: TokenValue
+  byIntent?: Partial<Record<string, TokenValue>>
+  classes?: string[]
+  description?: string
+}
+
+export type TokenFamilyMarkdown = {
+  title: string
+  description?: string
+  intro: string
+  /** Pages that say when to use the family. */
+  guidance: LlmsLink[]
+  tokens: TokenRow[]
+}
+
+const cell = (value: string | undefined) =>
+  value ? `\`${value.replace(/\|/g, '\\|')}\`` : ''
+const prose = (value: string | undefined) =>
+  value ? oneLine(value).replace(/\|/g, '\\|') : ''
+const both = ({ light, dark }: TokenValue) =>
+  dark && dark !== light ? `${cell(light)} / ${cell(dark)}` : cell(light)
+
+function table(header: string[], rows: string[][]) {
+  return [
+    `| ${header.join(' | ')} |`,
+    `| ${header.map(() => '---').join(' | ')} |`,
+    ...rows.map((row) => `| ${row.join(' | ')} |`)
+  ].join('\n')
+}
+
+function tokenGroup(group: string, tokens: TokenRow[]) {
+  const columns = (
+    [
+      ['Token', (token) => cell(token.name), true],
+      ['Light', (token) => cell(token.value?.light), false],
+      [
+        'Dark, if different',
+        (token) =>
+          cell(
+            token.value?.dark !== token.value?.light
+              ? token.value?.dark
+              : undefined
+          ),
+        false
+      ],
+      ['Classes', (token) => (token.classes ?? []).map(cell).join(' '), false],
+      ['Description', (token) => prose(token.description), false]
+    ] satisfies [string, (token: TokenRow) => string, boolean][]
+  ).filter(
+    ([, value, always]) => always || tokens.some((token) => value(token))
+  )
+  const sections = [
+    `## ${group}`,
+    table(
+      columns.map(([name]) => name),
+      tokens.map((token) => columns.map(([, value]) => value(token)))
+    )
+  ]
+  const intents = [
+    ...new Set(tokens.flatMap((token) => Object.keys(token.byIntent ?? {})))
+  ]
+  if (intents.length > 0) {
+    sections.push(
+      `Where an intent sets its own value, light / dark:`,
+      table(
+        ['Token', ...intents],
+        tokens
+          .filter((token) => token.byIntent)
+          .map((token) => [
+            cell(token.name),
+            ...intents.map((intent) => {
+              const value = token.byIntent?.[intent]
+              return value ? both(value) : ''
+            })
+          ])
+      )
+    )
+  }
+  return sections
+}
+
+/** A token family page as markdown: its intro and guidance, then each group of tokens as a table. */
+export function tokenFamilyToMarkdown(page: TokenFamilyMarkdown): string {
+  const groups = Map.groupBy(page.tokens, (token) => token.group)
+  return [
+    `# ${page.title}`,
+    ...(page.description ? [`> ${page.description}`] : []),
+    page.intro,
+    ...(page.guidance.length > 0
+      ? [
+          `When to use these: ${page.guidance
+            .map(({ title, url }) => `[${title}](${url})`)
+            .join(', ')}.`
+        ]
+      : []),
+    ...[...groups].flatMap(([group, tokens]) => tokenGroup(group, tokens))
+  ]
+    .join('\n\n')
+    .concat('\n')
+}

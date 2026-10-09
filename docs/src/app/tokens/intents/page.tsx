@@ -2,10 +2,9 @@ import { IntentMatrix } from '@/components/tokens/FamilyVisuals'
 import { TokenFamilyPage } from '@/components/tokens/TokenFamilyPage'
 import { getFamilyTokens } from '@/lib/tokens'
 
-import { Code } from '@oztix/roadie-components/code'
-
 export const metadata = {
   title: 'Intents',
+  tokenFamily: 'intents',
   description:
     'The intent classes, the --intent-* roles they set, and the bg-, text- and border- utilities that read them.',
   category: 'Color',
@@ -16,18 +15,7 @@ export default async function IntentsTokensPage() {
   const roles = await getFamilyTokens('intents')
 
   return (
-    <TokenFamilyPage
-      family='intents'
-      intentPicker
-      intro={
-        <>
-          An <Code>intent-*</Code> class points every <Code>--intent-*</Code>{' '}
-          role at one scale, and children inherit it. The semantic utilities
-          read those roles, so the same class draws in any intent. Neutral is
-          set on <Code>:root</Code>.
-        </>
-      }
-    >
+    <TokenFamilyPage family='intents' intentPicker>
       <IntentMatrix roles={roles} />
     </TokenFamilyPage>
   )
