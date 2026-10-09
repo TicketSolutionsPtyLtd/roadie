@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use before a PR is pushed or marked ready, to review a branch or PR in a fresh subagent on three axes (conventions, bug hunt, and test quality) and commit the fixes. Works in any Oztix repo by reading that repo's AGENTS.md and CODING_STANDARDS.md. Triggers on "review this PR", "review my branch", "run the Roadie review", "pre-PR review".
+description: Use before a PR is pushed or marked ready, to review a branch or PR in a fresh subagent on four axes (conventions, bug hunt, docs claims, and test quality) and commit the fixes. Works in any Oztix repo by reading that repo's AGENTS.md and CODING_STANDARDS.md. Triggers on "review this PR", "review my branch", "run the Roadie review", "pre-PR review".
 ---
 
 # Roadie review
@@ -35,7 +35,7 @@ what is clearly wrong, commits the fixes, and comments only on judgement calls.
   as `skills/` and root `.md` and `.json` files, get Prettier, plus lint where a
   config covers them.
 
-## 2. Review on three axes
+## 2. Review on four axes
 
 Read every changed line. Skip what lint, typecheck, or an existing guard test
 already enforces. Each finding names its rule (file and section) or a concrete
@@ -46,7 +46,8 @@ input that fails. With neither, it isn't a finding.
 `/roadie:audit` checks on the added lines only
 (`git diff origin/<base>...HEAD -U0`).
 
-**Bug hunt.** These are the classes that keep reaching Copilot and phones.
+**Bug hunt.** These are the classes that keep slipping past review to bots
+and phones.
 For a diff that touches only docs, skills, or config, hunt the last three
 classes (checks, one setup, and docs that disagree), plus wrong commands,
 instructions that would cause harm, and broken links.
@@ -84,6 +85,13 @@ instructions that would cause harm, and broken links.
   (step order, who approves, which door), or with what the code or a
   measurement shows; a case the steps don't cover; a copyable example that
   doesn't type-check; and a Markdown table with no delimiter row.
+
+**Docs claims.** For a diff that adds or changes docs, a docs page, a
+README, or a skill, check every technical claim against the code and specs:
+props and their defaults, behaviour, token values, file paths, commands, and
+links. Open the source each claim describes and run what you can. A claim
+the code doesn't bear out is a finding, with the file and line that
+disagree.
 
 **Test quality.** Every test must be able to fail for a real defect.
 

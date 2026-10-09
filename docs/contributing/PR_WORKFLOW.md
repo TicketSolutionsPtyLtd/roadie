@@ -184,30 +184,39 @@ the PR only when the review is clean.
 - **Mark it ready once local checks pass**: `pnpm test:gated` on the touched
   packages, lint, typecheck, and the docs build if docs changed, with the
   local review clean and any demo approved. `gh pr ready` runs the full CI
-  once, and Copilot reviews once then; it skips drafts.
+  once.
+- **Agents never request Copilot**: no reviewer request, no `@copilot`
+  mention, and no re-review. Our own review replaces it
+  ([decision 0002](../decisions/0002-copilot-last-resort.md)). For a
+  security-sensitive change (secrets, auth, workflow permissions, or tokens)
+  or a high-risk one-way door, Merge danger may say "Copilot review
+  recommended" with one line on why, and the maintainer decides. A
+  personal auto-review setting may still post a Copilot review; triage its
+  threads like any other, but never wait for one.
 - **Add the `full-browsers` label** before `gh pr ready` for CSS, layout,
   or anything iOS-sensitive, so the PR also runs WebKit and Firefox. CI reads
   the label when it runs, so a label added later takes effect on the next
   push or `gh run rerun <id>` (not `--failed`).
 - **Push once per round of fixes**, not per commit. Every push reruns CI.
-- **If CI fails after ready**, fix it without re-requesting Copilot, unless
-  the fix is significant (new logic, state or API).
+- **If CI fails after ready**, fix it. A significant fix (new logic, state
+  or API) gets a fresh review of the fix commits (section 6).
 - **One-way doors** always get the maintainer's review: removing or renaming
   a public export, prop, intent, or subpath; changing a token's value or
   meaning; the shared CSS cascade, layers, base styles, or `.prose` output;
   and release contents. Merge danger opens with the door. A one-way door
   names the item it hits; anything else is a two-way door, which says why a
   revert undoes it.
-- Copilot reads `.github/copilot-instructions.md`; update that file when a
-  convention or a deliberate decision changes, and keep it under 4,000
-  characters (Copilot reads no further).
+- A Copilot review the maintainer requests reads
+  `.github/copilot-instructions.md`; update that file when a convention or a
+  deliberate decision changes, and keep it under 4,000 characters (Copilot
+  reads no further).
 - A review is clean when it shows "Open findings: None"
   **and** its body lists no "Previously missed" items. Fixes listed under
   "Fixed" don't count against it.
 - For each finding: fix it test-first and reply naming the commit and test,
   or reply with why it stands. Resolve every thread.
-- **Copilot is a last resort.** Fix its real findings yourself; each one is a
-  gap in the local review.
+- **A bot or reviewer finding is a gap in the local review.** Fix the real
+  ones yourself; `/roadie:retro` turns repeats into review classes.
 - **Triage instead of looping.** Critical and Important findings are always
   fixed, however rare the case. A Minor one is fixed only if a real user
   would hit it in normal use; the rest become Jira follow-ups (section 9).
@@ -229,8 +238,8 @@ the maintainer.
 - CI is green on the full run that `gh pr ready` started: wait for every job
   to finish, not just `check`. A green draft run covers only `check`.
 - The file list is clean.
-- The local review is clean, and the one Copilot pass is triaged with every
-  thread resolved.
+- The local review is clean, and every review thread is triaged and
+  resolved.
 - Behaviour changes for consumers are named in the changeset.
 
 Never merge the Version Packages PR. The maintainer merges releases by hand.

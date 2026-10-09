@@ -59,6 +59,10 @@ then the blast radius.
 - Blast radius: which packages, consumers, repos, or pages change if this is
   wrong, how someone would notice, and how it's undone.
 - A one-way door waits for the maintainer under the host's merge rule. Say so.
+- Never request Copilot. For a security-sensitive change (secrets, auth,
+  workflow permissions, or tokens) or a high-risk one-way door, you may end
+  with "Copilot review recommended" and one line on why; the maintainer
+  decides.
 
 **Decisions** hold the open calls you made and why, so the maintainer can
 veto them. **Out of scope** names follow-ups with ticket keys.

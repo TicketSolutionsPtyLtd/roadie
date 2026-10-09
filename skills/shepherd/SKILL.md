@@ -1,6 +1,6 @@
 ---
 name: shepherd
-description: Use to take an open draft PR to merged in any Oztix repo. Rebases on its base branch, waits for CI without busy polling, marks it ready for the one Copilot pass, triages every review thread from Copilot and other bots (fix, reply, resolve), records each bot's precision, and merges a two-way door or hands a one-way door to the maintainer. Reads the host repo's AGENTS.md and PR workflow. Triggers on "shepherd this PR", "see this PR through", "get this merged", "mark it ready and handle Copilot".
+description: Use to take an open draft PR to merged in any Oztix repo. Rebases on its base branch, waits for CI without busy polling, marks it ready, triages every review thread from people and bots (fix, reply, resolve), records each bot's precision, and merges a two-way door or hands a one-way door to the maintainer. Reads the host repo's AGENTS.md and PR workflow. Triggers on "shepherd this PR", "see this PR through", "get this merged", "mark it ready and handle the review threads".
 ---
 
 # Roadie shepherd
@@ -52,9 +52,7 @@ review your own work. Fix what it leaves open test-first with
   limit rather than been replaced by a newer run, so check its step times
   (`gh run view <id> --json jobs`) before rerunning. Never edit CI config, rulesets, or branch
   protection to get green.
-- Push once per round of fixes, not per commit; every push reruns CI. A
-  failure after ready is fixed without re-requesting Copilot unless the fix is
-  significant.
+- Push once per round of fixes, not per commit; every push reruns CI.
 
 ## 4. Mark ready
 
@@ -71,12 +69,8 @@ Firefox. A label added after ready applies on the next push or a full
 `gh run rerun <id>`, not `--failed` (PR workflow section 7).
 
 Then `gh pr ready <n>` without waiting for the draft's CI. That starts the
-full run and the one Copilot pass; there is no second. Poll for its review every few minutes, for
-about 30 minutes, then report blocked:
-
-```bash
-gh pr view <n> --json reviews -q '.reviews[] | select(.author.login | test("copilot")) | .state'
-```
+full run. Never request Copilot or a re-review (Roadie: PR workflow section
+7); the maintainer decides on any review Merge danger recommends.
 
 ## 5. Triage every thread
 
@@ -92,7 +86,7 @@ thread:
 
 - **Real, fix it.** Test-first with `/roadie:test`; reply naming the commit
   and the test. A docs-only fix needs no test. If the fix is significant (new logic, state, or API), one
-  fresh `/roadie:review` of the fix commits, not another Copilot pass.
+  fresh `/roadie:review` of the fix commits.
 - **Real Minor, defer it.** File it as the host's follow-up rule says (Roadie
   section 9) and reply with the link.
 - **Stands.** Reply with why, citing the rule or decision.
@@ -105,25 +99,25 @@ it, and pass it with `-F body=@file`, so quotes and backticks survive. A
 rebase changes every sha, so reply after the final push, or name the commit by
 its subject rather than its sha.
 
-Copilot can also leave findings only in its review body, with no inline
-thread, so read the body too:
+A reviewer can also leave findings only in its review body, with no inline
+thread, so read the bodies too:
 
 ```bash
-gh pr view <n> --json reviews -q '.reviews[] | select(.author.login | test("copilot")) | .body'
+gh pr view <n> --json reviews -q '.reviews[] | select(.body != "") | "\(.author.login): \(.body)"'
 ```
 
 A body finding that links to a `#discussion_r` thread is that thread's
 finding; count it once. Triage the rest the same way and answer them in one
 PR comment.
 
-Threads from other bots (such as `aikido-pr-checks`) block the
+Threads from bots (such as `aikido-pr-checks`) block the
 merge too. Triage them the same way before merging.
 
-Add one line to the body's Evidence, updated with `/roadie:pr` (or
-`gh pr edit <n> --body-file`): "Copilot: N of M findings real", where real is
-fixed or filed and the rest stood. Zero findings is "Copilot: 0 findings". It
-counts Copilot only; give each other bot its own line, such as "Aikido: 1 of
-2 findings real". If an older body has no Evidence section, add one.
+For each bot that reviewed, add one line to the body's Evidence, updated
+with `/roadie:pr` (or `gh pr edit <n> --body-file`), such as "Aikido: 1 of 2
+findings real", where real is fixed or filed and the rest stood. Zero
+findings is "Aikido: 0 findings". If an older body has no Evidence section,
+add one.
 
 ## 6. Merge or hand off
 
