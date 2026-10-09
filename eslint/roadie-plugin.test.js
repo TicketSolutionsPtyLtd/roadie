@@ -174,12 +174,41 @@ const cases = {
   'no-fixed-sleep': {
     valid: [
       'await new Promise((resolve) => setTimeout(resolve, 0))',
-      'await expect.poll(() => value).toBe(1)'
+      'await new Promise((resolve) => setTimeout(resolve))',
+      'await expect.poll(() => value).toBe(1)',
+      // Timers that aren't awaited as a sleep.
+      'const timer = setTimeout(() => setTall(true), delay)',
+      'const echo = () => setTimeout(() => setPosition(next), 400)',
+      'vi.advanceTimersByTime(ms)'
     ],
     invalid: [
       'await new Promise((resolve) => setTimeout(resolve, 100))',
       'await page.waitForTimeout(50)',
-      "await userEvent.pointer([{ type: 'wait', ms: 20 }])"
+      "await userEvent.pointer([{ type: 'wait', ms: 20 }])",
+      'await new Promise((resolve) => setTimeout(resolve, ms))',
+      'await new Promise((resolve) => window.setTimeout(resolve, delay * 2))',
+      'await new Promise((resolve) => setTimeout(() => resolve(), DELAY))',
+      // Only the sleep: a function that does more than sleep isn't a helper.
+      {
+        code: 'async function mount(ms) {\n  render()\n  await new Promise((resolve) => setTimeout(resolve, ms))\n}\nawait mount(10)',
+        errors: 1
+      },
+      {
+        code: 'const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))\nawait wait(700)\nawait wait(300)',
+        errors: 3
+      },
+      {
+        code: 'const wait = (ms: number) =>\n  withFrames(() => new Promise((resolve) => setTimeout(resolve, ms)))\nit("waits", async () => {\n  await wait(700)\n})',
+        errors: 2
+      },
+      {
+        code: 'await sleep(50)\nfunction sleep(ms) {\n  return new Promise((resolve) => setTimeout(resolve, ms))\n}',
+        errors: 2
+      },
+      {
+        code: 'async function sleep(ms) {\n  await new Promise((resolve) => setTimeout(resolve, ms))\n}\nawait sleep(50)',
+        errors: 2
+      }
     ]
   },
   'no-css-source-in-jsdom': {
@@ -296,6 +325,48 @@ describe('import boundaries in eslint.config.js', () => {
     ]
   ])('allows %s in %s', async (code, filePath) => {
     expect(await ruleHits(code, filePath)).toEqual([])
+  })
+})
+
+describe('where no-fixed-sleep applies', () => {
+  const root = fileURLToPath(new URL('..', import.meta.url))
+  const linters = {
+    root: new ESLint({ cwd: root }),
+    docs: new ESLint({ cwd: `${root}docs` })
+  }
+  const sleep =
+    'export const settle = (ms: number) =>\n  new Promise((resolve) => setTimeout(resolve, ms))\n'
+
+  beforeAll(
+    () =>
+      Promise.all(
+        Object.values(linters).map((linter) =>
+          linter.lintText('', { filePath: 'src/index.ts' })
+        )
+      ),
+    60_000
+  )
+
+  const sleeps = async (config, filePath) => {
+    const [result] = await linters[config].lintText(sleep, { filePath })
+    return result.messages.filter(
+      ({ ruleId }) => ruleId === 'roadie/no-fixed-sleep'
+    ).length
+  }
+
+  it.each([
+    ['root', 'packages/components/src/components/Badge/Badge.test.tsx', 1],
+    [
+      'root',
+      'packages/components/src/components/Badge/Badge.browser.test.tsx',
+      1
+    ],
+    ['root', 'packages/components/src/components/Badge/index.tsx', 0],
+    ['docs', 'src/components/OnThisPage.test.tsx', 1],
+    ['docs', 'e2e/live-examples.e2e.test.ts', 1],
+    ['docs', 'src/components/landOn.ts', 0]
+  ])('%s config, %s: %i', async (config, filePath, hits) => {
+    expect(await sleeps(config, filePath)).toBe(hits)
   })
 })
 

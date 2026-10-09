@@ -85,6 +85,32 @@ const headingOffset = (page: Page, id: string) =>
     return heading.getBoundingClientRect().top - top - padding - margin
   }, id)
 
+/** Whether an example within the observer's reach, 150% of the docs scroller each way, is still to mount. */
+const mountingInReach = (page: Page) =>
+  page.evaluate(() => {
+    let scroller = document.getElementById('docs-content')?.parentElement
+    while (scroller && scroller.scrollHeight <= scroller.clientHeight + 1)
+      scroller = scroller.parentElement
+    const view = scroller?.getBoundingClientRect() ?? {
+      top: 0,
+      bottom: window.innerHeight,
+      height: window.innerHeight
+    }
+    const reach = view.height * 1.5
+    return [...document.querySelectorAll('[data-live-example=pending]')].some(
+      (node) => {
+        const { top, bottom } = node.getBoundingClientRect()
+        return bottom > view.top - reach + 1 && top < view.bottom + reach - 1
+      }
+    )
+  })
+
+/** How far a heading sits from where a jump lands it, once no example in reach is left to mount and move it. */
+const landedOffset = async (page: Page, id: string) =>
+  (await mountingInReach(page))
+    ? Infinity
+    : Math.abs(await headingOffset(page, id))
+
 const sideways = (page: Page) =>
   page.evaluate(
     () =>
@@ -121,9 +147,10 @@ describe('live examples', () => {
     const id = (await link.getAttribute('href'))!.slice(1)
 
     await link.click()
-    await page.waitForTimeout(3000)
 
-    expect(Math.abs(await headingOffset(page, id))).toBeLessThan(4)
+    await expect
+      .poll(() => landedOffset(page, id), { timeout: 10_000 })
+      .toBeLessThan(4)
     expect(errors).toEqual([])
     await page.context().close()
   }, 60_000)
@@ -134,9 +161,10 @@ describe('live examples', () => {
       `${ORIGIN}${BASE_PATH}/components/number-field/#accessibility`
     )
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(3000)
 
-    expect(Math.abs(await headingOffset(page, 'accessibility'))).toBeLessThan(4)
+    await expect
+      .poll(() => landedOffset(page, 'accessibility'), { timeout: 10_000 })
+      .toBeLessThan(4)
     expect(errors).toEqual([])
     await page.context().close()
   }, 60_000)
@@ -146,14 +174,12 @@ describe('live examples', () => {
       '/components/number-field/#%E0%A4%A',
       1280
     )
-    await page.waitForTimeout(1000)
-
-    expect(
-      await page
-        .getByRole('navigation', { name: 'On this page' })
-        .getByRole('link')
-        .count()
-    ).toBeGreaterThan(0)
+    // The links render after the effect that reads the hash.
+    await page
+      .getByRole('navigation', { name: 'On this page' })
+      .getByRole('link')
+      .first()
+      .waitFor()
     expect(errors).toEqual([])
     await page.context().close()
   }, 60_000)

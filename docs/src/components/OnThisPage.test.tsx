@@ -64,11 +64,12 @@ describe('useDocHeadings', () => {
   it('follows headings the page replaces after collecting', async () => {
     const { content, result } = mountPage()
     content.innerHTML = '<h2>API reference</h2><h3>StatTile</h3>'
-    await act(() => new Promise((resolve) => setTimeout(resolve, 20)))
-    expect(result.current.headings.map((h) => h.id)).toEqual([
-      'api-reference',
-      'stattile'
-    ])
+    await waitFor(() =>
+      expect(result.current.headings.map((h) => h.id)).toEqual([
+        'api-reference',
+        'stattile'
+      ])
+    )
     act(() => result.current.onSelect(event, 'stattile'))
     expect(content.querySelector('h3')?.id).toBe('stattile')
   })
@@ -79,11 +80,12 @@ describe('useDocHeadings', () => {
     next.id = 'docs-content'
     next.innerHTML = '<h2>API reference</h2><h3>StatTile</h3>'
     content.replaceWith(next)
-    await act(() => new Promise((resolve) => setTimeout(resolve, 20)))
-    expect(result.current.headings.map((h) => h.id)).toEqual([
-      'api-reference',
-      'stattile'
-    ])
+    await waitFor(() =>
+      expect(result.current.headings.map((h) => h.id)).toEqual([
+        'api-reference',
+        'stattile'
+      ])
+    )
     act(() => result.current.onSelect(event, 'stattile'))
     expect(next.querySelector('h3')?.id).toBe('stattile')
   })
@@ -100,8 +102,10 @@ describe('useDocHeadings', () => {
     const example = document.createElement('div')
     example.dataset.liveExample = 'rendered'
     example.innerHTML = '<h2>Demo heading</h2>'
+    const before = result.current.headings
     content.append(example)
-    await act(() => new Promise((resolve) => setTimeout(resolve, 20)))
+    // Each mutation collects afresh, so a new list shows it has looked.
+    await waitFor(() => expect(result.current.headings).not.toBe(before))
     expect(result.current.headings.map((h) => h.id)).toEqual([
       'api-reference',
       'meter',
