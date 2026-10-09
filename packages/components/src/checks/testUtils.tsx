@@ -381,10 +381,12 @@ type KnownLowContrast = {
   floor: number
   theme?: Theme
   ticket: string
+  /** Set when the pair stays by decision: why it's accepted. */
+  permanent?: string
 }
 
 // Pairs under their minimum that already shipped. Each leaves once its
-// ticket is fixed; anything not listed fails the check.
+// ticket is fixed, unless it's permanent; anything not listed fails the check.
 const knownLowContrast: KnownLowContrast[] = [
   {
     role: 'body text',
@@ -394,10 +396,16 @@ const knownLowContrast: KnownLowContrast[] = [
   },
   {
     role: 'non-text UI',
-    matches: ({ element }) => element.matches('.intent-accent'),
+    matches: ({ element }) =>
+      element.matches('.intent-accent') &&
+      element.closest('button[data-date]') !== null,
     floor: 35,
     theme: 'dark',
-    ticket: 'https://oztix.atlassian.net/browse/INNO-1198'
+    ticket: 'https://oztix.atlassian.net/browse/INNO-1198',
+    // Lc 38.9 on the dark popover and 40.1 on the page, for the accent strong
+    // fill of a chosen day.
+    permanent:
+      "The chosen day's white semibold label carries the selected state. A search of the sRGB gamut found no fill that reaches Lc 45 against the dark surfaces with a white label at Lc 60 or more; the best was about 44.8 and 59.8."
   }
 ]
 

@@ -29,8 +29,15 @@ computed colours in the browser to assert these minimums by role. Pairs that
 already shipped under their minimum are allow-listed with a ticket. The brand
 Colour page states APCA only.
 
+One pair is excepted for good: the accent strong fill of a chosen day in
+Calendar measures Lc 38.9 against the dark popover and 40.1 against the dark
+page. Its white semibold label carries the selected state. No colour in the
+sRGB gamut reaches Lc 45 against those surfaces while keeping a white label at
+Lc 60; the closest is about 44.8 and 59.8 (INNO-1198).
+
 ## Links
 
 - INNO-1182, white on the accent strong fill
 - INNO-1148, decision 5 as updated on 9 October 2026
 - INNO-1132, the accessibility check
+- INNO-1198, the chosen day's fill in dark mode
