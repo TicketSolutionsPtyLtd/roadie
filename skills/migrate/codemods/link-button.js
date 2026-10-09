@@ -40,15 +40,30 @@ function importButton(j, root, name) {
   if (buttonImport.size() > 0) {
     buttonImport.get().node.specifiers.push(specifier)
   } else {
-    root
+    const first = root
       .find(j.ImportDeclaration)
       .filter((path) => COMPONENTS.test(path.node.source.value))
-      .at(0)
-      .insertBefore(
-        j.importDeclaration([specifier], j.stringLiteral(BUTTON_SOURCE))
-      )
+      .get()
+    const declaration = j.importDeclaration(
+      [specifier],
+      j.stringLiteral(BUTTON_SOURCE)
+    )
+    // The new import goes first, so it takes the group's leading comment.
+    declaration.comments = first.node.comments
+    first.node.comments = null
+    first.insertBefore(declaration)
   }
   return local
+}
+
+// A header comment, licence, or lint directive often sits on the first import.
+function removeKeepingComments(path) {
+  const body = path.parent.node.body
+  const next = body[body.indexOf(path.node) + 1]
+  if (path.node.comments && next) {
+    next.comments = [...path.node.comments, ...(next.comments ?? [])]
+  }
+  path.prune()
 }
 
 function dropSpecifier(j, root, local) {
@@ -59,7 +74,7 @@ function dropSpecifier(j, root, local) {
       path.node.specifiers = path.node.specifiers.filter(
         (specifier) => specifier.local.name !== local
       )
-      if (path.node.specifiers.length === 0) j(path).remove()
+      if (path.node.specifiers.length === 0) removeKeepingComments(path)
     })
 }
 
