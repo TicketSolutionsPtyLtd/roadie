@@ -3,6 +3,7 @@
   "extends": ["//"],
   "tasks": {
     "build": {
+      "outputs": ["$TURBO_EXTENDS$", "src/tokens/tokens.json"],
       "inputs": [
         "$TURBO_EXTENDS$",
         "$TURBO_ROOT$/tsconfig.base.json",
