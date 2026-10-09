@@ -84,6 +84,9 @@ const reduceTransparency: BrowserCommand<[reduce: boolean]> = async (
 const forcedColors: BrowserCommand<[active: boolean]> = ({ page }, active) =>
   page.emulateMedia({ forcedColors: active ? 'active' : 'none' })
 
+const printMedia: BrowserCommand<[active: boolean]> = ({ page }, active) =>
+  page.emulateMedia({ media: active ? 'print' : 'screen' })
+
 // The pointer stays wherever the last test file on the page left it, so a
 // test that needs nothing hovered parks it in the top-left corner first.
 const parkPointer: BrowserCommand<[]> = ({ page }) => page.mouse.move(0, 0)
@@ -203,6 +206,7 @@ const browserTest = {
     reduceMotion,
     reduceTransparency,
     forcedColors,
+    printMedia,
     parkPointer,
     pointer,
     tap,

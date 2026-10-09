@@ -126,9 +126,21 @@ export default [
     files: ['packages/**/*.test.{ts,tsx}'],
     ignores: [
       '**/*.browser.test.{ts,tsx}',
-      'packages/core/src/utils/cn.test.ts'
+      // Parity tests: each checks a generated file or a mirrored constant
+      // against the CSS it comes from, not rendered behaviour.
+      'packages/core/src/utils/cn.test.ts',
+      // palette.ts mirrors tokens.css.
+      'packages/core/src/dataviz/parity.test.ts',
+      // The audit and charts skills mirror palette.ts and tokens.css.
+      'packages/core/src/dataviz/skill-parity.test.ts',
+      // tokens.json is generated from every sheet roadie.css imports.
+      'packages/core/src/tokens/manifest.test.ts',
+      // NAVIGATOR_EXPANDED_SCOPE mirrors the variant so jsdom tests can match it.
+      'packages/core/src/css/navigator-variant.test.ts',
+      // safelist.html must name every @utility in charts.css.
+      'packages/charts/src/css/safelist.test.ts'
     ],
-    rules: { 'roadie/no-css-source-in-jsdom': 'warn' }
+    rules: { 'roadie/no-css-source-in-jsdom': 'error' }
   },
   {
     files: ['packages/widgets/src/cart-drawer/react/**/*.{ts,tsx}'],

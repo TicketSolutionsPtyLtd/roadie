@@ -10,6 +10,7 @@ declare module 'vitest/browser' {
     /** Resolves false where it can't emulate, which is everywhere but Chromium. */
     reduceTransparency: (reduce: boolean) => Promise<boolean>
     forcedColors: (active: boolean) => Promise<void>
+    printMedia: (active: boolean) => Promise<void>
     parkPointer: () => Promise<void>
     /** Drives a real mouse, in the test frame's CSS pixels. */
     pointer: (steps: PointerStep[]) => Promise<void>
