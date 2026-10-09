@@ -41,12 +41,23 @@ function tapEnded() {
   }
   for (const [type, listener] of Object.entries(listeners))
     window.addEventListener(type, listener, true)
-  return async () => {
+  const seen: Event[] = []
+  const DEBUG = ['touchstart', 'touchend', 'touchcancel', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'pointercancel']
+  const record = (event: Event) => seen.push(event)
+  for (const type of DEBUG) window.addEventListener(type, record, true)
+  return async (x: number, y: number) => {
     try {
       await expect
         .poll(() => clicked || cancelled || !!touchEnd?.defaultPrevented)
         .toBe(true)
+    } catch (error) {
+      const describe = (event: Event) => {
+        const target = event.target as Element | null
+        return `${event.type}:${target?.tagName}:${target?.getAttribute?.('data-slot')}:${(target?.textContent ?? '').slice(0, 20)}:${event.defaultPrevented}:${event.isTrusted}`
+      }
+      throw new Error(`TAPDEBUG ${seen.map(describe).join(' | ')} || at point: ${document.elementFromPoint(x, y)?.outerHTML.slice(0, 200)}`)
     } finally {
+      for (const type of DEBUG) window.removeEventListener(type, record, true)
       for (const [type, listener] of Object.entries(listeners))
         window.removeEventListener(type, listener, true)
     }
@@ -66,5 +77,5 @@ export async function tapOn(element: Element, spot: TapSpot = 'text') {
           : [left + Math.min(20, width / 2), top + height / 2]
   const ended = tapEnded()
   await commands.tap(x, y)
-  await ended()
+  await ended(x, y)
 }
