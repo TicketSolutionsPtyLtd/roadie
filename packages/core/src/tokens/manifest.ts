@@ -187,6 +187,7 @@ type Declaration = {
   sheet: string
   dark: boolean
   modern: boolean
+  unsupported: boolean
   theme: boolean
   utility?: string
 }
@@ -200,7 +201,8 @@ const SECTION_RULE = /[─═]/
 const blankComments = (css: string) =>
   css.replace(COMMENT, (c) => c.replace(/[^\n]/g, ' '))
 
-const squash = (s: string) => s.replace(/\s+/g, ' ').trim()
+const squash = (s: string) =>
+  s.replace(/\s+/g, ' ').replace(/\( /g, '(').replace(/ \)/g, ')').trim()
 
 /** The comment that ends right before `offset`, unless it is a section banner. */
 function commentBefore(css: string, offset: number) {
@@ -238,6 +240,7 @@ function walk(
       sheet,
       dark: preludes.some((p) => /(^|\s)\.dark\b/.test(p)),
       modern: preludes.some((p) => p.startsWith('@supports (color: oklch')),
+      unsupported: preludes.some((p) => p.startsWith('@supports not')),
       theme: preludes.some((p) => p.startsWith('@theme')),
       utility: preludes
         .find((p) => p.startsWith('@utility'))
@@ -325,13 +328,19 @@ export function parseTokenManifest(
   const pick = (list: Declaration[]) =>
     (list.findLast((d) => d.modern) ?? list.at(-1))?.value
 
+  // Only browsers lacking a feature read a `@supports not` block, so any other declaration wins.
+  const supported = (list: Declaration[]) => {
+    const kept = list.filter((d) => !d.unsupported)
+    return kept.length > 0 ? kept : list
+  }
+
   const variables = new Map<string, TokenEntry>()
   const sortKey = new Map<TokenEntry, [rule: number, order: number]>()
   const valueOf = new Map<string, ModeValue>()
 
   for (const name of publicNames) {
     const own = declarations.filter((d) => d.name === name && !d.utility)
-    const real = own.filter((d) => d.value !== `var(${name})`)
+    const real = supported(own.filter((d) => d.value !== `var(${name})`))
     const light = real.filter((d) => !d.dark)
     const dark = real.filter((d) => d.dark)
     const lightValue = pick(light)
@@ -344,8 +353,10 @@ export function parseTokenManifest(
 
     const byIntent: Partial<Record<Intent, ModeValue>> = {}
     for (const intent of INTENTS) {
-      const scoped = declarations.filter(
-        (d) => d.name === name && d.utility === `intent-${intent}`
+      const scoped = supported(
+        declarations.filter(
+          (d) => d.name === name && d.utility === `intent-${intent}`
+        )
       )
       const values = {
         light: pick(scoped.filter((d) => !d.dark)),
