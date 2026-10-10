@@ -145,7 +145,8 @@ We use [changesets](https://github.com/changesets/changesets) to manage versioni
    pnpm changeset
    ```
 
-   - Select affected packages (core/components)
+   - Select affected packages (core/components, or `roadie-skills` for any
+     change under `skills/`)
    - Choose change type: `major`, `minor`, or `patch`
    - Write a clear description of your changes (this appears in the changelog)
 
@@ -207,6 +208,15 @@ Choose the appropriate version bump based on the impact:
 - **`major` (1.0.0)**: Breaking changes requiring user action (API changes, removals)
 - **`minor` (0.1.0)**: New features, non-breaking additions (new components, new props)
 - **`patch` (0.0.1)**: Bug fixes, documentation updates, internal improvements
+
+### Plugin skills
+
+The Claude Code plugin's skills in `skills/` are versioned by the private
+`roadie-skills` package, which never publishes to npm. A PR that changes
+`skills/`, including `skills/.claude-plugin/plugin.json`, needs a
+`roadie-skills` changeset: `patch` for wording and fixes, `minor` for a new
+skill or a change in what one does. CI rejects a PR without one, and rejects a
+`major` bump. See [`skills/README.md`](skills/README.md).
 
 ### Multiple Changes
 
