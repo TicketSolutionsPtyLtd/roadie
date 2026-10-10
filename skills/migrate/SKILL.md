@@ -37,7 +37,7 @@ node -e '
 for (const p of ["core", "components", "charts", "widgets"]) {
   let manifest
   try { manifest = require(`@oztix/roadie-${p}/roadie.manifest.json`) }
-  catch { console.log(`no manifest: @oztix/roadie-${p}`); continue }
+  catch (e) { console.log(`no manifest: @oztix/roadie-${p} (${e.code})`); continue }
   for (const d of manifest.deprecations)
     console.log([d.import, d.export, d.prop ?? "", d.reason].join(" | "))
 }'
@@ -161,7 +161,12 @@ read off a namespace outside JSX, such as `Roadie.LinkButtonProps`, where
 
 Both report every `export … from` that re-exports a deprecated name, and
 every `export *` from a module that exports one, because renaming them
-changes the app's own exports.
+changes the app's own exports. They also report an `import('…')` of a module
+with a deprecated export, and `widgets-renames` moves an
+`import('…/cart-drawer/core')` to the new path.
+
+Every codemod leaves a local variable or parameter that shadows the import,
+and a same-named export from another package.
 
 ## 5. Migrate the rest by hand
 

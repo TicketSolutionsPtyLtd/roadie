@@ -13,6 +13,8 @@ const COMPONENT =
   /<PropsDefinitions\b[^>]*?\bcomponent=(?:'([^']+)'|"([^"]+)"|\{\[([^\]]*)\]\})/g
 const QUOTED = /'([^']+)'|"([^"]+)"/g
 const LIVE_FENCE = /^```tsx-live[^\n]*\n([\s\S]*?)^```/m
+const TSX_FENCE = /^```tsx(?:[ \t][^\n]*)?\n([\s\S]*?)^```/m
+const USAGE = /^## Usage\n([\s\S]*?)(?=^## |(?![\s\S]))/m
 
 const METADATA = /^export const metadata = \{\n([\s\S]*?)^\}/m
 
@@ -35,7 +37,9 @@ export function parseDocsPage(mdx: string, route: string): DocsPage {
         ? [(single ?? double)!]
         : Array.from(list.matchAll(QUOTED), ([, a, b]) => (a ?? b)!)
   )
-  const example = mdx.match(LIVE_FENCE)?.[1]?.trimEnd()
+  // A page with no live example, such as a widget's, shows its usage code.
+  const example = (mdx.match(LIVE_FENCE) ??
+    mdx.match(USAGE)?.[1]?.match(TSX_FENCE))?.[1]?.trimEnd()
   return {
     route,
     components,

@@ -4,11 +4,8 @@ import { useId } from 'react'
 
 import { CheckIcon, MoonIcon, SunIcon } from '@phosphor-icons/react'
 
-import {
-  Button,
-  DEFAULT_ACCENT_COLOR,
-  useTheme
-} from '@oztix/roadie-components'
+import { Button, useTheme } from '@oztix/roadie-components'
+import { DEFAULT_ACCENT_COLOR } from '@oztix/roadie-core/theme'
 
 const ACCENT_PRESETS = [
   { label: 'Blue (default)', hex: DEFAULT_ACCENT_COLOR },

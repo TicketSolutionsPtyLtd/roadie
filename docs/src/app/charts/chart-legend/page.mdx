@@ -12,7 +12,7 @@ A key whose shapes match the marks.
 ## Import
 
 ```tsx
-import { ChartLegend } from '@oztix/roadie-charts/chart-legend'
+import { ChartLegend, LegendKey } from '@oztix/roadie-charts/chart-legend'
 ```
 
 ## Examples
@@ -52,6 +52,20 @@ import { ChartLegend } from '@oztix/roadie-charts/chart-legend'
     { label: 'Companion', color: 'var(--chart-4)' }
   ]}
 />
+```
+
+### A key on its own
+
+`LegendKey` draws one item's shape without a label, for a row that a legend
+doesn't lay out, such as a tooltip's. It takes the same `shape`, `color`,
+`slot`, and `median` as an item and is hidden from assistive technology, so
+the row's text names the series.
+
+```tsx-live
+<p className='flex items-center gap-1.5 text-display-ui-6 text-subtle'>
+  <LegendKey shape='line' slot={1} />
+  Sold
+</p>
 ```
 
 ## Guidelines

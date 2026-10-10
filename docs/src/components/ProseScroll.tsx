@@ -39,7 +39,7 @@ export function ProseScroll(
   return (
     <div
       ref={ref}
-      className='prose-scroll'
+      className='prose-scroll is-focusable'
       {...props}
       {...(name && { role: 'region', tabIndex: 0, ...name })}
     />

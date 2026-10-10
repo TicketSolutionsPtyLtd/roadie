@@ -2,7 +2,7 @@ import { ScaleSwatches } from '@/components/colors/ScaleSwatches'
 import { accentDefaults } from '@/lib/foundation-scales'
 import { getTokens } from '@/lib/tokens'
 
-import { DEFAULT_ACCENT_COLOR } from '@oztix/roadie-components'
+import { DEFAULT_ACCENT_COLOR } from '@oztix/roadie-core/theme'
 
 /** The accent parameters with their defaults, then the scales they drive, live in the current theme. */
 export async function AccentScales() {

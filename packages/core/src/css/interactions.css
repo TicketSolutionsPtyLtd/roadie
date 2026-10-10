@@ -269,16 +269,13 @@
     transform var(--duration-normal) var(--ease-spring);
 }
 
-@utility is-interactive {
-  cursor: pointer;
+/* is-interactive's focus ring alone, for a focus target that isn't clicked,
+   such as a scroll region or a tabIndex=-1 landing target. is-interactive
+   applies it, so the two compose on one element in either order. */
+@utility is-focusable {
   outline: 0 solid transparent;
   transition: var(--interactive-transition);
 
-  &:active {
-    transform: scale(0.99);
-  }
-
-  /* Focus ring — intent-colored with transparency for a soft glow */
   &:focus-visible {
     outline: var(--focus-ring-width) solid
       color-mix(
@@ -295,6 +292,15 @@
       var(--intent-9) var(--focus-ring-opacity-dark),
       transparent
     );
+  }
+}
+
+@utility is-interactive {
+  cursor: pointer;
+  @apply is-focusable;
+
+  &:active {
+    transform: scale(0.99);
   }
 
   &:disabled,
