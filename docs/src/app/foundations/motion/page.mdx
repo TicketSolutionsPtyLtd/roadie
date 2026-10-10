@@ -1,0 +1,539 @@
+export const metadata = {
+  title: 'Motion',
+  description:
+    'Duration, easing, and animation tokens for purposeful, accessible motion.',
+  category: 'Behaviour'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { TransitionList } from '@/components/interactions/TransitionList'
+import { DurationScale } from '@/components/motion/DurationScale'
+import { EasingScale } from '@/components/motion/EasingScale'
+import { Button } from '@oztix/roadie-components/button'
+
+Motion is feedback. Every transition tells the user what happened, what's
+happening, or where to look. If it doesn't do one of those jobs, cut it.
+
+## Motion principles
+
+Three principles define how Oztix products move. Every animation decision
+should trace back to one of them.
+
+### Responsive
+
+Motion reacts to input at once. Like a crew backstage, things happen when
+they should.
+
+### Grounded
+
+Elements feel like they have weight. Things land where they belong, with just
+enough give to feel real.
+
+### Efficient
+
+Every animation earns its place. If it doesn't orient, direct, or confirm, cut
+it.
+
+## Duration scale
+
+Duration scales with distance and size. A toggle switch moves fast, and a
+drawer needs more time. Match the duration to the physical scale of the
+element. On the docs site, each duration is a bar scaled to the longest, with
+its value, its class, and its job.
+
+<DurationScale />
+
+`duration-instant` to `duration-slowest` are Tailwind classes. The two
+ambient durations and `--stagger-base` have no class, so read them with
+`var()`, as the loading utilities do.
+
+| Tier      | Steps                                       | Use for                                        |
+| --------- | ------------------------------------------- | ---------------------------------------------- |
+| Micro     | `duration-fastest` to `duration-normal`     | Hover, focus, press, and popups                |
+| Component | `duration-moderate` and `duration-slow`     | Disclosures, dialogs, and drawers              |
+| Page      | `duration-slower` and `duration-slowest`    | Toasts and attention cues                      |
+| Ambient   | `--duration-ambient` and `--duration-sweep` | One loop or pass of a loading animation        |
+
+## Easing curves
+
+Easing gives motion its character. The three curves suit any property, and
+the two springs are for transforms only. On the docs site, each easing is
+drawn as its curve over a dashed line at its end value, with its value, its
+class, how far it overshoots, and its job.
+
+<EasingScale />
+
+`--ease-spring` peaks 1.7% past its end, too little to see as a bounce on a
+move under 100px, so it reads as a soft settle. `--ease-spring-lively`
+overshoots by about 9%, which shows as a bounce, so keep it for surfaces that
+should catch the eye, such as toasts.
+
+## Motion utilities
+
+`animate-*` is a keyframe animation that plays as soon as the class is on the
+element. `motion-*` is a transition that plays as an element enters or
+leaves, on Base UI's `data-starting-style` and `data-ending-style`. Both
+compose with Tailwind's `motion-safe:` and `motion-reduce:` variants, and the
+reduced motion reset cuts both short, as Accessibility describes.
+
+### Duration classes
+
+`duration-*` sets `transition-duration` from the scale. Select Play to run
+each bar over its duration.
+
+```tsx-live-noinline
+function Durations() {
+  const [played, setPlayed] = useState(false)
+  const durations = [
+    'duration-fast',
+    'duration-normal',
+    'duration-moderate',
+    'duration-slow',
+    'duration-slowest'
+  ]
+  return (
+    <div className='grid gap-3'>
+      <Button emphasis='normal' size='sm' className='justify-self-start' onClick={() => setPlayed(!played)}>
+        {played ? 'Reset' : 'Play'}
+      </Button>
+      {durations.map((duration) => (
+        <div key={duration} className='grid grid-cols-[9rem_minmax(0,1fr)] items-center gap-3'>
+          <code className='text-sm'>{duration}</code>
+          <div className='h-2 rounded-full emphasis-sunken'>
+            <div className={`h-full origin-left rounded-full bg-strong intent-brand transition-transform ease-standard ${duration} ${played ? 'scale-x-100' : 'scale-x-0'}`} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+render(<Durations />)
+```
+
+### Easing classes
+
+`ease-*` sets `transition-timing-function` from the curves. Each bar runs over
+`duration-slowest`, so the shape of each curve shows. The lively spring runs
+past the end of its track.
+
+```tsx-live-noinline
+function Easings() {
+  const [played, setPlayed] = useState(false)
+  const easings = [
+    'ease-standard',
+    'ease-enter',
+    'ease-exit',
+    'ease-spring',
+    'ease-spring-lively'
+  ]
+  return (
+    <div className='grid gap-3'>
+      <Button emphasis='normal' size='sm' className='justify-self-start' onClick={() => setPlayed(!played)}>
+        {played ? 'Reset' : 'Play'}
+      </Button>
+      {easings.map((easing) => (
+        <div key={easing} className='grid grid-cols-[9rem_minmax(0,1fr)] items-center gap-3'>
+          <code className='text-sm'>{easing}</code>
+          <div className='h-2 rounded-full emphasis-sunken'>
+            <div className={`h-full origin-left rounded-full bg-strong intent-brand transition-transform duration-slowest ${easing} ${played ? 'scale-x-100' : 'scale-x-0'}`} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+render(<Easings />)
+```
+
+### Entrances
+
+Entrances play once when the element mounts. Select Replay to mount the cards
+again.
+
+```tsx-live-noinline
+function Entrances() {
+  const [run, setRun] = useState(0)
+  return (
+    <div className='grid gap-4'>
+      <Button emphasis='normal' size='sm' className='justify-self-start' onClick={() => setRun(run + 1)}>
+        Replay
+      </Button>
+      <div key={run} className='grid gap-3 sm:grid-cols-3'>
+        <Card emphasis='raised' className='animate-fade-in'>
+          <Card.Header>
+            <Card.Title>Ochre Kite Weekender</Card.Title>
+            <Card.Description>animate-fade-in</Card.Description>
+          </Card.Header>
+        </Card>
+        <Card emphasis='raised' className='animate-scale-in'>
+          <Card.Header>
+            <Card.Title>Lampshade Disco</Card.Title>
+            <Card.Description>animate-scale-in</Card.Description>
+          </Card.Header>
+        </Card>
+        <Card emphasis='raised' className='origin-bottom animate-pop-in'>
+          <Card.Header>
+            <Card.Title>Nectarine Hoedown</Card.Title>
+            <Card.Description>animate-pop-in</Card.Description>
+          </Card.Header>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+render(<Entrances />)
+```
+
+| Utility            | What it does                                                        |
+| ------------------ | ------------------------------------------------------------------- |
+| `animate-fade-in`  | Fades in from transparent                                           |
+| `animate-scale-in` | Scales up from 95% as it fades in, on `--ease-spring`               |
+| `animate-pop-in`   | Fades, slides up, and scales in. Pair with `origin-*` to set its edge |
+
+### Attention cues
+
+A cue plays once each time the class goes on, so remount the element, or
+remove and add the class, to replay it. Add a ticket to see `animate-pop` on
+the badge.
+
+```tsx-live-noinline
+function AddToCart() {
+  const [count, setCount] = useState(2)
+  return (
+    <div className='flex flex-wrap items-center gap-3'>
+      <Button emphasis='strong' onClick={() => setCount(count + 1)}>
+        Add a ticket
+      </Button>
+      <Badge key={count} intent='accent' emphasis='strong' className='animate-pop'>
+        {count} in cart
+      </Badge>
+    </div>
+  )
+}
+
+render(<AddToCart />)
+```
+
+| Utility           | What it does                                                         |
+| ----------------- | -------------------------------------------------------------------- |
+| `animate-shake`   | Shakes sideways, for a validation error or an invalid input          |
+| `animate-nudge`   | Nudges up and back, such as a cart that takes a new item             |
+| `animate-pop`     | Pops larger and back, such as a badge whose count changes            |
+| `animate-pop-tap` | The same pop, faster and on a spring, for feedback under a tap       |
+
+### Loading
+
+Loading animations loop until the content arrives. Skeleton applies
+`animate-shimmer`, and Progress applies `animate-indeterminate` when it has no
+value.
+
+```tsx-live layout=stack width=80
+{/* Pulse */}
+<div className='h-10 rounded-xl emphasis-subtle animate-pulse-subtle' />
+{/* Shimmer */}
+<div className='h-10 rounded-xl emphasis-subtle animate-shimmer' />
+{/* Indeterminate */}
+<div className='relative h-2 overflow-hidden rounded-full emphasis-sunken'>
+  <div className='rounded-full bg-strong intent-brand animate-indeterminate' />
+</div>
+```
+
+| Utility                 | What it does                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `animate-pulse-subtle`  | Pulses the opacity, for a surface waiting on something                       |
+| `animate-shimmer`       | Pulses under a highlight anchored to the viewport, so every placeholder shares one sweep |
+| `animate-indeterminate` | Sweeps a bar across a positioned parent that clips its overflow              |
+
+### Enter and exit transitions
+
+These transitions run on Base UI's starting and ending styles, so the exit
+plays before the element unmounts. Open the popover to see `motion-scale`.
+
+```tsx-live
+<Popover>
+  <Popover.Trigger render={<Button>Set times</Button>} />
+  <Popover.Content>
+    <Popover.Header>
+      <Popover.Title>Feathered Anchor Sessions</Popover.Title>
+      <Popover.Description>Doors 7pm, first act 8pm.</Popover.Description>
+    </Popover.Header>
+  </Popover.Content>
+</Popover>
+```
+
+| Utility                  | What it does                                                        | Used by                     |
+| ------------------------ | ------------------------------------------------------------------- | --------------------------- |
+| `motion-scale`           | Scales from 95% and fades. Pair with `origin-*` to scale from a point | Menu, Popover, and Tooltip  |
+| `motion-slide`           | Fades and slides up on enter, down on exit                          | Dialog                      |
+| `motion-drawer`          | Slides off its anchored edge and tracks a live swipe                | Drawer                      |
+| `motion-toast`           | Stacks, fans out, and tracks a live swipe                           | Toast                       |
+| `is-disclosure-animated` | Opens and closes a `<details>` or collapsible panel by height       | Accordion and Collapsible   |
+
+### Deprecated utilities
+
+These go in v3. Swap each for its replacement.
+
+| Utility            | Replacement                      |
+| ------------------ | -------------------------------- |
+| `motion-fade-in`   | `animate-fade-in`                |
+| `motion-scale-in`  | `animate-scale-in`               |
+| `motion-pop-in`    | `animate-pop-in`                 |
+| `motion-fade-out`  | `motion-scale` or `motion-slide` |
+| `motion-scale-out` | `motion-scale` or `motion-slide` |
+
+## Motion patterns
+
+Motion tokens are wired into the other foundations. These are the places they
+meet.
+
+### Interactive elements
+
+`is-interactive` animates colour, shadow, outline, and transform from the
+motion tokens, so a button needs no transition of its own. Hover and press
+the button to see the colour shift and the press scale.
+
+```tsx-live
+<Button emphasis='strong'>Buy tickets</Button>
+```
+
+`--interactive-transition` sets each property that animates, with its
+duration and its easing token.
+
+<TransitionList />
+
+`is-interactive-field` moves form fields on `--ease-enter` instead. See
+[Interactions](/foundations/interactions) for the full breakdown.
+
+### Raised surfaces
+
+`emphasis-raised` lifts and deepens its shadow on hover only with
+`is-interactive`, whose transition animates the change. On its own it has no
+transition. Hover each card to compare. A `Card` with an `href` takes
+`is-interactive`.
+
+```tsx-live layout=stack width=80
+{/* Static */}
+<Card emphasis='raised'>
+  <Card.Header>
+    <Card.Title>Tuxedo Possum Cabaret</Card.Title>
+  </Card.Header>
+</Card>
+{/* Interactive */}
+<Card emphasis='raised' href='#raised-surfaces'>
+  <Card.Header>
+    <Card.Title>Tuxedo Possum Cabaret</Card.Title>
+  </Card.Header>
+</Card>
+```
+
+The shadow moves from `shadow-md` to `shadow-lg` over `duration-moderate` on
+`ease-standard`, and the lift rides the transform on `ease-spring`. See
+[Elevation](/foundations/elevation) for the shadow scale.
+
+### Staggered lists
+
+Delay each item by `--stagger-base` times its index, so the eye follows the
+list in order. `--stagger-base` is 30ms and has no class. Select Replay to
+mount the lineup again.
+
+```tsx-live-noinline
+function Lineup() {
+  const [run, setRun] = useState(0)
+  const acts = [
+    'Lampshade Disco',
+    'Feathered Anchor Sessions',
+    'Marzipan Thunderclap',
+    'Tuxedo Possum Cabaret'
+  ]
+  return (
+    <div className='grid gap-4'>
+      <Button emphasis='normal' size='sm' className='justify-self-start' onClick={() => setRun(run + 1)}>
+        Replay
+      </Button>
+      <ol key={run} className='grid gap-2'>
+        {acts.map((act, index) => (
+          <li
+            key={act}
+            className='rounded-xl emphasis-raised p-3 animate-pop-in [animation-delay:calc(var(--stagger-base)*var(--index))]'
+            style={{ '--index': index }}
+          >
+            {act}
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
+render(<Lineup />)
+```
+
+### Page transitions
+
+A route change that moves the page uses the same tokens through the View
+Transitions API. The old page leaves over `--duration-moderate` on
+`--ease-exit`, and the new one arrives over `--duration-slow` on
+`--ease-enter`. See [View transitions](/foundations/view-transitions) for the
+recipe.
+
+## Guidelines
+
+- Never block the interface. A user who selects Close on an opening dialog
+  should see it close at once. Prefer transitions, which reverse from where
+  they are, over keyframe animations, which play to the end.
+- Don't make anyone watch a two-second success animation before they can
+  select Next. It's delightful once and infuriating the fiftieth time.
+- Test every animation with reduced motion on before you ship it, as
+  Accessibility describes.
+
+<Guidelines>
+
+<Guideline title='Give every animation a job' description="Motion shows cause and effect. If an animation doesn't orient, direct focus, give feedback, or show a state change, cut it.">
+  <Guideline.Do example={<Button emphasis='strong'>Buy tickets</Button>}>
+    Scale a button down as it's pressed, to confirm the press landed. Scale a
+    popup in from its trigger, to show what opened it. Each transition has one
+    job.
+  </Guideline.Do>
+  <Guideline.Dont example={<p className='animate-bounce text-display-ui-5 text-strong'>Ochre Kite Weekender</p>}>
+    Don't bounce a heading on page load because it looks fun. Motion on static
+    content rarely says anything.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Be specific about what moves' description='Precision prevents side effects. Name each property that transitions.'>
+  <Guideline.Do
+    code={`
+      transition:
+        background-color var(--duration-moderate) var(--ease-standard),
+        transform var(--duration-normal) var(--ease-spring);
+    `}
+  >
+    List each property. `is-interactive` does this for interactive elements.
+  </Guideline.Do>
+  <Guideline.Dont code={`transition: all 150ms ease-out;`}>
+    Don't use `transition-all`. It animates padding, font size, and anything
+    else that changes, which recalculates layout on every frame.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Use tokens, not magic numbers' description='Tokens keep motion consistent as the system grows. Hardcoded values drift.'>
+  <Guideline.Do
+    code={`
+      transition:
+        background-color var(--duration-moderate) var(--ease-standard);
+    `}
+  >
+    Use the duration and easing tokens, so one change updates every component.
+  </Guideline.Do>
+  <Guideline.Dont code={`transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);`}>
+    Don't copy `0.2s cubic-bezier(0.4, 0, 0.2, 1)` across 15 files. One typo
+    and things feel off.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Springs for transforms, curves for colour' description='A spring suggests mass and momentum, which only makes sense for something that moves.'>
+  <Guideline.Do
+    code={`
+      transition:
+        transform var(--duration-normal) var(--ease-spring),
+        background-color var(--duration-moderate) var(--ease-standard);
+    `}
+  >
+    Use `ease-spring` for small transforms, where it settles softly, and
+    `ease-spring-lively` when the bounce should show. Use `ease-standard` for
+    colour and opacity.
+  </Guideline.Do>
+  <Guideline.Dont code={`transition: opacity var(--duration-moderate) var(--ease-spring-lively);`}>
+    Don't put a spring on opacity or colour. Nothing about a colour change has
+    momentum, and an overshoot on opacity just flickers.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Grow from where they are' description='An element that expands should expand from its anchor.'>
+  <Guideline.Do code={`<div className='origin-[var(--transform-origin)] motion-scale'>…</div>`}>
+    Scale a popup from its trigger. Base UI sets `--transform-origin`, and
+    Menu, Popover, Tooltip, Select, and Combobox already scale from it.
+  </Guideline.Do>
+  <Guideline.Dont code={`<div className='origin-center motion-scale'>…</div>`}>
+    Don't scale a popup from its centre when its trigger is in a corner. It
+    breaks the link between the two.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title="Stagger, don't flood" description='Choreography creates hierarchy. Stagger related elements to guide the eye.'>
+  <Guideline.Do
+    code={`
+      <li
+        className='animate-pop-in [animation-delay:calc(var(--stagger-base)*var(--index))]'
+        style={{ '--index': index }}
+      >
+    `}
+  >
+    Delay each item in a list by `--stagger-base`, 30ms, times its index, so
+    the eye follows the sequence.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't animate all 12 cards in a grid at once. The result is a flash, not a
+    reveal.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+Motion makes some people feel sick. For them it's a health issue, not a
+preference. When someone sets `prefers-reduced-motion: reduce`, Roadie's
+global reset sets these on every element and its `::before` and `::after`:
+
+- `animation-duration` and `transition-duration` to `0.01ms`, not `0ms`, so
+  `animationend` and `transitionend` still fire for code that waits on them.
+- `animation-iteration-count` to `1`, so a loop plays once and stops.
+- `scroll-behavior` to `auto`, so a smooth scroll jumps.
+
+The reset doesn't touch delays. A staggered list still waits its delays, then
+each item appears at once. Put a delay behind `motion-safe:` if it should go
+too.
+
+Two loading utilities hold a still state instead. `animate-shimmer` drops its
+gradient and keeps the tint, and `animate-indeterminate` holds a full-width
+bar at a soft tint. `animate-pulse-subtle` plays one short pass and stays at
+full opacity.
+
+The reset only reaches CSS animations and transitions on elements. Animation
+run from JavaScript, such as the Web Animations API or a smooth `scrollTo()`,
+and the `::view-transition-*` pseudo-elements have to check
+`matchMedia('(prefers-reduced-motion: reduce)')` themselves. Roadie's
+components do: Pane scrolls to the top without smoothing, Calendar skips its
+swipe animation, and Carousel stops autoplay and jumps between slides.
+
+Tailwind's `motion-safe:` and `motion-reduce:` variants swap a motion for a
+still alternative, rather than cutting it short.
+
+To test, open the Rendering tab in Chrome DevTools and set "Emulate CSS media
+feature prefers-reduced-motion" to "reduce". On macOS, turn on Reduce motion
+in System Settings, under Accessibility and then Display.
+
+## Quick reference
+
+How the motion tokens map to components. See
+[Interactions](/foundations/interactions) for the full `is-interactive` and
+`is-interactive-field` breakdown.
+
+| What                       | Duration                                     | Easing                                       | How                                          |
+| -------------------------- | -------------------------------------------- | -------------------------------------------- | -------------------------------------------- |
+| Hover colour and shadow    | `duration-moderate`                          | `ease-standard`                              | `is-interactive`                             |
+| Press scale                | `duration-normal`                            | `ease-spring`                                | `is-interactive`, at `scale(0.99)`           |
+| Field hover and focus      | `duration-moderate`                          | `ease-enter`                                 | `is-interactive-field`                       |
+| Focus ring                 | `duration-normal`                            | `ease-standard`, or `ease-enter` on a field  | Outline width and colour                     |
+| Raised surface lift        | `duration-moderate` shadow, `duration-normal` lift | `ease-standard` shadow, `ease-spring` lift | `emphasis-raised` with `is-interactive` |
+| Caret rotation             | `duration-moderate`                          | Tailwind's default, the `ease-standard` curve | Select and Combobox triggers                |
+| Popup enter and exit       | `duration-normal`                            | `ease-standard`                              | `motion-scale`                               |
+| Dialog enter and exit      | `duration-moderate`                          | `ease-standard`                              | `motion-slide`                               |
+| Drawer enter and exit      | `duration-slow`                              | `ease-enter`                                 | `motion-drawer`                              |
+| Toast enter and restack    | `duration-slower`                            | `ease-spring-lively` on the transform        | `motion-toast`                               |
+| Toast exit                 | `duration-slow`                              | `ease-exit`                                  | `motion-toast`                               |
+| Accordion and Collapsible  | `duration-moderate`                          | `ease-enter`                                 | `is-disclosure-animated`, on height          |

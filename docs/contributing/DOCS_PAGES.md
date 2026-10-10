@@ -27,9 +27,9 @@ with its skeleton and the rules on top of these.
   dashboards (`/charts/audience-dashboard`, `/charts/portfolio-dashboard`, and
   `/charts/show-dashboard`), `/examples/`, `/debug/`, and redirects.
 - The foundations pages other than Accessibility, Colors, Date and time,
-  Elevation, Forms, Iconography, Interactions, Layout, Linking, Navigation,
-  Performance, Prose, Records, Shape, Tables, Theming, Typography, and View
-  transitions are content pages still in `page.tsx`. They move to MDX
+  Elevation, Forms, Iconography, Interactions, Layout, Linking, Motion,
+  Navigation, Performance, Prose, Records, Shape, Tables, Theming, Typography,
+  and View transitions are content pages still in `page.tsx`. They move to MDX
   (INNO-1159); never add another.
 
 ## Metadata
