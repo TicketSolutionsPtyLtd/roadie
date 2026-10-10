@@ -712,7 +712,7 @@ export function ExtendedDateRangePicker({
                   <span className='text-subtle'> {description.detail}</span>
                 )}
               </span>
-              {/* Keeps the lines apart in the button's text, as axe reads it. */}
+              {/* Keeps the lines apart in the button's text. */}
               {twoLines && ' '}
               {twoLines && (
                 <span

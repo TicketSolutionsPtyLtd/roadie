@@ -88,7 +88,7 @@ export function usePickerLabels({
   const id = useId()
   const actionId = `${id}-action`
   const ownLabelId = `${id}-label`
-  const valueId = `${id}-value`
+  const actionValueId = `${id}-action-value`
   const labelSource =
     ariaLabelledBy ?? (ariaLabel ? ownLabelId : field.labelId || undefined)
   const join = (...ids: (string | false | undefined)[]) =>
@@ -98,7 +98,7 @@ export function usePickerLabels({
   return {
     labelSource,
     triggerLabelledBy: valueText
-      ? join(valueId, labelSource)
+      ? join(actionValueId, labelSource)
       : join(actionId, labelSource),
     popupLabelledBy: join(actionId, labelSource),
     labels: (
@@ -112,7 +112,7 @@ export function usePickerLabels({
           </span>
         )}
         {valueText && (
-          <span id={valueId} hidden>
+          <span id={actionValueId} hidden>
             {`${action}, ${withComma(valueText, labelSource)}`}
           </span>
         )}
