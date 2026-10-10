@@ -682,6 +682,7 @@ describe('a tap on a collapsed tab with a route of its own', () => {
       )!
       await collapse(scroller)
       expect(bar).toHaveAttribute('data-collapsed', 'true')
+      // A spy, not scrollTop: a rerun restores the remembered scroll and cancels it (INNO-1244).
       const scrollToTop = vi.spyOn(scroller, 'scrollTo')
 
       await userEvent.click(within(bar).getByRole('link', { name }))
