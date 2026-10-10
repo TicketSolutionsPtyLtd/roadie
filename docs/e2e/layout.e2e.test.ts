@@ -151,7 +151,7 @@ describe('Layout foundation', () => {
     }, 60_000)
   }
 
-  it('describes each scale in its markdown copy without pointing at what it drops', async () => {
+  it('describes each scale in its markdown copy without pointing above or below', async () => {
     const markdown = await readFile(
       join(import.meta.dirname, '../out/foundations/layout.md'),
       'utf-8'

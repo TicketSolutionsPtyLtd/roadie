@@ -1,9 +1,18 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Pane } from '../Pane'
 import { useStylesheet } from '../Pane/testUtils'
 
 const STILL = '*, *::before, *::after { transition: none !important }'
@@ -183,6 +192,50 @@ describe('active indicator', () => {
         'relative'
       )
     }
+  })
+})
+
+describe('a resize that folds items into More', () => {
+  afterAll(() => page.viewport(1920, 1080))
+
+  it('brings in the More pane without sliding the panes', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <div style={{ height: '100vh', display: 'grid' }}>
+        <Navigator value='/a'>
+          <Navigator.Primary aria-label='Main'>
+            <Navigator.Brand>Oztix</Navigator.Brand>
+            {['/a', '/b', '/c', '/d'].map((value) => (
+              <Navigator.Item
+                key={value}
+                value={value}
+                href={value}
+                icon={<Icon />}
+              >
+                {value}
+              </Navigator.Item>
+            ))}
+          </Navigator.Primary>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
+        </Navigator>
+      </div>
+    )
+    await settle()
+    const more = () =>
+      document.querySelector('[data-slot="pane"][data-overflow]')
+    const row = document.querySelector('[data-slot="navigator-panes"]')!
+    const pushes: MutationRecord[] = []
+    const watch = new MutationObserver((records) => pushes.push(...records))
+    watch.observe(row, { attributeFilter: ['data-pushing'] })
+    onTestFinished(() => watch.disconnect())
+    expect(more()).toBeNull()
+
+    await page.viewport(1280, 300)
+    await expect.poll(more).not.toBeNull()
+    await settle()
+
+    expect([...pushes, ...watch.takeRecords()]).toEqual([])
   })
 })
 
