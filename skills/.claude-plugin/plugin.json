@@ -1,7 +1,7 @@
 {
   "name": "roadie",
   "description": "Roadie design system skills: set up and build with Roadie, chart data, and carry a change from spec to merged PR with review, tests, and demos.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": {
     "name": "Oztix",
     "url": "https://github.com/TicketSolutionsPtyLtd/roadie"

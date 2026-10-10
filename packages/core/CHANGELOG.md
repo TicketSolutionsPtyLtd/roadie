@@ -1,5 +1,390 @@
 # @oztix/roadie-core
 
+## 2.11.0
+
+### Minor Changes
+
+- 0fe97b2: Add brand intents named by hue. `intent-brand-purple` is a new brand intent on the purple scale that `info` also uses, with white labels on its strong fill. `intent-brand-blue` and `intent-brand-orange` are aliases of `intent-brand` and `intent-brand-secondary`, which stay. Every component `intent` prop accepts `brand-blue`, `brand-orange`, and `brand-purple`, and `cn()` treats them as one intent group.
+
+  Add a fixed `--color-{scale}-light-9` token for every scale. Like the light 0, 5, 12, and 13 steps, `.dark` doesn't override it, so brand artwork keeps its step 9 colour in dark mode.
+
+  `text-display-prose-2` is now weight 700 (Bold), down from 800.
+
+- 4c9bc5c: `getContrastColor` from `@oztix/roadie-core/colors` now picks white or black
+  text by APCA instead of the WCAG 2 contrast ratio, following decision 0010.
+  Some mid-tone backgrounds return the other colour, always `'white'` where
+  they used to return `'black'`. For example, `getContrastColor('#0091EB')`
+  returned `'black'` and now returns `'white'` (white measures Lc 65.7 there,
+  black Lc 43.8). The shipped scales that flip are step 9 of neutral (light),
+  accent, brand, danger, and info, step 10 of every scale except success and
+  warning, and step 8 of info (light). Light and dark backgrounds are unchanged.
+- 5e9a8bd: `@oztix/roadie-core/theme` exports `DEFAULT_ACCENT_COLOR`, so components, widgets, and apps share one default accent. Its value is `#0191eb`, the accent step 9 that tokens.css ships. `@oztix/roadie-components` re-exports it, and its value changes from `#0091EB` to `#0191eb`, one step of red apart, so the default matches the tokens. The Vue cart drawer theme reads the same constant.
+- bf0ec67: Add the `.prose` class, which typesets raw HTML from a CMS, Markdown, or MDX:
+  headings, paragraphs, lists, tables, code, quotes, rules, figures, and keys.
+  It caps each direct child at a 65ch measure, spaces blocks from one
+  `--prose-flow` variable, and draws every colour from intent tokens. The flow
+  is a registered length that resolves once, at the body size, so the space
+  around a heading follows the body text rather than the heading's size. Add
+  `.prose-bleed` to a child to lift the measure, wrap a wide table in
+  `.prose-scroll` to scroll it, and use `.not-prose` or `data-not-prose` to opt a
+  subtree out. Each column of a table in `.prose-scroll` stays at least 9em
+  wide, so the table scrolls rather than squeezing its text, and a long cell
+  wraps at the measure. The `--prose-*` variables adjust size, leading, rhythm,
+  measure, and heading sizes and weights.
+
+  The `Prose` component in `@oztix/roadie-components` moves onto it in this
+  release; its release note lists what changes on the page.
+
+- 54c87b2: New `@oztix/roadie-core/records` describes the lists organisers work
+  through. A `RecordField` names one fact about a record by key: its type,
+  whether it is filterable, sortable or searchable, a list or a date range,
+  how its dates compare (`event`, `access`, `timestamp` or `date`), the keys
+  holding its venue zone and venue-local dates (`localDateKey`,
+  `endLocalDateKey`), an identifier `match`, its currency, its `options` and
+  the dashboard `status` map. A `RecordView` saves a search, filters, sort and
+  layout as JSON; page, page size and scroll row travel beside it as a
+  `RecordPosition`.
+
+  `validateRecordView` checks a view against its fields and says which
+  operators fit. `resolveRecordQuery` fixes relative dates at a moment: event
+  and access dates compare the venue-local date, timestamps the viewer's day.
+  `matchesRecordQuery` filters rows in the browser, testing overlap for date
+  ranges. Text compares without case, and negative filters (is not, does not
+  contain, not equal) keep records where the field is empty. `parseQuery`
+  reads typed text into ranked suggestions for `QueryField`: identifiers,
+  `field:value`, field names, option values and date phrases, tagged with an
+  `entity` when given. `toSearchParams` and `fromSearchParams` write and read a
+  view and position as a versioned URL (`RECORD_VIEW_FORMAT`, `v=1`), falling
+  back to a `fallback` view when the URL is invalid, and `equalViews` tells
+  whether a view was modified. `recordFilterOperators` and `recordFieldOptions`
+  list what a field accepts.
+
+  `recordFields<Row>()` builds an entity's fields with typed row keys
+  (`text`, `option`, `number`, `money`, `date`, `boolean`), and a number or
+  money field takes a `format`. `compileRecordQuery` turns a resolved query
+  into a predicate that reads the fields once, for filtering a long list;
+  `matchesRecordQuery` uses it. `sortRecords` sorts rows the way an index
+  would: text and labels as people read them, statuses by their `order`,
+  dates by instant, empty values last. `formatRecordValue` reads a value as
+  its field shows it: option and status labels, numbers and money in their
+  format and currency, Yes or No, and dates in the house formats.
+
+  New `@oztix/roadie-core/records/meilisearch` exports `toMeilisearch`, which
+  turns a view into Meilisearch `q`, `filter` and `sort` with the same filter
+  meaning. It needs Meilisearch 1.15 or later. The index stores instants as
+  epoch seconds (or milliseconds with `epoch: 'milliseconds'`), event and
+  access dates under their local date keys, and a range's end on every record;
+  `contains` needs Meilisearch's `containsFilter` feature.
+
+  `parseDatePhrase` no longer reads inherited object names such as
+  `constructor` as a date alias, unit or month.
+
+  `recordsToCsv(rows, fields, { timeZone })` writes records as CSV, each
+  value as its field reads in a table, with `values: 'raw'` for plain numbers
+  and formula-like text neutralised. `RecordSelection` types the records an
+  action takes.
+
+  `describeRecordFilter(filter, fields, { now, timeZone })` writes a filter as
+  its chip reads ("Venue is Kazoo Hollow Room", "Gross is more than $100",
+  "Starts: This weekend"), with the dates a relative range stands for in
+  `detail`. `recordOperatorLabel` names an operator ("is more than") and
+  `recordOptionPaths` gives each option's label with its parents' ("Ochre Kite
+  Weekender 2027 › Opening Night"). A chip listing more than two values names
+  them all in `detail`. `parseQuery` labels its filters the same way, names a
+  field whose label holds a colon in `field:value`, and reads `$` and
+  thousands commas in a number's value.
+
+  `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
+  and `hitsPerPage`, so the response's `totalHits` counts the matches (up to
+  the index's `pagination.maxTotalHits`). A page below 0 or a page size below
+  1 throws a RangeError.
+
+  `placeRange(data, start, rows)` returns a copy of `data` with `rows` placed
+  from `start` and any gaps left undefined, for lists loaded by range.
+
+- 1336d18: Dark mode chart colours now meet APCA Lc 45 against the page, the minimum for
+  non-text UI in decision 0010. `--chart-3` turns pale teal, `--chart-5`
+  lightens, `--chart-7` mutes to a dusty rose so it stays clear of
+  `--chart-status-critical`, `--chart-2` darkens a little, and `--chart-1` and
+  `--chart-6` shift slightly. The dark `--chart-highlight` follows slot 1.
+  `--chart-context` and `--chart-other` mix toward neutral step 11 in dark mode,
+  so they're easier to see. Browsers without `color-mix` get a fixed hex.
+
+  `validatePalette()` measures the `darkMarkContrast` and `darkGreyContrast`
+  checks as APCA Lc, with a target of 45 instead of a 3:1 ratio, so their
+  `score` and `target` read in Lc. `chartHex('dark')` returns the new values,
+  and `paletteScores().dark.slotsUnderLc45` is now empty. In `palette.greys`,
+  the dark context and other greys move to step 10 with a new optional `mix`
+  toward step 11, so read them with `chartHex()` rather than the step alone.
+  Light mode is unchanged.
+
+- 7fe7954: Dark mode delta text now meets APCA Lc 60 on a data card, the tier decision
+  0010 sets for delta text. Two dark status colours change, so `Delta`, and any
+  chart mark or text that uses them, looks different in dark mode:
+
+  - `--chart-status-good` follows `--color-success-11` instead of
+    `--color-success-9`, a lighter aqua (Lc 81.0, was 57.4).
+  - `--chart-status-critical` is a fixed `oklch(0.798 0.116 20)`, a lighter coral
+    red (Lc 63.3, was 47.5), instead of following `--color-danger-9`.
+
+  `chartHex('dark')` and `palette.status` return the new values. Light mode and
+  the warning and serious statuses are unchanged.
+
+- 99111f3: Dashboards gain a period and a comparison.
+
+  `@oztix/roadie-core/dashboard`: a description can carry `period: { range,
+compare?, history? }`, where `range` is a `DateRangeValue`, `compare` a
+  `Comparison` or the app's own, any other string such as `'similar'`, and `history` (`'partial'` or `'unavailable'`) what
+  `resolveComparison` said about the data. A delta marked `comparison: true`
+  follows it. `validateDashboard` checks the period's shape, rejects custom dates
+  that aren't real plain dates or run backwards and hour windows (a period covers
+  whole days), warns about a comparison with an open-ended range, `history` with
+  no comparison, and a comparison delta that sets its own `context`, which never
+  shows, and rejects a comparison delta on a dashboard with no period. An app's own
+  comparison has no dates, so it counts as no comparison: `validateDashboard`
+  warns about a comparison delta or `history` with one, and about one that
+  reads like Roadie's, such as `'previous_period'`. `'none'` and `'custom'` are
+  rejected. The field's
+  type is `DashboardPeriodSpec`.
+
+  `@oztix/roadie-components`: add `DashboardPeriod`
+  (`@oztix/roadie-components/dashboard-period`), one `DateRangePicker` button
+  with `commit='apply'` that shows the period and the dates it compares with.
+  Under the range, a Compare switch turns the comparison on and a toggle group
+  picks previous period or previous year, with the dates it covers, or "Not
+  enough history" or "Nothing to compare". A custom comparison set by the app
+  shows as Custom dates, without a picker. Apply sends both together; Cancel drops both. Its value
+  is `DashboardPeriodValue`, `{ range, compare? }`. Its presets default to
+  `dashboardPeriodPresets`: next 30 and 90 days, last 30 days, last 12 months
+  and this financial year. `dataStart`, `dataEnd` and `alignWeekday` match the
+  app's `resolveComparison`, so the comparison shows the dates the app fetches.
+  It takes `presets`, `readOnly`, `disabled`, `timeZone`, `today`,
+  `weekStart`, `fiscalYearStart` and `locale`, and places `children`, such as a
+  channel filter, after the period. On a narrow container they stack. It has one
+  size, a large control: 48px tall, with the comparison's dates on a second line,
+  so pair it with large Buttons and Selects on the same row.
+
+  `compareOptions` lists the Compare choices in order: `'previous-period'`,
+  `'previous-year'`, `'custom'`, which picks the comparison's dates in a
+  `DateRangePicker` named "Comparison dates", starting from the previous
+  period's, and the app's own as `{ value, label, description? }`
+  (`DashboardPeriodCompareOption`). An app's own sets `compare` to its `value`
+  and passes it through: it shows its `description` where dates go, and the
+  button reads "vs similar venues". `'none'` adds the Compare switch; without
+  it nothing turns the comparison off. The default, `['none',
+'previous-period', 'previous-year']`, keeps the choices above. A comparison
+  the value holds that the list leaves out still shows, by its value if it is
+  the app's own. App options valued like Roadie's, and repeats, are left out
+  with a development warning. Uncontrolled, the first choice other than
+  `'custom'` starts on. The choices wrap onto a second row when they don't
+  fit. `DashboardPeriodValue<App>` and
+  `DashboardPeriodProps<App>` take the app's values, inferred from
+  `compareOptions`. A period that is one of `presets`, fixed dates or relative,
+  shows that preset's label with its dates.
+
+  `@oztix/roadie-charts`: `DashboardView` shows a description's `period` above its
+  sections. `onPeriodChange` receives the new `{ range, compare? }`
+  (`DashboardPeriodValue<string>`, so state handed to it is typed
+  `DashboardPeriodValue<string>` too); without it
+  the period shows read-only. `periodProps` (`DashboardViewPeriodProps`) passes
+  the toolbar's other props. A delta marked `comparison: true` is named on its
+  context line ("vs previous period", over any `context` the card gives), hides
+  with no comparison or with the app's own, and gives way to "Not enough history" or "Nothing to
+  compare" when the period's `history` says so.
+
+- ff2f04d: `DataTable` takes a totals row with `totals`, rendered in a new `Table.Foot`:
+  strong text over a rule, its label in the first column as a row header. `true`
+  or `'sum'` adds up the number columns over every row, labelled "Totals for 12
+  records", or the `recordName` you pass. Shares, indexes, points and columns with
+  `total: false` stay blank, and currency sums round to the cent. Give
+  `{ label, values }` to show your own figures, such as the server's totals for a
+  paged report or an average; with `values`, nothing is summed, and without a
+  label the row reads "Totals". The first column holds the label, so it never
+  hides while the totals show. `DataTableTotals` types the prop, `true`
+  included, and `tableCellClass(align)` gives a body cell's classes, for a `th`
+  that heads a row.
+
+  A dashboard table card takes the same `totals`, and columns take `total: false`.
+  `validateDashboard` checks them: values need a label and must name a column,
+  `'sum'` warns when there's nothing to sum, and either warns when the first
+  column, which holds the label, has a total that would never show.
+  `cardTable(card)` returns the totals summed, and a `Chart` table view shows a
+  `ChartTable`'s totals. In core,
+  `resolveTableTotals(columns, rows, totals)`, `isSummable(column)` and the
+  `RecordName` and `ResolvedTotals` types come from
+  `@oztix/roadie-core/dashboard` and the Zod-free `/dashboard-layout`.
+
+- 156ca60: `validatePalette` now checks every pair of categorical slots for normal vision,
+  not just neighbours, and fails any pair under ΔE 8 as `allPairsNormal`.
+  `paletteScores` gains an `allPairsNormal` field with the closest pair in each
+  mode: 17.2 in light and 8.5 in dark (slots 1 and 8). No colours change.
+- f57dfba: `@oztix/roadie-core/datetime` gains date ranges. A `DateRangeValue` is either
+  two inclusive ends or a `RelativeRange` with one fixed meaning: today, this
+  weekend, next week, the next 7 days, month to date, last quarter, this
+  financial year and more. `resolveDateRange` works out what a range covers on
+  a given day in a given zone, as plain dates for calendar ranges and instants
+  for hour windows and open ranges. `resolveComparison` finds the previous
+  period or the previous year to compare with, by date or, with
+  `alignWeekday`, by weekday. A calendar period's previous period is the one
+  before it: this month compares with last month, and month to date with last
+  month to the same day, even on the month's last day; other ranges compare with the same number of days,
+  ending the day before. It returns `{ status, range }`: given the data's
+  `dataStart` and `dataEnd`, a comparison the data only partly covers is
+  `partial`, and one it misses, or one with an open-ended range, is
+  `unavailable`, as its `ResolvedComparison` type says. A period that runs
+  past `dataEnd` compares only as far as the data goes, and one that starts
+  after it is `unavailable`. A `Comparison` is `'previous-period'`,
+  `'previous-year'` or custom dates; `Comparison<App>` adds an app's own, such
+  as `'similar'`, which `isBuiltInComparison` tells apart and
+  `resolveComparison` refuses with a `RangeError`, since it has no dates.
+  `describeDateRange` returns the words to show and the dates they
+  stand for, and `describeComparison` the context line under a delta.
+
+  `parseDatePhrase` turns typed text such as "this weekend", "next 7 days",
+  "14 mar", "1/12", "in 2 weeks", "end of month", "after 1 dec" or "7:30pm"
+  into ranked suggestions with explicit values. Plain-date helpers come with it:
+  `plainDateOf`, `addDays`, `addMonths`, `compareDates`, `dayOfWeek`,
+  `startOfWeek` and `monthGrid`, plus the `isAbsoluteRange`, `isRollingRange`
+  and `isPeriodRange` guards.
+
+- 94c5e81: Shadows and the loading shimmer now tint by the nearest intent, as the Elevation and Skeleton docs describe. The `shadow-*` and `inset-shadow-*` utilities, the `--shadow-*` and `--inset-shadow-*` tokens, and `emphasis-raised`, `emphasis-floating`, `emphasis-sunken`, and `emphasis-field` take the hue of the closest `intent-*` class, on the surface or any ancestor, in light and dark mode. So do `animate-shimmer` and the `--sheen-shade` and `--sheen-highlight` tokens, which Skeleton uses. Before, they all kept the root intent everywhere. A raised card inside `intent-danger` now casts a faintly red shadow.
+
+  To keep a neutral shadow inside another intent, add `intent-neutral` to the surface or a wrapper. That also resets its fill and text to neutral. Browsers without `oklch()` keep the untinted fallback shadow, as before.
+
+  The dark mode and `oklch()` declarations of the shadow, rim light, and sheen tokens now sit in the `base` layer rather than outside any layer. A `--shadow-*` value you set on an element, with a utility or unlayered CSS, still wins there. One you set on an ancestor is reset at each element below it whose class contains `intent-`, as the other intent tokens are at each `intent-*` element.
+
+- c324014: Add `is-focusable`, the focus ring of `is-interactive` with no pointer cursor, press, or disabled state, for an element that takes focus but isn't clicked, such as a scroll region or a `tabIndex={-1}` landing target. Its ring comes from `--focus-ring-width`, `--focus-ring-opacity`, and `--focus-ring-opacity-dark`, so it matches every other Roadie ring. `is-interactive` is now built on it, so the two compose on one element. The reset's native focus ring is unchanged.
+- 83e9966: `paletteScores()` from `@oztix/roadie-core/dataviz` measures low-contrast
+  slots with APCA. The new `slotsUnderLc45` field lists the categorical slots
+  under Lc 45, APCA's minimum for non-text UI, against each mode's page
+  surface. The old `lightSlotsUnder3` field is deprecated and now returns the
+  same slots: light mode goes from 2, 4, 6, and 8 to 4 and 8, and dark mode
+  from none to 3, 5, and 7. `validatePalette()` is unchanged.
+- e3b095a: Each package now ships `roadie.manifest.json`, a machine-readable catalogue for coding agents and tools. Import it from `@oztix/roadie-core/roadie.manifest.json`, `@oztix/roadie-components/roadie.manifest.json`, or `@oztix/roadie-charts/roadie.manifest.json`. It lists every export path with the values and types it exports, every component with its props in the order its source declares them, compound parts, and, where it has them, its docs page and first live example, every deprecated export and prop with its replacement, and, in core, the design tokens. The build generates it from the same source it publishes, so it always matches the installed version.
+- a9a6b8a: Add selection utilities, so a set of choices takes its label colours from the system rather than from each component. `is-unselected` marks an unchosen item: subtle text that lifts to normal text on hover. `is-selected-label` and `is-selected-label-on-strong` give a chosen item the label of `is-selected` or `emphasis-strong` when an indicator behind it draws the fill.
+
+  `Toggle`, `ToggleGroup` and `Tabs` now compose these utilities. An unpressed `subtler` `Toggle` now lifts its label to normal text on hover, as `ToggleGroup` and `Tabs` items already did. A `text-*` class passed to a subtler `Toggle`, a `ToggleGroup` item or a tab no longer changes its label colour, because these utilities now set it.
+
+- ff2f04d: Tables take a `status` column kind. The value is a status key, and the column's
+  `status` map gives each key an intent and an optional label, which defaults to
+  the key in sentence case, so `on_sale` reads "On sale". A key the map lacks
+  shows as neutral, in its raw text.
+
+  `DataTable` shows it as a small `Badge` in normal emphasis, or as the label in
+  a `plain` table. It sorts by label, or by each key's `order` when the map gives
+  one, with keys that have no order last. An empty status shows the column's
+  `emptyText` and sorts last. A `secondaryKey` adds a line under the badge, or
+  under the label in a `plain` table, styled and wrapped as it is on a text
+  column. An empty secondary value adds no line, on either kind.
+
+  In core, `TableColumn` takes `kind: 'status'` and `status`, and
+  `validateDashboard` rejects an unknown intent and warns about keys a map lacks.
+  `columnStatus(column, key)` resolves a key's intent and label, and
+  `cellText(column, value)` gives any cell as the plain text its table shows,
+  and `humaniseStatus(key)` gives a key's default label. They come with the
+  `STATUS_INTENTS`, `StatusIntent`, `TableStatus` and `ResolvedStatus` types, and
+  also from the Zod-free `@oztix/roadie-core/dashboard-layout`. A `status` map on
+  a column of another kind gets a warning, as does a `secondaryKey` on a column
+  that is neither text nor status. `COLUMN_KINDS` gains `'status'`, so an
+  exhaustive `switch` over a column's `kind` needs a case for it.
+
+- fad898f: A nested `ThemeProvider` scopes its accent to its own subtree. It sets `--accent-hue` and `--accent-chroma` on a `display: contents` wrapper marked `data-accent-scope`, which renders on the server too, and Roadie's CSS declares the accent and neutral scales, the default intent, the shadows, and the chart ink again on that wrapper. Before, a nested provider wrote its accent to `:root`: it lost to the root's on a cold load, took over the whole page when it mounted later, and kept the page on its accent after it unmounted. Now the root's accent stays on everything outside the nested provider, and the portals of `Dialog`, `Drawer`, `Popover`, `Menu`, `Tooltip`, `Select`, `Combobox`, and `Autocomplete` carry the nested accent to popups that open from inside it. A parent's selectors for its direct children, such as `*:` variants, now see the wrapper instead of the nested provider's children. A nested provider's subtree starts at the neutral intent, and browsers without OKLCH keep the root's accent inside it. A nested provider with `accentColor={null}`, no accent, or an invalid one, and no `defaultAccentColor`, inherits the accent around it, whether the root's or an enclosing nested provider's, and so do its popups. It sets no scope, so its subtree also keeps the intent around it, and the subtree doesn't remount when an accent arrives. The root provider still falls back to Oztix blue.
+
+  The root provider keeps a server-injected accent style that already holds its accent (from `getAccentStyleSync`, `getAccentStyleTagSync`, or `getBootstrapScript`) instead of rewriting it on hydration, and writes the accent in the same form. `RoadieProvider`'s warning for a `RoadieProvider` inside a `ThemeProvider` now says the inner theme is scoped to its subtree.
+
+  Update `@oztix/roadie-core` together with `@oztix/roadie-components`, since the wrapper needs core's scoped selectors to change the scales.
+
+### Patch Changes
+
+- ddcad84: Buttons now follow their parent's alignment. The `btn` utility set
+  `place-self: start`, which overrode a flex row's `items-center` and a grid's
+  `justify-items`, so every `Button`, `IconButton` and `Toggle` in a taller row
+  sat at the top. It now sets `width: fit-content` instead. With a size class
+  (every `Button`, `IconButton` and `Toggle` has one), a button keeps its own
+  size in a grid cell or a flex column and takes the row's `align-items`
+  (including `items-baseline` and `items-end`), a grid's `justify-items`, or a
+  flex column's `items-center`, as in a horizontal `Card`'s side-column footer.
+
+  To widen a button, use `w-full`. `self-stretch`, `justify-self-stretch` and
+  `place-self-stretch` no longer widen it. To undo `w-full` at a breakpoint, use
+  `w-fit` rather than `w-auto`, which now lets a grid or flex column stretch it.
+  If you load `@oztix/roadie-core/css/compiled` beside your own Tailwind build,
+  import it before your utilities so `w-*` on a button still wins.
+
+- cc39346: `cn()` treats `ease-spring-lively` and every Roadie `animate-*` utility (`animate-fade-in`, `-scale-in`, `-pop-in`, `-shake`, `-nudge`, `-pop`, and `-pop-tap`) as one group each, so a later easing or animation class replaces an earlier one instead of both staying.
+- df311de: `parseDatePhrase` reads a date that leads with its weekday, such as "Fri 27 Nov
+  2026" or "Friday, 27 November 2026", so the formatters' own output reads back.
+  The weekday is ignored and the date wins.
+- c09a86a: Date formatting reuses its `Intl.DateTimeFormat` instances, and `formatValue`
+  reuses its `Intl.NumberFormat` instances. Each formatted date used to build
+  three to five new formatters, which dominated the cost of tables and lists
+  that show a date on every row. The date cache holds at most 200 formatters
+  and drops the oldest first, so many locales or time zones cannot grow it
+  without limit.
+- eb8cb85: Large pages no longer restyle every element when something small changes.
+  Chromium gathers whatever a stylesheet selects after a `:has()` into one set,
+  and Navigator and Pane anchor a `:has()` above the whole page, so opening a
+  menu, ticking a row, hovering a list row or typing in a search restyled nearly
+  every element: up to 3 seconds of style work at 4x CPU on a large docs page.
+  Rules that put `*`, a tag or `[data-slot]` after a `:has()` now end on a
+  class, a variable or a rare attribute instead: `List` dividers and contained
+  rows, the wordmark-only `Navigator.Brand` logo, the iconless `Navigator.Item`
+  label, the navigation gutter, the ticket `Card` fill, the disabled `Switch`
+  label, `DataTable`'s Show all columns and `is-interactive-within`'s raised
+  controls. A test keeps the stylesheet free of the pattern.
+
+  `listItemVariants()` now carries the classes that square a row inside a
+  contained `List`, so a custom row built from it still matches `List.Item`.
+
+- 60bebfd: `text-subtle` now meets APCA Lc 75 for body text on every intent, in light and
+  dark mode, on the neutral surfaces and on the intent's own, including its subtle
+  fill. For accent this holds at the default accent hue.
+
+  - **Light mode:** step 11 is darker on brand and accent (oklch L 0.547 to
+    0.431), brand-secondary (0.569 to 0.463), danger (0.569 to 0.445), success
+    (0.508 to 0.44), warning (0.576 to 0.465) and info (0.505 to 0.457).
+  - **Dark mode:** step 11 is lighter on every intent but neutral, and step 12
+    is lighter on brand, brand-secondary, accent, danger, success and info (L 0.90
+    to 0.91, now 0.95, the same as neutral). That changes `text-normal` in those
+    intents in dark mode, so subtle text can reach Lc 75 and still read a step
+    quieter than normal text. Step 13 rises on brand, brand-secondary, accent,
+    danger, success and info (L 0.96 to 0.99; 0.993 on brand and accent, 0.997 on
+    success), so `text-strong` stays distinct from the lighter `text-normal`.
+
+  Everything else on those steps moves with them: `--intent-11`, `--intent-12` and
+  `--intent-13`, `bg-inverted` and `border-inverted` in dark mode, the light
+  strong fill's hover on brand, accent, danger and info, the dark strong fill's
+  hover and pressed states on browsers without `color-mix`, and the light chart
+  status colours for good, warning and serious. `--chart-status-critical` no
+  longer follows danger step 11 in light mode; it keeps its value.
+
+- d72d07b: Example data uses invented venue, event and promoter names from the contributing guide's vetted list, so no example reads as a real Oztix client. Affects the chart examples from `@oztix/roadie-charts/examples` and JSDoc in core records and QueryField.
+- 8b5de45: The token manifest lists the `color-mix()` strong fills that brand-secondary, success, and warning render, in both modes, instead of the plain steps meant only for browsers without `color-mix()`. Multi-line values also lose the spaces their line breaks left inside parentheses.
+- 0c67df7: The token manifest gives the chart ink tokens (`--chart-grid`, `--chart-axis`, `--chart-label`, `--chart-value`, and `--chart-gap`) a light value as well as a dark one, and lists `--chart-highlight`'s `oklch()` value in light mode, with the hex as its fallback. A rule on a selector list such as `:root, .dark` now counts for both modes.
+- 230a991: `DateTime` and `RecordTable` no longer read the clock while rendering on the
+  server, so they prerender under Next's `cacheComponents` without a `Suspense`
+  boundary, including as a `Suspense` fallback.
+
+  The date formatters read the clock only when the words depend on it: a
+  standalone date's year, or relative text. A `DateTime` with
+  `context='standalone'` renders its year on the server, then drops it after
+  mount when the date is in the current year. `useRecords` reads the clock in the
+  browser unless you pass `now`. Until then, a list filtered in the browser by a
+  relative date shows its loading state, as the server can't know which rows
+  match. Client-rendered output is unchanged.
+
+- fe925b2: `emphasis-overlay` and `emphasis-overlay-subtle` now take a fixed white label,
+  like their fixed dark fill. In dark mode they took the page's flipped text
+  colour, which is dark on that fill.
+- 1ae382b: `text-subtle` on the neutral intent now meets APCA Lc 75 for body text. The
+  neutral scale's step 11 (`--color-neutral-11`) is darker in light mode
+  (oklch L 0.503 to 0.45) and lighter in dark mode (0.769 to 0.87), so
+  secondary copy, placeholders and weekday labels read at Lc 75 or more on the
+  neutral surfaces. It stays lighter than `text-normal` (step 12).
+
+  Everything else on neutral step 11 moves with it: the neutral strong fill's
+  hover, `--intent-11`, chart labels and axis text, and the dark chart band.
+
 ## 2.10.0
 
 ### Minor Changes

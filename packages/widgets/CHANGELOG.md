@@ -1,5 +1,56 @@
 # @oztix/roadie-widgets
 
+## 3.7.0
+
+### Minor Changes
+
+- b0e7656: Widgets now ship `@oztix/roadie-widgets/roadie.manifest.json`, with the same shape as the other packages' manifests. It lists every export, including the Vue skins, and describes the React components (`CartDrawer`, `CartExpiryDialogs` and `CartContents`) with their props and docs pages. The Vue skins appear as exports only. Deprecated re-exports, such as `CartExpiryModals` and the `cart-drawer/core` shim, are listed under `deprecations`.
+
+  Every component in the components and charts manifests now has a `docs` link. The spot illustrations, `RoadieProvider`, `RoadieLinkProvider`, `ThemeProvider`, `RequiredIndicator`, `OptionalIndicator`, `LegendKey` and `DashboardView` link the page or section that documents them.
+
+### Patch Changes
+
+- c247b1f: `buildBrowseHref`, and so `CartDrawer`'s default "Browse events" target, now
+  returns the collection route with the id in the path,
+  `/collection/{collectionId}`, instead of `/collection/?id={collectionId}`.
+- 5e9a8bd: `@oztix/roadie-core/theme` exports `DEFAULT_ACCENT_COLOR`, so components, widgets, and apps share one default accent. Its value is `#0191eb`, the accent step 9 that tokens.css ships. `@oztix/roadie-components` re-exports it, and its value changes from `#0091EB` to `#0191eb`, one step of red apart, so the default matches the tokens. The Vue cart drawer theme reads the same constant.
+- 9f5b46b: Requires `focus-trap` 8.2.3, which keeps an input's caret and selection when a trap activates in an iframe.
+- 2864158: The manifest gives `CartDrawer` and `CartContents` their usage code as an example, and describes `CartExpiryDialogs`.
+- c836800: The `motion` peer range now accepts `^14.0.0` alongside 12 and 13. Motion 14
+  only removes internal APIs the widgets never used, so the cart drawer and cart
+  contents behave the same on all three.
+- Updated dependencies [0fe97b2]
+- Updated dependencies [ddcad84]
+- Updated dependencies [cc39346]
+- Updated dependencies [4c9bc5c]
+- Updated dependencies [5e9a8bd]
+- Updated dependencies [bf0ec67]
+- Updated dependencies [54c87b2]
+- Updated dependencies [1336d18]
+- Updated dependencies [7fe7954]
+- Updated dependencies [99111f3]
+- Updated dependencies [ff2f04d]
+- Updated dependencies [156ca60]
+- Updated dependencies [df311de]
+- Updated dependencies [c09a86a]
+- Updated dependencies [f57dfba]
+- Updated dependencies [eb8cb85]
+- Updated dependencies [60bebfd]
+- Updated dependencies [94c5e81]
+- Updated dependencies [d72d07b]
+- Updated dependencies [c324014]
+- Updated dependencies [8b5de45]
+- Updated dependencies [0c67df7]
+- Updated dependencies [230a991]
+- Updated dependencies [fe925b2]
+- Updated dependencies [83e9966]
+- Updated dependencies [e3b095a]
+- Updated dependencies [a9a6b8a]
+- Updated dependencies [ff2f04d]
+- Updated dependencies [1ae382b]
+- Updated dependencies [fad898f]
+  - @oztix/roadie-core@2.11.0
+
 ## 3.6.2
 
 ### Patch Changes
