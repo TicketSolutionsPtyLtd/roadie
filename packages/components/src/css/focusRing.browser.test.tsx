@@ -34,12 +34,12 @@ const opacityToken = (name: string) =>
     getComputedStyle(document.documentElement).getPropertyValue(name)
   ) / 100
 
-async function fieldRingColor() {
-  const field = element('<input class="is-interactive-field" />')
-  await focusAfterKey(field)
-  const { color } = focusRing(field)
-  field.remove()
-  return color
+/** A scale's step 9 at the given alpha, as the browser serialises it. */
+function step9At(scale: string, alpha: number) {
+  const probe = element(`<span style="color: var(--color-${scale}-9)"></span>`)
+  const { color } = getComputedStyle(probe)
+  probe.remove()
+  return color.replace(/\)$/, ` / ${alpha})`)
 }
 
 describe('base focus ring', () => {
@@ -47,20 +47,31 @@ describe('base focus ring', () => {
     ['light', false, '--focus-ring-opacity'],
     ['dark', true, '--focus-ring-opacity-dark']
   ])(
-    'shows a plain link the accent ring, 4px with no gap, in %s mode',
+    'shows a plain link a 4px neutral ring with no gap in %s mode',
     async (_mode, dark, opacity) => {
       document.documentElement.classList.toggle('dark', dark)
-      const accent = await fieldRingColor()
 
       const ring = await plainLinkRing()
 
       expect(ring).toEqual({
         style: 'solid',
         width: '4px',
-        color: accent,
+        color: step9At('neutral', opacityToken(opacity)),
         offset: '0px'
       })
-      expect(ring.color).toMatch(new RegExp(`/ ${opacityToken(opacity)}\\)$`))
+    }
+  )
+
+  it.each(['danger', 'success', 'accent'])(
+    'colours a plain link’s ring from its %s intent parent',
+    async (intent) => {
+      const parent = element(`<div class="intent-${intent}"></div>`)
+
+      const ring = await plainLinkRing(parent)
+
+      expect(ring.color).toBe(
+        step9At(intent, opacityToken('--focus-ring-opacity'))
+      )
     }
   )
 
@@ -77,30 +88,21 @@ describe('base focus ring', () => {
 
 describe('one focus ring', () => {
   it.each(['is-focusable', 'is-interactive'])(
-    'gives %s the base ring',
+    'gives %s the base ring, inside an intent too',
     async (className) => {
-      const expected = await plainLinkRing()
+      for (const parent of [
+        document.body,
+        element('<div class="intent-danger"></div>')
+      ]) {
+        const expected = await plainLinkRing(parent)
 
-      const target = await focusAfterKey(
-        element(`<div class="${className}" tabindex="0">Region</div>`)
-      )
+        const target = await focusAfterKey(
+          element(`<div class="${className}" tabindex="0">Region</div>`, parent)
+        )
 
-      expect(focusRing(target)).toEqual(expected)
-    }
-  )
-
-  it.each([
-    ['a plain link', '<a href="#tickets">Tickets</a>'],
-    ['is-interactive', '<div class="is-interactive" tabindex="0">Card</div>']
-  ])(
-    'keeps the accent ring for %s inside a danger intent',
-    async (_, markup) => {
-      const expected = await plainLinkRing()
-      const danger = element('<div class="intent-danger"></div>')
-
-      const inside = await focusAfterKey(element(markup, danger))
-
-      expect(focusRing(inside).color).toBe(expected.color)
+        expect(focusRing(target)).toEqual(expected)
+        target.remove()
+      }
     }
   )
 })

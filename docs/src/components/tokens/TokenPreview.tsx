@@ -179,7 +179,7 @@ function FocusRing({
       <span
         className='size-7 rounded-md bg-raised'
         style={{
-          outline: `${width} solid color-mix(in oklch, var(--color-accent-9) ${opacity}, transparent)`
+          outline: `${width} solid color-mix(in oklch, var(--intent-9) ${opacity}, transparent)`
         }}
       />
     </span>

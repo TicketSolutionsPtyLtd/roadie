@@ -201,7 +201,7 @@ export function LayerStack() {
           intent={intent}
           step={5}
           title='Interaction states'
-          body='Hover, press and disabled, coloured by the same intent, with the one accent focus ring.'
+          body='Hover, press, focus ring and disabled, coloured by the same intent.'
           code='is-interactive'
           href='/tokens/emphasis'
           linkLabel='Emphasis and states'

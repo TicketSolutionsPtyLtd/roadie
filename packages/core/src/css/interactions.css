@@ -280,7 +280,7 @@
     outline: var(--focus-ring-width) solid
       color-mix(
         in oklch,
-        var(--color-accent-9) var(--focus-ring-opacity),
+        var(--intent-9) var(--focus-ring-opacity),
         transparent
       );
     outline-offset: 0;
@@ -289,7 +289,7 @@
   .dark &:focus-visible {
     outline-color: color-mix(
       in oklch,
-      var(--color-accent-9) var(--focus-ring-opacity-dark),
+      var(--intent-9) var(--focus-ring-opacity-dark),
       transparent
     );
   }
@@ -353,7 +353,7 @@
     outline: var(--focus-ring-width) solid
       color-mix(
         in oklch,
-        var(--color-accent-9) var(--focus-ring-opacity),
+        var(--intent-9) var(--focus-ring-opacity),
         transparent
       );
     outline-offset: 0;
@@ -362,7 +362,7 @@
   .dark &:has([data-interactive-target]:focus-visible) {
     outline-color: color-mix(
       in oklch,
-      var(--color-accent-9) var(--focus-ring-opacity-dark),
+      var(--intent-9) var(--focus-ring-opacity-dark),
       transparent
     );
   }

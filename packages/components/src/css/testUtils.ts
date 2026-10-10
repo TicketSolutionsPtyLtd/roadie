@@ -117,11 +117,11 @@ export async function focusAfterKey<T extends HTMLElement | SVGElement>(
 }
 
 /** The ring the base styles draw on a plain link with no Roadie class. */
-export async function plainLinkRing() {
+export async function plainLinkRing(within: Element = document.body) {
   const link = document.createElement('a')
   link.href = '#tickets'
   link.textContent = 'Tickets'
-  document.body.append(link)
+  within.append(link)
   await focusAfterKey(link)
   const ring = focusRing(link)
   link.remove()

@@ -42,7 +42,7 @@ buttons to see transitions, active press, and focus rings.
 | Cursor       | `cursor: pointer`                                               |
 | Transitions  | Colour, shadow, outline, and transform, from the motion tokens  |
 | Active press | `scale(0.99)`                                                   |
-| Focus ring   | `:focus-visible` outline, the one accent ring                   |
+| Focus ring   | `:focus-visible` outline, intent-coloured with transparency     |
 | Disabled     | `opacity: 0.5`, `pointer-events: none`, and `grayscale(0.3)`    |
 
 `--interactive-transition` sets each property that animates, with its
@@ -50,24 +50,27 @@ duration and its easing token.
 
 <TransitionList />
 
-Roadie has one focus ring. It's accent, 4px wide, and sits flush against the
-element with no gap. The base styles draw it on any focused element without a
-Roadie class, such as a link in CMS content or a plain button.
-`is-interactive`, `is-focusable`, and the field utilities draw the same ring
-and animate it in. The ring keeps its colour inside any intent. Only an
-invalid field's ring turns danger. Tab through these to see the same ring on
-each.
+Roadie has one focus ring shape. It's 4px wide and sits flush against the
+element with no gap. The base styles draw it on a focused element without a
+Roadie class, such as a link in CMS content or a plain button, and
+`is-interactive` and `is-focusable` draw the same ring and animate it in. Its
+colour follows the nearest `intent-*` ancestor. Tab through these to see the
+ring change.
 
 ```tsx-live layout=row
 {/* Neutral */}
 <Button emphasis='strong' intent='neutral'>Neutral</Button>
+{/* Accent */}
+<Button emphasis='strong' intent='accent'>Accent</Button>
 {/* Danger */}
 <Button emphasis='strong' intent='danger'>Danger</Button>
+{/* Success */}
+<Button emphasis='strong' intent='success'>Success</Button>
 {/* Plain link */}
 <a href='#is-interactive'>Plain link</a>
-{/* Plain button */}
-<button type='button'>Plain button</button>
 ```
+
+Fields use the same ring in accent, or danger when invalid.
 
 The ring's width, and its opacity in light and dark mode, come from the focus
 ring tokens.
@@ -312,7 +315,7 @@ when building custom interactive UI.
   <Guideline.Do>
     Show a visible focus ring for every focusable element. Use
     `:focus-visible` to avoid distracting mouse users. Roadie's base styles
-    give every focusable element the ring, and `is-interactive` and
+    draw the ring on plain links and buttons, and `is-interactive` and
     `is-focusable` animate it in.
   </Guideline.Do>
   <Guideline.Dont>
