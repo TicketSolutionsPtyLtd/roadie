@@ -4,7 +4,6 @@
  * build on a component missing here, including one passed as a prop.
  * - `rendered`: a renderer in `scripts/twin-renderers.ts` writes its data
  * - `drawing`: it only draws for the site; the sentence before it says what it shows
- * - `pending`: data still waiting for a renderer; this only shrinks
  */
 export const TWIN_COMPONENTS = {
   AccentScales: 'rendered',
@@ -58,4 +57,4 @@ export const TWIN_COMPONENTS = {
   ViewMeilisearch: 'rendered',
   ViewSearchParams: 'rendered',
   ZoneTable: 'rendered'
-} satisfies Record<string, 'rendered' | 'drawing' | 'pending'>
+} satisfies Record<string, 'rendered' | 'drawing'>
