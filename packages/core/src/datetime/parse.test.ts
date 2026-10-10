@@ -7,7 +7,7 @@ const SYDNEY = {
   now: new Date('2026-10-02T00:00:00Z'),
   timeZone: 'Australia/Sydney'
 }
-// Wed 30 Sep 2026, 10am in Sydney.
+// Wed 30 Sept 2026, 10am in Sydney.
 const WEDNESDAY = { ...SYDNEY, now: new Date('2026-09-30T00:00:00Z') }
 
 const one = (

@@ -78,7 +78,7 @@ On horizontal bars, a long name wraps to two lines within 40% of the chart's wid
 <div className='w-140 max-w-full'>
   <Chart label='Resale share' source='Oztix resale.' size='md'>
     <StackedBars
-      data={['Sep', 'Oct', 'Nov'].flatMap((month, i) => [{ month, kind: 'Resold', tickets: 40 + i * 25 }, { month, kind: 'Kept', tickets: 1400 - i * 25 }])}
+      data={['Sept', 'Oct', 'Nov'].flatMap((month, i) => [{ month, kind: 'Resold', tickets: 40 + i * 25 }, { month, kind: 'Kept', tickets: 1400 - i * 25 }])}
       x='month'
       y='tickets'
       series='kind'
