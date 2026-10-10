@@ -9,11 +9,13 @@ import {
   type LlmsSection,
   type ManifestComponent,
   type TokenFamilyMarkdown,
+  linkLine,
   llmsIndex,
   pageToMarkdown,
   tokenFamilyToMarkdown
 } from '../src/lib/llms.ts'
 import {
+  CATALOGUE_PAGES,
   CHARTS,
   COMPONENTS,
   type Catalogue,
@@ -67,6 +69,38 @@ const { tokens } = JSON.parse(
   tokens: (TokenFamilyMarkdown['tokens'][number] & { family: string })[]
 }
 
+const catalogueMarkdown: Record<string, string> = Object.fromEntries(
+  await Promise.all(
+    Object.entries(CATALOGUE_PAGES).map(async ([name, catalogue]) => [
+      name,
+      (await getCatalogue(catalogue))
+        .map((group) =>
+          [
+            `## ${group.name}`,
+            group.entries
+              .map((entry) =>
+                linkLine({
+                  title: entry.title,
+                  url: pageUrl(entry.href),
+                  description: entry.description || undefined
+                })
+              )
+              .join('\n')
+          ].join('\n\n')
+        )
+        .join('\n\n')
+    ])
+  )
+)
+
+const renderers = {
+  CatalogueIndex: ({ name }: Record<string, string | true>) => {
+    if (typeof name !== 'string' || !Object.hasOwn(catalogueMarkdown, name))
+      throw new Error(`<CatalogueIndex name="${name}"> names no catalogue`)
+    return catalogueMarkdown[name]!
+  }
+}
+
 async function markdownFor(route: string) {
   const metadata = await metadataOf(route)
   const title = metadata?.title ?? route
@@ -93,7 +127,8 @@ async function markdownFor(route: string) {
     components: components.filter((component) =>
       component.docs?.endsWith(`${route}/`)
     ),
-    resolveLink
+    resolveLink,
+    renderers
   })
 }
 

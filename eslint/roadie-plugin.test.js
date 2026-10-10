@@ -197,12 +197,16 @@ const cases = {
       'const timer = setTimeout(() => setTall(true), delay)',
       'const echo = () => setTimeout(() => setPosition(next), 400)',
       'const debounce = (fn, ms) => {\n  let timer\n  return (value) => {\n    clearTimeout(timer)\n    timer = setTimeout(() => fn(value), ms)\n  }\n}\nvi.useFakeTimers()\ndebounce(onSearch, 300)("a")\nvi.advanceTimersByTime(300)',
-      'vi.advanceTimersByTime(ms)'
+      'vi.advanceTimersByTime(ms)',
+      "import { setTimeout } from 'node:timers'"
     ],
     invalid: [
       'await new Promise((resolve) => setTimeout(resolve, 100))',
       'await page.waitForTimeout(50)',
       "await userEvent.pointer([{ type: 'wait', ms: 20 }])",
+      "import { setTimeout } from 'node:timers/promises'",
+      "import { setTimeout as sleep } from 'timers/promises'",
+      "import * as timers from 'node:timers/promises'",
       'await new Promise((resolve) => setTimeout(resolve, ms))',
       'await new Promise((resolve) => window.setTimeout(resolve, delay * 2))',
       'await new Promise((resolve) => setTimeout(() => resolve(), DELAY))',
@@ -406,8 +410,19 @@ describe('where no-fixed-sleep applies', () => {
       1
     ],
     ['root', 'packages/components/src/components/Badge/index.tsx', 0],
+    ['root', 'packages/components/src/components/Pane/testUtils.ts', 1],
+    ['root', 'packages/components/src/checks/testUtils.tsx', 1],
+    ['root', 'packages/components/src/utils/touchTestUtils.ts', 1],
+    ['root', 'packages/charts/src/plot/browserTesting.tsx', 1],
+    ['root', 'packages/widgets/vitest.setup.ts', 1],
+    [
+      'root',
+      'packages/components/src/components/RecordTable/renderCounter.ts',
+      1
+    ],
     ['docs', 'src/components/OnThisPage.test.tsx', 1],
     ['docs', 'e2e/live-examples.e2e.test.ts', 1],
+    ['docs', 'e2e/serveExport.ts', 1],
     ['docs', 'src/components/landOn.ts', 0]
   ])('%s config, %s: %i', async (config, filePath, hits) => {
     expect(await sleeps(config, filePath)).toBe(hits)

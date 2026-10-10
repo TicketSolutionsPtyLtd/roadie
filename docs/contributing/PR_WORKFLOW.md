@@ -11,8 +11,20 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
 - **Branch from the latest `main`** in its own worktree:
   `git worktree add ../roadie-<slug> -b <prefix>/<slug> origin/main`, then
   `pnpm install --frozen-lockfile`. Never edit, check out, or build in the main
-  checkout; it stays on `main`. Remove the worktree and branch once the PR
-  merges.
+  checkout; it stays on `main`.
+- **Clean up when the work is done.** Finished worktrees fill the disk fast.
+  As soon as a PR merges or its task is abandoned:
+  1. Stop any dev server or preview started from the worktree.
+  2. Check `git status` shows no uncommitted tracked changes, and that the
+     work is merged or pushed.
+  3. Run `git worktree remove -f -f <path>` (a finished agent leaves a lock),
+     delete the local branch, then `git worktree prune`. A branch with
+     unmerged commits stays; remove only the folder.
+
+  Every subagent brief says to remove its own scratch files and never leave
+  a background server running. Check `df -h` now and then, and tell the
+  maintainer when free space drops under about 20 GB.
+
 - **Agree the intent before any code** for new components and system-level
   APIs. Don't commit plan or spec files: they bloat the diff and go stale.
   - **One PR:** the PR description is the plan and the record (section 7).

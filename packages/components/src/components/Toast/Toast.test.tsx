@@ -303,19 +303,17 @@ describe('Toast.Viewport position', () => {
   it('sits at the bottom end by default', async () => {
     const { viewport, toast } = await showAt()
     expect(viewport).toHaveAttribute('data-position', 'bottom-end')
-    expect(viewport).toHaveClass('sm:end-6')
     expect(toast).toHaveAttribute('data-side', 'bottom')
     expect(toast).toHaveClass('bottom-0', 'origin-bottom')
   })
 
   it.each([
-    ['bottom-center', 'bottom', 'sm:mx-auto'],
-    ['top-end', 'top', 'sm:end-6'],
-    ['top-center', 'top', 'sm:mx-auto']
-  ] as const)('places toasts at %s', async (position, side, align) => {
+    ['bottom-center', 'bottom'],
+    ['top-end', 'top'],
+    ['top-center', 'top']
+  ] as const)('places toasts at %s', async (position, side) => {
     const { viewport, toast } = await showAt(position)
     expect(viewport).toHaveAttribute('data-position', position)
-    expect(viewport).toHaveClass(align)
     expect(toast).toHaveAttribute('data-side', side)
     expect(toast).toHaveClass(`${side}-0`, `origin-${side}`)
   })

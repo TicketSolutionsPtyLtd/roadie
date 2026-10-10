@@ -43,17 +43,25 @@ async function settle() {
   await frames()
 }
 
-function renderBar() {
+function renderBar({
+  dir = 'ltr',
+  tabs = ['a', 'b', 'c'],
+  pinned: withPinned = true
+}: { dir?: 'ltr' | 'rtl'; tabs?: string[]; pinned?: boolean } = {}) {
   const { container } = render(
-    <div style={{ height: 844, display: 'grid' }}>
+    <div dir={dir} style={{ height: 844, display: 'grid' }}>
       <Navigator value='b'>
         <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='a'>A</Navigator.Item>
-          <Navigator.Item value='b'>B</Navigator.Item>
-          <Navigator.Item value='c'>C</Navigator.Item>
-          <Navigator.Item value='account' placement='pinned'>
-            Account
-          </Navigator.Item>
+          {tabs.map((tab) => (
+            <Navigator.Item key={tab} value={tab}>
+              {tab.toUpperCase()}
+            </Navigator.Item>
+          ))}
+          {withPinned ? (
+            <Navigator.Item value='account' placement='pinned'>
+              Account
+            </Navigator.Item>
+          ) : null}
         </Navigator.Primary>
         <Pane column='list'>
           <div style={{ height: 4000 }}>Content</div>
@@ -77,8 +85,83 @@ function renderBar() {
   const scroller = container.querySelector<HTMLElement>(
     '[data-slot="pane-viewport"]'
   )!
-  return { bar, part, pinned, scroller }
+  return { host: container.firstElementChild!, bar, part, pinned, scroller }
 }
+
+async function collapse(scroller: HTMLElement) {
+  scroller.scrollTop = 400
+  scroller.dispatchEvent(new Event('scroll'))
+  await settle()
+}
+
+describe('the phone bar', () => {
+  it('floats over the content, which runs the full height beneath it', async () => {
+    const { host, bar, scroller } = renderBar()
+    await settle()
+    const content = scroller.getBoundingClientRect()
+
+    expect(content.bottom).toBeCloseTo(host.getBoundingClientRect().bottom, 0)
+    expect(bar.getBoundingClientRect().top).toBeGreaterThan(content.top)
+    expect(bar.getBoundingClientRect().bottom).toBeLessThan(content.bottom)
+  })
+
+  it('leaves a wider screen to the side rail', async () => {
+    await page.viewport(1000, 844)
+    onTestFinished(() => page.viewport(390, 844))
+    const { bar } = renderBar()
+    await settle()
+
+    expect(bar.getBoundingClientRect().height).toBe(0)
+  })
+})
+
+describe('the More pane', () => {
+  it.each([
+    [390, true],
+    [1000, false]
+  ])(
+    'at a %ipx viewport, lists the rows the phone bar folds: %s',
+    async (width, listed) => {
+      await page.viewport(width, 844)
+      onTestFinished(() => page.viewport(390, 844))
+      renderBar({ tabs: ['a', 'b', 'c', 'd', 'e', 'f'], pinned: false })
+      await settle()
+      const [barRows] = document.querySelectorAll(
+        '[data-slot="pane"][id] [data-slot="navigator-overflow-items"]'
+      )
+
+      expect(getComputedStyle(barRows!).display !== 'none').toBe(listed)
+    }
+  )
+})
+
+describe('the collapsed edge circles', () => {
+  it.each(['ltr', 'rtl'] as const)(
+    'carry the active tab and More 1rem from the edges, %s',
+    async (dir) => {
+      const { host, bar, scroller } = renderBar({
+        dir,
+        tabs: ['a', 'b', 'c', 'd', 'e', 'f'],
+        pinned: false
+      })
+      await settle()
+      await collapse(scroller)
+      const edges = host.getBoundingClientRect()
+      const circle = (side: string) =>
+        bar
+          .querySelector(`[data-circle-side="${side}"]`)!
+          .getBoundingClientRect()
+      const fromStart = (box: DOMRect) =>
+        dir === 'ltr' ? box.left - edges.left : edges.right - box.right
+      const fromEnd = (box: DOMRect) =>
+        dir === 'ltr' ? edges.right - box.right : box.left - edges.left
+
+      expect(bar).toHaveAttribute('data-collapsed', 'true')
+      expect(fromStart(circle('start'))).toBeCloseTo(16, 0)
+      expect(fromEnd(circle('end'))).toBeCloseTo(16, 0)
+    }
+  )
+})
 
 describe('phone bar with a pinned item', () => {
   it('starts the tabs 1rem from the edge rather than centring them', async () => {
@@ -133,26 +216,28 @@ describe('the pinned circle', () => {
     return { circle, mark }
   }
 
-  it('shrinks to the 3.5rem edge circle when collapsed, anchored to its corner, keeping its icon size', async () => {
-    const { bar, scroller } = renderBar()
-    await settle()
-    const { circle, mark } = pinnedParts(bar)
-    const before = circle.getBoundingClientRect()
-    const icon = mark.getBoundingClientRect()
+  it.each(['ltr', 'rtl'] as const)(
+    'shrinks to the 3.5rem edge circle when collapsed, anchored to its corner, keeping its icon size, %s',
+    async (dir) => {
+      const { bar, scroller } = renderBar({ dir })
+      await settle()
+      const { circle, mark } = pinnedParts(bar)
+      const before = circle.getBoundingClientRect()
+      const icon = mark.getBoundingClientRect()
+      const outerEdge = (box: DOMRect) => (dir === 'ltr' ? box.right : box.left)
 
-    scroller.scrollTop = 400
-    scroller.dispatchEvent(new Event('scroll'))
-    await settle()
+      await collapse(scroller)
 
-    const after = circle.getBoundingClientRect()
-    expect(before.width).toBeCloseTo(66, 0)
-    expect(after.width).toBeCloseTo(56, 0)
-    expect(after.height).toBeCloseTo(56, 0)
-    expect(after.right).toBeCloseTo(before.right, 0)
-    expect(after.bottom).toBeCloseTo(before.bottom, 0)
-    expect(mark.getBoundingClientRect().width).toBeCloseTo(icon.width, 0)
-    expect(mark.getBoundingClientRect().height).toBeCloseTo(icon.height, 0)
-  })
+      const after = circle.getBoundingClientRect()
+      expect(before.width).toBeCloseTo(66, 0)
+      expect(after.width).toBeCloseTo(56, 0)
+      expect(after.height).toBeCloseTo(56, 0)
+      expect(outerEdge(after)).toBeCloseTo(outerEdge(before), 0)
+      expect(after.bottom).toBeCloseTo(before.bottom, 0)
+      expect(mark.getBoundingClientRect().width).toBeCloseTo(icon.width, 0)
+      expect(mark.getBoundingClientRect().height).toBeCloseTo(icon.height, 0)
+    }
+  )
 
   it('snaps to the edge circle for someone who reduces motion', async () => {
     await commands.reduceMotion(true)

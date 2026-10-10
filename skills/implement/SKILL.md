@@ -43,6 +43,9 @@ the right branch? Carry on there. A session that can't create another worktree
 on the current branch, then `git switch -c <branch> origin/<base>` and install
 again. Never `git stash`; the stash is shared by every worktree.
 
+Stop every dev server you start, remove your scratch files, and remove the
+worktree when the work is done (Roadie: PR workflow section 1).
+
 ## 3. Build at the seams
 
 - Each behaviour in the spec's test seams goes through `/roadie:test`: one

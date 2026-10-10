@@ -1,0 +1,57 @@
+export const metadata = {
+  title: 'Charts',
+  description:
+    'Build dashboards and charts that read the same in every Oztix app'
+}
+
+import { CatalogueIndex } from '@/components/CatalogueIndex'
+
+Build dashboards and charts that read the same in every Oztix app
+
+<CatalogueIndex name='charts' />
+
+## Setup
+
+Pieces that work anywhere, such as `StatTile` and `DataTable`, ship from
+`@oztix/roadie-components`. The chart frame and `DashboardView` ship from
+`@oztix/roadie-charts`. Import every stylesheet you use.
+
+```css
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-charts/css';
+```
+
+Describe any dashboard as JSON and check it with `validateDashboard` from
+`@oztix/roadie-core/dashboard`. The
+[reference dashboards](/charts/show-dashboard) are written this way.
+
+## Static and tables
+
+`@oztix/roadie-charts/static` draws any chart as a standalone SVG file for
+reports, PDFs and slides. Pass `renderChartSvg` a chart definition, such as
+`lineChart`, the same props the live chart takes, a mode and a size. The file
+carries its own font, colours and accessible name, so it reads the same outside
+the app.
+
+```tsx
+import { lineChart, renderChartSvg } from '@oztix/roadie-charts/static'
+
+const svg = renderChartSvg(lineChart, pace, {
+  mode: 'light',
+  width: 640,
+  height: 260
+})
+```
+
+`@oztix/roadie-charts/tables` builds the rows behind each chart's Table view
+without loading the chart engine. Call it on the server to send exact numbers
+with a report, or to fill a `DataTable`. For a dashboard description,
+`plotTable` takes any chart card's `plot`, and `cardTable` takes a whole card
+and returns its table, ready for an action such as Download CSV.
+
+```tsx
+import { lineChartTable } from '@oztix/roadie-charts/tables'
+
+const { columns, rows } = lineChartTable(pace)
+```

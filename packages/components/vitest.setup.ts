@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach, beforeAll } from 'vitest'
+import { afterEach, beforeAll, expect } from 'vitest'
 
 class ResizeObserverMock {
   observe() {}
@@ -56,24 +56,85 @@ function keepScrollTo() {
   }
 }
 
+// jsdom has no layout: these observers never fire and every box measures 0.
+// Locking them makes a test that fakes either throw where it stubs, by a
+// setter (assignment) or `Cannot redefine property` (vi.stubGlobal, vi.spyOn).
+// A spy on one element or on a subclass prototype still gets through.
+const NO_LAYOUT =
+  'never fires or measures in jsdom. Test it in a *.browser.test.tsx.'
+
+// Not yet moved to browser tests (INNO-1238). Never add to this list.
+const FAKES_LAYOUT = [
+  'Accordion/Accordion.test.tsx',
+  'Carousel/Carousel.test.tsx',
+  'Collapsible/CollapsibleText.test.tsx',
+  'Navigator/Navigator.test.tsx',
+  'Navigator/NavigatorPending.test.tsx',
+  'Navigator/NavigatorPrimary.test.tsx',
+  'Navigator/NavigatorSecondaryPane.test.tsx',
+  'Navigator/useSlidingIndicator.test.tsx',
+  'Pane/Pane.test.tsx'
+]
+
+function descriptorOf(target: object | null, key: string) {
+  for (let at = target; at; at = Object.getPrototypeOf(at)) {
+    const descriptor = Object.getOwnPropertyDescriptor(at, key)
+    if (descriptor) return descriptor
+  }
+}
+
+function lock(target: object, key: string) {
+  if (Object.getOwnPropertyDescriptor(target, key)?.configurable === false)
+    return
+  const descriptor = descriptorOf(target, key)
+  if (!descriptor) return
+  const { value } = descriptor
+  Object.defineProperty(target, key, {
+    configurable: false,
+    enumerable: descriptor.enumerable,
+    get: descriptor.get ?? (() => value),
+    set() {
+      throw new TypeError(`${key} ${NO_LAYOUT}`)
+    }
+  })
+}
+
+function installObservers(view: object) {
+  Object.assign(view, {
+    ResizeObserver: ResizeObserverMock,
+    IntersectionObserver: IntersectionObserverMock
+  })
+}
+
+// getComputedStyle stays unlocked: the jsdom environment deletes it on teardown.
+function lockLayout() {
+  // Embla reads IntersectionObserver from the document's own window.
+  for (const view of new Set([globalThis, document.defaultView!])) {
+    lock(view, 'ResizeObserver')
+    lock(view, 'IntersectionObserver')
+  }
+  for (const proto of [Element.prototype, HTMLElement.prototype]) {
+    for (const key of [
+      'getBoundingClientRect',
+      'getClientRects',
+      'clientWidth',
+      'clientHeight',
+      'scrollWidth',
+      'scrollHeight'
+    ])
+      lock(proto, key)
+  }
+  for (const key of ['offsetWidth', 'offsetHeight', 'offsetLeft', 'offsetTop'])
+    lock(HTMLElement.prototype, key)
+}
+
+installObservers(globalThis)
+installObservers(document.defaultView!)
+const testPath = expect.getState().testPath ?? ''
+if (!FAKES_LAYOUT.some((file) => testPath.endsWith(`/components/${file}`)))
+  lockLayout()
+
 beforeAll(() => {
-  if (typeof globalThis.ResizeObserver === 'undefined') {
-    globalThis.ResizeObserver =
-      ResizeObserverMock as unknown as typeof ResizeObserver
-  }
-
-  if (typeof globalThis.IntersectionObserver === 'undefined') {
-    globalThis.IntersectionObserver =
-      IntersectionObserverMock as unknown as typeof IntersectionObserver
-  }
-  // Embla reads window.ownerDocument.defaultView.IntersectionObserver;
-  // jsdom's window namespace also needs the polyfill.
-  if (typeof window !== 'undefined' && !window.IntersectionObserver) {
-    ;(
-      window as unknown as { IntersectionObserver: unknown }
-    ).IntersectionObserver = IntersectionObserverMock
-  }
-
   keepGetAnimations()
   keepScrollTo()
 

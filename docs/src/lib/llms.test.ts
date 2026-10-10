@@ -174,7 +174,39 @@ describe('pageToMarkdown', () => {
       ].join('\n')
     )
     expect(md).not.toContain('Guideline.Row')
-    expect(md).toContain('<IconTile />')
+    expect(md).toContain('```tsx\n<>\n  <IconTile />\n  <p>Paid</p>\n</>\n```')
+  })
+
+  it('writes a JSX description as markdown, not as its source', () => {
+    const md = page(
+      [
+        '<Guideline',
+        "  title='Name the tier'",
+        '  description={',
+        '    <>',
+        "      Use <Code>rounded-3xl</Code>, not <em>[3xl]</em>, for a{' '}",
+        "      <Link href='/foundations/shape' className='underline'>",
+        '        Panel',
+        '      </Link>',
+        '      .',
+        '    </>',
+        '  }',
+        '>',
+        '  <Guideline.Do>',
+        '    Say Panel.',
+        '  </Guideline.Do>',
+        '</Guideline>'
+      ].join('\n')
+    )
+    expect(md).toBe(
+      [
+        '# Badge',
+        '**Name the tier**',
+        'Use `rounded-3xl`, not *\\[3xl]*, for a [Panel](/foundations/shape).',
+        '**Do**',
+        'Say Panel.\n'
+      ].join('\n\n')
+    )
   })
 
   it('writes a guideline’s template literal code as the code it evaluates to', () => {
@@ -440,6 +472,63 @@ describe('tokenFamilyToMarkdown', () => {
           '| `--radius-lg` | `0.5rem` | `rounded-lg` |'
         ].join('\n')
       ].join('\n\n') + '\n'
+    )
+  })
+})
+
+describe('pageToMarkdown renderers', () => {
+  it('replaces a registered docs component with its markdown, given its string props', () => {
+    const md = pageToMarkdown({
+      title: 'Charts',
+      mdx: "Intro.\n\n<CatalogueIndex name='charts' searchable />\n\n## Setup\n\nAfter.",
+      resolveLink: (href) => `https://docs.test${href}.md`,
+      renderers: {
+        CatalogueIndex: ({ name, searchable }) =>
+          `## Layout (${name}, ${searchable})\n\n- [Chart](/charts/chart)`
+      }
+    })
+    expect(md).toBe(
+      [
+        '# Charts',
+        'Intro.',
+        '## Layout (charts, true)',
+        '- [Chart](https://docs.test/charts/chart.md)',
+        '## Setup',
+        'After.'
+      ].join('\n\n') + '\n'
+    )
+  })
+})
+
+describe('pageToMarkdown renderer guards', () => {
+  const renderers = { X: () => 'Rendered.' }
+  it.each([
+    ["Text <X name='inline' /> more.", /inside a paragraph/],
+    ['<X name={other} />', /string or bare props/],
+    ['<X {...rest} />', /string or bare props/]
+  ])('throws for %s', (mdx, message) => {
+    expect(() => pageToMarkdown({ title: 'T', mdx, renderers })).toThrow(
+      message
+    )
+  })
+
+  it('ignores a JSX name that is only an inherited object key', () => {
+    expect(
+      pageToMarkdown({ title: 'T', mdx: 'Hi <constructor />.', renderers })
+    ).toBe('# T\n\nHi .\n')
+  })
+})
+
+describe('pageToMarkdown description', () => {
+  it('drops the description blockquote when the first paragraph repeats it', () => {
+    expect(
+      pageToMarkdown({
+        title: 'Foundations',
+        description: 'The principles every component builds on.',
+        mdx: 'The principles every\ncomponent builds on.\n\nMore.'
+      })
+    ).toBe(
+      '# Foundations\n\nThe principles every\ncomponent builds on.\n\nMore.\n'
     )
   })
 })

@@ -226,3 +226,89 @@ describe('a folded menu row in More', () => {
     expect(menuRow.paddingInlineStart).toBe(linkRow.paddingInlineStart)
   })
 })
+
+describe('the brand row', () => {
+  beforeAll(() => page.viewport(1280, 800))
+  afterAll(() => page.viewport(1920, 1080))
+
+  async function renderBrandRow({
+    expanded = false,
+    dir = 'ltr'
+  }: { expanded?: boolean; dir?: 'ltr' | 'rtl' } = {}) {
+    render(
+      <div dir={dir}>
+        <Navigator value='/shows' expanded={expanded}>
+          <Navigator.Primary aria-label='Main'>
+            <Navigator.Brand />
+            <Navigator.ExpandToggle />
+            <Navigator.Item value='/shows' href='/shows' icon={<Icon />}>
+              Shows
+            </Navigator.Item>
+          </Navigator.Primary>
+        </Navigator>
+      </div>
+    )
+    await settle()
+    const part = (selector: string) =>
+      vertical().querySelector<HTMLElement>(selector)!
+    return {
+      link: part('[data-slot="navigator-brand"]'),
+      mark: part('[data-slot="logo-mark"]'),
+      wordmark: part('[data-slot="logo-wordmark"]'),
+      toggle: part('[data-slot="navigator-expand-toggle"]'),
+      icon: part('[data-slot="navigator-item"] svg')
+    }
+  }
+
+  const centre = (box: DOMRect) => box.left + box.width / 2
+
+  it('shows only the logo mark, centred over the item icons, when collapsed', async () => {
+    const { mark, wordmark, icon } = await renderBrandRow()
+
+    expect(centre(mark.getBoundingClientRect())).toBeCloseTo(
+      centre(icon.getBoundingClientRect()),
+      0
+    )
+    expect(wordmark.getBoundingClientRect().width).toBe(0)
+    expect(getComputedStyle(wordmark).opacity).toBe('0')
+    // A folded column can animate open; display: none can't.
+    expect(getComputedStyle(wordmark).display).not.toBe('none')
+  })
+
+  it('opens the wordmark beside the mark when expanded', async () => {
+    const { wordmark } = await renderBrandRow({ expanded: true })
+
+    expect(wordmark.getBoundingClientRect().width).toBeGreaterThan(0)
+    expect(getComputedStyle(wordmark).opacity).toBe('1')
+  })
+
+  it.each(['ltr', 'rtl'] as const)(
+    'centres the expand toggle below the brand when collapsed, %s',
+    async (dir) => {
+      const { toggle } = await renderBrandRow({ dir })
+      const row = brand().getBoundingClientRect()
+      const box = toggle.getBoundingClientRect()
+
+      expect(centre(box)).toBeCloseTo(centre(row), 0)
+      expect(box.bottom).toBeCloseTo(row.bottom, 0)
+    }
+  )
+
+  it.each(['ltr', 'rtl'] as const)(
+    'puts the expand toggle 1rem in from the brand’s inline end, clear of the logo, when expanded, %s',
+    async (dir) => {
+      const { link, toggle } = await renderBrandRow({ expanded: true, dir })
+      const row = brand().getBoundingClientRect()
+      const logo = link.getBoundingClientRect()
+      const box = toggle.getBoundingClientRect()
+
+      if (dir === 'ltr') {
+        expect(row.right - box.right).toBeCloseTo(16, 0)
+        expect(box.left).toBeGreaterThanOrEqual(logo.right)
+      } else {
+        expect(box.left - row.left).toBeCloseTo(16, 0)
+        expect(box.right).toBeLessThanOrEqual(logo.left)
+      }
+    }
+  )
+})
