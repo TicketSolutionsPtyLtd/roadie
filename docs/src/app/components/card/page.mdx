@@ -104,209 +104,195 @@ The footer's column is as wide as its content, so cards in a list can have colum
 </div>
 ```
 
-```tsx-live
-<div className='grid gap-6'>
-  <div className='grid gap-2'>
-    <p className='text-sm text-subtle'>vertical</p>
-    <div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
-      <Card variant='ticket' direction='vertical' emphasis='raised' intent='neutral'>
-        <Card.Header className='flex items-center gap-4'>
-          <Card.Image
-            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
-            alt='Corduroy Lagoon Sessions'
-            className='aspect-square w-14 object-cover'
-            width={112}
-            height={112}
-          />
-          <div className='grid gap-0.5'>
-            <Card.Title>Corduroy Lagoon Sessions</Card.Title>
-            <Card.Description>Sat 18 Oct · 7pm · Gooseberry Signal Warehouse, Marrickville</Card.Description>
-          </div>
-        </Card.Header>
-        <Card.Content>
-          <p>Doors open at 6.30pm.</p>
-        </Card.Content>
-        <Card.Footer>
-          <Button emphasis='subtle' className='w-full'>
-            <TicketIcon weight='bold' />
-            28 tickets
-          </Button>
-          <Button emphasis='subtle' className='w-full'>
-            <UsersIcon weight='bold' />
-            7 shared
-          </Button>
-        </Card.Footer>
-      </Card>
-    </div>
-  </div>
-  <div className='grid gap-2'>
-    <p className='text-sm text-subtle'>horizontal</p>
-    <div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
-      <Card variant='ticket' direction='horizontal' emphasis='raised' intent='neutral'>
-        <Card.Header className='flex items-center gap-4'>
-          <Card.Image
-            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
-            alt='Corduroy Lagoon Sessions'
-            className='aspect-square w-14 object-cover'
-            width={112}
-            height={112}
-          />
-          <div className='grid gap-0.5'>
-            <Card.Title>Corduroy Lagoon Sessions</Card.Title>
-            <Card.Description>Sat 18 Oct · 7pm · Gooseberry Signal Warehouse, Marrickville</Card.Description>
-          </div>
-        </Card.Header>
-        <Card.Content>
-          <p>Doors open at 6.30pm.</p>
-        </Card.Content>
-        <Card.Footer>
-          <Button emphasis='subtle' className='w-full'>
-            <TicketIcon weight='bold' />
-            28 tickets
-          </Button>
-          <Button emphasis='subtle' className='w-full'>
-            <UsersIcon weight='bold' />
-            7 shared
-          </Button>
-        </Card.Footer>
-      </Card>
-    </div>
-  </div>
-  <div className='grid gap-2'>
-    <p className='text-sm text-subtle'>auto, in a narrow container</p>
-    <div className='grid max-w-xs rounded-2xl bg-subtle p-4 intent-brand'>
-      <Card variant='ticket' direction='auto' emphasis='raised' intent='neutral'>
-        <Card.Header className='flex items-center gap-4'>
-          <Card.Image
-            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
-            alt='Corduroy Lagoon Sessions'
-            className='aspect-square w-14 object-cover'
-            width={112}
-            height={112}
-          />
-          <div className='grid gap-0.5'>
-            <Card.Title>Corduroy Lagoon Sessions</Card.Title>
-            <Card.Description>Sat 18 Oct · 7pm · Gooseberry Signal Warehouse, Marrickville</Card.Description>
-          </div>
-        </Card.Header>
-        <Card.Content>
-          <p>Doors open at 6.30pm.</p>
-        </Card.Content>
-        <Card.Footer>
-          <Button emphasis='subtle' className='w-full'>
-            <TicketIcon weight='bold' />
-            28 tickets
-          </Button>
-          <Button emphasis='subtle' className='w-full'>
-            <UsersIcon weight='bold' />
-            7 shared
-          </Button>
-        </Card.Footer>
-      </Card>
-    </div>
-  </div>
-  <div className='grid gap-2'>
-    <p className='text-sm text-subtle'>auto, with room to split</p>
-    <div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
-      <Card variant='ticket' direction='auto' emphasis='raised' intent='neutral'>
-        <Card.Header className='flex items-center gap-4'>
-          <Card.Image
-            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
-            alt='Corduroy Lagoon Sessions'
-            className='aspect-square w-14 object-cover'
-            width={112}
-            height={112}
-          />
-          <div className='grid gap-0.5'>
-            <Card.Title>Corduroy Lagoon Sessions</Card.Title>
-            <Card.Description>Sat 18 Oct · 7pm · Gooseberry Signal Warehouse, Marrickville</Card.Description>
-          </div>
-        </Card.Header>
-        <Card.Content>
-          <p>Doors open at 6.30pm.</p>
-        </Card.Content>
-        <Card.Footer>
-          <Button emphasis='subtle' className='w-full'>
-            <TicketIcon weight='bold' />
-            28 tickets
-          </Button>
-          <Button emphasis='subtle' className='w-full'>
-            <UsersIcon weight='bold' />
-            7 shared
-          </Button>
-        </Card.Footer>
-      </Card>
-    </div>
-  </div>
+```tsx-live layout=stack gap=6
+{/* vertical */}
+<div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
+  <Card variant='ticket' direction='vertical' emphasis='raised' intent='neutral'>
+    <Card.Header className='flex items-center gap-4'>
+      <Card.Image
+        src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+        alt='Corduroy Lagoon Sessions'
+        className='aspect-square w-14 object-cover'
+        width={112}
+        height={112}
+      />
+      <div className='grid gap-0.5'>
+        <Card.Title>Corduroy Lagoon Sessions</Card.Title>
+        <Card.Description>Sat 18 Oct · 7pm · Gooseberry Signal Warehouse, Marrickville</Card.Description>
+      </div>
+    </Card.Header>
+    <Card.Content>
+      <p>Doors open at 6.30pm.</p>
+    </Card.Content>
+    <Card.Footer>
+      <Button emphasis='subtle' className='w-full'>
+        <TicketIcon weight='bold' />
+        28 tickets
+      </Button>
+      <Button emphasis='subtle' className='w-full'>
+        <UsersIcon weight='bold' />
+        7 shared
+      </Button>
+    </Card.Footer>
+  </Card>
+</div>
+{/* horizontal */}
+<div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
+  <Card variant='ticket' direction='horizontal' emphasis='raised' intent='neutral'>
+    <Card.Header className='flex items-center gap-4'>
+      <Card.Image
+        src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+        alt='Corduroy Lagoon Sessions'
+        className='aspect-square w-14 object-cover'
+        width={112}
+        height={112}
+      />
+      <div className='grid gap-0.5'>
+        <Card.Title>Corduroy Lagoon Sessions</Card.Title>
+        <Card.Description>Sat 18 Oct · 7pm · Gooseberry Signal Warehouse, Marrickville</Card.Description>
+      </div>
+    </Card.Header>
+    <Card.Content>
+      <p>Doors open at 6.30pm.</p>
+    </Card.Content>
+    <Card.Footer>
+      <Button emphasis='subtle' className='w-full'>
+        <TicketIcon weight='bold' />
+        28 tickets
+      </Button>
+      <Button emphasis='subtle' className='w-full'>
+        <UsersIcon weight='bold' />
+        7 shared
+      </Button>
+    </Card.Footer>
+  </Card>
+</div>
+{/* auto, narrow container */}
+<div className='grid max-w-xs rounded-2xl bg-subtle p-4 intent-brand'>
+  <Card variant='ticket' direction='auto' emphasis='raised' intent='neutral'>
+    <Card.Header className='flex items-center gap-4'>
+      <Card.Image
+        src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+        alt='Corduroy Lagoon Sessions'
+        className='aspect-square w-14 object-cover'
+        width={112}
+        height={112}
+      />
+      <div className='grid gap-0.5'>
+        <Card.Title>Corduroy Lagoon Sessions</Card.Title>
+        <Card.Description>Sat 18 Oct · 7pm · Gooseberry Signal Warehouse, Marrickville</Card.Description>
+      </div>
+    </Card.Header>
+    <Card.Content>
+      <p>Doors open at 6.30pm.</p>
+    </Card.Content>
+    <Card.Footer>
+      <Button emphasis='subtle' className='w-full'>
+        <TicketIcon weight='bold' />
+        28 tickets
+      </Button>
+      <Button emphasis='subtle' className='w-full'>
+        <UsersIcon weight='bold' />
+        7 shared
+      </Button>
+    </Card.Footer>
+  </Card>
+</div>
+{/* auto, room to split */}
+<div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
+  <Card variant='ticket' direction='auto' emphasis='raised' intent='neutral'>
+    <Card.Header className='flex items-center gap-4'>
+      <Card.Image
+        src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+        alt='Corduroy Lagoon Sessions'
+        className='aspect-square w-14 object-cover'
+        width={112}
+        height={112}
+      />
+      <div className='grid gap-0.5'>
+        <Card.Title>Corduroy Lagoon Sessions</Card.Title>
+        <Card.Description>Sat 18 Oct · 7pm · Gooseberry Signal Warehouse, Marrickville</Card.Description>
+      </div>
+    </Card.Header>
+    <Card.Content>
+      <p>Doors open at 6.30pm.</p>
+    </Card.Content>
+    <Card.Footer>
+      <Button emphasis='subtle' className='w-full'>
+        <TicketIcon weight='bold' />
+        28 tickets
+      </Button>
+      <Button emphasis='subtle' className='w-full'>
+        <UsersIcon weight='bold' />
+        7 shared
+      </Button>
+    </Card.Footer>
+  </Card>
 </div>
 ```
 
 ### Emphasis
 
-```tsx-live
-<div className='grid gap-4'>
-  <Card href='#' emphasis='raised'>
-    <Card.Header>
-      <Card.Title>Raised</Card.Title>
-      <Card.Description>Featured event</Card.Description>
-    </Card.Header>
-    <Card.Content>
-      <p>Use for primary or featured content that should stand out.</p>
-    </Card.Content>
-  </Card>
-  <Card href='#' emphasis='normal'>
-    <Card.Header>
-      <Card.Title>Normal</Card.Title>
-      <Card.Description>Standard event</Card.Description>
-    </Card.Header>
-    <Card.Content>
-      <p>Default emphasis for general-purpose cards.</p>
-    </Card.Content>
-  </Card>
-  <Card href='#' emphasis='subtle'>
-    <Card.Header>
-      <Card.Title>Subtle</Card.Title>
-      <Card.Description>Related event</Card.Description>
-    </Card.Header>
-    <Card.Content>
-      <p>Use for secondary or supporting content.</p>
-    </Card.Content>
-  </Card>
-  <Card href='#' emphasis='subtler'>
-    <Card.Header>
-      <Card.Title>Subtler</Card.Title>
-      <Card.Description>Background content</Card.Description>
-    </Card.Header>
-    <Card.Content>
-      <p>Invisible at rest. It reveals on hover. Use for interactive lists or grids.</p>
-    </Card.Content>
-  </Card>
-</div>
+```tsx-live layout=stack
+<Card href='#' emphasis='raised'>
+  <Card.Header>
+    <Card.Title>Raised</Card.Title>
+    <Card.Description>Featured event</Card.Description>
+  </Card.Header>
+  <Card.Content>
+    <p>Use for primary or featured content that should stand out.</p>
+  </Card.Content>
+</Card>
+<Card href='#' emphasis='normal'>
+  <Card.Header>
+    <Card.Title>Normal</Card.Title>
+    <Card.Description>Standard event</Card.Description>
+  </Card.Header>
+  <Card.Content>
+    <p>Default emphasis for general-purpose cards.</p>
+  </Card.Content>
+</Card>
+<Card href='#' emphasis='subtle'>
+  <Card.Header>
+    <Card.Title>Subtle</Card.Title>
+    <Card.Description>Related event</Card.Description>
+  </Card.Header>
+  <Card.Content>
+    <p>Use for secondary or supporting content.</p>
+  </Card.Content>
+</Card>
+<Card href='#' emphasis='subtler'>
+  <Card.Header>
+    <Card.Title>Subtler</Card.Title>
+    <Card.Description>Background content</Card.Description>
+  </Card.Header>
+  <Card.Content>
+    <p>Invisible at rest. It reveals on hover. Use for interactive lists or grids.</p>
+  </Card.Content>
+</Card>
 ```
 
 ### Intents
 
-```tsx-live
-<div className='grid gap-4'>
-  <Card href='#' intent='accent' emphasis='subtle'>
-    <Card.Content>
-      <p className='text-sm font-semibold'>On sale now</p>
-      <p className='text-sm'>Early bird tickets available until Friday.</p>
-    </Card.Content>
-  </Card>
-  <Card href='#' intent='success' emphasis='subtle'>
-    <Card.Content>
-      <p className='text-sm font-semibold'>Booking confirmed</p>
-      <p className='text-sm'>Your tickets for Quokka Thunder Weekender have been reserved.</p>
-    </Card.Content>
-  </Card>
-  <Card href='#' intent='danger' emphasis='subtle'>
-    <Card.Content>
-      <p className='text-sm font-semibold'>Almost sold out</p>
-      <p className='text-sm'>Only 12 tickets remaining for Sapphire Cassowary Night.</p>
-    </Card.Content>
-  </Card>
-</div>
+```tsx-live layout=stack
+<Card href='#' intent='accent' emphasis='subtle'>
+  <Card.Content>
+    <p className='text-sm font-semibold'>On sale now</p>
+    <p className='text-sm'>Early bird tickets available until Friday.</p>
+  </Card.Content>
+</Card>
+<Card href='#' intent='success' emphasis='subtle'>
+  <Card.Content>
+    <p className='text-sm font-semibold'>Booking confirmed</p>
+    <p className='text-sm'>Your tickets for Quokka Thunder Weekender have been reserved.</p>
+  </Card.Content>
+</Card>
+<Card href='#' intent='danger' emphasis='subtle'>
+  <Card.Content>
+    <p className='text-sm font-semibold'>Almost sold out</p>
+    <p className='text-sm'>Only 12 tickets remaining for Sapphire Cassowary Night.</p>
+  </Card.Content>
+</Card>
 ```
 
 ### With image

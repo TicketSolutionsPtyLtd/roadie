@@ -59,12 +59,10 @@ Leave out `label` for a bare track, such as inside a table row that already name
 
 The fill is the accent by default, like [Meter](/charts/meter). Pass `intent` to colour the result once a task has ended, such as `success` or `danger`.
 
-```tsx-live
-<div className='grid gap-4'>
-  <Progress value={40} label='Uploading' />
-  <Progress value={100} label='Upload done' valueText='Done' intent='success' />
-  <Progress value={72} label='Upload failed' valueText='Failed' intent='danger' />
-</div>
+```tsx-live layout=stack
+<Progress value={40} label='Uploading' />
+<Progress value={100} label='Upload done' valueText='Done' intent='success' />
+<Progress value={72} label='Upload failed' valueText='Failed' intent='danger' />
 ```
 
 ### Running a task

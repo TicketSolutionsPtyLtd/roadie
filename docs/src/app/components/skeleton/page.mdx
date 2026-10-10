@@ -29,77 +29,65 @@ One text line, as tall as the line height it inherits.
 
 `text` is a line of copy, `block` is a panel such as an image or a card body, and `circle` is an avatar. Width and height come from Tailwind utilities, so the shape only sets the radius and a starting size.
 
-```tsx-live
-<div className='grid gap-4'>
-  <Skeleton shape='text' />
-  <Skeleton shape='block' />
-  <Skeleton shape='circle' />
-</div>
+```tsx-live layout=stack
+<Skeleton shape='text' />
+<Skeleton shape='block' />
+<Skeleton shape='circle' />
 ```
 
 ### Sizes
 
 Size a Skeleton the way you would size the content it stands in for. A `text` line tracks the type size around it, so put it in an element that carries the type class. Skeleton renders a `div`, so that element cannot be the `p` it stands in for.
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='text-sm'><Skeleton /></div>
-  <div className='text-lg'><Skeleton className='w-2/3' /></div>
-  <Skeleton shape='block' className='h-40' />
-  <Skeleton shape='circle' className='size-16' />
-</div>
+```tsx-live layout=stack
+<div className='text-sm'><Skeleton /></div>
+<div className='text-lg'><Skeleton className='w-2/3' /></div>
+<Skeleton shape='block' className='h-40' />
+<Skeleton shape='circle' className='size-16' />
 ```
 
 ### Emphasis
 
 `subtle` is the default. Use `subtler` on a raised or sunken surface where the default fill reads too loud.
 
-```tsx-live
-<div className='grid gap-4'>
-  <Skeleton emphasis='subtle' />
-  <Skeleton emphasis='subtler' />
-</div>
+```tsx-live layout=stack
+<Skeleton emphasis='subtle' />
+<Skeleton emphasis='subtler' />
 ```
 
 ### Intents
 
 Skeleton takes its intent from context, so a placeholder inside a tinted region picks up that palette. Pass `intent` to set it directly.
 
-```tsx-live
-<div className='grid gap-4'>
-  <Skeleton />
-  <Skeleton intent='brand' />
-  <Skeleton intent='accent' />
-  <Skeleton intent='danger' />
-</div>
+```tsx-live layout=stack
+<Skeleton />
+<Skeleton intent='brand' />
+<Skeleton intent='accent' />
+<Skeleton intent='danger' />
 ```
 
 ### Composition
 
 A paragraph is several text lines in a grid, with a short last line.
 
-```tsx-live
-<div className='grid gap-2'>
-  <Skeleton />
-  <Skeleton />
-  <Skeleton className='w-3/5' />
-</div>
+```tsx-live layout=stack gap=2
+<Skeleton />
+<Skeleton />
+<Skeleton className='w-3/5' />
 ```
 
 A list row is a circle beside a two-line stack.
 
-```tsx-live
-<div className='grid gap-4'>
-  {[0, 1, 2].map((row) => (
-    <div key={row} className='flex items-center gap-3'>
-      <Skeleton shape='circle' />
-      <div className='grid flex-1 gap-2'>
-        <Skeleton className='w-1/3' />
-        <Skeleton className='w-2/3' />
-      </div>
+```tsx-live layout=stack
+{[0, 1, 2].map((row) => (
+  <div key={row} className='flex items-center gap-3'>
+    <Skeleton shape='circle' />
+    <div className='grid flex-1 gap-2'>
+      <Skeleton className='w-1/3' />
+      <Skeleton className='w-2/3' />
     </div>
-  ))}
-</div>
+  </div>
+))}
 ```
 
 ## Guidelines
