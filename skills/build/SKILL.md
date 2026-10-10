@@ -193,7 +193,8 @@ Read [Iconography](https://ticketsolutionsptyltd.github.io/roadie/foundations/ic
   `@phosphor-icons/react/ssr`. The plain import is for client files only.
 - Bold everywhere, which is the default inside Roadie components.
   `weight='fill'` only for a selected or active state, and `duotone` only
-  above 48px.
+  in a tile or graphic above 48px, such as an `IconTile` above `lg` or an
+  `EmptyState` tile at its default size.
 - Size with classes, `size-4` by default, never the `size` prop. Inside a
   `Button`, `Badge`, or menu item, pass a bare icon; the component sizes it.
 - An icon-only action is an `IconButton` with an `aria-label`.
