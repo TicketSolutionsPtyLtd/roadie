@@ -88,9 +88,10 @@ Tables shrink to fit their content. Wrap a table that might be wider than its
 container in `.prose-scroll`, which scrolls sideways instead of overflowing
 the page. Each column in a scrolling table stays at least 9em wide, so when
 the columns can't all fit, the table scrolls rather than squeezing text to a
-word or two a line. A long cell wraps at the prose measure. Inline code in a scrolling table stays on one line, so a token such
-as `rounded-sm` never splits. Outside `.prose-scroll`, inline code still breaks
-where it must, so the table fits its column.
+word or two a line. A long cell wraps at the prose measure. Inline code in a
+scrolling table stays on one line, so a token such as `rounded-sm` never
+splits. Outside `.prose-scroll`, inline code still breaks where it must, so the
+table fits its column.
 
 ```tsx-live-prose
 <div className='prose'>
