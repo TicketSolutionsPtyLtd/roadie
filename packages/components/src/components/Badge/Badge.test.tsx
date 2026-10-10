@@ -159,13 +159,13 @@ describe('Badge', () => {
           Live
         </Badge>
       )
-      expect(badge).toHaveClass('animate-pulse')
+      expect(badge).toHaveClass('animate-pulse-subtle')
     })
 
     it('leaves the default badge unchanged', () => {
       const { badge, getByText } = renderDot(<Badge indicator>Active</Badge>)
       expect(badge).toHaveClass('px-2.5', 'py-0.5', 'text-sm')
-      expect(badge).not.toHaveClass('size-2.5', 'animate-pulse')
+      expect(badge).not.toHaveClass('size-2.5', 'animate-pulse-subtle')
       expect(getByText('Active')).not.toHaveClass('sr-only')
       expect(badge.querySelector('[aria-hidden="true"]')).not.toBeNull()
     })

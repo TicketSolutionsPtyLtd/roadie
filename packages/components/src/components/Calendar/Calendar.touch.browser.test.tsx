@@ -13,6 +13,7 @@ import { commands, page } from 'vitest/browser'
 
 import { Calendar, type CalendarSingleProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { durationToken } from '../../utils/motionTokens'
 import { tapOn } from '../../utils/touchTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { expectOneContinuousMotion, recordFrames } from './testUtils'
@@ -170,7 +171,11 @@ describe('Calendar shows the page it turns to', TIMEOUT, () => {
       const lift = holdDrag(day('2027-03-17'), 0, -100)
       const frames = await recordFrames(true, lift)
       expect(frames.at(-1)!.title).toBe('April 2027')
-      expectOneContinuousMotion(frames, -1, 220)
+      expectOneContinuousMotion(
+        frames,
+        -1,
+        durationToken(document.body, 'moderate')
+      )
       cleanup()
     }
   })

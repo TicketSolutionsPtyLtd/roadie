@@ -80,9 +80,11 @@ For motion no component gives you, pick the utility for the job.
 - `motion-fade-in`, `motion-fade-out`, `motion-scale-in`, `motion-scale-out`,
   and `motion-pop-in` are deprecated. Use the `animate-*` name, or
   `motion-scale` or `motion-slide` for an exit.
-- Don't use Tailwind's `animate-spin`, `animate-pulse`, `animate-bounce`, or
-  `animate-ping`. A spinner is `Progress`, and a pulse is
-  `animate-pulse-subtle`.
+- Don't use Tailwind's `animate-pulse`, `animate-bounce`, or `animate-ping`. A
+  pulse is `animate-pulse-subtle`.
+- Tailwind's `animate-spin` is only for a small status icon that stands in for
+  a pending action, as Toast's loading icon does. Anything larger, or any bar
+  or surface that waits, uses `Progress` or a loading utility.
 
 ## 3. Custom motion: tokens only
 
