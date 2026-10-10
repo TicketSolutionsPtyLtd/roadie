@@ -1,9 +1,10 @@
 /**
  * What each docs component a page imports from `@/` becomes in the page's
- * markdown twin. `scripts/llms.ts` fails the build on a component missing here.
+ * markdown twin, keyed by the name the page uses. `scripts/llms.ts` fails the
+ * build on a component missing here, including one passed as a prop.
  * - `rendered`: a renderer in `scripts/twin-renderers.ts` writes its data
  * - `drawing`: it only draws for the site; the sentence before it says what it shows
- * - `pending`: data still waiting for a renderer (INNO-1233); this only shrinks
+ * - `pending`: data still waiting for a renderer; this only shrinks
  */
 export const TWIN_COMPONENTS = {
   AccentScales: 'pending',
@@ -11,6 +12,7 @@ export const TWIN_COMPONENTS = {
   CardAnatomyExample: 'drawing',
   CardSizes: 'rendered',
   CardStateExample: 'drawing',
+  CardMenu: 'drawing',
   CartContentsParityDemo: 'drawing',
   CartDrawerParityDemo: 'drawing',
   CartExpiryDialogsDemo: 'drawing',
@@ -27,7 +29,7 @@ export const TWIN_COMPONENTS = {
   FocusRingList: 'pending',
   FormExamples: 'drawing',
   IconSizeScale: 'pending',
-  IllustrationGallery: 'drawing',
+  IllustrationGallery: 'pending',
   IntentEmphasis: 'drawing',
   LayeringScale: 'pending',
   MachineValueReads: 'pending',
