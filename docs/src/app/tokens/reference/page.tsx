@@ -1,8 +1,10 @@
 import { TokenBrowser } from '@/components/tokens/TokenBrowser'
+import { ALL_TOKENS_INTRO } from '@/lib/token-families'
 import { getTokens } from '@/lib/tokens'
 
 export const metadata = {
   title: 'All tokens',
+  allTokens: true,
   description:
     'Search every variable, class, variant and keyframe Roadie core ships. Copy the variable or the class.',
   category: 'Reference',
@@ -15,8 +17,7 @@ export default async function TokenReferencePage() {
   return (
     <div className='grid gap-6'>
       <p className='text-lg text-subtle'>
-        Every variable, class, variant and keyframe core ships, generated from
-        its CSS on every build. Press / to search from anywhere on the page.
+        {ALL_TOKENS_INTRO} Press / to search from anywhere on the page.
       </p>
       <TokenBrowser tokens={tokens} reference label='Search all tokens' />
     </div>

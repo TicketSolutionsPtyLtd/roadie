@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { llmsIndex, pageToMarkdown, tokenFamilyToMarkdown } from './llms'
+import { DASHBOARD_EXAMPLES } from './dashboard-examples'
+import {
+  allTokensToMarkdown,
+  dashboardExampleToMarkdown,
+  llmsIndex,
+  pageToMarkdown,
+  tokenFamilyToMarkdown
+} from './llms'
 
 const page = (mdx: string) => pageToMarkdown({ title: 'Badge', mdx })
 
@@ -529,6 +536,82 @@ describe('pageToMarkdown description', () => {
       })
     ).toBe(
       '# Foundations\n\nThe principles every\ncomponent builds on.\n\nMore.\n'
+    )
+  })
+})
+
+describe('dashboardExampleToMarkdown', () => {
+  it('writes the spec, then the period and card action code it has, then the JSX', () => {
+    expect(
+      dashboardExampleToMarkdown({
+        title: 'Show dashboard',
+        description: 'How one show is selling',
+        spec: { version: 1 },
+        jsx: '<Dashboard />',
+        period: { note: 'Pick a period.', code: 'usePeriod()' },
+        cardActionsCode: '<CardMenu />'
+      })
+    ).toBe(
+      [
+        '# Show dashboard',
+        '> How one show is selling',
+        '## As data',
+        '```json\n{\n  "version": 1\n}\n```',
+        '## With a period',
+        'Pick a period.',
+        '```tsx\nusePeriod()\n```',
+        '## With card actions',
+        '```tsx\n<CardMenu />\n```',
+        '## As JSX',
+        '```tsx\n<Dashboard />\n```'
+      ].join('\n\n') + '\n'
+    )
+  })
+
+  it('fences code that holds a backtick run past its length', () => {
+    expect(
+      dashboardExampleToMarkdown({
+        title: 'T',
+        spec: {},
+        jsx: 'const md = `a ``` b`'
+      })
+    ).toContain('````tsx\nconst md = `a ``` b`\n````')
+  })
+})
+
+describe('allTokensToMarkdown', () => {
+  it('puts each family under a level 2 heading and its groups a level down', () => {
+    const md = allTokensToMarkdown({
+      title: 'All tokens',
+      intro: 'Every token.',
+      families: [
+        {
+          title: 'Shape',
+          intro: 'Radius and width.',
+          guidance: [],
+          tokens: [
+            { name: '--radius-lg', group: 'Radius', value: { light: '0.5rem' } }
+          ]
+        }
+      ]
+    })
+    expect(md).toBe(
+      [
+        '# All tokens',
+        'Every token.',
+        '## Shape',
+        'Radius and width.',
+        '### Radius',
+        '| Token | Value |\n| --- | --- |\n| `--radius-lg` | `0.5rem` |'
+      ].join('\n\n') + '\n'
+    )
+  })
+})
+
+describe('DASHBOARD_EXAMPLES', () => {
+  it('keeps the portfolio period code at column 0', () => {
+    expect(DASHBOARD_EXAMPLES.portfolio.period.code).toMatch(
+      /^'use client'\n\nfunction PortfolioDashboard\(\) \{\n  const/
     )
   })
 })

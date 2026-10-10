@@ -454,7 +454,7 @@ function table(header: string[], rows: string[][]) {
 
 type Column = [name: string, value: (token: TokenRow) => string]
 
-function tokenGroup(group: string, tokens: TokenRow[]) {
+function tokenGroup(group: string, tokens: TokenRow[], depth: number) {
   const used = (column: Column) =>
     tokens.some((token) => column[1](token) !== '')
   const dark: Column = [
@@ -476,7 +476,7 @@ function tokenGroup(group: string, tokens: TokenRow[]) {
     ).filter(used)
   ]
   const sections = [
-    `## ${group}`,
+    `${'#'.repeat(depth)} ${group}`,
     table(
       columns.map(([name]) => name),
       tokens.map((token) => columns.map(([, value]) => value(token)))
@@ -505,11 +505,9 @@ function tokenGroup(group: string, tokens: TokenRow[]) {
   return sections
 }
 
-export function tokenFamilyToMarkdown(page: TokenFamilyMarkdown): string {
+function familySections(page: TokenFamilyMarkdown, depth: number) {
   const groups = Map.groupBy(page.tokens, (token) => token.group)
   return [
-    `# ${page.title}`,
-    ...(page.description ? [`> ${page.description}`] : []),
     page.intro,
     ...(page.guidance.length > 0
       ? [
@@ -518,8 +516,87 @@ export function tokenFamilyToMarkdown(page: TokenFamilyMarkdown): string {
             .join(', ')}.`
         ]
       : []),
-    ...[...groups].flatMap(([group, tokens]) => tokenGroup(group, tokens))
+    ...[...groups].flatMap(([group, tokens]) =>
+      tokenGroup(group, tokens, depth)
+    )
   ]
+}
+
+const markdownDocument = (
+  title: string,
+  description: string | undefined,
+  body: string[]
+) =>
+  [`# ${title}`, ...(description ? [`> ${description}`] : []), ...body]
     .join('\n\n')
     .concat('\n')
+
+export function tokenFamilyToMarkdown(family: TokenFamilyMarkdown): string {
+  return markdownDocument(
+    family.title,
+    family.description,
+    familySections(family, 2)
+  )
+}
+
+export function allTokensToMarkdown({
+  title,
+  description,
+  intro,
+  families
+}: {
+  title: string
+  description?: string
+  intro: string
+  families: TokenFamilyMarkdown[]
+}): string {
+  return markdownDocument(title, description, [
+    intro,
+    ...families.flatMap((family) => [
+      `## ${family.title}`,
+      ...familySections(family, 3)
+    ])
+  ])
+}
+
+/** A fenced block whose fence outruns any backtick run inside it. */
+function fence(lang: string, code: string) {
+  const longest = Math.max(
+    2,
+    ...(code.match(/`+/g) ?? []).map((run) => run.length)
+  )
+  const ticks = '`'.repeat(longest + 1)
+  return `${ticks}${lang}\n${code}\n${ticks}`
+}
+
+/** How a reference dashboard's page changes the period: a sentence and the code. */
+export type DashboardPeriodExample = { note: string; code: string }
+
+export type DashboardExampleMarkdown = {
+  title: string
+  description?: string
+  spec: unknown
+  jsx: string
+  period?: DashboardPeriodExample
+  cardActionsCode?: string
+}
+
+/** A reference dashboard as its page shows it: the spec, any period or card action code, then the JSX. */
+export function dashboardExampleToMarkdown(example: DashboardExampleMarkdown) {
+  return markdownDocument(example.title, example.description, [
+    '## As data',
+    fence('json', JSON.stringify(example.spec, null, 2)),
+    ...(example.period
+      ? [
+          '## With a period',
+          example.period.note,
+          fence('tsx', example.period.code)
+        ]
+      : []),
+    ...(example.cardActionsCode
+      ? ['## With card actions', fence('tsx', example.cardActionsCode)]
+      : []),
+    '## As JSX',
+    fence('tsx', example.jsx)
+  ])
 }

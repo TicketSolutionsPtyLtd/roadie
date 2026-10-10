@@ -98,6 +98,10 @@ type PageMetadata = Record<string, unknown> & {
   wide?: boolean
   /** The token family a page lists; its markdown twin is built from the token manifest. */
   tokenFamily?: string
+  /** The reference dashboard a page shows; its twin is built from `dashboard-examples.ts`. */
+  dashboardExample?: string
+  /** The page lists every token; its twin holds every family. */
+  allTokens?: boolean
 }
 
 /** A page's `metadata`: undefined when the file is missing, null when it has none. */
@@ -308,7 +312,12 @@ export async function getPageWide(): Promise<Record<string, boolean>> {
   return wide
 }
 
-/** Routes with a markdown twin at `{route}.md`: every `page.mdx`, and each `page.tsx` whose metadata names a `tokenFamily`. */
+const generatesTwin = (metadata: PageMetadata | null | undefined) =>
+  Boolean(
+    metadata?.tokenFamily || metadata?.dashboardExample || metadata?.allTokens
+  )
+
+/** Routes with a markdown twin at `{route}.md`: every `page.mdx`, and each `page.tsx` whose metadata says what to build its twin from. */
 export async function getMarkdownRoutes(): Promise<string[]> {
   const files = await readdir(APP_DIR, { recursive: true })
   const routes = await Promise.all(
@@ -317,7 +326,7 @@ export async function getMarkdownRoutes(): Promise<string[]> {
       const twin =
         name === 'page.mdx' ||
         (name === 'page.tsx' &&
-          (await readPageMetadata(join(APP_DIR, file)))?.tokenFamily)
+          generatesTwin(await readPageMetadata(join(APP_DIR, file))))
       return twin ? `/${dirname(file).split(sep).join('/')}` : undefined
     })
   )
