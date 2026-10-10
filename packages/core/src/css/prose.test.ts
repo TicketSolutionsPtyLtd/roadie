@@ -263,6 +263,19 @@ describe('prose.css', () => {
     expect(declaration(scroll?.body ?? '', 'overflow-x')).toBe('auto')
   })
 
+  it('keeps .prose-scroll table cells between 9em and the prose measure', () => {
+    const cell = proseRules.find(({ selector }) =>
+      selector
+        .replace(/\s+/g, ' ')
+        .startsWith('.prose :where(.prose-scroll) :where(th, td):not(')
+    )
+
+    expect(declaration(cell?.body ?? '', 'min-inline-size')).toBe('9em')
+    expect(declaration(cell?.body ?? '', 'max-inline-size')).toBe(
+      'var(--prose-measure)'
+    )
+  })
+
   it('caps the measure at 65ch, except under .prose-bleed', () => {
     expect(css).toMatch(
       /@property --prose-measure\s*{[^}]*syntax: '<length> \| none'/
