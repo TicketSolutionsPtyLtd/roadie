@@ -236,16 +236,19 @@ describe('twins carry the data their pages render', () => {
     existsSync(join(import.meta.dirname, `../src/app${route}/page.mdx`))
   )
   // A link's route, whether the page's href or the twin's .md URL.
-  const routeOf = (url: string) =>
-    new URL(url, ORIGIN).pathname
-      .replace(BASE_PATH, '')
-      .replace(/(\.md|\/)$/, '')
+  const routeOf = (url: string) => {
+    const { pathname } = new URL(url, ORIGIN)
+    return (
+      pathname.startsWith(BASE_PATH)
+        ? pathname.slice(BASE_PATH.length)
+        : pathname
+    ).replace(/(\.md|\/)$/, '')
+  }
 
   it.each(GUIDED)(
     '%s token links',
     async (route) => {
-      const markdown = await twin(route).catch(() => null)
-      if (markdown === null) return
+      const markdown = await twin(route)
       const page = await open(route)
       const links = page.locator('[data-slot=related-links] a')
       const shown = await Promise.all(
@@ -256,10 +259,11 @@ describe('twins carry the data their pages render', () => {
       )
       expect(shown.length).toBeGreaterThan(0)
       const line = markdown.match(/^Reference: (.+)\.$/m)?.[1] ?? ''
-      const written = [...line.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)].map(
-        ([, title, url]) => [title, routeOf(url!)]
+      const written = [...line.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)]
+      expect(written.every(([, , url]) => url!.endsWith('.md'))).toBe(true)
+      expect(written.map(([, title, url]) => [title, routeOf(url!)])).toEqual(
+        shown
       )
-      expect(written).toEqual(shown)
     },
     60_000
   )
