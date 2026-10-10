@@ -43,21 +43,13 @@ render(<Default />)
 
 `readOnly` shows the period and comparison with a lock, for a dashboard whose period the page sets, such as one show’s on-sale window. `disabled` turns it off.
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-period' }} />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Read only</p>
-    <DashboardPeriod readOnly defaultValue={{ range: { start: '2026-11-02', end: '2026-11-29' }, compare: 'previous-year' }} />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <DashboardPeriod disabled defaultValue={{ range: 'last-month', compare: 'previous-period' }} />
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Default */}
+<DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-period' }} />
+{/* Read only */}
+<DashboardPeriod readOnly defaultValue={{ range: { start: '2026-11-02', end: '2026-11-29' }, compare: 'previous-year' }} />
+{/* Disabled */}
+<DashboardPeriod disabled defaultValue={{ range: 'last-month', compare: 'previous-period' }} />
 ```
 
 ### With custom dates
