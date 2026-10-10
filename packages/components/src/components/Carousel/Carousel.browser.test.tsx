@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { type ReactNode, useEffect } from 'react'
 
 import { cleanup, render, screen } from '@testing-library/react'
 import {
@@ -79,6 +79,133 @@ describe('Carousel direction', () => {
     await userEvent.click(content())
     await userEvent.keyboard('{ArrowDown}')
     await settlesAt('Show 2', 'top', start)
+  })
+})
+
+describe('Carousel navigation', () => {
+  function Navigable({
+    loop,
+    first = 'Show 1'
+  }: {
+    loop?: boolean
+    first?: ReactNode
+  }) {
+    return (
+      <div style={{ width: 400, margin: 32 }}>
+        <Carousel opts={{ loop }}>
+          <Carousel.Header>
+            <Carousel.Title>Shows</Carousel.Title>
+            <Carousel.Dots />
+            <Carousel.Controls>
+              <Carousel.Previous />
+              <Carousel.Next />
+            </Carousel.Controls>
+          </Carousel.Header>
+          <Carousel.Content overflow='hidden'>
+            <Carousel.Item>{first}</Carousel.Item>
+            <Carousel.Item>Show 2</Carousel.Item>
+            <Carousel.Item>Show 3</Carousel.Item>
+          </Carousel.Content>
+        </Carousel>
+      </div>
+    )
+  }
+
+  function Ready() {
+    return useCarouselUnsafeEmbla() ? <output>Ready</output> : null
+  }
+
+  const button = (name: string) => screen.getByRole('button', { name })
+  const slide = (name: string) => screen.getByRole('group', { name })
+  const showing = (slide: number) =>
+    expect
+      .element(page.getByRole('button', { name: `Go to slide ${slide}` }))
+      .toHaveAttribute('aria-current', 'true')
+  const measured = () =>
+    expect
+      .poll(
+        () => screen.queryAllByRole('button', { name: /^Go to slide/ }).length
+      )
+      .toBe(3)
+
+  it('disables Previous at the start, then enables it once moved on', async () => {
+    render(<Navigable />)
+    await measured()
+    expect(button('Previous slide')).toHaveAttribute('aria-disabled', 'true')
+    expect(button('Next slide')).not.toHaveAttribute('aria-disabled')
+    await userEvent.click(button('Next slide'))
+    await showing(2)
+    expect(button('Previous slide')).not.toHaveAttribute('aria-disabled')
+  })
+
+  it('keeps Previous enabled at the start when looping', async () => {
+    render(<Navigable loop />)
+    await measured()
+    expect(button('Previous slide')).not.toHaveAttribute('aria-disabled')
+    expect(button('Next slide')).not.toHaveAttribute('aria-disabled')
+  })
+
+  it('goes to the slide whose dot is pressed', async () => {
+    render(<Navigable />)
+    await measured()
+    const start = offset('Show 1', 'left')
+    await userEvent.click(button('Go to slide 3'))
+    await showing(3)
+    await settlesAt('Show 3', 'left', start)
+  })
+
+  it('moves with the arrow, Home, and End keys', async () => {
+    render(<Navigable />)
+    await measured()
+    await userEvent.click(content())
+    await userEvent.keyboard('{ArrowRight}')
+    await showing(2)
+    await userEvent.keyboard('{ArrowLeft}')
+    await showing(1)
+    await userEvent.keyboard('{End}')
+    await showing(3)
+    await userEvent.keyboard('{Home}')
+    await showing(1)
+  })
+
+  it('leaves the arrow keys to a link inside a slide', async () => {
+    render(<Navigable first={<a href='#inside'>Inside link</a>} />)
+    await measured()
+    screen.getByRole('link', { name: 'Inside link' }).focus()
+    await userEvent.keyboard('{ArrowRight}')
+    await userEvent.click(button('Next slide'))
+    await showing(2)
+  })
+
+  it('makes only the slide in view interactive', async () => {
+    render(<Navigable />)
+    await measured()
+    expect(slide('1 of 3').inert).toBe(false)
+    expect(slide('2 of 3').inert).toBe(true)
+    expect(slide('3 of 3').inert).toBe(true)
+    await userEvent.click(button('Next slide'))
+    await expect.poll(() => slide('2 of 3').inert).toBe(false)
+    await expect.poll(() => slide('1 of 3').inert).toBe(true)
+    expect(slide('3 of 3').inert).toBe(true)
+  })
+
+  it('shows no Previous, Next, or dots for a single slide', async () => {
+    render(
+      <Carousel aria-label='Shows'>
+        <Carousel.Content>
+          <Carousel.Item>Show 1</Carousel.Item>
+        </Carousel.Content>
+        <Carousel.Previous />
+        <Carousel.Next />
+        <Carousel.Dots />
+        <Ready />
+      </Carousel>
+    )
+    await expect.element(page.getByText('Ready')).toBeInTheDocument()
+    expect(screen.queryByRole('button')).toBeNull()
+    expect(
+      screen.queryByRole('group', { name: 'Choose slide to display' })
+    ).toBeNull()
   })
 })
 
