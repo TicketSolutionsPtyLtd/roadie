@@ -147,12 +147,14 @@ describe('twins carry the data their pages render', () => {
             ])
           )
       const [light, dark] = await Promise.all([panel('light'), panel('dark')])
+      expect(light.length, kind).toBeGreaterThan(0)
       const rgb = (hex: string) =>
         `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ')})`
       const table = markdownTables(await twin('/foundations/colors')).find(
         (rows) => rows[1]?.[0] === `\`${light[0]![0]}\``
       )
-      expect(table?.slice(1)).toEqual(
+      expect(table, kind).toBeDefined()
+      expect(table!.slice(1)).toEqual(
         light.map(([token, color], i) => {
           const row = table![i + 1]!
           expect(rgb(row[1]!.slice(1, -1))).toBe(color)

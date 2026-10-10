@@ -7,14 +7,12 @@ import {
 
 import { type Mode, chartHex } from '@oztix/roadie-core/dataviz'
 
-type Kind = DatavizKind
-
 function Strip({
   kind,
   mode,
   tokens
 }: {
-  kind: Kind
+  kind: DatavizKind
   mode: Mode
   tokens: readonly string[]
 }) {
@@ -47,7 +45,7 @@ function ThemePanel({
   mode,
   tokens
 }: {
-  kind: Kind
+  kind: DatavizKind
   mode: Mode
   tokens: readonly string[]
 }) {
@@ -65,7 +63,7 @@ function ThemePanel({
 }
 
 /** Each panel reads its hex from chartHex, so both stay exact regardless of the page's own theme. */
-export function DatavizSwatches({ kind }: { kind: Kind }) {
+export function DatavizSwatches({ kind }: { kind: DatavizKind }) {
   const tokens = DATAVIZ_STRIPS[kind]
   return (
     <div

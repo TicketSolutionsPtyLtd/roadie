@@ -31,11 +31,16 @@ export const datavizLabel = (token: string) =>
 
 export function datavizHex(kind: DatavizKind, mode: Mode, index: number) {
   const hex = chartHex(mode)
-  if (kind === 'status')
-    return hex.status[
-      datavizLabel(DATAVIZ_STRIPS.status[index]!) as keyof typeof hex.status
-    ]
-  return hex[kind][index]!
+  const token = DATAVIZ_STRIPS[kind][index]
+  const value =
+    kind === 'status' && token
+      ? hex.status[datavizLabel(token) as keyof typeof hex.status]
+      : kind === 'status'
+        ? undefined
+        : hex[kind][index]
+  if (!value)
+    throw new Error(`No ${mode} colour for ${token ?? `${kind} ${index}`}`)
+  return value
 }
 
 const code = (value: string): TwinCell => [{ code: value }]
@@ -83,7 +88,7 @@ export function colorScales(
   )
 }
 
-/** Each scale with its first and last step, as the page labels them. */
+/** Each scale's label and its first and last step token. */
 export const colorScaleTable = (scales: ColorScale[]): TwinTable => ({
   head: ['Scale', 'Steps'],
   rows: scales.map(({ label, steps }) => [
