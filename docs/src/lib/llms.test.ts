@@ -110,7 +110,7 @@ describe('pageToMarkdown', () => {
     expect(md).toBe(
       [
         '# Badge',
-        '**Keep it short**',
+        '#### Keep it short',
         '**Do**',
         "```tsx\n<Badge intent='success'>Paid</Badge>\n```",
         'One word where one will do.',
@@ -138,7 +138,7 @@ describe('pageToMarkdown', () => {
     expect(md).toBe(
       [
         '# Badge',
-        '**Pair a tile with a label**',
+        '#### Pair a tile with a label',
         '**Do**',
         '```tsx\n<><IconTile /><p>Paid</p></>\n```',
         'Name what the icon means.\n'
@@ -208,7 +208,7 @@ describe('pageToMarkdown', () => {
     expect(md).toBe(
       [
         '# Badge',
-        '**Name the tier**',
+        '#### Name the tier',
         'Use `rounded-3xl`, not *\\[3xl]*, for a [Panel](/foundations/shape).',
         '**Do**',
         'Say Panel.\n'
@@ -245,7 +245,7 @@ describe('pageToMarkdown', () => {
     expect(md).toBe(
       [
         '# Badge',
-        '**Constrain the height**',
+        '#### Constrain the height',
         'ScrollArea never sizes itself.',
         '**Do**',
         'Set a max height.\n'
@@ -632,5 +632,39 @@ describe('pageToMarkdown docs drawings', () => {
     expect(md).not.toContain('RowDiagram')
     expect(md).toContain("<Card size='lg' />")
     expect(md).toContain('<Button>Go</Button>')
+  })
+})
+
+describe('pageToMarkdown twin registry', () => {
+  const mdx = [
+    "import { SpacingScale } from '@/components/layout/SpacingScale'",
+    '',
+    'Steps of the spacing unit.',
+    '',
+    '<SpacingScale />'
+  ].join('\n')
+
+  it('fails on a docs component that is neither rendered nor a drawing', () => {
+    expect(() =>
+      pageToMarkdown({ title: 'T', mdx, drawings: new Set() })
+    ).toThrow(/<SpacingScale> isn't in the twin registry/)
+  })
+
+  it('drops a listed drawing and keeps the text around it', () => {
+    expect(
+      pageToMarkdown({ title: 'T', mdx, drawings: new Set(['SpacingScale']) })
+    ).toBe('# T\n\nSteps of the spacing unit.\n')
+  })
+})
+
+describe('pageToMarkdown Guideline titles', () => {
+  it('writes a titled Guideline as a heading at its page level', () => {
+    const md = (level: string) =>
+      pageToMarkdown({
+        title: 'T',
+        mdx: `<Guideline${level} title='Mirror a large card'><Guideline.Do>Mirror it.</Guideline.Do></Guideline>`
+      })
+    expect(md('')).toContain('#### Mirror a large card')
+    expect(md(' headingLevel={3}')).toContain('### Mirror a large card')
   })
 })

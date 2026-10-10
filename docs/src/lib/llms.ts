@@ -1,6 +1,7 @@
 import type {
   BlockContent,
   Code,
+  Heading,
   Paragraph,
   PhrasingContent,
   Root,
@@ -32,7 +33,12 @@ export type MarkdownPage = {
   resolveLink?: (href: string) => string
   /** Markdown for each docs component the page renders data with, keyed by its JSX name; bare props arrive as `true`. */
   renderers?: Record<string, (props: Record<string, string | true>) => string>
+  /** Docs components that only draw for the site. When set, a docs component that is neither rendered nor listed here fails the build. */
+  drawings?: ReadonlySet<string>
 }
+
+// Structure every page shares, which `transform` expands itself.
+export const BUILT_IN = new Set(['Guideline', 'Guidelines', 'PropsDefinitions'])
 
 type JsxElement = MdxJsxFlowElement | MdxJsxTextElement
 type Node = Root | RootContent
@@ -272,8 +278,12 @@ function guideline(
       ? 'Do'
       : node.name === 'Guideline.Dont'
         ? 'Don’t'
-        : title
+        : undefined
+  const depth = attribute(node, 'headingLevel') === '3' ? 3 : 4
   return [
+    ...(title && !label
+      ? [{ type: 'heading', depth, children: [text(title)] } as Heading]
+      : []),
     ...(label ? [paragraph(strong(label))] : []),
     ...richAttribute(node, 'description', page),
     ...(example && !isDocsDrawing(example, page) ? [tsx(dedent(example))] : []),
@@ -340,6 +350,17 @@ function transform(node: Node, page: Page): Node[] {
         .parse(render(rendererProps(node)))
         .children.flatMap((child) => transform(child, page))
     }
+    const root = node.name?.split('.')[0]
+    if (
+      page.drawings &&
+      root &&
+      page.docsOnly.has(root) &&
+      !BUILT_IN.has(root) &&
+      !page.drawings.has(root)
+    )
+      throw new Error(
+        `<${node.name}> isn't in the twin registry: add it to docs/src/lib/twin-components.ts`
+      )
     if (node.name === 'PropsDefinitions') {
       const reference = apiReference(page.components)
       page.components = []
