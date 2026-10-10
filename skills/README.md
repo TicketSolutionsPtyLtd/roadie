@@ -110,14 +110,15 @@ roadie/
 **Releasing a change.** A PR that changes `skills/` adds a changeset for the
 private `roadie-skills` package (`pnpm changeset`): minor for a new skill or a
 change in what a skill does, breaking ones included while the plugin is `0.x`,
-and patch for wording and fixes. Never major. Don't bump versions by hand. The version ships when the maintainer merges the Version Packages PR,
-which bumps `skills/package.json`, writes `skills/CHANGELOG.md`, and copies the
-version into `skills/.claude-plugin/plugin.json`. CI's `Check plugin release` step
-fails a skills PR with no `roadie-skills` changeset, a `major` bump, and any PR
-where the two versions differ. An edit to `.claude-plugin/plugin.json` counts
-as a skills change; the repo's root `.claude-plugin/marketplace.json` sits
-outside the plugin and doesn't; `node scripts/check-plugin-release.mjs` runs it locally.
-Repo-only skills in `.claude/skills/` need no changeset.
+and patch for wording and fixes. Never major. Don't bump versions by hand. The
+version ships when the maintainer merges the Version Packages PR, which bumps
+`skills/package.json`, writes `skills/CHANGELOG.md`, and copies the version
+into `skills/.claude-plugin/plugin.json`. An edit to `.claude-plugin/plugin.json`
+counts as a skills change. The repo's root `.claude-plugin/marketplace.json`
+sits outside the plugin, so it doesn't. CI's `Check plugin release` step fails
+a skills PR with no `roadie-skills` changeset, any PR with a `major` one, and
+any PR where the two versions differ. `node scripts/check-plugin-release.mjs`
+runs it locally. Repo-only skills in `.claude/skills/` need no changeset.
 
 **Skills shipped in this plugin:**
 
