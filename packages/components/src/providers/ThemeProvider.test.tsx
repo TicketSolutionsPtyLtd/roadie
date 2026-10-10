@@ -219,11 +219,11 @@ describe('ThemeProvider - accent color', () => {
     const { result } = renderHook(() => useTheme(), {
       wrapper: ({ children }) => <ThemeProvider>{children}</ThemeProvider>
     })
-    expect(result.current.accentColor).toBe('#0091EB')
+    expect(result.current.accentColor).toBe('#0191eb')
   })
 
   it('exports DEFAULT_ACCENT_COLOR and uses it as the default', () => {
-    expect(DEFAULT_ACCENT_COLOR).toBe('#0091EB')
+    expect(DEFAULT_ACCENT_COLOR).toBe('#0191eb')
     const { result } = renderHook(() => useTheme(), {
       wrapper: ({ children }) => <ThemeProvider>{children}</ThemeProvider>
     })

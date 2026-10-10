@@ -47,17 +47,17 @@ utilities for hosts that can't run Tailwind v4.
 
 Each helper lives on its own subpath:
 
-| Subpath                               | What it holds                                                                       |
-| ------------------------------------- | ----------------------------------------------------------------------------------- |
-| `@oztix/roadie-core/utils`            | `cn`, for merging class names                                                       |
-| `@oztix/roadie-core/colors`           | Accent and neutral scales from a brand colour, OKLCH conversion, `getContrastColor` |
-| `@oztix/roadie-core/theme`            | `getThemeScript`, which sets light or dark before first paint                       |
-| `@oztix/roadie-core/datetime`         | House date, time, range, duration and countdown formats                             |
-| `@oztix/roadie-core/image`            | Oztix image URLs, widths and `srcset`s                                              |
-| `@oztix/roadie-core/navigator`        | The cookie and script that keep `Navigator` expanded or collapsed across loads      |
-| `@oztix/roadie-core/dataviz`          | Chart palettes, `chartColorVar`, `chartHex` for canvas and PDF, palette checks      |
-| `@oztix/roadie-core/dashboard`        | The dashboard description schema and `validateDashboard`                            |
-| `@oztix/roadie-core/dashboard-layout` | Dashboard layout rules without the schema dependency                                |
+| Subpath                               | What it holds                                                                             |
+| ------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `@oztix/roadie-core/utils`            | `cn`, for merging class names                                                             |
+| `@oztix/roadie-core/colors`           | Accent and neutral scales from a brand colour, OKLCH conversion, `getContrastColor`       |
+| `@oztix/roadie-core/theme`            | `getThemeScript` and `getBootstrapScript` for the first paint, and `DEFAULT_ACCENT_COLOR` |
+| `@oztix/roadie-core/datetime`         | House date, time, range, duration and countdown formats                                   |
+| `@oztix/roadie-core/image`            | Oztix image URLs, widths and `srcset`s                                                    |
+| `@oztix/roadie-core/navigator`        | The cookie and script that keep `Navigator` expanded or collapsed across loads            |
+| `@oztix/roadie-core/dataviz`          | Chart palettes, `chartColorVar`, `chartHex` for canvas and PDF, palette checks            |
+| `@oztix/roadie-core/dashboard`        | The dashboard description schema and `validateDashboard`                                  |
+| `@oztix/roadie-core/dashboard-layout` | Dashboard layout rules without the schema dependency                                      |
 
 ```ts
 import { formatDateRange } from '@oztix/roadie-core/datetime'

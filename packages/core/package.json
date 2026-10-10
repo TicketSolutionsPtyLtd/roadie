@@ -146,6 +146,11 @@
       "name": "records/meilisearch",
       "path": "dist/records/meilisearch/index.js",
       "limit": "4.9 KB"
+    },
+    {
+      "name": "theme",
+      "path": "dist/theme/index.js",
+      "limit": "1.3 KB"
     }
   ]
 }
