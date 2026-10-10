@@ -32,6 +32,21 @@ describe('exportedFolders', () => {
       })
     ).toEqual(['QRCode', 'SpotIllustration'])
   })
+
+  it('takes a pattern, as charts keeps folders straight under dist', () => {
+    expect(
+      exportedFolders(
+        {
+          '.': { import: './dist/index.js' },
+          './css': './src/css/charts.css',
+          './line-chart': { import: './dist/LineChart/index.js' },
+          './scatter': './dist/Scatter/index.js',
+          './tables': { import: './dist/tables/index.js' }
+        },
+        /^\.\/dist\/([A-Z]\w+)\//
+      )
+    ).toEqual(['LineChart', 'Scatter'])
+  })
 })
 
 describe('caseSlugs', () => {
