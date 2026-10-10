@@ -78,6 +78,7 @@ export function trackScrollRegion(scroller: HTMLElement): () => void {
     scroller.setAttribute(attribute, value)
   }
 
+  update()
   const observer = new ResizeObserver(update)
   observer.observe(scroller)
   for (const child of scroller.children) observer.observe(child)

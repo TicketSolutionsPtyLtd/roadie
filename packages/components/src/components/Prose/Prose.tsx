@@ -10,8 +10,7 @@ import {
   type Ref,
   cloneElement,
   isValidElement,
-  useEffect,
-  useState
+  useCallback
 } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
@@ -109,20 +108,18 @@ export function Prose<T extends ElementType = 'div'>({
   children,
   ...props
 }: ProseProps<T> & { children?: ReactNode }): ReactElement {
-  const [container, setContainer] = useState<HTMLElement | null>(null)
   const { ref, dangerouslySetInnerHTML } = props as {
     ref?: Ref<HTMLElement>
     dangerouslySetInnerHTML?: unknown
   }
   // React doesn't own HTML set this way, so its tables can be moved.
   const wrapBare = dangerouslySetInnerHTML != null
-
-  useEffect(() => {
-    if (!container) return
-    return observeProseScrollRegions(container, wrapBare)
-  }, [container, wrapBare])
-
-  const setRef = mergeRefs(setContainer, ref)
+  const observe = useCallback(
+    (container: HTMLElement | null) =>
+      container ? observeProseScrollRegions(container, wrapBare) : undefined,
+    [wrapBare]
+  )
+  const setRef = mergeRefs(observe, ref)
 
   const finalProps = {
     'data-slot': 'prose',

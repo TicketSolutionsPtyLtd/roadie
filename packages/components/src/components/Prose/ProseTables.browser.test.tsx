@@ -146,6 +146,24 @@ describe('Prose tables', () => {
     expect(style.outlineColor).not.toMatch(/^rgba\(0, 0, 0, 0\)$|transparent/)
   })
 
+  it('keeps focus on a table while Prose re-renders', async () => {
+    const ui = (className: string) => (
+      <div style={{ width: 320 }}>
+        <Prose className={className} ref={() => {}}>
+          {wideTableElement()}
+        </Prose>
+      </div>
+    )
+    const { container, rerender } = render(ui('one'))
+    const [scroller] = scrollers(container)
+    await untilRegion(scroller)
+    scroller.focus()
+
+    rerender(ui('two'))
+    expect(document.activeElement).toBe(scroller)
+    expect(isRegion(scroller)).toBe(true)
+  })
+
   it('keeps a table that fits out of the tab order', async () => {
     const container = renderAt(
       <Prose>
