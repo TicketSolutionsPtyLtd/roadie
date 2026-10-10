@@ -63,7 +63,7 @@ The skills are then available as `/roadie:<skill>`.
 ### Versions and updates
 
 The plugin's version is `version` in
-[`.claude-plugin/plugin.json`](../.claude-plugin/plugin.json), kept equal to
+[`.claude-plugin/plugin.json`](.claude-plugin/plugin.json), kept equal to
 the private `roadie-skills` package in [`package.json`](package.json), and
 [`CHANGELOG.md`](CHANGELOG.md) says what each version changed. Claude Code
 caches the plugin by version, so a repo only gets new skills when the version
@@ -81,14 +81,16 @@ goes up.
 
 ## Authoring (internal)
 
-Plugin layout (at the Roadie repo root):
+Plugin layout. The plugin's root is `skills/`, so an install caches only the
+skills:
 
 ```
 roadie/
 ├── .claude-plugin/
-│   ├── marketplace.json   ← lists the plugin, so the repo is its own marketplace
-│   └── plugin.json        ← plugin manifest (name, version, description)
+│   └── marketplace.json   ← lists the plugin, so the repo is its own marketplace
 └── skills/
+    ├── .claude-plugin/
+    │   └── plugin.json    ← plugin manifest (name, version, skills: "./")
     ├── CHANGELOG.md       ← one entry per plugin version, written by Changesets
     ├── package.json       ← private roadie-skills package that carries the version
     ├── README.md          ← this file
@@ -108,8 +110,8 @@ roadie/
 private `roadie-skills` package (`pnpm changeset`): minor for a new skill or a
 change in what a skill does, patch for wording and fixes. Don't bump versions
 by hand. The version ships when the maintainer merges the Version Packages PR,
-which bumps `skills/package.json`, writes `CHANGELOG.md`, and copies the
-version into `.claude-plugin/plugin.json`. CI's `Check plugin release` step
+which bumps `skills/package.json`, writes `skills/CHANGELOG.md`, and copies the
+version into `skills/.claude-plugin/plugin.json`. CI's `Check plugin release` step
 fails a skills PR with no `roadie-skills` changeset, and any PR where the two
 versions differ; `node scripts/check-plugin-release.mjs` runs it locally.
 Repo-only skills in `.claude/skills/` need no changeset.
