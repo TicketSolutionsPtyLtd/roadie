@@ -15,6 +15,7 @@ import type {
   QueryFieldSuggestion,
   QueryFieldSuggestionGroup
 } from '../QueryField'
+import { describeFilter } from './clock'
 
 /** What a search suggestion does once taken. */
 export type SearchValue =
@@ -318,7 +319,7 @@ export function searchChips(
   context: Omit<SearchContext, 'filters'>
 ): QueryFieldChip[] {
   const describe = (filter: RecordFilter) =>
-    describeRecordFilter(filter, context.fields, context)
+    describeFilter(filter, context.fields, context)
   const ids = filterChipIds(filters)
   return [
     ...scope.map((filter, index) => {
