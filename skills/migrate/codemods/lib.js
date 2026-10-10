@@ -39,8 +39,67 @@ export function namespaceLocals(j, root, source = COMPONENTS) {
 }
 
 // A parameter or variable of the same name shadows the import.
+// ast-types gives functions and catch clauses a scope but not blocks, so a
+// block's `let`, `const`, or class is checked by walking up to the program.
 export function readsImport(path, name) {
-  return path.scope?.lookup(name)?.isGlobal ?? true
+  if (!(path.scope?.lookup(name)?.isGlobal ?? true)) return false
+  for (let ancestor = path.parent; ancestor; ancestor = ancestor.parent) {
+    if (blockDeclares(ancestor.node, name)) return false
+  }
+  return true
+}
+
+function blockDeclares(node, name) {
+  switch (node.type) {
+    case 'BlockStatement':
+    case 'StaticBlock':
+      return node.body.some((statement) => declares(statement, name))
+    case 'SwitchStatement':
+      return node.cases.some((switchCase) =>
+        switchCase.consequent.some((statement) => declares(statement, name))
+      )
+    case 'ForStatement':
+      return declares(node.init, name)
+    case 'ForInStatement':
+    case 'ForOfStatement':
+      return declares(node.left, name)
+    default:
+      return false
+  }
+}
+
+function declares(node, name) {
+  switch (node?.type) {
+    case 'VariableDeclaration':
+      return (
+        node.kind !== 'var' &&
+        node.declarations.some((declarator) => binds(declarator.id, name))
+      )
+    case 'ClassDeclaration':
+    case 'FunctionDeclaration':
+      return node.id?.name === name
+    default:
+      return false
+  }
+}
+
+function binds(pattern, name) {
+  switch (pattern?.type) {
+    case 'Identifier':
+      return pattern.name === name
+    case 'ObjectPattern':
+      return pattern.properties.some((property) =>
+        binds(property.value ?? property.argument, name)
+      )
+    case 'ArrayPattern':
+      return pattern.elements.some((element) => binds(element, name))
+    case 'RestElement':
+      return binds(pattern.argument, name)
+    case 'AssignmentPattern':
+      return binds(pattern.left, name)
+    default:
+      return false
+  }
 }
 
 // A name that labels a member, key, or export rather than reading a binding.
