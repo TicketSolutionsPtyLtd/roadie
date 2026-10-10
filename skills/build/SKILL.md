@@ -194,7 +194,7 @@ Read [Iconography](https://ticketsolutionsptyltd.github.io/roadie/foundations/ic
 - Bold everywhere, which is the default inside Roadie components.
   `weight='fill'` only for a selected or active state, and `duotone` only
   in a tile or graphic above 48px, such as an `IconTile` above `lg` or an
-  `EmptyState` tile.
+  `EmptyState` tile at its default size.
 - Size with classes, `size-4` by default, never the `size` prop. Inside a
   `Button`, `Badge`, or menu item, pass a bare icon; the component sizes it.
 - An icon-only action is an `IconButton` with an `aria-label`.

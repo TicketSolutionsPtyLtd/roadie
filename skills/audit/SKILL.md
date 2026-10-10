@@ -244,10 +244,10 @@ that read `bold`, `fill` or `duotone`; flag the rest.
 
 `bold` is the default. `fill` is for an active or selected state. `duotone` is
 for large decorative icons, where the tile or graphic around them is above
-48px: an `IconTile` above `lg`, and every `EmptyState` tile, whose smallest is
-56px around a 32px icon. Below that threshold it reads as under-inked, so a
-small inline `duotone`, or one in an `IconTile` of `lg` or smaller, is still a
-finding.
+48px: an `IconTile` above `lg`, or an `EmptyState` tile at its default size,
+whose smallest is 56px around a 32px icon. Below that threshold it reads as
+under-inked, so a small inline `duotone`, or one in an `IconTile` or
+`EmptyState.IconTile` given a `size` of `lg` or smaller, is still a finding.
 
 ---
 

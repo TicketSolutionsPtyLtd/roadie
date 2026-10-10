@@ -101,8 +101,8 @@ Each rule has a foundations page with the detail.
 - **Icons.** Phosphor at `bold`, `Icon`-suffixed names, sized with `size-*`
   classes (`size-4` by default), and `/ssr` imports in server components. `fill`
   is only for selected states and `duotone` only in a tile or graphic above 48px
-  (an `IconTile` above `lg`, and every `EmptyState` tile); Navigator applies
-  duotone to its destinations itself.
+  (an `IconTile` above `lg`, or an `EmptyState` tile at its default size);
+  Navigator applies duotone to its destinations itself.
 - **Text.** Raw `<p>` and `<h1>` to `<h6>` with `text-display-ui-*` or
   `text-display-prose-*`. There are no Text or Heading components; `Prose`
   renders CMS or markdown content. SpotIllustration colours are fixed.
