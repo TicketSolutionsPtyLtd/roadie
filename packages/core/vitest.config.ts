@@ -8,7 +8,8 @@ export default defineConfig({
     include: [
       '**/*.test.{ts,tsx}',
       '../../eslint/**/*.test.js',
-      '../../skills/**/*.test.js'
+      '../../skills/*/codemods/**/*.test.js',
+      '../../skills/audit/*.test.js'
     ],
     coverage: {
       provider: 'v8',

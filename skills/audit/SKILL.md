@@ -252,14 +252,14 @@ under-inked, so a small inline `duotone`, or one in an `IconTile` or
 #### C5. Hand-rolled icon tile [Info]
 
 ```
-<(div|span)\s[^>]*\brounded-[^>]*>\s*<\w+Icon\b
+<(div|span)\s[^>]*\brounded-[^>]*[^/>]>\s*<\w+Icon\b
 ```
 
 Run it multiline. Each hit is a rounded box whose first child is an icon; flag
 it when the box only frames that icon. `IconTile` owns the tile's size, padding,
-radius, and icon size. AGENTS.md's Icons section and the
+radius, and icon size. The
 [icon tile page](https://ticketsolutionsptyltd.github.io/roadie/components/icon-tile)
-have the rules.
+has the rules.
 
 **Fix:** `<div className='flex size-10 items-center justify-center rounded-full emphasis-subtle'><TicketIcon /></div>` → `<IconTile shape='circle'><TicketIcon /></IconTile>`.
 
@@ -824,7 +824,7 @@ Roadie's text colours are `text-{normal,subtle,subtler,strong,inverted,on-strong
 \brender=\{\s*<a\s[^>]*?\bhref=
 ```
 
-`render` wins over `href`, so a hand-written anchor skips the provider's routing and its new-tab rule for external URLs. I2 and I3 miss it when the `href` is an expression. AGENTS.md's Links and forms section has the rules.
+`render` wins over `href`, so a hand-written anchor skips the provider's routing and its new-tab rule for external URLs. I2 and I3 miss it when the `href` is an expression. The [linking page](https://ticketsolutionsptyltd.github.io/roadie/foundations/linking) has the rules.
 
 **Fix:** `<Button render={<a href={url} target='_blank' />}>` → `<Button href={url}>`. A literal or expression `href` on the component itself is fine.
 
@@ -924,7 +924,7 @@ Run independent checks in parallel by issuing multiple Grep calls in a single me
 - B2: `space-(x|y)-`
 - C3: `size=\{?\d`
 - C4: `weight=['"]` (then keep `bold`, `fill` and `duotone`)
-- C5: `<(div|span)\s[^>]*\brounded-[^>]*>\s*<\w+Icon\b` (multiline)
+- C5: `<(div|span)\s[^>]*\brounded-[^>]*[^/>]>\s*<\w+Icon\b` (multiline)
 
 **Batch 3** (typography + components + interactions):
 

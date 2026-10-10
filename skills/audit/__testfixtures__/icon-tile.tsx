@@ -5,6 +5,7 @@ export function Feature() {
         <TicketIcon />
       </IconTile>
       <span className='size-2 rounded-full bg-strong' />
+      <TicketIcon />
       <p>Mobile tickets</p>
     </div>
   )
