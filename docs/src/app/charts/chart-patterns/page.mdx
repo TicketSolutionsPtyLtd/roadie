@@ -23,19 +23,17 @@ import {
 
 Render `ChartPatterns` once, then fill any SVG shape with a `fill-texture-*` class. Each texture draws in the text colour.
 
-```tsx-live
-<div className='grid gap-3'>
-  <ChartPatterns />
-  <div className='grid grid-cols-4 gap-3 sm:grid-cols-8'>
-    {Array.from({ length: CHART_TEXTURE_COUNT }, (_, index) => (
-      <div key={index} className='grid justify-items-center gap-1'>
-        <svg viewBox='0 0 48 48' aria-hidden className='size-12 overflow-hidden rounded-md border border-subtle'>
-          <rect width='48' height='48' className={`fill-texture-${index + 1}`} />
-        </svg>
-        <p className='text-xs text-subtle'>{index + 1}</p>
-      </div>
-    ))}
-  </div>
+```tsx-live layout=stack gap=3
+<ChartPatterns />
+<div className='grid grid-cols-4 gap-3 sm:grid-cols-8'>
+  {Array.from({ length: CHART_TEXTURE_COUNT }, (_, index) => (
+    <div key={index} className='grid justify-items-center gap-1'>
+      <svg viewBox='0 0 48 48' aria-hidden className='size-12 overflow-hidden rounded-md border border-subtle'>
+        <rect width='48' height='48' className={`fill-texture-${index + 1}`} />
+      </svg>
+      <p className='text-xs text-subtle'>{index + 1}</p>
+    </div>
+  ))}
 </div>
 ```
 
