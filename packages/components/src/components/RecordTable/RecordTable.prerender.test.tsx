@@ -110,7 +110,7 @@ describe('RecordTable on a prerendering server', () => {
     expect(onRecoverableError).not.toHaveBeenCalled()
     expect(
       screen.getByRole('toolbar', { name: 'Filters' }).textContent
-    ).toMatch(/Upcoming, .*2026/)
+    ).toContain('Starts: Upcoming, From 9 Oct 2026')
   })
 
   it('keeps a later page while it waits for the browser’s clock', async () => {

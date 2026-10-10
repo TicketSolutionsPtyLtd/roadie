@@ -6,10 +6,9 @@ import {
   WarningIcon
 } from '@phosphor-icons/react'
 
-import { describeRecordFilter } from '@oztix/roadie-core/records'
-
 import { Button } from '../Button'
 import { EmptyState } from '../EmptyState'
+import { describeFilter } from './clock'
 import type { RecordsInstance } from './useRecords'
 
 export const errorMessage = (records: RecordsInstance) =>
@@ -38,7 +37,7 @@ function unmatched(records: RecordsInstance): string {
     ...(words ? [`“${words}”`] : []),
     ...applied.map(
       (filter) =>
-        describeRecordFilter(filter, records.fields, {
+        describeFilter(filter, records.fields, {
           now: records.now,
           timeZone: records.timeZone
         }).label

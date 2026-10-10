@@ -15,7 +15,7 @@ import type {
   QueryFieldSuggestion,
   QueryFieldSuggestionGroup
 } from '../QueryField'
-import { knowsNow } from './useRecords'
+import { describeFilter } from './clock'
 
 /** What a search suggestion does once taken. */
 export type SearchValue =
@@ -318,13 +318,8 @@ export function searchChips(
   { scope, filters, skipped, skippedScope = [] }: ChipOptions,
   context: Omit<SearchContext, 'filters'>
 ): QueryFieldChip[] {
-  const describe = (filter: RecordFilter) => {
-    const described = describeRecordFilter(filter, context.fields, context)
-    // A relative range's dates would read as 1970 until the clock is known.
-    return filter.operator === 'within' && !knowsNow(context.now)
-      ? { ...described, detail: undefined }
-      : described
-  }
+  const describe = (filter: RecordFilter) =>
+    describeFilter(filter, context.fields, context)
   const ids = filterChipIds(filters)
   return [
     ...scope.map((filter, index) => {
