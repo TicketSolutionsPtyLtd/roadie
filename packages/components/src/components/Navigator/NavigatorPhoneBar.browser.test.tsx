@@ -373,7 +373,7 @@ describe('the bar on scroll', () => {
       ]
     ]
   ])(
-    'scrolling %s leaves the bar collapsed: %s',
+    'scrolling %s collapses the bar: %s',
     async (_, collapsed, scrolled, panes) => {
       await page.viewport(1400, 844)
       onTestFinished(() => page.viewport(390, 844))
@@ -665,12 +665,12 @@ describe('a tap on a collapsed tab with a route of its own', () => {
   }
 
   it.each([
-    ['its overview', '/', 'Home', true],
-    ['its list', '/components', 'Components', true],
-    ['a sub-page', '/overview/philosophy', 'Home', false]
+    ['its overview', true, '/', 'Home'],
+    ['its list', true, '/components', 'Components'],
+    ['a sub-page', false, '/overview/philosophy', 'Home']
   ])(
-    'on %s reopens the bar, scrolling the page to the top: %s',
-    async (_, value, name, scrolls) => {
+    'on %s reopens the bar, and scrolls the pane to the top: %s',
+    async (_, scrolls, value, name) => {
       const onValueChange = vi.fn()
       render(<Docs value={value} onValueChange={onValueChange} />)
       await settle()
