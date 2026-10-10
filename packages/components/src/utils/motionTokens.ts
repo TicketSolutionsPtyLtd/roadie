@@ -13,12 +13,8 @@ export function durationToken(
   step: keyof typeof DURATIONS
 ): number {
   const value = read(element, `--duration-${step}`)
-  const ms = value.endsWith('ms')
-    ? parseFloat(value)
-    : value.endsWith('s')
-      ? parseFloat(value) * 1000
-      : NaN
-  return Number.isFinite(ms) ? ms : DURATIONS[step]
+  const ms = parseFloat(value) * (value.endsWith('ms') ? 1 : 1000)
+  return ms >= 0 ? ms : DURATIONS[step]
 }
 
 /** An `--ease-*` token as an easing string. */
