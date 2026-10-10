@@ -110,8 +110,8 @@ roadie/
 private `roadie-skills` package (`pnpm changeset`): minor for a new skill or a
 change in what a skill does, patch for wording and fixes. Don't bump versions
 by hand. The version ships when the maintainer merges the Version Packages PR,
-which bumps `skills/package.json`, writes `CHANGELOG.md`, and copies the
-version into `.claude-plugin/plugin.json`. CI's `Check plugin release` step
+which bumps `skills/package.json`, writes `skills/CHANGELOG.md`, and copies the
+version into `skills/.claude-plugin/plugin.json`. CI's `Check plugin release` step
 fails a skills PR with no `roadie-skills` changeset, and any PR where the two
 versions differ; `node scripts/check-plugin-release.mjs` runs it locally.
 Repo-only skills in `.claude/skills/` need no changeset.
