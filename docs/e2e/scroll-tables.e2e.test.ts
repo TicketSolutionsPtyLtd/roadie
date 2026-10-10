@@ -205,11 +205,20 @@ describe('Scrolling markdown tables', () => {
     'passes axe’s scrollable region and unique landmark rules on %s on a phone',
     async (path) => {
       const { page } = await open(PHONE, path)
-      await expect
-        .poll(() => page.locator('.prose-scroll[role=region]').count(), {
-          timeout: 5_000
+      const overflowingRegions = () =>
+        page.locator('.prose-scroll').evaluateAll((nodes) => {
+          const overflowing = nodes.filter(
+            (node) => node.scrollWidth > node.clientWidth
+          )
+          return overflowing.every(
+            (node) => node.getAttribute('role') === 'region'
+          )
+            ? overflowing.length
+            : 0
         })
-        .toBeGreaterThan(1)
+      await expect
+        .poll(overflowingRegions, { timeout: 5_000 })
+        .toBeGreaterThan(0)
       const require = createRequire(import.meta.url)
       await page.addScriptTag({ path: require.resolve('axe-core') })
       const violations = await page.evaluate(async () => {
