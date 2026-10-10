@@ -79,8 +79,8 @@ export function NumberFieldInput({
           // a subtle Input: hover, accent focus, danger when invalid. The
           // transition list adds text colour to the field's own.
           chip
-            ? 'is-interactive-field rounded-md border border-transparent bg-subtle transition-[color,background-color,border-color,box-shadow,outline-width,outline-color] duration-150'
-            : 'bg-transparent transition-colors duration-150 outline-none',
+            ? 'is-interactive-field rounded-md border border-transparent bg-subtle transition-[color,background-color,border-color,box-shadow,outline-width,outline-color] duration-normal'
+            : 'bg-transparent transition-colors duration-normal outline-none',
           !editable &&
             'cursor-default caret-transparent select-none selection:bg-transparent',
           // Only the text hides, so a background on the input still shows.
@@ -129,7 +129,7 @@ export function NumberFieldInput({
           locales={locale}
           format={flowFormat}
           className={cn(
-            'pointer-events-none col-start-1 row-start-1 overflow-hidden text-normal tabular-nums transition-opacity duration-150',
+            'pointer-events-none col-start-1 row-start-1 overflow-hidden text-normal tabular-nums transition-opacity duration-normal',
             editing && 'opacity-0'
           )}
         />

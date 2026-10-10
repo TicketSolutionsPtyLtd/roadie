@@ -10,6 +10,7 @@ import {
 
 import { flushSync } from 'react-dom'
 
+import { prefersReducedMotion } from '../../utils/reducedMotion'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 
 export type SwipeStep = 1 | -1
@@ -85,13 +86,6 @@ export function swipeTurns({
   if (elapsed <= 0) return false
   const speed = (last.along - first.along) / elapsed
   return Math.abs(speed) > FLICK && Math.sign(speed) === Math.sign(along)
-}
-
-function prefersReducedMotion() {
-  return (
-    typeof matchMedia === 'function' &&
-    matchMedia('(prefers-reduced-motion: reduce)').matches
-  )
 }
 
 export type PageTurn = (
