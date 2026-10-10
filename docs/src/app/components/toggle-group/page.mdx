@@ -194,12 +194,12 @@ A horizontal group never wraps or squashes its labels. When the items don't fit,
 
 `value` is always an array. In single mode it holds one item.
 
-```tsx-live-noinline
+```tsx-live-noinline layout=stack gap=3
 function SalesRange() {
   const [range, setRange] = useState(['30d'])
   const days = { '7d': 7, '30d': 30, '90d': 90 }[range[0]]
   return (
-    <div className='grid gap-3'>
+    <>
       <div className='flex flex-wrap items-center justify-between gap-3'>
         <h3 className='text-display-ui-5 text-strong'>Tickets sold</h3>
         <ToggleGroup size='sm' aria-label='Date range' value={range} onValueChange={setRange}>
@@ -209,7 +209,7 @@ function SalesRange() {
         </ToggleGroup>
       </div>
       <p className='text-sm text-subtle'>Showing the last {days} days at Wobbly Teacup Room, Fitzroy.</p>
-    </div>
+    </>
   )
 }
 
