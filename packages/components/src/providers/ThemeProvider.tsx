@@ -322,7 +322,7 @@ export function ThemeProvider({
       console.warn(
         `[Roadie] Invalid accentColor passed to <ThemeProvider>: ${JSON.stringify(
           controlledAccent
-        )}. Falling back to defaultAccentColor.`
+        )}. Falling back to defaultAccentColor, then the parent provider's accent, then Oztix blue.`
       )
     }
     return defaultAccentColor
