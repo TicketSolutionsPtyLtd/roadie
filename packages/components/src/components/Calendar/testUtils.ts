@@ -1,8 +1,8 @@
 import { expect } from 'vitest'
 
-// The steepest the turn's easing gets, as a share of the distance per share
-// of the time.
-const STEEPEST = 1.8
+// The steepest Calendar's easing, --ease-enter, gets, as a share of the
+// distance per share of the time: it starts at five times its average speed.
+const STEEPEST = 5
 // An engine's animation clock can run up to a frame ahead of the timestamp
 // its frame reports, WebKit's especially, as it counts whole milliseconds.
 const LATE_MS = 1000 / 60
@@ -173,7 +173,7 @@ export function expectOneReshape(
   frames: ShapeFrame[],
   durationMs: number,
   // The view switch decelerates, steepest at its start.
-  steepest = 4.1
+  steepest = STEEPEST
 ) {
   const first = frames[0]!
   const last = frames.at(-1)!
