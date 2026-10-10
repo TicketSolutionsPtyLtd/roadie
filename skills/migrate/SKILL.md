@@ -102,7 +102,7 @@ folders:
 
 ```bash
 CODEMODS=<this skill's base directory>/codemods
-npx --yes jscodeshift@17.3.0 -t "$CODEMODS/link-button.js" \
+npx --yes jscodeshift@17.4.0 -t "$CODEMODS/link-button.js" \
   --extensions=tsx,ts,jsx,js --ignore-pattern='**/node_modules/**' \
   --ignore-pattern='**/.next/**' --ignore-pattern='**/dist/**' src app
 ```
