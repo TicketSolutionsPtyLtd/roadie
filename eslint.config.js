@@ -18,12 +18,18 @@ const nextLink = {
 }
 
 // The components jsdom setup skips its layout lock for these files, so the
-// lint skips them too until INNO-1238 empties the list.
+// lint skips them too until INNO-1238 empties the list. A missing setup or
+// list allows nothing, so the rule covers every file.
 function fakesLayout() {
-  const setup = readFileSync(
-    new URL('./packages/components/vitest.setup.ts', import.meta.url),
-    'utf8'
-  )
+  let setup = ''
+  try {
+    setup = readFileSync(
+      new URL('./packages/components/vitest.setup.ts', import.meta.url),
+      'utf8'
+    )
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error
+  }
   const [, list = ''] = /const FAKES_LAYOUT = \[([^\]]*)\]/.exec(setup) ?? []
   return [...list.matchAll(/'([^']+)'/g)].map(
     ([, file]) => `packages/components/src/components/${file}`

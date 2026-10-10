@@ -321,11 +321,32 @@ const JSDOM_LAYOUT =
 const keyName = (node, computed) =>
   !computed && node.type === 'Identifier' ? node.name : staticString(node)
 
-/** The key a fake replaces: vi.spyOn(target, key), vi.stubGlobal(key), Object.defineProperty(target, key), or target.key = …. */
-function fakedKeys(node) {
+const objectKeys = (node) =>
+  node?.type === 'ObjectExpression'
+    ? node.properties
+        .filter((property) => property.type === 'Property')
+        .map((property) => keyName(property.key, property.computed))
+    : []
+
+const isLocal = (identifier, sourceCode) => {
+  for (
+    let scope = sourceCode.getScope(identifier);
+    scope;
+    scope = scope.upper
+  ) {
+    const variable = scope.set.get(identifier.name)
+    if (variable) return variable.defs.length > 0
+  }
+  return false
+}
+
+/** The key a fake replaces: vi.spyOn(target, key), vi.stubGlobal(key), Object.defineProperty(target, key), Object.assign(target, { key }), or target.key = …. */
+function fakedKeys(node, sourceCode) {
   if (node.type === 'AssignmentExpression') {
     const { left } = node
-    if (left.type === 'Identifier') return [left.name]
+    if (left.type === 'Identifier') {
+      return isLocal(left, sourceCode) ? [] : [left.name]
+    }
     if (left.type === 'MemberExpression') {
       return [keyName(left.property, left.computed)]
     }
@@ -337,10 +358,10 @@ function fakedKeys(node) {
     return [staticString(args[1])]
   }
   if (method === 'stubGlobal') return [staticString(args[0])]
-  if (method === 'defineProperties' && args[1]?.type === 'ObjectExpression') {
-    return args[1].properties
-      .filter((property) => property.type === 'Property')
-      .map((property) => keyName(property.key, property.computed))
+  if (method === 'defineProperties') return objectKeys(args[1])
+  // Object.assign({}, …) builds a plain object, not a fake.
+  if (method === 'assign' && args[0]?.type !== 'ObjectExpression') {
+    return args.slice(1).flatMap(objectKeys)
   }
   return []
 }
@@ -614,7 +635,7 @@ const rules = {
       const mediaFakes = []
       const viewportQueries = []
       const check = (node) => {
-        for (const key of fakedKeys(node)) {
+        for (const key of fakedKeys(node, context.sourceCode)) {
           if (key === 'matchMedia') mediaFakes.push(node)
           else if (LAYOUT_READS.has(key)) {
             context.report({

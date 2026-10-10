@@ -260,7 +260,10 @@ const cases = {
       "Object.defineProperty(window, 'matchMedia', { value: (query) => ({ matches: query === '(prefers-reduced-motion: reduce)' }) })",
       "window.matchMedia = vi.fn().mockReturnValue({ matches: query.includes('prefers-color-scheme: dark') })",
       "vi.spyOn(window, 'matchMedia').mockReturnValue({ matches: true })",
-      "render(<Image sources={[{ media: '(max-width: 767px)', widths: [800] }]} />)"
+      "render(<Image sources={[{ media: '(max-width: 767px)', widths: [800] }]} />)",
+      'let clientWidth = 0\nclientWidth = el.clientWidth',
+      'const rect = Object.assign({}, base, { offsetWidth: 200 })',
+      'Object.assign(window, { scrollY: 40 })'
     ],
     invalid: [
       "vi.spyOn(window, 'getComputedStyle').mockImplementation(() => ({ lineHeight: '24px' }))",
@@ -274,6 +277,9 @@ const cases = {
       "vi.spyOn(HTMLDivElement.prototype, 'clientHeight', 'get').mockReturnValue(40)",
       'Object.defineProperties(el, { scrollHeight: { value: 400 } })',
       "vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(375)",
+      'innerWidth = 375',
+      'Object.assign(window, { innerWidth: 375 })',
+      "Object.assign(window, { matchMedia: (q) => ({ matches: q === '(min-width: 48rem)' }) })",
       "window.matchMedia = (query) => ({ matches: query === '(min-width: 768px)' })",
       "vi.stubGlobal('matchMedia', (query) => ({ matches: query === '(max-width: 47.99rem)' }))",
       "vi.spyOn(window, 'matchMedia').mockImplementation((q) => ({ matches: q === `(width < 48rem)` }))",
