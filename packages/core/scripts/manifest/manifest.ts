@@ -82,7 +82,7 @@ export type BuildOptions = {
   documentedElsewhere?: DocumentedElsewhere
 }
 
-function importPath(packageName: string, subpath: string) {
+export function importPath(packageName: string, subpath: string) {
   return subpath === '.' ? packageName : `${packageName}/${subpath.slice(2)}`
 }
 
@@ -128,6 +128,10 @@ function checkRoute(appDir: string, route: string) {
     .find((file) => existsSync(file))
   if (!page) throw new Error(`No docs page at ${pathname}`)
   if (anchor === undefined) return
+  if (page.endsWith('.tsx'))
+    throw new Error(
+      `${pathname} is a page.tsx, whose headings can't be read, so link it without #${anchor}`
+    )
   if (!headingSlugs(readFileSync(page, 'utf8')).includes(anchor)) {
     throw new Error(`No heading #${anchor} on ${pathname}`)
   }

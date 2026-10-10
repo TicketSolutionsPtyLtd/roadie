@@ -17,6 +17,11 @@ export type CartExpiryDialogsProps = {
   onNavigate: (href: string) => void
 }
 
+/**
+ * The hold's expiry dialogs, given `useCartExpiry`'s state: a dismissible
+ * "Still here?" warning with a countdown, then a blocking "Your hold has
+ * ended" dialog whose only exit is browsing events.
+ */
 export function CartExpiryDialogs({
   showWarning,
   expired,
