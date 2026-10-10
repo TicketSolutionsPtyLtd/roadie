@@ -1,8 +1,10 @@
+import { existsSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 import { type Browser, chromium, firefox, webkit } from 'playwright'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { TOKEN_FAMILY_PAGES } from '../src/lib/token-families'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 // Each rendered docs component, by page and slot, against the markdown twin
@@ -221,4 +223,44 @@ describe('twins carry the data their pages render', () => {
     ].map(([, name]) => name)
     expect(listed).toEqual(names)
   }, 60_000)
+
+  // Each page a token family names as guidance shows a Reference line under
+  // its title, from the layout rather than the MDX. Only MDX pages have twins.
+  const GUIDED = [
+    ...new Set(
+      Object.values(TOKEN_FAMILY_PAGES).flatMap(({ guidance }) =>
+        guidance.map(({ href }) => href)
+      )
+    )
+  ].filter((route) =>
+    existsSync(join(import.meta.dirname, `../src/app${route}/page.mdx`))
+  )
+  // A link's route, whether the page's href or the twin's .md URL.
+  const routeOf = (url: string) =>
+    new URL(url, ORIGIN).pathname
+      .replace(BASE_PATH, '')
+      .replace(/(\.md|\/)$/, '')
+
+  it.each(GUIDED)(
+    '%s token links',
+    async (route) => {
+      const markdown = await twin(route).catch(() => null)
+      if (markdown === null) return
+      const page = await open(route)
+      const links = page.locator('[data-slot=related-links] a')
+      const shown = await Promise.all(
+        (await links.all()).map(async (link) => [
+          (await link.textContent())!.trim(),
+          routeOf((await link.getAttribute('href'))!)
+        ])
+      )
+      expect(shown.length).toBeGreaterThan(0)
+      const line = markdown.match(/^Reference: (.+)\.$/m)?.[1] ?? ''
+      const written = [...line.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)].map(
+        ([, title, url]) => [title, routeOf(url!)]
+      )
+      expect(written).toEqual(shown)
+    },
+    60_000
+  )
 })
