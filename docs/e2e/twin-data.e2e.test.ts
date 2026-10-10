@@ -131,6 +131,59 @@ describe('twins carry the data their pages render', () => {
     60_000
   )
 
+  it.each(['categorical', 'heat', 'diverging', 'status'])(
+    '/foundations/colors %s dataviz swatches',
+    async (kind) => {
+      const page = await open('/foundations/colors')
+      const panel = (mode: string) =>
+        page
+          .locator(
+            `[data-slot=dataviz-swatches][data-kind=${kind}] [data-mode=${mode}] [data-slot=dataviz-swatch]`
+          )
+          .evaluateAll((swatches) =>
+            swatches.map((swatch) => [
+              swatch.getAttribute('title')!,
+              getComputedStyle(swatch).backgroundColor
+            ])
+          )
+      const [light, dark] = await Promise.all([panel('light'), panel('dark')])
+      const rgb = (hex: string) =>
+        `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ')})`
+      const table = markdownTables(await twin('/foundations/colors')).find(
+        (rows) => rows[1]?.[0] === `\`${light[0]![0]}\``
+      )
+      expect(table?.slice(1)).toEqual(
+        light.map(([token, color], i) => {
+          const row = table![i + 1]!
+          expect(rgb(row[1]!.slice(1, -1))).toBe(color)
+          expect(rgb(row[2]!.slice(1, -1))).toBe(dark[i]![1])
+          return [`\`${token}\``, row[1], row[2]]
+        })
+      )
+    },
+    60_000
+  )
+
+  it('/foundations/colors scale swatches', async () => {
+    const page = await open('/foundations/colors')
+    const scales = await page
+      .locator('[data-slot=scale-swatches] > li')
+      .evaluateAll((items) =>
+        items.map((item) => {
+          const steps = [...item.querySelectorAll('[data-slot=scale-swatch]')]
+          return [
+            item.querySelector('p')!.textContent!,
+            `\`${steps[0]!.getAttribute('title')}\` to \`${steps.at(-1)!.getAttribute('title')}\``
+          ]
+        })
+      )
+    expect(scales.length).toBeGreaterThan(5)
+    expect(markdownTables(await twin('/foundations/colors'))).toContainEqual([
+      ['Scale', 'Steps'],
+      ...scales
+    ])
+  }, 60_000)
+
   it('/components/spot-illustration names', async () => {
     const page = await open('/components/spot-illustration')
     const names = await page

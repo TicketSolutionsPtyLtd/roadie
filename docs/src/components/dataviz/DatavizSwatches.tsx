@@ -1,39 +1,13 @@
+import {
+  DATAVIZ_STRIPS,
+  type DatavizKind,
+  datavizHex,
+  datavizLabel
+} from '@/lib/color-tables'
+
 import { type Mode, chartHex } from '@oztix/roadie-core/dataviz'
 
-const STRIPS = {
-  categorical: Array.from({ length: 8 }, (_, i) => `chart-${i + 1}`),
-  heat: Array.from({ length: 9 }, (_, i) => `chart-heat-${i}`),
-  diverging: [
-    'chart-diverge-pos-4',
-    'chart-diverge-pos-3',
-    'chart-diverge-pos-2',
-    'chart-diverge-pos-1',
-    'chart-diverge-0',
-    'chart-diverge-neg-1',
-    'chart-diverge-neg-2',
-    'chart-diverge-neg-3',
-    'chart-diverge-neg-4'
-  ],
-  status: [
-    'chart-status-good',
-    'chart-status-warning',
-    'chart-status-serious',
-    'chart-status-critical'
-  ]
-} as const
-
-type Kind = keyof typeof STRIPS
-
-const label = (token: string) =>
-  token.replace(/^chart-(heat-|diverge-|status-)?/, '')
-
-function hexAt(kind: Kind, mode: Mode, index: number, name: string) {
-  const hex = chartHex(mode)
-  if (kind === 'categorical') return hex.categorical[index]
-  if (kind === 'heat') return hex.heat[index]
-  if (kind === 'diverging') return hex.diverging[index]
-  return hex.status[name as keyof typeof hex.status]
-}
+type Kind = DatavizKind
 
 function Strip({
   kind,
@@ -52,7 +26,7 @@ function Strip({
             key={token}
             data-slot='dataviz-swatch'
             className='h-10 flex-1 rounded-sm first:rounded-l-md last:rounded-r-md'
-            style={{ backgroundColor: hexAt(kind, mode, index, label(token)) }}
+            style={{ backgroundColor: datavizHex(kind, mode, index) }}
             title={`--${token}`}
           />
         ))}
@@ -60,7 +34,7 @@ function Strip({
       <div className='flex gap-0.5'>
         {tokens.map((token) => (
           <p key={token} className='flex-1 text-center text-xs'>
-            {label(token)}
+            {datavizLabel(token)}
           </p>
         ))}
       </div>
@@ -92,7 +66,7 @@ function ThemePanel({
 
 /** Each panel reads its hex from chartHex, so both stay exact regardless of the page's own theme. */
 export function DatavizSwatches({ kind }: { kind: Kind }) {
-  const tokens = STRIPS[kind]
+  const tokens = DATAVIZ_STRIPS[kind]
   return (
     <div
       data-not-prose
