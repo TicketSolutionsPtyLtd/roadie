@@ -11,7 +11,7 @@ export async function AccentScales() {
   return (
     <div data-not-prose data-slot='accent-scales' className='grid gap-6'>
       <dl className='grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm'>
-        {defaults.map(({ name, value, token }) => (
+        {defaults.map(({ name, value, fromToken }) => (
           <div key={name} data-twin-row className='contents'>
             <dt>
               <code data-twin-cell className='font-mono text-strong'>
@@ -19,8 +19,8 @@ export async function AccentScales() {
               </code>
             </dt>
             <dd
-              data-slot={token ? 'accent-parameter' : 'default-accent'}
-              data-name={token ? name : undefined}
+              data-slot={fromToken ? 'accent-parameter' : 'default-accent'}
+              data-name={fromToken ? name : undefined}
               data-twin-cell
               className='text-subtle'
             >

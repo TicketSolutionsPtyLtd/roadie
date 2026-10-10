@@ -131,12 +131,14 @@ export const iconSizeTable = (tokens: TokenEntry[]): TwinTable => ({
   ])
 })
 
-const px = (rem: string) => parseFloat(rem) * REM_PX
+const remPx = (rem: string) => parseFloat(rem) * REM_PX
 
 /** `0.75rem` as 12px, and a fluid `clamp(min, …, max)` as its range. */
 function sizeLabel(value: string) {
   const fluid = value.match(/^clamp\(\s*([\d.]+rem)\s*,.*,\s*([\d.]+rem)\s*\)$/)
-  return fluid ? `${px(fluid[1]!)} to ${px(fluid[2]!)}px` : `${px(value)}px`
+  return fluid
+    ? `${remPx(fluid[1]!)} to ${remPx(fluid[2]!)}px`
+    : `${remPx(value)}px`
 }
 
 /** Every font size step, with its size or fluid range. */
@@ -174,7 +176,11 @@ const FOCUS_RING_LABELS: Record<string, string> = {
 /** The focus ring tokens, each with what it sets and its value. */
 export function focusRing(tokens: TokenEntry[]) {
   const ring = inGroup(tokens, 'emphasis', 'Focus ring')
-  for (const name of Object.keys(FOCUS_RING_LABELS)) valueOf(ring, name)
+  const missing = Object.keys(FOCUS_RING_LABELS).filter(
+    (name) => !ring.some((token) => token.name === name)
+  )
+  if (missing.length)
+    throw new Error(`No focus ring token ${missing.join(', ')}`)
   return ring.map(({ name, value }) => ({
     name,
     label: FOCUS_RING_LABELS[name] ?? name,
@@ -227,9 +233,9 @@ export const accentDefaults = (
   tokens: TokenEntry[],
   defaultAccentColor: string
 ) => [
-  { name: 'DEFAULT_ACCENT_COLOR', value: defaultAccentColor, token: false },
+  { name: 'DEFAULT_ACCENT_COLOR', value: defaultAccentColor, fromToken: false },
   ...inGroup(tokens, 'color-scales', 'Accent parameters').map(
-    ({ name, value }) => ({ name, value: value!.light!, token: true })
+    ({ name, value }) => ({ name, value: value!.light!, fromToken: true })
   )
 ]
 
