@@ -6,7 +6,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 // Each rendered docs component, by page and slot, against the markdown twin
-// the build wrote for that page.
+// the build wrote for that page. A component that draws a list rather than a
+// table marks its rows `data-twin-row` and their cells `data-twin-cell`.
 const TABLES: [route: string, slot: string][] = [
   ['/charts/dashboards', 'card-sizes'],
   ['/charts/dashboards', 'copy-limits'],
@@ -25,7 +26,18 @@ const TABLES: [route: string, slot: string][] = [
     'range-table',
     'time-style-scale',
     'zone-table'
-  ].map((slot): [string, string] => ['/foundations/date-and-time', slot])
+  ].map((slot): [string, string] => ['/foundations/date-and-time', slot]),
+  ['/foundations/elevation', 'layering-scale'],
+  ['/foundations/iconography', 'icon-size-scale'],
+  ['/foundations/interactions', 'focus-ring-list'],
+  ['/foundations/interactions', 'transition-list'],
+  ['/foundations/layout', 'breakpoint-scale'],
+  ['/foundations/layout', 'container-scale'],
+  ['/foundations/layout', 'spacing-scale'],
+  ['/foundations/shape', 'radius-scale'],
+  ['/foundations/theming', 'accent-scales'],
+  ['/foundations/typography', 'rhythm-table'],
+  ['/foundations/typography', 'type-scale']
 ]
 
 const CODE: [route: string, slot: string, lang: string][] = [
@@ -99,20 +111,32 @@ describe('twins carry the data their pages render', () => {
     '%s %s table',
     async (route, slot) => {
       const page = await open(route)
-      const rows = await page
-        .locator(`[data-slot=${slot}] tr`)
-        .evaluateAll((trs) =>
-          trs.map((tr) =>
-            [...tr.querySelectorAll('th, td')].map((cell) => {
-              const copy = cell.cloneNode(true) as Element
-              for (const code of copy.querySelectorAll('code'))
-                code.replaceWith(`\`${code.textContent}\``)
-              return copy.textContent!.trim()
-            })
-          )
-        )
+      const { listed, rows } = await page
+        .locator(`[data-slot=${slot}]`)
+        .evaluate((root) => {
+          const listed = !root.querySelector('tr')
+          const rows = root.querySelectorAll(listed ? '[data-twin-row]' : 'tr')
+          return {
+            listed,
+            rows: [...rows].map((row) =>
+              [
+                ...row.querySelectorAll(listed ? '[data-twin-cell]' : 'th, td')
+              ].map((cell) => {
+                if (cell.matches('code')) return `\`${cell.textContent}\``
+                const copy = cell.cloneNode(true) as Element
+                for (const code of copy.querySelectorAll('code'))
+                  code.replaceWith(`\`${code.textContent}\``)
+                return copy.textContent!.trim()
+              })
+            )
+          }
+        })
       expect(rows.length).toBeGreaterThan(1)
-      expect(markdownTables(await twin(route))).toContainEqual(rows)
+      // A list has no header row, so it matches a table's body.
+      const tables = markdownTables(await twin(route)).map((table) =>
+        listed ? table.slice(1) : table
+      )
+      expect(tables).toContainEqual(rows)
     },
     60_000
   )

@@ -87,7 +87,7 @@ describe('Iconography foundation', () => {
     expect(classes).toEqual(TIERS.map((tier) => tier.className))
   }, 60_000)
 
-  it('describes the sizes in its markdown copy without pointing at the scale it drops', async () => {
+  it('describes the sizes in its markdown copy without pointing above or below', async () => {
     const markdown = await readFile(
       join(import.meta.dirname, '../out/foundations/iconography.md'),
       'utf-8'

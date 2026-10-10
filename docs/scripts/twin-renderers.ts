@@ -1,4 +1,6 @@
+import type { TokenEntry } from '@roadie-core/tokens'
 import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 
 import { DATE_TIME_TABLES } from '../src/components/date-and-time/example.ts'
 import {
@@ -20,6 +22,20 @@ import {
   periodComparisonsTable
 } from '../src/lib/dashboard-tables.ts'
 import {
+  accentDefaultsTable,
+  breakpointTable,
+  containerTable,
+  focusRingTable,
+  iconSizeTable,
+  layeringTable,
+  radiusTable,
+  rhythmTable,
+  spacingTable,
+  transitionTable,
+  typeScaleTable
+} from '../src/lib/foundation-scales.ts'
+import {
+  type ManifestComponent,
   escapeCell,
   fence,
   inlineCode,
@@ -31,6 +47,44 @@ import {
   type TwinTable,
   segments
 } from '../src/lib/twin-table.ts'
+
+const require = createRequire(import.meta.url)
+
+let manifestTokens: TokenEntry[] | undefined
+
+/** The token manifest, read on first use, since only some renderers need it. */
+function tokens(): TokenEntry[] {
+  if (manifestTokens) return manifestTokens
+  let raw: string
+  try {
+    raw = readFileSync(
+      new URL('../../packages/core/src/tokens/tokens.json', import.meta.url),
+      'utf8'
+    )
+  } catch {
+    throw new Error(
+      'No token manifest. Run `pnpm --filter @oztix/roadie-core generate:tokens`.'
+    )
+  }
+  manifestTokens = (JSON.parse(raw) as { tokens: TokenEntry[] }).tokens
+  return manifestTokens
+}
+
+// The components barrel can't load in Node, so read the documented default.
+function defaultAccentColor() {
+  const color = (
+    require('@oztix/roadie-components/roadie.manifest.json') as {
+      components: ManifestComponent[]
+    }
+  ).components
+    .find(({ name }) => name === 'ThemeProvider')
+    ?.props.find(({ name }) => name === 'defaultAccentColor')?.default
+  if (!/^#[0-9a-f]{6}$/i.test(color ?? ''))
+    throw new Error(
+      `ThemeProvider's documented defaultAccentColor is ${color}, not a hex colour.`
+    )
+  return color!
+}
 
 export type Renderer = (props: Record<string, string | true>) => string
 
@@ -53,27 +107,20 @@ export const twinTableMarkdown = ({ head, rows }: TwinTable) =>
     rows.map((row) => row.map(cellMarkdown))
   )
 
-type ManifestToken = { name: string; group: string; family: string }
-
-function colorScaleTokens(): ManifestToken[] {
-  const manifest = new URL(
-    '../../packages/core/src/tokens/tokens.json',
-    import.meta.url
-  )
-  let raw: string
-  try {
-    raw = readFileSync(manifest, 'utf8')
-  } catch {
-    throw new Error(
-      'No token manifest. Run `pnpm --filter @oztix/roadie-core generate:tokens`.'
-    )
-  }
-  const { tokens } = JSON.parse(raw) as { tokens: ManifestToken[] }
-  return tokens.filter((token) => token.family === 'color-scales')
-}
-
 /** Markdown for each docs component marked `rendered` in `twin-components.ts`, except those the script builds itself. */
 export const DATA_RENDERERS: Record<string, Renderer> = {
+  AccentScales: () =>
+    twinTableMarkdown(accentDefaultsTable(tokens(), defaultAccentColor())),
+  BreakpointScale: () => twinTableMarkdown(breakpointTable(tokens())),
+  ContainerScale: () => twinTableMarkdown(containerTable(tokens())),
+  FocusRingList: () => twinTableMarkdown(focusRingTable(tokens())),
+  IconSizeScale: () => twinTableMarkdown(iconSizeTable(tokens())),
+  LayeringScale: () => twinTableMarkdown(layeringTable(tokens())),
+  RadiusScale: () => twinTableMarkdown(radiusTable(tokens())),
+  RhythmTable: () => twinTableMarkdown(rhythmTable(tokens())),
+  SpacingScale: () => twinTableMarkdown(spacingTable(tokens())),
+  TransitionList: () => twinTableMarkdown(transitionTable(tokens())),
+  TypeScale: () => twinTableMarkdown(typeScaleTable(tokens())),
   DatavizSwatches: ({ kind }) => {
     if (typeof kind !== 'string' || !Object.hasOwn(DATAVIZ_STRIPS, kind))
       throw new Error(`<DatavizSwatches kind="${kind}"> names no dataviz set`)
@@ -81,7 +128,12 @@ export const DATA_RENDERERS: Record<string, Renderer> = {
   },
   ScaleSwatches: ({ followingAccent }) =>
     twinTableMarkdown(
-      colorScaleTable(colorScales(colorScaleTokens(), followingAccent === true))
+      colorScaleTable(
+        colorScales(
+          tokens().filter((token) => token.family === 'color-scales'),
+          followingAccent === true
+        )
+      )
     ),
   ComparisonTable: () => twinTableMarkdown(DATE_TIME_TABLES.ComparisonTable()),
   ComponentReads: () => twinTableMarkdown(DATE_TIME_TABLES.ComponentReads()),
