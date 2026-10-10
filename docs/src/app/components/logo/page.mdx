@@ -67,12 +67,10 @@ Logo sizes sit one step below Button and IconTile, whose `md` is 40px, so a `siz
 
 The logo's colour is fixed. It is always Oztix blue, identical in light and dark mode, and unaffected by a surrounding intent.
 
-```tsx-live
-<div className='flex flex-wrap items-center gap-6'>
+```tsx-live layout=row gap=6
+<Logo />
+<div className='intent-danger'>
   <Logo />
-  <div className='intent-danger'>
-    <Logo />
-  </div>
 </div>
 ```
 

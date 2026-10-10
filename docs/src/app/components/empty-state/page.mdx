@@ -86,18 +86,16 @@ screen. Raise the heading to `h1` with `render`.
 
 ### Sizes
 
-```tsx-live
-<div className='grid gap-8'>
-  {['sm', 'md', 'lg'].map((size) => (
-    <EmptyState key={size} size={size}>
-      <EmptyState.IconTile>
-        <MagnifyingGlassIcon weight='duotone' />
-      </EmptyState.IconTile>
-      <EmptyState.Title>No results</EmptyState.Title>
-      <EmptyState.Description>Try a different search.</EmptyState.Description>
-    </EmptyState>
-  ))}
-</div>
+```tsx-live layout=stack gap=8
+{['sm', 'md', 'lg'].map((size) => (
+  <EmptyState key={size} size={size}>
+    <EmptyState.IconTile>
+      <MagnifyingGlassIcon weight='duotone' />
+    </EmptyState.IconTile>
+    <EmptyState.Title>No results</EmptyState.Title>
+    <EmptyState.Description>Try a different search.</EmptyState.Description>
+  </EmptyState>
+))}
 ```
 
 ### Media by size
@@ -105,33 +103,31 @@ screen. Raise the heading to `h1` with `render`.
 The recommended pairing: `sm` → IconTile, `md` → SpotIllustration,
 `lg` → hero illustration. The pairing is a convention, not enforced.
 
-```tsx-live
-<div className='grid gap-8'>
-  <EmptyState size='sm'>
-    <EmptyState.IconTile>
-      <HeartIcon weight='duotone' />
-    </EmptyState.IconTile>
-    <EmptyState.Title>No favourites yet</EmptyState.Title>
-    <EmptyState.Description>
-      Save events you love and they'll show up here.
-    </EmptyState.Description>
-    <EmptyState.Actions>
-      <Button href='#'>Browse events</Button>
-    </EmptyState.Actions>
-  </EmptyState>
-  <EmptyState size='md'>
-    <EmptyState.Illustration>
-      <NoteMusic />
-    </EmptyState.Illustration>
-    <EmptyState.Title>No upcoming events</EmptyState.Title>
-    <EmptyState.Description>
-      New shows will appear here as they're announced.
-    </EmptyState.Description>
-    <EmptyState.Actions>
-      <Button href='#'>Browse events</Button>
-    </EmptyState.Actions>
-  </EmptyState>
-</div>
+```tsx-live layout=stack gap=8
+<EmptyState size='sm'>
+  <EmptyState.IconTile>
+    <HeartIcon weight='duotone' />
+  </EmptyState.IconTile>
+  <EmptyState.Title>No favourites yet</EmptyState.Title>
+  <EmptyState.Description>
+    Save events you love and they'll show up here.
+  </EmptyState.Description>
+  <EmptyState.Actions>
+    <Button href='#'>Browse events</Button>
+  </EmptyState.Actions>
+</EmptyState>
+<EmptyState size='md'>
+  <EmptyState.Illustration>
+    <NoteMusic />
+  </EmptyState.Illustration>
+  <EmptyState.Title>No upcoming events</EmptyState.Title>
+  <EmptyState.Description>
+    New shows will appear here as they're announced.
+  </EmptyState.Description>
+  <EmptyState.Actions>
+    <Button href='#'>Browse events</Button>
+  </EmptyState.Actions>
+</EmptyState>
 ```
 
 ### Intents
@@ -139,35 +135,33 @@ The recommended pairing: `sm` → IconTile, `md` → SpotIllustration,
 Set `intent` on the root to tint the IconTile and Button together. Omit it to
 inherit the palette from an ancestor instead.
 
-```tsx-live
-<div className='grid gap-8'>
-  <EmptyState intent='accent' size='sm'>
-    <EmptyState.IconTile>
-      <StarIcon weight='duotone' />
-    </EmptyState.IconTile>
-    <EmptyState.Title>You're all caught up</EmptyState.Title>
-    <EmptyState.Description>No new notifications right now.</EmptyState.Description>
-    <EmptyState.Actions>
-      <Button href='#' emphasis='strong'>
-        View activity
-      </Button>
-    </EmptyState.Actions>
-  </EmptyState>
-  <EmptyState intent='danger' size='sm'>
-    <EmptyState.IconTile>
-      <WarningIcon weight='duotone' />
-    </EmptyState.IconTile>
-    <EmptyState.Title>Something went wrong</EmptyState.Title>
-    <EmptyState.Description>
-      We couldn't load your events. Try again.
-    </EmptyState.Description>
-    <EmptyState.Actions>
-      <Button href='#' emphasis='strong'>
-        Retry
-      </Button>
-    </EmptyState.Actions>
-  </EmptyState>
-</div>
+```tsx-live layout=stack gap=8
+<EmptyState intent='accent' size='sm'>
+  <EmptyState.IconTile>
+    <StarIcon weight='duotone' />
+  </EmptyState.IconTile>
+  <EmptyState.Title>You're all caught up</EmptyState.Title>
+  <EmptyState.Description>No new notifications right now.</EmptyState.Description>
+  <EmptyState.Actions>
+    <Button href='#' emphasis='strong'>
+      View activity
+    </Button>
+  </EmptyState.Actions>
+</EmptyState>
+<EmptyState intent='danger' size='sm'>
+  <EmptyState.IconTile>
+    <WarningIcon weight='duotone' />
+  </EmptyState.IconTile>
+  <EmptyState.Title>Something went wrong</EmptyState.Title>
+  <EmptyState.Description>
+    We couldn't load your events. Try again.
+  </EmptyState.Description>
+  <EmptyState.Actions>
+    <Button href='#' emphasis='strong'>
+      Retry
+    </Button>
+  </EmptyState.Actions>
+</EmptyState>
 ```
 
 ### Without actions

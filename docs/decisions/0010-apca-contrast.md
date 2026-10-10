@@ -64,6 +64,14 @@ coral red, `oklch(0.798 0.116 20)`, at Lc 63.3. A brighter red at its old hue
 sits within ΔE 12 of the amber and dusty rose chart slots, so its hue leans 8
 degrees toward pink. Light mode is unchanged.
 
+In dark mode, strong text sits a smaller step above normal text on success
+and warning than on neutral. Neutral's `text-strong` measures Lc 8.8 above
+its `text-normal`, success's 8.3, and warning's 7.5 (INNO-1226). The
+maintainer accepted these gaps on 10 October 2026 and changed no colours.
+The shortfall is 0.5 to 1.3 Lc, and strong text is usually heavier or larger
+as well, which carries the difference. Closing success's gap would take a
+pure white step 13, which drops its tint.
+
 ## Links
 
 - INNO-1182, white on the accent strong fill
@@ -73,3 +81,4 @@ degrees toward pink. Light mode is unchanged.
 - INNO-1223, dark chart marks and greys
 - INNO-1225, `getContrastColor` switched to APCA
 - INNO-1224, dark delta text
+- INNO-1226, the dark strong and normal text gap on success and warning

@@ -309,4 +309,22 @@ describe('searchChips', () => {
       }
     ])
   })
+
+  it('names a relative range without its dates until the clock is known', () => {
+    const starts: RecordFilter = {
+      field: 'starts',
+      operator: 'within',
+      value: 'this-weekend'
+    }
+    const [scope, filter] = searchChips(
+      { scope: [starts], filters: [starts], skipped: [] },
+      { ...context(), now: new Date(0) }
+    )
+    expect(scope).toEqual({
+      id: 'scope:0',
+      label: 'Starts: This weekend',
+      locked: true
+    })
+    expect(filter).not.toHaveProperty('description')
+  })
 })
