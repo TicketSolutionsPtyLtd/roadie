@@ -137,6 +137,10 @@ const cases = {
       "<div className='flex flex-col gap-4'><Button /></div>",
       "<div className='grid gap-4 sm:grid-cols-2'><Button /></div>",
       "<div className='grid gap-[6px]'><Button /></div>",
+      // layout=row always wraps, so a row that doesn't stays
+      "<div className='flex items-center gap-3'><CalendarTile /><p>Fri</p></div>",
+      "<div className='flex gap-2'><Badge /><Badge /></div>",
+      "<div className='flex flex-row items-center gap-2'><Badge /></div>",
       "<div className={cn('grid gap-4')}><Button /></div>",
       "<section className='grid gap-4'><Button /></section>",
       // A non-root wrapper

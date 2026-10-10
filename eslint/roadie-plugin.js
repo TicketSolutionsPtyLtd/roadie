@@ -222,11 +222,22 @@ const classTokens = (element) => {
 const isElement = (node, name) =>
   node?.type === 'JSXElement' && node.openingElement.name.name === name
 
+// layout=row always wraps, so it can't replace a flex row that doesn't.
+const isWrappingIfFlex = (tokens) =>
+  !tokens.includes('flex') || tokens.includes('flex-wrap')
+
 // Any prop besides className, such as role or style, is more than layout.
-const isLayoutDiv = (node) =>
-  isElement(node, 'div') &&
-  node.openingElement.attributes.length === 1 &&
-  classTokens(node)?.every((token) => FENCE_LAYOUT_CLASS.test(token))
+const isLayoutDiv = (node) => {
+  if (!isElement(node, 'div') || node.openingElement.attributes.length !== 1) {
+    return false
+  }
+  const tokens = classTokens(node)
+  return (
+    tokens !== undefined &&
+    tokens.every((token) => FENCE_LAYOUT_CLASS.test(token)) &&
+    isWrappingIfFlex(tokens)
+  )
+}
 
 const isCaption = (node) => {
   const tokens = isElement(node, 'p') ? classTokens(node) : undefined
