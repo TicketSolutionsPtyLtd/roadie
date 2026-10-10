@@ -1,0 +1,1 @@
+line 2: import('@oztix/roadie-widgets/cart-drawer/react') can reach the deprecated CartExpiryModals, CartExpiryModalsProps. Migrate them by hand.

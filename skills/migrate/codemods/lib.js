@@ -114,7 +114,7 @@ function jsxSegments(name) {
 
 // A target is `Name` or `Name.Part`; `Name` also matches its `Name.Root` alias.
 // Each matches through a namespace import too, as `Roadie.Name.Part`. The
-// matcher takes a JSXOpeningElement path, so a shadowed namespace is skipped.
+// matcher takes a JSXOpeningElement path, so a shadowed import is skipped.
 export function jsxNameMatcher(j, root, targets) {
   const namespaces = namespaceLocals(j, root)
   const wanted = targets.map((target) => {
@@ -127,11 +127,10 @@ export function jsxNameMatcher(j, root, targets) {
       : rest.length === 0 || (rest.length === 1 && rest[0] === 'Root')
   return (path) => {
     const [first, ...rest] = jsxSegments(path.node.name)
+    if (!readsImport(path, first)) return false
     return wanted.some(({ name, locals, part }) =>
       namespaces.has(first)
-        ? rest[0] === name &&
-          partMatches(rest.slice(1), part) &&
-          readsImport(path, first)
+        ? rest[0] === name && partMatches(rest.slice(1), part)
         : locals.has(first) && partMatches(rest, part)
     )
   }
@@ -178,6 +177,34 @@ export function setStringValue(attr, text) {
     : attr.value.expression
   literal.value = text
   delete literal.extra
+}
+
+// Each `import('…')` whose source is a string, as the call and its literal.
+export function dynamicImports(j, root) {
+  return root
+    .find(j.CallExpression, { callee: { type: 'Import' } })
+    .nodes()
+    .filter((node) => isStringLiteral(node.arguments[0]))
+    .map((node) => ({ node, literal: node.arguments[0] }))
+}
+
+// `deprecatedIn(source)` is 'all', or the deprecated names the source exports.
+export function reportDynamicImports(j, root, report, deprecatedIn) {
+  for (const { node, literal } of dynamicImports(j, root)) {
+    const source = literal.value
+    const deprecated = deprecatedIn(source)
+    if (deprecated === 'all') {
+      report(
+        node,
+        `import('${source}') loads a deprecated module, so which deprecated exports it reaches is unknown. Migrate them by hand.`
+      )
+    } else if (deprecated.length > 0) {
+      report(
+        node,
+        `import('${source}') can reach the deprecated ${deprecated.join(', ')}. Migrate them by hand.`
+      )
+    }
+  }
 }
 
 export function readWhole(namespace) {
