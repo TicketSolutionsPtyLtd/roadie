@@ -81,6 +81,7 @@ import {
 import { toPreviewCode, withBasePath } from '@/lib/fence-layout.mjs'
 
 import * as RoadieCharts from '@oztix/roadie-charts'
+import { LegendKey } from '@oztix/roadie-charts/chart-legend'
 import { lineChartTable } from '@oztix/roadie-charts/tables'
 import * as RoadieComponents from '@oztix/roadie-components'
 import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
@@ -204,6 +205,7 @@ const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
 const scope = {
   ...RoadieComponents,
   ...RoadieCharts,
+  LegendKey,
   lineChartTable,
   plainDateOf,
   resolveComparison,

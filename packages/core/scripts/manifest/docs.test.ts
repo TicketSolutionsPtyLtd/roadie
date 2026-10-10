@@ -37,6 +37,32 @@ describe('parseDocsPage', () => {
     expect(parseDocsPage(mdx, '/x/').example).toBe('<Badge>One</Badge>')
   })
 
+  it('takes the first tsx fence under Usage when there is no tsx-live fence', () => {
+    const mdx = [
+      '## Import',
+      '',
+      '```tsx',
+      "import { Cart } from '@oztix/roadie-widgets/cart'",
+      '```',
+      '',
+      '## Usage',
+      '',
+      '```bash',
+      'pnpm add cart',
+      '```',
+      '',
+      '```tsx',
+      '<Cart />',
+      '```',
+      '',
+      '## Props'
+    ].join('\n')
+    expect(parseDocsPage(mdx, '/x/').example).toBe('<Cart />')
+    expect(
+      parseDocsPage(mdx.replace('## Usage', '## Setup'), '/x/').example
+    ).toBeUndefined()
+  })
+
   it('reads metadata only from the metadata export and unescapes quotes', () => {
     const mdx = [
       'export const metadata = {',

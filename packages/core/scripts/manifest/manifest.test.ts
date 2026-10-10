@@ -207,6 +207,14 @@ describe('buildManifest', () => {
         '@fixture/ui': { Provider: '/overview/setup/#not-a-heading' }
       },
       'No heading #not-a-heading on /overview/setup/'
+    ],
+    [
+      'a link goes to a heading on a page.tsx',
+      {
+        ...documentedElsewhere,
+        '@fixture/ui': { Provider: '/overview/hooks/#providers' }
+      },
+      "/overview/hooks/ is a page.tsx, whose headings can't be read"
     ]
   ])('fails when %s', (_, links, message) => {
     expect(() =>
