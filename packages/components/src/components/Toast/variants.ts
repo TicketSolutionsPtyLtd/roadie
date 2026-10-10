@@ -48,7 +48,6 @@ export const toastRootVariants = cva(
   [
     'absolute inset-x-0 select-none',
     'emphasis-floating rounded-xl motion-toast',
-    'outline-0 outline-transparent focus-visible:outline-(length:--focus-ring-width) focus-visible:outline-(--intent-border-strong)',
     // Bridges the gap between fanned-out toasts so the stack stays expanded.
     "after:absolute after:inset-x-0 after:h-[calc(var(--toast-gap)+1px)] after:content-['']"
   ],

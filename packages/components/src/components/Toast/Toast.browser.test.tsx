@@ -14,6 +14,7 @@ import { commands, page } from 'vitest/browser'
 
 import { Toast, type ToastPosition, createToastManager } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { focusAfterKey, focusRing, plainLinkRing } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
 
 // The stack transitions for up to --duration-slower; freezing it lets the
@@ -235,5 +236,16 @@ describe('a leaving toast', () => {
   it('leaves upward when swiped up', async () => {
     const box = await leave('up')
     expect(box.bottom).toBeLessThan(WIDE.height - WIDE.edge - box.height)
+  })
+})
+
+describe('a focused toast', () => {
+  it('shows the base focus ring on a keyboard-focused toast', async () => {
+    const expected = await plainLinkRing()
+    const [toast] = await stack(['Tickets on sale'])
+
+    await focusAfterKey(toast!)
+
+    expect(focusRing(toast!)).toEqual(expected)
   })
 })

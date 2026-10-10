@@ -50,8 +50,12 @@ duration and its easing token.
 
 <TransitionList />
 
-The focus ring colour follows the nearest `intent-*` ancestor. Tab through
-these to see the ring change.
+Roadie has one focus ring shape. It's 4px wide and sits flush against the
+element with no gap. The base styles draw it on a focused element without a
+Roadie class, such as a link in CMS content or a plain button, and
+`is-interactive` and `is-focusable` draw the same ring and animate it in. Its
+colour follows the nearest `intent-*` ancestor. Tab through these to see the
+ring change.
 
 ```tsx-live layout=row
 {/* Neutral */}
@@ -62,7 +66,11 @@ these to see the ring change.
 <Button emphasis='strong' intent='danger'>Danger</Button>
 {/* Success */}
 <Button emphasis='strong' intent='success'>Success</Button>
+{/* Plain link */}
+<a href='#is-interactive'>Plain link</a>
 ```
+
+Fields use the same ring in accent, or danger when invalid.
 
 The ring's width, and its opacity in light and dark mode, come from the focus
 ring tokens.
@@ -306,9 +314,9 @@ when building custom interactive UI.
 <Guideline title='Clear focus indicators' description='Navigation requires visibility. Users must always know where they are on the page.'>
   <Guideline.Do>
     Show a visible focus ring for every focusable element. Use
-    `:focus-visible` to avoid distracting mouse users. Roadie's
-    `is-interactive` provides this automatically, and `is-focusable` gives
-    the same ring to an element that isn't clicked.
+    `:focus-visible` to avoid distracting mouse users. Roadie's base styles
+    draw the ring on plain links and buttons, and `is-interactive` and
+    `is-focusable` animate it in.
   </Guideline.Do>
   <Guideline.Dont>
     Remove outlines (`outline: none`) without replacing them with a

@@ -1,5 +1,5 @@
 import { onTestFinished } from 'vitest'
-import { commands } from 'vitest/browser'
+import { commands, userEvent } from 'vitest/browser'
 
 const HOVER = '(hover: hover)'
 const NO_HOVER = 'not (hover: hover)'
@@ -93,4 +93,37 @@ export async function releaseDragPointer() {
     { type: 'down' },
     { type: 'up' }
   ])
+}
+
+export function focusRing(element: Element) {
+  const style = getComputedStyle(element)
+  return {
+    style: style.outlineStyle,
+    width: style.outlineWidth,
+    color: style.outlineColor,
+    offset: style.outlineOffset
+  }
+}
+
+/** Script focus straight after a key press, which every engine shows as :focus-visible. */
+export async function focusAfterKey<T extends HTMLElement | SVGElement>(
+  target: T
+) {
+  await userEvent.keyboard('{Shift}')
+  target.focus()
+  if (!target.matches(':focus-visible'))
+    throw new Error('Focus did not become :focus-visible')
+  return target
+}
+
+/** The ring the base styles draw on a plain link with no Roadie class. */
+export async function plainLinkRing(within: Element = document.body) {
+  const link = document.createElement('a')
+  link.href = '#tickets'
+  link.textContent = 'Tickets'
+  within.append(link)
+  await focusAfterKey(link)
+  const ring = focusRing(link)
+  link.remove()
+  return ring
 }
