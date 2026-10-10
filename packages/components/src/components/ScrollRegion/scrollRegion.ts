@@ -42,7 +42,7 @@ function regionName(scroller: HTMLElement): RegionName {
 
   if (!heading) return ['aria-label', number ? `Table ${number}` : 'Table']
   return number
-    ? ['aria-label', `${heading.textContent}, table ${number}`]
+    ? ['aria-label', `${heading.textContent?.trim()}, table ${number}`]
     : ['aria-labelledby', heading.id]
 }
 
