@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'Data visualisation',
   description:
-    'How to choose, colour, label and write a chart so a client can act on it.',
+    'How to choose, colour, label, and write a chart so a client can act on it.',
   category: 'Guidelines',
   order: 1
 }
@@ -16,9 +16,9 @@ import { LineChart } from '@oztix/roadie-charts/line-chart'
 
 import { PACE_EXAMPLE } from '../pace-example'
 
-Every chart we show helps a promoter, venue or festival decide something.
+Every chart we show helps a promoter, venue, or festival decide something.
 Which show to add, when to push marketing, whether a night will sell out. These
-rules keep charts in the dashboard, in reports and on slides reading as one
+rules keep charts in the dashboard, in reports, and on slides reading as one
 system.
 
 ## Start with the decision
@@ -70,7 +70,7 @@ chart.
 | Compare                  | RankedBars                    | Channels by tickets sold           |
 | Change over time         | LineChart or BarChart         | Daily sales                        |
 | Pace                     | LineChart with a band         | This show against similar shows    |
-| Part of a whole          | StackedBars or capacity meter | Sold, held and available           |
+| Part of a whole          | StackedBars or capacity meter | Sold, held, and available          |
 | Spread                   | Histogram                     | Days between buying and the show   |
 | Drop off                 | Funnel                        | Checkout steps                     |
 | Two measures per show    | Scatter                       | Pace against sell-through          |
@@ -85,7 +85,7 @@ show the number.
 In a dashboard, these forms sit inside cards. See
 [dashboard design](/charts/dashboards) for sizing and layout.
 
-On the docs site, four of these forms are drawn: a stat tile of tickets sold
+The docs site draws four of these forms: a stat tile of tickets sold
 this week, a VIP sell-through meter in a data card against an 85% target, a
 sparkline of the same week, and ranked bars showing email brings in nearly
 half of orders.
@@ -128,7 +128,7 @@ of pace by venue and section, where the balconies are behind.
 
 ### Status carries meaning
 
-Good, warning, serious and critical. Only for meaning, never as a series
+Good, warning, serious, and critical. Only for meaning, never as a series
 colour, and always with an icon or label. Status colour always comes with an
 arrow and words.
 
@@ -177,7 +177,7 @@ shows.
 ## Labels and type
 
 - Charts use Intermission with tabular figures, so columns and ticks line up.
-- Every chart has a title, a subtitle for scope and a source line.
+- Every chart has a title, a subtitle for scope, and a source line.
 - Label up to 4 series directly. Two or more series also get a legend. A single
   series needs neither.
 - On horizontal bars, names take up to 40% of the chart’s width. A longer name
@@ -207,7 +207,7 @@ grammar guidelines, and unslop. No dashes as punctuation, anywhere.
 
 ## Accessibility
 
-- Never identify a series by colour alone. Pair it with a label, a legend or a
+- Never identify a series by colour alone. Pair it with a label, a legend, or a
   pattern.
 - Offer a table view of every chart.
 - Write a text summary that doubles as alt text.
@@ -238,7 +238,7 @@ grammar guidelines, and unslop. No dashes as punctuation, anywhere.
 | No-show rate         | Tickets issued but never scanned, as a share of tickets issued.                                             | Stat tile, RankedBars with reference        |
 | Scan rate            | Tickets scanned per 15 minutes at each gate, with the running share of fans inside.                         | BarChart with line, SmallMultiples per gate |
 | Resale share         | Tickets resold as a share of tickets sold.                                                                  | StackedBars                                 |
-| Ticket type mix      | Tickets sold by ticket type, such as GA, VIP or early-bird.                                                 | StackedBars, using the pair or trio sets    |
+| Ticket type mix      | Tickets sold by ticket type, such as GA, VIP, or early-bird.                                                | StackedBars, using the pair or trio sets    |
 | Channel and referrer | Where buyers came from before they bought.                                                                  | RankedBars                                  |
 | Postcode             | Where buyers live, from billing postcodes. Report shares, not counts, when totals differ.                   | RankedBars                                  |
 | When fans buy        | Orders by hour and weekday, in the venue timezone.                                                          | Heatmap                                     |
