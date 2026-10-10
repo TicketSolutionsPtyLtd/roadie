@@ -249,6 +249,20 @@ whose smallest is 56px around a 32px icon. Below that threshold it reads as
 under-inked, so a small inline `duotone`, or one in an `IconTile` or
 `EmptyState.IconTile` given a `size` of `lg` or smaller, is still a finding.
 
+#### C5. Hand-rolled icon tile [Info]
+
+```
+<(div|span)\s[^>]*\brounded-[^>]*[^/>]>\s*<\w+Icon\b
+```
+
+Run it multiline. Each hit is a rounded box whose first child is an icon; flag
+it when the box only frames that icon. `IconTile` owns the tile's size, padding,
+radius, and icon size. The
+[icon tile page](https://ticketsolutionsptyltd.github.io/roadie/components/icon-tile)
+has the rules.
+
+**Fix:** `<div className='flex size-10 items-center justify-center rounded-full emphasis-subtle'><TicketIcon /></div>` → `<IconTile shape='circle'><TicketIcon /></IconTile>`.
+
 ---
 
 ### Group D: Typography
@@ -804,6 +818,16 @@ Roadie's text colours are `text-{normal,subtle,subtler,strong,inverted,on-strong
 
 **Fix:** set the intent and use a Roadie text colour: `<p className='text-danger'>` → `<p className='intent-danger text-strong'>`, or `intent-danger` on a parent.
 
+#### I6. An anchor passed to `render` [Warning]
+
+```
+\brender=\{\s*<a\s[^>]*?\bhref=
+```
+
+`render` wins over `href`, so a hand-written anchor skips the provider's routing and its new-tab rule for external URLs. I2 and I3 miss it when the `href` is an expression. The [linking page](https://ticketsolutionsptyltd.github.io/roadie/foundations/linking) has the rules.
+
+**Fix:** `<Button render={<a href={url} target='_blank' />}>` → `<Button href={url}>`. A literal or expression `href` on the component itself is fine.
+
 ---
 
 ## Reporting format
@@ -843,7 +867,7 @@ Roadie's text colours are `text-{normal,subtle,subtler,strong,inverted,on-strong
 | `text-gray-500`                                   | `text-subtle`                       | A1    |
 | `text-accent-11`                                  | `intent-accent text-subtle`         | A2    |
 | `bg-accent-4`                                     | `intent-accent emphasis-subtle`     | A2    |
-| a hand-rolled icon circle                         | `<IconTile shape='circle'>`         | E1    |
+| a hand-rolled icon circle                         | `<IconTile shape='circle'>`         | C5    |
 | `border-gray-200`                                 | `border-subtle`                     | A1    |
 | `dark:bg-*`                                       | remove, use semantic utility        | A4    |
 | `flex flex-col gap-4`                             | `grid gap-4`                        | B1    |
@@ -900,6 +924,7 @@ Run independent checks in parallel by issuing multiple Grep calls in a single me
 - B2: `space-(x|y)-`
 - C3: `size=\{?\d`
 - C4: `weight=['"]` (then keep `bold`, `fill` and `duotone`)
+- C5: `<(div|span)\s[^>]*\brounded-[^>]*[^/>]>\s*<\w+Icon\b` (multiline)
 
 **Batch 3** (typography + components + interactions):
 
@@ -941,13 +966,14 @@ and the rule says what to rule out by eye.
 - G1: `@import.*roadie-core`
 - G2: `@import.*roadie-(components|charts|widgets)/css`
 
-**Batch 6** (linking). Prettier often puts each JSX prop on its own line, so run E6 to E8 and I2 to I4 with multiline on (Grep `multiline: true`, `rg -U`). A `[^>]*` match also stops at an arrow function's `=>`, so check components with inline handlers by eye:
+**Batch 6** (linking). Prettier often puts each JSX prop on its own line, so run E6 to E8, I2 to I4, and I6 with multiline on (Grep `multiline: true`, `rg -U`). A `[^>]*` match also stops at an arrow function's `=>`, so check components with inline handlers by eye:
 
 - I1: `<RoadieProvider\s[^>]*?\blink=|<RoadieLinkProvider\s[^>]*?\bLink=` (in root layouts; flag when absent)
 - I2: `<(Button|IconButton|Card|Breadcrumb\.Link|Carousel\.TitleLink|Tabs\.Tab)[^>]*target=`
 - I3: `<a\s[^>]*?\bhref=\{?['"`](https?:)?//`
 - I4: `<(Button|IconButton)[^>]*onClick=\{[^}]*(navigate|router\.push|window\.location|history\.push)`
 - I5: `\btext-(danger|success|warning|info|brand|accent)([^-\w]|$)`
+- I6: `\brender=\{\s*<a\s[^>]*?\bhref=`
 
 ## Fixing strategy
 
@@ -958,5 +984,5 @@ and the rule says what to rule out by eye.
 - When fixing raw scale references (A2), identify the intent context first. If inside an `intent-*` ancestor, only the emphasis/bg/text class is needed
 - When removing `colorPalette` (E2), also check if the component still uses other v1 patterns — flag for broader migration if so
 - For headings (D1), choose `text-display-ui-*` for UI headings and `text-display-prose-*` for content headings
-- When migrating links (E6, E7, I1 to I4), mount the provider (I1) first. Without it every `<Button href='/x'>` renders a plain `<a>`
+- When migrating links (E6, E7, I1 to I4, and I6), mount the provider (I1) first. Without it every `<Button href='/x'>` renders a plain `<a>`
 - For deprecated APIs (E6 to E8 and any other deprecation in the manifest), hand off to `/roadie:migrate`, which runs codemods for the mechanical rewrites

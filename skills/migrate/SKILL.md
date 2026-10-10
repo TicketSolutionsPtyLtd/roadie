@@ -37,7 +37,7 @@ node -e '
 for (const p of ["core", "components", "charts", "widgets"]) {
   let manifest
   try { manifest = require(`@oztix/roadie-${p}/roadie.manifest.json`) }
-  catch { console.log(`no manifest: @oztix/roadie-${p}`); continue }
+  catch (e) { console.log(`no manifest: @oztix/roadie-${p} (${e.code})`); continue }
   for (const d of manifest.deprecations)
     console.log([d.import, d.export, d.prop ?? "", d.reason].join(" | "))
 }'
