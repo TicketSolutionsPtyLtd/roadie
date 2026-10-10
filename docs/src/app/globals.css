@@ -9,3 +9,18 @@
 
 /* The tokens reference draws each utility by name from the manifest. */
 @source '../../../packages/core/src/css/safelist.html';
+
+/* is-interactive's ring, without its pointer cursor and press: a table
+   scroller takes focus to scroll, not to be clicked. */
+.prose-scroll[role='region']:focus-visible {
+  outline: var(--focus-ring-width) solid
+    color-mix(in oklch, var(--intent-9) var(--focus-ring-opacity), transparent);
+}
+
+.dark .prose-scroll[role='region']:focus-visible {
+  outline-color: color-mix(
+    in oklch,
+    var(--intent-9) var(--focus-ring-opacity-dark),
+    transparent
+  );
+}

@@ -1,0 +1,206 @@
+import { createRequire } from 'module'
+import { type Browser, type Page, chromium, firefox, webkit } from 'playwright'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+
+import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
+
+const engines = { chromium, firefox, webkit }
+const engine = (process.env.E2E_BROWSER ?? 'chromium') as keyof typeof engines
+let browser: Browser
+
+beforeAll(async () => {
+  browser = await engines[engine].launch()
+})
+
+afterAll(async () => {
+  await browser?.close()
+})
+
+afterEach(async () => {
+  await Promise.all(browser.contexts().map((context) => context.close()))
+})
+
+const PAGE = '/charts/data-visualisation/'
+const PHONE = 375
+const DESKTOP = 1280
+
+async function open(width: number) {
+  const context = await browser.newContext({
+    viewport: { width, height: 900 }
+  })
+  await serveExport(context)
+  const page = await context.newPage()
+  const errors: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text())
+  })
+  page.on('pageerror', (error) => errors.push(String(error)))
+  await page.goto(`${ORIGIN}${BASE_PATH}${PAGE}`)
+  await page.waitForLoadState('networkidle')
+  return { page, errors }
+}
+
+/** The scroller of the first table after the heading with this id. */
+const scrollerAfter = (page: Page, headingId: string) =>
+  page
+    .locator(`#${headingId}`)
+    .locator(
+      "xpath=following::div[contains(concat(' ', @class, ' '), ' prose-scroll ')][1]"
+    )
+
+/** Tabs from a button placed just before the scroller, so the page's other stops don't matter. */
+async function tabsInto(page: Page, headingId: string) {
+  await scrollerAfter(page, headingId).evaluate((scroller) => {
+    const before = document.createElement('button')
+    before.textContent = 'Before'
+    scroller.before(before)
+    before.focus()
+  })
+  await page.keyboard.press('Tab')
+  return scrollerAfter(page, headingId).evaluate(
+    (scroller) => document.activeElement === scroller
+  )
+}
+
+describe('Scrolling markdown tables', () => {
+  it('reaches a wide table with Tab and names it by its heading', async () => {
+    const { page, errors } = await open(PHONE)
+    const scroller = scrollerAfter(page, 'writing-for-charts')
+    await expect
+      .poll(() => scroller.getAttribute('tabindex'), { timeout: 5_000 })
+      .toBe('0')
+
+    expect(await tabsInto(page, 'writing-for-charts')).toBe(true)
+    expect(await scroller.getAttribute('role')).toBe('region')
+    expect(
+      await scroller.evaluate((node) => {
+        const id = node.getAttribute('aria-labelledby')
+        return id && document.getElementById(id)?.textContent
+      })
+    ).toBe('Writing for charts')
+    expect(errors).toEqual([])
+  }, 60_000)
+
+  // Playwright's WebKit never scrolls on a synthetic key press, not even the
+  // page on Space, so only Chromium and Firefox can show the arrow keys.
+  it.skipIf(engine === 'webkit')(
+    'scrolls a focused wide table with the arrow keys',
+    async () => {
+      const { page } = await open(PHONE)
+      const scroller = scrollerAfter(page, 'writing-for-charts')
+      await expect
+        .poll(() => scroller.getAttribute('tabindex'), { timeout: 5_000 })
+        .toBe('0')
+      await tabsInto(page, 'writing-for-charts')
+
+      await page.keyboard.press('ArrowRight')
+      await page.keyboard.press('ArrowRight')
+      await expect
+        .poll(() => scroller.evaluate((node) => node.scrollLeft), {
+          timeout: 5_000
+        })
+        .toBeGreaterThan(0)
+    },
+    60_000
+  )
+
+  it('shows the focus ring on a focused table', async () => {
+    const { page } = await open(PHONE)
+    const scroller = scrollerAfter(page, 'writing-for-charts')
+    await expect
+      .poll(() => scroller.getAttribute('tabindex'), { timeout: 5_000 })
+      .toBe('0')
+    await tabsInto(page, 'writing-for-charts')
+
+    const ring = await scroller.evaluate((node) => {
+      const style = getComputedStyle(node)
+      const probe = document.createElement('div')
+      probe.style.width = 'var(--focus-ring-width)'
+      document.body.append(probe)
+      const token = getComputedStyle(probe).width
+      probe.remove()
+      return {
+        style: style.outlineStyle,
+        width: style.outlineWidth,
+        token,
+        color: style.outlineColor
+      }
+    })
+    expect(ring.style).toBe('solid')
+    expect(ring.width).toBe(ring.token)
+    expect(ring.color).not.toMatch(/^rgba\(0, 0, 0, 0\)$|transparent/)
+  }, 60_000)
+
+  it('leaves a table that fits out of the tab order', async () => {
+    const { page } = await open(PHONE)
+    const scroller = scrollerAfter(page, 'writing-for-charts')
+    await expect
+      .poll(() => scroller.getAttribute('tabindex'), { timeout: 5_000 })
+      .toBe('0')
+
+    const fits = scrollerAfter(page, 'pick-the-form-from-the-job')
+    expect(
+      await fits.evaluate((node) => node.scrollWidth > node.clientWidth)
+    ).toBe(false)
+    expect(await fits.getAttribute('tabindex')).toBeNull()
+    expect(await fits.getAttribute('role')).toBeNull()
+    expect(await tabsInto(page, 'pick-the-form-from-the-job')).toBe(false)
+  }, 60_000)
+
+  it('adds and removes the tab stop as the table starts and stops overflowing', async () => {
+    const { page } = await open(PHONE)
+    const scroller = scrollerAfter(page, 'writing-for-charts')
+    await expect
+      .poll(() => scroller.getAttribute('tabindex'), { timeout: 5_000 })
+      .toBe('0')
+
+    await page.setViewportSize({ width: DESKTOP, height: 900 })
+    await expect
+      .poll(() => scroller.getAttribute('tabindex'), { timeout: 5_000 })
+      .toBeNull()
+    expect(await scroller.getAttribute('role')).toBeNull()
+
+    await page.setViewportSize({ width: PHONE, height: 900 })
+    await expect
+      .poll(() => scroller.getAttribute('tabindex'), { timeout: 5_000 })
+      .toBe('0')
+  }, 60_000)
+
+  it('server-renders tables without a tab stop, so hydration matches', async () => {
+    const { page } = await open(PHONE)
+    const html = await page.evaluate(async () =>
+      (await fetch(location.href)).text()
+    )
+    expect(html).toContain('class="prose-scroll"')
+    expect(html).not.toMatch(/class="prose-scroll[^"]*"[^>]*tabindex/)
+  }, 60_000)
+
+  it('passes axe’s scrollable-region-focusable rule on a phone', async () => {
+    const { page } = await open(PHONE)
+    await expect
+      .poll(
+        () =>
+          scrollerAfter(page, 'writing-for-charts').getAttribute('tabindex'),
+        { timeout: 5_000 }
+      )
+      .toBe('0')
+    const require = createRequire(import.meta.url)
+    await page.addScriptTag({ path: require.resolve('axe-core') })
+    const violations = await page.evaluate(async () => {
+      const result = await (
+        window as unknown as {
+          axe: {
+            run: (
+              context: Element,
+              options: object
+            ) => Promise<{ violations: { nodes: unknown[] }[] }>
+          }
+        }
+      ).axe.run(document.querySelector('#docs-content')!, {
+        runOnly: ['scrollable-region-focusable']
+      })
+      return result.violations.flatMap((violation) => violation.nodes).length
+    })
+    expect(violations).toBe(0)
+  }, 60_000)
+})

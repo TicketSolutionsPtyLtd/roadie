@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 
+import { ProseScroll } from '@/components/ProseScroll'
 import { type TwinTable, segments } from '@/lib/twin-table'
 
 /** A table styled as a markdown table, for docs components inside prose. */
@@ -13,7 +14,7 @@ export function ProseTable({
   children: ReactNode
 }) {
   return (
-    <div className='prose-scroll' data-slot={slot}>
+    <ProseScroll data-slot={slot}>
       <table>
         <thead>
           <tr>
@@ -24,7 +25,7 @@ export function ProseTable({
         </thead>
         <tbody>{children}</tbody>
       </table>
-    </div>
+    </ProseScroll>
   )
 }
 
