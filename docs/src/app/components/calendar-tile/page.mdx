@@ -75,11 +75,15 @@ Defaults to `rounded-xl`, matching Card. Override with any Tailwind radius class
 
 The tile abbreviates hard. It is paired with a line that carries the full date. Where the tile is the only date on a card, that line is required, not optional.
 
-```tsx-live layout=row gap=3
-<CalendarTile month='NOV' day={27} />
-<div className='min-w-0'>
-  <p className='text-sm text-strong'>Ochre Kite Weekender</p>
-  <p className='text-sm text-subtle'>Fri 27 Nov 2026 · Kilcoy, QLD</p>
+{/* eslint-disable-next-line roadie/no-fence-layout-wrapper -- the row pairing the tile with its full date is the lesson */}
+
+```tsx-live
+<div className='flex items-center gap-3'>
+  <CalendarTile month='NOV' day={27} />
+  <div className='min-w-0'>
+    <p className='text-sm text-strong'>Ochre Kite Weekender</p>
+    <p className='text-sm text-subtle'>Fri 27 Nov 2026 · Kilcoy, QLD</p>
+  </div>
 </div>
 ```
 

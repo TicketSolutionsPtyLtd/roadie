@@ -173,6 +173,9 @@ const config = [
     files: ['**/*.mdx'],
     ignores: ['**/*.mdx/**'],
     plugins: { roadie },
+    // A directive comment before a fence disables a rule inside the fence, which
+    // the page itself would always report as unused.
+    linterOptions: { reportUnusedDisableDirectives: 'off' },
     rules: {
       'roadie/no-mdx-layout-class': 'error'
     }
