@@ -40,53 +40,37 @@ render(<Default />)
 
 `hourCycle` sets how the time reads. `12` reads "7:30pm", the house style for anything a buyer sees, and `24` reads "19:30" for dense staff screens. Either clock can be typed into either field.
 
-```tsx-live
-<div className='grid max-w-40 gap-4'>
-  <TimeField aria-label='12-hour' defaultValue='19:30' />
-  <TimeField aria-label='24-hour' defaultValue='19:30' hourCycle={24} />
-</div>
+```tsx-live layout=stack width=40
+<TimeField aria-label='12-hour' defaultValue='19:30' />
+<TimeField aria-label='24-hour' defaultValue='19:30' hourCycle={24} />
 ```
 
 ### Emphasis
 
-```tsx-live
-<div className='grid max-w-40 gap-4'>
-  <TimeField aria-label='Normal' defaultValue='19:30' />
-  <TimeField aria-label='Subtle' emphasis='subtle' defaultValue='19:30' />
-</div>
+```tsx-live layout=stack width=40
+<TimeField aria-label='Normal' defaultValue='19:30' />
+<TimeField aria-label='Subtle' emphasis='subtle' defaultValue='19:30' />
 ```
 
 ### Sizes
 
-```tsx-live
-<div className='grid max-w-40 gap-4'>
-  <TimeField aria-label='Small' size='sm' defaultValue='19:30' />
-  <TimeField aria-label='Medium' size='md' defaultValue='19:30' />
-  <TimeField aria-label='Large' size='lg' defaultValue='19:30' />
-</div>
+```tsx-live layout=stack width=40
+<TimeField aria-label='Small' size='sm' defaultValue='19:30' />
+<TimeField aria-label='Medium' size='md' defaultValue='19:30' />
+<TimeField aria-label='Large' size='lg' defaultValue='19:30' />
 ```
 
 ### States
 
-```tsx-live
-<div className='grid max-w-40 gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <TimeField aria-label='Default' defaultValue='19:30' />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Invalid</p>
-    <TimeField aria-label='Invalid' defaultValue='19:30' invalid />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Read only</p>
-    <TimeField aria-label='Read only' defaultValue='19:30' readOnly />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <TimeField aria-label='Disabled' defaultValue='19:30' disabled />
-  </div>
-</div>
+```tsx-live layout=stack width=40
+{/* Default */}
+<TimeField aria-label='Default' defaultValue='19:30' />
+{/* Invalid */}
+<TimeField aria-label='Invalid' defaultValue='19:30' invalid />
+{/* Read only */}
+<TimeField aria-label='Read only' defaultValue='19:30' readOnly />
+{/* Disabled */}
+<TimeField aria-label='Disabled' defaultValue='19:30' disabled />
 ```
 
 ### Composition
