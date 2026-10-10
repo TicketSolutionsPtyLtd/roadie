@@ -319,7 +319,7 @@ export function ExtendedDateRangePicker({
     valueText: description
       ? [description.label, description.detail, valueSuffix]
           .filter(Boolean)
-          .join(', ')
+          .join(' ')
       : undefined
   })
 
@@ -712,6 +712,8 @@ export function ExtendedDateRangePicker({
                   <span className='text-subtle'> {description.detail}</span>
                 )}
               </span>
+              {/* Keeps the lines apart in the button's text, as axe reads it. */}
+              {twoLines && ' '}
               {twoLines && (
                 <span
                   data-slot='date-range-picker-suffix'
