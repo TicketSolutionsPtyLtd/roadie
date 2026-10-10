@@ -36,32 +36,26 @@ import { QRCode } from '@oztix/roadie-components/qr-code'
 
 The default code is branded: square modules with the Oztix mark on a dark 5×5-module tile in the centre.
 
-```tsx-live
-<div className='w-48'>
-  <QRCode value='A7K2MKWX' aria-label='Ticket QR code' />
-</div>
+```tsx-live width=48
+<QRCode value='A7K2MKWX' aria-label='Ticket QR code' />
 ```
 
 ### Plain
 
 `branded={false}` renders a standard code with no mark and nothing cleared.
 
-```tsx-live
-<div className='w-48'>
-  <QRCode value='A7K2MKWX' branded={false} aria-label='Ticket QR code' />
-</div>
+```tsx-live width=48
+<QRCode value='A7K2MKWX' branded={false} aria-label='Ticket QR code' />
 ```
 
 ### Custom mark
 
 `children` swaps the mark on the tile, the same way `Navigator.Brand` takes your own logo. The mark is drawn white in a 3.4-module square, so pass an `<svg>` with a `viewBox`, or an icon at `size='100%'`, filled with `currentColor`. The tile and its size don't change, so a custom mark scans exactly like the Oztix one.
 
-```tsx-live
-<div className='w-48'>
-  <QRCode value='A7K2MKWX' aria-label='Ticket QR code'>
-    <StarIcon weight='fill' size='100%' />
-  </QRCode>
-</div>
+```tsx-live width=48
+<QRCode value='A7K2MKWX' aria-label='Ticket QR code'>
+  <StarIcon weight='fill' size='100%' />
+</QRCode>
 ```
 
 ### Composition

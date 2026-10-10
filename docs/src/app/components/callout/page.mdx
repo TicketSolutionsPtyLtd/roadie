@@ -32,46 +32,40 @@ Pass the message as children. With no `intent`, the callout takes the palette of
 
 Leave out either one. A title on its own suits a short status; a description on its own suits a sentence.
 
-```tsx-live
-<div className='grid gap-3'>
-  <Callout intent='success' title='Your event is live' />
-  <Callout intent='info'>Doors open at 7pm.</Callout>
-</div>
+```tsx-live layout=stack gap=3
+<Callout intent='success' title='Your event is live' />
+<Callout intent='info'>Doors open at 7pm.</Callout>
 ```
 
 ### Emphasis
 
 `subtle` is the default. Use `normal` to sit on a tinted surface, `strong` for the one message a page can't miss, and `subtler` for a quiet aside. In a `strong` callout, give buttons `emphasis='normal'`, because a `strong` button takes the same fill as the callout.
 
-```tsx-live
-<div className='grid gap-3'>
-  {['strong', 'normal', 'subtle', 'subtler'].map((emphasis) => (
-    <Callout key={emphasis} intent='warning' emphasis={emphasis} title={emphasis}>
-      Only 20 tickets left at this price.
-    </Callout>
-  ))}
-</div>
+```tsx-live layout=stack gap=3
+{['strong', 'normal', 'subtle', 'subtler'].map((emphasis) => (
+  <Callout key={emphasis} intent='warning' emphasis={emphasis} title={emphasis}>
+    Only 20 tickets left at this price.
+  </Callout>
+))}
 ```
 
 ### Intents
 
 `info`, `success`, `warning` and `danger` each bring a status icon. Other intents colour the callout without one.
 
-```tsx-live
-<div className='grid gap-3'>
-  <Callout intent='info' title='Doors open at 7pm'>
-    The support act starts at 8pm at The Quilted Walrus Room.
-  </Callout>
-  <Callout intent='success' title='Your event is live'>
-    Tickets for Velvet Dingo Fest are on sale now.
-  </Callout>
-  <Callout intent='warning' title='Only 20 tickets left at this price'>
-    The next release is $10 more.
-  </Callout>
-  <Callout intent='danger' title='Payment failed'>
-    Update your card to keep your booking.
-  </Callout>
-</div>
+```tsx-live layout=stack gap=3
+<Callout intent='info' title='Doors open at 7pm'>
+  The support act starts at 8pm at The Quilted Walrus Room.
+</Callout>
+<Callout intent='success' title='Your event is live'>
+  Tickets for Velvet Dingo Fest are on sale now.
+</Callout>
+<Callout intent='warning' title='Only 20 tickets left at this price'>
+  The next release is $10 more.
+</Callout>
+<Callout intent='danger' title='Payment failed'>
+  Update your card to keep your booking.
+</Callout>
 ```
 
 ### Composition
@@ -96,18 +90,8 @@ Build the callout from parts when it needs actions or a rich body. `Callout.Icon
 
 Actions sit below the text in a narrow callout and move beside it once there's 32rem of room inside the callout. The callout measures itself, so it lays out the same in a sidebar as on a phone.
 
-```tsx-live
-<div className='grid gap-3'>
-  <div className='max-w-sm'>
-    <Callout intent='warning'>
-      <Callout.Icon />
-      <Callout.Title>Only 20 tickets left at this price</Callout.Title>
-      <Callout.Description>The next release is $10 more.</Callout.Description>
-      <Callout.Actions>
-        <Button size='sm'>Buy now</Button>
-      </Callout.Actions>
-    </Callout>
-  </div>
+```tsx-live layout=stack gap=3
+<div className='max-w-sm'>
   <Callout intent='warning'>
     <Callout.Icon />
     <Callout.Title>Only 20 tickets left at this price</Callout.Title>
@@ -117,6 +101,14 @@ Actions sit below the text in a narrow callout and move beside it once there's 3
     </Callout.Actions>
   </Callout>
 </div>
+<Callout intent='warning'>
+  <Callout.Icon />
+  <Callout.Title>Only 20 tickets left at this price</Callout.Title>
+  <Callout.Description>The next release is $10 more.</Callout.Description>
+  <Callout.Actions>
+    <Button size='sm'>Buy now</Button>
+  </Callout.Actions>
+</Callout>
 ```
 
 ### With dismiss
@@ -143,15 +135,13 @@ render(<Example />)
 
 Pass `icon` to the short form, or children to `Callout.Icon`. Pass `icon={null}` for no icon.
 
-```tsx-live
-<div className='grid gap-3'>
-  <Callout intent='brand' icon={<TicketIcon weight='bold' />} title='Your tickets are in your wallet'>
-    Show them at the gate from your phone.
-  </Callout>
-  <Callout intent='info' icon={null}>
-    Doors open at 7pm.
-  </Callout>
-</div>
+```tsx-live layout=stack gap=3
+<Callout intent='brand' icon={<TicketIcon weight='bold' />} title='Your tickets are in your wallet'>
+  Show them at the gate from your phone.
+</Callout>
+<Callout intent='info' icon={null}>
+  Doors open at 7pm.
+</Callout>
 ```
 
 ## Guidelines

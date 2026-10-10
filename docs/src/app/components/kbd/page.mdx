@@ -22,24 +22,20 @@ import { Kbd } from '@oztix/roadie-components/kbd'
 
 Pass a key as text. Known key names, in any case, show their glyph or short word: `Enter` shows the return glyph and the word.
 
-```tsx-live
-<div className='flex flex-wrap items-center gap-2'>
-  <Kbd>Enter</Kbd>
-  <Kbd>Esc</Kbd>
-  <Kbd>/</Kbd>
-</div>
+```tsx-live layout=row
+<Kbd>Enter</Kbd>
+<Kbd>Esc</Kbd>
+<Kbd>/</Kbd>
 ```
 
 ### Keys
 
 `keys` draws a combination, each key on its own keycap. `mod` is the platform's main modifier: ⌘ on Apple devices and Ctrl elsewhere. `shift`, `alt` and `ctrl` follow the platform too, as glyphs on Apple devices and words elsewhere.
 
-```tsx-live
-<div className='flex flex-wrap items-center gap-4'>
-  <Kbd keys={['mod', 'k']} />
-  <Kbd keys={['mod', 'shift', 'p']} />
-  <Kbd keys={['alt', 'arrowup']} />
-</div>
+```tsx-live layout=row gap=4
+<Kbd keys={['mod', 'k']} />
+<Kbd keys={['mod', 'shift', 'p']} />
+<Kbd keys={['alt', 'arrowup']} />
 ```
 
 The known names are `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `arrowup`, `arrowdown`, `arrowleft`, `arrowright`, `mod`, `meta`, `shift`, `alt` and `ctrl`. They also take the aliases `return`, `esc`, `del`, `up`, `down`, `left`, `right`, `cmd` and `command` (for `mod`), `option` and `control`, and `KeyboardEvent.key` values such as `ArrowUp`, `Escape` and `Meta`. `meta` is ⌘ on Apple devices and Win elsewhere. Any other key shows as text, with a single letter in capitals.
@@ -48,32 +44,22 @@ The known names are `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `a
 
 `subtle`, the default, is a soft keycap tinted from the surrounding text colour, with no border, so it suits any surface, a strong button included. `normal` is its own opaque, bordered surface, so it keeps its own colours on any fill. `subtler` is plain text in the surrounding colour, for places that already frame it, such as a menu row. Off Apple devices, `subtler` joins keys with a plus, as in Ctrl+D.
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Normal</p>
-    <div><Kbd keys={['mod', 'd']} emphasis='normal' /></div>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Subtle</p>
-    <div><Kbd keys={['mod', 'd']} /></div>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Subtler</p>
-    <div><Kbd keys={['mod', 'd']} emphasis='subtler' /></div>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Normal */}
+<Kbd keys={['mod', 'd']} emphasis='normal' />
+{/* Subtle */}
+<Kbd keys={['mod', 'd']} />
+{/* Subtler */}
+<Kbd keys={['mod', 'd']} emphasis='subtler' />
 ```
 
 ### Sizes
 
 `md` suits a toolbar or a field. Use `sm` inside a button or beside small text.
 
-```tsx-live
-<div className='flex flex-wrap items-center gap-4'>
-  <Kbd keys={['mod', 'k']} size='sm' />
-  <Kbd keys={['mod', 'k']} size='md' />
-</div>
+```tsx-live layout=row gap=4
+<Kbd keys={['mod', 'k']} size='sm' />
+<Kbd keys={['mod', 'k']} size='md' />
 ```
 
 ### Composition
@@ -90,57 +76,43 @@ Put the hint inside the control it triggers. Kbd is hidden from assistive tech, 
 
 `Menu.Item` and `Tooltip.Content` take a `shortcut` and render it through Kbd: plain `subtler` keys in a menu row, and small keycaps in a tooltip.
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  <Menu>
-    <Menu.Trigger render={<Button>Actions</Button>} />
-    <Menu.Content>
-      <Menu.Item icon={<PencilSimpleIcon weight='bold' />} shortcut={['mod', 'e']} aria-keyshortcuts='Meta+E Control+E'>Edit</Menu.Item>
-      <Menu.Item icon={<CopyIcon weight='bold' />} shortcut={['mod', 'd']} aria-keyshortcuts='Meta+D Control+D'>Duplicate</Menu.Item>
-    </Menu.Content>
-  </Menu>
-  <Tooltip>
-    <Tooltip.Trigger render={<IconButton aria-label='Search' aria-keyshortcuts='Meta+K Control+K'><MagnifyingGlassIcon weight='bold' className='size-4' /></IconButton>} />
-    <Tooltip.Content shortcut={['mod', 'k']}>
-      <Tooltip.Arrow />
-      Search
-    </Tooltip.Content>
-  </Tooltip>
-</div>
+```tsx-live layout=row gap=3
+<Menu>
+  <Menu.Trigger render={<Button>Actions</Button>} />
+  <Menu.Content>
+    <Menu.Item icon={<PencilSimpleIcon weight='bold' />} shortcut={['mod', 'e']} aria-keyshortcuts='Meta+E Control+E'>Edit</Menu.Item>
+    <Menu.Item icon={<CopyIcon weight='bold' />} shortcut={['mod', 'd']} aria-keyshortcuts='Meta+D Control+D'>Duplicate</Menu.Item>
+  </Menu.Content>
+</Menu>
+<Tooltip>
+  <Tooltip.Trigger render={<IconButton aria-label='Search' aria-keyshortcuts='Meta+K Control+K'><MagnifyingGlassIcon weight='bold' className='size-4' /></IconButton>} />
+  <Tooltip.Content shortcut={['mod', 'k']}>
+    <Tooltip.Arrow />
+    Search
+  </Tooltip.Content>
+</Tooltip>
 ```
 
 ### Combined
 
 `combined` draws a combination on one keycap, such as ⌘K, for keys pressed together. Off Apple devices, the keys are joined with a plus, as in Ctrl+K.
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Separate</p>
-    <div><Kbd keys={['mod', 'shift', 'p']} /></div>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Combined</p>
-    <div><Kbd keys={['mod', 'shift', 'p']} combined /></div>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Separate */}
+<Kbd keys={['mod', 'shift', 'p']} />
+{/* Combined */}
+<Kbd keys={['mod', 'shift', 'p']} combined />
 ```
 
 ### Separator
 
 `separator` goes between keys, in separate keycaps or a combined one. Use a word such as `then` for a sequence, keys pressed one after another. By default there is none on Apple devices, and off them a plus inside a combined keycap or between subtler keys.
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Plus</p>
-    <div><Kbd keys={['mod', 'k']} separator='+' /></div>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Sequence</p>
-    <div><Kbd keys={['g', 'i']} separator='then' /></div>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Plus */}
+<Kbd keys={['mod', 'k']} separator='+' />
+{/* Sequence */}
+<Kbd keys={['g', 'i']} separator='then' />
 ```
 
 ### Announced

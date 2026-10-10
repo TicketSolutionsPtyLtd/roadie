@@ -41,89 +41,79 @@ Place a Phosphor icon as the only child. The tile sizes and centres it for you.
 
 The default emphasis is `subtle`. Use `strong` for a solid fill, or step down to `subtler` for the lightest tint.
 
-```tsx-live
-<div className='flex flex-row flex-wrap items-center gap-3'>
-  <IconTile intent='accent' emphasis='strong'>
-    <Heart weight='bold' />
-  </IconTile>
-  <IconTile intent='accent' emphasis='normal'>
-    <Heart weight='bold' />
-  </IconTile>
-  <IconTile intent='accent' emphasis='subtle'>
-    <Heart weight='bold' />
-  </IconTile>
-  <IconTile intent='accent' emphasis='subtler'>
-    <Heart weight='bold' />
-  </IconTile>
-</div>
+```tsx-live layout=row gap=3
+<IconTile intent='accent' emphasis='strong'>
+  <Heart weight='bold' />
+</IconTile>
+<IconTile intent='accent' emphasis='normal'>
+  <Heart weight='bold' />
+</IconTile>
+<IconTile intent='accent' emphasis='subtle'>
+  <Heart weight='bold' />
+</IconTile>
+<IconTile intent='accent' emphasis='subtler'>
+  <Heart weight='bold' />
+</IconTile>
 ```
 
 ### Sizes
 
 Sizes run `xs` through `3xl`. Each maps to a Tailwind `size-*` box on the tile, with matching internal padding and icon size. The tile dimension is `2 × padding + icon`. The tier names are variant keys, not Tailwind utilities (there is no `size-3xl`).
 
-```tsx-live
-<div className='flex flex-row flex-wrap items-center gap-3'>
-  <IconTile intent='accent' size='xs'><Gear weight='bold' /></IconTile>
-  <IconTile intent='accent' size='sm'><Gear weight='bold' /></IconTile>
-  <IconTile intent='accent' size='md'><Gear weight='bold' /></IconTile>
-  <IconTile intent='accent' size='lg'><Gear weight='bold' /></IconTile>
-  <IconTile intent='accent' size='xl'><Gear weight='duotone' /></IconTile>
-  <IconTile intent='accent' size='2xl'><Gear weight='duotone' /></IconTile>
-  <IconTile intent='accent' size='3xl'><Gear weight='duotone' /></IconTile>
-</div>
+```tsx-live layout=row gap=3
+<IconTile intent='accent' size='xs'><Gear weight='bold' /></IconTile>
+<IconTile intent='accent' size='sm'><Gear weight='bold' /></IconTile>
+<IconTile intent='accent' size='md'><Gear weight='bold' /></IconTile>
+<IconTile intent='accent' size='lg'><Gear weight='bold' /></IconTile>
+<IconTile intent='accent' size='xl'><Gear weight='duotone' /></IconTile>
+<IconTile intent='accent' size='2xl'><Gear weight='duotone' /></IconTile>
+<IconTile intent='accent' size='3xl'><Gear weight='duotone' /></IconTile>
 ```
 
 ### Shape
 
 Tiles are square by default, with a corner radius that scales with the size so it stays in proportion. Set `shape='circle'` for a full-radius pill.
 
-```tsx-live
-<div className='flex flex-row flex-wrap items-center gap-3'>
-  <IconTile intent='accent' shape='square' size='lg'>
-    <Gear weight='bold' />
-  </IconTile>
-  <IconTile intent='accent' shape='circle' size='lg'>
-    <Gear weight='bold' />
-  </IconTile>
-</div>
+```tsx-live layout=row gap=3
+<IconTile intent='accent' shape='square' size='lg'>
+  <Gear weight='bold' />
+</IconTile>
+<IconTile intent='accent' shape='circle' size='lg'>
+  <Gear weight='bold' />
+</IconTile>
 ```
 
 ### Intents
 
 Intent sets the colour palette. The tile inherits its surrounding intent context unless you set one directly.
 
-```tsx-live
-<div className='flex flex-row flex-wrap gap-3'>
-  <IconTile intent='neutral'><Star weight='bold' /></IconTile>
-  <IconTile intent='accent'><Star weight='bold' /></IconTile>
-  <IconTile intent='brand'><Star weight='bold' /></IconTile>
-  <IconTile intent='info'><Info weight='bold' /></IconTile>
-  <IconTile intent='success'><CheckCircle weight='bold' /></IconTile>
-  <IconTile intent='warning'><Warning weight='bold' /></IconTile>
-  <IconTile intent='danger'><Trash weight='bold' /></IconTile>
-</div>
+```tsx-live layout=row gap=3
+<IconTile intent='neutral'><Star weight='bold' /></IconTile>
+<IconTile intent='accent'><Star weight='bold' /></IconTile>
+<IconTile intent='brand'><Star weight='bold' /></IconTile>
+<IconTile intent='info'><Info weight='bold' /></IconTile>
+<IconTile intent='success'><CheckCircle weight='bold' /></IconTile>
+<IconTile intent='warning'><Warning weight='bold' /></IconTile>
+<IconTile intent='danger'><Trash weight='bold' /></IconTile>
 ```
 
 ### Icon weight
 
 Use `weight='bold'` up to 48px (the `lg` size), then switch to `weight='duotone'` above 48px. A bold outline can look hollow and under-filled on a large tile, while duotone's soft tinted fill gives bigger tiles more presence.
 
-```tsx-live
-<div className='flex flex-row flex-wrap items-center gap-3'>
-  <IconTile intent='accent' emphasis='subtle' size='md'>
-    <Heart weight='bold' />
-  </IconTile>
-  <IconTile intent='accent' emphasis='subtle' size='lg'>
-    <Heart weight='bold' />
-  </IconTile>
-  <IconTile intent='accent' emphasis='subtle' size='xl'>
-    <Heart weight='duotone' />
-  </IconTile>
-  <IconTile intent='accent' emphasis='subtle' size='3xl'>
-    <Heart weight='duotone' />
-  </IconTile>
-</div>
+```tsx-live layout=row gap=3
+<IconTile intent='accent' emphasis='subtle' size='md'>
+  <Heart weight='bold' />
+</IconTile>
+<IconTile intent='accent' emphasis='subtle' size='lg'>
+  <Heart weight='bold' />
+</IconTile>
+<IconTile intent='accent' emphasis='subtle' size='xl'>
+  <Heart weight='duotone' />
+</IconTile>
+<IconTile intent='accent' emphasis='subtle' size='3xl'>
+  <Heart weight='duotone' />
+</IconTile>
 ```
 
 ## Guidelines
