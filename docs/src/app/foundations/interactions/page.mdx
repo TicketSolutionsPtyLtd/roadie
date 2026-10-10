@@ -93,6 +93,29 @@ you when it holds a `Card.Link`.
 </Card>
 ```
 
+### `is-focusable`
+
+For an element that takes focus but isn't clicked, such as a scroll region or
+a `tabIndex={-1}` landing target. It gives the same focus ring as
+`is-interactive`, from the same tokens, with no pointer cursor, press, or
+disabled state. The docs' wide tables use it on their scroll region. Tab into
+tonight's program to see the ring.
+
+```tsx-live width=80
+<div
+  className='is-focusable emphasis-sunken grid max-h-32 gap-2 overflow-y-auto rounded-xl p-4'
+  tabIndex={0}
+  role='region'
+  aria-label="Tonight's program"
+>
+  <p className='text-ui'>6:00pm Lampshade Disco</p>
+  <p className='text-ui'>7:15pm Feathered Anchor Sessions</p>
+  <p className='text-ui'>8:30pm Marzipan Thunderclap</p>
+  <p className='text-ui'>9:45pm Tuxedo Possum Cabaret</p>
+  <p className='text-ui'>11:00pm Raffia Spaceship</p>
+</div>
+```
+
 ### `is-interactive-field`
 
 For form inputs, such as text fields, textareas, and selects. Provides
@@ -261,8 +284,9 @@ These guide how we handle interaction across Oztix applications. Follow them
 when building custom interactive UI.
 
 - Never hand-roll hover or focus states. Use `is-interactive`,
-  `is-interactive-field`, `is-interactive-field-group`, or
-  `is-interactive-within`, so every control moves and focuses the same way.
+  `is-interactive-field`, `is-interactive-field-group`,
+  `is-interactive-within`, or `is-focusable`, so every control moves and
+  focuses the same way.
 
 ### Keyboard and focus
 
@@ -283,7 +307,8 @@ when building custom interactive UI.
   <Guideline.Do>
     Show a visible focus ring for every focusable element. Use
     `:focus-visible` to avoid distracting mouse users. Roadie's
-    `is-interactive` provides this automatically.
+    `is-interactive` provides this automatically, and `is-focusable` gives
+    the same ring to an element that isn't clicked.
   </Guideline.Do>
   <Guideline.Dont>
     Remove outlines (`outline: none`) without replacing them with a
@@ -504,4 +529,5 @@ when building custom interactive UI.
 | Textarea       | `is-interactive-field` | field                             | None                           |
 | Clickable card | `is-interactive`       | raised                            | Add `rounded-xl`               |
 | Toggle or radio | `is-interactive`      | subtler or normal                 | None                           |
+| Scroll region  | `is-focusable`         | Any                               | Add `tabIndex={0}`, a `region` role, and a name |
 | Link           | None (native)          | None                              | Use `underline underline-offset-2` |
