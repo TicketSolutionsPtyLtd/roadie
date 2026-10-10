@@ -8,17 +8,15 @@ import {
   getAccentChromaSync,
   getOklchHueSync
 } from '@oztix/roadie-core/colors'
+import { DEFAULT_ACCENT_COLOR } from '@oztix/roadie-core/theme'
 
 import { AccentScopeContext } from './AccentScopeContext'
 
-export { getBootstrapScript, getThemeScript } from '@oztix/roadie-core/theme'
-
-/**
- * The default Roadie accent colour (Oztix blue).
- * Consumers that need to reset the accent back to the default should
- * import this constant instead of hard-coding the hex.
- */
-export const DEFAULT_ACCENT_COLOR = '#0091EB'
+export {
+  DEFAULT_ACCENT_COLOR,
+  getBootstrapScript,
+  getThemeScript
+} from '@oztix/roadie-core/theme'
 
 const THEME_STORAGE_KEY = 'theme'
 
@@ -43,7 +41,7 @@ export class InvalidColorError extends Error {
     super(
       `[Roadie] Invalid accent colour: ${JSON.stringify(
         input
-      )}. Expected a hex string like "#0091EB".`
+      )}. Expected a hex string like "${DEFAULT_ACCENT_COLOR}".`
     )
     this.name = 'InvalidColorError'
   }
@@ -86,7 +84,7 @@ export interface ThemeProviderProps {
    * Initial accent colour when uncontrolled, and the fallback for a
    * `null` or invalid `accentColor`. Defaults to the parent provider's
    * accent when nested, or to Oztix blue at the root.
-   * @default #0091EB
+   * @default #0191eb
    */
   defaultAccentColor?: string
   /** Initial dark mode state when no stored preference exists (default: false) */

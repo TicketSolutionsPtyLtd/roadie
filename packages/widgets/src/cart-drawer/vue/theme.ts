@@ -2,9 +2,7 @@ import { computed, onScopeDispose, toValue, watchEffect } from 'vue'
 import type { MaybeRefOrGetter } from 'vue'
 
 import { getAccentChromaSync, getOklchHueSync } from '@oztix/roadie-core/colors'
-
-/** Roadie's default accent — used when no valid `accentColor` is supplied. */
-const DEFAULT_ACCENT = '#0191eb'
+import { DEFAULT_ACCENT_COLOR } from '@oztix/roadie-core/theme'
 
 /** Hex shapes Roadie's ThemeProvider accepts (3 / 6 / 8 digit). */
 const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
@@ -28,7 +26,7 @@ export function useRoadieTheme(
   const id = options.id ?? 'roadie-accent-theme'
   const fallback = isValidHexColor(options.defaultAccentColor)
     ? options.defaultAccentColor
-    : DEFAULT_ACCENT
+    : DEFAULT_ACCENT_COLOR
 
   const coords = computed(() => {
     const raw = toValue(accentColor)
