@@ -31,7 +31,7 @@ The skeleton contains:
 9. **Guidelines**: brief, only non-obvious things. Oztix context goes here.
 10. **Accessibility**: for interactive components. Keyboard patterns, ARIA, screen reader notes.
 11. **No duplicates**: if disabled is in States, don't add separate Disabled section.
-12. **Minimal examples**: show only the feature. The fence holds only the component, as a reader would copy it, and the preview lays it out from fence options: `layout=row` for a wrapping row, `layout=stack` for a stack, `gap=` to change the gap, and `width=` for a width frame. A layout `div` stays only for layout the options can't give, such as `justify-items-start` or a `flex` row that doesn't wrap. A `-noinline` example that pairs a control with its value readout returns a fragment, and the fence lays it out.
+12. **Minimal examples**: show only the feature. The fence holds only the component, as a reader would copy it, and the preview lays it out from fence options: `layout=row` for a wrapping row, `layout=stack` for a stack, `gap=` to change the gap, and `width=` for a width frame. A layout `div` stays only for layout the options can't give, such as `justify-items-start` or a `flex` row that doesn't wrap. A function component that pairs a control with its value readout returns a fragment, and the fence lays it out.
 13. **State labels**: a caption comment, `{/* Disabled */}`, on its own line at column 0 above each state, in a fence with `layout=`.
 14. **Hooks**: every public hook gets a `## Hooks` section, after Accessibility and before `<PropsDefinitions>`, on the page of the component it belongs to: a `tsx` signature, then a return-value table. Foundations pages link to it and never re-document the signature or return shape.
 
