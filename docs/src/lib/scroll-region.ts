@@ -13,7 +13,7 @@ const headingBefore = (scroller: Element, root: ParentNode) =>
 /**
  * Names a table's scroller by its caption, else the nearest heading before
  * it, else "Table". Region names must be unique, so a second table under the
- * same heading is numbered.
+ * same heading, or under none, is numbered.
  */
 export function regionName(scroller: Element): RegionName {
   const caption = scroller
@@ -23,13 +23,14 @@ export function regionName(scroller: Element): RegionName {
 
   const root = scroller.closest('.prose') ?? scroller.ownerDocument
   const heading = headingBefore(scroller, root)
-  if (!heading) return { 'aria-label': 'Table' }
-
   const position = [...root.querySelectorAll('.prose-scroll')]
     .filter((other) => headingBefore(other, root) === heading)
     .indexOf(scroller)
-  return position > 0
-    ? { 'aria-label': `${heading.textContent}, table ${position + 1}` }
+  const number = position > 0 ? position + 1 : undefined
+
+  if (!heading) return { 'aria-label': number ? `Table ${number}` : 'Table' }
+  return number
+    ? { 'aria-label': `${heading.textContent}, table ${number}` }
     : { 'aria-labelledby': heading.id }
 }
 

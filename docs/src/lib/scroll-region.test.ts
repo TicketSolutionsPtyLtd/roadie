@@ -62,4 +62,13 @@ describe('regionName', () => {
       { 'aria-labelledby': 'sizes' }
     ])
   })
+
+  it('numbers each table after the first with no heading before it', () => {
+    document.body.innerHTML = `<div class="prose">
+      <div class="prose-scroll"><table></table></div>
+      <div class="prose-scroll"><table></table></div></div>`
+    expect(
+      [...document.querySelectorAll('.prose-scroll')].map(regionName)
+    ).toEqual([{ 'aria-label': 'Table' }, { 'aria-label': 'Table 2' }])
+  })
 })
