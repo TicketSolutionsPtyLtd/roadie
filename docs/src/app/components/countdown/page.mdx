@@ -65,12 +65,10 @@ and a coarse count when the seconds are not ticking.
 Set it only where the shape must not move. A dashboard column stays legible if
 every row is the same shape, even when one of them is hours from expiring.
 
-```tsx-live
-<div className='grid gap-2'>
-  <Countdown until={new Date(Date.now() + 3 * 86400000)} display='coarse' />
-  <Countdown until={new Date(Date.now() + 3 * 86400000)} display='clock' />
-  <Countdown until={new Date(Date.now() + 3 * 86400000)} display='segments' />
-</div>
+```tsx-live layout=stack gap=2
+<Countdown until={new Date(Date.now() + 3 * 86400000)} display='coarse' />
+<Countdown until={new Date(Date.now() + 3 * 86400000)} display='clock' />
+<Countdown until={new Date(Date.now() + 3 * 86400000)} display='segments' />
 ```
 
 ### Urgency
@@ -85,20 +83,18 @@ Under five minutes the coarse count gives way to a clock. This one starts inside
 
 The coarse register uses the same words as `Duration` and `formatDuration`.
 
-```tsx-live
-<div className='grid gap-2'>
-  <Countdown until={new Date(Date.now() + 8 * 60000)} seconds='never' />
-  <Countdown
-    until={new Date(Date.now() + 8 * 60000)}
-    seconds='never'
-    durationStyle='medium'
-  />
-  <Countdown
-    until={new Date(Date.now() + 8 * 60000)}
-    seconds='never'
-    durationStyle='short'
-  />
-</div>
+```tsx-live layout=stack gap=2
+<Countdown until={new Date(Date.now() + 8 * 60000)} seconds='never' />
+<Countdown
+  until={new Date(Date.now() + 8 * 60000)}
+  seconds='never'
+  durationStyle='medium'
+/>
+<Countdown
+  until={new Date(Date.now() + 8 * 60000)}
+  seconds='never'
+  durationStyle='short'
+/>
 ```
 
 This only reaches the coarse register. The segmented display always uses single
@@ -119,18 +115,16 @@ Colour belongs on the container, never on the digits. A Badge or a Card carries 
 
 `useCountdownUrgency` shares the same page-wide ticker, so escalating costs no extra timer. It only changes at a threshold, so the parent re-renders three times across a whole countdown rather than once a second.
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  <Badge intent='success' size='sm' indicator>
-    <Countdown until={new Date(Date.now() + 8 * 60000)} />
-  </Badge>
-  <Badge intent='warning' size='sm' indicator>
-    <Countdown until={new Date(Date.now() + 4 * 60000)} />
-  </Badge>
-  <Badge intent='danger' size='sm' indicator indicatorPulse>
-    <Countdown until={new Date(Date.now() + 90000)} expiredLabel='Expired' />
-  </Badge>
-</div>
+```tsx-live layout=row gap=3
+<Badge intent='success' size='sm' indicator>
+  <Countdown until={new Date(Date.now() + 8 * 60000)} />
+</Badge>
+<Badge intent='warning' size='sm' indicator>
+  <Countdown until={new Date(Date.now() + 4 * 60000)} />
+</Badge>
+<Badge intent='danger' size='sm' indicator indicatorPulse>
+  <Countdown until={new Date(Date.now() + 90000)} expiredLabel='Expired' />
+</Badge>
 ```
 
 Drive the intent from the same moment, so the badge and the digits never disagree:
@@ -161,20 +155,18 @@ A countdown is interface, not prose, so it takes the `ui` display scale. The `pr
 
 Size says how much attention the moment deserves, and most countdowns are small. A row in a list wants `text-sm` inside a Badge. The most prominent one on a page tops out around `text-display-ui-4`. Past that a countdown stops reading as interface.
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='text-sm text-subtle'>
-    <Countdown until={new Date(Date.now() + 8 * 60000)} /> inline, in a row
-  </div>
-  <div className='text-display-ui-5 text-strong'>
-    <Countdown until={new Date(Date.now() + 8 * 60000)} seconds='always' />
-  </div>
-  <div className='text-display-ui-4 text-strong'>
-    <Countdown
-      until={new Date(Date.now() + 3 * 86400000 + 4 * 3600000)}
-      seconds='always'
-    />
-  </div>
+```tsx-live layout=stack
+<div className='text-sm text-subtle'>
+  <Countdown until={new Date(Date.now() + 8 * 60000)} /> inline, in a row
+</div>
+<div className='text-display-ui-5 text-strong'>
+  <Countdown until={new Date(Date.now() + 8 * 60000)} seconds='always' />
+</div>
+<div className='text-display-ui-4 text-strong'>
+  <Countdown
+    until={new Date(Date.now() + 3 * 86400000 + 4 * 3600000)}
+    seconds='always'
+  />
 </div>
 ```
 
@@ -184,21 +176,19 @@ The countdown inherits type from its container, so there is nothing to configure
 
 A registration opening is the reason somebody is on the page, so it reads as a heading. Run it inline at `text-display-ui-4`, with the count picking up the accent colour.
 
-```tsx-live
-<div className='flex items-center gap-3'>
-  <IconTile shape='circle' intent='accent'>
-    <BellRingingIcon weight='bold' />
-  </IconTile>
-  <h2 className='text-display-ui-4 text-strong'>
-    On-sale in{' '}
-    <span className='intent-accent text-subtle'>
-      <Countdown
-        until={new Date(Date.now() + 3 * 86400000 + 4 * 3600000 + 11 * 60000)}
-        seconds='always'
-      />
-    </span>
-  </h2>
-</div>
+```tsx-live layout=row gap=3
+<IconTile shape='circle' intent='accent'>
+  <BellRingingIcon weight='bold' />
+</IconTile>
+<h2 className='text-display-ui-4 text-strong'>
+  On-sale in{' '}
+  <span className='intent-accent text-subtle'>
+    <Countdown
+      until={new Date(Date.now() + 3 * 86400000 + 4 * 3600000 + 11 * 60000)}
+      seconds='always'
+    />
+  </span>
+</h2>
 ```
 
 Note it sits inside the heading rather than under a label. The count is part of the sentence, so it inherits the heading's size and only the colour changes.

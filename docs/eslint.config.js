@@ -159,6 +159,7 @@ const config = [
       'src/app/{components,charts}/{accordion,badge,bar-chart,button,dashboards,data-visualisation,record-grid}/page.mdx/*.{tsx,jsx}',
       'src/app/components/{autocomplete,checkbox,combobox,date-field,date-picker,date-range-picker,field,input,number-field,otp-field,query-field,radio-group,select,slider,textarea,time-field}/page.mdx/*.{tsx,jsx}',
       'src/app/components/{breadcrumb,carousel,collapsible,dialog,drawer,list,menu,navigator,pane,popover,steps,tabs,toast,toggle-group,tooltip}/page.mdx/*.{tsx,jsx}',
+      'src/app/components/{calendar,calendar-tile,code,countdown,date-time,duration,highlight,icon-button,link-button,link-icon-button,prose,separator,toggle}/page.mdx/*.{tsx,jsx}',
       'src/app/foundations/{date-and-time,iconography,interactions,layout,linking,navigation,records,theming,typography}/page.mdx/*.{tsx,jsx}'
     ],
     plugins: { roadie },

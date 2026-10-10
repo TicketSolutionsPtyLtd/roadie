@@ -27,35 +27,29 @@ import { CalendarTile } from '@oztix/roadie-components/calendar-tile'
 
 Leads with the day of week instead of the month, for schedule lists where a heading already establishes the month.
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  <CalendarTile month='NOV' day={27} />
-  <CalendarTile weekday='FRI' day={27} />
-</div>
+```tsx-live layout=row gap=3
+<CalendarTile month='NOV' day={27} />
+<CalendarTile weekday='FRI' day={27} />
 ```
 
 ### Border radius
 
 Defaults to `rounded-xl`, matching Card. Override with any Tailwind radius class. Use `rounded-none` for a tile that bleeds to a card edge rather than floating inside it.
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  <CalendarTile month='NOV' day={27} className='rounded-none' />
-  <CalendarTile month='NOV' day={27} className='rounded-md' />
-  <CalendarTile month='NOV' day={27} />
-  <CalendarTile month='NOV' day={27} className='rounded-2xl' />
-</div>
+```tsx-live layout=row gap=3
+<CalendarTile month='NOV' day={27} className='rounded-none' />
+<CalendarTile month='NOV' day={27} className='rounded-md' />
+<CalendarTile month='NOV' day={27} />
+<CalendarTile month='NOV' day={27} className='rounded-2xl' />
 ```
 
 ### Emphasis
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  <CalendarTile month='NOV' day={27} emphasis='strong' />
-  <CalendarTile month='NOV' day={27} emphasis='normal' />
-  <CalendarTile month='NOV' day={27} emphasis='subtle' />
-  <CalendarTile month='NOV' day={27} emphasis='subtler' />
-</div>
+```tsx-live layout=row gap=3
+<CalendarTile month='NOV' day={27} emphasis='strong' />
+<CalendarTile month='NOV' day={27} emphasis='normal' />
+<CalendarTile month='NOV' day={27} emphasis='subtle' />
+<CalendarTile month='NOV' day={27} emphasis='subtler' />
 ```
 
 ### Sizes
@@ -70,26 +64,22 @@ Defaults to `rounded-xl`, matching Card. Override with any Tailwind radius class
 
 ### Intents
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  <CalendarTile month='NOV' day={27} intent='accent' />
-  <CalendarTile month='NOV' day={27} intent='neutral' />
-  <CalendarTile month='NOV' day={27} intent='success' />
-  <CalendarTile month='NOV' day={27} intent='danger' />
-</div>
+```tsx-live layout=row gap=3
+<CalendarTile month='NOV' day={27} intent='accent' />
+<CalendarTile month='NOV' day={27} intent='neutral' />
+<CalendarTile month='NOV' day={27} intent='success' />
+<CalendarTile month='NOV' day={27} intent='danger' />
 ```
 
 ### Composition
 
 The tile abbreviates hard. It is paired with a line that carries the full date. Where the tile is the only date on a card, that line is required, not optional.
 
-```tsx-live
-<div className='flex items-center gap-3'>
-  <CalendarTile month='NOV' day={27} />
-  <div className='min-w-0'>
-    <p className='text-sm text-strong'>Ochre Kite Weekender</p>
-    <p className='text-sm text-subtle'>Fri 27 Nov 2026 · Kilcoy, QLD</p>
-  </div>
+```tsx-live layout=row gap=3
+<CalendarTile month='NOV' day={27} />
+<div className='min-w-0'>
+  <p className='text-sm text-strong'>Ochre Kite Weekender</p>
+  <p className='text-sm text-subtle'>Fri 27 Nov 2026 · Kilcoy, QLD</p>
 </div>
 ```
 

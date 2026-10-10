@@ -48,21 +48,19 @@ import { Prose } from '@oztix/roadie-components/prose'
 dense content such as an FAQ or a sidebar. `md` is the default. `lg` sets
 larger body text for editorial pages. Both use the prose heading styles.
 
-```tsx-live-prose
-<div className='grid gap-8'>
-  <Prose size='sm'>
-    <h3>Can I change the name on my ticket?</h3>
-    <p>Yes, up to 48 hours before doors. Open the ticket and choose Transfer.</p>
-  </Prose>
-  <Prose size='md'>
-    <h3>Getting there</h3>
-    <p>Catch the festival shuttle from the city, then walk the marked path.</p>
-  </Prose>
-  <Prose size='lg'>
-    <h3>A weekend at Jumbuck Orchard Park</h3>
-    <p>Three stages, two nights, and the longest bar in the valley.</p>
-  </Prose>
-</div>
+```tsx-live-prose layout=stack gap=8
+<Prose size='sm'>
+  <h3>Can I change the name on my ticket?</h3>
+  <p>Yes, up to 48 hours before doors. Open the ticket and choose Transfer.</p>
+</Prose>
+<Prose size='md'>
+  <h3>Getting there</h3>
+  <p>Catch the festival shuttle from the city, then walk the marked path.</p>
+</Prose>
+<Prose size='lg'>
+  <h3>A weekend at Jumbuck Orchard Park</h3>
+  <p>Three stages, two nights, and the longest bar in the valley.</p>
+</Prose>
 ```
 
 Each size only sets `--prose-*` variables, so a class such as

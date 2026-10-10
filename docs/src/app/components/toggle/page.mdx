@@ -27,73 +27,54 @@ import { Toggle } from '@oztix/roadie-components/toggle'
 
 `emphasis` sets the look at rest. Pressed steps one rung up: `normal` and `subtle` become `strong`. A pressed `subtler` toggle takes a soft fill with no border and a strong icon or label, and an unpressed one rests in subtle text that lifts a step on hover, as the [selection utilities](/foundations/interactions#selection) set it. The subtler selected state relies on the fill and the icon together and doesn't reach the [APCA threshold for UI](/foundations/colors#contrast) on the fill alone, so it's for quiet controls. Use `subtle` or `normal` when the state must stand out.
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='flex flex-wrap items-center gap-2'>
-    <Toggle>Normal</Toggle>
-    <Toggle defaultPressed>Normal, pressed</Toggle>
-  </div>
-  <div className='flex flex-wrap items-center gap-2'>
-    <Toggle emphasis='subtle'>Subtle</Toggle>
-    <Toggle emphasis='subtle' defaultPressed>Subtle, pressed</Toggle>
-  </div>
-  <div className='flex flex-wrap items-center gap-2'>
-    <Toggle emphasis='subtler'>Subtler</Toggle>
-    <Toggle emphasis='subtler' defaultPressed>Subtler, pressed</Toggle>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Normal */}
+<Toggle>Normal</Toggle>
+<Toggle defaultPressed>Normal, pressed</Toggle>
+{/* Subtle */}
+<Toggle emphasis='subtle'>Subtle</Toggle>
+<Toggle emphasis='subtle' defaultPressed>Subtle, pressed</Toggle>
+{/* Subtler */}
+<Toggle emphasis='subtler'>Subtler</Toggle>
+<Toggle emphasis='subtler' defaultPressed>Subtler, pressed</Toggle>
 ```
 
 ### Sizes
 
 The same sizes as `Button`. A toggle whose only child is an icon renders square.
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='flex flex-wrap items-center gap-2'>
-    <Toggle size='xs'>Extra small</Toggle>
-    <Toggle size='sm'>Small</Toggle>
-    <Toggle size='md'>Medium</Toggle>
-    <Toggle size='lg'>Large</Toggle>
-  </div>
-  <div className='flex flex-wrap items-center gap-2'>
-    <Toggle size='xs' aria-label='Bold'><TextBIcon weight='bold' /></Toggle>
-    <Toggle size='sm' aria-label='Bold'><TextBIcon weight='bold' /></Toggle>
-    <Toggle size='md' aria-label='Bold'><TextBIcon weight='bold' /></Toggle>
-    <Toggle size='lg' aria-label='Bold'><TextBIcon weight='bold' /></Toggle>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Labels */}
+<Toggle size='xs'>Extra small</Toggle>
+<Toggle size='sm'>Small</Toggle>
+<Toggle size='md'>Medium</Toggle>
+<Toggle size='lg'>Large</Toggle>
+{/* Icon only */}
+<Toggle size='xs' aria-label='Bold'><TextBIcon weight='bold' /></Toggle>
+<Toggle size='sm' aria-label='Bold'><TextBIcon weight='bold' /></Toggle>
+<Toggle size='md' aria-label='Bold'><TextBIcon weight='bold' /></Toggle>
+<Toggle size='lg' aria-label='Bold'><TextBIcon weight='bold' /></Toggle>
 ```
 
 ### Intents
 
 The intent colours the pressed state most.
 
-```tsx-live
-<div className='flex flex-wrap items-center gap-2'>
-  <Toggle intent='accent' defaultPressed>Accent</Toggle>
-  <Toggle intent='brand' defaultPressed>Brand</Toggle>
-  <Toggle intent='danger' defaultPressed>Danger</Toggle>
-</div>
+```tsx-live layout=row
+<Toggle intent='accent' defaultPressed>Accent</Toggle>
+<Toggle intent='brand' defaultPressed>Brand</Toggle>
+<Toggle intent='danger' defaultPressed>Danger</Toggle>
 ```
 
 ### States
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-2'>
-    <p className='text-sm text-subtle'>Unpressed</p>
-    <Toggle>Notify me</Toggle>
-  </div>
-  <div className='grid gap-2'>
-    <p className='text-sm text-subtle'>Pressed</p>
-    <Toggle defaultPressed>Notify me</Toggle>
-  </div>
-  <div className='grid gap-2'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <Toggle disabled>Notify me</Toggle>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Unpressed */}
+<Toggle>Notify me</Toggle>
+{/* Pressed */}
+<Toggle defaultPressed>Notify me</Toggle>
+{/* Disabled */}
+<Toggle disabled>Notify me</Toggle>
 ```
 
 ### With a pressed icon

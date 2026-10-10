@@ -53,17 +53,11 @@ render(<Default />)
 
 ### States
 
-```tsx-live
-<div className='flex flex-wrap gap-8'>
-  <div className='grid content-start gap-2'>
-    <p className='text-sm text-subtle'>Selected</p>
-    <Calendar defaultMonth='2026-11-01' defaultSelected='2026-11-27' />
-  </div>
-  <div className='grid content-start gap-2'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <Calendar defaultMonth='2026-11-01' disabled />
-  </div>
-</div>
+```tsx-live layout=row gap=8
+{/* Selected */}
+<Calendar defaultMonth='2026-11-01' defaultSelected='2026-11-27' />
+{/* Disabled */}
+<Calendar defaultMonth='2026-11-01' disabled />
 ```
 
 ### With a range
