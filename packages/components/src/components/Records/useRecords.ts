@@ -207,6 +207,10 @@ function useEqualValue<T>(value: T): T {
 }
 const serverZone = () => 'UTC'
 const noClock = () => null
+
+/** Whether `now` came from a clock, not the epoch that stands in until the browser's is read. */
+export const knowsNow = (now: Instantish) =>
+  (now instanceof Date ? now.getTime() : now.epochMilliseconds) !== 0
 const NO_SCOPE: readonly RecordFilter[] = []
 
 export function useRecords<Row extends object>({

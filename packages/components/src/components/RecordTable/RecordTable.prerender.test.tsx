@@ -101,6 +101,18 @@ describe('RecordTable on a prerendering server', () => {
     expect(shownShows()).toHaveLength(2)
   })
 
+  it('names a relative filter’s chip without dates until the browser knows them', async () => {
+    const { serverHtml, onRecoverableError } = await hydrateWithoutClock(
+      table({ defaultView: UPCOMING })
+    )
+    expect(serverHtml).toContain('Upcoming')
+    expect(serverHtml).not.toContain('1970')
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(
+      screen.getByRole('toolbar', { name: 'Filters' }).textContent
+    ).toMatch(/Upcoming, .*2026/)
+  })
+
   it('keeps a later page while it waits for the browser’s clock', async () => {
     const { onRecoverableError } = await hydrateWithoutClock(
       table({
