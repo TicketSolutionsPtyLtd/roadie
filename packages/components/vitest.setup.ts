@@ -67,7 +67,6 @@ const NO_LAYOUT =
 const FAKES_LAYOUT = [
   'Navigator/Navigator.test.tsx',
   'Navigator/NavigatorPending.test.tsx',
-  'Navigator/NavigatorPrimary.test.tsx',
   'Navigator/NavigatorSecondaryPane.test.tsx',
   'Pane/Pane.test.tsx'
 ]
