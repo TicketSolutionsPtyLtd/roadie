@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+
 import { DATE_TIME_TABLES } from '../src/components/date-and-time/example.ts'
 import {
   querySuggestionsExample,
@@ -5,6 +7,13 @@ import {
   viewSearchParamsExample
 } from '../src/components/records/example.ts'
 import { cardSizeTable } from '../src/lib/card-sizes.ts'
+import {
+  DATAVIZ_STRIPS,
+  type DatavizKind,
+  colorScaleTable,
+  colorScales,
+  datavizTable
+} from '../src/lib/color-tables.ts'
 import {
   chartLabelLimitsTable,
   copyLimitsTable,
@@ -44,8 +53,36 @@ export const twinTableMarkdown = ({ head, rows }: TwinTable) =>
     rows.map((row) => row.map(cellMarkdown))
   )
 
+type ManifestToken = { name: string; group: string; family: string }
+
+function colorScaleTokens(): ManifestToken[] {
+  const manifest = new URL(
+    '../../packages/core/src/tokens/tokens.json',
+    import.meta.url
+  )
+  let raw: string
+  try {
+    raw = readFileSync(manifest, 'utf8')
+  } catch {
+    throw new Error(
+      'No token manifest. Run `pnpm --filter @oztix/roadie-core generate:tokens`.'
+    )
+  }
+  const { tokens } = JSON.parse(raw) as { tokens: ManifestToken[] }
+  return tokens.filter((token) => token.family === 'color-scales')
+}
+
 /** Markdown for each docs component marked `rendered` in `twin-components.ts`, except those the script builds itself. */
 export const DATA_RENDERERS: Record<string, Renderer> = {
+  DatavizSwatches: ({ kind }) => {
+    if (typeof kind !== 'string' || !Object.hasOwn(DATAVIZ_STRIPS, kind))
+      throw new Error(`<DatavizSwatches kind="${kind}"> names no dataviz set`)
+    return twinTableMarkdown(datavizTable(kind as DatavizKind))
+  },
+  ScaleSwatches: ({ followingAccent }) =>
+    twinTableMarkdown(
+      colorScaleTable(colorScales(colorScaleTokens(), followingAccent === true))
+    ),
   ComparisonTable: () => twinTableMarkdown(DATE_TIME_TABLES.ComparisonTable()),
   ComponentReads: () => twinTableMarkdown(DATE_TIME_TABLES.ComponentReads()),
   DataFormatReads: () => twinTableMarkdown(DATE_TIME_TABLES.DataFormatReads()),
