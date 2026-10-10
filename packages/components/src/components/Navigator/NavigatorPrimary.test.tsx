@@ -31,41 +31,7 @@ const region = (name: string) =>
     `[data-slot="navigator-primary-${name}"]`
   )!
 
-type ObserverCallback = (
-  entries: ResizeObserverEntry[],
-  observer: ResizeObserver
-) => void
-const observers = new Map<Element, Set<ObserverCallback>>()
-class StubResizeObserver {
-  constructor(private callback: ObserverCallback) {}
-  observe(target: Element) {
-    const callbacks = observers.get(target) ?? new Set()
-    callbacks.add(this.callback)
-    observers.set(target, callbacks)
-  }
-  unobserve() {}
-  disconnect() {}
-}
-const reportClusterHeight = (px: number) => {
-  const viewport = region('cluster').querySelector(
-    '[data-slot="navigator-primary-cluster-viewport"]'
-  )!
-  act(() => {
-    for (const callback of observers.get(viewport) ?? []) {
-      callback(
-        [{ contentRect: { height: px } } as ResizeObserverEntry],
-        {} as ResizeObserver
-      )
-    }
-  })
-}
-
-beforeEach(() => {
-  observers.clear()
-  vi.stubGlobal('ResizeObserver', StubResizeObserver)
-})
 afterEach(() => {
-  vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
 
@@ -216,46 +182,14 @@ describe('vertical regions', () => {
   })
 })
 
-describe('vertical capacity', () => {
-  it('folds the lowest-ranked items into a More tile at the end of the cluster', async () => {
+describe('More in the bar', () => {
+  it('renders More duotone at size-7, and its rows at size-5', async () => {
     const user = userEvent.setup()
     render(<Six />)
     await flushViewportMeasurement()
-    // 12rem at 16px: two tiles + More fit (6.75 + 3.5 + 0.75 + 1 = 12).
-    reportClusterHeight(192)
-    const cluster = region('cluster')
-    expect(within(cluster).getAllByRole('link')).toHaveLength(2)
-    const more = within(cluster).getByRole('button', { name: 'More' })
-    expect(within(more).getByText('More')).toHaveAttribute(
-      'data-slot',
-      'navigator-item-label'
-    )
+    const more = within(horizontal()).getByRole('button', { name: 'More' })
+    expect(more.querySelector('svg')).toHaveClass('size-7')
     await user.click(more)
-    expect(more).toHaveAttribute('aria-expanded', 'true')
-    const verticalRows = document.querySelector<HTMLElement>(
-      '[data-slot="pane"][id] [data-slot="navigator-overflow-items"].max-md\\:hidden'
-    )!
-    expect(within(verticalRows).getAllByRole('link')).toHaveLength(4)
-  })
-
-  it('renders More duotone at size-6 on the tile, size-7 in the bar, and its rows at size-5', async () => {
-    const user = userEvent.setup()
-    render(<Six />)
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    expect(
-      within(horizontal())
-        .getByRole('button', { name: 'More' })
-        .querySelector('svg')
-    ).toHaveClass('size-7')
-    const more = within(region('cluster')).getByRole('button', { name: 'More' })
-    const moreIcon = more.querySelector('svg')!
-    expect(moreIcon).toHaveClass('size-6')
-    // Phosphor draws duotone's second tone as a 0.2-opacity path.
-    expect(moreIcon.querySelector('[opacity="0.2"]')).not.toBeNull()
-    expect(moreIcon).not.toHaveClass('animate-pop-tap')
-    await user.click(more)
-    expect(more.querySelector('svg')).toHaveClass('animate-pop-tap')
     const rowIcons = document.querySelectorAll(
       '[data-slot="navigator-overflow-items"] [data-testid="fake-icon"]'
     )
@@ -266,189 +200,14 @@ describe('vertical capacity', () => {
     }
   })
 
-  it('removes a capsule whose items all fold', async () => {
-    render(<Six lowGroup />)
-    await flushViewportMeasurement()
-    // Room for the four loose tiles and More: 13.25 + 3.5 + 0.75 + 1 = 18.5rem.
-    reportClusterHeight(18.5 * 16)
-    expect(
-      within(region('cluster')).queryByRole('list', { name: 'Extra' })
-    ).toBeNull()
-  })
-
-  it('lights More while the current destination is folded', async () => {
-    render(<Six value='/f' />)
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    expect(
-      within(region('cluster')).getByRole('button', { name: 'More' })
-    ).toHaveAttribute('data-current')
-  })
-
-  it('returns focus to the More tile when Escape closes More', async () => {
+  it('returns focus to the More tab when Escape closes More', async () => {
     const user = userEvent.setup()
     render(<Six />)
     await flushViewportMeasurement()
-    reportClusterHeight(192)
     const tab = within(horizontal()).getByRole('button', { name: 'More' })
     await user.click(tab)
     await user.keyboard('{Escape}')
     expect(tab).toHaveFocus()
-
-    const tile = within(region('cluster')).getByRole('button', { name: 'More' })
-    await user.click(tile)
-    expect(tile).toHaveAttribute('aria-expanded', 'true')
-    await user.keyboard('{Escape}')
-    expect(tile).toHaveAttribute('aria-expanded', 'false')
-    expect(tile).toHaveFocus()
-  })
-
-  it('scrolls an open More to the top when its tile is chosen again, and stays open', async () => {
-    const user = userEvent.setup()
-    render(<Six />)
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    const tile = within(region('cluster')).getByRole('button', { name: 'More' })
-    await user.click(tile)
-    const scrollTo = vi.fn()
-    document.querySelector<HTMLElement>(
-      '[data-slot="pane"][id] [data-slot="pane-viewport"]'
-    )!.scrollTo = scrollTo
-
-    await user.click(tile)
-
-    expect(tile).toHaveAttribute('aria-expanded', 'true')
-    expect(tile).toHaveAttribute('data-current')
-    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
-  })
-
-  it('opens one menu from a row folded in both orientations', async () => {
-    const user = userEvent.setup()
-    render(
-      <Navigator value='/a'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          {['/a', '/b', '/c', '/d', '/e'].map((v) => (
-            <Navigator.Item key={v} value={v} href={v}>
-              {v}
-            </Navigator.Item>
-          ))}
-          <Navigator.Item value='account' visibilityPriority='low'>
-            Account
-            <Navigator.Menu>
-              <Navigator.MenuItem>Sign out</Navigator.MenuItem>
-            </Navigator.Menu>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    // Four tiles and More: 13.25 + 3.5 + 0.75 + 1 = 18.5rem.
-    reportClusterHeight(18.5 * 16)
-    await user.click(
-      within(region('cluster')).getByRole('button', { name: 'More' })
-    )
-    const [horizontalRows, verticalRows] = Array.from(
-      document.querySelectorAll<HTMLElement>(
-        '[data-slot="pane"][id] [data-slot="navigator-overflow-items"]'
-      )
-    )
-    await user.click(
-      within(verticalRows!).getByRole('button', { name: 'Account' })
-    )
-    await screen.findByRole('menu')
-    expect(screen.getAllByRole('menu')).toHaveLength(1)
-    expect(
-      within(horizontalRows!).getByRole('button', { name: 'Account' })
-    ).toHaveAttribute('aria-expanded', 'false')
-  })
-  it('gives the pill back when an open menu’s tile folds away', async () => {
-    const user = userEvent.setup()
-    render(
-      <Navigator value='/a'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          {['/a', '/b', '/c', '/d', '/e'].map((v) => (
-            <Navigator.Item key={v} value={v} href={v}>
-              {v}
-            </Navigator.Item>
-          ))}
-          <Navigator.Item value='account' visibilityPriority='low'>
-            Account
-            <Navigator.Menu>
-              <Navigator.MenuItem>Sign out</Navigator.MenuItem>
-            </Navigator.Menu>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    reportClusterHeight(1000)
-    const a = within(region('cluster')).getByRole('link', { name: '/a' })
-    await user.click(
-      within(region('cluster')).getByRole('button', { name: 'Account' })
-    )
-    await screen.findByRole('menu')
-    expect(a).not.toHaveAttribute('data-current')
-
-    reportClusterHeight(18.5 * 16)
-    await flushViewportMeasurement()
-    expect(
-      within(region('cluster')).queryByRole('button', { name: 'Account' })
-    ).toBeNull()
-    expect(a).toHaveAttribute('data-current')
-    expect(
-      within(horizontal()).getByRole('link', { name: '/a' })
-    ).toHaveAttribute('data-current')
-  })
-
-  it('puts the More capsule last in the cluster', async () => {
-    render(<Six />)
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    const content = region('cluster').querySelector(
-      '[data-slot="navigator-primary-cluster-track"]'
-    )!
-    const last = [
-      ...content.querySelectorAll<HTMLElement>(
-        ':scope > [data-slot="navigator-capsule"]'
-      )
-    ].at(-1)!
-    expect(
-      within(last).getByRole('button', { name: 'More' })
-    ).toBeInTheDocument()
-  })
-
-  it('takes the pill from a visible current tile while More is open', async () => {
-    const user = userEvent.setup()
-    render(<Six />)
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    const current = within(region('cluster')).getByRole('link', { name: '/a' })
-    const more = within(region('cluster')).getByRole('button', { name: 'More' })
-    expect(current).toHaveAttribute('data-current')
-    expect(current).toHaveClass('intent-accent')
-    await user.click(more)
-    expect(more).toHaveAttribute('data-current')
-    expect(more).toHaveClass('intent-accent')
-    expect(current).not.toHaveAttribute('data-current')
-    expect(current).not.toHaveClass('intent-accent')
-    expect(current).toHaveAttribute('aria-current', 'page')
-  })
-
-  it('takes the pill from a current pinned tile while More is open', async () => {
-    const user = userEvent.setup()
-    render(<Six value='/me' />)
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    const me = within(region('pinned')).getByRole('link', { name: 'Me' })
-    expect(me).toHaveAttribute('data-current')
-    await user.click(
-      within(region('cluster')).getByRole('button', { name: 'More' })
-    )
-    expect(me).not.toHaveAttribute('data-current')
-    expect(me).not.toHaveClass('intent-accent')
-    expect(me).toHaveAttribute('aria-current', 'page')
   })
 })
 
@@ -461,116 +220,6 @@ const overflowPane = () =>
   document.querySelector<HTMLElement>('[data-slot="pane"][id]')!
 
 describe('choosing a primary item closes More', () => {
-  it('moves the pill from the More tile to the chosen cluster item', async () => {
-    const user = userEvent.setup()
-    render(<RoutedSix />)
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    const more = within(region('cluster')).getByRole('button', { name: 'More' })
-    await user.click(more)
-    expect(
-      document.querySelector('[data-slot="navigator-panes"]')
-    ).toHaveAttribute('data-overflow')
-    const b = within(region('cluster')).getByRole('link', { name: '/b' })
-    await user.click(b)
-    expect(more).toHaveAttribute('aria-expanded', 'false')
-    expect(more).not.toHaveAttribute('data-current')
-    expect(b).toHaveAttribute('data-current')
-    expect(b).toHaveAttribute('aria-current', 'page')
-    expect(
-      document.querySelector('[data-slot="navigator-panes"]')
-    ).not.toHaveAttribute('data-overflow')
-  })
-
-  it('closes More when the already-current item is chosen', async () => {
-    const user = userEvent.setup()
-    render(withStubLink(<Six />))
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    const more = within(region('cluster')).getByRole('button', { name: 'More' })
-    await user.click(more)
-    const a = within(region('cluster')).getByRole('link', { name: '/a' })
-    await user.click(a)
-    expect(more).toHaveAttribute('aria-expanded', 'false')
-    expect(a).toHaveAttribute('data-current')
-  })
-
-  it('closes More when the pinned tile is chosen', async () => {
-    const user = userEvent.setup()
-    render(<RoutedSix />)
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    const more = within(region('cluster')).getByRole('button', { name: 'More' })
-    await user.click(more)
-    await user.click(within(region('pinned')).getByRole('link', { name: 'Me' }))
-    expect(more).toHaveAttribute('aria-expanded', 'false')
-    expect(
-      within(region('pinned')).getByRole('link', { name: 'Me' })
-    ).toHaveAttribute('data-current')
-  })
-
-  it('closes More when the value changes from outside, e.g. Back', async () => {
-    const user = userEvent.setup()
-    const { rerender } = render(<Six />)
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    const more = within(region('cluster')).getByRole('button', { name: 'More' })
-    await user.click(more)
-    rerender(<Six value='/b' />)
-    expect(more).toHaveAttribute('aria-expanded', 'false')
-    expect(
-      within(region('cluster')).getByRole('link', { name: '/b' })
-    ).toHaveAttribute('data-current')
-  })
-
-  it('brings back the chosen destination’s own pane', async () => {
-    function WithSecondary() {
-      const [value, setValue] = useState('/a')
-      return withStubLink(
-        <Navigator value={value} onValueChange={setValue}>
-          <Navigator.Primary aria-label='Main'>
-            <Navigator.Brand>Logo</Navigator.Brand>
-            <Navigator.Item
-              value='/s'
-              href='/s'
-              icon={<FakeIcon />}
-              visibilityPriority='high'
-            >
-              Secondary
-              <Navigator.Secondary aria-label='Secondary pages'>
-                <Navigator.Item value='/s/one' href='/s/one'>
-                  One
-                </Navigator.Item>
-              </Navigator.Secondary>
-            </Navigator.Item>
-            {['/a', '/b', '/c', '/d', '/e'].map((v) => (
-              <Navigator.Item key={v} value={v} href={v} icon={<FakeIcon />}>
-                {v}
-              </Navigator.Item>
-            ))}
-          </Navigator.Primary>
-        </Navigator>
-      )
-    }
-    const user = userEvent.setup()
-    render(<WithSecondary />)
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    await user.click(
-      within(region('cluster')).getByRole('button', { name: 'More' })
-    )
-    expect(document.querySelector('[data-navigator-secondary]')).toBeNull()
-    await user.click(
-      within(region('cluster')).getByRole('link', { name: 'Secondary' })
-    )
-    expect(
-      document.querySelector('[data-navigator-secondary="/s"]')
-    ).toBeInTheDocument()
-    expect(
-      document.querySelector('[data-slot="navigator-panes"]')
-    ).not.toHaveAttribute('data-overflow')
-  })
-
   it('closes More when a bar tab or the pinned circle is tapped', async () => {
     const user = userEvent.setup()
     render(<RoutedSix />)
@@ -758,7 +407,6 @@ describe('an item’s onSelect', () => {
       )
     )
     await flushViewportMeasurement()
-    reportClusterHeight(1000)
     await user.click(
       within(region('cluster')).getByRole('link', { name: '/b' })
     )
@@ -777,84 +425,6 @@ describe('an item’s onSelect', () => {
       '/e',
       'account'
     ])
-  })
-})
-
-function MoreWithSecondary({ expanded = false }: { expanded?: boolean }) {
-  return (
-    <Navigator value='/s' expanded={expanded}>
-      <Navigator.Primary aria-label='Main'>
-        {testBrand}
-        <Navigator.Item
-          value='/s'
-          href='/s'
-          icon={<FakeIcon />}
-          visibilityPriority='high'
-        >
-          Secondary
-          <Navigator.Secondary aria-label='Secondary pages'>
-            <Navigator.Item value='/s/one' href='/s/one'>
-              One
-            </Navigator.Item>
-          </Navigator.Secondary>
-        </Navigator.Item>
-        {['/a', '/b', '/c'].map((v) => (
-          <Navigator.Item key={v} value={v} href={v} icon={<FakeIcon />}>
-            {v}
-          </Navigator.Item>
-        ))}
-      </Navigator.Primary>
-    </Navigator>
-  )
-}
-
-describe('More with nothing left folded', () => {
-  const openVerticalMore = async () => {
-    const user = userEvent.setup()
-    reportClusterHeight(192)
-    await user.click(
-      within(region('cluster')).getByRole('button', { name: 'More' })
-    )
-    expect(document.querySelector('[data-navigator-secondary]')).toBeNull()
-  }
-
-  const expectMoreClosed = () => {
-    expect(
-      within(region('cluster')).queryByRole('button', { name: 'More' })
-    ).toBeNull()
-    expect(document.querySelector('[aria-expanded="true"]')).toBeNull()
-    expect(
-      document.querySelector('[data-navigator-secondary="/s"]')
-    ).toHaveAttribute('data-stack-position', 'top')
-  }
-
-  it('closes when expanding unfolds every item', async () => {
-    const { rerender } = render(<MoreWithSecondary />)
-    await flushViewportMeasurement()
-    await openVerticalMore()
-    rerender(<MoreWithSecondary expanded />)
-    expectMoreClosed()
-  })
-
-  it('closes when the window grows until every item fits', async () => {
-    render(<MoreWithSecondary />)
-    await flushViewportMeasurement()
-    await openVerticalMore()
-    reportClusterHeight(1000)
-    expectMoreClosed()
-  })
-
-  it('stays open when the vertical navigation hides and the bar still folds', async () => {
-    render(<Six />)
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    const user = userEvent.setup()
-    const tile = within(region('cluster')).getByRole('button', { name: 'More' })
-    await user.click(tile)
-    reportClusterHeight(0)
-    expect(
-      within(horizontal()).getByRole('button', { name: 'More' })
-    ).toHaveAttribute('aria-expanded', 'true')
   })
 })
 
@@ -1123,60 +693,6 @@ describe('expanded vertical navigation', () => {
   it('takes no placement on the toggle', () => {
     // @ts-expect-error the toggle always sits beside the brand
     ;<Navigator.ExpandToggle placement='pinned' />
-  })
-
-  it('folds nothing while expanded', async () => {
-    render(<Expandable defaultExpanded />)
-    await flushViewportMeasurement()
-    reportClusterHeight(40)
-    expect(within(region('cluster')).getAllByRole('link')).toHaveLength(3)
-    expect(
-      within(region('cluster')).queryByRole('button', { name: 'More' })
-    ).toBeNull()
-  })
-
-  it('folds once on collapse, against the height the cluster settles at', async () => {
-    const { rerender } = render(<Expandable expanded />)
-    await flushViewportMeasurement()
-    reportClusterHeight(12 * 16)
-    rerender(<Expandable expanded={false} />)
-    const tiles = () => within(region('cluster')).getAllByRole('link')
-    const more = () =>
-      within(region('cluster')).queryByRole('button', { name: 'More' })
-    // Collapsed, the toggle row takes 3rem: 9rem fits one tile and More.
-    expect(tiles()).toHaveLength(1)
-    expect(more()).not.toBeNull()
-
-    region('brand').style.paddingBottom = '24px'
-    reportClusterHeight(10.5 * 16)
-    expect(tiles()).toHaveLength(1)
-    region('brand').style.paddingBottom = '48px'
-    reportClusterHeight(9 * 16)
-    expect(tiles()).toHaveLength(1)
-    expect(more()).not.toBeNull()
-  })
-
-  it('holds the cluster’s measurements while the navigation animates, then folds once', async () => {
-    const transition = (type: string) => {
-      const event = new Event(type, { bubbles: true })
-      Object.defineProperty(event, 'propertyName', { value: 'width' })
-      act(() => {
-        region('frame').dispatchEvent(event)
-      })
-    }
-    render(<Expandable expanded={false} />)
-    await flushViewportMeasurement()
-    region('brand').style.paddingBottom = '48px'
-    reportClusterHeight(30 * 16)
-    const tiles = () => within(region('cluster')).getAllByRole('link')
-    expect(tiles()).toHaveLength(3)
-
-    transition('transitionrun')
-    reportClusterHeight(12 * 16)
-    reportClusterHeight(9 * 16)
-    expect(tiles()).toHaveLength(3)
-    transition('transitionend')
-    expect(tiles()).toHaveLength(1)
   })
 
   it('never renders the toggle on the phone bar', async () => {
@@ -1542,10 +1058,6 @@ describe('expanded from the document', () => {
       <Expandable expandedFromDocument expanded={false} />
     )
     await flushViewportMeasurement()
-    reportClusterHeight(40)
-    expect(
-      within(region('cluster')).queryByRole('button', { name: 'More' })
-    ).toBeNull()
     rerender(<Expandable expandedFromDocument expanded />)
     rerender(<Expandable expandedFromDocument expanded={false} />)
     expect(vertical()).not.toHaveAttribute('data-expanded')
@@ -1633,41 +1145,6 @@ describe('collapsed labels', () => {
       'data-side',
       'inline-end'
     )
-  })
-
-  it('labels the More tile', async () => {
-    const user = userEvent.setup()
-    render(<Six />)
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    await user.hover(
-      within(region('cluster')).getByRole('button', { name: 'More' })
-    )
-    expect(
-      await screen.findByText(
-        'More',
-        { selector: '[data-slot="tooltip-popup"]' },
-        { timeout: 2000 }
-      )
-    ).toBeInTheDocument()
-  })
-
-  it('keeps the More tile tooltip shut while its pane is open', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true })
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    render(<Six />)
-    await flushViewportMeasurement()
-    reportClusterHeight(192)
-    const more = within(region('cluster')).getByRole('button', {
-      name: 'More'
-    })
-    await user.click(more)
-    expect(more).toHaveAttribute('aria-expanded', 'true')
-    await user.unhover(more)
-    await user.hover(more)
-    await act(() => vi.advanceTimersByTimeAsync(1500))
-    expect(document.querySelector('[data-slot="tooltip-popup"]')).toBeNull()
-    vi.useRealTimers()
   })
 
   it('shows no tooltip while expanded', async () => {
