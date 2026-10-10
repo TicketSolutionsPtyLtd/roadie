@@ -4,7 +4,7 @@ import { commands, userEvent } from 'vitest/browser'
 import roadieCss from '../../vitest.browser.css?inline'
 import { useStylesheet } from '../components/Pane/testUtils'
 
-const STILL = '*, *::before, *::after { transition: none !important }'
+const STILL = '*, *::before, *::after { transition-duration: 0s !important }'
 
 let removeStylesheets = () => {}
 beforeAll(() => {
@@ -53,12 +53,12 @@ function ring(element: Element) {
   }
 }
 
-const tokenWidth = () =>
-  getComputedStyle(document.documentElement)
-    .getPropertyValue('--focus-ring-width')
-    .trim()
+const token = (name: string) =>
+  getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 
-/** The ring `is-interactive` shows on keyboard focus, built from the focus-ring tokens. */
+const tokenWidth = () => token('--focus-ring-width')
+
+/** The ring `is-interactive` shows on keyboard focus. */
 async function tokenRing() {
   const reference = await focusByKeyboard('is-interactive')
   const expected = ring(reference)
@@ -76,28 +76,31 @@ async function pressOn(target: Element) {
 
 describe('is-focusable', () => {
   it.each([
-    ['light', false],
-    ['dark', true]
+    ['light', false, '--focus-ring-opacity'],
+    ['dark', true, '--focus-ring-opacity-dark']
   ])(
     'shows the focus-ring tokens’ ring on keyboard focus in %s mode',
-    async (_mode, dark) => {
+    async (_mode, dark, opacity) => {
       document.documentElement.classList.toggle('dark', dark)
-      const expected = await tokenRing()
       const target = await focusByKeyboard('is-focusable')
+      const alpha = parseFloat(token(opacity)) / 100
 
-      expect(ring(target)).toEqual(expected)
       expect(ring(target)).toMatchObject({
         style: 'solid',
         width: tokenWidth(),
         offset: '0px'
       })
+      expect(ring(target).color).toMatch(new RegExp(`/ ${alpha}\\)$`))
     }
   )
 
-  it('keeps the cursor auto', async () => {
-    const target = await focusByKeyboard('is-focusable')
+  it('keeps the cursor auto, where is-interactive sets a pointer', async () => {
+    const interactive = mount('is-interactive').target
+    expect(getComputedStyle(interactive).cursor).toBe('pointer')
+    document.body.replaceChildren()
 
-    expect(ring(target).width).toBe(tokenWidth())
+    const target = mount('is-focusable').target
+
     expect(getComputedStyle(target).cursor).toBe('auto')
   })
 
@@ -122,11 +125,45 @@ describe('is-focusable', () => {
     await commands.pointer([{ type: 'up' }])
     document.body.replaceChildren()
 
-    const target = await focusByKeyboard('is-focusable')
-    expect(ring(target).width).toBe(tokenWidth())
+    const { target } = mount('is-focusable')
     await pressOn(target)
 
     expect(target.matches(':active')).toBe(true)
     expect(getComputedStyle(target).transform).toBe('none')
+  })
+
+  it('composes with is-interactive in either order, keeping its transition', async () => {
+    const expected = await tokenRing()
+    const transition = getComputedStyle(
+      mount('is-interactive').target
+    ).transitionProperty
+    document.body.replaceChildren()
+
+    for (const className of [
+      'is-focusable is-interactive',
+      'is-interactive is-focusable'
+    ]) {
+      const target = await focusByKeyboard(className)
+
+      expect(ring(target)).toEqual(expected)
+      expect(getComputedStyle(target).transitionProperty).toBe(transition)
+      expect(getComputedStyle(target).cursor).toBe('pointer')
+      document.body.replaceChildren()
+    }
+  })
+
+  it('keeps a visible ring in forced colours', async () => {
+    await commands.forcedColors(true)
+    try {
+      const target = await focusByKeyboard('is-focusable')
+
+      expect(ring(target)).toMatchObject({
+        style: 'solid',
+        width: tokenWidth()
+      })
+      expect(ring(target).color).not.toMatch(/^rgba\(0, 0, 0, 0\)$|transparent/)
+    } finally {
+      await commands.forcedColors(false)
+    }
   })
 })
