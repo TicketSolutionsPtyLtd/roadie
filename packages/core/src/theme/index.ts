@@ -1,5 +1,12 @@
 import { getAccentChromaSync, getOklchHueSync } from '../colors/srgb-to-oklch'
 
+/**
+ * The default Roadie accent colour (Oztix blue), the accent step 9 that
+ * tokens.css ships. Import it rather than hard-coding the hex, such as to
+ * reset the accent to the default.
+ */
+export const DEFAULT_ACCENT_COLOR = '#0191eb'
+
 const THEME_STORAGE_KEY = 'theme'
 const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
 
@@ -86,7 +93,7 @@ export function getBootstrapScript(options?: {
     throw new Error(
       `[Roadie] getBootstrapScript: Invalid accentColor ${JSON.stringify(
         accent
-      )}. Expected a hex string like "#0091EB".`
+      )}. Expected a hex string like "${DEFAULT_ACCENT_COLOR}".`
     )
   }
   const hue = Math.round(getOklchHueSync(accent))

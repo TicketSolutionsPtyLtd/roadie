@@ -1,6 +1,7 @@
 import type { TokenEntry } from '@roadie-core/tokens'
 import { readFileSync } from 'node:fs'
-import { createRequire } from 'node:module'
+
+import { DEFAULT_ACCENT_COLOR } from '@oztix/roadie-core/theme'
 
 import { DATE_TIME_TABLES } from '../src/components/date-and-time/example.ts'
 import {
@@ -35,7 +36,6 @@ import {
   typeScaleTable
 } from '../src/lib/foundation-scales.ts'
 import {
-  type ManifestComponent,
   escapeCell,
   fence,
   inlineCode,
@@ -47,8 +47,6 @@ import {
   type TwinTable,
   segments
 } from '../src/lib/twin-table.ts'
-
-const require = createRequire(import.meta.url)
 
 let manifestTokens: TokenEntry[] | undefined
 
@@ -68,22 +66,6 @@ function tokens(): TokenEntry[] {
   }
   manifestTokens = (JSON.parse(raw) as { tokens: TokenEntry[] }).tokens
   return manifestTokens
-}
-
-// The components barrel can't load in Node, so read the documented default.
-function defaultAccentColor() {
-  const color = (
-    require('@oztix/roadie-components/roadie.manifest.json') as {
-      components: ManifestComponent[]
-    }
-  ).components
-    .find(({ name }) => name === 'ThemeProvider')
-    ?.props.find(({ name }) => name === 'defaultAccentColor')?.default
-  if (!/^#[0-9a-f]{6}$/i.test(color ?? ''))
-    throw new Error(
-      `ThemeProvider's documented defaultAccentColor is ${color}, not a hex colour.`
-    )
-  return color!
 }
 
 export type Renderer = (props: Record<string, string | true>) => string
@@ -110,7 +92,7 @@ export const twinTableMarkdown = ({ head, rows }: TwinTable) =>
 /** Markdown for each docs component marked `rendered` in `twin-components.ts`, except those the script builds itself. */
 export const DATA_RENDERERS: Record<string, Renderer> = {
   AccentScales: () =>
-    twinTableMarkdown(accentDefaultsTable(tokens(), defaultAccentColor())),
+    twinTableMarkdown(accentDefaultsTable(tokens(), DEFAULT_ACCENT_COLOR)),
   BreakpointScale: () => twinTableMarkdown(breakpointTable(tokens())),
   ContainerScale: () => twinTableMarkdown(containerTable(tokens())),
   FocusRingList: () => twinTableMarkdown(focusRingTable(tokens())),

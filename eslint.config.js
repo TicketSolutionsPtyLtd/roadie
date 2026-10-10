@@ -169,6 +169,8 @@ export default [
       'packages/core/src/utils/cn.test.ts',
       // palette.ts mirrors tokens.css.
       'packages/core/src/dataviz/parity.test.ts',
+      // DEFAULT_ACCENT_COLOR mirrors the accent step 9 in tokens.css.
+      'packages/core/src/theme/parity.test.ts',
       // The audit and charts skills mirror palette.ts and tokens.css.
       'packages/core/src/dataviz/skill-parity.test.ts',
       // tokens.json is generated from every sheet roadie.css imports.

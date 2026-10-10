@@ -132,11 +132,11 @@ Roadie validates hex input at two points:
 
 ```tsx
 import {
-  DEFAULT_ACCENT_COLOR,
   InvalidColorError,
   ThemeProvider,
   isValidHexColor
 } from '@oztix/roadie-components'
+import { DEFAULT_ACCENT_COLOR } from '@oztix/roadie-core/theme'
 
 function CollectionTheme({ collection, children }) {
   // Guard untrusted input at the fetch boundary
@@ -240,8 +240,9 @@ the client-side accent effect runs.
 
 ## Resetting to the default
 
-Roadie exports `DEFAULT_ACCENT_COLOR`, so consumers never hardcode the default
-hex. Reset to it three ways:
+`@oztix/roadie-core/theme` exports `DEFAULT_ACCENT_COLOR`, the accent step 9
+that the tokens ship, so consumers never hardcode the default hex.
+`@oztix/roadie-components` re-exports it. Reset to it three ways:
 
 - In a controlled root provider, pass `accentColor={someHex ?? null}`, and
   Roadie turns `null` back into the default. A nested provider turns `null`
@@ -359,7 +360,8 @@ export default async function CollectionPage({ params }) {
 
 ## Helpers
 
-- `DEFAULT_ACCENT_COLOR` is the Oztix blue default.
+- `DEFAULT_ACCENT_COLOR` is the Oztix blue default, from
+  `@oztix/roadie-core/theme`.
 - `isValidHexColor(input)` is a synchronous type guard for validating at the
   fetch boundary.
 - `InvalidColorError` is thrown by `setAccentColor`, `getAccentStyleSync`,
