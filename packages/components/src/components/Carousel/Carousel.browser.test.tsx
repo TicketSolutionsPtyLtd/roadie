@@ -106,6 +106,7 @@ describe('Carousel navigation', () => {
             <Carousel.Item>Show 2</Carousel.Item>
             <Carousel.Item>Show 3</Carousel.Item>
           </Carousel.Content>
+          <Ready />
         </Carousel>
       </div>
     )
@@ -121,12 +122,9 @@ describe('Carousel navigation', () => {
     expect
       .element(page.getByRole('button', { name: `Go to slide ${slide}` }))
       .toHaveAttribute('aria-current', 'true')
+  // Dots count slides until Embla has measured, so wait for Embla itself.
   const measured = () =>
-    expect
-      .poll(
-        () => screen.queryAllByRole('button', { name: /^Go to slide/ }).length
-      )
-      .toBe(3)
+    expect.element(page.getByText('Ready')).toBeInTheDocument()
 
   it('disables Previous at the start, then enables it once moved on', async () => {
     render(<Navigable />)
