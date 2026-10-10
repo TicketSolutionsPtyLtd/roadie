@@ -44,48 +44,34 @@ Set `length` and `OTPField` renders that many slots. Typing moves to the next sl
 
 `normal` is the sunken field surface that `Input` uses. `subtle` swaps the border for a tinted fill.
 
-```tsx-live
-<div className='grid gap-4'>
-  <OTPField length={6} aria-label='Normal' />
-  <OTPField length={6} aria-label='Subtle' emphasis='subtle' />
-</div>
+```tsx-live layout=stack
+<OTPField length={6} aria-label='Normal' />
+<OTPField length={6} aria-label='Subtle' emphasis='subtle' />
 ```
 
 ### Sizes
 
 Slots match `Input` heights: `sm` is 32px, `md` 40px and `lg` 48px square, so they sit level with an `Input` or `Button` of the same size. Use `lg` for touch, such as checkout on a phone. When the row runs out of room, the slots shrink together rather than wrap.
 
-```tsx-live
-<div className='grid gap-4'>
-  <OTPField length={6} aria-label='Small' size='sm' />
-  <OTPField length={6} aria-label='Medium' size='md' />
-  <OTPField length={6} aria-label='Large' size='lg' />
-</div>
+```tsx-live layout=stack
+<OTPField length={6} aria-label='Small' size='sm' />
+<OTPField length={6} aria-label='Medium' size='md' />
+<OTPField length={6} aria-label='Large' size='lg' />
 ```
 
 ### States
 
 Each slot uses `is-interactive-field`: neutral at rest, accent on focus, danger when invalid.
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <OTPField length={6} aria-label='Default' />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Filled</p>
-    <OTPField length={6} aria-label='Filled' defaultValue='482913' />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Invalid</p>
-    <OTPField length={6} aria-label='Invalid' defaultValue='482913' invalid />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <OTPField length={6} aria-label='Disabled' disabled />
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Default */}
+<OTPField length={6} aria-label='Default' />
+{/* Filled */}
+<OTPField length={6} aria-label='Filled' defaultValue='482913' />
+{/* Invalid */}
+<OTPField length={6} aria-label='Invalid' defaultValue='482913' invalid />
+{/* Disabled */}
+<OTPField length={6} aria-label='Disabled' disabled />
 ```
 
 ### Composition

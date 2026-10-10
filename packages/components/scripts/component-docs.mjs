@@ -9,11 +9,15 @@ export function componentSlug(folder) {
     .toLowerCase()
 }
 
-/** Component folders named by a package.json `exports` block. */
-export function exportedFolders(exports) {
+/** Component folders named by a package.json `exports` block, captured by `pattern`. */
+export function exportedFolders(
+  exports,
+  pattern = /^\.\/dist\/components\/(\w+)\//
+) {
   return Object.values(exports)
     .map(
-      ({ import: entry }) => entry?.match(/^\.\/dist\/components\/(\w+)\//)?.[1]
+      (value) =>
+        (typeof value === 'string' ? value : value?.import)?.match(pattern)?.[1]
     )
     .filter(Boolean)
 }

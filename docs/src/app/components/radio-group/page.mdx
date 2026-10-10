@@ -85,23 +85,17 @@ Use the `emphasis` prop on the Root to control the visual weight of all items.
 
 ### States
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <RadioGroup>
-      <RadioGroup.Item value='a' label='Option A' />
-      <RadioGroup.Item value='b' label='Option B' />
-    </RadioGroup>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <RadioGroup disabled>
-      <RadioGroup.Item value='a' label='Option A' />
-      <RadioGroup.Item value='b' label='Option B' />
-    </RadioGroup>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Default */}
+<RadioGroup>
+  <RadioGroup.Item value='a' label='Option A' />
+  <RadioGroup.Item value='b' label='Option B' />
+</RadioGroup>
+{/* Disabled */}
+<RadioGroup disabled>
+  <RadioGroup.Item value='a' label='Option A' />
+  <RadioGroup.Item value='b' label='Option B' />
+</RadioGroup>
 ```
 
 ## Accessibility

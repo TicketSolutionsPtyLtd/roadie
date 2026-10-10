@@ -202,6 +202,25 @@ describe('fence layout options', () => {
     await page.context().close()
   }, 60_000)
 
+  it('fit a lone inline-block field under a caption with no line gap below it', async () => {
+    const { page, errors } = await open('/components/textarea/')
+    const block = await exampleAfter(page, 'states')
+    const gaps = await previewOf(block).evaluate((node) =>
+      [...node.children].map((cell) => {
+        const wrapper = cell.lastElementChild!
+        const textarea = wrapper.querySelector('textarea')!
+        return (
+          wrapper.getBoundingClientRect().bottom -
+          textarea.getBoundingClientRect().bottom
+        )
+      })
+    )
+
+    expect(gaps).toEqual([0, 0, 0])
+    expect(errors).toEqual([])
+    await page.context().close()
+  }, 60_000)
+
   it('frame a width=140 chart at 35rem, with only the chart to copy', async () => {
     const { page, errors } = await open('/charts/bar-chart/', 1920)
     const block = await exampleAfter(page, 'default')

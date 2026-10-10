@@ -4,11 +4,14 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
 
+import { DASHBOARD_EXAMPLES } from '../src/lib/dashboard-examples.ts'
 import {
   type LlmsLink,
   type LlmsSection,
   type ManifestComponent,
   type TokenFamilyMarkdown,
+  allTokensToMarkdown,
+  dashboardExampleToMarkdown,
   linkLine,
   llmsIndex,
   pageToMarkdown,
@@ -26,7 +29,12 @@ import {
   getMarkdownRoutes,
   readPageMetadata
 } from '../src/lib/page-manifest.ts'
-import { TOKEN_FAMILY_PAGES } from '../src/lib/token-families.ts'
+import {
+  ALL_TOKENS_INTRO,
+  TOKEN_FAMILY_PAGES
+} from '../src/lib/token-families.ts'
+import { TWIN_COMPONENTS } from '../src/lib/twin-components.ts'
+import { DATA_RENDERERS } from './twin-renderers.ts'
 
 const require = createRequire(import.meta.url)
 const appDir = path.resolve('src/app')
@@ -94,30 +102,73 @@ const catalogueMarkdown: Record<string, string> = Object.fromEntries(
 )
 
 const renderers = {
+  ...DATA_RENDERERS,
   CatalogueIndex: ({ name }: Record<string, string | true>) => {
     if (typeof name !== 'string' || !Object.hasOwn(catalogueMarkdown, name))
       throw new Error(`<CatalogueIndex name="${name}"> names no catalogue`)
     return catalogueMarkdown[name]!
   }
 }
+const kinds = Object.entries(TWIN_COMPONENTS)
+const rendered = kinds
+  .filter(([, kind]) => kind === 'rendered')
+  .map(([name]) => name)
+if (rendered.sort().join() !== Object.keys(renderers).sort().join())
+  throw new Error(
+    `twin-components.ts marks ${rendered.join(', ')} as rendered, but the renderers are ${Object.keys(renderers).join(', ')}`
+  )
+const drawings = new Set(
+  kinds.filter(([, kind]) => kind !== 'rendered').map(([name]) => name)
+)
+
+function familyMarkdown(family: TokenFamily, description?: string) {
+  const { title, intro, guidance } = TOKEN_FAMILY_PAGES[family]
+  return {
+    title,
+    description,
+    intro,
+    guidance: guidance.map(({ title, href }) => ({
+      title,
+      url: resolveLink(href)
+    })),
+    tokens: tokens.filter((token) => token.family === family)
+  }
+}
 
 async function markdownFor(route: string) {
   const metadata = await metadataOf(route)
   const title = metadata?.title ?? route
+  const description = metadata?.description
   const family = metadata?.tokenFamily
   if (typeof family === 'string') {
-    if (!(family in TOKEN_FAMILY_PAGES))
+    if (!Object.hasOwn(TOKEN_FAMILY_PAGES, family))
       throw new Error(`${route} names an unknown tokenFamily: ${family}`)
-    const { intro, guidance } = TOKEN_FAMILY_PAGES[family as TokenFamily]
     return tokenFamilyToMarkdown({
+      ...familyMarkdown(family as TokenFamily, description),
+      title
+    })
+  }
+  if (metadata?.allTokens) {
+    return allTokensToMarkdown({
       title,
-      description: metadata?.description,
-      intro,
-      guidance: guidance.map(({ title, href }) => ({
-        title,
-        url: resolveLink(href)
-      })),
-      tokens: tokens.filter((token) => token.family === family)
+      description,
+      intro: ALL_TOKENS_INTRO,
+      families: (Object.keys(TOKEN_FAMILY_PAGES) as TokenFamily[]).map(
+        (family) => familyMarkdown(family)
+      )
+    })
+  }
+  const example = metadata?.dashboardExample
+  if (typeof example === 'string') {
+    if (!Object.hasOwn(DASHBOARD_EXAMPLES, example))
+      throw new Error(`${route} names an unknown dashboardExample: ${example}`)
+    const { create, ...code } =
+      DASHBOARD_EXAMPLES[example as keyof typeof DASHBOARD_EXAMPLES]
+    return dashboardExampleToMarkdown({
+      title,
+      description,
+      spec: create(),
+      ...code
     })
   }
   return pageToMarkdown({
@@ -128,7 +179,8 @@ async function markdownFor(route: string) {
       component.docs?.endsWith(`${route}/`)
     ),
     resolveLink,
-    renderers
+    renderers,
+    drawings
   })
 }
 

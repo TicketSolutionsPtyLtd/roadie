@@ -135,6 +135,25 @@ describe('Elevation foundation', () => {
     expect(new Set(tiles.map((tile) => tile.shadow)).size).toBe(tiles.length)
   }, 60_000)
 
+  it('names the same shadows and rim lights in its tables as its tiles draw', async () => {
+    const markdown = await readFile(
+      join(import.meta.dirname, '../out/foundations/elevation.md'),
+      'utf-8'
+    )
+    // The twin keeps these tables and drops the tiles, so a new level must reach both.
+    const names = markdown
+      .split(/^\| (?:Class|Token) .*$/m)
+      .slice(1)
+      .map((table) =>
+        [...table.split('\n\n')[0]!.matchAll(/^\| `([^`]+)`/gm)].map(
+          ([, name]) => name
+        )
+      )
+    expect(names).toContainEqual(SHADOWS)
+    expect(names).toContainEqual(INSET_SHADOWS)
+    expect(names).toContainEqual(RIM_LIGHTS.map((name) => `--${name}`))
+  })
+
   for (const width of [375, 1280]) {
     it(`lists every layering tier, top first, with the value its utility sets, at ${width}px`, async () => {
       const page = await open(width)
@@ -167,7 +186,7 @@ describe('Elevation foundation', () => {
     }, 60_000)
   }
 
-  it('describes each scale in its markdown copy without pointing at the tiles it drops', async () => {
+  it('describes each scale in its markdown copy without pointing above or below', async () => {
     const markdown = await readFile(
       join(import.meta.dirname, '../out/foundations/elevation.md'),
       'utf-8'

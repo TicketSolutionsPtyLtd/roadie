@@ -1,6 +1,6 @@
 import { type ReactNode, use, useLayoutEffect, useRef } from 'react'
 
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -13,9 +13,7 @@ import {
   flushViewportMeasurement,
   primaryOf,
   rowLayoutInputs,
-  scrollViewport,
   testBrand,
-  withScrollSentinels,
   withStubLink
 } from './testUtils'
 
@@ -80,8 +78,6 @@ function Docs({
     </Navigator>
   )
 }
-
-withScrollSentinels()
 
 describe('generated secondary pane', () => {
   it('leads the stack as a list pane titled with the destination label', async () => {
@@ -1398,68 +1394,6 @@ describe('overview tab', () => {
     await user.click(within(horizontal()).getByRole('link', { name: 'Home' }))
     expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
     expect(onShowListChange).not.toHaveBeenCalled()
-    expect(onValueChange).not.toHaveBeenCalled()
-  })
-
-  const collapseBar = async () => {
-    const viewport = document.querySelector<HTMLElement>(
-      '[data-stack-position="top"] [data-slot="pane-viewport"]'
-    )!
-    act(() => scrollViewport(viewport, 400))
-    await act(
-      () =>
-        new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
-    )
-    expect(horizontal()).toHaveAttribute('data-collapsed', 'true')
-    const scrollTo = vi.fn()
-    viewport.scrollTo = scrollTo
-    return { viewport, scrollTo }
-  }
-
-  it.each([
-    ['an overview', <WithOverview key='page' value='/' />, 'Home'],
-    [
-      'a destination without an overview, on its route',
-      <Routed key='list' value='/components' />,
-      'Components'
-    ]
-  ])(
-    'scrolls to the top and reopens the collapsed bar in one tap on %s',
-    async (_, ui, tabName) => {
-      const user = userEvent.setup()
-      render(withStubLink(ui))
-      await flushViewportMeasurement()
-      const { viewport, scrollTo } = await collapseBar()
-      await user.click(
-        within(horizontal()).getByRole('link', { name: tabName })
-      )
-      expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
-      expect(horizontal()).toHaveAttribute('data-collapsed', 'false')
-      act(() => scrollViewport(viewport, 200))
-      await act(
-        () =>
-          new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
-      )
-      expect(horizontal()).toHaveAttribute('data-collapsed', 'false')
-    }
-  )
-
-  it('only reopens the collapsed bar from a sub-page', async () => {
-    const user = userEvent.setup()
-    const onValueChange = vi.fn()
-    render(
-      withStubLink(
-        <WithOverview
-          value='/overview/philosophy'
-          onValueChange={onValueChange}
-        />
-      )
-    )
-    await flushViewportMeasurement()
-    const { scrollTo } = await collapseBar()
-    await user.click(within(horizontal()).getByRole('link', { name: 'Home' }))
-    expect(horizontal()).toHaveAttribute('data-collapsed', 'false')
-    expect(scrollTo).not.toHaveBeenCalled()
     expect(onValueChange).not.toHaveBeenCalled()
   })
 })

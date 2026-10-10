@@ -81,47 +81,33 @@ render(<Presale />)
 
 ### Emphasis
 
-```tsx-live
-<div className='grid max-w-80 gap-4'>
-  <DateRangePicker aria-label='Normal' defaultValue='last-week' />
-  <DateRangePicker aria-label='Subtle' emphasis='subtle' defaultValue='last-week' />
-  <DateRangePicker aria-label='Subtler' emphasis='subtler' defaultValue='last-week' />
-</div>
+```tsx-live layout=stack width=80
+<DateRangePicker aria-label='Normal' defaultValue='last-week' />
+<DateRangePicker aria-label='Subtle' emphasis='subtle' defaultValue='last-week' />
+<DateRangePicker aria-label='Subtler' emphasis='subtler' defaultValue='last-week' />
 ```
 
 ### Sizes
 
-```tsx-live
-<div className='grid max-w-80 gap-4'>
-  <DateRangePicker aria-label='Small' size='sm' defaultValue='last-week' />
-  <DateRangePicker aria-label='Medium' size='md' defaultValue='last-week' />
-  <DateRangePicker aria-label='Large' size='lg' defaultValue='last-week' />
-</div>
+```tsx-live layout=stack width=80
+<DateRangePicker aria-label='Small' size='sm' defaultValue='last-week' />
+<DateRangePicker aria-label='Medium' size='md' defaultValue='last-week' />
+<DateRangePicker aria-label='Large' size='lg' defaultValue='last-week' />
 ```
 
 ### States
 
 `readOnly` shows the range with a lock and doesn't open, for a period the page has set. `disabled` turns the button off.
 
-```tsx-live
-<div className='grid max-w-80 gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <DateRangePicker aria-label='Default' defaultValue='last-week' />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Invalid</p>
-    <DateRangePicker aria-label='Invalid' defaultValue='last-week' invalid />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Read only</p>
-    <DateRangePicker aria-label='Read only' defaultValue='last-week' readOnly />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <DateRangePicker aria-label='Disabled' defaultValue='last-week' disabled />
-  </div>
-</div>
+```tsx-live layout=stack width=80
+{/* Default */}
+<DateRangePicker aria-label='Default' defaultValue='last-week' />
+{/* Invalid */}
+<DateRangePicker aria-label='Invalid' defaultValue='last-week' invalid />
+{/* Read only */}
+<DateRangePicker aria-label='Read only' defaultValue='last-week' readOnly />
+{/* Disabled */}
+<DateRangePicker aria-label='Disabled' defaultValue='last-week' disabled />
 ```
 
 ### Composition
@@ -170,28 +156,26 @@ render(<Toolbar />)
 
 `presets` replaces the list, and `group` sets presets under a heading. Presets with no group come first, then each group in the order it first appears. Spread `dateRangePresets` to add to the defaults instead. A preset's `label` defaults to its value in words. When the value is a preset, fixed dates or relative, the button shows the preset's label with its dates, and so does the list on a phone. Here Xylophone Tide Festival adds its on-sale week, and a dashboard keeps the periods it reports on.
 
-```tsx-live
-<div className='grid max-w-80 gap-4'>
-  <DateRangePicker
-    aria-label='Festival period'
-    defaultValue={{ start: '2026-11-02', end: '2026-11-08' }}
-    presets={[
-      ...dateRangePresets,
-      { label: 'On-sale week', value: { start: '2026-11-02', end: '2026-11-08' }, group: 'Xylophone Tide Festival' }
-    ]}
-  />
-  <DateRangePicker
-    aria-label='Dashboard period'
-    commit='apply'
-    presets={[
-      { value: { direction: 'next', amount: 30, unit: 'day' } },
-      { value: { direction: 'next', amount: 90, unit: 'day' } },
-      { value: { direction: 'past', amount: 30, unit: 'day' } },
-      { value: { direction: 'past', amount: 12, unit: 'month' } },
-      { value: { period: 'year', offset: 0, fiscal: true } }
-    ]}
-  />
-</div>
+```tsx-live layout=stack width=80
+<DateRangePicker
+  aria-label='Festival period'
+  defaultValue={{ start: '2026-11-02', end: '2026-11-08' }}
+  presets={[
+    ...dateRangePresets,
+    { label: 'On-sale week', value: { start: '2026-11-02', end: '2026-11-08' }, group: 'Xylophone Tide Festival' }
+  ]}
+/>
+<DateRangePicker
+  aria-label='Dashboard period'
+  commit='apply'
+  presets={[
+    { value: { direction: 'next', amount: 30, unit: 'day' } },
+    { value: { direction: 'next', amount: 90, unit: 'day' } },
+    { value: { direction: 'past', amount: 30, unit: 'day' } },
+    { value: { direction: 'past', amount: 12, unit: 'month' } },
+    { value: { period: 'year', offset: 0, fiscal: true } }
+  ]}
+/>
 ```
 
 ### With disabled days
@@ -242,7 +226,7 @@ render(<Toolbar />)
 
 ## Accessibility
 
-- The button is named after the picker and its range, such as "Choose dates, Sales period (Last 30 days, 8 Sept to 7 Oct 2026)", so pickers side by side stay apart. The popup is named "Choose dates, Sales period".
+- The button is named after the picker and its range, such as "Choose dates, Last 30 days 8 Sept to 7 Oct 2026, Sales period", so pickers side by side stay apart. The range reads as the button shows it, so voice control users can say what they see. The popup is named "Choose dates, Sales period".
 - Opening moves focus to the chosen preset, or to the calendar's first chosen day. In the drawer, the keyboard goes from Close to the tabs, then on the Calendar tab to Start and End, then into the scrolling body and its periods or months, then Clear and Apply. `Escape` closes and puts focus back on the button. With `commit='apply'` it drops the changes; in immediate mode, dates already chosen or committed stay.
 - Presets are [Toggle](/components/toggle) buttons with `aria-pressed`, in groups named by their headings. Custom range is pressed when the value is no preset, and moves focus to the start date.
 - Start and End are comboboxes, text inputs with suggestions, each with its own label and errors. Focused empty, they show hints with nothing highlighted. Once you type, the first suggestion is highlighted and `Enter` takes it, and `Escape` closes the list and keeps the text. In the drawer the list opens above it, so nothing clips it.

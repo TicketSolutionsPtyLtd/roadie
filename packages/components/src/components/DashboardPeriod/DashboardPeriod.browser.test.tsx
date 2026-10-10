@@ -32,8 +32,7 @@ afterEach(() => cleanup())
 const box = (element: Element) => element.getBoundingClientRect()
 const middle = (rect: DOMRect) => rect.top + rect.height / 2
 
-const picker = () =>
-  screen.getByRole('button', { name: /^Choose dates, Period/ })
+const picker = () => screen.getByRole('button', { name: /, Period$/ })
 
 function Controlled() {
   const [value, setValue] = useState<DashboardPeriodValue>({
@@ -124,7 +123,7 @@ for (const [width, height] of [
       expect(document.querySelector('output')).toHaveTextContent(
         '{"range":{"direction":"past","amount":30,"unit":"day"},"compare":"previous-year"}'
       )
-      expect(picker()).toHaveAccessibleName(/vs 8 Sept? to 7 Oct 2025\)$/)
+      expect(picker()).toHaveAccessibleName(/vs 8 Sept? to 7 Oct 2025, Period$/)
     })
 
     it('drops both changes on Close', async () => {
@@ -158,8 +157,7 @@ for (const [width, height] of [
 
 for (const width of [358, 1100])
   describe(`DashboardPeriod's button at ${width}px`, TIMEOUT, () => {
-    const button = () =>
-      screen.getByRole('button', { name: /^Choose dates, Period/ })
+    const button = () => screen.getByRole('button', { name: /, Period$/ })
 
     it('puts the comparison and its dates on a second line', () => {
       render(
@@ -279,7 +277,7 @@ const choicesIn = (within_: HTMLElement) =>
   within(within_).getByRole('group', { name: 'Compare with' })
 const comparisonPicker = (within_: HTMLElement) =>
   within(within_).getByRole('button', {
-    name: /^Choose dates, Comparison dates/
+    name: /, Comparison dates$/
   })
 const dayIn = (container: Element, date: string) =>
   container.querySelector<HTMLElement>(
@@ -333,7 +331,7 @@ for (const [width, height] of [
         const apply = within(footer).getByRole('button', { name: 'Apply' })
         expect(box(apply).bottom).toBeLessThanOrEqual(window.innerHeight)
         expect(comparisonPicker(footer)).toHaveAccessibleName(
-          /^Choose dates, Comparison dates \(8 Aug to 6 Sept? 2026\)$/
+          /^Choose dates, 8 Aug to 6 Sept? 2026, Comparison dates$/
         )
         await userEvent.click(comparisonPicker(footer))
         await withFrames(() =>
@@ -346,7 +344,7 @@ for (const [width, height] of [
           expect.poll(() => screen.getAllByRole('dialog')).toHaveLength(1)
         )
         expect(comparisonPicker(footer)).toHaveAccessibleName(
-          /^Choose dates, Comparison dates \(10 Aug to 8 Sept? 2026\)$/
+          /^Choose dates, 10 Aug to 8 Sept? 2026, Comparison dates$/
         )
         await userEvent.click(apply)
         await withFrames(() =>
@@ -384,7 +382,7 @@ for (const [width, height] of [
         expect(document.querySelector('output')).toHaveTextContent(
           '{"range":{"start":"2026-09-07","end":"2026-10-06"},"compare":"similar"}'
         )
-        expect(picker()).toHaveAccessibleName(/vs similar venues\)$/)
+        expect(picker()).toHaveAccessibleName(/vs similar venues, Period$/)
       })
 
       it('lists the fixed presets with their dates', async () => {
@@ -444,6 +442,6 @@ describe('DashboardPeriod’s own choices on a wide screen', TIMEOUT, () => {
     expect(document.querySelector('output')).toHaveTextContent(
       '{"range":{"start":"2026-09-07","end":"2026-10-06"},"compare":{"start":"2026-08-10","end":"2026-09-08"}}'
     )
-    expect(picker()).toHaveAccessibleName(/vs 10 Aug to 8 Sept? 2026\)$/)
+    expect(picker()).toHaveAccessibleName(/vs 10 Aug to 8 Sept? 2026, Period$/)
   })
 })

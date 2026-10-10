@@ -29,9 +29,8 @@ with its skeleton and the rules on top of these.
 - The foundations pages other than Accessibility, Colors, Date and time,
   Elevation, Forms, Iconography, Interactions, Layout, Linking, Navigation,
   Performance, Prose, Records, Shape, Tables, Theming, Typography, and View
-  transitions, `/charts/dashboards`, and `/charts/data-visualisation` are
-  content pages still in `page.tsx`. They move to MDX (INNO-1159); never add
-  another.
+  transitions are content pages still in `page.tsx`. They move to MDX
+  (INNO-1159); never add another.
 
 ## Metadata
 
@@ -90,9 +89,15 @@ with its skeleton and the rules on top of these.
   new one in a folder for its area in `docs/src/components/`.
 - Guidance a person writes, such as which tier to use where, is a table.
 - A docs component with no children drops out of the markdown copy, so the
-  sentence before it says what it shows without pointing "below" at it. A
-  component whose data agents need registers a renderer in `renderers` in
-  `docs/scripts/llms.ts`, as `CatalogueIndex` does, and stays in the copy.
+  sentence before it says what it shows without pointing "below" at it. List
+  every docs component in `docs/src/lib/twin-components.ts`, or the twin build
+  fails: `drawing` if it only draws, or `rendered` with a renderer in
+  `docs/scripts/twin-renderers.ts` if agents need its data. Build the rows in
+  a plain `.ts` module that the component and the renderer both import, and
+  add its slot to `docs/e2e/twin-data.e2e.test.ts`. A component that draws a
+  list rather than a table marks its rows `data-twin-row` and their cells
+  `data-twin-cell`, so the test can read them. A list has no header row, so
+  the test doesn't check the twin table's column names.
 - Every value of a family is on its `/tokens/` page. A foundation page links
   there through `guidance` in `docs/src/lib/token-families.ts`, and the
   layout shows the link under the title.

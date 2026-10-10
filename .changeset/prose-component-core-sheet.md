@@ -40,6 +40,11 @@ What changes on the page:
   and a nested bulleted list uses circles.
 - Tables shrink to fit their content instead of filling the width. Wrap a wide
   table in `<div class="prose-scroll">` so it scrolls sideways on a phone.
+  Each column of a table in `.prose-scroll` stays at least 9em wide, so when
+  the columns can't all fit, the table scrolls rather than squeezing text to a
+  word or two a line. A column with short content, such as "Yes", also takes
+  9em. A long cell wraps at the prose measure. A table whose columns fit still
+  shrinks to fit without scrolling.
   Inline code in a table inside `.prose-scroll` stays on one line, so a name
   such as `rounded-sm` never splits; the table scrolls instead. Outside
   `.prose-scroll`, inline code still breaks where it must so the table fits.

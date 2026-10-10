@@ -50,69 +50,65 @@ A trigger opens a centred modal over a dimmed backdrop. `Dialog.Content` collaps
 
 `emphasis` on the root sets how much the dialog takes over the page behind it. It defaults to `normal`, which dims and blurs the page, because a dialog asks for the user's full attention. `subtle` tints the page and leaves it readable, and `subtler` leaves it clear.
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  {['normal', 'subtle', 'subtler'].map((emphasis) => (
-    <Dialog key={emphasis} emphasis={emphasis}>
-      <Dialog.Trigger render={<Button>{emphasis}</Button>} />
-      <Dialog.Content size='sm'>
-        <Dialog.Header>
-          <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
-          <Dialog.Title>Emphasis {emphasis}</Dialog.Title>
-          <Dialog.Description>The page behind stays as visible as this level allows.</Dialog.Description>
-        </Dialog.Header>
-      </Dialog.Content>
-    </Dialog>
-  ))}
-</div>
+```tsx-live layout=row gap=3
+{['normal', 'subtle', 'subtler'].map((emphasis) => (
+  <Dialog key={emphasis} emphasis={emphasis}>
+    <Dialog.Trigger render={<Button>{emphasis}</Button>} />
+    <Dialog.Content size='sm'>
+      <Dialog.Header>
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <Dialog.Title>Emphasis {emphasis}</Dialog.Title>
+        <Dialog.Description>The page behind stays as visible as this level allows.</Dialog.Description>
+      </Dialog.Header>
+    </Dialog.Content>
+  </Dialog>
+))}
 ```
 
 ### Sizes
 
 Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `md`.
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  <Dialog>
-    <Dialog.Trigger render={<Button>Small</Button>} />
-    <Dialog.Content size='sm'>
-      <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
-        <IconTile size='2xl' shape='circle'>
-          <Info weight='duotone' />
-        </IconTile>
-        <Dialog.Title>Small dialog</Dialog.Title>
-        <Dialog.Description>max-w-sm</Dialog.Description>
-      </Dialog.Header>
-    </Dialog.Content>
-  </Dialog>
-  <Dialog>
-    <Dialog.Trigger render={<Button>Medium</Button>} />
-    <Dialog.Content size='md'>
-      <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
-        <IconTile size='2xl' shape='circle'>
-          <Info weight='duotone' />
-        </IconTile>
-        <Dialog.Title>Medium dialog</Dialog.Title>
-        <Dialog.Description>max-w-md (default)</Dialog.Description>
-      </Dialog.Header>
-    </Dialog.Content>
-  </Dialog>
-  <Dialog>
-    <Dialog.Trigger render={<Button>Large</Button>} />
-    <Dialog.Content size='lg'>
-      <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
-        <IconTile size='2xl' shape='circle'>
-          <Info weight='duotone' />
-        </IconTile>
-        <Dialog.Title>Large dialog</Dialog.Title>
-        <Dialog.Description>max-w-lg</Dialog.Description>
-      </Dialog.Header>
-    </Dialog.Content>
-  </Dialog>
-</div>
+```tsx-live layout=row gap=3
+<Dialog>
+  <Dialog.Trigger render={<Button>Small</Button>} />
+  <Dialog.Content size='sm'>
+    <Dialog.Header>
+      <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+      <IconTile size='2xl' shape='circle'>
+        <Info weight='duotone' />
+      </IconTile>
+      <Dialog.Title>Small dialog</Dialog.Title>
+      <Dialog.Description>max-w-sm</Dialog.Description>
+    </Dialog.Header>
+  </Dialog.Content>
+</Dialog>
+<Dialog>
+  <Dialog.Trigger render={<Button>Medium</Button>} />
+  <Dialog.Content size='md'>
+    <Dialog.Header>
+      <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+      <IconTile size='2xl' shape='circle'>
+        <Info weight='duotone' />
+      </IconTile>
+      <Dialog.Title>Medium dialog</Dialog.Title>
+      <Dialog.Description>max-w-md (default)</Dialog.Description>
+    </Dialog.Header>
+  </Dialog.Content>
+</Dialog>
+<Dialog>
+  <Dialog.Trigger render={<Button>Large</Button>} />
+  <Dialog.Content size='lg'>
+    <Dialog.Header>
+      <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+      <IconTile size='2xl' shape='circle'>
+        <Info weight='duotone' />
+      </IconTile>
+      <Dialog.Title>Large dialog</Dialog.Title>
+      <Dialog.Description>max-w-lg</Dialog.Description>
+    </Dialog.Header>
+  </Dialog.Content>
+</Dialog>
 ```
 
 ### Intents
@@ -123,92 +119,90 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
 - `warning` and `danger` for caution and destructive confirmations
 - `accent` to promote an action
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
+```tsx-live layout=row gap=3
+<Dialog>
   {/* Info for an informational, dismiss-only modal */}
-  <Dialog>
-    <Dialog.Trigger render={<IconButton aria-label='Release notes' emphasis='subtle'><Info weight='bold' /></IconButton>} />
-    <Dialog.Content intent='info' size='sm'>
-      <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
-        <IconTile size='2xl' shape='circle'>
-          <Info weight='duotone' />
-        </IconTile>
-        <Dialog.Title>What's new in 2.0</Dialog.Title>
-        <Dialog.Description>Saved views, faster search, and a redesigned inbox.</Dialog.Description>
-      </Dialog.Header>
-    </Dialog.Content>
-  </Dialog>
+  <Dialog.Trigger render={<IconButton aria-label='Release notes' emphasis='subtle'><Info weight='bold' /></IconButton>} />
+  <Dialog.Content intent='info' size='sm'>
+    <Dialog.Header>
+      <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+      <IconTile size='2xl' shape='circle'>
+        <Info weight='duotone' />
+      </IconTile>
+      <Dialog.Title>What's new in 2.0</Dialog.Title>
+      <Dialog.Description>Saved views, faster search, and a redesigned inbox.</Dialog.Description>
+    </Dialog.Header>
+  </Dialog.Content>
+</Dialog>
 
+<Dialog>
   {/* Success for a dismiss-only confirmation */}
-  <Dialog>
-    <Dialog.Trigger render={<Button>Finish setup</Button>} />
-    <Dialog.Content intent='success' size='sm'>
-      <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
-        <IconTile size='2xl' shape='circle'>
-          <CheckCircle weight='duotone' />
-        </IconTile>
-        <Dialog.Title>You're all set</Dialog.Title>
-        <Dialog.Description>Your workspace is ready to go.</Dialog.Description>
-      </Dialog.Header>
-    </Dialog.Content>
-  </Dialog>
+  <Dialog.Trigger render={<Button>Finish setup</Button>} />
+  <Dialog.Content intent='success' size='sm'>
+    <Dialog.Header>
+      <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+      <IconTile size='2xl' shape='circle'>
+        <CheckCircle weight='duotone' />
+      </IconTile>
+      <Dialog.Title>You're all set</Dialog.Title>
+      <Dialog.Description>Your workspace is ready to go.</Dialog.Description>
+    </Dialog.Header>
+  </Dialog.Content>
+</Dialog>
 
+<Dialog role='alertdialog'>
   {/* Warning for a caution confirm */}
-  <Dialog role='alertdialog'>
-    <Dialog.Trigger render={<Button>Save and exit</Button>} />
-    <Dialog.Content intent='warning' size='sm'>
-      <Dialog.Header>
-        <IconTile size='2xl' shape='circle'>
-          <Warning weight='duotone' />
-        </IconTile>
-        <Dialog.Title>Discard changes?</Dialog.Title>
-        <Dialog.Description>You have unsaved edits that will be lost.</Dialog.Description>
-      </Dialog.Header>
-      <Dialog.Footer>
-        <Dialog.Close render={<Button>Keep editing</Button>} />
-        <Dialog.Close render={<Button intent='warning' emphasis='strong'>Discard</Button>} />
-      </Dialog.Footer>
-    </Dialog.Content>
-  </Dialog>
+  <Dialog.Trigger render={<Button>Save and exit</Button>} />
+  <Dialog.Content intent='warning' size='sm'>
+    <Dialog.Header>
+      <IconTile size='2xl' shape='circle'>
+        <Warning weight='duotone' />
+      </IconTile>
+      <Dialog.Title>Discard changes?</Dialog.Title>
+      <Dialog.Description>You have unsaved edits that will be lost.</Dialog.Description>
+    </Dialog.Header>
+    <Dialog.Footer>
+      <Dialog.Close render={<Button>Keep editing</Button>} />
+      <Dialog.Close render={<Button intent='warning' emphasis='strong'>Discard</Button>} />
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog>
 
+<Dialog role='alertdialog'>
   {/* Danger for a destructive confirm */}
-  <Dialog role='alertdialog'>
-    <Dialog.Trigger render={<Button intent='danger'>Remove member</Button>} />
-    <Dialog.Content intent='danger' size='sm'>
-      <Dialog.Header>
-        <IconTile size='2xl' shape='circle'>
-          <Trash weight='duotone' />
-        </IconTile>
-        <Dialog.Title>Remove Jordan?</Dialog.Title>
-        <Dialog.Description>They lose access to this workspace immediately.</Dialog.Description>
-      </Dialog.Header>
-      <Dialog.Footer>
-        <Dialog.Close render={<Button>Cancel</Button>} />
-        <Dialog.Close render={<Button intent='danger' emphasis='strong'>Remove</Button>} />
-      </Dialog.Footer>
-    </Dialog.Content>
-  </Dialog>
+  <Dialog.Trigger render={<Button intent='danger'>Remove member</Button>} />
+  <Dialog.Content intent='danger' size='sm'>
+    <Dialog.Header>
+      <IconTile size='2xl' shape='circle'>
+        <Trash weight='duotone' />
+      </IconTile>
+      <Dialog.Title>Remove Jordan?</Dialog.Title>
+      <Dialog.Description>They lose access to this workspace immediately.</Dialog.Description>
+    </Dialog.Header>
+    <Dialog.Footer>
+      <Dialog.Close render={<Button>Cancel</Button>} />
+      <Dialog.Close render={<Button intent='danger' emphasis='strong'>Remove</Button>} />
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog>
 
+<Dialog>
   {/* Accent to promote an upgrade */}
-  <Dialog>
-    <Dialog.Trigger render={<Button intent='accent' emphasis='strong'>Upgrade</Button>} />
-    <Dialog.Content intent='accent' size='sm'>
-      <Dialog.Header>
-        <IconTile size='2xl' shape='circle'>
-          <Star weight='duotone' />
-        </IconTile>
-        <Dialog.Title>Upgrade to Pro</Dialog.Title>
-        <Dialog.Description>Unlock unlimited projects and priority support.</Dialog.Description>
-      </Dialog.Header>
-      <Dialog.Footer>
-        <Dialog.Close render={<Button>Maybe later</Button>} />
-        <Button intent='accent' emphasis='strong'>Upgrade now</Button>
-      </Dialog.Footer>
-    </Dialog.Content>
-  </Dialog>
-</div>
+  <Dialog.Trigger render={<Button intent='accent' emphasis='strong'>Upgrade</Button>} />
+  <Dialog.Content intent='accent' size='sm'>
+    <Dialog.Header>
+      <IconTile size='2xl' shape='circle'>
+        <Star weight='duotone' />
+      </IconTile>
+      <Dialog.Title>Upgrade to Pro</Dialog.Title>
+      <Dialog.Description>Unlock unlimited projects and priority support.</Dialog.Description>
+    </Dialog.Header>
+    <Dialog.Footer>
+      <Dialog.Close render={<Button>Maybe later</Button>} />
+      <Button intent='accent' emphasis='strong'>Upgrade now</Button>
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog>
 ```
 
 ### Alert dialog

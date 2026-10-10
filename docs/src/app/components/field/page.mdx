@@ -32,17 +32,15 @@ Use `showIndicator` on `Field.Label` to automatically render a required or
 optional indicator based on the Field's `required` prop. This eliminates the
 need to manually import and place `RequiredIndicator` or `OptionalIndicator`.
 
-```tsx-live
-<div className='grid gap-6'>
-  <Field required>
-    <Field.Label showIndicator>Email</Field.Label>
-    <Field.Input type='email' placeholder='you@example.com' />
-  </Field>
-  <Field>
-    <Field.Label showIndicator>Phone number</Field.Label>
-    <Field.Input type='tel' placeholder='0400 000 000' />
-  </Field>
-</div>
+```tsx-live layout=stack gap=6
+<Field required>
+  <Field.Label showIndicator>Email</Field.Label>
+  <Field.Input type='email' placeholder='you@example.com' />
+</Field>
+<Field>
+  <Field.Label showIndicator>Phone number</Field.Label>
+  <Field.Input type='tel' placeholder='0400 000 000' />
+</Field>
 ```
 
 ### States
@@ -51,32 +49,24 @@ Fields inherit input interaction states. Focus shows accent colouring,
 invalid shows danger colouring with error text. The `invalid` and `disabled`
 props flow through context to child inputs automatically.
 
-```tsx-live
-<div className='grid gap-6'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <Field>
-      <Field.Label>Label</Field.Label>
-      <Field.Input placeholder='Click to focus' />
-      <Field.HelperText>Helper text appears below the input.</Field.HelperText>
-    </Field>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Invalid</p>
-    <Field invalid>
-      <Field.Label>Label</Field.Label>
-      <Field.Input defaultValue='bad-value' />
-      <Field.ErrorText>This field is required.</Field.ErrorText>
-    </Field>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <Field disabled>
-      <Field.Label>Label</Field.Label>
-      <Field.Input placeholder='Cannot edit' />
-    </Field>
-  </div>
-</div>
+```tsx-live layout=stack gap=6
+{/* Default */}
+<Field>
+  <Field.Label>Label</Field.Label>
+  <Field.Input placeholder='Click to focus' />
+  <Field.HelperText>Helper text appears below the input.</Field.HelperText>
+</Field>
+{/* Invalid */}
+<Field invalid>
+  <Field.Label>Label</Field.Label>
+  <Field.Input defaultValue='bad-value' />
+  <Field.ErrorText>This field is required.</Field.ErrorText>
+</Field>
+{/* Disabled */}
+<Field disabled>
+  <Field.Label>Label</Field.Label>
+  <Field.Input placeholder='Cannot edit' />
+</Field>
 ```
 
 ### Composition

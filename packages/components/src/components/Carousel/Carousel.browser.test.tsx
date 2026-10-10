@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { type ReactNode, useEffect } from 'react'
 
 import { cleanup, render, screen } from '@testing-library/react'
 import {
@@ -82,6 +82,181 @@ describe('Carousel direction', () => {
   })
 })
 
+describe('Carousel navigation', () => {
+  function Navigable({
+    loop,
+    first = 'Show 1'
+  }: {
+    loop?: boolean
+    first?: ReactNode
+  }) {
+    return (
+      <div style={{ width: 400, margin: 32 }}>
+        <Carousel opts={{ loop }}>
+          <Carousel.Header>
+            <Carousel.Title>Shows</Carousel.Title>
+            <Carousel.Dots />
+            <Carousel.Controls>
+              <Carousel.Previous />
+              <Carousel.Next />
+            </Carousel.Controls>
+          </Carousel.Header>
+          <Carousel.Content overflow='hidden'>
+            <Carousel.Item>{first}</Carousel.Item>
+            <Carousel.Item>Show 2</Carousel.Item>
+            <Carousel.Item>Show 3</Carousel.Item>
+          </Carousel.Content>
+          <Ready />
+        </Carousel>
+      </div>
+    )
+  }
+
+  function Ready() {
+    return useCarouselUnsafeEmbla() ? <output>Ready</output> : null
+  }
+
+  const button = (name: string) => screen.getByRole('button', { name })
+  const slide = (name: string) => screen.getByRole('group', { name })
+  const showing = (slide: number) =>
+    expect
+      .element(page.getByRole('button', { name: `Go to slide ${slide}` }))
+      .toHaveAttribute('aria-current', 'true')
+  // Dots count slides until Embla has measured, so wait for Embla itself.
+  const measured = () =>
+    expect.element(page.getByText('Ready')).toBeInTheDocument()
+
+  it('disables Previous at the start, then enables it once moved on', async () => {
+    render(<Navigable />)
+    await measured()
+    expect(button('Previous slide')).toHaveAttribute('aria-disabled', 'true')
+    expect(button('Next slide')).not.toHaveAttribute('aria-disabled')
+    await userEvent.click(button('Next slide'))
+    await showing(2)
+    expect(button('Previous slide')).not.toHaveAttribute('aria-disabled')
+    await userEvent.click(button('Previous slide'))
+    await showing(1)
+    await expect
+      .element(page.getByRole('button', { name: 'Previous slide' }))
+      .toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('moves forward one slide at a time with Next', async () => {
+    render(<Navigable />)
+    await measured()
+    const start = offset('Show 1', 'left')
+    await userEvent.click(button('Next slide'))
+    await showing(2)
+    await settlesAt('Show 2', 'left', start)
+    await userEvent.click(button('Next slide'))
+    await showing(3)
+    await settlesAt('Show 3', 'left', start)
+  })
+
+  it('moves back one slide at a time with Previous', async () => {
+    render(<Navigable />)
+    await measured()
+    const start = offset('Show 1', 'left')
+    await userEvent.click(button('Go to slide 3'))
+    await showing(3)
+    await userEvent.click(button('Previous slide'))
+    await showing(2)
+    await settlesAt('Show 2', 'left', start)
+    await userEvent.click(button('Previous slide'))
+    await showing(1)
+    await settlesAt('Show 1', 'left', start)
+  })
+
+  it('wraps from the first slide to the last and back when looping', async () => {
+    render(<Navigable loop />)
+    await measured()
+    await userEvent.click(button('Previous slide'))
+    await showing(3)
+    await userEvent.click(button('Next slide'))
+    await showing(1)
+  })
+
+  it('keeps Previous enabled at the start when looping', async () => {
+    render(<Navigable loop />)
+    await measured()
+    expect(button('Previous slide')).not.toHaveAttribute('aria-disabled')
+    expect(button('Next slide')).not.toHaveAttribute('aria-disabled')
+  })
+
+  it('goes to the slide whose dot is pressed', async () => {
+    render(<Navigable />)
+    await measured()
+    const start = offset('Show 1', 'left')
+    await userEvent.click(button('Go to slide 3'))
+    await showing(3)
+    await settlesAt('Show 3', 'left', start)
+  })
+
+  it('moves with the arrow, Home, and End keys', async () => {
+    render(<Navigable />)
+    await measured()
+    await userEvent.click(content())
+    await userEvent.keyboard('{ArrowRight}')
+    await showing(2)
+    await userEvent.keyboard('{ArrowLeft}')
+    await showing(1)
+    await userEvent.keyboard('{End}')
+    await showing(3)
+    await userEvent.keyboard('{Home}')
+    await showing(1)
+  })
+
+  it('wraps with the arrow keys when looping', async () => {
+    render(<Navigable loop />)
+    await measured()
+    await userEvent.click(content())
+    await userEvent.keyboard('{ArrowLeft}')
+    await showing(3)
+    await userEvent.keyboard('{ArrowRight}')
+    await showing(1)
+  })
+
+  it('leaves the arrow keys to a link inside a slide', async () => {
+    render(<Navigable first={<a href='#inside'>Inside link</a>} />)
+    await measured()
+    screen.getByRole('link', { name: 'Inside link' }).focus()
+    await userEvent.keyboard('{ArrowRight}')
+    await userEvent.click(button('Next slide'))
+    await showing(2)
+  })
+
+  it('makes only the slide in view interactive', async () => {
+    render(<Navigable />)
+    await measured()
+    expect(slide('1 of 3').inert).toBe(false)
+    expect(slide('2 of 3').inert).toBe(true)
+    expect(slide('3 of 3').inert).toBe(true)
+    await userEvent.click(button('Next slide'))
+    await expect.poll(() => slide('2 of 3').inert).toBe(false)
+    await expect.poll(() => slide('1 of 3').inert).toBe(true)
+    expect(slide('3 of 3').inert).toBe(true)
+  })
+
+  it('shows no Previous, Next, or dots for a single slide', async () => {
+    render(
+      <Carousel aria-label='Shows'>
+        <Carousel.Content>
+          <Carousel.Item>Show 1</Carousel.Item>
+        </Carousel.Content>
+        <Carousel.Previous />
+        <Carousel.Next />
+        <Carousel.Dots />
+        <Ready />
+      </Carousel>
+    )
+    await expect.element(page.getByText('Ready')).toBeInTheDocument()
+    expect(screen.queryByRole('button')).toBeNull()
+    expect(
+      screen.queryByRole('group', { name: 'Choose slide to display' })
+    ).toBeNull()
+  })
+})
+
 describe('Carousel overflow', () => {
   beforeEach(() => page.viewport(1024, 768))
   afterEach(() => page.viewport(1024, 768))
@@ -130,7 +305,7 @@ describe('Carousel overflow', () => {
 })
 
 describe('Carousel snapping', () => {
-  it('pages through slides a frame at a time, each page flush left', async () => {
+  it('pages forward and back a frame at a time, each page flush left', async () => {
     render(
       <div style={{ width: 600 }}>
         <Carousel aria-label='Shows'>
@@ -142,6 +317,7 @@ describe('Carousel snapping', () => {
             ))}
           </Carousel.Content>
           <Carousel.Dots />
+          <Carousel.Previous />
           <Carousel.Next />
         </Carousel>
       </div>
@@ -162,6 +338,13 @@ describe('Carousel snapping', () => {
       )
       .toBeLessThan(1)
     await expect.element(next).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Previous slide' })
+    )
+    await expect
+      .element(page.getByRole('button', { name: 'Go to slide 2' }))
+      .toHaveAttribute('aria-current', 'true')
+    await settlesAt('Show 3', 'left', start)
   })
 })
 

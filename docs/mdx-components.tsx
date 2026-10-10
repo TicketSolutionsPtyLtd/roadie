@@ -3,6 +3,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import Link from 'next/link'
 
 import { CodePreview } from '@/components/CodePreview'
+import { ProseScroll } from '@/components/ProseScroll'
 import { exampleHref } from '@/lib/live-examples.mjs'
 
 type AnchorProps = ComponentPropsWithoutRef<'a'>
@@ -53,9 +54,9 @@ const components = {
     )
   },
   table: (props: ComponentPropsWithoutRef<'table'>) => (
-    <div className='prose-scroll'>
+    <ProseScroll>
       <table {...props} />
-    </div>
+    </ProseScroll>
   )
 }
 

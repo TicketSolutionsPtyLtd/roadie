@@ -15,6 +15,10 @@ const foundation = (title: string, slug: string): DocLink => ({
   href: `/foundations/${slug}`
 })
 
+/** All tokens' opening line, which its markdown twin reuses. */
+export const ALL_TOKENS_INTRO =
+  'Every variable, class, variant and keyframe core ships, generated from its CSS on every build.'
+
 /** Every token family, in reading order, with the Foundations pages that say when to use it. */
 export const TOKEN_FAMILY_PAGES: Record<TokenFamily, TokenFamilyPage> = {
   'color-scales': {

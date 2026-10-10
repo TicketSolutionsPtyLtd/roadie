@@ -43,80 +43,76 @@ wrapping. Use `Select.Content` as a convenience wrapper for Portal + Positioner 
 
 `normal` is the default: a plain fill with a visible border, like a normal `Button`. `subtle` sits on a tinted fill. `subtler` has no fill or border at rest, for quiet controls inside something else, such as rows per page under a table.
 
-```tsx-live
-<div className='grid gap-2'>
-  <Select defaultValue='go-betweens'>
-    <Select.Trigger emphasis='normal'>
+```tsx-live layout=stack gap=2
+<Select defaultValue='go-betweens'>
+  <Select.Trigger emphasis='normal'>
+    <Select.Value />
+    <Select.Icon />
+  </Select.Trigger>
+  <Select.Content>
+    <Select.Item value='go-betweens'>The Go-Betweens</Select.Item>
+    <Select.Item value='saints'>The Saints</Select.Item>
+  </Select.Content>
+</Select>
+<Select defaultValue='bee-gees'>
+  <Select.Trigger emphasis='subtle'>
+    <Select.Value />
+    <Select.Icon />
+  </Select.Trigger>
+  <Select.Content>
+    <Select.Item value='bee-gees'>Bee Gees</Select.Item>
+    <Select.Item value='savage-garden'>Savage Garden</Select.Item>
+  </Select.Content>
+</Select>
+<div className='flex items-center justify-between gap-3 text-sm text-subtle'>
+  <p>1–50 of 240</p>
+  <Select defaultValue='50'>
+    <Select.Trigger
+      aria-label='Rows per page'
+      emphasis='subtler'
+      size='sm'
+    >
       <Select.Value />
       <Select.Icon />
     </Select.Trigger>
     <Select.Content>
-      <Select.Item value='go-betweens'>The Go-Betweens</Select.Item>
-      <Select.Item value='saints'>The Saints</Select.Item>
+      <Select.Item value='50'>50 per page</Select.Item>
+      <Select.Item value='100'>100 per page</Select.Item>
     </Select.Content>
   </Select>
-  <Select defaultValue='bee-gees'>
-    <Select.Trigger emphasis='subtle'>
-      <Select.Value />
-      <Select.Icon />
-    </Select.Trigger>
-    <Select.Content>
-      <Select.Item value='bee-gees'>Bee Gees</Select.Item>
-      <Select.Item value='savage-garden'>Savage Garden</Select.Item>
-    </Select.Content>
-  </Select>
-  <div className='flex items-center justify-between gap-3 text-sm text-subtle'>
-    <p>1–50 of 240</p>
-    <Select defaultValue='50'>
-      <Select.Trigger
-        aria-label='Rows per page'
-        emphasis='subtler'
-        size='sm'
-      >
-        <Select.Value />
-        <Select.Icon />
-      </Select.Trigger>
-      <Select.Content>
-        <Select.Item value='50'>50 per page</Select.Item>
-        <Select.Item value='100'>100 per page</Select.Item>
-      </Select.Content>
-    </Select>
-  </div>
 </div>
 ```
 
 ### Sizes
 
-```tsx-live
-<div className='grid gap-2'>
-  <Select defaultValue='ball-park-music'>
-    <Select.Trigger size='sm'>
-      <Select.Value />
-      <Select.Icon />
-    </Select.Trigger>
-    <Select.Content>
-      <Select.Item value='ball-park-music'>Ball Park Music</Select.Item>
-    </Select.Content>
-  </Select>
-  <Select defaultValue='cub-sport'>
-    <Select.Trigger size='md'>
-      <Select.Value />
-      <Select.Icon />
-    </Select.Trigger>
-    <Select.Content>
-      <Select.Item value='cub-sport'>Cub Sport</Select.Item>
-    </Select.Content>
-  </Select>
-  <Select defaultValue='jungle-giants'>
-    <Select.Trigger size='lg'>
-      <Select.Value />
-      <Select.Icon />
-    </Select.Trigger>
-    <Select.Content>
-      <Select.Item value='jungle-giants'>The Jungle Giants</Select.Item>
-    </Select.Content>
-  </Select>
-</div>
+```tsx-live layout=stack gap=2
+<Select defaultValue='ball-park-music'>
+  <Select.Trigger size='sm'>
+    <Select.Value />
+    <Select.Icon />
+  </Select.Trigger>
+  <Select.Content>
+    <Select.Item value='ball-park-music'>Ball Park Music</Select.Item>
+  </Select.Content>
+</Select>
+<Select defaultValue='cub-sport'>
+  <Select.Trigger size='md'>
+    <Select.Value />
+    <Select.Icon />
+  </Select.Trigger>
+  <Select.Content>
+    <Select.Item value='cub-sport'>Cub Sport</Select.Item>
+  </Select.Content>
+</Select>
+<Select defaultValue='jungle-giants'>
+  <Select.Trigger size='lg'>
+    <Select.Value />
+    <Select.Icon />
+  </Select.Trigger>
+  <Select.Content>
+    <Select.Item value='jungle-giants'>The Jungle Giants</Select.Item>
+  </Select.Content>
+</Select>
 ```
 
 ### States
@@ -127,33 +123,27 @@ A `subtler` trigger uses `is-interactive` instead, so it behaves like a subtler
 `Button`: no fill at rest, a light fill on hover, press and while open, and a
 danger edge when invalid.
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <Select defaultValue='goon-sax'>
-      <Select.Trigger>
-        <Select.Value />
-        <Select.Icon />
-      </Select.Trigger>
-      <Select.Content>
-        <Select.Item value='goon-sax'>The Goon Sax</Select.Item>
-      </Select.Content>
-    </Select>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <Select defaultValue='powderfinger' disabled>
-      <Select.Trigger>
-        <Select.Value />
-        <Select.Icon />
-      </Select.Trigger>
-      <Select.Content>
-        <Select.Item value='powderfinger'>Powderfinger</Select.Item>
-      </Select.Content>
-    </Select>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Default */}
+<Select defaultValue='goon-sax'>
+  <Select.Trigger>
+    <Select.Value />
+    <Select.Icon />
+  </Select.Trigger>
+  <Select.Content>
+    <Select.Item value='goon-sax'>The Goon Sax</Select.Item>
+  </Select.Content>
+</Select>
+{/* Disabled */}
+<Select defaultValue='powderfinger' disabled>
+  <Select.Trigger>
+    <Select.Value />
+    <Select.Icon />
+  </Select.Trigger>
+  <Select.Content>
+    <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+  </Select.Content>
+</Select>
 ```
 
 ### Composition

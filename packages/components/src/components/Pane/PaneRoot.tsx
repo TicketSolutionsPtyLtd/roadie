@@ -312,20 +312,32 @@ export function PaneRoot({
     }
   }, [wantsDirection, destination, position, seat])
 
-  const shown = useRef({ destination, position })
+  const shown = useRef<{
+    destination: typeof destination
+    position: typeof position
+    seat?: string
+    entry?: string | null
+  }>({ destination, position })
   const mounted = useRef(false)
   const settling = useRef<() => void>(() => {})
   useLayoutEffect(() => {
     if (seat === null) return
     const last = shown.current
     const entry = historyEntryKey()
-    shown.current = { destination, position }
+    shown.current = { destination, position, seat, entry }
     const viewport = viewportRef.current
     if (!viewport) return
-    settling.current()
-    const back = entry === null ? undefined : recallPaneScroll(entry, seat)
     const first = !mounted.current
     mounted.current = true
+    // A rerun without an arrival, such as a tap on the active tab, keeps its own scroll.
+    const arrived =
+      seat !== last.seat ||
+      entry !== last.entry ||
+      destination !== last.destination ||
+      position !== last.position
+    if (!arrived) return
+    settling.current()
+    const back = entry === null ? undefined : recallPaneScroll(entry, seat)
     // Going back is the one arrival that isn't new; checked before guards that read a stale snapshot.
     if (back !== undefined) {
       settling.current = restorePaneScroll(viewport, back)
