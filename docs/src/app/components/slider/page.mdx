@@ -189,12 +189,12 @@ Inside [Field](/components/field), pass `label` to the slider. It stands in for 
 
 `onValueChange` fires on every step while someone drags. Use `onValueCommitted` to run a search once they let go.
 
-```tsx-live-noinline
+```tsx-live-noinline layout=stack gap=3
 function PriceFilter() {
   const [range, setRange] = useState([40, 150])
 
   return (
-    <div className='grid gap-3'>
+    <>
       <Slider
         label='Price'
         defaultValue={range}
@@ -206,7 +206,7 @@ function PriceFilter() {
       <p className='text-sm text-subtle'>
         Showing events from ${range[0]} to ${range[1]}
       </p>
-    </div>
+    </>
   )
 }
 

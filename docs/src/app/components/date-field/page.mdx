@@ -24,14 +24,14 @@ Type a date the way you would say it: "14 mar", "next fri", "tomorrow", "in 2 we
 
 Focus the empty field and a list shows what can be typed, such as Today, Next Fri and End of month, each with its date. As you type, the list offers the dates the text could mean: "fr" offers this Friday and, most days, next week's, and "14" offers the 14th of the next few months. The first one is highlighted once you type, so `Enter` takes it. Choose one to set the date. Words read on the calendar of `timeZone`, and dates that `disabled` refuses are left out.
 
-```tsx-live-noinline
+```tsx-live-noinline layout=stack width=64
 function Default() {
   const [date, setDate] = useState(null)
   return (
-    <div className='grid max-w-64 gap-4'>
+    <>
       <DateField aria-label='Show date' value={date} onValueChange={setDate} />
       <p className='text-sm text-subtle'>Value: {date ?? 'none'}</p>
-    </div>
+    </>
   )
 }
 

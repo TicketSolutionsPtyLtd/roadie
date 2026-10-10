@@ -22,14 +22,14 @@ import { DatePicker } from '@oztix/roadie-components/date-picker'
 
 Type a date, as in [DateField](/components/date-field), or press the calendar button and choose a day. Focus the empty field for hints at what can be typed, such as Tomorrow or In 2 weeks, and as you type, the first suggestion is highlighted so `Enter` takes it. The calendar opens on the chosen day, or on today, with focus on it. Choosing a day closes it and puts focus back on the button. The value is a plain ISO date such as `'2026-11-27'`, or null.
 
-```tsx-live-noinline
+```tsx-live-noinline layout=stack width=64
 function Default() {
   const [date, setDate] = useState(null)
   return (
-    <div className='grid max-w-64 gap-4'>
+    <>
       <DatePicker aria-label='Show date' value={date} onValueChange={setDate} />
       <p className='text-sm text-subtle'>Value: {date ?? 'none'}</p>
-    </div>
+    </>
   )
 }
 
@@ -40,11 +40,11 @@ render(<Default />)
 
 `granularity='minute'` adds a [TimeField](/components/time-field) beside the date. The value is then the instant the date and time name in `timeZone`, with its offset, such as `'2026-11-27T19:30:00+11:00'`, and it stays null until both are filled in. Pass the venue's zone, so a Perth organiser setting doors for a Melbourne show sets them on Melbourne's clock. A time that daylight saving skips, such as 2:30am on the morning the clocks go forward, moves to where it lands, 3:30am, and the field shows it.
 
-```tsx-live-noinline
+```tsx-live-noinline layout=stack width=80
 function Doors() {
   const [doors, setDoors] = useState('2026-11-27T19:30:00+11:00')
   return (
-    <div className='grid max-w-80 gap-4'>
+    <>
       <Field>
         <Field.Label>Doors, Melbourne time</Field.Label>
         <DatePicker
@@ -57,7 +57,7 @@ function Doors() {
         <Field.ErrorText />
       </Field>
       <p className='text-sm text-subtle'>Value: {doors ?? 'none'}</p>
-    </div>
+    </>
   )
 }
 

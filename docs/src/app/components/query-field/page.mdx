@@ -24,7 +24,7 @@ Pass the chips you hold and a `suggest` function. Suggestions come back in
 groups, and `onAccept` hands you the one taken: add a chip for a filter, or
 search for the text when Enter sends `kind: 'search'`.
 
-```tsx-live
+```tsx-live layout=stack gap=2
 function QueryFieldDefault() {
   const venues = ['Iguana Teapot Hall', 'Jumbuck Orchard Park', 'Nimbus Thistle Hall', 'Gooseberry Signal Warehouse']
   const [chips, setChips] = useState([])
@@ -54,7 +54,7 @@ function QueryFieldDefault() {
   }
 
   return (
-    <div className='grid gap-2'>
+    <>
       <QueryField
         aria-label='Search events'
         chips={chips}
@@ -65,7 +65,7 @@ function QueryFieldDefault() {
       <p className='text-sm text-subtle'>
         {search ? `Searching for “${search}”` : 'Type a venue, then pick it or press Enter'}
       </p>
-    </div>
+    </>
   )
 }
 ```
@@ -269,7 +269,7 @@ function QueryFieldChipEditing() {
 Enter searches the free text. When the text names one record exactly, such as
 an order number, mark that suggestion `exact` and Enter takes it instead.
 
-```tsx-live
+```tsx-live layout=stack gap=2
 function QueryFieldExact() {
   const orders = { 'ORD-2041': 'Lampshade Disco, 2 tickets', 'ORD-2042': 'Raffia Spaceship, 4 tickets' }
   const [taken, setTaken] = useState('')
@@ -290,7 +290,7 @@ function QueryFieldExact() {
   }
 
   return (
-    <div className='grid gap-2'>
+    <>
       <QueryField
         aria-label='Search orders'
         placeholder='Search orders or type an order number'
@@ -300,7 +300,7 @@ function QueryFieldExact() {
         }
       />
       <p className='text-sm text-subtle'>{taken || 'Try ORD-2041, then press Enter'}</p>
-    </div>
+    </>
   )
 }
 ```

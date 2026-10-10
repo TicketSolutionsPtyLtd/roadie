@@ -22,14 +22,14 @@ import { TimeField } from '@oztix/roadie-components/time-field'
 
 Type a time the way you would say it: "7:30pm", "7pm", "19:30" or "noon". A time with no "am" or "pm" reads on a 24-hour clock, so "7:30" is morning. The text is read when the field loses focus or on `Enter`. The value is `'HH:MM'` on a 24-hour clock, such as `'19:30'`, or null. A time has no date and no zone, so pair it with a date where it matters, or use [DatePicker](/components/date-picker) with `granularity='minute'`.
 
-```tsx-live-noinline
+```tsx-live-noinline layout=stack width=40
 function Default() {
   const [time, setTime] = useState(null)
   return (
-    <div className='grid max-w-40 gap-4'>
+    <>
       <TimeField aria-label='Doors' value={time} onValueChange={setTime} />
       <p className='text-sm text-subtle'>Value: {time ?? 'none'}</p>
-    </div>
+    </>
   )
 }
 
