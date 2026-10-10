@@ -54,3 +54,18 @@ for (const codemod of readdirSync(fixtures)) {
     }
   })
 }
+
+describe('the skill', () => {
+  it('pins the jscodeshift these tests run', () => {
+    const skill = readFileSync(path.join(here, '../SKILL.md'), 'utf8')
+    const { devDependencies } = JSON.parse(
+      readFileSync(
+        path.join(here, '../../../packages/core/package.json'),
+        'utf8'
+      )
+    )
+    const pins = [...skill.matchAll(/jscodeshift@([\d.]+)/g)].map(([, v]) => v)
+    expect(pins.length).toBeGreaterThan(0)
+    expect(new Set(pins)).toEqual(new Set([devDependencies.jscodeshift]))
+  })
+})
