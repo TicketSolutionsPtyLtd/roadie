@@ -319,6 +319,52 @@ describe('ThemeProvider - accent scope', () => {
     expect(scopeHue(container)).toBe('293')
   })
 
+  it('drops the scope and its inline accent when a nested accent goes back to null', () => {
+    const tree = (accent: string | null) => (
+      <ThemeProvider accentColor={ROOT}>
+        <ThemeProvider accentColor={accent}>
+          <p>Route</p>
+        </ThemeProvider>
+      </ThemeProvider>
+    )
+    const { rerender, getByText } = render(tree(ROUTE))
+    const route = getByText('Route')
+    rerender(tree(null))
+    const wrapper = route.parentElement!
+    expect(getByText('Route')).toBe(route)
+    expect(wrapper).not.toHaveAttribute('data-accent-scope')
+    expect(wrapper.style.getPropertyValue('--accent-hue')).toBe('')
+    expect(wrapper.style.getPropertyValue('--accent-chroma')).toBe('')
+  })
+
+  it("gives a nested provider with an invalid accent its parent's, and warns", () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: ({ children }) => (
+        <ThemeProvider accentColor={ROUTE}>
+          <ThemeProvider accentColor='garbage'>{children}</ThemeProvider>
+        </ThemeProvider>
+      )
+    })
+    expect(result.current.accentColor).toBe(ROUTE)
+    expect(document.querySelector('[data-accent-scope]')).toBeNull()
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('Invalid accentColor')
+    )
+    warn.mockRestore()
+  })
+
+  it("scopes a nested provider's defaultAccentColor over its parent's accent", () => {
+    const { container } = render(
+      <ThemeProvider accentColor={ROOT}>
+        <ThemeProvider accentColor={null} defaultAccentColor={ROUTE}>
+          <p>Route</p>
+        </ThemeProvider>
+      </ThemeProvider>
+    )
+    expect(scopeHue(container)).toBe('293')
+  })
+
   it('leaves the outer accent in place when a nested provider unmounts', async () => {
     const tree = (route: boolean) => (
       <ThemeProvider accentColor={ROOT}>
