@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import { CodePreview } from '@/components/CodePreview'
+import type { DashboardPeriodExample } from '@/lib/llms'
 
 import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
 import type { DashboardCard, DashboardSpec } from '@oztix/roadie-core/dashboard'
@@ -19,8 +20,7 @@ export function ReferenceDashboard({
   cardActionsCode?: string
   /** Replaces the static view, such as with one whose period changes. */
   view?: ReactNode
-  /** How the page changes the period: a sentence and the code. */
-  period?: { note: string; code: string }
+  period?: DashboardPeriodExample
 }) {
   return (
     <div className='grid gap-8'>

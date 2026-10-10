@@ -5,12 +5,12 @@ import {
 } from '@oztix/roadie-charts/examples'
 import type { DashboardSpec } from '@oztix/roadie-core/dashboard'
 
+import type { DashboardPeriodExample } from './llms'
+
 export type DashboardExample = {
   create: () => DashboardSpec
-  /** The dashboard written as components. */
   jsx: string
-  /** How the page changes the period: a sentence and the code. */
-  period?: { note: string; code: string }
+  period?: DashboardPeriodExample
   cardActionsCode?: string
 }
 
@@ -90,17 +90,17 @@ export const DASHBOARD_EXAMPLES = {
     period: {
       note: 'Each period’s numbers come from daily sales, as an app would fetch them. Sales start on 20 July, when the first show went on sale, so a year back there is nothing to compare. The As data section shows the default period.',
       code: `'use client'
-    
-    function PortfolioDashboard() {
-      const [period, setPeriod] = useState<PortfolioPeriod>()
-      return (
-        <DashboardView
-          spec={createPortfolioDashboard(period)}
-          onPeriodChange={setPeriod}
-          periodProps={{ ...portfolioDates, presets: dateRangePresets }}
-        />
-      )
-    }`
+
+function PortfolioDashboard() {
+  const [period, setPeriod] = useState<PortfolioPeriod>()
+  return (
+    <DashboardView
+      spec={createPortfolioDashboard(period)}
+      onPeriodChange={setPeriod}
+      periodProps={{ ...portfolioDates, presets: dateRangePresets }}
+    />
+  )
+}`
     }
   },
   audience: {

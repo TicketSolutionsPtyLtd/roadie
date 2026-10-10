@@ -522,16 +522,23 @@ function familySections(page: TokenFamilyMarkdown, depth: number) {
   ]
 }
 
-const page = (title: string, description: string | undefined, body: string[]) =>
+const markdownDocument = (
+  title: string,
+  description: string | undefined,
+  body: string[]
+) =>
   [`# ${title}`, ...(description ? [`> ${description}`] : []), ...body]
     .join('\n\n')
     .concat('\n')
 
 export function tokenFamilyToMarkdown(family: TokenFamilyMarkdown): string {
-  return page(family.title, family.description, familySections(family, 2))
+  return markdownDocument(
+    family.title,
+    family.description,
+    familySections(family, 2)
+  )
 }
 
-/** Every token family on one page, each under its own heading. */
 export function allTokensToMarkdown({
   title,
   description,
@@ -543,7 +550,7 @@ export function allTokensToMarkdown({
   intro: string
   families: TokenFamilyMarkdown[]
 }): string {
-  return page(title, description, [
+  return markdownDocument(title, description, [
     intro,
     ...families.flatMap((family) => [
       `## ${family.title}`,
@@ -562,18 +569,21 @@ function fence(lang: string, code: string) {
   return `${ticks}${lang}\n${code}\n${ticks}`
 }
 
+/** How a reference dashboard's page changes the period: a sentence and the code. */
+export type DashboardPeriodExample = { note: string; code: string }
+
 export type DashboardExampleMarkdown = {
   title: string
   description?: string
   spec: unknown
   jsx: string
-  period?: { note: string; code: string }
+  period?: DashboardPeriodExample
   cardActionsCode?: string
 }
 
 /** A reference dashboard as its page shows it: the spec, any period or card action code, then the JSX. */
 export function dashboardExampleToMarkdown(example: DashboardExampleMarkdown) {
-  return page(example.title, example.description, [
+  return markdownDocument(example.title, example.description, [
     '## As data',
     fence('json', JSON.stringify(example.spec, null, 2)),
     ...(example.period

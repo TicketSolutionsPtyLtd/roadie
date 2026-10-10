@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { DASHBOARD_EXAMPLES } from './dashboard-examples'
 import {
   allTokensToMarkdown,
   dashboardExampleToMarkdown,
@@ -547,7 +548,8 @@ describe('dashboardExampleToMarkdown', () => {
         description: 'How one show is selling',
         spec: { version: 1 },
         jsx: '<Dashboard />',
-        period: { note: 'Pick a period.', code: 'usePeriod()' }
+        period: { note: 'Pick a period.', code: 'usePeriod()' },
+        cardActionsCode: '<CardMenu />'
       })
     ).toBe(
       [
@@ -558,6 +560,8 @@ describe('dashboardExampleToMarkdown', () => {
         '## With a period',
         'Pick a period.',
         '```tsx\nusePeriod()\n```',
+        '## With card actions',
+        '```tsx\n<CardMenu />\n```',
         '## As JSX',
         '```tsx\n<Dashboard />\n```'
       ].join('\n\n') + '\n'
@@ -600,6 +604,14 @@ describe('allTokensToMarkdown', () => {
         '### Radius',
         '| Token | Value |\n| --- | --- |\n| `--radius-lg` | `0.5rem` |'
       ].join('\n\n') + '\n'
+    )
+  })
+})
+
+describe('DASHBOARD_EXAMPLES', () => {
+  it('keeps the portfolio period code at column 0', () => {
+    expect(DASHBOARD_EXAMPLES.portfolio.period.code).toMatch(
+      /^'use client'\n\nfunction PortfolioDashboard\(\) \{\n  const/
     )
   })
 })
