@@ -72,49 +72,37 @@ function QueryFieldDefault() {
 
 ### Emphasis
 
-```tsx-live
-<div className='grid gap-2'>
-  <QueryField aria-label='Normal emphasis' emphasis='normal' suggest={() => []} />
-  <QueryField aria-label='Subtle emphasis' emphasis='subtle' suggest={() => []} />
-</div>
+```tsx-live layout=stack gap=2
+<QueryField aria-label='Normal emphasis' emphasis='normal' suggest={() => []} />
+<QueryField aria-label='Subtle emphasis' emphasis='subtle' suggest={() => []} />
 ```
 
 ### Sizes
 
-```tsx-live
-<div className='grid gap-2'>
-  <QueryField aria-label='Small' size='sm' suggest={() => []} />
-  <QueryField aria-label='Medium' size='md' suggest={() => []} />
-  <QueryField aria-label='Large' size='lg' suggest={() => []} />
-</div>
+```tsx-live layout=stack gap=2
+<QueryField aria-label='Small' size='sm' suggest={() => []} />
+<QueryField aria-label='Medium' size='md' suggest={() => []} />
+<QueryField aria-label='Large' size='lg' suggest={() => []} />
 ```
 
 ### States
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <QueryField
-      aria-label='Search events'
-      chips={[{ id: 'status', label: 'Status is On sale' }]}
-      suggest={() => []}
-    />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Invalid</p>
-    <QueryField aria-label='Search events' invalid suggest={() => []} />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <QueryField
-      aria-label='Search events'
-      disabled
-      chips={[{ id: 'status', label: 'Status is On sale' }]}
-      suggest={() => []}
-    />
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Default */}
+<QueryField
+  aria-label='Search events'
+  chips={[{ id: 'status', label: 'Status is On sale' }]}
+  suggest={() => []}
+/>
+{/* Invalid */}
+<QueryField aria-label='Search events' invalid suggest={() => []} />
+{/* Disabled */}
+<QueryField
+  aria-label='Search events'
+  disabled
+  chips={[{ id: 'status', label: 'Status is On sale' }]}
+  suggest={() => []}
+/>
 ```
 
 ### Composition

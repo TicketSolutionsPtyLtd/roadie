@@ -172,29 +172,17 @@ group, or on a single `Checkbox`.
 
 ### States
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Unchecked</p>
-    <Checkbox label='Send me event news' />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Checked</p>
-    <Checkbox label='Send me event news' defaultChecked />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Indeterminate</p>
-    <Checkbox label='All genres' indeterminate />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Invalid</p>
-    <Checkbox label='I agree to the terms and conditions' invalid />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <Checkbox label='Send me event news' disabled defaultChecked />
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Unchecked */}
+<Checkbox label='Send me event news' />
+{/* Checked */}
+<Checkbox label='Send me event news' defaultChecked />
+{/* Indeterminate */}
+<Checkbox label='All genres' indeterminate />
+{/* Invalid */}
+<Checkbox label='I agree to the terms and conditions' invalid />
+{/* Disabled */}
+<Checkbox label='Send me event news' disabled defaultChecked />
 ```
 
 ## Guidelines
