@@ -48,4 +48,18 @@ describe('regionName', () => {
   ])('$name', ({ html, expected }) => {
     expect(regionName(scrollerIn(html))).toEqual(expected)
   })
+
+  it('numbers each table after the first under the same heading, so region names stay unique', () => {
+    document.body.innerHTML = `<div class="prose"><h2 id="tiers">Tiers</h2>
+      <div class="prose-scroll"><table></table></div>
+      <div class="prose-scroll"><table></table></div>
+      <h2 id="sizes">Sizes</h2><div class="prose-scroll"><table></table></div></div>`
+    expect(
+      [...document.querySelectorAll('.prose-scroll')].map(regionName)
+    ).toEqual([
+      { 'aria-labelledby': 'tiers' },
+      { 'aria-label': 'Tiers, table 2' },
+      { 'aria-labelledby': 'sizes' }
+    ])
+  })
 })

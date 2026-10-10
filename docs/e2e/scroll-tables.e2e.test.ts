@@ -24,7 +24,7 @@ const PAGE = '/charts/data-visualisation/'
 const PHONE = 375
 const DESKTOP = 1280
 
-async function open(width: number) {
+async function open(width: number, path = PAGE) {
   const context = await browser.newContext({
     viewport: { width, height: 900 }
   })
@@ -35,7 +35,7 @@ async function open(width: number) {
     if (message.type() === 'error') errors.push(message.text())
   })
   page.on('pageerror', (error) => errors.push(String(error)))
-  await page.goto(`${ORIGIN}${BASE_PATH}${PAGE}`)
+  await page.goto(`${ORIGIN}${BASE_PATH}${path}`)
   await page.waitForLoadState('networkidle')
   return { page, errors }
 }
@@ -175,32 +175,33 @@ describe('Scrolling markdown tables', () => {
     expect(html).not.toMatch(/class="prose-scroll[^"]*"[^>]*tabindex/)
   }, 60_000)
 
-  it('passes axe’s scrollable-region-focusable rule on a phone', async () => {
-    const { page } = await open(PHONE)
-    await expect
-      .poll(
-        () =>
-          scrollerAfter(page, 'writing-for-charts').getAttribute('tabindex'),
-        { timeout: 5_000 }
-      )
-      .toBe('0')
-    const require = createRequire(import.meta.url)
-    await page.addScriptTag({ path: require.resolve('axe-core') })
-    const violations = await page.evaluate(async () => {
-      const result = await (
-        window as unknown as {
+  it.each([PAGE, '/foundations/date-and-time/'])(
+    'passes axe’s scrollable region and unique landmark rules on %s on a phone',
+    async (path) => {
+      const { page } = await open(PHONE, path)
+      await expect
+        .poll(() => page.locator('.prose-scroll[role=region]').count(), {
+          timeout: 5_000
+        })
+        .toBeGreaterThan(1)
+      const require = createRequire(import.meta.url)
+      await page.addScriptTag({ path: require.resolve('axe-core') })
+      const violations = await page.evaluate(async () => {
+        const { axe } = window as unknown as {
           axe: {
             run: (
-              context: Element,
+              context: Document,
               options: object
-            ) => Promise<{ violations: { nodes: unknown[] }[] }>
+            ) => Promise<{ violations: { id: string; nodes: unknown[] }[] }>
           }
         }
-      ).axe.run(document.querySelector('#docs-content')!, {
-        runOnly: ['scrollable-region-focusable']
+        const result = await axe.run(document, {
+          runOnly: ['scrollable-region-focusable', 'landmark-unique']
+        })
+        return result.violations.map(({ id, nodes }) => [id, nodes.length])
       })
-      return result.violations.flatMap((violation) => violation.nodes).length
-    })
-    expect(violations).toBe(0)
-  }, 60_000)
+      expect(violations).toEqual([])
+    },
+    60_000
+  )
 })
