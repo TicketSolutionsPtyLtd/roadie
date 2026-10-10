@@ -4,7 +4,6 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
 
-import { cardSizeTable } from '../src/lib/card-sizes.ts'
 import { DASHBOARD_EXAMPLES } from '../src/lib/dashboard-examples.ts'
 import {
   type LlmsLink,
@@ -15,7 +14,6 @@ import {
   dashboardExampleToMarkdown,
   linkLine,
   llmsIndex,
-  markdownTable,
   pageToMarkdown,
   tokenFamilyToMarkdown
 } from '../src/lib/llms.ts'
@@ -35,6 +33,8 @@ import {
   ALL_TOKENS_INTRO,
   TOKEN_FAMILY_PAGES
 } from '../src/lib/token-families.ts'
+import { TWIN_COMPONENTS } from '../src/lib/twin-components.ts'
+import { DATA_RENDERERS } from './twin-renderers.ts'
 
 const require = createRequire(import.meta.url)
 const appDir = path.resolve('src/app')
@@ -102,23 +102,24 @@ const catalogueMarkdown: Record<string, string> = Object.fromEntries(
 )
 
 const renderers = {
-  CardSizes: () => {
-    const { head, rows } = cardSizeTable()
-    return markdownTable(
-      head,
-      rows.map(({ size, spans, use }) => [
-        `\`${size}\``,
-        ...spans.map(String),
-        use
-      ])
-    )
-  },
+  ...DATA_RENDERERS,
   CatalogueIndex: ({ name }: Record<string, string | true>) => {
     if (typeof name !== 'string' || !Object.hasOwn(catalogueMarkdown, name))
       throw new Error(`<CatalogueIndex name="${name}"> names no catalogue`)
     return catalogueMarkdown[name]!
   }
 }
+const kinds = Object.entries(TWIN_COMPONENTS)
+const rendered = kinds
+  .filter(([, kind]) => kind === 'rendered')
+  .map(([name]) => name)
+if (rendered.sort().join() !== Object.keys(renderers).sort().join())
+  throw new Error(
+    `twin-components.ts marks ${rendered.join(', ')} as rendered, but the renderers are ${Object.keys(renderers).join(', ')}`
+  )
+const drawings = new Set(
+  kinds.filter(([, kind]) => kind !== 'rendered').map(([name]) => name)
+)
 
 function familyMarkdown(family: TokenFamily, description?: string) {
   const { title, intro, guidance } = TOKEN_FAMILY_PAGES[family]
@@ -178,7 +179,8 @@ async function markdownFor(route: string) {
       component.docs?.endsWith(`${route}/`)
     ),
     resolveLink,
-    renderers
+    renderers,
+    drawings
   })
 }
 

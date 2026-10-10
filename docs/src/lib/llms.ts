@@ -1,6 +1,7 @@
 import type {
   BlockContent,
   Code,
+  Heading,
   Paragraph,
   PhrasingContent,
   Root,
@@ -32,7 +33,12 @@ export type MarkdownPage = {
   resolveLink?: (href: string) => string
   /** Markdown for each docs component the page renders data with, keyed by its JSX name; bare props arrive as `true`. */
   renderers?: Record<string, (props: Record<string, string | true>) => string>
+  /** Docs components that only draw for the site. When set, a docs component that is neither rendered nor listed here fails the build. */
+  drawings?: ReadonlySet<string>
 }
+
+// Structure every page shares, which `transform` expands itself.
+export const BUILT_IN = new Set(['Guideline', 'Guidelines', 'PropsDefinitions'])
 
 type JsxElement = MdxJsxFlowElement | MdxJsxTextElement
 type Node = Root | RootContent
@@ -216,6 +222,7 @@ function jsxToPhrasing(
   const children = node.children.flatMap((child) => jsxToPhrasing(child, page))
   if (node.type === 'JSXFragment') return children
   const { name } = node.openingElement
+  if (name.type === 'JSXIdentifier') assertListed(name.name, page)
   switch (name.type === 'JSXIdentifier' ? name.name : '') {
     case 'code':
     case 'Code':
@@ -248,10 +255,26 @@ function richAttribute(node: JsxElement, name: string, page: Page): Node[] {
   return toString(paragraph(...children)) ? [paragraph(...children)] : []
 }
 
+/** Fails the build on a docs component that's neither rendered nor listed as a drawing. */
+function assertListed(name: string, page: Page) {
+  const root = name.split('.')[0]!
+  if (
+    page.drawings &&
+    page.docsOnly.has(root) &&
+    !BUILT_IN.has(root) &&
+    !page.drawings.has(root)
+  )
+    throw new Error(
+      `<${name}> isn't in the twin registry: add it to docs/src/lib/twin-components.ts`
+    )
+}
+
 /** An example whose root component comes from the docs app draws for the site, so its code isn't Roadie's to copy. */
 function isDocsDrawing(example: string, page: Page) {
   const root = example.match(/^\s*<([\w]+)/)?.[1]
-  return root !== undefined && page.docsOnly.has(root)
+  if (root === undefined || !page.docsOnly.has(root)) return false
+  assertListed(root, page)
+  return true
 }
 
 function guideline(
@@ -272,8 +295,13 @@ function guideline(
       ? 'Do'
       : node.name === 'Guideline.Dont'
         ? 'Don’t'
-        : title
+        : undefined
+  // One level below the heading it sits under, so the twin never skips a level.
+  const depth = Math.min(page.headingDepth + 1, 6) as Heading['depth']
   return [
+    ...(title && !label
+      ? [{ type: 'heading', depth, children: [text(title)] } as Heading]
+      : []),
     ...(label ? [paragraph(strong(label))] : []),
     ...richAttribute(node, 'description', page),
     ...(example && !isDocsDrawing(example, page) ? [tsx(dedent(example))] : []),
@@ -283,10 +311,10 @@ function guideline(
 }
 
 type Page = Required<Pick<MarkdownPage, 'components'>> &
-  MarkdownPage & { docsOnly: Set<string> }
+  MarkdownPage & { docsOnly: Set<string>; headingDepth: number }
 
 /** Names the page imports from the docs app (`@/…`). */
-function docsOnlyNames(tree: Root) {
+export function docsOnlyNames(tree: Root) {
   const names = new Set<string>()
   for (const node of tree.children) {
     if (node.type !== 'mdxjsEsm') continue
@@ -312,6 +340,9 @@ function transform(node: Node, page: Page): Node[] {
       return LIVE_FENCE.test(node.lang ?? '')
         ? [{ ...node, lang: node.lang!.replace(/-.*/, ''), meta: null }]
         : [node]
+    case 'heading':
+      page.headingDepth = node.depth
+      break
     case 'link':
       if (page.resolveLink && node.url.startsWith('/')) {
         node = { ...node, url: page.resolveLink(node.url) }
@@ -340,6 +371,7 @@ function transform(node: Node, page: Page): Node[] {
         .parse(render(rendererProps(node)))
         .children.flatMap((child) => transform(child, page))
     }
+    if (node.name) assertListed(node.name, page)
     if (node.name === 'PropsDefinitions') {
       const reference = apiReference(page.components)
       page.components = []
@@ -373,7 +405,12 @@ export function pageToMarkdown(page: MarkdownPage): string {
     .use(remarkGfm)
     .use(remarkStringify, { bullet: '-', fences: true, rule: '-' })
   const tree = processor.parse(page.mdx)
-  const state = { components: [], docsOnly: docsOnlyNames(tree), ...page }
+  const state = {
+    components: [],
+    docsOnly: docsOnlyNames(tree),
+    headingDepth: 1,
+    ...page
+  }
   const [body] = transform(tree, state) as [Root]
   const trailingReference = apiReference(state.components).flatMap((child) =>
     transform(child, state)

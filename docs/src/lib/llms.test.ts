@@ -110,7 +110,7 @@ describe('pageToMarkdown', () => {
     expect(md).toBe(
       [
         '# Badge',
-        '**Keep it short**',
+        '## Keep it short',
         '**Do**',
         "```tsx\n<Badge intent='success'>Paid</Badge>\n```",
         'One word where one will do.',
@@ -138,7 +138,7 @@ describe('pageToMarkdown', () => {
     expect(md).toBe(
       [
         '# Badge',
-        '**Pair a tile with a label**',
+        '## Pair a tile with a label',
         '**Do**',
         '```tsx\n<><IconTile /><p>Paid</p></>\n```',
         'Name what the icon means.\n'
@@ -208,7 +208,7 @@ describe('pageToMarkdown', () => {
     expect(md).toBe(
       [
         '# Badge',
-        '**Name the tier**',
+        '## Name the tier',
         'Use `rounded-3xl`, not *\\[3xl]*, for a [Panel](/foundations/shape).',
         '**Do**',
         'Say Panel.\n'
@@ -245,7 +245,7 @@ describe('pageToMarkdown', () => {
     expect(md).toBe(
       [
         '# Badge',
-        '**Constrain the height**',
+        '## Constrain the height',
         'ScrollArea never sizes itself.',
         '**Do**',
         'Set a max height.\n'
@@ -632,5 +632,82 @@ describe('pageToMarkdown docs drawings', () => {
     expect(md).not.toContain('RowDiagram')
     expect(md).toContain("<Card size='lg' />")
     expect(md).toContain('<Button>Go</Button>')
+  })
+})
+
+describe('pageToMarkdown twin registry', () => {
+  const mdx = [
+    "import { SpacingScale } from '@/components/layout/SpacingScale'",
+    '',
+    'Steps of the spacing unit.',
+    '',
+    '<SpacingScale />'
+  ].join('\n')
+
+  it('fails on a docs component that is neither rendered nor a drawing', () => {
+    expect(() =>
+      pageToMarkdown({ title: 'T', mdx, drawings: new Set() })
+    ).toThrow(/<SpacingScale> isn't in the twin registry/)
+  })
+
+  it('drops a listed drawing and keeps the text around it', () => {
+    expect(
+      pageToMarkdown({ title: 'T', mdx, drawings: new Set(['SpacingScale']) })
+    ).toBe('# T\n\nSteps of the spacing unit.\n')
+  })
+})
+
+describe('pageToMarkdown Guideline titles', () => {
+  it('writes a titled Guideline as a heading one level below the heading above it', () => {
+    const md = (heading: string) =>
+      pageToMarkdown({
+        title: 'T',
+        mdx: [
+          heading,
+          '',
+          "<Guideline title='Mirror a large card'>",
+          '  <Guideline.Do>',
+          '    Mirror it.',
+          '  </Guideline.Do>',
+          '</Guideline>'
+        ].join('\n')
+      })
+    expect(md('## Rows')).toBe(
+      '# T\n\n## Rows\n\n### Mirror a large card\n\n**Do**\n\nMirror it.\n'
+    )
+    expect(md('### Rows')).toContain('\n#### Mirror a large card\n')
+  })
+})
+
+describe('pageToMarkdown twin registry in props', () => {
+  const mdx = (example: string) =>
+    [
+      "import { RowDiagram } from '@/components/RowDiagram'",
+      '',
+      `<Guideline.Do example={${example}}>Mirror it.</Guideline.Do>`
+    ].join('\n')
+
+  it('fails on an unlisted docs component passed as a prop', () => {
+    expect(() =>
+      pageToMarkdown({
+        title: 'T',
+        mdx: mdx('<RowDiagram />'),
+        drawings: new Set()
+      })
+    ).toThrow(/<RowDiagram> isn't in the twin registry/)
+  })
+
+  it('fails on an unlisted docs component in a JSX description', () => {
+    expect(() =>
+      pageToMarkdown({
+        title: 'T',
+        mdx: [
+          "import { Swatch } from '@/components/Swatch'",
+          '',
+          '<Guideline.Do description={<>Use <Swatch /> here</>}>Do it.</Guideline.Do>'
+        ].join('\n'),
+        drawings: new Set()
+      })
+    ).toThrow(/<Swatch> isn't in the twin registry/)
   })
 })
