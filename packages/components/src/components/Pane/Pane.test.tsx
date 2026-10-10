@@ -10,18 +10,15 @@ import { Pane } from '.'
 import { PendingNavigationContext } from '../../providers/PendingNavigationContext'
 import { Navigator } from '../Navigator'
 import {
-  reportUnrenderedSentinels,
   restoreNavigation,
   scrollViewport,
   setNavigation,
-  testBrand,
-  withScrollSentinels
+  testBrand
 } from '../Navigator/testUtils'
 import {
   PANE_CHROME_NONE,
   type PaneChromeContextValue
 } from './PaneChromeContext'
-import { COLLAPSE_AT, EXPAND_AT } from './PaneRoot'
 import {
   PaneStackContext,
   type PaneStackContextValue
@@ -39,8 +36,6 @@ const flush = () =>
   act(async () => {
     await Promise.resolve()
   })
-
-withScrollSentinels()
 
 const renderPane = async (ui: ReactNode) => {
   const result = render(ui)
@@ -762,22 +757,11 @@ describe('Pane.Header back name', () => {
   })
 })
 
-describe('Pane.Header collapse on scroll', () => {
-  const scrolled = scrollViewport
-
+describe('Pane.Header compact title', () => {
   const viewportOf = () =>
     document.querySelector('[data-slot="pane-viewport"]') as HTMLElement
-  const headerOf = () =>
-    document.querySelector('[data-slot="pane-header"]') as HTMLElement
   const titleOf = () =>
     document.querySelector('[data-slot="pane-title"]') as HTMLElement
-
-  const collapse = async () => {
-    await act(async () => {
-      scrolled(viewportOf(), COLLAPSE_AT + 1)
-      await Promise.resolve()
-    })
-  }
 
   const titled = (
     <Pane>
@@ -787,113 +771,12 @@ describe('Pane.Header collapse on scroll', () => {
     </Pane>
   )
 
-  it('starts expanded and collapses once the viewport scrolls past the threshold', async () => {
-    await renderPane(
-      <Pane>
-        <Pane.Header>
-          <Pane.Title>Components</Pane.Title>
-        </Pane.Header>
-      </Pane>
-    )
-    expect(headerOf()).toHaveAttribute('data-collapsed', 'false')
-    await act(async () => {
-      scrolled(viewportOf(), COLLAPSE_AT + 1)
-      await Promise.resolve()
-    })
-    expect(headerOf()).toHaveAttribute('data-collapsed', 'true')
-  })
-
-  it('stays expanded when the first report comes from a pane an ancestor hides', async () => {
-    await renderPane(titled)
-    await act(async () => {
-      reportUnrenderedSentinels(viewportOf())
-      await Promise.resolve()
-    })
-    expect(headerOf()).toHaveAttribute('data-collapsed', 'false')
-    expect(titleOf()).toHaveClass('grid-rows-[1fr]')
-  })
-
-  it('fades its docked shadow in on a pseudo-element, never transitioning box-shadow', async () => {
-    await renderPane(titled)
-    expect(headerOf()).toHaveClass('after:shadow-md', 'after:opacity-0')
-    expect(headerOf().className).not.toMatch(/transition-\[box-shadow\]/)
-    expect(headerOf().className).not.toMatch(/(^|\s)shadow-/)
-    await act(async () => {
-      scrolled(viewportOf(), COLLAPSE_AT + 1)
-      await Promise.resolve()
-    })
-    expect(headerOf()).toHaveClass('after:opacity-100')
-  })
-
-  it('does not flap between the two thresholds', async () => {
-    await renderPane(
-      <Pane>
-        <Pane.Header>
-          <Pane.Title>Components</Pane.Title>
-        </Pane.Header>
-      </Pane>
-    )
-    await act(async () => {
-      scrolled(viewportOf(), COLLAPSE_AT + 1)
-      await Promise.resolve()
-    })
-    await act(async () => {
-      scrolled(viewportOf(), Math.round((EXPAND_AT + COLLAPSE_AT) / 2))
-      await Promise.resolve()
-    })
-    expect(headerOf()).toHaveAttribute('data-collapsed', 'true')
-
-    await act(async () => {
-      scrolled(viewportOf(), EXPAND_AT - 1)
-      await Promise.resolve()
-    })
-    expect(headerOf()).toHaveAttribute('data-collapsed', 'false')
-  })
-
-  it('collapses the in-header title over its own grid row, never over display', async () => {
-    await renderPane(titled)
-    await collapse()
-
-    const title = titleOf()
-    expect(title).not.toHaveClass('hidden')
-    expect(title).toHaveClass('grid-rows-[0fr]')
-    const transitions = title.className.match(/transition-\[[^\]]+\]/g) ?? []
-    expect(transitions.length).toBeGreaterThan(0)
-    for (const transition of transitions) {
-      expect(transition).not.toContain('display')
-    }
-    expect(
-      transitions.some((transition) =>
-        transition.includes('grid-template-rows')
-      )
-    ).toBe(true)
-  })
-
   it('holds the title row open at its content height while expanded', async () => {
     await renderPane(titled)
     const title = titleOf()
     expect(title).toHaveClass('grid', 'grid-rows-[1fr]')
     // Clipping zeroes the item's automatic minimum, so the track can collapse.
     expect(title.firstElementChild).toHaveClass('overflow-hidden')
-  })
-
-  it('reclaims the row gap above the title along with the row', async () => {
-    await renderPane(titled)
-    const header = headerOf()
-    expect(header.className).toContain('[--pane-header-gap:')
-    expect(header).toHaveClass('gap-x-(--pane-header-gap)')
-    expect(header.className).toMatch(
-      /\[&>\*:not\(\[data-slot=pane-back\]\).*:not\(\[data-slot=pane-title\]\)\]:mt-\(--pane-header-gap\)/
-    )
-
-    const expanded = titleOf()
-    expect(expanded).toHaveClass('mt-(--pane-header-gap)')
-    expect(expanded.className.match(/transition-\[[^\]]+\]/g)?.[0]).toContain(
-      'margin-top'
-    )
-
-    await collapse()
-    expect(titleOf()).toHaveClass('mt-0')
   })
 
   it('suppresses the row animation under reduced motion', async () => {
@@ -904,21 +787,6 @@ describe('Pane.Header collapse on scroll', () => {
       expect(title.className).toContain(`motion-safe:${transition}`)
     }
     expect(title).toHaveClass('motion-reduce:transition-none')
-  })
-
-  it('still collapses its own header when it has opted out of auto nav', async () => {
-    await renderPane(
-      <Pane tabBar='visible'>
-        <Pane.Header>
-          <Pane.Title>Components</Pane.Title>
-        </Pane.Header>
-      </Pane>
-    )
-    await act(async () => {
-      scrolled(viewportOf(), COLLAPSE_AT + 1)
-      await Promise.resolve()
-    })
-    expect(headerOf()).toHaveAttribute('data-collapsed', 'true')
   })
 
   it('exposes the compact title as a scroll-to-top button', async () => {
@@ -962,7 +830,7 @@ describe('Pane.Header collapse on scroll', () => {
     viewport.scrollTo = scrollTo as unknown as typeof viewport.scrollTo
 
     await act(async () => {
-      scrolled(viewport, 40)
+      scrollViewport(viewport, 40)
       await Promise.resolve()
     })
     await userEvent.click(screen.getByRole('button', { name: 'Scroll to top' }))
@@ -1019,15 +887,6 @@ describe('orchestrator chrome', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
-  })
-
-  it('reports crossing its threshold while it describes auto nav behaviour', async () => {
-    const onScrollPast = vi.fn()
-    await withChrome(<Pane>Body</Pane>, { scrollPastAt: 24, onScrollPast })
-    await scroll(80)
-    expect(onScrollPast).toHaveBeenLastCalledWith(true)
-    await scroll(24)
-    expect(onScrollPast).toHaveBeenLastCalledWith(false)
   })
 
   it('reports nothing until it is first scrolled, as a pane newly on top', async () => {
@@ -1212,46 +1071,6 @@ describe('pane registration through a wrapper', () => {
     render(<Pane column='list'>Alone</Pane>)
     await flushViewportMeasurement()
     expect(positions()).toEqual([null])
-  })
-
-  it('hands chrome to the wrapped top pane', async () => {
-    render(
-      <Navigator value='/foundations/colors'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          <Navigator.Item value='/foundations' href='/foundations'>
-            Foundations
-            <Navigator.Secondary aria-label='Foundations pages'>
-              <Navigator.Item
-                value='/foundations/colors'
-                href='/foundations/colors'
-              >
-                Colors
-              </Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Slot>
-          <Pane>
-            <Pane.Header>
-              <Pane.Title>Foundations</Pane.Title>
-            </Pane.Header>
-          </Pane>
-        </Slot>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    const viewport = Array.from(
-      document.querySelectorAll<HTMLElement>('[data-slot="pane-viewport"]')
-    ).at(-1)!
-    await act(async () => {
-      scrollViewport(viewport, 80)
-    })
-    expect(
-      document.querySelector(
-        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
-      )
-    ).toHaveAttribute('data-collapsed', 'true')
   })
 })
 

@@ -4,6 +4,8 @@ import { page } from 'vitest/browser'
 
 import { Pane } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { COLLAPSE_AT, EXPAND_AT } from './PaneRoot'
+import { forgetPaneScroll } from './paneScroll'
 import { useStylesheet } from './testUtils'
 
 let removeStylesheet = () => {}
@@ -14,7 +16,10 @@ afterAll(async () => {
   removeStylesheet()
   await page.viewport(1920, 1080)
 })
-afterEach(() => cleanup())
+afterEach(() => {
+  cleanup()
+  forgetPaneScroll()
+})
 
 // 1rem top padding, one 2.5rem control, and 0.5rem bottom padding.
 const CONTROL_HEADER = 64
@@ -32,10 +37,19 @@ async function settle() {
   await frames()
 }
 
-function renderTitled() {
+async function scrollTo(viewport: HTMLElement, top: number) {
+  viewport.scrollTop = top
+  viewport.dispatchEvent(new Event('scroll'))
+  await settle()
+}
+
+function renderTitled({
+  tabBar,
+  hidden = false
+}: { tabBar?: 'auto' | 'visible'; hidden?: boolean } = {}) {
   const { container } = render(
-    <div style={{ width: 600, height: 500, display: 'grid' }}>
-      <Pane>
+    <div style={{ width: 600, height: 500, display: hidden ? 'none' : 'grid' }}>
+      <Pane tabBar={tabBar}>
         <Pane.Header>
           <Pane.Title>Corduroy Lagoon Sessions</Pane.Title>
         </Pane.Header>
@@ -49,7 +63,10 @@ function renderTitled() {
   const viewport = container.querySelector<HTMLElement>(
     '[data-slot="pane-viewport"]'
   )!
-  return { header, viewport }
+  const title = container.querySelector<HTMLElement>(
+    '[data-slot="pane-title"]'
+  )!
+  return { header, viewport, title }
 }
 
 const transitioned = (element: HTMLElement) => {
@@ -84,10 +101,10 @@ describe('a pane header', () => {
     [800, 0]
   ])(
     'at a %ipx viewport, draws a %ipx up affordance beside the compact title',
-    async (viewport, size) => {
-      await page.viewport(viewport, 900)
-      renderTitled()
-      await settle()
+    async (width, size) => {
+      await page.viewport(width, 900)
+      const { viewport } = renderTitled()
+      await scrollTo(viewport, 400)
       const icon = screen
         .getByRole('button', { name: 'Scroll to top' })
         .querySelector('svg')!
@@ -95,6 +112,57 @@ describe('a pane header', () => {
       expect(icon.getBoundingClientRect().width).toBe(size)
     }
   )
+})
+
+describe('a pane header on scroll', () => {
+  it.each(['auto', 'visible'] as const)(
+    'collapses past its threshold and expands only back under the lower one, with tabBar %s',
+    async (tabBar) => {
+      const { header, viewport } = renderTitled({ tabBar })
+      // Anchoring would shift scrollTop by the folded title row, off the thresholds.
+      viewport.style.overflowAnchor = 'none'
+      await settle()
+      expect(header).toHaveAttribute('data-collapsed', 'false')
+
+      await scrollTo(viewport, COLLAPSE_AT + 1)
+      expect(header).toHaveAttribute('data-collapsed', 'true')
+
+      await scrollTo(viewport, (COLLAPSE_AT + EXPAND_AT) / 2)
+      expect(header).toHaveAttribute('data-collapsed', 'true')
+
+      await scrollTo(viewport, EXPAND_AT - 1)
+      expect(header).toHaveAttribute('data-collapsed', 'false')
+    }
+  )
+
+  it('stays expanded while an ancestor hides the pane', async () => {
+    const { header } = renderTitled({ hidden: true })
+    await settle()
+
+    expect(header).toHaveAttribute('data-collapsed', 'false')
+  })
+
+  it('folds the title row and the gap above it away, and docks a shadow, without animating display or box-shadow', async () => {
+    const { header, viewport, title } = renderTitled()
+    await settle()
+    const shadow = () => getComputedStyle(header, '::after').opacity
+    expect(
+      parseFloat(getComputedStyle(title).gridTemplateRows)
+    ).toBeGreaterThan(0)
+    expect(parseFloat(getComputedStyle(title).marginTop)).toBeGreaterThan(0)
+    expect(shadow()).toBe('0')
+
+    await scrollTo(viewport, 400)
+    expect(getComputedStyle(title).gridTemplateRows).toBe('0px')
+    expect(getComputedStyle(title).marginTop).toBe('0px')
+    expect(getComputedStyle(title).display).not.toBe('none')
+    expect(shadow()).toBe('1')
+    expect(transitioned(title)).toEqual(
+      expect.arrayContaining(['grid-template-rows', 'margin-top'])
+    )
+    expect(transitioned(title)).not.toContain('display')
+    expect(transitioned(header)).not.toContain('box-shadow')
+  })
 })
 
 describe('pane chrome', () => {
