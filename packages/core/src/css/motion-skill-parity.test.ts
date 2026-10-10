@@ -9,7 +9,7 @@ const skill = readFileSync(
 
 const named = (pattern: RegExp) => new Set(skill.match(pattern))
 const deprecated = new Set(
-  [...motion.matchAll(/\/\* @deprecated[^*]*\*\/\s*@utility ([\w-]+)/g)].map(
+  [...motion.matchAll(/\/\* @deprecated[\s\S]*?\*\/\s*@utility ([\w-]+)/g)].map(
     ([, name]) => name
   )
 )
@@ -43,7 +43,7 @@ describe('the motion skill', () => {
   it('lists every deprecated utility as deprecated', () => {
     const bullet = skill
       .split('\n- ')
-      .find((item) => item.includes('deprecated'))
+      .find((item) => item.startsWith('`motion-fade-in`'))
     expect(deprecated.size).toBeGreaterThan(0)
     for (const utility of deprecated) expect(bullet).toContain(`\`${utility}\``)
   })
