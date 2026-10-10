@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { llmsIndex, pageToMarkdown, tokenFamilyToMarkdown } from './llms'
+import { DASHBOARD_EXAMPLES } from './dashboard-examples'
+import {
+  allTokensToMarkdown,
+  dashboardExampleToMarkdown,
+  llmsIndex,
+  pageToMarkdown,
+  tokenFamilyToMarkdown
+} from './llms'
 
 const page = (mdx: string) => pageToMarkdown({ title: 'Badge', mdx })
 
@@ -103,7 +110,7 @@ describe('pageToMarkdown', () => {
     expect(md).toBe(
       [
         '# Badge',
-        '**Keep it short**',
+        '## Keep it short',
         '**Do**',
         "```tsx\n<Badge intent='success'>Paid</Badge>\n```",
         'One word where one will do.',
@@ -131,7 +138,7 @@ describe('pageToMarkdown', () => {
     expect(md).toBe(
       [
         '# Badge',
-        '**Pair a tile with a label**',
+        '## Pair a tile with a label',
         '**Do**',
         '```tsx\n<><IconTile /><p>Paid</p></>\n```',
         'Name what the icon means.\n'
@@ -201,7 +208,7 @@ describe('pageToMarkdown', () => {
     expect(md).toBe(
       [
         '# Badge',
-        '**Name the tier**',
+        '## Name the tier',
         'Use `rounded-3xl`, not *\\[3xl]*, for a [Panel](/foundations/shape).',
         '**Do**',
         'Say Panel.\n'
@@ -238,7 +245,7 @@ describe('pageToMarkdown', () => {
     expect(md).toBe(
       [
         '# Badge',
-        '**Constrain the height**',
+        '## Constrain the height',
         'ScrollArea never sizes itself.',
         '**Do**',
         'Set a max height.\n'
@@ -530,5 +537,177 @@ describe('pageToMarkdown description', () => {
     ).toBe(
       '# Foundations\n\nThe principles every\ncomponent builds on.\n\nMore.\n'
     )
+  })
+})
+
+describe('dashboardExampleToMarkdown', () => {
+  it('writes the spec, then the period and card action code it has, then the JSX', () => {
+    expect(
+      dashboardExampleToMarkdown({
+        title: 'Show dashboard',
+        description: 'How one show is selling',
+        spec: { version: 1 },
+        jsx: '<Dashboard />',
+        period: { note: 'Pick a period.', code: 'usePeriod()' },
+        cardActionsCode: '<CardMenu />'
+      })
+    ).toBe(
+      [
+        '# Show dashboard',
+        '> How one show is selling',
+        '## As data',
+        '```json\n{\n  "version": 1\n}\n```',
+        '## With a period',
+        'Pick a period.',
+        '```tsx\nusePeriod()\n```',
+        '## With card actions',
+        '```tsx\n<CardMenu />\n```',
+        '## As JSX',
+        '```tsx\n<Dashboard />\n```'
+      ].join('\n\n') + '\n'
+    )
+  })
+
+  it('fences code that holds a backtick run past its length', () => {
+    expect(
+      dashboardExampleToMarkdown({
+        title: 'T',
+        spec: {},
+        jsx: 'const md = `a ``` b`'
+      })
+    ).toContain('````tsx\nconst md = `a ``` b`\n````')
+  })
+})
+
+describe('allTokensToMarkdown', () => {
+  it('puts each family under a level 2 heading and its groups a level down', () => {
+    const md = allTokensToMarkdown({
+      title: 'All tokens',
+      intro: 'Every token.',
+      families: [
+        {
+          title: 'Shape',
+          intro: 'Radius and width.',
+          guidance: [],
+          tokens: [
+            { name: '--radius-lg', group: 'Radius', value: { light: '0.5rem' } }
+          ]
+        }
+      ]
+    })
+    expect(md).toBe(
+      [
+        '# All tokens',
+        'Every token.',
+        '## Shape',
+        'Radius and width.',
+        '### Radius',
+        '| Token | Value |\n| --- | --- |\n| `--radius-lg` | `0.5rem` |'
+      ].join('\n\n') + '\n'
+    )
+  })
+})
+
+describe('DASHBOARD_EXAMPLES', () => {
+  it('keeps the portfolio period code at column 0', () => {
+    expect(DASHBOARD_EXAMPLES.portfolio.period.code).toMatch(
+      /^'use client'\n\nfunction PortfolioDashboard\(\) \{\n  const/
+    )
+  })
+})
+
+describe('pageToMarkdown docs drawings', () => {
+  it('drops a guideline example drawn by a docs component, and keeps its code', () => {
+    const md = pageToMarkdown({
+      title: 'T',
+      mdx: [
+        "import { RowDiagram } from '@/components/RowDiagram'",
+        "import { Button } from '@oztix/roadie-components/button'",
+        '',
+        "<Guideline.Do example={<RowDiagram sizes={['lg']} />} code={`<Card size='lg' />`}>Mirror it.</Guideline.Do>",
+        '',
+        '<Guideline.Dont example={<Button>Go</Button>}>Not this.</Guideline.Dont>'
+      ].join('\n')
+    })
+    expect(md).not.toContain('RowDiagram')
+    expect(md).toContain("<Card size='lg' />")
+    expect(md).toContain('<Button>Go</Button>')
+  })
+})
+
+describe('pageToMarkdown twin registry', () => {
+  const mdx = [
+    "import { SpacingScale } from '@/components/layout/SpacingScale'",
+    '',
+    'Steps of the spacing unit.',
+    '',
+    '<SpacingScale />'
+  ].join('\n')
+
+  it('fails on a docs component that is neither rendered nor a drawing', () => {
+    expect(() =>
+      pageToMarkdown({ title: 'T', mdx, drawings: new Set() })
+    ).toThrow(/<SpacingScale> isn't in the twin registry/)
+  })
+
+  it('drops a listed drawing and keeps the text around it', () => {
+    expect(
+      pageToMarkdown({ title: 'T', mdx, drawings: new Set(['SpacingScale']) })
+    ).toBe('# T\n\nSteps of the spacing unit.\n')
+  })
+})
+
+describe('pageToMarkdown Guideline titles', () => {
+  it('writes a titled Guideline as a heading one level below the heading above it', () => {
+    const md = (heading: string) =>
+      pageToMarkdown({
+        title: 'T',
+        mdx: [
+          heading,
+          '',
+          "<Guideline title='Mirror a large card'>",
+          '  <Guideline.Do>',
+          '    Mirror it.',
+          '  </Guideline.Do>',
+          '</Guideline>'
+        ].join('\n')
+      })
+    expect(md('## Rows')).toBe(
+      '# T\n\n## Rows\n\n### Mirror a large card\n\n**Do**\n\nMirror it.\n'
+    )
+    expect(md('### Rows')).toContain('\n#### Mirror a large card\n')
+  })
+})
+
+describe('pageToMarkdown twin registry in props', () => {
+  const mdx = (example: string) =>
+    [
+      "import { RowDiagram } from '@/components/RowDiagram'",
+      '',
+      `<Guideline.Do example={${example}}>Mirror it.</Guideline.Do>`
+    ].join('\n')
+
+  it('fails on an unlisted docs component passed as a prop', () => {
+    expect(() =>
+      pageToMarkdown({
+        title: 'T',
+        mdx: mdx('<RowDiagram />'),
+        drawings: new Set()
+      })
+    ).toThrow(/<RowDiagram> isn't in the twin registry/)
+  })
+
+  it('fails on an unlisted docs component in a JSX description', () => {
+    expect(() =>
+      pageToMarkdown({
+        title: 'T',
+        mdx: [
+          "import { Swatch } from '@/components/Swatch'",
+          '',
+          '<Guideline.Do description={<>Use <Swatch /> here</>}>Do it.</Guideline.Do>'
+        ].join('\n'),
+        drawings: new Set()
+      })
+    ).toThrow(/<Swatch> isn't in the twin registry/)
   })
 })

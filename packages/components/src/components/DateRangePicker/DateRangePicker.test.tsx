@@ -67,7 +67,7 @@ describe('DateRangePicker', () => {
     expect(trigger()).toHaveTextContent('Last 7 days')
     expect(trigger()).toHaveTextContent('1 to 7 Oct 2026')
     expect(trigger()).toHaveAccessibleName(
-      'Choose dates, Period (Last 7 days, 1 to 7 Oct 2026)'
+      'Choose dates, Last 7 days 1 to 7 Oct 2026, Period'
     )
   })
 
@@ -82,7 +82,7 @@ describe('DateRangePicker', () => {
     )
     expect(trigger()).toHaveTextContent('Last 30 days 6 Sept to 5 Oct 2026')
     expect(trigger()).toHaveAccessibleName(
-      'Choose dates, Period (Last 30 days, 6 Sept to 5 Oct 2026)'
+      'Choose dates, Last 30 days 6 Sept to 5 Oct 2026, Period'
     )
   })
 
@@ -96,7 +96,7 @@ describe('DateRangePicker', () => {
       />
     )
     expect(trigger()).toHaveAccessibleName(
-      'Choose dates, Period (1 to 30 Sept 2026)'
+      'Choose dates, 1 to 30 Sept 2026, Period'
     )
   })
 
@@ -110,7 +110,7 @@ describe('DateRangePicker', () => {
       />
     )
     expect(trigger()).toHaveAccessibleName(
-      'Choose dates, Period (6 Sept to 4 Oct 2026)'
+      'Choose dates, 6 Sept to 4 Oct 2026, Period'
     )
   })
 
@@ -129,7 +129,7 @@ describe('DateRangePicker', () => {
       />
     )
     expect(trigger()).toHaveAccessibleName(
-      'Choose dates, Period (This past week, 1 to 7 Oct 2026)'
+      'Choose dates, This past week 1 to 7 Oct 2026, Period'
     )
   })
 
@@ -143,7 +143,7 @@ describe('DateRangePicker', () => {
       </Field>
     )
     expect(trigger()).toHaveAccessibleName(
-      'Choose dates, Sales period (Yesterday, 6 Oct 2026)'
+      'Choose dates, Yesterday 6 Oct 2026, Sales period'
     )
     expect(trigger()).toHaveAccessibleDescription('Choose a period with sales')
     expect(trigger()).toHaveAttribute('aria-invalid', 'true')
@@ -347,7 +347,7 @@ describe('DateRangePicker', () => {
         />
       )
       expect(trigger()).toHaveAccessibleName(
-        'Choose dates, Period (This financial year, 1 Jan to 31 Dec 2026)'
+        'Choose dates, This financial year 1 Jan to 31 Dec 2026, Period'
       )
     })
 
@@ -361,7 +361,7 @@ describe('DateRangePicker', () => {
         />
       )
       expect(trigger()).toHaveAccessibleName(
-        'Choose dates, Period (3 to 5 Dez 2026)'
+        'Choose dates, 3 to 5 Dez 2026, Period'
       )
       const dialog = await open()
       expect(

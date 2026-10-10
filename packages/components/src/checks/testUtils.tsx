@@ -198,8 +198,7 @@ export const scenarios: Scenario[] = [
   {
     name: 'dashboard-period-open',
     ui: () => <Period />,
-    reach: () =>
-      opened(screen.getByRole('button', { name: /^Choose dates, Period/ }))
+    reach: () => opened(screen.getByRole('button', { name: /, Period$/ }))
   },
   { name: 'autocomplete-closed', ui: () => <City /> },
   {

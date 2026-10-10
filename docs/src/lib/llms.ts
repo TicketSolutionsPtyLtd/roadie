@@ -1,6 +1,7 @@
 import type {
   BlockContent,
   Code,
+  Heading,
   Paragraph,
   PhrasingContent,
   Root,
@@ -32,7 +33,12 @@ export type MarkdownPage = {
   resolveLink?: (href: string) => string
   /** Markdown for each docs component the page renders data with, keyed by its JSX name; bare props arrive as `true`. */
   renderers?: Record<string, (props: Record<string, string | true>) => string>
+  /** Docs components that only draw for the site. When set, a docs component that is neither rendered nor listed here fails the build. */
+  drawings?: ReadonlySet<string>
 }
+
+// Structure every page shares, which `transform` expands itself.
+export const BUILT_IN = new Set(['Guideline', 'Guidelines', 'PropsDefinitions'])
 
 type JsxElement = MdxJsxFlowElement | MdxJsxTextElement
 type Node = Root | RootContent
@@ -216,6 +222,7 @@ function jsxToPhrasing(
   const children = node.children.flatMap((child) => jsxToPhrasing(child, page))
   if (node.type === 'JSXFragment') return children
   const { name } = node.openingElement
+  if (name.type === 'JSXIdentifier') assertListed(name.name, page)
   switch (name.type === 'JSXIdentifier' ? name.name : '') {
     case 'code':
     case 'Code':
@@ -248,6 +255,28 @@ function richAttribute(node: JsxElement, name: string, page: Page): Node[] {
   return toString(paragraph(...children)) ? [paragraph(...children)] : []
 }
 
+/** Fails the build on a docs component that's neither rendered nor listed as a drawing. */
+function assertListed(name: string, page: Page) {
+  const root = name.split('.')[0]!
+  if (
+    page.drawings &&
+    page.docsOnly.has(root) &&
+    !BUILT_IN.has(root) &&
+    !page.drawings.has(root)
+  )
+    throw new Error(
+      `<${name}> isn't in the twin registry: add it to docs/src/lib/twin-components.ts`
+    )
+}
+
+/** An example whose root component comes from the docs app draws for the site, so its code isn't Roadie's to copy. */
+function isDocsDrawing(example: string, page: Page) {
+  const root = example.match(/^\s*<([\w]+)/)?.[1]
+  if (root === undefined || !page.docsOnly.has(root)) return false
+  assertListed(root, page)
+  return true
+}
+
 function guideline(
   node: JsxElement,
   children: RootContent[],
@@ -266,17 +295,40 @@ function guideline(
       ? 'Do'
       : node.name === 'Guideline.Dont'
         ? 'Don’t'
-        : title
+        : undefined
+  // One level below the heading it sits under, so the twin never skips a level.
+  const depth = Math.min(page.headingDepth + 1, 6) as Heading['depth']
   return [
+    ...(title && !label
+      ? [{ type: 'heading', depth, children: [text(title)] } as Heading]
+      : []),
     ...(label ? [paragraph(strong(label))] : []),
     ...richAttribute(node, 'description', page),
-    ...(example ? [tsx(dedent(example))] : []),
+    ...(example && !isDocsDrawing(example, page) ? [tsx(dedent(example))] : []),
     ...(code ? [tsx(dedent(code))] : []),
     ...children
   ]
 }
 
-type Page = Required<Pick<MarkdownPage, 'components'>> & MarkdownPage
+type Page = Required<Pick<MarkdownPage, 'components'>> &
+  MarkdownPage & { docsOnly: Set<string>; headingDepth: number }
+
+/** Names the page imports from the docs app (`@/…`). */
+export function docsOnlyNames(tree: Root) {
+  const names = new Set<string>()
+  for (const node of tree.children) {
+    if (node.type !== 'mdxjsEsm') continue
+    for (const statement of node.data?.estree?.body ?? []) {
+      if (
+        statement.type === 'ImportDeclaration' &&
+        String(statement.source.value).startsWith('@/')
+      )
+        for (const specifier of statement.specifiers)
+          names.add(specifier.local.name)
+    }
+  }
+  return names
+}
 
 function transform(node: Node, page: Page): Node[] {
   switch (node.type) {
@@ -288,6 +340,9 @@ function transform(node: Node, page: Page): Node[] {
       return LIVE_FENCE.test(node.lang ?? '')
         ? [{ ...node, lang: node.lang!.replace(/-.*/, ''), meta: null }]
         : [node]
+    case 'heading':
+      page.headingDepth = node.depth
+      break
     case 'link':
       if (page.resolveLink && node.url.startsWith('/')) {
         node = { ...node, url: page.resolveLink(node.url) }
@@ -316,6 +371,7 @@ function transform(node: Node, page: Page): Node[] {
         .parse(render(rendererProps(node)))
         .children.flatMap((child) => transform(child, page))
     }
+    if (node.name) assertListed(node.name, page)
     if (node.name === 'PropsDefinitions') {
       const reference = apiReference(page.components)
       page.components = []
@@ -349,7 +405,12 @@ export function pageToMarkdown(page: MarkdownPage): string {
     .use(remarkGfm)
     .use(remarkStringify, { bullet: '-', fences: true, rule: '-' })
   const tree = processor.parse(page.mdx)
-  const state = { components: [], ...page }
+  const state = {
+    components: [],
+    docsOnly: docsOnlyNames(tree),
+    headingDepth: 1,
+    ...page
+  }
   const [body] = transform(tree, state) as [Root]
   const trailingReference = apiReference(state.components).flatMap((child) =>
     transform(child, state)
@@ -444,7 +505,7 @@ const lightAndDark = ({ light, dark }: TokenValue) =>
     ? `${cell(light)} / ${cell(dark)}`
     : cell(light ?? dark)
 
-function table(header: string[], rows: string[][]) {
+export function markdownTable(header: string[], rows: string[][]) {
   return [
     `| ${header.join(' | ')} |`,
     `| ${header.map(() => '---').join(' | ')} |`,
@@ -454,7 +515,7 @@ function table(header: string[], rows: string[][]) {
 
 type Column = [name: string, value: (token: TokenRow) => string]
 
-function tokenGroup(group: string, tokens: TokenRow[]) {
+function tokenGroup(group: string, tokens: TokenRow[], depth: number) {
   const used = (column: Column) =>
     tokens.some((token) => column[1](token) !== '')
   const dark: Column = [
@@ -476,8 +537,8 @@ function tokenGroup(group: string, tokens: TokenRow[]) {
     ).filter(used)
   ]
   const sections = [
-    `## ${group}`,
-    table(
+    `${'#'.repeat(depth)} ${group}`,
+    markdownTable(
       columns.map(([name]) => name),
       tokens.map((token) => columns.map(([, value]) => value(token)))
     )
@@ -488,7 +549,7 @@ function tokenGroup(group: string, tokens: TokenRow[]) {
   if (intents.length > 0) {
     sections.push(
       'Where an intent sets its own value, light / dark:',
-      table(
+      markdownTable(
         ['Token', ...intents],
         tokens
           .filter((token) => token.byIntent)
@@ -505,11 +566,9 @@ function tokenGroup(group: string, tokens: TokenRow[]) {
   return sections
 }
 
-export function tokenFamilyToMarkdown(page: TokenFamilyMarkdown): string {
+function familySections(page: TokenFamilyMarkdown, depth: number) {
   const groups = Map.groupBy(page.tokens, (token) => token.group)
   return [
-    `# ${page.title}`,
-    ...(page.description ? [`> ${page.description}`] : []),
     page.intro,
     ...(page.guidance.length > 0
       ? [
@@ -518,8 +577,87 @@ export function tokenFamilyToMarkdown(page: TokenFamilyMarkdown): string {
             .join(', ')}.`
         ]
       : []),
-    ...[...groups].flatMap(([group, tokens]) => tokenGroup(group, tokens))
+    ...[...groups].flatMap(([group, tokens]) =>
+      tokenGroup(group, tokens, depth)
+    )
   ]
+}
+
+const markdownDocument = (
+  title: string,
+  description: string | undefined,
+  body: string[]
+) =>
+  [`# ${title}`, ...(description ? [`> ${description}`] : []), ...body]
     .join('\n\n')
     .concat('\n')
+
+export function tokenFamilyToMarkdown(family: TokenFamilyMarkdown): string {
+  return markdownDocument(
+    family.title,
+    family.description,
+    familySections(family, 2)
+  )
+}
+
+export function allTokensToMarkdown({
+  title,
+  description,
+  intro,
+  families
+}: {
+  title: string
+  description?: string
+  intro: string
+  families: TokenFamilyMarkdown[]
+}): string {
+  return markdownDocument(title, description, [
+    intro,
+    ...families.flatMap((family) => [
+      `## ${family.title}`,
+      ...familySections(family, 3)
+    ])
+  ])
+}
+
+/** A fenced block whose fence outruns any backtick run inside it. */
+function fence(lang: string, code: string) {
+  const longest = Math.max(
+    2,
+    ...(code.match(/`+/g) ?? []).map((run) => run.length)
+  )
+  const ticks = '`'.repeat(longest + 1)
+  return `${ticks}${lang}\n${code}\n${ticks}`
+}
+
+/** How a reference dashboard's page changes the period: a sentence and the code. */
+export type DashboardPeriodExample = { note: string; code: string }
+
+export type DashboardExampleMarkdown = {
+  title: string
+  description?: string
+  spec: unknown
+  jsx: string
+  period?: DashboardPeriodExample
+  cardActionsCode?: string
+}
+
+/** A reference dashboard as its page shows it: the spec, any period or card action code, then the JSX. */
+export function dashboardExampleToMarkdown(example: DashboardExampleMarkdown) {
+  return markdownDocument(example.title, example.description, [
+    '## As data',
+    fence('json', JSON.stringify(example.spec, null, 2)),
+    ...(example.period
+      ? [
+          '## With a period',
+          example.period.note,
+          fence('tsx', example.period.code)
+        ]
+      : []),
+    ...(example.cardActionsCode
+      ? ['## With card actions', fence('tsx', example.cardActionsCode)]
+      : []),
+    '## As JSX',
+    fence('tsx', example.jsx)
+  ])
 }

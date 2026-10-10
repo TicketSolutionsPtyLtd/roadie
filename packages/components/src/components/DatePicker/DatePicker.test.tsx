@@ -478,7 +478,7 @@ describe('DatePicker', () => {
     )
     expect(
       screen.getByRole('button', {
-        name: 'Choose date, Doors (Fri 27 Nov 2026)'
+        name: 'Choose date, Fri 27 Nov 2026, Doors'
       })
     ).toBeInTheDocument()
     expect(

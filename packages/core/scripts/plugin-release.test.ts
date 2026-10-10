@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  MANIFEST,
+  PACKAGE,
   checkPluginRelease,
   namesPackage,
   syncManifest
@@ -32,10 +34,10 @@ describe('checkPluginRelease', () => {
     ).toBe(true)
   })
 
-  it('passes the Version Packages change to the changelog and package', () => {
+  it('passes the Version Packages change to the changelog, package, and manifest', () => {
     expect(
       pr({
-        changedFiles: ['skills/CHANGELOG.md', 'skills/package.json'],
+        changedFiles: ['skills/CHANGELOG.md', PACKAGE, MANIFEST],
         packageVersion: '0.4.1',
         manifestVersion: '0.4.1'
       }).ok

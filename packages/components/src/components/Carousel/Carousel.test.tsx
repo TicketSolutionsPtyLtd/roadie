@@ -4,7 +4,7 @@ import { waitFor } from '@testing-library/dom'
 import { act, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { EmblaCarouselType } from 'embla-carousel'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   Carousel,
@@ -12,88 +12,6 @@ import {
   useCarousel,
   useCarouselUnsafeEmbla
 } from './index'
-
-// ── Layout stubs ──
-// Embla measures slide and viewport dimensions during init and never
-// progresses past "not ready" without non-zero values. jsdom returns 0
-// for every layout property, so we patch the four standard dimension
-// getters plus `getBoundingClientRect` so Embla's `slidesToScroll: 'auto'`
-// snap computation lands on realistic positions — otherwise every slide
-// would report the same `{ left: 0, right: 0 }` and Embla would collapse
-// the whole carousel to a single snap. The stubs live here (not in the
-// package-wide vitest setup) so they don't silently change the layout
-// characteristics of every other component's tests.
-const SLIDE_WIDTH = 800
-const SLIDE_HEIGHT = 600
-const layoutRestores: Array<() => void> = []
-
-function stubLayoutProperty(prop: PropertyKey, value: number) {
-  const original = Object.getOwnPropertyDescriptor(HTMLElement.prototype, prop)
-  Object.defineProperty(HTMLElement.prototype, prop, {
-    configurable: true,
-    get() {
-      return value
-    }
-  })
-  layoutRestores.push(() => {
-    if (original) {
-      Object.defineProperty(HTMLElement.prototype, prop, original)
-    } else {
-      delete (HTMLElement.prototype as unknown as Record<PropertyKey, unknown>)[
-        prop
-      ]
-    }
-  })
-}
-
-// Embla v9's NodeHandler reads `offsetTop` / `offsetLeft` (not
-// `getBoundingClientRect`) to build its slide rects. Stub `offsetLeft`
-// so slides inside `Carousel.Content` report incremental positions
-// based on their DOM index — otherwise every slide sits at x=0 and
-// Embla's `slidesToScroll: 'auto'` collapses the whole carousel to a
-// single snap (because all slides appear to occupy the same scroll
-// position).
-function stubPerInstanceOffsetLeft() {
-  const original = Object.getOwnPropertyDescriptor(
-    HTMLElement.prototype,
-    'offsetLeft'
-  )
-  Object.defineProperty(HTMLElement.prototype, 'offsetLeft', {
-    configurable: true,
-    get(this: HTMLElement) {
-      const isSlide =
-        this.getAttribute('role') === 'group' &&
-        this.getAttribute('aria-roledescription') === 'slide'
-      if (isSlide && this.parentElement) {
-        const siblings = Array.from(this.parentElement.children)
-        return siblings.indexOf(this) * SLIDE_WIDTH
-      }
-      return 0
-    }
-  })
-  layoutRestores.push(() => {
-    if (original) {
-      Object.defineProperty(HTMLElement.prototype, 'offsetLeft', original)
-    } else {
-      delete (HTMLElement.prototype as unknown as Record<string, unknown>)
-        .offsetLeft
-    }
-  })
-}
-
-beforeAll(() => {
-  stubLayoutProperty('offsetWidth', SLIDE_WIDTH)
-  stubLayoutProperty('offsetHeight', SLIDE_HEIGHT)
-  stubLayoutProperty('clientWidth', SLIDE_WIDTH)
-  stubLayoutProperty('clientHeight', SLIDE_HEIGHT)
-  stubPerInstanceOffsetLeft()
-})
-
-afterAll(() => {
-  while (layoutRestores.length > 0) {
-    layoutRestores.pop()?.()
-  }
-})
 
 type Captured = {
   carousel: UseCarouselReturn
@@ -113,27 +31,16 @@ function makeCapture() {
   return { ref, Spy }
 }
 
-function Fixture({
-  count = 3,
-  loop = false,
-  ariaLabel = 'Test carousel'
-}: {
-  count?: number
-  loop?: boolean
-  ariaLabel?: string
-}) {
+// Embla measures nothing in jsdom, so every slide lands on one snap and
+// Previous, Next, and Dots never show. Carousel.browser.test.tsx covers them.
+function Fixture({ count = 3 }: { count?: number }) {
   return (
-    <Carousel aria-label={ariaLabel} opts={{ loop }}>
+    <Carousel aria-label='Test carousel'>
       <Carousel.Content>
         {Array.from({ length: count }, (_, i) => (
-          <Carousel.Item key={i} data-testid={`slide-${i}`}>
-            Slide {i + 1}
-          </Carousel.Item>
+          <Carousel.Item key={i}>Slide {i + 1}</Carousel.Item>
         ))}
       </Carousel.Content>
-      <Carousel.Previous data-testid='prev' />
-      <Carousel.Next data-testid='next' />
-      <Carousel.Dots data-testid='dots' />
     </Carousel>
   )
 }
@@ -157,105 +64,6 @@ describe('Carousel', () => {
     expect(slides[0]).toHaveAttribute('aria-label', '1 of 3')
     expect(slides[1]).toHaveAttribute('aria-label', '2 of 3')
     expect(slides[2]).toHaveAttribute('aria-label', '3 of 3')
-  })
-
-  it('marks non-active slides as inert', async () => {
-    const { getByTestId } = render(<Fixture count={3} />)
-    await waitFor(() => {
-      expect(getByTestId('slide-0').hasAttribute('inert')).toBe(false)
-      expect(getByTestId('slide-1').hasAttribute('inert')).toBe(true)
-      expect(getByTestId('slide-2').hasAttribute('inert')).toBe(true)
-    })
-  })
-
-  it('renders Previous and Next nav buttons', () => {
-    const { getByLabelText } = render(<Fixture />)
-    expect(getByLabelText('Previous slide')).toBeInTheDocument()
-    expect(getByLabelText('Next slide')).toBeInTheDocument()
-  })
-
-  it('hides Previous and Next when slideCount <= 1', () => {
-    const { queryByLabelText } = render(<Fixture count={1} />)
-    expect(queryByLabelText('Previous slide')).toBeNull()
-    expect(queryByLabelText('Next slide')).toBeNull()
-  })
-
-  it('disables Previous at the start boundary with loop=false', async () => {
-    const { getByLabelText } = render(<Fixture count={3} loop={false} />)
-    await waitFor(() => {
-      expect(getByLabelText('Previous slide')).toHaveAttribute(
-        'aria-disabled',
-        'true'
-      )
-    })
-    expect(getByLabelText('Next slide')).not.toHaveAttribute('aria-disabled')
-  })
-
-  it('does NOT disable Previous with loop=true', async () => {
-    const { getByLabelText } = render(<Fixture count={3} loop={true} />)
-    await waitFor(() => {
-      expect(getByLabelText('Previous slide')).not.toHaveAttribute(
-        'aria-disabled'
-      )
-    })
-    expect(getByLabelText('Next slide')).not.toHaveAttribute('aria-disabled')
-  })
-
-  it('clicking Next advances the selected index', async () => {
-    const user = userEvent.setup()
-    const { ref, Spy } = makeCapture()
-    const { getByLabelText } = render(
-      <Carousel aria-label='test'>
-        <Carousel.Content>
-          <Carousel.Item>1</Carousel.Item>
-          <Carousel.Item>2</Carousel.Item>
-          <Carousel.Item>3</Carousel.Item>
-        </Carousel.Content>
-        <Carousel.Previous />
-        <Carousel.Next />
-        <Spy />
-      </Carousel>
-    )
-    await waitFor(() => expect(ref.current?.api).toBeTruthy())
-    expect(ref.current?.carousel.state.selectedIndex).toBe(0)
-
-    await user.click(getByLabelText('Next slide'))
-    await waitFor(() => {
-      expect(ref.current?.carousel.state.selectedIndex).toBe(1)
-    })
-  })
-
-  it('clicking a dot calls goTo with that index', async () => {
-    const user = userEvent.setup()
-    const { ref, Spy } = makeCapture()
-    const { getByLabelText } = render(
-      <Carousel aria-label='test'>
-        <Carousel.Content>
-          <Carousel.Item>1</Carousel.Item>
-          <Carousel.Item>2</Carousel.Item>
-          <Carousel.Item>3</Carousel.Item>
-        </Carousel.Content>
-        <Carousel.Dots />
-        <Spy />
-      </Carousel>
-    )
-    await waitFor(() => expect(ref.current?.api).toBeTruthy())
-    await user.click(getByLabelText('Go to slide 3'))
-    await waitFor(() => {
-      expect(ref.current?.carousel.state.selectedIndex).toBe(2)
-    })
-  })
-
-  it('Dots render one button per slide', () => {
-    const { getAllByRole } = render(<Fixture count={4} />)
-    // 4 dots + 2 nav buttons = 6 total
-    const buttons = getAllByRole('button')
-    expect(buttons).toHaveLength(6)
-  })
-
-  it('Dots hidden when slideCount <= 1', () => {
-    const { queryByRole } = render(<Fixture count={1} />)
-    expect(queryByRole('group', { name: 'Choose slide to display' })).toBeNull()
   })
 
   it('useCarousel throws outside of provider', () => {
@@ -308,7 +116,7 @@ describe('Carousel', () => {
     expect(ref.current?.carousel.state.slideCount).toBe(3)
   })
 
-  // ── Phase 3: Autoplay, header, title, keyboard, reduced motion ──
+  // ── Phase 3: Autoplay, header, title, reduced motion ──
 
   function AutoplayFixture({ delay = 5000 }: { delay?: number }) {
     return (
@@ -641,64 +449,6 @@ describe('Carousel', () => {
     const region = getByRole('region')
     expect(region).toHaveAttribute('aria-labelledby', 'my-title')
     expect(region).not.toHaveAttribute('aria-label')
-  })
-
-  it('keyboard: ArrowRight advances, ArrowLeft goes back (horizontal)', async () => {
-    const user = userEvent.setup()
-    const { ref, Spy } = makeCapture()
-    const { getByRole } = render(
-      <Carousel aria-label='test'>
-        <Carousel.Content>
-          <Carousel.Item>1</Carousel.Item>
-          <Carousel.Item>2</Carousel.Item>
-          <Carousel.Item>3</Carousel.Item>
-        </Carousel.Content>
-        <Spy />
-      </Carousel>
-    )
-    await waitFor(() => expect(ref.current?.api).toBeTruthy())
-    const viewport = getByRole('region').querySelector(
-      '[tabindex="0"]'
-    ) as HTMLElement
-    viewport.focus()
-    await user.keyboard('{ArrowRight}')
-    await waitFor(() =>
-      expect(ref.current?.carousel.state.selectedIndex).toBe(1)
-    )
-    await user.keyboard('{ArrowLeft}')
-    await waitFor(() =>
-      expect(ref.current?.carousel.state.selectedIndex).toBe(0)
-    )
-    await user.keyboard('{End}')
-    await waitFor(() =>
-      expect(ref.current?.carousel.state.selectedIndex).toBe(2)
-    )
-    await user.keyboard('{Home}')
-    await waitFor(() =>
-      expect(ref.current?.carousel.state.selectedIndex).toBe(0)
-    )
-  })
-
-  it('keyboard: ArrowRight inside a slide link does NOT advance', async () => {
-    const user = userEvent.setup()
-    const { ref, Spy } = makeCapture()
-    const { getByText } = render(
-      <Carousel aria-label='test'>
-        <Carousel.Content>
-          <Carousel.Item>
-            <a href='/inside'>inside link</a>
-          </Carousel.Item>
-          <Carousel.Item>2</Carousel.Item>
-        </Carousel.Content>
-        <Spy />
-      </Carousel>
-    )
-    await waitFor(() => expect(ref.current?.api).toBeTruthy())
-    const link = getByText('inside link')
-    link.focus()
-    expect(document.activeElement).toBe(link)
-    await user.keyboard('{ArrowRight}')
-    expect(ref.current?.carousel.state.selectedIndex).toBe(0)
   })
 
   it('reduced motion toggle at runtime stops autoplay', async () => {

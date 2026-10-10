@@ -4,10 +4,10 @@ import { execFileSync } from 'node:child_process'
 
 export const PACKAGE_NAME = 'roadie-skills'
 export const PACKAGE = 'skills/package.json'
-export const MANIFEST = '.claude-plugin/plugin.json'
+export const MANIFEST = 'skills/.claude-plugin/plugin.json'
 
 // Changesets owns these, so the Version Packages PR passes without a changeset.
-const RELEASE_FILES = new Set([PACKAGE, 'skills/CHANGELOG.md'])
+const RELEASE_FILES = new Set([PACKAGE, MANIFEST, 'skills/CHANGELOG.md'])
 
 const touchesPlugin = (path) =>
   path.startsWith('skills/') && !RELEASE_FILES.has(path)

@@ -16,8 +16,7 @@ const THIS_MONTH: DashboardPeriodValue = {
   compare: 'previous-period'
 }
 
-const picker = () =>
-  screen.getByRole('button', { name: /^Choose dates, Period/ })
+const picker = () => screen.getByRole('button', { name: /, Period$/ })
 async function openPicker() {
   await userEvent.click(picker())
   return screen.findByRole('dialog')
@@ -68,15 +67,17 @@ describe('DashboardPeriod', () => {
     const group = screen.getByRole('group', { name: 'Dashboard period' })
     expect(within(group).getAllByRole('button')).toHaveLength(1)
     expect(picker()).toHaveAccessibleName(
-      'Choose dates, Period (This month, 1 to 31 Oct 2026, vs 1 to 30 Sept 2026)'
+      'Choose dates, This month 1 to 31 Oct 2026 vs 1 to 30 Sept 2026, Period'
     )
-    expect(picker()).toHaveTextContent('vs 1 to 30 Sept 2026')
+    expect(picker()).toHaveTextContent(
+      'This month 1 to 31 Oct 2026 vs 1 to 30 Sept 2026'
+    )
   })
 
   it('shows no comparison on the button without one', () => {
     render(<DashboardPeriod today={TODAY} value={{ range: 'this-month' }} />)
     expect(picker()).toHaveAccessibleName(
-      'Choose dates, Period (This month, 1 to 31 Oct 2026)'
+      'Choose dates, This month 1 to 31 Oct 2026, Period'
     )
   })
 
@@ -396,7 +397,7 @@ const choice = (dialog: HTMLElement, name: string) =>
   )
 const comparisonPicker = (dialog: HTMLElement) =>
   within(dialog).queryByRole('button', {
-    name: /^Choose dates, Comparison dates/
+    name: /, Comparison dates$/
   })
 
 describe('DashboardPeriod with fixed presets', () => {
@@ -412,7 +413,7 @@ describe('DashboardPeriod with fixed presets', () => {
       />
     )
     expect(picker()).toHaveAccessibleName(
-      'Choose dates, Period (Last 30 days, 7 Sept to 6 Oct 2026, vs 8 Aug to 6 Sept 2026)'
+      'Choose dates, Last 30 days 7 Sept to 6 Oct 2026 vs 8 Aug to 6 Sept 2026, Period'
     )
   })
 
@@ -523,7 +524,7 @@ describe('DashboardPeriod compare options', () => {
       />
     )
     expect(picker()).toHaveAccessibleName(
-      'Choose dates, Period (This month, 1 to 31 Oct 2026, vs similar venues)'
+      'Choose dates, This month 1 to 31 Oct 2026 vs similar venues, Period'
     )
     const dialog = await openPicker()
     expect(choice(dialog, 'Similar venues')).toHaveAttribute(
@@ -552,7 +553,7 @@ describe('DashboardPeriod compare options', () => {
         compareOptions={[{ value: 'ga', label: 'GA venues' }]}
       />
     )
-    expect(picker()).toHaveAccessibleName(/vs GA venues\)$/)
+    expect(picker()).toHaveAccessibleName(/vs GA venues, Period$/)
   })
 
   it('starts custom dates from the previous period and lets them change', async () => {
@@ -569,7 +570,7 @@ describe('DashboardPeriod compare options', () => {
     expect(comparisonPicker(dialog)).toBeNull()
     await userEvent.click(choice(dialog, 'Custom dates'))
     expect(comparisonPicker(dialog)).toHaveAccessibleName(
-      'Choose dates, Comparison dates (1 to 30 Sept 2026)'
+      'Choose dates, 1 to 30 Sept 2026, Comparison dates'
     )
     await userEvent.click(comparisonPicker(dialog)!)
     const dialogs = await screen.findAllByRole('dialog')
@@ -586,7 +587,7 @@ describe('DashboardPeriod compare options', () => {
     )
     await waitFor(() =>
       expect(comparisonPicker(dialog)).toHaveAccessibleName(
-        'Choose dates, Comparison dates (14 to 20 Sept 2026)'
+        'Choose dates, 14 to 20 Sept 2026, Comparison dates'
       )
     )
     expect(onValueChange).not.toHaveBeenCalled()
@@ -610,13 +611,13 @@ describe('DashboardPeriod compare options', () => {
     )
     const dialog = await openPicker()
     expect(comparisonPicker(dialog)).toHaveAccessibleName(
-      'Choose dates, Comparison dates (14 to 20 Sept 2026)'
+      'Choose dates, 14 to 20 Sept 2026, Comparison dates'
     )
     await userEvent.click(choice(dialog, 'Previous year'))
     expect(comparisonPicker(dialog)).toBeNull()
     await userEvent.click(choice(dialog, 'Custom dates'))
     expect(comparisonPicker(dialog)).toHaveAccessibleName(
-      'Choose dates, Comparison dates (14 to 20 Sept 2026)'
+      'Choose dates, 14 to 20 Sept 2026, Comparison dates'
     )
   })
 
@@ -711,7 +712,7 @@ describe('DashboardPeriod compare options', () => {
         value={{ range: 'this-month', compare: 'similar' }}
       />
     )
-    expect(picker()).toHaveAccessibleName(/vs similar\)$/)
+    expect(picker()).toHaveAccessibleName(/vs similar, Period$/)
     const dialog = await openPicker()
     expect(choice(dialog, 'similar')).toHaveAttribute('aria-pressed', 'true')
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('"similar"'))
@@ -720,7 +721,7 @@ describe('DashboardPeriod compare options', () => {
 
   it('starts uncontrolled from the first listed comparison', () => {
     render(<DashboardPeriod today={TODAY} compareOptions={[SIMILAR]} />)
-    expect(picker()).toHaveAccessibleName(/vs similar venues\)$/)
+    expect(picker()).toHaveAccessibleName(/vs similar venues, Period$/)
   })
 
   it('follows custom dates the parent changes while the picker is open', async () => {
@@ -746,7 +747,7 @@ describe('DashboardPeriod compare options', () => {
     await userEvent.click(choice(dialog, 'Previous year'))
     await userEvent.click(choice(dialog, 'Custom dates'))
     expect(comparisonPicker(dialog)).toHaveAccessibleName(
-      'Choose dates, Comparison dates (14 to 20 Sept 2026)'
+      'Choose dates, 14 to 20 Sept 2026, Comparison dates'
     )
   })
 
@@ -821,20 +822,14 @@ describe('DashboardPeriod’s calendar', () => {
   afterEach(() => vi.useRealTimers())
 
   it.each([
-    [
-      'Australia/Melbourne',
-      'This month, 1 to 31 Oct 2026, vs 1 to 30 Sept 2026'
-    ],
-    [
-      'America/Los_Angeles',
-      'This month, 1 to 30 Sept 2026, vs 1 to 31 Aug 2026'
-    ]
+    ['Australia/Melbourne', 'This month 1 to 31 Oct 2026 vs 1 to 30 Sept 2026'],
+    ['America/Los_Angeles', 'This month 1 to 30 Sept 2026 vs 1 to 31 Aug 2026']
   ])('reads today on the calendar of %s', (timeZone, period) => {
     vi.useFakeTimers({ toFake: ['Date'] })
     // 12:30am on 1 Oct in Melbourne, still 7:30am on 30 Sept in Los Angeles.
     vi.setSystemTime(new Date('2026-09-30T14:30:00Z'))
     render(<DashboardPeriod timeZone={timeZone} value={THIS_MONTH} />)
-    expect(picker()).toHaveAccessibleName(`Choose dates, Period (${period})`)
+    expect(picker()).toHaveAccessibleName(`Choose dates, ${period}, Period`)
   })
 
   it('starts the financial year in the month given', () => {
@@ -849,14 +844,14 @@ describe('DashboardPeriod’s calendar', () => {
       />
     )
     expect(picker()).toHaveAccessibleName(
-      'Choose dates, Period (This financial year, 1 Jan to 31 Dec 2026, vs 1 Jan to 31 Dec 2025)'
+      'Choose dates, This financial year 1 Jan to 31 Dec 2026 vs 1 Jan to 31 Dec 2025, Period'
     )
   })
 
   it('shows its dates in the words of its locale', async () => {
     render(<DashboardPeriod today={TODAY} locale='de' value={THIS_MONTH} />)
     expect(picker()).toHaveAccessibleName(
-      'Choose dates, Period (This month, 1 to 31 Okt 2026, vs 1 to 30 Sep 2026)'
+      'Choose dates, This month 1 to 31 Okt 2026 vs 1 to 30 Sep 2026, Period'
     )
     const dialog = await openPicker()
     expect(compareDates(dialog)).toHaveTextContent('1 to 30 Sep 2026')
@@ -871,7 +866,7 @@ describe('DashboardPeriod’s calendar', () => {
       />
     )
     expect(picker()).toHaveAccessibleName(
-      'Choose dates, Period (This week, 4 to 10 Oct 2026, vs 27 Sept to 3 Oct 2026)'
+      'Choose dates, This week 4 to 10 Oct 2026 vs 27 Sept to 3 Oct 2026, Period'
     )
   })
 })
