@@ -87,6 +87,32 @@ describe('cn', () => {
     expect(cn('ease-in', 'ease-spring')).toBe('ease-spring')
   })
 
+  it('merges every animate utility in motion.css', () => {
+    const animations = readFileSync(
+      fileURLToPath(new URL('../css/motion.css', import.meta.url)),
+      'utf8'
+    ).match(/(?<=@utility )animate-[\w-]+/g)
+
+    expect(animations).toContain('animate-pop-tap')
+    for (const animation of animations ?? []) {
+      expect(cn(animation, 'animate-none')).toBe('animate-none')
+      expect(cn('animate-spin', animation)).toBe(animation)
+    }
+  })
+
+  it('merges every easing in motion.css', () => {
+    const easings = readFileSync(
+      fileURLToPath(new URL('../css/motion.css', import.meta.url)),
+      'utf8'
+    ).match(/(?<=--)ease-[\w-]+(?=:)/g)
+
+    expect(easings).toContain('ease-spring-lively')
+    for (const easing of new Set(easings)) {
+      expect(cn(easing, 'ease-linear')).toBe('ease-linear')
+      expect(cn('ease-in', easing)).toBe(easing)
+    }
+  })
+
   it('dedupes Roadie loading animations against built-in ones', () => {
     expect(cn('animate-pulse-subtle', 'animate-none')).toBe('animate-none')
     expect(cn('animate-shimmer', 'animate-none')).toBe('animate-none')
