@@ -80,7 +80,8 @@ When the accent colour comes from async data, such as a CMS field, a feature
 flag, or per-tenant config, pass it as `accentColor`. The provider becomes
 controlled: the prop wins on every render, and `setAccentColor` calls do
 nothing but log a dev warning. Pass `null` to stay controlled while falling
-back to `defaultAccentColor`.
+back to `defaultAccentColor`. Without a `defaultAccentColor`, `null` falls back
+to Oztix blue in the root provider and to the parent's accent in a nested one.
 
 ```tsx
 // app/providers.tsx
@@ -112,6 +113,12 @@ The provider follows the prop whenever it changes, with no `useEffect`,
 cleanup, or reset logic. Passing `null` while the query loads falls back to
 `defaultAccentColor`, so the theme never renders in a broken state.
 
+A nested provider has no default of its own: with `null`, no accent, or an
+invalid one, it inherits the accent around it, whether the root's or an
+enclosing nested provider's, and so do popups that open from inside it. It
+sets no scope until its accent arrives, and its children don't remount when it
+does.
+
 ## Validation and error handling
 
 Roadie validates hex input at two points:
@@ -120,7 +127,8 @@ Roadie validates hex input at two points:
   argument isn't a valid hex colour. Wrap the call in a try and catch, or
   validate first with `isValidHexColor`.
 - An invalid `accentColor` prop logs a dev warning, and the provider renders
-  with `defaultAccentColor`, so the app never shows a broken theme.
+  with `defaultAccentColor`, or the parent's accent when nested, so the app
+  never shows a broken theme.
 
 ```tsx
 import {
@@ -235,8 +243,9 @@ the client-side accent effect runs.
 Roadie exports `DEFAULT_ACCENT_COLOR`, so consumers never hardcode the default
 hex. Reset to it three ways:
 
-- In a controlled provider, pass `accentColor={someHex ?? null}`, and Roadie
-  turns `null` back into the default.
+- In a controlled root provider, pass `accentColor={someHex ?? null}`, and
+  Roadie turns `null` back into the default. A nested provider turns `null`
+  into its parent's accent, so pass `DEFAULT_ACCENT_COLOR` to reset one.
 - In an uncontrolled provider, call `setAccentColor(DEFAULT_ACCENT_COLOR)`
   from a reset button.
 - In `getBootstrapScript`, omit `accentColor` or pass `null`. The default CSS
@@ -302,7 +311,9 @@ variants, see the wrapper instead of the route's elements. Inside a list or
 table, put the provider inside an item or cell, since the wrapper is a `div`.
 It renders on the server, so the route's first paint already has its accent.
 Like the root, it starts its subtree at the neutral intent. Browsers without
-OKLCH keep the root's accent inside the route.
+OKLCH keep the root's accent inside the route. When a route has no
+`themeColour`, the provider gets `null`, and the route keeps the root's accent
+and the intent around it.
 
 ```tsx
 // app/collections/[slug]/layout.tsx

@@ -109,6 +109,10 @@ describe.each([false, true])('a nested ThemeProvider, dark %s', (dark) => {
 })
 
 describe('hydrating over server-rendered accents', () => {
+  // A failed test skips its own cleanup, and its probes would answer the next test's queries.
+  let served: HTMLElement | undefined
+  afterEach(() => served?.remove())
+
   function serve(tree: ReactNode, accent: string) {
     const style = document.createElement('style')
     style.id = 'roadie-accent-theme'
@@ -117,6 +121,7 @@ describe('hydrating over server-rendered accents', () => {
     const container = document.createElement('div')
     container.innerHTML = renderToString(tree)
     document.body.append(container)
+    served = container
     return { style, container }
   }
 
@@ -164,6 +169,35 @@ describe('hydrating over server-rendered accents', () => {
     expect(style.textContent).toBe(css)
     expectHues('outside', ROUTE_HUE)
     expectHues('inside', ROOT_HUE)
+
+    act(() => root.unmount())
+    container.remove()
+  })
+
+  it("hydrates a nested provider without an accent on its parent's accent", async () => {
+    const tree = (
+      <ThemeProvider accentColor={ROUTE}>
+        <ThemeProvider accentColor={null}>
+          <Probes name='inside' />
+        </ThemeProvider>
+      </ThemeProvider>
+    )
+    const { container } = serve(tree, ROUTE)
+    expectHues('inside', ROUTE_HUE)
+
+    const recovered: unknown[] = []
+    const consoleError = vi.spyOn(console, 'error')
+    const root = await act(async () =>
+      hydrateRoot(container, tree, {
+        onRecoverableError: (error) => recovered.push(error)
+      })
+    )
+    await settle()
+
+    expect(recovered).toEqual([])
+    expect(consoleError).not.toHaveBeenCalled()
+    consoleError.mockRestore()
+    expectHues('inside', ROUTE_HUE)
 
     act(() => root.unmount())
     container.remove()
@@ -349,5 +383,112 @@ describe('a nested ThemeProvider in layout', () => {
     rerender(page(true))
     await settle()
     expect(boxes('li')).toEqual(plain)
+  })
+})
+
+describe('a nested ThemeProvider without an accent', () => {
+  it("inherits the root's accent", async () => {
+    render(
+      <ThemeProvider accentColor={ROUTE}>
+        <ThemeProvider accentColor={null}>
+          <Probes name='inside' />
+        </ThemeProvider>
+      </ThemeProvider>
+    )
+    await settle()
+    expectHues('inside', ROUTE_HUE)
+  })
+
+  it("inherits an enclosing scope's accent", async () => {
+    render(
+      <ThemeProvider accentColor={ROOT}>
+        <ThemeProvider accentColor={ROUTE}>
+          <ThemeProvider accentColor={null}>
+            <Probes name='inside' />
+          </ThemeProvider>
+        </ThemeProvider>
+      </ThemeProvider>
+    )
+    await settle()
+    expectHues('inside', ROUTE_HUE)
+  })
+
+  it("themes a portalled popup by the enclosing scope's accent", async () => {
+    render(
+      <ThemeProvider accentColor={ROOT}>
+        <ThemeProvider accentColor={ROUTE}>
+          <ThemeProvider accentColor={null}>
+            <Popover open>
+              <Popover.Trigger>Open</Popover.Trigger>
+              <Popover.Content>
+                <Probes name='inside' />
+              </Popover.Content>
+            </Popover>
+          </ThemeProvider>
+        </ThemeProvider>
+      </ThemeProvider>
+    )
+    await settle()
+    expectHues('inside', ROUTE_HUE)
+  })
+
+  it("keeps the parent's accent while mounted and after it unmounts", async () => {
+    const page = (nested: boolean) => (
+      <ThemeProvider accentColor={ROUTE}>
+        <Probes name='outside' />
+        {nested && (
+          <ThemeProvider accentColor={null}>
+            <Probes name='inside' />
+          </ThemeProvider>
+        )}
+      </ThemeProvider>
+    )
+    const { rerender } = render(page(false))
+    await settle()
+    rerender(page(true))
+    await settle()
+    expectHues('inside', ROUTE_HUE)
+    expectHues('outside', ROUTE_HUE)
+    rerender(page(false))
+    await settle()
+    expectHues('outside', ROUTE_HUE)
+  })
+
+  it('keeps the intent around it', async () => {
+    render(
+      <ThemeProvider accentColor={ROOT}>
+        <div className='intent-danger'>
+          <div data-probe='outside-danger' className='bg-strong' />
+          <ThemeProvider accentColor={null}>
+            <div data-probe='inside-danger' className='bg-strong' />
+          </ThemeProvider>
+        </div>
+      </ThemeProvider>
+    )
+    await settle()
+    expect(hueOf(probe('inside-danger'), 'backgroundColor')).toBe(
+      hueOf(probe('outside-danger'), 'backgroundColor')
+    )
+  })
+
+  it("returns to the parent's accent when its own goes back to null", async () => {
+    const GREEN = '#16A34A'
+    const GREEN_HUE = 149
+    const page = (accent: string | null) => (
+      <ThemeProvider accentColor={ROUTE}>
+        <ThemeProvider accentColor={accent}>
+          <Probes name='inside' />
+        </ThemeProvider>
+      </ThemeProvider>
+    )
+    const { rerender } = render(page(GREEN))
+    await settle()
+    expectHues('inside', GREEN_HUE)
+    rerender(page(null))
+    await settle()
+    expectHues('inside', ROUTE_HUE)
+    rerender(page(GREEN))
+    await settle()
+    expectHues('inside', GREEN_HUE)
   })
 })
