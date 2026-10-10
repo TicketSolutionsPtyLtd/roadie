@@ -10,7 +10,12 @@ import {
   copyLimitsTable,
   periodComparisonsTable
 } from '../src/lib/dashboard-tables.ts'
-import { fence, inlineCode, markdownTable } from '../src/lib/llms.ts'
+import {
+  escapeCell,
+  fence,
+  inlineCode,
+  markdownTable
+} from '../src/lib/llms.ts'
 import { SPOT_ILLUSTRATION_NAMES } from '../src/lib/spot-illustrations.ts'
 import {
   type TwinCell,
@@ -20,10 +25,8 @@ import {
 
 export type Renderer = (props: Record<string, string | true>) => string
 
-// Segments keep their own spacing, such as " and " between two code values,
-// so text is escaped like `prose` without trimming each run.
-const segmentText = (text: string) =>
-  text.replace(/\s+/g, ' ').replace(/\|/g, '\\|').replace(/</g, '&lt;')
+// Not trimmed per run, so a joining " and " keeps its spaces.
+const segmentText = (text: string) => escapeCell(text.replace(/\s+/g, ' '))
 
 const cellMarkdown = (cell: TwinCell) =>
   segments(cell)

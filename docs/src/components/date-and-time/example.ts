@@ -385,7 +385,7 @@ export function resolvedWeekend() {
 const code = (value: string): TwinCell => [{ code: value }]
 
 /** Each value in code, joined by "and". */
-const reads = (values: string[]): TwinCell =>
+const codeList = (values: string[]): TwinCell =>
   values.flatMap((value, index) =>
     index > 0 ? [' and ', { code: value }] : [{ code: value }]
   )
@@ -396,15 +396,15 @@ const readsTable = (
   codeNames = false
 ): TwinTable => ({
   head,
-  rows: rows.map(({ name, reads: values }) => [
+  rows: rows.map(({ name, reads }) => [
     codeNames ? code(name) : name,
-    reads(values)
+    codeList(reads)
   ])
 })
 
 /** The Date and time page's tables, built once for the page and its markdown twin. */
 export const DATE_TIME_TABLES = {
-  ComparisonTable: (): TwinTable => ({
+  ComparisonTable: () => ({
     head: ['Comparison', 'Context line', 'Covers'],
     rows: comparisonRows().map((row) => [
       code(row.code),
@@ -419,14 +419,14 @@ export const DATE_TIME_TABLES = {
   MachineValueReads: () =>
     readsTable(['Showing', 'datetime'], machineValueRows()),
   MomentReads: () => readsTable(['Kind', 'Looks like'], momentRows()),
-  PhraseTable: (): TwinTable => ({
+  PhraseTable: () => ({
     head: ['Typed', 'Suggests'],
     rows: phraseRows().map(({ typed, suggests }) => [
       code(typed),
       suggests.join(' or ')
     ])
   }),
-  RangeTable: (): TwinTable => ({
+  RangeTable: () => ({
     head: ['Value', 'Label', 'Covers'],
     rows: rangeRows().map((row) => [code(row.code), row.label, row.detail])
   }),
@@ -436,7 +436,7 @@ export const DATE_TIME_TABLES = {
       direction === 'past' ? pastLadderRows() : futureLadderRows()
     ),
   TimeStyleScale: () => readsTable(['Style', 'Renders'], timeStyleRows(), true),
-  ZoneTable: (): TwinTable => ({
+  ZoneTable: () => ({
     head: ['Abbreviation', 'Where', 'Daylight saving'],
     rows: zoneRows().map((row) => [
       code(row.abbreviation),
@@ -444,4 +444,4 @@ export const DATE_TIME_TABLES = {
       row.daylightSaving
     ])
   })
-}
+} satisfies Record<string, (...args: never[]) => TwinTable>
