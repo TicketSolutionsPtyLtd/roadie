@@ -7,9 +7,9 @@ export const ticketMixExample: StackedBarsProps = {
       ['Aug', 'GA', 414],
       ['Aug', 'VIP', 60],
       ['Aug', 'Early bird', 300],
-      ['Sep', 'GA', 213],
-      ['Sep', 'VIP', 40],
-      ['Sep', 'Early bird', 0],
+      ['Sept', 'GA', 213],
+      ['Sept', 'VIP', 40],
+      ['Sept', 'Early bird', 0],
       ['Oct', 'GA', 377],
       ['Oct', 'VIP', 60],
       ['Oct', 'Early bird', 0]
@@ -37,7 +37,7 @@ export const presaleExample: StackedBarsProps = {
 }
 
 export const resaleExample: StackedBarsProps = {
-  data: ['Sep', 'Oct', 'Nov'].flatMap((month, i) => [
+  data: ['Sept', 'Oct', 'Nov'].flatMap((month, i) => [
     { month, kind: 'Resold', tickets: 40 + i * 25 },
     { month, kind: 'Kept', tickets: 1400 - i * 25 }
   ]),
