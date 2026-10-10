@@ -131,6 +131,32 @@ describe('Scrolling markdown tables', () => {
     expect(ring.color).not.toMatch(/^rgba\(0, 0, 0, 0\)$|transparent/)
   }, 60_000)
 
+  it('gives a docs component’s prose table the same region as a markdown table', async () => {
+    const { page, errors } = await open(PHONE, '/foundations/date-and-time/')
+    const scroller = page.locator('.prose-scroll[data-slot=component-reads]')
+    await expect
+      .poll(() => scroller.getAttribute('tabindex'), { timeout: 5_000 })
+      .toBe('0')
+    expect(await scroller.getAttribute('role')).toBe('region')
+    // The markdown table above it already takes the heading's name.
+    expect(await scroller.getAttribute('aria-label')).toBe(
+      'Choosing a component, table 2'
+    )
+
+    const tables = await page
+      .locator('.prose-scroll[data-slot]')
+      .evaluateAll((nodes) =>
+        nodes.map((node) => ({
+          overflows: node.scrollWidth > node.clientWidth,
+          focusable: node.getAttribute('tabindex') === '0'
+        }))
+      )
+    expect(tables.length).toBeGreaterThan(1)
+    for (const { overflows, focusable } of tables)
+      expect(focusable).toBe(overflows)
+    expect(errors).toEqual([])
+  }, 60_000)
+
   it('leaves a table that fits out of the tab order', async () => {
     const { page } = await open(PHONE)
     const scroller = scrollerAfter(page, 'writing-for-charts')
