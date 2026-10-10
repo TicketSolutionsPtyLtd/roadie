@@ -78,7 +78,8 @@ describe('Motion foundation', () => {
 
     const theme = await compiledTheme(names)
     const css = await compiledCss(DURATIONS.map((step) => `duration-${step}`))
-    const longest = rows.find(({ name }) => name === '--duration-sweep')!.bar
+    const longestBar = Math.max(...rows.map(({ bar }) => bar))
+    const longestMs = Math.max(...rows.map(({ value }) => parseFloat(value)))
     for (const { name, value, className, bar } of rows) {
       expect(value, name).toBe(theme(name))
       const step = name.replace('--duration-', '')
@@ -86,7 +87,10 @@ describe('Motion foundation', () => {
         `\\.duration-${step} \\{[^}]*transition-duration: var\\(${name}\\)`
       ).test(css)
       expect(className, name).toBe(compiles ? `duration-${step}` : undefined)
-      expect(bar / longest, name).toBeCloseTo(parseFloat(value) / 2400, 2)
+      expect(bar / longestBar, name).toBeCloseTo(
+        parseFloat(value) / longestMs,
+        2
+      )
     }
   }, 60_000)
 
@@ -104,9 +108,15 @@ describe('Motion foundation', () => {
     const names = EASINGS.map((name) => `--ease-${name}`)
     expect(rows.map(({ name }) => name)).toEqual(names)
     const theme = await compiledTheme(names)
+    const css = await compiledCss(EASINGS.map((easing) => `ease-${easing}`))
     for (const { name, value, className } of rows) {
       expect(value, name).toBe(oneLine(theme(name)))
       expect(className, name).toBe(name.slice(2))
+      expect(css, name).toMatch(
+        new RegExp(
+          `\\.${className} \\{[^}]*transition-timing-function: var\\(${name}\\)`
+        )
+      )
     }
   }, 60_000)
 

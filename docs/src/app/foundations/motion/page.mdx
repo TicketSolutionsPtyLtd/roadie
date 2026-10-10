@@ -47,12 +47,12 @@ its value, its class, and its job.
 ambient durations and `--stagger-base` have no class, so read them with
 `var()`, as the loading utilities do.
 
-| Tier      | Steps                                       | Use for                                        |
-| --------- | ------------------------------------------- | ---------------------------------------------- |
-| Micro     | `duration-fastest` to `duration-normal`     | Hover, focus, press, and popups                |
-| Component | `duration-moderate` and `duration-slow`     | Disclosures, dialogs, and drawers              |
-| Page      | `duration-slower` and `duration-slowest`    | Toasts and attention cues                      |
-| Ambient   | `--duration-ambient` and `--duration-sweep` | One loop or pass of a loading animation        |
+| Tier      | Steps                                       | Use for                                         |
+| --------- | ------------------------------------------- | ----------------------------------------------- |
+| Micro     | `duration-fastest` to `duration-normal`     | Focus, press, and popups                        |
+| Component | `duration-moderate` and `duration-slow`     | Hover colour, disclosures, dialogs, and drawers |
+| Page      | `duration-slower` and `duration-slowest`    | Toasts, and the nudge and pop cues              |
+| Ambient   | `--duration-ambient` and `--duration-sweep` | One loop or pass of a loading animation         |
 
 ## Easing curves
 
@@ -304,15 +304,18 @@ duration and its easing token.
 
 <TransitionList />
 
+Hover and focus colours follow the intent cascade, so a button inside
+`intent-danger` shifts to danger colours on the same durations and easings.
 `is-interactive-field` moves form fields on `--ease-enter` instead. See
 [Interactions](/foundations/interactions) for the full breakdown.
 
 ### Raised surfaces
 
-`emphasis-raised` lifts and deepens its shadow on hover only with
-`is-interactive`, whose transition animates the change. On its own it has no
-transition. Hover each card to compare. A `Card` with an `href` takes
-`is-interactive`.
+`emphasis-raised` lifts and deepens its shadow on hover or keyboard focus
+only when it also has `is-interactive`, or `is-interactive-within` with a
+focused or hovered target. Their transition animates the change. On its own
+it has no transition. Hover or tab to each card to compare. A `Card` with an
+`href` takes `is-interactive`.
 
 ```tsx-live layout=stack width=80
 {/* Static */}
@@ -336,17 +339,17 @@ The shadow moves from `shadow-md` to `shadow-lg` over `duration-moderate` on
 ### Staggered lists
 
 Delay each item by `--stagger-base` times its index, so the eye follows the
-list in order. `--stagger-base` is 30ms and has no class. Select Replay to
-mount the lineup again.
+list in order. `--stagger-base` has no class. Select Replay to mount the
+lineup again.
 
 ```tsx-live-noinline
 function Lineup() {
   const [run, setRun] = useState(0)
   const acts = [
-    'Lampshade Disco',
-    'Feathered Anchor Sessions',
-    'Marzipan Thunderclap',
-    'Tuxedo Possum Cabaret'
+    'Middle Kids',
+    'Hiatus Kaiyote',
+    'Gang of Youths',
+    'Amyl and the Sniffers'
   ]
   return (
     <div className='grid gap-4'>
@@ -388,6 +391,8 @@ recipe.
   select Next. It's delightful once and infuriating the fiftieth time.
 - Test every animation with reduced motion on before you ship it, as
   Accessibility describes.
+- Don't force parallax or other scroll-driven motion on someone who has asked
+  for reduced motion. Put it behind `motion-safe:`.
 
 <Guidelines>
 
@@ -472,8 +477,8 @@ recipe.
       >
     `}
   >
-    Delay each item in a list by `--stagger-base`, 30ms, times its index, so
-    the eye follows the sequence.
+    Delay each item in a list by `--stagger-base` times its index, so the
+    eye follows the sequence.
   </Guideline.Do>
   <Guideline.Dont>
     Don't animate all 12 cards in a grid at once. The result is a flash, not a

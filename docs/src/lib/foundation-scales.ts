@@ -258,10 +258,10 @@ function jobOf(jobs: Record<string, string>, name: string) {
 }
 
 const DURATION_JOBS: Record<string, string> = {
-  '--duration-instant': "A state change that shouldn't animate",
+  '--duration-instant': "Use for a state change that shouldn't animate",
   '--duration-fastest':
-    'Opacity flashes and changes that should feel immediate',
-  '--duration-fast': 'Subtle hover shifts and quick exits',
+    'Use for a change that should feel immediate without jumping',
+  '--duration-fast': "Quick exits, such as Navigator's labels fading out",
   '--duration-normal': 'Focus rings, the press scale, and popups',
   '--duration-moderate':
     'Hover colour and shadow, disclosures, dialogs, and the error shake',

@@ -59,7 +59,7 @@ export async function EasingScale() {
               <code
                 data-slot='easing-value'
                 data-twin-cell
-                className='font-mono text-xs break-all text-subtle'
+                className='font-mono text-xs text-subtle'
               >
                 {value}
               </code>
