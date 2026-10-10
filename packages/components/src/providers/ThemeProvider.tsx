@@ -86,6 +86,7 @@ export interface ThemeProviderProps {
    * Initial accent colour when uncontrolled, and the fallback for a
    * `null` or invalid `accentColor`. Defaults to the parent provider's
    * accent when nested, or to Oztix blue at the root.
+   * @default #0091EB
    */
   defaultAccentColor?: string
   /** Initial dark mode state when no stored preference exists (default: false) */
