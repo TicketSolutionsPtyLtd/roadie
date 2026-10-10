@@ -1,10 +1,13 @@
 import {
+  dynamicImports,
   isLabel,
   isReExportName,
   namespaceLocals,
   namespaceUses,
   print,
   readWhole,
+  readsImport,
+  reportDynamicImports,
   reportReExports,
   reporter
 } from './lib.js'
@@ -73,13 +76,14 @@ function keepPublicName(j, path, from, to, report) {
 function renameReferences(j, root, from, to, report) {
   root
     .find(j.Identifier, { name: from })
-    .filter(isReference)
+    .filter((path) => isReference(path) && readsImport(path, from))
     .forEach((path) => {
       if (!keepPublicName(j, path, from, to, report)) path.node.name = to
     })
   root.find(j.JSXIdentifier, { name: from }).forEach((path) => {
     const parent = path.parent.node
     if (parent.type === 'JSXAttribute') return
+    if (!readsImport(path, from)) return
     if (
       parent.type === 'JSXMemberExpression' &&
       parent.property === path.node
@@ -96,10 +100,21 @@ export default function transform(file, api) {
   const report = reporter(api)
   let changed = false
 
+  const deprecatedIn = (source) => Object.keys(RENAMED_EXPORTS[source] ?? {})
   reportReExports(j, root, report, {
     isDeprecated: (source, name) => Boolean(RENAMED_EXPORTS[source]?.[name]),
-    deprecatedIn: (source) => Object.keys(RENAMED_EXPORTS[source] ?? {})
+    deprecatedIn
   })
+  reportDynamicImports(j, root, report, deprecatedIn)
+
+  for (const { literal } of dynamicImports(j, root)) {
+    const moved = MOVED_SOURCES[literal.value]
+    if (moved) {
+      literal.value = moved
+      delete literal.extra
+      changed = true
+    }
+  }
 
   // Only the path moved, so a re-export of it keeps the same names.
   for (const type of [j.ExportNamedDeclaration, j.ExportAllDeclaration]) {

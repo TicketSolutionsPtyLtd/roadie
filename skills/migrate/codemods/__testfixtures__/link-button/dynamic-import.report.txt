@@ -1,0 +1,2 @@
+line 4: import('@oztix/roadie-components/link-button') loads a deprecated module, so which deprecated exports it reaches is unknown. Migrate them by hand.
+line 9: import('@oztix/roadie-components') can reach the deprecated LinkButton, LinkButtonProps, LinkIconButton, LinkIconButtonProps. Migrate them by hand.

@@ -12,6 +12,7 @@ import {
   readWhole,
   readsImport,
   removeAttribute,
+  reportDynamicImports,
   reportReExports,
   reporter,
   stringValue
@@ -110,6 +111,7 @@ function usesOutsideJsx(j, root, local) {
       (path) =>
         path.node.type === 'Identifier' &&
         path.parent.node.type !== 'ImportSpecifier' &&
+        readsImport(path, local) &&
         !isReExportName(path) &&
         !(
           path.parent.node.type === 'MemberExpression' &&
@@ -165,19 +167,23 @@ export default function transform(file, api) {
     return false
   }
 
+  const deprecatedIn = (source) => {
+    if (source === LINK_BUTTON_SOURCE) return 'all'
+    return source === '@oztix/roadie-components' ? BARREL_DEPRECATIONS : []
+  }
   reportReExports(j, root, report, {
     isDeprecated: (source, name) =>
       COMPONENTS.test(source) && DEPRECATED.test(name),
-    deprecatedIn: (source) => {
-      if (source === LINK_BUTTON_SOURCE) return 'all'
-      return source === '@oztix/roadie-components' ? BARREL_DEPRECATIONS : []
-    }
+    deprecatedIn
   })
+  reportDynamicImports(j, root, report, deprecatedIn)
 
   for (const [deprecated, replacement] of Object.entries(REPLACEMENTS)) {
     for (const local of importedLocals(j, root, deprecated)) {
       reportLocalReExports(j, root, report, local)
-      const elements = root.findJSXElements(local)
+      const elements = root
+        .findJSXElements(local)
+        .filter((path) => readsImport(path, local))
       let kept = usesOutsideJsx(j, root, local)
       elements.forEach((path) => {
         if (migrate(path, replacement)) kept += 1
