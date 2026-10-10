@@ -93,6 +93,11 @@ scrolling table stays on one line, so a token such as `rounded-sm` never
 splits. Outside `.prose-scroll`, inline code still breaks where it must, so the
 table fits its column.
 
+The [Prose component](/components/prose/#tables) wraps bare tables in
+`.prose-scroll` for you, and makes each one reachable with the keyboard while it
+overflows. With the class alone, use
+[`useScrollRegion`](/components/prose/#usescrollregion) for that.
+
 ```tsx-live-prose
 <div className='prose'>
   <div className='prose-scroll'>

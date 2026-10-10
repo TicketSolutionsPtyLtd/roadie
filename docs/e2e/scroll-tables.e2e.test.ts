@@ -255,4 +255,18 @@ describe('Scrolling markdown tables', () => {
     },
     60_000
   )
+
+  it('hydrates a Prose a server component renders and makes its wide tables regions', async () => {
+    const { page, errors } = await open(PHONE, '/debug/prose/')
+    const regions = page.locator(
+      '[data-slot="prose"] .prose-scroll[role="region"]'
+    )
+    await expect.poll(() => regions.count(), { timeout: 5_000 }).toBe(3)
+    expect(
+      await regions.evaluateAll((all) =>
+        all.map((region) => region.getAttribute('aria-label'))
+      )
+    ).toEqual(['Table', 'Table 2', 'Table 3'])
+    expect(errors).toEqual([])
+  })
 })
