@@ -188,6 +188,9 @@ the PR only when the review is clean.
   data, or real customer, venue, or person names in any of them
   ([`EXAMPLE_DATA.md`](EXAMPLE_DATA.md) applies). Preview links go to the
   maintainer only in session messages.
+- **Say "the maintainer", never a person's name**, in PR bodies, commit
+  messages, changesets, and code comments. Jira and Confluence are internal,
+  so names are fine there. Leave merged history alone.
 - **Evidence renders inline on GitHub**, because the maintainer reviews on a
   phone. Take viewport-only screenshots, with no browser chrome, address bar,
   or local URL. Push them to an orphan branch named

@@ -73,16 +73,21 @@ merged, because the squash commit carries it into `git log`.
 ## 3. Create or update
 
 Before posting the body, a comment, or a commit message, run this privacy
-check on its file. Roadie's PR workflow section 7 lists what a public repo
-keeps out.
+check over the title, the file, and the branch's commit messages. It flags
+local paths, tailnet hosts, private IPs, tokens, and a real person's name (for
+example the maintainer's, from `git config user.name`). Roadie's PR workflow
+section 7 lists what a public repo keeps out, and says to write "the
+maintainer" instead of a name.
 
 ```bash
-grep -nEi 'ts\.net|tailnet|tailscale|\b(10|127)\.[0-9]+\.[0-9]+\.[0-9]+|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|\b100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.|169\.254\.|\[::1?\]|\[f[cde][0-9a-f]*:|localhost:|/Users/|/home/|/private/|/tmp/|[A-Z]:\\Users|gh[oprsu]_|github_pat_|token=|gist\.github' <file>
+name="$(git config user.name | tr ' ' '|')"
+{ echo '<title>'; cat <file>; git log --format=%B origin/main..HEAD; } |
+  grep -nEi -e "${name:?set git user.name}" -e 'ts\.net|tailnet|tailscale|\b(10|127)\.[0-9]+\.[0-9]+\.[0-9]+|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|\b100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.|169\.254\.|\[::1?\]|\[f[cde][0-9a-f]*:|localhost:|/Users/|/home/|/private/|/tmp/|[A-Z]:\\Users|gh[oprsu]_|github_pat_|token=|gist\.github'
 ```
 
 Fix every hit that is a real value; one that only names a pattern can stay.
-The grep can't catch every form (internal-only Oztix data, real names, or an
-address, path, or token it has no pattern for), so read the file once more
+The grep can't catch every form (internal-only Oztix data, other people's
+names, or an address, path, or token it has no pattern for), so read the file once more
 against the whole section 7 list.
 
 - New PR: open it as the host workflow says, usually as a draft with the
