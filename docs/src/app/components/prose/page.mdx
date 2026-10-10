@@ -86,36 +86,53 @@ still works the same way.
 
 ### Tables
 
-Tables shrink to fit their content. Wrap one that might be wider than the
-column in `.prose-scroll`, so it scrolls sideways instead of overflowing.
+Prose wraps each bare table in a `.prose-scroll`, which scrolls sideways
+instead of overflowing. Each column stays at least 9em wide, so a table that
+can't fit scrolls rather than squeezing its text. While a table overflows, its
+scroller is a named region in the tab order, so a keyboard user can reach it
+with Tab and scroll it with the arrow keys.
 
 ```tsx-live-prose
 <Prose>
-  <div className='prose-scroll'>
-    <table>
-      <thead>
-        <tr>
-          <th>Session</th>
-          <th>Stage</th>
-          <th>Doors</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Feathered Anchor Sessions</td>
-          <td>Main</td>
-          <td>7:30pm</td>
-        </tr>
-        <tr>
-          <td>Lampshade Disco</td>
-          <td>Tent</td>
-          <td>10:00pm</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <h3 id='set-times'>Set times</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Session</th>
+        <th>Stage</th>
+        <th>Doors</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Feathered Anchor Sessions</td>
+        <td>Main</td>
+        <td>7:30pm</td>
+        <td>$49.00</td>
+      </tr>
+      <tr>
+        <td>Lampshade Disco</td>
+        <td>Tent</td>
+        <td>10:00pm</td>
+        <td>$35.00</td>
+      </tr>
+    </tbody>
+  </table>
 </Prose>
 ```
+
+Prose finds the tables written as elements in its children, and the tables in
+HTML it renders, such as CMS output:
+
+```tsx
+<Prose dangerouslySetInnerHTML={{ __html: page.body }} />
+```
+
+A table a component renders inside Prose isn't wrapped, because React owns it.
+Wrap that table in `.prose-scroll` yourself, and Prose still makes the scroller
+a region. A table already in `.prose-scroll`, `.not-prose`, or
+`data-not-prose` stays as it is.
 
 ### Opting out
 
@@ -146,5 +163,56 @@ underline. Wrap it in `.not-prose` to keep its own styles.
 - A Prose inside a `.not-prose` element stays unstyled, so put the escape
   around the parts that need it, not around a region that also holds Prose.
 - Use `render` rather than `as` to set the element; `as` is removed in v3.
+- Give a table a caption, or put it under a heading with an `id`, so its
+  region has a name that says what the table holds.
+
+## Accessibility
+
+- A table's scroller gets `tabIndex={0}` and `role="region"` only while the
+  table overflows, and Prose checks again whenever its size changes. A table
+  that fits adds no tab stop.
+- The region is named by the table's caption. Without one, it points
+  `aria-labelledby` at the nearest heading before it that has an `id`. A
+  later table under the same heading is named "Set times, table 2", and a
+  table with no heading before it is "Table", then "Table 2".
+- The focused scroller shows the
+  [`is-focusable`](/foundations/interactions/#is-focusable) ring.
+- The server renders the scroller without a tab stop, and Prose adds it after
+  hydration, so the markup matches. Tables in rendered HTML are wrapped after
+  hydration too.
+
+## Hooks
+
+### useScrollRegion
+
+```tsx
+import { useScrollRegion } from '@oztix/roadie-components/scroll-region'
+
+function useScrollRegion(ref: RefObject<HTMLElement | null>): void
+```
+
+Gives a scroll container outside Prose the same keyboard access as a Prose
+table. Put the ref on the element that scrolls, and add `is-focusable` for the
+ring.
+
+```tsx
+function RefundTable() {
+  const ref = useRef<HTMLDivElement>(null)
+  useScrollRegion(ref)
+  return (
+    <div ref={ref} className='overflow-x-auto is-focusable'>
+      <table>…</table>
+    </div>
+  )
+}
+```
+
+It returns nothing, and sets these attributes while the content overflows:
+
+| Attribute | Value |
+| --- | --- |
+| `tabindex` | `0`, unless the element already has a `tabindex` |
+| `role` | `region`, unless the element already has a role |
+| `aria-label` or `aria-labelledby` | The name Prose would give, unless the element already has one |
 
 <PropsDefinitions component='Prose' />
