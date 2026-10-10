@@ -28,12 +28,10 @@ import { Duration } from '@oztix/roadie-components/duration'
 
 `of` takes three forms. A string is an ISO 8601 duration, which is the language the `time` element's own attribute speaks. A number is milliseconds, because that is what `end - start` gives you. The object form is what `Temporal.Duration` exposes, so a Temporal value works here today.
 
-```tsx-live
-<div className='grid gap-2'>
-  <Duration of='PT2H30M' />
-  <Duration of={9000000} />
-  <Duration of={{ hours: 2, minutes: 30 }} />
-</div>
+```tsx-live layout=stack gap=2
+<Duration of='PT2H30M' />
+<Duration of={9000000} />
+<Duration of={{ hours: 2, minutes: 30 }} />
 ```
 
 Years and months render nothing. Neither has a fixed length, so `P1M` cannot become a number without a calendar and a start date. For a run of calendar days use `formatDurationDays`, which counts them against real dates.
@@ -42,27 +40,23 @@ Years and months render nothing. Neither has a fixed length, so `P1M` cannot bec
 
 Coarse on purpose. Seconds appear only under a minute, where they are the whole answer. Minutes fall away once there are days.
 
-```tsx-live
-<div className='grid gap-2'>
-  <Duration of='PT30S' />
-  <Duration of='PT45M' />
-  <Duration of='PT2H' />
-  <Duration of='PT2H30M' />
-  <Duration of='P3D' />
-  <Duration of='P3DT4H' />
-</div>
+```tsx-live layout=stack gap=2
+<Duration of='PT30S' />
+<Duration of='PT45M' />
+<Duration of='PT2H' />
+<Duration of='PT2H30M' />
+<Duration of='P3D' />
+<Duration of='P3DT4H' />
 ```
 
 ### Style
 
 One scale, from spelled out to compressed, the same shape as the date scale.
 
-```tsx-live
-<div className='grid gap-2'>
-  <Duration of='PT2H30M' />
-  <Duration of='PT2H30M' durationStyle='medium' />
-  <Duration of='PT2H30M' durationStyle='short' />
-</div>
+```tsx-live layout=stack gap=2
+<Duration of='PT2H30M' />
+<Duration of='PT2H30M' durationStyle='medium' />
+<Duration of='PT2H30M' durationStyle='short' />
 ```
 
 ## Guidelines

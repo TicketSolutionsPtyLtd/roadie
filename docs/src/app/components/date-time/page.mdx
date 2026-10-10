@@ -29,85 +29,77 @@ Renders the `long` style. The `timeZone` is the venue's for an event time, and t
 
 `dateStyle` and `timeStyle` are independent. Any date style can carry a time.
 
-```tsx-live
-<div className='grid gap-2'>
-  <DateTime
-    at={new Date('2026-11-27T09:30:00Z')}
-    timeZone='Australia/Brisbane'
-    dateStyle='full'
-  />
-  <DateTime
-    at={new Date('2026-11-27T09:30:00Z')}
-    timeZone='Australia/Brisbane'
-    dateStyle='long'
-  />
-  <DateTime
-    at={new Date('2026-11-27T09:30:00Z')}
-    timeZone='Australia/Brisbane'
-    dateStyle='medium'
-  />
-  <DateTime
-    at={new Date('2026-11-27T09:30:00Z')}
-    timeZone='Australia/Brisbane'
-    dateStyle='short'
-  />
-</div>
+```tsx-live layout=stack gap=2
+<DateTime
+  at={new Date('2026-11-27T09:30:00Z')}
+  timeZone='Australia/Brisbane'
+  dateStyle='full'
+/>
+<DateTime
+  at={new Date('2026-11-27T09:30:00Z')}
+  timeZone='Australia/Brisbane'
+  dateStyle='long'
+/>
+<DateTime
+  at={new Date('2026-11-27T09:30:00Z')}
+  timeZone='Australia/Brisbane'
+  dateStyle='medium'
+/>
+<DateTime
+  at={new Date('2026-11-27T09:30:00Z')}
+  timeZone='Australia/Brisbane'
+  dateStyle='short'
+/>
 ```
 
 ### With a time
 
-```tsx-live
-<div className='grid gap-2'>
-  <DateTime
-    at={new Date('2026-11-27T09:30:00Z')}
-    timeZone='Australia/Brisbane'
-    timeStyle='medium'
-  />
-  <DateTime
-    at={new Date('2026-11-27T09:30:00Z')}
-    timeZone='Australia/Brisbane'
-    timeStyle='short'
-  />
-</div>
+```tsx-live layout=stack gap=2
+<DateTime
+  at={new Date('2026-11-27T09:30:00Z')}
+  timeZone='Australia/Brisbane'
+  timeStyle='medium'
+/>
+<DateTime
+  at={new Date('2026-11-27T09:30:00Z')}
+  timeZone='Australia/Brisbane'
+  timeStyle='short'
+/>
 ```
 
 ### Venue timezone
 
 The same instant, in two venues. This is why `timeZone` is required.
 
-```tsx-live
-<div className='grid gap-2'>
-  <DateTime
-    at={new Date('2026-11-27T15:00:00Z')}
-    timeZone='Australia/Perth'
-    timeStyle='medium'
-  />
-  <DateTime
-    at={new Date('2026-11-27T15:00:00Z')}
-    timeZone='Australia/Sydney'
-    timeStyle='medium'
-  />
-</div>
+```tsx-live layout=stack gap=2
+<DateTime
+  at={new Date('2026-11-27T15:00:00Z')}
+  timeZone='Australia/Perth'
+  timeStyle='medium'
+/>
+<DateTime
+  at={new Date('2026-11-27T15:00:00Z')}
+  timeZone='Australia/Sydney'
+  timeStyle='medium'
+/>
 ```
 
 ### A range
 
 Pass `to` for a span. It renders one `time` element per end, joined by the word "to", because HTML has no element for a range. The ends are formatted together, so the year rides on the later date.
 
-```tsx-live
-<div className='grid gap-2'>
-  <DateTime
-    at={new Date('2026-11-27T09:30:00Z')}
-    to={new Date('2026-11-29T12:00:00Z')}
-    timeZone='Australia/Brisbane'
-  />
-  <DateTime
-    at={new Date('2026-11-27T09:30:00Z')}
-    to={new Date('2026-11-29T12:00:00Z')}
-    timeZone='Australia/Brisbane'
-    showDuration
-  />
-</div>
+```tsx-live layout=stack gap=2
+<DateTime
+  at={new Date('2026-11-27T09:30:00Z')}
+  to={new Date('2026-11-29T12:00:00Z')}
+  timeZone='Australia/Brisbane'
+/>
+<DateTime
+  at={new Date('2026-11-27T09:30:00Z')}
+  to={new Date('2026-11-29T12:00:00Z')}
+  timeZone='Australia/Brisbane'
+  showDuration
+/>
 ```
 
 `showDuration` counts calendar days rather than elapsed hours, so a run from Friday night to Sunday night is three days. It shows nothing for a range inside a single day, and nothing past 30 days, where a count stops telling the reader anything.
@@ -116,22 +108,20 @@ Pass `to` for a span. It renders one `time` element per end, joined by the word 
 
 A gig running 10pm to 3am is Saturday's gig. Repeating the date makes it look like a two day event, so `sameNight` says the date once and leaves the end as a bare time. Both `time` elements still carry their real instant, so the markup keeps the truth the text compresses.
 
-```tsx-live
-<div className='grid gap-2'>
-  <DateTime
-    at={new Date('2026-11-28T12:00:00Z')}
-    to={new Date('2026-11-28T17:00:00Z')}
-    timeZone='Australia/Brisbane'
-    timeStyle='medium'
-  />
-  <DateTime
-    at={new Date('2026-11-28T12:00:00Z')}
-    to={new Date('2026-11-28T17:00:00Z')}
-    timeZone='Australia/Brisbane'
-    timeStyle='medium'
-    sameNight
-  />
-</div>
+```tsx-live layout=stack gap=2
+<DateTime
+  at={new Date('2026-11-28T12:00:00Z')}
+  to={new Date('2026-11-28T17:00:00Z')}
+  timeZone='Australia/Brisbane'
+  timeStyle='medium'
+/>
+<DateTime
+  at={new Date('2026-11-28T12:00:00Z')}
+  to={new Date('2026-11-28T17:00:00Z')}
+  timeZone='Australia/Brisbane'
+  timeStyle='medium'
+  sameNight
+/>
 ```
 
 This is a fact about the event, not a formatting choice, so it is passed in rather than worked out here. Whether a programme belongs to the night before is a business rule, and where a night ends is a question only the event can answer. A club night and a family show would draw the line differently.
@@ -140,24 +130,22 @@ This is a fact about the event, not a formatting choice, so it is passed in rath
 
 For timestamps only. The text re-renders on a timer, and the absolute date stays in `title`.
 
-```tsx-live
-<div className='grid gap-2'>
-  <DateTime
-    at={new Date(Date.now() - 3 * 60000)}
-    timeZone='Australia/Brisbane'
-    relative
-  />
-  <DateTime
-    at={new Date(Date.now() - 5 * 60 * 60000)}
-    timeZone='Australia/Brisbane'
-    relative
-  />
-  <DateTime
-    at={new Date(Date.now() - 26 * 60 * 60000)}
-    timeZone='Australia/Brisbane'
-    relative
-  />
-</div>
+```tsx-live layout=stack gap=2
+<DateTime
+  at={new Date(Date.now() - 3 * 60000)}
+  timeZone='Australia/Brisbane'
+  relative
+/>
+<DateTime
+  at={new Date(Date.now() - 5 * 60 * 60000)}
+  timeZone='Australia/Brisbane'
+  relative
+/>
+<DateTime
+  at={new Date(Date.now() - 26 * 60 * 60000)}
+  timeZone='Australia/Brisbane'
+  relative
+/>
 ```
 
 ## Guidelines

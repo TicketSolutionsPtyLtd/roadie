@@ -33,31 +33,28 @@ import { Highlight } from '@oztix/roadie-components'
 
 The default intent is `info`.
 
-```tsx-live
-
-<div className='grid gap-2'>
-  <p>
-    <Highlight text='Neutral intent highlight' query='Neutral' intent='neutral' />
-  </p>
-  <p>
-    <Highlight text='Accent intent highlight' query='Accent' intent='accent' />
-  </p>
-  <p>
-    <Highlight text='Brand intent highlight' query='Brand' intent='brand' />
-  </p>
-  <p>
-    <Highlight text='Info intent highlight' query='Info' intent='info' />
-  </p>
-  <p>
-    <Highlight text='Success intent highlight' query='Success' intent='success' />
-  </p>
-  <p>
-    <Highlight text='Warning intent highlight' query='Warning' intent='warning' />
-  </p>
-  <p>
-    <Highlight text='Danger intent highlight' query='Danger' intent='danger' />
-  </p>
-</div>
+```tsx-live layout=stack gap=2
+<p>
+  <Highlight text='Neutral intent highlight' query='Neutral' intent='neutral' />
+</p>
+<p>
+  <Highlight text='Accent intent highlight' query='Accent' intent='accent' />
+</p>
+<p>
+  <Highlight text='Brand intent highlight' query='Brand' intent='brand' />
+</p>
+<p>
+  <Highlight text='Info intent highlight' query='Info' intent='info' />
+</p>
+<p>
+  <Highlight text='Success intent highlight' query='Success' intent='success' />
+</p>
+<p>
+  <Highlight text='Warning intent highlight' query='Warning' intent='warning' />
+</p>
+<p>
+  <Highlight text='Danger intent highlight' query='Danger' intent='danger' />
+</p>
 ```
 
 ### With multiple queries
@@ -76,44 +73,30 @@ The default intent is `info`.
 
 By default, matching is case-insensitive.
 
-```tsx-live
-
-<div className='grid gap-2'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Case insensitive (default)</p>
-    <p>
-      <Highlight text='Hello World' query='hello' />
-    </p>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Case sensitive</p>
-    <p>
-      <Highlight text='Hello World' query='hello' ignoreCase={false} />
-    </p>
-  </div>
-</div>
+```tsx-live layout=stack gap=2
+{/* Case insensitive (default) */}
+<p>
+  <Highlight text='Hello World' query='hello' />
+</p>
+{/* Case sensitive */}
+<p>
+  <Highlight text='Hello World' query='hello' ignoreCase={false} />
+</p>
 ```
 
 ### With match first only
 
 By default, all occurrences are highlighted.
 
-```tsx-live
-
-<div className='grid gap-2'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Match all (default)</p>
-    <p>
-      <Highlight text='foo bar foo baz foo' query='foo' matchAll={true} />
-    </p>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Match first only</p>
-    <p>
-      <Highlight text='foo bar foo baz foo' query='foo' matchAll={false} />
-    </p>
-  </div>
-</div>
+```tsx-live layout=stack gap=2
+{/* Match all (default) */}
+<p>
+  <Highlight text='foo bar foo baz foo' query='foo' matchAll={true} />
+</p>
+{/* Match first only */}
+<p>
+  <Highlight text='foo bar foo baz foo' query='foo' matchAll={false} />
+</p>
 ```
 
 <PropsDefinitions component='Highlight' />
