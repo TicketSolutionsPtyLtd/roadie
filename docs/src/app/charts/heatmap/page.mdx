@@ -40,20 +40,18 @@ import { Heatmap } from '@oztix/roadie-charts/heatmap'
 
 Use `scale='diverging'` when values sit either side of zero, such as pace against similar shows. Ahead is cool and behind is warm.
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Section pace' source='Oztix sales.' size='md'>
-    <Heatmap
-      data={['Floor', 'Balcony', 'Mezzanine'].flatMap((section, r) => ['Week 1', 'Week 2', 'Week 3', 'Week 4'].map((week, c) => ({ section, week, versusSimilar: [0.12, 0.05, -0.02, -0.08][(r + c) % 4] })))}
-      rows='section'
-      columns='week'
-      value='versusSimilar'
-      scale='diverging'
-      format='percent'
-      takeaway='The floor has slipped behind similar shows'
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Section pace' source='Oztix sales.' size='md'>
+  <Heatmap
+    data={['Floor', 'Balcony', 'Mezzanine'].flatMap((section, r) => ['Week 1', 'Week 2', 'Week 3', 'Week 4'].map((week, c) => ({ section, week, versusSimilar: [0.12, 0.05, -0.02, -0.08][(r + c) % 4] })))}
+    rows='section'
+    columns='week'
+    value='versusSimilar'
+    scale='diverging'
+    format='percent'
+    takeaway='The floor has slipped behind similar shows'
+  />
+</Chart>
 ```
 
 ## Guidelines

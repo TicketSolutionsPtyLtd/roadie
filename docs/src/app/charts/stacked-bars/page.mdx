@@ -20,73 +20,65 @@ import { StackedBars } from '@oztix/roadie-charts/stacked-bars'
 
 ### Default
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Ticket type mix' source='Oztix sales.' size='md'>
-    <StackedBars
-      data={[['Friday', 'GA', 1210], ['Friday', 'VIP', 232], ['Saturday', 'GA', 1480], ['Saturday', 'VIP', 310], ['Sunday', 'GA', 640], ['Sunday', 'VIP', 96]].map(([show, type, sold]) => ({ show, type, sold }))}
-      x='show'
-      y='sold'
-      series='type'
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Ticket type mix' source='Oztix sales.' size='md'>
+  <StackedBars
+    data={[['Friday', 'GA', 1210], ['Friday', 'VIP', 232], ['Saturday', 'GA', 1480], ['Saturday', 'VIP', 310], ['Sunday', 'GA', 640], ['Sunday', 'VIP', 96]].map(([show, type, sold]) => ({ show, type, sold }))}
+    x='show'
+    y='sold'
+    series='type'
+  />
+</Chart>
 ```
 
 ### Share
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Presale and general' source='Oztix sales.' size='md'>
-    <StackedBars
-      data={[['Kazoo Hollow Room', 'Presale', 820], ['Kazoo Hollow Room', 'General', 644], ['Antler Kettle Hall', 'Presale', 310], ['Antler Kettle Hall', 'General', 1190]].map(([show, phase, sold]) => ({ show, phase, sold }))}
-      x='show'
-      y='sold'
-      series='phase'
-      mode='share'
-      highlight='Presale'
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Presale and general' source='Oztix sales.' size='md'>
+  <StackedBars
+    data={[['Kazoo Hollow Room', 'Presale', 820], ['Kazoo Hollow Room', 'General', 644], ['Antler Kettle Hall', 'Presale', 310], ['Antler Kettle Hall', 'General', 1190]].map(([show, phase, sold]) => ({ show, phase, sold }))}
+    x='show'
+    y='sold'
+    series='phase'
+    mode='share'
+    highlight='Presale'
+  />
+</Chart>
 ```
 
 ### Long names
 
 On horizontal bars, a long name wraps to two lines within 40% of the chart's width, then ends in an ellipsis.
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Presale and general' source='Oztix sales.' size='md'>
-    <StackedBars
-      data={[
-        ['Kelpie Moon Festival of Bonfires and Strange Machines', 'Presale', 820],
-        ['Kelpie Moon Festival of Bonfires and Strange Machines', 'General', 644],
-        ['Driftwood Robot Goes Wandering National Tour', 'Presale', 310],
-        ['Driftwood Robot Goes Wandering National Tour', 'General', 1190]
-      ].map(([show, phase, sold]) => ({ show, phase, sold }))}
-      x='show'
-      y='sold'
-      series='phase'
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Presale and general' source='Oztix sales.' size='md'>
+  <StackedBars
+    data={[
+      ['Kelpie Moon Festival of Bonfires and Strange Machines', 'Presale', 820],
+      ['Kelpie Moon Festival of Bonfires and Strange Machines', 'General', 644],
+      ['Driftwood Robot Goes Wandering National Tour', 'Presale', 310],
+      ['Driftwood Robot Goes Wandering National Tour', 'General', 1190]
+    ].map(([show, phase, sold]) => ({ show, phase, sold }))}
+    x='show'
+    y='sold'
+    series='phase'
+  />
+</Chart>
 ```
 
 ### Vertical
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Resale share' source='Oztix resale.' size='md'>
-    <StackedBars
-      data={['Sept', 'Oct', 'Nov'].flatMap((month, i) => [{ month, kind: 'Resold', tickets: 40 + i * 25 }, { month, kind: 'Kept', tickets: 1400 - i * 25 }])}
-      x='month'
-      y='tickets'
-      series='kind'
-      mode='share'
-      orientation='vertical'
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Resale share' source='Oztix resale.' size='md'>
+  <StackedBars
+    data={['Sept', 'Oct', 'Nov'].flatMap((month, i) => [{ month, kind: 'Resold', tickets: 40 + i * 25 }, { month, kind: 'Kept', tickets: 1400 - i * 25 }])}
+    x='month'
+    y='tickets'
+    series='kind'
+    mode='share'
+    orientation='vertical'
+  />
+</Chart>
 ```
 
 ## Guidelines

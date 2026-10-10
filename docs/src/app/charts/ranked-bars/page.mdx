@@ -21,92 +21,82 @@ import { RankedBars } from '@oztix/roadie-charts/ranked-bars'
 
 ### Default
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Where buyers came from' source='Oztix sales.' size='md'>
-    <RankedBars
-      data={[
-        { channel: 'Email', orders: 612 },
-        { channel: 'Instagram', orders: 388 },
-        { channel: 'Direct', orders: 301 },
-        { channel: 'Venue site', orders: 164 }
-      ]}
-      x='channel'
-      y='orders'
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Where buyers came from' source='Oztix sales.' size='md'>
+  <RankedBars
+    data={[
+      { channel: 'Email', orders: 612 },
+      { channel: 'Instagram', orders: 388 },
+      { channel: 'Direct', orders: 301 },
+      { channel: 'Venue site', orders: 164 }
+    ]}
+    x='channel'
+    y='orders'
+  />
+</Chart>
 ```
 
 ### Highlight and Other
 
 Past `limit` bars, the smallest roll into Other, which always sits last.
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Where buyers came from' source='Oztix sales.' size='md'>
-    <RankedBars
-      data={[['Email', 612], ['Instagram', 388], ['Direct', 301], ['Venue site', 164], ['TikTok', 142], ['Google', 97], ['Partner', 33]].map(([channel, orders]) => ({ channel, orders }))}
-      x='channel'
-      y='orders'
-      highlight='Email'
-      limit={5}
-      takeaway='Email brings in over a third of orders'
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Where buyers came from' source='Oztix sales.' size='md'>
+  <RankedBars
+    data={[['Email', 612], ['Instagram', 388], ['Direct', 301], ['Venue site', 164], ['TikTok', 142], ['Google', 97], ['Partner', 33]].map(([channel, orders]) => ({ channel, orders }))}
+    x='channel'
+    y='orders'
+    highlight='Email'
+    limit={5}
+    takeaway='Email brings in over a third of orders'
+  />
+</Chart>
 ```
 
 ### Share
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Where buyers live' source='Oztix sales, billing postcodes.' size='md'>
-    <RankedBars
-      data={[['Fortitude Valley', 205], ['West End', 161], ['Paddington', 132], ['Newstead', 102]].map(([suburb, buyers]) => ({ suburb, buyers }))}
-      x='suburb'
-      y='buyers'
-      share
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Where buyers live' source='Oztix sales, billing postcodes.' size='md'>
+  <RankedBars
+    data={[['Fortitude Valley', 205], ['West End', 161], ['Paddington', 132], ['Newstead', 102]].map(([suburb, buyers]) => ({ suburb, buyers }))}
+    x='suburb'
+    y='buyers'
+    share
+  />
+</Chart>
 ```
 
 ### Reference
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Turn-up' source='Oztix scans.' size='md'>
-    <RankedBars
-      data={[{ show: 'Friday', attended: 0.94, similar: 0.9 }, { show: 'Saturday', attended: 0.91, similar: 0.92 }, { show: 'Sunday matinee', attended: 0.83, similar: 0.86 }]}
-      x='show'
-      y='attended'
-      format='percent'
-      reference={{ field: 'similar', label: 'Similar shows' }}
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Turn-up' source='Oztix scans.' size='md'>
+  <RankedBars
+    data={[{ show: 'Friday', attended: 0.94, similar: 0.9 }, { show: 'Saturday', attended: 0.91, similar: 0.92 }, { show: 'Sunday matinee', attended: 0.83, similar: 0.86 }]}
+    x='show'
+    y='attended'
+    format='percent'
+    reference={{ field: 'similar', label: 'Similar shows' }}
+  />
+</Chart>
 ```
 
 ### Long names
 
 Names share the plot with the bars. The label column takes up to 40% of the chart's width, so a long name wraps to two lines and then ends in an ellipsis.
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Behind or at risk' context='Tickets a day to catch up' source='Oztix sales.' size='md'>
-    <RankedBars
-      data={[
-        { show: 'Kelpie Moon Festival of Bonfires and Strange Machines, 31 Oct', perDay: 42 },
-        { show: 'Uncle Meteor and the Midnight Spoon Orchestra Live, 2 Nov', perDay: 31 },
-        { show: 'Giggling Lantern Comedy Gala for Very Serious People, 7 Nov', perDay: 18 },
-        { show: 'Ember Galah Ball, 8 Nov', perDay: 9 }
-      ]}
-      x='show'
-      y='perDay'
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Behind or at risk' context='Tickets a day to catch up' source='Oztix sales.' size='md'>
+  <RankedBars
+    data={[
+      { show: 'Kelpie Moon Festival of Bonfires and Strange Machines, 31 Oct', perDay: 42 },
+      { show: 'Uncle Meteor and the Midnight Spoon Orchestra Live, 2 Nov', perDay: 31 },
+      { show: 'Giggling Lantern Comedy Gala for Very Serious People, 7 Nov', perDay: 18 },
+      { show: 'Ember Galah Ball, 8 Nov', perDay: 9 }
+    ]}
+    x='show'
+    y='perDay'
+  />
+</Chart>
 ```
 
 ## Guidelines

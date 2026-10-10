@@ -21,62 +21,58 @@ import { Chart } from '@oztix/roadie-charts/chart'
 
 The chart inside the card supplies the Table view and the summary a screen reader hears.
 
-```tsx-live
-<div className='w-[560px] max-w-full'>
-  <Chart
-    label='Sales pace'
-    value={0.61}
+```tsx-live width=140
+<Chart
+  label='Sales pace'
+  value={0.61}
+  format='percent'
+  delta={{ value: 16, format: 'points' }}
+  context='Ahead of similar shows'
+  source='Oztix sales. 38 similar shows, last 3 years.'
+>
+  <LineChart
+    data={[
+      { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+      { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+      { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+      { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+    ]}
+    x='day'
+    y='sold'
     format='percent'
-    delta={{ value: 16, format: 'points' }}
-    context='Ahead of similar shows'
-    source='Oztix sales. 38 similar shows, last 3 years.'
-  >
-    <LineChart
-      data={[
-        { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
-        { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
-        { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
-        { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
-      ]}
-      x='day'
-      y='sold'
-      format='percent'
-      takeaway='Tracking 16 points ahead of similar shows'
-      band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
-      target={0.85}
-      today='2026-10-15'
-    />
-  </Chart>
-</div>
+    takeaway='Tracking 16 points ahead of similar shows'
+    band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
+    target={0.85}
+    today='2026-10-15'
+  />
+</Chart>
 ```
 
 ### Takeaway
 
 Use a takeaway sentence when no single number answers the question.
 
-```tsx-live
-<div className='w-[560px] max-w-full'>
-  <Chart
-    label='Pace to date'
-    takeaway='Tracking ahead of similar shows'
-    source='Oztix sales. 38 similar shows, last 3 years.'
-  >
-    <LineChart
-      data={[
-        { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
-        { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
-        { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
-        { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
-      ]}
-      x='day'
-      y='sold'
-      format='percent'
-      takeaway='Tracking 16 points ahead of similar shows'
-      band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
-      target={0.85}
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart
+  label='Pace to date'
+  takeaway='Tracking ahead of similar shows'
+  source='Oztix sales. 38 similar shows, last 3 years.'
+>
+  <LineChart
+    data={[
+      { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+      { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+      { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+      { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+    ]}
+    x='day'
+    y='sold'
+    format='percent'
+    takeaway='Tracking 16 points ahead of similar shows'
+    band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
+    target={0.85}
+  />
+</Chart>
 ```
 
 ### Table first
@@ -125,146 +121,140 @@ render(
 
 Pass `table` to show different numbers from the plot, such as a few key dates. It wins over the table the chart supplies.
 
-```tsx-live
-<div className='w-[560px] max-w-full'>
-  <Chart
-    label='Pace on key dates'
-    value={0.61}
+```tsx-live width=140
+<Chart
+  label='Pace on key dates'
+  value={0.61}
+  format='percent'
+  delta={{ value: 16, format: 'points' }}
+  context='Ahead of similar shows'
+  source='Oztix sales. 38 similar shows, last 3 years.'
+  table={{
+    columns: [
+      { key: 'date', header: 'Date', kind: 'text' },
+      { key: 'show', header: 'This show', kind: 'number', format: 'percent' },
+      { key: 'similar', header: 'Similar shows', kind: 'number', format: 'percent' }
+    ],
+    rows: [
+      { date: 'Tue 1 Sept', show: 0.14, similar: 0.14 },
+      { date: 'Thu 1 Oct', show: 0.45, similar: 0.35 },
+      { date: 'Thu 15 Oct', show: 0.61, similar: 0.45 }
+    ]
+  }}
+>
+  <LineChart
+    data={[
+      { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+      { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+      { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+      { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+    ]}
+    x='day'
+    y='sold'
     format='percent'
-    delta={{ value: 16, format: 'points' }}
-    context='Ahead of similar shows'
-    source='Oztix sales. 38 similar shows, last 3 years.'
-    table={{
-      columns: [
-        { key: 'date', header: 'Date', kind: 'text' },
-        { key: 'show', header: 'This show', kind: 'number', format: 'percent' },
-        { key: 'similar', header: 'Similar shows', kind: 'number', format: 'percent' }
-      ],
-      rows: [
-        { date: 'Tue 1 Sept', show: 0.14, similar: 0.14 },
-        { date: 'Thu 1 Oct', show: 0.45, similar: 0.35 },
-        { date: 'Thu 15 Oct', show: 0.61, similar: 0.45 }
-      ]
-    }}
-  >
-    <LineChart
-      data={[
-        { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
-        { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
-        { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
-        { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
-      ]}
-      x='day'
-      y='sold'
-      format='percent'
-      takeaway='Tracking 16 points ahead of similar shows'
-      band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
-      target={0.85}
-    />
-  </Chart>
-</div>
+    takeaway='Tracking 16 points ahead of similar shows'
+    band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
+    target={0.85}
+  />
+</Chart>
 ```
 
 ### With a legend
 
 A single line gets no legend of its own on a wide card, where end labels name its reading aids. Pass one when you want the line and its aids named at every width. Use the words the plot uses, and the card's legend replaces the one the plot adds on a narrow card.
 
-```tsx-live
-<div className='w-[560px] max-w-full'>
-  <Chart
-    label='Similar shows pace'
-    value={0.61}
-    format='percent'
-    delta={{ value: 16, format: 'points' }}
-    context='Ahead of similar shows'
-    source='Oztix sales. 38 similar shows, last 3 years.'
-    legend={
-      <ChartLegend
-        items={[
-          { label: 'Sold', shape: 'line', slot: 1 },
-          { label: 'Similar shows', shape: 'band', color: 'var(--chart-band)', median: true },
-          { label: 'Target 85%', shape: 'line', color: 'var(--chart-value)' }
-        ]}
-      />
-    }
-  >
-    <LineChart
-      data={[
-        { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
-        { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
-        { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
-        { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+```tsx-live width=140
+<Chart
+  label='Similar shows pace'
+  value={0.61}
+  format='percent'
+  delta={{ value: 16, format: 'points' }}
+  context='Ahead of similar shows'
+  source='Oztix sales. 38 similar shows, last 3 years.'
+  legend={
+    <ChartLegend
+      items={[
+        { label: 'Sold', shape: 'line', slot: 1 },
+        { label: 'Similar shows', shape: 'band', color: 'var(--chart-band)', median: true },
+        { label: 'Target 85%', shape: 'line', color: 'var(--chart-value)' }
       ]}
-      x='day'
-      y='sold'
-      format='percent'
-      takeaway='Tracking 16 points ahead of similar shows'
-      band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
-      target={0.85}
     />
-  </Chart>
-</div>
+  }
+>
+  <LineChart
+    data={[
+      { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+      { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+      { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+      { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+    ]}
+    x='day'
+    y='sold'
+    format='percent'
+    takeaway='Tracking 16 points ahead of similar shows'
+    band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
+    target={0.85}
+  />
+</Chart>
 ```
 
 ### With actions
 
 Pass `actions` to add controls after the Chart and Table switch. Use at most one visible action, then the More menu last. Pass `DataCard.MoreButton` to a [Menu](/components/menu) trigger's `render`, and it keeps its name and ref. Group the items as the [More menu](/charts/dashboards#card-actions) guideline says, with the danger action last.
 
-```tsx-live
-<div className='w-[560px] max-w-full'>
-  <Chart
-    label='Sales pace'
-    value={0.61}
+```tsx-live width=140
+<Chart
+  label='Sales pace'
+  value={0.61}
+  format='percent'
+  delta={{ value: 16, format: 'points' }}
+  context='Ahead of similar shows'
+  source='Oztix sales. 38 similar shows, last 3 years.'
+  actions={
+    <Menu>
+      <Menu.Trigger render={<DataCard.MoreButton label='Sales pace' />} />
+      <Menu.Content align='end'>
+        <Menu.Group>
+          <Menu.GroupLabel>Chart</Menu.GroupLabel>
+          <Menu.Item icon={<PencilSimpleIcon weight='bold' />}>Edit</Menu.Item>
+          <Menu.Item icon={<CopyIcon weight='bold' />}>Duplicate</Menu.Item>
+        </Menu.Group>
+        <Menu.Separator />
+        <Menu.Group>
+          <Menu.GroupLabel>Display</Menu.GroupLabel>
+          <Menu.Item icon={<EyeSlashIcon weight='bold' />}>Hide description</Menu.Item>
+        </Menu.Group>
+        <Menu.Separator />
+        <Menu.Group>
+          <Menu.GroupLabel>Export</Menu.GroupLabel>
+          <Menu.Item icon={<DownloadIcon weight='bold' />}>Download CSV</Menu.Item>
+          <Menu.Item icon={<ImageIcon weight='bold' />}>Copy as image</Menu.Item>
+        </Menu.Group>
+        <Menu.Separator />
+        <Menu.Group>
+          <Menu.GroupLabel>Dashboard</Menu.GroupLabel>
+          <Menu.Item icon={<ArrowRightIcon weight='bold' />}>Move to</Menu.Item>
+          <Menu.Item intent='danger' icon={<TrashIcon weight='bold' />}>Remove from dashboard</Menu.Item>
+        </Menu.Group>
+      </Menu.Content>
+    </Menu>
+  }
+>
+  <LineChart
+    data={[
+      { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
+      { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
+      { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
+      { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
+    ]}
+    x='day'
+    y='sold'
     format='percent'
-    delta={{ value: 16, format: 'points' }}
-    context='Ahead of similar shows'
-    source='Oztix sales. 38 similar shows, last 3 years.'
-    actions={
-      <Menu>
-        <Menu.Trigger render={<DataCard.MoreButton label='Sales pace' />} />
-        <Menu.Content align='end'>
-          <Menu.Group>
-            <Menu.GroupLabel>Chart</Menu.GroupLabel>
-            <Menu.Item icon={<PencilSimpleIcon weight='bold' />}>Edit</Menu.Item>
-            <Menu.Item icon={<CopyIcon weight='bold' />}>Duplicate</Menu.Item>
-          </Menu.Group>
-          <Menu.Separator />
-          <Menu.Group>
-            <Menu.GroupLabel>Display</Menu.GroupLabel>
-            <Menu.Item icon={<EyeSlashIcon weight='bold' />}>Hide description</Menu.Item>
-          </Menu.Group>
-          <Menu.Separator />
-          <Menu.Group>
-            <Menu.GroupLabel>Export</Menu.GroupLabel>
-            <Menu.Item icon={<DownloadIcon weight='bold' />}>Download CSV</Menu.Item>
-            <Menu.Item icon={<ImageIcon weight='bold' />}>Copy as image</Menu.Item>
-          </Menu.Group>
-          <Menu.Separator />
-          <Menu.Group>
-            <Menu.GroupLabel>Dashboard</Menu.GroupLabel>
-            <Menu.Item icon={<ArrowRightIcon weight='bold' />}>Move to</Menu.Item>
-            <Menu.Item intent='danger' icon={<TrashIcon weight='bold' />}>Remove from dashboard</Menu.Item>
-          </Menu.Group>
-        </Menu.Content>
-      </Menu>
-    }
-  >
-    <LineChart
-      data={[
-        { day: '2026-09-01', sold: 0.14, low: 0.07, high: 0.22, median: 0.14 },
-        { day: '2026-09-15', sold: 0.3, low: 0.18, high: 0.33, median: 0.25 },
-        { day: '2026-10-01', sold: 0.45, low: 0.28, high: 0.43, median: 0.35 },
-        { day: '2026-10-15', sold: 0.61, low: 0.38, high: 0.53, median: 0.45 }
-      ]}
-      x='day'
-      y='sold'
-      format='percent'
-      takeaway='Tracking 16 points ahead of similar shows'
-      band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
-      target={0.85}
-    />
-  </Chart>
-</div>
+    takeaway='Tracking 16 points ahead of similar shows'
+    band={{ low: 'low', high: 'high', median: 'median', label: 'Similar shows' }}
+    target={0.85}
+  />
+</Chart>
 ```
 
 ## Guidelines

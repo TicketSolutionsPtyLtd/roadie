@@ -173,6 +173,8 @@ export default [
       'packages/core/src/theme/parity.test.ts',
       // The audit and charts skills mirror palette.ts and tokens.css.
       'packages/core/src/dataviz/skill-parity.test.ts',
+      // The motion skill names every token and utility in motion.css.
+      'packages/core/src/css/motion-skill-parity.test.ts',
       // tokens.json is generated from every sheet roadie.css imports.
       'packages/core/src/tokens/manifest.test.ts',
       // NAVIGATOR_EXPANDED_SCOPE mirrors the variant so jsdom tests can match it.

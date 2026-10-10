@@ -21,23 +21,21 @@ import { SmallMultiples } from '@oztix/roadie-charts/small-multiples'
 
 ### Default
 
-```tsx-live
-<div className='w-180 max-w-full'>
-  <Chart label='Entry by gate' source='Oztix scans.' size='full'>
-    <SmallMultiples
-      data={['North gate', 'South gate', 'River entry'].flatMap((gate, g) =>
-        Array.from({ length: 8 }, (_, i) => ({
-          gate,
-          time: `2026-11-14T${String(17 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`,
-          scans: Math.round([300, 220, 140][g] * Math.exp(-(((i - 3) / 2) ** 2)))
-        }))
-      )}
-      by='gate'
-      chart={{ kind: 'bar', x: 'time', y: 'scans', interval: 'hour' }}
-      takeaway='North gate took the rush, with more than twice the peak of River entry'
-    />
-  </Chart>
-</div>
+```tsx-live width=180
+<Chart label='Entry by gate' source='Oztix scans.' size='full'>
+  <SmallMultiples
+    data={['North gate', 'South gate', 'River entry'].flatMap((gate, g) =>
+      Array.from({ length: 8 }, (_, i) => ({
+        gate,
+        time: `2026-11-14T${String(17 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`,
+        scans: Math.round([300, 220, 140][g] * Math.exp(-(((i - 3) / 2) ** 2)))
+      }))
+    )}
+    by='gate'
+    chart={{ kind: 'bar', x: 'time', y: 'scans', interval: 'hour' }}
+    takeaway='North gate took the rush, with more than twice the peak of River entry'
+  />
+</Chart>
 ```
 
 ## Guidelines
