@@ -305,6 +305,34 @@
   }
 }
 
+/* The focus ring of is-interactive, with no cursor or press change, for a
+   focus target that isn't clicked, such as a scroll region or a tabIndex=-1
+   landing target. */
+@utility is-focusable {
+  outline: 0 solid transparent;
+  transition:
+    outline-width var(--duration-normal) var(--ease-standard),
+    outline-color var(--duration-normal) var(--ease-standard);
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid
+      color-mix(
+        in oklch,
+        var(--intent-9) var(--focus-ring-opacity),
+        transparent
+      );
+    outline-offset: 0;
+  }
+
+  .dark &:focus-visible {
+    outline-color: color-mix(
+      in oklch,
+      var(--intent-9) var(--focus-ring-opacity-dark),
+      transparent
+    );
+  }
+}
+
 /* A surface whose main link sits inside it, such as a card that also holds
    other actions. Mark that link with data-interactive-target: its overlay
    covers the surface, other controls sit above it, and the surface takes the

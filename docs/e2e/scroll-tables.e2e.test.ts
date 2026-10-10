@@ -101,7 +101,7 @@ describe('Scrolling markdown tables', () => {
       .toBeGreaterThan(0)
   }, 60_000)
 
-  it('shows the focus ring on a focused table', async () => {
+  it('shows is-focusable’s token ring on a focused table, with no cursor change', async () => {
     const { page } = await open(PHONE)
     const scroller = scrollerAfter(page, 'writing-for-charts')
     await expect
@@ -109,17 +109,33 @@ describe('Scrolling markdown tables', () => {
       .toBe('0')
     await tabsInto(page, 'writing-for-charts')
 
-    const ring = await scroller.evaluate((node) => {
+    const token = await page.evaluate(() =>
+      getComputedStyle(document.documentElement)
+        .getPropertyValue('--focus-ring-width')
+        .trim()
+    )
+    // The ring grows in over a transition, so wait for it to settle.
+    await expect
+      .poll(
+        () => scroller.evaluate((node) => getComputedStyle(node).outlineWidth),
+        { timeout: 5_000 }
+      )
+      .toBe(token)
+    const focused = await scroller.evaluate((node) => {
       const style = getComputedStyle(node)
       return {
+        focusable: node.classList.contains('is-focusable'),
         style: style.outlineStyle,
-        width: parseFloat(style.outlineWidth),
-        color: style.outlineColor
+        offset: style.outlineOffset,
+        color: style.outlineColor,
+        cursor: style.cursor
       }
     })
-    expect(ring.style).toBe('solid')
-    expect(ring.width).toBeGreaterThan(0)
-    expect(ring.color).not.toMatch(/^rgba\(0, 0, 0, 0\)$|transparent/)
+    expect(focused.focusable).toBe(true)
+    expect(focused.style).toBe('solid')
+    expect(focused.offset).toBe('0px')
+    expect(focused.color).not.toMatch(/^rgba\(0, 0, 0, 0\)$|transparent/)
+    expect(focused.cursor).toBe('auto')
   }, 60_000)
 
   it('gives a docs component’s prose table the same region as a markdown table', async () => {
@@ -197,7 +213,7 @@ describe('Scrolling markdown tables', () => {
     const html = await page.evaluate(async () =>
       (await fetch(location.href)).text()
     )
-    expect(html).toContain('class="prose-scroll"')
+    expect(html).toContain('class="prose-scroll is-focusable"')
     expect(html).not.toMatch(/class="prose-scroll[^"]*"[^>]*tabindex/)
   }, 60_000)
 

@@ -87,10 +87,10 @@ Each rule has a foundations page with the detail.
   `subtler` (barely tinted), `raised`, `sunken`, `field` (text fields, with
   `is-interactive-field`), `floating`, `inverted`, `overlay`, and
   `overlay-subtle`. Add `is-translucent` to raised or floating surfaces.
-- **Interaction.** `is-interactive` on anything clickable;
-  `is-interactive-field` and `is-interactive-field-group` on form controls;
-  `is-interactive-within` on a surface whose main link sits inside it, marked
-  `data-interactive-target`. Never hand-roll hover or focus states.
+- **Interaction.** `is-interactive` on anything clickable; `is-focusable` on
+  a non-clicked focus target; `is-interactive-field(-group)` on form
+  controls; `is-interactive-within` on a surface around a
+  `data-interactive-target` link. Never hand-roll hover or focus states.
   Choices: `is-unselected`; chosen, `emphasis-subtle is-selected` (quiet
   controls only) or `is-selected-label(-on-strong)` on indicators.
 - **Layout.** `grid gap-*` by default, where the parent sizes its children;
