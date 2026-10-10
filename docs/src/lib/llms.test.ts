@@ -21,6 +21,24 @@ describe('pageToMarkdown', () => {
     expect(md).toBe('# Badge\n\n> A compact label\n\nBody.\n')
   })
 
+  it('lists the cross-links the site shows under the title', () => {
+    const md = pageToMarkdown({
+      title: 'Colors',
+      description: 'How Roadie uses colour',
+      related: {
+        label: 'Reference',
+        links: [
+          { title: 'Color scales tokens', url: '/tokens/color-scales.md' },
+          { title: 'Intents tokens', url: '/tokens/intents.md' }
+        ]
+      },
+      mdx: 'Body.'
+    })
+    expect(md).toBe(
+      '# Colors\n\n> How Roadie uses colour\n\nReference: [Color scales tokens](/tokens/color-scales.md), [Intents tokens](/tokens/intents.md).\n\nBody.\n'
+    )
+  })
+
   it('writes the title once when the page opens with its own H1', () => {
     expect(page('# Badge\n\nBody.')).toBe('# Badge\n\nBody.\n')
   })
