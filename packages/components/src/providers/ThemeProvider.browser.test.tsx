@@ -351,3 +351,72 @@ describe('a nested ThemeProvider in layout', () => {
     expect(boxes('li')).toEqual(plain)
   })
 })
+
+describe('a nested ThemeProvider without an accent', () => {
+  it("inherits the root's accent", async () => {
+    render(
+      <ThemeProvider accentColor={ROUTE}>
+        <ThemeProvider accentColor={null}>
+          <Probes name='inside' />
+        </ThemeProvider>
+      </ThemeProvider>
+    )
+    await settle()
+    expectHues('inside', ROUTE_HUE)
+  })
+
+  it("inherits an enclosing scope's accent", async () => {
+    render(
+      <ThemeProvider accentColor={ROOT}>
+        <ThemeProvider accentColor={ROUTE}>
+          <ThemeProvider accentColor={null}>
+            <Probes name='inside' />
+          </ThemeProvider>
+        </ThemeProvider>
+      </ThemeProvider>
+    )
+    await settle()
+    expectHues('inside', ROUTE_HUE)
+  })
+
+  it("themes a portalled popup by the enclosing scope's accent", async () => {
+    render(
+      <ThemeProvider accentColor={ROOT}>
+        <ThemeProvider accentColor={ROUTE}>
+          <ThemeProvider accentColor={null}>
+            <Popover open>
+              <Popover.Trigger>Open</Popover.Trigger>
+              <Popover.Content>
+                <Probes name='inside' />
+              </Popover.Content>
+            </Popover>
+          </ThemeProvider>
+        </ThemeProvider>
+      </ThemeProvider>
+    )
+    await settle()
+    expectHues('inside', ROUTE_HUE)
+  })
+
+  it("keeps the parent's accent while mounted and after it unmounts", async () => {
+    const page = (nested: boolean) => (
+      <ThemeProvider accentColor={ROUTE}>
+        <Probes name='outside' />
+        {nested && (
+          <ThemeProvider accentColor={null}>
+            <Probes name='inside' />
+          </ThemeProvider>
+        )}
+      </ThemeProvider>
+    )
+    const { rerender } = render(page(false))
+    await settle()
+    rerender(page(true))
+    await settle()
+    expectHues('inside', ROUTE_HUE)
+    expectHues('outside', ROUTE_HUE)
+    rerender(page(false))
+    await settle()
+    expectHues('outside', ROUTE_HUE)
+  })
+})

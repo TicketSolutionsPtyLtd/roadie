@@ -292,6 +292,33 @@ describe('ThemeProvider - accent scope', () => {
     expect(scopeHue(container)).toBe('293')
   })
 
+  it("gives a nested provider without an accent its parent's, with no scope", () => {
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: ({ children }) => (
+        <ThemeProvider accentColor={ROUTE}>
+          <ThemeProvider accentColor={null}>{children}</ThemeProvider>
+        </ThemeProvider>
+      )
+    })
+    expect(result.current.accentColor).toBe(ROUTE)
+    expect(document.querySelector('[data-accent-scope]')).toBeNull()
+  })
+
+  it('scopes a nested provider when its accent loads, without remounting', () => {
+    const tree = (accent: string | null) => (
+      <ThemeProvider accentColor={ROOT}>
+        <ThemeProvider accentColor={accent}>
+          <p>Route</p>
+        </ThemeProvider>
+      </ThemeProvider>
+    )
+    const { rerender, container, getByText } = render(tree(null))
+    const route = getByText('Route')
+    rerender(tree(ROUTE))
+    expect(getByText('Route')).toBe(route)
+    expect(scopeHue(container)).toBe('293')
+  })
+
   it('leaves the outer accent in place when a nested provider unmounts', async () => {
     const tree = (route: boolean) => (
       <ThemeProvider accentColor={ROOT}>

@@ -77,12 +77,15 @@ export interface ThemeProviderProps {
    * internal state on every render and imperative `setAccentColor`
    * calls become no-ops with a dev warning. Pass `null` to opt into
    * controlled mode while falling back to `defaultAccentColor` (useful
-   * for async data: `collection?.themeColour ?? null`).
+   * for async data: `collection?.themeColour ?? null`). Without a
+   * `defaultAccentColor`, `null` falls back to the parent provider's
+   * accent when nested, or to Oztix blue at the root.
    */
   accentColor?: string | null
   /**
-   * Initial accent colour when uncontrolled. Ignored when the
-   * `accentColor` prop is provided.
+   * Initial accent colour when uncontrolled, and the fallback for a
+   * `null` or invalid `accentColor`. Defaults to the parent provider's
+   * accent when nested, or to Oztix blue at the root.
    */
   defaultAccentColor?: string
   /** Initial dark mode state when no stored preference exists (default: false) */
@@ -279,7 +282,7 @@ function isDev(): boolean {
 export function ThemeProvider({
   children,
   accentColor: controlledAccent,
-  defaultAccentColor = DEFAULT_ACCENT_COLOR,
+  defaultAccentColor,
   defaultDark = false,
   followSystem = false
 }: ThemeProviderProps) {
@@ -287,7 +290,9 @@ export function ThemeProvider({
 
   // A nested provider scopes its accent to a wrapper, so only the root
   // provider owns the document-wide style.
-  const nested = React.useContext(ThemeContext) !== undefined
+  const parent = React.useContext(ThemeContext)
+  const nested = parent !== undefined
+  const parentScope = React.useContext(AccentScopeContext)
 
   // Dev warning: switching between controlled/uncontrolled is almost
   // always a bug. Mirrors React's controlled-input convention.
@@ -307,9 +312,8 @@ export function ThemeProvider({
 
   const [internalAccent, setInternalAccent] = React.useState(defaultAccentColor)
 
-  // Resolve the effective accent colour. Controlled prop always wins.
-  // Invalid controlled input falls back to defaultAccentColor with a warning.
-  const accentColor = React.useMemo(() => {
+  // Undefined when this provider has no accent of its own and inherits one.
+  const ownAccent = React.useMemo(() => {
     if (!isControlled) return internalAccent
     if (controlledAccent === null) return defaultAccentColor
     if (isValidHexColor(controlledAccent)) return controlledAccent
@@ -322,6 +326,8 @@ export function ThemeProvider({
     }
     return defaultAccentColor
   }, [isControlled, controlledAccent, defaultAccentColor, internalAccent])
+
+  const accentColor = ownAccent ?? parent?.accentColor ?? DEFAULT_ACCENT_COLOR
 
   const setAccentColor = React.useCallback(
     (next: string) => {
@@ -413,24 +419,29 @@ export function ThemeProvider({
   )
 
   const scope = React.useMemo(() => {
-    if (!nested) return null
-    const { hue, chroma } = accentParams(accentColor)
+    if (!nested || !ownAccent) return null
+    const { hue, chroma } = accentParams(ownAccent)
     return {
       '--accent-hue': String(hue),
       '--accent-chroma': String(chroma)
     } as React.CSSProperties
-  }, [nested, accentColor])
+  }, [nested, ownAccent])
 
-  if (!scope) {
+  if (!nested) {
     return (
       <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
     )
   }
 
+  // The wrapper stays while the accent loads so the subtree doesn't remount.
   return (
     <ThemeContext.Provider value={value}>
-      <AccentScopeContext.Provider value={scope}>
-        <div data-accent-scope='' className='contents' style={scope}>
+      <AccentScopeContext.Provider value={scope ?? parentScope}>
+        <div
+          data-accent-scope={scope ? '' : undefined}
+          className='contents'
+          style={scope ?? undefined}
+        >
           {children}
         </div>
       </AccentScopeContext.Provider>
