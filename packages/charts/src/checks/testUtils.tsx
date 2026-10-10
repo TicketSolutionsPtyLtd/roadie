@@ -237,28 +237,7 @@ type KnownLowContrast = {
 
 // Text under body text's minimum that already shipped. Each leaves once its
 // ticket is fixed; anything not listed fails the check.
-const highlightEndLabel = (element: Element) =>
-  element.matches('[data-ts-key^="label-end"]') &&
-  element.getAttribute('fill') === 'var(--chart-highlight)'
-
-// The pace line's end label ("Forecast 96%") takes its series colour,
-// --chart-highlight, at 11 to 12px semibold: under 0010's 14px for a short
-// label, so it needs body text's Lc 75. It measured Lc 62.8 in light and 72.0
-// in dark at 1280px; a phone doesn't draw it.
-const knownLowContrast: KnownLowContrast[] = [
-  {
-    matches: highlightEndLabel,
-    floor: 62,
-    theme: 'light',
-    ticket: 'https://oztix.atlassian.net/browse/INNO-1242'
-  },
-  {
-    matches: highlightEndLabel,
-    floor: 71,
-    theme: 'dark',
-    ticket: 'https://oztix.atlassian.net/browse/INNO-1242'
-  }
-]
+const knownLowContrast: KnownLowContrast[] = []
 
 const currentTheme = (): Theme =>
   document.documentElement.classList.contains('dark') ? 'dark' : 'light'

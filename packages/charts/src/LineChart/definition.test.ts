@@ -142,6 +142,24 @@ describe('lineChart', () => {
     )
   })
 
+  it('writes the highlighted end label in text colour beside a highlight dot', () => {
+    const scene = createChartScene(lineChart.build(paceExample, paint, frame), {
+      width: 640,
+      height: 260
+    })
+    const label = findNode(
+      scene.nodes,
+      (n) => n.kind === 'label' && n.text.startsWith('Forecast')
+    )
+    const marker = findNode(scene.nodes, (n) => n.key.startsWith('end-marker:'))
+    if (label?.kind !== 'label') throw new Error('No forecast label')
+    if (marker?.kind !== 'dot') throw new Error('No end marker')
+    expect(label.style?.fill).toBe(paint.label)
+    expect(marker.style?.fill).toBe(paint.highlight)
+    expect(Math.abs(marker.y - label.y)).toBeLessThan(1)
+    expect(marker.x + marker.radius).toBeLessThan(label.x)
+  })
+
   it('sorts rows by x and keeps gaps as gaps', () => {
     const points = toLinePoints({
       data: [...days([1, null, 3])].reverse(),
