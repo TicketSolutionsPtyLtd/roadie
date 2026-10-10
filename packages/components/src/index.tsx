@@ -13,6 +13,7 @@ export { Highlight, type HighlightProps } from './components/Highlight'
 export { Kbd, type KbdProps } from './components/Kbd'
 export { Mark, markVariants, type MarkProps } from './components/Mark'
 export { Prose, proseVariants, type ProseProps } from './components/Prose'
+export { useScrollRegion } from './components/ScrollRegion'
 
 export { QRCode, type QRCodeProps } from './components/QRCode'
 export {
