@@ -23,7 +23,7 @@ describe.each(widths)('Accessibility on a $name', (viewport) => {
     )
     it.each(scenarios)('$name meets APCA contrast', async (scenario) => {
       await showScenario(scenario, theme, viewport)
-      expectApcaContrast(scenario)
+      expectApcaContrast()
     })
   })
 })
