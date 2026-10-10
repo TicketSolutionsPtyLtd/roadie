@@ -139,7 +139,10 @@ thread, and consumer changes in the changeset.
 - **Two-way door, every condition met:**
   `gh pr merge <n> --squash --delete-branch`, run by hand once every condition
   holds. First check the squash message (Roadie: PR workflow section 8): run
-  the `/roadie:pr` privacy check on `gh pr view <n> --json title,body`, and if
+  the `/roadie:pr` privacy check on the title, body, and commit messages
+  (`gh pr view <n> --json title,body,commits`), which flags a real person's
+  name (for example the maintainer's; PR workflow section 7 says "the
+  maintainer" instead), and if
   a privacy fix landed after the PR opened, pass a clean message with
   `--subject` and `--body`. Never `--auto`, even where the repo allows it:
   auto-merge waits only for required checks, not the review, threads, or file list. Then
