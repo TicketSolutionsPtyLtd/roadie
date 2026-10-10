@@ -106,135 +106,129 @@ A flat row with a sliding underline. Use for in-page section navigation where ta
 
 ### Sizes
 
-```tsx-live
-<div className='grid gap-4'>
-  <Tabs defaultValue='week' size='sm'>
-    <Tabs.List>
-      <Tabs.Tab value='day'>Day</Tabs.Tab>
-      <Tabs.Tab value='week'>Week</Tabs.Tab>
-      <Tabs.Tab value='month'>Month</Tabs.Tab>
-      <Tabs.Indicator />
-    </Tabs.List>
-  </Tabs>
-  <Tabs defaultValue='week' size='md'>
-    <Tabs.List>
-      <Tabs.Tab value='day'>Day</Tabs.Tab>
-      <Tabs.Tab value='week'>Week</Tabs.Tab>
-      <Tabs.Tab value='month'>Month</Tabs.Tab>
-      <Tabs.Indicator />
-    </Tabs.List>
-  </Tabs>
-  <Tabs defaultValue='week' size='lg'>
-    <Tabs.List>
-      <Tabs.Tab value='day'>Day</Tabs.Tab>
-      <Tabs.Tab value='week'>Week</Tabs.Tab>
-      <Tabs.Tab value='month'>Month</Tabs.Tab>
-      <Tabs.Indicator />
-    </Tabs.List>
-  </Tabs>
-</div>
+```tsx-live layout=stack
+<Tabs defaultValue='week' size='sm'>
+  <Tabs.List>
+    <Tabs.Tab value='day'>Day</Tabs.Tab>
+    <Tabs.Tab value='week'>Week</Tabs.Tab>
+    <Tabs.Tab value='month'>Month</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+<Tabs defaultValue='week' size='md'>
+  <Tabs.List>
+    <Tabs.Tab value='day'>Day</Tabs.Tab>
+    <Tabs.Tab value='week'>Week</Tabs.Tab>
+    <Tabs.Tab value='month'>Month</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+<Tabs defaultValue='week' size='lg'>
+  <Tabs.List>
+    <Tabs.Tab value='day'>Day</Tabs.Tab>
+    <Tabs.Tab value='week'>Week</Tabs.Tab>
+    <Tabs.Tab value='month'>Month</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
 ```
 
 ### Icon only
 
 A tab that holds only an icon becomes a circle at every size and emphasis, and the indicator follows its shape. With `subtler`, the underline runs the width of the circle. Give each one an `aria-label`, because the icon has no text for assistive tech to read. Roadie warns in development when a name is missing.
 
-```tsx-live
-<div className='grid gap-4'>
-  <Tabs defaultValue='tickets' emphasis='strong'>
-    <Tabs.List aria-label='Event views'>
-      <Tabs.Tab value='tickets' aria-label='Tickets'>
-        <TicketIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Tab value='attendees' aria-label='Attendees'>
-        <UsersIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Tab value='payouts' aria-label='Payouts'>
-        <WalletIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Indicator />
-    </Tabs.List>
-  </Tabs>
-  <Tabs defaultValue='tickets' emphasis='normal'>
-    <Tabs.List aria-label='Event views'>
-      <Tabs.Tab value='tickets' aria-label='Tickets'>
-        <TicketIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Tab value='attendees' aria-label='Attendees'>
-        <UsersIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Tab value='payouts' aria-label='Payouts'>
-        <WalletIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Indicator />
-    </Tabs.List>
-  </Tabs>
-  <Tabs defaultValue='tickets' emphasis='subtle'>
-    <Tabs.List aria-label='Event views'>
-      <Tabs.Tab value='tickets' aria-label='Tickets'>
-        <TicketIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Tab value='attendees' aria-label='Attendees'>
-        <UsersIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Tab value='payouts' aria-label='Payouts'>
-        <WalletIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Indicator />
-    </Tabs.List>
-  </Tabs>
-  <Tabs defaultValue='tickets' emphasis='subtler'>
-    <Tabs.List aria-label='Event views'>
-      <Tabs.Tab value='tickets' aria-label='Tickets'>
-        <TicketIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Tab value='attendees' aria-label='Attendees'>
-        <UsersIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Tab value='payouts' aria-label='Payouts'>
-        <WalletIcon weight='bold' className='size-4' />
-      </Tabs.Tab>
-      <Tabs.Indicator />
-    </Tabs.List>
-  </Tabs>
-</div>
+```tsx-live layout=stack
+<Tabs defaultValue='tickets' emphasis='strong'>
+  <Tabs.List aria-label='Event views'>
+    <Tabs.Tab value='tickets' aria-label='Tickets'>
+      <TicketIcon weight='bold' className='size-4' />
+    </Tabs.Tab>
+    <Tabs.Tab value='attendees' aria-label='Attendees'>
+      <UsersIcon weight='bold' className='size-4' />
+    </Tabs.Tab>
+    <Tabs.Tab value='payouts' aria-label='Payouts'>
+      <WalletIcon weight='bold' className='size-4' />
+    </Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+<Tabs defaultValue='tickets' emphasis='normal'>
+  <Tabs.List aria-label='Event views'>
+    <Tabs.Tab value='tickets' aria-label='Tickets'>
+      <TicketIcon weight='bold' className='size-4' />
+    </Tabs.Tab>
+    <Tabs.Tab value='attendees' aria-label='Attendees'>
+      <UsersIcon weight='bold' className='size-4' />
+    </Tabs.Tab>
+    <Tabs.Tab value='payouts' aria-label='Payouts'>
+      <WalletIcon weight='bold' className='size-4' />
+    </Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+<Tabs defaultValue='tickets' emphasis='subtle'>
+  <Tabs.List aria-label='Event views'>
+    <Tabs.Tab value='tickets' aria-label='Tickets'>
+      <TicketIcon weight='bold' className='size-4' />
+    </Tabs.Tab>
+    <Tabs.Tab value='attendees' aria-label='Attendees'>
+      <UsersIcon weight='bold' className='size-4' />
+    </Tabs.Tab>
+    <Tabs.Tab value='payouts' aria-label='Payouts'>
+      <WalletIcon weight='bold' className='size-4' />
+    </Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+<Tabs defaultValue='tickets' emphasis='subtler'>
+  <Tabs.List aria-label='Event views'>
+    <Tabs.Tab value='tickets' aria-label='Tickets'>
+      <TicketIcon weight='bold' className='size-4' />
+    </Tabs.Tab>
+    <Tabs.Tab value='attendees' aria-label='Attendees'>
+      <UsersIcon weight='bold' className='size-4' />
+    </Tabs.Tab>
+    <Tabs.Tab value='payouts' aria-label='Payouts'>
+      <WalletIcon weight='bold' className='size-4' />
+    </Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
 ```
 
 ### Intents
 
 `intent` cascades down to descendants via CSS custom properties. The active indicator picks up the intent's strong colour in `subtler` emphasis.
 
-```tsx-live
-<div className='grid gap-4'>
-  <Tabs defaultValue='one' intent='accent' emphasis='subtle'>
-    <Tabs.List>
-      <Tabs.Tab value='one'>Accent</Tabs.Tab>
-      <Tabs.Tab value='two'>Two</Tabs.Tab>
-      <Tabs.Indicator />
-    </Tabs.List>
-  </Tabs>
-  <Tabs defaultValue='one' intent='brand' emphasis='subtle'>
-    <Tabs.List>
-      <Tabs.Tab value='one'>Brand</Tabs.Tab>
-      <Tabs.Tab value='two'>Two</Tabs.Tab>
-      <Tabs.Indicator />
-    </Tabs.List>
-  </Tabs>
-  <Tabs defaultValue='one' intent='success' emphasis='subtle'>
-    <Tabs.List>
-      <Tabs.Tab value='one'>Success</Tabs.Tab>
-      <Tabs.Tab value='two'>Two</Tabs.Tab>
-      <Tabs.Indicator />
-    </Tabs.List>
-  </Tabs>
-  <Tabs defaultValue='one' intent='danger' emphasis='subtle'>
-    <Tabs.List>
-      <Tabs.Tab value='one'>Danger</Tabs.Tab>
-      <Tabs.Tab value='two'>Two</Tabs.Tab>
-      <Tabs.Indicator />
-    </Tabs.List>
-  </Tabs>
-</div>
+```tsx-live layout=stack
+<Tabs defaultValue='one' intent='accent' emphasis='subtle'>
+  <Tabs.List>
+    <Tabs.Tab value='one'>Accent</Tabs.Tab>
+    <Tabs.Tab value='two'>Two</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+<Tabs defaultValue='one' intent='brand' emphasis='subtle'>
+  <Tabs.List>
+    <Tabs.Tab value='one'>Brand</Tabs.Tab>
+    <Tabs.Tab value='two'>Two</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+<Tabs defaultValue='one' intent='success' emphasis='subtle'>
+  <Tabs.List>
+    <Tabs.Tab value='one'>Success</Tabs.Tab>
+    <Tabs.Tab value='two'>Two</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+<Tabs defaultValue='one' intent='danger' emphasis='subtle'>
+  <Tabs.List>
+    <Tabs.Tab value='one'>Danger</Tabs.Tab>
+    <Tabs.Tab value='two'>Two</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
 ```
 
 ### States

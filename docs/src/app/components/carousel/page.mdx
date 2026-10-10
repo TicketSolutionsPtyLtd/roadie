@@ -92,152 +92,150 @@ The simplest usage: a Title, a centered row of Dots, and Previous/Next nav butto
 - **`hidden`**: slides are hard-clipped exactly at the viewport edge.
 - **`visible`**: slides extend indefinitely past the viewport without clipping, useful on wide screens where you deliberately want peeking content to remain fully rendered in the surrounding margin.
 
-```tsx-live
-<div className='grid gap-8'>
-  <Carousel aria-label='Subtle overflow'>
-    <Carousel.Header>
-      <Carousel.Title>Subtle (default)</Carousel.Title>
-    </Carousel.Header>
-    <Carousel.Content overflow='subtle'>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card one</Card.Title>
-            <Card.Description>Fades into the page</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card two</Card.Title>
-            <Card.Description>Fades into the page</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card three</Card.Title>
-            <Card.Description>Fades into the page</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card four</Card.Title>
-            <Card.Description>Fades into the page</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card five</Card.Title>
-            <Card.Description>Fades into the page</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-    </Carousel.Content>
-  </Carousel>
+```tsx-live layout=stack gap=8
+<Carousel aria-label='Subtle overflow'>
+  <Carousel.Header>
+    <Carousel.Title>Subtle (default)</Carousel.Title>
+  </Carousel.Header>
+  <Carousel.Content overflow='subtle'>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card one</Card.Title>
+          <Card.Description>Fades into the page</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card two</Card.Title>
+          <Card.Description>Fades into the page</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card three</Card.Title>
+          <Card.Description>Fades into the page</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card four</Card.Title>
+          <Card.Description>Fades into the page</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card five</Card.Title>
+          <Card.Description>Fades into the page</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
 
-  <Carousel aria-label='Hidden overflow'>
-    <Carousel.Header>
-      <Carousel.Title>Hidden</Carousel.Title>
-    </Carousel.Header>
-    <Carousel.Content overflow='hidden'>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card one</Card.Title>
-            <Card.Description>Hard clip at the edge</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card two</Card.Title>
-            <Card.Description>Hard clip at the edge</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card three</Card.Title>
-            <Card.Description>Hard clip at the edge</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card four</Card.Title>
-            <Card.Description>Hard clip at the edge</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card five</Card.Title>
-            <Card.Description>Hard clip at the edge</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-    </Carousel.Content>
-  </Carousel>
+<Carousel aria-label='Hidden overflow'>
+  <Carousel.Header>
+    <Carousel.Title>Hidden</Carousel.Title>
+  </Carousel.Header>
+  <Carousel.Content overflow='hidden'>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card one</Card.Title>
+          <Card.Description>Hard clip at the edge</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card two</Card.Title>
+          <Card.Description>Hard clip at the edge</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card three</Card.Title>
+          <Card.Description>Hard clip at the edge</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card four</Card.Title>
+          <Card.Description>Hard clip at the edge</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card five</Card.Title>
+          <Card.Description>Hard clip at the edge</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
 
-  <Carousel aria-label='Visible overflow'>
-    <Carousel.Header>
-      <Carousel.Title>Visible</Carousel.Title>
-    </Carousel.Header>
-    <Carousel.Content overflow='visible'>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card one</Card.Title>
-            <Card.Description>Extends past the edge</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card two</Card.Title>
-            <Card.Description>Extends past the edge</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card three</Card.Title>
-            <Card.Description>Extends past the edge</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card four</Card.Title>
-            <Card.Description>Extends past the edge</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-      <Carousel.Item className='basis-[42%] md:basis-1/3'>
-        <Card emphasis='subtle'>
-          <Card.Content>
-            <Card.Title>Card five</Card.Title>
-            <Card.Description>Extends past the edge</Card.Description>
-          </Card.Content>
-        </Card>
-      </Carousel.Item>
-    </Carousel.Content>
-  </Carousel>
-</div>
+<Carousel aria-label='Visible overflow'>
+  <Carousel.Header>
+    <Carousel.Title>Visible</Carousel.Title>
+  </Carousel.Header>
+  <Carousel.Content overflow='visible'>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card one</Card.Title>
+          <Card.Description>Extends past the edge</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card two</Card.Title>
+          <Card.Description>Extends past the edge</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card three</Card.Title>
+          <Card.Description>Extends past the edge</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card four</Card.Title>
+          <Card.Description>Extends past the edge</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Card five</Card.Title>
+          <Card.Description>Extends past the edge</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
 ```
 
 `overflow='visible'` is bounded by whatever ancestor has `overflow: clip` / `hidden` / `auto` on it. Inside the docs preview the preview itself clips, so it reads similarly to `hidden`. In a real layout with a wider parent it lets slides render into adjacent margin without the gradient fade.

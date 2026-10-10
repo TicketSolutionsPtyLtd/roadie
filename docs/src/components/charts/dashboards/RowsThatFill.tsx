@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import { ProseTable } from '@/components/date-and-time/ReadsTable'
+import { ProseTable } from '@/components/ProseTable'
 import { WIDTH_NAME } from '@/lib/card-sizes'
 
 import {

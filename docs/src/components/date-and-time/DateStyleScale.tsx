@@ -1,14 +1,13 @@
-import { ReadsTable } from './ReadsTable'
-import { dateStyleRows } from './example'
+import { ProseDataTable } from '@/components/ProseTable'
+
+import { DATE_TIME_TABLES } from './example'
 
 /** The example show in each `dateStyle`, from `formatDateTime`. */
 export function DateStyleScale() {
   return (
-    <ReadsTable
+    <ProseDataTable
       slot='date-style-scale'
-      head={['Style', 'Renders']}
-      rows={dateStyleRows()}
-      codeNames
+      table={DATE_TIME_TABLES.DateStyleScale()}
     />
   )
 }

@@ -201,7 +201,7 @@ describe('suggestDates: as you type', () => {
   })
 
   it('offers both readings of a word with two', () => {
-    // Wed 30 Sep 2026: next week's Friday, then the coming one.
+    // Wed 30 Sept 2026: next week's Friday, then the coming one.
     expect(dates('next fri', { today: '2026-09-30' })).toEqual([
       ['Next Fri', '2026-10-09'],
       ['Fri 2 Oct 2026', '2026-10-02']

@@ -59,7 +59,7 @@ describe('StackedBars in a card', () => {
     const { container } = renderInCard(<StackedBars {...resaleExample} />)
     const along = await visitEveryStop(container)
     expect(along.map((text) => text.split(',')[0])).toEqual([
-      'Sep',
+      'Sept',
       'Oct',
       'Nov'
     ])
@@ -82,7 +82,7 @@ describe('StackedBars in a card', () => {
     ])
     expect(heard.slice(2)).toEqual([
       'Aug, GA, 414 sold',
-      'Sep, GA, 213 sold',
+      'Sept, GA, 213 sold',
       'Oct, GA, 377 sold'
     ])
   })

@@ -7,15 +7,8 @@ import { Navigator } from '.'
 import { RoadieLinkProvider } from '../../providers/RoadieLinkProvider'
 import { Pane } from '../Pane'
 import { Skeleton } from '../Skeleton'
-import {
-  StubLink,
-  flushViewportMeasurement,
-  testBrand,
-  withScrollSentinels
-} from './testUtils'
+import { StubLink, flushViewportMeasurement, testBrand } from './testUtils'
 import { PENDING_ARM, PENDING_FADE, PENDING_MINIMUM } from './useFramePending'
-
-withScrollSentinels()
 
 const glow = () => document.querySelector('[data-slot="navigator-pending"]')
 const frame = () => document.querySelector('[data-slot="navigator"]')!

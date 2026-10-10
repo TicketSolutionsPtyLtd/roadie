@@ -93,7 +93,11 @@ with its skeleton and the rules on top of these.
   every docs component in `docs/src/lib/twin-components.ts`, or the twin build
   fails: `drawing` if it only draws, or `rendered` with a renderer in
   `docs/scripts/twin-renderers.ts` if agents need its data. Build the rows in
-  a plain `.ts` module that the component and the renderer both import.
+  a plain `.ts` module that the component and the renderer both import, and
+  add its slot to `docs/e2e/twin-data.e2e.test.ts`. A component that draws a
+  list rather than a table marks its rows `data-twin-row` and their cells
+  `data-twin-cell`, so the test can read them. A list has no header row, so
+  the test doesn't check the twin table's column names.
 - Every value of a family is on its `/tokens/` page. A foundation page links
   there through `guidance` in `docs/src/lib/token-families.ts`, and the
   layout shows the link under the title.

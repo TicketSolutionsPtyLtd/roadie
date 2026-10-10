@@ -60,64 +60,54 @@ function AutocompleteDefault() {
 
 ### Emphasis
 
-```tsx-live
-<div className='grid gap-2'>
-  <Autocomplete>
-    <Autocomplete.InputGroup emphasis='normal'>
-      <Autocomplete.Input placeholder='Normal emphasis' />
-    </Autocomplete.InputGroup>
-  </Autocomplete>
-  <Autocomplete>
-    <Autocomplete.InputGroup emphasis='subtle'>
-      <Autocomplete.Input placeholder='Subtle emphasis' />
-    </Autocomplete.InputGroup>
-  </Autocomplete>
-</div>
+```tsx-live layout=stack gap=2
+<Autocomplete>
+  <Autocomplete.InputGroup emphasis='normal'>
+    <Autocomplete.Input placeholder='Normal emphasis' />
+  </Autocomplete.InputGroup>
+</Autocomplete>
+<Autocomplete>
+  <Autocomplete.InputGroup emphasis='subtle'>
+    <Autocomplete.Input placeholder='Subtle emphasis' />
+  </Autocomplete.InputGroup>
+</Autocomplete>
 ```
 
 ### Sizes
 
-```tsx-live
-<div className='grid gap-2'>
-  <Autocomplete>
-    <Autocomplete.InputGroup size='sm'>
-      <Autocomplete.Input placeholder='Small' />
-    </Autocomplete.InputGroup>
-  </Autocomplete>
-  <Autocomplete>
-    <Autocomplete.InputGroup size='md'>
-      <Autocomplete.Input placeholder='Medium (default)' />
-    </Autocomplete.InputGroup>
-  </Autocomplete>
-  <Autocomplete>
-    <Autocomplete.InputGroup size='lg'>
-      <Autocomplete.Input placeholder='Large' />
-    </Autocomplete.InputGroup>
-  </Autocomplete>
-</div>
+```tsx-live layout=stack gap=2
+<Autocomplete>
+  <Autocomplete.InputGroup size='sm'>
+    <Autocomplete.Input placeholder='Small' />
+  </Autocomplete.InputGroup>
+</Autocomplete>
+<Autocomplete>
+  <Autocomplete.InputGroup size='md'>
+    <Autocomplete.Input placeholder='Medium (default)' />
+  </Autocomplete.InputGroup>
+</Autocomplete>
+<Autocomplete>
+  <Autocomplete.InputGroup size='lg'>
+    <Autocomplete.Input placeholder='Large' />
+  </Autocomplete.InputGroup>
+</Autocomplete>
 ```
 
 ### States
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <Autocomplete>
-      <Autocomplete.InputGroup>
-        <Autocomplete.Input placeholder='Type here...' />
-      </Autocomplete.InputGroup>
-    </Autocomplete>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <Autocomplete disabled>
-      <Autocomplete.InputGroup>
-        <Autocomplete.Input placeholder='Type here...' />
-      </Autocomplete.InputGroup>
-    </Autocomplete>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Default */}
+<Autocomplete>
+  <Autocomplete.InputGroup>
+    <Autocomplete.Input placeholder='Type here...' />
+  </Autocomplete.InputGroup>
+</Autocomplete>
+{/* Disabled */}
+<Autocomplete disabled>
+  <Autocomplete.InputGroup>
+    <Autocomplete.Input placeholder='Type here...' />
+  </Autocomplete.InputGroup>
+</Autocomplete>
 ```
 
 ### Composition

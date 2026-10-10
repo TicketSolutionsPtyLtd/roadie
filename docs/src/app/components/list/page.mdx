@@ -52,21 +52,19 @@ are visible surfaces, so they gap apart instead and drop the dividers.
 All of it runs on selectors: `:hover`, `:focus-visible` and `aria-current`.
 Hovering or selecting a row in a long list never re-renders anything.
 
-```tsx-live
-<div className='grid gap-4'>
-  <List emphasis='subtler'>
-    <List.Item title='Subtler' description='Default, no fill' />
-    <List.Item title='Notifications' />
-  </List>
-  <List emphasis='subtle'>
-    <List.Item title='Subtle' description='Tinted rows' />
-    <List.Item title='Notifications' />
-  </List>
-  <List emphasis='normal'>
-    <List.Item title='Normal' description='Bordered rows' />
-    <List.Item title='Notifications' />
-  </List>
-</div>
+```tsx-live layout=stack
+<List emphasis='subtler'>
+  <List.Item title='Subtler' description='Default, no fill' />
+  <List.Item title='Notifications' />
+</List>
+<List emphasis='subtle'>
+  <List.Item title='Subtle' description='Tinted rows' />
+  <List.Item title='Notifications' />
+</List>
+<List emphasis='normal'>
+  <List.Item title='Normal' description='Bordered rows' />
+  <List.Item title='Notifications' />
+</List>
 ```
 
 ### Contained
@@ -76,17 +74,15 @@ the rows to the container, and the rows go square and flush inside it. This is t
 iOS Settings shape. Reach for it when the rows are one unit rather than a
 menu of separate destinations.
 
-```tsx-live
-<div className='grid gap-4'>
-  <List contained emphasis='subtle'>
-    <List.Item title='Subtle' description='Tinted card' />
-    <List.Item title='Notifications' />
-  </List>
-  <List contained emphasis='normal'>
-    <List.Item title='Normal' description='Bordered card' />
-    <List.Item title='Notifications' />
-  </List>
-</div>
+```tsx-live layout=stack
+<List contained emphasis='subtle'>
+  <List.Item title='Subtle' description='Tinted card' />
+  <List.Item title='Notifications' />
+</List>
+<List contained emphasis='normal'>
+  <List.Item title='Normal' description='Bordered card' />
+  <List.Item title='Notifications' />
+</List>
 ```
 
 ### Groups

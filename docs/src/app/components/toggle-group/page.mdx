@@ -181,15 +181,13 @@ Stretch the track and the segments share the space equally.
 
 A horizontal group never wraps or squashes its labels. When the items don't fit, the track scrolls sideways, and it scrolls the pressed item into view. The arrow keys scroll to each item as they focus it.
 
-```tsx-live
-<div className='max-w-64'>
-  <ToggleGroup className='w-full' aria-label='Compare with' defaultValue={['tour']}>
-    <ToggleGroup.Item value='none'>No comparison</ToggleGroup.Item>
-    <ToggleGroup.Item value='period'>Previous period</ToggleGroup.Item>
-    <ToggleGroup.Item value='year'>Previous year</ToggleGroup.Item>
-    <ToggleGroup.Item value='tour'>Last tour</ToggleGroup.Item>
-  </ToggleGroup>
-</div>
+```tsx-live width=64
+<ToggleGroup className='w-full' aria-label='Compare with' defaultValue={['tour']}>
+  <ToggleGroup.Item value='none'>No comparison</ToggleGroup.Item>
+  <ToggleGroup.Item value='period'>Previous period</ToggleGroup.Item>
+  <ToggleGroup.Item value='year'>Previous year</ToggleGroup.Item>
+  <ToggleGroup.Item value='tour'>Last tour</ToggleGroup.Item>
+</ToggleGroup>
 ```
 
 #### Controlled dashboard range

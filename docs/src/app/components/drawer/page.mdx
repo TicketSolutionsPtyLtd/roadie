@@ -87,7 +87,7 @@ const sides = {
   right: {
     label: 'Order details',
     title: 'Order 10482',
-    description: 'Placed Tue 3 Sep · 3 items',
+    description: 'Placed Tue 3 Sept · 3 items',
     body: (
       <List emphasis='subtler'>
         <List.Item title='General admission' description='2 × $68.00' chevron={false} trailing='$136.00' />
@@ -150,29 +150,27 @@ render(
 
 `emphasis` on the root sets how much the drawer takes over the page behind it. `normal` dims and blurs the page, `subtle` tints it and leaves it readable, and `subtler` leaves it clear. A click outside still closes the drawer at any level. A small bottom or top drawer defaults to `subtle`, because it peeks over its page. Every other drawer defaults to `normal`.
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  {['normal', 'subtle', 'subtler'].map((emphasis) => (
-    <Drawer key={emphasis} emphasis={emphasis}>
-      <Drawer.Trigger render={<Button>{emphasis}</Button>} />
-      <Drawer.Content size='sm'>
-        <Drawer.Header>
-          <Drawer.Title>Add ons</Drawer.Title>
-          <Drawer.Description>Corduroy Lagoon Sessions · Sat 14 Nov</Drawer.Description>
-        </Drawer.Header>
-        <Drawer.Body>
-          <List emphasis='subtler'>
-            <List.Item title='Parking' description='Car park B, all day' chevron={false} trailing='$25.00' />
-            <List.Item title='Camping' description='Unpowered site, two nights' chevron={false} trailing='$60.00' />
-          </List>
-        </Drawer.Body>
-        <Drawer.Footer>
-          <Button intent='accent' emphasis='strong' className='w-full'>Continue</Button>
-        </Drawer.Footer>
-      </Drawer.Content>
-    </Drawer>
-  ))}
-</div>
+```tsx-live layout=row gap=3
+{['normal', 'subtle', 'subtler'].map((emphasis) => (
+  <Drawer key={emphasis} emphasis={emphasis}>
+    <Drawer.Trigger render={<Button>{emphasis}</Button>} />
+    <Drawer.Content size='sm'>
+      <Drawer.Header>
+        <Drawer.Title>Add ons</Drawer.Title>
+        <Drawer.Description>Corduroy Lagoon Sessions · Sat 14 Nov</Drawer.Description>
+      </Drawer.Header>
+      <Drawer.Body>
+        <List emphasis='subtler'>
+          <List.Item title='Parking' description='Car park B, all day' chevron={false} trailing='$25.00' />
+          <List.Item title='Camping' description='Unpowered site, two nights' chevron={false} trailing='$60.00' />
+        </List>
+      </Drawer.Body>
+      <Drawer.Footer>
+        <Button intent='accent' emphasis='strong' className='w-full'>Continue</Button>
+      </Drawer.Footer>
+    </Drawer.Content>
+  </Drawer>
+))}
 ```
 
 ### Sizes

@@ -130,7 +130,7 @@ describe('Shape foundation', () => {
     expect(tiers).toContainEqual({ tier: 'Panel', utility: 'rounded-3xl' })
   }, 60_000)
 
-  it('describes the scale in its markdown copy without pointing at the tiles it drops', async () => {
+  it('describes the scale in its markdown copy without pointing above or below', async () => {
     const markdown = await readFile(
       join(import.meta.dirname, '../out/foundations/shape.md'),
       'utf-8'

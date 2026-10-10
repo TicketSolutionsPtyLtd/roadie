@@ -22,7 +22,9 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
      unmerged commits stays; remove only the folder.
 
   Every subagent brief says to remove its own scratch files and never leave
-  a background server running. Check `df -h` now and then, and tell the
+  a background server running. Delete only files you created, by exact path.
+  Never delete or empty the scratchpad directory, since subagents share it
+  with the parent session. Check `df -h` now and then, and tell the
   maintainer when free space drops under about 20 GB.
 
 - **Agree the intent before any code** for new components and system-level
