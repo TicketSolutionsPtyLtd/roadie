@@ -286,11 +286,11 @@ export function PaneRoot({
   // One scrollTop read per frame, whoever is asking.
   const reportDown = useEffectEvent(() => onScrollDown?.())
   const wantsDirection = reportsNav && onScrollDown !== undefined
-  // Re-made for each arrival, so it closes over the entry it writes for.
+  // Re-made for each arrival, so a restore isn't read as scrolling down.
   useEffect(() => {
     const viewport = viewportRef.current
-    const entry = seat === null ? null : historyEntryKey()
-    if (!viewport || (!wantsDirection && entry === null)) return
+    const remembers = seat !== null && historyEntryKey() !== null
+    if (!viewport || (!wantsDirection && !remembers)) return
     let last = viewport.scrollTop
     let frame: number | null = null
     const onScroll = () => {
@@ -301,6 +301,8 @@ export function PaneRoot({
         if (wantsDirection && top > last) reportDown()
         last = top
         // Now, not on route change: new content clamps the scroll before any effect runs.
+        // Read per save: history can move without this pane rendering.
+        const entry = remembers ? historyEntryKey() : null
         if (entry !== null && seat !== null)
           rememberPaneScroll(entry, seat, top)
       })
@@ -320,6 +322,7 @@ export function PaneRoot({
   }>({ destination, position })
   const mounted = useRef(false)
   const settling = useRef<() => void>(() => {})
+  // Every commit, gated on arrival: a same-value push or traversal changes only the entry, which no dep tracks.
   useLayoutEffect(() => {
     if (seat === null) return
     const last = shown.current
@@ -356,7 +359,7 @@ export function PaneRoot({
       return
     }
     viewport.scrollTop = 0
-  }, [destination, position, seat, reached, stack])
+  })
 
   const pane = (
     <ScrollArea

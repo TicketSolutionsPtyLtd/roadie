@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import {
   MANIFEST,
   PACKAGE,
+  bumpFor,
   checkPluginRelease,
-  namesPackage,
   syncManifest
 } from './plugin-release.mjs'
 
@@ -37,11 +37,59 @@ describe('checkPluginRelease', () => {
   it('passes the Version Packages change to the changelog, package, and manifest', () => {
     expect(
       pr({
-        changedFiles: ['skills/CHANGELOG.md', PACKAGE, MANIFEST],
+        changedFiles: [
+          '.changeset/review-typo.md',
+          'skills/CHANGELOG.md',
+          PACKAGE,
+          MANIFEST
+        ],
         packageVersion: '0.4.1',
         manifestVersion: '0.4.1'
       }).ok
     ).toBe(true)
+  })
+
+  it('fails a manifest-only edit with no changeset', () => {
+    expect(pr({ changedFiles: [MANIFEST] }).ok).toBe(false)
+  })
+
+  it('fails a hand-edited changelog or package with no changeset', () => {
+    expect(pr({ changedFiles: ['skills/CHANGELOG.md'] }).ok).toBe(false)
+    expect(pr({ changedFiles: [PACKAGE] }).ok).toBe(false)
+  })
+
+  it('fails a skill change in a version bump with no changeset', () => {
+    expect(
+      pr({
+        changedFiles: ['skills/review/SKILL.md', PACKAGE, MANIFEST],
+        packageVersion: '0.4.1',
+        manifestVersion: '0.4.1'
+      }).ok
+    ).toBe(false)
+  })
+
+  it('passes a marketplace-only edit, which sits outside the plugin', () => {
+    expect(pr({ changedFiles: ['.claude-plugin/marketplace.json'] }).ok).toBe(
+      true
+    )
+  })
+
+  it('fails a major roadie-skills changeset', () => {
+    const result = pr({
+      changedFiles: ['skills/review/SKILL.md', '.changeset/big.md'],
+      readChangeset: () => "---\n'roadie-skills': major\n---\n\nRemove a skill."
+    })
+    expect(result.ok).toBe(false)
+    expect(result.message).toContain('major')
+  })
+
+  it('fails a major roadie-skills changeset with no skill change', () => {
+    expect(
+      pr({
+        changedFiles: ['.changeset/big.md'],
+        readChangeset: () => "---\n'roadie-skills': major\n---\n\nGo 1.0."
+      }).ok
+    ).toBe(false)
   })
 
   it('fails a skill change with no changeset', () => {
@@ -69,6 +117,24 @@ describe('checkPluginRelease', () => {
     ).toBe(true)
   })
 
+  it.each(['patch', 'minor'])('passes a %s roadie-skills bump', (bump) => {
+    expect(
+      pr({
+        changedFiles: ['skills/review/SKILL.md', '.changeset/x.md'],
+        readChangeset: () => `---\n'roadie-skills': ${bump}\n---\n\nChange.`
+      }).ok
+    ).toBe(true)
+  })
+
+  it('fails a skill change whose roadie-skills bump is none', () => {
+    expect(
+      pr({
+        changedFiles: ['skills/review/SKILL.md', '.changeset/x.md'],
+        readChangeset: () => "---\n'roadie-skills': none\n---\n\nNothing."
+      }).ok
+    ).toBe(false)
+  })
+
   it('ignores the changesets README', () => {
     expect(
       pr({
@@ -91,20 +157,21 @@ describe('checkPluginRelease', () => {
   })
 })
 
-describe('namesPackage', () => {
+describe('bumpFor', () => {
   it.each([
-    ["'roadie-skills': minor", true],
-    ['"roadie-skills": patch', true],
-    ['roadie-skills: patch', true],
-    ["'roadie-skills': none", false],
-    ["'roadie-skills-extra': patch", false],
-    ["'@oztix/roadie-core': patch", false]
+    ["'roadie-skills': minor", 'minor'],
+    ['"roadie-skills": patch', 'patch'],
+    ['roadie-skills: patch', 'patch'],
+    ["'roadie-skills': major", 'major'],
+    ["'roadie-skills': none", 'none'],
+    ["'roadie-skills-extra': patch", null],
+    ["'@oztix/roadie-core': patch", null]
   ])('reads %s as %s', (line, expected) => {
-    expect(namesPackage(`---\n${line}\n---\n\nSummary.`)).toBe(expected)
+    expect(bumpFor(`---\n${line}\n---\n\nSummary.`)).toBe(expected)
   })
 
   it('ignores the package named in the summary only', () => {
-    expect(namesPackage(`${coreChangeset}\nroadie-skills: patch`)).toBe(false)
+    expect(bumpFor(`${coreChangeset}\nroadie-skills: patch`)).toBe(null)
   })
 })
 

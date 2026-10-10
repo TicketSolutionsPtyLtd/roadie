@@ -31,7 +31,8 @@ import {
 } from '../src/lib/page-manifest.ts'
 import {
   ALL_TOKENS_INTRO,
-  TOKEN_FAMILY_PAGES
+  TOKEN_FAMILY_PAGES,
+  relatedLinks
 } from '../src/lib/token-families.ts'
 import { TWIN_COMPONENTS } from '../src/lib/twin-components.ts'
 import { DATA_RENDERERS } from './twin-renderers.ts'
@@ -171,9 +172,19 @@ async function markdownFor(route: string) {
       ...code
     })
   }
+  const related = relatedLinks(route)
   return pageToMarkdown({
     title,
     description: metadata?.description,
+    ...(related && {
+      related: {
+        label: related.label,
+        links: related.links.map(({ title, href }) => ({
+          title,
+          url: resolveLink(href)
+        }))
+      }
+    }),
     mdx: await readFile(path.join(appDir, route, 'page.mdx'), 'utf8'),
     components: components.filter((component) =>
       component.docs?.endsWith(`${route}/`)

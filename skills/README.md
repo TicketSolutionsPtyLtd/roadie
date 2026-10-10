@@ -17,6 +17,7 @@ These skills ship as a Claude Code plugin. Installing the plugin makes them avai
 | `grill`           | `/roadie:grill`           | Before a spec, check an idea against foundations, learnings, decisions, and prior art, prove the cascade or an existing component can't do it, then ask what's left one at a time and record what was ruled out.                                                 |
 | `implement`       | `/roadie:implement`       | Build a specced ticket in its own worktree: test-first at the spec's seams with `/roadie:test`, load-gated tests, wiring, dist rebuilds, and a changeset, then stop at `/roadie:demo`.                                                                           |
 | `migrate`         | `/roadie:migrate`         | Move an app off deprecated Roadie APIs: read the manifest's deprecations, run codemods for the mechanical rewrites (`LinkButton` to `Button href`, `as` to `render`), migrate the rest by hand from each reason, then typecheck and build.                       |
+| `motion`          | `/roadie:motion`          | Animate with Roadie, not the generic motion-dev-animations skill: the component or utility for the job first, then duration and easing tokens only, and reduced motion covered in CSS and JavaScript.                                                            |
 | `pr`              | `/roadie:pr`              | Write or update a PR description from the host repo's template, with Evidence and Merge danger (one-way or two-way door, plus blast radius). Keeps existing content.                                                                                             |
 | `release`         | `/roadie:release`         | Before the maintainer merges Version Packages, summarise the pending changesets by package and bump, flag majors and one-way doors, and report readiness as pass, fail, or attention. Read-only; never merges.                                                   |
 | `retro`           | `/roadie:retro`           | After a session, a PR, or a week, tally what reviews, bots, and CI caught, map each pattern to the cheapest durable fix (a deletion, a lint rule, a skill edit, a standards line, a pointer, a learning, or a decision), and land each as its own PR.            |
@@ -108,13 +109,16 @@ roadie/
 
 **Releasing a change.** A PR that changes `skills/` adds a changeset for the
 private `roadie-skills` package (`pnpm changeset`): minor for a new skill or a
-change in what a skill does, patch for wording and fixes. Don't bump versions
-by hand. The version ships when the maintainer merges the Version Packages PR,
-which bumps `skills/package.json`, writes `skills/CHANGELOG.md`, and copies the
-version into `skills/.claude-plugin/plugin.json`. CI's `Check plugin release` step
-fails a skills PR with no `roadie-skills` changeset, and any PR where the two
-versions differ; `node scripts/check-plugin-release.mjs` runs it locally.
-Repo-only skills in `.claude/skills/` need no changeset.
+change in what a skill does, breaking ones included while the plugin is `0.x`,
+and patch for wording and fixes. Never major. Don't bump versions by hand. The
+version ships when the maintainer merges the Version Packages PR, which bumps
+`skills/package.json`, writes `skills/CHANGELOG.md`, and copies the version
+into `skills/.claude-plugin/plugin.json`. An edit to `.claude-plugin/plugin.json`
+counts as a skills change. The repo's root `.claude-plugin/marketplace.json`
+sits outside the plugin, so it doesn't. CI's `Check plugin release` step fails
+a skills PR with no `roadie-skills` changeset, any PR with a `major` one, and
+any PR where the two versions differ. `node scripts/check-plugin-release.mjs`
+runs it locally. Repo-only skills in `.claude/skills/` need no changeset.
 
 **Skills shipped in this plugin:**
 

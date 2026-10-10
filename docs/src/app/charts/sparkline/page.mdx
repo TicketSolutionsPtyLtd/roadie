@@ -21,33 +21,27 @@ import { Sparkline } from '@oztix/roadie-components/sparkline'
 
 ### Default
 
-```tsx-live
-<div className='w-48'>
-  <Sparkline values={[40, 62, 70, 88, 95, 120, 131, 160, 172, 190]} />
-</div>
+```tsx-live width=48
+<Sparkline values={[40, 62, 70, 88, 95, 120, 131, 160, 172, 190]} />
 ```
 
 ### With a reference
 
-```tsx-live
-<div className='w-48'>
-  <Sparkline
-    values={[0.31, 0.36, 0.41, 0.46, 0.52, 0.57, 0.62, 0.67, 0.71, 0.77]}
-    reference={{ value: 0.85, label: 'Target' }}
-  />
-</div>
+```tsx-live width=48
+<Sparkline
+  values={[0.31, 0.36, 0.41, 0.46, 0.52, 0.57, 0.62, 0.67, 0.71, 0.77]}
+  reference={{ value: 0.85, label: 'Target' }}
+/>
 ```
 
 ### Standalone
 
-```tsx-live
-<div className='w-48'>
-  <Sparkline
-    values={[40, 62, 70, 88, 95, 120, 131, 160, 172, 190]}
-    label='Tickets sold, last 10 days'
-    summary='Rising, from 40 to 190'
-  />
-</div>
+```tsx-live width=48
+<Sparkline
+  values={[40, 62, 70, 88, 95, 120, 131, 160, 172, 190]}
+  label='Tickets sold, last 10 days'
+  summary='Rising, from 40 to 190'
+/>
 ```
 
 ## Guidelines

@@ -73,8 +73,8 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   unreleased API rather than adding a "breaking" entry for something nobody
   has installed.
 - **Plugin skills.** A change under `skills/` adds a `roadie-skills`
-  changeset, patch or minor, or CI fails. The plugin version ships when the
-  maintainer merges Version Packages, as
+  changeset, patch or minor (never major), or CI fails. The plugin version
+  ships when the maintainer merges Version Packages, as
   [`skills/README.md`](../../skills/README.md) says.
 
 ## 3. Roadie conventions and foundations (blocking)
