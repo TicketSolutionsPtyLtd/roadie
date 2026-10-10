@@ -9,7 +9,7 @@ export function CardImage({ className, ...props }: CardImageProps) {
     <div data-slot='card-image' className='overflow-hidden rounded-xl'>
       <Image
         className={cn(
-          'aspect-2/1 w-full object-cover transition-transform duration-300 group-hover/card:scale-105',
+          'aspect-2/1 w-full object-cover transition-transform duration-slow group-hover/card:scale-105',
           className
         )}
         {...props}
