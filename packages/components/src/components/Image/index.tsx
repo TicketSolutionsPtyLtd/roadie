@@ -154,7 +154,7 @@ export type ImageProps = Omit<
 
 const LQIP_WIDTH = 24
 const LQIP_QUALITY = 30
-const FADE = 'opacity 400ms ease'
+const FADE = 'opacity var(--duration-slower) var(--ease-standard)'
 
 const subscribeNever = () => () => {}
 

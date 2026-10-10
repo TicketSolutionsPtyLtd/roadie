@@ -70,7 +70,7 @@ export function Badge({
       data-slot='badge'
       className={cn(
         badgeVariants({ intent, emphasis, size, hideLabel }),
-        hideLabel && indicatorPulse && 'animate-pulse',
+        hideLabel && indicatorPulse && 'animate-pulse-subtle',
         className
       )}
       {...props}
@@ -79,7 +79,7 @@ export function Badge({
         <span
           className={cn(
             'size-1.5 shrink-0 rounded-full bg-current',
-            indicatorPulse && 'animate-pulse'
+            indicatorPulse && 'animate-pulse-subtle'
           )}
           aria-hidden='true'
         />

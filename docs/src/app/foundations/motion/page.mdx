@@ -247,6 +247,10 @@ value.
 | `animate-shimmer`       | Pulses under a highlight anchored to the viewport, so every placeholder shares one sweep |
 | `animate-indeterminate` | Sweeps a bar across a positioned parent that clips its overflow              |
 
+Tailwind's `animate-spin` is only for a small status icon that stands in for a
+pending action, as Toast's loading icon does. Anything larger, or any bar or
+surface that waits, uses Progress or a loading utility above.
+
 ### Enter and exit transitions
 
 These transitions run on Base UI's starting and ending styles, so the exit

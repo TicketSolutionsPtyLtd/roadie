@@ -5,6 +5,7 @@ import { commands, userEvent } from 'vitest/browser'
 import { Calendar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { nudgeFrames } from '../../css/testUtils'
+import { durationToken } from '../../utils/motionTokens'
 import { useStylesheet } from '../Pane/testUtils'
 import {
   expectOneContinuousMotion,
@@ -80,7 +81,11 @@ describe.each([
     )
     expect(frames[0]!.title).toBe('March 2027')
     expect(frames.at(-1)!.title).toBe('April 2027')
-    expectOneContinuousMotion(frames, next, 320)
+    expectOneContinuousMotion(
+      frames,
+      next,
+      durationToken(document.body, 'slow')
+    )
   })
 
   it('moves back as one motion, the title changing as it lands', async () => {
@@ -89,7 +94,11 @@ describe.each([
       userEvent.click(screen.getByRole('button', { name: 'Previous month' }))
     )
     expect(frames.at(-1)!.title).toBe('February 2027')
-    expectOneContinuousMotion(frames, next === -1 ? 1 : -1, 320)
+    expectOneContinuousMotion(
+      frames,
+      next === -1 ? 1 : -1,
+      durationToken(document.body, 'slow')
+    )
   })
 })
 
@@ -114,12 +123,12 @@ describe('Calendar frames, switching views', () => {
       )
       expect(toWeek.at(-1)!.days.size).toBe(7)
       expect(toWeek.some((frame) => frame.leaving.length > 0)).toBe(true)
-      expectOneReshape(toWeek, 240)
+      expectOneReshape(toWeek, durationToken(document.body, 'moderate'))
       const toMonth = await recordShapes(() =>
         userEvent.click(screen.getByRole('button', { name: 'Month' }))
       )
       expect(toMonth.at(-1)!.days.size).toBeGreaterThan(27)
-      expectOneReshape(toMonth, 240)
+      expectOneReshape(toMonth, durationToken(document.body, 'moderate'))
     }
   )
 
@@ -140,6 +149,6 @@ describe('Calendar frames, switching views', () => {
     )
     expect(screen.getByRole('grid')).toHaveAccessibleName('October 2026')
     expect(frames.at(-1)!.days.has('2026-10-28')).toBe(true)
-    expectOneReshape(frames, 240)
+    expectOneReshape(frames, durationToken(document.body, 'moderate'))
   })
 })
