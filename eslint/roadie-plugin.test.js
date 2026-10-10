@@ -250,6 +250,46 @@ const cases = {
       "expect(el).toHaveClass('max-2xl:absolute')"
     ]
   },
+  'no-layout-fake-in-jsdom': {
+    valid: [
+      'expect(getComputedStyle(el).display).toBe("none")',
+      'const width = el.getBoundingClientRect().width',
+      "vi.spyOn(Element.prototype, 'scrollTo')",
+      "Object.defineProperty(track, 'scrollLeft', { value: 40, writable: true })",
+      "vi.spyOn(navigator, 'platform', 'get').mockReturnValue('Win32')",
+      "Object.defineProperty(window, 'matchMedia', { value: (query) => ({ matches: query === '(prefers-reduced-motion: reduce)' }) })",
+      "window.matchMedia = vi.fn().mockReturnValue({ matches: query.includes('prefers-color-scheme: dark') })",
+      "vi.spyOn(window, 'matchMedia').mockReturnValue({ matches: true })",
+      "render(<Image sources={[{ media: '(max-width: 767px)', widths: [800] }]} />)",
+      'let clientWidth = 0\nclientWidth = el.clientWidth',
+      'const rect = Object.assign({}, base, { offsetWidth: 200 })',
+      'Object.assign(window, { scrollY: 40 })'
+    ],
+    invalid: [
+      "vi.spyOn(window, 'getComputedStyle').mockImplementation(() => ({ lineHeight: '24px' }))",
+      "vi.stubGlobal('getComputedStyle', fake)",
+      'window.getComputedStyle = fake',
+      "vi.spyOn(el, 'getBoundingClientRect').mockReturnValue(rect)",
+      'el.getBoundingClientRect = () => ({ top }) as DOMRect',
+      "el['getClientRects'] = () => []",
+      "Object.defineProperty(el, 'offsetWidth', { value: 200 })",
+      "Object.defineProperty(HTMLElement.prototype, 'offsetLeft', { get: () => 0 })",
+      "vi.spyOn(HTMLDivElement.prototype, 'clientHeight', 'get').mockReturnValue(40)",
+      'Object.defineProperties(el, { scrollHeight: { value: 400 } })',
+      "vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(375)",
+      'innerWidth = 375',
+      'Object.assign(window, { innerWidth: 375 })',
+      "Object.assign(window, { matchMedia: (q) => ({ matches: q === '(min-width: 48rem)' }) })",
+      "window.matchMedia = (query) => ({ matches: query === '(min-width: 768px)' })",
+      "vi.stubGlobal('matchMedia', (query) => ({ matches: query === '(max-width: 47.99rem)' }))",
+      "vi.spyOn(window, 'matchMedia').mockImplementation((q) => ({ matches: q === `(width < 48rem)` }))",
+      "Object.defineProperty(window, 'matchMedia', { value: mock })\nmock.mockImplementation((q) => ({ matches: q === '(48rem <= width)' }))",
+      {
+        code: "window.matchMedia = mock\nconst PHONE = '(min-width: 0) and (max-height: 600px)'\nconst DESKTOP = '(min-width: 1024px)'",
+        errors: 2
+      }
+    ]
+  },
   'no-cva-output-assertion': {
     valid: [
       "expect(screen.getByRole('button')).toHaveClass('intent-accent')",
@@ -373,6 +413,32 @@ describe('import boundaries in eslint.config.js', () => {
     ]
   ])('allows %s in %s', async (code, filePath) => {
     expect(await ruleHits(code, filePath)).toEqual([])
+  })
+})
+
+describe('where no-layout-fake-in-jsdom applies', () => {
+  const eslint = new ESLint({
+    cwd: fileURLToPath(new URL('..', import.meta.url))
+  })
+  const fake = "vi.spyOn(window, 'getComputedStyle')\n"
+
+  beforeAll(
+    () => eslint.lintText('', { filePath: 'packages/core/src/index.ts' }),
+    60_000
+  )
+
+  it.each([
+    ['packages/components/src/components/Badge/Badge.test.tsx', 1],
+    ['packages/widgets/src/cart-drawer/vue/useCart.test.ts', 1],
+    ['packages/components/src/components/Badge/Badge.browser.test.tsx', 0],
+    ['packages/components/src/components/Badge/index.tsx', 0]
+  ])('%s: %i', async (filePath, hits) => {
+    const [result] = await eslint.lintText(fake, { filePath })
+    expect(
+      result.messages.filter(
+        ({ ruleId }) => ruleId === 'roadie/no-layout-fake-in-jsdom'
+      )
+    ).toHaveLength(hits)
   })
 })
 
