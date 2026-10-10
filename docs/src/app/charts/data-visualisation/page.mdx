@@ -1,0 +1,274 @@
+export const metadata = {
+  title: 'Data visualisation',
+  description:
+    'How to choose, colour, label and write a chart so a client can act on it.',
+  category: 'Guidelines',
+  order: 1
+}
+
+import { Guideline } from '@/components/Guideline'
+import { FormExamples } from '@/components/dataviz/FormExamples'
+import { PaletteExample } from '@/components/dataviz/PaletteExample'
+import { ReadingAidsChart } from '@/components/dataviz/ReadingAidsChart'
+
+import { Chart } from '@oztix/roadie-charts/chart'
+import { LineChart } from '@oztix/roadie-charts/line-chart'
+
+import { PACE_EXAMPLE } from '../pace-example'
+
+Every chart we show helps a promoter, venue or festival decide something.
+Which show to add, when to push marketing, whether a night will sell out. These
+rules keep charts in the dashboard, in reports and on slides reading as one
+system.
+
+## Start with the decision
+
+Name the question a client will act on before you draw anything. The title
+answers it. If the chart has no answer to give, it probably shouldn’t be a
+chart.
+
+<Guideline headingLevel={3} title='Put the answer in the title'>
+  <Guideline.Do
+    width={80}
+    example={
+      <Chart
+        label='Sales pace'
+        takeaway='Tracking 16 points ahead of similar shows'
+        source='Oztix sales. 38 similar shows, last 3 years.'
+        size='md'
+      >
+        <LineChart
+          {...PACE_EXAMPLE}
+          takeaway='Tracking 16 points ahead of similar shows'
+        />
+      </Chart>
+    }
+  >
+    Put the answer in the title.
+  </Guideline.Do>
+  <Guideline.Dont
+    width={80}
+    example={
+      <Chart
+        label='Sales to date'
+        takeaway='Sales over time'
+        source='Oztix sales. 38 similar shows, last 3 years.'
+        size='md'
+      >
+        <LineChart {...PACE_EXAMPLE} takeaway='Sales over time' />
+      </Chart>
+    }
+  >
+    Don’t make the reader work out the point.
+  </Guideline.Dont>
+</Guideline>
+
+## Pick the form from the job
+
+| Job                      | Form                          | Ticketing example                  |
+| ------------------------ | ----------------------------- | ---------------------------------- |
+| Compare                  | RankedBars                    | Channels by tickets sold           |
+| Change over time         | LineChart or BarChart         | Daily sales                        |
+| Pace                     | LineChart with a band         | This show against similar shows    |
+| Part of a whole          | StackedBars or capacity meter | Sold, held and available           |
+| Spread                   | Histogram                     | Days between buying and the show   |
+| Drop off                 | Funnel                        | Checkout steps                     |
+| Two measures per show    | Scatter                       | Pace against sell-through          |
+| The same chart per group | SmallMultiples                | Scan rate per gate                 |
+| When                     | Heatmap                       | Orders by hour and weekday         |
+| Where                    | RankedBars with share         | Top postcodes                      |
+| One number               | Stat tile, not a chart        | Tickets sold today                 |
+
+A stat tile or a two-row table often beats a plot. If there’s no shape to see,
+show the number.
+
+In a dashboard, these forms sit inside cards. See
+[dashboard design](/charts/dashboards) for sizing and layout.
+
+On the docs site, four of these forms are drawn: a stat tile of tickets sold
+this week, a VIP sell-through meter in a data card against an 85% target, a
+sparkline of the same week, and ranked bars showing email brings in nearly
+half of orders.
+
+<FormExamples />
+
+## Colour by job
+
+Each palette has one job. Mixing jobs is how charts start lying.
+
+### Categorical tells series apart
+
+Use slots in order and never cycle them. A series keeps its colour when you
+sort or filter. Use 6 at most, then group the rest into Other. For 2 or 3
+series, use `--chart-pair-*` or `--chart-trio-*`.
+
+On the docs site, the eight categorical slots in light and dark sit with a
+stacked bar chart of the ticket type mix across two nights.
+
+<PaletteExample kind='categorical' />
+
+### Sequential shows how much
+
+Stage heat runs from the surface to the strongest colour. In dark mode the
+busiest cells glow.
+
+On the docs site, the nine heat steps in light and dark sit with a heatmap of
+orders by hour and weekday, where Friday evening is the busiest cell.
+
+<PaletteExample kind='heat' />
+
+### Diverging shows ahead of or behind
+
+Cool is ahead, warm is behind, grey is on the benchmark.
+
+On the docs site, the nine diverging steps in light and dark sit with a heatmap
+of pace by venue and section, where the balconies are behind.
+
+<PaletteExample kind='diverging' />
+
+### Status carries meaning
+
+Good, warning, serious and critical. Only for meaning, never as a series
+colour, and always with an icon or label. Status colour always comes with an
+arrow and words.
+
+On the docs site, the four status colours in light and dark sit with three stat
+tiles whose changes each show an arrow and words.
+
+<PaletteExample kind='status' />
+
+<Guideline headingLevel={3} title='Emphasis and ink'>
+  <Guideline.Do>
+    Highlight the story series in `--chart-highlight` and put context in
+    `--chart-context`.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don’t colour text in a series colour. Labels and values use chart ink.
+  </Guideline.Dont>
+</Guideline>
+
+## Reading aids
+
+Four ideas come up in almost every ticketing chart. Draw them the same way
+everywhere.
+
+- **Compared with** is a soft band for the middle half of similar shows, with a
+  dashed median. Say what the comparison is built from.
+- **This show** is one 2px line in the highlight colour.
+- **Prediction** is a dotted continuation inside a faint cone that shows the
+  range.
+- **Goal** is a short tick at the right edge with its label.
+- **Now** is a labelled dot, not a line across the chart.
+
+On the docs site, a pace chart draws all of them for one show against similar
+shows.
+
+<ReadingAidsChart />
+
+## Keep it honest
+
+- Use one y-axis. Two measures on different scales become two charts, or both
+  indexed to 100.
+- Start bars at zero.
+- Measure sell-through against sellable capacity, not gross capacity.
+- Show a range with every forecast.
+- Name the comparison period and the set of similar shows.
+
+## Labels and type
+
+- Charts use Intermission with tabular figures, so columns and ticks line up.
+- Every chart has a title, a subtitle for scope and a source line.
+- Label up to 4 series directly. Two or more series also get a legend. A single
+  series needs neither.
+- On horizontal bars, names take up to 40% of the chart’s width. A longer name
+  wraps to two lines, then ends in an ellipsis, and keeps its full text in the
+  table.
+- Format dates and times with the [date and time](/foundations/date-and-time)
+  rules.
+
+## Writing for charts
+
+Chart copy follows the Oztix voice and tone guidelines, the language and
+grammar guidelines, and unslop. No dashes as punctuation, anywhere.
+
+| Part                   | Rule                                                                                                 | Do                                                                                   | Don’t                                             |
+| ---------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------- |
+| Title                  | States the takeaway with a number or direction. Sentence case, active voice, no colon, no full stop. | Presales doubled after the lineup drop                                               | Presales over time                                |
+| Subtitle               | One full sentence with what was measured, where and when.                                            | Tickets sold per day across all Apricot Cyclone Fest ticket types.                   | tix/day, all TTs                                  |
+| Numbers                | Numerals for every value, commas for thousands, closed-up percent.                                   | 12,480 tickets, 68%                                                                  | twelve thousand, 68 %                             |
+| Money                  | Dollar sign with no space, cents only when the amount isn’t round.                                   | $19.95, $1,200                                                                       | $ 20.00                                           |
+| Spans                  | Use “to”, never a dash.                                                                              | $50 to $100, Fri 27 to Sun 29 Nov                                                    | $50–$100                                          |
+| Dates and times        | Follow the date and time foundation. 24-hour time only on dense axes and in exports.                 | Fri 27 Nov, 7:30pm                                                                   | 27th Nov, 7:30 PM                                 |
+| Terms                  | Use house terms and one name per metric everywhere it appears.                                       | Ticket type, access code, scan rate                                                  | Ticket category, promo code, entries              |
+| Annotations            | Short full sentences that name the cause. No arrows or symbols.                                      | Lineup announced. Sales tripled that day.                                            | Lineup drop → 3x!!                                |
+| Empty states           | Say what happened and what to do next.                                                               | No sales yet. Tickets go on sale Fri 27 Nov at 9:00am AEST.                          | No data available                                 |
+| Source line            | Name the data and when it was pulled.                                                                | Source: Oztix ticketing data, pulled Mon 21 Sep.                                     | Source: internal data                             |
+| Summaries and alt text | Takeaway and numbers first, then the comparison, then the scope. No AI vocabulary or hedging.        | Bunyip Teaspoon Sessions sold 4,200 tickets in Sydney, 1,100 more than Melbourne.    | This chart showcases the vibrant sales landscape. |
+
+## Accessibility
+
+- Never identify a series by colour alone. Pair it with a label, a legend or a
+  pattern.
+- Offer a table view of every chart.
+- Write a text summary that doubles as alt text.
+- Slots under APCA Lc 45 never carry text. The [tokens page](/tokens/dataviz)
+  lists which ones.
+- Leave a 2px `--chart-gap` between touching fills.
+- Hover adds detail. It is never the only way to read a value.
+- Respect reduced motion.
+
+## One chart, three places
+
+- **Dashboard.** Interactive, with filters in one row above the charts.
+- **Report.** Static and readable without hover. The source line is required.
+- **Slides.** Fewer marks, bigger type and one takeaway per slide. Build up in
+  steps if it helps the story.
+
+## Ticketing reference
+
+### Terms
+
+| Term                 | What it means                                                                                               | Chart                                       |
+| -------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Pace index           | Tickets sold divided by what similar shows had sold at the same days out, times 100. Over 100 is ahead.     | LineChart, stat tile                        |
+| Sell-through         | Tickets sold as a share of sellable capacity, after holds and kills. Never gross capacity.                  | Capacity meter                              |
+| On-sale spike        | Orders in the first hours after tickets go on sale, often shown against the forecast for that hour.         | Heatmap, annotated BarChart                 |
+| Presale and general  | Tickets sold before and after the public on-sale.                                                           | StackedBars                                 |
+| Walk-up              | Tickets sold on the day of the show.                                                                        | The end of the LineChart                    |
+| No-show rate         | Tickets issued but never scanned, as a share of tickets issued.                                             | Stat tile, RankedBars with reference        |
+| Scan rate            | Tickets scanned per 15 minutes at each gate, with the running share of fans inside.                         | BarChart with line, SmallMultiples per gate |
+| Resale share         | Tickets resold as a share of tickets sold.                                                                  | StackedBars                                 |
+| Ticket type mix      | Tickets sold by ticket type, such as GA, VIP or early-bird.                                                 | StackedBars, using the pair or trio sets    |
+| Channel and referrer | Where buyers came from before they bought.                                                                  | RankedBars                                  |
+| Postcode             | Where buyers live, from billing postcodes. Report shares, not counts, when totals differ.                   | RankedBars                                  |
+| When fans buy        | Orders by hour and weekday, in the venue timezone.                                                          | Heatmap                                     |
+
+### Questions and charts
+
+| Question                           | Term                                                                 | Chart                                                   |
+| ---------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------- |
+| Is the show selling on pace?       | Pace index                                                           | LineChart with band, median, forecast, target and today |
+| How many have sold, and when?      | Sales to date, daily orders                                          | LineChart (cumulative), BarChart by day                 |
+| What moved sales?                  | Announcements, line-up drops, email sends, ad bursts, price releases | Annotations on any time chart                           |
+| How did the on-sale go?            | On-sale spike                                                        | BarChart by hour, annotated                             |
+| Which ticket types are selling?    | Ticket type mix                                                      | StackedBars using the pair or trio sets                 |
+| How much sold before general sale? | Presale and general                                                  | StackedBars                                             |
+| Where did buyers come from?        | Channel, referrer, campaign                                          | RankedBars                                              |
+| Where do buyers live?              | Postcode, region, travel distance                                    | RankedBars with share                                   |
+| Who are the buyers?                | Age and gender brackets, new and returning                           | RankedBars or StackedBars                               |
+| How far ahead do fans buy?         | Booking lead time                                                    | Histogram                                               |
+| How many tickets per order?        | Order size                                                           | Histogram                                               |
+| Where do buyers drop out?          | Checkout conversion, waitlist to purchase                            | Funnel                                                  |
+| When do fans buy?                  | Orders by hour and weekday, venue timezone                           | Heatmap                                                 |
+| Which sections are filling?        | Sell-through by section or zone                                      | Heatmap, or a table of meters                           |
+| Is there unmet demand?             | Sell-out time by release, waitlist sign-ups, abandoned checkouts     | BarChart with annotations, Funnel                       |
+| How do buyers respond to price?    | Sales by price tier, jumps at each price release                     | RankedBars, annotated BarChart                          |
+| What else do our buyers go to?     | Also bought                                                          | RankedBars                                              |
+| How are all my shows tracking?     | Portfolio pace against sell-through                                  | Scatter with quadrants                                  |
+| How did entry go?                  | Scan rate per 15 minutes, share of fans inside                       | BarChart with line, SmallMultiples per gate             |
+| Did people turn up?                | Attendance against sold, no-show rate                                | RankedBars with reference (similar shows)               |
+| How good was the forecast?         | Forecast against actual                                              | LineChart                                               |
+| How much was resold?               | Resale share                                                         | StackedBars                                             |
+
+Every token and its value are on the
+[data visualisation tokens](/tokens/dataviz) page.

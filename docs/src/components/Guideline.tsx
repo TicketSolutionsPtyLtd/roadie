@@ -10,7 +10,8 @@ const EXAMPLE_WIDTHS = {
   40: 'w-40',
   56: 'w-56',
   64: 'w-64',
-  72: 'w-72'
+  72: 'w-72',
+  80: 'w-80'
 } as const
 
 type GuidelineCardProps = {
