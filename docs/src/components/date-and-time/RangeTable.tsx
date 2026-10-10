@@ -1,4 +1,5 @@
-import { ProseTable } from './ReadsTable'
+import { ProseTable } from '@/components/ProseTable'
+
 import { rangeRows } from './example'
 
 /** Each relative range's label and the dates it covers, from `describeDateRange`. */

@@ -487,7 +487,7 @@ export type TokenFamilyMarkdown = {
 }
 
 /** Inline code fenced past any backtick run in the value; table pipes escaped. */
-function cell(value: string | undefined) {
+export function inlineCode(value: string | undefined) {
   if (!value) return ''
   const fence = '`'.repeat(
     Math.max(0, ...(value.match(/`+/g) ?? []).map((run) => run.length)) + 1
@@ -496,14 +496,14 @@ function cell(value: string | undefined) {
     value.startsWith('`') || value.endsWith('`') ? ` ${value} ` : value
   return `${fence}${padded.replace(/\|/g, '\\|')}${fence}`
 }
-const prose = (value: string | undefined) =>
+export const prose = (value: string | undefined) =>
   value ? oneLine(value).replace(/\|/g, '\\|').replace(/</g, '&lt;') : ''
 const darkIfDifferent = ({ light, dark }: TokenValue = {}) =>
   light !== undefined && dark !== light ? dark : undefined
 const lightAndDark = ({ light, dark }: TokenValue) =>
   light && dark && dark !== light
-    ? `${cell(light)} / ${cell(dark)}`
-    : cell(light ?? dark)
+    ? `${inlineCode(light)} / ${inlineCode(dark)}`
+    : inlineCode(light ?? dark)
 
 export function markdownTable(header: string[], rows: string[][]) {
   return [
@@ -520,18 +520,18 @@ function tokenGroup(group: string, tokens: TokenRow[], depth: number) {
     tokens.some((token) => column[1](token) !== '')
   const dark: Column = [
     'Dark, if different',
-    (token) => cell(darkIfDifferent(token.value))
+    (token) => inlineCode(darkIfDifferent(token.value))
   ]
   const columns: Column[] = [
-    ['Token', (token) => cell(token.name)],
+    ['Token', (token) => inlineCode(token.name)],
     ...(
       [
         [
           used(dark) ? 'Light' : 'Value',
-          (token) => cell(token.value?.light ?? token.value?.dark)
+          (token) => inlineCode(token.value?.light ?? token.value?.dark)
         ],
         dark,
-        ['Classes', (token) => (token.classes ?? []).map(cell).join(' ')],
+        ['Classes', (token) => (token.classes ?? []).map(inlineCode).join(' ')],
         ['Description', (token) => prose(token.description)]
       ] satisfies Column[]
     ).filter(used)
@@ -554,7 +554,7 @@ function tokenGroup(group: string, tokens: TokenRow[], depth: number) {
         tokens
           .filter((token) => token.byIntent)
           .map((token) => [
-            cell(token.name),
+            inlineCode(token.name),
             ...intents.map((intent) => {
               const value = token.byIntent?.[intent]
               return value ? lightAndDark(value) : ''
@@ -621,7 +621,7 @@ export function allTokensToMarkdown({
 }
 
 /** A fenced block whose fence outruns any backtick run inside it. */
-function fence(lang: string, code: string) {
+export function fence(lang: string, code: string) {
   const longest = Math.max(
     2,
     ...(code.match(/`+/g) ?? []).map((run) => run.length)

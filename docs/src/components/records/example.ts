@@ -1,4 +1,10 @@
-import type { RecordField, RecordView } from '@oztix/roadie-core/records'
+import {
+  type RecordField,
+  type RecordView,
+  parseQuery,
+  toSearchParams
+} from '@oztix/roadie-core/records'
+import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 
 // The page shows these as its fields and view fences; example.test.ts keeps
 // them the same.
@@ -81,3 +87,38 @@ export function callAndResult(call: string, result: unknown) {
   const lines = JSON.stringify(result, null, 2).split('\n')
   return `${call}\n// ${lines.join('\n// ')}`
 }
+
+const QUERY_TEXT = 'melb this weekend'
+
+/** What `parseQuery` suggests for some typed text, trimmed to the parts the page explains. */
+export function querySuggestionsExample() {
+  const suggestions = parseQuery(QUERY_TEXT, {
+    fields: EVENT_FIELDS,
+    now: new Date(EXAMPLE_NOW),
+    timeZone: EXAMPLE_ZONE,
+    limit: 4
+  }).map(({ kind, label, remainder }) => ({ kind, label, remainder }))
+  return callAndResult(
+    `parseQuery('${QUERY_TEXT}', { fields: eventFields, now, timeZone })`,
+    suggestions
+  )
+}
+
+/** The example view as Meilisearch parameters, worked out by `toMeilisearch`. */
+export function viewMeilisearchExample() {
+  const params = toMeilisearch(WEEKEND_VIEW, EVENT_FIELDS, {
+    now: new Date(EXAMPLE_NOW),
+    timeZone: EXAMPLE_ZONE
+  })
+  const call = `toMeilisearch(view, eventFields, {
+  now: new Date('${EXAMPLE_NOW}'), // ${EXAMPLE_NOW_LABEL}
+  timeZone: '${EXAMPLE_ZONE}'
+})`
+  return callAndResult(call, params)
+}
+
+/** The example view on its first page, as `toSearchParams` writes it, one param a line. */
+export const viewSearchParamsExample = () =>
+  [...toSearchParams(WEEKEND_VIEW, { page: 0 })]
+    .map(([key, value]) => `${key}=${value}`)
+    .join('\n')

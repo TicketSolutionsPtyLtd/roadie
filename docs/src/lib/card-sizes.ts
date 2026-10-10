@@ -7,6 +7,8 @@ import {
   type DashboardWidth
 } from '@oztix/roadie-core/dashboard-layout'
 
+import type { TwinTable } from './twin-table'
+
 export const WIDTH_NAME: Record<DashboardWidth, string> = {
   desktop: 'Desktop',
   tablet: 'Tablet',
@@ -22,7 +24,7 @@ const SIZE_USE: Record<CardSize, string> = {
 }
 
 /** Each card size's span at each width and what it's for, for the page's table and its markdown twin. */
-export function cardSizeTable() {
+export function cardSizeTable(): TwinTable {
   return {
     head: [
       'Size',
@@ -31,10 +33,10 @@ export function cardSizeTable() {
       ),
       'Use'
     ],
-    rows: CARD_SIZES.map((size) => ({
-      size,
-      spans: DASHBOARD_WIDTHS.map((width) => CARD_SPANS[size][width]),
-      use: SIZE_USE[size]
-    }))
+    rows: CARD_SIZES.map((size) => [
+      [{ code: size }],
+      ...DASHBOARD_WIDTHS.map((width) => String(CARD_SPANS[size][width])),
+      SIZE_USE[size]
+    ])
   }
 }

@@ -1,4 +1,5 @@
-import { ProseTable } from './ReadsTable'
+import { ProseTable } from '@/components/ProseTable'
+
 import { zoneRows } from './example'
 
 /** Each Australian zone's abbreviations and daylight saving, from Intl. */
