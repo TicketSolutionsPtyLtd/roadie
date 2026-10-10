@@ -16,6 +16,9 @@ export const TARGETS = {
   adjacentCvd: 8,
   firstFiveCvd: 8,
   adjacentNormal: 15,
+  // The CVD floor, applied to normal vision. The closest shipped pair is dark
+  // 1 and 8 at 8.5, so every pair passes with no exceptions.
+  allPairsNormal: 8,
   dangerNormal: 12,
   darkMarkContrast: NON_TEXT_LC,
   setCvd: 10,
@@ -76,6 +79,18 @@ export function validatePalette(p: Palette = defaultPalette): Failure[] {
       const normal = deltaE(cat[i]!, cat[j]!)
       if (normal < TARGETS.adjacentNormal)
         fail('adjacentNormal', mode, slots, normal, TARGETS.adjacentNormal)
+    }
+
+    for (const [i, j] of pairs(cat.length, false)) {
+      const normal = deltaE(cat[i]!, cat[j]!)
+      if (normal < TARGETS.allPairsNormal)
+        fail(
+          'allPairsNormal',
+          mode,
+          `slots ${i + 1} and ${j + 1}`,
+          normal,
+          TARGETS.allPairsNormal
+        )
     }
 
     for (const [i, j] of pairs(5, false)) {
@@ -160,6 +175,7 @@ type Scores = {
   adjacentCvd: number
   firstFiveCvd: number
   adjacentNormal: number
+  allPairsNormal: number
   slotsUnderLc45: number[]
   /** @deprecated Use `slotsUnderLc45`; this now reads the same APCA slots. */
   lightSlotsUnder3: number[]
@@ -175,6 +191,7 @@ export function paletteScores(p: Palette = defaultPalette): ByMode<Scores> {
       adjacentCvd: round(worst(cat, pairs(cat.length, true), worstCvdDeltaE)),
       firstFiveCvd: round(worst(cat, pairs(5, false), worstCvdDeltaE)),
       adjacentNormal: round(worst(cat, pairs(cat.length, true), deltaE)),
+      allPairsNormal: round(worst(cat, pairs(cat.length, false), deltaE)),
       slotsUnderLc45,
       lightSlotsUnder3: slotsUnderLc45
     }
