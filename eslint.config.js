@@ -5,6 +5,7 @@ import prettierConfig from 'eslint-config-prettier'
 import prettierPlugin from 'eslint-plugin-prettier'
 import reactPlugin from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
+import { readFileSync } from 'fs'
 import globals from 'globals'
 
 import roadie from './eslint/roadie-plugin.js'
@@ -14,6 +15,19 @@ const nextLink = {
   name: 'next/link',
   message:
     'Pass href and let RoadieProvider route it. See https://ticketsolutionsptyltd.github.io/roadie/foundations/linking.'
+}
+
+// The components jsdom setup skips its layout lock for these files, so the
+// lint skips them too until INNO-1238 empties the list.
+function fakesLayout() {
+  const setup = readFileSync(
+    new URL('./packages/components/vitest.setup.ts', import.meta.url),
+    'utf8'
+  )
+  const [, list = ''] = /const FAKES_LAYOUT = \[([^\]]*)\]/.exec(setup) ?? []
+  return [...list.matchAll(/'([^']+)'/g)].map(
+    ([, file]) => `packages/components/src/components/${file}`
+  )
 }
 
 export default [
@@ -129,6 +143,16 @@ export default [
     files: ['packages/**/*.test.{ts,tsx}'],
     ignores: ['**/*.browser.test.{ts,tsx}'],
     rules: { 'roadie/no-css-class-in-jsdom': 'error' }
+  },
+  {
+    files: ['packages/**/*.test.{ts,tsx}'],
+    ignores: [
+      '**/*.browser.test.{ts,tsx}',
+      ...fakesLayout(),
+      // Has its own setup, outside FAKES_LAYOUT (INNO-1238).
+      'packages/widgets/src/cart-drawer/vue/useCartDrawerDrag.test.ts'
+    ],
+    rules: { 'roadie/no-layout-fake-in-jsdom': 'error' }
   },
   {
     files: ['packages/**/*.test.{ts,tsx}'],
