@@ -10,6 +10,7 @@ import {
 
 import { flushSync } from 'react-dom'
 
+import { durationToken, easingToken } from '../../utils/motionTokens'
 import { prefersReducedMotion } from '../../utils/reducedMotion'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 
@@ -38,9 +39,6 @@ type SwipeOptions = {
 const SLOP = 8
 const FLICK = 0.4
 const FLICK_MIN = 32
-// A control's turn eases in and out; a lifted finger's carries on and eases out.
-const TURN_MS = 320
-const IN_MS = 220
 // A swiped finger lifts over a day; the click that can follow isn't a press.
 const CLICK_AFTER_SWIPE_MS = 500
 
@@ -54,9 +52,6 @@ const MONTHS = '[data-slot="calendar-months"]'
 // How much of the way to the days kept a row grows from or folds into: all of
 // it piles the rows up on one line.
 const GROW = 0.5
-// A view switch answers at once and settles, as a decelerating curve does.
-const RESHAPE_MS = 240
-const SETTLE = 'cubic-bezier(0.2, 0, 0, 1)'
 type Keyframes = Parameters<Element['animate']>[0]
 const DAY = 'button[data-date]:not([data-outside])'
 
@@ -195,12 +190,7 @@ export function useSwipeToTurn(
       const box = grid.getBoundingClientRect()
       return vertical ? box.height : box.width
     }
-    const slide = (
-      from: number,
-      to: number,
-      duration: number,
-      easing: string
-    ) =>
+    const slide = (from: number, to: number, step: 'moderate' | 'slow') =>
       Promise.all(
         parts().map((part) => {
           const animation = part.animate(
@@ -208,7 +198,11 @@ export function useSwipeToTurn(
               { transform: offset(from, false) },
               { transform: offset(to, false) }
             ],
-            { duration, easing, fill: 'forwards' }
+            {
+              duration: durationToken(part, step),
+              easing: easingToken(part, 'enter'),
+              fill: 'forwards'
+            }
           )
           running.push(animation)
           return animation.finished.catch(() => undefined)
@@ -362,7 +356,7 @@ export function useSwipeToTurn(
               (vertical && months
                 ? parseFloat(getComputedStyle(months).rowGap) || 0
                 : 0)
-          await slide(-signOf(step) * stride, 0, IN_MS, 'ease-out')
+          await slide(-signOf(step) * stride, 0, 'moderate')
         }
       } else if (step) {
         pending = apply
@@ -372,12 +366,8 @@ export function useSwipeToTurn(
           showPeek(step)
           place(from)
           landing = -travelOf(step)
-          await slide(
-            from,
-            landing,
-            from ? IN_MS : TURN_MS,
-            from ? 'ease-out' : 'ease-in-out'
-          )
+          // A lifted finger's turn carries on; a control's turns a whole page.
+          await slide(from, landing, from ? 'moderate' : 'slow')
         }
         // Torn down mid-slide, such as by the calendar being disabled, or
         // cut short by a later turn, which has applied this one.
@@ -388,7 +378,7 @@ export function useSwipeToTurn(
         applyTurn(apply)
       } else if (!still && from) {
         place(0)
-        await slide(from, 0, IN_MS, 'ease-out')
+        await slide(from, 0, 'moderate')
       }
       if (disposed || mine !== run) return
       finish()
@@ -464,8 +454,8 @@ export function useSwipeToTurn(
       const moves: Promise<unknown>[] = []
       const animate = (element: Element, frames: Keyframes) => {
         const animation = element.animate(frames, {
-          duration: RESHAPE_MS,
-          easing: SETTLE,
+          duration: durationToken(element, 'moderate'),
+          easing: easingToken(element, 'enter'),
           fill: 'forwards'
         })
         shaping.push(animation)
