@@ -149,38 +149,47 @@ describe('Scrolling markdown tables', () => {
   }, 60_000)
 
   it('leaves a table that fits out of the tab order', async () => {
-    const { page } = await open(PHONE)
-    const scroller = scrollerAfter(page, 'writing-for-charts')
+    const { page } = await open(PHONE, '/foundations/date-and-time/')
+    const wide = scrollerAfter(page, 'choosing-a-component')
     await expect
-      .poll(() => scroller.getAttribute('tabindex'), { timeout: 5_000 })
+      .poll(() => wide.getAttribute('tabindex'), { timeout: 5_000 })
       .toBe('0')
 
-    const fits = scrollerAfter(page, 'pick-the-form-from-the-job')
+    const fits = scrollerAfter(page, 'time-is-a-separate-axis')
     expect(
       await fits.evaluate((node) => node.scrollWidth > node.clientWidth)
     ).toBe(false)
     expect(await fits.getAttribute('tabindex')).toBeNull()
     expect(await fits.getAttribute('role')).toBeNull()
-    expect(await tabsInto(page, 'pick-the-form-from-the-job')).toBe(false)
+    expect(await tabsInto(page, 'time-is-a-separate-axis')).toBe(false)
   }, 60_000)
 
-  it('adds and removes the tab stop as the table starts and stops overflowing', async () => {
+  it('adds and removes the tab stop as a table starts and stops overflowing', async () => {
     const { page } = await open(PHONE)
-    const scroller = scrollerAfter(page, 'writing-for-charts')
-    await expect
-      .poll(() => scroller.getAttribute('tabindex'), { timeout: 5_000 })
-      .toBe('0')
+    const regions = () =>
+      page.locator('.prose-scroll').evaluateAll((nodes) =>
+        nodes.map((node) => ({
+          overflows: node.scrollWidth > node.clientWidth,
+          region:
+            node.getAttribute('tabindex') === '0' &&
+            node.getAttribute('role') === 'region'
+        }))
+      )
+    const matchOverflow = async () =>
+      (await regions()).every(({ overflows, region }) => overflows === region)
+    const count = async () =>
+      (await regions()).filter(({ region }) => region).length
+
+    await expect.poll(matchOverflow, { timeout: 5_000 }).toBe(true)
+    const onPhone = await count()
+    expect(onPhone).toBeGreaterThan(0)
 
     await page.setViewportSize({ width: DESKTOP, height: 900 })
-    await expect
-      .poll(() => scroller.getAttribute('tabindex'), { timeout: 5_000 })
-      .toBeNull()
-    expect(await scroller.getAttribute('role')).toBeNull()
+    await expect.poll(count, { timeout: 5_000 }).toBeLessThan(onPhone)
+    await expect.poll(matchOverflow, { timeout: 5_000 }).toBe(true)
 
     await page.setViewportSize({ width: PHONE, height: 900 })
-    await expect
-      .poll(() => scroller.getAttribute('tabindex'), { timeout: 5_000 })
-      .toBe('0')
+    await expect.poll(count, { timeout: 5_000 }).toBe(onPhone)
   }, 60_000)
 
   it('server-renders tables without a tab stop, so hydration matches', async () => {
