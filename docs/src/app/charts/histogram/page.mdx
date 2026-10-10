@@ -21,28 +21,24 @@ import { Histogram } from '@oztix/roadie-charts/histogram'
 
 ### Default
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Booking lead time' source='Oztix sales.' size='md'>
-    <Histogram
-      data={[1, 2, 3, 3, 4, 5, 6, 8, 9, 10, 12, 13, 14, 16, 18, 21, 25, 30, 38, 45, 60].map((days) => ({ days }))}
-      x='days'
-      binWidth={7}
-      median
-      takeaway='Half of buyers book within two weeks of the show'
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Booking lead time' source='Oztix sales.' size='md'>
+  <Histogram
+    data={[1, 2, 3, 3, 4, 5, 6, 8, 9, 10, 12, 13, 14, 16, 18, 21, 25, 30, 38, 45, 60].map((days) => ({ days }))}
+    x='days'
+    binWidth={7}
+    median
+    takeaway='Half of buyers book within two weeks of the show'
+  />
+</Chart>
 ```
 
 ### Order size
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Tickets per order' source='Oztix sales.' size='md'>
-    <Histogram data={[1, 2, 2, 2, 2, 3, 4, 4, 2, 1, 6, 2].map((tickets) => ({ tickets }))} x='tickets' binWidth={1} takeaway='Half of orders are for two tickets' />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Tickets per order' source='Oztix sales.' size='md'>
+  <Histogram data={[1, 2, 2, 2, 2, 3, 4, 4, 2, 1, 6, 2].map((tickets) => ({ tickets }))} x='tickets' binWidth={1} takeaway='Half of orders are for two tickets' />
+</Chart>
 ```
 
 ## Guidelines
