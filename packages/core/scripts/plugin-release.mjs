@@ -6,25 +6,23 @@ export const PACKAGE_NAME = 'roadie-skills'
 export const PACKAGE = 'skills/package.json'
 export const MANIFEST = 'skills/.claude-plugin/plugin.json'
 
-// Changesets owns these, so the Version Packages PR passes without a changeset.
+// Version Packages writes these, so a release PR passes without a changeset.
+// Anywhere else they count: plugin.json ships in the plugin.
 const RELEASE_FILES = new Set([PACKAGE, MANIFEST, 'skills/CHANGELOG.md'])
-
-const touchesPlugin = (path) =>
-  path.startsWith('skills/') && !RELEASE_FILES.has(path)
 
 const isChangeset = (path) =>
   /^\.changeset\/[^/]+\.md$/.test(path) && path !== '.changeset/README.md'
 
 const unquote = (text) => text.trim().replace(/^['"]|['"]$/g, '')
 
-// A `none` bump names the package but never releases it.
-export function namesPackage(changeset, name = PACKAGE_NAME) {
+export function bumpFor(changeset, name = PACKAGE_NAME) {
   const frontmatter = changeset.match(/^---\r?\n([\s\S]*?)\r?\n---/)
-  if (!frontmatter) return false
-  return frontmatter[1].split(/\r?\n/).some((line) => {
+  if (!frontmatter) return null
+  for (const line of frontmatter[1].split(/\r?\n/)) {
     const [key, bump = ''] = line.split(':')
-    return unquote(key) === name && unquote(bump) !== 'none'
-  })
+    if (unquote(key) === name) return unquote(bump)
+  }
+  return null
 }
 
 export function checkPluginRelease({
@@ -40,6 +38,21 @@ export function checkPluginRelease({
       message: `Plugin release: ${MANIFEST} is ${manifestVersion} but ${PACKAGE} is ${packageVersion}. Run node scripts/sync-plugin-version.mjs.`
     }
 
+  const bumps = changedFiles
+    .filter(isChangeset)
+    .map((path) => bumpFor(readChangeset(path)))
+
+  // On 0.x a minor carries breaking changes, so 1.0 is a deliberate change here.
+  if (bumps.includes('major'))
+    return {
+      ok: false,
+      message: `Plugin release: a changeset bumps ${PACKAGE_NAME} by major. Use minor for a breaking change while the plugin is 0.x.`
+    }
+
+  const isRelease = basePackageVersion !== packageVersion
+  const touchesPlugin = (path) =>
+    path.startsWith('skills/') && !(isRelease && RELEASE_FILES.has(path))
+
   if (!changedFiles.some(touchesPlugin))
     return { ok: true, message: 'Plugin release OK: no changes under skills/.' }
 
@@ -50,8 +63,7 @@ export function checkPluginRelease({
       message: `Plugin release OK: first release, ${packageVersion}.`
     }
 
-  const changesets = changedFiles.filter(isChangeset)
-  if (changesets.some((path) => namesPackage(readChangeset(path))))
+  if (bumps.some((bump) => bump === 'patch' || bump === 'minor'))
     return {
       ok: true,
       message: `Plugin release OK: a changeset names ${PACKAGE_NAME}.`
