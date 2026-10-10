@@ -1,4 +1,5 @@
-import { ProseTable } from './ReadsTable'
+import { ProseTable } from '@/components/ProseTable'
+
 import { phraseRows } from './example'
 
 /** What `parseDatePhrase` suggests for typed text, best first. */

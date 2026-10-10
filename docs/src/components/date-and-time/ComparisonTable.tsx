@@ -1,4 +1,5 @@
-import { ProseTable } from './ReadsTable'
+import { ProseTable } from '@/components/ProseTable'
+
 import { comparisonRows } from './example'
 
 /** Each comparison of month to date, from `resolveComparison` and `describeComparison`. */
