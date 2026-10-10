@@ -2,6 +2,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { DOCUMENTED_ELSEWHERE } from './elsewhere'
+import { importPath } from './manifest'
 
 const packagesDir = new URL('../../../', import.meta.url)
 
@@ -11,9 +12,7 @@ const importPaths = readdirSync(packagesDir).flatMap((dir) => {
   const { name, exports = {} } = JSON.parse(
     readFileSync(new URL(`${dir}/package.json`, packagesDir), 'utf8')
   ) as { name: string; exports?: Record<string, unknown> }
-  return Object.keys(exports).map((subpath) =>
-    subpath === '.' ? name : `${name}/${subpath.slice(2)}`
-  )
+  return Object.keys(exports).map((subpath) => importPath(name, subpath))
 })
 
 describe('DOCUMENTED_ELSEWHERE', () => {

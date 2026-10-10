@@ -13,7 +13,7 @@ const COMPONENT =
   /<PropsDefinitions\b[^>]*?\bcomponent=(?:'([^']+)'|"([^"]+)"|\{\[([^\]]*)\]\})/g
 const QUOTED = /'([^']+)'|"([^"]+)"/g
 const LIVE_FENCE = /^```tsx-live[^\n]*\n([\s\S]*?)^```/m
-const TSX_FENCE = /^```tsx\n([\s\S]*?)^```/m
+const TSX_FENCE = /^```tsx(?:[ \t][^\n]*)?\n([\s\S]*?)^```/m
 const USAGE = /^## Usage\n([\s\S]*?)(?=^## |(?![\s\S]))/m
 
 const METADATA = /^export const metadata = \{\n([\s\S]*?)^\}/m

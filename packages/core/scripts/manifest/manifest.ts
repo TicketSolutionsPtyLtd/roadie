@@ -82,7 +82,7 @@ export type BuildOptions = {
   documentedElsewhere?: DocumentedElsewhere
 }
 
-function importPath(packageName: string, subpath: string) {
+export function importPath(packageName: string, subpath: string) {
   return subpath === '.' ? packageName : `${packageName}/${subpath.slice(2)}`
 }
 
