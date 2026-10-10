@@ -1,4 +1,6 @@
-import { cleanup, render } from '@testing-library/react'
+import type { ReactNode } from 'react'
+
+import { cleanup, render, within } from '@testing-library/react'
 import {
   afterAll,
   afterEach,
@@ -6,15 +8,18 @@ import {
   describe,
   expect,
   it,
-  onTestFinished
+  onTestFinished,
+  vi
 } from 'vitest'
-import { commands, page } from 'vitest/browser'
+import { commands, page, userEvent } from 'vitest/browser'
 
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Pane } from '../Pane'
 import { forgetPaneScroll } from '../Pane/paneScroll'
 import { useStylesheet } from '../Pane/testUtils'
+import { withStubLink } from './testUtils'
+import { NAV_COLLAPSE_THRESHOLD } from './useTopPaneChrome'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -43,18 +48,37 @@ async function settle() {
   await frames()
 }
 
+const tall = <div style={{ height: 4000 }}>Content</div>
+
 function renderBar({
   dir = 'ltr',
   tabs = ['a', 'b', 'c'],
-  pinned: withPinned = true
-}: { dir?: 'ltr' | 'rtl'; tabs?: string[]; pinned?: boolean } = {}) {
+  pinned: withPinned = true,
+  value = 'b',
+  onValueChange,
+  menu,
+  panes = <Pane column='list'>{tall}</Pane>
+}: {
+  dir?: 'ltr' | 'rtl'
+  tabs?: string[]
+  pinned?: boolean
+  value?: string
+  onValueChange?: (value: string) => void
+  menu?: string
+  panes?: ReactNode
+} = {}) {
   const { container } = render(
     <div dir={dir} style={{ height: 844, display: 'grid' }}>
-      <Navigator value='b'>
+      <Navigator value={value} onValueChange={onValueChange}>
         <Navigator.Primary aria-label='Primary'>
           {tabs.map((tab) => (
             <Navigator.Item key={tab} value={tab}>
               {tab.toUpperCase()}
+              {tab === menu ? (
+                <Navigator.Menu>
+                  <Navigator.MenuItem>Menu item</Navigator.MenuItem>
+                </Navigator.Menu>
+              ) : null}
             </Navigator.Item>
           ))}
           {withPinned ? (
@@ -63,9 +87,7 @@ function renderBar({
             </Navigator.Item>
           ) : null}
         </Navigator.Primary>
-        <Pane column='list'>
-          <div style={{ height: 4000 }}>Content</div>
-        </Pane>
+        {panes}
       </Navigator>
     </div>
   )
@@ -88,11 +110,13 @@ function renderBar({
   return { host: container.firstElementChild!, bar, part, pinned, scroller }
 }
 
-async function collapse(scroller: HTMLElement) {
-  scroller.scrollTop = 400
+async function scrollTo(scroller: HTMLElement, top: number) {
+  scroller.scrollTop = top
   scroller.dispatchEvent(new Event('scroll'))
   await settle()
 }
+
+const collapse = (scroller: HTMLElement) => scrollTo(scroller, 400)
 
 describe('the phone bar', () => {
   it('floats over the content, which runs the full height beneath it', async () => {
@@ -288,4 +312,390 @@ describe('the phone bar pill', () => {
     expect(style.backdropFilter).toBe('none')
     expect(alpha(style.backgroundColor)).toBe(1)
   })
+})
+
+describe('the bar on scroll', () => {
+  it('collapses once the top pane scrolls past its threshold, and expands back within it', async () => {
+    const { bar, scroller } = renderBar()
+    await settle()
+
+    await scrollTo(scroller, NAV_COLLAPSE_THRESHOLD)
+    expect(bar).toHaveAttribute('data-collapsed', 'false')
+    await scrollTo(scroller, NAV_COLLAPSE_THRESHOLD + 1)
+    expect(bar).toHaveAttribute('data-collapsed', 'true')
+    await scrollTo(scroller, 0)
+    expect(bar).toHaveAttribute('data-collapsed', 'false')
+  })
+
+  // Stands in for a Next.js parallel-route slot, which the orchestrator can't see through.
+  const Slot = ({ children }: { children: ReactNode }) => <>{children}</>
+
+  const list = (
+    <Pane key='list' column='list'>
+      {tall}
+    </Pane>
+  )
+  const inspector = (
+    <Pane key='inspector' column='inspector'>
+      {tall}
+    </Pane>
+  )
+
+  it.each([
+    [
+      'a pane the stack has covered',
+      'false',
+      0,
+      [list, <Pane key='detail'>{tall}</Pane>]
+    ],
+    [
+      'a top pane that keeps the bar visible',
+      'false',
+      1,
+      [
+        list,
+        <Pane key='detail' tabBar='visible'>
+          {tall}
+        </Pane>
+      ]
+    ],
+    ['an inspector', 'false', 0, [inspector, list]],
+    ['a list beside an inspector', 'true', 1, [inspector, list]],
+    [
+      'a top pane inside a wrapper',
+      'true',
+      1,
+      [
+        <Slot key='list'>{list}</Slot>,
+        <Slot key='detail'>
+          <Pane>{tall}</Pane>
+        </Slot>
+      ]
+    ]
+  ])(
+    'scrolling %s leaves the bar collapsed: %s',
+    async (_, collapsed, scrolled, panes) => {
+      await page.viewport(1400, 844)
+      onTestFinished(() => page.viewport(390, 844))
+      const { bar } = renderBar({ panes })
+      await settle()
+      const viewport = document.querySelectorAll<HTMLElement>(
+        '[data-slot="pane-viewport"]'
+      )[scrolled]!
+
+      await scrollTo(viewport, 400)
+
+      expect(viewport.scrollTop).toBe(400)
+      expect(bar).toHaveAttribute('data-collapsed', collapsed)
+    }
+  )
+})
+
+const label = (tab: Element) =>
+  tab.querySelector('[data-slot="navigator-tab-label"]')?.textContent
+
+const transitioned = (element: Element) => {
+  const style = getComputedStyle(element)
+  const durations = style.transitionDuration.split(',').map(parseFloat)
+  return style.transitionProperty
+    .split(',')
+    .map((property) => property.trim())
+    .filter((_, index) => (durations[index % durations.length] ?? 0) > 0)
+}
+
+describe('the collapsed bar', () => {
+  const six = ['a', 'b', 'c', 'd', 'e', 'f']
+
+  it.each([
+    [
+      'the active tab and More',
+      { tabs: six, pinned: false, value: 'a' },
+      'A',
+      'More'
+    ],
+    [
+      'the first tab and More, when a folded item is active',
+      { tabs: six, pinned: false, value: 'e' },
+      'A',
+      'More'
+    ],
+    ['the active tab beside the pinned circle', { value: 'a' }, 'A', null],
+    [
+      'the first tab, when the pinned item is active',
+      { value: 'account' },
+      'A',
+      null
+    ],
+    [
+      'More, when a folded item is active beside the pinned circle',
+      { tabs: six, value: 'e' },
+      'More',
+      null
+    ]
+  ])('floats %s as 3.5rem circles', async (_, options, start, end) => {
+    const { bar, scroller } = renderBar(options)
+    await settle()
+    await collapse(scroller)
+    const circle = (side: string) =>
+      bar.querySelector<HTMLElement>(`[data-circle-side="${side}"]`)
+
+    expect(circle('start')).toHaveAccessibleName(start)
+    expect(circle('start')!.getBoundingClientRect().width).toBeCloseTo(56, 0)
+    if (end === null) {
+      expect(circle('end')).toBeNull()
+    } else {
+      expect(circle('end')).toHaveAccessibleName(end)
+      expect(circle('end')!.getBoundingClientRect().height).toBeCloseTo(56, 0)
+    }
+    for (const tab of bar.querySelectorAll('[data-slot="navigator-item"]')) {
+      expect(getComputedStyle(tab).order).toBe('0')
+    }
+  })
+
+  it('scales the other tabs away, keeping them in the accessibility tree but out of the tab order until it expands', async () => {
+    const { bar, scroller } = renderBar({ value: 'a', menu: 'b' })
+    await settle()
+    const tabs = () => within(bar).getAllByRole('button')
+    const tabbable = () =>
+      tabs()
+        .filter((tab) => tab.tabIndex >= 0)
+        .map(label)
+    expect(tabbable()).toEqual(['A', 'B', 'C', 'Account'])
+
+    await collapse(scroller)
+
+    expect(tabs()).toHaveLength(4)
+    expect(tabbable()).toEqual(['A', 'Account'])
+    for (const name of ['B', 'C']) {
+      const tab = within(bar).getByRole('button', { name })
+      expect(tab.getBoundingClientRect().width).toBe(0)
+      expect(getComputedStyle(tab).opacity).toBe('0')
+    }
+
+    await scrollTo(scroller, 0)
+    expect(tabbable()).toEqual(['A', 'B', 'C', 'Account'])
+  })
+
+  it('fades the pill out without moving the bar or changing the track height', async () => {
+    const { bar, part, scroller } = renderBar()
+    await settle()
+    const pill = bar.querySelector('[data-slot="navigator-primary-pill"]')!
+    const before = bar.getBoundingClientRect()
+    const track = part('navigator-primary-track').height
+    expect(getComputedStyle(pill).opacity).toBe('1')
+
+    await collapse(scroller)
+
+    expect(getComputedStyle(pill).opacity).toBe('0')
+    expect(bar.getBoundingClientRect().toJSON()).toEqual(before.toJSON())
+    expect(part('navigator-primary-track').height).toBe(track)
+  })
+
+  it('drops each circle to the foot of the track', async () => {
+    const { bar, part, scroller } = renderBar({ tabs: six, pinned: false })
+    await settle()
+    await collapse(scroller)
+    const foot = part('navigator-primary-track').bottom
+
+    for (const circle of bar.querySelectorAll('[data-circle-side]')) {
+      expect(circle.getBoundingClientRect().bottom).toBeCloseTo(foot, 0)
+    }
+  })
+
+  it('lets the page show through the pill and the circles, but not the tabs', async () => {
+    const { bar, scroller } = renderBar({ value: 'a' })
+    await settle()
+    const blurred = (element: Element) =>
+      getComputedStyle(element).backdropFilter !== 'none'
+    const button = (name: string) => within(bar).getByRole('button', { name })
+    expect(
+      blurred(bar.querySelector('[data-slot="navigator-primary-pill"]')!)
+    ).toBe(true)
+    expect(blurred(button('Account'))).toBe(true)
+    expect(blurred(button('B'))).toBe(false)
+
+    await collapse(scroller)
+
+    expect(blurred(button('A'))).toBe(true)
+  })
+
+  it('gives the collapsed active circle the accent icon on a translucent surface, not an accent pill', async () => {
+    const { bar, scroller } = renderBar({ value: 'a' })
+    await settle()
+    await collapse(scroller)
+    const active = getComputedStyle(
+      within(bar).getByRole('button', { name: 'A' })
+    )
+    const idle = getComputedStyle(
+      within(bar).getByRole('button', { name: 'Account' })
+    )
+
+    expect(alpha(active.backgroundColor)).toBeCloseTo(0.85, 2)
+    expect(active.color).not.toBe(idle.color)
+  })
+
+  it.each([false, true])(
+    'lets input through to the page between its circles, with a pinned item: %s',
+    async (withPinned) => {
+      const { bar, scroller } = renderBar({ tabs: six, pinned: withPinned })
+      await settle()
+      await collapse(scroller)
+      const hit = (box: DOMRect) =>
+        document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)
+      const circles = [
+        ...bar.querySelectorAll('[data-circle-side]'),
+        ...bar.querySelectorAll('[data-slot="navigator-primary-circle"] button')
+      ]
+
+      expect(circles).toHaveLength(2)
+      for (const circle of circles) {
+        expect(circle.contains(hit(circle.getBoundingClientRect()))).toBe(true)
+      }
+      expect(bar.contains(hit(bar.getBoundingClientRect()))).toBe(false)
+    }
+  )
+
+  it('never transitions a layout property on the bar or its tabs', async () => {
+    const { bar, scroller } = renderBar()
+    await settle()
+    await collapse(scroller)
+    const properties = [
+      bar,
+      ...bar.querySelectorAll('[data-slot="navigator-item"]')
+    ].flatMap(transitioned)
+
+    expect(properties.length).toBeGreaterThan(0)
+    for (const property of properties) {
+      expect(property).not.toMatch(
+        /^(padding|margin|(min-|max-)?(width|height)|left|right|top|bottom|inset)/
+      )
+    }
+  })
+})
+
+describe('a tap on the collapsed bar', () => {
+  it.each([
+    ['active tab', 'a', 'A'],
+    ['active pinned circle', 'account', 'Account']
+  ])(
+    'on the %s reopens the bar, without scrolling or navigating',
+    async (_, value, name) => {
+      const onValueChange = vi.fn()
+      const { bar, scroller } = renderBar({ value, onValueChange })
+      await settle()
+      await collapse(scroller)
+
+      await userEvent.click(within(bar).getByRole('button', { name }))
+      await settle()
+
+      expect(bar).toHaveAttribute('data-collapsed', 'false')
+      expect(scroller.scrollTop).toBe(400)
+      expect(onValueChange).not.toHaveBeenCalled()
+    }
+  )
+
+  it('keeps the bar open until the pane scrolls down again', async () => {
+    const { bar, scroller } = renderBar({ value: 'a' })
+    await settle()
+    await collapse(scroller)
+    await userEvent.click(within(bar).getByRole('button', { name: 'A' }))
+    await settle()
+
+    await scrollTo(scroller, 400)
+    expect(bar).toHaveAttribute('data-collapsed', 'false')
+    await scrollTo(scroller, 600)
+    expect(bar).toHaveAttribute('data-collapsed', 'true')
+  })
+
+  it('on another tab navigates to it', async () => {
+    const onValueChange = vi.fn()
+    const { bar, scroller } = renderBar({ value: 'a', onValueChange })
+    await settle()
+    await collapse(scroller)
+
+    await userEvent.click(within(bar).getByRole('button', { name: 'Account' }))
+
+    expect(onValueChange).toHaveBeenCalledWith('account')
+  })
+})
+
+describe('a tap on a collapsed tab with a route of its own', () => {
+  const pages = Array.from({ length: 40 }, (_, index) => `/components/${index}`)
+
+  function Docs({
+    value,
+    onValueChange
+  }: {
+    value: string
+    onValueChange: (value: string) => void
+  }) {
+    return withStubLink(
+      <div style={{ height: 844, display: 'grid' }}>
+        <Navigator value={value} onValueChange={onValueChange}>
+          <Navigator.Primary aria-label='Docs'>
+            <Navigator.Item value='/' href='/'>
+              Home
+              <Navigator.Secondary aria-label='Home pages' overview>
+                <Navigator.Item
+                  value='/overview/philosophy'
+                  href='/overview/philosophy'
+                >
+                  Philosophy
+                </Navigator.Item>
+              </Navigator.Secondary>
+            </Navigator.Item>
+            <Navigator.Item value='/components' href='/components'>
+              Components
+              <Navigator.Secondary aria-label='Components'>
+                {pages.map((page) => (
+                  <Navigator.Item key={page} value={page} href={page}>
+                    {page}
+                  </Navigator.Item>
+                ))}
+              </Navigator.Secondary>
+            </Navigator.Item>
+          </Navigator.Primary>
+          <Pane>
+            <Pane.Header />
+            {tall}
+          </Pane>
+        </Navigator>
+      </div>
+    )
+  }
+
+  it.each([
+    ['its overview', '/', 'Home', true],
+    ['its list', '/components', 'Components', true],
+    ['a sub-page', '/overview/philosophy', 'Home', false]
+  ])(
+    'on %s reopens the bar, scrolling the page to the top: %s',
+    async (_, value, name, scrolls) => {
+      const onValueChange = vi.fn()
+      render(<Docs value={value} onValueChange={onValueChange} />)
+      await settle()
+      const bar = document.querySelector<HTMLElement>(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )!
+      const scroller = document.querySelector<HTMLElement>(
+        '[data-stack-position="top"] [data-slot="pane-viewport"]'
+      )!
+      await collapse(scroller)
+      expect(bar).toHaveAttribute('data-collapsed', 'true')
+      const scrollToTop = vi.spyOn(scroller, 'scrollTo')
+
+      await userEvent.click(within(bar).getByRole('link', { name }))
+      await settle()
+
+      if (scrolls) {
+        expect(scrollToTop).toHaveBeenCalledWith(
+          expect.objectContaining({ top: 0 })
+        )
+      } else {
+        expect(scrollToTop).not.toHaveBeenCalled()
+      }
+      expect(bar).toHaveAttribute('data-collapsed', 'false')
+      expect(onValueChange).not.toHaveBeenCalled()
+    }
+  )
 })

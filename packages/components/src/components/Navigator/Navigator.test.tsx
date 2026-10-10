@@ -26,13 +26,9 @@ import {
   scrollViewport,
   testBrand,
   withHistoryEntries,
-  withScrollSentinels,
   withStubLink
 } from './testUtils'
-import { NAV_COLLAPSE_THRESHOLD } from './useTopPaneChrome'
 import { navigatorContentClass } from './variants'
-
-withScrollSentinels()
 
 describe('Navigator', () => {
   it('is the same reference as Navigator.Root', () => {
@@ -207,45 +203,6 @@ describe('pane stack', () => {
     ).toHaveAttribute('data-hidden', 'false')
   })
 
-  it('still never lets an inspector take chrome when real panes are present', async () => {
-    const scroll = (viewport: HTMLElement) =>
-      act(async () => {
-        scrollViewport(viewport, 80)
-      })
-    const bar = () =>
-      document.querySelector(
-        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
-      )
-    render(
-      <Navigator value='/foundations'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          <Navigator.Item value='/foundations' href='/foundations'>
-            Foundations
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Pane column='inspector'>
-          <Pane.Header>
-            <Pane.Title>Inspector</Pane.Title>
-          </Pane.Header>
-        </Pane>
-        <Pane column='list'>
-          <Pane.Header>
-            <Pane.Title>List</Pane.Title>
-          </Pane.Header>
-        </Pane>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    const [inspector, list] = document.querySelectorAll<HTMLElement>(
-      '[data-slot="pane-viewport"]'
-    )
-    await scroll(inspector!)
-    expect(bar()).toHaveAttribute('data-collapsed', 'false')
-    await scroll(list!)
-    expect(bar()).toHaveAttribute('data-collapsed', 'true')
-  })
-
   it('leaves layering over the edge cover to the stylesheet', async () => {
     render(
       <Navigator value='/components'>
@@ -354,97 +311,6 @@ describe('tabBar', () => {
     expect(rail).not.toHaveAttribute('inert')
     expect(rail).not.toHaveAttribute('aria-hidden')
     expect(rail).not.toHaveAttribute('data-hidden', 'true')
-  })
-
-  it('keeps the bar expanded while the top pane declares it visible', async () => {
-    const { container } = render(
-      <Navigator value='/'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          <Navigator.Item value='/' icon={<FakeIcon />}>
-            Home
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Pane column='list'>List</Pane>
-        <Pane tabBar='visible'>Detail</Pane>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-
-    const top = document.querySelectorAll<HTMLElement>(
-      '[data-slot="pane-viewport"]'
-    )[1]!
-    await act(async () => {
-      scrollViewport(top, 80)
-    })
-
-    expect(
-      container.querySelector(
-        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
-      )
-    ).toHaveAttribute('data-collapsed', 'false')
-  })
-
-  it('ignores a scroll on a pane the stack has covered', async () => {
-    const { container } = render(
-      <Navigator value='/'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          <Navigator.Item value='/' icon={<FakeIcon />}>
-            Home
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Pane column='list'>List</Pane>
-        <Pane>Detail</Pane>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-
-    const covered = document.querySelectorAll<HTMLElement>(
-      '[data-slot="pane-viewport"]'
-    )[0]!
-    await act(async () => {
-      scrollViewport(covered, 80)
-    })
-
-    expect(
-      container.querySelector(
-        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
-      )
-    ).toHaveAttribute('data-collapsed', 'false')
-  })
-
-  it('collapses as the top pane scrolls past the threshold and reopens back within it', async () => {
-    const { container } = render(
-      <Navigator value='/'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          <Navigator.Item value='/' icon={<FakeIcon />}>
-            Home
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Pane>Detail</Pane>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    const viewport = document.querySelector<HTMLElement>(
-      '[data-slot="pane-viewport"]'
-    )!
-    const bar = container.querySelector(
-      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
-    )
-    await act(async () => {
-      scrollViewport(viewport, NAV_COLLAPSE_THRESHOLD)
-    })
-    expect(bar).toHaveAttribute('data-collapsed', 'false')
-    await act(async () => {
-      scrollViewport(viewport, NAV_COLLAPSE_THRESHOLD + 1)
-    })
-    expect(bar).toHaveAttribute('data-collapsed', 'true')
-    await act(async () => {
-      scrollViewport(viewport, 0)
-    })
-    expect(bar).toHaveAttribute('data-collapsed', 'false')
   })
 })
 
@@ -1958,59 +1824,6 @@ describe('NavigatorOverflowPane', () => {
       expect(row()).not.toHaveAttribute('data-pushing')
     })
 
-    it('never marks a push for a resize that folds items into More', async () => {
-      const observed = new Map<
-        Element,
-        ConstructorParameters<typeof ResizeObserver>[0]
-      >()
-      vi.stubGlobal(
-        'ResizeObserver',
-        class {
-          constructor(
-            private callback: ConstructorParameters<typeof ResizeObserver>[0]
-          ) {}
-          observe(target: Element) {
-            observed.set(target, this.callback)
-          }
-          unobserve() {}
-          disconnect() {}
-        }
-      )
-      render(
-        <Navigator value='/a'>
-          <Navigator.Primary aria-label='Main'>
-            {testBrand}
-            {['/a', '/b', '/c', '/d'].map((v) => (
-              <Navigator.Item key={v} value={v} href={v}>
-                {v}
-              </Navigator.Item>
-            ))}
-          </Navigator.Primary>
-          <Pane column='list'>List</Pane>
-          <Pane>Detail</Pane>
-        </Navigator>
-      )
-      await flushViewportMeasurement()
-      flushFrame()
-      flushFrame()
-      const more = () =>
-        document.querySelector('[data-slot="pane"][data-overflow]')
-      expect(more()).toBeNull()
-      const viewport = document.querySelector(
-        '[data-slot="navigator-primary-cluster-viewport"]'
-      )!
-      act(() => {
-        observed.get(viewport)?.(
-          [{ contentRect: { height: 96 } } as ResizeObserverEntry],
-          {} as ResizeObserver
-        )
-      })
-      await flushViewportMeasurement()
-      expect(more()).not.toBeNull()
-      expect(row()).not.toHaveAttribute('data-pushing')
-      vi.unstubAllGlobals()
-    })
-
     it('switches instantly, never pushing, when a controlled More folds a secondary list in or out of view', async () => {
       // Padding past MAX_TABS folds later destinations into More; the fold alone flips `moreOpen`.
       const foldingDestinationsNav = (folded: boolean) => (
@@ -2773,7 +2586,7 @@ describe('Navigator.Primary direct-children warning', () => {
   })
 })
 
-describe('Navigator collapsed edge circles', () => {
+describe('Navigator phone bar', () => {
   const horizontalOf = (container: HTMLElement) =>
     container.querySelector<HTMLElement>(
       '[data-slot="navigator-primary"][data-orientation="horizontal"]'
@@ -2797,203 +2610,10 @@ describe('Navigator collapsed edge circles', () => {
     </Navigator>
   )
 
-  const moreTree = (active: string, withPinned = false) => (
-    <Navigator value={active}>
-      <Navigator.Primary aria-label='Primary'>
-        {testBrand}
-        {['a', 'b', 'c', 'd', 'e', 'f'].map((v) => (
-          <Navigator.Item key={v} value={v}>
-            {v.toUpperCase()}
-          </Navigator.Item>
-        ))}
-        {withPinned ? (
-          <Navigator.Item value='account' placement='pinned'>
-            Account
-          </Navigator.Item>
-        ) : null}
-      </Navigator.Primary>
-      <Pane column='list'>Content</Pane>
-    </Navigator>
-  )
-
   const pinnedCircleOf = (container: HTMLElement) =>
     horizontalOf(container)!.querySelector<HTMLElement>(
       '[data-slot="navigator-primary-circle"]'
     )!
-
-  const settleFrame = () =>
-    act(
-      async () =>
-        new Promise<void>((resolve) => {
-          requestAnimationFrame(() => resolve())
-        })
-    )
-
-  const scrollTo = async (pane: HTMLElement, top: number) => {
-    act(() => scrollViewport(pane, top))
-    await settleFrame()
-  }
-
-  const collapse = async (container: HTMLElement) => {
-    const pane = scrollerOf(container)
-    await scrollTo(pane, 80)
-    return pane
-  }
-
-  it('floats the active tab as the start circle and the final tab as the end circle', async () => {
-    const { container } = render(moreTree('a'))
-    await collapse(container)
-    const bar = within(horizontalOf(container) as HTMLElement)
-
-    const active = bar.getByRole('button', { name: 'A' })
-    const final = bar.getByRole('button', { name: 'More' })
-    expect(active).toHaveClass('size-14')
-    expect(active).toHaveAttribute('data-circle-side', 'start')
-    expect(final).toHaveClass('size-14')
-    expect(final).toHaveAttribute('data-circle-side', 'end')
-    await flushViewportMeasurement()
-  })
-
-  it('keeps the pinned circle as the end circle while collapsed', async () => {
-    const { container } = render(barTree('a'))
-    await collapse(container)
-    const bar = horizontalOf(container)!
-
-    expect(
-      within(pinnedCircleOf(container)).getByRole('button', { name: 'Account' })
-    ).not.toHaveClass('scale-0')
-    expect(bar.querySelector('[data-circle-side="end"]')).toBeNull()
-    expect(
-      bar.querySelector('[data-circle-side="start"]')
-    ).toHaveAccessibleName('A')
-    await flushViewportMeasurement()
-  })
-
-  it('scales the non-edge tabs away but keeps them in the AT tree', async () => {
-    const { container } = render(barTree('a'))
-    await collapse(container)
-    const bar = within(horizontalOf(container) as HTMLElement)
-
-    expect(bar.getAllByRole('button')).toHaveLength(4)
-    expect(bar.getByRole('button', { name: 'B' })).toHaveClass(
-      'scale-0',
-      'opacity-0'
-    )
-    expect(bar.getByRole('button', { name: 'C' })).toHaveClass('scale-0')
-    await flushViewportMeasurement()
-  })
-
-  it('takes the tabs it scales away out of the tab order until it expands', async () => {
-    const { container } = render(barTree('a'))
-    const bar = within(horizontalOf(container) as HTMLElement)
-    const tabbable = () =>
-      bar
-        .getAllByRole('button')
-        .filter((tab) => tab.tabIndex >= 0)
-        .map(
-          (tab) =>
-            tab.querySelector('[data-slot="navigator-tab-label"]')?.textContent
-        )
-
-    expect(tabbable()).toEqual(['A', 'B', 'C', 'Account'])
-    const pane = await collapse(container)
-    expect(tabbable()).toEqual(['A', 'Account'])
-    expect(bar.getByRole('button', { name: 'B' })).toHaveAttribute(
-      'tabindex',
-      '-1'
-    )
-
-    await scrollTo(pane, 0)
-    expect(tabbable()).toEqual(['A', 'B', 'C', 'Account'])
-    await flushViewportMeasurement()
-  })
-
-  it('takes a menu tab it scales away out of the tab order too', async () => {
-    const { container } = render(
-      <Navigator value='a'>
-        <Navigator.Primary aria-label='Primary'>
-          {testBrand}
-          <Navigator.Item value='a'>A</Navigator.Item>
-          <Navigator.Item value='b'>
-            B
-            <Navigator.Menu>
-              <Navigator.MenuItem>Menu item</Navigator.MenuItem>
-            </Navigator.Menu>
-          </Navigator.Item>
-          <Navigator.Item value='c'>C</Navigator.Item>
-        </Navigator.Primary>
-        <Pane column='list'>Content</Pane>
-      </Navigator>
-    )
-    await collapse(container)
-    const bar = within(horizontalOf(container) as HTMLElement)
-    expect(bar.getByRole('button', { name: 'B' })).toHaveAttribute(
-      'tabindex',
-      '-1'
-    )
-    await flushViewportMeasurement()
-  })
-
-  it('fades the pill surface out on collapse without moving the bar', async () => {
-    const { container } = render(barTree('a'))
-    const bar = horizontalOf(container) as HTMLElement
-    const pill = bar.querySelector('[data-slot="navigator-primary-pill"]')!
-    const barClasses = bar.className
-
-    expect(pill).toHaveClass('emphasis-floating', 'opacity-100')
-    await collapse(container)
-
-    expect(pill).toHaveClass('emphasis-floating', 'opacity-0')
-    expect(bar.className).toBe(barClasses)
-    await flushViewportMeasurement()
-  })
-
-  it('puts the first tab at the start when the pinned item is active', async () => {
-    const { container } = render(barTree('account'))
-    await collapse(container)
-    const bar = within(horizontalOf(container) as HTMLElement)
-
-    const first = bar.getByRole('button', { name: 'A' })
-    const account = within(pinnedCircleOf(container)).getByRole('button', {
-      name: 'Account'
-    })
-    expect(first).toHaveClass('size-14')
-    expect(first).toHaveAttribute('data-circle-side', 'start')
-    expect(account).toHaveAttribute('aria-current', 'page')
-    expect(first).not.toHaveAttribute('aria-current')
-    await flushViewportMeasurement()
-  })
-
-  it('floats More as the start circle when a folded item is active beside a pinned circle', async () => {
-    const { container } = render(moreTree('e', true))
-    await collapse(container)
-    const bar = within(horizontalOf(container) as HTMLElement)
-
-    expect(bar.getByRole('button', { name: 'More' })).toHaveAttribute(
-      'data-circle-side',
-      'start'
-    )
-    expect(
-      within(pinnedCircleOf(container)).getByRole('button', { name: 'Account' })
-    ).not.toHaveAttribute('aria-current')
-    await flushViewportMeasurement()
-  })
-
-  it('puts the first tab at the start when a folded item is active', async () => {
-    const { container } = render(moreTree('e'))
-    await collapse(container)
-    const bar = within(horizontalOf(container) as HTMLElement)
-
-    expect(bar.getByRole('button', { name: 'A' })).toHaveAttribute(
-      'data-circle-side',
-      'start'
-    )
-    expect(bar.getByRole('button', { name: 'More' })).toHaveAttribute(
-      'data-circle-side',
-      'end'
-    )
-    await flushViewportMeasurement()
-  })
 
   it('colours the idle pinned circle subtle, like every destination', async () => {
     const { container } = render(barTree('a'))
@@ -3005,108 +2625,6 @@ describe('Navigator collapsed edge circles', () => {
     await flushViewportMeasurement()
   })
 
-  it('gives the collapsed active circle the accent icon but no accent pill', async () => {
-    const { container } = render(barTree('a'))
-    await collapse(container)
-    const active = within(horizontalOf(container) as HTMLElement).getByRole(
-      'button',
-      { name: 'A' }
-    )
-    expect(active).toHaveClass(
-      'intent-accent',
-      'text-subtle',
-      'emphasis-floating'
-    )
-    expect(active.className).not.toContain('bg-[var(--intent-bg-subtle)]')
-    await flushViewportMeasurement()
-  })
-
-  it('lets the page show through every surface of the bar', async () => {
-    const { container } = render(barTree('a'))
-    const bar = horizontalOf(container)!
-    const pill = bar.querySelector('[data-slot="navigator-primary-pill"]')
-    const pinned = within(pinnedCircleOf(container)).getByRole('button', {
-      name: 'Account'
-    })
-    expect(pill).toHaveClass('emphasis-floating', 'is-translucent')
-    expect(pinned).toHaveClass('emphasis-floating', 'is-translucent')
-    expect(within(bar).getByRole('button', { name: 'B' })).not.toHaveClass(
-      'is-translucent'
-    )
-
-    await collapse(container)
-    const start = bar.querySelector('[data-circle-side="start"]')
-    expect(start).toHaveClass('emphasis-floating', 'is-translucent')
-    await flushViewportMeasurement()
-  })
-
-  it('never reorders a tab to collapse it', async () => {
-    const { container } = render(barTree('b'))
-    await collapse(container)
-    const bar = horizontalOf(container)!
-
-    for (const tab of bar.querySelectorAll('[data-slot="navigator-item"]')) {
-      expect(tab.className).not.toMatch(/(^|\s)-?order-/)
-    }
-    const start = bar.querySelector('[data-circle-side="start"]')!
-    expect(start).toHaveAccessibleName('B')
-    expect(start.getAttribute('style')).toContain(
-      '--navigator-primary-index: 1'
-    )
-    await flushViewportMeasurement()
-  })
-
-  it('drops each circle to the foot of the bar', async () => {
-    const { container } = render(moreTree('b'))
-    await collapse(container)
-    const bar = horizontalOf(container)!
-
-    const start = bar.querySelector('[data-circle-side="start"]')!
-    const end = bar.querySelector('[data-circle-side="end"]')!
-
-    expect(start).toHaveClass('translate-y-1', 'self-end')
-    expect(end).toHaveClass('translate-y-1', 'self-end')
-    await flushViewportMeasurement()
-  })
-
-  it('keeps the track the same height in both states', async () => {
-    // The pill is `inset-0` of the track, so a row that shortened would snap it.
-    const { container } = render(barTree('a'))
-    const bar = horizontalOf(container)!
-    const track = bar.querySelector('[data-slot="navigator-primary-track"]')!
-    expect(track).toHaveClass('py-1')
-
-    const expandedTab = track.querySelector('[data-slot="navigator-item"]')!
-    expect(expandedTab).toHaveClass('py-3.5')
-
-    await collapse(container)
-    expect(track).toHaveClass('py-1')
-    for (const tab of track.querySelectorAll(
-      '[data-slot="navigator-item"]:not([data-circle-side])'
-    )) {
-      expect(tab).toHaveClass('py-3.5')
-    }
-    await flushViewportMeasurement()
-  })
-
-  it('leaves the collapsed bar transparent to input in the middle', async () => {
-    const { container } = render(moreTree('a'))
-    await collapse(container)
-
-    const bar = horizontalOf(container)!
-    expect(bar).toHaveClass('pointer-events-none')
-    const circles = bar.querySelectorAll('[data-circle-side]')
-    expect(circles).toHaveLength(2)
-    for (const circle of circles) {
-      expect(circle).toHaveClass('pointer-events-auto')
-    }
-
-    const pinned = render(barTree('a')).container
-    await collapse(pinned)
-    expect(pinnedCircleOf(pinned)).toHaveClass('pointer-events-auto')
-    await flushViewportMeasurement()
-  })
-
   it('leaves the expanded bar transparent to input outside the tabs, below five tabs', async () => {
     const { container } = render(barTree('a'))
     await flushViewportMeasurement()
@@ -3115,65 +2633,6 @@ describe('Navigator collapsed edge circles', () => {
     expect(bar).toHaveClass('pointer-events-none')
     const track = bar.querySelector('[data-slot="navigator-primary-track"]')!
     expect(track).toHaveClass('pointer-events-auto')
-  })
-
-  it('never names a layout property in the bar or tab transitions', async () => {
-    const { container } = render(barTree('a'))
-    await collapse(container)
-
-    const bar = horizontalOf(container)!
-    const banned = ['padding', 'max-width', 'width', 'height', 'left', 'top']
-    const classes = [
-      bar.className,
-      ...Array.from(bar.querySelectorAll('[data-slot="navigator-item"]')).map(
-        (tab) => tab.className
-      )
-    ].join(' ')
-    const transitions = classes.match(/transition-\[[^\]]+\]/g) ?? []
-    expect(transitions.length).toBeGreaterThan(0)
-    for (const transition of transitions) {
-      for (const property of banned) {
-        expect(transition).not.toContain(property)
-      }
-    }
-    await flushViewportMeasurement()
-  })
-
-  it('reopens the bar without scrolling or navigating when the collapsed active circle is tapped', async () => {
-    const onValueChange = vi.fn()
-    const { container } = render(barTree('a', onValueChange))
-    const pane = await collapse(container)
-    const scrollToSpy = vi.fn()
-    pane.scrollTo = scrollToSpy
-    const bar = horizontalOf(container) as HTMLElement
-    expect(bar).toHaveAttribute('data-collapsed', 'true')
-
-    await userEvent.click(within(bar).getByRole('button', { name: 'A' }))
-
-    expect(bar).toHaveAttribute('data-collapsed', 'false')
-    expect(scrollToSpy).not.toHaveBeenCalled()
-    expect(onValueChange).not.toHaveBeenCalled()
-  })
-
-  it('stays expanded while the pane is still scrolled after reopening', async () => {
-    const { container } = render(barTree('a'))
-    const pane = await collapse(container)
-    const bar = horizontalOf(container) as HTMLElement
-    await userEvent.click(within(bar).getByRole('button', { name: 'A' }))
-
-    await scrollTo(pane, 80)
-    expect(bar).toHaveAttribute('data-collapsed', 'false')
-  })
-
-  it('re-collapses when the user scrolls down again after reopening', async () => {
-    const { container } = render(barTree('a'))
-    const pane = await collapse(container)
-    const bar = horizontalOf(container) as HTMLElement
-    await userEvent.click(within(bar).getByRole('button', { name: 'A' }))
-    expect(bar).toHaveAttribute('data-collapsed', 'false')
-
-    await scrollTo(pane, 200)
-    expect(bar).toHaveAttribute('data-collapsed', 'true')
   })
 
   it('scrolls the visible pane to the top when the expanded active tab is tapped', async () => {
@@ -3190,26 +2649,6 @@ describe('Navigator collapsed edge circles', () => {
       expect.objectContaining({ top: 0 })
     )
     expect(onValueChange).not.toHaveBeenCalled()
-  })
-
-  it('reopens on the active pinned circle', async () => {
-    const { container } = render(barTree('account'))
-    await collapse(container)
-    const bar = horizontalOf(container) as HTMLElement
-
-    await userEvent.click(within(bar).getByRole('button', { name: 'Account' }))
-    expect(bar).toHaveAttribute('data-collapsed', 'false')
-  })
-
-  it('navigates normally when a non-active tab is tapped while collapsed', async () => {
-    const onValueChange = vi.fn()
-    const { container } = render(barTree('a', onValueChange))
-    await collapse(container)
-
-    const bar = within(horizontalOf(container) as HTMLElement)
-    await userEvent.click(bar.getByRole('button', { name: 'Account' }))
-
-    expect(onValueChange).toHaveBeenCalledWith('account')
   })
 })
 
@@ -3675,22 +3114,15 @@ describe('a new destination starts at the top', () => {
     )
   const scroll = (viewport: HTMLElement, top: number) =>
     act(async () => scrollViewport(viewport, top))
-  const header = () =>
-    screen
-      .getByTestId('page')
-      .querySelector<HTMLElement>('[data-slot="pane-header"]')!
-
   it('scrolls the page up for a sibling, while the list it came from keeps its place', async () => {
     const { rerender } = render(nav('/s/a'))
     await flushViewportMeasurement()
     await scroll(page(), 900)
     await scroll(list(), 300)
-    expect(header()).toHaveAttribute('data-collapsed', 'true')
     rerender(nav('/s/b'))
     await flushViewportMeasurement()
     expect(page().scrollTop).toBe(0)
     expect(list().scrollTop).toBe(300)
-    expect(header()).toHaveAttribute('data-collapsed', 'false')
   })
 
   it('scrolls the page up on a destination switch', async () => {
