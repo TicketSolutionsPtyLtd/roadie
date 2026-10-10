@@ -111,11 +111,19 @@ export default [
     rules: { 'roadie/no-import-meta-env': 'error' }
   },
   {
+    files: [
+      'packages/**/*.test.{ts,tsx}',
+      'packages/**/testUtils.{ts,tsx}',
+      'packages/**/*TestUtils.{ts,tsx}',
+      'packages/**/browserTesting.tsx',
+      'packages/*/vitest.setup.ts',
+      'packages/components/src/components/RecordTable/renderCounter.ts'
+    ],
+    rules: { 'roadie/no-fixed-sleep': 'error' }
+  },
+  {
     files: ['packages/**/*.test.{ts,tsx}'],
-    rules: {
-      'roadie/no-fixed-sleep': 'error',
-      'roadie/no-cva-output-assertion': 'error'
-    }
+    rules: { 'roadie/no-cva-output-assertion': 'error' }
   },
   {
     files: ['packages/**/*.test.{ts,tsx}'],
