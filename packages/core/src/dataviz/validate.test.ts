@@ -74,13 +74,23 @@ describe('dataviz palette', () => {
     expect(failures.map((f) => f.check)).toContain('adjacentNormal')
   })
 
-  it('catches two far-apart slots too close for normal vision', () => {
-    const [l, c, h] = palette.categorical.light[0]!
-    const failure = validatePalette(withLight(7, [l + 0.02, c, h + 4])).find(
-      (f) => f.check === 'allPairsNormal'
-    )
-    expect(failure).toMatchObject({ detail: 'slots 1 and 8', target: 8 })
-  })
+  it.each([
+    ['light', withLight],
+    ['dark', withDark]
+  ] as const)(
+    'catches two far-apart %s slots too close for normal vision',
+    (mode, withSlot) => {
+      const [l, c, h] = palette.categorical[mode][0]!
+      const failure = validatePalette(withSlot(7, [l + 0.02, c, h + 4])).find(
+        (f) => f.check === 'allPairsNormal'
+      )
+      expect(failure).toMatchObject({
+        mode,
+        detail: 'slots 1 and 8',
+        target: 8
+      })
+    }
+  )
 
   // The closest pairs. Dark 3 and 6, and 2 and 7, were accepted on #414.
   it.each([
