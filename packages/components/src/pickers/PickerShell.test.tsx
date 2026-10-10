@@ -30,8 +30,14 @@ describe('usePickerLabels', () => {
         'aria-label': 'Doors',
         valueText: 'Fri 27 Nov 2026'
       },
-      'Choose date, Doors (Fri 27 Nov 2026)',
+      'Choose date, Fri 27 Nov 2026, Doors',
       'Choose date, Doors'
+    ],
+    [
+      'a value and no label',
+      { action: 'Choose date', valueText: 'Fri 27 Nov 2026' },
+      'Choose date, Fri 27 Nov 2026',
+      'Choose date'
     ]
   ])('names the button and popup with %s', (_, options, button, popup) => {
     render(<Named {...options} />)

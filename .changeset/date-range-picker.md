@@ -14,7 +14,7 @@ pressed dates become an absolute `{ start, end }`, and null when both are
 cleared. Nothing is emitted while typed text names no date. The typed Start
 and End are comboboxes that suggest single dates as `DateField` does, never
 ranges, and End suggests nothing before the start. The button shows the range in words with the dates
-a relative range stands for, and is named "Choose dates, <label> (<range>)".
+a relative range stands for, and is named "Choose dates, <range>, <label>".
 A value that is one of the presets, fixed dates or relative, shows that
 preset's label with its dates.
 

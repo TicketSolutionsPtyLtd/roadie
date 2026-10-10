@@ -287,7 +287,7 @@ render(<Sales />)
 ## Accessibility
 
 - The toolbar is a group named “Dashboard period”, or by your `aria-label`.
-- The button is named after its period and comparison, such as “Choose dates, Period (This month, 1 to 31 Oct 2026, vs 1 to 30 Sept 2026)”. It works as [DateRangePicker](/components/date-range-picker) does with `commit='apply'`: Cancel, `Escape` or the drawer’s Close drops changes to both the period and the comparison.
+- The button is named after its period and comparison, such as “Choose dates, This month 1 to 31 Oct 2026 vs 1 to 30 Sept 2026, Period”, which holds the button’s text as shown. It works as [DateRangePicker](/components/date-range-picker) does with `commit='apply'`: Cancel, `Escape` or the drawer’s Close drops changes to both the period and the comparison.
 - After the range comes the Compare [Switch](/components/switch), when `compareOptions` has `'none'`, then a [ToggleGroup](/components/toggle-group) named “Compare with”, then the comparison’s dates or your option’s description, which are announced as they change. On a phone the Compare row sits above Apply at the drawer’s foot, so it stays in view on both tabs, and the choices scroll sideways when they don’t fit.
 - With Custom dates, a [DateRangePicker](/components/date-range-picker) named “Comparison dates” sits under the choices. It opens over the picker, a drawer over the drawer on a phone, and its dates wait for Apply with the rest.
 - Read only, the button shows a lock and doesn’t open.
