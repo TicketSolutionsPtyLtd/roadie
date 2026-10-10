@@ -249,3 +249,149 @@ export const accentDefaultsTable = (
     value
   ])
 })
+
+function jobOf(jobs: Record<string, string>, name: string) {
+  const job = jobs[name]
+  if (!job)
+    throw new Error(`No job for ${name}. Add one in foundation-scales.ts.`)
+  return job
+}
+
+const DURATION_JOBS: Record<string, string> = {
+  '--duration-instant': "Use for a state change that shouldn't animate",
+  '--duration-fastest':
+    'Use for a change that should feel immediate without jumping',
+  '--duration-fast': "Quick exits, such as Navigator's labels fading out",
+  '--duration-normal': 'Focus rings, the press scale, and popups',
+  '--duration-moderate':
+    'Hover colour and shadow, disclosures, dialogs, and the error shake',
+  '--duration-slow': 'Drawers, pop-in entrances, and toasts leaving',
+  '--duration-slower': 'Toasts entering and restacking',
+  '--duration-slowest': 'One-shot attention cues, such as a nudge or a pop',
+  '--duration-ambient': 'One loop of a tint pulse or an indeterminate bar',
+  '--duration-sweep': 'One pass of the shimmer across loading surfaces',
+  '--stagger-base': "The delay between items, times each item's index"
+}
+
+/** Each duration, then the stagger step, with its `duration-*` class where there is one. */
+export function durations(tokens: TokenEntry[]) {
+  const scale = inGroup(tokens, 'motion', 'Durations')
+  const classes = new Set(scale.flatMap((token) => token.classes ?? []))
+  return [
+    ...scale.filter(({ name }) => name.startsWith('--duration-')),
+    ...inGroup(tokens, 'motion', 'Stagger')
+  ].map(({ name, value }) => {
+    const className = name.replace('--duration-', 'duration-')
+    return {
+      name,
+      value: value!.light!,
+      ms: parseFloat(value!.light!),
+      className: classes.has(className) ? className : undefined,
+      job: jobOf(DURATION_JOBS, name)
+    }
+  })
+}
+
+export const durationTable = (tokens: TokenEntry[]): TwinTable => ({
+  head: ['Token', 'Value', 'Class', 'Job'],
+  rows: durations(tokens).map(({ name, value, className, job }) => [
+    [{ code: name }],
+    value,
+    className ? [{ code: className }] : 'None',
+    job
+  ])
+})
+
+export type CurvePoint = [progress: number, value: number]
+
+const CUBIC_SAMPLES = 32
+
+function cubicBezierPoints(x1: number, y1: number, x2: number, y2: number) {
+  const at = (t: number, p1: number, p2: number) =>
+    3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3
+  return Array.from({ length: CUBIC_SAMPLES + 1 }, (_, i): CurvePoint => {
+    const t = i / CUBIC_SAMPLES
+    return [at(t, x1, x2), at(t, y1, y2)]
+  })
+}
+
+/** `linear()` stops, with missing positions spread evenly as CSS does. */
+function linearPoints(stops: string) {
+  const parsed = stops.split(',').flatMap((stop) => {
+    const [value, ...positions] = stop.trim().split(/\s+/)
+    const at = positions.map((position) => parseFloat(position) / 100)
+    return (at.length ? at : [undefined]).map((position) => ({
+      value: Number(value),
+      position
+    }))
+  })
+  parsed[0]!.position ??= 0
+  parsed.at(-1)!.position ??= 1
+  let known = 0
+  for (const [i, stop] of parsed.entries()) {
+    if (stop.position === undefined) continue
+    stop.position = Math.max(stop.position, parsed[known]!.position!)
+    const gap = i - known
+    for (let j = 1; j < gap; j++) {
+      const from = parsed[known]!.position!
+      parsed[known + j]!.position = from + ((stop.position - from) * j) / gap
+    }
+    known = i
+  }
+  return parsed.map(({ value, position }): CurvePoint => [position!, value])
+}
+
+/** Points along an easing, from its `cubic-bezier()` or `linear()` value. */
+export function easingCurve(value: string): CurvePoint[] {
+  const cubic = /^cubic-bezier\(([^)]+)\)$/.exec(value)
+  if (cubic) {
+    const [x1, y1, x2, y2] = cubic[1]!.split(',').map(Number)
+    return cubicBezierPoints(x1!, y1!, x2!, y2!)
+  }
+  const linear = /^linear\(([^)]+)\)$/.exec(value)
+  if (linear) return linearPoints(linear[1]!)
+  throw new Error(`Can't draw the easing ${value}.`)
+}
+
+/** How far past its end value an easing goes, as a percentage. */
+export function overshoot(curve: CurvePoint[]) {
+  const peak = Math.max(...curve.map(([, value]) => value))
+  return peak > 1 ? `${((peak - 1) * 100).toFixed(1)}%` : 'None'
+}
+
+const EASING_JOBS: Record<string, string> = {
+  '--ease-standard':
+    'Colour, opacity, and shadow, and popups entering and leaving',
+  '--ease-enter':
+    'Elements arriving and form fields changing state. Starts fast, settles gently.',
+  '--ease-exit': 'Elements leaving. Starts slow, speeds up out.',
+  '--ease-spring':
+    'Small transforms, such as the press scale and the tap pop. Too little overshoot to see as a bounce.',
+  '--ease-spring-lively':
+    'Transforms that should visibly bounce, such as toasts'
+}
+
+/** Each easing, with its `ease-*` class, curve, overshoot, and job. */
+export const easings = (tokens: TokenEntry[]) =>
+  inGroup(tokens, 'motion', 'Easings').map(({ name, value, classes }) => {
+    const curve = easingCurve(value!.light!)
+    return {
+      name,
+      value: value!.light!,
+      className: classes?.[0],
+      curve,
+      overshoot: overshoot(curve),
+      job: jobOf(EASING_JOBS, name)
+    }
+  })
+
+export const easingTable = (tokens: TokenEntry[]): TwinTable => ({
+  head: ['Token', 'Value', 'Class', 'Overshoot', 'Job'],
+  rows: easings(tokens).map(({ name, value, className, overshoot, job }) => [
+    [{ code: name }],
+    [{ code: value }],
+    className ? [{ code: className }] : 'None',
+    overshoot,
+    job
+  ])
+})

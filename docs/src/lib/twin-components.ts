@@ -25,6 +25,8 @@ export const TWIN_COMPONENTS = {
   DatavizSwatches: 'rendered',
   DateStyleScale: 'rendered',
   DisplayStyles: 'drawing',
+  DurationScale: 'rendered',
+  EasingScale: 'rendered',
   FocusRingList: 'rendered',
   FormExamples: 'drawing',
   IconSizeScale: 'rendered',
