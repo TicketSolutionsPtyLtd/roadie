@@ -12,10 +12,7 @@ import { TICKETING_REFERENCE } from '@/app/charts/ticketing-reference'
 
 import { ACTIONS_LABEL_LIMITS } from '@oztix/roadie-core/dashboard-layout'
 
-const page = readFileSync(
-  new URL('../../../app/charts/dashboards/page.mdx', import.meta.url),
-  'utf8'
-)
+const page = readFileSync(new URL('./page.mdx', import.meta.url), 'utf8')
 
 function tableHeaded(first: string) {
   let found: Table | undefined

@@ -1,45 +1,20 @@
 import { ProseTable } from '@/components/date-and-time/ReadsTable'
-
-import {
-  CARD_SIZES,
-  CARD_SPANS,
-  type CardSize,
-  DASHBOARD_TRACKS,
-  DASHBOARD_WIDTHS
-} from '@oztix/roadie-core/dashboard-layout'
-
-import { WIDTH_NAME } from './RowDiagram'
-
-const SIZE_USE: Record<CardSize, string> = {
-  stat: 'Stat tiles',
-  sm: 'Ranked list, small chart',
-  md: 'Chart, table',
-  lg: 'Main chart',
-  full: 'Heatmap, wide table'
-}
+import { cardSizeTable } from '@/lib/card-sizes'
 
 /** Each card size's span at each width, from `CARD_SPANS`. */
 export function CardSizes() {
+  const { head, rows } = cardSizeTable()
   return (
-    <ProseTable
-      slot='card-sizes'
-      head={[
-        'Size',
-        ...DASHBOARD_WIDTHS.map(
-          (width) => `${WIDTH_NAME[width]} (of ${DASHBOARD_TRACKS[width]})`
-        ),
-        'Use'
-      ]}
-    >
-      {CARD_SIZES.map((size) => (
+    <ProseTable slot='card-sizes' head={head}>
+      {rows.map(({ size, spans, use }) => (
         <tr key={size}>
           <td>
             <code>{size}</code>
           </td>
-          {DASHBOARD_WIDTHS.map((width) => (
-            <td key={width}>{CARD_SPANS[size][width]}</td>
+          {spans.map((span, index) => (
+            <td key={index}>{span}</td>
           ))}
-          <td>{SIZE_USE[size]}</td>
+          <td>{use}</td>
         </tr>
       ))}
     </ProseTable>

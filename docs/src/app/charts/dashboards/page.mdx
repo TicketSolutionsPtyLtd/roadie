@@ -60,7 +60,7 @@ tablet, and phone widths, from `CARD_SPANS`, and what each size is for.
 <CardSizes />
 
 There are no custom spans, breakpoint overrides, or dense packing. If a layout
-needs a size that isn’t here, it gets a new size in Roadie.
+needs a size that isn’t in `CARD_SPANS`, it gets a new size in Roadie.
 
 The [show dashboard](/charts/show-dashboard) opens with a `full` note that says
 what to do, then four stat tiles, a `full` chart, and two `md` tables side by
@@ -70,8 +70,9 @@ side. Two `md` charts and a `full` heatmap close it.
   <DashboardView spec={createShowDashboard()} />
 </Stage>
 
-This column is narrower than 960px, so the example shows 6 tracks or fewer. A
-diagram draws the same layout at each width, then the JSX behind it.
+On the docs site, the show dashboard renders here at this column’s width, so it
+shows 6 tracks or fewer, and a diagram draws the same layout at each width. The
+JSX behind it follows.
 
 <Stage>
   <RowDiagram sizes={['full', 'stat', 'stat', 'stat', 'stat', 'full', 'md', 'md', 'md', 'md', 'full']} />
@@ -125,10 +126,30 @@ On tablet, `lg` takes a full row and `sm` takes half. So `lg` then `sm` leaves
 half a row empty. The mirrored `sm` fills it.
 
 <Guideline headingLevel={3} title='Mirror a large card'>
-  <Guideline.Do width={56} example={<RowDiagram sizes={['lg', 'sm', 'sm', 'lg']} />}>
+  <Guideline.Do
+    width={56}
+    example={<RowDiagram sizes={['lg', 'sm', 'sm', 'lg']} />}
+    code={`
+      <Dashboard.Section title='Sales'>
+        <DataCard size='lg' label='Sales pace' />
+        <DataCard size='sm' label='Top suburbs' />
+        <DataCard size='sm' label='Refunds' />
+        <DataCard size='lg' label='Ticket types' />
+      </Dashboard.Section>
+    `}
+  >
     Follow `lg` and `sm` with `sm` and `lg`. Both rows fill at every width.
   </Guideline.Do>
-  <Guideline.Dont width={56} example={<RowDiagram sizes={['lg', 'md']} />}>
+  <Guideline.Dont
+    width={56}
+    example={<RowDiagram sizes={['lg', 'md']} />}
+    code={`
+      <Dashboard.Section title='Sales'>
+        <DataCard size='lg' label='Sales pace' />
+        <DataCard size='md' label='Ticket types' />
+      </Dashboard.Section>
+    `}
+  >
     Don’t follow `lg` with `md`. It leaves gaps on desktop and tablet.
   </Guideline.Dont>
 </Guideline>

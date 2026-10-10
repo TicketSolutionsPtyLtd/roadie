@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react'
 
 import { ProseTable } from '@/components/date-and-time/ReadsTable'
+import { WIDTH_NAME } from '@/lib/card-sizes'
 
 import {
   type CardSize,
   DASHBOARD_WIDTHS
 } from '@oztix/roadie-core/dashboard-layout'
 
-import { WIDTH_NAME, WidthDiagram } from './RowDiagram'
+import { WidthDiagram } from './RowDiagram'
 
 const FILLING_ROWS: { name: ReactNode; sizes: CardSize[] }[] = [
   {

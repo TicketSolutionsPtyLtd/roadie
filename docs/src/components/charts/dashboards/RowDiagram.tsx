@@ -1,3 +1,5 @@
+import { WIDTH_NAME } from '@/lib/card-sizes'
+
 import {
   CARD_SPANS,
   type CardSize,
@@ -5,12 +7,6 @@ import {
   DASHBOARD_WIDTHS,
   type DashboardWidth
 } from '@oztix/roadie-core/dashboard-layout'
-
-export const WIDTH_NAME: Record<DashboardWidth, string> = {
-  desktop: 'Desktop',
-  tablet: 'Tablet',
-  phone: 'Phone'
-}
 
 const SPAN_CLASS: Record<number, string> = {
   1: 'col-span-1',
