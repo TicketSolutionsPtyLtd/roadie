@@ -192,7 +192,8 @@ function PreviewCell({
       {Children.count(children) > 1 ? (
         <div className='flex flex-wrap items-center gap-2'>{children}</div>
       ) : (
-        <div>{children}</div>
+        // Top alignment drops the line's descender space under an inline-block such as a textarea.
+        <div className='*:align-top'>{children}</div>
       )}
     </div>
   )
