@@ -265,9 +265,10 @@ describe('Prose', () => {
     expect(style(get(container, '#plain')).textDecorationLine).toBe('none')
   })
 
-  it('shrinks a table to fit and scrolls a wide one in .prose-scroll', () => {
+  // Prose wraps bare tables, so the bare cases use the core class directly.
+  it('shrinks a bare .prose table to fit and scrolls a wide one in .prose-scroll', () => {
     const container = renderWide(
-      <Prose>
+      <div className='prose'>
         <table id='small'>
           <tbody>
             <tr>
@@ -289,7 +290,7 @@ describe('Prose', () => {
             </tbody>
           </table>
         </div>
-      </Prose>,
+      </div>,
       320
     )
     expect(box(get(container, '#small')).width).toBeLessThan(160)
@@ -300,7 +301,7 @@ describe('Prose', () => {
     expect(scroll.scrollLeft).toBe(100)
   })
 
-  it('keeps inline code whole in a narrow scrolling table, and fits a bare one', () => {
+  it('keeps inline code whole in a narrow scrolling table, and fits a bare .prose one', () => {
     const cells = (code: string) => (
       <tbody>
         <tr>
@@ -313,19 +314,19 @@ describe('Prose', () => {
       </tbody>
     )
     const container = renderWide(
-      <Prose>
+      <div id='prose' className='prose'>
         <div className='prose-scroll'>
           <table id='scrolled'>{cells('rounded-full')}</table>
         </div>
         <table id='bare'>
           {cells('--prose-h2-size-on-the-legal-pages-at-every-breakpoint')}
         </table>
-      </Prose>,
+      </div>,
       320
     )
     expect(get(container, '#scrolled code').getClientRects()).toHaveLength(1)
     expect(box(get(container, '#bare')).right).toBeLessThanOrEqual(
-      box(get(container, '[data-slot="prose"]')).right
+      box(get(container, '#prose')).right
     )
   })
 

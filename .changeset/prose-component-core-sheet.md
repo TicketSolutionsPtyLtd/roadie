@@ -38,8 +38,9 @@ What changes on the page:
   to the text colour on hover.
 - List indent is 1.5em, so it scales with the size (24px at `md`, as before),
   and a nested bulleted list uses circles.
-- Tables shrink to fit their content instead of filling the width. Wrap a wide
-  table in `<div class="prose-scroll">` so it scrolls sideways on a phone.
+- Tables shrink to fit their content instead of filling the width. `Prose`
+  wraps each bare table in `.prose-scroll`, so a wide one scrolls sideways on a
+  phone.
   Each column of a table in `.prose-scroll` stays at least 9em wide, so when
   the columns can't all fit, the table scrolls rather than squeezing text to a
   word or two a line. A column with short content, such as "Yes", also takes

@@ -16,7 +16,8 @@ const ALLOW_LIST = {
   CheckboxGroup: 'Documented on the Checkbox page.',
   DashboardView: 'Documented on the Dashboard design guide, charts/dashboards.',
   Records:
-    'The engine behind RecordTable and RecordGrid, documented on foundations/records.'
+    'The engine behind RecordTable and RecordGrid, documented on foundations/records.',
+  ScrollRegion: 'Holds useScrollRegion, documented on the Prose page.'
 }
 
 // Both packages document under either route: StatTile and DataCard are

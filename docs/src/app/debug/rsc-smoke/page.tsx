@@ -8,6 +8,8 @@
 // and fails the docs build. See:
 //   docs/contributing/COMPOUND_PATTERNS.md
 //   docs/solutions/rsc-patterns/compound-export-namespace.md
+import type { ComponentProps } from 'react'
+
 import { StarIcon } from '@phosphor-icons/react/ssr'
 
 import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
@@ -63,6 +65,7 @@ import { OTPField } from '@oztix/roadie-components/otp-field'
 import { Pane } from '@oztix/roadie-components/pane'
 import { Popover } from '@oztix/roadie-components/popover'
 import { Progress } from '@oztix/roadie-components/progress'
+import { Prose } from '@oztix/roadie-components/prose'
 import { QRCode } from '@oztix/roadie-components/qr-code'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { ScrollArea } from '@oztix/roadie-components/scroll-area'
@@ -77,6 +80,19 @@ import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
 
 import { NavigatorCanary } from './NavigatorCanary'
+
+// A server component, so passing it as Prose's `as` fails the build if Prose
+// is ever a client component.
+const CANARY_CELLS = [
+  'Feathered Anchor Sessions',
+  'Main stage',
+  'Doors 7:30pm',
+  'All ages'
+]
+
+function ServerArticle(props: ComponentProps<'article'>) {
+  return <article data-canary='as' {...props} />
+}
 
 export default function RscSmokePage() {
   return (
@@ -1047,6 +1063,36 @@ export default function RscSmokePage() {
           </code>
         </p>
         <DashboardView spec={createShowDashboard()} />
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Prose with a component <code>as</code> and a function{' '}
+          <code>render</code>
+        </h2>
+        <p className='text-sm text-subtle'>
+          Neither prop can cross to a client component, so these prove Prose
+          renders on the server. Its wide tables still become scroll regions.
+        </p>
+        <Prose as={ServerArticle}>
+          <table>
+            <tbody>
+              <tr>
+                {CANARY_CELLS.map((cell) => (
+                  <td key={cell} className='whitespace-nowrap'>
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </Prose>
+        <Prose
+          render={(props) => <section data-canary='render' {...props} />}
+          dangerouslySetInnerHTML={{
+            __html: `<table><tbody><tr>${CANARY_CELLS.map((cell) => `<td style="white-space: nowrap">${cell}</td>`).join('')}</tr></tbody></table>`
+          }}
+        />
       </section>
 
       {/*

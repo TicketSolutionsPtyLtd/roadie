@@ -26,10 +26,10 @@ export const switchVariants = cva(
 // The thumb stays light in dark mode so it reads on the dark off track. Each
 // size's track leaves exactly one thumb width of travel.
 export const switchThumbVariants = cva(
-  'pointer-events-none block size-(--switch-thumb) rounded-full bg-[var(--color-neutral-light-0)] shadow-sm transition-transform duration-moderate ease-out data-checked:translate-x-(--switch-thumb) rtl:data-checked:-translate-x-(--switch-thumb)'
+  'pointer-events-none block size-(--switch-thumb) rounded-full bg-[var(--color-neutral-light-0)] shadow-sm transition-transform duration-moderate ease-enter data-checked:translate-x-(--switch-thumb) rtl:data-checked:-translate-x-(--switch-thumb)'
 )
 
 // Fills the slot the thumb leaves when checked.
 export const switchTickVariants = cva(
-  'pointer-events-none absolute inset-y-0 start-px grid w-(--switch-thumb) place-items-center text-[var(--color-neutral-light-0)] opacity-0 scale-50 transition-[opacity,scale] duration-moderate ease-out group-data-checked/track:opacity-100 group-data-checked/track:scale-100'
+  'pointer-events-none absolute inset-y-0 start-px grid w-(--switch-thumb) place-items-center text-[var(--color-neutral-light-0)] opacity-0 scale-50 transition-[opacity,scale] duration-moderate ease-enter group-data-checked/track:opacity-100 group-data-checked/track:scale-100'
 )

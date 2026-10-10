@@ -256,6 +256,10 @@
       "types": "./dist/components/ScrollArea/index.d.ts",
       "import": "./dist/components/ScrollArea/index.js"
     },
+    "./scroll-region": {
+      "types": "./dist/components/ScrollRegion/index.d.ts",
+      "import": "./dist/components/ScrollRegion/index.js"
+    },
     "./select": {
       "types": "./dist/components/Select/index.d.ts",
       "import": "./dist/components/Select/index.js"
