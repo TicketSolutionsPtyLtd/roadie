@@ -35,6 +35,8 @@ export type MarkdownPage = {
   renderers?: Record<string, (props: Record<string, string | true>) => string>
   /** Docs components that only draw for the site. When set, a docs component that is neither rendered nor listed here fails the build. */
   drawings?: ReadonlySet<string>
+  /** The cross-links the site shows under the title, such as a foundation's token reference, with resolved URLs. */
+  related?: { label: string; links: LlmsLink[] }
 }
 
 // Structure every page shares, which `transform` expands itself.
@@ -429,7 +431,8 @@ export function pageToMarkdown(page: MarkdownPage): string {
             children: [paragraph(text(page.description))]
           } as BlockContent
         ]
-      : [])
+      : []),
+    ...(page.related ? [relatedLine(page.related)] : [])
   ]
   return processor.stringify({
     type: 'root',
@@ -438,6 +441,17 @@ export function pageToMarkdown(page: MarkdownPage): string {
 }
 
 export type LlmsLink = { title: string; url: string; description?: string }
+
+function relatedLine({ label, links }: NonNullable<MarkdownPage['related']>) {
+  return paragraph(
+    text(`${label}: `),
+    ...links.flatMap(({ title, url }, index): PhrasingContent[] => [
+      ...(index > 0 ? [text(', ')] : []),
+      { type: 'link', url, children: [text(title)] }
+    ]),
+    text('.')
+  )
+}
 
 export const linkLine = ({ title, url, description }: LlmsLink) =>
   `- [${title}](${url})${description ? `: ${description}` : ''}`
