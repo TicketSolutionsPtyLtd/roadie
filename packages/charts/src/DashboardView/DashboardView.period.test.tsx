@@ -73,7 +73,7 @@ describe('DashboardView periods', () => {
     )
     const group = screen.getByRole('group', { name: 'Dashboard period' })
     expect(
-      within(group).getByRole('button', { name: /^Choose dates, Period/ })
+      within(group).getByRole('button', { name: /, Period$/ })
     ).toHaveAttribute('aria-disabled', 'true')
   })
 
@@ -90,9 +90,7 @@ describe('DashboardView periods', () => {
         onPeriodChange={onPeriodChange}
       />
     )
-    fireEvent.click(
-      screen.getByRole('button', { name: /^Choose dates, Period/ })
-    )
+    fireEvent.click(screen.getByRole('button', { name: /, Period$/ }))
     const dialog = await screen.findByRole('dialog')
     fireEvent.click(
       within(dialog).getByRole('button', { name: 'Previous year' })
@@ -210,8 +208,8 @@ describe('DashboardView periods', () => {
     expect(contextIn('Tickets sold')).toBeUndefined()
     expect(deltaIn('Sell-through')).toHaveTextContent('9 pts')
     expect(
-      screen.getByRole('button', { name: /^Choose dates, Period/ })
-    ).toHaveAccessibleName(/vs similar venues\)$/)
+      screen.getByRole('button', { name: /, Period$/ })
+    ).toHaveAccessibleName(/vs similar venues, Period$/)
   })
 
   it('hands an app’s own comparison to the app', async () => {
@@ -229,9 +227,7 @@ describe('DashboardView periods', () => {
         onPeriodChange={onPeriodChange}
       />
     )
-    fireEvent.click(
-      screen.getByRole('button', { name: /^Choose dates, Period/ })
-    )
+    fireEvent.click(screen.getByRole('button', { name: /, Period$/ }))
     const dialog = await screen.findByRole('dialog')
     fireEvent.click(
       within(dialog).getByRole('button', { name: 'Similar venues' })

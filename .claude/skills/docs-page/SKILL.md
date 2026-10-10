@@ -43,8 +43,9 @@ that slip most, each detailed in `DOCS_PAGES.md` or a template:
   named `<slug>/<Group><View>`, such as `dataviz/DatavizSwatches`, that reads
   the tokens. Never a hand-typed table.
 - **No "below".** A docs component with no children drops out of the markdown
-  copy, so no sentence points "below" at it. One whose data agents need
-  registers a renderer in `docs/scripts/llms.ts` instead.
+  copy, so no sentence points "below" at it. List it in
+  `docs/src/lib/twin-components.ts` as a `drawing`, or as `rendered` with a
+  renderer when agents need its data, or the twin build fails.
 - **Wiring.** A new component or chart page needs its catalogue tile (section
   4 of `PR_WORKFLOW.md`); a foundation needs its preview `case`.
 

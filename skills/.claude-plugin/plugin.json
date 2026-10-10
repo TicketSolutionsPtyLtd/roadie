@@ -8,5 +8,6 @@
   },
   "homepage": "https://ticketsolutionsptyltd.github.io/roadie/",
   "repository": "https://github.com/TicketSolutionsPtyLtd/roadie",
-  "license": "MIT"
+  "license": "MIT",
+  "skills": "./"
 }

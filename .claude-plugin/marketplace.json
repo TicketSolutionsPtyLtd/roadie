@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "roadie",
-      "source": "./",
+      "source": "./skills",
       "description": "Roadie design system skills for building with Roadie and taking a change from spec to merged PR."
     }
   ]

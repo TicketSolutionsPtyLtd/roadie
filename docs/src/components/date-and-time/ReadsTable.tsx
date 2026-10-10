@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { ProseTable } from '@/components/ProseTable'
 
 import type { Row } from './example'
 
@@ -28,30 +28,5 @@ export function ReadsTable({ slot, head, rows, codeNames }: ReadsTableProps) {
         </tr>
       ))}
     </ProseTable>
-  )
-}
-
-export function ProseTable({
-  slot,
-  head,
-  children
-}: {
-  slot: string
-  head: string[]
-  children: ReactNode
-}) {
-  return (
-    <div className='prose-scroll' data-slot={slot}>
-      <table>
-        <thead>
-          <tr>
-            {head.map((cell) => (
-              <th key={cell}>{cell}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>{children}</tbody>
-      </table>
-    </div>
   )
 }

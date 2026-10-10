@@ -156,7 +156,7 @@ const config = [
   // adds its pages here, until the rule covers every fence.
   {
     files: [
-      'src/app/{components,charts}/{accordion,badge,bar-chart,button,record-grid}/page.mdx/*.{tsx,jsx}',
+      'src/app/{components,charts}/{accordion,badge,bar-chart,button,dashboards,data-visualisation,record-grid}/page.mdx/*.{tsx,jsx}',
       'src/app/foundations/{date-and-time,iconography,interactions,layout,linking,navigation,records,theming,typography}/page.mdx/*.{tsx,jsx}'
     ],
     plugins: { roadie },

@@ -74,7 +74,9 @@ export type PickerLabelOptions = {
 
 /**
  * Names a picker's calendar button and popup after the picker's own label, so
- * two pickers side by side stay apart: "Choose date, Doors (Fri 27 Nov 2026)".
+ * two pickers side by side stay apart: "Choose date, Fri 27 Nov 2026, Doors".
+ * The value comes before the label because a label referenced by id is joined
+ * with a space, so no comma can follow it.
  */
 export function usePickerLabels({
   action,
@@ -86,20 +88,23 @@ export function usePickerLabels({
   const id = useId()
   const actionId = `${id}-action`
   const ownLabelId = `${id}-label`
-  const valueId = `${id}-value`
+  const actionValueId = `${id}-action-value`
   const labelSource =
     ariaLabelledBy ?? (ariaLabel ? ownLabelId : field.labelId || undefined)
   const join = (...ids: (string | false | undefined)[]) =>
     ids.filter(Boolean).join(' ')
+  const withComma = (text: string, more: unknown) => (more ? `${text},` : text)
 
   return {
     labelSource,
-    triggerLabelledBy: join(actionId, labelSource, !!valueText && valueId),
+    triggerLabelledBy: valueText
+      ? join(actionValueId, labelSource)
+      : join(actionId, labelSource),
     popupLabelledBy: join(actionId, labelSource),
     labels: (
       <>
         <span id={actionId} hidden>
-          {labelSource ? `${action},` : action}
+          {withComma(action, labelSource)}
         </span>
         {ariaLabel && !ariaLabelledBy && (
           <span id={ownLabelId} hidden>
@@ -107,8 +112,8 @@ export function usePickerLabels({
           </span>
         )}
         {valueText && (
-          <span id={valueId} hidden>
-            ({valueText})
+          <span id={actionValueId} hidden>
+            {`${action}, ${withComma(valueText, labelSource)}`}
           </span>
         )}
       </>

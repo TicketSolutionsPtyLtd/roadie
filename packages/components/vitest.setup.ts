@@ -65,14 +65,10 @@ const NO_LAYOUT =
 
 // Not yet moved to browser tests (INNO-1238). Never add to this list.
 const FAKES_LAYOUT = [
-  'Accordion/Accordion.test.tsx',
-  'Carousel/Carousel.test.tsx',
-  'Collapsible/CollapsibleText.test.tsx',
   'Navigator/Navigator.test.tsx',
   'Navigator/NavigatorPending.test.tsx',
   'Navigator/NavigatorPrimary.test.tsx',
   'Navigator/NavigatorSecondaryPane.test.tsx',
-  'Navigator/useSlidingIndicator.test.tsx',
   'Pane/Pane.test.tsx'
 ]
 

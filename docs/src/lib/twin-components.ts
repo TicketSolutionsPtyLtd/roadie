@@ -1,0 +1,61 @@
+/**
+ * What each docs component a page imports from `@/` becomes in the page's
+ * markdown twin, keyed by the name the page uses. `scripts/llms.ts` fails the
+ * build on a component missing here, including one passed as a prop.
+ * - `rendered`: a renderer in `scripts/twin-renderers.ts` writes its data
+ * - `drawing`: it only draws for the site; the sentence before it says what it shows
+ * - `pending`: data still waiting for a renderer; this only shrinks
+ */
+export const TWIN_COMPONENTS = {
+  AccentScales: 'pending',
+  BreakpointScale: 'pending',
+  CardAnatomyExample: 'drawing',
+  CardSizes: 'rendered',
+  CardStateExample: 'drawing',
+  CardMenu: 'drawing',
+  CartContentsParityDemo: 'drawing',
+  CartDrawerParityDemo: 'drawing',
+  CartExpiryDialogsDemo: 'drawing',
+  CatalogueIndex: 'rendered',
+  ChartLabelLimits: 'rendered',
+  ComparisonTable: 'pending',
+  ComponentReads: 'pending',
+  ContainerScale: 'pending',
+  CopyLimits: 'rendered',
+  DataFormatReads: 'pending',
+  DatavizSwatches: 'pending',
+  DateStyleScale: 'pending',
+  DisplayStyles: 'pending',
+  FocusRingList: 'pending',
+  FormExamples: 'drawing',
+  IconSizeScale: 'pending',
+  IllustrationGallery: 'rendered',
+  IntentEmphasis: 'drawing',
+  LayeringScale: 'pending',
+  MachineValueReads: 'pending',
+  ModelDiagram: 'drawing',
+  MomentReads: 'pending',
+  PaletteExample: 'drawing',
+  PeriodComparisons: 'rendered',
+  PhraseTable: 'pending',
+  QuerySuggestions: 'rendered',
+  RadiusScale: 'pending',
+  RangeTable: 'pending',
+  ReadingAidsChart: 'drawing',
+  RelativeLadder: 'pending',
+  RhythmTable: 'pending',
+  RimLightScale: 'pending',
+  RowDiagram: 'drawing',
+  RowsThatFill: 'drawing',
+  ScaleSwatches: 'pending',
+  ShadowScale: 'pending',
+  SpacingScale: 'pending',
+  Stage: 'drawing',
+  TimeStyleScale: 'pending',
+  TransitionList: 'pending',
+  TypeScale: 'pending',
+  UpcomingShows: 'drawing',
+  ViewMeilisearch: 'rendered',
+  ViewSearchParams: 'rendered',
+  ZoneTable: 'pending'
+} satisfies Record<string, 'rendered' | 'drawing' | 'pending'>
