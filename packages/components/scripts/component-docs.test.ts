@@ -34,6 +34,22 @@ describe('exportedFolders', () => {
   })
 })
 
+describe('exportedFolders with a pattern', () => {
+  it('reads charts folders, which sit straight under dist', () => {
+    expect(
+      exportedFolders(
+        {
+          '.': { import: './dist/index.js' },
+          './css': './src/css/charts.css',
+          './line-chart': { import: './dist/LineChart/index.js' },
+          './tables': { import: './dist/tables/index.js' }
+        },
+        /^\.\/dist\/([A-Z]\w+)\//
+      )
+    ).toEqual(['LineChart'])
+  })
+})
+
 describe('caseSlugs', () => {
   it('reads every case label, stacked or not', () => {
     expect(

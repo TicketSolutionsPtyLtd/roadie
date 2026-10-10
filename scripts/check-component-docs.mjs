@@ -14,6 +14,7 @@ const root = join(import.meta.dirname, '..')
 
 const ALLOW_LIST = {
   CheckboxGroup: 'Documented on the Checkbox page.',
+  DashboardView: 'Documented on the Dashboard design guide, charts/dashboards.',
   Records:
     'The engine behind RecordTable and RecordGrid, documented on foundations/records.'
 }
@@ -24,11 +25,20 @@ const TILE_FILES = [
   'docs/src/components/ChartPreview.tsx'
 ]
 
+const PACKAGES = [
+  ['packages/components', /^\.\/dist\/components\/(\w+)\//],
+  // Charts keeps components at dist/<Folder>/; lowercase folders such as
+  // examples and tables are helpers, not components.
+  ['packages/charts', /^\.\/dist\/([A-Z]\w+)\//]
+]
+
 function exportedComponents() {
-  const { exports } = JSON.parse(
-    readFileSync(join(root, 'packages/components/package.json'), 'utf8')
-  )
-  return exportedFolders(exports)
+  return PACKAGES.flatMap(([folder, pattern]) => {
+    const { exports } = JSON.parse(
+      readFileSync(join(root, folder, 'package.json'), 'utf8')
+    )
+    return exportedFolders(exports, pattern)
+  })
 }
 
 function pageSlugs() {
