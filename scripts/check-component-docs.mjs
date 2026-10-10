@@ -19,6 +19,8 @@ const ALLOW_LIST = {
     'The engine behind RecordTable and RecordGrid, documented on foundations/records.'
 }
 
+// Both packages document under either route: StatTile and DataCard are
+// components with chart pages.
 const PAGE_ROUTES = ['docs/src/app/components', 'docs/src/app/charts']
 const TILE_FILES = [
   'docs/src/components/ComponentSkeleton.tsx',
@@ -77,7 +79,7 @@ for (const component of staleAllowList)
 
 if (missing.length > 0 || staleAllowList.length > 0) {
   console.error(
-    '\nAdd a page in docs/src/app/components/<slug>/ (or charts/) and a case in ComponentSkeleton.tsx (or ChartPreview.tsx). See .claude/skills/new-component/SKILL.md.'
+    '\nAdd a page in docs/src/app/components/<slug>/ (or charts/) and a case in ComponentSkeleton.tsx (or ChartPreview.tsx). See .claude/skills/docs-page/SKILL.md, or new-component/SKILL.md for a new component.'
   )
   process.exit(1)
 }

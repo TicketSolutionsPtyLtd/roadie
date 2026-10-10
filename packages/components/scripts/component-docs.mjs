@@ -15,8 +15,9 @@ export function exportedFolders(
   pattern = /^\.\/dist\/components\/(\w+)\//
 ) {
   return Object.values(exports)
-    .map((value) =>
-      typeof value === 'object' ? value.import?.match(pattern)?.[1] : undefined
+    .map(
+      (value) =>
+        (typeof value === 'string' ? value : value?.import)?.match(pattern)?.[1]
     )
     .filter(Boolean)
 }
