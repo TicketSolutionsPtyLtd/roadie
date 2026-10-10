@@ -9,7 +9,11 @@ import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 
 export function IllustrationGallery() {
   return (
-    <div data-not-prose className='flex flex-wrap gap-4'>
+    <div
+      data-not-prose
+      data-slot='illustration-gallery'
+      className='flex flex-wrap gap-4'
+    >
       {SPOT_ILLUSTRATION_NAMES.map((name) => (
         <div key={name} className='grid w-24 justify-items-center gap-1'>
           {createElement(

@@ -1,5 +1,5 @@
 import { ProseDataTable } from '@/components/ProseTable'
-import { chartLabelLimitsTable, copyLimitsTable } from '@/lib/dashboard-limits'
+import { chartLabelLimitsTable, copyLimitsTable } from '@/lib/dashboard-tables'
 
 /** Label and context lengths for stat and `md` cards, from `COPY_LIMITS`. */
 export function CopyLimits() {

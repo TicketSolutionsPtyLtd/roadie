@@ -8,8 +8,8 @@ import {
   chartLabelLimitsTable,
   copyLimitsTable,
   periodComparisonsTable
-} from '../src/lib/dashboard-limits.ts'
-import { fence, inlineCode, markdownTable } from '../src/lib/llms.ts'
+} from '../src/lib/dashboard-tables.ts'
+import { fence, inlineCode, markdownTable, prose } from '../src/lib/llms.ts'
 import { SPOT_ILLUSTRATION_NAMES } from '../src/lib/spot-illustrations.ts'
 import {
   type TwinCell,
@@ -22,9 +22,7 @@ export type Renderer = (props: Record<string, string | true>) => string
 const cellMarkdown = (cell: TwinCell) =>
   segments(cell)
     .map((segment) =>
-      typeof segment === 'string'
-        ? segment.replace(/\|/g, '\\|')
-        : inlineCode(segment.code)
+      typeof segment === 'string' ? prose(segment) : inlineCode(segment.code)
     )
     .join('')
 
@@ -40,7 +38,7 @@ export const DATA_RENDERERS: Record<string, Renderer> = {
   ChartLabelLimits: () => twinTableMarkdown(chartLabelLimitsTable()),
   CopyLimits: () => twinTableMarkdown(copyLimitsTable()),
   IllustrationGallery: () =>
-    SPOT_ILLUSTRATION_NAMES.map((name) => `- ${inlineCode(name)}`).join('\n'),
+    SPOT_ILLUSTRATION_NAMES.map((name) => `- \`${name}\``).join('\n'),
   PeriodComparisons: () => twinTableMarkdown(periodComparisonsTable()),
   QuerySuggestions: () => fence('ts', querySuggestionsExample()),
   ViewMeilisearch: () => fence('ts', viewMeilisearchExample()),

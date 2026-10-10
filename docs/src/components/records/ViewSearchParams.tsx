@@ -5,7 +5,7 @@ import { viewSearchParamsExample } from './example'
 export function ViewSearchParams() {
   return (
     <div data-slot='view-search-params'>
-      <CodePreview>{viewSearchParamsExample()}</CodePreview>
+      <CodePreview language='text'>{viewSearchParamsExample()}</CodePreview>
     </div>
   )
 }

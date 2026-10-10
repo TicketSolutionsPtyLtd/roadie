@@ -5,7 +5,7 @@ import { viewMeilisearchExample } from './example'
 export function ViewMeilisearch() {
   return (
     <div data-slot='view-meilisearch'>
-      <CodePreview>{viewMeilisearchExample()}</CodePreview>
+      <CodePreview language='ts'>{viewMeilisearchExample()}</CodePreview>
     </div>
   )
 }

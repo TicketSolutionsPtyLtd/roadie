@@ -5,7 +5,7 @@ import { querySuggestionsExample } from './example'
 export function QuerySuggestions() {
   return (
     <div data-slot='query-suggestions'>
-      <CodePreview>{querySuggestionsExample()}</CodePreview>
+      <CodePreview language='ts'>{querySuggestionsExample()}</CodePreview>
     </div>
   )
 }
