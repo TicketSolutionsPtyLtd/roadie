@@ -145,36 +145,34 @@ A popover opens below its trigger by default and re-flips to stay in view. Set t
 - `sideOffset`, the gap from the trigger in px
 - `alignOffset`, the shift along the trigger's edge in px
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  <Popover>
-    <Popover.Trigger render={<Button>Filters</Button>} />
-    <Popover.Content side='bottom' align='start'>
-      <Popover.Arrow />
-      <Popover.Body>
-        <p className='text-sm'>Refine results by date, venue, and status.</p>
-      </Popover.Body>
-    </Popover.Content>
-  </Popover>
-  <Popover>
-    <Popover.Trigger render={<IconButton aria-label='Help' emphasis='subtle' size='sm'><Info weight='bold' /></IconButton>} />
-    <Popover.Content side='right'>
-      <Popover.Arrow />
-      <Popover.Body>
-        <p className='text-sm'>We use this to send order confirmations.</p>
-      </Popover.Body>
-    </Popover.Content>
-  </Popover>
-  <Popover>
-    <Popover.Trigger render={<Button>Add reaction</Button>} />
-    <Popover.Content side='top'>
-      <Popover.Arrow />
-      <Popover.Body>
-        <p className='text-sm'>Pick an emoji to react.</p>
-      </Popover.Body>
-    </Popover.Content>
-  </Popover>
-</div>
+```tsx-live layout=row gap=3
+<Popover>
+  <Popover.Trigger render={<Button>Filters</Button>} />
+  <Popover.Content side='bottom' align='start'>
+    <Popover.Arrow />
+    <Popover.Body>
+      <p className='text-sm'>Refine results by date, venue, and status.</p>
+    </Popover.Body>
+  </Popover.Content>
+</Popover>
+<Popover>
+  <Popover.Trigger render={<IconButton aria-label='Help' emphasis='subtle' size='sm'><Info weight='bold' /></IconButton>} />
+  <Popover.Content side='right'>
+    <Popover.Arrow />
+    <Popover.Body>
+      <p className='text-sm'>We use this to send order confirmations.</p>
+    </Popover.Body>
+  </Popover.Content>
+</Popover>
+<Popover>
+  <Popover.Trigger render={<Button>Add reaction</Button>} />
+  <Popover.Content side='top'>
+    <Popover.Arrow />
+    <Popover.Body>
+      <p className='text-sm'>Pick an emoji to react.</p>
+    </Popover.Body>
+  </Popover.Content>
+</Popover>
 ```
 
 ### Hover

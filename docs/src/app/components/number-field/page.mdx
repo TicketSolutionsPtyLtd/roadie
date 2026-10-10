@@ -30,68 +30,46 @@ With no children, `NumberField` renders the whole stepper: a decrease button, th
 
 `normal` is the sunken field surface that `Input` uses. `subtle` swaps the border for a tinted fill. `subtler` drops the field box: two round buttons, sized like `IconButton`, sit either side of the value. The value keeps a small tinted chip that behaves like a `subtle` `Input`, so people can see they can tap it to type.
 
-```tsx-live
-<div className='grid max-w-40 gap-4'>
-  <NumberField aria-label='Normal' defaultValue={1} min={0} />
-  <NumberField aria-label='Subtle' defaultValue={1} min={0} emphasis='subtle' />
-  <NumberField aria-label='Subtler' defaultValue={1} min={0} emphasis='subtler' />
-</div>
+```tsx-live layout=stack width=40
+<NumberField aria-label='Normal' defaultValue={1} min={0} />
+<NumberField aria-label='Subtle' defaultValue={1} min={0} emphasis='subtle' />
+<NumberField aria-label='Subtler' defaultValue={1} min={0} emphasis='subtler' />
 ```
 
 ### Sizes
 
 Each button is as tall as the field, and that whole square is the tap area. On touch checkouts, use `lg` for a 48px target.
 
-```tsx-live
-<div className='grid max-w-40 gap-4'>
-  <NumberField aria-label='Small' size='sm' defaultValue={1} min={0} />
-  <NumberField aria-label='Medium' size='md' defaultValue={1} min={0} />
-  <NumberField aria-label='Large' size='lg' defaultValue={1} min={0} />
-</div>
+```tsx-live layout=stack width=40
+<NumberField aria-label='Small' size='sm' defaultValue={1} min={0} />
+<NumberField aria-label='Medium' size='md' defaultValue={1} min={0} />
+<NumberField aria-label='Large' size='lg' defaultValue={1} min={0} />
 ```
 
 ### States
 
 The group uses `is-interactive-field-group`: neutral at rest, accent on focus, danger when invalid. A button at `min` or `max` dims and stops responding.
 
-```tsx-live
-<div className='grid max-w-40 gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <NumberField aria-label='Default' defaultValue={2} min={0} max={10} />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>At min</p>
-    <NumberField aria-label='At min' defaultValue={0} min={0} max={10} />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>At max</p>
-    <NumberField aria-label='At max' defaultValue={10} min={0} max={10} />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Invalid</p>
-    <NumberField aria-label='Invalid' defaultValue={0} min={0} invalid />
-  </div>
-</div>
+```tsx-live layout=stack width=40
+{/* Default */}
+<NumberField aria-label='Default' defaultValue={2} min={0} max={10} />
+{/* At min */}
+<NumberField aria-label='At min' defaultValue={0} min={0} max={10} />
+{/* At max */}
+<NumberField aria-label='At max' defaultValue={10} min={0} max={10} />
+{/* Invalid */}
+<NumberField aria-label='Invalid' defaultValue={0} min={0} invalid />
 ```
 
 Three ways to limit a field. `editable={false}` stops typing but the buttons and arrow keys still step. `readOnly` stops typing and stepping, and the value still submits with the form. `disabled` turns the whole field off and leaves it out of the form.
 
-```tsx-live
-<div className='grid max-w-40 gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Not editable</p>
-    <NumberField aria-label='Not editable' defaultValue={4} min={0} max={10} editable={false} />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Read only</p>
-    <NumberField aria-label='Read only' defaultValue={4} readOnly />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <NumberField aria-label='Disabled' defaultValue={4} disabled />
-  </div>
-</div>
+```tsx-live layout=stack width=40
+{/* Not editable */}
+<NumberField aria-label='Not editable' defaultValue={4} min={0} max={10} editable={false} />
+{/* Read only */}
+<NumberField aria-label='Read only' defaultValue={4} readOnly />
+{/* Disabled */}
+<NumberField aria-label='Disabled' defaultValue={4} disabled />
 ```
 
 ### Composition
@@ -271,26 +249,24 @@ The digits roll to each new value with [NumberFlow](https://number-flow.barvian.
 
 `format` takes `Intl.NumberFormat` options. The input shows the formatted value and parses what people type back to a number, so `onValueChange` gets a plain number, or `null` when people clear the field. Set `locale` so the server and browser format the same way.
 
-```tsx-live
-<div className='grid max-w-48 gap-4'>
-  <NumberField
-    aria-label='Donation'
-    locale='en-AU'
-    format={{ style: 'currency', currency: 'AUD' }}
-    defaultValue={25}
-    min={0}
-    step={5}
-  />
-  <NumberField
-    aria-label='Booking fee'
-    locale='en-AU'
-    format={{ style: 'percent', maximumFractionDigits: 1 }}
-    defaultValue={0.045}
-    min={0}
-    max={1}
-    step={0.005}
-  />
-</div>
+```tsx-live layout=stack width=48
+<NumberField
+  aria-label='Donation'
+  locale='en-AU'
+  format={{ style: 'currency', currency: 'AUD' }}
+  defaultValue={25}
+  min={0}
+  step={5}
+/>
+<NumberField
+  aria-label='Booking fee'
+  locale='en-AU'
+  format={{ style: 'percent', maximumFractionDigits: 1 }}
+  defaultValue={0.045}
+  min={0}
+  max={1}
+  step={0.005}
+/>
 ```
 
 ## Guidelines

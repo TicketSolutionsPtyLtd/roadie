@@ -6,12 +6,38 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 // Each rendered docs component, by page and slot, against the markdown twin
-// the build wrote for that page.
+// the build wrote for that page. A component that draws a list rather than a
+// table marks its rows `data-twin-row` and their cells `data-twin-cell`.
 const TABLES: [route: string, slot: string][] = [
   ['/charts/dashboards', 'card-sizes'],
   ['/charts/dashboards', 'copy-limits'],
   ['/charts/dashboards', 'chart-label-limits'],
-  ['/charts/dashboards', 'period-comparisons']
+  ['/charts/dashboards', 'period-comparisons'],
+  ...[
+    'comparison-table',
+    'component-reads',
+    'data-format-reads',
+    'date-style-scale',
+    'future-ladder',
+    'machine-value-reads',
+    'moment-reads',
+    'past-ladder',
+    'phrase-table',
+    'range-table',
+    'time-style-scale',
+    'zone-table'
+  ].map((slot): [string, string] => ['/foundations/date-and-time', slot]),
+  ['/foundations/elevation', 'layering-scale'],
+  ['/foundations/iconography', 'icon-size-scale'],
+  ['/foundations/interactions', 'focus-ring-list'],
+  ['/foundations/interactions', 'transition-list'],
+  ['/foundations/layout', 'breakpoint-scale'],
+  ['/foundations/layout', 'container-scale'],
+  ['/foundations/layout', 'spacing-scale'],
+  ['/foundations/shape', 'radius-scale'],
+  ['/foundations/theming', 'accent-scales'],
+  ['/foundations/typography', 'rhythm-table'],
+  ['/foundations/typography', 'type-scale']
 ]
 
 const CODE: [route: string, slot: string, lang: string][] = [
@@ -85,20 +111,32 @@ describe('twins carry the data their pages render', () => {
     '%s %s table',
     async (route, slot) => {
       const page = await open(route)
-      const rows = await page
-        .locator(`[data-slot=${slot}] tr`)
-        .evaluateAll((trs) =>
-          trs.map((tr) =>
-            [...tr.querySelectorAll('th, td')].map((cell) => {
-              const copy = cell.cloneNode(true) as Element
-              for (const code of copy.querySelectorAll('code'))
-                code.replaceWith(`\`${code.textContent}\``)
-              return copy.textContent!.trim()
-            })
-          )
-        )
+      const { listed, rows } = await page
+        .locator(`[data-slot=${slot}]`)
+        .evaluate((root) => {
+          const listed = !root.querySelector('tr')
+          const rows = root.querySelectorAll(listed ? '[data-twin-row]' : 'tr')
+          return {
+            listed,
+            rows: [...rows].map((row) =>
+              [
+                ...row.querySelectorAll(listed ? '[data-twin-cell]' : 'th, td')
+              ].map((cell) => {
+                if (cell.matches('code')) return `\`${cell.textContent}\``
+                const copy = cell.cloneNode(true) as Element
+                for (const code of copy.querySelectorAll('code'))
+                  code.replaceWith(`\`${code.textContent}\``)
+                return copy.textContent!.trim()
+              })
+            )
+          }
+        })
       expect(rows.length).toBeGreaterThan(1)
-      expect(markdownTables(await twin(route))).toContainEqual(rows)
+      // A list has no header row, so it matches a table's body.
+      const tables = markdownTables(await twin(route)).map((table) =>
+        listed ? table.slice(1) : table
+      )
+      expect(tables).toContainEqual(rows)
     },
     60_000
   )
@@ -116,6 +154,61 @@ describe('twins carry the data their pages render', () => {
     },
     60_000
   )
+
+  it.each(['categorical', 'heat', 'diverging', 'status'])(
+    '/foundations/colors %s dataviz swatches',
+    async (kind) => {
+      const page = await open('/foundations/colors')
+      const panel = (mode: string) =>
+        page
+          .locator(
+            `[data-slot=dataviz-swatches][data-kind=${kind}] [data-mode=${mode}] [data-slot=dataviz-swatch]`
+          )
+          .evaluateAll((swatches) =>
+            swatches.map((swatch) => [
+              swatch.getAttribute('title')!,
+              getComputedStyle(swatch).backgroundColor
+            ])
+          )
+      const [light, dark] = await Promise.all([panel('light'), panel('dark')])
+      expect(light.length, kind).toBeGreaterThan(0)
+      const rgb = (hex: string) =>
+        `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ')})`
+      const table = markdownTables(await twin('/foundations/colors')).find(
+        (rows) => rows[1]?.[0] === `\`${light[0]![0]}\``
+      )
+      expect(table, kind).toBeDefined()
+      expect(table!.slice(1)).toEqual(
+        light.map(([token, color], i) => {
+          const row = table![i + 1]!
+          expect(rgb(row[1]!.slice(1, -1))).toBe(color)
+          expect(rgb(row[2]!.slice(1, -1))).toBe(dark[i]![1])
+          return [`\`${token}\``, row[1], row[2]]
+        })
+      )
+    },
+    60_000
+  )
+
+  it('/foundations/colors scale swatches', async () => {
+    const page = await open('/foundations/colors')
+    const scales = await page
+      .locator('[data-slot=scale-swatches] > li')
+      .evaluateAll((items) =>
+        items.map((item) => {
+          const steps = [...item.querySelectorAll('[data-slot=scale-swatch]')]
+          return [
+            item.querySelector('p')!.textContent!,
+            `\`${steps[0]!.getAttribute('title')}\` to \`${steps.at(-1)!.getAttribute('title')}\``
+          ]
+        })
+      )
+    expect(scales.length).toBeGreaterThan(5)
+    expect(markdownTables(await twin('/foundations/colors'))).toContainEqual([
+      ['Scale', 'Steps'],
+      ...scales
+    ])
+  }, 60_000)
 
   it('/components/spot-illustration names', async () => {
     const page = await open('/components/spot-illustration')

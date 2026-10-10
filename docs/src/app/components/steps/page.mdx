@@ -104,63 +104,57 @@ Use the `direction` prop to switch between horizontal and vertical layouts.
 
 Use `linear` to restrict navigation to sequential order. In linear mode, users cannot click ahead. Only the next step is reachable.
 
-```tsx-live
-<div className='grid gap-6'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Free navigation (default)</p>
-    <Steps count={3}>
-      <Steps.List>
-        <Steps.Item index={0}>
-          <Steps.Trigger>
-            <Steps.Indicator>1</Steps.Indicator>
-            <Steps.TriggerText>First</Steps.TriggerText>
-          </Steps.Trigger>
-          <Steps.Separator />
-        </Steps.Item>
-        <Steps.Item index={1}>
-          <Steps.Trigger>
-            <Steps.Indicator>2</Steps.Indicator>
-            <Steps.TriggerText>Second</Steps.TriggerText>
-          </Steps.Trigger>
-          <Steps.Separator />
-        </Steps.Item>
-        <Steps.Item index={2}>
-          <Steps.Trigger>
-            <Steps.Indicator>3</Steps.Indicator>
-            <Steps.TriggerText>Third</Steps.TriggerText>
-          </Steps.Trigger>
-        </Steps.Item>
-      </Steps.List>
-    </Steps>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Linear</p>
-    <Steps count={3} linear defaultStep={1}>
-      <Steps.List>
-        <Steps.Item index={0}>
-          <Steps.Trigger>
-            <Steps.Indicator>1</Steps.Indicator>
-            <Steps.TriggerText>First</Steps.TriggerText>
-          </Steps.Trigger>
-          <Steps.Separator />
-        </Steps.Item>
-        <Steps.Item index={1}>
-          <Steps.Trigger>
-            <Steps.Indicator>2</Steps.Indicator>
-            <Steps.TriggerText>Second</Steps.TriggerText>
-          </Steps.Trigger>
-          <Steps.Separator />
-        </Steps.Item>
-        <Steps.Item index={2}>
-          <Steps.Trigger>
-            <Steps.Indicator>3</Steps.Indicator>
-            <Steps.TriggerText>Third</Steps.TriggerText>
-          </Steps.Trigger>
-        </Steps.Item>
-      </Steps.List>
-    </Steps>
-  </div>
-</div>
+```tsx-live layout=stack gap=6
+{/* Free navigation (default) */}
+<Steps count={3}>
+  <Steps.List>
+    <Steps.Item index={0}>
+      <Steps.Trigger>
+        <Steps.Indicator>1</Steps.Indicator>
+        <Steps.TriggerText>First</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={1}>
+      <Steps.Trigger>
+        <Steps.Indicator>2</Steps.Indicator>
+        <Steps.TriggerText>Second</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={2}>
+      <Steps.Trigger>
+        <Steps.Indicator>3</Steps.Indicator>
+        <Steps.TriggerText>Third</Steps.TriggerText>
+      </Steps.Trigger>
+    </Steps.Item>
+  </Steps.List>
+</Steps>
+{/* Linear */}
+<Steps count={3} linear defaultStep={1}>
+  <Steps.List>
+    <Steps.Item index={0}>
+      <Steps.Trigger>
+        <Steps.Indicator>1</Steps.Indicator>
+        <Steps.TriggerText>First</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={1}>
+      <Steps.Trigger>
+        <Steps.Indicator>2</Steps.Indicator>
+        <Steps.TriggerText>Second</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={2}>
+      <Steps.Trigger>
+        <Steps.Indicator>3</Steps.Indicator>
+        <Steps.TriggerText>Third</Steps.TriggerText>
+      </Steps.Trigger>
+    </Steps.Item>
+  </Steps.List>
+</Steps>
 ```
 
 ### Invalid step
@@ -169,63 +163,57 @@ Set `invalid` on a `Steps.Item` to show a danger state on its indicator and
 text. Use this when a step has validation errors that prevent progression.
 When a completed step is invalid, the check icon is replaced with the step number.
 
-```tsx-live
-<div className='grid gap-6'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Current step invalid</p>
-    <Steps count={3} defaultStep={1}>
-      <Steps.List>
-        <Steps.Item index={0}>
-          <Steps.Trigger>
-            <Steps.Indicator>1</Steps.Indicator>
-            <Steps.TriggerText>Your role</Steps.TriggerText>
-          </Steps.Trigger>
-          <Steps.Separator />
-        </Steps.Item>
-        <Steps.Item index={1} invalid>
-          <Steps.Trigger>
-            <Steps.Indicator>2</Steps.Indicator>
-            <Steps.TriggerText>Your enquiry</Steps.TriggerText>
-          </Steps.Trigger>
-          <Steps.Separator />
-        </Steps.Item>
-        <Steps.Item index={2}>
-          <Steps.Trigger>
-            <Steps.Indicator>3</Steps.Indicator>
-            <Steps.TriggerText>Your details</Steps.TriggerText>
-          </Steps.Trigger>
-        </Steps.Item>
-      </Steps.List>
-    </Steps>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Previous step invalid</p>
-    <Steps count={3} defaultStep={2}>
-      <Steps.List>
-        <Steps.Item index={0}>
-          <Steps.Trigger>
-            <Steps.Indicator>1</Steps.Indicator>
-            <Steps.TriggerText>Your role</Steps.TriggerText>
-          </Steps.Trigger>
-          <Steps.Separator />
-        </Steps.Item>
-        <Steps.Item index={1} invalid>
-          <Steps.Trigger>
-            <Steps.Indicator>2</Steps.Indicator>
-            <Steps.TriggerText>Your enquiry</Steps.TriggerText>
-          </Steps.Trigger>
-          <Steps.Separator />
-        </Steps.Item>
-        <Steps.Item index={2}>
-          <Steps.Trigger>
-            <Steps.Indicator>3</Steps.Indicator>
-            <Steps.TriggerText>Your details</Steps.TriggerText>
-          </Steps.Trigger>
-        </Steps.Item>
-      </Steps.List>
-    </Steps>
-  </div>
-</div>
+```tsx-live layout=stack gap=6
+{/* Current step invalid */}
+<Steps count={3} defaultStep={1}>
+  <Steps.List>
+    <Steps.Item index={0}>
+      <Steps.Trigger>
+        <Steps.Indicator>1</Steps.Indicator>
+        <Steps.TriggerText>Your role</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={1} invalid>
+      <Steps.Trigger>
+        <Steps.Indicator>2</Steps.Indicator>
+        <Steps.TriggerText>Your enquiry</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={2}>
+      <Steps.Trigger>
+        <Steps.Indicator>3</Steps.Indicator>
+        <Steps.TriggerText>Your details</Steps.TriggerText>
+      </Steps.Trigger>
+    </Steps.Item>
+  </Steps.List>
+</Steps>
+{/* Previous step invalid */}
+<Steps count={3} defaultStep={2}>
+  <Steps.List>
+    <Steps.Item index={0}>
+      <Steps.Trigger>
+        <Steps.Indicator>1</Steps.Indicator>
+        <Steps.TriggerText>Your role</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={1} invalid>
+      <Steps.Trigger>
+        <Steps.Indicator>2</Steps.Indicator>
+        <Steps.TriggerText>Your enquiry</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={2}>
+      <Steps.Trigger>
+        <Steps.Indicator>3</Steps.Indicator>
+        <Steps.TriggerText>Your details</Steps.TriggerText>
+      </Steps.Trigger>
+    </Steps.Item>
+  </Steps.List>
+</Steps>
 ```
 
 ### Composition

@@ -496,8 +496,11 @@ export function inlineCode(value: string | undefined) {
     value.startsWith('`') || value.endsWith('`') ? ` ${value} ` : value
   return `${fence}${padded.replace(/\|/g, '\\|')}${fence}`
 }
-export const prose = (value: string | undefined) =>
-  value ? oneLine(value).replace(/\|/g, '\\|').replace(/</g, '&lt;') : ''
+/** Escapes the characters that would end a table cell or open HTML. */
+export const escapeCell = (text: string) =>
+  text.replace(/\|/g, '\\|').replace(/</g, '&lt;')
+const prose = (value: string | undefined) =>
+  value ? escapeCell(oneLine(value)) : ''
 const darkIfDifferent = ({ light, dark }: TokenValue = {}) =>
   light !== undefined && dark !== light ? dark : undefined
 const lightAndDark = ({ light, dark }: TokenValue) =>

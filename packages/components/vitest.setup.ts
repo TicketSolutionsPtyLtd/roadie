@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach, beforeAll, expect } from 'vitest'
+import { afterEach, beforeAll } from 'vitest'
 
 class ResizeObserverMock {
   observe() {}
@@ -63,15 +63,6 @@ function keepScrollTo() {
 const NO_LAYOUT =
   'never fires or measures in jsdom. Test it in a *.browser.test.tsx.'
 
-// Not yet moved to browser tests (INNO-1238). Never add to this list.
-const FAKES_LAYOUT = [
-  'Navigator/Navigator.test.tsx',
-  'Navigator/NavigatorPending.test.tsx',
-  'Navigator/NavigatorPrimary.test.tsx',
-  'Navigator/NavigatorSecondaryPane.test.tsx',
-  'Pane/Pane.test.tsx'
-]
-
 function descriptorOf(target: object | null, key: string) {
   for (let at = target; at; at = Object.getPrototypeOf(at)) {
     const descriptor = Object.getOwnPropertyDescriptor(at, key)
@@ -126,9 +117,7 @@ function lockLayout() {
 
 installObservers(globalThis)
 installObservers(document.defaultView!)
-const testPath = expect.getState().testPath ?? ''
-if (!FAKES_LAYOUT.some((file) => testPath.endsWith(`/components/${file}`)))
-  lockLayout()
+lockLayout()
 
 beforeAll(() => {
   keepGetAnimations()

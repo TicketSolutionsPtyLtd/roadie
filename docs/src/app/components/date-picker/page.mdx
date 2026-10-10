@@ -66,48 +66,34 @@ render(<Doors />)
 
 ### Emphasis
 
-```tsx-live
-<div className='grid max-w-64 gap-4'>
-  <DatePicker aria-label='Normal' defaultValue='2026-11-27' />
-  <DatePicker aria-label='Subtle' emphasis='subtle' defaultValue='2026-11-27' />
-</div>
+```tsx-live layout=stack width=64
+<DatePicker aria-label='Normal' defaultValue='2026-11-27' />
+<DatePicker aria-label='Subtle' emphasis='subtle' defaultValue='2026-11-27' />
 ```
 
 ### Sizes
 
 The calendar button shrinks with the field, so it always sits inside it.
 
-```tsx-live
-<div className='grid max-w-64 gap-4'>
-  <DatePicker aria-label='Small' size='sm' defaultValue='2026-11-27' />
-  <DatePicker aria-label='Medium' size='md' defaultValue='2026-11-27' />
-  <DatePicker aria-label='Large' size='lg' defaultValue='2026-11-27' />
-</div>
+```tsx-live layout=stack width=64
+<DatePicker aria-label='Small' size='sm' defaultValue='2026-11-27' />
+<DatePicker aria-label='Medium' size='md' defaultValue='2026-11-27' />
+<DatePicker aria-label='Large' size='lg' defaultValue='2026-11-27' />
 ```
 
 ### States
 
 `readOnly` shows the date and turns off the calendar button. `disabled` turns off both.
 
-```tsx-live
-<div className='grid max-w-64 gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <DatePicker aria-label='Default' defaultValue='2026-11-27' />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Invalid</p>
-    <DatePicker aria-label='Invalid' defaultValue='2026-11-27' invalid />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Read only</p>
-    <DatePicker aria-label='Read only' defaultValue='2026-11-27' readOnly />
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <DatePicker aria-label='Disabled' defaultValue='2026-11-27' disabled />
-  </div>
-</div>
+```tsx-live layout=stack width=64
+{/* Default */}
+<DatePicker aria-label='Default' defaultValue='2026-11-27' />
+{/* Invalid */}
+<DatePicker aria-label='Invalid' defaultValue='2026-11-27' invalid />
+{/* Read only */}
+<DatePicker aria-label='Read only' defaultValue='2026-11-27' readOnly />
+{/* Disabled */}
+<DatePicker aria-label='Disabled' defaultValue='2026-11-27' disabled />
 ```
 
 ### Composition

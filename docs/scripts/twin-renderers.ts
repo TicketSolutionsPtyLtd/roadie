@@ -1,3 +1,8 @@
+import type { TokenEntry } from '@roadie-core/tokens'
+import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+
+import { DATE_TIME_TABLES } from '../src/components/date-and-time/example.ts'
 import {
   querySuggestionsExample,
   viewMeilisearchExample,
@@ -5,11 +10,37 @@ import {
 } from '../src/components/records/example.ts'
 import { cardSizeTable } from '../src/lib/card-sizes.ts'
 import {
+  DATAVIZ_STRIPS,
+  type DatavizKind,
+  colorScaleTable,
+  colorScales,
+  datavizTable
+} from '../src/lib/color-tables.ts'
+import {
   chartLabelLimitsTable,
   copyLimitsTable,
   periodComparisonsTable
 } from '../src/lib/dashboard-tables.ts'
-import { fence, inlineCode, markdownTable, prose } from '../src/lib/llms.ts'
+import {
+  accentDefaultsTable,
+  breakpointTable,
+  containerTable,
+  focusRingTable,
+  iconSizeTable,
+  layeringTable,
+  radiusTable,
+  rhythmTable,
+  spacingTable,
+  transitionTable,
+  typeScaleTable
+} from '../src/lib/foundation-scales.ts'
+import {
+  type ManifestComponent,
+  escapeCell,
+  fence,
+  inlineCode,
+  markdownTable
+} from '../src/lib/llms.ts'
 import { SPOT_ILLUSTRATION_NAMES } from '../src/lib/spot-illustrations.ts'
 import {
   type TwinCell,
@@ -17,14 +48,58 @@ import {
   segments
 } from '../src/lib/twin-table.ts'
 
+const require = createRequire(import.meta.url)
+
+let manifestTokens: TokenEntry[] | undefined
+
+/** The token manifest, read on first use, since only some renderers need it. */
+function tokens(): TokenEntry[] {
+  if (manifestTokens) return manifestTokens
+  let raw: string
+  try {
+    raw = readFileSync(
+      new URL('../../packages/core/src/tokens/tokens.json', import.meta.url),
+      'utf8'
+    )
+  } catch {
+    throw new Error(
+      'No token manifest. Run `pnpm --filter @oztix/roadie-core generate:tokens`.'
+    )
+  }
+  manifestTokens = (JSON.parse(raw) as { tokens: TokenEntry[] }).tokens
+  return manifestTokens
+}
+
+// The components barrel can't load in Node, so read the documented default.
+function defaultAccentColor() {
+  const color = (
+    require('@oztix/roadie-components/roadie.manifest.json') as {
+      components: ManifestComponent[]
+    }
+  ).components
+    .find(({ name }) => name === 'ThemeProvider')
+    ?.props.find(({ name }) => name === 'defaultAccentColor')?.default
+  if (!/^#[0-9a-f]{6}$/i.test(color ?? ''))
+    throw new Error(
+      `ThemeProvider's documented defaultAccentColor is ${color}, not a hex colour.`
+    )
+  return color!
+}
+
 export type Renderer = (props: Record<string, string | true>) => string
+
+// Not trimmed per run, so a joining " and " keeps its spaces.
+const segmentText = (text: string) => escapeCell(text.replace(/\s+/g, ' '))
 
 const cellMarkdown = (cell: TwinCell) =>
   segments(cell)
     .map((segment) =>
-      typeof segment === 'string' ? prose(segment) : inlineCode(segment.code)
+      typeof segment === 'string'
+        ? segmentText(segment)
+        : inlineCode(segment.code)
     )
     .join('')
+    .trim()
 
 export const twinTableMarkdown = ({ head, rows }: TwinTable) =>
   markdownTable(
@@ -34,6 +109,50 @@ export const twinTableMarkdown = ({ head, rows }: TwinTable) =>
 
 /** Markdown for each docs component marked `rendered` in `twin-components.ts`, except those the script builds itself. */
 export const DATA_RENDERERS: Record<string, Renderer> = {
+  AccentScales: () =>
+    twinTableMarkdown(accentDefaultsTable(tokens(), defaultAccentColor())),
+  BreakpointScale: () => twinTableMarkdown(breakpointTable(tokens())),
+  ContainerScale: () => twinTableMarkdown(containerTable(tokens())),
+  FocusRingList: () => twinTableMarkdown(focusRingTable(tokens())),
+  IconSizeScale: () => twinTableMarkdown(iconSizeTable(tokens())),
+  LayeringScale: () => twinTableMarkdown(layeringTable(tokens())),
+  RadiusScale: () => twinTableMarkdown(radiusTable(tokens())),
+  RhythmTable: () => twinTableMarkdown(rhythmTable(tokens())),
+  SpacingScale: () => twinTableMarkdown(spacingTable(tokens())),
+  TransitionList: () => twinTableMarkdown(transitionTable(tokens())),
+  TypeScale: () => twinTableMarkdown(typeScaleTable(tokens())),
+  DatavizSwatches: ({ kind }) => {
+    if (typeof kind !== 'string' || !Object.hasOwn(DATAVIZ_STRIPS, kind))
+      throw new Error(`<DatavizSwatches kind="${kind}"> names no dataviz set`)
+    return twinTableMarkdown(datavizTable(kind as DatavizKind))
+  },
+  ScaleSwatches: ({ followingAccent }) =>
+    twinTableMarkdown(
+      colorScaleTable(
+        colorScales(
+          tokens().filter((token) => token.family === 'color-scales'),
+          followingAccent === true
+        )
+      )
+    ),
+  ComparisonTable: () => twinTableMarkdown(DATE_TIME_TABLES.ComparisonTable()),
+  ComponentReads: () => twinTableMarkdown(DATE_TIME_TABLES.ComponentReads()),
+  DataFormatReads: () => twinTableMarkdown(DATE_TIME_TABLES.DataFormatReads()),
+  DateStyleScale: () => twinTableMarkdown(DATE_TIME_TABLES.DateStyleScale()),
+  MachineValueReads: () =>
+    twinTableMarkdown(DATE_TIME_TABLES.MachineValueReads()),
+  MomentReads: () => twinTableMarkdown(DATE_TIME_TABLES.MomentReads()),
+  PhraseTable: () => twinTableMarkdown(DATE_TIME_TABLES.PhraseTable()),
+  RangeTable: () => twinTableMarkdown(DATE_TIME_TABLES.RangeTable()),
+  RelativeLadder: ({ direction }) => {
+    if (direction !== 'past' && direction !== 'future')
+      throw new Error(
+        `<RelativeLadder direction="${direction}"> isn't past or future`
+      )
+    return twinTableMarkdown(DATE_TIME_TABLES.RelativeLadder(direction))
+  },
+  TimeStyleScale: () => twinTableMarkdown(DATE_TIME_TABLES.TimeStyleScale()),
+  ZoneTable: () => twinTableMarkdown(DATE_TIME_TABLES.ZoneTable()),
   CardSizes: () => twinTableMarkdown(cardSizeTable()),
   ChartLabelLimits: () => twinTableMarkdown(chartLabelLimitsTable()),
   CopyLimits: () => twinTableMarkdown(copyLimitsTable()),

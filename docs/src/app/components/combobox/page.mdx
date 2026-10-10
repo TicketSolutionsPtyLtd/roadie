@@ -63,71 +63,61 @@ function ComboboxDefault() {
 
 ### Emphasis
 
-```tsx-live
-<div className='grid gap-2'>
-  <Combobox>
-    <Combobox.InputGroup emphasis='normal'>
-      <Combobox.Input placeholder='Normal emphasis' />
-      <Combobox.Trigger />
-    </Combobox.InputGroup>
-  </Combobox>
-  <Combobox>
-    <Combobox.InputGroup emphasis='subtle'>
-      <Combobox.Input placeholder='Subtle emphasis' />
-      <Combobox.Trigger />
-    </Combobox.InputGroup>
-  </Combobox>
-</div>
+```tsx-live layout=stack gap=2
+<Combobox>
+  <Combobox.InputGroup emphasis='normal'>
+    <Combobox.Input placeholder='Normal emphasis' />
+    <Combobox.Trigger />
+  </Combobox.InputGroup>
+</Combobox>
+<Combobox>
+  <Combobox.InputGroup emphasis='subtle'>
+    <Combobox.Input placeholder='Subtle emphasis' />
+    <Combobox.Trigger />
+  </Combobox.InputGroup>
+</Combobox>
 ```
 
 ### Sizes
 
-```tsx-live
-<div className='grid gap-2'>
-  <Combobox>
-    <Combobox.InputGroup size='sm'>
-      <Combobox.Input placeholder='Small' />
-      <Combobox.Trigger />
-    </Combobox.InputGroup>
-  </Combobox>
-  <Combobox>
-    <Combobox.InputGroup size='md'>
-      <Combobox.Input placeholder='Medium (default)' />
-      <Combobox.Trigger />
-    </Combobox.InputGroup>
-  </Combobox>
-  <Combobox>
-    <Combobox.InputGroup size='lg'>
-      <Combobox.Input placeholder='Large' />
-      <Combobox.Trigger />
-    </Combobox.InputGroup>
-  </Combobox>
-</div>
+```tsx-live layout=stack gap=2
+<Combobox>
+  <Combobox.InputGroup size='sm'>
+    <Combobox.Input placeholder='Small' />
+    <Combobox.Trigger />
+  </Combobox.InputGroup>
+</Combobox>
+<Combobox>
+  <Combobox.InputGroup size='md'>
+    <Combobox.Input placeholder='Medium (default)' />
+    <Combobox.Trigger />
+  </Combobox.InputGroup>
+</Combobox>
+<Combobox>
+  <Combobox.InputGroup size='lg'>
+    <Combobox.Input placeholder='Large' />
+    <Combobox.Trigger />
+  </Combobox.InputGroup>
+</Combobox>
 ```
 
 ### States
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <Combobox>
-      <Combobox.InputGroup>
-        <Combobox.Input placeholder='Search...' />
-        <Combobox.Trigger />
-      </Combobox.InputGroup>
-    </Combobox>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <Combobox disabled>
-      <Combobox.InputGroup>
-        <Combobox.Input placeholder='Search...' />
-        <Combobox.Trigger />
-      </Combobox.InputGroup>
-    </Combobox>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Default */}
+<Combobox>
+  <Combobox.InputGroup>
+    <Combobox.Input placeholder='Search...' />
+    <Combobox.Trigger />
+  </Combobox.InputGroup>
+</Combobox>
+{/* Disabled */}
+<Combobox disabled>
+  <Combobox.InputGroup>
+    <Combobox.Input placeholder='Search...' />
+    <Combobox.Trigger />
+  </Combobox.InputGroup>
+</Combobox>
 ```
 
 ### Composition

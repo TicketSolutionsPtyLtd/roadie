@@ -1,5 +1,6 @@
-import { ReadsTable } from './ReadsTable'
-import { futureLadderRows, pastLadderRows } from './example'
+import { ProseDataTable } from '@/components/ProseTable'
+
+import { DATE_TIME_TABLES } from './example'
 
 /** The relative ladder for moments behind or ahead of the example's now. */
 export function RelativeLadder({
@@ -8,10 +9,9 @@ export function RelativeLadder({
   direction: 'past' | 'future'
 }) {
   return (
-    <ReadsTable
+    <ProseDataTable
       slot={`${direction}-ladder`}
-      head={['Distance', 'Reads']}
-      rows={direction === 'past' ? pastLadderRows() : futureLadderRows()}
+      table={DATE_TIME_TABLES.RelativeLadder(direction)}
     />
   )
 }
