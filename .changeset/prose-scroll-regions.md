@@ -21,10 +21,9 @@
   into its column now scrolls.
 - A table that a component renders inside `Prose` isn't wrapped, since React
   owns it. Wrap it in `.prose-scroll` yourself.
-- `Prose` is now a client component. Server components can still render it
-  with children, `dangerouslySetInnerHTML`, `as='article'`, or
-  `render={<article />}`, but not with a function `render` or a component `as`,
-  which can't cross to the client. `proseVariants` stays callable on the server.
+- `Prose` still renders in server components, with any `as` or `render`. Its
+  root gets a `data-prose-id`, which links it to a client component that
+  renders nothing and does the work in the browser.
 
 New `useScrollRegion(ref)` from `@oztix/roadie-components/scroll-region` gives
 any scroll container the same keyboard access, for tables outside `Prose`.

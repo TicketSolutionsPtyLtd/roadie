@@ -3,6 +3,9 @@ type RegionName = [attribute: 'aria-label' | 'aria-labelledby', value: string]
 /** The scroller Prose puts around a bare table. */
 export const SCROLLER_CLASS = 'prose-scroll is-focusable'
 
+/** Links a Prose root to the client component that enhances it. */
+export const PROSE_ID_ATTRIBUTE = 'data-prose-id'
+
 const NAME_ATTRIBUTES = ['aria-label', 'aria-labelledby']
 const REGION_ATTRIBUTES = ['tabindex', 'role', ...NAME_ATTRIBUTES]
 const HEADINGS = ':is(h1, h2, h3, h4, h5, h6)[id]'
@@ -15,6 +18,9 @@ const precedes = (node: Node, other: Node) =>
   Boolean(
     node.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING
   )
+
+const rootOf = (scroller: Element) =>
+  scroller.closest('.prose') ?? scroller.ownerDocument
 
 const headingBefore = (scroller: Element, root: Element | Document) =>
   [...root.querySelectorAll(HEADINGS)]
@@ -30,12 +36,9 @@ function regionName(scroller: HTMLElement): RegionName {
   const caption = scroller.querySelector('table')?.caption?.textContent?.trim()
   if (caption) return ['aria-label', caption]
 
-  const root = scroller.closest('.prose') ?? scroller.ownerDocument
-  const heading = headingBefore(scroller, root)
+  const heading = headingBefore(scroller, rootOf(scroller))
   const position = [...tracked]
-    .filter(
-      (other) => root.contains(other) && headingBefore(other, root) === heading
-    )
+    .filter((other) => headingBefore(other, rootOf(other)) === heading)
     .sort((a, b) => (precedes(a, b) ? -1 : 1))
     .indexOf(scroller)
   const number = position > 0 ? position + 1 : undefined

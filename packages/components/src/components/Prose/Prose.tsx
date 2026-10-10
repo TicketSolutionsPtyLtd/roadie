@@ -1,5 +1,3 @@
-'use client'
-
 import {
   Children,
   type ComponentProps,
@@ -7,20 +5,19 @@ import {
   Fragment,
   type ReactElement,
   type ReactNode,
-  type Ref,
   cloneElement,
   isValidElement,
-  useCallback
+  useId
 } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { mergeRefs } from '../../utils/mergeRefs'
 import { type RoadieRenderProp, resolveRender } from '../../utils/resolveRender'
 import {
-  SCROLLER_CLASS,
-  observeProseScrollRegions
+  PROSE_ID_ATTRIBUTE,
+  SCROLLER_CLASS
 } from '../ScrollRegion/scrollRegion'
+import { ProseScrollRegions } from './ProseScrollRegions'
 import { proseVariants } from './variants'
 
 export type ProseProps<T extends ElementType = 'div'> = {
@@ -108,31 +105,33 @@ export function Prose<T extends ElementType = 'div'>({
   children,
   ...props
 }: ProseProps<T> & { children?: ReactNode }): ReactElement {
-  const { ref, dangerouslySetInnerHTML } = props as {
-    ref?: Ref<HTMLElement>
-    dangerouslySetInnerHTML?: unknown
-  }
-  // React doesn't own HTML set this way, so its tables can be moved.
-  const wrapBare = dangerouslySetInnerHTML != null
-  const observe = useCallback(
-    (container: HTMLElement | null) =>
-      container ? observeProseScrollRegions(container, wrapBare) : undefined,
-    [wrapBare]
-  )
-  const setRef = mergeRefs(observe, ref)
-
+  const proseId = useId()
   const finalProps = {
     'data-slot': 'prose',
+    [PROSE_ID_ATTRIBUTE]: proseId,
     className: cn(proseVariants({ size, className })),
     ...props,
-    ref: setRef,
     children: wrapTables(children)
   }
 
-  if (render !== undefined) return resolveRender('div', finalProps, render)
-
   const Component = (as ?? 'div') as ElementType
-  return <Component {...finalProps} />
+  return (
+    <>
+      {render === undefined ? (
+        <Component {...finalProps} />
+      ) : (
+        resolveRender('div', finalProps, render)
+      )}
+      <ProseScrollRegions
+        proseId={proseId}
+        // React doesn't own HTML set this way, so its tables can be moved.
+        wrapBare={
+          (props as { dangerouslySetInnerHTML?: unknown })
+            .dangerouslySetInnerHTML != null
+        }
+      />
+    </>
+  )
 }
 
 Prose.displayName = 'Prose'

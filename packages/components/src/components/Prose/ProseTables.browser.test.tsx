@@ -1,4 +1,4 @@
-import { type ReactElement, act } from 'react'
+import { type ComponentProps, type ReactElement, StrictMode, act } from 'react'
 
 import { cleanup, render } from '@testing-library/react'
 import axe from 'axe-core'
@@ -288,6 +288,18 @@ describe('Prose tables', () => {
     ])
   })
 
+  it('numbers tables without a heading across every Prose on the page', async () => {
+    const container = renderAt(
+      <>
+        <Prose dangerouslySetInnerHTML={{ __html: wideTable() }} />
+        <Prose>{wideTableElement()}</Prose>
+      </>
+    )
+    const all = scrollers(container)
+    for (const scroller of all) await untilRegion(scroller)
+    expect(all.map(nameOf)).toEqual(['Table', 'Table 2'])
+  })
+
   it('wraps tables in HTML that changes after the first render', async () => {
     const { container, rerender } = render(
       <div style={{ width: 320 }}>
@@ -340,6 +352,22 @@ describe('Prose tables', () => {
         {wideTableElement()}
       </Prose>,
       'SECTION'
+    ],
+    [
+      'a function render',
+      <Prose key='prose' render={(props) => <aside {...props} />}>
+        {wideTableElement()}
+      </Prose>,
+      'ASIDE'
+    ],
+    [
+      'a component as',
+      <Prose
+        key='prose'
+        as={(props: ComponentProps<'nav'>) => <nav {...props} />}
+        dangerouslySetInnerHTML={{ __html: wideTable() }}
+      />,
+      'NAV'
     ]
   ])('wraps tables when Prose renders through %s', async (_, ui, tag) => {
     const container = renderAt(ui)
@@ -430,4 +458,58 @@ describe('Prose tables', () => {
       expect(violations.map(({ id }) => id)).toEqual([])
     }
   )
+
+  it('adds no element beside or inside its root, so first-child spacing holds', async () => {
+    const container = renderAt(
+      <Prose>
+        <h2 id='first'>Set times</h2>
+        {wideTableElement()}
+      </Prose>
+    )
+    const prose = container.querySelector('[data-slot="prose"]')!
+    await untilRegion(scrollers(container)[0])
+    expect([...container.querySelector('#frame')!.children]).toEqual(
+      [...container.querySelectorAll('#frame > button')].toSpliced(1, 0, prose)
+    )
+    expect(prose.lastElementChild).toHaveClass('prose-scroll')
+    expect(getComputedStyle(prose.firstElementChild!).marginBlockStart).toBe(
+      '0px'
+    )
+  })
+
+  it('wraps each table once under Strict Mode', async () => {
+    const container = renderAt(
+      <StrictMode>
+        <Prose dangerouslySetInnerHTML={{ __html: wideTable() }} />
+        <Prose>{wideTableElement()}</Prose>
+      </StrictMode>
+    )
+    const all = scrollers(container)
+    expect(all).toHaveLength(2)
+    for (const scroller of all) {
+      await untilRegion(scroller)
+      expect(scroller.parentElement).toHaveAttribute('data-slot', 'prose')
+      expect(scroller.firstElementChild?.tagName).toBe('TABLE')
+    }
+  })
+
+  it('stops observing once Prose unmounts', async () => {
+    const mutations = vi.spyOn(MutationObserver.prototype, 'disconnect')
+    const resizes = vi.spyOn(ResizeObserver.prototype, 'disconnect')
+    onTestFinished(() => {
+      mutations.mockRestore()
+      resizes.mockRestore()
+    })
+    const { container, unmount } = render(
+      <div style={{ width: 320 }}>
+        <Prose>{wideTableElement()}</Prose>
+      </div>
+    )
+    await untilRegion(scrollers(container)[0])
+    expect(mutations).not.toHaveBeenCalled()
+
+    unmount()
+    expect(mutations).toHaveBeenCalledOnce()
+    expect(resizes).toHaveBeenCalledOnce()
+  })
 })
