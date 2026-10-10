@@ -89,14 +89,15 @@ IconTile sizes its icon to the tile.
 
 Three weights are used in the system. Bold is the default for everything.
 Fill is reserved for active or selected states. Duotone is for large,
-decorative icons above 48px. Use it on feature surfaces and icons inside an
-`IconTile` larger than `lg`, where a bold outline alone looks hollow.
+decorative icons in a tile or graphic above 48px. Use it on feature surfaces,
+in an `IconTile` larger than `lg`, and in an `EmptyState` tile, where a bold
+outline alone looks hollow.
 
-| Weight    | When to use                                                       |
-| --------- | ----------------------------------------------------------------- |
-| `bold`    | The default for all icons                                         |
-| `fill`    | Active or selected states only                                    |
-| `duotone` | Large decorative icons only, above 48px, such as in an `IconTile` |
+| Weight    | When to use                                                             |
+| --------- | ----------------------------------------------------------------------- |
+| `bold`    | The default for all icons                                               |
+| `fill`    | Active or selected states only                                          |
+| `duotone` | Decorative icons in a tile or graphic above 48px, such as an `IconTile` |
 
 ```tsx-live layout=stack gap=6
 {/* bold */}
@@ -383,8 +384,8 @@ as a Badge.
       </IconTile>
     }
   >
-    Use `weight='duotone'` above 48px. The two-tone fill reads as intentional
-    depth on feature surfaces and on icons inside an `IconTile`.
+    Use `weight='duotone'` in a tile or graphic above 48px. The two-tone fill
+    reads as intentional depth on feature surfaces and in a large `IconTile`.
   </Guideline.Do>
   <Guideline.Dont
     example={
