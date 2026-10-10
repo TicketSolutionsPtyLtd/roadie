@@ -31,8 +31,7 @@ export const scrollAreaViewportVariants = cva(
   [
     // Keeps the focus ring inside the root's clipped corners.
     'size-full overscroll-contain rounded-[inherit]',
-    'focus-visible:outline-2 focus-visible:-outline-offset-2',
-    'focus-visible:outline-[var(--intent-border-strong)]',
+    'focus-visible:-outline-offset-(--focus-ring-width)',
     '[--scroll-area-fade-size:2rem]',
     '[--scroll-area-fade-top:0px] [--scroll-area-fade-bottom:0px]',
     '[--scroll-area-fade-left:0px] [--scroll-area-fade-right:0px]'
