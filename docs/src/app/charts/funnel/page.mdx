@@ -21,50 +21,44 @@ import { Funnel } from '@oztix/roadie-charts/funnel'
 
 ### Default
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Checkout' source='Oztix checkout events.' size='md'>
-    <Funnel
-      steps={[
-        { label: 'Viewed event', value: 12400 },
-        { label: 'Chose tickets', value: 4210 },
-        { label: 'Started checkout', value: 2380 },
-        { label: 'Paid', value: 1464 }
-      ]}
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Checkout' source='Oztix checkout events.' size='md'>
+  <Funnel
+    steps={[
+      { label: 'Viewed event', value: 12400 },
+      { label: 'Chose tickets', value: 4210 },
+      { label: 'Started checkout', value: 2380 },
+      { label: 'Paid', value: 1464 }
+    ]}
+  />
+</Chart>
 ```
 
 ### Waitlist to purchase
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Waitlist' source='Oztix waitlist.' size='md'>
-    <Funnel
-      steps={[{ label: 'Joined waitlist', value: 3100 }, { label: 'Got an offer', value: 900 }, { label: 'Bought', value: 610 }]}
-      takeaway='Two in three waitlist offers turn into sales'
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Waitlist' source='Oztix waitlist.' size='md'>
+  <Funnel
+    steps={[{ label: 'Joined waitlist', value: 3100 }, { label: 'Got an offer', value: 900 }, { label: 'Bought', value: 610 }]}
+    takeaway='Two in three waitlist offers turn into sales'
+  />
+</Chart>
 ```
 
 ### Long step names
 
 A long step name wraps to two lines within 40% of the chart's width, then ends in an ellipsis.
 
-```tsx-live
-<div className='w-140 max-w-full'>
-  <Chart label='Presale reminder' source='Oztix email and checkout events.' size='md'>
-    <Funnel
-      steps={[
-        { label: 'Opened the presale reminder email', value: 8200 },
-        { label: 'Clicked through to the Ochre Kite Weekender event page', value: 3100 },
-        { label: 'Bought', value: 940 }
-      ]}
-    />
-  </Chart>
-</div>
+```tsx-live width=140
+<Chart label='Presale reminder' source='Oztix email and checkout events.' size='md'>
+  <Funnel
+    steps={[
+      { label: 'Opened the presale reminder email', value: 8200 },
+      { label: 'Clicked through to the Ochre Kite Weekender event page', value: 3100 },
+      { label: 'Bought', value: 940 }
+    ]}
+  />
+</Chart>
 ```
 
 ## Guidelines
