@@ -1,3 +1,4 @@
+import { DATE_TIME_TABLES } from '../src/components/date-and-time/example.ts'
 import {
   querySuggestionsExample,
   viewMeilisearchExample,
@@ -9,7 +10,12 @@ import {
   copyLimitsTable,
   periodComparisonsTable
 } from '../src/lib/dashboard-tables.ts'
-import { fence, inlineCode, markdownTable, prose } from '../src/lib/llms.ts'
+import {
+  escapeCell,
+  fence,
+  inlineCode,
+  markdownTable
+} from '../src/lib/llms.ts'
 import { SPOT_ILLUSTRATION_NAMES } from '../src/lib/spot-illustrations.ts'
 import {
   type TwinCell,
@@ -19,12 +25,18 @@ import {
 
 export type Renderer = (props: Record<string, string | true>) => string
 
+// Not trimmed per run, so a joining " and " keeps its spaces.
+const segmentText = (text: string) => escapeCell(text.replace(/\s+/g, ' '))
+
 const cellMarkdown = (cell: TwinCell) =>
   segments(cell)
     .map((segment) =>
-      typeof segment === 'string' ? prose(segment) : inlineCode(segment.code)
+      typeof segment === 'string'
+        ? segmentText(segment)
+        : inlineCode(segment.code)
     )
     .join('')
+    .trim()
 
 export const twinTableMarkdown = ({ head, rows }: TwinTable) =>
   markdownTable(
@@ -34,6 +46,24 @@ export const twinTableMarkdown = ({ head, rows }: TwinTable) =>
 
 /** Markdown for each docs component marked `rendered` in `twin-components.ts`, except those the script builds itself. */
 export const DATA_RENDERERS: Record<string, Renderer> = {
+  ComparisonTable: () => twinTableMarkdown(DATE_TIME_TABLES.ComparisonTable()),
+  ComponentReads: () => twinTableMarkdown(DATE_TIME_TABLES.ComponentReads()),
+  DataFormatReads: () => twinTableMarkdown(DATE_TIME_TABLES.DataFormatReads()),
+  DateStyleScale: () => twinTableMarkdown(DATE_TIME_TABLES.DateStyleScale()),
+  MachineValueReads: () =>
+    twinTableMarkdown(DATE_TIME_TABLES.MachineValueReads()),
+  MomentReads: () => twinTableMarkdown(DATE_TIME_TABLES.MomentReads()),
+  PhraseTable: () => twinTableMarkdown(DATE_TIME_TABLES.PhraseTable()),
+  RangeTable: () => twinTableMarkdown(DATE_TIME_TABLES.RangeTable()),
+  RelativeLadder: ({ direction }) => {
+    if (direction !== 'past' && direction !== 'future')
+      throw new Error(
+        `<RelativeLadder direction="${direction}"> isn't past or future`
+      )
+    return twinTableMarkdown(DATE_TIME_TABLES.RelativeLadder(direction))
+  },
+  TimeStyleScale: () => twinTableMarkdown(DATE_TIME_TABLES.TimeStyleScale()),
+  ZoneTable: () => twinTableMarkdown(DATE_TIME_TABLES.ZoneTable()),
   CardSizes: () => twinTableMarkdown(cardSizeTable()),
   ChartLabelLimits: () => twinTableMarkdown(chartLabelLimitsTable()),
   CopyLimits: () => twinTableMarkdown(copyLimitsTable()),

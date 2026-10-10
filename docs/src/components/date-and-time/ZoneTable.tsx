@@ -1,23 +1,10 @@
-import { ProseTable } from '@/components/ProseTable'
+import { ProseDataTable } from '@/components/ProseTable'
 
-import { zoneRows } from './example'
+import { DATE_TIME_TABLES } from './example'
 
 /** Each Australian zone's abbreviations and daylight saving, from Intl. */
 export function ZoneTable() {
   return (
-    <ProseTable
-      slot='zone-table'
-      head={['Abbreviation', 'Where', 'Daylight saving']}
-    >
-      {zoneRows().map(({ abbreviation, where, daylightSaving }) => (
-        <tr key={where}>
-          <td>
-            <code>{abbreviation}</code>
-          </td>
-          <td>{where}</td>
-          <td>{daylightSaving}</td>
-        </tr>
-      ))}
-    </ProseTable>
+    <ProseDataTable slot='zone-table' table={DATE_TIME_TABLES.ZoneTable()} />
   )
 }

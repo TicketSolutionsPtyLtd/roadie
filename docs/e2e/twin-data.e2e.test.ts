@@ -11,7 +11,21 @@ const TABLES: [route: string, slot: string][] = [
   ['/charts/dashboards', 'card-sizes'],
   ['/charts/dashboards', 'copy-limits'],
   ['/charts/dashboards', 'chart-label-limits'],
-  ['/charts/dashboards', 'period-comparisons']
+  ['/charts/dashboards', 'period-comparisons'],
+  ...[
+    'comparison-table',
+    'component-reads',
+    'data-format-reads',
+    'date-style-scale',
+    'future-ladder',
+    'machine-value-reads',
+    'moment-reads',
+    'past-ladder',
+    'phrase-table',
+    'range-table',
+    'time-style-scale',
+    'zone-table'
+  ].map((slot): [string, string] => ['/foundations/date-and-time', slot])
 ]
 
 const CODE: [route: string, slot: string, lang: string][] = [

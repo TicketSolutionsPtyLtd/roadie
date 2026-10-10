@@ -21,6 +21,8 @@ import {
   resolveDateRange
 } from '@oztix/roadie-core/datetime'
 
+import type { TwinCell, TwinTable } from '../../lib/twin-table'
+
 // Fixed moments and a fixed zone, so every output reads the same on every build.
 export const EXAMPLE_ZONE = 'Australia/Sydney'
 /** A show at 7:30pm on Fri 27 Nov 2026 in Sydney. */
@@ -379,3 +381,67 @@ export function phraseRows() {
 export function resolvedWeekend() {
   return resolveDateRange('this-weekend', RANGE_OPTIONS)
 }
+
+const code = (value: string): TwinCell => [{ code: value }]
+
+/** Each value in code, joined by "and". */
+const codeList = (values: string[]): TwinCell =>
+  values.flatMap((value, index) =>
+    index > 0 ? [' and ', { code: value }] : [{ code: value }]
+  )
+
+const readsTable = (
+  head: [string, string],
+  rows: Row[],
+  codeNames = false
+): TwinTable => ({
+  head,
+  rows: rows.map(({ name, reads }) => [
+    codeNames ? code(name) : name,
+    codeList(reads)
+  ])
+})
+
+/** The Date and time page's tables, built once for the page and its markdown twin. */
+export const DATE_TIME_TABLES = {
+  ComparisonTable: () => ({
+    head: ['Comparison', 'Context line', 'Covers'],
+    rows: comparisonRows().map((row) => [
+      code(row.code),
+      row.context,
+      row.covers
+    ])
+  }),
+  ComponentReads: () =>
+    readsTable(['Component', 'Reads'], componentReads(), true),
+  DataFormatReads: () => readsTable(['Where', 'Reads'], dataFormatRows()),
+  DateStyleScale: () => readsTable(['Style', 'Renders'], dateStyleRows(), true),
+  MachineValueReads: () =>
+    readsTable(['Showing', 'datetime'], machineValueRows()),
+  MomentReads: () => readsTable(['Kind', 'Looks like'], momentRows()),
+  PhraseTable: () => ({
+    head: ['Typed', 'Suggests'],
+    rows: phraseRows().map(({ typed, suggests }) => [
+      code(typed),
+      suggests.join(' or ')
+    ])
+  }),
+  RangeTable: () => ({
+    head: ['Value', 'Label', 'Covers'],
+    rows: rangeRows().map((row) => [code(row.code), row.label, row.detail])
+  }),
+  RelativeLadder: (direction: 'past' | 'future') =>
+    readsTable(
+      ['Distance', 'Reads'],
+      direction === 'past' ? pastLadderRows() : futureLadderRows()
+    ),
+  TimeStyleScale: () => readsTable(['Style', 'Renders'], timeStyleRows(), true),
+  ZoneTable: () => ({
+    head: ['Abbreviation', 'Where', 'Daylight saving'],
+    rows: zoneRows().map((row) => [
+      code(row.abbreviation),
+      row.where,
+      row.daylightSaving
+    ])
+  })
+} satisfies Record<string, (...args: never[]) => TwinTable>
