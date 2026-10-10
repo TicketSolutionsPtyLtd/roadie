@@ -190,24 +190,27 @@ export function useSwipeToTurn(
       const box = grid.getBoundingClientRect()
       return vertical ? box.height : box.width
     }
-    const slide = (from: number, to: number, step: 'moderate' | 'slow') =>
-      Promise.all(
+    const slide = (from: number, to: number, step: 'moderate' | 'slow') => {
+      // Read once, from the calendar, so every part shares one timing.
+      const timing = {
+        duration: durationToken(root, step),
+        easing: easingToken(root, 'enter'),
+        fill: 'forwards'
+      } as const
+      return Promise.all(
         parts().map((part) => {
           const animation = part.animate(
             [
               { transform: offset(from, false) },
               { transform: offset(to, false) }
             ],
-            {
-              duration: durationToken(part, step),
-              easing: easingToken(part, 'enter'),
-              fill: 'forwards'
-            }
+            timing
           )
           running.push(animation)
           return animation.finished.catch(() => undefined)
         })
       )
+    }
     // Where the strip sits now, partway through a slide.
     const shift = () => {
       const first = parts()[0]
@@ -366,7 +369,8 @@ export function useSwipeToTurn(
           showPeek(step)
           place(from)
           landing = -travelOf(step)
-          // A lifted finger's turn carries on; a control's turns a whole page.
+          // A lifted finger's turn is already under way; a control's covers a
+          // whole page.
           await slide(from, landing, from ? 'moderate' : 'slow')
         }
         // Torn down mid-slide, such as by the calendar being disabled, or
@@ -435,6 +439,13 @@ export function useSwipeToTurn(
         viewport.querySelectorAll<HTMLElement>('tbody tr'),
         (row) => [row, row.getBoundingClientRect()] as const
       )
+      // Read here, with the rest: the rows leaving aren't in the page when
+      // they animate, so they can't read the tokens themselves.
+      const timing = {
+        duration: durationToken(viewport, 'moderate'),
+        easing: easingToken(viewport, 'enter'),
+        fill: 'forwards'
+      } as const
 
       const mine = ++run
       settling = true
@@ -453,11 +464,7 @@ export function useSwipeToTurn(
         anchor === null ? 0 : (anchor - middle(box)) * GROW
       const moves: Promise<unknown>[] = []
       const animate = (element: Element, frames: Keyframes) => {
-        const animation = element.animate(frames, {
-          duration: durationToken(element, 'moderate'),
-          easing: easingToken(element, 'enter'),
-          fill: 'forwards'
-        })
+        const animation = element.animate(frames, timing)
         shaping.push(animation)
         moves.push(animation.finished.catch(() => undefined))
       }

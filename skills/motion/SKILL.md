@@ -82,9 +82,9 @@ For motion no component gives you, pick the utility for the job.
   `motion-scale` or `motion-slide` for an exit.
 - Don't use Tailwind's `animate-pulse`, `animate-bounce`, or `animate-ping`. A
   pulse is `animate-pulse-subtle`.
-- `animate-spin` is for one thing: a small status icon standing in for a
-  pending action, as Toast's loading icon does. A bar or a surface that waits
-  is `Progress` or a loading utility.
+- Tailwind's `animate-spin` is only for a small status icon that stands in for
+  a pending action, as Toast's loading icon does. Anything larger, or any bar
+  or surface that waits, uses `Progress` or a loading utility.
 
 ## 3. Custom motion: tokens only
 

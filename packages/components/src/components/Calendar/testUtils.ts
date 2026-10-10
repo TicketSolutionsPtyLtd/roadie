@@ -1,8 +1,25 @@
 import { expect } from 'vitest'
 
-// The steepest Calendar's easing, --ease-enter, gets, as a share of the
-// distance per share of the time: it starts at five times its average speed.
-const STEEPEST = 5
+// How far Calendar's easing, --ease-enter (cubic-bezier(0, 0, 0.2, 1)), has
+// gone at a share of its time. It's steepest at the start, so no stretch of a
+// motion covers more than the same stretch from the start does.
+function enterProgress(share: number) {
+  const along = (t: number, control: number) =>
+    3 * (1 - t) * t * t * control + t * t * t
+  let low = 0
+  let high = 1
+  for (let step = 0; step < 30; step++) {
+    const t = (low + high) / 2
+    if (along(t, 0.2) < share) low = t
+    else high = t
+  }
+  return along((low + high) / 2, 1)
+}
+
+// The furthest a day may move in `time` of a `durationMs` motion over
+// `distance`, with a pixel for rounding.
+const furthest = (distance: number, time: number, durationMs: number) =>
+  distance * enterProgress(Math.min(1, time / durationMs)) + 1
 // An engine's animation clock can run up to a frame ahead of the timestamp
 // its frame reports, WebKit's especially, as it counts whole milliseconds.
 const LATE_MS = 1000 / 60
@@ -75,8 +92,7 @@ export function expectOneContinuousMotion(
   for (let i = 1; i < frames.length; i++) {
     const before = frames[i - 1]!
     const now = frames[i]!
-    const limit =
-      (STEEPEST * distance * (elapsed(before, now) + LATE_MS)) / durationMs + 1
+    const limit = furthest(distance, elapsed(before, now) + LATE_MS, durationMs)
     for (const [date, at] of now.days) {
       const was = before.days.get(date)
       if (was === undefined) continue
@@ -169,12 +185,7 @@ const monotonic = (values: number[], label: string) => {
  * easing allows; days coming in only fade in and move one way; rows leaving
  * only fade out and move one way; the height moves one way.
  */
-export function expectOneReshape(
-  frames: ShapeFrame[],
-  durationMs: number,
-  // The view switch decelerates, steepest at its start.
-  steepest = STEEPEST
-) {
+export function expectOneReshape(frames: ShapeFrame[], durationMs: number) {
   const first = frames[0]!
   const last = frames.at(-1)!
   const kept = [...last.days.keys()].filter((date) => first.days.has(date))
@@ -189,7 +200,7 @@ export function expectOneReshape(
         expect(
           Math.abs(path[i]![axis] - path[i - 1]![axis]),
           `${date} ${axis} at frame ${i}`
-        ).toBeLessThanOrEqual((steepest * distance * time) / durationMs + 1)
+        ).toBeLessThanOrEqual(furthest(distance, time, durationMs))
       }
       monotonic(
         path.map((shape) => shape[axis]),
