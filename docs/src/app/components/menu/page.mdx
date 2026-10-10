@@ -144,23 +144,21 @@ Wrap a `Menu.SubmenuTrigger` and its own `Menu.Content` in `Menu.SubmenuRoot`. T
 
 `side` and `align` on `Menu.Content` place the menu. Align to `end` when the trigger sits at the right of a row, so the menu opens back over the row.
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  <Menu>
-    <Menu.Trigger render={<Button>Align end</Button>} />
-    <Menu.Content align='end'>
-      <Menu.Item>Edit</Menu.Item>
-      <Menu.Item>Duplicate</Menu.Item>
-    </Menu.Content>
-  </Menu>
-  <Menu>
-    <Menu.Trigger render={<Button>Side top</Button>} />
-    <Menu.Content side='top'>
-      <Menu.Item>Edit</Menu.Item>
-      <Menu.Item>Duplicate</Menu.Item>
-    </Menu.Content>
-  </Menu>
-</div>
+```tsx-live layout=row gap=3
+<Menu>
+  <Menu.Trigger render={<Button>Align end</Button>} />
+  <Menu.Content align='end'>
+    <Menu.Item>Edit</Menu.Item>
+    <Menu.Item>Duplicate</Menu.Item>
+  </Menu.Content>
+</Menu>
+<Menu>
+  <Menu.Trigger render={<Button>Side top</Button>} />
+  <Menu.Content side='top'>
+    <Menu.Item>Edit</Menu.Item>
+    <Menu.Item>Duplicate</Menu.Item>
+  </Menu.Content>
+</Menu>
 ```
 
 ### States

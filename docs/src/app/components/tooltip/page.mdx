@@ -36,48 +36,44 @@ Pass the control to `Tooltip.Trigger` with `render`. The control keeps its own a
 
 `side` places the tooltip. Beside a vertical toolbar, prefer `inline-start` and `inline-end` so the placement follows the reading direction.
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  {['top', 'bottom', 'inline-start', 'inline-end'].map((side) => (
-    <Tooltip key={side}>
-      <Tooltip.Trigger render={<Button>{side}</Button>} />
-      <Tooltip.Content side={side}>
-        <Tooltip.Arrow />
-        Placed {side}
-      </Tooltip.Content>
-    </Tooltip>
-  ))}
-</div>
+```tsx-live layout=row gap=3
+{['top', 'bottom', 'inline-start', 'inline-end'].map((side) => (
+  <Tooltip key={side}>
+    <Tooltip.Trigger render={<Button>{side}</Button>} />
+    <Tooltip.Content side={side}>
+      <Tooltip.Arrow />
+      Placed {side}
+    </Tooltip.Content>
+  </Tooltip>
+))}
 ```
 
 ### Emphasis
 
 `strong` is the default high-contrast chip, neutral unless you give it an intent. The tooltip renders in a portal, outside the page's intent context, so put the intent class on `Tooltip.Content`. Use `floating`, the same surface as a popover, over dark or busy content where a dark chip would disappear.
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  <Tooltip>
-    <Tooltip.Trigger render={<Button>Strong</Button>} />
-    <Tooltip.Content>
-      <Tooltip.Arrow />
-      Strong
-    </Tooltip.Content>
-  </Tooltip>
-  <Tooltip>
-    <Tooltip.Trigger render={<Button>Strong, accent</Button>} />
-    <Tooltip.Content className='intent-accent'>
-      <Tooltip.Arrow />
-      Strong, accent
-    </Tooltip.Content>
-  </Tooltip>
-  <Tooltip>
-    <Tooltip.Trigger render={<Button>Floating</Button>} />
-    <Tooltip.Content emphasis='floating'>
-      <Tooltip.Arrow />
-      Floating
-    </Tooltip.Content>
-  </Tooltip>
-</div>
+```tsx-live layout=row gap=3
+<Tooltip>
+  <Tooltip.Trigger render={<Button>Strong</Button>} />
+  <Tooltip.Content>
+    <Tooltip.Arrow />
+    Strong
+  </Tooltip.Content>
+</Tooltip>
+<Tooltip>
+  <Tooltip.Trigger render={<Button>Strong, accent</Button>} />
+  <Tooltip.Content className='intent-accent'>
+    <Tooltip.Arrow />
+    Strong, accent
+  </Tooltip.Content>
+</Tooltip>
+<Tooltip>
+  <Tooltip.Trigger render={<Button>Floating</Button>} />
+  <Tooltip.Content emphasis='floating'>
+    <Tooltip.Arrow />
+    Floating
+  </Tooltip.Content>
+</Tooltip>
 ```
 
 ### Shortcut
