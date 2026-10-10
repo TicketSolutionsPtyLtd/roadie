@@ -4,6 +4,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
 
+import { cardSizeTable } from '../src/lib/card-sizes.ts'
 import { DASHBOARD_EXAMPLES } from '../src/lib/dashboard-examples.ts'
 import {
   type LlmsLink,
@@ -14,6 +15,7 @@ import {
   dashboardExampleToMarkdown,
   linkLine,
   llmsIndex,
+  markdownTable,
   pageToMarkdown,
   tokenFamilyToMarkdown
 } from '../src/lib/llms.ts'
@@ -100,6 +102,17 @@ const catalogueMarkdown: Record<string, string> = Object.fromEntries(
 )
 
 const renderers = {
+  CardSizes: () => {
+    const { head, rows } = cardSizeTable()
+    return markdownTable(
+      head,
+      rows.map(({ size, spans, use }) => [
+        `\`${size}\``,
+        ...spans.map(String),
+        use
+      ])
+    )
+  },
   CatalogueIndex: ({ name }: Record<string, string | true>) => {
     if (typeof name !== 'string' || !Object.hasOwn(catalogueMarkdown, name))
       throw new Error(`<CatalogueIndex name="${name}"> names no catalogue`)

@@ -615,3 +615,22 @@ describe('DASHBOARD_EXAMPLES', () => {
     )
   })
 })
+
+describe('pageToMarkdown docs drawings', () => {
+  it('drops a guideline example drawn by a docs component, and keeps its code', () => {
+    const md = pageToMarkdown({
+      title: 'T',
+      mdx: [
+        "import { RowDiagram } from '@/components/RowDiagram'",
+        "import { Button } from '@oztix/roadie-components/button'",
+        '',
+        "<Guideline.Do example={<RowDiagram sizes={['lg']} />} code={`<Card size='lg' />`}>Mirror it.</Guideline.Do>",
+        '',
+        '<Guideline.Dont example={<Button>Go</Button>}>Not this.</Guideline.Dont>'
+      ].join('\n')
+    })
+    expect(md).not.toContain('RowDiagram')
+    expect(md).toContain("<Card size='lg' />")
+    expect(md).toContain('<Button>Go</Button>')
+  })
+})

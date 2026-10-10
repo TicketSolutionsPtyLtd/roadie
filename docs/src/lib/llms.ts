@@ -248,6 +248,12 @@ function richAttribute(node: JsxElement, name: string, page: Page): Node[] {
   return toString(paragraph(...children)) ? [paragraph(...children)] : []
 }
 
+/** An example whose root component comes from the docs app draws for the site, so its code isn't Roadie's to copy. */
+function isDocsDrawing(example: string, page: Page) {
+  const root = example.match(/^\s*<([\w]+)/)?.[1]
+  return root !== undefined && page.docsOnly.has(root)
+}
+
 function guideline(
   node: JsxElement,
   children: RootContent[],
@@ -270,13 +276,31 @@ function guideline(
   return [
     ...(label ? [paragraph(strong(label))] : []),
     ...richAttribute(node, 'description', page),
-    ...(example ? [tsx(dedent(example))] : []),
+    ...(example && !isDocsDrawing(example, page) ? [tsx(dedent(example))] : []),
     ...(code ? [tsx(dedent(code))] : []),
     ...children
   ]
 }
 
-type Page = Required<Pick<MarkdownPage, 'components'>> & MarkdownPage
+type Page = Required<Pick<MarkdownPage, 'components'>> &
+  MarkdownPage & { docsOnly: Set<string> }
+
+/** Names the page imports from the docs app (`@/…`). */
+function docsOnlyNames(tree: Root) {
+  const names = new Set<string>()
+  for (const node of tree.children) {
+    if (node.type !== 'mdxjsEsm') continue
+    for (const statement of node.data?.estree?.body ?? []) {
+      if (
+        statement.type === 'ImportDeclaration' &&
+        String(statement.source.value).startsWith('@/')
+      )
+        for (const specifier of statement.specifiers)
+          names.add(specifier.local.name)
+    }
+  }
+  return names
+}
 
 function transform(node: Node, page: Page): Node[] {
   switch (node.type) {
@@ -349,7 +373,7 @@ export function pageToMarkdown(page: MarkdownPage): string {
     .use(remarkGfm)
     .use(remarkStringify, { bullet: '-', fences: true, rule: '-' })
   const tree = processor.parse(page.mdx)
-  const state = { components: [], ...page }
+  const state = { components: [], docsOnly: docsOnlyNames(tree), ...page }
   const [body] = transform(tree, state) as [Root]
   const trailingReference = apiReference(state.components).flatMap((child) =>
     transform(child, state)
@@ -444,7 +468,7 @@ const lightAndDark = ({ light, dark }: TokenValue) =>
     ? `${cell(light)} / ${cell(dark)}`
     : cell(light ?? dark)
 
-function table(header: string[], rows: string[][]) {
+export function markdownTable(header: string[], rows: string[][]) {
   return [
     `| ${header.join(' | ')} |`,
     `| ${header.map(() => '---').join(' | ')} |`,
@@ -477,7 +501,7 @@ function tokenGroup(group: string, tokens: TokenRow[], depth: number) {
   ]
   const sections = [
     `${'#'.repeat(depth)} ${group}`,
-    table(
+    markdownTable(
       columns.map(([name]) => name),
       tokens.map((token) => columns.map(([, value]) => value(token)))
     )
@@ -488,7 +512,7 @@ function tokenGroup(group: string, tokens: TokenRow[], depth: number) {
   if (intents.length > 0) {
     sections.push(
       'Where an intent sets its own value, light / dark:',
-      table(
+      markdownTable(
         ['Token', ...intents],
         tokens
           .filter((token) => token.byIntent)

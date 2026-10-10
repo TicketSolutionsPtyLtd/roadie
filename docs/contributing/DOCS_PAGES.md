@@ -26,12 +26,11 @@ with its skeleton and the rules on top of these.
   `/appearance`, the token explorer pages under `/tokens/`, the reference
   dashboards (`/charts/audience-dashboard`, `/charts/portfolio-dashboard`, and
   `/charts/show-dashboard`), `/examples/`, `/debug/`, and redirects.
-- The foundations pages other than Accessibility, Colors, Date and time,
-  Elevation, Forms, Iconography, Interactions, Layout, Linking, Navigation,
-  Performance, Prose, Records, Shape, Tables, Theming, Typography, and View
-  transitions, `/charts/dashboards`, and `/charts/data-visualisation` are
-  content pages still in `page.tsx`. They move to MDX (INNO-1159); never add
-  another.
+- `/charts/data-visualisation` and the foundations pages other than
+  Accessibility, Colors, Date and time, Elevation, Forms, Iconography,
+  Interactions, Layout, Linking, Navigation, Performance, Prose, Records, Shape,
+  Tables, Theming, Typography, and View transitions are content pages still in
+  `page.tsx`. They move to MDX (INNO-1159); never add another.
 
 ## Metadata
 
