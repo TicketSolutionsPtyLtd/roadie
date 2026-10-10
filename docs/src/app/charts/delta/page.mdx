@@ -27,23 +27,19 @@ import { Delta } from '@oztix/roadie-components/delta'
 
 ### Formats
 
-```tsx-live
-<div className='flex flex-wrap gap-4'>
-  <Delta value={0.04} format='percent' />
-  <Delta value={-9} format='points' />
-  <Delta value={1250} format='currency' />
-  <Delta value={48200} format='compact' />
-</div>
+```tsx-live layout=row gap=4
+<Delta value={0.04} format='percent' />
+<Delta value={-9} format='points' />
+<Delta value={1250} format='currency' />
+<Delta value={48200} format='compact' />
 ```
 
 ### When lower is better
 
-```tsx-live
-<div className='flex flex-wrap gap-4'>
-  <Delta value={-0.003} format='percent' goodWhen='down' />
-  <Delta value={12} goodWhen='down' />
-  <Delta value={6} goodWhen='neither' />
-</div>
+```tsx-live layout=row gap=4
+<Delta value={-0.003} format='percent' goodWhen='down' />
+<Delta value={12} goodWhen='down' />
+<Delta value={6} goodWhen='neither' />
 ```
 
 ### Against a baseline
@@ -54,13 +50,11 @@ import { Delta } from '@oztix/roadie-components/delta'
 
 ### States
 
-```tsx-live
-<div className='grid gap-2'>
-  <p className='text-sm text-subtle'>No change</p>
-  <Delta value={0} format='percent' />
-  <p className='text-sm text-subtle'>Not available</p>
-  <Delta value={Number.NaN} format='points' />
-</div>
+```tsx-live layout=stack gap=2
+{/* No change */}
+<Delta value={0} format='percent' />
+{/* Not available */}
+<Delta value={Number.NaN} format='points' />
 ```
 
 ## Guidelines

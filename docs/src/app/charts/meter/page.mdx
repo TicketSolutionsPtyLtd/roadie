@@ -21,33 +21,27 @@ import { Meter } from '@oztix/roadie-components/meter'
 
 ### Default
 
-```tsx-live
-<div className='w-48'>
-  <Meter label='Tickets sold' value={1842} max={2400} />
-</div>
+```tsx-live width=48
+<Meter label='Tickets sold' value={1842} max={2400} />
 ```
 
 ### Target
 
-```tsx-live
-<div className='w-48'>
-  <Meter label='Tickets sold' value={1842} max={2400} target={2040} />
-</div>
+```tsx-live width=48
+<Meter label='Tickets sold' value={1842} max={2400} target={2040} />
 ```
 
 ### Segments
 
-```tsx-live
-<div className='w-48'>
-  <Meter
-    label='Capacity used'
-    max={2400}
-    segments={[
-      { value: 1842, label: 'Sold', tone: 'highlight' },
-      { value: 200, label: 'Held', tone: 'context' }
-    ]}
-  />
-</div>
+```tsx-live width=48
+<Meter
+  label='Capacity used'
+  max={2400}
+  segments={[
+    { value: 1842, label: 'Sold', tone: 'highlight' },
+    { value: 200, label: 'Held', tone: 'context' }
+  ]}
+/>
 ```
 
 ## Guidelines

@@ -22,67 +22,57 @@ import { StatTile } from '@oztix/roadie-components/stat-tile'
 
 ### Default
 
-```tsx-live
-<div className='w-72'>
-  <StatTile label='Tickets sold' value={1842} delta={{ value: 214 }} context='This week, of 2,400' />
-</div>
+```tsx-live width=72
+<StatTile label='Tickets sold' value={1842} delta={{ value: 214 }} context='This week, of 2,400' />
 ```
 
 ### With a trend
 
-```tsx-live
-<div className='w-72'>
-  <StatTile
-    label='Tickets sold'
-    value={1842}
-    delta={{ value: 214 }}
-    context='Last 20 days'
-    trend={[40, 62, 70, 88, 95, 120, 131, 160, 172, 190, 214, 240, 262, 300, 330, 351, 380, 420, 470, 520]}
-  />
-</div>
+```tsx-live width=72
+<StatTile
+  label='Tickets sold'
+  value={1842}
+  delta={{ value: 214 }}
+  context='Last 20 days'
+  trend={[40, 62, 70, 88, 95, 120, 131, 160, 172, 190, 214, 240, 262, 300, 330, 351, 380, 420, 470, 520]}
+/>
 ```
 
 ### With a target
 
-```tsx-live
-<div className='w-72'>
-  <StatTile
-    label='Sell-through'
-    value={0.77}
-    format='percent'
-    delta={{ value: 9, format: 'points' }}
-    context='Week target is 85%'
-    trend={[0.31, 0.36, 0.41, 0.46, 0.52, 0.57, 0.62, 0.67, 0.71, 0.77]}
-    reference={{ value: 0.85, label: 'Target' }}
-  />
-</div>
+```tsx-live width=72
+<StatTile
+  label='Sell-through'
+  value={0.77}
+  format='percent'
+  delta={{ value: 9, format: 'points' }}
+  context='Week target is 85%'
+  trend={[0.31, 0.36, 0.41, 0.46, 0.52, 0.57, 0.62, 0.67, 0.71, 0.77]}
+  reference={{ value: 0.85, label: 'Target' }}
+/>
 ```
 
 ### When lower is better
 
-```tsx-live
-<div className='w-72'>
-  <StatTile
-    label='Refund rate'
-    value={0.012}
-    format='percent'
-    delta={{ value: -0.3, format: 'points', goodWhen: 'down' }}
-    context='On last month'
-  />
-</div>
+```tsx-live width=72
+<StatTile
+  label='Refund rate'
+  value={0.012}
+  format='percent'
+  delta={{ value: -0.3, format: 'points', goodWhen: 'down' }}
+  context='On last month'
+/>
 ```
 
 ### States
 
-```tsx-live
-<div className='grid w-72 gap-4'>
-  <p className='text-sm text-subtle'>Loading</p>
-  <StatTile label='Tickets sold' value={0} state='loading' />
-  <p className='text-sm text-subtle'>Not enough history</p>
-  <StatTile label='Tickets sold' value={180} trend={[95, 85]} context='On sale 2 days' />
-  <p className='text-sm text-subtle'>Stale</p>
-  <StatTile label='Tickets sold' value={1842} state='stale' staleLabel='As of 10:42am' />
-</div>
+```tsx-live layout=stack width=72
+{/* Loading */}
+<StatTile label='Tickets sold' value={0} state='loading' />
+{/* Not enough history */}
+<StatTile label='Tickets sold' value={180} trend={[95, 85]} context='On sale 2 days' />
+{/* Stale */}
+<StatTile label='Tickets sold' value={1842} state='stale' staleLabel='As of 10:42am' />
 ```
 
 ## Guidelines

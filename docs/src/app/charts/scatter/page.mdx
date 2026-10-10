@@ -43,23 +43,21 @@ import { Scatter } from '@oztix/roadie-charts/scatter'
 
 ### Quadrants and highlight
 
-```tsx-live
-<div className='w-180 max-w-full'>
-  <Chart label='Portfolio' source='Oztix sales.' size='full'>
-    <Scatter
-      data={[['Kazoo Hollow Room, Fri', 112, 0.61, 2400], ['Antler Kettle Hall, Sat', 81, 0.4, 1800], ['Saltbush Trumpet Ballroom, Thu', 124, 0.88, 900], ['Kazoo Hollow Room, Sun', 96, 0.52, 2400], ['Antler Kettle Hall, Fri', 131, 0.72, 1800]].map(([show, pace, sold, capacity]) => ({ show, pace, sold, capacity }))}
-      x='pace'
-      y='sold'
-      xFormat='index'
-      format='percent'
-      size='capacity'
-      label='show'
-      highlight='Antler Kettle Hall, Sat'
-      quadrants={{ x: 100, y: 0.5, labels: { topLeft: 'Sold, slowing', topRight: 'On a roll', bottomLeft: 'Needs a push', bottomRight: 'Catching up' } }}
-      takeaway='Antler Kettle Hall on Saturday is behind on both'
-    />
-  </Chart>
-</div>
+```tsx-live width=180
+<Chart label='Portfolio' source='Oztix sales.' size='full'>
+  <Scatter
+    data={[['Kazoo Hollow Room, Fri', 112, 0.61, 2400], ['Antler Kettle Hall, Sat', 81, 0.4, 1800], ['Saltbush Trumpet Ballroom, Thu', 124, 0.88, 900], ['Kazoo Hollow Room, Sun', 96, 0.52, 2400], ['Antler Kettle Hall, Fri', 131, 0.72, 1800]].map(([show, pace, sold, capacity]) => ({ show, pace, sold, capacity }))}
+    x='pace'
+    y='sold'
+    xFormat='index'
+    format='percent'
+    size='capacity'
+    label='show'
+    highlight='Antler Kettle Hall, Sat'
+    quadrants={{ x: 100, y: 0.5, labels: { topLeft: 'Sold, slowing', topRight: 'On a roll', bottomLeft: 'Needs a push', bottomRight: 'Catching up' } }}
+    takeaway='Antler Kettle Hall on Saturday is behind on both'
+  />
+</Chart>
 ```
 
 ## Guidelines

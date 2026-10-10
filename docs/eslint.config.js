@@ -160,6 +160,7 @@ const config = [
       'src/app/components/{autocomplete,checkbox,combobox,date-field,date-picker,date-range-picker,field,input,number-field,otp-field,query-field,radio-group,select,slider,textarea,time-field}/page.mdx/*.{tsx,jsx}',
       'src/app/components/{breadcrumb,carousel,collapsible,dialog,drawer,list,menu,navigator,pane,popover,steps,tabs,toast,toggle-group,tooltip}/page.mdx/*.{tsx,jsx}',
       'src/app/components/{avatar,callout,card,empty-state,icon-tile,kbd,logo,mark,progress,qr-code,skeleton,spot-illustration}/page.mdx/*.{tsx,jsx}',
+      'src/app/charts/{delta,funnel,heatmap,histogram,line-chart,meter,ranked-bars,scatter,small-multiples,sparkline,stacked-bars,stat-tile}/page.mdx/*.{tsx,jsx}',
       'src/app/foundations/{date-and-time,iconography,interactions,layout,linking,navigation,records,theming,typography}/page.mdx/*.{tsx,jsx}'
     ],
     plugins: { roadie },
