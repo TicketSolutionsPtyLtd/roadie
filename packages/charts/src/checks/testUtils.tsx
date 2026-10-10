@@ -250,13 +250,13 @@ const knownLowContrast: KnownLowContrast[] = [
     matches: highlightEndLabel,
     floor: 62,
     theme: 'light',
-    ticket: 'https://oztix.atlassian.net/browse/INNO-1237'
+    ticket: 'https://oztix.atlassian.net/browse/INNO-1242'
   },
   {
     matches: highlightEndLabel,
     floor: 71,
     theme: 'dark',
-    ticket: 'https://oztix.atlassian.net/browse/INNO-1237'
+    ticket: 'https://oztix.atlassian.net/browse/INNO-1242'
   }
 ]
 

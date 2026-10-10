@@ -496,11 +496,32 @@ const currentTheme = (): Theme =>
 export function expectApcaContrast(
   scenario: Pick<Scenario, 'shortLabels'> = {}
 ) {
-  const failures = measureContrast(scenario)
+  const pairs = measureContrast(scenario)
+  const failures = pairs
     .filter((pair) => pair.lc < minimumLc[pair.role] && !isKnownLow(pair))
     .map(
       ({ role, element, what, lc }) =>
         `${role} needs Lc ${minimumLc[role]}, has ${lc.toFixed(1)}: ${what} in ${element.outerHTML.slice(0, 120)}`
     )
-  expect(failures).toEqual([])
+  expect([...failures, ...misnamedShortLabels(pairs, scenario)]).toEqual([])
+}
+
+// A short label that isn't 14px semibold, or a selector that names no text,
+// means the scenario's claim is wrong, even when the text clears Lc 75.
+function misnamedShortLabels(
+  pairs: Pair[],
+  { shortLabels }: Pick<Scenario, 'shortLabels'>
+) {
+  if (!shortLabels) return []
+  const named = pairs.filter(
+    ({ role, element }) =>
+      role !== 'non-text UI' && element.closest(shortLabels)
+  )
+  if (named.length === 0) return [`short labels ${shortLabels} match no text`]
+  return named
+    .filter(({ role }) => role === 'body text')
+    .map(
+      ({ element, what }) =>
+        `short label isn't 14px or larger and semibold: ${what} in ${element.outerHTML.slice(0, 120)}`
+    )
 }
