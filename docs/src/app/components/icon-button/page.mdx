@@ -29,112 +29,93 @@ Always provide an `aria-label` since there is no visible text.
 
 ### Emphasis
 
-```tsx-live
-<div className='flex flex-row flex-wrap gap-2'>
-  <IconButton aria-label='Strong' emphasis='strong'>
-    <Star weight='bold' />
-  </IconButton>
-  <IconButton aria-label='Normal' emphasis='normal'>
-    <Star weight='bold' />
-  </IconButton>
-  <IconButton aria-label='Subtle' emphasis='subtle'>
-    <Star weight='bold' />
-  </IconButton>
-  <IconButton aria-label='Subtler' emphasis='subtler'>
-    <Star weight='bold' />
-  </IconButton>
-</div>
+```tsx-live layout=row
+<IconButton aria-label='Strong' emphasis='strong'>
+  <Star weight='bold' />
+</IconButton>
+<IconButton aria-label='Normal' emphasis='normal'>
+  <Star weight='bold' />
+</IconButton>
+<IconButton aria-label='Subtle' emphasis='subtle'>
+  <Star weight='bold' />
+</IconButton>
+<IconButton aria-label='Subtler' emphasis='subtler'>
+  <Star weight='bold' />
+</IconButton>
 ```
 
 ### Sizes
 
 The default size is `md`. All sizes maintain square proportions.
 
-```tsx-live
-<div className='flex flex-row flex-wrap items-center gap-2'>
-  <IconButton aria-label='Extra small' size='xs'>
-    <Heart weight='bold' />
-  </IconButton>
-  <IconButton aria-label='Small' size='sm'>
-    <Heart weight='bold' />
-  </IconButton>
-  <IconButton aria-label='Medium' size='md'>
-    <Heart weight='bold' />
-  </IconButton>
-  <IconButton aria-label='Large' size='lg'>
-    <Heart weight='bold' />
-  </IconButton>
-</div>
+```tsx-live layout=row
+<IconButton aria-label='Extra small' size='xs'>
+  <Heart weight='bold' />
+</IconButton>
+<IconButton aria-label='Small' size='sm'>
+  <Heart weight='bold' />
+</IconButton>
+<IconButton aria-label='Medium' size='md'>
+  <Heart weight='bold' />
+</IconButton>
+<IconButton aria-label='Large' size='lg'>
+  <Heart weight='bold' />
+</IconButton>
 ```
 
 The legacy `icon-xs` / `icon-sm` / `icon-md` / `icon-lg` size literals are still accepted for backwards compatibility (marked `@deprecated` in TypeScript) but new code should use the plain `xs` / `sm` / `md` / `lg` names above.
 
 ### Intents
 
-```tsx-live
-<div className='grid gap-2'>
-  <div className='flex flex-row flex-wrap gap-2'>
-    <IconButton aria-label='Neutral' emphasis='strong' intent='neutral'><CheckCircle weight='bold' /></IconButton>
-    <IconButton aria-label='Accent' emphasis='strong' intent='accent'><CheckCircle weight='bold' /></IconButton>
-    <IconButton aria-label='Brand' emphasis='strong' intent='brand'><CheckCircle weight='bold' /></IconButton>
-    <IconButton aria-label='Info' emphasis='strong' intent='info'><CheckCircle weight='bold' /></IconButton>
-    <IconButton aria-label='Success' emphasis='strong' intent='success'><CheckCircle weight='bold' /></IconButton>
-    <IconButton aria-label='Warning' emphasis='strong' intent='warning'><CheckCircle weight='bold' /></IconButton>
-    <IconButton aria-label='Danger' emphasis='strong' intent='danger'><CheckCircle weight='bold' /></IconButton>
-  </div>
-  <div className='flex flex-row flex-wrap gap-2'>
-    <IconButton aria-label='Neutral' emphasis='normal' intent='neutral'><CheckCircle weight='bold' /></IconButton>
-    <IconButton aria-label='Accent' emphasis='normal' intent='accent'><CheckCircle weight='bold' /></IconButton>
-    <IconButton aria-label='Brand' emphasis='normal' intent='brand'><CheckCircle weight='bold' /></IconButton>
-    <IconButton aria-label='Info' emphasis='normal' intent='info'><CheckCircle weight='bold' /></IconButton>
-    <IconButton aria-label='Success' emphasis='normal' intent='success'><CheckCircle weight='bold' /></IconButton>
-    <IconButton aria-label='Warning' emphasis='normal' intent='warning'><CheckCircle weight='bold' /></IconButton>
-    <IconButton aria-label='Danger' emphasis='normal' intent='danger'><CheckCircle weight='bold' /></IconButton>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Strong */}
+<IconButton aria-label='Neutral' emphasis='strong' intent='neutral'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Accent' emphasis='strong' intent='accent'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Brand' emphasis='strong' intent='brand'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Info' emphasis='strong' intent='info'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Success' emphasis='strong' intent='success'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Warning' emphasis='strong' intent='warning'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Danger' emphasis='strong' intent='danger'><CheckCircle weight='bold' /></IconButton>
+{/* Normal */}
+<IconButton aria-label='Neutral' emphasis='normal' intent='neutral'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Accent' emphasis='normal' intent='accent'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Brand' emphasis='normal' intent='brand'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Info' emphasis='normal' intent='info'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Success' emphasis='normal' intent='success'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Warning' emphasis='normal' intent='warning'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Danger' emphasis='normal' intent='danger'><CheckCircle weight='bold' /></IconButton>
 ```
 
 ### States
 
-```tsx-live
-<div className='grid gap-4'>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <div><IconButton aria-label='Favorite'><Heart weight='bold' /></IconButton></div>
-  </div>
-  <div className='grid gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <div><IconButton aria-label='Favorite' disabled><Heart weight='bold' /></IconButton></div>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Default */}
+<IconButton aria-label='Favorite'><Heart weight='bold' /></IconButton>
+{/* Disabled */}
+<IconButton aria-label='Favorite' disabled><Heart weight='bold' /></IconButton>
 ```
 
 ### Href
 
 Pass `href` to render the icon button as a routed anchor. Roadie picks the right element + safety attributes based on the href shape: internal routes go through your configured [`RoadieLinkProvider`](/foundations/linking); external (`https://…`) auto-render with `target='_blank' rel='noopener noreferrer'`; protocol hrefs (`mailto:` / `tel:` / `sms:`) render plain anchors.
 
-```tsx-live
-<div className='flex flex-row flex-wrap items-center gap-3'>
-  {/* Internal routes through RoadieLinkProvider */}
-  <IconButton aria-label='View cart' href='/cart' emphasis='strong' intent='accent'>
-    <ShoppingCart weight='bold' />
-  </IconButton>
-
-  {/* External gets target='_blank' rel='noopener noreferrer' */}
-  <IconButton aria-label='Open Oztix in a new tab' href='https://oztix.com.au' emphasis='normal'>
-    <ArrowSquareOut weight='bold' />
-  </IconButton>
-
-  {/* Protocol renders a plain <a>, no target/rel */}
-  <IconButton aria-label='Email support' href='mailto:hello@oztix.com.au' emphasis='subtle'>
-    <Envelope weight='bold' />
-  </IconButton>
-
-  {/* Protocol renders a plain <a> */}
-  <IconButton aria-label='Call support' href='tel:+61400000000' emphasis='subtle'>
-    <Phone weight='bold' />
-  </IconButton>
-</div>
+```tsx-live layout=row gap=4
+{/* Internal */}
+<IconButton aria-label='View cart' href='/cart' emphasis='strong' intent='accent'>
+  <ShoppingCart weight='bold' />
+</IconButton>
+{/* External */}
+<IconButton aria-label='Open Oztix in a new tab' href='https://oztix.com.au' emphasis='normal'>
+  <ArrowSquareOut weight='bold' />
+</IconButton>
+{/* Email */}
+<IconButton aria-label='Email support' href='mailto:hello@oztix.com.au' emphasis='subtle'>
+  <Envelope weight='bold' />
+</IconButton>
+{/* Phone */}
+<IconButton aria-label='Call support' href='tel:+61400000000' emphasis='subtle'>
+  <Phone weight='bold' />
+</IconButton>
 ```
 
 Hover each button. The browser status bar shows the resolved `href` exactly as Roadie rendered it (note the `mailto:` / `tel:` URLs vs the routed paths). See [Linking](/foundations/linking) for the full reference, including `external` / `target` / `rel` overrides.

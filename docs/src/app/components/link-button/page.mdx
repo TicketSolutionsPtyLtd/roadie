@@ -32,49 +32,41 @@ import { LinkButton, LinkIconButton } from '@oztix/roadie-components'
 
 ### Emphasis
 
-```tsx-live
-<div className='flex flex-row flex-wrap gap-2'>
-  <LinkButton href='#' emphasis='strong'>Strong</LinkButton>
-  <LinkButton href='#' emphasis='normal'>Normal</LinkButton>
-  <LinkButton href='#' emphasis='subtle'>Subtle</LinkButton>
-  <LinkButton href='#' emphasis='subtler'>Subtler</LinkButton>
-</div>
+```tsx-live layout=row
+<LinkButton href='#' emphasis='strong'>Strong</LinkButton>
+<LinkButton href='#' emphasis='normal'>Normal</LinkButton>
+<LinkButton href='#' emphasis='subtle'>Subtle</LinkButton>
+<LinkButton href='#' emphasis='subtler'>Subtler</LinkButton>
 ```
 
 ### Sizes
 
-```tsx-live
-<div className='flex flex-row flex-wrap items-center gap-2'>
-  <LinkButton href='#' size='xs'>Extra small</LinkButton>
-  <LinkButton href='#' size='sm'>Small</LinkButton>
-  <LinkButton href='#' size='md'>Medium</LinkButton>
-  <LinkButton href='#' size='lg'>Large</LinkButton>
-</div>
+```tsx-live layout=row
+<LinkButton href='#' size='xs'>Extra small</LinkButton>
+<LinkButton href='#' size='sm'>Small</LinkButton>
+<LinkButton href='#' size='md'>Medium</LinkButton>
+<LinkButton href='#' size='lg'>Large</LinkButton>
 ```
 
 ### Intents
 
-```tsx-live
-<div className='grid gap-2'>
-  <div className='flex flex-row flex-wrap gap-2'>
-    <LinkButton href='#' emphasis='strong' intent='neutral'>Neutral</LinkButton>
-    <LinkButton href='#' emphasis='strong' intent='accent'>Accent</LinkButton>
-    <LinkButton href='#' emphasis='strong' intent='brand'>Brand</LinkButton>
-    <LinkButton href='#' emphasis='strong' intent='info'>Info</LinkButton>
-    <LinkButton href='#' emphasis='strong' intent='success'>Success</LinkButton>
-    <LinkButton href='#' emphasis='strong' intent='warning'>Warning</LinkButton>
-    <LinkButton href='#' emphasis='strong' intent='danger'>Danger</LinkButton>
-  </div>
-  <div className='flex flex-row flex-wrap gap-2'>
-    <LinkButton href='#' emphasis='normal' intent='neutral'>Neutral</LinkButton>
-    <LinkButton href='#' emphasis='normal' intent='accent'>Accent</LinkButton>
-    <LinkButton href='#' emphasis='normal' intent='brand'>Brand</LinkButton>
-    <LinkButton href='#' emphasis='normal' intent='info'>Info</LinkButton>
-    <LinkButton href='#' emphasis='normal' intent='success'>Success</LinkButton>
-    <LinkButton href='#' emphasis='normal' intent='warning'>Warning</LinkButton>
-    <LinkButton href='#' emphasis='normal' intent='danger'>Danger</LinkButton>
-  </div>
-</div>
+```tsx-live layout=stack
+{/* Strong */}
+<LinkButton href='#' emphasis='strong' intent='neutral'>Neutral</LinkButton>
+<LinkButton href='#' emphasis='strong' intent='accent'>Accent</LinkButton>
+<LinkButton href='#' emphasis='strong' intent='brand'>Brand</LinkButton>
+<LinkButton href='#' emphasis='strong' intent='info'>Info</LinkButton>
+<LinkButton href='#' emphasis='strong' intent='success'>Success</LinkButton>
+<LinkButton href='#' emphasis='strong' intent='warning'>Warning</LinkButton>
+<LinkButton href='#' emphasis='strong' intent='danger'>Danger</LinkButton>
+{/* Normal */}
+<LinkButton href='#' emphasis='normal' intent='neutral'>Neutral</LinkButton>
+<LinkButton href='#' emphasis='normal' intent='accent'>Accent</LinkButton>
+<LinkButton href='#' emphasis='normal' intent='brand'>Brand</LinkButton>
+<LinkButton href='#' emphasis='normal' intent='info'>Info</LinkButton>
+<LinkButton href='#' emphasis='normal' intent='success'>Success</LinkButton>
+<LinkButton href='#' emphasis='normal' intent='warning'>Warning</LinkButton>
+<LinkButton href='#' emphasis='normal' intent='danger'>Danger</LinkButton>
 ```
 
 ### With custom component (legacy)
