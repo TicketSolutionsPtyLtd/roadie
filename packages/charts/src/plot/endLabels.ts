@@ -1,4 +1,4 @@
-import { text } from '@tanstack/charts'
+import { dot, text } from '@tanstack/charts'
 import type { ChartMark } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
 
@@ -21,6 +21,9 @@ const MAX_END_LABELS = 4
 const CHAR_WIDTH = 0.62
 const LABEL_PADDING = 12
 const Y_AXIS_PADDING = 8
+const LABEL_DX = 8
+const MARKER_RADIUS = 3
+const MARKER_ROOM = 2 * MARKER_RADIUS + 4
 
 export const textWidth = (text: string, frame: PlotFrame) =>
   Math.ceil(text.length * frame.fontSize * CHAR_WIDTH)
@@ -102,38 +105,69 @@ export function endLabelsFit(count: number, frame: PlotFrame) {
   return frame.band !== 'narrow' && count <= MAX_END_LABELS
 }
 
+const isHighlight = (label: EndLabel) => label.tone === 'highlight'
+
+const markerRoom = (labels: readonly EndLabel[]) =>
+  labels.some(isHighlight) ? MARKER_ROOM : 0
+
 export const endLabelRoom = (labels: readonly EndLabel[], frame: PlotFrame) =>
   textRoom(
     labels.map((label) => label.text),
     frame,
-    LABEL_PADDING
+    LABEL_PADDING + markerRoom(labels)
   )
 
-export function endLabelMark(
+/**
+ * The highlight is a data colour, under body text's contrast, so a highlighted
+ * label is written in text colour beside a dot in the highlight.
+ * `xPerPixel` turns the dot's pixel offset into x units.
+ */
+export function endLabelMarks(
   labels: readonly EndLabel[],
-  x: number | string,
+  x: number,
+  xPerPixel: number,
   paint: ChartPaint,
   frame: PlotFrame
-): ChartMark {
+): ChartMark[] {
   const tone = {
     value: paint.value,
-    highlight: paint.highlight,
+    highlight: paint.label,
     label: paint.label
   }
-  return decorative(
-    text(
-      labels.map((label) => ({ ...label, x })),
-      {
-        id: 'label-end',
-        x: 'x',
-        y: 'y',
-        text: 'text',
-        dx: 8,
-        anchor: 'start',
-        fontSize: frame.fontSize,
-        fontWeight: 600,
-        fill: (label) => tone[label.tone]
-      }
+  const highlighted = labels.filter(isHighlight)
+  const markerX = x + (LABEL_DX + MARKER_RADIUS) * xPerPixel
+  return [
+    ...(highlighted.length
+      ? [
+          decorative(
+            dot(
+              highlighted.map((label) => ({ ...label, x: markerX })),
+              {
+                id: 'end-marker',
+                x: 'x',
+                y: 'y',
+                r: MARKER_RADIUS,
+                fill: paint.highlight
+              }
+            )
+          )
+        ]
+      : []),
+    decorative(
+      text(
+        labels.map((label) => ({ ...label, x })),
+        {
+          id: 'label-end',
+          x: 'x',
+          y: 'y',
+          text: 'text',
+          dx: LABEL_DX + markerRoom(labels),
+          anchor: 'start',
+          fontSize: frame.fontSize,
+          fontWeight: 600,
+          fill: (label) => tone[label.tone]
+        }
+      )
     )
-  )
+  ]
 }

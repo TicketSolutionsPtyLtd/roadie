@@ -18,7 +18,7 @@ import {
 import { annotationMarks, annotationsOnAxis } from '../plot/annotations'
 import {
   type EndLabel,
-  endLabelMark,
+  endLabelMarks,
   endLabelRoom,
   endLabelsFit,
   labelGap,
@@ -374,7 +374,15 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
       frame,
       pixels
     ),
-    ...(ends.length ? [endLabelMark(ends, xDomain[1], paint, frame)] : [])
+    ...(ends.length
+      ? endLabelMarks(
+          ends,
+          xDomain[1],
+          pixelsToX(frame, 1, xDomain, margins),
+          paint,
+          frame
+        )
+      : [])
   ]
 
   return defineChart({

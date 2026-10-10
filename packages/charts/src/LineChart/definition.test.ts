@@ -142,6 +142,43 @@ describe('lineChart', () => {
     )
   })
 
+  it('writes the highlighted end label in text colour beside a highlight dot', () => {
+    const scene = createChartScene(lineChart.build(paceExample, paint, frame), {
+      width: 640,
+      height: 260
+    })
+    const label = findNode(
+      scene.nodes,
+      (n) => n.kind === 'label' && n.text.startsWith('Forecast')
+    )
+    const marker = findNode(scene.nodes, (n) => n.key.startsWith('end-marker:'))
+    if (label?.kind !== 'label') throw new Error('No forecast label')
+    if (marker?.kind !== 'dot') throw new Error('No end marker')
+    expect(label.style?.fill).toBe(paint.label)
+    expect(marker.style?.fill).toBe(paint.highlight)
+    expect(Math.abs(marker.y - label.y)).toBeLessThan(1)
+    expect(marker.x + marker.radius).toBeLessThan(label.x)
+  })
+
+  it('makes room for the highlight dot between the line end and the labels', () => {
+    const scene = createChartScene(lineChart.build(paceExample, paint, frame), {
+      width: 640,
+      height: 260
+    })
+    const marker = findNode(scene.nodes, (n) => n.key.startsWith('end-marker:'))
+    if (marker?.kind !== 'dot') throw new Error('No end marker')
+    const lineEnd = Math.max(...scene.points.map((p) => p.x))
+    expect(marker.x - marker.radius).toBeGreaterThan(lineEnd)
+    for (const text of ['Forecast 96%', 'Similar shows 86%', 'Target 85%']) {
+      const label = findNode(
+        scene.nodes,
+        (n) => n.kind === 'label' && n.text === text
+      )
+      if (label?.kind !== 'label') throw new Error(`No ${text} label`)
+      expect(label.x + textWidth(text, frame)).toBeLessThanOrEqual(640)
+    }
+  })
+
   it('sorts rows by x and keeps gaps as gaps', () => {
     const points = toLinePoints({
       data: [...days([1, null, 3])].reverse(),

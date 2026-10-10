@@ -90,10 +90,17 @@ describe('Collapsible.Text', () => {
     })
   }
 
-  it('shows no trigger or fade for text that fits', async () => {
-    const { content, trigger } = setup(960, { text: 'Standing only.' })
-    await new Promise((resolve) => requestAnimationFrame(resolve))
-    expect(trigger()).toBeNull()
+  it('shows no trigger or fade once the text fits', async () => {
+    const sentence =
+      'General admission to Harbour Moth at Iguana Teapot Hall in Fitzroy.'
+    const { root, content, trigger } = setup(120, { text: sentence })
+    // The trigger appearing proves the text is measured, so its absence
+    // after the resize is a result, not a check that ran too early.
+    await expect.poll(trigger).not.toBeNull()
+
+    root.parentElement!.style.width = '960px'
+    await expect.poll(trigger).toBeNull()
+    expect(content).not.toHaveAttribute('data-overflowing')
     expect(getComputedStyle(content).maskImage).toBe('none')
   })
 
