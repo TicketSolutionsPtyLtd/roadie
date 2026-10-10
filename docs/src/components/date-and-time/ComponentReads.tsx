@@ -1,14 +1,13 @@
-import { ReadsTable } from './ReadsTable'
-import { componentReads } from './example'
+import { ProseDataTable } from '@/components/ProseTable'
+
+import { DATE_TIME_TABLES } from './example'
 
 /** What each date component reads for the example show, from the formatter behind it. */
 export function ComponentReads() {
   return (
-    <ReadsTable
+    <ProseDataTable
       slot='component-reads'
-      head={['Component', 'Reads']}
-      rows={componentReads()}
-      codeNames
+      table={DATE_TIME_TABLES.ComponentReads()}
     />
   )
 }

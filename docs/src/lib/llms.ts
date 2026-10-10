@@ -496,7 +496,7 @@ export function inlineCode(value: string | undefined) {
     value.startsWith('`') || value.endsWith('`') ? ` ${value} ` : value
   return `${fence}${padded.replace(/\|/g, '\\|')}${fence}`
 }
-export const prose = (value: string | undefined) =>
+const prose = (value: string | undefined) =>
   value ? oneLine(value).replace(/\|/g, '\\|').replace(/</g, '&lt;') : ''
 const darkIfDifferent = ({ light, dark }: TokenValue = {}) =>
   light !== undefined && dark !== light ? dark : undefined

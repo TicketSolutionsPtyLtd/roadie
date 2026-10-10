@@ -1,13 +1,13 @@
-import { ReadsTable } from './ReadsTable'
-import { momentRows } from './example'
+import { ProseDataTable } from '@/components/ProseTable'
+
+import { DATE_TIME_TABLES } from './example'
 
 /** How each kind of moment usually reads, from the formatters. */
 export function MomentReads() {
   return (
-    <ReadsTable
+    <ProseDataTable
       slot='moment-reads'
-      head={['Kind', 'Looks like']}
-      rows={momentRows()}
+      table={DATE_TIME_TABLES.MomentReads()}
     />
   )
 }

@@ -1,13 +1,13 @@
-import { ReadsTable } from './ReadsTable'
-import { dataFormatRows } from './example'
+import { ProseDataTable } from '@/components/ProseTable'
+
+import { DATE_TIME_TABLES } from './example'
 
 /** The example show as each data context formats it. */
 export function DataFormatReads() {
   return (
-    <ReadsTable
+    <ProseDataTable
       slot='data-format-reads'
-      head={['Where', 'Reads']}
-      rows={dataFormatRows()}
+      table={DATE_TIME_TABLES.DataFormatReads()}
     />
   )
 }
