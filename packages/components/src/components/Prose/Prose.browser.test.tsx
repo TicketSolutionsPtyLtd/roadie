@@ -329,7 +329,7 @@ describe('Prose', () => {
     )
   })
 
-  it('scrolls a wide table at a readable width on a phone, and fits a narrow one', () => {
+  it('scrolls a table whose columns would squeeze below 9em, and fits a narrow one', () => {
     const container = renderWide(
       <Prose size='lg'>
         <div id='wide' className='prose-scroll'>
@@ -371,10 +371,11 @@ describe('Prose', () => {
       327
     )
     const wide = get(container, '#wide') as HTMLElement
-    const why = get(container, '#why')
-    const em = px(style(why).fontSize)
+    const em = px(style(get(container, '#why')).fontSize)
+    for (const column of wide.querySelectorAll('th')) {
+      expect(box(column).width).toBeGreaterThanOrEqual(9 * em)
+    }
     expect(box(wide).right).toBeLessThanOrEqual(box(container).right)
-    expect(box(why).width).toBeGreaterThanOrEqual(10 * em)
     expect(wide.scrollWidth).toBeGreaterThan(wide.clientWidth)
 
     const narrow = get(container, '#narrow') as HTMLElement
@@ -384,26 +385,48 @@ describe('Prose', () => {
     )
   })
 
-  it('fits a wide text table in .prose-scroll when it has 28em of room', () => {
+  it('fits a two-column text table on a phone, wrapping the text', () => {
     const container = renderWide(
       <Prose>
-        <div id='roomy' className='prose-scroll'>
+        <div id='fits' className='prose-scroll'>
           <table>
             <tbody>
               <tr>
                 <td>Doors</td>
-                <td>{LONG}</td>
+                <td id='long'>{LONG}</td>
               </tr>
             </tbody>
           </table>
         </div>
       </Prose>,
-      640
+      327
     )
-    const roomy = get(container, '#roomy') as HTMLElement
-    expect(roomy.scrollWidth).toBe(roomy.clientWidth)
-    expect(box(get(container, '#roomy table')).width).toBeLessThanOrEqual(
-      box(roomy).width
+    const fits = get(container, '#fits') as HTMLElement
+    const long = get(container, '#long')
+    expect(fits.scrollWidth).toBe(fits.clientWidth)
+    expect(box(long).height).toBeGreaterThan(3 * px(style(long).lineHeight))
+  })
+
+  it('wraps a long cell at the prose measure in a wide scrolling table', () => {
+    const container = renderWide(
+      <Prose>
+        <div className='prose-scroll prose-bleed'>
+          <table>
+            <tbody>
+              <tr>
+                <td>Doors</td>
+                <td id='long'>
+                  {LONG} {LONG}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Prose>
+    )
+    const prose = get(container, '[data-slot="prose"]')
+    expect(box(get(container, '#long')).width).toBeLessThanOrEqual(
+      measureOf(prose)
     )
   })
 

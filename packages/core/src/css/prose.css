@@ -371,13 +371,15 @@
     ) {
     overflow-x: auto;
   }
-  /* Under 28em of room, scroll at up to 28em rather than crush text columns. */
+  /* Below 9em a column wraps a word or two a line, so the table scrolls
+     instead. */
   .prose
-    :where(.prose-scroll > table):not(
+    :where(.prose-scroll)
+    :where(th, td):not(
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
     ) {
-    width: max-content;
-    max-inline-size: max(100%, 28em);
+    min-inline-size: 9em;
+    max-inline-size: var(--prose-measure);
   }
   /* The scroller takes the overflow, so a token such as `rounded-sm` never
      splits. A bare table keeps the reset's `overflow-wrap: anywhere` so it

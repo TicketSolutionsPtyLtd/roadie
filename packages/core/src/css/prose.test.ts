@@ -263,16 +263,16 @@ describe('prose.css', () => {
     expect(declaration(scroll?.body ?? '', 'overflow-x')).toBe('auto')
   })
 
-  it('sizes a .prose-scroll table to its content, with at least 28em of room', () => {
-    const table = proseRules.find(({ selector }) =>
+  it('keeps .prose-scroll table cells between 9em and the prose measure', () => {
+    const cell = proseRules.find(({ selector }) =>
       selector
         .replace(/\s+/g, ' ')
-        .startsWith('.prose :where(.prose-scroll > table)')
+        .startsWith('.prose :where(.prose-scroll) :where(th, td):not(')
     )
 
-    expect(declaration(table?.body ?? '', 'width')).toBe('max-content')
-    expect(declaration(table?.body ?? '', 'max-inline-size')).toBe(
-      'max(100%, 28em)'
+    expect(declaration(cell?.body ?? '', 'min-inline-size')).toBe('9em')
+    expect(declaration(cell?.body ?? '', 'max-inline-size')).toBe(
+      'var(--prose-measure)'
     )
   })
 
