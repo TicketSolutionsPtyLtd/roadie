@@ -384,7 +384,7 @@
     "@tanstack/react-virtual": "3.14.13",
     "embla-carousel": "9.0.0-rc03",
     "embla-carousel-autoplay": "9.0.0-rc03",
-    "embla-carousel-react": "9.0.0-rc03",
+    "embla-carousel-react": "9.0.0-rc04",
     "uqr": "0.1.3"
   },
   "devDependencies": {
