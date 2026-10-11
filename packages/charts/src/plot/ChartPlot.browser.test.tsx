@@ -221,6 +221,33 @@ describe('ChartPlot in a card', () => {
     })
   })
 
+  it('shows the base focus ring on a keyboard-focused plot', async () => {
+    const { container } = renderInCard()
+    const link = document.createElement('a')
+    link.href = '#tickets'
+    link.textContent = 'Tickets'
+    container.prepend(link)
+    link.focus()
+    await userEvent.keyboard('{Shift}')
+    const ring = (element: Element) => {
+      const style = getComputedStyle(element)
+      return {
+        style: style.outlineStyle,
+        width: style.outlineWidth,
+        color: style.outlineColor,
+        offset: style.outlineOffset
+      }
+    }
+    const linkRing = ring(link)
+    const plot = container.querySelector<SVGElement>('svg.ts-chart')!
+
+    plot.focus()
+
+    expect(plot.matches(':focus-visible')).toBe(true)
+    expect(ring(plot)).toEqual(linkRing)
+    expect(ring(plot)).toMatchObject({ width: '4px', offset: '0px' })
+  })
+
   it('reaches every x value with the arrow keys and speaks each one', async () => {
     const { container } = renderInCard()
     const live = await focusPlot(container)

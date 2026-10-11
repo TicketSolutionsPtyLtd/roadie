@@ -8,7 +8,7 @@ import {
   it,
   onTestFinished
 } from 'vitest'
-import { commands } from 'vitest/browser'
+import { commands, userEvent } from 'vitest/browser'
 
 import { Tabs } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -152,6 +152,20 @@ describe('the subtler underline', () => {
     expect(
       Math.abs(apcaLc(shownFill(indicator()), surface))
     ).toBeGreaterThanOrEqual(minimumLc['non-text UI'])
+  })
+
+  it('draws its focus ring inside the tab, where the list would clip it', async () => {
+    render(<ViewTabs emphasis='subtler' />)
+    await userEvent.tab()
+    const tab = screen.getByRole('tab', { name: 'Chart' })
+    expect(tab).toHaveFocus()
+
+    await expect
+      .poll(() => {
+        const { outlineWidth, outlineOffset } = getComputedStyle(tab)
+        return [outlineWidth, outlineOffset]
+      })
+      .toEqual(['4px', '-4px'])
   })
 
   it('takes the Highlight colour under forced colours', async (context) => {

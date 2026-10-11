@@ -19,12 +19,21 @@
   }
 
   :focus-visible {
-    outline: 2px solid color-mix(in oklch, var(--intent-9) 30%, transparent);
-    outline-offset: 2px;
+    outline: var(--focus-ring-width) solid
+      color-mix(
+        in oklch,
+        var(--intent-9) var(--focus-ring-opacity),
+        transparent
+      );
+    outline-offset: 0;
   }
 
   .dark :focus-visible {
-    outline-color: color-mix(in oklch, var(--intent-9) 20%, transparent);
+    outline-color: color-mix(
+      in oklch,
+      var(--intent-9) var(--focus-ring-opacity-dark),
+      transparent
+    );
   }
 
   ::selection {

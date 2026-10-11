@@ -79,7 +79,7 @@ export const tabsTabVariants = cva(
         subtle: 'rounded-full data-[active]:is-selected-label',
         // Inset, because the scrolling list clips a ring drawn outside it.
         subtler:
-          'rounded-none data-[active]:is-selected-label focus-visible:outline-offset-[-4px]'
+          'rounded-none data-[active]:is-selected-label focus-visible:-outline-offset-(--focus-ring-width)'
       },
       size: {
         sm: 'h-8 px-3 text-sm',
