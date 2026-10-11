@@ -500,8 +500,8 @@ importers:
         specifier: 9.0.0-rc03
         version: 9.0.0-rc03
       embla-carousel-autoplay:
-        specifier: 9.0.0-rc03
-        version: 9.0.0-rc03(embla-carousel@9.0.0-rc03)
+        specifier: 9.0.0-rc04
+        version: 9.0.0-rc04(embla-carousel@9.0.0-rc03)
       embla-carousel-react:
         specifier: 9.0.0-rc03
         version: 9.0.0-rc03(react@19.3.0)
@@ -4121,10 +4121,10 @@ packages:
   electron-to-chromium@1.5.422:
     resolution: {integrity: sha512-UvA/32XqrLDdZSn7Jllo1AYNcWji/G0d5M0GTViE7KoGBiMunw3a34Sb2KO4ZZyrSEhqsxFoVhWWJshdyfKqJA==}
 
-  embla-carousel-autoplay@9.0.0-rc03:
-    resolution: {integrity: sha512-zf3x+Z3MGQfyd6aRrk4XRpu6u7afb5shKvSlj4ZHQHQxjgNfrBj98bghZ0jaUlGKAmx4A/5FJ99MLthaJupoEQ==}
+  embla-carousel-autoplay@9.0.0-rc04:
+    resolution: {integrity: sha512-vPwfNzpkhvkBaSZD72Q9zLdfIxGTNa+jiCb0iS2AHAmzDH0q5DEpZp4cIDrBm3Q6f6TOv7y429OFcT26PdiQCg==}
     peerDependencies:
-      embla-carousel: 9.0.0-rc03
+      embla-carousel: 9.0.0-rc04
 
   embla-carousel-react@9.0.0-rc03:
     resolution: {integrity: sha512-9+WG2RjzdapJe9m/v6n8XTVbJE6Ed5e/ZmuNM0GzNh5hnhJ31HSwZrjXSkvh3x57yi6q2AeQglPqEb9K+i1RsA==}
@@ -10871,7 +10871,7 @@ snapshots:
 
   electron-to-chromium@1.5.422: {}
 
-  embla-carousel-autoplay@9.0.0-rc03(embla-carousel@9.0.0-rc03):
+  embla-carousel-autoplay@9.0.0-rc04(embla-carousel@9.0.0-rc03):
     dependencies:
       embla-carousel: 9.0.0-rc03
 
