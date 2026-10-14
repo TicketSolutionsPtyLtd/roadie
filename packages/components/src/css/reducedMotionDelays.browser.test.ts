@@ -18,7 +18,7 @@ beforeAll(() => {
 afterAll(() => removeStylesheets())
 afterEach(() => commands.reduceMotion(false))
 
-function delays(pseudo?: '::before') {
+function delays(pseudo: '' | '::before') {
   const element = document.createElement('div')
   element.className = 'delayed'
   document.body.append(element)
@@ -28,7 +28,7 @@ function delays(pseudo?: '::before') {
 }
 
 describe('delays for someone who reduces motion', () => {
-  it.each([undefined, '::before'] as const)(
+  it.each(['', '::before'] as const)(
     'start at once on the element%s',
     async (pseudo) => {
       await commands.reduceMotion(true)
@@ -55,7 +55,7 @@ describe('delays for someone who reduces motion', () => {
 })
 
 describe('delays for everyone else', () => {
-  it.each([undefined, '::before'] as const)(
+  it.each(['', '::before'] as const)(
     'keep their length on the element%s',
     async (pseudo) => {
       await commands.reduceMotion(false)
