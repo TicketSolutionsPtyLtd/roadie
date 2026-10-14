@@ -1,5 +1,8 @@
+import { Image } from '@/components/Image'
+
 import { Logo } from '@oztix/roadie-components/logo'
 import { Mark } from '@oztix/roadie-components/mark'
+import { Hand, Heart } from '@oztix/roadie-components/spot-illustrations'
 
 const HOUSE_INTENTS = [
   'intent-brand-blue',
@@ -36,6 +39,23 @@ export function BrandPreview({ name }: { name: string }) {
       )
     case 'logo':
       return <Logo size='lg' aria-hidden />
+    case 'pattern':
+      return (
+        <Image
+          src='/brand/pattern/pattern-banner-blue.svg'
+          width={160}
+          height={43}
+          alt=''
+          className='rounded-md'
+        />
+      )
+    case 'illustration':
+      return (
+        <div className='flex gap-2'>
+          <Heart className='size-14' />
+          <Hand className='size-14' />
+        </div>
+      )
     default:
       return null
   }
