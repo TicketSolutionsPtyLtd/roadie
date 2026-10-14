@@ -400,7 +400,7 @@ A confirmation asks before something that costs money or can't be undone.
 <Guideline
   headingLevel={3}
   title="Repeat the action on the button"
-  description="The confirming button uses the title's verb, and the other button says what staying put means."
+  description="The confirming button uses the title's verb. When that verb is cancel, the other button says what staying put means."
 >
   <Guideline.Do
     example={
@@ -458,6 +458,7 @@ out "successfully" and the exclamation mark.
     code={`
       toast.add({
         title: 'Ticket type deleted',
+        timeout: 8000,
         actionProps: { children: 'Undo', onClick: undo }
       })`}
   >
@@ -467,6 +468,7 @@ out "successfully" and the exclamation mark.
     code={`
       toast.add({
         title: 'Ticket type deleted',
+        timeout: 8000,
         actionProps: { children: 'Click here', onClick: undo }
       })`}
   >
@@ -482,8 +484,8 @@ out "successfully" and the exclamation mark.
   <Guideline.Do
     code={`
       toast.add({
-        title: "Couldn't send tickets",
-        description: 'Check the email address and try again.',
+        title: "We couldn't export your orders",
+        description: 'Try again in a minute.',
         intent: 'danger'
       })`}
   >
