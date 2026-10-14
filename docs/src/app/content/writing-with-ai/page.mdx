@@ -7,6 +7,7 @@ export const metadata = {
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
+import { PairTable } from '@/components/PairTable'
 
 import { Callout } from '@oztix/roadie-components/callout'
 
@@ -16,21 +17,49 @@ and after it. Edit everything else against
 [Language and grammar](/content/language-and-grammar) and
 [Voice and tone](/content/voice-and-tone), like any other draft.
 
-## Trailing -ing phrases
+## The tells
 
-A clause like "highlighting its commitment" or "ensuring a smooth night",
-tacked onto the end of a sentence, claims a meaning nobody checked. Delete it,
-or give the fact behind it its own sentence.
+Each tell shows the draft line to avoid and the edit that fixes it.
 
-| Before                                                                        | After                                              |
-| ----------------------------------------------------------------------------- | -------------------------------------------------- |
-| The festival added a second stage, highlighting its commitment to local acts. | The festival added a second stage for local acts.  |
-| Gates open at 5pm, ensuring a smooth entry for every fan.                     | Gates open at 5pm, an hour earlier than last year. |
+<Guidelines>
 
-## AI vocabulary
+<Guideline
+  headingLevel={3}
+  title="Trailing -ing phrases"
+  description={`A clause like "highlighting its commitment" or "ensuring a smooth night", tacked onto the end of a sentence, claims a meaning nobody checked. Delete it, or give the fact behind it its own sentence.`}
+>
+  <Guideline.Do>
 
-Some words turn up far more often in machine writing than in ours. Use the
-plain word instead.
+    The festival added a second stage for local acts.
+
+    Gates open at 5pm, an hour earlier than last year.
+
+  </Guideline.Do>
+  <Guideline.Dont>
+
+    The festival added a second stage, highlighting its commitment to local acts.
+
+    Gates open at 5pm, ensuring a smooth entry for every fan.
+
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="AI vocabulary"
+  description="Some words turn up far more often in machine writing than in ours. Use the plain word instead."
+>
+  <Guideline.Do>
+    Here's how regional festivals sold this year.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Let's delve into the vibrant landscape of regional festivals.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+<PairTable>
 
 | Write                   | Not                   |
 | ----------------------- | --------------------- |
@@ -46,66 +75,101 @@ plain word instead.
 | proof of                | testament to          |
 | mix                     | tapestry, interplay   |
 
-| Before                                                        | After                                         |
-| ------------------------------------------------------------- | --------------------------------------------- |
-| Let's delve into the vibrant landscape of regional festivals. | Here's how regional festivals sold this year. |
+</PairTable>
 
-## Not just this, but that
+<Guidelines>
 
-"It's not just X, it's Y" sets up a claim nobody made so it can knock it down.
-Say the point.
+<Guideline
+  headingLevel={3}
+  title="Not just this, but that"
+  description={`"It's not just X, it's Y" sets up a claim nobody made so it can knock it down. Say the point.`}
+>
+  <Guideline.Do>
+    We run your ticketing, and we answer the phone on show day.
+  </Guideline.Do>
+  <Guideline.Dont>
+    It's not just a ticketing platform, it's a partner in your success.
+  </Guideline.Dont>
+</Guideline>
 
-| Before                                                              | After                                                       |
-| ------------------------------------------------------------------- | ----------------------------------------------------------- |
-| It's not just a ticketing platform, it's a partner in your success. | We run your ticketing, and we answer the phone on show day. |
+<Guideline
+  headingLevel={3}
+  title="Groups of three"
+  description="List as many things as there are. A draft pads or trims ideas to three because three sounds finished."
+>
+  <Guideline.Do>
+    Scanning takes 2 seconds a ticket.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Fast, simple, and seamless entry for every fan.
+  </Guideline.Dont>
+</Guideline>
 
-## Groups of three
+<Guideline
+  headingLevel={3}
+  title="Bold labels that repeat the line"
+  description="A bullet that opens with a bold label and a colon, then says the label again, is a tell. Write the sentence. A bold name that ends in a full stop and leads into new detail is fine, as in the second Do example."
+>
+  <Guideline.Do>
 
-List as many things as there are. A draft pads or trims ideas to three
-because three sounds finished.
+    Scanning took 2 seconds a ticket, down from 5.
 
-| Before                                          | After                              |
-| ----------------------------------------------- | ---------------------------------- |
-| Fast, simple, and seamless entry for every fan. | Scanning takes 2 seconds a ticket. |
+    `**Refunds.** We refund to the card you paid with.`
 
-## Bold labels that repeat the line
+  </Guideline.Do>
+  <Guideline.Dont>
 
-A bullet that opens with a bold label and a colon, then says the label again,
-is a tell. Write the sentence. A bold name that ends in a full stop and leads
-into new detail is fine, as in the second row.
+    `**Performance:** Performance improved across all venues.`
 
-| Before                                                     | After                                               |
-| ---------------------------------------------------------- | --------------------------------------------------- |
-| `**Performance:** Performance improved across all venues.` | Scanning took 2 seconds a ticket, down from 5.      |
-| `**Refunds:** Refunds are handled by our team.`            | `**Refunds.** We refund to the card you paid with.` |
+    `**Refunds:** Refunds are handled by our team.`
 
-## Curly quotes in drafts
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+### Curly quotes in drafts
 
 Code, Markdown, and AI drafts use straight quotes, so search and code read
 them. Rendered copy may use typographic quotes.
+
+<PairTable>
 
 | Before               | After                |
 | -------------------- | -------------------- |
 | `title=‘Doors open’` | `title='Doors open'` |
 
-## Chatbot phrases
+</PairTable>
 
-Delete the assistant's side of the conversation, such as "Certainly!", "I hope
-this helps!", and "Let me know if you have any questions". A warm sign-off is
-fine only after a concrete next step.
+<Guidelines>
 
-| Before                                           | After                                                                      |
-| ------------------------------------------------ | -------------------------------------------------------------------------- |
-| Certainly! Here's the update. I hope this helps! | Gates open at 6pm. I'll send the run sheet by Thursday. Have a great show. |
+<Guideline
+  headingLevel={3}
+  title="Chatbot phrases"
+  description={`Delete the assistant's side of the conversation, such as "Certainly!", "I hope this helps!", and "Let me know if you have any questions". A warm sign-off is fine only after a concrete next step.`}
+>
+  <Guideline.Do>
+    Gates open at 6pm. I'll send the run sheet by Thursday. Have a great show.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Certainly! Here's the update. I hope this helps!
+  </Guideline.Dont>
+</Guideline>
 
-## Flattery
+<Guideline
+  headingLevel={3}
+  title="Flattery"
+  description="Answer the question. Don't praise it, or agree with the reader before you answer."
+>
+  <Guideline.Do>
+    Refunds go back to the card you paid with within 5 business days.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Great question! You're absolutely right that refunds can be tricky.
+  </Guideline.Dont>
+</Guideline>
 
-Answer the question. Don't praise it, or agree with the reader before you
-answer.
-
-| Before                                                              | After                                                             |
-| ------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Great question! You're absolutely right that refunds can be tricky. | Refunds go back to the card you paid with within 5 business days. |
+</Guidelines>
 
 ## Guidelines
 
@@ -141,18 +205,11 @@ answer.
 A draft also breaks the rules on
 [Language and grammar](/content/language-and-grammar). These catch the most.
 
-- [Every line carries a fact](/content/language-and-grammar#every-line-carries-a-fact)
-  catches vague claims and flourish.
-- [Use the plain word](/content/language-and-grammar#use-the-plain-word) and
-  [Say is and has](/content/language-and-grammar#say-is-and-has) catch
-  inflated words.
-- [Cut filler](/content/language-and-grammar#cut-filler) and
-  [Hedge once](/content/language-and-grammar#hedge-once) catch padding.
-- [Whole sentences](/content/language-and-grammar#whole-sentences) catches
-  arrows and fragments.
+- [Clarity](/content/language-and-grammar#clarity) catches vague claims,
+  inflated words, padding, hedging, unnamed sources, arrows, and fragments.
+- [Use the plain word](/content/language-and-grammar#use-the-plain-word)
+  lists the swaps for the most common inflated words.
 - [Dashes](/content/language-and-grammar#dashes) bans em dashes and en dashes.
-- [Name the source](/content/language-and-grammar#name-the-source) catches
-  "experts say".
 
 ## Attribution
 
