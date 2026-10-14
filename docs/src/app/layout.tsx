@@ -78,6 +78,7 @@ async function getNavigationItems(): Promise<NavigationDestination[]> {
         guide('/overview/getting-started', 'overview/getting-started/page.mdx'),
         guide('/overview/philosophy', 'overview/philosophy/page.mdx'),
         guide('/overview/vue-integration', 'overview/vue-integration/page.mdx'),
+        guide('/overview/linting', 'overview/linting/page.mdx'),
         {
           title: 'Changelog',
           href: CHANGELOG_URL,

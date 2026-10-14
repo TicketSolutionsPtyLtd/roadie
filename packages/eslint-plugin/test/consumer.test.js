@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 const packageDir = fileURLToPath(new URL('..', import.meta.url))
@@ -32,20 +32,22 @@ export const Ticket = () => <HeartIcon weight='bold' className='size-4 rounded-x
 // Packs the package as npm would publish it and installs the tarball into a
 // fresh app, so only the published files and exports can be reached.
 let app
+let packed
 beforeAll(() => {
   app = mkdtempSync(join(tmpdir(), 'roadie-eslint-consumer-'))
-  const tarball = execFileSync(
+  const output = execFileSync(
     'pnpm',
     ['pack', '--pack-destination', app, '--json'],
     { cwd: packageDir, encoding: 'utf8' }
   )
+  packed = JSON.parse(output)
   writeFileSync(
     join(app, 'package.json'),
     JSON.stringify({ name: 'consumer', private: true, type: 'module' })
   )
   // The plugin has no dependencies, so the install never needs the network.
   const install = ['install', '--offline', '--legacy-peer-deps', '--no-audit']
-  execFileSync('npm', [...install, JSON.parse(tarball).filename], {
+  execFileSync('npm', [...install, packed.filename], {
     cwd: app,
     stdio: 'ignore'
   })
@@ -81,4 +83,14 @@ describe.each([
   it('passes code that follows Roadie', async () => {
     expect(await lint('src/Clean.jsx')).toEqual([])
   })
+})
+
+// eslint --cache keys on the plugin's name and version to drop stale results.
+it('names the installed version, so a cached lint reruns after an upgrade', async () => {
+  const entry = join(
+    app,
+    'node_modules/@oztix/eslint-plugin-roadie/src/index.js'
+  )
+  const { default: installed } = await import(pathToFileURL(entry).href)
+  expect(installed.meta).toEqual({ name: packed.name, version: packed.version })
 })
