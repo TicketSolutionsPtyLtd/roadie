@@ -14,19 +14,41 @@ export const metadata = {
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
+import { PairTable } from '@/components/PairTable'
 
 import { Button } from '@oztix/roadie-components/button'
 
 Two or three sentences on why these rules exist and who they're for.
 
-## Rule name
+## Part name
+
+### Rule with short examples
 
 One or two sentences on the rule.
 
+<PairTable>
+
 | Write                          | Not                             |
 | ------------------------------ | ------------------------------- |
-| Doors open at 7pm              | Doors open @ 7pm                |
-| Ochre Kite Weekender, Brisbane | Ochre Kite Weekender - Brisbane |
+| 7pm                            | 7 pm                            |
+| Ochre Kite Weekender, Brisbane | Ochre Kite Weekender @ Brisbane |
+
+</PairTable>
+
+<Guidelines>
+
+<Guideline
+  headingLevel={3}
+  title='Rule with sentence examples'
+  description='One or two sentences on the rule.'
+>
+  <Guideline.Do>Doors open at 7pm. The support act starts at 8pm.</Guideline.Do>
+  <Guideline.Dont>
+    Doors open at 7pm, and then after that the support act will start at 8pm.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
 
 ## Guidelines
 
@@ -53,10 +75,12 @@ with links to their pages.
 
 1. **The page follows its own rules.** Sentence case, Australian spelling,
    the Oxford comma, no em or en dashes, and no colons in headings.
-2. **Show the words.** Each rule has a write and not table, or a before and
-   after table for a draft being edited, or a `Guideline` pair. A pair's
-   `example` shows the words where they appear, such as on a `Button`; words
-   that stand alone go in a table.
+2. **Show the words.** A rule whose examples are sentences is a `Guideline`
+   with a `title` and `description` (`headingLevel={3}` under the part's
+   `##`), with the sentences in its Do and Don't cards. Words or short phrases
+   that stand alone go in a write and not table inside `PairTable`, which
+   gives every table on the page the same two equal columns. A pair's
+   `example` shows the words where they appear, such as on a `Button`.
 3. **A wrong dash is an entity.** A "not" cell that shows an em or en dash
    writes it as `&mdash;` or `&ndash;`, so `grep -n '[—–]'` still finds none.
 4. **Names come from [`EXAMPLE_DATA.md`](EXAMPLE_DATA.md).** Only Australian

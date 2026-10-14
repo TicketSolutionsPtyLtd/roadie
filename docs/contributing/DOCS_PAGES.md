@@ -65,7 +65,8 @@ with its skeleton and the rules on top of these.
 
 - No `className` layout in top-level MDX: no `grid gap-*` wrappers, width
   frames, or spacing. Use the docs components instead: `Guidelines`,
-  `Guideline` with `width`, and `Guideline.Row`. A layout they can't express
+  `Guideline` with `width`, `Guideline.Row`, and `PairTable` for a
+  two-column table in equal halves. A layout they can't express
   becomes a new docs component in `docs/src/components/`, not a `div`.
 - Text style classes such as `text-display-ui-*` and `text-subtle` are fine,
   though markdown usually says it better.
