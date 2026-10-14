@@ -4,6 +4,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
 
+import { isAssetHref } from '../src/lib/asset-href.ts'
 import { DASHBOARD_EXAMPLES } from '../src/lib/dashboard-examples.ts'
 import {
   type LlmsLink,
@@ -61,6 +62,7 @@ const pageUrl = (route: string) =>
     : `${site}${route.replace(/\/$/, '')}/`
 
 function resolveLink(href: string) {
+  if (isAssetHref(href)) return `${site}${href}`
   const [route = '', hash] = href.split('#')
   const url = pageUrl(route.replace(/\/+$/, '') || '/')
   return hash === undefined ? url : `${url}#${hash}`
@@ -109,7 +111,20 @@ const renderers = {
     if (typeof name !== 'string' || !Object.hasOwn(catalogueMarkdown, name))
       throw new Error(`<CatalogueIndex name="${name}"> names no catalogue`)
     return catalogueMarkdown[name]!
-  }
+  },
+  BrandFigure: ({ src, alt, caption }: Record<string, string | true>) =>
+    [imageMarkdown(src, alt), typeof caption === 'string' ? caption : '']
+      .filter(Boolean)
+      .join('\n\n')
+}
+
+function imageMarkdown(
+  src: string | true | undefined,
+  alt: string | true | undefined
+) {
+  if (typeof src !== 'string' || typeof alt !== 'string')
+    throw new Error('An image needs a src and alt')
+  return `![${alt}](${src.startsWith('/') ? `${site}${src}` : src})`
 }
 const kinds = Object.entries(TWIN_COMPONENTS)
 const rendered = kinds

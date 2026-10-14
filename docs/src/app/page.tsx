@@ -11,6 +11,7 @@ import { Image } from '@/components/Image'
 import { PreviewCard } from '@/components/PreviewGrid'
 import { CHANGELOG_URL, getRecentReleases } from '@/lib/changelog'
 import {
+  BRAND,
   CHARTS,
   COMPONENTS,
   CONTENT,
@@ -23,13 +24,25 @@ import {
 import { Badge } from '@oztix/roadie-components/badge'
 import { Button } from '@oztix/roadie-components/button'
 import { Code } from '@oztix/roadie-components/code'
+import { Logo } from '@oztix/roadie-components/logo'
 
 const plural = (count: number, noun: string) =>
   `${count} ${noun}${count === 1 ? '' : 's'}`
 
+// A last card alone on its row spans the row, at whatever column count and
+// card count, and a spanning card's art caps its height rather than growing.
+const EXPLORE_GRID = [
+  'grid grid-cols-1 gap-3 @sm:grid-cols-2 @lg:grid-cols-3 @3xl:grid-cols-4 @2xl:gap-4',
+  '@sm:@max-lg:*:last:odd:col-span-full',
+  '@lg:@max-3xl:*:last:nth-[3n+1]:col-span-full',
+  '@3xl:*:last:nth-[4n+1]:col-span-full',
+  '**:data-[slot=preview-thumbnail]:max-h-44'
+].join(' ')
+
 export default async function Home() {
-  const [foundations, content, components, charts, widgets, releases] =
+  const [brand, foundations, content, components, charts, widgets, releases] =
     await Promise.all([
+      getCatalogue(BRAND),
       getCatalogue(FOUNDATIONS),
       getCatalogue(CONTENT),
       getCatalogue(COMPONENTS),
@@ -55,8 +68,8 @@ export default async function Home() {
               Roadie design system
             </h1>
             <p className='text-lg text-subtle'>
-              Tokens, React components and Vue widgets for consistent,
-              accessible Oztix apps.
+              Brand and writing guidelines, tokens, React components, and
+              widgets for consistent, accessible Oztix products.
             </p>
           </div>
           <div className='flex flex-wrap gap-3'>
@@ -75,7 +88,14 @@ export default async function Home() {
       </section>
 
       <HomeSection title='Explore'>
-        <ul className='grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-3 @2xl:gap-4'>
+        <ul className={EXPLORE_GRID}>
+          <PreviewCard
+            href='/brand'
+            title='Brand'
+            subtitle={plural(countEntries(brand), 'guide')}
+          >
+            <BrandArt />
+          </PreviewCard>
           <PreviewCard
             href='/foundations'
             title='Foundations'
@@ -90,15 +110,15 @@ export default async function Home() {
           >
             <ContentPreview name='voice-and-tone' />
           </PreviewCard>
+          <PreviewCard href='/tokens' title='Tokens' subtitle='Every variable'>
+            <TokensArt />
+          </PreviewCard>
           <PreviewCard
             href='/components'
             title='Components'
             subtitle={plural(countEntries(components), 'component')}
           >
             <ComponentsArt />
-          </PreviewCard>
-          <PreviewCard href='/tokens' title='Tokens' subtitle='Every variable'>
-            <TokensArt />
           </PreviewCard>
           <PreviewCard
             href='/charts'
@@ -270,6 +290,28 @@ function withInlineCode(text: string) {
     .map((part, index) =>
       index % 2 === 1 ? <Code key={index}>{part}</Code> : part
     )
+}
+
+const BRAND_HUES = [
+  'intent-brand-blue',
+  'intent-brand-purple',
+  'intent-brand-orange'
+]
+
+function BrandArt() {
+  return (
+    <div className='grid w-40 justify-items-center gap-3'>
+      <Logo size='lg' aria-hidden />
+      <div className='grid w-full grid-cols-3 gap-1'>
+        {BRAND_HUES.map((intent) => (
+          <div
+            key={intent}
+            className={`h-6 emphasis-strong rounded-sm ${intent}`}
+          />
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function FoundationsArt() {
