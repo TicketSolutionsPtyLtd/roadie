@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Logo',
-  description: 'The Oztix logo, in fixed brand colours that never follow the theme',
+  description: 'The Oztix logo, in fixed brand colours',
   status: 'beta',
   category: 'Media & brand',
 }
@@ -10,7 +10,7 @@ import { Logo } from '@oztix/roadie-components/logo'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline, Guidelines } from '@/components/Guideline'
 
-The Oztix logo, in fixed brand colours that never follow the theme.
+The Oztix logo, in fixed brand colours.
 
 ## Import
 
@@ -86,7 +86,7 @@ Logo sizes sit one step below Button and IconTile, whose `md` is 40px, so a `siz
 
 ### Tone
 
-`tone` picks the artwork's colour, which stays the same in light and dark mode and ignores a surrounding intent. `brand`, the default, is Oztix blue. `dark` is one dark colour, for a light background where blue lacks contrast or the logo sits among other neutral logos. `light` is one light colour, for dark, brand, or photo backgrounds.
+`tone` picks the artwork's colour, which stays the same in light and dark mode and ignores a surrounding intent. `brand`, the default, is Oztix blue. `dark` is near-black, for a light background where blue lacks contrast or the logo sits among other neutral logos. `light` is white, for dark, brand, or photo backgrounds.
 
 The brand tagline and divider follow the theme, so they stay readable in both modes. The `dark` and `light` taglines are fixed like the rest of the artwork.
 

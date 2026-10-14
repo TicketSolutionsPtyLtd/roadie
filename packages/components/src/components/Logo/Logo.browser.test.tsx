@@ -184,6 +184,8 @@ describe('tone', () => {
     const light = colours(<Logo tagline />)
     const dark = colours(<Logo tagline />, 'dark')
 
+    expect(light.tagline).toBe(token('--color-neutral-12'))
+    expect(light.divider).toBe(token('--color-neutral-7'))
     expect(dark.tagline).not.toBe(light.tagline)
     expect(dark.divider).not.toBe(light.divider)
     expect(colours(<Logo tagline />, 'intent-danger')).toEqual(light)

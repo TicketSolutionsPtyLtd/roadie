@@ -32,7 +32,7 @@ export type LogoProps = Omit<ComponentProps<'span'>, 'children' | 'dir'> & {
    */
   layout?: 'horizontal' | 'stacked'
   /**
-   * The artwork colour, the same in light and dark mode: `brand` is Oztix blue, `dark` is one colour for light backgrounds, and `light` is one colour for dark, brand, or photo backgrounds.
+   * The mark and wordmark colour, the same in light and dark mode: `brand` is Oztix blue, `dark` is near-black for light backgrounds, and `light` is white for dark, brand, or photo backgrounds.
    * @default 'brand'
    */
   tone?: 'brand' | 'dark' | 'light'
