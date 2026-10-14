@@ -175,6 +175,8 @@ describe('pageToMarkdown', () => {
         '</Guideline>',
         '### Commas',
         "<Guideline title='Serial commas' headingLevel={4}>",
+        '</Guideline>',
+        "<Guideline title='Oxford commas' headingLevel={5}>",
         '</Guideline>'
       ].join('\n\n')
     )
@@ -186,7 +188,8 @@ describe('pageToMarkdown', () => {
         '### Colons',
         '#### Under colons',
         '### Commas',
-        '#### Serial commas\n'
+        '#### Serial commas',
+        '#### Oxford commas\n'
       ].join('\n\n')
     )
   })
