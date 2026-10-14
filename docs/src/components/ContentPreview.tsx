@@ -19,8 +19,10 @@ export function ContentPreview({ name }: { name: string }) {
         <div className='grid w-44 gap-1.5'>
           <p className='text-sm text-strong'>
             ID, tickets
-            <span className='font-bold text-strong intent-accent'>,</span> and
-            cash
+            <span className='emphasis-strong rounded-sm px-0.5 intent-accent'>
+              ,
+            </span>{' '}
+            and cash
           </p>
           <Skel className='h-1.5 w-full' />
           <Skel className='h-1.5 w-28' />
