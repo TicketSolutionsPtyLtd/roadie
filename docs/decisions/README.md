@@ -14,7 +14,7 @@ before re-arguing a question. Per-PR decisions stay in the PR description.
 - **CSS paradigms first, and fixes for every app.** See API design in
   [`CODING_STANDARDS.md`](../contributing/CODING_STANDARDS.md#api-design).
 - **Roadie mostly wins** over outside guidelines
-  ([0005](0005-roadie-mostly-wins.md)).
+  ([Decision log](https://oztix.atlassian.net/wiki/spaces/ID/pages/1205076135)).
 - **Doors.** A one-way door waits for the maintainer; a two-way door doesn't
   ([PR workflow, section 7](../contributing/PR_WORKFLOW.md#7-open-the-pr-and-see-it-through)).
 

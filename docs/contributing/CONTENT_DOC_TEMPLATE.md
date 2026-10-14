@@ -62,7 +62,8 @@ with links to their pages.
 3. **Names come from [`EXAMPLE_DATA.md`](EXAMPLE_DATA.md).** Only Australian
    cities and bands are real.
 4. **One home per rule.** When a Content page lands, the copy rules it absorbs
-   (in `PR_WORKFLOW.md`, decision 0006, and the date and time foundation)
+   (in `PR_WORKFLOW.md`, the Decision log's writing rules, and the date and
+   time foundation)
    point to it instead of repeating it.
 5. **Category** waits on the Content catalogue in
    `docs/src/lib/page-manifest.ts`, which INNO-1150 adds. Vocabulary waits
