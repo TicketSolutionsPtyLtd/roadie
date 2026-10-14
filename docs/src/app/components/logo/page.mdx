@@ -48,12 +48,12 @@ import { Logo } from '@oztix/roadie-components/logo'
 
 ### Tagline
 
-`tagline` adds the tagline, Built on Partnerships, after a divider. Use it wherever there's room. A `mark`, `wordmark`, or `product` logo takes no tagline.
+`tagline` adds the tagline, Built on Partnerships, after a divider. Use it wherever there's room. It makes the logo about 2.7 times as wide, 325px at `md`, so a phone usually takes `sm`. A `mark`, `wordmark`, or `product` logo takes no tagline.
 
 The tagline keeps its title case, an approved exception to sentence case.
 
 ```tsx-live
-<Logo tagline />
+<Logo tagline size='sm' />
 ```
 
 ### Layout
@@ -61,8 +61,8 @@ The tagline keeps its title case, an approved exception to sentence case.
 `layout='stacked'` sets the wordmark under the mark, with the tagline under that when it's on. Use it for square or narrow spaces, such as a social profile. A product logo stays horizontal.
 
 ```tsx-live layout=row gap=8
-<Logo layout='stacked' />
-<Logo layout='stacked' tagline />
+<Logo layout='stacked' size='xl' />
+<Logo layout='stacked' tagline size='xl' />
 ```
 
 ### Sizes
@@ -92,14 +92,14 @@ The brand tagline and divider follow the theme, so they stay readable in both mo
 
 ```tsx-live layout=stack gap=4
 {/* Brand */}
-<Logo tone='brand' tagline />
+<Logo tone='brand' tagline size='sm' />
 {/* Dark */}
 <div className='rounded-lg bg-(--color-neutral-light-0) p-4'>
-  <Logo tone='dark' tagline />
+  <Logo tone='dark' tagline size='sm' />
 </div>
 {/* Light */}
 <div className='intent-brand emphasis-strong rounded-lg p-4'>
-  <Logo tone='light' tagline />
+  <Logo tone='light' tagline size='sm' />
 </div>
 ```
 
