@@ -501,11 +501,9 @@ global reset sets these on every element and its `::before` and `::after`:
 - `animation-duration` and `transition-duration` to `0.01ms`, not `0ms`, so
   `animationend` and `transitionend` still fire for code that waits on them.
 - `animation-iteration-count` to `1`, so a loop plays once and stops.
+- `animation-delay` and `transition-delay` to `0s`, so a staggered list
+  appears at once instead of waiting out its delays.
 - `scroll-behavior` to `auto`, so a smooth scroll jumps.
-
-The reset doesn't touch delays. A staggered list still waits its delays, then
-each item appears at once. Put a delay behind `motion-safe:` if it should go
-too.
 
 Two loading utilities hold a still state instead. `animate-shimmer` drops its
 gradient and keeps the tint, and `animate-indeterminate` holds a full-width
@@ -517,7 +515,9 @@ run from JavaScript, such as the Web Animations API or a smooth `scrollTo()`,
 and the `::view-transition-*` pseudo-elements have to check
 `matchMedia('(prefers-reduced-motion: reduce)')` themselves. Roadie's
 components do: Pane scrolls to the top without smoothing, Calendar skips its
-swipe animation, and Carousel stops autoplay and jumps between slides.
+swipe animation, and Carousel stops autoplay and jumps between slides. A
+delay timed in JavaScript, such as the `delay` on Tooltip or a hover Popover,
+isn't motion and still waits.
 
 Tailwind's `motion-safe:` and `motion-reduce:` variants swap a motion for a
 still alternative, rather than cutting it short.
