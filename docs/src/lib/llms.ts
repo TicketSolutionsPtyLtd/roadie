@@ -39,8 +39,14 @@ export type MarkdownPage = {
   related?: { label: string; links: LlmsLink[] }
 }
 
-// Structure every page shares, which `transform` expands itself.
-export const BUILT_IN = new Set(['Guideline', 'Guidelines', 'PropsDefinitions'])
+// Structure every page shares, which `transform` expands itself. PairTable
+// only sizes the columns of the markdown table it wraps, so the table stays.
+export const BUILT_IN = new Set([
+  'Guideline',
+  'Guidelines',
+  'PairTable',
+  'PropsDefinitions'
+])
 
 type JsxElement = MdxJsxFlowElement | MdxJsxTextElement
 type Node = Root | RootContent

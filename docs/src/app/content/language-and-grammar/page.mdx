@@ -7,6 +7,7 @@ export const metadata = {
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
+import { PairTable } from '@/components/PairTable'
 
 import { Button } from '@oztix/roadie-components/button'
 import { Field } from '@oztix/roadie-components/field'
@@ -21,66 +22,109 @@ sets how we write it down, in docs, interfaces, support, and marketing.
 Use Australian spelling and terms. Code keeps its own spelling, such as
 `color` in CSS.
 
+<PairTable>
+
 | Write                              | Not                                           |
 | ---------------------------------- | --------------------------------------------- |
 | optimise, theatre, colour, licence | optimize, theater, color, license (as a noun) |
+
+</PairTable>
 
 ### Sentence case
 
 Capitalise only the first word and proper nouns, in titles, headings, menu
 items, and buttons.
 
+<PairTable>
+
 | Write                                   | Not                                     |
 | --------------------------------------- | --------------------------------------- |
 | How to set up your event                | How To Set Up Your Event                |
 | Setting up Oztix at your Brisbane venue | Setting up oztix at your brisbane venue |
 
+</PairTable>
+
 ### Contractions
 
 Contractions keep the tone natural.
+
+<PairTable>
 
 | Write                | Not                      |
 | -------------------- | ------------------------ |
 | you'll, we're, can't | you will, we are, cannot |
 
-### Pronouns
+</PairTable>
 
-Use "we" for Oztix, "you" for the reader, and "they" for a person whose gender
-you don't know.
+<Guidelines>
 
-| Write                                    | Not                                           |
-| ---------------------------------------- | --------------------------------------------- |
-| We'll refund your tickets.               | Oztix will refund the customer's tickets.     |
-| Ask the ticket holder to bring their ID. | Ask the ticket holder to bring his or her ID. |
+<Guideline
+  headingLevel={3}
+  title="Pronouns"
+  description={`Use "we" for Oztix, "you" for the reader, and "they" for a person whose gender you don't know.`}
+>
+  <Guideline.Do>
+
+    We'll refund your tickets.
+
+    Ask the ticket holder to bring their ID.
+
+  </Guideline.Do>
+  <Guideline.Dont>
+
+    Oztix will refund the customer's tickets.
+
+    Ask the ticket holder to bring his or her ID.
+
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
 
 ### Numbers
 
 Write one to ten as words and 11 and above as numerals. Tickets, prices,
 percentages, times, dates, and durations are always numerals.
 
+<PairTable>
+
 | Write                     | Not                         |
 | ------------------------- | --------------------------- |
 | three venues, 12 venues   | 3 venues, twelve venues     |
 | 4 tickets, 5%, 1,000 fans | four tickets, five per cent |
 
-### Lists
+</PairTable>
 
-Keep items parallel and the list to six items or fewer. Use bullets for
-options and numbers for steps.
+<Guidelines>
 
-| Write                                                | Not                                                  |
-| ---------------------------------------------------- | ---------------------------------------------------- |
-| Add a ticket type. Set its price. Publish the event. | Add a ticket type. Pricing. Then you should publish. |
+<Guideline
+  headingLevel={3}
+  title="Lists"
+  description="Keep items parallel and the list to six items or fewer. Use bullets for options and numbers for steps."
+>
+  <Guideline.Do>
+    Add a ticket type. Set its price. Publish the event.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Add a ticket type. Pricing. Then you should publish.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
 
 ### Industry terms
 
 Use the reader's market's terms, and explain one the first time it might be
 new.
 
+<PairTable>
+
 | Write                                        | Not                                      |
 | -------------------------------------------- | ---------------------------------------- |
 | general admission standing area, sound check | general admin area, audio testing period |
 | floor plan, house capacity                   | room layout, maximum people              |
+
+</PairTable>
 
 ### Abbreviations
 
@@ -88,10 +132,14 @@ Spell a term out the first time, with the abbreviation in parentheses, then
 use the abbreviation. Keep internal abbreviations out of anything a client
 reads.
 
+<PairTable>
+
 | Write                                | Not              |
 | ------------------------------------ | ---------------- |
 | return on investment (ROI), then ROI | ROI on first use |
 | booking fee                          | bf               |
+
+</PairTable>
 
 ## Punctuation
 
@@ -101,26 +149,47 @@ No em dashes or en dashes, anywhere. Use a full stop, a comma, or
 parentheses. Hyphens join compound words and number ranges. Spans of dates,
 times, and prices use "to".
 
+<PairTable>
+
 | Write                                             | Not                                                      |
 | ------------------------------------------------- | -------------------------------------------------------- |
 | Doors open at 7pm. The support act starts at 8pm. | Doors open at 7pm &mdash; the support act starts at 8pm. |
 | 7:30pm to 10:30pm, $50 to $100                    | 7:30pm&ndash;10:30pm, $50&ndash;$100                     |
 | rows 1-10, early-bird tickets                     | rows 1&ndash;10, early bird tickets                      |
 
-### Colons
+</PairTable>
 
-Use a colon before a list or an example, and in times. Never use one in a
-heading or to join two halves of a sentence.
+<Guidelines>
 
-| Write                                                          | Not                                |
-| -------------------------------------------------------------- | ---------------------------------- |
-| Event planning for first-time promoters                        | Event planning: key considerations |
-| Bring three things: your ticket, photo ID, and a water bottle. | The result: sales doubled.         |
+<Guideline
+  headingLevel={3}
+  title="Colons"
+  description="Use a colon before a list or an example, and in times. Never use one in a heading or to join two halves of a sentence."
+>
+  <Guideline.Do>
+
+    Event planning for first-time promoters
+
+    Bring three things: your ticket, photo ID, and a water bottle.
+
+  </Guideline.Do>
+  <Guideline.Dont>
+
+    Event planning: key considerations
+
+    The result: sales doubled.
+
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
 
 ### Commas
 
 Use the Oxford comma in every list of three or more. Use commas for thousands,
 after a spelled-out weekday, and in addresses. Never put one before the year.
+
+<PairTable>
 
 | Write                             | Not                              |
 | --------------------------------- | -------------------------------- |
@@ -129,33 +198,56 @@ after a spelled-out weekday, and in addresses. Never put one before the year.
 | 1,000 tickets                     | 1000 tickets                     |
 | The Quilted Walrus Room, Brisbane | The Quilted Walrus Room Brisbane |
 
+</PairTable>
+
 ### Apostrophes
 
 Use apostrophes for possession and contractions, never for plurals.
+
+<PairTable>
 
 | Write                             | Not           |
 | --------------------------------- | ------------- |
 | the venue's capacity, VIPs, 1990s | VIP's, 1990's |
 
-### Quotation marks
+</PairTable>
 
-Use double quotes for a quote and single quotes inside it. Punctuation that
-belongs to the quote goes inside it, and punctuation that belongs to your
-sentence goes outside. Never use quotes for emphasis. Code, Markdown, and AI
-drafts use straight quotes; rendered copy may use typographic quotes.
+<Guidelines>
 
-| Write                                        | Not                                          |
-| -------------------------------------------- | -------------------------------------------- |
-| Fans called it "the best night of the year". | Fans called it "the best night of the year." |
-| The best seats in the house                  | The "best" seats in the house                |
+<Guideline
+  headingLevel={3}
+  title="Quotation marks"
+  description="Use double quotes for a quote and single quotes inside it. Punctuation that belongs to the quote goes inside it, and punctuation that belongs to your sentence goes outside. Never use quotes for emphasis. Code, Markdown, and AI drafts use straight quotes; rendered copy may use typographic quotes."
+>
+  <Guideline.Do>
+
+    Fans called it "the best night of the year".
+
+    The best seats in the house
+
+  </Guideline.Do>
+  <Guideline.Dont>
+
+    Fans called it "the best night of the year."
+
+    The "best" seats in the house
+
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
 
 ### Parentheses
 
 Use parentheses for prices, abbreviations, and short asides.
 
+<PairTable>
+
 | Write                             | Not                                     |
 | --------------------------------- | --------------------------------------- |
 | Early-bird tickets $40 (save 20%) | Early-bird tickets $40 &mdash; save 20% |
+
+</PairTable>
 
 ### Exclamation marks and emoji
 
@@ -163,56 +255,97 @@ Use one exclamation mark at most on a page, for real excitement. Leave out
 emoticons, text speak, and decorative emoji in headings, bullets, and
 labels.
 
+<PairTable>
+
 | Write      | Not            |
 | ---------- | -------------- |
 | You're in! | You're in!!! 🎉 |
 
-### Bold
+</PairTable>
 
-Bold names interface elements, with their exact names and a slash between
-the steps of a path. Elsewhere, bold rarely, and never every proper noun or
-acronym.
+<Guidelines>
 
-| Write                                                      | Not                                                                     |
-| ---------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Go to **Event setup** / **Tickets** / **Add ticket type**. | Click the ticket button in settings.                                    |
-| Go to **Event setup** / **Seating**.                       | Go to the **event setup section** and look for the **seating options**. |
+<Guideline
+  headingLevel={3}
+  title="Bold"
+  description="Bold names interface elements, with their exact names and a slash between the steps of a path. Elsewhere, bold rarely, and never every proper noun or acronym."
+>
+  <Guideline.Do>
 
-### Full stops
+    Go to **Event setup** / **Tickets** / **Add ticket type**.
 
-End every whole sentence with a full stop, including a bullet that is a whole
-sentence. Headings, interface labels, and fragments take none.
+    Go to **Event setup** / **Seating**.
 
-| Write                                         | Not           |
-| --------------------------------------------- | ------------- |
-| Buy tickets                                   | Buy tickets.  |
-| Enter an email address like name@example.com. | Invalid email |
+  </Guideline.Do>
+  <Guideline.Dont>
+
+    Click the ticket button in settings.
+
+    Go to the **event setup section** and look for the **seating options**.
+
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="Full stops"
+  description="End every whole sentence with a full stop, including a bullet that is a whole sentence. Headings, interface labels, and fragments take none."
+>
+  <Guideline.Do>
+
+    Buy tickets
+
+    Enter an email address like name@example.com.
+
+  </Guideline.Do>
+  <Guideline.Dont>
+
+    Buy tickets.
+
+    Invalid email
+
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
 
 ### Ellipses
 
 Use an ellipsis only for text an interface truncates, never for drama.
 
+<PairTable>
+
 | Write                  | Not                        |
 | ---------------------- | -------------------------- |
 | Sapphire Cassowary Ni… | Something big is coming... |
+
+</PairTable>
 
 ### Slashes
 
 Use a slash for a real either-or pair, with no spaces around it. A path
 through the interface takes a slash with a space each side, as in Bold.
 
+<PairTable>
+
 | Write                | Not                    |
 | -------------------- | ---------------------- |
 | indoor/outdoor venue | indoor / outdoor venue |
+
+</PairTable>
 
 ### Ampersands
 
 Write "and". An ampersand is fine only in an official name or a tight
 interface label.
 
+<PairTable>
+
 | Write          | Not          |
 | -------------- | ------------ |
 | Food and drink | Food & drink |
+
+</PairTable>
 
 ## Formats
 
@@ -221,11 +354,15 @@ interface label.
 The [Date and time](/foundations/date-and-time) foundation is the one home for
 dates, times, durations, and spans. These are the everyday shapes.
 
+<PairTable>
+
 | Write             | Not                        |
 | ----------------- | -------------------------- |
 | Fri 27 Nov 2026   | Fri 27th Nov, Nov 27, 2026 |
 | 7:30pm to 10:30pm | 7:30 PM - 10:30 PM         |
 | 9:00am AEDT       | 9:00am +11:00              |
+
+</PairTable>
 
 ### Prices
 
@@ -233,21 +370,29 @@ Put the dollar sign against the number, show cents only when the amount isn't
 round, and use commas for thousands. A range uses "to" with the highest price
 last, and a starting price uses "from".
 
+<PairTable>
+
 | Write                 | Not                  |
 | --------------------- | -------------------- |
 | $50, $19.95, $1,000   | $50.00, $ 50, $1000  |
 | $50 to $100, from $30 | $50&ndash;$100, $50+ |
+
+</PairTable>
 
 ### Fees and offers
 
 Marketing says the price includes the booking fee. Checkout shows the ticket
 price, the booking fee, and the total on their own lines.
 
+<PairTable>
+
 | Write                                                            | Not                             |
 | ---------------------------------------------------------------- | ------------------------------- |
 | All prices include booking fee                                   | plus booking fee, inc. bf, + bf |
 | Members $40 (save $10), non-members $50                          | $50 ($40 for members)           |
 | Early-bird tickets $40 (save 20%) until Friday, 27 November 2026 | Cheap tix for early birds!!     |
+
+</PairTable>
 
 Show prices in this order: member or presale, then regular, then extras such
 as VIP and packages, then the booking fee. A package shows its total first,
