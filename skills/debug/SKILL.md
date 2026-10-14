@@ -82,7 +82,7 @@ stop chasing and change approach.
   repo's format (copy a sibling's frontmatter) with Symptom, Cause, and Fix.
   A cross-cutting call that outlasts the fix also gets a decision record, in
   the repo's register (`docs/decisions/` in Roadie) or the Oztix Decision log,
-  wherever the register says it belongs, and the entry links to it. File a
-  Decision log record with the oztix-decisions `decision` skill; without it,
-  draft the record in the PR body for the maintainer to file.
+  wherever the register says it belongs, and the entry links to it. Draft a
+  Decision log record in the PR body and file it only with the maintainer's
+  OK, using the oztix-decisions `decision` skill or by hand.
 - Put the root cause, what you ruled out, and the evidence in the PR body.

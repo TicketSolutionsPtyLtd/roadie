@@ -27,7 +27,8 @@ and PR template win over anything here.
   `AGENTS.md` points), with its "how we decide" rules, and the Oztix
   [Decision log](https://oztix.atlassian.net/wiki/spaces/ID/pages/361529382) with its Principles, through the Atlassian MCP when it's
   connected. Read every entry the work touches, and cite it instead of
-  re-arguing it.
+  re-arguing it. If it isn't
+  connected, say the Decision log went unchecked.
 - Prior art: recorded learnings (`docs/solutions/` or similar), the docs pages
   for the area, and existing code that already does part of the job. Show
   that what exists can't do it before you add a mechanism.
@@ -90,9 +91,10 @@ maintainer can veto it. **Out of scope** names follow-ups with ticket keys.
   record where the repo's register says it belongs (Roadie's
   `docs/decisions/README.md` has "Here or in the Decision log"): a register
   entry in the same PR, in the register's own format, or a line in the entry
-  it extends; or a Decision log record, filed with the `decision` skill from
-  the oztix-decisions plugin and linked under Decisions. Without that plugin,
-  draft the record under Decisions for the maintainer to file. If it's a
+  it extends; or a Decision log record. The Decision log is outside the team,
+  so draft that record under Decisions and file it only with the
+  maintainer's OK, using the `decision` skill from the oztix-decisions plugin,
+  or by hand without it. If it's a
   one-way door or reverses an entry, propose it under Decisions instead and
   leave the entry for the maintainer's OK. A repo with no register keeps it
   under Decisions.

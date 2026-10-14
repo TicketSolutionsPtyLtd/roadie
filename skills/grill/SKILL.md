@@ -23,7 +23,8 @@ Answer facts yourself. Never ask the user what the code or docs say.
   `AGENTS.md` points), with its "how we decide" rules, and the Oztix
   [Decision log](https://oztix.atlassian.net/wiki/spaces/ID/pages/361529382) with its Principles, through the Atlassian MCP when it's
   connected. Read every entry the idea touches, and cite it instead of
-  re-arguing it.
+  re-arguing it. If it isn't
+  connected, say the Decision log went unchecked.
 - Recorded learnings (`docs/solutions/` or similar). Tags are lowercase and
   modules are packages, so search loosely, then read the frontmatter:
   `grep -rliE '<name>|<area>' docs/solutions`.
