@@ -6,6 +6,7 @@ import {
 
 import { Avatar } from '@oztix/roadie-components/avatar'
 import { Logo } from '@oztix/roadie-components/logo'
+import { Pattern } from '@oztix/roadie-components/pattern'
 import { QRCode } from '@oztix/roadie-components/qr-code'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
 
@@ -636,6 +637,12 @@ export function ComponentSkeleton({ name }: { name: string }) {
       )
     case 'logo':
       return <Logo aria-hidden size='lg' />
+    case 'pattern':
+      return (
+        <div className='h-20 w-36 overflow-hidden rounded-xl'>
+          <Pattern crop='banner' />
+        </div>
+      )
     case 'qr-code':
       return <QRCode value='A7K2MKWX' aria-hidden className='w-16' />
     case 'tabs':

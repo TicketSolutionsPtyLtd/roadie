@@ -216,6 +216,10 @@
       "types": "./dist/components/Pane/index.d.ts",
       "import": "./dist/components/Pane/index.js"
     },
+    "./pattern": {
+      "types": "./dist/components/Pattern/index.d.ts",
+      "import": "./dist/components/Pattern/index.js"
+    },
     "./popover": {
       "types": "./dist/components/Popover/index.d.ts",
       "import": "./dist/components/Popover/index.js"
@@ -350,6 +354,7 @@
     "check:dts": "node scripts/check-dts.mjs",
     "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
     "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",
+    "build:pattern": "node scripts/pattern-shapes.mjs",
     "clean": "rm -rf node_modules dist",
     "dev": "tsdown --watch --log-level warn",
     "test": "vitest run --project jsdom",
