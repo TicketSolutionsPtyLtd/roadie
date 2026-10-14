@@ -48,27 +48,29 @@ export default [
 
 ## Rules
 
-| Rule                             | Fails                                                                    | Fix                                       |
-| -------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------- |
-| `roadie/phosphor-icon-suffix`    | A Phosphor import by its bare name, such as `Heart`                      | Import `HeartIcon`                        |
-| `roadie/phosphor-icon-size-prop` | The `size` prop on a Phosphor icon                                       | A `size-*` class                          |
-| `roadie/phosphor-icon-weight`    | A Phosphor icon with no weight, or one other than bold, fill, or duotone | `weight='bold'`                           |
-| `roadie/no-dark-variant`         | A `dark:` variant                                                        | A semantic colour utility                 |
-| `roadie/no-hex-colour-class`     | A hex colour, such as `bg-[#fff]`                                        | A semantic colour utility                 |
-| `roadie/no-arbitrary-z-index`    | An arbitrary z-index, such as `z-[5]`                                    | A named z tier                            |
-| `roadie/no-arbitrary-radius`     | An arbitrary radius, such as `rounded-[10px]`                            | A named radius tier, such as `rounded-xl` |
+| Rule                             | Fails                                                                    | Fix                                         |
+| -------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------- |
+| `roadie/phosphor-icon-suffix`    | A Phosphor import by its bare name, such as `Heart`                      | Import `HeartIcon`                          |
+| `roadie/phosphor-icon-size-prop` | The `size` prop on a Phosphor icon                                       | A `size-*` class                            |
+| `roadie/phosphor-icon-weight`    | A Phosphor icon with no weight, or one other than bold, fill, or duotone | `weight='bold'`                             |
+| `roadie/no-dark-variant`         | A `dark:` variant                                                        | A semantic colour utility                   |
+| `roadie/no-hex-colour-class`     | A hex colour, such as `bg-[#fff]`                                        | A semantic colour utility                   |
+| `roadie/no-arbitrary-z-index`    | An arbitrary z-index, such as `z-[5]`                                    | A named z tier, or `z-1` inside a component |
+| `roadie/no-arbitrary-radius`     | An arbitrary radius, such as `rounded-[10px]`                            | A named radius tier, such as `rounded-xl`   |
 
 [Iconography](/foundations/iconography) says which weight goes where, [Colors](/foundations/colors) why `.dark` needs no variant, [Elevation](/foundations/elevation) lists the z tiers, and [Shape](/foundations/shape) the radius tiers.
 
 The class rules read `className`, any prop ending in `ClassName`, and the arguments of `cn`, `clsx`, `cva`, `cx`, and `twMerge`. `roadie/no-arbitrary-radius` also fails a raw length, such as `[--card-radius:10px]`, in a variable that a `rounded-(--card-radius)` class reads.
 
-Two icons pass on purpose. An icon passed to `Navigator.Item` needs no weight, because Navigator sets its own. An icon with `size='100%'` fills an SVG around it, such as a QR code's centre mark.
+Two icon rules skip a case on purpose. `roadie/phosphor-icon-weight` skips an icon passed to `Navigator.Item`, because Navigator sets its own weight. `roadie/phosphor-icon-size-prop` allows `size='100%'`, which fills an SVG around the icon, such as a QR code's centre mark.
 
 ## Icons without an import
 
 The Phosphor rules find icons by their import. Code that gets icons another way, such as a live code editor with icons in scope, names them in `settings.roadie.phosphorIcons`.
 
 ```js
+import roadie from '@oztix/eslint-plugin-roadie'
+
 export default [
   roadie.configs.recommended,
   {
