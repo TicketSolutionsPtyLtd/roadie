@@ -65,7 +65,7 @@ export function ComboboxInput({
         event.preventBaseUIHandler()
         const selectsChip =
           (event.key === 'Backspace' && input.value === '') ||
-          (event.key === previousChipKey && input.selectionStart === 0)
+          (event.key === previousChipKey && input.selectionEnd === 0)
         if (!selectsChip) return
         event.preventDefault()
         chip.focus()

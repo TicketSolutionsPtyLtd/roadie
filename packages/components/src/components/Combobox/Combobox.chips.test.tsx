@@ -170,6 +170,17 @@ describe('Combobox chips', () => {
     expect(chipNames()).toEqual(['Rock', 'Jazz'])
   })
 
+  it('collapses selected text on Left Arrow before moving to the chips', async () => {
+    render(<Genres />)
+    const input = screen.getByRole<HTMLInputElement>('combobox', {
+      name: 'Genres'
+    })
+    await userEvent.type(input, 'abc')
+    input.setSelectionRange(0, 3)
+    await userEvent.keyboard('{ArrowLeft}')
+    expect(document.activeElement).toBe(input)
+  })
+
   it('keeps focus in a read-only input on Backspace', async () => {
     render(
       <Combobox items={genres} multiple defaultValue={['Rock']} readOnly>

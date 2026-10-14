@@ -215,7 +215,9 @@ describe('QueryField', () => {
         onRemoveChip={undefined}
       />
     )
-    for (const each of document.querySelectorAll('[data-slot=combobox-chip]')) {
+    const chips = document.querySelectorAll('[data-slot=combobox-chip]')
+    expect(chips).toHaveLength(2)
+    for (const each of chips) {
       const style = getComputedStyle(each)
       expect(parseFloat(style.paddingInlineEnd)).toBeGreaterThanOrEqual(
         parseFloat(style.paddingInlineStart)
