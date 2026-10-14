@@ -164,6 +164,36 @@ describe('pageToMarkdown', () => {
     )
   })
 
+  it('writes a guideline title at the level the site gives it, wherever it falls', () => {
+    const md = page(
+      [
+        '## Punctuation',
+        '### Dashes',
+        "<Guideline title='Colons' headingLevel={3}>",
+        '</Guideline>',
+        "<Guideline title='Under colons'>",
+        '</Guideline>',
+        '### Commas',
+        "<Guideline title='Serial commas' headingLevel={4}>",
+        '</Guideline>',
+        "<Guideline title='Oxford commas' headingLevel={5}>",
+        '</Guideline>'
+      ].join('\n\n')
+    )
+    expect(md).toBe(
+      [
+        '# Badge',
+        '## Punctuation',
+        '### Dashes',
+        '### Colons',
+        '#### Under colons',
+        '### Commas',
+        '#### Serial commas',
+        '#### Oxford commas\n'
+      ].join('\n\n')
+    )
+  })
+
   it('treats only Guideline and its parts as guidelines, not other names that start with it', () => {
     const md = page(
       [
