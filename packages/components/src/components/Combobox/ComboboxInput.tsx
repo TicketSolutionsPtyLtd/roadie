@@ -19,6 +19,8 @@ function lastChip(input: HTMLInputElement) {
   return chips?.[chips.length - 1]
 }
 
+const CHIP_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'Backspace', 'Delete'])
+
 function isModified(event: KeyboardEvent) {
   return event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
 }
@@ -56,14 +58,15 @@ export function ComboboxInput({
         const input = event.currentTarget
         if (event.baseUIHandlerPrevented || input.readOnly || isModified(event))
           return
+        const chip = CHIP_KEYS.has(event.key) ? lastChip(input) : undefined
+        if (!chip) return
+        // Base UI's Backspace deletes the last chip, and its chip keys act on
+        // the chip it last moved to, though Escape on a chip has left it.
+        event.preventBaseUIHandler()
         const selectsChip =
           (event.key === 'Backspace' && input.value === '') ||
           (event.key === previousChipKey && input.selectionStart === 0)
-        const chip = selectsChip ? lastChip(input) : undefined
-        if (!chip) return
-        // Base UI's Backspace deletes the chip, and its arrow starts from the
-        // chip it last moved to, though Escape on a chip has left it.
-        event.preventBaseUIHandler()
+        if (!selectsChip) return
         event.preventDefault()
         chip.focus()
       }}

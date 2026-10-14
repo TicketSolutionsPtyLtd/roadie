@@ -140,6 +140,25 @@ describe('Combobox chips', () => {
     expect(document.activeElement).toHaveAttribute('aria-label', 'Folk')
   })
 
+  it('keeps Right Arrow and Delete in the input after Escape from a chip', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Genres
+        defaultValue={['Rock', 'Jazz', 'Folk']}
+        onValueChange={onValueChange}
+      />
+    )
+    const input = screen.getByRole('combobox', { name: 'Genres' })
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{Escape}{ArrowRight}')
+    expect(document.activeElement).toBe(input)
+    await userEvent.keyboard('{Delete}')
+    expect(document.activeElement).toBe(input)
+    await userEvent.keyboard('{Backspace}')
+    expect(document.activeElement).toHaveAttribute('aria-label', 'Folk')
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
   it('selects a chip when it is clicked', async () => {
     render(<Genres />)
     await userEvent.click(screen.getByText('Rock'))
