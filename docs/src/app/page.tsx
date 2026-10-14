@@ -4,6 +4,7 @@ import { ArrowRightIcon, ArrowUpRightIcon } from '@phosphor-icons/react/ssr'
 
 import { ChartPreview } from '@/components/ChartPreview'
 import { ComponentSkeleton, Skel } from '@/components/ComponentSkeleton'
+import { ContentPreview } from '@/components/ContentPreview'
 import { FoundationPreview } from '@/components/FoundationPreview'
 import { HomeGuides } from '@/components/HomeGuides'
 import { Image } from '@/components/Image'
@@ -12,6 +13,7 @@ import { CHANGELOG_URL, getRecentReleases } from '@/lib/changelog'
 import {
   CHARTS,
   COMPONENTS,
+  CONTENT,
   FOUNDATIONS,
   WIDGETS,
   countEntries,
@@ -26,9 +28,10 @@ const plural = (count: number, noun: string) =>
   `${count} ${noun}${count === 1 ? '' : 's'}`
 
 export default async function Home() {
-  const [foundations, components, charts, widgets, releases] =
+  const [foundations, content, components, charts, widgets, releases] =
     await Promise.all([
       getCatalogue(FOUNDATIONS),
+      getCatalogue(CONTENT),
       getCatalogue(COMPONENTS),
       getCatalogue(CHARTS),
       getCatalogue(WIDGETS),
@@ -79,6 +82,13 @@ export default async function Home() {
             subtitle={plural(countEntries(foundations), 'guide')}
           >
             <FoundationsArt />
+          </PreviewCard>
+          <PreviewCard
+            href='/content'
+            title='Content'
+            subtitle={plural(countEntries(content), 'guide')}
+          >
+            <ContentPreview name='voice-and-tone' />
           </PreviewCard>
           <PreviewCard
             href='/components'

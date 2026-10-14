@@ -44,6 +44,11 @@ export const FOUNDATIONS: Catalogue = {
   categories: ['Visual', 'Content', 'Behaviour', 'Building apps']
 }
 
+export const CONTENT: Catalogue = {
+  route: '/content',
+  categories: ['Writing', 'Formats']
+}
+
 export const TOKENS: Catalogue = {
   route: '/tokens',
   categories: [
@@ -68,11 +73,12 @@ export const CHARTS: Catalogue = {
 
 export const WIDGETS: Catalogue = { route: '/roadie-widgets', categories: [] }
 
-const CATALOGUES = [COMPONENTS, FOUNDATIONS, TOKENS, CHARTS, WIDGETS]
+const CATALOGUES = [COMPONENTS, FOUNDATIONS, CONTENT, TOKENS, CHARTS, WIDGETS]
 
 /** The catalogues an index page renders with `<Catalogue name>`. */
 export const CATALOGUE_PAGES = {
   foundations: FOUNDATIONS,
+  content: CONTENT,
   components: COMPONENTS,
   charts: CHARTS
 }
