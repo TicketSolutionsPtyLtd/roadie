@@ -18,7 +18,9 @@ prefix). Then collect every correction in it, with its source.
 
 - The host rules, to know what already exists:
   `git ls-files | grep -iE 'agents.md|claude.md|coding_standards|pr_workflow'`,
-  plus the lint config, the decision register (`docs/decisions/` or similar),
+  plus the lint config, the decision registers (`docs/decisions/` or similar,
+  and the Oztix Decision log and its Principles when the Atlassian MCP is
+  connected),
   learnings (`docs/solutions/` or similar), and the skills in use.
 - The PRs:
   `gh pr list --state merged --search "merged:>=<date>" --limit 100 --json number,title,headRefName,body`

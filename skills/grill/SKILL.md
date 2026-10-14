@@ -1,6 +1,6 @@
 ---
 name: grill
-description: Use when someone has a new feature idea, prop, variant, component, token, or utility, before it is specced, in any Oztix repo. Reads the foundations, recorded learnings, the decision register, and prior art first, proves the cascade, intent, emphasis, or an existing component can't do the job, then asks only the questions left, one at a time, and records what it ruled out for /roadie:spec. Reads the host repo's AGENTS.md and CODING_STANDARDS.md. Triggers on "grill me", "grill this idea", "do we need a new prop", "should this be a variant", "new component idea", "interview me about this feature".
+description: Use when someone has a new feature idea, prop, variant, component, token, or utility, before it is specced, in any Oztix repo. Reads the foundations, recorded learnings, the decision registers, and prior art first, proves the cascade, intent, emphasis, or an existing component can't do the job, then asks only the questions left, one at a time, and records what it ruled out for /roadie:spec. Reads the host repo's AGENTS.md and CODING_STANDARDS.md. Triggers on "grill me", "grill this idea", "do we need a new prop", "should this be a variant", "new component idea", "interview me about this feature".
 ---
 
 # Roadie grill
@@ -19,9 +19,12 @@ Answer facts yourself. Never ask the user what the code or docs say.
   Note its "look for what exists" and API design rules. They win over
   anything here. With none, use Roadie's
   `https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/docs/contributing/CODING_STANDARDS.md`.
-- The decision register (`docs/decisions/` or wherever `AGENTS.md` points):
-  its "how we decide" rules and every entry the idea touches. Cite an entry
-  instead of re-arguing it.
+- The decision registers: the repo's (`docs/decisions/` or wherever
+  `AGENTS.md` points), with its "how we decide" rules, and the Oztix
+  [Decision log](https://oztix.atlassian.net/wiki/spaces/ID/pages/361529382) with its Principles, through the Atlassian MCP when it's
+  connected. Read every entry the idea touches, and cite it instead of
+  re-arguing it. If it isn't
+  connected, say the Decision log went unchecked.
 - Recorded learnings (`docs/solutions/` or similar). Tags are lowercase and
   modules are packages, so search loosely, then read the frontmatter:
   `grep -rliE '<name>|<area>' docs/solutions`.

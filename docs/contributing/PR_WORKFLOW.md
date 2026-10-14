@@ -42,8 +42,9 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   record it under Decisions, and keep going; the maintainer can veto it in
   review. Stop and ask only for a one-way door (section 7), a limit in section
   10, spending money, or anything outside the team. Check
-  [`docs/decisions/`](../decisions/README.md) first, and add an entry when a
-  call will outlast the PR.
+  [`docs/decisions/`](../decisions/README.md) and the Oztix Decision log
+  first. When a call will outlast the PR, the decisions README says which of
+  the two it goes in.
 - **Check prior art for a new component API.** See how two other platforms
   solve it and record what you take and what you avoid, with their cons,
   under Decisions.

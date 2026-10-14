@@ -21,4 +21,5 @@ removing one is a one-way door.
 ## Links
 
 - INNO-1148, decisions 2 and 4
-- [0005 Roadie mostly wins](0005-roadie-mostly-wins.md)
+- [Roadie mostly wins over brand](https://oztix.atlassian.net/wiki/spaces/ID/pages/1205076135)
+  in the Decision log
