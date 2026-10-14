@@ -2,14 +2,14 @@ import published from '@oztix/eslint-plugin-roadie'
 
 // The package's helpers, not its public API.
 import { staticString } from '../packages/eslint-plugin/src/ast.js'
-import { phosphorRule } from '../packages/eslint-plugin/src/phosphor.js'
+import {
+  classPattern,
+  classRule,
+  classStrings,
+  stringParts
+} from '../packages/eslint-plugin/src/classes.js'
 
 const DOCS = 'https://ticketsolutionsptyltd.github.io/roadie'
-
-const ICON_WEIGHTS = new Set(['bold', 'fill', 'duotone'])
-
-const CLASS_ATTRIBUTE = /^className$|ClassName$/
-const CLASS_FUNCTIONS = new Set(['cn', 'clsx', 'cva', 'cx', 'twMerge'])
 
 const LAYOUT_CLASS =
   /(^|:|!)-?(grid|flex|inline|inline-flex|inline-grid|block|inline-block|flow-root|contents|hidden|container|grow|shrink|absolute|relative|fixed|sticky|(gap|space|[mp][trblxyse]?|w|h|min|max-[wh]|grid-(cols|rows|flow)|col|row|flex|basis|grow|shrink|order|columns|items|justify|place|self|inset|top|right|bottom|left|start|end)-.+)!?$/
@@ -40,67 +40,6 @@ function selectorRule(description, selector, message) {
   }
 }
 
-function stringParts(root, visitorKeys) {
-  const parts = []
-  const visit = (node) => {
-    if (!node || typeof node.type !== 'string') return
-    if (node.type === 'Literal' && typeof node.value === 'string') {
-      parts.push({ node, text: node.value })
-    } else if (node.type === 'TemplateElement') {
-      parts.push({ node, text: node.value.cooked ?? node.value.raw })
-    }
-    for (const key of visitorKeys[node.type] ?? []) {
-      const child = node[key]
-      if (Array.isArray(child)) child.forEach(visit)
-      else visit(child)
-    }
-  }
-  visit(root)
-  return parts
-}
-
-function classStrings(context, checkParts) {
-  const { visitorKeys } = context.sourceCode
-  // className={cn('…')} reaches each string through both visitors.
-  const checked = new WeakSet()
-  const check = (roots) =>
-    checkParts(
-      roots
-        .flatMap((root) => stringParts(root, visitorKeys))
-        .filter(({ node }) => {
-          if (checked.has(node)) return false
-          checked.add(node)
-          return true
-        })
-    )
-  return {
-    JSXAttribute(node) {
-      if (CLASS_ATTRIBUTE.test(node.name.name)) check([node.value])
-    },
-    CallExpression(node) {
-      if (CLASS_FUNCTIONS.has(node.callee.name)) check(node.arguments)
-    }
-  }
-}
-
-const classPattern = (context, pattern, message) =>
-  classStrings(context, (parts) => {
-    for (const { node, text } of parts) {
-      for (const token of text.split(/\s+/)) {
-        if (pattern.test(token)) {
-          context.report({ node, message, data: { token } })
-        }
-      }
-    }
-  })
-
-function classRule(description, pattern, message) {
-  return {
-    meta: { type: 'problem', docs: { description }, schema: [] },
-    create: (context) => classPattern(context, pattern, message)
-  }
-}
-
 // flatCodeBlocks lints fences as virtual files such as page.mdx/0.tsx, or
 // page.mdx/0.mdx for an mdx fence, and those are copyable code, not layout.
 function mdxContentRule(rule) {
@@ -112,25 +51,6 @@ function mdxContentRule(rule) {
         ? rule.create(context)
         : {}
   }
-}
-
-// A selected state picks its weight at runtime, so only the literal
-// branches of a ternary or fallback can be checked.
-function staticBranches(node) {
-  if (node?.type === 'JSXExpressionContainer') {
-    return staticBranches(node.expression)
-  }
-  if (node?.type === 'ConditionalExpression') {
-    return [
-      ...staticBranches(node.consequent),
-      ...staticBranches(node.alternate)
-    ]
-  }
-  if (node?.type === 'LogicalExpression') {
-    return [...staticBranches(node.left), ...staticBranches(node.right)]
-  }
-  const value = staticString(node)
-  return value === undefined ? [] : [value]
 }
 
 // JSX means the value was rendered, which is what a test should assert on.
@@ -147,19 +67,6 @@ function isAssertion(call) {
     node = node.type === 'CallExpression' ? node.callee : node.object
   }
   return false
-}
-
-// Navigator.Item renders its icon duotone, so it takes the icon bare.
-function isNavigatorItemIcon(openingElement) {
-  const attribute = openingElement.parent.parent?.parent
-  const element = attribute?.parent?.name
-  return (
-    attribute?.type === 'JSXAttribute' &&
-    attribute.name.name === 'icon' &&
-    element?.type === 'JSXMemberExpression' &&
-    element.object.name === 'Navigator' &&
-    element.property.name === 'Item'
-  )
 }
 
 // Classes the fence options reproduce: layout=, gap=, width=, and a caption.
@@ -334,54 +241,6 @@ function fakedKeys(node, sourceCode) {
 
 const rules = {
   ...published.rules,
-  'phosphor-icon-weight': phosphorRule(
-    'Phosphor icons are bold, or fill or duotone where those apply.',
-    (context, icons) => ({
-      JSXOpeningElement(node) {
-        if (node.name.type !== 'JSXIdentifier' || !icons.has(node.name.name)) {
-          return
-        }
-        if (isNavigatorItemIcon(node)) return
-        const weight = node.attributes.find(
-          (attribute) =>
-            attribute.type === 'JSXAttribute' &&
-            attribute.name.name === 'weight'
-        )
-        if (!weight) {
-          if (node.attributes.some((a) => a.type === 'JSXSpreadAttribute')) {
-            return
-          }
-          context.report({
-            node,
-            message: `Set weight='bold', since Phosphor defaults to regular. See ${DOCS}/foundations/iconography.`
-          })
-          return
-        }
-        for (const value of staticBranches(weight.value)) {
-          if (ICON_WEIGHTS.has(value)) continue
-          context.report({
-            node: weight,
-            message: `Use weight bold, or fill or duotone where those apply, not ${value}. See ${DOCS}/foundations/iconography.`
-          })
-        }
-      }
-    })
-  ),
-  'no-dark-variant': classRule(
-    'No dark: variants.',
-    /(^|:)dark:/,
-    `Remove {{token}}: .dark swaps the colour scales, so semantic utilities need no dark: variant. See ${DOCS}/foundations/colors.`
-  ),
-  'no-hex-colour-class': classRule(
-    'No raw hex colours in class strings.',
-    /#[0-9a-f]{3,8}(?![0-9a-z])/i,
-    `Replace {{token}} with a semantic colour utility. See ${DOCS}/foundations/colors.`
-  ),
-  'no-arbitrary-z-index': classRule(
-    'No arbitrary z-index classes.',
-    /(^|:|!)-?z-\[/,
-    `Replace {{token}} with a named z tier or a plain z-1 style value. See ${DOCS}/foundations/elevation.`
-  ),
   'no-arbitrary-radius': {
     meta: {
       type: 'problem',

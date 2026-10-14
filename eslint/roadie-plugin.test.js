@@ -17,44 +17,6 @@ const tester = new RuleTester({
 })
 
 const cases = {
-  'phosphor-icon-weight': {
-    valid: [
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='bold' />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='fill' />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={selected ? 'fill' : 'bold'} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={iconWeight} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon {...iconProps} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={<HeartIcon />} />"
-    ],
-    invalid: [
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='regular' />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={'regular'} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={`thin`} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={selected ? 'fill' : 'regular'} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={iconWeight ?? 'thin'} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.MenuItem icon={<HeartIcon />} />"
-    ]
-  },
-  'no-dark-variant': {
-    valid: ["<div className='dark bg-normal' />"],
-    invalid: [
-      "<div className='bg-normal dark:bg-strong' />",
-      "cn('p-2', isOpen && 'hover:dark:text-strong')",
-      "<div className={cn('dark:bg-strong')} />"
-    ]
-  },
-  'no-hex-colour-class': {
-    valid: ["<div className='bg-normal' />", "const id = '#main'"],
-    invalid: [
-      "<div className='bg-[#fff]' />",
-      'cva(`text-[#1a2b3c]`, { variants: {} })'
-    ]
-  },
-  'no-arbitrary-z-index': {
-    valid: ["<div className='z-popover' />", "<div className='z-1' />"],
-    invalid: ["<div className='relative z-[5]' />", "cn('md:-z-[2]')"]
-  },
   'no-arbitrary-radius': {
     valid: [
       "<div className='rounded-xl' />",
