@@ -110,8 +110,9 @@ Every PR is checked against these before review. Fix every real hit.
   thresholds on the [colours page](https://ticketsolutionsptyltd.github.io/roadie/foundations/colors#contrast).
   Any accepted exception is written down in the test and the docs.
 - **Comments**: only the why, never the what.
-- **Content**: sentence case, Australian spelling, plain active prose with no
-  em dashes, and venues, events and promoters from
+- **Content** follows the
+  [Content section](https://ticketsolutionsptyltd.github.io/roadie/content)
+  (`docs/src/app/content/`), with venues, events, and promoters from
   [`EXAMPLE_DATA.md`](EXAMPLE_DATA.md). Only Australian cities and bands are
   real.
 

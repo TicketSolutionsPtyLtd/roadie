@@ -1,11 +1,8 @@
 # Content documentation template
 
-**Starting point.** The Content section doesn't exist yet. INNO-1150 builds
-its voice, tone, language, and grammar pages and refines this template from
-what they need. Follow [`DOCS_PAGES.md`](DOCS_PAGES.md) too.
-
-A content page says how Oztix writes, in docs, interfaces, and brand copy.
-Each rule is short, shows the words, and follows itself.
+A content page in `docs/src/app/content/` says how Oztix writes, in docs,
+interfaces, and brand copy. Each rule is short, shows the words, and follows
+itself. Follow [`DOCS_PAGES.md`](DOCS_PAGES.md) too.
 
 ## Structure
 
@@ -13,23 +10,45 @@ Each rule is short, shows the words, and follows itself.
 export const metadata = {
   title: 'Grammar',
   description: 'One sentence on what these rules cover.',
-  category: 'Content'
+  category: 'Writing'
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
+import { PairTable } from '@/components/PairTable'
 
 import { Button } from '@oztix/roadie-components/button'
 
 Two or three sentences on why these rules exist and who they're for.
 
-## Rule name
+## Part name
+
+### Rule with short examples
 
 One or two sentences on the rule.
 
+<PairTable>
+
 | Write                          | Not                             |
 | ------------------------------ | ------------------------------- |
-| Doors open at 7pm              | Doors open @ 7pm                |
-| Ochre Kite Weekender, Brisbane | Ochre Kite Weekender - Brisbane |
+| 7pm                            | 7 pm                            |
+| Ochre Kite Weekender, Brisbane | Ochre Kite Weekender @ Brisbane |
+
+</PairTable>
+
+<Guidelines>
+
+<Guideline
+  headingLevel={3}
+  title='Rule with sentence examples'
+  description='One or two sentences on the rule.'
+>
+  <Guideline.Do>Doors open at 7pm. The support act starts at 8pm.</Guideline.Do>
+  <Guideline.Dont>
+    Doors open at 7pm, and then after that the support act will start at 8pm.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
 
 ## Guidelines
 
@@ -56,15 +75,19 @@ with links to their pages.
 
 1. **The page follows its own rules.** Sentence case, Australian spelling,
    the Oxford comma, no em or en dashes, and no colons in headings.
-2. **Show the words.** Each rule has a write and not table or a `Guideline`
-   pair. A pair's `example` shows the words where they appear, such as on a
-   `Button`; words that stand alone go in a table.
-3. **Names come from [`EXAMPLE_DATA.md`](EXAMPLE_DATA.md).** Only Australian
+2. **Show the words.** A rule whose examples are sentences is a `Guideline`
+   with a `title` and `description` (`headingLevel={3}` under the part's
+   `##`), with the sentences in its Do and Don't cards. Words or short phrases
+   that stand alone go in a write and not table inside `PairTable`, which
+   gives every table on the page the same two equal columns. A pair's
+   `example` shows the words where they appear, such as on a `Button`.
+3. **A wrong dash is an entity.** A "not" cell that shows an em or en dash
+   writes it as `&mdash;` or `&ndash;`, so `grep -n '[—–]'` still finds none.
+4. **Names come from [`EXAMPLE_DATA.md`](EXAMPLE_DATA.md).** Only Australian
    cities and bands are real.
-4. **One home per rule.** When a Content page lands, the copy rules it absorbs
-   (in `PR_WORKFLOW.md`, the Decision log's writing rules, and the date and
-   time foundation)
-   point to it instead of repeating it.
-5. **Category** waits on the Content catalogue in
-   `docs/src/lib/page-manifest.ts`, which INNO-1150 adds. Vocabulary waits
-   until it's agreed.
+5. **One home per rule.** A copy rule lives on one Content page. Other files,
+   such as `PR_WORKFLOW.md`, `CODING_STANDARDS.md`, the Copilot instructions,
+   and the chart pages, link to it instead of repeating it. Dates and times
+   live on the Date and time foundation, which the Content menu cross lists.
+6. **Category** is `Writing` or `Formats`, from the Content catalogue in
+   `docs/src/lib/page-manifest.ts`. Vocabulary waits until it's agreed.

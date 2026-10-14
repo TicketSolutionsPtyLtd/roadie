@@ -65,7 +65,8 @@ with its skeleton and the rules on top of these.
 
 - No `className` layout in top-level MDX: no `grid gap-*` wrappers, width
   frames, or spacing. Use the docs components instead: `Guidelines`,
-  `Guideline` with `width`, and `Guideline.Row`. A layout they can't express
+  `Guideline` with `width`, `Guideline.Row`, and `PairTable` for a
+  two-column table in equal halves. A layout they can't express
   becomes a new docs component in `docs/src/components/`, not a `div`.
 - Text style classes such as `text-display-ui-*` and `text-subtle` are fine,
   though markdown usually says it better.
@@ -116,9 +117,5 @@ with its skeleton and the rules on top of these.
 
 ## Writing
 
-Follow the content rules in
-[`PR_WORKFLOW.md`](PR_WORKFLOW.md#3-roadie-conventions-and-foundations-blocking)
-section 3 and the Docs rules in
-[`CODING_STANDARDS.md`](CODING_STANDARDS.md#docs): sentence case, Australian
-spelling, the Oxford comma, no em or en dashes, no colons in headings, and
-names from [`EXAMPLE_DATA.md`](EXAMPLE_DATA.md).
+Follow the Content pages in `docs/src/app/content/`, and take names from
+[`EXAMPLE_DATA.md`](EXAMPLE_DATA.md).
