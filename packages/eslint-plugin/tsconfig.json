@@ -1,7 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "allowJs": false,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "skipLibCheck": false

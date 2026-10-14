@@ -19,10 +19,7 @@
     "roadie"
   ],
   "exports": {
-    ".": {
-      "types": "./src/index.d.ts",
-      "default": "./src/index.js"
-    }
+    ".": "./src/index.js"
   },
   "files": [
     "src",

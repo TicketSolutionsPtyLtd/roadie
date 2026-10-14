@@ -13,6 +13,7 @@ plugin.configs.recommended = {
   name: '@oztix/eslint-plugin-roadie/recommended',
   files: ['**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}'],
   plugins: { roadie: plugin },
+  languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } },
   rules: Object.fromEntries(
     Object.keys(rules).map((name) => [`roadie/${name}`, 'error'])
   )

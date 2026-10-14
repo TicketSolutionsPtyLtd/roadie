@@ -11,12 +11,7 @@ const packageDir = fileURLToPath(new URL('..', import.meta.url))
 
 const CONFIG = `import roadie from '@oztix/eslint-plugin-roadie'
 
-export default [
-  {
-    languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } }
-  },
-  roadie.configs.recommended
-]
+export default [roadie.configs.recommended]
 `
 
 const MISTAKES = `import { Heart, StarIcon } from '@phosphor-icons/react'
