@@ -44,8 +44,8 @@ ESLint already enforce.
 - Dev-only warnings check `process.env.NODE_ENV` with a
   `typeof process !== 'undefined'` guard, not `import.meta.env`.
 - Comments explain why, never what.
-- Docs: sentence case, Australian spelling, no em dashes; `.mdx` is edited
-  by hand.
+- Copy follows the Content pages in `docs/src/app/content/`; `.mdx` is
+  edited by hand.
 - Docs pages are MDX with no `className` layout in top-level JSX, per
   `docs/contributing/DOCS_PAGES.md`.
 - Example data: only Australian cities and bands are real. Flag any venue,

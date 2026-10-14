@@ -87,9 +87,8 @@ Every test must be able to fail for a reason a user would notice.
 - **Pages are easy to scan.** Put the model first and each example before its
   explanation. Keep sections short, and use lists and tables only for content
   that is a list.
-- **Sentences are plain.** One idea each, mechanisms and numbers rather than
-  feelings. Use colons only before lists, and no bold-label-colon bullets.
-  Skills follow the same rules.
+- **Writing follows the Content section.** Its pages in
+  `docs/src/app/content/` hold the copy rules, for skills too.
 - **Guidance stays generic.** The docs are public, so a rule never cites an
   internal app or its stack (Razor, C#) as its reason. Product names in Logo
   examples are fine.

@@ -116,9 +116,5 @@ with its skeleton and the rules on top of these.
 
 ## Writing
 
-Follow the content rules in
-[`PR_WORKFLOW.md`](PR_WORKFLOW.md#3-roadie-conventions-and-foundations-blocking)
-section 3 and the Docs rules in
-[`CODING_STANDARDS.md`](CODING_STANDARDS.md#docs): sentence case, Australian
-spelling, the Oxford comma, no em or en dashes, no colons in headings, and
-names from [`EXAMPLE_DATA.md`](EXAMPLE_DATA.md).
+Follow the Content pages in `docs/src/app/content/`, and take names from
+[`EXAMPLE_DATA.md`](EXAMPLE_DATA.md).
