@@ -21,13 +21,14 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
   exception (`@ark-ui/react/steps`); build new components on Base UI.
 - Icons are [Phosphor](https://phosphoricons.com/).
 
-| Path                   | Package                                                          |
-| ---------------------- | ---------------------------------------------------------------- |
-| `packages/core/`       | `@oztix/roadie-core`: CSS, colour generator, records, dashboards |
-| `packages/components/` | `@oztix/roadie-components`                                       |
-| `packages/charts/`     | `@oztix/roadie-charts`: charts, legends, and dashboard views     |
-| `packages/widgets/`    | `@oztix/roadie-widgets`: the cart drawer, React and Vue skins    |
-| `docs/`                | The docs site                                                    |
+| Path                      | Package                                                          |
+| ------------------------- | ---------------------------------------------------------------- |
+| `packages/core/`          | `@oztix/roadie-core`: CSS, colour generator, records, dashboards |
+| `packages/components/`    | `@oztix/roadie-components`                                       |
+| `packages/charts/`        | `@oztix/roadie-charts`: charts, legends, and dashboard views     |
+| `packages/widgets/`       | `@oztix/roadie-widgets`: the cart drawer, React and Vue skins    |
+| `packages/eslint-plugin/` | `@oztix/eslint-plugin-roadie`: lint rules for apps on Roadie     |
+| `docs/`                   | The docs site                                                    |
 
 Root scripts: `pnpm dev`, `build`, `test`, `test:browser`, `typecheck`, `lint`,
 and `format`. Scope one with `--filter`:
@@ -50,9 +51,10 @@ pnpm --filter docs dev
   consumer's class can't override the component's.
 - `packages/core/src/css/roadie.css` imports every sheet in order, and each
   sheet's header says what it owns.
-- Every package builds `dist/roadie.manifest.json` from `exports`, props,
-  `@deprecated` tags, and docs pages (`packages/core/scripts/manifest/`). A
-  component with no docs fails it; link it in `elsewhere.ts`.
+- Every package but the ESLint plugin builds `dist/roadie.manifest.json`
+  from `exports`, props, `@deprecated` tags, and docs pages
+  (`packages/core/scripts/manifest/`). A component with no docs fails it;
+  link it in `elsewhere.ts`.
 
 ## Components
 
