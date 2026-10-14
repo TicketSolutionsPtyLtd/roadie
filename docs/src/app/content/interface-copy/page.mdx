@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'Interface copy',
   description:
-    'How to write button labels, form help, and error messages, with each one shown on its Roadie component.',
+    'How to write button labels, form help, errors, empty states, confirmations, and toasts, each shown on its Roadie component.',
   category: 'Writing',
   order: 4
 }
@@ -12,6 +12,7 @@ import { PairTable } from '@/components/PairTable'
 import { Button } from '@oztix/roadie-components/button'
 import { Callout } from '@oztix/roadie-components/callout'
 import { Checkbox } from '@oztix/roadie-components/checkbox'
+import { EmptyState } from '@oztix/roadie-components/empty-state'
 import { Field } from '@oztix/roadie-components/field'
 
 Interface copy is the short text people act on, such as a button label or an
@@ -268,6 +269,240 @@ first.
 
 </Guidelines>
 
+## Empty states
+
+An [EmptyState](/components/empty-state) says why there's nothing here and
+what the reader can do about it.
+
+### Say why it's empty
+
+A title names what's missing. A list that has never had anything, and one a
+filter or search has emptied, need different words.
+
+<PairTable>
+
+| Write                        | Not                 |
+| ---------------------------- | ------------------- |
+| No events yet                | Nothing to see here |
+| No events match your filters | 0 results           |
+| No orders to refund          | Empty               |
+
+</PairTable>
+
+<Guidelines>
+
+<Guideline
+  headingLevel={3}
+  title="Give the next step"
+  description="Put the action that fills the space on a button, and say in the description what it does."
+>
+  <Guideline.Do
+    example={
+      <EmptyState size='sm'>
+        <EmptyState.Title>No ticket types yet</EmptyState.Title>
+        <EmptyState.Description>Add a ticket type to start selling.</EmptyState.Description>
+        <EmptyState.Actions>
+          <Button>Add ticket type</Button>
+        </EmptyState.Actions>
+      </EmptyState>
+    }
+  >
+    Point the reader at the one thing that fills the page.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <EmptyState size='sm'>
+        <EmptyState.Title>No data</EmptyState.Title>
+        <EmptyState.Description>There's nothing here.</EmptyState.Description>
+      </EmptyState>
+    }
+  >
+    Don't leave the reader at a dead end.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="Say when a filter emptied the list"
+  description="When a filter or search hides everything, say so, and offer the way back."
+>
+  <Guideline.Do
+    example={
+      <EmptyState size='sm'>
+        <EmptyState.Title>No events match your filters</EmptyState.Title>
+        <EmptyState.Actions>
+          <Button>Clear filters</Button>
+        </EmptyState.Actions>
+      </EmptyState>
+    }
+  >
+    The reader knows the events still exist.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <EmptyState size='sm'>
+        <EmptyState.Title>No events yet</EmptyState.Title>
+        <EmptyState.Actions>
+          <Button>Create event</Button>
+        </EmptyState.Actions>
+      </EmptyState>
+    }
+  >
+    Don't suggest the events are gone when a filter is hiding them.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Confirmations
+
+A confirmation asks before something that costs money or can't be undone.
+[Dialog](/components/dialog) with `role='alertdialog'` holds it.
+
+<Guidelines>
+
+<Guideline
+  headingLevel={3}
+  title="Ask about the thing by name"
+  description="The title is a question with the action and the thing it acts on."
+>
+  <Guideline.Do code={`<Dialog.Title>Delete Ochre Kite Weekender?</Dialog.Title>`}>
+    The reader knows what's at stake before reading on.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Dialog.Title>Are you sure?</Dialog.Title>`}>
+    Don't make the reader hunt through the body for what they're agreeing to.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="Say what happens next"
+  description="The description says who it affects, and whether it can be undone, in a sentence or two."
+>
+  <Guideline.Do
+    code={`
+      <Dialog.Description>
+        Fans who bought tickets get a refund. You can't undo this.
+      </Dialog.Description>`}
+  >
+    Name who it affects and say plainly that it's final.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      <Dialog.Description>
+        This action cannot be undone. Do you wish to proceed?
+      </Dialog.Description>`}
+  >
+    Don't warn without saying what's lost.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="Repeat the action on the button"
+  description="The confirming button uses the title's verb, and the other button says what staying put means."
+>
+  <Guideline.Do
+    example={
+      <Guideline.Row>
+        <Button>Keep event</Button>
+        <Button intent='danger' emphasis='strong'>Cancel event</Button>
+      </Guideline.Row>
+    }
+  >
+    Each button says what it does, even when the action is to cancel.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <Guideline.Row>
+        <Button>Cancel</Button>
+        <Button intent='danger' emphasis='strong'>OK</Button>
+      </Guideline.Row>
+    }
+  >
+    Don't use Cancel and OK when the action is to cancel something.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Toasts
+
+A [Toast](/components/toast) confirms something the reader just did, or
+reports how background work finished. The Toast page says when to use one.
+
+### Say what happened
+
+The title names the thing and what happened to it, in the past tense. Leave
+out "successfully" and the exclamation mark.
+
+<PairTable>
+
+| Write               | Not                              |
+| ------------------- | -------------------------------- |
+| Event published     | Success!                         |
+| Link copied         | Copied to clipboard successfully |
+| 2 tickets sent      | Your request has been processed  |
+| Ticket type deleted | Item removed                     |
+
+</PairTable>
+
+<Guidelines>
+
+<Guideline
+  headingLevel={3}
+  title="Name the action for what it does"
+  description="A toast's one action is a verb, usually Undo or View."
+>
+  <Guideline.Do
+    code={`
+      toast.add({
+        title: 'Ticket type deleted',
+        actionProps: { children: 'Undo', onClick: undo }
+      })`}
+  >
+    The reader can reverse it in one press.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      toast.add({
+        title: 'Ticket type deleted',
+        actionProps: { children: 'Click here', onClick: undo }
+      })`}
+  >
+    Don't make the reader guess what the button does.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="A failure says what to do"
+  description="A danger toast follows Errors. The title names what failed, and the description gives the fix."
+>
+  <Guideline.Do
+    code={`
+      toast.add({
+        title: "Couldn't send tickets",
+        description: 'Check the email address and try again.',
+        intent: 'danger'
+      })`}
+  >
+    Name what failed and the next step.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      toast.add({
+        title: 'Error',
+        description: 'Something went wrong.',
+        intent: 'danger'
+      })`}
+  >
+    Don't report a failure the reader can't act on.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
 ## In the interface
 
 - [Button](/components/button) and [IconButton](/components/icon-button)
@@ -275,3 +510,7 @@ first.
 - [Field](/components/field) labels, helper text, and error text follow Form
   help and Errors.
 - [Callout](/components/callout) errors follow Errors.
+- [EmptyState](/components/empty-state) titles, descriptions, and actions
+  follow Empty states.
+- [Dialog](/components/dialog) confirmations follow Confirmations.
+- [Toast](/components/toast) titles and actions follow Toasts.
