@@ -12,6 +12,7 @@ import { CHANGELOG_URL } from '@/lib/changelog'
 import {
   CHARTS,
   COMPONENTS,
+  CONTENT,
   type Catalogue,
   type CatalogueCategory,
   FOUNDATIONS,
@@ -85,6 +86,7 @@ async function getNavigationItems(): Promise<NavigationDestination[]> {
       ])
     },
     await catalogueDestination('Foundations', FOUNDATIONS, { overview: true }),
+    await catalogueDestination('Content', CONTENT, { overview: true }),
     await catalogueDestination('Tokens', TOKENS, { overview: true }),
     await catalogueDestination('Components', COMPONENTS, {
       overview: true,

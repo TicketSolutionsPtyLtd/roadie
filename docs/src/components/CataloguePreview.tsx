@@ -4,11 +4,13 @@ import type { CatalogueEntry } from '@/lib/page-manifest'
 
 import { ChartPreview } from './ChartPreview'
 import { ComponentSkeleton, Skel } from './ComponentSkeleton'
+import { ContentPreview } from './ContentPreview'
 import { FoundationPreview } from './FoundationPreview'
 
 const ART_BY_ROUTE: Record<string, (props: { name: string }) => ReactNode> = {
   '/components': ComponentSkeleton,
   '/foundations': FoundationPreview,
+  '/content': ContentPreview,
   '/charts': ChartPreview
 }
 

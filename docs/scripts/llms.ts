@@ -21,6 +21,7 @@ import {
   CATALOGUE_PAGES,
   CHARTS,
   COMPONENTS,
+  CONTENT,
   type Catalogue,
   FOUNDATIONS,
   TOKENS,
@@ -242,6 +243,7 @@ const sections: LlmsSection[] = [
     )
   },
   await catalogueSection('Foundations', FOUNDATIONS),
+  await catalogueSection('Content', CONTENT),
   await catalogueSection('Components', COMPONENTS),
   await catalogueSection('Charts', CHARTS),
   await catalogueSection('Tokens', TOKENS),

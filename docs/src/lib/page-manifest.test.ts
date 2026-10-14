@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   CHARTS,
   COMPONENTS,
+  CONTENT,
   type CatalogueCategory,
   FOUNDATIONS,
   countEntries,
@@ -142,6 +143,22 @@ describe('Component groups', () => {
     )
     expect(dates).toContainEqual(
       expect.objectContaining({ href: '/components/date-range-picker' })
+    )
+  })
+})
+
+describe('Content catalogue', () => {
+  it('lists the writing guides and cross lists date and time', async () => {
+    const content = await getCatalogue(CONTENT)
+
+    expect(entriesIn(content, 'Writing')).toContainEqual(
+      expect.objectContaining({ href: '/content/voice-and-tone' })
+    )
+    expect(entriesIn(content, 'Formats')).toContainEqual(
+      expect.objectContaining({
+        href: '/foundations/date-and-time',
+        crossListedFrom: '/foundations'
+      })
     )
   })
 })
