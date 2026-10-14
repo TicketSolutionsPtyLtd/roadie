@@ -10,19 +10,24 @@ import {
   warnIfLowDisk
 } from './lib/machine.mjs'
 
-const usage = `Usage: pnpm test:gated <core|components|charts|widgets|docs> [files] [--all] [--all-browsers] [vitest args]
+const PACKAGES = ['core', 'components', 'charts', 'widgets', 'docs']
+const usage = `Usage: pnpm test:gated <${PACKAGES.join('|')}> [files] [--all] [--all-browsers] [vitest args]
 Runs the tests related to the files or folders given, or to the changes since origin/main.
 --all runs the whole suite, --all-browsers runs WebKit and Firefox too.
 Example: pnpm test:gated components src/components/Badge/index.tsx --project 'browser*'`
 
 const timeoutMin = Number(process.env.ROADIE_TEST_TIMEOUT_MIN) || 10
 const [pkg, ...rest] = process.argv.slice(2)
-const cwd =
-  pkg === 'docs'
-    ? join(repoRoot, 'docs')
-    : join(repoRoot, 'packages', pkg ?? '')
 
-if (!pkg || !existsSync(join(cwd, 'package.json'))) {
+if (!PACKAGES.includes(pkg)) {
+  console.error(usage)
+  process.exit(2)
+}
+
+const cwd =
+  pkg === 'docs' ? join(repoRoot, 'docs') : join(repoRoot, 'packages', pkg)
+
+if (!existsSync(join(cwd, 'package.json'))) {
   console.error(usage)
   process.exit(2)
 }
