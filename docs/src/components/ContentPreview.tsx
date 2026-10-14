@@ -1,3 +1,5 @@
+import { Skel } from './ComponentSkeleton'
+
 /** A Content page's preview art, authored at roughly `w-40` for `PreviewThumbnail`. */
 export function ContentPreview({ name }: { name: string }) {
   switch (name) {
@@ -10,6 +12,18 @@ export function ContentPreview({ name }: { name: string }) {
           <p className='emphasis-strong justify-self-end rounded-xl px-3 py-1.5 text-xs intent-accent'>
             We’re fixing it now.
           </p>
+        </div>
+      )
+    case 'language-and-grammar':
+      return (
+        <div className='grid w-44 gap-1.5'>
+          <p className='text-sm text-strong'>
+            tickets, passes
+            <span className='rounded-sm bg-mark px-0.5 text-mark'>,</span> and
+            merch
+          </p>
+          <Skel className='h-1.5 w-full' />
+          <Skel className='h-1.5 w-28' />
         </div>
       )
     default:
