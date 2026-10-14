@@ -20,11 +20,14 @@ This skill runs in any consumer repo that uses `@oztix/roadie-core` and `@oztix/
 
 ## Run the lint rules first
 
-`@oztix/eslint-plugin-roadie` checks Phosphor icon imports, `size` props, and weights, `dark:` variants, hex colours in class strings, and arbitrary z-index and radius classes. This skill doesn't grep for any of those.
+`@oztix/eslint-plugin-roadie` checks Phosphor icons (their import names, `size` props, and weights), `dark:` variants, hex colours in class strings, and arbitrary z-index and radius classes. This skill doesn't grep for any of those.
 
-1. If `package.json` lacks `@oztix/eslint-plugin-roadie`, install it as a dev dependency with the repo's package manager (`pnpm add -D @oztix/eslint-plugin-roadie`).
-2. If the flat config (`eslint.config.js`, `.mjs`, or `.ts`) doesn't include it, add `roadie.configs.recommended` from `import roadie from '@oztix/eslint-plugin-roadie'` to its array. It needs ESLint 9 or 10. A repo on a legacy `.eslintrc` can't load it; say so in the report and skip this step.
-3. Run ESLint on the target directory (`pnpm exec eslint src`) and report every `roadie/*` hit under its rule ID, at the severity in the table below.
+The plugin needs ESLint 9 or 10 with a flat config. A repo on a legacy `.eslintrc` can't load it, so skip this section and say in the report that the rules below didn't run.
+
+1. If `package.json` lacks `@oztix/eslint-plugin-roadie`, install it as a dev dependency with the repo's package manager, such as `pnpm add -D @oztix/eslint-plugin-roadie`.
+2. If the flat config (`eslint.config.*`) doesn't include it, add `roadie.configs.recommended` from `import roadie from '@oztix/eslint-plugin-roadie'` to its array. A repo with no ESLint config also needs `eslint`, an `eslint.config.js` holding that config, and typescript-eslint's parser for TypeScript files.
+3. The icon rules find icons by their `@phosphor-icons/react` import. If the app imports icons from its own module, name them in `settings.roadie.phosphorIcons`, as the linting guide shows, or those rules miss them.
+4. Run ESLint on the target directory, such as `pnpm exec eslint src`, and report every `roadie/*` hit under its rule ID, at the severity in the table below.
 
 | Rule                             | Severity |
 | -------------------------------- | -------- |
@@ -50,7 +53,7 @@ All scans must skip generated/vendored files. When using the Grep tool, set `pat
 
 ```dot
 digraph audit {
-  "Scan (batched greps)" -> "Group by severity";
+  "Scan (ESLint, then batched greps)" -> "Group by severity";
   "Group by severity" -> "Report to user";
   "Report to user" -> "User picks what to fix";
   "User picks what to fix" -> "Fix issues";
@@ -58,10 +61,10 @@ digraph audit {
 }
 ```
 
-1. **Scan** the target directory using the checks below — run independent checks in parallel by issuing multiple Grep tool calls in a single message (see Parallelization guide)
+1. **Scan** the target directory with ESLint (see Run the lint rules first), then the checks below — run independent checks in parallel by issuing multiple Grep tool calls in a single message (see Parallelization guide)
 2. **Report** findings grouped by severity with file paths and line numbers
 3. **Ask** the user which categories to fix (or fix all if instructed)
-4. **Fix** issues, then re-scan to confirm no regressions
+4. **Fix** issues, then re-run ESLint and the greps to confirm no regressions
 
 ## Severity levels
 
