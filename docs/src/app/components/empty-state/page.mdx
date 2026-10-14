@@ -92,7 +92,7 @@ screen. Raise the heading to `h1` with `render`.
     <EmptyState.IconTile>
       <MagnifyingGlassIcon weight='duotone' />
     </EmptyState.IconTile>
-    <EmptyState.Title>No results</EmptyState.Title>
+    <EmptyState.Title>No events match your search</EmptyState.Title>
     <EmptyState.Description>Try a different search.</EmptyState.Description>
   </EmptyState>
 ))}
@@ -152,9 +152,9 @@ inherit the palette from an ancestor instead.
   <EmptyState.IconTile>
     <WarningIcon weight='duotone' />
   </EmptyState.IconTile>
-  <EmptyState.Title>Something went wrong</EmptyState.Title>
+  <EmptyState.Title>We couldn't load your events</EmptyState.Title>
   <EmptyState.Description>
-    We couldn't load your events. Try again.
+    Check your connection and try again.
   </EmptyState.Description>
   <EmptyState.Actions>
     <Button href='#' emphasis='strong'>
@@ -219,7 +219,7 @@ Write the title, description, and actions with
 
 <Guideline title='Set the intent once on the root'>
   <Guideline.Do
-    code={`<EmptyState intent='danger'>\n  <EmptyState.IconTile>…</EmptyState.IconTile>\n  <EmptyState.Title>Something went wrong</EmptyState.Title>\n  <EmptyState.Actions>\n    <Button emphasis='strong'>Retry</Button>\n  </EmptyState.Actions>\n</EmptyState>`}
+    code={`<EmptyState intent='danger'>\n  <EmptyState.IconTile>…</EmptyState.IconTile>\n  <EmptyState.Title>We couldn't load your events</EmptyState.Title>\n  <EmptyState.Actions>\n    <Button emphasis='strong'>Retry</Button>\n  </EmptyState.Actions>\n</EmptyState>`}
   >
     Pass `intent` on the root (or inherit it from an ancestor) so the tile and
     buttons share one palette.
