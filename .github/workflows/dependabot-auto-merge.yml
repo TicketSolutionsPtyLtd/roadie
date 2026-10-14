@@ -1,7 +1,9 @@
 name: Dependabot auto-merge
 
-# Turns on auto-merge for the groups that never ship to consumers, so they land
-# once `CI result` passes. Production bumps stay manual: they need a changeset.
+# Turns on auto-merge for the groups that change no published dependency range,
+# so they land once `CI result` passes. Build tools among them can still change
+# a package's next dist, and CI is the gate for that. Production bumps stay
+# manual: they need a changeset.
 # A merge made with GITHUB_TOKEN starts no push workflows on main. The nightly
 # CI and the daily audit cover the gap; docs and release wait for the next
 # human merge that touches their paths.
