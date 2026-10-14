@@ -7,7 +7,7 @@ export const metadata = {
 }
 
 import { Button, EmptyState } from '@oztix/roadie-components'
-import { MagnifyingGlassIcon, TicketIcon } from '@phosphor-icons/react/ssr'
+import { TicketIcon } from '@phosphor-icons/react/ssr'
 
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
@@ -214,46 +214,6 @@ Write the title, description, and actions with
   >
     Don't drop a whole-page `lg` state into a small section. It overwhelms the
     surrounding UI.
-  </Guideline.Dont>
-</Guideline>
-
-<Guideline title='Keep the message short and give a way out'>
-  <Guideline.Do
-    example={
-      <EmptyState size='sm'>
-        <EmptyState.IconTile>
-          <MagnifyingGlassIcon weight='duotone' />
-        </EmptyState.IconTile>
-        <EmptyState.Title>No results</EmptyState.Title>
-        <EmptyState.Description>
-          Try a different search.
-        </EmptyState.Description>
-        <EmptyState.Actions>
-          <Button href='#'>Clear filters</Button>
-        </EmptyState.Actions>
-      </EmptyState>
-    }
-  >
-    A short title, a one-line description, and an action that moves the user
-    forward.
-  </Guideline.Do>
-  <Guideline.Dont
-    example={
-      <EmptyState size='sm'>
-        <EmptyState.IconTile>
-          <MagnifyingGlassIcon weight='duotone' />
-        </EmptyState.IconTile>
-        <EmptyState.Title>No results were found for your search</EmptyState.Title>
-        <EmptyState.Description>
-          We looked everywhere but couldn't find anything matching your
-          criteria. This can happen when filters are too narrow, the spelling
-          is off, or there simply isn't any content yet.
-        </EmptyState.Description>
-      </EmptyState>
-    }
-  >
-    Don't pad the copy into a paragraph or leave the user at a dead end with no
-    next step.
   </Guideline.Dont>
 </Guideline>
 
