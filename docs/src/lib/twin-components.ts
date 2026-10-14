@@ -7,6 +7,7 @@
  */
 export const TWIN_COMPONENTS = {
   AccentScales: 'rendered',
+  BrandExampleImage: 'drawing',
   BrandFigure: 'rendered',
   BrandFigureGrid: 'drawing',
   BrandStack: 'drawing',
