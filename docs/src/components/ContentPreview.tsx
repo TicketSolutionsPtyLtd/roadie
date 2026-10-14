@@ -37,6 +37,15 @@ export function ContentPreview({ name }: { name: string }) {
           <p className='text-sm text-strong'>Gates open at 6pm.</p>
         </div>
       )
+    case 'interface-copy':
+      return (
+        <div className='grid w-44 gap-2'>
+          <p className='text-xs text-subtler line-through'>Submit</p>
+          <p className='emphasis-strong justify-self-start rounded-lg px-3 py-1.5 text-xs intent-accent'>
+            Save changes
+          </p>
+        </div>
+      )
     default:
       return null
   }
