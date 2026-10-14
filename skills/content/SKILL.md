@@ -24,9 +24,9 @@ ahead of the published site.
 - **A draft an AI wrote, including yours:**
   [Writing with AI](https://ticketsolutionsptyltd.github.io/roadie/content/writing-with-ai.md)
   as well.
-- **Interface text:** the page for every component the copy sits in (Button,
-  Dialog, EmptyState, Field, Toast, and so on), whose Guidelines hold its copy
-  rules, and any interface copy page the
+- **Interface text:** the page for every component the copy sits in,
+  such as Dialog, EmptyState, or Toast, for the copy rules in its Guidelines,
+  and any interface copy page the
   [Content index](https://ticketsolutionsptyltd.github.io/roadie/content.md)
   lists.
 - **Dates and times:** the
@@ -63,9 +63,9 @@ rules; the page holds them.
    Apostrophes, Quotation marks, Parentheses, Exclamation marks and emoji,
    Bold, Full stops, Ellipses, Slashes, and Ampersands.
 5. **Language and grammar, Formats**: Dates and times, Prices, and Fees and
-   offers.
+   offers. For dates and times, also **Date and time, The seven rules**.
 6. **Guidelines** and **In the interface** on each page, and the Guidelines
-   on each component page, for interface text.
+   on each component page that has them, for interface text.
 7. **Writing with AI, The tells**: every tell.
 
 If a heading named here has moved or gone, follow the page and say so in the
@@ -85,9 +85,10 @@ Judgement calls: <preferences no rule covers, or None>
 ```
 
 - One row per line of copy. **Was** quotes it, **Rules** lists every rule it
-  breaks as `Page > Heading`, with the rule's own heading rather than the one above it, and
-  **Now** is the rewritten line, not advice about it. When the fix is in code,
-  such as a date component in place of a string, **Now** names the change.
+  breaks as `Page > Heading`, with the rule's own heading rather than the one
+  above it, and **Now** is the rewritten line, not advice about it. When the
+  fix is in code, such as a date component in place of a string, **Now** names
+  the change.
 - Where a rewrite needs a fact you don't have, put a `[placeholder]` in
   **Now** and the question under Questions.
 - Every finding names a rule. A preference with no rule goes under Judgement
