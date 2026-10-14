@@ -8,6 +8,8 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import { readFileSync } from 'fs'
 import { createRequire } from 'module'
 
+import published from '@oztix/eslint-plugin-roadie'
+
 import roadie from '../eslint/roadie-plugin.js'
 import { startsWithJsx } from './src/lib/fence-layout.mjs'
 import { LIVE_LANGUAGE } from './src/lib/live-examples.mjs'
@@ -136,13 +138,7 @@ const config = [
     plugins: { roadie },
     settings: { roadie: { phosphorIcons: liveScopeIcons() } },
     rules: {
-      'roadie/phosphor-icon-suffix': 'error',
-      'roadie/phosphor-icon-size-prop': 'error',
-      'roadie/phosphor-icon-weight': 'error',
-      'roadie/no-dark-variant': 'error',
-      'roadie/no-hex-colour-class': 'error',
-      'roadie/no-arbitrary-z-index': 'error',
-      'roadie/no-arbitrary-radius': 'error',
+      ...published.configs.recommended.rules,
       // The live editor puts components in scope, so examples don't import them.
       'react/jsx-no-undef': 'off',
       // React renders a straight apostrophe as is; escaping it hurts copying.
