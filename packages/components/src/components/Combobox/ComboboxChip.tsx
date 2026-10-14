@@ -19,7 +19,7 @@ export function ComboboxChip({
     <ComboboxPrimitive.Chip
       data-slot='combobox-chip'
       className={cn(
-        'is-interactive inline-flex h-6 max-w-full min-w-0 cursor-default items-center gap-0.5 overflow-hidden rounded-full emphasis-subtle ps-2.5 pe-2.5 text-sm font-medium whitespace-nowrap focus:is-selected active:scale-100 has-[[data-slot=combobox-chip-remove]]:pe-0.5 data-disabled:opacity-100 data-disabled:filter-none',
+        'is-interactive inline-flex h-6 max-w-full min-w-0 cursor-default items-center gap-0.5 overflow-hidden rounded-full emphasis-subtle ps-2.5 pe-2.5 text-sm font-medium whitespace-nowrap focus:emphasis-strong focus:intent-accent active:scale-100 has-[[data-slot=combobox-chip-remove]]:pe-0.5 data-disabled:opacity-100 data-disabled:filter-none',
         className
       )}
       onMouseDown={(event) => {

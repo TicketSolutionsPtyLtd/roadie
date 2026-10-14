@@ -2,8 +2,10 @@
 '@oztix/roadie-components': minor
 ---
 
-`Combobox.Chip` now shows the selected look while it has focus, and clicking a
-chip selects it instead of jumping to the input. Backspace in an empty
+`Combobox.Chip` turns accent strong while it has focus, to show it's selected,
+with the same rest, hover, focus and press states as an accent strong `Button`,
+whatever its own intent. Its `Combobox.ChipRemove` reads in the on-strong colour
+there. Clicking a chip selects it instead of jumping to the input. Backspace in an empty
 `Combobox.Input` selects the last chip, and a second Backspace removes it, so
 a value is never dropped without a warning. An `onKeyDown` that calls
 `preventBaseUIHandler` keeps its own Backspace. Escape on a chip returns to the

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Combobox } from '.'
+import { intentVariants } from '../../variants'
 import { Field } from '../Field'
 
 const genres = ['Rock', 'Jazz', 'Hip hop', 'Folk']
@@ -67,7 +68,8 @@ describe('Combobox chips', () => {
       'rounded-full',
       'is-interactive'
     )
-    expect(chip.className).not.toMatch(/intent-/)
+    for (const intent of Object.values(intentVariants))
+      expect(chip).not.toHaveClass(intent)
   })
 
   it('gives the remove button a default icon and an accessible name', () => {
