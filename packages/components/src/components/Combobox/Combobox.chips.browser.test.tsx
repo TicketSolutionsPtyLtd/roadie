@@ -178,6 +178,14 @@ describe('Combobox chips', () => {
     expect(style.paddingInlineEnd).toBe(style.paddingInlineStart)
   })
 
+  it('keep the end tight beside a remove button', () => {
+    render(<Bands defaultValue={['Saltwater Choir']} />)
+    const style = getComputedStyle(chip('Saltwater Choir'))
+    expect(parseFloat(style.paddingInlineEnd)).toBeLessThan(
+      parseFloat(style.paddingInlineStart)
+    )
+  })
+
   it('select a chip on click, giving it the selected fill', async () => {
     render(<Bands defaultValue={['Saltwater Choir', 'Velvet Kingfisher']} />)
     const resting = getComputedStyle(chip('Velvet Kingfisher')).backgroundColor
