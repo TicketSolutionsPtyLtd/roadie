@@ -17,20 +17,24 @@ lists the Content pages. Each link ending in `.md` is the page as markdown.
 Inside the Roadie repo, read `docs/src/app/content/` instead, which can be
 ahead of the published site.
 
-- **Any copy:** [Language and grammar](https://ticketsolutionsptyltd.github.io/roadie/content/language-and-grammar.md).
-- **Marketing, email, support, or anything with a tone:**
-  [Voice and tone](https://ticketsolutionsptyltd.github.io/roadie/content/voice-and-tone.md)
-  as well.
+- **Any copy:**
+  [Language and grammar](https://ticketsolutionsptyltd.github.io/roadie/content/language-and-grammar.md)
+  and
+  [Voice and tone](https://ticketsolutionsptyltd.github.io/roadie/content/voice-and-tone.md).
 - **A draft an AI wrote, including yours:**
   [Writing with AI](https://ticketsolutionsptyltd.github.io/roadie/content/writing-with-ai.md)
   as well.
-- **Interface text:** any interface copy page the
+- **Interface text:** the page for every component the copy sits in (Button,
+  Dialog, EmptyState, Field, Toast, and so on), whose Guidelines hold its copy
+  rules, and any interface copy page the
   [Content index](https://ticketsolutionsptyltd.github.io/roadie/content.md)
-  lists, "In the interface" on Language and grammar and Voice and tone, and
-  the component's own page (Button, EmptyState, Field, and so on).
+  lists.
+- **Dates and times:** the
+  [Date and time](https://ticketsolutionsptyltd.github.io/roadie/foundations/date-and-time.md)
+  foundation as well.
 
 Sample names come from Roadie's
-[example data](https://github.com/TicketSolutionsPtyLtd/roadie/blob/main/docs/contributing/EXAMPLE_DATA.md),
+[example data](https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/docs/contributing/EXAMPLE_DATA.md),
 never a real venue, event, or promoter. Logo, colour, type, and imagery aren't
 copy, so build those with `/roadie:build`.
 
@@ -60,8 +64,8 @@ rules; the page holds them.
    Bold, Full stops, Ellipses, Slashes, and Ampersands.
 5. **Language and grammar, Formats**: Dates and times, Prices, and Fees and
    offers.
-6. **Guidelines** and **In the interface**, on each page that has them, for
-   interface text.
+6. **Guidelines** and **In the interface** on each page, and the Guidelines
+   on each component page, for interface text.
 7. **Writing with AI, The tells**: every tell.
 
 If a heading named here has moved or gone, follow the page and say so in the
@@ -73,20 +77,24 @@ report.
 Copy review: <what was reviewed>
 Pages: <pages read, and whether from the repo or the published site>
 
-| Where | Was | Rule | Now |
-| ----- | --- | ---- | --- |
+| Where | Was | Rules | Now |
+| ----- | --- | ----- | --- |
 
+Questions: <what the author must answer before a rewrite is final, or None>
 Judgement calls: <preferences no rule covers, or None>
-Open findings: <count, or None>
 ```
 
-- **Was** quotes the line, **Rule** is `Page > Heading`, and **Now** is the
-  rewritten line, not advice about it.
+- One row per line of copy. **Was** quotes it, **Rules** lists every rule it
+  breaks as `Page > Heading`, with the rule's own heading rather than the one above it, and
+  **Now** is the rewritten line, not advice about it. When the fix is in code,
+  such as a date component in place of a string, **Now** names the change.
+- Where a rewrite needs a fact you don't have, put a `[placeholder]` in
+  **Now** and the question under Questions.
 - Every finding names a rule. A preference with no rule goes under Judgement
   calls.
 - Leave passing lines out.
 - Inside `/roadie:review`, report each finding in that skill's format. A rule
   break in shipped copy is Important, and anything else is Minor.
 
-When writing rather than reviewing, give the copy, then one line naming the
-pages you checked it against.
+When writing rather than reviewing, give the copy, then the assumptions it
+rests on, then one line naming the pages you checked it against.

@@ -45,7 +45,9 @@ input that fails. With neither, it isn't a finding.
 
 **Conventions.** The added lines against the host repo's `AGENTS.md`,
 `CODING_STANDARDS.md`, and workflow. In an app that uses Roadie, also review
-it against Roadie, as the next section says.
+it against Roadie, as the next section says. Copy the diff adds or changes,
+in interface text, docs, or a skill, goes through the `/roadie:content`
+checklist.
 
 **Bug hunt.** These are the classes that keep slipping past review to bots
 and phones.
