@@ -56,20 +56,20 @@ The tagline keeps its title case, an approved exception to sentence case.
 <Logo tagline size='sm' />
 ```
 
-### Layout
+### Direction
 
-`layout='stacked'` sets the wordmark under the mark, with the tagline under that when it's on. Use it for square or narrow spaces, such as a social profile. A product logo stays horizontal.
+`direction='vertical'` sets the wordmark under the mark, with the tagline under that when it's on. Use it for square or narrow spaces, such as a social profile. A product logo stays horizontal.
 
 ```tsx-live layout=row gap=8
-<Logo layout='stacked' size='xl' />
-<Logo layout='stacked' tagline size='xl' />
+<Logo direction='vertical' size='xl' />
+<Logo direction='vertical' tagline size='xl' />
 ```
 
 ### Sizes
 
-The logo's height is set with the `size` prop, not a className. One value scales the mark, the gap, the tagline, and the product name together. `xs` is 20px, `sm` 24px, `md` 32px (the default), `lg` 40px, `xl` 48px. A stacked logo sizes its mark, and is 1.5 times the mark wide.
+The logo's height is set with the `size` prop, not a className. One value scales the mark, the gap, the tagline, and the product name together. `xs` is 20px, `sm` 24px, `md` 32px (the default), `lg` 40px, `xl` 48px. A vertical logo sizes its mark, and is 1.5 times the mark wide.
 
-`xs` is for product UI only, such as a dense app header. Everywhere else, a logo is at least 24px high, and a stacked one at least 48px wide, which is `md`.
+`xs` is for product UI only, such as a dense app header. Everywhere else, a logo is at least 24px high, and a vertical one at least 48px wide, which is `md`.
 
 Logo sizes sit one step below Button and IconTile, whose `md` is 40px, so a `size='md'` logo pairs with a `size='sm'` button.
 
@@ -84,24 +84,40 @@ Logo sizes sit one step below Button and IconTile, whose `md` is 40px, so a `siz
 </div>
 ```
 
-### Tone
+### Colour
 
-`tone` picks the artwork's colour, which stays the same in light and dark mode and ignores a surrounding intent. `brand`, the default, is Oztix blue. `dark` is near-black, for a light background where blue lacks contrast or the logo sits among other neutral logos. `light` is white, for dark, brand, or photo backgrounds.
+`tone` is the only colour control. Pick it for the background the logo sits on. Recolouring the logo with an intent or a className isn't supported, and a surrounding intent never tints it.
 
-The brand tagline and divider follow the theme, so they stay readable in both modes. The `dark` and `light` taglines are fixed like the rest of the artwork.
+`brand`, the default, is Oztix blue. Use it on light surfaces, and on the page in either mode.
 
-```tsx-live layout=stack gap=4
-{/* Brand */}
+```tsx-live
 <Logo tone='brand' tagline size='sm' />
-{/* Dark */}
-<div className='rounded-lg bg-(--color-neutral-light-0) p-4'>
+```
+
+`dark` is near-black. Use it on a light surface where blue lacks contrast, in one-colour print, or in a row of neutral partner logos.
+
+```tsx-live
+<div className='rounded-lg bg-(--color-neutral-light-0) p-6'>
   <Logo tone='dark' tagline size='sm' />
 </div>
-{/* Light */}
-<div className='intent-brand emphasis-strong rounded-lg p-4'>
+```
+
+`light` is white. Use it on dark surfaces, strong brand surfaces, and calm, dark areas of photos.
+
+```tsx-live layout=stack gap=4
+{/* On brand */}
+<div className='intent-brand emphasis-strong rounded-lg p-6'>
+  <Logo tone='light' tagline size='sm' />
+</div>
+{/* On dark */}
+<div className='rounded-lg bg-(--color-neutral-light-13) p-6'>
   <Logo tone='light' tagline size='sm' />
 </div>
 ```
+
+In dark mode, the brand mark and wordmark stay Oztix blue, and the brand tagline and divider follow the theme, so the brand logo reads on the page in either mode. The `dark` and `light` tones are fixed in both modes, because each is drawn for a known background. On a surface that stays light in dark mode, use `dark`.
+
+The [Brand Logo page](/brand/logo) has the brand rules for using the logo.
 
 ### Collapsing
 
@@ -129,12 +145,43 @@ The `logo-wordmark` and `logo-product` slots hold their own gap and clip, so a p
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Pick a tone for the background'>
-  <Guideline.Do code={`<Logo tone='light' />`}>
-    Set <code>tone</code> to suit what's behind the logo. The logo doesn't take an intent and doesn't follow one around it.
+<Guideline title='Colour the logo with tone only'>
+  <Guideline.Do code={`<Logo tone='dark' />`}>
+    Pick one of the three tones. They're the only approved colours.
   </Guideline.Do>
-  <Guideline.Dont code={`<Logo className='text-[#0191eb]' />`}>
-    Don't hard-code a colour. Only the three tones are approved artwork.
+  <Guideline.Dont code={`
+    <Logo className='text-danger-9' />
+    <div className='intent-danger'>
+      <Logo />
+    </div>
+  `}>
+    Don't recolour the logo with a className or an intent. A className isn't supported, and an intent is ignored.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Use the light tone on a strong brand surface'>
+  <Guideline.Do code={`
+    <div className='intent-brand emphasis-strong p-6'>
+      <Logo tone='light' />
+    </div>
+  `}>
+    Put the white logo on a strong brand fill, where it has the contrast the brand pack draws it for.
+  </Guideline.Do>
+  <Guideline.Dont code={`
+    <div className='intent-brand emphasis-strong p-6'>
+      <Logo />
+    </div>
+  `}>
+    Don't put the blue logo on a blue fill. It disappears.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Give the light logo a calm area of a photo'>
+  <Guideline.Do>
+    Place the white logo over a dark, even part of a photo, or over a dark scrim.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't place it over a busy or light part of a photo, where its edges break up against the detail.
   </Guideline.Dont>
 </Guideline>
 

@@ -10,7 +10,7 @@ const WORDMARK_PATH =
 
 export type LogoVariant = 'normal' | 'mark' | 'wordmark'
 export type LogoSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-export type LogoLayout = 'horizontal' | 'stacked'
+export type LogoDirection = 'horizontal' | 'vertical'
 export type LogoTone = 'brand' | 'dark' | 'light'
 
 export type LogoProps = Omit<ComponentProps<'span'>, 'children' | 'dir'> & {
@@ -27,17 +27,17 @@ export type LogoProps = Omit<ComponentProps<'span'>, 'children' | 'dir'> & {
    */
   tagline?: boolean
   /**
-   * `stacked` sets the wordmark and tagline under the mark, for square spaces. A product logo stays horizontal.
+   * `vertical` sets the wordmark and tagline under the mark, for square spaces. A product logo stays horizontal.
    * @default 'horizontal'
    */
-  layout?: 'horizontal' | 'stacked'
+  direction?: 'horizontal' | 'vertical'
   /**
    * The mark and wordmark colour, the same in light and dark mode: `brand` is Oztix blue, `dark` is near-black for light backgrounds, and `light` is white for dark, brand, or photo backgrounds.
    * @default 'brand'
    */
   tone?: 'brand' | 'dark' | 'light'
   /**
-   * The logo's height, or the mark's when stacked: `xs` 20px, `sm` 24px, `md` 32px, `lg` 40px, `xl` 48px.
+   * The logo's height, or the mark's when vertical: `xs` 20px, `sm` 24px, `md` 32px, `lg` 40px, `xl` 48px.
    * @default 'md'
    */
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
@@ -154,7 +154,7 @@ export function Logo({
   variant = 'normal',
   product,
   tagline = false,
-  layout = 'horizontal',
+  direction = 'horizontal',
   tone = 'brand',
   size = 'md',
   className,
@@ -165,7 +165,7 @@ export function Logo({
   const productName = product?.trim()
   const parts = productName ? 'product' : variant
   const showTagline = tagline && parts === 'normal'
-  const stacked = layout === 'stacked' && parts === 'normal'
+  const vertical = direction === 'vertical' && parts === 'normal'
   const colour = toneClassName[tone]
 
   const hidden = ariaHidden === true || ariaHidden === 'true'
@@ -181,7 +181,7 @@ export function Logo({
       data-slot='logo'
       data-variant={variant}
       className={cn(
-        stacked
+        vertical
           ? 'inline-grid shrink-0 justify-items-center gap-[calc(1em/12)]'
           : 'inline-flex h-[1em] shrink-0 items-center',
         colour.logo,
@@ -194,7 +194,7 @@ export function Logo({
       dir='ltr'
     >
       {parts !== 'wordmark' && <LogoMark />}
-      {stacked && (
+      {vertical && (
         <>
           <LogoWordmark
             data-slot='logo-wordmark'
@@ -208,13 +208,13 @@ export function Logo({
           )}
         </>
       )}
-      {!stacked && parts === 'normal' && (
+      {!vertical && parts === 'normal' && (
         <LogoPart slot='logo-wordmark'>
           {/* The lockup sets the 42-unit wordmark at the top of the 48-unit mark. */}
           <LogoWordmark className='h-[0.875em] self-start' />
         </LogoPart>
       )}
-      {!stacked && showTagline && (
+      {!vertical && showTagline && (
         <LogoPart
           slot='logo-tagline'
           className={colour.tagline}

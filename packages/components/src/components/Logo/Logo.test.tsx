@@ -3,7 +3,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import {
   Logo,
-  type LogoLayout,
+  type LogoDirection,
   type LogoProps,
   type LogoSize,
   type LogoTone,
@@ -11,7 +11,7 @@ import {
 } from '.'
 import * as barrel from '../../index'
 import type {
-  LogoLayout as BarrelLogoLayout,
+  LogoDirection as BarrelLogoDirection,
   LogoProps as BarrelLogoProps,
   LogoSize as BarrelLogoSize,
   LogoTone as BarrelLogoTone,
@@ -119,8 +119,8 @@ describe('Logo', () => {
       ])
     })
 
-    it('keeps the tagline in the stacked layout', () => {
-      render(<Logo tagline layout='stacked' />)
+    it('keeps the tagline in the vertical lockup', () => {
+      render(<Logo tagline direction='vertical' />)
       const root = screen.getByRole('img', {
         name: 'Oztix, Built on Partnerships'
       })
@@ -153,9 +153,9 @@ describe('Logo', () => {
     })
   })
 
-  describe('layout', () => {
-    it('stacks the mark above the wordmark as separate SVGs', () => {
-      render(<Logo layout='stacked' />)
+  describe('direction', () => {
+    it('sets the mark above the wordmark as separate SVGs', () => {
+      render(<Logo direction='vertical' />)
       const root = screen.getByRole('img', { name: 'Oztix' })
       expect(slots(root)).toEqual(['logo-mark', 'logo-wordmark'])
     })
@@ -278,10 +278,10 @@ describe('Logo', () => {
     expectTypeOf<BarrelLogoProps>().toEqualTypeOf<LogoProps>()
     expectTypeOf<BarrelLogoVariant>().toEqualTypeOf<LogoVariant>()
     expectTypeOf<BarrelLogoSize>().toEqualTypeOf<LogoSize>()
-    expectTypeOf<BarrelLogoLayout>().toEqualTypeOf<LogoLayout>()
+    expectTypeOf<BarrelLogoDirection>().toEqualTypeOf<LogoDirection>()
     expectTypeOf<BarrelLogoTone>().toEqualTypeOf<LogoTone>()
     expectTypeOf<LogoVariant>().toEqualTypeOf<'normal' | 'mark' | 'wordmark'>()
-    expectTypeOf<LogoLayout>().toEqualTypeOf<'horizontal' | 'stacked'>()
+    expectTypeOf<LogoDirection>().toEqualTypeOf<'horizontal' | 'vertical'>()
     expectTypeOf<LogoTone>().toEqualTypeOf<'brand' | 'dark' | 'light'>()
     expectTypeOf<LogoProps>().not.toHaveProperty('children')
   })

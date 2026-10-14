@@ -88,9 +88,9 @@ describe('the tagline', () => {
   })
 })
 
-describe('the stacked layout', () => {
+describe('the vertical lockup', () => {
   it('centres the mark over a wordmark and tagline 1.5em wide, 1em/12 apart', () => {
-    const { root, box } = renderLogo(<Logo layout='stacked' tagline />)
+    const { root, box } = renderLogo(<Logo direction='vertical' tagline />)
     const mark = box('logo-mark')
     const wordmark = box('logo-wordmark')
     const tagline = box('logo-tagline')
@@ -106,7 +106,7 @@ describe('the stacked layout', () => {
   })
 
   it('keeps a product lockup on one row', () => {
-    const { box } = renderLogo(<Logo layout='stacked' product='Studio' />)
+    const { box } = renderLogo(<Logo direction='vertical' product='Studio' />)
     expect(box('logo-product').top).toBeCloseTo(box('logo-mark').top, 0)
     expect(box('logo-product').left).toBeCloseTo(box('logo-mark').right, 0)
   })
@@ -168,13 +168,13 @@ describe('tone', () => {
   })
 
   it.each(['brand', 'dark', 'light'] as const)(
-    'colours the stacked %s tagline like the horizontal one',
+    'colours the vertical %s tagline like the horizontal one',
     (tone) => {
-      const stacked = <Logo tone={tone} layout='stacked' tagline />
+      const vertical = <Logo tone={tone} direction='vertical' tagline />
       const horizontal = <Logo tone={tone} tagline />
 
-      expect(colours(stacked).tagline).toBe(colours(horizontal).tagline)
-      expect(colours(stacked, 'dark').tagline).toBe(
+      expect(colours(vertical).tagline).toBe(colours(horizontal).tagline)
+      expect(colours(vertical, 'dark').tagline).toBe(
         colours(horizontal, 'dark').tagline
       )
     }
