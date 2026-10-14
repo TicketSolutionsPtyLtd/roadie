@@ -24,6 +24,9 @@
     "src",
     "!src/**/*.test.js"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20"
   },
