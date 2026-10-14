@@ -8,6 +8,8 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import { readFileSync } from 'fs'
 import globals from 'globals'
 
+import published from '@oztix/eslint-plugin-roadie'
+
 import roadie from './eslint/roadie-plugin.js'
 
 // A later no-restricted-imports block replaces earlier ones, so each repeats this.
@@ -114,13 +116,7 @@ export default [
     files: ['packages/**/*.{ts,tsx}'],
     plugins: { roadie },
     rules: {
-      'roadie/phosphor-icon-suffix': 'error',
-      'roadie/phosphor-icon-size-prop': 'error',
-      'roadie/phosphor-icon-weight': 'error',
-      'roadie/no-dark-variant': 'error',
-      'roadie/no-hex-colour-class': 'error',
-      'roadie/no-arbitrary-z-index': 'error',
-      'roadie/no-arbitrary-radius': 'error',
+      ...published.configs.recommended.rules,
       'roadie/no-dynamic-next-link': 'error',
       'no-restricted-imports': ['error', { paths: [nextLink] }]
     }
