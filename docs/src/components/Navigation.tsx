@@ -20,6 +20,7 @@ import {
   ListDashesIcon,
   PaintBrushIcon,
   PaletteIcon,
+  SparkleIcon,
   SquaresFourIcon
 } from '@phosphor-icons/react'
 
@@ -72,6 +73,7 @@ type NavigationProps = {
 
 const DESTINATION_ICONS: Record<string, ReactNode> = {
   '/': <HouseIcon />,
+  '/brand': <SparkleIcon />,
   '/foundations': <CompassIcon />,
   '/tokens': <PaletteIcon />,
   '/components': <CubeIcon />,

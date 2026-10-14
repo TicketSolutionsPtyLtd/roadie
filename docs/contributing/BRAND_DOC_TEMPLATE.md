@@ -1,8 +1,8 @@
 # Brand documentation template
 
-**Starting point.** The Brand section doesn't exist yet. INNO-1149 imports
-the brand pages from Confluence and refines this template from what they need.
-Follow [`DOCS_PAGES.md`](DOCS_PAGES.md) too.
+Brand pages live in `docs/src/app/brand/`, under the Brand menu. Its index,
+`brand/page.mdx`, is the overview. INNO-1149 imported them from Confluence with
+`scripts/brand-import.mjs`. Follow [`DOCS_PAGES.md`](DOCS_PAGES.md) too.
 
 A brand page says how Oztix looks and sounds outside a single interface:
 Overview, Logo, Colour, Typography, Pattern, Illustration, and Photography.
@@ -82,5 +82,5 @@ links to their pages.
    such as client names, contract terms, or staff contacts.
 5. **Link, don't repeat.** Colour values belong to `/tokens/`, and component
    usage to the component page. The brand page says why and links there.
-6. **Category** waits on the Brand catalogue in
-   `docs/src/lib/page-manifest.ts`, which INNO-1149 adds.
+6. **Category** is `Brand`, the one category of the `BRAND` catalogue in
+   `docs/src/lib/page-manifest.ts`. `order` sets the page's place in the menu.

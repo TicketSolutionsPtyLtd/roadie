@@ -10,6 +10,7 @@ import {
 import { Providers } from '@/components/Providers'
 import { CHANGELOG_URL } from '@/lib/changelog'
 import {
+  BRAND,
   CHARTS,
   COMPONENTS,
   type Catalogue,
@@ -84,6 +85,7 @@ async function getNavigationItems(): Promise<NavigationDestination[]> {
         }
       ])
     },
+    await catalogueDestination('Brand', BRAND, { overview: true }),
     await catalogueDestination('Foundations', FOUNDATIONS, { overview: true }),
     await catalogueDestination('Tokens', TOKENS, { overview: true }),
     await catalogueDestination('Components', COMPONENTS, {
