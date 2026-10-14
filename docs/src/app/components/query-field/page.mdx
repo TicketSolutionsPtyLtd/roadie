@@ -35,7 +35,7 @@ function QueryFieldDefault() {
   function suggest(text) {
     const query = text.trim().toLowerCase()
     const items = venues
-      .filter((venue) => query && venue.toLowerCase().includes(query))
+      .filter((venue) => query && `venue is ${venue}`.toLowerCase().includes(query))
       .map((venue) => ({
         id: `venue:${venue}`,
         label: `Venue is ${venue}`,
