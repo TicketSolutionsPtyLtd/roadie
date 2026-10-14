@@ -36,7 +36,13 @@ updates:
       # once a compiler release supports Babel 8.
       - dependency-name: '@babel/core'
         update-types: ['version-update:semver-major']
+    # A dependency joins the first group it matches. Embla's packages share
+    # types, so bumped one at a time they mix versions and fail typecheck
+    # (#508–#510); release-candidate bumps also miss the minor/patch groups.
     groups:
+      embla:
+        patterns:
+          - 'embla-carousel*'
       dev-minor-patch:
         dependency-type: development
         update-types:
