@@ -48,15 +48,17 @@ export default [
 
 ## Rules
 
-| Rule                             | Fails                                                                    | Fix                                         |
-| -------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------- |
-| `roadie/phosphor-icon-suffix`    | A Phosphor import by its bare name, such as `Heart`                      | Import `HeartIcon`                          |
-| `roadie/phosphor-icon-size-prop` | The `size` prop on a Phosphor icon                                       | A `size-*` class                            |
-| `roadie/phosphor-icon-weight`    | A Phosphor icon with no weight, or one other than bold, fill, or duotone | `weight='bold'`                             |
-| `roadie/no-dark-variant`         | A `dark:` variant                                                        | A semantic colour utility                   |
-| `roadie/no-hex-colour-class`     | A hex colour, such as `bg-[#fff]`                                        | A semantic colour utility                   |
-| `roadie/no-arbitrary-z-index`    | An arbitrary z-index, such as `z-[5]`                                    | A named z tier, or `z-1` inside a component |
-| `roadie/no-arbitrary-radius`     | An arbitrary radius, such as `rounded-[10px]`                            | A named radius tier, such as `rounded-xl`   |
+In a config, each rule takes the `roadie/` prefix, such as `roadie/no-dark-variant`.
+
+| Rule                      | Fails                                                                    | Fix                                         |
+| ------------------------- | ------------------------------------------------------------------------ | ------------------------------------------- |
+| `phosphor-icon-suffix`    | A Phosphor import by its bare name, such as `Heart`                      | Import `HeartIcon`                          |
+| `phosphor-icon-size-prop` | The `size` prop on a Phosphor icon                                       | A `size-*` class                            |
+| `phosphor-icon-weight`    | A Phosphor icon with no weight, or one other than bold, fill, or duotone | `weight='bold'`                             |
+| `no-dark-variant`         | A `dark:` variant                                                        | A semantic colour utility                   |
+| `no-hex-colour-class`     | A hex colour, such as `bg-[#fff]`                                        | A semantic colour utility                   |
+| `no-arbitrary-z-index`    | An arbitrary z-index, such as `z-[5]`                                    | A named z tier, or `z-1` inside a component |
+| `no-arbitrary-radius`     | An arbitrary radius, such as `rounded-[10px]`                            | A named radius tier, such as `rounded-xl`   |
 
 [Iconography](/foundations/iconography) says which weight goes where, [Colors](/foundations/colors) why `.dark` needs no variant, [Elevation](/foundations/elevation) lists the z tiers, and [Shape](/foundations/shape) the radius tiers.
 
