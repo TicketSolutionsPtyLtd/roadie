@@ -653,6 +653,28 @@ describe('pageToMarkdown docs drawings', () => {
   })
 })
 
+describe('pageToMarkdown PairTable', () => {
+  it('keeps the table a PairTable lays out', () => {
+    const md = pageToMarkdown({
+      title: 'T',
+      mdx: [
+        "import { PairTable } from '@/components/PairTable'",
+        '',
+        '<PairTable>',
+        '',
+        '| Write | Not |',
+        '| ----- | --- |',
+        '| 7pm   | 7 pm |',
+        '',
+        '</PairTable>'
+      ].join('\n'),
+      drawings: new Set()
+    })
+    expect(md).toContain('| Write | Not  |')
+    expect(md).toContain('| 7pm   | 7 pm |')
+  })
+})
+
 describe('pageToMarkdown twin registry', () => {
   const mdx = [
     "import { SpacingScale } from '@/components/layout/SpacingScale'",
