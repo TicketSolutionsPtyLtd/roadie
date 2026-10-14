@@ -1,5 +1,13 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
 import { Combobox } from '.'
@@ -304,6 +312,24 @@ describe('Combobox chips', () => {
     expect(Math.abs(step)).toBeGreaterThanOrEqual(0.05)
     expect(getComputedStyle(remove).color).toBe(
       getComputedStyle(button()).color
+    )
+  })
+
+  it('edge a clicked chip in Highlight under forced colours', async (context) => {
+    render(<Bands defaultValue={['Saltwater Choir', 'Velvet Kingfisher']} />)
+    await userEvent.click(screen.getByText('Saltwater Choir'))
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(chip('Saltwater Choir'))
+    await commands.forcedColors(true)
+    onTestFinished(() => commands.forcedColors(false))
+    if (!matchMedia('(forced-colors: active)').matches) {
+      context.skip()
+      return
+    }
+    const edge = (element: Element) => getComputedStyle(element).borderTopColor
+    expect(edge(chip('Saltwater Choir'))).not.toBe(
+      edge(chip('Velvet Kingfisher'))
     )
   })
 
