@@ -22,7 +22,7 @@ It proposes; it doesn't refactor. A chosen proposal goes to `/roadie:grill`
   over anything here. With none, use Roadie's
   `https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/docs/contributing/CODING_STANDARDS.md`.
 - The decision registers for the area: the repo's (`docs/decisions/` or
-  wherever `AGENTS.md` points) and the Oztix [Decision log](https://oztix.atlassian.net/wiki/spaces/ID/pages/361529382), through the
+  wherever `AGENTS.md` points) and the Oztix [Decision log](https://oztix.atlassian.net/wiki/spaces/ID/pages/361529382) with its Principles, through the
   Atlassian MCP when it's connected. Then recorded learnings
   (`docs/solutions/`). Flag a proposal
   that reopens a decision, and only when the friction justifies it.

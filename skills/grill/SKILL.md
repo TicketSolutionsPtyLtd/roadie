@@ -1,6 +1,6 @@
 ---
 name: grill
-description: Use when someone has a new feature idea, prop, variant, component, token, or utility, before it is specced, in any Oztix repo. Reads the foundations, recorded learnings, the decision register, and prior art first, proves the cascade, intent, emphasis, or an existing component can't do the job, then asks only the questions left, one at a time, and records what it ruled out for /roadie:spec. Reads the host repo's AGENTS.md and CODING_STANDARDS.md. Triggers on "grill me", "grill this idea", "do we need a new prop", "should this be a variant", "new component idea", "interview me about this feature".
+description: Use when someone has a new feature idea, prop, variant, component, token, or utility, before it is specced, in any Oztix repo. Reads the foundations, recorded learnings, the decision registers, and prior art first, proves the cascade, intent, emphasis, or an existing component can't do the job, then asks only the questions left, one at a time, and records what it ruled out for /roadie:spec. Reads the host repo's AGENTS.md and CODING_STANDARDS.md. Triggers on "grill me", "grill this idea", "do we need a new prop", "should this be a variant", "new component idea", "interview me about this feature".
 ---
 
 # Roadie grill

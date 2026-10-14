@@ -87,11 +87,12 @@ maintainer can veto it. **Out of scope** names follow-ups with ticket keys.
   continues. Stop and ask only where the host workflow says to (Roadie's
   section 1).
 - A call that will outlast the PR and isn't obvious from the code gets a
-  record where the repo's register says it belongs (Roadie's README has "Here
-  or in the Decision log"): a register entry in the same PR, in the
-  register's own format, or a line in the entry it extends; or a Decision log
-  record, filed with the `decision` skill from the oztix-decisions plugin and
-  linked under Decisions. If it's a
+  record where the repo's register says it belongs (Roadie's
+  `docs/decisions/README.md` has "Here or in the Decision log"): a register
+  entry in the same PR, in the register's own format, or a line in the entry
+  it extends; or a Decision log record, filed with the `decision` skill from
+  the oztix-decisions plugin and linked under Decisions. Without that plugin,
+  draft the record under Decisions for the maintainer to file. If it's a
   one-way door or reverses an entry, propose it under Decisions instead and
   leave the entry for the maintainer's OK. A repo with no register keeps it
   under Decisions.
