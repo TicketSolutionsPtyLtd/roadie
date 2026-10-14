@@ -1,0 +1,162 @@
+export const metadata = {
+  title: 'Writing with AI',
+  description:
+    'The habits that mark a draft as machine written, and how to edit them out.',
+  category: 'Writing',
+  order: 3
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+import { Callout } from '@oztix/roadie-components/callout'
+
+An AI draft breaks the same rules as any weak draft, and has a few habits of
+its own. This page covers those habits, with a draft line before each edit
+and after it. Edit everything else against
+[Language and grammar](/content/language-and-grammar) and
+[Voice and tone](/content/voice-and-tone), like any other draft.
+
+## Trailing -ing phrases
+
+A clause like "highlighting its commitment" or "ensuring a smooth night",
+tacked onto the end of a sentence, claims a meaning nobody checked. Delete it,
+or give the fact behind it its own sentence.
+
+| Before                                                                        | After                                              |
+| ----------------------------------------------------------------------------- | -------------------------------------------------- |
+| The festival added a second stage, highlighting its commitment to local acts. | The festival added a second stage for local acts.  |
+| Gates open at 5pm, ensuring a smooth entry for every fan.                     | Gates open at 5pm, an hour earlier than last year. |
+
+## AI vocabulary
+
+Some words turn up far more often in machine writing than in ours. Swap each
+for the plain word.
+
+| Instead of            | Write                   |
+| --------------------- | ----------------------- |
+| additionally          | also                    |
+| crucial, pivotal      | important, or say why   |
+| delve into            | look at                 |
+| showcase, underscore  | show                    |
+| enhance               | improve                 |
+| foster                | build                   |
+| garner                | get                     |
+| vibrant               | busy, loud, or the fact |
+| landscape, as an idea | market                  |
+| testament to          | proof of                |
+| tapestry, interplay   | mix                     |
+
+| Before                                                        | After                                         |
+| ------------------------------------------------------------- | --------------------------------------------- |
+| Let's delve into the vibrant landscape of regional festivals. | Here's how regional festivals sold this year. |
+
+## Not just this, but that
+
+"It's not just X, it's Y" sets up a claim nobody made so it can knock it down.
+Say the point.
+
+| Before                                                              | After                                                       |
+| ------------------------------------------------------------------- | ----------------------------------------------------------- |
+| It's not just a ticketing platform, it's a partner in your success. | We run your ticketing, and we answer the phone on show day. |
+
+## Groups of three
+
+List as many things as there are. A draft pads or trims ideas to three
+because three sounds finished.
+
+| Before                                          | After                              |
+| ----------------------------------------------- | ---------------------------------- |
+| Fast, simple, and seamless entry for every fan. | Scanning takes 2 seconds a ticket. |
+
+## Bold labels that repeat the line
+
+A bullet that opens with a bold label and a colon, then says the label again,
+is a tell. Write the sentence. A bold lead-in that ends in a full stop, names
+the item, and comes before new detail is fine.
+
+| Before                                                     | After                                               |
+| ---------------------------------------------------------- | --------------------------------------------------- |
+| `**Performance:** Performance improved across all venues.` | Scanning took 2 seconds a ticket, down from 5.      |
+| `**Refunds:** Refunds are handled by our team.`            | `**Refunds.** We refund to the card you paid with.` |
+
+## Curly quotes in drafts
+
+Code, Markdown, and AI drafts use straight quotes, so search and code read
+them. Rendered copy may use typographic quotes.
+
+| Before               | After                |
+| -------------------- | -------------------- |
+| `title=‘Doors open’` | `title='Doors open'` |
+
+## Chatbot phrases
+
+Delete the assistant's side of the conversation, such as "Certainly!", "I hope
+this helps!", and "Let me know if you have any questions". A warm sign-off is
+fine only after a concrete next step.
+
+| Before                                           | After                                                                      |
+| ------------------------------------------------ | -------------------------------------------------------------------------- |
+| Certainly! Here's the update. I hope this helps! | Gates open at 6pm. I'll send the run sheet by Thursday. Have a great show. |
+
+## Flattery
+
+Answer the question. Don't praise it, or agree with the reader before you
+answer.
+
+| Before                                                              | After                                                             |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Great question! You're absolutely right that refunds can be tricky. | Refunds go back to the card you paid with within 5 business days. |
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Edit the draft until it states facts'>
+  <Guideline.Do
+    width={72}
+    example={
+      <Callout intent='success' title='Your refund is on its way'>
+        It reaches the card you paid with within 5 business days.
+      </Callout>
+    }
+  >
+    Say what happened and when the reader sees it.
+  </Guideline.Do>
+  <Guideline.Dont
+    width={72}
+    example={
+      <Callout intent='success' title='Great news!'>
+        Your refund is being processed, ensuring a seamless experience.
+      </Callout>
+    }
+  >
+    Don't ship the draft's cheer and its trailing -ing clause.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## The rules for every writer
+
+A draft also breaks the rules on
+[Language and grammar](/content/language-and-grammar). These catch the most.
+
+- [Every line carries a fact](/content/language-and-grammar#every-line-carries-a-fact)
+  catches vague claims and flourish.
+- [Use the plain word](/content/language-and-grammar#use-the-plain-word) and
+  [Say is and has](/content/language-and-grammar#say-is-and-has) catch
+  inflated words.
+- [Cut filler](/content/language-and-grammar#cut-filler) and
+  [Hedge once](/content/language-and-grammar#hedge-once) catch padding.
+- [Whole sentences](/content/language-and-grammar#whole-sentences) catches
+  arrows and fragments.
+- [Dashes](/content/language-and-grammar#dashes) bans em dashes and en dashes.
+- [Name the source](/content/language-and-grammar#name-the-source) catches
+  "experts say".
+
+## Attribution
+
+Adapted from [unslop](https://github.com/cursor/plugins/tree/main/pstack/skills/unslop)
+by Lauren Tan (pstack, MIT). The rules here are rewritten in Oztix wording,
+and the ones that apply to every writer live on
+[Language and grammar](/content/language-and-grammar).

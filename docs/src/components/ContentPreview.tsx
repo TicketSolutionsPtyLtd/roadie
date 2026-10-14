@@ -28,6 +28,15 @@ export function ContentPreview({ name }: { name: string }) {
           <Skel className='h-1.5 w-28' />
         </div>
       )
+    case 'writing-with-ai':
+      return (
+        <div className='grid w-44 gap-1'>
+          <p className='text-xs text-subtler line-through'>
+            Certainly! I hope this helps.
+          </p>
+          <p className='text-sm text-strong'>Gates open at 6pm.</p>
+        </div>
+      )
     default:
       return null
   }
