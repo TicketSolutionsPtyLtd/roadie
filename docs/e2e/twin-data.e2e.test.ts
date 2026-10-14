@@ -11,6 +11,9 @@ import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 // the build wrote for that page. A component that draws a list rather than a
 // table marks its rows `data-twin-row` and their cells `data-twin-cell`.
 const TABLES: [route: string, slot: string][] = [
+  ...['neutral', 'blue', 'purple', 'orange', 'green', 'yellow', 'red'].map(
+    (hue): [string, string] => ['/brand/colour', `brand-swatches-${hue}`]
+  ),
   ['/charts/dashboards', 'card-sizes'],
   ['/charts/dashboards', 'copy-limits'],
   ['/charts/dashboards', 'chart-label-limits'],

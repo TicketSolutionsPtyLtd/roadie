@@ -7,6 +7,7 @@
  */
 export const TWIN_COMPONENTS = {
   AccentScales: 'rendered',
+  BrandSwatches: 'rendered',
   BreakpointScale: 'rendered',
   CardAnatomyExample: 'drawing',
   CardSizes: 'rendered',
