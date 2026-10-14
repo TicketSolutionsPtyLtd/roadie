@@ -150,15 +150,42 @@ describe('Combobox chips', () => {
     )
   })
 
-  it('remove the last value with Backspace from the input, keeping focus there', async () => {
+  it('select the last chip with Backspace from the input, then remove it', async () => {
     render(<Bands defaultValue={['Saltwater Choir', 'Velvet Kingfisher']} />)
-    const input = screen.getByRole('combobox', { name: 'Bands' })
     await userEvent.tab()
+    await userEvent.keyboard('{Backspace}')
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(chip('Velvet Kingfisher'))
     await userEvent.keyboard('{Backspace}')
     await expect
       .poll(() => document.querySelectorAll('[data-slot=combobox-chip]').length)
       .toBe(1)
-    expect(document.activeElement).toBe(input)
+  })
+
+  it('pad both ends alike without a remove button', () => {
+    render(
+      <Combobox items={bands} multiple defaultValue={['Saltwater Choir']}>
+        <Combobox.Chips>
+          <Combobox.Chip aria-label='Saltwater Choir'>
+            <Combobox.ChipLabel>Saltwater Choir</Combobox.ChipLabel>
+          </Combobox.Chip>
+        </Combobox.Chips>
+      </Combobox>
+    )
+    const style = getComputedStyle(chip('Saltwater Choir'))
+    expect(parseFloat(style.paddingInlineStart)).toBeGreaterThan(2)
+    expect(style.paddingInlineEnd).toBe(style.paddingInlineStart)
+  })
+
+  it('select a chip on click, giving it the selected fill', async () => {
+    render(<Bands defaultValue={['Saltwater Choir', 'Velvet Kingfisher']} />)
+    const resting = getComputedStyle(chip('Velvet Kingfisher')).backgroundColor
+    await userEvent.click(screen.getByText('Saltwater Choir'))
+    const selected = chip('Saltwater Choir')
+    await expect.poll(() => document.activeElement).toBe(selected)
+    await userEvent.hover(screen.getByRole('combobox', { name: 'Bands' }))
+    expect(getComputedStyle(selected).backgroundColor).not.toBe(resting)
   })
 
   it('move focus to the next chip after removing a focused one, then to the input', async () => {

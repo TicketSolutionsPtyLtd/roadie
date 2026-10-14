@@ -1,6 +1,13 @@
 import { createRef, useState } from 'react'
 
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -1057,5 +1064,49 @@ describe('QueryField', () => {
     )
     await userEvent.click(screen.getByRole('button', { name: 'Clear' }))
     expect(onPendingChipCancel).toHaveBeenCalledOnce()
+  })
+
+  it('shows a suggestion’s icon before its label, hidden from assistive technology', async () => {
+    const pin = <svg data-testid='venue-icon' />
+    const withIcon = { ...venueField, icon: pin }
+    render(
+      <Harness
+        initialChips={[city]}
+        recent={[{ ...iguana, icon: <svg data-testid='recent-icon' /> }]}
+        suggest={() => [
+          { id: 'fields', label: 'Filter by', items: [withIcon] }
+        ]}
+      />
+    )
+    await userEvent.click(input())
+    const option = await screen.findByRole('option', { name: 'Venue' })
+    const icon = within(option).getByTestId('venue-icon')
+    const label = option.querySelector('[data-slot=query-field-option-label]')!
+    expect(
+      icon.compareDocumentPosition(label) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    expect(icon.closest('[aria-hidden=true]')).toBeInTheDocument()
+    expect(
+      within(
+        screen.getByRole('option', { name: 'Venue is Iguana Teapot Hall' })
+      ).getByTestId('recent-icon')
+    ).toBeInTheDocument()
+    // Only the remove button's.
+    expect(chipElement('city')!.querySelectorAll('svg')).toHaveLength(1)
+  })
+
+  it('marks the free-text search row with an icon', async () => {
+    render(<Harness />)
+    await typeInto('igua')
+    const search = await screen.findByRole('option', {
+      name: 'Search for “igua”'
+    })
+    const icon = search.querySelector('svg')!
+    expect(
+      icon.compareDocumentPosition(
+        search.querySelector('[data-slot=query-field-option-label]')!
+      ) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    expect(icon.closest('[aria-hidden=true]')).toBeInTheDocument()
   })
 })

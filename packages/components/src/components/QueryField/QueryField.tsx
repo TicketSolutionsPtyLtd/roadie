@@ -3,6 +3,7 @@
 import {
   Fragment,
   type KeyboardEvent,
+  type ReactNode,
   type Ref,
   useCallback,
   useId,
@@ -118,6 +119,19 @@ function groupKey(group: { id: string; builtIn?: boolean }) {
 
 function hasDescription(description: unknown) {
   return typeof description === 'number' || !!description
+}
+
+function OptionIcon({ icon }: { icon: ReactNode }) {
+  if (!icon) return null
+  return (
+    <span
+      data-slot='query-field-option-icon'
+      aria-hidden='true'
+      className='grid shrink-0 text-subtle [&>svg]:size-4'
+    >
+      {icon}
+    </span>
+  )
 }
 
 function isComposing(event: KeyboardEvent) {
@@ -468,7 +482,7 @@ export function QueryField<Value = unknown>({
                 className={cn(
                   props.className,
                   CHIP_WIDTH,
-                  chip.locked && 'gap-1 ps-2 pe-2.5',
+                  chip.locked && 'gap-1 ps-2',
                   chip.intent && intentVariants[chip.intent]
                 )}
                 onKeyDown={(event) => {
@@ -553,7 +567,16 @@ export function QueryField<Value = unknown>({
                   <Combobox.Collection>
                     {(item: QueryFieldAccepted<Value>, index: number) => (
                       <Combobox.Item key={itemKey(item)} value={item}>
-                        <span className='grid min-w-0 gap-0.5'>
+                        <OptionIcon
+                          icon={
+                            item.kind === 'search' ? (
+                              <MagnifyingGlassIcon weight='bold' />
+                            ) : (
+                              item.icon
+                            )
+                          }
+                        />
+                        <span className='me-auto grid min-w-0 gap-0.5'>
                           <span
                             data-slot='query-field-option-label'
                             className='truncate'

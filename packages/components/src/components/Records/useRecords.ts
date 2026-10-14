@@ -13,7 +13,6 @@ import {
 
 import { type Instantish, viewerTimeZone } from '@oztix/roadie-core/datetime'
 import {
-  type RecordField,
   type RecordFilter,
   type RecordLayout,
   type RecordPosition,
@@ -44,6 +43,7 @@ import {
 import type {
   RecordName,
   RecordViewDefaults,
+  RecordsField,
   RecordsRangeState,
   RecordsRow
 } from './types'
@@ -57,7 +57,7 @@ export type UseRecordsOptions<Row extends object> = {
    */
   rowCount?: number
   /** What each record holds. Keep the array stable (module scope or `useMemo`). */
-  fields: readonly RecordField[]
+  fields: readonly RecordsField[]
   /** Defaults to the record's index in `data`. Selecting in server or range mode needs it, as index ids repeat on every page and a refetch. */
   getRowId?: (row: Row, index: number) => string
   view?: RecordView
@@ -114,7 +114,7 @@ export type RecordsInstance<Row extends object = object> = {
   mode: 'browser' | 'server' | 'range'
   /** Every record held, before search, filters and paging; in server mode, the page; in range mode, the records loaded, in order. */
   data: readonly Row[]
-  fields: readonly RecordField[]
+  fields: readonly RecordsField[]
   view: RecordView
   /** The view the rows show, without the filters and sorts these fields can't apply, and without the page's `scope`. In the browser its search lags typing while thousands of rows filter. It and its `query` keep their identity while their content holds. Key a fetch on `query`, the position and `timeZone`, as relative dates resolve in the zone, which moves from UTC to the viewer's after hydration. */
   appliedView: RecordView

@@ -468,7 +468,9 @@ For server-side search, update the `items` prop as results arrive, and pass
   user moves to.
 - The input points `aria-activedescendant` at the highlighted item, so screen
   readers read the first match as the list filters.
-- With `multiple`, **Backspace** in an empty input removes the last chip.
+- With `multiple`, **Backspace** in an empty input selects the last chip, and
+  a second **Backspace** removes it. Clicking a chip selects it too. **Escape**
+  on a chip returns to the input and keeps every value.
   **Left Arrow** from the start of the input moves to the chips, **Left** and
   **Right** move between them (swapped in a right-to-left layout), and
   **Backspace** or **Delete** removes the focused one. Focus moves to the
