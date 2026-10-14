@@ -1,0 +1,219 @@
+export const metadata = {
+  title: 'Writing with AI',
+  description:
+    'The habits that mark a draft as machine written, and how to edit them out.',
+  category: 'Writing',
+  order: 3
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PairTable } from '@/components/PairTable'
+
+import { Callout } from '@oztix/roadie-components/callout'
+
+An AI draft breaks the same rules as any weak draft, and has a few habits of
+its own. This page covers those habits, with a draft line before each edit
+and after it. Edit everything else against
+[Language and grammar](/content/language-and-grammar) and
+[Voice and tone](/content/voice-and-tone), like any other draft.
+
+## The tells
+
+Each tell shows the draft line to avoid and the edit that fixes it.
+
+<Guidelines>
+
+<Guideline
+  headingLevel={3}
+  title="Trailing -ing phrases"
+  description={`A clause like "highlighting its commitment" or "ensuring a smooth night", tacked onto the end of a sentence, claims a meaning nobody checked. Delete it, or give the fact behind it its own sentence.`}
+>
+  <Guideline.Do>
+
+    The festival added a second stage for local acts.
+
+    Gates open at 5pm, an hour earlier than last year.
+
+  </Guideline.Do>
+  <Guideline.Dont>
+
+    The festival added a second stage, highlighting its commitment to local acts.
+
+    Gates open at 5pm, ensuring a smooth entry for every fan.
+
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="AI vocabulary"
+  description="Some words turn up far more often in machine writing than in ours. Use the plain word instead."
+>
+  <Guideline.Do>
+    Here's how regional festivals sold this year.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Let's delve into the vibrant landscape of regional festivals.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+<PairTable>
+
+| Write                   | Not                   |
+| ----------------------- | --------------------- |
+| also                    | additionally          |
+| important, or say why   | crucial, pivotal      |
+| look at                 | delve into            |
+| show                    | showcase, underscore  |
+| improve                 | enhance               |
+| build                   | foster                |
+| get                     | garner                |
+| busy, loud, or the fact | vibrant               |
+| market                  | landscape, as an idea |
+| proof of                | testament to          |
+| mix                     | tapestry, interplay   |
+
+</PairTable>
+
+<Guidelines>
+
+<Guideline
+  headingLevel={3}
+  title="Not just this, but that"
+  description={`"It's not just X, it's Y" sets up a claim nobody made so it can knock it down. Say the point.`}
+>
+  <Guideline.Do>
+    We run your ticketing, and we answer the phone on show day.
+  </Guideline.Do>
+  <Guideline.Dont>
+    It's not just a ticketing platform, it's a partner in your success.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="Groups of three"
+  description="List as many things as there are. A draft pads or trims ideas to three because three sounds finished."
+>
+  <Guideline.Do>
+    Scanning takes 2 seconds a ticket.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Fast, simple, and seamless entry for every fan.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="Bold labels that repeat the line"
+  description="A bullet that opens with a bold label and a colon, then says the label again, is a tell. Write the sentence. A bold name that ends in a full stop and leads into new detail is fine, as in the second Do example."
+>
+  <Guideline.Do>
+
+    Scanning took 2 seconds a ticket, down from 5.
+
+    `**Refunds.** We refund to the card you paid with.`
+
+  </Guideline.Do>
+  <Guideline.Dont>
+
+    `**Performance:** Performance improved across all venues.`
+
+    `**Refunds:** Refunds are handled by our team.`
+
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+### Curly quotes in drafts
+
+Code, Markdown, and AI drafts use straight quotes, so search and code read
+them. Rendered copy may use typographic quotes.
+
+<PairTable>
+
+| Before               | After                |
+| -------------------- | -------------------- |
+| `title=‘Doors open’` | `title='Doors open'` |
+
+</PairTable>
+
+<Guidelines>
+
+<Guideline
+  headingLevel={3}
+  title="Chatbot phrases"
+  description={`Delete the assistant's side of the conversation, such as "Certainly!", "I hope this helps!", and "Let me know if you have any questions". A warm sign-off is fine only after a concrete next step.`}
+>
+  <Guideline.Do>
+    Gates open at 6pm. I'll send the run sheet by Thursday. Have a great show.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Certainly! Here's the update. I hope this helps!
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="Flattery"
+  description="Answer the question. Don't praise it, or agree with the reader before you answer."
+>
+  <Guideline.Do>
+    Refunds go back to the card you paid with within 5 business days.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Great question! You're absolutely right that refunds can be tricky.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Edit the draft until it states facts'>
+  <Guideline.Do
+    width={72}
+    example={
+      <Callout intent='success' title='Your refund is on its way'>
+        It reaches the card you paid with within 5 business days.
+      </Callout>
+    }
+  >
+    Say what happened and when the reader sees it.
+  </Guideline.Do>
+  <Guideline.Dont
+    width={72}
+    example={
+      <Callout intent='success' title='Great news!'>
+        Your refund is being processed, ensuring a seamless experience.
+      </Callout>
+    }
+  >
+    Don't ship the draft's cheer or the clause it tacks on the end.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## The rules for every writer
+
+A draft also breaks the rules on
+[Language and grammar](/content/language-and-grammar). These catch the most.
+
+- [Clarity](/content/language-and-grammar#clarity) catches vague claims,
+  inflated words, padding, hedging, unnamed sources, arrows, and fragments.
+- [Use the plain word](/content/language-and-grammar#use-the-plain-word)
+  lists the swaps for the most common inflated words.
+- [Dashes](/content/language-and-grammar#dashes) bans em dashes and en dashes.
+
+## Attribution
+
+Adapted from [unslop](https://github.com/cursor/plugins/tree/main/pstack/skills/unslop)
+by Lauren Tan (pstack, MIT). The rules here are rewritten in Oztix wording,
+and the ones that apply to every writer live on
+[Language and grammar](/content/language-and-grammar).
