@@ -351,8 +351,10 @@ anything from them. Use `/static` and `/tables` for everything else.
 
 ## 7. Copy
 
-Follow the house style everywhere a chart has words: titles, labels, context,
-annotations, empty states, sources, and summaries.
+Follow Roadie's [Content pages](https://ticketsolutionsptyltd.github.io/roadie/content)
+everywhere a chart has words: titles, labels, context, annotations, empty
+states, sources, and summaries. These are the rules that catch the most in
+charts.
 
 - **The takeaway states the answer**, with a number or a direction: "Presales
   doubled after the lineup drop", not "Presales over time". Sentence case,

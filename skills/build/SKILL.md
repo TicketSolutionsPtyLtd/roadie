@@ -323,6 +323,9 @@ Read [Date and time](https://ticketsolutionsptyltd.github.io/roadie/foundations/
 
 ## 13. Copy
 
+Copy follows Roadie's [Content pages](https://ticketsolutionsptyltd.github.io/roadie/content).
+These are the rules that catch the most in app UI.
+
 - **Sentence case** for every title, label, button, menu item, and column
   header: "Add event", not "Add Event".
 - **Plain, active, short.** Buttons name the action and its object ("Save
@@ -331,10 +334,12 @@ Read [Date and time](https://ticketsolutionsptyltd.github.io/roadie/foundations/
 - **No dashes as punctuation.** Ranges use "to": "$50 to $100". A middot
   separates facts: "Fri 27 Nov · Kazoo Hollow Room".
 - **Australian spelling**: colour, organise, cancelled, and favourite.
-- **Numbers**: numerals, commas for thousands, `$1,200`, and `68%`. Format
+- **Numbers**: numerals for tickets, prices, percentages, times, dates,
+  durations, and any count of 11 or more, and words for other counts from one
+  to ten. Commas for thousands, `$1,200`, and `68%`. Format
   them with `formatValue` from `@oztix/roadie-core/dataviz`, not
   `toLocaleString`. Record fields format their own.
-- **Errors** say what happened and what to do: "Enter an event name", not
+- **Errors** say what happened and what to do: "Enter an event name.", not
   "Invalid input".
 - **Sample data** never uses a real venue, event, or promoter, because
   Oztix's clients run the real ones. Use the invented names in Roadie's

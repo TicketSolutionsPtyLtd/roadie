@@ -8,7 +8,7 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 - **Building with Roadie?** The [docs site](https://ticketsolutionsptyltd.github.io/roadie/)
   is the guide. Its source is `docs/src/app/`: start at
   `overview/getting-started`, then the page for the area you touch in
-  `foundations/`, `components/`, or `charts/`.
+  `foundations/`, `content/`, `components/`, or `charts/`.
 - **Something behaving oddly?** Search `docs/solutions/` first. Each learning has
   `module`, `tags`, and `problem_type` frontmatter.
 
