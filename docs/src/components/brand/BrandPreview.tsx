@@ -1,3 +1,5 @@
+import { Mark } from '@oztix/roadie-components/mark'
+
 const HOUSE_INTENTS = [
   'intent-brand-blue',
   'intent-brand-purple',
@@ -20,6 +22,15 @@ export function BrandPreview({ name }: { name: string }) {
               ))}
             </div>
           ))}
+        </div>
+      )
+    case 'typography':
+      return (
+        <div className='grid w-40 justify-items-start gap-1'>
+          <p className='text-4xl leading-none font-black text-strong'>Aa</p>
+          <p className='text-sm font-bold text-strong'>
+            <Mark intent='brand-blue'>Built on Partnerships</Mark>
+          </p>
         </div>
       )
     default:

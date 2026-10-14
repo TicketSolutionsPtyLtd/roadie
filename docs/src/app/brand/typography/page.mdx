@@ -1,0 +1,127 @@
+export const metadata = {
+  title: 'Typography',
+  description:
+    'Intermission, the four weights the brand uses, and the text styles that set its hierarchy.',
+  category: 'Brand',
+  order: 2
+}
+
+Oztix sets everything in Intermission, from partnership proposals to social
+posts. One typeface used the same way everywhere builds trust and recognition.
+
+## Typeface
+
+Intermission is Oztix's version of [Inter](https://rsms.me/inter/), with
+features such as single-storey a, open digits, and round quotes switched on by
+default. Roadie loads it for every app, and the
+[font files](https://github.com/TicketSolutionsPtyLtd/roadie/tree/main/packages/core/src/fonts/full)
+are there for design tools.
+
+Where Intermission can't load, text falls back to Inter, then the system's
+sans serif.
+
+## Hierarchy
+
+Roadie's prose text styles are the brand's hierarchy. Large, heavy headings
+lead, and lighter weights carry the supporting copy.
+
+```tsx-live layout=stack gap=3
+<h1 className='text-display-prose-1 text-strong'>Built on partnerships</h1>
+<h2 className='text-display-prose-3 text-strong'>Ticketing for every room</h2>
+<p className='text-prose font-medium text-strong'>Sydney, Melbourne, and Brisbane</p>
+<p className='text-prose'>
+  Sell out a club night or a stadium tour with the same tools and the same
+  team behind you.
+</p>
+```
+
+| Weight         | Use for                                              | Roadie style                          |
+| -------------- | ---------------------------------------------------- | ------------------------------------- |
+| Black (900)    | Campaign headers, event titles, and covers           | `text-display-prose-1`                |
+| Bold (700)     | Section headings, key messages, and calls to action  | `text-display-prose-2` to `-6`        |
+| Medium (500)   | Subtitles, captions, dates, venues, and speakers     | `text-prose` with `font-medium`       |
+| Regular (400)  | Body copy and descriptions                           | `text-prose`                          |
+
+Brand and marketing work uses only these four weights. Light, Thin, and
+ExtraBold aren't part of the brand. Product interfaces also use Semibold, for
+small headings.
+
+### Print sizes
+
+Print sets the same weights at fixed minimum sizes.
+
+| Format             | Black | Bold | Regular |
+| ------------------ | ----- | ---- | ------- |
+| Large format       | 48pt  | 24pt | 18pt    |
+| Business collateral | 28pt | 18pt | 14pt    |
+
+In a deck, slide titles are Black and section headers Bold.
+
+## Text blocks
+
+A text block sets a key message on a colour, so it stands out from the rest of
+the layout. The highlight block is Roadie's `Mark`, which fills with the house
+colour of its intent.
+
+```tsx-live layout=stack gap=3
+<h2 className='text-display-prose-2 text-strong'>
+  <Mark intent='brand-blue'>Trusted for over 20 years</Mark>
+</h2>
+<h2 className='text-display-prose-2 text-strong'>
+  <Mark intent='brand-purple'>Partners in every market</Mark>
+</h2>
+<h2 className='text-display-prose-2 text-strong'>
+  <Mark intent='brand-orange'>On sale now</Mark>
+</h2>
+```
+
+Choose the colour by the content's energy.
+
+| Colour       | Content                                                    |
+| ------------ | ---------------------------------------------------------- |
+| Flood        | Clean information blocks, paired with another block colour |
+| House blue   | Neutral, trustworthy content                               |
+| House purple | Partnership announcements and community content            |
+| House orange | Action, calls to action, and urgent information            |
+| Blackout     | Text over busy images, and dramatic moments                |
+
+- Pad a block twice as much at the sides as at the top and bottom.
+- Left align body content in a block, and centre headers.
+- Keep block content short and easy to scan.
+- Use a Blackout block with white text over photos, and nowhere else unless
+  the moment calls for drama.
+- Don't put every message in a block, or mix bright block colours in one
+  layout.
+- Check contrast before you use a Stage, Spotlight, or Backstage block.
+
+## Formats
+
+| Format         | Write                                                 |
+| -------------- | ----------------------------------------------------- |
+| Dates          | 15 March 2026                                         |
+| Times          | 3:30pm, and Doors 7:30pm                              |
+| Ranges         | 1 to 10                                               |
+| Large numbers  | 5k                                                    |
+| Small numbers  | One to ten in words in marketing copy, numerals in UI |
+
+## Guidelines
+
+- Use sentence case for every heading and button. The tagline, Built on
+  Partnerships, is the one exception.
+- Keep body text at 16px or larger on screen and 14pt or larger in print, and
+  nothing smaller than 12px anywhere.
+- Use at most three heading levels in one piece.
+- Keep social headlines under six words.
+- Don't set text in all caps, except acronyms and small UI labels.
+- Don't place text over a busy background without enough contrast. The
+  [Colour](/brand/colour#contrast) page has the minimums.
+- In co-branded work, keep the Oztix hierarchy for Oztix content. A partner's
+  font is fine in the partner's own section.
+- Test designs with the fallback fonts before you finalise them.
+
+## In Roadie
+
+- The type scale, text styles, and line heights are on
+  [Typography](/foundations/typography).
+- Highlight blocks are the [Mark](/components/mark) component.
+- Every text style token is on [Typography tokens](/tokens/typography).
