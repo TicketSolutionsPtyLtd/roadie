@@ -10,7 +10,6 @@ import { Guideline, Guidelines } from '@/components/Guideline'
 
 import { Button } from '@oztix/roadie-components/button'
 import { Field } from '@oztix/roadie-components/field'
-import { Input } from '@oztix/roadie-components/input'
 
 [Voice and tone](/content/voice-and-tone) sets how Oztix sounds. This page
 sets how we write it down, in docs, interfaces, support, and marketing.
@@ -140,14 +139,15 @@ Use apostrophes for possession and contractions, never for plurals.
 
 ### Quotation marks
 
-Use double quotes for a quote and single quotes inside it, with the
-punctuation inside. Never use quotes for emphasis. Code, Markdown, and AI
+Use double quotes for a quote and single quotes inside it. Punctuation that
+belongs to the quote goes inside it, and punctuation that belongs to your
+sentence goes outside. Never use quotes for emphasis. Code, Markdown, and AI
 drafts use straight quotes; rendered copy may use typographic quotes.
 
-| Write                                   | Not                                     |
-| --------------------------------------- | --------------------------------------- |
-| "Best night of the year," one fan said. | "Best night of the year", one fan said. |
-| The best seats in the house             | The "best" seats in the house           |
+| Write                                        | Not                                          |
+| -------------------------------------------- | -------------------------------------------- |
+| Fans called it "the best night of the year". | Fans called it "the best night of the year." |
+| The best seats in the house                  | The "best" seats in the house                |
 
 ### Parentheses
 
@@ -198,7 +198,8 @@ Use an ellipsis only for text an interface truncates, never for drama.
 
 ### Slashes
 
-Use a slash only for a real either-or pair, with no spaces around it.
+Use a slash for a real either-or pair, with no spaces around it. A path
+through the interface takes a slash with a space each side, as in Bold.
 
 | Write                | Not                    |
 | -------------------- | ---------------------- |
@@ -271,7 +272,7 @@ then what it includes.
     example={
       <Field invalid>
         <Field.Label>Email</Field.Label>
-        <Input defaultValue='sam@example' />
+        <Field.Input defaultValue='sam@example' />
         <Field.ErrorText>Enter an email address like name@example.com.</Field.ErrorText>
       </Field>
     }
@@ -283,7 +284,7 @@ then what it includes.
     example={
       <Field invalid>
         <Field.Label>Email</Field.Label>
-        <Input defaultValue='sam@example' />
+        <Field.Input defaultValue='sam@example' />
         <Field.ErrorText>Invalid input!</Field.ErrorText>
       </Field>
     }
