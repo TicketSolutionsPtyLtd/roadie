@@ -167,6 +167,19 @@ describe('tone', () => {
     expect(light.divider).toBe(token('--color-neutral-light-0'))
   })
 
+  it.each(['brand', 'dark', 'light'] as const)(
+    'colours the stacked %s tagline like the horizontal one',
+    (tone) => {
+      const stacked = <Logo tone={tone} layout='stacked' tagline />
+      const horizontal = <Logo tone={tone} tagline />
+
+      expect(colours(stacked).tagline).toBe(colours(horizontal).tagline)
+      expect(colours(stacked, 'dark').tagline).toBe(
+        colours(horizontal, 'dark').tagline
+      )
+    }
+  )
+
   it('lets the brand tagline follow the theme but not a surrounding intent', () => {
     const light = colours(<Logo tagline />)
     const dark = colours(<Logo tagline />, 'dark')
