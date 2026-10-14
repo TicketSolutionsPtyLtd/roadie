@@ -19,9 +19,11 @@ Answer facts yourself. Never ask the user what the code or docs say.
   Note its "look for what exists" and API design rules. They win over
   anything here. With none, use Roadie's
   `https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/docs/contributing/CODING_STANDARDS.md`.
-- The decision register (`docs/decisions/` or wherever `AGENTS.md` points):
-  its "how we decide" rules and every entry the idea touches. Cite an entry
-  instead of re-arguing it.
+- The decision registers: the repo's (`docs/decisions/` or wherever
+  `AGENTS.md` points), with its "how we decide" rules, and the Oztix
+  [Decision log](https://oztix.atlassian.net/wiki/spaces/ID/pages/361529382) with its Principles, through the Atlassian MCP when it's
+  connected. Read every entry the idea touches, and cite it instead of
+  re-arguing it.
 - Recorded learnings (`docs/solutions/` or similar). Tags are lowercase and
   modules are packages, so search loosely, then read the frontmatter:
   `grep -rliE '<name>|<area>' docs/solutions`.

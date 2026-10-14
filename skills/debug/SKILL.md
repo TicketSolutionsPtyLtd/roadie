@@ -80,6 +80,7 @@ stop chasing and change approach.
   own, file it as a follow-up.
 - If no check can catch it, add or update a `docs/solutions/` entry in the
   repo's format (copy a sibling's frontmatter) with Symptom, Cause, and Fix.
-  A cross-cutting call that outlasts the fix also goes in the repo's decision
-  register (`docs/decisions/` in Roadie), and the entry links to it.
+  A cross-cutting call that outlasts the fix also gets a decision record, in
+  the repo's register (`docs/decisions/` in Roadie) or the Oztix Decision log,
+  wherever the register says it belongs, and the record links to it.
 - Put the root cause, what you ruled out, and the evidence in the PR body.

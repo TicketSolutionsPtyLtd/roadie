@@ -21,8 +21,10 @@ It proposes; it doesn't refactor. A chosen proposal goes to `/roadie:grill`
   especially "Test at the public interface" and the mocking rule. They win
   over anything here. With none, use Roadie's
   `https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/docs/contributing/CODING_STANDARDS.md`.
-- The decision register (`docs/decisions/` or wherever `AGENTS.md` points)
-  and recorded learnings (`docs/solutions/`) for the area. Flag a proposal
+- The decision registers for the area: the repo's (`docs/decisions/` or
+  wherever `AGENTS.md` points) and the Oztix [Decision log](https://oztix.atlassian.net/wiki/spaces/ID/pages/361529382), through the
+  Atlassian MCP when it's connected. Then recorded learnings
+  (`docs/solutions/`). Flag a proposal
   that reopens a decision, and only when the friction justifies it.
 - The area's docs page or foundations page, which is its promised interface.
 

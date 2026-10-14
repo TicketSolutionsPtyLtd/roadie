@@ -1,6 +1,6 @@
 ---
 name: spec
-description: Use before writing code for a ticket or feature, in any Oztix repo. Writes the PR body (or a gitignored series spec for multi-PR work) with the test seams, the demo, Evidence, and Merge danger, checks the repo's decision register first, and records new cross-cutting decisions. Reads the host repo's AGENTS.md and CODING_STANDARDS.md. Triggers on "spec this", "write the spec", "plan this ticket", "how should we build", "turn this into a PR plan".
+description: Use before writing code for a ticket or feature, in any Oztix repo. Writes the PR body (or a gitignored series spec for multi-PR work) with the test seams, the demo, Evidence, and Merge danger, checks the repo's decision register and the Oztix Decision log first, and records new cross-cutting decisions. Reads the host repo's AGENTS.md and CODING_STANDARDS.md. Triggers on "spec this", "write the spec", "plan this ticket", "how should we build", "turn this into a PR plan".
 ---
 
 # Roadie spec
@@ -23,9 +23,11 @@ and PR template win over anything here.
   (with /roadie:grill)", or the session). Its ruled-out rows become prior art
   and Decisions, and each open question goes under Decisions with its
   recommended answer, unless it's a one-way door or a new component.
-- The decision register (`docs/decisions/` or wherever `AGENTS.md` points):
-  its "how we decide" rules and every entry the work touches. Cite an entry
-  instead of re-arguing it.
+- The decision registers: the repo's (`docs/decisions/` or wherever
+  `AGENTS.md` points), with its "how we decide" rules, and the Oztix
+  [Decision log](https://oztix.atlassian.net/wiki/spaces/ID/pages/361529382) with its Principles, through the Atlassian MCP when it's
+  connected. Read every entry the work touches, and cite it instead of
+  re-arguing it.
 - Prior art: recorded learnings (`docs/solutions/` or similar), the docs pages
   for the area, and existing code that already does part of the job. Show
   that what exists can't do it before you add a mechanism.
@@ -85,8 +87,11 @@ maintainer can veto it. **Out of scope** names follow-ups with ticket keys.
   continues. Stop and ask only where the host workflow says to (Roadie's
   section 1).
 - A call that will outlast the PR and isn't obvious from the code gets a
-  register entry in the same PR, in the register's own format, or a line in
-  the entry it extends. If it's a
+  record where the repo's register says it belongs (Roadie's README has "Here
+  or in the Decision log"): a register entry in the same PR, in the
+  register's own format, or a line in the entry it extends; or a Decision log
+  record, filed with the `decision` skill from the oztix-decisions plugin and
+  linked under Decisions. If it's a
   one-way door or reverses an entry, propose it under Decisions instead and
   leave the entry for the maintainer's OK. A repo with no register keeps it
   under Decisions.
