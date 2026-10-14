@@ -10,7 +10,14 @@ import {
   warnIfLowDisk
 } from './lib/machine.mjs'
 
-const PACKAGES = ['core', 'components', 'charts', 'widgets', 'docs']
+const PACKAGES = [
+  'core',
+  'components',
+  'charts',
+  'widgets',
+  'eslint-plugin',
+  'docs'
+]
 const usage = `Usage: pnpm test:gated <${PACKAGES.join('|')}> [files] [--all] [--all-browsers] [vitest args]
 Runs the tests related to the files or folders given, or to the changes since origin/main.
 --all runs the whole suite, --all-browsers runs WebKit and Firefox too.
