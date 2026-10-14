@@ -34,9 +34,9 @@ describe('audit patterns', () => {
     ['C5', 'hand-rolled-icon-tile', 1],
     ['C5', 'icon-tile', 0],
     // A hex colour in a class string is roadie/no-hex-colour-class's, not A3's.
-    ['A3', 'colour-sources', 2],
+    ['A3', 'colour-sources', 3],
     // A selected state's fill is chosen at runtime, so it isn't a hit.
-    ['C4', 'icon-weights', 1]
+    ['C4', 'icon-weights', 2]
   ])('%s in %s: %i hit(s)', (id, fixture, count) => {
     expect(hits(id, fixture)).toBe(count)
   })

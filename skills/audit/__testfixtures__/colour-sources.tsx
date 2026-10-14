@@ -3,6 +3,7 @@ export function Banner() {
     <div className='bg-[#ff5500] text-strong'>
       <span style={{ color: '#ff5500' }}>Sold out</span>
       <span style={{ background: 'rgb(255 85 0)' }}>Last tickets</span>
+      <span style={{ borderColor: 'hsl(20 100% 50%)' }}>On sale</span>
     </div>
   )
 }

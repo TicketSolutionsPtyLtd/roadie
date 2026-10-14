@@ -4,6 +4,7 @@ export function Toolbar({ saved }: { saved: boolean }) {
       <HeartIcon weight={saved ? 'fill' : 'bold'} className='size-4' />
       <TicketIcon weight='duotone' className='size-4' />
       <StarIcon weight='bold' className='size-4' />
+      <BellIcon weight={'fill'} className='size-4' />
     </div>
   )
 }
