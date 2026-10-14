@@ -26,13 +26,13 @@ ahead of the published site.
   as well.
 - **Interface text:** any interface copy page the
   [Content index](https://ticketsolutionsptyltd.github.io/roadie/content.md)
-  lists, "In the interface" on each page above, and the component's own page
-  (Button, EmptyState, Field, and so on).
+  lists, "In the interface" on Language and grammar and Voice and tone, and
+  the component's own page (Button, EmptyState, Field, and so on).
 
 Sample names come from Roadie's
 [example data](https://github.com/TicketSolutionsPtyLtd/roadie/blob/main/docs/contributing/EXAMPLE_DATA.md),
 never a real venue, event, or promoter. Logo, colour, type, and imagery aren't
-copy: build those with `/roadie:build`.
+copy, so build those with `/roadie:build`.
 
 ## 2. Write
 
@@ -41,26 +41,27 @@ copy: build those with `/roadie:build`.
 - Draft, then run the checklist in section 3 on your own draft before
   showing it.
 - In code, let Roadie format dates, times, prices, and numbers rather than
-  building strings by hand (`/roadie:build` section 13, `/roadie:charts`
-  section 7).
+  building strings by hand (`/roadie:build` sections 12 and 13,
+  `/roadie:charts` section 7).
 
 ## 3. Review checklist
 
 Check each heading against its page, in this order. The headings name the
 rules; the page holds them.
 
-1. **Language and grammar, Clarity**: every heading under it, starting with
-   Every line carries a fact and End on the next step.
+1. **Language and grammar, Clarity**: every heading under it, from Every line
+   carries a fact to End on the next step.
 2. **Voice and tone**: Personality traits, Principles, Tone for the moment,
    Markets, Headlines, body copy, and calls to action, and Before you publish.
 3. **Language and grammar, Grammar**: Australian English, Sentence case,
-   Contractions, Numbers, Industry terms, and Abbreviations.
+   Contractions, Pronouns, Numbers, Lists, Industry terms, and Abbreviations.
 4. **Language and grammar, Punctuation**: Dashes, Colons, Commas,
    Apostrophes, Quotation marks, Parentheses, Exclamation marks and emoji,
    Bold, Full stops, Ellipses, Slashes, and Ampersands.
 5. **Language and grammar, Formats**: Dates and times, Prices, and Fees and
    offers.
-6. **In the interface**, on each page, for interface text.
+6. **Guidelines** and **In the interface**, on each page that has them, for
+   interface text.
 7. **Writing with AI, The tells**: every tell.
 
 If a heading named here has moved or gone, follow the page and say so in the
@@ -84,7 +85,7 @@ Open findings: <count, or None>
 - Every finding names a rule. A preference with no rule goes under Judgement
   calls.
 - Leave passing lines out.
-- Inside `/roadie:review`, report each finding in that skill's format: a rule
+- Inside `/roadie:review`, report each finding in that skill's format. A rule
   break in shipped copy is Important, and anything else is Minor.
 
 When writing rather than reviewing, give the copy, then one line naming the
