@@ -1,11 +1,20 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 
-import { Logo, type LogoProps, type LogoSize, type LogoVariant } from '.'
+import {
+  Logo,
+  type LogoLayout,
+  type LogoProps,
+  type LogoSize,
+  type LogoTone,
+  type LogoVariant
+} from '.'
 import * as barrel from '../../index'
 import type {
+  LogoLayout as BarrelLogoLayout,
   LogoProps as BarrelLogoProps,
   LogoSize as BarrelLogoSize,
+  LogoTone as BarrelLogoTone,
   LogoVariant as BarrelLogoVariant
 } from '../../index'
 
@@ -93,6 +102,62 @@ describe('Logo', () => {
     it('keeps leading-none on the name after a resize', () => {
       render(<Logo product='Studio' className='text-[3rem]' />)
       expect(screen.getByText('Studio')).toHaveClass('leading-none')
+    })
+  })
+
+  describe('tagline', () => {
+    it('adds the tagline after the wordmark and to the accessible name', () => {
+      render(<Logo tagline />)
+      const root = screen.getByRole('img', {
+        name: 'Oztix, Built on Partnerships'
+      })
+      expect(slots(root)).toEqual([
+        'logo-mark',
+        'logo-wordmark',
+        'logo-tagline',
+        'logo-divider'
+      ])
+    })
+
+    it('keeps the tagline in the stacked layout', () => {
+      render(<Logo tagline layout='stacked' />)
+      const root = screen.getByRole('img', {
+        name: 'Oztix, Built on Partnerships'
+      })
+      expect(slots(root)).toEqual([
+        'logo-mark',
+        'logo-wordmark',
+        'logo-tagline'
+      ])
+    })
+
+    it.each([
+      ['mark', <Logo key='mark' tagline variant='mark' />, 'Oztix'],
+      ['wordmark', <Logo key='wordmark' tagline variant='wordmark' />, 'Oztix'],
+      [
+        'product',
+        <Logo key='product' tagline product='Studio' />,
+        'Oztix Studio'
+      ]
+    ])('is left off the %s lockup', (_, logo, name) => {
+      render(logo)
+      const root = screen.getByRole('img', { name })
+      expect(slots(root)).not.toContain('logo-tagline')
+    })
+
+    it('still takes a consumer accessible name', () => {
+      render(<Logo tagline aria-label='Oztix home' />)
+      expect(
+        screen.getByRole('img', { name: 'Oztix home' })
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe('layout', () => {
+    it('stacks the mark above the wordmark as separate SVGs', () => {
+      render(<Logo layout='stacked' />)
+      const root = screen.getByRole('img', { name: 'Oztix' })
+      expect(slots(root)).toEqual(['logo-mark', 'logo-wordmark'])
     })
   })
 
@@ -213,7 +278,11 @@ describe('Logo', () => {
     expectTypeOf<BarrelLogoProps>().toEqualTypeOf<LogoProps>()
     expectTypeOf<BarrelLogoVariant>().toEqualTypeOf<LogoVariant>()
     expectTypeOf<BarrelLogoSize>().toEqualTypeOf<LogoSize>()
+    expectTypeOf<BarrelLogoLayout>().toEqualTypeOf<LogoLayout>()
+    expectTypeOf<BarrelLogoTone>().toEqualTypeOf<LogoTone>()
     expectTypeOf<LogoVariant>().toEqualTypeOf<'normal' | 'mark' | 'wordmark'>()
+    expectTypeOf<LogoLayout>().toEqualTypeOf<'horizontal' | 'stacked'>()
+    expectTypeOf<LogoTone>().toEqualTypeOf<'brand' | 'dark' | 'light'>()
     expectTypeOf<LogoProps>().not.toHaveProperty('children')
   })
 })

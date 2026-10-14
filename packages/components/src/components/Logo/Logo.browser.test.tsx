@@ -59,3 +59,120 @@ describe.each([
     expect(getComputedStyle(part).overflowX).not.toBe('visible')
   })
 })
+
+describe('the tagline', () => {
+  it('sits 1em/3 either side of a full-height divider, centred on the mark', () => {
+    const { root, box } = renderLogo(<Logo tagline />)
+    const divider = box('logo-divider')
+    const tagline = document
+      .querySelector('[data-slot=logo-tagline] svg')!
+      .getBoundingClientRect()
+    const em = box('logo-mark').width
+
+    expect(root.height).toBeCloseTo(em, 1)
+    expect(divider.left - box('logo-wordmark').right).toBeCloseTo(em / 3, 1)
+    expect(divider.height).toBeCloseTo(em, 1)
+    expect(tagline.left - divider.right).toBeCloseTo(em / 3, 1)
+    expect(tagline.height).toBeCloseTo((em * 38) / 48, 1)
+    expect(tagline.top - root.top).toBeCloseTo((em * 5) / 48, 1)
+  })
+
+  it('folds away when a parent collapses its column', () => {
+    onTestFinished(
+      useStylesheet(
+        '.collapsed [data-slot=logo-tagline] { grid-template-columns: 0fr }'
+      )
+    )
+    const { box } = renderLogo(<Logo tagline />, true)
+    expect(box('logo-tagline').width).toBe(0)
+  })
+})
+
+describe('the stacked layout', () => {
+  it('centres the mark over a wordmark and tagline 1.5em wide, 1em/12 apart', () => {
+    const { root, box } = renderLogo(<Logo layout='stacked' tagline />)
+    const mark = box('logo-mark')
+    const wordmark = box('logo-wordmark')
+    const tagline = box('logo-tagline')
+    const em = mark.width
+
+    expect(root.width).toBeCloseTo(em * 1.5, 1)
+    expect(wordmark.width).toBeCloseTo(em * 1.5, 1)
+    expect(tagline.width).toBeCloseTo(em * 1.5, 1)
+    expect(mark.left - root.left).toBeCloseTo(em / 4, 1)
+    expect(wordmark.top - mark.bottom).toBeCloseTo(em / 12, 1)
+    expect(tagline.top - wordmark.bottom).toBeCloseTo(em / 12, 1)
+    expect(root.height).toBeCloseTo(tagline.bottom - mark.top, 1)
+  })
+
+  it('keeps a product lockup on one row', () => {
+    const { box } = renderLogo(<Logo layout='stacked' product='Studio' />)
+    expect(box('logo-product').top).toBeCloseTo(box('logo-mark').top, 0)
+    expect(box('logo-product').left).toBeCloseTo(box('logo-mark').right, 0)
+  })
+})
+
+describe('tone', () => {
+  function colours(logo: ReactElement, wrapper?: string) {
+    render(<div className={wrapper}>{logo}</div>)
+    const root = screen.getByRole('img')
+    const tagline = root.querySelector('[data-slot=logo-tagline]')
+    const divider = root.querySelector('[data-slot=logo-divider]')
+    const result = {
+      logo: getComputedStyle(root).color,
+      tagline: tagline && getComputedStyle(tagline).color,
+      divider: divider && getComputedStyle(divider).borderLeftColor
+    }
+    cleanup()
+    return result
+  }
+
+  function token(name: string) {
+    render(<span data-testid='probe' style={{ color: `var(${name})` }} />)
+    const value = getComputedStyle(screen.getByTestId('probe')).color
+    cleanup()
+    return value
+  }
+
+  it.each(['brand', 'dark', 'light'] as const)(
+    'keeps the %s logo colour in dark mode and inside an intent',
+    (tone) => {
+      const light = colours(<Logo tone={tone} />)
+      expect(colours(<Logo tone={tone} />, 'dark').logo).toBe(light.logo)
+      expect(colours(<Logo tone={tone} />, 'intent-danger').logo).toBe(
+        light.logo
+      )
+    }
+  )
+
+  it.each([
+    ['brand', '--color-brand-light-9'],
+    ['dark', '--color-neutral-light-13'],
+    ['light', '--color-neutral-light-0']
+  ] as const)('draws the %s logo in the fixed %s', (tone, name) => {
+    expect(colours(<Logo tone={tone} />, 'dark').logo).toBe(token(name))
+  })
+
+  it('defaults to the brand tone', () => {
+    expect(colours(<Logo />).logo).toBe(token('--color-brand-light-9'))
+  })
+
+  it('fixes the dark and light taglines and dividers in dark mode', () => {
+    const dark = colours(<Logo tone='dark' tagline />, 'dark')
+    expect(dark.tagline).toBe(token('--color-neutral-light-12'))
+    expect(dark.divider).toBe(token('--color-neutral-light-5'))
+
+    const light = colours(<Logo tone='light' tagline />, 'dark')
+    expect(light.tagline).toBe(token('--color-neutral-light-0'))
+    expect(light.divider).toBe(token('--color-neutral-light-0'))
+  })
+
+  it('lets the brand tagline follow the theme but not a surrounding intent', () => {
+    const light = colours(<Logo tagline />)
+    const dark = colours(<Logo tagline />, 'dark')
+
+    expect(dark.tagline).not.toBe(light.tagline)
+    expect(dark.divider).not.toBe(light.divider)
+    expect(colours(<Logo tagline />, 'intent-danger')).toEqual(light)
+  })
+})
