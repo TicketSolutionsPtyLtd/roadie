@@ -1,3 +1,4 @@
+import { Logo } from '@oztix/roadie-components/logo'
 import { Mark } from '@oztix/roadie-components/mark'
 
 const HOUSE_INTENTS = [
@@ -33,6 +34,8 @@ export function BrandPreview({ name }: { name: string }) {
           </p>
         </div>
       )
+    case 'logo':
+      return <Logo size='lg' aria-hidden />
     default:
       return null
   }

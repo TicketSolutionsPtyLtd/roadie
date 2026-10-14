@@ -4,9 +4,12 @@ import Link from 'next/link'
 
 import { CodePreview } from '@/components/CodePreview'
 import { ProseScroll } from '@/components/ProseScroll'
+import { isAssetHref } from '@/lib/asset-href'
 import { exampleHref } from '@/lib/live-examples.mjs'
+import { getAssetPath } from '@/utils/getAssetPath'
 
 type AnchorProps = ComponentPropsWithoutRef<'a'>
+
 /** Set on live fences by `src/lib/live-examples.mjs`. */
 type FenceProps = ComponentPropsWithoutRef<'code'> & {
   'data-example-id'?: string
@@ -24,6 +27,8 @@ const components = {
     </div>
   ),
   a: ({ href, ...props }: AnchorProps) => {
+    if (href?.startsWith('/') && isAssetHref(href))
+      return <a href={getAssetPath(href)} download {...props} />
     if (href?.startsWith('/')) return <Link href={href} {...props} />
     if (href?.startsWith('#')) return <a href={href} {...props} />
     return (

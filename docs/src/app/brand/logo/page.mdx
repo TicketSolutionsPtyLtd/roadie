@@ -1,0 +1,177 @@
+export const metadata = {
+  title: 'Logo',
+  description:
+    'The Oztix logo, its primary and secondary lockups, colours, clear space, minimum sizes, and downloads.',
+  category: 'Brand',
+  order: 3
+}
+
+import { Image } from '@/components/Image'
+
+The logo is the most recognisable part of the brand. Using it the same way
+every time keeps Oztix work professional and easy to recognise in every market.
+
+## Elements
+
+The logo has three parts.
+
+- The logomark, a swirl for a dynamic and innovative approach.
+- The wordmark, "oztix".
+- The tagline, Built on Partnerships, the brand's position. It keeps its title
+  case.
+
+<Image
+  src='/brand/logo/primary-tagline.svg'
+  width='520'
+  height='80'
+  alt='The Oztix logo, with the blue swirl logomark, the oztix wordmark, and the tagline Built on Partnerships'
+/>
+
+## Primary logo
+
+The primary logo sets the logomark beside the wordmark. It's the logo for most
+work. Add the tagline wherever there's room, since it carries the brand's
+position.
+
+<Image
+  src='/brand/logo/primary.svg'
+  width='324'
+  height='120'
+  alt='The primary logo, with the logomark to the left of the wordmark'
+/>
+
+## Secondary logo
+
+The secondary logo stacks the logomark above the wordmark. Use it where the
+space is square or narrow, such as a social profile picture, an app icon, or a
+square promotion.
+
+<Image
+  src='/brand/logo/secondary-tagline.svg'
+  width='192'
+  height='228'
+  alt='The secondary logo, with the logomark above the wordmark and the tagline below'
+/>
+
+## Colour
+
+The logo comes in three colours, so it stays legible on any background.
+
+- Brand, in [Spotlight blue](/brand/colour), goes on white or light
+  backgrounds. It's the first choice.
+- Dark is for one colour print, light backgrounds where blue lacks contrast,
+  and sitting beside other neutral logos.
+- Light goes on dark backgrounds, photos, and colour fills.
+
+<Image
+  src='/brand/logo/on-light-dark.svg'
+  width='520'
+  height='80'
+  alt='The dark logo with tagline on a white background'
+/>
+
+<Image
+  src='/brand/logo/on-dark-light.svg'
+  width='520'
+  height='80'
+  alt='The light logo with tagline on a black background'
+/>
+
+<Image
+  src='/brand/logo/on-brand-light.svg'
+  width='520'
+  height='80'
+  alt='The light logo with tagline on a Spotlight blue background'
+/>
+
+## Choosing a logo
+
+1. Start with the primary logo and tagline, in blue, on white or a
+   transparent background.
+2. Make sure the logo contrasts clearly with what's behind it.
+3. Keep the tagline wherever there's room.
+4. Once a piece or campaign has a logo, use the same one across all of it.
+
+## Clear space
+
+Leave clear space around the logo equal to the height of the x in "oztix".
+Keep text, images, and edges out of it.
+
+## Minimum size
+
+The minimums are the same with or without the tagline.
+
+| Logo      | Screen          | Print         |
+| --------- | --------------- | ------------- |
+| Primary   | 24px tall       | 1cm tall      |
+| Secondary | 48px wide       | 2cm wide      |
+
+Product interfaces can set the primary logo at 20px tall. Marketing and
+partner work keeps the 24px minimum.
+
+## Special uses
+
+### Social profiles
+
+Use the secondary logo in Spotlight blue on a dark background for every social
+profile picture.
+
+<Image
+  src='/brand/logo/social-profile.svg'
+  width='160'
+  height='160'
+  alt='A social profile picture, the secondary logo in blue on a dark square'
+/>
+
+### Favicon
+
+Use the logomark in white on Spotlight blue for a site's favicon.
+
+<Image
+  src='/brand/logo/favicon.svg'
+  width='64'
+  height='64'
+  alt='The favicon, the white logomark on a blue square'
+/>
+
+## Downloads
+
+- The [logo pack](/brand/logo/oztix-logo-pack.zip) (380 KB) holds the
+  primary and secondary logos, each element on its own, versions set on
+  light, dark, and brand backgrounds, and the social profile and favicon
+  files.
+- The [partner logo pack](/brand/logo/oztix-partner-logo-pack.zip) (13 KB)
+  holds the primary and secondary logos in brand, dark, and light, with clear
+  space built in. Send this one to partners.
+
+Both packs hold SVG files, which scale to any size without losing quality.
+
+## Sharing the logo
+
+Share the logo with partners for co-branded promotion and to recognise a
+partnership. Always send the partner logo pack, never a single file, an old
+version, or an edited logo.
+
+## Guidelines
+
+- Don't change the logo's colours.
+- Don't add effects, such as shadows or glows.
+- Don't stretch, distort, or rotate the logo.
+- Don't rearrange the logo's parts.
+- Don't place the logo on a busy background without enough contrast.
+- Don't use the wordmark without the logomark.
+- Don't use the logomark alone, except as a favicon or app icon.
+
+## In Roadie
+
+The [Logo](/components/logo) component draws the primary logo in apps, in
+Spotlight blue. Its `size` sets the height from 20px to 48px, `variant='mark'`
+shows the logomark alone, and `product` names an Oztix product beside the
+mark. The `wordmark` variant is for a logo collapsing to or from the mark, not
+a logo of its own.
+
+```tsx-live layout=stack gap=4
+<Logo size='xl' />
+<Logo product='Studio' size='lg' />
+<Logo variant='mark' size='lg' />
+```

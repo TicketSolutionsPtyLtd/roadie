@@ -29,8 +29,8 @@ When and where to use it, with an image of each case.
 
 <Image
   src='/brand/logo/primary.png'
-  width={640}
-  height={240}
+  width='640'
+  height='240'
   alt='The Oztix logo on a light background'
 />
 
@@ -50,8 +50,8 @@ When and where to use it, with an image of each case.
     example={
       <Image
         src='/brand/logo/clear-space.png'
-        width={320}
-        height={160}
+        width='320'
+        height='160'
         alt='The logo with clear space'
       />
     }
@@ -74,9 +74,12 @@ links to their pages.
 1. **Images and downloads are local.** They live in `docs/public/brand/`,
    never on Confluence or a third-party host.
 2. **Images go through `Image`** from `@/components/Image`, which adds the
-   site's base path that a bare markdown image misses. INNO-1149 decides
-   whether `Image` becomes the MDX `img` mapping, and how downloads get the
-   base path.
+   site's base path that a bare markdown image misses, and sets the size the
+   image shows at. Its props are literal strings, such as `width='640'`, so
+   the markdown copy can render it as an image. A link to a file under
+   `public/`, such as a `.zip`, is a download. The MDX `a` mapping adds the
+   base path, and the markdown copy links the file itself. Give its size
+   beside the link.
 3. **Every image has alt text** that says what it shows.
 4. **Check each page before it's published.** Nothing internal or sensitive,
    such as client names, contract terms, or staff contacts.
