@@ -44,6 +44,7 @@ export const TWIN_COMPONENTS = {
   ModelDiagram: 'drawing',
   MomentReads: 'rendered',
   PaletteExample: 'drawing',
+  PatternExample: 'drawing',
   PeriodComparisons: 'rendered',
   PhraseTable: 'rendered',
   QuerySuggestions: 'rendered',
