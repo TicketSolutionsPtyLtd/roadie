@@ -304,8 +304,10 @@ function guideline(
       : node.name === 'Guideline.Dont'
         ? 'Don’t'
         : undefined
-  // One level below the heading it sits under, so the twin never skips a level.
-  const depth = Math.min(page.headingDepth + 1, 6) as Heading['depth']
+  // A set headingLevel matches the site; otherwise one level below the
+  // heading it sits under, so the twin never skips a level.
+  const depth = (Number(attribute(node, 'headingLevel')) ||
+    Math.min(page.headingDepth + 1, 6)) as Heading['depth']
   return [
     ...(title && !label
       ? [{ type: 'heading', depth, children: [text(title)] } as Heading]
