@@ -887,7 +887,7 @@
 
 /* ═══════════════════════════════════════════════════════════
    Brand hue aliases
-   brand-blue, brand-purple and brand-orange name the brand, info and
+   brand-blue, brand-purple, and brand-orange name the brand, info, and
    brand-secondary scales by hue, as the intents of the same names do.
    Declared on .dark too: a var() resolves where it is declared, so a
    :root-only alias would carry light values into a nested .dark section.
