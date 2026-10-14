@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════
    Roadie Design Tokens
-   Color scales (0-13 per intent, light + dark)
+   Color scales (0-13 per intent, light + dark) and brand hue aliases
    Hex fallbacks for older browsers, OKLCH via @supports
    ═══════════════════════════════════════════════════════════ */
 
@@ -883,4 +883,71 @@
     --color-info-12: oklch(0.95 0.028 303.269);
     --color-info-13: oklch(0.99 0.005 303);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Brand hue aliases
+   brand-blue, brand-purple and brand-orange name the brand, info and
+   brand-secondary scales by hue, as the intents of the same names do.
+   Declared on .dark too: a var() resolves where it is declared, so a
+   :root-only alias would carry light values into a nested .dark section.
+   ═══════════════════════════════════════════════════════════ */
+:root,
+.dark {
+  --color-brand-blue-0: var(--color-brand-0);
+  --color-brand-blue-1: var(--color-brand-1);
+  --color-brand-blue-2: var(--color-brand-2);
+  --color-brand-blue-3: var(--color-brand-3);
+  --color-brand-blue-4: var(--color-brand-4);
+  --color-brand-blue-5: var(--color-brand-5);
+  --color-brand-blue-6: var(--color-brand-6);
+  --color-brand-blue-7: var(--color-brand-7);
+  --color-brand-blue-8: var(--color-brand-8);
+  --color-brand-blue-9: var(--color-brand-9);
+  --color-brand-blue-10: var(--color-brand-10);
+  --color-brand-blue-11: var(--color-brand-11);
+  --color-brand-blue-12: var(--color-brand-12);
+  --color-brand-blue-13: var(--color-brand-13);
+  --color-brand-blue-light-5: var(--color-brand-light-5);
+  --color-brand-blue-light-9: var(--color-brand-light-9);
+  --color-brand-blue-light-12: var(--color-brand-light-12);
+  --color-brand-blue-light-13: var(--color-brand-light-13);
+
+  --color-brand-purple-0: var(--color-info-0);
+  --color-brand-purple-1: var(--color-info-1);
+  --color-brand-purple-2: var(--color-info-2);
+  --color-brand-purple-3: var(--color-info-3);
+  --color-brand-purple-4: var(--color-info-4);
+  --color-brand-purple-5: var(--color-info-5);
+  --color-brand-purple-6: var(--color-info-6);
+  --color-brand-purple-7: var(--color-info-7);
+  --color-brand-purple-8: var(--color-info-8);
+  --color-brand-purple-9: var(--color-info-9);
+  --color-brand-purple-10: var(--color-info-10);
+  --color-brand-purple-11: var(--color-info-11);
+  --color-brand-purple-12: var(--color-info-12);
+  --color-brand-purple-13: var(--color-info-13);
+  --color-brand-purple-light-5: var(--color-info-light-5);
+  --color-brand-purple-light-9: var(--color-info-light-9);
+  --color-brand-purple-light-12: var(--color-info-light-12);
+  --color-brand-purple-light-13: var(--color-info-light-13);
+
+  --color-brand-orange-0: var(--color-brand-secondary-0);
+  --color-brand-orange-1: var(--color-brand-secondary-1);
+  --color-brand-orange-2: var(--color-brand-secondary-2);
+  --color-brand-orange-3: var(--color-brand-secondary-3);
+  --color-brand-orange-4: var(--color-brand-secondary-4);
+  --color-brand-orange-5: var(--color-brand-secondary-5);
+  --color-brand-orange-6: var(--color-brand-secondary-6);
+  --color-brand-orange-7: var(--color-brand-secondary-7);
+  --color-brand-orange-8: var(--color-brand-secondary-8);
+  --color-brand-orange-9: var(--color-brand-secondary-9);
+  --color-brand-orange-10: var(--color-brand-secondary-10);
+  --color-brand-orange-11: var(--color-brand-secondary-11);
+  --color-brand-orange-12: var(--color-brand-secondary-12);
+  --color-brand-orange-13: var(--color-brand-secondary-13);
+  --color-brand-orange-light-5: var(--color-brand-secondary-light-5);
+  --color-brand-orange-light-9: var(--color-brand-secondary-light-9);
+  --color-brand-orange-light-12: var(--color-brand-secondary-light-12);
+  --color-brand-orange-light-13: var(--color-brand-secondary-light-13);
 }

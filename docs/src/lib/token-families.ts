@@ -137,6 +137,8 @@ export function relatedLinks(
 export const GROUP_NOTES: Record<string, string> = {
   'Pinned light steps':
     'Light values that stay light in dark mode, for marks and illustrations.',
+  'Brand hue aliases':
+    'The brand, info and brand-secondary scales named blue, purple and orange.',
   Illustration: 'Fixed spot illustration colours; they ignore dark mode.',
   'Accent parameters':
     'The hue and chroma the accent and neutral scales are built from.',
