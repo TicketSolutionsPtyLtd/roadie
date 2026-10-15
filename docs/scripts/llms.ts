@@ -115,7 +115,24 @@ const renderers = {
   BrandFigure: ({ src, alt, caption }: Record<string, string | true>) =>
     [imageMarkdown(src, alt), typeof caption === 'string' ? caption : '']
       .filter(Boolean)
-      .join('\n\n')
+      .join('\n\n'),
+  DownloadCard: ({
+    title,
+    href,
+    formats,
+    size,
+    description
+  }: Record<string, string | true>) => {
+    if (
+      [title, href, formats, size, description].some(
+        (v) => typeof v !== 'string'
+      )
+    )
+      throw new Error(
+        '<DownloadCard> needs a title, href, formats, size, and description'
+      )
+    return `[${title}](${resolveLink(href as string)}), ${formats}, ${size}. ${description}`
+  }
 }
 
 function imageMarkdown(
