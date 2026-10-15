@@ -35,11 +35,7 @@ async function open(width: number) {
   return page
 }
 
-/**
- * Scrolls the live example after a heading into view and waits for it to
- * render. Scrolls the block around it, since the placeholder it starts as is
- * replaced by a new node when it nears the viewport.
- */
+// The placeholder is replaced as it nears the viewport, so scroll its wrapper.
 async function renderExampleAfter(page: Page, headingId: string) {
   const after = `xpath=//*[@id="${headingId}"]/following::*`
   await page
