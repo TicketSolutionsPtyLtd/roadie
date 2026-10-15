@@ -18,7 +18,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    # npm's trusted publisher for all three packages is pinned to this
+    # npm's trusted publisher for every published package is pinned to this
     # environment. GitHub only puts an `environment` claim in the OIDC token
     # when the job declares one, and npm rejects the token without it.
     environment: production
