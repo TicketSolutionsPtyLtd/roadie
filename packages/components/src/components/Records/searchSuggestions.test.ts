@@ -184,6 +184,16 @@ describe('valueSuggestions', () => {
     expect(placed!.items[1]!.label).toBe('Yesterday')
   })
 
+  it('drops Custom dates for typed text only Empty or Not empty match', () => {
+    const custom = (text: string) =>
+      valuesOf(valueSuggestions(byKey('starts'), text, context()))
+        .items.map((item) => item.label)
+        .includes('Custom dates')
+    expect(custom('emp')).toBe(false)
+    expect(custom('zzz')).toBe(true)
+    expect(custom('after 1 dec')).toBe(true)
+  })
+
   it('compares an option field’s values by the chosen operator, listed or typed', () => {
     const listed = valuesOf(
       valueSuggestions(byKey('city'), '', context(), 'is-not')

@@ -714,6 +714,19 @@ describe('Records.Search', () => {
       ])
     })
 
+    it('takes Empty with Enter on a date field, past Custom dates', async () => {
+      const { user, lastView } = setup()
+      await user.click(input())
+      await user.click(await option('Starts'))
+      await user.keyboard('emp')
+      await option('Empty')
+      await user.keyboard('{Enter}')
+      expect(chipLabels()).toEqual(['Starts is empty'])
+      expect(lastView().query.filters).toEqual([
+        { field: 'starts', operator: 'is-not-set' }
+      ])
+    })
+
     it('moves to the next operator with Tab, and starts each field on is', async () => {
       const { user, lastView } = setup()
       await user.click(input())

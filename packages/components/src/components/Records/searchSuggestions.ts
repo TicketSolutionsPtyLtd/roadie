@@ -316,10 +316,12 @@ export function valueSuggestions(
       ...(detail && { description: detail })
     }
   })
+  const emptiness = unused(emptinessItems(field, typed), context)
+  // Not a typed match, so it gives way to a typed Empty, or Enter takes it.
   const editable =
     field.type === 'date' &&
-    recordFilterOperators(field).some((operator) => operator === 'between')
-  const emptiness = unused(emptinessItems(field, typed), context)
+    recordFilterOperators(field).some((operator) => operator === 'between') &&
+    (!typed || emptiness.length === 0)
   return [
     ...(emptiness.length > 0
       ? [{ id: 'empty', label: 'Empty', hideLabel: true, items: emptiness }]
