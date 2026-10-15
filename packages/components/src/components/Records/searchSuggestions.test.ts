@@ -354,6 +354,25 @@ describe('valueSuggestions while editing a filter', () => {
     expect(values('dar')).toEqual([['darwin', true]])
   })
 
+  it('lists a held value once, where the typed value names it', () => {
+    const venue = field.option('city', { label: 'Venue' })
+    const edited: RecordFilter = {
+      field: 'city',
+      operator: 'is',
+      values: ['the corner']
+    }
+    const groups = valueSuggestions(
+      venue,
+      'the corner',
+      { ...context(), fields: [venue] },
+      'is',
+      edited
+    )
+    expect(
+      valuesOf(groups).items.map((item) => [item.label, !!item.selected])
+    ).toEqual([['the corner', true]])
+  })
+
   it('ticks Empty, a boolean answer, or a date preset the filter is', () => {
     expect(
       tickedIn(
