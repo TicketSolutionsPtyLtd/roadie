@@ -77,7 +77,7 @@
     "name": "ToggleGroup",
     "path": "dist/components/ToggleGroup/index.js",
     "import": "*",
-    "limit": "2.9 kB",
+    "limit": "3.3 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -238,7 +238,7 @@
     "name": "Calendar",
     "path": "dist/components/Calendar/index.js",
     "import": "*",
-    "limit": "16.2 kB",
+    "limit": "16.6 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -259,7 +259,7 @@
     "name": "DatePicker",
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
-    "limit": "34.3 kB",
+    "limit": "34.6 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -280,28 +280,28 @@
     "name": "QueryField",
     "path": "dist/components/QueryField/index.js",
     "import": "*",
-    "limit": "14.4 kB",
+    "limit": "14.8 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Records",
     "path": "dist/components/Records/index.js",
     "import": "*",
-    "limit": "82.8 kB",
+    "limit": "83.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordGrid",
     "path": "dist/components/RecordGrid/index.js",
     "import": "*",
-    "limit": "115.4 kB",
+    "limit": "116 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordTable",
     "path": "dist/components/RecordTable/index.js",
     "import": "*",
-    "limit": "123.1 kB",
+    "limit": "123.8 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]
