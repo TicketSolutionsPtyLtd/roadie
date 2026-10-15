@@ -1327,6 +1327,88 @@ describe('QueryField value step groups', () => {
   })
 })
 
+const hall: QueryFieldSuggestion = {
+  id: 'venue:hall',
+  label: 'Venue is Nimbus Thistle Hall',
+  kind: 'filter',
+  value: 'hall'
+}
+
+function TypedValueStep(props: HarnessProps) {
+  return (
+    <Harness
+      pendingChip={{ id: 'venue', label: 'Venue is' }}
+      suggest={(text) => [
+        emptiness,
+        {
+          id: 'values',
+          label: 'Venue',
+          items: text === 'empty' ? [] : [hall, iguana]
+        }
+      ]}
+      {...props}
+    />
+  )
+}
+
+describe('QueryField value step Enter', () => {
+  it('takes the first value the text matches on Enter, past Empty and Not empty', async () => {
+    const onAccept = vi.fn()
+    render(<TypedValueStep onAccept={onAccept} />)
+    await typeInto('hal')
+    await waitFor(() => expect(hinted()).toEqual([hall.label]))
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(hall)
+  })
+
+  it('takes Empty on Enter when the text matches nothing else', async () => {
+    const onAccept = vi.fn()
+    render(<TypedValueStep onAccept={onAccept} />)
+    await typeInto('empty')
+    await waitFor(() => expect(hinted()).toEqual(['Empty']))
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(emptiness.items[0])
+  })
+
+  it('takes nothing on Enter before anything is typed', async () => {
+    const onAccept = vi.fn()
+    render(<TypedValueStep onAccept={onAccept} />)
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: hall.label })
+    expect(hinted()).toEqual([])
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).not.toHaveBeenCalled()
+  })
+
+  it('takes an arrowed row over the first value', async () => {
+    const onAccept = vi.fn()
+    render(<TypedValueStep onAccept={onAccept} />)
+    await typeInto('hal')
+    await screen.findByRole('option', { name: hall.label })
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(emptiness.items[0])
+  })
+
+  it('takes no value found for older text', async () => {
+    const onAccept = vi.fn()
+    const later = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
+    render(
+      <TypedValueStep
+        onAccept={onAccept}
+        suggest={(text) =>
+          text === 'halx'
+            ? later.promise
+            : [{ id: 'values', label: 'Venue', items: [hall] }]
+        }
+      />
+    )
+    await typeInto('hal')
+    await waitFor(() => expect(hinted()).toEqual([hall.label]))
+    await userEvent.keyboard('x{Enter}')
+    expect(onAccept).not.toHaveBeenCalled()
+  })
+})
+
 describe('QueryField operators, edge keys', () => {
   it('leaves Tab to move on while the values are closed', async () => {
     const onPendingOperatorChange = vi.fn()

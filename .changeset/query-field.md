@@ -30,4 +30,5 @@ in the input while they show, calls `onPendingOperatorChange`, keeps focus in
 the input, and asks `suggest` again. Tab from the last operator, or Shift+Tab
 from the first, leaves the field.
 A line divides the value step's groups, and a group with `hideLabel` names
-itself for screen readers only.
+itself for screen readers only. Once text is typed in the value step, Enter
+takes the first value, from a group without `hideLabel` if one matches.

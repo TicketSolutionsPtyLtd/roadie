@@ -61,7 +61,7 @@ export type QueryFieldAccepted<Value = unknown> =
 export type QueryFieldSuggestionGroup<Value = unknown> = {
   id: string
   label: string
-  /** The label names the group for screen readers only, for items that say what they are, such as Empty and Not empty. */
+  /** The label names the group for screen readers only, for items that say what they are, such as Empty and Not empty. Enter takes a typed value from another group first. */
   hideLabel?: boolean
   items: readonly QueryFieldSuggestion<Value>[]
 }

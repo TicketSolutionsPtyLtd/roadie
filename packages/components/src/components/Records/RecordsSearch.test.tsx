@@ -701,6 +701,19 @@ describe('Records.Search', () => {
       ])
     })
 
+    it('takes the first value typed for with Enter', async () => {
+      const { user, lastView } = setup()
+      await user.click(input())
+      await user.click(await option('City'))
+      await user.keyboard('syd')
+      await option('Sydney')
+      await user.keyboard('{Enter}')
+      expect(chipLabels()).toEqual(['City is Sydney'])
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is', values: ['Sydney'] }
+      ])
+    })
+
     it('moves to the next operator with Tab, and starts each field on is', async () => {
       const { user, lastView } = setup()
       await user.click(input())

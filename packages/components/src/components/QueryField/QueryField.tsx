@@ -30,7 +30,7 @@ import { Kbd } from '../Kbd'
 import { ToggleGroup } from '../ToggleGroup'
 import { Tooltip } from '../Tooltip'
 import { useControlledText, useShortcut } from './hooks'
-import { exactSuggestion, listGroups } from './suggestions'
+import { exactSuggestion, firstMatch, listGroups } from './suggestions'
 import type {
   QueryFieldAccepted,
   QueryFieldChip,
@@ -246,13 +246,16 @@ export function QueryField<Value = unknown>({
     recent,
     pending: !!pendingChip
   })
-  const exact =
-    suggestions.inputValue === text
-      ? exactSuggestion(suggestions.groups)
+  const current = suggestions.inputValue === text
+  const exact = current ? exactSuggestion(suggestions.groups) : undefined
+  const typedValue =
+    current && pendingChip && text.trim()
+      ? firstMatch(suggestions.groups)
       : undefined
   const items = list.flatMap((group) => group.items)
   const search = items.find((item) => item.kind === 'search')
-  const fallbackKey = (exact && itemKey(exact)) ?? (search && itemKey(search))
+  const enterFallback = exact ?? typedValue ?? search
+  const fallbackKey = enterFallback && itemKey(enterFallback)
   // By position, so a recent item repeating a suggestion isn't marked too.
   const enterTarget =
     keyboardHighlightKey !== undefined
@@ -334,8 +337,7 @@ export function QueryField<Value = unknown>({
       if (keyboardHighlightKey) return
       event.preventBaseUIHandler()
       event.preventDefault()
-      const target = exact ?? search
-      if (target) accept(target)
+      if (enterFallback) accept(enterFallback)
       return
     }
     // Ends the composition only: the page, such as a toolbar, never hears it.
@@ -401,7 +403,7 @@ export function QueryField<Value = unknown>({
   return (
     <Combobox
       multiple
-      // Enter searches the text unless arrowed or exact; see enterTarget.
+      // Enter takes an arrowed row, else enterTarget's fallback.
       autoHighlight={false}
       items={list}
       filter={null}
