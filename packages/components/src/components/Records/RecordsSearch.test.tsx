@@ -607,6 +607,23 @@ describe('Records.Search', () => {
     expect(chipLabels()).toEqual(['Starts is on Tue 20 Oct'])
   })
 
+  it('carries a relative range to a new condition as the days it covers today', async () => {
+    const { user, lastView } = setup({
+      defaultView: {
+        query: {
+          filters: [
+            { field: 'starts', operator: 'within', value: 'this-weekend' }
+          ]
+        }
+      }
+    })
+    const dialog = await customDates(user, chipLabels()[0]!)
+    await condition(user, dialog, 'Is after')
+    expect(lastView().query.filters).toEqual([
+      { field: 'starts', operator: 'after', value: '2026-10-04' }
+    ])
+  })
+
   it('closes an editor whose filter the view no longer holds', async () => {
     const onViewChange = vi.fn()
     const replacer: { current: (view: RecordView) => void } = {

@@ -896,6 +896,8 @@ describe('rulesOut', () => {
     }
     expect(rulesOut(weekend, after)).toBe(true)
     expect(rulesOut(between, weekend)).toBe(true)
+    expect(rulesOut({ ...after, operator: 'on' }, between)).toBe(true)
+    expect(rulesOut(weekend, { ...after, operator: 'before' })).toBe(true)
     expect(rulesOut(after, { ...after, field: 'placed' })).toBe(false)
     expect(rulesOut(after, { field: 'starts', operator: 'is-set' })).toBe(false)
   })
