@@ -253,6 +253,19 @@ describe('Combobox chips', () => {
     expect(onValueChange).not.toHaveBeenCalled()
   })
 
+  // Such as a dialog's, which would otherwise never close from the input.
+  it('lets an Escape with nothing to clear reach the page', async () => {
+    const onPageKeyDown = vi.fn()
+    render(
+      <div onKeyDown={(event) => onPageKeyDown(event.key)}>
+        <Genres />
+      </div>
+    )
+    await userEvent.tab()
+    await userEvent.keyboard('{Escape}')
+    expect(onPageKeyDown).toHaveBeenCalledWith('Escape')
+  })
+
   it('keeps every chip while disabled', async () => {
     render(<Genres disabled />)
     await userEvent.click(screen.getByRole('button', { name: 'Remove Rock' }))

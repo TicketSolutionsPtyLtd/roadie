@@ -80,9 +80,11 @@ export function ComboboxRoot<
           handleQueryChange(next, details)
         }}
         onValueChange={(next, details) => {
-          // Base UI's Escape in a closed list clears every chip, not just the text.
+          // Base UI's Escape in a closed list clears every chip, not just the
+          // text. Kept, the Escape did nothing, so a dialog around can close.
           if (props.multiple && details.reason === 'escape-key') {
             details.cancel()
+            details.allowPropagation()
             return
           }
           onValueChange?.(next, details)
