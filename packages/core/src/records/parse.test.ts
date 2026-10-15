@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { describeRecordFilter } from './describe'
 import { type RecordSuggestion, parseQuery } from './parse'
 import { eventFields } from './testFields'
 
@@ -988,28 +989,12 @@ describe('parseQuery', () => {
     })
 
     it.each([
-      ['starts after today', 'Starts: After Sat 3 Oct 2026', 'Starts: Today'],
-      [
-        'starts from tomorrow',
-        'Starts: After Sat 3 Oct 2026',
-        'Starts: Tomorrow'
-      ],
-      [
-        'starts after tomorrow',
-        'Starts: After Sun 4 Oct 2026',
-        'Starts: Tomorrow'
-      ],
-      [
-        'starts since monday',
-        'Starts: After Sun 4 Oct 2026',
-        'Starts: Mon 5 Oct 2026'
-      ],
-      [
-        'starts until friday',
-        'Starts: Before Sat 10 Oct 2026',
-        'Starts: Fri 9 Oct 2026'
-      ],
-      ['after today', 'Starts: After Sat 3 Oct 2026', 'Starts: Today']
+      ['starts after today', 'Starts: After 3 Oct', 'Starts: Today'],
+      ['starts from tomorrow', 'Starts: After 3 Oct', 'Starts: Tomorrow'],
+      ['starts after tomorrow', 'Starts: After 4 Oct', 'Starts: Tomorrow'],
+      ['starts since monday', 'Starts: After 4 Oct', 'Starts: 5 Oct'],
+      ['starts until friday', 'Starts: Before 10 Oct', 'Starts: 9 Oct'],
+      ['after today', 'Starts: After 3 Oct', 'Starts: Today']
     ])(
       'reads "%s" as %s, never dropping the comparison',
       (text, label, dropped) => {
@@ -1052,6 +1037,31 @@ describe('parseQuery', () => {
     const ids = parse('melb this weekend').map((s) => s.id)
     expect(new Set(ids).size).toBe(ids.length)
     expect(parse('melb this weekend').map((s) => s.id)).toEqual(ids)
+  })
+
+  it.each([
+    'this weekend',
+    '14 mar',
+    'after 1 dec',
+    'starts after today',
+    '1 to 14 mar',
+    'next 7 days',
+    'fri',
+    'starts is empty'
+  ])('labels each date filter from "%s" as its chip reads', (text) => {
+    const dates = parse(text, { limit: 50 }).filter(
+      (s) => s.kind === 'filter' && s.value.field === 'starts'
+    )
+    expect(dates.length).toBeGreaterThan(0)
+    for (const suggestion of dates) {
+      expect(suggestion.label).toBe(
+        describeRecordFilter(
+          suggestion.value as Parameters<typeof describeRecordFilter>[0],
+          eventFields,
+          options
+        ).label
+      )
+    }
   })
 
   it('fits the shape QueryField renders', () => {

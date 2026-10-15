@@ -60,7 +60,7 @@ its chip reads ("Venue is Kazoo Hollow Room", "Gross is more than $100",
 `detail`. `recordOperatorLabel` names an operator ("is more than") and
 `recordOptionPaths` gives each option's label with its parents' ("Ochre Kite
 Weekender 2027 › Opening Night"). A chip listing more than two values names
-them all in `detail`. `parseQuery` labels its filters the same way, names a
+them all in `detail`. `parseQuery` labels its filters the same way, dates included, names a
 field whose label holds a colon in `field:value`, and reads `$` and
 thousands commas in a number's value.
 

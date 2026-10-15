@@ -817,9 +817,6 @@ function namedField(
 
 function finish(options: ParseQueryOptions) {
   const { entity, fields } = options
-  const dateKeys = new Set(
-    fields.filter((field) => field.type === 'date').map((field) => field.key)
-  )
   return ({
     span: _span,
     order: _order,
@@ -828,13 +825,11 @@ function finish(options: ParseQueryOptions) {
     partial: _partial,
     ...suggestion
   }: Candidate) => {
-    // A chip reads the same words; a date keeps the phrase as typed.
-    const phrase =
-      suggestion.kind === 'field' ||
-      (dateKeys.has(suggestion.value.field) && 'value' in suggestion.value)
-    const label = phrase
-      ? suggestion.label
-      : describeRecordFilter(suggestion.value, fields, options).label
+    // A filter reads as its chip will, dates included.
+    const label =
+      suggestion.kind === 'field'
+        ? suggestion.label
+        : describeRecordFilter(suggestion.value, fields, options).label
     return (
       entity
         ? { ...suggestion, label, id: `${entity}:${suggestion.id}`, entity }
