@@ -8,7 +8,7 @@
    their colours from it.
 
      <div class="calendar-tile intent-accent emphasis-subtle" aria-hidden="true">
-       <span class="calendar-tile-top">NOV</span>
+       <span class="calendar-tile-top">Nov</span>
        <span class="calendar-tile-day">27</span>
      </div>
 
@@ -47,8 +47,6 @@
   padding-block: 3px;
   font-size: 10px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   background-color: var(--intent-bg-strong);
   color: var(--intent-text-on-strong);
 

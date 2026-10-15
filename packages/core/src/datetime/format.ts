@@ -448,9 +448,9 @@ export function formatGlyph(
   const parts = zoneParts(date, timeZone, locale)
   if (!parts) return null
   return {
-    month: parts.monthShort.toLocaleUpperCase(locale),
+    month: parts.monthShort,
     day: String(parts.day),
-    weekday: parts.weekdayShort.toLocaleUpperCase(locale)
+    weekday: parts.weekdayShort
   }
 }
 

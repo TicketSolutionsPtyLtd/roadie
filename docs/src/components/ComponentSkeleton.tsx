@@ -607,8 +607,8 @@ export function ComponentSkeleton({ name }: { name: string }) {
     case 'calendar-tile':
       return (
         <div className='grid w-14 overflow-hidden rounded-xl emphasis-subtle text-center intent-accent'>
-          <div className='emphasis-strong py-0.5 text-xs leading-none font-bold tracking-wide'>
-            NOV
+          <div className='emphasis-strong py-0.5 text-xs leading-none font-bold'>
+            Nov
           </div>
           <div className='py-1.5 text-xl leading-none font-bold'>27</div>
         </div>

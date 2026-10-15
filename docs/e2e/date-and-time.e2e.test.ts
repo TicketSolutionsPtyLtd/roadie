@@ -62,7 +62,7 @@ describe('Date and time foundation', () => {
       ['<DateTime to>', 'Fri 27 to Sun 29 Nov 2026'],
       ['<Duration>', '2 hours 30 minutes'],
       ['<Countdown>', '4:32'],
-      ['<CalendarTile>', 'NOV 27'],
+      ['<CalendarTile>', 'Nov 27'],
       ['<DateTime render>', '27 Nov 19:30']
     ])
     expect(await rowsOf(page, 'moment-reads')).toEqual([

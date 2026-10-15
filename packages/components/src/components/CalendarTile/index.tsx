@@ -46,26 +46,23 @@ export const calendarTileVariants = cva(
  * Not `emphasis-inverted` despite the name: that is intent step 12, a
  * near-black, where the band wants step 9.
  */
-const calendarTileTopVariants = cva(
-  'py-[3px] font-bold tracking-wider uppercase',
-  {
-    variants: {
-      emphasis: {
-        strong: 'emphasis-normal',
-        normal: 'emphasis-strong',
-        subtle: 'emphasis-strong',
-        subtler: 'emphasis-strong'
-      },
-      // The box scales, so the type scales with it.
-      size: {
-        sm: 'text-[9px]',
-        md: 'text-[10px]',
-        lg: 'text-[11px]'
-      }
+const calendarTileTopVariants = cva('py-[3px] font-bold', {
+  variants: {
+    emphasis: {
+      strong: 'emphasis-normal',
+      normal: 'emphasis-strong',
+      subtle: 'emphasis-strong',
+      subtler: 'emphasis-strong'
     },
-    defaultVariants: { emphasis: 'subtle', size: 'md' }
-  }
-)
+    // The box scales, so the type scales with it.
+    size: {
+      sm: 'text-[9px]',
+      md: 'text-[10px]',
+      lg: 'text-[11px]'
+    }
+  },
+  defaultVariants: { emphasis: 'subtle', size: 'md' }
+})
 
 /** Colour comes from the tile's own emphasis; only the scale belongs here. */
 const calendarTileDayVariants = cva('grid place-content-center font-bold', {
@@ -107,9 +104,9 @@ interface CalendarTileOwnProps extends VariantProps<
  */
 type CalendarTileTop =
   | {
-      /** Short month, e.g. `NOV`. Ignored when `weekday` is set. */
+      /** Short month, e.g. `Nov`. Ignored when `weekday` is set. */
       month: string
-      /** Short weekday, e.g. `FRI`. Replaces the month in the top row. */
+      /** Short weekday, e.g. `Fri`. Replaces the month in the top row. */
       weekday?: string
     }
   | { month?: string; weekday: string }
@@ -170,7 +167,7 @@ export function CalendarTile({
       <time
         data-slot='calendar-tile'
         dateTime={dateTime}
-        // Without a label the tile would announce 'NOV 27' with no weekday and
+        // Without a label the tile would announce 'Nov 27' with no weekday and
         // no year. The machine value is a poor name but an honest one.
         aria-label={label ?? dateTime}
         className={classes}
