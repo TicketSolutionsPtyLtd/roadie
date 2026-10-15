@@ -141,7 +141,7 @@ export function pendingLabel(
   return `${field.label} ${recordOperatorLabel(operator)}`
 }
 
-/** A text or number filter's value as typed, to edit it in the field: "20-50" for a range. */
+/** A text or number filter's value as typed, to edit it in the field: "20 and 50" for a range. */
 export function valueText(field: RecordField, filter: RecordFilter): string {
   if (!isTyped(field)) return ''
   switch (filter.operator) {
@@ -157,7 +157,9 @@ export function valueText(field: RecordField, filter: RecordFilter): string {
     case 'gt':
       return String(filter.value)
     case 'between':
-      return [...filter.value].sort((a, b) => Number(a) - Number(b)).join('-')
+      return [...filter.value]
+        .sort((a, b) => Number(a) - Number(b))
+        .join(' and ')
     default:
       return ''
   }
@@ -333,12 +335,25 @@ function withOperator(
   return { ...item, ...filterSuggestion(filter), label: item.label }
 }
 
-/** A range typed high to low, such as "50-20", as low to high. */
-function reversedRange(
+// parseQuery reads a lone number as `eq`, with any `$` and commas.
+function numberReader(field: RecordField, context: SearchContext) {
+  return (text: string) => {
+    const [reading] = parseQuery(`${field.key}:${text}`, {
+      ...context,
+      fields: [field]
+    })
+    return reading?.kind === 'filter' ? reading.value : null
+  }
+}
+
+const RANGE_SEPARATOR = /-|\.\.|to|and/gi
+
+/** A range typed either way round, such as "50-20" or "20 and 50", low to high. */
+function typedRange(
   typed: string,
   readNumber: (text: string) => RecordFilter | null
 ): [number, number] | null {
-  for (const { 0: separator, index } of typed.matchAll(/-|\.\.|to/g)) {
+  for (const { 0: separator, index } of typed.matchAll(RANGE_SEPARATOR)) {
     const low = readNumber(typed.slice(0, index))
     const high = readNumber(typed.slice(index + separator.length))
     if (low?.operator === 'eq' && high?.operator === 'eq')
@@ -362,20 +377,12 @@ function typedFilters(
       ? [{ field: key, operator, values: [typed] }]
       : []
   }
-  // parseQuery reads a lone number as `eq` and a range as `between`.
-  const readNumber = (text: string) => {
-    const [reading] = parseQuery(`${key}:${text}`, {
-      ...context,
-      fields: [field]
-    })
-    return reading?.kind === 'filter' ? reading.value : null
+  const readNumber = numberReader(field, context)
+  if (operator === 'between') {
+    const range = typedRange(typed, readNumber)
+    return range ? [{ field: key, operator, value: range }] : []
   }
   const read = readNumber(typed)
-  if (operator === 'between') {
-    if (read?.operator === 'between') return [read]
-    const reversed = reversedRange(typed, readNumber)
-    return reversed ? [{ field: key, operator, value: reversed }] : []
-  }
   return read?.operator === 'eq' &&
     (operator === 'eq' ||
       operator === 'neq' ||
@@ -383,6 +390,73 @@ function typedFilters(
       operator === 'gt')
     ? [{ ...read, operator }]
     : []
+}
+
+const isOneNumber = (
+  field: RecordField,
+  text: string,
+  context: SearchContext
+) => numberReader(field, context)(text)?.operator === 'eq'
+
+/**
+ * What a text or number step asks for while nothing typed reads under its
+ * operator, such as "Between 20 and what? Type the second number." after "20 and".
+ */
+export function valueHint(
+  field: RecordField,
+  text: string,
+  operator: ValueOperator,
+  context: SearchContext
+): string | undefined {
+  const typed = text.trim()
+  if (field.type === 'text')
+    return typed ? undefined : 'Type the text to match.'
+  if (!isNumeric(field) || typedFilters(field, typed, operator, context).length)
+    return undefined
+  const money = field.type === 'money'
+  const one = money ? 'an amount' : 'a number'
+  if (operator !== 'between') {
+    if (!typed) return `Type ${one}.`
+    return `Type ${one} like ${money ? '$50' : '50'}.`
+  }
+  const first = numberReader(
+    field,
+    context
+  )(typed.replace(/\s*(?:-|\.\.|to|and)$/i, ''))
+  if (first?.operator === 'eq') {
+    const { value } = describeRecordFilter(first, context.fields, context)
+    const second = money ? 'amount' : 'number'
+    return `Between ${value} and what? Type the second ${second}.`
+  }
+  return money
+    ? 'Type two amounts like $20 and $50.'
+    : 'Type two numbers like 20 and 50.'
+}
+
+/**
+ * A space typed after a range's first number, such as "20 ", adds "and " for
+ * the second. A word typed in its place, such as "to", replaces it, so typing
+ * "and" yourself doesn't double it.
+ */
+export function withAnd(
+  field: RecordField,
+  previous: string,
+  next: string,
+  operator: ValueOperator,
+  context: SearchContext
+): string {
+  if (operator !== 'between' || !next.startsWith(previous)) return next
+  const typed = next.slice(previous.length)
+  if (
+    typed === ' ' &&
+    previous === previous.trimEnd() &&
+    isOneNumber(field, previous, context)
+  )
+    return `${next}and `
+  const added = /^(.*\S) and $/.exec(previous)?.[1]
+  return added && /^[a-z]$/i.test(typed) && isOneNumber(field, added, context)
+    ? `${added} ${typed}`
+    : next
 }
 
 /** Whether the edited filter holds what a suggestion would add. */

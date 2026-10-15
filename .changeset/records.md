@@ -76,16 +76,18 @@ and a line; an option field's values sit under an is and is not toggle (and has
 all of, for a `multiple` field) that Tab steps through; typing narrows them, and Enter takes the first. A text field's toggle is contains, doesn't
 contain, is and is not, and a number or money field's =, ≠, <, > and
 between, named in words for screen readers; the typed value shows as one row
-worded as its chip, for Enter to take. Between reads 20-50, 20 to 50 or
-20..50, money takes `$` and thousands commas, and text that isn't a number
-offers nothing. Option values added to a field join its chip. Clicking a
+worded as its chip, for Enter to take. Between reads 20 and 50, 20-50, 20 to 50, or
+20..50, either way round, and a space after the first number adds the and.
+Money takes `$` and thousands commas. Until the value reads, the list says
+what to type, such as "Type a number." or "Between 20 and what? Type the
+second number." Option values added to a field join its chip. Clicking a
 chip, or Enter on it, edits it in the list: the chip shows selected and
 what it holds is ticked. Taking an option's value ticks or unticks it (the
 last one unticked removes the chip, and Enter on typed text only ticks), is
 and is not rewrite its condition (one changed to is joins the field's is
 chip), and a boolean's
 answer, a quick date, Empty or Not empty replaces what it holds. A text or
-number chip puts its value in the field and its condition in the toggle, and
+number chip puts its value in the field, such as 20 and 50, and its condition in the toggle, and
 Enter replaces it once either changes. Backspace in the empty field removes it, and Escape or
 leaving the field keeps it. Custom dates opens a date range picker with relative presets, or a date
 picker, for the chip, in a popover under it or a bottom drawer on a phone,

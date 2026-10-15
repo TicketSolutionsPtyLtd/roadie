@@ -12,9 +12,11 @@ import {
   stepOperator,
   toggleValue,
   topSuggestions,
+  valueHint,
   valueOperators,
   valueSuggestions,
-  valueText
+  valueText,
+  withAnd
 } from './searchSuggestions'
 
 type Gig = {
@@ -346,6 +348,20 @@ describe('valueSuggestions for text and numbers', () => {
       { field: 'sold', operator: 'between', value: [-10, -5] }
     ],
     ['sold', '50-', 'between', undefined],
+    [
+      'sold',
+      '20 and 50',
+      'between',
+      { field: 'sold', operator: 'between', value: [20, 50] }
+    ],
+    [
+      'gross',
+      '$1,000 AND $20',
+      'between',
+      { field: 'gross', operator: 'between', value: [20, 1000] }
+    ],
+    ['sold', '20 and', 'between', undefined],
+    ['sold', '20 and 50', 'eq', undefined],
     ['sold', '20-50', 'eq', undefined],
     ['sold', '>50', 'eq', undefined],
     ['sold', 'fifty', 'eq', undefined],
@@ -716,16 +732,74 @@ describe('valueText', () => {
     [
       'a range',
       { field: 'gross', operator: 'between', value: [20, 50] },
-      '20-50'
+      '20 and 50'
     ],
     [
       'a reversed range',
       { field: 'gross', operator: 'between', value: [50, 20] },
-      '20-50'
+      '20 and 50'
     ],
     ['emptiness', { field: 'name', operator: 'is-set' }, ''],
     ['an option', { field: 'city', operator: 'is', values: ['perth'] }, '']
   ])('prefills %s as typed', (_, filter, text) => {
     expect(valueText(byKey(filter.field), filter)).toBe(text)
+  })
+})
+
+describe('valueHint', () => {
+  it.each<[string, string, ValueOperator, string | undefined]>([
+    ['name', '', 'contains', 'Type the text to match.'],
+    ['name', 'disco', 'contains', undefined],
+    ['sold', '', 'eq', 'Type a number.'],
+    ['sold', '>50', 'eq', 'Type a number like 50.'],
+    ['sold', 'lots', 'lt', 'Type a number like 50.'],
+    ['sold', '50', 'gt', undefined],
+    ['gross', '', 'neq', 'Type an amount.'],
+    ['gross', 'lots', 'eq', 'Type an amount like $50.'],
+    ['sold', '', 'between', 'Type two numbers like 20 and 50.'],
+    ['sold', '2', 'between', 'Between 2 and what? Type the second number.'],
+    [
+      'sold',
+      '2 and ',
+      'between',
+      'Between 2 and what? Type the second number.'
+    ],
+    ['sold', '2-', 'between', 'Between 2 and what? Type the second number.'],
+    ['sold', 'lots', 'between', 'Type two numbers like 20 and 50.'],
+    ['sold', '2 and 7', 'between', undefined],
+    ['gross', '', 'between', 'Type two amounts like $20 and $50.'],
+    [
+      'gross',
+      '$1,000 ',
+      'between',
+      'Between $1,000 and what? Type the second amount.'
+    ],
+    ['city', '', 'is', undefined],
+    ['accessible', '', 'is', undefined]
+  ])('hints at %s “%s” under %s', (key, text, operator, hint) => {
+    expect(valueHint(byKey(key), text, operator, context())).toBe(hint)
+  })
+})
+
+describe('withAnd', () => {
+  it.each<[string, string, string, ValueOperator, string]>([
+    ['sold', '2', '2 ', 'between', '2 and '],
+    ['gross', '$1,000', '$1,000 ', 'between', '$1,000 and '],
+    ['sold', '2', '2 ', 'eq', '2 '],
+    ['sold', '', ' ', 'between', ' '],
+    ['sold', '2 ', '2  ', 'between', '2  '],
+    ['sold', '2 a', '2 ', 'between', '2 '],
+    ['sold', '', '2 ', 'between', '2 '],
+    ['sold', '2-', '2- ', 'between', '2- '],
+    ['sold', 'lots', 'lots ', 'between', 'lots '],
+    ['sold', '2 and ', '2 and 7', 'between', '2 and 7'],
+    ['sold', '2', '3 ', 'between', '3 '],
+    ['sold', '2 and ', '2 and a', 'between', '2 a'],
+    ['sold', '2 and ', '2 and t', 'between', '2 t'],
+    ['sold', '2 and ', '2 and -', 'between', '2 and -'],
+    ['sold', 'lots and ', 'lots and a', 'between', 'lots and a'],
+    ['sold', '2 and ', '2 and a', 'eq', '2 and a']
+  ])('types %s “%s” to “%s” under %s', (key, before, after, operator, text) => {
+    expect(withAnd(byKey(key), before, after, operator, context())).toBe(text)
   })
 })

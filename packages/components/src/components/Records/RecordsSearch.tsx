@@ -28,9 +28,11 @@ import {
   stepOperator,
   toggleValue,
   topSuggestions,
+  valueHint,
   valueOperators,
   valueSuggestions,
-  valueText
+  valueText,
+  withAnd
 } from './searchSuggestions'
 import type { RecordsField } from './types'
 import type { RecordsInstance } from './useRecords'
@@ -469,6 +471,12 @@ export function RecordsSearch({
                 label: pendingLabel(pendingField, pendingOperator),
                 operators: valueOperators(pendingField),
                 operator: pendingOperator,
+                hint: valueHint(
+                  pendingField,
+                  stepText,
+                  pendingOperator,
+                  context
+                ),
                 chipId: selectedAt === null ? undefined : chipIds[selectedAt]
               }
             : undefined
@@ -495,7 +503,11 @@ export function RecordsSearch({
         }}
         inputValue={pendingField ? stepText : records.searchText}
         onInputValueChange={(text) =>
-          pendingField ? setStepText(text) : records.setSearch(text)
+          pendingField
+            ? setStepText(
+                withAnd(pendingField, stepText, text, pendingOperator, context)
+              )
+            : records.setSearch(text)
         }
         suggest={(text) =>
           pendingField

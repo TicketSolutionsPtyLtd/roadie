@@ -912,6 +912,100 @@ describe('Records.Search', () => {
       ])
     })
 
+    const hint = () =>
+      document
+        .querySelector('[data-slot=query-field-hint]')
+        ?.textContent?.replace('\u2060', '')
+    const between = async (user: ReturnType<typeof userEvent.setup>) => {
+      await user.click(input())
+      await user.click(await option('Sold'))
+      await user.click(screen.getByRole('button', { name: 'is between' }))
+    }
+
+    it('adds and after a range’s first number, and reads the second', async () => {
+      const { user, lastView } = setup()
+      await between(user)
+      await waitFor(() =>
+        expect(hint()).toBe('Type two numbers like 20 and 50.')
+      )
+      await user.keyboard('2')
+      await waitFor(() =>
+        expect(hint()).toBe('Between 2 and what? Type the second number.')
+      )
+      expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
+      await user.keyboard(' ')
+      expect(input()).toHaveValue('2 and ')
+      await waitFor(() =>
+        expect(hint()).toBe('Between 2 and what? Type the second number.')
+      )
+      await user.keyboard('7')
+      await option('Sold is 2 to 7')
+      expect(hint()).toBe('')
+      await user.keyboard('{Enter}')
+      expect(lastView().query.filters).toEqual([
+        { field: 'sold', operator: 'between', value: [2, 7] }
+      ])
+    })
+
+    it.each([
+      ['2 and 7', [2, 7]],
+      ['7 to 2', [2, 7]]
+    ])('reads “%s” typed in full under between', async (typed, value) => {
+      const { user, lastView } = setup()
+      await between(user)
+      await user.keyboard(typed)
+      expect(input()).toHaveValue(typed)
+      await option(`Sold is ${value[0]} to ${value[1]}`)
+      await user.keyboard('{Enter}')
+      expect(lastView().query.filters).toEqual([
+        { field: 'sold', operator: 'between', value }
+      ])
+    })
+
+    it('deletes the and a space added, without adding it again', async () => {
+      const { user } = setup()
+      await between(user)
+      await user.keyboard('2 ')
+      expect(input()).toHaveValue('2 and ')
+      await user.keyboard('{Backspace}')
+      expect(input()).toHaveValue('2 and')
+      await user.keyboard('{Backspace}{Backspace}{Backspace}')
+      expect(input()).toHaveValue('2 ')
+    })
+
+    it.each<[string, string, string, string]>([
+      ['Gross', 'is', '', 'Type an amount.'],
+      ['Gross', 'is', 'lots', 'Type an amount like $50.'],
+      ['Sold', 'is less than', '>50', 'Type a number like 50.'],
+      [
+        'Gross',
+        'is between',
+        '$1,000',
+        'Between $1,000 and what? Type the second amount.'
+      ],
+      ['Show', 'contains', '', 'Type the text to match.']
+    ])(
+      'hints what to type for %s %s after “%s”',
+      async (name, operator, typed, text) => {
+        const { user } = setup()
+        await user.click(input())
+        await user.click(await option(name))
+        await user.click(screen.getByRole('button', { name: operator }))
+        if (typed) await user.keyboard(typed)
+        await waitFor(() => expect(hint()).toBe(text))
+        expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
+      }
+    )
+
+    it('keeps No suggestions for an option step', async () => {
+      const { user } = setup()
+      await user.click(input())
+      await user.click(await option('Status'))
+      await user.keyboard('zzz')
+      expect(await screen.findByText('No suggestions')).toBeInTheDocument()
+      expect(hint()).toBe('')
+    })
+
     it('prefills a text chip’s value and condition, and Enter updates it', async () => {
       const { user, lastView } = setup({
         defaultView: {
@@ -986,7 +1080,7 @@ describe('Records.Search', () => {
         }
       })
       await selectChip(user, 'Sold is 20 to 50')
-      expect(input()).toHaveValue('20-50')
+      expect(input()).toHaveValue('20 and 50')
       expect(
         screen.getByRole('button', { name: 'is between', pressed: true })
       ).toBeInTheDocument()
