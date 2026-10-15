@@ -263,7 +263,8 @@ Values read from the start of a word, so `melb` suggests "City is Melbourne"
 and `elb` suggests nothing. A value named only in part is left out when a
 longer reading takes its words: in `melb this weekend`, "this" belongs to
 "Starts: This weekend", so it never suggests a venue such as Nimbus Thistle
-Hall.
+Hall. Text a field contains takes no words this way, so `name disco melb`
+still suggests "City is Melbourne".
 
 Negation reads as the opposite filter. "not melb" suggests "City is not
 Melbourne", and never "City is Melbourne". The negating words are part of the

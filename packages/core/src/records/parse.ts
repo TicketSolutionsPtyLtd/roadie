@@ -681,11 +681,20 @@ function within(inner: [number, number], outer: [number, number]): boolean {
   return outer[0] <= inner[0] && inner[1] <= outer[1]
 }
 
+const FREE_TEXT = new Set<RecordFilter['operator']>([
+  'contains',
+  'not-contains'
+])
+
 const length = ([start, end]: [number, number]) => end - start
 
-/** Another filter reads the same words and more, as "this weekend" does "this". */
+/**
+ * Another filter reads the same words and more, as "this weekend" does
+ * "this". Text a field contains reads any words, so it claims none.
+ */
 const covers = (outer: Candidate, inner: Candidate) =>
   outer.kind === 'filter' &&
+  !FREE_TEXT.has(outer.value.operator) &&
   within(inner.span, outer.span) &&
   length(outer.span) > length(inner.span)
 

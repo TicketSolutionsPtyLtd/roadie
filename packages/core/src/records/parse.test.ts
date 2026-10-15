@@ -242,6 +242,15 @@ describe('parseQuery', () => {
         expect.arrayContaining(['Room is Perth Lantern Hall', 'City is Perth'])
       )
     })
+
+    it('keeps a partial value inside text a field contains', () => {
+      expect(
+        parse('name disco melb', { limit: 50 }).map((s) => [
+          s.label,
+          s.remainder
+        ])
+      ).toContainEqual(['City is Melbourne', 'name disco'])
+    })
   })
 
   describe('field:value', () => {
