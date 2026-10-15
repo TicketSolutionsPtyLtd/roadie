@@ -74,7 +74,8 @@ const TRUE_WORDS = new Set(['yes', 'true', 'y'])
 const FALSE_WORDS = new Set(['no', 'false', 'n'])
 const NEGATIONS = new Set([
   'not',
-  "isn't",
+  'isnt',
+  'excludes',
   'excluding',
   'except',
   'without',
@@ -97,13 +98,14 @@ type Verb = {
 
 const VERBS: readonly Verb[] = [
   { words: ['is', 'not'], negated: true, contains: false },
-  { words: ["isn't"], negated: true, contains: false },
-  { words: ['not'], negated: true, contains: false },
+  ...[...NEGATIONS].map((word) => ({
+    words: [word],
+    negated: true,
+    contains: false
+  })),
   { words: ['is'], negated: false, contains: false },
-  { words: ['!='], negated: true, contains: false },
-  { words: ['≠'], negated: true, contains: false },
   { words: ['='], negated: false, contains: false },
-  { words: ["doesn't", 'contain'], negated: true, contains: true },
+  { words: ['doesnt', 'contain'], negated: true, contains: true },
   { words: ['does', 'not', 'contain'], negated: true, contains: true },
   { words: ['contains'], negated: false, contains: true }
 ]
@@ -128,8 +130,8 @@ const numberText = (text: string) =>
     // "5 6" stays two numbers, never 56.
     .replace(/(?<!\d)\s+|\s+(?!\d)/g, '')
 
-/** Lower case, reading a typographic apostrophe as a straight one. */
-const plain = (word: string) => word.toLowerCase().replace(/’/g, "'")
+/** Lower case with no apostrophes, so "isnt" reads as "isn't" and "isn’t" do. */
+const plain = (word: string) => word.toLowerCase().replace(/['’]/g, '')
 
 /** The value after a leading `!`, `!=`, `≠` or `-`, or null when it isn't negated. */
 function negatedValue(value: string): string | null {
@@ -888,10 +890,11 @@ function finish(options: ParseQueryOptions) {
  * commas allowed; `<field> > 100`, `<field> more than 100`,
  * `<field> between 100 and 500` and `<field> 100-500` read the same. Negation reads as the
  * opposite filter: a `-` before a value (not a number), `not`, `isn't`,
- * `excluding`, `except`, `without`, `!=` or `≠` before a value,
- * `<field> is not`, `not`, `isn't`, `!=`, `≠`, `doesn't contain` or
- * `does not contain`, and `field:!value`, `field:!=value` or `field:-value`;
- * a date or a comparison has no opposite, so reads nothing.
+ * `excludes`, `excluding`, `except`, `without`, `!=` or `≠` before a value
+ * or after a field's name, `<field> is not`, `doesn't contain` or
+ * `does not contain`, apostrophes optional, and `field:!value`,
+ * `field:!=value` or `field:-value`; a date or a comparison has no
+ * opposite, so reads nothing.
  * Filter labels read as `describeRecordFilter` writes chips. Empty text lists
  * the filterable fields. Free text is left to the caller, as a search.
  */

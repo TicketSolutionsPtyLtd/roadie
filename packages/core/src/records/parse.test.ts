@@ -546,6 +546,41 @@ describe('parseQuery', () => {
         'city:≠syd',
         'City is not Sydney',
         { field: 'city', operator: 'is-not', values: ['sydney'] }
+      ],
+      [
+        'city isnt sydney',
+        'City is not Sydney',
+        { field: 'city', operator: 'is-not', values: ['sydney'] }
+      ],
+      [
+        'isnt sydney',
+        'City is not Sydney',
+        { field: 'city', operator: 'is-not', values: ['sydney'] }
+      ],
+      [
+        'excludes walrus',
+        'Venue is not The Quilted Walrus Room',
+        { field: 'venue', operator: 'is-not', values: ['quilted-walrus-room'] }
+      ],
+      [
+        'name doesnt contain disco',
+        'Name doesn’t contain “disco”',
+        { field: 'name', operator: 'not-contains', value: 'disco' }
+      ],
+      [
+        'name excludes disco',
+        'Name doesn’t contain “disco”',
+        { field: 'name', operator: 'not-contains', value: 'disco' }
+      ],
+      [
+        'name excluding disco',
+        'Name doesn’t contain “disco”',
+        { field: 'name', operator: 'not-contains', value: 'disco' }
+      ],
+      [
+        'city excludes syd',
+        'City is not Sydney',
+        { field: 'city', operator: 'is-not', values: ['sydney'] }
       ]
     ])('reads "%s" as %s, taking every word', (text, label, value) => {
       expect(parse(text)[0]).toMatchObject({
@@ -576,11 +611,24 @@ describe('parseQuery', () => {
       ['status is not sold out', 'Status is Sold out'],
       ['-sold out', 'Status is Sold out'],
       ['not sold out', 'Status is Sold out'],
-      ['venue != quilted walrus', 'Venue is The Quilted Walrus Room']
+      ['venue != quilted walrus', 'Venue is The Quilted Walrus Room'],
+      ['city isnt sydney', 'City is Sydney'],
+      ['name excludes disco', 'Name contains “disco”']
     ])('never offers the value "%s" rules out', (text, label) => {
       expect(parse(text, { limit: 50 }).map((s) => s.label)).not.toContain(
         label
       )
+    })
+
+    it.each([
+      'name doesnt contain disco',
+      'name does not contain disco',
+      'name excludes disco'
+    ])('reads no negating word in "%s" as text a field contains', (text) => {
+      const contains = parse(text, { limit: 50 }).filter(
+        (s) => s.kind === 'filter' && s.value.operator === 'contains'
+      )
+      expect(contains).toEqual([])
     })
 
     it('reads "city = syd" as the value', () => {

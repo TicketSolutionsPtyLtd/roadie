@@ -270,13 +270,15 @@ Negation reads as the opposite filter. "not melb" suggests "City is not
 Melbourne", and never "City is Melbourne". The negating words are part of the
 filter, so none of them stay in `remainder`.
 
-| Form                                                                          | Typed                        | Suggests                             |
-| ----------------------------------------------------------------------------- | ---------------------------- | ------------------------------------ |
-| `not`, `isn't`, `excluding`, `except`, `without`, `!=`, or `≠` before a value | `excluding walrus`           | Venue is not The Quilted Walrus Room |
-| `-` before a value                                                            | `-sold out`                  | Status is not Sold out               |
-| `!`, `!=`, or `-` after `field:`                                              | `venue:!walrus`              | Venue is not The Quilted Walrus Room |
-| `<field> is not`, `not`, `isn't`, `!=`, or `≠`                                | `city not syd`               | City is not Sydney                   |
-| `<field> doesn't contain` or `<field> does not contain`                       | `name doesn't contain disco` | Name doesn't contain "disco"         |
+| Form                                                                                      | Typed                        | Suggests                             |
+| ----------------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------ |
+| `not`, `isn't`, `excludes`, `excluding`, `except`, `without`, `!=`, or `≠` before a value | `excluding walrus`           | Venue is not The Quilted Walrus Room |
+| `-` before a value                                                                        | `-sold out`                  | Status is not Sold out               |
+| `!`, `!=`, or `-` after `field:`                                                          | `venue:!walrus`              | Venue is not The Quilted Walrus Room |
+| `<field> is not`, or `<field>` then any word in the first row                             | `city not syd`               | City is not Sydney                   |
+| `<field> doesn't contain` or `<field> does not contain`                                   | `name doesn't contain disco` | Name doesn't contain "disco"         |
+
+The apostrophe is optional, so `city isnt syd` suggests "City is not Sydney".
 
 `venue is walrus`, `venue = walrus`, and `name contains disco` read the same
 way, as the filter without the negation. Once a value is negated, its positive
