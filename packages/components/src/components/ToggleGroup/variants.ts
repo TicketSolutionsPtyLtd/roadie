@@ -12,7 +12,7 @@ export const toggleGroupVariants = cva(
     // Fades a side that can still scroll, as `watchScrollEdges` marks it.
     '[--toggle-group-fade:24px] [--toggle-group-fade-left:0px] [--toggle-group-fade-right:0px]',
     'data-[overflow-left]:[--toggle-group-fade-left:var(--toggle-group-fade)] data-[overflow-right]:[--toggle-group-fade-right:var(--toggle-group-fade)]',
-    'data-[orientation=horizontal]:[mask-image:linear-gradient(to_right,transparent_0,black_var(--toggle-group-fade-left),black_calc(100%-var(--toggle-group-fade-right)),transparent_100%)]',
+    'data-[orientation=horizontal]:[&:is([data-overflow-left],[data-overflow-right])]:[mask-image:linear-gradient(to_right,transparent_0,black_var(--toggle-group-fade-left),black_calc(100%-var(--toggle-group-fade-right)),transparent_100%)]',
     'rounded-full',
     'data-[orientation=vertical]:grid-flow-row data-[orientation=vertical]:rounded-xl'
   ].join(' '),

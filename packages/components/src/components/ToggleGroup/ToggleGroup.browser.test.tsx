@@ -270,9 +270,11 @@ describe('an edge fade', () => {
     await expect.poll(fades).toEqual(['24px', '0px'])
   })
 
-  it('leaves a group with room for every item unfaded', async () => {
+  it('leaves a group with room for every item unfaded and unmasked', async () => {
     render(<DateRange />)
     await expect.poll(fades).toEqual(['0px', '0px'])
+    // A mask clips any outer shadow or outline a page adds.
+    expect(masked()).toBe('none')
   })
 
   function Labels({ labels }: { labels: string[] }) {
