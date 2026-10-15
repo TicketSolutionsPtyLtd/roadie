@@ -28,3 +28,5 @@ A `pendingChip` with two or more `operators` shows them as a toggle above the
 values, with the chosen `operator` pressed: pressing one, or Tab and Shift+Tab
 in the input while they show, calls `onPendingOperatorChange`, keeps focus in
 the input, and asks `suggest` again.
+A line divides the value step's groups, and a group with `hideLabel` names
+itself for screen readers only.

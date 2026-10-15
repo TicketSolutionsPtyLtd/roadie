@@ -12,6 +12,7 @@ import {
   useState
 } from 'react'
 
+import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import type { BaseUIEvent } from '@base-ui/react/types'
 import {
   LockSimpleIcon,
@@ -634,54 +635,64 @@ export function QueryField<Value = unknown>({
             )}
             <Combobox.List>
               {list.map((group, groupIndex) => (
-                <Combobox.Group key={groupKey(group)} items={group.items}>
-                  <Combobox.GroupLabel
-                    // The operators stand in its place; it still names the
-                    // group. The label's own padding would outsize sr-only.
-                    className={cn(
-                      showsOperators && groupIndex === 0 && 'sr-only p-0'
-                    )}
-                  >
-                    {group.label}
-                  </Combobox.GroupLabel>
-                  <Combobox.Collection>
-                    {(item: QueryFieldAccepted<Value>, index: number) => (
-                      <Combobox.Item key={itemKey(item)} value={item}>
-                        <OptionIcon
-                          icon={
-                            item.kind === 'search' ? (
-                              <MagnifyingGlassIcon weight='bold' />
-                            ) : (
-                              item.icon
-                            )
-                          }
-                        />
-                        <span className='me-auto grid min-w-0 gap-0.5'>
-                          <span
-                            data-slot='query-field-option-label'
-                            className='truncate'
-                          >
-                            {item.label}
+                <Fragment key={groupKey(group)}>
+                  {pendingChip && groupIndex > 0 && (
+                    <ComboboxPrimitive.Separator
+                      data-slot='query-field-divider'
+                      className='px-2 py-1 before:block before:border-t before:border-subtle'
+                    />
+                  )}
+                  <Combobox.Group items={group.items}>
+                    <Combobox.GroupLabel
+                      // The operators stand in the first label; it still names
+                      // the group. The label's own padding would outsize sr-only.
+                      className={cn(
+                        (group.hideLabel ||
+                          (showsOperators && groupIndex === 0)) &&
+                          'sr-only p-0'
+                      )}
+                    >
+                      {group.label}
+                    </Combobox.GroupLabel>
+                    <Combobox.Collection>
+                      {(item: QueryFieldAccepted<Value>, index: number) => (
+                        <Combobox.Item key={itemKey(item)} value={item}>
+                          <OptionIcon
+                            icon={
+                              item.kind === 'search' ? (
+                                <MagnifyingGlassIcon weight='bold' />
+                              ) : (
+                                item.icon
+                              )
+                            }
+                          />
+                          <span className='me-auto grid min-w-0 gap-0.5'>
+                            <span
+                              data-slot='query-field-option-label'
+                              className='truncate'
+                            >
+                              {item.label}
+                            </span>
+                            {item.kind !== 'search' &&
+                              hasDescription(item.description) && (
+                                <span
+                                  data-slot='query-field-option-description'
+                                  className='truncate text-xs text-subtle'
+                                >
+                                  {item.description}
+                                </span>
+                              )}
                           </span>
-                          {item.kind !== 'search' &&
-                            hasDescription(item.description) && (
-                              <span
-                                data-slot='query-field-option-description'
-                                className='truncate text-xs text-subtle'
-                              >
-                                {item.description}
-                              </span>
-                            )}
-                        </span>
-                        {groupStarts[groupIndex]! + index === enterTarget && (
-                          <Kbd size='sm' className='text-subtle'>
-                            Enter
-                          </Kbd>
-                        )}
-                      </Combobox.Item>
-                    )}
-                  </Combobox.Collection>
-                </Combobox.Group>
+                          {groupStarts[groupIndex]! + index === enterTarget && (
+                            <Kbd size='sm' className='text-subtle'>
+                              Enter
+                            </Kbd>
+                          )}
+                        </Combobox.Item>
+                      )}
+                    </Combobox.Collection>
+                  </Combobox.Group>
+                </Fragment>
               ))}
             </Combobox.List>
             <Combobox.Empty>

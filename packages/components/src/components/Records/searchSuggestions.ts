@@ -279,8 +279,9 @@ function withOperator(
 }
 
 /**
- * Suggestions for one field's value, after it was picked. An option field's
- * values compare by `operator`; each step ends with Empty and Not empty.
+ * Suggestions for one field's value, after it was picked: Empty and Not empty
+ * first, where the field allows them, then its values, which for an option
+ * field compare by `operator`.
  */
 export function valueSuggestions(
   field: RecordField,
@@ -318,15 +319,15 @@ export function valueSuggestions(
   const editable =
     field.type === 'date' &&
     recordFilterOperators(field).some((operator) => operator === 'between')
+  const emptiness = unused(emptinessItems(field, typed), context)
   return [
+    ...(emptiness.length > 0
+      ? [{ id: 'empty', label: 'Empty', hideLabel: true, items: emptiness }]
+      : []),
     {
       id: 'values',
       label: field.label,
-      items: [
-        ...values,
-        ...(editable ? [customDates(field)] : []),
-        ...unused(emptinessItems(field, typed), context)
-      ]
+      items: [...values, ...(editable ? [customDates(field)] : [])]
     }
   ]
 }

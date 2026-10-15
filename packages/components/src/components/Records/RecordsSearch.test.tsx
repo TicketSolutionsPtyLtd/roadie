@@ -718,7 +718,7 @@ describe('Records.Search', () => {
       expect(pendingChip()).not.toHaveTextContent('is not')
     })
 
-    it('ends the values with Empty and Not empty, which add their own chips', async () => {
+    it('lists Empty and Not empty above the values, which add their own chips', async () => {
       const { user, lastView } = setup()
       await user.click(input())
       await user.click(await option('City'))
@@ -730,7 +730,9 @@ describe('Records.Search', () => {
             each.querySelector('[data-slot=query-field-option-label]')
               ?.textContent
         )
-      expect(names.slice(-2)).toEqual(['Empty', 'Not empty'])
+      expect(names.slice(0, 2)).toEqual(['Empty', 'Not empty'])
+      expect(names).toContain('Sydney')
+      expect(screen.getByRole('group', { name: 'Empty' })).toBeInTheDocument()
       await user.click(await option('Empty'))
       await user.click(input())
       await user.click(await option('Starts'))

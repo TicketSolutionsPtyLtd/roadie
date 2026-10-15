@@ -1253,6 +1253,53 @@ describe('QueryField operators', () => {
   })
 })
 
+const emptiness: QueryFieldSuggestionGroup = {
+  id: 'empty',
+  label: 'Empty',
+  hideLabel: true,
+  items: [
+    { id: 'venue:empty', label: 'Empty', kind: 'filter', value: 'empty' },
+    { id: 'venue:set', label: 'Not empty', kind: 'filter', value: 'set' }
+  ]
+}
+const dividers = () =>
+  document.querySelectorAll('[data-slot=query-field-divider]')
+
+describe('QueryField value step groups', () => {
+  it('divides the value step’s groups, each still named', async () => {
+    render(
+      <Harness
+        pendingChip={{ id: 'venue', label: 'Venue is' }}
+        suggest={() => [
+          emptiness,
+          { id: 'values', label: 'Venue', items: [iguana] }
+        ]}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: iguana.label })
+    expect(optionNames()).toEqual(['Empty', 'Not empty', iguana.label])
+    const empty = screen.getByRole('group', { name: 'Empty' })
+    const values = screen.getByRole('group', { name: 'Venue' })
+    expect(dividers()).toHaveLength(1)
+    const [divider] = dividers()
+    expect(
+      empty.compareDocumentPosition(divider!) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    expect(
+      divider!.compareDocumentPosition(values) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+  })
+
+  it('divides no groups outside the value step', async () => {
+    render(<Harness />)
+    await typeInto('igua')
+    await screen.findByRole('group', { name: 'Fields' })
+    expect(dividers()).toHaveLength(0)
+  })
+})
+
 describe('QueryField operators, edge keys', () => {
   it('leaves Tab to move on while the values are closed', async () => {
     const onPendingOperatorChange = vi.fn()

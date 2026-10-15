@@ -50,6 +50,10 @@ const labels = (groups: { items: readonly { label: string }[] }[]) =>
   groups.map((group) => group.items.map((item) => item.label))
 
 const byKey = (key: string) => fields.find((f) => f.key === key)!
+const valuesOf = (groups: readonly { id: string }[]) =>
+  groups.find((group) => group.id === 'values') as ReturnType<
+    typeof valueSuggestions
+  >[number]
 
 describe('topSuggestions', () => {
   it('lists the fields to filter by while empty', () => {
@@ -117,22 +121,33 @@ describe('topSuggestions', () => {
 })
 
 describe('valueSuggestions', () => {
-  it('lists an option field’s values, then narrows them', () => {
+  it('lists Empty and Not empty above an option field’s values, then narrows them', () => {
     expect(labels(valueSuggestions(byKey('city'), '', context()))).toEqual([
-      ['Melbourne', 'Sydney', 'Perth', 'Empty', 'Not empty']
+      ['Empty', 'Not empty'],
+      ['Melbourne', 'Sydney', 'Perth']
     ])
     expect(labels(valueSuggestions(byKey('city'), 'syd', context()))).toEqual([
       ['Sydney']
     ])
   })
 
+  it('names Empty and Not empty’s group for screen readers only', () => {
+    const [emptiness] = valueSuggestions(byKey('city'), '', context())
+    expect(emptiness).toMatchObject({
+      id: 'empty',
+      label: 'Empty',
+      hideLabel: true
+    })
+  })
+
   it('takes typed text for an option field with no values to list', () => {
     const promoter = field.option('city', { label: 'Promoter' })
     expect(labels(valueSuggestions(promoter, '', context()))).toEqual([
-      ['Empty', 'Not empty']
+      ['Empty', 'Not empty'],
+      []
     ])
     expect(
-      valueSuggestions(promoter, 'Thimble', context())[0]!.items
+      valuesOf(valueSuggestions(promoter, 'Thimble', context())).items
     ).toMatchObject([
       {
         label: 'Thimble',
@@ -147,32 +162,39 @@ describe('valueSuggestions', () => {
   it('offers Yes and No for a boolean', () => {
     expect(
       labels(valueSuggestions(byKey('accessible'), '', context()))
-    ).toEqual([['Yes', 'No', 'Empty', 'Not empty']])
+    ).toEqual([
+      ['Empty', 'Not empty'],
+      ['Yes', 'No']
+    ])
   })
 
   it('offers upcoming dates for events and recent ones for timestamps, then custom dates', () => {
-    const [starts] = valueSuggestions(byKey('starts'), '', context())
+    const starts = valuesOf(valueSuggestions(byKey('starts'), '', context()))
     expect(starts!.label).toBe('Starts')
     expect(starts!.items.slice(0, 3).map((item) => item.label)).toEqual([
       'Today',
       'Tomorrow',
       'This weekend'
     ])
-    expect(starts!.items.at(-3)).toMatchObject({
+    expect(starts!.items.at(-1)).toMatchObject({
       label: 'Custom dates',
       value: { type: 'edit', field: 'starts' }
     })
-    const [placed] = valueSuggestions(byKey('placed'), '', context())
+    const placed = valuesOf(valueSuggestions(byKey('placed'), '', context()))
     expect(placed!.items[1]!.label).toBe('Yesterday')
   })
 
   it('compares an option field’s values by the chosen operator, listed or typed', () => {
-    const [listed] = valueSuggestions(byKey('city'), '', context(), 'is-not')
+    const listed = valuesOf(
+      valueSuggestions(byKey('city'), '', context(), 'is-not')
+    )
     expect(listed!.items[0]!.value).toEqual({
       type: 'filter',
       filter: { field: 'city', operator: 'is-not', values: ['melbourne'] }
     })
-    const [typed] = valueSuggestions(byKey('city'), 'syd', context(), 'has-all')
+    const typed = valuesOf(
+      valueSuggestions(byKey('city'), 'syd', context(), 'has-all')
+    )
     expect(typed!.items).toMatchObject([
       {
         label: 'Sydney',
@@ -186,10 +208,12 @@ describe('valueSuggestions', () => {
 
   it('narrows Empty and Not empty by the start of a word, and drops one applied', () => {
     expect(labels(valueSuggestions(byKey('city'), 'not', context()))).toEqual([
-      ['Not empty']
+      ['Not empty'],
+      []
     ])
     expect(labels(valueSuggestions(byKey('city'), 'emp', context()))).toEqual([
-      ['Empty', 'Not empty']
+      ['Empty', 'Not empty'],
+      []
     ])
     expect(labels(valueSuggestions(byKey('city'), 'mpty', context()))).toEqual([
       []
@@ -202,12 +226,14 @@ describe('valueSuggestions', () => {
           context([{ field: 'city', operator: 'is-not-set' }])
         )
       )
-    ).toEqual([['Melbourne', 'Sydney', 'Perth', 'Not empty']])
+    ).toEqual([['Not empty'], ['Melbourne', 'Sydney', 'Perth']])
   })
 
   it('compares a typed value by the operator for an option field with no values to list', () => {
     const promoter = field.option('city', { label: 'Promoter' })
-    const [group] = valueSuggestions(promoter, 'Thimble', context(), 'is-not')
+    const group = valuesOf(
+      valueSuggestions(promoter, 'Thimble', context(), 'is-not')
+    )
     expect(group!.items[0]!.value).toEqual({
       type: 'filter',
       filter: { field: 'city', operator: 'is-not', values: ['Thimble'] }
@@ -215,14 +241,16 @@ describe('valueSuggestions', () => {
   })
 
   it('offers no Empty or Not empty to a field that can’t filter by them', () => {
-    const dates = field.date('dates', { label: 'Dates', multiple: true })
+    const dates = field.date('starts', { label: 'Dates', multiple: true })
     expect(labels(valueSuggestions(dates, '', context())).flat()).not.toContain(
       'Empty'
     )
   })
 
   it('reads typed dates for the field', () => {
-    const [group] = valueSuggestions(byKey('starts'), 'after 1 dec', context())
+    const group = valuesOf(
+      valueSuggestions(byKey('starts'), 'after 1 dec', context())
+    )
     expect(group!.items[0]).toMatchObject({
       label: 'After 1 Dec',
       value: {
