@@ -77,8 +77,9 @@ const NEGATIONS = new Set([
   '!=',
   '≠'
 ])
-// Spaced apart in free text, so "city!=syd" reads as "city != syd".
-const OPERATOR = /(!=|≠|[<>=])/g
+// Spaced apart in free text, so "city!=syd" reads as "city != syd". ">=" and
+// "=>" stay whole: read as "=" then ">", they'd drop the number itself.
+const OPERATOR = /(!=|[<>]=|=[<>]|≠|[<>=])/g
 // A dash before a digit or dollar sign is a minus sign, as in "-5".
 const SIGNED = /^-[$\d]/
 

@@ -641,7 +641,10 @@ describe('parseQuery', () => {
       'capacity between 20',
       'capacity:between 20',
       'city > syd',
-      'city syd'
+      'city syd',
+      'capacity => 100',
+      'capacity =< 100',
+      'capacity >= 100'
     ])('reads no comparison from "%s"', (text) => {
       const whole = parse(text, { limit: 50 }).filter(
         (s) => s.kind === 'filter' && s.remainder === ''
