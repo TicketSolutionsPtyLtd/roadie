@@ -478,8 +478,8 @@ For server-side search, update the `items` prop as results arrive, and pass
   **Backspace** or **Delete** removes the focused one. Focus moves to the
   next chip, or the previous one after the last, and returns to the input
   once no chips are left.
-- **Escape** while the popup is closed clears every value, not just the last
-  one.
+- With `multiple`, **Escape** while the popup is closed clears the typed text
+  and keeps every value.
 - `Combobox.Chips` becomes a toolbar once it holds chips, so screen readers
   stay in focus mode while the arrows move between them. Name it with
   `aria-label` while it holds chips.
