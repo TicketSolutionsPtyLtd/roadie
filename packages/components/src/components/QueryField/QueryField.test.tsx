@@ -1252,3 +1252,53 @@ describe('QueryField operators', () => {
     await waitFor(() => expect(suggest).toHaveBeenCalledTimes(2))
   })
 })
+
+describe('QueryField operators, edge keys', () => {
+  it('leaves Tab to move on while the values are closed', async () => {
+    const onPendingOperatorChange = vi.fn()
+    render(
+      <>
+        <button type='button'>Before</button>
+        <OperatorStep onPendingOperatorChange={onPendingOperatorChange} />
+      </>
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Before' }))
+    await userEvent.tab()
+    expect(document.activeElement).toBe(input())
+    expect(screen.queryByRole('listbox')).toBeNull()
+    expect(input()).not.toHaveAttribute('aria-keyshortcuts')
+    await userEvent.tab()
+    expect(onPendingOperatorChange).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Clear' })
+    )
+  })
+
+  it('leaves a modified or composing Tab alone', async () => {
+    const onPendingOperatorChange = vi.fn()
+    render(<OperatorStep onPendingOperatorChange={onPendingOperatorChange} />)
+    await userEvent.click(input())
+    await screen.findByRole('listbox')
+    for (const init of [
+      { ctrlKey: true },
+      { altKey: true },
+      { metaKey: true },
+      { isComposing: true },
+      { keyCode: 229 }
+    ])
+      fireEvent.keyDown(input(), { key: 'Tab', ...init })
+    expect(onPendingOperatorChange).not.toHaveBeenCalled()
+  })
+
+  it('takes nothing on Enter after an arrowed highlight is cycled away', async () => {
+    const onAccept = vi.fn()
+    render(<OperatorStep onAccept={onAccept} />)
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: iguana.label })
+    await userEvent.keyboard('{ArrowDown}')
+    await userEvent.tab()
+    await screen.findByRole('option', { name: iguana.label })
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).not.toHaveBeenCalled()
+  })
+})

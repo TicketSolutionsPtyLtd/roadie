@@ -226,6 +226,8 @@ export function QueryField<Value = unknown>({
   const operators = pendingChip?.operators ?? NO_OPERATORS
   const operator = pendingChip?.operator
   const showsOperators = operators.length >= 2
+  // Only while they show, so Tab still leaves a closed field.
+  const cyclesOperators = showsOperators && open
   const suggestions = useSuggestions(
     suggest,
     text,
@@ -304,7 +306,7 @@ export function QueryField<Value = unknown>({
   ) {
     if (
       event.key === 'Tab' &&
-      showsOperators &&
+      cyclesOperators &&
       !(event.metaKey || event.ctrlKey || event.altKey) &&
       !isComposing(event)
     ) {
@@ -560,7 +562,7 @@ export function QueryField<Value = unknown>({
             aria-invalid={isInvalid || undefined}
             aria-required={isRequired || undefined}
             aria-keyshortcuts={
-              [ownsShortcut && shortcut, showsOperators && 'Tab']
+              [ownsShortcut && shortcut, cyclesOperators && 'Tab']
                 .filter(Boolean)
                 .join(' ') || undefined
             }
