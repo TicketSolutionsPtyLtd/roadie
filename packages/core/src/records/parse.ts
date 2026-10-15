@@ -130,13 +130,18 @@ function negatedValue(value: string): string | null {
   return null
 }
 
+// After a space or punctuation, as "Lawn" in "Room/Lawn", but not an apostrophe.
+const WORD_START = /(?<![\p{L}\p{N}'’])[\p{L}\p{N}]/gu
+
 /** How well typed text names a candidate, from 0 to 1, read from a word's start. */
 function quality(candidate: string, text: string): number {
   const name = candidate.toLowerCase()
   if (name === text) return 1
   if (name.startsWith(text)) return 0.8
-  const words = name.split(/[\s_-]+/)
-  return words.some((_, i) => words.slice(i).join(' ').startsWith(text))
+  const spaced = name.replace(/[\s_-]+/g, ' ')
+  return [...spaced.matchAll(WORD_START)].some(({ index }) =>
+    spaced.startsWith(text, index)
+  )
     ? 0.7
     : 0
 }

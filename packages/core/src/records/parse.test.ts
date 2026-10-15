@@ -196,7 +196,9 @@ describe('parseQuery', () => {
         type: 'option' as const,
         options: [
           { value: 'nimbus', label: 'Nimbus Thistle Hall' },
-          { value: 'lantern', label: 'Perth Lantern Hall' }
+          { value: 'lantern', label: 'Perth Lantern Hall' },
+          { value: 'opal', label: 'Opal Harpoon Room (Upstairs)' },
+          { value: 'teacup', label: 'Wobbly Teacup Room/Lawn' }
         ]
       }
     ]
@@ -207,7 +209,9 @@ describe('parseQuery', () => {
       ['this', 'Room is Nimbus Thistle Hall'],
       ['thistle hall', 'Room is Nimbus Thistle Hall'],
       ['walrus room', 'Venue is The Quilted Walrus Room'],
-      ['per', 'City is Perth']
+      ['per', 'City is Perth'],
+      ['upstairs', 'Room is Opal Harpoon Room (Upstairs)'],
+      ['lawn', 'Room is Wobbly Teacup Room/Lawn']
     ])('reads "%s" from the start of a word: %s', (text, label) => {
       expect(
         parseQuery(text, { ...options, fields }).map((s) => [
