@@ -54,8 +54,8 @@ describe('CalendarTile band size', () => {
     px(getComputedStyle(document.documentElement).fontSize) * n
   const sizes = [
     { size: 'sm', fontSize: () => 10, padding: () => rem(0.125) },
-    { size: 'md', fontSize: () => rem(0.75), padding: () => rem(0.125) },
-    { size: 'lg', fontSize: () => rem(0.875), padding: () => rem(0.1875) }
+    { size: 'md', fontSize: () => rem(0.75), padding: () => rem(0.25) },
+    { size: 'lg', fontSize: () => rem(0.875), padding: () => rem(0.375) }
   ] as const
 
   for (const { size, fontSize, padding } of sizes) {

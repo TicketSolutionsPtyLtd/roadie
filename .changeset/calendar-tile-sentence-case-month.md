@@ -8,8 +8,9 @@ writing rule keeps all caps for acronyms. The tile shows `Nov`, not `NOV`, and
 the band drops the wide letter spacing that only suited capitals. Mixed case
 reads smaller than capitals, so the band's text is one size bigger and still
 scales with the tile: 10px at `sm` (was 9px), `text-xs` at `md` (was 10px),
-and `text-sm` at `lg` (was 11px). The `sm` and `md` bands are 1px tighter
-top and bottom.
+and `text-sm` at `lg` (was 11px). Band padding is on the spacing scale:
+`py-0.5` at `sm` (was 3px), `py-1` at `md` (was 3px), and `py-1.5` at `lg`
+(was 3px).
 
 The `calendar-tile-top` utility changes the same way, and the React tile now
 uses it, so both render an identical band. `formatGlyph` now returns `month`
