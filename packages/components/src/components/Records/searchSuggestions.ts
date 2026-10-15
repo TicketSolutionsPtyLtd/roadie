@@ -426,6 +426,31 @@ export function valueHint(
     : 'Type two numbers like 20 and 50.'
 }
 
+/** Labels as a list, with an Oxford comma: "Perth, Hobart, and Sydney". */
+function listOf(labels: readonly string[]): string {
+  if (labels.length < 3) return labels.join(' and ')
+  return `${labels.slice(0, -1).join(', ')}, and ${labels.at(-1)}`
+}
+
+/**
+ * While a chip is edited, what to say when every value the typed text
+ * matches is one the chip already holds, so Enter has nothing to add.
+ */
+export function heldHint(
+  field: RecordField,
+  text: string,
+  groups: readonly SearchGroup[]
+): string | undefined {
+  if (isTyped(field) || !text.trim()) return undefined
+  const values = groups
+    .flatMap((group) => group.items)
+    .filter((item) => item.value.type === 'filter')
+  if (values.length === 0 || values.some((item) => !item.selected))
+    return undefined
+  const verb = values.length === 1 ? 'is' : 'are'
+  return `${listOf(values.map((item) => item.label))} ${verb} already in this filter.`
+}
+
 /**
  * A space typed after a range's first number, such as "20 ", adds "and " for
  * the second. A word typed in its place, such as "to", replaces it, so typing

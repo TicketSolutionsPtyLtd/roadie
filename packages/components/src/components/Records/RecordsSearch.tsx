@@ -20,6 +20,7 @@ import {
   type SearchValue,
   type ValueOperator,
   filterChipIds,
+  heldHint,
   isEmptiness,
   mergeFilter,
   optionOperator,
@@ -480,6 +481,26 @@ export function RecordsSearch({
     setEditing({ ...editing, index: null, written: [], open: false })
   }
 
+  // The edited chip's filter stays out of the context, so its values still list.
+  const stepValues = (text: string) =>
+    pendingField
+      ? valueSuggestions(
+          pendingField,
+          text,
+          selectedAt === null
+            ? context
+            : {
+                ...context,
+                filters: [
+                  ...records.scope,
+                  ...filters.filter((_, index) => index !== selectedAt)
+                ]
+              },
+          pendingOperator,
+          selectedFilter
+        )
+      : []
+
   return (
     <>
       <QueryField<SearchValue>
@@ -505,12 +526,10 @@ export function RecordsSearch({
                 label: pendingLabel(pendingField, pendingOperator),
                 operators: valueOperators(pendingField),
                 operator: pendingOperator,
-                hint: valueHint(
-                  pendingField,
-                  stepText,
-                  pendingOperator,
-                  context
-                ),
+                hint:
+                  valueHint(pendingField, stepText, pendingOperator, context) ??
+                  (selectedFilter &&
+                    heldHint(pendingField, stepText, stepValues(stepText))),
                 chipId: selectedAt === null ? undefined : chipIds[selectedAt]
               }
             : undefined
@@ -553,21 +572,7 @@ export function RecordsSearch({
         }}
         suggest={(text) =>
           pendingField
-            ? valueSuggestions(
-                pendingField,
-                text,
-                selectedAt === null
-                  ? context
-                  : {
-                      ...context,
-                      filters: [
-                        ...records.scope,
-                        ...filters.filter((_, index) => index !== selectedAt)
-                      ]
-                    },
-                pendingOperator,
-                selectedFilter
-              )
+            ? stepValues(text)
             : withFieldIcons(topSuggestions(text, context), byKey)
         }
         onAccept={accept}

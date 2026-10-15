@@ -1349,6 +1349,38 @@ describe('QueryField value step hint', () => {
     expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
   })
 
+  it('shows the hint below the values once typed text leaves Enter nothing', async () => {
+    const perth: QueryFieldSuggestion = {
+      id: 'perth',
+      label: 'Perth',
+      kind: 'filter',
+      value: 'perth',
+      selected: true
+    }
+    render(
+      <Harness
+        initialChips={[city]}
+        pendingChip={{
+          id: 'city',
+          label: 'City is',
+          chipId: 'city',
+          hint: 'Perth is already in this filter.'
+        }}
+        suggest={() => [{ id: 'values', label: 'City', items: [perth] }]}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: 'Perth' })
+    expect(
+      screen.queryByText('Perth is already in this filter.')
+    ).not.toBeInTheDocument()
+    await userEvent.keyboard('per')
+    expect(
+      await screen.findByText('Perth is already in this filter.')
+    ).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Perth' })).toBeInTheDocument()
+  })
+
   it('says it is loading, not the hint, while values load', async () => {
     const values = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
     render(

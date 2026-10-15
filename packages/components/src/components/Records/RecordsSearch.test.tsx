@@ -229,6 +229,26 @@ describe('Records.Search', () => {
     await waitFor(() => expect(ticked()).toEqual(['Hobart', 'Perth']))
   })
 
+  it('says a typed value is already in the chip when it’s the only match', async () => {
+    const { user } = setup({
+      defaultView: {
+        query: {
+          filters: [{ field: 'city', operator: 'is', values: ['Perth'] }]
+        }
+      }
+    })
+    const hint = () =>
+      document.querySelector('[data-slot=query-field-hint]')?.textContent
+    await selectChip(user, 'City is Perth')
+    await user.keyboard('per')
+    await waitFor(() => expect(hint()).toBe('Perth is already in this filter.'))
+    expect(ticked()).toEqual(['Perth'])
+    await user.keyboard('{Enter}')
+    expect(chipLabels()).toEqual(['City is Perth'])
+    await user.keyboard('{Backspace}{Backspace}{Backspace}h')
+    await waitFor(() => expect(hint()).toBe(''))
+  })
+
   it('returns focus to the chip when Custom dates closes', async () => {
     const { user } = setup({
       defaultView: { query: { filters: [AFTER_1_DEC] } }

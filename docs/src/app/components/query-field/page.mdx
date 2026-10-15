@@ -143,8 +143,9 @@ own, such as "Custom dates", `opensEditor`, and Enter never takes it, so only
 an arrow or a click opens it.
 
 Give the pending chip a `hint`, such as "Type a number.", to say what to type.
-It shows in place of No suggestions while no value is listed, and screen
-readers announce it.
+It shows in place of No suggestions while no value is listed, and below the
+values while Enter has none to take for the typed text, such as when the only
+match is already ticked. Screen readers announce it.
 
 ```tsx-live
 function QueryFieldValueStep() {

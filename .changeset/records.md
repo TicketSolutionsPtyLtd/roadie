@@ -93,21 +93,23 @@ as together they match nothing.
 
 Clicking a chip, or Enter on it, edits it in the list, with what it holds
 ticked. An option chip's values tick and untick, and unticking the last
-removes the chip. Enter on typed text only ticks. Its is, is not, and has all
-of rewrite its condition and keep its values, and a chip rewritten to is joins
-the field's is chip. A text or number chip puts its value in the field and its
-condition in the toggle, and Enter replaces it once either changes. Any other
-value taken, or the row under is empty or is not empty, replaces what the chip
-holds. Everything but an option chip's operator waits for Enter, so Tab
-passing through is empty keeps the values. Backspace in the empty field
-removes the chip, and Escape or leaving the field keeps it. Custom dates
-opens a date range picker with relative presets, or a date picker, in a
-popover under the chip or a bottom drawer on a phone, with Remove filter. It
-loads while the page is idle. A relative date chip shows its dates in a
-tooltip, and a filter the fields can't apply shows in warning colours.
-`/` focuses the search unless `shortcut` (or `searchShortcut` on
-`Records.Toolbar` and `RecordTable`) says otherwise, and Clear and Escape
-clear it. The toolbar keeps its buttons at the top as chips wrap.
+removes the chip. Enter on typed text only ticks. When the typed text matches
+only values the chip holds, the list says so, such as "Perth is already in
+this filter." Its is, is not, and has all of rewrite its condition and keep
+its values, and a chip rewritten to is joins the field's is chip. A text or
+number chip puts its value in the field and its condition in the toggle, and
+Enter replaces it once either changes. Any other value taken, or the row under
+is empty or is not empty, replaces what the chip holds. Everything but an
+option chip's operator waits for Enter, so Tab passing through is empty keeps
+the values. Backspace in the empty field removes the chip, and Escape or
+leaving the field keeps it. Custom dates opens a date range picker with
+relative presets, or a date picker, in a popover under the chip or a bottom
+drawer on a phone, with Remove filter. It loads while the page is idle. A
+relative date chip shows its dates in a tooltip, and a filter the fields can't
+apply shows in warning colours. `/` focuses the search unless `shortcut` (or
+`searchShortcut` on `Records.Toolbar` and `RecordTable`) says otherwise, and
+Clear and Escape clear it. The toolbar keeps its buttons at the top as chips
+wrap.
 
 `useRecords` takes a `scope`: filters the page sets, such as the event a list
 of tickets belongs to. They filter with the view but are never part of it,

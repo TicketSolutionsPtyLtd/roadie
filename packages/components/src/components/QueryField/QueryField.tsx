@@ -302,7 +302,6 @@ export function QueryField<Value = unknown>({
       ? firstMatch(suggestions.groups, enterable)
       : undefined
   const items = list.flatMap((group) => group.items)
-  const hint = !suggestions.loading && list.length === 0 && pendingChip?.hint
   const search = items.find((item) => item.kind === 'search')
   const enterFallback = exact ?? typedValue ?? search
   const fallbackKey = enterFallback && itemKey(enterFallback)
@@ -311,6 +310,10 @@ export function QueryField<Value = unknown>({
     keyboardHighlightKey !== undefined
       ? highlightIndex
       : items.findIndex((item) => itemKey(item) === fallbackKey)
+  // Also once typed text leaves Enter nothing, such as a value already ticked.
+  const stuck = current && !!text.trim() && enterTarget < 0
+  const hint =
+    !suggestions.loading && (list.length === 0 || stuck) && pendingChip?.hint
   const groupStarts = list.map((_, index) =>
     list.slice(0, index).reduce((sum, group) => sum + group.items.length, 0)
   )

@@ -6,6 +6,7 @@ import {
   type ValueOperator,
   filterChipIds,
   filterKey,
+  heldHint,
   mergeFilter,
   pendingLabel,
   rulesOut,
@@ -872,5 +873,43 @@ describe('rulesOut', () => {
     expect(rulesOut(set, perth)).toBe(false)
     expect(rulesOut(empty, sold)).toBe(false)
     expect(rulesOut(empty, { ...empty })).toBe(false)
+  })
+})
+
+describe('heldHint', () => {
+  const suburbs = field.option('city', {
+    label: 'Suburb',
+    options: [
+      { value: 'north-perth', label: 'North Perth' },
+      { value: 'perth', label: 'Perth' },
+      { value: 'south-perth', label: 'South Perth' },
+      { value: 'fremantle', label: 'Fremantle' }
+    ]
+  })
+  const hintFor = (text: string, values: string[]) => {
+    const edited: RecordFilter = { field: 'city', operator: 'is', values }
+    const groups = valueSuggestions(
+      suburbs,
+      text,
+      { ...context(), fields: [suburbs] },
+      'is',
+      edited
+    )
+    return heldHint(suburbs, text, groups)
+  }
+
+  it('names the held values the text matches, with an Oxford comma', () => {
+    const all = ['north-perth', 'perth', 'south-perth']
+    expect(hintFor('frem', ['fremantle'])).toBe(
+      'Fremantle is already in this filter.'
+    )
+    expect(hintFor('perth', all)).toBe(
+      'Perth, North Perth, and South Perth are already in this filter.'
+    )
+  })
+
+  it('says nothing while a match is new, or nothing is typed', () => {
+    expect(hintFor('perth', ['perth'])).toBeUndefined()
+    expect(hintFor('', ['perth'])).toBeUndefined()
   })
 })

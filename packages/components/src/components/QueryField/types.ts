@@ -34,7 +34,8 @@ export type QueryFieldPendingChip = {
   operator?: string
   /**
    * What to type, such as "Type a number.", shown and announced in place of
-   * No suggestions while no value is listed.
+   * No suggestions while no value is listed, and below the values while Enter
+   * has none to take for the typed text.
    */
   hint?: string
 }
