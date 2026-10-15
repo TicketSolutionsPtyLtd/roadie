@@ -330,6 +330,9 @@ describe(
       await expect
         .element(await screen.findByRole('option', { name: 'Custom dates' }))
         .toBeVisible()
+      expect(document.activeElement).toBe(
+        screen.getByRole('combobox', { name: 'Search and filter' })
+      )
     })
 
     it('adds the chip from a picked range and ends the step', async () => {
@@ -377,6 +380,27 @@ describe(
         document.querySelectorAll('[data-slot=combobox-chip]')
       ).toHaveLength(1)
       await expect.poll(popup).toBeNull()
+    })
+
+    it('keeps the popover on a wide screen inside the comparison', async () => {
+      render(
+        <div data-custom-dates='inline'>
+          <Shows />
+        </div>
+      )
+      await userEvent.click(
+        screen.getByRole('combobox', { name: 'Search and filter' })
+      )
+      await userEvent.click(
+        await screen.findByRole('option', { name: /^Starts/ })
+      )
+      await userEvent.click(
+        await screen.findByRole('option', { name: 'Custom dates' })
+      )
+      await screen.findByRole('dialog', { name: 'Starts' })
+      expect(
+        document.querySelector('[data-slot=records-dates-panel]')
+      ).toBeNull()
     })
 
     it('keeps the drawer on a phone outside the comparison', async () => {
