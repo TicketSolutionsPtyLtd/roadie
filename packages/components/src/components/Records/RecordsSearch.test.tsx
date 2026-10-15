@@ -678,4 +678,83 @@ describe('Records.Search', () => {
     // Only the remove button's.
     expect(chip('City is Sydney').querySelectorAll('svg')).toHaveLength(1)
   })
+
+  describe('operators', () => {
+    const pendingChip = () =>
+      document.querySelector('[data-slot=query-field-pending-chip]')
+    const operatorNames = () =>
+      within(screen.getByRole('group', { name: 'Operator' }))
+        .getAllByRole('button')
+        .map((item) => item.textContent)
+
+    it('picks a field, then is not, then a value, adding that chip', async () => {
+      const { user, lastView } = setup()
+      await user.click(input())
+      await user.click(await option('City'))
+      expect(operatorNames()).toEqual(['is', 'is not'])
+      await user.click(screen.getByRole('button', { name: 'is not' }))
+      expect(pendingChip()).toHaveTextContent('City is not')
+      await user.click(await option('Sydney'))
+      expect(chipLabels()).toEqual(['City is not Sydney'])
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is-not', values: ['Sydney'] }
+      ])
+    })
+
+    it('moves to the next operator with Tab, and starts each field on is', async () => {
+      const { user, lastView } = setup()
+      await user.click(input())
+      await user.click(await option('City'))
+      await user.tab()
+      expect(pendingChip()).toHaveTextContent('City is not')
+      await user.keyboard('perth')
+      await user.click(await option('Perth'))
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is-not', values: ['Perth'] }
+      ])
+      await user.click(input())
+      await user.click(await option('Status'))
+      expect(pendingChip()).toHaveTextContent('Status is')
+      expect(pendingChip()).not.toHaveTextContent('is not')
+    })
+
+    it('ends the values with Empty and Not empty, which add their own chips', async () => {
+      const { user, lastView } = setup()
+      await user.click(input())
+      await user.click(await option('City'))
+      await option('Sydney')
+      const names = screen
+        .getAllByRole('option')
+        .map(
+          (each) =>
+            each.querySelector('[data-slot=query-field-option-label]')
+              ?.textContent
+        )
+      expect(names.slice(-2)).toEqual(['Empty', 'Not empty'])
+      await user.click(await option('Empty'))
+      await user.click(input())
+      await user.click(await option('Starts'))
+      await user.click(await option('Not empty'))
+      expect(chipLabels()).toEqual(['City is empty', 'Starts is not empty'])
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is-not-set' },
+        { field: 'starts', operator: 'is-set' }
+      ])
+    })
+
+    it('offers has all only for a field holding several values, and none for a date', async () => {
+      const several = fields.map((each) =>
+        each.key === 'city' ? { ...each, multiple: true } : each
+      )
+      const { user } = setup({ fields: several })
+      await user.click(input())
+      await user.click(await option('City'))
+      expect(operatorNames()).toEqual(['is', 'is not', 'has all of'])
+      await user.keyboard('{Escape}')
+      await user.click(input())
+      await user.click(await option('Starts'))
+      await option(/This weekend/)
+      expect(screen.queryByRole('group', { name: 'Operator' })).toBeNull()
+    })
+  })
 })
