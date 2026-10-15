@@ -191,6 +191,9 @@ describe('valueSuggestions', () => {
     expect(labels(valueSuggestions(byKey('city'), 'emp', context()))).toEqual([
       ['Empty', 'Not empty']
     ])
+    expect(labels(valueSuggestions(byKey('city'), 'mpty', context()))).toEqual([
+      []
+    ])
     expect(
       labels(
         valueSuggestions(
@@ -200,6 +203,22 @@ describe('valueSuggestions', () => {
         )
       )
     ).toEqual([['Melbourne', 'Sydney', 'Perth', 'Not empty']])
+  })
+
+  it('compares a typed value by the operator for an option field with no values to list', () => {
+    const promoter = field.option('city', { label: 'Promoter' })
+    const [group] = valueSuggestions(promoter, 'Thimble', context(), 'is-not')
+    expect(group!.items[0]!.value).toEqual({
+      type: 'filter',
+      filter: { field: 'city', operator: 'is-not', values: ['Thimble'] }
+    })
+  })
+
+  it('offers no Empty or Not empty to a field that can’t filter by them', () => {
+    const dates = field.date('dates', { label: 'Dates', multiple: true })
+    expect(labels(valueSuggestions(dates, '', context())).flat()).not.toContain(
+      'Empty'
+    )
   })
 
   it('reads typed dates for the field', () => {
