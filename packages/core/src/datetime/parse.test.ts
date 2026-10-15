@@ -110,6 +110,19 @@ describe('parseDatePhrase: relative words', () => {
     ])
   })
 
+  it.each([
+    'weekend',
+    'the weekend',
+    'on the weekend',
+    'at the weekend',
+    'over the weekend',
+    'on weekend'
+  ])('reads "%s" as this weekend', (text) => {
+    expect(parseDatePhrase(text, SYDNEY)).toEqual(
+      one('This weekend', 'this-weekend')
+    )
+  })
+
   it('ignores case and extra spaces', () => {
     expect(parseDatePhrase('  This   WEEKEND ', SYDNEY)).toEqual(
       one('This weekend', 'this-weekend')

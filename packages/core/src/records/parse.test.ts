@@ -157,6 +157,26 @@ describe('parseQuery', () => {
     expect(parse(text)[0]!.value).toEqual(value)
   })
 
+  it.each([
+    'on the weekend',
+    'shows on the weekend',
+    'on weekend',
+    'the weekend',
+    'at the weekend',
+    'weekend'
+  ])('reads "%s" as this weekend, its words as nothing else', (text) => {
+    const result = parse(text, { limit: 50 })
+    expect(result[0]).toMatchObject({
+      label: 'Starts: This weekend',
+      value: { field: 'starts', operator: 'within', value: 'this-weekend' }
+    })
+    expect(result.map(summary)).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^(Status|Venue) is |^field onSale$/)
+      ])
+    )
+  })
+
   it('offers no hour windows on a plain date field', () => {
     const hourFields = parse('next 6 hours', { limit: 50 })
       .filter(

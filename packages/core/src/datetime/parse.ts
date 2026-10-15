@@ -81,6 +81,7 @@ const PHRASES: [string, DateRangeValue][] = [
 
 // Exact matches only, never completed: each hides an explicit range.
 const ALIASES: Record<string, DateRangeValue> = {
+  weekend: 'this-weekend',
   fortnight: { direction: 'next', amount: 14, unit: 'day' },
   'next fortnight': { direction: 'next', amount: 14, unit: 'day' },
   'last fortnight': { direction: 'past', amount: 14, unit: 'day' },
@@ -339,6 +340,9 @@ function rolling(
   return { direction: direction === 'next' ? 'next' : 'past', amount, unit }
 }
 
+// Words that change nothing before a phrase, as in "on the weekend".
+const LEADING = /^(?:(?:on|at|over) )?the (?=weekend$)|^on (?!or )/
+
 function normalise(text: string): string {
   return text.toLowerCase().replace(/,/g, ' ').replace(/\s+/g, ' ').trim()
 }
@@ -351,7 +355,7 @@ export function parseDatePhrase(
   text: string,
   options: DatePhraseOptions
 ): DatePhraseSuggestion[] {
-  const input = normalise(text).replace(/^on (?!or )/, '')
+  const input = normalise(text).replace(LEADING, '')
   if (!input) return []
   const today = plainDateOf(options.now, options.timeZone)
   const weekStart = options.weekStart ?? 1
