@@ -72,7 +72,8 @@ syd", "city != syd", and "name doesn't contain disco", with or without the
 apostrophe. It reads "venue is walrus", "city =
 syd", and "name contains disco" too. A negated value never also suggests its
 positive, so "status is not sold out" offers only "Status is not Sold out". A
-date or a comparison has no opposite, so a negated one reads nothing.
+date or a comparison has no opposite, so a negated one reads nothing, and
+neither do its words.
 
 A number or money field's name, then `>`, `<`, `=`, `!=`, more than, less
 than, over, under, between 20 and 50, or a range such as 20-50 in either

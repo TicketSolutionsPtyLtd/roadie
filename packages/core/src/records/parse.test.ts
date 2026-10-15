@@ -243,6 +243,12 @@ describe('parseQuery', () => {
       )
     })
 
+    it('reads no value from the words of a negated date phrase', () => {
+      expect(read('not this weekend')).not.toContain(
+        'Room is not Nimbus Thistle Hall'
+      )
+    })
+
     it('keeps a value named in full inside a longer reading', () => {
       expect(read('perth lantern')).toEqual(
         expect.arrayContaining(['Room is Perth Lantern Hall', 'City is Perth'])
@@ -648,6 +654,16 @@ describe('parseQuery', () => {
       )
       expect(read).toEqual([])
     })
+
+    it.each(['not next fri', 'not last monday', 'except fri 9 oct'])(
+      'reads no day from inside the negated date in "%s"',
+      (text) => {
+        const dates = parse(text, { limit: 50 }).filter(
+          (s) => s.kind === 'filter' && s.value.field === 'starts'
+        )
+        expect(dates).toEqual([])
+      }
+    )
 
     it.each(['starts:!this weekend', 'capacity:!100-500', 'capacity:!>100'])(
       'reads nothing for %s, which has no negative',

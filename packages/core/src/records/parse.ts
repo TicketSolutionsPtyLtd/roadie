@@ -546,7 +546,8 @@ function spanCandidates(
         : end - start > 1 && NEGATIONS.has(plain(words[start]!))
           ? words.slice(start + 1, end).join(' ')
           : null
-      if (!ruledOut && dashed === null) {
+      const read = !ruledOut && dashed === null
+      if (read) {
         // Exact only when it is the whole text: Enter must not drop the rest.
         if (end - start === 1 && words.length > 1) {
           identifierReadings(fields, words[start]!).forEach((reading) =>
@@ -554,19 +555,20 @@ function spanCandidates(
           )
         }
         valueReadings(fields, text).forEach(add)
-        // A phrase is only completed while it is still being typed, at the end.
-        const typing = end === words.length
-        if (
-          dateFields.length &&
-          !compared &&
-          !opensRange(words, start, end, options)
-        ) {
-          const readings = dateReadings(dateFields, text, options).filter(
-            (reading) => typing || reading.complete !== false
-          )
-          readings.forEach(add)
-          if (readings.length) dated.push(span)
-        }
+      }
+      // A phrase is only completed while it is still being typed, at the end.
+      const typing = end === words.length
+      if (
+        dateFields.length &&
+        !compared &&
+        !opensRange(words, start, end, options)
+      ) {
+        const readings = dateReadings(dateFields, text, options).filter(
+          (reading) => typing || reading.complete !== false
+        )
+        // A negated date reads nothing, its words included.
+        if (read) readings.forEach(add)
+        if (readings.length) dated.push(span)
       }
       if (negated) {
         negate([
@@ -576,9 +578,16 @@ function spanCandidates(
       }
     }
   }
-  // A date phrase's words read nothing less, so "next fri" never offers Fri.
+  // A date phrase's words read nothing that takes less than the whole
+  // phrase, so "next fri" never offers Fri, nor "not this weekend" Thistle.
   return candidates.filter(
-    (c) => !dated.some((d) => within(c.span, d) && length(d) > length(c.span))
+    (c) =>
+      !dated.some(
+        (d) =>
+          overlap(c.span, d) &&
+          !within(d, c.span) &&
+          length(d) >= length(c.span)
+      )
   )
 }
 
