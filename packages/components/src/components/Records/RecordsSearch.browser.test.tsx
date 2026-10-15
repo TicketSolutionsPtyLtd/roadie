@@ -296,6 +296,19 @@ describe(
       ).toBeTruthy()
     })
 
+    it('sizes each condition to its own label, as the operators are', async () => {
+      await openCalendar()
+      const conditions = within(popup()!).getByRole('group', {
+        name: 'Starts condition'
+      })
+      const on = within(conditions).getByRole('button', { name: 'On' })
+      const long = within(conditions).getByRole('button', {
+        name: 'Within'
+      })
+      expect(box(on).width).toBeLessThan(box(long).width * 0.75)
+      expect(box(on).width).toBeGreaterThanOrEqual(box(on).height)
+    })
+
     it('returns to the quick dates with Back, and with Escape', async () => {
       await openCalendar()
       await userEvent.click(

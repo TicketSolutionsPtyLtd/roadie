@@ -203,10 +203,10 @@ export function RecordsDatesPanel({
           if (operator)
             setDraft({ ...draft, operator: operator as DateOperator })
         }}
-        className='justify-self-start'
+        className='auto-cols-max justify-self-start'
       >
         {DATE_OPERATORS.map((operator) => (
-          <ToggleGroup.Item key={operator} value={operator}>
+          <ToggleGroup.Item key={operator} value={operator} className='min-w-8'>
             {SHORT_LABELS[operator]}
           </ToggleGroup.Item>
         ))}
