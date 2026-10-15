@@ -4,7 +4,7 @@ export const metadata = {
     'Set up Claude Code and other coding agents to build with Roadie: the plugin, its skills, and the docs agents read.'
 }
 
-Roadie ships three things for coding agents. A Claude Code plugin teaches an agent how to build with Roadie. A markdown copy of every docs page, indexed in `llms.txt`, lets any agent read the docs. A manifest in each package lists the exact API of the version you installed. The [ESLint plugin](/overview/linting) then catches what slips through.
+Roadie ships three things for coding agents. A Claude Code plugin teaches an agent how to build with Roadie. A markdown copy of the docs pages, indexed in `llms.txt`, lets any agent read the docs. A manifest in each package lists the exact API of the version you installed. The [ESLint plugin](/overview/linting) then catches what slips through.
 
 ## Install the Claude Code plugin
 
@@ -45,7 +45,7 @@ The [skills changelog](https://github.com/TicketSolutionsPtyLtd/roadie/blob/main
 
 ## Build with Roadie
 
-These skills work in any app on Roadie. Each one reads the manifest of the Roadie version the app has installed, so its advice matches your packages.
+These skills work in any app on Roadie. Setup, build, charts, motion, and migrate read the manifest of the Roadie version the app has installed, so their advice matches your packages.
 
 | Skill | Use it to |
 | --- | --- |
@@ -81,11 +81,11 @@ These skills take a change from idea to merged PR in any Oztix repo. Each reads 
 
 ## Docs agents can read
 
-Every docs page has a markdown copy, and `llms.txt` lists them all. Any agent that can fetch a URL can read them, Claude Code or not.
+Most docs pages have a markdown copy, and `llms.txt` indexes them. Any agent that can fetch a URL can read them, Claude Code or not.
 
 - **`llms.txt`** at [`/llms.txt`](/llms.txt) indexes every guide, foundation, content, component, chart, token, and widget page, with a line on each.
 - **A page's markdown** is its URL with `.md` on the end, such as [`/components/button.md`](/components/button.md). A component page's copy also lists its props.
-- **Copy page as Markdown**, in the menu at the top right of every page, puts the page on your clipboard to paste into a chat.
+- **Copy page as Markdown**, in the menu at the top right of every page that has a markdown copy, puts the page on your clipboard to paste into a chat.
 
 ## Package manifests
 
