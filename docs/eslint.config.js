@@ -8,7 +8,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import { readFileSync } from 'fs'
 import { createRequire } from 'module'
 
-import published from '@oztix/eslint-plugin-roadie'
+import published from '@oztix/roadie-eslint-plugin'
 
 import roadie from '../eslint/roadie-plugin.js'
 import { startsWithJsx } from './src/lib/fence-layout.mjs'

@@ -1,16 +1,16 @@
-# @oztix/eslint-plugin-roadie
+# @oztix/roadie-eslint-plugin
 
 ESLint rules that catch [Roadie Design System](https://github.com/TicketSolutionsPtyLtd/roadie)
 mistakes in apps: Phosphor icon imports, sizes, and weights, `dark:` variants,
 hex colour classes, and arbitrary radius and z-index values.
 
 ```bash
-pnpm add -D @oztix/eslint-plugin-roadie
+pnpm add -D @oztix/roadie-eslint-plugin
 ```
 
 ```js
 // eslint.config.js
-import roadie from '@oztix/eslint-plugin-roadie'
+import roadie from '@oztix/roadie-eslint-plugin'
 
 export default [roadie.configs.recommended]
 ```

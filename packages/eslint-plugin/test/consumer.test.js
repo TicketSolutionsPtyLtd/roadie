@@ -9,7 +9,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 const packageDir = fileURLToPath(new URL('..', import.meta.url))
 
-const CONFIG = `import roadie from '@oztix/eslint-plugin-roadie'
+const CONFIG = `import roadie from '@oztix/roadie-eslint-plugin'
 
 export default [roadie.configs.recommended]
 `
@@ -89,7 +89,7 @@ describe.each([
 it('names the installed version, so a cached lint reruns after an upgrade', async () => {
   const entry = join(
     app,
-    'node_modules/@oztix/eslint-plugin-roadie/src/index.js'
+    'node_modules/@oztix/roadie-eslint-plugin/src/index.js'
   )
   const { default: installed } = await import(pathToFileURL(entry).href)
   expect(installed.meta).toEqual({ name: packed.name, version: packed.version })

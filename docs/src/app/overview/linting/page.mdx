@@ -1,25 +1,25 @@
 export const metadata = {
   title: 'Linting',
   description:
-    'Catch Roadie mistakes in your app at lint time with @oztix/eslint-plugin-roadie.'
+    'Catch Roadie mistakes in your app at lint time with @oztix/roadie-eslint-plugin.'
 }
 
-`@oztix/eslint-plugin-roadie` checks the Roadie conventions a rule can be sure of: Phosphor icon imports, sizes, and weights, colour classes, and arbitrary radius and z-index values. Calls that need judgement, such as which emphasis a surface takes, stay with review.
+`@oztix/roadie-eslint-plugin` checks the Roadie conventions a rule can be sure of: Phosphor icon imports, sizes, and weights, colour classes, and arbitrary radius and z-index values. Calls that need judgement, such as which emphasis a surface takes, stay with review.
 
 ## Install
 
 ```bash
-pnpm add -D @oztix/eslint-plugin-roadie
+pnpm add -D @oztix/roadie-eslint-plugin
 ```
 
-The plugin needs ESLint 9 or 10 with a flat config, `eslint.config.js`.
+It works with flat config (`eslint.config.js`) only, on ESLint 9 and 10.
 
 ## Turn on the rules
 
 Add the recommended config to your config array.
 
 ```js
-import roadie from '@oztix/eslint-plugin-roadie'
+import roadie from '@oztix/roadie-eslint-plugin'
 
 export default [
   // Your other configs
@@ -32,7 +32,7 @@ It turns every rule on as an error for JavaScript and TypeScript files, and turn
 To choose rules yourself, register the plugin as `roadie` and name each rule.
 
 ```js
-import roadie from '@oztix/eslint-plugin-roadie'
+import roadie from '@oztix/roadie-eslint-plugin'
 
 export default [
   {
@@ -71,7 +71,7 @@ Two icon rules skip a case on purpose. `roadie/phosphor-icon-weight` skips an ic
 The Phosphor rules find icons by their import. Code that gets icons another way, such as a live code editor with icons in scope, names them in `settings.roadie.phosphorIcons`.
 
 ```js
-import roadie from '@oztix/eslint-plugin-roadie'
+import roadie from '@oztix/roadie-eslint-plugin'
 
 export default [
   roadie.configs.recommended,

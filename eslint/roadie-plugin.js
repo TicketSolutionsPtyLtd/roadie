@@ -1,4 +1,4 @@
-import published from '@oztix/eslint-plugin-roadie'
+import published from '@oztix/roadie-eslint-plugin'
 
 // The package's helpers, not its public API.
 import { staticString } from '../packages/eslint-plugin/src/ast.js'
