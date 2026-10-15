@@ -319,11 +319,7 @@ render(
 
 ### Search and filters
 
-The toolbar's search is a [query field](/components/query-field) named "Search and filter". Typing searches the searchable fields as you type, and suggests filters the fields can read: an option's values, a status, a boolean by its name, an identifier's `match`, and date phrases such as "this weekend" or "after 1 dec" for each date field. Take a suggestion with the arrows and Enter, or a click, and it becomes a chip; Enter on its own keeps searching the text. Typing "melb this weekend" offers both City is Melbourne and Starts: This weekend, and the words a filter doesn't read stay in the field for the next one.
-
-Focusing the empty field lists the fields to filter by. An option field then lists its values under an is and is not toggle, with has all of too for a field that holds several values; press one, or Tab, to switch. A text field's toggle is contains, doesn't contain, is, and is not, and a number's is `=`, `≠`, `<`, `>`, and between. Type the value and it shows as one row worded as its chip, such as Show contains “ocean”, for Enter to take. Between reads 20 and 50, 20-50, 20 to 50, or 20..50, either way round, and a space after the first number adds the and. Money takes $ and thousands commas. Until the value reads, the list says what to type, such as “Type a number.” A boolean field lists Yes and No, and a date field its quick dates, upcoming for event dates and recent for timestamps, then Custom dates. Every field's toggle ends with is empty and is not empty, which list one row worded as the chip, such as City is empty, for Enter to take whatever is typed. Typing narrows the values, and Enter takes the first. Picking another value with is adds it to that field's is chip, since a chip's values are ORed and chips are ANDed.
-
-Click a chip, or press Enter on it, to edit it in the list: the chip shows selected, focus stays in the field, and what the chip holds is ticked. Take an option's values to tick and untick them, as many as you like, and unticking the last removes the chip; Enter on typed text only ticks; press is or is not to change its condition and keep its values, and a chip changed to is joins the field's is chip. A text or number chip puts its value in the field and its condition in the toggle, such as 20 and 50 under between; change either, and Enter replaces the chip once the value reads under its condition. A boolean's Yes or No, a date's quick date, or the row under is empty or is not empty replace what the chip holds. A chip opens with its operator pressed, so an empty chip shows its one row ticked; switching to is empty waits for Enter, so Tab passing through drops no values. Backspace in the empty field removes the chip, and Escape or leaving the field ends the edit and keeps it. Custom dates is the one editor outside the list: it opens the [date range picker](/components/date-range-picker) or [date picker](/components/date-picker) for the chip, in a popover under it or a bottom drawer on a phone, with Remove filter at the foot. An option field with no `options` lists the values its records hold, in the browser, and otherwise takes what you type. A chip with more values than it shows names them all in its tooltip. A relative date chip shows its dates in a tooltip, and a filter these fields can't apply shows in warning colours and filters nothing. Press `/` to focus the search from anywhere on the page. With several on a page, the first one takes the key; set `searchShortcut` on `RecordTable` or `Records.Toolbar`, or `shortcut` on `Records.Search`, to another key or `false`.
+The toolbar's search is a [query field](/components/query-field) named "Search and filter". It searches the records as you type and adds filters as chips. A record shows only when it matches every chip.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -379,6 +375,77 @@ render(
   />
 )
 ```
+
+#### Searching
+
+Typing searches the searchable fields, and suggests the filters the text reads:
+
+- an option's values, or a status
+- a boolean, by its name
+- an identifier, by its `match`
+- a date phrase for each date field, such as "this weekend" or "after 1 dec"
+
+Pick a suggestion with the arrows and Enter, or a click, to add its chip. Enter with no suggestion picked searches the text. A filter takes only the words it reads, and the rest stay in the field for the next one. Typing "melb this weekend" offers "City is Melbourne" and "Starts: This weekend".
+
+#### Picking a field
+
+Focus the empty field to list the fields to filter by. Pick one, and the list shows its values under a toggle of operators. Press an operator, or press Tab and Shift+Tab, to change it.
+
+| Field            | Operators                                         | Values                                                                                                  |
+| ---------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Option or status | is, is not, and has all of for a `multiple` field | Its options. Without `options`, the values its records hold in the browser, or otherwise what you type |
+| Text             | contains, doesn't contain, is, and is not         | What you type                                                                                           |
+| Number or money  | `=`, `≠`, `<`, `>`, and between                   | What you type                                                                                           |
+| Boolean          | is                                                | Yes and No                                                                                              |
+| Date             | is                                                | Quick dates, upcoming for an event date and recent for a timestamp, then **Custom dates**               |
+
+Every field you can filter by ends its toggle with **is empty** and **is not empty**. A field that holds a list of dates can't be filtered yet, so it isn't listed.
+
+#### Typing a value
+
+- Typing narrows an option, boolean, or date field's values, and Enter takes the first.
+- Text or a number you type shows as one row worded as its chip, such as "Sold is more than 1,500", and Enter takes it.
+- Between reads 20 and 50, 20-50, 20 to 50, or 20..50, in either order. A space after the first number adds the "and".
+- Money takes a `$` and thousands commas, such as $1,500.
+- Until the value reads, the list says what to type, such as "Type a number." or "Between 20 and what? Type the second number."
+- Under **is empty** or **is not empty**, the list shows one row, such as "City is empty", and Enter takes it whatever you've typed.
+
+Another option value taken under **is** joins that field's is chip, which matches any one of its values.
+
+#### Editing a chip
+
+Click a chip, or press Enter on it, to edit it in the list. The chip shows as selected, and focus stays in the field. The toggle shows the chip's operator, and the list ticks what the chip holds.
+
+- **An option chip.** Take values to tick and untick them, and the list stays open for more. Unticking the last value removes the chip. Enter on typed text only ticks. Press **is**, **is not**, or **has all of** to change the condition and keep the values. A chip changed to **is** joins the field's is chip.
+- **A text or number chip.** Its value is in the field and its condition in the toggle, such as 20 and 50 under **between**. Change either, and Enter replaces the chip once the value reads.
+- **A boolean or date chip.** Yes, No, or a quick date replaces what the chip holds.
+- **Is empty or is not empty.** The row under either replaces what the chip holds. A chip that already reads is empty or is not empty opens with that row ticked.
+
+Only an option chip changes as you press an operator. Anything else waits for Enter, so pressing Tab past **is empty** keeps the chip's values. Backspace in the empty field removes the chip. Escape, or leaving the field, ends the edit and keeps the chip.
+
+#### Custom dates
+
+**Custom dates** is last in a date field's values, and the one filter you edit outside the list. It opens a condition (Is within, Is on, Is before, or Is after) with the [date range picker](/components/date-range-picker) and its relative presets, or the [date picker](/components/date-picker). It edits the selected chip, or adds a new one, and applies each change as you make it.
+
+It opens in a popover under the chip, or a bottom drawer on a phone, and loads while the page is idle. An existing chip's editor has **Remove filter** at the foot, and a chip whose dates you clear is removed as the editor closes.
+
+#### Chips
+
+- A chip with more values than it shows names them all in its tooltip.
+- A relative date chip, such as "Starts: This weekend", shows its dates in its tooltip.
+- A filter these fields can't apply shows in warning colours and filters nothing.
+
+#### Keys
+
+| Key            | What it does                                                                                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/`            | Focuses the search from anywhere on the page, except while you type in another field.                                                                                          |
+| Enter          | Takes the suggestion you moved to. With none, it takes an identifier the text matches, or searches the text. While you pick a value, it takes the first value once you type, or the one row under is empty or is not empty. |
+| Tab, Shift+Tab | While a field's values show, moves to the next or previous operator. From the last operator, or the first, it leaves the field.                                                |
+| Backspace      | In the empty field, selects the last chip, and a second removes it. While you pick a value, it goes back to the fields, and while you edit a chip, it removes that chip.              |
+| Escape         | Ends picking a value or editing a chip, and keeps the chips. Otherwise it closes the suggestions, then clears the text.                                                        |
+
+With several searches on a page, the first one takes `/`. Set `searchShortcut` on `RecordTable` or `Records.Toolbar`, or `shortcut` on `Records.Search`, to another key or `false`.
 
 #### Scope
 
@@ -1529,8 +1596,10 @@ column.field('city', { pin: true })`}
 - When the table holds only some of its rows (a page of several, more than 100 rows, or a list loaded by range), it carries `aria-rowcount`, counting every match (up to 300,000 loading by range) and the header row, and each row its `aria-rowindex`, so screen readers announce "row 52 of 121". Loading by range, the count is `-1` until the total is known.
 - Loading by range, the table is `aria-busy` while a range loads, placeholders are hidden from screen readers, and a failed range is announced, such as "Couldn't load more shows". The result count is announced only once the total is known. The header checkbox is named "Select loaded rows".
 - State titles are paragraphs, not headings, since the table can't know the page's outline. Their icon tiles are hidden from screen readers.
-- The search is a combobox named "Search and filter", or by its `aria-label`. Suggestions open as you type, on a click or with the arrows, not on Tab, and while they're open the rest of the page is hidden from screen readers, as for any combobox. Enter searches the text unless you moved to a suggestion with the arrows. Escape closes the suggestions, and a second Escape clears the text. Clear keeps focus in the field and keeps the page's scope. `/` focuses the field from anywhere, except while typing in another one.
-- Chips are a toolbar named "Filters": Left and Right move between them, Backspace on the empty field selects the last one and a second removes it, and Enter or a click selects it and lists its values, with focus kept in the field. A number's operators are symbols named in words, such as "is less than" for `<`. Custom dates opens a dialog named after the field; focus returns to the chip when it closes, or to the field once the filter is removed. Each chip's remove button is named "Remove" and the chip. A locked scope chip says it is set by the page, and a chip's dates or a note that it can't apply are read after its label.
+- The search is a combobox named "Search and filter", or by its `aria-label`. Suggestions open as you type, on a click, or with the arrows, not on Tab. While they're open, the rest of the page is hidden from screen readers, as for any combobox. Clear keeps focus in the field and keeps the page's scope. [Keys](#keys) lists what each key does.
+- Chips are a toolbar named "Filters", and Left and Right move between them. Selecting a chip lists its values and keeps focus in the field. Each chip's remove button is named "Remove" and the chip. A locked scope chip says it's set by this page, and a chip's dates, or a note that it can't apply, are read after its label.
+- The operators are a toggle group named "Operator". A number's operators are symbols named in words, such as "is less than" for `<`.
+- **Custom dates** opens a dialog named after the field. Focus returns to the chip as it closes, or to the field once the filter is removed.
 - Each record's checkbox is named "Select" followed by the record's title, or its id with no title, and the header checkbox is named "Select page", with a mixed state when only some of the page is checked.
 - `Records.Status` also announces the selection, such as "3 selected, 24 results". It announces a search's count once typing settles, not on every keystroke, and against a server once the new count loads.
 - While records are selected, the bulk actions are a toolbar named "Bulk actions" in the header row, beside "Select page", which keeps focus as the bar replaces the column headers. The headers stay in the table for screen readers, and the toolbar sits in a last header with no cells under it. Arrow keys move between its controls. Escape clears the selection and returns focus to "Select page".
