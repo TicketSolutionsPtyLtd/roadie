@@ -19,7 +19,11 @@ function hits(id, fixture) {
   const pattern = patterns.get(id)
   if (!pattern) throw new Error(`no ${id} pattern in the parallelization guide`)
   const source = readFileSync(
-    path.join(here, '__testfixtures__', `${fixture}.tsx`),
+    path.join(
+      here,
+      '__testfixtures__',
+      path.extname(fixture) ? fixture : `${fixture}.tsx`
+    ),
     'utf8'
   )
   return source.match(new RegExp(pattern, 'g'))?.length ?? 0
@@ -40,6 +44,10 @@ describe('audit patterns', () => {
     // H6 keys on a month stacked over a day, whatever the month's case.
     ['H6', 'hand-rolled-calendar-tile', 1],
     ['H6', 'hand-rolled-calendar-tile-uppercase', 1],
+    // Prettier-wrapped expressions, moment's 'D', getUTCDate, and a glyph.
+    ['H6', 'hand-rolled-calendar-tile-variants', 4],
+    // A server template has no braces around its expressions.
+    ['H6', 'hand-rolled-calendar-tile.cshtml', 2],
     ['H6', 'calendar-tile', 0]
   ])('%s in %s: %i hit(s)', (id, fixture, count) => {
     expect(hits(id, fixture)).toBe(count)
