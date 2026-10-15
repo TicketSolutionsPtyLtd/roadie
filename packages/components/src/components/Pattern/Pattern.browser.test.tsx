@@ -89,44 +89,82 @@ function renderSized(crop: PatternCrop, width: number, height: number) {
       <Pattern crop={crop} />
     </div>
   )
-  return container.querySelector('svg')!
+  const root = container.querySelector<HTMLElement>('[data-slot=pattern]')!
+  return { box: root.getBoundingClientRect(), svg: root.querySelector('svg')! }
 }
 
-// The swirls' outline on screen, measured from the drawn paths rather than
-// the viewBox, so a viewBox that windows into the artwork can't pass.
-function artworkOnScreen(svg: SVGSVGElement) {
-  const ctm = svg.getScreenCTM()!
-  const boxes = [...svg.querySelectorAll('path')].map((p) => p.getBBox())
-  const left = Math.min(...boxes.map((b) => b.x))
-  const top = Math.min(...boxes.map((b) => b.y))
-  const right = Math.max(...boxes.map((b) => b.x + b.width))
-  const bottom = Math.max(...boxes.map((b) => b.y + b.height))
-  return {
-    left: ctm.a * left + ctm.e,
-    top: ctm.d * top + ctm.f,
-    right: ctm.a * right + ctm.e,
-    bottom: ctm.d * bottom + ctm.f
+// Swirl lines crossed walking from one point to another, a pixel at a time.
+function walk(from: [number, number], to: [number, number]) {
+  const steps = Math.round(Math.hypot(to[0] - from[0], to[1] - from[1]))
+  let lines = 0
+  let onLine = false
+  for (let i = 0; i <= steps; i++) {
+    const hit = document.elementFromPoint(
+      from[0] + ((to[0] - from[0]) * i) / steps,
+      from[1] + ((to[1] - from[1]) * i) / steps
+    )
+    const line = hit?.tagName === 'path'
+    if (line && !onLine) lines++
+    onLine = line
   }
+  return lines
 }
 
-describe('Pattern scale', () => {
-  it.each([
-    ['top', 'a card header', 640, 128],
-    ['bottom', 'a card footer', 640, 128],
-    ['top', 'a phone strip', 358, 96],
-    ['banner', 'a hero', 1280, 400],
-    ['banner', 'a phone hero', 358, 320],
-    ['left', 'a side panel', 240, 400],
-    ['right', 'a side panel', 240, 400]
-  ] as const)(
-    'shows most of the artwork, not a zoomed-in slice, as %s on %s',
+const USES = [
+  ['top', 'a card header', 320, 64],
+  ['bottom', 'a card footer', 320, 40],
+  ['top', 'a wide card header', 640, 128],
+  ['top', 'a phone strip', 358, 96],
+  ['banner', 'a hero', 858, 256],
+  ['banner', 'a phone hero', 310, 320],
+  ['banner', 'a full-width hero', 1440, 480],
+  ['banner', 'a square', 300, 300],
+  ['left', 'a side panel', 240, 400],
+  ['right', 'a side panel', 240, 400],
+  ['right', 'the default panel', 160, 256]
+] as const
+
+describe('Pattern edges', () => {
+  it.each(USES)(
+    'never shows the artwork’s edge as %s on %s',
     (crop, _use, width, height) => {
-      const art = artworkOnScreen(renderSized(crop, width, height))
-      const shown =
-        width >= height
-          ? width / (art.right - art.left)
-          : height / (art.bottom - art.top)
-      expect(shown).toBeGreaterThan(0.6)
+      const { box, svg } = renderSized(crop, width, height)
+      const safe = svg.getBoundingClientRect()
+      expect(safe.left).toBeLessThanOrEqual(box.left + 0.5)
+      expect(safe.top).toBeLessThanOrEqual(box.top + 0.5)
+      expect(safe.right).toBeGreaterThanOrEqual(box.right - 0.5)
+      expect(safe.bottom).toBeGreaterThanOrEqual(box.bottom - 0.5)
+
+      const [l, t, r, b] = [
+        box.left + 1,
+        box.top + 1,
+        box.right - 1,
+        box.bottom - 1
+      ]
+      for (const edge of [
+        walk([l, t], [r, t]),
+        walk([l, b], [r, b]),
+        walk([l, t], [l, b]),
+        walk([r, t], [r, b])
+      ])
+        expect(edge).toBeGreaterThan(0)
+    }
+  )
+})
+
+// Screen pixels per artwork unit. The banner behind the logo on a desktop
+// docs page draws at about 0.56; every use up to that width stays within 2x
+// of it, so no box shows hairlines or two giant stripes. Wider boxes cover,
+// so their swirls grow with them.
+describe('Pattern density', () => {
+  it.each(USES.filter(([, , width]) => width <= 900))(
+    'draws swirls near the banner density as %s on %s',
+    (crop, _use, width, height) => {
+      const { svg } = renderSized(crop, width, height)
+      const scale =
+        svg.getBoundingClientRect().width / svg.viewBox.baseVal.width
+      expect(scale).toBeGreaterThanOrEqual(0.29)
+      expect(scale).toBeLessThanOrEqual(0.6)
     }
   )
 })
@@ -140,28 +178,22 @@ describe('Pattern anchor', () => {
   ] as const)(
     'lines the artwork up with the %s edge it sits on',
     (crop, width, height, edge) => {
-      const svg = renderSized(crop, width, height)
-      const box = svg.getBoundingClientRect()
-      expect(artworkOnScreen(svg)[edge]).toBeCloseTo(box[edge], 0)
+      const { box, svg } = renderSized(crop, width, height)
+      expect(svg.getBoundingClientRect()[edge]).toBeCloseTo(box[edge], 0)
     }
   )
 
   it('centres the banner', () => {
-    const svg = renderSized('banner', 1280, 400)
-    const box = svg.getBoundingClientRect()
-    const art = artworkOnScreen(svg)
-    expect((art.top + art.bottom) / 2).toBeCloseTo(box.top + box.height / 2, 0)
+    const { box, svg } = renderSized('banner', 1280, 400)
+    const safe = svg.getBoundingClientRect()
+    expect(safe.top + safe.height / 2).toBeCloseTo(box.top + box.height / 2, 0)
+    expect(safe.left + safe.width / 2).toBeCloseTo(box.left + box.width / 2, 0)
   })
 })
 
 describe('Pattern size', () => {
   it('fills its parent in both axes and never sizes itself', () => {
-    const { container } = render(
-      <div style={{ width: 320, height: 120 }}>
-        <Pattern crop='banner' />
-      </div>
-    )
-    const box = container.querySelector('svg')!.getBoundingClientRect()
+    const { box } = renderSized('banner', 320, 120)
     expect([box.width, box.height]).toEqual([320, 120])
   })
 
@@ -174,7 +206,9 @@ describe('Pattern size', () => {
           <div style={{ height: 100 }} />
         </div>
       )
-      const box = container.querySelector('svg')!.getBoundingClientRect()
+      const box = container
+        .querySelector('[data-slot=pattern]')!
+        .getBoundingClientRect()
       expect([box.width, box.height]).toEqual([240, 100])
     }
   )
@@ -185,8 +219,8 @@ describe('Pattern size', () => {
         <Pattern className='absolute inset-0' />
       </div>
     )
-    expect(getComputedStyle(container.querySelector('svg')!).position).toBe(
-      'absolute'
-    )
+    const root = container.querySelector('[data-slot=pattern]')!
+    expect(getComputedStyle(root).position).toBe('absolute')
+    expect(root.getBoundingClientRect().height).toBe(100)
   })
 })
