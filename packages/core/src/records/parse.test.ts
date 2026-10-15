@@ -797,6 +797,29 @@ describe('parseQuery', () => {
       })
     })
 
+    it.each(['sold >= 100', 'sold => 100', 'sold <= 100', 'sold =< 100'])(
+      'reads no comparison from "%s"',
+      (text) => {
+        expect(
+          parseQuery(text, { ...options, fields: soldFields, limit: 50 })
+            .filter((s) => s.kind === 'filter' && s.value.field === 'sold')
+            .map((s) => s.label)
+        ).toEqual([])
+      }
+    )
+
+    it('never joins numbers a space separates', () => {
+      const read = parse('capacity > 5 6', { limit: 50 }).map((s) => [
+        s.label,
+        s.remainder
+      ])
+      expect(read).toContainEqual(['Capacity is more than 5', '6'])
+      expect(read.map(([label]) => label)).not.toContain(
+        'Capacity is more than 56'
+      )
+      expect(parse('capacity:5 6')).toEqual([])
+    })
+
     it('keeps the words a comparison didn’t read', () => {
       expect(
         parse('capacity > 100 melb').map((s) => [s.label, s.remainder])

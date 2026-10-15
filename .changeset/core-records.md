@@ -74,13 +74,14 @@ comparison has no opposite, so a negated one reads nothing.
 
 A number or money field's name, then `>`, `<`, `=`, `!=`, more than, less
 than, over, under, between 20 and 50, or a range such as 20-50 in either
-order, reads as that comparison: "capacity > 100" suggests "Capacity is more than 100".
-`field:value` takes the same words, and "capacity:20 and 50" reads as a
-range. "city is empty" and "city is not empty" read as the field having no
-value or one. A field name then a value with no verb reads as `field:value` does,
-so "city melb" suggests "City is Melbourne" and "capacity 100" suggests
-"Capacity is 100". A field name a statement reads is never also read as a value, so
-"sold > 100" never suggests "Status is Sold out".
+order, reads as that comparison: "capacity > 100" suggests "Capacity is more
+than 100". `field:value` takes the same words, and "capacity:20 and 50" reads
+as a range. `>=` and `<=` read nothing, and numbers a space separates never
+join. A field name then a value with no verb reads as `field:value` does, so
+"city melb" suggests "City is Melbourne" and "capacity 100" suggests
+"Capacity is 100". "city is empty" and "city is not empty" read as the field
+having no value or one. A field name a statement reads is never also read as
+a value, so "sold > 100" never suggests "Status is Sold out".
 
 `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
 and `hitsPerPage`, so the response's `totalHits` counts the matches (up to

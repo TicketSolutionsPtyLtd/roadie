@@ -115,7 +115,8 @@ const numberText = (text: string) =>
     .replace(/^(?:less than|under)\b/, '<')
     .replace(/^between\s(.+)\sand\s/, '$1-')
     .replace(/\sand\s/, '-')
-    .replace(/\s+/g, '')
+    // "5 6" stays two numbers, never 56.
+    .replace(/(?<!\d)\s+|\s+(?!\d)/g, '')
 
 /** Lower case, reading a typographic apostrophe as a straight one. */
 const plain = (word: string) => word.toLowerCase().replace(/’/g, "'")

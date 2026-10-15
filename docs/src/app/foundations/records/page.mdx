@@ -302,6 +302,11 @@ A number or money field's name, then a comparison, reads as that filter.
 A range reads in either order, so `capacity 50-20` suggests "Capacity is 20 to
 50".
 
+- There's no at least or at most, so `>=`, `<=`, `=>`, and `=<` read nothing
+  and `capacity >= 100` stays search text.
+- Numbers a space separates stay apart, so `capacity > 5 6` suggests "Capacity
+  is more than 5" and keeps 6 as search text.
+
 `<field> is empty` reads as that field having no value, and `<field> is not
 empty` as it having one, so `city is not empty` suggests "City is not empty".
 
