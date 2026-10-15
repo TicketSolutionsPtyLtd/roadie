@@ -59,7 +59,8 @@ with no clock, such as "From 16 Oct 2026, unless already over" on an event
 with an end, which compares the instant ("unless already started" with only a
 start), and "From 16 Oct 2026" on a plain date.
 A date chip reads like any other, with "is" after the field's name: "is
-in the next 7 days", "is on Tue 20 Oct", "is before 20 Oct". `recordOperatorLabel` names an operator ("is more than") and
+in the next 7 days", "is on Tue 20 Oct", "is before 20 Oct", and a range of one day reads as that day, "is on Thu 22
+Oct". `recordOperatorLabel` names an operator ("is more than") and
 `recordOptionPaths` gives each option's label with its parents' ("Ochre Kite
 Weekender 2027 › Opening Night"). A chip listing more than two values names
 them all in `detail`. `parseQuery` labels its filters the same way, names a

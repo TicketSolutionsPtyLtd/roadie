@@ -126,6 +126,16 @@ describe('describeRecordFilter', () => {
     expect(describeFilter(filter)).toMatchObject({ label, value })
   })
 
+  it('reads a one-day range as on that day', () => {
+    expect(
+      describeFilter({
+        field: 'starts',
+        operator: 'between',
+        value: ['2026-10-22', '2026-10-22']
+      })
+    ).toEqual({ label: 'Starts is on Thu 22 Oct', value: 'Thu 22 Oct' })
+  })
+
   it('keeps the dates a relative range stands for', () => {
     expect(
       describeFilter({
