@@ -1,5 +1,10 @@
-// Browsers strip leading whitespace before reading the scheme, so `\tjavascript:` still runs.
-const UNSAFE_PATTERN = /^\s*(javascript|data|vbscript|blob|file):/i
+// Mirrors the WHATWG URL parser: browsers drop tab, LF and CR anywhere and
+// trim leading C0 controls and spaces, so `java\tscript:` and `\x00javascript:` still run.
+// Leading Unicode whitespace is trimmed too, to fail closed.
+const URL_STRIPPED_CHARS = /[\t\n\r]/g
+// eslint-disable-next-line no-control-regex -- matching C0 controls is the point
+const LEADING_C0_OR_WHITESPACE = /^[\u0000-\u0020\s]+/
+const UNSAFE_SCHEME = /^(javascript|data|vbscript|blob|file):/i
 
 /**
  * Whether an `href` uses a protocol that can run script or read local data
@@ -7,5 +12,8 @@ const UNSAFE_PATTERN = /^\s*(javascript|data|vbscript|blob|file):/i
  * instead of an href this returns true for.
  */
 export function isUnsafeHref(href: string): boolean {
-  return UNSAFE_PATTERN.test(href)
+  const parsed = href
+    .replace(URL_STRIPPED_CHARS, '')
+    .replace(LEADING_C0_OR_WHITESPACE, '')
+  return UNSAFE_SCHEME.test(parsed)
 }
