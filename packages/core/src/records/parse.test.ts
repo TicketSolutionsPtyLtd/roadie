@@ -1355,22 +1355,30 @@ describe('parseQuery', () => {
     '1 to 14 mar',
     'next 7 days',
     'fri',
-    'starts is empty'
-  ])('labels each date filter from "%s" as its chip reads', (text) => {
-    const dates = parse(text, { limit: 50 }).filter(
-      (s) => s.kind === 'filter' && s.value.field === 'starts'
-    )
-    expect(dates.length).toBeGreaterThan(0)
-    for (const suggestion of dates) {
-      expect(suggestion.label).toBe(
-        describeRecordFilter(
+    'starts is empty',
+    'upcoming',
+    'past',
+    'tomorrow'
+  ])(
+    'labels and describes each date filter from "%s" as its chip reads',
+    (text) => {
+      const dates = parse(text, { limit: 50 }).filter(
+        (s) => s.kind === 'filter' && s.value.field === 'starts'
+      )
+      expect(dates.length).toBeGreaterThan(0)
+      for (const suggestion of dates) {
+        const chip = describeRecordFilter(
           suggestion.value as Parameters<typeof describeRecordFilter>[0],
           eventFields,
           options
-        ).label
-      )
+        )
+        expect([suggestion.label, suggestion.description]).toEqual([
+          chip.label,
+          chip.detail
+        ])
+      }
     }
-  })
+  )
 
   it('fits the shape QueryField renders', () => {
     type QueryFieldSuggestionShape = {
