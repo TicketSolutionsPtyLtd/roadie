@@ -96,8 +96,8 @@ export const optionOperator = (operator: ValueOperator): OptionOperator =>
 const isNumeric = (field: RecordField) =>
   field.type === 'number' || field.type === 'money'
 
-/** Text or a number, typed as the one value its filter holds. */
-export const isTyped = (field: RecordField) =>
+/** Text and numbers are typed, and their one row reads as the chip will. */
+const isTyped = (field: RecordField) =>
   field.type === 'text' || isNumeric(field)
 
 const SYMBOLS: Partial<Record<ValueOperator, string>> = {

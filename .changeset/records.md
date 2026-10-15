@@ -98,8 +98,10 @@ only values the chip holds, the list says so, such as "Perth is already in
 this filter." Its is, is not, and has all of rewrite its condition and keep
 its values, and a chip rewritten to is joins the field's is chip. A text or
 number chip puts its value in the field and its condition in the toggle, and
-Enter replaces it once either changes and ends the edit. Any other value taken, or the row under
-is empty or is not empty, replaces what the chip holds. Everything but an
+Enter replaces it once either changes. Any other value taken, or the row under
+is empty or is not empty, replaces what the chip holds. Every chip but an
+option chip holds one value, so taking one ends the edit and closes the list.
+Everything but an
 option chip's operator waits for Enter, so Tab passing through is empty keeps
 the values. Backspace in the empty field removes the chip, and Escape or
 leaving the field keeps it. Custom dates opens a date range picker with

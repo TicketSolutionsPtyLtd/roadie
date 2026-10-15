@@ -1546,7 +1546,7 @@ describe('Records.Search', () => {
       await waitFor(() => expect(ticked()).toEqual(['Perth', 'Sydney']))
     })
 
-    it('ticks a date chip’s preset, and taking another replaces it', async () => {
+    it('ticks a date chip’s preset, and taking another replaces it and ends the edit', async () => {
       const { user, lastView } = setup({
         defaultView: {
           query: {
@@ -1563,7 +1563,9 @@ describe('Records.Search', () => {
       expect(lastView().query.filters).toEqual([
         { field: 'starts', operator: 'within', value: 'tomorrow' }
       ])
-      await waitFor(() => expect(ticked()).toEqual(['Tomorrow']))
+      // A date chip holds one value, so taking it ends the edit.
+      await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+      expect(chip('Starts')).not.toHaveAttribute('data-selected')
     })
 
     it('opens the date editor for the chip from Custom dates', async () => {
@@ -1590,7 +1592,7 @@ describe('Records.Search', () => {
       await waitFor(() => expect(input()).toHaveFocus())
     })
 
-    it('ticks a boolean chip’s answer, and taking the other replaces it', async () => {
+    it('ticks a boolean chip’s answer, and taking the other replaces it and ends the edit', async () => {
       type Featured = TestShow & { featured: boolean }
       const featuredField = recordFields<Featured>().boolean('featured', {
         label: 'Featured'
@@ -1630,7 +1632,8 @@ describe('Records.Search', () => {
       expect(onViewChange.mock.lastCall![0].query.filters).toEqual([
         { field: 'featured', operator: 'is-false' }
       ])
-      await waitFor(() => expect(ticked()).toEqual(['No']))
+      await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+      expect(chip('Featured')).not.toHaveAttribute('data-selected')
     })
   })
 })

@@ -26,7 +26,6 @@ import {
   filterChipIds,
   heldHint,
   isEmptiness,
-  isTyped,
   mergeFilter,
   optionOperator,
   pendingLabel,
@@ -384,15 +383,14 @@ export function RecordsSearch({
 
   function acceptForSelected(value: SearchValue, edited: RecordFilter) {
     if (value.type === 'filter') {
-      // An option's values tick on and off; anything else holds one value.
-      const field = byKey.get(edited.field)
-      writeSelected(
-        field?.type === 'option'
-          ? toggleValue(edited, value.filter)
-          : value.filter
-      )
-      // Typed text has no other row to tick, so the edit is done.
-      if (field && isTyped(field)) endStep()
+      // An option's values tick on and off; anything else holds one value,
+      // so taking it ends the edit.
+      if (byKey.get(edited.field)?.type === 'option') {
+        writeSelected(toggleValue(edited, value.filter))
+        return
+      }
+      writeSelected(value.filter)
+      endStep()
       return
     }
     if (value.type === 'edit' && selectedAt !== null) {
