@@ -452,7 +452,12 @@ export function parseDatePhrase(
     // One level only, so a run of comparison words stays linear.
     if (COMPARED.test(m[2]!)) return []
     const { after, edge, shift } = COMPARISONS[m[1] as Comparison]
-    return parseDatePhrase(m[2]!, options).flatMap((day) => {
+    // "since mon" looks back to the last Monday, today included.
+    const weekday = after && nameIndex(WEEKDAYS, m[2]!)
+    const days = weekday
+      ? [on(addDays(today, -((dayOfWeek(today) - weekday + 7) % 7)))]
+      : parseDatePhrase(m[2]!, options)
+    return days.flatMap((day) => {
       const days = dayBounds(day.value, options)
       if (!days) return []
       const date = dayAway(days[edge], shift)

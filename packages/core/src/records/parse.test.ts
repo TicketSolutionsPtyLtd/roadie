@@ -1063,7 +1063,8 @@ describe('parseQuery', () => {
       ['starts after today', 'Starts: After 3 Oct', 'Starts: Today'],
       ['starts from tomorrow', 'Starts: After 3 Oct', 'Starts: Tomorrow'],
       ['starts after tomorrow', 'Starts: After 4 Oct', 'Starts: Tomorrow'],
-      ['starts since monday', 'Starts: After 4 Oct', 'Starts: 5 Oct'],
+      ['starts since monday', 'Starts: After 27 Sept', 'Starts: 5 Oct'],
+      ['since monday', 'Starts: After 27 Sept', 'Starts: After 4 Oct'],
       ['starts until friday', 'Starts: Before 10 Oct', 'Starts: 9 Oct'],
       ['after today', 'Starts: After 3 Oct', 'Starts: Today']
     ])(

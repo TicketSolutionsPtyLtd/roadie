@@ -283,7 +283,12 @@ describe('parseDatePhrase: comparisons', () => {
   it.each<[string, DatePhraseSuggestion[]]>([
     ['after today', one('After Fri 2 Oct 2026', { after: '2026-10-02' })],
     ['before tomorrow', one('Before Sat 3 Oct 2026', { before: '2026-10-03' })],
-    ['after mon', one('After Mon 5 Oct 2026', { after: '2026-10-05' })],
+    // A weekday after a comparison that looks back is the last one, today included.
+    ['after mon', one('After Mon 28 Sept 2026', { after: '2026-09-28' })],
+    ['from wed', one('After Tue 29 Sept 2026', { after: '2026-09-29' })],
+    ['since fri', one('After Thu 1 Oct 2026', { after: '2026-10-01' })],
+    ['since next mon', one('After Sun 4 Oct 2026', { after: '2026-10-04' })],
+    ['until mon', one('Before Tue 6 Oct 2026', { before: '2026-10-06' })],
     ['after in 2 weeks', one('After Fri 16 Oct 2026', { after: '2026-10-16' })],
     // A range: after its last day, before its first.
     [
@@ -295,7 +300,7 @@ describe('parseDatePhrase: comparisons', () => {
       one('Before Mon 5 Oct 2026', { before: '2026-10-05' })
     ],
     // Since, from and until take the day itself too.
-    ['since mon', one('After Sun 4 Oct 2026', { after: '2026-10-04' })],
+    ['since mon', one('After Sun 27 Sept 2026', { after: '2026-09-27' })],
     ['from tomorrow', one('After Fri 2 Oct 2026', { after: '2026-10-02' })],
     [
       'since this weekend',
