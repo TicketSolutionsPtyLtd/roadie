@@ -433,13 +433,13 @@ It opens in a popover under the chip, or a bottom drawer on a phone, and loads w
 #### Custom dates on a phone (temporary)
 
 <Callout intent='warning' title='This comparison is temporary'>
-  We'll keep one of these two ways to pick custom dates on a phone. The other goes, with this example, before the change is released (INNO-1278).
+  We'll keep one of these two ways to pick custom dates on a phone. We'll delete the other and this example before the next release.
 </Callout>
 
 Open this page on a phone, then pick **Starts** and **Custom dates**.
 
 - **Drawer** opens the date range picker in a bottom drawer, as Custom dates does now.
-- **In the list** shows a calendar in place of the list, under **Back** and a toggle of **Within**, **On**, **Before**, and **After**. Back or Escape returns to the quick dates. The list shrinks to fit above the on-screen keyboard. Picking a range, or one date, adds the chip.
+- **In the dropdown** shows a calendar in the dropdown in place of the quick dates, under **Back** and a toggle of **Within**, **On**, **Before**, and **After**. Back or Escape returns to the quick dates. The dropdown fits above the on-screen keyboard. Picking a range or one date adds the chip, or changes the chip you're editing.
 
 On a screen 48rem or wider, both open the popover under the chip.
 
@@ -472,7 +472,7 @@ function Comparison() {
         onValueChange={([next]) => next && setSurface(next)}
       >
         <ToggleGroup.Item value='drawer'>Drawer</ToggleGroup.Item>
-        <ToggleGroup.Item value='inline'>In the list</ToggleGroup.Item>
+        <ToggleGroup.Item value='inline'>In the dropdown</ToggleGroup.Item>
       </ToggleGroup>
       <div data-custom-dates={surface}>
         <RecordTable
