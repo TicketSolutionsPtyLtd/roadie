@@ -130,9 +130,8 @@ describe('topSuggestions', () => {
 })
 
 describe('valueSuggestions', () => {
-  it('lists Empty and Not empty above an option field’s values, then narrows them', () => {
+  it('lists an option field’s values, then narrows them', () => {
     expect(labels(valueSuggestions(byKey('city'), '', context()))).toEqual([
-      ['Empty', 'Not empty'],
       ['Melbourne', 'Sydney', 'Perth']
     ])
     expect(labels(valueSuggestions(byKey('city'), 'syd', context()))).toEqual([
@@ -140,21 +139,44 @@ describe('valueSuggestions', () => {
     ])
   })
 
-  it('names Empty and Not empty’s group for screen readers only', () => {
-    const [emptiness] = valueSuggestions(byKey('city'), '', context())
-    expect(emptiness).toMatchObject({
-      id: 'empty',
-      label: 'Empty',
-      hideLabel: true
-    })
+  it('lists only the chip’s row under emptiness, whatever is typed, for Enter', () => {
+    expect(
+      valuesOf(valueSuggestions(byKey('city'), 'syd', context(), 'is-not-set'))
+        .items
+    ).toMatchObject([
+      {
+        label: 'City is empty',
+        exact: true,
+        value: {
+          type: 'filter',
+          filter: { field: 'city', operator: 'is-not-set' }
+        }
+      }
+    ])
+    expect(
+      labels(valueSuggestions(byKey('sold'), '', context(), 'is-set'))
+    ).toEqual([['Sold is not empty']])
+    expect(
+      labels(valueSuggestions(byKey('starts'), '', context(), 'is-set'))
+    ).toEqual([['Starts is not empty']])
+  })
+
+  it('drops the emptiness row once its chip is applied', () => {
+    expect(
+      labels(
+        valueSuggestions(
+          byKey('city'),
+          '',
+          context([{ field: 'city', operator: 'is-not-set' }]),
+          'is-not-set'
+        )
+      )
+    ).toEqual([[]])
   })
 
   it('takes typed text for an option field with no values to list', () => {
     const promoter = field.option('city', { label: 'Promoter' })
-    expect(labels(valueSuggestions(promoter, '', context()))).toEqual([
-      ['Empty', 'Not empty'],
-      []
-    ])
+    expect(labels(valueSuggestions(promoter, '', context()))).toEqual([[]])
     expect(
       valuesOf(valueSuggestions(promoter, 'Thimble', context())).items
     ).toMatchObject([
@@ -171,10 +193,7 @@ describe('valueSuggestions', () => {
   it('offers Yes and No for a boolean', () => {
     expect(
       labels(valueSuggestions(byKey('accessible'), '', context()))
-    ).toEqual([
-      ['Empty', 'Not empty'],
-      ['Yes', 'No']
-    ])
+    ).toEqual([['Yes', 'No']])
   })
 
   it('offers upcoming dates for events and recent ones for timestamps, then custom dates', () => {
@@ -193,14 +212,14 @@ describe('valueSuggestions', () => {
     expect(placed!.items[1]!.label).toBe('Yesterday')
   })
 
-  it('drops Custom dates for typed text only Empty or Not empty match', () => {
-    const custom = (text: string) =>
-      valuesOf(valueSuggestions(byKey('starts'), text, context()))
+  it('lists Custom dates after typed dates, but not under emptiness', () => {
+    const custom = (text: string, operator?: ValueOperator) =>
+      valuesOf(valueSuggestions(byKey('starts'), text, context(), operator))
         .items.map((item) => item.label)
         .includes('Custom dates')
-    expect(custom('emp')).toBe(false)
     expect(custom('zzz')).toBe(true)
     expect(custom('after 1 dec')).toBe(true)
+    expect(custom('', 'is-not-set')).toBe(false)
   })
 
   it('compares an option field’s values by the chosen operator, listed or typed', () => {
@@ -225,29 +244,6 @@ describe('valueSuggestions', () => {
     ])
   })
 
-  it('narrows Empty and Not empty by the start of a word, and drops one applied', () => {
-    expect(labels(valueSuggestions(byKey('city'), 'not', context()))).toEqual([
-      ['Not empty'],
-      []
-    ])
-    expect(labels(valueSuggestions(byKey('city'), 'emp', context()))).toEqual([
-      ['Empty', 'Not empty'],
-      []
-    ])
-    expect(labels(valueSuggestions(byKey('city'), 'mpty', context()))).toEqual([
-      []
-    ])
-    expect(
-      labels(
-        valueSuggestions(
-          byKey('city'),
-          '',
-          context([{ field: 'city', operator: 'is-not-set' }])
-        )
-      )
-    ).toEqual([['Not empty'], ['Melbourne', 'Sydney', 'Perth']])
-  })
-
   it('compares a typed value by the operator for an option field with no values to list', () => {
     const promoter = field.option('city', { label: 'Promoter' })
     const group = valuesOf(
@@ -257,13 +253,6 @@ describe('valueSuggestions', () => {
       type: 'filter',
       filter: { field: 'city', operator: 'is-not', values: ['Thimble'] }
     })
-  })
-
-  it('offers no Empty or Not empty to a field that can’t filter by them', () => {
-    const dates = field.date('starts', { label: 'Dates', multiple: true })
-    expect(labels(valueSuggestions(dates, '', context())).flat()).not.toContain(
-      'Empty'
-    )
   })
 
   it('reads typed dates for the field', () => {
@@ -286,15 +275,9 @@ describe('valueSuggestions for text and numbers', () => {
       (item) => item.value.type === 'filter' && item.value.filter
     )
 
-  it('offers only Empty and Not empty until something is typed', () => {
-    expect(labels(valueSuggestions(byKey('name'), '', context()))).toEqual([
-      ['Empty', 'Not empty'],
-      []
-    ])
-    expect(labels(valueSuggestions(byKey('sold'), '', context()))).toEqual([
-      ['Empty', 'Not empty'],
-      []
-    ])
+  it('offers nothing until something is typed', () => {
+    expect(labels(valueSuggestions(byKey('name'), '', context()))).toEqual([[]])
+    expect(labels(valueSuggestions(byKey('sold'), '', context()))).toEqual([[]])
   })
 
   it('reads typed text as one row under the operator, worded as its chip', () => {
@@ -471,6 +454,19 @@ describe('valueSuggestions while editing a filter', () => {
     expect(values('dar')).toEqual([['darwin', true]])
   })
 
+  it('lists only the emptiness row under emptiness, not a held value', () => {
+    const edited: RecordFilter = {
+      field: 'city',
+      operator: 'is',
+      values: ['darwin']
+    }
+    expect(
+      labels(
+        valueSuggestions(byKey('city'), '', context(), 'is-not-set', edited)
+      )
+    ).toEqual([['City is empty']])
+  })
+
   it('lists a held value once, where the typed value names it', () => {
     const venue = field.option('city', { label: 'Venue' })
     const edited: RecordFilter = {
@@ -490,15 +486,15 @@ describe('valueSuggestions while editing a filter', () => {
     ).toEqual([['the corner', true]])
   })
 
-  it('ticks Empty, a boolean answer, or a date preset the filter is', () => {
+  it('ticks the emptiness row, a boolean answer, or a date preset the filter is', () => {
     expect(
       tickedIn(
-        valueSuggestions(byKey('city'), '', context(), 'is', {
+        valueSuggestions(byKey('city'), '', context(), 'is-not-set', {
           field: 'city',
           operator: 'is-not-set'
         })
       )
-    ).toEqual(['Empty'])
+    ).toEqual(['City is empty'])
     expect(
       tickedIn(
         valueSuggestions(byKey('accessible'), '', context(), 'is', {
@@ -664,18 +660,30 @@ describe('valueOperators', () => {
   it('toggles an option field between is and is not, plus has all when it holds several', () => {
     expect(valueOperators(byKey('city'))).toEqual([
       { value: 'is', label: 'is' },
-      { value: 'is-not', label: 'is not' }
+      { value: 'is-not', label: 'is not' },
+      { value: 'is-not-set', label: 'is empty' },
+      { value: 'is-set', label: 'is not empty' }
     ])
     expect(
       valueOperators({ ...byKey('city'), multiple: true }).map(
         (operator) => operator.value
       )
-    ).toEqual(['is', 'is-not', 'has-all'])
+    ).toEqual(['is', 'is-not', 'has-all', 'is-not-set', 'is-set'])
   })
 
-  it('gives boolean and date fields no toggle', () => {
-    expect(valueOperators(byKey('accessible'))).toEqual([])
-    expect(valueOperators(byKey('starts'))).toEqual([])
+  it('gives boolean and date fields is, then emptiness', () => {
+    const toggle = [
+      { value: 'is', label: 'is' },
+      { value: 'is-not-set', label: 'is empty' },
+      { value: 'is-set', label: 'is not empty' }
+    ]
+    expect(valueOperators(byKey('accessible'))).toEqual(toggle)
+    expect(valueOperators(byKey('starts'))).toEqual(toggle)
+  })
+
+  it('offers no emptiness to a field that can’t filter by it', () => {
+    const dates = field.date('starts', { label: 'Dates', multiple: true })
+    expect(valueOperators(dates)).toEqual([{ value: 'is', label: 'is' }])
   })
 
   it('toggles a text field between contains, doesn’t contain, is and is not', () => {
@@ -683,17 +691,21 @@ describe('valueOperators', () => {
       { value: 'contains', label: 'contains' },
       { value: 'not-contains', label: 'doesn’t contain' },
       { value: 'is', label: 'is' },
-      { value: 'is-not', label: 'is not' }
+      { value: 'is-not', label: 'is not' },
+      { value: 'is-not-set', label: 'is empty' },
+      { value: 'is-set', label: 'is not empty' }
     ])
   })
 
-  it('shows a number’s operators as symbols, named in words', () => {
+  it('shows a number’s operators as symbols, named in words, and emptiness in words', () => {
     expect(valueOperators(byKey('gross'))).toEqual([
       { value: 'eq', label: '=', 'aria-label': 'is' },
       { value: 'neq', label: '≠', 'aria-label': 'is not' },
       { value: 'lt', label: '<', 'aria-label': 'is less than' },
       { value: 'gt', label: '>', 'aria-label': 'is more than' },
-      { value: 'between', label: 'between', 'aria-label': 'is between' }
+      { value: 'between', label: 'between', 'aria-label': 'is between' },
+      { value: 'is-not-set', label: 'is empty' },
+      { value: 'is-set', label: 'is not empty' }
     ])
   })
 })
@@ -701,7 +713,15 @@ describe('valueOperators', () => {
 describe('stepOperator', () => {
   it('keeps an operator the field’s step offers, or starts on its first', () => {
     expect(stepOperator(byKey('name'), 'is-not')).toBe('is-not')
-    expect(stepOperator(byKey('name'), 'is-not-set')).toBe('contains')
+    expect(stepOperator(byKey('name'), 'is-not-set')).toBe('is-not-set')
+    expect(stepOperator(byKey('name'), 'has-all')).toBe('contains')
+    expect(stepOperator(byKey('accessible'), 'is-set')).toBe('is-set')
+    expect(
+      stepOperator(
+        field.date('starts', { label: 'Dates', multiple: true }),
+        'is-set'
+      )
+    ).toBe('is')
     expect(stepOperator(byKey('sold'), 'gt')).toBe('gt')
     expect(stepOperator(byKey('sold'), 'contains')).toBe('eq')
     expect(stepOperator(byKey('city'), 'has-all')).toBe('is')
@@ -717,6 +737,8 @@ describe('pendingLabel', () => {
     expect(pendingLabel(byKey('sold'), 'lt')).toBe('Sold is less than')
     expect(pendingLabel(byKey('starts'), 'is')).toBe('Starts')
     expect(pendingLabel(byKey('accessible'), 'is')).toBe('Accessible is')
+    expect(pendingLabel(byKey('starts'), 'is-not-set')).toBe('Starts is empty')
+    expect(pendingLabel(byKey('sold'), 'is-set')).toBe('Sold is not empty')
   })
 })
 
@@ -775,6 +797,8 @@ describe('valueHint', () => {
       'Between $1,000 and what? Type the second amount.'
     ],
     ['city', '', 'is', undefined],
+    ['name', '', 'is-not-set', undefined],
+    ['sold', 'lots', 'is-set', undefined],
     ['accessible', '', 'is', undefined]
   ])('hints at %s “%s” under %s', (key, text, operator, hint) => {
     expect(valueHint(byKey(key), text, operator, context())).toBe(hint)

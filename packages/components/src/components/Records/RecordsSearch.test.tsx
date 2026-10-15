@@ -732,7 +732,12 @@ describe('Records.Search', () => {
       const { user, lastView } = setup()
       await user.click(input())
       await user.click(await option('City'))
-      expect(operatorNames()).toEqual(['is', 'is not'])
+      expect(operatorNames()).toEqual([
+        'is',
+        'is not',
+        'is empty',
+        'is not empty'
+      ])
       await user.click(screen.getByRole('button', { name: 'is not' }))
       expect(pendingChip()).toHaveTextContent('City is not')
       await user.click(await option('Sydney'))
@@ -755,19 +760,6 @@ describe('Records.Search', () => {
       ])
     })
 
-    it('takes Empty with Enter on a date field, past Custom dates', async () => {
-      const { user, lastView } = setup()
-      await user.click(input())
-      await user.click(await option('Starts'))
-      await user.keyboard('emp')
-      await option('Empty')
-      await user.keyboard('{Enter}')
-      expect(chipLabels()).toEqual(['Starts is empty'])
-      expect(lastView().query.filters).toEqual([
-        { field: 'starts', operator: 'is-not-set' }
-      ])
-    })
-
     it('moves to the next operator with Tab, and starts each field on is', async () => {
       const { user, lastView } = setup()
       await user.click(input())
@@ -785,49 +777,117 @@ describe('Records.Search', () => {
       expect(pendingChip()).not.toHaveTextContent('is not')
     })
 
-    it('lists Empty and Not empty above the values, which add their own chips', async () => {
-      const { user, lastView } = setup()
-      await user.click(input())
-      await user.click(await option('City'))
-      await option('Sydney')
-      const names = screen
-        .getAllByRole('option')
+    const listed = () =>
+      screen
+        .queryAllByRole('option')
         .map(
           (each) =>
             each.querySelector('[data-slot=query-field-option-label]')
               ?.textContent
         )
-      expect(names.slice(0, 2)).toEqual(['Empty', 'Not empty'])
-      expect(names).toContain('Sydney')
-      expect(screen.getByRole('group', { name: 'Empty' })).toBeInTheDocument()
-      await user.click(await option('Empty'))
+    const enterTarget = () =>
+      screen
+        .queryAllByRole('option')
+        .filter((each) => within(each).queryByText('Enter'))
+        .map(
+          (each) =>
+            each.querySelector('[data-slot=query-field-option-label]')
+              ?.textContent
+        )
+
+    it.each(['City', 'Show', 'Sold', 'Gross', 'Starts'])(
+      'tabs %s to is empty, which lists only its chip’s row, for Enter to add',
+      async (name) => {
+        const { user, lastView } = setup()
+        await user.click(input())
+        await user.click(await option(name))
+        const names = operatorNames()
+        expect(names.slice(-2)).toEqual(['is empty', 'is not empty'])
+        await user.keyboard('{Tab}'.repeat(names.indexOf('is empty')))
+        expect(
+          screen.getByRole('button', { name: 'is empty', pressed: true })
+        ).toBeInTheDocument()
+        expect(pendingChip()).toHaveTextContent(`${name} is empty`)
+        await waitFor(() => expect(listed()).toEqual([`${name} is empty`]))
+        expect(enterTarget()).toEqual([`${name} is empty`])
+        await user.keyboard('{Enter}')
+        expect(chipLabels()).toEqual([`${name} is empty`])
+        expect(lastView().query.filters).toEqual([
+          {
+            field: fields.find((each) => each.label === name)!.key,
+            operator: 'is-not-set'
+          }
+        ])
+      }
+    )
+
+    it('adds is not empty with a tap on the operator, then its row', async () => {
+      const { user, lastView } = setup()
       await user.click(input())
-      await user.click(await option('Starts'))
-      await user.click(await option('Not empty'))
-      expect(chipLabels()).toEqual(['City is empty', 'Starts is not empty'])
+      await user.click(await option('City'))
+      await user.click(screen.getByRole('button', { name: 'is not empty' }))
+      await user.click(await option('City is not empty'))
+      expect(chipLabels()).toEqual(['City is not empty'])
       expect(lastView().query.filters).toEqual([
-        { field: 'city', operator: 'is-not-set' },
-        { field: 'starts', operator: 'is-set' }
+        { field: 'city', operator: 'is-set' }
       ])
     })
 
-    it('offers has all only for a field holding several values, and none for a date', async () => {
+    it('keeps typed text under is empty, for the values after Shift+Tab', async () => {
+      const { user } = setup()
+      await user.click(input())
+      await user.click(await option('City'))
+      await user.keyboard('syd')
+      await option('Sydney')
+      await user.tab()
+      await user.tab()
+      await waitFor(() => expect(listed()).toEqual(['City is empty']))
+      expect(input()).toHaveValue('syd')
+      await user.tab({ shift: true })
+      await user.tab({ shift: true })
+      await waitFor(() => expect(listed()).toEqual(['Sydney']))
+    })
+
+    it('leaves the field with Tab past is not empty', async () => {
+      const { user } = setup()
+      await user.click(input())
+      await user.click(await option('City'))
+      for (let tab = 0; tab < 3; tab++) await user.tab()
+      expect(
+        screen.getByRole('button', { name: 'is not empty', pressed: true })
+      ).toBeInTheDocument()
+      expect(input()).toHaveFocus()
+      await user.tab()
+      expect(input()).not.toHaveFocus()
+    })
+
+    it('offers has all only for a field holding several values, and a date only is and emptiness', async () => {
       const several = fields.map((each) =>
         each.key === 'city' ? { ...each, multiple: true } : each
       )
       const { user } = setup({ fields: several })
       await user.click(input())
       await user.click(await option('City'))
-      expect(operatorNames()).toEqual(['is', 'is not', 'has all of'])
+      expect(operatorNames()).toEqual([
+        'is',
+        'is not',
+        'has all of',
+        'is empty',
+        'is not empty'
+      ])
       await user.keyboard('{Escape}')
       await user.click(input())
       await user.click(await option('Starts'))
       await option(/This weekend/)
-      expect(screen.queryByRole('group', { name: 'Operator' })).toBeNull()
+      expect(operatorNames()).toEqual(['is', 'is empty', 'is not empty'])
     })
   })
 
   describe('text and number steps', () => {
+    const hint = () =>
+      document
+        .querySelector('[data-slot=query-field-hint]')
+        ?.textContent?.replace('\u2060', '')
     const operatorNames = () =>
       within(screen.getByRole('group', { name: 'Operator' }))
         .getAllByRole('button')
@@ -849,11 +909,12 @@ describe('Records.Search', () => {
         ['contains', null],
         ['doesn’t contain', null],
         ['is', null],
-        ['is not', null]
+        ['is not', null],
+        ['is empty', null],
+        ['is not empty', null]
       ])
-      await waitFor(() =>
-        expect(optionLabels()).toEqual(['Empty', 'Not empty'])
-      )
+      await waitFor(() => expect(hint()).toBe('Type the text to match.'))
+      expect(optionLabels()).toEqual([])
       await user.click(screen.getByRole('button', { name: 'doesn’t contain' }))
       await user.keyboard('ocean')
       await option('Show doesn’t contain “ocean”')
@@ -895,7 +956,9 @@ describe('Records.Search', () => {
         ['≠', 'is not'],
         ['<', 'is less than'],
         ['>', 'is more than'],
-        ['between', 'is between']
+        ['between', 'is between'],
+        ['is empty', null],
+        ['is not empty', null]
       ])
       await user.keyboard('lots')
       await waitFor(() => expect(optionLabels()).toEqual([]))
@@ -912,10 +975,6 @@ describe('Records.Search', () => {
       ])
     })
 
-    const hint = () =>
-      document
-        .querySelector('[data-slot=query-field-hint]')
-        ?.textContent?.replace('\u2060', '')
     const between = async (user: ReturnType<typeof userEvent.setup>) => {
       await user.click(input())
       await user.click(await option('Sold'))
@@ -1100,20 +1159,6 @@ describe('Records.Search', () => {
       expect(chipLabels()).toEqual(['City is Perth', 'Sold is more than 100'])
     })
 
-    it('keeps an unchanged text chip on Enter, though its text starts Not empty', async () => {
-      const { user, lastView } = setup({
-        defaultView: {
-          query: {
-            filters: [{ field: 'show', operator: 'contains', value: 'no' }]
-          }
-        }
-      })
-      await selectChip(user, 'Show contains “no”')
-      await waitFor(() => expect(ticked()).toEqual(['Show contains “no”']))
-      await user.keyboard('{Enter}')
-      expect(lastView()).toBeUndefined()
-    })
-
     it('writes nothing for a click on a text chip’s ticked row', async () => {
       const { user, lastView } = setup({
         defaultView: {
@@ -1150,19 +1195,52 @@ describe('Records.Search', () => {
   })
 
   describe('editing a chip in the list', () => {
-    it('ticks Empty for an empty chip, and taking a value replaces it', async () => {
+    it('opens an empty chip on is empty, its row ticked, and is lists the values again', async () => {
       const { user, lastView } = setup({
         defaultView: {
           query: { filters: [{ field: 'city', operator: 'is-not-set' }] }
         }
       })
       await selectChip(user, 'City is empty')
-      await waitFor(() => expect(ticked()).toEqual(['Empty']))
+      expect(
+        screen.getByRole('button', { name: 'is empty', pressed: true })
+      ).toBeInTheDocument()
+      await waitFor(() => expect(ticked()).toEqual(['City is empty']))
+      expect(screen.getAllByRole('option')).toHaveLength(1)
+      await user.click(screen.getByRole('button', { name: 'is' }))
+      await option('Sydney')
+      expect(lastView()).toBeUndefined()
       await user.click(await option('Sydney'))
       expect(lastView().query.filters).toEqual([
         { field: 'city', operator: 'is', values: ['Sydney'] }
       ])
       await waitFor(() => expect(ticked()).toEqual(['Sydney']))
+    })
+
+    it('waits for Enter to rewrite an option chip to is empty', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [{ field: 'city', operator: 'is', values: ['Perth'] }]
+          }
+        }
+      })
+      await selectChip(user, 'City is Perth')
+      await user.tab()
+      await user.tab()
+      expect(
+        screen.getByRole('button', { name: 'is empty', pressed: true })
+      ).toBeInTheDocument()
+      await option('City is empty')
+      // is not, passed on the way, rewrote it as option chips do.
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is-not', values: ['Perth'] }
+      ])
+      await user.keyboard('{Enter}')
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is-not-set' }
+      ])
+      expect(chip('City is empty')).toHaveAttribute('data-selected')
     })
 
     it('ends editing a chip as focus leaves, so typing searches', async () => {
@@ -1202,26 +1280,6 @@ describe('Records.Search', () => {
       expect(chip('City is Perth')).toHaveAttribute('data-selected')
     })
 
-    it('keeps a held value on Enter after typing it, though Empty matches too', async () => {
-      const { user, onViewChange } = setup({
-        data: shows.map((show, index) =>
-          index === 0 ? { ...show, city: 'Emerald' } : show
-        ),
-        defaultView: {
-          query: {
-            filters: [{ field: 'city', operator: 'is', values: ['Emerald'] }]
-          }
-        }
-      })
-      await selectChip(user, 'City is Emerald')
-      await user.keyboard('em')
-      await option('Emerald')
-      await option('Empty')
-      await user.keyboard('{Enter}')
-      expect(onViewChange).not.toHaveBeenCalled()
-      expect(chip('City is Emerald')).toHaveAttribute('data-selected')
-    })
-
     it('merges a chip rewritten to is into the field’s is chip, as is chips AND', async () => {
       const { user, lastView } = setup({
         defaultView: {
@@ -1254,6 +1312,7 @@ describe('Records.Search', () => {
         }
       })
       await selectChip(user, 'City is empty')
+      await user.click(screen.getByRole('button', { name: 'is' }))
       await user.click(await option('Sydney'))
       expect(lastView().query.filters).toEqual([
         { field: 'city', operator: 'is', values: ['Perth', 'Sydney'] }
@@ -1336,6 +1395,11 @@ describe('Records.Search', () => {
       await selectChip(user, label)
       expect(screen.queryByRole('dialog')).toBeNull()
       await waitFor(() => expect(ticked()).toEqual(['Yes']))
+      expect(
+        within(screen.getByRole('group', { name: 'Operator' }))
+          .getAllByRole('button')
+          .map((item) => item.textContent)
+      ).toEqual(['is', 'is empty', 'is not empty'])
       await user.click(await option('No'))
       expect(onViewChange.mock.lastCall![0].query.filters).toEqual([
         { field: 'featured', operator: 'is-false' }

@@ -71,11 +71,13 @@ from the fields: option values (or, in the browser, the values an option
 field without `options` holds), statuses, booleans by name, identifiers and
 date phrases such as "this weekend", each becoming a chip; the words a
 suggestion doesn't read stay in the field. Picking a field lists its values,
-or for a date its quick dates and Custom dates, below Empty and Not empty
-and a line; an option field's values sit under an is and is not toggle (and has
+or for a date its quick dates and Custom dates; an option field's values sit under an is and is not toggle (and has
 all of, for a `multiple` field) that Tab steps through; typing narrows them, and Enter takes the first. A text field's toggle is contains, doesn't
 contain, is and is not, and a number or money field's =, ≠, <, > and
-between, named in words for screen readers; the typed value shows as one row
+between, named in words for screen readers. A boolean or date field lists its
+values under is, and every toggle ends with is empty and is not empty, which list one
+row worded as the chip, such as City is empty, for Enter to take whatever is
+typed. The typed value shows as one row
 worded as its chip, for Enter to take. Between reads 20 and 50, 20-50, 20 to 50, or
 20..50, either way round, and a space after the first number adds the and.
 Money takes `$` and thousands commas. Until the value reads, the list says
@@ -86,7 +88,9 @@ what it holds is ticked. Taking an option's value ticks or unticks it (the
 last one unticked removes the chip, and Enter on typed text only ticks), is
 and is not rewrite its condition (one changed to is joins the field's is
 chip), and a boolean's
-answer, a quick date, Empty or Not empty replaces what it holds. A text or
+answer, a quick date, or the row under is empty or is not empty replaces
+what it holds; a chip opens with its operator pressed, and switching to is
+empty waits for Enter, so Tab passing through drops no values. A text or
 number chip puts its value in the field, such as 20 and 50, and its condition in the toggle, and
 Enter replaces it once either changes. Backspace in the empty field removes it, and Escape or
 leaving the field keeps it. Custom dates opens a date range picker with relative presets, or a date

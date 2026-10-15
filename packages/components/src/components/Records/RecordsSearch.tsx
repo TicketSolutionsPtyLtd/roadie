@@ -20,6 +20,7 @@ import {
   type SearchValue,
   type ValueOperator,
   filterChipIds,
+  isEmptiness,
   mergeFilter,
   optionOperator,
   pendingLabel,
@@ -485,10 +486,12 @@ export function RecordsSearch({
           if (!pendingField) return
           const operator = stepOperator(pendingField, chosen)
           setPendingOperator(operator)
-          // An option chip keeps its values under the new condition; typed
-          // text and numbers wait for Enter.
+          // An option chip keeps its values under the new condition. Typed
+          // text, numbers, and emptiness wait for Enter, so a Tab passing
+          // through is empty never drops the values.
           if (
             pendingField.type === 'option' &&
+            !isEmptiness(operator) &&
             selectedFilter &&
             'values' in selectedFilter
           )

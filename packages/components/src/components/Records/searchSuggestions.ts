@@ -78,6 +78,14 @@ export type ValueOperator =
   | 'lt'
   | 'gt'
   | 'between'
+  | EmptinessOperator
+
+type EmptinessOperator = 'is-not-set' | 'is-set'
+
+const EMPTINESS: readonly EmptinessOperator[] = ['is-not-set', 'is-set']
+
+export const isEmptiness = (operator: string): operator is EmptinessOperator =>
+  EMPTINESS.some((each) => each === operator)
 
 type OptionOperator = Extract<ValueOperator, 'is' | 'is-not' | 'has-all'>
 
@@ -100,20 +108,27 @@ const SYMBOLS: Partial<Record<ValueOperator, string>> = {
   between: 'between'
 }
 
+/** Booleans and dates list their values under a single is. Emptiness comes last. */
 function stepOperators(field: RecordField): ValueOperator[] {
-  if (field.type === 'date' || field.type === 'boolean') return []
-  return recordFilterOperators(field).filter(
-    (operator): operator is ValueOperator =>
-      operator !== 'is-set' && operator !== 'is-not-set'
-  )
+  const allowed = recordFilterOperators(field)
+  const compared: ValueOperator[] =
+    field.type === 'date' || field.type === 'boolean'
+      ? ['is']
+      : allowed.filter(
+          (operator): operator is ValueOperator => !isEmptiness(operator)
+        )
+  return [
+    ...compared,
+    ...EMPTINESS.filter((operator) => allowed.includes(operator))
+  ]
 }
 
-/** The operators a value step toggles between, or none for booleans and dates. */
+/** The operators a value step toggles between: a number's as symbols, and emptiness in words. */
 export function valueOperators(
   field: RecordField
 ): (QueryFieldOperator & { value: ValueOperator })[] {
   return stepOperators(field).map((value) =>
-    isNumeric(field)
+    isNumeric(field) && !isEmptiness(value)
       ? {
           value,
           label: SYMBOLS[value] ?? value,
@@ -137,7 +152,7 @@ export function pendingLabel(
   field: RecordField,
   operator: ValueOperator
 ): string {
-  if (field.type === 'date') return field.label
+  if (field.type === 'date' && !isEmptiness(operator)) return field.label
   return `${field.label} ${recordOperatorLabel(operator)}`
 }
 
@@ -300,30 +315,6 @@ function customDates(field: RecordField): SearchSuggestion {
   }
 }
 
-const EMPTINESS = [
-  { operator: 'is-not-set', label: 'Empty' },
-  { operator: 'is-set', label: 'Not empty' }
-] as const
-
-/** Whether the text starts at one of the label's words: "not" or "empty". */
-function startsAWord(label: string, text: string): boolean {
-  const words = label.toLowerCase().split(' ')
-  return words.some((_, index) =>
-    words.slice(index).join(' ').startsWith(text.toLowerCase())
-  )
-}
-
-function emptinessItems(field: RecordField, typed: string): SearchSuggestion[] {
-  const allowed = recordFilterOperators(field)
-  return EMPTINESS.filter(
-    ({ operator, label }) =>
-      allowed.includes(operator) && startsAWord(label, typed)
-  ).map(({ operator, label }) => ({
-    ...filterSuggestion({ field: field.key, operator }),
-    label
-  }))
-}
-
 /** An option value read from typed text, compared by the step's operator. */
 function withOperator(
   item: SearchSuggestion,
@@ -409,6 +400,7 @@ export function valueHint(
   context: SearchContext
 ): string | undefined {
   const typed = text.trim()
+  if (isEmptiness(operator)) return undefined
   if (field.type === 'text')
     return typed ? undefined : 'Type the text to match.'
   if (!isNumeric(field) || typedFilters(field, typed, operator, context).length)
@@ -493,25 +485,17 @@ function heldOnly(
     )
 }
 
-/**
- * Suggestions for one field's value, after it was picked: Empty and Not empty
- * first, where the field allows them, then its values, compared by
- * `operator`: an option's, or the one text or number typed. Editing a
- * filter, those it holds are ticked; leave it out of `context.filters`, so
- * they still show.
- */
-export function valueSuggestions(
+/** The values a field offers, or reads from typed text, compared by the step's operator. */
+function readValues(
   field: RecordField,
-  text: string,
-  context: SearchContext,
-  operator: ValueOperator = stepOperator(field, ''),
-  edited?: RecordFilter
-): SearchGroup[] {
-  const typed = text.trim()
+  typed: string,
+  operator: ValueOperator,
+  context: SearchContext
+): SearchSuggestion[] {
   const unlisted =
     field.type === 'option' && recordFieldOptions(field).length === 0
   const option = optionOperator(operator)
-  const items = !typed
+  return !typed
     ? presetItems(field, option)
     : isTyped(field)
       ? typedFilters(field, typed, operator, context).map(filterSuggestion)
@@ -529,17 +513,57 @@ export function valueSuggestions(
             .map((item) =>
               field.type === 'option' ? withOperator(item, option) : item
             )
+}
+
+/** The values read, then those the edited filter holds that aren't among them. */
+function valueItems(
+  field: RecordField,
+  typed: string,
+  operator: ValueOperator,
+  context: SearchContext,
+  edited: RecordFilter | undefined
+): SearchSuggestion[] {
+  const items = readValues(field, typed, operator, context)
   const listed = new Set(items.map(({ id }) => id))
   const held = heldOnly(field, typed, edited).filter(
     ({ id }) => !listed.has(id)
   )
+  return [...items, ...held]
+}
+
+/** Under is empty or is not empty, the one row, which Enter takes whatever is typed. */
+const emptinessRow = (
+  field: RecordField,
+  operator: EmptinessOperator
+): SearchSuggestion => ({
+  ...filterSuggestion({ field: field.key, operator }),
+  exact: true
+})
+
+/**
+ * Suggestions for one field's value, after it was picked, compared by
+ * `operator`: an option's values, the one row text or a number typed reads,
+ * or under emptiness the chip's own row. Editing a filter, those it holds are
+ * ticked; leave it out of `context.filters`, so they still show.
+ */
+export function valueSuggestions(
+  field: RecordField,
+  text: string,
+  context: SearchContext,
+  operator: ValueOperator = stepOperator(field, ''),
+  edited?: RecordFilter
+): SearchGroup[] {
+  const typed = text.trim()
+  const items = isEmptiness(operator)
+    ? [emptinessRow(field, operator)]
+    : valueItems(field, typed, operator, context, edited)
   // Typed text is the whole value, so only the filter itself is held.
   const isHeld = isTyped(field) ? sameFilter : holds
   const tick = (item: SearchSuggestion): SearchSuggestion =>
     edited && item.value.type === 'filter' && isHeld(edited, item.value.filter)
       ? { ...item, selected: true }
       : item
-  const values = unused([...items, ...held], context).map((item) => {
+  const values = unused(items, context).map((item) => {
     if (item.value.type !== 'filter') return item
     const { label, value, detail } = describeRecordFilter(
       item.value.filter,
@@ -548,27 +572,17 @@ export function valueSuggestions(
     )
     return tick({
       ...item,
-      label: isTyped(field) ? label : value,
+      label: isTyped(field) || isEmptiness(operator) ? label : value,
       // Editing, the text stays to be changed again, and its row ticked.
       remainder: isTyped(field) && edited ? text : undefined,
       ...(detail && { description: detail })
     })
   })
-  // Enter skips the edited chip's own row, so it mustn't fall to Not empty.
-  const unchanged = values.some((item) => item.selected)
-  const emptiness =
-    isTyped(field) && unchanged
-      ? []
-      : unused(emptinessItems(field, typed), context).map(tick)
-  // Not a typed match, so it gives way to a typed Empty, or Enter takes it.
   const editable =
     field.type === 'date' &&
-    recordFilterOperators(field).some((operator) => operator === 'between') &&
-    (!typed || emptiness.length === 0)
+    !isEmptiness(operator) &&
+    recordFilterOperators(field).some((operator) => operator === 'between')
   return [
-    ...(emptiness.length > 0
-      ? [{ id: 'empty', label: 'Empty', hideLabel: true, items: emptiness }]
-      : []),
     {
       id: 'values',
       label: field.label,
