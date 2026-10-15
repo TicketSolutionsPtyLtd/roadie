@@ -13,6 +13,7 @@ import { ToggleGroup as ToggleGroupPrimitive } from '@base-ui/react/toggle-group
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { mergeRefs } from '../../utils/mergeRefs'
 import { type RoadieIntent, intentVariants } from '../../variants'
 import {
   ToggleGroupContext,
@@ -23,6 +24,7 @@ import {
   followPressedItem,
   revealItem
 } from './followPressedItem'
+import { watchScrollEdges } from './scrollEdges'
 import {
   type ToggleGroupDirection,
   type ToggleGroupSize,
@@ -74,8 +76,16 @@ export function ToggleGroupRoot<Value extends string = string>({
   onBlur,
   onPointerDown,
   onClick,
+  ref,
   ...props
 }: ToggleGroupRootProps<Value>) {
+  const refs = useMemo(
+    () =>
+      mergeRefs(ref, (group: HTMLDivElement | null) =>
+        group ? watchScrollEdges(group) : undefined
+      ),
+    [ref]
+  )
   const [indicatorReady, setIndicatorReady] = useState(false)
   const followRef = useCallback(
     (indicator: HTMLSpanElement | null) =>
@@ -153,6 +163,7 @@ export function ToggleGroupRoot<Value extends string = string>({
   return (
     <ToggleGroupContext value={contextValue}>
       <ToggleGroupPrimitive<Value>
+        ref={refs}
         data-slot='toggle-group'
         orientation={direction}
         multiple={multiple}

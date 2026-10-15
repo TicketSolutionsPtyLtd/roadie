@@ -238,6 +238,44 @@ describe.each(EMPHASES)('the %s sliding pill', (emphasis) => {
   })
 })
 
+describe('an edge fade', () => {
+  const fades = () => {
+    const style = getComputedStyle(screen.getByRole('group'))
+    return [
+      style.getPropertyValue('--toggle-group-fade-left').trim(),
+      style.getPropertyValue('--toggle-group-fade-right').trim()
+    ]
+  }
+  const masked = () => {
+    const style = getComputedStyle(screen.getByRole('group'))
+    return style.maskImage || style.getPropertyValue('-webkit-mask-image')
+  }
+
+  it('fades only the side that can still scroll', async () => {
+    render(<NarrowDateRange defaultValue={['7d']} />)
+    const group = screen.getByRole('group')
+    await expectPillOver('7 days')
+    await expect.poll(fades).toEqual(['0px', '24px'])
+    expect(masked()).toContain('linear-gradient')
+    group.scrollLeft = group.scrollWidth
+    await expect.poll(fades).toEqual(['24px', '0px'])
+  })
+
+  it('fades the far side first in a right-to-left layout', async () => {
+    render(
+      <div dir='rtl'>
+        <NarrowDateRange defaultValue={['7d']} />
+      </div>
+    )
+    await expect.poll(fades).toEqual(['24px', '0px'])
+  })
+
+  it('leaves a group with room for every item unfaded', async () => {
+    render(<DateRange />)
+    await expect.poll(fades).toEqual(['0px', '0px'])
+  })
+})
+
 it('keeps the same height at every emphasis', () => {
   render(
     <>
