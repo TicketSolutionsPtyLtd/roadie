@@ -34,7 +34,7 @@ export type QueryFieldPendingChip = {
   operator?: string
   /**
    * What to type, such as "Type a number", shown and announced in place of
-   * No suggestions while no value matches, beside any group with `hideLabel`.
+   * No suggestions while no value is listed.
    */
   hint?: string
 }
@@ -48,7 +48,7 @@ export type QueryFieldSuggestion<Value = unknown> = {
   /** `filter` adds a chip, `field` starts choosing values, `record` opens one. */
   kind: 'filter' | 'field' | 'record'
   value: Value
-  /** The text names this one exactly, such as an order number, so Enter takes it. */
+  /** Enter takes it, typed for or not: an order number the text names exactly, or a value step's only row, such as "City is empty". */
   exact?: boolean
   /**
    * Ticks the row, such as a value the chip being edited holds. Enter on typed
@@ -74,15 +74,12 @@ export type QueryFieldAccepted<Value = unknown> =
 export type QueryFieldSuggestionGroup<Value = unknown> = {
   id: string
   label: string
-  /** The label names the group for screen readers only, for items that say what they are, such as Empty and Not empty. Enter takes a typed value from another group first. */
-  hideLabel?: boolean
   items: readonly QueryFieldSuggestion<Value>[]
 }
 
 export type QueryFieldListGroup<Value = unknown> = {
   id: string
   label: string
-  hideLabel?: boolean
   items: readonly QueryFieldAccepted<Value>[]
   builtIn?: boolean
 }

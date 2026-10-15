@@ -444,39 +444,4 @@ describe('QueryField', () => {
     await expect.poll(() => popup.scrollTop).toBeGreaterThan(0)
     expect(box(toggle).top - box(popup).top).toBe(resting)
   })
-
-  it('shows a hidden label to no one but assistive technology, with a line between the value step’s groups', async () => {
-    render(
-      <Harness
-        pendingChip={{ id: 'venue', label: 'Venue is' }}
-        suggest={() => [
-          {
-            id: 'empty',
-            label: 'Empty',
-            hideLabel: true,
-            items: [
-              { id: 'empty', label: 'Empty', kind: 'filter', value: 'empty' }
-            ]
-          },
-          suggest('values')[0]!
-        ]}
-      />
-    )
-    await userEvent.click(input())
-    await screen.findByRole('option', { name: /Iguana Teapot Hall/ })
-    const empty = screen.getByRole('group', { name: 'Empty' })
-    const values = screen.getByRole('group', { name: 'Filters' })
-    const [hidden, shownLabel] = [empty, values].map((each) =>
-      each.querySelector('[data-slot=combobox-group-label]')!
-    )
-    expect(box(hidden!).width).toBeLessThanOrEqual(1)
-    expect(box(shownLabel!).width).toBeGreaterThan(1)
-    const divider = document.querySelector('[data-slot=query-field-divider]')!
-    const line = getComputedStyle(divider, '::before')
-    expect(parseFloat(line.borderTopWidth)).toBeGreaterThan(0)
-    expect(line.borderTopStyle).toBe('solid')
-    expect(box(divider).top).toBeGreaterThanOrEqual(box(empty).bottom)
-    expect(box(divider).bottom).toBeLessThanOrEqual(box(values).top)
-    expect(box(divider).width).toBeGreaterThan(box(divider).height)
-  })
 })

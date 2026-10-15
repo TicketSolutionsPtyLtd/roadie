@@ -1317,45 +1317,7 @@ describe('QueryField operators', () => {
   })
 })
 
-const emptiness: QueryFieldSuggestionGroup = {
-  id: 'empty',
-  label: 'Empty',
-  hideLabel: true,
-  items: [
-    { id: 'venue:empty', label: 'Empty', kind: 'filter', value: 'empty' },
-    { id: 'venue:set', label: 'Not empty', kind: 'filter', value: 'set' }
-  ]
-}
-const dividers = () =>
-  document.querySelectorAll('[data-slot=query-field-divider]')
-
-describe('QueryField value step groups', () => {
-  it('divides the value step’s groups, each still named', async () => {
-    render(
-      <Harness
-        pendingChip={{ id: 'venue', label: 'Venue is' }}
-        suggest={() => [
-          emptiness,
-          { id: 'values', label: 'Venue', items: [iguana] }
-        ]}
-      />
-    )
-    await userEvent.click(input())
-    await screen.findByRole('option', { name: iguana.label })
-    expect(optionNames()).toEqual(['Empty', 'Not empty', iguana.label])
-    const empty = screen.getByRole('group', { name: 'Empty' })
-    const values = screen.getByRole('group', { name: 'Venue' })
-    expect(dividers()).toHaveLength(1)
-    const [divider] = dividers()
-    expect(
-      empty.compareDocumentPosition(divider!) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy()
-    expect(
-      divider!.compareDocumentPosition(values) &
-        Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy()
-  })
-
+describe('QueryField value step hint', () => {
   it('shows the pending chip’s hint, announced, in place of No suggestions', async () => {
     render(
       <Harness
@@ -1370,19 +1332,17 @@ describe('QueryField value step groups', () => {
     expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
   })
 
-  it('shows the hint beside Empty and Not empty, until a value matches', async () => {
+  it('shows the hint until a value is listed', async () => {
     render(
       <Harness
         pendingChip={{ id: 'venue', label: 'Venue is', hint: 'Type a venue.' }}
         suggest={(text) => [
-          emptiness,
           { id: 'values', label: 'Venue', items: text ? [hall] : [] }
         ]}
       />
     )
     await userEvent.click(input())
     await screen.findByText('Type a venue.')
-    expect(optionNames()).toEqual(['Empty', 'Not empty'])
     await userEvent.keyboard('hal')
     await screen.findByRole('option', { name: hall.label })
     expect(screen.queryByText('Type a venue.')).not.toBeInTheDocument()
@@ -1403,13 +1363,6 @@ describe('QueryField value step groups', () => {
     await act(async () => values.resolve([]))
     expect(screen.getByText('Type a number.')).toBeInTheDocument()
   })
-
-  it('divides no groups outside the value step', async () => {
-    render(<Harness />)
-    await typeInto('igua')
-    await screen.findByRole('group', { name: 'Fields' })
-    expect(dividers()).toHaveLength(0)
-  })
 })
 
 const hall: QueryFieldSuggestion = {
@@ -1423,21 +1376,14 @@ function TypedValueStep(props: HarnessProps) {
   return (
     <Harness
       pendingChip={{ id: 'venue', label: 'Venue is' }}
-      suggest={(text) => [
-        emptiness,
-        {
-          id: 'values',
-          label: 'Venue',
-          items: text === 'empty' ? [] : [hall, iguana]
-        }
-      ]}
+      suggest={() => [{ id: 'values', label: 'Venue', items: [hall, iguana] }]}
       {...props}
     />
   )
 }
 
 describe('QueryField value step Enter', () => {
-  it('takes the first value the text matches on Enter, past Empty and Not empty', async () => {
+  it('takes the first value the text matches on Enter', async () => {
     const onAccept = vi.fn()
     render(<TypedValueStep onAccept={onAccept} />)
     await typeInto('hal')
@@ -1463,15 +1409,6 @@ describe('QueryField value step Enter', () => {
     expect(onAccept).toHaveBeenCalledExactlyOnceWith(exactIguana)
   })
 
-  it('takes Empty on Enter when the text matches nothing else', async () => {
-    const onAccept = vi.fn()
-    render(<TypedValueStep onAccept={onAccept} />)
-    await typeInto('empty')
-    await waitFor(() => expect(hinted()).toEqual(['Empty']))
-    await userEvent.keyboard('{Enter}')
-    expect(onAccept).toHaveBeenCalledExactlyOnceWith(emptiness.items[0])
-  })
-
   it('takes nothing on Enter before anything is typed', async () => {
     const onAccept = vi.fn()
     render(<TypedValueStep onAccept={onAccept} />)
@@ -1487,8 +1424,29 @@ describe('QueryField value step Enter', () => {
     render(<TypedValueStep onAccept={onAccept} />)
     await typeInto('hal')
     await screen.findByRole('option', { name: hall.label })
-    await userEvent.keyboard('{ArrowDown}{Enter}')
-    expect(onAccept).toHaveBeenCalledExactlyOnceWith(emptiness.items[0])
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(iguana)
+  })
+
+  it('takes an exact row on Enter before anything is typed', async () => {
+    const onAccept = vi.fn()
+    const empty: QueryFieldSuggestion = {
+      id: 'venue:empty',
+      label: 'Venue is empty',
+      kind: 'filter',
+      value: 'empty',
+      exact: true
+    }
+    render(
+      <TypedValueStep
+        onAccept={onAccept}
+        suggest={() => [{ id: 'values', label: 'Venue', items: [empty] }]}
+      />
+    )
+    await userEvent.click(input())
+    await waitFor(() => expect(hinted()).toEqual([empty.label]))
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(empty)
   })
 
   it('takes no value found for older text', async () => {

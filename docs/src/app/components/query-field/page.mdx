@@ -136,14 +136,13 @@ in the field, calls `onPendingOperatorChange`; update `operator` and the
 chip's `label` ("Venue is not"), and `suggest` is asked again. Give a symbol,
 such as ≠, an `aria-label`.
 
-A line divides the value step's groups. Give a group `hideLabel` when its items
-say what they are, such as Empty and Not empty listed above the values; its
-label still names it for screen readers. Once something is typed, Enter takes
-the first value, from a group without `hideLabel` if one matches.
+Once something is typed, Enter takes the first value. When a step has one
+answer, such as City is empty under an is empty operator, mark it `exact` and
+Enter takes it before anything is typed.
 
 Give the pending chip a `hint`, such as "Type a number.", and it shows in
-place of No suggestions while no value matches, below any group with
-`hideLabel`. Screen readers announce it, as they do No suggestions.
+place of No suggestions while no value is listed. Screen readers announce it,
+as they do No suggestions.
 
 ```tsx-live
 function QueryFieldValueStep() {
@@ -497,8 +496,7 @@ function QueryFieldShortcut() {
   Focus stays in the input, even when you press an operator. Without
   operators, or with the values closed, Tab leaves the field as usual.
 - The operators are a toggle group named "Operator". The first group keeps
-  its label for screen readers, hidden while the toggle takes its place, as
-  does a group with `hideLabel`.
+  its label for screen readers, hidden while the toggle takes its place.
 - A locked chip reads "set by this page" after its label, and a chip's
   `description` is read after its label too. A pending chip
   describes the input, so the value step is announced, and it's a live

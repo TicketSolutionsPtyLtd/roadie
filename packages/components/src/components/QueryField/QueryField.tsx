@@ -301,10 +301,7 @@ export function QueryField<Value = unknown>({
       ? firstMatch(suggestions.groups, enterable)
       : undefined
   const items = list.flatMap((group) => group.items)
-  const hint =
-    !suggestions.loading &&
-    list.every((group) => group.hideLabel) &&
-    pendingChip?.hint
+  const hint = !suggestions.loading && list.length === 0 && pendingChip?.hint
   const search = items.find((item) => item.kind === 'search')
   const enterFallback = exact ?? typedValue ?? search
   const fallbackKey = enterFallback && itemKey(enterFallback)
@@ -701,81 +698,70 @@ export function QueryField<Value = unknown>({
             )}
             <Combobox.List>
               {list.map((group, groupIndex) => (
-                <Fragment key={groupKey(group)}>
-                  {pendingChip && groupIndex > 0 && (
-                    <ComboboxPrimitive.Separator
-                      data-slot='query-field-divider'
-                      className='px-2 py-1 before:block before:border-t before:border-subtle'
-                    />
-                  )}
-                  <Combobox.Group items={group.items}>
-                    <Combobox.GroupLabel
-                      // The operators stand in the first label; it still names
-                      // the group. The label's own padding would outsize sr-only.
-                      className={cn(
-                        (group.hideLabel ||
-                          (showsOperators && groupIndex === 0)) &&
-                          'sr-only p-0'
-                      )}
-                    >
-                      {group.label}
-                    </Combobox.GroupLabel>
-                    <Combobox.Collection>
-                      {(item: QueryFieldAccepted<Value>, index: number) => (
-                        <Combobox.Item
-                          key={itemKey(item)}
-                          value={item}
-                          // Enter's target reads as highlighted until something else is.
-                          className={cn(
-                            highlightKey === undefined &&
-                              groupStarts[groupIndex]! + index ===
-                                enterTarget &&
-                              'bg-subtle'
-                          )}
-                          // Chips hold the field's value, so Base UI never selects a row.
-                          aria-selected={
-                            item.kind !== 'search' && !!item.selected
+                <Combobox.Group key={groupKey(group)} items={group.items}>
+                  <Combobox.GroupLabel
+                    // The operators stand in the first label; it still names
+                    // the group. The label's own padding would outsize sr-only.
+                    className={cn(
+                      showsOperators && groupIndex === 0 && 'sr-only p-0'
+                    )}
+                  >
+                    {group.label}
+                  </Combobox.GroupLabel>
+                  <Combobox.Collection>
+                    {(item: QueryFieldAccepted<Value>, index: number) => (
+                      <Combobox.Item
+                        key={itemKey(item)}
+                        value={item}
+                        // Enter's target reads as highlighted until something else is.
+                        className={cn(
+                          highlightKey === undefined &&
+                            groupStarts[groupIndex]! + index === enterTarget &&
+                            'bg-subtle'
+                        )}
+                        // Chips hold the field's value, so Base UI never selects a row.
+                        aria-selected={
+                          item.kind !== 'search' && !!item.selected
+                        }
+                      >
+                        <OptionIcon
+                          icon={
+                            item.kind === 'search' ? (
+                              <MagnifyingGlassIcon weight='bold' />
+                            ) : (
+                              item.icon
+                            )
                           }
-                        >
-                          <OptionIcon
-                            icon={
-                              item.kind === 'search' ? (
-                                <MagnifyingGlassIcon weight='bold' />
-                              ) : (
-                                item.icon
-                              )
-                            }
-                          />
-                          <span className='me-auto grid min-w-0 gap-0.5'>
-                            <span
-                              data-slot='query-field-option-label'
-                              className='truncate'
-                            >
-                              {item.label}
-                            </span>
-                            {item.kind !== 'search' &&
-                              hasDescription(item.description) && (
-                                <span
-                                  data-slot='query-field-option-description'
-                                  className='truncate text-xs text-subtle'
-                                >
-                                  {item.description}
-                                </span>
-                              )}
+                        />
+                        <span className='me-auto grid min-w-0 gap-0.5'>
+                          <span
+                            data-slot='query-field-option-label'
+                            className='truncate'
+                          >
+                            {item.label}
                           </span>
-                          {groupStarts[groupIndex]! + index === enterTarget && (
-                            <Kbd size='sm' className='text-subtle'>
-                              Enter
-                            </Kbd>
-                          )}
-                          {item.kind !== 'search' && item.selected && (
-                            <Combobox.ItemIndicator keepMounted />
-                          )}
-                        </Combobox.Item>
-                      )}
-                    </Combobox.Collection>
-                  </Combobox.Group>
-                </Fragment>
+                          {item.kind !== 'search' &&
+                            hasDescription(item.description) && (
+                              <span
+                                data-slot='query-field-option-description'
+                                className='truncate text-xs text-subtle'
+                              >
+                                {item.description}
+                              </span>
+                            )}
+                        </span>
+                        {groupStarts[groupIndex]! + index === enterTarget && (
+                          <Kbd size='sm' className='text-subtle'>
+                            Enter
+                          </Kbd>
+                        )}
+                        {item.kind !== 'search' && item.selected && (
+                          <Combobox.ItemIndicator keepMounted />
+                        )}
+                      </Combobox.Item>
+                    )}
+                  </Combobox.Collection>
+                </Combobox.Group>
               ))}
             </Combobox.List>
             <ComboboxPrimitive.Status

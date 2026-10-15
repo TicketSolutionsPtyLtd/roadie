@@ -29,11 +29,10 @@ values, with the chosen `operator` pressed: pressing one, or Tab and Shift+Tab
 in the input while they show, calls `onPendingOperatorChange`, keeps focus in
 the input, and asks `suggest` again. Tab from the last operator, or Shift+Tab
 from the first, leaves the field.
-A line divides the value step's groups, and a group with `hideLabel` names
-itself for screen readers only. Once text is typed in the value step, Enter
-takes the first value, from a group without `hideLabel` if one matches. A
+Once text is typed in the value step, Enter takes the first value, and a
+step's one `exact` answer, such as City is empty, before anything is typed. A
 `pendingChip.hint`, such as "Type a number.", shows and is announced in place
-of No suggestions while no value matches.
+of No suggestions while no value is listed.
 To edit a chip in the list, answer `onSelectChip` with a value step whose
 `pendingChip.chipId` names the chip: it shows selected in place of a pending
 chip, focus stays in the input, taking a value keeps the list open, and a
