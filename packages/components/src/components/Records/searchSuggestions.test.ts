@@ -333,7 +333,19 @@ describe('valueSuggestions for text and numbers', () => {
       { field: 'gross', operator: 'between', value: [20, 1000] }
     ],
     ['sold', '50', 'between', undefined],
-    ['sold', '50-20', 'between', undefined],
+    [
+      'sold',
+      '50-20',
+      'between',
+      { field: 'sold', operator: 'between', value: [20, 50] }
+    ],
+    [
+      'sold',
+      '-5 to -10',
+      'between',
+      { field: 'sold', operator: 'between', value: [-10, -5] }
+    ],
+    ['sold', '50-', 'between', undefined],
     ['sold', '20-50', 'eq', undefined],
     ['sold', '>50', 'eq', undefined],
     ['sold', 'fifty', 'eq', undefined],
@@ -704,6 +716,11 @@ describe('valueText', () => {
     [
       'a range',
       { field: 'gross', operator: 'between', value: [20, 50] },
+      '20-50'
+    ],
+    [
+      'a reversed range',
+      { field: 'gross', operator: 'between', value: [50, 20] },
       '20-50'
     ],
     ['emptiness', { field: 'name', operator: 'is-set' }, ''],

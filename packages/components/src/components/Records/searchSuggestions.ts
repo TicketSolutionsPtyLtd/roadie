@@ -158,7 +158,7 @@ export function valueText(field: RecordField, filter: RecordFilter): string {
     case 'gt':
       return String(filter.value)
     case 'between':
-      return filter.value.join('-')
+      return [...filter.value].sort((a, b) => Number(a) - Number(b)).join('-')
     default:
       return ''
   }
@@ -334,6 +334,20 @@ function withOperator(
   return { ...item, ...filterSuggestion(filter), label: item.label }
 }
 
+/** A range typed high to low, such as "50-20", as low to high. */
+function reversedRange(
+  typed: string,
+  readNumber: (text: string) => RecordFilter | null
+): [number, number] | null {
+  for (const { 0: separator, index } of typed.matchAll(/-|\.\.|to/g)) {
+    const low = readNumber(typed.slice(0, index))
+    const high = readNumber(typed.slice(index + separator.length))
+    if (low?.operator === 'eq' && high?.operator === 'eq')
+      return [Math.min(low.value, high.value), Math.max(low.value, high.value)]
+  }
+  return null
+}
+
 /** Typed text, or a number or range, compared by the step's operator: none for what it can't read. */
 function typedFilters(
   field: RecordField,
@@ -350,12 +364,19 @@ function typedFilters(
       : []
   }
   // parseQuery reads a lone number as `eq` and a range as `between`.
-  const [reading] = parseQuery(`${key}:${typed}`, {
-    ...context,
-    fields: [field]
-  })
-  const read = reading?.kind === 'filter' ? reading.value : null
-  if (operator === 'between') return read?.operator === 'between' ? [read] : []
+  const readNumber = (text: string) => {
+    const [reading] = parseQuery(`${key}:${text}`, {
+      ...context,
+      fields: [field]
+    })
+    return reading?.kind === 'filter' ? reading.value : null
+  }
+  const read = readNumber(typed)
+  if (operator === 'between') {
+    if (read?.operator === 'between') return [read]
+    const reversed = reversedRange(typed, readNumber)
+    return reversed ? [{ field: key, operator, value: reversed }] : []
+  }
   return read?.operator === 'eq' &&
     (operator === 'eq' ||
       operator === 'neq' ||
