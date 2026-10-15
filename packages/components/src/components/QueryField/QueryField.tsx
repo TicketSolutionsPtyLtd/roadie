@@ -458,8 +458,8 @@ export function QueryField<Value = unknown>({
       event.preventDefault()
       if (enterFallback) accept(enterFallback)
       // Nothing new to take means done, unless typed text matched no value,
-      // when the hint says what to type.
-      else if (editedId && (items.length > 0 || !text.trim())) {
+      // when the hint says what to type, or its values are still on their way.
+      else if (editedId && current && (items.length > 0 || !text.trim())) {
         setOpen(false)
         onPendingChipCancel?.()
       }

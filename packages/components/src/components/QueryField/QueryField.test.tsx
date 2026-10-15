@@ -2101,6 +2101,28 @@ describe('QueryField chip editing', () => {
     expect(onPendingChipCancel).not.toHaveBeenCalled()
   })
 
+  it('keeps the edit on Enter while the typed text’s values are on their way', async () => {
+    const later = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
+    const onPendingChipCancel = vi.fn()
+    render(
+      <QueryField
+        aria-label='Search orders'
+        chips={[{ id: 'city', label: 'City is Perth' }]}
+        pendingChip={{ id: 'city', label: 'City is', chipId: 'city' }}
+        onPendingChipCancel={onPendingChipCancel}
+        suggest={(text) =>
+          text
+            ? later.promise
+            : [{ id: 'values', label: 'City', items: [perth, hobart] }]
+        }
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: 'Hobart' })
+    await userEvent.keyboard('zzz{Enter}')
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
+  })
+
   it('keeps the edited chip on Escape, ending the step', async () => {
     const onPendingChipCancel = vi.fn()
     render(<CityEditing onPendingChipCancel={onPendingChipCancel} />)
