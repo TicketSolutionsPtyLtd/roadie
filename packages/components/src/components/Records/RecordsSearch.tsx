@@ -599,7 +599,7 @@ export function RecordsSearch({
           initialFocus={editing.index === null ? focusTarget : focusPanel}
           // Anchored to a chip, it has no trigger for Tab to go on from, so
           // focus stays inside, as in the drawer.
-          modal
+          modal='trap-focus'
           finalFocus={() => {
             const id = returnTo.current
             return (id && chipElement(id)) || inputRef.current

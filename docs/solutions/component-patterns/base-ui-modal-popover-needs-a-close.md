@@ -21,8 +21,10 @@ focus manager `modal !== false && hasClosePart`, so a popover with no
 
 ## Fix
 
-Give a popover that must keep focus both `modal` and a `Popover.Close`. Custom
-dates now has a header with the field's name as `Popover.Title` and a Close
+Give a popover that must keep focus both `modal` and a `Popover.Close`. Use
+`modal='trap-focus'` when the page should still scroll and take outside
+presses; `true` also locks scroll and covers the page. Custom dates uses
+`'trap-focus'` and now has a header with the field's name as `Popover.Title` and a Close
 icon button, as its phone drawer has (INNO-1277). Tab then cycles inside it.
 
 A popover with a trigger, such as Records.Options, doesn't need this: Tab

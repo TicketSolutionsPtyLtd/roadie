@@ -169,6 +169,37 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     expect(dialog).toBeVisible()
   })
 
+  it('leaves the page scrolling under Custom dates, and a click on another chip closes it and edits that chip', async () => {
+    render(
+      <Shows
+        defaultView={{
+          query: {
+            filters: [
+              { field: 'starts', operator: 'within', value: 'this-weekend' },
+              { field: 'city', operator: 'contains', value: 'Perth' }
+            ]
+          }
+        }}
+      />
+    )
+    await userEvent.click(
+      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
+    )
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Custom dates' })
+    )
+    await screen.findByRole('dialog', { name: 'Starts' })
+    // The page still scrolls behind it.
+    for (const element of [document.documentElement, document.body])
+      expect(getComputedStyle(element).overflow).not.toBe('hidden')
+    // By selector, as the dialog hides the page from the accessibility tree.
+    await userEvent.click(chip('City').querySelector('button')!)
+    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    await expect
+      .poll(() => chip('City').hasAttribute('data-selected'))
+      .toBe(true)
+  })
+
   it('edits an option chip in the list on a phone', async () => {
     await page.viewport(390, 844)
     render(
