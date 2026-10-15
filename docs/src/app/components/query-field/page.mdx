@@ -247,6 +247,8 @@ Start a value step for the chip's field with `pendingChip.chipId` naming it:
 the list opens, the chip shows selected in place of a pending chip, and the
 list stays open as values are taken, so several can be ticked and unticked.
 Mark the values the chip holds `selected`, and toggle them in `onAccept`.
+Enter on typed text takes the first value not ticked, so only an arrow or a
+click unticks one.
 Backspace on the empty field removes the chip; Escape, or focus leaving the
 field, ends the step and keeps it.
 

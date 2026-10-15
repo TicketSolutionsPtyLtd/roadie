@@ -35,6 +35,7 @@ takes the first value, from a group without `hideLabel` if one matches.
 To edit a chip in the list, answer `onSelectChip` with a value step whose
 `pendingChip.chipId` names the chip: it shows selected in place of a pending
 chip, focus stays in the input, taking a value keeps the list open, and a
-suggestion marked `selected` is ticked. Backspace on the empty field removes
+suggestion marked `selected` is ticked, which Enter on typed text passes over.
+Backspace on the empty field removes
 the edited chip, and Escape or focus leaving the field ends the step and keeps
 it.

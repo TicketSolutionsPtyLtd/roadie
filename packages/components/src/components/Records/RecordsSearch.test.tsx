@@ -893,6 +893,22 @@ describe('Records.Search', () => {
       ])
     })
 
+    it('keeps a value the chip holds on Enter after typing it', async () => {
+      const { user, onViewChange } = setup({
+        defaultView: {
+          query: {
+            filters: [{ field: 'city', operator: 'is', values: ['Perth'] }]
+          }
+        }
+      })
+      await selectChip(user, 'City is Perth')
+      await user.keyboard('perth')
+      await option('Perth')
+      await user.keyboard('{Enter}')
+      expect(onViewChange).not.toHaveBeenCalled()
+      expect(chip('City is Perth')).toHaveAttribute('data-selected')
+    })
+
     it('merges a chip rewritten to is into the field’s is chip, as is chips AND', async () => {
       const { user, lastView } = setup({
         defaultView: {

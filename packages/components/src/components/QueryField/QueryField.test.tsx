@@ -1583,6 +1583,7 @@ function CityEditing({
             )
             .map((item) => ({
               ...item,
+              exact: item.label.toLowerCase() === text.trim().toLowerCase(),
               selected: editing && cities.includes(item.label)
             }))
         }
@@ -1744,6 +1745,34 @@ describe('QueryField chip editing', () => {
     screen.getByText('Outside').focus()
     settleFocus()
     expect(onPendingChipCancel).not.toHaveBeenCalled()
+  })
+
+  it('takes the first unticked value on Enter after typing, while editing a chip', async () => {
+    const onAccept = vi.fn()
+    render(<CityEditing onAccept={onAccept} />)
+    await typeInto('perth')
+    await screen.findByRole('option', { name: 'Perth' })
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).not.toHaveBeenCalled()
+    expect(chipNames()).toContain('City is Perth')
+    await userEvent.clear(input())
+    await userEvent.keyboard('h')
+    await screen.findByRole('option', { name: 'Hobart' })
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'hobart' })
+    )
+  })
+
+  it('unticks an arrowed value on Enter, while editing a chip', async () => {
+    const onAccept = vi.fn()
+    render(<CityEditing onAccept={onAccept} />)
+    await typeInto('perth')
+    await screen.findByRole('option', { name: 'Perth' })
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'perth' })
+    )
   })
 
   it('keeps the edited chip on Escape, ending the step', async () => {

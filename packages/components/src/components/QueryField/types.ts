@@ -45,7 +45,11 @@ export type QueryFieldSuggestion<Value = unknown> = {
   value: Value
   /** The text names this one exactly, such as an order number, so Enter takes it. */
   exact?: boolean
-  /** Ticks the row, such as a value the chip being edited holds. */
+  /**
+   * Ticks the row, such as a value the chip being edited holds. Enter on typed
+   * text passes over it while a chip is edited, so only an arrow or click
+   * unticks it.
+   */
   selected?: boolean
   /** The typed words it doesn't read, left in the field once it is taken. */
   remainder?: string
