@@ -11,7 +11,7 @@ const WORDMARK_PATH =
 export type LogoVariant = 'normal' | 'mark' | 'wordmark'
 export type LogoSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 export type LogoDirection = 'horizontal' | 'vertical'
-export type LogoTone = 'brand' | 'dark' | 'light'
+export type LogoTone = 'brand' | 'dark' | 'light' | 'neutral'
 
 export type LogoProps = Omit<ComponentProps<'span'>, 'children' | 'dir'> & {
   /**
@@ -32,10 +32,10 @@ export type LogoProps = Omit<ComponentProps<'span'>, 'children' | 'dir'> & {
    */
   direction?: 'horizontal' | 'vertical'
   /**
-   * The mark and wordmark colour, the same in light and dark mode: `brand` is Oztix blue, `dark` is near-black for light backgrounds, and `light` is white for dark, brand, or photo backgrounds.
+   * The mark and wordmark colour. `brand` is Oztix blue, `dark` is near-black for light backgrounds, and `light` is white for dark, brand, or photo backgrounds, each the same in light and dark mode. `neutral` is one colour that follows the theme.
    * @default 'brand'
    */
-  tone?: 'brand' | 'dark' | 'light'
+  tone?: 'brand' | 'dark' | 'light' | 'neutral'
   /**
    * The logo's height, or the mark's when vertical: `xs` 20px, `sm` 24px, `md` 32px, `lg` 40px, `xl` 48px.
    * @default 'md'
@@ -70,6 +70,11 @@ const toneClassName: Record<
     logo: 'text-(--color-neutral-light-0)',
     tagline: '',
     divider: 'border-current'
+  },
+  neutral: {
+    logo: 'intent-neutral text-strong',
+    tagline: 'text-normal',
+    divider: 'border-normal'
   }
 }
 

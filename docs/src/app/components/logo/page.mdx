@@ -115,7 +115,13 @@ Logo sizes sit one step below Button and IconTile, whose `md` is 40px, so a `siz
 </div>
 ```
 
-In dark mode, the brand mark and wordmark stay Oztix blue, and the brand tagline and divider follow the theme, so the brand logo reads on the page in either mode. The `dark` and `light` tones are fixed in both modes, because each is drawn for a known background. For a tagline logo on a surface that stays light in dark mode, use `dark`.
+`neutral` is one colour that follows the theme, near-black in light mode and white in dark mode. Use it in product UI and docs chrome that follow the theme. Brand blue stays the default for brand moments.
+
+```tsx-live
+<Logo tone='neutral' tagline size='sm' />
+```
+
+In dark mode, the brand mark and wordmark stay Oztix blue, and the brand tagline and divider follow the theme, so the brand logo reads on the page in either mode. The `neutral` logo follows the theme throughout. The `dark` and `light` tones are fixed in both modes, because each is drawn for a known background. For a tagline logo on a surface that stays light in dark mode, use `dark`.
 
 The [Brand Logo page](/brand/logo) has the brand rules for using the logo.
 
@@ -147,7 +153,7 @@ The `logo-wordmark` and `logo-product` slots hold their own gap and clip, so a p
 
 <Guideline title='Colour the logo with tone only'>
   <Guideline.Do code={`<Logo tone='dark' />`}>
-    Pick one of the three tones. They're the only approved colours.
+    Pick one of the four tones. They're the only approved colours.
   </Guideline.Do>
   <Guideline.Dont code={`
     <Logo className='text-danger-9' />

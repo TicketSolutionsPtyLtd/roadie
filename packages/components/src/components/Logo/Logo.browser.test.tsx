@@ -127,8 +127,12 @@ describe('tone', () => {
     return result
   }
 
-  function token(name: string) {
-    render(<span data-testid='probe' style={{ color: `var(${name})` }} />)
+  function token(name: string, wrapper?: string) {
+    render(
+      <div className={wrapper}>
+        <span data-testid='probe' style={{ color: `var(${name})` }} />
+      </div>
+    )
     const value = getComputedStyle(screen.getByTestId('probe')).color
     cleanup()
     return value
@@ -167,7 +171,7 @@ describe('tone', () => {
     expect(light.divider).toBe(token('--color-neutral-light-0'))
   })
 
-  it.each(['brand', 'dark', 'light'] as const)(
+  it.each(['brand', 'dark', 'light', 'neutral'] as const)(
     'colours the vertical %s tagline like the horizontal one',
     (tone) => {
       const vertical = <Logo tone={tone} direction='vertical' tagline />
@@ -189,5 +193,28 @@ describe('tone', () => {
     expect(dark.tagline).not.toBe(light.tagline)
     expect(dark.divider).not.toBe(light.divider)
     expect(colours(<Logo tagline />, 'intent-danger')).toEqual(light)
+  })
+
+  it('draws the neutral logo dark in light mode and light in dark mode', () => {
+    const light = colours(<Logo tone='neutral' tagline />)
+    const dark = colours(<Logo tone='neutral' tagline />, 'dark')
+
+    expect(light.logo).toBe(token('--color-neutral-13'))
+    expect(light.tagline).toBe(token('--color-neutral-12'))
+    expect(light.divider).toBe(token('--color-neutral-7'))
+    expect(dark.logo).toBe(token('--color-neutral-13', 'dark'))
+    expect(dark.tagline).toBe(token('--color-neutral-12', 'dark'))
+    expect(dark.divider).toBe(token('--color-neutral-7', 'dark'))
+    expect(dark.logo).not.toBe(light.logo)
+  })
+
+  it('keeps the neutral logo untinted inside an intent', () => {
+    const plain = colours(<Logo tone='neutral' tagline />)
+    expect(colours(<Logo tone='neutral' tagline />, 'intent-danger')).toEqual(
+      plain
+    )
+    expect(
+      colours(<Logo tone='neutral' tagline />, 'dark intent-danger')
+    ).toEqual(colours(<Logo tone='neutral' tagline />, 'dark'))
   })
 })

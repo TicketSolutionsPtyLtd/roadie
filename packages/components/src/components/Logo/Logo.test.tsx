@@ -188,6 +188,15 @@ describe('Logo', () => {
   })
 
   describe('colour', () => {
+    it('holds the neutral tone to the neutral intent', () => {
+      render(
+        <div className='intent-danger'>
+          <Logo tone='neutral' />
+        </div>
+      )
+      expect(screen.getByRole('img')).toHaveClass('intent-neutral')
+    })
+
     it('is brand-9, fixed regardless of a surrounding intent or dark mode', () => {
       render(
         <div className='dark intent-danger'>
@@ -282,7 +291,9 @@ describe('Logo', () => {
     expectTypeOf<BarrelLogoTone>().toEqualTypeOf<LogoTone>()
     expectTypeOf<LogoVariant>().toEqualTypeOf<'normal' | 'mark' | 'wordmark'>()
     expectTypeOf<LogoDirection>().toEqualTypeOf<'horizontal' | 'vertical'>()
-    expectTypeOf<LogoTone>().toEqualTypeOf<'brand' | 'dark' | 'light'>()
+    expectTypeOf<LogoTone>().toEqualTypeOf<
+      'brand' | 'dark' | 'light' | 'neutral'
+    >()
     expectTypeOf<LogoProps>().not.toHaveProperty('children')
   })
 })
