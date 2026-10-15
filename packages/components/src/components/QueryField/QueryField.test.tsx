@@ -985,7 +985,7 @@ describe('QueryField', () => {
     expect(input()).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('highlights nothing once a take leaves words in the field', async () => {
+  it('highlights nothing once a take leaves words in the field, never saying the list is empty', async () => {
     const sydney: QueryFieldSuggestion = {
       id: 'city:sydney',
       label: 'City is Sydney',
@@ -1012,9 +1012,27 @@ describe('QueryField', () => {
     )
     await typeInto('syd this weekend')
     await screen.findByRole('option', { name: sydney.label })
+    // Text that went in and out again, as a live region may still read it.
+    const shown: string[] = []
+    const collect = (records: MutationRecord[]) => {
+      for (const record of records) {
+        shown.push(record.oldValue ?? '')
+        for (const node of record.addedNodes) shown.push(node.textContent ?? '')
+      }
+    }
+    const observer = new MutationObserver(collect)
+    observer.observe(document.body, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+      characterDataOldValue: true
+    })
+    onTestFinished(() => observer.disconnect())
     await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}')
     expect(input()).toHaveValue('this weekend')
     await screen.findByRole('option', { name: weekend.label })
+    collect(observer.takeRecords())
+    expect(shown.filter((text) => text.includes('No suggestions'))).toEqual([])
     expect(
       screen
         .getAllByRole('option')
