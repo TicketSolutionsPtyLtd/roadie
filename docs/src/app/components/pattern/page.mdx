@@ -22,7 +22,7 @@ import { Pattern } from '@oztix/roadie-components/pattern'
 
 ### Default
 
-The pattern fills its parent in both axes and never sizes itself, so give the parent a size. The default is the `right` crop in brand blue, drawn for a portrait panel.
+The pattern fills its parent in both axes and never sizes itself, so give the parent a size. It has no radius of its own: it usually sits on an edge, so the container rounds and clips it, here with `rounded-3xl overflow-hidden`. The default is the `right` crop in brand blue.
 
 ```tsx-live
 <div className='h-64 w-40 overflow-hidden rounded-3xl'>
@@ -32,11 +32,11 @@ The pattern fills its parent in both axes and never sizes itself, so give the pa
 
 ### Crops
 
-`crop` picks the swirl drawn for where the pattern sits. Each crop fills any box, keeps the edge its swirl was drawn against, and cuts off the rest.
+`crop` says where the pattern sits. Like a `background-size: cover` image, the whole artwork scales with the box until it covers it, so a small strip shows the same swirls as a hero, only smaller. The crop then anchors the artwork, like `background-position`, and cuts off the rest.
 
 #### Banner
 
-`banner` is for a wide hero. Set content on a raised surface over it, never straight on the swirls.
+`banner` is for a wide hero, with the artwork centred. Set content on a raised surface over it, never straight on the swirls.
 
 ```tsx-live
 <section className='relative grid min-h-64 place-items-center overflow-hidden rounded-3xl p-6'>
@@ -51,7 +51,7 @@ The pattern fills its parent in both axes and never sizes itself, so give the pa
 
 #### Left and right
 
-`left` and `right` are for a panel beside content. A left panel hugs its right edge, and a right panel its left, so the swirl always runs toward the content.
+`left` and `right` are for a panel on that side of the content, using a portrait arrangement of the artwork anchored to that edge.
 
 ```tsx-live
 <div className='grid grid-cols-[2fr_3fr] overflow-hidden rounded-3xl emphasis-raised'>
@@ -63,19 +63,22 @@ The pattern fills its parent in both axes and never sizes itself, so give the pa
 </div>
 ```
 
-#### Top
+#### Top and bottom
 
-`top` is a thin band, for a strip across the top of a card or page.
+`top` and `bottom` are for a strip along that edge of a card or page, anchored to that edge. The card clips its own corners with `overflow-hidden`, so the strip takes its radius from the card.
 
 ```tsx-live width=80
-<Card emphasis='raised'>
-  <div className='h-16 overflow-hidden rounded-xl'>
+<Card emphasis='raised' className='overflow-hidden'>
+  <div className='h-16'>
     <Pattern crop='top' tone='brand-purple' />
   </div>
   <Card.Header>
     <Card.Title>Marzipan Thunderclap</Card.Title>
     <Card.Description>Fri 12 Mar · Nimbus Thistle Hall, Newcastle</Card.Description>
   </Card.Header>
+  <div className='h-6'>
+    <Pattern crop='bottom' tone='brand-purple' />
+  </div>
 </Card>
 ```
 

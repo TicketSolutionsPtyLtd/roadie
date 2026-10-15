@@ -23,19 +23,20 @@ describe('Pattern', () => {
     expect(svg.querySelectorAll('rect')).toHaveLength(1)
     expect(
       [...svg.querySelectorAll('path')].map((p) => p.getAttribute('d'))
-    ).toEqual(shapes.top.paths)
+    ).toEqual(shapes.banner.paths)
   })
 
   it.each([
-    ['top', 'xMidYMid slice'],
-    ['left', 'xMaxYMid slice'],
-    ['right', 'xMinYMid slice'],
-    ['banner', 'xMidYMid slice']
+    ['top', 'banner', 'xMidYMin slice'],
+    ['bottom', 'banner', 'xMidYMax slice'],
+    ['left', 'left', 'xMinYMid slice'],
+    ['right', 'right', 'xMaxYMid slice'],
+    ['banner', 'banner', 'xMidYMid slice']
   ] as const)(
-    'crops %s to its own frame and keeps its edge with %s',
-    (crop, align) => {
+    'covers a %s box with the whole %s artwork, anchored %s',
+    (crop, field, align) => {
       const svg = renderPattern(<Pattern crop={crop} />)
-      expect(svg).toHaveAttribute('viewBox', shapes[crop].viewBox)
+      expect(svg).toHaveAttribute('viewBox', shapes[field].viewBox)
       expect(svg).toHaveAttribute('preserveAspectRatio', align)
     }
   )
@@ -43,7 +44,7 @@ describe('Pattern', () => {
   it('defaults to the right crop', () => {
     const svg = renderPattern(<Pattern />)
     expect(svg).toHaveAttribute('viewBox', shapes.right.viewBox)
-    expect(svg).toHaveAttribute('preserveAspectRatio', 'xMinYMid slice')
+    expect(svg).toHaveAttribute('preserveAspectRatio', 'xMaxYMid slice')
   })
 
   it('falls back to the right crop for an unknown one', () => {
@@ -51,7 +52,7 @@ describe('Pattern', () => {
       <Pattern crop={'diagonal' as unknown as PatternCrop} />
     )
     expect(svg).toHaveAttribute('viewBox', shapes.right.viewBox)
-    expect(svg).toHaveAttribute('preserveAspectRatio', 'xMinYMid slice')
+    expect(svg).toHaveAttribute('preserveAspectRatio', 'xMaxYMid slice')
   })
 
   it('passes other SVG attributes through', () => {

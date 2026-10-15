@@ -4,7 +4,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import shapes from './shapes.json'
 
-export type PatternCrop = 'top' | 'left' | 'right' | 'banner'
+export type PatternCrop = 'top' | 'bottom' | 'left' | 'right' | 'banner'
 export type PatternTone = 'brand-blue' | 'brand-purple' | 'brand-orange'
 
 export type PatternProps = Omit<
@@ -12,11 +12,12 @@ export type PatternProps = Omit<
   'children' | 'viewBox' | 'preserveAspectRatio'
 > & {
   /**
-   * The crop of the swirl: `top` for a band across the top, `left` and
-   * `right` for a panel on that side, and `banner` for a wide hero.
+   * Where the pattern sits, and so which edge of the artwork it keeps when it
+   * covers the box: `top` and `bottom` for a strip along that edge, `left` and
+   * `right` for a panel on that side, and `banner` for a wide hero, centred.
    * @default 'right'
    */
-  crop?: 'top' | 'left' | 'right' | 'banner'
+  crop?: 'top' | 'bottom' | 'left' | 'right' | 'banner'
   /**
    * The brand colour, fixed in light and dark mode.
    * @default 'brand-blue'
@@ -41,14 +42,18 @@ const FILLS = Object.fromEntries(
   ])
 ) as Record<PatternTone, { ground: CSSProperties; line: CSSProperties }>
 
-// When the box is a different shape from the crop, each keeps the edge its
-// swirl was drawn against: a left panel hugs its right edge, a right panel its
-// left, and bands stay centred.
-const ALIGN: Record<PatternCrop, string> = {
-  top: 'xMidYMid slice',
-  left: 'xMaxYMid slice',
-  right: 'xMinYMid slice',
-  banner: 'xMidYMid slice'
+// Each crop covers its box with the whole artwork, like `background-size:
+// cover`, anchored like `background-position`. Strips and the banner use the
+// wide artwork; side panels use its portrait arrangements.
+const CROPS: Record<
+  PatternCrop,
+  { field: keyof typeof shapes; align: string }
+> = {
+  top: { field: 'banner', align: 'xMidYMin slice' },
+  bottom: { field: 'banner', align: 'xMidYMax slice' },
+  left: { field: 'left', align: 'xMinYMid slice' },
+  right: { field: 'right', align: 'xMaxYMid slice' },
+  banner: { field: 'banner', align: 'xMidYMid slice' }
 }
 
 export function Pattern({
@@ -57,15 +62,16 @@ export function Pattern({
   className,
   ...props
 }: PatternProps) {
-  const known = Object.hasOwn(shapes, crop) ? crop : 'right'
+  const { field, align } = CROPS[Object.hasOwn(CROPS, crop) ? crop : 'right']
   const fills = FILLS[Object.hasOwn(FILLS, tone) ? tone : 'brand-blue']
-  const shape = shapes[known]
+  const shape = shapes[field]
+  const [x, y, width, height] = shape.viewBox.split(' ')
 
   return (
     <svg
       data-slot='pattern'
       viewBox={shape.viewBox}
-      preserveAspectRatio={ALIGN[known]}
+      preserveAspectRatio={align}
       // Size containment drops the viewBox's aspect ratio, which would
       // otherwise stretch an auto-height grid row to the swirl's height.
       className={cn('block size-full contain-size', className)}
@@ -73,7 +79,7 @@ export function Pattern({
       aria-hidden='true'
       focusable='false'
     >
-      <rect x='-50%' y='-50%' width='200%' height='200%' style={fills.ground} />
+      <rect x={x} y={y} width={width} height={height} style={fills.ground} />
       {shape.paths.map((d) => (
         <path key={d} d={d} style={fills.line} />
       ))}

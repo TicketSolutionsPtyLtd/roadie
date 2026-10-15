@@ -1,7 +1,7 @@
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
-import { Pattern, type PatternTone } from '.'
+import { Pattern, type PatternCrop, type PatternTone } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -81,6 +81,39 @@ describe('Pattern colour', () => {
       line: token('--color-brand-light-5')
     })
   })
+})
+
+// The share of the artwork the box shows along its long side: 1 when the
+// whole artwork spans it, as `background-size: cover` gives a strip.
+function shownAlongLongSide(crop: PatternCrop, width: number, height: number) {
+  const { container } = render(
+    <div style={{ width, height }}>
+      <Pattern crop={crop} />
+    </div>
+  )
+  const svg = container.querySelector('svg')!
+  const scale = svg.getScreenCTM()!.a
+  const field = svg.viewBox.baseVal
+  return width >= height
+    ? width / (field.width * scale)
+    : height / (field.height * scale)
+}
+
+describe('Pattern scale', () => {
+  it.each([
+    ['top', 'a card header', 640, 128],
+    ['bottom', 'a card footer', 640, 128],
+    ['top', 'a phone strip', 358, 96],
+    ['banner', 'a hero', 1280, 400],
+    ['banner', 'a phone hero', 358, 320],
+    ['left', 'a side panel', 240, 400],
+    ['right', 'a side panel', 240, 400]
+  ] as const)(
+    'shows most of the artwork, not a zoomed-in slice, as %s on %s',
+    (crop, _use, width, height) => {
+      expect(shownAlongLongSide(crop, width, height)).toBeGreaterThan(0.6)
+    }
+  )
 })
 
 describe('Pattern size', () => {
