@@ -26,8 +26,8 @@ step, and with `onClear` it hands over the text and chips in one call. The
 search icon and Clear stay on the first row as chips wrap. Clear is round, as
 a chip's remove button is, focus ring included. A suggestion's `icon` shows
 before its label, and the "Search for …" row has a search icon. With nothing
-to suggest, no hint, and no text, the list stays closed rather than say No
-suggestions.
+to suggest, no hint, no operators, and no text, the list stays closed rather
+than say No suggestions.
 
 A `pendingChip` with two or more `operators` shows them as a toggle above the
 values, with `operator` pressed. Pressing one, or Tab and Shift+Tab in the

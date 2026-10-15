@@ -1214,6 +1214,14 @@ describe('QueryField operators', () => {
     expect(screen.getByRole('group', { name: 'Venue' })).toBeInTheDocument()
   })
 
+  // Such as an option field with no values to list, whose is empty is a click away.
+  it('shows the operators while no value is listed and no hint is given', async () => {
+    render(<OperatorStep suggest={() => []} />)
+    await userEvent.click(input())
+    await waitFor(() => expect(operatorGroup()).toBeInTheDocument())
+    expect(input()).toHaveAttribute('aria-expanded', 'true')
+  })
+
   it('shows no operators with only one', async () => {
     render(
       <Harness

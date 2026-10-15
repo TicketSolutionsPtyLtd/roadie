@@ -314,10 +314,14 @@ export function QueryField<Value = unknown>({
   const stuck = current && !!text.trim() && enterTarget < 0
   const hint =
     !suggestions.loading && (list.length === 0 || stuck) && pendingChip?.hint
-  // Asked for suggestions, but with none, nothing to type, and no hint, a
-  // list would only say No suggestions.
+  // Asked for suggestions, but with none, nothing to type, no hint, and no
+  // operators to switch to, a list would only say No suggestions.
   const nothingToShow =
-    list.length === 0 && !hint && !suggestions.loading && !text.trim()
+    list.length === 0 &&
+    !hint &&
+    !showsOperators &&
+    !suggestions.loading &&
+    !text.trim()
   const groupStarts = list.map((_, index) =>
     list.slice(0, index).reduce((sum, group) => sum + group.items.length, 0)
   )
