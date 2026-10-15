@@ -141,6 +141,10 @@ say what they are, such as Empty and Not empty listed above the values; its
 label still names it for screen readers. Once something is typed, Enter takes
 the first value, from a group without `hideLabel` if one matches.
 
+Give the pending chip a `hint`, such as "Type a number.", and it shows in
+place of No suggestions while no value matches, below any group with
+`hideLabel`. Screen readers announce it, as they do No suggestions.
+
 ```tsx-live
 function QueryFieldValueStep() {
   const values = {

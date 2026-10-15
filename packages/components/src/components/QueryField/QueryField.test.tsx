@@ -1356,6 +1356,54 @@ describe('QueryField value step groups', () => {
     ).toBeTruthy()
   })
 
+  it('shows the pending chip’s hint, announced, in place of No suggestions', async () => {
+    render(
+      <Harness
+        pendingChip={{ id: 'sold', label: 'Sold is', hint: 'Type a number.' }}
+        suggest={() => []}
+      />
+    )
+    await userEvent.click(input())
+    const hint = await screen.findByText('Type a number.')
+    expect(hint).toHaveAttribute('role', 'status')
+    expect(hint).toHaveAttribute('aria-live', 'polite')
+    expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
+  })
+
+  it('shows the hint beside Empty and Not empty, until a value matches', async () => {
+    render(
+      <Harness
+        pendingChip={{ id: 'venue', label: 'Venue is', hint: 'Type a venue.' }}
+        suggest={(text) => [
+          emptiness,
+          { id: 'values', label: 'Venue', items: text ? [hall] : [] }
+        ]}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByText('Type a venue.')
+    expect(optionNames()).toEqual(['Empty', 'Not empty'])
+    await userEvent.keyboard('hal')
+    await screen.findByRole('option', { name: hall.label })
+    expect(screen.queryByText('Type a venue.')).not.toBeInTheDocument()
+    expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
+  })
+
+  it('says it is loading, not the hint, while values load', async () => {
+    const values = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
+    render(
+      <Harness
+        pendingChip={{ id: 'sold', label: 'Sold is', hint: 'Type a number.' }}
+        suggest={() => values.promise}
+      />
+    )
+    await userEvent.click(input())
+    expect(await screen.findByText('Loading suggestions')).toBeInTheDocument()
+    expect(screen.queryByText('Type a number.')).not.toBeInTheDocument()
+    await act(async () => values.resolve([]))
+    expect(screen.getByText('Type a number.')).toBeInTheDocument()
+  })
+
   it('divides no groups outside the value step', async () => {
     render(<Harness />)
     await typeInto('igua')

@@ -31,7 +31,9 @@ the input, and asks `suggest` again. Tab from the last operator, or Shift+Tab
 from the first, leaves the field.
 A line divides the value step's groups, and a group with `hideLabel` names
 itself for screen readers only. Once text is typed in the value step, Enter
-takes the first value, from a group without `hideLabel` if one matches.
+takes the first value, from a group without `hideLabel` if one matches. A
+`pendingChip.hint`, such as "Type a number.", shows and is announced in place
+of No suggestions while no value matches.
 To edit a chip in the list, answer `onSelectChip` with a value step whose
 `pendingChip.chipId` names the chip: it shows selected in place of a pending
 chip, focus stays in the input, taking a value keeps the list open, and a

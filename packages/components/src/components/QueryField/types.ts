@@ -32,6 +32,11 @@ export type QueryFieldPendingChip = {
   operators?: readonly QueryFieldOperator[]
   /** The chosen operator's `value`. */
   operator?: string
+  /**
+   * What to type, such as "Type a number", shown and announced in place of
+   * No suggestions while no value matches, beside any group with `hideLabel`.
+   */
+  hint?: string
 }
 
 export type QueryFieldSuggestion<Value = unknown> = {

@@ -114,6 +114,10 @@ const NO_OPERATORS: readonly QueryFieldOperator[] = []
 
 const CARET_KEYS = new Set(['Home', 'End'])
 
+// As Combobox.Empty's, which the hint stands in for.
+const EMPTY_TEXT =
+  'text-center text-sm text-subtle empty:hidden [&:not(:empty)]:px-3 [&:not(:empty)]:py-4'
+
 // Centred on the first line of 24px chips, so wrapped rows grow below it.
 const FIRST_ROW = 'self-start mt-[calc(var(--combobox-chips-py)+--spacing(1))]'
 
@@ -297,6 +301,10 @@ export function QueryField<Value = unknown>({
       ? firstMatch(suggestions.groups, enterable)
       : undefined
   const items = list.flatMap((group) => group.items)
+  const hint =
+    !suggestions.loading &&
+    list.every((group) => group.hideLabel) &&
+    pendingChip?.hint
   const search = items.find((item) => item.kind === 'search')
   const enterFallback = exact ?? typedValue ?? search
   const fallbackKey = enterFallback && itemKey(enterFallback)
@@ -770,8 +778,16 @@ export function QueryField<Value = unknown>({
                 </Fragment>
               ))}
             </Combobox.List>
+            <ComboboxPrimitive.Status
+              data-slot='query-field-hint'
+              className={EMPTY_TEXT}
+            >
+              {hint}
+            </ComboboxPrimitive.Status>
             <Combobox.Empty>
-              {suggestions.loading ? 'Loading suggestions' : 'No suggestions'}
+              {suggestions.loading
+                ? 'Loading suggestions'
+                : !hint && 'No suggestions'}
             </Combobox.Empty>
           </Combobox.Popup>
         </Combobox.Positioner>
