@@ -157,7 +157,7 @@ export function topSuggestions(
     fromParsed(suggestion)
   )
   if (!text.trim()) return [{ id: 'fields', label: 'Filter by', items: parsed }]
-  return [
+  const groups = [
     {
       id: 'filters',
       label: 'Filters',
@@ -172,6 +172,8 @@ export function topSuggestions(
       items: parsed.filter((item) => item.kind === 'field')
     }
   ]
+  // "sold" names the Sold field before it starts "Sold out".
+  return parsed[0]?.kind === 'field' ? groups.reverse() : groups
 }
 
 /** What a field offers before anything is typed. Labels come later. */

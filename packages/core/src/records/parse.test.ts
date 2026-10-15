@@ -95,6 +95,20 @@ describe('parseQuery', () => {
     expect(parse('capa').map(summary)).toContain('field capacity')
   })
 
+  it('ranks a field its name matches exactly above a value it starts', () => {
+    const fields = [
+      ...eventFields,
+      { key: 'sold', label: 'Sold', type: 'number' as const }
+    ]
+    const read = (text: string) =>
+      parseQuery(text, { ...options, fields }).map(summary)
+    expect(read('sold').slice(0, 2)).toEqual([
+      'field sold',
+      'Status is Sold out'
+    ])
+    expect(read('sol')[0]).toBe('Status is Sold out')
+  })
+
   it('reads a date phrase for every date field, the first field first', () => {
     const result = parse('this weekend').filter((s) => s.kind === 'filter')
     expect(result.map((s) => s.label)).toEqual([

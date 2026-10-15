@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { type RecordFilter, recordFields } from '@oztix/roadie-core/records'
 
 import {
+  type SearchGroup,
   filterChipIds,
   filterKey,
   mergeFilter,
@@ -49,6 +50,9 @@ const labels = (groups: { items: readonly { label: string }[] }[]) =>
   groups.map((group) => group.items.map((item) => item.label))
 
 const byKey = (key: string) => fields.find((f) => f.key === key)!
+
+const group = (groups: SearchGroup[], id: string) =>
+  groups.find((g) => g.id === id)!
 
 describe('topSuggestions', () => {
   it('lists the fields to filter by while empty', () => {
@@ -122,15 +126,30 @@ describe('topSuggestions', () => {
   })
 
   it('keeps the words a field didn’t read', () => {
-    const [, found] = topSuggestions('ocean cit', context())
-    expect(found!.items[0]).toMatchObject({ label: 'City', remainder: 'ocean' })
+    const found = group(topSuggestions('ocean cit', context()), 'fields')
+    expect(found.items[0]).toMatchObject({ label: 'City', remainder: 'ocean' })
   })
 
   it('names fields the text starts', () => {
-    const [, found] = topSuggestions('cit', context())
-    expect(found!.items).toMatchObject([
+    const found = group(topSuggestions('cit', context()), 'fields')
+    expect(found.items).toMatchObject([
       { kind: 'field', label: 'City', value: { type: 'field', field: 'city' } }
     ])
+  })
+
+  it('lists a field its name matches exactly before the filters', () => {
+    const status = {
+      key: 'status',
+      label: 'Status',
+      type: 'option' as const,
+      options: [{ value: 'sold-out', label: 'Sold out' }]
+    }
+    const first = (text: string) =>
+      topSuggestions(text, { ...context(), fields: [...fields, status] })
+        .flatMap((g) => g.items)
+        .map((item) => item.label)[0]
+    expect(first('sold')).toBe('Sold')
+    expect(first('sol')).toBe('Status is Sold out')
   })
 })
 
