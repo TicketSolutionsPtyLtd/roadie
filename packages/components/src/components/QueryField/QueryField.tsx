@@ -6,6 +6,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
   type Ref,
+  use,
   useCallback,
   useEffect,
   useId,
@@ -17,6 +18,7 @@ import {
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import type { BaseUIEvent } from '@base-ui/react/types'
 import {
+  CaretLeftIcon,
   LockSimpleIcon,
   MagnifyingGlassIcon,
   XIcon
@@ -26,12 +28,14 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { intentVariants } from '../../variants'
+import { Button } from '../Button'
 import { Combobox, type ComboboxChipProps } from '../Combobox'
 import { useFieldContext } from '../Field'
 import { Kbd } from '../Kbd'
 import { ToggleGroup } from '../ToggleGroup'
 import { Tooltip } from '../Tooltip'
 import { useControlledText, useShortcut } from './hooks'
+import { QueryFieldPanelContext } from './panel'
 import { exactSuggestion, firstMatch, listGroups } from './suggestions'
 import type {
   QueryFieldAccepted,
@@ -287,6 +291,23 @@ export function QueryField<Value = unknown>({
   const handleFocus = () => {
     ended.current = false
   }
+
+  const panel = use(QueryFieldPanelContext)
+  // The list stays closed under the panel, so taking its value closes the
+  // dropdown and only Back returns to the list.
+  const [panelShown, setPanelShown] = useState(false)
+  if (panelShown !== !!panel) {
+    setPanelShown(!!panel)
+    if (panel) setOpen(false)
+  }
+  function leavePanel({ toList }: { toList: boolean }) {
+    if (toList) {
+      inputRef.current?.focus()
+      setOpen(true)
+    }
+    panel?.onBack()
+  }
+  useVisibleHeight(popupRef, !!panel)
 
   // A value step ends once focus lands on something outside the field and its
   // list, checked as it lands. Focus going nowhere, as when a phone's keyboard
@@ -546,8 +567,12 @@ export function QueryField<Value = unknown>({
         setText(next)
         setArrowed(false)
       }}
-      open={open && !nothingToShow}
+      open={(open && !nothingToShow) || !!panel}
       onOpenChange={(next, details) => {
+        if (panel) {
+          if (!next) leavePanel({ toList: details.reason === 'escape-key' })
+          return
+        }
         setOpen(next)
         const byArrow = next && details.reason === 'list-navigation'
         setOpeningByArrow(byArrow)
@@ -734,8 +759,26 @@ export function QueryField<Value = unknown>({
             ref={popupRef}
             onFocus={handleFocus}
             onBlur={handleBlur}
+            className={cn(
+              panel &&
+                'max-h-[min(var(--available-height),var(--query-field-visible-height,100dvh))]'
+            )}
           >
-            {showsOperators && (
+            {panel && (
+              <div data-slot='query-field-panel' className='grid gap-2'>
+                <Button
+                  size='sm'
+                  emphasis='subtler'
+                  className='justify-self-start'
+                  onClick={() => leavePanel({ toList: true })}
+                >
+                  <CaretLeftIcon weight='bold' className='size-4' aria-hidden />
+                  Back
+                </Button>
+                {panel.content}
+              </div>
+            )}
+            {showsOperators && !panel && (
               <div
                 data-slot='query-field-operators'
                 className='sticky -top-1 z-1 -mx-1 -mt-1 grid bg-raised p-1'
@@ -767,7 +810,7 @@ export function QueryField<Value = unknown>({
                 </ToggleGroup>
               </div>
             )}
-            <Combobox.List>
+            <Combobox.List hidden={!!panel}>
               {list.map((group, groupIndex) => (
                 <Combobox.Group key={groupKey(group)} items={group.items}>
                   <Combobox.GroupLabel
@@ -836,12 +879,13 @@ export function QueryField<Value = unknown>({
               ))}
             </Combobox.List>
             <ComboboxPrimitive.Status
+              hidden={!!panel}
               data-slot='query-field-hint'
               className={EMPTY_TEXT}
             >
               {hint}
             </ComboboxPrimitive.Status>
-            <Combobox.Empty>
+            <Combobox.Empty hidden={!!panel}>
               {!unhighlighting &&
                 (suggestions.loading
                   ? 'Loading suggestions'
@@ -855,3 +899,35 @@ export function QueryField<Value = unknown>({
 }
 
 QueryField.displayName = 'QueryField'
+
+/**
+ * Sets `--query-field-visible-height` on the popup to the room between its
+ * top and the visual viewport's bottom, which an on-screen keyboard raises
+ * while the layout viewport, and so `--available-height`, stays put.
+ */
+function useVisibleHeight(
+  popupRef: { current: HTMLElement | null },
+  active: boolean
+) {
+  useEffect(() => {
+    const viewport = window.visualViewport
+    const popup = popupRef.current
+    if (!active || !viewport || !popup) return
+    const fit = () => {
+      const bottom = viewport.offsetTop + viewport.height
+      const room = bottom - popup.getBoundingClientRect().top - 8
+      popup.style.setProperty('--query-field-visible-height', `${room}px`)
+    }
+    fit()
+    // Again once the popup is placed.
+    const placed = requestAnimationFrame(fit)
+    viewport.addEventListener('resize', fit)
+    viewport.addEventListener('scroll', fit)
+    return () => {
+      cancelAnimationFrame(placed)
+      viewport.removeEventListener('resize', fit)
+      viewport.removeEventListener('scroll', fit)
+      popup.style.removeProperty('--query-field-visible-height')
+    }
+  }, [popupRef, active])
+}

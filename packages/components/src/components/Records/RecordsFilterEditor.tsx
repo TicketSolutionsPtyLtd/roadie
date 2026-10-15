@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 
 import { TrashIcon } from '@phosphor-icons/react'
 
+import { isAbsoluteRange } from '@oztix/roadie-core/datetime'
 import {
   type RecordField,
   type RecordFilter,
@@ -11,9 +12,11 @@ import {
 } from '@oztix/roadie-core/records'
 
 import { Button } from '../Button'
+import { Calendar } from '../Calendar'
 import { DatePicker } from '../DatePicker'
 import { DateRangePicker } from '../DateRangePicker'
 import { Select } from '../Select'
+import { ToggleGroup } from '../ToggleGroup'
 import {
   DATE_OPERATORS,
   type DateDraft,
@@ -141,3 +144,85 @@ export function RecordsFilterEditor({
   )
 }
 RecordsFilterEditor.displayName = 'RecordsFilterEditor'
+
+const SHORT_LABELS: Record<DateOperator, string> = {
+  range: 'Within',
+  on: 'On',
+  before: 'Before',
+  after: 'After'
+}
+
+export type RecordsDatesPanelProps = Pick<
+  RecordsFilterEditorProps,
+  'field' | 'filter' | 'timeZone' | 'today'
+> & {
+  /** The filter, once its dates are picked. */
+  onChange: (filter: RecordFilter) => void
+}
+
+/**
+ * Prototype (INNO-1278): Custom dates as a calendar in the dropdown, for
+ * phones. Days only, so a timestamp field's times wait for the editor.
+ */
+export function RecordsDatesPanel({
+  field,
+  filter,
+  timeZone,
+  today,
+  onChange
+}: RecordsDatesPanelProps) {
+  const [draft, setDraft] = useState(() => draftOf(filter))
+  const take = (next: DateDraft) => {
+    const made = filterOf(field.key, next)
+    if (made) onChange(made)
+  }
+  const range =
+    draft.range && isAbsoluteRange(draft.range) ? draft.range : undefined
+  const calendar = { autoFocus: true, timeZone, today }
+
+  return (
+    <div data-slot='records-dates-panel' className='grid gap-2'>
+      <ToggleGroup
+        aria-label={`${field.label} condition`}
+        size='md'
+        emphasis='subtler'
+        value={[draft.operator]}
+        onValueChange={([operator]) => {
+          if (operator)
+            setDraft({ ...draft, operator: operator as DateOperator })
+        }}
+        className='justify-self-start'
+      >
+        {DATE_OPERATORS.map((operator) => (
+          <ToggleGroup.Item key={operator} value={operator}>
+            {SHORT_LABELS[operator]}
+          </ToggleGroup.Item>
+        ))}
+      </ToggleGroup>
+      {draft.operator === 'range' ? (
+        <Calendar
+          key='range'
+          mode='range'
+          aria-label={`${field.label} dates`}
+          defaultSelected={range}
+          onSelect={({ start, end }) => {
+            if (start && end) take({ ...draft, range: { start, end } })
+          }}
+          {...calendar}
+        />
+      ) : (
+        <Calendar
+          key='date'
+          mode='single'
+          aria-label={`${field.label} date`}
+          defaultSelected={draft.date}
+          onSelect={(date) => {
+            if (date) take({ ...draft, date })
+          }}
+          {...calendar}
+        />
+      )}
+    </div>
+  )
+}
+RecordsDatesPanel.displayName = 'RecordsDatesPanel'

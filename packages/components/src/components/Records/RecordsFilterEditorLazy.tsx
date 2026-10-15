@@ -1,6 +1,9 @@
 'use client'
 
-import type { RecordsFilterEditorProps } from './RecordsFilterEditor'
+import type {
+  RecordsDatesPanelProps,
+  RecordsFilterEditorProps
+} from './RecordsFilterEditor'
 
 type EditorModule = typeof import('./RecordsFilterEditor')
 
@@ -26,3 +29,9 @@ RecordsFilterEditorLazy.preload = (): Promise<boolean> =>
         },
         () => false
       )
+
+/** Prototype (INNO-1278): the calendar for the dropdown, from the same load. */
+export function RecordsDatesPanelLazy(props: RecordsDatesPanelProps) {
+  const Loaded = loaded?.RecordsDatesPanel
+  return Loaded ? <Loaded {...props} /> : null
+}

@@ -8,12 +8,20 @@ import { plainDateOf } from '@oztix/roadie-core/datetime'
 import type { RecordFilter } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { PickerOverlay, usePickerSurface } from '../../pickers/PickerShell'
+import {
+  PHONE,
+  PickerOverlay,
+  usePickerSurface
+} from '../../pickers/PickerShell'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { IconButton } from '../Button/IconButton'
 import { Popover } from '../Popover'
 import { QueryField, type QueryFieldAccepted } from '../QueryField'
-import { RecordsFilterEditorLazy } from './RecordsFilterEditorLazy'
+import { QueryFieldPanelContext } from '../QueryField/panel'
+import {
+  RecordsDatesPanelLazy,
+  RecordsFilterEditorLazy
+} from './RecordsFilterEditorLazy'
 import { useRecordsContext } from './context'
 import { fieldIcon } from './fieldIcon'
 import { whenIdle } from './idle'
@@ -153,6 +161,14 @@ const focusTarget = (popup: HTMLElement) => {
 const focusPanel = (popup: HTMLElement) => popup
 
 /**
+ * Prototype (INNO-1278): below the phone breakpoint, inside an element marked
+ * `data-custom-dates='inline'`, Custom dates shows a calendar in the dropdown
+ * in place of the drawer. Only the docs' comparison sets it; whichever
+ * surface loses is deleted, with this, before release.
+ */
+const INLINE_DATES = '[data-custom-dates=inline]'
+
+/**
  * Search and filter in one field. Typing searches the records' searchable
  * fields and suggests filters, such as a city or "this weekend", that become
  * chips. Selecting a chip edits its values in the list, and Custom dates
@@ -172,6 +188,12 @@ export function RecordsSearch({
   const [stepText, setStepText] = useState('')
   const [editing, setEditing] = useState<Editing | null>(null)
   const [selected, setSelected] = useState<Selected | null>(null)
+  const [inlineDates, setInlineDates] = useState<Pick<
+    Editing,
+    'field' | 'index' | 'session'
+  > | null>(null)
+  // The filter whose chip takes focus once the dropdown's calendar closes.
+  const focusOnChip = useRef<RecordFilter | null>(null)
   const sessions = useRef(0)
   const emptied = useRef(false)
   // Where focus returns as the editor closes: its chip, or the field.
@@ -325,6 +347,7 @@ export function RecordsSearch({
   const dropOpening = () => ++sessions.current
 
   function endStep() {
+    setInlineDates(null)
     setSelected(null)
     setPending(null)
     setStepText('')
@@ -394,6 +417,10 @@ export function RecordsSearch({
       return
     }
     if (value.type === 'edit' && selectedAt !== null) {
+      if (wantsInlineDates()) {
+        openInlineDates({ field: value.field, index: selectedAt })
+        return
+      }
       const id = chipIds[selectedAt]!
       endStep()
       openEditor({ field: value.field, index: selectedAt }, chipElement(id))
@@ -419,12 +446,60 @@ export function RecordsSearch({
       setPending(field.key)
       return
     }
+    if (value.type === 'edit' && wantsInlineDates()) {
+      openInlineDates({ field: value.field, index: null })
+      return
+    }
     setPending(null)
     setStepText('')
     if (value.type === 'edit')
       openEditor({ field: value.field, index: null }, group())
     else add(value.filter)
   }
+
+  const wantsInlineDates = () =>
+    window.matchMedia(PHONE).matches &&
+    !!inputRef.current?.closest(INLINE_DATES)
+
+  function openInlineDates(next: Pick<Editing, 'field' | 'index'>) {
+    const session = ++sessions.current
+    void RecordsFilterEditorLazy.preload().then((ready) => {
+      if (ready && session === sessions.current)
+        setInlineDates({ ...next, session })
+    })
+  }
+
+  function takeInlineDates(filter: RecordFilter) {
+    if (inlineDates?.index === null) add(filter)
+    else writeSelected(filter)
+    focusOnChip.current = filter
+    endStep()
+  }
+
+  useIsomorphicLayoutEffect(() => {
+    const filter = focusOnChip.current
+    if (!filter) return
+    focusOnChip.current = null
+    const index = filters.findIndex((other) => sameFilter(other, filter))
+    const id = chipIds[index]
+    ;((id && chipElement(id)) || inputRef.current)?.focus()
+  })
+
+  const inlineDatesField = inlineDates && byKey.get(inlineDates.field)
+  const datesPanel = inlineDates &&
+    inlineDatesField && {
+      content: (
+        <RecordsDatesPanelLazy
+          key={inlineDates.session}
+          field={inlineDatesField}
+          filter={(inlineDates.index !== null && selectedFilter) || null}
+          timeZone={records.timeZone}
+          today={plainDateOf(records.now, records.timeZone)}
+          onChange={takeInlineDates}
+        />
+      ),
+      onBack: () => setInlineDates(null)
+    }
 
   /** Where the edited filter is now, or null for one not written yet. */
   function editingAt(): number | null {
@@ -507,7 +582,7 @@ export function RecordsSearch({
       : []
 
   return (
-    <>
+    <QueryFieldPanelContext value={datesPanel || null}>
       <QueryField<SearchValue>
         aria-label={label ?? placeholder}
         placeholder={placeholder}
@@ -638,7 +713,7 @@ export function RecordsSearch({
           />
         </PickerOverlay>
       )}
-    </>
+    </QueryFieldPanelContext>
   )
 }
 RecordsSearch.displayName = 'Records.Search'
