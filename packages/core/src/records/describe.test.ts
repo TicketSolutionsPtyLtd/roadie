@@ -185,6 +185,29 @@ describe('describeRecordFilter', () => {
     ).toBe(label)
   })
 
+  it.each<[string, RelativeRange, string]>([
+    ['birthday', 'upcoming', 'From 3 Oct 2026'],
+    ['birthday', 'past', 'Until 2 Oct 2026'],
+    ['birthday', 'ongoing', '3 Oct 2026'],
+    ['starts', 'upcoming', 'From 3 Oct 2026, unless already over'],
+    ['starts', 'past', 'Until 3 Oct 2026, if already started'],
+    ['onSale', 'ongoing', '3 Oct 2026']
+  ])('gives %s %s its days, with no clock', (field, value, detail) => {
+    expect(describeFilter({ field, operator: 'within', value }).detail).toBe(
+      detail
+    )
+  })
+
+  it('gives a timestamp’s open range its time', () => {
+    expect(
+      describeFilter({
+        field: 'created',
+        operator: 'within',
+        value: 'upcoming'
+      }).detail
+    ).toMatch(/^From 3 Oct 2026, 12:00/)
+  })
+
   it('names every value in detail once some are left out', () => {
     expect(
       describeFilter({
