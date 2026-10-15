@@ -244,7 +244,8 @@ describe('parseQuery', () => {
           { value: 'lantern', label: 'Perth Lantern Hall' },
           { value: 'opal', label: 'Opal Harpoon Room (Upstairs)' },
           { value: 'teacup', label: 'Wobbly Teacup Room/Lawn' },
-          { value: 'kazoo', label: 'Kazoo Hollow Perth' }
+          { value: 'kazoo', label: 'Kazoo Hollow Perth' },
+          { value: 'echidna', label: 'Echidna Gaslight Theatre' }
         ]
       }
     ]
@@ -285,6 +286,17 @@ describe('parseQuery', () => {
       expect(read('starts this weekend')).not.toContain(
         'Room is Nimbus Thistle Hall'
       )
+    })
+
+    it.each([
+      ['in the next 7 days', 'Starts: Next 7 days'],
+      ['in the next week', 'Starts: Next week'],
+      ['the 20th of oct', 'Starts: 20 Oct']
+    ])('reads "%s" as a date, and "the" as no value', (text, label) => {
+      const result = read(text)
+      expect(result[0]).toBe(label)
+      expect(result).not.toContain('Room is Echidna Gaslight Theatre')
+      expect(result).not.toContain('Venue is The Quilted Walrus Room')
     })
 
     it('reads no value from the words of a negated date phrase', () => {

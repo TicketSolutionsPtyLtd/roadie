@@ -155,7 +155,8 @@ function fullYear(text: string | undefined): number | undefined {
   return text.length === 2 ? 2000 + Number(text) : Number(text)
 }
 
-const DAY_MONTH = /^(\d{1,2})(?:st|nd|rd|th)? ([a-z]+)(?: (\d{2}|\d{4}))?$/
+const DAY_MONTH =
+  /^(\d{1,2})(?:st|nd|rd|th)? (?:of )?([a-z]+)(?: (\d{2}|\d{4}))?$/
 const MONTH_DAY = /^([a-z]+) (\d{1,2})(?:st|nd|rd|th)?(?: (\d{2}|\d{4}))?$/
 const SLASHED = /^(\d{1,2})\/(\d{1,2})(?:\/(\d{2}|\d{4}))?$/
 const BARE_DAY = /^(\d{1,2})(?:st|nd|rd|th)?$/
@@ -340,8 +341,10 @@ function rolling(
   return { direction: direction === 'next' ? 'next' : 'past', amount, unit }
 }
 
-// Words that change nothing before a phrase, as in "on the weekend".
-const LEADING = /^(?:(?:on|at|over) )?the (?=weekend$)|^on (?!or )/
+// Words that change nothing before a phrase, as in "on the weekend",
+// "the 20th of oct" and "in the next 7 days".
+const LEADING =
+  /^(?:(?:on|at|over) )?the (?=\d|weekend$)|^(?:in )?the (?=(?:next|last|past) )|^on (?!or )/
 
 function normalise(text: string): string {
   return text.toLowerCase().replace(/,/g, ' ').replace(/\s+/g, ' ').trim()
