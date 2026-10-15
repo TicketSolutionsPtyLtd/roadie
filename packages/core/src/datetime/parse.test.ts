@@ -333,6 +333,37 @@ describe('parseDatePhrase: comparisons', () => {
     expect(parseDatePhrase('until today', last)).toEqual([])
   })
 
+  it.each<[string, typeof SYDNEY, DatePhraseSuggestion[]]>([
+    [
+      'from tomorrow to next fri',
+      SYDNEY,
+      one('3 to 9 Oct 2026', { start: '2026-10-03', end: '2026-10-09' })
+    ],
+    [
+      'today and mon',
+      SYDNEY,
+      one('2 to 5 Oct 2026', { start: '2026-10-02', end: '2026-10-05' })
+    ],
+    ['tomorrow to fri', SYDNEY, []],
+    ['from tomorrow to fri', SYDNEY, []],
+    [
+      'today to next fri',
+      WEDNESDAY,
+      [
+        {
+          label: '30 Sept to 9 Oct 2026',
+          value: { start: '2026-09-30', end: '2026-10-09' }
+        },
+        {
+          label: '30 Sept to 2 Oct 2026',
+          value: { start: '2026-09-30', end: '2026-10-02' }
+        }
+      ]
+    ]
+  ])('reads "%s" as the days between, in order', (text, options, expected) => {
+    expect(parseDatePhrase(text, options)).toEqual(expected)
+  })
+
   it('keeps "from" to "to" a range', () => {
     expect(parseDatePhrase('from 1 to 14 mar', SYDNEY)).toEqual(
       one('1 to 14 Mar 2027', { start: '2027-03-01', end: '2027-03-14' })
@@ -405,6 +436,7 @@ describe('parseDatePhrase: nothing to offer', () => {
     'in 9999 years',
     'in 2 fortnights',
     'end of days',
+    'today to this',
     'x'
   ])('%j', (text) => {
     expect(parseDatePhrase(text, SYDNEY)).toEqual([])

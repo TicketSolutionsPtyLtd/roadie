@@ -438,12 +438,8 @@ export function parseDatePhrase(
     return [{ label: label ?? time, value: { time } }]
   }
 
-  // Split rather than match: a lazy pattern backtracks on many separators.
-  const ends = input.replace(/^(?:between|from) /, '').split(/ (?:and|to) /)
-  if (ends.length === 2) {
-    const range = parseRange(ends[0]!, ends[1]!, today)
-    if (range) return [describe(range)]
-  }
+  const ranges = rangesOf(input, today, options)
+  if (ranges) return ranges.map(describe)
 
   m = COMPARED.exec(input)
   if (m) {
@@ -477,6 +473,43 @@ export function parseDatePhrase(
 }
 
 const COMPLETIONS = new WeakSet<DatePhraseSuggestion>()
+
+/**
+ * Each reading of "X to Y" as the days between, in order, or null unless
+ * both ends read as days, as "tomorrow to next fri" does.
+ */
+function rangesOf(
+  input: string,
+  today: string,
+  options: DatePhraseOptions
+): { start: string; end: string }[] | null {
+  // Split rather than match: a lazy pattern backtracks on many separators.
+  const ends = input.replace(/^(?:between|from) /, '').split(/ (?:and|to) /)
+  if (ends.length !== 2) return null
+  const range = parseRange(ends[0]!, ends[1]!, today)
+  if (range) return [range]
+  const [firsts = [], lasts = []] = ends.map((end) =>
+    parseDatePhrase(end, options).flatMap(
+      (day) =>
+        (!isDatePhraseCompletion(day) && dayBounds(day.value, options)) || []
+    )
+  )
+  if (!firsts.length || !lasts.length) return null
+  return firsts.flatMap(({ start }) =>
+    lasts.flatMap(({ end }) =>
+      compareDates(start, end) > 0 ? [] : [{ start, end }]
+    )
+  )
+}
+
+/** Whether text is two days joined as a range, in either order, as "since tomorrow and fri". */
+export function isDateRange(text: string, options: DatePhraseOptions): boolean {
+  const input = normalise(text).replace(/^since /, '')
+  return (
+    rangesOf(input, plainDateOf(options.now, options.timeZone), options) !==
+    null
+  )
+}
 
 // "Since" and "from" take the day itself, as "until" and "till" do.
 const ONWARD = { after: true, edge: 'start', shift: -1 } as const

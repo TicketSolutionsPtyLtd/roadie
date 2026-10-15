@@ -91,7 +91,8 @@ value, so "sold > 100" never suggests "Status is Sold out". A date keeps the
 word that compares it: "starts after today" never suggests "Starts: Today",
 and one it can't read, such as "after 7pm", suggests no date. The words of a
 longer date read nothing on their own, so "last monday" never also suggests
-the coming Monday.
+the coming Monday, and two days joined by "to" or "and", such as "tomorrow
+to next fri", read as the days between or not at all.
 `parseDatePhrase` reads "after" and "before" with any day or range, such as
 "after this weekend", and "since", "from", "on or after", "until", "till",
 and "on or before" with the day itself included.

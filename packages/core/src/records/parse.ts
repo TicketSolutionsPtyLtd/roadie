@@ -3,6 +3,7 @@ import {
   DATE_COMPARISONS,
   type DatePhraseValue,
   isDatePhraseCompletion,
+  isDateRange,
   parseDatePhrase
 } from '../datetime/parse'
 import type { DateRangeValue } from '../datetime/ranges'
@@ -558,17 +559,16 @@ function spanCandidates(
       }
       // A phrase is only completed while it is still being typed, at the end.
       const typing = end === words.length
-      if (
-        dateFields.length &&
-        !compared &&
-        !opensRange(words, start, end, options)
-      ) {
-        const readings = dateReadings(dateFields, text, options).filter(
-          (reading) => typing || reading.complete !== false
-        )
+      const readings =
+        dateFields.length && !compared
+          ? dateReadings(dateFields, text, options).filter(
+              (reading) => typing || reading.complete !== false
+            )
+          : []
+      if (readings.length && !inRange(words, start, end, options)) {
         // A negated date reads nothing, its words included.
         if (read) readings.forEach(add)
-        if (readings.length) dated.push(span)
+        dated.push(span)
       }
       if (negated) {
         negate([
@@ -591,28 +591,22 @@ function spanCandidates(
   )
 }
 
-const RANGE_STARTS = new Set(['from', 'since'])
-const RANGE_JOINS = new Set(['to', 'and'])
-
-/** Whether `start` to `end` opens a range a date ends, as "from tomorrow" in "from tomorrow to fri". */
-function opensRange(
+/**
+ * Whether `start` to `end` sits inside a range of two days, read or not, as
+ * "fri" and "from tomorrow" do in "from tomorrow to fri".
+ */
+function inRange(
   words: readonly string[],
   start: number,
   end: number,
   options: ParseQueryOptions
 ): boolean {
-  if (
-    !RANGE_STARTS.has(plain(words[start]!)) ||
-    !RANGE_JOINS.has(plain(words[end] ?? ''))
-  )
-    return false
-  const last = Math.min(words.length, end + 1 + MAX_SPAN)
-  for (let to = end + 2; to <= last; to++) {
-    const text = words
-      .slice(end + 1, to)
-      .join(' ')
-      .toLowerCase()
-    if (parseDatePhrase(text, options).length) return true
+  const last = Math.min(words.length, end + MAX_SPAN)
+  for (let from = Math.max(0, start - MAX_SPAN); from <= start; from++) {
+    for (let to = end; to <= last; to++) {
+      const text = words.slice(from, to).join(' ')
+      if ((from < start || to > end) && isDateRange(text, options)) return true
+    }
   }
   return false
 }
@@ -736,7 +730,11 @@ function statementValues(
 ): Candidate[] {
   const [start, at] = named
   const from = at + verb.words.length
-  const last = Math.min(words.length, from + MAX_SPAN)
+  // A date of more words, such as "on or after 20 oct", while the text is short.
+  const last =
+    words.length > MAX_WORDS
+      ? Math.min(words.length, from + MAX_SPAN)
+      : words.length
   // Free text stops where other filters read the rest, so "name disco melb"
   // leaves melb to City is Melbourne. Reading past it scores as stopping
   // there, and ties go to the shorter reading, so it's the runner-up.
@@ -744,7 +742,7 @@ function statementValues(
   while (stop < last && !stops.has(stop)) stop++
   const candidates: Candidate[] = []
   for (let end = from + 1; end <= last; end++) {
-    if (field.type === 'date' && opensRange(words, from, end, options)) continue
+    if (field.type === 'date' && inRange(words, from, end, options)) continue
     const typing = end === words.length
     const readings = fieldValueReadings(
       field,

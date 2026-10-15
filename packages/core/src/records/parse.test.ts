@@ -1127,9 +1127,9 @@ describe('parseQuery', () => {
     )
 
     it.each([
-      'jazz from tomorrow to fri',
-      'starts from tomorrow to fri',
-      'since tomorrow and fri'
+      'jazz from tomorrow to sat',
+      'starts from tomorrow to sat',
+      'since tomorrow and sat'
     ])('reads no comparison from a range it can’t read, as "%s"', (text) => {
       const compared = parse(text, { limit: 50 }).filter(
         (s) =>
@@ -1137,6 +1137,30 @@ describe('parseQuery', () => {
           (s.value.operator === 'after' || s.value.operator === 'before')
       )
       expect(compared).toEqual([])
+    })
+
+    it.each([
+      'from tomorrow to sat',
+      'tomorrow to sat',
+      'jazz tomorrow and sat'
+    ])('reads no single day from a range it can’t read, as "%s"', (text) => {
+      const dates = parse(text, { limit: 50 }).filter(
+        (s) => s.kind === 'filter' && s.value.field === 'starts'
+      )
+      expect(dates).toEqual([])
+    })
+
+    it.each([
+      ['from tomorrow to next sat', 'Starts: 4 to 10 Oct'],
+      ['tomorrow to fri', 'Starts: 4 to 9 Oct'],
+      ['starts from tomorrow to next sat', 'Starts: 4 to 10 Oct'],
+      ['starts on or after 20 oct', 'Starts: After 19 Oct']
+    ])('reads "%s" whole, as %s', (text, label) => {
+      const read = parse(text, { limit: 50 })
+      expect(read[0]).toMatchObject({ label, remainder: '' })
+      expect(
+        read.filter((s) => s.kind === 'filter' && s.value.field === 'starts')
+      ).toHaveLength(1)
     })
 
     it('still reads "from" before a range it can read, or before other words', () => {
