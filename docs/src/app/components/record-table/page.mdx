@@ -413,7 +413,7 @@ Every field you can filter by ends its toggle with **is empty** and **is not emp
 - Until the value reads, the list says what to type, such as "Type a number." or "Between 20 and what? Type the second number."
 - Under **is empty** or **is not empty**, the list shows one row, such as "City is empty", and Enter takes it. Typing switches back to the field's first operator, such as **is**, so what you type applies.
 
-Another option value taken under **is** joins that field's is chip, which matches any one of its values. An **is empty** chip takes the place of the field's other chips, and any other chip on the field takes the place of its **is empty** chip, as together they match nothing.
+Another option value taken under **is** joins that field's is chip, which matches any one of its values. An **is empty** chip takes the place of the field's other chips, and any other chip on the field takes the place of its **is empty** chip, as together they match nothing. A date chip takes the place of the field's earlier date chip, as two dates rarely overlap.
 
 #### Editing a chip
 
@@ -428,7 +428,7 @@ Only an option chip changes as you press an operator. Anything else waits for En
 
 #### Custom dates
 
-**Custom dates** is last in a date field's values, and the one filter you edit outside the list. It opens a condition (Is within, Is on, Is before, or Is after) with the [date range picker](/components/date-range-picker) and its relative presets, or the [date picker](/components/date-picker). It edits the selected chip, or adds a new one, and applies each change as you make it.
+**Custom dates** is last in a date field's values, and the one filter you edit outside the list. It opens a condition (Is within, Is on, Is before, or Is after) with the [date range picker](/components/date-range-picker) and its relative presets, or the [date picker](/components/date-picker). It edits the selected chip, or adds a new one, and applies each change as you make it. A new condition keeps the dates: Is on and Is before take the range's first day, Is after its last, and Is within takes the one date as a day.
 
 It opens in a popover under the chip, or a bottom drawer on a phone, and loads while the page is idle. Either one shows the field's name as its title, with a Close button, and Tab stays inside it until it closes. An existing chip's editor has **Remove filter** at the foot, and a chip whose dates you clear is removed as the editor closes.
 

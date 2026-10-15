@@ -517,7 +517,11 @@ function heldOnly(
     )
 }
 
-/** A date field's presets whose label has a word starting with each typed word, so "next" lists Next 7 days. */
+/**
+ * A date field's presets whose label has a word starting with each typed
+ * word, so "next" lists Next 7 days. Those holding more typed words whole come
+ * first, so "week" lists This week before This weekend.
+ */
 function typedPresets(
   field: RecordField,
   typed: string,
@@ -525,18 +529,23 @@ function typedPresets(
 ): SearchSuggestion[] {
   if (field.type !== 'date') return []
   const words = typed.toLowerCase().split(/\s+/)
-  return presetItems(field, 'is').filter((item) => {
-    if (item.value.type !== 'filter') return false
-    const { value } = describeRecordFilter(
-      item.value.filter,
-      context.fields,
-      context
-    )
-    const labelWords = value.toLowerCase().split(/\s+/)
-    return words.every((word) =>
-      labelWords.some((labelWord) => labelWord.startsWith(word))
-    )
-  })
+  return presetItems(field, 'is')
+    .flatMap((item) => {
+      if (item.value.type !== 'filter') return []
+      const { value } = describeRecordFilter(
+        item.value.filter,
+        context.fields,
+        context
+      )
+      const labelWords = value.toLowerCase().split(/\s+/)
+      const matches = words.every((word) =>
+        labelWords.some((labelWord) => labelWord.startsWith(word))
+      )
+      const whole = words.filter((word) => labelWords.includes(word)).length
+      return matches ? [{ item, whole }] : []
+    })
+    .sort((a, b) => b.whole - a.whole)
+    .map(({ item }) => item)
 }
 
 function parsedValues(
@@ -691,13 +700,23 @@ export function toggleValue(
   return values.length > 0 ? { ...edited, values } : null
 }
 
+const isDateFilter = (filter: RecordFilter) =>
+  filter.operator === 'between'
+    ? typeof filter.value[0] === 'string'
+    : ['on', 'before', 'after', 'within'].includes(filter.operator)
+
 /**
  * Whether a filter rules the other out: is empty on a field rules out
- * anything else on it, so it never stands beside a value that matches nothing.
+ * anything else on it, so it never stands beside a value that matches nothing,
+ * and a date rules out the field's other date, as two rarely overlap.
  */
 export function rulesOut(filter: RecordFilter, other: RecordFilter): boolean {
   if (filter.field !== other.field || sameFilter(filter, other)) return false
-  return filter.operator === 'is-not-set' || other.operator === 'is-not-set'
+  return (
+    filter.operator === 'is-not-set' ||
+    other.operator === 'is-not-set' ||
+    (isDateFilter(filter) && isDateFilter(other))
+  )
 }
 
 /** Option `is` filters on one field merge into one chip, as its values are ORed. */

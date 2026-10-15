@@ -82,14 +82,17 @@ field that can be filtered ends its toggle with is empty and is not empty,
 whose one row Enter takes. Typing switches back to the field's first operator,
 so the text applies. Typing narrows the values, and Enter takes the first. A
 quick date lists when its name has a word starting with each word typed, so
-"next" lists Next 7 days, and Enter never opens Custom dates. Typed text or a
+"next" lists Next 7 days, with whole words first, so "week" lists This week
+before This weekend, and Enter never opens Custom dates. Typed text or a
 number shows as one row worded as its chip. Between reads 20 and 50, 20-50, 20
 to 50, or 20..50, in either order, and a space after the first number adds the
 "and". One Backspace takes it away. Money takes `$` and commas. Until the
 value reads, the list says what to type, such as "Type a number." Another
 option value taken under is joins the field's is chip. An is empty chip takes
 the place of the field's other chips, and any other chip on the field takes
-the place of its is empty chip, as together they match nothing.
+the place of its is empty chip, as together they match nothing. A date chip
+takes the place of the field's earlier date chip, as two dates rarely
+overlap.
 
 Clicking a chip, or Enter on it, edits it in the list, with what it holds
 ticked. An option chip's values tick and untick, and unticking the last
@@ -106,7 +109,9 @@ option chip's operator waits for Enter, so Tab passing through is empty keeps
 the values. Backspace in the empty field removes the chip, and Escape, Enter
 with no new value to take, or leaving the field keeps it and ends the edit. Custom dates opens a date range picker with
 relative presets, or a date picker, in a popover under the chip or a bottom
-drawer on a phone, with Remove filter. Either one is titled with the field's
+drawer on a phone, with Remove filter. A new condition keeps the dates: is
+on and is before take the range's first day, is after its last, and is
+within takes the one date as a day. Either one is titled with the field's
 name, has a Close button, and keeps Tab inside it. It loads while the page is idle. A
 date chip reads as other chips do, such as "Start date is this weekend", and a
 relative one shows its dates in a tooltip. A filter the fields can't

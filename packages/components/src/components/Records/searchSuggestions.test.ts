@@ -280,6 +280,13 @@ describe('valueSuggestions', () => {
     expect(typed('next 7')[0]).toBe('Next 7 days')
   })
 
+  it('lists a preset holding the typed word whole before one it only starts', () => {
+    const typed = valuesOf(valueSuggestions(byKey('starts'), 'week', context()))
+      .items.map((item) => item.label)
+      .slice(0, 3)
+    expect(typed).toEqual(['This week', 'Next week', 'This weekend'])
+  })
+
   it('reads typed dates for the field', () => {
     const group = valuesOf(
       valueSuggestions(byKey('starts'), 'after 1 dec', context())
@@ -869,6 +876,39 @@ describe('rulesOut', () => {
     expect(rulesOut(empty, perth)).toBe(true)
     expect(rulesOut(perth, empty)).toBe(true)
     expect(rulesOut(empty, set)).toBe(true)
+  })
+
+  it('rules out a field’s other date filter, either way round', () => {
+    const weekend: RecordFilter = {
+      field: 'starts',
+      operator: 'within',
+      value: 'this-weekend'
+    }
+    const after: RecordFilter = {
+      field: 'starts',
+      operator: 'after',
+      value: '2026-12-01'
+    }
+    const between: RecordFilter = {
+      field: 'starts',
+      operator: 'between',
+      value: ['2026-10-20', '2026-10-23']
+    }
+    expect(rulesOut(weekend, after)).toBe(true)
+    expect(rulesOut(between, weekend)).toBe(true)
+    expect(rulesOut({ ...after, operator: 'on' }, between)).toBe(true)
+    expect(rulesOut(weekend, { ...after, operator: 'before' })).toBe(true)
+    expect(rulesOut(after, { ...after, field: 'placed' })).toBe(false)
+    expect(rulesOut(after, { field: 'starts', operator: 'is-set' })).toBe(false)
+  })
+
+  it('keeps a number’s ranges side by side', () => {
+    expect(
+      rulesOut(
+        { field: 'sold', operator: 'between', value: [10, 50] },
+        { field: 'sold', operator: 'between', value: [20, 80] }
+      )
+    ).toBe(false)
   })
 
   it('keeps is not empty beside values, other fields, and the same filter', () => {

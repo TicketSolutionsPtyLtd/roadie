@@ -1,8 +1,12 @@
 import { formatValue, normalizeMinusSign } from '../dataviz/format'
 import type { ValueFormat } from '../dataviz/format'
-import { describeDateRange, plainDateInstant } from '../datetime/describe'
+import {
+  describeDateRange,
+  formatResolved,
+  plainDateInstant
+} from '../datetime/describe'
 import { formatDateRange, formatDateTime } from '../datetime/format'
-import { isPlainDate, plainDateOf } from '../datetime/plainDate'
+import { addDays, isPlainDate, plainDateOf } from '../datetime/plainDate'
 import {
   type DateRangeValue,
   type PeriodRange,
@@ -10,7 +14,7 @@ import {
   isPeriodRange,
   isRollingRange
 } from '../datetime/ranges'
-import { fieldIndex, recordFieldOptions } from './fields'
+import { fieldIndex, momentOf, recordFieldOptions } from './fields'
 import type {
   RecordField,
   RecordFilter,
@@ -217,9 +221,46 @@ function rangePhrase(value: DateRangeValue): string | null {
   return NAMED_PHRASES[value] ?? value.replace('-', ' ')
 }
 
+/**
+ * Upcoming, past, and happening now as days, for a field with no clock of its
+ * own to read them in. A plain date counts whole days; an event or access
+ * moment compares the instant, so today counts only in part: a range until it
+ * ends, and a single time until it passes.
+ */
+function openDays(
+  value: DateRangeValue,
+  field: RecordField,
+  options: DescribeRecordFilterOptions
+): string | null {
+  const moment = momentOf(field)
+  if (moment === 'timestamp') return null
+  const today = plainDateOf(options.now, options.timeZone)
+  const day = (date: string) =>
+    formatResolved(
+      { kind: 'dates', start: date, end: date },
+      'UTC',
+      options.locale
+    )
+  const plain = moment === 'date'
+  switch (value) {
+    case 'upcoming':
+      if (plain) return `From ${day(today)}`
+      return `From ${day(today)}, unless already ${field.end ? 'over' : 'started'}`
+    case 'past':
+      return plain
+        ? `Until ${day(addDays(today, -1))}`
+        : `Until ${day(today)}, if already started`
+    case 'ongoing':
+      return day(today)
+    default:
+      return null
+  }
+}
+
 function describeDate(
   filter: RecordFilter,
   name: string,
+  field: RecordField,
   options: DescribeRecordFilterOptions
 ): RecordFilterDescription | null {
   const dated = (phrase: string, value = phrase, detail?: string) => ({
@@ -247,7 +288,11 @@ function describeDate(
     case 'within': {
       try {
         const { label, detail } = describeDateRange(filter.value, options)
-        return dated(rangePhrase(filter.value) ?? label, label, detail)
+        return dated(
+          rangePhrase(filter.value) ?? label,
+          label,
+          openDays(filter.value, field, options) ?? detail
+        )
       } catch {
         return dated(JSON.stringify(filter.value))
       }
@@ -271,7 +316,7 @@ export function describeRecordFilter(
   const field = fieldIndex(fields).get(filter.field)
   const name = field?.label ?? filter.field
   if (field?.type === 'date') {
-    const described = describeDate(filter, name, options)
+    const described = describeDate(filter, name, field, options)
     if (described) return described
   }
   const phrase = (operator: string, value: string) => ({

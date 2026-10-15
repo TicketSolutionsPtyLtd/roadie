@@ -259,6 +259,20 @@ describe('Records.Search', () => {
     expect(await option(/^Starts is this weekend/)).toBeInTheDocument()
   })
 
+  it('puts a new date on a field in place of its earlier one', async () => {
+    const { user, lastView } = setup()
+    await user.click(input())
+    await user.click(await option('Starts'))
+    await user.click(await option(/^This weekend/))
+    await user.click(input())
+    await user.click(await option('Starts'))
+    await user.click(await option(/^Past/))
+    expect(lastView().query.filters).toEqual([
+      { field: 'starts', operator: 'within', value: 'past' }
+    ])
+    expect(chipLabels()).toEqual(['Starts is in the past'])
+  })
+
   it('returns focus to the chip when Custom dates closes', async () => {
     const { user } = setup({
       defaultView: { query: { filters: [AFTER_1_DEC] } }
@@ -275,9 +289,7 @@ describe('Records.Search', () => {
     const dialog = await customDates(user)
     expect(chipLabels()).toEqual([])
     await condition(user, dialog, 'Is after')
-    await user.click(
-      within(dialog).getByRole('combobox', { name: 'Starts date' })
-    )
+    await user.click(within(dialog).getByRole('combobox', { name: 'Starts' }))
     await user.keyboard('1 dec{Enter}')
     expect(lastView().query.filters).toEqual([AFTER_1_DEC])
     expect(chipLabels()).toHaveLength(1)
@@ -293,9 +305,7 @@ describe('Records.Search', () => {
     await user.click(await option('Starts'))
     const dialog = await customDates(user)
     await condition(user, dialog, 'Is after')
-    await user.click(
-      within(dialog).getByRole('combobox', { name: 'Starts date' })
-    )
+    await user.click(within(dialog).getByRole('combobox', { name: 'Starts' }))
     await user.keyboard('1 dec{Enter}')
     expect(lastView().query.filters).toEqual([AFTER_1_DEC])
   })
@@ -310,9 +320,7 @@ describe('Records.Search', () => {
       }
     })
     const dialog = await customDates(user, chipLabels()[0]!)
-    await user.click(
-      within(dialog).getByRole('combobox', { name: 'Starts date' })
-    )
+    await user.click(within(dialog).getByRole('combobox', { name: 'Starts' }))
     await user.keyboard('{Control>}a{/Control}2 dec{Enter}')
     expect(lastView().query.filters).toEqual([
       { ...AFTER_1_DEC, value: '2026-12-02' }
@@ -537,7 +545,7 @@ describe('Records.Search', () => {
     const user = userEvent.setup()
     render(<Sorted />)
     const dialog = await customDates(user, chipLabels()[0]!)
-    const date = within(dialog).getByRole('combobox', { name: 'Starts date' })
+    const date = within(dialog).getByRole('combobox', { name: 'Starts' })
     await user.clear(date)
     await user.type(date, '2 dec{Enter}')
     await user.clear(date)
@@ -557,7 +565,7 @@ describe('Records.Search', () => {
     expect(lastView().query.search).toBe('ocean')
   })
 
-  it('keeps a filter whose condition was only tried, once Custom dates closes', async () => {
+  it('keeps a filter whose condition was only tried, as its date carried over', async () => {
     const { user, lastView } = setup({
       defaultView: { query: { filters: [AFTER_1_DEC] } }
     })
@@ -565,8 +573,55 @@ describe('Records.Search', () => {
     await condition(user, dialog, 'Is within')
     await user.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(lastView()).toBeUndefined()
-    expect(chipLabels()).toHaveLength(1)
+    expect(lastView().query.filters).toEqual([
+      {
+        field: 'starts',
+        operator: 'between',
+        value: ['2026-12-01', '2026-12-01']
+      }
+    ])
+  })
+
+  it('filters by the date the editor shows once the condition changes', async () => {
+    const { user, lastView } = setup({
+      defaultView: {
+        query: {
+          filters: [
+            {
+              field: 'starts',
+              operator: 'between',
+              value: ['2026-10-20', '2026-10-23']
+            }
+          ]
+        }
+      }
+    })
+    const dialog = await customDates(user, chipLabels()[0]!)
+    await condition(user, dialog, 'Is on')
+    expect(
+      within(dialog).getByRole('combobox', { name: 'Starts' })
+    ).not.toHaveValue('')
+    expect(lastView().query.filters).toEqual([
+      { field: 'starts', operator: 'on', value: '2026-10-20' }
+    ])
+    expect(chipLabels()).toEqual(['Starts is on Tue 20 Oct'])
+  })
+
+  it('carries a relative range to a new condition as the days it covers today', async () => {
+    const { user, lastView } = setup({
+      defaultView: {
+        query: {
+          filters: [
+            { field: 'starts', operator: 'within', value: 'this-weekend' }
+          ]
+        }
+      }
+    })
+    const dialog = await customDates(user, chipLabels()[0]!)
+    await condition(user, dialog, 'Is after')
+    expect(lastView().query.filters).toEqual([
+      { field: 'starts', operator: 'after', value: '2026-10-04' }
+    ])
   })
 
   it('closes an editor whose filter the view no longer holds', async () => {
@@ -679,7 +734,7 @@ describe('Records.Search', () => {
     await user.click(await option('Starts'))
     const dialog = await customDates(user)
     await condition(user, dialog, 'Is on')
-    const date = within(dialog).getByRole('combobox', { name: 'Starts date' })
+    const date = within(dialog).getByRole('combobox', { name: 'Starts' })
     await user.type(date, '1 dec{Enter}')
     await user.clear(date)
     await user.keyboard('{Enter}{Escape}')
