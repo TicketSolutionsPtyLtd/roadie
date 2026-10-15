@@ -1,11 +1,20 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 
-import { Logo, type LogoProps, type LogoSize, type LogoVariant } from '.'
+import {
+  Logo,
+  type LogoDirection,
+  type LogoProps,
+  type LogoSize,
+  type LogoTone,
+  type LogoVariant
+} from '.'
 import * as barrel from '../../index'
 import type {
+  LogoDirection as BarrelLogoDirection,
   LogoProps as BarrelLogoProps,
   LogoSize as BarrelLogoSize,
+  LogoTone as BarrelLogoTone,
   LogoVariant as BarrelLogoVariant
 } from '../../index'
 
@@ -68,6 +77,7 @@ describe('Logo', () => {
     it('renders the mark and the product name as live text', () => {
       render(<Logo product='Studio' />)
       const root = screen.getByRole('img', { name: 'Oztix Studio' })
+      expect(root).toHaveAttribute('data-variant', 'product')
       expect(slots(root)).toEqual(['logo-mark', 'logo-product'])
 
       const product = root.querySelector('[data-slot=logo-product]')!
@@ -75,24 +85,162 @@ describe('Logo', () => {
       expect(product).toHaveTextContent('Studio')
     })
 
-    it.each(['normal', 'mark', 'wordmark'] as const)(
-      'takes precedence over variant=%s',
+    it('renders the product lockup for variant=product', () => {
+      render(<Logo variant='product' product='Studio' />)
+      const root = screen.getByRole('img', { name: 'Oztix Studio' })
+      expect(root).toHaveAttribute('data-variant', 'product')
+      expect(slots(root)).toEqual(['logo-mark', 'logo-product'])
+    })
+
+    it.each(['normal', 'mark', 'wordmark', 'tagline'] as const)(
+      'still wins over variant=%s from an untyped caller',
       (variant) => {
-        render(<Logo variant={variant} product='Studio' />)
+        const props = { variant, product: 'Studio' } as unknown as LogoProps
+        render(<Logo {...props} />)
         const root = screen.getByRole('img', { name: 'Oztix Studio' })
         expect(slots(root)).toEqual(['logo-mark', 'logo-product'])
       }
     )
 
-    it.each(['', '   '])('is ignored when blank (%j)', (product) => {
+    it.each([
+      ['blank', ''],
+      ['whitespace', '   '],
+      ['undefined', undefined]
+    ])('is ignored when %s', (_, product) => {
       render(<Logo product={product} />)
       const root = screen.getByRole('img', { name: 'Oztix' })
+      expect(slots(root)).toEqual(['logo-mark', 'logo-wordmark'])
+    })
+
+    it('falls back to the normal logo for variant=product with a blank name', () => {
+      render(<Logo variant='product' product=' ' />)
+      const root = screen.getByRole('img', { name: 'Oztix' })
+      expect(root).toHaveAttribute('data-variant', 'normal')
       expect(slots(root)).toEqual(['logo-mark', 'logo-wordmark'])
     })
 
     it('keeps leading-none on the name after a resize', () => {
       render(<Logo product='Studio' className='text-[3rem]' />)
       expect(screen.getByText('Studio')).toHaveClass('leading-none')
+    })
+  })
+
+  describe('tagline', () => {
+    it('adds the tagline after the wordmark and to the accessible name', () => {
+      render(<Logo variant='tagline' />)
+      const root = screen.getByRole('img', {
+        name: 'Oztix, Built on Partnerships'
+      })
+      expect(slots(root)).toEqual([
+        'logo-mark',
+        'logo-wordmark',
+        'logo-tagline',
+        'logo-divider'
+      ])
+    })
+
+    it('keeps the tagline in the vertical lockup', () => {
+      render(<Logo variant='tagline' direction='vertical' />)
+      const root = screen.getByRole('img', {
+        name: 'Oztix, Built on Partnerships'
+      })
+      expect(slots(root)).toEqual([
+        'logo-mark',
+        'logo-wordmark',
+        'logo-tagline'
+      ])
+    })
+
+    it('still takes a consumer accessible name', () => {
+      render(<Logo variant='tagline' aria-label='Oztix home' />)
+      expect(
+        screen.getByRole('img', { name: 'Oztix home' })
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe('direction', () => {
+    it('sets the mark above the wordmark as separate SVGs', () => {
+      render(<Logo direction='vertical' />)
+      const root = screen.getByRole('img', { name: 'Oztix' })
+      expect(slots(root)).toEqual(['logo-mark', 'logo-wordmark'])
+    })
+  })
+
+  describe('types', () => {
+    it('accepts each lockup with the props it takes', () => {
+      expectTypeOf<{ product: 'Studio' }>().toExtend<LogoProps>()
+      expectTypeOf<{ product: string | undefined }>().toExtend<LogoProps>()
+      expectTypeOf<{
+        variant: 'product'
+        product: 'Studio'
+        tone: 'neutral'
+        size: 'lg'
+      }>().toExtend<LogoProps>()
+      expectTypeOf<{
+        variant: 'tagline'
+        direction: 'vertical'
+      }>().toExtend<LogoProps>()
+      expectTypeOf<{ variant: 'mark'; tone: 'light' }>().toExtend<LogoProps>()
+    })
+
+    it('rejects a product variant with no product name', () => {
+      expectTypeOf<{ variant: 'product' }>().not.toExtend<LogoProps>()
+    })
+
+    it('rejects a product name with any other variant', () => {
+      expectTypeOf<{
+        variant: 'normal'
+        product: 'Studio'
+      }>().not.toExtend<LogoProps>()
+      expectTypeOf<{
+        variant: 'mark'
+        product: 'Studio'
+      }>().not.toExtend<LogoProps>()
+      expectTypeOf<{
+        variant: 'wordmark'
+        product: 'Studio'
+      }>().not.toExtend<LogoProps>()
+      expectTypeOf<{
+        variant: 'tagline'
+        product: 'Studio'
+      }>().not.toExtend<LogoProps>()
+    })
+
+    it('rejects direction on mark, wordmark, and product', () => {
+      expectTypeOf<{
+        variant: 'mark'
+        direction: 'vertical'
+      }>().not.toExtend<LogoProps>()
+      expectTypeOf<{
+        variant: 'wordmark'
+        direction: 'horizontal'
+      }>().not.toExtend<LogoProps>()
+      expectTypeOf<{
+        product: 'Studio'
+        direction: 'vertical'
+      }>().not.toExtend<LogoProps>()
+      expectTypeOf<{
+        variant: 'product'
+        product: 'Studio'
+        direction: 'vertical'
+      }>().not.toExtend<LogoProps>()
+    })
+
+    it('rejects the invalid combinations in JSX', () => {
+      const invalid = [
+        // @ts-expect-error variant='product' needs a product name
+        <Logo key='a' variant='product' />,
+        // @ts-expect-error only the product lockup takes a product name
+        <Logo key='b' variant='mark' product='Studio' />,
+        // @ts-expect-error only normal and tagline take a direction
+        <Logo key='c' variant='wordmark' direction='vertical' />,
+        // @ts-expect-error a product logo takes no direction
+        <Logo key='d' product='Studio' direction='vertical' />,
+        // @ts-expect-error the tagline is a variant, not a boolean prop
+        <Logo key='e' tagline />
+      ]
+      expect(invalid).toHaveLength(5)
     })
   })
 
@@ -123,6 +271,15 @@ describe('Logo', () => {
   })
 
   describe('colour', () => {
+    it('holds the neutral tone to the neutral intent', () => {
+      render(
+        <div className='intent-danger'>
+          <Logo tone='neutral' />
+        </div>
+      )
+      expect(screen.getByRole('img')).toHaveClass('intent-neutral')
+    })
+
     it('is brand-9, fixed regardless of a surrounding intent or dark mode', () => {
       render(
         <div className='dark intent-danger'>
@@ -213,7 +370,15 @@ describe('Logo', () => {
     expectTypeOf<BarrelLogoProps>().toEqualTypeOf<LogoProps>()
     expectTypeOf<BarrelLogoVariant>().toEqualTypeOf<LogoVariant>()
     expectTypeOf<BarrelLogoSize>().toEqualTypeOf<LogoSize>()
-    expectTypeOf<LogoVariant>().toEqualTypeOf<'normal' | 'mark' | 'wordmark'>()
+    expectTypeOf<BarrelLogoDirection>().toEqualTypeOf<LogoDirection>()
+    expectTypeOf<BarrelLogoTone>().toEqualTypeOf<LogoTone>()
+    expectTypeOf<LogoVariant>().toEqualTypeOf<
+      'normal' | 'mark' | 'wordmark' | 'tagline' | 'product'
+    >()
+    expectTypeOf<LogoDirection>().toEqualTypeOf<'horizontal' | 'vertical'>()
+    expectTypeOf<LogoTone>().toEqualTypeOf<
+      'brand' | 'dark' | 'light' | 'neutral'
+    >()
     expectTypeOf<LogoProps>().not.toHaveProperty('children')
   })
 })

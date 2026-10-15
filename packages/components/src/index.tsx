@@ -99,8 +99,10 @@ export { Image, type ImageProps, type ImageSource } from './components/Image'
 
 export {
   Logo,
+  type LogoDirection,
   type LogoProps,
   type LogoSize,
+  type LogoTone,
   type LogoVariant
 } from './components/Logo'
 
