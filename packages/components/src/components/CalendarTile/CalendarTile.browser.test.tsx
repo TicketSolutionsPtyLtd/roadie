@@ -45,20 +45,26 @@ describe('CalendarTile month', () => {
   })
 })
 
-// Mixed case reads smaller than caps, so the band sits on the scale's first
-// step, text-xs, at every size rather than below it.
+// Mixed case reads smaller than caps, so the band's type scales with the
+// tile: text-xs at md, text-sm at lg, and 10px at sm, the one size below the
+// type scale.
 describe('CalendarTile band size', () => {
-  const sizes = ['sm', 'md', 'lg'] as const
   const px = (value: string) => parseFloat(value)
-  const textXs = () =>
-    px(getComputedStyle(document.documentElement).fontSize) * 0.75
+  const rem = (n: number) =>
+    px(getComputedStyle(document.documentElement).fontSize) * n
+  const sizes = [
+    { size: 'sm', fontSize: () => 10, padding: () => rem(0.125) },
+    { size: 'md', fontSize: () => rem(0.75), padding: () => rem(0.125) },
+    { size: 'lg', fontSize: () => rem(0.875), padding: () => rem(0.1875) }
+  ] as const
 
-  for (const size of sizes) {
-    it(`sets the band in text-xs at ${size}, the same in React and CSS`, () => {
+  for (const { size, fontSize, padding } of sizes) {
+    it(`sizes the band at ${size}, the same in React and CSS`, () => {
       const { container } = render(
         <>
           <CalendarTile month='Oct' day={15} size={size} />
           <div
+            data-twin
             className={`calendar-tile calendar-tile-${size} emphasis-subtle`}
             aria-hidden
           >
@@ -70,18 +76,53 @@ describe('CalendarTile band size', () => {
       const react = container.querySelector<HTMLElement>(
         '[data-slot="calendar-tile-top"]'
       )!
-      const twin = container.querySelector<HTMLElement>('.calendar-tile-top')!
+      const twin = container.querySelector<HTMLElement>(
+        '[data-twin] > .calendar-tile-top'
+      )!
 
-      expect(px(getComputedStyle(react).fontSize)).toBeCloseTo(textXs(), 1)
-      expect(px(getComputedStyle(twin).fontSize)).toBeCloseTo(textXs(), 1)
-      // text-xs brings no leading of its own, so the band must keep the
-      // tile's tight leading rather than open up to the font's normal height.
-      expect(getComputedStyle(react).lineHeight).toBe(
-        getComputedStyle(react).fontSize
-      )
-      expect(getComputedStyle(twin).lineHeight).toBe(
-        getComputedStyle(twin).fontSize
+      for (const band of [react, twin]) {
+        const style = getComputedStyle(band)
+        expect(px(style.fontSize)).toBeCloseTo(fontSize(), 1)
+        expect(px(style.paddingTop)).toBeCloseTo(padding(), 1)
+        expect(px(style.paddingBottom)).toBeCloseTo(padding(), 1)
+        expect(style.lineHeight).toBe(style.fontSize)
+      }
+      expect(react.getBoundingClientRect().height).toBeCloseTo(
+        twin.getBoundingClientRect().height,
+        1
       )
     })
   }
+
+  // The band's border adds to its height, so it stays at every emphasis. On
+  // a strong tile it outlines the light band, as emphasis-normal does.
+  it('outlines the band on a strong tile only', () => {
+    const { container } = render(
+      <>
+        <CalendarTile month='Oct' day={15} emphasis='strong' />
+        <div data-twin className='calendar-tile emphasis-strong' aria-hidden>
+          <span className='calendar-tile-top'>Oct</span>
+          <span className='calendar-tile-day'>15</span>
+        </div>
+        <CalendarTile month='Oct' day={15} emphasis='subtle' />
+      </>
+    )
+    const [strong, twin, subtle] = [
+      ...container.querySelectorAll<HTMLElement>('.calendar-tile-top')
+    ].map((band) => getComputedStyle(band))
+    const transparent = 'rgba(0, 0, 0, 0)'
+    expect(strong!.borderTopColor).not.toBe(transparent)
+    expect(twin!.borderTopColor).toBe(strong!.borderTopColor)
+    expect(subtle!.borderTopColor).toBe(transparent)
+  })
+
+  it('still lets a size class override the tile size', () => {
+    const { container } = render(
+      <CalendarTile month='Oct' day={15} size='lg' className='size-16' />
+    )
+    const root = container.querySelector<HTMLElement>(
+      '[data-slot="calendar-tile"]'
+    )!
+    expect(root.getBoundingClientRect().width).toBeCloseTo(rem(4), 0)
+  })
 })

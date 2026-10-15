@@ -44,17 +44,18 @@
 }
 
 @utility calendar-tile-top {
-  padding-block: 3px;
-  /* The scale's first step at every size: mixed case below it reads too small. */
+  padding-block: calc(var(--spacing) * 0.5);
   font-size: var(--text-xs);
   font-weight: 700;
+  line-height: 1;
+  border: 1px solid transparent;
   background-color: var(--intent-bg-strong);
   color: var(--intent-text-on-strong);
 
   /* These are the colours of emphasis-strong, and of emphasis-normal below,
-     which is what the React component applies. The presets also set a
-     transparent border and a rim highlight; both are invisible on an inner
-     band, so they are left out rather than duplicated here.
+     which is what the React component applies. The presets also set a rim
+     highlight, invisible on an inner band, so it is left out. Their border
+     stays, because it adds to the band's height.
 
      On a strong tile the body already carries the saturated fill, so the band
      inverts: a light cap over a saturated body. The light step is bg-normal,
@@ -63,6 +64,22 @@
   .emphasis-strong > & {
     background-color: var(--intent-bg-normal);
     color: var(--intent-text-normal);
+    border-color: var(--intent-border-normal);
+  }
+
+  /* The box scales, so the type scales with it. 10px is the one size below
+     the type scale: mixed case at text-xs crowds a 40px tile. The React tile
+     marks its size with data-size, because a calendar-tile-* class would also
+     set its box and beat a consumer's size-* class. */
+  .calendar-tile-sm > &,
+  [data-slot='calendar-tile'][data-size='sm'] > & {
+    font-size: 10px;
+  }
+
+  .calendar-tile-lg > &,
+  [data-slot='calendar-tile'][data-size='lg'] > & {
+    padding-block: calc(var(--spacing) * 0.75);
+    font-size: var(--text-sm);
   }
 }
 

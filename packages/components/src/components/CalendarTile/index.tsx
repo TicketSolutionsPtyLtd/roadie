@@ -46,10 +46,10 @@ export const calendarTileVariants = cva(
  * Not `emphasis-inverted` despite the name: that is intent step 12, a
  * near-black, where the band wants step 9.
  *
- * The type stays `text-xs` at every size: it is the scale's first step, and
- * mixed case any smaller reads too small.
+ * Type and padding come from the `calendar-tile-top` utility, so the React
+ * tile and the CSS twin can't drift apart.
  */
-const calendarTileTopVariants = cva('py-[3px] text-xs font-bold', {
+const calendarTileTopVariants = cva('calendar-tile-top', {
   variants: {
     emphasis: {
       strong: 'emphasis-normal',
@@ -163,6 +163,7 @@ export function CalendarTile({
     return (
       <time
         data-slot='calendar-tile'
+        data-size={size ?? 'md'}
         dateTime={dateTime}
         // Without a label the tile would announce 'Nov 27' with no weekday and
         // no year. The machine value is a poor name but an honest one.
@@ -178,6 +179,7 @@ export function CalendarTile({
   return (
     <div
       data-slot='calendar-tile'
+      data-size={size ?? 'md'}
       // The rows are abbreviations; the label carries the real date. Without a
       // label the tile is decorative and its neighbour owns the accessible name.
       role={label ? 'img' : undefined}
