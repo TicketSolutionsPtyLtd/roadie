@@ -498,14 +498,13 @@ function spanCandidates(
   const dateFields = fields.filter((f) => f.type === 'date')
   const candidates: Candidate[] = []
   const maxSpan = words.length > MAX_WORDS ? MAX_SPAN : words.length
-  // Spans a comparison reads as a date, as "before next fri".
-  const comparisons: [number, number][] = []
+  // Spans a date phrase reads.
+  const dated: [number, number][] = []
   for (let start = 0; start < words.length; start++) {
     // "not melb" and "-melb" never offer Melbourne itself.
     const ruledOut = start > 0 && NEGATIONS.has(plain(words[start - 1]!))
     // "after today" never offers Today: the longer reading keeps "after".
     const compared = start > 0 && DATE_COMPARISONS.has(plain(words[start - 1]!))
-    const comparing = DATE_COMPARISONS.has(plain(words[start]!))
     for (
       let end = start + 1;
       end <= Math.min(words.length, start + maxSpan);
@@ -557,19 +556,16 @@ function spanCandidates(
         valueReadings(fields, text).forEach(add)
         // A phrase is only completed while it is still being typed, at the end.
         const typing = end === words.length
-        // "before next fri" never offers Fri either.
-        const inside = comparisons.some(([c, ce]) => c < start && end <= ce)
         if (
           dateFields.length &&
           !compared &&
-          !inside &&
           !opensRange(words, start, end, options)
         ) {
-          const dates = dateReadings(dateFields, text, options).filter(
+          const readings = dateReadings(dateFields, text, options).filter(
             (reading) => typing || reading.complete !== false
           )
-          dates.forEach(add)
-          if (comparing && dates.length) comparisons.push(span)
+          readings.forEach(add)
+          if (readings.length) dated.push(span)
         }
       }
       if (negated) {
@@ -580,7 +576,10 @@ function spanCandidates(
       }
     }
   }
-  return candidates
+  // A date phrase's words read nothing less, so "next fri" never offers Fri.
+  return candidates.filter(
+    (c) => !dated.some((d) => within(c.span, d) && length(d) > length(c.span))
+  )
 }
 
 const RANGE_STARTS = new Set(['from', 'since'])
@@ -764,7 +763,10 @@ function statementValues(
       })
     }
   }
-  return candidates
+  if (field.type !== 'date') return candidates
+  // "starts sat 10 oct" never also reads Sat on its own.
+  const longest = Math.max(...candidates.map(({ span }) => span[1]))
+  return candidates.filter(({ span }) => span[1] === longest)
 }
 
 function overlap(a: [number, number], b: [number, number]): boolean {

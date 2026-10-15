@@ -329,7 +329,9 @@ A date keeps the word that compares it. `starts after today` suggests Starts
 after today's date, never "Starts: Today", and `after`, `before`, `since`,
 `from`, `until`, `till`, `on or after`, and `on or before` read as the
 [date phrases](/foundations/date-and-time#typed-phrases) do. One that can't be
-a filter, such as `after 7pm`, suggests no date.
+a filter, such as `after 7pm`, suggests no date. The words of a longer date
+read nothing on their own, so `last monday` never also suggests the coming
+Monday, and `20 to 23 oct` never suggests the 23rd alone.
 
 A field name a statement reads is never also read as a value. With a Sold
 field, `sold > 100` suggests "Sold is more than 100" and never "Status is Sold

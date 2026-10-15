@@ -1068,6 +1068,23 @@ describe('parseQuery', () => {
       expect(read.map(summary)).not.toContain('Status is On sale')
     })
 
+    it.each([
+      ['last monday', 'Starts: 28 Sept', 'Starts: 5 Oct'],
+      ['next sat', 'Starts: 10 Oct', 'Starts: 3 Oct'],
+      ['sat 10 oct', 'Starts: 10 Oct', 'Starts: 3 Oct'],
+      ['starts sat 10 oct', 'Starts: 10 Oct', 'Starts: 3 Oct'],
+      ['20 to 23 oct', 'Starts: 20 to 23 Oct', 'Starts: 23 Oct'],
+      ['on or after 20 oct', 'Starts: After 19 Oct', 'Starts: After 20 Oct'],
+      ['next 7 days', 'Starts: Next 7 days', 'Starts: Next 7 weeks']
+    ])(
+      'reads no date from words inside the longer date "%s"',
+      (text, label, dropped) => {
+        const read = parse(text, { limit: 50 }).map(summary)
+        expect(read[0]).toBe(label)
+        expect(read).not.toContain(dropped)
+      }
+    )
+
     it('reads no date for a comparison it can’t express', () => {
       const read = parse('starts after 7pm', { limit: 50 })
       expect(

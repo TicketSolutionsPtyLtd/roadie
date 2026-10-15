@@ -88,7 +88,9 @@ Melbourne" first. "city is empty" and "city is not empty" read as the field
 having no value or one. A field name a statement reads is never also read as a
 value, so "sold > 100" never suggests "Status is Sold out". A date keeps the
 word that compares it: "starts after today" never suggests "Starts: Today",
-and one it can't read, such as "after 7pm", suggests no date.
+and one it can't read, such as "after 7pm", suggests no date. The words of a
+longer date read nothing on their own, so "last monday" never also suggests
+the coming Monday.
 `parseDatePhrase` reads "after" and "before" with any day or range, such as
 "after this weekend", and "since", "from", "on or after", "until", "till",
 and "on or before" with the day itself included.
