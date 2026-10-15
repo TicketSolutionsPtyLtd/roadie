@@ -194,6 +194,43 @@ describe('Records.Toolbar’s focused search', () => {
     }
   )
 
+  it(
+    'shows the other controls again as Tab leaves the search',
+    TIMEOUT,
+    async () => {
+      await renderAt(390, oneChip)
+      await userEvent.click(searchInput())
+      await expect
+        .poll(() => screen.queryByRole('button', { name: 'Configure table' }))
+        .toBeNull()
+      const search = slot('records-search')
+      for (
+        let tabs = 0;
+        tabs < 4 && search.contains(document.activeElement);
+        tabs++
+      )
+        await userEvent.tab()
+      expect(slot('records-toolbar')).toContainElement(
+        document.activeElement as HTMLElement
+      )
+    }
+  )
+
+  it(
+    'keeps the row while Tab steps through an edited chip’s operators',
+    TIMEOUT,
+    async () => {
+      await renderAt(390, oneChip)
+      await userEvent.click(searchInput())
+      await userEvent.click(slot('combobox-chip'))
+      await expect.poll(() => screen.queryByRole('listbox')).not.toBeNull()
+      await userEvent.tab()
+      expect(searchInput()).toHaveFocus()
+      await nudgeFrames()
+      expect(Math.abs(box(searchField()).width - toolbarRoom())).toBeLessThan(1)
+    }
+  )
+
   it('keeps focus in a search a custom toolbar wraps', TIMEOUT, async () => {
     await renderAt(
       390,

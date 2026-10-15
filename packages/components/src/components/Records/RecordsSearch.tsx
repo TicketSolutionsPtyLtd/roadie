@@ -656,6 +656,16 @@ export function RecordsSearch({
           onFocusChange(true)
       }}
       onBlur={() => onFocusChange(false)}
+      onKeyDown={(event) => {
+        // The rest show before Tab moves on, as a discrete event commits first,
+        // so focus lands on them rather than past them.
+        if (
+          event.key === 'Tab' &&
+          !event.defaultPrevented &&
+          event.currentTarget.contains(event.target as Node)
+        )
+          onFocusChange(false)
+      }}
     >
       {content}
     </div>
