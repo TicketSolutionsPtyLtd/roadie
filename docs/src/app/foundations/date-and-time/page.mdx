@@ -1078,12 +1078,22 @@ starts after it has no data yet, so its comparison is unavailable. Pass
 
 `parseDatePhrase` turns what someone types into ranked suggestions. Each one
 has a label and an explicit value: a range, `{ on }`, `{ before }`,
-`{ after }`, or `{ time }`. Text that isn't a date returns nothing. On the docs
+`{ after }`, or `{ time }`. A label that's only dates, such as next
+weekend's, also has a `description` that names them. Text that isn't a date
+returns nothing. On the docs
 site, a table gives the suggestions for a set of typed phrases, best first.
 
 <PhraseTable />
 
 - Numbers are day first. `1/12` is 1 December.
+- `on`, `at`, and `over` before `the weekend` change nothing, so
+  `on the weekend` and `weekend` read as this weekend. Neither does `the`
+  before a date or `in the` before `next` or `last`, as in `the 20th of oct`
+  and `in the next 7 days`.
+- `tonight` is today, and `tmrw` is tomorrow. `rest of the week`, month, or
+  year runs from today to its last day.
+- A period on its own completes to the current one first, so `month` offers
+  this month, then month to date.
 - A date with no year takes the occurrence closest to today, either way. In
   October, `14 mar` is next March and `20 sep` is last month.
 - `after` and `before` take any day or range, so `after this weekend` is
@@ -1102,7 +1112,7 @@ site, a table gives the suggestions for a set of typed phrases, best first.
   Days that run backwards, such as `tomorrow to yesterday`, read nothing.
 - A word with two readings never becomes a label of its own. A fortnight is
   the next 14 days. Next weekend offers the one after this, by date, then this
-  weekend.
+  weekend. Its dates have "Next weekend" as their description.
 
 ## Outside React
 

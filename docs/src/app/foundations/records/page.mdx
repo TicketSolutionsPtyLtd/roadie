@@ -335,7 +335,10 @@ read nothing on their own, so `last monday` never also suggests the coming
 Monday, and `20 to 23 oct` never suggests the 23rd alone. A range of two days
 reads whole or not at all, so `tomorrow to yesterday` suggests no date. Each
 of its days can still be a value, so with a Day field, `saturday and sunday`
-suggests "Day is Saturday" after the dates.
+suggests "Day is Saturday" after the dates. Words that lead into a date, such
+as `on`, `the`, and `in the`, are part of it, so `on the weekend` never
+suggests "Status is On sale", and `the 20th of oct` never suggests a venue
+whose name starts with The.
 
 A field name a statement reads is never also read as a value. With a Sold
 field, `sold > 100` suggests "Sold is more than 100" and never "Status is Sold
@@ -345,8 +348,9 @@ before the dates.
 
 `describeRecordFilter(filter, fields, { now, timeZone })` writes any filter as
 its chip reads, such as "Gross is more than $100", with the dates a relative
-range stands for in `detail`. `parseQuery` labels its filters the same way, so
-a suggestion and the chip it makes read alike. `Records.Search` uses both, and
+range stands for in `detail`. `parseQuery` labels its filters the same way and
+takes each `description` from that `detail`, so a suggestion and the chip it
+makes read alike, dates included. `Records.Search` uses both, and
 shows a page's `scope` as locked chips that are never part of the view. Text
 that names a filter already applied, in the view or the scope, still suggests
 it, marked Already applied. Taking it clears those words and adds nothing, so
