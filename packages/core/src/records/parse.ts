@@ -505,41 +505,59 @@ function statementCandidates(
   const candidates: Candidate[] = []
   for (let start = 0; start < words.length; start++) {
     let order = 0
+    const next = () => order++
     for (const field of fields) {
       const named = nameLength(field, lower, start)
       if (!named) continue
       for (const verb of VERBS) {
         const at = start + named
         if (!verb.words.every((word, i) => lower[at + i] === word)) continue
-        const from = at + verb.words.length
-        const last = Math.min(words.length, from + MAX_SPAN)
-        for (let end = from + 1; end <= last; end++) {
-          const typing = end === words.length
-          const readings = fieldValueReadings(
-            field,
-            words.slice(from, end).join(' '),
-            options
-          ).filter(
-            (reading) =>
-              (!verb.contains || reading.filter.operator === 'contains') &&
-              (typing || reading.complete !== false)
-          )
-          const weight = spanWeight(start, end, words.length)
-          const remainder = remainderOf(words, start, end)
-          for (const reading of verb.negated ? negate(readings) : readings) {
-            candidates.push(
-              filterSuggestion(
-                // Enter takes an exact reading, so it must leave nothing.
-                remainder ? { ...reading, exact: false } : reading,
-                round(reading.quality * weight),
-                remainder,
-                [start, end],
-                order++
-              )
-            )
-          }
-        }
+        candidates.push(
+          ...statementValues(words, field, verb, start, at, options, next)
+        )
       }
+    }
+  }
+  return candidates
+}
+
+/** Each reading of the words after a statement's verb, as one candidate. */
+function statementValues(
+  words: readonly string[],
+  field: RecordField,
+  verb: Verb,
+  start: number,
+  at: number,
+  options: ParseQueryOptions,
+  next: () => number
+): Candidate[] {
+  const from = at + verb.words.length
+  const last = Math.min(words.length, from + MAX_SPAN)
+  const candidates: Candidate[] = []
+  for (let end = from + 1; end <= last; end++) {
+    const typing = end === words.length
+    const readings = fieldValueReadings(
+      field,
+      words.slice(from, end).join(' '),
+      options
+    ).filter(
+      (reading) =>
+        (!verb.contains || reading.filter.operator === 'contains') &&
+        (typing || reading.complete !== false)
+    )
+    const weight = spanWeight(start, end, words.length)
+    const remainder = remainderOf(words, start, end)
+    for (const reading of verb.negated ? negate(readings) : readings) {
+      candidates.push(
+        filterSuggestion(
+          // Enter takes an exact reading, so it must leave nothing.
+          remainder ? { ...reading, exact: false } : reading,
+          round(reading.quality * weight),
+          remainder,
+          [start, end],
+          next()
+        )
+      )
     }
   }
   return candidates
