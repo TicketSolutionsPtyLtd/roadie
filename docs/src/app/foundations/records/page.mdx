@@ -307,12 +307,16 @@ A range reads in either order, so `capacity 50-20` suggests "Capacity is 20 to
 - Numbers a space separates stay apart, so `capacity > 5 6` suggests "Capacity
   is more than 5" and keeps 6 as search text.
 
-`<field> is empty` reads as that field having no value, and `<field> is not
-empty` as it having one, so `city is not empty` suggests "City is not empty".
+Any field's name, then a value, reads as `field:value` does, with or without
+`is`.
 
-A field name then a value, with no verb, reads as `field:value` does:
-`city melb` suggests "City is Melbourne", `capacity 100` suggests "Capacity is
-100", and `starts this weekend` suggests "Starts: This weekend".
+| Form                            | Typed                 | Suggests             |
+| ------------------------------- | --------------------- | -------------------- |
+| `<field> <value>`, with no verb | `city melb`           | City is Melbourne    |
+| `<field> <value>`, with no verb | `capacity 100`        | Capacity is 100      |
+| `<field> <value>`, with no verb | `starts this weekend` | Starts: This weekend |
+| `<field> is empty`              | `starts is empty`     | Starts is empty      |
+| `<field> is not empty`          | `city is not empty`   | City is not empty    |
 
 A field name a statement reads is never also read as a value. With a Sold
 field, `sold > 100` suggests "Sold is more than 100" and never "Status is Sold
