@@ -334,6 +334,30 @@ describe('an edge fade', () => {
       item.style.paddingInline = `${NARROW}px`
     await expect.poll(fades).toEqual(['0px', '24px'])
   })
+
+  it('scrolls a pressed item clear of the fade', async () => {
+    const labels = ['Day', 'Week', 'Month', 'Quarter', 'Year']
+    function Pressed({ value }: { value: string }) {
+      return (
+        <div style={{ width: NARROW }}>
+          <ToggleGroup aria-label='Date range' value={[value]}>
+            {labels.map((label) => (
+              <ToggleGroup.Item key={label} value={label}>
+                {label}
+              </ToggleGroup.Item>
+            ))}
+          </ToggleGroup>
+        </div>
+      )
+    }
+    const { rerender } = render(<Pressed value='Year' />)
+    await expectPillOver('Year')
+    rerender(<Pressed value='Week' />)
+    await expectPillOver('Week')
+    const group = screen.getByRole('group').getBoundingClientRect()
+    const item = screen.getByRole('button', { name: 'Week' })
+    expect(item.getBoundingClientRect().left - group.left).toBeGreaterThan(24)
+  })
 })
 
 it('keeps the same height at every emphasis', () => {
