@@ -1,5 +1,3 @@
-import { CameraIcon } from '@phosphor-icons/react/ssr'
-
 import { Image } from '@/components/Image'
 
 import { Logo } from '@oztix/roadie-components/logo'
@@ -52,7 +50,19 @@ export function BrandPreview({ name }: { name: string }) {
         </div>
       )
     case 'photography':
-      return <CameraIcon weight='bold' className='size-12 text-subtle' />
+      return (
+        // PreviewThumbnail scales art down to 0.8 and 0.9 at its smaller
+        // sizes; scaling back up lets the photo cover the whole tile.
+        <span className='block w-[100cqw] scale-125 @[11rem]:scale-[1.112] @[13rem]:scale-100'>
+          <Image
+            src='/brand/photography/10.webp'
+            width={640}
+            height={417}
+            alt=''
+            className='aspect-4/3 w-full object-cover'
+          />
+        </span>
+      )
     default:
       return null
   }
