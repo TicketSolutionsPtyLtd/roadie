@@ -82,6 +82,9 @@ export default async function Home() {
             <Button emphasis='normal' href='/overview/philosophy'>
               Philosophy
             </Button>
+            <Button emphasis='normal' href='/overview/ai'>
+              Building with AI
+            </Button>
           </div>
         </div>
       </section>

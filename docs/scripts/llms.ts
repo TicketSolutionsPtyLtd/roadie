@@ -292,7 +292,8 @@ await writeFile(
       'Roadie is Oztix’s design system: CSS tokens and utilities, React components, and charts, published as @oztix/roadie-core, @oztix/roadie-components, and @oztix/roadie-charts.',
     details: [
       `Links ending in \`.md\` are markdown versions of the docs pages, with each component’s props. The rest are HTML pages.`,
-      'Import each component from its own subpath, such as `@oztix/roadie-components/button`. Style with Roadie’s semantic utilities and intents, never hardcoded colours or `dark:` variants.'
+      'Import each component from its own subpath, such as `@oztix/roadie-components/button`. Style with Roadie’s semantic utilities and intents, never hardcoded colours or `dark:` variants.',
+      `Each package ships a \`roadie.manifest.json\` with the installed version’s exports, props, and deprecations. Claude Code users can install the \`roadie@roadie\` plugin for skills that build with Roadie. [Building with AI](${pageUrl('/overview/ai')}) covers both.`
     ].join('\n\n'),
     sections
   })
