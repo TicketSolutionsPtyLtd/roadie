@@ -177,6 +177,43 @@ describe('Pattern density', () => {
   })
 })
 
+// Where each crop's screen points land on the artwork, given the point in
+// the svg's own coordinates: the turn each crop is meant to apply, undone.
+const ARTWORK_AT = {
+  top: (u: number, v: number) => [u, v],
+  banner: (u: number, v: number) => [u, v],
+  bottom: (u: number, v: number) => [u, -v],
+  left: (u: number, v: number) => [-v, u],
+  right: (u: number, v: number) => [v, -u]
+} as const
+
+describe('Pattern turn', () => {
+  it.each(Object.keys(ARTWORK_AT) as PatternCrop[])(
+    'shows the artwork turned for %s',
+    (crop) => {
+      const { box, svg } = renderSized(crop, 200, 200)
+      const toSvg = svg.getScreenCTM()!.inverse()
+      const paths = [...svg.querySelectorAll('path')]
+      let checked = 0
+      let agreed = 0
+      for (let i = 1; i < 20; i++)
+        for (let j = 1; j < 20; j++) {
+          const [sx, sy] = [box.left + i * 10, box.top + j * 10]
+          const at = new DOMPoint(sx, sy).matrixTransform(toSvg)
+          const [x, y] = ARTWORK_AT[crop](at.x, at.y)
+          const expected = paths.some((p) =>
+            p.isPointInFill(new DOMPoint(x, y))
+          )
+          const shown = document.elementFromPoint(sx, sy)?.tagName === 'path'
+          checked++
+          if (expected === shown) agreed++
+        }
+      // Points on a swirl's anti-aliased edge can go either way.
+      expect(agreed / checked).toBeGreaterThan(0.95)
+    }
+  )
+})
+
 describe('Pattern anchor', () => {
   it.each([
     ['top', 640, 128, 'top'],

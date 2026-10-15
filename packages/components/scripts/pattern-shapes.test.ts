@@ -214,8 +214,8 @@ describe('the committed artwork', () => {
     ).toEqual(shapes)
   })
 
-  // The ring set's centres have empty ground about 550 across, so any run of
-  // ground longer than that is the artwork's outside.
+  // Along the safe area's edges the longest run of ground is about 320 units,
+  // and the field's outside runs 446 or more, so 400 tells the two apart.
   it('has swirls crossing every edge of its safe area, with no outside ground', () => {
     for (const [from, to] of edgesOf(shapes.safe)) {
       const edge = crossings(isSwirl, from!, to!)
