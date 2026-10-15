@@ -259,6 +259,16 @@ remainder.
 
 <QuerySuggestions />
 
+Negation reads as the opposite filter and takes its words, leaving none in
+`remainder`. "not melb", "-melb", "venue is not walrus" and `venue:!walrus`
+offer "City is not Melbourne" or "Venue is not The Quilted Walrus Room", and
+"name doesn't contain disco" offers its text filter. `not`, `isn't`,
+`excluding`, `except` and `without` negate the value after them, a leading
+`-` negates one word (but `-5` stays a number), and `<field> is not`,
+`isn't`, `doesn't contain` and `does not contain` negate a named field, as
+`<field> is` and `<field> contains` name one. A date or a comparison such as
+more than has no opposite, so a negated one reads nothing.
+
 `describeRecordFilter(filter, fields, { now, timeZone })` writes any filter as
 its chip reads, such as "Gross is more than $100", with the dates a relative
 range stands for in `detail`. `parseQuery` labels its filters the same way, so

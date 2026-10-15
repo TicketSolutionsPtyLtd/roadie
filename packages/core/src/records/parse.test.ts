@@ -284,6 +284,205 @@ describe('parseQuery', () => {
     })
   })
 
+  describe('negation', () => {
+    it.each([
+      [
+        '-melb',
+        'City is not Melbourne',
+        { field: 'city', operator: 'is-not', values: ['melbourne'] }
+      ],
+      [
+        'not melb',
+        'City is not Melbourne',
+        { field: 'city', operator: 'is-not', values: ['melbourne'] }
+      ],
+      [
+        "isn't sydney",
+        'City is not Sydney',
+        { field: 'city', operator: 'is-not', values: ['sydney'] }
+      ],
+      [
+        'excluding walrus',
+        'Venue is not The Quilted Walrus Room',
+        { field: 'venue', operator: 'is-not', values: ['quilted-walrus-room'] }
+      ],
+      [
+        'except sold out',
+        'Status is not Sold out',
+        { field: 'status', operator: 'is-not', values: ['sold_out'] }
+      ],
+      [
+        'without jazz',
+        'Genres is not Jazz',
+        { field: 'genres', operator: 'is-not', values: ['jazz'] }
+      ],
+      [
+        'not featured',
+        'Featured is No',
+        { field: 'featured', operator: 'is-false' }
+      ],
+      [
+        'venue is not walrus',
+        'Venue is not The Quilted Walrus Room',
+        { field: 'venue', operator: 'is-not', values: ['quilted-walrus-room'] }
+      ],
+      [
+        "Venue isn't walrus",
+        'Venue is not The Quilted Walrus Room',
+        { field: 'venue', operator: 'is-not', values: ['quilted-walrus-room'] }
+      ],
+      [
+        'venue isn’t walrus',
+        'Venue is not The Quilted Walrus Room',
+        { field: 'venue', operator: 'is-not', values: ['quilted-walrus-room'] }
+      ],
+      [
+        "name doesn't contain disco",
+        'Name doesn’t contain “disco”',
+        { field: 'name', operator: 'not-contains', value: 'disco' }
+      ],
+      [
+        'name does not contain disco',
+        'Name doesn’t contain “disco”',
+        { field: 'name', operator: 'not-contains', value: 'disco' }
+      ],
+      [
+        'name is not disco',
+        'Name doesn’t contain “disco”',
+        { field: 'name', operator: 'not-contains', value: 'disco' }
+      ],
+      [
+        'order number is not OZ-55555',
+        'Order number is not OZ-55555',
+        { field: 'orderNumber', operator: 'is-not', values: ['OZ-55555'] }
+      ],
+      [
+        'capacity is not 100',
+        'Capacity is not 100',
+        { field: 'capacity', operator: 'neq', value: 100 }
+      ],
+      [
+        'venue:!walrus',
+        'Venue is not The Quilted Walrus Room',
+        { field: 'venue', operator: 'is-not', values: ['quilted-walrus-room'] }
+      ],
+      [
+        'venue:-walrus',
+        'Venue is not The Quilted Walrus Room',
+        { field: 'venue', operator: 'is-not', values: ['quilted-walrus-room'] }
+      ],
+      [
+        'name:!lampshade',
+        'Name doesn’t contain “lampshade”',
+        { field: 'name', operator: 'not-contains', value: 'lampshade' }
+      ],
+      [
+        'capacity:!100',
+        'Capacity is not 100',
+        { field: 'capacity', operator: 'neq', value: 100 }
+      ],
+      [
+        'featured:!yes',
+        'Featured is No',
+        { field: 'featured', operator: 'is-false' }
+      ]
+    ])('reads "%s" as %s, taking every word', (text, label, value) => {
+      expect(parse(text)[0]).toMatchObject({
+        kind: 'filter',
+        label,
+        value,
+        remainder: ''
+      })
+    })
+
+    it('keeps the words a negation didn’t read', () => {
+      expect(
+        parse('not melb ocean').map((s) => [s.label, s.remainder])
+      ).toContainEqual(['City is not Melbourne', 'ocean'])
+    })
+
+    it.each([
+      ['not melb', 'City is Melbourne'],
+      ['-walrus', 'Venue is The Quilted Walrus Room']
+    ])('never offers the value "%s" rules out', (text, label) => {
+      expect(parse(text).map((s) => s.label)).not.toContain(label)
+    })
+
+    it.each([
+      'not this weekend',
+      'starts is not this weekend',
+      'not after 1 dec'
+    ])('reads no date under a negation in "%s"', (text) => {
+      const read = parse(text, { limit: 50 }).filter(
+        (s) => s.kind === 'filter' && !s.remainder.split(' ').includes('not')
+      )
+      expect(read).toEqual([])
+    })
+
+    it.each(['starts:!this weekend', 'capacity:!100-500', 'capacity:!>100'])(
+      'reads nothing for %s, which has no negative',
+      (text) => {
+        expect(parse(text).filter((s) => s.kind === 'filter')).toEqual([])
+      }
+    )
+
+    it('keeps a minus sign on a number', () => {
+      expect(parse('capacity:-5')[0]).toMatchObject({
+        label: 'Capacity is -5',
+        value: { field: 'capacity', operator: 'eq', value: -5 }
+      })
+    })
+
+    it('reads "not" as part of a value when a label holds it', () => {
+      const fields = [
+        {
+          key: 'availability',
+          label: 'Availability',
+          type: 'option' as const,
+          options: [
+            { value: 'on', label: 'On sale' },
+            { value: 'off', label: 'Not on sale' }
+          ]
+        }
+      ]
+      const read = (text: string) =>
+        parseQuery(text, { ...options, fields }).map((s) => s.label)
+      expect(read('not on sale')[0]).toBe('Availability is Not on sale')
+      expect(read('not on sale')).toContain('Availability is not On sale')
+    })
+
+    it('takes "not" as plain text when nothing after it reads', () => {
+      expect(parse('not xyzzy')).toEqual([])
+    })
+  })
+
+  describe('<field> is <value>', () => {
+    it.each([
+      [
+        'venue is walrus',
+        'Venue is The Quilted Walrus Room',
+        { field: 'venue', operator: 'is', values: ['quilted-walrus-room'] }
+      ],
+      [
+        'name contains disco',
+        'Name contains “disco”',
+        { field: 'name', operator: 'contains', value: 'disco' }
+      ],
+      [
+        'starts is this weekend',
+        'Starts: This weekend',
+        { field: 'starts', operator: 'within', value: 'this-weekend' }
+      ]
+    ])('reads "%s", taking the field name and verb', (text, label, value) => {
+      expect(parse(text)[0]).toMatchObject({
+        kind: 'filter',
+        label,
+        value,
+        remainder: ''
+      })
+    })
+  })
+
   it('stops at the limit, best first', () => {
     const result = parse('', { limit: 3 })
     expect(result).toHaveLength(3)

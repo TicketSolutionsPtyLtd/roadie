@@ -63,6 +63,30 @@ const NUMBER_RANGE = new RegExp(`^${NUMBER}(?:-|\\.\\.|to)${NUMBER}$`)
 const NUMBER_COMPARE = new RegExp(`^(>|<|=|!=)?${NUMBER}$`)
 const TRUE_WORDS = new Set(['yes', 'true', 'y'])
 const FALSE_WORDS = new Set(['no', 'false', 'n'])
+const NEGATIONS = new Set(['not', "isn't", 'excluding', 'except', 'without'])
+// A dash before a digit or dollar sign is a minus sign, as in "-5".
+const SIGNED = /^-[$\d]/
+
+type Verb = { words: readonly string[]; negated: boolean; contains: boolean }
+
+const VERBS: readonly Verb[] = [
+  { words: ['is', 'not'], negated: true, contains: false },
+  { words: ["isn't"], negated: true, contains: false },
+  { words: ['is'], negated: false, contains: false },
+  { words: ["doesn't", 'contain'], negated: true, contains: true },
+  { words: ['does', 'not', 'contain'], negated: true, contains: true },
+  { words: ['contains'], negated: false, contains: true }
+]
+
+/** Lower case, reading a typographic apostrophe as a straight one. */
+const plain = (word: string) => word.toLowerCase().replace(/’/g, "'")
+
+/** The value after a leading `!` or `-`, or null when it isn't negated. */
+function negatedValue(value: string): string | null {
+  if (value.startsWith('!')) return value.slice(1).trimStart()
+  if (value.startsWith('-') && !SIGNED.test(value)) return value.slice(1)
+  return null
+}
 
 /** How well typed text names a candidate, from 0 to 1. */
 function quality(candidate: string, text: string): number {
@@ -287,6 +311,45 @@ function fieldValueReadings(
   }
 }
 
+function negatedFilter(filter: RecordFilter): RecordFilter | null {
+  switch (filter.operator) {
+    case 'is':
+      return { ...filter, operator: 'is-not' }
+    case 'contains':
+      return { ...filter, operator: 'not-contains' }
+    case 'eq':
+      return { ...filter, operator: 'neq' }
+    case 'neq':
+      return { ...filter, operator: 'eq' }
+    case 'is-true':
+      return { field: filter.field, operator: 'is-false' }
+    case 'is-false':
+      return { field: filter.field, operator: 'is-true' }
+    default:
+      return null
+  }
+}
+
+/** The opposite of each reading that has one; the label comes from the filter. */
+function negate(readings: readonly Reading[]): Reading[] {
+  return readings.flatMap(({ exact: _exact, ...reading }) => {
+    const filter = negatedFilter(reading.filter)
+    return filter ? [{ ...reading, filter }] : []
+  })
+}
+
+/** Option values and booleans by name, the readings a bare negation can flip. */
+function valueReadings(
+  fields: readonly RecordField[],
+  text: string
+): Reading[] {
+  return fields.flatMap((field) => {
+    if (field.type === 'option') return optionReadings(field, text)
+    if (field.type === 'boolean') return booleanReadings(field, text)
+    return []
+  })
+}
+
 function filterSuggestion(
   reading: Reading,
   score: number,
@@ -331,6 +394,12 @@ function round(score: number): number {
   return Math.round(score * 1000) / 1000
 }
 
+const spanWeight = (start: number, end: number, length: number) =>
+  0.4 + (0.6 * (end - start)) / length
+
+const remainderOf = (words: readonly string[], start: number, end: number) =>
+  [...words.slice(0, start), ...words.slice(end)].join(' ')
+
 function spanCandidates(
   words: readonly string[],
   fields: readonly RecordField[],
@@ -340,6 +409,8 @@ function spanCandidates(
   const candidates: Candidate[] = []
   const maxSpan = words.length > MAX_WORDS ? MAX_SPAN : words.length
   for (let start = 0; start < words.length; start++) {
+    // "not melb" and "-melb" never offer Melbourne itself.
+    const ruledOut = start > 0 && NEGATIONS.has(plain(words[start - 1]!))
     for (
       let end = start + 1;
       end <= Math.min(words.length, start + maxSpan);
@@ -347,10 +418,8 @@ function spanCandidates(
     ) {
       const span: [number, number] = [start, end]
       const text = words.slice(start, end).join(' ').toLowerCase()
-      const remainder = [...words.slice(0, start), ...words.slice(end)].join(
-        ' '
-      )
-      const weight = 0.4 + (0.6 * (end - start)) / words.length
+      const remainder = remainderOf(words, start, end)
+      const weight = spanWeight(start, end, words.length)
       let order = 0
       const add = (reading: Reading) => {
         candidates.push(
@@ -361,12 +430,6 @@ function spanCandidates(
             span,
             order++
           )
-        )
-      }
-      // Exact only when it is the whole text: Enter must not drop the rest.
-      if (end - start === 1 && words.length > 1) {
-        identifierReadings(fields, words[start]!).forEach((reading) =>
-          add({ ...reading, exact: false })
         )
       }
       fields.forEach((field) => {
@@ -382,15 +445,98 @@ function spanCandidates(
             )
           )
         }
-        if (field.type === 'option') optionReadings(field, text).forEach(add)
-        if (field.type === 'boolean') booleanReadings(field, text).forEach(add)
       })
-      // A phrase is only completed while it is still being typed, at the end.
-      const typing = end === words.length
-      if (dateFields.length) {
-        dateReadings(dateFields, text, options)
-          .filter((reading) => typing || reading.complete !== false)
-          .forEach(add)
+      const dashed = end - start === 1 ? negatedValue(words[start]!) : null
+      const negated =
+        dashed ??
+        (end - start > 1 && NEGATIONS.has(plain(words[start]!))
+          ? words.slice(start + 1, end).join(' ')
+          : null)
+      if (!ruledOut && dashed === null) {
+        // Exact only when it is the whole text: Enter must not drop the rest.
+        if (end - start === 1 && words.length > 1) {
+          identifierReadings(fields, words[start]!).forEach((reading) =>
+            add({ ...reading, exact: false })
+          )
+        }
+        valueReadings(fields, text).forEach(add)
+        // A phrase is only completed while it is still being typed, at the end.
+        const typing = end === words.length
+        if (dateFields.length) {
+          dateReadings(dateFields, text, options)
+            .filter((reading) => typing || reading.complete !== false)
+            .forEach(add)
+        }
+      }
+      if (negated) {
+        negate([
+          ...identifierReadings(fields, negated),
+          ...valueReadings(fields, negated.toLowerCase())
+        ]).forEach(add)
+      }
+    }
+  }
+  return candidates
+}
+
+/** The number of words from `start` that name the field, or 0. */
+function nameLength(
+  field: RecordField,
+  words: readonly string[],
+  start: number
+): number {
+  return Math.max(
+    ...[field.key, field.label].map((name) => {
+      const parts = plain(name).trim().split(/\s+/)
+      return parts.every((part, i) => words[start + i] === part)
+        ? parts.length
+        : 0
+    })
+  )
+}
+
+/** "<field> is <value>", "<field> is not <value>", "<field> doesn't contain <value>" and the like. */
+function statementCandidates(
+  words: readonly string[],
+  fields: readonly RecordField[],
+  options: ParseQueryOptions
+): Candidate[] {
+  const lower = words.map(plain)
+  const candidates: Candidate[] = []
+  for (let start = 0; start < words.length; start++) {
+    let order = 0
+    for (const field of fields) {
+      const named = nameLength(field, lower, start)
+      if (!named) continue
+      for (const verb of VERBS) {
+        const at = start + named
+        if (!verb.words.every((word, i) => lower[at + i] === word)) continue
+        const from = at + verb.words.length
+        const last = Math.min(words.length, from + MAX_SPAN)
+        for (let end = from + 1; end <= last; end++) {
+          const typing = end === words.length
+          const readings = fieldValueReadings(
+            field,
+            words.slice(from, end).join(' '),
+            options
+          ).filter(
+            (reading) =>
+              (!verb.contains || reading.filter.operator === 'contains') &&
+              (typing || reading.complete !== false)
+          )
+          const weight = spanWeight(start, end, words.length)
+          for (const reading of verb.negated ? negate(readings) : readings) {
+            candidates.push(
+              filterSuggestion(
+                reading,
+                round(reading.quality * weight),
+                remainderOf(words, start, end),
+                [start, end],
+                order++
+              )
+            )
+          }
+        }
       }
     }
   }
@@ -472,11 +618,16 @@ function finish(options: ParseQueryOptions) {
  * Suggestions for typed text, best first, from field definitions alone, so
  * the same function serves one list screen or a search across entities.
  * Reads identifiers (a field's `match`, offered as exact), `field:value`,
- * field names, option and status values, booleans by name, and date phrases
- * for each date field. A number field's `field:value` takes `100`, `>100`,
- * `<100`, `!=100` or `100-500`, with `$` and thousands commas allowed.
- * Filter labels read as `describeRecordFilter` writes chips. Empty text lists the filterable fields. Free text is
- * left to the caller, as a search.
+ * `<field> is <value>` and `<field> contains <value>`, field names, option
+ * and status values, booleans by name, and date phrases for each date field.
+ * A number field's `field:value` takes `100`, `>100`, `<100`, `!=100` or
+ * `100-500`, with `$` and thousands commas allowed. Negation reads as the
+ * opposite filter: a `-` before one word (not a number), `not`, `isn't`,
+ * `excluding`, `except` or `without` before a value, `<field> is not`,
+ * `isn't`, `doesn't contain` or `does not contain`, and `field:!value` or
+ * `field:-value`; a date or a comparison has no opposite, so reads nothing.
+ * Filter labels read as `describeRecordFilter` writes chips. Empty text lists
+ * the filterable fields. Free text is left to the caller, as a search.
  */
 export function parseQuery(
   text: string,
@@ -500,9 +651,13 @@ export function parseQuery(
 
   const named = namedField(input, fields)
   if (named) {
-    const { field, value } = named
+    const { field } = named
+    const negated = negatedValue(named.value)
+    const value = negated ?? named.value
+    const read = (readings: Reading[]) =>
+      negated === null ? readings : negate(readings)
     const readings = value
-      ? fieldValueReadings(field, value, options).map((reading, i) =>
+      ? read(fieldValueReadings(field, value, options)).map((reading, i) =>
           filterSuggestion(reading, round(reading.quality), '', whole, i)
         )
       : [fieldSuggestion(field, 1, '', whole, 0)]
@@ -511,7 +666,11 @@ export function parseQuery(
       .map(strip)
   }
 
-  return rank([...identifiers, ...spanCandidates(words, fields, options)])
+  return rank([
+    ...identifiers,
+    ...spanCandidates(words, fields, options),
+    ...statementCandidates(words, fields, options)
+  ])
     .slice(0, limit)
     .map(strip)
 }
