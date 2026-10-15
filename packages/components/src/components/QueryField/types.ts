@@ -26,6 +26,8 @@ export type QueryFieldPendingChip = {
   id: string
   /** Reads the chosen operator, such as "Venue is not". */
   label: string
+  /** The chip whose values the step edits: it shows selected, in place of a pending chip. */
+  chipId?: string
   /** Two or more show as a toggle above the values, which Tab steps through. */
   operators?: readonly QueryFieldOperator[]
   /** The chosen operator's `value`. */
@@ -43,6 +45,8 @@ export type QueryFieldSuggestion<Value = unknown> = {
   value: Value
   /** The text names this one exactly, such as an order number, so Enter takes it. */
   exact?: boolean
+  /** Ticks the row, such as a value the chip being edited holds. */
+  selected?: boolean
   /** The typed words it doesn't read, left in the field once it is taken. */
   remainder?: string
 }

@@ -9,8 +9,8 @@ that turns what you type into filter chips. It takes your chips and a
 the text unless a suggestion is marked `exact`; filters are taken by arrow or
 click. Locked chips come first with a "Set by this page" tooltip and nothing in
 the field removes them. Backspace on an empty field selects the last chip, then
-removes it. `pendingChip` shows the field being given a value, `onEditChip`
-gives chips an edit button that opens your editor, `shortcut` focuses the field
+removes it. `pendingChip` shows the field being given a value, `onSelectChip`
+hears a click, Enter or Space on a chip, `shortcut` focuses the field
 from anywhere on the page, and `inputRef` reaches the input. It works alone with
 `aria-label` or inside `Field`; `required` is announced but never blocks a form.
 
@@ -32,3 +32,8 @@ from the first, leaves the field.
 A line divides the value step's groups, and a group with `hideLabel` names
 itself for screen readers only. Once text is typed in the value step, Enter
 takes the first value, from a group without `hideLabel` if one matches.
+To edit a chip in the list, answer `onSelectChip` with a value step whose
+`pendingChip.chipId` names the chip: it shows selected in place of a pending
+chip, focus stays in the input, taking a value keeps the list open, and a
+suggestion marked `selected` is ticked. Backspace on the empty field removes
+the edited chip, and Escape ends the step and keeps it.

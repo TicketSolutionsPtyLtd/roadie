@@ -328,30 +328,38 @@ describe('QueryField', () => {
     expect(chipNames()).toEqual(['Event is Lampshade Disco'])
   })
 
-  it('opens a chip editor on click, Enter or Space, anchored to the chip', async () => {
-    const onEditChip = vi.fn()
-    render(<Harness initialChips={[scope, status]} onEditChip={onEditChip} />)
-    const chip = chipElement('status')!
+  it('selects a chip on click, Enter or Space, keeping focus in the input and opening the list', async () => {
+    const onSelectChip = vi.fn()
+    render(
+      <Harness initialChips={[scope, status]} onSelectChip={onSelectChip} />
+    )
     await userEvent.click(
       screen.getByRole('button', { name: 'Status is On sale' })
     )
-    expect(onEditChip).toHaveBeenLastCalledWith('status', chip)
-    chip.focus()
-    await userEvent.keyboard('{Enter}')
-    await userEvent.keyboard(' ')
-    expect(onEditChip).toHaveBeenCalledTimes(3)
+    expect(onSelectChip).toHaveBeenLastCalledWith('status')
+    expect(document.activeElement).toBe(input())
+    expect(await screen.findByRole('listbox')).toBeInTheDocument()
+    for (const key of ['{Enter}', ' ']) {
+      await userEvent.keyboard('{Escape}')
+      await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+      chipElement('status')!.focus()
+      await userEvent.keyboard(key)
+      expect(document.activeElement).toBe(input())
+      expect(await screen.findByRole('listbox')).toBeInTheDocument()
+    }
+    expect(onSelectChip).toHaveBeenCalledTimes(3)
     expect(
       screen.queryByRole('button', { name: /Event is Lampshade Disco/ })
     ).not.toBeInTheDocument()
   })
 
-  it('keeps the remove button outside the edit button', () => {
-    render(<Harness initialChips={[status]} onEditChip={() => {}} />)
-    const edit = screen.getByRole('button', { name: 'Status is On sale' })
+  it('keeps the remove button outside the select button', () => {
+    render(<Harness initialChips={[status]} onSelectChip={() => {}} />)
+    const select = screen.getByRole('button', { name: 'Status is On sale' })
     const remove = screen.getByRole('button', {
       name: 'Remove Status is On sale'
     })
-    expect(edit.contains(remove)).toBe(false)
+    expect(select.contains(remove)).toBe(false)
     expect(chipElement('status')).not.toHaveAttribute('role')
     expect(chipElement('status')).not.toHaveAttribute('aria-label')
   })
@@ -380,14 +388,14 @@ describe('QueryField', () => {
   })
 
   it('does nothing to chips or text while disabled', async () => {
-    const onEditChip = vi.fn()
+    const onSelectChip = vi.fn()
     render(
       <Harness
         disabled
         shortcut='/'
         defaultInputValue='lampshade'
         initialChips={[status]}
-        onEditChip={onEditChip}
+        onSelectChip={onSelectChip}
       />
     )
     expect(
@@ -398,7 +406,7 @@ describe('QueryField', () => {
     )
     chipElement('status')!.focus()
     await userEvent.keyboard('{Enter}{Backspace}')
-    expect(onEditChip).not.toHaveBeenCalled()
+    expect(onSelectChip).not.toHaveBeenCalled()
     expect(chipNames()).toEqual(['Status is On sale'])
     document.body.focus()
     const slash = new KeyboardEvent('keydown', { key: '/', cancelable: true })
@@ -795,8 +803,8 @@ describe('QueryField', () => {
     ).toHaveTextContent('0')
   })
 
-  it('tells assistive technology Enter edits a chip', () => {
-    render(<Harness initialChips={[scope, status]} onEditChip={() => {}} />)
+  it('tells assistive technology Enter selects a chip', () => {
+    render(<Harness initialChips={[scope, status]} onSelectChip={() => {}} />)
     expect(chipElement('status')).toHaveAttribute('aria-keyshortcuts', 'Enter')
     expect(chipElement('event')).not.toHaveAttribute('aria-keyshortcuts')
   })
@@ -1482,5 +1490,147 @@ describe('QueryField operators, edge keys', () => {
     await screen.findByRole('option', { name: iguana.label })
     await userEvent.keyboard('{Enter}')
     expect(onAccept).not.toHaveBeenCalled()
+  })
+})
+
+const perth: QueryFieldSuggestion = {
+  id: 'perth',
+  label: 'Perth',
+  kind: 'filter',
+  value: 'Perth'
+}
+const hobart: QueryFieldSuggestion = {
+  id: 'hobart',
+  label: 'Hobart',
+  kind: 'filter',
+  value: 'Hobart'
+}
+
+function CityEditing({
+  onAccept,
+  onPendingChipCancel,
+  editing = true
+}: Partial<QueryFieldProps> & { editing?: boolean }) {
+  const [cities, setCities] = useState(['Perth'])
+  const [chips, setChips] = useState<QueryFieldChip[]>([
+    status,
+    { id: 'city', label: 'City is Perth' }
+  ])
+  const chipsWith = (next: string[]) =>
+    chips
+      .filter((chip) => chip.id !== 'city')
+      .concat(
+        next.length
+          ? [{ id: 'city', label: `City is ${next.join(' or ')}` }]
+          : []
+      )
+  return (
+    <QueryField
+      aria-label='Search orders'
+      chips={chips}
+      onRemoveChip={(id) =>
+        setChips((current) => current.filter((chip) => chip.id !== id))
+      }
+      pendingChip={{
+        id: 'city',
+        label: 'City is',
+        chipId: editing ? 'city' : undefined
+      }}
+      onPendingChipCancel={onPendingChipCancel}
+      suggest={() => [
+        {
+          id: 'values',
+          label: 'City',
+          items: [perth, hobart].map((item) => ({
+            ...item,
+            selected: editing && cities.includes(item.label)
+          }))
+        }
+      ]}
+      onAccept={(suggestion) => {
+        onAccept?.(suggestion)
+        const city = String(suggestion.value)
+        const next = cities.includes(city)
+          ? cities.filter((each) => each !== city)
+          : [...cities, city]
+        setCities(next)
+        setChips(chipsWith(next))
+      }}
+    />
+  )
+}
+
+const ticked = () =>
+  screen
+    .queryAllByRole('option', { selected: true })
+    .map((option) => option.textContent)
+
+describe('QueryField chip editing', () => {
+  it('shows the chip a step edits selected, in place of a pending chip', () => {
+    render(<CityEditing />)
+    expect(chipElement('city')).toHaveAttribute('data-selected')
+    expect(chipElement('status')).not.toHaveAttribute('data-selected')
+    expect(
+      document.querySelector('[data-slot=query-field-pending-chip]')
+    ).toBeNull()
+    expect(input()).toHaveAccessibleDescription('City is')
+  })
+
+  it('ticks a selected suggestion, keeping the tick out of its name', async () => {
+    render(<CityEditing />)
+    await userEvent.click(input())
+    const selected = await screen.findByRole('option', { name: 'Perth' })
+    expect(selected).toHaveAttribute('aria-selected', 'true')
+    expect(
+      selected.querySelector('[data-slot=combobox-item-indicator]')
+    ).toBeInTheDocument()
+    const other = screen.getByRole('option', { name: 'Hobart' })
+    expect(other).toHaveAttribute('aria-selected', 'false')
+    expect(
+      other.querySelector('[data-slot=combobox-item-indicator]')
+    ).toBeNull()
+  })
+
+  it('keeps the values open while editing a chip, ticking each one taken', async () => {
+    const onAccept = vi.fn()
+    render(<CityEditing onAccept={onAccept} />)
+    await typeInto('hob')
+    await userEvent.click(await screen.findByRole('option', { name: 'Hobart' }))
+    expect(onAccept).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'hobart' })
+    )
+    expect(input()).toHaveValue('')
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
+    expect(chipNames()).toContain('City is Perth or Hobart')
+    await waitFor(() => expect(ticked()).toEqual(['Perth', 'Hobart']))
+    await userEvent.click(screen.getByRole('option', { name: 'Perth' }))
+    await waitFor(() => expect(ticked()).toEqual(['Hobart']))
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
+  })
+
+  it('closes the values once one is taken for a new filter', async () => {
+    render(<CityEditing editing={false} />)
+    await userEvent.click(input())
+    await userEvent.click(await screen.findByRole('option', { name: 'Hobart' }))
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+  })
+
+  it('removes the edited chip with Backspace on an empty field, ending the step', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(<CityEditing onPendingChipCancel={onPendingChipCancel} />)
+    await userEvent.click(input())
+    await userEvent.keyboard('{Backspace}')
+    expect(chipNames()).toEqual(['Status is On sale'])
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
+    expect(document.activeElement).toBe(input())
+  })
+
+  it('keeps the edited chip on Escape, ending the step', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(<CityEditing onPendingChipCancel={onPendingChipCancel} />)
+    await userEvent.click(input())
+    await userEvent.keyboard('{Escape}')
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
+    expect(chipNames()).toEqual(['Status is On sale', 'City is Perth'])
   })
 })

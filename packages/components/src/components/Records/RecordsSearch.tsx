@@ -222,6 +222,11 @@ export function RecordsSearch({
   const group = () =>
     inputRef.current?.closest<HTMLElement>('[data-slot=query-field]') ?? null
 
+  const chipElement = (id: string) =>
+    group()?.querySelector<HTMLElement>(
+      `[data-slot=combobox-chip][data-chip-id="${CSS.escape(id)}"]`
+    ) ?? null
+
   function openEditor(
     next: Pick<Editing, 'field' | 'index'>,
     anchor: HTMLElement | null
@@ -366,11 +371,11 @@ export function RecordsSearch({
           dropOpening()
           records.clearQuery()
         }}
-        onEditChip={(id, anchor) => {
+        onSelectChip={(id) => {
           const index = chipIds.indexOf(id)
           const filter = filters[index]
           if (filter && byKey.has(filter.field))
-            openEditor({ field: filter.field, index }, anchor)
+            openEditor({ field: filter.field, index }, chipElement(id))
         }}
         pendingChip={
           pendingField
@@ -418,12 +423,7 @@ export function RecordsSearch({
           initialFocus={editing.index === null ? focusTarget : focusPanel}
           finalFocus={() => {
             const id = returnTo.current
-            const chip =
-              id &&
-              group()?.querySelector<HTMLElement>(
-                `[data-slot=combobox-chip][data-chip-id="${CSS.escape(id)}"]`
-              )
-            return chip || inputRef.current
+            return (id && chipElement(id)) || inputRef.current
           }}
           className='w-80'
         >

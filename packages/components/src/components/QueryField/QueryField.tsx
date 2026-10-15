@@ -46,14 +46,18 @@ export type QueryFieldProps<Value = unknown> = {
   chips?: readonly QueryFieldChip[]
   /** A chip's remove button, Backspace on a selected chip, or Clear asks to remove it. Clear calls it once per chip, so update state functionally. */
   onRemoveChip?: (id: string) => void
-  /** Gives unlocked chips an edit button: open your editor `Popover` against `anchor`, the chip. */
-  onEditChip?: (id: string, anchor: HTMLElement) => void
+  /** A click, Enter or Space on an unlocked chip: start a value step for it, with `pendingChip.chipId`. Focus stays in the input and the list opens. */
+  onSelectChip?: (id: string) => void
   /**
    * Clear calls it in place of clearing the text through `onInputValueChange`
    * and removing each unlocked chip, so one update can clear both.
    */
   onClear?: () => void
-  /** The field being given a value, such as "Venue is", shown after the chips. */
+  /**
+   * The field being given a value, such as "Venue is", shown after the chips.
+   * With `chipId`, that chip shows selected instead, and taking a value keeps
+   * the list open; Backspace on the empty field removes the chip.
+   */
   pendingChip?: QueryFieldPendingChip
   /** An operator was pressed, or Tab moved to one, while a chip is pending. */
   onPendingOperatorChange?: (operator: string) => void
@@ -152,7 +156,7 @@ function isModified(event: KeyboardEvent) {
 export function QueryField<Value = unknown>({
   chips = NO_CHIPS,
   onRemoveChip,
-  onEditChip,
+  onSelectChip,
   onClear,
   pendingChip,
   onPendingOperatorChange,
@@ -224,6 +228,10 @@ export function QueryField<Value = unknown>({
   )
   const unlocked = ordered.filter((chip) => !chip.locked)
   const removable = !!(onRemoveChip || onClear)
+  const editedId = pendingChip?.chipId
+  const edited = editedId
+    ? ordered.find((chip) => chip.id === editedId)
+    : undefined
   const operators = pendingChip?.operators ?? NO_OPERATORS
   const operator = pendingChip?.operator
   const showsOperators = operators.length >= 2
@@ -236,7 +244,9 @@ export function QueryField<Value = unknown>({
     suggest,
     text,
     open,
-    pendingChip && `${pendingChip.id}\u0000${operator ?? ''}`
+    pendingChip && `${pendingChip.id}\u0000${operator ?? ''}`,
+    // A value taken changes the edited chip, and so which values are ticked.
+    edited && `${edited.id}\u0000${edited.label}`
   )
   const list = listGroups({
     groups: suggestions.groups,
@@ -272,7 +282,7 @@ export function QueryField<Value = unknown>({
 
   function accept(suggestion: QueryFieldAccepted<Value>) {
     if (suggestion.kind !== 'search') setText(suggestion.remainder ?? '')
-    if (suggestion.kind !== 'field') setOpen(false)
+    if (suggestion.kind !== 'field' && !editedId) setOpen(false)
     onAccept?.(suggestion)
   }
 
@@ -296,9 +306,10 @@ export function QueryField<Value = unknown>({
     ].find((element) => element.dataset.chipId === id)
   }
 
-  function edit(chip: QueryFieldChip) {
-    const element = chipElement(chip.id)
-    if (element) onEditChip?.(chip.id, element)
+  function select(chip: QueryFieldChip) {
+    onSelectChip?.(chip.id)
+    inputRef.current?.focus()
+    setOpen(true)
   }
 
   function handleInputKeyDown(
@@ -363,6 +374,7 @@ export function QueryField<Value = unknown>({
     if (event.key === 'Backspace' && event.currentTarget.value === '') {
       event.preventBaseUIHandler()
       if (pendingChip) {
+        if (edited && !edited.locked) onRemoveChip?.(edited.id)
         onPendingChipCancel?.()
         return
       }
@@ -386,12 +398,12 @@ export function QueryField<Value = unknown>({
     }
     if (
       (event.key === 'Enter' || event.key === ' ') &&
-      onEditChip &&
+      onSelectChip &&
       !chip.locked
     ) {
       event.preventBaseUIHandler()
       event.preventDefault()
-      edit(chip)
+      select(chip)
     }
   }
 
@@ -472,7 +484,7 @@ export function QueryField<Value = unknown>({
             ) : (
               chip.description
             )
-            const editable = !!onEditChip && !chip.locked
+            const selectable = !!onSelectChip && !chip.locked
             const content = (
               <>
                 {chip.locked && (
@@ -482,14 +494,14 @@ export function QueryField<Value = unknown>({
                     className='size-3 shrink-0'
                   />
                 )}
-                {editable ? (
+                {selectable ? (
                   <button
                     type='button'
                     tabIndex={-1}
                     disabled={isDisabled}
                     className='inline-flex min-w-0 cursor-pointer outline-none'
                     onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => edit(chip)}
+                    onClick={() => select(chip)}
                   >
                     <Combobox.ChipLabel>{chip.label}</Combobox.ChipLabel>
                   </button>
@@ -513,7 +525,8 @@ export function QueryField<Value = unknown>({
                 data-slot='combobox-chip'
                 data-chip-id={chip.id}
                 data-locked={chip.locked ? '' : undefined}
-                aria-keyshortcuts={editable ? 'Enter' : undefined}
+                aria-keyshortcuts={selectable ? 'Enter' : undefined}
+                selected={chip.id === editedId}
                 className={cn(
                   props.className,
                   CHIP_WIDTH,
@@ -547,12 +560,15 @@ export function QueryField<Value = unknown>({
           {pendingChip && (
             <span
               id={pendingId}
-              data-slot='query-field-pending-chip'
+              // The edited chip shows the step; its label still describes the input.
+              data-slot={edited ? undefined : 'query-field-pending-chip'}
               // A description's change isn't read, so the operator's is live.
               aria-live='polite'
               className={cn(
-                'inline-flex h-6 min-w-0 items-center rounded-full border border-dashed border-normal px-2.5 text-sm font-medium text-subtle',
-                CHIP_WIDTH
+                edited
+                  ? 'sr-only'
+                  : 'inline-flex h-6 min-w-0 items-center rounded-full border border-dashed border-normal px-2.5 text-sm font-medium text-subtle',
+                !edited && CHIP_WIDTH
               )}
             >
               <span className='min-w-0 truncate'>{pendingChip.label}</span>
@@ -670,6 +686,10 @@ export function QueryField<Value = unknown>({
                                 enterTarget &&
                               'bg-subtle'
                           )}
+                          // Chips hold the field's value, so Base UI never selects a row.
+                          aria-selected={
+                            item.kind !== 'search' && !!item.selected
+                          }
                         >
                           <OptionIcon
                             icon={
@@ -701,6 +721,9 @@ export function QueryField<Value = unknown>({
                             <Kbd size='sm' className='text-subtle'>
                               Enter
                             </Kbd>
+                          )}
+                          {item.kind !== 'search' && item.selected && (
+                            <Combobox.ItemIndicator keepMounted />
                           )}
                         </Combobox.Item>
                       )}
