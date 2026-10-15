@@ -1747,6 +1747,22 @@ describe('QueryField chip editing', () => {
     expect(onPendingChipCancel).not.toHaveBeenCalled()
   })
 
+  it('leaves the step alone once the field unmounts as focus leaves', async () => {
+    const onPendingChipCancel = vi.fn()
+    const { rerender } = render(
+      <CityEditing onPendingChipCancel={onPendingChipCancel} />
+    )
+    await userEvent.click(input())
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    onTestFinished(() => {
+      vi.useRealTimers()
+    })
+    input().blur()
+    rerender(<></>)
+    settleFocus()
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
+  })
+
   it('takes the first unticked value on Enter after typing, while editing a chip', async () => {
     const onAccept = vi.fn()
     render(<CityEditing onAccept={onAccept} />)
