@@ -250,6 +250,12 @@ describe('parseQuery', () => {
           s.remainder
         ])
       ).toContainEqual(['City is Melbourne', 'name disco'])
+      expect(
+        parse('name not disco melb', { limit: 50 }).map((s) => [
+          s.label,
+          s.remainder
+        ])
+      ).toContainEqual(['City is Melbourne', 'name not disco'])
     })
   })
 
@@ -739,6 +745,7 @@ describe('parseQuery', () => {
       ]
       expect(readSold('sold', fields)).toContain('State is Sold')
       expect(readSold('sold > 100', fields)).not.toContain('State is Sold')
+      expect(readSold('a>b sold > 100', fields)).not.toContain('State is Sold')
     })
 
     it.each([
