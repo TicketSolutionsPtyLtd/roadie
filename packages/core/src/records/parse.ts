@@ -1,4 +1,3 @@
-import { describeDateRange } from '../datetime/describe'
 import {
   DATE_COMPARISONS,
   type DatePhraseValue,
@@ -16,7 +15,7 @@ type SuggestionBase = {
   /** Stable for the same text, fields and day. */
   id: string
   label: string
-  /** The dates a relative phrase stands for, so the absolute stays reachable. */
+  /** The chip's detail, such as the dates a relative phrase stands for. */
   description?: string
   /** Higher is better, from 0 to 1; comparable across entities' fields. */
   score: number
@@ -252,7 +251,6 @@ type Reading = {
   quality: number
   /** A value the text names only in part, such as "this" for Thistle. */
   partial?: boolean
-  description?: string
   exact?: boolean
   /** False for a date phrase completed from its first words, like "this". */
   complete?: boolean
@@ -302,8 +300,6 @@ function dateReadings(
     dateFields.flatMap((field, f) => {
       const filter = dateFilter(field, phrase.value)
       if (!filter) return []
-      const range = phraseRange(phrase.value)
-      const detail = range && describeDateRange(range, options).detail
       const completed = isDatePhraseCompletion(phrase)
       return [
         {
@@ -311,8 +307,7 @@ function dateReadings(
           label: `${field.label}: ${phrase.label}`,
           quality:
             (p === 0 ? 1 : 0.9) * (completed ? 0.8 : 1) * DATE_FIELD_DECAY ** f,
-          complete: !completed,
-          ...(detail && detail !== phrase.label && { description: detail })
+          complete: !completed
         }
       ]
     })
@@ -455,7 +450,6 @@ function filterSuggestion(
     remainder,
     span,
     order,
-    ...(reading.description && { description: reading.description }),
     ...(reading.exact && { exact: true }),
     ...(reading.negates && { negates: reading.negates }),
     ...(reading.partial && { partial: true })
@@ -908,15 +902,22 @@ function finish(options: ParseQueryOptions) {
     partial: _partial,
     ...suggestion
   }: Candidate) => {
-    // A filter reads as its chip will, dates included.
-    const label =
-      suggestion.kind === 'field'
-        ? suggestion.label
-        : describeRecordFilter(suggestion.value, fields, options).label
+    // A filter reads as its chip will, dates and their tooltip included.
+    const described =
+      suggestion.kind === 'filter'
+        ? describeRecordFilter(suggestion.value, fields, options)
+        : null
+    const finished = described
+      ? {
+          ...suggestion,
+          label: described.label,
+          ...(described.detail && { description: described.detail })
+        }
+      : suggestion
     return (
       entity
-        ? { ...suggestion, label, id: `${entity}:${suggestion.id}`, entity }
-        : { ...suggestion, label }
+        ? { ...finished, id: `${entity}:${suggestion.id}`, entity }
+        : finished
     ) as RecordSuggestion
   }
 }
