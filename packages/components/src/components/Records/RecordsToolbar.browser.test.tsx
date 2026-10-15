@@ -150,6 +150,49 @@ describe.each([390, 360, 280, 1280])(
   }
 )
 
+describe('Records.Toolbar’s focused search', () => {
+  const searchInput = () =>
+    screen.getByRole('combobox', { name: 'Search and filter' })
+  const toolbarRoom = () => {
+    const toolbar = slot('records-toolbar')
+    const style = getComputedStyle(toolbar)
+    return (
+      box(toolbar).width -
+      parseFloat(style.paddingLeft) -
+      parseFloat(style.paddingRight)
+    )
+  }
+
+  it(
+    'takes the toolbar’s row on a phone, hiding the other controls until focus leaves',
+    TIMEOUT,
+    async () => {
+      await renderAt(390, oneChip)
+      await expect.poll(() => configure()).toBeTruthy()
+      const resting = box(searchField()).width
+      expect(resting).toBeLessThan(toolbarRoom() - 40)
+      searchInput().focus()
+      await expect
+        .poll(() => screen.queryByRole('button', { name: 'Configure table' }))
+        .toBeNull()
+      expect(Math.abs(box(searchField()).width - toolbarRoom())).toBeLessThan(1)
+      searchInput().blur()
+      await expect.poll(() => configure()).toBeTruthy()
+      expect(box(searchField()).width).toBe(resting)
+    }
+  )
+
+  it('leaves the controls beside it on a wide toolbar', TIMEOUT, async () => {
+    await renderAt(1280, oneChip)
+    const resting = box(searchField()).width
+    searchInput().focus()
+    await expect.poll(() => document.activeElement).toBe(searchInput())
+    await nudgeFrames()
+    expect(configure()).toBeVisible()
+    expect(box(searchField()).width).toBe(resting)
+  })
+})
+
 describe('Records.Toolbar outside a pane', () => {
   it('adds no space above the search', TIMEOUT, async () => {
     function Shows() {

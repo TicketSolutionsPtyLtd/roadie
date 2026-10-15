@@ -112,7 +112,8 @@ relative date chip shows its dates in a tooltip, and a filter the fields can't
 apply shows in warning colours. `/` focuses the search unless `shortcut` (or
 `searchShortcut` on `Records.Toolbar` and `RecordTable`) says otherwise, and
 Clear and Escape clear it. The toolbar keeps its buttons at the top as chips
-wrap.
+wrap. Under 40rem, the focused search takes the toolbar's row, and the other
+controls hide until focus leaves it.
 
 `useRecords` takes a `scope`: filters the page sets, such as the event a list
 of tickets belongs to. They filter with the view but are never part of it,

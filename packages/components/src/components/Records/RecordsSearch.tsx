@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { use, useEffect, useId, useMemo, useRef, useState } from 'react'
 
 import { XIcon } from '@phosphor-icons/react'
 
@@ -18,6 +18,7 @@ import { useRecordsContext } from './context'
 import { fieldIcon } from './fieldIcon'
 import { whenIdle } from './idle'
 import { applyQuery } from './query'
+import { SearchFocusContext } from './searchFocus'
 import {
   type SearchContext,
   type SearchGroup,
@@ -218,6 +219,7 @@ export function RecordsSearch({
     }
   })
   const labelId = useId()
+  const onFocusChange = use(SearchFocusContext)
   const editorOpen = editing?.open ?? false
   const surface = usePickerSurface(editorOpen)
   useEffect(() => whenIdle(RecordsFilterEditorLazy.preload), [])
@@ -506,7 +508,7 @@ export function RecordsSearch({
         )
       : []
 
-  return (
+  const content = (
     <>
       <QueryField<SearchValue>
         aria-label={label ?? placeholder}
@@ -639,6 +641,18 @@ export function RecordsSearch({
         </PickerOverlay>
       )}
     </>
+  )
+  if (!onFocusChange) return content
+  // React's focus events bubble out of the list and editor portals too.
+  return (
+    <div
+      data-slot='records-search'
+      className='contents'
+      onFocus={() => onFocusChange(true)}
+      onBlur={() => onFocusChange(false)}
+    >
+      {content}
+    </div>
   )
 }
 RecordsSearch.displayName = 'Records.Search'
