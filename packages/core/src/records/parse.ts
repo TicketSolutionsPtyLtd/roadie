@@ -195,8 +195,10 @@ function dateFilter(
 function numberFilter(field: RecordField, text: string) {
   const range = NUMBER_RANGE.exec(text)
   if (range) {
-    const value: [number, number] = [amount(range[1]!), amount(range[2]!)]
-    return value.every(Number.isFinite) && value[0] <= value[1]
+    const value = [amount(range[1]!), amount(range[2]!)].sort(
+      (a, b) => a - b
+    ) as [number, number]
+    return value.every(Number.isFinite)
       ? {
           filter: { field: field.key, operator: 'between', value } as const,
           label: `${field.label} is ${value[0]} to ${value[1]}`

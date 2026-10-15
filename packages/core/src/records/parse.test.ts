@@ -645,6 +645,22 @@ describe('parseQuery', () => {
       expect(readSold(text)).not.toContain('Status is Sold out')
     })
 
+    it.each([
+      'sold 100 to 20',
+      'sold 100-20',
+      'sold 100..20',
+      'sold between 100 and 20',
+      'sold:100-20'
+    ])('reads the range "%s" in either order', (text) => {
+      expect(
+        parseQuery(text, { ...options, fields: soldFields })[0]
+      ).toMatchObject({
+        label: 'Sold is 20 to 100',
+        value: { field: 'sold', operator: 'between', value: [20, 100] },
+        remainder: ''
+      })
+    })
+
     it('reads no value from a field name that matches it exactly', () => {
       const fields = [
         ...soldFields,

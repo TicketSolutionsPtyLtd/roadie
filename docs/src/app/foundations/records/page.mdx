@@ -293,6 +293,9 @@ A number or money field's name, then a comparison, reads as that filter.
 | `!=` or `≠`                                | `capacity != 100`            | Capacity is not 100       |
 | `between` and `and`, or a range with a `-` | `capacity between 20 and 50` | Capacity is 20 to 50      |
 
+A range reads in either order, so `capacity 50-20` suggests "Capacity is 20 to
+50".
+
 A number alone after a field name, such as `capacity 100`, stays search text.
 
 A field name a statement reads is never also read as a value. With a Sold

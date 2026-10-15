@@ -71,8 +71,8 @@ contains disco" too. A negated value never also suggests its positive, so
 comparison has no opposite, so a negated one reads nothing.
 
 A number or money field's name, then `>`, `<`, `=`, `!=`, more than, less
-than, over, under, between 20 and 50, or a range such as 20-50, reads as that
-comparison: "capacity > 100" suggests "Capacity is more than 100".
+than, over, under, between 20 and 50, or a range such as 20-50 in either
+order, reads as that comparison: "capacity > 100" suggests "Capacity is more than 100".
 `field:value` takes the same words, and "capacity:20 and 50" reads as a
 range. A field name a statement reads is never also read as a value, so
 "sold > 100" never suggests "Status is Sold out".
