@@ -251,6 +251,8 @@ type Reading = {
   quality: number
   /** A value the text names only in part, such as "this" for Thistle. */
   partial?: boolean
+  /** What a date says when its chip has no detail, as "Next weekend". */
+  description?: string
   exact?: boolean
   /** False for a date phrase completed from its first words, like "this". */
   complete?: boolean
@@ -307,7 +309,8 @@ function dateReadings(
           label: `${field.label}: ${phrase.label}`,
           quality:
             (p === 0 ? 1 : 0.9) * (completed ? 0.8 : 1) * DATE_FIELD_DECAY ** f,
-          complete: !completed
+          complete: !completed,
+          ...(phrase.description && { description: phrase.description })
         }
       ]
     })
@@ -450,6 +453,7 @@ function filterSuggestion(
     remainder,
     span,
     order,
+    ...(reading.description && { description: reading.description }),
     ...(reading.exact && { exact: true }),
     ...(reading.negates && { negates: reading.negates }),
     ...(reading.partial && { partial: true })

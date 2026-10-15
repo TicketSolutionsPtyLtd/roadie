@@ -213,6 +213,17 @@ describe('parseQuery', () => {
     })
   })
 
+  it('describes both readings of next weekend, as this weekend has one', () => {
+    expect(
+      parse('next weekend')
+        .filter((s) => s.kind === 'filter' && s.value.field === 'starts')
+        .map((s) => [s.label, s.description])
+    ).toEqual([
+      ['Starts: 10 to 11 Oct', 'Next weekend'],
+      ['Starts: This weekend', '3 to 4 Oct 2026']
+    ])
+  })
+
   it('offers no hour windows on a plain date field', () => {
     const hourFields = parse('next 6 hours', { limit: 50 })
       .filter(

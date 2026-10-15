@@ -37,10 +37,6 @@ describe('parseDatePhrase: relative words', () => {
     ['upcoming', one('Upcoming', 'upcoming')],
     ['ongoing', one('Happening now', 'ongoing')],
     [
-      'last weekend',
-      one('26 to 27 Sept 2026', { start: '2026-09-26', end: '2026-09-27' })
-    ],
-    [
       'next 7 days',
       one('Next 7 days', { direction: 'next', amount: 7, unit: 'day' })
     ],
@@ -107,9 +103,20 @@ describe('parseDatePhrase: relative words', () => {
     expect(parseDatePhrase('next weekend', SYDNEY)).toEqual([
       {
         label: '10 to 11 Oct 2026',
-        value: { start: '2026-10-10', end: '2026-10-11' }
+        value: { start: '2026-10-10', end: '2026-10-11' },
+        description: 'Next weekend'
       },
       { label: 'This weekend', value: 'this-weekend' }
+    ])
+  })
+
+  it('reads last weekend as dates, and says which weekend they are', () => {
+    expect(parseDatePhrase('last weekend', SYDNEY)).toEqual([
+      {
+        label: '26 to 27 Sept 2026',
+        value: { start: '2026-09-26', end: '2026-09-27' },
+        description: 'Last weekend'
+      }
     ])
   })
 

@@ -43,7 +43,12 @@ export type DatePhraseValue =
   /** A wall-clock time, 'HH:MM' on a 24-hour clock. */
   | { time: string }
 
-export type DatePhraseSuggestion = { label: string; value: DatePhraseValue }
+export type DatePhraseSuggestion = {
+  label: string
+  value: DatePhraseValue
+  /** The words a label of dates stands for: "Next weekend". */
+  description?: string
+}
 
 const PHRASES: [string, DateRangeValue][] = [
   ['today', 'today'],
@@ -396,7 +401,10 @@ export function parseDatePhrase(
     const shift = input === 'next weekend' ? 7 : -7
     const thisWeekend = resolveDateRange('this-weekend', options)
     const start = addDays(thisWeekend.start as string, shift)
-    const explicit = describe({ start, end: addDays(start, 1) })
+    const explicit = {
+      ...describe({ start, end: addDays(start, 1) }),
+      description: `${input[0]!.toUpperCase()}${input.slice(1)}`
+    }
     return input === 'next weekend'
       ? [explicit, describe('this-weekend')]
       : [explicit]
