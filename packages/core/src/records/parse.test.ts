@@ -385,6 +385,26 @@ describe('parseQuery', () => {
         'featured:!yes',
         'Featured is No',
         { field: 'featured', operator: 'is-false' }
+      ],
+      [
+        'featured is not no',
+        'Featured is Yes',
+        { field: 'featured', operator: 'is-true' }
+      ],
+      [
+        'capacity is not !=100',
+        'Capacity is 100',
+        { field: 'capacity', operator: 'eq', value: 100 }
+      ],
+      [
+        'city:! melb',
+        'City is not Melbourne',
+        { field: 'city', operator: 'is-not', values: ['melbourne'] }
+      ],
+      [
+        'not OZ-55555',
+        'Order number is not OZ-55555',
+        { field: 'orderNumber', operator: 'is-not', values: ['OZ-55555'] }
       ]
     ])('reads "%s" as %s, taking every word', (text, label, value) => {
       expect(parse(text)[0]).toMatchObject({
@@ -431,7 +451,19 @@ describe('parseQuery', () => {
         label: 'Capacity is -5',
         value: { field: 'capacity', operator: 'eq', value: -5 }
       })
+      expect(parse('gross:-$5')[0]).toMatchObject({
+        value: { field: 'gross', operator: 'eq', value: -5 }
+      })
     })
+
+    it.each(['not OZ-55555', '-OZ-55555', 'order number:!OZ-55555'])(
+      'never takes the negated identifier in "%s" as exact',
+      (text) => {
+        expect(parse(text).some((s) => s.kind === 'filter' && s.exact)).toBe(
+          false
+        )
+      }
+    )
 
     it('reads "not" as part of a value when a label holds it', () => {
       const fields = [
@@ -480,6 +512,21 @@ describe('parseQuery', () => {
         value,
         remainder: ''
       })
+    })
+
+    it('reads only text under contains', () => {
+      const read = parse("venue doesn't contain walrus", { limit: 50 })
+      expect(read.filter((s) => s.remainder === '')).toEqual([])
+      expect(parse('order number contains OZ-55555')[0]).toMatchObject({
+        value: { field: 'orderNumber', operator: 'contains' }
+      })
+    })
+
+    it('completes no date phrase with words after it', () => {
+      const read = parse('starts is this melb', { limit: 50 })
+      expect(
+        read.filter((s) => s.kind === 'filter' && s.value.field === 'starts')
+      ).toEqual([])
     })
 
     it('takes an identifier as exact only when nothing is left over', () => {
