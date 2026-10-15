@@ -14,6 +14,7 @@ const TABLES: [route: string, slot: string][] = [
   ...['neutral', 'blue', 'purple', 'orange', 'green', 'yellow', 'red'].map(
     (hue): [string, string] => ['/brand/colour', `brand-swatches-${hue}`]
   ),
+  ['/brand/illustration', 'illustration-library'],
   ['/charts/dashboards', 'card-sizes'],
   ['/charts/dashboards', 'copy-limits'],
   ['/charts/dashboards', 'chart-label-limits'],

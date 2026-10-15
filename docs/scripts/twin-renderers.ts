@@ -14,6 +14,7 @@ import {
   type BrandHue,
   brandColourTable
 } from '../src/lib/brand-colours.ts'
+import { BRAND_ILLUSTRATIONS } from '../src/lib/brand-illustrations.ts'
 import { cardSizeTable } from '../src/lib/card-sizes.ts'
 import {
   DATAVIZ_STRIPS,
@@ -106,6 +107,16 @@ export const DATA_RENDERERS: Record<string, Renderer> = {
     return twinTableMarkdown(brandColourTable(tokens(), hue as BrandHue))
   },
   BreakpointScale: () => twinTableMarkdown(breakpointTable(tokens())),
+  IllustrationLibrary: () =>
+    twinTableMarkdown({
+      head: ['Illustration', 'Tags', 'SVG', 'Component'],
+      rows: BRAND_ILLUSTRATIONS.map(({ slug, label, tags, component }) => [
+        label,
+        tags.join(', '),
+        [{ code: `/brand/illustrations/${slug}.svg` }],
+        component ? [{ code: component }] : ''
+      ])
+    }),
   ContainerScale: () => twinTableMarkdown(containerTable(tokens())),
   DurationScale: () => twinTableMarkdown(durationTable(tokens())),
   EasingScale: () => twinTableMarkdown(easingTable(tokens())),

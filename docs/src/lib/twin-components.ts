@@ -37,6 +37,7 @@ export const TWIN_COMPONENTS = {
   FormExamples: 'drawing',
   IconSizeScale: 'rendered',
   IllustrationGallery: 'rendered',
+  IllustrationLibrary: 'rendered',
   LogoExample: 'drawing',
   IntentEmphasis: 'drawing',
   LayeringScale: 'rendered',
