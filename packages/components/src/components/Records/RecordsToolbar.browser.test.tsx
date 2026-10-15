@@ -1,6 +1,8 @@
+import { type ReactNode } from 'react'
+
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import roadieCss from '../../../vitest.browser.css?inline'
 import { nudgeFrames } from '../../css/testUtils'
@@ -48,7 +50,13 @@ const oneChip: RecordViewDefaults = {
   }
 }
 
-function ShowsPane({ defaultView }: { defaultView?: RecordViewDefaults }) {
+function ShowsPane({
+  defaultView,
+  toolbar
+}: {
+  defaultView?: RecordViewDefaults
+  toolbar?: ReactNode
+}) {
   const records = useRecords({
     data: testShows(80),
     fields: showFields,
@@ -62,7 +70,7 @@ function ShowsPane({ defaultView }: { defaultView?: RecordViewDefaults }) {
           <Pane.Title>Shows</Pane.Title>
         </Pane.Header>
         <Pane.Body>
-          <Records.Toolbar />
+          <Records.Toolbar>{toolbar}</Records.Toolbar>
           <Records.Content />
         </Pane.Body>
       </Pane>
@@ -76,11 +84,15 @@ const box = (element: Element) => element.getBoundingClientRect()
 const searchField = () => slot('query-field')
 const configure = () => screen.getByRole('button', { name: 'Configure table' })
 
-async function renderAt(width: number, defaultView?: RecordViewDefaults) {
+async function renderAt(
+  width: number,
+  defaultView?: RecordViewDefaults,
+  toolbar?: ReactNode
+) {
   await page.viewport(width, 800)
   render(
     <div style={{ height: 640, width, display: 'grid' }}>
-      <ShowsPane defaultView={defaultView} />
+      <ShowsPane defaultView={defaultView} toolbar={toolbar} />
     </div>
   )
   await expect.poll(() => slot('pane-header')).not.toBeNull()
@@ -181,6 +193,23 @@ describe('Records.Toolbar’s focused search', () => {
       expect(box(searchField()).width).toBe(resting)
     }
   )
+
+  it('keeps focus in a search a custom toolbar wraps', TIMEOUT, async () => {
+    await renderAt(
+      390,
+      oneChip,
+      <>
+        <div className='flex min-w-40 grow basis-0'>
+          <Records.Search className='grow' />
+        </div>
+        <Records.Options />
+      </>
+    )
+    await userEvent.click(searchInput())
+    await nudgeFrames()
+    expect(searchInput()).toHaveFocus()
+    expect(searchInput()).toBeVisible()
+  })
 
   it('leaves the controls beside it on a wide toolbar', TIMEOUT, async () => {
     await renderAt(1280, oneChip)

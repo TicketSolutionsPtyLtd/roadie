@@ -648,7 +648,13 @@ export function RecordsSearch({
     <div
       data-slot='records-search'
       className='contents'
-      onFocus={() => onFocusChange(true)}
+      onFocus={(event) => {
+        // Only as the toolbar's own child: inside a wrapper, the wrapper hides.
+        if (
+          event.currentTarget.parentElement?.dataset.slot === 'records-toolbar'
+        )
+          onFocusChange(true)
+      }}
       onBlur={() => onFocusChange(false)}
     >
       {content}
