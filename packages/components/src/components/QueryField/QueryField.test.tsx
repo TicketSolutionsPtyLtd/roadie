@@ -1800,6 +1800,29 @@ describe('QueryField chip editing', () => {
     expect(screen.getByRole('listbox')).toBeInTheDocument()
   })
 
+  it('closes the values once a take ends the edit, as for a chip holding one value', async () => {
+    function OneValue() {
+      const [editing, setEditing] = useState(true)
+      return (
+        <Harness
+          initialChips={[city]}
+          pendingChip={
+            editing
+              ? { id: 'city', label: 'City is', chipId: 'city' }
+              : undefined
+          }
+          suggest={() => [{ id: 'values', label: 'City', items: [hobart] }]}
+          onAccept={() => setEditing(false)}
+        />
+      )
+    }
+    render(<OneValue />)
+    await userEvent.click(input())
+    await userEvent.click(await screen.findByRole('option', { name: 'Hobart' }))
+    expect(chipElement('city')).not.toHaveAttribute('data-selected')
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+  })
+
   it('closes the values once one is taken for a new filter', async () => {
     render(<CityEditing editing={false} />)
     await userEvent.click(input())

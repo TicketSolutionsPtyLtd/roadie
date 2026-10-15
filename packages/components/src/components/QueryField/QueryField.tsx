@@ -58,7 +58,8 @@ export type QueryFieldProps<Value = unknown> = {
   /**
    * The field being given a value, such as "Venue is", shown after the chips.
    * With `chipId`, that chip shows selected instead, taking a value keeps
-   * the list open, and Backspace in the empty field removes the chip. Focus
+   * the list open unless `onAccept` ends the step, and Backspace in the empty
+   * field removes the chip. Focus
    * moving outside the field and its list, or a press outside them, ends the
    * step.
    */
@@ -252,6 +253,12 @@ export function QueryField<Value = unknown>({
     setListedFor(editedId)
     if (editedId) setOpen(true)
   }
+  // A take that ends an edit, as a chip holding one value does, closes the list.
+  const [takenIn, setTakenIn] = useState<string>()
+  if (takenIn !== undefined) {
+    setTakenIn(undefined)
+    if (takenIn !== step) setOpen(false)
+  }
   const popupRef = useRef<HTMLDivElement>(null)
   const leaving = useRef<ReturnType<typeof setTimeout>>(undefined)
   // Read as focus lands, so a step already ended isn't ended again.
@@ -378,6 +385,7 @@ export function QueryField<Value = unknown>({
     if (suggestion.kind === 'field' || left !== text) setUnhighlighting(true)
     // Words left over list their own suggestions.
     if (suggestion.kind !== 'field' && !editedId && !left.trim()) setOpen(false)
+    if (editedId) setTakenIn(step)
     onAccept?.(suggestion)
   }
 

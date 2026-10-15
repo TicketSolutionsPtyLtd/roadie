@@ -1288,7 +1288,7 @@ describe('Records.Search', () => {
       expect(hint()).toBe('')
     })
 
-    it('prefills a text chip’s value and condition, and Enter updates it', async () => {
+    it('prefills a text chip’s value and condition, and Enter updates it and ends the edit', async () => {
       const { user, lastView } = setup({
         defaultView: {
           query: {
@@ -1317,10 +1317,10 @@ describe('Records.Search', () => {
       expect(lastView().query.filters).toEqual([
         { field: 'show', operator: 'contains', value: 'alley' }
       ])
-      expect(chip('Show contains “alley”')).toHaveAttribute('data-selected')
-      expect(input()).toHaveValue('alley')
-      await waitFor(() => expect(ticked()).toEqual(['Show contains “alley”']))
-      await user.keyboard('{Escape}')
+      // A text chip holds one value, so taking it ends the edit.
+      expect(chip('Show contains “alley”')).not.toHaveAttribute('data-selected')
+      expect(input()).toHaveValue('')
+      await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
       expect(chipLabels()).toEqual(['Show contains “alley”'])
     })
 
@@ -1342,6 +1342,7 @@ describe('Records.Search', () => {
         { field: 'show', operator: 'is', values: ['Ocean Alley 2'] }
       ]
       expect(lastView().query.filters).toEqual(replaced)
+      await selectChip(user, 'Show is Ocean Alley 2')
       await user.click(screen.getByRole('button', { name: 'is not' }))
       expect(lastView().query.filters).toEqual(replaced)
       await user.keyboard('{Enter}')
@@ -1372,6 +1373,8 @@ describe('Records.Search', () => {
         { field: 'city', operator: 'is', values: ['Perth'] },
         { field: 'sold', operator: 'between', value: [20, 600] }
       ])
+      expect(chip('Sold is 20 to 600')).not.toHaveAttribute('data-selected')
+      await selectChip(user, 'Sold is 20 to 600')
       await user.click(screen.getByRole('button', { name: 'is more than' }))
       await user.clear(input())
       await user.keyboard('100{Enter}')
@@ -1382,7 +1385,7 @@ describe('Records.Search', () => {
       expect(chipLabels()).toEqual(['City is Perth', 'Sold is more than 100'])
     })
 
-    it('writes nothing for a click on a text chip’s ticked row', async () => {
+    it('writes nothing for a click on a text chip’s ticked row, ending the edit', async () => {
       const { user, lastView } = setup({
         defaultView: {
           query: {
@@ -1393,8 +1396,8 @@ describe('Records.Search', () => {
       await selectChip(user, 'Show contains “ocean”')
       await user.click(await option('Show contains “ocean”'))
       expect(lastView()).toBeUndefined()
-      expect(chip('Show contains “ocean”')).toHaveAttribute('data-selected')
-      expect(input()).toHaveValue('ocean')
+      expect(chip('Show contains “ocean”')).not.toHaveAttribute('data-selected')
+      expect(input()).toHaveValue('')
     })
 
     it('ticks a text is chip’s row only when it holds just that text', async () => {

@@ -26,6 +26,7 @@ import {
   filterChipIds,
   heldHint,
   isEmptiness,
+  isTyped,
   mergeFilter,
   optionOperator,
   pendingLabel,
@@ -390,6 +391,8 @@ export function RecordsSearch({
           ? toggleValue(edited, value.filter)
           : value.filter
       )
+      // Typed text has no other row to tick, so the edit is done.
+      if (field && isTyped(field)) endStep()
       return
     }
     if (value.type === 'edit' && selectedAt !== null) {

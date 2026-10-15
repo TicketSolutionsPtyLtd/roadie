@@ -47,6 +47,7 @@ keeps the step.
 To edit a chip in the list, answer `onSelectChip` with a value step whose
 `pendingChip.chipId` names the chip. The chip shows selected in place of a
 pending chip, focus stays in the input, and taking a value keeps the list
-open. A suggestion marked `selected` is ticked, and Enter on typed text passes
+open. Ending the step in `onAccept`, as for a chip that holds one value,
+closes it. A suggestion marked `selected` is ticked, and Enter on typed text passes
 over it. Backspace in the empty field removes the edited chip. Escape, or
 focus leaving the field, ends the step and keeps the chip.

@@ -193,7 +193,7 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     expect(screen.getByRole('listbox')).toBeVisible()
   })
 
-  it('edits a number chip in the list on a phone, its value in the field', async () => {
+  it('edits a number chip in the list on a phone, its value in the field, then closes the list', async () => {
     await page.viewport(390, 844)
     render(
       <Shows
@@ -214,6 +214,7 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     )
     await expect.poll(() => chip('Sold')?.textContent).toContain('250')
     expect(screen.queryByRole('dialog')).toBeNull()
-    expect(screen.getByRole('listbox')).toBeVisible()
+    await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    expect(chip('Sold')).not.toHaveAttribute('data-selected')
   })
 })

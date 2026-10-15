@@ -384,16 +384,13 @@ describe('valueSuggestions for text and numbers', () => {
     ).toEqual([['Gross is more than $1,500']])
   })
 
-  it('keeps the typed text while editing, so the taken row stays ticked', () => {
+  it('ticks the typed row a number chip holds, leaving no text once taken', () => {
     const edited: RecordFilter = { field: 'sold', operator: 'gt', value: 100 }
     const [row] = valuesOf(
       valueSuggestions(byKey('sold'), '100', context(), 'gt', edited)
     ).items
-    expect(row).toMatchObject({ selected: true, remainder: '100' })
-    const [added] = valuesOf(
-      valueSuggestions(byKey('sold'), '100', context(), 'gt')
-    ).items
-    expect(added!.remainder).toBeUndefined()
+    expect(row).toMatchObject({ selected: true })
+    expect(row!.remainder).toBeUndefined()
   })
 })
 
