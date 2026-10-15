@@ -57,4 +57,4 @@ the rule and keep only the why here.
 | [0010](0010-apca-contrast.md)                       | Contrast is measured with APCA                           |
 | [0011](0011-fence-layout-options.md)                | Live examples take preview layout from fence options     |
 | [0012](0012-base-ui-focus-guards.md)                | Base UI focus guards stay nameless buttons in WebKit     |
-| [0013](0013-one-dropdown-for-search-and-filters.md) | Search and filters share one dropdown on every screen    |
+| [0013](0013-one-dropdown-for-search-and-filters.md) | One dropdown for search and filters                      |
