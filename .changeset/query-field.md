@@ -27,7 +27,8 @@ search icon and Clear stay on the first row as chips wrap. Clear is round, as
 a chip's remove button is, focus ring included. A suggestion's `icon` shows
 before its label, and the "Search for …" row has a search icon. With nothing
 to suggest, no hint, no operators, and no text, the list stays closed rather
-than say No suggestions.
+than say No suggestions. The list is as wide as the field and sits right under
+it, so long rows truncate.
 
 A `pendingChip` with two or more `operators` shows them as a toggle above the
 values, with `operator` pressed. Pressing one, or Tab and Shift+Tab in the

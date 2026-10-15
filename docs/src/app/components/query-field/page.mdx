@@ -143,7 +143,9 @@ Give the pending chip two or more `operators`, and the chosen one as
 `operator`, to show a toggle above the values. Pressing an operator, or Tab in
 the field, calls `onPendingOperatorChange`. Update `operator` and the chip's
 `label`, such as "Venue is not", and the field asks `suggest` again. Give an
-operator that's a symbol, such as ≠, an `aria-label`.
+operator that's a symbol, such as ≠, an `aria-label`. The list is as wide as
+the field, so operators that don't fit scroll sideways, and long values
+truncate.
 
 Once something is typed, Enter takes the first value. When the step has one
 answer, such as "City is empty" under **is empty**, mark it `exact`, and Enter

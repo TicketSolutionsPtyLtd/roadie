@@ -10,7 +10,7 @@ import {
   it,
   onTestFinished
 } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { QueryField, type QueryFieldProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -72,12 +72,16 @@ const LONG_LABEL = 'Venue is Gooseberry Signal Warehouse, Fortitude Valley'
 
 function Harness({
   initialChips = [],
+  width = 360,
   ...props
-}: Partial<QueryFieldProps> & { initialChips?: QueryFieldChip[] }) {
+}: Partial<QueryFieldProps> & {
+  initialChips?: QueryFieldChip[]
+  width?: number
+}) {
   const [current, setCurrent] = useState(initialChips)
   return (
     <Tooltip.Provider delay={0}>
-      <div style={{ width: 360 }}>
+      <div style={{ width }}>
         <QueryField
           aria-label='Search orders'
           chips={current}
@@ -435,6 +439,64 @@ describe('QueryField', () => {
     expect(box(toggle).right).toBeLessThanOrEqual(box(popup).right)
     await expect.poll(() => toggle.scrollLeft).toBeGreaterThan(0)
   })
+
+  it.each([
+    ['a phone', 390, 280],
+    ['a desktop', 1280, 640]
+  ])(
+    'opens the list no wider than the field on %s, scrolling the operators',
+    async (_, viewport, width) => {
+      await page.viewport(viewport, 800)
+      onTestFinished(() => page.viewport(1024, 768))
+      const numbers: QueryFieldOperator[] = [
+        { value: 'eq', label: '=' },
+        { value: 'neq', label: '≠' },
+        { value: 'lt', label: '<' },
+        { value: 'gt', label: '>' },
+        { value: 'between', label: 'between' },
+        { value: 'empty', label: 'is empty' },
+        { value: 'not-empty', label: 'is not empty' }
+      ]
+      render(
+        <div style={{ paddingInline: 40 }}>
+          <Harness
+            width={width}
+            pendingChip={{
+              id: 'sold',
+              label: 'Sold is',
+              operators: numbers,
+              operator: 'eq'
+            }}
+            suggest={() => [
+              {
+                id: 'values',
+                label: 'Sold',
+                items: [
+                  {
+                    id: 'long',
+                    label: `${LONG_LABEL} ${LONG_LABEL} ${LONG_LABEL}`,
+                    kind: 'filter',
+                    value: 'long'
+                  }
+                ]
+              }
+            ]}
+          />
+        </div>
+      )
+      await userEvent.click(input())
+      await screen.findByRole('option', { name: /Gooseberry/ })
+      const popup = document.querySelector('[data-slot=combobox-popup]')!
+      await expect
+        .poll(() => box(popup).width)
+        .toBeLessThanOrEqual(box(group()).width + 0.5)
+      expect(Math.abs(box(popup).left - box(group()).left)).toBeLessThan(1)
+      const toggle = screen.getByRole('group', { name: 'Operator' })
+      expect(box(toggle).right).toBeLessThanOrEqual(box(popup).right)
+      if (viewport < 640)
+        expect(toggle.scrollWidth).toBeGreaterThan(toggle.clientWidth)
+    }
+  )
 
   it('keeps focus in the input and the values open when an operator is pressed', async () => {
     function Step() {

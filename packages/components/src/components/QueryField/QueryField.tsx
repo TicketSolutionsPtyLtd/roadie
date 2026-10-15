@@ -738,6 +738,8 @@ export function QueryField<Value = unknown>({
         <Combobox.Positioner>
           <Combobox.Popup
             ref={popupRef}
+            // Under the field exactly, so rows truncate rather than spill past it.
+            className='w-(--anchor-width)'
             onFocus={handleFocus}
             onBlur={handleBlur}
           >
