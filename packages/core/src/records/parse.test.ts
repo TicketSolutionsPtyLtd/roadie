@@ -1036,6 +1036,29 @@ describe('parseQuery', () => {
       }
     )
 
+    it.each([
+      'jazz from tomorrow to fri',
+      'starts from tomorrow to fri',
+      'since tomorrow and fri'
+    ])('reads no comparison from a range it can’t read, as "%s"', (text) => {
+      const compared = parse(text, { limit: 50 }).filter(
+        (s) =>
+          s.kind === 'filter' &&
+          (s.value.operator === 'after' || s.value.operator === 'before')
+      )
+      expect(compared).toEqual([])
+    })
+
+    it('still reads "from" before a range it can read, or before other words', () => {
+      expect(parse('from 1 oct to 5 oct')[0]).toMatchObject({
+        label: 'Starts: 1 to 5 Oct',
+        remainder: ''
+      })
+      expect(parse('from today and melb', { limit: 50 }).map(summary)).toEqual(
+        expect.arrayContaining(['Starts: After 2 Oct', 'City is Melbourne'])
+      )
+    })
+
     it('takes an identifier as exact only when nothing is left over', () => {
       const exact = (text: string) =>
         parse(text, { limit: 50 }).filter((s) => s.kind === 'filter' && s.exact)

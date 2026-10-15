@@ -557,7 +557,12 @@ function spanCandidates(
         const typing = end === words.length
         // "before next fri" never offers Fri either.
         const inside = comparisons.some(([c, ce]) => c < start && end <= ce)
-        if (dateFields.length && !compared && !inside) {
+        if (
+          dateFields.length &&
+          !compared &&
+          !inside &&
+          !opensRange(words, start, end, options)
+        ) {
           const dates = dateReadings(dateFields, text, options).filter(
             (reading) => typing || reading.complete !== false
           )
@@ -574,6 +579,32 @@ function spanCandidates(
     }
   }
   return candidates
+}
+
+const RANGE_STARTS = new Set(['from', 'since'])
+const RANGE_JOINS = new Set(['to', 'and'])
+
+/** Whether `start` to `end` opens a range a date ends, as "from tomorrow" in "from tomorrow to fri". */
+function opensRange(
+  words: readonly string[],
+  start: number,
+  end: number,
+  options: ParseQueryOptions
+): boolean {
+  if (
+    !RANGE_STARTS.has(plain(words[start]!)) ||
+    !RANGE_JOINS.has(plain(words[end] ?? ''))
+  )
+    return false
+  const last = Math.min(words.length, end + 1 + MAX_SPAN)
+  for (let to = end + 2; to <= last; to++) {
+    const text = words
+      .slice(end + 1, to)
+      .join(' ')
+      .toLowerCase()
+    if (parseDatePhrase(text, options).length) return true
+  }
+  return false
 }
 
 /** The number of words from `start` that name the field, or 0. */
@@ -703,6 +734,7 @@ function statementValues(
   while (stop < last && !stops.has(stop)) stop++
   const candidates: Candidate[] = []
   for (let end = from + 1; end <= last; end++) {
+    if (field.type === 'date' && opensRange(words, from, end, options)) continue
     const typing = end === words.length
     const readings = fieldValueReadings(
       field,
