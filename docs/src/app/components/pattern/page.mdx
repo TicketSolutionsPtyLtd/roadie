@@ -87,7 +87,7 @@ The pattern fills its parent in both axes and never sizes itself, so give the pa
 
 ### Tones
 
-`tone` picks the brand colour: `brand-blue` (the default) for every market, `brand-purple` for music and venues, and `brand-orange` for shows, events, and sports. Each draws step 5 swirls on a step 9 ground of the `brand`, `info`, or `brand-secondary` scale. Like all brand artwork, the colour stays the same in light and dark mode and ignores a surrounding intent.
+`tone` picks the brand colour: `brand-blue` (the default) for every market, `brand-purple` for music and venues, and `brand-orange` for shows, events, and sports. Each draws step 5 swirls on a step 9 ground of its hue, from `--color-brand-blue-light-5` and `--color-brand-blue-light-9` and their purple and orange twins. Like all brand artwork, the colour stays the same in light and dark mode and ignores a surrounding intent.
 
 ```tsx-live layout=row gap=4
 <div className='h-48 w-32 overflow-hidden rounded-2xl'>

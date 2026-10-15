@@ -22,19 +22,15 @@ export type PatternProps = Omit<ComponentProps<'div'>, 'children'> & {
   tone?: 'brand-blue' | 'brand-purple' | 'brand-orange'
 }
 
-const SCALE: Record<PatternTone, string> = {
-  'brand-blue': 'brand',
-  'brand-purple': 'info',
-  'brand-orange': 'brand-secondary'
-}
+const TONES: PatternTone[] = ['brand-blue', 'brand-purple', 'brand-orange']
 
 // Pattern is artwork, so it takes the theme-fixed light steps.
 const FILLS = Object.fromEntries(
-  Object.entries(SCALE).map(([tone, scale]) => [
+  TONES.map((tone) => [
     tone,
     {
-      ground: { fill: `var(--color-${scale}-light-9)` },
-      line: { fill: `var(--color-${scale}-light-5)` }
+      ground: { fill: `var(--color-${tone}-light-9)` },
+      line: { fill: `var(--color-${tone}-light-5)` }
     }
   ])
 ) as Record<PatternTone, { ground: CSSProperties; line: CSSProperties }>
