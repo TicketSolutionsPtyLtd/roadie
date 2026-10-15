@@ -176,7 +176,9 @@ describe('describeRecordFilter', () => {
     [
       { period: 'quarter', offset: -1, fiscal: true },
       'Starts is last financial quarter'
-    ]
+    ],
+    [{ period: 'week', offset: 2 }, 'Starts is 12 to 18 Oct 2026'],
+    [{ period: 'day', offset: -2 }, 'Starts is 1 Oct 2026']
   ])('reads %j as a chip does', (value, label) => {
     expect(
       describeFilter({ field: 'starts', operator: 'within', value }).label
