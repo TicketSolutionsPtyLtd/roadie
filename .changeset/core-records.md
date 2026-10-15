@@ -77,7 +77,7 @@ A number or money field's name, then `>`, `<`, `=`, `!=`, more than, less
 than, over, under, between 20 and 50, or a range such as 20-50 in either
 order, reads as that comparison: "capacity > 100" suggests "Capacity is more
 than 100". `field:value` takes the same words, and "capacity:20 and 50" reads
-as a range. `>=`, `<=`, `≥`, `≤`, at least, at most and "100+" read nothing, but the
+as a range. `>=`, `<=`, `≥`, `≤`, at least, at most, and "100+" read nothing, but the
 field's name still keeps "sold >= 100" from suggesting "Status is Sold out".
 Numbers a space separates never join. A field name then a value with no verb reads as `field:value` does, so
 "city melb" suggests "City is Melbourne" and "capacity 100" suggests "Capacity
@@ -89,7 +89,7 @@ value, so "sold > 100" never suggests "Status is Sold out". A date keeps the
 word that compares it: "starts after today" never suggests "Starts: Today",
 and one it can't read, such as "after 7pm", suggests no date.
 `parseDatePhrase` reads "after" and "before" with any day or range, such as
-"after this weekend", and "since", "from", "until" and "till" with the day
+"after this weekend", and "since", "from", "until", and "till" with the day
 itself included.
 
 `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
