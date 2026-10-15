@@ -1005,6 +1005,20 @@ describe('Records.Search', () => {
       ])
       expect(chipLabels()).toEqual(['City is Perth', 'Sold is more than 100'])
     })
+
+    it('keeps an unchanged text chip on Enter, though its text starts Not empty', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [{ field: 'show', operator: 'contains', value: 'no' }]
+          }
+        }
+      })
+      await selectChip(user, 'Show contains “no”')
+      await waitFor(() => expect(ticked()).toEqual(['Show contains “no”']))
+      await user.keyboard('{Enter}')
+      expect(lastView()).toBeUndefined()
+    })
   })
 
   describe('editing a chip in the list', () => {

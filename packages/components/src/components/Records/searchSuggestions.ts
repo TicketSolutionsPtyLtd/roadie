@@ -458,7 +458,12 @@ export function valueSuggestions(
       ...(detail && { description: detail })
     })
   })
-  const emptiness = unused(emptinessItems(field, typed), context).map(tick)
+  // Enter skips the edited chip's own row, so it mustn't fall to Not empty.
+  const unchanged = values.some((item) => item.selected)
+  const emptiness =
+    isTyped(field) && unchanged
+      ? []
+      : unused(emptinessItems(field, typed), context).map(tick)
   // Not a typed match, so it gives way to a typed Empty, or Enter takes it.
   const editable =
     field.type === 'date' &&
