@@ -140,6 +140,10 @@ Add `download` to an `href` button to save the file instead of opening it, optio
 
 For full element control, or anchor props `href` doesn't cover (`hreflang`, `referrerPolicy`), use Base UI's `render` prop. It keeps Base UI's button semantics, which are `role='button'` and `Space` activation. The element you pass is yours to make accessible. Passing both `href` and `render` triggers a one-shot dev warning. `render` wins, and provider routing is silently disabled.
 
+## Guidelines
+
+Write labels with [Interface copy](/content/interface-copy#buttons).
+
 ## Accessibility
 
 - **Keyboard**: `Enter` or `Space` activates the button. With `href` it is a link, so `Enter` follows it and `Space` scrolls the page. Focus is indicated by a semi-transparent ring via `is-interactive`.

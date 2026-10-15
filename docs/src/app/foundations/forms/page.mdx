@@ -39,7 +39,7 @@ pick up the corresponding aria attributes automatically.
   <Field invalid>
     <Field.Label>Password</Field.Label>
     <Field.Input type='password' defaultValue='short' />
-    <Field.ErrorText>Password must be at least 8 characters.</Field.ErrorText>
+    <Field.ErrorText>Use at least eight characters.</Field.ErrorText>
   </Field>
   <Field disabled>
     <Field.Label>Username</Field.Label>
@@ -161,14 +161,15 @@ advanced customisation.
 `Field.ErrorText` only renders when the parent Field has `invalid` set.
 `Select.ErrorText` and `RadioGroup.ErrorText` hide when `invalid` is explicitly
 `false`. This means you can always include the error text in your markup without
-conditional wrappers.
+conditional wrappers. Word the message with
+[Interface copy](/content/interface-copy#errors).
 
 ```tsx-live
 <Fieldset>
   <Field invalid required>
     <Field.Label showIndicator>Email</Field.Label>
     <Field.Input type='email' />
-    <Field.ErrorText>Please enter a valid email address.</Field.ErrorText>
+    <Field.ErrorText>Enter an email address like name@example.com.</Field.ErrorText>
   </Field>
   <Field required>
     <Field.Label showIndicator>Name</Field.Label>
@@ -213,7 +214,7 @@ Field.ErrorText auto-hides when invalid is falsy.
   <Field invalid required>
     <Field.Label showIndicator>Email</Field.Label>
     <Field.Input type='email' />
-    <Field.ErrorText>Please enter a valid email address.</Field.ErrorText>
+    <Field.ErrorText>Enter an email address like name@example.com.</Field.ErrorText>
   </Field>
   <Field invalid required>
     <Field.Label showIndicator>Industry</Field.Label>
@@ -227,7 +228,7 @@ Field.ErrorText auto-hides when invalid is falsy.
         <Select.Item value='sport'>Sport</Select.Item>
       </Select.Content>
     </Select>
-    <Field.ErrorText>Please select an industry.</Field.ErrorText>
+    <Field.ErrorText>Choose an industry.</Field.ErrorText>
   </Field>
   <Field invalid required>
     <Field.Label showIndicator>Contact method</Field.Label>
@@ -235,7 +236,7 @@ Field.ErrorText auto-hides when invalid is falsy.
       <RadioGroup.Item value='email' label='Email' />
       <RadioGroup.Item value='phone' label='Phone' />
     </RadioGroup>
-    <Field.ErrorText>Please select a contact method.</Field.ErrorText>
+    <Field.ErrorText>Choose a contact method.</Field.ErrorText>
   </Field>
 </Fieldset>
 ```

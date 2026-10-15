@@ -1,0 +1,277 @@
+export const metadata = {
+  title: 'Interface copy',
+  description:
+    'How to write button labels, form help, and error messages, with each one shown on its Roadie component.',
+  category: 'Writing',
+  order: 4
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PairTable } from '@/components/PairTable'
+
+import { Button } from '@oztix/roadie-components/button'
+import { Callout } from '@oztix/roadie-components/callout'
+import { Checkbox } from '@oztix/roadie-components/checkbox'
+import { Field } from '@oztix/roadie-components/field'
+
+Interface copy is the short text people act on, such as a button label or an
+error message. Each kind follows the same pattern on every screen, so the
+reader learns it once. Write it with [Voice and tone](/content/voice-and-tone)
+and [Language and grammar](/content/language-and-grammar), which this page
+doesn't repeat.
+
+## Buttons
+
+### Name the action
+
+A label is a verb that says what happens when the reader presses it. Add the
+thing it acts on when the verb alone could mean more than one thing. Keep it
+to two to four words.
+
+<PairTable>
+
+| Write           | Not     |
+| --------------- | ------- |
+| Save changes    | Submit  |
+| Add ticket type | New     |
+| Publish event   | OK      |
+| Delete event    | Yes     |
+| Buy tickets     | Proceed |
+
+</PairTable>
+
+<Guidelines>
+
+<Guideline
+  headingLevel={3}
+  title="Say what it costs"
+  description="A button that takes money or can't be undone says so on the label."
+>
+  <Guideline.Do example={<Button intent='accent' emphasis='strong'>Pay $96</Button>}>
+    Put the amount on the button that takes the payment.
+  </Guideline.Do>
+  <Guideline.Dont example={<Button intent='accent' emphasis='strong'>Continue</Button>}>
+    Don't hide a payment behind a word that sounds like the next step.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="Links name the destination"
+  description="A link, or a button with an href, says where it goes, so it makes sense read on its own."
+>
+  <Guideline.Do example={<Button href='#'>View orders</Button>}>
+    Name the page the reader lands on.
+  </Guideline.Do>
+  <Guideline.Dont example={<Button href='#'>Read more</Button>}>
+    Don't make the reader read around the link to learn where it goes.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="Label every icon button"
+  description="An icon button has no visible words, so its aria-label carries them. Name the action, not the picture."
+>
+  <Guideline.Do code={`<IconButton aria-label='Remove ticket'>`}>
+    A screen reader says what the button does.
+  </Guideline.Do>
+  <Guideline.Dont code={`<IconButton aria-label='Bin'>`}>
+    Don't describe the icon. The reader hears what it looks like, not what it
+    does.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Form help
+
+### Labels
+
+A label is a short noun phrase, with no colon and no instruction.
+`showIndicator` on `Field.Label` marks required and optional fields, so a
+label never carries an asterisk.
+
+<PairTable>
+
+| Write            | Not                       |
+| ---------------- | ------------------------- |
+| Email            | Enter your email address: |
+| Mobile number    | Phone #                   |
+| Ticket type name | Name \*                   |
+| Date of birth    | DOB                       |
+
+</PairTable>
+
+<Guidelines>
+
+<Guideline
+  headingLevel={3}
+  title="Helper text says what the reader can't guess"
+  description="Use it for a format, a limit, or why we ask. Leave it out when the label says enough."
+>
+  <Guideline.Do
+    width={64}
+    example={
+      <Field>
+        <Field.Label>Mobile number</Field.Label>
+        <Field.Input type='tel' />
+        <Field.HelperText>We text your tickets to this number.</Field.HelperText>
+      </Field>
+    }
+  >
+    Say why we ask, or the format that works.
+  </Guideline.Do>
+  <Guideline.Dont
+    width={64}
+    example={
+      <Field>
+        <Field.Label>Mobile number</Field.Label>
+        <Field.Input type='tel' />
+        <Field.HelperText>Enter your mobile number.</Field.HelperText>
+      </Field>
+    }
+  >
+    Don't repeat the label.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="A placeholder is an example value"
+  description="A placeholder disappears as the reader types, so anything they need to remember goes in the label or the helper text."
+>
+  <Guideline.Do
+    width={64}
+    example={
+      <Field>
+        <Field.Label>Event URL</Field.Label>
+        <Field.Input placeholder='ochre-kite-weekender' />
+        <Field.HelperText>Use lowercase letters and hyphens.</Field.HelperText>
+      </Field>
+    }
+  >
+    Show a value the reader could type, and put the rule in the helper text.
+  </Guideline.Do>
+  <Guideline.Dont
+    width={64}
+    example={
+      <Field>
+        <Field.Label>Event URL</Field.Label>
+        <Field.Input placeholder='Use lowercase letters and hyphens' />
+      </Field>
+    }
+  >
+    Don't put the instructions where they vanish on the first keystroke.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="A choice says what happens when it's ticked"
+  description="Write a checkbox or switch label as a positive statement of what the reader gets."
+>
+  <Guideline.Do example={<Checkbox label='Email me when tickets go on sale' />}>
+    Ticking the box turns the thing on.
+  </Guideline.Do>
+  <Guideline.Dont example={<Checkbox label="Don't stop sending me emails" />}>
+    Don't make the reader untangle a negative to know which way to tick.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Errors
+
+An error says what went wrong and how to fix it, next to the problem.
+[Field.ErrorText](/components/field) holds an error in a value, and a
+[Callout](/components/callout) holds one about a page or a step. The
+[error text guideline](/content/language-and-grammar#guidelines) on Language
+and grammar sets its shape: a whole sentence with a full stop.
+
+### Lead with the fix
+
+Start with what to do, because the reader can see which field it's on. When
+the value looks right but isn't, such as an expired code, say what's wrong
+first.
+
+<PairTable>
+
+| Write                                    | Not                             |
+| ---------------------------------------- | ------------------------------- |
+| Enter an email address.                  | Email is required.              |
+| Enter a mobile number like 0400 000 000. | Invalid phone number            |
+| Choose at least 1 ticket.                | Quantity must be greater than 0 |
+| Choose a date after today.               | Date is in the past.            |
+
+</PairTable>
+
+<Guidelines>
+
+<Guideline
+  headingLevel={3}
+  title="Don't blame the reader"
+  description="Describe the problem and the fix, not the reader's mistake."
+>
+  <Guideline.Do
+    width={64}
+    example={
+      <Field invalid>
+        <Field.Label>Access code</Field.Label>
+        <Field.Input defaultValue='KITE2025' />
+        <Field.ErrorText>This code has expired. Ask the promoter for a new one.</Field.ErrorText>
+      </Field>
+    }
+  >
+    Say what's wrong with the code and where to get one that works.
+  </Guideline.Do>
+  <Guideline.Dont
+    width={64}
+    example={
+      <Field invalid>
+        <Field.Label>Access code</Field.Label>
+        <Field.Input defaultValue='KITE2025' />
+        <Field.ErrorText>You entered an expired code.</Field.ErrorText>
+      </Field>
+    }
+  >
+    Don't make the error about what the reader did.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline
+  headingLevel={3}
+  title="Own the errors that are ours"
+  description={`When Oztix fails, say "we", say what's safe, and give the next step. Leave error codes for the support team.`}
+>
+  <Guideline.Do
+    width={72}
+    example={
+      <Callout intent='danger' title="We couldn't save your changes">
+        Your edits are still on this page. Try again in a minute.
+      </Callout>
+    }
+  >
+    Take the blame, and tell the reader their work isn't lost.
+  </Guideline.Do>
+  <Guideline.Dont
+    width={72}
+    example={
+      <Callout intent='danger' title='Error 500'>
+        An unexpected error occurred.
+      </Callout>
+    }
+  >
+    Don't show a code and a sentence that says nothing.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## In the interface
+
+- [Button](/components/button) and [IconButton](/components/icon-button)
+  labels follow Buttons.
+- [Field](/components/field) labels, helper text, and error text follow Form
+  help and Errors.
+- [Callout](/components/callout) errors follow Errors.
