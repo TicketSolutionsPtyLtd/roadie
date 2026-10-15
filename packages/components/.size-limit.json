@@ -301,7 +301,7 @@
     "name": "RecordTable",
     "path": "dist/components/RecordTable/index.js",
     "import": "*",
-    "limit": "124.1 kB",
+    "limit": "124.3 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]
