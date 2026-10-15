@@ -35,7 +35,7 @@
     "@eslint/compat": "2.1.1",
     "@eslint/eslintrc": "3.3.7",
     "@eslint/js": "9.39.5",
-    "@oztix/eslint-plugin-roadie": "workspace:*",
+    "@oztix/roadie-eslint-plugin": "workspace:*",
     "@trivago/prettier-plugin-sort-imports": "6.0.2",
     "@types/node": "24.19.1",
     "@typescript-eslint/eslint-plugin": "8.71.1",

@@ -182,7 +182,7 @@ importers:
       '@eslint/js':
         specifier: 9.39.5
         version: 9.39.5
-      '@oztix/eslint-plugin-roadie':
+      '@oztix/roadie-eslint-plugin':
         specifier: workspace:*
         version: link:packages/eslint-plugin
       '@trivago/prettier-plugin-sort-imports':
@@ -324,7 +324,7 @@ importers:
       '@mdx-js/mdx':
         specifier: 3.1.1
         version: 3.1.1(supports-color@9.4.0)
-      '@oztix/eslint-plugin-roadie':
+      '@oztix/roadie-eslint-plugin':
         specifier: workspace:*
         version: link:../packages/eslint-plugin
       '@tailwindcss/postcss':

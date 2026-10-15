@@ -8,7 +8,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import { readFileSync } from 'fs'
 import globals from 'globals'
 
-import published from '@oztix/eslint-plugin-roadie'
+import published from '@oztix/roadie-eslint-plugin'
 
 import roadie from './eslint/roadie-plugin.js'
 

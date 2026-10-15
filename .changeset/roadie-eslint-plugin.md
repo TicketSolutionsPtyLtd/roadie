@@ -1,8 +1,8 @@
 ---
-'@oztix/eslint-plugin-roadie': minor
+'@oztix/roadie-eslint-plugin': minor
 ---
 
-First release of `@oztix/eslint-plugin-roadie`, ESLint rules that catch Roadie
+First release of `@oztix/roadie-eslint-plugin`, ESLint rules that catch Roadie
 mistakes in apps. Add `roadie.configs.recommended` to a flat
 `eslint.config.js` (ESLint 9 or 10) to turn on all seven rules as errors:
 `phosphor-icon-suffix`, `phosphor-icon-size-prop`, `phosphor-icon-weight`,

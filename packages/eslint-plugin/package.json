@@ -1,5 +1,5 @@
 {
-  "name": "@oztix/eslint-plugin-roadie",
+  "name": "@oztix/roadie-eslint-plugin",
   "version": "0.0.0",
   "description": "ESLint rules that catch Roadie Design System mistakes in apps",
   "type": "module",

@@ -27,7 +27,7 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 | `packages/components/`    | `@oztix/roadie-components`                                       |
 | `packages/charts/`        | `@oztix/roadie-charts`: charts, legends, and dashboard views     |
 | `packages/widgets/`       | `@oztix/roadie-widgets`: the cart drawer, React and Vue skins    |
-| `packages/eslint-plugin/` | `@oztix/eslint-plugin-roadie`: lint rules for apps on Roadie     |
+| `packages/eslint-plugin/` | `@oztix/roadie-eslint-plugin`: lint rules for apps on Roadie     |
 | `docs/`                   | The docs site                                                    |
 
 Root scripts: `pnpm dev`, `build`, `test`, `test:browser`, `typecheck`, `lint`,
