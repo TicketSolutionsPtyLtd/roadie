@@ -636,6 +636,33 @@ describe('parseQuery', () => {
       ).toContainEqual(['Capacity is more than 100', 'melb'])
     })
 
+    it('leaves an operator in other words as typed', () => {
+      expect(
+        parse('melb a>b').map((s) => [s.label, s.remainder])
+      ).toContainEqual(['City is Melbourne', 'a>b'])
+      expect(
+        parse('a>b capacity>100').map((s) => [s.label, s.remainder])
+      ).toContainEqual(['Capacity is more than 100', 'a>b'])
+    })
+
+    it('finds an identifier holding an operator among other words', () => {
+      const fields = [
+        ...eventFields,
+        {
+          key: 'code',
+          label: 'Code',
+          type: 'text' as const,
+          match: /^PROMO=\d+$/i
+        }
+      ]
+      expect(
+        parseQuery('melb promo=10', { ...options, fields }).map((s) => [
+          s.label,
+          s.remainder
+        ])
+      ).toContainEqual(['Code is promo=10', 'melb'])
+    })
+
     it.each([
       'capacity 100',
       'capacity between 20',

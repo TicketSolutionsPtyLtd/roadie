@@ -77,8 +77,7 @@ const NEGATIONS = new Set([
   '!=',
   '≠'
 ])
-// Spaced apart in free text, so "city!=syd" reads as "city != syd". ">=" and
-// "=>" stay whole: read as "=" then ">", they'd drop the number itself.
+// ">=" and "=>" stay whole: read as "=" then ">", they'd drop the number itself.
 const OPERATOR = /(!=|[<>]=|=[<>]|≠|[<>=])/g
 // A dash before a digit or dollar sign is a minus sign, as in "-5".
 const SIGNED = /^-[$\d]/
@@ -562,6 +561,30 @@ function statementCandidates(
   return candidates
 }
 
+/**
+ * Statements with their operators spaced apart, so "city!=syd" reads as
+ * "city != syd", each spanning the typed words it touches.
+ */
+function spacedStatements(
+  words: readonly string[],
+  fields: readonly RecordField[],
+  options: ParseQueryOptions
+): Candidate[] {
+  const wordOf: number[] = []
+  const pieces = words.flatMap((word, i) => {
+    const split = word.replace(OPERATOR, ' $1 ').trim().split(/\s+/)
+    wordOf.push(...split.map(() => i))
+    return split
+  })
+  return statementCandidates(pieces, fields, options).map((candidate) => {
+    const span: [number, number] = [
+      wordOf[candidate.span[0]]!,
+      wordOf[candidate.span[1] - 1]! + 1
+    ]
+    return { ...candidate, span, remainder: remainderOf(words, ...span) }
+  })
+}
+
 /** Each reading of the words after a statement's verb, as one candidate. */
 function statementValues(
   words: readonly string[],
@@ -723,7 +746,7 @@ export function parseQuery(
       .map((field, i) => strip(fieldSuggestion(field, 0, '', [0, 0], i)))
   }
 
-  const words = input.replace(OPERATOR, ' $1 ').trim().split(/\s+/)
+  const words = input.split(' ')
   const whole: [number, number] = [0, words.length]
   const identifiers = identifierReadings(fields, input).map((reading, i) =>
     filterSuggestion(reading, 1, '', whole, i)
@@ -749,7 +772,7 @@ export function parseQuery(
   return rank([
     ...identifiers,
     ...spanCandidates(words, fields, options),
-    ...statementCandidates(words, fields, options)
+    ...spacedStatements(words, fields, options)
   ])
     .slice(0, limit)
     .map(strip)
