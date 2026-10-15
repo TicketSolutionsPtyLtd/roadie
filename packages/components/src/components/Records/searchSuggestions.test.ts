@@ -280,6 +280,13 @@ describe('valueSuggestions', () => {
     expect(typed('next 7')[0]).toBe('Next 7 days')
   })
 
+  it('lists a preset holding the typed word whole before one it only starts', () => {
+    const typed = valuesOf(valueSuggestions(byKey('starts'), 'week', context()))
+      .items.map((item) => item.label)
+      .slice(0, 3)
+    expect(typed).toEqual(['This week', 'Next week', 'This weekend'])
+  })
+
   it('reads typed dates for the field', () => {
     const group = valuesOf(
       valueSuggestions(byKey('starts'), 'after 1 dec', context())

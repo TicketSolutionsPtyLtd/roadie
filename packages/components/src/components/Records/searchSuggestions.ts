@@ -517,7 +517,11 @@ function heldOnly(
     )
 }
 
-/** A date field's presets whose label has a word starting with each typed word, so "next" lists Next 7 days. */
+/**
+ * A date field's presets whose label has a word starting with each typed
+ * word, so "next" lists Next 7 days. Those holding more typed words whole come
+ * first, so "week" lists This week before This weekend.
+ */
 function typedPresets(
   field: RecordField,
   typed: string,
@@ -525,18 +529,23 @@ function typedPresets(
 ): SearchSuggestion[] {
   if (field.type !== 'date') return []
   const words = typed.toLowerCase().split(/\s+/)
-  return presetItems(field, 'is').filter((item) => {
-    if (item.value.type !== 'filter') return false
-    const { value } = describeRecordFilter(
-      item.value.filter,
-      context.fields,
-      context
-    )
-    const labelWords = value.toLowerCase().split(/\s+/)
-    return words.every((word) =>
-      labelWords.some((labelWord) => labelWord.startsWith(word))
-    )
-  })
+  return presetItems(field, 'is')
+    .flatMap((item) => {
+      if (item.value.type !== 'filter') return []
+      const { value } = describeRecordFilter(
+        item.value.filter,
+        context.fields,
+        context
+      )
+      const labelWords = value.toLowerCase().split(/\s+/)
+      const matches = words.every((word) =>
+        labelWords.some((labelWord) => labelWord.startsWith(word))
+      )
+      const whole = words.filter((word) => labelWords.includes(word)).length
+      return matches ? [{ item, whole }] : []
+    })
+    .sort((a, b) => b.whole - a.whole)
+    .map(({ item }) => item)
 }
 
 function parsedValues(

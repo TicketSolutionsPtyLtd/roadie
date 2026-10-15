@@ -82,7 +82,8 @@ field that can be filtered ends its toggle with is empty and is not empty,
 whose one row Enter takes. Typing switches back to the field's first operator,
 so the text applies. Typing narrows the values, and Enter takes the first. A
 quick date lists when its name has a word starting with each word typed, so
-"next" lists Next 7 days, and Enter never opens Custom dates. Typed text or a
+"next" lists Next 7 days, with whole words first, so "week" lists This week
+before This weekend, and Enter never opens Custom dates. Typed text or a
 number shows as one row worded as its chip. Between reads 20 and 50, 20-50, 20
 to 50, or 20..50, in either order, and a space after the first number adds the
 "and". One Backspace takes it away. Money takes `$` and commas. Until the
