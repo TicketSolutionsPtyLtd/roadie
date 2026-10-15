@@ -101,7 +101,13 @@ name out, so "day saturday and sunday" suggests "Day is Saturday" first.
 and "on or before" with the day itself included, as it does "onwards" or
 "and later" after a day. A weekday after "since" is the last one, so
 "since mon" never means next Monday, and after any other comparison it's the
-next one.
+next one. It reads "weekend", "on the weekend" and "over the weekend" as
+this weekend, "tonight" as today, "tmrw" as tomorrow, "rest of the week",
+month or year as today to its last day, "the 20th of oct", and "in the next
+7 days". A period on its own, such as "month", completes to this month
+before month to date. Next and last weekend's dates carry a `description`,
+"Next weekend" or "Last weekend", and `parseQuery` takes each suggestion's
+`description` from its chip's `detail`.
 
 `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
 and `hitsPerPage`, so the response's `totalHits` counts the matches (up to
