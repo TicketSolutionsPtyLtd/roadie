@@ -84,7 +84,9 @@ export function RecordsFilterEditor({
       <Select
         value={draft.operator}
         onValueChange={(operator) =>
-          update(withCondition(draft, operator as DateOperator, today))
+          update(
+            withCondition(draft, operator as DateOperator, { today, timeZone })
+          )
         }
       >
         <Select.Trigger

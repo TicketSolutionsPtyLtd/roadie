@@ -1,6 +1,7 @@
 import {
   type DateRangeValue,
   isAbsoluteRange,
+  plainDateOf,
   resolveDateRange
 } from '@oztix/roadie-core/datetime'
 import type { RecordFilter } from '@oztix/roadie-core/records'
@@ -89,25 +90,38 @@ function daysOf(
   }
 }
 
+const OFFSET = /(?:Z|[+-]\d{2}:\d{2})$/
+
+/** The day a date or date-time falls on, where the records are. */
+const dayOf = (value: string, timeZone: string) =>
+  OFFSET.test(value)
+    ? plainDateOf(new Date(value), timeZone)
+    : value.slice(0, 10)
+
 /**
  * The draft under another condition. One with no date yet takes it from the
  * other, so the filter holds what the editor shows: on and before take a
  * range's first day, after its last, and a range takes the one date as a day.
+ * Before and after keep a time, so they still exclude the range.
  */
 export function withCondition(
   draft: DateDraft,
   operator: DateOperator,
-  today: string | undefined
+  { today, timeZone }: { today: string | undefined; timeZone: string }
 ): DateDraft {
   const next = { ...draft, operator }
   if (operator === 'range') {
-    return next.range || !draft.date
-      ? next
-      : { ...next, range: { start: draft.date, end: draft.date } }
+    if (next.range || !draft.date) return next
+    const day = dayOf(draft.date, timeZone)
+    return { ...next, range: { start: day, end: day } }
   }
   const days = !next.date && draft.range && daysOf(draft.range, today)
   if (!days) return next
-  return { ...next, date: operator === 'after' ? days.end : days.start }
+  if (operator === 'after') return { ...next, date: days.end }
+  return {
+    ...next,
+    date: operator === 'on' ? dayOf(days.start, timeZone) : days.start
+  }
 }
 
 /** Whether the draft holds no date for its condition, as when one is cleared. */

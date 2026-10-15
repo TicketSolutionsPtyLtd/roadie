@@ -59,7 +59,7 @@ describe('date drafts', () => {
 })
 
 describe('switching a date draft’s condition', () => {
-  const TODAY = '2026-10-16'
+  const AT = { today: '2026-10-16', timeZone: 'Australia/Sydney' }
   const within = draftOf({
     field: 'starts',
     operator: 'between',
@@ -73,9 +73,7 @@ describe('switching a date draft’s condition', () => {
   ])(
     'carries a range to is %s as the day it starts or ends',
     (operator, value) => {
-      expect(
-        filterOf('starts', withCondition(within, operator, TODAY))
-      ).toEqual({
+      expect(filterOf('starts', withCondition(within, operator, AT))).toEqual({
         field: 'starts',
         operator,
         value
@@ -89,8 +87,10 @@ describe('switching a date draft’s condition', () => {
       operator: 'within',
       value: 'this-weekend'
     })
-    expect(withCondition(weekend, 'after', TODAY).date).toBe('2026-10-18')
-    expect(withCondition(weekend, 'on', undefined).date).toBeNull()
+    expect(withCondition(weekend, 'after', AT).date).toBe('2026-10-18')
+    expect(
+      withCondition(weekend, 'on', { ...AT, today: undefined }).date
+    ).toBeNull()
   })
 
   it('carries one date to a range as that day', () => {
@@ -99,7 +99,7 @@ describe('switching a date draft’s condition', () => {
       operator: 'before',
       value: '2026-12-01'
     })
-    expect(filterOf('starts', withCondition(before, 'range', TODAY))).toEqual({
+    expect(filterOf('starts', withCondition(before, 'range', AT))).toEqual({
       field: 'starts',
       operator: 'between',
       value: ['2026-12-01', '2026-12-01']
@@ -108,6 +108,31 @@ describe('switching a date draft’s condition', () => {
 
   it('keeps a date the draft already holds for the condition', () => {
     const held = { ...within, date: '2026-11-05' }
-    expect(withCondition(held, 'on', TODAY).date).toBe('2026-11-05')
+    expect(withCondition(held, 'on', AT).date).toBe('2026-11-05')
+  })
+
+  it('leaves the date empty for a range with no first or last day', () => {
+    const past = draftOf({ field: 'starts', operator: 'within', value: 'past' })
+    expect(withCondition(past, 'on', AT).date).toBeNull()
+  })
+
+  it('carries a date-time to a range, or to is on, as its day where the records are', () => {
+    const after = draftOf({
+      field: 'created',
+      operator: 'after',
+      value: '2026-11-30T23:30:00+08:00'
+    })
+    expect(withCondition(after, 'range', AT).range).toEqual({
+      start: '2026-12-01',
+      end: '2026-12-01'
+    })
+    const timed = draftOf({
+      field: 'created',
+      operator: 'between',
+      value: ['2026-12-01T09:00', '2026-12-02T18:00']
+    })
+    expect(withCondition(timed, 'on', AT).date).toBe('2026-12-01')
+    expect(withCondition(timed, 'before', AT).date).toBe('2026-12-01T09:00')
+    expect(withCondition(timed, 'after', AT).date).toBe('2026-12-02T18:00')
   })
 })
