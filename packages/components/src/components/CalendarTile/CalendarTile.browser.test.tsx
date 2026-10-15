@@ -94,6 +94,16 @@ describe('CalendarTile band size', () => {
     })
   }
 
+  it('sizes the band of a <time> tile too', () => {
+    const { container } = render(
+      <CalendarTile month='Oct' day={15} size='lg' dateTime='2026-10-15' />
+    )
+    const band = container.querySelector<HTMLElement>(
+      'time > [data-slot="calendar-tile-top"]'
+    )!
+    expect(px(getComputedStyle(band).fontSize)).toBeCloseTo(rem(0.875), 1)
+  })
+
   // The band's border adds to its height, so it stays at every emphasis. On
   // a strong tile it outlines the light band, as emphasis-normal does.
   it('outlines the band on a strong tile only', () => {
