@@ -361,8 +361,28 @@ describe('parseDatePhrase: comparisons', () => {
       SYDNEY,
       one('2 to 5 Oct 2026', { start: '2026-10-02', end: '2026-10-05' })
     ],
-    ['tomorrow to fri', SYDNEY, []],
-    ['from tomorrow to fri', SYDNEY, []],
+    // A weekday at the end is the first on or after the start.
+    [
+      'tomorrow to fri',
+      SYDNEY,
+      one('3 to 9 Oct 2026', { start: '2026-10-03', end: '2026-10-09' })
+    ],
+    [
+      'from tomorrow to fri',
+      SYDNEY,
+      one('3 to 9 Oct 2026', { start: '2026-10-03', end: '2026-10-09' })
+    ],
+    [
+      'fri to mon',
+      WEDNESDAY,
+      one('2 to 5 Oct 2026', { start: '2026-10-02', end: '2026-10-05' })
+    ],
+    [
+      'sun to sat',
+      SYDNEY,
+      one('4 to 10 Oct 2026', { start: '2026-10-04', end: '2026-10-10' })
+    ],
+    ['tomorrow to yesterday', SYDNEY, []],
     [
       'today to next fri',
       WEDNESDAY,

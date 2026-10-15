@@ -512,8 +512,13 @@ function rangesOf(
     )
   )
   if (!firsts.length || !lasts.length) return null
+  // "fri to mon" ends on the first Monday from Friday on.
+  const weekday = nameIndex(WEEKDAYS, ends[1]!)
   return firsts.flatMap(({ start }) =>
-    lasts.flatMap(({ end }) =>
+    (weekday
+      ? [{ end: addDays(start, (weekday - dayOfWeek(start) + 7) % 7) }]
+      : lasts
+    ).flatMap(({ end }) =>
       compareDates(start, end) > 0 ? [] : [{ start, end }]
     )
   )

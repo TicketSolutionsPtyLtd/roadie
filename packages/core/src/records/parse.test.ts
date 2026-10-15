@@ -1129,9 +1129,9 @@ describe('parseQuery', () => {
     )
 
     it.each([
-      'jazz from tomorrow to sat',
-      'starts from tomorrow to sat',
-      'since tomorrow and sat'
+      'jazz from tomorrow to yesterday',
+      'starts from tomorrow to yesterday',
+      'since tomorrow and yesterday'
     ])('reads no comparison from a range it can’t read, as "%s"', (text) => {
       const compared = parse(text, { limit: 50 }).filter(
         (s) =>
@@ -1142,9 +1142,9 @@ describe('parseQuery', () => {
     })
 
     it.each([
-      'from tomorrow to sat',
-      'tomorrow to sat',
-      'jazz tomorrow and sat'
+      'from tomorrow to yesterday',
+      'tomorrow to yesterday',
+      'jazz tomorrow and yesterday'
     ])('reads no single day from a range it can’t read, as "%s"', (text) => {
       const dates = parse(text, { limit: 50 }).filter(
         (s) => s.kind === 'filter' && s.value.field === 'starts'
@@ -1155,6 +1155,8 @@ describe('parseQuery', () => {
     it.each([
       ['from tomorrow to next sat', 'Starts: 4 to 10 Oct'],
       ['tomorrow to fri', 'Starts: 4 to 9 Oct'],
+      ['tomorrow to sat', 'Starts: 4 to 10 Oct'],
+      ['fri to mon', 'Starts: 9 to 12 Oct'],
       ['starts from tomorrow to next sat', 'Starts: 4 to 10 Oct'],
       ['starts on or after 20 oct', 'Starts: After 19 Oct']
     ])('reads "%s" whole, as %s', (text, label) => {
