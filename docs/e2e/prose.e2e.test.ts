@@ -30,15 +30,17 @@ async function open(path: string, width: number) {
   return page
 }
 
-/** Scrolls the live example under a heading into view and waits for it to render. */
+/**
+ * Scrolls the live example under a heading into view and waits for it to
+ * render. Scrolls the block around it, since the placeholder it starts as is
+ * replaced by a new node when it nears the viewport.
+ */
 async function renderExampleAfter(page: Page, heading: string) {
-  const example = page
+  await page
     .locator('#docs-content h3, #docs-content h2')
     .filter({ hasText: new RegExp(`^${heading}$`) })
-    .locator(
-      'xpath=following::*[@data-live-example="rendered" or @data-live-example="pending"][1]'
-    )
-  await example.scrollIntoViewIfNeeded()
+    .locator('xpath=following::*[@data-live-example][1]/..')
+    .scrollIntoViewIfNeeded()
   const rendered = page
     .locator('#docs-content h3, #docs-content h2')
     .filter({ hasText: new RegExp(`^${heading}$`) })

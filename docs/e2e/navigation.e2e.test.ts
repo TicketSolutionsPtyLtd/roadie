@@ -1,6 +1,7 @@
 import {
   type Browser,
   type Locator,
+  type Page,
   chromium,
   firefox,
   webkit
@@ -32,6 +33,21 @@ async function open(width: number) {
   await page.goto(`${ORIGIN}${BASE_PATH}/foundations/navigation/`)
   await page.waitForLoadState('networkidle')
   return page
+}
+
+/**
+ * Scrolls the live example after a heading into view and waits for it to
+ * render. Scrolls the block around it, since the placeholder it starts as is
+ * replaced by a new node when it nears the viewport.
+ */
+async function renderExampleAfter(page: Page, headingId: string) {
+  const after = `xpath=//*[@id="${headingId}"]/following::*`
+  await page
+    .locator(`${after}[@data-live-example][1]/..`)
+    .scrollIntoViewIfNeeded()
+  const example = page.locator(`${after}[@data-live-example="rendered"][1]`)
+  await example.waitFor()
+  return example
 }
 
 const PARTS = ['Navigator', 'Navigator.Primary', 'Navigator.Secondary', 'Pane']
@@ -91,10 +107,7 @@ describe('Navigation foundation', () => {
     )
     expect(rows.map(({ panes }) => panes.length)).toEqual([1, 2, 3])
 
-    const example = page.locator(
-      'xpath=//*[@id="a-three-pane-drill-down"]/following::*[@data-live-example][1]'
-    )
-    await example.scrollIntoViewIfNeeded()
+    const example = await renderExampleAfter(page, 'a-three-pane-drill-down')
 
     for (const [level, { url, panes }] of rows.entries()) {
       if (level > 0) await example.locator(`a[href$='${url}']`).last().click()
