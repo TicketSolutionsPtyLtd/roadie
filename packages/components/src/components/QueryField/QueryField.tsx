@@ -658,10 +658,8 @@ export function QueryField<Value = unknown>({
               type='button'
               aria-label='Clear'
               data-slot='query-field-clear'
-              className={cn(
-                'grid shrink-0 cursor-pointer text-subtle hover:text-normal',
-                FIRST_ROW
-              )}
+              // Round and a chip's height, its margins keeping the icon's footprint.
+              className='is-interactive -mx-1 mt-(--combobox-chips-py) grid size-6 shrink-0 place-items-center self-start rounded-full emphasis-subtler text-subtle'
               onClick={clear}
             >
               <XIcon aria-hidden weight='bold' className='size-4' />

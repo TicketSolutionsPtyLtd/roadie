@@ -276,6 +276,21 @@ describe('QueryField', () => {
     expect(Math.abs(middle(clear) - middle(first))).toBeLessThanOrEqual(1)
   })
 
+  it('rings Clear in a circle, as the chips’ remove buttons', async () => {
+    render(<Harness initialChips={[{ id: 'city', label: 'City is Perth' }]} />)
+    const clear = screen.getByRole('button', { name: 'Clear' })
+    const height = box(group()).height
+    clear.focus()
+    expect(clear).toHaveFocus()
+    const style = getComputedStyle(clear)
+    expect(style.outlineStyle).not.toBe('none')
+    expect(parseFloat(style.borderRadius)).toBeGreaterThanOrEqual(
+      box(clear).height / 2
+    )
+    expect(box(clear).width).toBe(box(clear).height)
+    expect(box(group()).height).toBe(height)
+  })
+
   it('sizes operators as Buttons, at least square, above values that keep their label for assistive technology', async () => {
     // As narrow as labels get.
     const symbols: QueryFieldOperator[] = [
