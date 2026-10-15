@@ -488,7 +488,7 @@ export function RecordsSearch({
   const inlineDatesField = inlineDates && byKey.get(inlineDates.field)
   const datesPanel = inlineDates &&
     inlineDatesField && {
-      content: (
+      content: (back: () => void) => (
         <RecordsDatesPanelLazy
           key={inlineDates.session}
           field={inlineDatesField}
@@ -496,6 +496,10 @@ export function RecordsSearch({
           timeZone={records.timeZone}
           today={plainDateOf(records.now, records.timeZone)}
           onChange={takeInlineDates}
+          onBack={() => {
+            inputRef.current?.focus()
+            back()
+          }}
         />
       ),
       onBack: () => setInlineDates(null)

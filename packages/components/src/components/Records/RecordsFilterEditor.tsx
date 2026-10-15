@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 
-import { TrashIcon } from '@phosphor-icons/react'
+import { CaretLeftIcon, TrashIcon } from '@phosphor-icons/react'
 
 import { isAbsoluteRange } from '@oztix/roadie-core/datetime'
 import {
@@ -158,6 +158,8 @@ export type RecordsDatesPanelProps = Pick<
 > & {
   /** The filter, once its dates are picked. */
   onChange: (filter: RecordFilter) => void
+  /** Returns to the list. */
+  onBack: () => void
 }
 
 /**
@@ -169,7 +171,8 @@ export function RecordsDatesPanel({
   filter,
   timeZone,
   today,
-  onChange
+  onChange,
+  onBack
 }: RecordsDatesPanelProps) {
   const [draft, setDraft] = useState(() => draftOf(filter))
   const take = (next: DateDraft) => {
@@ -182,6 +185,15 @@ export function RecordsDatesPanel({
 
   return (
     <div data-slot='records-dates-panel' className='grid gap-2'>
+      <Button
+        size='sm'
+        emphasis='subtler'
+        className='justify-self-start'
+        onClick={onBack}
+      >
+        <CaretLeftIcon weight='bold' className='size-4' aria-hidden />
+        Back
+      </Button>
       <ToggleGroup
         aria-label={`${field.label} condition`}
         size='md'

@@ -18,7 +18,6 @@ import {
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import type { BaseUIEvent } from '@base-ui/react/types'
 import {
-  CaretLeftIcon,
   LockSimpleIcon,
   MagnifyingGlassIcon,
   XIcon
@@ -28,7 +27,6 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { intentVariants } from '../../variants'
-import { Button } from '../Button'
 import { Combobox, type ComboboxChipProps } from '../Combobox'
 import { useFieldContext } from '../Field'
 import { Kbd } from '../Kbd'
@@ -300,11 +298,8 @@ export function QueryField<Value = unknown>({
     setPanelShown(!!panel)
     if (panel) setOpen(false)
   }
-  function leavePanel({ toList }: { toList: boolean }) {
-    if (toList) {
-      inputRef.current?.focus()
-      setOpen(true)
-    }
+  function backToList() {
+    setOpen(true)
     panel?.onBack()
   }
   useVisibleHeight(popupRef, !!panel)
@@ -570,7 +565,12 @@ export function QueryField<Value = unknown>({
       open={(open && !nothingToShow) || !!panel}
       onOpenChange={(next, details) => {
         if (panel) {
-          if (!next) leavePanel({ toList: details.reason === 'escape-key' })
+          if (next) return
+          if (details.reason !== 'escape-key') panel.onBack()
+          else {
+            inputRef.current?.focus()
+            backToList()
+          }
           return
         }
         setOpen(next)
@@ -764,20 +764,7 @@ export function QueryField<Value = unknown>({
                 'max-h-[min(var(--available-height),var(--query-field-visible-height,100dvh))]'
             )}
           >
-            {panel && (
-              <div data-slot='query-field-panel' className='grid gap-2'>
-                <Button
-                  size='sm'
-                  emphasis='subtler'
-                  className='justify-self-start'
-                  onClick={() => leavePanel({ toList: true })}
-                >
-                  <CaretLeftIcon weight='bold' className='size-4' aria-hidden />
-                  Back
-                </Button>
-                {panel.content}
-              </div>
-            )}
+            {panel?.content(backToList)}
             {showsOperators && !panel && (
               <div
                 data-slot='query-field-operators'
