@@ -15,7 +15,7 @@ export type LogoTone = 'brand' | 'dark' | 'light' | 'neutral'
 
 type LogoBaseProps = Omit<ComponentProps<'span'>, 'children' | 'dir'> & {
   /**
-   * The mark and wordmark colour. `brand` is Oztix blue, `dark` is near-black for light backgrounds, and `light` is white for dark, brand, or photo backgrounds, each the same in light and dark mode. `neutral` is one colour that follows the theme.
+   * The logo's colour, on every lockup. `brand` is Oztix blue, `dark` is near-black for light backgrounds, and `light` is white for dark, brand, or photo backgrounds, each the same in light and dark mode. `neutral` is one colour that follows the theme.
    * @default 'brand'
    */
   tone?: 'brand' | 'dark' | 'light' | 'neutral'
