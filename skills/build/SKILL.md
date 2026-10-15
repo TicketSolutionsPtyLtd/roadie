@@ -324,7 +324,8 @@ Read [Date and time](https://ticketsolutionsptyltd.github.io/roadie/foundations/
 ## 13. Copy
 
 Copy follows Roadie's [Content pages](https://ticketsolutionsptyltd.github.io/roadie/content).
-These are the rules that catch the most in app UI.
+These are the rules that catch the most in app UI. For anything longer than a
+label, or a copy review, run `/roadie:content`.
 
 - **Sentence case** for every title, label, button, menu item, and column
   header: "Add event", not "Add Event".
