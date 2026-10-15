@@ -127,9 +127,9 @@ takes `invalid`, `disabled` and `required` from it.
 
 Picking a field, such as Venue, starts the value step. Show a `pendingChip`
 and swap what `suggest` returns for that field's values. Taking a value adds
-the chip and ends the step; Backspace on the empty field, Escape, focus moving
-to something outside the field and its list, or a press outside them calls
-`onPendingChipCancel` to go back. Focus going nowhere, as when a phone's
+the chip and ends the step; Backspace on the empty field, Escape, Tab out of
+the input, focus moving to something outside the field and its list, or a
+press outside them calls `onPendingChipCancel` to go back. Focus going nowhere, as when a phone's
 keyboard is put away, keeps the step.
 
 Give the pending chip two or more `operators`, and the chosen one as
@@ -501,10 +501,11 @@ function QueryFieldShortcut() {
   suggestions closed it clears the typed text. It never clears the chips.
 - In a value step with `operators`, while the values show, **Tab** and
   **Shift+Tab** move to the next and previous operator. Tab from the last
-  operator, or Shift+Tab from the first, leaves the field. The input's
-  `aria-keyshortcuts` names each key only while it moves to an operator.
-  Focus stays in the input, even when you press an operator. Without
-  operators, or with the list closed, Tab leaves the field as usual.
+  operator, or Shift+Tab from the first, leaves the input and ends the step,
+  even when focus lands on Clear. The input's `aria-keyshortcuts` names each
+  key only while it moves to an operator. Focus stays in the input, even when
+  you press an operator. Without operators, or with the list closed, Tab
+  leaves the input as usual and ends the step.
 - The operators are a toggle group named "Operator". It takes the place of
   the first group's label, which screen readers still read.
 - A locked chip reads "set by this page" after its label, and a chip's

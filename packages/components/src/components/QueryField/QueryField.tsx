@@ -65,7 +65,7 @@ export type QueryFieldProps<Value = unknown> = {
   pendingChip?: QueryFieldPendingChip
   /** An operator was pressed, or Tab moved to one, while a chip is pending. */
   onPendingOperatorChange?: (operator: string) => void
-  /** Backspace on an empty field or Escape, while a chip is pending. */
+  /** Backspace on an empty field, Escape, or Tab out of the input, while a chip is pending. */
   onPendingChipCancel?: () => void
   /** The typed text, searched as it changes. Controlled. */
   inputValue?: string
@@ -411,16 +411,22 @@ export function QueryField<Value = unknown>({
   function handleInputKeyDown(
     event: BaseUIEvent<KeyboardEvent<HTMLInputElement>>
   ) {
-    const tabbedOperator =
+    const tab =
       event.key === 'Tab' &&
       !(event.metaKey || event.ctrlKey || event.altKey) &&
       !isComposing(event)
-        ? operatorOnTab(event.shiftKey ? -1 : 1)
-        : undefined
+    const tabbedOperator = tab
+      ? operatorOnTab(event.shiftKey ? -1 : 1)
+      : undefined
     if (tabbedOperator) {
       event.preventBaseUIHandler()
       event.preventDefault()
       onPendingOperatorChange?.(tabbedOperator.value)
+      return
+    }
+    // Ended here, as Tab may land on Clear, still inside the field.
+    if (tab && pendingChip) {
+      endStep()
       return
     }
     if (CARET_KEYS.has(event.key)) setArrowed(false)

@@ -1305,8 +1305,9 @@ describe('QueryField operators', () => {
     expect(onPendingOperatorChange).toHaveBeenCalledWith('has-all')
   })
 
-  it('walks the operators with Tab, then leaves the field from the last', async () => {
-    render(<OperatorStep />)
+  it('walks the operators with Tab, then ends the step from the last', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(<OperatorStep onPendingChipCancel={onPendingChipCancel} />)
     await userEvent.click(input())
     await screen.findByRole('listbox')
     expect(input()).toHaveAttribute('aria-keyshortcuts', 'Tab')
@@ -1318,11 +1319,14 @@ describe('QueryField operators', () => {
     expect(input()).toHaveAttribute('aria-keyshortcuts', 'Shift+Tab')
     expect(document.activeElement).toBe(input())
     expect(screen.getByRole('listbox')).toBeInTheDocument()
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
     await userEvent.tab()
     expect(pressed()).toEqual(['has all of'])
+    // Clear is in the field, so only the Tab itself ends the step.
     expect(document.activeElement).toBe(
       screen.getByRole('button', { name: 'Clear' })
     )
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
   })
 
   it('walks back with Shift+Tab, then leaves backwards from the first', async () => {
@@ -1355,14 +1359,21 @@ describe('QueryField operators', () => {
     expect(input()).toHaveAccessibleDescription('Venue is not')
   })
 
-  it('leaves Tab to move on with no operators to cycle', async () => {
-    render(<Harness pendingChip={{ id: 'venue', label: 'Venue is' }} />)
+  it('leaves Tab to move on, ending the step, with no operators to cycle', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(
+      <Harness
+        pendingChip={{ id: 'venue', label: 'Venue is' }}
+        onPendingChipCancel={onPendingChipCancel}
+      />
+    )
     await userEvent.click(input())
     expect(input()).not.toHaveAttribute('aria-keyshortcuts')
     await userEvent.tab()
     expect(document.activeElement).toBe(
       screen.getByRole('button', { name: 'Clear' })
     )
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
   })
 
   it('still leaves the value step with Escape and Backspace', async () => {
@@ -1619,7 +1630,13 @@ describe('QueryField operators, edge keys', () => {
 
   it('leaves a modified or composing Tab alone', async () => {
     const onPendingOperatorChange = vi.fn()
-    render(<OperatorStep onPendingOperatorChange={onPendingOperatorChange} />)
+    const onPendingChipCancel = vi.fn()
+    render(
+      <OperatorStep
+        onPendingOperatorChange={onPendingOperatorChange}
+        onPendingChipCancel={onPendingChipCancel}
+      />
+    )
     await userEvent.click(input())
     await screen.findByRole('listbox')
     for (const init of [
@@ -1631,6 +1648,7 @@ describe('QueryField operators, edge keys', () => {
     ])
       fireEvent.keyDown(input(), { key: 'Tab', ...init })
     expect(onPendingOperatorChange).not.toHaveBeenCalled()
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
   })
 
   it('announces a change of operator', async () => {
