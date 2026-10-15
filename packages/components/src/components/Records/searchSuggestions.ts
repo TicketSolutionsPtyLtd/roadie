@@ -311,7 +311,8 @@ function customDates(field: RecordField): SearchSuggestion {
     id: `edit:${field.key}`,
     kind: 'filter',
     label: 'Custom dates',
-    value: { type: 'edit', field: field.key }
+    value: { type: 'edit', field: field.key },
+    opensEditor: true
   }
 }
 
@@ -485,6 +486,55 @@ function heldOnly(
     )
 }
 
+/** A date field's presets whose label has a word starting with each typed word, so "next" lists Next 7 days. */
+function typedPresets(
+  field: RecordField,
+  typed: string,
+  context: SearchContext
+): SearchSuggestion[] {
+  if (field.type !== 'date') return []
+  const words = typed.toLowerCase().split(/\s+/)
+  return presetItems(field, 'is').filter((item) => {
+    if (item.value.type !== 'filter') return false
+    const { value } = describeRecordFilter(
+      item.value.filter,
+      context.fields,
+      context
+    )
+    const labelWords = value.toLowerCase().split(/\s+/)
+    return words.every((word) =>
+      labelWords.some((labelWord) => labelWord.startsWith(word))
+    )
+  })
+}
+
+function parsedValues(
+  field: RecordField,
+  typed: string,
+  option: OptionOperator,
+  context: SearchContext
+): SearchSuggestion[] {
+  const presets = typedPresets(field, typed, context)
+  const parsed = parseQuery(`${field.key}:${typed}`, {
+    ...context,
+    fields: [field]
+  })
+    .filter((suggestion) => suggestion.kind === 'filter')
+    .map((suggestion) => fromParsed(suggestion))
+    .map((item) =>
+      field.type === 'option' ? withOperator(item, option) : item
+    )
+  const isPreset = (item: SearchSuggestion) =>
+    item.value.type === 'filter' &&
+    presets.some(
+      (preset) =>
+        preset.value.type === 'filter' &&
+        item.value.type === 'filter' &&
+        sameFilter(preset.value.filter, item.value.filter)
+    )
+  return [...presets, ...parsed.filter((item) => !isPreset(item))]
+}
+
 /** The values a field offers, or reads from typed text, compared by the step's operator. */
 function readValues(
   field: RecordField,
@@ -507,12 +557,7 @@ function readValues(
               values: [typed]
             })
           ]
-        : parseQuery(`${field.key}:${typed}`, { ...context, fields: [field] })
-            .filter((suggestion) => suggestion.kind === 'filter')
-            .map((suggestion) => fromParsed(suggestion))
-            .map((item) =>
-              field.type === 'option' ? withOperator(item, option) : item
-            )
+        : parsedValues(field, typed, option, context)
 }
 
 /** The values read, then those the edited filter holds that aren't among them. */

@@ -138,7 +138,9 @@ operator that's a symbol, such as ≠, an `aria-label`.
 
 Once something is typed, Enter takes the first value. When the step has one
 answer, such as "City is empty" under **is empty**, mark it `exact`, and Enter
-takes it before anything is typed.
+takes it before anything is typed. Mark a value that opens an editor of your
+own, such as "Custom dates", `opensEditor`, and Enter never takes it, so only
+an arrow or a click opens it.
 
 Give the pending chip a `hint`, such as "Type a number.", to say what to type.
 It shows in place of No suggestions while no value is listed, and screen

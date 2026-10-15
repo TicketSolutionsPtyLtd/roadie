@@ -31,10 +31,11 @@ values, with `operator` pressed. Pressing one, or Tab and Shift+Tab in the
 input while they show, calls `onPendingOperatorChange`, keeps focus in the
 input, and asks `suggest` again. Tab from the last operator, or Shift+Tab from
 the first, leaves the field. In the value step, Enter takes the first value
-once text is typed. Mark a step's one answer `exact`, such as "City is
-empty", and Enter takes it before anything is typed. `pendingChip.hint`, such
-as "Type a number.", shows and is announced in place of No suggestions while
-no value is listed.
+once text is typed. Mark a step's one answer `exact`, such as "City is empty",
+and Enter takes it before anything is typed. Mark one that opens an editor
+`opensEditor`, such as "Custom dates", and only an arrow or a click takes it.
+`pendingChip.hint`, such as "Type a number.", shows and is announced in place
+of No suggestions while no value is listed.
 
 To edit a chip in the list, answer `onSelectChip` with a value step whose
 `pendingChip.chipId` names the chip. The chip shows selected in place of a

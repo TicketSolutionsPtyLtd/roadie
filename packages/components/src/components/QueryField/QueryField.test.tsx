@@ -1449,6 +1449,32 @@ describe('QueryField value step Enter', () => {
     expect(onAccept).toHaveBeenCalledExactlyOnceWith(empty)
   })
 
+  it('never takes a row that opens an editor on Enter after typing', async () => {
+    const onAccept = vi.fn()
+    const customDates: QueryFieldSuggestion = {
+      id: 'edit:starts',
+      label: 'Custom dates',
+      kind: 'filter',
+      value: 'edit',
+      opensEditor: true
+    }
+    render(
+      <TypedValueStep
+        onAccept={onAccept}
+        suggest={() => [
+          { id: 'values', label: 'Starts', items: [customDates] }
+        ]}
+      />
+    )
+    await typeInto('zzz')
+    await screen.findByRole('option', { name: 'Custom dates' })
+    expect(hinted()).toEqual([])
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).not.toHaveBeenCalled()
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(customDates)
+  })
+
   it('takes no value found for older text', async () => {
     const onAccept = vi.fn()
     const later = Promise.withResolvers<QueryFieldSuggestionGroup[]>()

@@ -58,6 +58,8 @@ export type QueryFieldSuggestion<Value = unknown> = {
   selected?: boolean
   /** The typed words it doesn't read, left in the field once it is taken. */
   remainder?: string
+  /** Opens an editor, such as "Custom dates", so only an arrow or a click takes it, never Enter on typed text. */
+  opensEditor?: boolean
 }
 
 export type QueryFieldSearchSuggestion = {

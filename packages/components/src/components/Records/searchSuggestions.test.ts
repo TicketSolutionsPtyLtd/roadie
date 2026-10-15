@@ -210,7 +210,8 @@ describe('valueSuggestions', () => {
     ])
     expect(starts!.items.at(-1)).toMatchObject({
       label: 'Custom dates',
-      value: { type: 'edit', field: 'starts' }
+      value: { type: 'edit', field: 'starts' },
+      opensEditor: true
     })
     const placed = valuesOf(valueSuggestions(byKey('placed'), '', context()))
     expect(placed!.items[1]!.label).toBe('Yesterday')
@@ -257,6 +258,24 @@ describe('valueSuggestions', () => {
       type: 'filter',
       filter: { field: 'city', operator: 'is-not', values: ['Thimble'] }
     })
+  })
+
+  it('lists the presets whose label holds every typed word', () => {
+    const typed = (text: string) =>
+      valuesOf(valueSuggestions(byKey('starts'), text, context()))
+        .items.map((item) => item.label)
+        .filter((label) => label !== 'Custom dates')
+    expect(typed('next')).toEqual([
+      'Next week',
+      'Next month',
+      'Next 7 days',
+      'Next 30 days',
+      'Next quarter',
+      'Next year',
+      'Next financial year'
+    ])
+    expect(typed('days next')).toEqual(['Next 7 days', 'Next 30 days'])
+    expect(typed('next 7')[0]).toBe('Next 7 days')
   })
 
   it('reads typed dates for the field', () => {

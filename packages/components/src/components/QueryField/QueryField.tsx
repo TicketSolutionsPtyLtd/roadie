@@ -290,9 +290,10 @@ export function QueryField<Value = unknown>({
     pending: !!pendingChip
   })
   const current = suggestions.inputValue === text
-  // Typed text only adds to an edited chip; a ticked row unticks by arrow or click.
+  // Typed text only adds to an edited chip; a ticked row unticks, and an
+  // editor opens, by arrow or click.
   const enterable = (item: QueryFieldSuggestion<Value>) =>
-    !editedId || !item.selected
+    !item.opensEditor && (!editedId || !item.selected)
   const exact = current
     ? exactSuggestion(suggestions.groups, enterable)
     : undefined
