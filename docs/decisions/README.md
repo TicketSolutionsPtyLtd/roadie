@@ -43,17 +43,18 @@ the rule and keep only the why here.
 
 ## Register
 
-| No.                                       | Decision                                                 |
-| ----------------------------------------- | -------------------------------------------------------- |
-| [0001](0001-own-our-skills.md)            | We own our skills, moved to the Decision log             |
-| [0002](0002-copilot-last-resort.md)       | Our review replaces Copilot; PRs stay draft until clean  |
-| [0003](0003-nothing-in-agent-memory.md)   | Nothing lives in agent memory, moved to the Decision log |
-| [0004](0004-brand-colours-are-intents.md) | Brand colours are hue-named intents                      |
-| [0005](0005-roadie-mostly-wins.md)        | Roadie mostly wins over brand, moved to the Decision log |
-| [0006](0006-writing-rules.md)             | Writing rules, moved to the Decision log                 |
-| [0007](0007-mdx-by-default.md)            | Docs pages are MDX by default                            |
-| [0008](0008-version-packages-by-hand.md)  | Version Packages is merged by hand                       |
-| [0009](0009-real-browsers-for-tests.md)   | Browser tests use real browsers                          |
-| [0010](0010-apca-contrast.md)             | Contrast is measured with APCA                           |
-| [0011](0011-fence-layout-options.md)      | Live examples take preview layout from fence options     |
-| [0012](0012-base-ui-focus-guards.md)      | Base UI focus guards stay nameless buttons in WebKit     |
+| No.                                                 | Decision                                                 |
+| --------------------------------------------------- | -------------------------------------------------------- |
+| [0001](0001-own-our-skills.md)                      | We own our skills, moved to the Decision log             |
+| [0002](0002-copilot-last-resort.md)                 | Our review replaces Copilot; PRs stay draft until clean  |
+| [0003](0003-nothing-in-agent-memory.md)             | Nothing lives in agent memory, moved to the Decision log |
+| [0004](0004-brand-colours-are-intents.md)           | Brand colours are hue-named intents                      |
+| [0005](0005-roadie-mostly-wins.md)                  | Roadie mostly wins over brand, moved to the Decision log |
+| [0006](0006-writing-rules.md)                       | Writing rules, moved to the Decision log                 |
+| [0007](0007-mdx-by-default.md)                      | Docs pages are MDX by default                            |
+| [0008](0008-version-packages-by-hand.md)            | Version Packages is merged by hand                       |
+| [0009](0009-real-browsers-for-tests.md)             | Browser tests use real browsers                          |
+| [0010](0010-apca-contrast.md)                       | Contrast is measured with APCA                           |
+| [0011](0011-fence-layout-options.md)                | Live examples take preview layout from fence options     |
+| [0012](0012-base-ui-focus-guards.md)                | Base UI focus guards stay nameless buttons in WebKit     |
+| [0013](0013-one-dropdown-for-search-and-filters.md) | Search and filters share one dropdown on every screen    |
