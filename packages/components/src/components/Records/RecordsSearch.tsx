@@ -2,12 +2,16 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 
+import { XIcon } from '@phosphor-icons/react'
+
 import { plainDateOf } from '@oztix/roadie-core/datetime'
 import type { RecordFilter } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { PickerOverlay, usePickerSurface } from '../../pickers/PickerShell'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
+import { IconButton } from '../Button/IconButton'
+import { Popover } from '../Popover'
 import { QueryField, type QueryFieldAccepted } from '../QueryField'
 import { RecordsFilterEditorLazy } from './RecordsFilterEditorLazy'
 import { useRecordsContext } from './context'
@@ -592,15 +596,33 @@ export function RecordsSearch({
           // A new filter takes its value at once; an existing one opens on
           // the panel, so no control looks active and Tab reaches the first.
           initialFocus={editing.index === null ? focusTarget : focusPanel}
+          // Anchored to a chip, it has no trigger for Tab to go on from, so
+          // focus stays inside, as in the drawer.
+          modal
           finalFocus={() => {
             const id = returnTo.current
             return (id && chipElement(id)) || inputRef.current
           }}
           className='w-80'
         >
-          <span id={labelId} hidden>
-            {editingField.label}
-          </span>
+          {/* The drawer has its own title and Close. */}
+          {surface === 'popover' ? (
+            <div className='flex items-center justify-between gap-2'>
+              <Popover.Title id={labelId}>{editingField.label}</Popover.Title>
+              {/* Base UI traps focus in a modal popover only with a Close. */}
+              <Popover.Close
+                render={
+                  <IconButton aria-label='Close' size='sm' emphasis='subtler'>
+                    <XIcon weight='bold' className='size-4' />
+                  </IconButton>
+                }
+              />
+            </div>
+          ) : (
+            <span id={labelId} hidden>
+              {editingField.label}
+            </span>
+          )}
           <RecordsFilterEditorLazy
             key={editing.session}
             field={editingField}

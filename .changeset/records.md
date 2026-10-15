@@ -104,7 +104,8 @@ option chip's operator waits for Enter, so Tab passing through is empty keeps
 the values. Backspace in the empty field removes the chip, and Escape or
 leaving the field keeps it. Custom dates opens a date range picker with
 relative presets, or a date picker, in a popover under the chip or a bottom
-drawer on a phone, with Remove filter. It loads while the page is idle. A
+drawer on a phone, with Remove filter. Either one is titled with the field's
+name, has a Close button, and keeps Tab inside it. It loads while the page is idle. A
 relative date chip shows its dates in a tooltip, and a filter the fields can't
 apply shows in warning colours. `/` focuses the search unless `shortcut` (or
 `searchShortcut` on `Records.Toolbar` and `RecordTable`) says otherwise, and

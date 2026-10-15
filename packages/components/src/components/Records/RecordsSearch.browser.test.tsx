@@ -133,6 +133,42 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     expect(reopened.top).toBeGreaterThan(box(chip('Starts')).bottom)
   })
 
+  it('keeps Tab inside Custom dates, titled with its field', async () => {
+    render(
+      <Shows
+        defaultView={{
+          query: {
+            filters: [
+              { field: 'starts', operator: 'within', value: 'this-weekend' }
+            ]
+          }
+        }}
+      />
+    )
+    await userEvent.click(
+      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
+    )
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Custom dates' })
+    )
+    const dialog = await screen.findByRole('dialog', { name: 'Starts' })
+    await expect
+      .element(within(dialog).getByRole('heading', { name: 'Starts' }))
+      .toBeVisible()
+    await expect.poll(() => dialog.contains(document.activeElement)).toBe(true)
+    const stops = new Set<Element | null>()
+    for (let press = 0; press < 6; press++) {
+      await userEvent.keyboard('{Tab}')
+      // A focus guard at the edge hands focus on a moment later.
+      await expect
+        .poll(() => document.activeElement?.closest('[role=dialog]'))
+        .toBe(dialog)
+      stops.add(document.activeElement)
+    }
+    expect(stops.size).toBeGreaterThan(1)
+    expect(dialog).toBeVisible()
+  })
+
   it('edits an option chip in the list on a phone', async () => {
     await page.viewport(390, 844)
     render(
