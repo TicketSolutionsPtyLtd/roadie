@@ -15,11 +15,22 @@ export function watchScrollEdges(group: HTMLElement) {
   }
   const resize =
     typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(mark)
-  resize?.observe(group)
+  // The items too: a full-width group keeps its size as they grow or shrink.
+  const observe = () => {
+    resize?.disconnect()
+    for (const element of [group, ...group.children]) resize?.observe(element)
+  }
+  const items = new MutationObserver(() => {
+    observe()
+    mark()
+  })
+  items.observe(group, { childList: true })
+  observe()
   group.addEventListener('scroll', mark, { passive: true })
   mark()
   return () => {
     resize?.disconnect()
+    items.disconnect()
     group.removeEventListener('scroll', mark)
   }
 }

@@ -274,6 +274,66 @@ describe('an edge fade', () => {
     render(<DateRange />)
     await expect.poll(fades).toEqual(['0px', '0px'])
   })
+
+  function Labels({ labels }: { labels: string[] }) {
+    return (
+      <div style={{ width: NARROW }}>
+        <ToggleGroup aria-label='Date range' className='w-full'>
+          {labels.map((label) => (
+            <ToggleGroup.Item key={label} value={label}>
+              {label}
+            </ToggleGroup.Item>
+          ))}
+        </ToggleGroup>
+      </div>
+    )
+  }
+
+  // Past the group's first resize observation, which would mark it anyway.
+  const settled = async () => {
+    for (let frame = 0; frame < 3; frame++)
+      await new Promise(requestAnimationFrame)
+  }
+
+  it('fades once new items overflow a full-width group', async () => {
+    const { rerender } = render(<Labels labels={['Day', 'Week']} />)
+    await expect.poll(fades).toEqual(['0px', '0px'])
+    await settled()
+    rerender(<Labels labels={['Day', 'Week', 'Month', 'Quarter', 'Year']} />)
+    await expect.poll(fades).toEqual(['0px', '24px'])
+  })
+
+  it('stops fading once the items fit a full-width group again', async () => {
+    const { rerender } = render(
+      <Labels labels={['Day', 'Week', 'Month', 'Quarter', 'Year']} />
+    )
+    await expect.poll(fades).toEqual(['0px', '24px'])
+    await settled()
+    rerender(<Labels labels={['Day', 'Week']} />)
+    await expect.poll(fades).toEqual(['0px', '0px'])
+  })
+
+  it('fades the end again once an item joins it', async () => {
+    const labels = ['Day', 'Week', 'Month', 'Quarter', 'Year']
+    const { rerender } = render(<Labels labels={labels} />)
+    const group = screen.getByRole('group')
+    await expect.poll(fades).toEqual(['0px', '24px'])
+    group.scrollLeft = group.scrollWidth
+    await expect.poll(fades).toEqual(['24px', '0px'])
+    await settled()
+    rerender(<Labels labels={[...labels, 'Decade']} />)
+    await expect.poll(fades).toEqual(['24px', '24px'])
+  })
+
+  // As when a web font loads and the labels widen, with nothing rendered.
+  it('fades once its items widen past a full-width group', async () => {
+    render(<Labels labels={['Day', 'Week']} />)
+    await expect.poll(fades).toEqual(['0px', '0px'])
+    await settled()
+    for (const item of screen.getAllByRole('button'))
+      item.style.paddingInline = `${NARROW}px`
+    await expect.poll(fades).toEqual(['0px', '24px'])
+  })
 })
 
 it('keeps the same height at every emphasis', () => {
