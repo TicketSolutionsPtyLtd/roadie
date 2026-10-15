@@ -300,6 +300,25 @@ describe('Records.Search', () => {
     expect(lastView().query.filters).toEqual([AFTER_1_DEC])
   })
 
+  // A saved view can hold both.
+  it('drops the field’s is empty chip as Custom dates rewrites a date chip', async () => {
+    const { user, lastView } = setup({
+      defaultView: {
+        query: {
+          filters: [AFTER_1_DEC, { field: 'starts', operator: 'is-not-set' }]
+        }
+      }
+    })
+    const dialog = await customDates(user, chipLabels()[0]!)
+    await user.click(
+      within(dialog).getByRole('combobox', { name: 'Starts date' })
+    )
+    await user.keyboard('{Control>}a{/Control}2 dec{Enter}')
+    expect(lastView().query.filters).toEqual([
+      { ...AFTER_1_DEC, value: '2026-12-02' }
+    ])
+  })
+
   it('shows the page’s scope first, locked, and never clears it', async () => {
     const scope: RecordFilter[] = [
       { field: 'city', operator: 'is', values: ['Perth'] }
@@ -921,6 +940,26 @@ describe('Records.Search', () => {
       expect(lastView().query.filters).toEqual([
         { field: 'city', operator: 'is', values: ['Melbourne'] },
         { field: 'status', operator: 'is', values: ['on_sale'] }
+      ])
+    })
+
+    // A saved view can hold both.
+    it('drops a field’s is empty chip as a value joins its is chip', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'city', operator: 'is', values: ['Perth'] },
+              { field: 'city', operator: 'is-not-set' }
+            ]
+          }
+        }
+      })
+      await user.click(input())
+      await user.click(await option('City'))
+      await user.keyboard('mel{Enter}')
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is', values: ['Perth', 'Melbourne'] }
       ])
     })
 

@@ -888,7 +888,8 @@ describe('heldHint', () => {
       { value: 'north-perth', label: 'North Perth' },
       { value: 'perth', label: 'Perth' },
       { value: 'south-perth', label: 'South Perth' },
-      { value: 'fremantle', label: 'Fremantle' }
+      { value: 'fremantle', label: 'Fremantle' },
+      { value: 'north-beach', label: 'North Beach' }
     ]
   })
   const hintFor = (text: string, values: string[]) => {
@@ -911,6 +912,18 @@ describe('heldHint', () => {
     expect(hintFor('perth', all)).toBe(
       'Perth, North Perth, and South Perth are already in this filter.'
     )
+    expect(hintFor('north', ['north-perth', 'north-beach'])).toBe(
+      'North Perth and North Beach are already in this filter.'
+    )
+  })
+
+  // Enter replaces a typed value, so a held one still has something to do.
+  it('says nothing for a typed field', () => {
+    const sold = byKey('sold')
+    const edited: RecordFilter = { field: 'sold', operator: 'eq', value: 20 }
+    const groups = valueSuggestions(sold, '20', context(), 'eq', edited)
+    expect(groups[0]!.items[0]!.selected).toBe(true)
+    expect(heldHint(sold, '20', groups)).toBeUndefined()
   })
 
   it('says nothing while a match is new, or nothing is typed', () => {
