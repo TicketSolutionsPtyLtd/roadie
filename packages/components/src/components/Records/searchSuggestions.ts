@@ -454,7 +454,7 @@ export function heldHint(
 /**
  * A space typed after a range's first number, such as "20 ", adds "and " for
  * the second. A word typed in its place, such as "to", replaces it, so typing
- * "and" yourself doesn't double it.
+ * "and" yourself doesn't double it, and Backspace takes it away whole.
  */
 export function withAnd(
   field: RecordField,
@@ -463,7 +463,15 @@ export function withAnd(
   operator: ValueOperator,
   context: SearchContext
 ): string {
-  if (operator !== 'between' || !next.startsWith(previous)) return next
+  if (operator !== 'between') return next
+  const added = /^(.*\S) and $/.exec(previous)?.[1]
+  if (
+    added &&
+    next === previous.slice(0, -1) &&
+    isOneNumber(field, added, context)
+  )
+    return added
+  if (!next.startsWith(previous)) return next
   const typed = next.slice(previous.length)
   if (
     typed === ' ' &&
@@ -471,7 +479,6 @@ export function withAnd(
     isOneNumber(field, previous, context)
   )
     return `${next}and `
-  const added = /^(.*\S) and $/.exec(previous)?.[1]
   return added && /^[a-z]$/i.test(typed) && isOneNumber(field, added, context)
     ? `${added} ${typed}`
     : next

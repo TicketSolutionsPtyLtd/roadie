@@ -85,11 +85,11 @@ quick date lists when its name has a word starting with each word typed, so
 "next" lists Next 7 days, and Enter never opens Custom dates. Typed text or a
 number shows as one row worded as its chip. Between reads 20 and 50, 20-50, 20
 to 50, or 20..50, in either order, and a space after the first number adds the
-"and". Money takes `$` and commas. Until the value reads, the list says what
-to type, such as "Type a number." Another option value taken under is joins
-the field's is chip. An is empty chip takes the place of the field's other
-chips, and any other chip on the field takes the place of its is empty chip,
-as together they match nothing.
+"and". One Backspace takes it away. Money takes `$` and commas. Until the
+value reads, the list says what to type, such as "Type a number." Another
+option value taken under is joins the field's is chip. An is empty chip takes
+the place of the field's other chips, and any other chip on the field takes
+the place of its is empty chip, as together they match nothing.
 
 Clicking a chip, or Enter on it, edits it in the list, with what it holds
 ticked. An option chip's values tick and untick, and unticking the last

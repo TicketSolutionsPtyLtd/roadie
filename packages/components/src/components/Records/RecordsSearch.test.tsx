@@ -1205,15 +1205,15 @@ describe('Records.Search', () => {
       ])
     })
 
-    it('deletes the and a space added, without adding it again', async () => {
+    it('takes the and a space added away with one Backspace', async () => {
       const { user } = setup()
       await between(user)
       await user.keyboard('2 ')
       expect(input()).toHaveValue('2 and ')
       await user.keyboard('{Backspace}')
-      expect(input()).toHaveValue('2 and')
-      await user.keyboard('{Backspace}{Backspace}{Backspace}')
-      expect(input()).toHaveValue('2 ')
+      expect(input()).toHaveValue('2')
+      await user.keyboard(' ')
+      expect(input()).toHaveValue('2 and ')
     })
 
     it.each<[string, string, string, string]>([

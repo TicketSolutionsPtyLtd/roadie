@@ -847,7 +847,12 @@ describe('withAnd', () => {
     ['sold', '2 and ', '2 and t', 'between', '2 t'],
     ['sold', '2 and ', '2 and -', 'between', '2 and -'],
     ['sold', 'lots and ', 'lots and a', 'between', 'lots and a'],
-    ['sold', '2 and ', '2 and a', 'eq', '2 and a']
+    ['sold', '2 and ', '2 and a', 'eq', '2 and a'],
+    ['sold', '20 and ', '20 and', 'between', '20'],
+    ['gross', '$20 and ', '$20 and', 'between', '$20'],
+    ['sold', '20 and', '20 an', 'between', '20 an'],
+    ['sold', 'lots and ', 'lots and', 'between', 'lots and'],
+    ['sold', '20 and ', '20 and', 'eq', '20 and']
   ])('types %s “%s” to “%s” under %s', (key, before, after, operator, text) => {
     expect(withAnd(byKey(key), before, after, operator, context())).toBe(text)
   })
