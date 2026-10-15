@@ -15,16 +15,69 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  release:
-    name: Release
+  # Opens or updates the version PR. It has no environment and no id-token, so
+  # nothing it runs can mint an npm publish token.
+  version:
+    name: Version
     runs-on: ubuntu-latest
-    # npm's trusted publisher for every published package is pinned to this
-    # environment. GitHub only puts an `environment` claim in the OIDC token
-    # when the job declares one, and npm rejects the token without it.
-    environment: production
     permissions:
       contents: write
       pull-requests: write
+    outputs:
+      has-changesets: ${{ steps.changesets.outputs.has-changesets }}
+      unpublished: ${{ steps.unpublished.outputs.count }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup
+        uses: ./.github/composite-actions/setup
+
+      - name: Create or update the version PR
+        id: changesets
+        uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          # Also copies the roadie-skills version into the plugin manifest.
+          version-script: pnpm changeset:version
+          pr-title: 'chore: version packages'
+          # Bot-pushed runs wait for approval; main still runs CI on merge,
+          # since the squash commit takes the PR title and body.
+          commit-message: 'chore: version packages [skip ci]'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # The same check `changeset publish` makes: a public package whose
+      # version isn't on npm yet. Usually only true after the version PR merges.
+      - name: Count unpublished versions
+        id: unpublished
+        run: |
+          count=0
+          while read -r name version; do
+            if [ -z "$(npm view "$name@$version" version 2>/dev/null)" ]; then
+              echo "Unpublished: $name@$version"
+              count=$((count + 1))
+            fi
+          done < <(pnpm -r ls --depth -1 --json |
+            jq -r '.[] | select(.private != true) | "\(.name) \(.version)"')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+
+  # npm's trusted publisher for every published package is pinned to this environment.
+  # GitHub only puts an `environment` claim in the OIDC token when the job
+  # declares one, and npm rejects the token without it.
+  publish:
+    name: Publish
+    needs: version
+    # Pending changesets mean the version PR hasn't merged; a brand-new package
+    # counts as unpublished before then, and this job would try to version it.
+    if: >-
+      needs.version.outputs.has-changesets == 'false' &&
+      needs.version.outputs.unpublished != '0'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
       id-token: write
     steps:
       - name: Checkout repository
@@ -35,17 +88,10 @@ jobs:
       - name: Setup
         uses: ./.github/composite-actions/setup
 
-      - name: Create release PR or publish
-        id: changesets
+      - name: Publish
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
           publish-script: pnpm release
-          # Also copies the roadie-skills version into the plugin manifest.
-          version-script: pnpm changeset:version
-          pr-title: 'chore: version packages'
-          # Bot-pushed runs wait for approval; main still runs CI on merge,
-          # since the squash commit takes the PR title and body.
-          commit-message: 'chore: version packages [skip ci]'
         env:
           # No NODE_AUTH_TOKEN: publishing authenticates through OIDC, so the
           # secret is dead weight. Provenance is automatic under trusted
