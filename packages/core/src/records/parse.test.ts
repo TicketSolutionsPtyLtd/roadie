@@ -675,6 +675,52 @@ describe('parseQuery', () => {
       expect(readSold('sold > 100', fields)).not.toContain('State is Sold')
     })
 
+    it.each([
+      [
+        'name lampshade',
+        'Name contains “lampshade”',
+        { field: 'name', operator: 'contains', value: 'lampshade' }
+      ],
+      [
+        'capacity 100',
+        'Capacity is 100',
+        { field: 'capacity', operator: 'eq', value: 100 }
+      ],
+      [
+        'city melb',
+        'City is Melbourne',
+        { field: 'city', operator: 'is', values: ['melbourne'] }
+      ],
+      [
+        'starts this weekend',
+        'Starts: This weekend',
+        { field: 'starts', operator: 'within', value: 'this-weekend' }
+      ],
+      [
+        'featured yes',
+        'Featured is Yes',
+        { field: 'featured', operator: 'is-true' }
+      ]
+    ])('reads "%s" with no verb as %s', (text, label, value) => {
+      expect(parse(text)[0]).toMatchObject({
+        kind: 'filter',
+        label,
+        value,
+        remainder: ''
+      })
+    })
+
+    it('reads "sold 100" as the field, not a status', () => {
+      expect(readSold('sold 100')[0]).toBe('Sold is 100')
+      expect(readSold('sold 100')).not.toContain('Status is Sold out')
+    })
+
+    it('reads no verb as part of the value', () => {
+      expect(parse('name is disco', { limit: 50 }).map(summary)).not.toContain(
+        'Name contains “is disco”'
+      )
+    })
+
     it('keeps the words a comparison didn’t read', () => {
       expect(
         parse('capacity > 100 melb').map((s) => [s.label, s.remainder])
@@ -709,11 +755,10 @@ describe('parseQuery', () => {
     })
 
     it.each([
-      'capacity 100',
       'capacity between 20',
       'capacity:between 20',
       'city > syd',
-      'city syd',
+      'name > 5',
       'capacity => 100',
       'capacity =< 100',
       'capacity >= 100'

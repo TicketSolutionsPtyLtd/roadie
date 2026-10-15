@@ -88,8 +88,6 @@ type Verb = {
   words: readonly string[]
   negated: boolean
   contains: boolean
-  /** No verb, as in "sold > 100": a number field's comparison or range. */
-  compares?: boolean
 }
 
 const VERBS: readonly Verb[] = [
@@ -101,9 +99,13 @@ const VERBS: readonly Verb[] = [
   { words: ['='], negated: false, contains: false },
   { words: ["doesn't", 'contain'], negated: true, contains: true },
   { words: ['does', 'not', 'contain'], negated: true, contains: true },
-  { words: ['contains'], negated: false, contains: true },
-  { words: [], negated: false, contains: false, compares: true }
+  { words: ['contains'], negated: false, contains: true }
 ]
+
+/** No verb, as in "city melb" or "sold > 100". */
+const BARE: Verb = { words: [], negated: false, contains: false }
+
+const isOperator = (word = '') => word.replace(OPERATOR, '') === ''
 
 /** A number's value in symbols: "over 100" as ">100", "20 and 50" as "20-50". */
 const numberText = (text: string) =>
@@ -552,10 +554,13 @@ function statementCandidates(
       const named = nameLength(field, lower, start)
       if (!named) continue
       const numeric = field.type === 'number' || field.type === 'money'
-      for (const verb of VERBS) {
-        if (verb.compares && !numeric) continue
-        const at = start + named
-        if (!verb.words.every((word, i) => lower[at + i] === word)) continue
+      const at = start + named
+      const verbs = VERBS.filter((verb) =>
+        verb.words.every((word, i) => lower[at + i] === word)
+      )
+      // Only a number compares with no verb: "city > syd" stays text.
+      if (!verbs.length && (numeric || !isOperator(lower[at]))) verbs.push(BARE)
+      for (const verb of verbs) {
         candidates.push(
           ...statementValues(words, field, verb, [start, at], options, next)
         )
@@ -617,8 +622,6 @@ function statementValues(
     ).filter(
       (reading) =>
         (!verb.contains || reading.filter.operator === 'contains') &&
-        // A bare number after a field name stays free text.
-        (!verb.compares || reading.filter.operator !== 'eq') &&
         (typing || reading.complete !== false)
     )
     const weight = spanWeight(start, end, words.length)
@@ -739,7 +742,7 @@ function finish(options: ParseQueryOptions) {
  * Suggestions for typed text, best first, from field definitions alone, so
  * the same function serves one list screen or a search across entities.
  * Reads identifiers (a field's `match`, offered as exact), `field:value`,
- * `<field> is <value>` and `<field> contains <value>`, field names, option
+ * `<field> <value>`, `<field> is <value>` and `<field> contains <value>`, field names, option
  * and status values, booleans by name, and date phrases for each date field.
  * A number field's `field:value` takes `100`, `>100`, `<100`, `!=100`,
  * `100-500`, `over 100`, `under 100` or `100 and 500`, with `$` and thousands

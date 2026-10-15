@@ -296,7 +296,9 @@ A number or money field's name, then a comparison, reads as that filter.
 A range reads in either order, so `capacity 50-20` suggests "Capacity is 20 to
 50".
 
-A number alone after a field name, such as `capacity 100`, stays search text.
+A field name then a value, with no verb, reads as `field:value` does:
+`city melb` suggests "City is Melbourne", `capacity 100` suggests "Capacity is
+100", and `starts this weekend` suggests "Starts: This weekend".
 
 A field name a statement reads is never also read as a value. With a Sold
 field, `sold > 100` suggests "Sold is more than 100" and never "Status is Sold

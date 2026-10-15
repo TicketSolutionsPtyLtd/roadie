@@ -151,6 +151,24 @@ describe('topSuggestions', () => {
     expect(first('sold')).toBe('Sold')
     expect(first('sol')).toBe('Status is Sold out')
   })
+
+  it('lists the filters first once one reads words after a field name', () => {
+    const status = {
+      key: 'status',
+      label: 'Status',
+      type: 'option' as const,
+      options: [{ value: 'sold-out', label: 'Sold out' }]
+    }
+    const order = (text: string) =>
+      topSuggestions(text, { ...context(), fields: [...fields, status] }).map(
+        (g) => g.id
+      )
+    expect(order('sold')).toEqual(['fields', 'filters'])
+    expect(order('sold melb')).toEqual(['filters', 'fields'])
+    expect(
+      topSuggestions('city melb', context()).flatMap((g) => g.items)[0]
+    ).toMatchObject({ label: 'City is Melbourne', remainder: '' })
+  })
 })
 
 describe('valueSuggestions', () => {

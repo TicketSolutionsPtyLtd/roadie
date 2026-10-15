@@ -172,8 +172,13 @@ export function topSuggestions(
       items: parsed.filter((item) => item.kind === 'field')
     }
   ]
-  // "sold" names the Sold field before it starts "Sold out".
-  return parsed[0]?.kind === 'field' ? groups.reverse() : groups
+  // "sold" names the Sold field before it starts "Sold out", but "sold melb"
+  // lists City is Melbourne first, as it reads the rest.
+  const [top] = parsed
+  const named =
+    top?.kind === 'field' &&
+    groups[0]!.items.every((item) => item.remainder === top.remainder)
+  return named ? groups.reverse() : groups
 }
 
 /** What a field offers before anything is typed. Labels come later. */
