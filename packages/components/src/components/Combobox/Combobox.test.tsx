@@ -560,4 +560,26 @@ describe('Combobox closest match', () => {
     await screen.findByRole('option', { name: 'Rock' })
     expect(optionNames()).toEqual(['Hard rock', 'Rock'])
   })
+
+  // Only a multiple Combobox keeps its values; one value clears as Base UI does.
+  it('clears a single value with Escape while the popup is closed', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Combobox
+        items={['Rock', 'Jazz']}
+        defaultValue='Rock'
+        onValueChange={onValueChange}
+      >
+        <Combobox.InputGroup>
+          <Combobox.Input aria-label='Genre' />
+        </Combobox.InputGroup>
+      </Combobox>
+    )
+    await userEvent.tab()
+    await userEvent.keyboard('{Escape}')
+    expect(onValueChange).toHaveBeenCalledWith(
+      null,
+      expect.objectContaining({ reason: 'escape-key' })
+    )
+  })
 })
