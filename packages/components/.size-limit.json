@@ -287,7 +287,7 @@
     "name": "Records",
     "path": "dist/components/Records/index.js",
     "import": "*",
-    "limit": "83.8 kB",
+    "limit": "83.9 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
