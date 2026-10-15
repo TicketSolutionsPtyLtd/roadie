@@ -101,7 +101,11 @@ describe('Logo', () => {
       }
     )
 
-    it.each(['', '   '])('is ignored when blank (%j)', (product) => {
+    it.each([
+      ['blank', ''],
+      ['whitespace', '   '],
+      ['undefined', undefined]
+    ])('is ignored when %s', (_, product) => {
       render(<Logo product={product} />)
       const root = screen.getByRole('img', { name: 'Oztix' })
       expect(slots(root)).toEqual(['logo-mark', 'logo-wordmark'])
@@ -158,6 +162,7 @@ describe('Logo', () => {
   describe('types', () => {
     it('accepts each lockup with the props it takes', () => {
       expectTypeOf<{ product: 'Studio' }>().toExtend<LogoProps>()
+      expectTypeOf<{ product: string | undefined }>().toExtend<LogoProps>()
       expectTypeOf<{
         variant: 'product'
         product: 'Studio'

@@ -52,6 +52,12 @@ type LogoLockupProps =
       product: string
       direction?: never
     }
+  // product shipped optional, so a possibly unset one with no variant still compiles and falls back to normal.
+  | {
+      variant?: undefined
+      product?: string
+      direction?: never
+    }
 
 export type LogoProps = LogoBaseProps & LogoLockupProps
 
