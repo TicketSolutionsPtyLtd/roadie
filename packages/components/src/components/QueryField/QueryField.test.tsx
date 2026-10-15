@@ -2069,6 +2069,38 @@ describe('QueryField chip editing', () => {
     )
   })
 
+  it('ends the edit on Enter with no new value to take, closing the values', async () => {
+    const onAccept = vi.fn()
+    const onPendingChipCancel = vi.fn()
+    render(
+      <CityEditing
+        onAccept={onAccept}
+        onPendingChipCancel={onPendingChipCancel}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: 'Perth' })
+    await userEvent.keyboard('{Enter}')
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+    await userEvent.keyboard('perth')
+    await screen.findByRole('option', { name: 'Perth' })
+    await userEvent.keyboard('{Enter}')
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(2)
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+    expect(onAccept).not.toHaveBeenCalled()
+    expect(chipNames()).toEqual(['Status is On sale', 'City is Perth'])
+  })
+
+  it('keeps the edit on Enter while typed text matches no value, so its hint stays', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(<CityEditing onPendingChipCancel={onPendingChipCancel} />)
+    await typeInto('zzz')
+    await waitFor(() => expect(optionNames()).toEqual([]))
+    await userEvent.keyboard('{Enter}')
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
+  })
+
   it('keeps the edited chip on Escape, ending the step', async () => {
     const onPendingChipCancel = vi.fn()
     render(<CityEditing onPendingChipCancel={onPendingChipCancel} />)

@@ -261,8 +261,9 @@ unticked. For a chip that holds one value, such as typed text or a date, end the
 `onAccept`, and the list closes. Enter on typed text takes the first value that isn't ticked, so only
 an arrow or a click unticks one.
 
-Backspace in the empty field removes the chip. Escape, or focus leaving the
-field, ends the step and keeps the chip.
+Backspace in the empty field removes the chip. Escape, Enter with no new
+value to take, or focus leaving the field ends the step and keeps the chip.
+Enter keeps the step while typed text matches no value, so the hint stays.
 
 ```tsx-live
 function QueryFieldChipEditing() {
@@ -498,9 +499,10 @@ function QueryFieldShortcut() {
   **Enter** or **Space** selects it and moves focus to the input, and the list
   opens once a value step edits the chip. Locked chips ignore all four keys.
 - While a step edits a chip, **Backspace** in the empty field removes the
-  chip, and **Escape** ends the step and keeps the chip. Focus moving to
-  something outside the field and its list, or a press outside them, does
-  the same as Escape.
+  chip, and **Escape** ends the step and keeps the chip. **Enter** with no
+  new value to take does the same, unless typed text matches no value. Focus
+  moving to something outside the field and its list, or a press outside
+  them, does the same as Escape.
 - A `selected` suggestion is `aria-selected`. Its check stays out of its name.
 - **Escape** closes the suggestions, or ends the value step. With the
   suggestions closed it clears the typed text. It never clears the chips.

@@ -421,7 +421,7 @@ Click a chip, or press Enter on it, to edit it in the list. The chip shows as se
 - **A boolean or date chip.** Yes, No, or a quick date replaces what the chip holds and ends the edit.
 - **Is empty or is not empty.** The row under either replaces what the chip holds, and ends the edit of any chip but an option chip. A chip that already reads is empty or is not empty opens with that row ticked.
 
-Only an option chip changes as you press an operator. Anything else waits for Enter, so pressing Tab past **is empty** keeps the chip's values. Backspace in the empty field removes the chip. Escape, or leaving the field, ends the edit and keeps the chip.
+Only an option chip changes as you press an operator. Anything else waits for Enter, so pressing Tab past **is empty** keeps the chip's values. Backspace in the empty field removes the chip. Escape, Enter with no new value to take, or leaving the field ends the edit and keeps the chip.
 
 #### Custom dates
 
@@ -440,7 +440,7 @@ It opens in a popover under the chip, or a bottom drawer on a phone, and loads w
 | Key            | What it does                                                                                                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `/`            | Focuses the search from anywhere on the page, except while you type in another field.                                                                                          |
-| Enter          | Takes the suggestion you moved to. With none, it takes an identifier the text matches, or searches the text. While you pick a value, it takes the first value once you type, or the one row under is empty or is not empty. |
+| Enter          | Takes the suggestion you moved to. With none, it takes an identifier the text matches, or searches the text. While you pick a value, it takes the first value once you type, or the one row under is empty or is not empty. While you edit a chip, with no new value to take, it ends the edit. |
 | Tab, Shift+Tab | While a field's values show, moves to the next or previous operator. From the last operator, or the first, it leaves the input and ends picking a value or editing a chip. |
 | Backspace      | In the empty field, selects the last chip, and a second removes it. While you pick a value, it goes back to the fields, and while you edit a chip, it removes that chip.              |
 | Escape         | Ends picking a value or editing a chip, and keeps the chips, as leaving the field does. Otherwise it closes the suggestions, then clears the text.                              |

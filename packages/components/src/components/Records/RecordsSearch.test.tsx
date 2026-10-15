@@ -1307,8 +1307,14 @@ describe('Records.Search', () => {
       await waitFor(() =>
         expect(ticked()).toEqual(['Show doesn’t contain “ocean”'])
       )
-      // Taking what the chip already holds writes nothing.
+      // Enter with nothing new to take writes nothing and ends the edit.
       await user.keyboard('{Enter}')
+      expect(lastView()).toBeUndefined()
+      expect(chip('Show doesn’t contain “ocean”')).not.toHaveAttribute(
+        'data-selected'
+      )
+      await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+      await selectChip(user, 'Show doesn’t contain “ocean”')
       // The condition changes the row, not the chip, until it is taken.
       await user.click(screen.getByRole('button', { name: 'contains' }))
       expect(lastView()).toBeUndefined()
@@ -1490,7 +1496,7 @@ describe('Records.Search', () => {
       ])
     })
 
-    it('keeps a value the chip holds on Enter after typing it', async () => {
+    it('keeps a value the chip holds on Enter after typing it, ending the edit', async () => {
       const { user, onViewChange } = setup({
         defaultView: {
           query: {
@@ -1503,7 +1509,7 @@ describe('Records.Search', () => {
       await option('Perth')
       await user.keyboard('{Enter}')
       expect(onViewChange).not.toHaveBeenCalled()
-      expect(chip('City is Perth')).toHaveAttribute('data-selected')
+      expect(chip('City is Perth')).not.toHaveAttribute('data-selected')
     })
 
     it('merges a chip rewritten to is into the field’s is chip, as is chips AND', async () => {
@@ -1566,6 +1572,24 @@ describe('Records.Search', () => {
       // A date chip holds one value, so taking it ends the edit.
       await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
       expect(chip('Starts')).not.toHaveAttribute('data-selected')
+    })
+
+    it('ends a date chip’s edit on Enter, keeping its preset', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'starts', operator: 'within', value: 'this-weekend' }
+            ]
+          }
+        }
+      })
+      await selectChip(user, 'Starts: This weekend')
+      await waitFor(() => expect(ticked()).toEqual(['This weekend']))
+      await user.keyboard('{Enter}')
+      await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+      expect(chip('Starts')).not.toHaveAttribute('data-selected')
+      expect(lastView()).toBeUndefined()
     })
 
     it('opens the date editor for the chip from Custom dates', async () => {
