@@ -359,7 +359,9 @@ describe('QueryField', () => {
             if (id === 'status') setEditing(id)
           }}
           pendingChip={
-            editing && { id: 'status', label: 'Status is', chipId: editing }
+            editing
+              ? { id: 'status', label: 'Status is', chipId: editing }
+              : undefined
           }
           onPendingChipCancel={() => setEditing(undefined)}
         />
