@@ -47,18 +47,25 @@ describe('CalendarTile month', () => {
 
 // Mixed case reads smaller than caps, so the band's type scales with the
 // tile: text-xs at md, text-sm at lg, and 10px at sm, the one size below the
-// type scale.
+// type scale. The band's height is set per size, so its share of the tile is
+// designed rather than whatever the type and padding add up to.
 describe('CalendarTile band size', () => {
   const px = (value: string) => parseFloat(value)
   const rem = (n: number) =>
     px(getComputedStyle(document.documentElement).fontSize) * n
   const sizes = [
-    { size: 'sm', fontSize: () => 10, padding: () => rem(0.125) },
-    { size: 'md', fontSize: () => rem(0.75), padding: () => rem(0.25) },
-    { size: 'lg', fontSize: () => rem(0.875), padding: () => rem(0.375) }
+    { size: 'sm', fontSize: () => 10, height: () => rem(0.875) },
+    { size: 'md', fontSize: () => rem(0.75), height: () => rem(1) },
+    { size: 'lg', fontSize: () => rem(0.875), height: () => rem(1.125) }
   ] as const
+  const centre = (rect: DOMRect) => rect.top + rect.height / 2
+  const textRect = (band: HTMLElement) => {
+    const range = document.createRange()
+    range.selectNodeContents(band)
+    return range.getBoundingClientRect()
+  }
 
-  for (const { size, fontSize, padding } of sizes) {
+  for (const { size, fontSize, height } of sizes) {
     it(`sizes the band at ${size}, the same in React and CSS`, () => {
       const { container } = render(
         <>
@@ -83,9 +90,12 @@ describe('CalendarTile band size', () => {
       for (const band of [react, twin]) {
         const style = getComputedStyle(band)
         expect(px(style.fontSize)).toBeCloseTo(fontSize(), 1)
-        expect(px(style.paddingTop)).toBeCloseTo(padding(), 1)
-        expect(px(style.paddingBottom)).toBeCloseTo(padding(), 1)
+        expect(px(style.paddingTop)).toBeCloseTo(rem(0.125), 1)
+        expect(px(style.paddingBottom)).toBeCloseTo(rem(0.125), 1)
         expect(style.lineHeight).toBe(style.fontSize)
+        const rect = band.getBoundingClientRect()
+        expect(rect.height).toBeCloseTo(height(), 1)
+        expect(Math.abs(centre(textRect(band)) - centre(rect))).toBeLessThan(1)
       }
       expect(react.getBoundingClientRect().height).toBeCloseTo(
         twin.getBoundingClientRect().height,
