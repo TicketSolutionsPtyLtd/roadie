@@ -269,6 +269,8 @@ function QueryFieldChipEditing() {
   const statuses = ['On sale', 'Sold out', 'Postponed']
   const [chosen, setChosen] = useState(['On sale'])
   const [editing, setEditing] = useState(false)
+  // At the start of a word, so "on" finds On sale but not Postponed.
+  const matches = (status, text) => ` ${status.toLowerCase()}`.includes(` ${text.trim().toLowerCase()}`)
   const chips = chosen.length > 0 ? [{ id: 'status', label: `Status is ${chosen.join(' or ')}` }] : []
 
   function toggle(status) {
@@ -293,7 +295,7 @@ function QueryFieldChipEditing() {
           id: 'statuses',
           label: 'Status',
           items: (editing ? statuses : [])
-            .filter((status) => status.toLowerCase().includes(text.trim().toLowerCase()))
+            .filter((status) => matches(status, text))
             .map((status) => ({ id: status, label: status, kind: 'filter', value: status, selected: chosen.includes(status) })),
         },
       ]}

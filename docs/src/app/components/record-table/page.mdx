@@ -393,7 +393,7 @@ Focus the empty field to list the fields to filter by. Pick one, and the list sh
 
 | Field            | Operators                                         | Values                                                                                                  |
 | ---------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Option or status | is, is not, and has all of for a `multiple` field | Its options. Without `options`, the values its records hold in the browser, or otherwise what you type |
+| Option or status | is, is not, and has all of for a `multiple` field | Its `options`, or the values its records hold. When a server filters the records, what you type |
 | Text             | contains, doesn't contain, is, and is not         | What you type                                                                                           |
 | Number or money  | `=`, `≠`, `<`, `>`, and between                   | What you type                                                                                           |
 | Boolean          | is                                                | Yes and No                                                                                              |
@@ -449,7 +449,11 @@ With several searches on a page, the first one takes `/`. Set `searchShortcut` o
 
 #### Scope
 
-A page that shows part of a list, such as one venue's shows or one event's tickets, passes `scope`: filters it sets, not the person. They show first as locked chips with a "Set by this page" tooltip, filter with the view, and are never part of it, so they never reach a saved view or the URL, Clear and the empty state's Clear search and filters keep them, and a list with only its scope counts as unfiltered. In server mode, fetch `records.scopedQuery`, which puts the scope's filters first; `toMeilisearch` reads a view, so pass it `{ ...records.appliedView, query: records.scopedQuery }`. Table and bulk actions get that query too, so acting on every match stays within the page. The scope can hold anything a filter can, so an app can resolve "products on this event, any of its days or its collection" into filters it understands.
+A page that shows part of a list, such as one venue's shows or one event's tickets, passes `scope`: filters the page sets, not the person. They show first as locked chips with a "Set by this page" tooltip, and filter the records along with the view.
+
+The scope is never part of the view. Saved views and the URL leave it out. Clear, and the empty state's Clear search and filters, keep it. A list filtered only by its scope counts as unfiltered.
+
+In server mode, fetch `records.scopedQuery`, which puts the scope's filters first; `toMeilisearch` reads a view, so pass it `{ ...records.appliedView, query: records.scopedQuery }`. Table and bulk actions get that query too, so acting on every match stays within the page. The scope can hold anything a filter can, so an app can resolve "products on this event, any of its days or its collection" into filters it understands.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -1674,8 +1678,4 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `timeZone` | `string` | The reader's zone in use. |
 | `now` | `Date` | The moment relative dates resolve against. |
 
-<PropsDefinitions component='RecordTable' />
-
-<PropsDefinitions component='Records' />
-
-<PropsDefinitions component='RecordValue' />
+<PropsDefinitions component={['RecordTable', 'Records', 'RecordValue']} />
