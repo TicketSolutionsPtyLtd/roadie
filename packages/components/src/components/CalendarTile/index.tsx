@@ -46,8 +46,8 @@ export const calendarTileVariants = cva(
  * Not `emphasis-inverted` despite the name: that is intent step 12, a
  * near-black, where the band wants step 9.
  *
- * Type and padding come from the `calendar-tile-top` utility, so the React
- * tile and the CSS twin can't drift apart.
+ * Type, padding, and height come from the `calendar-tile-top` utility, so the
+ * React tile and the CSS twin can't drift apart.
  */
 const calendarTileTopVariants = cva('calendar-tile-top', {
   variants: {

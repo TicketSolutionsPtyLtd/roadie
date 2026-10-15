@@ -97,6 +97,8 @@ const glyph = formatGlyph(event.startsAt, {
 })
 ```
 
+Pass the month and weekday as `formatGlyph` returns them, never in capitals: `Nov`, not `NOV`. The tile shows them as given. Some locales abbreviate in lowercase, such as `nov.` in French, and the tile keeps that.
+
 The tile carries a month and a day and **never a year**. A three-row tile is cramped at 48px. The year is not what anyone scans a tile for. Whatever sits beside it owns the full date.
 
 ## Without React
