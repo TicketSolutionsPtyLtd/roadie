@@ -499,8 +499,9 @@ function spanCandidates(
   const dateFields = fields.filter((f) => f.type === 'date')
   const candidates: Candidate[] = []
   const maxSpan = words.length > MAX_WORDS ? MAX_SPAN : words.length
-  // Spans a date phrase reads.
+  // Spans a date phrase reads, and those of them a range of two days reads.
   const dated: [number, number][] = []
+  const ranges: [number, number][] = []
   for (let start = 0; start < words.length; start++) {
     // "not melb" and "-melb" never offer Melbourne itself.
     const ruledOut = start > 0 && NEGATIONS.has(plain(words[start - 1]!))
@@ -569,6 +570,7 @@ function spanCandidates(
         // A negated date reads nothing, its words included.
         if (read) readings.forEach(add)
         dated.push(span)
+        if (isDateRange(text, options)) ranges.push(span)
       }
       if (negated) {
         negate([
@@ -580,10 +582,13 @@ function spanCandidates(
   }
   // A date phrase's words read nothing that takes less than the whole
   // phrase, so "next fri" never offers Fri, nor "not this weekend" Thistle.
+  // Each day of a range is a value of its own, so "saturday and sunday" may
+  // offer Day is Saturday.
   return candidates.filter(
     (c) =>
       !dated.some(
         (d) =>
+          !(c.kind === 'filter' && ranges.includes(d)) &&
           overlap(c.span, d) &&
           !within(d, c.span) &&
           length(d) >= length(c.span)
@@ -814,7 +819,13 @@ function rank(
     ...candidates.flatMap((c) => (c.named ? [c.named] : []))
   ]
   const byId = new Map<string, Candidate>()
-  for (const candidate of candidates) {
+  // Statements that read a value, not text a field contains.
+  const statements = candidates.filter(
+    (c) => c.named && c.kind === 'filter' && !FREE_TEXT.has(c.value.operator)
+  )
+  for (const candidate of candidates.map((c) =>
+    belowStatements(c, statements)
+  )) {
     if (
       negations.some(
         (n) => n.negates === candidate.id && n.span[0] < candidate.span[0]
@@ -842,6 +853,28 @@ function rank(
     }
   }
   return [...leaders, ...sorted.filter((c) => !leaders.includes(c))]
+}
+
+/**
+ * A reading of a statement's value that leaves its field's name unread
+ * scores no higher than the statement, so "day saturday and sunday" offers
+ * Day is Saturday before the dates.
+ */
+function belowStatements(
+  candidate: Candidate,
+  statements: readonly Candidate[]
+): Candidate {
+  if (candidate.named) return candidate
+  const score = Math.min(
+    candidate.score,
+    ...statements.flatMap(({ named, span, score }) =>
+      overlap(candidate.span, [named![1], span[1]]) &&
+      !overlap(candidate.span, named!)
+        ? [score]
+        : []
+    )
+  )
+  return score === candidate.score ? candidate : { ...candidate, score }
 }
 
 /** The field named before a colon, the longest name first, so a label may hold a colon. */

@@ -333,11 +333,15 @@ after today's date, never "Starts: Today", and `after`, `before`, `since`,
 a filter, such as `after 7pm`, suggests no date. The words of a longer date
 read nothing on their own, so `last monday` never also suggests the coming
 Monday, and `20 to 23 oct` never suggests the 23rd alone. A range of two days
-reads whole or not at all, so `tomorrow to yesterday` suggests no date.
+reads whole or not at all, so `tomorrow to yesterday` suggests no date. Each
+of its days can still be a value, so with a Day field, `saturday and sunday`
+suggests "Day is Saturday" after the dates.
 
 A field name a statement reads is never also read as a value. With a Sold
 field, `sold > 100` suggests "Sold is more than 100" and never "Status is Sold
-out".
+out". A statement comes before any other reading of its value that leaves
+the field's name out, so `day saturday and sunday` suggests "Day is Saturday"
+before the dates.
 
 `describeRecordFilter(filter, fields, { now, timeZone })` writes any filter as
 its chip reads, such as "Gross is more than $100", with the dates a relative

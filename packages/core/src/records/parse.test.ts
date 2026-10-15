@@ -1103,6 +1103,74 @@ describe('parseQuery', () => {
       }
     )
 
+    describe('with a festival day field', () => {
+      const dayFields = [
+        ...eventFields,
+        {
+          key: 'day',
+          label: 'Day',
+          type: 'option' as const,
+          options: [
+            { value: 'saturday', label: 'Saturday' },
+            { value: 'sunday', label: 'Sunday' }
+          ]
+        },
+        {
+          key: 'stage',
+          label: 'Stage',
+          type: 'option' as const,
+          options: [{ value: 'lawn', label: 'Day Saturday Lawn' }]
+        }
+      ]
+      const readDays = (text: string) =>
+        parseQuery(text, { ...options, fields: dayFields, limit: 50 }).map(
+          summary
+        )
+
+      it('puts the field a statement names before a date that leaves the name', () => {
+        const read = readDays('day saturday and sunday')
+        expect(read[0]).toBe('Day is Saturday')
+        expect(read).toContain('Starts: 3 to 4 Oct')
+      })
+
+      it('still offers each day of a range as a value', () => {
+        const read = readDays('saturday and sunday')
+        expect(read[0]).toBe('Starts: 3 to 4 Oct')
+        expect(read).toContain('Day is Saturday')
+        expect(read).toContain('Day is Sunday')
+      })
+
+      it('keeps the score of a reading that takes the field’s name too', () => {
+        const [first] = parseQuery('day saturday lawn', {
+          ...options,
+          fields: dayFields
+        })
+        expect(first).toMatchObject({
+          label: 'Stage is Day Saturday Lawn',
+          score: 1
+        })
+      })
+
+      it('puts no statement of text a field contains before a date', () => {
+        expect(readDays('name disco this weekend')[0]).toBe(
+          'Starts: This weekend'
+        )
+      })
+
+      it('offers no field from the joining word of a range', () => {
+        const fields = [
+          ...dayFields,
+          { key: 'tour', label: 'Tour', type: 'text' as const }
+        ]
+        const read = parseQuery('sat to sun', { ...options, fields })
+        expect(read.map(summary)).not.toContain('field tour')
+      })
+
+      it('offers no value from inside a date that isn’t a range', () => {
+        expect(readDays('next saturday')).not.toContain('Day is Saturday')
+      })
+    })
+
     it('reads no date for a comparison it can’t express', () => {
       const read = parse('starts after 7pm', { limit: 50 })
       expect(
