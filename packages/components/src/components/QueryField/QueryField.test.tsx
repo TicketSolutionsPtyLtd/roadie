@@ -995,7 +995,7 @@ describe('QueryField', () => {
     }
     const weekend: QueryFieldSuggestion = {
       id: 'starts:weekend',
-      label: 'Starts: This weekend',
+      label: 'Starts is this weekend',
       kind: 'filter',
       value: 'weekend'
     }
@@ -1063,7 +1063,7 @@ describe('QueryField', () => {
         initialChips={[
           {
             id: 'starts',
-            label: 'Starts: This weekend',
+            label: 'Starts is this weekend',
             description: '3 to 4 Oct'
           },
           { ...scope, description: 'Fri 9 Oct' }
@@ -1071,7 +1071,7 @@ describe('QueryField', () => {
       />
     )
     expect(chipElement('starts')).toHaveTextContent(
-      'Starts: This weekend, 3 to 4 Oct'
+      'Starts is this weekend, 3 to 4 Oct'
     )
     expect(chipElement('event')).toHaveTextContent(
       'Event is Lampshade Disco, set by this page, Fri 9 Oct'
@@ -2067,6 +2067,82 @@ describe('QueryField chip editing', () => {
     expect(onAccept).toHaveBeenLastCalledWith(
       expect.objectContaining({ id: 'perth' })
     )
+  })
+
+  it('ends the edit on Enter with no new value to take, closing the values', async () => {
+    const onAccept = vi.fn()
+    const onPendingChipCancel = vi.fn()
+    render(
+      <CityEditing
+        onAccept={onAccept}
+        onPendingChipCancel={onPendingChipCancel}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: 'Perth' })
+    await userEvent.keyboard('{Enter}')
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+    await userEvent.keyboard('perth')
+    await screen.findByRole('option', { name: 'Perth' })
+    await userEvent.keyboard('{Enter}')
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(2)
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+    expect(onAccept).not.toHaveBeenCalled()
+    expect(chipNames()).toEqual(['Status is On sale', 'City is Perth'])
+  })
+
+  it('keeps the edit on Enter while typed text matches no value, so its hint stays', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(<CityEditing onPendingChipCancel={onPendingChipCancel} />)
+    await typeInto('zzz')
+    await waitFor(() => expect(optionNames()).toEqual([]))
+    await userEvent.keyboard('{Enter}')
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
+  })
+
+  it('ends the edit on Enter in the empty field with no values to list', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(
+      <QueryField
+        aria-label='Search orders'
+        chips={[{ id: 'sold', label: 'Sold is more than 50' }]}
+        pendingChip={{
+          id: 'sold',
+          label: 'Sold is more than',
+          chipId: 'sold',
+          hint: 'Type a number.'
+        }}
+        onPendingChipCancel={onPendingChipCancel}
+        suggest={() => []}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByText('Type a number.')
+    await userEvent.keyboard('{Enter}')
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the edit on Enter while the typed text’s values are on their way', async () => {
+    const later = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
+    const onPendingChipCancel = vi.fn()
+    render(
+      <QueryField
+        aria-label='Search orders'
+        chips={[{ id: 'city', label: 'City is Perth' }]}
+        pendingChip={{ id: 'city', label: 'City is', chipId: 'city' }}
+        onPendingChipCancel={onPendingChipCancel}
+        suggest={(text) =>
+          text
+            ? later.promise
+            : [{ id: 'values', label: 'City', items: [perth, hobart] }]
+        }
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: 'Hobart' })
+    await userEvent.keyboard('zzz{Enter}')
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
   })
 
   it('keeps the edited chip on Escape, ending the step', async () => {

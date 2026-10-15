@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useLayoutEffect, useRef } from 'react'
+import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -13,6 +13,8 @@ import {
   type RecordsViewActionsProps
 } from './RecordsViewActions'
 import { useRecordsContext } from './context'
+import { useNarrow } from './narrow'
+import { SearchFocusContext } from './searchFocus'
 import { leaveSelectOnEscape } from './selectMode'
 import { useStickyTop } from './stickyTop'
 import { surfaceClass, useSurface } from './surface'
@@ -48,6 +50,8 @@ export function RecordsToolbar<Row extends object>({
   const ref = useRef<HTMLDivElement>(null)
   const top = useStickyTop(ref, null)
   useSurface(ref)
+  const narrow = useNarrow(ref)
+  const [searchFocused, setSearchFocused] = useState(false)
 
   // The content's header stacks under this height while both are stuck.
   useLayoutEffect(() => {
@@ -82,29 +86,36 @@ export function RecordsToolbar<Row extends object>({
     <div
       ref={ref}
       data-slot='records-toolbar'
+      data-search-focused={narrow && searchFocused ? '' : undefined}
       style={{ top }}
       onKeyDown={leaveSelectOnEscape(records)}
       className={cn(
         // Its padding takes the place of the gap below, so the surface reaches the content while stuck.
         'sticky z-docked mb-[calc(var(--records-gap,0px)*-1)] flex flex-wrap items-start gap-2 pb-3',
+        // A narrow toolbar gives a focused search the row, the rest hidden from Tab and screen readers too.
+        'data-search-focused:*:not-data-[slot=records-search]:hidden',
         surfaceClass,
         className
       )}
     >
-      {children ?? (
-        <>
-          <RecordsSearch
-            placeholder={searchPlaceholder}
-            aria-label={searchLabel}
-            shortcut={searchShortcut}
-            className='min-w-40 grow basis-0'
-          />
-          <RecordsSelect />
-          {viewActions && <RecordsViewActions {...viewActions} />}
-          <RecordsOptions />
-          {actions && <RecordsActions actions={actions} className='ms-auto' />}
-        </>
-      )}
+      <SearchFocusContext value={setSearchFocused}>
+        {children ?? (
+          <>
+            <RecordsSearch
+              placeholder={searchPlaceholder}
+              aria-label={searchLabel}
+              shortcut={searchShortcut}
+              className='min-w-40 grow basis-0'
+            />
+            <RecordsSelect />
+            {viewActions && <RecordsViewActions {...viewActions} />}
+            <RecordsOptions />
+            {actions && (
+              <RecordsActions actions={actions} className='ms-auto' />
+            )}
+          </>
+        )}
+      </SearchFocusContext>
     </div>
   )
 }

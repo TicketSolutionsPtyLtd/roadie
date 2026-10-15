@@ -86,7 +86,9 @@ describe('Records.Search by touch', TIMEOUT, () => {
     expect(Math.round((await settledBox(drawer)).bottom)).toBe(844)
     await tapOn(within(drawer).getByRole('button', { name: /^Choose dates/ }))
     await tapOn(await screen.findByRole('button', { name: /^Next week/ }))
-    await expect.poll(() => chip('Starts')?.textContent).toContain('Next week')
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('is next week')
   })
 
   it('adds a new date filter from Custom dates in a drawer', async () => {
@@ -99,6 +101,8 @@ describe('Records.Search by touch', TIMEOUT, () => {
     const calendar = await screen.findByRole('dialog', { name: /dates/ })
     await tapOn(within(calendar).getByRole('tab', { name: 'Periods' }))
     await tapOn(await screen.findByRole('button', { name: /^Next week/ }))
-    await expect.poll(() => chip('Starts')?.textContent).toContain('Next week')
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('is next week')
   })
 })

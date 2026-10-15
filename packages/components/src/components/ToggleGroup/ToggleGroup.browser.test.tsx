@@ -360,6 +360,62 @@ describe('an edge fade', () => {
     const item = screen.getByRole('button', { name: 'Week' })
     expect(item.getBoundingClientRect().left - group.left).toBeGreaterThan(24)
   })
+
+  it('presses an item half under the fade on a click', async () => {
+    const labels = ['Day', 'Week', 'Month', 'Quarter', 'Year']
+    render(
+      <div style={{ width: NARROW }}>
+        <ToggleGroup aria-label='Date range' multiple>
+          {labels.map((label) => (
+            <ToggleGroup.Item key={label} value={label}>
+              {label}
+            </ToggleGroup.Item>
+          ))}
+        </ToggleGroup>
+      </div>
+    )
+    const group = screen.getByRole('group').getBoundingClientRect()
+    const cut = screen
+      .getAllByRole('button')
+      .find((item) => item.getBoundingClientRect().right > group.right)!
+    const { left } = cut.getBoundingClientRect()
+    await userEvent.click(cut, {
+      position: { x: (group.right - left) / 2, y: 4 }
+    })
+    expect(cut).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  for (const multiple of [false, true])
+    it(`scrolls to the end Home or End moves focus to, clear of the fade${multiple ? ', in a multiple group' : ''}`, async () => {
+      const labels = ['Day', 'Week', 'Month', 'Quarter', 'Year']
+      render(
+        <div style={{ width: NARROW }}>
+          <ToggleGroup
+            aria-label='Date range'
+            multiple={multiple}
+            defaultValue={['Day']}
+          >
+            {labels.map((label) => (
+              <ToggleGroup.Item key={label} value={label}>
+                {label}
+              </ToggleGroup.Item>
+            ))}
+          </ToggleGroup>
+        </div>
+      )
+      const group = screen.getByRole('group')
+      await expect.poll(fades).toEqual(['0px', '24px'])
+      await userEvent.tab()
+      await userEvent.keyboard('{End}')
+      expect(screen.getByRole('button', { name: 'Year' })).toHaveFocus()
+      const room = group.scrollWidth - group.clientWidth
+      await expect.poll(() => group.scrollLeft).toBeGreaterThanOrEqual(room - 1)
+      await expect.poll(fades).toEqual(['24px', '0px'])
+      await userEvent.keyboard('{Home}')
+      expect(screen.getByRole('button', { name: 'Day' })).toHaveFocus()
+      await expect.poll(() => group.scrollLeft).toBeLessThanOrEqual(1)
+      await expect.poll(fades).toEqual(['0px', '24px'])
+    })
 })
 
 it('keeps the same height at every emphasis', () => {

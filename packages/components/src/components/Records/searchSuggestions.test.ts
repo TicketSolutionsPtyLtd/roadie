@@ -79,7 +79,7 @@ describe('topSuggestions', () => {
     const [filters] = topSuggestions('melb this weekend', context())
     expect(filters!.items.slice(0, 2)).toMatchObject([
       {
-        label: 'Starts: This weekend',
+        label: 'Starts is this weekend',
         description: '3 to 4 Oct 2026',
         remainder: 'melb'
       },
@@ -647,7 +647,7 @@ describe('searchChips', () => {
       { id: 'scope:0', label: 'City is Perth', locked: true },
       {
         id: expect.stringMatching(/^filter:.*#0$/),
-        label: 'Starts: This weekend',
+        label: 'Starts is this weekend',
         description: '3 to 4 Oct 2026'
       },
       {
@@ -671,7 +671,7 @@ describe('searchChips', () => {
     )
     expect(scope).toEqual({
       id: 'scope:0',
-      label: 'Starts: This weekend',
+      label: 'Starts is this weekend',
       locked: true
     })
     expect(filter).not.toHaveProperty('description')
@@ -757,7 +757,7 @@ describe('pendingLabel', () => {
       'Event doesn’t contain'
     )
     expect(pendingLabel(byKey('sold'), 'lt')).toBe('Sold is less than')
-    expect(pendingLabel(byKey('starts'), 'is')).toBe('Starts')
+    expect(pendingLabel(byKey('starts'), 'is')).toBe('Starts is')
     expect(pendingLabel(byKey('accessible'), 'is')).toBe('Accessible is')
     expect(pendingLabel(byKey('starts'), 'is-not-set')).toBe('Starts is empty')
     expect(pendingLabel(byKey('sold'), 'is-set')).toBe('Sold is not empty')

@@ -122,6 +122,10 @@ export function ToggleGroupRoot<Value extends string = string>({
     pointerActive.current = false
     windowBlurred.current = false
     const group = event.currentTarget
+    // The browser scrolls a focused item only into the track, under the fade.
+    // A press stays put, so its click lands on the item pressed.
+    if (!byPointer && event.target instanceof HTMLElement)
+      revealItem(group, event.target)
     if (multiple || byPointer || returning) return
     if (group.contains(event.relatedTarget as Node | null)) return
     const pressed = group.querySelector<HTMLElement>(PRESSED_ITEM)

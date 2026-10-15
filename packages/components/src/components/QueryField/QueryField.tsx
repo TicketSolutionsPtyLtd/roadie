@@ -68,7 +68,7 @@ export type QueryFieldProps<Value = unknown> = {
   pendingChip?: QueryFieldPendingChip
   /** An operator was pressed, or Tab moved to one, while a chip is pending. */
   onPendingOperatorChange?: (operator: string) => void
-  /** Backspace on an empty field, Escape, or Tab out of the input, while a chip is pending. */
+  /** While a chip is pending: Backspace on an empty field, Escape, Tab out of the input, or, while a chip is edited, Enter with no new value to take. */
   onPendingChipCancel?: () => void
   /** The typed text, searched as it changes. Controlled. */
   inputValue?: string
@@ -473,6 +473,12 @@ export function QueryField<Value = unknown>({
       event.preventBaseUIHandler()
       event.preventDefault()
       if (enterFallback) accept(enterFallback)
+      // Nothing new to take means done, unless typed text matched no value,
+      // when the hint says what to type, or its values are still on their way.
+      else if (editedId && current && (items.length > 0 || !text.trim())) {
+        setOpen(false)
+        onPendingChipCancel?.()
+      }
       return
     }
     // Ends the composition only: the page, such as a toolbar, never hears it.
@@ -760,8 +766,11 @@ export function QueryField<Value = unknown>({
             onFocus={handleFocus}
             onBlur={handleBlur}
             className={cn(
-              panel &&
-                'max-h-[min(var(--available-height),var(--query-field-visible-height,100dvh))]'
+              // Under the field exactly, so rows truncate rather than spill past it.
+              // A panel, such as a calendar, may need more, up to the screen.
+              panel
+                ? 'max-h-[min(var(--available-height),var(--query-field-visible-height,100dvh))] w-max max-w-(--available-width) min-w-(--anchor-width)'
+                : 'w-(--anchor-width)'
             )}
           >
             {panel?.content(backToList)}

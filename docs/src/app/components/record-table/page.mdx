@@ -137,6 +137,8 @@ function Shows() {
 
 `Records.Toolbar` holds the standard controls: the search and filter field, `Records.Select` for Select mode on narrow rows, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions`, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
 
+In a toolbar under 40rem, the search takes the whole row while it has focus. The other controls hide from sight and screen readers, and come back once focus leaves the search. Tab out of the search shows them first, so it lands on the next one.
+
 `Records.BulkActions` can sit anywhere inside the Provider: the table's `Records.Content` shows it in its header row.
 
 ### In a Pane
@@ -175,7 +177,7 @@ const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
   field.option('venue', { label: 'Venue', options: venues, searchable: true }),
-  field.date('startsAt', { label: 'Starts', moment: 'event', timeZoneKey: 'timeZone' }),
+  field.date('startsAt', { label: 'Start date', moment: 'event', timeZoneKey: 'timeZone' }),
   field.option('status', {
     label: 'Status',
     status: {
@@ -332,7 +334,7 @@ const fields = [
     label: 'Status',
     status: { on_sale: { intent: 'success', order: 1 }, selling_fast: { intent: 'warning', order: 2 }, sold_out: { intent: 'danger', order: 3 } }
   }),
-  field.date('starts', { label: 'Starts', moment: 'date' }),
+  field.date('starts', { label: 'Start date', moment: 'date' }),
   field.number('sold', { label: 'Sold' })
 ]
 const column = tableColumns(fields)
@@ -386,7 +388,7 @@ Typing searches the searchable fields, and suggests the filters the text reads:
 - an identifier, by its `match`
 - a date phrase for each date field, such as "this weekend" or "after 1 dec"
 
-Pick a suggestion with the arrows and Enter, or a click, to add its chip. Enter with no suggestion picked searches the text. A filter takes only the words it reads, and the rest stay in the field for the next one. Typing "melb this weekend" offers "City is Melbourne" and "Starts: This weekend".
+Pick a suggestion with the arrows and Enter, or a click, to add its chip. Enter with no suggestion picked searches the text. A filter takes only the words it reads, and the rest stay in the field for the next one. Typing "melb this weekend" offers "City is Melbourne" and "Start date is this weekend".
 
 #### Picking a field
 
@@ -394,7 +396,7 @@ Focus the empty field to list the fields to filter by. Pick one, and the list sh
 
 | Field            | Operators                                         | Values                                                                                                  |
 | ---------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Option or status | is, is not, and has all of for a `multiple` field | Its `options`, or up to 1,000 values its records hold. Past that, or when a server filters the records, what you type |
+| Option or status | is, is not, and has all of for a `multiple` field | Its `options`, or up to 1,000 values its records hold. Past that, or when a server filters the records, you type the value. |
 | Text             | contains, doesn't contain, is, and is not         | What you type                                                                                           |
 | Number or money  | `=`, `≠`, `<`, `>`, and between                   | What you type                                                                                           |
 | Boolean          | is                                                | Yes and No                                                                                              |
@@ -422,7 +424,7 @@ Click a chip, or press Enter on it, to edit it in the list. The chip shows as se
 - **A boolean or date chip.** Yes, No, or a quick date replaces what the chip holds and ends the edit.
 - **Is empty or is not empty.** The row under either replaces what the chip holds, and ends the edit of any chip but an option chip. A chip that already reads is empty or is not empty opens with that row ticked.
 
-Only an option chip changes as you press an operator. Anything else waits for Enter, so pressing Tab past **is empty** keeps the chip's values. Backspace in the empty field removes the chip. Escape, or leaving the field, ends the edit and keeps the chip.
+Only an option chip changes as you press an operator. Anything else waits for Enter, so pressing Tab past **is empty** keeps the chip's values. Backspace in the empty field removes the chip. Escape, Enter with no new value to take, or leaving the field ends the edit and keeps the chip.
 
 #### Custom dates
 
@@ -436,10 +438,10 @@ It opens in a popover under the chip, or a bottom drawer on a phone, and loads w
   We'll keep one of these two ways to pick custom dates on a phone. We'll delete the other and this example before the next release.
 </Callout>
 
-Open this page on a phone, then pick **Starts** and **Custom dates**.
+Open this page on a phone, then pick **Start date** and **Custom dates**.
 
 - **Drawer** opens the date range picker in a bottom drawer, as Custom dates does now.
-- **In the dropdown** shows a calendar in the dropdown in place of the quick dates, under **Back** and a toggle of **Within**, **On**, **Before**, and **After**. Back or Escape returns to the quick dates. The dropdown fits above the on-screen keyboard. Picking a range or one date adds the chip, or changes the chip you're editing.
+- **In the dropdown** shows a calendar in the dropdown in place of the quick dates, under **Back** and a toggle of **Within**, **On**, **Before**, and **After**. Back or Escape returns to the quick dates. The dropdown widens to fit the calendar, up to the screen's width, and fits above the on-screen keyboard. Picking a range or one date adds the chip, or changes the chip you're editing.
 
 On a screen 48rem or wider, both open the popover under the chip.
 
@@ -448,7 +450,7 @@ const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
   field.option('city', { label: 'City' }),
-  field.date('starts', { label: 'Starts', moment: 'date' })
+  field.date('starts', { label: 'Start date', moment: 'date' })
 ]
 const column = tableColumns(fields)
 const columns = [column.field('show', { pin: true }), column.field('city'), column.field('starts')]
@@ -494,7 +496,7 @@ render(<Comparison />)
 #### Chips
 
 - A chip with more values than it shows names them all in its tooltip.
-- A relative date chip, such as "Starts: This weekend", shows its dates in its tooltip.
+- A relative date chip, such as "Start date is this weekend", shows its dates in its tooltip.
 - A filter these fields can't apply shows in warning colours and filters nothing.
 
 #### Keys
@@ -502,7 +504,7 @@ render(<Comparison />)
 | Key            | What it does                                                                                                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `/`            | Focuses the search from anywhere on the page, except while you type in another field.                                                                                          |
-| Enter          | Takes the suggestion you moved to. With none, it takes an identifier the text matches, or searches the text. While you pick a value, it takes the first value once you type, or the one row under is empty or is not empty. |
+| Enter          | Takes the suggestion you moved to. With none, it takes an identifier the text matches, or searches the text. While you pick a value, it takes the first value once you type, or the one row under is empty or is not empty. While you edit a chip, with no new value to take, it ends the edit. |
 | Tab, Shift+Tab | While a field's values show, moves to the next or previous operator. From the last operator, or the first, it leaves the input and ends picking a value or editing a chip. |
 | Backspace      | In the empty field, selects the last chip, and a second removes it. While you pick a value, it goes back to the fields, and while you edit a chip, it removes that chip.              |
 | Escape         | Ends picking a value or editing a chip, and keeps the chips, as leaving the field does. Otherwise it closes the suggestions, then clears the text.                              |
@@ -515,7 +517,9 @@ A page that shows part of a list, such as one venue's shows or one event's ticke
 
 The scope is never part of the view. Saved views and the URL leave it out. Clear, and the empty state's Clear search and filters, keep it. A list filtered only by its scope counts as unfiltered.
 
-In server mode, fetch `records.scopedQuery`, which puts the scope's filters first; `toMeilisearch` reads a view, so pass it `{ ...records.appliedView, query: records.scopedQuery }`. Table and bulk actions get that query too, so acting on every match stays within the page. The scope can hold anything a filter can, so an app can resolve "products on this event, any of its days or its collection" into filters it understands.
+In server mode, fetch `records.scopedQuery`. It's the applied query with the scope's filters first. `toMeilisearch` reads a whole view, so pass it `{ ...records.appliedView, query: records.scopedQuery }`. Table and bulk actions get the same query, so an action on every match stays within the page.
+
+A scope holds any filter a field can apply. An app turns a rule such as "products on this event, its days, or its collection" into filters on its own fields.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -608,7 +612,7 @@ const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
   field.text('city', { label: 'City' }),
-  field.date('startsAt', { label: 'Starts', moment: 'date' }),
+  field.date('startsAt', { label: 'Start date', moment: 'date' }),
   field.number('sold', { label: 'Sold' }),
   field.money('gross', { label: 'Gross', format: 'compactCurrency' })
 ]
@@ -711,7 +715,7 @@ const fields = [
   field.text('name', { label: 'Event' }),
   field.text('venue', { label: 'Venue' }),
   field.text('city', { label: 'City' }),
-  field.date('startsAt', { label: 'Starts', moment: 'date' }),
+  field.date('startsAt', { label: 'Start date', moment: 'date' }),
   field.option('status', {
     label: 'Status',
     status: { on_sale: { intent: 'success', label: 'On sale' }, sold_out: { intent: 'neutral', label: 'Sold out' } }

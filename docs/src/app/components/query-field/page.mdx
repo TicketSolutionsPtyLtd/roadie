@@ -127,16 +127,25 @@ takes `invalid`, `disabled` and `required` from it.
 
 Picking a field, such as Venue, starts the value step. Show a `pendingChip`
 and swap what `suggest` returns for that field's values. Taking a value adds
-the chip and ends the step; Backspace on the empty field, Escape, Tab out of
-the input, focus moving to something outside the field and its list, or a
-press outside them calls `onPendingChipCancel` to go back. Focus going nowhere, as when a phone's
-keyboard is put away, keeps the step.
+the chip and ends the step. Each of these calls `onPendingChipCancel` to go
+back:
+
+- Backspace in the empty field
+- Escape
+- Tab out of the input
+- Focus moving outside the field and its list
+- A press outside the field and its list
+- Enter with no new value to take, while a step edits a chip
+
+Focus going nowhere, as when a phone's keyboard is put away, keeps the step.
 
 Give the pending chip two or more `operators`, and the chosen one as
 `operator`, to show a toggle above the values. Pressing an operator, or Tab in
 the field, calls `onPendingOperatorChange`. Update `operator` and the chip's
 `label`, such as "Venue is not", and the field asks `suggest` again. Give an
-operator that's a symbol, such as ≠, an `aria-label`.
+operator that's a symbol, such as ≠, an `aria-label`. The list is as wide as
+the field, so operators that don't fit scroll sideways, and long values
+truncate.
 
 Once something is typed, Enter takes the first value. When the step has one
 answer, such as "City is empty" under **is empty**, mark it `exact`, and Enter
@@ -261,8 +270,9 @@ unticked. For a chip that holds one value, such as typed text or a date, end the
 `onAccept`, and the list closes. Enter on typed text takes the first value that isn't ticked, so only
 an arrow or a click unticks one.
 
-Backspace in the empty field removes the chip. Escape, or focus leaving the
-field, ends the step and keeps the chip.
+Backspace in the empty field removes the chip. Escape, Enter with no new
+value to take, or focus leaving the field ends the step and keeps the chip.
+Enter keeps the step while typed text matches no value, so the hint stays.
 
 ```tsx-live
 function QueryFieldChipEditing() {
@@ -376,9 +386,9 @@ function QueryFieldRemainder() {
     if (words.includes('weekend'))
       items.push({
         id: 'starts:weekend',
-        label: 'Starts: This weekend',
+        label: 'Start date is this weekend',
         kind: 'filter',
-        value: { id: 'starts', label: 'Starts: This weekend', description: 'The coming Saturday and Sunday' },
+        value: { id: 'starts', label: 'Start date is this weekend', description: 'The coming Saturday and Sunday' },
         remainder: words.replace(/this\s+weekend|weekend/, '').trim()
       })
     return [{ id: 'filters', label: 'Filters', items }]
@@ -498,9 +508,10 @@ function QueryFieldShortcut() {
   **Enter** or **Space** selects it and moves focus to the input, and the list
   opens once a value step edits the chip. Locked chips ignore all four keys.
 - While a step edits a chip, **Backspace** in the empty field removes the
-  chip, and **Escape** ends the step and keeps the chip. Focus moving to
-  something outside the field and its list, or a press outside them, does
-  the same as Escape.
+  chip, and **Escape** ends the step and keeps the chip. **Enter** with no
+  new value to take does the same, unless typed text matches no value. Focus
+  moving to something outside the field and its list, or a press outside
+  them, does the same as Escape.
 - A `selected` suggestion is `aria-selected`. Its check stays out of its name.
 - **Escape** closes the suggestions, or ends the value step. With the
   suggestions closed it clears the typed text. It never clears the chips.

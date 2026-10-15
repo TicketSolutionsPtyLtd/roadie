@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { use, useEffect, useId, useMemo, useRef, useState } from 'react'
 
 import { XIcon } from '@phosphor-icons/react'
 
@@ -26,6 +26,7 @@ import { useRecordsContext } from './context'
 import { fieldIcon } from './fieldIcon'
 import { whenIdle } from './idle'
 import { applyQuery } from './query'
+import { SearchFocusContext } from './searchFocus'
 import {
   type SearchContext,
   type SearchGroup,
@@ -240,6 +241,7 @@ export function RecordsSearch({
     }
   })
   const labelId = useId()
+  const onFocusChange = use(SearchFocusContext)
   const editorOpen = editing?.open ?? false
   const surface = usePickerSurface(editorOpen)
   useEffect(() => whenIdle(RecordsFilterEditorLazy.preload), [])
@@ -585,7 +587,7 @@ export function RecordsSearch({
         )
       : []
 
-  return (
+  const content = (
     <QueryFieldPanelContext value={datesPanel || null}>
       <QueryField<SearchValue>
         aria-label={label ?? placeholder}
@@ -718,6 +720,34 @@ export function RecordsSearch({
         </PickerOverlay>
       )}
     </QueryFieldPanelContext>
+  )
+  if (!onFocusChange) return content
+  // React's focus events bubble out of the list and editor portals too.
+  return (
+    <div
+      data-slot='records-search'
+      className='contents'
+      onFocus={(event) => {
+        // Only as the toolbar's own child: inside a wrapper, the wrapper hides.
+        if (
+          event.currentTarget.parentElement?.dataset.slot === 'records-toolbar'
+        )
+          onFocusChange(true)
+      }}
+      onBlur={() => onFocusChange(false)}
+      onKeyDown={(event) => {
+        // The rest show before Tab moves on, as a discrete event commits first,
+        // so focus lands on them rather than past them.
+        if (
+          event.key === 'Tab' &&
+          !event.defaultPrevented &&
+          event.currentTarget.contains(event.target as Node)
+        )
+          onFocusChange(false)
+      }}
+    >
+      {content}
+    </div>
   )
 }
 RecordsSearch.displayName = 'Records.Search'

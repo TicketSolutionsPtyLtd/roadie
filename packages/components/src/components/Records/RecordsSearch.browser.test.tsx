@@ -112,7 +112,9 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     await userEvent.click(
       await screen.findByRole('button', { name: /^Next week/ })
     )
-    await expect.poll(() => chip('Starts')?.textContent).toContain('Next week')
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('is next week')
     const after = screen.getByRole('dialog', { name: 'Starts' })
     expect(after).toBeVisible()
     // The edited chip remounts; the editor stays under the chip that holds it.
@@ -260,10 +262,10 @@ describe(
     const day = (date: string) =>
       popup()!.querySelector<HTMLElement>(`button[data-date="${date}"]`)!
 
-    async function openCalendar(defaultView?: RecordViewDefaults) {
-      await page.viewport(390, 844)
+    async function openCalendar(defaultView?: RecordViewDefaults, width = 390) {
+      await page.viewport(width, 844)
       render(
-        <div data-custom-dates='inline'>
+        <div data-custom-dates='inline' className='px-4'>
           <Shows defaultView={defaultView} />
         </div>
       )
@@ -294,6 +296,29 @@ describe(
       expect(
         document.activeElement?.closest('[data-slot=calendar]')
       ).toBeTruthy()
+    })
+
+    it('widens the dropdown past a narrow field to fit the calendar, within the screen', async () => {
+      await openCalendar(undefined, 320)
+      const calendar = popup()!.querySelector('[data-slot=calendar]')!
+      expect(box(popup()!).width).toBeGreaterThan(box(searchField()).width)
+      expect(box(calendar).right).toBeLessThanOrEqual(box(popup()!).right)
+      expect(box(popup()!).left).toBeGreaterThanOrEqual(0)
+      expect(box(popup()!).right).toBeLessThanOrEqual(320)
+    })
+
+    it('keeps the search on the row while dates are picked', async () => {
+      await openCalendar(undefined, 320)
+      const toolbar = document.querySelector('[data-slot=records-toolbar]')!
+      expect(toolbar).toHaveAttribute('data-search-focused')
+      await userEvent.click(
+        within(popup()!).getByRole('button', { name: 'On' })
+      )
+      await userEvent.click(
+        within(popup()!).getByRole('button', { name: 'Next month' })
+      )
+      expect(popup()!.contains(document.activeElement)).toBe(true)
+      expect(toolbar).toHaveAttribute('data-search-focused')
     })
 
     it('sizes each condition to its own label, as the operators are', async () => {

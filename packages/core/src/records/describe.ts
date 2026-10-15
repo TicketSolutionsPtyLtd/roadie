@@ -3,6 +3,13 @@ import type { ValueFormat } from '../dataviz/format'
 import { describeDateRange, plainDateInstant } from '../datetime/describe'
 import { formatDateRange, formatDateTime } from '../datetime/format'
 import { isPlainDate, plainDateOf } from '../datetime/plainDate'
+import {
+  type DateRangeValue,
+  type PeriodRange,
+  isAbsoluteRange,
+  isPeriodRange,
+  isRollingRange
+} from '../datetime/ranges'
 import { fieldIndex, recordFieldOptions } from './fields'
 import type {
   RecordField,
@@ -120,11 +127,15 @@ function plainNow(options: DescribeRecordFilterOptions) {
   return plainDateInstant(plainDateOf(options.now, options.timeZone))
 }
 
-function date(value: string, options: DescribeRecordFilterOptions): string {
+function date(
+  value: string,
+  options: DescribeRecordFilterOptions,
+  dateStyle: 'long' | 'medium' = 'medium'
+): string {
   const shared = {
     now: options.now,
     locale: options.locale,
-    dateStyle: 'medium',
+    dateStyle,
     context: 'standalone'
   } as const
   if (isPlainDate(value))
@@ -167,27 +178,68 @@ function dateRange(
   )
 }
 
-const capitalise = (text: string) =>
-  text.charAt(0).toUpperCase() + text.slice(1)
+// As a chip reads after "is": "Start date is in the next 7 days".
+const NAMED_PHRASES: Record<string, string> = {
+  past: 'in the past',
+  ongoing: 'happening now'
+}
+const DAY_PHRASES: Record<number, string> = {
+  [-1]: 'yesterday',
+  0: 'today',
+  1: 'tomorrow'
+}
+const OFFSET_PHRASES: Record<number, string> = {
+  [-1]: 'last',
+  0: 'this',
+  1: 'next'
+}
+
+function periodPhrase({ period, offset, toDate, fiscal }: PeriodRange) {
+  if (period === 'day') return DAY_PHRASES[offset] ?? null
+  const word = OFFSET_PHRASES[offset]
+  if (!word) return null
+  const noun =
+    fiscal && (period === 'quarter' || period === 'year')
+      ? `financial ${period}`
+      : period
+  return `${word} ${noun}${toDate ? ' to date' : ''}`
+}
+
+/** A relative range as it reads after "is", or null when only dates will do. */
+function rangePhrase(value: DateRangeValue): string | null {
+  if (isAbsoluteRange(value)) return null
+  if (isRollingRange(value)) {
+    const { direction, amount, unit } = value
+    const span = amount === 1 ? unit : `${amount} ${unit}s`
+    return `in the ${direction === 'next' ? 'next' : 'last'} ${span}`
+  }
+  if (isPeriodRange(value)) return periodPhrase(value)
+  return NAMED_PHRASES[value] ?? value.replace('-', ' ')
+}
 
 function describeDate(
   filter: RecordFilter,
   name: string,
   options: DescribeRecordFilterOptions
 ): RecordFilterDescription | null {
-  const dated = (value: string, detail?: string) => ({
-    label: `${name}: ${value}`,
+  const dated = (phrase: string, value = phrase, detail?: string) => ({
+    label: `${name} is ${phrase}`,
     value,
     ...(detail && detail !== value && { detail })
   })
   switch (filter.operator) {
-    case 'on':
-      return dated(date(filter.value, options))
+    case 'on': {
+      const day = date(filter.value, options, 'long')
+      return dated(`on ${day}`, day)
+    }
     case 'before':
-    case 'after':
+    case 'after': {
+      const day = date(filter.value, options)
       return dated(
-        `${capitalise(filter.operator)} ${date(filter.value, options)}`
+        `${filter.operator} ${day}`,
+        `${filter.operator === 'before' ? 'Before' : 'After'} ${day}`
       )
+    }
     case 'between':
       return typeof filter.value[0] === 'string'
         ? dated(dateRange(filter.value as [string, string], options))
@@ -195,7 +247,7 @@ function describeDate(
     case 'within': {
       try {
         const { label, detail } = describeDateRange(filter.value, options)
-        return dated(label, detail)
+        return dated(rangePhrase(filter.value) ?? label, label, detail)
       } catch {
         return dated(JSON.stringify(filter.value))
       }

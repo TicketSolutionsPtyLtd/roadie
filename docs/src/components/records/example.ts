@@ -47,7 +47,7 @@ export const EVENT_FIELDS: RecordField[] = [
   { key: 'gross', label: 'Gross', type: 'money', currencyKey: 'currency' },
   {
     key: 'starts',
-    label: 'Starts',
+    label: 'Start date',
     type: 'date',
     moment: 'event',
     end: 'ends',
