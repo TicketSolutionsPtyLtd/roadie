@@ -1361,6 +1361,23 @@ describe('QueryField value step Enter', () => {
     expect(onAccept).toHaveBeenCalledExactlyOnceWith(hall)
   })
 
+  it('takes an exact match on Enter over the first value', async () => {
+    const onAccept = vi.fn()
+    const exactIguana = { ...iguana, exact: true }
+    render(
+      <TypedValueStep
+        onAccept={onAccept}
+        suggest={() => [
+          { id: 'values', label: 'Venue', items: [hall, exactIguana] }
+        ]}
+      />
+    )
+    await typeInto('hal')
+    await waitFor(() => expect(hinted()).toEqual([iguana.label]))
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(exactIguana)
+  })
+
   it('takes Empty on Enter when the text matches nothing else', async () => {
     const onAccept = vi.fn()
     render(<TypedValueStep onAccept={onAccept} />)
