@@ -72,9 +72,10 @@ field without `options` holds), statuses, booleans by name, identifiers and
 date phrases such as "this weekend", each becoming a chip; the words a
 suggestion doesn't read stay in the field. Picking a field lists its values,
 or for a date its quick dates and Custom dates; a number or text field opens
-its editor. Option values added to a field join its chip
-with the same condition, so is not joins is not and never is; typed negation
-such as "city is not melb" suggests "City is not Melbourne". Each chip opens an
+its editor. Option values added to a field join its chip with the same
+condition, so a value added as "is not" never joins an "is" chip. Typed
+negation, such as "city is not melb", suggests "City is not Melbourne". Each
+chip opens an
 editor for its condition and value as they change (a list of values, a date
 range picker with relative presets, a date picker, a number, text, or Yes and
 No), in a popover under the chip or a bottom drawer on a phone, with Remove

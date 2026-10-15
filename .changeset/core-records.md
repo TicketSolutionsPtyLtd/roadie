@@ -59,11 +59,14 @@ its chip reads ("Venue is Kazoo Hollow Room", "Gross is more than $100",
 Weekender 2027 › Opening Night"). A chip listing more than two values names
 them all in `detail`. `parseQuery` labels its filters the same way, names a
 field whose label holds a colon in `field:value`, and reads `$` and
-thousands commas in a number's value. It reads negation as the opposite filter,
-taking its words: "not melb", "-melb", `venue:!walrus`, "venue is not
-walrus" and "name doesn't contain disco", with `isn't`, `excluding`,
-`except` and `without` too; "venue is walrus" and "name contains disco" take
-the field name and verb.
+thousands commas in a number's value.
+
+`parseQuery` reads negation as the opposite filter, and leaves none of its
+words in `remainder`. "not melb" and "-melb" suggest "City is not Melbourne".
+It also reads `isn't`, `excluding`, `except`, and `without` before a value,
+`venue:!walrus`, "venue is not walrus", and "name doesn't contain disco". It
+reads "venue is walrus" and "name contains disco" too. A date or a comparison
+has no opposite, so a negated one reads nothing.
 
 `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
 and `hitsPerPage`, so the response's `totalHits` counts the matches (up to

@@ -259,15 +259,25 @@ remainder.
 
 <QuerySuggestions />
 
-Negation reads as the opposite filter and takes its words, leaving none in
-`remainder`. "not melb", "-melb", "venue is not walrus" and `venue:!walrus`
-offer "City is not Melbourne" or "Venue is not The Quilted Walrus Room", and
-"name doesn't contain disco" offers its text filter. `not`, `isn't`,
-`excluding`, `except` and `without` negate the value after them, a leading
-`-` negates one word (but `-5` stays a number), and `<field> is not`,
-`isn't`, `doesn't contain` and `does not contain` negate a named field, as
-`<field> is` and `<field> contains` name one. A date or a comparison such as
-more than has no opposite, so a negated one reads nothing.
+Negation reads as the opposite filter. "not melb" suggests "City is not
+Melbourne", and never "City is Melbourne". The negating words are part of the
+filter, so none of them stay in `remainder`.
+
+| Form                                                               | Typed                        | Suggests                             |
+| ------------------------------------------------------------------ | ---------------------------- | ------------------------------------ |
+| `not`, `isn't`, `excluding`, `except`, or `without` before a value | `excluding walrus`           | Venue is not The Quilted Walrus Room |
+| `-` before one word                                                | `-melb`                      | City is not Melbourne                |
+| `!` or `-` after `field:`                                          | `venue:!walrus`              | Venue is not The Quilted Walrus Room |
+| `<field> is not` or `<field> isn't`                                | `venue is not walrus`        | Venue is not The Quilted Walrus Room |
+| `<field> doesn't contain` or `<field> does not contain`            | `name doesn't contain disco` | Name doesn't contain "disco"         |
+
+`venue is walrus` and `name contains disco` read the same way, as the filter
+without the negation.
+
+- A `-` before a number is a minus sign, so `capacity:-5` reads as "Capacity
+  is -5".
+- A date or a comparison, such as more than, has no opposite. A negated one
+  reads nothing.
 
 `describeRecordFilter(filter, fields, { now, timeZone })` writes any filter as
 its chip reads, such as "Gross is more than $100", with the dates a relative
