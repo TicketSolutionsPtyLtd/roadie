@@ -102,6 +102,25 @@ describe('topSuggestions', () => {
     )
   })
 
+  it('never suggests a value a chip with the same condition holds', () => {
+    const [filters] = topSuggestions(
+      'not melb',
+      context([
+        { field: 'city', operator: 'is-not', values: ['perth', 'melbourne'] }
+      ])
+    )
+    expect(filters!.items.map((item) => item.label)).not.toContain(
+      'City is not Melbourne'
+    )
+    const [others] = topSuggestions(
+      'not melb',
+      context([{ field: 'city', operator: 'is', values: ['melbourne'] }])
+    )
+    expect(others!.items.map((item) => item.label)).toContain(
+      'City is not Melbourne'
+    )
+  })
+
   it('keeps the words a field didn’t read', () => {
     const [, found] = topSuggestions('ocean cit', context())
     expect(found!.items[0]).toMatchObject({ label: 'City', remainder: 'ocean' })
@@ -239,6 +258,31 @@ describe('mergeFilter', () => {
       index: 1,
       filter: { field: 'city', operator: 'is', values: ['sydney', 'perth'] }
     })
+  })
+
+  it('adds a value to a chip with the same condition', () => {
+    const notSydney: RecordFilter = {
+      field: 'city',
+      operator: 'is-not',
+      values: ['sydney']
+    }
+    expect(
+      mergeFilter(
+        [sydney, notSydney],
+        { field: 'city', operator: 'is-not', values: ['perth'] },
+        fields
+      )
+    ).toEqual({
+      index: 1,
+      filter: { field: 'city', operator: 'is-not', values: ['sydney', 'perth'] }
+    })
+    expect(
+      mergeFilter(
+        [notSydney],
+        { field: 'city', operator: 'is', values: ['perth'] },
+        fields
+      )
+    ).toBeNull()
   })
 
   it('leaves other filters alone', () => {

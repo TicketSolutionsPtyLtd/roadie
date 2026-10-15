@@ -123,6 +123,27 @@ describe('Records.Search', () => {
     expect(rows()).toHaveLength(6)
   })
 
+  it('reads a negation as the opposite filter, joining chips with the same condition', async () => {
+    const { user, lastView } = setup()
+    await user.click(input())
+    await user.keyboard('city is not melb')
+    await user.click(await option(/City is not Melbourne/))
+    expect(chipLabels()).toEqual(['City is not Melbourne'])
+    expect(input()).toHaveValue('')
+    expect(lastView().query).toMatchObject({
+      search: '',
+      filters: [{ field: 'city', operator: 'is-not', values: ['Melbourne'] }]
+    })
+    await user.keyboard('not syd')
+    await user.click(await option(/City is not Sydney/))
+    await user.keyboard('perth')
+    await user.click(await option(/City is Perth/))
+    expect(chipLabels()).toEqual([
+      'City is not Melbourne or Sydney',
+      'City is Perth'
+    ])
+  })
+
   it('keeps searching the words a filter did not read', async () => {
     const { user, lastView } = setup()
     await user.click(input())

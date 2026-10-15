@@ -122,6 +122,15 @@ function fromParsed(suggestion: RecordSuggestion): SearchSuggestion {
   }
 }
 
+type ListFilter = Extract<RecordFilter, { values: string[] }>
+
+const isList = (filter: RecordFilter): filter is ListFilter =>
+  'values' in filter
+
+/** Values for one field under one operator, as one chip holds them. */
+const sameCondition = (a: ListFilter, b: RecordFilter): b is ListFilter =>
+  isList(b) && a.field === b.field && a.operator === b.operator
+
 function unused(
   items: readonly SearchSuggestion[],
   context: SearchContext
@@ -132,9 +141,8 @@ function unused(
     return !context.filters.some(
       (other) =>
         sameFilter(other, filter) ||
-        (filter.operator === 'is' &&
-          other.operator === 'is' &&
-          other.field === filter.field &&
+        (isList(filter) &&
+          sameCondition(filter, other) &&
           filter.values.every((item) => other.values.includes(item)))
     )
   })
@@ -255,19 +263,17 @@ export function valueSuggestions(
   ]
 }
 
-/** Option `is` filters on one field merge into one chip, as its values are ORed. */
+/** Option filters on one field with the same operator merge into one chip. */
 export function mergeFilter(
   filters: readonly RecordFilter[],
   filter: RecordFilter,
   fields: readonly RecordField[]
 ): { index: number; filter: RecordFilter } | null {
   const field = fields.find(({ key }) => key === filter.field)
-  if (filter.operator !== 'is' || field?.type !== 'option') return null
-  const at = filters.findIndex(
-    (other) => other.field === filter.field && other.operator === 'is'
-  )
-  if (at < 0) return null
-  const existing = filters[at] as { values: string[] }
+  if (!isList(filter) || field?.type !== 'option') return null
+  const at = filters.findIndex((other) => sameCondition(filter, other))
+  const existing = filters[at]
+  if (!existing || !isList(existing)) return null
   return {
     index: at,
     filter: {
