@@ -1,0 +1,161 @@
+export const metadata = {
+  title: 'Toolbar',
+  description: 'A row of buttons, toggles, links and menus that takes one Tab stop',
+  status: 'beta',
+  category: 'Actions',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A row of buttons, toggles, links and menus that takes one Tab stop.
+
+## Import
+
+```tsx
+import { Toolbar } from '@oztix/roadie-components/toolbar'
+```
+
+## Examples
+
+### Default
+
+Each part renders a Roadie component you already know. `Toolbar.Button` is a `Button` at `emphasis='subtler'`, so a row of them reads as one control.
+
+```tsx-live
+<Toolbar aria-label='History'>
+  <Toolbar.Button>Undo</Toolbar.Button>
+  <Toolbar.Button>Redo</Toolbar.Button>
+  <Toolbar.Separator />
+  <Toolbar.Button>Save draft</Toolbar.Button>
+</Toolbar>
+```
+
+### Sizes
+
+`size` sets the buttons and links the toolbar renders, using the `Button` sizes.
+
+```tsx-live layout=stack
+{/* Small */}
+<Toolbar size='sm' aria-label='History'>
+  <Toolbar.Button>Undo</Toolbar.Button>
+  <Toolbar.Button>Redo</Toolbar.Button>
+</Toolbar>
+{/* Medium */}
+<Toolbar size='md' aria-label='History'>
+  <Toolbar.Button>Undo</Toolbar.Button>
+  <Toolbar.Button>Redo</Toolbar.Button>
+</Toolbar>
+{/* Large */}
+<Toolbar size='lg' aria-label='History'>
+  <Toolbar.Button>Undo</Toolbar.Button>
+  <Toolbar.Button>Redo</Toolbar.Button>
+</Toolbar>
+```
+
+### States
+
+A disabled button stays in the arrow order, so a keyboard user still finds it. `disabled` on `Toolbar.Group` or on the toolbar disables everything inside it.
+
+```tsx-live layout=stack
+{/* One button disabled */}
+<Toolbar aria-label='History'>
+  <Toolbar.Button>Undo</Toolbar.Button>
+  <Toolbar.Button disabled>Redo</Toolbar.Button>
+</Toolbar>
+{/* Disabled */}
+<Toolbar aria-label='History' disabled>
+  <Toolbar.Button>Undo</Toolbar.Button>
+  <Toolbar.Button>Redo</Toolbar.Button>
+</Toolbar>
+```
+
+### Composition
+
+#### Formatting toolbar
+
+Pass a `Toggle` or an `IconButton` to `Toolbar.Button` with `render`. A `ToggleGroup` joins the arrow order as it is. Pass `Toolbar.Button` to `Menu.Trigger` with `render` to open a menu.
+
+```tsx-live
+<Toolbar aria-label='Formatting'>
+  <Toolbar.Group aria-label='Text style'>
+    <Toolbar.Button render={<Toggle emphasis='subtler' aria-label='Bold'><TextBIcon weight='bold' className='size-4' /></Toggle>} />
+    <Toolbar.Button render={<Toggle emphasis='subtler' aria-label='Italic'><TextItalicIcon weight='bold' className='size-4' /></Toggle>} />
+  </Toolbar.Group>
+  <Toolbar.Separator />
+  <ToggleGroup emphasis='subtler' aria-label='Alignment' defaultValue={['left']}>
+    <ToggleGroup.Item value='left' aria-label='Align left'><TextAlignLeftIcon weight='bold' className='size-4' /></ToggleGroup.Item>
+    <ToggleGroup.Item value='center' aria-label='Align centre'><TextAlignCenterIcon weight='bold' className='size-4' /></ToggleGroup.Item>
+    <ToggleGroup.Item value='right' aria-label='Align right'><TextAlignRightIcon weight='bold' className='size-4' /></ToggleGroup.Item>
+  </ToggleGroup>
+  <Toolbar.Separator />
+  <Menu>
+    <Menu.Trigger render={<Toolbar.Button><PlusIcon weight='bold' className='size-4' />Insert<CaretDownIcon weight='bold' className='size-4' /></Toolbar.Button>} />
+    <Menu.Content>
+      <Menu.Item icon={<ImageIcon weight='bold' />}>Image</Menu.Item>
+      <Menu.Item icon={<TableIcon weight='bold' />}>Table</Menu.Item>
+      <Menu.Item icon={<LinkSimpleIcon weight='bold' />}>Link</Menu.Item>
+    </Menu.Content>
+  </Menu>
+</Toolbar>
+```
+
+A `render` element keeps its own props, so the toolbar's `size` doesn't reach it. Set `size` on the `Toggle`, `IconButton` or `ToggleGroup` to match.
+
+#### Links
+
+`Toolbar.Link` takes an `href`, which routes through the Link given to `RoadieProvider`. An external `href` opens in a new tab.
+
+```tsx-live
+<Toolbar aria-label='Event'>
+  <Toolbar.Button>Save draft</Toolbar.Button>
+  <Toolbar.Link href='/events/feathered-anchor-sessions'>Preview</Toolbar.Link>
+</Toolbar>
+```
+
+#### Vertical
+
+With `orientation='vertical'` the items stack in a column as wide as the widest, and separators run across it.
+
+```tsx-live
+<Toolbar orientation='vertical' aria-label='Formatting'>
+  <Toolbar.Button render={<Toggle emphasis='subtler' aria-label='Bold'><TextBIcon weight='bold' className='size-4' /></Toggle>} />
+  <Toolbar.Button render={<Toggle emphasis='subtler' aria-label='Italic'><TextItalicIcon weight='bold' className='size-4' /></Toggle>} />
+  <Toolbar.Button render={<Toggle emphasis='subtler' aria-label='Underline'><TextUnderlineIcon weight='bold' className='size-4' /></Toggle>} />
+  <Toolbar.Separator />
+  <Toolbar.Button render={<IconButton emphasis='subtler' aria-label='Undo'><ArrowCounterClockwiseIcon weight='bold' className='size-4' /></IconButton>} />
+  <Toolbar.Button render={<IconButton emphasis='subtler' aria-label='Redo'><ArrowClockwiseIcon weight='bold' className='size-4' /></IconButton>} />
+</Toolbar>
+```
+
+#### When space runs out
+
+Items wrap onto a new line rather than scroll or hide, so every action stays in view on a phone.
+
+```tsx-live width=72
+<Toolbar aria-label='Event'>
+  <Toolbar.Button>Undo</Toolbar.Button>
+  <Toolbar.Button>Redo</Toolbar.Button>
+  <Toolbar.Separator />
+  <Toolbar.Button>Duplicate</Toolbar.Button>
+  <Toolbar.Button>Save draft</Toolbar.Button>
+  <Toolbar.Button>Schedule</Toolbar.Button>
+  <Toolbar.Link href='/events/feathered-anchor-sessions'>Preview</Toolbar.Link>
+</Toolbar>
+```
+
+## Guidelines
+
+- **Group related controls.** Put controls that work together, such as text styles, in a `Toolbar.Group` and separate the groups with `Toolbar.Separator`.
+- **Put it on a surface when it needs one.** A toolbar is a row, not a surface, so it has no `emphasis`. Place it in a `Card` or an `emphasis-*` container to set it apart.
+- **Keep the toolbar short.** Items wrap rather than fold into a menu, so a long toolbar takes several lines on a phone. Put rarely used actions in a `Menu`.
+- **Use `Toggle` for an on and off state.** A `Toggle` reports whether it's pressed; a `Button` only runs an action.
+- **Label every icon-only control,** and the toolbar itself.
+
+## Accessibility
+
+- Renders `role='toolbar'` with `aria-orientation`. Give it an `aria-label`, or point `aria-labelledby` at a visible heading.
+- **Keyboard:** `Tab` moves into the toolbar and out again in one stop. Arrow keys move between items (`ArrowLeft` and `ArrowRight`, or `ArrowUp` and `ArrowDown` when vertical). Focus wraps from the last item to the first unless `loopFocus` is `false`.
+- A disabled button keeps focus, with `aria-disabled`, so a screen reader still announces it.
+- `Toolbar.Separator` renders `role='separator'`, running across the toolbar.
+
+<PropsDefinitions component='Toolbar' />

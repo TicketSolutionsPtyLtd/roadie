@@ -37,6 +37,7 @@ import {
   Tabs as TabsViaBarrel,
   Toast as ToastViaBarrel,
   ToggleGroup as ToggleGroupViaBarrel,
+  Toolbar as ToolbarViaBarrel,
   Tooltip as TooltipViaBarrel
 } from '@oztix/roadie-components'
 import { Accordion } from '@oztix/roadie-components/accordion'
@@ -78,6 +79,7 @@ import { Tabs } from '@oztix/roadie-components/tabs'
 import { Toast } from '@oztix/roadie-components/toast'
 import { Toggle } from '@oztix/roadie-components/toggle'
 import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
+import { Toolbar } from '@oztix/roadie-components/toolbar'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
 
 import { NavigatorCanary } from './NavigatorCanary'
@@ -772,6 +774,27 @@ export default function RscSmokePage() {
             Grid
           </ToggleGroupViaBarrel.Item>
         </ToggleGroupViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Toolbar as bare root (canonical)
+        </h2>
+        <Toolbar aria-label='History' size='sm'>
+          <Toolbar.Group aria-label='Undo and redo'>
+            <Toolbar.Button>Undo</Toolbar.Button>
+            <Toolbar.Button disabled>Redo</Toolbar.Button>
+          </Toolbar.Group>
+          <Toolbar.Separator />
+          <Toolbar.Link href='/components/toolbar'>Help</Toolbar.Link>
+        </Toolbar>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Toolbar via barrel</h2>
+        <ToolbarViaBarrel.Root aria-label='Formatting'>
+          <ToolbarViaBarrel.Button>Bold</ToolbarViaBarrel.Button>
+        </ToolbarViaBarrel.Root>
       </section>
 
       <section className='grid gap-2'>
