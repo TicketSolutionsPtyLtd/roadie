@@ -305,6 +305,35 @@ describe('QueryField', () => {
     expect(screen.getByRole('group', { name: 'Filters' })).toBeInTheDocument()
   })
 
+  it('fills the row Enter takes until another row is highlighted', async () => {
+    const cities: QueryFieldSuggestionGroup[] = [
+      {
+        id: 'values',
+        label: 'City',
+        items: ['Brisbane', 'Hobart'].map((city) => ({
+          id: city,
+          label: city,
+          kind: 'filter' as const,
+          value: city
+        }))
+      }
+    ]
+    render(
+      <Harness
+        pendingChip={{ id: 'city', label: 'City is' }}
+        suggest={() => cities}
+      />
+    )
+    await userEvent.type(input(), 'b')
+    const fill = (name: string) =>
+      getComputedStyle(screen.getByRole('option', { name: new RegExp(name) }))
+        .backgroundColor
+    await expect.poll(() => fill('Brisbane')).not.toBe(fill('Hobart'))
+    const resting = fill('Hobart')
+    await userEvent.hover(screen.getByRole('option', { name: /Hobart/ }))
+    await expect.poll(() => fill('Brisbane')).toBe(resting)
+  })
+
   it('sizes each operator to its own label', async () => {
     const words: QueryFieldOperator[] = [
       { value: 'contains', label: 'contains' },

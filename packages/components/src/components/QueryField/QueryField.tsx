@@ -660,7 +660,17 @@ export function QueryField<Value = unknown>({
                     </Combobox.GroupLabel>
                     <Combobox.Collection>
                       {(item: QueryFieldAccepted<Value>, index: number) => (
-                        <Combobox.Item key={itemKey(item)} value={item}>
+                        <Combobox.Item
+                          key={itemKey(item)}
+                          value={item}
+                          // Enter's target reads as highlighted until something else is.
+                          className={cn(
+                            highlightKey === undefined &&
+                              groupStarts[groupIndex]! + index ===
+                                enterTarget &&
+                              'bg-subtle'
+                          )}
+                        >
                           <OptionIcon
                             icon={
                               item.kind === 'search' ? (
