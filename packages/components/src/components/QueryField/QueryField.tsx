@@ -326,8 +326,11 @@ export function QueryField<Value = unknown>({
     : undefined
 
   function accept(suggestion: QueryFieldAccepted<Value>) {
-    if (suggestion.kind !== 'search') setText(suggestion.remainder ?? '')
-    if (suggestion.kind !== 'field' && !editedId) setOpen(false)
+    const left =
+      suggestion.kind === 'search' ? '' : (suggestion.remainder ?? '')
+    if (suggestion.kind !== 'search') setText(left)
+    // Words left over list their own suggestions.
+    if (suggestion.kind !== 'field' && !editedId && !left.trim()) setOpen(false)
     onAccept?.(suggestion)
   }
 

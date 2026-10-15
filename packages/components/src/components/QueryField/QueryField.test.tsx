@@ -966,6 +966,9 @@ describe('QueryField', () => {
     expect(onAccept).toHaveBeenCalledWith(melbourne)
     expect(input()).toHaveValue('this weekend')
     expect(onInputValueChange).toHaveBeenLastCalledWith('this weekend')
+    // Open, so the words left over list their own suggestions.
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
+    expect(input()).toHaveAttribute('aria-expanded', 'true')
   })
 
   it('clears the text on Escape once the list is closed, keeping chips', async () => {

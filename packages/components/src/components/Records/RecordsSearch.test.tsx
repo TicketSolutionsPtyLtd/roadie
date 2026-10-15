@@ -249,6 +249,16 @@ describe('Records.Search', () => {
     await waitFor(() => expect(hint()).toBe(''))
   })
 
+  it('lists suggestions for the words a taken filter leaves', async () => {
+    const { user } = setup()
+    await user.click(input())
+    await user.keyboard('melb this weekend')
+    await user.click(await option(/City is Melbourne/))
+    expect(chipLabels()).toEqual(['City is Melbourne'])
+    expect(input()).toHaveValue('this weekend')
+    expect(await option(/^Starts: This weekend/)).toBeInTheDocument()
+  })
+
   it('returns focus to the chip when Custom dates closes', async () => {
     const { user } = setup({
       defaultView: { query: { filters: [AFTER_1_DEC] } }
