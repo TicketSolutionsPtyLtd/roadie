@@ -324,6 +324,26 @@ function fieldValueReadings(
   value: string,
   options: ParseQueryOptions
 ): Reading[] {
+  // Every filterable field can be empty.
+  return [
+    ...(value.toLowerCase() === 'empty'
+      ? [
+          {
+            filter: { field: field.key, operator: 'is-not-set' } as const,
+            label: `${field.label} is empty`,
+            quality: 1
+          }
+        ]
+      : []),
+    ...typedValueReadings(field, value, options)
+  ]
+}
+
+function typedValueReadings(
+  field: RecordField,
+  value: string,
+  options: ParseQueryOptions
+): Reading[] {
   const text = value.toLowerCase()
   switch (field.type) {
     case 'option':
@@ -372,6 +392,8 @@ function negatedFilter(filter: RecordFilter): RecordFilter | null {
       return { field: filter.field, operator: 'is-false' }
     case 'is-false':
       return { field: filter.field, operator: 'is-true' }
+    case 'is-not-set':
+      return { field: filter.field, operator: 'is-set' }
     default:
       return null
   }
@@ -742,10 +764,12 @@ function finish(options: ParseQueryOptions) {
     ...suggestion
   }: Candidate) => {
     // A chip reads the same words; a date keeps the phrase as typed.
-    const label =
-      suggestion.kind === 'filter' && !dateKeys.has(suggestion.value.field)
-        ? describeRecordFilter(suggestion.value, fields, options).label
-        : suggestion.label
+    const phrase =
+      suggestion.kind === 'field' ||
+      (dateKeys.has(suggestion.value.field) && 'value' in suggestion.value)
+    const label = phrase
+      ? suggestion.label
+      : describeRecordFilter(suggestion.value, fields, options).label
     return (
       entity
         ? { ...suggestion, label, id: `${entity}:${suggestion.id}`, entity }

@@ -302,6 +302,9 @@ A number or money field's name, then a comparison, reads as that filter.
 A range reads in either order, so `capacity 50-20` suggests "Capacity is 20 to
 50".
 
+`<field> is empty` reads as that field having no value, and `<field> is not
+empty` as it having one, so `city is not empty` suggests "City is not empty".
+
 A field name then a value, with no verb, reads as `field:value` does:
 `city melb` suggests "City is Melbourne", `capacity 100` suggests "Capacity is
 100", and `starts this weekend` suggests "Starts: This weekend".

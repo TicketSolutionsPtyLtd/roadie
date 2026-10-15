@@ -778,6 +778,25 @@ describe('parseQuery', () => {
       )
     })
 
+    it.each([
+      ['capacity is empty', 'Capacity is empty', 'capacity', 'is-not-set'],
+      ['city is empty', 'City is empty', 'city', 'is-not-set'],
+      ['city is not empty', 'City is not empty', 'city', 'is-set'],
+      ["city isn't empty", 'City is not empty', 'city', 'is-set'],
+      ['starts is empty', 'Starts is empty', 'starts', 'is-not-set'],
+      ['starts is not empty', 'Starts is not empty', 'starts', 'is-set'],
+      ['name is empty', 'Name is empty', 'name', 'is-not-set'],
+      ['featured is empty', 'Featured is empty', 'featured', 'is-not-set'],
+      ['city:empty', 'City is empty', 'city', 'is-not-set']
+    ])('reads "%s" as %s', (text, label, field, operator) => {
+      expect(parse(text)[0]).toMatchObject({
+        kind: 'filter',
+        label,
+        value: { field, operator },
+        remainder: ''
+      })
+    })
+
     it('keeps the words a comparison didn’t read', () => {
       expect(
         parse('capacity > 100 melb').map((s) => [s.label, s.remainder])
