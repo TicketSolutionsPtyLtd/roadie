@@ -27,7 +27,7 @@ The Roadie repo is a Claude Code plugin marketplace, so the plugin's id is `road
 
 **For yourself**, run this in a Claude Code session in any repo.
 
-```bash
+```text
 /plugin install roadie --marketplace TicketSolutionsPtyLtd/roadie
 ```
 
@@ -61,7 +61,7 @@ Start a new app with `/roadie:setup`, then ask for what you want in plain words,
 
 ## Ship a change
 
-These skills take a change from idea to merged PR in any Oztix repo. Each reads the repo's `AGENTS.md` and coding standards, so it follows that repo's rules, not just Roadie's.
+These skills take a change from idea to merged PR in any Oztix repo. Each reads the repo's `AGENTS.md` and the standards or workflow it links, so it follows that repo's rules, not just Roadie's.
 
 | Skill | Use it to |
 | --- | --- |
@@ -83,8 +83,8 @@ These skills take a change from idea to merged PR in any Oztix repo. Each reads 
 
 Most docs pages have a markdown copy, and `llms.txt` indexes them. Any agent that can fetch a URL can read them, Claude Code or not.
 
-- **`llms.txt`** at [`/llms.txt`](/llms.txt) indexes every guide, foundation, content, component, chart, token, and widget page, with a line on each.
-- **A page's markdown** is its URL with `.md` on the end, such as [`/components/button.md`](/components/button.md). A component page's copy also lists its props.
+- [`llms.txt`](/llms.txt) indexes every guide, foundation, content, component, chart, token, and widget page, with a line on each.
+- A page's markdown is its URL with `.md` on the end, such as [`/components/button.md`](/components/button.md). A component page's copy also lists its props.
 - **Copy page as Markdown**, in the menu at the top right of every page that has a markdown copy, puts the page on your clipboard to paste into a chat.
 
 ## Package manifests

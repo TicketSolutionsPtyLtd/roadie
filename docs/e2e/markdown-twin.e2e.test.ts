@@ -54,6 +54,37 @@ async function agentMenuLinks(page: Page) {
     )
 }
 
+// The test origin isn't secure, so the clipboard API is stubbed. Like the real one, a write rejects when its blob does.
+async function openWithClipboard(path: string) {
+  const context = await browser.newContext()
+  await serveExport(context)
+  await context.addInitScript(() => {
+    const written: string[] = []
+    Object.assign(window, {
+      written,
+      ClipboardItem: class {
+        constructor(public items: Record<string, Promise<Blob>>) {}
+      }
+    })
+    Object.defineProperty(navigator, 'clipboard', {
+      value: {
+        write: async (items: { items: Record<string, Promise<Blob>> }[]) => {
+          const blob = await items[0]!.items['text/plain']!
+          written.push(await blob.text())
+        }
+      }
+    })
+  })
+  const page = await context.newPage()
+  await page.goto(`${ORIGIN}${BASE_PATH}${path}`)
+  return page
+}
+
+async function copyPage(page: Page) {
+  await page.getByRole('button', { name: 'Use with AI' }).click()
+  await page.getByRole('menuitem', { name: 'Copy page as Markdown' }).click()
+}
+
 describe('Markdown twins', () => {
   it('points every exported page that has a twin at it, and no other page', async () => {
     const files = await readdir(OUT_DIR, { recursive: true })
@@ -90,37 +121,28 @@ describe('Markdown twins', () => {
   }, 60_000)
 
   it('copies the page as markdown', async () => {
-    const context = await browser.newContext()
-    await serveExport(context)
-    // The test origin isn't secure, so the clipboard API is stubbed to record what's written.
-    await context.addInitScript(() => {
-      const written: Promise<string>[] = []
-      Object.assign(window, {
-        written,
-        ClipboardItem: class {
-          constructor(public items: Record<string, Promise<Blob>>) {}
-        }
-      })
-      Object.defineProperty(navigator, 'clipboard', {
-        value: {
-          write: async (items: { items: Record<string, Promise<Blob>> }[]) => {
-            written.push(
-              items[0]!.items['text/plain']!.then((blob) => blob.text())
-            )
-          }
-        }
-      })
-    })
-    const page = await context.newPage()
-    await page.goto(`${ORIGIN}${BASE_PATH}/foundations/colors/`)
-    await page.getByRole('button', { name: 'Use with AI' }).click()
-    await page.getByRole('menuitem', { name: 'Copy page as Markdown' }).click()
+    const page = await openWithClipboard('/foundations/colors/')
+    await copyPage(page)
     await page.getByText('Page copied as Markdown').waitFor()
     expect(
       await page.evaluate(
-        () => (window as unknown as { written: Promise<string>[] }).written[0]
+        () => (window as unknown as { written: string[] }).written[0]
       )
     ).toMatch(/^# Colors\n/)
+  }, 60_000)
+
+  it('says so when the page can’t be copied', async () => {
+    const page = await openWithClipboard('/foundations/colors/')
+    await page.route('**/foundations/colors.md', (route) =>
+      route.fulfill({ status: 500 })
+    )
+    await copyPage(page)
+    await page.getByText('Couldn’t copy the page').waitFor()
+    expect(
+      await page.evaluate(
+        () => (window as unknown as { written: string[] }).written.length
+      )
+    ).toBe(0)
   }, 60_000)
 
   it('links only llms.txt and the guide from a page with no twin', async () => {
