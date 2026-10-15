@@ -485,8 +485,8 @@ function QueryFieldShortcut() {
   you moved to. With none chosen, Enter takes an exact match, or searches the
   text. In a value step, once you type, it takes the first value instead. The
   suggestion Enter would take is filled and shows an Enter key hint. A touch
-  screen shows the fill alone, even where `data-keyboard-hints='always'` keeps
-  other key hints.
+  screen shows the fill alone, unless `data-keyboard-hints='always'` keeps key
+  hints, as on a tablet with a keyboard.
 - Unlike `Combobox` and `Autocomplete`, typing highlights no suggestion, so
   the first Down Arrow lands on the first one. Outside a value step, Enter
   keeps searching what you typed.

@@ -156,15 +156,9 @@ describe('QueryField', () => {
     expect(search.querySelector('kbd')).toBeNull()
   })
 
-  // As on the docs site, which keeps every key hint on touch screens, as the
-  // list is portalled to the body.
   it('hides the Enter hint on a touch screen, keeping the fill', async () => {
-    document.body.dataset.keyboardHints = 'always'
     setHoverCapable(false)
-    onTestFinished(() => {
-      delete document.body.dataset.keyboardHints
-      setHoverCapable(true)
-    })
+    onTestFinished(() => setHoverCapable(true))
     render(<Harness />)
     await userEvent.click(input())
     await userEvent.keyboard('igua')
@@ -175,6 +169,21 @@ describe('QueryField', () => {
     expect(getComputedStyle(search).backgroundColor).not.toBe(
       getComputedStyle(filter).backgroundColor
     )
+  })
+
+  // On the body, as the list is portalled there.
+  it('keeps the Enter hint on a touch screen where a page keeps key hints', async () => {
+    document.body.dataset.keyboardHints = 'always'
+    setHoverCapable(false)
+    onTestFinished(() => {
+      delete document.body.dataset.keyboardHints
+      setHoverCapable(true)
+    })
+    render(<Harness />)
+    await userEvent.click(input())
+    await userEvent.keyboard('igua')
+    const search = await screen.findByRole('option', { name: /Search for/ })
+    expect(shown(search.querySelector('kbd'))).toBe(true)
   })
 
   it('searches on Enter while the pointer rests on a filter', async () => {

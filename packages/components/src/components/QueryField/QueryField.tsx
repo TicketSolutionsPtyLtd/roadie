@@ -121,10 +121,6 @@ const CARET_KEYS = new Set(['Home', 'End'])
 const EMPTY_TEXT =
   'text-center text-sm text-subtle empty:hidden [&:not(:empty)]:px-3 [&:not(:empty)]:py-4'
 
-// Marks a row for a keyboard, so it goes without hover even where a page
-// keeps every key hint, as the row's fill still marks it.
-const ENTER_HINT = 'text-subtle [@media_not_(hover:hover)]:hidden'
-
 // Centred on the first line of 24px chips, so wrapped rows grow below it.
 const FIRST_ROW = 'self-start mt-[calc(var(--combobox-chips-py)+--spacing(1))]'
 
@@ -826,7 +822,7 @@ export function QueryField<Value = unknown>({
                             )}
                         </span>
                         {groupStarts[groupIndex]! + index === enterTarget && (
-                          <Kbd size='sm' className={ENTER_HINT}>
+                          <Kbd size='sm' className='text-subtle'>
                             Enter
                           </Kbd>
                         )}
