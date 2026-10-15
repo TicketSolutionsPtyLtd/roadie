@@ -26,7 +26,7 @@ export type QueryFieldPendingChip = {
   id: string
   /** Reads the chosen operator, such as "Venue is not". */
   label: string
-  /** Two or more show as a toggle above the values, which Tab cycles. */
+  /** Two or more show as a toggle above the values, which Tab steps through. */
   operators?: readonly QueryFieldOperator[]
   /** The chosen operator's `value`. */
   operator?: string

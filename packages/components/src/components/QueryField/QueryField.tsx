@@ -227,8 +227,13 @@ export function QueryField<Value = unknown>({
   const operators = pendingChip?.operators ?? NO_OPERATORS
   const operator = pendingChip?.operator
   const showsOperators = operators.length >= 2
-  // Only while they show, so Tab still leaves a closed field.
-  const cyclesOperators = showsOperators && open
+  // Only while they show, so Tab still leaves a closed field, and once
+  // through, so Tab leaves from either end.
+  const operatorAt = operators.findIndex((each) => each.value === operator)
+  const operatorOnTab = (step: 1 | -1) =>
+    showsOperators && open
+      ? operators[(operatorAt < 0 ? -1 : operatorAt) + step]
+      : undefined
   const suggestions = useSuggestions(
     suggest,
     text,
@@ -295,25 +300,19 @@ export function QueryField<Value = unknown>({
     if (element) onEditChip?.(chip.id, element)
   }
 
-  function cycleOperator(step: 1 | -1) {
-    const at = operators.findIndex((each) => each.value === operator)
-    const from = at < 0 ? (step > 0 ? -1 : 0) : at
-    const next = operators[(from + step + operators.length) % operators.length]
-    if (next) onPendingOperatorChange?.(next.value)
-  }
-
   function handleInputKeyDown(
     event: BaseUIEvent<KeyboardEvent<HTMLInputElement>>
   ) {
-    if (
+    const tabbedOperator =
       event.key === 'Tab' &&
-      cyclesOperators &&
       !(event.metaKey || event.ctrlKey || event.altKey) &&
       !isComposing(event)
-    ) {
+        ? operatorOnTab(event.shiftKey ? -1 : 1)
+        : undefined
+    if (tabbedOperator) {
       event.preventBaseUIHandler()
       event.preventDefault()
-      cycleOperator(event.shiftKey ? -1 : 1)
+      onPendingOperatorChange?.(tabbedOperator.value)
       return
     }
     if (CARET_KEYS.has(event.key)) setArrowed(false)
@@ -565,7 +564,11 @@ export function QueryField<Value = unknown>({
             aria-invalid={isInvalid || undefined}
             aria-required={isRequired || undefined}
             aria-keyshortcuts={
-              [ownsShortcut && shortcut, cyclesOperators && 'Tab']
+              [
+                ownsShortcut && shortcut,
+                operatorOnTab(1) && 'Tab',
+                operatorOnTab(-1) && 'Shift+Tab'
+              ]
                 .filter(Boolean)
                 .join(' ') || undefined
             }

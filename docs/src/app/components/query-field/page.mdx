@@ -478,10 +478,11 @@ function QueryFieldShortcut() {
 - **Escape** closes the suggestions, or ends the value step. With the
   suggestions closed it clears the typed text. It never clears the chips.
 - In a value step with `operators`, while the values show, **Tab** and
-  **Shift+Tab** move to the next and previous operator, wrapping, and the
-  input gets `aria-keyshortcuts='Tab'`. Focus stays in the input, even when
-  you press an operator. Without operators, or with the values closed, Tab
-  leaves the field as usual.
+  **Shift+Tab** move to the next and previous operator. From the last
+  operator Tab leaves the field, and from the first Shift+Tab does, so the
+  input's `aria-keyshortcuts` names each only while it moves to an operator.
+  Focus stays in the input, even when you press an operator. Without
+  operators, or with the values closed, Tab leaves the field as usual.
 - The operators are a toggle group named "Operator". The first group keeps
   its label for screen readers, hidden while the toggle takes its place, as
   does a group with `hideLabel`.

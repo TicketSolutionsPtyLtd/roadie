@@ -1199,20 +1199,47 @@ describe('QueryField operators', () => {
     expect(onPendingOperatorChange).toHaveBeenCalledWith('has-all')
   })
 
-  it('cycles operators with Tab and Shift+Tab, wrapping', async () => {
+  it('walks the operators with Tab, then leaves the field from the last', async () => {
     render(<OperatorStep />)
     await userEvent.click(input())
     await screen.findByRole('listbox')
     expect(input()).toHaveAttribute('aria-keyshortcuts', 'Tab')
     await userEvent.tab()
     expect(pressed()).toEqual(['is not'])
+    expect(input()).toHaveAttribute('aria-keyshortcuts', 'Tab Shift+Tab')
     await userEvent.tab()
-    await userEvent.tab()
-    expect(pressed()).toEqual(['is'])
-    await userEvent.tab({ shift: true })
     expect(pressed()).toEqual(['has all of'])
+    expect(input()).toHaveAttribute('aria-keyshortcuts', 'Shift+Tab')
     expect(document.activeElement).toBe(input())
     expect(screen.getByRole('listbox')).toBeInTheDocument()
+    await userEvent.tab()
+    expect(pressed()).toEqual(['has all of'])
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Clear' })
+    )
+  })
+
+  it('walks back with Shift+Tab, then leaves backwards from the first', async () => {
+    render(
+      <>
+        <button type='button'>Before</button>
+        <OperatorStep />
+      </>
+    )
+    await userEvent.click(input())
+    await screen.findByRole('listbox')
+    await userEvent.tab()
+    await userEvent.tab()
+    await userEvent.tab({ shift: true })
+    expect(pressed()).toEqual(['is not'])
+    await userEvent.tab({ shift: true })
+    expect(pressed()).toEqual(['is'])
+    expect(document.activeElement).toBe(input())
+    await userEvent.tab({ shift: true })
+    expect(pressed()).toEqual(['is'])
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Before' })
+    )
   })
 
   it('reads the new operator through the pending chip it describes the input with', async () => {
