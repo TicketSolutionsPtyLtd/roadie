@@ -278,16 +278,52 @@ function withOperator(
   return { ...item, ...filterSuggestion(filter), label: item.label }
 }
 
+/** Whether the edited filter holds what a suggestion would add. */
+function holds(edited: RecordFilter, filter: RecordFilter): boolean {
+  if (
+    'values' in edited &&
+    'values' in filter &&
+    edited.field === filter.field &&
+    edited.operator === filter.operator
+  )
+    return filter.values.every((value) => edited.values.includes(value))
+  return sameFilter(edited, filter)
+}
+
+/** Values the edited filter holds that the field doesn't offer, so they can be unticked. */
+function heldOnly(
+  field: RecordField,
+  typed: string,
+  edited: RecordFilter | undefined
+): SearchSuggestion[] {
+  if (!edited || !('values' in edited) || field.type !== 'option') return []
+  const offered = new Set(recordFieldOptions(field).map(({ value }) => value))
+  return edited.values
+    .filter(
+      (value) =>
+        !offered.has(value) && value.toLowerCase().includes(typed.toLowerCase())
+    )
+    .map((value) =>
+      filterSuggestion({
+        field: field.key,
+        operator: edited.operator,
+        values: [value]
+      })
+    )
+}
+
 /**
  * Suggestions for one field's value, after it was picked: Empty and Not empty
  * first, where the field allows them, then its values, which for an option
- * field compare by `operator`.
+ * field compare by `operator`. Editing a filter, those it holds are ticked;
+ * leave it out of `context.filters`, so they still show.
  */
 export function valueSuggestions(
   field: RecordField,
   text: string,
   context: SearchContext,
-  operator: ValueOperator = 'is'
+  operator: ValueOperator = 'is',
+  edited?: RecordFilter
 ): SearchGroup[] {
   const typed = text.trim()
   const unlisted =
@@ -302,21 +338,29 @@ export function valueSuggestions(
           .map((item) =>
             field.type === 'option' ? withOperator(item, operator) : item
           )
-  const values = unused(items, context).map((item) => {
+  const listed = new Set(items.map(({ id }) => id))
+  const held = heldOnly(field, typed, edited).filter(
+    ({ id }) => !listed.has(id)
+  )
+  const tick = (item: SearchSuggestion): SearchSuggestion =>
+    edited && item.value.type === 'filter' && holds(edited, item.value.filter)
+      ? { ...item, selected: true }
+      : item
+  const values = unused([...items, ...held], context).map((item) => {
     if (item.value.type !== 'filter') return item
     const { value, detail } = describeRecordFilter(
       item.value.filter,
       context.fields,
       context
     )
-    return {
+    return tick({
       ...item,
       label: value,
       remainder: undefined,
       ...(detail && { description: detail })
-    }
+    })
   })
-  const emptiness = unused(emptinessItems(field, typed), context)
+  const emptiness = unused(emptinessItems(field, typed), context).map(tick)
   // Not a typed match, so it gives way to a typed Empty, or Enter takes it.
   const editable =
     field.type === 'date' &&
@@ -332,6 +376,27 @@ export function valueSuggestions(
       items: [...values, ...(editable ? [customDates(field)] : [])]
     }
   ]
+}
+
+/**
+ * The edited filter once a value is taken: a value it compares the same way
+ * goes in or out, and anything else replaces it. Null once no value is left.
+ */
+export function toggleValue(
+  edited: RecordFilter,
+  taken: RecordFilter
+): RecordFilter | null {
+  if (
+    !('values' in edited) ||
+    !('values' in taken) ||
+    edited.field !== taken.field ||
+    edited.operator !== taken.operator
+  )
+    return taken
+  const values = holds(edited, taken)
+    ? edited.values.filter((value) => !taken.values.includes(value))
+    : [...new Set([...edited.values, ...taken.values])]
+  return values.length > 0 ? { ...edited, values } : null
 }
 
 /** Option `is` filters on one field merge into one chip, as its values are ORed. */

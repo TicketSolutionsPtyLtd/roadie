@@ -56,7 +56,7 @@ describe('Records.Search by touch', TIMEOUT, () => {
     await expect.poll(chipLabels).toEqual(['Status is Sold out'])
   })
 
-  it('opens a tapped chip’s editor in a drawer, and its dates in another', async () => {
+  it('opens Custom dates for a tapped date chip in a drawer, and its dates in another', async () => {
     render(
       <Shows
         defaultView={{
@@ -69,6 +69,7 @@ describe('Records.Search by touch', TIMEOUT, () => {
       />
     )
     await tapOn(chip('Starts')!.querySelector('button')!)
+    await tapOn(await screen.findByRole('option', { name: 'Custom dates' }))
     const drawer = await screen.findByRole('dialog', { name: 'Starts' })
     expect(Math.round((await settledBox(drawer)).bottom)).toBe(844)
     await tapOn(within(drawer).getByRole('button', { name: /^Choose dates/ }))

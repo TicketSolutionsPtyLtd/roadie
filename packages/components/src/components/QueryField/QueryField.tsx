@@ -46,7 +46,7 @@ export type QueryFieldProps<Value = unknown> = {
   chips?: readonly QueryFieldChip[]
   /** A chip's remove button, Backspace on a selected chip, or Clear asks to remove it. Clear calls it once per chip, so update state functionally. */
   onRemoveChip?: (id: string) => void
-  /** A click, Enter or Space on an unlocked chip: start a value step for it, with `pendingChip.chipId`. Focus stays in the input and the list opens. */
+  /** A click, Enter or Space on an unlocked chip, which moves focus to the input. Start a value step with `pendingChip.chipId` naming the chip to list its values, or open an editor of your own. */
   onSelectChip?: (id: string) => void
   /**
    * Clear calls it in place of clearing the text through `onInputValueChange`
@@ -232,6 +232,11 @@ export function QueryField<Value = unknown>({
   const edited = editedId
     ? ordered.find((chip) => chip.id === editedId)
     : undefined
+  const [listedFor, setListedFor] = useState(editedId)
+  if (listedFor !== editedId) {
+    setListedFor(editedId)
+    if (editedId) setOpen(true)
+  }
   const operators = pendingChip?.operators ?? NO_OPERATORS
   const operator = pendingChip?.operator
   const showsOperators = operators.length >= 2
@@ -309,7 +314,8 @@ export function QueryField<Value = unknown>({
   function select(chip: QueryFieldChip) {
     onSelectChip?.(chip.id)
     inputRef.current?.focus()
-    setOpen(true)
+    // A new step opens the list as it starts; the same chip's only reopens it.
+    if (chip.id === editedId) setOpen(true)
   }
 
   function handleInputKeyDown(

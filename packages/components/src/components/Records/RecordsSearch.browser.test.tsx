@@ -84,7 +84,7 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     expect(box(configure).height).toBe(40)
   })
 
-  it('opens a chip’s editor under it, and a date picker inside it', async () => {
+  it('opens Custom dates for a date chip under it, with a date picker inside', async () => {
     render(
       <Shows
         defaultView={{
@@ -99,6 +99,9 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     const starts = chip('Starts')
     await userEvent.click(
       within(starts).getByRole('button', { name: /^Starts/ })
+    )
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Custom dates' })
     )
     const dialog = await screen.findByRole('dialog', { name: 'Starts' })
     const editor = await settledBox(dialog)
@@ -121,13 +124,16 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     await userEvent.click(
       within(chip('Starts')).getByRole('button', { name: /^Starts/ })
     )
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Custom dates' })
+    )
     const reopened = await settledBox(
       await screen.findByRole('dialog', { name: 'Starts' })
     )
     expect(reopened.top).toBeGreaterThan(box(chip('Starts')).bottom)
   })
 
-  it('edits a chip in a bottom drawer on a phone', async () => {
+  it('edits an option chip in the list on a phone', async () => {
     await page.viewport(390, 844)
     render(
       <Shows
@@ -141,17 +147,31 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     await userEvent.click(
       within(chip('Status')).getByRole('button', { name: /^Status/ })
     )
-    const drawer = await screen.findByRole('dialog', { name: 'Status' })
-    const sheet = await settledBox(drawer)
-    expect(Math.round(sheet.bottom)).toBe(844)
-    expect(
-      within(drawer).getByRole('heading', { name: 'Status' })
-    ).toBeVisible()
     await userEvent.click(
-      within(drawer).getByRole('checkbox', { name: 'Sold out' })
+      await screen.findByRole('option', { name: 'Sold out' })
     )
     await expect
       .poll(() => chip('Status')?.textContent)
       .toContain('On sale or Sold out')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByRole('listbox')).toBeVisible()
+  })
+
+  it('edits a number chip in a bottom drawer on a phone', async () => {
+    await page.viewport(390, 844)
+    render(
+      <Shows
+        defaultView={{
+          query: { filters: [{ field: 'sold', operator: 'gt', value: 100 }] }
+        }}
+      />
+    )
+    await userEvent.click(
+      within(chip('Sold')).getByRole('button', { name: /^Sold/ })
+    )
+    const drawer = await screen.findByRole('dialog', { name: 'Sold' })
+    const sheet = await settledBox(drawer)
+    expect(Math.round(sheet.bottom)).toBe(844)
+    expect(within(drawer).getByRole('heading', { name: 'Sold' })).toBeVisible()
   })
 })

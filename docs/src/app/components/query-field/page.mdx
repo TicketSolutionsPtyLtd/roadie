@@ -244,10 +244,11 @@ function QueryFieldLocked() {
 
 Pass `onSelectChip` and a click, Enter or Space on an unlocked chip selects it.
 Start a value step for the chip's field with `pendingChip.chipId` naming it:
-the chip shows selected in place of a pending chip, and the list stays open as
-values are taken, so several can be ticked and unticked. Mark the values the
-chip holds `selected`, and toggle them in `onAccept`. Backspace on the empty
-field removes the chip; Escape ends the step and keeps it.
+the list opens, the chip shows selected in place of a pending chip, and the
+list stays open as values are taken, so several can be ticked and unticked.
+Mark the values the chip holds `selected`, and toggle them in `onAccept`.
+Backspace on the empty field removes the chip; Escape ends the step and keeps
+it.
 
 ```tsx-live
 function QueryFieldChipEditing() {
@@ -471,8 +472,9 @@ function QueryFieldShortcut() {
   from the start of the input moves to the chips, and **Left** and **Right**
   move between them.
 - On a chip, **Backspace** or **Delete** removes it, and **Enter** or
-  **Space** selects it when you pass `onSelectChip`, moving focus to the input
-  with the list open. Locked chips ignore all four.
+  **Space** selects it when you pass `onSelectChip`, moving focus to the
+  input, and the list opens once a value step edits the chip. Locked chips
+  ignore all four.
 - While a step edits a chip, **Backspace** in the empty field removes that
   chip, and **Escape** ends the step and keeps it. A `selected` suggestion is
   `aria-selected`, with a check that stays out of its name.

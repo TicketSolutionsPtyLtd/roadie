@@ -328,7 +328,7 @@ describe('QueryField', () => {
     expect(chipNames()).toEqual(['Event is Lampshade Disco'])
   })
 
-  it('selects a chip on click, Enter or Space, keeping focus in the input and opening the list', async () => {
+  it('selects a chip on click, Enter or Space, keeping focus in the input', async () => {
     const onSelectChip = vi.fn()
     render(
       <Harness initialChips={[scope, status]} onSelectChip={onSelectChip} />
@@ -338,19 +338,46 @@ describe('QueryField', () => {
     )
     expect(onSelectChip).toHaveBeenLastCalledWith('status')
     expect(document.activeElement).toBe(input())
-    expect(await screen.findByRole('listbox')).toBeInTheDocument()
     for (const key of ['{Enter}', ' ']) {
-      await userEvent.keyboard('{Escape}')
-      await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
       chipElement('status')!.focus()
       await userEvent.keyboard(key)
       expect(document.activeElement).toBe(input())
-      expect(await screen.findByRole('listbox')).toBeInTheDocument()
     }
     expect(onSelectChip).toHaveBeenCalledTimes(3)
     expect(
       screen.queryByRole('button', { name: /Event is Lampshade Disco/ })
     ).not.toBeInTheDocument()
+  })
+
+  it('opens the list only once a step edits the selected chip', async () => {
+    function Selecting() {
+      const [editing, setEditing] = useState<string>()
+      return (
+        <Harness
+          initialChips={[status, city]}
+          onSelectChip={(id) => {
+            if (id === 'status') setEditing(id)
+          }}
+          pendingChip={
+            editing && { id: 'status', label: 'Status is', chipId: editing }
+          }
+          onPendingChipCancel={() => setEditing(undefined)}
+        />
+      )
+    }
+    render(<Selecting />)
+    await userEvent.click(screen.getByRole('button', { name: 'City is Perth' }))
+    expect(document.activeElement).toBe(input())
+    expect(screen.queryByRole('listbox')).toBeNull()
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Status is On sale' })
+    )
+    expect(await screen.findByRole('listbox')).toBeInTheDocument()
+    await userEvent.click(document.body)
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+    chipElement('status')!.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(await screen.findByRole('listbox')).toBeInTheDocument()
   })
 
   it('keeps the remove button outside the select button', () => {

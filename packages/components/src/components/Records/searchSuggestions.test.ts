@@ -7,6 +7,7 @@ import {
   filterKey,
   mergeFilter,
   searchChips,
+  toggleValue,
   topSuggestions,
   valueOperators,
   valueSuggestions
@@ -314,6 +315,104 @@ describe('filterChipIds', () => {
     expect(
       filterChipIds([{ field: 'sold', operator: 'gt', value: 1 }, perth])
     ).toEqual([b, a])
+  })
+})
+
+const tickedIn = (groups: ReturnType<typeof valueSuggestions>) =>
+  groups.flatMap((group) =>
+    group.items.filter((item) => item.selected).map((item) => item.label)
+  )
+
+describe('valueSuggestions while editing a filter', () => {
+  it('ticks the values the edited filter holds, under its operator', () => {
+    const edited: RecordFilter = {
+      field: 'city',
+      operator: 'is-not',
+      values: ['perth', 'sydney']
+    }
+    expect(
+      tickedIn(valueSuggestions(byKey('city'), '', context(), 'is-not', edited))
+    ).toEqual(['Sydney', 'Perth'])
+  })
+
+  it('lists a held value the field doesn’t offer, while it matches the text', () => {
+    const edited: RecordFilter = {
+      field: 'city',
+      operator: 'is',
+      values: ['perth', 'darwin']
+    }
+    const values = (text: string) =>
+      valuesOf(
+        valueSuggestions(byKey('city'), text, context(), 'is', edited)
+      ).items.map((item) => [item.label, !!item.selected])
+    expect(values('')).toEqual([
+      ['Melbourne', false],
+      ['Sydney', false],
+      ['Perth', true],
+      ['darwin', true]
+    ])
+    expect(values('dar')).toEqual([['darwin', true]])
+  })
+
+  it('ticks Empty, a boolean answer, or a date preset the filter is', () => {
+    expect(
+      tickedIn(
+        valueSuggestions(byKey('city'), '', context(), 'is', {
+          field: 'city',
+          operator: 'is-not-set'
+        })
+      )
+    ).toEqual(['Empty'])
+    expect(
+      tickedIn(
+        valueSuggestions(byKey('accessible'), '', context(), 'is', {
+          field: 'accessible',
+          operator: 'is-false'
+        })
+      )
+    ).toEqual(['No'])
+    expect(
+      tickedIn(
+        valueSuggestions(byKey('starts'), '', context(), 'is', {
+          field: 'starts',
+          operator: 'within',
+          value: 'this-weekend'
+        })
+      )
+    ).toEqual(['This weekend'])
+  })
+})
+
+describe('toggleValue', () => {
+  const perth: RecordFilter = {
+    field: 'city',
+    operator: 'is',
+    values: ['perth']
+  }
+
+  it('adds a value the filter lacks, and takes out one it holds', () => {
+    expect(
+      toggleValue(perth, { field: 'city', operator: 'is', values: ['sydney'] })
+    ).toEqual({ field: 'city', operator: 'is', values: ['perth', 'sydney'] })
+    expect(
+      toggleValue(
+        { ...perth, values: ['perth', 'sydney'] },
+        { field: 'city', operator: 'is', values: ['perth'] }
+      )
+    ).toEqual({ field: 'city', operator: 'is', values: ['sydney'] })
+  })
+
+  it('leaves nothing once the last value is taken out', () => {
+    expect(toggleValue(perth, perth)).toBeNull()
+  })
+
+  it('replaces a filter of another kind', () => {
+    const empty: RecordFilter = { field: 'city', operator: 'is-not-set' }
+    expect(toggleValue(perth, empty)).toEqual(empty)
+    expect(toggleValue(empty, perth)).toEqual(perth)
+    expect(
+      toggleValue(perth, { field: 'city', operator: 'is-not', values: ['x'] })
+    ).toEqual({ field: 'city', operator: 'is-not', values: ['x'] })
   })
 })
 
