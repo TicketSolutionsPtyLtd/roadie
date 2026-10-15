@@ -295,6 +295,13 @@ describe('mergeFilter', () => {
     ).toBeNull()
     expect(
       mergeFilter(
+        [{ field: 'venue', operator: 'is', values: ['x'] }],
+        { field: 'city', operator: 'is', values: ['perth'] },
+        fields
+      )
+    ).toBeNull()
+    expect(
+      mergeFilter(
         [{ field: 'name', operator: 'is', values: ['a'] }],
         { field: 'name', operator: 'is', values: ['b'] },
         fields
