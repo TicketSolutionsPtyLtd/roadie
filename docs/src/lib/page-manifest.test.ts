@@ -1,6 +1,9 @@
+import { readdir } from 'fs/promises'
+import { join } from 'path'
 import { describe, expect, it } from 'vitest'
 
 import {
+  BRAND,
   CHARTS,
   COMPONENTS,
   CONTENT,
@@ -160,5 +163,24 @@ describe('Content catalogue', () => {
         crossListedFrom: '/foundations'
       })
     )
+  })
+})
+
+describe('the Brand catalogue', () => {
+  it('lists every page under /brand in its Brand group, so the overview and home count miss none', async () => {
+    const dirs = await readdir(join(import.meta.dirname, '../app/brand'), {
+      withFileTypes: true
+    })
+    const pages = dirs
+      .filter((dir) => dir.isDirectory())
+      .map((dir) => `/brand/${dir.name}`)
+    const brand = await getCatalogue(BRAND)
+
+    expect(
+      entriesIn(brand, 'Brand')
+        .map(({ href }) => href)
+        .sort()
+    ).toEqual(pages.sort())
+    expect(countEntries(brand)).toBe(pages.length)
   })
 })

@@ -10,6 +10,7 @@ import {
 import { Providers } from '@/components/Providers'
 import { CHANGELOG_URL } from '@/lib/changelog'
 import {
+  BRAND,
   CHARTS,
   COMPONENTS,
   CONTENT,
@@ -86,6 +87,7 @@ async function getNavigationItems(): Promise<NavigationDestination[]> {
         }
       ])
     },
+    await catalogueDestination('Brand', BRAND, { overview: true }),
     await catalogueDestination('Foundations', FOUNDATIONS, { overview: true }),
     await catalogueDestination('Content', CONTENT, { overview: true }),
     await catalogueDestination('Tokens', TOKENS, { overview: true }),
@@ -105,7 +107,7 @@ async function getNavigationItems(): Promise<NavigationDestination[]> {
 export const metadata: Metadata = {
   title: 'Roadie Design System',
   description:
-    'Tokens, foundations, React components and Vue widgets for building consistent, accessible Oztix apps.',
+    'The Oztix brand and writing guidelines, with the tokens, React components, and widgets that build consistent, accessible products.',
   icons: {
     icon: getAssetPath('/favicon.png'),
     apple: getAssetPath('/favicon.png')

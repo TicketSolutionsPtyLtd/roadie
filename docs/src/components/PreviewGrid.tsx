@@ -7,7 +7,8 @@ export function PreviewThumbnail({ children }: { children: ReactNode }) {
   return (
     <span
       aria-hidden
-      className='@container grid aspect-4/3 place-content-center overflow-hidden bg-subtle'
+      data-slot='preview-thumbnail'
+      className='@container grid aspect-4/3 w-full place-content-center overflow-hidden bg-subtle'
     >
       <span className='pointer-events-none grid scale-[0.8] place-items-center @[11rem]:scale-90 @[13rem]:scale-100'>
         {children}
