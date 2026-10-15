@@ -354,14 +354,14 @@ const places = [
   ['Hobart', 'Nimbus Thistle Hall']
 ]
 const statuses = ['on_sale', 'selling_fast', 'sold_out']
-const day = (offset) => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10)
+const today = plainDateOf(new Date(), viewerTimeZone())
 const shows = Array.from({ length: 60 }, (_, index) => ({
   id: `show-${index}`,
   show: bands[index % bands.length],
   city: places[index % places.length][0],
   venue: places[index % places.length][1],
   status: statuses[index % statuses.length],
-  starts: day(index % 45),
+  starts: addDays(today, index % 45),
   sold: (index * 137) % 2400
 }))
 
