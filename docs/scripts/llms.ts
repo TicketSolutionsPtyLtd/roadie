@@ -19,6 +19,7 @@ import {
   tokenFamilyToMarkdown
 } from '../src/lib/llms.ts'
 import {
+  BRAND,
   CATALOGUE_PAGES,
   CHARTS,
   COMPONENTS,
@@ -276,6 +277,7 @@ const sections: LlmsSection[] = [
   },
   await catalogueSection('Foundations', FOUNDATIONS),
   await catalogueSection('Content', CONTENT),
+  await catalogueSection('Brand', BRAND),
   await catalogueSection('Components', COMPONENTS),
   await catalogueSection('Charts', CHARTS),
   await catalogueSection('Tokens', TOKENS),
