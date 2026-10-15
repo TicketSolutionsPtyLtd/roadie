@@ -438,25 +438,19 @@ export function parseDatePhrase(
     return [{ label: label ?? time, value: { time } }]
   }
 
-  // "20 oct onwards" reads as "since 20 oct", one level only.
-  m = ONWARDS.exec(input)
-  if (m) {
-    return ONWARDS.test(m[1]!) ? [] : parseDatePhrase(`since ${m[1]}`, options)
-  }
-
-  const ranges = rangesOf(input, today, options)
-  if (ranges) return ranges.map(describe)
-
-  m = COMPARED.exec(input)
-  if (m) {
+  const compare = (
+    comparison: Comparison,
+    text: string,
+    lookBack: boolean
+  ): DatePhraseSuggestion[] => {
     // One level only, so a run of comparison words stays linear.
-    if (COMPARED.test(m[2]!)) return []
-    const { after, edge, shift } = COMPARISONS[m[1] as Comparison]
+    if (COMPARED.test(text)) return []
+    const { after, edge, shift } = COMPARISONS[comparison]
     // "since mon" looks back to the last Monday, today included.
-    const weekday = after && nameIndex(WEEKDAYS, m[2]!)
+    const weekday = lookBack && after && nameIndex(WEEKDAYS, text)
     const days = weekday
       ? [on(addDays(today, -((dayOfWeek(today) - weekday + 7) % 7)))]
-      : parseDatePhrase(m[2]!, options)
+      : parseDatePhrase(text, options)
     return days.flatMap((day) => {
       const days = dayBounds(day.value, options)
       if (!days) return []
@@ -470,6 +464,17 @@ export function parseDatePhrase(
       return [suggestion]
     })
   }
+
+  // "20 oct onwards" reads as "since 20 oct", but "mon onwards" is the
+  // coming Monday.
+  m = ONWARDS.exec(input)
+  if (m) return ONWARDS.test(m[1]!) ? [] : compare('since', m[1]!, false)
+
+  const ranges = rangesOf(input, today, options)
+  if (ranges) return ranges.map(describe)
+
+  m = COMPARED.exec(input)
+  if (m) return compare(m[1] as Comparison, m[2]!, true)
 
   const date = parseDate(input, today)
   if (date) return [on(date)]

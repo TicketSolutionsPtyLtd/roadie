@@ -324,7 +324,10 @@ describe('parseDatePhrase: comparisons', () => {
     ['20 oct onwards', one('After Mon 19 Oct 2026', { after: '2026-10-19' })],
     ['20 oct onward', one('After Mon 19 Oct 2026', { after: '2026-10-19' })],
     ['20 oct and later', one('After Mon 19 Oct 2026', { after: '2026-10-19' })],
-    ['tomorrow onwards', one('After Fri 2 Oct 2026', { after: '2026-10-02' })]
+    ['tomorrow onwards', one('After Fri 2 Oct 2026', { after: '2026-10-02' })],
+    // Unlike since, a weekday before onwards is the coming one.
+    ['mon onwards', one('After Sun 4 Oct 2026', { after: '2026-10-04' })],
+    ['fri onwards', one('After Thu 1 Oct 2026', { after: '2026-10-01' })]
   ])('%s', (text, expected) => {
     expect(parseDatePhrase(text, SYDNEY)).toEqual(expected)
   })
