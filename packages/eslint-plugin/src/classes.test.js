@@ -13,6 +13,7 @@ runRuleCases({
       "const variants = { open: 'dark:bg-strong' }; cn(variants[state])",
       "const styles = 'p-2 dark:bg-strong'; <div className={styles} />",
       "const styles = ['p-2', 'dark:bg-strong'] as const; cn(styles)",
+      "const variants = { open: 'dark:bg-strong' } satisfies Record<string, string>; cn(variants.open)",
       'function Box({ open }) { const extra = `dark:bg-strong`; return <div className={cn(open && extra)} /> }',
       "tv({ base: 'p-2', variants: { tone: { night: 'dark:bg-strong' } } })",
       {
