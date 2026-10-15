@@ -77,7 +77,13 @@ const OPERATOR = /(!=|≠|[<>=])/g
 // A dash before a digit or dollar sign is a minus sign, as in "-5".
 const SIGNED = /^-[$\d]/
 
-type Verb = { words: readonly string[]; negated: boolean; contains: boolean }
+type Verb = {
+  words: readonly string[]
+  negated: boolean
+  contains: boolean
+  /** No verb, as in "sold > 100": a number field's comparison or range. */
+  compares?: boolean
+}
 
 const VERBS: readonly Verb[] = [
   { words: ['is', 'not'], negated: true, contains: false },
@@ -88,8 +94,18 @@ const VERBS: readonly Verb[] = [
   { words: ['='], negated: false, contains: false },
   { words: ["doesn't", 'contain'], negated: true, contains: true },
   { words: ['does', 'not', 'contain'], negated: true, contains: true },
-  { words: ['contains'], negated: false, contains: true }
+  { words: ['contains'], negated: false, contains: true },
+  { words: [], negated: false, contains: false, compares: true }
 ]
+
+/** A number's value in symbols: "over 100" as ">100", "20 and 50" as "20-50". */
+const numberText = (text: string) =>
+  text
+    .replace(/^(?:more than|over)\b/, '>')
+    .replace(/^(?:less than|under)\b/, '<')
+    .replace(/^between\s(.+)\sand\s/, '$1-')
+    .replace(/\sand\s/, '-')
+    .replace(/\s+/g, '')
 
 /** Lower case, reading a typographic apostrophe as a straight one. */
 const plain = (word: string) => word.toLowerCase().replace(/’/g, "'")
@@ -306,7 +322,7 @@ function fieldValueReadings(
       ]
     case 'number':
     case 'money': {
-      const reading = numberFilter(field, text.replace(/\s+/g, ''))
+      const reading = numberFilter(field, numberText(text))
       return reading ? [{ ...reading, quality: 1 }] : []
     }
     case 'boolean': {
@@ -523,7 +539,9 @@ function statementCandidates(
     for (const field of fields) {
       const named = nameLength(field, lower, start)
       if (!named) continue
+      const numeric = field.type === 'number' || field.type === 'money'
       for (const verb of VERBS) {
+        if (verb.compares && !numeric) continue
         const at = start + named
         if (!verb.words.every((word, i) => lower[at + i] === word)) continue
         candidates.push(
@@ -557,6 +575,8 @@ function statementValues(
     ).filter(
       (reading) =>
         (!verb.contains || reading.filter.operator === 'contains') &&
+        // A bare number after a field name stays free text.
+        (!verb.compares || reading.filter.operator !== 'eq') &&
         (typing || reading.complete !== false)
     )
     const weight = spanWeight(start, end, words.length)
@@ -654,8 +674,10 @@ function finish(options: ParseQueryOptions) {
  * Reads identifiers (a field's `match`, offered as exact), `field:value`,
  * `<field> is <value>` and `<field> contains <value>`, field names, option
  * and status values, booleans by name, and date phrases for each date field.
- * A number field's `field:value` takes `100`, `>100`, `<100`, `!=100` or
- * `100-500`, with `$` and thousands commas allowed. Negation reads as the
+ * A number field's `field:value` takes `100`, `>100`, `<100`, `!=100`,
+ * `100-500`, `over 100`, `under 100` or `100 and 500`, with `$` and thousands
+ * commas allowed; `<field> > 100`, `<field> more than 100`,
+ * `<field> between 100 and 500` and `<field> 100-500` read the same. Negation reads as the
  * opposite filter: a `-` before one word (not a number), `not`, `isn't`,
  * `excluding`, `except`, `without`, `!=` or `≠` before a value,
  * `<field> is not`, `isn't`, `!=`, `≠`, `doesn't contain` or

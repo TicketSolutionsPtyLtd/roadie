@@ -557,6 +557,66 @@ describe('parseQuery', () => {
       })
     })
 
+    it.each([
+      ['capacity > 100', 'Capacity is more than 100', 'gt', 100],
+      ['capacity>100', 'Capacity is more than 100', 'gt', 100],
+      ['capacity < 5', 'Capacity is less than 5', 'lt', 5],
+      ['capacity = 100', 'Capacity is 100', 'eq', 100],
+      ['capacity != 100', 'Capacity is not 100', 'neq', 100],
+      ['capacity ≠ 100', 'Capacity is not 100', 'neq', 100],
+      ['capacity more than 100', 'Capacity is more than 100', 'gt', 100],
+      ['capacity over 100', 'Capacity is more than 100', 'gt', 100],
+      ['capacity less than 5', 'Capacity is less than 5', 'lt', 5],
+      ['capacity under 5', 'Capacity is less than 5', 'lt', 5],
+      ['capacity is more than 100', 'Capacity is more than 100', 'gt', 100],
+      ['capacity 20-50', 'Capacity is 20 to 50', 'between', [20, 50]],
+      [
+        'capacity between 20 and 50',
+        'Capacity is 20 to 50',
+        'between',
+        [20, 50]
+      ],
+      ['gross over $2,000', 'Gross is more than $2,000', 'gt', 2000],
+      ['capacity:20 and 50', 'Capacity is 20 to 50', 'between', [20, 50]],
+      [
+        'capacity:between 20 and 50',
+        'Capacity is 20 to 50',
+        'between',
+        [20, 50]
+      ],
+      ['capacity:over 100', 'Capacity is more than 100', 'gt', 100]
+    ])('reads "%s" as %s', (text, label, operator, value) => {
+      expect(parse(text)[0]).toMatchObject({
+        kind: 'filter',
+        label,
+        value: {
+          field: text.startsWith('gross') ? 'gross' : 'capacity',
+          operator,
+          value
+        },
+        remainder: ''
+      })
+    })
+
+    it('keeps the words a comparison didn’t read', () => {
+      expect(
+        parse('capacity > 100 melb').map((s) => [s.label, s.remainder])
+      ).toContainEqual(['Capacity is more than 100', 'melb'])
+    })
+
+    it.each([
+      'capacity 100',
+      'capacity between 20',
+      'capacity:between 20',
+      'city > syd',
+      'city syd'
+    ])('reads no comparison from "%s"', (text) => {
+      const whole = parse(text, { limit: 50 }).filter(
+        (s) => s.kind === 'filter' && s.remainder === ''
+      )
+      expect(whole).toEqual([])
+    })
+
     it('reads only text under contains', () => {
       const read = parse("venue doesn't contain walrus", { limit: 50 })
       expect(read.filter((s) => s.remainder === '')).toEqual([])
