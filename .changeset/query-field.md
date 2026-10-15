@@ -36,4 +36,5 @@ To edit a chip in the list, answer `onSelectChip` with a value step whose
 `pendingChip.chipId` names the chip: it shows selected in place of a pending
 chip, focus stays in the input, taking a value keeps the list open, and a
 suggestion marked `selected` is ticked. Backspace on the empty field removes
-the edited chip, and Escape ends the step and keeps it.
+the edited chip, and Escape or focus leaving the field ends the step and keeps
+it.

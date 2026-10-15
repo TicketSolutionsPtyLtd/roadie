@@ -247,8 +247,8 @@ Start a value step for the chip's field with `pendingChip.chipId` naming it:
 the list opens, the chip shows selected in place of a pending chip, and the
 list stays open as values are taken, so several can be ticked and unticked.
 Mark the values the chip holds `selected`, and toggle them in `onAccept`.
-Backspace on the empty field removes the chip; Escape ends the step and keeps
-it.
+Backspace on the empty field removes the chip; Escape, or focus leaving the
+field, ends the step and keeps it.
 
 ```tsx-live
 function QueryFieldChipEditing() {
@@ -479,7 +479,8 @@ function QueryFieldShortcut() {
   input, and the list opens once a value step edits the chip. Locked chips
   ignore all four.
 - While a step edits a chip, **Backspace** in the empty field removes that
-  chip, and **Escape** ends the step and keeps it. A `selected` suggestion is
+  chip, and **Escape** ends the step and keeps it, as does focus leaving the
+  field and its list. A `selected` suggestion is
   `aria-selected`, with a check that stays out of its name.
 - **Escape** closes the suggestions, or ends the value step. With the
   suggestions closed it clears the typed text. It never clears the chips.

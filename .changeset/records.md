@@ -80,7 +80,8 @@ selected, its values are ticked, taking a value ticks or unticks it (the last
 one unticked removes the chip), is and is not rewrite its condition (one
 changed to is joins the field's is chip), and a boolean's answer, a quick
 date, Empty or Not empty replaces what it holds.
-Backspace in the empty field removes it and Escape keeps it. Custom dates
+Backspace in the empty field removes it, and Escape or leaving the field keeps
+it. Custom dates
 opens a date range picker with relative presets, or a date picker, for the
 chip, and a text or number chip opens its editor for its condition and value
 as they change; both sit in a popover under the chip or a bottom drawer on a

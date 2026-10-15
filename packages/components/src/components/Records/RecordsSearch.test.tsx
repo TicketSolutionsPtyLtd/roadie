@@ -872,6 +872,27 @@ describe('Records.Search', () => {
       await waitFor(() => expect(ticked()).toEqual(['Sydney']))
     })
 
+    it('ends editing a chip as focus leaves, so typing searches', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [{ field: 'city', operator: 'is', values: ['Perth'] }]
+          }
+        }
+      })
+      await selectChip(user, 'City is Perth')
+      await user.click(document.body)
+      await waitFor(() =>
+        expect(chip('City is Perth')).not.toHaveAttribute('data-selected')
+      )
+      await user.click(input())
+      await user.keyboard('hob')
+      expect(lastView().query.search).toBe('hob')
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is', values: ['Perth'] }
+      ])
+    })
+
     it('merges a chip rewritten to is into the field’s is chip, as is chips AND', async () => {
       const { user, lastView } = setup({
         defaultView: {

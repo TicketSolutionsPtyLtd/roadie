@@ -9,7 +9,7 @@ import {
   within
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { QueryField, type QueryFieldProps } from '.'
 import { Field } from '../Field'
@@ -1540,6 +1540,7 @@ function CityEditing({
   onPendingChipCancel,
   editing = true
 }: Partial<QueryFieldProps> & { editing?: boolean }) {
+  const [operator, setOperator] = useState('is')
   const [cities, setCities] = useState(['Perth'])
   const [chips, setChips] = useState<QueryFieldChip[]>([
     status,
@@ -1563,17 +1564,27 @@ function CityEditing({
       pendingChip={{
         id: 'city',
         label: 'City is',
-        chipId: editing ? 'city' : undefined
+        chipId: editing ? 'city' : undefined,
+        operators: [
+          { value: 'is', label: 'is' },
+          { value: 'is-not', label: 'is not' }
+        ],
+        operator
       }}
+      onPendingOperatorChange={setOperator}
       onPendingChipCancel={onPendingChipCancel}
-      suggest={() => [
+      suggest={(text) => [
         {
           id: 'values',
           label: 'City',
-          items: [perth, hobart].map((item) => ({
-            ...item,
-            selected: editing && cities.includes(item.label)
-          }))
+          items: [perth, hobart]
+            .filter((item) =>
+              item.label.toLowerCase().includes(text.trim().toLowerCase())
+            )
+            .map((item) => ({
+              ...item,
+              selected: editing && cities.includes(item.label)
+            }))
         }
       ]}
       onAccept={(suggestion) => {
@@ -1669,6 +1680,70 @@ describe('QueryField chip editing', () => {
     await userEvent.keyboard('{Backspace}')
     expect(onRemoveChip).not.toHaveBeenCalled()
     expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
+  })
+
+  it('ends the step once focus leaves the field', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(
+      <>
+        <CityEditing onPendingChipCancel={onPendingChipCancel} />
+        <button type='button'>Outside</button>
+      </>
+    )
+    await userEvent.click(input())
+    await userEvent.click(screen.getByText('Outside'))
+    await waitFor(() => expect(onPendingChipCancel).toHaveBeenCalledTimes(1))
+    await userEvent.click(input())
+    ;(await screen.findByRole('button', { name: 'is not' })).focus()
+    await userEvent.click(screen.getByText('Outside'))
+    await waitFor(() => expect(onPendingChipCancel).toHaveBeenCalledTimes(2))
+  })
+
+  // Focus is checked a moment after it moves, so the clock runs each check.
+  const settleFocus = () => act(() => vi.runAllTimers())
+
+  it('keeps the step while focus moves into the list or onto a chip, or the window blurs', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(<CityEditing onPendingChipCancel={onPendingChipCancel} />)
+    await userEvent.click(input())
+    const toggle = await screen.findByRole('button', { name: 'is not' })
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    onTestFinished(() => {
+      vi.useRealTimers()
+    })
+    toggle.focus()
+    expect(screen.getByRole('listbox').parentElement).toContainElement(
+      document.activeElement as HTMLElement
+    )
+    settleFocus()
+    chipElement('status')!.focus()
+    expect(document.activeElement).toBe(chipElement('status'))
+    settleFocus()
+    // As the window loses focus: the field blurs, but focus stays put.
+    fireEvent.blur(chipElement('status')!)
+    settleFocus()
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
+  })
+
+  it('keeps a step for a new filter as focus leaves', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(
+      <>
+        <CityEditing
+          editing={false}
+          onPendingChipCancel={onPendingChipCancel}
+        />
+        <button type='button'>Outside</button>
+      </>
+    )
+    await userEvent.click(input())
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    onTestFinished(() => {
+      vi.useRealTimers()
+    })
+    screen.getByText('Outside').focus()
+    settleFocus()
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
   })
 
   it('keeps the edited chip on Escape, ending the step', async () => {

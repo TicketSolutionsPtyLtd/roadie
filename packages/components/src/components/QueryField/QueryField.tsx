@@ -1,11 +1,13 @@
 'use client'
 
 import {
+  type FocusEvent,
   Fragment,
   type KeyboardEvent,
   type ReactNode,
   type Ref,
   useCallback,
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -56,7 +58,8 @@ export type QueryFieldProps<Value = unknown> = {
   /**
    * The field being given a value, such as "Venue is", shown after the chips.
    * With `chipId`, that chip shows selected instead, and taking a value keeps
-   * the list open; Backspace on the empty field removes the chip.
+   * the list open; Backspace on the empty field removes the chip, and focus
+   * leaving the field ends the step.
    */
   pendingChip?: QueryFieldPendingChip
   /** An operator was pressed, or Tab moved to one, while a chip is pending. */
@@ -236,6 +239,29 @@ export function QueryField<Value = unknown>({
   if (listedFor !== editedId) {
     setListedFor(editedId)
     if (editedId) setOpen(true)
+  }
+  const popupRef = useRef<HTMLDivElement>(null)
+  const leaving = useRef<ReturnType<typeof setTimeout>>(undefined)
+  // Read as focus lands: a step for a new filter, or one already ended, stays.
+  const cancelEdit = useRef<(() => void) | undefined>(undefined)
+  useIsomorphicLayoutEffect(() => {
+    cancelEdit.current = editedId ? onPendingChipCancel : undefined
+  })
+  useEffect(() => () => clearTimeout(leaving.current), [])
+
+  // Editing a chip ends as focus leaves the field and its list. Checked once
+  // focus lands, as it stays put while the window loses focus.
+  function handleBlur(event: FocusEvent<HTMLElement>) {
+    const { ownerDocument } = event.currentTarget
+    clearTimeout(leaving.current)
+    leaving.current = setTimeout(() => {
+      const active = ownerDocument.activeElement
+      const field = inputRef.current?.closest('[data-slot=query-field]')
+      const inside = [field, popupRef.current].some(
+        (element) => active && element?.contains(active)
+      )
+      if (!inside) cancelEdit.current?.()
+    })
   }
   const operators = pendingChip?.operators ?? NO_OPERATORS
   const operator = pendingChip?.operator
@@ -471,6 +497,7 @@ export function QueryField<Value = unknown>({
         emphasis={emphasis}
         aria-invalid={isInvalid || undefined}
         className={cn('group/query-field gap-2', className)}
+        onBlur={handleBlur}
       >
         <MagnifyingGlassIcon
           aria-hidden
@@ -626,7 +653,7 @@ export function QueryField<Value = unknown>({
       </Combobox.InputGroup>
       <Combobox.Portal>
         <Combobox.Positioner>
-          <Combobox.Popup>
+          <Combobox.Popup ref={popupRef} onBlur={handleBlur}>
             {showsOperators && (
               <div
                 data-slot='query-field-operators'
