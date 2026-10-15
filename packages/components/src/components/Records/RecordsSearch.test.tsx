@@ -833,6 +833,53 @@ describe('Records.Search', () => {
       ])
     })
 
+    it('ticks is empty’s row when its chip is applied, and Enter adds no second chip', async () => {
+      const { user } = setup({
+        defaultView: {
+          query: { filters: [{ field: 'city', operator: 'is-not-set' }] }
+        }
+      })
+      await user.click(input())
+      await user.click(await option('City'))
+      await user.click(screen.getByRole('button', { name: 'is empty' }))
+      await waitFor(() => expect(ticked()).toEqual(['City is empty']))
+      expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
+      await user.keyboard('{Enter}')
+      expect(chipLabels()).toEqual(['City is empty'])
+      expect(pendingChip()).toBeNull()
+    })
+
+    it('adds no chip that repeats a scope chip', async () => {
+      const { user } = setup({
+        scope: [{ field: 'city', operator: 'is-not-set' }]
+      })
+      await user.click(input())
+      await user.click(await option('City'))
+      await user.click(screen.getByRole('button', { name: 'is empty' }))
+      await user.click(await option('City is empty'))
+      expect(chipLabels()).toEqual(['City is empty'])
+    })
+
+    it('merges a chip edited to match another into it', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'city', operator: 'is-not-set' },
+              { field: 'city', operator: 'is', values: ['Perth'] }
+            ]
+          }
+        }
+      })
+      await selectChip(user, 'City is Perth')
+      await user.click(screen.getByRole('button', { name: 'is empty' }))
+      await user.click(await option('City is empty'))
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is-not-set' }
+      ])
+      expect(chipLabels()).toEqual(['City is empty'])
+    })
+
     it('keeps typed text under is empty, for the values after Shift+Tab', async () => {
       const { user } = setup()
       await user.click(input())

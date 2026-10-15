@@ -161,17 +161,21 @@ describe('valueSuggestions', () => {
     ).toEqual([['Starts is not empty']])
   })
 
-  it('drops the emptiness row once its chip is applied', () => {
+  it('ticks the emptiness row once its chip is applied, so the step still answers', () => {
     expect(
-      labels(
+      valuesOf(
         valueSuggestions(
           byKey('city'),
-          '',
+          'syd',
           context([{ field: 'city', operator: 'is-not-set' }]),
           'is-not-set'
         )
-      )
-    ).toEqual([[]])
+      ).items
+    ).toMatchObject([{ label: 'City is empty', exact: true, selected: true }])
+    expect(
+      valuesOf(valueSuggestions(byKey('city'), '', context(), 'is-not-set'))
+        .items[0]?.selected
+    ).toBeUndefined()
   })
 
   it('takes typed text for an option field with no values to list', () => {

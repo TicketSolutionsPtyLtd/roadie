@@ -286,7 +286,7 @@ export function RecordsSearch({
     if (merged) {
       if (!sameFilter(merged.filter, filters[merged.index]!))
         records.updateFilter(merged.index, merged.filter)
-    } else if (!filters.some((other) => sameFilter(other, filter)))
+    } else if (!context.filters.some((other) => sameFilter(other, filter)))
       records.addFilter(filter)
   }
 
@@ -322,7 +322,12 @@ export function RecordsSearch({
   function writeSelected(next: RecordFilter | null) {
     if (!selected || selectedAt === null) return
     if (next && selectedFilter && sameFilter(next, selectedFilter)) return
-    if (!next) {
+    const others = [
+      ...records.scope,
+      ...filters.filter((_, index) => index !== selectedAt)
+    ]
+    // Emptied of values, or now what another chip holds, it goes.
+    if (!next || others.some((other) => sameFilter(other, next))) {
       records.removeFilter(selectedAt)
       endStep()
       return

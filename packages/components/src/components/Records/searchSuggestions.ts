@@ -531,14 +531,19 @@ function valueItems(
   return [...items, ...held]
 }
 
-/** Under is empty or is not empty, the one row, which Enter takes whatever is typed. */
-const emptinessRow = (
+/**
+ * Under is empty or is not empty, the one row, which Enter takes whatever is
+ * typed. A chip already holding it ticks it, so the step still answers.
+ */
+function emptinessRow(
   field: RecordField,
-  operator: EmptinessOperator
-): SearchSuggestion => ({
-  ...filterSuggestion({ field: field.key, operator }),
-  exact: true
-})
+  operator: EmptinessOperator,
+  context: SearchContext
+): SearchSuggestion {
+  const row = filterSuggestion({ field: field.key, operator })
+  const applied = unused([row], context).length === 0
+  return { ...row, exact: true, ...(applied && { selected: true }) }
+}
 
 /**
  * Suggestions for one field's value, after it was picked, compared by
@@ -555,15 +560,15 @@ export function valueSuggestions(
 ): SearchGroup[] {
   const typed = text.trim()
   const items = isEmptiness(operator)
-    ? [emptinessRow(field, operator)]
-    : valueItems(field, typed, operator, context, edited)
+    ? [emptinessRow(field, operator, context)]
+    : unused(valueItems(field, typed, operator, context, edited), context)
   // Typed text is the whole value, so only the filter itself is held.
   const isHeld = isTyped(field) ? sameFilter : holds
   const tick = (item: SearchSuggestion): SearchSuggestion =>
     edited && item.value.type === 'filter' && isHeld(edited, item.value.filter)
       ? { ...item, selected: true }
       : item
-  const values = unused(items, context).map((item) => {
+  const values = items.map((item) => {
     if (item.value.type !== 'filter') return item
     const { label, value, detail } = describeRecordFilter(
       item.value.filter,
