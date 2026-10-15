@@ -33,8 +33,9 @@ export function MenuRadioItem({
         children,
         trailing: (
           <MenuPrimitive.RadioItemIndicator
+            keepMounted
             data-slot='menu-item-indicator'
-            className='grid shrink-0 text-subtle'
+            className='grid shrink-0 text-subtle data-unchecked:invisible'
           >
             <CheckIcon weight='bold' className='size-4' />
           </MenuPrimitive.RadioItemIndicator>
