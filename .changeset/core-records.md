@@ -63,10 +63,18 @@ thousands commas in a number's value.
 
 `parseQuery` reads negation as the opposite filter, and leaves none of its
 words in `remainder`. "not melb" and "-melb" suggest "City is not Melbourne".
-It also reads `isn't`, `excluding`, `except`, and `without` before a value,
-`venue:!walrus`, "venue is not walrus", and "name doesn't contain disco". It
-reads "venue is walrus" and "name contains disco" too. A date or a comparison
-has no opposite, so a negated one reads nothing.
+It also reads `isn't`, `excluding`, `except`, `without`, `!=`, and `≠` before
+a value, `venue:!walrus`, "venue is not walrus", "city != syd", and "name
+doesn't contain disco". It reads "venue is walrus", "city = syd", and "name
+contains disco" too. A negated value never also suggests its positive, so
+"status is not sold out" offers only "Status is not Sold out". A date or a
+comparison has no opposite, so a negated one reads nothing.
+
+A number or money field's name, then `>`, `<`, `=`, `!=`, more than, less
+than, over, under, between 20 and 50, or a range such as 20-50, reads as that
+comparison: "capacity > 100" suggests "Capacity is more than 100".
+`field:value` takes the same words, and "capacity:20 and 50" reads as a
+range.
 
 `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
 and `hitsPerPage`, so the response's `totalHits` counts the matches (up to
