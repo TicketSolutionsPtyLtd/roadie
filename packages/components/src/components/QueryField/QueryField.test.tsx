@@ -2101,6 +2101,28 @@ describe('QueryField chip editing', () => {
     expect(onPendingChipCancel).not.toHaveBeenCalled()
   })
 
+  it('ends the edit on Enter in the empty field with no values to list', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(
+      <QueryField
+        aria-label='Search orders'
+        chips={[{ id: 'sold', label: 'Sold is more than 50' }]}
+        pendingChip={{
+          id: 'sold',
+          label: 'Sold is more than',
+          chipId: 'sold',
+          hint: 'Type a number.'
+        }}
+        onPendingChipCancel={onPendingChipCancel}
+        suggest={() => []}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByText('Type a number.')
+    await userEvent.keyboard('{Enter}')
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps the edit on Enter while the typed text’s values are on their way', async () => {
     const later = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
     const onPendingChipCancel = vi.fn()
