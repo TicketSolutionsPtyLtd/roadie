@@ -386,9 +386,9 @@ function QueryFieldRemainder() {
     if (words.includes('weekend'))
       items.push({
         id: 'starts:weekend',
-        label: 'Starts: This weekend',
+        label: 'Start date is this weekend',
         kind: 'filter',
-        value: { id: 'starts', label: 'Starts: This weekend', description: 'The coming Saturday and Sunday' },
+        value: { id: 'starts', label: 'Start date is this weekend', description: 'The coming Saturday and Sunday' },
         remainder: words.replace(/this\s+weekend|weekend/, '').trim()
       })
     return [{ id: 'filters', label: 'Filters', items }]

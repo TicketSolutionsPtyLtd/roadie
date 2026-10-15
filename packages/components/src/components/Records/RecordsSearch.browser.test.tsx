@@ -112,7 +112,9 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     await userEvent.click(
       await screen.findByRole('button', { name: /^Next week/ })
     )
-    await expect.poll(() => chip('Starts')?.textContent).toContain('Next week')
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('is next week')
     const after = screen.getByRole('dialog', { name: 'Starts' })
     expect(after).toBeVisible()
     // The edited chip remounts; the editor stays under the chip that holds it.

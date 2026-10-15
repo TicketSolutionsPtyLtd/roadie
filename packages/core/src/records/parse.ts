@@ -218,7 +218,7 @@ function dateReadings(
       return [
         {
           filter,
-          label: `${field.label}: ${phrase.label}`,
+          label: `${field.label} is ${phrase.label}`,
           quality:
             (p === 0 ? 1 : 0.9) * (completed ? 0.8 : 1) * DATE_FIELD_DECAY ** f,
           complete: !completed,
@@ -451,13 +451,10 @@ function namedField(
 
 function finish(options: ParseQueryOptions) {
   const { entity, fields } = options
-  const dateKeys = new Set(
-    fields.filter((field) => field.type === 'date').map((field) => field.key)
-  )
   return ({ span: _span, order: _order, ...suggestion }: Candidate) => {
-    // A chip reads the same words; a date keeps the phrase as typed.
+    // A filter reads as its chip will.
     const label =
-      suggestion.kind === 'filter' && !dateKeys.has(suggestion.value.field)
+      suggestion.kind === 'filter'
         ? describeRecordFilter(suggestion.value, fields, options).label
         : suggestion.label
     return (

@@ -176,7 +176,7 @@ const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
   field.option('venue', { label: 'Venue', options: venues, searchable: true }),
-  field.date('startsAt', { label: 'Starts', moment: 'event', timeZoneKey: 'timeZone' }),
+  field.date('startsAt', { label: 'Start date', moment: 'event', timeZoneKey: 'timeZone' }),
   field.option('status', {
     label: 'Status',
     status: {
@@ -333,7 +333,7 @@ const fields = [
     label: 'Status',
     status: { on_sale: { intent: 'success', order: 1 }, selling_fast: { intent: 'warning', order: 2 }, sold_out: { intent: 'danger', order: 3 } }
   }),
-  field.date('starts', { label: 'Starts', moment: 'date' }),
+  field.date('starts', { label: 'Start date', moment: 'date' }),
   field.number('sold', { label: 'Sold' })
 ]
 const column = tableColumns(fields)
@@ -387,7 +387,7 @@ Typing searches the searchable fields, and suggests the filters the text reads:
 - an identifier, by its `match`
 - a date phrase for each date field, such as "this weekend" or "after 1 dec"
 
-Pick a suggestion with the arrows and Enter, or a click, to add its chip. Enter with no suggestion picked searches the text. A filter takes only the words it reads, and the rest stay in the field for the next one. Typing "melb this weekend" offers "City is Melbourne" and "Starts: This weekend".
+Pick a suggestion with the arrows and Enter, or a click, to add its chip. Enter with no suggestion picked searches the text. A filter takes only the words it reads, and the rest stay in the field for the next one. Typing "melb this weekend" offers "City is Melbourne" and "Start date is this weekend".
 
 #### Picking a field
 
@@ -434,7 +434,7 @@ It opens in a popover under the chip, or a bottom drawer on a phone, and loads w
 #### Chips
 
 - A chip with more values than it shows names them all in its tooltip.
-- A relative date chip, such as "Starts: This weekend", shows its dates in its tooltip.
+- A relative date chip, such as "Start date is this weekend", shows its dates in its tooltip.
 - A filter these fields can't apply shows in warning colours and filters nothing.
 
 #### Keys
@@ -550,7 +550,7 @@ const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
   field.text('city', { label: 'City' }),
-  field.date('startsAt', { label: 'Starts', moment: 'date' }),
+  field.date('startsAt', { label: 'Start date', moment: 'date' }),
   field.number('sold', { label: 'Sold' }),
   field.money('gross', { label: 'Gross', format: 'compactCurrency' })
 ]
@@ -653,7 +653,7 @@ const fields = [
   field.text('name', { label: 'Event' }),
   field.text('venue', { label: 'Venue' }),
   field.text('city', { label: 'City' }),
-  field.date('startsAt', { label: 'Starts', moment: 'date' }),
+  field.date('startsAt', { label: 'Start date', moment: 'date' }),
   field.option('status', {
     label: 'Status',
     status: { on_sale: { intent: 'success', label: 'On sale' }, sold_out: { intent: 'neutral', label: 'Sold out' } }

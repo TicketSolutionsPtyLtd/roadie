@@ -184,7 +184,7 @@ describe('Records.Search', () => {
     const weekend = await option(/This weekend/)
     expect(weekend).toHaveTextContent('3 to 4 Oct 2026')
     await user.click(weekend)
-    expect(chipLabels()).toEqual(['Starts: This weekend'])
+    expect(chipLabels()).toEqual(['Starts is this weekend'])
     expect(chip('Starts')).toHaveTextContent('3 to 4 Oct 2026')
     expect(lastView().query.filters).toEqual([
       { field: 'starts', operator: 'within', value: 'this-weekend' }
@@ -256,7 +256,7 @@ describe('Records.Search', () => {
     await user.click(await option(/City is Melbourne/))
     expect(chipLabels()).toEqual(['City is Melbourne'])
     expect(input()).toHaveValue('this weekend')
-    expect(await option(/^Starts: This weekend/)).toBeInTheDocument()
+    expect(await option(/^Starts is this weekend/)).toBeInTheDocument()
   })
 
   it('returns focus to the chip when Custom dates closes', async () => {
@@ -1562,7 +1562,7 @@ describe('Records.Search', () => {
           }
         }
       })
-      await selectChip(user, 'Starts: This weekend')
+      await selectChip(user, 'Starts is this weekend')
       expect(screen.queryByRole('dialog')).toBeNull()
       await waitFor(() => expect(ticked()).toEqual(['This weekend']))
       await user.click(await option(/^Tomorrow/))
@@ -1584,7 +1584,7 @@ describe('Records.Search', () => {
           }
         }
       })
-      await selectChip(user, 'Starts: This weekend')
+      await selectChip(user, 'Starts is this weekend')
       await waitFor(() => expect(ticked()).toEqual(['This weekend']))
       await user.keyboard('{Enter}')
       await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
@@ -1602,7 +1602,7 @@ describe('Records.Search', () => {
           }
         }
       })
-      await selectChip(user, 'Starts: This weekend')
+      await selectChip(user, 'Starts is this weekend')
       await user.click(await option('Custom dates'))
       const dialog = await editor()
       expect(dialog).toHaveAccessibleName('Starts')

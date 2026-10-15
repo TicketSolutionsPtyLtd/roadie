@@ -995,7 +995,7 @@ describe('QueryField', () => {
     }
     const weekend: QueryFieldSuggestion = {
       id: 'starts:weekend',
-      label: 'Starts: This weekend',
+      label: 'Starts is this weekend',
       kind: 'filter',
       value: 'weekend'
     }
@@ -1063,7 +1063,7 @@ describe('QueryField', () => {
         initialChips={[
           {
             id: 'starts',
-            label: 'Starts: This weekend',
+            label: 'Starts is this weekend',
             description: '3 to 4 Oct'
           },
           { ...scope, description: 'Fri 9 Oct' }
@@ -1071,7 +1071,7 @@ describe('QueryField', () => {
       />
     )
     expect(chipElement('starts')).toHaveTextContent(
-      'Starts: This weekend, 3 to 4 Oct'
+      'Starts is this weekend, 3 to 4 Oct'
     )
     expect(chipElement('event')).toHaveTextContent(
       'Event is Lampshade Disco, set by this page, Fri 9 Oct'

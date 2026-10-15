@@ -152,7 +152,6 @@ export function pendingLabel(
   field: RecordField,
   operator: ValueOperator
 ): string {
-  if (field.type === 'date' && !isEmptiness(operator)) return field.label
   return `${field.label} ${recordOperatorLabel(operator)}`
 }
 

@@ -108,7 +108,8 @@ with no new value to take, or leaving the field keeps it and ends the edit. Cust
 relative presets, or a date picker, in a popover under the chip or a bottom
 drawer on a phone, with Remove filter. Either one is titled with the field's
 name, has a Close button, and keeps Tab inside it. It loads while the page is idle. A
-relative date chip shows its dates in a tooltip, and a filter the fields can't
+date chip reads as other chips do, such as "Start date is this weekend", and a
+relative one shows its dates in a tooltip. A filter the fields can't
 apply shows in warning colours. `/` focuses the search unless `shortcut` (or
 `searchShortcut` on `Records.Toolbar` and `RecordTable`) says otherwise, and
 Clear and Escape clear it. The toolbar keeps its buttons at the top as chips

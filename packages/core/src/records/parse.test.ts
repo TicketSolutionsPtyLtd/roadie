@@ -98,10 +98,10 @@ describe('parseQuery', () => {
   it('reads a date phrase for every date field, the first field first', () => {
     const result = parse('this weekend').filter((s) => s.kind === 'filter')
     expect(result.map((s) => s.label)).toEqual([
-      'Starts: This weekend',
-      'On sale: This weekend',
-      'Created: This weekend',
-      'Birthday: This weekend'
+      'Starts is this weekend',
+      'On sale is this weekend',
+      'Created is this weekend',
+      'Birthday is this weekend'
     ])
     expect(result[0]).toMatchObject({
       value: { field: 'starts', operator: 'within', value: 'this-weekend' },
@@ -165,7 +165,7 @@ describe('parseQuery', () => {
   it('reads each part of a phrase and keeps the rest as remainder', () => {
     const result = parse('melb this weekend')
     expect(result.slice(0, 2).map((s) => [s.label, s.remainder])).toEqual([
-      ['Starts: This weekend', 'melb'],
+      ['Starts is this weekend', 'melb'],
       ['City is Melbourne', 'this weekend']
     ])
   })
@@ -234,7 +234,7 @@ describe('parseQuery', () => {
       ],
       [
         'starts:this weekend',
-        'Starts: This weekend',
+        'Starts is this weekend',
         { field: 'starts', operator: 'within', value: 'this-weekend' }
       ],
       [
@@ -313,7 +313,7 @@ describe('parseQuery', () => {
   it('ranks a completed phrase below one typed in full', () => {
     const [week] = parse('this')
     const [weekend] = parse('this weekend')
-    expect(week!.label).toBe('Starts: This week')
+    expect(week!.label).toBe('Starts is this week')
     expect(week!.score).toBeLessThan(weekend!.score)
   })
 
@@ -337,11 +337,11 @@ describe('parseQuery', () => {
 
   it('completes a phrase whose label differs from its words only at the end', () => {
     expect(parse('ongo melb').map((s) => s.label)).not.toContain(
-      'Starts: Happening now'
+      'Starts is happening now'
     )
     const [ongoing] = parse('ongo')
     const [exact] = parse('ongoing')
-    expect(ongoing!.label).toBe('Starts: Happening now')
+    expect(ongoing!.label).toBe('Starts is happening now')
     expect(ongoing!.score).toBeLessThan(exact!.score)
   })
 
