@@ -295,6 +295,10 @@ A number or money field's name, then a comparison, reads as that filter.
 
 A number alone after a field name, such as `capacity 100`, stays search text.
 
+A field name a statement reads is never also read as a value. With a Sold
+field, `sold > 100` suggests "Sold is more than 100" and never "Status is Sold
+out".
+
 `describeRecordFilter(filter, fields, { now, timeZone })` writes any filter as
 its chip reads, such as "Gross is more than $100", with the dates a relative
 range stands for in `detail`. `parseQuery` labels its filters the same way, so

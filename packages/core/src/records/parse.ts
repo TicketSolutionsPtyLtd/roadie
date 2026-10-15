@@ -55,6 +55,8 @@ type Candidate = RecordSuggestion & {
   order: number
   /** The id of the filter this one negates, ruled out after its first word. */
   negates?: string
+  /** A statement's field name, whose words read no other filter. */
+  named?: [number, number]
 }
 
 const MAX_WORDS = 8
@@ -553,7 +555,7 @@ function statementCandidates(
         const at = start + named
         if (!verb.words.every((word, i) => lower[at + i] === word)) continue
         candidates.push(
-          ...statementValues(words, field, verb, start, at, options, next)
+          ...statementValues(words, field, verb, [start, at], options, next)
         )
       }
     }
@@ -576,12 +578,18 @@ function spacedStatements(
     wordOf.push(...split.map(() => i))
     return split
   })
+  const touched = ([start, end]: [number, number]): [number, number] => [
+    wordOf[start]!,
+    wordOf[end - 1]! + 1
+  ]
   return statementCandidates(pieces, fields, options).map((candidate) => {
-    const span: [number, number] = [
-      wordOf[candidate.span[0]]!,
-      wordOf[candidate.span[1] - 1]! + 1
-    ]
-    return { ...candidate, span, remainder: remainderOf(words, ...span) }
+    const span = touched(candidate.span)
+    return {
+      ...candidate,
+      span,
+      remainder: remainderOf(words, ...span),
+      named: touched(candidate.named!)
+    }
   })
 }
 
@@ -590,11 +598,11 @@ function statementValues(
   words: readonly string[],
   field: RecordField,
   verb: Verb,
-  start: number,
-  at: number,
+  named: [number, number],
   options: ParseQueryOptions,
   next: () => number
 ): Candidate[] {
+  const [start, at] = named
   const from = at + verb.words.length
   const last = Math.min(words.length, from + MAX_SPAN)
   const candidates: Candidate[] = []
@@ -614,16 +622,17 @@ function statementValues(
     const weight = spanWeight(start, end, words.length)
     const remainder = remainderOf(words, start, end)
     for (const reading of verb.negated ? negate(readings) : readings) {
-      candidates.push(
-        filterSuggestion(
+      candidates.push({
+        ...filterSuggestion(
           // Enter takes an exact reading, so it must leave nothing.
           remainder ? { ...reading, exact: false } : reading,
           round(reading.quality * weight),
           remainder,
           [start, end],
           next()
-        )
-      )
+        ),
+        named
+      })
     }
   }
   return candidates
@@ -631,6 +640,10 @@ function statementValues(
 
 function overlap(a: [number, number], b: [number, number]): boolean {
   return a[0] < b[1] && b[0] < a[1]
+}
+
+function within(inner: [number, number], outer: [number, number]): boolean {
+  return outer[0] <= inner[0] && inner[1] <= outer[1]
 }
 
 /**
@@ -642,12 +655,17 @@ function rank(candidates: Candidate[]): Candidate[] {
   // "status is not sold out" never offers Sold out from its last word. A
   // reading that takes the negating word too, like "Not on sale", stays.
   const negations = candidates.filter((c) => c.negates)
+  // "sold > 100" never offers Sold out from the field's name.
+  const names = candidates.flatMap((c) => (c.named ? [c.named] : []))
   const byId = new Map<string, Candidate>()
   for (const candidate of candidates) {
     if (
       negations.some(
         (n) => n.negates === candidate.id && n.span[0] < candidate.span[0]
-      )
+      ) ||
+      (candidate.kind === 'filter' &&
+        !candidate.named &&
+        names.some((name) => within(candidate.span, name)))
     )
       continue
     const seen = byId.get(candidate.id)
@@ -699,6 +717,7 @@ function finish(options: ParseQueryOptions) {
     span: _span,
     order: _order,
     negates: _negates,
+    named: _named,
     ...suggestion
   }: Candidate) => {
     // A chip reads the same words; a date keeps the phrase as typed.

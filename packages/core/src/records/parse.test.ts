@@ -16,6 +16,15 @@ const parse = (text: string, extra: { limit?: number; entity?: string } = {}) =>
 const summary = (s: RecordSuggestion) =>
   s.kind === 'field' ? `field ${s.value.field}` : s.label
 
+// A number field whose name starts a status value, "Sold out".
+const soldFields = [
+  ...eventFields,
+  { key: 'sold', label: 'Sold', type: 'number' as const }
+]
+
+const readSold = (text: string, fields = soldFields) =>
+  parseQuery(text, { ...options, fields, limit: 50 }).map(summary)
+
 describe('parseQuery', () => {
   it('lists filterable fields when nothing is typed', () => {
     const result = parse('  ')
@@ -96,17 +105,11 @@ describe('parseQuery', () => {
   })
 
   it('ranks a field its name matches exactly above a value it starts', () => {
-    const fields = [
-      ...eventFields,
-      { key: 'sold', label: 'Sold', type: 'number' as const }
-    ]
-    const read = (text: string) =>
-      parseQuery(text, { ...options, fields }).map(summary)
-    expect(read('sold').slice(0, 2)).toEqual([
+    expect(readSold('sold').slice(0, 2)).toEqual([
       'field sold',
       'Status is Sold out'
     ])
-    expect(read('sol')[0]).toBe('Status is Sold out')
+    expect(readSold('sol')[0]).toBe('Status is Sold out')
   })
 
   it('reads a date phrase for every date field, the first field first', () => {
@@ -628,6 +631,32 @@ describe('parseQuery', () => {
         },
         remainder: ''
       })
+    })
+
+    it.each([
+      'sold > 100',
+      'sold = 100',
+      'sold ≠ 5',
+      'sold 20-50',
+      'sold between 20 and 50',
+      'sold>100',
+      'a>b sold > 100'
+    ])('reads no value from the field name in "%s"', (text) => {
+      expect(readSold(text)).not.toContain('Status is Sold out')
+    })
+
+    it('reads no value from a field name that matches it exactly', () => {
+      const fields = [
+        ...soldFields,
+        {
+          key: 'state',
+          label: 'State',
+          type: 'option' as const,
+          options: [{ value: 'sold', label: 'Sold' }]
+        }
+      ]
+      expect(readSold('sold', fields)).toContain('State is Sold')
+      expect(readSold('sold > 100', fields)).not.toContain('State is Sold')
     })
 
     it('keeps the words a comparison didn’t read', () => {
