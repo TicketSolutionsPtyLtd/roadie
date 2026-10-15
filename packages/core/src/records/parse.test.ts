@@ -481,6 +481,15 @@ describe('parseQuery', () => {
         remainder: ''
       })
     })
+
+    it('takes an identifier as exact only when nothing is left over', () => {
+      const exact = (text: string) =>
+        parse(text, { limit: 50 }).filter((s) => s.kind === 'filter' && s.exact)
+      expect(exact('order number is OZ-55555')).toMatchObject([
+        { label: 'Order number is OZ-55555', remainder: '' }
+      ])
+      expect(exact('order number is OZ-55555 melb')).toEqual([])
+    })
   })
 
   it('stops at the limit, best first', () => {

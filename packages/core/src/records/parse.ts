@@ -525,12 +525,14 @@ function statementCandidates(
               (typing || reading.complete !== false)
           )
           const weight = spanWeight(start, end, words.length)
+          const remainder = remainderOf(words, start, end)
           for (const reading of verb.negated ? negate(readings) : readings) {
             candidates.push(
               filterSuggestion(
-                reading,
+                // Enter takes an exact reading, so it must leave nothing.
+                remainder ? { ...reading, exact: false } : reading,
                 round(reading.quality * weight),
-                remainderOf(words, start, end),
+                remainder,
                 [start, end],
                 order++
               )
