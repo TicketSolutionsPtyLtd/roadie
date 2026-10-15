@@ -323,15 +323,27 @@ export function RecordsSearch({
     setStepText('')
   }
 
-  function writeSelected(filter: RecordFilter | null) {
+  function writeSelected(next: RecordFilter | null) {
     if (!selected || selectedAt === null) return
-    if (!filter) {
+    if (!next) {
       records.removeFilter(selectedAt)
       endStep()
       return
     }
+    // Is chips on one field AND, so one rewritten to is takes in the field's is chip.
+    const merged = mergeFilter(
+      filters.filter((_, index) => index !== selectedAt),
+      next,
+      fields
+    )
+    const filter = merged?.filter ?? next
+    // `locate` finds the chip once the other's removal moves it.
     setSelected({ index: selectedAt, written: [...selected.written, filter] })
     records.updateFilter(selectedAt, filter)
+    if (merged)
+      records.removeFilter(
+        merged.index < selectedAt ? merged.index : merged.index + 1
+      )
   }
 
   function acceptForSelected(value: SearchValue, edited: RecordFilter) {

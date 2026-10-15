@@ -872,6 +872,45 @@ describe('Records.Search', () => {
       await waitFor(() => expect(ticked()).toEqual(['Sydney']))
     })
 
+    it('merges a chip rewritten to is into the field’s is chip, as is chips AND', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'city', operator: 'is-not', values: ['Perth'] },
+              { field: 'city', operator: 'is', values: ['Sydney'] }
+            ]
+          }
+        }
+      })
+      await selectChip(user, 'City is not Perth')
+      await user.click(screen.getByRole('button', { name: 'is' }))
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is', values: ['Sydney', 'Perth'] }
+      ])
+      expect(chip('City is Sydney or Perth')).toHaveAttribute('data-selected')
+      await waitFor(() => expect(ticked()).toEqual(['Perth', 'Sydney']))
+    })
+
+    it('merges an Empty chip given a value into the field’s is chip', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'city', operator: 'is', values: ['Perth'] },
+              { field: 'city', operator: 'is-not-set' }
+            ]
+          }
+        }
+      })
+      await selectChip(user, 'City is empty')
+      await user.click(await option('Sydney'))
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is', values: ['Perth', 'Sydney'] }
+      ])
+      await waitFor(() => expect(ticked()).toEqual(['Perth', 'Sydney']))
+    })
+
     it('ticks a date chip’s preset, and taking another replaces it', async () => {
       const { user, lastView } = setup({
         defaultView: {
