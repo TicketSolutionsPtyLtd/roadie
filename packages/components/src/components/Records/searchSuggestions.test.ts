@@ -129,6 +129,18 @@ describe('topSuggestions', () => {
     ])
   })
 
+  it('keeps an applied filter’s dates beside the mark', () => {
+    const weekend: RecordFilter = {
+      field: 'starts',
+      operator: 'within',
+      value: 'this-weekend'
+    }
+    const [fresh] = applied('this weekend', [])
+    const [marked] = applied('this weekend', [weekend])
+    expect(fresh![1]).toBeTruthy()
+    expect(marked).toEqual([fresh![0], `${fresh![1]}, already applied`, ''])
+  })
+
   it('keeps the words a field didn’t read', () => {
     const found = group(topSuggestions('ocean cit', context()), 'fields')
     expect(found.items[0]).toMatchObject({ label: 'City', remainder: 'ocean' })

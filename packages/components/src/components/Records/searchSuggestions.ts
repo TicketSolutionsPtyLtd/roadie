@@ -163,7 +163,12 @@ function markApplied(
   return items.map((item) =>
     item.value.type === 'filter' &&
     isApplied(item.value.filter, context.filters)
-      ? { ...item, description: 'Already applied' }
+      ? {
+          ...item,
+          description: item.description
+            ? `${item.description}, already applied`
+            : 'Already applied'
+        }
       : item
   )
 }
