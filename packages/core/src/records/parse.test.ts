@@ -407,6 +407,11 @@ describe('parseQuery', () => {
         { field: 'orderNumber', operator: 'is-not', values: ['OZ-55555'] }
       ],
       [
+        '-sold out',
+        'Status is not Sold out',
+        { field: 'status', operator: 'is-not', values: ['sold_out'] }
+      ],
+      [
         'city != syd',
         'City is not Sydney',
         { field: 'city', operator: 'is-not', values: ['sydney'] }
@@ -445,6 +450,10 @@ describe('parseQuery', () => {
       })
     })
 
+    it('keeps what a negation rules out to itself', () => {
+      expect(parse('not melb')[0]).not.toHaveProperty('negates')
+    })
+
     it('keeps the words a negation didn’t read', () => {
       expect(
         parse('not melb ocean').map((s) => [s.label, s.remainder])
@@ -457,7 +466,11 @@ describe('parseQuery', () => {
       ['city != syd', 'City is Sydney'],
       ['city!=syd', 'City is Sydney'],
       ['city ≠ syd', 'City is Sydney'],
-      ['!=syd', 'City is Sydney']
+      ['!=syd', 'City is Sydney'],
+      ['status is not sold out', 'Status is Sold out'],
+      ['-sold out', 'Status is Sold out'],
+      ['not sold out', 'Status is Sold out'],
+      ['venue != quilted walrus', 'Venue is The Quilted Walrus Room']
     ])('never offers the value "%s" rules out', (text, label) => {
       expect(parse(text, { limit: 50 }).map((s) => s.label)).not.toContain(
         label

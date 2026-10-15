@@ -50,7 +50,12 @@ export type ParseQueryOptions = RecordQueryOptions & {
   locale?: string
 }
 
-type Candidate = RecordSuggestion & { span: [number, number]; order: number }
+type Candidate = RecordSuggestion & {
+  span: [number, number]
+  order: number
+  /** The id of the filter this one negates, ruled out after its first word. */
+  negates?: string
+}
 
 const MAX_WORDS = 8
 const MAX_SPAN = 4
@@ -222,6 +227,7 @@ type Reading = {
   exact?: boolean
   /** False for a date phrase completed from its first words, like "this". */
   complete?: boolean
+  negates?: string
 }
 
 function optionReadings(field: RecordField, text: string): Reading[] {
@@ -364,7 +370,8 @@ function negatedFilter(filter: RecordFilter): RecordFilter | null {
 function negate(readings: readonly Reading[]): Reading[] {
   return readings.flatMap(({ exact: _exact, ...reading }) => {
     const filter = negatedFilter(reading.filter)
-    return filter ? [{ ...reading, filter }] : []
+    const negates = `filter:${encodeFilter(reading.filter)}`
+    return filter ? [{ ...reading, filter, negates }] : []
   })
 }
 
@@ -397,7 +404,8 @@ function filterSuggestion(
     span,
     order,
     ...(reading.description && { description: reading.description }),
-    ...(reading.exact && { exact: true })
+    ...(reading.exact && { exact: true }),
+    ...(reading.negates && { negates: reading.negates })
   }
 }
 
@@ -476,12 +484,12 @@ function spanCandidates(
           )
         }
       })
-      const dashed = end - start === 1 ? negatedValue(words[start]!) : null
-      const negated =
-        dashed ??
-        (end - start > 1 && NEGATIONS.has(plain(words[start]!))
+      const dashed = negatedValue(words[start]!)
+      const negated = dashed
+        ? [dashed, ...words.slice(start + 1, end)].join(' ')
+        : end - start > 1 && NEGATIONS.has(plain(words[start]!))
           ? words.slice(start + 1, end).join(' ')
-          : null)
+          : null
       if (!ruledOut && dashed === null) {
         // Exact only when it is the whole text: Enter must not drop the rest.
         if (end - start === 1 && words.length > 1) {
@@ -607,8 +615,17 @@ function overlap(a: [number, number], b: [number, number]): boolean {
  * and its dates at the top.
  */
 function rank(candidates: Candidate[]): Candidate[] {
+  // "status is not sold out" never offers Sold out from its last word. A
+  // reading that takes the negating word too, like "Not on sale", stays.
+  const negations = candidates.filter((c) => c.negates)
   const byId = new Map<string, Candidate>()
   for (const candidate of candidates) {
+    if (
+      negations.some(
+        (n) => n.negates === candidate.id && n.span[0] < candidate.span[0]
+      )
+    )
+      continue
     const seen = byId.get(candidate.id)
     if (!seen || candidate.score > seen.score) byId.set(candidate.id, candidate)
   }
@@ -654,7 +671,12 @@ function finish(options: ParseQueryOptions) {
   const dateKeys = new Set(
     fields.filter((field) => field.type === 'date').map((field) => field.key)
   )
-  return ({ span: _span, order: _order, ...suggestion }: Candidate) => {
+  return ({
+    span: _span,
+    order: _order,
+    negates: _negates,
+    ...suggestion
+  }: Candidate) => {
     // A chip reads the same words; a date keeps the phrase as typed.
     const label =
       suggestion.kind === 'filter' && !dateKeys.has(suggestion.value.field)
@@ -678,7 +700,7 @@ function finish(options: ParseQueryOptions) {
  * `100-500`, `over 100`, `under 100` or `100 and 500`, with `$` and thousands
  * commas allowed; `<field> > 100`, `<field> more than 100`,
  * `<field> between 100 and 500` and `<field> 100-500` read the same. Negation reads as the
- * opposite filter: a `-` before one word (not a number), `not`, `isn't`,
+ * opposite filter: a `-` before a value (not a number), `not`, `isn't`,
  * `excluding`, `except`, `without`, `!=` or `≠` before a value,
  * `<field> is not`, `isn't`, `!=`, `≠`, `doesn't contain` or
  * `does not contain`, and `field:!value`, `field:!=value` or `field:-value`;
