@@ -551,7 +551,7 @@ describe('Records.Search', () => {
     expect(lastView().query.search).toBe('ocean')
   })
 
-  it('keeps a filter whose condition was only tried, once Custom dates closes', async () => {
+  it('keeps a filter whose condition was only tried, as its date carried over', async () => {
     const { user, lastView } = setup({
       defaultView: { query: { filters: [AFTER_1_DEC] } }
     })
@@ -559,8 +559,38 @@ describe('Records.Search', () => {
     await condition(user, dialog, 'Is within')
     await user.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(lastView()).toBeUndefined()
-    expect(chipLabels()).toHaveLength(1)
+    expect(lastView().query.filters).toEqual([
+      {
+        field: 'starts',
+        operator: 'between',
+        value: ['2026-12-01', '2026-12-01']
+      }
+    ])
+  })
+
+  it('filters by the date the editor shows once the condition changes', async () => {
+    const { user, lastView } = setup({
+      defaultView: {
+        query: {
+          filters: [
+            {
+              field: 'starts',
+              operator: 'between',
+              value: ['2026-10-20', '2026-10-23']
+            }
+          ]
+        }
+      }
+    })
+    const dialog = await customDates(user, chipLabels()[0]!)
+    await condition(user, dialog, 'Is on')
+    expect(
+      within(dialog).getByRole('combobox', { name: 'Starts' })
+    ).not.toHaveValue('')
+    expect(lastView().query.filters).toEqual([
+      { field: 'starts', operator: 'on', value: '2026-10-20' }
+    ])
+    expect(chipLabels()).toEqual(['Starts is on Tue 20 Oct'])
   })
 
   it('closes an editor whose filter the view no longer holds', async () => {

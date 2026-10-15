@@ -21,7 +21,8 @@ import {
   dateOperatorOf,
   draftOf,
   filterOf,
-  isEmptyDraft
+  isEmptyDraft,
+  withCondition
 } from './filterDraft'
 import { datePresets, filterKey } from './searchSuggestions'
 
@@ -64,8 +65,7 @@ export function RecordsFilterEditor({
   const [draft, setDraft] = useState(() => draftOf(filter))
   // The last filter written, which a parent may not have shown yet.
   const sent = useRef(filter)
-  const update = (patch: Partial<DateDraft>) => {
-    const next = { ...draft, ...patch }
+  const update = (next: DateDraft) => {
     setDraft(next)
     const held = sent.current
     // Emptied only by clearing the dates it holds, not by trying another condition.
@@ -84,7 +84,7 @@ export function RecordsFilterEditor({
       <Select
         value={draft.operator}
         onValueChange={(operator) =>
-          update({ operator: operator as DateOperator })
+          update(withCondition(draft, operator as DateOperator, today))
         }
       >
         <Select.Trigger
@@ -107,7 +107,7 @@ export function RecordsFilterEditor({
           data-filter-value=''
           aria-label={name}
           value={draft.range}
-          onValueChange={(range) => update({ range })}
+          onValueChange={(range) => update({ ...draft, range })}
           presets={datePresets(field)
             .filter((value) => value !== 'upcoming' && value !== 'past')
             .map((value) => ({ value }))}
@@ -121,7 +121,7 @@ export function RecordsFilterEditor({
           data-filter-value=''
           aria-label={name}
           value={draft.date}
-          onValueChange={(date) => update({ date })}
+          onValueChange={(date) => update({ ...draft, date })}
           timeZone={timeZone}
           today={today}
         />
