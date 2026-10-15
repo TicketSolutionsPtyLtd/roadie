@@ -577,8 +577,8 @@ function valueItems(
 }
 
 /**
- * Under is empty or is not empty, the one row, which Enter takes whatever is
- * typed. A chip already holding it ticks it, so the step still answers.
+ * Under is empty or is not empty, the one row, which Enter takes. A chip
+ * already holding it ticks it, so the step still answers.
  */
 function emptinessRow(
   field: RecordField,

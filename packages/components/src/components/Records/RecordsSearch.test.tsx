@@ -821,6 +821,33 @@ describe('Records.Search', () => {
       }
     )
 
+    it.each([
+      ['City', 'mel', 'is', 'Melbourne', 'City is Melbourne'],
+      [
+        'Show',
+        'disco',
+        'contains',
+        'Show contains “disco”',
+        'Show contains “disco”'
+      ],
+      ['Sold', '20', 'is', 'Sold is 20', 'Sold is 20']
+    ])(
+      'switches %s from is not empty to its first operator as you type, so the text applies',
+      async (name, typed, first, row, chipLabel) => {
+        const { user } = setup()
+        await user.click(input())
+        await user.click(await option(name))
+        await user.click(screen.getByRole('button', { name: 'is not empty' }))
+        await user.keyboard(typed)
+        expect(
+          screen.getByRole('button', { name: first, pressed: true })
+        ).toBeInTheDocument()
+        await waitFor(() => expect(enterTarget()).toEqual([row]))
+        await user.keyboard('{Enter}')
+        expect(chipLabels()).toEqual([chipLabel])
+      }
+    )
+
     it('adds is not empty with a tap on the operator, then its row', async () => {
       const { user, lastView } = setup()
       await user.click(input())

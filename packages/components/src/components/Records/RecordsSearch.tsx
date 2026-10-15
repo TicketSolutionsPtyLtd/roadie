@@ -510,13 +510,19 @@ export function RecordsSearch({
           endStep()
         }}
         inputValue={pendingField ? stepText : records.searchText}
-        onInputValueChange={(text) =>
-          pendingField
-            ? setStepText(
-                withAnd(pendingField, stepText, text, pendingOperator, context)
-              )
-            : records.setSearch(text)
-        }
+        onInputValueChange={(text) => {
+          if (!pendingField) {
+            records.setSearch(text)
+            return
+          }
+          // Emptiness takes no value, so typing asks for one.
+          const operator =
+            isEmptiness(pendingOperator) && text.trim()
+              ? stepOperator(pendingField, '')
+              : pendingOperator
+          setPendingOperator(operator)
+          setStepText(withAnd(pendingField, stepText, text, operator, context))
+        }}
         suggest={(text) =>
           pendingField
             ? valueSuggestions(
