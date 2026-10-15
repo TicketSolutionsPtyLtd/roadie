@@ -7,6 +7,7 @@ export const metadata = {
 
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Callout } from '@oztix/roadie-components/callout'
 
 A table of records to search, filter, sort and page through.
 
@@ -428,6 +429,67 @@ Only an option chip changes as you press an operator. Anything else waits for En
 **Custom dates** is last in a date field's values, and the one filter you edit outside the list. It opens a condition (Is within, Is on, Is before, or Is after) with the [date range picker](/components/date-range-picker) and its relative presets, or the [date picker](/components/date-picker). It edits the selected chip, or adds a new one, and applies each change as you make it.
 
 It opens in a popover under the chip, or a bottom drawer on a phone, and loads while the page is idle. Either one shows the field's name as its title, with a Close button, and Tab stays inside it until it closes. An existing chip's editor has **Remove filter** at the foot, and a chip whose dates you clear is removed as the editor closes.
+
+#### Custom dates on a phone (temporary)
+
+<Callout intent='warning' title='This comparison is temporary'>
+  We'll keep one of these two ways to pick custom dates on a phone. The other goes, with this example, before the change is released (INNO-1278).
+</Callout>
+
+Open this page on a phone, then pick **Starts** and **Custom dates**.
+
+- **Drawer** opens the date range picker in a bottom drawer, as Custom dates does now.
+- **In the list** shows a calendar in place of the list, under **Back** and a toggle of **Within**, **On**, **Before**, and **After**. Back or Escape returns to the quick dates. The list shrinks to fit above the on-screen keyboard. Picking a range, or one date, adds the chip.
+
+On a screen 48rem or wider, both open the popover under the chip.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [
+  field.text('show', { label: 'Show' }),
+  field.option('city', { label: 'City' }),
+  field.date('starts', { label: 'Starts', moment: 'date' })
+]
+const column = tableColumns(fields)
+const columns = [column.field('show', { pin: true }), column.field('city'), column.field('starts')]
+const bands = ['Ocean Alley', 'Ball Park Music', 'Julia Jacklin', 'Angie McMahon', 'Alex Lahey', 'Middle Kids']
+const cities = ['Melbourne', 'Sydney', 'Brisbane', 'Perth', 'Hobart']
+const day = (offset) => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10)
+const shows = Array.from({ length: 40 }, (_, index) => ({
+  id: `show-${index}`,
+  show: bands[index % bands.length],
+  city: cities[index % cities.length],
+  starts: day(index % 45)
+}))
+
+function Comparison() {
+  const [surface, setSurface] = useState('drawer')
+  return (
+    <div className='grid gap-3'>
+      <ToggleGroup
+        aria-label='Where Custom dates opens on a phone'
+        value={[surface]}
+        onValueChange={([next]) => next && setSurface(next)}
+      >
+        <ToggleGroup.Item value='drawer'>Drawer</ToggleGroup.Item>
+        <ToggleGroup.Item value='inline'>In the list</ToggleGroup.Item>
+      </ToggleGroup>
+      <div data-custom-dates={surface}>
+        <RecordTable
+          caption='Upcoming shows'
+          data={shows}
+          fields={fields}
+          columns={columns}
+          getRowId={(row) => row.id}
+          defaultPosition={{ pageSize: 10 }}
+        />
+      </div>
+    </div>
+  )
+}
+
+render(<Comparison />)
+```
 
 #### Chips
 
