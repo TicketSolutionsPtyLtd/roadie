@@ -274,7 +274,7 @@ filter, so none of them stay in `remainder`.
 | `not`, `isn't`, `excluding`, `except`, `without`, `!=`, or `≠` before a value | `excluding walrus`           | Venue is not The Quilted Walrus Room |
 | `-` before a value                                                            | `-sold out`                  | Status is not Sold out               |
 | `!`, `!=`, or `-` after `field:`                                              | `venue:!walrus`              | Venue is not The Quilted Walrus Room |
-| `<field> is not`, `<field> isn't`, `<field> !=`, or `<field> ≠`               | `city != syd`                | City is not Sydney                   |
+| `<field> is not`, `not`, `isn't`, `!=`, or `≠`                                | `city not syd`               | City is not Sydney                   |
 | `<field> doesn't contain` or `<field> does not contain`                       | `name doesn't contain disco` | Name doesn't contain "disco"         |
 
 `venue is walrus`, `venue = walrus`, and `name contains disco` read the same

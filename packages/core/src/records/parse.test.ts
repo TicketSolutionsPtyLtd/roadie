@@ -779,6 +779,18 @@ describe('parseQuery', () => {
     })
 
     it.each([
+      ['city not melb', 'City is not Melbourne'],
+      ['city not empty', 'City is not empty'],
+      ['name not disco', 'Name doesn’t contain “disco”'],
+      ['capacity not 100', 'Capacity is not 100']
+    ])('reads "%s" as %s', (text, label) => {
+      expect(parse(text)[0]).toMatchObject({ label, remainder: '' })
+      expect(parse(text, { limit: 50 }).map(summary)).not.toContain(
+        'Name contains “not disco”'
+      )
+    })
+
+    it.each([
       ['capacity is empty', 'Capacity is empty', 'capacity', 'is-not-set'],
       ['city is empty', 'City is empty', 'city', 'is-not-set'],
       ['city is not empty', 'City is not empty', 'city', 'is-set'],

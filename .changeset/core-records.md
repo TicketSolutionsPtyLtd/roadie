@@ -66,11 +66,11 @@ thousands commas in a number's value.
 `parseQuery` reads negation as the opposite filter, and leaves none of its
 words in `remainder`. "not melb" and "-melb" suggest "City is not Melbourne".
 It also reads `isn't`, `excluding`, `except`, `without`, `!=`, and `≠` before
-a value, `venue:!walrus`, "venue is not walrus", "city != syd", and "name
-doesn't contain disco". It reads "venue is walrus", "city = syd", and "name
-contains disco" too. A negated value never also suggests its positive, so
-"status is not sold out" offers only "Status is not Sold out". A date or a
-comparison has no opposite, so a negated one reads nothing.
+a value, `venue:!walrus`, "venue is not walrus", "city not syd", "city !=
+syd", and "name doesn't contain disco". It reads "venue is walrus", "city =
+syd", and "name contains disco" too. A negated value never also suggests its
+positive, so "status is not sold out" offers only "Status is not Sold out". A
+date or a comparison has no opposite, so a negated one reads nothing.
 
 A number or money field's name, then `>`, `<`, `=`, `!=`, more than, less
 than, over, under, between 20 and 50, or a range such as 20-50 in either

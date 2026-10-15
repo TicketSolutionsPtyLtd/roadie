@@ -94,6 +94,7 @@ type Verb = {
 const VERBS: readonly Verb[] = [
   { words: ['is', 'not'], negated: true, contains: false },
   { words: ["isn't"], negated: true, contains: false },
+  { words: ['not'], negated: true, contains: false },
   { words: ['is'], negated: false, contains: false },
   { words: ['!='], negated: true, contains: false },
   { words: ['≠'], negated: true, contains: false },
@@ -791,7 +792,7 @@ function finish(options: ParseQueryOptions) {
  * `<field> between 100 and 500` and `<field> 100-500` read the same. Negation reads as the
  * opposite filter: a `-` before a value (not a number), `not`, `isn't`,
  * `excluding`, `except`, `without`, `!=` or `≠` before a value,
- * `<field> is not`, `isn't`, `!=`, `≠`, `doesn't contain` or
+ * `<field> is not`, `not`, `isn't`, `!=`, `≠`, `doesn't contain` or
  * `does not contain`, and `field:!value`, `field:!=value` or `field:-value`;
  * a date or a comparison has no opposite, so reads nothing.
  * Filter labels read as `describeRecordFilter` writes chips. Empty text lists
