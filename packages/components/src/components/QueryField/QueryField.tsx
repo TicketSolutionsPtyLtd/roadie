@@ -287,15 +287,15 @@ export function QueryField<Value = unknown>({
   })
   const current = suggestions.inputValue === text
   // Typed text only adds to an edited chip; a ticked row unticks by arrow or click.
-  const enterable = editedId
-    ? suggestions.groups.map((group) => ({
-        ...group,
-        items: group.items.filter((item) => !item.selected)
-      }))
-    : suggestions.groups
-  const exact = current ? exactSuggestion(enterable) : undefined
+  const enterable = (item: QueryFieldSuggestion<Value>) =>
+    !editedId || !item.selected
+  const exact = current
+    ? exactSuggestion(suggestions.groups, enterable)
+    : undefined
   const typedValue =
-    current && pendingChip && text.trim() ? firstMatch(enterable) : undefined
+    current && pendingChip && text.trim()
+      ? firstMatch(suggestions.groups, enterable)
+      : undefined
   const items = list.flatMap((group) => group.items)
   const search = items.find((item) => item.kind === 'search')
   const enterFallback = exact ?? typedValue ?? search

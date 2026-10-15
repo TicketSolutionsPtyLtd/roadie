@@ -909,6 +909,26 @@ describe('Records.Search', () => {
       expect(chip('City is Perth')).toHaveAttribute('data-selected')
     })
 
+    it('keeps a held value on Enter after typing it, though Empty matches too', async () => {
+      const { user, onViewChange } = setup({
+        data: shows.map((show, index) =>
+          index === 0 ? { ...show, city: 'Emerald' } : show
+        ),
+        defaultView: {
+          query: {
+            filters: [{ field: 'city', operator: 'is', values: ['Emerald'] }]
+          }
+        }
+      })
+      await selectChip(user, 'City is Emerald')
+      await user.keyboard('em')
+      await option('Emerald')
+      await option('Empty')
+      await user.keyboard('{Enter}')
+      expect(onViewChange).not.toHaveBeenCalled()
+      expect(chip('City is Emerald')).toHaveAttribute('data-selected')
+    })
+
     it('merges a chip rewritten to is into the field’s is chip, as is chips AND', async () => {
       const { user, lastView } = setup({
         defaultView: {
