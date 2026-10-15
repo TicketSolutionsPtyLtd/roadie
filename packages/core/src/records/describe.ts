@@ -19,7 +19,6 @@ import type {
   RecordField,
   RecordFilter,
   RecordFilterOperator,
-  RecordMoment,
   RecordQueryOptions
 } from './types'
 
@@ -225,13 +224,15 @@ function rangePhrase(value: DateRangeValue): string | null {
 /**
  * Upcoming, past, and happening now as days, for a field with no clock of its
  * own to read them in. A plain date counts whole days; an event or access
- * moment compares the instant, so today counts only in part.
+ * moment compares the instant, so today counts only in part: a range until it
+ * ends, and a single time until it passes.
  */
 function openDays(
   value: DateRangeValue,
-  moment: RecordMoment,
+  field: RecordField,
   options: DescribeRecordFilterOptions
 ): string | null {
+  const moment = momentOf(field)
   if (moment === 'timestamp') return null
   const today = plainDateOf(options.now, options.timeZone)
   const day = (date: string) =>
@@ -243,7 +244,8 @@ function openDays(
   const plain = moment === 'date'
   switch (value) {
     case 'upcoming':
-      return `From ${day(today)}${plain ? '' : ', unless already over'}`
+      if (plain) return `From ${day(today)}`
+      return `From ${day(today)}, unless already ${field.end ? 'over' : 'started'}`
     case 'past':
       return plain
         ? `Until ${day(addDays(today, -1))}`
@@ -258,7 +260,7 @@ function openDays(
 function describeDate(
   filter: RecordFilter,
   name: string,
-  moment: RecordMoment,
+  field: RecordField,
   options: DescribeRecordFilterOptions
 ): RecordFilterDescription | null {
   const dated = (phrase: string, value = phrase, detail?: string) => ({
@@ -289,7 +291,7 @@ function describeDate(
         return dated(
           rangePhrase(filter.value) ?? label,
           label,
-          openDays(filter.value, moment, options) ?? detail
+          openDays(filter.value, field, options) ?? detail
         )
       } catch {
         return dated(JSON.stringify(filter.value))
@@ -314,7 +316,7 @@ export function describeRecordFilter(
   const field = fieldIndex(fields).get(filter.field)
   const name = field?.label ?? filter.field
   if (field?.type === 'date') {
-    const described = describeDate(filter, name, momentOf(field), options)
+    const described = describeDate(filter, name, field, options)
     if (described) return described
   }
   const phrase = (operator: string, value: string) => ({

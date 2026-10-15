@@ -209,7 +209,7 @@ starts in July. The core functions also take `weekStart` and
 `fiscalYearStart`, but the Records components always use these defaults, so
 keep them wherever a view also runs in the browser. Hour windows and the open
 ranges upcoming, past, and ongoing compare the instant, except on a plain date,
-where upcoming starts today and past ends yesterday. Outside a timestamp, their `detail` gives days, never the viewer's clock: "From 16 Oct 2026, unless already over" for upcoming on an event date, and "From 16 Oct 2026" on a plain date. A range field matches when any part of it overlaps, so a five-night
+where upcoming starts today and past ends yesterday. Outside a timestamp, their `detail` gives days, never the viewer's clock: "From 16 Oct 2026, unless already over" for upcoming on an event with an end, "unless already started" on one with only a start, and "From 16 Oct 2026" on a plain date. A range field matches when any part of it overlaps, so a five-night
 festival is on this weekend if one night is.
 
 A time written without an offset names one moment, in the record's or the

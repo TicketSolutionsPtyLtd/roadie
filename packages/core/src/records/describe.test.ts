@@ -191,6 +191,8 @@ describe('describeRecordFilter', () => {
     ['birthday', 'ongoing', '3 Oct 2026'],
     ['starts', 'upcoming', 'From 3 Oct 2026, unless already over'],
     ['starts', 'past', 'Until 3 Oct 2026, if already started'],
+    ['onSale', 'upcoming', 'From 3 Oct 2026, unless already started'],
+    ['onSale', 'past', 'Until 3 Oct 2026, if already started'],
     ['onSale', 'ongoing', '3 Oct 2026']
   ])('gives %s %s its days, with no clock', (field, value, detail) => {
     expect(describeFilter({ field, operator: 'within', value }).detail).toBe(

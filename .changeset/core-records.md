@@ -56,7 +56,8 @@ its chip reads ("Venue is Kazoo Hollow Room", "Gross is more than $100",
 "Start date is this weekend"), with the dates a relative range stands for in
 `detail`. Outside a timestamp, upcoming, past and happening now give days
 with no clock, such as "From 16 Oct 2026, unless already over" on an event
-date, which compares the instant, and "From 16 Oct 2026" on a plain date.
+with an end, which compares the instant ("unless already started" with only a
+start), and "From 16 Oct 2026" on a plain date.
 A date chip reads like any other, with "is" after the field's name: "is
 in the next 7 days", "is on Tue 20 Oct", "is before 20 Oct". `recordOperatorLabel` names an operator ("is more than") and
 `recordOptionPaths` gives each option's label with its parents' ("Ochre Kite
