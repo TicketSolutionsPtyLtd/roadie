@@ -77,6 +77,7 @@ describe('Logo', () => {
     it('renders the mark and the product name as live text', () => {
       render(<Logo product='Studio' />)
       const root = screen.getByRole('img', { name: 'Oztix Studio' })
+      expect(root).toHaveAttribute('data-variant', 'product')
       expect(slots(root)).toEqual(['logo-mark', 'logo-product'])
 
       const product = root.querySelector('[data-slot=logo-product]')!
@@ -108,6 +109,13 @@ describe('Logo', () => {
     ])('is ignored when %s', (_, product) => {
       render(<Logo product={product} />)
       const root = screen.getByRole('img', { name: 'Oztix' })
+      expect(slots(root)).toEqual(['logo-mark', 'logo-wordmark'])
+    })
+
+    it('falls back to the normal logo for variant=product with a blank name', () => {
+      render(<Logo variant='product' product=' ' />)
+      const root = screen.getByRole('img', { name: 'Oztix' })
+      expect(root).toHaveAttribute('data-variant', 'normal')
       expect(slots(root)).toEqual(['logo-mark', 'logo-wordmark'])
     })
 
