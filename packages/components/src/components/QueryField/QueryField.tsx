@@ -231,9 +231,7 @@ export function QueryField<Value = unknown>({
   // through, so Tab leaves from either end.
   const operatorAt = operators.findIndex((each) => each.value === operator)
   const operatorOnTab = (step: 1 | -1) =>
-    showsOperators && open
-      ? operators[(operatorAt < 0 ? -1 : operatorAt) + step]
-      : undefined
+    showsOperators && open ? operators[operatorAt + step] : undefined
   const suggestions = useSuggestions(
     suggest,
     text,
