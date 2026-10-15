@@ -779,11 +779,25 @@ describe('QueryField', () => {
       />
     )
     await userEvent.click(input())
-    expect(await screen.findByText('No suggestions')).toBeInTheDocument()
     await userEvent.keyboard('z')
     expect(await screen.findByText('Loading suggestions')).toBeInTheDocument()
     await act(async () => later.reject(new Error('offline')))
     expect(screen.getByText('No suggestions')).toBeInTheDocument()
+  })
+
+  it('opens no list with nothing to suggest, hint, or text', async () => {
+    render(<Harness initialChips={[scope]} suggest={() => []} />)
+    await userEvent.click(input())
+    expect(input()).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
+    await userEvent.keyboard('z')
+    expect(
+      await screen.findByRole('option', { name: 'Search for “z”' })
+    ).toBeInTheDocument()
+    await userEvent.keyboard('{Backspace}')
+    await waitFor(() =>
+      expect(input()).toHaveAttribute('aria-expanded', 'false')
+    )
   })
 
   it('drops the arrow mark when newer results replace the arrowed one', async () => {

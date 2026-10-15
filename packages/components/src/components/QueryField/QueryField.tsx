@@ -314,6 +314,10 @@ export function QueryField<Value = unknown>({
   const stuck = current && !!text.trim() && enterTarget < 0
   const hint =
     !suggestions.loading && (list.length === 0 || stuck) && pendingChip?.hint
+  // Asked for suggestions, but with none, nothing to type, and no hint, a
+  // list would only say No suggestions.
+  const nothingToShow =
+    list.length === 0 && !hint && !suggestions.loading && !text.trim()
   const groupStarts = list.map((_, index) =>
     list.slice(0, index).reduce((sum, group) => sum + group.items.length, 0)
   )
@@ -485,7 +489,7 @@ export function QueryField<Value = unknown>({
         setText(next)
         setArrowed(false)
       }}
-      open={open}
+      open={open && !nothingToShow}
       onOpenChange={(next, details) => {
         setOpen(next)
         const byArrow = next && details.reason === 'list-navigation'
