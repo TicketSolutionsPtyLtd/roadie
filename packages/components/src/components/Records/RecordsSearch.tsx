@@ -3,7 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 
 import { plainDateOf } from '@oztix/roadie-core/datetime'
-import type { RecordField, RecordFilter } from '@oztix/roadie-core/records'
+import type { RecordFilter } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { PickerOverlay, usePickerSurface } from '../../pickers/PickerShell'
@@ -11,10 +11,12 @@ import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect
 import { QueryField, type QueryFieldAccepted } from '../QueryField'
 import { RecordsFilterEditorLazy } from './RecordsFilterEditorLazy'
 import { useRecordsContext } from './context'
+import { fieldIcon } from './fieldIcon'
 import { whenIdle } from './idle'
 import { applyQuery } from './query'
 import {
   type SearchContext,
+  type SearchGroup,
   type SearchValue,
   filterChipIds,
   hasValueStep,
@@ -24,6 +26,7 @@ import {
   topSuggestions,
   valueSuggestions
 } from './searchSuggestions'
+import type { RecordsField } from './types'
 import type { RecordsInstance } from './useRecords'
 
 export type RecordsSearchProps = {
@@ -70,7 +73,7 @@ function heldValues(data: readonly object[], key: string): string[] | null {
 }
 
 // An option field with no `options` lists the values the records hold.
-function useListedFields(records: RecordsInstance): readonly RecordField[] {
+function useListedFields(records: RecordsInstance): readonly RecordsField[] {
   const { data, fields, mode } = records
   return useMemo(() => {
     if (mode !== 'browser') return fields
@@ -84,8 +87,25 @@ function useListedFields(records: RecordsInstance): readonly RecordField[] {
   }, [data, fields, mode])
 }
 
-const pendingLabel = (field: RecordField) =>
+const pendingLabel = (field: RecordsField) =>
   field.type === 'date' ? field.label : `${field.label} is`
+
+function withFieldIcons(
+  groups: readonly SearchGroup[],
+  byKey: ReadonlyMap<string, RecordsField>
+): SearchGroup[] {
+  return groups.map((group) => ({
+    ...group,
+    items: group.items.map((item) => {
+      const key =
+        item.value.type === 'filter'
+          ? item.value.filter.field
+          : item.value.field
+      const field = byKey.get(key)
+      return field ? { ...item, icon: fieldIcon(field) } : item
+    })
+  }))
+}
 
 const FOCUSABLE = 'input:not([type=hidden]), button:not([tabindex="-1"])'
 
@@ -366,7 +386,7 @@ export function RecordsSearch({
         suggest={(text) =>
           pendingField
             ? valueSuggestions(pendingField, text, context)
-            : topSuggestions(text, context)
+            : withFieldIcons(topSuggestions(text, context), byKey)
         }
         onAccept={accept}
       />

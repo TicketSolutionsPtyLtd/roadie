@@ -9,6 +9,12 @@ import type {
 
 import type { RecordsInstance } from './useRecords'
 
+/** A record field, with what Records shows it by. */
+export type RecordsField = RecordField & {
+  /** Marks the field's suggestions in `Records.Search`. Pass a bold Phosphor icon; it is sized for you. Defaults to one for the field's type. */
+  icon?: ReactNode
+}
+
 export type RecordName = { one: string; other: string }
 
 /** A view to start from: any part left out takes its default. */

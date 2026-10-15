@@ -58,6 +58,7 @@ export type {
   RecordsAction,
   RecordsActionConfirm,
   RecordsBulkAction,
+  RecordsField,
   RecordsRangeState,
   RecordsRow
 } from './types'

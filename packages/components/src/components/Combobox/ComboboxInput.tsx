@@ -1,8 +1,9 @@
 'use client'
 
-import type { RefAttributes } from 'react'
+import type { KeyboardEvent, RefAttributes } from 'react'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
+import { useDirection } from '@base-ui/react/direction-provider'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -11,9 +12,27 @@ import { useFieldContext } from '../Field'
 export type ComboboxInputProps = ComboboxPrimitive.Input.Props &
   RefAttributes<HTMLInputElement>
 
-export function ComboboxInput({ className, ...props }: ComboboxInputProps) {
+function lastChip(input: HTMLInputElement) {
+  const chips = input
+    .closest('[data-slot=combobox-chips]')
+    ?.querySelectorAll<HTMLElement>('[data-slot=combobox-chip]')
+  return chips?.[chips.length - 1]
+}
+
+const CHIP_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'Backspace', 'Delete'])
+
+function isModified(event: KeyboardEvent) {
+  return event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
+}
+
+export function ComboboxInput({
+  className,
+  onKeyDown,
+  ...props
+}: ComboboxInputProps) {
   const fieldContext = useFieldContext()
   const inField = !!fieldContext.fieldId
+  const previousChipKey = useDirection() === 'rtl' ? 'ArrowRight' : 'ArrowLeft'
 
   return (
     <ComboboxPrimitive.Input
@@ -34,6 +53,23 @@ export function ComboboxInput({ className, ...props }: ComboboxInputProps) {
           ? fieldContext.errorTextId || undefined
           : fieldContext.helperTextId || undefined
       })}
+      onKeyDown={(event) => {
+        onKeyDown?.(event)
+        const input = event.currentTarget
+        if (event.baseUIHandlerPrevented || input.readOnly || isModified(event))
+          return
+        const chip = CHIP_KEYS.has(event.key) ? lastChip(input) : undefined
+        if (!chip) return
+        // Base UI's Backspace deletes the last chip, and its chip keys act on
+        // the chip it last moved to, though Escape on a chip has left it.
+        event.preventBaseUIHandler()
+        const selectsChip =
+          (event.key === 'Backspace' && input.value === '') ||
+          (event.key === previousChipKey && input.selectionEnd === 0)
+        if (!selectsChip) return
+        event.preventDefault()
+        chip.focus()
+      }}
       {...props}
     />
   )

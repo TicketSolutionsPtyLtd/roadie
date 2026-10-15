@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Combobox } from '.'
+import { intentVariants } from '../../variants'
 import { Field } from '../Field'
 
 const genres = ['Rock', 'Jazz', 'Hip hop', 'Folk']
@@ -67,7 +68,8 @@ describe('Combobox chips', () => {
       'rounded-full',
       'is-interactive'
     )
-    expect(chip.className).not.toMatch(/intent-/)
+    for (const intent of Object.values(intentVariants))
+      expect(chip).not.toHaveClass(intent)
   })
 
   it('gives the remove button a default icon and an accessible name', () => {
@@ -86,11 +88,143 @@ describe('Combobox chips', () => {
     expect(onValueChange).toHaveBeenLastCalledWith(['Jazz'], expect.anything())
   })
 
-  it('removes the last chip with Backspace in an empty input', async () => {
-    render(<Genres />)
+  it('selects the last chip with Backspace in an empty input, then removes it', async () => {
+    const onValueChange = vi.fn()
+    render(<Genres onValueChange={onValueChange} />)
     await userEvent.tab()
     await userEvent.keyboard('{Backspace}')
+    expect(document.activeElement).toHaveAttribute('aria-label', 'Jazz')
+    expect(chipNames()).toEqual(['Rock', 'Jazz'])
+    expect(onValueChange).not.toHaveBeenCalled()
+    await userEvent.keyboard('{Backspace}')
     expect(chipNames()).toEqual(['Rock'])
+    expect(onValueChange).toHaveBeenLastCalledWith(['Rock'], expect.anything())
+  })
+
+  it('leaves Backspace to an onKeyDown that prevents the Base UI handler', async () => {
+    render(
+      <Combobox items={genres} multiple defaultValue={['Rock']}>
+        <Combobox.Chips>
+          <Combobox.Chip aria-label='Rock'>Rock</Combobox.Chip>
+          <Combobox.Input
+            aria-label='Genres'
+            onKeyDown={(event) => event.preventBaseUIHandler()}
+          />
+        </Combobox.Chips>
+      </Combobox>
+    )
+    await userEvent.tab()
+    await userEvent.keyboard('{Backspace}')
+    expect(document.activeElement).toBe(
+      screen.getByRole('combobox', { name: 'Genres' })
+    )
+    expect(chipNames()).toEqual(['Rock'])
+  })
+
+  it('returns to the input on Escape from a chip, keeping every value', async () => {
+    const onValueChange = vi.fn()
+    render(<Genres onValueChange={onValueChange} />)
+    await userEvent.tab()
+    await userEvent.keyboard('{Backspace}')
+    expect(document.activeElement).toHaveAttribute('aria-label', 'Jazz')
+    await userEvent.keyboard('{Escape}')
+    expect(document.activeElement).toBe(
+      screen.getByRole('combobox', { name: 'Genres' })
+    )
+    expect(chipNames()).toEqual(['Rock', 'Jazz'])
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
+  it('arrows from the last chip again after Escape from a chip', async () => {
+    render(<Genres defaultValue={['Rock', 'Jazz', 'Folk']} />)
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{Escape}{ArrowLeft}')
+    expect(document.activeElement).toHaveAttribute('aria-label', 'Folk')
+  })
+
+  it('keeps Right Arrow and Delete in the input after Escape from a chip', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Genres
+        defaultValue={['Rock', 'Jazz', 'Folk']}
+        onValueChange={onValueChange}
+      />
+    )
+    const input = screen.getByRole('combobox', { name: 'Genres' })
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{Escape}{ArrowRight}')
+    expect(document.activeElement).toBe(input)
+    await userEvent.keyboard('{Delete}')
+    expect(document.activeElement).toBe(input)
+    await userEvent.keyboard('{Backspace}')
+    expect(document.activeElement).toHaveAttribute('aria-label', 'Folk')
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
+  it('leaves a modified Backspace or Left Arrow to the input', async () => {
+    render(<Genres />)
+    const input = screen.getByRole('combobox', { name: 'Genres' })
+    await userEvent.tab()
+    await userEvent.keyboard('{Alt>}{Backspace}{ArrowLeft}{/Alt}')
+    expect(document.activeElement).toBe(input)
+    expect(chipNames()).toEqual(['Rock', 'Jazz'])
+  })
+
+  it('collapses selected text on Left Arrow before moving to the chips', async () => {
+    render(<Genres />)
+    const input = screen.getByRole<HTMLInputElement>('combobox', {
+      name: 'Genres'
+    })
+    await userEvent.type(input, 'abc')
+    input.setSelectionRange(0, 3)
+    await userEvent.keyboard('{ArrowLeft}')
+    expect(document.activeElement).toBe(input)
+  })
+
+  it('keeps focus in a read-only input on Backspace', async () => {
+    render(
+      <Combobox items={genres} multiple defaultValue={['Rock']} readOnly>
+        <Combobox.Chips>
+          <Combobox.Chip aria-label='Rock'>Rock</Combobox.Chip>
+          <Combobox.Input aria-label='Genres' />
+        </Combobox.Chips>
+      </Combobox>
+    )
+    const input = screen.getByRole('combobox', { name: 'Genres' })
+    await userEvent.click(input)
+    await userEvent.keyboard('{Backspace}')
+    expect(document.activeElement).toBe(input)
+  })
+
+  it('leaves Escape to a chip onKeyDown that prevents the Base UI handler', async () => {
+    render(
+      <Combobox items={genres} multiple defaultValue={['Rock']}>
+        <Combobox.Chips>
+          <Combobox.Chip
+            aria-label='Rock'
+            onKeyDown={(event) => event.preventBaseUIHandler()}
+          >
+            Rock
+          </Combobox.Chip>
+          <Combobox.Input aria-label='Genres' />
+        </Combobox.Chips>
+      </Combobox>
+    )
+    await userEvent.tab()
+    await userEvent.keyboard('{Backspace}{Escape}')
+    expect(document.activeElement).toHaveAttribute('aria-label', 'Rock')
+  })
+
+  it('leaves a disabled chip unfocused when it is clicked', async () => {
+    render(<Genres disabled />)
+    await userEvent.click(screen.getByText('Rock'))
+    expect(document.activeElement).toBe(document.body)
+  })
+
+  it('selects a chip when it is clicked', async () => {
+    render(<Genres />)
+    await userEvent.click(screen.getByText('Rock'))
+    expect(document.activeElement).toHaveAttribute('aria-label', 'Rock')
   })
 
   it('moves to the chips with the left arrow and removes the focused one', async () => {

@@ -96,6 +96,14 @@ Derived states, such as Selling fast or Sold out, are worked out once on the
 server and arrive as option values. Roadie never bands a percentage into a
 state.
 
+In React, `useRecords` takes `RecordsField` from
+`@oztix/roadie-components/records`: a field with an optional `icon`, a bold
+Phosphor icon. `Records.Search` shows it on the field's suggestions and their
+filters, never on values or chips. A field without one gets its type's icon: a
+tag for an option, a half circle for an option with `status`, Aa for text, a
+hash for a number, a dollar sign for money, a calendar for a date, and a toggle
+for a boolean.
+
 ## Views
 
 A view is a search, filters, sort, and layout, saved under a name. Each filter

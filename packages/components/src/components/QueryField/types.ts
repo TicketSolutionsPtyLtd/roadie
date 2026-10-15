@@ -18,6 +18,8 @@ export type QueryFieldSuggestion<Value = unknown> = {
   id: string
   label: string
   description?: ReactNode
+  /** Pass a bold Phosphor icon; it is sized for you. */
+  icon?: ReactNode
   /** `filter` adds a chip, `field` starts choosing values, `record` opens one. */
   kind: 'filter' | 'field' | 'record'
   value: Value

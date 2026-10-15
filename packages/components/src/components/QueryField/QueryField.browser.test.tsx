@@ -208,6 +208,23 @@ describe('QueryField', () => {
     expect(parseFloat(getComputedStyle(chip).outlineWidth)).toBeGreaterThan(0)
   })
 
+  it('pads the end of a chip with no remove button', () => {
+    render(
+      <Harness
+        initialChips={[scope, { id: 'city', label: 'City is Perth' }]}
+        onRemoveChip={undefined}
+      />
+    )
+    const chips = document.querySelectorAll('[data-slot=combobox-chip]')
+    expect(chips).toHaveLength(2)
+    for (const each of chips) {
+      const style = getComputedStyle(each)
+      expect(parseFloat(style.paddingInlineEnd)).toBeGreaterThanOrEqual(
+        parseFloat(style.paddingInlineStart)
+      )
+    }
+  })
+
   it('explains a locked chip on hover', async () => {
     render(<Harness initialChips={[scope]} />)
     await userEvent.hover(

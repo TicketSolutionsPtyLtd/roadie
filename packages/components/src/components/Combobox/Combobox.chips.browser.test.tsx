@@ -1,9 +1,19 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
+import { commands, userEvent } from 'vitest/browser'
 
 import { Combobox } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { oklchLightness, shownFill } from '../../css/contrastTestUtils'
+import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
 
 const STILL = '*, *::before, *::after { transition: none !important }'
@@ -31,11 +41,13 @@ const bands = [
 function Bands({
   defaultValue,
   disabled,
-  size
+  size,
+  chipClassName
 }: {
   defaultValue: string[]
   disabled?: boolean
   size?: 'sm' | 'md' | 'lg'
+  chipClassName?: string
 }) {
   return (
     <div style={{ width: 320 }}>
@@ -50,7 +62,11 @@ function Bands({
             {(value: string[]) => (
               <Combobox.Chips>
                 {value.map((band) => (
-                  <Combobox.Chip key={band} aria-label={band}>
+                  <Combobox.Chip
+                    key={band}
+                    aria-label={band}
+                    className={chipClassName}
+                  >
                     <Combobox.ChipLabel>{band}</Combobox.ChipLabel>
                     <Combobox.ChipRemove aria-label={`Remove ${band}`} />
                   </Combobox.Chip>
@@ -68,6 +84,29 @@ function Bands({
 const box = (element: Element) => element.getBoundingClientRect()
 const chip = (name: string) =>
   document.querySelector(`[data-slot=combobox-chip][aria-label="${name}"]`)!
+
+function look(element: Element) {
+  const { backgroundColor, color, borderColor, boxShadow } =
+    getComputedStyle(element)
+  return { backgroundColor, color, borderColor, boxShadow }
+}
+
+function BandsBesideButton({ chipClassName }: { chipClassName?: string }) {
+  return (
+    <>
+      <Bands
+        defaultValue={['Saltwater Choir', 'Velvet Kingfisher']}
+        chipClassName={chipClassName}
+      />
+      <Button intent='accent' emphasis='strong'>
+        Apply
+      </Button>
+    </>
+  )
+}
+
+const button = () => screen.getByRole('button', { name: 'Apply' })
+const input = () => screen.getByRole('combobox', { name: 'Bands' })
 
 describe('Combobox chips', () => {
   it.each([
@@ -150,15 +189,148 @@ describe('Combobox chips', () => {
     )
   })
 
-  it('remove the last value with Backspace from the input, keeping focus there', async () => {
+  it('select the last chip with Backspace from the input, then remove it', async () => {
     render(<Bands defaultValue={['Saltwater Choir', 'Velvet Kingfisher']} />)
-    const input = screen.getByRole('combobox', { name: 'Bands' })
     await userEvent.tab()
+    await userEvent.keyboard('{Backspace}')
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(chip('Velvet Kingfisher'))
     await userEvent.keyboard('{Backspace}')
     await expect
       .poll(() => document.querySelectorAll('[data-slot=combobox-chip]').length)
       .toBe(1)
-    expect(document.activeElement).toBe(input)
+  })
+
+  it('pad both ends alike without a remove button', () => {
+    render(
+      <Combobox items={bands} multiple defaultValue={['Saltwater Choir']}>
+        <Combobox.Chips>
+          <Combobox.Chip aria-label='Saltwater Choir'>
+            <Combobox.ChipLabel>Saltwater Choir</Combobox.ChipLabel>
+          </Combobox.Chip>
+        </Combobox.Chips>
+      </Combobox>
+    )
+    const style = getComputedStyle(chip('Saltwater Choir'))
+    expect(parseFloat(style.paddingInlineStart)).toBeGreaterThan(2)
+    expect(style.paddingInlineEnd).toBe(style.paddingInlineStart)
+  })
+
+  it('keep the end tight beside a remove button', () => {
+    render(<Bands defaultValue={['Saltwater Choir']} />)
+    const style = getComputedStyle(chip('Saltwater Choir'))
+    expect(parseFloat(style.paddingInlineEnd)).toBeLessThan(
+      parseFloat(style.paddingInlineStart)
+    )
+  })
+
+  it('select a chip on click, looking like an accent strong Button', async () => {
+    render(<BandsBesideButton />)
+    await userEvent.click(screen.getByText('Saltwater Choir'))
+    const selected = chip('Saltwater Choir')
+    await expect.poll(() => document.activeElement).toBe(selected)
+    await userEvent.hover(input())
+    expect(look(selected)).toEqual(look(button()))
+    expect(
+      getComputedStyle(
+        screen.getByRole('button', { name: 'Remove Saltwater Choir' })
+      ).color
+    ).toBe(getComputedStyle(button()).color)
+  })
+
+  it('select a chip with its own intent in accent', async () => {
+    render(<BandsBesideButton chipClassName='intent-warning' />)
+    await userEvent.click(screen.getByText('Saltwater Choir'))
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(chip('Saltwater Choir'))
+    await userEvent.hover(input())
+    expect(look(chip('Saltwater Choir'))).toEqual(look(button()))
+  })
+
+  it('hover a selected chip as an accent strong Button hovers', async () => {
+    render(<BandsBesideButton />)
+    await userEvent.click(screen.getByText('Saltwater Choir'))
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(chip('Saltwater Choir'))
+    await userEvent.hover(chip('Saltwater Choir'))
+    const hovered = look(chip('Saltwater Choir'))
+    await userEvent.hover(button())
+    expect(hovered).toEqual(look(button()))
+  })
+
+  it('press a selected chip as an accent strong Button presses', async () => {
+    render(<BandsBesideButton />)
+    const pressedFill = async (target: Element, shown: Element) => {
+      const { left, top, width, height } = box(target)
+      await commands.pointer([
+        { type: 'move', x: left + width / 2, y: top + height / 2 },
+        { type: 'down' }
+      ])
+      const { backgroundColor } = getComputedStyle(shown)
+      await commands.pointer([{ type: 'up' }])
+      return backgroundColor
+    }
+    await userEvent.click(screen.getByText('Saltwater Choir'))
+    const selected = chip('Saltwater Choir')
+    await expect.poll(() => document.activeElement).toBe(selected)
+    expect(
+      await pressedFill(screen.getByText('Saltwater Choir'), selected)
+    ).toBe(await pressedFill(button(), button()))
+  })
+
+  it('show a keyboard-selected chip as an accent strong Button with keyboard focus', async () => {
+    render(<BandsBesideButton />)
+    await userEvent.click(input())
+    await userEvent.tab()
+    await expect.poll(() => document.activeElement).toBe(button())
+    const focused = look(button())
+    await userEvent.tab({ shift: true })
+    await expect.poll(() => document.activeElement).toBe(input())
+    await userEvent.keyboard('{Backspace}')
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(chip('Velvet Kingfisher'))
+    expect(look(chip('Velvet Kingfisher'))).toEqual(focused)
+  })
+
+  it('keep a visible hover on the remove button inside a selected chip', async () => {
+    render(<BandsBesideButton />)
+    await userEvent.click(screen.getByText('Saltwater Choir'))
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(chip('Saltwater Choir'))
+    const remove = screen.getByRole('button', {
+      name: 'Remove Saltwater Choir'
+    })
+    await userEvent.hover(remove)
+    const step =
+      oklchLightness(shownFill(remove)) -
+      oklchLightness(shownFill(chip('Saltwater Choir')))
+    expect(Math.abs(step)).toBeGreaterThanOrEqual(0.05)
+    expect(getComputedStyle(remove).color).toBe(
+      getComputedStyle(button()).color
+    )
+  })
+
+  it('edge a clicked chip in Highlight under forced colours', async (context) => {
+    render(<Bands defaultValue={['Saltwater Choir', 'Velvet Kingfisher']} />)
+    await userEvent.click(screen.getByText('Saltwater Choir'))
+    await expect
+      .poll(() => document.activeElement)
+      .toBe(chip('Saltwater Choir'))
+    await commands.forcedColors(true)
+    onTestFinished(() => commands.forcedColors(false))
+    if (!matchMedia('(forced-colors: active)').matches) {
+      context.skip()
+      return
+    }
+    const edge = (element: Element) => getComputedStyle(element).borderTopColor
+    expect(edge(chip('Saltwater Choir'))).not.toBe(
+      edge(chip('Velvet Kingfisher'))
+    )
   })
 
   it('move focus to the next chip after removing a focused one, then to the input', async () => {

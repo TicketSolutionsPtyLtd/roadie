@@ -1,8 +1,14 @@
-import { useEffect, useState } from 'react'
+import { type ReactElement, useEffect, useState } from 'react'
 
+import {
+  CalendarBlankIcon,
+  CircleHalfIcon,
+  HashIcon,
+  TextAaIcon
+} from '@phosphor-icons/react/ssr'
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { renderToString } from 'react-dom/server'
+import { renderToStaticMarkup, renderToString } from 'react-dom/server'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -624,5 +630,52 @@ describe('Records.Search', () => {
     } finally {
       globalThis.DOMRect = original
     }
+  })
+
+  it('marks field and filter suggestions with the field’s icon, or its type’s', async () => {
+    const withIcon = fields.map((each) =>
+      each.key === 'city'
+        ? { ...each, icon: <svg data-testid='city-icon' /> }
+        : each
+    )
+    const { user } = setup({ fields: withIcon })
+    const iconOf = (option: HTMLElement) =>
+      option.querySelector('[aria-hidden=true]')?.innerHTML
+    const markup = (icon: ReactElement) => renderToStaticMarkup(icon)
+    await user.click(input())
+    expect(within(await option('City')).getByTestId('city-icon')).toBeTruthy()
+    expect(iconOf(await option('Show'))).toBe(
+      markup(<TextAaIcon weight='bold' />)
+    )
+    expect(iconOf(await option('Sold'))).toBe(
+      markup(<HashIcon weight='bold' />)
+    )
+    expect(iconOf(await option('Status'))).toBe(
+      markup(<CircleHalfIcon weight='bold' />)
+    )
+    expect(iconOf(await option('Starts'))).toBe(
+      markup(<CalendarBlankIcon weight='bold' />)
+    )
+    await user.keyboard('melb')
+    expect(
+      within(await option(/City is Melbourne/)).getByTestId('city-icon')
+    ).toBeTruthy()
+  })
+
+  it('leaves icons off value suggestions and chips', async () => {
+    const withIcon = fields.map((each) =>
+      each.key === 'city'
+        ? { ...each, icon: <svg data-testid='city-icon' /> }
+        : each
+    )
+    const { user } = setup({ fields: withIcon })
+    await user.click(input())
+    await user.click(await option('City'))
+    const sydney = await option('Sydney')
+    expect(sydney.querySelector('svg')).toBeNull()
+    await user.click(sydney)
+    expect(screen.queryByTestId('city-icon')).toBeNull()
+    // Only the remove button's.
+    expect(chip('City is Sydney').querySelectorAll('svg')).toHaveLength(1)
   })
 })
