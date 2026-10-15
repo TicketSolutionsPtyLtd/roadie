@@ -427,7 +427,7 @@ Only an option chip changes as you press an operator. Anything else waits for En
 
 #### Custom dates
 
-**Custom dates** is last in a date field's values, and the one filter you edit outside the list. It opens a condition (Is within, Is on, Is before, or Is after) with the [date range picker](/components/date-range-picker) and its relative presets, or the [date picker](/components/date-picker). It edits the selected chip, or adds a new one, and applies each change as you make it. A new condition keeps the dates: Is on and Is before take the range's first day, Is after its last, and Is within takes the one date as a day.
+**Custom dates** is last in a date field's values, and the one filter you edit outside the list. It opens a condition (Is within, Is on, Is before, or Is after) with the [date range picker](/components/date-range-picker) and its relative presets, or the [date picker](/components/date-picker). It edits the selected chip, or adds a new one, and applies each change as you make it. Is on, Is before, and Is after share one date, and Is within keeps its own range, so switching back brings back what you last chose. A condition with nothing chosen yet takes the other's dates: Is on and Is before take the range's first day, Is after its last, and Is within takes the one date as a day.
 
 It opens in a popover under the chip, or a bottom drawer on a phone, and loads while the page is idle. Either one shows the field's name as its title, with a Close button, and Tab stays inside it until it closes. An existing chip's editor has **Remove filter** at the foot, and a chip whose dates you clear is removed as the editor closes.
 

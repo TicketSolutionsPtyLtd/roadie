@@ -109,9 +109,11 @@ option chip's operator waits for Enter, so Tab passing through is empty keeps
 the values. Backspace in the empty field removes the chip, and Escape, Enter
 with no new value to take, or leaving the field keeps it and ends the edit. Custom dates opens a date range picker with
 relative presets, or a date picker, in a popover under the chip or a bottom
-drawer on a phone, with Remove filter. A new condition keeps the dates: is
-on and is before take the range's first day, is after its last, and is
-within takes the one date as a day. Either one is titled with the field's
+drawer on a phone, with Remove filter. Is on, is before, and is
+after share one date, and is within keeps its own range, so switching back
+brings back what was last chosen. A condition with nothing chosen yet takes
+the other's dates: is on and is before take the range's first day, is after
+its last, and is within takes the one date as a day. Either one is titled with the field's
 name, has a Close button, and keeps Tab inside it. It loads while the page is idle. A
 date chip reads as other chips do, such as "Start date is this weekend", and a
 relative one shows its dates in a tooltip. A filter the fields can't
