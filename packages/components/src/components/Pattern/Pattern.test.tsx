@@ -11,6 +11,13 @@ function renderPattern(ui: React.ReactElement) {
   return { root, svg: root.querySelector('svg')! }
 }
 
+const [x, y, w, h] = shapes.safe.split(' ').map(Number) as [
+  number,
+  number,
+  number,
+  number
+]
+
 describe('Pattern', () => {
   it('is decoration, hidden from assistive technology and focus', () => {
     const { root, svg } = renderPattern(<Pattern />)
@@ -23,20 +30,23 @@ describe('Pattern', () => {
     expect(svg.querySelectorAll('rect')).toHaveLength(1)
     expect(
       [...svg.querySelectorAll('path')].map((p) => p.getAttribute('d'))
-    ).toEqual(shapes.banner.paths)
+    ).toEqual(shapes.paths)
   })
 
   it.each([
-    ['top', 'banner'],
-    ['bottom', 'banner'],
-    ['banner', 'banner'],
-    ['left', 'left'],
-    ['right', 'right']
+    ['top', null, [x, y, w, h]],
+    ['banner', null, [x, y, w, h]],
+    ['bottom', 'scale(1 -1)', [x, -(y + h), w, h]],
+    ['left', 'rotate(-90)', [y, -(x + w), h, w]],
+    ['right', 'rotate(90)', [-(y + h), x, h, w]]
   ] as const)(
-    'shows the %s crop from the safe area of the %s artwork',
-    (crop, field) => {
+    'turns the artwork for %s with %s and shows its safe area',
+    (crop, transform, viewBox) => {
       const { svg } = renderPattern(<Pattern crop={crop} />)
-      expect(svg).toHaveAttribute('viewBox', shapes[field].safe)
+      expect(svg.querySelector('g')?.getAttribute('transform') ?? null).toBe(
+        transform
+      )
+      expect(svg).toHaveAttribute('viewBox', viewBox.join(' '))
     }
   )
 
@@ -47,14 +57,14 @@ describe('Pattern', () => {
 
   it('defaults to the right crop', () => {
     const { svg } = renderPattern(<Pattern />)
-    expect(svg).toHaveAttribute('viewBox', shapes.right.safe)
+    expect(svg.querySelector('g')).toHaveAttribute('transform', 'rotate(90)')
   })
 
   it('falls back to the right crop for an unknown one', () => {
     const { svg } = renderPattern(
       <Pattern crop={'diagonal' as unknown as PatternCrop} />
     )
-    expect(svg).toHaveAttribute('viewBox', shapes.right.safe)
+    expect(svg.querySelector('g')).toHaveAttribute('transform', 'rotate(90)')
   })
 
   it('passes other attributes through', () => {

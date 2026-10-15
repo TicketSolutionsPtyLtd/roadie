@@ -32,7 +32,7 @@ The pattern fills its parent in both axes and never sizes itself, so give the pa
 
 ### Crops
 
-`crop` says where the pattern sits. The swirls always run off every edge of the box, so you never see where the artwork ends. A small box draws them at a set line weight and shows more of them as it grows. Once a box outgrows the artwork at that weight, about 460px wide for a strip, the swirls grow with it, like `background-size: cover`. The crop anchors the artwork to its edge, like `background-position`.
+`crop` says where the pattern sits. The swirls always run off every edge of the box, so you never see where the artwork ends. A small box draws them at a set line weight and shows more of them as it grows. Once a box outgrows the artwork at that weight, about 300px wide for a strip, the swirls grow with it, like `background-size: cover`. Each crop turns the artwork so its top edge lies along the edge the pattern sits on, and anchors it there, like `background-position`.
 
 #### Banner
 
@@ -51,7 +51,7 @@ The pattern fills its parent in both axes and never sizes itself, so give the pa
 
 #### Left and right
 
-`left` and `right` are for a panel on that side of the content, using a portrait arrangement of the artwork anchored to that edge.
+`left` and `right` are for a panel on that side of the content, with the artwork turned on its side.
 
 ```tsx-live
 <div className='grid grid-cols-[2fr_3fr] overflow-hidden rounded-3xl emphasis-raised'>

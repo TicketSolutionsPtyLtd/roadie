@@ -153,20 +153,28 @@ describe('Pattern edges', () => {
 })
 
 // Screen pixels per artwork unit. The banner behind the logo on a desktop
-// docs page draws at about 0.56; every use up to that width stays within 2x
-// of it, so no box shows hairlines or two giant stripes. Wider boxes cover,
-// so their swirls grow with them.
+// docs page draws at about 0.56, and the density floor keeps small boxes at
+// 0.2 or more, so up to that width no box shows hairlines or two giant
+// stripes. Wider boxes cover, so their swirls grow with them.
 describe('Pattern density', () => {
+  const scaleOf = (svg: SVGSVGElement) =>
+    svg.getBoundingClientRect().width / svg.viewBox.baseVal.width
+
   it.each(USES.filter(([, , width]) => width <= 900))(
     'draws swirls near the banner density as %s on %s',
     (crop, _use, width, height) => {
-      const { svg } = renderSized(crop, width, height)
-      const scale =
-        svg.getBoundingClientRect().width / svg.viewBox.baseVal.width
-      expect(scale).toBeGreaterThanOrEqual(0.29)
+      const scale = scaleOf(renderSized(crop, width, height).svg)
+      expect(scale).toBeGreaterThanOrEqual(0.19)
       expect(scale).toBeLessThanOrEqual(0.6)
     }
   )
+
+  it('draws every crop at the same density in the same box', () => {
+    const scales = (['top', 'bottom', 'left', 'right', 'banner'] as const).map(
+      (crop) => scaleOf(renderSized(crop, 200, 200).svg)
+    )
+    for (const scale of scales) expect(scale).toBeCloseTo(scales[0]!, 3)
+  })
 })
 
 describe('Pattern anchor', () => {
@@ -183,11 +191,24 @@ describe('Pattern anchor', () => {
     }
   )
 
-  it('centres the banner', () => {
-    const { box, svg } = renderSized('banner', 1280, 400)
-    const safe = svg.getBoundingClientRect()
-    expect(safe.top + safe.height / 2).toBeCloseTo(box.top + box.height / 2, 0)
-    expect(safe.left + safe.width / 2).toBeCloseTo(box.left + box.width / 2, 0)
+  // Boxes smaller than the artwork at the density floor, so it overhangs the
+  // sides it is centred between.
+  it.each([
+    ['top', 200, 64, 'x'],
+    ['bottom', 200, 64, 'x'],
+    ['banner', 200, 200, 'x'],
+    ['banner', 200, 200, 'y'],
+    ['left', 160, 200, 'y'],
+    ['right', 160, 200, 'y']
+  ] as const)('centres %s along its %s axis', (crop, width, height, axis) => {
+    const { box, svg } = renderSized(crop, width, height)
+    const art = svg.getBoundingClientRect()
+    const centre = (r: DOMRect) =>
+      axis === 'x' ? r.left + r.width / 2 : r.top + r.height / 2
+    expect(axis === 'x' ? art.width : art.height).toBeGreaterThan(
+      axis === 'x' ? width : height
+    )
+    expect(centre(art)).toBeCloseTo(centre(box), 0)
   })
 })
 

@@ -56,7 +56,7 @@
     "name": "Pattern",
     "path": "dist/components/Pattern/index.js",
     "import": "*",
-    "limit": "6.3 kB",
+    "limit": "2.8 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {

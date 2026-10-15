@@ -39,39 +39,51 @@ const FILLS = Object.fromEntries(
   ])
 ) as Record<PatternTone, { ground: CSSProperties; line: CSSProperties }>
 
-// The swirls are drawn at no less than this many pixels per artwork unit,
-// about half the density of a hero banner on a desktop page, so a small box
-// shows comfortable rings rather than hairlines.
-const DENSITY = 0.3
+// The swirls are drawn at no less than this many pixels per artwork unit, so
+// a small box shows comfortable rings rather than hairlines. A box too big to
+// fill at this density scales the artwork up to cover it.
+const DENSITY = 0.2
+
+const [X, Y, W, H] = shapes.safe.split(' ').map(Number) as [
+  number,
+  number,
+  number,
+  number
+]
 
 // Each crop shows the artwork's safe area, the part its swirls fill out to
-// every side, so no box ever shows the artwork's outer edge. The area covers
-// the box like `background-size: cover`, or more at the density floor, and is
-// anchored like `background-position`. Strips and the banner use the wide
-// artwork; side panels use its portrait arrangements.
+// every side, so no box ever shows where the artwork ends. The crop turns the
+// artwork so its top edge lies along the edge the pattern sits on, and
+// anchors it there, like `background-position`.
 const CROPS: Record<
   PatternCrop,
-  { field: keyof typeof shapes; anchor: string }
+  { transform?: string; viewBox: number[]; anchor: string }
 > = {
-  top: { field: 'banner', anchor: 'top-0 left-1/2 -translate-x-1/2' },
-  bottom: { field: 'banner', anchor: 'bottom-0 left-1/2 -translate-x-1/2' },
-  left: { field: 'left', anchor: 'left-0 top-1/2 -translate-y-1/2' },
-  right: { field: 'right', anchor: 'right-0 top-1/2 -translate-y-1/2' },
-  banner: { field: 'banner', anchor: 'top-1/2 left-1/2 -translate-1/2' }
+  top: { viewBox: [X, Y, W, H], anchor: 'top-0 left-1/2 -translate-x-1/2' },
+  bottom: {
+    transform: 'scale(1 -1)',
+    viewBox: [X, -(Y + H), W, H],
+    anchor: 'bottom-0 left-1/2 -translate-x-1/2'
+  },
+  left: {
+    transform: 'rotate(-90)',
+    viewBox: [Y, -(X + W), H, W],
+    anchor: 'left-0 top-1/2 -translate-y-1/2'
+  },
+  right: {
+    transform: 'rotate(90)',
+    viewBox: [-(Y + H), X, H, W],
+    anchor: 'right-0 top-1/2 -translate-y-1/2'
+  },
+  banner: { viewBox: [X, Y, W, H], anchor: 'top-1/2 left-1/2 -translate-1/2' }
 }
 
-const SIZES = Object.fromEntries(
-  Object.entries(shapes).map(([field, { safe }]) => {
-    const [, , width = 0, height = 1] = safe.split(' ').map(Number)
-    return [
-      field,
-      {
-        width: `max(100cqw, ${width / height} * 100cqh, ${width * DENSITY}px)`,
-        aspectRatio: `${width} / ${height}`
-      }
-    ]
-  })
-) as Record<keyof typeof shapes, CSSProperties>
+function sizeOf([, , width = 0, height = 1]: number[]): CSSProperties {
+  return {
+    width: `max(100cqw, ${width / height} * 100cqh, ${width * DENSITY}px)`,
+    aspectRatio: `${width} / ${height}`
+  }
+}
 
 export function Pattern({
   crop = 'right',
@@ -79,10 +91,9 @@ export function Pattern({
   className,
   ...props
 }: PatternProps) {
-  const { field, anchor } = CROPS[Object.hasOwn(CROPS, crop) ? crop : 'right']
+  const { transform, viewBox, anchor } =
+    CROPS[Object.hasOwn(CROPS, crop) ? crop : 'right']
   const fills = FILLS[Object.hasOwn(FILLS, tone) ? tone : 'brand-blue']
-  const shape = shapes[field]
-  const [x, y, width, height] = shape.safe.split(' ')
 
   return (
     <div
@@ -97,15 +108,17 @@ export function Pattern({
       aria-hidden='true'
     >
       <svg
-        viewBox={shape.safe}
+        viewBox={viewBox.join(' ')}
         focusable='false'
         className={cn('absolute max-w-none', anchor)}
-        style={SIZES[field]}
+        style={sizeOf(viewBox)}
       >
-        <rect x={x} y={y} width={width} height={height} style={fills.ground} />
-        {shape.paths.map((d) => (
-          <path key={d} d={d} style={fills.line} />
-        ))}
+        <g transform={transform}>
+          <rect x={X} y={Y} width={W} height={H} style={fills.ground} />
+          {shapes.paths.map((d) => (
+            <path key={d} d={d} style={fills.line} />
+          ))}
+        </g>
       </svg>
     </div>
   )

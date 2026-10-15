@@ -7,10 +7,10 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 
 const LINE = '#c2dffb'
-// The banner holds the whole wide artwork; left and right are its portrait
-// arrangements. The slide's top band is a slice of the banner, so it isn't
-// needed.
-const SOURCES = ['banner', 'left', 'right']
+// The banner holds the whole artwork. The slides' top band is a slice of it,
+// and their left and right panels are it turned on its side, so the component
+// transforms this one source per crop.
+const SOURCE = 'svgs/banner.svg'
 const PATTERN_DIR = new URL('../src/components/Pattern/', import.meta.url)
 const SAMPLES = 32
 const ARITY = { M: 2, L: 2, C: 6, Z: 0 }
@@ -106,8 +106,10 @@ function outlinesOf(paths) {
  * shape holds is the area the pattern can show.
  *
  * @param {string[]} paths
- * @param {{ cell?: number, gap?: number }} [options] Grid cell and the
- *   widest ground gap to close, in artwork units.
+ * @param {{ cell?: number, gap?: number }} [options] The grid cell, and the
+ *   ground gap to close, in artwork units. Ground the swirls enclose is kept
+ *   whatever its size; ground open to the outside is closed over up to about
+ *   `gap`, rounded up to whole cells on each side.
  */
 export function safeAreaOf(paths, { cell = 8, gap = 100 } = {}) {
   const [x0, y0, width, height] = fieldOf(paths).split(' ').map(Number)
@@ -215,6 +217,8 @@ export function safeAreaOf(paths, { cell = 8, gap = 100 } = {}) {
       stack.push([start, h])
     }
   }
+  if (best.w < 2 || best.h < 2)
+    throw new Error('The swirls fill no area the pattern can show')
   // Cell centres are what was tested, so the rectangle runs between them.
   return [
     ox + (best.col + 0.5) * cell,
@@ -226,19 +230,35 @@ export function safeAreaOf(paths, { cell = 8, gap = 100 } = {}) {
     .join(' ')
 }
 
-if (import.meta.main) {
-  const shapes = Object.fromEntries(
-    SOURCES.map((source) => [
-      source,
-      extractPattern(
-        readFileSync(new URL(`svgs/${source}.svg`, PATTERN_DIR), 'utf8')
-      )
-    ])
+/**
+ * Whether a point is on a swirl, by the nonzero rule SVG fills with.
+ *
+ * @param {string[]} paths
+ * @returns {(x: number, y: number) => boolean}
+ */
+export function swirlAt(paths) {
+  const edges = outlinesOf(paths).map((subpaths) =>
+    subpaths.flatMap((poly) =>
+      poly.map((p, i) => [p, poly[(i + 1) % poly.length]])
+    )
   )
+  return (x, y) =>
+    edges.some((pathEdges) => {
+      let winding = 0
+      for (const [[ax, ay], [bx, by]] of pathEdges)
+        if (ay <= y !== by <= y && ax + ((y - ay) / (by - ay)) * (bx - ax) > x)
+          winding += by > ay ? 1 : -1
+      return winding !== 0
+    })
+}
+
+const SOURCE_URL = new URL(SOURCE, PATTERN_DIR)
+
+if (import.meta.main) {
+  const shapes = extractPattern(readFileSync(SOURCE_URL, 'utf8'))
   writeFileSync(
     new URL('shapes.json', PATTERN_DIR),
     `${JSON.stringify(shapes, null, 2)}\n`
   )
-  for (const source of SOURCES)
-    console.log(`${source}: safe ${shapes[source].safe}`)
+  console.log(`safe ${shapes.safe} of ${shapes.viewBox}`)
 }

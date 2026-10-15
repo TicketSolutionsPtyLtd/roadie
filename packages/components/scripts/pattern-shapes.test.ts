@@ -1,6 +1,13 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-import { extractPattern, fieldOf, safeAreaOf } from './pattern-shapes.mjs'
+import shapes from '../src/components/Pattern/shapes.json'
+import {
+  extractPattern,
+  fieldOf,
+  safeAreaOf,
+  swirlAt
+} from './pattern-shapes.mjs'
 
 const exported = `<svg width="547" height="1080" viewBox="0 0 547 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect width="547" height="1080" fill="#FBFCFF"/>
@@ -10,15 +17,15 @@ const exported = `<svg width="547" height="1080" viewBox="0 0 547 1080" fill="no
 <g id="Slide / Left" clip-path="url(#clip0)">
 <rect width="547" height="1080" fill="#0091EB"/>
 <g id="Pattern right">
-<path d="M10 20L30 40Z" fill="#C2DFFB"/>
+<path d="M0 0L400 0L400 400L0 400Z" fill="#C2DFFB"/>
 <path d="M0 0C0 -10 20 -10 20 0Z" fill="#c2dffb"/>
 </g></g></g></svg>`
 
 describe('extractPattern', () => {
   it('keeps only the swirl paths and the field they span', () => {
     expect(extractPattern(exported)).toMatchObject({
-      viewBox: '0 -8 30 48',
-      paths: ['M10 20L30 40Z', 'M0 0C0 -10 20 -10 20 0Z']
+      viewBox: '0 -8 400 408',
+      paths: ['M0 0L400 0L400 400L0 400Z', 'M0 0C0 -10 20 -10 20 0Z']
     })
   })
 
@@ -112,9 +119,115 @@ describe('safeAreaOf', () => {
     expect(height).toBeGreaterThan(600)
   })
 
-  it('never bridges ground wider than it closes over', () => {
-    const apart = [ring(0, 0, 500, 440), ring(1400, 0, 500, 440)]
-    const [x, , width] = safeAreaOf(apart).split(' ').map(Number)
-    expect(x! + width!).toBeLessThanOrEqual(500)
+  // A square frame of 50-wide bars with a slot in its right side. A narrow
+  // slot is closed over, so the frame's inside counts; a wide one lets the
+  // outside in.
+  const frame = (slot: number) => [
+    'M0 0L600 0L600 50L0 50Z',
+    'M0 550L600 550L600 600L0 600Z',
+    'M0 0L50 0L50 600L0 600Z',
+    `M550 0L600 0L600 ${300 - slot / 2}L550 ${300 - slot / 2}Z`,
+    `M550 ${300 + slot / 2}L600 ${300 + slot / 2}L600 600L550 600Z`
+  ]
+
+  it.each([
+    [80, true],
+    [160, false]
+  ])('closes over a %i-wide slot: %s', (slot, closed) => {
+    const [, , width, height] = safeAreaOf(frame(slot)).split(' ').map(Number)
+    expect(Math.min(width!, height!) > 500).toBe(closed)
+  })
+
+  it('fills where subpaths of one path overlap, by the nonzero rule', () => {
+    const overlapping = [
+      'M0 0L400 0L400 400L0 400Z M200 0L600 0L600 400L200 400Z'
+    ]
+    const [, , width] = safeAreaOf(overlapping).split(' ').map(Number)
+    expect(width).toBeGreaterThan(500)
+  })
+
+  it('refuses artwork with no area to show', () => {
+    expect(() => safeAreaOf(['M0 0L1 0L1 1Z'])).toThrow(/no area/)
+  })
+})
+
+// Swirl lines crossed along a line through the artwork, and the longest run
+// of ground between them, in artwork units.
+function crossings(
+  isSwirl: (x: number, y: number) => boolean,
+  [ax, ay]: number[],
+  [bx, by]: number[]
+) {
+  const steps = Math.ceil(Math.hypot(bx! - ax!, by! - ay!) / 2)
+  let lines = 0
+  let onLine = false
+  let ground = 0
+  let longestGround = 0
+  for (let i = 0; i <= steps; i++) {
+    const line = isSwirl(
+      ax! + ((bx! - ax!) * i) / steps,
+      ay! + ((by! - ay!) * i) / steps
+    )
+    if (line && !onLine) lines++
+    onLine = line
+    ground = line ? 0 : ground + 2
+    longestGround = Math.max(longestGround, ground)
+  }
+  return { lines, longestGround }
+}
+
+const edgesOf = (box: string) => {
+  const [x, y, w, h] = box.split(' ').map(Number) as [
+    number,
+    number,
+    number,
+    number
+  ]
+  return [
+    [
+      [x, y],
+      [x + w, y]
+    ],
+    [
+      [x, y + h],
+      [x + w, y + h]
+    ],
+    [
+      [x, y],
+      [x, y + h]
+    ],
+    [
+      [x + w, y],
+      [x + w, y + h]
+    ]
+  ]
+}
+
+describe('the committed artwork', () => {
+  const isSwirl = swirlAt(shapes.paths)
+
+  it('matches its export', () => {
+    expect(
+      extractPattern(
+        readFileSync('src/components/Pattern/svgs/banner.svg', 'utf8')
+      )
+    ).toEqual(shapes)
+  })
+
+  // The ring set's centres have empty ground about 550 across, so any run of
+  // ground longer than that is the artwork's outside.
+  it('has swirls crossing every edge of its safe area, with no outside ground', () => {
+    for (const [from, to] of edgesOf(shapes.safe)) {
+      const edge = crossings(isSwirl, from!, to!)
+      expect(edge.lines).toBeGreaterThanOrEqual(4)
+      expect(edge.longestGround).toBeLessThanOrEqual(400)
+    }
+  })
+
+  it('shows outside ground along the edges of its whole field', () => {
+    const runs = edgesOf(shapes.viewBox).map(
+      ([from, to]) => crossings(isSwirl, from!, to!).longestGround
+    )
+    expect(Math.max(...runs)).toBeGreaterThan(400)
   })
 })
