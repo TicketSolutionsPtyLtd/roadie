@@ -112,6 +112,7 @@ export type QueryFieldProps<Value = unknown> = {
 const DEFAULT_PLACEHOLDER = 'Search and filter'
 const NO_CHIPS: readonly QueryFieldChip[] = []
 const NO_OPERATORS: readonly QueryFieldOperator[] = []
+const NO_ITEMS: readonly never[] = []
 
 const CARET_KEYS = new Set(['Home', 'End'])
 
@@ -221,6 +222,12 @@ export function QueryField<Value = unknown>({
     setOpeningByArrow(false)
   }
   const keyboardHighlightKey = arrowed ? highlightKey : undefined
+  // Base UI keeps its highlight's index as the list changes under it, so a
+  // take that changes the list renders once with no items to drop it.
+  const [unhighlighting, setUnhighlighting] = useState(false)
+  useIsomorphicLayoutEffect(() => {
+    if (unhighlighting) setUnhighlighting(false)
+  }, [unhighlighting])
 
   const isDisabled = disabled ?? field.disabled
   const isInvalid = invalid ?? field.invalid
@@ -368,6 +375,7 @@ export function QueryField<Value = unknown>({
     const left =
       suggestion.kind === 'search' ? '' : (suggestion.remainder ?? '')
     if (suggestion.kind !== 'search') setText(left)
+    if (suggestion.kind === 'field' || left !== text) setUnhighlighting(true)
     // Words left over list their own suggestions.
     if (suggestion.kind !== 'field' && !editedId && !left.trim()) setOpen(false)
     onAccept?.(suggestion)
@@ -503,7 +511,7 @@ export function QueryField<Value = unknown>({
       multiple
       // Enter takes an arrowed row, else enterTarget's fallback.
       autoHighlight={false}
-      items={list}
+      items={unhighlighting ? NO_ITEMS : list}
       filter={null}
       value={ordered as readonly unknown[] as QueryFieldAccepted<Value>[]}
       onValueChange={(next, details) => {
@@ -820,9 +828,10 @@ export function QueryField<Value = unknown>({
               {hint}
             </ComboboxPrimitive.Status>
             <Combobox.Empty>
-              {suggestions.loading
-                ? 'Loading suggestions'
-                : !hint && 'No suggestions'}
+              {!unhighlighting &&
+                (suggestions.loading
+                  ? 'Loading suggestions'
+                  : !hint && 'No suggestions')}
             </Combobox.Empty>
           </Combobox.Popup>
         </Combobox.Positioner>

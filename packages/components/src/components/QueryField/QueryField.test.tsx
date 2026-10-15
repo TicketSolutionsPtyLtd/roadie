@@ -985,6 +985,50 @@ describe('QueryField', () => {
     expect(input()).toHaveAttribute('aria-expanded', 'true')
   })
 
+  it('highlights nothing once a take leaves words in the field', async () => {
+    const sydney: QueryFieldSuggestion = {
+      id: 'city:sydney',
+      label: 'City is Sydney',
+      kind: 'filter',
+      value: 'sydney',
+      remainder: 'this weekend'
+    }
+    const weekend: QueryFieldSuggestion = {
+      id: 'starts:weekend',
+      label: 'Starts: This weekend',
+      kind: 'filter',
+      value: 'weekend'
+    }
+    render(
+      <Harness
+        suggest={(text) => [
+          {
+            id: 'filters',
+            label: 'Filters',
+            items: text.startsWith('syd') ? [venueField, sydney] : [weekend]
+          }
+        ]}
+      />
+    )
+    await typeInto('syd this weekend')
+    await screen.findByRole('option', { name: sydney.label })
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}')
+    expect(input()).toHaveValue('this weekend')
+    await screen.findByRole('option', { name: weekend.label })
+    expect(
+      screen
+        .getAllByRole('option')
+        .filter((option) => option.hasAttribute('data-highlighted'))
+    ).toEqual([])
+    expect(input()).not.toHaveAttribute('aria-activedescendant')
+    expect(hinted()).toEqual(['Search for “this weekend”'])
+    await userEvent.keyboard('{ArrowDown}')
+    expect(input()).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getByRole('option', { name: weekend.label }).id
+    )
+  })
+
   it('clears the text on Escape once the list is closed, keeping chips', async () => {
     render(<Harness initialChips={[scope, status]} />)
     await typeInto('igua')
