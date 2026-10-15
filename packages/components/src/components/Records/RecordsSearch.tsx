@@ -20,6 +20,7 @@ import {
   type SearchValue,
   filterChipIds,
   hasValueStep,
+  isApplied,
   mergeFilter,
   sameFilter,
   searchChips,
@@ -248,6 +249,7 @@ export function RecordsSearch({
   }
 
   function add(filter: RecordFilter) {
+    if (isApplied(filter, context.filters)) return
     const merged = mergeFilter(filters, filter, fields)
     if (merged) {
       if (!sameFilter(merged.filter, filters[merged.index]!))

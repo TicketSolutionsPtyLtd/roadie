@@ -82,47 +82,51 @@ describe('topSuggestions', () => {
     ])
   })
 
-  it('never suggests a filter already applied', () => {
-    const melbourne: RecordFilter = {
-      field: 'city',
-      operator: 'is',
-      values: ['melbourne']
-    }
-    const [filters] = topSuggestions('melb', context([melbourne]))
-    expect(filters!.items.map((item) => item.label)).not.toContain(
-      'City is Melbourne'
-    )
+  const applied = (text: string, filters: RecordFilter[]) =>
+    topSuggestions(text, context(filters))[0]!.items.map((item) => [
+      item.label,
+      item.description,
+      item.remainder
+    ])
+
+  it('marks a filter already applied, rather than hide it', () => {
+    expect(
+      applied('melb', [
+        { field: 'city', operator: 'is', values: ['melbourne'] }
+      ])
+    ).toEqual([['City is Melbourne', 'Already applied', '']])
   })
 
-  it('never suggests a value its field’s chip already holds', () => {
-    const [filters] = topSuggestions(
-      'melb',
-      context([
+  it('marks a value its field’s chip already holds', () => {
+    expect(
+      applied('melb', [
         { field: 'city', operator: 'is', values: ['perth', 'melbourne'] }
       ])
-    )
-    expect(filters!.items.map((item) => item.label)).not.toContain(
-      'City is Melbourne'
-    )
+    ).toEqual([['City is Melbourne', 'Already applied', '']])
   })
 
-  it('never suggests a value a chip with the same condition holds', () => {
-    const [filters] = topSuggestions(
-      'not melb',
-      context([
+  it('marks a value only a chip with the same condition holds', () => {
+    expect(
+      applied('not melb', [
         { field: 'city', operator: 'is-not', values: ['perth', 'melbourne'] }
       ])
-    )
-    expect(filters!.items.map((item) => item.label)).not.toContain(
-      'City is not Melbourne'
-    )
-    const [others] = topSuggestions(
-      'not melb',
-      context([{ field: 'city', operator: 'is', values: ['melbourne'] }])
-    )
-    expect(others!.items.map((item) => item.label)).toContain(
-      'City is not Melbourne'
-    )
+    ).toContainEqual(['City is not Melbourne', 'Already applied', ''])
+    expect(
+      applied('not melb', [
+        { field: 'city', operator: 'is', values: ['melbourne'] }
+      ])
+    ).toContainEqual(['City is not Melbourne', undefined, ''])
+  })
+
+  it('offers an applied value beside a new one, so taking it reads its words', () => {
+    expect(
+      applied('melb syd', [
+        { field: 'city', operator: 'is', values: ['melbourne'] }
+      ]).slice(0, 2)
+    ).toEqual([
+      ['City is Melbourne', 'Already applied', 'syd'],
+      ['City is Sydney', undefined, 'melb']
+    ])
   })
 
   it('keeps the words a field didn’t read', () => {

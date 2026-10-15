@@ -335,8 +335,8 @@ describe('Records.Search', () => {
     expect(input()).not.toHaveFocus()
   })
 
-  it('never suggests a filter already applied', async () => {
-    const { user } = setup({
+  it('takes a filter already applied for its words, adding nothing', async () => {
+    const { user, lastView } = setup({
       defaultView: {
         query: {
           filters: [{ field: 'city', operator: 'is', values: ['Melbourne'] }]
@@ -345,10 +345,21 @@ describe('Records.Search', () => {
     })
     await user.click(input())
     await user.keyboard('melb')
-    await option(/Search for/)
-    expect(
-      screen.queryByRole('option', { name: /City is Melbourne/ })
-    ).toBeNull()
+    await user.click(await option(/City is Melbourne.*Already applied/))
+    expect(chipLabels()).toEqual(['City is Melbourne'])
+    expect(input()).toHaveValue('')
+    expect(lastView()?.query.search ?? '').toBe('')
+  })
+
+  it('adds nothing for a filter the scope applies', async () => {
+    const { user } = setup({
+      scope: [{ field: 'city', operator: 'is', values: ['Melbourne'] }]
+    })
+    await user.click(input())
+    await user.keyboard('melb')
+    await user.click(await option(/City is Melbourne.*Already applied/))
+    expect(chipLabels()).toEqual(['City is Melbourne'])
+    expect(input()).toHaveValue('')
   })
 
   it('removes a filter its editor emptied, once it closes', async () => {

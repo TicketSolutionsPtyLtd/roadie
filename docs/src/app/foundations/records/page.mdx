@@ -337,7 +337,10 @@ out".
 its chip reads, such as "Gross is more than $100", with the dates a relative
 range stands for in `detail`. `parseQuery` labels its filters the same way, so
 a suggestion and the chip it makes read alike. `Records.Search` uses both, and
-shows a page's `scope` as locked chips that are never part of the view.
+shows a page's `scope` as locked chips that are never part of the view. Text
+that names a filter already applied, in the view or the scope, still suggests
+it, marked Already applied. Taking it clears those words and adds nothing, so
+with "City is Melbourne" applied, `melb syd` can take both words.
 
 ## URL format
 

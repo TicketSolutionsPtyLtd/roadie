@@ -131,21 +131,41 @@ const isList = (filter: RecordFilter): filter is ListFilter =>
 const sameCondition = (a: ListFilter, b: RecordFilter): b is ListFilter =>
   isList(b) && a.field === b.field && a.operator === b.operator
 
+/** Whether the filters apply this one already, alone or among a chip's values. */
+export function isApplied(
+  filter: RecordFilter,
+  filters: readonly RecordFilter[]
+): boolean {
+  return filters.some(
+    (other) =>
+      sameFilter(other, filter) ||
+      (isList(filter) &&
+        sameCondition(filter, other) &&
+        filter.values.every((item) => other.values.includes(item)))
+  )
+}
+
 function unused(
   items: readonly SearchSuggestion[],
   context: SearchContext
 ): SearchSuggestion[] {
-  return items.filter(({ value }) => {
-    if (value.type !== 'filter') return true
-    const { filter } = value
-    return !context.filters.some(
-      (other) =>
-        sameFilter(other, filter) ||
-        (isList(filter) &&
-          sameCondition(filter, other) &&
-          filter.values.every((item) => other.values.includes(item)))
-    )
-  })
+  return items.filter(
+    ({ value }) =>
+      value.type !== 'filter' || !isApplied(value.filter, context.filters)
+  )
+}
+
+/** Typed text that names an applied filter still offers it, to take its words. */
+function markApplied(
+  items: readonly SearchSuggestion[],
+  context: SearchContext
+): SearchSuggestion[] {
+  return items.map((item) =>
+    item.value.type === 'filter' &&
+    isApplied(item.value.filter, context.filters)
+      ? { ...item, description: 'Already applied' }
+      : item
+  )
 }
 
 /** Suggestions while nothing is pending: filters the text reads, then fields it names. */
@@ -161,7 +181,7 @@ export function topSuggestions(
     {
       id: 'filters',
       label: 'Filters',
-      items: unused(
+      items: markApplied(
         parsed.filter((item) => item.kind === 'filter'),
         context
       )
