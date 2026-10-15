@@ -1,0 +1,134 @@
+export const metadata = {
+  title: 'Building with AI',
+  description:
+    'Set up Claude Code and other coding agents to build with Roadie: the plugin, its skills, and the docs agents read.'
+}
+
+Roadie ships three things for coding agents. A Claude Code plugin teaches an agent how to build with Roadie. A markdown copy of every docs page, indexed in `llms.txt`, lets any agent read the docs. A manifest in each package lists the exact API of the version you installed. The [ESLint plugin](/overview/linting) then catches what slips through.
+
+## Install the Claude Code plugin
+
+The Roadie repo is a Claude Code plugin marketplace, so the plugin's id is `roadie@roadie`. Once it's installed, each skill runs as `/roadie:<skill>`, and Claude also loads a skill by itself when your request matches it.
+
+**For everyone in a repo**, commit this to the repo's `.claude/settings.json`. Claude Code adds the marketplace and installs the plugin when someone trusts the folder.
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "roadie": {
+      "source": { "source": "github", "repo": "TicketSolutionsPtyLtd/roadie" }
+    }
+  },
+  "enabledPlugins": {
+    "roadie@roadie": true
+  }
+}
+```
+
+**For yourself**, run this in a Claude Code session in any repo.
+
+```bash
+/plugin install roadie --marketplace TicketSolutionsPtyLtd/roadie
+```
+
+On Claude Code before 2.1.275, run `/plugin marketplace add TicketSolutionsPtyLtd/roadie` and then `/plugin install roadie@roadie`.
+
+### Keep it up to date
+
+Claude Code caches the plugin by version, so new skills arrive only when you update.
+
+- `/plugin` in a session, or `claude plugin list` in a shell, shows the version you have.
+- `claude plugin update roadie@roadie` updates it now. Run `/reload-plugins` or start a new session to load the new skills.
+- To update in the background, open **Marketplaces** in `/plugin`, select `roadie`, and turn on auto-update. It's off by default for marketplaces outside Anthropic's.
+
+The [skills changelog](https://github.com/TicketSolutionsPtyLtd/roadie/blob/main/skills/CHANGELOG.md) says what each version changed.
+
+## Build with Roadie
+
+These skills work in any app on Roadie. Each one reads the manifest of the Roadie version the app has installed, so its advice matches your packages.
+
+| Skill | Use it to |
+| --- | --- |
+| `/roadie:setup` | Add Roadie to an app, or fix one that renders unstyled, does full page loads on links, or breaks hydration on icons. |
+| `/roadie:build` | Build or change a screen, form, dialog, list, or table. It picks a Roadie component before writing markup. |
+| `/roadie:charts` | Build a chart, stat tile, or dashboard, with form and colour chosen by the job and specs checked before anyone sees them. |
+| `/roadie:motion` | Add an animation or transition with Roadie's duration and easing tokens, with reduced motion covered. |
+| `/roadie:content` | Write or review interface copy, emails, and docs against the [Content](/content) guidelines. |
+| `/roadie:audit` | Scan an app for Roadie mistakes, such as hardcoded colours, hand-rolled hover states, and deprecated props, and fix them. |
+| `/roadie:migrate` | Move an app off deprecated APIs or onto a new major, with codemods for the mechanical rewrites. |
+
+Start a new app with `/roadie:setup`, then ask for what you want in plain words, such as "Build an orders page with a table of recent orders". The build skill loads by itself.
+
+## Ship a change
+
+These skills take a change from idea to merged PR in any Oztix repo. Each reads the repo's `AGENTS.md` and coding standards, so it follows that repo's rules, not just Roadie's.
+
+| Skill | Use it to |
+| --- | --- |
+| `/roadie:grill` | Test a new feature idea against what already exists before anyone specs it. |
+| `/roadie:spec` | Write the PR description first: test seams, the demo, evidence, and merge danger. |
+| `/roadie:slice` | Cut a feature that's too big for one PR into slices that each ship alone. |
+| `/roadie:implement` | Build a specced ticket test-first in its own worktree. |
+| `/roadie:test` | Write tests one at a time at the public interface. |
+| `/roadie:demo` | Preview a UI change and screenshot it at phone and desktop widths, in light and dark, for approval. |
+| `/roadie:review` | Review a branch in a fresh agent for conventions, bugs, docs claims, and test quality. |
+| `/roadie:pr` | Write or update a PR description from the repo's template. |
+| `/roadie:shepherd` | Take a draft PR to merged: rebase, wait for CI, and resolve every review thread. |
+| `/roadie:debug` | Find the cause of a failing or flaky test one hypothesis at a time. |
+| `/roadie:codebase-design` | Find where an area that's hard to test could be simpler, before refactoring it. |
+| `/roadie:retro` | Turn what reviews and CI caught into lint rules, skill edits, or recorded learnings. |
+| `/roadie:release` | Check the pending changesets before the Version Packages PR merges. |
+
+## Docs agents can read
+
+Every docs page has a markdown copy, and `llms.txt` lists them all. Any agent that can fetch a URL can read them, Claude Code or not.
+
+- **`llms.txt`** at [`/llms.txt`](/llms.txt) indexes every guide, foundation, content, component, chart, token, and widget page, with a line on each.
+- **A page's markdown** is its URL with `.md` on the end, such as [`/components/button.md`](/components/button.md). A component page's copy also lists its props.
+- **Copy page as Markdown**, in the menu at the top right of every page, puts the page on your clipboard to paste into a chat.
+
+## Package manifests
+
+Core, components, charts, and widgets each ship a `roadie.manifest.json` built from the same source as the release, so it always matches the version you installed. Agents and tools can read it instead of crawling the docs, and the plugin's skills do.
+
+```ts
+import core from '@oztix/roadie-core/roadie.manifest.json' with { type: 'json' }
+import components from '@oztix/roadie-components/roadie.manifest.json' with { type: 'json' }
+import charts from '@oztix/roadie-charts/roadie.manifest.json' with { type: 'json' }
+import widgets from '@oztix/roadie-widgets/roadie.manifest.json' with { type: 'json' }
+```
+
+All four manifests have the same shape:
+
+- `exports` lists each import path with the values and types it exports.
+- `components` lists each React component with its import path, props, compound parts, and docs page, plus its first live example when its page has one. Vue skins appear in `exports` only.
+- `deprecations` lists every deprecated export and prop with what to use instead.
+- `tokens` lists the CSS variables, utilities, and classes, in the core manifest only.
+
+## Point your agent at Roadie
+
+Add a few lines to your app's `AGENTS.md`, or `CLAUDE.md`, so any agent knows where Roadie's rules live, even without the plugin.
+
+```md
+## Roadie
+
+This app's UI is built with Roadie, Oztix's design system.
+
+- Docs: https://ticketsolutionsptyltd.github.io/roadie/llms.txt lists every
+  page. Add `.md` to a page's URL for its markdown.
+- API: read `node_modules/@oztix/roadie-components/dist/roadie.manifest.json`
+  for the installed components, props, and deprecations.
+- Use a Roadie component before writing markup, semantic colour utilities
+  with intent and emphasis instead of hardcoded colours, and `grid gap-*`
+  for layout.
+- In Claude Code, the `roadie@roadie` plugin's skills cover building,
+  charts, copy, and audits.
+```
+
+## Other agents
+
+The skills are plain `SKILL.md` files in the repo's [`skills` folder](https://github.com/TicketSolutionsPtyLtd/roadie/tree/main/skills), so an agent that reads skills in that format, such as Cursor or Codex, can use them too. Point it at the folder, or copy the skills you want into its skills directory. `llms.txt`, the markdown pages, and the manifests work with any agent.
+
+## Lint what agents write
+
+Agents make the same mistakes people do, only faster. The [ESLint plugin](/overview/linting) catches the ones a rule can be sure of, such as wrong icon weights and hardcoded colours, so add it to any app where agents write code. `/roadie:audit` installs it for you.

@@ -77,6 +77,7 @@ async function getNavigationItems(): Promise<NavigationDestination[]> {
       overview: true,
       items: await Promise.all([
         guide('/overview/getting-started', 'overview/getting-started/page.mdx'),
+        guide('/overview/ai', 'overview/ai/page.mdx'),
         guide('/overview/philosophy', 'overview/philosophy/page.mdx'),
         guide('/overview/vue-integration', 'overview/vue-integration/page.mdx'),
         guide('/overview/linting', 'overview/linting/page.mdx'),
