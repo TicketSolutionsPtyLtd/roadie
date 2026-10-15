@@ -104,6 +104,11 @@ const VERBS: readonly Verb[] = [
   { words: ['contains'], negated: false, contains: true }
 ]
 
+const FREE_TEXT = new Set<RecordFilter['operator']>([
+  'contains',
+  'not-contains'
+])
+
 /** No verb, as in "city melb" or "sold > 100". */
 const BARE: Verb = { words: [], negated: false, contains: false }
 
@@ -578,7 +583,8 @@ function nameLength(
 function statementCandidates(
   words: readonly string[],
   fields: readonly RecordField[],
-  options: ParseQueryOptions
+  options: ParseQueryOptions,
+  stops: ReadonlySet<number>
 ): Candidate[] {
   const lower = words.map(plain)
   const candidates: Candidate[] = []
@@ -597,7 +603,10 @@ function statementCandidates(
       if (!verbs.length && (numeric || !isOperator(lower[at]))) verbs.push(BARE)
       for (const verb of verbs) {
         candidates.push(
-          ...statementValues(words, field, verb, [start, at], options, next)
+          ...statementValues(words, field, verb, [start, at], options, {
+            next,
+            stops
+          })
         )
       }
     }
@@ -612,7 +621,8 @@ function statementCandidates(
 function spacedStatements(
   words: readonly string[],
   fields: readonly RecordField[],
-  options: ParseQueryOptions
+  options: ParseQueryOptions,
+  starts: ReadonlySet<number>
 ): Candidate[] {
   const wordOf: number[] = []
   const pieces = words.flatMap((word, i) => {
@@ -624,15 +634,20 @@ function spacedStatements(
     wordOf[start]!,
     wordOf[end - 1]! + 1
   ]
-  return statementCandidates(pieces, fields, options).map((candidate) => {
-    const span = touched(candidate.span)
-    return {
-      ...candidate,
-      span,
-      remainder: remainderOf(words, ...span),
-      named: touched(candidate.named!)
+  const stops = new Set(
+    pieces.flatMap((_, i) => (starts.has(wordOf[i]!) ? [i] : []))
+  )
+  return statementCandidates(pieces, fields, options, stops).map(
+    (candidate) => {
+      const span = touched(candidate.span)
+      return {
+        ...candidate,
+        span,
+        remainder: remainderOf(words, ...span),
+        named: touched(candidate.named!)
+      }
     }
-  })
+  )
 }
 
 /** Each reading of the words after a statement's verb, as one candidate. */
@@ -642,11 +657,16 @@ function statementValues(
   verb: Verb,
   named: [number, number],
   options: ParseQueryOptions,
-  next: () => number
+  { next, stops }: { next: () => number; stops: ReadonlySet<number> }
 ): Candidate[] {
   const [start, at] = named
   const from = at + verb.words.length
   const last = Math.min(words.length, from + MAX_SPAN)
+  // Free text stops where other filters read the rest, so "name disco melb"
+  // leaves melb to City is Melbourne. Reading past it scores as stopping
+  // there, and ties go to the shorter reading, so it's the runner-up.
+  let stop = from + 1
+  while (stop < last && !stops.has(stop)) stop++
   const candidates: Candidate[] = []
   for (let end = from + 1; end <= last; end++) {
     const typing = end === words.length
@@ -659,9 +679,10 @@ function statementValues(
         (!verb.contains || reading.filter.operator === 'contains') &&
         (typing || reading.complete !== false)
     )
-    const weight = spanWeight(start, end, words.length)
     const remainder = remainderOf(words, start, end)
     for (const reading of verb.negated ? negate(readings) : readings) {
+      const past = end > stop && FREE_TEXT.has(reading.filter.operator)
+      const weight = spanWeight(start, past ? stop : end, words.length)
       candidates.push({
         ...filterSuggestion(
           // Enter takes an exact reading, so it must leave nothing.
@@ -685,11 +706,6 @@ function overlap(a: [number, number], b: [number, number]): boolean {
 function within(inner: [number, number], outer: [number, number]): boolean {
   return outer[0] <= inner[0] && inner[1] <= outer[1]
 }
-
-const FREE_TEXT = new Set<RecordFilter['operator']>([
-  'contains',
-  'not-contains'
-])
 
 const length = ([start, end]: [number, number]) => end - start
 
@@ -849,10 +865,22 @@ export function parseQuery(
       .map(strip)
   }
 
+  const spans = spanCandidates(words, fields, options)
+  // Where other filters read every word to the end, as "melb this weekend".
+  // "hall" in "kettle hall" doesn't count: Antler Kettle Hall reads it.
+  const readers = spans.filter(
+    (c) =>
+      c.kind === 'filter' && !(c.partial && spans.some((o) => covers(o, c)))
+  )
+  const starts = new Set([words.length])
+  for (let i = words.length - 1; i > 0; i--) {
+    const read = readers.some((c) => c.span[0] === i && starts.has(c.span[1]))
+    if (read) starts.add(i)
+  }
   return rank([
     ...identifiers,
-    ...spanCandidates(words, fields, options),
-    ...spacedStatements(words, fields, options)
+    ...spans,
+    ...spacedStatements(words, fields, options, starts)
   ])
     .slice(0, limit)
     .map(strip)

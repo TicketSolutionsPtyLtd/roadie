@@ -309,7 +309,9 @@ A range reads in either order, so `capacity 50-20` suggests "Capacity is 20 to
   is more than 5" and keeps 6 as search text.
 
 Any field's name, then a value, reads as `field:value` does, with or without
-`is`.
+`is`. Text a field contains stops before words other filters read to the end,
+so `name disco melb` suggests "Name contains “disco”" and "City is Melbourne"
+first, then "Name contains “disco melb”".
 
 | Form                            | Typed                 | Suggests             |
 | ------------------------------- | --------------------- | -------------------- |

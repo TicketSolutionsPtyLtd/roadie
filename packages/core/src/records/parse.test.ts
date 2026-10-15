@@ -198,7 +198,8 @@ describe('parseQuery', () => {
           { value: 'nimbus', label: 'Nimbus Thistle Hall' },
           { value: 'lantern', label: 'Perth Lantern Hall' },
           { value: 'opal', label: 'Opal Harpoon Room (Upstairs)' },
-          { value: 'teacup', label: 'Wobbly Teacup Room/Lawn' }
+          { value: 'teacup', label: 'Wobbly Teacup Room/Lawn' },
+          { value: 'kazoo', label: 'Kazoo Hollow Perth' }
         ]
       }
     ]
@@ -245,6 +246,12 @@ describe('parseQuery', () => {
       expect(read('perth lantern')).toEqual(
         expect.arrayContaining(['Room is Perth Lantern Hall', 'City is Perth'])
       )
+    })
+
+    it('reads an option value to the end past words other filters read', () => {
+      expect(
+        parseQuery('room kazoo hollow perth', { ...options, fields })[0]
+      ).toMatchObject({ label: 'Room is Kazoo Hollow Perth', remainder: '' })
     })
 
     it('keeps a partial value inside text a field contains', () => {
@@ -790,6 +797,49 @@ describe('parseQuery', () => {
     it('reads "sold 100" as the field, not a status', () => {
       expect(readSold('sold 100')[0]).toBe('Sold is 100')
       expect(readSold('sold 100')).not.toContain('Status is Sold out')
+    })
+
+    it.each([
+      ['name disco melb', 'City is Melbourne', 'disco melb'],
+      ['name is disco melb', 'City is Melbourne', 'disco melb'],
+      [
+        'name contains disco this weekend',
+        'Starts: This weekend',
+        'disco this weekend'
+      ],
+      ['name disco oz-12345', 'Order number is oz-12345', 'disco oz-12345']
+    ])(
+      'stops text in "%s" before a word another filter reads',
+      (text, other, whole) => {
+        const result = parse(text, { limit: 50 }).map((s) => s.label)
+        expect(result.slice(0, 2)).toEqual(['Name contains “disco”', other])
+        expect(result).toContain(`Name contains “${whole}”`)
+      }
+    )
+
+    it('stops text before each filter that reads the rest', () => {
+      expect(
+        parse('name disco melb this weekend')
+          .slice(0, 3)
+          .map((s) => s.label)
+          .sort()
+      ).toEqual([
+        'City is Melbourne',
+        'Name contains “disco”',
+        'Starts: This weekend'
+      ])
+    })
+
+    it.each([
+      'name lampshade disco',
+      'name disco melb lampshade',
+      'name kettle hall',
+      'name the quilted walrus'
+    ])('reads "%s" to the end when no other filter reads the rest', (text) => {
+      expect(parse(text)[0]).toMatchObject({
+        label: `Name contains “${text.slice(5)}”`,
+        remainder: ''
+      })
     })
 
     it('reads no verb as part of the value', () => {

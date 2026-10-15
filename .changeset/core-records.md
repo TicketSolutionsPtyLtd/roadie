@@ -79,10 +79,12 @@ order, reads as that comparison: "capacity > 100" suggests "Capacity is more
 than 100". `field:value` takes the same words, and "capacity:20 and 50" reads
 as a range. `>=` and `<=` read nothing, and numbers a space separates never
 join. A field name then a value with no verb reads as `field:value` does, so
-"city melb" suggests "City is Melbourne" and "capacity 100" suggests
-"Capacity is 100". "city is empty" and "city is not empty" read as the field
-having no value or one. A field name a statement reads is never also read as
-a value, so "sold > 100" never suggests "Status is Sold out".
+"city melb" suggests "City is Melbourne" and "capacity 100" suggests "Capacity
+is 100". Text a field contains stops before words other filters read to the
+end, so "name disco melb" suggests "Name contains disco" and "City is
+Melbourne" first. "city is empty" and "city is not empty" read as the field
+having no value or one. A field name a statement reads is never also read as a
+value, so "sold > 100" never suggests "Status is Sold out".
 
 `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
 and `hitsPerPage`, so the response's `totalHits` counts the matches (up to
