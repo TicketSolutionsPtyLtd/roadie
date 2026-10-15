@@ -1020,6 +1020,21 @@ describe('Records.Search', () => {
       expect(lastView()).toBeUndefined()
     })
 
+    it('writes nothing for a click on a text chip’s ticked row', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [{ field: 'show', operator: 'contains', value: 'ocean' }]
+          }
+        }
+      })
+      await selectChip(user, 'Show contains “ocean”')
+      await user.click(await option('Show contains “ocean”'))
+      expect(lastView()).toBeUndefined()
+      expect(chip('Show contains “ocean”')).toHaveAttribute('data-selected')
+      expect(input()).toHaveValue('ocean')
+    })
+
     it('ticks a text is chip’s row only when it holds just that text', async () => {
       const { user, lastView } = setup({
         defaultView: {
