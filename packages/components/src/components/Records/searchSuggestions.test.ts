@@ -8,6 +8,7 @@ import {
   filterKey,
   mergeFilter,
   pendingLabel,
+  rulesOut,
   searchChips,
   stepOperator,
   toggleValue,
@@ -848,5 +849,28 @@ describe('withAnd', () => {
     ['sold', '2 and ', '2 and a', 'eq', '2 and a']
   ])('types %s “%s” to “%s” under %s', (key, before, after, operator, text) => {
     expect(withAnd(byKey(key), before, after, operator, context())).toBe(text)
+  })
+})
+
+describe('rulesOut', () => {
+  const empty: RecordFilter = { field: 'city', operator: 'is-not-set' }
+  const set: RecordFilter = { field: 'city', operator: 'is-set' }
+  const perth: RecordFilter = {
+    field: 'city',
+    operator: 'is',
+    values: ['perth']
+  }
+  const sold: RecordFilter = { field: 'sold', operator: 'eq', value: 20 }
+
+  it('rules out anything else on a field beside is empty, either way round', () => {
+    expect(rulesOut(empty, perth)).toBe(true)
+    expect(rulesOut(perth, empty)).toBe(true)
+    expect(rulesOut(empty, set)).toBe(true)
+  })
+
+  it('keeps is not empty beside values, other fields, and the same filter', () => {
+    expect(rulesOut(set, perth)).toBe(false)
+    expect(rulesOut(empty, sold)).toBe(false)
+    expect(rulesOut(empty, { ...empty })).toBe(false)
   })
 })

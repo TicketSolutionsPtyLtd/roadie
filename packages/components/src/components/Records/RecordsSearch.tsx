@@ -24,6 +24,7 @@ import {
   mergeFilter,
   optionOperator,
   pendingLabel,
+  rulesOut,
   sameFilter,
   searchChips,
   stepOperator,
@@ -281,13 +282,38 @@ export function RecordsSearch({
     })
   }
 
+  /** Removes these filters, by index, last first so each index still holds. */
+  function removeAt(indexes: readonly number[]) {
+    for (const index of [...new Set(indexes)].sort((a, b) => b - a))
+      records.removeFilter(index)
+  }
+
+  /** The filters another written at `at` rules out, such as values beside is empty. */
+  const ruledOut = (filter: RecordFilter, at: number | null = null) =>
+    filters.flatMap((other, index) =>
+      index !== at && rulesOut(filter, other) ? [index] : []
+    )
+
+  /** Adds a filter in place of the first it rules out, or else last. Returns where. */
+  function place(filter: RecordFilter): number {
+    const [first, ...rest] = ruledOut(filter)
+    if (first === undefined) {
+      records.addFilter(filter)
+      return filters.length
+    }
+    records.updateFilter(first, filter)
+    removeAt(rest)
+    return first
+  }
+
   function add(filter: RecordFilter) {
     const merged = mergeFilter(filters, filter, fields)
     if (merged) {
       if (!sameFilter(merged.filter, filters[merged.index]!))
         records.updateFilter(merged.index, merged.filter)
+      removeAt(ruledOut(merged.filter, merged.index))
     } else if (!context.filters.some((other) => sameFilter(other, filter)))
-      records.addFilter(filter)
+      place(filter)
   }
 
   // An editor waiting for its code gives way to whatever happens next.
@@ -339,13 +365,15 @@ export function RecordsSearch({
       fields
     )
     const filter = merged?.filter ?? next
-    // `locate` finds the chip once the other's removal moves it.
+    // `locate` finds the chip once the others' removal moves it.
     setSelected({ index: selectedAt, written: [...selected.written, filter] })
     records.updateFilter(selectedAt, filter)
-    if (merged)
-      records.removeFilter(
-        merged.index < selectedAt ? merged.index : merged.index + 1
-      )
+    removeAt([
+      ...ruledOut(filter, selectedAt),
+      ...(merged
+        ? [merged.index < selectedAt ? merged.index : merged.index + 1]
+        : [])
+    ])
   }
 
   function acceptForSelected(value: SearchValue, edited: RecordFilter) {
@@ -433,15 +461,15 @@ export function RecordsSearch({
         written: [...editing.written, filter]
       })
       records.updateFilter(at, filter)
+      removeAt(ruledOut(filter, at))
       return
     }
     const same = filters.findIndex((other) => sameFilter(other, filter))
     setEditing({
       ...editing,
-      index: same >= 0 ? same : filters.length,
+      index: same >= 0 ? same : place(filter),
       written: [...editing.written, filter]
     })
-    if (same < 0) records.addFilter(filter)
   }
 
   function removeEdited() {

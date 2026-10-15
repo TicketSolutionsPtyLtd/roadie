@@ -253,6 +253,23 @@ describe('Records.Search', () => {
     expect(chipLabels()).toHaveLength(1)
   })
 
+  it('puts a date from Custom dates in place of the field’s is empty chip', async () => {
+    const { user, lastView } = setup({
+      defaultView: {
+        query: { filters: [{ field: 'starts', operator: 'is-not-set' }] }
+      }
+    })
+    await user.click(input())
+    await user.click(await option('Starts'))
+    const dialog = await customDates(user)
+    await condition(user, dialog, 'Is after')
+    await user.click(
+      within(dialog).getByRole('combobox', { name: 'Starts date' })
+    )
+    await user.keyboard('1 dec{Enter}')
+    expect(lastView().query.filters).toEqual([AFTER_1_DEC])
+  })
+
   it('shows the page’s scope first, locked, and never clears it', async () => {
     const scope: RecordFilter[] = [
       { field: 'city', operator: 'is', values: ['Perth'] }
@@ -847,6 +864,69 @@ describe('Records.Search', () => {
         expect(chipLabels()).toEqual([chipLabel])
       }
     )
+
+    it('replaces a field’s values with is empty, and is empty with a value', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'city', operator: 'is', values: ['Perth'] },
+              { field: 'status', operator: 'is', values: ['on_sale'] },
+              { field: 'city', operator: 'is-not', values: ['Hobart'] }
+            ]
+          }
+        }
+      })
+      await user.click(input())
+      await user.click(await option('City'))
+      await user.click(screen.getByRole('button', { name: 'is empty' }))
+      await user.click(await option('City is empty'))
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is-not-set' },
+        { field: 'status', operator: 'is', values: ['on_sale'] }
+      ])
+      await user.click(input())
+      await user.click(await option('City'))
+      await user.keyboard('mel{Enter}')
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is', values: ['Melbourne'] },
+        { field: 'status', operator: 'is', values: ['on_sale'] }
+      ])
+    })
+
+    it('replaces a field’s other chips when a chip is edited to is empty', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'city', operator: 'is', values: ['Perth'] },
+              { field: 'city', operator: 'is-not', values: ['Hobart'] }
+            ]
+          }
+        }
+      })
+      await selectChip(user, 'City is Perth')
+      await user.click(screen.getByRole('button', { name: 'is empty' }))
+      await user.keyboard('{Enter}')
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is-not-set' }
+      ])
+    })
+
+    it('keeps a field’s values beside is not empty', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: { filters: [{ field: 'city', operator: 'is-set' }] }
+        }
+      })
+      await user.click(input())
+      await user.click(await option('City'))
+      await user.keyboard('mel{Enter}')
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is-set' },
+        { field: 'city', operator: 'is', values: ['Melbourne'] }
+      ])
+    })
 
     it('adds is not empty with a tap on the operator, then its row', async () => {
       const { user, lastView } = setup()

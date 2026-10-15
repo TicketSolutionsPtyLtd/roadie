@@ -662,6 +662,15 @@ export function toggleValue(
   return values.length > 0 ? { ...edited, values } : null
 }
 
+/**
+ * Whether a filter rules the other out: is empty on a field rules out
+ * anything else on it, so it never stands beside a value that matches nothing.
+ */
+export function rulesOut(filter: RecordFilter, other: RecordFilter): boolean {
+  if (filter.field !== other.field || sameFilter(filter, other)) return false
+  return filter.operator === 'is-not-set' || other.operator === 'is-not-set'
+}
+
 /** Option `is` filters on one field merge into one chip, as its values are ORed. */
 export function mergeFilter(
   filters: readonly RecordFilter[],
