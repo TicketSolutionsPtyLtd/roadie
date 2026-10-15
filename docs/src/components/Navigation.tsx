@@ -72,6 +72,7 @@ type NavigationProps = {
   children: ReactNode
 }
 
+/* eslint-disable roadie/phosphor-icon-weight -- Navigator.Item sets these duotone */
 const DESTINATION_ICONS: Record<string, ReactNode> = {
   '/': <HouseIcon />,
   '/brand': <SparkleIcon />,
@@ -82,6 +83,7 @@ const DESTINATION_ICONS: Record<string, ReactNode> = {
   '/charts': <ChartLineIcon />,
   '/roadie-widgets': <SquaresFourIcon />
 }
+/* eslint-enable roadie/phosphor-icon-weight */
 
 // A cross listing never matches the route, so the page's own destination stays the lit one.
 const entryValue = (host: string, entry: CatalogueEntry) =>

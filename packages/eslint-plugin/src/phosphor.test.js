@@ -34,7 +34,10 @@ runRuleCases({
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={selected ? 'fill' : 'bold'} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={iconWeight} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon {...iconProps} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={<HeartIcon />} />"
+      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={<HeartIcon />} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={icons[href] ?? <HeartIcon />} />",
+      "import { HeartIcon, StarIcon } from '@phosphor-icons/react'; <Navigator.Item icon={starred ? <StarIcon /> : <HeartIcon />} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={custom || (fallback && <HeartIcon />)} />"
     ],
     invalid: [
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight='regular' />",
@@ -43,7 +46,9 @@ runRuleCases({
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={selected ? 'fill' : 'regular'} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon weight={iconWeight ?? 'thin'} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.MenuItem icon={<HeartIcon />} />"
+      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.MenuItem icon={<HeartIcon />} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <Button icon={custom ?? <HeartIcon />} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={render(<HeartIcon />)} />"
     ]
   }
 })

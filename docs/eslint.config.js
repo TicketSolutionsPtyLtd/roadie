@@ -132,6 +132,13 @@ const config = [
   },
   flatCodeBlocks,
 
+  // The docs app is a Roadie consumer whose code readers copy.
+  {
+    files: ['src/**/*.{js,jsx,mjs,ts,tsx,mts,cts}'],
+    plugins: { roadie },
+    rules: published.configs.recommended.rules
+  },
+
   // Live examples are copyable consumer code, so they follow package rules.
   {
     files: ['**/*.mdx/*.{tsx,jsx}'],
