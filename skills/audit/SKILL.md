@@ -597,13 +597,18 @@ dash between bare numbers or seat labels.
 #### H6. Hand-rolled calendar tile [Info]
 
 ```
-month: ?['"]short['"][^\n]*toUpperCase|MMM['"][^\n]*\.(toUpperCase|ToUpperInvariant)
+(month|MMM)[^\n]*\}\s*</\w+>\s*<\w+[^>]*>\s*\{[^\n]*(day|getDate|['"]dd?['"])
 ```
 
-An uppercased short month stacked over a day number is the `CalendarTile`
-component. Use it, or the `calendar-tile` CSS utility in a server-rendered
-template, so every tile shares one size, radius and colour treatment. Get its
-strings from `formatGlyph`.
+A short month stacked over a day number is the `CalendarTile` component, which
+shows the month in sentence case, such as "Nov" over "27". Use it, or the
+`calendar-tile` CSS utility in a server-rendered template, so every tile shares
+one size, radius and colour treatment. Get its strings from `formatGlyph`.
+
+Run the pattern multiline. It finds an element holding a month followed by one
+holding a day, whatever the month's case, so it flags older uppercase tiles
+("NOV") and sentence-case ones alike. Rule out hits that aren't a tile, such as
+month and day columns in a table.
 
 #### H7. A formatter where a component would render [Warning]
 
@@ -889,7 +894,7 @@ Roadie's text colours are `text-{normal,subtle,subtler,strong,inverted,on-strong
 | `7:30 PM`                                         | `timeStyle: 'medium'` → `7:30pm`    | H4    |
 | `27 Nov - 29 Nov`                                 | `formatDateRange` → `27 to 29 Nov`  | H5    |
 | `` `${a} to ${b}` ``                              | `separators.range`                  | H5    |
-| uppercased month over a day                       | `CalendarTile`                      | H6    |
+| a short month stacked over a day                  | `CalendarTile`                      | H6    |
 
 ## Parallelization guide
 
@@ -926,7 +931,7 @@ Run independent checks in parallel by issuing multiple Grep calls in a single me
 - H3: `\bddd\b[^'"]*MMMM|\bEEE\b[^'"]*MMMM|\b(dddd|EEEE)\b[^'"]*\bMMM\b|weekday: ?['"]short['"]`
 - H4: `HH:mm|hh:mm ?a|['"]tt['"]|:mm ?A\b` (exclude `numeric` and `iso` styles)
 - H5: `\} ?[-–—] ?\{|['"] ?[-–—] ?['"]`
-- H6: `month: ?['"]short['"][^\n]*toUpperCase|MMM['"][^\n]*\.(toUpperCase|ToUpperInvariant)`
+- H6: `(month|MMM)[^\n]*\}\s*</\w+>\s*<\w+[^>]*>\s*\{[^\n]*(day|getDate|['"]dd?['"])` (multiline)
 
 **Batch 4b** (dates and times, the component-era checks). Every pattern here
 is ripgrep-compatible: no lookaround, because the Grep tool aborts on it rather
