@@ -5,6 +5,7 @@ import {
 } from '@phosphor-icons/react/ssr'
 
 import { Avatar } from '@oztix/roadie-components/avatar'
+import { CalendarTile } from '@oztix/roadie-components/calendar-tile'
 import { Logo } from '@oztix/roadie-components/logo'
 import { Pattern } from '@oztix/roadie-components/pattern'
 import { QRCode } from '@oztix/roadie-components/qr-code'
@@ -605,14 +606,7 @@ export function ComponentSkeleton({ name }: { name: string }) {
         </div>
       )
     case 'calendar-tile':
-      return (
-        <div className='grid w-14 overflow-hidden rounded-xl emphasis-subtle text-center intent-accent'>
-          <div className='emphasis-strong py-0.5 text-xs leading-none font-bold'>
-            Nov
-          </div>
-          <div className='py-1.5 text-xl leading-none font-bold'>27</div>
-        </div>
-      )
+      return <CalendarTile month='Nov' day={27} size='lg' intent='accent' />
     case 'date-time':
       return (
         <div className='grid w-40 justify-items-center gap-1.5'>

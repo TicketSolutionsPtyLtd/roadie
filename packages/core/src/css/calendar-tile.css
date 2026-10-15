@@ -45,7 +45,8 @@
 
 @utility calendar-tile-top {
   padding-block: 3px;
-  font-size: 10px;
+  /* The scale's first step at every size: mixed case below it reads too small. */
+  font-size: var(--text-xs);
   font-weight: 700;
   background-color: var(--intent-bg-strong);
   color: var(--intent-text-on-strong);
@@ -62,15 +63,6 @@
   .emphasis-strong > & {
     background-color: var(--intent-bg-normal);
     color: var(--intent-text-normal);
-  }
-
-  /* The box scales, so the type scales with it. */
-  .calendar-tile-sm > & {
-    font-size: 9px;
-  }
-
-  .calendar-tile-lg > & {
-    font-size: 11px;
   }
 }
 

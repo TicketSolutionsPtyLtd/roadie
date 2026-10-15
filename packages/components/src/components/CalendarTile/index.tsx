@@ -45,23 +45,20 @@ export const calendarTileVariants = cva(
  *
  * Not `emphasis-inverted` despite the name: that is intent step 12, a
  * near-black, where the band wants step 9.
+ *
+ * The type stays `text-xs` at every size: it is the scale's first step, and
+ * mixed case any smaller reads too small.
  */
-const calendarTileTopVariants = cva('py-[3px] font-bold', {
+const calendarTileTopVariants = cva('py-[3px] text-xs font-bold', {
   variants: {
     emphasis: {
       strong: 'emphasis-normal',
       normal: 'emphasis-strong',
       subtle: 'emphasis-strong',
       subtler: 'emphasis-strong'
-    },
-    // The box scales, so the type scales with it.
-    size: {
-      sm: 'text-[9px]',
-      md: 'text-[10px]',
-      lg: 'text-[11px]'
     }
   },
-  defaultVariants: { emphasis: 'subtle', size: 'md' }
+  defaultVariants: { emphasis: 'subtle' }
 })
 
 /** Colour comes from the tile's own emphasis; only the scale belongs here. */
@@ -147,7 +144,7 @@ export function CalendarTile({
     <>
       <span
         data-slot='calendar-tile-top'
-        className={calendarTileTopVariants({ emphasis, size })}
+        className={calendarTileTopVariants({ emphasis })}
       >
         {top}
       </span>
