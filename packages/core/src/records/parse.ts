@@ -83,6 +83,9 @@ const NEGATIONS = new Set([
 ])
 // ">=" and "=>" stay whole: read as "=" then ">", they'd drop the number itself.
 const OPERATOR = /(!=|[<>]=|=[<>]|≠|[<>=])/g
+// Comparisons a number reads, and those it doesn't, such as "at least" or "100+".
+const COMPARING =
+  /^(?:[<>=≥≤≠!]|at (?:least|most)\b|(?:more|less|fewer) than\b|over\b|under\b|between\b|-?\$?[\d,.]+\+(?:\s|$))/
 // A dash before a digit or dollar sign is a minus sign, as in "-5".
 const SIGNED = /^-[$\d]/
 
@@ -626,7 +629,7 @@ function spacedStatements(
   fields: readonly RecordField[],
   options: ParseQueryOptions,
   starts: ReadonlySet<number>
-): Candidate[] {
+): { candidates: Candidate[]; compared: [number, number][] } {
   const wordOf: number[] = []
   const pieces = words.flatMap((word, i) => {
     const split = word.replace(OPERATOR, ' $1 ').trim().split(/\s+/)
@@ -640,16 +643,37 @@ function spacedStatements(
   const stops = new Set(
     pieces.flatMap((_, i) => (starts.has(wordOf[i]!) ? [i] : []))
   )
-  return statementCandidates(pieces, fields, options, stops).map(
-    (candidate) => {
-      const span = touched(candidate.span)
-      return {
-        ...candidate,
-        span,
-        remainder: remainderOf(words, ...span),
-        named: touched(candidate.named!)
+  return {
+    candidates: statementCandidates(pieces, fields, options, stops).map(
+      (candidate) => {
+        const span = touched(candidate.span)
+        return {
+          ...candidate,
+          span,
+          remainder: remainderOf(words, ...span),
+          named: touched(candidate.named!)
+        }
       }
-    }
+    ),
+    compared: comparedNames(pieces, fields).map(touched)
+  }
+}
+
+/** Each number field's name followed by a comparison, read or not, as "sold >= 100". */
+function comparedNames(
+  words: readonly string[],
+  fields: readonly RecordField[]
+): [number, number][] {
+  const lower = words.map(plain)
+  const numbers = fields.filter(
+    (field) => field.type === 'number' || field.type === 'money'
+  )
+  return lower.flatMap((_, start) =>
+    numbers.flatMap((field): [number, number][] => {
+      const at = start + nameLength(field, lower, start)
+      const next = `${lower[at] ?? ''} ${lower[at + 1] ?? ''}`
+      return at > start && COMPARING.test(next) ? [[start, at]] : []
+    })
   )
 }
 
@@ -727,12 +751,18 @@ const covers = (outer: Candidate, inner: Candidate) =>
  * comes before the runners-up, so "melb this weekend" offers both its city
  * and its dates at the top.
  */
-function rank(candidates: Candidate[]): Candidate[] {
+function rank(
+  candidates: Candidate[],
+  compared: readonly [number, number][] = []
+): Candidate[] {
   // "status is not sold out" never offers Sold out from its last word. A
   // reading that takes the negating word too, like "Not on sale", stays.
   const negations = candidates.filter((c) => c.negates)
-  // "sold > 100" never offers Sold out from the field's name.
-  const names = candidates.flatMap((c) => (c.named ? [c.named] : []))
+  // "sold > 100" and "sold >= 100" never offer Sold out from the field's name.
+  const names = [
+    ...compared,
+    ...candidates.flatMap((c) => (c.named ? [c.named] : []))
+  ]
   const byId = new Map<string, Candidate>()
   for (const candidate of candidates) {
     if (
@@ -880,11 +910,11 @@ export function parseQuery(
     const read = readers.some((c) => c.span[0] === i && starts.has(c.span[1]))
     if (read) starts.add(i)
   }
-  return rank([
-    ...identifiers,
-    ...spans,
-    ...spacedStatements(words, fields, options, starts)
-  ])
+  const statements = spacedStatements(words, fields, options, starts)
+  return rank(
+    [...identifiers, ...spans, ...statements.candidates],
+    statements.compared
+  )
     .slice(0, limit)
     .map(strip)
 }

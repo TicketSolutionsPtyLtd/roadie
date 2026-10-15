@@ -77,8 +77,9 @@ A number or money field's name, then `>`, `<`, `=`, `!=`, more than, less
 than, over, under, between 20 and 50, or a range such as 20-50 in either
 order, reads as that comparison: "capacity > 100" suggests "Capacity is more
 than 100". `field:value` takes the same words, and "capacity:20 and 50" reads
-as a range. `>=` and `<=` read nothing, and numbers a space separates never
-join. A field name then a value with no verb reads as `field:value` does, so
+as a range. `>=`, `<=`, `≥`, `≤`, at least, at most and "100+" read nothing, but the
+field's name still keeps "sold >= 100" from suggesting "Status is Sold out".
+Numbers a space separates never join. A field name then a value with no verb reads as `field:value` does, so
 "city melb" suggests "City is Melbourne" and "capacity 100" suggests "Capacity
 is 100". Text a field contains stops before words other filters read to the
 end, so "name disco melb" suggests "Name contains disco" and "City is

@@ -303,8 +303,10 @@ A number or money field's name, then a comparison, reads as that filter.
 A range reads in either order, so `capacity 50-20` suggests "Capacity is 20 to
 50".
 
-- There's no at least or at most, so `>=`, `<=`, `=>`, and `=<` read nothing
-  and `capacity >= 100` stays search text.
+- There's no at least or at most, so `>=`, `<=`, `≥`, `≤`, `at least`,
+  `at most`, and `100+` read nothing and `capacity >= 100` stays search text.
+  The field's name still reads as the field, so with a Sold field,
+  `sold >= 100` never suggests "Status is Sold out".
 - Numbers a space separates stay apart, so `capacity > 5 6` suggests "Capacity
   is more than 5" and keeps 6 as search text.
 

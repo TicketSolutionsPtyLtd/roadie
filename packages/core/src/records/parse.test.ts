@@ -890,6 +890,28 @@ describe('parseQuery', () => {
       }
     )
 
+    it.each([
+      'sold >= 100',
+      'sold>=100',
+      'sold ≥ 100',
+      'sold≥100',
+      'sold <= 100',
+      'sold ≤ 100',
+      'sold at least 100',
+      'sold at most 100',
+      'sold 100+'
+    ])('reads no status from the field name in "%s"', (text) => {
+      expect(readSold(text)).not.toContain('Status is Sold out')
+      expect(
+        readSold(text).filter((label) => label.startsWith('Sold is'))
+      ).toEqual([])
+    })
+
+    it('still reads a status a field name starts', () => {
+      expect(readSold('sold out')).toContain('Status is Sold out')
+      expect(readSold('sold out > 100')).toContain('Status is Sold out')
+    })
+
     it('never joins numbers a space separates', () => {
       const read = parse('capacity > 5 6', { limit: 50 }).map((s) => [
         s.label,
