@@ -1023,6 +1023,19 @@ describe('parseQuery', () => {
       ).toEqual([])
     })
 
+    it.each([
+      ['before next fri', 'Starts: Before 9 Oct', 'Starts: 9 Oct'],
+      ['until next month', 'Starts: Before 1 Dec', 'Starts: Month to date'],
+      ['melb since last week', 'Starts: After 20 Sept', 'Starts: Week to date']
+    ])(
+      'reads no date from a later word "%s" compares',
+      (text, label, dropped) => {
+        const read = parse(text, { limit: 50 }).map(summary)
+        expect(read).toContain(label)
+        expect(read).not.toContain(dropped)
+      }
+    )
+
     it('takes an identifier as exact only when nothing is left over', () => {
       const exact = (text: string) =>
         parse(text, { limit: 50 }).filter((s) => s.kind === 'filter' && s.exact)

@@ -496,11 +496,14 @@ function spanCandidates(
   const dateFields = fields.filter((f) => f.type === 'date')
   const candidates: Candidate[] = []
   const maxSpan = words.length > MAX_WORDS ? MAX_SPAN : words.length
+  // Spans a comparison reads as a date, as "before next fri".
+  const comparisons: [number, number][] = []
   for (let start = 0; start < words.length; start++) {
     // "not melb" and "-melb" never offer Melbourne itself.
     const ruledOut = start > 0 && NEGATIONS.has(plain(words[start - 1]!))
     // "after today" never offers Today: the longer reading keeps "after".
     const compared = start > 0 && DATE_COMPARISONS.has(plain(words[start - 1]!))
+    const comparing = DATE_COMPARISONS.has(plain(words[start]!))
     for (
       let end = start + 1;
       end <= Math.min(words.length, start + maxSpan);
@@ -552,10 +555,14 @@ function spanCandidates(
         valueReadings(fields, text).forEach(add)
         // A phrase is only completed while it is still being typed, at the end.
         const typing = end === words.length
-        if (dateFields.length && !compared) {
-          dateReadings(dateFields, text, options)
-            .filter((reading) => typing || reading.complete !== false)
-            .forEach(add)
+        // "before next fri" never offers Fri either.
+        const inside = comparisons.some(([c, ce]) => c < start && end <= ce)
+        if (dateFields.length && !compared && !inside) {
+          const dates = dateReadings(dateFields, text, options).filter(
+            (reading) => typing || reading.complete !== false
+          )
+          dates.forEach(add)
+          if (comparing && dates.length) comparisons.push(span)
         }
       }
       if (negated) {
