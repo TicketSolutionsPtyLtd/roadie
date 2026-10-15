@@ -187,6 +187,63 @@ describe('parseQuery', () => {
     ])
   })
 
+  describe('values at word starts', () => {
+    const fields = [
+      ...eventFields,
+      {
+        key: 'room',
+        label: 'Room',
+        type: 'option' as const,
+        options: [
+          { value: 'nimbus', label: 'Nimbus Thistle Hall' },
+          { value: 'lantern', label: 'Perth Lantern Hall' }
+        ]
+      }
+    ]
+    const read = (text: string) =>
+      parseQuery(text, { ...options, fields, limit: 50 }).map(summary)
+
+    it.each([
+      ['this', 'Room is Nimbus Thistle Hall'],
+      ['thistle hall', 'Room is Nimbus Thistle Hall'],
+      ['walrus room', 'Venue is The Quilted Walrus Room'],
+      ['per', 'City is Perth']
+    ])('reads "%s" from the start of a word: %s', (text, label) => {
+      expect(
+        parseQuery(text, { ...options, fields }).map((s) => [
+          s.label,
+          s.remainder
+        ])
+      ).toContainEqual([label, ''])
+    })
+
+    it.each([
+      ['elb', 'City is Melbourne'],
+      ['istle', 'Room is Nimbus Thistle Hall'],
+      ['uilted', 'Venue is The Quilted Walrus Room']
+    ])('reads nothing from inside a word in "%s"', (text, label) => {
+      expect(read(text)).not.toContain(label)
+    })
+
+    it('reads no partial value inside a longer reading', () => {
+      const result = read('melb this weekend')
+      expect(result.slice(0, 2)).toEqual([
+        'Starts: This weekend',
+        'City is Melbourne'
+      ])
+      expect(result).not.toContain('Room is Nimbus Thistle Hall')
+      expect(read('starts this weekend')).not.toContain(
+        'Room is Nimbus Thistle Hall'
+      )
+    })
+
+    it('keeps a value named in full inside a longer reading', () => {
+      expect(read('perth lantern')).toEqual(
+        expect.arrayContaining(['Room is Perth Lantern Hall', 'City is Perth'])
+      )
+    })
+  })
+
   describe('field:value', () => {
     it.each([
       [

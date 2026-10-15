@@ -20,7 +20,9 @@ ranges. Text compares without case, and negative filters (is not, does not
 contain, not equal) keep records where the field is empty. `parseQuery`
 reads typed text into ranked suggestions for `QueryField`: identifiers,
 `field:value`, field names, option values and date phrases, tagged with an
-`entity` when given. `toSearchParams` and `fromSearchParams` write and read a
+`entity` when given. Values read from the start of a word, and a value named
+only in part is left out when a longer reading takes its words, so "melb this
+weekend" never suggests a venue named Thistle. `toSearchParams` and `fromSearchParams` write and read a
 view and position as a versioned URL (`RECORD_VIEW_FORMAT`, `v=1`), falling
 back to a `fallback` view when the URL is invalid, and `equalViews` tells
 whether a view was modified. `recordFilterOperators` and `recordFieldOptions`

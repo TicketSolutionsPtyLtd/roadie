@@ -57,6 +57,7 @@ type Candidate = RecordSuggestion & {
   negates?: string
   /** A statement's field name, whose words read no other filter. */
   named?: [number, number]
+  partial?: boolean
 }
 
 const MAX_WORDS = 8
@@ -127,14 +128,15 @@ function negatedValue(value: string): string | null {
   return null
 }
 
-/** How well typed text names a candidate, from 0 to 1. */
+/** How well typed text names a candidate, from 0 to 1, read from a word's start. */
 function quality(candidate: string, text: string): number {
   const name = candidate.toLowerCase()
   if (name === text) return 1
   if (name.startsWith(text)) return 0.8
-  if (name.split(/[\s_-]+/).some((word) => word.startsWith(text))) return 0.7
-  if (text.length >= 3 && name.includes(text)) return 0.5
-  return 0
+  const words = name.split(/[\s_-]+/)
+  return words.some((_, i) => words.slice(i).join(' ').startsWith(text))
+    ? 0.7
+    : 0
 }
 
 function bestQuality(candidates: readonly string[], text: string): number {
@@ -229,6 +231,8 @@ type Reading = {
   filter: RecordFilter
   label: string
   quality: number
+  /** A value the text names only in part, such as "this" for Thistle. */
+  partial?: boolean
   description?: string
   exact?: boolean
   /** False for a date phrase completed from its first words, like "this". */
@@ -248,7 +252,8 @@ function optionReadings(field: RecordField, text: string): Reading[] {
               values: [option.value]
             },
             label: `${field.label} is ${option.label}`,
-            quality: q
+            quality: q,
+            partial: q < 1
           }
         ]
       : []
@@ -411,7 +416,8 @@ function filterSuggestion(
     order,
     ...(reading.description && { description: reading.description }),
     ...(reading.exact && { exact: true }),
-    ...(reading.negates && { negates: reading.negates })
+    ...(reading.negates && { negates: reading.negates }),
+    ...(reading.partial && { partial: true })
   }
 }
 
@@ -651,6 +657,14 @@ function within(inner: [number, number], outer: [number, number]): boolean {
   return outer[0] <= inner[0] && inner[1] <= outer[1]
 }
 
+const length = ([start, end]: [number, number]) => end - start
+
+/** Another filter reads the same words and more, as "this weekend" does "this". */
+const covers = (outer: Candidate, inner: Candidate) =>
+  outer.kind === 'filter' &&
+  within(inner.span, outer.span) &&
+  length(outer.span) > length(inner.span)
+
 /**
  * Best first, except that the best reading of each separate part of the text
  * comes before the runners-up, so "melb this weekend" offers both its city
@@ -670,7 +684,8 @@ function rank(candidates: Candidate[]): Candidate[] {
       ) ||
       (candidate.kind === 'filter' &&
         !candidate.named &&
-        names.some((name) => within(candidate.span, name)))
+        names.some((name) => within(candidate.span, name))) ||
+      (candidate.partial && candidates.some((c) => covers(c, candidate)))
     )
       continue
     const seen = byId.get(candidate.id)
@@ -723,6 +738,7 @@ function finish(options: ParseQueryOptions) {
     order: _order,
     negates: _negates,
     named: _named,
+    partial: _partial,
     ...suggestion
   }: Candidate) => {
     // A chip reads the same words; a date keeps the phrase as typed.
