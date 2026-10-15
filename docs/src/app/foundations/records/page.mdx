@@ -350,7 +350,8 @@ before the dates.
 its chip reads, such as "Gross is more than $100", with the dates a relative
 range stands for in `detail`. `parseQuery` labels its filters the same way and
 takes each `description` from that `detail`, so a suggestion and the chip it
-makes read alike, dates included. `Records.Search` uses both, and
+makes read alike, dates included. Next and last weekend, whose chips have no
+`detail`, are described as "Next weekend" and "Last weekend". `Records.Search` uses both, and
 shows a page's `scope` as locked chips that are never part of the view. Text
 that names a filter already applied, in the view or the scope, still suggests
 it, marked Already applied. Taking it clears those words and adds nothing, so
