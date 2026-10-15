@@ -130,6 +130,12 @@ and swap what `suggest` returns for that field's values. Taking a value adds
 the chip and ends the step; Backspace on the empty field or Escape calls
 `onPendingChipCancel` to go back.
 
+Give the pending chip two or more `operators` and the one chosen as
+`operator`, and they show as a toggle above the values. Pressing one, or Tab
+in the field, calls `onPendingOperatorChange`; update `operator` and the
+chip's `label` ("Venue is not"), and `suggest` is asked again. Give a symbol,
+such as ≠, an `aria-label`.
+
 ```tsx-live
 function QueryFieldValueStep() {
   const values = {
@@ -140,24 +146,30 @@ function QueryFieldValueStep() {
     { id: 'field:venue', label: 'Venue', kind: 'field', value: 'venue' },
     { id: 'field:status', label: 'Status', kind: 'field', value: 'status' },
   ]
-  const label = { venue: 'Venue is', status: 'Status is' }
+  const operators = [
+    { value: 'is', label: 'is' },
+    { value: 'is-not', label: 'is not' },
+  ]
+  const verb = { is: 'is', 'is-not': 'is not' }
   const [chips, setChips] = useState([])
   const [pending, setPending] = useState(null)
+  const [operator, setOperator] = useState('is')
 
-  function filter(field, value, text) {
-    return { id: `${field}:${value}`, label: text, kind: 'filter', value: { field, value } }
+  function filter(field, value, compare, label) {
+    const text = `${field.label} ${verb[compare]} ${value}`
+    return { id: `${field.value}:${compare}:${value}`, label: label ?? text, kind: 'filter', value: text }
   }
 
   function suggest(text) {
     const query = text.trim().toLowerCase()
     const matches = (name) => name.toLowerCase().includes(query)
     if (pending) {
-      const items = values[pending].filter(matches).map((value) => filter(pending, value, value))
-      return [{ id: 'values', label: label[pending], items }]
+      const items = values[pending.value].filter(matches).map((value) => filter(pending, value, operator, value))
+      return [{ id: 'values', label: pending.label, items }]
     }
     if (!query) return [{ id: 'fields', label: 'Filter by', items: fields }]
-    const filters = Object.keys(values).flatMap((field) =>
-      values[field].filter(matches).map((value) => filter(field, value, `${label[field]} ${value}`))
+    const filters = fields.flatMap((field) =>
+      values[field.value].filter(matches).map((value) => filter(field, value, 'is'))
     )
     return [
       { id: 'filters', label: 'Filters', items: filters },
@@ -166,14 +178,16 @@ function QueryFieldValueStep() {
   }
 
   function accept(suggestion) {
-    if (suggestion.kind === 'field') setPending(suggestion.value)
+    if (suggestion.kind === 'field') {
+      setPending(suggestion)
+      setOperator('is')
+    }
     if (suggestion.kind === 'filter') {
-      const { field, value } = suggestion.value
       setPending(null)
       setChips((current) =>
         current.some((chip) => chip.id === suggestion.id)
           ? current
-          : [...current, { id: suggestion.id, label: `${label[field]} ${value}` }]
+          : [...current, { id: suggestion.id, label: suggestion.value }]
       )
     }
   }
@@ -183,7 +197,12 @@ function QueryFieldValueStep() {
       aria-label='Search events'
       chips={chips}
       onRemoveChip={(id) => setChips((current) => current.filter((chip) => chip.id !== id))}
-      pendingChip={pending ? { id: pending, label: label[pending] } : undefined}
+      pendingChip={
+        pending
+          ? { id: pending.value, label: `${pending.label} ${verb[operator]}`, operators, operator }
+          : undefined
+      }
+      onPendingOperatorChange={setOperator}
       onPendingChipCancel={() => setPending(null)}
       suggest={suggest}
       onAccept={accept}
@@ -454,9 +473,16 @@ function QueryFieldShortcut() {
   all four.
 - **Escape** closes the suggestions, or ends the value step. With the
   suggestions closed it clears the typed text. It never clears the chips.
+- In a value step with `operators`, **Tab** and **Shift+Tab** move to the
+  next and previous operator, wrapping, and the input gets
+  `aria-keyshortcuts='Tab'`. Focus stays in the input, even when you press
+  an operator. Without operators, Tab leaves the field as usual.
+- The operators are a toggle group named "Operator". The values' group keeps
+  its label for screen readers, hidden while the toggle takes its place.
 - A locked chip reads "set by this page" after its label, and a chip's
   `description` is read after its label too. A pending chip
-  describes the input, so the value step is announced.
+  describes the input, so the value step, and a change of operator, is
+  announced.
 - `required` is announced but never blocks a form: an empty search is valid.
 - `shortcut` adds `aria-keyshortcuts` to the input. The key hint beside the
   field is visual only, and hides once the field has focus.

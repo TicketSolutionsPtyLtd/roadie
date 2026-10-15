@@ -26,12 +26,15 @@ import { intentVariants } from '../../variants'
 import { Combobox, type ComboboxChipProps } from '../Combobox'
 import { useFieldContext } from '../Field'
 import { Kbd } from '../Kbd'
+import { ToggleGroup } from '../ToggleGroup'
 import { Tooltip } from '../Tooltip'
 import { useControlledText, useShortcut } from './hooks'
 import { exactSuggestion, listGroups } from './suggestions'
 import type {
   QueryFieldAccepted,
   QueryFieldChip,
+  QueryFieldOperator,
+  QueryFieldPendingChip,
   QueryFieldSuggestion,
   QueryFieldSuggestionGroup
 } from './types'
@@ -50,7 +53,9 @@ export type QueryFieldProps<Value = unknown> = {
    */
   onClear?: () => void
   /** The field being given a value, such as "Venue is", shown after the chips. */
-  pendingChip?: { id: string; label: string }
+  pendingChip?: QueryFieldPendingChip
+  /** An operator was pressed, or Tab moved to one, while a chip is pending. */
+  onPendingOperatorChange?: (operator: string) => void
   /** Backspace on an empty field or Escape, while a chip is pending. */
   onPendingChipCancel?: () => void
   /** The typed text, searched as it changes. Controlled. */
@@ -97,6 +102,7 @@ export type QueryFieldProps<Value = unknown> = {
 
 const DEFAULT_PLACEHOLDER = 'Search and filter'
 const NO_CHIPS: readonly QueryFieldChip[] = []
+const NO_OPERATORS: readonly QueryFieldOperator[] = []
 
 const CARET_KEYS = new Set(['Home', 'End'])
 
@@ -148,6 +154,7 @@ export function QueryField<Value = unknown>({
   onEditChip,
   onClear,
   pendingChip,
+  onPendingOperatorChange,
   onPendingChipCancel,
   inputValue,
   defaultInputValue = '',
@@ -216,7 +223,15 @@ export function QueryField<Value = unknown>({
   )
   const unlocked = ordered.filter((chip) => !chip.locked)
   const removable = !!(onRemoveChip || onClear)
-  const suggestions = useSuggestions(suggest, text, open, pendingChip?.id)
+  const operators = pendingChip?.operators ?? NO_OPERATORS
+  const operator = pendingChip?.operator
+  const showsOperators = operators.length >= 2
+  const suggestions = useSuggestions(
+    suggest,
+    text,
+    open,
+    pendingChip && `${pendingChip.id}\u0000${operator ?? ''}`
+  )
   const list = listGroups({
     groups: suggestions.groups,
     inputValue: text,
@@ -277,9 +292,27 @@ export function QueryField<Value = unknown>({
     if (element) onEditChip?.(chip.id, element)
   }
 
+  function cycleOperator(step: 1 | -1) {
+    const at = operators.findIndex((each) => each.value === operator)
+    const from = at < 0 ? (step > 0 ? -1 : 0) : at
+    const next = operators[(from + step + operators.length) % operators.length]
+    if (next) onPendingOperatorChange?.(next.value)
+  }
+
   function handleInputKeyDown(
     event: BaseUIEvent<KeyboardEvent<HTMLInputElement>>
   ) {
+    if (
+      event.key === 'Tab' &&
+      showsOperators &&
+      !(event.metaKey || event.ctrlKey || event.altKey) &&
+      !isComposing(event)
+    ) {
+      event.preventBaseUIHandler()
+      event.preventDefault()
+      cycleOperator(event.shiftKey ? -1 : 1)
+      return
+    }
     if (CARET_KEYS.has(event.key)) setArrowed(false)
     if (
       (event.key === 'ArrowDown' || event.key === 'ArrowUp') &&
@@ -526,7 +559,11 @@ export function QueryField<Value = unknown>({
             aria-label={ariaLabel}
             aria-invalid={isInvalid || undefined}
             aria-required={isRequired || undefined}
-            aria-keyshortcuts={ownsShortcut ? shortcut : undefined}
+            aria-keyshortcuts={
+              [ownsShortcut && shortcut, showsOperators && 'Tab']
+                .filter(Boolean)
+                .join(' ') || undefined
+            }
             {...(describedBy && { 'aria-describedby': describedBy })}
             placeholder={ordered.length > 0 || pendingChip ? '' : placeholder}
             onKeyDown={handleInputKeyDown}
@@ -560,10 +597,49 @@ export function QueryField<Value = unknown>({
       <Combobox.Portal>
         <Combobox.Positioner>
           <Combobox.Popup>
+            {showsOperators && (
+              <div
+                data-slot='query-field-operators'
+                className='sticky -top-1 z-1 -mx-1 -mt-1 grid bg-raised p-1'
+              >
+                <ToggleGroup
+                  aria-label='Operator'
+                  size='md'
+                  emphasis='subtler'
+                  value={operator === undefined ? [] : [operator]}
+                  onValueChange={([next]) => {
+                    if (next !== undefined) onPendingOperatorChange?.(next)
+                  }}
+                  // Focus stays in the input, so typing and Tab carry on there.
+                  onMouseDown={(event) => event.preventDefault()}
+                  className='justify-self-start'
+                >
+                  {operators.map((each) => (
+                    <ToggleGroup.Item
+                      key={each.value}
+                      value={each.value}
+                      aria-label={each['aria-label']}
+                      tabIndex={-1}
+                      className='min-w-8'
+                    >
+                      {each.label}
+                    </ToggleGroup.Item>
+                  ))}
+                </ToggleGroup>
+              </div>
+            )}
             <Combobox.List>
               {list.map((group, groupIndex) => (
                 <Combobox.Group key={groupKey(group)} items={group.items}>
-                  <Combobox.GroupLabel>{group.label}</Combobox.GroupLabel>
+                  <Combobox.GroupLabel
+                    // The operators stand in its place; it still names the
+                    // group. The label's own padding would outsize sr-only.
+                    className={cn(
+                      showsOperators && groupIndex === 0 && 'sr-only p-0'
+                    )}
+                  >
+                    {group.label}
+                  </Combobox.GroupLabel>
                   <Combobox.Collection>
                     {(item: QueryFieldAccepted<Value>, index: number) => (
                       <Combobox.Item key={itemKey(item)} value={item}>
