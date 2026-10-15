@@ -347,6 +347,46 @@ describe(
       expect(document.activeElement).toBe(chip('Starts'))
     })
 
+    it('puts a picked range in place of the field’s is empty chip', async () => {
+      await openCalendar({
+        query: { filters: [{ field: 'starts', operator: 'is-not-set' }] }
+      })
+      await userEvent.click(day('2026-10-10'))
+      await userEvent.click(day('2026-10-12'))
+      await expect.poll(() => chip('Starts')?.textContent).toContain('10')
+      expect(
+        document.querySelectorAll('[data-slot=combobox-chip]')
+      ).toHaveLength(1)
+    })
+
+    it('keeps the step through presses in the calendar, and ends it on one outside', async () => {
+      render(
+        <button type='button' data-testid='outside'>
+          Outside
+        </button>
+      )
+      await openCalendar()
+      const pendingChip = () =>
+        document.querySelector('[data-slot=query-field-pending-chip]')
+      await userEvent.click(
+        within(popup()!).getByRole('button', { name: 'On' })
+      )
+      await userEvent.click(
+        within(popup()!).getByRole('group', { name: 'Starts condition' })
+      )
+      expect(pendingChip()).toBeTruthy()
+      expect(
+        popup()?.querySelector('[data-slot=records-dates-panel]')
+      ).toBeTruthy()
+      // The dropdown hides the page from the accessibility tree.
+      await userEvent.click(screen.getByTestId('outside'))
+      await expect.poll(popup).toBeNull()
+      expect(pendingChip()).toBeNull()
+      expect(
+        document.querySelectorAll('[data-slot=combobox-chip]')
+      ).toHaveLength(0)
+    })
+
     it('changes a chip to one date under another condition', async () => {
       await page.viewport(390, 844)
       render(
