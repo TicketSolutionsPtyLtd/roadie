@@ -84,7 +84,12 @@ is 100". Text a field contains stops before words other filters read to the
 end, so "name disco melb" suggests "Name contains disco" and "City is
 Melbourne" first. "city is empty" and "city is not empty" read as the field
 having no value or one. A field name a statement reads is never also read as a
-value, so "sold > 100" never suggests "Status is Sold out".
+value, so "sold > 100" never suggests "Status is Sold out". A date keeps the
+word that compares it: "starts after today" never suggests "Starts: Today",
+and one it can't read, such as "after 7pm", suggests no date.
+`parseDatePhrase` reads "after" and "before" with any day or range, such as
+"after this weekend", and "since", "from", "until" and "till" with the day
+itself included.
 
 `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
 and `hitsPerPage`, so the response's `totalHits` counts the matches (up to

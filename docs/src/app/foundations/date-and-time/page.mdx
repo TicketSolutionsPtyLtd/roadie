@@ -1086,6 +1086,10 @@ site, a table gives the suggestions for a set of typed phrases, best first.
 - Numbers are day first. `1/12` is 1 December.
 - A date with no year takes the occurrence closest to today, either way. In
   October, `14 mar` is next March and `20 sep` is last month.
+- `after` and `before` take any day or range, so `after this weekend` is
+  after its Sunday. `since`, `from`, `until`, and `till` take the day itself
+  too, so `since fri` reads as after Thursday. A comparison with no day, such
+  as `after 7pm`, reads nothing.
 - A word with two readings never becomes a label of its own. A fortnight is
   the next 14 days. Next weekend offers the one after this, by date, then this
   weekend.

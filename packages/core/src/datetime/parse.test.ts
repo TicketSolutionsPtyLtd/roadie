@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { type DatePhraseSuggestion, parseDatePhrase } from './parse'
+import {
+  type DatePhraseSuggestion,
+  isDatePhraseCompletion,
+  parseDatePhrase
+} from './parse'
 
 // Fri 2 Oct 2026, 10am in Sydney.
 const SYDNEY = {
@@ -272,6 +276,78 @@ describe('parseDatePhrase: dates', () => {
     expect(
       parseDatePhrase('fri', { now, timeZone: 'Australia/Sydney' })[0]?.value
     ).toEqual({ on: '2026-10-09' })
+  })
+})
+
+describe('parseDatePhrase: comparisons', () => {
+  it.each<[string, DatePhraseSuggestion[]]>([
+    ['after today', one('After Fri 2 Oct 2026', { after: '2026-10-02' })],
+    ['before tomorrow', one('Before Sat 3 Oct 2026', { before: '2026-10-03' })],
+    ['after mon', one('After Mon 5 Oct 2026', { after: '2026-10-05' })],
+    ['after in 2 weeks', one('After Fri 16 Oct 2026', { after: '2026-10-16' })],
+    // A range: after its last day, before its first.
+    [
+      'after this weekend',
+      one('After Sun 4 Oct 2026', { after: '2026-10-04' })
+    ],
+    [
+      'before next week',
+      one('Before Mon 5 Oct 2026', { before: '2026-10-05' })
+    ],
+    // Since, from and until take the day itself too.
+    ['since mon', one('After Sun 4 Oct 2026', { after: '2026-10-04' })],
+    ['from tomorrow', one('After Fri 2 Oct 2026', { after: '2026-10-02' })],
+    [
+      'since this weekend',
+      one('After Fri 2 Oct 2026', { after: '2026-10-02' })
+    ],
+    ['since 1 dec', one('After Mon 30 Nov 2026', { after: '2026-11-30' })],
+    ['until fri', one('Before Sat 3 Oct 2026', { before: '2026-10-03' })],
+    [
+      'till this weekend',
+      one('Before Mon 5 Oct 2026', { before: '2026-10-05' })
+    ]
+  ])('%s', (text, expected) => {
+    expect(parseDatePhrase(text, SYDNEY)).toEqual(expected)
+  })
+
+  it.each([
+    'after 7pm',
+    'before upcoming',
+    'since next 6 hours',
+    'until after 1 dec'
+  ])('reads nothing for "%s", rather than drop the comparison', (text) => {
+    expect(parseDatePhrase(text, SYDNEY)).toEqual([])
+  })
+
+  it('reads nothing past the last day a date holds', () => {
+    const last = { now: new Date('9999-12-31T12:00:00Z'), timeZone: 'UTC' }
+    expect(parseDatePhrase('until today', last)).toEqual([])
+  })
+
+  it('keeps "from" to "to" a range', () => {
+    expect(parseDatePhrase('from 1 to 14 mar', SYDNEY)).toEqual(
+      one('1 to 14 Mar 2027', { start: '2027-03-01', end: '2027-03-14' })
+    )
+  })
+
+  it('completes the day being typed, as a completion', () => {
+    const [after] = parseDatePhrase('after tomo', SYDNEY)
+    expect(after).toEqual({
+      label: 'After Sat 3 Oct 2026',
+      value: { after: '2026-10-03' }
+    })
+    expect(isDatePhraseCompletion(after!)).toBe(true)
+    expect(
+      isDatePhraseCompletion(parseDatePhrase('after today', SYDNEY)[0]!)
+    ).toBe(false)
+  })
+
+  it('stays linear on a long run of comparison words', () => {
+    const text = 'after '.repeat(20_000) + 'today'
+    const started = performance.now()
+    expect(parseDatePhrase(text, SYDNEY)).toEqual([])
+    expect(performance.now() - started).toBeLessThan(500)
   })
 })
 

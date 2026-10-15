@@ -1,5 +1,6 @@
 import { describeDateRange } from '../datetime/describe'
 import {
+  DATE_COMPARISONS,
   type DatePhraseValue,
   isDatePhraseCompletion,
   parseDatePhrase
@@ -495,6 +496,8 @@ function spanCandidates(
   for (let start = 0; start < words.length; start++) {
     // "not melb" and "-melb" never offer Melbourne itself.
     const ruledOut = start > 0 && NEGATIONS.has(plain(words[start - 1]!))
+    // "after today" never offers Today: the longer reading keeps "after".
+    const compared = start > 0 && DATE_COMPARISONS.has(plain(words[start - 1]!))
     for (
       let end = start + 1;
       end <= Math.min(words.length, start + maxSpan);
@@ -546,7 +549,7 @@ function spanCandidates(
         valueReadings(fields, text).forEach(add)
         // A phrase is only completed while it is still being typed, at the end.
         const typing = end === words.length
-        if (dateFields.length) {
+        if (dateFields.length && !compared) {
           dateReadings(dateFields, text, options)
             .filter((reading) => typing || reading.complete !== false)
             .forEach(add)

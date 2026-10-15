@@ -438,20 +438,30 @@ export function parseDatePhrase(
     return [{ label: label ?? time, value: { time } }]
   }
 
-  m = /^(after|before) (.+)$/.exec(input)
-  if (m) {
-    const date = parseDate(m[2]!, today)
-    if (!date) return []
-    const word = m[1] === 'after' ? 'After' : 'Before'
-    const value = m[1] === 'after' ? { after: date } : { before: date }
-    return [{ label: `${word} ${formatDay(date)}`, value }]
-  }
-
   // Split rather than match: a lazy pattern backtracks on many separators.
   const ends = input.replace(/^(?:between|from) /, '').split(/ (?:and|to) /)
   if (ends.length === 2) {
     const range = parseRange(ends[0]!, ends[1]!, today)
     if (range) return [describe(range)]
+  }
+
+  m = COMPARED.exec(input)
+  if (m) {
+    // One level only, so a run of comparison words stays linear.
+    if (COMPARED.test(m[2]!)) return []
+    const { after, edge, shift } = COMPARISONS[m[1] as Comparison]
+    return parseDatePhrase(m[2]!, options).flatMap((day) => {
+      const days = dayBounds(day.value, options)
+      if (!days) return []
+      const date = dayAway(days[edge], shift)
+      if (!date) return []
+      const suggestion: DatePhraseSuggestion = {
+        label: `${after ? 'After' : 'Before'} ${formatDay(date)}`,
+        value: after ? { after: date } : { before: date }
+      }
+      if (isDatePhraseCompletion(day)) COMPLETIONS.add(suggestion)
+      return [suggestion]
+    })
   }
 
   const date = parseDate(input, today)
@@ -467,6 +477,50 @@ export function parseDatePhrase(
 }
 
 const COMPLETIONS = new WeakSet<DatePhraseSuggestion>()
+
+// "Since" and "from" take the day itself, as "until" and "till" do.
+const ONWARD = { after: true, edge: 'start', shift: -1 } as const
+const THROUGH = { after: false, edge: 'end', shift: 1 } as const
+const COMPARISONS = {
+  after: { after: true, edge: 'end', shift: 0 },
+  before: { after: false, edge: 'start', shift: 0 },
+  since: ONWARD,
+  from: ONWARD,
+  until: THROUGH,
+  till: THROUGH
+} as const
+type Comparison = keyof typeof COMPARISONS
+
+/** Words that compare with the date after them, as "after" in "after today". */
+export const DATE_COMPARISONS: ReadonlySet<string> = new Set(
+  Object.keys(COMPARISONS)
+)
+const COMPARED = new RegExp(`^(${[...DATE_COMPARISONS].join('|')}) (.+)$`)
+
+/** The day `shift` days from `date`, or null past the years a date holds. */
+function dayAway(date: string, shift: number): string | null {
+  try {
+    return addDays(date, shift)
+  } catch {
+    return null
+  }
+}
+
+/** The first and last day a phrase covers, or null for a time or an open range. */
+function dayBounds(
+  value: DatePhraseValue,
+  options: DatePhraseOptions
+): { start: string; end: string } | null {
+  if (typeof value === 'object' && 'on' in value)
+    return { start: value.on, end: value.on }
+  if (
+    typeof value === 'object' &&
+    ('before' in value || 'after' in value || 'time' in value)
+  )
+    return null
+  const range = resolveDateRange(value, options)
+  return range.kind === 'dates' ? range : null
+}
 
 /** Whether a suggestion finishes a phrase from its first letters, like "ongo". */
 export function isDatePhraseCompletion(

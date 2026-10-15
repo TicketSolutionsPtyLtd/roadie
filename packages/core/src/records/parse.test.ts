@@ -965,6 +965,50 @@ describe('parseQuery', () => {
       ).toEqual([])
     })
 
+    it.each([
+      ['starts after today', 'Starts: After Sat 3 Oct 2026', 'Starts: Today'],
+      [
+        'starts from tomorrow',
+        'Starts: After Sat 3 Oct 2026',
+        'Starts: Tomorrow'
+      ],
+      [
+        'starts after tomorrow',
+        'Starts: After Sun 4 Oct 2026',
+        'Starts: Tomorrow'
+      ],
+      [
+        'starts since monday',
+        'Starts: After Sun 4 Oct 2026',
+        'Starts: Mon 5 Oct 2026'
+      ],
+      [
+        'starts until friday',
+        'Starts: Before Sat 10 Oct 2026',
+        'Starts: Fri 9 Oct 2026'
+      ],
+      ['after today', 'Starts: After Sat 3 Oct 2026', 'Starts: Today']
+    ])(
+      'reads "%s" as %s, never dropping the comparison',
+      (text, label, dropped) => {
+        const read = parse(text, { limit: 50 })
+        expect(read[0]).toMatchObject({ label, remainder: '' })
+        expect(read.map(summary)).not.toContain(dropped)
+      }
+    )
+
+    it('reads no date for a comparison it can’t express', () => {
+      const read = parse('starts after 7pm', { limit: 50 })
+      expect(
+        read.filter((s) => s.kind === 'filter' && s.value.field === 'starts')
+      ).toEqual([])
+      expect(
+        parse('melb before upcoming', { limit: 50 }).filter(
+          (s) => s.kind === 'filter' && s.value.field === 'starts'
+        )
+      ).toEqual([])
+    })
+
     it('takes an identifier as exact only when nothing is left over', () => {
       const exact = (text: string) =>
         parse(text, { limit: 50 }).filter((s) => s.kind === 'filter' && s.exact)
