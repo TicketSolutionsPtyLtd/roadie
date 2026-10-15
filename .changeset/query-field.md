@@ -35,7 +35,8 @@ once text is typed. Mark a step's one answer `exact`, such as "City is empty",
 and Enter takes it before anything is typed. Mark one that opens an editor
 `opensEditor`, such as "Custom dates", and only an arrow or a click takes it.
 `pendingChip.hint`, such as "Type a number.", shows and is announced in place
-of No suggestions while no value is listed.
+of No suggestions while no value is listed. Focus leaving the field calls
+`onPendingChipCancel`, as Escape does.
 
 To edit a chip in the list, answer `onSelectChip` with a value step whose
 `pendingChip.chipId` names the chip. The chip shows selected in place of a

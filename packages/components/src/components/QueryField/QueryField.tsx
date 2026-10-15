@@ -57,8 +57,8 @@ export type QueryFieldProps<Value = unknown> = {
   onClear?: () => void
   /**
    * The field being given a value, such as "Venue is", shown after the chips.
-   * With `chipId`, that chip shows selected instead, and taking a value keeps
-   * the list open. Backspace in the empty field removes the chip, and focus
+   * With `chipId`, that chip shows selected instead, taking a value keeps
+   * the list open, and Backspace in the empty field removes the chip. Focus
    * leaving the field ends the step.
    */
   pendingChip?: QueryFieldPendingChip
@@ -246,14 +246,14 @@ export function QueryField<Value = unknown>({
   }
   const popupRef = useRef<HTMLDivElement>(null)
   const leaving = useRef<ReturnType<typeof setTimeout>>(undefined)
-  // Read as focus lands: a step for a new filter, or one already ended, stays.
-  const cancelEdit = useRef<(() => void) | undefined>(undefined)
+  // Read as focus lands, so a step already ended isn't ended again.
+  const cancelStep = useRef<(() => void) | undefined>(undefined)
   useIsomorphicLayoutEffect(() => {
-    cancelEdit.current = editedId ? onPendingChipCancel : undefined
+    cancelStep.current = pendingChip ? onPendingChipCancel : undefined
   })
   useEffect(() => () => clearTimeout(leaving.current), [])
 
-  // Editing a chip ends as focus leaves the field and its list. Checked once
+  // A value step ends as focus leaves the field and its list. Checked once
   // focus lands, as it stays put while the window loses focus.
   function handleBlur(event: FocusEvent<HTMLElement>) {
     const { ownerDocument } = event.currentTarget
@@ -264,7 +264,7 @@ export function QueryField<Value = unknown>({
       const inside = [field, popupRef.current].some(
         (element) => active && element?.contains(active)
       )
-      if (!inside) cancelEdit.current?.()
+      if (!inside) cancelStep.current?.()
     })
   }
   const operators = pendingChip?.operators ?? NO_OPERATORS

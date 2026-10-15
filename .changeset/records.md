@@ -73,20 +73,20 @@ phrases such as "this weekend", each becoming a chip. The words a suggestion
 doesn't read stay in the field.
 
 Picking a field lists its values under a toggle of operators, which Tab steps
-through. An option field offers is, is not, and has all of for a `multiple`
-field. A text field offers contains, doesn't contain, is, and is not. A number
-or money field offers =, ≠, <, >, and between, named in words for screen
-readers. A boolean lists Yes and No, and a date its quick dates and Custom
-dates, under is. Every field that can be filtered ends its toggle with is
-empty and is not empty, whose one row Enter takes whatever is typed. Typing
-narrows the values, and Enter takes the first. A quick date lists when its
-name has a word starting with each word typed, so "next" lists Next 7 days,
-and Enter never opens Custom dates. Typed text or a number shows as one row
-worded as its chip. Between reads 20 and 50, 20-50, 20 to 50, or 20..50, in
-either order, and a space after the first number adds the "and". Money takes
-`$` and commas. Until the value reads, the list says what to type, such as
-"Type a number." Another option value taken under is joins the field's is
-chip.
+through. Leaving the field ends picking a value, as Escape does. An option
+field offers is, is not, and has all of for a `multiple` field. A text field
+offers contains, doesn't contain, is, and is not. A number or money field
+offers =, ≠, <, >, and between, named in words for screen readers. A boolean
+lists Yes and No, and a date its quick dates and Custom dates, under is. Every
+field that can be filtered ends its toggle with is empty and is not empty,
+whose one row Enter takes whatever is typed. Typing narrows the values, and
+Enter takes the first. A quick date lists when its name has a word starting
+with each word typed, so "next" lists Next 7 days, and Enter never opens
+Custom dates. Typed text or a number shows as one row worded as its chip.
+Between reads 20 and 50, 20-50, 20 to 50, or 20..50, in either order, and a
+space after the first number adds the "and". Money takes `$` and commas. Until
+the value reads, the list says what to type, such as "Type a number." Another
+option value taken under is joins the field's is chip.
 
 Clicking a chip, or Enter on it, edits it in the list, with what it holds
 ticked. An option chip's values tick and untick, and unticking the last

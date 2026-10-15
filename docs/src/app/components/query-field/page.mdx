@@ -127,8 +127,8 @@ takes `invalid`, `disabled` and `required` from it.
 
 Picking a field, such as Venue, starts the value step. Show a `pendingChip`
 and swap what `suggest` returns for that field's values. Taking a value adds
-the chip and ends the step; Backspace on the empty field or Escape calls
-`onPendingChipCancel` to go back.
+the chip and ends the step; Backspace on the empty field, Escape, or focus
+leaving the field calls `onPendingChipCancel` to go back.
 
 Give the pending chip two or more `operators`, and the chosen one as
 `operator`, to show a toggle above the values. Pressing an operator, or Tab in

@@ -1758,7 +1758,7 @@ describe('QueryField chip editing', () => {
     expect(onPendingChipCancel).not.toHaveBeenCalled()
   })
 
-  it('keeps a step for a new filter as focus leaves', async () => {
+  it('ends a step for a new filter as focus leaves', async () => {
     const onPendingChipCancel = vi.fn()
     render(
       <>
@@ -1770,13 +1770,8 @@ describe('QueryField chip editing', () => {
       </>
     )
     await userEvent.click(input())
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-    onTestFinished(() => {
-      vi.useRealTimers()
-    })
-    screen.getByText('Outside').focus()
-    settleFocus()
-    expect(onPendingChipCancel).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByText('Outside'))
+    await waitFor(() => expect(onPendingChipCancel).toHaveBeenCalledTimes(1))
   })
 
   it('leaves the step alone once the field unmounts as focus leaves', async () => {
