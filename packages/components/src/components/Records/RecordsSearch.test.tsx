@@ -23,20 +23,12 @@ import { RecordsFilterEditorLazy } from './RecordsFilterEditorLazy'
 import { type TestShow, testShows } from './testUtils'
 import { type UseRecordsOptions, useRecords } from './useRecords'
 
-// jsdom never upgrades NumberField's animated number, so its hooks don't exist.
-vi.mock('@number-flow/react', async () => {
-  const { createElement } = await import('react')
-  return {
-    default: ({ value }: { value: unknown }) =>
-      createElement('number-flow-react', null, String(value))
-  }
-})
-
 const field = recordFields<TestShow>()
 const fields = [
   field.text('show', { label: 'Show' }),
   field.option('city', { label: 'City' }),
   field.number('sold', { label: 'Sold' }),
+  field.money('gross', { label: 'Gross' }),
   field.option('status', {
     label: 'Status',
     status: {
@@ -100,6 +92,29 @@ const ticked = () =>
     )
 const selectChip = (user: ReturnType<typeof userEvent.setup>, label: string) =>
   user.click(within(chip(label)).getByRole('button', { name: label }))
+const customDates = async (
+  user: ReturnType<typeof userEvent.setup>,
+  label?: string
+) => {
+  if (label) await selectChip(user, label)
+  await user.click(await option('Custom dates'))
+  return editor()
+}
+const condition = async (
+  user: ReturnType<typeof userEvent.setup>,
+  dialog: HTMLElement,
+  name: string
+) => {
+  await user.click(
+    within(dialog).getByRole('combobox', { name: 'Starts condition' })
+  )
+  await user.click(await screen.findByRole('option', { name }))
+}
+const AFTER_1_DEC: RecordFilter = {
+  field: 'starts',
+  operator: 'after',
+  value: '2026-12-01'
+}
 const rows = () =>
   screen
     .queryAllByRole('row')
@@ -214,55 +229,28 @@ describe('Records.Search', () => {
     await waitFor(() => expect(ticked()).toEqual(['Hobart', 'Perth']))
   })
 
-  it('removes a filter from its editor, returning focus to the field', async () => {
+  it('returns focus to the chip when Custom dates closes', async () => {
     const { user } = setup({
-      defaultView: {
-        query: { filters: [{ field: 'sold', operator: 'gt', value: 100 }] }
-      }
+      defaultView: { query: { filters: [AFTER_1_DEC] } }
     })
-    chip('Sold').focus()
-    await user.keyboard('{Enter}')
-    const dialog = await editor()
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Remove filter' })
-    )
-    await waitFor(() => expect(chipLabels()).toEqual([]))
-    await waitFor(() => expect(input()).toHaveFocus())
-  })
-
-  it('returns focus to the chip when its editor closes', async () => {
-    const { user } = setup({
-      defaultView: {
-        query: { filters: [{ field: 'sold', operator: 'gt', value: 100 }] }
-      }
-    })
-    chip('Sold').focus()
-    await user.keyboard('{Enter}')
-    await editor()
+    await customDates(user, chipLabels()[0]!)
     await user.keyboard('{Escape}')
-    await waitFor(() => expect(chip('Sold')).toHaveFocus())
+    await waitFor(() => expect(chip('Starts')).toHaveFocus())
   })
 
-  it('opens an editor for a number field, adding the filter once it has a value', async () => {
+  it('opens Custom dates for a new date filter, adding it once it has a date', async () => {
     const { user, lastView } = setup()
     await user.click(input())
-    await user.click(await option('Sold'))
-    const dialog = await editor()
+    await user.click(await option('Starts'))
+    const dialog = await customDates(user)
     expect(chipLabels()).toEqual([])
-    const value = within(dialog).getByRole('textbox', { name: 'Sold value' })
-    await waitFor(() => expect(value).toHaveFocus())
-    await user.keyboard('1500')
-    expect(chipLabels()).toEqual(['Sold is 1,500'])
+    await condition(user, dialog, 'Is after')
     await user.click(
-      within(dialog).getByRole('combobox', { name: 'Sold condition' })
+      within(dialog).getByRole('combobox', { name: 'Starts date' })
     )
-    await user.click(
-      await screen.findByRole('option', { name: 'Is more than' })
-    )
-    expect(chipLabels()).toEqual(['Sold is more than 1,500'])
-    expect(lastView().query.filters).toEqual([
-      { field: 'sold', operator: 'gt', value: 1500 }
-    ])
+    await user.keyboard('1 dec{Enter}')
+    expect(lastView().query.filters).toEqual([AFTER_1_DEC])
+    expect(chipLabels()).toHaveLength(1)
   })
 
   it('shows the page’s scope first, locked, and never clears it', async () => {
@@ -442,14 +430,14 @@ describe('Records.Search', () => {
     ])
   })
 
-  it('edits the same filter after a parent reorders them', async () => {
+  it('edits the same date filter after a parent reorders them', async () => {
     const onViewChange = vi.fn()
     function Sorted() {
       const [view, setView] = useState<RecordView>({
         query: {
           search: '',
           filters: [
-            { field: 'sold', operator: 'gt', value: 100 },
+            AFTER_1_DEC,
             { field: 'city', operator: 'is', values: ['Perth'] }
           ],
           sort: []
@@ -482,25 +470,17 @@ describe('Records.Search', () => {
     }
     const user = userEvent.setup()
     render(<Sorted />)
-    await user.click(
-      within(chip('Sold')).getByRole('button', { name: /^Sold/ })
-    )
-    const dialog = await editor()
-    const value = within(dialog).getByRole('textbox', { name: 'Sold value' })
-    await user.clear(value)
-    await user.type(value, '250')
+    const dialog = await customDates(user, chipLabels()[0]!)
+    const date = within(dialog).getByRole('combobox', { name: 'Starts date' })
+    await user.clear(date)
+    await user.type(date, '2 dec{Enter}')
+    await user.clear(date)
+    await user.type(date, '3 dec{Enter}')
     const filters = onViewChange.mock.lastCall![0].query.filters
-    expect(filters).toContainEqual({
-      field: 'city',
-      operator: 'is',
-      values: ['Perth']
-    })
-    expect(filters).toContainEqual({
-      field: 'sold',
-      operator: 'gt',
-      value: 250
-    })
-    expect(filters).toHaveLength(2)
+    expect(filters).toEqual([
+      { field: 'city', operator: 'is', values: ['Perth'] },
+      { ...AFTER_1_DEC, value: '2026-12-03' }
+    ])
   })
 
   it('keeps searching the words a picked field didn’t read', async () => {
@@ -511,22 +491,16 @@ describe('Records.Search', () => {
     expect(lastView().query.search).toBe('ocean')
   })
 
-  it('keeps a filter whose condition was only tried, once its editor closes', async () => {
-    const { user } = setup({
-      defaultView: {
-        query: { filters: [{ field: 'sold', operator: 'gt', value: 100 }] }
-      }
+  it('keeps a filter whose condition was only tried, once Custom dates closes', async () => {
+    const { user, lastView } = setup({
+      defaultView: { query: { filters: [AFTER_1_DEC] } }
     })
-    chip('Sold').focus()
-    await user.keyboard('{Enter}')
-    const dialog = await editor()
-    await user.click(
-      within(dialog).getByRole('combobox', { name: 'Sold condition' })
-    )
-    await user.click(await screen.findByRole('option', { name: 'Is between' }))
+    const dialog = await customDates(user, chipLabels()[0]!)
+    await condition(user, dialog, 'Is within')
     await user.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(chipLabels()).toEqual(['Sold is more than 100'])
+    expect(lastView()).toBeUndefined()
+    expect(chipLabels()).toHaveLength(1)
   })
 
   it('closes an editor whose filter the view no longer holds', async () => {
@@ -538,7 +512,7 @@ describe('Records.Search', () => {
       const [view, setView] = useState<RecordView>({
         query: {
           search: '',
-          filters: [{ field: 'sold', operator: 'gt', value: 100 }],
+          filters: [AFTER_1_DEC],
           sort: []
         },
         layout: { type: 'table' }
@@ -555,9 +529,7 @@ describe('Records.Search', () => {
     }
     const user = userEvent.setup()
     render(<Replaced />)
-    chip('Sold').focus()
-    await user.keyboard('{Enter}')
-    await editor()
+    await customDates(user, chipLabels()[0]!)
     await act(() =>
       replacer.current({
         query: {
@@ -638,13 +610,13 @@ describe('Records.Search', () => {
     const user = userEvent.setup()
     render(<Late />)
     await user.click(input())
-    await user.click(await option('Sold'))
-    const dialog = await editor()
-    const value = within(dialog).getByRole('textbox', { name: 'Sold value' })
-    await waitFor(() => expect(value).toHaveFocus())
-    await user.keyboard('5')
-    await user.clear(value)
-    await user.keyboard('{Escape}')
+    await user.click(await option('Starts'))
+    const dialog = await customDates(user)
+    await condition(user, dialog, 'Is on')
+    const date = within(dialog).getByRole('combobox', { name: 'Starts date' })
+    await user.type(date, '1 dec{Enter}')
+    await user.clear(date)
+    await user.keyboard('{Enter}{Escape}')
     expect(writes.sent).toBeGreaterThan(0)
     await waitFor(() => expect(writes.shown).toBe(writes.sent))
     expect(chipLabels()).toEqual([])
@@ -675,10 +647,9 @@ describe('Records.Search', () => {
     expect(chipLabels()).toEqual(['Status is On sale'])
     await user.click(input())
     await user.click(await option('Sold'))
-    const dialog = await editor()
-    const value = within(dialog).getByRole('textbox', { name: 'Sold value' })
-    await waitFor(() => expect(value).toHaveFocus())
     await user.keyboard('100')
+    await option('Sold is 100')
+    await user.keyboard('{Enter}')
     expect(chipLabels()).toEqual(['Status is On sale', 'Sold is 100'])
     expect(
       JSON.parse(screen.getByTestId('fetch').textContent!).filters
@@ -856,6 +827,186 @@ describe('Records.Search', () => {
     })
   })
 
+  describe('text and number steps', () => {
+    const operatorNames = () =>
+      within(screen.getByRole('group', { name: 'Operator' }))
+        .getAllByRole('button')
+        .map((item) => [item.textContent, item.getAttribute('aria-label')])
+    const optionLabels = () =>
+      screen
+        .queryAllByRole('option')
+        .map(
+          (each) =>
+            each.querySelector('[data-slot=query-field-option-label]')
+              ?.textContent
+        )
+
+    it('picks a text field, then doesn’t contain, then takes the typed text with Enter', async () => {
+      const { user, lastView } = setup()
+      await user.click(input())
+      await user.click(await option('Show'))
+      expect(operatorNames()).toEqual([
+        ['contains', null],
+        ['doesn’t contain', null],
+        ['is', null],
+        ['is not', null]
+      ])
+      await waitFor(() =>
+        expect(optionLabels()).toEqual(['Empty', 'Not empty'])
+      )
+      await user.click(screen.getByRole('button', { name: 'doesn’t contain' }))
+      await user.keyboard('ocean')
+      await option('Show doesn’t contain “ocean”')
+      await user.keyboard('{Enter}')
+      expect(chipLabels()).toEqual(['Show doesn’t contain “ocean”'])
+      expect(lastView().query.filters).toEqual([
+        { field: 'show', operator: 'not-contains', value: 'ocean' }
+      ])
+      expect(rows()).toHaveLength(25)
+    })
+
+    it.each<[string, string, RecordFilter]>([
+      ['is', '1,500', { field: 'gross', operator: 'eq', value: 1500 }],
+      ['is not', '$1500', { field: 'gross', operator: 'neq', value: 1500 }],
+      ['is less than', '50', { field: 'gross', operator: 'lt', value: 50 }],
+      ['is more than', '50', { field: 'gross', operator: 'gt', value: 50 }],
+      [
+        'is between',
+        '$20 to $50',
+        { field: 'gross', operator: 'between', value: [20, 50] }
+      ]
+    ])('makes a money filter with %s', async (operator, typed, filter) => {
+      const { user, lastView } = setup()
+      await user.click(input())
+      await user.click(await option('Gross'))
+      await user.click(screen.getByRole('button', { name: operator }))
+      await user.keyboard(typed)
+      await waitFor(() => expect(optionLabels()).toHaveLength(1))
+      await user.keyboard('{Enter}')
+      expect(lastView().query.filters).toEqual([filter])
+    })
+
+    it('names a number’s operator symbols, and offers nothing for text that isn’t one', async () => {
+      const { user, lastView } = setup()
+      await user.click(input())
+      await user.click(await option('Sold'))
+      expect(operatorNames()).toEqual([
+        ['=', 'is'],
+        ['≠', 'is not'],
+        ['<', 'is less than'],
+        ['>', 'is more than'],
+        ['between', 'is between']
+      ])
+      await user.keyboard('lots')
+      await waitFor(() => expect(optionLabels()).toEqual([]))
+      await user.keyboard('{Enter}')
+      expect(chipLabels()).toEqual([])
+      await user.clear(input())
+      await user.keyboard('20-50')
+      await waitFor(() => expect(optionLabels()).toEqual([]))
+      await user.click(screen.getByRole('button', { name: 'is between' }))
+      await option('Sold is 20 to 50')
+      await user.keyboard('{Enter}')
+      expect(lastView().query.filters).toEqual([
+        { field: 'sold', operator: 'between', value: [20, 50] }
+      ])
+    })
+
+    it('prefills a text chip’s value and condition, and Enter updates it', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'show', operator: 'not-contains', value: 'ocean' }
+            ]
+          }
+        }
+      })
+      await selectChip(user, 'Show doesn’t contain “ocean”')
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(input()).toHaveValue('ocean')
+      expect(
+        screen.getByRole('button', { name: 'doesn’t contain', pressed: true })
+      ).toBeInTheDocument()
+      await waitFor(() =>
+        expect(ticked()).toEqual(['Show doesn’t contain “ocean”'])
+      )
+      // Taking what the chip already holds writes nothing.
+      await user.keyboard('{Enter}')
+      // The condition changes the row, not the chip, until it is taken.
+      await user.click(screen.getByRole('button', { name: 'contains' }))
+      expect(lastView()).toBeUndefined()
+      await user.clear(input())
+      await user.keyboard('alley{Enter}')
+      expect(lastView().query.filters).toEqual([
+        { field: 'show', operator: 'contains', value: 'alley' }
+      ])
+      expect(chip('Show contains “alley”')).toHaveAttribute('data-selected')
+      expect(input()).toHaveValue('alley')
+      await waitFor(() => expect(ticked()).toEqual(['Show contains “alley”']))
+      await user.keyboard('{Escape}')
+      expect(chipLabels()).toEqual(['Show contains “alley”'])
+    })
+
+    it('replaces an is chip’s text, under the condition chosen', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'show', operator: 'is', values: ['Ocean Alley 1'] }
+            ]
+          }
+        }
+      })
+      await selectChip(user, 'Show is Ocean Alley 1')
+      expect(input()).toHaveValue('Ocean Alley 1')
+      await user.clear(input())
+      await user.keyboard('Ocean Alley 2{Enter}')
+      const replaced = [
+        { field: 'show', operator: 'is', values: ['Ocean Alley 2'] }
+      ]
+      expect(lastView().query.filters).toEqual(replaced)
+      await user.click(screen.getByRole('button', { name: 'is not' }))
+      expect(lastView().query.filters).toEqual(replaced)
+      await user.keyboard('{Enter}')
+      expect(lastView().query.filters).toEqual([
+        { field: 'show', operator: 'is-not', values: ['Ocean Alley 2'] }
+      ])
+    })
+
+    it('prefills a number chip’s range, and Enter updates it', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'city', operator: 'is', values: ['Perth'] },
+              { field: 'sold', operator: 'between', value: [20, 50] }
+            ]
+          }
+        }
+      })
+      await selectChip(user, 'Sold is 20 to 50')
+      expect(input()).toHaveValue('20-50')
+      expect(
+        screen.getByRole('button', { name: 'is between', pressed: true })
+      ).toBeInTheDocument()
+      await user.clear(input())
+      await user.keyboard('20..600{Enter}')
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is', values: ['Perth'] },
+        { field: 'sold', operator: 'between', value: [20, 600] }
+      ])
+      await user.click(screen.getByRole('button', { name: 'is more than' }))
+      await user.clear(input())
+      await user.keyboard('100{Enter}')
+      expect(lastView().query.filters).toEqual([
+        { field: 'city', operator: 'is', values: ['Perth'] },
+        { field: 'sold', operator: 'gt', value: 100 }
+      ])
+      expect(chipLabels()).toEqual(['City is Perth', 'Sold is more than 100'])
+    })
+  })
+
   describe('editing a chip in the list', () => {
     it('ticks Empty for an empty chip, and taking a value replaces it', async () => {
       const { user, lastView } = setup({
@@ -1009,6 +1160,7 @@ describe('Records.Search', () => {
       )
       await waitFor(() => expect(chipLabels()).toEqual([]))
       expect(lastView().query.filters).toEqual([])
+      await waitFor(() => expect(input()).toHaveFocus())
     })
 
     it('ticks a boolean chip’s answer, and taking the other replaces it', async () => {
@@ -1047,31 +1199,6 @@ describe('Records.Search', () => {
         { field: 'featured', operator: 'is-false' }
       ])
       await waitFor(() => expect(ticked()).toEqual(['No']))
-    })
-
-    it('still opens the editor for text and number chips', async () => {
-      const { user } = setup({
-        defaultView: {
-          query: {
-            filters: [
-              { field: 'show', operator: 'contains', value: 'ocean' },
-              { field: 'sold', operator: 'gt', value: 100 }
-            ]
-          }
-        }
-      })
-      await user.click(
-        within(chip('Show')).getByRole('button', { name: /^Show/ })
-      )
-      expect(await editor()).toHaveAccessibleName('Show')
-      expect(screen.queryByRole('listbox')).toBeNull()
-      await user.keyboard('{Escape}')
-      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-      await user.click(
-        within(chip('Sold')).getByRole('button', { name: /^Sold/ })
-      )
-      expect(await editor()).toHaveAccessibleName('Sold')
-      expect(chip('Sold')).not.toHaveAttribute('data-selected')
     })
   })
 })

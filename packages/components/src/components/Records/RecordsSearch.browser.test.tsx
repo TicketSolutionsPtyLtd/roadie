@@ -157,7 +157,7 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     expect(screen.getByRole('listbox')).toBeVisible()
   })
 
-  it('edits a number chip in a bottom drawer on a phone', async () => {
+  it('edits a number chip in the list on a phone, its value in the field', async () => {
     await page.viewport(390, 844)
     render(
       <Shows
@@ -169,9 +169,15 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     await userEvent.click(
       within(chip('Sold')).getByRole('button', { name: /^Sold/ })
     )
-    const drawer = await screen.findByRole('dialog', { name: 'Sold' })
-    const sheet = await settledBox(drawer)
-    expect(Math.round(sheet.bottom)).toBe(844)
-    expect(within(drawer).getByRole('heading', { name: 'Sold' })).toBeVisible()
+    const field = screen.getByRole('combobox', { name: 'Search and filter' })
+    await expect.element(field).toHaveValue('100')
+    await userEvent.clear(field)
+    await userEvent.type(field, '250')
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Sold is more than 250' })
+    )
+    await expect.poll(() => chip('Sold')?.textContent).toContain('250')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByRole('listbox')).toBeVisible()
   })
 })

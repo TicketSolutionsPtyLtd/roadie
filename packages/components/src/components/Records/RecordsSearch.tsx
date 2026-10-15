@@ -20,16 +20,17 @@ import {
   type SearchValue,
   type ValueOperator,
   filterChipIds,
-  hasValueStep,
-  isValueOperator,
   mergeFilter,
+  optionOperator,
   pendingLabel,
   sameFilter,
   searchChips,
+  stepOperator,
   toggleValue,
   topSuggestions,
   valueOperators,
-  valueSuggestions
+  valueSuggestions,
+  valueText
 } from './searchSuggestions'
 import type { RecordsField } from './types'
 import type { RecordsInstance } from './useRecords'
@@ -145,9 +146,8 @@ const focusPanel = (popup: HTMLElement) => popup
 /**
  * Search and filter in one field. Typing searches the records' searchable
  * fields and suggests filters, such as a city or "this weekend", that become
- * chips. A selected chip edits its values in the list, or for text, numbers
- * and Custom dates, in an editor. The page's `scope` shows first, as locked
- * chips.
+ * chips. A selected chip edits its values in the list, and Custom dates in
+ * an editor. The page's `scope` shows first, as locked chips.
  */
 export function RecordsSearch({
   placeholder = 'Search and filter',
@@ -310,21 +310,15 @@ export function RecordsSearch({
     const field = filter && byKey.get(filter.field)
     if (!field) return
     dropOpening()
-    if (!hasValueStep(field)) {
-      endStep()
-      openEditor({ field: field.key, index }, chipElement(id))
-      return
-    }
     setSelected({ index, written: [filter] })
     setPending(field.key)
-    setPendingOperator(
-      isValueOperator(filter.operator) ? filter.operator : 'is'
-    )
-    setStepText('')
+    setPendingOperator(stepOperator(field, filter.operator))
+    setStepText(valueText(field, filter))
   }
 
   function writeSelected(next: RecordFilter | null) {
     if (!selected || selectedAt === null) return
+    if (next && selectedFilter && sameFilter(next, selectedFilter)) return
     if (!next) {
       records.removeFilter(selectedAt)
       endStep()
@@ -348,7 +342,13 @@ export function RecordsSearch({
 
   function acceptForSelected(value: SearchValue, edited: RecordFilter) {
     if (value.type === 'filter') {
-      writeSelected(toggleValue(edited, value.filter))
+      // An option's values tick on and off; anything else holds one value.
+      const field = byKey.get(edited.field)
+      writeSelected(
+        field?.type === 'option'
+          ? toggleValue(edited, value.filter)
+          : value.filter
+      )
       return
     }
     if (value.type === 'edit' && selectedAt !== null) {
@@ -372,11 +372,9 @@ export function RecordsSearch({
     if (value.type === 'field') {
       const field = byKey.get(value.field)
       if (!field) return
-      if (hasValueStep(field)) {
-        setStepText('')
-        setPendingOperator('is')
-        setPending(field.key)
-      } else openEditor({ field: field.key, index: null }, group())
+      setStepText('')
+      setPendingOperator(stepOperator(field, ''))
+      setPending(field.key)
       return
     }
     setPending(null)
@@ -475,11 +473,21 @@ export function RecordsSearch({
               }
             : undefined
         }
-        onPendingOperatorChange={(operator) => {
-          if (!isValueOperator(operator)) return
+        onPendingOperatorChange={(chosen) => {
+          if (!pendingField) return
+          const operator = stepOperator(pendingField, chosen)
           setPendingOperator(operator)
-          if (selectedFilter && 'values' in selectedFilter)
-            writeSelected({ ...selectedFilter, operator })
+          // An option chip keeps its values under the new condition; typed
+          // text and numbers wait for Enter.
+          if (
+            pendingField.type === 'option' &&
+            selectedFilter &&
+            'values' in selectedFilter
+          )
+            writeSelected({
+              ...selectedFilter,
+              operator: optionOperator(operator)
+            })
         }}
         onPendingChipCancel={() => {
           dropOpening()

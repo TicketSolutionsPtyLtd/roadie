@@ -3,18 +3,23 @@ import { describe, expect, it } from 'vitest'
 import { type RecordFilter, recordFields } from '@oztix/roadie-core/records'
 
 import {
+  type ValueOperator,
   filterChipIds,
   filterKey,
   mergeFilter,
+  pendingLabel,
   searchChips,
+  stepOperator,
   toggleValue,
   topSuggestions,
   valueOperators,
-  valueSuggestions
+  valueSuggestions,
+  valueText
 } from './searchSuggestions'
 
 type Gig = {
   name: string
+  gross: number
   city: string
   starts: string
   placed: string
@@ -36,6 +41,7 @@ const fields = [
   field.date('starts', { label: 'Starts', moment: 'event' }),
   field.date('placed', { label: 'Placed' }),
   field.number('sold', { label: 'Sold' }),
+  field.money('gross', { label: 'Gross' }),
   field.boolean('accessible', { label: 'Accessible' })
 ]
 
@@ -269,6 +275,89 @@ describe('valueSuggestions', () => {
         filter: { field: 'starts', operator: 'after', value: '2026-12-01' }
       }
     })
+  })
+})
+
+describe('valueSuggestions for text and numbers', () => {
+  const typedFilters = (key: string, text: string, operator?: ValueOperator) =>
+    valuesOf(valueSuggestions(byKey(key), text, context(), operator)).items.map(
+      (item) => item.value.type === 'filter' && item.value.filter
+    )
+
+  it('offers only Empty and Not empty until something is typed', () => {
+    expect(labels(valueSuggestions(byKey('name'), '', context()))).toEqual([
+      ['Empty', 'Not empty'],
+      []
+    ])
+    expect(labels(valueSuggestions(byKey('sold'), '', context()))).toEqual([
+      ['Empty', 'Not empty'],
+      []
+    ])
+  })
+
+  it('reads typed text as one row under the operator, worded as its chip', () => {
+    expect(
+      labels(
+        valueSuggestions(byKey('name'), ' disco ', context(), 'not-contains')
+      )
+    ).toEqual([['Event doesn’t contain “disco”']])
+    expect(typedFilters('name', 'disco')).toEqual([
+      { field: 'name', operator: 'contains', value: 'disco' }
+    ])
+    expect(typedFilters('name', 'OZ-1', 'is-not')).toEqual([
+      { field: 'name', operator: 'is-not', values: ['OZ-1'] }
+    ])
+  })
+
+  it.each<[string, string, ValueOperator, RecordFilter | undefined]>([
+    ['sold', '50', 'eq', { field: 'sold', operator: 'eq', value: 50 }],
+    ['sold', '50', 'neq', { field: 'sold', operator: 'neq', value: 50 }],
+    ['sold', '50', 'lt', { field: 'sold', operator: 'lt', value: 50 }],
+    ['gross', '$1,500', 'gt', { field: 'gross', operator: 'gt', value: 1500 }],
+    [
+      'sold',
+      '20-50',
+      'between',
+      { field: 'sold', operator: 'between', value: [20, 50] }
+    ],
+    [
+      'sold',
+      '20 to 50',
+      'between',
+      { field: 'sold', operator: 'between', value: [20, 50] }
+    ],
+    [
+      'gross',
+      '$20..$1,000',
+      'between',
+      { field: 'gross', operator: 'between', value: [20, 1000] }
+    ],
+    ['sold', '50', 'between', undefined],
+    ['sold', '50-20', 'between', undefined],
+    ['sold', '20-50', 'eq', undefined],
+    ['sold', '>50', 'eq', undefined],
+    ['sold', 'fifty', 'eq', undefined],
+    ['sold', '1,2', 'eq', undefined]
+  ])('reads %s “%s” under %s', (key, text, operator, filter) => {
+    expect(typedFilters(key, text, operator)).toEqual(filter ? [filter] : [])
+  })
+
+  it('words a number row as its chip reads', () => {
+    expect(
+      labels(valueSuggestions(byKey('gross'), '1500', context(), 'gt'))
+    ).toEqual([['Gross is more than $1,500']])
+  })
+
+  it('keeps the typed text while editing, so the taken row stays ticked', () => {
+    const edited: RecordFilter = { field: 'sold', operator: 'gt', value: 100 }
+    const [row] = valuesOf(
+      valueSuggestions(byKey('sold'), '100', context(), 'gt', edited)
+    ).items
+    expect(row).toMatchObject({ selected: true, remainder: '100' })
+    const [added] = valuesOf(
+      valueSuggestions(byKey('sold'), '100', context(), 'gt')
+    ).items
+    expect(added!.remainder).toBeUndefined()
   })
 })
 
@@ -559,5 +648,67 @@ describe('valueOperators', () => {
   it('gives boolean and date fields no toggle', () => {
     expect(valueOperators(byKey('accessible'))).toEqual([])
     expect(valueOperators(byKey('starts'))).toEqual([])
+  })
+
+  it('toggles a text field between contains, doesn’t contain, is and is not', () => {
+    expect(valueOperators(byKey('name'))).toEqual([
+      { value: 'contains', label: 'contains' },
+      { value: 'not-contains', label: 'doesn’t contain' },
+      { value: 'is', label: 'is' },
+      { value: 'is-not', label: 'is not' }
+    ])
+  })
+
+  it('shows a number’s operators as symbols, named in words', () => {
+    expect(valueOperators(byKey('gross'))).toEqual([
+      { value: 'eq', label: '=', 'aria-label': 'is' },
+      { value: 'neq', label: '≠', 'aria-label': 'is not' },
+      { value: 'lt', label: '<', 'aria-label': 'is less than' },
+      { value: 'gt', label: '>', 'aria-label': 'is more than' },
+      { value: 'between', label: 'between', 'aria-label': 'is between' }
+    ])
+  })
+})
+
+describe('stepOperator', () => {
+  it('keeps an operator the field’s step offers, or starts on its first', () => {
+    expect(stepOperator(byKey('name'), 'is-not')).toBe('is-not')
+    expect(stepOperator(byKey('name'), 'is-not-set')).toBe('contains')
+    expect(stepOperator(byKey('sold'), 'gt')).toBe('gt')
+    expect(stepOperator(byKey('sold'), 'contains')).toBe('eq')
+    expect(stepOperator(byKey('city'), 'has-all')).toBe('is')
+    expect(stepOperator(byKey('starts'), 'between')).toBe('is')
+  })
+})
+
+describe('pendingLabel', () => {
+  it('reads the field and its operator in words', () => {
+    expect(pendingLabel(byKey('name'), 'not-contains')).toBe(
+      'Event doesn’t contain'
+    )
+    expect(pendingLabel(byKey('sold'), 'lt')).toBe('Sold is less than')
+    expect(pendingLabel(byKey('starts'), 'is')).toBe('Starts')
+    expect(pendingLabel(byKey('accessible'), 'is')).toBe('Accessible is')
+  })
+})
+
+describe('valueText', () => {
+  it.each<[string, RecordFilter, string]>([
+    [
+      'contains',
+      { field: 'name', operator: 'contains', value: 'disco' },
+      'disco'
+    ],
+    ['is', { field: 'name', operator: 'is', values: ['OZ-1'] }, 'OZ-1'],
+    ['a number', { field: 'sold', operator: 'gt', value: 1500 }, '1500'],
+    [
+      'a range',
+      { field: 'gross', operator: 'between', value: [20, 50] },
+      '20-50'
+    ],
+    ['emptiness', { field: 'name', operator: 'is-set' }, ''],
+    ['an option', { field: 'city', operator: 'is', values: ['perth'] }, '']
+  ])('prefills %s as typed', (_, filter, text) => {
+    expect(valueText(byKey(filter.field), filter)).toBe(text)
   })
 })
