@@ -18,6 +18,7 @@ describe('isUnsafeHref', () => {
     'java\tscript:alert(1)',
     'jav\nascript:alert(1)',
     'java\rscript:alert(1)',
+    'j\ta\nv\rascript:alert(1)',
     'data\t:text/html,x',
     '\x00javascript:alert(1)',
     '\u0001data:text/html,x',
