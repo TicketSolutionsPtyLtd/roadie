@@ -1654,6 +1654,23 @@ describe('QueryField chip editing', () => {
     expect(document.activeElement).toBe(input())
   })
 
+  it('keeps a locked chip a step edits on Backspace, ending the step', async () => {
+    const onRemoveChip = vi.fn()
+    const onPendingChipCancel = vi.fn()
+    render(
+      <Harness
+        initialChips={[scope, status]}
+        onRemoveChip={onRemoveChip}
+        pendingChip={{ id: 'event', label: 'Event is', chipId: 'event' }}
+        onPendingChipCancel={onPendingChipCancel}
+      />
+    )
+    await userEvent.click(input())
+    await userEvent.keyboard('{Backspace}')
+    expect(onRemoveChip).not.toHaveBeenCalled()
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps the edited chip on Escape, ending the step', async () => {
     const onPendingChipCancel = vi.fn()
     render(<CityEditing onPendingChipCancel={onPendingChipCancel} />)
