@@ -387,6 +387,22 @@ describe(
       ).toHaveLength(0)
     })
 
+    it('keeps the step as Tab moves through the calendar', async () => {
+      await openCalendar()
+      await expect
+        .poll(() => popup()!.contains(document.activeElement))
+        .toBe(true)
+      await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+      await userEvent.keyboard('{Tab}')
+      expect(popup()!.contains(document.activeElement)).toBe(true)
+      expect(
+        document.querySelector('[data-slot=query-field-pending-chip]')
+      ).toBeTruthy()
+      expect(
+        popup()?.querySelector('[data-slot=records-dates-panel]')
+      ).toBeTruthy()
+    })
+
     it('changes a chip to one date under another condition', async () => {
       await page.viewport(390, 844)
       render(
