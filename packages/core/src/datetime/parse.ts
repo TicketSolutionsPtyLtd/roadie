@@ -447,7 +447,7 @@ export function parseDatePhrase(
     if (COMPARED.test(text)) return []
     const { after, edge, shift } = COMPARISONS[comparison]
     // "since mon" looks back to the last Monday, today included.
-    const weekday = lookBack && after && nameIndex(WEEKDAYS, text)
+    const weekday = lookBack && nameIndex(WEEKDAYS, text)
     const days = weekday
       ? [on(addDays(today, -((dayOfWeek(today) - weekday + 7) % 7)))]
       : parseDatePhrase(text, options)
@@ -474,7 +474,7 @@ export function parseDatePhrase(
   if (ranges) return ranges.map(describe)
 
   m = COMPARED.exec(input)
-  if (m) return compare(m[1] as Comparison, m[2]!, true)
+  if (m) return compare(m[1] as Comparison, m[2]!, m[1] === 'since')
 
   const date = parseDate(input, today)
   if (date) return [on(date)]

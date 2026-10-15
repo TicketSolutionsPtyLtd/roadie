@@ -96,8 +96,9 @@ to next fri", read as the days between or not at all.
 `parseDatePhrase` reads "after" and "before" with any day or range, such as
 "after this weekend", and "since", "from", "on or after", "until", "till",
 and "on or before" with the day itself included, as it does "onwards" or
-"and later" after a day. A weekday after "after", "since", or "from" is the last one, so
-"since mon" never means next Monday.
+"and later" after a day. A weekday after "since" is the last one, so
+"since mon" never means next Monday, and after any other comparison it's the
+next one.
 
 `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
 and `hitsPerPage`, so the response's `totalHits` counts the matches (up to
