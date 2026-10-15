@@ -900,7 +900,14 @@ describe('parseQuery', () => {
       'sold ≤ 100',
       'sold at least 100',
       'sold at most 100',
-      'sold 100+'
+      'sold 100+',
+      // A comparison word with no number it can read yet.
+      'sold more than',
+      'sold fewer than',
+      'sold less than abc',
+      'sold over',
+      'sold under x',
+      'sold between 5'
     ])('reads no status from the field name in "%s"', (text) => {
       expect(readSold(text)).not.toContain('Status is Sold out')
       expect(
