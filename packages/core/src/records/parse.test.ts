@@ -201,6 +201,18 @@ describe('parseQuery', () => {
     })
   })
 
+  it.each([
+    ['tmrw', 'tomorrow'],
+    ['tomorow', 'tomorrow'],
+    ['tonight', 'today']
+  ])('reads "%s" as %s', (text, value) => {
+    expect(parse(text)[0]!.value).toEqual({
+      field: 'starts',
+      operator: 'within',
+      value
+    })
+  })
+
   it('offers no hour windows on a plain date field', () => {
     const hourFields = parse('next 6 hours', { limit: 50 })
       .filter(

@@ -82,6 +82,9 @@ const PHRASES: [string, DateRangeValue][] = [
 // Exact matches only, never completed: each hides an explicit range.
 const ALIASES: Record<string, DateRangeValue> = {
   weekend: 'this-weekend',
+  tonight: 'today',
+  tmrw: 'tomorrow',
+  tomorow: 'tomorrow',
   fortnight: { direction: 'next', amount: 14, unit: 'day' },
   'next fortnight': { direction: 'next', amount: 14, unit: 'day' },
   'last fortnight': { direction: 'past', amount: 14, unit: 'day' },
