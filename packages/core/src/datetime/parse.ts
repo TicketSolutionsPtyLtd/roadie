@@ -416,10 +416,11 @@ export function parseDatePhrase(
     const date = dateAhead(today, m[1]!, m[2]!)
     return date ? [on(date)] : []
   }
-  m = /^end of (?:the )?(week|month|year)$/.exec(input)
+  m = /^(end|rest) of (?:the |this )?(week|month|year)$/.exec(input)
   if (m) {
-    const date = endOf(m[1]!, today, weekStart)
-    return date ? [on(date)] : []
+    const end = endOf(m[2]!, today, weekStart)
+    if (!end) return []
+    return [m[1] === 'end' ? on(end) : describe({ start: today, end })]
   }
 
   m = /^(?:(this|next|last) )?([a-z]+)$/.exec(input)

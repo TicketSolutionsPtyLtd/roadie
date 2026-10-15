@@ -198,6 +198,32 @@ describe('parseDatePhrase: in and end of', () => {
     expect(values).toEqual(on ? [{ on }] : [])
   })
 
+  it.each<[string, DatePhraseSuggestion[]]>([
+    [
+      'rest of the week',
+      one('2 to 4 Oct 2026', { start: '2026-10-02', end: '2026-10-04' })
+    ],
+    [
+      'rest of this week',
+      one('2 to 4 Oct 2026', { start: '2026-10-02', end: '2026-10-04' })
+    ],
+    [
+      'rest of month',
+      one('2 to 31 Oct 2026', { start: '2026-10-02', end: '2026-10-31' })
+    ],
+    [
+      'rest of the year',
+      one('2 Oct to 31 Dec 2026', { start: '2026-10-02', end: '2026-12-31' })
+    ]
+  ])('reads "%s" from today to the end', (text, expected) => {
+    expect(parseDatePhrase(text, SYDNEY)).toEqual(expected)
+  })
+
+  it('offers no rest of the week past year 9999', () => {
+    const last = { now: new Date('9999-12-31T12:00:00Z'), timeZone: 'UTC' }
+    expect(parseDatePhrase('rest of the week', last)).toEqual([])
+  })
+
   it('labels the date it lands on', () => {
     expect(parseDatePhrase('in 2 weeks', SYDNEY)).toEqual(
       one('Fri 16 Oct 2026', { on: '2026-10-16' })

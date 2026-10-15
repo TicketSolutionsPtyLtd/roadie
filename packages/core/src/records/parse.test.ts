@@ -177,6 +177,19 @@ describe('parseQuery', () => {
     )
   })
 
+  it.each([
+    ['rest of the week', ['2026-10-03', '2026-10-04']],
+    ['rest of month', ['2026-10-03', '2026-10-31']]
+  ])('reads "%s" from today to the end, never to date', (text, value) => {
+    const result = parse(text, { limit: 50 })
+    expect(result[0]!.value).toEqual({
+      field: 'starts',
+      operator: 'between',
+      value
+    })
+    expect(result.map(summary).join()).not.toMatch(/to date/i)
+  })
+
   it('offers no hour windows on a plain date field', () => {
     const hourFields = parse('next 6 hours', { limit: 50 })
       .filter(
