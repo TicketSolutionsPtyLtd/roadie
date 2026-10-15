@@ -105,7 +105,7 @@ export function RecordsFilterEditor({
       {draft.operator === 'range' ? (
         <DateRangePicker
           data-filter-value=''
-          aria-label={`${name} dates`}
+          aria-label={name}
           value={draft.range}
           onValueChange={(range) => update({ range })}
           presets={datePresets(field)
@@ -119,7 +119,7 @@ export function RecordsFilterEditor({
         <DatePicker
           granularity={granularity(field)}
           data-filter-value=''
-          aria-label={`${name} date`}
+          aria-label={name}
           value={draft.date}
           onValueChange={(date) => update({ date })}
           timeZone={timeZone}

@@ -275,9 +275,7 @@ describe('Records.Search', () => {
     const dialog = await customDates(user)
     expect(chipLabels()).toEqual([])
     await condition(user, dialog, 'Is after')
-    await user.click(
-      within(dialog).getByRole('combobox', { name: 'Starts date' })
-    )
+    await user.click(within(dialog).getByRole('combobox', { name: 'Starts' }))
     await user.keyboard('1 dec{Enter}')
     expect(lastView().query.filters).toEqual([AFTER_1_DEC])
     expect(chipLabels()).toHaveLength(1)
@@ -293,9 +291,7 @@ describe('Records.Search', () => {
     await user.click(await option('Starts'))
     const dialog = await customDates(user)
     await condition(user, dialog, 'Is after')
-    await user.click(
-      within(dialog).getByRole('combobox', { name: 'Starts date' })
-    )
+    await user.click(within(dialog).getByRole('combobox', { name: 'Starts' }))
     await user.keyboard('1 dec{Enter}')
     expect(lastView().query.filters).toEqual([AFTER_1_DEC])
   })
@@ -310,9 +306,7 @@ describe('Records.Search', () => {
       }
     })
     const dialog = await customDates(user, chipLabels()[0]!)
-    await user.click(
-      within(dialog).getByRole('combobox', { name: 'Starts date' })
-    )
+    await user.click(within(dialog).getByRole('combobox', { name: 'Starts' }))
     await user.keyboard('{Control>}a{/Control}2 dec{Enter}')
     expect(lastView().query.filters).toEqual([
       { ...AFTER_1_DEC, value: '2026-12-02' }
@@ -537,7 +531,7 @@ describe('Records.Search', () => {
     const user = userEvent.setup()
     render(<Sorted />)
     const dialog = await customDates(user, chipLabels()[0]!)
-    const date = within(dialog).getByRole('combobox', { name: 'Starts date' })
+    const date = within(dialog).getByRole('combobox', { name: 'Starts' })
     await user.clear(date)
     await user.type(date, '2 dec{Enter}')
     await user.clear(date)
@@ -679,7 +673,7 @@ describe('Records.Search', () => {
     await user.click(await option('Starts'))
     const dialog = await customDates(user)
     await condition(user, dialog, 'Is on')
-    const date = within(dialog).getByRole('combobox', { name: 'Starts date' })
+    const date = within(dialog).getByRole('combobox', { name: 'Starts' })
     await user.type(date, '1 dec{Enter}')
     await user.clear(date)
     await user.keyboard('{Enter}{Escape}')

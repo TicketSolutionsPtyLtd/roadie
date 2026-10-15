@@ -91,6 +91,23 @@ describe('Records.Search by touch', TIMEOUT, () => {
       .toContain('is next week')
   })
 
+  it('titles a date’s drawer with the field, as the editor is', async () => {
+    render(<Shows />)
+    await tapOn(input())
+    await tapOn(await screen.findByRole('option', { name: /^Starts/ }))
+    await tapOn(await screen.findByRole('option', { name: 'Custom dates' }))
+    const drawer = await screen.findByRole('dialog', { name: 'Starts' })
+    await tapOn(
+      within(drawer).getByRole('combobox', { name: 'Starts condition' })
+    )
+    await tapOn(await screen.findByRole('option', { name: 'Is on' }))
+    await tapOn(within(drawer).getByRole('button', { name: /^Choose date/ }))
+    const calendar = await screen.findByRole('dialog', { name: /Choose date/ })
+    expect(
+      within(calendar).getByRole('heading', { name: 'Starts' })
+    ).toBeVisible()
+  })
+
   it('adds a new date filter from Custom dates in a drawer', async () => {
     render(<Shows />)
     await tapOn(input())
@@ -99,6 +116,9 @@ describe('Records.Search by touch', TIMEOUT, () => {
     const drawer = await screen.findByRole('dialog', { name: 'Starts' })
     await tapOn(within(drawer).getByRole('button', { name: /^Choose dates/ }))
     const calendar = await screen.findByRole('dialog', { name: /dates/ })
+    expect(
+      within(calendar).getByRole('heading', { name: 'Starts' })
+    ).toBeVisible()
     await tapOn(within(calendar).getByRole('tab', { name: 'Periods' }))
     await tapOn(await screen.findByRole('button', { name: /^Next week/ }))
     await expect
