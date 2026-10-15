@@ -473,16 +473,17 @@ function QueryFieldShortcut() {
   all four.
 - **Escape** closes the suggestions, or ends the value step. With the
   suggestions closed it clears the typed text. It never clears the chips.
-- In a value step with `operators`, **Tab** and **Shift+Tab** move to the
-  next and previous operator, wrapping, and the input gets
-  `aria-keyshortcuts='Tab'`. Focus stays in the input, even when you press
-  an operator. Without operators, Tab leaves the field as usual.
+- In a value step with `operators`, while the values show, **Tab** and
+  **Shift+Tab** move to the next and previous operator, wrapping, and the
+  input gets `aria-keyshortcuts='Tab'`. Focus stays in the input, even when
+  you press an operator. Without operators, or with the values closed, Tab
+  leaves the field as usual.
 - The operators are a toggle group named "Operator". The values' group keeps
   its label for screen readers, hidden while the toggle takes its place.
 - A locked chip reads "set by this page" after its label, and a chip's
   `description` is read after its label too. A pending chip
-  describes the input, so the value step, and a change of operator, is
-  announced.
+  describes the input, so the value step is announced, and it's a live
+  region, so a change of operator is too.
 - `required` is announced but never blocks a form: an empty search is valid.
 - `shortcut` adds `aria-keyshortcuts` to the input. The key hint beside the
   field is visual only, and hides once the field has focus.

@@ -26,5 +26,5 @@ search icon and Clear stay on the first row as chips wrap. A suggestion's
 `icon` shows before its label, and the "Search for …" row has a search icon.
 A `pendingChip` with two or more `operators` shows them as a toggle above the
 values, with the chosen `operator` pressed: pressing one, or Tab and Shift+Tab
-in the input, calls `onPendingOperatorChange`, keeps focus in the input, and
-asks `suggest` again.
+in the input while they show, calls `onPendingOperatorChange`, keeps focus in
+the input, and asks `suggest` again.
