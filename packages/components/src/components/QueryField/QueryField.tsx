@@ -620,7 +620,8 @@ export function QueryField<Value = unknown>({
                   }}
                   // Focus stays in the input, so typing and Tab carry on there.
                   onMouseDown={(event) => event.preventDefault()}
-                  className='justify-self-start'
+                  // Words of very different lengths, so equal columns leave gaps.
+                  className='auto-cols-max justify-self-start'
                 >
                   {operators.map((each) => (
                     <ToggleGroup.Item

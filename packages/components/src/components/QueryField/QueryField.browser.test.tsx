@@ -277,7 +277,7 @@ describe('QueryField', () => {
   })
 
   it('sizes operators as Buttons, at least square, above values that keep their label for assistive technology', async () => {
-    // As narrow as labels get, as items share the widest one's width.
+    // As narrow as labels get.
     const symbols: QueryFieldOperator[] = [
       { value: 'not', label: '!', 'aria-label': 'not' },
       { value: 'or', label: '|', 'aria-label': 'or' }
@@ -303,6 +303,29 @@ describe('QueryField', () => {
     const label = document.querySelector('[data-slot=combobox-group-label]')!
     expect(box(label).width).toBeLessThanOrEqual(1)
     expect(screen.getByRole('group', { name: 'Filters' })).toBeInTheDocument()
+  })
+
+  it('sizes each operator to its own label', async () => {
+    const words: QueryFieldOperator[] = [
+      { value: 'contains', label: 'contains' },
+      { value: 'not-contains', label: 'doesn’t contain' },
+      { value: 'is', label: 'is' }
+    ]
+    render(
+      <Harness
+        pendingChip={{
+          id: 'show',
+          label: 'Show contains',
+          operators: words,
+          operator: 'contains'
+        }}
+        suggest={() => suggest('values')}
+      />
+    )
+    await userEvent.click(input())
+    const short = await screen.findByRole('button', { name: 'is' })
+    const long = screen.getByRole('button', { name: 'doesn’t contain' })
+    expect(box(short).width).toBeLessThan(box(long).width / 2)
   })
 
   it('scrolls operators sideways when they outgrow the popup, keeping them above the values', async () => {
