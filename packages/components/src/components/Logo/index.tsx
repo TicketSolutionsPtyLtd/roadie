@@ -8,29 +8,12 @@ import { TAGLINE_PATH } from './taglinePath'
 const WORDMARK_PATH =
   'M15.6 41.9q-7.25 0-11.21-4.14T.42 25.94a20 20 0 0 1 1.06-6.63 14 14 0 0 1 3.05-5c1.36-1.37 3-2.43 4.8-3.12a18.8 18.8 0 0 1 12.59 0 13 13 0 0 1 7.82 8.12 20 20 0 0 1 1.03 6.63q.05 3.44-1.06 6.7a13.17 13.17 0 0 1-7.84 8.18c-2 .73-4.13 1.1-6.27 1.08m0-6.43A5.9 5.9 0 0 0 20.72 33q1.7-2.47 1.7-7.06t-1.7-7q-1.7-2.4-5.12-2.4c-2.28 0-4.02.8-5.12 2.4s-1.7 3.94-1.7 7 .56 5.46 1.67 7.1q1.65 2.43 5.15 2.43M33.58 35.53l14.63-18.26H33.87v-6.25h24.55v5.45L43.87 34.73h15.24l-.73 6.25h-24.8zM65.94 17.28h-4.72v-6.26h4.72V3.04h8.04v7.98h6.9v6.26h-6.9V31.1q0 2.36.98 3.2c.72.57 1.61.87 2.53.83q.83 0 1.64-.09.83-.1 1.63-.32l1.16 5.91q-1.6.52-3.25.73-1.5.2-3.02.2-4.94 0-7.31-2.34-2.37-2.35-2.39-7.93zM85.3 0h8.28v7.24H85.3zm.12 11.02h8.04v29.93h-8.04zM107.9 25.6 98.05 11h9.51l5.12 8.55 5.75-8.55h8.4l-9.72 14.12 10.46 15.83h-9.35l-6.09-9.7-6.38 9.75H97z'
 
-export type LogoVariant = 'normal' | 'mark' | 'wordmark'
+export type LogoVariant = 'normal' | 'mark' | 'wordmark' | 'tagline' | 'product'
 export type LogoSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 export type LogoDirection = 'horizontal' | 'vertical'
 export type LogoTone = 'brand' | 'dark' | 'light' | 'neutral'
 
-export type LogoProps = Omit<ComponentProps<'span'>, 'children' | 'dir'> & {
-  /**
-   * `normal` is the mark and wordmark; `mark` and `wordmark` are one part each.
-   * @default 'normal'
-   */
-  variant?: 'normal' | 'mark' | 'wordmark'
-  /** Product name set as live text in place of the wordmark, naming the logo `Oztix {product}`. */
-  product?: string
-  /**
-   * Adds the tagline, Built on Partnerships, to a `normal` logo. A product logo takes none.
-   * @default false
-   */
-  tagline?: boolean
-  /**
-   * `vertical` sets the wordmark and tagline under the mark, for square spaces. A product logo stays horizontal.
-   * @default 'horizontal'
-   */
-  direction?: 'horizontal' | 'vertical'
+type LogoBaseProps = Omit<ComponentProps<'span'>, 'children' | 'dir'> & {
   /**
    * The mark and wordmark colour. `brand` is Oztix blue, `dark` is near-black for light backgrounds, and `light` is white for dark, brand, or photo backgrounds, each the same in light and dark mode. `neutral` is one colour that follows the theme.
    * @default 'brand'
@@ -42,6 +25,35 @@ export type LogoProps = Omit<ComponentProps<'span'>, 'children' | 'dir'> & {
    */
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 }
+
+// One member per lockup family, so a prop a lockup can't use is a type error.
+type LogoLockupProps =
+  | {
+      /**
+       * The lockup. `normal` is the mark and wordmark, and `tagline` adds a divider and Built on Partnerships. `mark` is the mark alone, and `wordmark` is a collapse state of the full logo. `product` sets a product name in place of the wordmark. `powered-by` and `proud-sponsor` are planned.
+       * @default 'normal'
+       */
+      variant?: 'normal' | 'tagline'
+      /**
+       * `vertical` sets the wordmark, and any tagline, under the mark, for square spaces. Only `normal` and `tagline` take it.
+       * @default 'horizontal'
+       */
+      direction?: 'horizontal' | 'vertical'
+      product?: never
+    }
+  | {
+      variant: 'mark' | 'wordmark'
+      direction?: never
+      product?: never
+    }
+  | {
+      variant?: 'product'
+      /** Product name set as live text in place of the wordmark, naming the logo `Oztix {product}`. Implies `variant='product'`. */
+      product: string
+      direction?: never
+    }
+
+export type LogoProps = LogoBaseProps & LogoLockupProps
 
 const sizeClassName: Record<LogoSize, string> = {
   xs: 'text-[20px]',
@@ -150,15 +162,20 @@ function LogoPart({
   )
 }
 
-function accessibleName(productName: string | undefined, tagline: boolean) {
-  if (productName) return `Oztix ${productName}`
-  return tagline ? 'Oztix, Built on Partnerships' : 'Oztix'
+function accessibleName(lockup: LogoVariant, productName?: string) {
+  if (lockup === 'product') return `Oztix ${productName}`
+  return lockup === 'tagline' ? 'Oztix, Built on Partnerships' : 'Oztix'
+}
+
+// A product name wins over any variant, as it did before variants were typed.
+function resolveLockup(variant: LogoVariant, productName?: string) {
+  if (productName) return 'product'
+  return variant === 'product' ? 'normal' : variant
 }
 
 export function Logo({
   variant = 'normal',
   product,
-  tagline = false,
   direction = 'horizontal',
   tone = 'brand',
   size = 'md',
@@ -168,9 +185,10 @@ export function Logo({
   ...props
 }: LogoProps) {
   const productName = product?.trim()
-  const parts = productName ? 'product' : variant
-  const showTagline = tagline && parts === 'normal'
-  const vertical = direction === 'vertical' && parts === 'normal'
+  const lockup = resolveLockup(variant, productName)
+  const fullLogo = lockup === 'normal' || lockup === 'tagline'
+  const showTagline = lockup === 'tagline'
+  const vertical = direction === 'vertical' && fullLogo
   const colour = toneClassName[tone]
 
   const hidden = ariaHidden === true || ariaHidden === 'true'
@@ -178,13 +196,13 @@ export function Logo({
     ? { 'aria-hidden': ariaHidden }
     : {
         role: 'img',
-        'aria-label': ariaLabel ?? accessibleName(productName, showTagline)
+        'aria-label': ariaLabel ?? accessibleName(lockup, productName)
       }
 
   return (
     <span
       data-slot='logo'
-      data-variant={variant}
+      data-variant={lockup}
       className={cn(
         vertical
           ? 'inline-grid shrink-0 justify-items-center gap-[calc(1em/12)]'
@@ -198,7 +216,7 @@ export function Logo({
       // The lockup is a fixed brand shape; RTL pages must not mirror it.
       dir='ltr'
     >
-      {parts !== 'wordmark' && <LogoMark />}
+      {lockup !== 'wordmark' && <LogoMark />}
       {vertical && (
         <>
           <LogoWordmark
@@ -213,7 +231,7 @@ export function Logo({
           )}
         </>
       )}
-      {!vertical && parts === 'normal' && (
+      {!vertical && fullLogo && (
         <LogoPart slot='logo-wordmark'>
           {/* The lockup sets the 42-unit wordmark at the top of the 48-unit mark. */}
           <LogoWordmark className='h-[0.875em] self-start' />
@@ -235,10 +253,10 @@ export function Logo({
           <LogoTagline className='h-[calc(1em*38/48)]' />
         </LogoPart>
       )}
-      {parts === 'wordmark' && (
+      {lockup === 'wordmark' && (
         <LogoWordmark data-slot='logo-wordmark' className='h-[1em]' />
       )}
-      {parts === 'product' && (
+      {lockup === 'product' && (
         <LogoPart slot='logo-product'>
           <span className='font-sans text-[0.75em] leading-none font-black tracking-display whitespace-nowrap [text-box:trim-both_cap_alphabetic]'>
             {productName}

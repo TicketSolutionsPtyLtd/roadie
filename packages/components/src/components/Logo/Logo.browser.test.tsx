@@ -11,7 +11,7 @@ import {
   onTestFinished
 } from 'vitest'
 
-import { Logo } from '.'
+import { Logo, type LogoProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -62,7 +62,7 @@ describe.each([
 
 describe('the tagline', () => {
   it('sits 1em/3 either side of a full-height divider, centred on the mark', () => {
-    const { root, box } = renderLogo(<Logo tagline />)
+    const { root, box } = renderLogo(<Logo variant='tagline' />)
     const divider = box('logo-divider')
     const tagline = document
       .querySelector('[data-slot=logo-tagline] svg')!
@@ -83,14 +83,16 @@ describe('the tagline', () => {
         '.collapsed [data-slot=logo-tagline] { grid-template-columns: 0fr }'
       )
     )
-    const { box } = renderLogo(<Logo tagline />, true)
+    const { box } = renderLogo(<Logo variant='tagline' />, true)
     expect(box('logo-tagline').width).toBe(0)
   })
 })
 
 describe('the vertical lockup', () => {
   it('centres the mark over a wordmark and tagline 1.5em wide, 1em/12 apart', () => {
-    const { root, box } = renderLogo(<Logo direction='vertical' tagline />)
+    const { root, box } = renderLogo(
+      <Logo direction='vertical' variant='tagline' />
+    )
     const mark = box('logo-mark')
     const wordmark = box('logo-wordmark')
     const tagline = box('logo-tagline')
@@ -105,8 +107,9 @@ describe('the vertical lockup', () => {
     expect(root.height).toBeCloseTo(tagline.bottom - mark.top, 1)
   })
 
-  it('keeps a product lockup on one row', () => {
-    const { box } = renderLogo(<Logo direction='vertical' product='Studio' />)
+  it('keeps a product lockup on one row for an untyped caller', () => {
+    const props = { direction: 'vertical', product: 'Studio' } as const
+    const { box } = renderLogo(<Logo {...(props as unknown as LogoProps)} />)
     expect(box('logo-product').top).toBeCloseTo(box('logo-mark').top, 0)
     expect(box('logo-product').left).toBeCloseTo(box('logo-mark').right, 0)
   })
@@ -162,11 +165,11 @@ describe('tone', () => {
   })
 
   it('fixes the dark and light taglines and dividers in dark mode', () => {
-    const dark = colours(<Logo tone='dark' tagline />, 'dark')
+    const dark = colours(<Logo tone='dark' variant='tagline' />, 'dark')
     expect(dark.tagline).toBe(token('--color-neutral-light-12'))
     expect(dark.divider).toBe(token('--color-neutral-light-5'))
 
-    const light = colours(<Logo tone='light' tagline />, 'dark')
+    const light = colours(<Logo tone='light' variant='tagline' />, 'dark')
     expect(light.tagline).toBe(token('--color-neutral-light-0'))
     expect(light.divider).toBe(token('--color-neutral-light-0'))
   })
@@ -174,8 +177,10 @@ describe('tone', () => {
   it.each(['brand', 'dark', 'light', 'neutral'] as const)(
     'colours the vertical %s tagline like the horizontal one',
     (tone) => {
-      const vertical = <Logo tone={tone} direction='vertical' tagline />
-      const horizontal = <Logo tone={tone} tagline />
+      const vertical = (
+        <Logo tone={tone} direction='vertical' variant='tagline' />
+      )
+      const horizontal = <Logo tone={tone} variant='tagline' />
 
       expect(colours(vertical).tagline).toBe(colours(horizontal).tagline)
       expect(colours(vertical, 'dark').tagline).toBe(
@@ -185,19 +190,19 @@ describe('tone', () => {
   )
 
   it('lets the brand tagline follow the theme but not a surrounding intent', () => {
-    const light = colours(<Logo tagline />)
-    const dark = colours(<Logo tagline />, 'dark')
+    const light = colours(<Logo variant='tagline' />)
+    const dark = colours(<Logo variant='tagline' />, 'dark')
 
     expect(light.tagline).toBe(token('--color-neutral-12'))
     expect(light.divider).toBe(token('--color-neutral-7'))
     expect(dark.tagline).not.toBe(light.tagline)
     expect(dark.divider).not.toBe(light.divider)
-    expect(colours(<Logo tagline />, 'intent-danger')).toEqual(light)
+    expect(colours(<Logo variant='tagline' />, 'intent-danger')).toEqual(light)
   })
 
   it('draws the neutral logo dark in light mode and light in dark mode', () => {
-    const light = colours(<Logo tone='neutral' tagline />)
-    const dark = colours(<Logo tone='neutral' tagline />, 'dark')
+    const light = colours(<Logo tone='neutral' variant='tagline' />)
+    const dark = colours(<Logo tone='neutral' variant='tagline' />, 'dark')
 
     expect(light.logo).toBe(token('--color-neutral-13'))
     expect(light.tagline).toBe(token('--color-neutral-12'))
@@ -209,12 +214,12 @@ describe('tone', () => {
   })
 
   it('keeps the neutral logo untinted inside an intent', () => {
-    const plain = colours(<Logo tone='neutral' tagline />)
-    expect(colours(<Logo tone='neutral' tagline />, 'intent-danger')).toEqual(
-      plain
-    )
+    const plain = colours(<Logo tone='neutral' variant='tagline' />)
     expect(
-      colours(<Logo tone='neutral' tagline />, 'dark intent-danger')
-    ).toEqual(colours(<Logo tone='neutral' tagline />, 'dark'))
+      colours(<Logo tone='neutral' variant='tagline' />, 'intent-danger')
+    ).toEqual(plain)
+    expect(
+      colours(<Logo tone='neutral' variant='tagline' />, 'dark intent-danger')
+    ).toEqual(colours(<Logo tone='neutral' variant='tagline' />, 'dark'))
   })
 })
