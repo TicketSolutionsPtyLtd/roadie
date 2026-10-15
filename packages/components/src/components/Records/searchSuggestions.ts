@@ -138,7 +138,6 @@ export function pendingLabel(
   operator: ValueOperator
 ): string {
   if (field.type === 'date') return field.label
-  if (field.type === 'boolean') return `${field.label} is`
   return `${field.label} ${recordOperatorLabel(operator)}`
 }
 
