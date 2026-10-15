@@ -7,7 +7,14 @@ const ELEVATION =
   'https://ticketsolutionsptyltd.github.io/roadie/foundations/elevation'
 
 const CLASS_ATTRIBUTE = /^className$|ClassName$/
-const CLASS_FUNCTIONS = new Set(['cn', 'clsx', 'cva', 'cx', 'twMerge'])
+const CLASS_FUNCTIONS = new Set(['cn', 'clsx', 'cva', 'cx', 'tv', 'twMerge'])
+const CLASS_DATA = new Set([
+  'Literal',
+  'TemplateLiteral',
+  'ArrayExpression',
+  'ObjectExpression'
+])
+const TYPE_WRAPPERS = new Set(['TSAsExpression', 'TSSatisfiesExpression'])
 
 const ARBITRARY_RADIUS = /(^|:|!)rounded(-[a-z]{1,2})?-\[(?!inherit\])/
 const RADIUS_VARIABLE =
@@ -26,33 +33,50 @@ const hasRawLength = (value) =>
   typeof value === 'string' &&
   [...value.matchAll(RAW_LENGTH)].some(([, number]) => Number(number) !== 0)
 
-function stringParts(root, visitorKeys) {
+// cn(variants[size]) reads the strings in const variants = { … }.
+function constClassData(sourceCode, identifier) {
+  const reference = sourceCode
+    .getScope(identifier)
+    .references.find((candidate) => candidate.identifier === identifier)
+  const definition = reference?.resolved?.defs[0]
+  if (definition?.type !== 'Variable' || definition.parent.kind !== 'const') {
+    return undefined
+  }
+  let init = definition.node.init
+  while (TYPE_WRAPPERS.has(init?.type)) init = init.expression
+  return CLASS_DATA.has(init?.type) ? init : undefined
+}
+
+function stringParts(root, sourceCode) {
+  const { visitorKeys } = sourceCode
   const parts = []
-  const visit = (node) => {
+  // Bindings are followed one level, so a constant built from another isn't.
+  const visit = (node, followed) => {
     if (!node || typeof node.type !== 'string') return
-    if (node.type === 'Literal' && typeof node.value === 'string') {
+    if (node.type === 'Identifier' && !followed) {
+      visit(constClassData(sourceCode, node), true)
+    } else if (node.type === 'Literal' && typeof node.value === 'string') {
       parts.push({ node, text: node.value })
     } else if (node.type === 'TemplateElement') {
       parts.push({ node, text: node.value.cooked ?? node.value.raw })
     }
     for (const key of visitorKeys[node.type] ?? []) {
       const child = node[key]
-      if (Array.isArray(child)) child.forEach(visit)
-      else visit(child)
+      for (const each of [child].flat()) visit(each, followed)
     }
   }
-  visit(root)
+  visit(root, false)
   return parts
 }
 
 function classStrings(context, checkParts) {
-  const { visitorKeys } = context.sourceCode
-  // className={cn('…')} reaches each string through both visitors.
+  // className={cn('…')} reaches each string through both visitors, and a
+  // constant through every use.
   const checked = new WeakSet()
   const check = (roots) =>
     checkParts(
       roots
-        .flatMap((root) => stringParts(root, visitorKeys))
+        .flatMap((root) => stringParts(root, context.sourceCode))
         .filter(({ node }) => {
           if (checked.has(node)) return false
           checked.add(node)
@@ -151,8 +175,8 @@ export const classRules = {
           const className = attribute('className')?.value
           if (style?.type !== 'ObjectExpression' || !className) return
           const read = radiusVariables(
-            stringParts(className, context.sourceCode.visitorKeys).flatMap(
-              ({ text }) => text.split(/\s+/)
+            stringParts(className, context.sourceCode).flatMap(({ text }) =>
+              text.split(/\s+/)
             )
           )
           for (const property of style.properties) {
