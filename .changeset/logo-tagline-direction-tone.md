@@ -18,6 +18,8 @@ surrounding intent's colour.
 
 The props are a discriminated union, so passing `product` with another
 variant, or `direction` with `mark`, `wordmark`, or `product`, is now a type
-error. A runtime `product` still wins over any variant. The `LogoDirection`
-and `LogoTone` types are exported, and `LogoVariant` adds `tagline` and
-`product`.
+error. A wrapper that forwards `Omit<LogoProps, …>` loses the union, so its
+spread no longer type-checks; use a distributive omit
+(`T extends unknown ? Omit<T, K> : never`) instead. A runtime `product` still
+wins over any variant. The `LogoDirection` and `LogoTone` types are exported,
+and `LogoVariant` adds `tagline` and `product`.
