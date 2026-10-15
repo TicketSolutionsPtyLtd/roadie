@@ -259,6 +259,20 @@ describe('Records.Search', () => {
     expect(await option(/^Starts is this weekend/)).toBeInTheDocument()
   })
 
+  it('puts a new date on a field in place of its earlier one', async () => {
+    const { user, lastView } = setup()
+    await user.click(input())
+    await user.click(await option('Starts'))
+    await user.click(await option(/^This weekend/))
+    await user.click(input())
+    await user.click(await option('Starts'))
+    await user.click(await option(/^Past/))
+    expect(lastView().query.filters).toEqual([
+      { field: 'starts', operator: 'within', value: 'past' }
+    ])
+    expect(chipLabels()).toEqual(['Starts is in the past'])
+  })
+
   it('returns focus to the chip when Custom dates closes', async () => {
     const { user } = setup({
       defaultView: { query: { filters: [AFTER_1_DEC] } }

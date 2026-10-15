@@ -89,7 +89,9 @@ to 50, or 20..50, in either order, and a space after the first number adds the
 value reads, the list says what to type, such as "Type a number." Another
 option value taken under is joins the field's is chip. An is empty chip takes
 the place of the field's other chips, and any other chip on the field takes
-the place of its is empty chip, as together they match nothing.
+the place of its is empty chip, as together they match nothing. A date chip
+takes the place of the field's earlier date chip, as two dates rarely
+overlap.
 
 Clicking a chip, or Enter on it, edits it in the list, with what it holds
 ticked. An option chip's values tick and untick, and unticking the last

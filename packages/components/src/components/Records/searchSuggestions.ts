@@ -691,13 +691,23 @@ export function toggleValue(
   return values.length > 0 ? { ...edited, values } : null
 }
 
+const isDateFilter = (filter: RecordFilter) =>
+  filter.operator === 'between'
+    ? typeof filter.value[0] === 'string'
+    : ['on', 'before', 'after', 'within'].includes(filter.operator)
+
 /**
  * Whether a filter rules the other out: is empty on a field rules out
- * anything else on it, so it never stands beside a value that matches nothing.
+ * anything else on it, so it never stands beside a value that matches nothing,
+ * and a date rules out the field's other date, as two rarely overlap.
  */
 export function rulesOut(filter: RecordFilter, other: RecordFilter): boolean {
   if (filter.field !== other.field || sameFilter(filter, other)) return false
-  return filter.operator === 'is-not-set' || other.operator === 'is-not-set'
+  return (
+    filter.operator === 'is-not-set' ||
+    other.operator === 'is-not-set' ||
+    (isDateFilter(filter) && isDateFilter(other))
+  )
 }
 
 /** Option `is` filters on one field merge into one chip, as its values are ORed. */

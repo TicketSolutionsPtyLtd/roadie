@@ -871,6 +871,37 @@ describe('rulesOut', () => {
     expect(rulesOut(empty, set)).toBe(true)
   })
 
+  it('rules out a field’s other date filter, either way round', () => {
+    const weekend: RecordFilter = {
+      field: 'starts',
+      operator: 'within',
+      value: 'this-weekend'
+    }
+    const after: RecordFilter = {
+      field: 'starts',
+      operator: 'after',
+      value: '2026-12-01'
+    }
+    const between: RecordFilter = {
+      field: 'starts',
+      operator: 'between',
+      value: ['2026-10-20', '2026-10-23']
+    }
+    expect(rulesOut(weekend, after)).toBe(true)
+    expect(rulesOut(between, weekend)).toBe(true)
+    expect(rulesOut(after, { ...after, field: 'placed' })).toBe(false)
+    expect(rulesOut(after, { field: 'starts', operator: 'is-set' })).toBe(false)
+  })
+
+  it('keeps a number’s ranges side by side', () => {
+    expect(
+      rulesOut(
+        { field: 'sold', operator: 'between', value: [10, 50] },
+        { field: 'sold', operator: 'between', value: [20, 80] }
+      )
+    ).toBe(false)
+  })
+
   it('keeps is not empty beside values, other fields, and the same filter', () => {
     expect(rulesOut(set, perth)).toBe(false)
     expect(rulesOut(empty, sold)).toBe(false)
