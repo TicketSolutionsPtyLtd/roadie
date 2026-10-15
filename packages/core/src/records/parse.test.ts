@@ -405,6 +405,36 @@ describe('parseQuery', () => {
         'not OZ-55555',
         'Order number is not OZ-55555',
         { field: 'orderNumber', operator: 'is-not', values: ['OZ-55555'] }
+      ],
+      [
+        'city != syd',
+        'City is not Sydney',
+        { field: 'city', operator: 'is-not', values: ['sydney'] }
+      ],
+      [
+        'city!=syd',
+        'City is not Sydney',
+        { field: 'city', operator: 'is-not', values: ['sydney'] }
+      ],
+      [
+        'venue ≠ walrus',
+        'Venue is not The Quilted Walrus Room',
+        { field: 'venue', operator: 'is-not', values: ['quilted-walrus-room'] }
+      ],
+      [
+        '!= syd',
+        'City is not Sydney',
+        { field: 'city', operator: 'is-not', values: ['sydney'] }
+      ],
+      [
+        'city:!=syd',
+        'City is not Sydney',
+        { field: 'city', operator: 'is-not', values: ['sydney'] }
+      ],
+      [
+        'city:≠syd',
+        'City is not Sydney',
+        { field: 'city', operator: 'is-not', values: ['sydney'] }
       ]
     ])('reads "%s" as %s, taking every word', (text, label, value) => {
       expect(parse(text)[0]).toMatchObject({
@@ -423,9 +453,22 @@ describe('parseQuery', () => {
 
     it.each([
       ['not melb', 'City is Melbourne'],
-      ['-walrus', 'Venue is The Quilted Walrus Room']
+      ['-walrus', 'Venue is The Quilted Walrus Room'],
+      ['city != syd', 'City is Sydney'],
+      ['city!=syd', 'City is Sydney'],
+      ['city ≠ syd', 'City is Sydney'],
+      ['!=syd', 'City is Sydney']
     ])('never offers the value "%s" rules out', (text, label) => {
-      expect(parse(text).map((s) => s.label)).not.toContain(label)
+      expect(parse(text, { limit: 50 }).map((s) => s.label)).not.toContain(
+        label
+      )
+    })
+
+    it('reads "city = syd" as the value', () => {
+      expect(parse('city = syd')[0]).toMatchObject({
+        label: 'City is Sydney',
+        remainder: ''
+      })
     })
 
     it.each([

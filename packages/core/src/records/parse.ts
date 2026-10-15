@@ -63,7 +63,17 @@ const NUMBER_RANGE = new RegExp(`^${NUMBER}(?:-|\\.\\.|to)${NUMBER}$`)
 const NUMBER_COMPARE = new RegExp(`^(>|<|=|!=)?${NUMBER}$`)
 const TRUE_WORDS = new Set(['yes', 'true', 'y'])
 const FALSE_WORDS = new Set(['no', 'false', 'n'])
-const NEGATIONS = new Set(['not', "isn't", 'excluding', 'except', 'without'])
+const NEGATIONS = new Set([
+  'not',
+  "isn't",
+  'excluding',
+  'except',
+  'without',
+  '!=',
+  '≠'
+])
+// Spaced apart in free text, so "city!=syd" reads as "city != syd".
+const OPERATOR = /(!=|≠|[<>=])/g
 // A dash before a digit or dollar sign is a minus sign, as in "-5".
 const SIGNED = /^-[$\d]/
 
@@ -73,6 +83,9 @@ const VERBS: readonly Verb[] = [
   { words: ['is', 'not'], negated: true, contains: false },
   { words: ["isn't"], negated: true, contains: false },
   { words: ['is'], negated: false, contains: false },
+  { words: ['!='], negated: true, contains: false },
+  { words: ['≠'], negated: true, contains: false },
+  { words: ['='], negated: false, contains: false },
   { words: ["doesn't", 'contain'], negated: true, contains: true },
   { words: ['does', 'not', 'contain'], negated: true, contains: true },
   { words: ['contains'], negated: false, contains: true }
@@ -81,9 +94,10 @@ const VERBS: readonly Verb[] = [
 /** Lower case, reading a typographic apostrophe as a straight one. */
 const plain = (word: string) => word.toLowerCase().replace(/’/g, "'")
 
-/** The value after a leading `!` or `-`, or null when it isn't negated. */
+/** The value after a leading `!`, `!=`, `≠` or `-`, or null when it isn't negated. */
 function negatedValue(value: string): string | null {
-  if (value.startsWith('!')) return value.slice(1).trimStart()
+  const bang = /^(?:!=?|≠)/.exec(value)
+  if (bang) return value.slice(bang[0].length).trimStart()
   if (value.startsWith('-') && !SIGNED.test(value)) return value.slice(1)
   return null
 }
@@ -643,9 +657,10 @@ function finish(options: ParseQueryOptions) {
  * A number field's `field:value` takes `100`, `>100`, `<100`, `!=100` or
  * `100-500`, with `$` and thousands commas allowed. Negation reads as the
  * opposite filter: a `-` before one word (not a number), `not`, `isn't`,
- * `excluding`, `except` or `without` before a value, `<field> is not`,
- * `isn't`, `doesn't contain` or `does not contain`, and `field:!value` or
- * `field:-value`; a date or a comparison has no opposite, so reads nothing.
+ * `excluding`, `except`, `without`, `!=` or `≠` before a value,
+ * `<field> is not`, `isn't`, `!=`, `≠`, `doesn't contain` or
+ * `does not contain`, and `field:!value`, `field:!=value` or `field:-value`;
+ * a date or a comparison has no opposite, so reads nothing.
  * Filter labels read as `describeRecordFilter` writes chips. Empty text lists
  * the filterable fields. Free text is left to the caller, as a search.
  */
@@ -663,7 +678,7 @@ export function parseQuery(
       .map((field, i) => strip(fieldSuggestion(field, 0, '', [0, 0], i)))
   }
 
-  const words = input.split(' ')
+  const words = input.replace(OPERATOR, ' $1 ').trim().split(/\s+/)
   const whole: [number, number] = [0, words.length]
   const identifiers = identifierReadings(fields, input).map((reading, i) =>
     filterSuggestion(reading, 1, '', whole, i)
