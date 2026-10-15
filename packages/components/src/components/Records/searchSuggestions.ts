@@ -439,8 +439,10 @@ export function valueSuggestions(
   const held = heldOnly(field, typed, edited).filter(
     ({ id }) => !listed.has(id)
   )
+  // Typed text is the whole value, so only the filter itself is held.
+  const isHeld = isTyped(field) ? sameFilter : holds
   const tick = (item: SearchSuggestion): SearchSuggestion =>
-    edited && item.value.type === 'filter' && holds(edited, item.value.filter)
+    edited && item.value.type === 'filter' && isHeld(edited, item.value.filter)
       ? { ...item, selected: true }
       : item
   const values = unused([...items, ...held], context).map((item) => {

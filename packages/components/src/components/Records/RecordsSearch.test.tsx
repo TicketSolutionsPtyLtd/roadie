@@ -1019,6 +1019,25 @@ describe('Records.Search', () => {
       await user.keyboard('{Enter}')
       expect(lastView()).toBeUndefined()
     })
+
+    it('ticks a text is chip’s row only when it holds just that text', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'show', operator: 'is', values: ['Ocean', 'Alley'] }
+            ]
+          }
+        }
+      })
+      await selectChip(user, 'Show is Ocean or Alley')
+      await option('Show is Ocean')
+      expect(ticked()).toEqual([])
+      await user.click(await option('Show is Ocean'))
+      expect(lastView().query.filters).toEqual([
+        { field: 'show', operator: 'is', values: ['Ocean'] }
+      ])
+    })
   })
 
   describe('editing a chip in the list', () => {
