@@ -57,4 +57,8 @@ describe('fieldOf', () => {
   it('refuses a command it cannot bound', () => {
     expect(() => fieldOf(['M0 0Q5 5 10 0Z'])).toThrow(/command/)
   })
+
+  it('refuses an implicitly repeated command', () => {
+    expect(() => fieldOf(['M0 0L10 0 10 50Z'])).toThrow(/L has 4 numbers/)
+  })
 })

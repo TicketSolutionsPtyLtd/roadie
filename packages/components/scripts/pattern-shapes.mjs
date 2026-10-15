@@ -13,6 +13,7 @@ const LINE = '#c2dffb'
 const SOURCES = ['banner', 'left', 'right']
 const PATTERN_DIR = new URL('../src/components/Pattern/', import.meta.url)
 const SAMPLES = 32
+const ARITY = { M: 2, L: 2, C: 6, Z: 0 }
 
 /**
  * Reduces an exported pattern symbol to its swirl paths and the field they
@@ -54,6 +55,11 @@ export function fieldOf(paths) {
     let at = [0, 0]
     for (const [, command, args] of d.matchAll(/([MLCZ])([^MLCZ]*)/g)) {
       const n = args.match(/-?(?:\d*\.)?\d+(?:e-?\d+)?/gi)?.map(Number) ?? []
+      // An implicitly repeated command would be bounded by its first segment.
+      if (n.length !== ARITY[command])
+        throw new Error(
+          `A swirl path's ${command} has ${n.length} numbers, not ${ARITY[command]}`
+        )
       if (command === 'C') {
         for (let i = 1; i <= SAMPLES; i++) {
           const t = i / SAMPLES

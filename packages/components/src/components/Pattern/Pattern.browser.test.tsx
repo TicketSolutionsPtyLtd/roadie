@@ -83,20 +83,30 @@ describe('Pattern colour', () => {
   })
 })
 
-// The share of the artwork the box shows along its long side: 1 when the
-// whole artwork spans it, as `background-size: cover` gives a strip.
-function shownAlongLongSide(crop: PatternCrop, width: number, height: number) {
+function renderSized(crop: PatternCrop, width: number, height: number) {
   const { container } = render(
     <div style={{ width, height }}>
       <Pattern crop={crop} />
     </div>
   )
-  const svg = container.querySelector('svg')!
-  const scale = svg.getScreenCTM()!.a
-  const field = svg.viewBox.baseVal
-  return width >= height
-    ? width / (field.width * scale)
-    : height / (field.height * scale)
+  return container.querySelector('svg')!
+}
+
+// The swirls' outline on screen, measured from the drawn paths rather than
+// the viewBox, so a viewBox that windows into the artwork can't pass.
+function artworkOnScreen(svg: SVGSVGElement) {
+  const ctm = svg.getScreenCTM()!
+  const boxes = [...svg.querySelectorAll('path')].map((p) => p.getBBox())
+  const left = Math.min(...boxes.map((b) => b.x))
+  const top = Math.min(...boxes.map((b) => b.y))
+  const right = Math.max(...boxes.map((b) => b.x + b.width))
+  const bottom = Math.max(...boxes.map((b) => b.y + b.height))
+  return {
+    left: ctm.a * left + ctm.e,
+    top: ctm.d * top + ctm.f,
+    right: ctm.a * right + ctm.e,
+    bottom: ctm.d * bottom + ctm.f
+  }
 }
 
 describe('Pattern scale', () => {
@@ -111,9 +121,37 @@ describe('Pattern scale', () => {
   ] as const)(
     'shows most of the artwork, not a zoomed-in slice, as %s on %s',
     (crop, _use, width, height) => {
-      expect(shownAlongLongSide(crop, width, height)).toBeGreaterThan(0.6)
+      const art = artworkOnScreen(renderSized(crop, width, height))
+      const shown =
+        width >= height
+          ? width / (art.right - art.left)
+          : height / (art.bottom - art.top)
+      expect(shown).toBeGreaterThan(0.6)
     }
   )
+})
+
+describe('Pattern anchor', () => {
+  it.each([
+    ['top', 640, 128, 'top'],
+    ['bottom', 640, 128, 'bottom'],
+    ['left', 240, 400, 'left'],
+    ['right', 240, 400, 'right']
+  ] as const)(
+    'lines the artwork up with the %s edge it sits on',
+    (crop, width, height, edge) => {
+      const svg = renderSized(crop, width, height)
+      const box = svg.getBoundingClientRect()
+      expect(artworkOnScreen(svg)[edge]).toBeCloseTo(box[edge], 0)
+    }
+  )
+
+  it('centres the banner', () => {
+    const svg = renderSized('banner', 1280, 400)
+    const box = svg.getBoundingClientRect()
+    const art = artworkOnScreen(svg)
+    expect((art.top + art.bottom) / 2).toBeCloseTo(box.top + box.height / 2, 0)
+  })
 })
 
 describe('Pattern size', () => {
@@ -127,7 +165,7 @@ describe('Pattern size', () => {
     expect([box.width, box.height]).toEqual([320, 120])
   })
 
-  it.each(['top', 'left', 'right', 'banner'] as const)(
+  it.each(['top', 'bottom', 'left', 'right', 'banner'] as const)(
     'takes the height of the content beside it as a %s grid panel',
     (crop) => {
       const { container } = render(
