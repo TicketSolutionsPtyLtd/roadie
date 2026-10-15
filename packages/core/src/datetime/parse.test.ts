@@ -137,6 +137,15 @@ describe('parseDatePhrase: relative words', () => {
     ])
   })
 
+  it.each([
+    ['wee', ['This week', 'This weekend', 'Week to date']],
+    ['week', ['This week', 'This weekend', 'Week to date']],
+    ['month', ['This month', 'Month to date']],
+    ['year', ['This year', 'Year to date']]
+  ])('completes "%s" to this period first', (text, labels) => {
+    expect(parseDatePhrase(text, SYDNEY).map((s) => s.label)).toEqual(labels)
+  })
+
   it('keeps completing a phrase that contains to', () => {
     expect(parseDatePhrase('month to d', SYDNEY)).toEqual(
       one('Month to date', { period: 'month', offset: 0, toDate: true })

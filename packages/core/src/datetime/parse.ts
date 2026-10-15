@@ -486,7 +486,10 @@ export function parseDatePhrase(
 
   if (input.length < 2) return []
   const seen = new Set<string>()
-  const completions = PHRASES.filter(([words]) => words.startsWith(input))
+  // A bare period, as "month", completes to this one before "Month to date".
+  const completions = PHRASES.filter(
+    ([words]) => words.startsWith(input) || words.startsWith(`this ${input}`)
+  )
     .map(([, value]) => describe(value))
     .filter(({ label }) => !seen.has(label) && seen.add(label))
   for (const suggestion of completions) COMPLETIONS.add(suggestion)
