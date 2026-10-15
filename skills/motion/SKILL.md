@@ -109,13 +109,14 @@ Motion page.
 ## 4. Respect reduced motion
 
 `@oztix/roadie-core/css` shortens every CSS animation and transition to almost
-nothing and turns smooth scrolling off when the user asks for reduced motion.
-It does not cover:
+nothing, zeroes their delays, and turns smooth scrolling off when the user asks
+for reduced motion. Older releases keep the delays: there, a stagger still
+waits, so keep it behind `motion-safe:` as in section 3. The reset does not
+cover:
 
-- **Delays.** A stagger still waits, then each item appears at once. Put the
-  delay behind `motion-safe:`, as in section 3. An inline `style` delay
-  ignores the variant, so check `matchMedia` before setting it. The same goes
-  for `transition-delay`.
+- **Timers.** A `setTimeout` or a component's `delay` prop still waits. That's
+  right for hover intent, but not for a reveal: skip the wait when
+  `matchMedia('(prefers-reduced-motion: reduce)').matches`.
 - **JavaScript.** `element.animate()`, `requestAnimationFrame` loops, and
   scroll-linked effects must check
   `matchMedia('(prefers-reduced-motion: reduce)').matches` and skip or jump to
