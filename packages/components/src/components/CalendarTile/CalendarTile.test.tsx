@@ -5,27 +5,27 @@ import { CalendarTile } from './index'
 
 describe('CalendarTile', () => {
   it('renders month over day', () => {
-    const { container } = render(<CalendarTile month='NOV' day={27} />)
-    expect(container.textContent).toBe('NOV27')
+    const { container } = render(<CalendarTile month='Nov' day={27} />)
+    expect(container.textContent).toBe('Nov27')
   })
 
   it('leads with the weekday when given one', () => {
     const { container } = render(
-      <CalendarTile month='NOV' weekday='FRI' day={27} />
+      <CalendarTile month='Nov' weekday='Fri' day={27} />
     )
-    expect(container.textContent).toBe('FRI27')
+    expect(container.textContent).toBe('Fri27')
   })
 
   it('never renders a year — the tile is decorative', () => {
     const { container } = render(
-      <CalendarTile month='NOV' day={27} label='Friday, 27 November 2026' />
+      <CalendarTile month='Nov' day={27} label='Friday, 27 November 2026' />
     )
     expect(container.textContent).not.toContain('2026')
   })
 
   it('exposes the full date to assistive tech when labelled', () => {
     render(
-      <CalendarTile month='NOV' day={27} label='Friday, 27 November 2026' />
+      <CalendarTile month='Nov' day={27} label='Friday, 27 November 2026' />
     )
     expect(screen.getByRole('img')).toHaveAccessibleName(
       'Friday, 27 November 2026'
@@ -33,18 +33,18 @@ describe('CalendarTile', () => {
   })
 
   it('is hidden from assistive tech when unlabelled', () => {
-    const { container } = render(<CalendarTile month='NOV' day={27} />)
+    const { container } = render(<CalendarTile month='Nov' day={27} />)
     expect(container.firstChild).toHaveAttribute('aria-hidden', 'true')
   })
 
   it('defaults to the container radius', () => {
-    const { container } = render(<CalendarTile month='NOV' day={27} />)
+    const { container } = render(<CalendarTile month='Nov' day={27} />)
     expect(container.firstChild).toHaveClass('rounded-xl')
   })
 
   it('lets a Tailwind radius class override the default', () => {
     const { container } = render(
-      <CalendarTile month='NOV' day={27} className='rounded-none' />
+      <CalendarTile month='Nov' day={27} className='rounded-none' />
     )
     expect(container.firstChild).toHaveClass('rounded-none')
     expect(container.firstChild).not.toHaveClass('rounded-xl')
@@ -53,13 +53,13 @@ describe('CalendarTile', () => {
 
 describe('CalendarTile as a time element', () => {
   it('stays a plain box when decorative', () => {
-    const { container } = render(<CalendarTile month='NOV' day={27} />)
+    const { container } = render(<CalendarTile month='Nov' day={27} />)
     expect(container.firstChild).toHaveProperty('tagName', 'DIV')
   })
 
   it('becomes a time element when given a machine value', () => {
     const { container } = render(
-      <CalendarTile month='NOV' day={27} dateTime='2026-11-27' />
+      <CalendarTile month='Nov' day={27} dateTime='2026-11-27' />
     )
     const el = container.firstChild as HTMLElement
     expect(el.tagName).toBe('TIME')
@@ -71,7 +71,7 @@ describe('CalendarTile as a time element', () => {
   it('keeps the label as the accessible name', () => {
     const { container } = render(
       <CalendarTile
-        month='NOV'
+        month='Nov'
         day={27}
         dateTime='2026-11-27'
         label='Friday, 27 November 2026'
@@ -83,10 +83,10 @@ describe('CalendarTile as a time element', () => {
     )
   })
 
-  // Without this it would announce 'NOV 27': no weekday, no year.
+  // Without this it would announce 'Nov 27': no weekday, no year.
   it('falls back to the machine value when a time tile has no label', () => {
     const { container } = render(
-      <CalendarTile month='NOV' day={27} dateTime='2026-11-27' />
+      <CalendarTile month='Nov' day={27} dateTime='2026-11-27' />
     )
     expect(container.firstChild).toHaveAttribute('aria-label', '2026-11-27')
   })
@@ -94,7 +94,7 @@ describe('CalendarTile as a time element', () => {
   describe('surfaces', () => {
     const tile = (props = {}) => {
       const { container } = render(
-        <CalendarTile month='NOV' day={27} {...props} />
+        <CalendarTile month='Nov' day={27} {...props} />
       )
       const root = container.firstChild as HTMLElement
       return {

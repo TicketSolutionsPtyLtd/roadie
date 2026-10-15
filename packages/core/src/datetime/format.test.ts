@@ -408,9 +408,9 @@ describe('the venue timezone', () => {
 describe('the glyph', () => {
   it('returns parts, never a year', () => {
     expect(formatGlyph(start, bne)).toEqual({
-      month: 'NOV',
+      month: 'Nov',
       day: '27',
-      weekday: 'FRI'
+      weekday: 'Fri'
     })
   })
 })
@@ -631,7 +631,7 @@ describe('Temporal readiness', () => {
   it('accepts anything carrying epochMilliseconds', () => {
     expect(formatLong(asTemporal(start), bne)).toBe(formatLong(start, bne))
     expect(formatTimeOfDay(asTemporal(start), bne)).toBe('7:30pm')
-    expect(formatGlyph(asTemporal(start), bne)?.month).toBe('NOV')
+    expect(formatGlyph(asTemporal(start), bne)?.month).toBe('Nov')
   })
 
   it('accepts one as `now` for the year rule', () => {
