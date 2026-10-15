@@ -58,6 +58,7 @@ export const TWIN_COMPONENTS = {
   Stage: 'drawing',
   TimeStyleScale: 'rendered',
   TransitionList: 'rendered',
+  TypeSpecimen: 'drawing',
   TypeScale: 'rendered',
   UpcomingShows: 'drawing',
   ViewMeilisearch: 'rendered',
