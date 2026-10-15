@@ -73,19 +73,22 @@ date phrases such as "this weekend", each becoming a chip; the words a
 suggestion doesn't read stay in the field. Picking a field lists its values,
 or for a date its quick dates and Custom dates, below Empty and Not empty
 and a line; an option field's values sit under an is and is not toggle (and has
-all of, for a `multiple` field) that Tab steps through; typing narrows them, and Enter takes the first. A number or text field opens
-its editor. Option values added to a field join its chip. Clicking an option,
-boolean or date chip, or Enter on it, edits it in the list: the chip shows
-selected, its values are ticked, taking a value ticks or unticks it (the last
-one unticked removes the chip, and Enter on typed text only ticks), is and is not rewrite its condition (one
-changed to is joins the field's is chip), and a boolean's answer, a quick
-date, Empty or Not empty replaces what it holds.
-Backspace in the empty field removes it, and Escape or leaving the field keeps
-it. Custom dates
-opens a date range picker with relative presets, or a date picker, for the
-chip, and a text or number chip opens its editor for its condition and value
-as they change; both sit in a popover under the chip or a bottom drawer on a
-phone, with Remove filter, and load while the page is idle. A relative date chip shows its dates
+all of, for a `multiple` field) that Tab steps through; typing narrows them, and Enter takes the first. A text field's toggle is contains, doesn't
+contain, is and is not, and a number or money field's =, ≠, <, > and
+between, named in words for screen readers; the typed value shows as one row
+worded as its chip, for Enter to take. Between reads 20-50, 20 to 50 or
+20..50, money takes `$` and thousands commas, and text that isn't a number
+offers nothing. Option values added to a field join its chip. Clicking a
+chip, or Enter on it, edits it in the list: the chip shows selected, its
+values are ticked, taking a value ticks or unticks it (the last one unticked
+removes the chip, and Enter on typed text only ticks), is and is not rewrite
+its condition (one changed to is joins the field's is chip), and a boolean's
+answer, a quick date, Empty or Not empty replaces what it holds. A text or
+number chip puts its value in the field and its condition in the toggle, and
+Enter replaces it. Backspace in the empty field removes it, and Escape or
+leaving the field keeps it. Custom dates opens a date range picker with relative presets, or a date
+picker, for the chip, in a popover under it or a bottom drawer on a phone,
+with Remove filter, and loads while the page is idle. A relative date chip shows its dates
 in a tooltip, and a filter the fields can't apply shows in warning colours.
 `/` focuses the search unless `shortcut` (or `searchShortcut` on
 `Records.Toolbar` and `RecordTable`) says otherwise, and Clear and Escape
