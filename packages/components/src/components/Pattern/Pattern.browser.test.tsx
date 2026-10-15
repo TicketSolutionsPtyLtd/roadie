@@ -1,0 +1,284 @@
+import { cleanup, render } from '@testing-library/react'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+
+import { Pattern, type PatternCrop, type PatternTone } from '.'
+import roadieCss from '../../../vitest.browser.css?inline'
+import { useStylesheet } from '../Pane/testUtils'
+
+let removeStylesheet = () => {}
+beforeAll(() => {
+  removeStylesheet = useStylesheet(roadieCss)
+})
+afterAll(() => removeStylesheet())
+afterEach(() => {
+  cleanup()
+  document.documentElement.classList.remove('dark')
+})
+
+function token(name: string) {
+  const probe = document.createElement('span')
+  probe.style.color = `var(${name})`
+  document.body.append(probe)
+  const value = getComputedStyle(probe).color
+  probe.remove()
+  return value
+}
+
+function colours(svg: SVGSVGElement) {
+  return {
+    ground: getComputedStyle(svg.querySelector('rect')!).fill,
+    line: getComputedStyle(svg.querySelector('path')!).fill
+  }
+}
+
+function renderPattern(tone?: PatternTone, wrapper?: string) {
+  const { container } = render(
+    <div className={wrapper}>
+      <Pattern tone={tone} />
+    </div>
+  )
+  return container.querySelector('svg')!
+}
+
+describe('Pattern colour', () => {
+  it.each([
+    ['brand-blue', 'brand'],
+    ['brand-purple', 'info'],
+    ['brand-orange', 'brand-secondary']
+  ] as const)(
+    'draws %s as step 5 lines on a step 9 ground of the fixed %s scale',
+    (tone, scale) => {
+      const expected = {
+        ground: token(`--color-${scale}-light-9`),
+        line: token(`--color-${scale}-light-5`)
+      }
+      expect(colours(renderPattern(tone))).toEqual(expected)
+      cleanup()
+
+      document.documentElement.classList.add('dark')
+      expect(colours(renderPattern(tone))).toEqual(expected)
+    }
+  )
+
+  it('defaults to brand blue', () => {
+    expect(colours(renderPattern())).toEqual(
+      colours(renderPattern('brand-blue'))
+    )
+  })
+
+  it.each(['constructor', 'brand-green'])(
+    'falls back to brand blue for an unknown tone, %s',
+    (tone) => {
+      expect(colours(renderPattern(tone as PatternTone))).toEqual(
+        colours(renderPattern('brand-blue'))
+      )
+    }
+  )
+
+  it('ignores a surrounding intent', () => {
+    expect(colours(renderPattern(undefined, 'intent-danger'))).toEqual({
+      ground: token('--color-brand-light-9'),
+      line: token('--color-brand-light-5')
+    })
+  })
+})
+
+function renderSized(crop: PatternCrop, width: number, height: number) {
+  const { container } = render(
+    <div style={{ width, height }}>
+      <Pattern crop={crop} />
+    </div>
+  )
+  const root = container.querySelector<HTMLElement>('[data-slot=pattern]')!
+  return { box: root.getBoundingClientRect(), svg: root.querySelector('svg')! }
+}
+
+// Swirl lines crossed walking from one point to another, a pixel at a time.
+function walk(from: [number, number], to: [number, number]) {
+  const steps = Math.round(Math.hypot(to[0] - from[0], to[1] - from[1]))
+  let lines = 0
+  let onLine = false
+  for (let i = 0; i <= steps; i++) {
+    const hit = document.elementFromPoint(
+      from[0] + ((to[0] - from[0]) * i) / steps,
+      from[1] + ((to[1] - from[1]) * i) / steps
+    )
+    const line = hit?.tagName === 'path'
+    if (line && !onLine) lines++
+    onLine = line
+  }
+  return lines
+}
+
+const USES = [
+  ['top', 'a card header', 320, 64],
+  ['bottom', 'a card footer', 320, 40],
+  ['top', 'a wide card header', 640, 128],
+  ['top', 'a phone strip', 358, 96],
+  ['banner', 'a hero', 858, 256],
+  ['banner', 'a phone hero', 310, 320],
+  ['banner', 'a full-width hero', 1440, 480],
+  ['banner', 'a square', 300, 300],
+  ['left', 'a side panel', 240, 400],
+  ['right', 'a side panel', 240, 400],
+  ['right', 'the default panel', 160, 256]
+] as const
+
+describe('Pattern edges', () => {
+  it.each(USES)(
+    'never shows the artwork’s edge as %s on %s',
+    (crop, _use, width, height) => {
+      const { box, svg } = renderSized(crop, width, height)
+      const safe = svg.getBoundingClientRect()
+      expect(safe.left).toBeLessThanOrEqual(box.left + 0.5)
+      expect(safe.top).toBeLessThanOrEqual(box.top + 0.5)
+      expect(safe.right).toBeGreaterThanOrEqual(box.right - 0.5)
+      expect(safe.bottom).toBeGreaterThanOrEqual(box.bottom - 0.5)
+
+      const [l, t, r, b] = [
+        box.left + 1,
+        box.top + 1,
+        box.right - 1,
+        box.bottom - 1
+      ]
+      for (const edge of [
+        walk([l, t], [r, t]),
+        walk([l, b], [r, b]),
+        walk([l, t], [l, b]),
+        walk([r, t], [r, b])
+      ])
+        expect(edge).toBeGreaterThan(0)
+    }
+  )
+})
+
+// Screen pixels per artwork unit. The banner behind the logo on a desktop
+// docs page draws at about 0.56, and the density floor keeps small boxes at
+// 0.2 or more, so up to that width no box shows hairlines or two giant
+// stripes. Wider boxes cover, so their swirls grow with them.
+describe('Pattern density', () => {
+  const scaleOf = (svg: SVGSVGElement) =>
+    svg.getBoundingClientRect().width / svg.viewBox.baseVal.width
+
+  it.each(USES.filter(([, , width]) => width <= 900))(
+    'draws swirls near the banner density as %s on %s',
+    (crop, _use, width, height) => {
+      const scale = scaleOf(renderSized(crop, width, height).svg)
+      expect(scale).toBeGreaterThanOrEqual(0.19)
+      expect(scale).toBeLessThanOrEqual(0.6)
+    }
+  )
+
+  it('draws every crop at the same density in the same box', () => {
+    const scales = (['top', 'bottom', 'left', 'right', 'banner'] as const).map(
+      (crop) => scaleOf(renderSized(crop, 200, 200).svg)
+    )
+    for (const scale of scales) expect(scale).toBeCloseTo(scales[0]!, 3)
+  })
+})
+
+// Where each crop's screen points land on the artwork, given the point in
+// the svg's own coordinates: the turn each crop is meant to apply, undone.
+const ARTWORK_AT = {
+  top: (u: number, v: number) => [u, v],
+  banner: (u: number, v: number) => [u, v],
+  bottom: (u: number, v: number) => [u, -v],
+  left: (u: number, v: number) => [-v, u],
+  right: (u: number, v: number) => [v, -u]
+} as const
+
+describe('Pattern turn', () => {
+  it.each(Object.keys(ARTWORK_AT) as PatternCrop[])(
+    'shows the artwork turned for %s',
+    (crop) => {
+      const { box, svg } = renderSized(crop, 200, 200)
+      const toSvg = svg.getScreenCTM()!.inverse()
+      const paths = [...svg.querySelectorAll('path')]
+      let checked = 0
+      let agreed = 0
+      for (let i = 1; i < 20; i++)
+        for (let j = 1; j < 20; j++) {
+          const [sx, sy] = [box.left + i * 10, box.top + j * 10]
+          const at = new DOMPoint(sx, sy).matrixTransform(toSvg)
+          const [x, y] = ARTWORK_AT[crop](at.x, at.y)
+          const expected = paths.some((p) =>
+            p.isPointInFill(new DOMPoint(x, y))
+          )
+          const shown = document.elementFromPoint(sx, sy)?.tagName === 'path'
+          checked++
+          if (expected === shown) agreed++
+        }
+      // Points on a swirl's anti-aliased edge can go either way.
+      expect(agreed / checked).toBeGreaterThan(0.95)
+    }
+  )
+})
+
+describe('Pattern anchor', () => {
+  it.each([
+    ['top', 640, 128, 'top'],
+    ['bottom', 640, 128, 'bottom'],
+    ['left', 240, 400, 'left'],
+    ['right', 240, 400, 'right']
+  ] as const)(
+    'lines the artwork up with the %s edge it sits on',
+    (crop, width, height, edge) => {
+      const { box, svg } = renderSized(crop, width, height)
+      expect(svg.getBoundingClientRect()[edge]).toBeCloseTo(box[edge], 0)
+    }
+  )
+
+  // Boxes smaller than the artwork at the density floor, so it overhangs the
+  // sides it is centred between.
+  it.each([
+    ['top', 200, 64, 'x'],
+    ['bottom', 200, 64, 'x'],
+    ['banner', 200, 200, 'x'],
+    ['banner', 200, 200, 'y'],
+    ['left', 160, 200, 'y'],
+    ['right', 160, 200, 'y']
+  ] as const)('centres %s along its %s axis', (crop, width, height, axis) => {
+    const { box, svg } = renderSized(crop, width, height)
+    const art = svg.getBoundingClientRect()
+    const centre = (r: DOMRect) =>
+      axis === 'x' ? r.left + r.width / 2 : r.top + r.height / 2
+    expect(axis === 'x' ? art.width : art.height).toBeGreaterThan(
+      axis === 'x' ? width : height
+    )
+    expect(centre(art)).toBeCloseTo(centre(box), 0)
+  })
+})
+
+describe('Pattern size', () => {
+  it('fills its parent in both axes and never sizes itself', () => {
+    const { box } = renderSized('banner', 320, 120)
+    expect([box.width, box.height]).toEqual([320, 120])
+  })
+
+  it.each(['top', 'bottom', 'left', 'right', 'banner'] as const)(
+    'takes the height of the content beside it as a %s grid panel',
+    (crop) => {
+      const { container } = render(
+        <div className='grid grid-cols-[2fr_3fr]' style={{ width: 600 }}>
+          <Pattern crop={crop} />
+          <div style={{ height: 100 }} />
+        </div>
+      )
+      const box = container
+        .querySelector('[data-slot=pattern]')!
+        .getBoundingClientRect()
+      expect([box.width, box.height]).toEqual([240, 100])
+    }
+  )
+
+  it('lets a className place it behind content', () => {
+    const { container } = render(
+      <div style={{ position: 'relative', width: 200, height: 100 }}>
+        <Pattern className='absolute inset-0' />
+      </div>
+    )
+    const root = container.querySelector('[data-slot=pattern]')!
+    expect(getComputedStyle(root).position).toBe('absolute')
+    expect(root.getBoundingClientRect().height).toBe(100)
+  })
+})

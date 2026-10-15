@@ -63,6 +63,7 @@ import { Navigator } from '@oztix/roadie-components/navigator'
 import { NumberField } from '@oztix/roadie-components/number-field'
 import { OTPField } from '@oztix/roadie-components/otp-field'
 import { Pane } from '@oztix/roadie-components/pane'
+import { Pattern } from '@oztix/roadie-components/pattern'
 import { Popover } from '@oztix/roadie-components/popover'
 import { Progress } from '@oztix/roadie-components/progress'
 import { Prose } from '@oztix/roadie-components/prose'
@@ -912,6 +913,13 @@ export default function RscSmokePage() {
           <Logo />
           <Logo variant='mark' />
           <Logo product='Studio' />
+        </div>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Pattern</h2>
+        <div className='h-24 overflow-hidden rounded-xl'>
+          <Pattern crop='banner' />
         </div>
       </section>
 

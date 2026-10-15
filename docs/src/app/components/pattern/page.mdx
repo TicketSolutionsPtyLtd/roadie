@@ -1,0 +1,172 @@
+export const metadata = {
+  title: 'Pattern',
+  description: 'The Oztix swirl pattern, cropped to fill a banner, panel, or strip in a fixed brand colour',
+  status: 'beta',
+  category: 'Media & brand',
+}
+
+import { Pattern } from '@oztix/roadie-components/pattern'
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+The Oztix swirl pattern, cropped to fill a banner, panel, or strip in a fixed brand colour.
+
+## Import
+
+```tsx
+import { Pattern } from '@oztix/roadie-components/pattern'
+```
+
+## Examples
+
+### Default
+
+The pattern fills its parent in both axes and never sizes itself, so give the parent a size. It has no radius of its own: it usually sits on an edge, so the container rounds and clips it, here with `rounded-3xl overflow-hidden`. The default is the `right` crop in brand blue.
+
+```tsx-live
+<div className='h-64 w-40 overflow-hidden rounded-3xl'>
+  <Pattern />
+</div>
+```
+
+### Crops
+
+`crop` says where the pattern sits. The swirls always run off every edge of the box, so you never see where the artwork ends. A small box draws them at a set line weight and shows more of them as it grows. Once a box outgrows the artwork at that weight, about 300px wide for a strip, the swirls grow with it, like `background-size: cover`. Each crop turns the artwork so its top edge lies along the edge the pattern sits on, and anchors it there, like `background-position`.
+
+#### Banner
+
+`banner` is for a wide hero, with the artwork centred. Set content on a raised surface over it, never straight on the swirls.
+
+```tsx-live
+<section className='relative grid min-h-64 place-items-center overflow-hidden rounded-3xl p-6'>
+  <Pattern crop='banner' className='absolute inset-0' />
+  <div className='relative grid max-w-sm justify-items-start gap-3 rounded-2xl emphasis-raised p-6'>
+    <h2 className='text-display-ui-3 text-strong'>Summer at Nimbus Thistle Hall</h2>
+    <p className='text-subtle'>12 nights of live music from 3 January.</p>
+    <Button intent='brand' emphasis='strong'>See the line-up</Button>
+  </div>
+</section>
+```
+
+#### Left and right
+
+`left` and `right` are for a panel on that side of the content, with the artwork turned on its side.
+
+```tsx-live
+<div className='grid grid-cols-[2fr_3fr] overflow-hidden rounded-3xl emphasis-raised'>
+  <Pattern crop='left' />
+  <div className='grid content-center gap-2 p-6'>
+    <h2 className='text-display-ui-4 text-strong'>Sell your first show</h2>
+    <p className='text-subtle'>Set up your event, ticket types, and payouts in one place.</p>
+  </div>
+</div>
+```
+
+#### Top and bottom
+
+`top` and `bottom` are for a strip along that edge of a card or page, each its own `Pattern` with the content between them in normal flow. The card clips its own corners with `overflow-hidden`, so the strips take their radius from the card.
+
+```tsx-live width=80
+<Card emphasis='raised' className='overflow-hidden'>
+  <div className='h-16'>
+    <Pattern crop='top' tone='brand-purple' />
+  </div>
+  <Card.Header>
+    <Card.Title>Marzipan Thunderclap</Card.Title>
+    <Card.Description>Fri 12 Mar · Nimbus Thistle Hall, Newcastle</Card.Description>
+  </Card.Header>
+  <Card.Content>
+    <p className='text-subtle'>Doors 7pm. Bring your ticket on your phone.</p>
+  </Card.Content>
+  <div className='h-10'>
+    <Pattern crop='bottom' tone='brand-purple' />
+  </div>
+</Card>
+```
+
+### Tones
+
+`tone` picks the brand colour: `brand-blue` (the default) for every market, `brand-purple` for music and venues, and `brand-orange` for shows, events, and sports. Each draws step 5 swirls on a step 9 ground of its hue, from `--color-brand-blue-light-5` and `--color-brand-blue-light-9` and their purple and orange twins. Like all brand artwork, the colour stays the same in light and dark mode and ignores a surrounding intent.
+
+```tsx-live layout=row gap=4
+<div className='h-48 w-32 overflow-hidden rounded-2xl'>
+  <Pattern tone='brand-blue' />
+</div>
+<div className='h-48 w-32 overflow-hidden rounded-2xl'>
+  <Pattern tone='brand-purple' />
+</div>
+<div className='h-48 w-32 overflow-hidden rounded-2xl'>
+  <Pattern tone='brand-orange' />
+</div>
+```
+
+### Behind the logo
+
+The pattern frames a branded header or footer with the logo on a strip across it. Let the pattern bleed off the edges.
+
+```tsx-live
+<div className='relative grid h-40 items-center overflow-hidden rounded-3xl'>
+  <Pattern crop='banner' className='absolute inset-0' />
+  <div className='relative grid justify-items-center bg-(--color-neutral-light-0) py-4'>
+    <Logo size='lg' />
+  </div>
+</div>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Keep text off the swirls'>
+  <Guideline.Do
+    code={`
+      <div className='relative grid place-items-center'>
+        <Pattern crop='banner' className='absolute inset-0' />
+        <div className='relative rounded-2xl emphasis-raised p-6'>…</div>
+      </div>`}
+  >
+    Set headings and body text on a raised surface over the pattern, or beside it.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`
+      <div className='relative'>
+        <Pattern className='absolute inset-0' />
+        <p className='relative'>Doors 7pm. Bring your ticket on your phone.</p>
+      </div>`}
+  >
+    Don't set text straight on the pattern. The swirls cross every line, and no text colour reads on both the ground and the lines.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Use the three tones'>
+  <Guideline.Do code={`<Pattern tone='brand-orange' />`}>
+    Pick blue, purple, or orange with <code>tone</code>.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Pattern className='opacity-50 hue-rotate-90' />`}>
+    Don't recolour, fade, or filter the pattern. Only the three tones are approved artwork.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Size the parent, not the pattern'>
+  <Guideline.Do
+    code={`
+      <div className='h-48'>
+        <Pattern crop='right' />
+      </div>`}
+  >
+    Give the parent a size and pick the crop for where the pattern sits. The crop fills it without stretching.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Pattern className='h-48 w-96 rotate-90 -scale-x-100' />`}>
+    Don't size, rotate, or flip the pattern itself. Choose another crop instead.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- The pattern is decoration. It's always hidden from assistive technology and can't take focus, so it takes no label.
+- Anything the pattern stands for, such as the market it's coloured for, is said in text too.
+
+<PropsDefinitions component='Pattern' />

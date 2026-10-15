@@ -245,6 +245,13 @@ export {
   type PaneInspectorTriggerProps
 } from './components/Pane'
 
+export {
+  Pattern,
+  type PatternProps,
+  type PatternCrop,
+  type PatternTone
+} from './components/Pattern'
+
 export { Marquee, type MarqueeProps } from './components/Marquee'
 
 export {
