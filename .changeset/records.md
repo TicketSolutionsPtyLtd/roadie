@@ -77,8 +77,9 @@ all of, for a `multiple` field) that Tab steps through; typing narrows them, and
 its editor. Option values added to a field join its chip. Clicking an option,
 boolean or date chip, or Enter on it, edits it in the list: the chip shows
 selected, its values are ticked, taking a value ticks or unticks it (the last
-one unticked removes the chip), is and is not rewrite its condition, and a
-boolean's answer, a quick date, Empty or Not empty replaces what it holds.
+one unticked removes the chip), is and is not rewrite its condition (one
+changed to is joins the field's is chip), and a boolean's answer, a quick
+date, Empty or Not empty replaces what it holds.
 Backspace in the empty field removes it and Escape keeps it. Custom dates
 opens a date range picker with relative presets, or a date picker, for the
 chip, and a text or number chip opens its editor for its condition and value

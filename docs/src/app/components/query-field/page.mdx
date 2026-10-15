@@ -267,7 +267,10 @@ function QueryFieldChipEditing() {
     <QueryField
       aria-label='Search events'
       chips={chips}
-      onRemoveChip={() => setChosen([])}
+      onRemoveChip={() => {
+        setChosen([])
+        setEditing(false)
+      }}
       onSelectChip={() => setEditing(true)}
       pendingChip={editing ? { id: 'status', label: 'Status is', chipId: 'status' } : undefined}
       onPendingChipCancel={() => setEditing(false)}
