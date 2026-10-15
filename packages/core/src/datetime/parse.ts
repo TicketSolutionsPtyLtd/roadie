@@ -438,6 +438,12 @@ export function parseDatePhrase(
     return [{ label: label ?? time, value: { time } }]
   }
 
+  // "20 oct onwards" reads as "since 20 oct", one level only.
+  m = ONWARDS.exec(input)
+  if (m) {
+    return ONWARDS.test(m[1]!) ? [] : parseDatePhrase(`since ${m[1]}`, options)
+  }
+
   const ranges = rangesOf(input, today, options)
   if (ranges) return ranges.map(describe)
 
@@ -473,6 +479,7 @@ export function parseDatePhrase(
 }
 
 const COMPLETIONS = new WeakSet<DatePhraseSuggestion>()
+const ONWARDS = /^(.+) (?:onwards?|and later)$/
 
 /**
  * Each reading of "X to Y" as the days between, in order, or null unless

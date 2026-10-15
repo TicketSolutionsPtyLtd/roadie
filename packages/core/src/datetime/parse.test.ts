@@ -314,7 +314,12 @@ describe('parseDatePhrase: comparisons', () => {
     [
       'on or before 20 oct',
       one('Before Wed 21 Oct 2026', { before: '2026-10-21' })
-    ]
+    ],
+    // Onwards takes the day itself, as since does.
+    ['20 oct onwards', one('After Mon 19 Oct 2026', { after: '2026-10-19' })],
+    ['20 oct onward', one('After Mon 19 Oct 2026', { after: '2026-10-19' })],
+    ['20 oct and later', one('After Mon 19 Oct 2026', { after: '2026-10-19' })],
+    ['tomorrow onwards', one('After Fri 2 Oct 2026', { after: '2026-10-02' })]
   ])('%s', (text, expected) => {
     expect(parseDatePhrase(text, SYDNEY)).toEqual(expected)
   })
@@ -323,7 +328,9 @@ describe('parseDatePhrase: comparisons', () => {
     'after 7pm',
     'before upcoming',
     'since next 6 hours',
-    'until after 1 dec'
+    'until after 1 dec',
+    'since 20 oct onwards',
+    '20 oct onwards onwards'
   ])('reads nothing for "%s", rather than drop the comparison', (text) => {
     expect(parseDatePhrase(text, SYDNEY)).toEqual([])
   })
@@ -380,6 +387,13 @@ describe('parseDatePhrase: comparisons', () => {
     expect(
       isDatePhraseCompletion(parseDatePhrase('after today', SYDNEY)[0]!)
     ).toBe(false)
+  })
+
+  it('stays linear on a long run of onwards', () => {
+    const text = 'today' + ' onwards'.repeat(20_000)
+    const started = performance.now()
+    expect(parseDatePhrase(text, SYDNEY)).toEqual([])
+    expect(performance.now() - started).toBeLessThan(500)
   })
 
   it('stays linear on a long run of comparison words', () => {

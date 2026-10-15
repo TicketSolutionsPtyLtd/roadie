@@ -95,7 +95,8 @@ the coming Monday, and two days joined by "to" or "and", such as "tomorrow
 to next fri", read as the days between or not at all.
 `parseDatePhrase` reads "after" and "before" with any day or range, such as
 "after this weekend", and "since", "from", "on or after", "until", "till",
-and "on or before" with the day itself included.
+and "on or before" with the day itself included, as it does "onwards" or
+"and later" after a day.
 
 `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
 and `hitsPerPage`, so the response's `totalHits` counts the matches (up to

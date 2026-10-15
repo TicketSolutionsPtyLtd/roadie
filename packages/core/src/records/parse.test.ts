@@ -1091,6 +1091,7 @@ describe('parseQuery', () => {
       ['starts sat 10 oct', 'Starts: 10 Oct', 'Starts: 3 Oct'],
       ['20 to 23 oct', 'Starts: 20 to 23 Oct', 'Starts: 23 Oct'],
       ['on or after 20 oct', 'Starts: After 19 Oct', 'Starts: After 20 Oct'],
+      ['20 oct onwards', 'Starts: After 19 Oct', 'Starts: 20 Oct'],
       ['next 7 days', 'Starts: Next 7 days', 'Starts: Next 7 weeks']
     ])(
       'reads no date from words inside the longer date "%s"',
