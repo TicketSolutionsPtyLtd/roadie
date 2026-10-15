@@ -1,11 +1,20 @@
 import { useState } from 'react'
 
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { QueryField, type QueryFieldProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { setHoverCapable } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { Tooltip } from '../Tooltip'
 import type {
@@ -145,6 +154,27 @@ describe('QueryField', () => {
     const filter = screen.getByRole('option', { name: /Iguana Teapot Hall/ })
     await expect.poll(() => shown(filter.querySelector('kbd'))).toBe(true)
     expect(search.querySelector('kbd')).toBeNull()
+  })
+
+  // As on the docs site, which keeps every key hint on touch screens, as the
+  // list is portalled to the body.
+  it('hides the Enter hint on a touch screen, keeping the fill', async () => {
+    document.body.dataset.keyboardHints = 'always'
+    setHoverCapable(false)
+    onTestFinished(() => {
+      delete document.body.dataset.keyboardHints
+      setHoverCapable(true)
+    })
+    render(<Harness />)
+    await userEvent.click(input())
+    await userEvent.keyboard('igua')
+    const search = await screen.findByRole('option', { name: /Search for/ })
+    const filter = screen.getByRole('option', { name: /Iguana Teapot Hall/ })
+    expect(search.querySelector('kbd')).toBeInTheDocument()
+    expect(shown(search.querySelector('kbd'))).toBe(false)
+    expect(getComputedStyle(search).backgroundColor).not.toBe(
+      getComputedStyle(filter).backgroundColor
+    )
   })
 
   it('searches on Enter while the pointer rests on a filter', async () => {
