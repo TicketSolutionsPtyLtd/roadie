@@ -1290,6 +1290,15 @@ describe('QueryField operators, edge keys', () => {
     expect(onPendingOperatorChange).not.toHaveBeenCalled()
   })
 
+  it('announces a change of operator', async () => {
+    render(<OperatorStep />)
+    await userEvent.click(input())
+    const pendingChip = document.querySelector(
+      '[data-slot=query-field-pending-chip]'
+    )
+    expect(pendingChip).toHaveAttribute('aria-live', 'polite')
+  })
+
   it('takes nothing on Enter after an arrowed highlight is cycled away', async () => {
     const onAccept = vi.fn()
     render(<OperatorStep onAccept={onAccept} />)

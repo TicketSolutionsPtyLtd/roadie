@@ -548,6 +548,8 @@ export function QueryField<Value = unknown>({
             <span
               id={pendingId}
               data-slot='query-field-pending-chip'
+              // A description's change isn't read, so the operator's is live.
+              aria-live='polite'
               className={cn(
                 'inline-flex h-6 min-w-0 items-center rounded-full border border-dashed border-normal px-2.5 text-sm font-medium text-subtle',
                 CHIP_WIDTH
