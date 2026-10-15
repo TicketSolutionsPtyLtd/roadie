@@ -149,8 +149,8 @@ const focusPanel = (popup: HTMLElement) => popup
 /**
  * Search and filter in one field. Typing searches the records' searchable
  * fields and suggests filters, such as a city or "this weekend", that become
- * chips. A selected chip edits its values in the list, and Custom dates in
- * an editor. The page's `scope` shows first, as locked chips.
+ * chips. Selecting a chip edits its values in the list, and Custom dates
+ * opens an editor. The page's `scope` shows first, as locked chips.
  */
 export function RecordsSearch({
   placeholder = 'Search and filter',

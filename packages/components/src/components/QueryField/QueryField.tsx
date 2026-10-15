@@ -48,7 +48,7 @@ export type QueryFieldProps<Value = unknown> = {
   chips?: readonly QueryFieldChip[]
   /** A chip's remove button, Backspace on a selected chip, or Clear asks to remove it. Clear calls it once per chip, so update state functionally. */
   onRemoveChip?: (id: string) => void
-  /** A click, Enter or Space on an unlocked chip, which moves focus to the input. Start a value step with `pendingChip.chipId` naming the chip to list its values, or open an editor of your own. */
+  /** A click, Enter, or Space on an unlocked chip, which moves focus to the input. Start a value step with `pendingChip.chipId` naming the chip to list its values, or open an editor of your own. */
   onSelectChip?: (id: string) => void
   /**
    * Clear calls it in place of clearing the text through `onInputValueChange`
@@ -58,7 +58,7 @@ export type QueryFieldProps<Value = unknown> = {
   /**
    * The field being given a value, such as "Venue is", shown after the chips.
    * With `chipId`, that chip shows selected instead, and taking a value keeps
-   * the list open; Backspace on the empty field removes the chip, and focus
+   * the list open. Backspace in the empty field removes the chip, and focus
    * leaving the field ends the step.
    */
   pendingChip?: QueryFieldPendingChip
