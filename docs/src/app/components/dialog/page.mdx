@@ -287,7 +287,7 @@ A `Dialog.Footer` holds a centered actions row. Combine it with `intent='danger'
 
 ## Guidelines
 
-Use a dialog for tasks that need the user's full attention, such as confirmations, short forms, and destructive actions. Keep content concise, and set `intent` on `Dialog.Content`, not the trigger, since portaled popups do not inherit the trigger's CSS cascade.
+Use a dialog for tasks that need the user's full attention, such as confirmations, short forms, and destructive actions. Keep content concise, and set `intent` on `Dialog.Content`, not the trigger, since portaled popups do not inherit the trigger's CSS cascade. Write the title, description, and buttons with [Interface copy](/content/interface-copy#confirmations).
 
 <Guidelines>
 
@@ -297,24 +297,6 @@ Use a dialog for tasks that need the user's full attention, such as confirmation
   </Guideline.Do>
   <Guideline.Dont code={`<Dialog>\n  <Dialog.Content intent='danger' size='sm'>\n    <Dialog.Title>Delete event?</Dialog.Title>\n    …\n  </Dialog.Content>\n</Dialog>`}>
     Don't leave a destructive or blocking confirmation as the default `role='dialog'`. It is announced as a plain dialog and can be obscured by an open drawer. Keep `role='dialog'` for informational or optional content.
-  </Guideline.Dont>
-</Guideline>
-
-<Guideline title='Name buttons by their action'>
-  <Guideline.Do example={<Button intent='accent' emphasis='strong'>Save changes</Button>}>
-    Label the confirming button with the specific verb and object the user is committing to. A clear action like "Save changes" lets people act without rereading the title. For destructive flows, naming the consequence, as in "Delete event", leaves no doubt about what happens.
-  </Guideline.Do>
-  <Guideline.Dont example={<Button>OK</Button>}>
-    Vague labels like "OK", "Yes", or "Submit" tell the user nothing on their own. They have to jump back to the title to work out what they are actually agreeing to.
-  </Guideline.Dont>
-</Guideline>
-
-<Guideline title='Write a title that states the decision'>
-  <Guideline.Do example={<p className='text-display-ui-4 text-strong'>Delete event?</p>}>
-    Write the title as a clear question or noun phrase that names the affected object and the action. It tells the user exactly what is at stake before they read another word.
-  </Guideline.Do>
-  <Guideline.Dont example={<p className='text-display-ui-4 text-strong'>Are you sure?</p>}>
-    Vague titles that never name the affected object force the user to hunt through the body for context, and make them hesitate before acting.
   </Guideline.Dont>
 </Guideline>
 
