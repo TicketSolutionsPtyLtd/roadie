@@ -1831,6 +1831,97 @@ describe('QueryField chip editing', () => {
     await waitFor(() => expect(onPendingChipCancel).toHaveBeenCalledTimes(1))
   })
 
+  describe.each([
+    ['a new filter', false],
+    ['an edited chip', true]
+  ])('a step for %s', (_, editing) => {
+    function Step({ onCancel }: { onCancel: () => void }) {
+      return (
+        <>
+          <CityEditing editing={editing} onPendingChipCancel={onCancel} />
+          <button type='button'>Outside</button>
+          <p>Elsewhere</p>
+        </>
+      )
+    }
+
+    it('ends as focus moves to something outside the field', async () => {
+      const onCancel = vi.fn()
+      render(<Step onCancel={onCancel} />)
+      await userEvent.click(input())
+      await screen.findByRole('listbox')
+      act(() => screen.getByText('Outside').focus())
+      await waitFor(() => expect(onCancel).toHaveBeenCalledTimes(1))
+    })
+
+    // As an iPhone's keyboard is put away: the input blurs, and nothing takes focus.
+    it('stays as the input blurs with nothing new focused', async () => {
+      const onCancel = vi.fn()
+      render(<Step onCancel={onCancel} />)
+      await userEvent.click(input())
+      await screen.findByRole('listbox')
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      onTestFinished(() => {
+        vi.useRealTimers()
+      })
+      act(() => input().blur())
+      expect(document.activeElement).toBe(document.body)
+      settleFocus()
+      expect(onCancel).not.toHaveBeenCalled()
+    })
+
+    it('ends as a press lands outside the field and its list', async () => {
+      const onCancel = vi.fn()
+      render(<Step onCancel={onCancel} />)
+      await userEvent.click(input())
+      await screen.findByRole('listbox')
+      fireEvent.pointerDown(screen.getByText('Elsewhere'))
+      expect(onCancel).toHaveBeenCalledTimes(1)
+    })
+
+    it('stays as a press lands in the list’s padding', async () => {
+      const onCancel = vi.fn()
+      render(<Step onCancel={onCancel} />)
+      await userEvent.click(input())
+      const popup = (await screen.findByRole('listbox')).closest(
+        '[data-slot=combobox-popup]'
+      )!
+      fireEvent.pointerDown(popup)
+      expect(onCancel).not.toHaveBeenCalled()
+    })
+  })
+
+  it('ends a later step on a press outside while focus never left', async () => {
+    const onPendingChipCancel = vi.fn()
+    function Steps() {
+      const [step, setStep] = useState(true)
+      return (
+        <>
+          <Harness
+            pendingChip={step ? { id: 'venue', label: 'Venue is' } : undefined}
+            onPendingChipCancel={() => {
+              setStep(false)
+              onPendingChipCancel()
+            }}
+          />
+          <p>Elsewhere</p>
+          <button type='button' onClick={() => setStep(true)}>
+            Start
+          </button>
+        </>
+      )
+    }
+    render(<Steps />)
+    await userEvent.click(input())
+    fireEvent.pointerDown(screen.getByText('Elsewhere'))
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
+    expect(document.activeElement).toBe(input())
+    // A click alone, as a keyboard would pick the next field.
+    fireEvent.click(screen.getByText('Start'))
+    fireEvent.pointerDown(screen.getByText('Elsewhere'))
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(2)
+  })
+
   it('leaves the step alone once the field unmounts as focus leaves', async () => {
     const onPendingChipCancel = vi.fn()
     const { rerender } = render(

@@ -39,8 +39,10 @@ and Enter takes it before anything is typed. Mark one that opens an editor
 `opensEditor`, such as "Custom dates", and only an arrow or a click takes it.
 `pendingChip.hint`, such as "Type a number.", shows and is announced in place
 of No suggestions while no value is listed, and below the values while Enter
-has none to take for the typed text. Focus leaving the field calls
-`onPendingChipCancel`, as Escape does.
+has none to take for the typed text. Focus moving to something outside the
+field and its list, or a press outside them, calls `onPendingChipCancel`, as
+Escape does. Focus going nowhere, as when a phone's keyboard is put away,
+keeps the step.
 
 To edit a chip in the list, answer `onSelectChip` with a value step whose
 `pendingChip.chipId` names the chip. The chip shows selected in place of a

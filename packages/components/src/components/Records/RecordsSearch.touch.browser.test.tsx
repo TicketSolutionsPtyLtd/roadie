@@ -56,6 +56,18 @@ describe('Records.Search by touch', TIMEOUT, () => {
     await expect.poll(chipLabels).toEqual(['Status is Sold out'])
   })
 
+  // As an iPhone's keyboard is put away: the input blurs, and nothing takes focus.
+  it('adds a filter from a value tapped once the input blurs', async () => {
+    render(<Shows />)
+    await tapOn(input())
+    await tapOn(await screen.findByRole('option', { name: /^Status/ }))
+    const value = await screen.findByRole('option', { name: 'Sold out' })
+    input().blur()
+    expect(document.activeElement).toBe(document.body)
+    await tapOn(value)
+    await expect.poll(chipLabels).toEqual(['Status is Sold out'])
+  })
+
   it('opens Custom dates for a tapped date chip in a drawer, and its dates in another', async () => {
     render(
       <Shows

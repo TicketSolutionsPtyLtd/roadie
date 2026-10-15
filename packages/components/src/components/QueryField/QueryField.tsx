@@ -59,7 +59,8 @@ export type QueryFieldProps<Value = unknown> = {
    * The field being given a value, such as "Venue is", shown after the chips.
    * With `chipId`, that chip shows selected instead, taking a value keeps
    * the list open, and Backspace in the empty field removes the chip. Focus
-   * leaving the field ends the step.
+   * moving outside the field and its list, or a press outside them, ends the
+   * step.
    */
   pendingChip?: QueryFieldPendingChip
   /** An operator was pressed, or Tab moved to one, while a chip is pending. */
@@ -248,25 +249,55 @@ export function QueryField<Value = unknown>({
   const leaving = useRef<ReturnType<typeof setTimeout>>(undefined)
   // Read as focus lands, so a step already ended isn't ended again.
   const cancelStep = useRef<(() => void) | undefined>(undefined)
+  // A press outside and the focus it moves end a step once, until focus comes
+  // back or the step goes.
+  const ended = useRef(false)
   useIsomorphicLayoutEffect(() => {
     cancelStep.current = pendingChip ? onPendingChipCancel : undefined
+    if (!pendingChip) ended.current = false
   })
   useEffect(() => () => clearTimeout(leaving.current), [])
 
-  // A value step ends as focus leaves the field and its list. Checked once
-  // focus lands, as it stays put while the window loses focus.
+  const isInside = (target: EventTarget | null) => {
+    const field = inputRef.current?.closest('[data-slot=query-field]')
+    return [field, popupRef.current].some(
+      (element) => target instanceof Node && element?.contains(target)
+    )
+  }
+  function endStep() {
+    clearTimeout(leaving.current)
+    if (ended.current) return
+    ended.current = true
+    cancelStep.current?.()
+  }
+  const handleFocus = () => {
+    ended.current = false
+  }
+
+  // A value step ends once focus lands on something outside the field and its
+  // list, checked as it lands. Focus going nowhere, as when a phone's keyboard
+  // is put away or the window loses focus, keeps it.
   function handleBlur(event: FocusEvent<HTMLElement>) {
     const { ownerDocument } = event.currentTarget
     clearTimeout(leaving.current)
     leaving.current = setTimeout(() => {
       const active = ownerDocument.activeElement
-      const field = inputRef.current?.closest('[data-slot=query-field]')
-      const inside = [field, popupRef.current].some(
-        (element) => active && element?.contains(active)
-      )
-      if (!inside) cancelStep.current?.()
+      const nowhere = !active || active === ownerDocument.body
+      if (!nowhere && !isInside(active)) endStep()
     })
   }
+
+  // Or once a press lands outside them, focusable or not.
+  const stepShown = !!pendingChip
+  useEffect(() => {
+    const doc = inputRef.current?.ownerDocument
+    if (!stepShown || !doc) return
+    const press = (event: PointerEvent) => {
+      if (!isInside(event.target)) endStep()
+    }
+    doc.addEventListener('pointerdown', press, true)
+    return () => doc.removeEventListener('pointerdown', press, true)
+  }, [stepShown])
   const operators = pendingChip?.operators ?? NO_OPERATORS
   const operator = pendingChip?.operator
   const showsOperators = operators.length >= 2
@@ -522,6 +553,7 @@ export function QueryField<Value = unknown>({
         emphasis={emphasis}
         aria-invalid={isInvalid || undefined}
         className={cn('group/query-field gap-2', className)}
+        onFocus={handleFocus}
         onBlur={handleBlur}
       >
         <MagnifyingGlassIcon
@@ -676,7 +708,11 @@ export function QueryField<Value = unknown>({
       </Combobox.InputGroup>
       <Combobox.Portal>
         <Combobox.Positioner>
-          <Combobox.Popup ref={popupRef} onBlur={handleBlur}>
+          <Combobox.Popup
+            ref={popupRef}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+          >
             {showsOperators && (
               <div
                 data-slot='query-field-operators'
