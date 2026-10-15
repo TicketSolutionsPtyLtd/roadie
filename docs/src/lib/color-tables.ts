@@ -64,13 +64,14 @@ export type ColorScale = {
   steps: { name: string; step: string }[]
 }
 
-/** Each colour scale's steps from the token manifest, in manifest order; pinned light steps aren't scales. */
+/** Each colour scale's steps from the token manifest, in manifest order; pinned light steps and hue aliases aren't scales. */
 export function colorScales(
   tokens: { name: string; group: string }[],
   followingAccent = false
 ) {
   const scales = new Map<string, ColorScale>()
   for (const token of tokens) {
+    if (token.group === 'Brand hue aliases') continue
     const [, scale, step] = token.name.match(STEP) ?? []
     if (!scale || !step || scale.endsWith('-light')) continue
     const entry = scales.get(scale) ?? {

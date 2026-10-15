@@ -77,6 +77,11 @@ const VARIABLE_RULES: Rule[] = [
     'color-scales',
     'Pinned light steps'
   ],
+  [
+    /^--color-brand-(blue|purple|orange)-(light-)?\d+$/,
+    'color-scales',
+    'Brand hue aliases'
+  ],
   [/^--color-illustration-/, 'color-scales', 'Illustration'],
   [/^--accent-(hue|chroma)$/, 'color-scales', 'Accent parameters'],
   [/^--intent-bg-/, 'intents', 'Backgrounds'],

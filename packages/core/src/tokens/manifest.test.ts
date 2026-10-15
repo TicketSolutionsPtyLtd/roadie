@@ -173,6 +173,22 @@ describe('values', () => {
     expect(find('--color-danger-light-9').group).toBe('Pinned light steps')
   })
 
+  it.each([
+    ['brand-blue', 'brand'],
+    ['brand-purple', 'info'],
+    ['brand-orange', 'brand-secondary']
+  ])('aliases every %s step to the %s scale in both modes', (hue, scale) => {
+    const steps = Array.from({ length: 14 }, (_, step) => `${step}`)
+    const pinned = ['light-5', 'light-9', 'light-12', 'light-13']
+    for (const step of [...steps, ...pinned]) {
+      const alias = find(`--color-${hue}-${step}`)
+      const target = `var(--color-${scale}-${step})`
+      expect(alias.value, alias.name).toEqual({ light: target, dark: target })
+      expect(alias.group, alias.name).toBe('Brand hue aliases')
+      expect(alias.classes, alias.name).toBeUndefined()
+    }
+  })
+
   it('derives the classes a theme namespace generates', () => {
     expect(find('--z-index-popover').classes).toEqual(['z-popover'])
     expect(find('--radius-5xl').classes).toEqual(['rounded-5xl'])
