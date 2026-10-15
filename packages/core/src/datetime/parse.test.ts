@@ -306,6 +306,14 @@ describe('parseDatePhrase: comparisons', () => {
     [
       'till this weekend',
       one('Before Mon 5 Oct 2026', { before: '2026-10-05' })
+    ],
+    [
+      'on or after 20 oct',
+      one('After Mon 19 Oct 2026', { after: '2026-10-19' })
+    ],
+    [
+      'on or before 20 oct',
+      one('Before Wed 21 Oct 2026', { before: '2026-10-21' })
     ]
   ])('%s', (text, expected) => {
     expect(parseDatePhrase(text, SYDNEY)).toEqual(expected)

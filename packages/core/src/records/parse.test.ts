@@ -1011,6 +1011,15 @@ describe('parseQuery', () => {
       }
     )
 
+    it.each([
+      ['on or after 20 oct', 'Starts: After 19 Oct'],
+      ['on or before 20 oct', 'Starts: Before 21 Oct']
+    ])('reads "%s" as %s, the day included', (text, label) => {
+      const read = parse(text, { limit: 50 })
+      expect(read[0]).toMatchObject({ label, remainder: '' })
+      expect(read.map(summary)).not.toContain('Status is On sale')
+    })
+
     it('reads no date for a comparison it can’t express', () => {
       const read = parse('starts after 7pm', { limit: 50 })
       expect(

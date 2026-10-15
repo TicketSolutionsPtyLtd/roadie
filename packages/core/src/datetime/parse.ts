@@ -351,7 +351,7 @@ export function parseDatePhrase(
   text: string,
   options: DatePhraseOptions
 ): DatePhraseSuggestion[] {
-  const input = normalise(text).replace(/^on /, '')
+  const input = normalise(text).replace(/^on (?!or )/, '')
   if (!input) return []
   const today = plainDateOf(options.now, options.timeZone)
   const weekStart = options.weekStart ?? 1
@@ -486,8 +486,10 @@ const COMPARISONS = {
   before: { after: false, edge: 'start', shift: 0 },
   since: ONWARD,
   from: ONWARD,
+  'on or after': ONWARD,
   until: THROUGH,
-  till: THROUGH
+  till: THROUGH,
+  'on or before': THROUGH
 } as const
 type Comparison = keyof typeof COMPARISONS
 

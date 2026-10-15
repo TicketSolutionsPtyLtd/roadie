@@ -89,8 +89,8 @@ value, so "sold > 100" never suggests "Status is Sold out". A date keeps the
 word that compares it: "starts after today" never suggests "Starts: Today",
 and one it can't read, such as "after 7pm", suggests no date.
 `parseDatePhrase` reads "after" and "before" with any day or range, such as
-"after this weekend", and "since", "from", "until", and "till" with the day
-itself included.
+"after this weekend", and "since", "from", "on or after", "until", "till",
+and "on or before" with the day itself included.
 
 `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
 and `hitsPerPage`, so the response's `totalHits` counts the matches (up to
