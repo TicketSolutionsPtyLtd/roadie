@@ -446,6 +446,11 @@ describe('parseQuery', () => {
         { field: 'city', operator: 'is-not', values: ['sydney'] }
       ],
       [
+        '≠ syd',
+        'City is not Sydney',
+        { field: 'city', operator: 'is-not', values: ['sydney'] }
+      ],
+      [
         'city:!=syd',
         'City is not Sydney',
         { field: 'city', operator: 'is-not', values: ['sydney'] }
