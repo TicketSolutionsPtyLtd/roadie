@@ -32,7 +32,12 @@ import { Kbd } from '../Kbd'
 import { ToggleGroup } from '../ToggleGroup'
 import { Tooltip } from '../Tooltip'
 import { useControlledText, useShortcut } from './hooks'
-import { exactSuggestion, firstMatch, listGroups } from './suggestions'
+import {
+  exactSuggestion,
+  firstMatch,
+  leadWith,
+  listGroups
+} from './suggestions'
 import type {
   QueryFieldAccepted,
   QueryFieldChip,
@@ -270,6 +275,9 @@ export function QueryField<Value = unknown>({
     if (takenIn !== step) setOpen(false)
   }
   const popupRef = useRef<HTMLDivElement>(null)
+  // The first Down lands on the top row, which Enter already takes, so it
+  // moves on to the next. Base UI has no way to highlight a row but a key.
+  const passDefault = useRef(false)
   const leaving = useRef<ReturnType<typeof setTimeout>>(undefined)
   // Read as focus lands, so a step already ended isn't ended again.
   const cancelStep = useRef<(() => void) | undefined>(undefined)
@@ -343,7 +351,7 @@ export function QueryField<Value = unknown>({
     // A value taken changes the edited chip, and so which values are ticked.
     edited && `${edited.id}\u0000${edited.label}`
   )
-  const list = listGroups({
+  const listed = listGroups({
     groups: suggestions.groups,
     inputValue: text,
     recent,
@@ -361,10 +369,14 @@ export function QueryField<Value = unknown>({
     current && pendingChip && text.trim()
       ? firstMatch(suggestions.groups, enterable)
       : undefined
-  const items = list.flatMap((group) => group.items)
-  const search = items.find((item) => item.kind === 'search')
+  const search = listed
+    .flatMap((group) => group.items)
+    .find((item) => item.kind === 'search')
   const enterFallback = exact ?? typedValue ?? search
   const fallbackKey = enterFallback && itemKey(enterFallback)
+  // What Enter takes leads, so Down moves to what else there is.
+  const list = leadWith(listed, (item) => itemKey(item) === fallbackKey)
+  const items = list.flatMap((group) => group.items)
   // By position, so a recent item repeating a suggestion isn't marked too.
   const enterTarget =
     keyboardHighlightKey !== undefined
@@ -462,6 +474,14 @@ export function QueryField<Value = unknown>({
       !isComposing(event)
     )
       setArrowed(true)
+    passDefault.current =
+      event.key === 'ArrowDown' &&
+      !isModified(event) &&
+      !isComposing(event) &&
+      open &&
+      !keyboardHighlightKey &&
+      enterTarget === 0 &&
+      items.length > 1
     if (event.key === 'Enter') {
       if (isModified(event)) {
         // Base UI ignores a modified Enter; keep it from submitting a form.
@@ -632,6 +652,20 @@ export function QueryField<Value = unknown>({
         if (details.reason !== 'list-navigation') setArrowed(false)
       }}
       onItemHighlighted={(item, details) => {
+        if (passDefault.current && details.reason === 'keyboard') {
+          passDefault.current = false
+          const input = inputRef.current
+          if (details.index === 0 && input)
+            queueMicrotask(() =>
+              input.dispatchEvent(
+                new KeyboardEvent('keydown', {
+                  key: 'ArrowDown',
+                  bubbles: true,
+                  cancelable: true
+                })
+              )
+            )
+        }
         const key = item && itemKey(item)
         setHighlightKey(key)
         setHighlightIndex(details.index)

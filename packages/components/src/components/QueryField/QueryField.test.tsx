@@ -111,6 +111,63 @@ async function typeInto(text: string) {
 }
 
 describe('QueryField', () => {
+  it('lists the row Enter takes first, its group ahead of the rest, and Down moves past it', async () => {
+    const onAccept = vi.fn()
+    render(<Harness onAccept={onAccept} />)
+    await typeInto('venue')
+    await waitFor(() =>
+      expect(optionNames()).toEqual([
+        'Search for “venue”',
+        'Venue is Iguana Teapot Hall',
+        'Venue'
+      ])
+    )
+    expect(hinted()).toEqual(['Search for “venue”'])
+    await userEvent.keyboard('{ArrowDown}')
+    expect(hinted()).toEqual(['Venue is Iguana Teapot Hall'])
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(iguana)
+  })
+
+  it('lists a value step’s Enter target first in its group', async () => {
+    const onAccept = vi.fn()
+    render(
+      <Harness
+        pendingChip={{ id: 'city', label: 'City is', chipId: 'city' }}
+        initialChips={[city]}
+        onAccept={onAccept}
+        suggest={() => [
+          {
+            id: 'values',
+            label: 'City',
+            items: [
+              {
+                id: 'perth',
+                label: 'Perth',
+                kind: 'filter',
+                value: 'Perth',
+                selected: true
+              },
+              {
+                id: 'penrith',
+                label: 'Penrith',
+                kind: 'filter',
+                value: 'Penrith'
+              }
+            ]
+          }
+        ]}
+      />
+    )
+    await typeInto('pe')
+    await waitFor(() => expect(optionNames()).toEqual(['Penrith', 'Perth']))
+    expect(hinted()).toEqual(['Penrith'])
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'penrith' })
+    )
+  })
+
   it('is a search field named by aria-label, with default copy', () => {
     render(<Harness />)
     expect(input()).toHaveAttribute('placeholder', 'Search and filter')
@@ -161,14 +218,14 @@ describe('QueryField', () => {
     expect(input()).toHaveAttribute('placeholder', '')
   })
 
-  it('lists suggestions in the order given, then free-text search', async () => {
+  it('lists free-text search, which Enter takes, then suggestions in the order given', async () => {
     render(<Harness />)
     await typeInto('igua')
     await waitFor(() =>
       expect(optionNames()).toEqual([
+        'Search for “igua”',
         'Venue is Iguana Teapot Hall',
-        'Venue',
-        'Search for “igua”'
+        'Venue'
       ])
     )
   })
@@ -708,7 +765,7 @@ describe('QueryField', () => {
     )
     await typeInto('igua')
     await waitFor(() =>
-      expect(optionNames()).toEqual(['Search venues', 'Search for “igua”'])
+      expect(optionNames()).toEqual(['Search for “igua”', 'Search venues'])
     )
     expect(hinted()).toEqual(['Search for “igua”'])
     await userEvent.keyboard('{Enter}')
@@ -1554,7 +1611,8 @@ describe('QueryField value step Enter', () => {
     render(<TypedValueStep onAccept={onAccept} />)
     await typeInto('hal')
     await screen.findByRole('option', { name: hall.label })
-    await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}')
+    // Enter already takes the top row, so Down lands on the next.
+    await userEvent.keyboard('{ArrowDown}{Enter}')
     expect(onAccept).toHaveBeenCalledExactlyOnceWith(iguana)
   })
 

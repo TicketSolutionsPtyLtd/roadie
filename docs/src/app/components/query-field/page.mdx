@@ -23,6 +23,8 @@ import { QueryField } from '@oztix/roadie-components/query-field'
 Pass the chips you hold and a `suggest` function. Suggestions come back in
 groups, and `onAccept` hands you the one taken: add a chip for a filter, or
 search for the text when Enter sends `kind: 'search'`.
+The row Enter takes shows at the top, with its group above the rest, so the
+list can move as you type.
 Give a suggestion an `icon`, a bold Phosphor icon, to show before its label.
 Chips never show one.
 
@@ -519,8 +521,8 @@ function QueryFieldShortcut() {
 
 <Guideline title='Order suggestions by what Enter does'>
   <Guideline.Do>
-    Return filters first, then fields. The field adds "Search for …" last, and
-    Enter takes it unless a suggestion is an exact match.
+    Return filters first, then fields. The field adds "Search for …" above
+    them, and Enter takes it unless a suggestion is an exact match.
   </Guideline.Do>
   <Guideline.Dont>
     Outside a value step, don't mark a filter `exact` to make Enter take it.
@@ -562,9 +564,10 @@ function QueryFieldShortcut() {
   suggestion Enter would take is filled and shows an Enter key hint. A touch
   screen shows the fill alone, unless `data-keyboard-hints='always'` keeps key
   hints, as on a tablet with a keyboard.
-- Unlike `Combobox` and `Autocomplete`, typing highlights no suggestion, so
-  the first Down Arrow lands on the first one. Outside a value step, Enter
-  keeps searching what you typed.
+- Unlike `Combobox` and `Autocomplete`, typing highlights no suggestion. The
+  row Enter takes is at the top, so the first Down Arrow moves past it to the
+  next one. With no row for Enter, it lands on the first. Outside a value step,
+  Enter keeps searching what you typed.
 - **Backspace** in an empty field selects the last chip you can remove; a
   second Backspace removes it and returns focus to the input. **Left Arrow**
   from the start of the input moves to the chips, and **Left** and **Right**

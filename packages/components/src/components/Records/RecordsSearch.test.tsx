@@ -124,6 +124,19 @@ describe('Records.Search', () => {
     expect(rows()).toHaveLength(5)
   })
 
+  it('lists the search Enter takes first, ahead of the fields the text names', async () => {
+    const { user } = setup()
+    await user.click(input())
+    await user.keyboard('Star')
+    await screen.findByRole('option', { name: /^Starts/ })
+    const names = screen.getAllByRole('option').map((each) => each.textContent)
+    expect(names[0]).toMatch(/^Search for “Star”/)
+    await user.keyboard('{ArrowDown}{Enter}')
+    expect(
+      document.querySelector('[data-slot=query-field-pending-chip]')
+    ).toHaveTextContent('Starts')
+  })
+
   it('suggests a filter from the values the records hold', async () => {
     const { user, lastView } = setup()
     await user.click(input())

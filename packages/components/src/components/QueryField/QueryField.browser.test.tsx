@@ -508,6 +508,23 @@ describe('QueryField', () => {
     await expect.poll(() => fill('Brisbane')).toBe(resting)
   })
 
+  it('lists the search Enter takes first, and Down moves to the next row', async () => {
+    render(<Harness />)
+    await userEvent.type(input(), 'igua')
+    const options = () =>
+      screen.getAllByRole('option').map((each) => each.textContent)
+    await expect
+      .poll(options)
+      .toEqual([
+        expect.stringMatching(/^Search for “igua”/),
+        expect.stringMatching(/^Venue is Iguana Teapot Hall/)
+      ])
+    await userEvent.keyboard('{ArrowDown}')
+    await expect
+      .poll(() => input().getAttribute('aria-activedescendant'))
+      .toBe(screen.getByRole('option', { name: /^Venue is/ }).id)
+  })
+
   it('sizes each operator to its own label', async () => {
     const words: QueryFieldOperator[] = [
       { value: 'contains', label: 'contains' },
