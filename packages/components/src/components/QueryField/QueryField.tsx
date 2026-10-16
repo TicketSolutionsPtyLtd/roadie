@@ -797,14 +797,14 @@ export function QueryField<Value = unknown>({
                 id={pendingId}
                 // A description's change isn't read, so the operator's is live.
                 aria-live='polite'
-                className='min-w-0 truncate text-sm font-medium text-subtle pointer-coarse:text-base'
+                className='min-w-0 shrink-[3] truncate text-sm font-medium text-subtle pointer-coarse:text-base'
               >
                 {pendingChip.label}
               </span>
             )}
-            <span // The label truncates before the typed text does.
+            <span // Shrinks too, if slower than the label, and scrolls.
               className={cn(
-                inChip ? 'inline-grid max-w-full shrink-0' : 'contents'
+                inChip ? 'inline-grid max-w-full min-w-1' : 'contents'
               )}
             >
               {input}

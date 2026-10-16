@@ -368,7 +368,10 @@ export function RecordsSearch({
               operator: pendingOperator,
               hint:
                 valueHint(pendingField, stepText, pendingOperator, context) ??
+                // Not for the chip's own value as the edit opens: it's ticked.
                 (selectedFilter &&
+                  stepText !==
+                    valueText(pendingField, selectedFilter, context) &&
                   heldHint(pendingField, stepText, stepValues(stepText))),
               chipId,
               content: picking && (

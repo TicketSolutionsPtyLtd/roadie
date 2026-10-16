@@ -1712,6 +1712,10 @@ describe('Records.Search', () => {
       expect(input()).toHaveValue('12 Nov to 15 Dec')
       expect(input()).toHaveAccessibleDescription('Starts is between')
       expect([input().selectionStart, input().selectionEnd]).toEqual([0, 16])
+      // Its own days are ticked, so saying they're held would only be noise.
+      expect(
+        document.querySelector('[data-slot=query-field-hint]')?.textContent
+      ).toBeFalsy()
       expect(
         screen.getByRole('button', { name: 'is between', pressed: true })
       ).toBeInTheDocument()
