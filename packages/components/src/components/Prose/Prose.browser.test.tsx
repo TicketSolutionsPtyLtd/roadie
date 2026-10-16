@@ -5,7 +5,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { Prose } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
+import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
@@ -491,6 +491,32 @@ describe('Prose', () => {
     expect(style(get(container, '#outer')).listStyleType).toBe('disc')
     expect(style(get(container, '#inner')).listStyleType).toBe('circle')
     expect(style(get(container, '#ordered')).listStyleType).toBe('decimal')
+  })
+
+  it('sets emphasis in the italic face, and keeps it upright in not-prose', async () => {
+    await Promise.all([
+      loadBrandFont(),
+      document.fonts.load('italic 1em Intermission')
+    ])
+    const text = 'Bring sunscreen'
+    const container = renderWide(
+      <Prose>
+        <p>
+          <span id='upright'>{text}</span> <em id='em'>{text}</em>{' '}
+          <i id='i'>{text}</i> <cite id='cite'>{text}</cite>
+        </p>
+        <div className='not-prose'>
+          <em id='opted-out'>{text}</em>
+        </div>
+      </Prose>
+    )
+    const upright = box(get(container, '#upright')).width
+    for (const id of ['#em', '#i', '#cite']) {
+      expect(style(get(container, id)).fontStyle).toBe('italic')
+      // The upright face can't lay out to another width, so a change means the italic face drew.
+      expect(box(get(container, id)).width).not.toBe(upright)
+    }
+    expect(style(get(container, '#opted-out')).fontStyle).toBe('normal')
   })
 
   it('takes its colours from the scheme, with no rules of its own', () => {

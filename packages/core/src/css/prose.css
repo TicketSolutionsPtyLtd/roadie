@@ -168,6 +168,14 @@
     color: var(--intent-text-strong);
   }
 
+  /* The reset sets every element upright, so emphasis needs its slant back. */
+  .prose
+    :where(em, i, cite):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    font-style: italic;
+  }
+
   .prose
     :where(ul, ol):not(
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
