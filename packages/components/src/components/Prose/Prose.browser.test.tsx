@@ -37,6 +37,16 @@ const DISPLAY_PROSE = [
   'text-display-prose-6'
 ] as const
 
+// One step below display-ui; no utility carries this scale.
+const DISPLAY_SMALL = [
+  'text-3xl font-bold',
+  'text-2xl font-bold',
+  'text-xl font-bold',
+  'text-lg font-bold',
+  'text-base font-semibold',
+  'text-sm font-semibold'
+] as const
+
 const style = (element: Element) => getComputedStyle(element)
 const box = (element: Element) => element.getBoundingClientRect()
 const px = (value: string) => Number.parseFloat(value)
@@ -159,37 +169,34 @@ describe('Prose', () => {
   })
 
   it.each([
-    ['sm', 'ui', DISPLAY_UI],
-    ['md', 'prose', DISPLAY_PROSE],
+    ['sm', 'small', DISPLAY_SMALL],
+    ['md', 'ui', DISPLAY_UI],
     ['lg', 'prose', DISPLAY_PROSE]
-  ] as const)(
-    'sets %s headings to the display-%s scale',
-    (size, _, display) => {
-      const container = renderWide(
-        <>
-          <Prose size={size}>
-            <h1>Set times</h1>
-            <h2>Set times</h2>
-            <h3>Set times</h3>
-            <h4>Set times</h4>
-            <h5>Set times</h5>
-            <h6>Set times</h6>
-          </Prose>
-          {display.map((className) => (
-            <p key={className} className={className}>
-              Set times
-            </p>
-          ))}
-        </>
-      )
-      display.forEach((className, index) => {
-        const heading = style(get(container, `h${index + 1}`))
-        const reference = style(get(container, `.${className}`))
-        expect(heading.fontSize, className).toBe(reference.fontSize)
-        expect(heading.fontWeight, className).toBe(reference.fontWeight)
-      })
-    }
-  )
+  ] as const)('sets %s headings to the %s scale', (size, _, display) => {
+    const container = renderWide(
+      <>
+        <Prose size={size}>
+          <h1>Set times</h1>
+          <h2>Set times</h2>
+          <h3>Set times</h3>
+          <h4>Set times</h4>
+          <h5>Set times</h5>
+          <h6>Set times</h6>
+        </Prose>
+        {display.map((className, index) => (
+          <p key={className} className={className} data-level={index + 1}>
+            Set times
+          </p>
+        ))}
+      </>
+    )
+    display.forEach((className, index) => {
+      const heading = style(get(container, `h${index + 1}`))
+      const reference = style(get(container, `[data-level='${index + 1}']`))
+      expect(heading.fontSize, className).toBe(reference.fontSize)
+      expect(heading.fontWeight, className).toBe(reference.fontWeight)
+    })
+  })
 
   it('lets a variable on Prose override its size', () => {
     const container = renderWide(
