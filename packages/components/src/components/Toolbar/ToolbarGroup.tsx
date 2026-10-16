@@ -15,7 +15,7 @@ export function ToolbarGroup({ className, ...props }: ToolbarGroupProps) {
       data-slot='toolbar-group'
       className={cn(
         'flex flex-wrap items-center gap-1',
-        'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch',
+        'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:w-auto',
         className
       )}
       {...props}

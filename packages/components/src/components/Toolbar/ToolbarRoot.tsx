@@ -31,7 +31,7 @@ export function ToolbarRoot({
         data-slot='toolbar'
         className={cn(
           'flex min-w-0 flex-wrap items-center gap-1',
-          'data-[orientation=vertical]:w-fit data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch',
+          'data-[orientation=vertical]:w-fit data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:w-auto',
           className
         )}
         {...props}

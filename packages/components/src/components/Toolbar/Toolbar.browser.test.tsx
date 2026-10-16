@@ -1,3 +1,5 @@
+import { type ReactNode } from 'react'
+
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
@@ -103,6 +105,38 @@ describe('Toolbar layout', () => {
       bold.getBoundingClientRect().bottom
     )
   })
+
+  it.each([
+    ['toolbar', (children: ReactNode) => children],
+    [
+      'group',
+      (children: ReactNode) => (
+        <Toolbar.Group aria-label='Text style'>{children}</Toolbar.Group>
+      )
+    ]
+  ])(
+    'sizes a vertical %s to its widest item and stretches the rest to match',
+    (_, wrap) => {
+      render(
+        <div style={{ width: 400 }}>
+          <Toolbar aria-label='Formatting' orientation='vertical'>
+            {wrap(
+              <>
+                <Toolbar.Button>B</Toolbar.Button>
+                <Toolbar.Button>Strikethrough</Toolbar.Button>
+              </>
+            )}
+          </Toolbar>
+        </div>
+      )
+      const width = (name: string) =>
+        screen.getByRole('button', { name }).getBoundingClientRect().width
+      expect(width('B')).toBe(width('Strikethrough'))
+      expect(
+        screen.getByRole('toolbar').getBoundingClientRect().width
+      ).toBeLessThan(400)
+    }
+  )
 
   it.each(['sm', 'md', 'lg'] as const)(
     'sizes its buttons and links like a %s Button',
