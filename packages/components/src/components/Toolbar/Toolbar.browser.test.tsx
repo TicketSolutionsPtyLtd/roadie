@@ -201,6 +201,22 @@ describe('Toolbar layout', () => {
     )
   })
 
+  it('stacks a toggle group in a vertical toolbar in a column', () => {
+    render(
+      <Toolbar aria-label='Formatting' orientation='vertical'>
+        <Toolbar.ToggleGroup aria-label='Alignment'>
+          <Toolbar.Toggle value='left'>Left</Toolbar.Toggle>
+          <Toolbar.Toggle value='right'>Right</Toolbar.Toggle>
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const left = screen.getByRole('button', { name: 'Left' })
+    const right = screen.getByRole('button', { name: 'Right' })
+    expect(right.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      left.getBoundingClientRect().bottom
+    )
+  })
+
   it.each([
     ['toolbar', (children: ReactNode) => children],
     [

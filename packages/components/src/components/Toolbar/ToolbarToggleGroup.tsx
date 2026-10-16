@@ -1,10 +1,12 @@
 'use client'
 
-import { type RefAttributes } from 'react'
+import { type RefAttributes, use } from 'react'
 
 import { ToggleGroup as ToggleGroupPrimitive } from '@base-ui/react/toggle-group'
 
 import { cn } from '@oztix/roadie-core/utils'
+
+import { ToolbarContext } from './ToolbarContext'
 
 export type ToolbarToggleGroupProps = ToggleGroupPrimitive.Props &
   RefAttributes<HTMLDivElement>
@@ -14,9 +16,12 @@ export function ToolbarToggleGroup({
   className,
   ...props
 }: ToolbarToggleGroupProps) {
+  const toolbar = use(ToolbarContext)
   return (
     <ToggleGroupPrimitive
       data-slot='toolbar-toggle-group'
+      // Inside a toolbar, Base UI leaves it horizontal whatever the toolbar's orientation.
+      orientation={toolbar.orientation}
       className={cn(
         'flex flex-wrap items-center gap-1',
         'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:w-auto',

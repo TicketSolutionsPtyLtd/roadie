@@ -61,7 +61,10 @@ export function ToolbarRoot({
   onFocus,
   ...props
 }: ToolbarRootProps) {
-  const contextValue = useMemo(() => ({ size }), [size])
+  const contextValue = useMemo(
+    () => ({ size, orientation }),
+    [size, orientation]
+  )
   return (
     <ToolbarContext value={contextValue}>
       <ScrollArea
