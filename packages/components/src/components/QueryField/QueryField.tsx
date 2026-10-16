@@ -818,12 +818,13 @@ export function QueryField<Value = unknown>({
                   )}
                 >
                   {text}
+                  {/* Drawn from an attribute, so typing adds and removes no
+                      nodes, which would restyle a page's :has() anchors. */}
                   <span
                     data-slot='query-field-ghost'
-                    className='visible text-subtler'
-                  >
-                    {ghost}
-                  </span>
+                    data-ghost={ghost}
+                    className='visible text-subtler before:content-[attr(data-ghost)]'
+                  />
                 </span>
               )}
             </span>

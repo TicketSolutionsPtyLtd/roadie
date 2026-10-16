@@ -383,11 +383,27 @@ describe('QueryField', () => {
     }
     render(<StatusStep />)
     const ghost = () =>
-      document.querySelector('[data-slot=query-field-ghost]')?.textContent ?? ''
+      document.querySelector<HTMLElement>('[data-slot=query-field-ghost]')
+        ?.dataset.ghost ?? ''
     await userEvent.click(input())
     expect(box(input()).width).toBeLessThan(8)
     await userEvent.keyboard('O')
     await expect.poll(ghost).toBe('n sale')
+    // Typing adds and removes no nodes, which would restyle a page's :has() anchors.
+    const changed: Node[] = []
+    const observer = new MutationObserver((records) =>
+      records.forEach((record) =>
+        changed.push(...record.addedNodes, ...record.removedNodes)
+      )
+    )
+    observer.observe(input().closest('[data-slot=query-field]')!, {
+      childList: true,
+      subtree: true
+    })
+    await userEvent.keyboard('n')
+    await expect.poll(ghost).toBe(' sale')
+    observer.disconnect()
+    expect(changed).toEqual([])
     const ghostText = document.querySelector('[data-slot=query-field-ghost]')!
     expect(box(ghostText).left).toBeGreaterThan(box(input()).left)
     expect(box(ghostText).top).toBeGreaterThanOrEqual(box(input()).top - 1)
