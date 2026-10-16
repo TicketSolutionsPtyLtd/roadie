@@ -814,7 +814,7 @@ export function QueryField<Value = unknown>({
                   aria-hidden
                   className={cn(
                     TYPED,
-                    'invisible min-w-1 overflow-hidden pe-0.5 whitespace-pre'
+                    'pointer-events-none invisible min-w-1 overflow-hidden pe-0.5 whitespace-pre'
                   )}
                 >
                   {text}

@@ -391,6 +391,11 @@ describe('QueryField', () => {
     const ghostText = document.querySelector('[data-slot=query-field-ghost]')!
     expect(box(ghostText).left).toBeGreaterThan(box(input()).left)
     expect(box(ghostText).top).toBeGreaterThanOrEqual(box(input()).top - 1)
+    // A press on it lands in the input, so focus and the caret stay there.
+    const { left, top, width, height } = box(ghostText)
+    expect(document.elementFromPoint(left + width / 2, top + height / 2)).toBe(
+      input()
+    )
     await userEvent.keyboard('{ArrowLeft}')
     await expect.poll(ghost).toBe('')
     await userEvent.keyboard('{End}x')
