@@ -1242,10 +1242,10 @@ export function Calendar(props: CalendarProps) {
       !inSpan &&
       !!previewDays &&
       between(date, previewDays.start, previewDays.end)
-    const shownStart = shown && date === previewDays!.start
-    const shownEnd = shown && date === previewDays!.end
-    const shownBand = shown && !shownStart && !shownEnd && !tiles
     const shownSpans = !!previewDays && previewDays.start !== previewDays.end
+    // One band, ends included; a single day is a circle, as a chosen one is.
+    const shownBand = shown && shownSpans && !tiles
+    const shownDay = shown && !shownBand
 
     const modifierAttributes = Object.fromEntries(
       Object.entries(modifiers ?? {})
@@ -1264,14 +1264,12 @@ export function Calendar(props: CalendarProps) {
           band && firstVisible && 'rounded-s-full',
           band && lastVisible && 'rounded-e-full',
           shownBand && 'bg-subtle',
-          shownBand && firstVisible && 'rounded-s-full',
-          shownBand && lastVisible && 'rounded-e-full',
-          !tiles &&
-            shownSpans &&
-            ((shownStart && !lastVisible) || (shownEnd && !firstVisible)) &&
-            "before:absolute before:inset-y-0 before:w-1/2 before:bg-subtle before:content-['']",
-          shownStart && 'before:end-0',
-          shownEnd && 'before:start-0',
+          shownBand &&
+            (firstVisible || date === previewDays!.start) &&
+            'rounded-s-full',
+          shownBand &&
+            (lastVisible || date === previewDays!.end) &&
+            'rounded-e-full',
           !tiles &&
             multiDay &&
             ((rangeStart && !lastVisible) || (rangeEnd && !firstVisible)) &&
@@ -1310,8 +1308,7 @@ export function Calendar(props: CalendarProps) {
           className={cn(
             dayVariants({
               shape: weekView ? 'week' : tiles ? 'tile' : 'circle',
-              look:
-                look === 'plain' && (shownStart || shownEnd) ? 'filled' : look,
+              look: look === 'plain' && shownDay ? 'filled' : look,
               outside
             }),
             outOfRange && 'opacity-50',
