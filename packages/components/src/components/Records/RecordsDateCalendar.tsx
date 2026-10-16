@@ -136,7 +136,7 @@ function DateCalendar({
         {...shared}
       />
     )
-  const day = picked?.start === picked?.end ? picked?.start : undefined
+  const day = picked && picked.start === picked.end ? picked.start : undefined
   return (
     <Calendar
       mode='single'
