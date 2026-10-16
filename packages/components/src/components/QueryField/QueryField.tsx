@@ -146,6 +146,16 @@ function itemKey(item: { kind: string; id: string }) {
   return `${item.kind}:${item.id}`
 }
 
+// Rows are rebuilt each render, the search row for each letter typed, so Base
+// UI matches them by key, and only a new row in the highlight's place reports.
+// A chip has no kind, so it never matches a row.
+function sameItem(
+  a: { kind: string; id: string },
+  b: { kind: string; id: string }
+) {
+  return itemKey(a) === itemKey(b)
+}
+
 function groupKey(group: { id: string; builtIn?: boolean }) {
   return `${group.builtIn ? 'built-in' : 'suggested'}:${group.id}`
 }
@@ -227,10 +237,8 @@ export function QueryField<Value = unknown>({
   )
   const [open, setOpen] = useState(false)
   const [caretAtEnd, setCaretAtEnd] = useState(true)
-  const [highlighted, setHighlighted] = useState<{
-    index: number
-    key: string | undefined
-  }>(NOTHING_HIGHLIGHTED)
+  // By index alone, so another row in the highlight's place costs no render.
+  const [highlightIndex, setHighlightIndex] = useState(-1)
   const step = pendingChip?.id
   // Base UI keeps its highlight's index as the list changes under it and has
   // no way to clear it, so the list renders once with no items to drop it.
@@ -277,6 +285,10 @@ export function QueryField<Value = unknown>({
     if (takenIn !== step) setOpen(false)
   }
   const popupRef = useRef<HTMLDivElement>(null)
+  // The row as Base UI last reported it, to tell when another takes its place.
+  const lastHighlighted = useRef<{ index: number; key: string | undefined }>(
+    NOTHING_HIGHLIGHTED
+  )
   const leaving = useRef<ReturnType<typeof setTimeout>>(undefined)
   // Read as focus lands, so a step already ended isn't ended again.
   const cancelStep = useRef<(() => void) | undefined>(undefined)
@@ -384,7 +396,8 @@ export function QueryField<Value = unknown>({
   const [defaulted, setDefaulted] = useState(false)
   if (settled && defaulted !== !!enterDefault) {
     setDefaulted(!!enterDefault)
-    if (defaulted) dropHighlight()
+    // An empty list drops it already.
+    if (defaulted && items.length > 0) dropHighlight()
   }
   const highlightsDefault = settled ? !!enterDefault : defaulted
   // Also once typed text leaves Enter nothing, such as a value already ticked.
@@ -401,6 +414,7 @@ export function QueryField<Value = unknown>({
     !suggestions.loading &&
     !text.trim()
   const shown = open && !nothingToShow
+  const highlightedRow = shown ? items[highlightIndex] : undefined
   // Rows unmount too, or Base UI loses track of the ones that come back.
   const rows = unhighlighting ? NO_ITEMS : list
   const groupStarts = list.map((_, index) =>
@@ -418,7 +432,6 @@ export function QueryField<Value = unknown>({
     const left =
       suggestion.kind === 'search' ? '' : (suggestion.remainder ?? '')
     if (suggestion.kind !== 'search') setText(left)
-    if (suggestion.kind === 'field' || left !== text) dropHighlight()
     // Words left over list their own suggestions.
     if (suggestion.kind !== 'field' && !editedId && !left.trim()) setOpen(false)
     if (editedId) setTakenIn(step)
@@ -490,9 +503,9 @@ export function QueryField<Value = unknown>({
         !!text.trim() && editStart === `${operator}\u0000${text}`
       // Base UI takes the highlighted row, unless it's the default for the
       // text an edit started with.
-      const takesDefault = highlighted.key === defaultKey
-      if (shown && highlighted.index >= 0 && !(unchanged && takesDefault))
-        return
+      const takesDefault =
+        !!highlightedRow && itemKey(highlightedRow) === defaultKey
+      if (highlightedRow && !(unchanged && takesDefault)) return
       event.preventBaseUIHandler()
       event.preventDefault()
       // With the list closed, as after Escape, Enter still takes the default.
@@ -576,8 +589,7 @@ export function QueryField<Value = unknown>({
     ownsShortcut && !text && ordered.length === 0 && !pendingChip
 
   const inChip = !!pendingChip
-  const target =
-    shown && highlighted.index >= 0 ? items[highlighted.index] : enterDefault
+  const target = highlightedRow ?? enterDefault
   // The rest of what Enter takes, after the caret, for text it starts with.
   const ghost =
     inChip &&
@@ -647,22 +659,22 @@ export function QueryField<Value = unknown>({
       onOpenChange={setOpen}
       onItemHighlighted={(item, details) => {
         const key = item && itemKey(item)
+        const last = lastHighlighted.current
+        if (details.index === last.index && key === last.key) return
         // A row moved to that newer suggestions replace goes back to the
         // default, which Base UI would leave on whatever row took its place.
-        const replaced =
+        if (
           details.reason === 'none' &&
           details.index > 0 &&
-          details.index === highlighted.index &&
-          key !== highlighted.key
-        if (replaced) dropHighlight()
-        // The search row is a new object each render, which Base UI reports.
-        setHighlighted((last) =>
-          last.index === details.index && last.key === key
-            ? last
-            : { index: details.index, key }
+          details.index === last.index
         )
+          dropHighlight()
+        // Setting state to the value it holds can still render once more.
+        if (details.index !== last.index) setHighlightIndex(details.index)
+        lastHighlighted.current = { index: details.index, key }
       }}
       itemToStringLabel={(item: { label: string }) => item.label}
+      isItemEqualToValue={sameItem}
       disabled={isDisabled}
     >
       <Combobox.InputGroup
@@ -931,7 +943,7 @@ export function QueryField<Value = unknown>({
                             )}
                         </span>
                         {groupStarts[groupIndex]! + index ===
-                          highlighted.index && (
+                          highlightIndex && (
                           <Kbd size='sm' className='text-subtle'>
                             Enter
                           </Kbd>
