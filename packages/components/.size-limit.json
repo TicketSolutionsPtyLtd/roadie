@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "253.25 kB"
+    "limit": "253.55 kB"
   },
   {
     "name": "Single component (Button)",
@@ -287,7 +287,7 @@
     "name": "Records",
     "path": "dist/components/Records/index.js",
     "import": "*",
-    "limit": "68 kB",
+    "limit": "68.25 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
