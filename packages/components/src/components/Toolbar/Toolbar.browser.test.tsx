@@ -52,6 +52,22 @@ describe('Toolbar layout', () => {
       )
   })
 
+  it('hugs its items in a stretching parent, so its surface ends after the last', () => {
+    render(
+      <div style={{ display: 'grid', width: 600 }}>
+        <Toolbar aria-label='History'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+          <Toolbar.Button>Redo</Toolbar.Button>
+        </Toolbar>
+      </div>
+    )
+    const toolbar = screen.getByRole('toolbar').getBoundingClientRect()
+    const redo = screen.getByRole('button', { name: 'Redo' })
+
+    expect(toolbar.width).toBeLessThan(600)
+    expect(toolbar.right - redo.getBoundingClientRect().right).toBeLessThan(16)
+  })
+
   it('wraps the items of a group inside a narrow container', () => {
     render(
       <div style={{ width: 320 }}>

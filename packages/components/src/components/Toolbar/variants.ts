@@ -2,8 +2,8 @@ import { cva } from 'class-variance-authority'
 
 export const toolbarVariants = cva(
   [
-    'flex min-w-0 flex-wrap items-center gap-1',
-    'data-[orientation=vertical]:w-fit data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:w-auto'
+    'flex w-fit max-w-full min-w-0 flex-wrap items-center gap-1',
+    'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:w-auto'
   ],
   {
     variants: {
