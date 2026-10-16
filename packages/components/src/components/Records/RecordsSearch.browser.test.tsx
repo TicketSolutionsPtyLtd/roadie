@@ -193,6 +193,18 @@ describe.each([
     expect(searchInput()).toHaveFocus()
   })
 
+  it('shows two months side by side only where they fit', async () => {
+    await underCondition('is')
+    const months = () =>
+      popup()!.querySelectorAll('[data-slot="calendar-month"]')
+    await expect.poll(() => months().length).toBe(width > 768 ? 2 : 1)
+    const [first, second] = [...months()].map(box)
+    if (second) expect(second.top).toBe(first!.top)
+    expect(box(popup()!).width).toBeLessThanOrEqual(
+      box(searchField()).width + 1
+    )
+  })
+
   it('adds “is on” for a clicked day and closes the dropdown', async () => {
     await underCondition('is')
     await userEvent.click(day('2026-10-22'))

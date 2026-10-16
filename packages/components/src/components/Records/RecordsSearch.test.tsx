@@ -339,6 +339,22 @@ describe('Records.Search', () => {
     }
   )
 
+  it('says a date can be typed as well as picked', async () => {
+    const { user } = setup()
+    const hint = () =>
+      document.querySelector('[data-slot=query-field-hint]')?.textContent
+    await datesUnder(user, 'is before')
+    await waitFor(() =>
+      expect(hint()).toBe('Pick a day, or type one like 22 Oct or next Fri.')
+    )
+    await user.click(screen.getByRole('button', { name: 'is between' }))
+    await waitFor(() =>
+      expect(hint()).toBe('Pick two days, or type them like 22 Oct to 30 Oct.')
+    )
+    await user.click(screen.getByRole('button', { name: 'is relative' }))
+    await waitFor(() => expect(hint()).toBeFalsy())
+  })
+
   it('says what to type for text that names no date', async () => {
     const { user } = setup()
     const hint = () =>

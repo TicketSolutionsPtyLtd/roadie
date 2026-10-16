@@ -1,8 +1,11 @@
 'use client'
 
+import { useRef, useState } from 'react'
+
 import { plainDateOf } from '@oztix/roadie-core/datetime'
 import type { RecordField, RecordFilter } from '@oztix/roadie-core/records'
 
+import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { Calendar } from '../Calendar'
 import type { CalendarOperator } from './searchSuggestions'
 
@@ -20,6 +23,31 @@ export type RecordsDateCalendarProps = {
   timeZone: string
   /** Today in `timeZone`, as the records read it. */
   today: string
+}
+
+// Two of Calendar's months side by side: each at least 17.5rem, 1.5rem apart.
+const TWO_MONTHS_REM = 36.5
+
+/** Two months where the dropdown has room for them, else one. */
+function useMonthsThatFit() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [months, setMonths] = useState(1)
+  useIsomorphicLayoutEffect(() => {
+    const element = ref.current
+    if (!element) return
+    const measure = () => {
+      const rem = parseFloat(
+        getComputedStyle(document.documentElement).fontSize
+      )
+      setMonths(element.clientWidth >= TWO_MONTHS_REM * rem ? 2 : 1)
+    }
+    measure()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(measure)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  return [ref, months] as const
 }
 
 const OFFSET = /(?:Z|[+-]\d{2}:\d{2})$/
@@ -53,21 +81,33 @@ function pickedDays(
 }
 
 /** A date step's calendar, days only, so a timestamp field filters by whole days. */
-export function RecordsDateCalendar({
+export function RecordsDateCalendar(props: RecordsDateCalendarProps) {
+  const [ref, numberOfMonths] = useMonthsThatFit()
+  return (
+    <div ref={ref} className='w-full'>
+      <DateCalendar {...props} numberOfMonths={numberOfMonths} />
+    </div>
+  )
+}
+RecordsDateCalendar.displayName = 'RecordsDateCalendar'
+
+function DateCalendar({
   field,
   operator,
   filter,
   onPick,
   timeZone,
-  today
-}: RecordsDateCalendarProps) {
+  today,
+  numberOfMonths
+}: RecordsDateCalendarProps & { numberOfMonths: number }) {
   const picked = pickedDays(filter, timeZone)
   const shared = {
     timeZone,
     today,
+    numberOfMonths,
     // On the chip's month, even under a condition that can't mark its dates.
     defaultMonth: picked?.start,
-    className: 'w-full max-w-80'
+    className: numberOfMonths > 1 ? 'w-full max-w-166' : 'w-full max-w-80'
   }
   if (operator === 'between')
     return (
@@ -99,4 +139,3 @@ export function RecordsDateCalendar({
     />
   )
 }
-RecordsDateCalendar.displayName = 'RecordsDateCalendar'

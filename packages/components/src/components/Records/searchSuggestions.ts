@@ -439,12 +439,18 @@ export function valueHint(
 ): string | undefined {
   const typed = text.trim()
   if (isEmptiness(operator)) return undefined
-  if (calendarOperator(field, operator))
-    return typed && !typedDates(field, typed, operator, context).length
-      ? operator === 'between'
+  if (calendarOperator(field, operator)) {
+    const range = operator === 'between'
+    if (!typed)
+      return range
+        ? 'Pick two days, or type them like 22 Oct to 30 Oct.'
+        : 'Pick a day, or type one like 22 Oct or next Fri.'
+    return typedDates(field, typed, operator, context).length
+      ? undefined
+      : range
         ? 'Type two dates like 22 Oct to 30 Oct.'
         : 'Type a date like 22 Oct or next Fri.'
-      : undefined
+  }
   if (field.type === 'text')
     return typed ? undefined : 'Type the text to match.'
   if (!isNumeric(field) || typedFilters(field, typed, operator, context).length)
