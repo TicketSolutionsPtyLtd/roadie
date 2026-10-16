@@ -11,7 +11,11 @@ import {
   ToolbarToggleGroupDisabledContext
 } from './ToolbarContext'
 
-export type ToolbarToggleGroupProps = ToggleGroupPrimitive.Props &
+// The toolbar sets both: its orientation, and focus that loops across all its items.
+export type ToolbarToggleGroupProps = Omit<
+  ToggleGroupPrimitive.Props,
+  'orientation' | 'loopFocus'
+> &
   RefAttributes<HTMLDivElement>
 
 /** Toolbar toggles that share one value: one pressed at a time, or several with `multiple`. */
