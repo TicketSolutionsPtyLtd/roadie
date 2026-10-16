@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { memo, useRef, useState } from 'react'
 
 import type { RecordField, RecordFilter } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
@@ -75,14 +75,16 @@ function pickedDays(
 }
 
 /** A date step's calendar, days only, so a timestamp field filters by whole days. */
-export function RecordsDateCalendar(props: RecordsDateCalendarProps) {
+export const RecordsDateCalendar = memo(function RecordsDateCalendar(
+  props: RecordsDateCalendarProps
+) {
   const [ref, numberOfMonths] = useMonthsThatFit()
   return (
     <div ref={ref} className='w-full'>
       <DateCalendar {...props} numberOfMonths={numberOfMonths} />
     </div>
   )
-}
+})
 RecordsDateCalendar.displayName = 'RecordsDateCalendar'
 
 function DateCalendar({
