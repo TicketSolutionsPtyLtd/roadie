@@ -268,11 +268,13 @@ function describeDate(
     value,
     ...(detail && detail !== value && { detail })
   })
+  const on = (value: string) => {
+    const day = date(value, options, 'long')
+    return dated(`on ${day}`, day)
+  }
   switch (filter.operator) {
-    case 'on': {
-      const day = date(filter.value, options, 'long')
-      return dated(`on ${day}`, day)
-    }
+    case 'on':
+      return on(filter.value)
     case 'before':
     case 'after': {
       const day = date(filter.value, options)
@@ -281,10 +283,11 @@ function describeDate(
         `${filter.operator === 'before' ? 'Before' : 'After'} ${day}`
       )
     }
-    case 'between':
-      return typeof filter.value[0] === 'string'
-        ? dated(dateRange(filter.value as [string, string], options))
-        : null
+    case 'between': {
+      const [start, end] = filter.value
+      if (typeof start !== 'string' || typeof end !== 'string') return null
+      return start === end ? on(start) : dated(dateRange([start, end], options))
+    }
     case 'within': {
       try {
         const { label, detail } = describeDateRange(filter.value, options)
