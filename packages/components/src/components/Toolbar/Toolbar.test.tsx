@@ -288,6 +288,26 @@ describe('Toolbar', () => {
     )
   })
 
+  it('keeps the toggles of a disabled Toolbar.ToggleGroup focusable and unpressable', async () => {
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.Button>Undo</Toolbar.Button>
+        <Toolbar.ToggleGroup aria-label='Alignment' disabled>
+          <Toolbar.Toggle value='left' aria-label='Align left'>
+            <svg />
+          </Toolbar.Toggle>
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const left = screen.getByRole('button', { name: 'Align left' })
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(left).toHaveFocus()
+    expect(left).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(left)
+    expect(left).toHaveAttribute('aria-pressed', 'false')
+  })
+
   it('moves through a Toolbar.ToggleGroup in the toolbar’s arrow order', async () => {
     render(
       <Toolbar aria-label='Formatting'>

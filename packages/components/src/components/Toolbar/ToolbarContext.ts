@@ -13,3 +13,6 @@ export const ToolbarContext = createContext<ToolbarContextValue>({
   size: 'md',
   orientation: 'horizontal'
 })
+
+// Base UI natively disables a disabled ToggleGroup's toggles, dropping them from the arrow order.
+export const ToolbarToggleGroupDisabledContext = createContext(false)

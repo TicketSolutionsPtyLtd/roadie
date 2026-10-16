@@ -5,7 +5,10 @@ import { use } from 'react'
 import { Toolbar as ToolbarPrimitive } from '@base-ui/react/toolbar'
 
 import { Toggle, type ToggleProps } from '../Toggle'
-import { ToolbarContext } from './ToolbarContext'
+import {
+  ToolbarContext,
+  ToolbarToggleGroupDisabledContext
+} from './ToolbarContext'
 
 export type ToolbarToggleProps = Omit<ToggleProps, 'size'>
 
@@ -16,10 +19,11 @@ export function ToolbarToggle({
   ...props
 }: ToolbarToggleProps) {
   const { size } = use(ToolbarContext)
+  const groupDisabled = use(ToolbarToggleGroupDisabledContext)
   return (
     <ToolbarPrimitive.Button
       data-slot='toolbar-toggle'
-      disabled={disabled}
+      disabled={disabled || groupDisabled}
       render={<Toggle {...props} size={size} emphasis={emphasis} />}
     />
   )
