@@ -246,6 +246,13 @@ describe.each([
   it('jumps months from the caption’s select, keeping the dropdown open', async () => {
     await underCondition('is')
     const month = popup()!.querySelector('select')!
+    // A press on the select keeps its default, so it takes focus to open.
+    const press = new MouseEvent('mousedown', {
+      bubbles: true,
+      cancelable: true
+    })
+    expect(month.dispatchEvent(press)).toBe(true)
+    month.focus()
     await userEvent.selectOptions(month, 'December')
     await expect.poll(() => day('2026-12-10')).toBeTruthy()
     expect(popup()).not.toBeNull()
