@@ -150,8 +150,8 @@ truncate.
 Once something is typed, Enter takes the first value. When the step has one
 answer, such as "City is empty" under **is empty**, mark it `exact`, and Enter
 takes it before anything is typed. Mark a value that opens an editor of your
-own, such as "Custom dates", `opensEditor`, and Enter never takes it, so only
-an arrow or a click opens it.
+own `opensEditor`, and Enter never takes it, so only an arrow or a click opens
+it.
 
 Give the pending chip a `hint`, such as "Type a number.", to say what to type.
 It shows in place of No suggestions while no value is listed, and below the
@@ -228,6 +228,65 @@ function QueryFieldValueStep() {
       onPendingChipCancel={() => setPending(null)}
       suggest={suggest}
       onAccept={accept}
+    />
+  )
+}
+```
+
+### With content under the values
+
+Give the pending chip `content` to show it under the values, such as a
+calendar to pick a date from. Focus stays in the field as you press it, so
+typing and Tab carry on there. A press that ends the step, such as picking a
+day, closes the list, as taking a value does.
+
+The list is as wide as the field, and a calendar fits from about 300px, as on
+a phone. Keep the content to pointer and touch, and offer the same values as
+suggestions, so typing reaches them too.
+
+```tsx-live
+function QueryFieldContent() {
+  const operators = [
+    { value: 'on', label: 'is' },
+    { value: 'before', label: 'is before' },
+    { value: 'after', label: 'is after' },
+  ]
+  const words = { on: 'is on', before: 'is before', after: 'is after' }
+  const [chips, setChips] = useState([])
+  const [pending, setPending] = useState(false)
+  const [operator, setOperator] = useState('on')
+  const field = { id: 'field:date', label: 'Event date', kind: 'field', value: 'date' }
+
+  function pick(date) {
+    const day = new Date(`${date}T12:00:00Z`).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', timeZone: 'UTC' })
+    setChips([{ id: 'date', label: `Event date ${words[operator]} ${day}` }])
+    setPending(false)
+  }
+
+  return (
+    <QueryField
+      aria-label='Search events'
+      chips={chips}
+      onRemoveChip={() => setChips([])}
+      pendingChip={
+        pending
+          ? {
+              id: 'date',
+              label: `Event date ${operators.find((each) => each.value === operator).label}`,
+              operators,
+              operator,
+              content: <Calendar aria-label='Event date' onSelect={(date) => date && pick(date)} />,
+            }
+          : undefined
+      }
+      onPendingOperatorChange={setOperator}
+      onPendingChipCancel={() => setPending(false)}
+      suggest={() => (pending ? [] : [{ id: 'fields', label: 'Filter by', items: [field] }])}
+      onAccept={(suggestion) => {
+        if (suggestion.kind !== 'field') return
+        setOperator('on')
+        setPending(true)
+      }}
     />
   )
 }
@@ -524,6 +583,9 @@ function QueryFieldShortcut() {
   leaves the input as usual and ends the step.
 - The operators are a toggle group named "Operator". It takes the place of
   the first group's label, which screen readers still read.
+- Focus stays in the input as you press the pending chip's `content`, and Tab
+  moves through the operators, never into it. Offer what it picks as
+  suggestions too, so a keyboard can type it.
 - A locked chip reads "set by this page" after its label, and a chip's
   `description` is read after its label too. A pending chip describes the
   input, so the value step is announced. It's a live region, so a change of

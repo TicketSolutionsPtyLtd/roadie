@@ -6,7 +6,6 @@ import {
   type KeyboardEvent,
   type ReactNode,
   type Ref,
-  use,
   useCallback,
   useEffect,
   useId,
@@ -33,7 +32,6 @@ import { Kbd } from '../Kbd'
 import { ToggleGroup } from '../ToggleGroup'
 import { Tooltip } from '../Tooltip'
 import { useControlledText, useShortcut } from './hooks'
-import { QueryFieldPanelContext } from './panel'
 import { exactSuggestion, firstMatch, listGroups } from './suggestions'
 import type {
   QueryFieldAccepted,
@@ -290,19 +288,10 @@ export function QueryField<Value = unknown>({
     ended.current = false
   }
 
-  const panel = use(QueryFieldPanelContext)
-  // The list stays closed under the panel, so taking its value closes the
-  // dropdown and only Back returns to the list.
-  const [panelShown, setPanelShown] = useState(false)
-  if (panelShown !== !!panel) {
-    setPanelShown(!!panel)
-    if (panel) setOpen(false)
-  }
-  function backToList() {
-    setOpen(true)
-    panel?.onBack()
-  }
-  useVisibleHeight(popupRef, !!panel)
+  const content = pendingChip?.content
+  const hasContent =
+    content !== undefined && content !== null && content !== false
+  useVisibleHeight(popupRef, hasContent)
 
   // A value step ends once focus lands on something outside the field and its
   // list, checked as it lands. Focus going nowhere, as when a phone's keyboard
@@ -381,6 +370,7 @@ export function QueryField<Value = unknown>({
     list.length === 0 &&
     !hint &&
     !showsOperators &&
+    !hasContent &&
     !suggestions.loading &&
     !text.trim()
   const groupStarts = list.map((_, index) =>
@@ -568,17 +558,8 @@ export function QueryField<Value = unknown>({
         setText(next)
         setArrowed(false)
       }}
-      open={(open && !nothingToShow) || !!panel}
+      open={open && !nothingToShow}
       onOpenChange={(next, details) => {
-        if (panel) {
-          if (next) return
-          if (details.reason !== 'escape-key') panel.onBack()
-          else {
-            inputRef.current?.focus()
-            backToList()
-          }
-          return
-        }
         setOpen(next)
         const byArrow = next && details.reason === 'list-navigation'
         setOpeningByArrow(byArrow)
@@ -767,14 +748,12 @@ export function QueryField<Value = unknown>({
             onBlur={handleBlur}
             className={cn(
               // Under the field exactly, so rows truncate rather than spill past it.
-              // A panel, such as a calendar, may need more, up to the screen.
-              panel
-                ? 'max-h-[min(var(--available-height),var(--query-field-visible-height,100dvh))] w-max max-w-(--available-width) min-w-(--anchor-width)'
-                : 'w-(--anchor-width)'
+              'w-(--anchor-width)',
+              hasContent &&
+                'max-h-[min(var(--available-height),var(--query-field-visible-height,100dvh))]'
             )}
           >
-            {panel?.content(backToList)}
-            {showsOperators && !panel && (
+            {showsOperators && (
               <div
                 data-slot='query-field-operators'
                 className='sticky -top-1 z-1 -mx-1 -mt-1 grid bg-raised p-1'
@@ -806,7 +785,7 @@ export function QueryField<Value = unknown>({
                 </ToggleGroup>
               </div>
             )}
-            <Combobox.List hidden={!!panel}>
+            <Combobox.List>
               {list.map((group, groupIndex) => (
                 <Combobox.Group key={groupKey(group)} items={group.items}>
                   <Combobox.GroupLabel
@@ -875,18 +854,29 @@ export function QueryField<Value = unknown>({
               ))}
             </Combobox.List>
             <ComboboxPrimitive.Status
-              hidden={!!panel}
               data-slot='query-field-hint'
               className={EMPTY_TEXT}
             >
               {hint}
             </ComboboxPrimitive.Status>
-            <Combobox.Empty hidden={!!panel}>
+            <Combobox.Empty>
               {!unhighlighting &&
                 (suggestions.loading
                   ? 'Loading suggestions'
-                  : !hint && 'No suggestions')}
+                  : !hint && !hasContent && 'No suggestions')}
             </Combobox.Empty>
+            {hasContent && (
+              <div
+                data-slot='query-field-content'
+                // Focus stays in the input, as it does for the operators.
+                onMouseDown={(event) => event.preventDefault()}
+                // A press that ends the step closes the list, as a take does.
+                onClick={() => setTakenIn(step)}
+                className='grid p-1'
+              >
+                {content}
+              </div>
+            )}
           </Combobox.Popup>
         </Combobox.Positioner>
       </Combobox.Portal>

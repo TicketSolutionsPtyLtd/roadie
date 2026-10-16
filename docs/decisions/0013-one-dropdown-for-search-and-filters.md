@@ -16,15 +16,19 @@ A click or Enter on a chip selects it and lists its values in the dropdown,
 ticked. The operators are a toggle above the values. Text and numbers are
 typed, and Enter takes them.
 
-Custom dates is the exception. A calendar doesn't fit in a list, so it still
-opens `RecordsFilterEditor`, in a popover under the chip or a bottom drawer
-on a phone. INNO-1278 picks its phone surface, the drawer or a calendar in
-the dropdown, and records the pick here.
+Dates too. A date field's toggle reads is relative, is, is before, is after,
+and is between. Is relative lists the quick dates. The others show a calendar
+under the values, through QueryField's `pendingChip.content`, with typed dates
+as suggestions above it. Picking a day, or a range's second day, adds the
+chip. There's no popover or drawer, on a phone or a desktop. Times are left
+off, so a timestamp field filters by whole days (INNO-1278).
 
 ## Consequences
 
-`RecordsFilterEditor` holds only the date range and single date pickers. A
-new field type needs a value step in the dropdown, not an editor. Phones and
+`RecordsFilterEditor` and Custom dates are gone. A new field type needs a
+value step in the dropdown, not an editor, and anything a list can't hold
+goes in `pendingChip.content`. The dropdown is never wider than the field, so
+that content has to fit the field on a phone, about 300px. Phones and
 desktops share one set of keyboard and screen reader behaviour, which the
 `Records.Search` tests cover.
 
@@ -32,4 +36,4 @@ desktops share one set of keyboard and screen reader behaviour, which the
 
 - INNO-1274, the QueryField overhaul
 - INNO-1277, editing chips in the dropdown
-- INNO-1278, Custom dates on phones
+- INNO-1278, dates in the dropdown

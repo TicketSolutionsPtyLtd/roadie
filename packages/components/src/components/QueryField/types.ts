@@ -38,6 +38,12 @@ export type QueryFieldPendingChip = {
    * has none to take for the typed text.
    */
   hint?: string
+  /**
+   * Shown under the values, such as a calendar to pick a date from. Focus
+   * stays in the input as it's pressed, so typing and Tab carry on there. A
+   * press in it that ends the step closes the list, as taking a value does.
+   */
+  content?: ReactNode
 }
 
 export type QueryFieldSuggestion<Value = unknown> = {
@@ -59,7 +65,7 @@ export type QueryFieldSuggestion<Value = unknown> = {
   selected?: boolean
   /** The typed words it doesn't read, left in the field once it is taken. */
   remainder?: string
-  /** Opens an editor, such as "Custom dates", so only an arrow or a click takes it, never Enter on typed text. */
+  /** Opens an editor of your own, so only an arrow or a click takes it, never Enter on typed text. */
   opensEditor?: boolean
 }
 

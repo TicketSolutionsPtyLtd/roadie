@@ -1581,9 +1581,9 @@ describe('QueryField value step Enter', () => {
 
   it('never takes a row that opens an editor on Enter after typing', async () => {
     const onAccept = vi.fn()
-    const customDates: QueryFieldSuggestion = {
-      id: 'edit:starts',
-      label: 'Custom dates',
+    const moreVenues: QueryFieldSuggestion = {
+      id: 'edit:venue',
+      label: 'More venues',
       kind: 'filter',
       value: 'edit',
       opensEditor: true
@@ -1591,18 +1591,16 @@ describe('QueryField value step Enter', () => {
     render(
       <TypedValueStep
         onAccept={onAccept}
-        suggest={() => [
-          { id: 'values', label: 'Starts', items: [customDates] }
-        ]}
+        suggest={() => [{ id: 'values', label: 'Venue', items: [moreVenues] }]}
       />
     )
     await typeInto('zzz')
-    await screen.findByRole('option', { name: 'Custom dates' })
+    await screen.findByRole('option', { name: 'More venues' })
     expect(hinted()).toEqual([])
     await userEvent.keyboard('{Enter}')
     expect(onAccept).not.toHaveBeenCalled()
     await userEvent.keyboard('{ArrowDown}{Enter}')
-    expect(onAccept).toHaveBeenCalledExactlyOnceWith(customDates)
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(moreVenues)
   })
 
   it('takes no value found for older text', async () => {
@@ -2152,5 +2150,108 @@ describe('QueryField chip editing', () => {
     await userEvent.keyboard('{Escape}')
     expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
     expect(chipNames()).toEqual(['Status is On sale', 'City is Perth'])
+  })
+})
+
+function ContentStep({
+  suggest = () => [],
+  onPick = () => {}
+}: {
+  suggest?: QueryFieldProps['suggest']
+  onPick?: (day: string) => void
+}) {
+  const [pending, setPending] = useState(true)
+  return (
+    <Harness
+      pendingChip={
+        pending
+          ? {
+              id: 'date',
+              label: 'Date is',
+              operators: [
+                { value: 'on', label: 'is' },
+                { value: 'before', label: 'is before' }
+              ],
+              operator: 'on',
+              content: (
+                <div aria-label='Days' role='group'>
+                  <button type='button'>Next month</button>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      onPick('22')
+                      setPending(false)
+                    }}
+                  >
+                    22
+                  </button>
+                </div>
+              )
+            }
+          : undefined
+      }
+      onPendingChipCancel={() => setPending(false)}
+      suggest={suggest}
+    />
+  )
+}
+
+const days = () => screen.queryByRole('group', { name: 'Days' })
+
+describe('QueryField step content', () => {
+  it('shows content under the operators and values, with no No suggestions', async () => {
+    render(
+      <ContentStep
+        suggest={(text) =>
+          text
+            ? [{ id: 'values', label: 'Venue', items: [iguana] }]
+            : [{ id: 'values', label: 'Venue', items: [] }]
+        }
+      />
+    )
+    await userEvent.click(input())
+    await waitFor(() => expect(days()).toBeInTheDocument())
+    expect(input()).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
+    await userEvent.keyboard('i')
+    const option = await screen.findByRole('option', { name: iguana.label })
+    for (const before of [operatorGroup()!, option])
+      expect(
+        before.compareDocumentPosition(days()!) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy()
+  })
+
+  it('keeps focus in the input as the content is pressed', async () => {
+    render(<ContentStep />)
+    await userEvent.click(input())
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Next month' })
+    )
+    expect(input()).toHaveFocus()
+    expect(days()).toBeInTheDocument()
+    await userEvent.keyboard('2')
+    expect(input()).toHaveValue('2')
+  })
+
+  it('closes the list once a press in the content ends the step', async () => {
+    const onPick = vi.fn()
+    render(<ContentStep onPick={onPick} />)
+    await userEvent.click(input())
+    await userEvent.click(await screen.findByRole('button', { name: '22' }))
+    expect(onPick).toHaveBeenCalledExactlyOnceWith('22')
+    await waitFor(() =>
+      expect(input()).toHaveAttribute('aria-expanded', 'false')
+    )
+    expect(days()).not.toBeInTheDocument()
+    expect(input()).toHaveFocus()
+  })
+
+  it('shows no content once the step ends', async () => {
+    render(<ContentStep />)
+    await userEvent.click(input())
+    await waitFor(() => expect(days()).toBeInTheDocument())
+    await userEvent.keyboard('{Escape}')
+    expect(days()).not.toBeInTheDocument()
   })
 })

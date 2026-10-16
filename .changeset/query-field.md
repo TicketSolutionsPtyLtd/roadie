@@ -37,13 +37,15 @@ input, and asks `suggest` again. Tab from the last operator, or Shift+Tab from
 the first, leaves the input and ends the step, as any Tab out of a step does. In the value step, Enter takes the first value
 once text is typed. Mark a step's one answer `exact`, such as "City is empty",
 and Enter takes it before anything is typed. Mark one that opens an editor
-`opensEditor`, such as "Custom dates", and only an arrow or a click takes it.
+of your own `opensEditor`, and only an arrow or a click takes it.
 `pendingChip.hint`, such as "Type a number.", shows and is announced in place
 of No suggestions while no value is listed, and below the values while Enter
 has none to take for the typed text. Focus moving to something outside the
 field and its list, or a press outside them, calls `onPendingChipCancel`, as
 Escape does. Focus going nowhere, as when a phone's keyboard is put away,
-keeps the step.
+keeps the step. `pendingChip.content` shows under the values, such as a
+calendar to pick a date from. Focus stays in the input as it's pressed, and a
+press in it that ends the step closes the list, as taking a value does.
 
 To edit a chip in the list, answer `onSelectChip` with a value step whose
 `pendingChip.chipId` names the chip. The chip shows selected in place of a

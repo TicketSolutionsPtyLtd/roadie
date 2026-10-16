@@ -3,7 +3,6 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
 import roadieCss from '../../../vitest.browser.css?inline'
-import { settledBox } from '../../utils/touchTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { RecordTable, tableColumns } from '../RecordTable'
 import { type TestShow, showFields, testShows } from './testUtils'
@@ -84,124 +83,6 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     expect(box(configure).height).toBe(40)
   })
 
-  it('opens Custom dates for a date chip under it, with a date picker inside', async () => {
-    render(
-      <Shows
-        defaultView={{
-          query: {
-            filters: [
-              { field: 'starts', operator: 'within', value: 'this-weekend' }
-            ]
-          }
-        }}
-      />
-    )
-    const starts = chip('Starts')
-    await userEvent.click(
-      within(starts).getByRole('button', { name: /^Starts/ })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Custom dates' })
-    )
-    const dialog = await screen.findByRole('dialog', { name: 'Starts' })
-    const editor = await settledBox(dialog)
-    expect(editor.top).toBeGreaterThan(box(starts).bottom)
-    await userEvent.click(
-      within(dialog).getByRole('button', { name: /^Choose dates/ })
-    )
-    await userEvent.click(
-      await screen.findByRole('button', { name: /^Next week/ })
-    )
-    await expect
-      .poll(() => chip('Starts')?.textContent)
-      .toContain('is next week')
-    const after = screen.getByRole('dialog', { name: 'Starts' })
-    expect(after).toBeVisible()
-    // The edited chip remounts; the editor stays under the chip that holds it.
-    const moved = await settledBox(after)
-    expect(moved.top).toBeGreaterThan(box(chip('Starts')).bottom)
-    expect(Math.abs(moved.left - box(chip('Starts')).left)).toBeLessThan(2)
-    await userEvent.keyboard('{Escape}')
-    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
-    await userEvent.click(
-      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Custom dates' })
-    )
-    const reopened = await settledBox(
-      await screen.findByRole('dialog', { name: 'Starts' })
-    )
-    expect(reopened.top).toBeGreaterThan(box(chip('Starts')).bottom)
-  })
-
-  it('keeps Tab inside Custom dates, titled with its field', async () => {
-    render(
-      <Shows
-        defaultView={{
-          query: {
-            filters: [
-              { field: 'starts', operator: 'within', value: 'this-weekend' }
-            ]
-          }
-        }}
-      />
-    )
-    await userEvent.click(
-      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Custom dates' })
-    )
-    const dialog = await screen.findByRole('dialog', { name: 'Starts' })
-    await expect
-      .element(within(dialog).getByRole('heading', { name: 'Starts' }))
-      .toBeVisible()
-    await expect.poll(() => dialog.contains(document.activeElement)).toBe(true)
-    const stops = new Set<Element | null>()
-    for (let press = 0; press < 6; press++) {
-      await userEvent.keyboard('{Tab}')
-      // A focus guard at the edge hands focus on a moment later.
-      await expect
-        .poll(() => document.activeElement?.closest('[role=dialog]'))
-        .toBe(dialog)
-      stops.add(document.activeElement)
-    }
-    expect(stops.size).toBeGreaterThan(1)
-    expect(dialog).toBeVisible()
-  })
-
-  it('leaves the page scrolling under Custom dates, and a click on another chip closes it and edits that chip', async () => {
-    render(
-      <Shows
-        defaultView={{
-          query: {
-            filters: [
-              { field: 'starts', operator: 'within', value: 'this-weekend' },
-              { field: 'city', operator: 'contains', value: 'Perth' }
-            ]
-          }
-        }}
-      />
-    )
-    await userEvent.click(
-      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Custom dates' })
-    )
-    await screen.findByRole('dialog', { name: 'Starts' })
-    // The page still scrolls behind it.
-    for (const element of [document.documentElement, document.body])
-      expect(getComputedStyle(element).overflow).not.toBe('hidden')
-    // By selector, as the dialog hides the page from the accessibility tree.
-    await userEvent.click(chip('City').querySelector('button')!)
-    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
-    await expect
-      .poll(() => chip('City').hasAttribute('data-selected'))
-      .toBe(true)
-  })
-
   it('edits an option chip in the list on a phone', async () => {
     await page.viewport(390, 844)
     render(
@@ -252,254 +133,151 @@ describe('Records.Search in a browser', TIMEOUT, () => {
   })
 })
 
-// Prototype (INNO-1278): goes with whichever Custom dates surface loses.
-describe(
-  'Records.Search with Custom dates in the dropdown on a phone',
-  TIMEOUT,
-  () => {
-    const popup = () =>
-      document.querySelector<HTMLElement>('[data-slot=combobox-popup]')
-    const day = (date: string) =>
-      popup()!.querySelector<HTMLElement>(`button[data-date="${date}"]`)!
+const popup = () =>
+  document.querySelector<HTMLElement>('[data-slot=combobox-popup]')
+const calendar = () =>
+  popup()?.querySelector<HTMLElement>('[data-slot=calendar]') ?? null
+const day = (date: string) =>
+  calendar()!.querySelector<HTMLElement>(
+    `button[data-date="${date}"]:not([data-outside])`
+  )!
+const operator = (name: string) =>
+  within(screen.getByRole('group', { name: 'Operator' })).getByRole('button', {
+    name
+  })
+const searchInput = () =>
+  screen.getByRole('combobox', { name: 'Search and filter' })
 
-    async function openCalendar(defaultView?: RecordViewDefaults, width = 390) {
-      await page.viewport(width, 844)
-      render(
-        <div data-custom-dates='inline' className='px-4'>
-          <Shows defaultView={defaultView} />
-        </div>
-      )
-      await userEvent.click(
-        screen.getByRole('combobox', { name: 'Search and filter' })
-      )
-      await userEvent.click(
-        await screen.findByRole('option', { name: /^Starts/ })
-      )
-      await userEvent.click(
-        await screen.findByRole('option', { name: 'Custom dates' })
-      )
-      await expect
-        .poll(() => popup()?.querySelector('[data-slot=records-dates-panel]'))
-        .toBeTruthy()
-    }
-
-    it('shows the calendar in the dropdown, focused, with no drawer', async () => {
-      await openCalendar()
-      expect(screen.queryByRole('dialog')).toBeNull()
-      expect(screen.queryByRole('listbox')).toBeNull()
-      expect(
-        within(popup()!).getByRole('group', { name: 'Starts condition' })
-      ).toBeVisible()
-      await expect
-        .poll(() => popup()!.contains(document.activeElement))
-        .toBe(true)
-      expect(
-        document.activeElement?.closest('[data-slot=calendar]')
-      ).toBeTruthy()
-    })
-
-    it('widens the dropdown past a narrow field to fit the calendar, within the screen', async () => {
-      await openCalendar(undefined, 320)
-      const calendar = popup()!.querySelector('[data-slot=calendar]')!
-      expect(box(popup()!).width).toBeGreaterThan(box(searchField()).width)
-      expect(box(calendar).right).toBeLessThanOrEqual(box(popup()!).right)
-      expect(box(popup()!).left).toBeGreaterThanOrEqual(0)
-      expect(box(popup()!).right).toBeLessThanOrEqual(320)
-    })
-
-    it('keeps the search on the row while dates are picked', async () => {
-      await openCalendar(undefined, 320)
-      const toolbar = document.querySelector('[data-slot=records-toolbar]')!
-      expect(toolbar).toHaveAttribute('data-search-focused')
-      await userEvent.click(
-        within(popup()!).getByRole('button', { name: 'On' })
-      )
-      await userEvent.click(
-        within(popup()!).getByRole('button', { name: 'Next month' })
-      )
-      expect(popup()!.contains(document.activeElement)).toBe(true)
-      expect(toolbar).toHaveAttribute('data-search-focused')
-    })
-
-    it('sizes each condition to its own label, as the operators are', async () => {
-      await openCalendar()
-      const conditions = within(popup()!).getByRole('group', {
-        name: 'Starts condition'
-      })
-      const on = within(conditions).getByRole('button', { name: 'On' })
-      const long = within(conditions).getByRole('button', {
-        name: 'Within'
-      })
-      expect(box(on).width).toBeLessThan(box(long).width * 0.75)
-      expect(box(on).width).toBeGreaterThanOrEqual(box(on).height)
-    })
-
-    it('returns to the quick dates with Back, and with Escape', async () => {
-      await openCalendar()
-      await userEvent.click(
-        within(popup()!).getByRole('button', { name: 'Back' })
-      )
-      await expect
-        .element(await screen.findByRole('option', { name: 'Custom dates' }))
-        .toBeVisible()
-      expect(document.activeElement).toBe(
-        screen.getByRole('combobox', { name: 'Search and filter' })
-      )
-      await userEvent.click(
-        screen.getByRole('option', { name: 'Custom dates' })
-      )
-      await expect
-        .poll(() => popup()?.querySelector('[data-slot=records-dates-panel]'))
-        .toBeTruthy()
-      await userEvent.keyboard('{Escape}')
-      await expect
-        .element(await screen.findByRole('option', { name: 'Custom dates' }))
-        .toBeVisible()
-      expect(document.activeElement).toBe(
-        screen.getByRole('combobox', { name: 'Search and filter' })
-      )
-    })
-
-    it('adds the chip from a picked range and ends the step', async () => {
-      await openCalendar()
-      await userEvent.click(day('2026-10-10'))
-      await userEvent.click(day('2026-10-12'))
-      await expect.poll(() => chip('Starts')?.textContent).toContain('10')
-      await expect.poll(popup).toBeNull()
-      expect(
-        document.querySelector('[data-slot=query-field-pending-chip]')
-      ).toBeNull()
-      expect(document.activeElement).toBe(chip('Starts'))
-    })
-
-    it('puts a picked range in place of the field’s is empty chip', async () => {
-      await openCalendar({
-        query: { filters: [{ field: 'starts', operator: 'is-not-set' }] }
-      })
-      await userEvent.click(day('2026-10-10'))
-      await userEvent.click(day('2026-10-12'))
-      await expect.poll(() => chip('Starts')?.textContent).toContain('10')
-      expect(
-        document.querySelectorAll('[data-slot=combobox-chip]')
-      ).toHaveLength(1)
-    })
-
-    it('keeps the step through presses in the calendar, and ends it on one outside', async () => {
-      render(
-        <button type='button' data-testid='outside'>
-          Outside
-        </button>
-      )
-      await openCalendar()
-      const pendingChip = () =>
-        document.querySelector('[data-slot=query-field-pending-chip]')
-      await userEvent.click(
-        within(popup()!).getByRole('button', { name: 'On' })
-      )
-      await userEvent.click(
-        within(popup()!).getByRole('group', { name: 'Starts condition' })
-      )
-      expect(pendingChip()).toBeTruthy()
-      expect(
-        popup()?.querySelector('[data-slot=records-dates-panel]')
-      ).toBeTruthy()
-      // The dropdown hides the page from the accessibility tree.
-      await userEvent.click(screen.getByTestId('outside'))
-      await expect.poll(popup).toBeNull()
-      expect(pendingChip()).toBeNull()
-      expect(
-        document.querySelectorAll('[data-slot=combobox-chip]')
-      ).toHaveLength(0)
-    })
-
-    it('keeps the step as Tab moves through the calendar', async () => {
-      await openCalendar()
-      await expect
-        .poll(() => popup()!.contains(document.activeElement))
-        .toBe(true)
-      await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
-      await userEvent.keyboard('{Tab}')
-      expect(popup()!.contains(document.activeElement)).toBe(true)
-      expect(
-        document.querySelector('[data-slot=query-field-pending-chip]')
-      ).toBeTruthy()
-      expect(
-        popup()?.querySelector('[data-slot=records-dates-panel]')
-      ).toBeTruthy()
-    })
-
-    it('changes a chip to one date under another condition', async () => {
-      await page.viewport(390, 844)
-      render(
-        <div data-custom-dates='inline'>
-          <Shows
-            defaultView={{
-              query: {
-                filters: [
-                  { field: 'starts', operator: 'within', value: 'this-weekend' }
-                ]
-              }
-            }}
-          />
-        </div>
-      )
-      await userEvent.click(
-        within(chip('Starts')).getByRole('button', { name: /^Starts/ })
-      )
-      await userEvent.click(
-        await screen.findByRole('option', { name: 'Custom dates' })
-      )
-      await expect
-        .poll(() => popup()?.querySelector('[data-slot=records-dates-panel]'))
-        .toBeTruthy()
-      await userEvent.click(
-        within(popup()!).getByRole('button', { name: 'After' })
-      )
-      await userEvent.click(day('2026-10-20'))
-      await expect.poll(() => chip('Starts')?.textContent).toMatch(/after/i)
-      expect(
-        document.querySelectorAll('[data-slot=combobox-chip]')
-      ).toHaveLength(1)
-      await expect.poll(popup).toBeNull()
-    })
-
-    it('keeps the popover on a wide screen inside the comparison', async () => {
-      render(
-        <div data-custom-dates='inline'>
-          <Shows />
-        </div>
-      )
-      await userEvent.click(
-        screen.getByRole('combobox', { name: 'Search and filter' })
-      )
-      await userEvent.click(
-        await screen.findByRole('option', { name: /^Starts/ })
-      )
-      await userEvent.click(
-        await screen.findByRole('option', { name: 'Custom dates' })
-      )
-      await screen.findByRole('dialog', { name: 'Starts' })
-      expect(
-        document.querySelector('[data-slot=records-dates-panel]')
-      ).toBeNull()
-    })
-
-    it('keeps the drawer on a phone outside the comparison', async () => {
-      await page.viewport(390, 844)
-      render(<Shows />)
-      await userEvent.click(
-        screen.getByRole('combobox', { name: 'Search and filter' })
-      )
-      await userEvent.click(
-        await screen.findByRole('option', { name: /^Starts/ })
-      )
-      await userEvent.click(
-        await screen.findByRole('option', { name: 'Custom dates' })
-      )
-      await screen.findByRole('dialog', { name: 'Starts' })
-      expect(
-        document.querySelector('[data-slot=records-dates-panel]')
-      ).toBeNull()
-    })
+describe.each([
+  { name: 'a phone', width: 390, height: 844 },
+  { name: 'a desktop', width: 1440, height: 900 }
+])('Records.Search dates on $name', TIMEOUT, ({ width, height }) => {
+  async function chooseStarts(defaultView?: RecordViewDefaults) {
+    await page.viewport(width, height)
+    render(<Shows defaultView={defaultView} />)
+    await userEvent.click(searchInput())
+    await userEvent.click(
+      await screen.findByRole('option', { name: /^Starts/ })
+    )
   }
-)
+
+  async function underCondition(name: string) {
+    await chooseStarts()
+    await userEvent.click(operator(name))
+    await expect.poll(calendar).toBeTruthy()
+  }
+
+  afterEach(() => {
+    // No popover or drawer: the dates stay in the dropdown.
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('starts on is relative, listing the quick dates', async () => {
+    await chooseStarts()
+    expect(operator('is relative')).toHaveAttribute('aria-pressed', 'true')
+    await expect
+      .element(await screen.findByRole('option', { name: /^This weekend/ }))
+      .toBeVisible()
+    expect(calendar()).toBeNull()
+  })
+
+  it('shows a calendar under is, its week inside the field’s width', async () => {
+    await underCondition('is')
+    expect(operator('is')).toHaveAttribute('aria-pressed', 'true')
+    const field = box(searchField())
+    const dropdown = box(popup()!)
+    expect(dropdown.width).toBeLessThanOrEqual(field.width + 1)
+    const sunday = box(day('2026-10-04'))
+    expect(sunday.right).toBeLessThanOrEqual(dropdown.right)
+    expect(box(day('2026-10-05')).left).toBeGreaterThanOrEqual(dropdown.left)
+    expect(searchInput()).toHaveFocus()
+  })
+
+  it('adds “is on” for a clicked day and closes the dropdown', async () => {
+    await underCondition('is')
+    await userEvent.click(day('2026-10-22'))
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('Starts is on Thu 22 Oct')
+    await expect.poll(popup).toBeNull()
+    expect(searchInput()).toHaveFocus()
+  })
+
+  it('adds a range from two clicks under is between', async () => {
+    await underCondition('is between')
+    await userEvent.click(day('2026-10-20'))
+    expect(chip('Starts')).toBeUndefined()
+    expect(calendar()).toBeTruthy()
+    await userEvent.click(day('2026-10-23'))
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('Starts is 20 to 23 Oct')
+    await expect.poll(popup).toBeNull()
+  })
+
+  it('offers a typed day under is, and Enter adds it', async () => {
+    await underCondition('is')
+    await userEvent.keyboard('fri')
+    const friday = await screen.findByRole('option', { name: /^Fri/ })
+    expect(
+      friday.compareDocumentPosition(calendar()!) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    await userEvent.keyboard('{Enter}')
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('Starts is on Fri 9 Oct')
+  })
+
+  it('opens a before chip on is before, its day marked', async () => {
+    await page.viewport(width, height)
+    render(
+      <Shows
+        defaultView={{
+          query: {
+            filters: [
+              { field: 'starts', operator: 'before', value: '2026-11-12' }
+            ]
+          }
+        }}
+      />
+    )
+    await userEvent.click(
+      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
+    )
+    await expect.poll(calendar).toBeTruthy()
+    expect(operator('is before')).toHaveAttribute('aria-pressed', 'true')
+    expect(day('2026-11-12')).toHaveAttribute('data-selected')
+    await userEvent.click(day('2026-11-20'))
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('Starts is before')
+    expect(chip('Starts').textContent).toContain('20 Nov')
+    expect(document.querySelectorAll('[data-slot=combobox-chip]')).toHaveLength(
+      1
+    )
+  })
+})
+
+describe('Records.Search dates on a narrow toolbar', TIMEOUT, () => {
+  it('keeps the search on the row while the calendar is pressed', async () => {
+    await page.viewport(390, 844)
+    render(<Shows />)
+    await userEvent.click(searchInput())
+    await userEvent.click(
+      await screen.findByRole('option', { name: /^Starts/ })
+    )
+    await userEvent.click(operator('is after'))
+    await expect.poll(calendar).toBeTruthy()
+    const toolbar = document.querySelector('[data-slot=records-toolbar]')!
+    expect(toolbar).toHaveAttribute('data-search-focused')
+    await userEvent.click(
+      within(calendar()!).getByRole('button', { name: /next month/i })
+    )
+    expect(searchInput()).toHaveFocus()
+    expect(toolbar).toHaveAttribute('data-search-focused')
+    expect(
+      document.querySelector('[data-slot=query-field-pending-chip]')
+    ).toHaveTextContent('Starts is after')
+  })
+})

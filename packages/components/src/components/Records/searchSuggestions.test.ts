@@ -202,7 +202,7 @@ describe('valueSuggestions', () => {
     ).toEqual([['Yes', 'No']])
   })
 
-  it('offers upcoming dates for events and recent ones for timestamps, then custom dates', () => {
+  it('offers upcoming dates for events and recent ones for timestamps', () => {
     const starts = valuesOf(valueSuggestions(byKey('starts'), '', context()))
     expect(starts!.label).toBe('Starts')
     expect(starts!.items.slice(0, 3).map((item) => item.label)).toEqual([
@@ -210,23 +210,53 @@ describe('valueSuggestions', () => {
       'Tomorrow',
       'This weekend'
     ])
-    expect(starts!.items.at(-1)).toMatchObject({
-      label: 'Custom dates',
-      value: { type: 'edit', field: 'starts' },
-      opensEditor: true
-    })
+    expect(starts!.items.at(-1)!.label).toBe('Past')
     const placed = valuesOf(valueSuggestions(byKey('placed'), '', context()))
     expect(placed!.items[1]!.label).toBe('Yesterday')
   })
 
-  it('lists Custom dates after typed dates, but not under emptiness', () => {
-    const custom = (text: string, operator?: ValueOperator) =>
-      valuesOf(valueSuggestions(byKey('starts'), text, context(), operator))
-        .items.map((item) => item.label)
-        .includes('Custom dates')
-    expect(custom('zzz')).toBe(true)
-    expect(custom('after 1 dec')).toBe(true)
-    expect(custom('', 'is-not-set')).toBe(false)
+  it('lists nothing under a calendar’s condition until a date is typed', () => {
+    const listed = (text: string, operator: ValueOperator) =>
+      labels(valueSuggestions(byKey('starts'), text, context(), operator))[0]
+    expect(listed('', 'on')).toEqual([])
+    expect(listed('', 'between')).toEqual([])
+    expect(listed('fri', 'before')![0]).toBe('Fri')
+  })
+
+  it('suggests days under is, is before, and is after, named as typed with their date', () => {
+    const group = valuesOf(
+      valueSuggestions(byKey('starts'), 'next fri', context(), 'after')
+    )
+    expect(group!.items[0]).toMatchObject({
+      label: 'Next Fri',
+      description: 'Fri 9 Oct 2026',
+      value: {
+        type: 'filter',
+        filter: { field: 'starts', operator: 'after', value: '2026-10-09' }
+      }
+    })
+  })
+
+  it('reads a typed range under is between, either way it’s joined', () => {
+    for (const typed of ['22 oct to 30 oct', '22 oct and 30 oct']) {
+      const group = valuesOf(
+        valueSuggestions(byKey('starts'), typed, context(), 'between')
+      )
+      expect(group!.items[0]).toMatchObject({
+        label: '22 to 30 Oct',
+        value: {
+          type: 'filter',
+          filter: {
+            field: 'starts',
+            operator: 'between',
+            value: ['2026-10-22', '2026-10-30']
+          }
+        }
+      })
+    }
+    expect(
+      labels(valueSuggestions(byKey('starts'), 'fri', context(), 'between'))
+    ).toEqual([[]])
   })
 
   it('compares an option field’s values by the chosen operator, listed or typed', () => {
@@ -264,9 +294,9 @@ describe('valueSuggestions', () => {
 
   it('lists the presets whose label holds every typed word', () => {
     const typed = (text: string) =>
-      valuesOf(valueSuggestions(byKey('starts'), text, context()))
-        .items.map((item) => item.label)
-        .filter((label) => label !== 'Custom dates')
+      valuesOf(valueSuggestions(byKey('starts'), text, context())).items.map(
+        (item) => item.label
+      )
     expect(typed('next')).toEqual([
       'Next week',
       'Next month',
@@ -700,19 +730,30 @@ describe('valueOperators', () => {
     ).toEqual(['is', 'is-not', 'has-all', 'is-not-set', 'is-set'])
   })
 
-  it('gives boolean and date fields is, then emptiness', () => {
-    const toggle = [
+  it('gives a boolean field is, then emptiness', () => {
+    expect(valueOperators(byKey('accessible'))).toEqual([
       { value: 'is', label: 'is' },
       { value: 'is-not-set', label: 'is empty' },
       { value: 'is-set', label: 'is not empty' }
-    ]
-    expect(valueOperators(byKey('accessible'))).toEqual(toggle)
-    expect(valueOperators(byKey('starts'))).toEqual(toggle)
+    ])
   })
 
-  it('offers no emptiness to a field that can’t filter by it', () => {
+  it('gives a date field is relative, the calendar’s conditions, then emptiness', () => {
+    expect(valueOperators(byKey('starts'))).toEqual([
+      { value: 'within', label: 'is relative' },
+      { value: 'on', label: 'is' },
+      { value: 'before', label: 'is before' },
+      { value: 'after', label: 'is after' },
+      { value: 'between', label: 'is between' },
+      { value: 'is-not-set', label: 'is empty' },
+      { value: 'is-set', label: 'is not empty' }
+    ])
+  })
+
+  it('offers only quick dates to a date field that can’t filter by its dates', () => {
     const dates = field.date('starts', { label: 'Dates', multiple: true })
-    expect(valueOperators(dates)).toEqual([{ value: 'is', label: 'is' }])
+    expect(stepOperator(dates, 'is-set')).toBe('within')
+    expect(valueOperators(dates)).toEqual([])
   })
 
   it('toggles a text field between contains, doesn’t contain, is and is not', () => {
@@ -745,16 +786,12 @@ describe('stepOperator', () => {
     expect(stepOperator(byKey('name'), 'is-not-set')).toBe('is-not-set')
     expect(stepOperator(byKey('name'), 'has-all')).toBe('contains')
     expect(stepOperator(byKey('accessible'), 'is-set')).toBe('is-set')
-    expect(
-      stepOperator(
-        field.date('starts', { label: 'Dates', multiple: true }),
-        'is-set'
-      )
-    ).toBe('is')
     expect(stepOperator(byKey('sold'), 'gt')).toBe('gt')
     expect(stepOperator(byKey('sold'), 'contains')).toBe('eq')
     expect(stepOperator(byKey('city'), 'has-all')).toBe('is')
-    expect(stepOperator(byKey('starts'), 'between')).toBe('is')
+    expect(stepOperator(byKey('starts'), 'between')).toBe('between')
+    expect(stepOperator(byKey('starts'), 'within')).toBe('within')
+    expect(stepOperator(byKey('starts'), '')).toBe('within')
   })
 })
 
@@ -764,7 +801,9 @@ describe('pendingLabel', () => {
       'Event doesn’t contain'
     )
     expect(pendingLabel(byKey('sold'), 'lt')).toBe('Sold is less than')
-    expect(pendingLabel(byKey('starts'), 'is')).toBe('Starts is')
+    expect(pendingLabel(byKey('starts'), 'within')).toBe('Starts is relative')
+    expect(pendingLabel(byKey('starts'), 'on')).toBe('Starts is')
+    expect(pendingLabel(byKey('starts'), 'before')).toBe('Starts is before')
     expect(pendingLabel(byKey('accessible'), 'is')).toBe('Accessible is')
     expect(pendingLabel(byKey('starts'), 'is-not-set')).toBe('Starts is empty')
     expect(pendingLabel(byKey('sold'), 'is-set')).toBe('Sold is not empty')

@@ -7,7 +7,6 @@ export const metadata = {
 
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Callout } from '@oztix/roadie-components/callout'
 
 A table of records to search, filter, sort and page through.
 
@@ -400,7 +399,7 @@ Focus the empty field to list the fields to filter by. Pick one, and the list sh
 | Text             | contains, doesn't contain, is, and is not         | What you type                                                                                           |
 | Number or money  | `=`, `≠`, `<`, `>`, and between                   | What you type                                                                                           |
 | Boolean          | is                                                | Yes and No                                                                                              |
-| Date             | is                                                | Quick dates, upcoming for an event date and recent for a timestamp, then **Custom dates**               |
+| Date             | is relative, is, is before, is after, and is between | Under is relative, quick dates, upcoming for an event date and recent for a timestamp. Under the others, a calendar |
 
 Every field you can filter by ends its toggle with **is empty** and **is not empty**. A field that holds a list of dates can't be filtered yet, so it isn't listed.
 
@@ -421,77 +420,18 @@ Click a chip, or press Enter on it, to edit it in the list. The chip shows as se
 
 - **An option chip.** Take values to tick and untick them, and the list stays open for more. Unticking the last value removes the chip. Enter on typed text only ticks. Press **is**, **is not**, or **has all of** to change the condition and keep the values. A chip changed to **is** joins the field's is chip.
 - **A text or number chip.** Its value is in the field and its condition in the toggle, such as 20 and 50 under **between**. Change either, and Enter replaces the chip once the value reads and ends the edit.
-- **A boolean or date chip.** Yes, No, or a quick date replaces what the chip holds and ends the edit.
+- **A boolean or date chip.** Yes, No, a quick date, or a day from the calendar replaces what the chip holds and ends the edit.
 - **Is empty or is not empty.** The row under either replaces what the chip holds, and ends the edit of any chip but an option chip. A chip that already reads is empty or is not empty opens with that row ticked.
 
 Only an option chip changes as you press an operator. Anything else waits for Enter, so pressing Tab past **is empty** keeps the chip's values. Backspace in the empty field removes the chip. Escape, Enter with no new value to take, or leaving the field ends the edit and keeps the chip.
 
-#### Custom dates
+#### Dates
 
-**Custom dates** is last in a date field's values, and the one filter you edit outside the list. It opens a condition (Is within, Is on, Is before, or Is after) with the [date range picker](/components/date-range-picker) and its relative presets, or the [date picker](/components/date-picker). It edits the selected chip, or adds a new one, and applies each change as you make it. A new condition keeps the dates: Is on and Is before take the range's first day, Is after its last, and Is within takes the one date as a day.
+A date field starts on **is relative**, with its quick dates, such as Today, This week, and Next 7 days. Typing narrows them, and phrases like "rest of the month" read too.
 
-It opens in a popover under the chip, or a bottom drawer on a phone, and loads while the page is idle. Either one shows the field's name as its title, with a Close button, and Tab stays inside it until it closes. An existing chip's editor has **Remove filter** at the foot, and a chip whose dates you clear is removed as the editor closes.
+Under **is**, **is before**, or **is after**, the dropdown shows a calendar under the values. Click or tap a day to add the chip, such as "Start date is on Thu 22 Oct". Typing suggests days above the calendar, such as Fri and Next Fri for "fri", and Enter takes the first. Under **is between**, click two days for a range, or type one, such as "22 oct to 30 oct".
 
-#### Custom dates on a phone (temporary)
-
-<Callout intent='warning' title='This comparison is temporary'>
-  We'll keep one of these two ways to pick custom dates on a phone. We'll delete the other and this example before the next release.
-</Callout>
-
-Open this page on a phone, then pick **Start date** and **Custom dates**.
-
-- **Drawer** opens the date range picker in a bottom drawer, as Custom dates does now.
-- **In the dropdown** shows a calendar in the dropdown in place of the quick dates, under **Back** and a toggle of **Within**, **On**, **Before**, and **After**. Back or Escape returns to the quick dates. The dropdown widens to fit the calendar, up to the screen's width, and fits above the on-screen keyboard. Picking a range or one date adds the chip, or changes the chip you're editing.
-
-On a screen 48rem or wider, both open the popover under the chip.
-
-```tsx-live-noinline
-const field = recordFields()
-const fields = [
-  field.text('show', { label: 'Show' }),
-  field.option('city', { label: 'City' }),
-  field.date('starts', { label: 'Start date', moment: 'date' })
-]
-const column = tableColumns(fields)
-const columns = [column.field('show', { pin: true }), column.field('city'), column.field('starts')]
-const bands = ['Ocean Alley', 'Ball Park Music', 'Julia Jacklin', 'Angie McMahon', 'Alex Lahey', 'Middle Kids']
-const cities = ['Melbourne', 'Sydney', 'Brisbane', 'Perth', 'Hobart']
-const day = (offset) => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10)
-const shows = Array.from({ length: 40 }, (_, index) => ({
-  id: `show-${index}`,
-  show: bands[index % bands.length],
-  city: cities[index % cities.length],
-  starts: day(index % 45)
-}))
-
-function Comparison() {
-  const [surface, setSurface] = useState('drawer')
-  return (
-    <div className='grid gap-3'>
-      <ToggleGroup
-        aria-label='Where Custom dates opens on a phone'
-        value={[surface]}
-        onValueChange={([next]) => next && setSurface(next)}
-      >
-        <ToggleGroup.Item value='drawer'>Drawer</ToggleGroup.Item>
-        <ToggleGroup.Item value='inline'>In the dropdown</ToggleGroup.Item>
-      </ToggleGroup>
-      <div data-custom-dates={surface}>
-        <RecordTable
-          caption='Upcoming shows'
-          data={shows}
-          fields={fields}
-          columns={columns}
-          getRowId={(row) => row.id}
-          defaultPosition={{ pageSize: 10 }}
-        />
-      </div>
-    </div>
-  )
-}
-
-render(<Comparison />)
-```
+The calendar stays in the dropdown at every screen size, as wide as the field. Dates are whole days, on a timestamp field too. Editing a date chip opens it on its operator, with the calendar on its month and its day or range marked. Picking another day changes the chip.
 
 #### Chips
 
@@ -1669,7 +1609,7 @@ column.field('city', { pin: true })`}
 - The search is a combobox named "Search and filter", or by its `aria-label`. Suggestions open as you type, on a click, or with the arrows, not on Tab. While they're open, the rest of the page is hidden from screen readers, as for any combobox. Clear keeps focus in the field and keeps the page's scope. [Keys](#keys) lists what each key does.
 - Chips are a toolbar named "Filters", and Left and Right move between them. Selecting a chip lists its values and keeps focus in the field. Each chip's remove button is named "Remove" and the chip. A locked scope chip says it's set by this page, and a chip's dates, or a note that it can't apply, are read after its label.
 - The operators are a toggle group named "Operator". A number's operators are symbols named in words, such as "is less than" for `<`.
-- **Custom dates** opens a dialog named after the field. Focus returns to the chip as it closes, or to the field once the filter is removed.
+- A date's calendar is named after the field, such as "Start date". Focus stays in the field as you press it, and Tab moves through the operators, so the keyboard picks a date by typing it.
 - Each record's checkbox is named "Select" followed by the record's title, or its id with no title, and the header checkbox is named "Select page", with a mixed state when only some of the page is checked.
 - `Records.Status` also announces the selection, such as "3 selected, 24 results". It announces a search's count once typing settles, not on every keystroke, and against a server once the new count loads.
 - While records are selected, the bulk actions are a toolbar named "Bulk actions" in the header row, beside "Select page", which keeps focus as the bar replaces the column headers. The headers stay in the table for screen readers, and the toolbar sits in a last header with no cells under it. Arrow keys move between its controls. Escape clears the selection and returns focus to "Select page".
