@@ -41,9 +41,9 @@ export const eventFields: RecordField[] = [
     ]
   },
   {
-    key: 'city',
-    label: 'City',
-    type: 'option',
+    key: 'location',
+    label: 'Location',
+    type: 'location',
     options: [
       { value: 'melbourne', label: 'Melbourne' },
       { value: 'sydney', label: 'Sydney' }
@@ -77,7 +77,7 @@ export const eventFields: RecordField[] = [
 
 | Property                          | Meaning                                                                                                                                         |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`                            | text, option, number, money, date, or boolean. It decides which operators fit.                                                                 |
+| `type`                            | text, option, location, number, money, date, or boolean. It decides which operators fit.                                                       |
 | `filterable`                      | Defaults to true. Set false to keep a field out of filters and suggestions.                                                                     |
 | `sortable`                        | Defaults to true.                                                                                                                               |
 | `searchable`                      | Free-text search reads it. Defaults to true for text and false otherwise.                                                                       |
@@ -92,6 +92,10 @@ export const eventFields: RecordField[] = [
 | `status`                          | The dashboard status map. An option field with one gets Badge rendering, sorting by order, and labels from one definition.                     |
 | `options`                         | The values to pick from, each with an optional parent for hierarchies.                                                                          |
 
+A location field holds places, such as cities. It filters like an option for
+now: is, is not, is empty, and is not empty. Distance filters, such as within
+100 km of Brisbane, come later.
+
 Derived states, such as Selling fast or Sold out, are worked out once on the
 server and arrive as option values. Roadie never bands a percentage into a
 state.
@@ -100,9 +104,10 @@ In React, `useRecords` takes `RecordsField` from
 `@oztix/roadie-components/records`: a field with an optional `icon`, a bold
 Phosphor icon. `Records.Search` shows it on the field's suggestions and their
 filters, never on values or chips. A field without one gets its type's icon: a
-tag for an option, a half circle for an option with `status`, Aa for text, a
-hash for a number, a dollar sign for money, a calendar for a date, and a toggle
-for a boolean.
+tag for an option, a half circle for an option with `status`, a map pin for a
+location, Aa for text, a hash for a number, a dollar sign for money, a calendar
+for a date, and a toggle for a boolean. Give a field that names a kind of
+thing its own, such as a building for a venue.
 
 ## Views
 
@@ -121,7 +126,7 @@ are session state, never part of a view.
     "search": "lampshade",
     "filters": [
       {
-        "field": "city",
+        "field": "location",
         "operator": "is",
         "values": [
           "melbourne"

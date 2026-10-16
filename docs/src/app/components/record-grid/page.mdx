@@ -36,7 +36,7 @@ const events = Array.from({ length: 24 }, (_, index) => ({
   image: index % 5 === 4 ? undefined : '/cart-demo-event.svg',
   name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
   venue: venues[index % venues.length],
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   status: statuses[index % statuses.length],
   startsAt: `2026-11-${String((index % 28) + 1).padStart(2, '0')}`,
   sold: (index * 37) % 2400
@@ -47,7 +47,7 @@ const fields = [
   field.text('image', { label: 'Image', searchable: false, sortable: false }),
   field.text('name', { label: 'Event' }),
   field.text('venue', { label: 'Venue' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.option('status', {
     label: 'Status',
     status: {
@@ -74,7 +74,7 @@ render(
       title: 'name',
       description: 'venue',
       trailing: 'status',
-      details: ['startsAt', 'city', 'sold']
+      details: ['startsAt', 'location', 'sold']
     }}
   />
 )
@@ -88,15 +88,15 @@ Each part names a field: `title` names the record and carries its `getRowHref` l
 const field = recordFields()
 const fields = [
   field.text('name', { label: 'Venue' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.number('capacity', { label: 'Capacity' }),
   field.number('events', { label: 'Events this year' })
 ]
 const venues = [
-  { id: 'kazoo', name: 'Kazoo Hollow Room', city: 'Brisbane', capacity: 450, events: 82 },
-  { id: 'antler', name: 'Antler Kettle Hall', city: 'Melbourne', capacity: 1200, events: 64 },
-  { id: 'echidna', name: 'Echidna Gaslight Theatre', city: 'Sydney', capacity: 900, events: 71 },
-  { id: 'foxglove', name: 'Foxglove Tin Pavilion', city: 'Perth', capacity: 2400, events: 38 }
+  { id: 'kazoo', name: 'Kazoo Hollow Room', location: 'Brisbane', capacity: 450, events: 82 },
+  { id: 'antler', name: 'Antler Kettle Hall', location: 'Melbourne', capacity: 1200, events: 64 },
+  { id: 'echidna', name: 'Echidna Gaslight Theatre', location: 'Sydney', capacity: 900, events: 71 },
+  { id: 'foxglove', name: 'Foxglove Tin Pavilion', location: 'Perth', capacity: 2400, events: 38 }
 ]
 
 render(
@@ -109,7 +109,7 @@ render(
     card={{
       leading: { key: 'name', cell: ({ row }) => <Avatar size='sm' name={row.name} /> },
       title: 'name',
-      description: 'city',
+      description: 'location',
       details: ['capacity', 'events']
     }}
   />
@@ -122,16 +122,16 @@ Pass `loading` while records load and `error` when the load fails. With no recor
 
 ```tsx-live-noinline
 const field = recordFields()
-const fields = [field.text('name', { label: 'Event' }), field.text('city', { label: 'City' }), field.number('sold', { label: 'Sold' })]
+const fields = [field.text('name', { label: 'Event' }), field.location('location', { label: 'Location' }), field.number('sold', { label: 'Sold' })]
 const events = [
-  { id: 'a', name: 'Nectarine Hoedown', city: 'Brisbane', sold: 1840 },
-  { id: 'b', name: 'Raffia Spaceship', city: 'Melbourne', sold: 920 }
+  { id: 'a', name: 'Nectarine Hoedown', location: 'Brisbane', sold: 1840 },
+  { id: 'b', name: 'Raffia Spaceship', location: 'Melbourne', sold: 920 }
 ]
 const props = {
   fields,
   getRowId: (row) => row.id,
   recordName: { one: 'event', other: 'events' },
-  card: { title: 'name', description: 'city', details: ['sold'] }
+  card: { title: 'name', description: 'location', details: ['sold'] }
 }
 
 render(
@@ -232,7 +232,7 @@ The fields write the view's `layout.fields`, the shown keys in order, left out o
 const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.date('startsAt', { label: 'Starts', moment: 'date' }),
   field.number('sold', { label: 'Sold' }),
   field.money('gross', { label: 'Gross', format: 'compactCurrency' })
@@ -242,7 +242,7 @@ const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
 const events = Array.from({ length: 6 }, (_, index) => ({
   id: `event-${index}`,
   name: `${names[index % names.length]} ${index + 1}`,
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   startsAt: `2026-11-${String(index + 2).padStart(2, '0')}`,
   sold: (index * 37) % 2400,
   gross: (index * 7919) % 250000
@@ -263,7 +263,7 @@ function Configured() {
         getRowId={(row) => row.id}
         view={view}
         onViewChange={setView}
-        card={{ title: 'name', description: 'city', details: ['startsAt', 'sold'] }}
+        card={{ title: 'name', description: 'location', details: ['startsAt', 'sold'] }}
       />
     </div>
   )
@@ -278,13 +278,13 @@ Cards have no checkboxes, so a selectable grid offers Select mode, as a narrow t
 
 ```tsx-live-noinline
 const field = recordFields()
-const fields = [field.text('name', { label: 'Event' }), field.text('city', { label: 'City' }), field.number('sold', { label: 'Sold' })]
+const fields = [field.text('name', { label: 'Event' }), field.location('location', { label: 'Location' }), field.number('sold', { label: 'Sold' })]
 const names = ['Nectarine Hoedown', 'Lampshade Disco', 'Ember Galah Ball', 'Raffia Spaceship']
 const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth']
 const events = Array.from({ length: 8 }, (_, index) => ({
   id: `event-${index}`,
   name: `${names[index % names.length]} ${index + 1}`,
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   sold: (index * 37) % 2400
 }))
 
@@ -296,7 +296,7 @@ render(
     getRowId={(row) => row.id}
     getRowHref={(row) => `#${row.id}`}
     recordName={{ one: 'event', other: 'events' }}
-    card={{ title: 'name', description: 'city', details: ['sold'] }}
+    card={{ title: 'name', description: 'location', details: ['sold'] }}
     bulkActions={[
       { label: 'Share', icon: <ShareNetworkIcon weight='bold' className='size-4' />, onAction: () => {} },
       { label: 'Delete', icon: <TrashIcon weight='bold' className='size-4' />, intent: 'danger', onAction: () => {} }
@@ -312,13 +312,13 @@ Past 100 records on a page, the grid renders only the rows of cards near the scr
 
 ```tsx-live-noinline
 const field = recordFields()
-const fields = [field.text('name', { label: 'Event' }), field.text('city', { label: 'City' }), field.number('sold', { label: 'Sold' })]
+const fields = [field.text('name', { label: 'Event' }), field.location('location', { label: 'Location' }), field.number('sold', { label: 'Sold' })]
 const names = ['Nectarine Hoedown', 'Lampshade Disco', 'Ember Galah Ball', 'Raffia Spaceship', 'Quokka Thunder Weekender']
 const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart', 'Adelaide']
 const events = Array.from({ length: 1000 }, (_, index) => ({
   id: `event-${index}`,
   name: `${names[index % names.length]} ${index + 1}`,
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   sold: (index * 37) % 2400
 }))
 
@@ -332,7 +332,7 @@ render(
     defaultPosition={{ pageSize: 1000 }}
     pageSizes={[100, 1000]}
     maxHeight='32rem'
-    card={{ title: 'name', description: 'city', details: ['sold'] }}
+    card={{ title: 'name', description: 'location', details: ['sold'] }}
   />
 )
 ```
@@ -366,7 +366,7 @@ render(
     Show two or three details. People add more from Configure when they need
     them.
   </Guideline.Do>
-  <Guideline.Dont code={`gridLayout({ title: 'name', details: ['venue', 'city', 'startsAt', 'endsAt', 'sold', 'capacity', 'gross'] })`}>
+  <Guideline.Dont code={`gridLayout({ title: 'name', details: ['venue', 'location', 'startsAt', 'endsAt', 'sold', 'capacity', 'gross'] })`}>
     Don't list every field. Tall cards fit few to a screen and bury the
     title.
   </Guideline.Dont>

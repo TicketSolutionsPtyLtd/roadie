@@ -4,6 +4,7 @@ import {
   CalendarBlankIcon,
   CircleHalfIcon,
   HashIcon,
+  MapPinIcon,
   TextAaIcon
 } from '@phosphor-icons/react/ssr'
 import { act, render, screen, waitFor, within } from '@testing-library/react'
@@ -660,6 +661,39 @@ describe('Records.Search', () => {
     expect(
       within(await option(/City is Melbourne/)).getByTestId('city-icon')
     ).toBeTruthy()
+  })
+
+  it('offers a location field’s values under a map pin, as one chip', async () => {
+    const located = fields.map((each) =>
+      each.key === 'city' ? field.location('city', { label: 'Location' }) : each
+    )
+    const { user, lastView } = setup({ fields: located })
+    await user.click(input())
+    expect(
+      (await option('Location')).querySelector('[aria-hidden=true]')?.innerHTML
+    ).toBe(renderToStaticMarkup(<MapPinIcon weight='bold' />))
+    await user.click(await option('Location'))
+    await user.click(await option('Perth'))
+    await user.click(input())
+    await user.click(await option('Location'))
+    await user.click(await option('Hobart'))
+    expect(chipLabels()).toEqual(['Location is Perth or Hobart'])
+    await user.click(
+      within(chip('Location is Perth or Hobart')).getByRole('button', {
+        name: 'Location is Perth or Hobart'
+      })
+    )
+    const dialog = await editor()
+    expect(
+      within(dialog).getByRole('checkbox', { name: 'Perth' })
+    ).toBeChecked()
+    await user.click(
+      within(dialog).getByRole('combobox', { name: 'Location condition' })
+    )
+    await user.click(await screen.findByRole('option', { name: 'Is not' }))
+    expect(lastView().query.filters).toEqual([
+      { field: 'city', operator: 'is-not', values: ['Perth', 'Hobart'] }
+    ])
   })
 
   it('leaves icons off value suggestions and chips', async () => {

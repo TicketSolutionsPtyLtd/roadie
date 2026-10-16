@@ -34,7 +34,7 @@ const names = ['Ocean Alley', 'Ball Park Music', 'Julia Jacklin', 'Angie McMahon
 const shows = Array.from({ length: 240 }, (_, index) => ({
   id: `show-${index}`,
   show: `${names[index % names.length]} at Kazoo Hollow Room`,
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   sold: (index * 37) % 2400,
   gross: (index * 7919) % 250000
 }))
@@ -42,7 +42,7 @@ const shows = Array.from({ length: 240 }, (_, index) => ({
 const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.number('sold', { label: 'Sold' }),
   field.money('gross', { label: 'Gross', format: 'compactCurrency' })
 ]
@@ -50,7 +50,7 @@ const fields = [
 const column = tableColumns(fields)
 const columns = [
   column.field('show', { pin: true }),
-  column.field('city'),
+  column.field('location'),
   column.field('sold'),
   column.field('gross')
 ]
@@ -74,12 +74,12 @@ Pass `loading` while records load and `error` when the load fails. With no recor
 
 ```tsx-live-noinline
 const field = recordFields()
-const fields = [field.text('show', { label: 'Show' }), field.text('city', { label: 'City' }), field.number('sold', { label: 'Sold' })]
+const fields = [field.text('show', { label: 'Show' }), field.location('location', { label: 'Location' }), field.number('sold', { label: 'Sold' })]
 const column = tableColumns(fields)
-const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold')]
+const columns = [column.field('show', { pin: true }), column.field('location'), column.field('sold')]
 const shows = [
-  { id: 'a', show: 'Ocean Alley', city: 'Brisbane', sold: 1840 },
-  { id: 'b', show: 'Alex Lahey', city: 'Melbourne', sold: 920 }
+  { id: 'a', show: 'Ocean Alley', location: 'Brisbane', sold: 1840 },
+  { id: 'b', show: 'Alex Lahey', location: 'Melbourne', sold: 920 }
 ]
 const props = {
   fields,
@@ -173,7 +173,7 @@ const events = Array.from({ length: 60 }, (_, index) => ({
 const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
-  field.option('venue', { label: 'Venue', options: venues, searchable: true }),
+  { ...field.option('venue', { label: 'Venue', options: venues, searchable: true }), icon: <BuildingsIcon weight='bold' /> },
   field.date('startsAt', { label: 'Starts', moment: 'event', timeZoneKey: 'timeZone' }),
   field.option('status', {
     label: 'Status',
@@ -254,6 +254,7 @@ A field describes one fact about a record, and its type decides how the value re
 | --- | --- |
 | `text` | The text. A list joins with commas. |
 | `option` | Each value's label from `options`. With a `status` map, a small Badge in the key's intent. |
+| `location` | A place, such as a city: each value's label from `options`, as an option reads. |
 | `number` | Its `format`, `number` by default. Figures end-align. |
 | `money` | Its `format`, `currency` by default. `currency` or `currencyKey` names a currency that isn't dollars. |
 | `date` | House formats: event and access dates in the venue's zone from `timeZoneKey`, timestamps in the reader's zone, a range when the field has an `end`. |
@@ -319,7 +320,7 @@ render(
 
 ### Search and filters
 
-The toolbar's search is a [query field](/components/query-field) named "Search and filter". Typing searches the searchable fields as you type, and suggests filters the fields can read: an option's values, a status, a boolean by its name, an identifier's `match`, and date phrases such as "this weekend" or "after 1 dec" for each date field. Take a suggestion with the arrows and Enter, or a click, and it becomes a chip; Enter on its own keeps searching the text. Typing "melb this weekend" offers both City is Melbourne and Starts: This weekend, and the words a filter doesn't read stay in the field for the next one.
+The toolbar's search is a [query field](/components/query-field) named "Search and filter". Typing searches the searchable fields as you type, and suggests filters the fields can read: an option's values, a status, a boolean by its name, an identifier's `match`, and date phrases such as "this weekend" or "after 1 dec" for each date field. Take a suggestion with the arrows and Enter, or a click, and it becomes a chip; Enter on its own keeps searching the text. Typing "melb this weekend" offers both Location is Melbourne and Starts: This weekend, and the words a filter doesn't read stay in the field for the next one.
 
 Focusing the empty field lists the fields to filter by. An option or boolean field then lists its values, and a date field its quick dates, upcoming for event dates and recent for timestamps, with Custom dates last. A number or text field opens its editor straight away. Picking another value for an option field adds it to that field's chip, since a chip's values are ORed and chips are ANDed.
 
@@ -329,8 +330,8 @@ Click a chip, or press Enter on it, to edit it: its condition and value, applied
 const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
-  field.option('city', { label: 'City' }),
-  field.option('venue', { label: 'Venue' }),
+  field.location('location', { label: 'Location' }),
+  { ...field.option('venue', { label: 'Venue' }), icon: <BuildingsIcon weight='bold' /> },
   field.option('status', {
     label: 'Status',
     status: { on_sale: { intent: 'success', order: 1 }, selling_fast: { intent: 'warning', order: 2 }, sold_out: { intent: 'danger', order: 3 } }
@@ -341,7 +342,7 @@ const fields = [
 const column = tableColumns(fields)
 const columns = [
   column.field('show', { pin: true }),
-  column.field('city'),
+  column.field('location'),
   column.field('venue'),
   column.field('status'),
   column.field('starts'),
@@ -360,7 +361,7 @@ const day = (offset) => new Date(Date.now() + offset * 86_400_000).toISOString()
 const shows = Array.from({ length: 60 }, (_, index) => ({
   id: `show-${index}`,
   show: bands[index % bands.length],
-  city: places[index % places.length][0],
+  location: places[index % places.length][0],
   venue: places[index % places.length][1],
   status: statuses[index % statuses.length],
   starts: day(index % 45),
@@ -388,7 +389,7 @@ A page that shows part of a list, such as one venue's shows or one event's ticke
 const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
-  field.option('venue', { label: 'Venue' }),
+  { ...field.option('venue', { label: 'Venue' }), icon: <BuildingsIcon weight='bold' /> },
   field.number('sold', { label: 'Sold' })
 ]
 const column = tableColumns(fields)
@@ -424,22 +425,22 @@ Keep the view in the URL with `toSearchParams` and `fromSearchParams`, as [Recor
 const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.number('sold', { label: 'Sold' })
 ]
 const column = tableColumns(fields)
-const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold')]
+const columns = [column.field('show', { pin: true }), column.field('location'), column.field('sold')]
 const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
 const shows = Array.from({ length: 40 }, (_, index) => ({
   id: `show-${index}`,
   show: `Middle Kids ${index + 1}`,
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   sold: (index * 37) % 2400
 }))
 
 function Controlled() {
   const [view, setView] = useState({
-    query: { search: 'Perth', filters: [], sort: [{ field: 'sold', direction: 'descending' }] },
+    query: { search: '', filters: [{ field: 'location', operator: 'is', values: ['Perth'] }], sort: [{ field: 'sold', direction: 'descending' }] },
     layout: { type: 'table' }
   })
   return (
@@ -474,7 +475,7 @@ The options write the view, like the headers do: the sort to `query.sort`, and t
 const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.date('startsAt', { label: 'Starts', moment: 'date' }),
   field.number('sold', { label: 'Sold' }),
   field.money('gross', { label: 'Gross', format: 'compactCurrency' })
@@ -482,7 +483,7 @@ const fields = [
 const column = tableColumns(fields)
 const columns = [
   column.field('name', { pin: true }),
-  column.field('city'),
+  column.field('location'),
   column.field('startsAt'),
   column.field('sold'),
   column.field('gross')
@@ -492,7 +493,7 @@ const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
 const events = Array.from({ length: 12 }, (_, index) => ({
   id: `event-${index}`,
   name: `${names[index % names.length]} ${index + 1}`,
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   startsAt: `2026-11-${String(index + 2).padStart(2, '0')}`,
   sold: (index * 37) % 2400,
   gross: (index * 7919) % 250000
@@ -567,7 +568,7 @@ const events = Array.from({ length: 48 }, (_, index) => ({
   id: `event-${index}`,
   name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
   venue: venues[index % venues.length],
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   startsAt: `2026-${10 + (index % 3)}-${String((index % 27) + 1).padStart(2, '0')}`,
   status: index % 5 === 0 ? 'sold_out' : 'on_sale',
   sold: (index * 37) % 2400
@@ -577,7 +578,7 @@ const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
   field.text('venue', { label: 'Venue' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.date('startsAt', { label: 'Starts', moment: 'date' }),
   field.option('status', {
     label: 'Status',
@@ -591,7 +592,7 @@ const layouts = [
     column.field('name', { pin: true }),
     column.field('startsAt'),
     column.field('venue'),
-    column.field('city'),
+    column.field('location'),
     column.field('status'),
     column.field('sold')
   ])
@@ -736,7 +737,7 @@ const names = ['Ocean Alley', 'Ball Park Music', 'Julia Jacklin', 'Angie McMahon
 const shows = Array.from({ length: 40 }, (_, index) => ({
   id: `show-${index}`,
   show: `${names[index % names.length]} at Kazoo Hollow Room`,
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   sold: (index * 37) % 2400,
   gross: (index * 7919) % 250000
 }))
@@ -744,12 +745,12 @@ const shows = Array.from({ length: 40 }, (_, index) => ({
 const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.number('sold', { label: 'Sold' }),
   field.money('gross', { label: 'Gross', format: 'compactCurrency' })
 ]
 const column = tableColumns(fields)
-const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold'), column.field('gross')]
+const columns = [column.field('show', { pin: true }), column.field('location'), column.field('sold'), column.field('gross')]
 
 function ShowActions() {
   return (
@@ -887,7 +888,7 @@ const everyShow = Array.from({ length: 400 }, (_, index) => ({
   id: `show-${index}`,
   show: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
   venue: venues[index % venues.length],
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   status: ['on_sale', 'on_sale', 'sold_out', 'cancelled'][index % 4],
   sold: (index * 37) % 2400
 }))
@@ -896,7 +897,7 @@ const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
   field.text('venue', { label: 'Venue' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.option('status', {
     label: 'Status',
     status: {
@@ -1008,18 +1009,18 @@ const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
 const everyShow = Array.from({ length: 5000 }, (_, index) => ({
   id: `show-${index}`,
   show: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   sold: (index * 37) % 2400
 }))
 
 const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.number('sold', { label: 'Sold' })
 ]
 const column = tableColumns(fields)
-const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold')]
+const columns = [column.field('show', { pin: true }), column.field('location'), column.field('sold')]
 const timeZone = 'Australia/Sydney'
 const pageSize = 50
 
@@ -1100,7 +1101,7 @@ const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
   field.text('venue', { label: 'Venue' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.number('sold', { label: 'Sold' }),
   field.number('capacity', { label: 'Capacity' }),
   field.money('gross', { label: 'Gross', format: 'compactCurrency' })
@@ -1109,7 +1110,7 @@ const column = tableColumns(fields)
 const columns = [
   column.field('show', { pin: true, width: { min: 14 } }),
   column.field('venue', { width: { min: 14 } }),
-  column.field('city', { width: { min: 10 } }),
+  column.field('location', { width: { min: 10 } }),
   column.field('sold', { width: { min: 8 } }),
   column.field('capacity', { width: { min: 8 } }),
   column.field('gross', { width: { min: 8 } })
@@ -1119,7 +1120,7 @@ const shows = Array.from({ length: 100 }, (_, index) => ({
   id: `show-${index}`,
   show: `Julia Jacklin ${index + 1}`,
   venue: 'The Quilted Walrus Room',
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   sold: (index * 37) % 2400,
   capacity: 2400,
   gross: (index * 7919) % 250000
@@ -1388,7 +1389,7 @@ const columns = [column.field('name', { pin: true })]`}
   <Guideline.Dont
     code={`column.field('name', { pin: true }),
 column.field('venue', { pin: true }),
-column.field('city', { pin: true })`}
+column.field('location', { pin: true })`}
   >
     Don't pin several columns. Each one takes width from the columns that
     scroll.

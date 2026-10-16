@@ -5,6 +5,7 @@ import {
   type RecordQueryOptions,
   type RecordSuggestion,
   describeRecordFilter,
+  isRecordOptionField,
   parseQuery,
   recordFieldOptions,
   recordFilterOperators
@@ -67,7 +68,9 @@ export function datePresets(field: RecordField): readonly DateRangeValue[] {
 /** Fields whose values are picked from a list; the rest open an editor. */
 export function hasValueStep(field: RecordField): boolean {
   return (
-    field.type === 'option' || field.type === 'boolean' || field.type === 'date'
+    isRecordOptionField(field) ||
+    field.type === 'boolean' ||
+    field.type === 'date'
   )
 }
 
@@ -170,6 +173,7 @@ export function topSuggestions(
 function presetItems(field: RecordField): SearchSuggestion[] {
   switch (field.type) {
     case 'option':
+    case 'location':
       return recordFieldOptions(field).map((option) =>
         filterSuggestion({
           field: field.key,
@@ -215,7 +219,7 @@ export function valueSuggestions(
 ): SearchGroup[] {
   const typed = text.trim()
   const unlisted =
-    field.type === 'option' && recordFieldOptions(field).length === 0
+    isRecordOptionField(field) && recordFieldOptions(field).length === 0
   const items = !typed
     ? presetItems(field)
     : unlisted
@@ -262,7 +266,8 @@ export function mergeFilter(
   fields: readonly RecordField[]
 ): { index: number; filter: RecordFilter } | null {
   const field = fields.find(({ key }) => key === filter.field)
-  if (filter.operator !== 'is' || field?.type !== 'option') return null
+  if (filter.operator !== 'is' || !field || !isRecordOptionField(field))
+    return null
   const at = filters.findIndex(
     (other) => other.field === filter.field && other.operator === 'is'
   )
