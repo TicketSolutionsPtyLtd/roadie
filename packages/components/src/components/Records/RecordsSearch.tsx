@@ -60,19 +60,24 @@ type Selected = {
   written: RecordFilter[]
 }
 
-/** The first day typed text suggests, or its range's start. */
-function suggestedDay(groups: readonly SearchGroup[]): string | undefined {
+/** The days the first typed suggestion names: one day, or a range. */
+function suggestedDays(
+  groups: readonly SearchGroup[]
+): { start: string; end: string } | undefined {
   for (const { value } of groups.flatMap((group) => group.items)) {
     if (value.type !== 'filter') continue
     const { filter } = value
-    if (filter.operator === 'between' && typeof filter.value[0] === 'string')
-      return filter.value[0]
+    if (filter.operator === 'between') {
+      const [start, end] = filter.value
+      if (typeof start === 'string' && typeof end === 'string')
+        return { start, end }
+    }
     if (
       filter.operator === 'on' ||
       filter.operator === 'before' ||
       filter.operator === 'after'
     )
-      return filter.value
+      return { start: filter.value, end: filter.value }
   }
   return undefined
 }
@@ -160,6 +165,8 @@ export function RecordsSearch({
   const [pending, setPending] = useState<string | null>(null)
   const [pendingOperator, setPendingOperator] = useState<ValueOperator>('is')
   const [stepText, setStepText] = useState('')
+  // Set aside under is empty, which takes no value, and back once Tab moves on.
+  const [heldText, setHeldText] = useState('')
   const [selected, setSelected] = useState<Selected | null>(null)
   const onFocusChange = use(SearchFocusContext)
   useEffect(() => whenIdle(RecordsDateCalendarLazy.preload), [])
@@ -231,6 +238,7 @@ export function RecordsSearch({
     setSelected(null)
     setPending(null)
     setStepText('')
+    setHeldText('')
   }
 
   const selectedAt = selected
@@ -250,6 +258,7 @@ export function RecordsSearch({
     setPending(field.key)
     setPendingOperator(stepOperator(field, filter.operator))
     setStepText(valueText(field, filter, context))
+    setHeldText('')
   }
 
   function writeSelected(next: RecordFilter | null) {
@@ -345,7 +354,7 @@ export function RecordsSearch({
   const picking =
     pendingField && calendarOperator(pendingField, pendingOperator)
   const suggested =
-    picking && stepText.trim() ? suggestedDay(stepValues(stepText)) : undefined
+    picking && stepText.trim() ? suggestedDays(stepValues(stepText)) : undefined
   const content = (
     <QueryField<SearchValue>
       aria-label={label ?? placeholder}
@@ -370,9 +379,9 @@ export function RecordsSearch({
                 valueHint(pendingField, stepText, pendingOperator, context) ??
                 // Not for the chip's own value as the edit opens: it's ticked.
                 (selectedFilter &&
-                  stepText !==
-                    valueText(pendingField, selectedFilter, context) &&
-                  heldHint(pendingField, stepText, stepValues(stepText))),
+                stepText !== valueText(pendingField, selectedFilter, context)
+                  ? heldHint(pendingField, stepText, stepValues(stepText))
+                  : undefined),
               chipId,
               content: picking && (
                 <RecordsDateCalendarLazy
@@ -393,6 +402,13 @@ export function RecordsSearch({
         if (!pendingField) return
         const operator = stepOperator(pendingField, chosen)
         setPendingOperator(operator)
+        if (isEmptiness(operator)) {
+          if (stepText) setHeldText(stepText)
+          setStepText('')
+        } else if (heldText) {
+          if (!stepText) setStepText(heldText)
+          setHeldText('')
+        }
         // An option chip keeps its values under the new condition. Typed
         // text, numbers, and emptiness wait for Enter, so a Tab passing
         // through is empty never drops the values.
@@ -420,6 +436,7 @@ export function RecordsSearch({
             ? stepOperator(pendingField, '')
             : pendingOperator
         setPendingOperator(operator)
+        setHeldText('')
         setStepText(withAnd(pendingField, stepText, text, operator, context))
       }}
       suggest={(text) =>

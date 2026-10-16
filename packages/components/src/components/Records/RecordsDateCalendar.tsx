@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 
 import type { RecordField, RecordFilter } from '@oztix/roadie-core/records'
+import { cn } from '@oztix/roadie-core/utils'
 
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { Calendar } from '../Calendar'
@@ -22,8 +23,8 @@ export type RecordsDateCalendarProps = {
   timeZone: string
   /** Today in `timeZone`, as the records read it. */
   today: string
-  /** The day typed text suggests, or a range's start: its month shows as it changes. */
-  suggested?: string
+  /** The days typed text suggests, which Enter takes: marked faintly, their month shown as they change. */
+  suggested?: PickedDates
 }
 
 // Two of Calendar's months side by side: each at least 17.5rem, 1.5rem apart.
@@ -96,12 +97,12 @@ function DateCalendar({
 }: RecordsDateCalendarProps & { numberOfMonths: number }) {
   const picked = pickedDays(filter, timeZone)
   // On the chip's month, even under a condition that can't mark its dates.
-  const [month, setMonth] = useState(suggested ?? picked?.start ?? today)
+  const [month, setMonth] = useState(suggested?.start ?? picked?.start ?? today)
   // Only a new suggestion moves it, so the month selects and arrows still do.
-  const [shownFor, setShownFor] = useState(suggested)
-  if (shownFor !== suggested) {
-    setShownFor(suggested)
-    if (suggested) setMonth(suggested)
+  const [shownFor, setShownFor] = useState(suggested?.start)
+  if (shownFor !== suggested?.start) {
+    setShownFor(suggested?.start)
+    if (suggested) setMonth(suggested.start)
   }
   const shared = {
     timeZone,
@@ -110,7 +111,12 @@ function DateCalendar({
     captionLayout: 'dropdown' as const,
     month,
     onMonthChange: setMonth,
-    className: numberOfMonths > 1 ? 'w-full max-w-166' : 'w-full max-w-80'
+    modifiers: suggested && { suggested },
+    className: cn(
+      numberOfMonths > 1 ? 'w-full max-w-166' : 'w-full max-w-80',
+      // Not picked yet, so a neutral tint rather than the selected fill.
+      '[&_[data-suggested]:not([data-selected])]:bg-subtle'
+    )
   }
   if (operator === 'between')
     return (

@@ -271,6 +271,18 @@ describe.each([
     expect(searchInput()).toHaveValue('26 feb')
   })
 
+  it('tints the day Enter would take, without selecting it', async () => {
+    await underCondition('is after')
+    await userEvent.keyboard('25 dec')
+    await expect
+      .poll(() => day('2026-12-25').hasAttribute('data-suggested'))
+      .toBe(true)
+    const background = (date: string) =>
+      getComputedStyle(day(date)).backgroundColor
+    expect(background('2026-12-25')).not.toBe(background('2026-12-24'))
+    expect(day('2026-12-25')).not.toHaveAttribute('data-selected')
+  })
+
   it('adds “is on” for a clicked day and closes the dropdown', async () => {
     await underCondition('is')
     await userEvent.click(day('2026-10-22'))

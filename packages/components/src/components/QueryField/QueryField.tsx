@@ -788,8 +788,7 @@ export function QueryField<Value = unknown>({
             className={cn(
               inChip
                 ? 'flex h-6 max-w-full min-w-0 items-center gap-1 rounded-full border border-dashed border-normal ps-2.5 pe-2'
-                : 'contents',
-              inChip && CHIP_WIDTH
+                : 'contents'
             )}
           >
             {inChip && (
@@ -797,14 +796,14 @@ export function QueryField<Value = unknown>({
                 id={pendingId}
                 // A description's change isn't read, so the operator's is live.
                 aria-live='polite'
-                className='min-w-0 shrink-[3] truncate text-sm font-medium text-subtle pointer-coarse:text-base'
+                className='min-w-0 truncate text-sm font-medium text-subtle pointer-coarse:text-base'
               >
                 {pendingChip.label}
               </span>
             )}
-            <span // Shrinks too, if slower than the label, and scrolls.
+            <span // The label truncates first; what's typed scrolls only once it fills the chip.
               className={cn(
-                inChip ? 'inline-grid max-w-full min-w-1' : 'contents'
+                inChip ? 'inline-grid max-w-full min-w-1 shrink-0' : 'contents'
               )}
             >
               {input}
@@ -815,7 +814,7 @@ export function QueryField<Value = unknown>({
                   aria-hidden
                   className={cn(
                     TYPED,
-                    'invisible min-w-1 overflow-hidden whitespace-pre'
+                    'invisible min-w-1 overflow-hidden pe-0.5 whitespace-pre'
                   )}
                 >
                   {text}

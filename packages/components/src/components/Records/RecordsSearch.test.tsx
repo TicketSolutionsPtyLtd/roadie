@@ -1044,7 +1044,7 @@ describe('Records.Search', () => {
       expect(chipLabels()).toEqual(['City is empty'])
     })
 
-    it('keeps typed text under is empty, for the values after Shift+Tab', async () => {
+    it('sets typed text aside under is empty, and brings it back after Shift+Tab', async () => {
       const { user } = setup()
       await user.click(input())
       await user.click(await option('City'))
@@ -1053,9 +1053,11 @@ describe('Records.Search', () => {
       await user.tab()
       await user.tab()
       await waitFor(() => expect(listed()).toEqual(['City is empty']))
+      // Set aside, as is empty takes no value.
+      expect(input()).toHaveValue('')
+      await user.tab({ shift: true })
+      await user.tab({ shift: true })
       expect(input()).toHaveValue('syd')
-      await user.tab({ shift: true })
-      await user.tab({ shift: true })
       await waitFor(() => expect(listed()).toEqual(['Sydney']))
     })
 
@@ -1729,6 +1731,28 @@ describe('Records.Search', () => {
           value: ['2026-12-01', '2026-12-05']
         }
       ])
+    })
+
+    it('hides a chip’s days under is empty, and brings them back after', async () => {
+      const { user } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              {
+                field: 'starts',
+                operator: 'between',
+                value: ['2026-11-12', '2026-12-15']
+              }
+            ]
+          }
+        }
+      })
+      await selectChip(user, chipLabels()[0]!)
+      expect(input()).toHaveValue('12 Nov to 15 Dec')
+      await user.click(screen.getByRole('button', { name: 'is empty' }))
+      expect(input()).toHaveValue('')
+      await user.click(screen.getByRole('button', { name: 'is between' }))
+      expect(input()).toHaveValue('12 Nov to 15 Dec')
     })
 
     it('keeps a quick date chip on Enter with its text unchanged', async () => {
