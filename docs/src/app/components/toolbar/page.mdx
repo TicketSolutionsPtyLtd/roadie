@@ -86,7 +86,7 @@ Each part renders a Roadie component you already know. `Toolbar.Button` is a `Bu
 
 ### States
 
-A disabled `Toolbar.Button` stays in the arrow order, so a keyboard user still finds it. `disabled` on `Toolbar.Group` or on the toolbar disables every `Toolbar.Button` and `ToggleGroup` inside it; a disabled `ToggleGroup`'s items leave the arrow order. A `Toolbar.Link` stays active, so remove it when it shouldn't be followed.
+A disabled `Toolbar.Button` stays in the arrow order, so a keyboard user still finds it. `disabled` on `Toolbar.Group` or on the toolbar disables every item inside it, toggles included, and they stay in the arrow order too. A `Toolbar.Link` stays active, so remove it when it shouldn't be followed.
 
 ```tsx-live layout=stack
 {/* One button disabled */}
@@ -105,20 +105,20 @@ A disabled `Toolbar.Button` stays in the arrow order, so a keyboard user still f
 
 #### Formatting toolbar
 
-Pass a `Toggle` or an `IconButton` to `Toolbar.Button` with `render`. A `ToggleGroup` joins the arrow order as it is. Pass `Toolbar.Button` to `Menu.Trigger` with `render` to open a menu.
+`Toolbar.Toggle` is a `Toggle` at the toolbar's size that turns a setting on and off. Toggles in a `Toolbar.ToggleGroup` share one value: give each a `value`, and one is pressed at a time, or several with `multiple`. A `Toolbar.Button` whose only child is an icon renders square, as an `IconButton`, so give it an `aria-label`. Pass `Toolbar.Button` to `Menu.Trigger` with `render` to open a menu.
 
 ```tsx-live
 <Toolbar aria-label='Formatting'>
   <Toolbar.Group aria-label='Text style'>
-    <Toolbar.Button render={<Toggle emphasis='subtler' aria-label='Bold'><TextBIcon weight='bold' className='size-4' /></Toggle>} />
-    <Toolbar.Button render={<Toggle emphasis='subtler' aria-label='Italic'><TextItalicIcon weight='bold' className='size-4' /></Toggle>} />
+    <Toolbar.Toggle aria-label='Bold'><TextBIcon weight='bold' className='size-4' /></Toolbar.Toggle>
+    <Toolbar.Toggle aria-label='Italic'><TextItalicIcon weight='bold' className='size-4' /></Toolbar.Toggle>
   </Toolbar.Group>
   <Toolbar.Separator />
-  <ToggleGroup emphasis='subtler' aria-label='Alignment' defaultValue={['left']}>
-    <ToggleGroup.Item value='left' aria-label='Align left'><TextAlignLeftIcon weight='bold' className='size-4' /></ToggleGroup.Item>
-    <ToggleGroup.Item value='center' aria-label='Align centre'><TextAlignCenterIcon weight='bold' className='size-4' /></ToggleGroup.Item>
-    <ToggleGroup.Item value='right' aria-label='Align right'><TextAlignRightIcon weight='bold' className='size-4' /></ToggleGroup.Item>
-  </ToggleGroup>
+  <Toolbar.ToggleGroup aria-label='Alignment' defaultValue={['left']}>
+    <Toolbar.Toggle value='left' aria-label='Align left'><TextAlignLeftIcon weight='bold' className='size-4' /></Toolbar.Toggle>
+    <Toolbar.Toggle value='center' aria-label='Align centre'><TextAlignCenterIcon weight='bold' className='size-4' /></Toolbar.Toggle>
+    <Toolbar.Toggle value='right' aria-label='Align right'><TextAlignRightIcon weight='bold' className='size-4' /></Toolbar.Toggle>
+  </Toolbar.ToggleGroup>
   <Toolbar.Separator />
   <Menu>
     <Menu.Trigger render={<Toolbar.Button><PlusIcon weight='bold' className='size-4' />Insert<CaretDownIcon weight='bold' className='size-4' /></Toolbar.Button>} />
@@ -131,7 +131,7 @@ Pass a `Toggle` or an `IconButton` to `Toolbar.Button` with `render`. A `ToggleG
 </Toolbar>
 ```
 
-A `render` element keeps its own props, so the toolbar's `size` doesn't reach it. Set `size` on the `Toggle`, `IconButton` or `ToggleGroup` to match.
+Every part takes the toolbar's `size`. Anything passed to `render` keeps its own props instead, so set `size` on it to match. Use `Toolbar.ToggleGroup` here rather than `ToggleGroup`, a segmented control with its own surface and sliding indicator.
 
 #### Links
 
@@ -150,12 +150,12 @@ With `orientation='vertical'` the items stack in a column as wide as the widest,
 
 ```tsx-live
 <Toolbar orientation='vertical' aria-label='Formatting'>
-  <Toolbar.Button render={<Toggle emphasis='subtler' aria-label='Bold'><TextBIcon weight='bold' className='size-4' /></Toggle>} />
-  <Toolbar.Button render={<Toggle emphasis='subtler' aria-label='Italic'><TextItalicIcon weight='bold' className='size-4' /></Toggle>} />
-  <Toolbar.Button render={<Toggle emphasis='subtler' aria-label='Underline'><TextUnderlineIcon weight='bold' className='size-4' /></Toggle>} />
+  <Toolbar.Toggle aria-label='Bold'><TextBIcon weight='bold' className='size-4' /></Toolbar.Toggle>
+  <Toolbar.Toggle aria-label='Italic'><TextItalicIcon weight='bold' className='size-4' /></Toolbar.Toggle>
+  <Toolbar.Toggle aria-label='Underline'><TextUnderlineIcon weight='bold' className='size-4' /></Toolbar.Toggle>
   <Toolbar.Separator />
-  <Toolbar.Button render={<IconButton emphasis='subtler' aria-label='Undo'><ArrowCounterClockwiseIcon weight='bold' className='size-4' /></IconButton>} />
-  <Toolbar.Button render={<IconButton emphasis='subtler' aria-label='Redo'><ArrowClockwiseIcon weight='bold' className='size-4' /></IconButton>} />
+  <Toolbar.Button aria-label='Undo'><ArrowCounterClockwiseIcon weight='bold' className='size-4' /></Toolbar.Button>
+  <Toolbar.Button aria-label='Redo'><ArrowClockwiseIcon weight='bold' className='size-4' /></Toolbar.Button>
 </Toolbar>
 ```
 
@@ -182,7 +182,8 @@ On a touch screen, or a screen narrower than `md`, the items stay on one row and
 - **Keep the toolbar short.** On a phone the row scrolls, so actions past the edge are out of sight until someone scrolls. Put the most used first, and rarely used actions in a `Menu`.
 - **Size it with `className` or `style`.** Both go on the surface, the toolbar's outermost element. It's at most as wide as its container, so space it with the container's padding or `gap` rather than a margin, which pushes a full-width toolbar past the edge.
 - **Let its container shrink.** On a phone the toolbar's row is as wide as all its items. A grid or flex item holding it, such as a form control in a `Field`, grows to fit unless it has `min-w-0`.
-- **Use `Toggle` for an on and off state.** A `Toggle` reports whether it's pressed; a `Button` only runs an action.
+- **Use `Toolbar.Toggle` for an on and off state.** It reports whether it's pressed; a `Toolbar.Button` only runs an action. Put toggles that pick one of a set, such as alignment, in a `Toolbar.ToggleGroup`.
+- **Wrap popup triggers, not the button.** Pass `Toolbar.Button` to a `Menu.Trigger`, `Popover.Trigger`, or `Tooltip.Trigger` with `render`, so it keeps the toolbar's look and arrow order.
 - **Label every icon-only control,** and the toolbar itself.
 
 ## Accessibility

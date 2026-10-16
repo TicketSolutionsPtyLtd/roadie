@@ -5,6 +5,8 @@ import { ToolbarGroup } from './ToolbarGroup'
 import { ToolbarLink } from './ToolbarLink'
 import { ToolbarRoot } from './ToolbarRoot'
 import { ToolbarSeparator } from './ToolbarSeparator'
+import { ToolbarToggle } from './ToolbarToggle'
+import { ToolbarToggleGroup } from './ToolbarToggleGroup'
 
 const Toolbar = ToolbarRoot as typeof ToolbarRoot & {
   Root: typeof ToolbarRoot
@@ -12,6 +14,8 @@ const Toolbar = ToolbarRoot as typeof ToolbarRoot & {
   Button: typeof ToolbarButton
   Link: typeof ToolbarLink
   Separator: typeof ToolbarSeparator
+  Toggle: typeof ToolbarToggle
+  ToggleGroup: typeof ToolbarToggleGroup
 }
 
 Toolbar.Root = ToolbarRoot
@@ -19,6 +23,8 @@ Toolbar.Group = ToolbarGroup
 Toolbar.Button = ToolbarButton
 Toolbar.Link = ToolbarLink
 Toolbar.Separator = ToolbarSeparator
+Toolbar.Toggle = ToolbarToggle
+Toolbar.ToggleGroup = ToolbarToggleGroup
 
 export { Toolbar }
 export type { ToolbarRootProps as ToolbarProps } from './ToolbarRoot'
@@ -26,4 +32,6 @@ export type { ToolbarGroupProps } from './ToolbarGroup'
 export type { ToolbarButtonProps } from './ToolbarButton'
 export type { ToolbarLinkProps } from './ToolbarLink'
 export type { ToolbarSeparatorProps } from './ToolbarSeparator'
+export type { ToolbarToggleProps } from './ToolbarToggle'
+export type { ToolbarToggleGroupProps } from './ToolbarToggleGroup'
 export type { ToolbarSize } from './ToolbarContext'

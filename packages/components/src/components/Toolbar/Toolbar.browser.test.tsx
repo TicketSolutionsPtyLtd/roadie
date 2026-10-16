@@ -99,6 +99,32 @@ describe('Toolbar layout', () => {
     expect(new Set(heights).size).toBe(1)
   })
 
+  it.each(['sm', 'md', 'lg'] as const)(
+    'sizes every kind of item to the toolbar at %s, with icon-only ones square',
+    (size) => {
+      const icon = <svg viewBox='0 0 16 16' className='size-4' />
+      render(
+        <Toolbar aria-label='Formatting' size={size}>
+          <Toolbar.Toggle aria-label='Bold'>{icon}</Toolbar.Toggle>
+          <Toolbar.ToggleGroup aria-label='Alignment'>
+            <Toolbar.Toggle value='left' aria-label='Align left'>
+              {icon}
+            </Toolbar.Toggle>
+          </Toolbar.ToggleGroup>
+          <Toolbar.Button aria-label='Undo'>{icon}</Toolbar.Button>
+          <Toolbar.Button>Save draft</Toolbar.Button>
+        </Toolbar>
+      )
+      const box = (name: string) =>
+        screen.getByRole('button', { name }).getBoundingClientRect()
+      const height = box('Save draft').height
+      for (const name of ['Bold', 'Align left', 'Undo']) {
+        expect(box(name).height).toBe(height)
+        expect(box(name).width).toBe(height)
+      }
+    }
+  )
+
   it('wraps the items of a group inside a narrow container', () => {
     render(
       <div style={{ width: 320 }}>

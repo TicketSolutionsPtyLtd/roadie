@@ -4,7 +4,8 @@ import { type RefAttributes, use } from 'react'
 
 import { Toolbar as ToolbarPrimitive } from '@base-ui/react/toolbar'
 
-import { Button } from '../Button'
+import { isIconOnly } from '../../utils/isIconOnly'
+import { Button, IconButton, type IconButtonProps } from '../Button'
 import { ToolbarContext } from './ToolbarContext'
 
 export type ToolbarButtonProps = ToolbarPrimitive.Button.Props &
@@ -17,15 +18,21 @@ export function ToolbarButton({ render, ...props }: ToolbarButtonProps) {
       data-slot='toolbar-button'
       render={
         render ??
-        ((buttonProps, { disabled }) => (
-          <Button
-            {...buttonProps}
-            // A wrapping Menu.Trigger's aria-disabled='false' would otherwise win.
-            {...(disabled && { 'aria-disabled': true })}
-            size={size}
-            emphasis='subtler'
-          />
-        ))
+        ((buttonProps, { disabled }) => {
+          // A wrapping Menu.Trigger's aria-disabled='false' would otherwise win.
+          const shared = {
+            ...buttonProps,
+            ...(disabled && { 'aria-disabled': true }),
+            size,
+            emphasis: 'subtler'
+          } as const
+          return isIconOnly(props.children) ? (
+            // Its label comes from the consumer's aria-label or aria-labelledby.
+            <IconButton {...(shared as IconButtonProps)} />
+          ) : (
+            <Button {...shared} />
+          )
+        })
       }
       {...props}
     />

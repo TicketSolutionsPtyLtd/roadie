@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { Toolbar } from '.'
 import { Button, IconButton } from '../Button'
@@ -217,6 +217,104 @@ describe('Toolbar', () => {
     await userEvent.tab()
     await userEvent.tab()
     expect(screen.getByRole('button', { name: 'Bold' })).toHaveFocus()
+  })
+
+  it('presses a Toolbar.Toggle at emphasis subtler', async () => {
+    const onPressedChange = vi.fn()
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.Toggle aria-label='Bold' onPressedChange={onPressedChange}>
+          <svg />
+        </Toolbar.Toggle>
+      </Toolbar>
+    )
+    const bold = screen.getByRole('button', { name: 'Bold' })
+    expect(bold.className).toMatch(/\bemphasis-subtler\b/)
+    expect(bold).toHaveAttribute('aria-pressed', 'false')
+
+    await userEvent.click(bold)
+
+    expect(bold).toHaveAttribute('aria-pressed', 'true')
+    expect(onPressedChange).toHaveBeenLastCalledWith(true, expect.anything())
+  })
+
+  it('keeps a disabled Toolbar.Toggle focusable and unpressable', async () => {
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.Toggle aria-label='Bold' disabled>
+          <svg />
+        </Toolbar.Toggle>
+        <Toolbar.Button>Undo</Toolbar.Button>
+      </Toolbar>
+    )
+    const bold = screen.getByRole('button', { name: 'Bold' })
+    await userEvent.tab()
+    expect(bold).toHaveFocus()
+    expect(bold).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(bold)
+    expect(bold).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('presses one Toolbar.Toggle at a time in a Toolbar.ToggleGroup', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.ToggleGroup
+          aria-label='Alignment'
+          defaultValue={['left']}
+          onValueChange={onValueChange}
+        >
+          <Toolbar.Toggle value='left' aria-label='Align left'>
+            <svg />
+          </Toolbar.Toggle>
+          <Toolbar.Toggle value='center' aria-label='Align centre'>
+            <svg />
+          </Toolbar.Toggle>
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const left = screen.getByRole('button', { name: 'Align left' })
+    const centre = screen.getByRole('button', { name: 'Align centre' })
+    expect(screen.getByRole('group', { name: 'Alignment' })).toBeInTheDocument()
+    expect(left).toHaveAttribute('aria-pressed', 'true')
+
+    await userEvent.click(centre)
+
+    expect(centre).toHaveAttribute('aria-pressed', 'true')
+    expect(left).toHaveAttribute('aria-pressed', 'false')
+    expect(onValueChange).toHaveBeenLastCalledWith(
+      ['center'],
+      expect.anything()
+    )
+  })
+
+  it('moves through a Toolbar.ToggleGroup in the toolbar’s arrow order', async () => {
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.Toggle aria-label='Bold'>
+          <svg />
+        </Toolbar.Toggle>
+        <Toolbar.ToggleGroup aria-label='Alignment'>
+          <Toolbar.Toggle value='left' aria-label='Align left'>
+            <svg />
+          </Toolbar.Toggle>
+          <Toolbar.Toggle value='center' aria-label='Align centre'>
+            <svg />
+          </Toolbar.Toggle>
+        </Toolbar.ToggleGroup>
+        <Toolbar.Button>Undo</Toolbar.Button>
+      </Toolbar>
+    )
+    await userEvent.tab()
+    const order = []
+    for (let step = 0; step < 4; step++) {
+      order.push(
+        document.activeElement?.textContent ||
+          document.activeElement?.getAttribute('aria-label')
+      )
+      await userEvent.keyboard('{ArrowRight}')
+    }
+    expect(order).toEqual(['Bold', 'Align left', 'Align centre', 'Undo'])
   })
 
   it('renders its parts as Roadie buttons at emphasis subtler', () => {
