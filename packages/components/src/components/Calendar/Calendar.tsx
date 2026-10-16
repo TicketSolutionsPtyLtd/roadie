@@ -1237,15 +1237,15 @@ export function Calendar(props: CalendarProps) {
             ? 'filled'
             : 'plain'
     const band = rangeMiddle && !tiles
-    // Under the chosen span, which wins where they overlap.
-    const shown =
-      !inSpan &&
-      !!previewDays &&
-      between(date, previewDays.start, previewDays.end)
+    const inPreview =
+      !!previewDays && between(date, previewDays.start, previewDays.end)
+    // The chosen span wins where they overlap.
+    const shown = inPreview && !inSpan
     const shownSpans = !!previewDays && previewDays.start !== previewDays.end
-    // One band, ends included; a single day is a circle, as a chosen one is.
-    const shownBand = shown && shownSpans && !tiles
-    const shownDay = shown && !shownBand
+    // One band, ends included, running on beneath the chosen span's ends so
+    // the span draws over it; a single day is a circle, as a chosen one is.
+    const shownBand = inPreview && shownSpans && !tiles && !rangeMiddle
+    const shownDay = shown && (!shownSpans || tiles)
 
     const modifierAttributes = Object.fromEntries(
       Object.entries(modifiers ?? {})
@@ -1273,7 +1273,7 @@ export function Calendar(props: CalendarProps) {
           !tiles &&
             multiDay &&
             ((rangeStart && !lastVisible) || (rangeEnd && !firstVisible)) &&
-            "intent-accent before:absolute before:inset-y-0 before:w-1/2 before:bg-subtle before:content-['']",
+            "before:absolute before:inset-y-0 before:w-1/2 before:bg-subtle before:content-[''] before:intent-accent",
           rangeStart && 'before:end-0',
           rangeEnd && 'before:start-0'
         )}
