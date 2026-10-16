@@ -221,6 +221,13 @@
     "ignore": ["@oztix/roadie-core"]
   },
   {
+    "name": "Link",
+    "path": "dist/components/Link/index.js",
+    "import": "*",
+    "limit": "820 B",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
     "name": "Sortable",
     "path": "dist/components/Sortable/index.js",
     "import": "*",
