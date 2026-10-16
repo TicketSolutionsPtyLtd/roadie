@@ -5,6 +5,7 @@ import {
   CircleHalfIcon,
   CurrencyDollarIcon,
   HashIcon,
+  MapPinIcon,
   TagIcon,
   TextAaIcon,
   ToggleLeftIcon
@@ -22,6 +23,8 @@ export function fieldIcon(field: RecordsField): ReactNode {
       ) : (
         <TagIcon weight='bold' />
       )
+    case 'location':
+      return <MapPinIcon weight='bold' />
     case 'text':
       return <TextAaIcon weight='bold' />
     case 'number':

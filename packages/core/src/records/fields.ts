@@ -16,6 +16,7 @@ export function recordFilterOperators(
     case 'text':
       return ['contains', 'not-contains', 'is', 'is-not', ...EMPTINESS]
     case 'option':
+    case 'location':
       return field.multiple
         ? ['is', 'is-not', 'has-all', ...EMPTINESS]
         : ['is', 'is-not', ...EMPTINESS]
@@ -46,6 +47,11 @@ export function recordFieldOptions(field: RecordField): RecordOption[] {
       value,
       label: status.label ?? humaniseStatus(value)
     }))
+}
+
+/** Option and location fields pick from values the same way. */
+export function isOptionLike(field: RecordField): boolean {
+  return field.type === 'option' || field.type === 'location'
 }
 
 export function momentOf(field: RecordField): RecordMoment {

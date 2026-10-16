@@ -187,6 +187,7 @@ function ValueEditor({
   const name = field.label
   switch (field.type) {
     case 'option':
+    case 'location':
       return <OptionValues field={field} draft={draft} update={update} />
     case 'text':
       return (

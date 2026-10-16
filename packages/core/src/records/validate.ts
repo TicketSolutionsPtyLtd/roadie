@@ -48,6 +48,7 @@ const warning = (path: string, message: string): RecordViewProblem => ({
 const ARTICLE: Record<RecordField['type'], string> = {
   text: 'a text',
   option: 'an option',
+  location: 'a location',
   number: 'a number',
   money: 'a money',
   date: 'a date',

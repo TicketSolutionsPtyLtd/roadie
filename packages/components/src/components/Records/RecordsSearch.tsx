@@ -3,7 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 
 import { plainDateOf } from '@oztix/roadie-core/datetime'
-import type { RecordFilter } from '@oztix/roadie-core/records'
+import { type RecordFilter, isOptionLike } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { PickerOverlay, usePickerSurface } from '../../pickers/PickerShell'
@@ -78,7 +78,7 @@ function useListedFields(records: RecordsInstance): readonly RecordsField[] {
   return useMemo(() => {
     if (mode !== 'browser') return fields
     return fields.map((field) => {
-      if (field.type !== 'option' || field.options || field.status) return field
+      if (!isOptionLike(field) || field.options || field.status) return field
       const values = heldValues(data, field.key)
       if (!values) return field
       const options = values.map((value) => ({ value, label: value }))

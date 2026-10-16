@@ -125,21 +125,26 @@ describe('valueSuggestions', () => {
     ])
   })
 
-  it('takes typed text for an option field with no values to list', () => {
-    const promoter = field.option('city', { label: 'Promoter' })
-    expect(valueSuggestions(promoter, '', context())[0]!.items).toEqual([])
-    expect(
-      valueSuggestions(promoter, 'Thimble', context())[0]!.items
-    ).toMatchObject([
-      {
-        label: 'Thimble',
-        value: {
-          type: 'filter',
-          filter: { field: 'city', operator: 'is', values: ['Thimble'] }
+  it.each([
+    field.option('city', { label: 'Promoter' }),
+    field.location('city', { label: 'Promoter' })
+  ])(
+    'takes typed text for a $type field with no values to list',
+    (promoter) => {
+      expect(valueSuggestions(promoter, '', context())[0]!.items).toEqual([])
+      expect(
+        valueSuggestions(promoter, 'Thimble', context())[0]!.items
+      ).toMatchObject([
+        {
+          label: 'Thimble',
+          value: {
+            type: 'filter',
+            filter: { field: 'city', operator: 'is', values: ['Thimble'] }
+          }
         }
-      }
-    ])
-  })
+      ])
+    }
+  )
 
   it('offers Yes and No for a boolean', () => {
     expect(

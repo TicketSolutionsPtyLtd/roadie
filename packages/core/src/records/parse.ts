@@ -7,7 +7,12 @@ import {
 import type { DateRangeValue } from '../datetime/ranges'
 import { describeRecordFilter } from './describe'
 import { encodeFilter } from './encoding'
-import { isFilterable, momentOf, recordFieldOptions } from './fields'
+import {
+  isFilterable,
+  isOptionLike,
+  momentOf,
+  recordFieldOptions
+} from './fields'
 import type { RecordField, RecordFilter, RecordQueryOptions } from './types'
 
 type SuggestionBase = {
@@ -256,6 +261,7 @@ function fieldValueReadings(
   const text = value.toLowerCase()
   switch (field.type) {
     case 'option':
+    case 'location':
       return optionReadings(field, text)
     case 'text':
       return [
@@ -382,7 +388,7 @@ function spanCandidates(
             )
           )
         }
-        if (field.type === 'option') optionReadings(field, text).forEach(add)
+        if (isOptionLike(field)) optionReadings(field, text).forEach(add)
         if (field.type === 'boolean') booleanReadings(field, text).forEach(add)
       })
       // A phrase is only completed while it is still being typed, at the end.
