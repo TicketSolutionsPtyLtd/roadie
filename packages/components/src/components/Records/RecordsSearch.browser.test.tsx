@@ -135,7 +135,8 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     )!
     await expect.element(field).toHaveValue('12 Nov to 15 Dec')
     expect([field.selectionStart, field.selectionEnd]).toEqual([0, 16])
-    expect(pending).toHaveTextContent('Starts is between')
+    expect(pending).toContainElement(field)
+    expect(field).toHaveAccessibleDescription('Starts is between')
     expect(getComputedStyle(pending).borderStyle).toBe('dashed')
     expect(getComputedStyle(chip('Starts')).display).toBe('none')
     expect(box(pending).right).toBeLessThan(box(chip('Sold')).left)

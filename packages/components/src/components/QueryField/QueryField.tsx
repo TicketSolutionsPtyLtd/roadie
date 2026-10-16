@@ -126,6 +126,9 @@ const EMPTY_TEXT =
 const FIRST_ROW = 'self-start mt-[calc(var(--combobox-chips-py)+--spacing(1))]'
 
 const FORM_CONTROL = 'select, input, textarea'
+// The input and its sizer share a cell. A touch screen keeps 16px, or a phone
+// zooms in on focus.
+const TYPED = '[grid-area:1/1] text-sm pointer-coarse:text-base'
 const CHIP_WIDTH = 'max-w-[calc(100%-var(--spacing)*9)]'
 
 // Kind and id together, so a suggestion reusing a built-in row's id stays apart.
@@ -207,6 +210,7 @@ export function QueryField<Value = unknown>({
     onInputValueChange
   )
   const [open, setOpen] = useState(false)
+  const [caretAtEnd, setCaretAtEnd] = useState(true)
   const [highlightKey, setHighlightKey] = useState<string>()
   const [highlightIndex, setHighlightIndex] = useState(-1)
   // Only arrows may make an item Enter's target. A list that changes under
@@ -547,6 +551,16 @@ export function QueryField<Value = unknown>({
     ownsShortcut && !text && ordered.length === 0 && !pendingChip
 
   const inChip = !!pendingChip
+  const target = enterTarget >= 0 ? items[enterTarget] : undefined
+  // The rest of what Enter takes, after the caret, for text it starts with.
+  const ghost =
+    inChip &&
+    caretAtEnd &&
+    current &&
+    text &&
+    target?.label.toLowerCase().startsWith(text.toLowerCase())
+      ? target.label.slice(text.length)
+      : ''
   // The edited chip's stand-in takes its place among them, by order, so the
   // input never moves in the DOM, which would blur it.
   const editedAt = edited ? ordered.indexOf(edited) : -1
@@ -569,15 +583,18 @@ export function QueryField<Value = unknown>({
       }
       {...(describedBy && { 'aria-describedby': describedBy })}
       placeholder={ordered.length > 0 || pendingChip ? '' : placeholder}
-      // In the step's chip, as wide as what's typed, so the chip hugs it.
-      // Otherwise a chip leaves it a few characters and the gap beside it, so
-      // it wraps to a row of its own only after a chip that doesn't truncate.
-      // A touch screen keeps 16px, or a phone zooms in on focus.
-      className={cn(
-        'min-w-8',
-        inChip && 'field-sizing-content text-sm pointer-coarse:text-base'
-      )}
+      // In the step's chip, as wide as the text beside it, so the chip hugs
+      // it. Otherwise a chip leaves it a few characters and the gap beside it,
+      // so it wraps to a row of its own only after a chip that doesn't
+      // truncate.
+      className={cn(inChip ? cn(TYPED, 'w-0 min-w-full') : 'min-w-8')}
       onKeyDown={handleInputKeyDown}
+      onSelect={(event) => {
+        const { selectionStart, selectionEnd, value } = event.currentTarget
+        setCaretAtEnd(
+          selectionStart === selectionEnd && selectionEnd === value.length
+        )
+      }}
     />
   )
 
@@ -751,7 +768,32 @@ export function QueryField<Value = unknown>({
                 {pendingChip.label}
               </span>
             )}
-            {input}
+            <span // The label truncates before the typed text does.
+              className={cn(
+                inChip ? 'inline-grid max-w-full shrink-0' : 'contents'
+              )}
+            >
+              {input}
+              {/* Sizes the input to its text without field-sizing, which not
+                  every browser has, and lines the rest up after the caret. */}
+              {inChip && (
+                <span
+                  aria-hidden
+                  className={cn(
+                    TYPED,
+                    'invisible min-w-1 overflow-hidden whitespace-pre'
+                  )}
+                >
+                  {text}
+                  <span
+                    data-slot='query-field-ghost'
+                    className='visible text-subtler'
+                  >
+                    {ghost}
+                  </span>
+                </span>
+              )}
+            </span>
           </span>
         </Combobox.Chips>
         {showShortcut && (

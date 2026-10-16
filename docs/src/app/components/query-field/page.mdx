@@ -149,7 +149,9 @@ operator that's a symbol, such as ≠, an `aria-label`. The list is as wide as
 the field, so operators that don't fit scroll sideways, and long values
 truncate.
 
-Once something is typed, Enter takes the first value. When the step has one
+Once something is typed, Enter takes the first value. When its label starts
+with the typed text, the rest shows faintly after the caret, such as "n sale"
+after "O". Only Enter takes it. When the step has one
 answer, such as "City is empty" under **is empty**, mark it `exact`, and Enter
 takes it before anything is typed. Mark a value that opens an editor of your
 own `opensEditor`, and Enter never takes it, so only an arrow or a click opens
@@ -599,6 +601,8 @@ function QueryFieldShortcut() {
   input, so the value step is announced. It's a live region, so a change of
   operator is announced too. While a step edits a chip, the chip is hidden,
   and the pending chip in its place describes the input.
+- The faint rest of a value after the caret is visual only. The value it
+  names is in the list.
 - `required` is announced but never blocks a form: an empty search is valid.
 - `shortcut` adds `aria-keyshortcuts` to the input. The key hint beside the
   field is visual only, and hides once the field has focus.

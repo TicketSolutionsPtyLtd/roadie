@@ -122,7 +122,14 @@ describe('QueryField', () => {
   ] as const)('keeps the input on a long %s’s row', (_, props) => {
     const initialChips =
       'pendingChip' in props ? [] : [{ id: 'venue', label: LONG_LABEL }]
-    render(<Harness initialChips={initialChips} {...props} />)
+    // A pending chip's input is as wide as its text, which the label gives way to.
+    render(
+      <Harness
+        initialChips={initialChips}
+        {...props}
+        defaultInputValue={'pendingChip' in props ? 'Iguana' : ''}
+      />
+    )
     expect(box(group()).height).toBe(40)
     expect(box(input()).width).toBeGreaterThanOrEqual(32)
   })
@@ -326,7 +333,8 @@ describe('QueryField', () => {
       '[data-slot=query-field-pending-chip]'
     )!
     expect(getComputedStyle(pending).borderStyle).toBe('dashed')
-    expect(pending).toHaveTextContent('City is')
+    expect(pending).toContainElement(input())
+    expect(input()).toHaveAccessibleDescription('City is')
     expect(shown(chipNamed('city'))).toBe(false)
     expect(box(pending).left).toBeGreaterThan(box(chipNamed('status')).right)
     expect(box(pending).right).toBeLessThan(box(chipNamed('tier')).left)
@@ -342,6 +350,59 @@ describe('QueryField', () => {
       document.querySelector('[data-slot=query-field-pending-chip]')
     ).toBeNull()
     expect(shown(chipNamed('city'))).toBe(true)
+  })
+
+  it('shows the rest of the value Enter takes faintly after the caret, and hugs the typed text', async () => {
+    const statuses = ['On sale', 'Sold out', 'Cancelled']
+    function StatusStep() {
+      const [text, setText] = useState('')
+      return (
+        <Harness
+          width={600}
+          pendingChip={{ id: 'status', label: 'Status is' }}
+          inputValue={text}
+          onInputValueChange={setText}
+          suggest={(typed) => [
+            {
+              id: 'values',
+              label: 'Status',
+              items: statuses
+                .filter((each) =>
+                  each.toLowerCase().includes(typed.trim().toLowerCase())
+                )
+                .map((each) => ({
+                  id: each,
+                  label: each,
+                  kind: 'filter' as const,
+                  value: each
+                }))
+            }
+          ]}
+        />
+      )
+    }
+    render(<StatusStep />)
+    const ghost = () =>
+      document.querySelector('[data-slot=query-field-ghost]')?.textContent ?? ''
+    await userEvent.click(input())
+    expect(box(input()).width).toBeLessThan(8)
+    await userEvent.keyboard('O')
+    await expect.poll(ghost).toBe('n sale')
+    const ghostText = document.querySelector('[data-slot=query-field-ghost]')!
+    expect(box(ghostText).left).toBeGreaterThan(box(input()).left)
+    expect(box(ghostText).top).toBeGreaterThanOrEqual(box(input()).top - 1)
+    await userEvent.keyboard('{ArrowLeft}')
+    await expect.poll(ghost).toBe('')
+    await userEvent.keyboard('{End}x')
+    await expect.poll(ghost).toBe('')
+    const short = box(input()).width
+    expect(short).toBeLessThan(30)
+    await userEvent.keyboard('xxxxxxxxxx')
+    expect(box(input()).width).toBeGreaterThan(short + 40)
+    const pending = document.querySelector(
+      '[data-slot=query-field-pending-chip]'
+    )!
+    expect(box(pending).height).toBe(24)
   })
 
   it("shows a chip's description on hover", async () => {

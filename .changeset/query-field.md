@@ -35,7 +35,9 @@ values, with `operator` pressed. Pressing one, or Tab and Shift+Tab in the
 input while they show, calls `onPendingOperatorChange`, keeps focus in the
 input, and asks `suggest` again. Tab from the last operator, or Shift+Tab from
 the first, leaves the input and ends the step, as any Tab out of a step does. In the value step, Enter takes the first value
-once text is typed. Mark a step's one answer `exact`, such as "City is empty",
+once text is typed, and when its label starts with the text, the rest shows
+faintly after the caret. The pending chip is as wide as its text in every
+browser. Mark a step's one answer `exact`, such as "City is empty",
 and Enter takes it before anything is typed. Mark one that opens an editor
 of your own `opensEditor`, and only an arrow or a click takes it.
 `pendingChip.hint`, such as "Type a number.", shows and is announced in place
