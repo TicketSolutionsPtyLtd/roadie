@@ -116,8 +116,9 @@ function DateCalendar({
     modifiers: suggested && { suggested },
     className: cn(
       numberOfMonths > 1 ? 'w-full max-w-166' : 'w-full max-w-80',
-      // Not picked yet, so a neutral tint rather than the selected fill.
-      '[&_[data-suggested]:not([data-selected])]:bg-subtle'
+      // Not picked yet, so a neutral tint rather than the selected fill, as a
+      // day with content has, hover and press included.
+      '[&_[data-suggested]:not([data-selected])]:emphasis-subtle'
     )
   }
   if (operator === 'between')

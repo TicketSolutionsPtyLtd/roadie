@@ -290,6 +290,18 @@ describe.each([
     expect(day('2026-12-25')).not.toHaveAttribute('data-selected')
   })
 
+  it('lets a tinted day show its hover', async () => {
+    await underCondition('is after')
+    await userEvent.keyboard('25 dec')
+    await expect
+      .poll(() => day('2026-12-25').hasAttribute('data-suggested'))
+      .toBe(true)
+    const background = () => getComputedStyle(day('2026-12-25')).backgroundColor
+    const resting = background()
+    await userEvent.hover(day('2026-12-25'))
+    await expect.poll(background).not.toBe(resting)
+  })
+
   it('adds “is on” for a clicked day and closes the dropdown', async () => {
     await underCondition('is')
     await userEvent.click(day('2026-10-22'))
