@@ -189,4 +189,9 @@ error text's children, and shows even when the field isn't `invalid`. With
 several controls in one field, the first to mount shows its error first.
 Outside a `Field` it does nothing. It returns nothing.
 
+It doesn't mark the control itself, and `useFieldInputProps` follows only the
+field's `invalid`. While the control has an error, set `aria-invalid` on it
+and point its `aria-describedby` at `errorTextId` from `useFieldContext`, as
+Roadie's date and time fields do.
+
 <PropsDefinitions component='Field' />
