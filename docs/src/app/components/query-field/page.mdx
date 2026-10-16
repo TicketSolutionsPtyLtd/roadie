@@ -24,7 +24,8 @@ Pass the chips you hold and a `suggest` function. Suggestions come back in
 groups, and `onAccept` hands you the one taken: add a chip for a filter, or
 search for the text when Enter sends `kind: 'search'`.
 The row Enter takes shows at the top, with its group above the rest, so the
-list can move as you type.
+list can move as you type. It's highlighted, so Down Arrow moves to the next
+row.
 Give a suggestion an `icon`, a bold Phosphor icon, to show before its label.
 Chips never show one.
 
@@ -151,9 +152,9 @@ operator that's a symbol, such as ≠, an `aria-label`. The list is as wide as
 the field, so operators that don't fit scroll sideways, and long values
 truncate.
 
-Once something is typed, Enter takes the first value. When its label starts
-with the typed text, the rest shows faintly after the caret, such as "n sale"
-after "O". Only Enter takes it. When the step has one
+Once something is typed, Enter takes the first value. When the highlighted
+value's label starts with the typed text, the rest shows faintly after the
+caret, such as "n sale" after "O". Only Enter takes it. When the step has one
 answer, such as "City is empty" under **is empty**, mark it `exact`, and Enter
 takes it before anything is typed. Mark a value that opens an editor of your
 own `opensEditor`, and Enter never takes it, so only an arrow or a click opens
@@ -559,16 +560,21 @@ function QueryFieldShortcut() {
 
 - The input is a combobox. Name it with `aria-label`, or put the field in
   `Field` and use `Field.Label`.
-- **Arrow keys** move through the suggestions, and **Enter** takes the one
-  you moved to. With none chosen, Enter takes an exact match, or searches the
-  text. In a value step, once you type, it takes the first value instead. The
-  suggestion Enter would take is filled and shows an Enter key hint. A touch
-  screen shows the fill alone, unless `data-keyboard-hints='always'` keeps key
-  hints, as on a tablet with a keyboard.
-- Unlike `Combobox` and `Autocomplete`, typing highlights no suggestion. The
-  row Enter takes is at the top, so the first Down Arrow moves past it to the
-  next one. With no row for Enter, it lands on the first. Outside a value step,
-  Enter keeps searching what you typed.
+- **Arrow keys** move through the suggestions, and **Enter** takes the
+  highlighted one. Until you move, the top row is highlighted: an exact match,
+  or the search for your text. In a value step, once you type, it's the first
+  value. **Down Arrow** moves to the next row, and **Up Arrow** comes back.
+  The input's `aria-activedescendant` points at the highlighted row, so screen
+  readers read it as the list changes.
+- With nothing for Enter to take, such as before you type in a value step, or
+  when the only match is already ticked, no row is highlighted and Enter does
+  nothing. **Down Arrow** lands on the first row.
+- The highlighted row is filled and shows an Enter key hint. A touch screen
+  shows the fill alone, unless `data-keyboard-hints='always'` keeps key hints,
+  as on a tablet with a keyboard.
+- A row the pointer rests on takes the highlight, so Enter takes it. Once the
+  pointer leaves the list, the highlight goes back to the top row. Typing
+  takes it back there too.
 - **Backspace** in an empty field selects the last chip you can remove; a
   second Backspace removes it and returns focus to the input. **Left Arrow**
   from the start of the input moves to the chips, and **Left** and **Right**
@@ -604,7 +610,9 @@ function QueryFieldShortcut() {
   `description` is read after its label too. A pending chip describes the
   input, so the value step is announced. It's a live region, so a change of
   operator is announced too. While a step edits a chip, the chip is hidden,
-  and the pending chip in its place describes the input.
+  and the pending chip in its place describes the input. The pending chip
+  shows where the chip was, but screen readers reach it after the other
+  chips, as moving the input would lose focus.
 - The faint rest of a value after the caret is visual only. The value it
   names is in the list.
 - `required` is announced but never blocks a form: an empty search is valid.

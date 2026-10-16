@@ -198,7 +198,7 @@ describe('QueryField', () => {
     expect(shown(search.querySelector('kbd'))).toBe(true)
   })
 
-  it('searches on Enter while the pointer rests on a filter', async () => {
+  it('takes the filter the pointer rests on, and the search once it leaves', async () => {
     const accepted: string[] = []
     render(
       <Harness onAccept={(suggestion) => accepted.push(suggestion.kind)} />
@@ -208,10 +208,16 @@ describe('QueryField', () => {
     const filter = await screen.findByRole('option', {
       name: /Iguana Teapot Hall/
     })
+    const search = screen.getByRole('option', { name: /Search for/ })
     await userEvent.hover(filter)
-    expect(filter.querySelector('kbd')).toBeNull()
+    await expect.poll(() => shown(filter.querySelector('kbd'))).toBe(true)
+    expect(search.querySelector('kbd')).toBeNull()
+    await userEvent.unhover(filter)
+    await expect.poll(() => shown(search.querySelector('kbd'))).toBe(true)
+    expect(search).toHaveAttribute('data-highlighted')
+    await userEvent.hover(filter)
     await userEvent.keyboard('{Enter}')
-    expect(accepted).toEqual(['search'])
+    expect(accepted).toEqual(['filter'])
   })
 
   it('takes no value under the pointer after clicking a field', async () => {

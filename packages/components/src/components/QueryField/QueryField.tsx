@@ -120,8 +120,7 @@ const DEFAULT_PLACEHOLDER = 'Search and filter'
 const NO_CHIPS: readonly QueryFieldChip[] = []
 const NO_OPERATORS: readonly QueryFieldOperator[] = []
 const NO_ITEMS: readonly never[] = []
-
-const CARET_KEYS = new Set(['Home', 'End'])
+const NOTHING_HIGHLIGHTED = { index: -1, key: undefined }
 
 // As Combobox.Empty's, which the hint stands in for.
 const EMPTY_TEXT =
@@ -170,6 +169,11 @@ function isModified(event: KeyboardEvent) {
   return event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
 }
 
+// Out of the component, which the React Compiler can't compile with it inline.
+function keyShortcuts(keys: readonly (string | false | undefined)[]) {
+  return keys.filter(Boolean).join(' ') || undefined
+}
+
 export function QueryField<Value = unknown>({
   chips = NO_CHIPS,
   onRemoveChip,
@@ -216,27 +220,18 @@ export function QueryField<Value = unknown>({
   )
   const [open, setOpen] = useState(false)
   const [caretAtEnd, setCaretAtEnd] = useState(true)
-  const [highlightKey, setHighlightKey] = useState<string>()
-  const [highlightIndex, setHighlightIndex] = useState(-1)
-  // Only arrows may make an item Enter's target. A list that changes under
-  // the highlight re-highlights with reason `none`, so the mark lapses
-  // whenever the value step starts or ends.
+  const [highlighted, setHighlighted] = useState<{
+    index: number
+    key: string | undefined
+  }>(NOTHING_HIGHLIGHTED)
   const step = pendingChip?.id
-  const [markedStep, setMarkedStep] = useState(step)
-  const [arrowed, setArrowed] = useState(false)
-  const [openingByArrow, setOpeningByArrow] = useState(false)
-  if (markedStep !== step) {
-    setMarkedStep(step)
-    setArrowed(false)
-    setOpeningByArrow(false)
-  }
-  const keyboardHighlightKey = arrowed ? highlightKey : undefined
-  // Base UI keeps its highlight's index as the list changes under it, so a
-  // take that changes the list renders once with no items to drop it.
-  const [unhighlighting, setUnhighlighting] = useState(false)
-  useIsomorphicLayoutEffect(() => {
-    if (unhighlighting) setUnhighlighting(false)
-  }, [unhighlighting])
+  // Base UI keeps its highlight's index as the list changes under it and has
+  // no way to clear it, so the list renders once with no items to drop it.
+  const [drops, setDrops] = useState(0)
+  const [dropped, setDropped] = useState(0)
+  const unhighlighting = drops !== dropped
+  useIsomorphicLayoutEffect(() => setDropped(drops), [drops])
+  const dropHighlight = () => setDrops((count) => count + 1)
 
   const isDisabled = disabled ?? field.disabled
   const isInvalid = invalid ?? field.invalid
@@ -275,9 +270,6 @@ export function QueryField<Value = unknown>({
     if (takenIn !== step) setOpen(false)
   }
   const popupRef = useRef<HTMLDivElement>(null)
-  // The first Down lands on the top row, which Enter already takes, so it
-  // moves on to the next. Base UI has no way to highlight a row but a key.
-  const passDefault = useRef(false)
   const leaving = useRef<ReturnType<typeof setTimeout>>(undefined)
   // Read as focus lands, so a step already ended isn't ended again.
   const cancelStep = useRef<(() => void) | undefined>(undefined)
@@ -372,18 +364,24 @@ export function QueryField<Value = unknown>({
   const search = listed
     .flatMap((group) => group.items)
     .find((item) => item.kind === 'search')
-  const enterFallback = exact ?? typedValue ?? search
-  const fallbackKey = enterFallback && itemKey(enterFallback)
-  // What Enter takes leads, so Down moves to what else there is.
-  const list = leadWith(listed, (item) => itemKey(item) === fallbackKey)
+  // What Enter takes with nothing moved to.
+  const enterDefault = exact ?? typedValue ?? search
+  const defaultKey = enterDefault && itemKey(enterDefault)
+  // The default leads and Base UI highlights the first row, so Enter takes it
+  // and Down moves to what else there is.
+  const list = leadWith(listed, (item) => itemKey(item) === defaultKey)
   const items = list.flatMap((group) => group.items)
-  // By position, so a recent item repeating a suggestion isn't marked too.
-  const enterTarget =
-    keyboardHighlightKey !== undefined
-      ? highlightIndex
-      : items.findIndex((item) => itemKey(item) === fallbackKey)
+  // Held through the render that still lists the last text's suggestions, or
+  // each key typed in a value step would drop the highlight and set it again.
+  const settled = current || suggestions.loading
+  const [defaulted, setDefaulted] = useState(false)
+  if (settled && defaulted !== !!enterDefault) {
+    setDefaulted(!!enterDefault)
+    if (defaulted) dropHighlight()
+  }
+  const highlightsDefault = settled ? !!enterDefault : defaulted
   // Also once typed text leaves Enter nothing, such as a value already ticked.
-  const stuck = current && !!text.trim() && enterTarget < 0
+  const stuck = current && !!text.trim() && !enterDefault
   const hint =
     !suggestions.loading && (list.length === 0 || stuck) && pendingChip?.hint
   // Asked for suggestions, but with none, nothing to type, no hint, and no
@@ -395,6 +393,9 @@ export function QueryField<Value = unknown>({
     !hasContent &&
     !suggestions.loading &&
     !text.trim()
+  const shown = open && !nothingToShow
+  // Rows unmount too, or Base UI loses track of the ones that come back.
+  const rows = unhighlighting ? NO_ITEMS : list
   const groupStarts = list.map((_, index) =>
     list.slice(0, index).reduce((sum, group) => sum + group.items.length, 0)
   )
@@ -410,7 +411,7 @@ export function QueryField<Value = unknown>({
     const left =
       suggestion.kind === 'search' ? '' : (suggestion.remainder ?? '')
     if (suggestion.kind !== 'search') setText(left)
-    if (suggestion.kind === 'field' || left !== text) setUnhighlighting(true)
+    if (suggestion.kind === 'field' || left !== text) dropHighlight()
     // Words left over list their own suggestions.
     if (suggestion.kind !== 'field' && !editedId && !left.trim()) setOpen(false)
     if (editedId) setTakenIn(step)
@@ -465,23 +466,9 @@ export function QueryField<Value = unknown>({
       endStep()
       return
     }
-    if (CARET_KEYS.has(event.key)) setArrowed(false)
     // The edited chip's text holds the caret; Escape first to move to a chip.
     if (edited && (event.key === 'ArrowLeft' || event.key === 'ArrowRight'))
       event.preventBaseUIHandler()
-    if (
-      (event.key === 'ArrowDown' || event.key === 'ArrowUp') &&
-      !isComposing(event)
-    )
-      setArrowed(true)
-    passDefault.current =
-      event.key === 'ArrowDown' &&
-      !isModified(event) &&
-      !isComposing(event) &&
-      open &&
-      !keyboardHighlightKey &&
-      enterTarget === 0 &&
-      items.length > 1
     if (event.key === 'Enter') {
       if (isModified(event)) {
         // Base UI ignores a modified Enter; keep it from submitting a form.
@@ -492,12 +479,17 @@ export function QueryField<Value = unknown>({
         event.preventBaseUIHandler()
         return
       }
-      if (keyboardHighlightKey) return
-      event.preventBaseUIHandler()
-      event.preventDefault()
       const unchanged =
         !!text.trim() && editStart === `${operator}\u0000${text}`
-      if (enterFallback && !unchanged) accept(enterFallback)
+      // Base UI takes the highlighted row, unless it's the default for the
+      // text an edit started with.
+      const takesDefault = highlighted.key === defaultKey
+      if (shown && highlighted.index >= 0 && !(unchanged && takesDefault))
+        return
+      event.preventBaseUIHandler()
+      event.preventDefault()
+      // With the list closed, as after Escape, Enter still takes the default.
+      if (enterDefault && !unchanged) accept(enterDefault)
       // Nothing new to take means done, unless typed text matched no value,
       // when the hint says what to type, or its values are still on their way.
       else if (
@@ -571,7 +563,8 @@ export function QueryField<Value = unknown>({
     ownsShortcut && !text && ordered.length === 0 && !pendingChip
 
   const inChip = !!pendingChip
-  const target = enterTarget >= 0 ? items[enterTarget] : undefined
+  const target =
+    shown && highlighted.index >= 0 ? items[highlighted.index] : enterDefault
   // The rest of what Enter takes, after the caret, for text it starts with.
   const ghost =
     inChip &&
@@ -592,15 +585,11 @@ export function QueryField<Value = unknown>({
       aria-label={ariaLabel}
       aria-invalid={isInvalid || undefined}
       aria-required={isRequired || undefined}
-      aria-keyshortcuts={
-        [
-          ownsShortcut && shortcut,
-          operatorOnTab(1) && 'Tab',
-          operatorOnTab(-1) && 'Shift+Tab'
-        ]
-          .filter(Boolean)
-          .join(' ') || undefined
-      }
+      aria-keyshortcuts={keyShortcuts([
+        ownsShortcut && shortcut,
+        operatorOnTab(1) && 'Tab',
+        operatorOnTab(-1) && 'Shift+Tab'
+      ])}
       {...(describedBy && { 'aria-describedby': describedBy })}
       placeholder={ordered.length > 0 || pendingChip ? '' : placeholder}
       // In the step's chip, as wide as the text beside it, so the chip hugs
@@ -621,9 +610,8 @@ export function QueryField<Value = unknown>({
   return (
     <Combobox
       multiple
-      // Enter takes an arrowed row, else enterTarget's fallback.
-      autoHighlight={false}
-      items={unhighlighting ? NO_ITEMS : list}
+      autoHighlight={highlightsDefault && 'always'}
+      items={rows}
       filter={null}
       value={ordered as readonly unknown[] as QueryFieldAccepted<Value>[]}
       onValueChange={(next, details) => {
@@ -640,43 +628,26 @@ export function QueryField<Value = unknown>({
       }}
       inputValue={text}
       onInputValueChange={(next, details) => {
-        if (details.reason !== 'input-change') return
-        setText(next)
-        setArrowed(false)
+        if (details.reason === 'input-change') setText(next)
       }}
-      open={open && !nothingToShow}
-      onOpenChange={(next, details) => {
-        setOpen(next)
-        const byArrow = next && details.reason === 'list-navigation'
-        setOpeningByArrow(byArrow)
-        if (details.reason !== 'list-navigation') setArrowed(false)
-      }}
+      open={shown}
+      onOpenChange={setOpen}
       onItemHighlighted={(item, details) => {
-        if (passDefault.current && details.reason === 'keyboard') {
-          passDefault.current = false
-          const input = inputRef.current
-          if (details.index === 0 && input)
-            queueMicrotask(() =>
-              input.dispatchEvent(
-                new KeyboardEvent('keydown', {
-                  key: 'ArrowDown',
-                  bubbles: true,
-                  cancelable: true
-                })
-              )
-            )
-        }
         const key = item && itemKey(item)
-        setHighlightKey(key)
-        setHighlightIndex(details.index)
-        if (details.reason === 'pointer') setArrowed(false)
-        if (details.reason !== 'none' || openingByArrow)
-          setOpeningByArrow(false)
-        if (details.reason !== 'none') return
-        // Opening by arrow lands on the first item; any other `none` means
-        // the list changed under the highlight, which nobody arrowed to.
-        const landing = openingByArrow && key !== undefined
-        if (!landing && key !== highlightKey) setArrowed(false)
+        // A row moved to that newer suggestions replace goes back to the
+        // default, which Base UI would leave on whatever row took its place.
+        const replaced =
+          details.reason === 'none' &&
+          details.index > 0 &&
+          details.index === highlighted.index &&
+          key !== highlighted.key
+        if (replaced) dropHighlight()
+        // The search row is a new object each render, which Base UI reports.
+        setHighlighted((last) =>
+          last.index === details.index && last.key === key
+            ? last
+            : { index: details.index, key }
+        )
       }}
       itemToStringLabel={(item: { label: string }) => item.label}
       disabled={isDisabled}
@@ -899,7 +870,7 @@ export function QueryField<Value = unknown>({
               </div>
             )}
             <Combobox.List>
-              {list.map((group, groupIndex) => (
+              {rows.map((group, groupIndex) => (
                 <Combobox.Group key={groupKey(group)} items={group.items}>
                   <Combobox.GroupLabel
                     // The operators stand in the first label; it still names
@@ -915,12 +886,6 @@ export function QueryField<Value = unknown>({
                       <Combobox.Item
                         key={itemKey(item)}
                         value={item}
-                        // Enter's target reads as highlighted until something else is.
-                        className={cn(
-                          highlightKey === undefined &&
-                            groupStarts[groupIndex]! + index === enterTarget &&
-                            'bg-subtle'
-                        )}
                         // Chips hold the field's value, so Base UI never selects a row.
                         aria-selected={
                           item.kind !== 'search' && !!item.selected
@@ -952,7 +917,8 @@ export function QueryField<Value = unknown>({
                               </span>
                             )}
                         </span>
-                        {groupStarts[groupIndex]! + index === enterTarget && (
+                        {groupStarts[groupIndex]! + index ===
+                          highlighted.index && (
                           <Kbd size='sm' className='text-subtle'>
                             Enter
                           </Kbd>

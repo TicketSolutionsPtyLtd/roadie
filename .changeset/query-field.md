@@ -8,7 +8,9 @@ that turns what you type into filter chips. It takes your chips and a
 "Search for …" row, and hands what was taken to `onAccept`. Outside a
 value step, Enter searches the text unless a suggestion is marked `exact`,
 and filters are taken by arrow or click. The row Enter takes shows at the
-top, its group above the rest, and the first Down Arrow moves past it. Locked chips come first with a "Set
+top, its group above the rest, highlighted for screen readers too, so Down
+moves to the next row. A row the pointer rests on takes the highlight,
+and Enter, until the pointer leaves the list. Locked chips come first with a "Set
 by this page" tooltip, and nothing in the field removes them. Backspace on an
 empty field selects the last chip, then removes it. `pendingChip` shows the
 field being given a value, `onSelectChip` hears a click, Enter, or Space on a
