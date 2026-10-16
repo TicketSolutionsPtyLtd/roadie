@@ -353,12 +353,14 @@ export function RecordsSearch({
           selectedFilter
         )
       : []
+  // Once a render, for the list, its hint, and the calendar's suggested days.
+  const typedValues = stepValues(stepText)
 
   const chipId = selectedAt === null ? undefined : chipIds[selectedAt]
   const picking =
     pendingField && calendarOperator(pendingField, pendingOperator)
   const suggested =
-    picking && stepText.trim() ? suggestedDays(stepValues(stepText)) : undefined
+    picking && stepText.trim() ? suggestedDays(typedValues) : undefined
   const content = (
     <QueryField<SearchValue>
       aria-label={label ?? placeholder}
@@ -390,7 +392,7 @@ export function RecordsSearch({
                 // Not for the chip's own value as the edit opens: it's ticked.
                 (selectedFilter &&
                 stepText !== valueText(pendingField, selectedFilter, context)
-                  ? heldHint(pendingField, stepText, stepValues(stepText))
+                  ? heldHint(pendingField, stepText, typedValues)
                   : undefined),
               chipId,
               content: picking && (
@@ -461,7 +463,9 @@ export function RecordsSearch({
       }}
       suggest={(text) =>
         pendingField
-          ? stepValues(text)
+          ? text === stepText
+            ? typedValues
+            : stepValues(text)
           : withFieldIcons(topSuggestions(text, context), byKey)
       }
       onAccept={accept}
