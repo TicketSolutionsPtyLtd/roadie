@@ -36,6 +36,7 @@ export function ToolbarRoot({
   size = 'md',
   emphasis,
   orientation = 'horizontal',
+  onFocus,
   ...props
 }: ToolbarRootProps) {
   const contextValue = useMemo(() => ({ size }), [size])
@@ -45,14 +46,27 @@ export function ToolbarRoot({
         data-slot='toolbar-surface'
         className={cn(toolbarSurfaceVariants({ emphasis }), className)}
       >
-        {/* Arrow keys move focus, and focus scrolls itself into view. */}
-        <ScrollArea.Viewport tabIndex={-1} fade='x'>
+        <ScrollArea.Viewport
+          tabIndex={-1}
+          fade='x'
+          className='scroll-px-(--scroll-area-fade-size)'
+        >
           {/* Base UI's inline fit-content would stop it wrapping. */}
           <ScrollArea.Content className='min-w-0!'>
             <ToolbarPrimitive.Root
               data-slot='toolbar'
               orientation={orientation}
               className={toolbarVariants({ orientation })}
+              // Base UI scrolls the toolbar, not this viewport, and a native
+              // focus leaves a half-hidden item where it is. jsdom has no
+              // scrollIntoView.
+              onFocus={(event) => {
+                event.target.scrollIntoView?.({
+                  block: 'nearest',
+                  inline: 'nearest'
+                })
+                onFocus?.(event)
+              }}
               {...props}
             />
           </ScrollArea.Content>

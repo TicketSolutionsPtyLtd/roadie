@@ -2,7 +2,7 @@ import { type ReactNode } from 'react'
 
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { Toolbar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -251,7 +251,7 @@ describe('Toolbar on a phone', () => {
     expect(viewport.getBoundingClientRect().width).toBeLessThanOrEqual(320)
   })
 
-  it('scrolls a focused item into view', async () => {
+  it('scrolls the item the arrow keys reach clear of the faded edges', async () => {
     render(
       <div style={{ width: 320 }}>
         <Toolbar aria-label='Formatting'>
@@ -261,14 +261,29 @@ describe('Toolbar on a phone', () => {
         </Toolbar>
       </div>
     )
-    const last = screen.getByRole('button', { name: ACTIONS.at(-1) })
-    last.focus()
     const viewport = screen
       .getByRole('toolbar')
       .closest<HTMLElement>('[data-slot="scroll-area-viewport"]')!
-    await expect
-      .poll(() => last.getBoundingClientRect().right)
-      .toBeLessThanOrEqual(viewport.getBoundingClientRect().right + 0.5)
+    const fade =
+      parseFloat(
+        getComputedStyle(viewport).getPropertyValue('--scroll-area-fade-size')
+      ) * parseFloat(getComputedStyle(document.documentElement).fontSize)
+    const clearOfFade = async (name: string, side: 'left' | 'right') => {
+      const item = screen.getByRole('button', { name })
+      await expect.poll(() => document.activeElement).toBe(item)
+      const box = viewport.getBoundingClientRect()
+      const rect = item.getBoundingClientRect()
+      const gap =
+        side === 'right' ? box.right - rect.right : rect.left - box.left
+      expect(gap).toBeGreaterThanOrEqual(fade - 1)
+    }
+
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}')
+    await clearOfFade('Align left', 'right')
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}{ArrowRight}')
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}')
+    await clearOfFade('Align left', 'left')
   })
 
   it('still stacks a vertical toolbar', () => {
