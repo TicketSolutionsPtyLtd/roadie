@@ -52,6 +52,28 @@ describe('Toolbar layout', () => {
       )
   })
 
+  it('wraps the items of a group inside a narrow container', () => {
+    render(
+      <div style={{ width: 320 }}>
+        <Toolbar aria-label='Formatting'>
+          <Toolbar.Group aria-label='Actions'>
+            {ACTIONS.map((action) => (
+              <Toolbar.Button key={action}>{action}</Toolbar.Button>
+            ))}
+          </Toolbar.Group>
+        </Toolbar>
+      </div>
+    )
+    const toolbar = screen.getByRole('toolbar')
+    const rows = new Set(
+      screen
+        .getAllByRole('button')
+        .map((button) => Math.round(button.getBoundingClientRect().top))
+    )
+    expect(toolbar.scrollWidth).toBeLessThanOrEqual(toolbar.clientWidth)
+    expect(rows.size).toBeGreaterThan(1)
+  })
+
   it('draws a separator across a horizontal toolbar', () => {
     render(
       <Toolbar aria-label='Formatting'>
@@ -137,6 +159,20 @@ describe('Toolbar layout', () => {
       ).toBeLessThan(400)
     }
   )
+
+  it('sizes its buttons like a md Button by default', () => {
+    render(
+      <>
+        <Button size='md'>Reference</Button>
+        <Toolbar aria-label='Formatting'>
+          <Toolbar.Button>Bold</Toolbar.Button>
+        </Toolbar>
+      </>
+    )
+    const height = (name: string) =>
+      screen.getByRole('button', { name }).getBoundingClientRect().height
+    expect(height('Bold')).toBe(height('Reference'))
+  })
 
   it.each(['sm', 'md', 'lg'] as const)(
     'sizes its buttons and links like a %s Button',
