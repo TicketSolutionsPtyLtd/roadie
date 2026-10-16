@@ -333,7 +333,7 @@ export function Calendar(props: CalendarProps) {
     max,
     disabled,
     modifiers,
-    previewRange: previewDays,
+    previewRange: previewRangeProp,
     numberOfMonths: numberOfMonthsProp = 1,
     layout = 'paged',
     direction = 'horizontal',
@@ -501,6 +501,12 @@ export function Calendar(props: CalendarProps) {
     [weekStart, locale]
   )
 
+  // Either way round, as a `{ start, end }` matcher is.
+  const previewDays =
+    previewRangeProp &&
+    (compareDates(previewRangeProp.start, previewRangeProp.end) <= 0
+      ? previewRangeProp
+      : { start: previewRangeProp.end, end: previewRangeProp.start })
   const range = mode === 'range' ? (selection as CalendarDateRange) : null
   const extending = !!range?.start && !range.end
   const isOutOfRange = (date: string) =>

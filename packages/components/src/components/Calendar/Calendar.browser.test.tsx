@@ -305,6 +305,18 @@ describe('Calendar preview range', () => {
     expect(radius('2027-03-05', 'Left')).not.toBe('0px')
   })
 
+  it('draws an end given before its start the same way round', () => {
+    render(
+      <Calendar
+        today={TODAY}
+        previewRange={{ start: '2027-03-09', end: '2027-03-03' }}
+      />
+    )
+    expect(day('2027-03-05')).toHaveAttribute('data-previewed')
+    expect(radius('2027-03-03', 'Left')).not.toBe('0px')
+    expect(radius('2027-03-09', 'Right')).not.toBe('0px')
+  })
+
   it('draws a single day as a filled circle, not a band', () => {
     render(
       <Calendar
