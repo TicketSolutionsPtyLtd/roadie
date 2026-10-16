@@ -6,7 +6,7 @@ import { Toolbar as ToolbarPrimitive } from '@base-ui/react/toolbar'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { ToolbarContext } from './ToolbarContext'
+import { ToolbarContext, type ToolbarSize } from './ToolbarContext'
 
 export type ToolbarRootProps = ToolbarPrimitive.Root.Props &
   RefAttributes<HTMLDivElement> & {
@@ -16,7 +16,7 @@ export type ToolbarRootProps = ToolbarPrimitive.Root.Props &
      *
      * @default 'md'
      */
-    size?: 'sm' | 'md' | 'lg'
+    size?: ToolbarSize
   }
 
 export function ToolbarRoot({

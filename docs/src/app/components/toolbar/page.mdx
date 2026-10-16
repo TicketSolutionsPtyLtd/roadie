@@ -54,7 +54,7 @@ Each part renders a Roadie component you already know. `Toolbar.Button` is a `Bu
 
 ### States
 
-A disabled button stays in the arrow order, so a keyboard user still finds it. `disabled` on `Toolbar.Group` or on the toolbar disables every `Toolbar.Button` and `ToggleGroup` inside it. A `Toolbar.Link` stays active, so remove it when it shouldn't be followed.
+A disabled `Toolbar.Button` stays in the arrow order, so a keyboard user still finds it. `disabled` on `Toolbar.Group` or on the toolbar disables every `Toolbar.Button` and `ToggleGroup` inside it; a disabled `ToggleGroup`'s items leave the arrow order. A `Toolbar.Link` stays active, so remove it when it shouldn't be followed.
 
 ```tsx-live layout=stack
 {/* One button disabled */}
@@ -155,7 +155,7 @@ Items wrap onto a new line rather than scroll or hide, so every action stays in 
 
 - Renders `role='toolbar'` with `aria-orientation`. Give it an `aria-label`, or point `aria-labelledby` at a visible heading.
 - **Keyboard:** `Tab` moves into the toolbar and out again in one stop. Arrow keys move between items (`ArrowLeft` and `ArrowRight`, or `ArrowUp` and `ArrowDown` when vertical). Focus wraps from the last item to the first unless `loopFocus` is `false`.
-- A disabled button keeps focus, with `aria-disabled`, so a screen reader still announces it.
+- A disabled `Toolbar.Button` keeps focus, with `aria-disabled`, so a screen reader still announces it.
 - `Toolbar.Separator` renders `role='separator'`, running across the toolbar.
 
 <PropsDefinitions component='Toolbar' />
