@@ -19,7 +19,7 @@ const location = field.location('location', {
   options: [
     { value: 'perth', label: 'Perth' },
     { value: 'brisbane', label: 'Brisbane' },
-    { value: 'adelaide', label: 'Adelaide' }
+    { value: 'sa', label: 'Adelaide' }
   ]
 })
 const fields = [field.text('name', { label: 'Name' }), location]
@@ -33,7 +33,7 @@ const rows = [
   { name: 'One', location: 'perth' },
   { name: 'Two', location: 'brisbane' },
   { name: 'Three' },
-  { name: 'Four', location: 'adelaide' }
+  { name: 'Four', location: 'sa' }
 ]
 
 const view = (filters: RecordFilter[]): RecordView => ({
@@ -114,7 +114,7 @@ describe('a location field', () => {
 
   it('round trips through the URL', () => {
     const written = view([
-      { field: 'location', operator: 'is-not', values: ['perth', 'adelaide'] }
+      { field: 'location', operator: 'is-not', values: ['perth', 'sa'] }
     ])
     const read = fromSearchParams(toSearchParams(written), fields)
     expect(read.source).toBe('url')
