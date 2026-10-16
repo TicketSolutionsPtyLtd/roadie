@@ -286,6 +286,26 @@ describe('Toolbar on a phone', () => {
     await clearOfFade('Align left', 'left')
   })
 
+  it('keeps a group on the same row', () => {
+    render(
+      <div style={{ width: 320 }}>
+        <Toolbar aria-label='Formatting'>
+          <Toolbar.Group aria-label='Actions'>
+            {ACTIONS.map((action) => (
+              <Toolbar.Button key={action}>{action}</Toolbar.Button>
+            ))}
+          </Toolbar.Group>
+        </Toolbar>
+      </div>
+    )
+    const tops = new Set(
+      screen
+        .getAllByRole('button')
+        .map((button) => Math.round(button.getBoundingClientRect().top))
+    )
+    expect(tops.size).toBe(1)
+  })
+
   it('still stacks a vertical toolbar', () => {
     render(
       <Toolbar aria-label='Formatting' orientation='vertical'>

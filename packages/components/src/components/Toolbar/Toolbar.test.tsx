@@ -203,6 +203,15 @@ describe('Toolbar', () => {
     expect(surface()).toHaveClass('mx-2')
   })
 
+  it('puts style and hidden on its surface', () => {
+    render(<Toolbar aria-label='Formatting' style={{ width: '100%' }} hidden />)
+    const toolbar = screen.getByRole('toolbar', { hidden: true })
+    const outer = toolbar.closest<HTMLElement>('[data-slot="toolbar-surface"]')
+    expect(outer?.style.width).toBe('100%')
+    expect(outer).toHaveAttribute('hidden')
+    expect(toolbar.style.width).toBe('')
+  })
+
   it('keeps its scroll area out of the Tab order', async () => {
     render(<Formatting />)
     await userEvent.tab()

@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefAttributes, useMemo } from 'react'
+import { type CSSProperties, type RefAttributes, useMemo } from 'react'
 
 import { Toolbar as ToolbarPrimitive } from '@base-ui/react/toolbar'
 import type { VariantProps } from 'class-variance-authority'
@@ -11,10 +11,15 @@ import { ScrollArea } from '../ScrollArea'
 import { ToolbarContext, type ToolbarSize } from './ToolbarContext'
 import { toolbarSurfaceVariants, toolbarVariants } from './variants'
 
-export type ToolbarRootProps = Omit<ToolbarPrimitive.Root.Props, 'className'> &
+export type ToolbarRootProps = Omit<
+  ToolbarPrimitive.Root.Props,
+  'className' | 'style'
+> &
   RefAttributes<HTMLDivElement> & {
     /** Classes for the toolbar's surface, its outermost element. */
     className?: string
+    /** Styles for the toolbar's surface, its outermost element. */
+    style?: CSSProperties
     /**
      * The size of the buttons and links the toolbar renders. A `render`
      * element keeps its own size.
@@ -33,6 +38,8 @@ export type ToolbarRootProps = Omit<ToolbarPrimitive.Root.Props, 'className'> &
 
 export function ToolbarRoot({
   className,
+  style,
+  hidden,
   size = 'md',
   emphasis,
   orientation = 'horizontal',
@@ -45,14 +52,15 @@ export function ToolbarRoot({
       <ScrollArea
         data-slot='toolbar-surface'
         className={cn(toolbarSurfaceVariants({ emphasis }), className)}
+        style={style}
+        hidden={hidden}
       >
         <ScrollArea.Viewport
           tabIndex={-1}
           fade='x'
           className='scroll-px-(--scroll-area-fade-size)'
         >
-          {/* Base UI's inline fit-content would stop it wrapping. */}
-          <ScrollArea.Content className='min-w-0!'>
+          <ScrollArea.Content>
             <ToolbarPrimitive.Root
               data-slot='toolbar'
               orientation={orientation}

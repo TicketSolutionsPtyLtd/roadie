@@ -180,7 +180,7 @@ On a touch screen, or a screen narrower than `md`, the items stay on one row and
 - **Group related controls.** Put controls that work together, such as text styles, in a `Toolbar.Group` and separate the groups with `Toolbar.Separator`.
 - **Drop the surface inside another one.** Inside a `Card`, a pane header, or a bar that already has a surface, use `emphasis='subtler'` so the toolbar doesn't draw a box within a box. Use `floating` for a toolbar over content, such as on an image.
 - **Keep the toolbar short.** On a phone the row scrolls, so actions past the edge are out of sight until someone scrolls. Put the most used first, and rarely used actions in a `Menu`.
-- **Size it with `className`.** It goes on the surface, the toolbar's outermost element, so margins and widths set there place the whole toolbar.
+- **Size it with `className` or `style`.** Both go on the surface, the toolbar's outermost element, so margins and widths set there place the whole toolbar.
 - **Use `Toggle` for an on and off state.** A `Toggle` reports whether it's pressed; a `Button` only runs an action.
 - **Label every icon-only control,** and the toolbar itself.
 
