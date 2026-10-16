@@ -2,12 +2,14 @@ import {
   type RecordField,
   type RecordSort,
   type RecordSortDirection,
-  isOptionLike
+  isRecordOptionField
 } from '@oztix/roadie-core/records'
 
 // As DataTable: words A to Z first, figures and dates largest or latest first.
 export const firstDirection = (field: RecordField): RecordSortDirection =>
-  field.type === 'text' || isOptionLike(field) ? 'ascending' : 'descending'
+  field.type === 'text' || isRecordOptionField(field)
+    ? 'ascending'
+    : 'descending'
 
 // Matches `sortRecords`, which sorts a status map with an `order` by it.
 const ordered = (field: RecordField) =>

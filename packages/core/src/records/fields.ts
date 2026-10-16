@@ -50,7 +50,7 @@ export function recordFieldOptions(field: RecordField): RecordOption[] {
 }
 
 /** Option and location fields pick from values the same way. */
-export function isOptionLike(field: RecordField): boolean {
+export function isRecordOptionField(field: RecordField): boolean {
   return field.type === 'option' || field.type === 'location'
 }
 

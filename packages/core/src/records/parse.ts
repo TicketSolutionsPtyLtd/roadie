@@ -9,7 +9,7 @@ import { describeRecordFilter } from './describe'
 import { encodeFilter } from './encoding'
 import {
   isFilterable,
-  isOptionLike,
+  isRecordOptionField,
   momentOf,
   recordFieldOptions
 } from './fields'
@@ -388,7 +388,7 @@ function spanCandidates(
             )
           )
         }
-        if (isOptionLike(field)) optionReadings(field, text).forEach(add)
+        if (isRecordOptionField(field)) optionReadings(field, text).forEach(add)
         if (field.type === 'boolean') booleanReadings(field, text).forEach(add)
       })
       // A phrase is only completed while it is still being typed, at the end.

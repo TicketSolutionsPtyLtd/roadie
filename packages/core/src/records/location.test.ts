@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { recordFields } from './builder'
 import { recordsToCsv } from './csv'
 import { describeRecordFilter } from './describe'
-import { isOptionLike, recordFilterOperators } from './fields'
+import { isRecordOptionField, recordFilterOperators } from './fields'
 import { formatRecordValue } from './format'
 import { matchesRecordQuery } from './match'
 import { parseQuery } from './parse'
@@ -55,8 +55,8 @@ const matching = (filter: RecordFilter) =>
 describe('a location field', () => {
   it('is built with its type', () => {
     expect(location.type).toBe('location')
-    expect(isOptionLike(location)).toBe(true)
-    expect(isOptionLike(fields[0]!)).toBe(false)
+    expect(isRecordOptionField(location)).toBe(true)
+    expect(isRecordOptionField(fields[0]!)).toBe(false)
   })
 
   it('filters like a single option', () => {

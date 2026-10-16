@@ -19,7 +19,7 @@ export type {
 export type { RelativeRange } from '../datetime/ranges'
 
 export {
-  isOptionLike,
+  isRecordOptionField,
   recordFieldOptions,
   recordFilterOperators
 } from './fields'

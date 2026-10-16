@@ -30,7 +30,7 @@ list what a field accepts.
 (`text`, `option`, `location`, `number`, `money`, `date`, `boolean`), and a
 number or money field takes a `format`. A `location` field holds a place,
 such as a city, and filters, sorts and reads like a single option for now;
-distance filters come later. `isOptionLike` tells whether a field picks
+distance filters come later. `isRecordOptionField` tells whether a field picks
 from values that way. `compileRecordQuery` turns a resolved query
 into a predicate that reads the fields once, for filtering a long list;
 `matchesRecordQuery` uses it. `sortRecords` sorts rows the way an index
