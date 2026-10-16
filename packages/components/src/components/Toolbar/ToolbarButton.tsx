@@ -15,7 +15,18 @@ export function ToolbarButton({ render, ...props }: ToolbarButtonProps) {
   return (
     <ToolbarPrimitive.Button
       data-slot='toolbar-button'
-      render={render ?? <Button size={size} emphasis='subtler' />}
+      render={
+        render ??
+        ((buttonProps, { disabled }) => (
+          <Button
+            {...buttonProps}
+            // A wrapping Menu.Trigger's aria-disabled='false' would otherwise win.
+            {...(disabled && { 'aria-disabled': true })}
+            size={size}
+            emphasis='subtler'
+          />
+        ))
+      }
       {...props}
     />
   )

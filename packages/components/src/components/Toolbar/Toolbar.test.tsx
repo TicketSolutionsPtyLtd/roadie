@@ -266,6 +266,23 @@ describe('Toolbar', () => {
     ).toBeInTheDocument()
   })
 
+  it('announces a menu trigger in a disabled toolbar as disabled', () => {
+    render(
+      <Toolbar aria-label='Editing' disabled>
+        <Menu>
+          <Menu.Trigger render={<Toolbar.Button>Insert</Toolbar.Button>} />
+          <Menu.Content>
+            <Menu.Item>Image</Menu.Item>
+          </Menu.Content>
+        </Menu>
+      </Toolbar>
+    )
+    expect(screen.getByRole('button', { name: 'Insert' })).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    )
+  })
+
   it('runs separators across the toolbar', () => {
     const { rerender } = render(
       <Toolbar aria-label='Editing'>
