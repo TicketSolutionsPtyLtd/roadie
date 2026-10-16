@@ -306,6 +306,19 @@ describe('QueryField', () => {
     expect(input()).toHaveAttribute('aria-activedescendant', highlighted[0]!.id)
   })
 
+  it('searches on Enter once Escape closes the list', async () => {
+    const onAccept = vi.fn()
+    render(<Harness onAccept={onAccept} />)
+    await typeInto('igua')
+    await waitFor(() => expect(hinted()).toEqual(['Search for “igua”']))
+    await userEvent.keyboard('{Escape}')
+    expect(input()).toHaveAttribute('aria-expanded', 'false')
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ kind: 'search', label: 'Search for “igua”' })
+    )
+  })
+
   it('takes an exact identifier on Enter', async () => {
     const onAccept = vi.fn()
     render(<Harness onAccept={onAccept} />)
