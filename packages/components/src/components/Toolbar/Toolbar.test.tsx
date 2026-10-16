@@ -23,6 +23,10 @@ function Formatting(props: { orientation?: 'horizontal' | 'vertical' }) {
   )
 }
 
+function surface() {
+  return screen.getByRole('toolbar').closest('[data-slot="toolbar-surface"]')
+}
+
 describe('Toolbar', () => {
   it('is the same reference as Toolbar.Root', () => {
     expect(Toolbar).toBe(Toolbar.Root)
@@ -178,20 +182,32 @@ describe('Toolbar', () => {
 
   it('sits in a normal surface by default', () => {
     render(<Formatting />)
-    expect(screen.getByRole('toolbar')).toHaveClass('emphasis-normal')
+    expect(surface()).toHaveClass('emphasis-normal')
   })
 
   it.each(['subtle', 'raised', 'floating'] as const)(
     'takes the %s surface',
     (emphasis) => {
       render(<Toolbar aria-label='Formatting' emphasis={emphasis} />)
-      expect(screen.getByRole('toolbar')).toHaveClass(`emphasis-${emphasis}`)
+      expect(surface()).toHaveClass(`emphasis-${emphasis}`)
     }
   )
 
   it('has no surface at emphasis subtler', () => {
     render(<Toolbar aria-label='Formatting' emphasis='subtler' />)
-    expect(screen.getByRole('toolbar').className).not.toMatch(/emphasis-/)
+    expect(surface()?.className).not.toMatch(/emphasis-/)
+  })
+
+  it('puts className on its surface', () => {
+    render(<Toolbar aria-label='Formatting' className='mx-2' />)
+    expect(surface()).toHaveClass('mx-2')
+  })
+
+  it('keeps its scroll area out of the Tab order', async () => {
+    render(<Formatting />)
+    await userEvent.tab()
+    await userEvent.tab()
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveFocus()
   })
 
   it('renders its parts as Roadie buttons at emphasis subtler', () => {

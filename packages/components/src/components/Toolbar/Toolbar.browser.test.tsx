@@ -2,6 +2,7 @@ import { type ReactNode } from 'react'
 
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { page } from 'vitest/browser'
 
 import { Toolbar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -61,7 +62,10 @@ describe('Toolbar layout', () => {
         </Toolbar>
       </div>
     )
-    const toolbar = screen.getByRole('toolbar').getBoundingClientRect()
+    const toolbar = screen
+      .getByRole('toolbar')
+      .closest('[data-slot="toolbar-surface"]')!
+      .getBoundingClientRect()
     const redo = screen.getByRole('button', { name: 'Redo' })
 
     expect(toolbar.width).toBeLessThan(600)
@@ -213,4 +217,70 @@ describe('Toolbar layout', () => {
       expect(height(screen.getByRole('link', { name: 'Help' }))).toBe(reference)
     }
   )
+})
+
+describe('Toolbar on a phone', () => {
+  beforeAll(async () => {
+    await page.viewport(390, 844)
+  })
+  afterAll(async () => {
+    await page.viewport(1280, 720)
+  })
+
+  it('keeps its items on one row and scrolls them sideways', () => {
+    render(
+      <div style={{ width: 320 }}>
+        <Toolbar aria-label='Formatting'>
+          {ACTIONS.map((action) => (
+            <Toolbar.Button key={action}>{action}</Toolbar.Button>
+          ))}
+        </Toolbar>
+      </div>
+    )
+    const tops = new Set(
+      screen
+        .getAllByRole('button')
+        .map((button) => Math.round(button.getBoundingClientRect().top))
+    )
+    const viewport = screen
+      .getByRole('toolbar')
+      .closest<HTMLElement>('[data-slot="scroll-area-viewport"]')!
+
+    expect(tops.size).toBe(1)
+    expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth)
+    expect(viewport.getBoundingClientRect().width).toBeLessThanOrEqual(320)
+  })
+
+  it('scrolls a focused item into view', async () => {
+    render(
+      <div style={{ width: 320 }}>
+        <Toolbar aria-label='Formatting'>
+          {ACTIONS.map((action) => (
+            <Toolbar.Button key={action}>{action}</Toolbar.Button>
+          ))}
+        </Toolbar>
+      </div>
+    )
+    const last = screen.getByRole('button', { name: ACTIONS.at(-1) })
+    last.focus()
+    const viewport = screen
+      .getByRole('toolbar')
+      .closest<HTMLElement>('[data-slot="scroll-area-viewport"]')!
+    await expect
+      .poll(() => last.getBoundingClientRect().right)
+      .toBeLessThanOrEqual(viewport.getBoundingClientRect().right + 0.5)
+  })
+
+  it('still stacks a vertical toolbar', () => {
+    render(
+      <Toolbar aria-label='Formatting' orientation='vertical'>
+        <Toolbar.Button>Undo</Toolbar.Button>
+        <Toolbar.Button>Redo</Toolbar.Button>
+      </Toolbar>
+    )
+    const [undo, redo] = screen.getAllByRole('button')
+    expect(redo!.getBoundingClientRect().top).toBeGreaterThan(
+      undo!.getBoundingClientRect().bottom - 1
+    )
+  })
 })

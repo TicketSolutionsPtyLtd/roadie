@@ -7,11 +7,14 @@ import type { VariantProps } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { ScrollArea } from '../ScrollArea'
 import { ToolbarContext, type ToolbarSize } from './ToolbarContext'
-import { toolbarVariants } from './variants'
+import { toolbarSurfaceVariants, toolbarVariants } from './variants'
 
-export type ToolbarRootProps = ToolbarPrimitive.Root.Props &
+export type ToolbarRootProps = Omit<ToolbarPrimitive.Root.Props, 'className'> &
   RefAttributes<HTMLDivElement> & {
+    /** Classes for the toolbar's surface, its outermost element. */
+    className?: string
     /**
      * The size of the buttons and links the toolbar renders. A `render`
      * element keeps its own size.
@@ -25,23 +28,41 @@ export type ToolbarRootProps = ToolbarPrimitive.Root.Props &
      *
      * @default 'normal'
      */
-    emphasis?: VariantProps<typeof toolbarVariants>['emphasis']
+    emphasis?: VariantProps<typeof toolbarSurfaceVariants>['emphasis']
   }
 
 export function ToolbarRoot({
   className,
   size = 'md',
   emphasis,
+  orientation = 'horizontal',
   ...props
 }: ToolbarRootProps) {
   const contextValue = useMemo(() => ({ size }), [size])
   return (
     <ToolbarContext value={contextValue}>
-      <ToolbarPrimitive.Root
-        data-slot='toolbar'
-        className={cn(toolbarVariants({ emphasis }), className)}
-        {...props}
-      />
+      <ScrollArea
+        data-slot='toolbar-surface'
+        className={cn(toolbarSurfaceVariants({ emphasis }), className)}
+      >
+        {/* Arrow keys move focus, and focus scrolls itself into view. */}
+        <ScrollArea.Viewport tabIndex={-1} fade='x'>
+          {/* Base UI's inline fit-content would stop it wrapping. */}
+          <ScrollArea.Content className='min-w-0!'>
+            <ToolbarPrimitive.Root
+              data-slot='toolbar'
+              orientation={orientation}
+              className={toolbarVariants({ orientation })}
+              {...props}
+            />
+          </ScrollArea.Content>
+        </ScrollArea.Viewport>
+        {orientation === 'horizontal' && (
+          <ScrollArea.Scrollbar orientation='horizontal'>
+            <ScrollArea.Thumb />
+          </ScrollArea.Scrollbar>
+        )}
+      </ScrollArea>
     </ToolbarContext>
   )
 }

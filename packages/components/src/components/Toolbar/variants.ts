@@ -1,21 +1,27 @@
 import { cva } from 'class-variance-authority'
 
-export const toolbarVariants = cva(
-  [
-    'flex w-fit max-w-full min-w-0 flex-wrap items-center gap-1',
-    'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:w-auto'
-  ],
-  {
-    variants: {
-      // A pill on one row, and a rounded box once it wraps or stands up.
-      emphasis: {
-        normal: 'emphasis-normal rounded-3xl p-1',
-        subtle: 'emphasis-subtle rounded-3xl p-1',
-        subtler: '',
-        raised: 'emphasis-raised is-translucent rounded-3xl border p-1',
-        floating: 'emphasis-floating is-translucent rounded-3xl border p-1'
-      }
-    },
-    defaultVariants: { emphasis: 'normal' }
-  }
-)
+// A pill on one row, and a rounded box once it wraps or stands up.
+export const toolbarSurfaceVariants = cva('w-fit max-w-full rounded-3xl', {
+  variants: {
+    emphasis: {
+      normal: 'emphasis-normal',
+      subtle: 'emphasis-subtle',
+      subtler: '',
+      raised: 'emphasis-raised is-translucent border',
+      floating: 'emphasis-floating is-translucent border'
+    }
+  },
+  defaultVariants: { emphasis: 'normal' }
+})
+
+export const toolbarVariants = cva('flex min-w-0 items-center gap-1 p-1', {
+  variants: {
+    orientation: {
+      // Touch screens and phones keep one row and scroll it sideways.
+      horizontal:
+        'flex-wrap pointer-coarse:w-max pointer-coarse:flex-nowrap max-md:w-max max-md:flex-nowrap',
+      vertical: 'flex-col items-stretch *:w-auto'
+    }
+  },
+  defaultVariants: { orientation: 'horizontal' }
+})

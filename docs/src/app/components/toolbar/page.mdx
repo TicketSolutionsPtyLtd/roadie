@@ -19,7 +19,7 @@ import { Toolbar } from '@oztix/roadie-components/toolbar'
 
 ### Default
 
-Each part renders a Roadie component you already know. `Toolbar.Button` is a `Button` at `emphasis='subtler'`, and the toolbar sits in a normal surface, a pill on one row and a rounded box once it wraps, so a row of buttons reads as one control.
+Each part renders a Roadie component you already know. `Toolbar.Button` is a `Button` at `emphasis='subtler'`, and the toolbar sits in a normal surface, a pill that hugs its items, so a row of buttons reads as one control.
 
 ```tsx-live
 <Toolbar aria-label='History'>
@@ -161,7 +161,7 @@ With `orientation='vertical'` the items stack in a column as wide as the widest,
 
 #### When space runs out
 
-Items wrap onto a new line rather than scroll or hide, so every action stays in view on a phone.
+On a touch screen, or a screen narrower than `md`, the items stay on one row and scroll sideways, with the edges fading while there's more to see. Elsewhere they wrap onto new lines, and the pill becomes a rounded box. Arrow keys scroll the focused item into view either way.
 
 ```tsx-live width=72
 <Toolbar aria-label='Event'>
@@ -179,7 +179,8 @@ Items wrap onto a new line rather than scroll or hide, so every action stays in 
 
 - **Group related controls.** Put controls that work together, such as text styles, in a `Toolbar.Group` and separate the groups with `Toolbar.Separator`.
 - **Drop the surface inside another one.** Inside a `Card`, a pane header, or a bar that already has a surface, use `emphasis='subtler'` so the toolbar doesn't draw a box within a box. Use `floating` for a toolbar over content, such as on an image.
-- **Keep the toolbar short.** Items wrap rather than fold into a menu, so a long toolbar takes several lines on a phone. Put rarely used actions in a `Menu`.
+- **Keep the toolbar short.** On a phone the row scrolls, so actions past the edge are out of sight until someone scrolls. Put the most used first, and rarely used actions in a `Menu`.
+- **Size it with `className`.** It goes on the surface, the toolbar's outermost element, so margins and widths set there place the whole toolbar.
 - **Use `Toggle` for an on and off state.** A `Toggle` reports whether it's pressed; a `Button` only runs an action.
 - **Label every icon-only control,** and the toolbar itself.
 
