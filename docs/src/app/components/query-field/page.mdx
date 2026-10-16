@@ -521,8 +521,9 @@ function QueryFieldShortcut() {
 
 <Guideline title='Order suggestions by what Enter does'>
   <Guideline.Do>
-    Return filters first, then fields. The field adds "Search for …" above
-    them, and Enter takes it unless a suggestion is an exact match.
+    Return filters first, then fields. The field adds "Search for …", and
+    Enter takes it unless a suggestion is an exact match. Whichever Enter
+    takes leads the list.
   </Guideline.Do>
   <Guideline.Dont>
     Outside a value step, don't mark a filter `exact` to make Enter take it.
