@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
 import { Toolbar } from '.'
-import { IconButton } from '../Button'
+import { Button, IconButton } from '../Button'
 import { Menu } from '../Menu'
 import { Toggle } from '../Toggle'
 import { ToggleGroup } from '../ToggleGroup'
@@ -200,6 +200,19 @@ describe('Toolbar', () => {
       </Toolbar>
     )
     expect(screen.getByRole('button', { name: 'Undo' })).toHaveClass(
+      'emphasis-strong'
+    )
+  })
+
+  it('lets a link render element keep its own props', () => {
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Link href='/help' render={<Button emphasis='strong' />}>
+          Help
+        </Toolbar.Link>
+      </Toolbar>
+    )
+    expect(screen.getByRole('link', { name: 'Help' })).toHaveClass(
       'emphasis-strong'
     )
   })
