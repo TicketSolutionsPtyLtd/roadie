@@ -282,7 +282,7 @@ describe.each([
     await underCondition('is after')
     await userEvent.keyboard('25 dec')
     await expect
-      .poll(() => day('2026-12-25').hasAttribute('data-suggested'))
+      .poll(() => day('2026-12-25').hasAttribute('data-previewed'))
       .toBe(true)
     const background = (date: string) =>
       getComputedStyle(day(date)).backgroundColor
@@ -290,11 +290,26 @@ describe.each([
     expect(day('2026-12-25')).not.toHaveAttribute('data-selected')
   })
 
+  it('draws a typed range as one neutral band, not separate days', async () => {
+    await underCondition('is between')
+    await userEvent.keyboard('23 nov and 12 dec')
+    await expect
+      .poll(() => day('2026-11-25').hasAttribute('data-previewed'))
+      .toBe(true)
+    const cell = (date: string) =>
+      getComputedStyle(day(date).parentElement!).backgroundColor
+    // Middle days share the cell's band, so neighbours run together.
+    expect(cell('2026-11-25')).not.toBe('rgba(0, 0, 0, 0)')
+    expect(cell('2026-11-26')).toBe(cell('2026-11-25'))
+    expect(cell('2026-11-20')).toBe('rgba(0, 0, 0, 0)')
+    expect(day('2026-11-23')).not.toHaveAttribute('data-selected')
+  })
+
   it('lets a tinted day show its hover', async () => {
     await underCondition('is after')
     await userEvent.keyboard('25 dec')
     await expect
-      .poll(() => day('2026-12-25').hasAttribute('data-suggested'))
+      .poll(() => day('2026-12-25').hasAttribute('data-previewed'))
       .toBe(true)
     const background = () => getComputedStyle(day('2026-12-25')).backgroundColor
     const resting = background()

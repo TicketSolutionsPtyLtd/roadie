@@ -3,7 +3,6 @@
 import { memo, useRef, useState } from 'react'
 
 import type { RecordField, RecordFilter } from '@oztix/roadie-core/records'
-import { cn } from '@oztix/roadie-core/utils'
 
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { Calendar } from '../Calendar'
@@ -113,13 +112,9 @@ function DateCalendar({
     captionLayout: 'dropdown' as const,
     month,
     onMonthChange: setMonth,
-    modifiers: suggested && { suggested },
-    className: cn(
-      numberOfMonths > 1 ? 'w-full max-w-166' : 'w-full max-w-80',
-      // Not picked yet, so a neutral tint rather than the selected fill, as a
-      // day with content has, hover and press included.
-      '[&_[data-suggested]:not([data-selected])]:emphasis-subtle'
-    )
+    // Not picked yet, so a neutral band rather than the chosen fill.
+    previewRange: suggested,
+    className: numberOfMonths > 1 ? 'w-full max-w-166' : 'w-full max-w-80'
   }
   if (operator === 'between')
     return (

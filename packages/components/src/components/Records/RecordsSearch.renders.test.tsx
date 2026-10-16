@@ -54,7 +54,7 @@ it('leaves the calendar be while typing names the same day, as a month written o
   await screen.findByRole('grid')
   await user.keyboard('26 feb')
   expect(
-    document.querySelector('[data-suggested][data-date="2027-02-26"]')
+    document.querySelector('[data-previewed][data-date="2027-02-26"]')
   ).not.toBeNull()
   calendarRendered.mockClear()
   await user.keyboard('ruary')

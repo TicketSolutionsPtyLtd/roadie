@@ -80,6 +80,11 @@ type CalendarBaseProps = Omit<
    */
   modifiers?: Record<string, CalendarMatchers>
   /**
+   * Days to draw as a neutral band, shaped like a chosen range but not
+   * chosen, such as dates typed but not yet taken. One day for a single day.
+   */
+  previewRange?: { start: string; end: string } | null
+  /**
    * Months shown at once, side by side where they fit and stacked where
    * they don't. Paged only.
    *
@@ -328,6 +333,7 @@ export function Calendar(props: CalendarProps) {
     max,
     disabled,
     modifiers,
+    previewRange: previewDays,
     numberOfMonths: numberOfMonthsProp = 1,
     layout = 'paged',
     direction = 'horizontal',
@@ -1231,6 +1237,15 @@ export function Calendar(props: CalendarProps) {
             ? 'filled'
             : 'plain'
     const band = rangeMiddle && !tiles
+    // Under the chosen span, which wins where they overlap.
+    const shown =
+      !inSpan &&
+      !!previewDays &&
+      between(date, previewDays.start, previewDays.end)
+    const shownStart = shown && date === previewDays!.start
+    const shownEnd = shown && date === previewDays!.end
+    const shownBand = shown && !shownStart && !shownEnd && !tiles
+    const shownSpans = !!previewDays && previewDays.start !== previewDays.end
 
     const modifierAttributes = Object.fromEntries(
       Object.entries(modifiers ?? {})
@@ -1248,6 +1263,15 @@ export function Calendar(props: CalendarProps) {
           band && 'bg-subtle intent-accent',
           band && firstVisible && 'rounded-s-full',
           band && lastVisible && 'rounded-e-full',
+          shownBand && 'bg-subtle',
+          shownBand && firstVisible && 'rounded-s-full',
+          shownBand && lastVisible && 'rounded-e-full',
+          !tiles &&
+            shownSpans &&
+            ((shownStart && !lastVisible) || (shownEnd && !firstVisible)) &&
+            "before:absolute before:inset-y-0 before:w-1/2 before:bg-subtle before:content-['']",
+          shownStart && 'before:end-0',
+          shownEnd && 'before:start-0',
           !tiles &&
             multiDay &&
             ((rangeStart && !lastVisible) || (rangeEnd && !firstVisible)) &&
@@ -1265,6 +1289,7 @@ export function Calendar(props: CalendarProps) {
           data-range-middle={rangeMiddle ? '' : undefined}
           data-range-end={rangeEnd ? '' : undefined}
           data-range-preview={previewing ? '' : undefined}
+          data-previewed={shown ? '' : undefined}
           data-today={isToday ? '' : undefined}
           data-outside={outside ? '' : undefined}
           data-disabled={isDisabled ? '' : undefined}
@@ -1285,7 +1310,8 @@ export function Calendar(props: CalendarProps) {
           className={cn(
             dayVariants({
               shape: weekView ? 'week' : tiles ? 'tile' : 'circle',
-              look,
+              look:
+                look === 'plain' && (shownStart || shownEnd) ? 'filled' : look,
               outside
             }),
             outOfRange && 'opacity-50',
