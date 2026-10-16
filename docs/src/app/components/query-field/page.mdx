@@ -126,7 +126,8 @@ takes `invalid`, `disabled` and `required` from it.
 ### With the value step
 
 Picking a field, such as Venue, starts the value step. Show a `pendingChip`
-and swap what `suggest` returns for that field's values. Taking a value adds
+and swap what `suggest` returns for that field's values. What you type sits
+inside the pending chip, after its label. Taking a value adds
 the chip and ends the step. Each of these calls `onPendingChipCancel` to go
 back:
 
@@ -583,7 +584,9 @@ function QueryFieldShortcut() {
   leaves the input as usual and ends the step.
 - The operators are a toggle group named "Operator". It takes the place of
   the first group's label, which screen readers still read.
-- Focus stays in the input as you press the pending chip's `content`. The
+- Focus stays in the input as you press the pending chip's `content`, except
+  on a native control such as a select, which takes focus to open and gives
+  it back once its value changes. The
   content is for pointer and touch, so offer what it picks as suggestions
   too, and a keyboard can type it.
 - A locked chip reads "set by this page" after its label, and a chip's

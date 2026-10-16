@@ -205,6 +205,19 @@ describe.each([
     )
   })
 
+  it('jumps months from the caption’s select, keeping the dropdown open', async () => {
+    await underCondition('is')
+    const month = popup()!.querySelector('select')!
+    await userEvent.selectOptions(month, 'December')
+    await expect.poll(() => day('2026-12-10')).toBeTruthy()
+    expect(popup()).not.toBeNull()
+    expect(searchInput()).toHaveFocus()
+    await userEvent.click(day('2026-12-10'))
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('Starts is on Thu 10 Dec')
+  })
+
   it('adds “is on” for a clicked day and closes the dropdown', async () => {
     await underCondition('is')
     await userEvent.click(day('2026-10-22'))

@@ -105,6 +105,7 @@ function DateCalendar({
     timeZone,
     today,
     numberOfMonths,
+    captionLayout: 'dropdown' as const,
     // On the chip's month, even under a condition that can't mark its dates.
     defaultMonth: picked?.start,
     className: numberOfMonths > 1 ? 'w-full max-w-166' : 'w-full max-w-80'

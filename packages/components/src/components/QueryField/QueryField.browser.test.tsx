@@ -287,6 +287,7 @@ describe('QueryField', () => {
     )!
     expect(getComputedStyle(pending).borderStyle).toBe('dashed')
     expect(box(pending).height).toBe(24)
+    expect(pending.contains(input())).toBe(true)
   })
 
   it("shows a chip's description on hover", async () => {

@@ -1670,10 +1670,10 @@ describe('QueryField operators, edge keys', () => {
   it('announces a change of operator', async () => {
     render(<OperatorStep />)
     await userEvent.click(input())
-    const pendingChip = document.querySelector(
-      '[data-slot=query-field-pending-chip]'
+    const label = document.getElementById(
+      input().getAttribute('aria-describedby')!.split(' ').at(-1)!
     )
-    expect(pendingChip).toHaveAttribute('aria-live', 'polite')
+    expect(label).toHaveAttribute('aria-live', 'polite')
   })
 
   it('takes nothing on Enter after an arrowed highlight is cycled away', async () => {

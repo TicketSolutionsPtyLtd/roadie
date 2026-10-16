@@ -124,9 +124,7 @@ const EMPTY_TEXT =
 // Centred on the first line of 24px chips, so wrapped rows grow below it.
 const FIRST_ROW = 'self-start mt-[calc(var(--combobox-chips-py)+--spacing(1))]'
 
-// A chip leaves the input a few characters and the gap beside it, so the input
-// wraps to a row of its own only after a chip that doesn't truncate.
-const INPUT_WIDTH = '*:data-[slot=combobox-input]:min-w-8'
+const FORM_CONTROL = 'select, input, textarea'
 const CHIP_WIDTH = 'max-w-[calc(100%-var(--spacing)*9)]'
 
 // Kind and id together, so a suggestion reusing a built-in row's id stays apart.
@@ -532,6 +530,32 @@ export function QueryField<Value = unknown>({
   const showShortcut =
     ownsShortcut && !text && ordered.length === 0 && !pendingChip
 
+  const inChip = !!pendingChip && !edited
+  const input = (
+    <Combobox.Input
+      ref={inputRefs}
+      aria-label={ariaLabel}
+      aria-invalid={isInvalid || undefined}
+      aria-required={isRequired || undefined}
+      aria-keyshortcuts={
+        [
+          ownsShortcut && shortcut,
+          operatorOnTab(1) && 'Tab',
+          operatorOnTab(-1) && 'Shift+Tab'
+        ]
+          .filter(Boolean)
+          .join(' ') || undefined
+      }
+      {...(describedBy && { 'aria-describedby': describedBy })}
+      placeholder={ordered.length > 0 || pendingChip ? '' : placeholder}
+      // In the step's chip, as wide as what's typed, so the chip hugs it.
+      // Otherwise a chip leaves it a few characters and the gap beside it, so
+      // it wraps to a row of its own only after a chip that doesn't truncate.
+      className={cn('min-w-8', inChip && 'field-sizing-content')}
+      onKeyDown={handleInputKeyDown}
+    />
+  )
+
   return (
     <Combobox
       multiple
@@ -595,10 +619,7 @@ export function QueryField<Value = unknown>({
           weight='bold'
           className={cn('size-4 shrink-0 text-subtle', FIRST_ROW)}
         />
-        <Combobox.Chips
-          aria-label={ordered.length > 0 ? 'Filters' : undefined}
-          className={INPUT_WIDTH}
-        >
+        <Combobox.Chips aria-label={ordered.length > 0 ? 'Filters' : undefined}>
           {ordered.map((chip) => {
             const tooltip = chip.locked ? (
               <span className='grid'>
@@ -681,41 +702,34 @@ export function QueryField<Value = unknown>({
               </Fragment>
             )
           })}
-          {pendingChip && (
-            <span
-              id={pendingId}
-              // The edited chip shows the step; its label still describes the input.
-              data-slot={edited ? undefined : 'query-field-pending-chip'}
-              // A description's change isn't read, so the operator's is live.
-              aria-live='polite'
-              className={cn(
-                edited
-                  ? 'sr-only'
-                  : 'inline-flex h-6 min-w-0 items-center rounded-full border border-dashed border-normal px-2.5 text-sm font-medium text-subtle',
-                !edited && CHIP_WIDTH
-              )}
-            >
-              <span className='min-w-0 truncate'>{pendingChip.label}</span>
+          {pendingChip && edited && (
+            <span id={pendingId} aria-live='polite' className='sr-only'>
+              {pendingChip.label}
             </span>
           )}
-          <Combobox.Input
-            ref={inputRefs}
-            aria-label={ariaLabel}
-            aria-invalid={isInvalid || undefined}
-            aria-required={isRequired || undefined}
-            aria-keyshortcuts={
-              [
-                ownsShortcut && shortcut,
-                operatorOnTab(1) && 'Tab',
-                operatorOnTab(-1) && 'Shift+Tab'
-              ]
-                .filter(Boolean)
-                .join(' ') || undefined
-            }
-            {...(describedBy && { 'aria-describedby': describedBy })}
-            placeholder={ordered.length > 0 || pendingChip ? '' : placeholder}
-            onKeyDown={handleInputKeyDown}
-          />
+          {/* Always rendered, so the input never remounts and keeps focus as a
+              step starts. What's typed sits inside the step's chip. */}
+          <span
+            data-slot={inChip ? 'query-field-pending-chip' : undefined}
+            className={cn(
+              inChip
+                ? 'flex h-6 max-w-full min-w-0 items-center gap-1 rounded-full border border-dashed border-normal ps-2.5 pe-2'
+                : 'contents',
+              inChip && CHIP_WIDTH
+            )}
+          >
+            {inChip && (
+              <span
+                id={pendingId}
+                // A description's change isn't read, so the operator's is live.
+                aria-live='polite'
+                className='min-w-0 truncate text-sm font-medium text-subtle'
+              >
+                {pendingChip.label}
+              </span>
+            )}
+            {input}
+          </span>
         </Combobox.Chips>
         {showShortcut && (
           <Kbd
@@ -868,8 +882,13 @@ export function QueryField<Value = unknown>({
             {hasContent && (
               <div
                 data-slot='query-field-content'
-                // Focus stays in the input, as it does for the operators.
-                onMouseDown={(event) => event.preventDefault()}
+                // Focus stays in the input, as it does for the operators, but
+                // a native control such as a month select needs it to open.
+                onMouseDown={(event) => {
+                  if (!(event.target as Element).closest(FORM_CONTROL))
+                    event.preventDefault()
+                }}
+                onChange={() => inputRef.current?.focus()}
                 // A press that ends the step closes the list, as a take does.
                 onClick={() => setTakenIn(step)}
                 className='grid p-1'
