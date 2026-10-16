@@ -277,6 +277,25 @@ describe('QueryField', () => {
     expect(input()).toHaveValue('igua')
   })
 
+  it.each([
+    ['a list of its own', suggestFor],
+    ['no list of its own', (text: string) => (text ? [] : suggestFor(text))]
+  ])(
+    'highlights nothing once typed text is deleted, with %s',
+    async (_, suggest) => {
+      const onAccept = vi.fn()
+      render(<Harness suggest={suggest} onAccept={onAccept} />)
+      await typeInto('v')
+      await waitFor(() => expect(hinted()).toEqual(['Search for “v”']))
+      await userEvent.keyboard('{Backspace}')
+      await screen.findByRole('option', { name: 'Venue' })
+      expect(input()).not.toHaveAttribute('aria-activedescendant')
+      expect(hinted()).toEqual([])
+      await userEvent.keyboard('{Enter}')
+      expect(onAccept).not.toHaveBeenCalled()
+    }
+  )
+
   it('highlights only the row Enter takes while typing', async () => {
     render(<Harness />)
     await typeInto('long')

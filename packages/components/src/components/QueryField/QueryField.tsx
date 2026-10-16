@@ -392,7 +392,9 @@ export function QueryField<Value = unknown>({
   const items = list.flatMap((group) => group.items)
   // Held through the render that still lists the last text's suggestions, or
   // each key typed in a value step would drop the highlight and set it again.
-  const settled = current || suggestions.loading
+  // Not once the text is deleted: Base UI reads the mode a microtask later, so
+  // a held 'always' would highlight a row Enter doesn't take.
+  const settled = current || suggestions.loading || !text.trim()
   const [defaulted, setDefaulted] = useState(false)
   if (settled && defaulted !== !!enterDefault) {
     setDefaulted(!!enterDefault)
@@ -663,9 +665,11 @@ export function QueryField<Value = unknown>({
         if (details.index === last.index && key === last.key) return
         // A row moved to that newer suggestions replace goes back to the
         // default, which Base UI would leave on whatever row took its place.
+        // So does the top row once there's no default, as when the list
+        // closes and reopens on other rows, which Base UI keeps its index for.
         if (
           details.reason === 'none' &&
-          details.index > 0 &&
+          (details.index > 0 || !highlightsDefault) &&
           details.index === last.index
         )
           dropHighlight()
