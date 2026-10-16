@@ -72,6 +72,33 @@ describe('Toolbar layout', () => {
     expect(toolbar.right - redo.getBoundingClientRect().right).toBeLessThan(16)
   })
 
+  it('keeps one height at every emphasis, so changing it never shifts the page', () => {
+    const emphases = [
+      'normal',
+      'subtle',
+      'subtler',
+      'raised',
+      'floating'
+    ] as const
+    render(
+      <>
+        {emphases.map((emphasis) => (
+          <Toolbar key={emphasis} aria-label={emphasis} emphasis={emphasis}>
+            <Toolbar.Button>Undo</Toolbar.Button>
+          </Toolbar>
+        ))}
+      </>
+    )
+    const heights = emphases.map(
+      (emphasis) =>
+        screen
+          .getByRole('toolbar', { name: emphasis })
+          .closest('[data-slot="toolbar-surface"]')!
+          .getBoundingClientRect().height
+    )
+    expect(new Set(heights).size).toBe(1)
+  })
+
   it('wraps the items of a group inside a narrow container', () => {
     render(
       <div style={{ width: 320 }}>

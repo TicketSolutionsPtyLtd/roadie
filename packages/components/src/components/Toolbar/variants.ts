@@ -6,7 +6,8 @@ export const toolbarSurfaceVariants = cva('w-fit max-w-full rounded-3xl', {
     emphasis: {
       normal: 'emphasis-normal',
       subtle: 'emphasis-subtle',
-      subtler: '',
+      // Each has a border, seen or not, so every emphasis is one size.
+      subtler: 'border border-transparent',
       raised: 'emphasis-raised is-translucent border',
       floating: 'emphasis-floating is-translucent border'
     }
