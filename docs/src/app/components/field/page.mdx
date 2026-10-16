@@ -176,4 +176,17 @@ element. Reach for it when building a control `Field.Input` doesn't cover.
 | `aria-required` | `boolean \| undefined` | The field's `required` state. |
 | `aria-describedby` | `string \| undefined` | The error text's id when invalid, otherwise the helper text's id. |
 
+### useFieldControlError
+
+```tsx
+function useFieldControlError(message: string | null): void
+```
+
+Shows a control's own error in `Field.ErrorText` while the control is
+mounted, such as a date it can't read or a file it couldn't upload. Pass
+`null` once the problem is fixed. The control's message wins over the
+error text's children, and shows even when the field isn't `invalid`. With
+several controls in one field, the first to mount shows its error first.
+Outside a `Field` it does nothing. It returns nothing.
+
 <PropsDefinitions component='Field' />
