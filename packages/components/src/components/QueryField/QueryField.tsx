@@ -74,6 +74,12 @@ export type QueryFieldProps<Value = unknown> = {
   onPendingOperatorChange?: (operator: string) => void
   /** While a chip is pending: Backspace on an empty field, Escape, Tab out of the input, or, while a chip is edited, Enter on the text the step started with or with no new value to take. */
   onPendingChipCancel?: () => void
+  /**
+   * Backspace on an empty field while a chip is pending, in place of
+   * removing the edited chip and `onPendingChipCancel`, such as to bring back
+   * text the step set aside.
+   */
+  onPendingChipBackspace?: () => void
   /** The typed text, searched as it changes. Controlled. */
   inputValue?: string
   /** The typed text to start with. Uncontrolled. */
@@ -182,6 +188,7 @@ export function QueryField<Value = unknown>({
   pendingChip,
   onPendingOperatorChange,
   onPendingChipCancel,
+  onPendingChipBackspace,
   inputValue,
   defaultInputValue = '',
   onInputValueChange,
@@ -525,6 +532,12 @@ export function QueryField<Value = unknown>({
     }
     if (event.key === 'Backspace' && event.currentTarget.value === '') {
       event.preventBaseUIHandler()
+      if (pendingChip && onPendingChipBackspace) {
+        // Or the text it may bring back loses a character.
+        event.preventDefault()
+        onPendingChipBackspace()
+        return
+      }
       if (pendingChip) {
         if (edited && !edited.locked) onRemoveChip?.(edited.id)
         onPendingChipCancel?.()

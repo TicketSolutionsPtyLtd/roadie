@@ -337,9 +337,10 @@ unticked. For a chip that holds one value, such as typed text or a date, end the
 `onAccept`, and the list closes. Enter on typed text takes the first value that isn't ticked, so only
 an arrow or a click unticks one.
 
-Backspace in the empty field removes the chip. Escape, Enter on the text the
-step started with or with no new value to take, or focus leaving the field ends
-the step and keeps the chip.
+Backspace in the empty field removes the chip. Pass `onPendingChipBackspace`
+to do something else, such as bring back text the step set aside. Escape,
+Enter on the text the step started with or with no new value to take, or focus
+leaving the field ends the step and keeps the chip.
 Enter keeps the step while typed text matches no value, so the hint stays.
 
 ```tsx-live

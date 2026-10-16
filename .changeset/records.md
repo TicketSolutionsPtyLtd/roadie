@@ -112,7 +112,9 @@ is empty or is not empty, replaces what the chip holds. Every chip but an
 option chip holds one value, so taking one ends the edit and closes the list.
 Everything but an
 option chip's operator waits for Enter, so Tab passing through is empty keeps
-the values. Backspace in the empty field removes the chip, and Escape, Enter
+the values. Text typed before is empty or is not empty is set aside, and
+Backspace in the empty field brings it back under the operator it was typed
+under. Otherwise Backspace in the empty field removes the chip, and Escape, Enter
 with no new value to take, or leaving the field keeps it and ends the edit. A
 date chip opens on its operator, with the calendar on its month and its day or
 range marked. Typing a date moves the calendar to its month. The calendar

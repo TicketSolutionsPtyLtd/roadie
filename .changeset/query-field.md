@@ -57,7 +57,9 @@ To edit a chip in the list, answer `onSelectChip` with a value step whose
 the text the step starts with is selected so typing replaces it, focus stays
 in the input, and taking a value keeps the list open. Ending the step in `onAccept`, as for a chip that holds one value,
 closes it. A suggestion marked `selected` is ticked, and Enter on typed text passes
-over it. Backspace in the empty field removes the edited chip. Escape, Enter
+over it. Backspace in the empty field removes the edited chip, or with
+`onPendingChipBackspace`, calls it instead, such as to bring back text the
+step set aside. Escape, Enter
 on the text the step started with or with no new value to take, or focus
 leaving the field ends the step and keeps the chip. Enter keeps the step while typed text matches no value, so the hint
 stays.

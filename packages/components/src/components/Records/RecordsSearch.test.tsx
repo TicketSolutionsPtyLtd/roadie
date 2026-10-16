@@ -1376,6 +1376,32 @@ describe('Records.Search', () => {
       ])
     })
 
+    it('brings text set aside under is empty back with Backspace, keeping the chip', async () => {
+      const sold: RecordFilter = {
+        field: 'sold',
+        operator: 'between',
+        value: [20, 50]
+      }
+      const { user, onViewChange } = setup({
+        defaultView: { query: { filters: [sold] } }
+      })
+      await selectChip(user, 'Sold is 20 to 50')
+      expect(input()).toHaveValue('20 and 50')
+      await user.tab()
+      expect(
+        screen.getByRole('button', { name: 'is empty', pressed: true })
+      ).toBeInTheDocument()
+      expect(input()).toHaveValue('')
+      const views = onViewChange.mock.calls.length
+      await user.keyboard('{Backspace}')
+      expect(input()).toHaveValue('20 and 50')
+      expect(
+        screen.getByRole('button', { name: 'is between', pressed: true })
+      ).toBeInTheDocument()
+      expect(onViewChange).toHaveBeenCalledTimes(views)
+      expect(chip('Sold is 20 to 50')).toHaveAttribute('data-selected')
+    })
+
     it('prefills a number chip’s range, and Enter updates it', async () => {
       const { user, lastView } = setup({
         defaultView: {

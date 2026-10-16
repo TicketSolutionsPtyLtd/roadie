@@ -165,8 +165,12 @@ export function RecordsSearch({
   const [pending, setPending] = useState<string | null>(null)
   const [pendingOperator, setPendingOperator] = useState<ValueOperator>('is')
   const [stepText, setStepText] = useState('')
-  // Set aside under is empty, which takes no value, and back once Tab moves on.
-  const [heldText, setHeldText] = useState('')
+  // Set aside under is empty, which takes no value, and back once Tab moves
+  // on or Backspace goes back to the operator it was typed under.
+  const [held, setHeld] = useState<{
+    text: string
+    operator: ValueOperator
+  } | null>(null)
   const [selected, setSelected] = useState<Selected | null>(null)
   const onFocusChange = use(SearchFocusContext)
   useEffect(() => whenIdle(RecordsDateCalendarLazy.preload), [])
@@ -238,7 +242,7 @@ export function RecordsSearch({
     setSelected(null)
     setPending(null)
     setStepText('')
-    setHeldText('')
+    setHeld(null)
   }
 
   const selectedAt = selected
@@ -258,7 +262,7 @@ export function RecordsSearch({
     setPending(field.key)
     setPendingOperator(stepOperator(field, filter.operator))
     setStepText(valueText(field, filter, context))
-    setHeldText('')
+    setHeld(null)
   }
 
   function writeSelected(next: RecordFilter | null) {
@@ -409,11 +413,11 @@ export function RecordsSearch({
         const operator = stepOperator(pendingField, chosen)
         setPendingOperator(operator)
         if (isEmptiness(operator)) {
-          if (stepText) setHeldText(stepText)
+          if (stepText) setHeld({ text: stepText, operator: pendingOperator })
           setStepText('')
-        } else if (heldText) {
-          if (!stepText) setStepText(heldText)
-          setHeldText('')
+        } else if (held) {
+          if (!stepText) setStepText(held.text)
+          setHeld(null)
         }
         // An option chip keeps its values under the new condition. Typed
         // text, numbers, and emptiness wait for Enter, so a Tab passing
@@ -430,6 +434,16 @@ export function RecordsSearch({
           })
       }}
       onPendingChipCancel={endStep}
+      onPendingChipBackspace={() => {
+        if (held) {
+          setPendingOperator(held.operator)
+          setStepText(held.text)
+          setHeld(null)
+          return
+        }
+        if (selectedAt !== null) records.removeFilter(selectedAt)
+        endStep()
+      }}
       inputValue={pendingField ? stepText : records.searchText}
       onInputValueChange={(text) => {
         if (!pendingField) {
@@ -442,7 +456,7 @@ export function RecordsSearch({
             ? stepOperator(pendingField, '')
             : pendingOperator
         setPendingOperator(operator)
-        setHeldText('')
+        setHeld(null)
         setStepText(withAnd(pendingField, stepText, text, operator, context))
       }}
       suggest={(text) =>
