@@ -3,10 +3,12 @@
 import { type RefAttributes, useMemo } from 'react'
 
 import { Toolbar as ToolbarPrimitive } from '@base-ui/react/toolbar'
+import type { VariantProps } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 import { ToolbarContext, type ToolbarSize } from './ToolbarContext'
+import { toolbarVariants } from './variants'
 
 export type ToolbarRootProps = ToolbarPrimitive.Root.Props &
   RefAttributes<HTMLDivElement> & {
@@ -17,11 +19,19 @@ export type ToolbarRootProps = ToolbarPrimitive.Root.Props &
      * @default 'md'
      */
     size?: ToolbarSize
+    /**
+     * The surface behind the toolbar. `subtler` has none, for a toolbar
+     * inside another surface. The buttons stay at `subtler` on every one.
+     *
+     * @default 'normal'
+     */
+    emphasis?: VariantProps<typeof toolbarVariants>['emphasis']
   }
 
 export function ToolbarRoot({
   className,
   size = 'md',
+  emphasis,
   ...props
 }: ToolbarRootProps) {
   const contextValue = useMemo(() => ({ size }), [size])
@@ -29,11 +39,7 @@ export function ToolbarRoot({
     <ToolbarContext value={contextValue}>
       <ToolbarPrimitive.Root
         data-slot='toolbar'
-        className={cn(
-          'flex min-w-0 flex-wrap items-center gap-1',
-          'data-[orientation=vertical]:w-fit data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:w-auto',
-          className
-        )}
+        className={cn(toolbarVariants({ emphasis }), className)}
         {...props}
       />
     </ToolbarContext>

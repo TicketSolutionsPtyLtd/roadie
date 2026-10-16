@@ -176,6 +176,24 @@ describe('Toolbar', () => {
     )
   })
 
+  it('sits in a normal surface by default', () => {
+    render(<Formatting />)
+    expect(screen.getByRole('toolbar')).toHaveClass('emphasis-normal')
+  })
+
+  it.each(['subtle', 'raised', 'floating'] as const)(
+    'takes the %s surface',
+    (emphasis) => {
+      render(<Toolbar aria-label='Formatting' emphasis={emphasis} />)
+      expect(screen.getByRole('toolbar')).toHaveClass(`emphasis-${emphasis}`)
+    }
+  )
+
+  it('has no surface at emphasis subtler', () => {
+    render(<Toolbar aria-label='Formatting' emphasis='subtler' />)
+    expect(screen.getByRole('toolbar').className).not.toMatch(/emphasis-/)
+  })
+
   it('renders its parts as Roadie buttons at emphasis subtler', () => {
     render(
       <Toolbar aria-label='Editing'>
