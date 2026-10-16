@@ -1590,6 +1590,103 @@ describe('Records.Search', () => {
       expect(input()).toHaveFocus()
     })
 
+    it('moves a date chip to another condition as its marked day is picked again', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'starts', operator: 'before', value: '2026-12-01' }
+            ]
+          }
+        }
+      })
+      await selectChip(user, chipLabels()[0]!)
+      await user.click(screen.getByRole('button', { name: 'is after' }))
+      const calendar = await screen.findByRole('grid')
+      await user.click(
+        calendar.querySelector<HTMLElement>(
+          'button[data-date="2026-12-01"]:not([data-outside])'
+        )!
+      )
+      expect(lastView().query.filters).toEqual([
+        { field: 'starts', operator: 'after', value: '2026-12-01' }
+      ])
+    })
+
+    it('marks the day a chip’s time falls on where the records are', async () => {
+      const { user } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'starts', operator: 'on', value: '2026-11-30T14:00:00Z' }
+            ]
+          }
+        }
+      })
+      await selectChip(user, chipLabels()[0]!)
+      const calendar = await screen.findByRole('grid')
+      expect(
+        within(calendar).getByRole('gridcell', { selected: true })
+      ).toHaveTextContent('1')
+    })
+
+    it('drops a between chip’s range from the calendar under is, and picks one day', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              {
+                field: 'starts',
+                operator: 'between',
+                value: ['2026-12-01', '2026-12-04']
+              }
+            ]
+          }
+        }
+      })
+      await selectChip(user, chipLabels()[0]!)
+      await screen.findByRole('grid')
+      await user.click(screen.getByRole('button', { name: 'is' }))
+      const calendar = screen.getByRole('grid')
+      expect(
+        within(calendar).queryAllByRole('gridcell', { selected: true })
+      ).toEqual([])
+      await user.click(
+        calendar.querySelector<HTMLElement>(
+          'button[data-date="2026-12-10"]:not([data-outside])'
+        )!
+      )
+      expect(lastView().query.filters).toEqual([
+        { field: 'starts', operator: 'on', value: '2026-12-10' }
+      ])
+    })
+
+    it('opens a between chip on is between, its range marked', async () => {
+      const { user } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              {
+                field: 'starts',
+                operator: 'between',
+                value: ['2026-12-01', '2026-12-04']
+              }
+            ]
+          }
+        }
+      })
+      await selectChip(user, chipLabels()[0]!)
+      expect(
+        screen.getByRole('button', { name: 'is between', pressed: true })
+      ).toBeInTheDocument()
+      const calendar = await screen.findByRole('grid')
+      expect(
+        within(calendar)
+          .getAllByRole('gridcell', { selected: true })
+          .map((cell) => cell.textContent)
+      ).toEqual(['1', '2', '3', '4'])
+    })
+
     it('ticks a boolean chip’s answer, and taking the other replaces it and ends the edit', async () => {
       type Featured = TestShow & { featured: boolean }
       const featuredField = recordFields<Featured>().boolean('featured', {

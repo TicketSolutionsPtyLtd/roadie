@@ -65,6 +65,8 @@ export function RecordsDateCalendar({
   const shared = {
     timeZone,
     today,
+    // On the chip's month, even under a condition that can't mark its dates.
+    defaultMonth: picked?.start,
     className: 'w-full max-w-80'
   }
   if (operator === 'between')
