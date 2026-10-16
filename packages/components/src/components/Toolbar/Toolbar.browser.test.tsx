@@ -278,6 +278,44 @@ describe('Toolbar on a phone', () => {
     expect(viewport.getBoundingClientRect().width).toBeLessThanOrEqual(320)
   })
 
+  it('scrolls its row to a focused item without scrolling the page', async () => {
+    render(
+      <>
+        <div style={{ height: 2000 }} />
+        <div style={{ width: 320 }}>
+          <Toolbar aria-label='Formatting'>
+            {ACTIONS.map((action) => (
+              <Toolbar.Button key={action}>{action}</Toolbar.Button>
+            ))}
+          </Toolbar>
+        </div>
+        <div style={{ height: 2000 }} />
+      </>
+    )
+    const toolbar = screen.getByRole('toolbar')
+    // Half the toolbar below the fold.
+    window.scrollTo(
+      0,
+      toolbar.getBoundingClientRect().top +
+        window.scrollY -
+        window.innerHeight +
+        toolbar.getBoundingClientRect().height / 2
+    )
+    const before = window.scrollY
+    const last = screen.getByRole('button', { name: ACTIONS.at(-1) })
+    const viewport = toolbar.closest<HTMLElement>(
+      '[data-slot="scroll-area-viewport"]'
+    )!
+
+    last.focus({ preventScroll: true })
+
+    await expect
+      .poll(() => last.getBoundingClientRect().right)
+      .toBeLessThanOrEqual(viewport.getBoundingClientRect().right + 0.5)
+    expect(window.scrollY).toBe(before)
+    window.scrollTo(0, 0)
+  })
+
   it('scrolls the item the arrow keys reach clear of the faded edges', async () => {
     render(
       <div style={{ width: 320 }}>

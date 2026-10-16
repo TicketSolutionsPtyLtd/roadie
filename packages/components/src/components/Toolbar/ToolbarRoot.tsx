@@ -36,6 +36,21 @@ export type ToolbarRootProps = Omit<
     emphasis?: VariantProps<typeof toolbarSurfaceVariants>['emphasis']
   }
 
+// Sideways only, within the row: scrollIntoView would scroll the page too.
+function scrollRowTo(item: HTMLElement) {
+  const viewport = item.closest<HTMLElement>(
+    '[data-slot="scroll-area-viewport"]'
+  )
+  if (!viewport) return
+  const { left, right } = item.getBoundingClientRect()
+  const box = viewport.getBoundingClientRect()
+  const padding = getComputedStyle(viewport)
+  const start = box.left + parseFloat(padding.scrollPaddingLeft)
+  const end = box.right - parseFloat(padding.scrollPaddingRight)
+  if (left < start) viewport.scrollLeft -= start - left
+  else if (right > end) viewport.scrollLeft += right - end
+}
+
 export function ToolbarRoot({
   className,
   style,
@@ -66,13 +81,9 @@ export function ToolbarRoot({
               orientation={orientation}
               className={toolbarVariants({ orientation })}
               // Base UI scrolls the toolbar, not this viewport, and a native
-              // focus leaves a half-hidden item where it is. jsdom has no
-              // scrollIntoView.
+              // focus leaves a half-hidden item where it is.
               onFocus={(event) => {
-                event.target.scrollIntoView?.({
-                  block: 'nearest',
-                  inline: 'nearest'
-                })
+                scrollRowTo(event.target)
                 onFocus?.(event)
               }}
               {...props}
