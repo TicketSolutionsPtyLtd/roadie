@@ -1855,7 +1855,8 @@ describe('Records.Search', () => {
       expect(
         document.querySelector('[data-slot=query-field-pending-chip]')
       ).toBeNull()
-      expect(screen.queryByRole('listbox')).toBeNull()
+      // The list closes with Escape, after its exit animation.
+      await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
     })
 
     it('opens a between chip on is between, its range marked', async () => {
