@@ -566,9 +566,9 @@ function QueryFieldShortcut() {
   or the search for your text. In a value step, once you type, it's the first
   value. **Down Arrow** moves to the next row, and **Up Arrow** comes back.
   The input's `aria-activedescendant` points at the highlighted row, so screen
-  readers read it as the list changes.
+  readers read each row the highlight moves to.
 - With nothing for Enter to take, such as before you type in a value step, or
-  when the only match is already ticked, no row is highlighted and Enter does
+  when the only match is already ticked, no row is highlighted and Enter takes
   nothing. **Down Arrow** lands on the first row.
 - The highlighted row is filled and shows an Enter key hint. A touch screen
   shows the fill alone, unless `data-keyboard-hints='always'` keeps key hints,
