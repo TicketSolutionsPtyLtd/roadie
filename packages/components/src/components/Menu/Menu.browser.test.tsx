@@ -178,5 +178,9 @@ describe('Menu choice rows with shortcuts', () => {
       </Menu>
     )
     await expectAligned('menuitemcheckbox')
+    const rows = screen.getAllByRole('menuitemcheckbox')
+    await userEvent.click(rows[0]!)
+    await userEvent.click(rows[1]!)
+    await expect.poll(() => rows.map(checkShows)).toEqual([true, false, false])
   })
 })

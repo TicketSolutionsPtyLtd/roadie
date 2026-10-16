@@ -270,7 +270,7 @@ describe('Menu', () => {
     expect(view).toHaveAttribute('data-row', 'view')
   })
 
-  it('toggles a checkbox item and shows its check', async () => {
+  it('toggles a checkbox item', async () => {
     const user = userEvent.setup()
     const onCheckedChange = vi.fn()
     render(
@@ -291,9 +291,6 @@ describe('Menu', () => {
       name: 'Venue'
     })
     expect(venue).toHaveAttribute('aria-checked', 'true')
-    expect(
-      venue.querySelector('[data-slot="menu-item-indicator"] svg')
-    ).toBeInTheDocument()
     await user.click(venue)
     expect(onCheckedChange).toHaveBeenCalledWith(false, expect.anything())
     expect(venue).toHaveAttribute('aria-checked', 'false')
