@@ -372,7 +372,13 @@ export function RecordsSearch({
         pendingField
           ? {
               id: pendingField.key,
-              label: pendingLabel(pendingField, pendingOperator),
+              // An option chip's values stay in it as they're ticked.
+              label:
+                (pendingField.type === 'option' &&
+                  selectedFilter &&
+                  !isEmptiness(pendingOperator) &&
+                  chips.find((chip) => chip.id === chipId)?.label) ||
+                pendingLabel(pendingField, pendingOperator),
               operators: valueOperators(pendingField),
               operator: pendingOperator,
               hint:

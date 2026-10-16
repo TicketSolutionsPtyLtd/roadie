@@ -233,6 +233,27 @@ describe('Records.Search', () => {
     await waitFor(() => expect(ticked()).toEqual(['Hobart', 'Perth']))
   })
 
+  it('keeps an option chip’s values in its dashed chip while editing', async () => {
+    const { user } = setup({
+      defaultView: {
+        query: {
+          filters: [
+            { field: 'city', operator: 'is', values: ['Perth', 'Hobart'] }
+          ]
+        }
+      }
+    })
+    await selectChip(user, 'City is Perth or Hobart')
+    expect(input()).toHaveValue('')
+    expect(input()).toHaveAccessibleDescription('City is Perth or Hobart')
+    await user.click(await option('Hobart'))
+    await waitFor(() =>
+      expect(input()).toHaveAccessibleDescription('City is Perth')
+    )
+    await user.click(screen.getByRole('button', { name: 'is empty' }))
+    expect(input()).toHaveAccessibleDescription('City is empty')
+  })
+
   it('says a typed value is already in the chip when it’s the only match', async () => {
     const { user } = setup({
       defaultView: {
