@@ -54,7 +54,7 @@ Each part renders a Roadie component you already know. `Toolbar.Button` is a `Bu
 
 ### States
 
-A disabled button stays in the arrow order, so a keyboard user still finds it. `disabled` on `Toolbar.Group` or on the toolbar disables everything inside it.
+A disabled button stays in the arrow order, so a keyboard user still finds it. `disabled` on `Toolbar.Group` or on the toolbar disables every `Toolbar.Button` and `ToggleGroup` inside it. A `Toolbar.Link` stays active, so remove it when it shouldn't be followed.
 
 ```tsx-live layout=stack
 {/* One button disabled */}

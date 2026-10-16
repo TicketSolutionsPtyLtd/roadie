@@ -88,6 +88,22 @@ describe('Toolbar layout', () => {
     )
   })
 
+  it('stacks a group in a vertical toolbar in a column', () => {
+    render(
+      <Toolbar aria-label='Formatting' orientation='vertical'>
+        <Toolbar.Group aria-label='Text style'>
+          <Toolbar.Button>Bold</Toolbar.Button>
+          <Toolbar.Button>Italic</Toolbar.Button>
+        </Toolbar.Group>
+      </Toolbar>
+    )
+    const bold = screen.getByRole('button', { name: 'Bold' })
+    const italic = screen.getByRole('button', { name: 'Italic' })
+    expect(italic.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      bold.getBoundingClientRect().bottom
+    )
+  })
+
   it.each(['sm', 'md', 'lg'] as const)(
     'sizes its buttons and links like a %s Button',
     (size) => {

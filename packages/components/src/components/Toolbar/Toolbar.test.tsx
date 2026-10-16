@@ -216,6 +216,20 @@ describe('Toolbar', () => {
     )
   })
 
+  it('opens an internal link in a new tab when external', () => {
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Link href='/events/preview' external>
+          Preview
+        </Toolbar.Link>
+      </Toolbar>
+    )
+    expect(screen.getByRole('link', { name: 'Preview' })).toHaveAttribute(
+      'target',
+      '_blank'
+    )
+  })
+
   it('opens a menu from a Toolbar.Button trigger in the arrow order', async () => {
     const user = userEvent.setup()
     render(

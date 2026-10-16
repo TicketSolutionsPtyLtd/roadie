@@ -8,7 +8,10 @@ import { Button } from '../Button'
 import { ToolbarContext } from './ToolbarContext'
 
 export type ToolbarLinkProps = ToolbarPrimitive.Link.Props &
-  RefAttributes<HTMLAnchorElement>
+  RefAttributes<HTMLAnchorElement> & {
+    /** Force external-link treatment when `href` is set. */
+    external?: boolean
+  }
 
 export function ToolbarLink({ render, ...props }: ToolbarLinkProps) {
   const { size } = use(ToolbarContext)
