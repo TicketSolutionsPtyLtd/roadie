@@ -2,12 +2,11 @@
 
 import { useRef, useState } from 'react'
 
-import { plainDateOf } from '@oztix/roadie-core/datetime'
 import type { RecordField, RecordFilter } from '@oztix/roadie-core/records'
 
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { Calendar } from '../Calendar'
-import type { CalendarOperator } from './searchSuggestions'
+import { type CalendarOperator, dayOf } from './searchSuggestions'
 
 type PickedDates = { start: string; end: string }
 
@@ -23,6 +22,8 @@ export type RecordsDateCalendarProps = {
   timeZone: string
   /** Today in `timeZone`, as the records read it. */
   today: string
+  /** The day typed text suggests, or a range's start: its month shows as it changes. */
+  suggested?: string
 }
 
 // Two of Calendar's months side by side: each at least 17.5rem, 1.5rem apart.
@@ -49,14 +50,6 @@ function useMonthsThatFit() {
   }, [])
   return [ref, months] as const
 }
-
-const OFFSET = /(?:Z|[+-]\d{2}:\d{2})$/
-
-/** The day a date or date-time falls on, where the records are. */
-const dayOf = (value: string, timeZone: string) =>
-  OFFSET.test(value)
-    ? plainDateOf(new Date(value), timeZone)
-    : value.slice(0, 10)
 
 function pickedDays(
   filter: RecordFilter | undefined,
@@ -98,16 +91,25 @@ function DateCalendar({
   onPick,
   timeZone,
   today,
+  suggested,
   numberOfMonths
 }: RecordsDateCalendarProps & { numberOfMonths: number }) {
   const picked = pickedDays(filter, timeZone)
+  // On the chip's month, even under a condition that can't mark its dates.
+  const [month, setMonth] = useState(suggested ?? picked?.start ?? today)
+  // Only a new suggestion moves it, so the month selects and arrows still do.
+  const [shownFor, setShownFor] = useState(suggested)
+  if (shownFor !== suggested) {
+    setShownFor(suggested)
+    if (suggested) setMonth(suggested)
+  }
   const shared = {
     timeZone,
     today,
     numberOfMonths,
     captionLayout: 'dropdown' as const,
-    // On the chip's month, even under a condition that can't mark its dates.
-    defaultMonth: picked?.start,
+    month,
+    onMonthChange: setMonth,
     className: numberOfMonths > 1 ? 'w-full max-w-166' : 'w-full max-w-80'
   }
   if (operator === 'between')

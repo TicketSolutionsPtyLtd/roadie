@@ -96,7 +96,8 @@ function Harness({
   )
 }
 
-const input = () => screen.getByRole('combobox', { name: 'Search orders' })
+const input = () =>
+  screen.getByRole<HTMLInputElement>('combobox', { name: 'Search orders' })
 const group = () => document.querySelector('[data-slot=query-field]')!
 const box = (element: Element) => element.getBoundingClientRect()
 const shown = (element: Element | null) =>
@@ -288,6 +289,59 @@ describe('QueryField', () => {
     expect(getComputedStyle(pending).borderStyle).toBe('dashed')
     expect(box(pending).height).toBe(24)
     expect(pending.contains(input())).toBe(true)
+  })
+
+  it('edits a chip in its place, as a pending chip holding its value selected', async () => {
+    function Editing() {
+      const [editing, setEditing] = useState<string>()
+      const [text, setText] = useState('')
+      const end = () => {
+        setEditing(undefined)
+        setText('')
+      }
+      return (
+        <Harness
+          width={900}
+          initialChips={chips.slice(1, 4)}
+          onSelectChip={(id) => {
+            setEditing(id)
+            setText('Perth')
+          }}
+          pendingChip={
+            editing
+              ? { id: editing, label: 'City is', chipId: editing }
+              : undefined
+          }
+          onPendingChipCancel={end}
+          inputValue={text}
+          onInputValueChange={setText}
+        />
+      )
+    }
+    render(<Editing />)
+    const chipNamed = (id: string) =>
+      document.querySelector(`[data-slot=combobox-chip][data-chip-id=${id}]`)!
+    await userEvent.click(screen.getByRole('button', { name: 'City is Perth' }))
+    const pending = document.querySelector(
+      '[data-slot=query-field-pending-chip]'
+    )!
+    expect(getComputedStyle(pending).borderStyle).toBe('dashed')
+    expect(pending).toHaveTextContent('City is')
+    expect(shown(chipNamed('city'))).toBe(false)
+    expect(box(pending).left).toBeGreaterThan(box(chipNamed('status')).right)
+    expect(box(pending).right).toBeLessThan(box(chipNamed('tier')).left)
+    expect(input()).toHaveFocus()
+    expect(input()).toHaveValue('Perth')
+    expect([input().selectionStart, input().selectionEnd]).toEqual([0, 5])
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}')
+    expect(input()).toHaveFocus()
+    await userEvent.keyboard('{End}{Backspace}')
+    expect(input()).toHaveValue('Pert')
+    await userEvent.keyboard('{Escape}')
+    expect(
+      document.querySelector('[data-slot=query-field-pending-chip]')
+    ).toBeNull()
+    expect(shown(chipNamed('city'))).toBe(true)
   })
 
   it("shows a chip's description on hover", async () => {

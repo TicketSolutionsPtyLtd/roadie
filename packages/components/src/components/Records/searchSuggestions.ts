@@ -203,8 +203,88 @@ export function pendingLabel(
   return `${field.label} ${operatorLabel(field, operator)}`
 }
 
-/** A text or number filter's value as typed, to edit it in the field: "20 and 50" for a range. */
-export function valueText(field: RecordField, filter: RecordFilter): string {
+const OFFSET = /(?:Z|[+-]\d{2}:\d{2})$/
+
+/** The day a date or date-time falls on, where the records are. */
+export const dayOf = (value: string, timeZone: string) =>
+  OFFSET.test(value)
+    ? plainDateOf(new Date(value), timeZone)
+    : value.slice(0, 10)
+
+const MONTH_WORDS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec'
+]
+
+function dayWords(day: string, withYear: boolean): string {
+  const [year, month, date] = day.split('-').map(Number) as [
+    number,
+    number,
+    number
+  ]
+  const words = `${date} ${MONTH_WORDS[month - 1]}`
+  return withYear ? `${words} ${year}` : words
+}
+
+/** Days as typed, such as "12 Nov to 15 Dec", with years only where they're needed to read back. */
+function daysText(start: string, end: string, context: SearchContext): string {
+  const write = (withYear: boolean) =>
+    start === end
+      ? dayWords(start, withYear)
+      : `${dayWords(start, withYear)} to ${dayWords(end, withYear)}`
+  const short = write(false)
+  return readDays(short, readOptions(context)).some(
+    (reading) => reading.start === start && reading.end === end
+  )
+    ? short
+    : write(true)
+}
+
+function dateText(
+  field: RecordField,
+  filter: RecordFilter,
+  context: SearchContext
+): string {
+  const day = (value: string) => dayOf(value, context.timeZone)
+  switch (filter.operator) {
+    case 'on':
+    case 'before':
+    case 'after':
+      return daysText(day(filter.value), day(filter.value), context)
+    case 'between': {
+      const [start, end] = filter.value
+      return typeof start === 'string' && typeof end === 'string'
+        ? daysText(day(start), day(end), context)
+        : ''
+    }
+    case 'within':
+      return describeRecordFilter(filter, [field], context).value
+    default:
+      return ''
+  }
+}
+
+/**
+ * A filter's value as typed, to edit it in the field: "20 and 50" for a
+ * number range, "12 Nov to 15 Dec" for dates, or a quick date's name. Each
+ * reads back as the filter under its operator. Options and booleans have none.
+ */
+export function valueText(
+  field: RecordField,
+  filter: RecordFilter,
+  context: SearchContext
+): string {
+  if (field.type === 'date') return dateText(field, filter, context)
   if (!isTyped(field)) return ''
   switch (filter.operator) {
     case 'contains':

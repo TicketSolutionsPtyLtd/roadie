@@ -416,20 +416,21 @@ Another option value taken under **is** joins that field's is chip, which matche
 
 #### Editing a chip
 
-Click a chip, or press Enter on it, to edit it in the list. The chip shows as selected, and focus stays in the field. The toggle shows the chip's operator, and the list ticks what the chip holds.
+Click a chip, or press Enter on it, to edit it in the list. It turns back into a dashed chip in its place, with its value in the field and selected, so typing replaces it. The toggle shows the chip's operator, and the list ticks what the chip holds.
 
 - **An option chip.** Take values to tick and untick them, and the list stays open for more. Unticking the last value removes the chip. Enter on typed text only ticks. Press **is**, **is not**, or **has all of** to change the condition and keep the values. A chip changed to **is** joins the field's is chip.
 - **A text or number chip.** Its value is in the field and its condition in the toggle, such as 20 and 50 under **between**. Change either, and Enter replaces the chip once the value reads and ends the edit.
-- **A boolean or date chip.** Yes, No, a quick date, or a day from the calendar replaces what the chip holds and ends the edit.
+- **A date chip.** Its dates are in the field, such as 12 Nov to 15 Dec under **is between**, or This week under **is relative**. Type others, or take a quick date or a day from the calendar, to replace them and end the edit.
+- **A boolean chip.** The field is empty. Yes or No replaces what the chip holds and ends the edit.
 - **Is empty or is not empty.** The row under either replaces what the chip holds, and ends the edit of any chip but an option chip. A chip that already reads is empty or is not empty opens with that row ticked.
 
-Only an option chip changes as you press an operator. Anything else waits for Enter, so pressing Tab past **is empty** keeps the chip's values. Backspace in the empty field removes the chip. Escape, Enter with no new value to take, or leaving the field ends the edit and keeps the chip.
+Only an option chip changes as you press an operator. Anything else waits for Enter, so pressing Tab past **is empty** keeps the chip's values. Backspace in the empty field removes the chip. Escape, Enter on the chip's value unchanged or with no new value to take, or leaving the field ends the edit and keeps the chip. While you edit, Left and Right move only within the text.
 
 #### Dates
 
 A date field starts on **is relative**, with its quick dates, such as Today, This week, and Next 7 days. Typing narrows them, and phrases like "rest of the month" read too.
 
-Under **is**, **is before**, or **is after**, the dropdown shows a calendar under the values. Click or tap a day to add the chip, such as "Start date is on Thu 22 Oct". Typing suggests days above the calendar, such as Fri for "fri", and Enter takes the first. Under **is between**, click two days for a range, or type one, such as "22 oct to 30 oct".
+Under **is**, **is before**, or **is after**, the dropdown shows a calendar under the values. Click or tap a day to add the chip, such as "Start date is on Thu 22 Oct". Typing suggests days above the calendar, such as Fri for "fri", and Enter takes the first. The calendar moves to the month of the first day, so "26 feb" shows February. Under **is between**, click two days for a range, or type one, such as "22 oct to 30 oct".
 
 The calendar stays in the dropdown at every screen size, as wide as the field. It shows two months side by side where they fit, and one on a phone, with a month and year select to jump further. Until you type, a hint says you can type a date instead. Dates are whole days, on a timestamp field too. Editing a date chip opens it on its operator, with the calendar on its month and its day or range marked. Picking another day changes the chip.
 
@@ -444,7 +445,7 @@ The calendar stays in the dropdown at every screen size, as wide as the field. I
 | Key            | What it does                                                                                                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `/`            | Focuses the search from anywhere on the page, except while you type in another field.                                                                                          |
-| Enter          | Takes the suggestion you moved to. With none, it takes an identifier the text matches, or searches the text. While you pick a value, it takes the first value once you type, or the one row under is empty or is not empty. While you edit a chip, with no new value to take, it ends the edit. |
+| Enter          | Takes the suggestion you moved to. With none, it takes an identifier the text matches, or searches the text. While you pick a value, it takes the first value once you type, or the one row under is empty or is not empty. While you edit a chip, with its value unchanged or no new value to take, it ends the edit. |
 | Tab, Shift+Tab | While a field's values show, moves to the next or previous operator. From the last operator, or the first, it leaves the input and ends picking a value or editing a chip. |
 | Backspace      | In the empty field, selects the last chip, and a second removes it. While you pick a value, it goes back to the fields, and while you edit a chip, it removes that chip.              |
 | Escape         | Ends picking a value or editing a chip, and keeps the chips, as leaving the field does. Otherwise it closes the suggestions, then clears the text.                              |

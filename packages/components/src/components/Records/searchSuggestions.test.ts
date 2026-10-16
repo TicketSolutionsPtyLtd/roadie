@@ -832,7 +832,72 @@ describe('valueText', () => {
     ['emptiness', { field: 'name', operator: 'is-set' }, ''],
     ['an option', { field: 'city', operator: 'is', values: ['perth'] }, '']
   ])('prefills %s as typed', (_, filter, text) => {
-    expect(valueText(byKey(filter.field), filter)).toBe(text)
+    expect(valueText(byKey(filter.field), filter, context())).toBe(text)
+  })
+
+  it.each<[string, RecordFilter, string]>([
+    [
+      'a day',
+      { field: 'starts', operator: 'on', value: '2026-10-22' },
+      '22 Oct'
+    ],
+    [
+      'a day last year',
+      { field: 'starts', operator: 'before', value: '2025-09-14' },
+      '14 Sep 2025'
+    ],
+    [
+      'a day next year',
+      { field: 'starts', operator: 'after', value: '2027-02-26' },
+      '26 Feb'
+    ],
+    [
+      'a range',
+      {
+        field: 'starts',
+        operator: 'between',
+        value: ['2026-11-12', '2026-12-15']
+      },
+      '12 Nov to 15 Dec'
+    ],
+    [
+      'a range across years',
+      {
+        field: 'starts',
+        operator: 'between',
+        value: ['2025-12-28', '2026-01-03']
+      },
+      '28 Dec 2025 to 3 Jan 2026'
+    ],
+    [
+      'a quick date',
+      { field: 'starts', operator: 'within', value: 'this-week' },
+      'This week'
+    ],
+    [
+      'a quick span',
+      {
+        field: 'starts',
+        operator: 'within',
+        value: { direction: 'next', amount: 30, unit: 'day' }
+      },
+      'Next 30 days'
+    ],
+    [
+      'upcoming',
+      { field: 'starts', operator: 'within', value: 'upcoming' },
+      'Upcoming'
+    ]
+  ])('prefills %s as text that reads back to it', (_, filter, text) => {
+    const starts = byKey('starts')
+    const typed = valueText(starts, filter, context())
+    expect(typed).toBe(text)
+    const operator = stepOperator(starts, filter.operator)
+    expect(
+      valueSuggestions(starts, typed, context(), operator, filter)
+        .flatMap((group) => group.items)
+        .filter((item) => item.selected)
+    ).toHaveLength(1)
   })
 })
 

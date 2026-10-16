@@ -60,6 +60,23 @@ type Selected = {
   written: RecordFilter[]
 }
 
+/** The first day typed text suggests, or its range's start. */
+function suggestedDay(groups: readonly SearchGroup[]): string | undefined {
+  for (const { value } of groups.flatMap((group) => group.items)) {
+    if (value.type !== 'filter') continue
+    const { filter } = value
+    if (filter.operator === 'between' && typeof filter.value[0] === 'string')
+      return filter.value[0]
+    if (
+      filter.operator === 'on' ||
+      filter.operator === 'before' ||
+      filter.operator === 'after'
+    )
+      return filter.value
+  }
+  return undefined
+}
+
 /** Where a filter, as written, sits now: at its index, or moved. */
 function locate(
   filters: readonly RecordFilter[],
@@ -232,7 +249,7 @@ export function RecordsSearch({
     setSelected({ index, written: [filter] })
     setPending(field.key)
     setPendingOperator(stepOperator(field, filter.operator))
-    setStepText(valueText(field, filter))
+    setStepText(valueText(field, filter, context))
   }
 
   function writeSelected(next: RecordFilter | null) {
@@ -327,6 +344,8 @@ export function RecordsSearch({
   const chipId = selectedAt === null ? undefined : chipIds[selectedAt]
   const picking =
     pendingField && calendarOperator(pendingField, pendingOperator)
+  const suggested =
+    picking && stepText.trim() ? suggestedDay(stepValues(stepText)) : undefined
   const content = (
     <QueryField<SearchValue>
       aria-label={label ?? placeholder}
@@ -361,6 +380,7 @@ export function RecordsSearch({
                   onPick={take}
                   timeZone={records.timeZone}
                   today={plainDateOf(records.now, records.timeZone)}
+                  suggested={suggested}
                 />
               )
             }

@@ -107,6 +107,43 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     expect(screen.getByRole('listbox')).toBeVisible()
   })
 
+  it('edits a between chip in its place, its days typed and selected', async () => {
+    render(
+      <Shows
+        defaultView={{
+          query: {
+            filters: [
+              {
+                field: 'starts',
+                operator: 'between',
+                value: ['2026-11-12', '2026-12-15']
+              },
+              { field: 'sold', operator: 'gt', value: 100 }
+            ]
+          }
+        }}
+      />
+    )
+    await userEvent.click(
+      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
+    )
+    const field = screen.getByRole<HTMLInputElement>('combobox', {
+      name: 'Search and filter'
+    })
+    const pending = document.querySelector(
+      '[data-slot=query-field-pending-chip]'
+    )!
+    await expect.element(field).toHaveValue('12 Nov to 15 Dec')
+    expect([field.selectionStart, field.selectionEnd]).toEqual([0, 16])
+    expect(pending).toHaveTextContent('Starts is between')
+    expect(getComputedStyle(pending).borderStyle).toBe('dashed')
+    expect(getComputedStyle(chip('Starts')).display).toBe('none')
+    expect(box(pending).right).toBeLessThan(box(chip('Sold')).left)
+    expect(
+      screen.getByRole('button', { name: 'is between', pressed: true })
+    ).toBeVisible()
+  })
+
   it('edits a number chip in the list on a phone, its value in the field, then closes the list', async () => {
     await page.viewport(390, 844)
     render(
@@ -216,6 +253,21 @@ describe.each([
     await expect
       .poll(() => chip('Starts')?.textContent)
       .toContain('Starts is on Thu 10 Dec')
+  })
+
+  it('shows the month of the day typed, and still moves by its select and arrows', async () => {
+    await underCondition('is')
+    const firstMonth = () => within(popup()!).getAllByRole('grid')[0]
+    await expect.poll(firstMonth).toHaveAccessibleName('October 2026')
+    await userEvent.keyboard('26 feb')
+    await expect.poll(firstMonth).toHaveAccessibleName('February 2027')
+    await userEvent.selectOptions(popup()!.querySelector('select')!, 'December')
+    await expect.poll(firstMonth).toHaveAccessibleName('December 2027')
+    await userEvent.click(
+      within(popup()!).getByRole('button', { name: 'Next month' })
+    )
+    await expect.poll(firstMonth).toHaveAccessibleName('January 2028')
+    expect(searchInput()).toHaveValue('26 feb')
   })
 
   it('adds “is on” for a clicked day and closes the dropdown', async () => {

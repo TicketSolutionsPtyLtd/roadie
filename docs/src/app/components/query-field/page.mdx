@@ -136,7 +136,8 @@ back:
 - Tab out of the input
 - Focus moving outside the field and its list
 - A press outside the field and its list
-- Enter with no new value to take, while a step edits a chip
+- Enter on the text the step started with, or with no new value to take, while
+  a step edits a chip
 
 Focus going nowhere, as when a phone's keyboard is put away, keeps the step.
 
@@ -321,8 +322,9 @@ function QueryFieldLocked() {
 
 Pass `onSelectChip`, and a click, Enter, or Space on an unlocked chip selects
 it. Answer with a value step for the chip's field, with `pendingChip.chipId`
-naming the chip. The list opens, and the chip shows selected in place of a
-pending chip.
+naming the chip. The list opens, and the pending chip takes the chip's place.
+To edit a value typed in full, such as a date or a number, set `inputValue` to
+it as the step starts. The field selects it, so typing replaces it.
 
 Mark the values the chip holds `selected` to tick them, and toggle them in
 `onAccept`. Taking a value keeps the list open, so several can be ticked and
@@ -330,8 +332,9 @@ unticked. For a chip that holds one value, such as typed text or a date, end the
 `onAccept`, and the list closes. Enter on typed text takes the first value that isn't ticked, so only
 an arrow or a click unticks one.
 
-Backspace in the empty field removes the chip. Escape, Enter with no new
-value to take, or focus leaving the field ends the step and keeps the chip.
+Backspace in the empty field removes the chip. Escape, Enter on the text the
+step started with or with no new value to take, or focus leaving the field ends
+the step and keeps the chip.
 Enter keeps the step while typed text matches no value, so the hint stays.
 
 ```tsx-live
@@ -568,8 +571,10 @@ function QueryFieldShortcut() {
   **Enter** or **Space** selects it and moves focus to the input, and the list
   opens once a value step edits the chip. Locked chips ignore all four keys.
 - While a step edits a chip, **Backspace** in the empty field removes the
-  chip, and **Escape** ends the step and keeps the chip. **Enter** with no
-  new value to take does the same, unless typed text matches no value. Focus
+  chip, and **Escape** ends the step and keeps the chip. **Enter** on the text
+  the step started with, or with no new value to take, does the same, unless
+  typed text matches no value. **Left** and **Right Arrow** move only within
+  the text. Focus
   moving to something outside the field and its list, or a press outside
   them, does the same as Escape.
 - A `selected` suggestion is `aria-selected`. Its check stays out of its name.
@@ -592,8 +597,8 @@ function QueryFieldShortcut() {
 - A locked chip reads "set by this page" after its label, and a chip's
   `description` is read after its label too. A pending chip describes the
   input, so the value step is announced. It's a live region, so a change of
-  operator is announced too. While a step edits a chip, the pending chip's
-  label is read but not shown.
+  operator is announced too. While a step edits a chip, the chip is hidden,
+  and the pending chip in its place describes the input.
 - `required` is announced but never blocks a form: an empty search is valid.
 - `shortcut` adds `aria-keyshortcuts` to the input. The key hint beside the
   field is visual only, and hides once the field has focus.

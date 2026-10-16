@@ -56,17 +56,18 @@ export type QueryFieldProps<Value = unknown> = {
    */
   onClear?: () => void
   /**
-   * The field being given a value, such as "Venue is", shown after the chips.
-   * With `chipId`, that chip shows selected instead, taking a value keeps
-   * the list open unless `onAccept` ends the step, and Backspace in the empty
-   * field removes the chip. Focus
+   * The field being given a value, such as "Venue is", shown after the chips
+   * with the input inside it. With `chipId`, it stands in that chip's place,
+   * the text the step starts with is selected, taking a value keeps the list
+   * open unless `onAccept` ends the step, and Backspace in the empty field
+   * removes the chip. Focus
    * moving outside the field and its list, or a press outside them, ends the
    * step.
    */
   pendingChip?: QueryFieldPendingChip
   /** An operator was pressed, or Tab moved to one, while a chip is pending. */
   onPendingOperatorChange?: (operator: string) => void
-  /** While a chip is pending: Backspace on an empty field, Escape, Tab out of the input, or, while a chip is edited, Enter with no new value to take. */
+  /** While a chip is pending: Backspace on an empty field, Escape, Tab out of the input, or, while a chip is edited, Enter on the text the step started with or with no new value to take. */
   onPendingChipCancel?: () => void
   /** The typed text, searched as it changes. Controlled. */
   inputValue?: string
@@ -247,10 +248,17 @@ export function QueryField<Value = unknown>({
     ? ordered.find((chip) => chip.id === editedId)
     : undefined
   const [listedFor, setListedFor] = useState(editedId)
+  // What the edit started with, so Enter on it unchanged keeps the chip.
+  const [editStart, setEditStart] = useState<string>()
   if (listedFor !== editedId) {
     setListedFor(editedId)
+    setEditStart(editedId && `${pendingChip?.operator}\u0000${text}`)
     if (editedId) setOpen(true)
   }
+  // Typing replaces the chip's value, and an arrow keeps it.
+  useIsomorphicLayoutEffect(() => {
+    if (editedId) inputRef.current?.select()
+  }, [editedId])
   // A take that ends an edit, as a chip holding one value does, closes the list.
   const [takenIn, setTakenIn] = useState<string>()
   if (takenIn !== undefined) {
@@ -442,6 +450,9 @@ export function QueryField<Value = unknown>({
       return
     }
     if (CARET_KEYS.has(event.key)) setArrowed(false)
+    // The edited chip's text holds the caret; Escape first to move to a chip.
+    if (edited && (event.key === 'ArrowLeft' || event.key === 'ArrowRight'))
+      event.preventBaseUIHandler()
     if (
       (event.key === 'ArrowDown' || event.key === 'ArrowUp') &&
       !isComposing(event)
@@ -460,10 +471,15 @@ export function QueryField<Value = unknown>({
       if (keyboardHighlightKey) return
       event.preventBaseUIHandler()
       event.preventDefault()
-      if (enterFallback) accept(enterFallback)
+      const unchanged =
+        !!text.trim() && editStart === `${operator}\u0000${text}`
+      if (enterFallback && !unchanged) accept(enterFallback)
       // Nothing new to take means done, unless typed text matched no value,
       // when the hint says what to type, or its values are still on their way.
-      else if (editedId && current && (items.length > 0 || !text.trim())) {
+      else if (
+        editedId &&
+        (unchanged || (current && (items.length > 0 || !text.trim())))
+      ) {
         setOpen(false)
         onPendingChipCancel?.()
       }
@@ -530,7 +546,12 @@ export function QueryField<Value = unknown>({
   const showShortcut =
     ownsShortcut && !text && ordered.length === 0 && !pendingChip
 
-  const inChip = !!pendingChip && !edited
+  const inChip = !!pendingChip
+  // The edited chip's stand-in takes its place among them, by order, so the
+  // input never moves in the DOM, which would blur it.
+  const editedAt = edited ? ordered.indexOf(edited) : -1
+  const orderOf = (index: number) =>
+    editedAt >= 0 ? { style: { order: index } } : undefined
   const input = (
     <Combobox.Input
       ref={inputRefs}
@@ -624,7 +645,7 @@ export function QueryField<Value = unknown>({
           className={cn('size-4 shrink-0 text-subtle', FIRST_ROW)}
         />
         <Combobox.Chips aria-label={ordered.length > 0 ? 'Filters' : undefined}>
-          {ordered.map((chip) => {
+          {ordered.map((chip, index) => {
             const tooltip = chip.locked ? (
               <span className='grid'>
                 {chip.description && <span>{chip.description}</span>}
@@ -676,9 +697,11 @@ export function QueryField<Value = unknown>({
                 data-locked={chip.locked ? '' : undefined}
                 aria-keyshortcuts={selectable ? 'Enter' : undefined}
                 selected={chip.id === editedId}
+                {...orderOf(index)}
                 className={cn(
                   props.className,
                   CHIP_WIDTH,
+                  chip.id === editedId && 'hidden',
                   chip.locked && 'gap-1 ps-2',
                   chip.intent && intentVariants[chip.intent]
                 )}
@@ -706,15 +729,11 @@ export function QueryField<Value = unknown>({
               </Fragment>
             )
           })}
-          {pendingChip && edited && (
-            <span id={pendingId} aria-live='polite' className='sr-only'>
-              {pendingChip.label}
-            </span>
-          )}
           {/* Always rendered, so the input never remounts and keeps focus as a
               step starts. What's typed sits inside the step's chip. */}
           <span
             data-slot={inChip ? 'query-field-pending-chip' : undefined}
+            {...orderOf(editedAt)}
             className={cn(
               inChip
                 ? 'flex h-6 max-w-full min-w-0 items-center gap-1 rounded-full border border-dashed border-normal ps-2.5 pe-2'

@@ -72,7 +72,8 @@ function setup(options: Partial<UseRecordsOptions<TestShow>> = {}) {
   return { user, onViewChange, lastView }
 }
 
-const input = () => screen.getByRole('combobox', { name: 'Search and filter' })
+const input = () =>
+  screen.getByRole<HTMLInputElement>('combobox', { name: 'Search and filter' })
 const chipLabels = () =>
   [...document.querySelectorAll('[data-slot=combobox-chip]')].map(
     (chip) => chip.querySelector('[data-slot=combobox-chip-label]')?.textContent
@@ -1355,7 +1356,7 @@ describe('Records.Search', () => {
       expect(
         screen.getByRole('button', { name: 'is between', pressed: true })
       ).toBeInTheDocument()
-      await user.clear(input())
+      // Selected, so typing replaces it.
       await user.keyboard('20..600{Enter}')
       expect(lastView().query.filters).toEqual([
         { field: 'city', operator: 'is', values: ['Perth'] },
@@ -1546,7 +1547,10 @@ describe('Records.Search', () => {
       })
       await selectChip(user, 'Starts is this weekend')
       expect(screen.queryByRole('dialog')).toBeNull()
+      expect(input()).toHaveValue('This weekend')
       await waitFor(() => expect(ticked()).toEqual(['This weekend']))
+      // The chip's text is selected, so Backspace clears it to list the rest.
+      await user.keyboard('{Backspace}')
       await user.click(await option(/^Tomorrow/))
       expect(lastView().query.filters).toEqual([
         { field: 'starts', operator: 'within', value: 'tomorrow' }
@@ -1675,6 +1679,95 @@ describe('Records.Search', () => {
       expect(lastView().query.filters).toEqual([
         { field: 'starts', operator: 'on', value: '2026-12-10' }
       ])
+    })
+
+    it('prefills a between chip’s days, and typing over them rewrites it', async () => {
+      const { user, lastView } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              {
+                field: 'starts',
+                operator: 'between',
+                value: ['2026-11-12', '2026-12-15']
+              }
+            ]
+          }
+        }
+      })
+      await selectChip(user, chipLabels()[0]!)
+      expect(input()).toHaveValue('12 Nov to 15 Dec')
+      expect(input()).toHaveAccessibleDescription('Starts is between')
+      expect([input().selectionStart, input().selectionEnd]).toEqual([0, 16])
+      expect(
+        screen.getByRole('button', { name: 'is between', pressed: true })
+      ).toBeInTheDocument()
+      await user.keyboard('1 dec to 5 dec')
+      await option(/^1.+5 Dec/)
+      await user.keyboard('{Enter}')
+      expect(lastView().query.filters).toEqual([
+        {
+          field: 'starts',
+          operator: 'between',
+          value: ['2026-12-01', '2026-12-05']
+        }
+      ])
+    })
+
+    it('keeps a quick date chip on Enter with its text unchanged', async () => {
+      const { user, onViewChange } = setup({
+        defaultView: {
+          query: {
+            filters: [
+              { field: 'starts', operator: 'within', value: 'this-week' }
+            ]
+          }
+        }
+      })
+      const [label] = chipLabels()
+      await selectChip(user, label!)
+      expect(input()).toHaveValue('This week')
+      // This weekend matches the text too, but Enter keeps the chip.
+      await option(/^This weekend/)
+      await user.keyboard('{Enter}')
+      expect(onViewChange).not.toHaveBeenCalled()
+      expect(chipLabels()).toEqual([label])
+      expect(
+        document.querySelector('[data-slot=query-field-pending-chip]')
+      ).toBeNull()
+    })
+
+    it('opens an option chip with an empty field, its values ticked', async () => {
+      const { user } = setup({
+        defaultView: {
+          query: {
+            filters: [{ field: 'city', operator: 'is', values: ['Perth'] }]
+          }
+        }
+      })
+      await selectChip(user, 'City is Perth')
+      expect(
+        document.querySelector('[data-slot=query-field-pending-chip]')
+      ).toContainElement(input())
+      expect(input()).toHaveValue('')
+      await waitFor(() => expect(ticked()).toEqual(['Perth']))
+    })
+
+    it('selects the last chip on Backspace without editing it', async () => {
+      const { user } = setup({
+        defaultView: {
+          query: {
+            filters: [{ field: 'city', operator: 'is', values: ['Perth'] }]
+          }
+        }
+      })
+      await user.click(input())
+      await user.keyboard('{Escape}{Backspace}')
+      expect(chip('City is Perth')).toHaveFocus()
+      expect(
+        document.querySelector('[data-slot=query-field-pending-chip]')
+      ).toBeNull()
+      expect(screen.queryByRole('listbox')).toBeNull()
     })
 
     it('opens a between chip on is between, its range marked', async () => {

@@ -1774,13 +1774,15 @@ const ticked = () =>
     .map((option) => option.textContent)
 
 describe('QueryField chip editing', () => {
-  it('shows the chip a step edits selected, in place of a pending chip', () => {
+  it('stands a pending chip in for the chip a step edits', () => {
     render(<CityEditing />)
     expect(chipElement('city')).toHaveAttribute('data-selected')
     expect(chipElement('status')).not.toHaveAttribute('data-selected')
-    expect(
-      document.querySelector('[data-slot=query-field-pending-chip]')
-    ).toBeNull()
+    const pending = document.querySelector(
+      '[data-slot=query-field-pending-chip]'
+    )
+    expect(pending).toHaveTextContent('City is')
+    expect(pending).toContainElement(input())
     expect(input()).toHaveAccessibleDescription('City is')
   })
 

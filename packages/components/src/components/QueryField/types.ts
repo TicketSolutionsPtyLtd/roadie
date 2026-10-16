@@ -26,7 +26,7 @@ export type QueryFieldPendingChip = {
   id: string
   /** Reads the chosen operator, such as "Venue is not". */
   label: string
-  /** The chip whose values the step edits. It shows selected, in place of a pending chip. */
+  /** The chip whose values the step edits. The pending chip takes its place. */
   chipId?: string
   /** Two or more show as a toggle above the values, which Tab steps through. */
   operators?: readonly QueryFieldOperator[]

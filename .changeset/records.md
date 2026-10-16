@@ -98,14 +98,16 @@ the place of its is empty chip, as together they match nothing. A date chip
 takes the place of the field's earlier date chip, as two dates rarely
 overlap.
 
-Clicking a chip, or Enter on it, edits it in the list, with what it holds
-ticked. An option chip's values tick and untick, and unticking the last
+Clicking a chip, or Enter on it, edits it in the list, as a dashed chip in
+its place with what it holds ticked. An option chip's values tick and untick, and unticking the last
 removes the chip. Enter on typed text only ticks. When the typed text matches
 only values the chip holds, the list says so, such as "Perth is already in
 this filter." Its is, is not, and has all of rewrite its condition and keep
 its values, and a chip rewritten to is joins the field's is chip. A text or
-number chip puts its value in the field and its condition in the toggle, and
-Enter replaces it once either changes. Any other value taken, or the row under
+number chip puts its value in the field, selected so typing replaces it, and
+its condition in the toggle, and Enter replaces it once either changes. A date
+chip puts its dates in the field the same way, such as "12 Nov to 15 Dec" or
+"This week", and Enter on them unchanged keeps the chip. Any other value taken, or the row under
 is empty or is not empty, replaces what the chip holds. Every chip but an
 option chip holds one value, so taking one ends the edit and closes the list.
 Everything but an
@@ -113,7 +115,8 @@ option chip's operator waits for Enter, so Tab passing through is empty keeps
 the values. Backspace in the empty field removes the chip, and Escape, Enter
 with no new value to take, or leaving the field keeps it and ends the edit. A
 date chip opens on its operator, with the calendar on its month and its day or
-range marked. The calendar loads while the page is idle. A
+range marked. Typing a date moves the calendar to its month. The calendar
+loads while the page is idle. A
 date chip reads as other chips do, such as "Start date is this weekend", and a
 relative one shows its dates in a tooltip. A filter the fields can't
 apply shows in warning colours. `/` focuses the search unless `shortcut` (or
