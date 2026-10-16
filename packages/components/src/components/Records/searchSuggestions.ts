@@ -444,7 +444,7 @@ export function valueHint(
     if (!typed)
       return range
         ? 'Pick two days, or type them like 22 Oct to 30 Oct.'
-        : 'Pick a day, or type one like 22 Oct or next Fri.'
+        : 'Pick a day, or type one like 22 Oct.'
     return typedDates(field, typed, operator, context).length
       ? undefined
       : range

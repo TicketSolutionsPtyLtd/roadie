@@ -345,7 +345,7 @@ describe('Records.Search', () => {
       document.querySelector('[data-slot=query-field-hint]')?.textContent
     await datesUnder(user, 'is before')
     await waitFor(() =>
-      expect(hint()).toBe('Pick a day, or type one like 22 Oct or next Fri.')
+      expect(hint()).toBe('Pick a day, or type one like 22 Oct.')
     )
     await user.click(screen.getByRole('button', { name: 'is between' }))
     await waitFor(() =>

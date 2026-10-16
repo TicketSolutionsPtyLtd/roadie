@@ -551,7 +551,11 @@ export function QueryField<Value = unknown>({
       // In the step's chip, as wide as what's typed, so the chip hugs it.
       // Otherwise a chip leaves it a few characters and the gap beside it, so
       // it wraps to a row of its own only after a chip that doesn't truncate.
-      className={cn('min-w-8', inChip && 'field-sizing-content')}
+      // A touch screen keeps 16px, or a phone zooms in on focus.
+      className={cn(
+        'min-w-8',
+        inChip && 'field-sizing-content text-sm pointer-coarse:text-base'
+      )}
       onKeyDown={handleInputKeyDown}
     />
   )
@@ -723,7 +727,7 @@ export function QueryField<Value = unknown>({
                 id={pendingId}
                 // A description's change isn't read, so the operator's is live.
                 aria-live='polite'
-                className='min-w-0 truncate text-sm font-medium text-subtle'
+                className='min-w-0 truncate text-sm font-medium text-subtle pointer-coarse:text-base'
               >
                 {pendingChip.label}
               </span>
