@@ -2,6 +2,10 @@
 
 Claude Code skills for working with the [Roadie design system](https://ticketsolutionsptyltd.github.io/roadie/).
 
+[Building with AI](https://ticketsolutionsptyltd.github.io/roadie/overview/ai/)
+on the docs site is the guide for people using these skills. It covers install,
+the skills by job, and the docs and manifests agents read.
+
 These skills ship as a Claude Code plugin. Installing the plugin makes them available in any repo you open.
 
 ## Available skills

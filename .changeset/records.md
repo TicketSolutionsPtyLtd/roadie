@@ -70,7 +70,12 @@ filter". Typing searches the searchable fields as before and suggests filters
 from the fields: option values (or, in the browser, the values an option field
 without `options` holds), statuses, booleans by name, identifiers, and date
 phrases such as "this weekend", each becoming a chip. The words a suggestion
-doesn't read stay in the field.
+doesn't read stay in the field. Typed negation, such as "city is not melb",
+suggests "City is not Melbourne". A field named in full, such as "sold", lists
+before values that start with its name, such as Sold out, unless a filter reads
+the words after it, as in "city melb". Text naming a filter already applied
+still suggests it, marked Already applied, and taking it clears those words and
+adds nothing.
 
 Picking a field lists its values under a toggle of operators, which Tab steps
 through. Leaving the field ends picking a value, as Escape does. An option
@@ -91,8 +96,7 @@ before This weekend. Typed text or a
 number shows as one row worded as its chip. Between reads 20 and 50, 20-50, 20
 to 50, or 20..50, in either order, and a space after the first number adds the
 "and". One Backspace takes it away. Money takes `$` and commas. Until the
-value reads, the list says what to type, such as "Type a number." Another
-option value taken under is joins the field's is chip. An is empty chip takes
+value reads, the list says what to type, such as "Type a number." Another option value joins the field's chip with the same condition, so a value added under is not never joins an is chip. An is empty chip takes
 the place of the field's other chips, and any other chip on the field takes
 the place of its is empty chip, as together they match nothing. A date chip
 takes the place of the field's earlier date chip, as two dates rarely

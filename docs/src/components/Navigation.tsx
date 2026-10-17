@@ -32,9 +32,9 @@ import { relatedLinks } from '@/lib/token-families'
 import { Navigator, Pane } from '@oztix/roadie-components'
 import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
 
+import { AgentMenu } from './AgentMenu'
 import { FooterNav } from './FooterNav'
 import { Image } from './Image'
-import { MarkdownTwin } from './MarkdownTwin'
 import {
   NAV_LIST_PARAM,
   NAV_MORE_PARAM,
@@ -72,6 +72,7 @@ type NavigationProps = {
   children: ReactNode
 }
 
+/* eslint-disable roadie/phosphor-icon-weight -- Navigator.Item sets these duotone */
 const DESTINATION_ICONS: Record<string, ReactNode> = {
   '/': <HouseIcon />,
   '/brand': <SparkleIcon />,
@@ -82,6 +83,7 @@ const DESTINATION_ICONS: Record<string, ReactNode> = {
   '/charts': <ChartLineIcon />,
   '/roadie-widgets': <SquaresFourIcon />
 }
+/* eslint-enable roadie/phosphor-icon-weight */
 
 // A cross listing never matches the route, so the page's own destination stays the lit one.
 const entryValue = (host: string, entry: CatalogueEntry) =>
@@ -270,13 +272,17 @@ export function DocsNavigator({
 
         <Pane className='scroll-pt-6'>
           <Pane.Header>
-            {showInspector ? (
-              <Pane.Actions>
+            <Pane.Actions>
+              <AgentMenu
+                route={route}
+                hasTwin={markdownTwins[route] === true}
+              />
+              {showInspector ? (
                 <Pane.InspectorTrigger aria-label='On this page'>
                   <ListDashesIcon weight='bold' className='size-5' />
                 </Pane.InspectorTrigger>
-              </Pane.Actions>
-            ) : null}
+              ) : null}
+            </Pane.Actions>
           </Pane.Header>
           <div
             id='docs-content'
@@ -293,10 +299,6 @@ export function DocsNavigator({
             ) : null}
             {children}
             <FooterNav items={items} />
-            <MarkdownTwin
-              route={route}
-              hasTwin={markdownTwins[route] === true}
-            />
           </div>
         </Pane>
 

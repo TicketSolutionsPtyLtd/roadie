@@ -365,6 +365,7 @@ export const PHRASES = [
   '14 mar',
   '1/12',
   'after 1 dec',
+  'since fri',
   'between 1 and 14 mar',
   'last quarter',
   'this financial year',

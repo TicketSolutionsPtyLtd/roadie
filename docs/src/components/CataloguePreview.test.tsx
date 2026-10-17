@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  BRAND,
   CHARTS,
   COMPONENTS,
   CONTENT,
@@ -13,7 +14,7 @@ import { previewArt } from './CataloguePreview'
 import { TokenFamilyArt } from './tokens/TokenFamilyArt'
 
 describe('catalogue previews', () => {
-  it.each([COMPONENTS, FOUNDATIONS, CONTENT, CHARTS])(
+  it.each([BRAND, COMPONENTS, FOUNDATIONS, CONTENT, CHARTS])(
     'draws art for every page listed in $route',
     async (catalogue) => {
       const entries = (await getCatalogue(catalogue)).flatMap(

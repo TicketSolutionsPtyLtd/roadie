@@ -41,6 +41,50 @@ const alternateOf = (html: string) =>
     .match(/<link[^>]*type="text\/markdown"[^>]*>/)?.[0]
     .match(/href="([^"]+)"/)?.[1]
 
+async function agentMenuLinks(page: Page) {
+  await page.getByRole('button', { name: 'Use with AI' }).click()
+  const menu = page.getByRole('menu')
+  await menu.waitFor()
+  return menu
+    .getByRole('menuitem')
+    .evaluateAll((items) =>
+      items
+        .filter((item) => item.hasAttribute('href'))
+        .map((item) => [item.textContent, item.getAttribute('href')])
+    )
+}
+
+// The test origin isn't secure, so the clipboard API is stubbed. Like the real one, a write rejects when its blob does.
+async function openWithClipboard(path: string) {
+  const context = await browser.newContext()
+  await serveExport(context)
+  await context.addInitScript(() => {
+    const written: string[] = []
+    Object.assign(window, {
+      written,
+      ClipboardItem: class {
+        constructor(public items: Record<string, Promise<Blob>>) {}
+      }
+    })
+    Object.defineProperty(navigator, 'clipboard', {
+      value: {
+        write: async (items: { items: Record<string, Promise<Blob>> }[]) => {
+          const blob = await items[0]!.items['text/plain']!
+          written.push(await blob.text())
+        }
+      }
+    })
+  })
+  const page = await context.newPage()
+  await page.goto(`${ORIGIN}${BASE_PATH}${path}`)
+  return page
+}
+
+async function copyPage(page: Page) {
+  await page.getByRole('button', { name: 'Use with AI' }).click()
+  await page.getByRole('menuitem', { name: 'Copy page as Markdown' }).click()
+}
+
 describe('Markdown twins', () => {
   it('points every exported page that has a twin at it, and no other page', async () => {
     const files = await readdir(OUT_DIR, { recursive: true })
@@ -59,36 +103,54 @@ describe('Markdown twins', () => {
     }
   })
 
-  it('links a page with a twin to its markdown and llms.txt', async () => {
+  it('links a page with a twin to its markdown and llms.txt from the header menu', async () => {
     const page = await open('/foundations/colors/')
-    const line = page.locator('[data-slot=markdown-twin]')
-    await expect
-      .poll(() =>
-        line
-          .getByRole('link')
-          .evaluateAll((links) =>
-            links.map((link) => [link.textContent, link.getAttribute('href')])
-          )
-      )
-      .toEqual([
-        ['This page as Markdown', `${BASE_PATH}/foundations/colors.md`],
-        ['llms.txt', `${BASE_PATH}/llms.txt`]
-      ])
+    expect(await agentMenuLinks(page)).toEqual([
+      ['View as Markdown', `${BASE_PATH}/foundations/colors.md`],
+      ['llms.txt', `${BASE_PATH}/llms.txt`],
+      ['Building with AI', `${BASE_PATH}/overview/ai/`]
+    ])
+    expect(
+      await page
+        .getByRole('menuitem', { name: 'Copy page as Markdown' })
+        .count()
+    ).toBe(1)
     expect(await fetchText(page, '/foundations/colors.md')).toMatch(
       /^# Colors\n/
     )
   }, 60_000)
 
-  it('links only llms.txt from a page with no twin', async () => {
-    const page = await open('/tokens/')
-    await expect
-      .poll(() =>
-        page
-          .locator('[data-slot=markdown-twin]')
-          .getByRole('link')
-          .allTextContents()
+  it('copies the page as markdown', async () => {
+    const page = await openWithClipboard('/foundations/colors/')
+    await copyPage(page)
+    await page.getByText('Page copied as Markdown').waitFor()
+    expect(
+      await page.evaluate(
+        () => (window as unknown as { written: string[] }).written[0]
       )
-      .toEqual(['llms.txt'])
+    ).toMatch(/^# Colors\n/)
+  }, 60_000)
+
+  it('says so when the page can’t be copied', async () => {
+    const page = await openWithClipboard('/foundations/colors/')
+    await page.route('**/foundations/colors.md', (route) =>
+      route.fulfill({ status: 500 })
+    )
+    await copyPage(page)
+    await page.getByText('Couldn’t copy the page').waitFor()
+    expect(
+      await page.evaluate(
+        () => (window as unknown as { written: string[] }).written.length
+      )
+    ).toBe(0)
+  }, 60_000)
+
+  it('links only llms.txt and the guide from a page with no twin', async () => {
+    const page = await open('/tokens/')
+    expect((await agentMenuLinks(page)).map(([label]) => label)).toEqual([
+      'llms.txt',
+      'Building with AI'
+    ])
     expect(await fetchText(page, '/llms.txt')).toMatch(/^# Roadie\n/)
   }, 60_000)
 

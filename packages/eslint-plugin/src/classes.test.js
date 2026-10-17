@@ -2,9 +2,24 @@ import { runRuleCases } from '../test/ruleCases.js'
 
 runRuleCases({
   'no-dark-variant': {
-    valid: ["<div className='dark bg-normal' />"],
+    valid: [
+      "<div className='dark bg-normal' />",
+      "let variants = { open: 'dark:bg-strong' }; cn(variants.open)",
+      "const theme = pick('dark:bg-strong'); cn(theme)",
+      "const inner = { open: 'dark:bg-strong' }; const variants = { inner }; cn(variants)"
+    ],
     invalid: [
       "<div className='bg-normal dark:bg-strong' />",
+      "const variants = { open: 'dark:bg-strong' }; cn(variants[state])",
+      "const styles = 'p-2 dark:bg-strong'; <div className={styles} />",
+      "const styles = ['p-2', 'dark:bg-strong'] as const; cn(styles)",
+      "const variants = { open: 'dark:bg-strong' } satisfies Record<string, string>; cn(variants.open)",
+      'function Box({ open }) { const extra = `dark:bg-strong`; return <div className={cn(open && extra)} /> }',
+      "tv({ base: 'p-2', variants: { tone: { night: 'dark:bg-strong' } } })",
+      {
+        code: "const styles = 'dark:bg-strong'; cn(styles); <div className={styles} />",
+        errors: 1
+      },
       "cn('p-2', isOpen && 'hover:dark:text-strong')",
       "<div className={cn('dark:bg-strong')} />"
     ]

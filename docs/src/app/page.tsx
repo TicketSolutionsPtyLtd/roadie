@@ -4,7 +4,6 @@ import { ArrowRightIcon, ArrowUpRightIcon } from '@phosphor-icons/react/ssr'
 
 import { ChartPreview } from '@/components/ChartPreview'
 import { ComponentSkeleton, Skel } from '@/components/ComponentSkeleton'
-import { ContentPreview } from '@/components/ContentPreview'
 import { FoundationPreview } from '@/components/FoundationPreview'
 import { HomeGuides } from '@/components/HomeGuides'
 import { Image } from '@/components/Image'
@@ -83,6 +82,9 @@ export default async function Home() {
             <Button emphasis='normal' href='/overview/philosophy'>
               Philosophy
             </Button>
+            <Button emphasis='normal' href='/overview/ai'>
+              Building with AI
+            </Button>
           </div>
         </div>
       </section>
@@ -108,7 +110,7 @@ export default async function Home() {
             title='Content'
             subtitle={plural(countEntries(content), 'guide')}
           >
-            <ContentPreview name='voice-and-tone' />
+            <ContentArt />
           </PreviewCard>
           <PreviewCard href='/tokens' title='Tokens' subtitle='Every variable'>
             <TokensArt />
@@ -325,6 +327,21 @@ function FoundationsArt() {
             <div key={radius} className={`size-6 emphasis-normal ${radius}`} />
           ))}
         </div>
+      </div>
+    </div>
+  )
+}
+
+function ContentArt() {
+  return (
+    <div className='grid w-40 gap-2'>
+      <div className='grid emphasis-normal gap-1.5 justify-self-start rounded-xl rounded-bl-sm px-3 py-2'>
+        <Skel className='h-1.5 w-20' />
+        <Skel className='h-1.5 w-12' />
+      </div>
+      <div className='grid emphasis-strong gap-1.5 justify-self-end rounded-xl rounded-br-sm px-3 py-2 intent-accent'>
+        <div className='h-1.5 w-16 rounded-sm bg-normal opacity-50' />
+        <div className='h-1.5 w-10 rounded-sm bg-normal opacity-50' />
       </div>
     </div>
   )
