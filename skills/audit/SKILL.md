@@ -7,7 +7,7 @@ description: Use when auditing a codebase for Roadie design system compliance �
 
 Scan a codebase for violations of Roadie design system conventions, report findings grouped by severity, and fix them.
 
-This skill is self-contained — it ships all the rules it needs to run in any consumer repo that uses `@oztix/roadie-core` and `@oztix/roadie-components`. You do not need the Roadie source repo checked out locally.
+This skill runs in any consumer repo that uses `@oztix/roadie-core` and `@oztix/roadie-components`. You do not need the Roadie source repo checked out locally. The checks a lint rule can make live in `@oztix/roadie-eslint-plugin`, so the skill runs ESLint for those and keeps the greps for the rest.
 
 ## Prerequisites
 
@@ -17,6 +17,29 @@ This skill is self-contained — it ships all the rules it needs to run in any c
    WebFetch https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/AGENTS.md
    ```
    Only do this if the user explicitly asks for the latest rules or if a check below produces confusing results. The rules in this skill are authoritative for normal audits.
+
+## Run the lint rules first
+
+`@oztix/roadie-eslint-plugin` checks Phosphor icons (their import names, `size` props, and weights), `dark:` variants, hex colours in class strings, and arbitrary z-index and radius classes. This skill doesn't grep for any of those.
+
+The plugin needs ESLint 9 or 10 with a flat config. A repo on a legacy `.eslintrc` can't load it, so skip this section and say in the report that the rules below didn't run.
+
+1. If `package.json` lacks `@oztix/roadie-eslint-plugin`, install it as a dev dependency with the repo's package manager, such as `pnpm add -D @oztix/roadie-eslint-plugin`.
+2. If the flat config (`eslint.config.*`) doesn't include it, add `roadie.configs.recommended` from `import roadie from '@oztix/roadie-eslint-plugin'` to its array. A repo with no ESLint config also needs `eslint`, an `eslint.config.js` holding that config, and typescript-eslint's parser for TypeScript files.
+3. The icon rules find icons by their `@phosphor-icons/react` import. If the app imports icons from its own module, name them in `settings.roadie.phosphorIcons`, as the linting guide shows, or those rules miss them.
+4. Run ESLint on the target directory, such as `pnpm exec eslint src`, and report every `roadie/*` hit under its rule ID, at the severity in the table below.
+
+| Rule                             | Severity |
+| -------------------------------- | -------- |
+| `roadie/no-dark-variant`         | Critical |
+| `roadie/no-hex-colour-class`     | Critical |
+| `roadie/phosphor-icon-suffix`    | Warning  |
+| `roadie/phosphor-icon-size-prop` | Warning  |
+| `roadie/phosphor-icon-weight`    | Info     |
+| `roadie/no-arbitrary-z-index`    | Warning  |
+| `roadie/no-arbitrary-radius`     | Warning  |
+
+The [linting guide](https://ticketsolutionsptyltd.github.io/roadie/overview/linting/) says what each rule fails and how to fix it. `eslint --fix` fixes none of them, so fix each by hand.
 
 ## Exclude paths
 
@@ -30,7 +53,7 @@ All scans must skip generated/vendored files. When using the Grep tool, set `pat
 
 ```dot
 digraph audit {
-  "Scan (batched greps)" -> "Group by severity";
+  "Scan (ESLint, then batched greps)" -> "Group by severity";
   "Group by severity" -> "Report to user";
   "Report to user" -> "User picks what to fix";
   "User picks what to fix" -> "Fix issues";
@@ -38,10 +61,10 @@ digraph audit {
 }
 ```
 
-1. **Scan** the target directory using the checks below — run independent checks in parallel by issuing multiple Grep tool calls in a single message (see Parallelization guide)
+1. **Scan** the target directory with ESLint (see Run the lint rules first), then the checks below — run independent checks in parallel by issuing multiple Grep tool calls in a single message (see Parallelization guide)
 2. **Report** findings grouped by severity with file paths and line numbers
 3. **Ask** the user which categories to fix (or fix all if instructed)
-4. **Fix** issues, then re-scan to confirm no regressions
+4. **Fix** issues, then re-run ESLint and the greps to confirm no regressions
 
 ## Severity levels
 
@@ -108,11 +131,11 @@ adjective. `text-strong` is the darkest, not the most saturated.
 
 **Only flag if** the emphasis equivalent is a clear improvement. If the specific scale step is needed for visual precision (e.g., an overlay at a specific opacity), it's fine to keep.
 
-#### A3. Hardcoded hex/rgb/oklch colors [Critical]
+#### A3. Hardcoded hex/rgb/oklch colors outside class strings [Critical]
+
+`roadie/no-hex-colour-class` covers hex colours in class strings. This check finds the rest.
 
 ```
-# Arbitrary value brackets with color values
-\[#[0-9a-fA-F]{3,8}\]
 # Inline styles with color properties
 style=.*(?:background|color|border).*#[0-9a-fA-F]
 # CSS color functions
@@ -120,16 +143,6 @@ rgb\(|rgba\(|hsl\(|hsla\(
 ```
 
 **Fix:** Replace with Roadie tokens (`var(--intent-*)`) or semantic utilities.
-
-#### A4. Dark mode via Tailwind variants [Critical]
-
-```
-dark:
-```
-
-Roadie handles dark mode via CSS custom properties — `dark:` variants are unnecessary and will conflict.
-
-**Fix:** Remove `dark:` variants and use semantic color utilities instead.
 
 #### A5. Chart colours not from chart tokens [Critical]
 
@@ -208,46 +221,21 @@ from ['"]@phosphor-icons/react['"]
 
 Should use `@phosphor-icons/react/ssr` in server components. If the project uses a centralized icons file that re-exports with `/ssr`, check that file rather than flagging every consumer import.
 
-#### C2. Deprecated bare name imports [Warning]
+#### C4. Fill or duotone where it doesn't apply [Info]
+
+`roadie/phosphor-icon-weight` makes every icon bold, fill, or duotone. Which of
+the three fits is the judgement left here.
 
 ```
-import \{[^}]*\} from ['"]@phosphor-icons/react
+weight=\{?['"](fill|duotone)
 ```
-
-Imported names should use the `Icon` suffix: `HeartIcon` not `Heart`.
-
-#### C3. Numeric size prop on icons [Warning]
-
-```
-size=\{?\d
-```
-
-Icons should use Tailwind `className` for sizing, not the Phosphor `size` prop.
-
-| Numeric size prop | Tailwind className     | Semantic use                   |
-| ----------------- | ---------------------- | ------------------------------ |
-| `size={12}`       | `className='size-3'`   | XS (badges, tags)              |
-| `size={14}`       | `className='size-3.5'` | —                              |
-| `size={16}`       | `className='size-4'`   | SM (buttons, inline — default) |
-| `size={20}`       | `className='size-5'`   | MD (nav, standalone)           |
-| `size={24}`       | `className='size-6'`   | LG (headers, cards)            |
-| `size={32}`       | `className='size-8'`   | —                              |
-
-#### C4. Wrong icon weight [Info]
-
-```
-weight=['"]
-```
-
-Ripgrep has no lookaround, so this matches every explicit weight. Keep the ones
-that read `bold`, `fill` or `duotone`; flag the rest.
 
 `bold` is the default. `fill` is for an active or selected state. `duotone` is
 for large decorative icons, where the tile or graphic around them is above
 48px: an `IconTile` above `lg`, or an `EmptyState` tile at its default size,
 whose smallest is 56px around a 32px icon. Below that threshold it reads as
 under-inked, so a small inline `duotone`, or one in an `IconTile` or
-`EmptyState.IconTile` given a `size` of `lg` or smaller, is still a finding.
+`EmptyState.IconTile` given a `size` of `lg` or smaller, is a finding.
 
 #### C5. Hand-rolled icon tile [Info]
 
@@ -609,13 +597,19 @@ dash between bare numbers or seat labels.
 #### H6. Hand-rolled calendar tile [Info]
 
 ```
-month: ?['"]short['"][^\n]*toUpperCase|MMM['"][^\n]*\.(toUpperCase|ToUpperInvariant)
+(month|MMM)[^<]*</\w+>\s*<\w+[^>]*>[^<]*(day|Day|get(UTC)?Date|['"][dD]{1,2}['"])
 ```
 
-An uppercased short month stacked over a day number is the `CalendarTile`
-component. Use it, or the `calendar-tile` CSS utility in a server-rendered
-template, so every tile shares one size, radius and colour treatment. Get its
-strings from `formatGlyph`.
+A short month stacked over a day number is the `CalendarTile` component, which
+shows the month in sentence case, such as "Nov" over "27". Use it, or the
+`calendar-tile` CSS utility in a server-rendered template, so every tile shares
+one size, radius, and colour treatment. Get its strings from `formatGlyph`.
+
+Run the pattern multiline. It finds an element holding a month followed by one
+holding a day, whatever the month's case, so it flags older uppercase tiles
+("NOV") and sentence-case ones alike. It doesn't need braces, so widen the glob
+to server templates as F3 does. Rule out hits that aren't a tile, such as month
+and day columns in a table.
 
 #### H7. A formatter where a component would render [Warning]
 
@@ -869,12 +863,8 @@ Roadie's text colours are `text-{normal,subtle,subtler,strong,inverted,on-strong
 | `bg-accent-4`                                     | `intent-accent emphasis-subtle`     | A2    |
 | a hand-rolled icon circle                         | `<IconTile shape='circle'>`         | C5    |
 | `border-gray-200`                                 | `border-subtle`                     | A1    |
-| `dark:bg-*`                                       | remove, use semantic utility        | A4    |
 | `flex flex-col gap-4`                             | `grid gap-4`                        | B1    |
 | `mt-4` between siblings                           | parent `gap-4`                      | B2    |
-| `size={16}` on icon                               | `className='size-4'`                | C3    |
-| `size={20}` on icon                               | `className='size-5'`                | C3    |
-| `size={24}` on icon                               | `className='size-6'`                | C3    |
 | `colorPalette='primary'`                          | `intent='brand'`                    | E2    |
 | `colorPalette='information'`                      | `intent='info'`                     | E2    |
 | `colorPalette='accent'`                           | `intent='accent'`                   | E2    |
@@ -905,7 +895,7 @@ Roadie's text colours are `text-{normal,subtle,subtler,strong,inverted,on-strong
 | `7:30 PM`                                         | `timeStyle: 'medium'` → `7:30pm`    | H4    |
 | `27 Nov - 29 Nov`                                 | `formatDateRange` → `27 to 29 Nov`  | H5    |
 | `` `${a} to ${b}` ``                              | `separators.range`                  | H5    |
-| uppercased month over a day                       | `CalendarTile`                      | H6    |
+| a short month stacked over a day                  | `CalendarTile`                      | H6    |
 
 ## Parallelization guide
 
@@ -915,15 +905,13 @@ Run independent checks in parallel by issuing multiple Grep calls in a single me
 
 - A1: `(bg|text|border|ring|outline|shadow|from|to|via)-(red|blue|green|gray|slate|zinc|stone|orange|amber|yellow|lime|emerald|teal|cyan|sky|indigo|violet|purple|fuchsia|pink|rose|white|black)-\d`
 - A2: `(bg|text|border|ring|outline|from|to|via)-(brand|info|accent|danger|success|warning|neutral)-\d+`
-- A3: `\[#[0-9a-fA-F]{3,8}\]`
-- A4: `dark:`
+- A3: `style=.*(?:background|color|border).*#[0-9a-fA-F]|rgba?\(|hsla?\(`
 
 **Batch 2** (layout + icons):
 
 - B1: `flex flex-col`
 - B2: `space-(x|y)-`
-- C3: `size=\{?\d`
-- C4: `weight=['"]` (then keep `bold`, `fill` and `duotone`)
+- C4: `weight=\{?['"](fill|duotone)` (then check each against the rule)
 - C5: `<(div|span)\s[^>]*\brounded-[^>]*[^/>]>\s*<\w+Icon\b` (multiline)
 
 **Batch 3** (typography + components + interactions):
@@ -944,7 +932,7 @@ Run independent checks in parallel by issuing multiple Grep calls in a single me
 - H3: `\bddd\b[^'"]*MMMM|\bEEE\b[^'"]*MMMM|\b(dddd|EEEE)\b[^'"]*\bMMM\b|weekday: ?['"]short['"]`
 - H4: `HH:mm|hh:mm ?a|['"]tt['"]|:mm ?A\b` (exclude `numeric` and `iso` styles)
 - H5: `\} ?[-–—] ?\{|['"] ?[-–—] ?['"]`
-- H6: `month: ?['"]short['"][^\n]*toUpperCase|MMM['"][^\n]*\.(toUpperCase|ToUpperInvariant)`
+- H6: `(month|MMM)[^<]*</\w+>\s*<\w+[^>]*>[^<]*(day|Day|get(UTC)?Date|['"][dD]{1,2}['"])` (multiline)
 
 **Batch 4b** (dates and times, the component-era checks). Every pattern here
 is ripgrep-compatible: no lookaround, because the Grep tool aborts on it rather

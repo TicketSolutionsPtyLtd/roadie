@@ -129,8 +129,8 @@ describe('Motion foundation', () => {
     expect(overflow).toBe(0)
   }, 60_000)
 
-  // What the Accessibility section says the reset does and doesn't change.
-  it('cuts durations under reduced motion but keeps delays', async () => {
+  // What the Accessibility section says the reset changes.
+  it('cuts durations and delays under reduced motion', async () => {
     const page = await open(1280, 'reduce')
     const timing = await page.evaluate(() => {
       const probe = document.createElement('div')
@@ -149,8 +149,8 @@ describe('Motion foundation', () => {
     expect(timing.transitionDuration).toBeLessThan(0.001)
     expect(timing.animationDuration).toBeLessThan(0.001)
     expect(timing.iterations).toBe('1')
-    expect(timing.transitionDelay).toBe('0.09s')
-    expect(timing.animationDelay).toBe('0.09s')
+    expect(timing.transitionDelay).toBe('0s')
+    expect(timing.animationDelay).toBe('0s')
   }, 60_000)
 
   it('names every motion utility in its markdown copy', async () => {

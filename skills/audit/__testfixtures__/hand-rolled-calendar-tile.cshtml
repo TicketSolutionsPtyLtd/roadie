@@ -1,0 +1,9 @@
+<div class="grid place-items-center gap-0.5">
+  <span class="text-xs">@Model.StartsAt.ToString("MMM").ToUpperInvariant()</span>
+  <span class="text-2xl">@Model.StartsAt.ToString("dd")</span>
+</div>
+
+<div class="grid place-items-center gap-0.5">
+  <span class="text-xs uppercase">@Model.EndsAt.ToString("MMM")</span>
+  <span class="text-2xl">@Model.EndsAt.Day</span>
+</div>

@@ -20,7 +20,7 @@ import { CalendarTile } from '@oztix/roadie-components/calendar-tile'
 ### Default
 
 ```tsx-live
-<CalendarTile month='NOV' day={27} />
+<CalendarTile month='Nov' day={27} />
 ```
 
 ### Weekday
@@ -28,8 +28,8 @@ import { CalendarTile } from '@oztix/roadie-components/calendar-tile'
 Leads with the day of week instead of the month, for schedule lists where a heading already establishes the month.
 
 ```tsx-live layout=row gap=3
-<CalendarTile month='NOV' day={27} />
-<CalendarTile weekday='FRI' day={27} />
+<CalendarTile month='Nov' day={27} />
+<CalendarTile weekday='Fri' day={27} />
 ```
 
 ### Border radius
@@ -37,38 +37,38 @@ Leads with the day of week instead of the month, for schedule lists where a head
 Defaults to `rounded-xl`, matching Card. Override with any Tailwind radius class. Use `rounded-none` for a tile that bleeds to a card edge rather than floating inside it.
 
 ```tsx-live layout=row gap=3
-<CalendarTile month='NOV' day={27} className='rounded-none' />
-<CalendarTile month='NOV' day={27} className='rounded-md' />
-<CalendarTile month='NOV' day={27} />
-<CalendarTile month='NOV' day={27} className='rounded-2xl' />
+<CalendarTile month='Nov' day={27} className='rounded-none' />
+<CalendarTile month='Nov' day={27} className='rounded-md' />
+<CalendarTile month='Nov' day={27} />
+<CalendarTile month='Nov' day={27} className='rounded-2xl' />
 ```
 
 ### Emphasis
 
 ```tsx-live layout=row gap=3
-<CalendarTile month='NOV' day={27} emphasis='strong' />
-<CalendarTile month='NOV' day={27} emphasis='normal' />
-<CalendarTile month='NOV' day={27} emphasis='subtle' />
-<CalendarTile month='NOV' day={27} emphasis='subtler' />
+<CalendarTile month='Nov' day={27} emphasis='strong' />
+<CalendarTile month='Nov' day={27} emphasis='normal' />
+<CalendarTile month='Nov' day={27} emphasis='subtle' />
+<CalendarTile month='Nov' day={27} emphasis='subtler' />
 ```
 
 ### Sizes
 
 ```tsx-live
 <div className='flex flex-wrap items-end gap-3'>
-  <CalendarTile month='NOV' day={27} size='sm' />
-  <CalendarTile month='NOV' day={27} size='md' />
-  <CalendarTile month='NOV' day={27} size='lg' />
+  <CalendarTile month='Nov' day={27} size='sm' />
+  <CalendarTile month='Nov' day={27} size='md' />
+  <CalendarTile month='Nov' day={27} size='lg' />
 </div>
 ```
 
 ### Intents
 
 ```tsx-live layout=row gap=3
-<CalendarTile month='NOV' day={27} intent='accent' />
-<CalendarTile month='NOV' day={27} intent='neutral' />
-<CalendarTile month='NOV' day={27} intent='success' />
-<CalendarTile month='NOV' day={27} intent='danger' />
+<CalendarTile month='Nov' day={27} intent='accent' />
+<CalendarTile month='Nov' day={27} intent='neutral' />
+<CalendarTile month='Nov' day={27} intent='success' />
+<CalendarTile month='Nov' day={27} intent='danger' />
 ```
 
 ### Composition
@@ -77,7 +77,7 @@ The tile abbreviates hard. It is paired with a line that carries the full date. 
 
 ```tsx-live
 <div className='flex items-center gap-3'>
-  <CalendarTile month='NOV' day={27} />
+  <CalendarTile month='Nov' day={27} />
   <div className='min-w-0'>
     <p className='text-sm text-strong'>Ochre Kite Weekender</p>
     <p className='text-sm text-subtle'>Fri 27 Nov 2026 · Kilcoy, QLD</p>
@@ -97,6 +97,8 @@ const glyph = formatGlyph(event.startsAt, {
 })
 ```
 
+Pass the month and weekday as `formatGlyph` returns them, never in capitals: `Nov`, not `NOV`. The tile shows them as given. Some locales abbreviate in lowercase, such as `nov.` in French, and the tile keeps that.
+
 The tile carries a month and a day and **never a year**. A three-row tile is cramped at 48px. The year is not what anyone scans a tile for. Whatever sits beside it owns the full date.
 
 ## Without React
@@ -107,7 +109,7 @@ an identical tile.
 
 ```html
 <div class="calendar-tile emphasis-subtle intent-accent" aria-hidden="true">
-  <span class="calendar-tile-top">NOV</span>
+  <span class="calendar-tile-top">Nov</span>
   <span class="calendar-tile-day">27</span>
 </div>
 ```
@@ -145,7 +147,7 @@ glyph && machine && full ? (
 
 Take `month` and `day` off the glyph rather than spreading it. It also carries
 `weekday`, and the tile prefers a weekday over a month when both arrive, so a
-spread renders `FRI 27` where `NOV 27` was meant.
+spread renders `Fri 27` where `Nov 27` was meant.
 
 Guard all three together. Every formatter returns `string | null` for a zone it
 cannot resolve, and a guard on one does not narrow the others.

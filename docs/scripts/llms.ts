@@ -4,6 +4,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
 
+import { isAssetHref } from '../src/lib/asset-href.ts'
 import { DASHBOARD_EXAMPLES } from '../src/lib/dashboard-examples.ts'
 import {
   type LlmsLink,
@@ -18,6 +19,7 @@ import {
   tokenFamilyToMarkdown
 } from '../src/lib/llms.ts'
 import {
+  BRAND,
   CATALOGUE_PAGES,
   CHARTS,
   COMPONENTS,
@@ -61,6 +63,7 @@ const pageUrl = (route: string) =>
     : `${site}${route.replace(/\/$/, '')}/`
 
 function resolveLink(href: string) {
+  if (isAssetHref(href)) return `${site}${href}`
   const [route = '', hash] = href.split('#')
   const url = pageUrl(route.replace(/\/+$/, '') || '/')
   return hash === undefined ? url : `${url}#${hash}`
@@ -109,7 +112,37 @@ const renderers = {
     if (typeof name !== 'string' || !Object.hasOwn(catalogueMarkdown, name))
       throw new Error(`<CatalogueIndex name="${name}"> names no catalogue`)
     return catalogueMarkdown[name]!
+  },
+  BrandFigure: ({ src, alt, caption }: Record<string, string | true>) =>
+    [imageMarkdown(src, alt), typeof caption === 'string' ? caption : '']
+      .filter(Boolean)
+      .join('\n\n'),
+  DownloadCard: ({
+    title,
+    href,
+    formats,
+    size,
+    description
+  }: Record<string, string | true>) => {
+    if (
+      [title, href, formats, size, description].some(
+        (v) => typeof v !== 'string'
+      )
+    )
+      throw new Error(
+        '<DownloadCard> needs a title, href, formats, size, and description'
+      )
+    return `[${title}](${resolveLink(href as string)}), ${formats}, ${size}. ${description}`
   }
+}
+
+function imageMarkdown(
+  src: string | true | undefined,
+  alt: string | true | undefined
+) {
+  if (typeof src !== 'string' || typeof alt !== 'string')
+    throw new Error('An image needs a src and alt')
+  return `![${alt}](${src.startsWith('/') ? `${site}${src}` : src})`
 }
 const kinds = Object.entries(TWIN_COMPONENTS)
 const rendered = kinds
@@ -244,6 +277,7 @@ const sections: LlmsSection[] = [
   },
   await catalogueSection('Foundations', FOUNDATIONS),
   await catalogueSection('Content', CONTENT),
+  await catalogueSection('Brand', BRAND),
   await catalogueSection('Components', COMPONENTS),
   await catalogueSection('Charts', CHARTS),
   await catalogueSection('Tokens', TOKENS),
@@ -258,7 +292,8 @@ await writeFile(
       'Roadie is Oztix’s design system: CSS tokens and utilities, React components, and charts, published as @oztix/roadie-core, @oztix/roadie-components, and @oztix/roadie-charts.',
     details: [
       `Links ending in \`.md\` are markdown versions of the docs pages, with each component’s props. The rest are HTML pages.`,
-      'Import each component from its own subpath, such as `@oztix/roadie-components/button`. Style with Roadie’s semantic utilities and intents, never hardcoded colours or `dark:` variants.'
+      'Import each component from its own subpath, such as `@oztix/roadie-components/button`. Style with Roadie’s semantic utilities and intents, never hardcoded colours or `dark:` variants.',
+      `Each package ships a \`roadie.manifest.json\` with the installed version’s exports, props, and deprecations. Claude Code users can install the \`roadie@roadie\` plugin for skills that build with Roadie. [Building with AI](${pageUrl('/overview/ai')}) covers both.`
     ].join('\n\n'),
     sections
   })

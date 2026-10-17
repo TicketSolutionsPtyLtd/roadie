@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Logo',
-  description: 'The Oztix logo, always in its fixed brand colour',
+  description: 'The Oztix logo, in its approved colours',
   status: 'beta',
   category: 'Media & brand',
 }
@@ -10,7 +10,7 @@ import { Logo } from '@oztix/roadie-components/logo'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline, Guidelines } from '@/components/Guideline'
 
-The Oztix logo, always in its fixed brand colour.
+The Oztix logo, in its approved colours.
 
 ## Import
 
@@ -26,29 +26,47 @@ import { Logo } from '@oztix/roadie-components/logo'
 <Logo />
 ```
 
-### Variants
+### Lockups
 
-`normal` is the mark and the wordmark together. `mark` is the mark alone, for tight spaces such as an app icon or a collapsed navigation. `wordmark` is the word alone.
+`variant` picks the lockup, and the types reject props a lockup can't take.
 
-```tsx-live
-<div className='grid justify-items-start gap-6'>
-  <Logo variant='normal' />
-  <Logo variant='mark' />
-  <Logo variant='wordmark' />
-</div>
+- `normal`, the default, is the mark and the wordmark. Use it wherever the logo stands for Oztix.
+- `tagline` adds a divider and Built on Partnerships. Prefer it wherever there's room, such as marketing, partner, and print pages.
+- `mark` is the mark alone, for tight spaces such as an app icon or a collapsed navigation.
+- `wordmark` is the word alone, only as a collapse state of the full logo, never as a logo of its own.
+- `product` pairs the mark with a product name, set as live text in place of the wordmark. Passing `product` on its own implies it.
+
+`powered-by` and `proud-sponsor` lockups are planned, once their artwork exists.
+
+```tsx-live layout=stack gap=6
+{/* Normal */}
+<Logo />
+{/* Tagline */}
+<Logo variant='tagline' size='sm' />
+{/* Mark */}
+<Logo variant='mark' />
+{/* Wordmark */}
+<Logo variant='wordmark' />
+{/* Product */}
+<Logo variant='product' product='Studio' />
 ```
 
-### Product
+The tagline keeps its title case, an approved exception to sentence case. It makes the logo about 2.7 times as wide, 325px at `md`, so a phone usually takes `sm`.
 
-`product` pairs the mark with a product name, rendered as live text in place of the wordmark. When it's set, `variant` is ignored.
+### Direction
 
-```tsx-live
-<Logo product='Studio' />
+`direction='vertical'` sets the wordmark under the mark, with the tagline under that for `variant='tagline'`. Use it for square or narrow spaces, such as a social profile. Only `normal` and `tagline` take a direction.
+
+```tsx-live layout=row gap=8
+<Logo direction='vertical' size='xl' />
+<Logo variant='tagline' direction='vertical' size='xl' />
 ```
 
 ### Sizes
 
-The logo's height is set with the `size` prop, not a className. One value scales the mark, the gap and the product name together. `xs` is 20px, `sm` 24px, `md` 32px (the default), `lg` 40px, `xl` 48px.
+The logo's height is set with the `size` prop, not a className. One value scales the mark, the gap, the tagline, and the product name together. `xs` is 20px, `sm` 24px, `md` 32px (the default), `lg` 40px, `xl` 48px. A vertical logo sizes its mark, and is 1.5 times the mark wide.
+
+`xs` is for product UI only, such as a dense app header. Everywhere else, a logo is at least 24px high, and a vertical one at least 48px wide, which is `md`.
 
 Logo sizes sit one step below Button and IconTile, whose `md` is 40px, so a `size='md'` logo pairs with a `size='sm'` button.
 
@@ -65,14 +83,44 @@ Logo sizes sit one step below Button and IconTile, whose `md` is 40px, so a `siz
 
 ### Colour
 
-The logo's colour is fixed. It is always Oztix blue, identical in light and dark mode, and unaffected by a surrounding intent.
+`tone` is the only colour control. Pick it for the background the logo sits on. Recolouring the logo with an intent or a className isn't supported, and a surrounding intent never tints it.
 
-```tsx-live layout=row gap=6
-<Logo />
-<div className='intent-danger'>
-  <Logo />
+`brand`, the default, is Oztix blue. Use it on light surfaces, and on the page in either mode.
+
+```tsx-live
+<Logo tone='brand' variant='tagline' size='sm' />
+```
+
+`dark` is near-black. Use it on a light surface where blue lacks contrast, in one-colour print, or in a row of neutral partner logos.
+
+```tsx-live
+<div className='rounded-lg bg-(--color-neutral-light-0) p-6'>
+  <Logo tone='dark' variant='tagline' size='sm' />
 </div>
 ```
+
+`light` is white. Use it on dark surfaces, strong brand surfaces, and calm, dark areas of photos.
+
+```tsx-live layout=stack gap=4
+{/* On brand */}
+<div className='intent-brand emphasis-strong rounded-lg p-6'>
+  <Logo tone='light' variant='tagline' size='sm' />
+</div>
+{/* On dark */}
+<div className='rounded-lg bg-(--color-neutral-light-13) p-6'>
+  <Logo tone='light' variant='tagline' size='sm' />
+</div>
+```
+
+`neutral` is one colour that follows the theme, near-black in light mode and near-white in dark mode. Use it in product UI and docs chrome that follow the theme. Brand blue stays the default for brand moments.
+
+```tsx-live
+<Logo tone='neutral' variant='tagline' size='sm' />
+```
+
+In dark mode, the brand mark and wordmark stay Oztix blue, and the brand tagline and divider follow the theme, so the brand logo reads on the page in either mode. The `neutral` logo follows the theme throughout. The `dark` and `light` tones are fixed in both modes, because each is drawn for a known background. For a tagline logo on a surface that stays light in dark mode, use `dark`.
+
+The [Brand Logo page](/brand/logo) has the brand rules for using the logo.
 
 ### Collapsing
 
@@ -100,12 +148,61 @@ The `logo-wordmark` and `logo-product` slots hold their own gap and clip, so a p
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='The logo colour is fixed'>
-  <Guideline.Do code={`<Logo />`}>
-    The logo is always Oztix blue. It doesn't take an intent or a colour prop, and it doesn't follow a surrounding intent.
+<Guideline title='Colour the logo with tone only'>
+  <Guideline.Do code={`<Logo tone='dark' />`}>
+    Pick one of the four tones. They're the only approved colours.
   </Guideline.Do>
-  <Guideline.Dont code={`<Logo className='text-[#0191eb]' />`}>
-    Don't hard-code a colour. It won't change with the theme.
+  <Guideline.Dont code={`
+    <Logo className='text-danger-9' />
+    <div className='intent-danger'>
+      <Logo />
+    </div>
+  `}>
+    Don't recolour the logo with a className or an intent. A className isn't supported, and an intent is ignored.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Use the light tone on a strong brand surface'>
+  <Guideline.Do code={`
+    <div className='intent-brand emphasis-strong p-6'>
+      <Logo tone='light' />
+    </div>
+  `}>
+    Put the white logo on a strong brand fill, where it has the contrast the brand pack draws it for.
+  </Guideline.Do>
+  <Guideline.Dont code={`
+    <div className='intent-brand emphasis-strong p-6'>
+      <Logo />
+    </div>
+  `}>
+    Don't put the blue logo on a blue fill. It disappears.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Give the light logo a calm area of a photo'>
+  <Guideline.Do>
+    Place the white logo over a dark, even part of a photo, or over a dark scrim.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't place it over a busy or light part of a photo, where its edges break up against the detail.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep the wordmark with the mark'>
+  <Guideline.Do code={`<Logo />`}>
+    Show the mark and the wordmark together. The wordmark alone is only a collapse state, while a navigation folds the full logo.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Logo variant='wordmark' />`}>
+    Don't place the wordmark as a logo on its own.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep 20px logos in product UI'>
+  <Guideline.Do code={`<Logo variant='tagline' size='sm' />`}>
+    Use 24px or larger in marketing, print, and partner material.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Logo variant='tagline' size='xs' />`}>
+    Don't use the 20px logo outside product UI.
   </Guideline.Dont>
 </Guideline>
 
@@ -113,7 +210,7 @@ The `logo-wordmark` and `logo-product` slots hold their own gap and clip, so a p
 
 ## Accessibility
 
-- The logo is one image with the accessible name "Oztix". A product logo is named "Oztix" plus the product, such as "Oztix Studio".
+- The logo is one image with the accessible name "Oztix". A product logo is named "Oztix" plus the product, such as "Oztix Studio", and a logo with the tagline is named "Oztix, Built on Partnerships".
 - Pass `aria-label` to name it something else, such as "Oztix home" inside a link.
 - When the logo sits next to text that already says Oztix, pass `aria-hidden` and it drops its role and name.
 - The inner SVGs are always hidden from assistive technology.

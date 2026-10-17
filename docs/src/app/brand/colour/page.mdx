@@ -1,0 +1,157 @@
+export const metadata = {
+  title: 'Colour',
+  description:
+    'The brand palette, named like stage lighting, and how to use it across digital, print, and partner work.',
+  category: 'Brand',
+  order: 1
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PairTable } from '@/components/PairTable'
+import { BrandSwatches } from '@/components/brand/BrandSwatches'
+import { ColourStrip } from '@/components/brand/ColourStrip'
+
+import { Button } from '@oztix/roadie-components/button'
+
+<ColourStrip />
+
+The brand palette is Roadie's colour scales, so a design and the app it becomes
+use the same values. Each colour has a lighting name that says what it's for,
+like the lights on a stage.
+
+## Lighting names
+
+Use the lighting name in briefs and design files, and the Roadie step in code.
+
+| Name      | Roadie step | What it lights                                   |
+| --------- | ----------- | ------------------------------------------------ |
+| Flood     | Neutral 0   | Pure white backgrounds, and text on dark ones    |
+| Wash      | 2           | Subtle backgrounds, rarely used                  |
+| House     | 5           | Patterns, text blocks, and container backgrounds |
+| Stage     | 7           | Secondary actions, links, and borders            |
+| Spotlight | 9           | Primary calls to action and hero moments         |
+| Backstage | 11          | Secondary text                                   |
+| Blackout  | 12          | Body text, headings, and dark backgrounds        |
+
+## Swatches
+
+Each card shows a colour's light value, which brand artwork keeps in dark mode
+too. Select a token, hex, or CMYK value to copy it, and a message confirms
+what you copied. CMYK marked derived is a
+screen-to-print equivalent, converted from the hex through a coated press
+profile, to confirm with a proof.
+
+### Neutral
+
+Neutral carries most text and backgrounds. Blackout is for body text and
+headings, and Backstage for secondary text.
+
+<BrandSwatches hue='neutral' />
+
+### Blue
+
+The core brand colour, for trust, reliability, and partnership. In code, it's
+the `intent-brand-blue` intent and the `--color-brand-blue-*` tokens.
+
+<BrandSwatches hue='blue' />
+
+### Purple
+
+Innovation and premium experiences, strong in music and venue work. In code,
+it's the `intent-brand-purple` intent and the `--color-brand-purple-*` tokens.
+
+<BrandSwatches hue='purple' />
+
+### Orange
+
+Energy and live moments, strong in shows and sports. In code, it's the
+`intent-brand-orange` intent and the `--color-brand-orange-*` tokens.
+
+<BrandSwatches hue='orange' />
+
+### Green, yellow, and red
+
+Status colours, used sparingly and only for what they mean. Green is success,
+yellow is featured content, and red is critical states. Yellow fills always
+take dark text.
+
+<BrandSwatches hue='green' />
+
+<BrandSwatches hue='yellow' />
+
+<BrandSwatches hue='red' />
+
+## Pairing colours
+
+Lead with blue, and let one spotlight colour be the hero of a piece.
+
+<Guidelines>
+
+<Guideline title='One spotlight colour leads'>
+  <Guideline.Do example={<Button intent='brand-blue' emphasis='strong'>Contact sales</Button>}>
+    One spotlight colour for the hero action, with house colours supporting it.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <Guideline.Row>
+        <Button intent='brand-orange' emphasis='strong'>Contact sales</Button>
+        <Button intent='brand-purple' emphasis='strong'>Create my event</Button>
+      </Guideline.Row>
+    }
+  >
+    Warm and cool spotlight colours competing in one piece.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+- Keep bright colours off large backgrounds. The pattern is the exception,
+  with house colour curves on a spotlight ground.
+- Keep blue in every Oztix logo and primary call to action.
+- In print, use house colours for large areas, specify CMYK, and test on the
+  actual paper stock.
+
+### By market
+
+<PairTable>
+
+| Market | Colours                                           |
+| ------ | ------------------------------------------------- |
+| Music  | Blue and purple. Purple can lead the background.  |
+| Sports | Blue and orange, in high energy combinations.     |
+| Venues | Blue and purple, mostly blue, kept professional.  |
+| Shows  | Blue and orange, matched to the show's energy.    |
+| Events | Blue, orange, and green, the most flexible range. |
+
+</PairTable>
+
+### By piece
+
+<PairTable>
+
+| Piece        | Colour                                                                  |
+| ------------ | ----------------------------------------------------------------------- |
+| Email        | Spotlight blue headers, house blue backgrounds, and Blackout text       |
+| Social post  | One spotlight colour leads, with house colour support                   |
+| Print        | House colours for main areas, and spotlight for brand moments           |
+| Presentation | Spotlight blue, house patterns and text blocks, and neutral backgrounds |
+| Co-branding  | Spotlight blue for Oztix elements, neutrals for shared space            |
+
+</PairTable>
+
+## Contrast
+
+Contrast is measured with APCA, at the minimums on
+[Colours](/foundations/colors#contrast): Lc 75 for body text, Lc 60 for labels
+on strong fills and large text, and Lc 45 for non-text elements. White text on
+Spotlight blue passes for labels and large text. Never use colour alone to
+carry meaning.
+
+## In Roadie
+
+- Emphasis picks the step, so code names the intent rather than a lighting
+  name. See [Colours](/foundations/colors).
+- Artwork that keeps its light colours in dark mode uses the pinned `-light-`
+  tokens, such as `--color-brand-blue-light-9`, which exist for steps 5, 9, 12,
+  and 13, and neutral 0. The swatch tokens follow the theme.
+- Every step of every scale is on [Color scales](/tokens/color-scales).

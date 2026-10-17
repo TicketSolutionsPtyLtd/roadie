@@ -1,0 +1,81 @@
+export const metadata = {
+  title: 'Pattern',
+  description:
+    'The partnership flow, a swirl pattern that adds texture and energy without competing with the content.',
+  category: 'Brand',
+  order: 4
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PairTable } from '@/components/PairTable'
+import { DownloadCard } from '@/components/brand/DownloadCard'
+import { PatternExample } from '@/components/brand/PatternExample'
+
+<PatternExample kind='banner' />
+
+The partnership flow is the brand's pattern, shown here as a wide banner of
+house blue swirls on Spotlight blue. Its curves interlock to show movement and
+connection, the partnerships the brand is built on, and add texture without
+overpowering the content.
+
+## Colour
+
+Each colour sets house colour curves on its spotlight colour, and keeps those
+light colours in dark mode, like all brand artwork. These are portrait crops in
+blue, purple, and orange.
+
+<PatternExample kind='tones' />
+
+<PairTable>
+
+| Market                    | Colour                                 |
+| ------------------------- | -------------------------------------- |
+| Every market              | Blue, the foundation                   |
+| Music and venues          | Purple, alongside blue                 |
+| Shows, events, and sports | Orange, alongside blue                 |
+
+</PairTable>
+
+## Layout
+
+Crop the pattern to frame a page, set it behind content for texture, or layer
+it behind and in front of a photo's subject for depth.
+
+<Guidelines>
+
+<Guideline title='Pair the pattern with a black strip'>
+  <Guideline.Do
+    example={<PatternExample kind='strip' />}
+  >
+    A black strip holding the logo and tagline makes a branded header or
+    footer. Let the pattern bleed off the edges.
+  </Guideline.Do>
+</Guideline>
+
+</Guidelines>
+
+- Crop and scale it freely, as long as the curves stay whole and the flow is
+  still recognisable.
+- Keep critical text off its busiest parts, with enough contrast for any text
+  set over it.
+- Don't stretch, rotate, or angle the pattern, or change its shapes or line
+  weights.
+- Don't use colours outside the brand palette, or let it overpower the key
+  content.
+
+## Downloads
+
+<DownloadCard
+  title='Pattern pack'
+  href='/brand/pattern/oztix-pattern-pack.zip'
+  formats='SVG'
+  size='28 KB'
+  description='The top band, banner, left, and right crops in blue, purple, and orange.'
+/>
+
+## In Roadie
+
+- Build the pattern with the [Pattern](/components/pattern) component. Its
+  `crop` lines the artwork up with an edge, and its `tone` picks the colour.
+- Its colours are the pinned light steps 5 and 9 of the brand hue aliases, such
+  as `--color-brand-blue-light-9`, on [Color scales](/tokens/color-scales).

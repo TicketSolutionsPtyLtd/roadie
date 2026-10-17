@@ -73,10 +73,21 @@ export const CHARTS: Catalogue = {
 
 export const WIDGETS: Catalogue = { route: '/roadie-widgets', categories: [] }
 
-const CATALOGUES = [COMPONENTS, FOUNDATIONS, CONTENT, TOKENS, CHARTS, WIDGETS]
+export const BRAND: Catalogue = { route: '/brand', categories: ['Brand'] }
+
+const CATALOGUES = [
+  BRAND,
+  COMPONENTS,
+  FOUNDATIONS,
+  CONTENT,
+  TOKENS,
+  CHARTS,
+  WIDGETS
+]
 
 /** The catalogues an index page renders with `<Catalogue name>`. */
 export const CATALOGUE_PAGES = {
+  brand: BRAND,
   foundations: FOUNDATIONS,
   content: CONTENT,
   components: COMPONENTS,

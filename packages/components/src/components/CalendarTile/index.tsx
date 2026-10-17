@@ -45,27 +45,21 @@ export const calendarTileVariants = cva(
  *
  * Not `emphasis-inverted` despite the name: that is intent step 12, a
  * near-black, where the band wants step 9.
+ *
+ * Type, padding, and height come from the `calendar-tile-top` utility, so the
+ * React tile and the CSS twin can't drift apart.
  */
-const calendarTileTopVariants = cva(
-  'py-[3px] font-bold tracking-wider uppercase',
-  {
-    variants: {
-      emphasis: {
-        strong: 'emphasis-normal',
-        normal: 'emphasis-strong',
-        subtle: 'emphasis-strong',
-        subtler: 'emphasis-strong'
-      },
-      // The box scales, so the type scales with it.
-      size: {
-        sm: 'text-[9px]',
-        md: 'text-[10px]',
-        lg: 'text-[11px]'
-      }
-    },
-    defaultVariants: { emphasis: 'subtle', size: 'md' }
-  }
-)
+const calendarTileTopVariants = cva('calendar-tile-top', {
+  variants: {
+    emphasis: {
+      strong: 'emphasis-normal',
+      normal: 'emphasis-strong',
+      subtle: 'emphasis-strong',
+      subtler: 'emphasis-strong'
+    }
+  },
+  defaultVariants: { emphasis: 'subtle' }
+})
 
 /** Colour comes from the tile's own emphasis; only the scale belongs here. */
 const calendarTileDayVariants = cva('grid place-content-center font-bold', {
@@ -107,9 +101,9 @@ interface CalendarTileOwnProps extends VariantProps<
  */
 type CalendarTileTop =
   | {
-      /** Short month, e.g. `NOV`. Ignored when `weekday` is set. */
+      /** Short month, e.g. `Nov`. Ignored when `weekday` is set. */
       month: string
-      /** Short weekday, e.g. `FRI`. Replaces the month in the top row. */
+      /** Short weekday, e.g. `Fri`. Replaces the month in the top row. */
       weekday?: string
     }
   | { month?: string; weekday: string }
@@ -150,7 +144,7 @@ export function CalendarTile({
     <>
       <span
         data-slot='calendar-tile-top'
-        className={calendarTileTopVariants({ emphasis, size })}
+        className={calendarTileTopVariants({ emphasis })}
       >
         {top}
       </span>
@@ -169,8 +163,9 @@ export function CalendarTile({
     return (
       <time
         data-slot='calendar-tile'
+        data-size={size ?? 'md'}
         dateTime={dateTime}
-        // Without a label the tile would announce 'NOV 27' with no weekday and
+        // Without a label the tile would announce 'Nov 27' with no weekday and
         // no year. The machine value is a poor name but an honest one.
         aria-label={label ?? dateTime}
         className={classes}
@@ -184,6 +179,7 @@ export function CalendarTile({
   return (
     <div
       data-slot='calendar-tile'
+      data-size={size ?? 'md'}
       // The rows are abbreviations; the label carries the real date. Without a
       // label the tile is decorative and its neighbour owns the accessible name.
       role={label ? 'img' : undefined}
