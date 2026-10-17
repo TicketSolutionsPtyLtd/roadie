@@ -16,6 +16,8 @@ import {
 import Link from 'next/link'
 
 import {
+  ArrowClockwiseIcon,
+  ArrowCounterClockwiseIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
   ArrowSquareOutIcon,
@@ -55,6 +57,10 @@ import {
   SlidersHorizontalIcon,
   SquaresFourIcon,
   StarIcon,
+  TableIcon,
+  TextAlignCenterIcon,
+  TextAlignLeftIcon,
+  TextAlignRightIcon,
   TextBIcon,
   TextItalicIcon,
   TextUnderlineIcon,
@@ -164,7 +170,13 @@ const PhosphorIcons = {
   SquaresFour: SquaresFourIcon,
   TextB: TextBIcon,
   TextItalic: TextItalicIcon,
-  TextUnderline: TextUnderlineIcon
+  TextUnderline: TextUnderlineIcon,
+  TextAlignLeft: TextAlignLeftIcon,
+  TextAlignCenter: TextAlignCenterIcon,
+  TextAlignRight: TextAlignRightIcon,
+  ArrowCounterClockwise: ArrowCounterClockwiseIcon,
+  ArrowClockwise: ArrowClockwiseIcon,
+  Table: TableIcon
 }
 
 // Icon-suffixed keys (`<TicketIcon />`) derived from the bare map.
